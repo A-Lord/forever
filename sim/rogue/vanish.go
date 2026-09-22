@@ -1,16 +1,16 @@
 package rogue
 
-var vanishRank = spellData.Vanish.BySpellID(1856)
+var vanishRank = spellData.Vanish.ByID(1856)
 
 // TODO: To be implemented. Vanish already resolves against Forever data
-// (spellData.Vanish.BySpellID(1856)); the TBC body needs review before it's uncommented.
+// (spellData.Vanish.ByID(1856)); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerVanishSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
 	// rogue.Vanish = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: vanishRank.SpellID},
-	// 	SpellSchool:    vanishRank.SpellSchool,
+	// 	ActionID:       core.ActionID{SpellID: vanishRank.ID},
+	// 	SpellSchool:    vanishRank.SpellSchool(),
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellVanish,
 	//
@@ -21,7 +21,7 @@ func (rogue *Rogue) registerVanishSpell() {
 	// 		IgnoreHaste: true,
 	// 		CD: core.Cooldown{
 	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: vanishRank.Cooldown,
+	// 			Duration: max(vanishRank.Cooldown(), vanishRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

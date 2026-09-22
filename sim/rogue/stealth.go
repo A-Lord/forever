@@ -1,16 +1,16 @@
 package rogue
 
-var stealthRank = spellData.Stealth.BySpellID(1784)
+var stealthRank = spellData.Stealth.ByID(1784)
 
 // TODO: To be implemented. Stealth already resolves against Forever data
-// (spellData.Stealth.BySpellID(1784)); the TBC body needs review before it's uncommented.
+// (spellData.Stealth.ByID(1784)); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerStealthAura() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
 	// rogue.StealthAura = rogue.RegisterAura(core.Aura{
 	// 	Label:    "Stealth",
-	// 	ActionID: core.ActionID{SpellID: stealthRank.SpellID},
+	// 	ActionID: core.ActionID{SpellID: stealthRank.ID},
 	// 	Duration: core.NeverExpires,
 	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
 	// 		// Stealth triggered auras
@@ -31,15 +31,15 @@ func (rogue *Rogue) registerStealthAura() {
 	// })
 	//
 	// rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: stealthRank.SpellID},
-	// 	SpellSchool:    stealthRank.SpellSchool,
+	// 	ActionID:       core.ActionID{SpellID: stealthRank.ID},
+	// 	SpellSchool:    stealthRank.SpellSchool(),
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellStealth,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{
 	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: stealthRank.Cooldown,
+	// 			Duration: max(stealthRank.Cooldown(), stealthRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	// 	ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {

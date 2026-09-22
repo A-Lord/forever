@@ -123,9 +123,10 @@ func (rogue *Rogue) registerPuncturingWounds() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:      core.SpellMod_BonusCrit_Percent,
 	// 	ClassMask: RogueSpellMutilateHit,
-	// 	// Effect 1 is the proc trigger; the Mutilate crit bonus is the second of the two
-	// 	// crit modifiers, which share an aura and misc and so have to be indexed.
-	// 	FloatValue: spellData.PuncturingWounds.EffectAt(2).ValueAt(rogue.Talents.PuncturingWounds),
+	// 	// The proc trigger sits between the two crit modifiers, at effect position 2; the
+	// 	// Mutilate crit bonus is the second of the two, at position 3, and they share an aura
+	// 	// and misc so have to be indexed rather than named.
+	// 	FloatValue: spellData.PuncturingWounds.EffectAt(3).ValueAt(rogue.Talents.PuncturingWounds),
 	// })
 }
 
@@ -184,7 +185,7 @@ func (rogue *Rogue) registerVilePoisons() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  RogueSpellPoisons,
-	// 	FloatValue: spellData.VilePoisons.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(rogue.Talents.VilePoisons),
+	// 	FloatValue: spellData.VilePoisons.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(rogue.Talents.VilePoisons),
 	// })
 }
 
@@ -269,9 +270,9 @@ func (rogue *Rogue) registerSealFate() {
 
 // Was 34413; Forever reworked Mutilate onto an entirely new set of spell ids, so this
 // follows the highest rank the client actually ships.
-var MutilateSpellID int32 = spellData.Mutilate.HighestRank().SpellID
+var MutilateSpellID int32 = spellData.Mutilate.Highest().ID
 
-var mutilateRank = spellData.Mutilate.BySpellID(MutilateSpellID)
+var mutilateRank = spellData.Mutilate.ByID(MutilateSpellID)
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
 // brought back.
@@ -297,12 +298,12 @@ func (rogue *Rogue) registerMutilate() {
 	// 	ClassSpellMask: RogueSpellMutilate,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   mutilateRank.Cost,
+	// 		Cost:   mutilateRank.Cost(),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: mutilateRank.GCD,
+	// 			GCD: mutilateRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 	},

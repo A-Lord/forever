@@ -1,30 +1,30 @@
 package rogue
 
-var sinisterStrikeRank = spellData.SinisterStrike.HighestRank()
+var sinisterStrikeRank = spellData.SinisterStrike.Highest()
 
 // TODO: To be implemented. Sinister Strike already resolves against Forever data
-// (spellData.SinisterStrike.HighestRank()); the TBC body needs review before it's uncommented.
+// (spellData.SinisterStrike.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerSinisterStrikeSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// baseDamage, _ := sinisterStrikeRank.Direct.Range()
+	// baseDamage := sinisterStrikeRank.DamageEffect().Average(core.CharacterLevel)
 	//
 	// rogue.SinisterStrike = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: sinisterStrikeRank.SpellID},
-	// 	SpellSchool:    sinisterStrikeRank.SpellSchool,
-	// 	DefenseType:    sinisterStrikeRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: sinisterStrikeRank.ID},
+	// 	SpellSchool:    sinisterStrikeRank.SpellSchool(),
+	// 	DefenseType:    sinisterStrikeRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellSinisterStrike,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   sinisterStrikeRank.Cost,
+	// 		Cost:   sinisterStrikeRank.Cost(),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: sinisterStrikeRank.GCD,
+	// 			GCD: sinisterStrikeRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 	},
@@ -33,7 +33,7 @@ func (rogue *Rogue) registerSinisterStrikeSpell() {
 	// 	DamageMultiplierAdditive: 1,
 	// 	ThreatMultiplier:         1,
 	//
-	// 	BonusCoefficient: sinisterStrikeRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: sinisterStrikeRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		rogue.BreakStealth(sim)

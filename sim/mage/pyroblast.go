@@ -1,16 +1,17 @@
 package mage
 
-var pyroblastRank = spellData.Pyroblast.HighestRank()
+var pyroblastRank = spellData.Pyroblast.Highest()
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerPyroblastSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: pyroblastRank.SpellID}
+	// actionID := core.ActionID{SpellID: pyroblastRank.ID}
 	//
 	// pyroblastDotCoefficient := 0.05000000075
-	// pyroblastTick := pyroblastRank.Periodic.(shared.SpellDataPeriodic)
+	// pyroblastTick := pyroblastRank.PeriodicEffect()
+	// tickLength := pyroblastTick.Period()
 	//
 	// mage.Pyroblast = mage.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       actionID,
@@ -19,24 +20,24 @@ func (mage *Mage) registerPyroblastSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellPyroblast,
-	// 	MissileSpeed:   pyroblastRank.MissileSpeed,
+	// 	MissileSpeed:   float64(pyroblastRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: pyroblastRank.Cost,
+	// 		FlatCost: pyroblastRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      pyroblastRank.GCD,
-	// 			CastTime: pyroblastRank.CastTime,
+	// 			GCD:      pyroblastRank.GCD(),
+	// 			CastTime: pyroblastRank.CastTime(),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: pyroblastRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: pyroblastRank.DamageEffect().Coeff(),
 	// 	ThreatMultiplier: 1,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := pyroblastRank.Direct.Damage(sim)
+	// 		baseDamage := pyroblastRank.DamageEffect().Average(core.CharacterLevel)
 	// 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	//
 	// 		spell.WaitTravelTime(sim, func(s *core.Simulation) {
@@ -63,14 +64,11 @@ func (mage *Mage) registerPyroblastSpell() {
 	// 		Aura: core.Aura{
 	// 			Label: "PyroblastDoT",
 	// 		},
-	// 		NumberOfTicks:    pyroblastTick.NumberOfTicks,
-	// 		TickLength:       pyroblastTick.TickLength,
+	// 		NumberOfTicks:    int32(pyroblastRank.Duration() / tickLength),
+	// 		TickLength:       tickLength,
 	// 		BonusCoefficient: pyroblastDotCoefficient,
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, pyroblastTick.Tick)
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, pyroblastTick.Average(core.CharacterLevel), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//

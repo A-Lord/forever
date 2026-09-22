@@ -4,15 +4,15 @@ import (
 	"time"
 )
 
-var sliceAndDiceRank = spellData.SliceAndDice.BySpellID(6774)
+var sliceAndDiceRank = spellData.SliceAndDice.ByID(6774)
 
 // TODO: To be implemented. Slice and Dice already resolves against Forever data
-// (spellData.SliceAndDice.BySpellID(6774)); the TBC body needs review before it's uncommented.
+// (spellData.SliceAndDice.ByID(6774)); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerSliceAndDice() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: sliceAndDiceRank.SpellID}
+	// actionID := core.ActionID{SpellID: sliceAndDiceRank.ID}
 	//
 	// rogue.SliceAndDiceBonusFlat = 0.3
 	// rogue.sliceAndDiceDurations = [6]time.Duration{
@@ -49,11 +49,11 @@ func (rogue *Rogue) registerSliceAndDice() {
 	// 	ClassSpellMask: RogueSpellSliceAndDice,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: sliceAndDiceRank.Cost,
+	// 		Cost: sliceAndDiceRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: sliceAndDiceRank.GCD,
+	// 			GCD: sliceAndDiceRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 		ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {

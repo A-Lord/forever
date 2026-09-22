@@ -1,39 +1,39 @@
 package shaman
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var earthShockRank = spellData.EarthShock.HighestRank()
-var flameShockRank = spellData.FlameShock.HighestRank()
-var frostShockRank = spellData.FrostShock.HighestRank()
+var earthShockRank = spellData.EarthShock.Highest()
+var flameShockRank = spellData.FlameShock.Highest()
+var frostShockRank = spellData.FrostShock.Highest()
 
 // Shared logic for all shocks.
-func (shaman *Shaman) newShockSpellConfig(rank shared.SpellData, spellSchool core.SpellSchool, shockTimer *core.Timer) core.SpellConfig {
+func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell, spellSchool core.SpellSchool, shockTimer *core.Timer) core.SpellConfig {
 	return core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: rank.SpellID},
+		ActionID:    core.ActionID{SpellID: rank.ID},
 		SpellSchool: spellSchool,
 		DefenseType: core.DefenseTypeMagic,
 		ProcMask:    core.ProcMaskSpellDamage,
 		Flags:       SpellFlagShamanSpell | SpellFlagShock | core.SpellFlagAPL | SpellFlagInstant,
-		MaxRange:    rank.MaxRange,
+		MaxRange:    float64(rank.MaxRange),
 
 		ManaCost: core.ManaCostOptions{
-			FlatCost: rank.Cost,
+			FlatCost: int32(rank.Cost()),
 		},
 		Cast: core.CastConfig{
 			DefaultCast: core.Cast{
-				GCD: rank.GCD,
+				GCD: rank.GCD(),
 			},
 			CD: core.Cooldown{
 				Timer:    shockTimer,
-				Duration: rank.Cooldown,
+				Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
 			},
 		},
 
 		DamageMultiplier: 1,
-		BonusCoefficient: rank.Direct.BonusCoefficient(),
+		BonusCoefficient: rank.DamageEffect().Coeff(),
 		ThreatMultiplier: 1,
 	}
 }
@@ -47,7 +47,7 @@ func (shaman *Shaman) registerEarthShockSpell(shockTimer *core.Timer) {
 	// config.ClassSpellMask = SpellMaskEarthShock
 	// config.Flags |= core.SpellFlagBinary
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 	baseDamage := earthShockRank.Direct.Damage(sim)
+	// 	baseDamage := earthShockRank.DamageEffect().Average(core.CharacterLevel)
 	// 	spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// }
 	//
@@ -59,12 +59,12 @@ func (shaman *Shaman) registerFlameShockSpell(shockTimer *core.Timer) {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// tick := flameShockRank.Periodic.(shared.SpellDataPeriodic)
+	// tick := flameShockRank.PeriodicEffect()
 	//
 	// config := shaman.newShockSpellConfig(flameShockRank, core.SpellSchoolFire, shockTimer)
 	// config.ClassSpellMask = SpellMaskFlameShockDirect
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 	baseDamage := flameShockRank.Direct.Damage(sim)
+	// 	baseDamage := flameShockRank.DamageEffect().Average(core.CharacterLevel)
 	// 	result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// 	if result.Landed() {
 	// 		spell.RelatedDotSpell.Cast(sim, target)
@@ -74,9 +74,9 @@ func (shaman *Shaman) registerFlameShockSpell(shockTimer *core.Timer) {
 	// shaman.FlameShock = shaman.RegisterSpell(config)
 	//
 	// shaman.FlameShock.RelatedDotSpell = shaman.RegisterSpell(core.SpellConfig{
-	// 	ActionID:         core.ActionID{SpellID: flameShockRank.SpellID, Tag: 1},
-	// 	SpellSchool:      flameShockRank.SpellSchool,
-	// 	DefenseType:      flameShockRank.DefenseType,
+	// 	ActionID:         core.ActionID{SpellID: flameShockRank.ID, Tag: 1},
+	// 	SpellSchool:      flameShockRank.SpellSchool(),
+	// 	DefenseType:      flameShockRank.DefenseTypeCore(),
 	// 	ProcMask:         core.ProcMaskSpellDamage,
 	// 	Flags:            config.Flags & ^core.SpellFlagAPL | core.SpellFlagPassiveSpell,
 	// 	ClassSpellMask:   SpellMaskFlameShockDot,
@@ -87,14 +87,11 @@ func (shaman *Shaman) registerFlameShockSpell(shockTimer *core.Timer) {
 	// 		Aura: core.Aura{
 	// 			Label: "Flame Shock",
 	// 		},
-	// 		NumberOfTicks:    tick.NumberOfTicks,
-	// 		TickLength:       tick.TickLength,
-	// 		BonusCoefficient: tick.Coef,
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, tick.Tick)
-	// 		},
+	// 		NumberOfTicks:    int32(flameShockRank.Duration() / tick.Period()),
+	// 		TickLength:       tick.Period(),
+	// 		BonusCoefficient: tick.Coeff(),
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), dot.OutcomeTick)
 	// 		},
 	// 	},
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
@@ -102,15 +99,9 @@ func (shaman *Shaman) registerFlameShockSpell(shockTimer *core.Timer) {
 	// 	},
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
 	// 		dot := spell.Dot(target)
-	// 		if useSnapshot {
-	// 			result := dot.CalcSnapshotDamage(sim, target, dot.OutcomeTick)
-	// 			result.Damage /= dot.TickPeriod().Seconds()
-	// 			return result
-	// 		} else {
-	// 			result := spell.CalcPeriodicDamage(sim, target, tick.Tick, spell.OutcomeExpectedMagicCrit)
-	// 			result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
-	// 			return result
-	// 		}
+	// 		result := spell.CalcPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), spell.OutcomeExpectedMagicCrit)
+	// 		result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
+	// 		return result
 	// 	},
 	// })
 }
@@ -125,7 +116,7 @@ func (shaman *Shaman) registerFrostShockSpell(shockTimer *core.Timer) {
 	// config.Flags |= core.SpellFlagBinary
 	// config.ThreatMultiplier *= 2
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 	baseDamage := frostShockRank.Direct.Damage(sim)
+	// 	baseDamage := frostShockRank.DamageEffect().Average(core.CharacterLevel)
 	// 	spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// }
 	//

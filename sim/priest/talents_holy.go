@@ -1,7 +1,7 @@
 package priest
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func (priest *Priest) registerHolyTalents() {
@@ -107,44 +107,44 @@ func (priest *Priest) applyHolyNova() {
 	// if !priest.Talents.HolyNova {
 	// 	return
 	// }
-	// HolyNovaRankMap.RegisterAll(priest.registerHolyNovaSpell)
+	// HolyNovaRankMap.Each(func(_ int32, rank *spelldata.Spell) { priest.registerHolyNovaSpell(rank) })
 }
 
 var HolyNovaRankMap = spellData.HolyNova
 
 // TODO: To be implemented. Holy Nova already has a full Forever rank ladder (spellData.HolyNova); the
 // TBC body needs review before it's uncommented.
-func (priest *Priest) registerHolyNovaSpell(rank shared.SpellData) {
+func (priest *Priest) registerHolyNovaSpell(rank *spelldata.Spell) {
 	// The TBC implementation, kept for the port:
 	// priest.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: rank.SpellID},
+	// 	ActionID:       core.ActionID{SpellID: rank.ID},
 	// 	SpellSchool:    core.SpellSchoolHoly,
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellHolyNova,
-	// 	Rank:           rank.Rank,
+	// 	Rank:           rank.RankNumber(),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: rank.Cost,
+	// 		FlatCost: int32(rank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: rank.GCD,
+	// 			GCD: rank.GCD(),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplier:         1,
 	// 	DamageMultiplierAdditive: 1,
-	// 	BonusCoefficient:         rank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient:         rank.DamageEffect().Coeff(),
 	// 	ThreatMultiplier:         0,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := rank.Direct.Damage(sim)
+	// 		baseDamage := rank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealAoeDamage(sim, baseDamage, spell.OutcomeMagicHitAndCrit)
 	//
-	// 		baseHeal := rank.Direct.Damage(sim)
+	// 		baseHeal := rank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealHealing(sim, spell.Unit, baseHeal, spell.OutcomeHealing)
 	// 	},
 	// })
@@ -204,7 +204,7 @@ func (priest *Priest) applySearingLight() {
 	// // +5% damage per rank
 	// priest.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.SearingLight.Effect(shared.A_MOD_DAMAGE_PERCENT_DONE, 0).FractionAt(priest.Talents.SearingLight),
+	// 	FloatValue: spellData.SearingLight.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 0).FractionAt(priest.Talents.SearingLight),
 	// 	ClassMask:  PriestSpellSmite | PriestSpellHolyFire,
 	// })
 }
@@ -256,7 +256,7 @@ func (priest *Priest) applySpiritualGuidance() {
 	// 	return
 	// }
 	// // 5% of Spirit added to spell damage per rank
-	// coeff := spellData.SpiritualGuidance.Effect(shared.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, 126).FractionAt(priest.Talents.SpiritualGuidance)
+	// coeff := spellData.SpiritualGuidance.Effect(dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, 126).FractionAt(priest.Talents.SpiritualGuidance)
 	// priest.AddStatDependency(stats.Spirit, stats.SpellDamage, coeff) // Only scaling damage for now since no healing sim....yet!
 }
 

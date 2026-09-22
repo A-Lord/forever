@@ -1,7 +1,7 @@
 package warlock
 
-var shadowBoltRank = spellData.ShadowBolt.HighestRank()
-var shadowBoltCoeff = shadowBoltRank.Direct.BonusCoefficient()
+var shadowBoltRank = spellData.ShadowBolt.Highest()
+var shadowBoltCoeff = shadowBoltRank.DamageEffect().Coeff()
 
 // TODO: To be implemented. Port the TBC Shadow Bolt implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerShadowBolt() {
@@ -10,28 +10,28 @@ func (warlock *Warlock) registerShadowBolt() {
 	// The TBC implementation, kept for the port:
 	//
 	// warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: shadowBoltRank.SpellID},
-	// 	SpellSchool:    shadowBoltRank.SpellSchool,
+	// 	ActionID:       core.ActionID{SpellID: shadowBoltRank.ID},
+	// 	SpellSchool:    shadowBoltRank.SpellSchool(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellShadowBolt,
-	// 	MissileSpeed:   shadowBoltRank.MissileSpeed,
+	// 	MissileSpeed:   float64(shadowBoltRank.Speed),
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: shadowBoltRank.Cost},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: shadowBoltRank.Cost()},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      shadowBoltRank.GCD,
-	// 			CastTime: shadowBoltRank.CastTime,
+	// 			GCD:      shadowBoltRank.GCD(),
+	// 			CastTime: shadowBoltRank.CastTime(),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplierAdditive: 1,
-	// 	DefenseType:              shadowBoltRank.DefenseType,
+	// 	DefenseType:              shadowBoltRank.DefenseTypeCore(),
 	// 	ThreatMultiplier:         1,
 	// 	BonusCoefficient:         shadowBoltCoeff,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		dmgRoll := shadowBoltRank.Direct.Damage(sim)
+	// 		dmgRoll := shadowBoltRank.DamageEffect().Average(core.CharacterLevel)
 	// 		result := spell.CalcDamage(sim, target, dmgRoll, spell.OutcomeMagicHitAndCrit)
 	// 		existingAura := target.GetAurasWithTag("ImprovedShadowBolt")
 	//

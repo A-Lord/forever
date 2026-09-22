@@ -1,6 +1,6 @@
 package mage
 
-var arcaneBlastRank = spellData.ArcaneBlast.HighestRank()
+var arcaneBlastRank = spellData.ArcaneBlast.Highest()
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneBlastSpell() {
@@ -12,19 +12,19 @@ func (mage *Mage) registerArcaneBlastSpell() {
 	// arcaneBlastCoefficient := 0.71399998665
 	//
 	// mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: arcaneBlastRank.SpellID},
-	// 	SpellSchool:    arcaneBlastRank.SpellSchool,
-	// 	DefenseType:    arcaneBlastRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: arcaneBlastRank.ID},
+	// 	SpellSchool:    arcaneBlastRank.SpellSchool(),
+	// 	DefenseType:    arcaneBlastRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellArcaneBlast,
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneBlastRank.Cost,
+	// 		FlatCost: arcaneBlastRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      arcaneBlastRank.GCD,
-	// 			CastTime: arcaneBlastRank.CastTime,
+	// 			GCD:      arcaneBlastRank.GCD(),
+	// 			CastTime: arcaneBlastRank.CastTime(),
 	// 		},
 	// 	},
 	//
@@ -33,7 +33,7 @@ func (mage *Mage) registerArcaneBlastSpell() {
 	// 	ThreatMultiplier: 1,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := arcaneBlastRank.Direct.Damage(sim)
+	// 		baseDamage := arcaneBlastRank.DamageEffect().Average(core.CharacterLevel)
 	// 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// 		if result.Landed() {
 	// 			mage.ArcaneChargesAura.Activate(sim)

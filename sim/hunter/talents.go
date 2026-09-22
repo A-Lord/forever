@@ -12,7 +12,7 @@ func (hunter *Hunter) ApplyTalents() {
 	}
 }
 
-var aimedShotRank = spellData.AimedShot.HighestRank()
+var aimedShotRank = spellData.AimedShot.Highest()
 
 // TODO: To be implemented.
 func (hunter *Hunter) registerAimedShot() {
@@ -20,15 +20,15 @@ func (hunter *Hunter) registerAimedShot() {
 
 	// The TBC implementation, kept for the port:
 	// hunter.AimedShot = hunter.RegisterRangedSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: aimedShotRank.SpellID},
-	// 	SpellSchool:    aimedShotRank.SpellSchool,
-	// 	DefenseType:    aimedShotRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: aimedShotRank.ID},
+	// 	SpellSchool:    aimedShotRank.SpellSchool(),
+	// 	DefenseType:    aimedShotRank.DefenseTypeCore(),
 	// 	ClassSpellMask: HunterSpellAimedShot,
 	// 	ProcMask:       core.ProcMaskRangedSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: aimedShotRank.Cost,
+	// 		FlatCost: int32(aimedShotRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
@@ -37,17 +37,17 @@ func (hunter *Hunter) registerAimedShot() {
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    hunter.NewTimer(),
-	// 			Duration: aimedShotRank.Cooldown,
+	// 			Duration: max(aimedShotRank.Cooldown(), aimedShotRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
-	// 	BonusCoefficient: aimedShotRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: aimedShotRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		baseDamage := 0.2*spell.RangedAttackPower(target) +
 	// 			hunter.AutoAttacks.Ranged().BaseDamage(sim) +
 	// 			hunter.talonOfAlarBonus() +
-	// 			aimedShotRank.Direct.Damage(sim)
+	// 			aimedShotRank.DamageEffect().Average(core.CharacterLevel)
 	//
 	// 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
 	//

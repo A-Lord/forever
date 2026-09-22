@@ -13,9 +13,9 @@ func (hunter *Hunter) registerRaptorStrikeSpell() {
 	panic("To be implemented")
 
 	// hunter.RaptorStrike = hunter.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: raptorStrikeRank.SpellID},
-	// 	SpellSchool:    raptorStrikeRank.SpellSchool,
-	// 	DefenseType:    raptorStrikeRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: raptorStrikeRank.ID},
+	// 	SpellSchool:    raptorStrikeRank.SpellSchool(),
+	// 	DefenseType:    raptorStrikeRank.DefenseTypeCore(),
 	// 	ClassSpellMask: HunterSpellRaptorStrike,
 	// 	ProcMask:       core.ProcMaskMeleeMH,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagNoOnCastComplete,
@@ -23,7 +23,7 @@ func (hunter *Hunter) registerRaptorStrikeSpell() {
 	// 	MaxRange: core.MaxMeleeRange,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: raptorStrikeRank.Cost,
+	// 		FlatCost: int32(raptorStrikeRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
@@ -32,7 +32,7 @@ func (hunter *Hunter) registerRaptorStrikeSpell() {
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    hunter.NewTimer(),
-	// 			Duration: raptorStrikeRank.Cooldown,
+	// 			Duration: max(raptorStrikeRank.Cooldown(), raptorStrikeRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
@@ -49,14 +49,14 @@ func (hunter *Hunter) registerRaptorStrikeSpell() {
 	// 			hunter.Log(sim, "%s delayed by %s, was ready at %s", spell.ActionID, delay, readyAt)
 	// 		}
 	//
-	// 		baseDamage := hunter.MHWeaponDamage(sim, spell.MeleeAttackPower(target)) + raptorStrikeRank.Direct.Damage(sim)
+	// 		baseDamage := hunter.MHWeaponDamage(sim, spell.MeleeAttackPower(target)) + raptorStrikeRank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
 	// 	},
 	// })
 	//
 	// hunter.RegisterAura(core.Aura{
 	// 	Label:    "Raptor Strike",
-	// 	ActionID: core.ActionID{SpellID: raptorStrikeRank.SpellID}.WithTag(2),
+	// 	ActionID: core.ActionID{SpellID: raptorStrikeRank.ID}.WithTag(2),
 	// 	Icd:      &hunter.RaptorStrike.CD,
 	// })
 }

@@ -23,6 +23,7 @@ type SpellConfig struct {
 	BaseCost       float64
 	MetricSplits   int
 	ClassSpellMask int64
+	ClassFlags     ClassFlags
 	Rank           int32
 
 	ManaCost   ManaCostOptions
@@ -99,6 +100,9 @@ type Spell struct {
 	// should be a unique bit
 	ClassSpellMask int64
 
+	// The client's SpellClassOptions: the family and mask bit its talents name this spell by.
+	ClassFlags ClassFlags
+
 	// Speed in yards/second. Spell missile speeds can be found in the game data.
 	// Example: https://wow.tools/dbc/?dbc=spellmisc&build=3.4.0.44996
 	MissileSpeed float64
@@ -149,8 +153,11 @@ type Spell struct {
 	CdMultiplier             float64
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
-	CritMultiplierPct        float64 // Multiplies the base crit multiplier, 1 = unmodified. Fed by SpellMod_CritMultiplier_Pct.
-	CritMultiplierAdditive   float64 // Additive critical damage bonus
+	// Added to DamageMultiplierAdditive on direct hits only. Unlike that bucket this one is 0
+	// when nothing feeds it.
+	DirectDamageMultiplierAdditive float64
+	CritMultiplierPct              float64 // Multiplies the base crit multiplier, 1 = unmodified. Fed by SpellMod_CritMultiplier_Pct.
+	CritMultiplierAdditive         float64 // Additive critical damage bonus
 
 	BonusBaseDamage  float64 // Certain items can increase the base damage of a spell e.g. https://www.wowhead.com/forever/item=28248/totem-of-the-void
 	BonusCoefficient float64 // EffectBonusCoefficient in SpellEffect client DB table, "SP mod" on Wowhead (not necessarily shown there even if > 0)
@@ -232,6 +239,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		Flags:          config.Flags,
 		MissileSpeed:   config.MissileSpeed,
 		ClassSpellMask: config.ClassSpellMask,
+		ClassFlags:     config.ClassFlags,
 
 		DefaultCast:        config.Cast.DefaultCast,
 		CD:                 config.Cast.CD,
@@ -803,6 +811,11 @@ func (spell *Spell) TravelTime() time.Duration {
 // Returns true if the given mask matches the spell mask
 func (spell *Spell) Matches(mask int64) bool {
 	return spell.ClassSpellMask&mask > 0
+}
+
+// Returns true if the given class flags name this spell
+func (spell *Spell) MatchesFlags(f ClassFlags) bool {
+	return f.Matches(spell.ClassFlags)
 }
 
 // Handles computing the cost of spells and checking whether the Unit

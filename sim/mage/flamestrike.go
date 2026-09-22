@@ -1,13 +1,13 @@
 package mage
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The core import belongs with the commented implementation.
+// The core and dbcenums imports belong with the commented implementation.
 
 // TODO: was Ranks(7, 6); Forever's Flamestrike tops out at rank 6, so only that remains.
-var FlameStrikeRankMap = spellData.Flamestrike.Ranks(6)
+var FlameStrikeRankMap = spelldata.Ranked(spellData.Flamestrike.Rank(6).ID)
 
 // Flamestrike
 // https://www.wowhead.com/forever/spell=10216
@@ -15,12 +15,16 @@ var FlameStrikeRankMap = spellData.Flamestrike.Ranks(6)
 // Calls down a pillar of fire, burning all enemies within the area for X Fire damage and an additional
 // Y Fire damage over 8 sec. Only one Flamestrike can be active per Mage at a time.
 // TODO: To be implemented.
-func (mage *Mage) registerFlamestrike(rankConfig shared.SpellData) {
+func (mage *Mage) registerFlamestrike(rankConfig *spelldata.Spell) {
 	panic("To be implemented")
 
 	// The ported implementation, kept until this class is done:
-	// actionID := core.ActionID{SpellID: rankConfig.SpellID}
-	// tick := rankConfig.Periodic.(shared.SpellDataPeriodic)
+	// actionID := core.ActionID{SpellID: rankConfig.ID}
+	//
+	// // Flamestrike's periodic damage is the spell FlamestrikeTriggered casts each tick, at the
+	// // same rank: each rank of Flamestrike names a different rank of that family.
+	// tick := spellData.FlamestrikeTriggered.Rank(rankConfig.RankNumber()).DamageEffect()
+	// tickLength := rankConfig.Effect(dbcenums.A_PERIODIC_DUMMY, 0).Period()
 	//
 	// spell := mage.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       actionID,
@@ -29,38 +33,38 @@ func (mage *Mage) registerFlamestrike(rankConfig shared.SpellData) {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellFlamestrike,
-	// 	Rank:           rankConfig.Rank,
+	// 	Rank:           rankConfig.RankNumber(),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: rankConfig.Cost,
+	// 		FlatCost: rankConfig.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      rankConfig.GCD,
-	// 			CastTime: rankConfig.CastTime,
+	// 			GCD:      rankConfig.GCD(),
+	// 			CastTime: rankConfig.CastTime(),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: rankConfig.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: rankConfig.DamageEffect().Coeff(),
 	// 	ThreatMultiplier: 1,
 	//
 	// 	Dot: core.DotConfig{
 	// 		IsAOE: true,
 	// 		Aura: core.Aura{
 	// 			ActionID: actionID,
-	// 			Label:    "Flamestrike" + mage.Label + " " + rankConfig.GetRankLabel(),
+	// 			Label:    "Flamestrike" + mage.Label + " " + rankConfig.Rank,
 	// 		},
-	// 		NumberOfTicks:    tick.NumberOfTicks,
-	// 		TickLength:       tick.TickLength,
-	// 		BonusCoefficient: tick.Coef,
+	// 		NumberOfTicks:    int32(rankConfig.Duration() / tickLength),
+	// 		TickLength:       tickLength,
+	// 		BonusCoefficient: tick.Coeff(),
 	// 		OnTick: func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
-	// 			dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tick.Tick, dot.OutcomeTickMagicHit)
+	// 			dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tick.Average(core.CharacterLevel), dot.OutcomeTickMagicHit)
 	// 		},
 	// 	},
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		baseDamage := rankConfig.Direct.Damage(sim)
+	// 		baseDamage := rankConfig.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealAoeDamage(sim, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// 		spell.AOEDot().Apply(sim)
 	// 	},

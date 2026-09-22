@@ -1,6 +1,6 @@
 package mage
 
-var frostNovaRank = spellData.FrostNova.HighestRank()
+var frostNovaRank = spellData.FrostNova.Highest()
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerFrostNovaSpell() {
@@ -11,24 +11,24 @@ func (mage *Mage) registerFrostNovaSpell() {
 	// frostNovaCoefficient := 0.18799999356 // Per https://wago.tools/db2/SpellEffect?build=2.5.5.65295&filter%5BSpellID%5D=exact%253A122 Field "EffetBonusCoefficient"
 	//
 	// mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: frostNovaRank.SpellID},
-	// 	SpellSchool:    frostNovaRank.SpellSchool,
-	// 	DefenseType:    frostNovaRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: frostNovaRank.ID},
+	// 	SpellSchool:    frostNovaRank.SpellSchool(),
+	// 	DefenseType:    frostNovaRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
 	// 	ClassSpellMask: MageSpellFrostNova,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: frostNovaRank.Cost,
+	// 		FlatCost: frostNovaRank.Cost(),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: frostNovaRank.GCD,
+	// 			GCD: frostNovaRank.GCD(),
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    mage.NewTimer(),
-	// 			Duration: frostNovaRank.Cooldown,
+	// 			Duration: max(frostNovaRank.Cooldown(), frostNovaRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
@@ -37,7 +37,7 @@ func (mage *Mage) registerFrostNovaSpell() {
 	// 	ThreatMultiplier: 1,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		baseDamage := frostNovaRank.Direct.Damage(sim)
+	// 		baseDamage := frostNovaRank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealAoeDamage(sim, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// 	},
 	// })

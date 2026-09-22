@@ -59,7 +59,7 @@ func (mage *Mage) registerImprovedFrostbolt() {
 	//
 	// mage.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask: MageSpellFrostbolt,
-	// 	TimeValue: time.Millisecond * time.Duration(spellData.ImprovedFrostbolt.Effect(shared.A_ADD_FLAT_MODIFIER, shared.SPELLMOD_CASTING_TIME).ValueAt(mage.Talents.ImprovedFrostbolt)),
+	// 	TimeValue: time.Millisecond * time.Duration(spellData.ImprovedFrostbolt.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_CASTING_TIME).ValueAt(mage.Talents.ImprovedFrostbolt)),
 	// 	Kind:      core.SpellMod_CastTime_Flat,
 	// })
 }
@@ -74,7 +74,7 @@ func (mage *Mage) registerElementalPrecision() {
 	// if mage.Talents.ElementalPrecision == 0 {
 	// 	return
 	// }
-	// percent := spellData.ElementalPrecision.Effect(shared.A_ADD_FLAT_MODIFIER, shared.SPELLMOD_RESIST_MISS_CHANCE).ValueAt(mage.Talents.ElementalPrecision)
+	// percent := spellData.ElementalPrecision.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_RESIST_MISS_CHANCE).ValueAt(mage.Talents.ElementalPrecision)
 	// mage.AddStaticMod(core.SpellModConfig{
 	// 	School:     core.SpellSchoolFrostfire,
 	// 	FloatValue: -percent / 100,
@@ -156,7 +156,7 @@ func (mage *Mage) registerPiercingIce() {
 	//
 	// mage.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  MageSpellFrost,
-	// 	FloatValue: spellData.PiercingIce.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(mage.Talents.PiercingIce),
+	// 	FloatValue: spellData.PiercingIce.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(mage.Talents.PiercingIce),
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// })
 }
@@ -277,8 +277,8 @@ func (mage *Mage) registerWinterChill() {
 	//
 	// // Forever states a flat SpellAuraOptions.ProcChance of 100 on the talent spell and puts the
 	// // real per-rank chance on the effect, so ProcChanceAt would read 100% at every rank.
-	// // Effect 0 is the stack count (1..5); effect 1 is the chance (20..100).
-	// procChance := spellData.WintersChill.EffectAt(1).FractionAt(mage.Talents.WintersChill)
+	// // Effect 1 is the stack count (1..5); effect 2 is the chance (20..100).
+	// procChance := spellData.WintersChill.EffectAt(2).FractionAt(mage.Talents.WintersChill)
 	//
 	// wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 	// 	return core.WintersChillAura(target, 0)

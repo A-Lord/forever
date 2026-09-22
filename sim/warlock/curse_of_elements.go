@@ -1,6 +1,6 @@
 package warlock
 
-var curseOfElementsRank = spellData.CurseOfTheElements.HighestRank()
+var curseOfElementsRank = spellData.CurseOfTheElements.Highest()
 
 // TODO: To be implemented. Port the TBC Curse Of Elements implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerCurseOfElements() {
@@ -11,19 +11,19 @@ func (warlock *Warlock) registerCurseOfElements() {
 	// 	return core.CurseOfElementsAura(target, 1, warlock.Talents.Malediction)
 	// })
 	// warlock.CurseOfElements = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: curseOfElementsRank.SpellID},
-	// 	SpellSchool:    curseOfElementsRank.SpellSchool,
-	// 	DefenseType:    curseOfElementsRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: curseOfElementsRank.ID},
+	// 	SpellSchool:    curseOfElementsRank.SpellSchool(),
+	// 	DefenseType:    curseOfElementsRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfElements,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: curseOfElementsRank.Cost,
+	// 		FlatCost: curseOfElementsRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: curseOfElementsRank.GCD,
+	// 			GCD: curseOfElementsRank.GCD(),
 	// 		},
 	// 	},
 	//

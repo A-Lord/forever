@@ -1,6 +1,6 @@
 package hunter
 
-var multiShotRank = spellData.MultiShot.HighestRank()
+var multiShotRank = spellData.MultiShot.Highest()
 
 // TODO: To be implemented.
 func (hunter *Hunter) registerMultiShotSpell() {
@@ -8,17 +8,17 @@ func (hunter *Hunter) registerMultiShotSpell() {
 
 	// The TBC implementation, kept for the port:
 	// hunter.MultiShot = hunter.RegisterRangedSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: multiShotRank.SpellID},
-	// 	SpellSchool:    multiShotRank.SpellSchool,
-	// 	DefenseType:    multiShotRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: multiShotRank.ID},
+	// 	SpellSchool:    multiShotRank.SpellSchool(),
+	// 	DefenseType:    multiShotRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskRangedSpecial,
 	// 	ClassSpellMask: HunterSpellMultiShot,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
-	// 	MissileSpeed: multiShotRank.MissileSpeed,
+	// 	MissileSpeed: float64(multiShotRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: multiShotRank.Cost,
+	// 		FlatCost: int32(multiShotRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
@@ -27,17 +27,17 @@ func (hunter *Hunter) registerMultiShotSpell() {
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    hunter.NewTimer(),
-	// 			Duration: multiShotRank.Cooldown,
+	// 			Duration: max(multiShotRank.Cooldown(), multiShotRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
-	// 	BonusCoefficient: multiShotRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: multiShotRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		baseDamage := spell.RangedAttackPower(target)*0.2 +
 	// 			hunter.AutoAttacks.Ranged().BaseDamage(sim) +
 	// 			hunter.talonOfAlarBonus() +
-	// 			multiShotRank.Direct.Damage(sim)
+	// 			multiShotRank.DamageEffect().Average(core.CharacterLevel)
 	//
 	// 		spell.CalcAoeDamage(sim, baseDamage, spell.OutcomeRangedHitAndCrit)
 	//

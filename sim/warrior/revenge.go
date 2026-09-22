@@ -4,14 +4,15 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (warrior *Warrior) registerRevenge() {
-	// TODO: Manual review needed -- spell 25288 states "a high amount of threat" with no number;
-	// none is modelled until measured in game.
-	revengeRank := spellData.Revenge.HighestRank()
+// TODO: Manual review needed -- spell 25288 states "a high amount of threat" with no number;
+// none is modelled until measured in game.
+var revengeRank = spellData.Revenge.Highest()
 
-	actionID := core.ActionID{SpellID: revengeRank.SpellID}
+func (warrior *Warrior) registerRevenge() {
+	actionID := core.ActionID{SpellID: revengeRank.ID}
 
 	// TODO: In-game test needed
 	aura := warrior.RegisterAura(core.Aura{
@@ -30,49 +31,24 @@ func (warrior *Warrior) registerRevenge() {
 		},
 	})
 
-	warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskRevenge,
-		MaxRange:       core.MaxMeleeRange,
+	config := spelldata.SpellConfig(&warrior.Unit, revengeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.FlatThreatBonus = 0
 
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: revengeRank.GCD,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: revengeRank.Cooldown,
-			},
-		},
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return warrior.StanceMatches(DefensiveStance) && aura.IsActive()
+	}
 
-		RageCost: core.RageCostOptions{
-			Cost:   revengeRank.Cost,
-			Refund: revengeRank.MissRefund(),
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := revengeRank.DamageEffect().Roll(sim, core.CharacterLevel)
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+		aura.Deactivate(sim)
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		FlatThreatBonus:  revengeRank.FlatThreatBonus,
+		if !result.Landed() {
+			spell.IssueRefund(sim)
+		}
+	}
 
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return warrior.StanceMatches(DefensiveStance) && aura.IsActive()
-		},
+	config.RelatedSelfBuff = aura
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := revengeRank.Direct.Damage(sim)
-			result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-			aura.Deactivate(sim)
-
-			if !result.Landed() {
-				spell.IssueRefund(sim)
-			}
-		},
-
-		RelatedSelfBuff: aura,
-	})
+	warrior.RegisterSpell(config)
 }

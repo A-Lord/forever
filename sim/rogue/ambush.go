@@ -1,32 +1,32 @@
 package rogue
 
-var ambushRank = spellData.Ambush.HighestRank()
+var ambushRank = spellData.Ambush.Highest()
 
 // TODO: To be implemented. Ambush already resolves against Forever data
-// (spellData.Ambush.HighestRank()); the TBC body needs review before it's uncommented.
+// (spellData.Ambush.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerAmbushSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// baseDamage, _ := ambushRank.Direct.Range()
+	// baseDamage := ambushRank.DamageEffect().Average(core.CharacterLevel)
 	// weaponDamage := 2.75
 	//
 	// rogue.Ambush = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: ambushRank.SpellID},
-	// 	SpellSchool:    ambushRank.SpellSchool,
-	// 	DefenseType:    ambushRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: ambushRank.ID},
+	// 	SpellSchool:    ambushRank.SpellSchool(),
+	// 	DefenseType:    ambushRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellAmbush,
 	// 	MaxRange:       core.MaxMeleeRange,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   ambushRank.Cost,
+	// 		Cost:   ambushRank.Cost(),
 	// 		Refund: 0,
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: ambushRank.GCD,
+	// 			GCD: ambushRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 	},
@@ -38,7 +38,7 @@ func (rogue *Rogue) registerAmbushSpell() {
 	// 	DamageMultiplierAdditive: 1,
 	// 	ThreatMultiplier:         1,
 	//
-	// 	BonusCoefficient: ambushRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: ambushRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		rogue.BreakStealth(sim)

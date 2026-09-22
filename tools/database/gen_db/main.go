@@ -93,8 +93,7 @@ func main() {
 	var g errgroup.Group
 	g.Go(func() error { _, err := database.LoadAndWriteRawRandomSuffixes(helper, inputsDir); return err })
 	g.Go(func() error {
-		// RequiredLevel 0 means "no level requirement", so <= keeps those.
-		_, err := database.LoadAndWriteRawItems(helper, fmt.Sprintf("s.OverallQualityId != 7 AND s.OverallQualityId != 0 AND (i.ClassID = 2 OR i.ClassID = 4 OR (i.ClassID = 7 AND i.InventoryType = 12)) AND s.Display_lang != '' AND s.RequiredLevel <= %d AND (s.ID != 34219 AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%' AND s.Display_lang != 'unused')", core.CharacterLevel), inputsDir)
+		_, err := database.LoadAndWriteRawItems(helper, database.SimItemFilter(core.CharacterLevel), inputsDir)
 		return err
 	})
 	g.Go(func() error { _, err := database.LoadAndWriteRandomPropAllocations(helper, inputsDir); return err })

@@ -1,7 +1,7 @@
 package warlock
 
-var conflagrateRank = spellData.Conflagrate.HighestRank()
-var conflagrateCoeff = conflagrateRank.Direct.BonusCoefficient()
+var conflagrateRank = spellData.Conflagrate.Highest()
+var conflagrateCoeff = conflagrateRank.DamageEffect().Coeff()
 
 // TODO: To be implemented. Port the TBC Conflagrate implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerConflagrate() {
@@ -14,19 +14,19 @@ func (warlock *Warlock) registerConflagrate() {
 	// }
 	//
 	// warlock.Conflagrate = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: conflagrateRank.SpellID},
-	// 	SpellSchool:    conflagrateRank.SpellSchool,
+	// 	ActionID:       core.ActionID{SpellID: conflagrateRank.ID},
+	// 	SpellSchool:    conflagrateRank.SpellSchool(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellConflagrate,
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: conflagrateRank.Cost},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: conflagrateRank.Cost()},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: conflagrateRank.GCD,
+	// 			GCD: conflagrateRank.GCD(),
 	// 		},
 	// 		CD: core.Cooldown{
-	// 			Duration: conflagrateRank.Cooldown,
+	// 			Duration: max(conflagrateRank.Cooldown(), conflagrateRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	// 	ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
@@ -34,12 +34,12 @@ func (warlock *Warlock) registerConflagrate() {
 	// 	},
 	//
 	// 	DamageMultiplier: 1.0,
-	// 	DefenseType:      conflagrateRank.DefenseType,
+	// 	DefenseType:      conflagrateRank.DefenseTypeCore(),
 	// 	ThreatMultiplier: 1,
 	// 	BonusCoefficient: conflagrateCoeff,
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		//tie this to landed/hit
-	// 		dmgRoll := conflagrateRank.Direct.Damage(sim)
+	// 		dmgRoll := conflagrateRank.DamageEffect().Average(core.CharacterLevel)
 	// 		result := spell.CalcAndDealDamage(sim, target, dmgRoll, spell.OutcomeMagicHitAndCrit)
 	//
 	// 		if result.Landed() || result.DidResist() {

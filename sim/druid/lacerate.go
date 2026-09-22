@@ -1,41 +1,37 @@
 package druid
 
-import (
-	"github.com/wowsims/forever/sim/common/shared"
-)
-
-var lacerateRank = shared.WithSpellDataFlatThreat(spellData.Lacerate, 267).HighestRank()
-var lacerateTick = lacerateRank.Periodic.(shared.SpellDataPeriodic)
+var lacerateRank = spellData.Lacerate.Highest()
+var lacerateTick = lacerateRank.PeriodicEffect()
 
 // TODO: To be implemented.
 func (druid *Druid) registerLacerateSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// tickDamageBase := lacerateTick.Tick
+	// tickDamageBase := lacerateTick.Average(core.CharacterLevel)
 	//
 	// druid.Lacerate = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: lacerateRank.SpellID},
-	// 	SpellSchool:    lacerateRank.SpellSchool,
-	// 	DefenseType:    lacerateRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: lacerateRank.ID},
+	// 	SpellSchool:    lacerateRank.SpellSchool(),
+	// 	DefenseType:    lacerateRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	ClassSpellMask: DruidSpellLacerate,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
-	// 		Cost:   lacerateRank.Cost,
+	// 		Cost:   lacerateRank.Cost(),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: lacerateRank.GCD,
+	// 			GCD: lacerateRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 	},
 	//
 	// 	DamageMultiplier: 1,
 	// 	ThreatMultiplier: 0.5,
-	// 	FlatThreatBonus:  lacerateRank.FlatThreatBonus,
+	// 	FlatThreatBonus:  267,
 	// 	MaxRange:         core.MaxMeleeRange,
 	//
 	// 	Dot: core.DotConfig{
@@ -44,15 +40,12 @@ func (druid *Druid) registerLacerateSpell() {
 	// 			MaxStacks: 5,
 	// 			Duration:  time.Second * 15,
 	// 		},
-	// 		NumberOfTicks: lacerateTick.NumberOfTicks,
-	// 		TickLength:    lacerateTick.TickLength,
+	// 		NumberOfTicks: int32(lacerateRank.Duration() / lacerateTick.Period()),
+	// 		TickLength:    lacerateTick.Period(),
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			perStack := tickDamageBase + 0.01*dot.Spell.MeleeAttackPower(target)
-	// 			dot.SnapshotPhysical(target, perStack*float64(dot.Aura.GetStacks()))
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			perStack := tickDamageBase + 0.01*dot.Spell.MeleeAttackPower(target)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, perStack*float64(dot.Aura.GetStacks()), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//

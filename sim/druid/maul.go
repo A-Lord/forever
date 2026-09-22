@@ -3,11 +3,10 @@ package druid
 import (
 	"time"
 
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 )
 
-var maulRank = shared.WithSpellDataFlatThreat(spellData.Maul, 344).HighestRank()
+var maulRank = spellData.Maul.Highest()
 
 // TODO: To be implemented.
 func (druid *Druid) registerMaulSpell() {
@@ -16,15 +15,15 @@ func (druid *Druid) registerMaulSpell() {
 	// The TBC implementation, kept for the port:
 	// // The actual Maul spell that fires on the next auto-attack swing.
 	// maulSpell := druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: maulRank.SpellID},
-	// 	SpellSchool:    maulRank.SpellSchool,
-	// 	DefenseType:    maulRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: maulRank.ID},
+	// 	SpellSchool:    maulRank.SpellSchool(),
+	// 	DefenseType:    maulRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	ClassSpellMask: DruidSpellMaul,
 	// 	Flags:          core.SpellFlagMeleeMetrics,
 	//
 	// 	RageCost: core.RageCostOptions{
-	// 		Cost:   maulRank.Cost,
+	// 		Cost:   maulRank.Cost(),
 	// 		Refund: 0.8,
 	// 	},
 	//
@@ -36,11 +35,11 @@ func (druid *Druid) registerMaulSpell() {
 	//
 	// 	DamageMultiplier: 1,
 	// 	ThreatMultiplier: 1,
-	// 	FlatThreatBonus:  maulRank.FlatThreatBonus,
+	// 	FlatThreatBonus:  344,
 	// 	MaxRange:         core.MaxMeleeRange,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := maulRank.Direct.Damage(sim) + spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
+	// 		baseDamage := maulRank.DamageEffect().Average(core.CharacterLevel) + spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
 	// 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 	// 		if !result.Landed() {
 	// 			spell.IssueRefund(sim)
@@ -51,7 +50,7 @@ func (druid *Druid) registerMaulSpell() {
 	// 	},
 	//
 	// 	ExpectedInitialDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-	// 		baseDamage := shared.SpellDataMin(maulRank.Direct) + spell.Unit.AutoAttacks.MH().CalculateAverageWeaponDamage(spell.MeleeAttackPower(target))
+	// 		baseDamage := maulRank.DamageEffect().Average(core.CharacterLevel) + spell.Unit.AutoAttacks.MH().CalculateAverageWeaponDamage(spell.MeleeAttackPower(target))
 	// 		return spell.CalcDamage(sim, target, baseDamage, spell.OutcomeExpectedMeleeWeaponSpecialHitAndCrit)
 	// 	},
 	// })

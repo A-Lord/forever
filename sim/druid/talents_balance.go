@@ -48,7 +48,7 @@ func (druid *Druid) applyMoonfury() {
 	// druid.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  DruidSpellWrath | DruidSpellStarfire | DruidSpellMoonfire,
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.Moonfury.Effect(shared.A_MOD_DAMAGE_PERCENT_DONE, 72).FractionAt(druid.Talents.Moonfury),
+	// 	FloatValue: spellData.Moonfury.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 72).FractionAt(druid.Talents.Moonfury),
 	// })
 }
 
@@ -179,14 +179,14 @@ func (druid *Druid) applyImprovedMoonfire() {
 	// druid.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  DruidSpellMoonfire,
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.ImprovedMoonfire.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(druid.Talents.ImprovedMoonfire),
+	// 	FloatValue: spellData.ImprovedMoonfire.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(druid.Talents.ImprovedMoonfire),
 	// })
 	//
 	// // 5% per point chance to crit with Moonfire
 	// druid.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  DruidSpellMoonfire,
 	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	FloatValue: spellData.ImprovedMoonfire.Effect(shared.A_ADD_FLAT_MODIFIER, shared.SPELLMOD_CRITICAL_CHANCE).ValueAt(druid.Talents.ImprovedMoonfire),
+	// 	FloatValue: spellData.ImprovedMoonfire.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_CRITICAL_CHANCE).ValueAt(druid.Talents.ImprovedMoonfire),
 	// })
 }
 

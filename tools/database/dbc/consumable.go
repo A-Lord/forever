@@ -3,6 +3,7 @@ package dbc
 import (
 	"slices"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -96,8 +97,8 @@ func (s ConsumableClass) ToProto() proto.ConsumableType {
 // A consumable's effects that restore a resource rather than grant a stat, which the sim wires up
 // separately.
 var consumableRestoreEffectTypes = map[SpellEffectType]bool{
-	E_HEAL:     true,
-	E_ENERGIZE: true,
+	dbcenums.E_HEAL:     true,
+	dbcenums.E_ENERGIZE: true,
 }
 
 func (consumable *Consumable) GetNonStatEffectIds() []int32 {
@@ -109,12 +110,12 @@ func (consumable *Consumable) GetNonStatEffectIds() []int32 {
 		if effect.ID != 0 {
 			if spellEffects, ok := dbcInstance.SpellEffects[effect.SpellID]; ok {
 				for _, spellEffect := range spellEffects {
-					if consumableRestoreEffectTypes[spellEffect.EffectType] || spellEffect.EffectAura == A_PERIODIC_ENERGIZE || spellEffect.EffectAura == A_PERIODIC_HEAL {
+					if consumableRestoreEffectTypes[spellEffect.EffectType] || spellEffect.EffectAura == dbcenums.A_PERIODIC_ENERGIZE || spellEffect.EffectAura == dbcenums.A_PERIODIC_HEAL {
 						effectIds = append(effectIds, int32(spellEffect.ID))
 					}
 					// Aura effects triggered on use (e.g. Fel Mana Potion's spell damage
 					// reduction) carry the stats the sim applies as a temporary aura.
-					if spellEffect.EffectType == E_TRIGGER_SPELL {
+					if spellEffect.EffectType == dbcenums.E_TRIGGER_SPELL {
 						for _, subEffect := range dbcInstance.SpellEffects[spellEffect.EffectTriggerSpell] {
 							if _, ok := subEffect.ParseStatEffect(false, 0); ok {
 								effectIds = append(effectIds, int32(subEffect.ID))

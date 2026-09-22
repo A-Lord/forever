@@ -2,62 +2,36 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+var disarmRank = spellData.Disarm.Highest()
+
 func (warrior *Warrior) registerDisarm() {
-	disarmRank := spellData.Disarm.HighestRank()
-
-	actionID := core.ActionID{SpellID: disarmRank.SpellID}
-
 	// TODO: core has no disarm effect, so the aura only tracks the debuff's uptime.
 	auras := warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.GetOrRegisterAura(core.Aura{
-			Label:    "Disarm-" + warrior.Label,
-			ActionID: actionID,
-			Duration: disarmRank.Duration,
-		})
+		return target.GetOrRegisterAura(spelldata.AuraConfig(disarmRank, spelldata.Label("Disarm-"+warrior.Label)))
 	})
 
-	warrior.Disarm = warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskDisarm,
-		MaxRange:       disarmRank.MaxRange,
+	config := spelldata.SpellConfig(&warrior.Unit, disarmRank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskMeleeMHSpecial
+	config.ThreatMultiplier = 1
 
-		RageCost: core.RageCostOptions{
-			Cost:   disarmRank.Cost,
-			Refund: disarmRank.MissRefund(),
-		},
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: disarmRank.GCD,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: disarmRank.Cooldown,
-			},
-		},
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return warrior.StanceMatches(DefensiveStance)
+	}
 
-		ThreatMultiplier: 1,
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return warrior.StanceMatches(DefensiveStance)
-		},
+		if result.Landed() {
+			auras.Get(target).Activate(sim)
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+	config.RelatedAuraArrays = auras.ToMap()
 
-			if result.Landed() {
-				auras.Get(target).Activate(sim)
-			} else {
-				spell.IssueRefund(sim)
-			}
-		},
-
-		RelatedAuraArrays: auras.ToMap(),
-	})
+	warrior.Disarm = warrior.RegisterSpell(config)
 }

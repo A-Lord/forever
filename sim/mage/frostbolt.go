@@ -14,46 +14,46 @@ func (mage *Mage) frostBoltConfig(config core.SpellConfig) core.SpellConfig {
 		ProcMask:       core.ProcMaskSpellDamage,
 		Flags:          config.Flags,
 		ClassSpellMask: MageSpellFrostbolt,
-		MissileSpeed:   frostboltRank.MissileSpeed,
+		MissileSpeed:   float64(frostboltRank.Speed),
 
 		ManaCost: config.ManaCost,
 		Cast:     config.Cast,
 
 		DamageMultiplier: config.DamageMultiplier,
-		BonusCoefficient: frostboltRank.Direct.BonusCoefficient(),
+		BonusCoefficient: frostboltRank.DamageEffect().Coeff(),
 		ThreatMultiplier: 1,
 
 		ApplyEffects: config.ApplyEffects,
 	}
 }
 
-var frostboltRank = spellData.Frostbolt.HighestRank()
+var frostboltRank = spellData.Frostbolt.Highest()
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerFrostboltSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: frostboltRank.SpellID}
+	// actionID := core.ActionID{SpellID: frostboltRank.ID}
 	//
 	// mage.RegisterSpell(mage.frostBoltConfig(core.SpellConfig{
 	// 	ActionID: actionID,
 	// 	Flags:    core.SpellFlagAPL | core.SpellFlagBinary,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: frostboltRank.Cost,
+	// 		FlatCost: frostboltRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      frostboltRank.GCD,
-	// 			CastTime: frostboltRank.CastTime,
+	// 			GCD:      frostboltRank.GCD(),
+	// 			CastTime: frostboltRank.CastTime(),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplier: 1,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := frostboltRank.Direct.Damage(sim)
+	// 		baseDamage := frostboltRank.DamageEffect().Average(core.CharacterLevel)
 	// 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	//
 	// 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {

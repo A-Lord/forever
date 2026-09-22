@@ -1,7 +1,7 @@
 package rogue
 
 // Package-level state the commented-out implementations used:
-// var hemorrhageRank = spellData.Hemorrhage.BySpellID(26864)
+// var hemorrhageRank = spellData.Hemorrhage.ByID(26864)
 
 func (rogue *Rogue) registerSubtletyTalents() {
 	// Tier 1
@@ -59,7 +59,7 @@ func (rogue *Rogue) registerOpportunity() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  RogueSpellBackstab | RogueSpellMutilate | RogueSpellAmbush,
-	// 	FloatValue: spellData.Opportunity.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(rogue.Talents.Opportunity),
+	// 	FloatValue: spellData.Opportunity.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(rogue.Talents.Opportunity),
 	// })
 }
 
@@ -200,7 +200,7 @@ func (rogue *Rogue) registerSerratedBlades() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  RogueSpellRupture,
-	// 	FloatValue: spellData.SerratedBlades.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DOT).FractionAt(rogue.Talents.SerratedBlades),
+	// 	FloatValue: spellData.SerratedBlades.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DOT).FractionAt(rogue.Talents.SerratedBlades),
 	// })
 }
 
@@ -303,31 +303,31 @@ func (rogue *Rogue) registerHemorrhage() {
 	// 	return
 	// }
 	//
-	// pointMetric := rogue.NewComboPointMetrics(core.ActionID{SpellID: hemorrhageRank.SpellID})
+	// pointMetric := rogue.NewComboPointMetrics(core.ActionID{SpellID: hemorrhageRank.ID})
 	// rogue.Hemorrhage = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: hemorrhageRank.SpellID},
+	// 	ActionID:       core.ActionID{SpellID: hemorrhageRank.ID},
 	// 	ClassSpellMask: RogueSpellHemorrhage,
-	// 	SpellSchool:    hemorrhageRank.SpellSchool,
-	// 	DefenseType:    hemorrhageRank.DefenseType,
+	// 	SpellSchool:    hemorrhageRank.SpellSchool(),
+	// 	DefenseType:    hemorrhageRank.DefenseTypeCore(),
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagMeleeMetrics | SpellFlagBuilder,
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	MaxRange:       core.MaxMeleeRange,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: hemorrhageRank.GCD,
+	// 			GCD: hemorrhageRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 	},
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   hemorrhageRank.Cost,
+	// 		Cost:   hemorrhageRank.Cost(),
 	// 		Refund: 0.8,
 	// 	},
 	//
 	// 	DamageMultiplier: 1.1,
 	// 	ThreatMultiplier: 1,
 	//
-	// 	BonusCoefficient: hemorrhageRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: hemorrhageRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		rogue.BreakStealth(sim)

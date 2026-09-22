@@ -1,7 +1,7 @@
 package druid
 
 // Package-level state the commented-out implementation used:
-// var mangleBearRank = spellData.MangleBear.BySpellID(33987)
+// var mangleBearRank = spellData.MangleBear.ByID(33987)
 
 // TODO: To be implemented.
 func (druid *Druid) registerMangleAuras() {
@@ -35,25 +35,25 @@ func (druid *Druid) registerMangleBearSpell() {
 	// druid.registerMangleAuras()
 	//
 	// druid.MangleBear = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: mangleBearRank.SpellID},
-	// 	SpellSchool:    mangleBearRank.SpellSchool,
-	// 	DefenseType:    mangleBearRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: mangleBearRank.ID},
+	// 	SpellSchool:    mangleBearRank.SpellSchool(),
+	// 	DefenseType:    mangleBearRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	ClassSpellMask: DruidSpellMangleBear,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
-	// 		Cost:   mangleBearRank.Cost,
+	// 		Cost:   mangleBearRank.Cost(),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: mangleBearRank.GCD,
+	// 			GCD: mangleBearRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 		CD: core.Cooldown{
 	// 			Timer:    druid.NewTimer(),
-	// 			Duration: mangleBearRank.Cooldown,
+	// 			Duration: max(mangleBearRank.Cooldown(), mangleBearRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
@@ -62,7 +62,7 @@ func (druid *Druid) registerMangleBearSpell() {
 	// 	MaxRange:         core.MaxMeleeRange,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := (mangleBearRank.Direct.Damage(sim)*1.15+druid.IdolMangleBearBonus)/1.15 + spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
+	// 		baseDamage := (mangleBearRank.DamageEffect().Average(core.CharacterLevel)*1.15+druid.IdolMangleBearBonus)/1.15 + spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
 	// 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 	//
 	// 		if result.Landed() {

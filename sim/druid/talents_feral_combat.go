@@ -74,7 +74,7 @@ func (druid *Druid) applyPredatoryInstincts() {
 	// druid.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_CritMultiplier_Pct,
 	// 	School:     core.SpellSchoolPhysical,
-	// 	FloatValue: spellData.PredatoryInstincts.Effect(shared.A_MOD_CRIT_DAMAGE_BONUS, 1).FractionAt(druid.Talents.PredatoryInstincts),
+	// 	FloatValue: spellData.PredatoryInstincts.Effect(dbcenums.A_MOD_CRIT_DAMAGE_BONUS, 1).FractionAt(druid.Talents.PredatoryInstincts),
 	// })
 }
 
@@ -93,7 +93,7 @@ func (druid *Druid) applyHeartOfTheWild() {
 	// // Forever data, as every stat-percent effect does, so the stat is the call site's choice.
 	// // The Cat/Bear form-specific bonuses are handled dynamically in RegisterCatFormAura /
 	// // RegisterBearFormAura.
-	// druid.MultiplyStat(stats.Intellect, spellData.HeartOfTheWild.Effect(shared.A_MOD_TOTAL_STAT_PERCENTAGE, 0).MultiplierAt(druid.Talents.HeartOfTheWild))
+	// druid.MultiplyStat(stats.Intellect, spellData.HeartOfTheWild.Effect(dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, 0).MultiplierAt(druid.Talents.HeartOfTheWild))
 }
 
 // TODO: To be implemented.
@@ -187,7 +187,7 @@ func (druid *Druid) applySavageFury() {
 	// druid.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  DruidSpellRake,
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.SavageFury.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(druid.Talents.SavageFury),
+	// 	FloatValue: spellData.SavageFury.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(druid.Talents.SavageFury),
 	// })
 }
 

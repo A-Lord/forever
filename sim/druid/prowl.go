@@ -1,18 +1,18 @@
 package druid
 
-var prowlRank = spellData.Prowl.BySpellID(5215)
+var prowlRank = spellData.Prowl.ByID(5215)
 
 // TODO: To be implemented.
 func (druid *Druid) registerProwlSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: prowlRank.SpellID}
+	// actionID := core.ActionID{SpellID: prowlRank.ID}
 	// movementSpeedMultiplier := 0.7
 	//
 	// icd := core.Cooldown{
 	// 	Timer:    druid.NewTimer(),
-	// 	Duration: prowlRank.Cooldown,
+	// 	Duration: max(prowlRank.Cooldown(), prowlRank.CategoryCooldown()),
 	// }
 	//
 	// druid.ProwlAura = druid.RegisterAura(core.Aura{

@@ -6,21 +6,24 @@ import (
 
 // Was the TBC rank-6 id 26867, which the level squish removed. Derived from the table so
 // it follows the data instead of naming a rank that may not exist.
-var RuptureSpellID = spellData.Rupture.HighestRank().SpellID
+var RuptureSpellID = spellData.Rupture.Highest().ID
 
-var ruptureRank = spellData.Rupture.BySpellID(RuptureSpellID)
+var ruptureRank = spellData.Rupture.ByID(RuptureSpellID)
 
 // TODO: To be implemented. Rupture already resolves against Forever data
-// (spellData.Rupture.BySpellID(RuptureSpellID)); the TBC body needs review before it's
+// (spellData.Rupture.ByID(RuptureSpellID)); the TBC body needs review before it's
 // uncommented.
 func (rogue *Rogue) registerRupture() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// tick := ruptureRank.Periodic.(shared.SpellDataPeriodic)
+	// tick := ruptureRank.PeriodicEffect()
+	// tickLength := tick.Period()
+	// baseTickCount := int32(ruptureRank.Duration() / tickLength)
+	// var cp int32
 	//
 	// rogue.Rupture = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: ruptureRank.SpellID},
+	// 	ActionID:       core.ActionID{SpellID: ruptureRank.ID},
 	// 	SpellSchool:    core.SpellSchoolPhysical,
 	// 	DefenseType:    core.DefenseTypeMelee,
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
@@ -29,7 +32,7 @@ func (rogue *Rogue) registerRupture() {
 	// 	ClassSpellMask: RogueSpellRupture,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: ruptureRank.Cost,
+	// 		Cost: ruptureRank.Cost(),
 	// 		// TODO: Forever drops Quick Recovery; no energy refund until we know whether the
 	// 		// effect moved onto another talent.
 	// 		Refund:        0,
@@ -37,7 +40,7 @@ func (rogue *Rogue) registerRupture() {
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: ruptureRank.GCD,
+	// 			GCD: ruptureRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 		ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
@@ -57,13 +60,10 @@ func (rogue *Rogue) registerRupture() {
 	// 			Tag:   RogueBleedTag,
 	// 		},
 	// 		NumberOfTicks: 0, // Set dynamically
-	// 		TickLength:    tick.TickLength,
+	// 		TickLength:    tickLength,
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.SnapshotPhysical(target, rogue.ruptureDamage(target, rogue.ComboPoints(), tick.Tick, 11))
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, rogue.ruptureDamage(target, cp, tick.Average(core.CharacterLevel), 11), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
@@ -71,8 +71,9 @@ func (rogue *Rogue) registerRupture() {
 	// 		rogue.BreakStealth(sim)
 	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 	// 		if result.Landed() {
+	// 			cp = rogue.ComboPoints()
 	// 			dot := spell.Dot(target)
-	// 			dot.BaseTickCount = tick.NumberOfTicks + rogue.ComboPoints()
+	// 			dot.BaseTickCount = baseTickCount + cp
 	// 			dot.Apply(sim)
 	// 			rogue.ApplyFinisher(sim, spell)
 	// 			spell.DealOutcome(sim, result)

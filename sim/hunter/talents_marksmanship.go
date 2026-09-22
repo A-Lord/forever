@@ -101,7 +101,7 @@ func (hunter *Hunter) registerImprovedStings() {
 	// hunter.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  HunterSpellSerpentSting,
-	// 	FloatValue: spellData.ImprovedStings.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DOT).FractionAt(hunter.Talents.ImprovedStings),
+	// 	FloatValue: spellData.ImprovedStings.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DOT).FractionAt(hunter.Talents.ImprovedStings),
 	// })
 }
 
@@ -137,7 +137,7 @@ func (hunter *Hunter) registerBarrage() {
 	// hunter.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  HunterSpellMultiShot | HunterSpellVolley,
-	// 	FloatValue: spellData.Barrage.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(hunter.Talents.Barrage),
+	// 	FloatValue: spellData.Barrage.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(hunter.Talents.Barrage),
 	// })
 }
 

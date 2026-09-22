@@ -1,6 +1,6 @@
 package warlock
 
-var deathCoilRank = spellData.DeathCoil.HighestRank()
+var deathCoilRank = spellData.DeathCoil.Highest()
 
 // TODO: To be implemented. Port the TBC Death Coil implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerDeathCoil() {
@@ -9,23 +9,23 @@ func (warlock *Warlock) registerDeathCoil() {
 	// The TBC implementation, kept for the port:
 	//
 	// warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: deathCoilRank.SpellID},
-	// 	SpellSchool:    deathCoilRank.SpellSchool,
-	// 	DefenseType:    deathCoilRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: deathCoilRank.ID},
+	// 	SpellSchool:    deathCoilRank.SpellSchool(),
+	// 	DefenseType:    deathCoilRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellDeathCoil,
-	// 	MissileSpeed:   deathCoilRank.MissileSpeed,
-	// 	MaxRange:       deathCoilRank.MaxRange,
+	// 	MissileSpeed:   float64(deathCoilRank.Speed),
+	// 	MaxRange:       float64(deathCoilRank.MaxRange),
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: deathCoilRank.Cost},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: deathCoilRank.Cost()},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: deathCoilRank.GCD,
+	// 			GCD: deathCoilRank.GCD(),
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    warlock.NewTimer(),
-	// 			Duration: deathCoilRank.Cooldown,
+	// 			Duration: max(deathCoilRank.Cooldown(), deathCoilRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//

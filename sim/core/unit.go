@@ -142,6 +142,8 @@ type Unit struct {
 
 	cdTimers []*Timer
 
+	categoryTimers map[int32]*Timer
+
 	AttackTables                 []*AttackTable
 	DynamicDamageTakenModifiers  []DynamicDamageTakenModifier
 	DynamicHealingTakenModifiers []DynamicHealingTakenModifier

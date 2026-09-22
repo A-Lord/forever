@@ -113,6 +113,14 @@ func ScanRawItemData(rows *sql.Rows) (dbc.Item, error) {
 	return raw, err
 }
 
+// The gear the sim ships: weapons, armour and relics of a quality the game hands out, at or below
+// the level the sim plays. RequiredLevel 0 means "no level requirement", so <= keeps those. Written
+// here rather than at the call site because the spell data store selects the item procs it carries
+// through the same predicate.
+func SimItemFilter(maxLevel int32) string {
+	return fmt.Sprintf("s.OverallQualityId != 7 AND s.OverallQualityId != 0 AND (i.ClassID = 2 OR i.ClassID = 4 OR (i.ClassID = 7 AND i.InventoryType = 12)) AND s.Display_lang != '' AND s.RequiredLevel <= %d AND (s.ID != 34219 AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%' AND s.Display_lang != 'unused')", maxLevel)
+}
+
 func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) ([]dbc.Item, error) {
 	baseQuery := `
 		SELECT

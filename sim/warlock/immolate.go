@@ -1,22 +1,19 @@
 package warlock
 
-import (
-	"github.com/wowsims/forever/sim/common/shared"
-)
-
-var immolateRank = spellData.Immolate.HighestRank()
-var immolateTick = immolateRank.Periodic.(shared.SpellDataPeriodic)
-var immolateCoeff = immolateRank.Direct.BonusCoefficient()
-var immolateDotCoeff = immolateTick.Coef
+var immolateRank = spellData.Immolate.Highest()
+var immolateTick = immolateRank.PeriodicEffect()
+var immolateCoeff = immolateRank.DamageEffect().Coeff()
+var immolateDotCoeff = immolateTick.Coeff()
 
 // TODO: To be implemented. Port the TBC Immolate implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerImmolate() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: immolateRank.SpellID}
-	// tickCount := immolateTick.NumberOfTicks
-	// warlock.ImmolateTickBaseDamage = immolateTick.Tick
+	// actionID := core.ActionID{SpellID: immolateRank.ID}
+	// tickLength := immolateTick.Period()
+	// tickCount := int32(immolateRank.Duration() / tickLength)
+	// warlock.ImmolateTickBaseDamage = immolateTick.Average(core.CharacterLevel)
 	//
 	// warlock.Immolate = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       actionID,
@@ -26,12 +23,12 @@ func (warlock *Warlock) registerImmolate() {
 	// 	ClassSpellMask: WarlockSpellImmolate,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: immolateRank.Cost,
+	// 		FlatCost: immolateRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      immolateRank.GCD,
-	// 			CastTime: immolateRank.CastTime,
+	// 			GCD:      immolateRank.GCD(),
+	// 			CastTime: immolateRank.CastTime(),
 	// 		},
 	// 	},
 	//
@@ -41,7 +38,7 @@ func (warlock *Warlock) registerImmolate() {
 	// 	BonusCoefficient: immolateCoeff,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		result := spell.CalcDamage(sim, target, immolateRank.Direct.Damage(sim), spell.OutcomeMagicHitAndCrit)
+	// 		result := spell.CalcDamage(sim, target, immolateRank.DamageEffect().Average(core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
 	// 		if result.Landed() {
 	// 			spell.RelatedDotSpell.Dot(target).Apply(sim)
 	// 		}
@@ -65,27 +62,18 @@ func (warlock *Warlock) registerImmolate() {
 	// 			Label: "Immolate (DoT)",
 	// 		},
 	// 		NumberOfTicks:    tickCount,
-	// 		TickLength:       immolateTick.TickLength,
+	// 		TickLength:       tickLength,
 	// 		BonusCoefficient: immolateDotCoeff,
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, warlock.ImmolateTickBaseDamage)
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, warlock.ImmolateTickBaseDamage, dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
 	// 		dot := spell.Dot(target)
-	// 		if useSnapshot {
-	// 			result := dot.CalcSnapshotDamage(sim, target, dot.OutcomeTick)
-	// 			result.Damage /= dot.TickPeriod().Seconds()
-	// 			return result
-	// 		} else {
-	// 			result := spell.CalcPeriodicDamage(sim, target, immolateTick.Tick*float64(immolateTick.NumberOfTicks), spell.OutcomeExpectedMagicHit)
-	// 			result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
-	// 			return result
-	// 		}
+	// 		result := dot.Spell.CalcPeriodicDamage(sim, target, warlock.ImmolateTickBaseDamage*float64(tickCount), spell.OutcomeExpectedMagicHit)
+	// 		result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
+	// 		return result
 	// 	},
 	// })
 }

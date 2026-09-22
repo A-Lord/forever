@@ -44,7 +44,7 @@ func (hunter *Hunter) registerEnduranceTraining() {
 	// }
 	//
 	// hunter.Pet.StatDependencyManager.EnableDynamicStatDep(
-	// 	hunter.Pet.NewDynamicMultiplyStat(stats.Health, spellData.EnduranceTraining.Effect(shared.A_ADD_FLAT_MODIFIER, shared.SPELLMOD_ALL_EFFECTS).MultiplierAt(hunter.Talents.EnduranceTraining)),
+	// 	hunter.Pet.NewDynamicMultiplyStat(stats.Health, spellData.EnduranceTraining.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_ALL_EFFECTS).MultiplierAt(hunter.Talents.EnduranceTraining)),
 	// )
 	//
 	// // TODO: Forever drops the hunter's own health bonus from Endurance Training; the spell
@@ -68,7 +68,7 @@ func (hunter *Hunter) registerFocusedFire() {
 	// }
 	//
 	// // The single dummy effect is the 1% per rank damage bonus.
-	// hunter.PseudoStats.DamageDealtMultiplier *= spellData.FocusedFire.EffectAt(0).MultiplierAt(hunter.Talents.FocusedFire)
+	// hunter.PseudoStats.DamageDealtMultiplier *= spellData.FocusedFire.EffectAt(1).MultiplierAt(hunter.Talents.FocusedFire)
 	//
 	// // TODO: Forever drops Focused Fire's Kill Command crit bonus; the spell carries only the
 	// // dummy used above, so the pet crit bonus is pinned to the untalented 0.

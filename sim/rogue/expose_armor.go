@@ -4,10 +4,10 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-var exposeArmorRank = spellData.ExposeArmor.HighestRank()
+var exposeArmorRank = spellData.ExposeArmor.Highest()
 
 // TODO: To be implemented. Expose Armor already resolves against Forever data
-// (spellData.ExposeArmor.HighestRank()); the TBC body needs review before it's uncommented.
+// (spellData.ExposeArmor.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerExposeArmorSpell() {
 	panic("To be implemented")
 
@@ -17,16 +17,16 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 	// })
 	//
 	// rogue.ExposeArmor = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: exposeArmorRank.SpellID},
-	// 	SpellSchool:    exposeArmorRank.SpellSchool,
-	// 	DefenseType:    exposeArmorRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: exposeArmorRank.ID},
+	// 	SpellSchool:    exposeArmorRank.SpellSchool(),
+	// 	DefenseType:    exposeArmorRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellExposeArmor,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: exposeArmorRank.Cost,
+	// 		Cost: exposeArmorRank.Cost(),
 	// 		// TODO: Forever drops Quick Recovery; no energy refund until we know whether the
 	// 		// effect moved onto another talent.
 	// 		Refund:        0,
@@ -34,7 +34,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: exposeArmorRank.GCD,
+	// 			GCD: exposeArmorRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 		ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {

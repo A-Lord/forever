@@ -1,16 +1,19 @@
 package mage
 
-// The shared and core imports belong with the commented implementation.
+// The dbcenums and core imports belong with the commented implementation.
 
-var blizzardRank = spellData.Blizzard.HighestRank()
+var blizzardRank = spellData.Blizzard.Highest()
 
 // TODO: To be implemented.
 func (mage *Mage) registerBlizzardSpell() {
 	panic("To be implemented")
 
 	// The ported implementation, kept until this class is done:
-	// blizzardActionId := core.ActionID{SpellID: blizzardRank.SpellID}
-	// blizzardTick := blizzardRank.Periodic.(shared.SpellDataPeriodic)
+	// blizzardActionId := core.ActionID{SpellID: blizzardRank.ID}
+	// tickLength := blizzardRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0).Period()
+	//
+	// // Blizzard's periodic damage is the spell BlizzardTriggered casts each tick.
+	// blizzardTick := spellData.BlizzardTriggered.Highest().DamageEffect()
 	//
 	// blizzardTickSpell := mage.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       blizzardActionId,
@@ -20,11 +23,11 @@ func (mage *Mage) registerBlizzardSpell() {
 	// 	ClassSpellMask: MageSpellBlizzard,
 	//
 	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: blizzardTick.Coef,
+	// 	BonusCoefficient: blizzardTick.Coeff(),
 	// 	ThreatMultiplier: 1,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		spell.CalcAndDealAoeDamage(sim, blizzardTick.Tick, spell.OutcomeMagicHit)
+	// 		spell.CalcAndDealAoeDamage(sim, blizzardTick.Average(core.CharacterLevel), spell.OutcomeMagicHit)
 	// 	},
 	// })
 	//
@@ -36,11 +39,11 @@ func (mage *Mage) registerBlizzardSpell() {
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellBlizzard,
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: blizzardRank.Cost,
+	// 		FlatCost: blizzardRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: blizzardRank.GCD,
+	// 			GCD: blizzardRank.GCD(),
 	// 		},
 	// 	},
 	// 	Dot: core.DotConfig{
@@ -49,8 +52,8 @@ func (mage *Mage) registerBlizzardSpell() {
 	// 			Label:    "Blizzard",
 	// 			ActionID: blizzardActionId,
 	// 		},
-	// 		NumberOfTicks:        blizzardTick.NumberOfTicks,
-	// 		TickLength:           blizzardTick.TickLength,
+	// 		NumberOfTicks:        int32(blizzardRank.Duration() / tickLength),
+	// 		TickLength:           tickLength,
 	// 		AffectedByCastSpeed:  true,
 	// 		HasteReducesDuration: true,
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {

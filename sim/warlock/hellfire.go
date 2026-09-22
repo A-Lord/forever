@@ -1,22 +1,25 @@
 package warlock
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 )
 
-var hellfireRank = spellData.Hellfire.HighestRank()
-var hellfireTick = hellfireRank.Periodic.(shared.SpellDataPeriodic)
-var hellFireCoeff = hellfireTick.Coef
+var hellfireRank = spellData.Hellfire.Highest()
+
+// Effect 1 is the periodic trigger that fires the Hellfire Effect spell each tick; effect 2 is
+// the damage tick.
+var hellfireTick = hellfireRank.EffectN(2)
+var hellFireCoeff = hellfireTick.Coeff()
 
 // TODO: To be implemented. Port the TBC Hellfire implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerHellfire() *core.Spell {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// hellfireActionID := core.ActionID{SpellID: hellfireRank.SpellID}
+	// hellfireActionID := core.ActionID{SpellID: hellfireRank.ID}
+	// tickLength := hellfireTick.Period()
 	//
-	// manaCost := hellfireRank.Cost
+	// manaCost := hellfireRank.Cost()
 	// warlock.Hellfire = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:         hellfireActionID,
 	// 	SpellSchool:      core.SpellSchoolFire,
@@ -29,7 +32,7 @@ func (warlock *Warlock) registerHellfire() *core.Spell {
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: hellfireRank.GCD,
+	// 			GCD: hellfireRank.GCD(),
 	// 		},
 	// 	},
 	// 	ManaCost: core.ManaCostOptions{FlatCost: manaCost},
@@ -40,15 +43,14 @@ func (warlock *Warlock) registerHellfire() *core.Spell {
 	// 		},
 	//
 	// 		IsAOE:                true,
-	// 		TickLength:           hellfireTick.TickLength,
-	// 		NumberOfTicks:        hellfireTick.NumberOfTicks,
+	// 		TickLength:           tickLength,
+	// 		NumberOfTicks:        int32(hellfireRank.Duration() / tickLength),
 	// 		HasteReducesDuration: true,
 	// 		AffectedByCastSpeed:  true,
 	// 		BonusCoefficient:     hellFireCoeff,
 	//
 	// 		OnTick: func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
-	// 			// Rolled once: the warlock burns exactly what it deals.
-	// 			tickDamage := hellfireTick.Damage(sim)
+	// 			tickDamage := hellfireTick.Average(core.CharacterLevel)
 	//
 	// 			resultSlice := dot.Spell.CalcPeriodicAoeDamage(sim, tickDamage, dot.Spell.OutcomeTickMagicHitNoHitCounter)
 	// 			if resultSlice[0].Damage > warlock.CurrentHealth() {

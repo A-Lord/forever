@@ -1,6 +1,6 @@
 package druid
 
-var thornsRank = spellData.Thorns.HighestRank()
+var thornsRank = spellData.Thorns.Highest()
 
 // TODO: To be implemented.
 // Self-cast Thorns (rank 7). Reuses the core raid-buff aura, passing the
@@ -19,20 +19,20 @@ func (druid *Druid) registerThornsSpell() {
 	// }
 	//
 	// druid.RegisterSpell(Humanoid, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: thornsRank.SpellID},
-	// 	SpellSchool:    thornsRank.SpellSchool,
-	// 	DefenseType:    thornsRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: thornsRank.ID},
+	// 	SpellSchool:    thornsRank.SpellSchool(),
+	// 	DefenseType:    thornsRank.DefenseTypeCore(),
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
 	// 	ClassSpellMask: DruidSpellThorns,
 	// 	ProcMask:       core.ProcMaskEmpty,
-	// 	MaxRange:       thornsRank.MaxRange,
+	// 	MaxRange:       float64(thornsRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: thornsRank.Cost,
+	// 		FlatCost: thornsRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: thornsRank.GCD,
+	// 			GCD: thornsRank.GCD(),
 	// 		},
 	// 	},
 	//

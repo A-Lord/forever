@@ -1,10 +1,18 @@
 package warrior
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
+)
+
+// The rows ItemSetSpell names for each set's thresholds, and the buffs those rows grant. None of
+// them is a warrior class spell, so the generated table carries no reference to them.
+var (
+	mightBlockValue   = spelldata.MustFind(23562) // 3pc: Block Value 30
+	mightRageProc     = spelldata.MustFind(21838) // 5pc: Battlegear of Might, the proc
+	mightRageEnergize = spelldata.MustFind(29478) // 5pc: Battlegear of Might, the rage it grants
+	mightSunderThreat = spelldata.MustFind(23561) // 8pc: Enhanced Sunder Armor
 )
 
 var ItemSetBattlegearOfMight = core.NewItemSet(core.ItemSet{
@@ -12,33 +20,44 @@ var ItemSetBattlegearOfMight = core.NewItemSet(core.ItemSet{
 	ID:   209,
 	Bonuses: map[int32]core.ApplySetBonus{
 		3: func(agent core.Agent, setBonusAura *core.Aura) {
-			setBonusAura.AttachStatBuff(stats.BlockValue, 30)
+			// A_MOD_BLOCK_VALUE_FLAT has no sim kind in the parse table, so only the amount comes
+			// off the row.
+			setBonusAura.AttachStatBuff(stats.BlockValue, mightBlockValue.EffectN(1).BaseValue())
 		},
 		5: func(agent core.Agent, setBonusAura *core.Aura) {
 			warrior := agent.(WarriorAgent).GetWarrior()
-			rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: 29478})
+			rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: mightRageEnergize.ID})
+			rage := mightRageEnergize.EnergizeEffect().Tenths()
 
-			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-				Name:               "Battlegear of Might - 5PC",
-				ActionID:           core.ActionID{SpellID: 21838},
-				Callback:           core.CallbackOnSpellHitTaken | core.CallbackOnPeriodicDamageTaken,
-				Outcome:            core.OutcomeLanded,
-				RequireDamageDealt: true,
-				ProcChance:         0.2,
-				Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-					warrior.AddRage(sim, 1, rageMetrics)
-				},
-			})
+			// The rate is the proc chance column, which the tooltip's $h% says is a real roll.
+			trigger := spelldata.ProcTrigger(&warrior.Character, mightRageProc,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+					warrior.AddRage(sim, rage, rageMetrics)
+				})
+			trigger.Name = "Battlegear of Might - 5PC"
+
+			setBonusAura.AttachProcTrigger(trigger)
 		},
 		8: func(agent core.Agent, setBonusAura *core.Aura) {
+			// The row states A_ADD_PCT_MODIFIER on the threat, which the parse maps to
+			// SpellMod_ThreatMultiplier_Pct: that scales the threat a spell's damage makes, and
+			// Sunder Armor deals none - all of its threat is the flat bonus. So only the amount
+			// and the spells it names come off the row.
 			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassMask:  SpellMaskSunderArmor,
+				ClassFlags: mightSunderThreat.EffectN(1).ClassFlags,
 				Kind:       core.SpellMod_FlatThreatBonus_Pct,
-				FloatValue: 0.15,
+				FloatValue: mightSunderThreat.EffectN(1).Percent(),
 			})
 		},
 	},
 })
+
+var (
+	wrathDiscountProc = spelldata.MustFind(21890) // 5pc: Warrior's Wrath, the proc
+	wrathDiscountBuff = spelldata.MustFind(21887) // 5pc: Warrior's Wrath, the discount
+	wrathParryProc    = spelldata.MustFind(23548) // 8pc: Parry, the proc
+	wrathParryBuff    = spelldata.MustFind(23547) // 8pc: Parry, the buff
+)
 
 var ItemSetBattlegearOfWrath = core.NewItemSet(core.ItemSet{
 	Name: "Battlegear of Wrath",
@@ -59,125 +78,125 @@ var ItemSetBattlegearOfWrath = core.NewItemSet(core.ItemSet{
 		5: func(agent core.Agent, setBonusAura *core.Aura) {
 			warrior := agent.(WarriorAgent).GetWarrior()
 
-			var buff *core.Aura
-			buff = warrior.RegisterAura(core.Aura{
-				Label:    "Warrior's Wrath",
-				ActionID: core.ActionID{SpellID: 21887},
-				Duration: time.Second * 10,
-			}).
-				AttachSpellMod(core.SpellModConfig{
-					ClassMask: SpellMaskOffensiveAbilities,
-					Kind:      core.SpellMod_PowerCost_Flat,
-					IntValue:  -5,
-				}).
-				AttachProcTrigger(core.ProcTrigger{
-					Name:               "Warrior's Wrath - Consume",
-					ClassSpellMask:     SpellMaskOffensiveAbilities,
-					Callback:           core.CallbackOnCastComplete,
-					TriggerImmediately: true,
-					Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-						buff.Deactivate(sim)
-					},
-				})
+			// The abilities the discount names, which are also the ones the tooltip fires the
+			// proc off: the buff's own modifier effect states them and 21890's proc effect
+			// states none.
+			discounted := wrathDiscountBuff.EffectN(1).ClassFlags
 
-			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-				Name:           "Battlegear of Wrath - 5PC",
-				ActionID:       core.ActionID{SpellID: 21890},
-				ClassSpellMask: SpellMaskOffensiveAbilities,
-				Callback:       core.CallbackOnSpellHitDealt,
-				Outcome:        core.OutcomeLanded,
-				ProcChance:     0.2,
+			buff := warrior.RegisterAura(spelldata.AuraConfig(wrathDiscountBuff))
+			spelldata.ParseEffects(&warrior.Character, buff, wrathDiscountBuff)
+
+			// The discount is spent at cast, so the buff goes when an ability is cast rather than
+			// when one lands, which is what the row's proc flags state.
+			buff.AttachProcTrigger(core.ProcTrigger{
+				Name:               "Warrior's Wrath - Consume",
+				ClassFlags:         discounted,
+				Callback:           core.CallbackOnCastComplete,
+				TriggerImmediately: true,
 				Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-					buff.Activate(sim)
+					buff.Deactivate(sim)
 				},
 			})
+
+			// The rate is the proc chance column, which the tooltip's $h% says is a real roll.
+			trigger := spelldata.ProcTrigger(&warrior.Character, wrathDiscountProc,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+					buff.Activate(sim)
+				})
+			trigger.Name = "Battlegear of Wrath - 5PC"
+			trigger.ClassFlags = discounted
+
+			setBonusAura.AttachProcTrigger(trigger)
 		},
 		8: func(agent core.Agent, setBonusAura *core.Aura) {
 			warrior := agent.(WarriorAgent).GetWarrior()
 
-			var parry *core.Aura
-			parry = warrior.RegisterAura(core.Aura{
-				Label:    "Battlegear of Wrath Parry",
-				ActionID: core.ActionID{SpellID: 23547},
-				Duration: core.NeverExpires,
-			}).
-				AttachStatBuff(stats.ParryRating, 100*core.ParryRatingPerParryPercent).
-				AttachProcTrigger(core.ProcTrigger{
-					Name:               "Battlegear of Wrath - 8PC Consume",
-					ProcMask:           core.ProcMaskMelee,
-					Callback:           core.CallbackOnSpellHitTaken,
-					TriggerImmediately: true,
-					Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-						parry.Deactivate(sim)
-					},
-				})
+			parry := warrior.RegisterAura(spelldata.AuraConfig(wrathParryBuff,
+				spelldata.Label("Battlegear of Wrath Parry")))
+			spelldata.ParseEffects(&warrior.Character, parry, wrathParryBuff)
 
-			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-				Name:       "Battlegear of Wrath - 8PC",
-				ActionID:   core.ActionID{SpellID: 23548},
-				Callback:   core.CallbackOnSpellHitTaken,
-				Outcome:    core.OutcomeBlock,
-				ProcChance: 0.04,
-				Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			// The attack that spends the buff is the one it parries, which is an outcome no proc
+			// mask states and one that deals no damage. 23547 ships no tooltip, so there is nothing
+			// for the row to have read that from and both of its defaults go here.
+			consume := spelldata.ProcTrigger(&warrior.Character, wrathParryBuff,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+					parry.Deactivate(sim)
+				})
+			consume.Name = "Battlegear of Wrath - 8PC Consume"
+			consume.Outcome = core.OutcomeEmpty
+			consume.RequireDamageDealt = false
+			consume.TriggerImmediately = true
+			parry.AttachProcTrigger(consume)
+
+			// The rate is the proc chance column, which the tooltip's $h% says is a real roll; the
+			// block it fires on is an outcome no proc mask states, so the row states only that the
+			// hit it hears carries no damage.
+			trigger := spelldata.ProcTrigger(&warrior.Character, wrathParryProc,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 					parry.Activate(sim)
-				},
-			})
+				})
+			trigger.Name = "Battlegear of Wrath - 8PC"
+			trigger.Outcome = core.OutcomeBlock
+
+			setBonusAura.AttachProcTrigger(trigger)
 		},
 	},
 })
+
+var (
+	conquerorShoutCost   = spelldata.MustFind(26109) // 3pc: Conqueror Shout Bonus
+	conquerorThunderClap = spelldata.MustFind(26110) // 5pc: Conqueror Thunder Clap Bonus
+)
 
 var ItemSetConquerorsBattlegear = core.NewItemSet(core.ItemSet{
 	Name: "Conqueror's Battlegear",
 	ID:   496,
 	Bonuses: map[int32]core.ApplySetBonus{
 		3: func(agent core.Agent, setBonusAura *core.Aura) {
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassMask:  SpellMaskShouts,
-				Kind:       core.SpellMod_PowerCost_Pct_Add,
-				FloatValue: -0.35,
-			})
+			warrior := agent.(WarriorAgent).GetWarrior()
+			spelldata.ParseEffects(&warrior.Character, setBonusAura, conquerorShoutCost)
 		},
 		5: func(agent core.Agent, setBonusAura *core.Aura) {
 			warrior := agent.(WarriorAgent).GetWarrior()
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassMask:  SpellMaskThunderClap,
-				Kind:       core.SpellMod_DamageDone_Flat,
-				FloatValue: 0.5,
-			}).AttachAdditivePseudoStatBuff(&warrior.thunderClapEffectBonus, 0.5)
+			spelldata.ParseEffects(&warrior.Character, setBonusAura, conquerorThunderClap)
+
+			// The one amount the row states raises the slow the tooltip names alongside the
+			// damage, which thunder_clap.go reads.
+			setBonusAura.AttachAdditivePseudoStatBuff(&warrior.thunderClapEffectBonus, conquerorThunderClap.EffectN(1).Percent())
 		},
 	},
 })
+
+var (
+	dreadnaughtRevenge        = spelldata.MustFind(28844) // 2pc: Revenge
+	dreadnaughtTauntHit       = spelldata.MustFind(28843) // 4pc: Increased Spell Hit Chance
+	dreadnaughtAbilityHit     = spelldata.MustFind(28842) // 6pc: Increased Hit Chance
+	dreadnaughtCheatDeath     = spelldata.MustFind(28845) // 8pc: Cheat Death, the proc
+	dreadnaughtCheatDeathBuff = spelldata.MustFind(28846) // 8pc: Cheat Death, the healing buff
+)
 
 var ItemSetDreadnaughtsBattlegear = core.NewItemSet(core.ItemSet{
 	Name: "Dreadnaught's Battlegear",
 	ID:   523,
 	Bonuses: map[int32]core.ApplySetBonus{
 		2: func(agent core.Agent, setBonusAura *core.Aura) {
-			// Spell 28844 states 75 Revenge damage.
+			// A_ADD_FLAT_MODIFIER on the damage has no sim kind in the parse table, so only the
+			// amount and the spell it names come off the row.
 			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassMask:  SpellMaskRevenge,
+				ClassFlags: dreadnaughtRevenge.EffectN(1).ClassFlags,
 				Kind:       core.SpellMod_BaseDamage_Flat,
-				FloatValue: 75,
+				FloatValue: dreadnaughtRevenge.EffectN(1).BaseValue(),
 			})
 		},
 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-			// Spell 28843 states 5% chance to hit with Taunt and Challenging Shout.
 			// TODO: both spells resolve on OutcomeAlwaysHit, so the bonus changes nothing until
 			// they roll against the spell hit table.
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassMask:  SpellMaskTaunt | SpellMaskChallengingShout,
-				Kind:       core.SpellMod_BonusHit_Percent,
-				FloatValue: 5,
-			})
+			warrior := agent.(WarriorAgent).GetWarrior()
+			spelldata.ParseEffects(&warrior.Character, setBonusAura, dreadnaughtTauntHit)
 		},
 		6: func(agent core.Agent, setBonusAura *core.Aura) {
-			// Spell 28842 states 5% chance to hit with Sunder Armor, Heroic Strike, Revenge and
-			// Shield Slam.
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassMask:  SpellMaskSunderArmor | SpellMaskHeroicStrike | SpellMaskRevenge | SpellMaskShieldSlam,
-				Kind:       core.SpellMod_BonusHit_Percent,
-				FloatValue: 5,
-			})
+			warrior := agent.(WarriorAgent).GetWarrior()
+			spelldata.ParseEffects(&warrior.Character, setBonusAura, dreadnaughtAbilityHit)
 		},
 		8: func(agent core.Agent, setBonusAura *core.Aura) {
 			// Spell 28845 states that below 20% health, healing spells cast on you gain up to 160
@@ -185,23 +204,22 @@ var ItemSetDreadnaughtsBattlegear = core.NewItemSet(core.ItemSet{
 			// TODO: the tank sim's modelled incoming healing bypasses the bonus; only heals a healer
 			// unit casts take it.
 			warrior := agent.(WarriorAgent).GetWarrior()
-			const cheatDeathHealing = 160
-			cheatDeath := warrior.RegisterAura(core.Aura{
-				Label:    "Cheat Death",
-				ActionID: core.ActionID{SpellID: 28846},
-				Duration: time.Second * 5,
-			}).AttachAdditivePseudoStatBuff(&warrior.PseudoStats.BonusHealingTaken, cheatDeathHealing)
-			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-				Name:     "Cheat Death - Trigger",
-				Callback: core.CallbackOnSpellHitTaken | core.CallbackOnPeriodicDamageTaken,
-				Outcome:  core.OutcomeLanded,
-				ExtraCondition: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
-					return warrior.CurrentHealthPercent() < 0.2
-				},
-				Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+
+			cheatDeath := warrior.RegisterAura(spelldata.AuraConfig(dreadnaughtCheatDeathBuff))
+			spelldata.ParseEffects(&warrior.Character, cheatDeath, dreadnaughtCheatDeathBuff)
+
+			trigger := spelldata.ProcTrigger(&warrior.Character, dreadnaughtCheatDeath,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 					cheatDeath.Activate(sim)
-				},
-			})
+				})
+			trigger.Name = "Cheat Death - Trigger"
+			// The health threshold is the whole of the tooltip's condition and the row states none
+			// of it.
+			trigger.ExtraCondition = func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
+				return warrior.CurrentHealthPercent() < 0.2
+			}
+
+			setBonusAura.AttachProcTrigger(trigger)
 		},
 	},
 })

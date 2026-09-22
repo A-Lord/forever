@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -26,8 +27,8 @@ func NormalizePowerCost(cost int32, powerType int32) int32 {
 }
 
 func IsWeaponDamageEffect(effect dbc.SpellEffectType) bool {
-	return effect == dbc.E_WEAPON_DAMAGE_NOSCHOOL || effect == dbc.E_WEAPON_DAMAGE ||
-		effect == dbc.E_NORMALIZED_WEAPON_DMG
+	return effect == dbcenums.E_WEAPON_DAMAGE_NOSCHOOL || effect == dbcenums.E_WEAPON_DAMAGE ||
+		effect == dbcenums.E_NORMALIZED_WEAPON_DMG
 }
 
 // Devouring Plague ticks as a leech rather than as plain periodic damage, so "is this a DoT" cannot be
@@ -35,11 +36,11 @@ func IsWeaponDamageEffect(effect dbc.SpellEffectType) bool {
 // The client states a flat threat amount on the abilities whose point is threat: Feint and Cower
 // shed it, Distracting Shot adds it. 22 ranked spells across four families carry one.
 func IsThreatEffect(effect dbc.SpellEffectType) bool {
-	return effect == dbc.E_THREAT || effect == dbc.E_THREAT_ALL
+	return effect == dbcenums.E_THREAT || effect == dbcenums.E_THREAT_ALL
 }
 
 func IsPeriodicAura(aura dbc.EffectAuraType) bool {
-	return aura == dbc.A_PERIODIC_DAMAGE || aura == dbc.A_PERIODIC_LEECH
+	return aura == dbcenums.A_PERIODIC_DAMAGE || aura == dbcenums.A_PERIODIC_LEECH
 }
 
 type RankEffect struct {
@@ -185,11 +186,11 @@ func DeriveRankAmount(e RankEffect, spellLevel, maxLevel int32) (min float64, ma
 
 // Whether the spell carries the Passive attribute: never cast, only applied.
 func SpellIsPassive(db *sql.DB, spellID int32) (bool, error) {
-	return spellHasAttribute(db, spellID, dbc.ATTR_INDEX_BASE, dbc.ATTR_PASSIVE)
+	return spellHasAttribute(db, spellID, dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_PASSIVE)
 }
 
 // Whether the flag is set in SpellMisc.Attributes[attrIndex]; false for a spell with no SpellMisc row.
-func spellHasAttribute(db *sql.DB, spellID int32, attrIndex int, flag int) (bool, error) {
+func spellHasAttribute(db *sql.DB, spellID int32, attrIndex int, flag uint32) (bool, error) {
 	var set bool
 	err := scanOptional(db, fmt.Sprintf(
 		`SELECT (COALESCE(json_extract(Attributes, '$[%d]'), 0) & %d) != 0 FROM SpellMisc WHERE SpellID = ? AND DifficultyID = 0`,
@@ -256,11 +257,11 @@ func LoadRankSpell(db *sql.DB, spellID int32) (RankSpell, error) {
 		return s, fmt.Errorf("max targets for spell %d: %w", spellID, err)
 	}
 
-	if s.RefundsOnMiss, err = spellHasAttribute(db, spellID, dbc.ATTR_INDEX_EX_1, dbc.ATTR_EX_1_DISCOUNT_POWER_ON_MISS); err != nil {
+	if s.RefundsOnMiss, err = spellHasAttribute(db, spellID, dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_DISCOUNT_POWER_ON_MISS); err != nil {
 		return s, fmt.Errorf("miss refund for spell %d: %w", spellID, err)
 	}
 
-	if s.PeriodicCanCrit, err = spellHasAttribute(db, spellID, dbc.ATTR_INDEX_EX_8, dbc.ATTR_EX_8_PERIODIC_CAN_CRIT); err != nil {
+	if s.PeriodicCanCrit, err = spellHasAttribute(db, spellID, dbcenums.ATTR_INDEX_EX_8, dbcenums.ATTR_EX_8_PERIODIC_CAN_CRIT); err != nil {
 		return s, fmt.Errorf("periodic crit for spell %d: %w", spellID, err)
 	}
 
@@ -342,12 +343,12 @@ func ReferencedEffects(db *sql.DB, spell RankSpell) ([]RankEffect, error) {
 		if IsPeriodicAura(e.Aura) {
 			return nil, nil
 		}
-		if e.Aura == dbc.A_PERIODIC_DUMMY && e.AuraPeriod > 0 {
+		if e.Aura == dbcenums.A_PERIODIC_DUMMY && e.AuraPeriod > 0 {
 			period = e.AuraPeriod
 		}
 		// A dummy whose points do not scale with level is read as a spell ID; it only matters once
 		// the description names that spell.
-		if (e.Effect == dbc.E_DUMMY || e.Aura == dbc.A_DUMMY) && e.PointsPerLvl == 0 && e.BasePoints > 0 {
+		if (e.Effect == dbcenums.E_DUMMY || e.Aura == dbcenums.A_DUMMY) && e.PointsPerLvl == 0 && e.BasePoints > 0 {
 			pointed[e.BasePoints] = true
 		}
 		// The client is not consistent about which effect carries the trigger - Seal of Fury rank 5
@@ -393,9 +394,9 @@ func ReferencedEffects(db *sql.DB, spell RankSpell) ([]RankEffect, error) {
 			if sameName == 0 {
 				continue
 			}
-			want = dbc.E_SCHOOL_DAMAGE
+			want = dbcenums.E_SCHOOL_DAMAGE
 		case pointed[int32(id)]:
-			want = dbc.E_DUMMY
+			want = dbcenums.E_DUMMY
 		case triggered[int32(id)]:
 			anyShape = true
 		default:
@@ -472,7 +473,7 @@ func RankEffectsOf(db *sql.DB, spellID int32) ([]RankEffect, error) {
 // the rank subtext, which is what is checked before its effects are taken. Following the pointer
 // rather than widening the name search keeps Blizzard's tick spell out of its parent's Direct.
 func dummyTargetEffects(db *sql.DB, spell RankSpell) ([]RankEffect, error) {
-	if len(spell.Effects) != 1 || spell.Effects[0].Effect != dbc.E_DUMMY {
+	if len(spell.Effects) != 1 || spell.Effects[0].Effect != dbcenums.E_DUMMY {
 		return nil, nil
 	}
 	target, _ := DeriveRankAmount(spell.Effects[0], spell.SpellLevel, spell.MaxLevel)
@@ -542,7 +543,7 @@ func SiblingRankEffects(db *sql.DB, spellID int32, classBit int) ([]RankEffect, 
 
 func HasValueEffect(effects []RankEffect) bool {
 	for _, e := range effects {
-		if e.Effect == dbc.E_SCHOOL_DAMAGE || e.Effect == dbc.E_HEAL || e.Effect == dbc.E_ENERGIZE ||
+		if e.Effect == dbcenums.E_SCHOOL_DAMAGE || e.Effect == dbcenums.E_HEAL || e.Effect == dbcenums.E_ENERGIZE ||
 			IsWeaponDamageEffect(e.Effect) || IsPeriodicAura(e.Aura) {
 			return true
 		}

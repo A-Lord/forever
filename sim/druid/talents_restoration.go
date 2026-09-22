@@ -63,7 +63,7 @@ func (druid *Druid) applyNaturalist() {
 	//
 	// // Forever states the damage bonus against every school (mask 127) instead of physical
 	// // only; the sim keeps it on physical, which is all a feral druid deals.
-	// druid.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical] *= spellData.Naturalist.Effect(shared.A_MOD_DAMAGE_PERCENT_DONE, 127).MultiplierAt(druid.Talents.Naturalist)
+	// druid.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical] *= spellData.Naturalist.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 127).MultiplierAt(druid.Talents.Naturalist)
 }
 
 // TODO: To be implemented.
@@ -122,7 +122,7 @@ func (druid *Druid) applyFuror() {
 	// }
 	//
 	// // Both dummy effects carry the same ladder, one per form, so either answers the chance.
-	// druid.FurorProcChance = spellData.Furor.EffectAt(0).FractionAt(druid.Talents.Furor)
+	// druid.FurorProcChance = spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
 }
 
 // applyReflection implements Reflection, new in Forever.

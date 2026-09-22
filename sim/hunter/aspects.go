@@ -7,20 +7,20 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-var aspectOfTheHawkRank = spellData.AspectOfTheHawk.HighestRank()
+var aspectOfTheHawkRank = spellData.AspectOfTheHawk.Highest()
 
 // TODO: To be implemented.
 func (hunter *Hunter) registerAspectOfTheHawkSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: aspectOfTheHawkRank.SpellID}
+	// actionID := core.ActionID{SpellID: aspectOfTheHawkRank.ID}
 	//
 	// hunter.AspectOfTheHawkAura = hunter.applySharedAspectConfig(hunter.RegisterAura(core.Aura{
 	// 	Label:      "Aspect of the Hawk",
 	// 	ActionID:   actionID,
 	// 	BuildPhase: core.CharacterBuildPhaseBase,
-	// }).AttachStatBuff(stats.RangedAttackPower, shared.SpellDataMin(aspectOfTheHawkRank.Direct)))
+	// }).AttachStatBuff(stats.RangedAttackPower, aspectOfTheHawkRank.EffectN(1).Average(core.CharacterLevel)))
 	//
 	// hunter.AspectOfTheHawk = hunter.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       actionID,
@@ -30,12 +30,12 @@ func (hunter *Hunter) registerAspectOfTheHawkSpell() {
 	// 	Flags:          core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: aspectOfTheHawkRank.Cost,
+	// 		FlatCost: int32(aspectOfTheHawkRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: aspectOfTheHawkRank.GCD,
+	// 			GCD: aspectOfTheHawkRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 	},

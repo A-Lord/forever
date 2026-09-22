@@ -3,6 +3,7 @@ package druid
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -236,7 +237,7 @@ func (druid *Druid) registerFormBreakingConsumes() {
 }
 
 func (druid *Druid) RegisterBalanceSpells() {
-	StarfireRankMap.RegisterAll(druid.registerStarfireSpell)
+	StarfireRankMap.Each(func(_ int32, r *spelldata.Spell) { druid.registerStarfireSpell(r) })
 	druid.registerMoonfireSpell()
 	druid.registerWrathSpell()
 	druid.registerHurricaneSpell()

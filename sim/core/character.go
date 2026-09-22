@@ -79,9 +79,6 @@ type Character struct {
 	// This character's index within its party [0-4].
 	PartyIndex int
 
-	// This stores a timer on spell category ID so that we can track on use effects.
-	spellCategoryTimers map[int32]*Timer
-
 	Pets []*Pet // cached in AddPet, for advance()
 
 	// Used for manually modifying a rotation before it's constructed

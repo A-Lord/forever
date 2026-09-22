@@ -1,8 +1,11 @@
 package warrior
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -17,77 +20,37 @@ type WarriorInputs struct {
 	HasBsT2        bool
 }
 
+// What is left of the sim's own spell masks now that the client's spell class mask addresses the
+// rest: the two Sweeping Strikes copies and the Whirlwind off-hand strike, which have no client row
+// to be named by, and the six abilities a handler or a listener singles out by hand.
 const (
 	SpellMaskNone int64 = 0
-	// Abilities that don't cost rage and aren't attacks
-	SpellMaskBattleShout int64 = 1 << iota
-	SpellMaskBerserkerRage
-	SpellMaskRecklessness
-	SpellMaskDeathWish
-	SpellMaskRetaliation
-	SpellMaskRetaliationHit
-	SpellMaskShieldWall
-	SpellMaskLastStand
-	SpellMaskCharge
-	SpellMaskIntercept
-	SpellMaskDemoralizingShout
 
-	// Stances
-	SpellMaskBattleStance
-	SpellMaskBerserkerStance
-	SpellMaskDefensiveStance
-
-	// Special attacks
-	SpellMaskRend
-	SpellMaskDeepWounds
-	SpellMaskSweepingStrikes
-	SpellMaskSweepingStrikesHit
+	SpellMaskSweepingStrikesHit int64 = 1 << iota
 	SpellMaskSweepingStrikesNormalizedHit
-	SpellMaskHeroicStrike
-	SpellMaskCleave
+	SpellMaskWhirlwindOh
+
 	SpellMaskExecute
-	SpellMaskOverpower
-	SpellMaskRevenge
-	SpellMaskSlam
-	SpellMaskSunderArmor
 	SpellMaskThunderClap
 	SpellMaskWhirlwind
-	SpellMaskWhirlwindOh
-	SpellMaskShieldSlam
-	SpellMaskConcussionBlow
 	SpellMaskShieldBash
 	SpellMaskBloodthirst
-	SpellMaskMortalStrike
-	SpellMaskShieldBlock
 	SpellMaskHamstring
-	SpellMaskPummel
-	SpellMaskMockingBlow
-	SpellMaskChallengingShout
-	SpellMaskIntimidatingShout
-	SpellMaskDisarm
-	SpellMaskTaunt
-	SpellMaskVictoryRush
-	SpellMaskSpearingStrike
 
 	WarriorSpellLast
 	WarriorSpellsAll = WarriorSpellLast<<1 - 1
+)
 
-	SpellMaskDirectDamageSpells = SpellMaskSweepingStrikesHit | SpellMaskSweepingStrikesNormalizedHit |
-		SpellMaskCleave | SpellMaskExecute | SpellMaskHeroicStrike | SpellMaskOverpower |
-		SpellMaskRevenge | SpellMaskSlam | SpellMaskShieldBash | SpellMaskSunderArmor |
-		SpellMaskThunderClap | SpellMaskWhirlwind | SpellMaskWhirlwindOh | SpellMaskShieldSlam |
-		SpellMaskBloodthirst | SpellMaskMortalStrike | SpellMaskIntercept | SpellMaskRetaliationHit |
-		SpellMaskMockingBlow | SpellMaskVictoryRush | SpellMaskSpearingStrike |
-		SpellMaskHamstring | SpellMaskPummel
+// The client's SpellClassOptions for the registrations that do not resolve a row of their own: the
+// stance spells, and the sim-only sub-spells that take their parent's flags, the client having no
+// row for a Whirlwind off-hand strike or a Sweeping Strikes copy.
+var (
+	SpellFlagsBattleStance    = spellData.BattleStance.Highest().ClassFlags
+	SpellFlagsBerserkerStance = spellData.BerserkerStance.Highest().ClassFlags
+	SpellFlagsDefensiveStance = spellData.DefensiveStance.Highest().ClassFlags
 
-	SpellMaskDamageSpells = SpellMaskDirectDamageSpells | SpellMaskDeepWounds | SpellMaskRend
-
-	SpellMaskOffensiveAbilities = SpellMaskHeroicStrike | SpellMaskRend | SpellMaskShieldBash |
-		SpellMaskCleave | SpellMaskDisarm | SpellMaskWhirlwind | SpellMaskSunderArmor | SpellMaskSlam |
-		SpellMaskHamstring | SpellMaskExecute | SpellMaskPummel | SpellMaskRevenge | SpellMaskOverpower |
-		SpellMaskThunderClap | SpellMaskMockingBlow | SpellMaskMortalStrike | SpellMaskConcussionBlow |
-		SpellMaskShieldSlam | SpellMaskRetaliation | SpellMaskIntercept | SpellMaskBloodthirst
-	SpellMaskShouts = SpellMaskBattleShout | SpellMaskDemoralizingShout | SpellMaskIntimidatingShout | SpellMaskChallengingShout
+	SpellFlagsSweepingStrikes = spellData.SweepingStrikes.Highest().ClassFlags
+	SpellFlagsWhirlwind       = spellData.Whirlwind.Highest().ClassFlags
 )
 
 type Warrior struct {
@@ -251,4 +214,15 @@ func (warrior *Warrior) CastNormalizedSweepingStrikesAttack(results core.SpellRe
 // Agent is a generic way to access underlying warrior on any of the agents.
 type WarriorAgent interface {
 	GetWarrior() *Warrior
+}
+
+// The recovery the ability waits out. A warrior ability states it on a shared category - Bloodthirst
+// and Mortal Strike both run off category 971 - and leaves its own column at zero, so the cooldown
+// is whichever of the two the client filled in.
+//
+// The category is a timer as well as a number, and spelldata.SpellConfig puts every spell naming one
+// on the unit's timer for it: Revenge and Overpower share category 65, Shield Bash and Pummel share
+// 88, and Mortal Strike, Bloodthirst and Shield Slam share 971.
+func cooldownOf(s *spelldata.Spell) time.Duration {
+	return max(s.Cooldown(), s.CategoryCooldown())
 }

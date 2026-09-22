@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
@@ -263,30 +264,30 @@ func (d DBCTooltipDataProvider) GetEffectScaledValue(spellId int64, effectIdx in
 
 	shouldScale := false
 	switch effect.EffectType {
-	case dbc.E_SCHOOL_DAMAGE:
+	case dbcenums.E_SCHOOL_DAMAGE:
 		shouldScale = true
 
-	case dbc.E_APPLY_AURA:
+	case dbcenums.E_APPLY_AURA:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_ENEMY:
+	case dbcenums.E_APPLY_AREA_AURA_ENEMY:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_FRIEND:
+	case dbcenums.E_APPLY_AREA_AURA_FRIEND:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_PARTY:
+	case dbcenums.E_APPLY_AREA_AURA_PARTY:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_OWNER:
+	case dbcenums.E_APPLY_AREA_AURA_OWNER:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_RAID:
+	case dbcenums.E_APPLY_AREA_AURA_RAID:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_PARTY_NONRANDOM:
+	case dbcenums.E_APPLY_AREA_AURA_PARTY_NONRANDOM:
 		fallthrough
-	case dbc.E_APPLY_AREA_AURA_PET:
+	case dbcenums.E_APPLY_AREA_AURA_PET:
 		fallthrough
-	case dbc.E_APPLY_AURA_ON_PET:
+	case dbcenums.E_APPLY_AURA_ON_PET:
 		switch effect.EffectAura {
-		case dbc.A_PERIODIC_DAMAGE:
+		case dbcenums.A_PERIODIC_DAMAGE:
 			fallthrough
-		case dbc.A_PERIODIC_HEAL:
+		case dbcenums.A_PERIODIC_HEAL:
 			shouldScale = true
 		}
 	}

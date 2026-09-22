@@ -46,7 +46,7 @@ character_stats_results: {
   final_stats: 3
   final_stats: 6
   final_stats: 30.56857
-  final_stats: 13.42857
+  final_stats: 16.42857
   final_stats: 0
   final_stats: 0
   final_stats: -1
@@ -55,323 +55,314 @@ character_stats_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-AegisofPreservation-19345"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Annihilator-12798"
  value: {
-  dps: 395.92215
-  tps: 225.59128
+  dps: 451.45719
+  tps: 257.81062
   dtps: 7.38696
-  hps: 16.44486
+  hps: 20.3447
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-BadgeoftheSwarmguard-21670"
  value: {
-  dps: 383.76419
-  tps: 220.50517
+  dps: 429.1329
+  tps: 247.41937
   dtps: 7.38696
-  hps: 18.13938
+  hps: 19.9786
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Biznicks247x128Accurascope-2523"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 389.05472
-  tps: 223.49842
+  dps: 432.67647
+  tps: 249.6544
   dtps: 7.12565
-  hps: 18.28811
+  hps: 20.69048
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-DormantHeartoftheMountain-249473"
+ key: "TestDpsWarrior-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 380.5625
-  tps: 218.71222
-  dtps: 7.29169
-  hps: 18.13938
+  dps: 428.89036
+  tps: 247.26688
+  dtps: 7.38696
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Earthstrike-21180"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Enchant2HWeapon-GreaterImpact-963"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-EnchantCloak-Subtlety-2621"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-EnchantGloves-Threat-2613"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-EnchantWeapon-Crusader-1900"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
- }
-}
-dps_results: {
- key: "TestDpsWarrior-AllItems-EnchantWeapon-UnholyWeapon-1899"
- value: {
-  dps: 380.5625
-  tps: 218.71222
-  dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-EyeofMoam-21473"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-EyeoftheDead-23047"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-FrozenHeartoftheMountain-249469"
  value: {
-  dps: 384.75506
-  tps: 221.12672
+  dps: 427.39932
+  tps: 246.32293
   dtps: 7.29169
-  hps: 17.66868
+  hps: 20.5016
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Gri'lek'sCharmofValor-19952"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-HeartoftheScale-13164"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-HibernationCrystal-20636"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-HighborneResearchTablet-260205"
  value: {
-  dps: 503.48378
-  tps: 287.54814
+  dps: 555.64957
+  tps: 318.25204
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-JomGabbar-23570"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Loatheb'sReflection-23042"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 422.45839
+  tps: 243.6747
   dtps: 7.12565
-  hps: 18.13938
+  hps: 20.0832
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-MarkoftheChampion-23206"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-MarkoftheChampion-23207"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-MoltenHeartoftheMountain-249470"
  value: {
-  dps: 383.14631
-  tps: 220.15915
+  dps: 425.51673
+  tps: 245.40542
   dtps: 7.29169
-  hps: 18.13938
+  hps: 20.397
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-SatchelofDarkIronBombs-285278"
  value: {
-  dps: 380.9101
-  tps: 218.93327
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.1016
+  hps: 20.328
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-SerenityField-272439"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Slayer'sCrest-23041"
  value: {
-  dps: 396.6545
-  tps: 227.72374
+  dps: 441.34338
+  tps: 254.65017
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.7631
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-SmokingHeartoftheMountain-11811"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.28618
+  tps: 243.0141
   dtps: 7.29169
-  hps: 18.13938
+  hps: 20.0309
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-TalismanofAscendance-22678"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-TalismanofEphemeralPower-18820"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-TheRestrainedEssenceofSapphiron-23046"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
-  dps: 456.21698
-  tps: 250.6059
+  dps: 517.02975
+  tps: 284.88013
   dtps: 7.38696
-  hps: 17.03585
+  hps: 20.2924
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-WrathofCenarius-21190"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Average-Default"
  value: {
-  dps: 386.32194
-  tps: 222.06703
-  dtps: 7.5062
-  hps: 17.66137
+  dps: 428.7416
+  tps: 247.47541
+  dtps: 7.61882
+  hps: 20.49453
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -379,10 +370,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -391,7 +382,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -418,8 +409,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -427,10 +418,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -439,7 +430,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -466,8 +457,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -475,10 +466,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -487,7 +478,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -514,19 +505,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -535,7 +526,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -565,8 +556,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -574,10 +565,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -586,7 +577,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -613,8 +604,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -622,10 +613,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -634,7 +625,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -661,8 +652,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -670,10 +661,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -682,7 +673,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -709,19 +700,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -730,7 +721,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -760,8 +751,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -769,10 +760,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -781,7 +772,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -808,8 +799,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -817,10 +808,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -829,7 +820,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -856,8 +847,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -865,10 +856,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -877,7 +868,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -904,19 +895,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -925,7 +916,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -955,8 +946,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -964,10 +955,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -976,7 +967,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1003,8 +994,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1012,10 +1003,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1024,7 +1015,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1051,8 +1042,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -1060,10 +1051,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -1072,7 +1063,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -1099,19 +1090,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p2_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -1120,7 +1111,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -1150,8 +1141,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1159,10 +1150,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1171,7 +1162,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1198,8 +1189,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1207,10 +1198,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1219,7 +1210,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1246,8 +1237,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -1255,10 +1246,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -1267,7 +1258,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -1294,19 +1285,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -1315,7 +1306,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -1345,8 +1336,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1354,10 +1345,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1366,7 +1357,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1393,8 +1384,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1402,10 +1393,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1414,7 +1405,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1441,8 +1432,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -1450,10 +1441,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -1462,7 +1453,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -1489,19 +1480,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p3_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -1510,7 +1501,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -1540,8 +1531,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1549,10 +1540,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1561,7 +1552,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1588,8 +1579,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1597,10 +1588,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1609,7 +1600,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1636,8 +1627,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -1645,10 +1636,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -1657,7 +1648,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -1684,19 +1675,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -1705,7 +1696,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -1735,8 +1726,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1744,10 +1735,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1756,7 +1747,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1783,8 +1774,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1792,10 +1783,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1804,7 +1795,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1831,8 +1822,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -1840,10 +1831,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -1852,7 +1843,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -1879,19 +1870,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p4_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -1900,7 +1891,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -1930,8 +1921,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1939,10 +1930,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1951,7 +1942,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -1978,8 +1969,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -1987,10 +1978,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -1999,7 +1990,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -2026,8 +2017,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -2035,10 +2026,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -2047,7 +2038,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -2074,19 +2065,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -2095,7 +2086,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -2125,8 +2116,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 678.52466
-  tps: 514.47381
+  dps: 718.08294
+  tps: 536.90423
   dtps: 6.55069
   hps: 0.15657
  }
@@ -2134,10 +2125,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 288.02872
-  tps: 168.01553
+  dps: 307.79882
+  tps: 181.06863
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -2146,7 +2137,7 @@ dps_results: {
   dps: 290.69966
   tps: 170.17931
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -2173,8 +2164,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 719.45477
-  tps: 537.58912
+  dps: 763.61568
+  tps: 561.76367
   dtps: 6.55069
   hps: 0.15657
  }
@@ -2182,10 +2173,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.1832
-  tps: 184.33926
+  dps: 344.66153
+  tps: 209.515
   dtps: 7.38696
-  hps: 0.24738
+  hps: 0.23485
  }
 }
 dps_results: {
@@ -2194,7 +2185,7 @@ dps_results: {
   dps: 306.05056
   tps: 190.61498
   dtps: 22.16087
-  hps: 0.74213
+  hps: 0.70455
  }
 }
 dps_results: {
@@ -2221,8 +2212,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 778.24991
-  tps: 550.29217
+  dps: 842.36634
+  tps: 586.75293
   dtps: 6.55069
   hps: 0.10438
  }
@@ -2230,10 +2221,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 352.41969
-  tps: 206.32527
+  dps: 396.65338
+  tps: 238.38221
   dtps: 7.38696
-  hps: 0.167
+  hps: 0.15657
  }
 }
 dps_results: {
@@ -2242,7 +2233,7 @@ dps_results: {
   dps: 360.77609
   tps: 218.41618
   dtps: 22.16087
-  hps: 0.50101
+  hps: 0.4697
  }
 }
 dps_results: {
@@ -2269,19 +2260,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 768.51115
-  tps: 543.97736
+  dps: 819.47383
+  tps: 571.59979
   dtps: 6.55069
-  hps: 12.73583
+  hps: 17.93558
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p5_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.06274
-  tps: 217.92513
+  dps: 416.00132
+  tps: 239.6235
   dtps: 7.38696
-  hps: 17.63115
+  hps: 20.30148
  }
 }
 dps_results: {
@@ -2290,7 +2281,7 @@ dps_results: {
   dps: 404.82738
   tps: 233.06167
   dtps: 22.16087
-  hps: 17.19624
+  hps: 21.1365
  }
 }
 dps_results: {
@@ -2320,8 +2311,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2329,10 +2320,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2341,7 +2332,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2368,8 +2359,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2377,10 +2368,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2389,7 +2380,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2416,8 +2407,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -2425,10 +2416,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -2437,7 +2428,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -2464,19 +2455,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -2485,7 +2476,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -2515,8 +2506,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2524,10 +2515,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2536,7 +2527,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2563,8 +2554,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2572,10 +2563,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2584,7 +2575,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2611,8 +2602,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -2620,10 +2611,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -2632,7 +2623,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -2659,19 +2650,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -2680,7 +2671,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -2710,8 +2701,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2719,10 +2710,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2731,7 +2722,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2758,8 +2749,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2767,10 +2758,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2779,7 +2770,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2806,8 +2797,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -2815,10 +2806,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -2827,7 +2818,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -2854,19 +2845,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -2875,7 +2866,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -2905,8 +2896,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2914,10 +2905,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2926,7 +2917,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -2953,8 +2944,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -2962,10 +2953,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -2974,7 +2965,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3001,8 +2992,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -3010,10 +3001,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -3022,7 +3013,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -3049,19 +3040,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p2_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -3070,7 +3061,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -3100,8 +3091,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3109,10 +3100,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3121,7 +3112,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3148,8 +3139,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3157,10 +3148,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3169,7 +3160,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3196,8 +3187,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -3205,10 +3196,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -3217,7 +3208,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -3244,19 +3235,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -3265,7 +3256,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -3295,8 +3286,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3304,10 +3295,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3316,7 +3307,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3343,8 +3334,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3352,10 +3343,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3364,7 +3355,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3391,8 +3382,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -3400,10 +3391,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -3412,7 +3403,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -3439,19 +3430,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p3_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -3460,7 +3451,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -3490,8 +3481,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3499,10 +3490,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3511,7 +3502,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3538,8 +3529,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3547,10 +3538,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3559,7 +3550,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3586,8 +3577,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -3595,10 +3586,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -3607,7 +3598,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -3634,19 +3625,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -3655,7 +3646,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -3685,8 +3676,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3694,10 +3685,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3706,7 +3697,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3733,8 +3724,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3742,10 +3733,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3754,7 +3745,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3781,8 +3772,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -3790,10 +3781,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -3802,7 +3793,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -3829,19 +3820,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p4_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -3850,7 +3841,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -3880,8 +3871,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3889,10 +3880,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3901,7 +3892,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3928,8 +3919,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -3937,10 +3928,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -3949,7 +3940,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -3976,8 +3967,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -3985,10 +3976,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -3997,7 +3988,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -4024,19 +4015,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_arms-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -4045,7 +4036,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -4075,8 +4066,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 680.36444
-  tps: 514.42075
+  dps: 720.11481
+  tps: 537.84763
   dtps: 6.55069
   hps: 0.1569
  }
@@ -4084,10 +4075,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-Arms-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 289.9849
-  tps: 169.09849
+  dps: 310.49252
+  tps: 182.45702
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -4096,7 +4087,7 @@ dps_results: {
   dps: 294.07895
   tps: 172.00505
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -4123,8 +4114,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 718.05267
-  tps: 534.88727
+  dps: 765.62695
+  tps: 562.30665
   dtps: 6.55069
   hps: 0.1569
  }
@@ -4132,10 +4123,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-Arms-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 310.37702
-  tps: 184.5776
+  dps: 345.31153
+  tps: 209.69087
   dtps: 7.38696
-  hps: 0.2479
+  hps: 0.23535
  }
 }
 dps_results: {
@@ -4144,7 +4135,7 @@ dps_results: {
   dps: 310.78629
   tps: 193.73972
   dtps: 22.16087
-  hps: 0.74371
+  hps: 0.70605
  }
 }
 dps_results: {
@@ -4171,8 +4162,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 781.40904
-  tps: 551.33906
+  dps: 843.08626
+  tps: 586.29497
   dtps: 6.55069
   hps: 0.1046
  }
@@ -4180,10 +4171,10 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 353.76876
-  tps: 207.04325
+  dps: 392.75019
+  tps: 236.09643
   dtps: 7.38696
-  hps: 0.16736
+  hps: 0.1569
  }
 }
 dps_results: {
@@ -4192,7 +4183,7 @@ dps_results: {
   dps: 363.62124
   tps: 219.9803
   dtps: 22.16087
-  hps: 0.50208
+  hps: 0.4707
  }
 }
 dps_results: {
@@ -4219,19 +4210,19 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 770.60556
-  tps: 544.62245
+  dps: 827.80627
+  tps: 573.43262
   dtps: 6.55069
-  hps: 12.2905
+  hps: 18.02607
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p5_fury-DefaultTalents-Fury-fury-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 380.5625
-  tps: 218.71222
+  dps: 421.15372
+  tps: 242.93436
   dtps: 7.38696
-  hps: 18.13938
+  hps: 20.1355
  }
 }
 dps_results: {
@@ -4240,7 +4231,7 @@ dps_results: {
   dps: 403.95444
   tps: 232.46865
   dtps: 22.16087
-  hps: 17.70355
+  hps: 20.2401
  }
 }
 dps_results: {
@@ -4270,9 +4261,9 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-SwitchInFrontOfTarget-Default"
  value: {
-  dps: 326.38735
-  tps: 187.79219
+  dps: 367.4123
+  tps: 212.71051
   dtps: 7.38696
-  hps: 14.14366
+  hps: 17.1544
  }
 }

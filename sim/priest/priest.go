@@ -1,9 +1,9 @@
 package priest
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -45,25 +45,29 @@ func (priest *Priest) Initialize() {
 	mindblastCDTimer := priest.NewTimer()
 	shadowWordDeathCDTimer := priest.NewTimer()
 
-	MindBlastRankMap.RegisterAll(func(rank shared.SpellData) {
+	MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerMindBlastSpell(rank, mindblastCDTimer)
 	})
-	ShadowWordPainRankMap.RegisterAll(priest.registerShadowWordPainSpell)
-	ShadowWordDeathRankMap.RegisterAll(func(rank shared.SpellData) {
+	ShadowWordPainRankMap.Each(func(_ int32, rank *spelldata.Spell) {
+		priest.registerShadowWordPainSpell(rank)
+	})
+	ShadowWordDeathRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerShadowWordDeathSpell(rank, shadowWordDeathCDTimer)
 	})
-	SmiteRankMap.RegisterAll(priest.registerSmiteSpell)
+	SmiteRankMap.Each(func(_ int32, rank *spelldata.Spell) {
+		priest.registerSmiteSpell(rank)
+	})
 	priest.registerShadowfiendSpell()
 
 	if priest.Race == proto.Race_RaceNightElf {
 		starshardsCDTimer := priest.NewTimer()
-		StarshardsRankMap.RegisterAll(func(rank shared.SpellData) {
+		StarshardsRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 			priest.registerStarshardsSpell(rank, starshardsCDTimer)
 		})
 	}
 	if priest.Race == proto.Race_RaceUndead {
 		devouringPlagueCDTimer := priest.NewTimer()
-		DevouringPlagueRankMap.RegisterAll(func(rank shared.SpellData) {
+		DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 			priest.registerDevouringPlagueSpell(rank, devouringPlagueCDTimer)
 		})
 	}

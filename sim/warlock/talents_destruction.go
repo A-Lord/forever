@@ -158,7 +158,7 @@ func (warlock *Warlock) applyShadowAndFlame() {
 	// 	// Four dummy effects, of which only the first (4% per rank) matches the coefficient
 	// 	// bonus this talent has always granted; the other three (20/2/2 per rank) are
 	// 	// unidentified.
-	// 	FloatValue: spellData.ShadowAndFlame.EffectAt(0).FractionAt(warlock.Talents.ShadowAndFlame),
+	// 	FloatValue: spellData.ShadowAndFlame.EffectAt(1).FractionAt(warlock.Talents.ShadowAndFlame),
 	// 	ClassMask:  WarlockSpellShadowBolt | WarlockSpellIncinerate,
 	// })
 }

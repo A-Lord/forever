@@ -1,48 +1,30 @@
 package warrior
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+var shieldWallRank = spellData.ShieldWall.Highest()
+
 func (warrior *Warrior) registerShieldWall() {
-	shieldWallRank := spellData.ShieldWall.HighestRank()
+	aura := warrior.RegisterAura(spelldata.AuraConfig(shieldWallRank))
+	spelldata.ParseEffects(&warrior.Character, aura, shieldWallRank)
 
-	actionID := core.ActionID{SpellID: shieldWallRank.SpellID}
-	aura := warrior.RegisterAura(core.Aura{
-		Label:    "Shield Wall",
-		ActionID: actionID,
-		Duration: shieldWallRank.Duration,
-	}).AttachMultiplicativePseudoStatBuff(
-		&warrior.PseudoStats.DamageTakenMultiplier,
-		shieldWallRank.Effect(shared.A_MOD_DAMAGE_PERCENT_TAKEN, 127).Multiplier(),
-	)
+	config := spelldata.SpellConfig(&warrior.Unit, shieldWallRank)
 
-	spell := warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		DefenseType:    core.DefenseTypeMelee,
-		ClassSpellMask: SpellMaskShieldWall,
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return warrior.StanceMatches(DefensiveStance) && warrior.PseudoStats.CanBlock
+	}
 
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: shieldWallRank.GCD,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: shieldWallRank.Cooldown,
-			},
-		},
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return warrior.StanceMatches(DefensiveStance) && warrior.PseudoStats.CanBlock
-		},
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		aura.Activate(sim)
+	}
 
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			aura.Activate(sim)
-		},
-		RelatedSelfBuff: aura,
-	})
+	config.RelatedSelfBuff = aura
+
+	spell := warrior.RegisterSpell(config)
 
 	warrior.deactivateWithoutShield(aura)
 

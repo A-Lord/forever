@@ -1,6 +1,6 @@
 package hunter
 
-var arcaneShotRank = spellData.ArcaneShot.HighestRank()
+var arcaneShotRank = spellData.ArcaneShot.Highest()
 
 // TODO: To be implemented.
 func (hunter *Hunter) registerArcaneShotSpell() {
@@ -8,28 +8,28 @@ func (hunter *Hunter) registerArcaneShotSpell() {
 
 	// The TBC implementation, kept for the port:
 	// hunter.ArcaneShot = hunter.RegisterRangedSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: arcaneShotRank.SpellID},
-	// 	SpellSchool:    arcaneShotRank.SpellSchool,
-	// 	DefenseType:    arcaneShotRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: arcaneShotRank.ID},
+	// 	SpellSchool:    arcaneShotRank.SpellSchool(),
+	// 	DefenseType:    arcaneShotRank.DefenseTypeCore(),
 	// 	ClassSpellMask: HunterSpellArcaneShot,
 	// 	ProcMask:       core.ProcMaskRangedSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneShotRank.Cost,
+	// 		FlatCost: int32(arcaneShotRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{
 	// 			Timer:    hunter.NewTimer(),
-	// 			Duration: arcaneShotRank.Cooldown,
+	// 			Duration: max(arcaneShotRank.Cooldown(), arcaneShotRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		baseDamage := spell.RangedAttackPower(target)*0.15 +
 	// 			hunter.talonOfAlarBonus() +
-	// 			arcaneShotRank.Direct.Damage(sim)
+	// 			arcaneShotRank.DamageEffect().Average(core.CharacterLevel)
 	//
 	// 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
 	//

@@ -1,9 +1,9 @@
 package warlock
 
 // Package-level state the commented-out implementations used:
-// var agonyRank = spellData.CurseOfAgony.BySpellID(27218)
-// var agonyTick = agonyRank.Periodic.(shared.SpellDataPeriodic)
-// var agonyCoeff = agonyTick.Coef
+// var agonyRank = spellData.CurseOfAgony.ByID(27218)
+// var agonyTick = agonyRank.PeriodicEffect()
+// var agonyCoeff = agonyTick.Coeff()
 
 // TODO: To be implemented. Forever renamed this to **Bane of Agony**: spells 980, 1014, 6217, 11711 (and up)
 // on the Affliction line, a full rank chain. The registrar needs re-pointing at that name,
@@ -13,17 +13,18 @@ func (warlock *Warlock) registerCurseOfAgony() {
 
 	// The TBC implementation, kept for the port:
 	//
+	// tickLength := agonyTick.Period()
 	// calculateBaseDamage := func(sim *core.Simulation, dot *core.Dot) float64 {
 	// 	damageMultiplier := core.TernaryFloat64(warlock.AmplifyCurseAura != nil && warlock.AmplifyCurseAura.IsActive(), 1.5, 1.0)
-	// 	return agonyTick.Tick * damageMultiplier
+	// 	return agonyTick.Average(core.CharacterLevel) * damageMultiplier
 	// }
 	//
 	// warlock.CurseOfAgony = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: agonyRank.SpellID},
+	// 	ActionID:       core.ActionID{SpellID: agonyRank.ID},
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	SpellSchool:    agonyRank.SpellSchool,
-	// 	DefenseType:    agonyRank.DefenseType,
+	// 	SpellSchool:    agonyRank.SpellSchool(),
+	// 	DefenseType:    agonyRank.DefenseTypeCore(),
 	// 	ClassSpellMask: WarlockSpellCurseOfAgony,
 	//
 	// 	ThreatMultiplier: 1,
@@ -31,12 +32,12 @@ func (warlock *Warlock) registerCurseOfAgony() {
 	// 	BonusCoefficient: agonyCoeff,
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: agonyRank.GCD,
+	// 			GCD: agonyRank.GCD(),
 	// 		},
 	// 	},
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: agonyRank.Cost,
+	// 		FlatCost: agonyRank.Cost(),
 	// 	},
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHit)
@@ -53,17 +54,13 @@ func (warlock *Warlock) registerCurseOfAgony() {
 	// 			Tag:   "Affliction",
 	// 		},
 	//
-	// 		TickLength:               agonyTick.TickLength,
-	// 		NumberOfTicks:            agonyTick.NumberOfTicks,
+	// 		TickLength:               tickLength,
+	// 		NumberOfTicks:            int32(agonyRank.Duration() / tickLength),
 	// 		PeriodicDamageMultiplier: 1,
-	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, calculateBaseDamage(sim, dot))
-	// 		},
 	//
 	// 		BonusCoefficient: agonyCoeff,
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, calculateBaseDamage(sim, dot), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
@@ -71,17 +68,10 @@ func (warlock *Warlock) registerCurseOfAgony() {
 	// 		dot := spell.Dot(target)
 	//
 	// 		// Always compare fully stacked agony damage
-	// 		if useSnapshot {
-	// 			result := dot.CalcSnapshotDamage(sim, target, dot.OutcomeTick)
-	// 			result.Damage *= 10
-	// 			result.Damage /= dot.TickPeriod().Seconds()
-	// 			return result
-	// 		} else {
-	// 			result := spell.CalcPeriodicDamage(sim, target, calculateBaseDamage(sim, dot), spell.OutcomeExpectedMagicHit)
-	// 			result.Damage *= 10
-	// 			result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
-	// 			return result
-	// 		}
+	// 		result := spell.CalcPeriodicDamage(sim, target, calculateBaseDamage(sim, dot), spell.OutcomeExpectedMagicHit)
+	// 		result.Damage *= 10
+	// 		result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
+	// 		return result
 	// 	},
 	// })
 }

@@ -1,28 +1,27 @@
 package rogue
 
-var eviscerateRank = spellData.Eviscerate.HighestRank()
+var eviscerateRank = spellData.Eviscerate.Highest()
 
 // TODO: To be implemented. Eviscerate already resolves against Forever data
-// (spellData.Eviscerate.HighestRank()); the TBC body needs review before it's uncommented.
+// (spellData.Eviscerate.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerEviscerate() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// flatDamage, flatDamageMax := eviscerateRank.Direct.Range()
+	// flatDamage := eviscerateRank.DamageEffect().Average(core.CharacterLevel)
 	// comboDamageBonus := 185.0 + rogue.DeathmantleBonus
-	// damageVariance := flatDamageMax - flatDamage
 	//
 	// rogue.Eviscerate = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: eviscerateRank.SpellID},
-	// 	SpellSchool:    eviscerateRank.SpellSchool,
-	// 	DefenseType:    eviscerateRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: eviscerateRank.ID},
+	// 	SpellSchool:    eviscerateRank.SpellSchool(),
+	// 	DefenseType:    eviscerateRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagFinisher | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellEviscerate,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: eviscerateRank.Cost,
+	// 		Cost: eviscerateRank.Cost(),
 	// 		// TODO: Forever drops Quick Recovery; no energy refund until we know whether the
 	// 		// effect moved onto another talent.
 	// 		Refund:        0,
@@ -30,7 +29,7 @@ func (rogue *Rogue) registerEviscerate() {
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: eviscerateRank.GCD,
+	// 			GCD: eviscerateRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 		ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
@@ -45,7 +44,7 @@ func (rogue *Rogue) registerEviscerate() {
 	// 	DamageMultiplierAdditive: 1,
 	// 	ThreatMultiplier:         1,
 	//
-	// 	BonusCoefficient: eviscerateRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: eviscerateRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		rogue.BreakStealth(sim)
@@ -53,7 +52,7 @@ func (rogue *Rogue) registerEviscerate() {
 	// 		comboPoints := float64(rogue.ComboPoints())
 	// 		flatBaseDamage := flatDamage + comboDamageBonus*float64(comboPoints)
 	//
-	// 		baseDamage := sim.Roll(flatBaseDamage, flatBaseDamage+damageVariance) + 0.03*float64(comboPoints)*spell.MeleeAttackPower(target)
+	// 		baseDamage := flatBaseDamage + 0.03*float64(comboPoints)*spell.MeleeAttackPower(target)
 	//
 	// 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
 	//

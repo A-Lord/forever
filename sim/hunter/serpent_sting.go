@@ -1,18 +1,18 @@
 package hunter
 
-var serpentStingRank = spellData.SerpentSting.HighestRank()
+var serpentStingRank = spellData.SerpentSting.Highest()
 
 // TODO: To be implemented.
 func (hunter *Hunter) registerSerpentStingSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// serpentStingTick := serpentStingRank.Periodic.(shared.SpellDataPeriodic)
+	// serpentStingTick := serpentStingRank.PeriodicEffect()
 	//
 	// hunter.SerpentSting = hunter.RegisterRangedSpell(core.SpellConfig{
-	// 	ActionID:    core.ActionID{SpellID: serpentStingRank.SpellID},
-	// 	SpellSchool: serpentStingRank.SpellSchool,
-	// 	DefenseType: serpentStingRank.DefenseType,
+	// 	ActionID:    core.ActionID{SpellID: serpentStingRank.ID},
+	// 	SpellSchool: serpentStingRank.SpellSchool(),
+	// 	DefenseType: serpentStingRank.DefenseTypeCore(),
 	// 	// A cast, not a proc, but one that must not read as a ranged hit to on-hit listeners; what
 	// 	// the sting's application should count as is a separate question. Matches only listeners
 	// 	// that state no mask.
@@ -21,7 +21,7 @@ func (hunter *Hunter) registerSerpentStingSpell() {
 	// 	Flags:          core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: serpentStingRank.Cost,
+	// 		FlatCost: int32(serpentStingRank.Cost()),
 	// 	},
 	//
 	// 	Dot: core.DotConfig{
@@ -30,14 +30,11 @@ func (hunter *Hunter) registerSerpentStingSpell() {
 	// 			Tag:   "Sting",
 	// 		},
 	//
-	// 		NumberOfTicks: serpentStingTick.NumberOfTicks,
-	// 		TickLength:    serpentStingTick.TickLength,
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			baseDmg := dot.Spell.RangedAttackPower(target)*0.02 + serpentStingTick.Damage(sim)
-	// 			dot.Snapshot(target, baseDmg)
-	// 		},
+	// 		NumberOfTicks: int32(serpentStingRank.Duration() / serpentStingTick.Period()),
+	// 		TickLength:    serpentStingTick.Period(),
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			baseDmg := dot.Spell.RangedAttackPower(target)*0.02 + serpentStingTick.Average(core.CharacterLevel)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, baseDmg, dot.OutcomeTick)
 	// 		},
 	// 	},
 	//

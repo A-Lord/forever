@@ -9,18 +9,19 @@ package warlock
 // import (
 // 	"math"
 //
-// 	"github.com/wowsims/forever/sim/common/shared"
 // 	"github.com/wowsims/forever/sim/core"
+// 	"github.com/wowsims/forever/sim/core/dbcenums"
 // )
 //
-// var drainLifeRank = spellData.DrainLife.HighestRank()
-// var drainLifeTick = drainLifeRank.Periodic.(shared.SpellDataPeriodic)
-// var drainLifeCoeff = drainLifeTick.Coef
+// var drainLifeRank = spellData.DrainLife.Highest()
+// var drainLifeTick = drainLifeRank.PeriodicEffect()
+// var drainLifeCoeff = drainLifeTick.Coeff()
 
 func (warlock *Warlock) registerDrainLife() {
 	panic("To be implemented")
 
-	// healthMetric := warlock.NewHealthMetrics(core.ActionID{SpellID: drainLifeRank.SpellID})
+	// tickLength := drainLifeTick.Period()
+	// healthMetric := warlock.NewHealthMetrics(core.ActionID{SpellID: drainLifeRank.ID})
 	// resultSlice := make(core.SpellResultSlice, 1)
 	//
 	// // TODO: cappedDmgBonus/the == 2 check are TBC's 2-rank Soul Siphon (2%/4% per Affliction effect,
@@ -33,18 +34,18 @@ func (warlock *Warlock) registerDrainLife() {
 	// }
 	//
 	// // Read once rather than per tick: the ladder lookup scans the table and boxes the rank.
-	// soulSiphonPerAffliction := spellData.SoulSiphon.Effect(shared.A_DUMMY, 0).FractionAt(warlock.Talents.SoulSiphon)
+	// soulSiphonPerAffliction := spellData.SoulSiphon.Effect(dbcenums.A_DUMMY, 0).FractionAt(warlock.Talents.SoulSiphon)
 	//
 	// warlock.DrainLife = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: drainLifeRank.SpellID},
-	// 	SpellSchool:    drainLifeRank.SpellSchool,
-	// 	DefenseType:    drainLifeRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: drainLifeRank.ID},
+	// 	SpellSchool:    drainLifeRank.SpellSchool(),
+	// 	DefenseType:    drainLifeRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellDrainLife,
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: drainLifeRank.Cost},
-	// 	Cast:     core.CastConfig{DefaultCast: core.Cast{GCD: drainLifeRank.GCD}},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: drainLifeRank.Cost()},
+	// 	Cast:     core.CastConfig{DefaultCast: core.Cast{GCD: drainLifeRank.GCD()}},
 	//
 	// 	DamageMultiplierAdditive: 1,
 	// 	ThreatMultiplier:         1,
@@ -52,17 +53,14 @@ func (warlock *Warlock) registerDrainLife() {
 	//
 	// 	Dot: core.DotConfig{
 	// 		Aura:                 core.Aura{Label: "Drain Life"},
-	// 		NumberOfTicks:        drainLifeTick.NumberOfTicks,
-	// 		TickLength:           drainLifeTick.TickLength,
+	// 		NumberOfTicks:        int32(drainLifeRank.Duration() / tickLength),
+	// 		TickLength:           tickLength,
 	// 		AffectedByCastSpeed:  true,
 	// 		HasteReducesDuration: true,
 	// 		BonusCoefficient:     drainLifeCoeff,
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, drainLifeTick.Tick)
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 	// 			dot.PeriodicDamageMultiplier = math.Max(1, math.Min(1+(soulSiphonPerAffliction*warlock.AfflictionCount(target)), cappedDmgBonus))
-	// 			resultSlice[0] = dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			resultSlice[0] = dot.Spell.CalcAndDealPeriodicDamage(sim, target, drainLifeTick.Average(core.CharacterLevel), dot.OutcomeTick)
 	// 			warlock.GainHealth(sim, resultSlice[0].Damage*warlock.PseudoStats.SelfHealingMultiplier, healthMetric)
 	// 		},
 	// 	},

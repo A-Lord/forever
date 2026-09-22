@@ -55,7 +55,7 @@ func (warlock *Warlock) applyImprovedImp() {
 	// 	Kind: core.SpellMod_DamageDone_Flat,
 	// 	// SPELLMOD_ALL_EFFECTS carries the same ladder and also covers Blood Pact, which is
 	// 	// buffed elsewhere; this mod is the Firebolt damage half.
-	// 	FloatValue: spellData.ImprovedImp.Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_DAMAGE).FractionAt(warlock.Talents.ImprovedImp),
+	// 	FloatValue: spellData.ImprovedImp.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(warlock.Talents.ImprovedImp),
 	// 	ClassMask:  WarlockSpellImpFireBolt,
 	// })
 }

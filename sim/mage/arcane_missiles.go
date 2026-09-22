@@ -1,6 +1,6 @@
 package mage
 
-var arcaneMissilesRank = spellData.ArcaneMissiles.HighestRank()
+var arcaneMissilesRank = spellData.ArcaneMissiles.Highest()
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneMissilesSpell() {
@@ -9,7 +9,7 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	// The TBC implementation, kept for the port:
 	// // Values found at https://wago.tools/db2/SpellEffect?build=2.5.5.65295&filter%5BSpellID%5D=exact%253A7268
 	// arcaneMissilesCoefficient := 0.28600001335
-	// actionID := core.ActionID{SpellID: arcaneMissilesRank.SpellID}
+	// actionID := core.ActionID{SpellID: arcaneMissilesRank.ID}
 	//
 	// arcaneMissilesTickSpell := mage.GetOrRegisterSpell(core.SpellConfig{
 	// 	ActionID:       actionID.WithTag(1),
@@ -41,12 +41,12 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	// 	DamageMultiplier: 0,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneMissilesRank.Cost,
+	// 		FlatCost: arcaneMissilesRank.Cost(),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: arcaneMissilesRank.GCD,
+	// 			GCD: arcaneMissilesRank.GCD(),
 	// 		},
 	// 	},
 	//

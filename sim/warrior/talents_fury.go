@@ -1,11 +1,9 @@
 package warrior
 
 import (
-	"time"
-
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -48,32 +46,29 @@ func (warrior *Warrior) registerCruelty() {
 		return
 	}
 
-	warrior.AddStat(stats.PhysicalCritPercent, spellData.Cruelty.ValueAt(warrior.Talents.Cruelty))
+	spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents.Cruelty))
 }
+
+var unbridledWrathRank = spellData.UnbridledWrathTriggered.Highest()
+
+var unbridledWrathRage = unbridledWrathRank.EnergizeEffect().Tenths()
 
 func (warrior *Warrior) registerUnbridledWrath() {
 	if warrior.Talents.UnbridledWrath == 0 {
 		return
 	}
 
-	unbridledWrathRank := spellData.UnbridledWrathTriggered.HighestRank()
-	unbridledWrathRage := unbridledWrathRank.Energize.Tenths()
+	rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: unbridledWrathRank.ID})
 
-	rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: unbridledWrathRank.SpellID})
-
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Unbridled Wrath",
-		ProcMask:           core.ProcMaskMeleeWhiteHit,
-		ProcChance:         spellData.UnbridledWrath.FractionAt(warrior.Talents.UnbridledWrath),
-		RequireDamageDealt: true,
-		Outcome:            core.OutcomeLanded,
-		Callback:           core.CallbackOnSpellHitDealt,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	// The rate is the effect ladder the tooltip's $m1 names - 12/24/36/48/60 by rank, where the
+	// proc chance column reads a flat 60 - and the row's mask is the white hits the tooltip means.
+	warrior.MakeProcTriggerAura(spelldata.ProcTrigger(&warrior.Character,
+		spellData.UnbridledWrath.Rank(warrior.Talents.UnbridledWrath),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			// The tooltip of 12322 doubles the rage for a two-handed weapon.
 			twoHanded := warrior.GetMainHandType() == proto.HandType_HandTypeTwoHand
 			warrior.AddRage(sim, unbridledWrathRage*core.TernaryFloat64(twoHanded, 2, 1), rageMetrics)
-		},
-	})
+		}))
 }
 
 func (warrior *Warrior) registerDualWieldSpecialization() {
@@ -81,27 +76,28 @@ func (warrior *Warrior) registerDualWieldSpecialization() {
 		return
 	}
 
-	warrior.AddStaticMod(core.SpellModConfig{
-		ProcMask:   core.ProcMaskMeleeOH,
-		Kind:       core.SpellMod_DamageDone_Pct,
-		FloatValue: spellData.DualWieldSpecialization.Effect(shared.A_MOD_OFFHAND_DAMAGE_PCT, 0).FractionAt(warrior.Talents.DualWieldSpecialization),
-	})
+	rank := spellData.DualWieldSpecialization.Rank(warrior.Talents.DualWieldSpecialization)
+
+	// Effect 3 states A_MOD_HIT_CHANCE with nothing narrowing it, which the parse reads as hit on
+	// every attack; the tooltip states the chance to hit with off-hand attacks, so it stays a mod
+	// on the off-hand's own hits.
+	spelldata.ParseStatic(&warrior.Character, rank, spelldata.SkipEffects(3))
 
 	warrior.AddStaticMod(core.SpellModConfig{
 		ProcMask:   core.ProcMaskMeleeOH,
 		Kind:       core.SpellMod_BonusHit_Percent,
-		FloatValue: spellData.DualWieldSpecialization.Effect(shared.A_MOD_HIT_CHANCE, 0).ValueAt(warrior.Talents.DualWieldSpecialization),
+		FloatValue: rank.EffectN(3).BaseValue(),
 	})
 
-	warrior.SetOffHandRageMultiplier(spellData.DualWieldSpecialization.EffectAt(1).MultiplierAt(warrior.Talents.DualWieldSpecialization))
+	// The off-hand rage the tooltip's $m2 states is the dummy at index 2, which the parse skips.
+	warrior.SetOffHandRageMultiplier(1 + rank.EffectN(2).Percent())
 }
 
 func (warrior *Warrior) registerIronWill() {
 	if warrior.Talents.IronWill == 0 {
 		return
 	}
-	warrior.PseudoStats.FearDurationMultiplier = spellData.IronWill.Effect(shared.A_MECHANIC_DURATION_MOD, 1).MultiplierAt(warrior.Talents.IronWill)
-	warrior.PseudoStats.StunDurationMultiplier = spellData.IronWill.Effect(shared.A_MECHANIC_DURATION_MOD, 12).MultiplierAt(warrior.Talents.IronWill)
+	spelldata.ParseStatic(&warrior.Character, spellData.IronWill.Rank(warrior.Talents.IronWill))
 }
 
 func (warrior *Warrior) registerImprovedExecute() {
@@ -109,84 +105,81 @@ func (warrior *Warrior) registerImprovedExecute() {
 		return
 	}
 
-	warrior.AddStaticMod(core.SpellModConfig{
-		ClassMask: SpellMaskExecute,
-		Kind:      core.SpellMod_PowerCost_Flat,
-		IntValue:  int32(spellData.ImprovedExecute.TenthsAt(warrior.Talents.ImprovedExecute)),
-	})
+	spelldata.ParseStatic(&warrior.Character, spellData.ImprovedExecute.Rank(warrior.Talents.ImprovedExecute))
 }
+
+var enrageBuff = spellData.EnrageTriggered.Highest()
 
 func (warrior *Warrior) registerEnrage() {
 	if warrior.Talents.Enrage == 0 {
 		return
 	}
 
-	enrageBuff := spellData.EnrageTriggered.HighestRank()
+	warrior.EnrageAura = warrior.GetOrRegisterAura(spelldata.AuraConfig(enrageBuff))
 
-	warrior.EnrageAura = warrior.GetOrRegisterAura(core.Aura{
-		Label:    "Enrage",
-		ActionID: core.ActionID{SpellID: enrageBuff.SpellID},
-		Duration: enrageBuff.Duration,
-	}).AttachSpellMod(core.SpellModConfig{
-		School:     core.SpellSchoolPhysical,
-		Kind:       core.SpellMod_DamageDone_Pct,
-		FloatValue: spellData.Enrage.FractionAt(warrior.Talents.Enrage),
-	})
+	// 12880 states the bucket and the duration, and the sim's only Enrage buff row states a flat
+	// 10; the percentage per rank is the talent's own ladder, which is what 12317's tooltip reads
+	// as $m1%. So the value is the talent's and only the bucket - the physical school's damage
+	// dealt multiplier, not a per-spell mod - comes off the buff row.
+	warrior.EnrageAura.AttachMultiplicativePseudoStatBuff(
+		&warrior.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical],
+		spellData.Enrage.MultiplierAt(warrior.Talents.Enrage),
+	)
 
 	warrior.EnrageAura.NewExclusiveEffect("Enrage", true, core.ExclusiveEffect{Priority: spellData.Enrage.ValueAt(warrior.Talents.Enrage)})
 
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Enrage - Trigger",
-		Callback:           core.CallbackOnSpellHitTaken,
-		Outcome:            core.OutcomeLanded,
-		RequireDamageDealt: true,
-		ProcChance:         spellData.Enrage.ProcChanceAt(warrior.Talents.Enrage),
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	// The rate is the shape where the tooltip carries $h%: a real 30% roll on damage taken, which
+	// is the proc chance column.
+	trigger := spelldata.ProcTrigger(&warrior.Character, spellData.Enrage.Rank(warrior.Talents.Enrage),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			warrior.EnrageAura.Activate(sim)
-		},
-	})
+		})
+	trigger.Name = "Enrage - Trigger"
+
+	warrior.MakeProcTriggerAura(trigger)
 }
+
+var flurryBuff = spellData.FlurryTriggered.Highest()
 
 func (warrior *Warrior) registerFlurry() {
 	if warrior.Talents.Flurry == 0 {
 		return
 	}
 
-	flurryBuff := spellData.FlurryTriggered.HighestRank()
-
+	// 12966 supplies the duration and the three charges. The haste is the talent's own ladder:
+	// 12319 reads "Increases your melee attack speed by $m1% for your next $12966n swings", so the
+	// buff row is named for the swing count alone.
+	//
 	// TODO: Ingame test needed: the talent ladder gives 5% per point (25% at rank 5) while the
 	// applied buff 12966 carries a flat 30%.
-	flurryAura := warrior.RegisterAura(core.Aura{
-		Label:     "Flurry",
-		ActionID:  core.ActionID{SpellID: flurryBuff.SpellID},
-		Duration:  flurryBuff.Duration,
-		MaxStacks: flurryBuff.ProcCharges,
-	}).AttachMultiplyMeleeSpeed(spellData.Flurry.MultiplierAt(warrior.Talents.Flurry))
+	flurryAura := warrior.RegisterAura(spelldata.AuraConfig(flurryBuff)).
+		AttachMultiplyMeleeSpeed(spellData.Flurry.MultiplierAt(warrior.Talents.Flurry))
 
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Flurry - Trigger",
-		ActionID:           core.ActionID{SpellID: 12319},
-		ProcMask:           core.ProcMaskMelee,
-		TriggerImmediately: true,
-		Callback:           core.CallbackOnSpellHitDealt,
-		Outcome:            core.OutcomeLanded,
-
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	// The proc shape with no roll: 12319 states its rate as "always" and the crit is the
+	// condition, which this handler reads off the result rather than the trigger because the same
+	// listener has to see the white hits that spend a charge. The row's mask reaches ranged and
+	// spell hits too; the tooltip says a melee critical strike, so the mask stays the caller's.
+	trigger := spelldata.ProcTrigger(&warrior.Character, spellData.Flurry.Rank(warrior.Talents.Flurry),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			if spell.Matches(SpellMaskWhirlwindOh) {
 				return
 			}
 
 			if result.Outcome.Matches(core.OutcomeCrit) {
 				flurryAura.Activate(sim)
-				flurryAura.SetStacks(sim, flurryBuff.ProcCharges)
+				flurryAura.SetStacks(sim, int32(flurryBuff.ProcCharges))
 				return
 			}
 
 			if flurryAura.IsActive() && spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit) {
 				flurryAura.RemoveStack(sim)
 			}
-		},
-	})
+		})
+	trigger.Name = "Flurry - Trigger"
+	trigger.ProcMask = core.ProcMaskMelee
+	trigger.TriggerImmediately = true
+
+	warrior.MakeProcTriggerAura(trigger)
 }
 
 func (warrior *Warrior) registerPrecision() {
@@ -194,56 +187,33 @@ func (warrior *Warrior) registerPrecision() {
 		return
 	}
 
-	warrior.AddStat(stats.PhysicalHitPercent, spellData.Precision.Effect(shared.A_MOD_HIT_CHANCE, 0).ValueAt(warrior.Talents.Precision))
-	warrior.AddStat(stats.SpellHitPercent, spellData.Precision.Effect(shared.A_MOD_SPELL_HIT_CHANCE, 0).ValueAt(warrior.Talents.Precision))
+	spelldata.ParseStatic(&warrior.Character, spellData.Precision.Rank(warrior.Talents.Precision))
 }
+
+var bloodthirstRank = spellData.Bloodthirst.ByID(23894)
 
 func (warrior *Warrior) registerBloodthirst() {
 	if !warrior.Talents.Bloodthirst {
 		return
 	}
 
-	bloodthirstRank := spellData.Bloodthirst.HighestRank()
-	apShare := bloodthirstRank.Effects[1].Fraction()
+	apShare := bloodthirstRank.EffectN(2).Percent()
 
-	warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: bloodthirstRank.SpellID},
-		Rank:           bloodthirstRank.Rank,
-		SpellSchool:    bloodthirstRank.SpellSchool,
-		DefenseType:    bloodthirstRank.DefenseType,
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskBloodthirst,
-		MaxRange:       bloodthirstRank.MaxRange,
+	config := spelldata.SpellConfig(&warrior.Unit, bloodthirstRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ClassSpellMask = SpellMaskBloodthirst
 
-		RageCost: core.RageCostOptions{
-			Cost:   bloodthirstRank.Cost,
-			Refund: bloodthirstRank.MissRefund(),
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := spell.MeleeAttackPower(target)*apShare + bloodthirstRank.DamageEffect().Roll(sim, core.CharacterLevel)
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+		if !result.Landed() {
+			spell.IssueRefund(sim)
+		}
+	}
 
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: bloodthirstRank.GCD,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: bloodthirstRank.Cooldown,
-			},
-		},
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := spell.MeleeAttackPower(target)*apShare + bloodthirstRank.Direct.Damage(sim)
-			result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-			if !result.Landed() {
-				spell.IssueRefund(sim)
-			}
-		},
-	})
+	warrior.RegisterSpell(config)
 }
+
+var piercingHowlRank = spellData.PiercingHowl.Highest()
 
 // TODO: In-game test required if there's any threat interaction
 func (warrior *Warrior) registerPiercingHowl() {
@@ -251,81 +221,61 @@ func (warrior *Warrior) registerPiercingHowl() {
 		return
 	}
 
-	piercingHowlRank := spellData.PiercingHowl.HighestRank()
+	config := spelldata.SpellConfig(&warrior.Unit, piercingHowlRank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
 
-	warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: piercingHowlRank.SpellID},
-		SpellSchool:    core.SpellSchoolPhysical,
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskNone,
-
-		RageCost: core.RageCostOptions{
-			Cost: piercingHowlRank.Cost,
-		},
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: piercingHowlRank.GCD,
-			},
-			IgnoreHaste: true,
-		},
-	})
+	warrior.RegisterSpell(config)
 }
+
+var bloodCrazeHot = spellData.BloodCrazeTriggered.Highest()
 
 func (warrior *Warrior) registerBloodCraze() {
 	if warrior.Talents.BloodCraze == 0 {
 		return
 	}
 
-	bloodCrazeHot := spellData.BloodCrazeTriggered.HighestRank()
-	healthFraction := spellData.BloodCraze.EffectAt(0).FractionAt(warrior.Talents.BloodCraze)
-	hitThreshold := spellData.BloodCraze.EffectAt(1).FractionAt(warrior.Talents.BloodCraze)
-	tick := bloodCrazeHot.Periodic.AsPeriodic()
+	healthFraction := spellData.BloodCraze.EffectAt(1).FractionAt(warrior.Talents.BloodCraze)
+	hitThreshold := spellData.BloodCraze.EffectAt(2).FractionAt(warrior.Talents.BloodCraze)
+	tick := bloodCrazeHot.PeriodicEffect()
 
-	bloodCraze := warrior.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: bloodCrazeHot.SpellID},
-		SpellSchool: core.SpellSchoolPhysical,
-		ProcMask:    core.ProcMaskSpellHealing,
-		Flags:       core.SpellFlagPassiveSpell | core.SpellFlagHelpful | core.SpellFlagNoOnCastComplete,
+	config := spelldata.SpellConfig(&warrior.Unit, bloodCrazeHot, spelldata.Proc())
+	config.ProcMask = core.ProcMaskSpellHealing
+	config.DamageMultiplier = 1
+	config.ThreatMultiplier = 1
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
+	config.Hot = spelldata.DotConfig(bloodCrazeHot, tick)
+	config.Hot.SelfOnly = true
+	config.Hot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		healPerTick := warrior.MaxHealth() * healthFraction / float64(dot.ExpectedTickCount())
+		dot.Spell.CalcAndDealPeriodicHealing(sim, target, healPerTick, dot.OutcomeTick)
+	}
 
-		Hot: core.DotConfig{
-			Aura:          core.Aura{Label: "Blood Craze"},
-			SelfOnly:      true,
-			NumberOfTicks: tick.NumberOfTicks,
-			TickLength:    tick.TickLength,
-			OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-				healPerTick := warrior.MaxHealth() * healthFraction / float64(dot.ExpectedTickCount())
-				dot.Spell.CalcAndDealPeriodicHealing(sim, target, healPerTick, dot.OutcomeTick)
-			},
-		},
-	})
+	bloodCraze := warrior.RegisterSpell(config)
 
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Blood Craze - Damage Taken",
-		Callback:           core.CallbackOnSpellHitTaken,
-		Outcome:            core.OutcomeLanded,
-		RequireDamageDealt: true,
-		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			return result.Outcome.Matches(core.OutcomeCrit) || result.Damage > warrior.MaxHealth()*hitThreshold
-		},
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			bloodCraze.SelfHot().Apply(sim)
-		},
-	})
+	// One row, two listeners: 16487 decodes to hits taken and hits dealt at once, and the tooltip
+	// gives each its own condition. Its crit hint covers only half of the taken one - a crit taken
+	// or a hit over a share of maximum health - so both take the landed outcome and the condition
+	// by hand, and the dealt one is narrowed to the Bloodthirst the tooltip names.
+	apply := func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		bloodCraze.SelfHot().Apply(sim)
+	}
+	rank := spellData.BloodCraze.Rank(warrior.Talents.BloodCraze)
 
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Blood Craze - Bloodthirst",
-		Callback:           core.CallbackOnSpellHitDealt,
-		ClassSpellMask:     SpellMaskBloodthirst,
-		Outcome:            core.OutcomeLanded,
-		RequireDamageDealt: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			bloodCraze.SelfHot().Apply(sim)
-		},
-	})
+	taken := spelldata.ProcTrigger(&warrior.Character, rank, apply)
+	taken.Name = "Blood Craze - Damage Taken"
+	taken.Callback = core.CallbackOnSpellHitTaken
+	taken.Outcome = core.OutcomeLanded
+	taken.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+		return result.Outcome.Matches(core.OutcomeCrit) || result.Damage > warrior.MaxHealth()*hitThreshold
+	}
+	warrior.MakeProcTriggerAura(taken)
+
+	dealt := spelldata.ProcTrigger(&warrior.Character, rank, apply)
+	dealt.Name = "Blood Craze - Bloodthirst"
+	dealt.Callback = core.CallbackOnSpellHitDealt
+	dealt.Outcome = core.OutcomeLanded
+	dealt.ClassSpellMask = SpellMaskBloodthirst
+	warrior.MakeProcTriggerAura(dealt)
 }
 
 func (warrior *Warrior) registerRagingBlows() {
@@ -333,63 +283,34 @@ func (warrior *Warrior) registerRagingBlows() {
 		return
 	}
 
-	warrior.AddStaticMod(core.SpellModConfig{
-		ClassMask: SpellMaskCleave,
-		Kind:      core.SpellMod_PowerCost_Flat,
-		IntValue:  int32(spellData.RagingBlows.EffectAt(1).TenthsAt(1)),
-	})
+	spelldata.ParseStatic(&warrior.Character, spellData.RagingBlows.Rank(1))
 }
+
+var deathWishRank = spellData.DeathWish.Highest()
 
 func (warrior *Warrior) registerDeathWish() {
 	if !warrior.Talents.DeathWish {
 		return
 	}
 
-	deathWishRank := spellData.DeathWish.HighestRank()
+	deathWishAura := warrior.RegisterAura(spelldata.AuraConfig(deathWishRank))
+	spelldata.ParseEffects(&warrior.Character, deathWishAura, deathWishRank)
 
-	actionID := core.ActionID{SpellID: deathWishRank.SpellID}
+	// Grants immunity to Fear effects, which the row states as A_MECHANIC_IMMUNITY and the parse
+	// skips.
+	deathWishAura.AttachFearImmunity()
 
-	deathWishAura := warrior.RegisterAura(core.Aura{
-		Label:    "Death Wish",
-		ActionID: actionID,
-		Duration: deathWishRank.Duration,
-	}).
-		AttachMultiplicativePseudoStatBuff(
-			&warrior.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical],
-			deathWishRank.Effect(shared.A_MOD_DAMAGE_PERCENT_DONE, 1).Multiplier(),
-		).
-		AttachMultiplicativePseudoStatBuff(
-			&warrior.PseudoStats.DamageTakenMultiplier,
-			deathWishRank.Effect(shared.A_MOD_DAMAGE_PERCENT_TAKEN, 127).Multiplier(),
-		).
-		AttachFearImmunity()
+	config := spelldata.SpellConfig(&warrior.Unit, deathWishRank,
+		spelldata.Flags(core.SpellFlagCastWhileIncapacitated))
 
-	deathWishSpell := warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		ClassSpellMask: SpellMaskDeathWish,
-		Flags:          core.SpellFlagCastWhileIncapacitated,
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		deathWishAura.Activate(sim)
+		warrior.WaitUntil(sim, sim.CurrentTime+core.GCDDefault)
+	}
 
-		RageCost: core.RageCostOptions{
-			Cost: deathWishRank.Cost,
-		},
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: core.GCDDefault,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: deathWishRank.Cooldown,
-			},
-		},
+	config.RelatedSelfBuff = deathWishAura
 
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			deathWishAura.Activate(sim)
-			warrior.WaitUntil(sim, sim.CurrentTime+core.GCDDefault)
-		},
-
-		RelatedSelfBuff: deathWishAura,
-	})
+	deathWishSpell := warrior.RegisterSpell(config)
 
 	warrior.AddMajorCooldown(core.MajorCooldown{
 		Spell: deathWishSpell,
@@ -402,20 +323,12 @@ func (warrior *Warrior) registerImprovedIntercept() {
 		return
 	}
 
-	warrior.AddStaticMod(core.SpellModConfig{
-		ClassMask: SpellMaskIntercept,
-		Kind:      core.SpellMod_Cooldown_Flat,
-		TimeValue: time.Duration(spellData.ImprovedIntercept.ValueAt(warrior.Talents.ImprovedIntercept)) * time.Millisecond,
-	})
+	spelldata.ParseStatic(&warrior.Character, spellData.ImprovedIntercept.Rank(warrior.Talents.ImprovedIntercept))
 }
 
 func (warrior *Warrior) registerImprovedCleave() {
 	if warrior.Talents.ImprovedCleave == 0 {
 		return
 	}
-	warrior.AddStaticMod(core.SpellModConfig{
-		ClassMask: SpellMaskCleave,
-		Kind:      core.SpellMod_PowerCost_Flat,
-		IntValue:  int32(spellData.ImprovedCleave.TenthsAt(warrior.Talents.ImprovedCleave)),
-	})
+	spelldata.ParseStatic(&warrior.Character, spellData.ImprovedCleave.Rank(warrior.Talents.ImprovedCleave))
 }

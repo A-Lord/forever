@@ -2,58 +2,36 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
+
+var victoryRushRank = spellData.VictoryRush.Highest()
+
+var victoryRushAPCoef = victoryRushRank.EffectN(3).Percent()
+var victoryRushHealPercent = victoryRushRank.EffectN(2).Percent()
+
+var victoriousRank = spellData.VictoryRushTriggered.Highest()
 
 // This spell works but the Sim never kills a target
 func (warrior *Warrior) registerVictoryRush() {
-	victoryRushRank := spellData.VictoryRush.HighestRank()
-	victoryRushAPCoef := victoryRushRank.Effects[2].Fraction()
-	victoryRushHealPercent := victoryRushRank.Effects[1].Fraction()
-	victoriousRank := spellData.VictoryRushTriggered.HighestRank()
+	healthMetrics := warrior.NewHealthMetrics(core.ActionID{SpellID: victoryRushRank.ID})
 
-	actionID := core.ActionID{SpellID: victoryRushRank.SpellID}
-	healthMetrics := warrior.NewHealthMetrics(actionID)
+	victoriousAura := warrior.RegisterAura(spelldata.AuraConfig(victoriousRank))
 
-	victoriousAura := warrior.RegisterAura(core.Aura{
-		Label:    "Victorious",
-		ActionID: core.ActionID{SpellID: victoriousRank.SpellID},
-		Duration: victoriousRank.Duration,
-	})
+	config := spelldata.SpellConfig(&warrior.Unit, victoryRushRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
-	warrior.VictoryRush = warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskVictoryRush,
-		MaxRange:       victoryRushRank.MaxRange,
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return victoriousAura.IsActive()
+	}
 
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: victoryRushRank.GCD,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: victoryRushRank.Cooldown,
-			},
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := victoryRushRank.DamageEffect().Average(core.CharacterLevel) + victoryRushAPCoef*spell.MeleeAttackPower(target)
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+		warrior.GainHealth(sim, warrior.MaxHealth()*victoryRushHealPercent, healthMetrics)
+		victoriousAura.Deactivate(sim)
+	}
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
+	config.RelatedSelfBuff = victoriousAura
 
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return victoriousAura.IsActive()
-		},
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := victoryRushRank.Direct.Damage(sim) + victoryRushAPCoef*spell.MeleeAttackPower(target)
-			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-			warrior.GainHealth(sim, warrior.MaxHealth()*victoryRushHealPercent, healthMetrics)
-			victoriousAura.Deactivate(sim)
-		},
-
-		RelatedSelfBuff: victoriousAura,
-	})
+	warrior.VictoryRush = warrior.RegisterSpell(config)
 }

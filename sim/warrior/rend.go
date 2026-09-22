@@ -1,60 +1,33 @@
 package warrior
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
+
+var rendRank = spellData.Rend.Highest()
 
 // TODO: Ingame testing needed if Rend has a coef
 func (warrior *Warrior) registerRend() {
-	rendRank := spellData.Rend.HighestRank()
+	tick := rendRank.PeriodicEffect()
 
-	tick := rendRank.Periodic.AsPeriodic()
+	config := spelldata.SpellConfig(&warrior.Unit, rendRank,
+		spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Flags(core.SpellFlagNoOnCastComplete))
 
-	warrior.Rend = warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: rendRank.SpellID},
-		SpellSchool:    rendRank.SpellSchool,
-		DefenseType:    rendRank.DefenseType,
-		ClassSpellMask: SpellMaskRend,
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
+	config.Dot = spelldata.DotConfig(rendRank, tick)
 
-		RageCost: core.RageCostOptions{
-			Cost:   rendRank.Cost,
-			Refund: rendRank.MissRefund(),
-		},
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: rendRank.GCD,
-			},
-			IgnoreHaste: true,
-		},
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return warrior.StanceMatches(BattleStance | DefensiveStance)
+	}
 
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return warrior.StanceMatches(BattleStance | DefensiveStance)
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		Dot: core.DotConfig{
-			Aura: core.Aura{
-				Label: "Rend",
-			},
-			NumberOfTicks: tick.NumberOfTicks,
-			TickLength:    tick.TickLength,
-			OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-				dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Tick, shared.PeriodicTickOutcome(rendRank, dot))
-			},
-		},
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
-			if result.Landed() {
-				spell.Dot(target).Apply(sim)
-			} else {
-				spell.IssueRefund(sim)
-			}
-		},
-	})
+	warrior.Rend = warrior.RegisterSpell(config)
 }

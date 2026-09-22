@@ -1,36 +1,37 @@
 package priest
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 var ShadowWordPainRankMap = spellData.ShadowWordPain
 
 // TODO: To be implemented. Shadow Word: Pain already has a full Forever rank ladder
 // (spellData.ShadowWordPain); the TBC body needs review before it's uncommented.
-func (priest *Priest) registerShadowWordPainSpell(rank shared.SpellData) {
+func (priest *Priest) registerShadowWordPainSpell(rank *spelldata.Spell) {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// tick := rank.Periodic.(shared.SpellDataPeriodic)
+	// tick := rank.PeriodicEffect()
+	// tickLength := tick.Period()
 	//
 	// priest.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: rank.SpellID},
+	// 	ActionID:       core.ActionID{SpellID: rank.ID},
 	// 	SpellSchool:    core.SpellSchoolShadow,
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellShadowWordPain,
-	// 	Rank:           rank.Rank,
-	// 	MaxRange:       rank.MaxRange,
+	// 	Rank:           rank.RankNumber(),
+	// 	MaxRange:       float64(rank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: rank.Cost,
+	// 		FlatCost: int32(rank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: rank.GCD,
+	// 			GCD: rank.GCD(),
 	// 		},
 	// 	},
 	//
@@ -40,18 +41,15 @@ func (priest *Priest) registerShadowWordPainSpell(rank shared.SpellData) {
 	//
 	// 	Dot: core.DotConfig{
 	// 		Aura: core.Aura{
-	// 			Label: fmt.Sprintf("ShadowWordPain-%d", rank.Rank),
+	// 			Label: fmt.Sprintf("ShadowWordPain-%d", rank.RankNumber()),
 	// 		},
-	// 		NumberOfTicks:       tick.NumberOfTicks,
-	// 		TickLength:          tick.TickLength,
+	// 		NumberOfTicks:       int32(rank.Duration() / tickLength),
+	// 		TickLength:          tickLength,
 	// 		AffectedByCastSpeed: false, // DoT ticks not haste-affected in TBC
-	// 		BonusCoefficient:    tick.Coef,
+	// 		BonusCoefficient:    tick.Coeff(),
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, tick.Tick)
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
@@ -64,11 +62,7 @@ func (priest *Priest) registerShadowWordPainSpell(rank shared.SpellData) {
 	// 	},
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
-	// 		if useSnapshot {
-	// 			dot := spell.Dot(target)
-	// 			return dot.CalcSnapshotDamage(sim, target, spell.OutcomeExpectedMagicHit)
-	// 		}
-	// 		return spell.CalcPeriodicDamage(sim, target, tick.Tick, spell.OutcomeExpectedMagicHit)
+	// 		return spell.CalcPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), spell.OutcomeExpectedMagicHit)
 	// 	},
 	// })
 }

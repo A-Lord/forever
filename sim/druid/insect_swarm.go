@@ -1,11 +1,7 @@
 package druid
 
-import (
-	"github.com/wowsims/forever/sim/common/shared"
-)
-
-var insectSwarmRank = spellData.InsectSwarm.HighestRank()
-var insectSwarmTick = insectSwarmRank.Periodic.(shared.SpellDataPeriodic)
+var insectSwarmRank = spellData.InsectSwarm.Highest()
+var insectSwarmTick = insectSwarmRank.PeriodicEffect()
 
 // TODO: To be implemented.
 func (druid *Druid) registerInsectSwarmSpell() {
@@ -13,23 +9,23 @@ func (druid *Druid) registerInsectSwarmSpell() {
 
 	// The TBC implementation, kept for the port:
 	// druid.InsectSwarm = druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: insectSwarmRank.SpellID},
-	// 	SpellSchool:    insectSwarmRank.SpellSchool,
-	// 	DefenseType:    insectSwarmRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: insectSwarmRank.ID},
+	// 	SpellSchool:    insectSwarmRank.SpellSchool(),
+	// 	DefenseType:    insectSwarmRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: DruidSpellInsectSwarm,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
 	//
 	// 	DamageMultiplier: 1,
 	// 	ThreatMultiplier: 1,
-	// 	MaxRange:         insectSwarmRank.MaxRange,
+	// 	MaxRange:         float64(insectSwarmRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: insectSwarmRank.Cost,
+	// 		FlatCost: insectSwarmRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: insectSwarmRank.GCD,
+	// 			GCD: insectSwarmRank.GCD(),
 	// 		},
 	// 	},
 	//
@@ -38,16 +34,13 @@ func (druid *Druid) registerInsectSwarmSpell() {
 	// 			Label: "Insect Swarm",
 	// 		},
 	//
-	// 		NumberOfTicks:       insectSwarmTick.NumberOfTicks,
-	// 		TickLength:          insectSwarmTick.TickLength,
+	// 		NumberOfTicks:       int32(insectSwarmRank.Duration() / insectSwarmTick.Period()),
+	// 		TickLength:          insectSwarmTick.Period(),
 	// 		AffectedByCastSpeed: false,
-	// 		BonusCoefficient:    insectSwarmTick.Coef,
+	// 		BonusCoefficient:    insectSwarmTick.Coeff(),
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, insectSwarmTick.Tick)
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, insectSwarmTick.Average(core.CharacterLevel), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//

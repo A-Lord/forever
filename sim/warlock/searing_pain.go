@@ -1,7 +1,7 @@
 package warlock
 
-var searingPainRank = spellData.SearingPain.HighestRank()
-var searingPainCoeff = searingPainRank.Direct.BonusCoefficient()
+var searingPainRank = spellData.SearingPain.Highest()
+var searingPainCoeff = searingPainRank.DamageEffect().Coeff()
 
 // TODO: To be implemented. Port the TBC Searing Pain implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerSearingPain() {
@@ -10,28 +10,28 @@ func (warlock *Warlock) registerSearingPain() {
 	// The TBC implementation, kept for the port:
 	//
 	// warlock.Shadowburn = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: searingPainRank.SpellID},
-	// 	SpellSchool:    searingPainRank.SpellSchool,
+	// 	ActionID:       core.ActionID{SpellID: searingPainRank.ID},
+	// 	SpellSchool:    searingPainRank.SpellSchool(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellSearingPain,
-	// 	MaxRange:       searingPainRank.MaxRange,
+	// 	MaxRange:       float64(searingPainRank.MaxRange),
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: searingPainRank.Cost},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: searingPainRank.Cost()},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD:      searingPainRank.GCD,
-	// 			CastTime: searingPainRank.CastTime,
+	// 			GCD:      searingPainRank.GCD(),
+	// 			CastTime: searingPainRank.CastTime(),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplier: 1,
-	// 	DefenseType:      searingPainRank.DefenseType,
+	// 	DefenseType:      searingPainRank.DefenseTypeCore(),
 	// 	ThreatMultiplier: 2,
 	// 	BonusCoefficient: searingPainCoeff,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		dmgRoll := searingPainRank.Direct.Damage(sim)
+	// 		dmgRoll := searingPainRank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealDamage(sim, target, dmgRoll, spell.OutcomeMagicHitAndCrit)
 	// 	},
 	// })

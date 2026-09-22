@@ -1,6 +1,6 @@
 package mage
 
-var arcaneExplosionRank = spellData.ArcaneExplosion.HighestRank()
+var arcaneExplosionRank = spellData.ArcaneExplosion.Highest()
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneExplosionSpell() {
@@ -10,19 +10,19 @@ func (mage *Mage) registerArcaneExplosionSpell() {
 	// arcaneExplosionCoefficient := 0.21400000155
 	//
 	// mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: arcaneExplosionRank.SpellID},
-	// 	SpellSchool:    arcaneExplosionRank.SpellSchool,
-	// 	DefenseType:    arcaneExplosionRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: arcaneExplosionRank.ID},
+	// 	SpellSchool:    arcaneExplosionRank.SpellSchool(),
+	// 	DefenseType:    arcaneExplosionRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellArcaneExplosion,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneExplosionRank.Cost,
+	// 		FlatCost: arcaneExplosionRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: arcaneExplosionRank.GCD,
+	// 			GCD: arcaneExplosionRank.GCD(),
 	// 		},
 	// 	},
 	//
@@ -31,7 +31,7 @@ func (mage *Mage) registerArcaneExplosionSpell() {
 	// 	ThreatMultiplier: 1,
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := arcaneExplosionRank.Direct.Damage(sim)
+	// 		baseDamage := arcaneExplosionRank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealAoeDamage(sim, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// 	},
 	// })

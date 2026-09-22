@@ -9,31 +9,31 @@ func (mage *Mage) registerFireBlastSpell() {
 
 	//
 	// mage.FireBlast = mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: fireBlastRank.SpellID},
-	// 	SpellSchool:    fireBlastRank.SpellSchool,
-	// 	DefenseType:    fireBlastRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: fireBlastRank.ID},
+	// 	SpellSchool:    fireBlastRank.SpellSchool(),
+	// 	DefenseType:    fireBlastRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellFireBlast,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: fireBlastRank.Cost,
+	// 		FlatCost: fireBlastRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: fireBlastRank.GCD,
+	// 			GCD: fireBlastRank.GCD(),
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    mage.NewTimer(),
-	// 			Duration: fireBlastRank.Cooldown,
+	// 			Duration: max(fireBlastRank.Cooldown(), fireBlastRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
 	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: fireBlastRank.Direct.BonusCoefficient(),
+	// 	BonusCoefficient: fireBlastRank.DamageEffect().Coeff(),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := fireBlastRank.Direct.Damage(sim)
+	// 		baseDamage := fireBlastRank.DamageEffect().Average(core.CharacterLevel)
 	// 		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	// 	},
 	// })

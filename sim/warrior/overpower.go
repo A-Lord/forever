@@ -2,21 +2,20 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+var overpowerRank = spellData.Overpower.ByID(11585)
+var overpowerBaseDamage = overpowerRank.DamageEffect().Average(core.CharacterLevel)
+
+// The window a dodge opens: the aura Offensive State (DND) fires on the hit.
+var overpowerWindow = spellData.OffensiveStateTriggered.Highest()
+
 func (warrior *Warrior) registerOverpower() {
-	overpowerRank := spellData.Overpower.BySpellID(11585)
-	overpowerBaseDamage, _ := overpowerRank.Direct.Range()
-	// The window a dodge opens: the aura Offensive State (DND) fires on the hit.
-	overpowerWindow := spellData.OffensiveStateTriggered.HighestRank()
-
-	actionID := core.ActionID{SpellID: overpowerRank.SpellID}
-	overpowerCD := overpowerRank.Cooldown
-
 	warrior.OverpowerAura = warrior.RegisterAura(core.Aura{
-		ActionID: core.ActionID{SpellID: overpowerWindow.SpellID},
+		ActionID: core.ActionID{SpellID: overpowerWindow.ID},
 		Label:    "Overpower Aura",
-		Duration: overpowerWindow.Duration,
+		Duration: overpowerWindow.Duration(),
 	})
 
 	warrior.MakeProcTriggerAura(core.ProcTrigger{
@@ -29,46 +28,24 @@ func (warrior *Warrior) registerOverpower() {
 		},
 	})
 
-	warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskOverpower,
-		MaxRange:       core.MaxMeleeRange,
+	config := spelldata.SpellConfig(&warrior.Unit, overpowerRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
-		RageCost: core.RageCostOptions{
-			Cost:   overpowerRank.Cost,
-			Refund: overpowerRank.MissRefund(),
-		},
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: overpowerRank.GCD,
-			},
-			CD: core.Cooldown{
-				Timer:    warrior.NewTimer(),
-				Duration: overpowerCD,
-			},
-			IgnoreHaste: true,
-		},
+	// TODO: Ingame validation needed
+	config.ThreatMultiplier = 1
 
-		DamageMultiplier: 1,
-		// TODO: Ingame validation needed
-		ThreatMultiplier: 1,
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return warrior.StanceMatches(BattleStance) && warrior.OverpowerAura.IsActive()
+	}
 
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return warrior.StanceMatches(BattleStance) && warrior.OverpowerAura.IsActive()
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := overpowerBaseDamage + spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
+		warrior.OverpowerAura.Deactivate(sim)
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := overpowerBaseDamage + spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
-			result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
-			warrior.OverpowerAura.Deactivate(sim)
+		if !result.Landed() {
+			spell.IssueRefund(sim)
+		}
+	}
 
-			if !result.Landed() {
-				spell.IssueRefund(sim)
-			}
-		},
-	})
+	warrior.RegisterSpell(config)
 }

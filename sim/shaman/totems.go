@@ -6,10 +6,10 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-var windfuryTotemRank = spellData.WindfuryTotem.HighestRank()
-var strengthOfEarthTotemRank = spellData.StrengthOfEarthTotem.HighestRank()
-var graceOfAirTotemRank = spellData.GraceOfAirTotem.BySpellID(25359)
-var manaSpringTotemRank = spellData.ManaSpringTotem.HighestRank()
+var windfuryTotemRank = spellData.WindfuryTotem.Highest()
+var strengthOfEarthTotemRank = spellData.StrengthOfEarthTotem.Highest()
+var graceOfAirTotemRank = spellData.GraceOfAirTotem.ByID(25359)
+var manaSpringTotemRank = spellData.ManaSpringTotem.Highest()
 
 func (shaman *Shaman) newTotemSpellConfig(flatCost int32, spellID int32, spellMask int64, gcd time.Duration) core.SpellConfig {
 	return core.SpellConfig{
@@ -55,7 +55,7 @@ func (shaman *Shaman) registerWindfuryTotemSpell() {
 	// 	},
 	// })
 	//
-	// config := shaman.newTotemSpellConfig(windfuryTotemRank.Cost, windfuryTotemRank.SpellID, SpellMaskBasicTotem, windfuryTotemRank.GCD)
+	// config := shaman.newTotemSpellConfig(windfuryTotemRank.Cost(), windfuryTotemRank.ID, SpellMaskBasicTotem, windfuryTotemRank.GCD())
 	//
 	// var windfurySpell *core.Spell
 	// wfProcTrigger := shaman.MakeProcTriggerAura(core.ProcTrigger{
@@ -144,7 +144,7 @@ func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {
 	// duration := time.Second * 120
 	// // TODO: Forever drops Enhancing Totems; untalented Strength of Earth Totem value only.
 	// value := core.StrengthOfEarthTotemValue(0, false)
-	// config := shaman.newTotemSpellConfig(strengthOfEarthTotemRank.Cost, strengthOfEarthTotemRank.SpellID, SpellMaskBasicTotem, strengthOfEarthTotemRank.GCD)
+	// config := shaman.newTotemSpellConfig(strengthOfEarthTotemRank.Cost(), strengthOfEarthTotemRank.ID, SpellMaskBasicTotem, strengthOfEarthTotemRank.GCD())
 	// buffAura := shaman.RegisterAura(core.Aura{
 	// 	Label:    "Strength Of Earth Totem (Self)",
 	// 	ActionID: config.ActionID,
@@ -178,7 +178,7 @@ func (shaman *Shaman) registerGraceOfAirTotemSpell() {
 	// duration := time.Second * 120
 	// // TODO: Forever drops Enhancing Totems; untalented Grace of Air Totem value only.
 	// value := 77.0
-	// config := shaman.newTotemSpellConfig(graceOfAirTotemRank.Cost, graceOfAirTotemRank.SpellID, SpellMaskBasicTotem, graceOfAirTotemRank.GCD)
+	// config := shaman.newTotemSpellConfig(graceOfAirTotemRank.Cost(), graceOfAirTotemRank.ID, SpellMaskBasicTotem, graceOfAirTotemRank.GCD())
 	// buffAura := shaman.RegisterAura(core.Aura{
 	// 	Label:    "Grace Of Air Totem (Self)",
 	// 	ActionID: config.ActionID,
@@ -211,7 +211,7 @@ func (shaman *Shaman) registerManaSpringTotemSpell() {
 	// The TBC implementation, kept for the port:
 	// duration := time.Second * 120
 	// value := 50 * (1 + 0.05*float64(shaman.Talents.RestorativeTotems))
-	// config := shaman.newTotemSpellConfig(manaSpringTotemRank.Cost, manaSpringTotemRank.SpellID, SpellMaskBasicTotem, manaSpringTotemRank.GCD)
+	// config := shaman.newTotemSpellConfig(manaSpringTotemRank.Cost(), manaSpringTotemRank.ID, SpellMaskBasicTotem, manaSpringTotemRank.GCD())
 	// buffAura := shaman.RegisterAura(core.Aura{
 	// 	Label:    "Mana Spring Totem (Self)",
 	// 	ActionID: config.ActionID,

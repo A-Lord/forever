@@ -1,9 +1,9 @@
 package warlock
 
 // Package-level state the commented-out implementations used:
-// var doomRank = spellData.CurseOfDoom.BySpellID(30910)
-// var doomTick = doomRank.Periodic.(shared.SpellDataPeriodic)
-// var doomCoeff = doomTick.Coef
+// var doomRank = spellData.CurseOfDoom.ByID(30910)
+// var doomTick = doomRank.PeriodicEffect()
+// var doomCoeff = doomTick.Coeff()
 
 // TODO: To be implemented. Forever renamed this to **Bane of Doom**: spell 603 on the Affliction line.
 // The registrar needs re-pointing at that name, not implementing from nothing.
@@ -12,26 +12,27 @@ func (warlock *Warlock) registerCurseOfDoom() {
 
 	// The TBC implementation, kept for the port:
 	//
+	// tickLength := doomTick.Period()
 	// calculateBaseDamage := func() float64 {
 	// 	damageMultiplier := core.TernaryFloat64(warlock.AmplifyCurseAura != nil && warlock.AmplifyCurseAura.IsActive(), 1.5, 1.0)
-	// 	return doomTick.Tick * damageMultiplier
+	// 	return doomTick.Average(core.CharacterLevel) * damageMultiplier
 	// }
 	//
 	// warlock.CurseOfDoom = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: doomRank.SpellID},
-	// 	SpellSchool:    doomRank.SpellSchool,
-	// 	DefenseType:    doomRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: doomRank.ID},
+	// 	SpellSchool:    doomRank.SpellSchool(),
+	// 	DefenseType:    doomRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfDoom,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: doomRank.GCD,
+	// 			GCD: doomRank.GCD(),
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    warlock.NewTimer(),
-	// 			Duration: doomRank.Cooldown,
+	// 			Duration: max(doomRank.Cooldown(), doomRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
@@ -53,26 +54,19 @@ func (warlock *Warlock) registerCurseOfDoom() {
 	// 			Label: "Doom",
 	// 			Tag:   "Affliction",
 	// 		},
-	// 		NumberOfTicks:            doomTick.NumberOfTicks,
-	// 		TickLength:               doomTick.TickLength,
+	// 		NumberOfTicks:            int32(doomRank.Duration() / tickLength),
+	// 		TickLength:               tickLength,
 	// 		BonusCoefficient:         doomCoeff,
 	// 		PeriodicDamageMultiplier: 1,
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, calculateBaseDamage())
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, calculateBaseDamage(), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
 	// 		dot := spell.Dot(target)
-	// 		if useSnapshot {
-	// 			return dot.CalcSnapshotDamage(sim, target, dot.OutcomeTick)
-	// 		} else {
-	// 			return spell.CalcPeriodicDamage(sim, target, calculateBaseDamage(), spell.OutcomeExpectedMagicHit)
-	// 		}
+	// 		return dot.Spell.CalcPeriodicDamage(sim, target, calculateBaseDamage(), spell.OutcomeExpectedMagicHit)
 	// 	},
 	// })
 }

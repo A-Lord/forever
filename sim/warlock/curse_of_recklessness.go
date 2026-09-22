@@ -1,6 +1,6 @@
 package warlock
 
-var curseOfRecklessnessRank = spellData.CurseOfRecklessness.HighestRank()
+var curseOfRecklessnessRank = spellData.CurseOfRecklessness.Highest()
 
 // TODO: To be implemented. Port the TBC Curse Of Recklessness implementation below; not yet verified against the Forever client.
 func (warlock *Warlock) registerCurseOfRecklessness() {
@@ -11,19 +11,19 @@ func (warlock *Warlock) registerCurseOfRecklessness() {
 	// 	return core.CurseOfRecklessnessAura(target, 1)
 	// })
 	// warlock.CurseOfRecklessness = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: curseOfRecklessnessRank.SpellID},
-	// 	SpellSchool:    curseOfRecklessnessRank.SpellSchool,
-	// 	DefenseType:    curseOfRecklessnessRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: curseOfRecklessnessRank.ID},
+	// 	SpellSchool:    curseOfRecklessnessRank.SpellSchool(),
+	// 	DefenseType:    curseOfRecklessnessRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfRecklessness,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: curseOfRecklessnessRank.Cost,
+	// 		FlatCost: curseOfRecklessnessRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: curseOfRecklessnessRank.GCD,
+	// 			GCD: curseOfRecklessnessRank.GCD(),
 	// 		},
 	// 	},
 	//

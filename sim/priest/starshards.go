@@ -1,8 +1,8 @@
 package priest
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Starshards - Night Elf Racial
@@ -11,21 +11,22 @@ var StarshardsRankMap = spellData.Starshards
 
 // TODO: To be implemented. Starshards already has a full Forever rank ladder (spellData.Starshards); the
 // TBC body needs review before it's uncommented.
-func (priest *Priest) registerStarshardsSpell(rank shared.SpellData, cdTimer *core.Timer) {
+func (priest *Priest) registerStarshardsSpell(rank *spelldata.Spell, cdTimer *core.Timer) {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// tick := rank.Periodic.(shared.SpellDataPeriodic)
+	// tick := rank.PeriodicEffect()
+	// tickLength := tick.Period()
 	//
 	// priest.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: rank.SpellID},
+	// 	ActionID:       core.ActionID{SpellID: rank.ID},
 	// 	SpellSchool:    core.SpellSchoolArcane,
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellStarshards,
-	// 	Rank:           rank.Rank,
-	// 	MaxRange:       rank.MaxRange,
+	// 	Rank:           rank.RankNumber(),
+	// 	MaxRange:       float64(rank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: 0,
@@ -33,11 +34,11 @@ func (priest *Priest) registerStarshardsSpell(rank shared.SpellData, cdTimer *co
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: rank.GCD,
+	// 			GCD: rank.GCD(),
 	// 		},
 	// 		CD: core.Cooldown{
 	// 			Timer:    cdTimer,
-	// 			Duration: rank.Cooldown,
+	// 			Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
@@ -47,18 +48,15 @@ func (priest *Priest) registerStarshardsSpell(rank shared.SpellData, cdTimer *co
 	//
 	// 	Dot: core.DotConfig{
 	// 		Aura: core.Aura{
-	// 			Label: fmt.Sprintf("Starshards-%d", rank.Rank),
+	// 			Label: fmt.Sprintf("Starshards-%d", rank.RankNumber()),
 	// 		},
-	// 		NumberOfTicks:       tick.NumberOfTicks,
-	// 		TickLength:          tick.TickLength,
+	// 		NumberOfTicks:       int32(rank.Duration() / tickLength),
+	// 		TickLength:          tickLength,
 	// 		AffectedByCastSpeed: false,
-	// 		BonusCoefficient:    tick.Coef,
+	// 		BonusCoefficient:    tick.Coeff(),
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, tick.Tick)
-	// 		},
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
@@ -71,11 +69,7 @@ func (priest *Priest) registerStarshardsSpell(rank shared.SpellData, cdTimer *co
 	// 	},
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
-	// 		if useSnapshot {
-	// 			dot := spell.Dot(target)
-	// 			return dot.CalcSnapshotDamage(sim, target, spell.OutcomeExpectedMagicHit)
-	// 		}
-	// 		return spell.CalcPeriodicDamage(sim, target, tick.Tick, spell.OutcomeExpectedMagicHit)
+	// 		return spell.CalcPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), spell.OutcomeExpectedMagicHit)
 	// 	},
 	// })
 }

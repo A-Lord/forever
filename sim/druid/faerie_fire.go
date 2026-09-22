@@ -1,9 +1,9 @@
 package druid
 
 // Package-level state the commented-out implementations used:
-// var faerieFireFeralRank = spellData.FaerieFireFeral.BySpellID(27011)
+// var faerieFireFeralRank = spellData.FaerieFireFeral.ByID(27011)
 
-var faerieFireRank = spellData.FaerieFire.HighestRank()
+var faerieFireRank = spellData.FaerieFire.Highest()
 
 // TODO: To be implemented.
 func (druid *Druid) registerFaerieFireSpell() {
@@ -18,24 +18,24 @@ func (druid *Druid) registerFaerieFireSpell() {
 	//
 	// druid.FaerieFire = druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
 	// 	ClassSpellMask: DruidSpellFaerieFire,
-	// 	ActionID:       core.ActionID{SpellID: faerieFireRank.SpellID},
-	// 	SpellSchool:    faerieFireRank.SpellSchool,
-	// 	DefenseType:    faerieFireRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: faerieFireRank.ID},
+	// 	SpellSchool:    faerieFireRank.SpellSchool(),
+	// 	DefenseType:    faerieFireRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: faerieFireRank.Cost,
+	// 		FlatCost: faerieFireRank.Cost(),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: faerieFireRank.GCD,
+	// 			GCD: faerieFireRank.GCD(),
 	// 		},
 	// 	},
 	//
 	// 	ThreatMultiplier: 1,
 	// 	FlatThreatBonus:  132,
-	// 	MaxRange:         faerieFireRank.MaxRange,
+	// 	MaxRange:         float64(faerieFireRank.MaxRange),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
@@ -65,26 +65,26 @@ func (druid *Druid) registerFaerieFireFeralSpell() {
 	//
 	// druid.FaerieFireFeral = druid.RegisterSpell(Cat|Bear, core.SpellConfig{
 	// 	ClassSpellMask: DruidSpellFaerieFireFeral,
-	// 	ActionID:       core.ActionID{SpellID: faerieFireFeralRank.SpellID},
-	// 	SpellSchool:    faerieFireFeralRank.SpellSchool,
-	// 	DefenseType:    faerieFireFeralRank.DefenseType,
+	// 	ActionID:       core.ActionID{SpellID: faerieFireFeralRank.ID},
+	// 	SpellSchool:    faerieFireFeralRank.SpellSchool(),
+	// 	DefenseType:    faerieFireFeralRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
-	// 			GCD: faerieFireFeralRank.GCD,
+	// 			GCD: faerieFireFeralRank.GCD(),
 	// 		},
 	// 		IgnoreHaste: true,
 	// 		CD: core.Cooldown{
 	// 			Timer:    druid.NewTimer(),
-	// 			Duration: faerieFireFeralRank.Cooldown,
+	// 			Duration: max(faerieFireFeralRank.Cooldown(), faerieFireFeralRank.CategoryCooldown()),
 	// 		},
 	// 	},
 	//
 	// 	ThreatMultiplier: 1,
 	// 	FlatThreatBonus:  132,
-	// 	MaxRange:         faerieFireFeralRank.MaxRange,
+	// 	MaxRange:         float64(faerieFireFeralRank.MaxRange),
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
