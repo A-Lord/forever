@@ -6,12 +6,6 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func RegisterExplosives() {
-	for _, id := range core.ConsumableIDsOfType(proto.ConsumableType_ConsumableTypeExplosive) {
-		NewSpellDataExplosive(id)
-	}
-}
-
 // An explosive used from the bar: the damage its on-use spell deals, on the item's cooldown and the
 // category cooldown every explosive shares, and the damage the spell deals to the thrower where the
 // row states one. Only a character with the profession the item requires can use it.

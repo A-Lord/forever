@@ -10,4 +10,5 @@ func RegisterAllEffects() {
 	forever.RegisterAllOnUseCds()
 	forever.RegisterAllProcs()
 	forever.RegisterAllEnchants()
+	forever.RegisterAllExplosives()
 }

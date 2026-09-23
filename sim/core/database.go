@@ -451,20 +451,6 @@ func GetConsumableByID(id int32) Consumable {
 	return c
 }
 
-// The ids of every consumable of the type the database carries, in order.
-func ConsumableIDsOfType(consumableType proto.ConsumableType) []int32 {
-	dbMu.RLock()
-	defer dbMu.RUnlock()
-	var ids []int32
-	for id, c := range consumablesByID {
-		if c.Type == consumableType {
-			ids = append(ids, id)
-		}
-	}
-	slices.Sort(ids)
-	return ids
-}
-
 func GetSpellEffectByID(id int32) *proto.SpellEffect {
 	dbMu.RLock()
 	e := spellEffectsById[id]
