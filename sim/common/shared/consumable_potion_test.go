@@ -331,6 +331,67 @@ func TestAlchemistsStoneRaisesHealingAndManaPotions(t *testing.T) {
 	}
 }
 
+// Greater Fire Protection Potion 13457 casts 17543: A_SCHOOL_ABSORB 2600 with Misc 4 (Fire) and a
+// 0.5 spread on the drinker for 120 s, on potion category 4 for 120 s. The combat potion is a survival
+// major cooldown whose shield takes fire damage only; Alchemists' Stone does not raise it.
+func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
+	const potionID int32 = 992021
+	const fireProtection int32 = 17543
+	withoutSpread(t, fireProtection)
+	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: potionID}, alchemistsStoneID,
+		testConsumable{potionID, NewSpellDataPotion, testOnUse(fireProtection, 0, 4, 120000)})
+	potion := consumableSpell(t, drinker, potionID)
+	shield := absorbAura(t, drinker, fireProtection, potionID)
+
+	if mcd := drinker.GetInitialMajorCooldown(potion.ActionID); mcd.Spell != potion || !mcd.Type.Matches(core.CooldownTypeSurvival) {
+		t.Fatalf("the protection potion is not a survival major cooldown: %v", mcd.Type)
+	}
+
+	potion.Cast(sim, &drinker.Unit)
+	if !shield.IsActive() || shield.Duration != 120*time.Second {
+		t.Fatalf("the potion put up no 120 s shield: active %v, duration %v", shield.IsActive(), shield.Duration)
+	}
+	if got := takenAfterAbsorbs(sim, drinker, core.SpellSchoolFrost, 1000); got != 1000 {
+		t.Errorf("a frost hit of 1000 landed for %v, want all of it", got)
+	}
+	if got := takenAfterAbsorbs(sim, drinker, core.SpellSchoolFire, 3000); got != 400 {
+		t.Errorf("a fire hit of 3000 landed for %v, want 400 past the 2600 shield", got)
+	}
+	if offCooldown(sim, potion) {
+		t.Errorf("the potion is usable again while category 4 runs")
+	}
+}
+
+// Flame Deflector 4376 casts 4057, A_SCHOOL_ABSORB 500 Fire for 60 s, on the item's own 900 s
+// cooldown with no category. Outside the potion and conjured categories it is a major cooldown
+// whenever the spec names it.
+func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
+	const deflectorID int32 = 992022
+	sim, user := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{BattleElixirId: deflectorID}, 0,
+		testConsumable{deflectorID, NewSpellDataOnUseConsumable, testOnUse(4057, 900000, 0, 0)})
+	deflector := consumableSpell(t, user, deflectorID)
+
+	mcd := user.GetInitialMajorCooldown(deflector.ActionID)
+	if mcd.Spell != deflector || !mcd.Type.Matches(core.CooldownTypeSurvival) {
+		t.Fatalf("the deflector is not a survival major cooldown: %v", mcd.Type)
+	}
+	if mcd.ShouldActivate != nil && !mcd.ShouldActivate(sim, &user.Character) {
+		t.Errorf("the manager holds the deflector back")
+	}
+	if deflector.Flags.Matches(core.SpellFlagPotion) || deflector.Flags.Matches(core.SpellFlagConjured) {
+		t.Errorf("the deflector is flagged a potion or a conjured item: %v", deflector.Flags)
+	}
+
+	deflector.Cast(sim, &user.Unit)
+	if got := takenAfterAbsorbs(sim, user, core.SpellSchoolFire, 800); got != 300 {
+		t.Errorf("a fire hit of 800 landed for %v, want 300 past the 500 shield", got)
+	}
+	if deflector.CD.Duration != 900*time.Second || deflector.SharedCD.Timer != nil {
+		t.Errorf("the deflector runs on a %v cooldown and shared timer %v, want its own 900 s alone",
+			deflector.CD.Duration, deflector.SharedCD.Timer)
+	}
+}
+
 // The spells the builder cannot run, with what stops it.
 func TestConsumableUnsupportedNamesWhatStopsIt(t *testing.T) {
 	for _, tc := range []struct {
@@ -339,7 +400,6 @@ func TestConsumableUnsupportedNamesWhatStopsIt(t *testing.T) {
 	}{
 		{1244863, "E_DUMMY"},         // Minor Discolored Healing Potion: the self-damage share lives in a dummy
 		{1252554, "not the user"},    // Dragonfire Potion: a cone in front of the drinker
-		{7242, "A_SCHOOL_ABSORB"},    // Shadow Protection Potion
 		{15822, "A_MOD_STUN"},        // Dreamless Sleep Potion
 		{806, "A_PERIODIC_DAMAGE"},   // Potion of Fervor's damage to the drinker every 3 s
 		{1297671, "E_TRIGGER_SPELL"}, // Power Recycler
@@ -349,7 +409,7 @@ func TestConsumableUnsupportedNamesWhatStopsIt(t *testing.T) {
 			t.Errorf("%d: unsupported %q, want it to name %s", tc.spellID, got, tc.want)
 		}
 	}
-	for _, id := range []int32{17531, 17528, 16666, 9512, 22729, 21955, 1312698, 1312702, 1251919, 11732} {
+	for _, id := range []int32{17531, 17528, 16666, 9512, 22729, 21955, 1312698, 1312702, 1251919, 11732, 7242} {
 		if got := ConsumableUnsupported(spelldata.MustFind(id)); got != nil {
 			t.Errorf("%d: unsupported %v, want none", id, got)
 		}

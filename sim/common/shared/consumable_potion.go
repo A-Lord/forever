@@ -17,18 +17,32 @@ const alchemistsStoneSpellID int32 = 17619
 // A potion: the spell its on-use row casts on the drinker, on the item's cooldown and the category
 // it shares. Only the spec's combat potion is a major cooldown; the other potions are the rotation's.
 func NewSpellDataPotion(itemID int32) {
-	registerSpellDataConsumable(itemID, true)
+	registerSpellDataConsumable(itemID, potionConsumable)
 }
 
 // A conjured item, a healthstone, mana gem, rune or tea, built the way a potion is. It is a major
 // cooldown the manager uses only while it is the spec's chosen one.
 func NewSpellDataConjured(itemID int32) {
-	registerSpellDataConsumable(itemID, false)
+	registerSpellDataConsumable(itemID, conjuredConsumable)
 }
 
+// Any other consumable whose on-use the potion builder runs, such as the Flame Deflector's shield: a
+// major cooldown whenever the spec names it.
+func NewSpellDataOnUseConsumable(itemID int32) {
+	registerSpellDataConsumable(itemID, otherConsumable)
+}
+
+type spellDataConsumableKind uint8
+
+const (
+	potionConsumable spellDataConsumableKind = iota
+	conjuredConsumable
+	otherConsumable
+)
+
 // Why the consumable builders cannot run the spell, or nil where they can. Every effect has to land
-// on the user and be a heal, a gain of mana, rage or energy, damage to the user, or an aura the
-// parser attaches.
+// on the user and be a heal, an absorb, a gain of mana, rage or energy, damage to the user, or an
+// aura the parser attaches.
 func ConsumableUnsupported(row *spelldata.Spell) []string {
 	_, unsupported := consumablePartsOf(row)
 	return unsupported
@@ -36,6 +50,7 @@ func ConsumableUnsupported(row *spelldata.Spell) []string {
 
 type consumableParts struct {
 	heal       *spelldata.Effect
+	absorb     *spelldata.Effect
 	gains      []*spelldata.Effect
 	selfDamage *spelldata.Effect
 	auraIdx    []int32
@@ -64,6 +79,11 @@ func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
 				unsupported = append(unsupported, fmt.Sprintf("a second heal, %s", kind))
 			}
 			parts.heal = e
+		case e.Type == dbcenums.E_APPLY_AURA && e.Aura == dbcenums.A_SCHOOL_ABSORB:
+			if parts.absorb != nil {
+				unsupported = append(unsupported, "a second absorb")
+			}
+			parts.absorb = e
 		case e.Type == dbcenums.E_ENERGIZE, e.Type == dbcenums.E_ENERGIZE_PCT,
 			e.Type == dbcenums.E_APPLY_AURA && e.Aura == dbcenums.A_PERIODIC_ENERGIZE:
 			switch dbcenums.PowerType(e.Misc) {
@@ -89,13 +109,16 @@ func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
 		}
 	}
 
+	if parts.heal != nil && parts.absorb != nil {
+		unsupported = append(unsupported, "a heal beside an absorb")
+	}
 	if len(parts.auraIdx) > 0 && row.DurationMs <= 0 {
 		unsupported = append(unsupported, fmt.Sprintf("%d states no duration for its aura", row.ID))
 	}
 	return parts, unsupported
 }
 
-func registerSpellDataConsumable(itemID int32, isPotion bool) {
+func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind) {
 	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
@@ -108,25 +131,29 @@ func registerSpellDataConsumable(itemID int32, isPotion bool) {
 
 		actionID := core.ActionID{ItemID: itemID}
 		potionBonus := 1.0
-		if isPotion && character.HasAlchStone() {
+		if kind == potionConsumable && character.HasAlchStone() {
 			potionBonus += spelldata.MustFind(alchemistsStoneSpellID).EffectN(1).Percent()
 		}
 
 		var config core.SpellConfig
-		if parts.heal != nil {
+		switch {
+		case parts.heal != nil:
 			config = spellDataProcHealSpell(character, row)
 			config.DamageMultiplier *= potionBonus
-		} else {
+		case parts.absorb != nil:
+			config = spellDataAbsorbSpell(character, row, itemID)
+		default:
 			config = spelldata.SpellConfig(&character.Unit, row)
 		}
 		config.ActionID = actionID
 		config.Flags &^= core.SpellFlagPassiveSpell | core.SpellFlagProc
 		config.Flags |= core.SpellFlagNoOnCastComplete | core.SpellFlagAPL
-		if isPotion {
+		switch kind {
+		case potionConsumable:
 			// Encounter-only, so a prepull potion is the generic Potion action and the rotation cannot
 			// name one the consumes do not.
 			config.Flags |= core.SpellFlagEncounterOnly | core.SpellFlagPotion
-		} else {
+		case conjuredConsumable:
 			config.Flags |= core.SpellFlagConjured
 		}
 
@@ -147,7 +174,7 @@ func registerSpellDataConsumable(itemID int32, isPotion bool) {
 		var gains []*consumableGain
 		for i := range row.Effects {
 			e := &row.Effects[i]
-			if e == parts.heal {
+			if e == parts.heal || e == parts.absorb {
 				cdType = core.CooldownTypeSurvival
 				continue
 			}
@@ -167,7 +194,7 @@ func registerSpellDataConsumable(itemID int32, isPotion bool) {
 			}
 		}
 
-		if parts.heal == nil && len(parts.auraIdx) == 0 && len(gains) == 0 {
+		if parts.heal == nil && parts.absorb == nil && len(parts.auraIdx) == 0 && len(gains) == 0 {
 			return
 		}
 
@@ -176,10 +203,10 @@ func registerSpellDataConsumable(itemID int32, isPotion bool) {
 			selfDamage = character.RegisterSpell(consumableSelfDamageSpell(character, row, parts.selfDamage, actionID))
 		}
 
-		healEffects := config.ApplyEffects
+		ownEffects := config.ApplyEffects
 		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			if healEffects != nil {
-				healEffects(sim, &character.Unit, spell)
+			if ownEffects != nil {
+				ownEffects(sim, &character.Unit, spell)
 			}
 			for i := range gains {
 				gains[i].apply(sim)
@@ -200,7 +227,7 @@ func registerSpellDataConsumable(itemID int32, isPotion bool) {
 
 		consumables := character.Consumables
 		mcd := core.MajorCooldown{Spell: spell, Type: cdType}
-		if parts.heal == nil && len(parts.auraIdx) == 0 {
+		if parts.heal == nil && parts.absorb == nil && len(parts.auraIdx) == 0 {
 			mcd.ShouldActivate = func(sim *core.Simulation, character *core.Character) bool {
 				for i := range gains {
 					if !gains[i].fits() {
@@ -211,12 +238,13 @@ func registerSpellDataConsumable(itemID int32, isPotion bool) {
 			}
 		}
 
-		if isPotion {
+		switch kind {
+		case potionConsumable:
 			if consumables.PotId != itemID {
 				return
 			}
 			spell.Flags |= core.SpellFlagCombatPotion
-		} else {
+		case conjuredConsumable:
 			shouldActivate := mcd.ShouldActivate
 			mcd.ShouldActivate = func(sim *core.Simulation, character *core.Character) bool {
 				return consumables.ConjuredId == itemID && (shouldActivate == nil || shouldActivate(sim, character))
