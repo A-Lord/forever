@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession } from '@generated/proto/common';
 import { HolyPaladin_Options as HolyPaladinOptions } from '@generated/proto/paladin';
 
@@ -6,9 +7,8 @@ export const DefaultOptions = HolyPaladinOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22853, // Flask of Mighty Restoration
-	foodId: 27666, // Golden Fish Sticks
-	potId: 22832, // Super Mana Potion
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {

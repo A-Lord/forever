@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession, UnitReference } from '@generated/proto/common';
 import { RestorationDruid_Options as RestorationDruidOptions } from '@generated/proto/druid';
 
@@ -8,9 +9,8 @@ export const DefaultOptions = RestorationDruidOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22853, // Flask of Mighty Restoration
-	foodId: 27666, // Golden Fish Sticks
-	potId: 22832, // Super Mana Potion
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {

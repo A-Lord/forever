@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Class, ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs, TristateEffect } from '@generated/proto/common';
 import { defaultExposeWeaknessSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
@@ -37,10 +38,10 @@ export const DefaultDebuffs = Debuffs.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: 22838,
-	flaskId: 22854,
-	foodId: 27658,
-	explosiveId: 18588,
-	ohImbueId: 12404,
-	extraIds: [10646, 10309, 10310],
+	potId: Consumables.MajorFrenzyPotion.id,
+	flaskId: Consumables.FlaskOfNaturalAggression.id,
+	foodId: Consumables.ProwlerSteak.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	ohImbueId: Consumables.DenseSharpeningStone.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });

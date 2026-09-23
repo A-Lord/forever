@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { makeSpecChangeWarningToast } from '@features/settings/utils/spec_change_warning_toast';
 import { ConsumesSpec, Debuffs, IndividualBuffs, ItemSlot, PartyBuffs, Profession, RaidBuffs, Spec } from '@generated/proto/common';
 import { Mage_Options as MageOptions, Mage_Rotation, MageArmor } from '@generated/proto/mage';
@@ -61,11 +62,11 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	guardianElixirId: 32067, // Elixir of Draenic Wisdom
-	battleElixirId: 28103, // Adept's Elixir
-	foodId: 27657, // Blackened Basilisk
-	mhImbueId: 20749, // Brilliant Wizard Oil
-	potId: 22832, // Super Mana Potion
+	guardianElixirId: Consumables.ElixirOfTheSages.id,
+	battleElixirId: Consumables.GreaterArcaneElixir.id,
+	foodId: Consumables.SunriseOmelette.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

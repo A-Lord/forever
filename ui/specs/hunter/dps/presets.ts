@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Class, ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, Spec, TristateEffect } from '@generated/proto/common';
 import {
 	Hunter_Options as HunterOptions,
@@ -88,15 +89,14 @@ export const DefaultDebuffs = Debuffs.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	battleElixirId: 22831, // Elixir of Major Agility
-	guardianElixirId: 22840, // Elixir of Major Mageblood
-	foodId: 27659, // Warp Burger
-	potId: 22838, // Haste Potion
-	conjuredId: 12662,
-	explosiveId: 18588,
-	petFoodId: 33874, // Kibler's Bits
-	extraIds: [10646, 10309, 10310],
-	petExtraIds: [10309, 10310],
+	battleElixirId: Consumables.ElixirOfTheMongoose.id,
+	guardianElixirId: Consumables.GreaterMagebloodElixir.id,
+	foodId: Consumables.FiletOFlank.id,
+	potId: Consumables.MajorFrenzyPotion.id,
+	conjuredId: Consumables.DemonicRune.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
+	petExtraIds: [Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {

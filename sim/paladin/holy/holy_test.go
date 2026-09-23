@@ -50,9 +50,8 @@ func TestHolyPaladin(t *testing.T) {
 var StandardTalents = "05503121520132531051-500231-5"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FlaskId: 22853, // Flask of Mighty Restoration
-	FoodId:  27666, // Golden Fish Sticks
-	PotId:   22832, // Super Mana Potion
+	FoodId: 238639, // Sunrise Omelette
+	PotId:  13444,  // Major Mana Potion
 }
 
 var PlayerOptions = &proto.Player_HolyPaladin{

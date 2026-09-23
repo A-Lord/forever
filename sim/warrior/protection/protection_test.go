@@ -72,12 +72,12 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 var DefaultProtectionTalents = "05--552531233311210531"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:            22849,
-	FoodId:           27667,
+	PotId:            13455, // Greater Stoneshield Potion
+	FoodId:           21023, // Dirge's Kickin' Chimaerok Chops
 	ConjuredId:       9421,
 	ExplosiveId:      18588,
 	OhImbueId:        12404,
-	BattleElixirId:   22831,
+	BattleElixirId:   13452, // Elixir of the Mongoose
 	GuardianElixirId: 9088,
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV, Scroll of Protection IV
 	ExtraIds: []int32{10646, 10309, 10310, 10305},

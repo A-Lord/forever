@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession } from '@generated/proto/common';
 import { RestorationShaman_Options as RestorationShamanOptions } from '@generated/proto/shaman';
 
@@ -6,9 +7,8 @@ export const DefaultOptions = RestorationShamanOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22853, // Flask of Mighty Restoration
-	foodId: 27666, // Golden Fish Sticks
-	potId: 22832, // Super Mana Potion
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {

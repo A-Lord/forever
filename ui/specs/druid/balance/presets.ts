@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Class, ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, TristateEffect, UnitReference } from '@generated/proto/common';
 import { BalanceDruid_Options as BalanceDruidOptions } from '@generated/proto/druid';
 import { defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
@@ -49,11 +50,11 @@ export const DefaultDebuffs = Debuffs.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 12662, // Demonic Rune
-	flaskId: 22861, // Flask of Blinding Light
-	foodId: 27657, // Blackened Basilisk
-	mhImbueId: 20749, // Brilliant Wizard Oil
-	potId: 22832, // Super Mana Potion
+	conjuredId: Consumables.DemonicRune.id,
+	flaskId: Consumables.FlaskOfSupremePower.id,
+	foodId: Consumables.SunriseOmelette.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {

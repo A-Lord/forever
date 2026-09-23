@@ -52,9 +52,9 @@ func TestRetribution(t *testing.T) {
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       22838,
-	FlaskId:     22854,
-	FoodId:      27658,
+	PotId:       250943, // Major Frenzy Potion
+	FlaskId:     274274, // Flask of Natural Aggression
+	FoodId:      238637, // Prowler Steak
 	ConjuredId:  12662,
 	ExplosiveId: 18588,
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV

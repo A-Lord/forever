@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Debuffs, HealingModel, IndividualBuffs, PartyBuffs, Profession, RaidBuffs, Spec, TristateEffect } from '@generated/proto/common';
 import {
 	PaladinAura,
@@ -28,13 +29,13 @@ export const DefaultOptions = ProtectionPaladinOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22861, // Flask of Blinding Light
-	foodId: 27657, // Blackened Basilisk
-	potId: 22849, // Ironshield Potion
-	conjuredId: 12662, // Dark Rune
-	mhImbueId: 20749, // Brilliant Wizard Oil
-	explosiveId: 18588,
-	extraIds: [10646, 10310, 10309, 10305],
+	flaskId: Consumables.FlaskOfSupremePower.id,
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.GreaterStoneshieldPotion.id,
+	conjuredId: Consumables.DemonicRune.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfProtectionIV.id],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

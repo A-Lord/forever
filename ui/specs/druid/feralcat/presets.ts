@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
 import {
 	FeralCatDruid_Options as FeralDruidOptions,
@@ -11,13 +12,13 @@ import DefaultApl from './apls/default.apl.json';
 export const DefaultOptions = FeralDruidOptions.create({});
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: 22838, // Haste Potion
-	battleElixirId: 22831, // Elixir of Major Agility
-	guardianElixirId: 32067, // Elixir of Draenic Wisdom
-	foodId: 27664, // Grilled Mudfish (+20 Agility)
-	mhImbueId: 12643, // Dense Weightstone
-	conjuredId: 12662, // Demonic Rune
-	extraIds: [10646, 10309, 10310],
+	potId: Consumables.MajorFrenzyPotion.id,
+	battleElixirId: Consumables.ElixirOfTheMongoose.id,
+	guardianElixirId: Consumables.ElixirOfTheSages.id,
+	foodId: Consumables.FiletOFlank.id,
+	mhImbueId: Consumables.DenseWeightstone.id,
+	conjuredId: Consumables.DemonicRune.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {

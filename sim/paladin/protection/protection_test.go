@@ -93,10 +93,10 @@ var DefaultOptions = &proto.Player_ProtectionPaladin{
 var DefaultProtectionTalents = "-0530513050000142521051-052050003003"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	FlaskId:    22861, // Flask of Blinding Light
-	FoodId:     27657, // Blackened Basilisk
-	PotId:      22832, // Super Mana Potion
-	ConjuredId: 12662, // Dark Rune
+	FlaskId:    13512,  // Flask of Supreme Power
+	FoodId:     238639, // Sunrise Omelette
+	PotId:      13444,  // Major Mana Potion
+	ConjuredId: 12662,  // Dark Rune
 	// Scroll of Strength IV, Scroll of Agility IV, Scroll of Protection IV
 	ExtraIds: []int32{10310, 10309, 10305},
 }

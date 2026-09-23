@@ -136,12 +136,12 @@ var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:            22838, // Haste Potion
-	BattleElixirId:   22831, // Elixir of Major Agility
-	GuardianElixirId: 32067, // Elixir of Draenic Wisdom
-	FoodId:           27664, // Grilled Mudfish
-	MhImbueId:        12643, // Dense Weightstone
-	ConjuredId:       12662, // Demonic Rune
+	PotId:            250943, // Major Frenzy Potion
+	BattleElixirId:   13452,  // Elixir of the Mongoose
+	GuardianElixirId: 13447,  // Elixir of the Sages
+	FoodId:           238638, // Filet o' Flank
+	MhImbueId:        12643,  // Dense Weightstone
+	ConjuredId:       12662,  // Demonic Rune
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
 	ExtraIds: []int32{10646, 10309, 10310},
 }

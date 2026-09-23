@@ -62,8 +62,8 @@ var DefaultOptions = &proto.Player_Rogue{
 var DefaultTalents = "00532012502-023305200005015002321151"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	FlaskId:    22854,
-	FoodId:     33872,
-	PotId:      22838,
+	FlaskId:    274274, // Flask of Natural Aggression
+	FoodId:     238638, // Filet o' Flank
+	PotId:      250943, // Major Frenzy Potion
 	ConjuredId: 7676,
 }

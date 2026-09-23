@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, Spec, TristateEffect } from '@generated/proto/common';
 import { PaladinAura, RetributionPaladin_Options as RetributionPaladinOptions, RetributionPaladin_Rotation as PaladinRotation } from '@generated/proto/paladin';
 import { defaultExposeWeaknessSettings } from '@sim/proto/utils';
@@ -21,12 +22,12 @@ export const DefaultOptions = RetributionPaladinOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: 22838,
-	flaskId: 22854,
-	foodId: 27658,
-	conjuredId: 12662,
-	explosiveId: 18588,
-	extraIds: [10646, 10309, 10310],
+	potId: Consumables.MajorFrenzyPotion.id,
+	flaskId: Consumables.FlaskOfNaturalAggression.id,
+	foodId: Consumables.ProwlerSteak.id,
+	conjuredId: Consumables.DemonicRune.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

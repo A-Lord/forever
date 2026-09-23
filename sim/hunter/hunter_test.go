@@ -97,13 +97,12 @@ var DefaultBMTalents = "512002005250122431051-0505201205"
 var DefaultSVTalents = "502-0550201205-333200022003223005103"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	BattleElixirId:   22831, // Elixir of Major Agility
-	GuardianElixirId: 22840, // Elixir of Major Mageblood
-	FoodId:           27659, // Warp Burger
-	PotId:            22838, // Haste Potion
-	ConjuredId:       12662, // Demonic Rune
-	ExplosiveId:      18588, // Ez-Thro Dynamite II
-	PetFoodId:        33874, // Kibler's Bits
+	BattleElixirId:   13452,  // Elixir of the Mongoose
+	GuardianElixirId: 250341, // Greater Mageblood Elixir
+	FoodId:           238638, // Filet o' Flank
+	PotId:            250943, // Major Frenzy Potion
+	ConjuredId:       12662,  // Demonic Rune
+	ExplosiveId:      18588,  // Ez-Thro Dynamite II
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
 	ExtraIds: []int32{10646, 10309, 10310},
 	// Scroll of Agility IV, Scroll of Strength IV
