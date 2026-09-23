@@ -2126,8 +2126,6 @@
 {"id":23211,"type":10,"stats":[0,0,0,0,44,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"name":"Toasted Smorc","buffDuration":3600,"categoryId":11,"itemEffects":[{"buffId":29334,"onUse":{"categoryId":11,"categoryCooldownMs":-1}}]},
 {"id":23326,"type":10,"stats":[0,0,0,0,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"name":"Midsummer Sausage","buffDuration":3600,"itemEffects":[{"buffId":29333,"onUse":{"cooldownMs":-1,"categoryCooldownMs":-1}}]},
 {"id":23327,"type":10,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"name":"Fire-toasted Bun","buffDuration":3600,"itemEffects":[{"buffId":29332,"onUse":{"cooldownMs":-1,"categoryCooldownMs":-1}}]},
-{"id":23334,"cooldownDuration":3600},
-{"id":23381,"cooldownDuration":3600},
 {"id":23578,"type":1,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"name":"Diet McWeaksauce","categoryCooldownDuration":120,"categoryId":4,"effectIds":[695996],"itemEffects":[{"buffId":17531,"onUse":{"categoryId":4,"categoryCooldownMs":120000}}]},
 {"id":23579,"type":1,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"name":"The McWeaksauce Classic","categoryCooldownDuration":120,"categoryId":4,"effectIds":[695962],"itemEffects":[{"buffId":17534,"onUse":{"categoryId":4,"categoryCooldownMs":120000}}]},
 {"id":23795,"type":10,"stats":[0,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"name":"Permanent Spirit of Zanza","buffDuration":7200,"categoryId":79,"itemEffects":[{"buffId":30336,"onUse":{"categoryId":79}}]},
