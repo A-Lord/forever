@@ -215,6 +215,9 @@ func main() {
 	}
 	database.GeneratePotionAndConjuredEffects(db)
 	database.GenerateTemporaryEnchantConsumables(db)
+	if err := database.GenerateStatConsumables(instance, db); err != nil {
+		panic(err)
+	}
 	database.GenerateMissingEffectsFile()
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 
