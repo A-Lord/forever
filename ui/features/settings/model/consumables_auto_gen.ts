@@ -64,7 +64,7 @@ export const SeasonedWolfKabob: GeneratedConsumable = {
 
 export const FullMoonshine: GeneratedConsumable = {
 	id: 1072,
-	type: ConsumableType.ConsumableTypeFood,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(1072),
 };
 
@@ -1023,7 +1023,7 @@ export const ElixirOfGreaterStrength: GeneratedConsumable = {
 
 export const PotionOfDemonslaying: GeneratedConsumable = {
 	id: 9224,
-	type: ConsumableType.ConsumableTypeElixir,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(9224),
 };
 
@@ -1563,13 +1563,13 @@ export const DenseDynamite: GeneratedConsumable = {
 
 export const CombatHealingPotion: GeneratedConsumable = {
 	id: 18839,
-	type: ConsumableType.ConsumableTypeOther,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(18839),
 };
 
 export const CombatManaPotion: GeneratedConsumable = {
 	id: 18841,
-	type: ConsumableType.ConsumableTypeOther,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(18841),
 };
 
@@ -1951,13 +1951,13 @@ export const ScrollOfCryoblast: GeneratedConsumable = {
 
 export const MajorHealingPotion223913: GeneratedConsumable = {
 	id: 223913,
-	type: ConsumableType.ConsumableTypeOther,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(223913),
 };
 
 export const GreaterHealingPotion223914: GeneratedConsumable = {
 	id: 223914,
-	type: ConsumableType.ConsumableTypeOther,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(223914),
 };
 
@@ -2470,7 +2470,7 @@ export const MajorMendersPotion: GeneratedConsumable = {
 
 export const Windstone: GeneratedConsumable = {
 	id: 255663,
-	type: ConsumableType.ConsumableTypeOther,
+	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(255663),
 };
 
@@ -2748,6 +2748,7 @@ export const POTION_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	MinorHealingPotion,
 	LesserHealingPotion,
 	HealingPotion,
+	FullMoonshine,
 	GreaterHealingPotion1710,
 	MinorManaPotion,
 	MinorRejuvenationPotion,
@@ -2767,6 +2768,7 @@ export const POTION_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	GreaterManaPotion,
 	MagicResistancePotion,
 	WildvinePotion,
+	PotionOfDemonslaying,
 	MightyRagePotion,
 	SuperiorManaPotion,
 	MajorManaPotion,
@@ -2783,9 +2785,13 @@ export const POTION_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	MajorManaDraught,
 	SuperiorManaDraught,
 	MajorRejuvenationPotion,
+	CombatHealingPotion,
+	CombatManaPotion,
 	MagebloodElixir,
 	DietMcWeaksauce,
 	TheMcWeaksauceClassic,
+	MajorHealingPotion223913,
+	GreaterHealingPotion223914,
 	MinorSpellblastingPotion,
 	LesserSpellblastingPotion,
 	SpellblastingPotion,
@@ -2804,6 +2810,7 @@ export const POTION_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	GreaterMendersPotion,
 	SuperiorMendersPotion,
 	MajorMendersPotion,
+	Windstone,
 	PerishableMinorHealingPotion,
 	PerishableLesserHealingPotion,
 	PerishableHealingPotion,
@@ -2826,7 +2833,6 @@ export const FOOD_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	GoretuskLiverPie,
 	SlitherskinMackerel,
 	SeasonedWolfKabob,
-	FullMoonshine,
 	RedridgeGoulash,
 	SpicedWolfMeat,
 	RoastedBoarMeat,
@@ -3105,8 +3111,6 @@ export const OTHER_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	RazorlashRoot,
 	GordokGreenGrog,
 	KreegsStoutBeatdown,
-	CombatHealingPotion,
-	CombatManaPotion,
 	MinorHealthstone19004,
 	MinorHealthstone19005,
 	LesserHealthstone19006,
@@ -3143,15 +3147,12 @@ export const OTHER_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	ScrollOfArcanePowerI,
 	UNUSEDFlaskOfMercilessPursuit,
 	EnchantedSigilInnovation,
-	MajorHealingPotion223913,
-	GreaterHealingPotion223914,
 	WarmedRumseyRumWithCream,
 	EnchantedSigilFlowingWaters,
 	DarkclawBisque,
 	SmokedRedgill,
 	ProwlerSteak,
 	SunriseOmelette,
-	Windstone,
 ];
 
 export const HERB_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
@@ -3184,7 +3185,6 @@ export const ELIXIR_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	ElixirOfGreaterIntellect,
 	ElixirOfGreaterAgility,
 	ElixirOfGreaterStrength,
-	PotionOfDemonslaying,
 	ElixirOfShadowPower,
 	WinterfallFirewater,
 	ElixirOfGreaterDefense,
