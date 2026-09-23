@@ -16,14 +16,14 @@ import (
 // What the committed spells_auto_gen.go holds today. The bounds are wide enough that adding a class
 // or a patch's spells does not fail the gate, and the exact numbers are here so drift is visible.
 const (
-	generatedSpellCount  = 7047
-	generatedEffectCount = 9650
+	generatedSpellCount  = 7954
+	generatedEffectCount = 11118
 )
 
-// The client's EffectIndex has gaps: 46 of the store's rows state an index that is not the
+// The client's EffectIndex has gaps: 53 of the store's rows state an index that is not the
 // position it sits at, which is why EffectN counts by position and the store keeps the client's
 // own number alongside.
-const gappedIndexRows = 46
+const gappedIndexRows = 53
 
 // Installs the generated data for one test and puts the fixture back afterwards, since TestMain
 // swaps the fixture in for the whole package.
