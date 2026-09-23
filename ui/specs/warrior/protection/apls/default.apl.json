@@ -14,7 +14,7 @@
 		{"action":{"groupReference":{"groupName":"CD: Shield Wall Dual Wield"}}},
 		{"action":{"condition":{"and":{"vals":[{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"35%"}}}},{"not":{"val":{"variableRef":{"name":"Defensive Cooldown Active"}}}}]}},"castSpell":{"spellId":{"spellId":871}}}},
 		{"hide":true,"action":{"schedule":{"schedule":"0s, 0s","innerAction":{"castSpell":{"spellId":{"spellId":871}}}}}},
-		{"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"30%"}}}},"castSpell":{"spellId":{"itemId":22105}}}},
+		{"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"30%"}}}},"castSpell":{"spellId":{"itemId":9421}}}},
 		{"action":{"condition":{"and":{"vals":[{"not":{"val":{"variableRef":{"name":"Defensive Cooldown Active"}}}},{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"30%"}}}}]}},"castSpell":{"spellId":{"itemId":22797}}}},
 		{"hide":true,"action":{"schedule":{"schedule":"0s, 0s","innerAction":{"castSpell":{"spellId":{"itemId":22797}}}}}},
 		{"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},

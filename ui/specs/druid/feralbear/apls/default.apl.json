@@ -13,7 +13,7 @@
         {"action":{"groupReference":{"groupName":"CD: Offensive Trinkets"}}},
         {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"40%"}}}},"groupReference":{"groupName":"CD: Defensive Trinkets"}}},
         {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"40%"}}}},"castSpell":{"spellId":{"spellId":26999}}}},
-        {"action":{"condition":{"and":{"vals":[{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"30%"}}}},{"gcdIsReady":{}}]}},"castSpell":{"spellId":{"itemId":22105}}}},
+        {"action":{"condition":{"and":{"vals":[{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"30%"}}}},{"gcdIsReady":{}}]}},"castSpell":{"spellId":{"itemId":9421}}}},
         {"action":{"condition":{"and":{"vals":[{"cmp":{"op":"OpLe","lhs":{"currentHealthPercent":{}},"rhs":{"const":{"val":"30%"}}}},{"gcdIsReady":{}}]}},"castSpell":{"spellId":{"itemId":22797}}}},
         {"action":{"condition":{"and":{"vals":[{"multipleCdUsages":{"baseSpellId":{"spellId":2825,"tag":-1,"rank":1},"targetSpellId":{"otherId":"OtherActionPotion"},"offset":{"variableRef":{"name":"Bloodlust time"}}}},{"gcdIsReady":{}}]}},"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},
         {"action":{"condition":{"cmp":{"op":"OpGe","lhs":{"currentRage":{}},"rhs":{"const":{"val":"50"}}}},"castSpell":{"spellId":{"spellId":26996,"tag":1}}}},

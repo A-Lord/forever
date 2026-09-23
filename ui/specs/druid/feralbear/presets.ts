@@ -28,7 +28,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	guardianElixirId: 9088, // Gift of Arthas
 	foodId: 27667, // Spicy Crawdad
 	potId: 22849, // Ironshield Potion
-	conjuredId: 22105, // Healthstone
+	conjuredId: 9421, // Major Healthstone
 	mhImbueId: 34340, // Adamantite Weightstone
 	goblinSapper: true,
 	scrollAgi: true,

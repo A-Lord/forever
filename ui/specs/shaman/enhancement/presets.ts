@@ -33,7 +33,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: 22854, // Flask of Relentless Assault
 	foodId: 27658, // Roasted Clefthoof
 	drumsId: Drums.LesserDrumsOfBattle,
-	conjuredId: 22788,
 	explosiveId: 18588,
 	goblinSapper: true,
 	scrollAgi: true,

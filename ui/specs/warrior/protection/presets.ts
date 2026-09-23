@@ -24,7 +24,7 @@ export const DefaultOptions = ProtectionWarriorOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	...WarriorPresets.DefaultConsumables,
-	conjuredId: 22105,
+	conjuredId: 9421,
 	foodId: 27667,
 	flaskId: undefined,
 	battleElixirId: 22831,
