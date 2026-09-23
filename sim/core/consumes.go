@@ -149,8 +149,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 
 	drumsBombsSharedTimer := character.NewTimer()
 
-	registerPotionCD(agent, consumables)
-	registerConjuredCD(agent, consumables)
 	registerDrumsCD(agent, consumables, drumsBombsSharedTimer)
 
 	for _, id := range selectedConsumableIDs(consumables, partyBuffs) {
