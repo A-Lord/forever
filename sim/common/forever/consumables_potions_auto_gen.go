@@ -9,8 +9,6 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(858)  // Lesser Healing Potion
 	shared.NewSpellDataPotion(929)  // Healing Potion
 	shared.NewSpellDataPotion(1072) // Full Moonshine
-	// unsupported: A_PERIODIC_DAMAGE, which no consumable builder models
-	// shared.NewSpellDataPotion(1450) // Potion of Fervor
 	shared.NewSpellDataPotion(1710) // Greater Healing Potion
 	shared.NewSpellDataPotion(2455) // Minor Mana Potion
 	shared.NewSpellDataPotion(2456) // Minor Rejuvenation Potion
@@ -24,16 +22,6 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(4623) // Lesser Stoneshield Potion
 	shared.NewSpellDataPotion(5631) // Rage Potion
 	shared.NewSpellDataPotion(5633) // Great Rage Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(6048) // Shadow Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(6049) // Fire Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(6050) // Frost Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(6051) // Holy Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(6052) // Nature Protection Potion
 	shared.NewSpellDataPotion(6149) // Greater Mana Potion
 	shared.NewSpellDataPotion(9036) // Magic Resistance Potion
 	shared.NewSpellDataPotion(9144) // Wildvine Potion
@@ -46,18 +34,6 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(13444) // Major Mana Potion
 	shared.NewSpellDataPotion(13446) // Major Healing Potion
 	shared.NewSpellDataPotion(13455) // Greater Stoneshield Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(13456) // Greater Frost Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(13457) // Greater Fire Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(13458) // Greater Nature Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(13459) // Greater Shadow Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(13460) // Greater Holy Protection Potion
-	// unsupported: A_SCHOOL_ABSORB, which no consumable builder models
-	// shared.NewSpellDataPotion(13461) // Greater Arcane Protection Potion
 	shared.NewSpellDataPotion(17348) // Major Healing Draught
 	shared.NewSpellDataPotion(17349) // Superior Healing Draught
 	shared.NewSpellDataPotion(17351) // Major Mana Draught
