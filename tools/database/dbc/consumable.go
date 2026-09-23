@@ -29,13 +29,49 @@ type Consumable struct {
 	TemporaryEnchant         TemporaryEnchant
 }
 
-// The SpellItemEnchantment row a consumable's temporary enchant (Effect 54) applies, by its three
-// slots. ID is 0 when the consumable enchants nothing.
+// The SpellItemEnchantment row a consumable's temporary enchant (Effect 54, or the imbue Effect 360)
+// applies, by its three slots. ID is 0 when the consumable enchants nothing.
 type TemporaryEnchant struct {
 	ID      int
 	Effects [3]int
 	Points  [3]int
 	Args    [3]int
+	// SpellCastingRequirements.RequiredAreasID of the spells the slots name: the area group outside
+	// which they do nothing. 0 when they work everywhere.
+	RequiredAreasID int
+}
+
+func IsTemporaryEnchantEffect(effect dbcenums.SpellEffectType) bool {
+	return effect == dbcenums.E_ENCHANT_ITEM_TEMPORARY || effect == dbcenums.E_360
+}
+
+// The enchant as the enchant table reads a permanent one: stats and pseudo stats from its stat,
+// resistance and equip spell slots, and its flat weapon damage. A combat spell slot adds the spell it
+// casts off the enchanted weapon's hits, at the chance the slot states.
+func (t TemporaryEnchant) ToProto() *proto.SimEnchant {
+	enchant := Enchant{EffectId: t.ID, Effects: t.Effects[:], EffectPoints: t.Points[:], EffectArgs: t.Args[:], IsWeaponEnchant: true}
+	parsed := enchant.ToProto()
+	simEnchant := &proto.SimEnchant{
+		EffectId:       parsed.EffectId,
+		Stats:          parsed.Stats,
+		PseudoStats:    parsed.PseudoStats,
+		WeaponDamage:   parsed.WeaponDamage,
+		EnchantEffects: parsed.EnchantEffects,
+	}
+	for _, slot := range enchant.ProcSlots() {
+		if !slot.IsCombatSpell || slot.ChancePct <= 0 || slices.ContainsFunc(simEnchant.EnchantEffects, func(e *proto.ItemEffect) bool {
+			return e.BuffId == int32(slot.SpellID)
+		}) {
+			continue
+		}
+		simEnchant.EnchantEffects = append(simEnchant.EnchantEffects, &proto.ItemEffect{
+			BuffId: int32(slot.SpellID),
+			Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{
+				ProcRate: &proto.ProcEffect_ProcChance{ProcChance: float64(slot.ChancePct) / 100},
+			}},
+		})
+	}
+	return simEnchant
 }
 
 func (c *Consumable) ToMap() map[string]interface{} {
@@ -77,6 +113,9 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		consumable.WeaponSubclassMask = enchant.EquippedItemSubclass
 		consumable.WeaponInventoryTypeMask = enchant.EquippedItemInvTypes
 	}
+	if c.TemporaryEnchant.ID != 0 && c.temporaryEnchantSpell() != nil {
+		consumable.TemporaryEnchant = c.TemporaryEnchant.ToProto()
+	}
 	return consumable
 }
 
@@ -103,7 +142,7 @@ func (c *Consumable) OnUseEffects() []*proto.ItemEffect {
 func (c *Consumable) temporaryEnchantSpell() *Spell {
 	for _, e := range c.OnUseEffects() {
 		for _, se := range dbcInstance.SpellEffects[int(e.BuffId)] {
-			if se.EffectType == dbcenums.E_ENCHANT_ITEM_TEMPORARY {
+			if IsTemporaryEnchantEffect(se.EffectType) {
 				spell := dbcInstance.Spells[int(e.BuffId)]
 				return &spell
 			}

@@ -29,15 +29,17 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 		itemID int
 		want   ConsumableKind
 	}{
-		{10646, ConsumableDamage},           // Goblin Sapper Charge: 13241
-		{11566, ConsumableDamage},           // Crystal Charge, a Quest-class item: 15239
-		{215127, ConsumableDamage},          // High-Yield Radiation Bomb: 435963
-		{13446, ConsumableHeal},             // Major Healing Potion: 17534
-		{13444, ConsumableEnergize},         // Major Mana Potion: 17531
-		{13510, ConsumableStatAura},         // Flask of the Titans: 17626
-		{954, ConsumableStatAura},           // Scroll of Strength, cast on a friendly target: 8118
-		{20749, ConsumableTemporaryEnchant}, // Brilliant Wizard Oil: 25122, enchant 2628
-		{13457, ConsumableAbsorb},           // Greater Fire Protection Potion: 17543
+		{10646, ConsumableDamage},            // Goblin Sapper Charge: 13241
+		{11566, ConsumableDamage},            // Crystal Charge, a Quest-class item: 15239
+		{215127, ConsumableDamage},           // High-Yield Radiation Bomb: 435963
+		{13446, ConsumableHeal},              // Major Healing Potion: 17534
+		{13444, ConsumableEnergize},          // Major Mana Potion: 17531
+		{13510, ConsumableStatAura},          // Flask of the Titans: 17626
+		{954, ConsumableStatAura},            // Scroll of Strength, cast on a friendly target: 8118
+		{20749, ConsumableTemporaryEnchant},  // Brilliant Wizard Oil: 25122, enchant 2628
+		{3824, ConsumableTemporaryEnchant},   // Shadow Oil: 3594, enchant 25 casts 350026 at 15%
+		{277502, ConsumableTemporaryEnchant}, // Scroll of Imbue Precision: Effect 360, enchant 8718
+		{13457, ConsumableAbsorb},            // Greater Fire Protection Potion: 17543
 	} {
 		consumable, ok := instance.Consumables[tc.itemID]
 		if !ok {
@@ -52,6 +54,11 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 	blastingCharge := instance.Consumables[221325]
 	if RouteConsumable(&blastingCharge, instance).Supported() {
 		t.Error("221325 routes as supported, but its spell 446504 only opens a lock")
+	}
+
+	blackfathomStone := instance.Consumables[211845]
+	if RouteConsumable(&blackfathomStone, instance).Supported() {
+		t.Error("211845 routes as supported, but its equip spell 430391 works only in area group 7864")
 	}
 }
 

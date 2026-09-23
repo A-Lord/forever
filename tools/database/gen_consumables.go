@@ -105,7 +105,7 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 func consumableShape(c *dbc.Consumable, s *spelldata.Spell) (ConsumableKind, []string) {
 	for _, e := range consumableEffects(s) {
 		switch {
-		case e.Type == dbcenums.E_ENCHANT_ITEM_TEMPORARY:
+		case dbc.IsTemporaryEnchantEffect(e.Type):
 			return ConsumableTemporaryEnchant, temporaryEnchantUnsupported(c.TemporaryEnchant)
 		case !landsOnTheUser(e):
 		case e.Type == dbcenums.E_ENERGIZE, e.Type == dbcenums.E_ENERGIZE_PCT,
@@ -156,8 +156,8 @@ func auraDurationUnsupported(e *spelldata.Effect) []string {
 }
 
 // A temporary enchant's slots, by what the sim's enchant handling reads: flat weapon damage, a
-// resistance or a stat, a combat spell that deals damage, or an equip spell whose auras the parser
-// attaches.
+// resistance or a stat, a combat spell that deals damage at the chance the slot states, or an equip
+// spell whose auras the parser attaches. Spells that work only in one area do nothing in the sim.
 func temporaryEnchantUnsupported(enchant dbc.TemporaryEnchant) []string {
 	if enchant.ID == 0 {
 		return []string{"the temporary enchant names no SpellItemEnchantment row"}
@@ -172,11 +172,17 @@ func temporaryEnchantUnsupported(enchant dbc.TemporaryEnchant) []string {
 			if !dealsDamageToAnEnemy(spelldata.Find(spellID)) {
 				unsupported = append(unsupported, fmt.Sprintf("enchant %d casts %d, which deals no damage to an enemy", enchant.ID, spellID))
 			}
+			if enchant.Points[slot] <= 0 {
+				unsupported = append(unsupported, fmt.Sprintf("enchant %d states no chance for its combat spell %d", enchant.ID, spellID))
+			}
 		case dbc.ITEM_ENCHANTMENT_EQUIP_SPELL:
 			unsupported = append(unsupported, equipSpellUnsupported(enchant.ID, spelldata.Find(spellID), spellID)...)
 		default:
 			unsupported = append(unsupported, fmt.Sprintf("enchant %d has a slot of type %d", enchant.ID, effect))
 		}
+	}
+	if enchant.RequiredAreasID != 0 {
+		unsupported = append(unsupported, fmt.Sprintf("enchant %d's spells work only in area group %d", enchant.ID, enchant.RequiredAreasID))
 	}
 	return unsupported
 }

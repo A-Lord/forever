@@ -83,6 +83,10 @@ message Consumable {
 	// it can be applied to. Zero on consumables that enchant nothing.
 	int32 weapon_subclass_mask = 16;
 	int32 weapon_inventory_type_mask = 17;
+	// The SpellItemEnchantment row a temporary enchant applies to the weapon. Its enchant_effects are
+	// the combat spells it casts off that weapon's hits, each at the chance its slot states. Absent on
+	// consumables that enchant nothing.
+	SimEnchant temporary_enchant = 18;
 }
 
 message ItemEffectRandPropPoints {

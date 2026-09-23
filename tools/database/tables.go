@@ -947,6 +947,7 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.TemporaryEnchant.Args[0],
 		&consumable.TemporaryEnchant.Args[1],
 		&consumable.TemporaryEnchant.Args[2],
+		&consumable.TemporaryEnchant.RequiredAreasID,
 	)
 	if err != nil {
 		return consumable, fmt.Errorf("scanning consumable data: %w", err)
@@ -1036,7 +1037,11 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 				COALESCE(tsie.ID, 0),
 				COALESCE(tsie.Effect_0, 0), COALESCE(tsie.Effect_1, 0), COALESCE(tsie.Effect_2, 0),
 				COALESCE(tsie.EffectPointsMin_0, 0), COALESCE(tsie.EffectPointsMin_1, 0), COALESCE(tsie.EffectPointsMin_2, 0),
-				COALESCE(tsie.EffectArg_0, 0), COALESCE(tsie.EffectArg_1, 0), COALESCE(tsie.EffectArg_2, 0)
+				COALESCE(tsie.EffectArg_0, 0), COALESCE(tsie.EffectArg_1, 0), COALESCE(tsie.EffectArg_2, 0),
+				COALESCE((
+					SELECT MAX(scr.RequiredAreasID) FROM SpellCastingRequirements scr
+					WHERE scr.SpellID > 0 AND scr.SpellID IN (tsie.EffectArg_0, tsie.EffectArg_1, tsie.EffectArg_2)
+				), 0)
 			FROM Item i
 			JOIN ItemSparse s ON i.ID = s.ID
 			LEFT JOIN ItemXItemEffect ixie ON ixie.ItemID = i.ID
@@ -1051,7 +1056,7 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 				JOIN ItemEffect te ON te.ID = tx.ItemEffectID
 				JOIN SpellEffect tse ON tse.SpellID = te.SpellID
 				WHERE tx.ItemID = i.ID AND te.TriggerType = ` + strconv.Itoa(dbc.ITEM_SPELLTRIGGER_ON_USE) + `
-					AND tse.Effect = ` + strconv.Itoa(int(dbcenums.E_ENCHANT_ITEM_TEMPORARY)) + `
+					AND tse.Effect IN (` + strconv.Itoa(int(dbcenums.E_ENCHANT_ITEM_TEMPORARY)) + `, ` + strconv.Itoa(int(dbcenums.E_360)) + `)
 				LIMIT 1)
 			WHERE (` + ConsumableItemFilter() + `) OR i.ID IN (` + allowList + `)
 			GROUP BY i.ID
