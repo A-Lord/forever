@@ -208,6 +208,13 @@ const (
 	BANDAGE
 	OTHER
 	HERB
+	DEVICE ConsumableClass = 14
+)
+
+const (
+	TRADE_GOODS_EXPLOSIVES = 2
+	// The client's shared cooldown category for explosives, 60 s.
+	EXPLOSIVES_SPELL_CATEGORY = 24
 )
 
 // Power type in EffectMiscValue_0 of A_MOD_INCREASE_ENERGY. Only mana maps to a stat.

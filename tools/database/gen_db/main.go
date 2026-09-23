@@ -182,9 +182,6 @@ func main() {
 
 	for _, consumable := range consumables {
 		db.MergeConsumable(consumable.ToProto())
-		// The consumable proto has no icon field, so ship it in the icon table instead. Without
-		// this the UI fetches every consumable icon from nether.wowhead.com on each page load.
-		db.AddItemIcon(int32(consumable.Id), strings.ToLower(database.GetIconName(iconsMap, consumable.IconFileDataID)), consumable.Name)
 	}
 
 	for _, consumable := range database.ConsumableOverrides {
@@ -195,6 +192,14 @@ func main() {
 	db.MergeGems(database.GemOverrides)
 	db.MergeEnchants(database.EnchantOverrides)
 	ApplyGlobalFilters(db)
+	for _, consumable := range consumables {
+		if _, kept := db.Consumables[int32(consumable.Id)]; !kept {
+			continue
+		}
+		// The consumable proto has no icon field, so ship it in the icon table instead. Without
+		// this the UI fetches every consumable icon from nether.wowhead.com on each page load.
+		db.AddItemIcon(int32(consumable.Id), strings.ToLower(database.GetIconName(iconsMap, consumable.IconFileDataID)), consumable.Name)
+	}
 	leftovers := db.Clone()
 	ApplyNonSimmableFilters(leftovers)
 	leftovers.WriteBinaryAndJson(fmt.Sprintf("%s/leftover_db.bin", dbDir), fmt.Sprintf("%s/leftover_db.json", dbDir))
@@ -488,7 +493,7 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 		if slices.Contains(database.ConsumableDenyList, consumable.Id) {
 			return false
 		}
-		if allZero(consumable.Stats) && consumable.Type != proto.ConsumableType_ConsumableTypePotion {
+		if allZero(consumable.Stats) && !slices.Contains(statlessConsumableTypes, consumable.Type) {
 			return false
 		}
 
@@ -504,6 +509,14 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 
 		return !strings.HasPrefix(consumable.Name, "QA") && !strings.HasPrefix(consumable.Name, "Test") && !strings.HasPrefix(consumable.Name, "TEST") && !strings.Contains(consumable.Name, "Flaskataur")
 	})
+}
+
+// The types whose spell does something other than grant stats: a potion restores, an explosive
+// deals damage, an imbue enchants a weapon.
+var statlessConsumableTypes = []proto.ConsumableType{
+	proto.ConsumableType_ConsumableTypePotion,
+	proto.ConsumableType_ConsumableTypeExplosive,
+	proto.ConsumableType_ConsumableTypeImbue,
 }
 
 func allZero(stats []float64) bool {

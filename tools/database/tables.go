@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/dbc"
 	"github.com/wowsims/forever/tools/tooltip"
@@ -933,6 +934,9 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.Duration,
 		&consumable.CooldownDuration,
 		&consumable.CategoryCooldownDuration,
+		&consumable.ClassMask,
+		&consumable.RaceMask,
+		&consumable.RequiredSkill,
 	)
 	if err != nil {
 		return consumable, fmt.Errorf("scanning consumable data: %w", err)
@@ -959,12 +963,36 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 	return consumable, nil
 }
 
+// The items the consumable catalogue is built from, over Item as i and ItemSparse as s. Every
+// Consumable-class item but the permanent enhancements of subclass 6, which the enchant table
+// carries; the Trade Goods explosives; and any item whose on-use shares the explosives' category or
+// casts a temporary enchant, whatever class the client files it under: Crystal Charge 11566 is a
+// Quest item and Lesser Mana Oil 20747 an Enchanting trade good. The item has to state an on-use
+// spell, and one that also teaches a spell is an Engrave rune rather than a consumable.
+func ConsumableItemFilter() string {
+	onUse := func(condition string) string {
+		return fmt.Sprintf(`EXISTS (SELECT 1 FROM ItemXItemEffect cx JOIN ItemEffect ce ON ce.ID = cx.ItemEffectID
+			WHERE cx.ItemID = i.ID AND ce.TriggerType = %d AND ce.SpellID > 0 AND %s)`, dbc.ITEM_SPELLTRIGGER_ON_USE, condition)
+	}
+	return fmt.Sprintf(`s.Display_lang != '' AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%'
+		AND %s
+		AND NOT EXISTS (SELECT 1 FROM ItemXItemEffect lx JOIN ItemEffect le ON le.ID = lx.ItemEffectID
+			WHERE lx.ItemID = i.ID AND le.TriggerType = %d)
+		AND ((i.ClassID = 0 AND i.SubclassID != 6) OR (i.ClassID = 7 AND i.SubclassID = 2)
+			OR %s
+			OR %s)`,
+		onUse("1"),
+		dbc.ITEM_SPELLTRIGGER_LEARN_SPELL_ID,
+		onUse(fmt.Sprintf("ce.SpellCategoryID = %d", dbc.EXPLOSIVES_SPELL_CATEGORY)),
+		onUse(fmt.Sprintf("EXISTS (SELECT 1 FROM SpellEffect cse WHERE cse.SpellID = ce.SpellID AND cse.Effect = %d)", dbcenums.E_ENCHANT_ITEM_TEMPORARY)))
+}
+
 func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consumable, error) {
 	allowListStrs := make([]string, 0, len(ConsumableAllowList))
 	for _, id := range ConsumableAllowList {
 		allowListStrs = append(allowListStrs, strconv.FormatInt(int64(id), 10))
 	}
-	additionalConsumesQuery := "OR i.ID = " + strings.Join(allowListStrs, " OR i.ID = ")
+	allowList := strings.Join(allowListStrs, ", ")
 
 	query := `
 		SELECT
@@ -991,7 +1019,10 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 				END AS ElixirType,
 				COALESCE(sd.Duration, 0) as Duration,
 				COALESCE(ie.CoolDownMSec, 0) as CooldownDuration,
-				COALESCE(ie.CategoryCoolDownMSec, 0) as CategoryCooldownDuration
+				COALESCE(ie.CategoryCoolDownMSec, 0) as CategoryCooldownDuration,
+				s.AllowableClass,
+				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
+				s.RequiredSkill
 			FROM Item i
 			JOIN ItemSparse s ON i.ID = s.ID
 			LEFT JOIN ItemXItemEffect ixie ON ixie.ItemID = i.ID
@@ -1000,10 +1031,7 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 			LEFT JOIN Spell sp ON ie.SpellID = sp.ID
 			LEFT JOIN SpellMisc sm ON ie.SpellId = sm.SpellID
 			LEFT JOIN SpellDuration sd ON sm.DurationIndex = sd.ID
-			WHERE ((i.ClassID = 0 AND i.SubclassID IS NOT 0 AND i.SubclassID IS NOT 8 AND i.SubclassID IS NOT 6) OR (i.ClassID = 7 AND i.SubclassID = 2)) AND ItemEffects is not null AND s.RequiredLevel >= 50 ` + additionalConsumesQuery + `
-			AND s.Display_lang != ''
-			AND s.Display_lang NOT LIKE '%Test%'
-			AND s.Display_lang NOT LIKE 'QA%'
+			WHERE (` + ConsumableItemFilter() + `) OR i.ID IN (` + allowList + `)
 			GROUP BY i.ID
 	`
 

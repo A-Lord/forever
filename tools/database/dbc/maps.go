@@ -352,9 +352,10 @@ var consumableClassToProto = map[ConsumableClass]proto.ConsumableType{
 	FLASK:                  proto.ConsumableType_ConsumableTypeFlask,
 	SCROLL:                 proto.ConsumableType_ConsumableTypeScroll,
 	FOOD:                   proto.ConsumableType_ConsumableTypeFood,
-	BANDAGE:                proto.ConsumableType_ConsumableTypeUnknown,
+	BANDAGE:                proto.ConsumableType_ConsumableTypeBandage,
 	OTHER:                  proto.ConsumableType_ConsumableTypeOther,
 	HERB:                   proto.ConsumableType_ConsumableTypeHerb,
+	DEVICE:                 proto.ConsumableType_ConsumableTypeDevice,
 }
 
 var MapPowerTypeEnumToResourceType = map[int32]proto.ResourceType{

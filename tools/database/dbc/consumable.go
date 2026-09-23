@@ -23,6 +23,9 @@ type Consumable struct {
 	Duration                 int // In milliseconds
 	CooldownDuration         int // In milliseconds
 	CategoryCooldownDuration int // In milliseconds
+	ClassMask                int
+	RaceMask                 int64
+	RequiredSkill            int
 }
 
 func (c *Consumable) ToMap() map[string]interface{} {
@@ -42,7 +45,7 @@ func (c *Consumable) ToMap() map[string]interface{} {
 
 // ToProto converts the Consumable to a proto representation.
 func (c *Consumable) ToProto() *proto.Consumable {
-	return &proto.Consumable{
+	consumable := &proto.Consumable{
 		Id:                       int32(c.Id),
 		Type:                     c.GetConsumableType(),
 		Stats:                    c.GetStatModifiers().ToProtoArray(),
@@ -53,9 +56,67 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		CategoryCooldownDuration: int32(c.CategoryCooldownDuration / 1000),
 		CategoryId:               int32(c.SpellCategoryID),
 		EffectIds:                c.GetNonStatEffectIds(),
+		ItemEffects:              c.OnUseEffects(),
+		ClassAllowlist:           GetClassesFromClassMask(c.ClassMask),
+		RequiredProfession:       GetProfession(c.RequiredSkill),
 	}
+	if c.RaceMask != -1 {
+		consumable.AllowableRace = c.RaceMask
+	}
+	if enchant := c.temporaryEnchantSpell(); enchant != nil && enchant.EquippedItemClass == ITEM_CLASS_WEAPON {
+		consumable.WeaponSubclassMask = enchant.EquippedItemSubclass
+		consumable.WeaponInventoryTypeMask = enchant.EquippedItemInvTypes
+	}
+	return consumable
 }
+
+// The spell each on-use row casts, with the cooldowns and category the item states for it.
+func (c *Consumable) OnUseEffects() []*proto.ItemEffect {
+	var effects []*proto.ItemEffect
+	for _, id := range slices.Sorted(slices.Values(c.ItemEffects)) {
+		e := GetItemEffect(id)
+		if e.ID == 0 || e.TriggerType != ITEM_SPELLTRIGGER_ON_USE || e.SpellID == 0 {
+			continue
+		}
+		effects = append(effects, &proto.ItemEffect{
+			BuffId: int32(e.SpellID),
+			Effect: &proto.ItemEffect_OnUse{OnUse: &proto.OnUseEffect{
+				CooldownMs:         int32(e.CoolDownMSec),
+				CategoryId:         int32(e.SpellCategoryID),
+				CategoryCooldownMs: int32(e.CategoryCoolDownMSec),
+			}},
+		})
+	}
+	return effects
+}
+
+func (c *Consumable) temporaryEnchantSpell() *Spell {
+	for _, e := range c.OnUseEffects() {
+		for _, se := range dbcInstance.SpellEffects[int(e.BuffId)] {
+			if se.EffectType == dbcenums.E_ENCHANT_ITEM_TEMPORARY {
+				spell := dbcInstance.Spells[int(e.BuffId)]
+				return &spell
+			}
+		}
+	}
+	return nil
+}
+
+func (c *Consumable) sharesExplosivesCategory() bool {
+	return slices.ContainsFunc(c.OnUseEffects(), func(e *proto.ItemEffect) bool {
+		return e.GetOnUse().CategoryId == EXPLOSIVES_SPELL_CATEGORY
+	})
+}
+
 func (c *Consumable) GetConsumableType() proto.ConsumableType {
+	switch {
+	case c.temporaryEnchantSpell() != nil:
+		return proto.ConsumableType_ConsumableTypeImbue
+	case c.sharesExplosivesCategory(), c.ClassId == ITEM_CLASS_TRADE_GOODS && c.SubClassId == TRADE_GOODS_EXPLOSIVES:
+		return proto.ConsumableType_ConsumableTypeExplosive
+	case c.ClassId != ITEM_CLASS_CONSUMABLE:
+		return proto.ConsumableType_ConsumableTypeUnknown
+	}
 	if c.SubClassId == ELIXIR {
 		switch c.ElixirType {
 		case 1:
