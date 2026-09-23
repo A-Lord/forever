@@ -5,6 +5,7 @@ package forever
 import "github.com/wowsims/forever/sim/common/shared"
 
 func RegisterAllTemporaryEnchantConsumables() {
+	shared.NewTemporaryEnchantConsumable(1254)   // Lesser Firestone
 	shared.NewTemporaryEnchantConsumable(2862)   // Rough Sharpening Stone
 	shared.NewTemporaryEnchantConsumable(2863)   // Coarse Sharpening Stone
 	shared.NewTemporaryEnchantConsumable(2871)   // Heavy Sharpening Stone
@@ -13,6 +14,8 @@ func RegisterAllTemporaryEnchantConsumables() {
 	shared.NewTemporaryEnchantConsumable(3241)   // Heavy Weightstone
 	shared.NewTemporaryEnchantConsumable(3824)   // Shadow Oil
 	shared.NewTemporaryEnchantConsumable(3829)   // Frost Oil
+	shared.NewTemporaryEnchantConsumable(5522)   // Spellstone
+	shared.NewTemporaryEnchantConsumable(5654)   // Instant Toxin
 	shared.NewTemporaryEnchantConsumable(6947)   // Instant Poison
 	shared.NewTemporaryEnchantConsumable(6949)   // Instant Poison II
 	shared.NewTemporaryEnchantConsumable(6950)   // Instant Poison III
@@ -23,6 +26,11 @@ func RegisterAllTemporaryEnchantConsumables() {
 	shared.NewTemporaryEnchantConsumable(8928)   // Instant Poison VI
 	shared.NewTemporaryEnchantConsumable(12404)  // Dense Sharpening Stone
 	shared.NewTemporaryEnchantConsumable(12643)  // Dense Weightstone
+	shared.NewTemporaryEnchantConsumable(13602)  // Greater Spellstone
+	shared.NewTemporaryEnchantConsumable(13603)  // Major Spellstone
+	shared.NewTemporaryEnchantConsumable(13699)  // Firestone
+	shared.NewTemporaryEnchantConsumable(13700)  // Greater Firestone
+	shared.NewTemporaryEnchantConsumable(13701)  // Major Firestone
 	shared.NewTemporaryEnchantConsumable(18262)  // Elemental Sharpening Stone
 	shared.NewTemporaryEnchantConsumable(20744)  // Minor Wizard Oil
 	shared.NewTemporaryEnchantConsumable(20745)  // Minor Mana Oil

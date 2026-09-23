@@ -3321,6 +3321,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 685100, SpellID: 6647, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 25, Variance: 0.47999998927116394, SpellLevel: 20, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
+	{ID: 6650, Name: "Instant Toxin", School: 1, Attr: [17]uint32{0: 0x10010, 1: 0x20000, 15: 0x2000}, SpellLevel: 24, CastTimeMs: 3000, ProcChance: 101, EquipClass: 2, EquipSubclass: 173555, ProcChanceSource: ProcChanceAlways,
+		Effects: []Effect{
+			{ID: 685123, SpellID: 6650, Type: dbcenums.E_360, BasePoints: 1, SpellLevel: 24, PvpMult: 1, Misc: 42, ChainAmp: 1},
+		}},
 	{ID: 6668, Name: "Red Firework", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 684634, SpellID: 6668, Type: dbcenums.E_DUMMY, SpellLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

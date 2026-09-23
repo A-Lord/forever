@@ -104,6 +104,13 @@ export const ScrollOfSpirit: GeneratedConsumable = {
 	actionId: ActionId.fromItemId(1181),
 };
 
+export const LesserFirestone: GeneratedConsumable = {
+	id: 1254,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(1254),
+	weaponInventoryTypeMask: 2236416,
+};
+
 export const KegOfThunderbrew: GeneratedConsumable = {
 	id: 1262,
 	type: ConsumableType.ConsumableTypeOther,
@@ -710,6 +717,13 @@ export const ManaJade: GeneratedConsumable = {
 	actionId: ActionId.fromItemId(5513),
 };
 
+export const Spellstone: GeneratedConsumable = {
+	id: 5522,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(5522),
+	weaponInventoryTypeMask: 2236416,
+};
+
 export const GoblinDeviledClams: GeneratedConsumable = {
 	id: 5527,
 	type: ConsumableType.ConsumableTypeFood,
@@ -728,6 +742,14 @@ export const GreatRagePotion: GeneratedConsumable = {
 	type: ConsumableType.ConsumableTypePotion,
 	actionId: ActionId.fromItemId(5633),
 	classAllowlist: [Class.ClassWarrior, Class.ClassDruid],
+};
+
+export const InstantToxin: GeneratedConsumable = {
+	id: 5654,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(5654),
+	classAllowlist: [Class.ClassRogue],
+	weaponSubclassMask: 173555,
 };
 
 export const ElixirOfMinorDefense: GeneratedConsumable = {
@@ -1345,6 +1367,41 @@ export const FlaskOfChromaticResistance: GeneratedConsumable = {
 	id: 13513,
 	type: ConsumableType.ConsumableTypeFlask,
 	actionId: ActionId.fromItemId(13513),
+};
+
+export const GreaterSpellstone: GeneratedConsumable = {
+	id: 13602,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(13602),
+	weaponInventoryTypeMask: 2236416,
+};
+
+export const MajorSpellstone: GeneratedConsumable = {
+	id: 13603,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(13603),
+	weaponInventoryTypeMask: 2236416,
+};
+
+export const Firestone: GeneratedConsumable = {
+	id: 13699,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(13699),
+	weaponInventoryTypeMask: 2236416,
+};
+
+export const GreaterFirestone: GeneratedConsumable = {
+	id: 13700,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(13700),
+	weaponInventoryTypeMask: 2236416,
+};
+
+export const MajorFirestone: GeneratedConsumable = {
+	id: 13701,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(13701),
+	weaponInventoryTypeMask: 2236416,
 };
 
 export const BlessedSunfruit: GeneratedConsumable = {
@@ -3046,6 +3103,7 @@ export const GUARDIAN_ELIXIR_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 ];
 
 export const IMBUE_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
+	LesserFirestone,
 	RoughSharpeningStone,
 	CoarseSharpeningStone,
 	HeavySharpeningStone,
@@ -3054,6 +3112,8 @@ export const IMBUE_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	HeavyWeightstone,
 	ShadowOil,
 	FrostOil,
+	Spellstone,
+	InstantToxin,
 	InstantPoison,
 	InstantPoisonII,
 	InstantPoisonIII,
@@ -3064,6 +3124,11 @@ export const IMBUE_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	InstantPoisonVI,
 	DenseSharpeningStone,
 	DenseWeightstone,
+	GreaterSpellstone,
+	MajorSpellstone,
+	Firestone,
+	GreaterFirestone,
+	MajorFirestone,
 	ElementalSharpeningStone,
 	MinorWizardOil,
 	MinorManaOil,
