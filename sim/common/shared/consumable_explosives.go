@@ -50,11 +50,26 @@ func withCasterDamage(character *core.Character, config core.SpellConfig, self *
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
 	})
-	outcome := GetOutcome(selfSpell, damageOutcome(config.DefenseType, spelldata.Find(self.SpellID).CannotCrit(), OutcomeDefault))
+	outcome := casterDamageOutcome(selfSpell, spelldata.Find(self.SpellID).CannotCrit())
 
 	applyEffects := config.ApplyEffects
 	return func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		applyEffects(sim, target, spell)
 		selfSpell.CalcAndDealDamage(sim, &character.Unit, self.Roll(sim, character.Level), outcome)
+	}
+}
+
+// Damage a spell deals to its own caster always lands; it can still crit, on the crit of its defense
+// type, unless the row says it cannot.
+func casterDamageOutcome(spell *core.Spell, cannotCrit bool) core.OutcomeApplier {
+	switch {
+	case cannotCrit:
+		return spell.OutcomeAlwaysHit
+	case spell.DefenseType == core.DefenseTypeMelee:
+		return spell.OutcomeMeleeSpecialCritOnly
+	case spell.DefenseType == core.DefenseTypeRanged:
+		return spell.OutcomeRangedCritOnly
+	default:
+		return spell.OutcomeMagicCrit
 	}
 }

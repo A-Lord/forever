@@ -192,3 +192,32 @@ func TestExplosiveNeedsTheProfessionItRequires(t *testing.T) {
 		t.Errorf("a thrower without Engineering has the sapper %v", spell.ActionID)
 	}
 }
+
+// 13241's half on the thrower lands however poor the thrower's hit, while the half on the enemies
+// rolls the hit table and, with no hit at all, misses.
+func TestSapperAlwaysHitsTheThrower(t *testing.T) {
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{GoblinSapper: true}, proto.Profession_Engineering, 1)
+	caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -1000})
+	sapper := onUseSpell(t, caster, goblinSapperID)
+	self := caster.GetSpell(core.ActionID{ItemID: goblinSapperID}.WithTag(1))
+	target := sim.Encounter.ActiveTargetUnits[0]
+	thrower := spelldata.MustFind(13241).CasterDamageEffect()
+
+	const uses = 20
+	for range uses {
+		sapper.CD.Reset()
+		sapper.SharedCD.Reset()
+		health := caster.CurrentHealth()
+		if !sapper.Cast(sim, target) {
+			t.Fatalf("the sapper could not be used")
+		}
+		if took := health - caster.CurrentHealth(); took < thrower.Min(core.CharacterLevel) {
+			t.Errorf("the thrower took %v, want at least %v", took, thrower.Min(core.CharacterLevel))
+		}
+		caster.GainHealth(sim, caster.MaxHealth(), self.HealthMetrics(&caster.Unit))
+	}
+
+	if metrics := sapper.SpellMetrics[target.UnitIndex]; metrics.Misses != uses {
+		t.Errorf("the enemy half missed %d of %d uses with no hit, want every one", metrics.Misses, uses)
+	}
+}
