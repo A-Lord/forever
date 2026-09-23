@@ -193,6 +193,9 @@ func main() {
 	for _, consumable := range database.ConsumableOverrides {
 		db.MergeConsumable(consumable)
 	}
+	if err := database.AddNaturalFlaskZoneBonusStats(db); err != nil {
+		log.Fatalf("failed to add the Natural flasks' zone bonus: %v", err)
+	}
 
 	db.MergeItems(database.ItemOverrides)
 	db.MergeGems(database.GemOverrides)

@@ -14,8 +14,10 @@ import (
 // first effect of each spell is its Stamina. The second, an A_DUMMY, is the bonus the spell's text
 // grants in Mount Hyjal, Hyjal Summit and the Barrow Deeps, where the sim takes every fight to be; the
 // auras after it name what the bonus is and state 0 themselves.
+var NaturalFlasks = []int32{274273, 274274, 274275, 274276}
+
 func init() {
-	for _, itemID := range []int32{274273, 274274, 274275, 274276} {
+	for _, itemID := range NaturalFlasks {
 		core.NewConsumableEffect(itemID, func(agent core.Agent) {
 			character := agent.GetCharacter()
 			consumable := core.GetConsumableByID(itemID)
