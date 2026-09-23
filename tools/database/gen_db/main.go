@@ -214,6 +214,9 @@ func main() {
 	if err := database.GenerateStatConsumables(instance, db); err != nil {
 		panic(err)
 	}
+	if err := database.GenerateConsumablesTSFile(db); err != nil {
+		log.Fatalf("failed to generate the consumables TS file: %v", err)
+	}
 	database.GenerateMissingEffectsFile()
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 
