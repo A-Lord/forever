@@ -173,6 +173,7 @@ func (c *Consumable) GetConsumableType() proto.ConsumableType {
 		case 2:
 			return proto.ConsumableType_ConsumableTypeBattleElixir
 		}
+		return proto.ConsumableType_ConsumableTypeElixir
 	}
 	if c.SubClassId == FOOD {
 		// Ugly way to check for pet food

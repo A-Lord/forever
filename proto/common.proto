@@ -768,6 +768,8 @@ enum ConsumableType {
 	ConsumableTypeHerb = 11;
 	ConsumableTypeBandage = 12;
 	ConsumableTypeDevice = 13;
+	// An elixir whose spell calls it neither a Battle nor a Guardian Elixir.
+	ConsumableTypeElixir = 14;
 }
 
 

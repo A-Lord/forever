@@ -17,51 +17,49 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		return
 	}
 
-	if consumables.BattleElixirId != 0 {
-		// Potion of Demonslaying, spell 11406: melee attack power and spell damage against demons.
-		if consumables.BattleElixirId == 9224 {
-			character.Env.RegisterPostFinalizeEffect(func() {
-				for _, at := range character.AttackTables {
-					at.MobTypeBonusStats[proto.MobType_MobTypeDemon] = at.MobTypeBonusStats[proto.MobType_MobTypeDemon].Add(stats.Stats{
-						stats.AttackPower: 185,
-						stats.SpellDamage: 108,
-					})
-				}
-			})
-		}
+	selected := selectedConsumableIDs(consumables, partyBuffs)
+
+	// Potion of Demonslaying, spell 11406: melee attack power and spell damage against demons.
+	if slices.Contains(selected, 9224) {
+		character.Env.RegisterPostFinalizeEffect(func() {
+			for _, at := range character.AttackTables {
+				at.MobTypeBonusStats[proto.MobType_MobTypeDemon] = at.MobTypeBonusStats[proto.MobType_MobTypeDemon].Add(stats.Stats{
+					stats.AttackPower: 185,
+					stats.SpellDamage: 108,
+				})
+			}
+		})
 	}
 
-	if consumables.GuardianElixirId != 0 {
-		// Gift of Arthas
-		if consumables.GuardianElixirId == 9088 {
-			character.AddStat(stats.ShadowResistance, 10)
-			auras := character.NewEnemyAuraArray(func(target *Unit) *Aura {
-				return GiftOfArthasAura(target)
-			})
-			procSpell := character.RegisterSpell(SpellConfig{
-				ActionID:    ActionID{SpellID: 11374},
-				SpellSchool: SpellSchoolNature,
-				ProcMask:    ProcMaskEmpty,
+	// Gift of Arthas
+	if slices.Contains(selected, 9088) {
+		character.AddStat(stats.ShadowResistance, 10)
+		auras := character.NewEnemyAuraArray(func(target *Unit) *Aura {
+			return GiftOfArthasAura(target)
+		})
+		procSpell := character.RegisterSpell(SpellConfig{
+			ActionID:    ActionID{SpellID: 11374},
+			SpellSchool: SpellSchoolNature,
+			ProcMask:    ProcMaskEmpty,
 
-				FlatThreatBonus: 90,
+			FlatThreatBonus: 90,
 
-				ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
-					spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
-					auras.Get(target).Activate(sim)
-				},
-			})
+			ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+				spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
+				auras.Get(target).Activate(sim)
+			},
+		})
 
-			character.MakeProcTriggerAura(ProcTrigger{
-				Name:       "Gift of Arthas - Trigger",
-				ICD:        time.Second * 3,
-				ProcChance: 0.3,
-				Outcome:    OutcomeLanded,
-				Callback:   CallbackOnSpellHitTaken,
-				Handler: func(sim *Simulation, spell *Spell, _ *SpellResult) {
-					procSpell.Cast(sim, spell.Unit)
-				},
-			})
-		}
+		character.MakeProcTriggerAura(ProcTrigger{
+			Name:       "Gift of Arthas - Trigger",
+			ICD:        time.Second * 3,
+			ProcChance: 0.3,
+			Outcome:    OutcomeLanded,
+			Callback:   CallbackOnSpellHitTaken,
+			Handler: func(sim *Simulation, spell *Spell, _ *SpellResult) {
+				procSpell.Cast(sim, spell.Unit)
+			},
+		})
 	}
 
 	applyTemporaryEnchants(character, consumables, partyBuffs)
@@ -81,7 +79,7 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		}
 	}
 
-	for _, id := range selectedConsumableIDs(consumables, partyBuffs) {
+	for _, id := range selected {
 		if apply, ok := consumableEffect(id); ok {
 			apply(agent)
 		}
