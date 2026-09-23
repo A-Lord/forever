@@ -125,9 +125,19 @@ type Consumable struct {
 	EffectIds                []int32
 	ItemEffects              []*proto.ItemEffect
 	RequiredProfession       proto.Profession
+	// The enchant a temporary enchant puts on a weapon, nil on consumables that enchant nothing, and
+	// the weapon subclasses and inventory types it takes, where a zero mask takes any.
+	TemporaryEnchant        *Enchant
+	WeaponSubclassMask      int32
+	WeaponInventoryTypeMask int32
 }
 
 func ConsumableFromProto(consumable *proto.Consumable) Consumable {
+	var temporaryEnchant *Enchant
+	if consumable.TemporaryEnchant != nil {
+		enchant := EnchantFromProto(consumable.TemporaryEnchant)
+		temporaryEnchant = &enchant
+	}
 	return Consumable{
 		Id:                       consumable.Id,
 		Type:                     consumable.Type,
@@ -141,6 +151,9 @@ func ConsumableFromProto(consumable *proto.Consumable) Consumable {
 		EffectIds:                consumable.EffectIds,
 		ItemEffects:              consumable.ItemEffects,
 		RequiredProfession:       consumable.RequiredProfession,
+		TemporaryEnchant:         temporaryEnchant,
+		WeaponSubclassMask:       consumable.WeaponSubclassMask,
+		WeaponInventoryTypeMask:  consumable.WeaponInventoryTypeMask,
 	}
 }
 
