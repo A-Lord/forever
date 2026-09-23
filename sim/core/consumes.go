@@ -183,7 +183,8 @@ func consumableInDatabase(id int32) bool {
 }
 
 // The agent's own consumables the spec names, each once. The main-hand imbue is left out under
-// Windfury Totem, as the hand-written imbues are; the pet's food and scrolls are the pet's.
+// Windfury Totem, which applyTemporaryEnchants keeps off the main hand too; the pet's food and
+// scrolls are the pet's.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) []int32 {
 	ids := []int32{consumables.PotId, consumables.FlaskId, consumables.BattleElixirId, consumables.GuardianElixirId,
 		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}
