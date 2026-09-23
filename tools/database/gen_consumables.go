@@ -1,6 +1,7 @@
 package database
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
@@ -103,6 +104,7 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 }
 
 func consumableShape(c *dbc.Consumable, s *spelldata.Spell) (ConsumableKind, []string) {
+	var seated *spelldata.Effect
 	for _, e := range consumableEffects(s) {
 		switch {
 		case dbc.IsTemporaryEnchantEffect(e.Type):
@@ -112,14 +114,40 @@ func consumableShape(c *dbc.Consumable, s *spelldata.Spell) (ConsumableKind, []s
 			e.Aura == dbcenums.A_PERIODIC_ENERGIZE, e.Aura == dbcenums.A_OBS_MOD_POWER:
 			return ConsumableEnergize, nil
 		case e.Aura == dbcenums.A_SCHOOL_ABSORB:
-			return ConsumableAbsorb, auraDurationUnsupported(e)
+			return ConsumableAbsorb, []string{fmt.Sprintf("%d absorbs damage, which no builder takes from the rows", e.SpellID)}
 		case e.Aura == dbcenums.A_MOD_PERCENT_STAT, e.Aura == dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE:
 			return ConsumablePercentStat, auraDurationUnsupported(e)
+		case e.ParsedAura() && spelldata.Find(e.SpellID).WhileSeated():
+			seated = cmp.Or(seated, e)
 		case e.ParsedAura():
-			return ConsumableStatAura, auraDurationUnsupported(e)
+			return ConsumableStatAura, statAuraUnsupported(s)
 		}
 	}
+	if seated != nil {
+		return ConsumableStatAura, append([]string{fmt.Sprintf("%d restores only while the user sits, out of combat (%v)",
+			seated.SpellID, seated.Aura)}, statAuraUnsupported(s)...)
+	}
 	return "", nil
+}
+
+// The auras of a stat consumable's spells that the stat builder cannot put up: one the parser does
+// not attach, other than the model's size, and a spell that states no duration for its aura. The
+// eating and drinking are left out, since they last only while seated.
+func statAuraUnsupported(s *spelldata.Spell) []string {
+	var unsupported []string
+	for _, e := range consumableEffects(s) {
+		spell := spelldata.Find(e.SpellID)
+		switch {
+		case !landsOnTheUser(e), e.Aura == 0, spell.WhileSeated():
+		case e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL, e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE,
+			e.Aura == dbcenums.A_MOD_SCALE:
+		case !e.ParsedAura():
+			unsupported = append(unsupported, fmt.Sprintf("%d applies %v, which the parser does not attach", e.SpellID, e.Aura))
+		default:
+			unsupported = append(unsupported, auraDurationUnsupported(e)...)
+		}
+	}
+	return slices.Compact(unsupported)
 }
 
 // The user, or the one friendly unit the spell is cast on, which in the sim is the user: a scroll
