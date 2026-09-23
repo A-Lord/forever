@@ -53,6 +53,9 @@ func main() {
 		if err := database.GenerateBulkSimTuningConstantsTSFile(); err != nil {
 			log.Fatalf("failed to generate bulk sim tuning constants TS file: %v", err)
 		}
+		if err := database.GenerateConsumableFlagsTSFile(); err != nil {
+			log.Fatalf("failed to generate consumable flags TS file: %v", err)
+		}
 		return
 	} else if *genAsset == "atlasloot" {
 		helper, err := database.NewDBHelper()

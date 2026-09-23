@@ -4,9 +4,8 @@ import { Consumable } from '@generated/proto/db';
 import { SpellEffect } from '@generated/proto/spell';
 
 import { CURRENT_API_VERSION } from '../constants/other';
+import { CONSUMABLE_FLAG_ITEM_IDS } from './consumable_flags_auto_gen';
 import { Database } from './database';
-
-const GOBLIN_SAPPER_CHARGE_ID = 10646;
 
 export const extendPlayerProtoWithMissingEffects = (playerProto: Player, db: Database) => {
 	const newConsumables: Consumable[] = [];
@@ -16,9 +15,9 @@ export const extendPlayerProtoWithMissingEffects = (playerProto: Player, db: Dat
 
 	const { potions = [], conjuredItems = [], ...consumables } = playerProto.consumables || {};
 	const allConsumableIds = Object.values(consumables).filter((c): c is number => typeof c === 'number');
-	const allConsumables = [...potions, ...conjuredItems, ...allConsumableIds];
-	// The sim builds Goblin Sapper Charge from its database entry, which its flag does not name.
-	if (playerProto.consumables?.goblinSapper) allConsumables.push(GOBLIN_SAPPER_CHARGE_ID);
+	// A flag names no id, but the sim reads the item it selects from the database all the same.
+	const flaggedIds = CONSUMABLE_FLAG_ITEM_IDS.filter(([field]) => playerProto.consumables?.[field]).map(([, itemId]) => itemId);
+	const allConsumables = [...potions, ...conjuredItems, ...allConsumableIds, ...flaggedIds];
 
 	allConsumables.forEach((cid: number) => {
 		if (!cid || seenConsumableIds.has(cid)) return;
