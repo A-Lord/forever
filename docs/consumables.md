@@ -251,6 +251,11 @@ explosive, the imbues and the pet's food. Everything else is picked any number a
 cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside the explosive picker. The
 pet's scrolls go into `pet_extra_ids`.
 
+The category is the consumable's `category_id`, which `AddOnUseCategories`
+(`tools/database/gen_consumable_effects.go`) sets to the one `OnUseCategory` reads: the item row's, or
+where it states none, its spell's. It types a consumable in category 4 a potion: Potion of Demonslaying
+9224 is an Elixir-subclass item and only its spell 11406 names the category.
+
 `isConsumableRelevant` then decides whether the player sees it:
 
 - the class, profession and race the client allows it (`class_allowlist`, `required_profession`,

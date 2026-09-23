@@ -49,11 +49,16 @@ const user = (
 
 describe('consumableSlot', () => {
 	it('puts an item by the category its on-use shares before its type', () => {
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, itemEffects: [onUse(1153)] }))).toBe(ConsumableSlot.Conjured);
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeFood, itemEffects: [onUse(1153)] }))).toBe(ConsumableSlot.Conjured);
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, itemEffects: [onUse(4)] }))).toBe(ConsumableSlot.Potion);
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, itemEffects: [onUse(11)] }))).toBe(ConsumableSlot.Food);
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, itemEffects: [onUse(59)] }))).toBe(ConsumableSlot.Food);
+		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, categoryId: 1153 }))).toBe(ConsumableSlot.Conjured);
+		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeFood, categoryId: 1153 }))).toBe(ConsumableSlot.Conjured);
+		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, categoryId: 4 }))).toBe(ConsumableSlot.Potion);
+		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, categoryId: 11 }))).toBe(ConsumableSlot.Food);
+		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeOther, categoryId: 59 }))).toBe(ConsumableSlot.Food);
+	});
+
+	it('reads the category the generator wrote: Potion of Demonslaying 9224’s row states none, its spell 11406 shares 4', () => {
+		const demonslaying = consumable({ type: ConsumableType.ConsumableTypeElixir, categoryId: 4, itemEffects: [onUse(0)] });
+		expect(consumableSlot(demonslaying)).toBe(ConsumableSlot.Potion);
 	});
 
 	it('puts the rest by type, and what no picker takes among the extras', () => {
@@ -174,9 +179,9 @@ describe('explosiveUsedBeside', () => {
 describe('relevantConsumableIds', () => {
 	it('lists the relevant consumables of one slot, the highest rank of each', () => {
 		const consumables = [
-			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion, itemEffects: [onUse(4)], effectIds: [3] }),
-			consumable({ id: 13444, name: 'Major Mana Potion', type: ConsumableType.ConsumableTypePotion, itemEffects: [onUse(4)], effectIds: [1] }),
-			consumable({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeOther, itemEffects: [onUse(1153)], effectIds: [2] }),
+			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion, categoryId: 4, effectIds: [3] }),
+			consumable({ id: 13444, name: 'Major Mana Potion', type: ConsumableType.ConsumableTypePotion, categoryId: 4, effectIds: [1] }),
+			consumable({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeOther, categoryId: 1153, effectIds: [2] }),
 		];
 		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, user(), db)).toEqual([13442]);
 		expect(relevantConsumableIds(consumables, ConsumableSlot.Conjured, user({ epStats: [Stat.StatStamina] }), db)).toEqual([9421]);

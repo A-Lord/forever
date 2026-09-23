@@ -40,12 +40,9 @@ export interface SpellEffectSource {
 	getSpellEffect(effectId: number): SpellEffect | undefined;
 }
 
-const onUseCategory = (consumable: Consumable): number => {
-	for (const { effect } of consumable.itemEffects) {
-		if (effect.oneofKind === 'onUse') return effect.onUse.categoryId;
-	}
-	return 0;
-};
+// The generator writes the category the on-use shares, the item's or, where the item states none, its
+// spell's, as the consumable's.
+const onUseCategory = (consumable: Consumable): number => consumable.categoryId;
 
 const ELIXIR_TYPES = [ConsumableType.ConsumableTypeElixir, ConsumableType.ConsumableTypeBattleElixir, ConsumableType.ConsumableTypeGuardianElixir];
 

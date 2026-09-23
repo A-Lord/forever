@@ -27,3 +27,19 @@ func TestOnUseCategoryFallsBackToTheSpell(t *testing.T) {
 		}
 	}
 }
+
+func TestAConsumableSharingThePotionCategoryIsAPotion(t *testing.T) {
+	onUse := func(spellID, categoryID int32) *proto.Consumable {
+		return &proto.Consumable{Type: proto.ConsumableType_ConsumableTypeElixir, ItemEffects: []*proto.ItemEffect{{BuffId: spellID,
+			Effect: &proto.ItemEffect_OnUse{OnUse: &proto.OnUseEffect{CategoryId: categoryID}}}}}
+	}
+	demonslaying, arthas := onUse(11406, 0), onUse(11371, 79)
+	AddOnUseCategories(&WowDatabase{Consumables: map[int32]*proto.Consumable{9224: demonslaying, 9088: arthas}})
+
+	if demonslaying.CategoryId != PotionCategory || demonslaying.Type != proto.ConsumableType_ConsumableTypePotion {
+		t.Errorf("Potion of Demonslaying 9224: category %d, type %v; want its spell 11406's category 4 and a potion", demonslaying.CategoryId, demonslaying.Type)
+	}
+	if arthas.CategoryId != 79 || arthas.Type != proto.ConsumableType_ConsumableTypeElixir {
+		t.Errorf("Gift of Arthas 9088: category %d, type %v; want its row's category 79 and an elixir", arthas.CategoryId, arthas.Type)
+	}
+}

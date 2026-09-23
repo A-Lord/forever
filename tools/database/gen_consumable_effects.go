@@ -36,6 +36,22 @@ func OnUseCategory(c *proto.Consumable) int32 {
 	return 0
 }
 
+// Sets each consumable's category to the one its on-use shares, which the settings file it by, and
+// types one sharing the potion category a potion: Potion of Demonslaying 9224 is an Elixir-subclass
+// item whose row states no category, and its spell 11406 shares category 4.
+func AddOnUseCategories(db *WowDatabase) {
+	for _, c := range db.Consumables {
+		category := OnUseCategory(c)
+		if category <= 0 {
+			continue
+		}
+		c.CategoryId = category
+		if category == PotionCategory {
+			c.Type = proto.ConsumableType_ConsumableTypePotion
+		}
+	}
+}
+
 // Writes the registration of every potion and conjured item db.json ships, by the category its on-use
 // shares, and of every other consumable whose on-use routes as a heal, an absorb or a gain of a
 // resource, to sim/common/forever/consumables_potions_auto_gen.go. One the builder cannot run is left commented
