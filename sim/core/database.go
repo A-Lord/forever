@@ -476,6 +476,25 @@ func ConsumableIDs() []int32 {
 	return ids
 }
 
+// Narrows the loaded consumables to these ids until the returned function restores the rest, for a
+// test that runs the sim on the consumables a browser request carries.
+func KeepOnlyConsumablesForTest(ids []int32) (restore func()) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	all := consumablesByID
+	consumablesByID = make(map[int32]Consumable, len(ids))
+	for _, id := range ids {
+		if consumable, ok := all[id]; ok {
+			consumablesByID[id] = consumable
+		}
+	}
+	return func() {
+		dbMu.Lock()
+		consumablesByID = all
+		dbMu.Unlock()
+	}
+}
+
 func GetSpellEffectByID(id int32) *proto.SpellEffect {
 	dbMu.RLock()
 	e := spellEffectsById[id]
