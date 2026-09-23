@@ -174,19 +174,49 @@ func HasConsumableEffect(id int32) bool {
 // database has no such consumable.
 func MissingConsumableEffects() []int32 { return missingConsumableEffects }
 
-// Registers an ApplyEffect function which will be called while the consumes are applied, for any
-// Agent whose ConsumesSpec names the id.
+// The consumables whose registered effect is built from the rows, which a hand-written one replaces.
+var dataDrivenConsumableEffects = map[int32]bool{}
+
+// Registers a hand-written ApplyEffect function which will be called while the consumes are applied,
+// for any Agent whose ConsumesSpec names the id. It takes the place of a data-driven registration for
+// the id, whichever of the two registers first.
 func NewConsumableEffect(id int32, consumableEffect ApplyEffect) {
-	if WITH_DB && GetConsumableByID(id).Id == 0 {
-		missingConsumableEffects = append(missingConsumableEffects, id)
+	if !consumableInDatabase(id) {
 		return
 	}
 
-	if HasConsumableEffect(id) {
+	if HasConsumableEffect(id) && !dataDrivenConsumableEffects[id] {
 		panic(fmt.Sprintf("Cannot add multiple effects for one consumable: %d, %#v", id, consumableEffect))
 	}
 
+	delete(dataDrivenConsumableEffects, id)
 	consumableEffects[id] = consumableEffect
+}
+
+// Registers an ApplyEffect function built from the consumable's rows. A hand-written registration for
+// the id wins, so this one is dropped if a hand-written one is already there or registers later.
+func NewDataDrivenConsumableEffect(id int32, consumableEffect ApplyEffect) {
+	if !consumableInDatabase(id) {
+		return
+	}
+
+	if dataDrivenConsumableEffects[id] {
+		panic(fmt.Sprintf("Cannot add multiple data-driven effects for one consumable: %d, %#v", id, consumableEffect))
+	}
+	if HasConsumableEffect(id) {
+		return
+	}
+
+	dataDrivenConsumableEffects[id] = true
+	consumableEffects[id] = consumableEffect
+}
+
+func consumableInDatabase(id int32) bool {
+	if WITH_DB && GetConsumableByID(id).Id == 0 {
+		missingConsumableEffects = append(missingConsumableEffects, id)
+		return false
+	}
+	return true
 }
 
 // The agent's own consumables the spec names, each once. The main-hand imbue is left out under

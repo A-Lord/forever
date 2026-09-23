@@ -31,3 +31,47 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		t.Errorf("selected the main-hand imbue under Windfury Totem: %v", underWindfury)
 	}
 }
+
+func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
+	const majorHealingPotion = 13446
+	unregister := func() {
+		delete(consumableEffects, majorHealingPotion)
+		delete(dataDrivenConsumableEffects, majorHealingPotion)
+	}
+	t.Cleanup(unregister)
+
+	for _, handFirst := range []bool{true, false} {
+		applied := ""
+		hand := func() { NewConsumableEffect(majorHealingPotion, func(Agent) { applied = "hand" }) }
+		dataDriven := func() { NewDataDrivenConsumableEffect(majorHealingPotion, func(Agent) { applied = "rows" }) }
+		if handFirst {
+			hand()
+			dataDriven()
+		} else {
+			dataDriven()
+			hand()
+		}
+
+		if !HasConsumableEffect(majorHealingPotion) {
+			t.Fatalf("hand first %v: %d has no effect registered", handFirst, majorHealingPotion)
+		}
+		consumableEffects[majorHealingPotion](nil)
+		if applied != "hand" {
+			t.Errorf("hand first %v: the %s effect applied, want the hand-written one", handFirst, applied)
+		}
+		unregister()
+	}
+}
+
+func TestSecondHandWrittenConsumableEffectPanics(t *testing.T) {
+	const majorHealingPotion = 13446
+	t.Cleanup(func() { delete(consumableEffects, majorHealingPotion) })
+
+	NewConsumableEffect(majorHealingPotion, func(Agent) {})
+	defer func() {
+		if recover() == nil {
+			t.Error("a second hand-written effect for one consumable registered without a panic")
+		}
+	}()
+	NewConsumableEffect(majorHealingPotion, func(Agent) {})
+}
