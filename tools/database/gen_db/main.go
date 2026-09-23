@@ -198,14 +198,7 @@ func main() {
 	db.MergeGems(database.GemOverrides)
 	db.MergeEnchants(database.EnchantOverrides)
 	ApplyGlobalFilters(db)
-	for _, consumable := range consumables {
-		if _, kept := db.Consumables[int32(consumable.Id)]; !kept {
-			continue
-		}
-		// The consumable proto has no icon field, so ship it in the icon table instead. Without
-		// this the UI fetches every consumable icon from nether.wowhead.com on each page load.
-		db.AddItemIcon(int32(consumable.Id), strings.ToLower(database.GetIconName(iconsMap, consumable.IconFileDataID)), consumable.Name)
-	}
+	database.AddConsumableIcons(db, consumables, instance, iconsMap)
 	leftovers := db.Clone()
 	ApplyNonSimmableFilters(leftovers)
 	leftovers.WriteBinaryAndJson(fmt.Sprintf("%s/leftover_db.bin", dbDir), fmt.Sprintf("%s/leftover_db.json", dbDir))

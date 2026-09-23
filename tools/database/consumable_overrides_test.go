@@ -65,3 +65,21 @@ func TestACustomConsumableTheClientLacksIsKept(t *testing.T) {
 		t.Error("a consumable ConsumableOverrides adds is filtered out")
 	}
 }
+
+// A consumable the catalogue carries takes the client's icon; one only ConsumableOverrides adds takes
+// the icon it states.
+func TestEveryShippedConsumableGetsAnIcon(t *testing.T) {
+	db := NewWowDatabase()
+	db.Consumables[10646] = &proto.Consumable{Id: 10646, Name: "Goblin Sapper Charge"}
+	db.Consumables[990001] = &proto.Consumable{Id: 990001, Name: "Test Override", Icon: "inv_misc_questionmark"}
+	catalogue := []dbc.Consumable{{Id: 10646, IconFileDataID: 1}}
+
+	AddConsumableIcons(db, catalogue, &dbc.DBC{}, map[int]string{1: "Interface/Icons/INV_Gizmo_08.blp"})
+
+	if got := db.ItemIcons[10646].GetIcon(); got != "inv_gizmo_08" {
+		t.Errorf("10646's icon is %q, want the client's inv_gizmo_08", got)
+	}
+	if got := db.ItemIcons[990001].GetIcon(); got != "inv_misc_questionmark" {
+		t.Errorf("the override's icon is %q, want the one it states", got)
+	}
+}

@@ -85,43 +85,6 @@ var ItemDenyList = map[int32]struct{}{
 	24265: {},
 }
 
-// Item icons to include in the DB, so they don't need to be separately loaded in the UI.
-var ExtraItemIcons = []int32{
-	// Demonic Rune
-	12662,
-
-	// Food IDs
-	27655,
-	27657,
-	27658,
-	27664,
-
-	// Flask IDs
-	13512,
-	22854,
-	22866,
-
-	// Elixer IDs
-	9224,
-	13452,
-	13454,
-	22827,
-	22833,
-	22835,
-	22840,
-
-	// Potions / In Battle Consumes
-	13442,
-
-	// Thistle Tea
-	7676,
-
-	// Scrolls
-	27498,
-	27499,
-	27503,
-}
-
 // Item Ids of consumables to allow
 var ConsumableAllowList = []int32{
 	7676,  // Thisle Tea
