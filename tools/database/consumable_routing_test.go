@@ -40,6 +40,8 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 		{3824, ConsumableTemporaryEnchant},   // Shadow Oil: 3594, enchant 25 casts 350026 at 15%
 		{277502, ConsumableTemporaryEnchant}, // Scroll of Imbue Precision: Effect 360, enchant 8718
 		{20452, ConsumableStatAura},          // Smoked Desert Dumplings, Well Fed through 1248401: 1248422
+		{13457, ConsumableAbsorb},            // Greater Fire Protection Potion: 17543
+		{4376, ConsumableAbsorb},             // Flame Deflector: 4057
 	} {
 		consumable, ok := instance.Consumables[tc.itemID]
 		if !ok {
@@ -66,7 +68,6 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 		kind   ConsumableKind
 		why    string
 	}{
-		{13457, ConsumableAbsorb, "17543 is an absorb shield"},                        // Greater Fire Protection Potion
 		{8079, ConsumableStatAura, "22734's mana comes in only while seated"},         // Conjured Crystal Water
 		{9088, ConsumableStatAura, "11371's A_PROC_TRIGGER_SPELL is not parsed"},      // Gift of Arthas
 		{274273, ConsumableStatAura, "1293740 states its zone bonus through A_DUMMY"}, // Flask of Natural Accuracy

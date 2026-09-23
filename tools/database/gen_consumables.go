@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -73,8 +74,8 @@ func KeepConsumable(consumable *proto.Consumable) bool {
 	return !strings.HasPrefix(consumable.Name, "QA") && !strings.HasPrefix(consumable.Name, "Test") && !strings.HasPrefix(consumable.Name, "TEST") && !strings.Contains(consumable.Name, "Flaskataur")
 }
 
-// Routes the spell the consumable's first on-use row casts: as damage or a heal where the on-use
-// routing takes it, and otherwise by the first of its effects, or of the spells it triggers on the
+// Routes the spell the consumable's first on-use row casts: as damage, a heal or an absorb where the
+// on-use routing takes it, and otherwise by the first of its effects, or of the spells it triggers on the
 // user, that fits a consumable shape.
 func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 	routing := &ConsumableRouting{ItemID: c.Id}
@@ -93,6 +94,10 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 		return routing
 	case onUse.Supported() && onUse.Heal:
 		routing.Kind = ConsumableHeal
+		return routing
+	case onUse.Absorb:
+		routing.Kind = ConsumableAbsorb
+		routing.Unsupported = append(onUse.Unsupported, shared.ConsumableUnsupported(spelldata.Find(routing.SpellID))...)
 		return routing
 	}
 

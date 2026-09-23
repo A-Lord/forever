@@ -213,7 +213,7 @@ func main() {
 	if err := database.GenerateExplosiveEffects(instance); err != nil {
 		log.Fatalf("failed to generate the explosive registrations: %v", err)
 	}
-	database.GeneratePotionAndConjuredEffects(db)
+	database.GeneratePotionAndConjuredEffects(instance, db)
 	database.GenerateTemporaryEnchantConsumables(db)
 	if err := database.GenerateStatConsumables(instance, db); err != nil {
 		panic(err)

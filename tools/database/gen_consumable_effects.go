@@ -10,6 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/tools/database/dbc"
 )
 
 // The categories potions and conjured items share their cooldown through: 4 for potions, 1153 for
@@ -36,16 +37,17 @@ func OnUseCategory(c *proto.Consumable) int32 {
 }
 
 // Writes the registration of every potion and conjured item db.json ships, by the category its on-use
-// shares, to sim/common/forever/consumables_potions_auto_gen.go. One the builder cannot run is left
-// commented out with the reason.
-func GeneratePotionAndConjuredEffects(db *WowDatabase) {
+// shares, and of every other consumable whose on-use routes as an absorb, to
+// sim/common/forever/consumables_potions_auto_gen.go. One the builder cannot run is left commented
+// out with the reason.
+func GeneratePotionAndConjuredEffects(instance *dbc.DBC, db *WowDatabase) {
 	type entry struct {
 		id          int32
 		name        string
 		constructor string
 		unsupported []string
 	}
-	var potions, conjured []entry
+	var potions, conjured, others []entry
 	for _, c := range db.Consumables {
 		var constructor string
 		switch OnUseCategory(c) {
@@ -54,7 +56,14 @@ func GeneratePotionAndConjuredEffects(db *WowDatabase) {
 		case ConjuredCategory:
 			constructor = "NewSpellDataConjured"
 		default:
-			continue
+			consumable, ok := instance.Consumables[int(c.Id)]
+			if !ok {
+				continue
+			}
+			if RouteConsumable(&consumable, instance).Kind != ConsumableAbsorb {
+				continue
+			}
+			constructor = "NewSpellDataOnUseConsumable"
 		}
 
 		e := entry{id: c.Id, name: c.Name, constructor: constructor}
@@ -64,10 +73,13 @@ func GeneratePotionAndConjuredEffects(db *WowDatabase) {
 				break
 			}
 		}
-		if constructor == "NewSpellDataPotion" {
+		switch constructor {
+		case "NewSpellDataPotion":
 			potions = append(potions, e)
-		} else {
+		case "NewSpellDataConjured":
 			conjured = append(conjured, e)
+		default:
+			others = append(others, e)
 		}
 	}
 
@@ -78,7 +90,7 @@ func GeneratePotionAndConjuredEffects(db *WowDatabase) {
 	for _, group := range []struct {
 		name    string
 		entries []entry
-	}{{"Potions", potions}, {"Conjured", conjured}} {
+	}{{"Potions", potions}, {"Conjured", conjured}, {"Other on-use consumables", others}} {
 		slices.SortFunc(group.entries, func(a, b entry) int { return int(a.id - b.id) })
 		fmt.Fprintf(&out, "\n\t// %s\n", group.name)
 		for _, e := range group.entries {
