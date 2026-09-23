@@ -70,6 +70,7 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 		{8079, ConsumableStatAura, "22734's mana comes in only while seated"},         // Conjured Crystal Water
 		{9088, ConsumableStatAura, "11371's A_PROC_TRIGGER_SPELL is not parsed"},      // Gift of Arthas
 		{274273, ConsumableStatAura, "1293740 states its zone bonus through A_DUMMY"}, // Flask of Natural Accuracy
+		{4953, ConsumableStatAura, "5021 rolls its health"},                           // Trogg Brew
 	} {
 		consumable := instance.Consumables[tc.itemID]
 		if routing := RouteConsumable(&consumable, instance); routing.Supported() || routing.Kind != tc.kind {

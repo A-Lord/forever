@@ -131,8 +131,8 @@ func consumableShape(c *dbc.Consumable, s *spelldata.Spell) (ConsumableKind, []s
 }
 
 // The auras of a stat consumable's spells that the stat builder cannot put up: one the parser does
-// not attach, other than the model's size, and a spell that states no duration for its aura. The
-// eating and drinking are left out, since they last only while seated.
+// not attach, other than the model's size, one whose amount the server rolls, and a spell that states
+// no duration for its aura. The eating and drinking are left out, since they last only while seated.
 func statAuraUnsupported(s *spelldata.Spell) []string {
 	var unsupported []string
 	for _, e := range consumableEffects(s) {
@@ -143,6 +143,9 @@ func statAuraUnsupported(s *spelldata.Spell) []string {
 			e.Aura == dbcenums.A_MOD_SCALE:
 		case !e.ParsedAura():
 			unsupported = append(unsupported, fmt.Sprintf("%d applies %v, which the parser does not attach", e.SpellID, e.Aura))
+		case e.Variance != 0:
+			unsupported = append(unsupported, fmt.Sprintf("%d rolls its %v amount (variance %v), which the parser reads as its average",
+				e.SpellID, e.Aura, e.Variance))
 		default:
 			unsupported = append(unsupported, auraDurationUnsupported(e)...)
 		}
