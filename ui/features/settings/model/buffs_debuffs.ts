@@ -1,5 +1,4 @@
-import { Drums, Race, Stat } from '@generated/proto/common';
-import { Player } from '@sim/player/player';
+import { Race, Stat } from '@generated/proto/common';
 import { ActionId } from '@sim/proto/action_id';
 import { Party } from '@sim/raid/party';
 import {
@@ -14,9 +13,7 @@ import {
 	makeTristatePartyBuffInput,
 	makeTristateRaidBuffInput,
 } from '@ui-kit/icon_inputs';
-import * as InputHelpers from '@ui-kit/input_helpers';
 
-import { DrumsBattle, DrumsRestoration, DrumsWar } from './consumables';
 import { IconPickerStatOption, RenderableStatOptions } from './stat_options';
 
 ///////////////////////////////////////////////////////////////////////////
@@ -239,26 +236,6 @@ export const WindfuryTotem = makeTristatePartyBuffInput({
 	label: 'Windfury Totem',
 });
 
-// The drums party buff is a mutually-exclusive swatch pick (none / battle / war /
-// restoration) over the shared `PartyBuffs.drums` field, not a boolean toggle, so it
-// is composed directly rather than through `makeEnumValuePartyBuffInput` (which only
-// wraps a single on/off value).
-export const DrumsBuff: InputHelpers.TypedIconEnumPickerConfig<Player<any>, Drums> = {
-	type: 'iconEnum',
-	label: 'Drums',
-	values: [{ color: 'gray', value: Drums.DrumsUnknown }, DrumsBattle, DrumsWar, DrumsRestoration],
-	zeroValue: Drums.DrumsUnknown,
-	equals: (a: Drums, b: Drums) => a === b,
-	storeField: 'raid:partyBuffs',
-	getValue: (player: Player<any>) => player.getParty()!.getBuffs().drums,
-	setValue: (player: Player<any>, newValue: Drums) => {
-		const party = player.getParty()!;
-		const newBuffs = party.getBuffs();
-		newBuffs.drums = newValue;
-		party.setBuffs(newBuffs);
-	},
-};
-
 // Individual Buffs
 export const BlessingOfKings = makeBooleanIndividualBuffInput({
 	actionId: ActionId.fromSpellId(25898),
@@ -345,7 +322,6 @@ export const PARTY_BUFFS_CONFIG = [
 		// Feral cats cannot proc Windfury, so they exclude it this way.
 		stats: [Stat.StatAttackPower, Stat.StatParryRating],
 	},
-	{ config: DrumsBuff, stats: [] },
 	{ config: FrostResistanceTotem, stats: [Stat.StatFrostResistance] },
 	{ config: NatureResistanceTotem, stats: [Stat.StatNatureResistance] },
 	{ config: FireResistanceTotem, stats: [Stat.StatFireResistance] },

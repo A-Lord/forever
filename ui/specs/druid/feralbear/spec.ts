@@ -3,7 +3,6 @@ import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationTyp
 import {
 	Cooldowns,
 	Debuffs,
-	Drums,
 	EquipmentSpec,
 	IndividualBuffs,
 	ItemSlot,
@@ -111,7 +110,6 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 			divineSpirit: TristateEffect.TristateEffectImproved,
 		}),
 		partyBuffs: PartyBuffs.create({
-			drums: Drums.LesserDrumsOfBattle,
 			ferociousInspiration: 2,
 			battleShout: TristateEffect.TristateEffectImproved,
 			graceOfAirTotem: TristateEffect.TristateEffectImproved,

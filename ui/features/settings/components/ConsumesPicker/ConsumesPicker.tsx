@@ -19,8 +19,7 @@ export interface ConsumesPickerProps {
 	explosiveOptions: ReadonlyArray<ConsumableStatOption<number>>;
 	imbueMHOptions: ReadonlyArray<ConsumableStatOption<number>>;
 	imbueOHOptions: ReadonlyArray<ConsumableStatOption<number>>;
-	drumsOptions: ReadonlyArray<ConsumableStatOption<number>>;
-	// Potions, explosives, drums, pet consumables and the combat-only miscellany matter inside an
+	// Potions, explosives, pet consumables and the combat-only miscellany matter inside an
 	// encounter; a gear planner never runs one and passes false.
 	encounterConsumes?: boolean;
 }
@@ -31,13 +30,12 @@ export const ConsumesPicker = ({
 	explosiveOptions,
 	imbueMHOptions,
 	imbueOHOptions,
-	drumsOptions,
 	encounterConsumes = true,
 }: ConsumesPickerProps) => {
 	const player = usePlayer() as Player<any>;
 	const configs = useMemo(
-		() => consumeConfigs(player, Database.getSync(), consumableStats, conjuredOptions, explosiveOptions, imbueMHOptions, imbueOHOptions, drumsOptions),
-		[player, consumableStats, conjuredOptions, explosiveOptions, imbueMHOptions, imbueOHOptions, drumsOptions],
+		() => consumeConfigs(player, Database.getSync(), consumableStats, conjuredOptions, explosiveOptions, imbueMHOptions, imbueOHOptions),
+		[player, consumableStats, conjuredOptions, explosiveOptions, imbueMHOptions, imbueOHOptions],
 	);
 
 	return (
@@ -85,14 +83,6 @@ export const ConsumesPicker = ({
 					    and `weapon_speed` is a non-optional proto3 double, so it reads 0 rather than
 					    undefined for a shield or an off-hand frill and the gate never closes. */}
 					{player.getPlayerSpec().canDualWield && <IconEnumPicker modObject={player} config={configs.ohImbue} />}
-				</PickerGroup>
-			</ConsumeRow>
-			{/* Never unmounted, the way vanilla's drums row was: the picker has to stay mounted while
-			    it is hidden so that it zeroes a drums selection the player can no longer make, and restores
-			    it if Leatherworking comes back. A gear planner hides the row for good. */}
-			<ConsumeRow name="drums" hidden={!encounterConsumes}>
-				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-drums">
-					<IconEnumPicker modObject={player} config={configs.drums} />
 				</PickerGroup>
 			</ConsumeRow>
 			<ConsumeRow

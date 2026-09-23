@@ -4,7 +4,6 @@ import { ResourceType } from '@generated/proto/spell';
 import { IconData, UIItem as Item } from '@generated/proto/ui';
 
 import { CHARACTER_LEVEL } from '../../constants/mechanics';
-import { CURRENT_PHASE, Phase } from '../../constants/other';
 import { Database } from '../database';
 import { buildWowheadTooltipDataset, wowheadEntityUrl, wowheadIconUrl, WowheadTooltipItemParams, WowheadTooltipSpellParams } from '../wowhead';
 
@@ -591,16 +590,6 @@ export class ActionId {
 			case 'Raptor Strike':
 				if (tag == 2) {
 					name += ' (Cooldown)';
-				}
-				break;
-			case 'Drums of War':
-			case 'Drums of Battle':
-			case 'Drums of Restoration':
-				if (CURRENT_PHASE >= Phase.Phase4) {
-					name = 'Greater ' + name;
-				}
-				if (tag === -1) {
-					name += ' (External)';
 				}
 				break;
 			case 'Retribution Aura':

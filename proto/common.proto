@@ -440,16 +440,6 @@ enum TristateEffect {
 	TristateEffectImproved = 2;
 }
 
-enum Drums {
-	DrumsUnknown = 0;
-	GreaterDrumsOfBattle = 1;
-	GreaterDrumsOfRestoration = 2;
-	GreaterDrumsOfWar = 3;
-	LesserDrumsOfBattle = 4;
-	LesserDrumsOfRestoration = 5;
-	LesserDrumsOfWar = 6;
-}
-
 enum StrengthOfEarthType {
 	None = 0;
 	Basic = 1;
@@ -487,8 +477,8 @@ message PartyBuffs {
 	bool draenei_racial_melee = 9;
 	bool draenei_racial_caster = 10;
 
-	// Drums
-	Drums drums = 11;
+	reserved 11;
+	reserved "drums";
 
 	// Item Buffs
 	int32 atiesh_druid = 35;
@@ -599,7 +589,8 @@ message ConsumesSpec {
 	bool bogling_root = 25;
 	int32 mhImbue_id = 10;
 	int32 ohImbue_id = 11;
-	Drums drums_id = 12;
+	reserved 12;
+	reserved "drums_id";
 	bool scroll_agi = 13;
 	bool scroll_str = 14;
 	bool scroll_int = 15;

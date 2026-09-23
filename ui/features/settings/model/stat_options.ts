@@ -33,8 +33,6 @@ export interface IconEnumPickerStatOption extends PickerStatOption<IconEnumPicke
 
 export type ItemStatOptions<T> = ItemStatOption<T>;
 export type PickerStatOptions = IconPickerStatOption | MultiIconPickerStatOption | IconEnumPickerStatOption;
-// TBC's `DrumsBuff` (a party-buff swatch pick) is an icon-enum row mixed into the same config
-// arrays as the boolean/tristate icon rows, so a row renderer needs all three kinds.
 export type RenderableStatOptions = IconPickerStatOption | MultiIconPickerStatOption | IconEnumPickerStatOption;
 export type StatOptions<T, Options extends ItemStatOptions<T> | PickerStatOptions> = Array<Options>;
 

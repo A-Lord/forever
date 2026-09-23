@@ -115,7 +115,7 @@ describe('ConsumeRow', () => {
 		expect(document.body.contains(element)).toBe(true);
 	});
 
-	// A gear planner has no encounter, so it hides the drums and pet rows outright; the pickers
+	// A gear planner has no encounter, so it hides the pet row outright; the pickers
 	// inside still have to stay mounted for the same zeroing reason as above.
 	it('hides a row the caller hides, whatever its pickers say, without unmounting it', () => {
 		const options = new Options();

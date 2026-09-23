@@ -81,7 +81,6 @@ export default defineSpec<Spec.SpecRestorationShaman>({
 		BuffDebuffInputs.FerociousInspiration,
 		BuffDebuffInputs.ManaTideTotem,
 		BuffDebuffInputs.ShadowPriestDPS,
-		BuffDebuffInputs.DrumsBuff,
 	],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {

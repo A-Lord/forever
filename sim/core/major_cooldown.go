@@ -11,7 +11,6 @@ import (
 const (
 	CooldownPriorityLow       = -1000
 	CooldownPriorityDefault   = 0
-	CooldownPriorityDrums     = 2000
 	CooldownPriorityBloodlust = 1000
 )
 

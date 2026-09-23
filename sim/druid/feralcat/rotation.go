@@ -75,11 +75,9 @@ func (cat *FeralDruid) shift(sim *core.Simulation) bool {
 		if !mcd.IsReady(sim) {
 			continue
 		}
-		// Drums and Bloodlust are fired at fixed times (0s and 5s) via scheduled
-		// pending actions — skip them here so they don't fire opportunistically
-		// during powershifts.
-		spellID := mcd.Spell.ActionID.SpellID
-		if spellID == core.BloodlustActionID.SpellID || spellID == 35476 {
+		// Bloodlust is fired at a fixed time (5s) via a scheduled pending action
+		// — skip it here so it doesn't fire opportunistically during powershifts.
+		if mcd.Spell.ActionID.SpellID == core.BloodlustActionID.SpellID {
 			continue
 		}
 		mcd.TryActivate(sim, &cat.Character)

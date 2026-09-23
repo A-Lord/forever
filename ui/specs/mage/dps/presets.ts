@@ -1,6 +1,6 @@
 import * as PresetUtils from '@app/preset_utils';
 import { makeSpecChangeWarningToast } from '@features/settings/utils/spec_change_warning_toast';
-import { ConsumesSpec, Debuffs, Drums, IndividualBuffs, ItemSlot, PartyBuffs, Profession, RaidBuffs, Spec } from '@generated/proto/common';
+import { ConsumesSpec, Debuffs, IndividualBuffs, ItemSlot, PartyBuffs, Profession, RaidBuffs, Spec } from '@generated/proto/common';
 import { Mage_Options as MageOptions, Mage_Rotation, MageArmor } from '@generated/proto/mage';
 import { SavedTalents } from '@generated/proto/ui';
 import { Player } from '@sim/player/player';
@@ -81,7 +81,6 @@ export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: 2,
 	manaTideTotems: 1,
 	wrathOfAirTotem: 1,
-	drums: Drums.LesserDrumsOfBattle,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({

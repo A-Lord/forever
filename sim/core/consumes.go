@@ -110,10 +110,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		}
 	}
 
-	drumsBombsSharedTimer := character.NewTimer()
-
-	registerDrumsCD(agent, consumables, drumsBombsSharedTimer)
-
 	for _, id := range selectedConsumableIDs(consumables, partyBuffs) {
 		if apply, ok := consumableEffect(id); ok {
 			apply(agent)
