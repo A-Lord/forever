@@ -133,6 +133,11 @@ var ConsumableAllowList = []int32{
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
+	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
+	274273, // Flask of Natural Accuracy
+	274274, // Flask of Natural Aggression
+	274275, // Flask of Natural Precision
+	274276, // Flask of Natural Swiftness
 }
 var ConsumableDenyList = []int32{}
 
