@@ -1,0 +1,194 @@
+package shared
+
+import (
+	"testing"
+	"time"
+
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
+const (
+	explosivesCategory   int32 = 24
+	explosivesCategoryMs int32 = 60000
+)
+
+// Goblin Sapper Charge 10646 as the database states it (13241, its own 5 min cooldown, needs
+// Engineering), which the spec selects by its flag, and test explosives standing in for Ez-Thro
+// Dynamite II 18588 (23000) and Crystal Charge 11566 (15239).
+const (
+	goblinSapperID     int32 = 10646
+	testDynamiteID     int32 = 991202
+	testCrystalID      int32 = 991203
+	testUnskilledSapID int32 = 991204
+)
+
+func init() {
+	explosive := func(id int32, spellID int32, cooldownMs int32, profession proto.Profession) *proto.Consumable {
+		return &proto.Consumable{Id: id, Name: "Test Explosive", Type: proto.ConsumableType_ConsumableTypeExplosive,
+			ItemEffects:        []*proto.ItemEffect{testOnUse(spellID, cooldownMs, explosivesCategory, explosivesCategoryMs)},
+			RequiredProfession: profession}
+	}
+	core.AddToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
+		explosive(goblinSapperID, 13241, 300000, proto.Profession_Engineering),
+		explosive(testDynamiteID, 23000, 0, proto.Profession_ProfessionUnknown),
+		explosive(testCrystalID, 15239, 0, proto.Profession_ProfessionUnknown),
+		explosive(testUnskilledSapID, 13241, 300000, proto.Profession_Engineering),
+	}})
+	for _, id := range []int32{goblinSapperID, testDynamiteID, testCrystalID, testUnskilledSapID} {
+		NewSpellDataExplosive(id)
+	}
+}
+
+// A caster with the given profession carrying the consumables, against the given number of targets,
+// its spells certain to hit and never to crit.
+func newExplosiveSim(t *testing.T, consumes *proto.ConsumesSpec, profession proto.Profession, targetCount int) (*core.Simulation, *testCaster) {
+	t.Helper()
+	targets := make([]*proto.Target, targetCount)
+	for i := range targets {
+		targets[i] = &proto.Target{Name: "target", Level: 60, MobType: proto.MobType_MobTypeDemon}
+	}
+
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid: &proto.Raid{Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name:        "Caster",
+				Class:       proto.Class_ClassShaman,
+				Race:        proto.Race_RaceTroll,
+				Buffs:       &proto.IndividualBuffs{},
+				Spec:        &proto.Player_ElementalShaman{},
+				Equipment:   &proto.EquipmentSpec{},
+				Consumables: consumes,
+				Profession1: profession,
+			}},
+			Buffs: &proto.PartyBuffs{},
+		}}},
+		Encounter: &proto.Encounter{Targets: targets, Duration: 180},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+
+	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+	caster.AddStatsDynamic(sim, stats.Stats{
+		stats.SpellHitPercent:  100,
+		stats.SpellCritPercent: -caster.GetStat(stats.SpellCritPercent),
+	})
+	return sim, caster
+}
+
+// 13241 rolls 600 with variance 0.5, 450 to 750, on every enemy around the thrower, each target rolling
+// its own, and 500 with variance 0.5, 375 to 625, on the thrower; the thrower's half is a spell of its own tagged 1, a harmful spell hit.
+func TestSapperDamagesEveryEnemyAndTheThrower(t *testing.T) {
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{GoblinSapper: true}, proto.Profession_Engineering, 3)
+	sapper := onUseSpell(t, caster, goblinSapperID)
+	self := caster.GetSpell(core.ActionID{ItemID: goblinSapperID}.WithTag(1))
+	if self == nil {
+		t.Fatalf("the sapper registered no spell for its damage to the thrower")
+	}
+	if self.ProcMask != core.ProcMaskSpellDamage {
+		t.Errorf("the thrower's half carries proc mask %v, want spell damage", self.ProcMask)
+	}
+	if sapper.BonusHitPercent != 0 || self.BonusHitPercent != 0 {
+		t.Errorf("the sapper carries %v%% bonus hit and its thrower's half %v%%, want none", sapper.BonusHitPercent, self.BonusHitPercent)
+	}
+
+	row := spelldata.MustFind(13241)
+	enemy, thrower := row.DamageEffect(), row.CasterDamageEffect()
+	health := caster.CurrentHealth()
+	if !sapper.Cast(sim, sim.Encounter.ActiveTargetUnits[0]) {
+		t.Fatalf("the sapper could not be used")
+	}
+
+	var dealt []float64
+	for i, target := range sim.Encounter.ActiveTargetUnits {
+		d := sapper.SpellMetrics[target.UnitIndex].TotalDamage
+		dealt = append(dealt, d)
+		if low, high := enemy.Min(core.CharacterLevel), enemy.Max(core.CharacterLevel); d < low || d > high {
+			t.Errorf("target %d took %v, want one roll of %v to %v", i, d, low, high)
+		}
+	}
+	if dealt[0] == dealt[1] && dealt[1] == dealt[2] {
+		t.Errorf("every target took %v, want a roll of its own each", dealt[0])
+	}
+
+	took := health - caster.CurrentHealth()
+	if low, high := thrower.Min(core.CharacterLevel), thrower.Max(core.CharacterLevel); low != 375 || high != 625 || took < low || took > high {
+		t.Errorf("the thrower took %v, want one roll of 375 to 625 (the row reads %v to %v)", took, low, high)
+	}
+}
+
+// Every explosive names category 24: using one puts the others out of reach for its 60 s, and the
+// sapper's own 5 min cooldown runs beside it.
+func TestExplosivesShareTheirCategoryCooldown(t *testing.T) {
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID, GoblinSapper: true}, proto.Profession_Engineering, 1)
+	sapper, dynamite := onUseSpell(t, caster, goblinSapperID), onUseSpell(t, caster, testDynamiteID)
+	target := sim.Encounter.ActiveTargetUnits[0]
+
+	if !sapper.Cast(sim, target) {
+		t.Fatalf("the sapper could not be used")
+	}
+	start := sim.CurrentTime
+	if got := dynamite.ReadyAt(); got != start+time.Minute {
+		t.Errorf("the dynamite is ready at %v after the sapper was used at %v, want 60 s later", got, start)
+	}
+	if got := sapper.ReadyAt(); got != start+5*time.Minute {
+		t.Errorf("the sapper is ready again at %v after it was used at %v, want 5 min later", got, start)
+	}
+}
+
+// 23000 states a 1 s cast and a missile speed of 14: from 14 yards the dynamite lands 1 s after its
+// cast completes.
+func TestDynamiteLandsAfterItsCastAndFlight(t *testing.T) {
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID}, proto.Profession_ProfessionUnknown, 1)
+	dynamite := onUseSpell(t, caster, testDynamiteID)
+	target := sim.Encounter.ActiveTargetUnits[0]
+	metrics := &dynamite.SpellMetrics[target.UnitIndex]
+	if got := dynamite.DefaultCast.CastTime; got != time.Second {
+		t.Errorf("the dynamite casts in %v, want 1 s", got)
+	}
+
+	caster.DistanceFromTarget = 14
+	start := sim.CurrentTime
+	if !dynamite.Cast(sim, target) {
+		t.Fatalf("the dynamite could not be used from 14 yards")
+	}
+	stepPast(t, sim, start+2*time.Second-time.Millisecond)
+	if metrics.TotalDamage != 0 {
+		t.Errorf("the dynamite dealt %v before its cast and 1 s flight ended", metrics.TotalDamage)
+	}
+	stepPast(t, sim, start+2*time.Second+time.Millisecond)
+	if metrics.TotalDamage == 0 {
+		t.Errorf("the dynamite had dealt nothing 1 s after its cast completed")
+	}
+}
+
+// 15239 is instant and flies at 14 yards a second: from 14 yards the charge lands 1 s after it is used.
+func TestCrystalChargeLandsAfterItsFlight(t *testing.T) {
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testCrystalID}, proto.Profession_ProfessionUnknown, 1)
+	charge := onUseSpell(t, caster, testCrystalID)
+	target := sim.Encounter.ActiveTargetUnits[0]
+
+	caster.DistanceFromTarget = 14
+	start := sim.CurrentTime
+	if !charge.Cast(sim, target) {
+		t.Fatalf("the charge could not be used from 14 yards")
+	}
+	if got := charge.SpellMetrics[target.UnitIndex].TotalDamage; got != 0 {
+		t.Errorf("the charge dealt %v when it was used, want nothing until it lands", got)
+	}
+	stepPast(t, sim, start+time.Second+time.Millisecond)
+	if charge.SpellMetrics[target.UnitIndex].TotalDamage == 0 {
+		t.Errorf("the charge had dealt nothing 1 s after it was used")
+	}
+}
+
+// The sapper requires Engineering: a thrower without it has no sapper to use.
+func TestExplosiveNeedsTheProfessionItRequires(t *testing.T) {
+	_, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testUnskilledSapID}, proto.Profession_Blacksmithing, 1)
+	if spell := caster.GetSpell(core.ActionID{ItemID: testUnskilledSapID}); spell != nil {
+		t.Errorf("a thrower without Engineering has the sapper %v", spell.ActionID)
+	}
+}

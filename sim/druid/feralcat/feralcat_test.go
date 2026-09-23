@@ -142,7 +142,6 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:           27664, // Grilled Mudfish
 	MhImbueId:        34340, // Adamantite Weightstone
 	ConjuredId:       12662, // Demonic Rune
-	SuperSapper:      true,
 	GoblinSapper:     true,
 	ScrollAgi:        true,
 	ScrollStr:        true,

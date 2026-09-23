@@ -151,7 +151,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 
 	registerPotionCD(agent, consumables)
 	registerConjuredCD(agent, consumables)
-	registerExplosivesCD(agent, consumables, drumsBombsSharedTimer)
 	registerDrumsCD(agent, consumables, drumsBombsSharedTimer)
 
 	for _, id := range selectedConsumableIDs(consumables, partyBuffs) {
@@ -165,6 +164,9 @@ var consumableEffects = map[int32]ApplyEffect{}
 
 // The effects built from the consumables' rows. A hand-written effect for the same id wins.
 var dataDrivenConsumableEffects = map[int32]ApplyEffect{}
+
+// Goblin Sapper Charge, which the spec selects with a flag of its own.
+const goblinSapperItemID = 10646
 
 var missingConsumableEffects []int32
 
@@ -229,6 +231,9 @@ func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.Pa
 		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}
 	if partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
 		ids = append(ids, consumables.MhImbueId)
+	}
+	if consumables.GoblinSapper {
+		ids = append(ids, goblinSapperItemID)
 	}
 	ids = append(ids, consumables.Potions...)
 	ids = append(ids, consumables.ConjuredItems...)

@@ -81,13 +81,13 @@ var DefaultFuryTalents = "30305003-050530205052310051"
 var DefaultArmsTalents = "30305213032115201-05052030004"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       22838,
-	FlaskId:     22854,
-	FoodId:      27658,
-	ConjuredId:  22788,
-	ExplosiveId: 30217,
-	SuperSapper: true,
-	OhImbueId:   29453,
-	ScrollAgi:   true,
-	ScrollStr:   true,
+	PotId:        22838,
+	FlaskId:      22854,
+	FoodId:       27658,
+	ConjuredId:   22788,
+	ExplosiveId:  18588,
+	GoblinSapper: true,
+	OhImbueId:    29453,
+	ScrollAgi:    true,
+	ScrollStr:    true,
 }

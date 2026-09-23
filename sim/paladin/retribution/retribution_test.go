@@ -56,9 +56,8 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FlaskId:      22854,
 	FoodId:       27658,
 	ConjuredId:   12662,
-	SuperSapper:  true,
 	GoblinSapper: true,
 	ScrollAgi:    true,
 	ScrollStr:    true,
-	ExplosiveId:  30217,
+	ExplosiveId:  18588,
 }

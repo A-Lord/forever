@@ -134,7 +134,6 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	GuardianElixirId: 9088,  // Gift of Arthas
 	FoodId:           27667, // Spicy Crawdad
 	ConjuredId:       22105, // Healthstone
-	SuperSapper:      true,
 	GoblinSapper:     true,
 	ScrollAgi:        true,
 	ScrollStr:        true,

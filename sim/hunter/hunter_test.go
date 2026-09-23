@@ -102,11 +102,10 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:           27659, // Warp Burger
 	PotId:            22838, // Haste Potion
 	ConjuredId:       12662, // Demonic Rune
-	ExplosiveId:      30217, // Adamantite Grenade
+	ExplosiveId:      18588, // Ez-Thro Dynamite II
 	PetFoodId:        33874, // Kibler's Bits
 	PetScrollAgi:     true,
 	PetScrollStr:     true,
-	SuperSapper:      true,
 	GoblinSapper:     true,
 	ScrollAgi:        true,
 	ScrollStr:        true,
