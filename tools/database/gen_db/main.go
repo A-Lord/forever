@@ -196,6 +196,7 @@ func main() {
 	if err := database.AddNaturalFlaskZoneBonusStats(db); err != nil {
 		log.Fatalf("failed to add the Natural flasks' zone bonus: %v", err)
 	}
+	database.AddVersusStats(db)
 
 	db.MergeItems(database.ItemOverrides)
 	db.MergeGems(database.GemOverrides)
