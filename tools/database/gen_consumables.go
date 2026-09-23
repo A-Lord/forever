@@ -88,6 +88,7 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 	switch {
 	case onUse.Supported() && onUse.Damage:
 		routing.Kind = ConsumableDamage
+		routing.Unsupported = damageConsumableUnsupported(spelldata.Find(routing.SpellID))
 		return routing
 	case onUse.Supported() && onUse.Heal:
 		routing.Kind = ConsumableHeal
