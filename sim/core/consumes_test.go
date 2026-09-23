@@ -55,7 +55,8 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 		if !HasConsumableEffect(majorHealingPotion) {
 			t.Fatalf("hand first %v: %d has no effect registered", handFirst, majorHealingPotion)
 		}
-		consumableEffects[majorHealingPotion](nil)
+		apply, _ := consumableEffect(majorHealingPotion)
+		apply(nil)
 		if applied != "hand" {
 			t.Errorf("hand first %v: the %s effect applied, want the hand-written one", handFirst, applied)
 		}
@@ -63,15 +64,25 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 	}
 }
 
-func TestSecondHandWrittenConsumableEffectPanics(t *testing.T) {
+func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
 	const majorHealingPotion = 13446
-	t.Cleanup(func() { delete(consumableEffects, majorHealingPotion) })
+	for name, register := range map[string]func(int32, ApplyEffect){
+		"hand-written": NewConsumableEffect,
+		"data-driven":  NewDataDrivenConsumableEffect,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Cleanup(func() {
+				delete(consumableEffects, majorHealingPotion)
+				delete(dataDrivenConsumableEffects, majorHealingPotion)
+			})
 
-	NewConsumableEffect(majorHealingPotion, func(Agent) {})
-	defer func() {
-		if recover() == nil {
-			t.Error("a second hand-written effect for one consumable registered without a panic")
-		}
-	}()
-	NewConsumableEffect(majorHealingPotion, func(Agent) {})
+			register(majorHealingPotion, func(Agent) {})
+			defer func() {
+				if recover() == nil {
+					t.Errorf("a second %s effect for one consumable registered without a panic", name)
+				}
+			}()
+			register(majorHealingPotion, func(Agent) {})
+		})
+	}
 }

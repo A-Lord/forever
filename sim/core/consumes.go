@@ -155,7 +155,7 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 	registerDrumsCD(agent, consumables, drumsBombsSharedTimer)
 
 	for _, id := range selectedConsumableIDs(consumables, partyBuffs) {
-		if apply, ok := consumableEffects[id]; ok {
+		if apply, ok := consumableEffect(id); ok {
 			apply(agent)
 		}
 	}
@@ -163,19 +163,27 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 
 var consumableEffects = map[int32]ApplyEffect{}
 
+// The effects built from the consumables' rows. A hand-written effect for the same id wins.
+var dataDrivenConsumableEffects = map[int32]ApplyEffect{}
+
 var missingConsumableEffects []int32
 
+func consumableEffect(id int32) (ApplyEffect, bool) {
+	if apply, ok := consumableEffects[id]; ok {
+		return apply, true
+	}
+	apply, ok := dataDrivenConsumableEffects[id]
+	return apply, ok
+}
+
 func HasConsumableEffect(id int32) bool {
-	_, ok := consumableEffects[id]
+	_, ok := consumableEffect(id)
 	return ok
 }
 
 // MissingConsumableEffects reports the consumable ids whose effects were skipped because the loaded
 // database has no such consumable.
 func MissingConsumableEffects() []int32 { return missingConsumableEffects }
-
-// The consumables whose registered effect is built from the rows, which a hand-written one replaces.
-var dataDrivenConsumableEffects = map[int32]bool{}
 
 // Registers a hand-written ApplyEffect function which will be called while the consumes are applied,
 // for any Agent whose ConsumesSpec names the id. It takes the place of a data-driven registration for
@@ -185,30 +193,25 @@ func NewConsumableEffect(id int32, consumableEffect ApplyEffect) {
 		return
 	}
 
-	if HasConsumableEffect(id) && !dataDrivenConsumableEffects[id] {
+	if _, ok := consumableEffects[id]; ok {
 		panic(fmt.Sprintf("Cannot add multiple effects for one consumable: %d, %#v", id, consumableEffect))
 	}
 
-	delete(dataDrivenConsumableEffects, id)
 	consumableEffects[id] = consumableEffect
 }
 
-// Registers an ApplyEffect function built from the consumable's rows. A hand-written registration for
-// the id wins, so this one is dropped if a hand-written one is already there or registers later.
+// Registers an ApplyEffect function built from the consumable's rows, which applies unless a
+// hand-written one is registered for the id.
 func NewDataDrivenConsumableEffect(id int32, consumableEffect ApplyEffect) {
 	if !consumableInDatabase(id) {
 		return
 	}
 
-	if dataDrivenConsumableEffects[id] {
+	if _, ok := dataDrivenConsumableEffects[id]; ok {
 		panic(fmt.Sprintf("Cannot add multiple data-driven effects for one consumable: %d, %#v", id, consumableEffect))
 	}
-	if HasConsumableEffect(id) {
-		return
-	}
 
-	dataDrivenConsumableEffects[id] = true
-	consumableEffects[id] = consumableEffect
+	dataDrivenConsumableEffects[id] = consumableEffect
 }
 
 func consumableInDatabase(id int32) bool {
