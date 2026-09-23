@@ -175,6 +175,9 @@ func temporaryEnchantUnsupported(enchant dbc.TemporaryEnchant) []string {
 			if enchant.Points[slot] <= 0 {
 				unsupported = append(unsupported, fmt.Sprintf("enchant %d states no chance for its combat spell %d", enchant.ID, spellID))
 			}
+			if s := spelldata.Find(spellID); s.PeriodicDamageEffect() != spelldata.NilEffect && s.MaxStack > 0 {
+				unsupported = append(unsupported, fmt.Sprintf("enchant %d casts %d, whose damage over time stacks to %d, which the proc builder applies as one", enchant.ID, spellID, s.MaxStack))
+			}
 		case dbc.ITEM_ENCHANTMENT_EQUIP_SPELL:
 			unsupported = append(unsupported, equipSpellUnsupported(enchant.ID, spelldata.Find(spellID), spellID)...)
 		default:
