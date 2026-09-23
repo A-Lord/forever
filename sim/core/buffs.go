@@ -79,7 +79,7 @@ func makeExclusiveMultiplierBuff(aura *Aura, stat stats.Stat, value float64, exc
 	})
 }
 
-func makeExclusiveFlatStatBuff(aura *Aura, stat stats.Stat, value float64, exclusiveCategory string) {
+func MakeExclusiveFlatStatBuff(aura *Aura, stat stats.Stat, value float64, exclusiveCategory string) {
 	aura.NewExclusiveEffect(exclusiveCategory+stat.StatName()+"Add", false, ExclusiveEffect{
 		Priority: value,
 		OnGain: func(ee *ExclusiveEffect, sim *Simulation) {
@@ -96,7 +96,7 @@ func registerExlusiveEffects(aura *Aura, config []StatConfig, exclusiveCategory 
 		if statConfig.IsMultiplicative {
 			makeExclusiveMultiplierBuff(aura, statConfig.Stat, statConfig.Amount, exclusiveCategory)
 		} else {
-			makeExclusiveFlatStatBuff(aura, statConfig.Stat, statConfig.Amount, exclusiveCategory)
+			MakeExclusiveFlatStatBuff(aura, statConfig.Stat, statConfig.Amount, exclusiveCategory)
 		}
 	}
 }
@@ -429,7 +429,7 @@ func DivineSpiritAura(char *Character, improved bool) *Aura {
 	// The Spirit is exclusive with other flat Spirit buffs (Scroll of Spirit), so
 	// only the strongest source applies. The Imp. DS conversion is DS-only and stays
 	// tied to the aura itself.
-	makeExclusiveFlatStatBuff(aura, stats.Spirit, 50, StatBuffCategory)
+	MakeExclusiveFlatStatBuff(aura, stats.Spirit, 50, StatBuffCategory)
 	return aura
 }
 
@@ -458,11 +458,11 @@ func GiftOfTheWildAura(char *Character, improved bool) *Aura {
 	// dedicated resistance buffs (Shadow Protection, Frost/Nature Resistance
 	// Aura/Totem). Only the highest value applies per school.
 	resistMod := math.Floor(25 * mod)
-	makeExclusiveFlatStatBuff(aura, stats.ArcaneResistance, resistMod, ResistanceCategoryArcane)
-	makeExclusiveFlatStatBuff(aura, stats.FireResistance, resistMod, ResistanceCategoryFire)
-	makeExclusiveFlatStatBuff(aura, stats.FrostResistance, resistMod, ResistanceCategoryFrost)
-	makeExclusiveFlatStatBuff(aura, stats.NatureResistance, resistMod, ResistanceCategoryNature)
-	makeExclusiveFlatStatBuff(aura, stats.ShadowResistance, resistMod, ResistanceCategoryShadow)
+	MakeExclusiveFlatStatBuff(aura, stats.ArcaneResistance, resistMod, ResistanceCategoryArcane)
+	MakeExclusiveFlatStatBuff(aura, stats.FireResistance, resistMod, ResistanceCategoryFire)
+	MakeExclusiveFlatStatBuff(aura, stats.FrostResistance, resistMod, ResistanceCategoryFrost)
+	MakeExclusiveFlatStatBuff(aura, stats.NatureResistance, resistMod, ResistanceCategoryNature)
+	MakeExclusiveFlatStatBuff(aura, stats.ShadowResistance, resistMod, ResistanceCategoryShadow)
 	return aura
 }
 

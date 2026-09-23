@@ -9,7 +9,6 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
-	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // A consumable whose on-use spell puts auras on the user that the parser attaches: an elixir, a
@@ -143,7 +142,7 @@ func consumableAura(character *core.Character, consumable core.Consumable, buff 
 	for i := range buff.Effects {
 		e := &buff.Effects[i]
 		for _, stat := range e.FlatStats() {
-			makeExclusiveStatBuff(aura, stat, e.Average(character.Level))
+			core.MakeExclusiveFlatStatBuff(aura, stat, e.Average(character.Level), core.StatBuffCategory)
 		}
 		if len(e.FlatStats()) > 0 {
 			exclusive = append(exclusive, int32(i+1))
@@ -151,19 +150,6 @@ func consumableAura(character *core.Character, consumable core.Consumable, buff 
 	}
 	spelldata.ParseEffects(character, aura, buff, spelldata.SkipEffects(exclusive...))
 	return aura
-}
-
-// A stat the raid buffs of the same stat share a category with, so only the strongest source applies.
-func makeExclusiveStatBuff(aura *core.Aura, stat stats.Stat, value float64) {
-	aura.NewExclusiveEffect(core.StatBuffCategory+stat.StatName()+"Add", false, core.ExclusiveEffect{
-		Priority: value,
-		OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-			ee.Aura.Unit.AddStatDynamic(sim, stat, value)
-		},
-		OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-			ee.Aura.Unit.AddStatDynamic(sim, stat, -value)
-		},
-	})
 }
 
 // The item used from the bar on its own cooldown and the category cooldown it shares, with the cast
