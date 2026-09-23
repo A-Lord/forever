@@ -22,6 +22,11 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(4623) // Lesser Stoneshield Potion
 	shared.NewSpellDataPotion(5631) // Rage Potion
 	shared.NewSpellDataPotion(5633) // Great Rage Potion
+	shared.NewSpellDataPotion(6048) // Shadow Protection Potion
+	shared.NewSpellDataPotion(6049) // Fire Protection Potion
+	shared.NewSpellDataPotion(6050) // Frost Protection Potion
+	shared.NewSpellDataPotion(6051) // Holy Protection Potion
+	shared.NewSpellDataPotion(6052) // Nature Protection Potion
 	shared.NewSpellDataPotion(6149) // Greater Mana Potion
 	shared.NewSpellDataPotion(9036) // Magic Resistance Potion
 	shared.NewSpellDataPotion(9144) // Wildvine Potion
@@ -34,6 +39,12 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(13444) // Major Mana Potion
 	shared.NewSpellDataPotion(13446) // Major Healing Potion
 	shared.NewSpellDataPotion(13455) // Greater Stoneshield Potion
+	shared.NewSpellDataPotion(13456) // Greater Frost Protection Potion
+	shared.NewSpellDataPotion(13457) // Greater Fire Protection Potion
+	shared.NewSpellDataPotion(13458) // Greater Nature Protection Potion
+	shared.NewSpellDataPotion(13459) // Greater Shadow Protection Potion
+	shared.NewSpellDataPotion(13460) // Greater Holy Protection Potion
+	shared.NewSpellDataPotion(13461) // Greater Arcane Protection Potion
 	shared.NewSpellDataPotion(17348) // Major Healing Draught
 	shared.NewSpellDataPotion(17349) // Superior Healing Draught
 	shared.NewSpellDataPotion(17351) // Major Mana Draught
@@ -113,4 +124,8 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataConjured(19013) // Major Healthstone
 	// unsupported: E_TRIGGER_SPELL, which no consumable builder models
 	// shared.NewSpellDataConjured(275688) // Power Recycler
+
+	// Other on-use consumables
+	shared.NewSpellDataOnUseConsumable(4376) // Flame Deflector
+	shared.NewSpellDataOnUseConsumable(4386) // Ice Deflector
 }
