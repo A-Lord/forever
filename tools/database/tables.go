@@ -977,9 +977,10 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 // The items the consumable catalogue is built from, over Item as i and ItemSparse as s. Every
 // Consumable-class item but the permanent enhancements of subclass 6, which the enchant table
 // carries; the Trade Goods explosives; and any item whose on-use shares the explosives' category or
-// casts a temporary enchant, whatever class the client files it under: Crystal Charge 11566 is a
-// Quest item and Lesser Mana Oil 20747 an Enchanting trade good. The item has to state an on-use
-// spell, and one that also teaches a spell is an Engrave rune rather than a consumable.
+// casts a temporary enchant (Effect 54, or the imbue Effect 360, as IsTemporaryEnchantEffect reads
+// it), whatever class the client files it under: Crystal Charge 11566 is a Quest item and Lesser Mana
+// Oil 20747 an Enchanting trade good. The item has to state an on-use spell, and one that also teaches
+// a spell is an Engrave rune rather than a consumable.
 func ConsumableItemFilter() string {
 	onUse := func(condition string) string {
 		return fmt.Sprintf(`EXISTS (SELECT 1 FROM ItemXItemEffect cx JOIN ItemEffect ce ON ce.ID = cx.ItemEffectID
@@ -995,7 +996,8 @@ func ConsumableItemFilter() string {
 		onUse("1"),
 		dbc.ITEM_SPELLTRIGGER_LEARN_SPELL_ID,
 		onUse(fmt.Sprintf("ce.SpellCategoryID = %d", dbc.EXPLOSIVES_SPELL_CATEGORY)),
-		onUse(fmt.Sprintf("EXISTS (SELECT 1 FROM SpellEffect cse WHERE cse.SpellID = ce.SpellID AND cse.Effect = %d)", dbcenums.E_ENCHANT_ITEM_TEMPORARY)))
+		onUse(fmt.Sprintf("EXISTS (SELECT 1 FROM SpellEffect cse WHERE cse.SpellID = ce.SpellID AND cse.Effect IN (%d, %d))",
+			dbcenums.E_ENCHANT_ITEM_TEMPORARY, dbcenums.E_360)))
 }
 
 func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consumable, error) {
