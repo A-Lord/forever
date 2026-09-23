@@ -1,6 +1,3 @@
-import type { ConsumableStatOption } from '@features/settings/model/consumables';
-import * as ConsumablesInputs from '@features/settings/model/consumables';
-import type { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
@@ -11,32 +8,20 @@ import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
 import { ConsumeRow } from './ConsumeRow';
-import { consumeConfigs } from './utils';
+import { consumeConfigs, type ConsumeToggle } from './utils';
 
 export interface ConsumesPickerProps {
-	consumableStats: ReadonlyArray<Stat>;
-	conjuredOptions: ReadonlyArray<ConsumableStatOption<number>>;
-	explosiveOptions: ReadonlyArray<ConsumableStatOption<number>>;
-	imbueMHOptions: ReadonlyArray<ConsumableStatOption<number>>;
-	imbueOHOptions: ReadonlyArray<ConsumableStatOption<number>>;
 	// Potions, explosives, pet consumables and the combat-only miscellany matter inside an
 	// encounter; a gear planner never runs one and passes false.
 	encounterConsumes?: boolean;
 }
 
-export const ConsumesPicker = ({
-	consumableStats,
-	conjuredOptions,
-	explosiveOptions,
-	imbueMHOptions,
-	imbueOHOptions,
-	encounterConsumes = true,
-}: ConsumesPickerProps) => {
+const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) =>
+	toggles.map(config => <IconPicker key={config.actionId.itemId} modObject={player} config={config} />);
+
+export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps) => {
 	const player = usePlayer() as Player<any>;
-	const configs = useMemo(
-		() => consumeConfigs(player, Database.getSync(), consumableStats, conjuredOptions, explosiveOptions, imbueMHOptions, imbueOHOptions),
-		[player, consumableStats, conjuredOptions, explosiveOptions, imbueMHOptions, imbueOHOptions],
-	);
+	const configs = useMemo(() => consumeConfigs(player, Database.getSync()), [player]);
 
 	return (
 		<div className="grid gap-3 max-lg:grid-cols-3 max-md:grid-cols-1">
@@ -68,52 +53,35 @@ export const ConsumesPicker = ({
 				</PickerGroup>
 			</ConsumeRow>
 			{encounterConsumes && (
-				<ConsumeRow name="engineering" configs={[configs.explosive, ConsumablesInputs.GoblinSapper]}>
+				<ConsumeRow name="engineering" configs={[configs.explosive, ...configs.explosiveExtras]}>
 					<PickerGroup variant="icons" className="justify-end" data-testid="consumes-engi">
 						<IconEnumPicker modObject={player} config={configs.explosive} />
-						<IconPicker modObject={player} config={ConsumablesInputs.GoblinSapper} />
+						<Toggles player={player} toggles={configs.explosiveExtras} />
 					</PickerGroup>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="imbue">
+			<ConsumeRow name="imbue" configs={[configs.mhImbue, configs.ohImbue]}>
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-imbue">
 					<IconEnumPicker modObject={player} config={configs.mhImbue} />
-					{/* Vanilla gated the off-hand imbue on the five dual-wield specs. The picker's own
-					    `showWhen` is not a substitute: it tests `offHand?.item.weaponSpeed !== undefined`,
-					    and `weapon_speed` is a non-optional proto3 double, so it reads 0 rather than
-					    undefined for a shield or an off-hand frill and the gate never closes. */}
-					{player.getPlayerSpec().canDualWield && <IconEnumPicker modObject={player} config={configs.ohImbue} />}
+					<IconEnumPicker modObject={player} config={configs.ohImbue} />
 				</PickerGroup>
 			</ConsumeRow>
-			<ConsumeRow
-				name="scrolls"
-				configs={[
-					ConsumablesInputs.ScrollAgi,
-					ConsumablesInputs.ScrollStr,
-					ConsumablesInputs.ScrollInt,
-					ConsumablesInputs.ScrollSpi,
-					ConsumablesInputs.ScrollArm,
-				]}>
+			<ConsumeRow name="scrolls" configs={configs.scrolls}>
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-scrolls">
-					<IconPicker modObject={player} config={ConsumablesInputs.ScrollAgi} />
-					<IconPicker modObject={player} config={ConsumablesInputs.ScrollStr} />
-					<IconPicker modObject={player} config={ConsumablesInputs.ScrollInt} />
-					<IconPicker modObject={player} config={ConsumablesInputs.ScrollSpi} />
-					<IconPicker modObject={player} config={ConsumablesInputs.ScrollArm} />
+					<Toggles player={player} toggles={configs.scrolls} />
 				</PickerGroup>
 			</ConsumeRow>
 			{encounterConsumes && (
-				<ConsumeRow name="miscellaneous" configs={[ConsumablesInputs.BoglingRoot]}>
+				<ConsumeRow name="miscellaneous" configs={configs.miscellaneous}>
 					<PickerGroup variant="icons" className="justify-end" data-testid="consumes-misc">
-						<IconPicker modObject={player} config={ConsumablesInputs.BoglingRoot} />
+						<Toggles player={player} toggles={configs.miscellaneous} />
 					</PickerGroup>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="pet" hidden={!encounterConsumes}>
+			<ConsumeRow name="pet" configs={[configs.petFood, ...configs.petScrolls]} hidden={!encounterConsumes}>
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-pet">
 					<IconEnumPicker modObject={player} config={configs.petFood} />
-					<IconPicker modObject={player} config={ConsumablesInputs.PetScrollAgi} />
-					<IconPicker modObject={player} config={ConsumablesInputs.PetScrollStr} />
+					<Toggles player={player} toggles={configs.petScrolls} />
 				</PickerGroup>
 			</ConsumeRow>
 		</div>

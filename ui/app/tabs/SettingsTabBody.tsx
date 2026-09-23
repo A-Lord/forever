@@ -3,13 +3,11 @@ import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
 import { ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
-import * as ConsumablesInputs from '@features/settings/model/consumables';
 import { relevantStatOptions } from '@features/settings/model/stat_options';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { useSimReady } from '@sim/hooks/useSimReady';
-import { CONJURED_CONFIG, relevantConsumableOptions } from '@sim/settings/conjured';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import { useMemo } from 'react';
@@ -30,12 +28,8 @@ export const SettingsTabBody = () => {
 			partyBuffs: relevantStatOptions(BuffDebuffInputs.PARTY_BUFFS_CONFIG, host),
 			debuffs: relevantStatOptions(BuffDebuffInputs.DEBUFFS_CONFIG, host),
 			debuffsMisc: relevantStatOptions(BuffDebuffInputs.DEBUFFS_MISC_CONFIG, host),
-			conjured: ConsumablesInputs.conjuredStatOptionsFrom(relevantConsumableOptions(CONJURED_CONFIG, config)),
-			explosive: relevantStatOptions(ConsumablesInputs.EXPLOSIVE_CONFIG, host),
-			imbueMH: relevantStatOptions(ConsumablesInputs.IMBUE_CONFIG_MH, host),
-			imbueOH: relevantStatOptions(ConsumablesInputs.IMBUE_CONFIG_OH, host),
 		}),
-		[host, config],
+		[host],
 	);
 
 	const itemSwapSlots = config.itemSwapSlots || [];
@@ -75,14 +69,7 @@ export const SettingsTabBody = () => {
 							<ContentBlock
 								rootDataAttributes={{ 'data-block': 'consumes-settings' }}
 								config={{ header: { title: i18n.t('settings_tab.consumables.title') } }}>
-								<ConsumesPicker
-									consumableStats={[...(config.consumableStats ?? []), ...config.epStats]}
-									conjuredOptions={options.conjured}
-									explosiveOptions={options.explosive}
-									imbueMHOptions={options.imbueMH}
-									imbueOHOptions={options.imbueOH}
-									encounterConsumes={!gearPlanner}
-								/>
+								<ConsumesPicker encounterConsumes={!gearPlanner} />
 							</ContentBlock>
 							{hasOtherSettings && (
 								<ContentBlock

@@ -9,7 +9,6 @@ import {
 import { APLRotation, APLRotation_Type as APLRotationType, SimpleRotation } from '@generated/proto/apl';
 import {
 	Class,
-	ConsumableType,
 	ConsumesSpec,
 	Cooldowns,
 	Faction,
@@ -58,7 +57,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { CONJURED_CONFIG, relevantConsumableOptions } from '../settings/conjured';
+import { ConsumableSlot, relevantConsumableIds } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -676,15 +675,11 @@ export class Player<SpecType extends Spec> {
 
 	getConsumes(forSimming?: boolean): ConsumesSpec {
 		if (forSimming) {
-			const epStats = [...(this.specConfig.consumableStats ?? []), ...this.specConfig.epStats];
-			const dbPotions = this.sim.db.getConsumablesByTypeAndStats(ConsumableType.ConsumableTypePotion, epStats);
-			const dbConjured = relevantConsumableOptions(CONJURED_CONFIG, this.specConfig)
-				.filter(option => (option.showWhen ? option.showWhen(this) : true))
-				.map(option => option.value);
+			const consumables = this.sim.db.getConsumables();
 			return ConsumesSpec.create({
 				...this.slice().consumables,
-				potions: dbPotions.map(p => p.id),
-				conjuredItems: dbConjured,
+				potions: relevantConsumableIds(consumables, ConsumableSlot.Potion, this, this.sim.db),
+				conjuredItems: relevantConsumableIds(consumables, ConsumableSlot.Conjured, this, this.sim.db),
 			});
 		}
 		// Make a defensive copy
