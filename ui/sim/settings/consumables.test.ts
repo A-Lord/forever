@@ -91,6 +91,12 @@ describe('isConsumableRelevant', () => {
 		expect(isConsumableRelevant(arthas, user({ epStats: [Stat.StatStamina] }), db)).toBe(true);
 	});
 
+	it('offers flat physical damage to a spec that weighs Attack Power', () => {
+		const frenzy = consumable({ type: ConsumableType.ConsumableTypePotion, stats: stats({ [Stat.StatPhysicalDamage]: 40 }) });
+		expect(isConsumableRelevant(frenzy, user({ epStats: [Stat.StatAttackPower] }), db)).toBe(true);
+		expect(isConsumableRelevant(frenzy, user({ epStats: [Stat.StatIntellect] }), db)).toBe(false);
+	});
+
 	it('offers a restore by the resource the spec spends', () => {
 		const mana = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
 		const health = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [2] });

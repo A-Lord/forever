@@ -130,9 +130,11 @@ export function handTakesImbue(consumable: Consumable, item: Item | undefined): 
 	return maskAllows(consumable.weaponSubclassMask, clientWeaponSubclass(item)) && maskAllows(consumable.weaponInventoryTypeMask, clientInventoryType(item));
 }
 
-// The stats a spec weighs consumables by. Stamina brings health and the resistances with it.
+// The stats a spec weighs consumables by. Stamina brings health and the resistances with it, and
+// Attack Power the flat physical damage a Frenzy Potion or Bogling Root adds.
 export function consumableStatsOf(specConfig: Pick<SpecConfigData<any>, 'epStats' | 'consumableStats'>): Set<Stat> {
 	const stats = new Set([...(specConfig.consumableStats ?? []), ...specConfig.epStats]);
+	if (stats.has(Stat.StatAttackPower)) stats.add(Stat.StatPhysicalDamage);
 	if (stats.has(Stat.StatStamina)) {
 		for (const stat of [
 			Stat.StatHealth,
