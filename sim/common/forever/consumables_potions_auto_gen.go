@@ -17,8 +17,6 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(3385) // Lesser Mana Potion
 	shared.NewSpellDataPotion(3827) // Mana Potion
 	shared.NewSpellDataPotion(3928) // Superior Healing Potion
-	// unsupported: E_DUMMY, which no consumable builder models
-	// shared.NewSpellDataPotion(4596) // Minor Discolored Healing Potion
 	shared.NewSpellDataPotion(4623) // Lesser Stoneshield Potion
 	shared.NewSpellDataPotion(5631) // Rage Potion
 	shared.NewSpellDataPotion(5633) // Great Rage Potion
@@ -32,42 +30,28 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataPotion(9144) // Wildvine Potion
 	// unsupported: A_MOD_FLAT_SPELL_DAMAGE_VERSUS, which no consumable builder models; A_MOD_MELEE_ATTACK_POWER_VERSUS, which no consumable builder models
 	// shared.NewSpellDataPotion(9224) // Potion of Demonslaying
-	// unsupported: A_MOD_STUN, which no consumable builder models
-	// shared.NewSpellDataPotion(12190) // Dreamless Sleep Potion
-	shared.NewSpellDataPotion(13442) // Mighty Rage Potion
-	shared.NewSpellDataPotion(13443) // Superior Mana Potion
-	shared.NewSpellDataPotion(13444) // Major Mana Potion
-	shared.NewSpellDataPotion(13446) // Major Healing Potion
-	shared.NewSpellDataPotion(13455) // Greater Stoneshield Potion
-	shared.NewSpellDataPotion(13456) // Greater Frost Protection Potion
-	shared.NewSpellDataPotion(13457) // Greater Fire Protection Potion
-	shared.NewSpellDataPotion(13458) // Greater Nature Protection Potion
-	shared.NewSpellDataPotion(13459) // Greater Shadow Protection Potion
-	shared.NewSpellDataPotion(13460) // Greater Holy Protection Potion
-	shared.NewSpellDataPotion(13461) // Greater Arcane Protection Potion
-	shared.NewSpellDataPotion(17348) // Major Healing Draught
-	shared.NewSpellDataPotion(17349) // Superior Healing Draught
-	shared.NewSpellDataPotion(17351) // Major Mana Draught
-	shared.NewSpellDataPotion(17352) // Superior Mana Draught
-	shared.NewSpellDataPotion(18253) // Major Rejuvenation Potion
-	shared.NewSpellDataPotion(18839) // Combat Healing Potion
-	shared.NewSpellDataPotion(18841) // Combat Mana Potion
-	// unsupported: A_MOD_STUN, which no consumable builder models
-	// shared.NewSpellDataPotion(20002) // Greater Dreamless Sleep Potion
+	shared.NewSpellDataPotion(13442)  // Mighty Rage Potion
+	shared.NewSpellDataPotion(13443)  // Superior Mana Potion
+	shared.NewSpellDataPotion(13444)  // Major Mana Potion
+	shared.NewSpellDataPotion(13446)  // Major Healing Potion
+	shared.NewSpellDataPotion(13455)  // Greater Stoneshield Potion
+	shared.NewSpellDataPotion(13456)  // Greater Frost Protection Potion
+	shared.NewSpellDataPotion(13457)  // Greater Fire Protection Potion
+	shared.NewSpellDataPotion(13458)  // Greater Nature Protection Potion
+	shared.NewSpellDataPotion(13459)  // Greater Shadow Protection Potion
+	shared.NewSpellDataPotion(13460)  // Greater Holy Protection Potion
+	shared.NewSpellDataPotion(13461)  // Greater Arcane Protection Potion
+	shared.NewSpellDataPotion(17348)  // Major Healing Draught
+	shared.NewSpellDataPotion(17349)  // Superior Healing Draught
+	shared.NewSpellDataPotion(17351)  // Major Mana Draught
+	shared.NewSpellDataPotion(17352)  // Superior Mana Draught
+	shared.NewSpellDataPotion(18253)  // Major Rejuvenation Potion
+	shared.NewSpellDataPotion(18839)  // Combat Healing Potion
+	shared.NewSpellDataPotion(18841)  // Combat Mana Potion
 	shared.NewSpellDataPotion(23578)  // Diet McWeaksauce
 	shared.NewSpellDataPotion(23579)  // The McWeaksauce Classic
 	shared.NewSpellDataPotion(223913) // Major Healing Potion
 	shared.NewSpellDataPotion(223914) // Greater Healing Potion
-	// unsupported: E_DUMMY, which no consumable builder models
-	// shared.NewSpellDataPotion(241650) // Major Discolored Healing Potion
-	// unsupported: E_DUMMY, which no consumable builder models
-	// shared.NewSpellDataPotion(247239) // Lesser Discolored Healing Potion
-	// unsupported: E_DUMMY, which no consumable builder models
-	// shared.NewSpellDataPotion(247240) // Discolored Healing Potion
-	// unsupported: E_DUMMY, which no consumable builder models
-	// shared.NewSpellDataPotion(247241) // Greater Discolored Healing Potion
-	// unsupported: E_DUMMY, which no consumable builder models
-	// shared.NewSpellDataPotion(247242) // Superior Discolored Healing Potion
 	shared.NewSpellDataPotion(250932) // Minor Spellblasting Potion
 	shared.NewSpellDataPotion(250933) // Lesser Spellblasting Potion
 	shared.NewSpellDataPotion(250934) // Spellblasting Potion
@@ -122,10 +106,9 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataConjured(19011) // Greater Healthstone
 	shared.NewSpellDataConjured(19012) // Major Healthstone
 	shared.NewSpellDataConjured(19013) // Major Healthstone
-	// unsupported: E_TRIGGER_SPELL, which no consumable builder models
-	// shared.NewSpellDataConjured(275688) // Power Recycler
 
 	// Other on-use consumables
-	shared.NewSpellDataOnUseConsumable(4376) // Flame Deflector
-	shared.NewSpellDataOnUseConsumable(4386) // Ice Deflector
+	shared.NewSpellDataOnUseConsumable(4376)   // Flame Deflector
+	shared.NewSpellDataOnUseConsumable(4386)   // Ice Deflector
+	shared.NewSpellDataOnUseConsumable(213564) // Scroll of Minor Evocation
 }
