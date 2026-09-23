@@ -403,6 +403,7 @@ func TestConsumableUnsupportedNamesWhatStopsIt(t *testing.T) {
 		{15822, "A_MOD_STUN"},        // Dreamless Sleep Potion
 		{806, "A_PERIODIC_DAMAGE"},   // Potion of Fervor's damage to the drinker every 3 s
 		{1297671, "E_TRIGGER_SPELL"}, // Power Recycler
+		{833, "sits"},                // Green Tea Leaf: its mana regen drops when the user stands
 	} {
 		got := strings.Join(ConsumableUnsupported(spelldata.MustFind(tc.spellID)), "; ")
 		if !strings.Contains(got, tc.want) {

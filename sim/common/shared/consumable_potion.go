@@ -26,8 +26,8 @@ func NewSpellDataConjured(itemID int32) {
 	registerSpellDataConsumable(itemID, conjuredConsumable)
 }
 
-// Any other consumable whose on-use the potion builder runs, such as the Flame Deflector's shield: a
-// major cooldown whenever the spec names it.
+// Any other consumable whose on-use the potion builder runs, such as the Flame Deflector's shield or
+// the Scroll of Minor Evocation's mana: a major cooldown whenever the spec names it.
 func NewSpellDataOnUseConsumable(itemID int32) {
 	registerSpellDataConsumable(itemID, otherConsumable)
 }
@@ -42,7 +42,7 @@ const (
 
 // Why the consumable builders cannot run the spell, or nil where they can. Every effect has to land
 // on the user and be a heal, an absorb, a gain of mana, rage or energy, damage to the user, or an
-// aura the parser attaches.
+// aura the parser attaches, and the spell has to work outside a seated rest.
 func ConsumableUnsupported(row *spelldata.Spell) []string {
 	_, unsupported := consumablePartsOf(row)
 	return unsupported
@@ -109,6 +109,9 @@ func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
 		}
 	}
 
+	if row.WhileSeated() {
+		unsupported = append(unsupported, fmt.Sprintf("%d restores only while the user sits, out of combat", row.ID))
+	}
 	if parts.heal != nil && parts.absorb != nil {
 		unsupported = append(unsupported, "a heal beside an absorb")
 	}
