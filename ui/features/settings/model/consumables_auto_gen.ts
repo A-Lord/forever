@@ -1790,6 +1790,13 @@ export const SweetSurprise: GeneratedConsumable = {
 	actionId: ActionId.fromItemId(22239),
 };
 
+export const ConsecratedSharpeningStone: GeneratedConsumable = {
+	id: 23122,
+	type: ConsumableType.ConsumableTypeImbue,
+	actionId: ActionId.fromItemId(23122),
+	weaponSubclassMask: 1097203,
+};
+
 export const BubblyBeverage: GeneratedConsumable = {
 	id: 23164,
 	type: ConsumableType.ConsumableTypeOther,
@@ -3065,6 +3072,7 @@ export const IMBUE_CONSUMABLES: ReadonlyArray<GeneratedConsumable> = [
 	BrilliantManaOil,
 	BrilliantWizardOil,
 	WizardOil,
+	ConsecratedSharpeningStone,
 	ConductiveShieldCoating,
 	MagnificentTrollshine,
 	ScrollOfImbueLesserFlame,

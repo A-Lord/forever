@@ -31,6 +31,7 @@ func RegisterAllTemporaryEnchantConsumables() {
 	shared.NewTemporaryEnchantConsumable(20748)  // Brilliant Mana Oil
 	shared.NewTemporaryEnchantConsumable(20749)  // Brilliant Wizard Oil
 	shared.NewTemporaryEnchantConsumable(20750)  // Wizard Oil
+	shared.NewTemporaryEnchantConsumable(23122)  // Consecrated Sharpening Stone
 	shared.NewTemporaryEnchantConsumable(228980) // Conductive Shield Coating
 	shared.NewTemporaryEnchantConsumable(232611) // Magnificent Trollshine
 	shared.NewTemporaryEnchantConsumable(274947) // Scroll of Imbue Lesser Flame
