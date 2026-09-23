@@ -3,10 +3,8 @@ package core
 import (
 	"fmt"
 	"slices"
-	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // Registers all consume-related effects to the Agent.
@@ -18,37 +16,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 	}
 
 	selected := selectedConsumableIDs(consumables, partyBuffs)
-
-	// Gift of Arthas
-	if slices.Contains(selected, 9088) {
-		character.AddStat(stats.ShadowResistance, 10)
-		auras := character.NewEnemyAuraArray(func(target *Unit) *Aura {
-			return GiftOfArthasAura(target)
-		})
-		procSpell := character.RegisterSpell(SpellConfig{
-			ActionID:    ActionID{SpellID: 11374},
-			SpellSchool: SpellSchoolNature,
-			ProcMask:    ProcMaskEmpty,
-
-			FlatThreatBonus: 90,
-
-			ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
-				spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
-				auras.Get(target).Activate(sim)
-			},
-		})
-
-		character.MakeProcTriggerAura(ProcTrigger{
-			Name:       "Gift of Arthas - Trigger",
-			ICD:        time.Second * 3,
-			ProcChance: 0.3,
-			Outcome:    OutcomeLanded,
-			Callback:   CallbackOnSpellHitTaken,
-			Handler: func(sim *Simulation, spell *Spell, _ *SpellResult) {
-				procSpell.Cast(sim, spell.Unit)
-			},
-		})
-	}
 
 	applyTemporaryEnchants(character, consumables, partyBuffs)
 

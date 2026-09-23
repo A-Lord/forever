@@ -3,24 +3,19 @@
 package common_test
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 )
 
-// The consumables applyConsumeEffects handles itself rather than through a registration: Gift of
-// Arthas 9088.
-var consumablesAppliedInline = []int32{9088}
-
 // Every consumable db.json ships is one the sim applies: a hand-written or data-driven registration
-// for its id, or one applyConsumeEffects handles itself.
+// for its id.
 func TestEveryShippedConsumableIsRegistered(t *testing.T) {
 	registerAllEffects()
 
 	var missing []int32
 	for _, id := range core.ConsumableIDs() {
-		if !core.HasConsumableEffect(id) && !slices.Contains(consumablesAppliedInline, id) {
+		if !core.HasConsumableEffect(id) {
 			missing = append(missing, id)
 		}
 	}
