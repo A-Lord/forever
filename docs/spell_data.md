@@ -633,6 +633,9 @@ encounter's area set, and is stale once the row states a `RequiredAreasID` of it
 actives `shared.NewSimpleStatActive` registers read it; a proc chance the tooltip says is doubled has
 no reader yet.
 
+A consumable's spells take these overrides like any other spell's; the lists that add, remove or
+replace a consumable itself are in [Consumables](consumables.md).
+
 `tools/database/overrides/extra_spells.go` is the other hand-kept list: spells the generator
 force-includes although no class, item, enchant or set reaches them. It is empty today. Each entry
 states a reason and a source like an override, and the generator refuses one without a reason. The
