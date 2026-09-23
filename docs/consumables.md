@@ -14,6 +14,7 @@ not enough or not right, the effect is hand-written.
 - [Removing a consumable](#removing-a-consumable)
 - [Correcting a number](#correcting-a-number)
 - [Tests](#tests)
+- [What the settings offer](#what-the-settings-offer)
 - [The browser path](#the-browser-path)
 
 ## How a consumable gets into db.json
@@ -132,8 +133,10 @@ route as unsupported. `sim/common/forever/consumables_natural_flasks.go` registe
 still reads every number from its row:
 
 ```go
+var NaturalFlasks = []int32{274273, 274274, 274275, 274276}
+
 func init() {
-	for _, itemID := range []int32{274273, 274274, 274275, 274276} {
+	for _, itemID := range NaturalFlasks {
 		core.NewConsumableEffect(itemID, func(agent core.Agent) {
 			character := agent.GetCharacter()
 			consumable := core.GetConsumableByID(itemID)
@@ -157,6 +160,12 @@ amount as the later auras name it, as though every fight is in those zones; `A_M
 as a percent at four points of expertise each, since the text reads "5% reduced chance to be dodged or
 parried". A hand-written effect for an id a builder does register takes that registration's place;
 deleting the hand-written one hands the id back to the rows.
+
+The settings offer a consumable by the stats db.json lists for it, and the parser lists only the
+Stamina. `AddNaturalFlaskZoneBonusStats` (`tools/database/consumable_zone_bonus.go`) adds the bonus to
+each flask's db.json stats at the rating one percent takes (Accuracy 50 melee and spell hit rating,
+Aggression 56 melee and spell crit rating, Precision 50 expertise rating, Swiftness 50 melee and spell
+haste rating). The sim reads the rows, not those stats.
 
 ## Adding a consumable the rows do not support
 
@@ -227,18 +236,55 @@ should not take is a hand-written effect for the consumable.
   flasks have theirs in `sim/common/forever`.
 - The warrior suites select consumables from db.json; a regeneration that moves them shows up in their
   goldens.
+- `ui/sim/settings/consumables.test.ts` pins the pickers and the relevance rules below,
+  `ConsumesPicker/utils.test.ts` the settings rows, and `consumes_migration.test.ts` the migration of
+  settings saved before api version 17.
+
+## What the settings offer
+
+The settings render every consumable db.json ships from its own fields; nothing in the UI names a
+consumable. `ui/sim/settings/consumables.ts` puts each in a picker: on-use category 1153 is the conjured
+item, category 4 or `ConsumableTypePotion` the combat potion, then the flask, the two elixir pickers
+(`ConsumableTypeElixir`, Battle or Guardian), category 11 or 59 or `ConsumableTypeFood` the food, the
+explosive, the imbues and the pet's food. Everything else is picked any number at a time into the spec's
+`extra_ids`: the scrolls in their row, the rest in the miscellaneous row, and an explosive with a
+cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside the explosive picker. The
+pet's scrolls go into `pet_extra_ids`.
+
+`isConsumableRelevant` then decides whether the player sees it:
+
+- the class, profession and race the client allows it (`class_allowlist`, `required_profession`,
+  `allowable_race`);
+- a stat the spec weighs (its `epStats` and `consumableStats`; Stamina brings health and the
+  resistances, Attack Power flat physical damage), a resource it spends, or, for a consumable granting
+  neither, an effect of another kind (damage, an absorb, a weapon enchant);
+- for an imbue, the hand's item against the enchant's weapon subclass and inventory type masks, so a
+  shield coating shows on a shield.
+
+Of the ranks of one name (Scroll of Agility .. IV) the settings offer the highest numeral. The UI keeps
+the rows and their text, the flask and elixir exclusion, the Windfury Totem rule for the main-hand imbue
+and which specs have a pet. `Player.getConsumes(true)` sends the relevant potions and conjured items as
+the spec's lists.
+
+`gen_db -gen=db` writes `ui/features/settings/model/consumables_auto_gen.ts` in the same pass as db.json:
+one named export per shipped consumable (`MightyRagePotion`, with its id, type, `ActionId` and the
+fields above) and one list per type. Presets name consumables through it, so a preset cannot name one
+db.json does not ship. A name several items share takes each item's id (`MajorHealthstone9421`).
 
 ## The browser path
 
 `lib.wasm` is built without the database. Each request carries the consumables it needs in the player's
 `database`, which `extendPlayerProtoWithMissingEffects` (`ui/sim/proto/proto_migration.ts`) fills from
-the UI's db.json: every id field and the potion and conjured lists of the `ConsumesSpec`, and the item
-behind every flag it sets. The flags are `core.ConsumableFlags` in `sim/core/consumes.go` (Goblin Sapper
-Charge, the scrolls, Bogling Root and the pet's scrolls), which `gen_db -gen=go-to-ts` writes to
-`ui/sim/proto/consumable_flags_auto_gen.ts`, so the sim and the UI read one table. A consumable travels
-whole, its item effects and temporary enchant with it.
+the UI's db.json: every id field and every id list of the `ConsumesSpec` (the potions, the conjured
+items, `extra_ids` and `pet_extra_ids`). A consumable travels whole, its item effects and temporary
+enchant with it.
 
 `TestRequestCarriesEveryConsumableThePresetSelects` (`sim/common`) runs a warrior once with every
-consumable loaded and once with only those a request carries, and checks both apply the same;
-`proto_migration.test.ts` checks the UI collects each flag's item. A new flag goes into
-`core.ConsumableFlags`, then `make go-to-ts`.
+consumable loaded and once with only those a request carries, and checks both apply the same.
+
+Settings saved before api version 17 name the Goblin Sapper Charge, the scrolls, Bogling Root and the
+pet's scrolls by flags, and drums by an enum. `RemovedConsumesFields`
+(`tools/database/gen_consumable_flags_ts.go`) names each removed field with the item a set flag
+selected; `gen_db -gen=go-to-ts` writes it to `ui/sim/proto/consumable_flags_auto_gen.ts`, and
+`ui/sim/proto/consumes_migration.ts` turns a link's (binary, by field number) or a saved blob's (JSON,
+by name) flags into item ids.
