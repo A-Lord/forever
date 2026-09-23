@@ -1226,22 +1226,25 @@ func registerSpellDataOnUse(itemID int32, cdType core.CooldownType, spellConfig 
 		character := agent.GetCharacter()
 
 		for _, itemEffect := range onUseEffectsFor(itemID) {
-			row := spelldata.MustFind(itemEffect.BuffId)
-			config := spellConfig(character, row)
-			config.ActionID = core.ActionID{ItemID: itemID}
-
-			onUse := onUseCast(character, itemEffect)
-			config.Cast = spelldata.Cast(row)
-			config.Cast.CD, config.Cast.SharedCD = onUse.CD, onUse.SharedCD
-			config.Flags &^= core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete |
-				core.SpellFlagNoOnDamageDealt | core.SpellFlagProc
-
 			character.AddMajorCooldown(core.MajorCooldown{
-				Spell: character.RegisterSpell(config),
+				Spell: character.RegisterSpell(onUseSpellConfig(character, itemID, itemEffect, spellConfig)),
 				Type:  cdType,
 			})
 		}
 	})
+}
+
+func onUseSpellConfig(character *core.Character, itemID int32, itemEffect *proto.ItemEffect, spellConfig func(*core.Character, *spelldata.Spell) core.SpellConfig) core.SpellConfig {
+	row := spelldata.MustFind(itemEffect.BuffId)
+	config := spellConfig(character, row)
+	config.ActionID = core.ActionID{ItemID: itemID}
+
+	onUse := onUseCast(character, itemEffect)
+	config.Cast = spelldata.Cast(row)
+	config.Cast.CD, config.Cast.SharedCD = onUse.CD, onUse.SharedCD
+	config.Flags &^= core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete |
+		core.SpellFlagNoOnDamageDealt | core.SpellFlagProc
+	return config
 }
 
 func onUseEffectsFor(itemID int32) []*proto.ItemEffect {
