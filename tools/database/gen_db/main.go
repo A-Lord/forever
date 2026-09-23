@@ -210,6 +210,9 @@ func main() {
 
 	database.GenerateItemEffects(instance, db, dropSources)
 	database.GenerateEnchantEffects(instance, db)
+	if err := database.GenerateExplosiveEffects(instance); err != nil {
+		log.Fatalf("failed to generate the explosive registrations: %v", err)
+	}
 	database.GenerateMissingEffectsFile()
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 
