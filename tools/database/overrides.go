@@ -96,6 +96,7 @@ var ConsumableAllowList = []int32{
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
+	23122, // Consecrated Sharpening Stone, whose attack power against Undead sim/common registers by hand
 	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
 	274273, // Flask of Natural Accuracy
 	274274, // Flask of Natural Aggression

@@ -2,10 +2,7 @@ package core
 
 import (
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/stats"
 )
-
-const consecratedSharpeningStoneID = 23122
 
 // Puts the temporary enchant each imbue the spec names on its hand, where the enchant takes that
 // hand's weapon; the main hand's only without Windfury Totem. The consumable's registered effect
@@ -18,30 +15,12 @@ func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpe
 }
 
 func (character *Character) applyTemporaryEnchant(itemID int32, slot proto.ItemSlot) {
-	if itemID == consecratedSharpeningStoneID {
-		applyConsecratedSharpeningStone(character)
-		return
-	}
-
 	consumable := GetConsumableByID(itemID)
 	if consumable.TemporaryEnchant == nil || !consumable.TakesItem(character.Equipment[slot]) {
 		return
 	}
 	character.Equipment[slot].TempEnchant = consumable.TemporaryEnchant.EffectID
 	character.ItemSwap.AddTempEnchant(consumable.TemporaryEnchant.EffectID, slot, false)
-}
-
-// Its equip spell 28893 grants 99 melee and ranged attack power versus Undead, through auras the
-// enchant reading does not parse.
-func applyConsecratedSharpeningStone(character *Character) {
-	character.Env.RegisterPostFinalizeEffect(func() {
-		for _, at := range character.AttackTables {
-			at.MobTypeBonusStats[proto.MobType_MobTypeUndead] = at.MobTypeBonusStats[proto.MobType_MobTypeUndead].Add(stats.Stats{
-				stats.AttackPower:       99,
-				stats.RangedAttackPower: 99,
-			})
-		}
-	})
 }
 
 // Whether the temporary enchant's SpellEquippedItems masks take the item.

@@ -43,6 +43,35 @@ func NewVersusPotion(itemID int32) {
 	})
 }
 
+// A temporary enchant whose equip spell grants attack power against creature types, as a
+// hand-written effect: Consecrated Sharpening Stone 23122, whose enchant 2684 casts 28893. Each hand
+// core put the enchant on carries its own copy of the equip aura, so the bonus counts once per hand.
+func NewVersusTemporaryEnchant(itemID, equipSpellID int32) {
+	core.NewConsumableEffect(itemID, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		consumable := core.GetConsumableByID(itemID)
+		applyTemporaryEnchant(character, consumable)
+
+		hands := 0
+		for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
+			if consumable.TemporaryEnchant != nil && character.Equipment[slot].TempEnchant == consumable.TemporaryEnchant.EffectID {
+				hands++
+			}
+		}
+		if hands == 0 {
+			return
+		}
+
+		row := spelldata.MustFind(equipSpellID)
+		bonus := versusBonus(row, character.Level)
+		for mobType, granted := range bonus {
+			bonus[mobType] = granted.Multiply(float64(hands))
+		}
+		aura := character.GetOrRegisterAura(spelldata.AuraConfig(row, spelldata.Permanent()))
+		attachVersusBonus(character, aura, bonus)
+	})
+}
+
 func versusBonus(row *spelldata.Spell, level int32) map[proto.MobType]stats.Stats {
 	bonus := map[proto.MobType]stats.Stats{}
 	for i := range row.Effects {

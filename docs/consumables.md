@@ -120,8 +120,11 @@ cooldown up from the pull, and uses the item on its cooldown otherwise.
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
 on the potion's aura: 185 attack power and 108 spell damage against the creature types their misc
-value masks (4, Demon), for the row's 120 s, on category 4's 120 s timer.
-`consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
+value masks (4, Demon), for the row's 120 s, on category 4's 120 s timer. The same file registers
+Consecrated Sharpening Stone 23122 with `shared.NewVersusTemporaryEnchant`: core puts its enchant 2684
+on each hand whose weapon the masks take, and the enchant's equip spell 28893 grants 99 melee and 99
+ranged attack power against Undead once per such hand, since each weapon carries its own equip aura
+and 28893 marks no aura unique. `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
 
 `applyConsumeEffects` handles one thing itself: the pet's food, whose db.json stats go on the pet.
 
