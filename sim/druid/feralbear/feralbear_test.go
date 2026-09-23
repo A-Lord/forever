@@ -133,7 +133,7 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	BattleElixirId:   22831, // Elixir of Major Agility
 	GuardianElixirId: 9088,  // Gift of Arthas
 	FoodId:           27667, // Spicy Crawdad
-	ConjuredId:       22105, // Healthstone
+	ConjuredId:       9421,  // Major Healthstone
 	GoblinSapper:     true,
 	ScrollAgi:        true,
 	ScrollStr:        true,

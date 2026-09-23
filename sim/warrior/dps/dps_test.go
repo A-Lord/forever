@@ -84,7 +84,6 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:        22838,
 	FlaskId:      22854,
 	FoodId:       27658,
-	ConjuredId:   22788,
 	ExplosiveId:  18588,
 	GoblinSapper: true,
 	OhImbueId:    29453,

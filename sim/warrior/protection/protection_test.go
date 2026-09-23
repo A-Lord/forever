@@ -74,7 +74,7 @@ var DefaultProtectionTalents = "05--552531233311210531"
 var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:            22849,
 	FoodId:           27667,
-	ConjuredId:       22105,
+	ConjuredId:       9421,
 	ExplosiveId:      18588,
 	GoblinSapper:     true,
 	OhImbueId:        29453,
