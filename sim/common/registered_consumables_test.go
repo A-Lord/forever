@@ -9,9 +9,9 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-// The consumables applyConsumeEffects handles itself rather than through a registration: Potion of
-// Demonslaying 9224 and Gift of Arthas 9088.
-var consumablesAppliedInline = []int32{9224, 9088}
+// The consumables applyConsumeEffects handles itself rather than through a registration: Gift of
+// Arthas 9088.
+var consumablesAppliedInline = []int32{9088}
 
 // Every consumable db.json ships is one the sim applies: a hand-written or data-driven registration
 // for its id, or one applyConsumeEffects handles itself.

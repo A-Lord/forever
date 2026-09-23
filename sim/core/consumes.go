@@ -19,18 +19,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 
 	selected := selectedConsumableIDs(consumables, partyBuffs)
 
-	// Potion of Demonslaying, spell 11406: melee attack power and spell damage against demons.
-	if slices.Contains(selected, 9224) {
-		character.Env.RegisterPostFinalizeEffect(func() {
-			for _, at := range character.AttackTables {
-				at.MobTypeBonusStats[proto.MobType_MobTypeDemon] = at.MobTypeBonusStats[proto.MobType_MobTypeDemon].Add(stats.Stats{
-					stats.AttackPower: 185,
-					stats.SpellDamage: 108,
-				})
-			}
-		})
-	}
-
 	// Gift of Arthas
 	if slices.Contains(selected, 9088) {
 		character.AddStat(stats.ShadowResistance, 10)

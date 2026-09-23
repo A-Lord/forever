@@ -9,7 +9,7 @@ import (
 
 // Adds to the stats db.json lists for a consumable, which the settings offer it by, the attack power
 // and spell damage its on-use grants against one creature type: Potion of Demonslaying 9224 (11406)
-// lists none, and sim/core applies it by hand.
+// lists none, and sim/common registers it by hand.
 func AddVersusStats(db *WowDatabase) {
 	for _, consumable := range db.Consumables {
 		if len(consumable.ItemEffects) == 0 {

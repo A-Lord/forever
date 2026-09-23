@@ -101,7 +101,7 @@ data-driven ones, for one id panic. An id db.json does not carry registers nothi
 gen_db writes the data-driven registrations into `sim/common/forever`, one file per family, and
 `common.RegisterAllEffects` runs them. The explosive and potion files keep a consumable their builder
 refuses, commented out with the reason: Potion of Demonslaying 9224 ships through the allow list and
-is applied by hand.
+is registered by hand.
 
 | family                                                         | file                                 | builder                                      |
 | -------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
@@ -117,8 +117,13 @@ cooldown only as the spec's combat potion; a conjured item is one only as the sp
 other is one whenever the spec names it. The stat builder puts an aura that outlasts the item's
 cooldown up from the pull, and uses the item on its cooldown otherwise.
 
-`applyConsumeEffects` handles three things itself: Potion of Demonslaying 9224, Gift of Arthas 9088, and
-the pet's food, whose db.json stats go on the pet.
+`shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
+Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
+on the potion's aura: 185 attack power and 108 spell damage against the creature types their misc
+value masks (4, Demon), for the row's 120 s, on category 4's 120 s timer.
+
+`applyConsumeEffects` handles two things itself: Gift of Arthas 9088, and the pet's food, whose db.json
+stats go on the pet.
 
 ## Writing an effect by hand: the Natural flasks
 
@@ -229,8 +234,8 @@ should not take is a hand-written effect for the consumable.
 - `TestEveryConsumableIsRoutedOrListed` (`tools/database`) keeps the unsupported list above, and
   `TestConsumablesRouteByTheirSpell` pins consumables to their shapes.
 - `TestEveryShippedConsumableIsRegistered` (`sim/common`, `with_db`) fails with the ids of every db.json
-  consumable that has neither a hand-written nor a data-driven registration, other than 9224 and 9088,
-  which `applyConsumeEffects` handles itself. A consumable that routes to a shape no generator writes shows up
+  consumable that has neither a hand-written nor a data-driven registration, other than 9088, which
+  `applyConsumeEffects` handles itself. A consumable that routes to a shape no generator writes shows up
   here.
 - Each builder has unit tests beside it in `sim/common/shared` (`consumable_*_test.go`), and the Natural
   flasks have theirs in `sim/common/forever`.

@@ -1,0 +1,79 @@
+package shared
+
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
+// The auras granting a stat against the creature types their misc value masks, which the parser
+// does not attach.
+var versusAuras = map[dbcenums.EffectAuraType]stats.Stat{
+	dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS:  stats.AttackPower,
+	dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS: stats.RangedAttackPower,
+	dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS:   stats.SpellDamage,
+}
+
+// The mob type of each bit of a versus aura's creature type mask.
+var versusMobTypes = map[int32]proto.MobType{
+	1 << 0: proto.MobType_MobTypeBeast,
+	1 << 1: proto.MobType_MobTypeDragonkin,
+	1 << 2: proto.MobType_MobTypeDemon,
+	1 << 3: proto.MobType_MobTypeElemental,
+	1 << 4: proto.MobType_MobTypeGiant,
+	1 << 5: proto.MobType_MobTypeUndead,
+	1 << 6: proto.MobType_MobTypeHumanoid,
+	1 << 8: proto.MobType_MobTypeMechanical,
+}
+
+// A potion whose aura grants attack power or spell damage against creature types, as a
+// hand-written effect: Potion of Demonslaying 9224.
+func NewVersusPotion(itemID int32) {
+	auras := make([]dbcenums.EffectAuraType, 0, len(versusAuras))
+	for aura := range versusAuras {
+		auras = append(auras, aura)
+	}
+	registerSpellDataConsumable(itemID, potionConsumable, core.NewConsumableEffect, attachedAuras{
+		auras: auras,
+		attach: func(character *core.Character, aura *core.Aura, row *spelldata.Spell) {
+			attachVersusBonus(character, aura, versusBonus(row, character.Level))
+		},
+	})
+}
+
+func versusBonus(row *spelldata.Spell, level int32) map[proto.MobType]stats.Stats {
+	bonus := map[proto.MobType]stats.Stats{}
+	for i := range row.Effects {
+		e := &row.Effects[i]
+		stat, ok := versusAuras[e.Aura]
+		if e.Type != dbcenums.E_APPLY_AURA || !ok {
+			continue
+		}
+		var granted stats.Stats
+		granted[stat] = e.Average(level)
+		for bit, mobType := range versusMobTypes {
+			if e.Misc&bit != 0 {
+				bonus[mobType] = bonus[mobType].Add(granted)
+			}
+		}
+	}
+	return bonus
+}
+
+func attachVersusBonus(character *core.Character, aura *core.Aura, bonus map[proto.MobType]stats.Stats) {
+	aura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+		for _, at := range character.AttackTables {
+			for mobType, bonusStats := range bonus {
+				at.MobTypeBonusStats[mobType] = at.MobTypeBonusStats[mobType].Add(bonusStats)
+			}
+		}
+	}).ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
+		for _, at := range character.AttackTables {
+			for mobType, bonusStats := range bonus {
+				at.MobTypeBonusStats[mobType] = at.MobTypeBonusStats[mobType].Subtract(bonusStats)
+			}
+		}
+	})
+}

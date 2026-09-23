@@ -17,19 +17,19 @@ const alchemistsStoneSpellID int32 = 17619
 // A potion: the spell its on-use row casts on the drinker, on the item's cooldown and the category
 // it shares. Only the spec's combat potion is a major cooldown; the other potions are the rotation's.
 func NewSpellDataPotion(itemID int32) {
-	registerSpellDataConsumable(itemID, potionConsumable)
+	registerSpellDataConsumable(itemID, potionConsumable, core.NewDataDrivenConsumableEffect, attachedAuras{})
 }
 
 // A conjured item, a healthstone, mana gem, rune or tea, built the way a potion is. It is a major
 // cooldown the manager uses only while it is the spec's chosen one.
 func NewSpellDataConjured(itemID int32) {
-	registerSpellDataConsumable(itemID, conjuredConsumable)
+	registerSpellDataConsumable(itemID, conjuredConsumable, core.NewDataDrivenConsumableEffect, attachedAuras{})
 }
 
 // Any other consumable whose on-use the potion builder runs, such as the Flame Deflector's shield or
 // the Scroll of Minor Evocation's mana: a major cooldown whenever the spec names it.
 func NewSpellDataOnUseConsumable(itemID int32) {
-	registerSpellDataConsumable(itemID, otherConsumable)
+	registerSpellDataConsumable(itemID, otherConsumable, core.NewDataDrivenConsumableEffect, attachedAuras{})
 }
 
 type spellDataConsumableKind uint8
@@ -40,11 +40,17 @@ const (
 	otherConsumable
 )
 
+// Auras of the spell the parser does not attach, which attach puts on the consumable's aura.
+type attachedAuras struct {
+	auras  []dbcenums.EffectAuraType
+	attach func(*core.Character, *core.Aura, *spelldata.Spell)
+}
+
 // Why the consumable builders cannot run the spell, or nil where they can. Every effect has to land
 // on the user and be a heal, an absorb, a gain of mana, rage or energy, damage to the user, or an
 // aura the parser attaches, and the spell has to work outside a seated rest.
 func ConsumableUnsupported(row *spelldata.Spell) []string {
-	_, unsupported := consumablePartsOf(row)
+	_, unsupported := consumablePartsOf(row, nil)
 	return unsupported
 }
 
@@ -54,9 +60,14 @@ type consumableParts struct {
 	gains      []*spelldata.Effect
 	selfDamage *spelldata.Effect
 	auraIdx    []int32
+	attached   bool
 }
 
-func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
+func (parts consumableParts) hasAura() bool {
+	return len(parts.auraIdx) > 0 || parts.attached
+}
+
+func consumablePartsOf(row *spelldata.Spell, attached []dbcenums.EffectAuraType) (consumableParts, []string) {
 	var parts consumableParts
 	var unsupported []string
 	if row == spelldata.Nil {
@@ -99,6 +110,8 @@ func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
 			parts.selfDamage = e
 		case e.ParsedAura():
 			parts.auraIdx = append(parts.auraIdx, int32(i+1))
+		case e.Type == dbcenums.E_APPLY_AURA && slices.Contains(attached, e.Aura):
+			parts.attached = true
 		default:
 			unsupported = append(unsupported, fmt.Sprintf("%s, which no consumable builder models", kind))
 		}
@@ -115,19 +128,19 @@ func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
 	if parts.heal != nil && parts.absorb != nil {
 		unsupported = append(unsupported, "a heal beside an absorb")
 	}
-	if len(parts.auraIdx) > 0 && row.DurationMs <= 0 {
+	if parts.hasAura() && row.DurationMs <= 0 {
 		unsupported = append(unsupported, fmt.Sprintf("%d states no duration for its aura", row.ID))
 	}
 	return parts, unsupported
 }
 
-func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind) {
-	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
+func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, register func(int32, core.ApplyEffect), attached attachedAuras) {
+	register(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
 		itemEffect := consumableOnUse(consumable)
 		row := spelldata.MustFind(itemEffect.BuffId)
-		parts, unsupported := consumablePartsOf(row)
+		parts, unsupported := consumablePartsOf(row, attached.auras)
 		if len(unsupported) > 0 {
 			panic(fmt.Sprintf("consumable %d casts %d, which the builder cannot run: %v", itemID, row.ID, unsupported))
 		}
@@ -166,9 +179,14 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind) {
 
 		cdType := core.CooldownTypeUnknown
 		var applyAura func(*core.Simulation)
-		if len(parts.auraIdx) > 0 {
+		if parts.hasAura() {
 			aura := character.GetOrRegisterAura(spelldata.AuraConfig(row))
-			spelldata.ParseEffects(character, aura, row, spelldata.Effects(parts.auraIdx...))
+			if len(parts.auraIdx) > 0 {
+				spelldata.ParseEffects(character, aura, row, spelldata.Effects(parts.auraIdx...))
+			}
+			if parts.attached {
+				attached.attach(character, aura, row)
+			}
 			config.RelatedSelfBuff = aura
 			applyAura = func(sim *core.Simulation) { aura.Activate(sim) }
 			cdType = (&core.StatBuffAura{BuffedStatTypes: consumable.Stats.GetBuffedStatTypes()}).InferCDType()
@@ -197,7 +215,7 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind) {
 			}
 		}
 
-		if parts.heal == nil && parts.absorb == nil && len(parts.auraIdx) == 0 && len(gains) == 0 {
+		if parts.heal == nil && parts.absorb == nil && !parts.hasAura() && len(gains) == 0 {
 			return
 		}
 
@@ -230,7 +248,7 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind) {
 
 		consumables := character.Consumables
 		mcd := core.MajorCooldown{Spell: spell, Type: cdType}
-		if parts.heal == nil && parts.absorb == nil && len(parts.auraIdx) == 0 {
+		if parts.heal == nil && parts.absorb == nil && !parts.hasAura() {
 			mcd.ShouldActivate = func(sim *core.Simulation, character *core.Character) bool {
 				for i := range gains {
 					if !gains[i].fits() {
