@@ -75,8 +75,9 @@ func KeepConsumable(consumable *proto.Consumable) bool {
 }
 
 // Routes the spell the consumable's first on-use row casts: as damage, a heal or an absorb where the
-// on-use routing takes it, and otherwise by the first of its effects, or of the spells it triggers on the
-// user, that fits a consumable shape.
+// on-use routing takes it, and otherwise by the first of its effects, or of the spells it triggers on
+// the user, that fits a consumable shape. A heal, an absorb or a gain of a resource is supported only
+// where the potion builder runs the spell.
 func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 	routing := &ConsumableRouting{ItemID: c.Id}
 	onUses := c.OnUseEffects()
@@ -94,6 +95,7 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 		return routing
 	case onUse.Supported() && onUse.Heal:
 		routing.Kind = ConsumableHeal
+		routing.Unsupported = shared.ConsumableUnsupported(spelldata.Find(routing.SpellID))
 		return routing
 	case onUse.Absorb:
 		routing.Kind = ConsumableAbsorb
@@ -117,7 +119,7 @@ func consumableShape(c *dbc.Consumable, s *spelldata.Spell) (ConsumableKind, []s
 		case !landsOnTheUser(e):
 		case e.Type == dbcenums.E_ENERGIZE, e.Type == dbcenums.E_ENERGIZE_PCT,
 			e.Aura == dbcenums.A_PERIODIC_ENERGIZE, e.Aura == dbcenums.A_OBS_MOD_POWER:
-			return ConsumableEnergize, nil
+			return ConsumableEnergize, shared.ConsumableUnsupported(s)
 		case e.Aura == dbcenums.A_SCHOOL_ABSORB:
 			return ConsumableAbsorb, []string{fmt.Sprintf("%d absorbs damage, which no builder takes from the rows", e.SpellID)}
 		case e.Aura == dbcenums.A_MOD_PERCENT_STAT, e.Aura == dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE:

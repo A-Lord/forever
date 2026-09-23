@@ -37,8 +37,8 @@ func OnUseCategory(c *proto.Consumable) int32 {
 }
 
 // Writes the registration of every potion and conjured item db.json ships, by the category its on-use
-// shares, and of every other consumable whose on-use routes as an absorb, to
-// sim/common/forever/consumables_potions_auto_gen.go. One the builder cannot run is left commented
+// shares, and of every other consumable whose on-use routes as a heal, an absorb or a gain of a
+// resource, to sim/common/forever/consumables_potions_auto_gen.go. One the builder cannot run is left commented
 // out with the reason.
 func GeneratePotionAndConjuredEffects(instance *dbc.DBC, db *WowDatabase) {
 	type entry struct {
@@ -60,10 +60,12 @@ func GeneratePotionAndConjuredEffects(instance *dbc.DBC, db *WowDatabase) {
 			if !ok {
 				continue
 			}
-			if RouteConsumable(&consumable, instance).Kind != ConsumableAbsorb {
+			switch RouteConsumable(&consumable, instance).Kind {
+			case ConsumableHeal, ConsumableAbsorb, ConsumableEnergize:
+				constructor = "NewSpellDataOnUseConsumable"
+			default:
 				continue
 			}
-			constructor = "NewSpellDataOnUseConsumable"
 		}
 
 		e := entry{id: c.Id, name: c.Name, constructor: constructor}

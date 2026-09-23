@@ -42,6 +42,7 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 		{20452, ConsumableStatAura},          // Smoked Desert Dumplings, Well Fed through 1248401: 1248422
 		{13457, ConsumableAbsorb},            // Greater Fire Protection Potion: 17543
 		{4376, ConsumableAbsorb},             // Flame Deflector: 4057
+		{213564, ConsumableEnergize},         // Scroll of Minor Evocation: 434851
 	} {
 		consumable, ok := instance.Consumables[tc.itemID]
 		if !ok {
@@ -72,6 +73,9 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 		{9088, ConsumableStatAura, "11371's A_PROC_TRIGGER_SPELL is not parsed"},      // Gift of Arthas
 		{274273, ConsumableStatAura, "1293740 states its zone bonus through A_DUMMY"}, // Flask of Natural Accuracy
 		{4953, ConsumableStatAura, "5021 rolls its health"},                           // Trogg Brew
+		{1401, ConsumableHeal, "833's mana comes in only while seated"},               // Green Tea Leaf
+		{4596, ConsumableHeal, "1244863's E_DUMMY is not modelled"},                   // Minor Discolored Healing Potion
+		{20388, ConsumableEnergize, "24707 restores only while seated"},               // Lollipop
 	} {
 		consumable := instance.Consumables[tc.itemID]
 		if routing := RouteConsumable(&consumable, instance); routing.Supported() || routing.Kind != tc.kind {
