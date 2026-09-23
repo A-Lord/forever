@@ -220,8 +220,8 @@ should not take is a hand-written effect for the consumable.
 - `TestEveryConsumableIsRoutedOrListed` (`tools/database`) keeps the unsupported list above, and
   `TestConsumablesRouteByTheirSpell` pins consumables to their shapes.
 - `TestEveryShippedConsumableIsRegistered` (`sim/common`, `with_db`) fails with the ids of every db.json
-  consumable that has neither a hand-written nor a data-driven registration, other than the two
-  `applyConsumeEffects` handles itself. A consumable that routes to a shape no generator writes shows up
+  consumable that has neither a hand-written nor a data-driven registration, other than 9224 and 9088,
+  which `applyConsumeEffects` handles itself. A consumable that routes to a shape no generator writes shows up
   here.
 - Each builder has unit tests beside it in `sim/common/shared` (`consumable_*_test.go`), and the Natural
   flasks have theirs in `sim/common/forever`.
