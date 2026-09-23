@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
@@ -43,6 +44,32 @@ func (r *ConsumableRouting) Supported() bool {
 
 func (r *ConsumableRouting) Reason() string {
 	return strings.Join(r.Unsupported, "; ")
+}
+
+// Whether the catalogue's consumable goes into db.json: its spell routes to a shape, or
+// ConsumableAllowList or ConsumableOverrides names it. KeepConsumable runs after.
+func ShipsConsumable(routing *ConsumableRouting) bool {
+	id := int32(routing.ItemID)
+	return routing.Supported() || slices.Contains(ConsumableAllowList, id) ||
+		slices.ContainsFunc(ConsumableOverrides, func(c *proto.Consumable) bool { return c.Id == id })
+}
+
+// Whether a consumable in db.json survives the global filters. ConsumableAllowList keeps it,
+// ConsumableDenyList drops it, and so does a test or QA name.
+func KeepConsumable(consumable *proto.Consumable) bool {
+	if slices.Contains(ConsumableAllowList, consumable.Id) {
+		return true
+	}
+	if slices.Contains(ConsumableDenyList, consumable.Id) {
+		return false
+	}
+	for _, pattern := range DenyListNameRegexes {
+		if pattern.MatchString(consumable.Name) {
+			return false
+		}
+	}
+
+	return !strings.HasPrefix(consumable.Name, "QA") && !strings.HasPrefix(consumable.Name, "Test") && !strings.HasPrefix(consumable.Name, "TEST") && !strings.Contains(consumable.Name, "Flaskataur")
 }
 
 // Routes the spell the consumable's first on-use row casts: as damage or a heal where the on-use

@@ -181,7 +181,7 @@ func main() {
 	}
 
 	for _, consumable := range consumables {
-		if !database.RouteConsumable(&consumable, instance).Supported() && !slices.Contains(database.ConsumableAllowList, int32(consumable.Id)) {
+		if !database.ShipsConsumable(database.RouteConsumable(&consumable, instance)) {
 			continue
 		}
 		db.MergeConsumable(consumable.ToProto())
@@ -490,19 +490,7 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 	})
 
 	db.Consumables = core.FilterMap(db.Consumables, func(_ int32, consumable *proto.Consumable) bool {
-		if slices.Contains(database.ConsumableAllowList, consumable.Id) {
-			return true
-		}
-		if slices.Contains(database.ConsumableDenyList, consumable.Id) {
-			return false
-		}
-		for _, pattern := range database.DenyListNameRegexes {
-			if pattern.MatchString(consumable.Name) {
-				return false
-			}
-		}
-
-		return !strings.HasPrefix(consumable.Name, "QA") && !strings.HasPrefix(consumable.Name, "Test") && !strings.HasPrefix(consumable.Name, "TEST") && !strings.Contains(consumable.Name, "Flaskataur")
+		return database.KeepConsumable(consumable)
 	})
 }
 
