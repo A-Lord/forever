@@ -16,9 +16,6 @@ func AddVersusStats(db *WowDatabase) {
 			continue
 		}
 		row := spelldata.Find(consumable.ItemEffects[0].BuffId)
-		if row == nil {
-			continue
-		}
 		for i := range row.Effects {
 			e := &row.Effects[i]
 			var stat proto.Stat
