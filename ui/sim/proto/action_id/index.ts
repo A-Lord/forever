@@ -887,7 +887,6 @@ const petNameToActionId: Record<string, ActionId> = {
 	'Frozen Orb': ActionId.fromSpellId(84721),
 	Gargoyle: ActionId.fromSpellId(49206),
 	Ghoul: ActionId.fromSpellId(46584),
-	'Gnomish Flame Turret': ActionId.fromItemId(23841),
 	'Greater Earth Elemental': ActionId.fromSpellId(2062),
 	'Greater Fire Elemental': ActionId.fromSpellId(2894),
 	'Primal Earth Elemental': ActionId.fromSpellId(2062),

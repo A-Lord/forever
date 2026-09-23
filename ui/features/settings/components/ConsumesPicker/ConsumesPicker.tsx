@@ -70,11 +70,10 @@ export const ConsumesPicker = ({
 				</PickerGroup>
 			</ConsumeRow>
 			{encounterConsumes && (
-				<ConsumeRow name="engineering" configs={[configs.explosive, ConsumablesInputs.GoblinSapper, ConsumablesInputs.SuperSapper]}>
+				<ConsumeRow name="engineering" configs={[configs.explosive, ConsumablesInputs.GoblinSapper]}>
 					<PickerGroup variant="icons" className="justify-end" data-testid="consumes-engi">
 						<IconEnumPicker modObject={player} config={configs.explosive} />
 						<IconPicker modObject={player} config={ConsumablesInputs.GoblinSapper} />
-						<IconPicker modObject={player} config={ConsumablesInputs.SuperSapper} />
 					</PickerGroup>
 				</ConsumeRow>
 			)}

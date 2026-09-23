@@ -31,7 +31,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: 22105, // Healthstone
 	mhImbueId: 34340, // Adamantite Weightstone
 	goblinSapper: true,
-	superSapper: true,
 	scrollAgi: true,
 	scrollStr: true,
 	scrollArm: true,

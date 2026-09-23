@@ -94,11 +94,10 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: 27659, // Warp Burger
 	potId: 22838, // Haste Potion
 	conjuredId: 12662,
-	explosiveId: 30217,
+	explosiveId: 18588,
 	petFoodId: 33874, // Kibler's Bits
 	petScrollAgi: true,
 	petScrollStr: true,
-	superSapper: true,
 	goblinSapper: true,
 	scrollAgi: true,
 	scrollStr: true,

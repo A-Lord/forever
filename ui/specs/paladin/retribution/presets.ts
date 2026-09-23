@@ -25,11 +25,10 @@ export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: 22854,
 	foodId: 27658,
 	conjuredId: 12662,
-	superSapper: true,
 	goblinSapper: true,
 	scrollAgi: true,
 	scrollStr: true,
-	explosiveId: 30217,
+	explosiveId: 18588,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

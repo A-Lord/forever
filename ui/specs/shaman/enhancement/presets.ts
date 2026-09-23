@@ -34,8 +34,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: 27658, // Roasted Clefthoof
 	drumsId: Drums.LesserDrumsOfBattle,
 	conjuredId: 22788,
-	explosiveId: 30217,
-	superSapper: true,
+	explosiveId: 18588,
 	goblinSapper: true,
 	scrollAgi: true,
 	scrollStr: true,

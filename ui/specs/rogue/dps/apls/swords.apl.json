@@ -20,7 +20,6 @@
         {"action":{"condition":{"and":{"vals":[{"spellIsKnown":{"spellId":{"spellId":34413}}},{"or":{"vals":[{"cmp":{"op":"OpEq","lhs":{"currentComboPoints":{}},"rhs":{"const":{"val":"4"}}}},{"auraIsInactive":{"auraId":{"spellId":6774,"rank":2},"includeReactionTime":true}}]}},{"variableRef":{"name":"EA Fall Imminent"}}]}},"castSpell":{"spellId":{"spellId":5938,"rank":1}}}},
         {"action":{"condition":{"or":{"vals":[{"cmp":{"op":"OpLt","lhs":{"currentComboPoints":{}},"rhs":{"const":{"val":"5"}}}},{"variableRef":{"name":"At or Above Pool Threshold"}}]}},"castSpell":{"spellId":{"spellId":34413}}}},
         {"action":{"condition":{"and":{"vals":[{"not":{"val":{"spellIsKnown":{"spellId":{"spellId":26864}}}}},{"not":{"val":{"spellIsKnown":{"spellId":{"spellId":34413}}}}},{"not":{"val":{"variableRef":{"name":"Use Backstab"}}}},{"or":{"vals":[{"cmp":{"op":"OpLt","lhs":{"currentComboPoints":{}},"rhs":{"const":{"val":"5"}}}},{"variableRef":{"name":"At or Above Pool Threshold"}}]}}]}},"castSpell":{"spellId":{"spellId":26862,"rank":10}}}},
-        {"action":{"castSpell":{"spellId":{"itemId":23827}}}},
         {"action":{"castSpell":{"spellId":{"itemId":10646}}}}
       ],
       "groups": [

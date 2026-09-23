@@ -96,45 +96,18 @@ export const EzThroDynamiteTwo = {
 
 export const CrystalCharge = {
 	actionId: ActionId.fromItemId(11566),
-	value: 15239,
-};
-
-export const AdamantiteGrenade = {
-	actionId: ActionId.fromItemId(23737),
-	value: 30217,
-	showWhen: (player: Player<any>) => player.hasProfession(Profession.Engineering),
-};
-
-export const FelIronBomb = {
-	actionId: ActionId.fromItemId(23736),
-	value: 30216,
-	showWhen: (player: Player<any>) => player.hasProfession(Profession.Engineering),
-};
-
-export const GnomishFlameTurrent = {
-	actionId: ActionId.fromItemId(23841),
-	value: 30526,
-	showWhen: (player: Player<any>) => player.hasProfession(Profession.Engineering),
+	value: 11566,
 };
 
 export const EXPLOSIVE_CONFIG = [
-	{ config: AdamantiteGrenade, stats: [] },
-	{ config: FelIronBomb, stats: [] },
 	{ config: CrystalCharge, stats: [] },
 	{ config: EzThroDynamiteTwo, stats: [] },
-	// { config: GnomishFlameTurrent, stats: [] }, Excluding this thing for now because it's weird and I don't like it
 ] as ConsumableStatOption<number>[];
 export const makeExplosivesInput = makeConsumeInputFactory({ consumesFieldName: 'explosiveId' });
 
 export const GoblinSapper = makeBooleanConsumeInput({
 	actionId: ActionId.fromItemId(10646),
 	fieldName: 'goblinSapper',
-	showWhen: (player: Player<any>) => player.hasProfession(Profession.Engineering),
-});
-
-export const SuperSapper = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(23827),
-	fieldName: 'superSapper',
 	showWhen: (player: Player<any>) => player.hasProfession(Profession.Engineering),
 });
 

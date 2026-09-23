@@ -18,7 +18,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	mhImbueId: 34340, // Adamantite Weightstone
 	conjuredId: 12662, // Demonic Rune
 	drumsId: Drums.GreaterDrumsOfBattle,
-	superSapper: true,
 	goblinSapper: true,
 	scrollAgi: true,
 	scrollStr: true,

@@ -33,8 +33,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	potId: 22849, // Ironshield Potion
 	conjuredId: 12662, // Dark Rune
 	mhImbueId: 25122, // Brilliant Wizard Oil
-	explosiveId: 30217,
-	superSapper: true,
+	explosiveId: 18588,
 	goblinSapper: true,
 	nightmareSeed: true,
 	scrollStr: true,

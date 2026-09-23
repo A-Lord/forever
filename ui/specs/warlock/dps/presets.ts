@@ -37,7 +37,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: 12662, // Demonic Rune
 	mhImbueId: 25122, // Brilliant Wizard Oil
 	potId: 22839, // Destruction Potion
-	explosiveId: 30217,
+	explosiveId: 18588,
 	petScrollAgi: true,
 	petScrollStr: true,
 });
