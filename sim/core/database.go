@@ -123,6 +123,8 @@ type Consumable struct {
 	CategoryCooldownDuration time.Duration
 	CategoryId               int32
 	EffectIds                []int32
+	ItemEffects              []*proto.ItemEffect
+	RequiredProfession       proto.Profession
 }
 
 func ConsumableFromProto(consumable *proto.Consumable) Consumable {
@@ -137,6 +139,8 @@ func ConsumableFromProto(consumable *proto.Consumable) Consumable {
 		CategoryCooldownDuration: time.Second * time.Duration(consumable.CategoryCooldownDuration),
 		CategoryId:               consumable.CategoryId,
 		EffectIds:                consumable.EffectIds,
+		ItemEffects:              consumable.ItemEffects,
+		RequiredProfession:       consumable.RequiredProfession,
 	}
 }
 
@@ -445,6 +449,20 @@ func GetConsumableByID(id int32) Consumable {
 	c := consumablesByID[id]
 	dbMu.RUnlock()
 	return c
+}
+
+// The ids of every consumable of the type the database carries, in order.
+func ConsumableIDsOfType(consumableType proto.ConsumableType) []int32 {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	var ids []int32
+	for id, c := range consumablesByID {
+		if c.Type == consumableType {
+			ids = append(ids, id)
+		}
+	}
+	slices.Sort(ids)
+	return ids
 }
 
 func GetSpellEffectByID(id int32) *proto.SpellEffect {
