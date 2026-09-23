@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func TestSelectedConsumableIDs(t *testing.T) {
@@ -34,6 +35,15 @@ func TestSelectedConsumableIDs(t *testing.T) {
 	underWindfury := selectedConsumableIDs(consumes, &proto.PartyBuffs{WindfuryTotem: proto.TristateEffect_TristateEffectRegular})
 	if slices.Contains(underWindfury, 20749) {
 		t.Errorf("selected the main-hand imbue under Windfury Totem: %v", underWindfury)
+	}
+}
+
+func TestEveryConsumableFlagNamesABoolOfTheSpec(t *testing.T) {
+	fields := (&proto.ConsumesSpec{}).ProtoReflect().Descriptor().Fields()
+	for _, flag := range ConsumableFlags {
+		if field := fields.ByName(flag.Field); field == nil || field.Kind() != protoreflect.BoolKind {
+			t.Errorf("%s is not a bool field of ConsumesSpec", flag.Field)
+		}
 	}
 }
 

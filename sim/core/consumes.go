@@ -7,18 +7,34 @@ import (
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// The consumables the spec names by a bool: the highest rank of each scroll the client ships, and
-// Bogling Root.
-const (
-	scrollOfAgilityID    int32 = 10309
-	scrollOfStrengthID   int32 = 10310
-	scrollOfIntellectID  int32 = 10308
-	scrollOfSpiritID     int32 = 10306
-	scrollOfProtectionID int32 = 10305
-	boglingRootID        int32 = 5206
-)
+// A consumable the spec selects with a flag rather than an id. The pet's flags are the pet's.
+type ConsumableFlag struct {
+	Field  protoreflect.Name
+	ItemID int32
+	Pet    bool
+}
+
+// Goblin Sapper Charge, the highest rank of each scroll the client ships, and Bogling Root, by the
+// ConsumesSpec field that selects them. A request's database carries these items for its flags.
+var ConsumableFlags = []ConsumableFlag{
+	{"goblinSapper", 10646, false},
+	{"scroll_agi", 10309, false}, // Scroll of Agility IV
+	{"scroll_str", 10310, false}, // Scroll of Strength IV
+	{"scroll_int", 10308, false}, // Scroll of Intellect IV
+	{"scroll_spi", 10306, false}, // Scroll of Spirit IV
+	{"scroll_arm", 10305, false}, // Scroll of Protection IV
+	{"bogling_root", 5206, false},
+	{"pet_scroll_agi", 10309, true},
+	{"pet_scroll_str", 10310, true},
+}
+
+func (flag ConsumableFlag) IsSet(consumables *proto.ConsumesSpec) bool {
+	message := consumables.ProtoReflect()
+	return message.Get(message.Descriptor().Fields().ByName(flag.Field)).Bool()
+}
 
 // Registers all consume-related effects to the Agent.
 func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
@@ -83,11 +99,10 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 			continue
 		}
 
-		if consumables.PetScrollAgi {
-			pet.AddStats(GetConsumableByID(scrollOfAgilityID).Stats)
-		}
-		if consumables.PetScrollStr {
-			pet.AddStats(GetConsumableByID(scrollOfStrengthID).Stats)
+		for _, flag := range ConsumableFlags {
+			if flag.Pet && flag.IsSet(consumables) {
+				pet.AddStats(GetConsumableByID(flag.ItemID).Stats)
+			}
 		}
 		if consumables.PetFoodId != 0 {
 			petFood := GetConsumableByID(consumables.PetFoodId)
@@ -110,9 +125,6 @@ var consumableEffects = map[int32]ApplyEffect{}
 
 // The effects built from the consumables' rows. A hand-written effect for the same id wins.
 var dataDrivenConsumableEffects = map[int32]ApplyEffect{}
-
-// Goblin Sapper Charge, which the spec selects with a flag of its own.
-const goblinSapperItemID = 10646
 
 var missingConsumableEffects []int32
 
@@ -178,22 +190,9 @@ func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.Pa
 	if partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
 		ids = append(ids, consumables.MhImbueId)
 	}
-	if consumables.GoblinSapper {
-		ids = append(ids, goblinSapperItemID)
-	}
-	for _, named := range []struct {
-		id       int32
-		selected bool
-	}{
-		{scrollOfAgilityID, consumables.ScrollAgi},
-		{scrollOfStrengthID, consumables.ScrollStr},
-		{scrollOfIntellectID, consumables.ScrollInt},
-		{scrollOfSpiritID, consumables.ScrollSpi},
-		{scrollOfProtectionID, consumables.ScrollArm},
-		{boglingRootID, consumables.BoglingRoot},
-	} {
-		if named.selected {
-			ids = append(ids, named.id)
+	for _, flag := range ConsumableFlags {
+		if !flag.Pet && flag.IsSet(consumables) {
+			ids = append(ids, flag.ItemID)
 		}
 	}
 	ids = append(ids, consumables.Potions...)
