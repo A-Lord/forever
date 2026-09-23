@@ -1,6 +1,8 @@
 package core
 
 import (
+	"fmt"
+	"slices"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -151,4 +153,58 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 	registerConjuredCD(agent, consumables)
 	registerExplosivesCD(agent, consumables, drumsBombsSharedTimer)
 	registerDrumsCD(agent, consumables, drumsBombsSharedTimer)
+
+	for _, id := range selectedConsumableIDs(consumables, partyBuffs) {
+		if apply, ok := consumableEffects[id]; ok {
+			apply(agent)
+		}
+	}
+}
+
+var consumableEffects = map[int32]ApplyEffect{}
+
+var missingConsumableEffects []int32
+
+func HasConsumableEffect(id int32) bool {
+	_, ok := consumableEffects[id]
+	return ok
+}
+
+// MissingConsumableEffects reports the consumable ids whose effects were skipped because the loaded
+// database has no such consumable.
+func MissingConsumableEffects() []int32 { return missingConsumableEffects }
+
+// Registers an ApplyEffect function which will be called while the consumes are applied, for any
+// Agent whose ConsumesSpec names the id.
+func NewConsumableEffect(id int32, consumableEffect ApplyEffect) {
+	if WITH_DB && GetConsumableByID(id).Id == 0 {
+		missingConsumableEffects = append(missingConsumableEffects, id)
+		return
+	}
+
+	if HasConsumableEffect(id) {
+		panic(fmt.Sprintf("Cannot add multiple effects for one consumable: %d, %#v", id, consumableEffect))
+	}
+
+	consumableEffects[id] = consumableEffect
+}
+
+// The agent's own consumables the spec names, each once. The main-hand imbue is left out under
+// Windfury Totem, as the hand-written imbues are; the pet's food is the pet's.
+func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) []int32 {
+	ids := []int32{consumables.PotId, consumables.FlaskId, consumables.BattleElixirId, consumables.GuardianElixirId,
+		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}
+	if partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
+		ids = append(ids, consumables.MhImbueId)
+	}
+	ids = append(ids, consumables.Potions...)
+	ids = append(ids, consumables.ConjuredItems...)
+
+	var selected []int32
+	for _, id := range ids {
+		if id != 0 && !slices.Contains(selected, id) {
+			selected = append(selected, id)
+		}
+	}
+	return selected
 }
