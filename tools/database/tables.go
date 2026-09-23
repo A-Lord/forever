@@ -937,6 +937,16 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.ClassMask,
 		&consumable.RaceMask,
 		&consumable.RequiredSkill,
+		&consumable.TemporaryEnchant.ID,
+		&consumable.TemporaryEnchant.Effects[0],
+		&consumable.TemporaryEnchant.Effects[1],
+		&consumable.TemporaryEnchant.Effects[2],
+		&consumable.TemporaryEnchant.Points[0],
+		&consumable.TemporaryEnchant.Points[1],
+		&consumable.TemporaryEnchant.Points[2],
+		&consumable.TemporaryEnchant.Args[0],
+		&consumable.TemporaryEnchant.Args[1],
+		&consumable.TemporaryEnchant.Args[2],
 	)
 	if err != nil {
 		return consumable, fmt.Errorf("scanning consumable data: %w", err)
@@ -1022,7 +1032,11 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 				COALESCE(ie.CategoryCoolDownMSec, 0) as CategoryCooldownDuration,
 				s.AllowableClass,
 				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
-				s.RequiredSkill
+				s.RequiredSkill,
+				COALESCE(tsie.ID, 0),
+				COALESCE(tsie.Effect_0, 0), COALESCE(tsie.Effect_1, 0), COALESCE(tsie.Effect_2, 0),
+				COALESCE(tsie.EffectPointsMin_0, 0), COALESCE(tsie.EffectPointsMin_1, 0), COALESCE(tsie.EffectPointsMin_2, 0),
+				COALESCE(tsie.EffectArg_0, 0), COALESCE(tsie.EffectArg_1, 0), COALESCE(tsie.EffectArg_2, 0)
 			FROM Item i
 			JOIN ItemSparse s ON i.ID = s.ID
 			LEFT JOIN ItemXItemEffect ixie ON ixie.ItemID = i.ID
@@ -1031,6 +1045,14 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 			LEFT JOIN Spell sp ON ie.SpellID = sp.ID
 			LEFT JOIN SpellMisc sm ON ie.SpellId = sm.SpellID
 			LEFT JOIN SpellDuration sd ON sm.DurationIndex = sd.ID
+			LEFT JOIN SpellItemEnchantment tsie ON tsie.ID = (
+				SELECT tse.EffectMiscValue_0
+				FROM ItemXItemEffect tx
+				JOIN ItemEffect te ON te.ID = tx.ItemEffectID
+				JOIN SpellEffect tse ON tse.SpellID = te.SpellID
+				WHERE tx.ItemID = i.ID AND te.TriggerType = ` + strconv.Itoa(dbc.ITEM_SPELLTRIGGER_ON_USE) + `
+					AND tse.Effect = ` + strconv.Itoa(int(dbcenums.E_ENCHANT_ITEM_TEMPORARY)) + `
+				LIMIT 1)
 			WHERE (` + ConsumableItemFilter() + `) OR i.ID IN (` + allowList + `)
 			GROUP BY i.ID
 	`

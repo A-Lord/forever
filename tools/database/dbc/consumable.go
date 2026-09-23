@@ -26,6 +26,16 @@ type Consumable struct {
 	ClassMask                int
 	RaceMask                 int64
 	RequiredSkill            int
+	TemporaryEnchant         TemporaryEnchant
+}
+
+// The SpellItemEnchantment row a consumable's temporary enchant (Effect 54) applies, by its three
+// slots. ID is 0 when the consumable enchants nothing.
+type TemporaryEnchant struct {
+	ID      int
+	Effects [3]int
+	Points  [3]int
+	Args    [3]int
 }
 
 func (c *Consumable) ToMap() map[string]interface{} {

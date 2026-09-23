@@ -181,6 +181,9 @@ func main() {
 	}
 
 	for _, consumable := range consumables {
+		if !database.RouteConsumable(&consumable, instance).Supported() && !slices.Contains(database.ConsumableAllowList, int32(consumable.Id)) {
+			continue
+		}
 		db.MergeConsumable(consumable.ToProto())
 	}
 
@@ -493,39 +496,14 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 		if slices.Contains(database.ConsumableDenyList, consumable.Id) {
 			return false
 		}
-		if allZero(consumable.Stats) && !slices.Contains(statlessConsumableTypes, consumable.Type) {
-			return false
-		}
-
 		for _, pattern := range database.DenyListNameRegexes {
 			if pattern.MatchString(consumable.Name) {
 				return false
 			}
 		}
 
-		if consumable.Type == proto.ConsumableType_ConsumableTypeUnknown || consumable.Type == proto.ConsumableType_ConsumableTypeScroll {
-			return false
-		}
-
 		return !strings.HasPrefix(consumable.Name, "QA") && !strings.HasPrefix(consumable.Name, "Test") && !strings.HasPrefix(consumable.Name, "TEST") && !strings.Contains(consumable.Name, "Flaskataur")
 	})
-}
-
-// The types whose spell does something other than grant stats: a potion restores, an explosive
-// deals damage, an imbue enchants a weapon.
-var statlessConsumableTypes = []proto.ConsumableType{
-	proto.ConsumableType_ConsumableTypePotion,
-	proto.ConsumableType_ConsumableTypeExplosive,
-	proto.ConsumableType_ConsumableTypeImbue,
-}
-
-func allZero(stats []float64) bool {
-	for _, val := range stats {
-		if val != 0 {
-			return false
-		}
-	}
-	return true
 }
 
 // Filters out entities which shouldn't be included in the sim.
