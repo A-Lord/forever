@@ -12,4 +12,5 @@ func RegisterAllEffects() {
 	forever.RegisterAllEnchants()
 	forever.RegisterAllExplosives()
 	forever.RegisterPotionsAndConjured()
+	forever.RegisterAllTemporaryEnchantConsumables()
 }

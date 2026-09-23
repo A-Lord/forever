@@ -140,7 +140,7 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	BattleElixirId:   22831, // Elixir of Major Agility
 	GuardianElixirId: 32067, // Elixir of Draenic Wisdom
 	FoodId:           27664, // Grilled Mudfish
-	MhImbueId:        34340, // Adamantite Weightstone
+	MhImbueId:        12643, // Dense Weightstone
 	ConjuredId:       12662, // Demonic Rune
 	GoblinSapper:     true,
 	ScrollAgi:        true,

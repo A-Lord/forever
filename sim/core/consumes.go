@@ -93,13 +93,7 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		character.AddStats(food.Stats)
 	}
 
-	// Static Imbues
-	if consumables.MhImbueId != 0 && partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
-		registerStaticImbue(agent, consumables.MhImbueId)
-	}
-	if consumables.OhImbueId != 0 {
-		registerStaticImbue(agent, consumables.OhImbueId)
-	}
+	applyTemporaryEnchants(character, consumables, partyBuffs)
 
 	// Scrolls
 	if consumables.ScrollAgi {

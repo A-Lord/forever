@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	adamantiteSharpeningStoneID int32 = 29453
-	adamantiteWeightstoneID     int32 = 34340
+	denseSharpeningStoneID int32 = 12404
+	denseWeightstoneID     int32 = 12643
 )
 
 func isSharpWeaponType(wt proto.WeaponType) bool {
@@ -30,11 +30,11 @@ func isBluntWeaponType(wt proto.WeaponType) bool {
 	}
 }
 
-// adjustWeaponImbueID rewrites the Adamantite sharpening/weightstone pair to match the equipped
+// adjustWeaponImbueID rewrites the Dense sharpening/weightstone pair to match the equipped
 // weapon type; all other imbue ids pass through unchanged. Returns 0 when neither stone family is
 // valid for the weapon (no weapon, or a shield / offhand-only item).
 func adjustWeaponImbueID(imbueID int32, weapon *proto.ItemSpec) int32 {
-	if imbueID != adamantiteSharpeningStoneID && imbueID != adamantiteWeightstoneID {
+	if imbueID != denseSharpeningStoneID && imbueID != denseWeightstoneID {
 		return imbueID
 	}
 	if weapon == nil || weapon.Id == 0 {
@@ -45,10 +45,10 @@ func adjustWeaponImbueID(imbueID int32, weapon *proto.ItemSpec) int32 {
 		return 0
 	}
 	if isSharpWeaponType(item.WeaponType) {
-		return adamantiteSharpeningStoneID
+		return denseSharpeningStoneID
 	}
 	if isBluntWeaponType(item.WeaponType) {
-		return adamantiteWeightstoneID
+		return denseWeightstoneID
 	}
 	return 0
 }

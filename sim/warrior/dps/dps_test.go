@@ -86,7 +86,7 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:       27658,
 	ExplosiveId:  18588,
 	GoblinSapper: true,
-	OhImbueId:    29453,
+	OhImbueId:    12404,
 	ScrollAgi:    true,
 	ScrollStr:    true,
 }

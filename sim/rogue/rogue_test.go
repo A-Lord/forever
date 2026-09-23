@@ -66,5 +66,4 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:     33872,
 	PotId:      22838,
 	ConjuredId: 7676,
-	OhImbueId:  27186,
 }

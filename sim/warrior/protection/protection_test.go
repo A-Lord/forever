@@ -77,7 +77,7 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	ConjuredId:       9421,
 	ExplosiveId:      18588,
 	GoblinSapper:     true,
-	OhImbueId:        29453,
+	OhImbueId:        12404,
 	ScrollAgi:        true,
 	ScrollStr:        true,
 	ScrollArm:        true,

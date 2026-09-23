@@ -214,6 +214,7 @@ func main() {
 		log.Fatalf("failed to generate the explosive registrations: %v", err)
 	}
 	database.GeneratePotionAndConjuredEffects(db)
+	database.GenerateTemporaryEnchantConsumables(db)
 	database.GenerateMissingEffectsFile()
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 

@@ -2,6 +2,7 @@ package druid
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 )
 
 type DruidForm uint8
@@ -48,10 +49,11 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 }
 
 func (druid *Druid) weaponImbueFlatDamage() float64 {
-	if druid.Consumables.MhImbueId == 34340 { // Adamantite Weightstone
-		return 12
+	imbue := core.GetConsumableByID(druid.Consumables.MhImbueId)
+	if imbue.TemporaryEnchant == nil || !imbue.TakesItem(druid.Equipment[proto.ItemSlot_ItemSlotMainHand]) {
+		return 0
 	}
-	return 0
+	return imbue.TemporaryEnchant.WeaponDamage
 }
 
 func (druid *Druid) GetCatWeapon() core.Weapon {
