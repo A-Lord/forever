@@ -1,0 +1,127 @@
+package forever
+
+import "github.com/wowsims/forever/sim/common/shared"
+
+func RegisterAllExplosives() {
+	shared.NewSpellDataExplosive(1127)   // Flash Bundle
+	shared.NewSpellDataExplosive(1178)   // Explosive Rocket
+	shared.NewSpellDataExplosive(1399)   // Magic Candle
+	shared.NewSpellDataExplosive(1402)   // Brimstone
+	shared.NewSpellDataExplosive(4358)   // Rough Dynamite
+	shared.NewSpellDataExplosive(4360)   // Rough Copper Bomb
+	shared.NewSpellDataExplosive(4365)   // Coarse Dynamite
+	shared.NewSpellDataExplosive(4370)   // Large Copper Bomb
+	shared.NewSpellDataExplosive(4374)   // Small Bronze Bomb
+	shared.NewSpellDataExplosive(4378)   // Heavy Dynamite
+	shared.NewSpellDataExplosive(4380)   // Big Bronze Bomb
+	shared.NewSpellDataExplosive(4390)   // Iron Grenade
+	shared.NewSpellDataExplosive(4394)   // Big Iron Bomb
+	shared.NewSpellDataExplosive(4403)   // Portable Bronze Mortar
+	shared.NewSpellDataExplosive(4598)   // Goblin Fishing Pole
+	shared.NewSpellDataExplosive(5013)   // Fertile Bulb
+	shared.NewSpellDataExplosive(6714)   // Ez-Thro Dynamite
+	shared.NewSpellDataExplosive(10507)  // Solid Dynamite
+	shared.NewSpellDataExplosive(10514)  // Mithril Frag Bomb
+	shared.NewSpellDataExplosive(10562)  // Hi-Explosive Bomb
+	shared.NewSpellDataExplosive(10586)  // The Big One
+	shared.NewSpellDataExplosive(10646)  // Goblin Sapper Charge
+	shared.NewSpellDataExplosive(10830)  // M73 Frag Grenade
+	shared.NewSpellDataExplosive(11566)  // Crystal Charge
+	shared.NewSpellDataExplosive(13180)  // Stratholme Holy Water
+	shared.NewSpellDataExplosive(15993)  // Thorium Grenade
+	shared.NewSpellDataExplosive(16005)  // Dark Iron Bomb
+	shared.NewSpellDataExplosive(18588)  // Ez-Thro Dynamite II
+	shared.NewSpellDataExplosive(18641)  // Dense Dynamite
+	shared.NewSpellDataExplosive(22151)  // Anthion's Holy Water
+	shared.NewSpellDataExplosive(215127) // High-Yield Radiation Bomb
+	shared.NewSpellDataExplosive(217495) // Scroll of Cryoblast
+	shared.NewSpellDataExplosive(260792) // SAF-T Dynamite
+	shared.NewSpellDataExplosive(260793) // SAF-T Copper Bomb
+	shared.NewSpellDataExplosive(260795) // EZ-Thro Copper Bomb XL
+	shared.NewSpellDataExplosive(260797) // SAF-T Bronze Bomb
+	shared.NewSpellDataExplosive(260798) // SAF-T Jumbo Dynamite
+	shared.NewSpellDataExplosive(260803) // EZ-Thro Grenade
+	shared.NewSpellDataExplosive(260805) // SAF-T Bomb
+	shared.NewSpellDataExplosive(260809) // Tru-Trigger Frag Bomb
+	shared.NewSpellDataExplosive(260814) // SAF-T Clever Dynamite
+	shared.NewSpellDataExplosive(260816) // EZ-Thro Thorium Grenade
+	shared.NewSpellDataExplosive(260817) // EZ-Thro Dark Bomb
+	shared.NewSpellDataExplosive(276145) // Explosive Runeshard
+	shared.NewSpellDataExplosive(277499) // Scroll of Greater Cryoblast
+	shared.NewSpellDataExplosive(284868) // Holy Hand Grenade of Alterac
+
+	// unsupported: 8312 deals no damage and heals no one (A_MOD_ROOT)
+	// shared.NewSpellDataExplosive(835) // Large Rope Net
+	// unsupported: 5917 deals no damage and heals no one (A_MOD_HIT_CHANCE)
+	// shared.NewSpellDataExplosive(1191) // Bag of Marbles
+	// unsupported: 13424 deals no damage and heals no one (A_MOD_RESISTANCE, A_DISPEL_IMMUNITY, A_DISPEL_IMMUNITY)
+	// shared.NewSpellDataExplosive(1434) // Glowing Wax Stick
+	// unsupported: 689 deals no damage and heals no one (A_PERIODIC_LEECH)
+	// shared.NewSpellDataExplosive(2012) // Deprecated Phylactery of Rot
+	// unsupported: 1090 deals no damage and heals no one (A_MOD_STUN)
+	// shared.NewSpellDataExplosive(2091) // Magic Dust
+	// unsupported: 700 deals no damage and heals no one (A_MOD_STUN)
+	// shared.NewSpellDataExplosive(3434) // Slumber Sand
+	// unsupported: 4056 deals no damage and heals no one (E_OPEN_LOCK)
+	// shared.NewSpellDataExplosive(4367) // Small Seaforium Charge
+	// unsupported: 4074 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(4384) // Explosive Sheep
+	// unsupported: 4060 deals no damage and heals no one (A_TRANSFORM, A_MOD_DECREASE_SPEED, A_MOD_DAMAGE_DONE)
+	// shared.NewSpellDataExplosive(4388) // Discombobulator Ray
+	// unsupported: 4078 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(4391) // Compact Harvest Reaper Kit
+	// unsupported: 4100 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(4395) // Goblin Land Mine
+	// unsupported: 4075 deals no damage and heals no one (E_OPEN_LOCK)
+	// shared.NewSpellDataExplosive(4398) // Large Seaforium Charge
+	// unsupported: 5134 deals no damage and heals no one (A_MOD_FEAR)
+	// shared.NewSpellDataExplosive(4852) // Flash Bomb
+	// unsupported: 8312 deals no damage and heals no one (A_MOD_ROOT)
+	// shared.NewSpellDataExplosive(4941) // Really Sticky Glue
+	// unsupported: 6084 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(5332) // Glowing Cat Figurine
+	// unsupported: 8277 deals no damage and heals no one (A_MOD_DAMAGE_DONE)
+	// shared.NewSpellDataExplosive(5457) // Severed Voodoo Claw
+	// unsupported: 4074 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(10719) // Mobile Alarm
+	// unsupported: 15235 deals no damage and heals no one (A_MOD_RESISTANCE)
+	// shared.NewSpellDataExplosive(11565) // Crystal Yield
+	// unsupported: 29443 deals no damage and heals no one (E_INTERRUPT_CAST)
+	// shared.NewSpellDataExplosive(13509) // Clutch of Foresight
+	// unsupported: 19363 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(15778) // Mechanical Yeti
+	// unsupported: 19821 deals no damage and heals no one (E_POWER_BURN, A_MOD_SILENCE)
+	// shared.NewSpellDataExplosive(16040) // Arcane Bomb
+	// unsupported: 5917 deals no damage and heals no one (A_MOD_HIT_CHANCE)
+	// shared.NewSpellDataExplosive(18209) // Energized Sparkplug
+	// unsupported: 23008 deals no damage and heals no one (E_OPEN_LOCK)
+	// shared.NewSpellDataExplosive(18594) // Powerful Seaforium Charge
+	// unsupported: 26067 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(21325) // Mechanical Greench
+	// unsupported: 26374 deals no damage and heals no one (E_DUMMY)
+	// shared.NewSpellDataExplosive(21713) // Elune's Candle
+	// unsupported: 29305 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(23379) // Cinder Bracers
+	// unsupported: 398117 deals no damage and heals no one (A_MOD_DAMAGE_TAKEN)
+	// shared.NewSpellDataExplosive(202251) // Bag of Pet Treats
+	// unsupported: 435968's damage over time lands on an area, which the damage builder applies to one target
+	// shared.NewSpellDataExplosive(215168) // Ez-Thro Radiation Bomb
+	// unsupported: 446504 deals no damage and heals no one (E_OPEN_LOCK)
+	// shared.NewSpellDataExplosive(221325) // EZ-Splode Blasting Charge
+	// unsupported: 473544 deals no damage and heals no one (A_MOD_STEALTH, A_MOD_DECREASE_SPEED)
+	// shared.NewSpellDataExplosive(233217) // Tunneler's Incense
+	// unsupported: 1269265 deals no damage and heals no one (E_SUMMON)
+	// shared.NewSpellDataExplosive(260800) // Shafety Sheep
+	// unsupported: 1269337 deals no damage and heals no one (E_POWER_BURN, A_MOD_SILENCE)
+	// shared.NewSpellDataExplosive(260818) // EZ-Thro Mana Bomb
+	// unsupported: 8312 deals no damage and heals no one (A_MOD_ROOT)
+	// shared.NewSpellDataExplosive(274917) // Brittle Trap
+	// unsupported: 1297109 deals no damage and heals no one (A_MOD_FEAR)
+	// shared.NewSpellDataExplosive(275633) // Foxtail Ward
+	// unsupported: 1305116 deals no damage and heals no one (E_DUMMY, E_KILL_CREDIT, E_SEND_EVENT, E_SUMMON)
+	// shared.NewSpellDataExplosive(278543) // Pouch of Tomb Dust
+	// unsupported: 1310168 deals no damage and heals no one (E_TRIGGER_MISSILE)
+	// shared.NewSpellDataExplosive(281059) // Loose Clearcutter Blade
+	// unsupported: 1317269 deals no damage and heals no one (E_CREATE_ITEM)
+	// shared.NewSpellDataExplosive(284869) // Unsanctified Grenade
+}
