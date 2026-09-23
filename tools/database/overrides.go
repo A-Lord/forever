@@ -2,7 +2,6 @@ package database
 
 import (
 	"regexp"
-	"time"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -57,10 +56,7 @@ var IgnoreMissingEffectBySpellID = map[int]string{
 }
 
 var OtherItemIdsToFetch = []string{}
-var ConsumableOverrides = []*proto.Consumable{
-	{Id: 23334, CooldownDuration: int32(time.Hour.Seconds())}, // Cracked Power Core
-	{Id: 23381, CooldownDuration: int32(time.Hour.Seconds())}, // Chipped Power Core
-}
+var ConsumableOverrides = []*proto.Consumable{}
 
 // Empty: all 26 entries were TBC items absent from this client.
 var ItemOverrides = []*proto.UIItem{}
@@ -116,12 +112,6 @@ var ExtraItemIcons = []int32{
 
 	// Potions / In Battle Consumes
 	13442,
-	22105,
-	22788,
-	22828,
-	22837,
-	22838,
-	22849,
 
 	// Thistle Tea
 	7676,
@@ -142,11 +132,6 @@ var ConsumableAllowList = []int32{
 	13452, // Elixir of the Mongoose
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
-	22105, // Master Healthstone
-	22788, // Flamecap
-	22797, // Nightmare Seed
-	23334, // Cracked Power Core
-	23381, // Chipped Power Core
 	5206,  // Bogling Root
 }
 var ConsumableDenyList = []int32{}
