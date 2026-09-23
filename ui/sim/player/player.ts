@@ -54,15 +54,7 @@ import { migrateOldProto, ProtoConversionMap } from '../proto/proto_migration';
 import { specTypeFunctions, withSpec } from '../proto/spec_functions';
 import type { ClassOptions, ClassSpecs, SpecClasses, SpecOptions, SpecRotation, SpecTalents, SpecTypeFunctions } from '../proto/spec_types';
 import { Stats, UnitStat } from '../proto/stats';
-import {
-	ADAMANTITE_SHARPENING_STONE_ID,
-	ADAMANTITE_WEIGHTSTONE_ID,
-	AL_CATEGORY_HARD_MODE,
-	emptyUnitReference,
-	getTalentTreePoints,
-	newUnitReference,
-	raceToFaction,
-} from '../proto/utils';
+import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
 import { CONJURED_CONFIG, relevantConsumableOptions } from '../settings/conjured';
@@ -698,23 +690,10 @@ export class Player<SpecType extends Spec> {
 		return ConsumesSpec.clone(this.slice().consumables);
 	}
 
-	// Weapon stones grant their crit rating to a melee weapon only, but the back-end tracks a
-	// single physical crit rating stat shared by melee and ranged, so ranged stat displays have to
-	// offset them back out.
+	// The crit rating a melee weapon imbue grants, which ranged stat displays offset back out. No
+	// imbue in this client grants crit rating.
 	getRangedImbueStatOffsets(): Stats {
-		const isWeaponStone = (imbueId: number) => imbueId === ADAMANTITE_SHARPENING_STONE_ID || imbueId === ADAMANTITE_WEIGHTSTONE_ID;
-		const consumables = this.slice().consumables;
-		const party = this.getParty();
-		const mhImbueApplied = !party || party.getBuffs().windfuryTotem === TristateEffect.TristateEffectMissing;
-
-		let offsets = new Stats();
-		if (mhImbueApplied && isWeaponStone(consumables.mhImbueId)) {
-			offsets = offsets.addStat(Stat.StatMeleeCritRating, -14);
-		}
-		if (isWeaponStone(consumables.ohImbueId)) {
-			offsets = offsets.addStat(Stat.StatMeleeCritRating, -14);
-		}
-		return offsets;
+		return new Stats();
 	}
 
 	setConsumes(newConsumes: ConsumesSpec) {

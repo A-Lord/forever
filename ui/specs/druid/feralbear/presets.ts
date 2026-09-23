@@ -29,7 +29,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: 27667, // Spicy Crawdad
 	potId: 22849, // Ironshield Potion
 	conjuredId: 9421, // Major Healthstone
-	mhImbueId: 34340, // Adamantite Weightstone
+	mhImbueId: 12643, // Dense Weightstone
 	goblinSapper: true,
 	scrollAgi: true,
 	scrollStr: true,

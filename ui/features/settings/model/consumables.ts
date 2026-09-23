@@ -118,61 +118,45 @@ export const GoblinSapper = makeBooleanConsumeInput({
 // Oils
 export const ManaOil = {
 	actionId: ActionId.fromItemId(20748),
-	value: 25123,
+	value: 20748,
 };
 export const BrilWizardOil = {
 	actionId: ActionId.fromItemId(20749),
-	value: 25122,
+	value: 20749,
 };
 // Stones
-export const AdamantiteSharpeningStoneMH = {
-	actionId: ActionId.fromItemId(23529),
-	value: 29453,
+export const DenseSharpeningStoneMH = {
+	actionId: ActionId.fromItemId(12404),
+	value: 12404,
 	showWhen: (player: Player<any>) => player.getGear().hasSharpMHWeapon(),
 };
-export const AdamantiteWeightstoneMH = {
-	actionId: ActionId.fromItemId(28421),
-	value: 34340,
+export const DenseWeightstoneMH = {
+	actionId: ActionId.fromItemId(12643),
+	value: 12643,
 	showWhen: (player: Player<any>) => player.getGear().hasBluntMHWeapon(),
 };
 export const ConsecratedSharpeningStoneMH = {
 	actionId: ActionId.fromItemId(23122),
-	value: 28891,
+	value: 23122,
 	showWhen: (player: Player<any>) => player.getGear().hasMHWeapon(),
 };
 
-export const AdamantiteSharpeningStoneOH = {
-	actionId: ActionId.fromItemId(23529),
-	value: 29453,
+export const DenseSharpeningStoneOH = {
+	actionId: ActionId.fromItemId(12404),
+	value: 12404,
 	showWhen: (player: Player<any>) => player.getGear().hasSharpOHWeapon(),
 };
-export const AdamantiteWeightstoneOH = {
-	actionId: ActionId.fromItemId(28421),
-	value: 34340,
+export const DenseWeightstoneOH = {
+	actionId: ActionId.fromItemId(12643),
+	value: 12643,
 	showWhen: (player: Player<any>) => player.getGear().hasBluntOHWeapon(),
 };
 export const ConsecratedSharpeningStoneOH = {
 	actionId: ActionId.fromItemId(23122),
-	value: 28891,
+	value: 23122,
 	showWhen: (player: Player<any>) => player.getGear().hasOHWeapon(),
 };
 
-// Rogue Poisons
-export const RogueInstantPoison = {
-	actionId: ActionId.fromItemId(21927),
-	value: 26891,
-	showWhen: (player: Player<any>) => player.getClass() == Class.ClassRogue,
-};
-export const RogueDeadlyPoison = {
-	actionId: ActionId.fromItemId(22054),
-	value: 27186,
-	showWhen: (player: Player<any>) => player.getClass() == Class.ClassRogue,
-};
-export const RogueWoundPoison = {
-	actionId: ActionId.fromItemId(22055),
-	value: 27188,
-	showWhen: (player: Player<any>) => player.getClass() == Class.ClassRogue,
-};
 // Shaman Imbues
 export const ShamanImbueWindfury = {
 	actionId: ActionId.fromSpellId(25505),
@@ -200,12 +184,9 @@ export const ShamanImbueRockbiter = {
 export const IMBUE_CONFIG_MH = [
 	{ config: ManaOil, stats: [Stat.StatHealingPower] },
 	{ config: BrilWizardOil, stats: [Stat.StatSpellDamage, Stat.StatHealingPower] },
-	{ config: AdamantiteSharpeningStoneMH, stats: [Stat.StatAttackPower] },
-	{ config: AdamantiteWeightstoneMH, stats: [Stat.StatAttackPower] },
+	{ config: DenseSharpeningStoneMH, stats: [Stat.StatAttackPower] },
+	{ config: DenseWeightstoneMH, stats: [Stat.StatAttackPower] },
 	{ config: ConsecratedSharpeningStoneMH, stats: [Stat.StatAttackPower] },
-	{ config: RogueInstantPoison, stats: [] },
-	{ config: RogueDeadlyPoison, stats: [] },
-	{ config: RogueWoundPoison, stats: [] },
 	{ config: ShamanImbueRockbiter, stats: [] },
 	{ config: ShamanImbueFrostbrand, stats: [] },
 	{ config: ShamanImbueFlametongue, stats: [] },
@@ -215,12 +196,9 @@ export const IMBUE_CONFIG_MH = [
 export const IMBUE_CONFIG_OH = [
 	{ config: ManaOil, stats: [Stat.StatHealingPower] },
 	{ config: BrilWizardOil, stats: [Stat.StatSpellDamage, Stat.StatHealingPower] },
-	{ config: AdamantiteSharpeningStoneOH, stats: [Stat.StatAttackPower] },
-	{ config: AdamantiteWeightstoneOH, stats: [Stat.StatAttackPower] },
+	{ config: DenseSharpeningStoneOH, stats: [Stat.StatAttackPower] },
+	{ config: DenseWeightstoneOH, stats: [Stat.StatAttackPower] },
 	{ config: ConsecratedSharpeningStoneOH, stats: [Stat.StatAttackPower] },
-	{ config: RogueInstantPoison, stats: [] },
-	{ config: RogueDeadlyPoison, stats: [] },
-	{ config: RogueWoundPoison, stats: [] },
 	{ config: ShamanImbueRockbiter, stats: [] },
 	{ config: ShamanImbueFrostbrand, stats: [] },
 	{ config: ShamanImbueFlametongue, stats: [] },

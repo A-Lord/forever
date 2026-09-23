@@ -59,6 +59,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	drumsId: Drums.LesserDrumsOfBattle,
 	flaskId: 22861, // Flask of Blinding Light
 	foodId: 27657, // Blackened Basilisk
-	mhImbueId: 25122, // Brilliant Wizard Oil
+	mhImbueId: 20749, // Brilliant Wizard Oil
 	potId: 22839, // Destruction Potion
 });

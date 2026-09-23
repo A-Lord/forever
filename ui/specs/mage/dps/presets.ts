@@ -64,7 +64,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	guardianElixirId: 32067, // Elixir of Draenic Wisdom
 	battleElixirId: 28103, // Adept's Elixir
 	foodId: 27657, // Blackened Basilisk
-	mhImbueId: 25122, // Brilliant Wizard Oil
+	mhImbueId: 20749, // Brilliant Wizard Oil
 	potId: 22832, // Super Mana Potion
 });
 

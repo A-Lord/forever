@@ -47,7 +47,7 @@ const playerOf = (playerClass: Class, spec: Spec) =>
 const option = (value: number): ConsumableStatOption<number> => ({ stats: [], config: { actionId: ActionId.fromItemId(value), value } });
 
 const build = (player: Player<any>) =>
-	consumeConfigs(player, db, [] as Array<Stat>, [option(5512)], [option(89637)], [option(29453)], [option(29453)], [option(29529)]);
+	consumeConfigs(player, db, [] as Array<Stat>, [option(5512)], [option(89637)], [option(12404)], [option(12404)], [option(29529)]);
 
 // The zero entry every list is built with; the ids after it are what the config actually offers.
 const offered = (values: Array<{ value: number }>) => values.slice(1).map(entry => entry.value);
@@ -102,8 +102,8 @@ describe('consumeConfigs', () => {
 		expect(offered(configs.petFood.values)).toEqual([33874]);
 		expect(offered(configs.conjured.values)).toEqual([5512]);
 		expect(offered(configs.explosive.values)).toEqual([89637]);
-		expect(offered(configs.mhImbue.values)).toEqual([29453]);
-		expect(offered(configs.ohImbue.values)).toEqual([29453]);
+		expect(offered(configs.mhImbue.values)).toEqual([12404]);
+		expect(offered(configs.ohImbue.values)).toEqual([12404]);
 		expect(offered(configs.drums.values)).toEqual([29529]);
 	});
 });

@@ -15,7 +15,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	battleElixirId: 22831, // Elixir of Major Agility
 	guardianElixirId: 32067, // Elixir of Draenic Wisdom
 	foodId: 27664, // Grilled Mudfish (+20 Agility)
-	mhImbueId: 34340, // Adamantite Weightstone
+	mhImbueId: 12643, // Dense Weightstone
 	conjuredId: 12662, // Demonic Rune
 	drumsId: Drums.GreaterDrumsOfBattle,
 	goblinSapper: true,

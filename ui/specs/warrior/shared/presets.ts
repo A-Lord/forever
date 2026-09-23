@@ -43,7 +43,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: 27658,
 	explosiveId: 18588,
 	goblinSapper: true,
-	ohImbueId: 29453,
+	ohImbueId: 12404,
 	scrollAgi: true,
 	scrollStr: true,
 });

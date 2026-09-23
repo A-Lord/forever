@@ -20,7 +20,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: 33872,
 	potId: 22838,
 	conjuredId: 7676,
-	ohImbueId: 27186,
 });
 
 export const OtherDefaults = {

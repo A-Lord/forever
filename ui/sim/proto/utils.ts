@@ -94,15 +94,15 @@ export function getPlayerSpecFromPlayer<SpecType extends Spec>(player: Player): 
 	throw new Error('Unable to parse spec from player proto: ' + JSON.stringify(Player.toJson(player), null, 2));
 }
 
-export const ADAMANTITE_SHARPENING_STONE_ID = 29453;
-export const ADAMANTITE_WEIGHTSTONE_ID = 34340;
+export const DENSE_SHARPENING_STONE_ID = 12404;
+export const DENSE_WEIGHTSTONE_ID = 12643;
 
 // Returns the corrected imbue id for a slot given the equipped weapon's sharp/blunt eligibility.
-// Only rewrites the Adamantite sharpening/weightstone pair; all other imbue ids pass through unchanged.
+// Only rewrites the Dense sharpening/weightstone pair; all other imbue ids pass through unchanged.
 export function adjustWeaponImbueId(imbueId: number, hasSharp: boolean, hasBlunt: boolean): number {
-	if (imbueId !== ADAMANTITE_SHARPENING_STONE_ID && imbueId !== ADAMANTITE_WEIGHTSTONE_ID) return imbueId;
-	if (hasSharp) return ADAMANTITE_SHARPENING_STONE_ID;
-	if (hasBlunt) return ADAMANTITE_WEIGHTSTONE_ID;
+	if (imbueId !== DENSE_SHARPENING_STONE_ID && imbueId !== DENSE_WEIGHTSTONE_ID) return imbueId;
+	if (hasSharp) return DENSE_SHARPENING_STONE_ID;
+	if (hasBlunt) return DENSE_WEIGHTSTONE_ID;
 	return 0;
 }
 
