@@ -19,10 +19,14 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		OhImbueId:     12404,
 		ConjuredItems: []int32{7676},
 		PetFoodId:     33874,
+		ScrollAgi:     true,
+		ScrollArm:     true,
+		BoglingRoot:   true,
+		PetScrollStr:  true,
 	}
 
 	got := selectedConsumableIDs(consumes, &proto.PartyBuffs{})
-	want := []int32{13444, 13510, 238637, 18588, 12404, 20749, 10646, 13446, 7676}
+	want := []int32{13444, 13510, 238637, 18588, 12404, 20749, 10646, 10309, 10305, 5206, 13446, 7676}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}

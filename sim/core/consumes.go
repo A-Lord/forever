@@ -9,19 +9,16 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Scrolls share StatBuffCategory with the raid buffs granting the same stat, so a
-// scroll doesn't stack with e.g. Arcane Brilliance or Divine Spirit; only the
-// strongest source of that stat applies.
-func registerScrollAura(character *Character, label string, itemID int32, stat stats.Stat, amount float64) *Aura {
-	aura := character.GetOrRegisterAura(Aura{
-		Label:      label,
-		ActionID:   ActionID{ItemID: itemID},
-		Duration:   NeverExpires,
-		BuildPhase: CharacterBuildPhaseConsumes,
-	})
-	makeExclusiveFlatStatBuff(aura, stat, amount, StatBuffCategory)
-	return MakePermanent(aura)
-}
+// The consumables the spec names by a bool: the highest rank of each scroll the client ships, and
+// Bogling Root.
+const (
+	scrollOfAgilityID    int32 = 10309
+	scrollOfStrengthID   int32 = 10310
+	scrollOfIntellectID  int32 = 10308
+	scrollOfSpiritID     int32 = 10306
+	scrollOfProtectionID int32 = 10305
+	boglingRootID        int32 = 5206
+)
 
 // Registers all consume-related effects to the Agent.
 func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
@@ -29,11 +26,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 	consumables := character.Consumables
 	if consumables == nil {
 		return
-	}
-
-	if consumables.FlaskId != 0 {
-		flask := GetConsumableByID(consumables.FlaskId)
-		character.AddStats(flask.Stats)
 	}
 
 	if consumables.BattleElixirId != 0 {
@@ -47,9 +39,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 					})
 				}
 			})
-		} else {
-			elixir := GetConsumableByID(consumables.BattleElixirId)
-			character.AddStats(elixir.Stats)
 		}
 	}
 
@@ -83,45 +72,10 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 					procSpell.Cast(sim, spell.Unit)
 				},
 			})
-		} else {
-			elixir := GetConsumableByID(consumables.GuardianElixirId)
-			character.AddStats(elixir.Stats)
 		}
-	}
-	if consumables.FoodId != 0 {
-		food := GetConsumableByID(consumables.FoodId)
-		character.AddStats(food.Stats)
 	}
 
 	applyTemporaryEnchants(character, consumables, partyBuffs)
-
-	// Scrolls
-	if consumables.ScrollAgi {
-		registerScrollAura(character, "Scroll of Agility", 27498, stats.Agility, 20)
-	}
-	if consumables.ScrollStr {
-		registerScrollAura(character, "Scroll of Strength", 27503, stats.Strength, 20)
-	}
-	if consumables.ScrollInt {
-		registerScrollAura(character, "Scroll of Intellect", 27499, stats.Intellect, 20)
-	}
-	if consumables.ScrollSpi {
-		registerScrollAura(character, "Scroll of Spirit", 27501, stats.Spirit, 30)
-	}
-	if consumables.ScrollArm {
-		registerScrollAura(character, "Scroll of Protection", 27500, stats.Armor, 300)
-	}
-
-	// Bloodthistle (Blood Elf only): +10 spell damage and healing for 10 min.
-	if consumables.Bloodthistle && character.Race == proto.Race_RaceBloodElf {
-		character.AddStat(stats.SpellDamage, 10)
-		character.AddStat(stats.HealingPower, 10)
-	}
-
-	// Bogling Root: +1 physical damage for 10 min (item 5206, spell 5665).
-	if consumables.BoglingRoot {
-		character.AddStat(stats.PhysicalDamage, 1)
-	}
 
 	// Pet Consumes
 	for _, pet := range character.Pets {
@@ -130,10 +84,10 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		}
 
 		if consumables.PetScrollAgi {
-			pet.AddStat(stats.Agility, 20)
+			pet.AddStats(GetConsumableByID(scrollOfAgilityID).Stats)
 		}
 		if consumables.PetScrollStr {
-			pet.AddStat(stats.Strength, 20)
+			pet.AddStats(GetConsumableByID(scrollOfStrengthID).Stats)
 		}
 		if consumables.PetFoodId != 0 {
 			petFood := GetConsumableByID(consumables.PetFoodId)
@@ -217,7 +171,7 @@ func consumableInDatabase(id int32) bool {
 }
 
 // The agent's own consumables the spec names, each once. The main-hand imbue is left out under
-// Windfury Totem, as the hand-written imbues are; the pet's food is the pet's.
+// Windfury Totem, as the hand-written imbues are; the pet's food and scrolls are the pet's.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) []int32 {
 	ids := []int32{consumables.PotId, consumables.FlaskId, consumables.BattleElixirId, consumables.GuardianElixirId,
 		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}
@@ -226,6 +180,21 @@ func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.Pa
 	}
 	if consumables.GoblinSapper {
 		ids = append(ids, goblinSapperItemID)
+	}
+	for _, named := range []struct {
+		id       int32
+		selected bool
+	}{
+		{scrollOfAgilityID, consumables.ScrollAgi},
+		{scrollOfStrengthID, consumables.ScrollStr},
+		{scrollOfIntellectID, consumables.ScrollInt},
+		{scrollOfSpiritID, consumables.ScrollSpi},
+		{scrollOfProtectionID, consumables.ScrollArm},
+		{boglingRootID, consumables.BoglingRoot},
+	} {
+		if named.selected {
+			ids = append(ids, named.id)
+		}
 	}
 	ids = append(ids, consumables.Potions...)
 	ids = append(ids, consumables.ConjuredItems...)
