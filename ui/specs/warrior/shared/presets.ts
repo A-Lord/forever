@@ -41,8 +41,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: 22854,
 	foodId: 27658,
 	explosiveId: 18588,
-	goblinSapper: true,
 	ohImbueId: 12404,
-	scrollAgi: true,
-	scrollStr: true,
+	extraIds: [10646, 10309, 10310],
 });

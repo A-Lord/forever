@@ -81,12 +81,11 @@ var DefaultFuryTalents = "30305003-050530205052310051"
 var DefaultArmsTalents = "30305213032115201-05052030004"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:        22838,
-	FlaskId:      22854,
-	FoodId:       27658,
-	ExplosiveId:  18588,
-	GoblinSapper: true,
-	OhImbueId:    12404,
-	ScrollAgi:    true,
-	ScrollStr:    true,
+	PotId:       22838,
+	FlaskId:     22854,
+	FoodId:      27658,
+	ExplosiveId: 18588,
+	OhImbueId:   12404,
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
+	ExtraIds: []int32{10646, 10309, 10310},
 }

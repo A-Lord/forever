@@ -1,4 +1,4 @@
-import { Race } from '@generated/proto/common';
+import { Race, TristateEffect } from '@generated/proto/common';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost } from '@sim/testing';
 import { renderHook } from '@testing-library/react';
@@ -52,6 +52,22 @@ describe('useSavedSettings', () => {
 		const debuffs = load().entries[0].data.debuffs;
 		expect(debuffs?.judgementOfTheCrusader).toBe(true);
 		expect(debuffs).not.toHaveProperty('improvedSealOfTheCrusader');
+	});
+
+	it('keeps an entry whose consumables and party buffs carry the flags and drums of version 16', () => {
+		store({
+			Legacy: {
+				consumables: { explosiveId: 15239, mhImbueId: 25122, goblinSapper: true, scrollStr: true, drumsId: 'LesserDrumsOfBattle' },
+				partyBuffs: { drums: 'LesserDrumsOfBattle', windfuryTotem: 'TristateEffectRegular' },
+			},
+		});
+
+		const { entries } = load();
+		expect(entries.map(entry => entry.name)).toEqual(['Legacy']);
+		const { consumables, partyBuffs } = entries[0].data;
+		expect(consumables?.extraIds).toEqual([10646, 10310]);
+		expect([consumables?.explosiveId, consumables?.mhImbueId]).toEqual([11566, 20749]);
+		expect(partyBuffs?.windfuryTotem).toBe(TristateEffect.TristateEffectRegular);
 	});
 
 	it('does not drop the other entries of the slot', () => {

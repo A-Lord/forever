@@ -32,6 +32,16 @@ describe('migrateLegacySettingsJson', () => {
 		expect(migrateLegacySettingsJson(both)).toBe(both);
 	});
 
+	it('turns the consumables’ flags into item ids and drops the drums, beside the priest rename', () => {
+		const migrated = migrateLegacySettingsJson({
+			player: { priest: {}, consumables: { potId: 13444, goblinSapper: true, petScrollAgi: true, drumsId: 'LesserDrumsOfBattle' } },
+		}) as any;
+		expect(migrated.player.dpsPriest).toEqual({});
+		expect(migrated.player.consumables).toEqual({ potId: 13444, extraIds: [10646], petExtraIds: [10309] });
+		const proto = IndividualSimSettings.fromJson(migrated, { ignoreUnknownFields: true });
+		expect(proto.player?.consumables?.extraIds).toEqual([10646]);
+	});
+
 	it('parses text and migrates it, and still throws on invalid JSON', () => {
 		expect((parseLegacySettingsJson('{"player":{"priest":{}}}') as any).player.dpsPriest).toEqual({});
 		expect(() => parseLegacySettingsJson('{not json')).toThrow();

@@ -17,9 +17,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: 27664, // Grilled Mudfish (+20 Agility)
 	mhImbueId: 12643, // Dense Weightstone
 	conjuredId: 12662, // Demonic Rune
-	goblinSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
+	extraIds: [10646, 10309, 10310],
 });
 
 export const OtherDefaults = {

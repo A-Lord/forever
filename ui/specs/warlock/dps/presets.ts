@@ -38,8 +38,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	mhImbueId: 20749, // Brilliant Wizard Oil
 	potId: 22839, // Destruction Potion
 	explosiveId: 18588,
-	petScrollAgi: true,
-	petScrollStr: true,
+	petExtraIds: [10309, 10310],
 });
 
 export const OtherDefaults = {

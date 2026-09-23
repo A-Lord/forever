@@ -45,6 +45,7 @@ import { CURRENT_API_VERSION } from '../constants/other';
 import { SimSettingCategories } from '../constants/sim_settings';
 import type { PresetEpWeights } from '../presets/types';
 import { ActionId } from '../proto/action_id';
+import { migrateConsumesToItemIds } from '../proto/consumes_migration';
 import { Database } from '../proto/database';
 import { EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
 import { Gear, ItemSwapGear } from '../proto/gear';
@@ -1634,6 +1635,13 @@ export class Player<SpecType extends Spec> {
 						}
 					}
 
+					return oldProto;
+				},
+			],
+			[
+				17,
+				(oldProto: PlayerProto) => {
+					if (oldProto.consumables) migrateConsumesToItemIds(oldProto.consumables);
 					return oldProto;
 				},
 			],

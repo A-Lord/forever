@@ -19,8 +19,7 @@ func init() {
 }
 
 // The consumables a browser request carries for the spec, the way the UI's
-// extendPlayerProtoWithMissingEffects collects them: every id and enum field, the potion and
-// conjured lists, and the item behind each flag in core.ConsumableFlags.
+// extendPlayerProtoWithMissingEffects collects them: every id field and every id list.
 func requestConsumableIDs(consumables *proto.ConsumesSpec) []int32 {
 	var ids []int32
 	consumables.ProtoReflect().Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
@@ -31,16 +30,9 @@ func requestConsumableIDs(consumables *proto.ConsumesSpec) []int32 {
 			}
 		case field.Kind() == protoreflect.Int32Kind:
 			ids = append(ids, int32(value.Int()))
-		case field.Kind() == protoreflect.EnumKind:
-			ids = append(ids, int32(value.Enum()))
 		}
 		return true
 	})
-	for _, flag := range core.ConsumableFlags {
-		if flag.IsSet(consumables) {
-			ids = append(ids, flag.ItemID)
-		}
-	}
 	slices.Sort(ids)
 	return slices.Compact(ids)
 }
@@ -53,15 +45,11 @@ var requestPreset = &proto.ConsumesSpec{
 	GuardianElixirId: 13445, // Elixir of Superior Defense
 	FoodId:           20452, // Smoked Desert Dumplings
 	ExplosiveId:      18588, // Ez-Thro Dynamite II
-	GoblinSapper:     true,
 	MhImbueId:        12404, // Dense Sharpening Stone
 	OhImbueId:        12404,
-	ScrollAgi:        true,
-	ScrollStr:        true,
-	ScrollInt:        true,
-	ScrollSpi:        true,
-	ScrollArm:        true,
-	BoglingRoot:      true,
+	// Goblin Sapper Charge, Scrolls of Agility, Strength, Intellect, Spirit and Protection IV,
+	// Bogling Root
+	ExtraIds: []int32{10646, 10309, 10310, 10308, 10306, 10305, 5206},
 }
 
 type appliedConsumables struct {
@@ -109,7 +97,7 @@ func applyRequestPreset(t *testing.T) appliedConsumables {
 }
 
 // A browser runs the sim on the consumables its request carries, not the whole database. Every
-// consumable the preset selects, by id or by flag, applies there as it does with every consumable
+// consumable the preset selects applies there as it does with every consumable
 // loaded.
 func TestRequestCarriesEveryConsumableThePresetSelects(t *testing.T) {
 	registerAllEffects()

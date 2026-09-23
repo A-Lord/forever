@@ -76,12 +76,9 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:           27667,
 	ConjuredId:       9421,
 	ExplosiveId:      18588,
-	GoblinSapper:     true,
 	OhImbueId:        12404,
-	ScrollAgi:        true,
-	ScrollStr:        true,
-	ScrollArm:        true,
 	BattleElixirId:   22831,
 	GuardianElixirId: 9088,
-	NightmareSeed:    true,
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV, Scroll of Protection IV
+	ExtraIds: []int32{10646, 10309, 10310, 10305},
 }

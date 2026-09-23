@@ -52,12 +52,11 @@ func TestRetribution(t *testing.T) {
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:        22838,
-	FlaskId:      22854,
-	FoodId:       27658,
-	ConjuredId:   12662,
-	GoblinSapper: true,
-	ScrollAgi:    true,
-	ScrollStr:    true,
-	ExplosiveId:  18588,
+	PotId:       22838,
+	FlaskId:     22854,
+	FoodId:      27658,
+	ConjuredId:  12662,
+	ExplosiveId: 18588,
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
+	ExtraIds: []int32{10646, 10309, 10310},
 }

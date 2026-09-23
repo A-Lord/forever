@@ -30,11 +30,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	potId: 22849, // Ironshield Potion
 	conjuredId: 9421, // Major Healthstone
 	mhImbueId: 12643, // Dense Weightstone
-	goblinSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
-	scrollArm: true,
-	nightmareSeed: true,
+	extraIds: [10646, 10309, 10310, 10305],
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

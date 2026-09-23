@@ -33,9 +33,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: 22854, // Flask of Relentless Assault
 	foodId: 27658, // Roasted Clefthoof
 	explosiveId: 18588,
-	goblinSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
+	extraIds: [10646, 10309, 10310],
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({

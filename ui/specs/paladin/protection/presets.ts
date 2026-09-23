@@ -34,11 +34,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: 12662, // Dark Rune
 	mhImbueId: 20749, // Brilliant Wizard Oil
 	explosiveId: 18588,
-	goblinSapper: true,
-	nightmareSeed: true,
-	scrollStr: true,
-	scrollAgi: true,
-	scrollArm: true,
+	extraIds: [10646, 10310, 10309, 10305],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

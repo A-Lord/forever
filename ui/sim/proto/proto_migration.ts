@@ -4,7 +4,6 @@ import { Consumable } from '@generated/proto/db';
 import { SpellEffect } from '@generated/proto/spell';
 
 import { CURRENT_API_VERSION } from '../constants/other';
-import { CONSUMABLE_FLAG_ITEM_IDS } from './consumable_flags_auto_gen';
 import { Database } from './database';
 
 export const extendPlayerProtoWithMissingEffects = (playerProto: Player, db: Database) => {
@@ -13,11 +12,9 @@ export const extendPlayerProtoWithMissingEffects = (playerProto: Player, db: Dat
 	const seenConsumableIds = new Set<number>();
 	const seenEffectIds = new Set<number>();
 
-	const { potions = [], conjuredItems = [], ...consumables } = playerProto.consumables || {};
+	const { potions = [], conjuredItems = [], extraIds = [], petExtraIds = [], ...consumables } = playerProto.consumables || {};
 	const allConsumableIds = Object.values(consumables).filter((c): c is number => typeof c === 'number');
-	// A flag names no id, but the sim reads the item it selects from the database all the same.
-	const flaggedIds = CONSUMABLE_FLAG_ITEM_IDS.filter(([field]) => playerProto.consumables?.[field]).map(([, itemId]) => itemId);
-	const allConsumables = [...potions, ...conjuredItems, ...allConsumableIds, ...flaggedIds];
+	const allConsumables = [...potions, ...conjuredItems, ...extraIds, ...petExtraIds, ...allConsumableIds];
 
 	allConsumables.forEach((cid: number) => {
 		if (!cid || seenConsumableIds.has(cid)) return;

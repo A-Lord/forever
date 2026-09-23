@@ -7,34 +7,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
-
-// A consumable the spec selects with a flag rather than an id. The pet's flags are the pet's.
-type ConsumableFlag struct {
-	Field  protoreflect.Name
-	ItemID int32
-	Pet    bool
-}
-
-// Goblin Sapper Charge, the highest rank of each scroll the client ships, and Bogling Root, by the
-// ConsumesSpec field that selects them. A request's database carries these items for its flags.
-var ConsumableFlags = []ConsumableFlag{
-	{"goblinSapper", 10646, false},
-	{"scroll_agi", 10309, false}, // Scroll of Agility IV
-	{"scroll_str", 10310, false}, // Scroll of Strength IV
-	{"scroll_int", 10308, false}, // Scroll of Intellect IV
-	{"scroll_spi", 10306, false}, // Scroll of Spirit IV
-	{"scroll_arm", 10305, false}, // Scroll of Protection IV
-	{"bogling_root", 5206, false},
-	{"pet_scroll_agi", 10309, true},
-	{"pet_scroll_str", 10310, true},
-}
-
-func (flag ConsumableFlag) IsSet(consumables *proto.ConsumesSpec) bool {
-	message := consumables.ProtoReflect()
-	return message.Get(message.Descriptor().Fields().ByName(flag.Field)).Bool()
-}
 
 // Registers all consume-related effects to the Agent.
 func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
@@ -99,10 +72,8 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 			continue
 		}
 
-		for _, flag := range ConsumableFlags {
-			if flag.Pet && flag.IsSet(consumables) {
-				pet.AddStats(GetConsumableByID(flag.ItemID).Stats)
-			}
+		for _, id := range consumables.PetExtraIds {
+			pet.AddStats(GetConsumableByID(id).Stats)
 		}
 		if consumables.PetFoodId != 0 {
 			petFood := GetConsumableByID(consumables.PetFoodId)
@@ -180,18 +151,14 @@ func consumableInDatabase(id int32) bool {
 
 // The agent's own consumables the spec names, each once. The main-hand imbue is left out under
 // Windfury Totem, which applyTemporaryEnchants keeps off the main hand too; the pet's food and
-// scrolls are the pet's.
+// extra ids are the pet's.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) []int32 {
 	ids := []int32{consumables.PotId, consumables.FlaskId, consumables.BattleElixirId, consumables.GuardianElixirId,
 		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}
 	if partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
 		ids = append(ids, consumables.MhImbueId)
 	}
-	for _, flag := range ConsumableFlags {
-		if !flag.Pet && flag.IsSet(consumables) {
-			ids = append(ids, flag.ItemID)
-		}
-	}
+	ids = append(ids, consumables.ExtraIds...)
 	ids = append(ids, consumables.Potions...)
 	ids = append(ids, consumables.ConjuredItems...)
 

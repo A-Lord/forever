@@ -97,7 +97,6 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:     27657, // Blackened Basilisk
 	PotId:      22832, // Super Mana Potion
 	ConjuredId: 12662, // Dark Rune
-	ScrollStr:  true,
-	ScrollAgi:  true,
-	ScrollArm:  true,
+	// Scroll of Strength IV, Scroll of Agility IV, Scroll of Protection IV
+	ExtraIds: []int32{10310, 10309, 10305},
 }

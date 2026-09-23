@@ -95,11 +95,8 @@ export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: 12662,
 	explosiveId: 18588,
 	petFoodId: 33874, // Kibler's Bits
-	petScrollAgi: true,
-	petScrollStr: true,
-	goblinSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
+	extraIds: [10646, 10309, 10310],
+	petExtraIds: [10309, 10310],
 });
 
 export const OtherDefaults = {

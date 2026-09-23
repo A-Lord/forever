@@ -99,12 +99,12 @@ func TestElixirTakesEveryEffectAndTheDurationOfItsRow(t *testing.T) {
 func TestScrollIsExclusiveWithTheRaidBuffOfItsStat(t *testing.T) {
 	registerStatConsumable(t, scrollOfIntellectIVID)
 
-	if gain := statGain(&proto.ConsumesSpec{ScrollInt: true}, &proto.RaidBuffs{}); gain[stats.Intellect] != 16 {
+	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{scrollOfIntellectIVID}}, &proto.RaidBuffs{}); gain[stats.Intellect] != 16 {
 		t.Errorf("Scroll of Intellect IV adds %v Intellect, want 16", gain[stats.Intellect])
 	}
 
 	brilliance := &proto.RaidBuffs{ArcaneBrilliance: true}
-	if gain := statGain(&proto.ConsumesSpec{ScrollInt: true}, brilliance); gain[stats.Intellect] != 0 {
+	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{scrollOfIntellectIVID}}, brilliance); gain[stats.Intellect] != 0 {
 		t.Errorf("Scroll of Intellect IV adds %v Intellect under Arcane Brilliance, want 0", gain[stats.Intellect])
 	}
 }

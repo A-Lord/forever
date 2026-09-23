@@ -30,10 +30,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	battleElixirId: 22831,
 	guardianElixirId: 9088,
 	potId: 22849,
-	nightmareSeed: true,
-	scrollStr: true,
-	scrollAgi: true,
-	scrollArm: true,
+	extraIds: [10646, 10309, 10310, 10305],
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

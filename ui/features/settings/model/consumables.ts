@@ -1,11 +1,10 @@
-import { Class, ConsumesSpec, ItemSlot, Profession, Race, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Class, ConsumesSpec, ItemSlot, Profession, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import type { ConsumableOption } from '@sim/settings/conjured';
 import { batch } from '@sim/state/batch';
-import { makeBooleanConsumeInput } from '@ui-kit/icon_inputs';
 import { IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
 import * as InputHelpers from '@ui-kit/input_helpers';
 
@@ -78,6 +77,30 @@ function makeConsumeInputFactory<T extends number, SpecType extends Spec>(
 	};
 }
 
+export interface ExtraIdInputArgs {
+	itemId: number;
+	pet?: boolean;
+	showWhen?: (player: Player<any>) => boolean;
+}
+
+export function makeExtraIdInput({ itemId, pet = false, showWhen }: ExtraIdInputArgs): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
+	const field = pet ? 'petExtraIds' : 'extraIds';
+	return {
+		type: 'icon',
+		actionId: ActionId.fromItemId(itemId),
+		states: 2,
+		storeField: ['consumables', 'profession1', 'profession2'],
+		showWhen,
+		getValue: (player: Player<any>) => player.getConsumes()[field].includes(itemId),
+		setValue: (player: Player<any>, newValue: boolean) => {
+			const consumes = player.getConsumes();
+			const ids = consumes[field].filter(id => id !== itemId);
+			if (newValue) ids.push(itemId);
+			player.setConsumes({ ...consumes, [field]: ids });
+		},
+	};
+}
+
 ///////////////////////////////////////////////////////////////////////////
 //                                 CONJURED
 ///////////////////////////////////////////////////////////////////////////
@@ -104,9 +127,8 @@ export const EXPLOSIVE_CONFIG = [
 ] as ConsumableStatOption<number>[];
 export const makeExplosivesInput = makeConsumeInputFactory({ consumesFieldName: 'explosiveId' });
 
-export const GoblinSapper = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(10646),
-	fieldName: 'goblinSapper',
+export const GoblinSapper = makeExtraIdInput({
+	itemId: 10646,
 	showWhen: (player: Player<any>) => player.hasProfession(Profession.Engineering),
 });
 
@@ -223,15 +245,15 @@ export const makeOHImbueInput = makeConsumeInputFactory({
 //                                   PET
 ///////////////////////////////////////////////////////////////////////////
 
-export const PetScrollAgi = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27498),
-	fieldName: 'petScrollAgi',
+export const PetScrollAgi = makeExtraIdInput({
+	itemId: 10309,
+	pet: true,
 	showWhen: (player: Player<any>) => [Spec.SpecHunter, Spec.SpecWarlock, Spec.SpecDpsPriest].includes(player.getSpec()),
 });
 
-export const PetScrollStr = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27503),
-	fieldName: 'petScrollStr',
+export const PetScrollStr = makeExtraIdInput({
+	itemId: 10310,
+	pet: true,
 	showWhen: (player: Player<any>) => [Spec.SpecHunter, Spec.SpecWarlock, Spec.SpecDpsPriest].includes(player.getSpec()),
 });
 
@@ -239,33 +261,28 @@ export const PetScrollStr = makeBooleanConsumeInput({
 //                                 SCROLLS
 ///////////////////////////////////////////////////////////////////////////
 
-export const ScrollAgi = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27498),
-	fieldName: 'scrollAgi',
+export const ScrollAgi = makeExtraIdInput({
+	itemId: 10309,
 	showWhen: (player: Player<any>) => player.getEpWeights().getStat(Stat.StatAgility) > 0,
 });
 
-export const ScrollStr = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27503),
-	fieldName: 'scrollStr',
+export const ScrollStr = makeExtraIdInput({
+	itemId: 10310,
 	showWhen: (player: Player<any>) => player.getEpWeights().getStat(Stat.StatStrength) > 0,
 });
 
-export const ScrollInt = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27499),
-	fieldName: 'scrollInt',
+export const ScrollInt = makeExtraIdInput({
+	itemId: 10308,
 	showWhen: (player: Player<any>) => player.getEpWeights().getStat(Stat.StatIntellect) > 0,
 });
 
-export const ScrollSpi = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27501),
-	fieldName: 'scrollSpi',
+export const ScrollSpi = makeExtraIdInput({
+	itemId: 10306,
 	showWhen: (player: Player<any>) => player.getEpWeights().getStat(Stat.StatSpirit) > 0,
 });
 
-export const ScrollArm = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(27500),
-	fieldName: 'scrollArm',
+export const ScrollArm = makeExtraIdInput({
+	itemId: 10305,
 	showWhen: (player: Player<any>) => player.getEpWeights().getStat(Stat.StatArmor) > 0,
 });
 
@@ -273,21 +290,8 @@ export const ScrollArm = makeBooleanConsumeInput({
 //                            MISCELLANEOUS
 ///////////////////////////////////////////////////////////////////////////
 
-export const NightmareSeed = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(22797),
-	fieldName: 'nightmareSeed',
-	showWhen: (player: Player<any>) => player.getPlayerSpec().isTankSpec,
-});
-
-export const Bloodthistle = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(22710),
-	fieldName: 'bloodthistle',
-	showWhen: (player: Player<any>) => player.getRace() === Race.RaceBloodElf,
-});
-
-export const BoglingRoot = makeBooleanConsumeInput({
-	actionId: ActionId.fromItemId(5206),
-	fieldName: 'boglingRoot',
+export const BoglingRoot = makeExtraIdInput({
+	itemId: 5206,
 	showWhen: (player: Player<any>) => player.getEpWeights().getStat(Stat.StatAttackPower) > 0,
 });
 

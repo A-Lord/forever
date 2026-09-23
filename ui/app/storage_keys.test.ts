@@ -53,8 +53,9 @@ describe('the settings envelope version', () => {
 	// `updateProtoVersion` migrates anything below this. The golden capture recorded 14; 15 only
 	// renamed the shadow priest oneof, handled before parsing. 16 is the Forever talent rebuild,
 	// which has no converter on purpose -- a TBC talent string means nothing against a Forever
-	// tree -- so a pre-16 capture loads with its talents dropped rather than migrated.
+	// tree -- so a pre-16 capture loads with its talents dropped rather than migrated. 17 turned the
+	// consumables' flags into item ids and dropped the drums, migrated by Player.updateProtoVersion.
 	it('matches the version the settings envelope is stamped with', () => {
-		expect(CURRENT_API_VERSION).toBe(16);
+		expect(CURRENT_API_VERSION).toBe(17);
 	});
 });

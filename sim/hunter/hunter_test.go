@@ -104,9 +104,8 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	ConjuredId:       12662, // Demonic Rune
 	ExplosiveId:      18588, // Ez-Thro Dynamite II
 	PetFoodId:        33874, // Kibler's Bits
-	PetScrollAgi:     true,
-	PetScrollStr:     true,
-	GoblinSapper:     true,
-	ScrollAgi:        true,
-	ScrollStr:        true,
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
+	ExtraIds: []int32{10646, 10309, 10310},
+	// Scroll of Agility IV, Scroll of Strength IV
+	PetExtraIds: []int32{10309, 10310},
 }

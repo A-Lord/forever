@@ -82,7 +82,7 @@ func newExplosiveSim(t *testing.T, consumes *proto.ConsumesSpec, profession prot
 // 13241 rolls 600 with variance 0.5, 450 to 750, on every enemy around the thrower, each target rolling
 // its own, and 500 with variance 0.5, 375 to 625, on the thrower; the thrower's half is a spell of its own tagged 1, a harmful spell hit.
 func TestSapperDamagesEveryEnemyAndTheThrower(t *testing.T) {
-	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{GoblinSapper: true}, proto.Profession_Engineering, 3)
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExtraIds: []int32{goblinSapperID}}, proto.Profession_Engineering, 3)
 	sapper := onUseSpell(t, caster, goblinSapperID)
 	self := caster.GetSpell(core.ActionID{ItemID: goblinSapperID}.WithTag(1))
 	if self == nil {
@@ -123,7 +123,7 @@ func TestSapperDamagesEveryEnemyAndTheThrower(t *testing.T) {
 // Every explosive names category 24: using one puts the others out of reach for its 60 s, and the
 // sapper's own 5 min cooldown runs beside it.
 func TestExplosivesShareTheirCategoryCooldown(t *testing.T) {
-	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID, GoblinSapper: true}, proto.Profession_Engineering, 1)
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID, ExtraIds: []int32{goblinSapperID}}, proto.Profession_Engineering, 1)
 	sapper, dynamite := onUseSpell(t, caster, goblinSapperID), onUseSpell(t, caster, testDynamiteID)
 	target := sim.Encounter.ActiveTargetUnits[0]
 
@@ -196,7 +196,7 @@ func TestExplosiveNeedsTheProfessionItRequires(t *testing.T) {
 // 13241's half on the thrower lands however poor the thrower's hit, while the half on the enemies
 // rolls the hit table and, with no hit at all, misses.
 func TestSapperAlwaysHitsTheThrower(t *testing.T) {
-	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{GoblinSapper: true}, proto.Profession_Engineering, 1)
+	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExtraIds: []int32{goblinSapperID}}, proto.Profession_Engineering, 1)
 	caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -1000})
 	sapper := onUseSpell(t, caster, goblinSapperID)
 	self := caster.GetSpell(core.ActionID{ItemID: goblinSapperID}.WithTag(1))
