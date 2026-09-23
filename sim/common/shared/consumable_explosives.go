@@ -27,10 +27,16 @@ func NewSpellDataExplosive(itemID int32) {
 				config.ApplyEffects = withCasterDamage(character, config, self)
 			}
 
+			// An explosive with a cooldown of its own, such as the sapper, goes before the ones only the
+			// shared category holds back, which would otherwise delay it by that category's cooldown.
+			priority := int32(core.CooldownPriorityLow)
+			if itemEffect.GetOnUse().CooldownMs > 0 {
+				priority += 10
+			}
 			character.AddMajorCooldown(core.MajorCooldown{
 				Spell:    character.RegisterSpell(config),
 				Type:     core.CooldownTypeDPS | core.CooldownTypeExplosive,
-				Priority: core.CooldownPriorityLow,
+				Priority: priority,
 			})
 		}
 	})
