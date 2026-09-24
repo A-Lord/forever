@@ -1850,10 +1850,10 @@ applies the hand-written auras after the generated ones. The paladin's own aura 
 (`PaladinAuraRank`, `JudgementRank`) live in `sim/core/buffs/paladin.go` beside the generated
 categories they join. Each is built at the rank the paladin cast: `NewSpellDataDevotionAuraRank`
 beside the generated top rank `NewSpellDataDevotionAura`, and so for Concentration, Retribution and
-the three resistance auras; `NewSpellDataJudgementOfLightRankAura` and
-`NewSpellDataJudgementOfWisdomRankAura` beside the generated `NewSpellDataJudgementOfLightAura` and
-`NewSpellDataJudgementOfWisdomAura`; `NewSpellDataJudgementOfTheCrusaderAura` is the only builder of
-its debuff.
+the three resistance auras; `NewSpellDataJudgementOfLightRankAura`,
+`NewSpellDataJudgementOfWisdomRankAura` and `NewSpellDataJudgementOfTheCrusaderRankAura` beside the
+generated `NewSpellDataJudgementOfLightAura`, `NewSpellDataJudgementOfWisdomAura` and the commented
+shell `NewSpellDataJudgementOfTheCrusaderAura`.
 
 ### Drivers
 

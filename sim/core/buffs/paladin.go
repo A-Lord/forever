@@ -127,7 +127,7 @@ const judgementProcChance = 0.5
 // Judgement of the Crusader raises the Holy damage the target takes by a flat amount. Every rank
 // and every paladin share one exclusive category, so the strongest active one is the one that
 // counts.
-func NewSpellDataJudgementOfTheCrusaderAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfTheCrusaderRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
 	bonus := rank.Value
 	label := paladinRankName("Judgement of the Crusader", rank.Rank)
 	if target.HasAura(label) {
