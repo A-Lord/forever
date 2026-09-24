@@ -317,7 +317,6 @@ export const ScrollOfArcaneProtectionFireI = { id: 211955 };
 export const ScrollOfArcaneProtectionFrostI = { id: 211956 };
 export const ScrollOfArcanePowerI = { id: 211957 };
 export const ScrollOfMinorEvocation = { id: 213564 };
-export const UNUSEDFlaskOfMercilessPursuit = { id: 215126 };
 export const HighYieldRadiationBomb = { id: 215127 };
 export const EnchantedSigilInnovation = { id: 217308 };
 export const LesserArcaneElixir217398 = { id: 217398 };

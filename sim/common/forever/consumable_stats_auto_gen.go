@@ -181,7 +181,6 @@ func RegisterAllStatConsumables() {
 	shared.NewSpellDataStatConsumable(211955) // Scroll of Arcane Protection - Fire I
 	shared.NewSpellDataStatConsumable(211956) // Scroll of Arcane Protection - Frost I
 	shared.NewSpellDataStatConsumable(211957) // Scroll of Arcane Power I
-	shared.NewSpellDataStatConsumable(215126) // UNUSED Flask of Merciless Pursuit
 	shared.NewSpellDataStatConsumable(217308) // Enchanted Sigil: Innovation
 	shared.NewSpellDataStatConsumable(217398) // Lesser Arcane Elixir
 	shared.NewSpellDataStatConsumable(227286) // Warmed Rumsey Rum with Cream

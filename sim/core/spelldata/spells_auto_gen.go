@@ -22012,10 +22012,6 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 705025, SpellID: 30178, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STAT, BasePoints: 25, SpellLevel: 36, MaxLevel: 255, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{25, 0}},
 		}},
-	{ID: 30297, Name: "Heightened Senses", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, CastTimeMs: 1000, DurationMs: 1800000, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
-		Effects: []Effect{
-			{ID: 705375, SpellID: 30297, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_WEAPON_CRIT_PERCENT, BasePoints: -5, SpellLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}},
 	{ID: 30331, Name: "Permanent Sheen of Zanza", Rank: "QASpell", School: 1, Attr: [17]uint32{0: 0x28000000, 15: 0x2000}, SpellLevel: 15, DurationMs: 7200000, MaxRange: 100, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 13}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 704826, SpellID: 30331, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_REFLECT_SPELLS, BasePoints: 3, SpellLevel: 15, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
