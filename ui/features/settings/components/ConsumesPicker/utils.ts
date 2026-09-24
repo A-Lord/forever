@@ -4,7 +4,16 @@ import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, higherRanks, highestRanks } from '@sim/settings/consumables';
+import {
+	ConsumableSlot,
+	consumableSlot,
+	consumableStatsOf,
+	explosiveUsedBeside,
+	handTakesImbue,
+	higherRanks,
+	highestRanks,
+	relevanceFor,
+} from '@sim/settings/consumables';
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
@@ -41,10 +50,18 @@ const isScroll = (consumable: Consumable) => consumable.type === ConsumableType.
 
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
-	const relevance: ConsumableRelevance = { db, stats: consumableStatsOf(player.getSpecConfig()), higherRanks: higherRanks(all) };
-	const inSlot = (slot: ConsumableSlot) => all.filter(consumable => consumableSlot(consumable) === slot);
-	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[3], consumables = inSlot(slot)) =>
-		makeConsumableInput(consumables, relevance, player, options);
+	const relevance: ConsumableRelevance = {
+		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig())),
+		higherRanks: higherRanks(all),
+	};
+	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
+	for (const consumable of all) {
+		const slot = consumableSlot(consumable);
+		bySlot.set(slot, [...(bySlot.get(slot) ?? []), consumable]);
+	}
+	const inSlot = (slot: ConsumableSlot) => bySlot.get(slot) ?? [];
+	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[2], consumables = inSlot(slot)) =>
+		makeConsumableInput(consumables, relevance, options);
 
 	const elixirs = inSlot(ConsumableSlot.Elixir);
 	const explosives = inSlot(ConsumableSlot.Explosive);

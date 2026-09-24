@@ -693,12 +693,13 @@ const makeWrappedEnumIconInput = <SpecType extends Spec, ModObject, T>(
 	config: WrappedEnumIconInputConfig<SpecType, ModObject, T>,
 ): TypedIconEnumPickerConfig<Player<SpecType>, T> => {
 	const getModObject = config.getModObject;
+	const numColumns = config.numColumns;
 	return {
 		type: 'iconEnum',
 		id: config.id,
 		label: config.label,
 		labelTooltip: config.labelTooltip,
-		numColumns: config.numColumns,
+		numColumns: typeof numColumns === 'function' ? (player: Player<SpecType>) => numColumns(getModObject(player)) : numColumns,
 		values: config.values.map(value => {
 			if (value.showWhen) {
 				const showWhen = value.showWhen;

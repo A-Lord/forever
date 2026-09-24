@@ -14,6 +14,7 @@ import {
 	higherRanks,
 	highestRanks,
 	isConsumableRelevant,
+	relevanceFor,
 	relevantConsumableIds,
 } from './consumables';
 
@@ -153,6 +154,18 @@ describe('handTakesImbue', () => {
 
 	it('takes nothing on an empty hand', () => {
 		expect(handTakesImbue(oil, undefined)).toBe(false);
+	});
+});
+
+describe('relevanceFor', () => {
+	it('answers as isConsumableRelevant does, and again once the class, race or a required profession changes', () => {
+		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering });
+		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, allowableRace: 2n });
+		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]));
+		expect(relevant(sapper, user())).toBe(false);
+		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
+		expect(relevant(orcOnly, user({ professions: [Profession.Engineering] }))).toBe(true);
+		expect(relevant(orcOnly, user({ race: Race.RaceHuman, professions: [Profession.Engineering] }))).toBe(false);
 	});
 });
 

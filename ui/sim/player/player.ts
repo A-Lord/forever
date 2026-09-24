@@ -261,6 +261,9 @@ export class Player<SpecType extends Spec> {
 	private gemEPCache = new Map<number, number>();
 	private randomSuffixEPCache = new Map<number, number>();
 	private enchantEPCache = new Map<number, number>();
+	// The potions and conjured items getConsumes(true) lists, by the spec, class, race and
+	// professions they were worked out for.
+	private relevantConsumablesCache: { key: string; db: Database; potions: Array<number>; conjuredItems: Array<number> } | null = null;
 	private talents: SpecTalents<SpecType> | null = null;
 	private specConfig: SpecConfigData<SpecType>;
 
@@ -675,12 +678,19 @@ export class Player<SpecType extends Spec> {
 
 	getConsumes(forSimming?: boolean): ConsumesSpec {
 		if (forSimming) {
-			const consumables = this.sim.db.getConsumables();
-			return ConsumesSpec.create({
-				...this.slice().consumables,
-				potions: relevantConsumableIds(consumables, ConsumableSlot.Potion, this, this.sim.db),
-				conjuredItems: relevantConsumableIds(consumables, ConsumableSlot.Conjured, this, this.sim.db),
-			});
+			const db = this.sim.db;
+			const key = [this.getSpec(), this.getClass(), this.getRace(), this.getProfession1(), this.getProfession2()].join(':');
+			let cache = this.relevantConsumablesCache;
+			if (cache?.key !== key || cache.db !== db) {
+				const consumables = db.getConsumables();
+				cache = this.relevantConsumablesCache = {
+					key,
+					db,
+					potions: relevantConsumableIds(consumables, ConsumableSlot.Potion, this, db),
+					conjuredItems: relevantConsumableIds(consumables, ConsumableSlot.Conjured, this, db),
+				};
+			}
+			return ConsumesSpec.create({ ...this.slice().consumables, potions: [...cache.potions], conjuredItems: [...cache.conjuredItems] });
 		}
 		// Make a defensive copy
 		return ConsumesSpec.clone(this.slice().consumables);

@@ -1,10 +1,9 @@
-import { ConsumesSpec, Stat } from '@generated/proto/common';
+import { ConsumesSpec } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
+import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import { isConsumableRelevant, type SpellEffectSource } from '@sim/settings/consumables';
-import { batch } from '@sim/state/batch';
 import { IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
 import * as InputHelpers from '@ui-kit/input_helpers';
 
@@ -21,8 +20,7 @@ export type ConsumableIdField =
 	| 'petFoodId';
 
 export interface ConsumableRelevance {
-	db: SpellEffectSource;
-	stats: Set<Stat>;
+	relevant: (consumable: Consumable, player: Player<any>) => boolean;
 	// The higher ranks of each consumable, by id: one is offered only while none of these is.
 	higherRanks: ReadonlyMap<number, ReadonlyArray<Consumable>>;
 }
@@ -36,9 +34,11 @@ export interface ConsumableInputOptions {
 }
 
 const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offers?: ConsumableInputOptions['offers']) => (player: Player<any>) => {
-	const usable = (c: Consumable) => isConsumableRelevant(c, player, relevance.db, relevance.stats) && (!offers || offers(c, player));
+	const usable = (c: Consumable) => relevance.relevant(c, player) && (!offers || offers(c, player));
 	return usable(consumable) && !(relevance.higherRanks.get(consumable.id) ?? []).some(usable);
 };
+
+const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'race'];
 
 // The flask and the elixirs exclude each other.
 const withExclusions = (consumes: ConsumesSpec, field: ConsumableIdField, newValue: number): ConsumesSpec => {
@@ -56,7 +56,6 @@ const withExclusions = (consumes: ConsumesSpec, field: ConsumableIdField, newVal
 export function makeConsumableInput(
 	consumables: ReadonlyArray<Consumable>,
 	relevance: ConsumableRelevance,
-	player: Player<any>,
 	options: ConsumableInputOptions,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
 	const values: Array<IconEnumValueConfig<Player<any>, number>> = consumables.map(consumable => ({
@@ -65,22 +64,24 @@ export function makeConsumableInput(
 		tooltip: consumable.name,
 		showWhen: offeredTo(consumable, relevance, options.offers),
 	}));
-	const offered = values.filter(value => value.showWhen!(player)).length;
 	return {
 		type: 'iconEnum',
 		tooltip: options.tooltip,
-		numColumns: offered > 10 ? 3 : offered > 5 ? 2 : 1,
+		numColumns: (p: Player<any>) => {
+			const offered = values.filter(value => value.showWhen!(p)).length;
+			return offered > 10 ? 3 : offered > 5 ? 2 : 1;
+		},
 		values: [{ value: 0, iconUrl: '', tooltip: i18n.t('common.none') }, ...values],
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,
 		// `raid:partyBuffs` because the main-hand imbue's showWhen reads Windfury Totem off the party.
-		storeField: ['consumables', 'gear', 'profession1', 'profession2', 'race', 'raid:partyBuffs'],
+		storeField: [...STORE_FIELDS, 'raid:partyBuffs'],
 		showWhen: options.showWhen,
 		getValue: (player: Player<any>) => player.getConsumes()[options.consumesFieldName],
 		setValue: (player: Player<any>, newValue: number) => {
 			const consumes = player.getConsumes();
 			if (consumes[options.consumesFieldName] === newValue) return;
-			batch(() => player.setConsumes(withExclusions(consumes, options.consumesFieldName, newValue)));
+			player.setConsumes(withExclusions(consumes, options.consumesFieldName, newValue));
 		},
 	};
 }
@@ -101,7 +102,7 @@ export function makeExtraIdInput(
 		type: 'icon',
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
-		storeField: ['consumables', 'gear', 'profession1', 'profession2', 'race'],
+		storeField: STORE_FIELDS,
 		showWhen: showWhen ?? offeredTo(consumable, relevance),
 		getValue: (player: Player<any>) => player.getConsumes()[field].includes(consumable.id),
 		setValue: (player: Player<any>, newValue: boolean) => {

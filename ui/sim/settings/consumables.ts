@@ -40,14 +40,11 @@ export interface SpellEffectSource {
 	getSpellEffect(effectId: number): SpellEffect | undefined;
 }
 
-// The generator writes the category the on-use shares, the item's or, where the item states none, its
-// spell's, as the consumable's.
-const onUseCategory = (consumable: Consumable): number => consumable.categoryId;
-
 const ELIXIR_TYPES = [ConsumableType.ConsumableTypeElixir, ConsumableType.ConsumableTypeBattleElixir, ConsumableType.ConsumableTypeGuardianElixir];
 
+// The category is the one the on-use shares: the item's or, where the item states none, its spell's.
 export function consumableSlot(consumable: Consumable): ConsumableSlot {
-	const category = onUseCategory(consumable);
+	const category = consumable.categoryId;
 	if (category === CONJURED_CATEGORY) return ConsumableSlot.Conjured;
 	if (consumable.type === ConsumableType.ConsumableTypePotion || category === COMBAT_POTION_CATEGORY) return ConsumableSlot.Potion;
 	if (consumable.type === ConsumableType.ConsumableTypeFlask) return ConsumableSlot.Flask;
@@ -147,11 +144,28 @@ export function consumableStatsOf(specConfig: Pick<SpecConfigData<any>, 'epStats
 	return stats;
 }
 
-const restoredResources = (consumable: Consumable, db: SpellEffectSource): Array<ResourceType> =>
-	consumable.effectIds.flatMap(effectId => {
-		const miscValue = db.getSpellEffect(effectId)?.miscValue0;
-		return miscValue?.oneofKind === 'resourceType' ? [miscValue.resourceType] : [];
-	});
+interface ConsumableFacts {
+	db: SpellEffectSource;
+	grantedStats: Array<Stat>;
+	restores: Array<ResourceType>;
+}
+
+// What relevance reads off a consumable and its spell effects, worked out once per consumable.
+const factsCache = new WeakMap<Consumable, ConsumableFacts>();
+const factsOf = (consumable: Consumable, db: SpellEffectSource): ConsumableFacts => {
+	const cached = factsCache.get(consumable);
+	if (cached?.db === db) return cached;
+	const facts = {
+		db,
+		grantedStats: consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
+		restores: consumable.effectIds.flatMap(effectId => {
+			const miscValue = db.getSpellEffect(effectId)?.miscValue0;
+			return miscValue?.oneofKind === 'resourceType' ? [miscValue.resourceType] : [];
+		}),
+	};
+	factsCache.set(consumable, facts);
+	return facts;
+};
 
 const restoresForSpec = (resource: ResourceType, stats: Set<Stat>): boolean => {
 	switch (resource) {
@@ -191,8 +205,7 @@ export function isConsumableRelevant(
 		if (raceId === undefined || (consumable.allowableRace & (1n << BigInt(raceId - 1))) === 0n) return false;
 	}
 
-	const grantedStats = consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : []));
-	const restores = restoredResources(consumable, db);
+	const { grantedStats, restores } = factsOf(consumable, db);
 	if (consumable.buffsMainStat || grantedStats.some(stat => stats.has(stat)) || restores.some(resource => restoresForSpec(resource, stats))) return true;
 	return !grantedStats.length && !restores.length && !STAT_TYPES.includes(consumable.type);
 }
@@ -207,25 +220,61 @@ const rankOf = (consumable: Consumable) => {
 	return { base: `${consumable.type}:${match ? consumable.name.slice(0, match.index) : consumable.name}`, rank: match ? ROMAN.indexOf(match[1]) + 1 : 1 };
 };
 
+// The ranks of each name, in the order given.
+const rankLadders = (consumables: ReadonlyArray<Consumable>): Array<Array<{ consumable: Consumable; rank: number }>> => {
+	const ladders = new Map<string, Array<{ consumable: Consumable; rank: number }>>();
+	for (const consumable of consumables) {
+		const { base, rank } = rankOf(consumable);
+		const ladder = ladders.get(base);
+		if (ladder) ladder.push({ consumable, rank });
+		else ladders.set(base, [{ consumable, rank }]);
+	}
+	return [...ladders.values()];
+};
+
 export function higherRanks(consumables: ReadonlyArray<Consumable>): Map<number, Array<Consumable>> {
-	const ranked = consumables.map(consumable => ({ consumable, ...rankOf(consumable) }));
-	return new Map(
-		ranked.map(({ consumable, base, rank }) => [
-			consumable.id,
-			ranked.filter(other => other.base === base && other.rank > rank).map(other => other.consumable),
-		]),
-	);
+	const higher = new Map<number, Array<Consumable>>();
+	for (const ladder of rankLadders(consumables)) {
+		for (const { consumable, rank } of ladder) {
+			higher.set(
+				consumable.id,
+				ladder.filter(other => other.rank > rank).map(other => other.consumable),
+			);
+		}
+	}
+	return higher;
 }
 
 export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
-	const best = new Map<string, { rank: number; consumable: Consumable }>();
-	for (const consumable of consumables) {
-		const { base, rank } = rankOf(consumable);
-		const current = best.get(base);
-		if (!current || rank > current.rank) best.set(base, { rank, consumable });
-	}
-	const kept = new Set([...best.values()].map(entry => entry.consumable));
+	const kept = new Set(rankLadders(consumables).map(ladder => ladder.reduce((best, entry) => (entry.rank > best.rank ? entry : best)).consumable));
 	return consumables.filter(consumable => kept.has(consumable));
+}
+
+// isConsumableRelevant for one spec's stats, remembered for as long as the class, race and the
+// professions any of the consumables requires stay the same.
+export function relevanceFor(
+	consumables: ReadonlyArray<Consumable>,
+	db: SpellEffectSource,
+	stats: Set<Stat>,
+): (consumable: Consumable, user: ConsumableUser) => boolean {
+	const professions = [...new Set(consumables.map(consumable => consumable.requiredProfession))].filter(
+		profession => profession !== Profession.ProfessionUnknown,
+	);
+	let key = '';
+	let relevant = new Map<Consumable, boolean>();
+	return (consumable, user) => {
+		const userKey = `${user.getClass()}:${user.getRace()}:${professions.filter(profession => user.hasProfession(profession))}`;
+		if (userKey !== key) {
+			key = userKey;
+			relevant = new Map();
+		}
+		let result = relevant.get(consumable);
+		if (result === undefined) {
+			result = isConsumableRelevant(consumable, user, db, stats);
+			relevant.set(consumable, result);
+		}
+		return result;
+	};
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the
