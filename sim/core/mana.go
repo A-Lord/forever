@@ -73,6 +73,12 @@ func (character *Character) EnableManaBarWithModifier() {
 	character.manaNotCastingMetrics = character.NewManaMetrics(ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 2})
 }
 
+// SetSpiritManaRegen sets the spirit regen to base + Spirit*perSpirit mana per second.
+// It replaces the class default, so call it after EnableManaBar.
+func (character *Character) SetSpiritManaRegen(base float64, perSpirit float64) {
+	character.spiritRegenBase, character.spiritRegenPerSpirit = base, perSpirit
+}
+
 func (unit *Unit) HasManaBar() bool {
 	return unit.manaBar.unit != nil
 }

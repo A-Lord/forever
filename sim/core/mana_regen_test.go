@@ -4,6 +4,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -29,5 +30,28 @@ func TestSpiritRegenPriestAgainstPaladin(t *testing.T) {
 				t.Errorf("spirit regen %v per second, want %v", got, tc.perSecond)
 			}
 		})
+	}
+}
+
+func TestSetSpiritManaRegenReplacesTheDefault(t *testing.T) {
+	owner := core.NewCharacter(&core.Party{Raid: &core.Raid{}}, 0, nakedPlayer(proto.Class_ClassWarlock, proto.Race_RaceHuman))
+	newPet := func(name string) *core.Pet {
+		pet := core.NewPet(core.PetConfig{Name: name, Owner: &owner, BaseStats: stats.Stats{stats.Spirit: 100}})
+		pet.EnableManaBar()
+		return &pet
+	}
+
+	unchanged := newPet("Default Pet")
+	if got := unchanged.SpiritManaRegenPerSecond(); math.Abs(got-(7.5+100.0/10)) > 1e-9 {
+		t.Errorf("default pet spirit regen %v per second, want %v", got, 7.5+100.0/10)
+	}
+
+	imp := newPet("Imp")
+	imp.SetSpiritManaRegen(0, 1.0/5)
+	if got := imp.SpiritManaRegenPerSecond(); math.Abs(got-100.0/5) > 1e-9 {
+		t.Errorf("spirit regen %v per second, want %v", got, 100.0/5)
+	}
+	if got := unchanged.SpiritManaRegenPerSecond(); math.Abs(got-(7.5+100.0/10)) > 1e-9 {
+		t.Errorf("setting one pet's spirit regen changed another's to %v per second", got)
 	}
 }
