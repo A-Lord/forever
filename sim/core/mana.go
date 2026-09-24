@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -19,7 +18,10 @@ type manaBar struct {
 
 	manaRegenMultiplier float64
 
-	manaCastingMetrics    *ResourceMetrics
+	spiritRegenBase      float64
+	spiritRegenPerSpirit float64
+
+	manaCastingMetrics   *ResourceMetrics
 	manaNotCastingMetrics *ResourceMetrics
 	JowManaMetrics        *ResourceMetrics
 	VtManaMetrics         *ResourceMetrics
@@ -58,6 +60,12 @@ func (character *Character) EnableManaBarWithModifier() {
 	character.RegisterSpell(SpellConfig{
 		ActionID: ActionID{OtherID: proto.OtherAction_OtherActionManaGain},
 	})
+
+	// Spirit restores 15 + Spirit/5 mana every 2 s tick, 12.5 + Spirit/4 for priests and mages.
+	character.spiritRegenBase, character.spiritRegenPerSpirit = 7.5, 1.0/10
+	if character.Class == proto.Class_ClassPriest || character.Class == proto.Class_ClassMage {
+		character.spiritRegenBase, character.spiritRegenPerSpirit = 6.25, 1.0/8
+	}
 
 	character.BaseMana = character.GetBaseStats()[stats.Mana]
 	character.Unit.manaBar.unit = &character.Unit
@@ -155,7 +163,7 @@ func (unit *Unit) MP5ManaRegenPerSecond() float64 {
 
 // Returns the rate of mana regen per second from spirit.
 func (unit *Unit) SpiritManaRegenPerSecond() float64 {
-	return 0.001 + unit.stats[stats.Spirit]*math.Sqrt(unit.stats[stats.Intellect])*0.009327
+	return unit.spiritRegenBase + unit.stats[stats.Spirit]*unit.spiritRegenPerSpirit
 }
 
 // Returns the rate of mana regen per second, assuming this unit is
