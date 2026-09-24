@@ -30,10 +30,14 @@ func NewSpellDataStatConsumable(itemID int32) {
 				itemID, consumable.Name, itemEffect.BuffId))
 		}
 
-		cd, sharedCD := consumableCooldowns(character, itemEffect, spelldata.MustFind(itemEffect.BuffId))
+		row := spelldata.MustFind(itemEffect.BuffId)
+		cd, sharedCD := consumableCooldowns(character, itemEffect, row)
 		inCombat := slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
 			return buff.DurationMs > 0 && buff.Duration() < max(cd.Duration, sharedCD.Duration)
 		})
+		if !inCombat && heldBackByCategory(character, consumable, itemEffect, row, buffs) {
+			return
+		}
 
 		auras := make([]*core.Aura, len(buffs))
 		for i, buff := range buffs {
@@ -44,6 +48,33 @@ func NewSpellDataStatConsumable(itemID int32) {
 			registerConsumableOnUse(character, consumable, itemEffect, cd, sharedCD, auras)
 		}
 	})
+}
+
+// A consumable whose category cooldown lasts as long as each of its buffs is used one at a time with
+// the others of its category, so of those the spec names only the first is up: the Blasted Lands
+// buffs 8410-8424 share category 103's 1 h, as long as each lasts. The rows state no other
+// exclusivity between consumables of different spells.
+func heldBackByCategory(character *core.Character, consumable core.Consumable, itemEffect *proto.ItemEffect,
+	row *spelldata.Spell, buffs []*spelldata.Spell) bool {
+	category, categoryMs := sharedCategory(itemEffect, row)
+	oneAtATime := category > 0 && categoryMs > 0 && !slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
+		return buff.DurationMs <= 0 || buff.DurationMs > categoryMs
+	})
+	if !oneAtATime {
+		return false
+	}
+
+	for _, id := range character.SelectedConsumableIDs() {
+		if id == consumable.Id {
+			return false
+		}
+		if other := core.GetConsumableByID(id).OnUse(); other != nil {
+			if otherCategory, _ := sharedCategory(other, spelldata.Find(other.BuffId)); otherCategory == category {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // The consumable's on-use spell and each spell it triggers on the user: food puts its Well Fed buff up

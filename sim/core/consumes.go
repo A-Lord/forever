@@ -16,7 +16,7 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 	}
 
 	applyTemporaryEnchants(character, consumables, partyBuffs)
-	selected := selectedConsumableIDs(consumables, character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant != 0)
+	selected := character.SelectedConsumableIDs()
 
 	// Pet Consumes
 	for _, pet := range character.Pets {
@@ -85,6 +85,14 @@ func NewDataDrivenConsumableEffect(id int32, consumableEffect ApplyEffect) {
 
 func consumableInDatabase(id int32) bool {
 	return !WITH_DB || GetConsumableByID(id).Id != 0
+}
+
+// The character's own consumables the spec names, each once, in the order they apply.
+func (character *Character) SelectedConsumableIDs() []int32 {
+	if character.Consumables == nil {
+		return nil
+	}
+	return selectedConsumableIDs(character.Consumables, character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant != 0)
 }
 
 // The agent's own consumables the spec names, each once. The main-hand imbue counts only where

@@ -128,3 +128,35 @@ func TestShortBuffIsUsedOnItsCooldown(t *testing.T) {
 		t.Errorf("Swiftfeather Token's buff is %+v, want down at the pull and lasting 30s", aura)
 	}
 }
+
+// R.O.I.D.S. 8410 (10667, 25 Strength) and Ground Scorpok Assay 8412 (10669, 25 Agility) share
+// category 103's 1 h, as long as each buff lasts, so only the first the spec names is up. Spirit of
+// Zanza 20079 (24382, 50 Spirit and 50 Stamina, category 79's 3 s) and Lung Juice Cocktail 8411
+// (10668, 25 Stamina) state nothing that keeps them apart, so both are up.
+func TestOnlyACategoryCooldownAsLongAsTheBuffKeepsConsumablesApart(t *testing.T) {
+	const roids, scorpok, zanza, lungJuice int32 = 8410, 8412, 20079, 8411
+	for _, id := range []int32{roids, scorpok, zanza, lungJuice} {
+		registerStatConsumable(t, id)
+	}
+
+	for _, tc := range []struct {
+		name  string
+		ids   []int32
+		stat  stats.Stat
+		gain  float64
+		other stats.Stat
+	}{
+		{"R.O.I.D.S. first", []int32{roids, scorpok}, stats.Strength, 25, stats.Agility},
+		{"Ground Scorpok Assay first", []int32{scorpok, roids}, stats.Agility, 25, stats.Strength},
+	} {
+		gain := statGain(&proto.ConsumesSpec{ExtraIds: tc.ids}, &proto.RaidBuffs{})
+		if gain[tc.stat] != tc.gain || gain[tc.other] != 0 {
+			t.Errorf("%s: %s rose by %v and %s by %v, want %v and 0", tc.name, tc.stat.StatName(), gain[tc.stat],
+				tc.other.StatName(), gain[tc.other], tc.gain)
+		}
+	}
+
+	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{zanza, lungJuice}}, &proto.RaidBuffs{}); gain[stats.Stamina] != 75 {
+		t.Errorf("Spirit of Zanza and Lung Juice Cocktail add %v Stamina, want 75", gain[stats.Stamina])
+	}
+}

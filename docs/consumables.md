@@ -123,6 +123,14 @@ consumable deals its own user, a sapper's or Demonic Rune's, always lands and ca
 puts an aura that outlasts the item's cooldown up from the pull, and uses the item on its cooldown
 otherwise.
 
+Every builder reads an item's cooldowns the same way (`consumableCooldowns`): the item row's own
+cooldown and the category it shares, where the item row states -1 or no category, the spell row's.
+Consumables stack unless the rows keep them apart: those sharing a category whose cooldown lasts as
+long as each of their buffs are used one at a time, so of those the spec names only the first is up.
+The Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411, Ground Scorpok Assay 8412,
+Cerebral Cortex Compound 8423, Gizzard Gum 8424) share category 103's 1 h and last 1 h. The Zanza
+potions (category 79, 3 s) and the Marks of the Dawn (no category) state nothing of the kind and stack.
+
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
 on the potion's aura: 185 attack power and 108 spell damage against the creature types their misc

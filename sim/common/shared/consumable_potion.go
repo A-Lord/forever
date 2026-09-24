@@ -266,17 +266,11 @@ func registerSpellDataConsumable(itemID int32, register func(int32, core.ApplyEf
 // -1 on the item's row, and a category of 0, defer to the spell's row: the Spellblasting potions
 // 250932-250937 state neither and share potion category 4 for 120 s through their spells.
 func consumableCooldowns(character *core.Character, itemEffect *proto.ItemEffect, row *spelldata.Spell) (core.Cooldown, core.Cooldown) {
-	onUse := itemEffect.GetOnUse()
-	cooldownMs, categoryMs, category := onUse.CooldownMs, onUse.CategoryCooldownMs, onUse.CategoryId
+	cooldownMs := itemEffect.GetOnUse().CooldownMs
 	if cooldownMs < 0 {
 		cooldownMs = row.CooldownMs
 	}
-	if category <= 0 {
-		category = int32(row.Category)
-	}
-	if categoryMs < 0 {
-		categoryMs = row.CategoryCooldownMs
-	}
+	category, categoryMs := sharedCategory(itemEffect, row)
 
 	var cd core.Cooldown
 	if cooldownMs > 0 {
@@ -289,6 +283,19 @@ func consumableCooldowns(character *core.Character, itemEffect *proto.ItemEffect
 		Timer:    character.GetOrInitSpellCategoryTimer(category),
 		Duration: core.DurationFromMillis(categoryMs),
 	}
+}
+
+// The category the on-use shares and its cooldown, with consumableCooldowns' deferral to the row.
+func sharedCategory(itemEffect *proto.ItemEffect, row *spelldata.Spell) (int32, int32) {
+	onUse := itemEffect.GetOnUse()
+	category, categoryMs := onUse.CategoryId, onUse.CategoryCooldownMs
+	if category <= 0 {
+		category = int32(row.Category)
+	}
+	if categoryMs < 0 {
+		categoryMs = row.CategoryCooldownMs
+	}
+	return category, categoryMs
 }
 
 // One gain of mana, rage or energy, at once or every period of the row's duration. A character

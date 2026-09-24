@@ -58,7 +58,7 @@ func TestTemporaryEnchantWeaponDamageGoesOnItsHand(t *testing.T) {
 // Shadow Oil 3824, enchant 25: its combat spell 350026 is cast off the enchanted weapon's hits.
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	shadowOil := core.Consumable{Id: 3824, Name: "Shadow Oil", TemporaryEnchant: &core.Enchant{
-		EffectID: 25,
+		EffectID:       25,
 		EnchantEffects: []*proto.ItemEffect{{BuffId: 350026, Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}}},
 	}}
 
