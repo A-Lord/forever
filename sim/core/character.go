@@ -756,9 +756,6 @@ func (character *Character) GetOffensiveTrinketCD() *Timer {
 func (character *Character) GetConjuredCD() *Timer {
 	return character.GetOrInitSpellCategoryTimer(30)
 }
-func (character *Character) GetPotionCD() *Timer {
-	return character.GetOrInitSpellCategoryTimer(4)
-}
 
 func (character *Character) AddStatProcBuff(effectID int32, procAura *StatBuffAura, isEnchant bool, eligibleSlots []proto.ItemSlot) {
 	hasEquippedCheck := Ternary(isEnchant, character.Equipment.containsEnchantInSlots, character.Equipment.containsItemInSlots)

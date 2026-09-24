@@ -63,12 +63,6 @@ message Consumable {
 	bool buffs_main_stat = 4;
 	string name = 5;
 	string icon = 6;
-	//In seconds
-	int32 buff_duration = 7;
-	//In seconds
-	int32 cooldown_duration = 9;
-	//In seconds
-	int32 category_cooldown_duration = 10;
 	int32 category_id = 11;
 	repeated int32 effect_ids = 8;
 
@@ -87,6 +81,9 @@ message Consumable {
 	// the combat spells it casts off that weapon's hits, each at the chance its slot states. Absent on
 	// consumables that enchant nothing.
 	SimEnchant temporary_enchant = 18;
+
+	reserved 7, 9, 10;
+	reserved "buff_duration", "cooldown_duration", "category_cooldown_duration";
 }
 
 message ItemEffectRandPropPoints {

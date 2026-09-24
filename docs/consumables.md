@@ -95,8 +95,7 @@ the `ConsumesSpec` names. There are two ways in:
 
 A hand-written effect wins over a data-driven one for the same id, whichever registers first, so the
 two can live in different packages with no init order between them. Two hand-written effects, or two
-data-driven ones, for one id panic. An id db.json does not carry registers nothing:
-`core.MissingConsumableEffects()` lists it.
+data-driven ones, for one id panic. An id db.json does not carry registers nothing.
 
 gen_db writes the data-driven registrations into `sim/common/forever`, one file per family, and
 `common.RegisterAllEffects` runs them. The explosive and potion files keep a consumable their builder
@@ -199,7 +198,8 @@ it. Name, type, icon and every number the sim and the UI read come from there:
 ```go
 var ConsumableOverrides = []*proto.Consumable{
 	{Id: <item id>, Name: "<name>", Icon: "<icon file name>", Type: proto.ConsumableType_ConsumableTypeOther,
-		CooldownDuration: <seconds>},
+		ItemEffects: []*proto.ItemEffect{{BuffId: <spell id>, Effect: &proto.ItemEffect_OnUse{
+			OnUse: &proto.OnUseEffect{CooldownMs: <ms>}}}}},
 }
 ```
 

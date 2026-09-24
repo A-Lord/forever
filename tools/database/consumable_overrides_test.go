@@ -34,7 +34,7 @@ func TestAnAllowListedOrOverriddenConsumableShipsUnsupported(t *testing.T) {
 	}
 
 	ConsumableAllowList = slices.DeleteFunc(slices.Clone(ConsumableAllowList), func(id int32) bool { return id == 221325 })
-	ConsumableOverrides = append(slices.Clone(ConsumableOverrides), &proto.Consumable{Id: 221325, CooldownDuration: 60})
+	ConsumableOverrides = append(slices.Clone(ConsumableOverrides), &proto.Consumable{Id: 221325, Name: "EZ-Splode Blasting Charge"})
 	if !ShipsConsumable(routing) {
 		t.Error("221325 is dropped although ConsumableOverrides names it")
 	}

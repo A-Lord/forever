@@ -931,9 +931,6 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.SpellCategoryFlags,
 		&itemEffectsStr,
 		&consumable.ElixirType,
-		&consumable.Duration,
-		&consumable.CooldownDuration,
-		&consumable.CategoryCooldownDuration,
 		&consumable.ClassMask,
 		&consumable.RaceMask,
 		&consumable.RequiredSkill,
@@ -1030,9 +1027,6 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 					WHEN sp.Description_lang LIKE '%Battle Elixir%' THEN 2
 					ELSE 0
 				END AS ElixirType,
-				COALESCE(sd.Duration, 0) as Duration,
-				COALESCE(ie.CoolDownMSec, 0) as CooldownDuration,
-				COALESCE(ie.CategoryCoolDownMSec, 0) as CategoryCooldownDuration,
 				s.AllowableClass,
 				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
 				s.RequiredSkill,
@@ -1050,8 +1044,6 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 			LEFT JOIN ItemEffect ie ON ie.ID = ixie.ItemEffectID
 			LEFT JOIN SpellCategory sc ON ie.SpellCategoryID = sc.ID
 			LEFT JOIN Spell sp ON ie.SpellID = sp.ID
-			LEFT JOIN SpellMisc sm ON ie.SpellId = sm.SpellID
-			LEFT JOIN SpellDuration sd ON sm.DurationIndex = sd.ID
 			LEFT JOIN SpellItemEnchantment tsie ON tsie.ID = (
 				SELECT tse.EffectMiscValue_0
 				FROM ItemXItemEffect tx

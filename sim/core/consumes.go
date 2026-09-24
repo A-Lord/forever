@@ -46,8 +46,6 @@ var consumableEffects = map[int32]ApplyEffect{}
 // The effects built from the consumables' rows. A hand-written effect for the same id wins.
 var dataDrivenConsumableEffects = map[int32]ApplyEffect{}
 
-var missingConsumableEffects []int32
-
 func consumableEffect(id int32) (ApplyEffect, bool) {
 	if apply, ok := consumableEffects[id]; ok {
 		return apply, true
@@ -60,10 +58,6 @@ func HasConsumableEffect(id int32) bool {
 	_, ok := consumableEffect(id)
 	return ok
 }
-
-// MissingConsumableEffects reports the consumable ids whose effects were skipped because the loaded
-// database has no such consumable.
-func MissingConsumableEffects() []int32 { return missingConsumableEffects }
 
 // Registers a hand-written ApplyEffect function which will be called while the consumes are applied,
 // for any Agent whose ConsumesSpec names the id. It takes the place of a data-driven registration for
@@ -95,11 +89,7 @@ func NewDataDrivenConsumableEffect(id int32, consumableEffect ApplyEffect) {
 }
 
 func consumableInDatabase(id int32) bool {
-	if WITH_DB && GetConsumableByID(id).Id == 0 {
-		missingConsumableEffects = append(missingConsumableEffects, id)
-		return false
-	}
-	return true
+	return !WITH_DB || GetConsumableByID(id).Id != 0
 }
 
 // The agent's own consumables the spec names, each once. The main-hand imbue is left out under

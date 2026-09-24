@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"sync"
-	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -113,18 +112,13 @@ func ItemEffectRandPropPointsToProto(ieRpp ItemEffectRandPropPoints) *proto.Item
 }
 
 type Consumable struct {
-	Id                       int32
-	Type                     proto.ConsumableType
-	Stats                    stats.Stats
-	BuffsMainStat            bool
-	Name                     string
-	BuffDuration             time.Duration
-	CooldownDuration         time.Duration
-	CategoryCooldownDuration time.Duration
-	CategoryId               int32
-	EffectIds                []int32
-	ItemEffects              []*proto.ItemEffect
-	RequiredProfession       proto.Profession
+	Id                 int32
+	Type               proto.ConsumableType
+	Stats              stats.Stats
+	BuffsMainStat      bool
+	Name               string
+	ItemEffects        []*proto.ItemEffect
+	RequiredProfession proto.Profession
 	// The enchant a temporary enchant puts on a weapon, nil on consumables that enchant nothing, and
 	// the weapon subclasses and inventory types it takes, where a zero mask takes any.
 	TemporaryEnchant        *Enchant
@@ -139,21 +133,16 @@ func ConsumableFromProto(consumable *proto.Consumable) Consumable {
 		temporaryEnchant = &enchant
 	}
 	return Consumable{
-		Id:                       consumable.Id,
-		Type:                     consumable.Type,
-		Stats:                    stats.FromProtoArray(consumable.Stats),
-		BuffsMainStat:            consumable.BuffsMainStat,
-		Name:                     consumable.Name,
-		BuffDuration:             time.Second * time.Duration(consumable.BuffDuration),
-		CooldownDuration:         time.Second * time.Duration(consumable.CooldownDuration),
-		CategoryCooldownDuration: time.Second * time.Duration(consumable.CategoryCooldownDuration),
-		CategoryId:               consumable.CategoryId,
-		EffectIds:                consumable.EffectIds,
-		ItemEffects:              consumable.ItemEffects,
-		RequiredProfession:       consumable.RequiredProfession,
-		TemporaryEnchant:         temporaryEnchant,
-		WeaponSubclassMask:       consumable.WeaponSubclassMask,
-		WeaponInventoryTypeMask:  consumable.WeaponInventoryTypeMask,
+		Id:                      consumable.Id,
+		Type:                    consumable.Type,
+		Stats:                   stats.FromProtoArray(consumable.Stats),
+		BuffsMainStat:           consumable.BuffsMainStat,
+		Name:                    consumable.Name,
+		ItemEffects:             consumable.ItemEffects,
+		RequiredProfession:      consumable.RequiredProfession,
+		TemporaryEnchant:        temporaryEnchant,
+		WeaponSubclassMask:      consumable.WeaponSubclassMask,
+		WeaponInventoryTypeMask: consumable.WeaponInventoryTypeMask,
 	}
 }
 

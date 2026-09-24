@@ -20,9 +20,6 @@ type Consumable struct {
 	SpellCategoryFlags       int             // Spell category flags
 	ItemEffects              []int           // Item effect IDs
 	ElixirType               int
-	Duration                 int // In milliseconds
-	CooldownDuration         int // In milliseconds
-	CategoryCooldownDuration int // In milliseconds
 	ClassMask                int
 	RaceMask                 int64
 	RequiredSkill            int
@@ -97,9 +94,6 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		Stats:                    c.GetStatModifiers().ToProtoArray(),
 		Name:                     c.Name,
 		BuffsMainStat:            false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
-		BuffDuration:             int32(c.Duration / 1000),
-		CooldownDuration:         int32(c.CooldownDuration / 1000),
-		CategoryCooldownDuration: int32(c.CategoryCooldownDuration / 1000),
 		CategoryId:               int32(c.SpellCategoryID),
 		EffectIds:                c.GetNonStatEffectIds(),
 		ItemEffects:              c.OnUseEffects(),
