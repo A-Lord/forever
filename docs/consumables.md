@@ -9,6 +9,7 @@ not enough or not right, the effect is hand-written.
 - [How a consumable gets into db.json](#how-a-consumable-gets-into-dbjson)
 - [Regenerating](#regenerating)
 - [How the effect is registered](#how-the-effect-is-registered)
+- [Exclusive groups](#exclusive-groups)
 - [Writing an effect by hand: the Natural flasks](#writing-an-effect-by-hand-the-natural-flasks)
 - [Adding a consumable the rows do not support](#adding-a-consumable-the-rows-do-not-support)
 - [Removing a consumable](#removing-a-consumable)
@@ -126,21 +127,8 @@ otherwise.
 Every builder reads an item's cooldowns the same way (`consumableCooldownsOf`): the item row's own
 cooldown and the category it shares, where the item row states -1 or no category, the spell row's.
 `consumableCast` puts them on the spell a builder registers; a stat consumable that is up from the
-pull registers no spell and no cooldown. Consumables stack unless the rows keep them apart: those
-sharing a category whose cooldown lasts as long as each of their buffs are used one at a time, so of
-those the spec names only the first is up (by the consumable's `category_id`, which core reads once
-for every consumable the spec names).
-The Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411, Ground Scorpok Assay 8412,
-Cerebral Cortex Compound 8423, Gizzard Gum 8424) share category 103's 1 h and last 1 h. The Zanza
-potions (category 79, 3 s) and the Marks of the Dawn (no category) state nothing of the kind and stack.
-Each elixir belongs to one group: the aura type and misc value of the first aura its on-use spell
-applies, which `Consumable.ToProto` writes into db.json as `elixir_group_aura` and
-`elixir_group_misc`. Of the elixirs the spec names only the first of each group applies
-(`firstElixirOfEachGroup` in `sim/core/consumes.go`), in full; elixirs of different groups stack.
-Elixir of Agility 8949 and Elixir of the Mongoose 13452 both open on `A_MOD_STAT` Agility (29/1), so
-only one of them applies; Elixir of the Sages 13447 (29/3, Intellect then Spirit) and Elixir of the
-Whale 250348 (29/4, Spirit) stack, and so do Arcane Elixir 9155 (`A_MOD_DAMAGE_DONE` every school,
-13/126) and Elixir of Fire Power 6373 (13/4). A flask stacks with every elixir.
+pull registers no spell and no cooldown. Which consumables stack is their
+[exclusive group](#exclusive-groups).
 
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
@@ -154,6 +142,76 @@ spell 28890 grants 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERS
 
 A pet takes no consumables of its own; the scrolls the client marks `ONLY_TARGET_PLAYERS` cannot be
 used on one.
+
+## Exclusive groups
+
+A consumable belongs to at most one exclusive group. Of the consumables the spec names, only the first
+of each group applies, in the order core applies them (the potion, the flask, `elixir_ids`, the food,
+the conjured item, the explosive, the imbues, `extra_ids`); everything outside a shared group stacks.
+The client carries no stacking table, so the generator resolves each consumable's group once, and
+`ShippedConsumable` writes it into db.json as `group_key` and `group_name`. The sim reads only the key
+(`selectedConsumableIDs` in `sim/core/consumes.go`), the settings the key and the name.
+
+**From the rows** (`rowGroupOf` in `tools/database/consumable_groups.go`):
+
+- an elixir's group is the aura type and misc value of the first aura its on-use spell applies, keyed
+  `elixir <aura>/<misc>`. Elixir of Agility 8949 and Elixir of the Mongoose 13452 both open on
+  `A_MOD_STAT` Agility (29/1), so only one of them applies; Elixir of the Sages 13447 (29/3, Intellect
+  then Spirit) and Elixir of the Whale 250348 (29/4, Spirit) stack, and so do Arcane Elixir 9155
+  (`A_MOD_DAMAGE_DONE` every school, 13/126) and Elixir of Fire Power 6373 (13/4);
+- a scroll's is the same among the scrolls, keyed `scroll <aura>/<misc>`, so the ranks of one scroll
+  share a group (Scroll of Agility 3012 to IV 10309, 29/1) and a scroll stacks with every elixir and
+  with the scrolls of other stats. A scroll still yields to the raid buff of its stat;
+- a stat consumable whose on-use category cooldown lasts as long as each of its buffs, which are up
+  from the pull, is used one at a time with the others of the category (`shared.OneAtATimeCategory`),
+  keyed `category <id>`. Only the Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411,
+  Ground Scorpok Assay 8412, Cerebral Cortex Compound 8423, Gizzard Gum 8424) qualify: category 103's
+  1 h, buffs of 1 h.
+
+Anything else has no group from its rows: a flask stacks with every elixir, since the 3 s of the
+category 79 they share is shorter than any of their buffs.
+
+The label of a row group comes from its aura (`auraGroupName`): "Strength", "Spell Power", "Fire Spell
+Power", "Armor", "Mana Regeneration", and so on.
+
+**From the override table.** `ConsumableExclusiveGroups` in `tools/database/overrides.go` holds the
+server rules the rows do not state, and a consumable it names takes that group instead of its rows'.
+An entry either joins a row group (`Joins: ElixirGroup(aura, misc)`, which carries that group's key and
+label) or forms a group of its own, keyed and labelled by its `Name`:
+
+```go
+var ConsumableExclusiveGroups = []ConsumableGroup{
+	{Name: "Strength", Joins: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
+		12451, // Juju Power
+	}},
+	{Name: "Attack Power", Joins: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
+		12460, // Juju Might
+	}},
+	{Name: "Zanza", Items: []int32{
+		8410,  // R.O.I.D.S.
+		8411,  // Lung Juice Cocktail
+		8412,  // Ground Scorpok Assay
+		8423,  // Cerebral Cortex Compound
+		8424,  // Gizzard Gum
+		20079, // Spirit of Zanza
+	}},
+	{Name: "Hit food", Items: []int32{
+		22237, // Dark Desire
+		23327, // Fire-toasted Bun
+	}},
+}
+```
+
+The Jujus are Quest-class items the catalogue filter leaves out, so `ConsumableAllowList` names them
+as well. The Blasted Lands buffs leave their category group for Zanza.
+
+**Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `Joins` to put items into a row group,
+or a new `Name` for a group of their own, and every item id with its name. An item that is not in
+db.json yet needs `ConsumableAllowList` first, as the Jujus did. Then regenerate (store first, then
+db.json). `TestEveryExclusiveGroupOverrideShips` fails for an id that does not ship or sits in two
+groups, and for a `Joins` whose label is not the entry's `Name`; `TestAConsumableTakesItsExclusiveGroup`
+pins the groups of the consumables it names. The settings pick the new group up by its key with no
+change of their own.
 
 ## Writing an effect by hand: the Natural flasks
 
@@ -281,6 +339,9 @@ should not take is a hand-written effect for the consumable.
   flasks have theirs in `sim/common/forever`.
 - The warrior suites select consumables from db.json; a regeneration that moves them shows up in their
   goldens.
+- `TestAConsumableTakesItsExclusiveGroup`, `TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory`
+  and `TestEveryExclusiveGroupOverrideShips` (`tools/database`) pin the groups; the stat builder's
+  tests which consumables of one group apply and which stack.
 - `ui/sim/settings/consumables.test.ts` pins the pickers and the relevance rules below,
   `ConsumesPicker/utils.test.ts` the settings rows, and `consumes_migration.test.ts` the migration of
   settings saved before api version 2.
@@ -289,13 +350,16 @@ should not take is a hand-written effect for the consumable.
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
 consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
-the conjured item, `ConsumableTypePotion` the combat potion, then the flask, `ConsumableTypeElixir`
-the elixirs, one picker per elixir group, each writing at most one id into `elixir_ids` and named from
-its aura (`elixirGroupName`: "Strength", "Spell Power", "Fire Spell Power", ...), a group that offers
-the player nothing hidden (the client states no Battle or Guardian split),
-`ConsumableTypeFood` the food, the explosive and the imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
-in their row, the rest in the miscellaneous row, and an explosive with a cooldown of its own beside the
-shared one (Goblin Sapper Charge 10646) beside the explosive picker.
+the conjured item, `ConsumableTypePotion` the combat potion, then the flask, `ConsumableTypeFood` the
+food, the explosive and the imbues. A consumable with an [exclusive group](#exclusive-groups) goes into
+its group's picker instead (`makeConsumableGroupInput`), which writes at most one of the group's ids:
+into `elixir_ids` for an elixir, into `extra_ids` for anything else (Juju Power beside the Strength
+elixirs). The pickers are labelled with `group_name` and ordered by `group_key`: a group holding an
+elixir in the Elixirs row after the flask, one holding a scroll as a column of the Scrolls row, and the
+rest (Hit food, Zanza) after the food. A group, a column or a row that offers the player nothing hides.
+Everything else is picked any number at a time into the spec's `extra_ids`: in the miscellaneous row,
+and an explosive with a cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside
+the explosive picker.
 
 The generator writes the type (`Consumable.ToProto` in `tools/database/dbc/consumable.go`) from the
 category the first on-use row shares, which is also the consumable's `category_id`: the item row's, or
