@@ -4,7 +4,7 @@ import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, highestRanks } from '@sim/settings/consumables';
+import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, higherRanks, highestRanks } from '@sim/settings/consumables';
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
@@ -40,9 +40,9 @@ const mainHandImbueShown = (player: Player<any>) =>
 const isScroll = (consumable: Consumable) => consumable.type === ConsumableType.ConsumableTypeScroll;
 
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
-	const relevance: ConsumableRelevance = { db, stats: consumableStatsOf(player.getSpecConfig()) };
 	const all = db.getConsumables();
-	const inSlot = (slot: ConsumableSlot) => highestRanks(all.filter(consumable => consumableSlot(consumable) === slot));
+	const relevance: ConsumableRelevance = { db, stats: consumableStatsOf(player.getSpecConfig()), higherRanks: higherRanks(all) };
+	const inSlot = (slot: ConsumableSlot) => all.filter(consumable => consumableSlot(consumable) === slot);
 	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[3], consumables = inSlot(slot)) =>
 		makeConsumableInput(consumables, relevance, player, options);
 
@@ -95,8 +95,8 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		scrolls: extras.filter(isScroll).map(consumable => makeExtraIdInput(consumable, relevance)),
 		miscellaneous: extras.filter(consumable => !isScroll(consumable)).map(consumable => makeExtraIdInput(consumable, relevance)),
 		petFood: input(ConsumableSlot.PetFood, { consumesFieldName: 'petFoodId', showWhen: hasPet }),
-		petScrolls: extras
-			.filter(consumable => isScroll(consumable) && !consumable.classAllowlist.length && consumable.stats.some(value => value > 0))
-			.map(consumable => makeExtraIdInput(consumable, relevance, { pet: true, showWhen: hasPet })),
+		petScrolls: highestRanks(
+			extras.filter(consumable => isScroll(consumable) && !consumable.classAllowlist.length && consumable.stats.some(value => value > 0)),
+		).map(consumable => makeExtraIdInput(consumable, relevance, { pet: true, showWhen: hasPet })),
 	};
 };

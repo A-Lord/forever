@@ -273,7 +273,9 @@ where it states none, its spell's. It types a consumable in category 4 a potion:
 - for an imbue, the hand's item against the enchant's weapon subclass and inventory type masks, so a
   shield coating shows on a shield.
 
-Of the ranks of one name (Scroll of Agility .. IV) the settings offer the highest numeral. The UI keeps
+Of the ranks of one name (Scroll of Agility .. IV) the settings offer the highest numeral among those
+the player is offered, so a top rank the class, the hand or the profession rules out leaves the rank
+below it in the picker; the pet's scrolls, offered by spec, keep the highest numeral. The UI keeps
 the rows and their text, the flask and elixir exclusion, the Windfury Totem rule for the main-hand imbue
 and which specs have a pet. `Player.getConsumes(true)` sends the relevant potions and conjured items as
 the spec's lists.

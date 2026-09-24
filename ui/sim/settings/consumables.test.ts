@@ -11,6 +11,7 @@ import {
 	type ConsumableUser,
 	explosiveUsedBeside,
 	handTakesImbue,
+	higherRanks,
 	highestRanks,
 	isConsumableRelevant,
 	relevantConsumableIds,
@@ -166,6 +167,10 @@ describe('highestRanks', () => {
 			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion }),
 		];
 		expect(highestRanks(ranks).map(c => c.id)).toEqual([10309, 5633, 13442]);
+		const higher = higherRanks(ranks);
+		expect(higher.get(1477)!.map(c => c.id)).toEqual([10309, 4425]);
+		expect(higher.get(10309)).toEqual([]);
+		expect(higher.get(5633)).toEqual([]);
 	});
 });
 
@@ -185,5 +190,21 @@ describe('relevantConsumableIds', () => {
 		];
 		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, user(), db)).toEqual([13442]);
 		expect(relevantConsumableIds(consumables, ConsumableSlot.Conjured, user({ epStats: [Stat.StatStamina] }), db)).toEqual([9421]);
+	});
+
+	it('picks the rank among the relevant ones, so an unusable top rank leaves the one below', () => {
+		const consumables = [
+			consumable({ id: 1, name: 'Rage Potion', type: ConsumableType.ConsumableTypePotion, categoryId: 4, effectIds: [3] }),
+			consumable({
+				id: 2,
+				name: 'Rage Potion II',
+				type: ConsumableType.ConsumableTypePotion,
+				categoryId: 4,
+				effectIds: [3],
+				classAllowlist: [Class.ClassRogue],
+			}),
+		];
+		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, user(), db)).toEqual([1]);
+		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, user({ cls: Class.ClassRogue }), db)).toEqual([2]);
 	});
 });

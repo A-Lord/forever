@@ -153,13 +153,42 @@ describe('consumeConfigs', () => {
 	it('toggles an item in the extra ids, and a pet scroll in the pet’s', () => {
 		const { player, state } = playerOf({ cls: Class.ClassHunter, spec: Spec.SpecHunter });
 		const configs = consumeConfigs(player, db);
-		configs.scrolls[0].setValue(player, true);
+		const scroll = configs.scrolls.find(toggle => toggle.actionId.itemId === 10310)!;
+		scroll.setValue(player, true);
 		configs.petScrolls[0].setValue(player, true);
 		expect([state.consumes.extraIds, state.consumes.petExtraIds]).toEqual([[10310], [10310]]);
-		configs.scrolls[0].setValue(player, false);
+		scroll.setValue(player, false);
 		expect(state.consumes.extraIds).toEqual([]);
 		expect(toggled(configs.petScrolls, player)).toEqual([10310]);
 		const warrior = playerOf().player;
 		expect(toggled(consumeConfigs(warrior, db).petScrolls, warrior)).toEqual([]);
+	});
+
+	it('offers the highest rank the player can use, below a top rank it cannot', () => {
+		const ranks = [
+			Consumable.create({ id: 2289, name: 'Scroll of Strength II', type: ConsumableType.ConsumableTypeScroll, stats: strength(9) }),
+			Consumable.create({
+				id: 10310,
+				name: 'Scroll of Strength IV',
+				type: ConsumableType.ConsumableTypeScroll,
+				stats: strength(17),
+				classAllowlist: [Class.ClassRogue],
+			}),
+			Consumable.create({ id: 12404, name: 'Dense Sharpening Stone II', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 7 }),
+			Consumable.create({ id: 12643, name: 'Dense Sharpening Stone III', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 15 }),
+		];
+		const rankDb = { getConsumables: () => ranks, getSpellEffect: () => undefined } as unknown as Database;
+		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
+		const dagger = UIItem.create({ weaponType: WeaponType.WeaponTypeDagger, handType: HandType.HandTypeOneHand });
+
+		const warrior = playerOf({ mainHand: sword }).player;
+		const configs = consumeConfigs(warrior, rankDb);
+		expect(toggled(configs.scrolls, warrior)).toEqual([2289]);
+		expect(offered(configs.mhImbue, warrior)).toEqual([12404]);
+
+		const rogue = playerOf({ cls: Class.ClassRogue, mainHand: dagger }).player;
+		const rogueConfigs = consumeConfigs(rogue, rankDb);
+		expect(toggled(rogueConfigs.scrolls, rogue)).toEqual([10310]);
+		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([12643]);
 	});
 });

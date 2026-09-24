@@ -198,15 +198,26 @@ export function isConsumableRelevant(
 }
 
 // Roman-numeral ranks of one consumable share a name up to the numeral; the settings offer the
-// highest.
+// highest of those the player could use, so an unusable top rank leaves a usable lower one offered.
 const RANK_SUFFIX = / (I|II|III|IV|V|VI|VII|VIII|IX|X)$/;
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
+const rankOf = (consumable: Consumable) => {
+	const match = consumable.name.match(RANK_SUFFIX);
+	return { base: `${consumable.type}:${match ? consumable.name.slice(0, match.index) : consumable.name}`, rank: match ? ROMAN.indexOf(match[1]) + 1 : 1 };
+};
+
+export function higherRanks(consumables: ReadonlyArray<Consumable>): Map<number, Array<Consumable>> {
+	const ranked = consumables.map(consumable => ({ consumable, ...rankOf(consumable) }));
+	return new Map(
+		ranked.map(({ consumable, base, rank }) => [
+			consumable.id,
+			ranked.filter(other => other.base === base && other.rank > rank).map(other => other.consumable),
+		]),
+	);
+}
+
 export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
-	const rankOf = (consumable: Consumable) => {
-		const match = consumable.name.match(RANK_SUFFIX);
-		return { base: `${consumable.type}:${match ? consumable.name.slice(0, match.index) : consumable.name}`, rank: match ? ROMAN.indexOf(match[1]) + 1 : 1 };
-	};
 	const best = new Map<string, { rank: number; consumable: Consumable }>();
 	for (const consumable of consumables) {
 		const { base, rank } = rankOf(consumable);
@@ -226,7 +237,7 @@ export function relevantConsumableIds(
 	db: SpellEffectSource,
 ): Array<number> {
 	const stats = consumableStatsOf(user.getSpecConfig());
-	return highestRanks(consumables.filter(consumable => consumableSlot(consumable) === slot))
-		.filter(consumable => isConsumableRelevant(consumable, user, db, stats))
-		.map(consumable => consumable.id);
+	return highestRanks(consumables.filter(consumable => consumableSlot(consumable) === slot && isConsumableRelevant(consumable, user, db, stats))).map(
+		consumable => consumable.id,
+	);
 }

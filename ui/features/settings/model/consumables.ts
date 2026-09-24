@@ -23,6 +23,8 @@ export type ConsumableIdField =
 export interface ConsumableRelevance {
 	db: SpellEffectSource;
 	stats: Set<Stat>;
+	// The higher ranks of each consumable, by id: one is offered only while none of these is.
+	higherRanks: ReadonlyMap<number, ReadonlyArray<Consumable>>;
 }
 
 export interface ConsumableInputOptions {
@@ -33,8 +35,10 @@ export interface ConsumableInputOptions {
 	tooltip?: string;
 }
 
-const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offers?: ConsumableInputOptions['offers']) => (player: Player<any>) =>
-	isConsumableRelevant(consumable, player, relevance.db, relevance.stats) && (!offers || offers(consumable, player));
+const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offers?: ConsumableInputOptions['offers']) => (player: Player<any>) => {
+	const usable = (c: Consumable) => isConsumableRelevant(c, player, relevance.db, relevance.stats) && (!offers || offers(c, player));
+	return usable(consumable) && !(relevance.higherRanks.get(consumable.id) ?? []).some(usable);
+};
 
 // The flask and the elixirs exclude each other.
 const withExclusions = (consumes: ConsumesSpec, field: ConsumableIdField, newValue: number): ConsumesSpec => {
