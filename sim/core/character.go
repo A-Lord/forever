@@ -137,6 +137,7 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 
 	character.AddStats(character.baseStats)
+	character.AddStat(stats.Health, 20-10*20)
 	character.addUniversalStatDependencies()
 
 	if player.BonusStats != nil {
@@ -263,7 +264,6 @@ func (character *Character) applyEquipment() {
 
 func (character *Character) addUniversalStatDependencies() {
 	character.Unit.addUniversalStatDependencies()
-	character.AddStat(stats.Health, 20-10*20)
 	character.AddStatDependency(stats.Stamina, stats.Health, 10)
 	character.AddStatDependency(stats.Agility, stats.Armor, 2)
 }

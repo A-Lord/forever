@@ -68,6 +68,27 @@ func nakedSheet(t *testing.T, class proto.Class, race proto.Race) (*core.Charact
 	return built, built.ApplyStatDependencies(built.GetStats()).FloorGameStats()
 }
 
+func TestPetsGetTenHealthPerStaminaFromTheFirstPoint(t *testing.T) {
+	owner := core.NewCharacter(&core.Party{Raid: &core.Raid{}}, 0, nakedPlayer(proto.Class_ClassWarrior, proto.Race_RaceHuman))
+	ownerBase := core.BaseStats[core.BaseStatsKey{Race: proto.Race_RaceHuman, Class: proto.Class_ClassWarrior}]
+	if got, want := owner.GetStats()[stats.Health], ownerBase[stats.Health]-180; got != want {
+		t.Errorf("player health before stamina %v, want %v: the first 20 stamina give 1 health each", got, want)
+	}
+
+	pet := core.NewPet(core.PetConfig{
+		Name:      "Test Pet",
+		Owner:     &owner,
+		BaseStats: stats.Stats{stats.Health: 1000, stats.Stamina: 50},
+	})
+	if got := pet.GetStats()[stats.Health]; got != 1000 {
+		t.Errorf("pet health before stamina %v, want its base 1000", got)
+	}
+	pet.FinalizeStatDeps()
+	if got := pet.ApplyStatDependencies(pet.GetStats())[stats.Health]; got != 1000+50*10 {
+		t.Errorf("pet health %v, want %v", got, 1000+50*10)
+	}
+}
+
 func TestNakedWarriorHealthAndAttackPower(t *testing.T) {
 	_, sheet := nakedSheet(t, proto.Class_ClassWarrior, proto.Race_RaceHuman)
 
