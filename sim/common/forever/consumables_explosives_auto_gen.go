@@ -108,8 +108,6 @@ func RegisterAllExplosives() {
 	// shared.NewSpellDataExplosive(202251) // Bag of Pet Treats
 	// unsupported: 435968's damage over time lands on an area, which the damage builder applies to one target
 	// shared.NewSpellDataExplosive(215168) // Ez-Thro Radiation Bomb
-	// unsupported: 446504 deals no damage and heals no one (E_OPEN_LOCK)
-	// shared.NewSpellDataExplosive(221325) // EZ-Splode Blasting Charge
 	// unsupported: 473544 deals no damage and heals no one (A_MOD_STEALTH, A_MOD_DECREASE_SPEED)
 	// shared.NewSpellDataExplosive(233217) // Tunneler's Incense
 	// unsupported: 1269265 deals no damage and heals no one (E_SUMMON)

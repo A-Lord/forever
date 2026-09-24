@@ -35,3 +35,29 @@ func TestAConsumableIsTypedByTheCategoryItsOnUseShares(t *testing.T) {
 		}
 	}
 }
+
+// The explosive picker offers what shares the explosives' category 24 and routes as damage.
+func TestOnlyADamagingExplosiveIsTypedAnExplosive(t *testing.T) {
+	inRepositoryRoot(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		name      string
+		id        int
+		explosive bool
+	}{
+		{"Goblin Sapper Charge, 13241 deals damage", 10646, true},
+		{"Bag of Marbles, category 24, 5917 lowers the target's hit chance", 1191, false},
+		{"Large Rope Net, category 24, 8312 roots", 835, false},
+		{"EZ-Splode Blasting Charge, a Trade Goods explosive on no category", 221325, false},
+	} {
+		catalogued, ok := instance.Consumables[tc.id]
+		if !ok {
+			t.Fatalf("%s: %d is not in the catalogue", tc.name, tc.id)
+		}
+		got := ShippedConsumable(&catalogued, RouteConsumable(&catalogued, instance)).Type
+		if (got == proto.ConsumableType_ConsumableTypeExplosive) != tc.explosive {
+			t.Errorf("%s: typed %v", tc.name, got)
+		}
+	}
+}
