@@ -75,8 +75,7 @@ describe('isConsumableRelevant', () => {
 		expect(isConsumableRelevant(sapper, user(), db)).toBe(false);
 		expect(isConsumableRelevant(sapper, user({ professions: [Profession.Engineering] }), db)).toBe(true);
 
-		// Bit 2 - 1 is the Orc's.
-		const orcOnly = consumable({ type: ConsumableType.ConsumableTypeExplosive, allowableRace: 2n });
+		const orcOnly = consumable({ type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
 		expect(isConsumableRelevant(orcOnly, user(), db)).toBe(true);
 		expect(isConsumableRelevant(orcOnly, user({ race: Race.RaceHuman }), db)).toBe(false);
 	});
@@ -152,7 +151,7 @@ describe('handTakesImbue', () => {
 describe('relevanceFor', () => {
 	it('answers as isConsumableRelevant does, and again once the class, race or a required profession changes', () => {
 		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering });
-		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, allowableRace: 2n });
+		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
 		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]));
 		expect(relevant(sapper, user())).toBe(false);
 		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);

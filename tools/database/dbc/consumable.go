@@ -106,8 +106,8 @@ func (c *Consumable) ToProto() *proto.Consumable {
 	if category > 0 {
 		consumable.CategoryId = category
 	}
-	if c.RaceMask != -1 {
-		consumable.AllowableRace = c.RaceMask
+	if c.RaceMask != -1 && c.RaceMask != 0 {
+		consumable.RaceAllowlist = GetRacesFromRaceMask(c.RaceMask)
 	}
 	if enchant != nil && enchant.EquippedItemClass == ITEM_CLASS_WEAPON {
 		consumable.WeaponSubclassMask = enchant.EquippedItemSubclass

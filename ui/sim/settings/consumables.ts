@@ -68,20 +68,6 @@ export function consumableSlot(consumable: Consumable): ConsumableSlot {
 export const explosiveUsedBeside = (consumable: Consumable): boolean =>
 	consumable.itemEffects.some(effect => effect.effect.oneofKind === 'onUse' && effect.effect.onUse.cooldownMs > 0);
 
-// ChrRaces.ID of each race: bit ID - 1 of ItemSparse.AllowableRace.
-const CLIENT_RACE_IDS: Partial<Record<Race, number>> = {
-	[Race.RaceHuman]: 1,
-	[Race.RaceOrc]: 2,
-	[Race.RaceDwarf]: 3,
-	[Race.RaceNightElf]: 4,
-	[Race.RaceUndead]: 5,
-	[Race.RaceTauren]: 6,
-	[Race.RaceGnome]: 7,
-	[Race.RaceTroll]: 8,
-	[Race.RaceBloodElf]: 10,
-	[Race.RaceDraenei]: 11,
-};
-
 // ItemSubclassWeapon of an equipped weapon: the bit a temporary enchant's weapon subclass mask sets
 // for it. None for a shield or an off-hand frill.
 const clientWeaponSubclass = (item: Item): number | undefined => {
@@ -208,10 +194,7 @@ export function isConsumableRelevant(
 ): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
 	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession)) return false;
-	if (consumable.allowableRace) {
-		const raceId = CLIENT_RACE_IDS[user.getRace()];
-		if (raceId === undefined || (consumable.allowableRace & (1n << BigInt(raceId - 1))) === 0n) return false;
-	}
+	if (consumable.raceAllowlist.length && !consumable.raceAllowlist.includes(user.getRace())) return false;
 
 	const { grantedStats, restores } = factsOf(consumable, db);
 	if (consumable.buffsMainStat || grantedStats.some(stat => stats.has(stat)) || restores.some(resource => restoresForSpec(resource, stats))) return true;

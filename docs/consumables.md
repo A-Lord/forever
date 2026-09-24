@@ -106,13 +106,13 @@ Demonslaying 9224 ships through the allow list and is registered by hand. Each b
 refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsupported`,
 `StatConsumableUnsupported`), and the router reads the same checks.
 
-| family                                                                 | file                                 | builder                         |
-| ---------------------------------------------------------------------- | ------------------------------------ | ------------------------------- |
-| `ConsumableTypeImbue`                                                  | `consumables_imbues_auto_gen.go`     | `NewTemporaryEnchantConsumable` |
-| `ConsumableTypeExplosive` that routes as `damage`                      | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`         |
-| potions (category 4) and `ConsumableTypeConjured`                      | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
-| other consumables that route as `heal`, `energize` or `absorb`         | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
-| other consumables that route as `stat aura`                            | `consumable_stats_auto_gen.go`       | `NewSpellDataStatConsumable`    |
+| family                                                         | file                                 | builder                         |
+| -------------------------------------------------------------- | ------------------------------------ | ------------------------------- |
+| `ConsumableTypeImbue`                                          | `consumables_imbues_auto_gen.go`     | `NewTemporaryEnchantConsumable` |
+| `ConsumableTypeExplosive` that routes as `damage`              | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`         |
+| potions (category 4) and `ConsumableTypeConjured`              | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
+| other consumables that route as `heal`, `energize` or `absorb` | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
+| other consumables that route as `stat aura`                    | `consumable_stats_auto_gen.go`       | `NewSpellDataStatConsumable`    |
 
 The potion builder runs one spell on the user: a heal, an absorb, a gain of mana, rage or energy, damage
 to the user and the auras the parser attaches. A potion shares category 4's timer and is a major
@@ -285,7 +285,7 @@ everything else takes its item subclass.
 `isConsumableRelevant` then decides whether the player sees it:
 
 - the class, profession and race the client allows it (`class_allowlist`, `required_profession`,
-  `allowable_race`);
+  `race_allowlist`, the last read from `ItemSparse.AllowableRace` by the generator);
 - a stat the spec weighs (its `epStats` and `consumableStats`; Stamina brings health and the
   resistances, Attack Power flat physical damage), a resource it spends, or, for a consumable granting
   neither, an effect of another kind (damage, an absorb, a weapon enchant);

@@ -70,8 +70,6 @@ message Consumable {
 	repeated ItemEffect item_effects = 12;
 	// Empty when every class can use it.
 	repeated Class class_allowlist = 13;
-	// ItemSparse.AllowableRace, both words as one mask; 0 when every race can use it.
-	int64 allowable_race = 14;
 	Profession required_profession = 15;
 	// SpellEquippedItems of a temporary enchant's spell: the weapon subclasses and inventory types
 	// it can be applied to. Zero on consumables that enchant nothing.
@@ -81,9 +79,11 @@ message Consumable {
 	// the combat spells it casts off that weapon's hits, each at the chance its slot states. Absent on
 	// consumables that enchant nothing.
 	SimEnchant temporary_enchant = 18;
+	// Empty when every race can use it.
+	repeated Race race_allowlist = 19;
 
-	reserved 7, 9, 10;
-	reserved "buff_duration", "cooldown_duration", "category_cooldown_duration";
+	reserved 7, 9, 10, 14;
+	reserved "buff_duration", "cooldown_duration", "category_cooldown_duration", "allowable_race";
 }
 
 message ItemEffectRandPropPoints {
