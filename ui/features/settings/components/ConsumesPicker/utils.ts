@@ -15,7 +15,7 @@ export interface ConsumeConfigs {
 	conjured: ConsumeConfig;
 	flask: ConsumeConfig;
 	// One pick per exclusive group, in the order of the groups' keys: those holding an elixir, those
-	// holding a scroll, and the rest.
+	// holding a scroll and no elixir, and the rest.
 	elixirs: Array<ConsumeConfig>;
 	scrolls: Array<ConsumeConfig>;
 	groups: Array<ConsumeConfig>;

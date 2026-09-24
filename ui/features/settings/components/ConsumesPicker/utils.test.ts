@@ -55,8 +55,8 @@ const CONSUMABLES = [
 	}),
 	Consumable.create({ id: 12404, name: 'Dense Sharpening Stone', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 33219 }),
 	Consumable.create({ id: 228980, name: 'Conductive Shield Coating', type: ConsumableType.ConsumableTypeImbue, weaponInventoryTypeMask: 16384 }),
-	scroll(2289, 'Scroll of Strength II', strength(9), 'scroll 29/0', 'Strength'),
-	scroll(10310, 'Scroll of Strength IV', strength(17), 'scroll 29/0', 'Strength'),
+	scroll(2289, 'Scroll of Strength II', strength(9), 'elixir 29/0', 'Strength'),
+	scroll(10310, 'Scroll of Strength IV', strength(17), 'elixir 29/0', 'Strength'),
 	scroll(1180, 'Scroll of Stamina', statArray(Stat.StatStamina, 4), 'scroll 29/2', 'Stamina'),
 	other(8410, 'R.O.I.D.S.', strength(25), 'Zanza', 'Zanza'),
 	other(20079, 'Spirit of Zanza', statArray(Stat.StatSpirit, 50), 'Zanza', 'Zanza'),
@@ -120,8 +120,8 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451], [], [12820]]);
-		expect(configs.scrolls.map(config => offered(config, player))).toEqual([[10310], []]);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 10310], [], [12820]]);
+		expect(configs.scrolls.map(config => offered(config, player))).toEqual([[]]);
 		expect(configs.groups.map(config => offered(config, player))).toEqual([[], [8410]]);
 		expect(offered(configs.food, player)).toEqual([238637]);
 		expect(offered(configs.explosive, player)).toEqual([18588]);
@@ -155,8 +155,8 @@ describe('consumeConfigs', () => {
 		const { elixirs, scrolls, groups } = consumeConfigs(player, db);
 		expect(elixirs.map(config => config.tooltip)).toEqual(['Strength', 'Intellect', 'Attack Power']);
 		expect(elixirs.map(config => iconEnumPickerShown(config, player))).toEqual([true, false, true]);
-		expect(scrolls.map(config => config.tooltip)).toEqual(['Strength', 'Stamina']);
-		expect(scrolls.map(config => iconEnumPickerShown(config, player))).toEqual([true, false]);
+		expect(scrolls.map(config => config.tooltip)).toEqual(['Stamina']);
+		expect(scrolls.map(config => iconEnumPickerShown(config, player))).toEqual([false]);
 		expect(groups.map(config => config.tooltip)).toEqual(['Hit food', 'Zanza']);
 		expect(groups.map(config => iconEnumPickerShown(config, player))).toEqual([false, true]);
 	});
@@ -194,16 +194,24 @@ describe('consumeConfigs', () => {
 		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[], [4376]]);
 	});
 
-	it('picks one scroll of each stat and one of the Zanza group into the extra ids', () => {
-		const { player, state } = playerOf();
+	it('picks a scroll in the picker of its elixir group, in place of the elixir', () => {
+		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206] }) });
+		const [strengthGroup] = consumeConfigs(player, db).elixirs;
+		strengthGroup.setValue(player, 10310);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[], [10310]]);
+		strengthGroup.setValue(player, 9206);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[9206], []]);
+	});
+
+	it('picks a scroll no elixir shares and one of the Zanza group into the extra ids', () => {
+		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206] }) });
 		const configs = consumeConfigs(player, db);
-		configs.scrolls[0].setValue(player, 10310);
-		configs.scrolls[1].setValue(player, 1180);
+		configs.scrolls[0].setValue(player, 1180);
 		configs.groups[1].setValue(player, 8410);
-		expect(state.consumes.extraIds).toEqual([10310, 1180, 8410]);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[9206], [1180, 8410]]);
 		configs.groups[1].setValue(player, 20079);
 		configs.scrolls[0].setValue(player, 0);
-		expect(state.consumes.extraIds).toEqual([1180, 20079]);
+		expect(state.consumes.extraIds).toEqual([20079]);
 	});
 
 	it('offers the highest rank the player can use, below a top rank it cannot', () => {
