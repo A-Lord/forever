@@ -28,10 +28,11 @@ export const LEGACY_CONSUMABLE_VALUES: ReadonlyMap<number, number> = new Map([
 
 const LEGACY_VALUE_FIELDS = ['explosiveId', 'mhImbueId', 'ohImbueId'] as const;
 
-// The ConsumesSpec fields removed since api version 1, each reserved by name: the JSON name each had, its
-// number in a version-1 payload (0 where version 1 had no such field) and in a payload from before
-// the version restarted at 1, and the item a set flag selected, 0 where the client ships none or the
-// field held no item. The pet takes no consumables of its own, so its scrolls and extra ids go.
+// The ConsumesSpec flags and lists removed since api version 1, each reserved by name: the JSON name
+// each had, its number in a version-1 or version-2 payload (0 where neither had such a field) and in a
+// payload from before the version restarted at 1, and the item a set flag selected, 0 where the client
+// ships none or the field held no item. The pet takes no consumables of its own, so its scrolls and
+// extra ids go.
 export interface RemovedConsumesField {
 	name: string;
 	jsonName: string;
@@ -55,11 +56,15 @@ export const REMOVED_CONSUMES_FIELDS: ReadonlyArray<RemovedConsumesField> = [
 	{ name: 'nightmare_seed', jsonName: 'nightmareSeed', no: 0, preRestartNo: 20, itemId: 0 }, // Nightmare Seed 22797
 	{ name: 'pet_food_id', jsonName: 'petFoodId', no: 0, preRestartNo: 21, itemId: 0 }, // the client ships no pet food
 	{ name: 'bloodthistle', jsonName: 'bloodthistle', no: 0, preRestartNo: 24, itemId: 0 }, // Bloodthistle 22710
-	{ name: 'pet_extra_ids', jsonName: 'petExtraIds', no: 0, preRestartNo: 0, itemId: 0 },
+	{ name: 'pet_extra_ids', jsonName: 'petExtraIds', no: 20, preRestartNo: 0, itemId: 0 },
 ];
 
-// The fields a version-2 payload may carry that the current ConsumesSpec reserves: the pet's extra ids.
-const VERSION_TWO_REMOVED_NUMBERS = [20];
+// The Battle and Guardian elixir fields, 3 and 4 in every layout a payload may carry, whose item ids
+// the elixir list takes.
+export const REMOVED_ELIXIR_FIELDS = [
+	{ name: 'battle_elixir_id', jsonName: 'battleElixirId', no: 3 },
+	{ name: 'guardian_elixir_id', jsonName: 'guardianElixirId', no: 4 },
+] as const;
 
 // A payload from before the version restarted at 1 is stamped 16 or lower.
 const isPreRestart = (apiVersion: number) => apiVersion > 2 && apiVersion <= 16;
@@ -80,19 +85,20 @@ const addFlagItem = (consumes: { extraIds?: Array<number> }, field: RemovedConsu
 const legacyValue = (value: number | undefined): number | undefined =>
 	value !== undefined && LEGACY_CONSUMABLE_VALUES.has(value) ? LEGACY_CONSUMABLE_VALUES.get(value) : value;
 
-// A ConsumesSpec in JSON form, by the JSON or the proto field names. Drops every removed field and
-// turns a set flag into its item.
+// A ConsumesSpec in JSON form, by the JSON or the proto field names. Drops every removed field, turns
+// a set flag into its item and moves the Battle and Guardian elixirs into the elixir list.
 export const migrateConsumesJson = (json: unknown): unknown => {
 	if (!json || typeof json !== 'object') return json;
 	const consumes = { ...(json as Record<string, unknown>) } as Record<string, any>;
 	let changed = false;
-	for (const field of REMOVED_CONSUMES_FIELDS) {
+	for (const field of [...REMOVED_CONSUMES_FIELDS, ...REMOVED_ELIXIR_FIELDS]) {
 		for (const key of new Set([field.jsonName, field.name])) {
 			if (!(key in consumes)) continue;
 			changed = true;
 			const value = consumes[key];
 			delete consumes[key];
-			if (value === true) addFlagItem(consumes, field);
+			if ('itemId' in field && value === true) addFlagItem(consumes, field);
+			if (!('itemId' in field) && typeof value === 'number') consumes.elixirIds = withItem(consumes.elixirIds, value);
 		}
 	}
 	return changed ? consumes : json;
@@ -127,24 +133,23 @@ export const parseIndividualSimSettingsJson = (text: string): IndividualSimSetti
 };
 
 // A binary payload carries the removed fields as unknown fields, by the numbers of the version it was
-// written at. A payload from before the restart also held three flags at the numbers the potions, the
-// conjured items and the extra ids now take, where each reads as a list holding a 1.
+// written at. A payload from before the restart also held four fields at the numbers the potions, the
+// conjured items, the extra ids and the elixir list now take: three flags, each read as a list holding
+// a 1, and the pet's food.
 export const migrateConsumesUnknownFields = (consumes: ConsumesSpec, apiVersion: number) => {
 	const preRestart = isPreRestart(apiVersion);
-	const container = consumes as unknown as Record<symbol, Array<{ no: number }> | undefined>;
-	if (!preRestart && apiVersion >= 2) {
-		const unknown = container[UnknownFieldHandler.symbol];
-		if (unknown) container[UnknownFieldHandler.symbol] = unknown.filter(entry => !VERSION_TWO_REMOVED_NUMBERS.includes(entry.no));
-		return;
-	}
-
 	const numbered = new Map(REMOVED_CONSUMES_FIELDS.map(field => [preRestart ? field.preRestartNo : field.no, field] as const).filter(([no]) => no !== 0));
+	const elixirNumbers: ReadonlyArray<number> = REMOVED_ELIXIR_FIELDS.map(field => field.no);
 	const set: Array<RemovedConsumesField> = [];
+	const elixirIds: Array<number> = [];
 	for (const entry of UnknownFieldHandler.list(consumes)) {
+		if (entry.wireType !== WireType.Varint) continue;
+		if (elixirNumbers.includes(entry.no)) elixirIds.push(new BinaryReader(entry.data).int32());
 		const field = numbered.get(entry.no);
-		if (field && entry.wireType === WireType.Varint && new BinaryReader(entry.data).bool()) set.push(field);
+		if (field && new BinaryReader(entry.data).bool()) set.push(field);
 	}
-	const dropped = new Set([...numbered.keys(), ...(preRestart ? PRE_RESTART_LIST_NUMBERS : [])]);
+	const dropped = new Set([...numbered.keys(), ...elixirNumbers, ...(preRestart ? PRE_RESTART_LIST_NUMBERS : [])]);
+	const container = consumes as unknown as Record<symbol, Array<{ no: number }> | undefined>;
 	const unknown = container[UnknownFieldHandler.symbol];
 	if (unknown) container[UnknownFieldHandler.symbol] = unknown.filter(entry => !dropped.has(entry.no));
 
@@ -158,6 +163,7 @@ export const migrateConsumesUnknownFields = (consumes: ConsumesSpec, apiVersion:
 		}
 	}
 	set.forEach(field => addFlagItem(consumes, field));
+	elixirIds.forEach(id => (consumes.elixirIds = withItem(consumes.elixirIds, id)));
 };
 
 export const migrateLegacyConsumableValues = (consumes: ConsumesSpec) => {

@@ -99,7 +99,7 @@
 							]
 						},
 						"consumables": {
-							"guardianElixirId": 9088,
+							"elixirIds": [9088],
 							"goblinSapper": true,
 							"potions": [13442]
 						},

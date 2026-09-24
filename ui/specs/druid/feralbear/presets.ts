@@ -26,8 +26,7 @@ export const DefaultOptions = DruidOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	battleElixirId: Consumables.ElixirOfTheMongoose.id,
-	guardianElixirId: Consumables.GiftOfArthas.id,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GiftOfArthas.id],
 	foodId: Consumables.DirgesKickinChimaerokChops.id,
 	potId: Consumables.GreaterStoneshieldPotion.id,
 	conjuredId: Consumables.MajorHealthstone9421.id,

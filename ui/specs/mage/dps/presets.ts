@@ -41,8 +41,7 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	guardianElixirId: Consumables.ElixirOfTheSages.id,
-	battleElixirId: Consumables.GreaterArcaneElixir.id,
+	elixirIds: [Consumables.GreaterArcaneElixir.id, Consumables.ElixirOfTheSages.id],
 	foodId: Consumables.SunriseOmelette.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
 	potId: Consumables.MajorManaPotion.id,

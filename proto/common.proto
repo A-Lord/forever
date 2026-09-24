@@ -436,8 +436,7 @@ enum TristateEffect {
 message ConsumesSpec {
 	int32 pot_id = 1;
 	int32 flask_id = 2;
-	int32 battle_elixir_id = 3;
-	int32 guardian_elixir_id = 4;
+	reserved 3, 4;
 	int32 food_id = 5;
 	int32 conjured_id = 6;
 	int32 explosive_id = 7;
@@ -452,10 +451,12 @@ message ConsumesSpec {
 	// Item ids of the consumables the character uses besides the one-per-kind fields above.
 	repeated int32 extra_ids = 19;
 	reserved 20;
+	// Item ids of the elixirs the character uses, any number of them.
+	repeated int32 elixir_ids = 21;
 
 	reserved "goblinSapper", "bogling_root", "scroll_agi", "scroll_str", "scroll_int", "scroll_spi", "scroll_arm",
 		"superSapper", "drums_id", "pet_scroll_agi", "pet_scroll_str", "nightmare_seed", "bloodthistle", "pet_food_id",
-		"pet_extra_ids";
+		"pet_extra_ids", "battle_elixir_id", "guardian_elixir_id";
 }
 
 enum MobType {

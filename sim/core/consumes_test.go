@@ -96,6 +96,7 @@ func TestRemovedConsumesFieldsStayReserved(t *testing.T) {
 		"goblinSapper": 8, "bogling_root": 9, "scroll_agi": 12, "scroll_str": 13, "scroll_int": 14,
 		"scroll_spi": 15, "scroll_arm": 16, "superSapper": 0, "drums_id": 0, "pet_scroll_agi": 0,
 		"pet_scroll_str": 0, "nightmare_seed": 0, "bloodthistle": 0, "pet_food_id": 0, "pet_extra_ids": 20,
+		"battle_elixir_id": 3, "guardian_elixir_id": 4,
 	} {
 		if !descriptor.ReservedNames().Has(name) || (number != 0 && !descriptor.ReservedRanges().Has(number)) {
 			t.Errorf("ConsumesSpec does not reserve %s = %d", name, number)

@@ -14,13 +14,17 @@ import {
 	REMOVED_CONSUMES_FIELDS,
 } from './consumes_migration';
 
-// A ConsumesSpec as a version-1 link encoded it: pot_id 1, the explosive and main-hand imbue as spell
-// ids, and the flags by their version-1 numbers: goblinSapper 8, bogling_root 9, scroll_agi 12,
-// scroll_str 13 (unset), potions 17.
+// A ConsumesSpec as a version-1 link encoded it: pot_id 1, the Battle and Guardian elixirs at 3 and 4,
+// the explosive and main-hand imbue as spell ids, and the flags by their version-1 numbers:
+// goblinSapper 8, bogling_root 9, scroll_agi 12, scroll_str 13 (unset), potions 17.
 const versionOneConsumesBytes = () =>
 	new BinaryWriter()
 		.tag(1, WireType.Varint)
 		.int32(13444)
+		.tag(3, WireType.Varint)
+		.int32(13452)
+		.tag(4, WireType.Varint)
+		.int32(9088)
 		.tag(7, WireType.Varint)
 		.int32(19769)
 		.tag(8, WireType.Varint)
@@ -39,13 +43,15 @@ const versionOneConsumesBytes = () =>
 		.join()
 		.finish();
 
-// A ConsumesSpec as a link from before the version restarted at 1 encoded it: goblinSapper 9,
-// drums_id 12, scroll_agi 13, scroll_arm 17, pet_scroll_agi 18, pet_scroll_str 19, nightmare_seed 20,
-// bogling_root 25 and the potions at 22.
+// A ConsumesSpec as a link from before the version restarted at 1 encoded it: the Battle elixir at 3,
+// goblinSapper 9, drums_id 12, scroll_agi 13, scroll_arm 17, pet_scroll_agi 18, pet_scroll_str 19,
+// nightmare_seed 20, pet_food_id 21, bogling_root 25 and the potions at 22.
 const preRestartConsumesBytes = () =>
 	new BinaryWriter()
 		.tag(1, WireType.Varint)
 		.int32(13444)
+		.tag(3, WireType.Varint)
+		.int32(13452)
 		.tag(7, WireType.Varint)
 		.int32(15239)
 		.tag(9, WireType.Varint)
@@ -64,6 +70,8 @@ const preRestartConsumesBytes = () =>
 		.bool(false)
 		.tag(20, WireType.Varint)
 		.bool(true)
+		.tag(21, WireType.Varint)
+		.int32(33874)
 		.tag(22, WireType.LengthDelimited)
 		.fork()
 		.int32(13444)
@@ -101,6 +109,12 @@ describe('migrateConsumesJson', () => {
 		expect(migrated).toEqual({ extraIds: [5206, 10305] });
 	});
 
+	it('moves the Battle and Guardian elixirs into the elixir list', () => {
+		expect(migrateConsumesJson({ battleElixirId: 13452, guardianElixirId: 9088 })).toEqual({ elixirIds: [13452, 9088] });
+		expect(migrateConsumesJson({ guardian_elixir_id: 9088, battle_elixir_id: 0 })).toEqual({ elixirIds: [9088] });
+		expect(migrateConsumesJson({ battleElixirId: 13452, elixirIds: [13452] })).toEqual({ elixirIds: [13452] });
+	});
+
 	it('drops the pet’s scrolls and extra ids', () => {
 		expect(migrateConsumesJson({ petExtraIds: [10309, 10310], petScrollStr: true, extraIds: [10646] })).toEqual({ extraIds: [10646] });
 	});
@@ -116,9 +130,7 @@ describe('migrateConsumesJson', () => {
 
 	it('names every removed field by an item or by 0', () => {
 		for (const field of REMOVED_CONSUMES_FIELDS) {
-			expect(migrateConsumesJson({ [field.jsonName]: true }), field.jsonName).toEqual(
-				field.itemId ? { extraIds: [field.itemId] } : {},
-			);
+			expect(migrateConsumesJson({ [field.jsonName]: true }), field.jsonName).toEqual(field.itemId ? { extraIds: [field.itemId] } : {});
 		}
 	});
 });
@@ -165,6 +177,7 @@ describe('migrateConsumesToItemIds', () => {
 		expect(consumes.mhImbueId).toBe(12404);
 		expect(consumes.potions).toEqual([13444]);
 		expect(consumes.extraIds).toEqual([10646, 5206, 10309]);
+		expect(consumes.elixirIds).toEqual([13452, 9088]);
 		expect(UnknownFieldHandler.list(consumes)).toEqual([]);
 	});
 
@@ -179,15 +192,28 @@ describe('migrateConsumesToItemIds', () => {
 		expect(consumes.potions).toEqual([]);
 		expect(consumes.conjuredItems).toEqual([]);
 		expect(consumes.extraIds).toEqual([10646, 10309, 5206, 10305]);
+		expect(consumes.elixirIds).toEqual([13452]);
 		expect(UnknownFieldHandler.list(consumes)).toEqual([]);
 	});
 
-	it('drops the pet’s extra ids a version-2 link carries at 20', () => {
-		const bytes = new BinaryWriter().tag(19, WireType.LengthDelimited).fork().int32(10646).join().tag(20, WireType.LengthDelimited).fork().int32(10309).join().finish();
+	it('moves a version-2 link’s elixirs into the list and drops its pet’s extra ids at 20', () => {
+		const bytes = new BinaryWriter()
+			.tag(3, WireType.Varint)
+			.int32(13452)
+			.tag(19, WireType.LengthDelimited)
+			.fork()
+			.int32(10646)
+			.join()
+			.tag(20, WireType.LengthDelimited)
+			.fork()
+			.int32(10309)
+			.join()
+			.finish();
 		const settings = linkSettings(bytes, 2);
 		const consumes = settings.player!.consumables!;
 		migrateConsumesToItemIds(consumes, settings.player!.apiVersion);
 		expect(consumes.extraIds).toEqual([10646]);
+		expect(consumes.elixirIds).toEqual([13452]);
 		expect(UnknownFieldHandler.list(consumes)).toEqual([]);
 	});
 

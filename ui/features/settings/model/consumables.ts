@@ -7,16 +7,7 @@ import { ActionId } from '@sim/proto/action_id';
 import { IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
 import * as InputHelpers from '@ui-kit/input_helpers';
 
-export type ConsumableIdField =
-	| 'potId'
-	| 'conjuredId'
-	| 'flaskId'
-	| 'battleElixirId'
-	| 'guardianElixirId'
-	| 'foodId'
-	| 'explosiveId'
-	| 'mhImbueId'
-	| 'ohImbueId';
+export type ConsumableIdField = 'potId' | 'conjuredId' | 'flaskId' | 'foodId' | 'explosiveId' | 'mhImbueId' | 'ohImbueId';
 
 export interface ConsumableRelevance {
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;
@@ -42,13 +33,7 @@ const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', '
 // The flask and the elixirs exclude each other.
 const withExclusions = (consumes: ConsumesSpec, field: ConsumableIdField, newValue: number): ConsumesSpec => {
 	const newConsumes = { ...consumes, [field]: newValue };
-	if (field === 'flaskId' && newValue) {
-		newConsumes.battleElixirId = 0;
-		newConsumes.guardianElixirId = 0;
-	}
-	if ((field === 'battleElixirId' || field === 'guardianElixirId') && newValue) {
-		newConsumes.flaskId = 0;
-	}
+	if (field === 'flaskId' && newValue) newConsumes.elixirIds = [];
 	return newConsumes;
 };
 
@@ -85,19 +70,26 @@ export function makeConsumableInput(
 	};
 }
 
-export function makeExtraIdInput(consumable: Consumable, relevance: ConsumableRelevance): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
+// A consumable picked any number at a time into one of the spec's id lists. Picking an elixir clears
+// the flask.
+export function makeIdListInput(
+	consumable: Consumable,
+	relevance: ConsumableRelevance,
+	field: 'extraIds' | 'elixirIds' = 'extraIds',
+): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
 	return {
 		type: 'icon',
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
 		storeField: STORE_FIELDS,
 		showWhen: offeredTo(consumable, relevance),
-		getValue: (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id),
+		getValue: (player: Player<any>) => player.getConsumes()[field].includes(consumable.id),
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();
-			const extraIds = consumes.extraIds.filter(id => id !== consumable.id);
-			if (newValue) extraIds.push(consumable.id);
-			player.setConsumes({ ...consumes, extraIds });
+			const ids = consumes[field].filter(id => id !== consumable.id);
+			if (newValue) ids.push(consumable.id);
+			const flaskId = field === 'elixirIds' && newValue ? 0 : consumes.flaskId;
+			player.setConsumes({ ...consumes, [field]: ids, flaskId });
 		},
 	};
 }

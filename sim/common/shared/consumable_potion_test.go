@@ -394,7 +394,7 @@ func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 // whenever the spec names it.
 func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
 	const deflectorID int32 = 992022
-	sim, user := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{BattleElixirId: deflectorID}, 0,
+	sim, user := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ExtraIds: []int32{deflectorID}}, 0,
 		testConsumable{deflectorID, other, testOnUse(4057, 900000, 0, 0)})
 	deflector := consumableSpell(t, user, deflectorID)
 

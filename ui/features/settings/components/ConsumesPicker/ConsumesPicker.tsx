@@ -39,12 +39,7 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 						<IconEnumPicker modObject={player} config={configs.flask} />
 					</div>
 					<span className="flex w-6 items-center justify-center">{i18n.t('settings_tab.consumables.elixirs.separator')}</span>
-					<div className="empty:hidden" data-testid="consumes-battle-elixirs">
-						<IconEnumPicker modObject={player} config={configs.battleElixir} />
-					</div>
-					<div className="empty:hidden" data-testid="consumes-guardian-elixirs">
-						<IconEnumPicker modObject={player} config={configs.guardianElixir} />
-					</div>
+					<Toggles player={player} toggles={configs.elixirs} />
 				</PickerGroup>
 			</ConsumeRow>
 			<ConsumeRow name="food">

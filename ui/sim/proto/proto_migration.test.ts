@@ -18,10 +18,11 @@ const sentIds = (consumes: Partial<ConsumesSpec>, db: Database) => {
 };
 
 describe('extendPlayerProtoWithMissingEffects', () => {
-	const db = catalogue([5206, 10305, 10306, 10308, 10309, 10310, 10646, 20749, 13444].map(id => Consumable.create({ id })));
+	const db = catalogue([5206, 9088, 10305, 10306, 10308, 10309, 10310, 10646, 13452, 20749, 13444].map(id => Consumable.create({ id })));
 
-	it('carries every item the extra ids name', () => {
+	it('carries every item the extra ids and the elixir ids name', () => {
 		expect(sentIds({ extraIds: [10309, 10310, 10308, 10306, 10305, 5206, 10646] }, db)).toEqual([5206, 10305, 10306, 10308, 10309, 10310, 10646]);
+		expect(sentIds({ elixirIds: [13452, 9088] }, db)).toEqual([9088, 13452]);
 	});
 
 	it('carries an item two fields name once', () => {

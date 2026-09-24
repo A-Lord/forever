@@ -81,13 +81,13 @@ func TestWellFedTakesTheValueItsTriggerHandsOver(t *testing.T) {
 func TestElixirTakesEveryEffectAndTheDurationOfItsRow(t *testing.T) {
 	registerStatConsumable(t, elixirOfTheMongooseID)
 
-	gain := statGain(&proto.ConsumesSpec{BattleElixirId: elixirOfTheMongooseID}, &proto.RaidBuffs{})
+	gain := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}}, &proto.RaidBuffs{})
 	if gain[stats.Agility] != 25 || gain[stats.PhysicalCritPercent] < 2-1e-9 {
 		t.Errorf("Elixir of the Mongoose adds %v Agility and %v%% crit, want 25 and at least 2",
 			gain[stats.Agility], gain[stats.PhysicalCritPercent])
 	}
 
-	_, character := newConsumablesSim(&proto.ConsumesSpec{BattleElixirId: elixirOfTheMongooseID}, &proto.RaidBuffs{})
+	_, character := newConsumablesSim(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}}, &proto.RaidBuffs{})
 	aura := character.GetAuraByID(core.ActionID{ItemID: elixirOfTheMongooseID})
 	if aura == nil || !aura.IsActive() || aura.Duration != 30*time.Minute {
 		t.Errorf("Elixir of the Mongoose is %+v, want up from the pull for 30 minutes", aura)
@@ -158,5 +158,23 @@ func TestOnlyACategoryCooldownAsLongAsTheBuffKeepsConsumablesApart(t *testing.T)
 
 	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{zanza, lungJuice}}, &proto.RaidBuffs{}); gain[stats.Stamina] != 75 {
 		t.Errorf("Spirit of Zanza and Lung Juice Cocktail add %v Stamina, want 75", gain[stats.Stamina])
+	}
+}
+
+// Elixir of Agility 8949 (11328, 15 Agility) and Elixir of the Mongoose 13452 (17538, 25 Agility and
+// 2% crit) attach the same stat, Agility, so only the Mongoose's 25 applies; its crit stays.
+func TestElixirsOfTheSameStatDoNotStack(t *testing.T) {
+	const elixirOfAgilityID int32 = 8949
+	registerStatConsumable(t, elixirOfAgilityID)
+	registerStatConsumable(t, elixirOfTheMongooseID)
+
+	if gain := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfAgilityID}}, &proto.RaidBuffs{}); gain[stats.Agility] != 15 {
+		t.Errorf("Elixir of Agility adds %v Agility, want 15", gain[stats.Agility])
+	}
+	for _, ids := range [][]int32{{elixirOfAgilityID, elixirOfTheMongooseID}, {elixirOfTheMongooseID, elixirOfAgilityID}} {
+		gain := statGain(&proto.ConsumesSpec{ElixirIds: ids}, &proto.RaidBuffs{})
+		if gain[stats.Agility] != 25 || gain[stats.PhysicalCritPercent] < 2-1e-9 {
+			t.Errorf("%v add %v Agility and %v%% crit, want 25 and 2", ids, gain[stats.Agility], gain[stats.PhysicalCritPercent])
+		}
 	}
 }

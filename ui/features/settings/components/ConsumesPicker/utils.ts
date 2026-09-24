@@ -1,18 +1,10 @@
-import { type ConsumableRelevance, makeConsumableInput, makeExtraIdInput } from '@features/settings/model/consumables';
+import { type ConsumableRelevance, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
 import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import {
-	ConsumableSlot,
-	consumableSlot,
-	consumableStatsOf,
-	explosiveUsedBeside,
-	handTakesImbue,
-	higherRanks,
-	relevanceFor,
-} from '@sim/settings/consumables';
+import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, higherRanks, relevanceFor } from '@sim/settings/consumables';
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
@@ -22,8 +14,7 @@ export interface ConsumeConfigs {
 	potion: ConsumeConfig;
 	conjured: ConsumeConfig;
 	flask: ConsumeConfig;
-	battleElixir: ConsumeConfig;
-	guardianElixir: ConsumeConfig;
+	elixirs: Array<ConsumeToggle>;
 	food: ConsumeConfig;
 	explosive: ConsumeConfig;
 	explosiveExtras: Array<ConsumeToggle>;
@@ -65,23 +56,14 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		potion: input(ConsumableSlot.Potion, { consumesFieldName: 'potId', tooltip: i18n.t('settings_tab.consumables.potions.combat') }),
 		conjured: input(ConsumableSlot.Conjured, { consumesFieldName: 'conjuredId' }),
 		flask: input(ConsumableSlot.Flask, { consumesFieldName: 'flaskId' }),
-		battleElixir: input(
-			ConsumableSlot.Elixir,
-			{ consumesFieldName: 'battleElixirId', offers: (consumable, p) => consumable.id !== p.getConsumes().guardianElixirId },
-			elixirs.filter(consumable => consumable.type !== ConsumableType.ConsumableTypeGuardianElixir),
-		),
-		guardianElixir: input(
-			ConsumableSlot.Elixir,
-			{ consumesFieldName: 'guardianElixirId', offers: (consumable, p) => consumable.id !== p.getConsumes().battleElixirId },
-			elixirs.filter(consumable => consumable.type !== ConsumableType.ConsumableTypeBattleElixir),
-		),
+		elixirs: elixirs.map(consumable => makeIdListInput(consumable, relevance, 'elixirIds')),
 		food: input(ConsumableSlot.Food, { consumesFieldName: 'foodId' }),
 		explosive: input(
 			ConsumableSlot.Explosive,
 			{ consumesFieldName: 'explosiveId', tooltip: i18n.t('settings_tab.consumables.engineering.explosives') },
 			explosives.filter(consumable => !explosiveUsedBeside(consumable)),
 		),
-		explosiveExtras: explosives.filter(explosiveUsedBeside).map(consumable => makeExtraIdInput(consumable, relevance)),
+		explosiveExtras: explosives.filter(explosiveUsedBeside).map(consumable => makeIdListInput(consumable, relevance)),
 		mhImbue: input(
 			ConsumableSlot.Imbue,
 			{
@@ -101,7 +83,7 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 			},
 			imbues,
 		),
-		scrolls: extras.filter(isScroll).map(consumable => makeExtraIdInput(consumable, relevance)),
-		miscellaneous: extras.filter(consumable => !isScroll(consumable)).map(consumable => makeExtraIdInput(consumable, relevance)),
+		scrolls: extras.filter(isScroll).map(consumable => makeIdListInput(consumable, relevance)),
+		miscellaneous: extras.filter(consumable => !isScroll(consumable)).map(consumable => makeIdListInput(consumable, relevance)),
 	};
 };

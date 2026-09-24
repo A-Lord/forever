@@ -183,13 +183,28 @@ func consumableAura(character *core.Character, consumable core.Consumable, buff 
 	}
 
 	aura := character.GetOrRegisterAura(config)
-	if !scroll {
+	switch {
+	case scroll:
+		spelldata.ParseEffects(character, aura, buff, spelldata.ExclusivePerStat(core.StatBuffCategory))
+	case isElixir(consumable):
+		spelldata.ParseEffects(character, aura, buff, spelldata.ExclusivePerStat(ElixirCategory))
+	default:
 		spelldata.ParseEffects(character, aura, buff)
-		return aura
 	}
-
-	spelldata.ParseEffects(character, aura, buff, spelldata.ExclusivePerStat(core.StatBuffCategory))
 	return aura
+}
+
+// Elixirs of the same stat do not stack: each stat or pseudo-stat an elixir's auras attach bids under
+// this category, and of the elixirs that attach it only the largest applies. An elixir's other stats
+// stay: Elixir of the Mongoose 13452's crit beside another elixir's larger Agility.
+const ElixirCategory = "Elixir"
+
+func isElixir(consumable core.Consumable) bool {
+	switch consumable.Type {
+	case proto.ConsumableType_ConsumableTypeElixir, proto.ConsumableType_ConsumableTypeBattleElixir, proto.ConsumableType_ConsumableTypeGuardianElixir:
+		return true
+	}
+	return false
 }
 
 // The item used from the bar on its own cooldown and the category cooldown it shares, with the cast

@@ -28,8 +28,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: Consumables.MajorHealthstone9421.id,
 	foodId: Consumables.DirgesKickinChimaerokChops.id,
 	flaskId: undefined,
-	battleElixirId: Consumables.ElixirOfTheMongoose.id,
-	guardianElixirId: Consumables.GiftOfArthas.id,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GiftOfArthas.id],
 	potId: Consumables.GreaterStoneshieldPotion.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
 });

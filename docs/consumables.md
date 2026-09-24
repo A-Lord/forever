@@ -130,6 +130,10 @@ long as each of their buffs are used one at a time, so of those the spec names o
 The Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411, Ground Scorpok Assay 8412,
 Cerebral Cortex Compound 8423, Gizzard Gum 8424) share category 103's 1 h and last 1 h. The Zanza
 potions (category 79, 3 s) and the Marks of the Dawn (no category) state nothing of the kind and stack.
+Elixirs of the same stat do not stack: each stat or pseudo-stat an elixir's auras attach bids under
+the `Elixir` category, so of two elixirs that attach one only the larger applies, and each keeps its
+other stats (Elixir of the Mongoose 13452's 25 Agility over Elixir of Agility 8949's 15, its crit
+beside).
 
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
@@ -278,9 +282,9 @@ should not take is a hand-written effect for the consumable.
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
 consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
-the conjured item, `ConsumableTypePotion` the combat potion, then the flask, the two elixir pickers
-(`ConsumableTypeElixir`, Battle or Guardian), `ConsumableTypeFood` the food, the explosive and the
-imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
+the conjured item, `ConsumableTypePotion` the combat potion, then the flask, `ConsumableTypeElixir`
+the elixirs, picked any number at a time into `elixir_ids` (the client states no Battle or Guardian
+split), `ConsumableTypeFood` the food, the explosive and the imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
 in their row, the rest in the miscellaneous row, and an explosive with a cooldown of its own beside the
 shared one (Goblin Sapper Charge 10646) beside the explosive picker.
 
@@ -320,7 +324,7 @@ items share takes each item's id (`MajorHealthstone9421`).
 `lib.wasm` is built without the database. Each request carries the consumables it needs in the player's
 `database`, which `extendPlayerProtoWithMissingEffects` (`ui/sim/proto/proto_migration.ts`) fills from
 the UI's db.json: every id field and every id list of the `ConsumesSpec` (the potions, the conjured
-items and `extra_ids`). A consumable travels whole, its item effects and temporary
+items, `elixir_ids` and `extra_ids`). A consumable travels whole, its item effects and temporary
 enchant with it.
 
 `TestRequestCarriesEveryConsumableThePresetSelects` (`sim/common`) runs a warrior once with every
@@ -334,6 +338,7 @@ version restarted at 1, whose links are stamped 16. The same file turns a link's
 number, `sim_links.ts`) or a saved blob's (JSON, by name) flags into item ids and the spell ids the
 explosive and imbue fields held into the items that cast them; `migrateLegacyConsumes` does it for
 both JSON shapes, saved settings and a sim's settings, and drops the party's drums. The pet's scroll
-flags and `pet_extra_ids` (20 in a version-2 link) are dropped.
+flags and `pet_extra_ids` (20 in a version-2 link) are dropped, and the Battle and Guardian elixirs
+(3 and 4 in every layout, `REMOVED_ELIXIR_FIELDS`) move into `elixir_ids`.
 `TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of those fields reserved in
 `ConsumesSpec`, version 1's by number as well.

@@ -106,8 +106,7 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(offered(configs.battleElixir, player)).toEqual([9206, 6662]);
-		expect(offered(configs.guardianElixir, player)).toEqual([9206, 6662]);
+		expect(toggled(configs.elixirs, player)).toEqual([9206, 6662]);
 		expect(offered(configs.food, player)).toEqual([238637]);
 		expect(offered(configs.explosive, player)).toEqual([18588]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
@@ -136,18 +135,23 @@ describe('consumeConfigs', () => {
 		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
 	});
 
-	it('keeps one elixir out of the other elixir picker', () => {
-		const { player } = playerOf({ consumes: ConsumesSpec.create({ guardianElixirId: 6662 }) });
-		expect(offered(consumeConfigs(player, db).battleElixir, player)).toEqual([9206]);
+	it('picks any number of elixirs', () => {
+		const { player, state } = playerOf();
+		const [greaterStrength, giantGrowth] = consumeConfigs(player, db).elixirs;
+		greaterStrength.setValue(player, true);
+		giantGrowth.setValue(player, true);
+		expect(state.consumes.elixirIds).toEqual([9206, 6662]);
+		greaterStrength.setValue(player, false);
+		expect(state.consumes.elixirIds).toEqual([6662]);
 	});
 
 	it('clears the elixirs for a flask and the flask for an elixir', () => {
-		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ battleElixirId: 9206, guardianElixirId: 6662 }) });
+		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206, 6662] }) });
 		const configs = consumeConfigs(player, db);
 		configs.flask.setValue(player, 13510);
-		expect([state.consumes.flaskId, state.consumes.battleElixirId, state.consumes.guardianElixirId]).toEqual([13510, 0, 0]);
-		configs.battleElixir.setValue(player, 9206);
-		expect([state.consumes.flaskId, state.consumes.battleElixirId]).toEqual([0, 9206]);
+		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([13510, []]);
+		configs.elixirs[0].setValue(player, true);
+		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([0, [9206]]);
 	});
 
 	it('toggles an item in the extra ids', () => {

@@ -82,8 +82,7 @@ export const DefaultDebuffs = Debuffs.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	battleElixirId: Consumables.ElixirOfTheMongoose.id,
-	guardianElixirId: Consumables.GreaterMagebloodElixir.id,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GreaterMagebloodElixir.id],
 	foodId: Consumables.FiletOFlank.id,
 	potId: Consumables.MajorFrenzyPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
