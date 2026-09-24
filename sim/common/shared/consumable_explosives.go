@@ -34,8 +34,7 @@ func NewSpellDataExplosive(itemID int32) {
 			config := spellDataOnUseDamageSpell(character, row)
 			config.ActionID = core.ActionID{ItemID: itemID}
 			config.Flags |= core.SpellFlagExplosive
-			config.Cast = spelldata.Cast(row)
-			config.Cast.CD, config.Cast.SharedCD = consumableCooldowns(character, itemEffect, row)
+			config.Cast = consumableCast(character, itemEffect, row)
 			if self := row.CasterDamageEffect(); self != spelldata.NilEffect {
 				selfSpell := registerCasterDamageSpell(character, core.SpellConfig{
 					ActionID:         config.ActionID,

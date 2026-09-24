@@ -123,10 +123,13 @@ consumable deals its own user, a sapper's or Demonic Rune's, always lands and ca
 puts an aura that outlasts the item's cooldown up from the pull, and uses the item on its cooldown
 otherwise.
 
-Every builder reads an item's cooldowns the same way (`consumableCooldowns`): the item row's own
+Every builder reads an item's cooldowns the same way (`consumableCooldownsOf`): the item row's own
 cooldown and the category it shares, where the item row states -1 or no category, the spell row's.
-Consumables stack unless the rows keep them apart: those sharing a category whose cooldown lasts as
-long as each of their buffs are used one at a time, so of those the spec names only the first is up.
+`consumableCast` puts them on the spell a builder registers; a stat consumable that is up from the
+pull registers no spell and no cooldown. Consumables stack unless the rows keep them apart: those
+sharing a category whose cooldown lasts as long as each of their buffs are used one at a time, so of
+those the spec names only the first is up (by the consumable's `category_id`, which core reads once
+for every consumable the spec names).
 The Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411, Ground Scorpok Assay 8412,
 Cerebral Cortex Compound 8423, Gizzard Gum 8424) share category 103's 1 h and last 1 h. The Zanza
 potions (category 79, 3 s) and the Marks of the Dawn (no category) state nothing of the kind and stack.

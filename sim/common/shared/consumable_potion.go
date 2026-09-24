@@ -3,6 +3,7 @@ package shared
 import (
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -156,8 +157,7 @@ func registerSpellDataConsumable(itemID int32, register func(int32, core.ApplyEf
 			config.Flags |= core.SpellFlagConjured
 		}
 
-		config.Cast = spelldata.Cast(row)
-		config.Cast.CD, config.Cast.SharedCD = consumableCooldowns(character, itemEffect, row)
+		config.Cast = consumableCast(character, itemEffect, row)
 		sharedCD := config.Cast.SharedCD.Duration
 
 		cdType := core.CooldownTypeUnknown
@@ -264,38 +264,45 @@ func registerSpellDataConsumable(itemID int32, register func(int32, core.ApplyEf
 
 // The item's own cooldown and the category cooldown it shares, which every consumable builder reads.
 // -1 on the item's row, and a category of 0, defer to the spell's row: the Spellblasting potions
-// 250932-250937 state neither and share potion category 4 for 120 s through their spells.
-func consumableCooldowns(character *core.Character, itemEffect *proto.ItemEffect, row *spelldata.Spell) (core.Cooldown, core.Cooldown) {
-	cooldownMs := itemEffect.GetOnUse().CooldownMs
-	if cooldownMs < 0 {
-		cooldownMs = row.CooldownMs
-	}
-	category, categoryMs := sharedCategory(itemEffect, row)
-
-	var cd core.Cooldown
-	if cooldownMs > 0 {
-		cd = core.Cooldown{Timer: character.NewTimer(), Duration: core.DurationFromMillis(cooldownMs)}
-	}
-	if category <= 0 || categoryMs <= 0 {
-		return cd, core.Cooldown{}
-	}
-	return cd, core.Cooldown{
-		Timer:    character.GetOrInitSpellCategoryTimer(category),
-		Duration: core.DurationFromMillis(categoryMs),
-	}
+// 250932-250937 state neither and share potion category 4 for 120 s through their spells. A category
+// with no cooldown shares nothing, and is 0 here.
+type consumableCooldowns struct {
+	cooldownMs, category, categoryMs int32
 }
 
-// The category the on-use shares and its cooldown, with consumableCooldowns' deferral to the row.
-func sharedCategory(itemEffect *proto.ItemEffect, row *spelldata.Spell) (int32, int32) {
+func consumableCooldownsOf(itemEffect *proto.ItemEffect, row *spelldata.Spell) consumableCooldowns {
 	onUse := itemEffect.GetOnUse()
-	category, categoryMs := onUse.CategoryId, onUse.CategoryCooldownMs
-	if category <= 0 {
-		category = int32(row.Category)
+	c := consumableCooldowns{cooldownMs: onUse.CooldownMs, category: onUse.CategoryId, categoryMs: onUse.CategoryCooldownMs}
+	if c.cooldownMs < 0 {
+		c.cooldownMs = row.CooldownMs
 	}
-	if categoryMs < 0 {
-		categoryMs = row.CategoryCooldownMs
+	if c.category <= 0 {
+		c.category = int32(row.Category)
 	}
-	return category, categoryMs
+	if c.categoryMs < 0 {
+		c.categoryMs = row.CategoryCooldownMs
+	}
+	if c.category <= 0 || c.categoryMs <= 0 {
+		c.category, c.categoryMs = 0, 0
+	}
+	return c
+}
+
+func (c consumableCooldowns) longest() time.Duration {
+	return core.DurationFromMillis(max(c.cooldownMs, c.categoryMs, 0))
+}
+
+// The cast the spell's row states, on the item's cooldown and the category cooldown it shares.
+func consumableCast(character *core.Character, itemEffect *proto.ItemEffect, row *spelldata.Spell) core.CastConfig {
+	c := consumableCooldownsOf(itemEffect, row)
+	cast := spelldata.Cast(row)
+	if c.cooldownMs > 0 {
+		cast.CD = core.Cooldown{Timer: character.NewTimer(), Duration: core.DurationFromMillis(c.cooldownMs)}
+	}
+	if c.category > 0 {
+		cast.SharedCD = core.Cooldown{Timer: character.GetOrInitSpellCategoryTimer(c.category), Duration: core.DurationFromMillis(c.categoryMs)}
+	}
+	return cast
 }
 
 // One gain of mana, rage or energy, at once or every period of the row's duration. A character

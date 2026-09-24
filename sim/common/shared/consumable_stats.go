@@ -23,19 +23,19 @@ func NewSpellDataStatConsumable(itemID int32) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
 		itemEffect := consumable.OnUse()
+		row := spelldata.MustFind(itemEffect.BuffId)
 
-		buffs := consumableBuffs(spelldata.MustFind(itemEffect.BuffId))
+		buffs := consumableBuffs(row)
 		if len(buffs) == 0 {
 			panic(fmt.Sprintf("consumable %d (%s): spell %d puts no aura the parser attaches on the user",
 				itemID, consumable.Name, itemEffect.BuffId))
 		}
 
-		row := spelldata.MustFind(itemEffect.BuffId)
-		cd, sharedCD := consumableCooldowns(character, itemEffect, row)
+		cooldowns := consumableCooldownsOf(itemEffect, row)
 		inCombat := slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
-			return buff.DurationMs > 0 && buff.Duration() < max(cd.Duration, sharedCD.Duration)
+			return buff.DurationMs > 0 && buff.Duration() < cooldowns.longest()
 		})
-		if !inCombat && heldBackByCategory(character, consumable, itemEffect, row, buffs) {
+		if !inCombat && heldBackByCategory(character, consumable, cooldowns, buffs) {
 			return
 		}
 
@@ -45,7 +45,7 @@ func NewSpellDataStatConsumable(itemID int32) {
 		}
 
 		if inCombat {
-			registerConsumableOnUse(character, consumable, itemEffect, cd, sharedCD, auras)
+			registerConsumableOnUse(character, consumable, itemEffect, row, auras)
 		}
 	})
 }
@@ -54,27 +54,11 @@ func NewSpellDataStatConsumable(itemID int32) {
 // the others of its category, so of those the spec names only the first is up: the Blasted Lands
 // buffs 8410-8424 share category 103's 1 h, as long as each lasts. The rows state no other
 // exclusivity between consumables of different spells.
-func heldBackByCategory(character *core.Character, consumable core.Consumable, itemEffect *proto.ItemEffect,
-	row *spelldata.Spell, buffs []*spelldata.Spell) bool {
-	category, categoryMs := sharedCategory(itemEffect, row)
-	oneAtATime := category > 0 && categoryMs > 0 && !slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
-		return buff.DurationMs <= 0 || buff.DurationMs > categoryMs
+func heldBackByCategory(character *core.Character, consumable core.Consumable, cooldowns consumableCooldowns, buffs []*spelldata.Spell) bool {
+	oneAtATime := cooldowns.category > 0 && !slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
+		return buff.DurationMs <= 0 || buff.DurationMs > cooldowns.categoryMs
 	})
-	if !oneAtATime {
-		return false
-	}
-
-	for _, id := range character.SelectedConsumableIDs() {
-		if id == consumable.Id {
-			return false
-		}
-		if other := core.GetConsumableByID(id).OnUse(); other != nil {
-			if otherCategory, _ := sharedCategory(other, spelldata.Find(other.BuffId)); otherCategory == category {
-				return true
-			}
-		}
-	}
-	return false
+	return oneAtATime && character.ConsumableCategoryTakenBefore(consumable.Id, cooldowns.category)
 }
 
 // The consumable's on-use spell and each spell it triggers on the user: food puts its Well Fed buff up
@@ -210,14 +194,11 @@ func isElixir(consumable core.Consumable) bool {
 // The item used from the bar on its own cooldown and the category cooldown it shares, with the cast
 // time and global cooldown its spell states.
 func registerConsumableOnUse(character *core.Character, consumable core.Consumable, itemEffect *proto.ItemEffect,
-	cd core.Cooldown, sharedCD core.Cooldown, auras []*core.Aura) {
-	cast := spelldata.Cast(spelldata.MustFind(itemEffect.BuffId))
-	cast.CD, cast.SharedCD = cd, sharedCD
-
+	row *spelldata.Spell, auras []*core.Aura) {
 	spell := character.RegisterSpell(core.SpellConfig{
 		ActionID: core.ActionID{ItemID: consumable.Id},
 		Flags:    core.SpellFlagNoOnCastComplete,
-		Cast:     cast,
+		Cast:     consumableCast(character, itemEffect, row),
 		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 			for _, aura := range auras {
 				aura.Activate(sim)

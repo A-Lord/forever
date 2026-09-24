@@ -14,11 +14,27 @@ func applyConsumeEffects(agent Agent) {
 		return
 	}
 
-	for _, id := range character.SelectedConsumableIDs() {
+	ids := character.SelectedConsumableIDs()
+	character.firstConsumableOfCategory = map[int32]int32{}
+	for _, id := range ids {
+		if category := GetConsumableByID(id).CategoryId; category > 0 {
+			if _, ok := character.firstConsumableOfCategory[category]; !ok {
+				character.firstConsumableOfCategory[category] = id
+			}
+		}
+	}
+
+	for _, id := range ids {
 		if apply, ok := consumableEffect(id); ok {
 			apply(agent)
 		}
 	}
+}
+
+// Whether the spec names another consumable sharing the category before this one.
+func (character *Character) ConsumableCategoryTakenBefore(id int32, category int32) bool {
+	first, ok := character.firstConsumableOfCategory[category]
+	return ok && first != id
 }
 
 var consumableEffects = map[int32]ApplyEffect{}
