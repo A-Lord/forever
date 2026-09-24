@@ -7,31 +7,30 @@ import "github.com/wowsims/forever/sim/common/shared"
 func RegisterPotionsAndConjured() {
 
 	// Potions
-	shared.NewSpellDataOnUseConsumable(118)  // Minor Healing Potion
-	shared.NewSpellDataOnUseConsumable(858)  // Lesser Healing Potion
-	shared.NewSpellDataOnUseConsumable(929)  // Healing Potion
-	shared.NewSpellDataOnUseConsumable(1072) // Full Moonshine
-	shared.NewSpellDataOnUseConsumable(1710) // Greater Healing Potion
-	shared.NewSpellDataOnUseConsumable(2455) // Minor Mana Potion
-	shared.NewSpellDataOnUseConsumable(2456) // Minor Rejuvenation Potion
-	shared.NewSpellDataOnUseConsumable(3087) // Mug of Shimmer Stout
-	shared.NewSpellDataOnUseConsumable(3384) // Minor Magic Resistance Potion
-	shared.NewSpellDataOnUseConsumable(3385) // Lesser Mana Potion
-	shared.NewSpellDataOnUseConsumable(3827) // Mana Potion
-	shared.NewSpellDataOnUseConsumable(3928) // Superior Healing Potion
-	shared.NewSpellDataOnUseConsumable(4623) // Lesser Stoneshield Potion
-	shared.NewSpellDataOnUseConsumable(5631) // Rage Potion
-	shared.NewSpellDataOnUseConsumable(5633) // Great Rage Potion
-	shared.NewSpellDataOnUseConsumable(6048) // Shadow Protection Potion
-	shared.NewSpellDataOnUseConsumable(6049) // Fire Protection Potion
-	shared.NewSpellDataOnUseConsumable(6050) // Frost Protection Potion
-	shared.NewSpellDataOnUseConsumable(6051) // Holy Protection Potion
-	shared.NewSpellDataOnUseConsumable(6052) // Nature Protection Potion
-	shared.NewSpellDataOnUseConsumable(6149) // Greater Mana Potion
-	shared.NewSpellDataOnUseConsumable(9036) // Magic Resistance Potion
-	shared.NewSpellDataOnUseConsumable(9144) // Wildvine Potion
-	// unsupported: A_MOD_FLAT_SPELL_DAMAGE_VERSUS, which no consumable builder models; A_MOD_MELEE_ATTACK_POWER_VERSUS, which no consumable builder models
-	// shared.NewSpellDataOnUseConsumable(9224) // Potion of Demonslaying
+	shared.NewSpellDataOnUseConsumable(118)    // Minor Healing Potion
+	shared.NewSpellDataOnUseConsumable(858)    // Lesser Healing Potion
+	shared.NewSpellDataOnUseConsumable(929)    // Healing Potion
+	shared.NewSpellDataOnUseConsumable(1072)   // Full Moonshine
+	shared.NewSpellDataOnUseConsumable(1710)   // Greater Healing Potion
+	shared.NewSpellDataOnUseConsumable(2455)   // Minor Mana Potion
+	shared.NewSpellDataOnUseConsumable(2456)   // Minor Rejuvenation Potion
+	shared.NewSpellDataOnUseConsumable(3087)   // Mug of Shimmer Stout
+	shared.NewSpellDataOnUseConsumable(3384)   // Minor Magic Resistance Potion
+	shared.NewSpellDataOnUseConsumable(3385)   // Lesser Mana Potion
+	shared.NewSpellDataOnUseConsumable(3827)   // Mana Potion
+	shared.NewSpellDataOnUseConsumable(3928)   // Superior Healing Potion
+	shared.NewSpellDataOnUseConsumable(4623)   // Lesser Stoneshield Potion
+	shared.NewSpellDataOnUseConsumable(5631)   // Rage Potion
+	shared.NewSpellDataOnUseConsumable(5633)   // Great Rage Potion
+	shared.NewSpellDataOnUseConsumable(6048)   // Shadow Protection Potion
+	shared.NewSpellDataOnUseConsumable(6049)   // Fire Protection Potion
+	shared.NewSpellDataOnUseConsumable(6050)   // Frost Protection Potion
+	shared.NewSpellDataOnUseConsumable(6051)   // Holy Protection Potion
+	shared.NewSpellDataOnUseConsumable(6052)   // Nature Protection Potion
+	shared.NewSpellDataOnUseConsumable(6149)   // Greater Mana Potion
+	shared.NewSpellDataOnUseConsumable(9036)   // Magic Resistance Potion
+	shared.NewSpellDataOnUseConsumable(9144)   // Wildvine Potion
+	shared.NewSpellDataOnUseConsumable(9224)   // Potion of Demonslaying
 	shared.NewSpellDataOnUseConsumable(13442)  // Mighty Rage Potion
 	shared.NewSpellDataOnUseConsumable(13443)  // Superior Mana Potion
 	shared.NewSpellDataOnUseConsumable(13444)  // Major Mana Potion
@@ -72,6 +71,8 @@ func RegisterPotionsAndConjured() {
 	shared.NewSpellDataOnUseConsumable(250947) // Greater Mender's Potion
 	shared.NewSpellDataOnUseConsumable(250948) // Superior Mender's Potion
 	shared.NewSpellDataOnUseConsumable(250949) // Major Mender's Potion
+	shared.NewSpellDataOnUseConsumable(250954) // Potion of Elemental Siphoning
+	shared.NewSpellDataOnUseConsumable(250955) // Potion of Beast Culling
 	shared.NewSpellDataOnUseConsumable(255663) // Windstone
 	shared.NewSpellDataOnUseConsumable(268881) // Perishable Minor Healing Potion
 	shared.NewSpellDataOnUseConsumable(268882) // Perishable Lesser Healing Potion
