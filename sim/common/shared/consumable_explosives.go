@@ -1,10 +1,22 @@
 package shared
 
 import (
+	"fmt"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
+
+// Why the explosives builder cannot run the damage spell, or nil where it can: it puts a damage over
+// time on the one target the spell is used on, so a row whose damage over time lands on every enemy
+// in an area is not what it builds.
+func DamageConsumableUnsupported(s *spelldata.Spell) []string {
+	if periodic := s.PeriodicDamageEffect(); periodic != spelldata.NilEffect && periodic.HitsAnArea() {
+		return []string{fmt.Sprintf("%d's damage over time lands on an area, which the damage builder applies to one target", s.ID)}
+	}
+	return nil
+}
 
 // An explosive used from the bar: the damage its on-use spell deals, on the item's cooldown and the
 // category cooldown every explosive shares, and the damage the spell deals to the thrower where the

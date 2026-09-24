@@ -49,37 +49,30 @@ func NewSpellDataStatConsumable(itemID int32) {
 	})
 }
 
-// The spells whose auras the consumable puts on its user, which is the on-use spell itself and each
-// spell it triggers on the user, less the eating and drinking that only last while seated. A
-// periodic trigger with a value hands its amount to every effect of the spell it triggers: Nutritious
-// Food states Well Fed's Strength that way.
-func consumableBuffs(row *spelldata.Spell) []*spelldata.Spell {
-	var buffs []*spelldata.Spell
-	if putsAurasOnTheUser(row) {
-		buffs = append(buffs, row)
-	}
-
+// The consumable's on-use spell and each spell it triggers on the user: food puts its Well Fed buff up
+// that way. A periodic trigger with a value hands its amount to every effect of the spell it
+// triggers: Nutritious Food states Well Fed's Strength that way.
+func ConsumableSpells(row *spelldata.Spell) []*spelldata.Spell {
+	spells := []*spelldata.Spell{row}
 	for i := range row.Effects {
 		e := &row.Effects[i]
-		if e.TriggerID == 0 || !landsOnTheUser(e) {
+		if e.TriggerID == 0 || !LandsOnTheUser(e) {
 			continue
 		}
-
-		var trigger *spelldata.Spell
 		switch {
 		case e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
-			trigger = withValue(e.Trigger(), e.BasePoints)
+			spells = append(spells, withValue(e.Trigger(), e.BasePoints))
 		case e.Type == dbcenums.E_TRIGGER_SPELL, e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL:
-			trigger = e.Trigger()
-		default:
-			continue
-		}
-
-		if putsAurasOnTheUser(trigger) {
-			buffs = append(buffs, trigger)
+			spells = append(spells, e.Trigger())
 		}
 	}
-	return buffs
+	return spells
+}
+
+// The spells whose auras the consumable puts on its user, less the eating and drinking that only
+// last while seated.
+func consumableBuffs(row *spelldata.Spell) []*spelldata.Spell {
+	return slices.DeleteFunc(ConsumableSpells(row), func(s *spelldata.Spell) bool { return !putsAurasOnTheUser(s) })
 }
 
 func putsAurasOnTheUser(s *spelldata.Spell) bool {
@@ -87,15 +80,49 @@ func putsAurasOnTheUser(s *spelldata.Spell) bool {
 		return false
 	}
 	return slices.ContainsFunc(s.Effects, func(e spelldata.Effect) bool {
-		return e.ParsedAura() && landsOnTheUser(&e)
+		return e.ParsedAura() && LandsOnTheUser(&e)
 	})
 }
 
 // The user, or the one friendly unit the spell is cast on, which in the sim is the user: a scroll
 // states the latter.
-func landsOnTheUser(e *spelldata.Effect) bool {
+func LandsOnTheUser(e *spelldata.Effect) bool {
 	return slices.Contains([]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER, dbcenums.TARGET_UNIT_TARGET_ALLY,
 		dbcenums.TARGET_UNIT_TARGET_ANY}, e.Target[0])
+}
+
+// Why the stat builder cannot put up the auras of the consumable's spells, or nil where it can: an
+// aura the parser does not attach, other than the model's size, one whose amount the server rolls,
+// and a spell that states no duration for its aura. The eating and drinking are left out, since they
+// last only while seated.
+func StatConsumableUnsupported(row *spelldata.Spell) []string {
+	var unsupported []string
+	for _, s := range ConsumableSpells(row) {
+		for i := range s.Effects {
+			e := &s.Effects[i]
+			switch {
+			case !LandsOnTheUser(e), e.Aura == 0, spelldata.Find(e.SpellID).WhileSeated():
+			case e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL, e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE,
+				e.Aura == dbcenums.A_MOD_SCALE:
+			case !e.ParsedAura():
+				unsupported = append(unsupported, fmt.Sprintf("%d applies %v, which the parser does not attach", e.SpellID, e.Aura))
+			case e.Variance != 0:
+				unsupported = append(unsupported, fmt.Sprintf("%d rolls its %v amount (variance %v), which the parser reads as its average",
+					e.SpellID, e.Aura, e.Variance))
+			default:
+				unsupported = append(unsupported, AuraDurationUnsupported(e)...)
+			}
+		}
+	}
+	return slices.Compact(unsupported)
+}
+
+// Why the aura of the effect cannot be put up: its spell states no duration.
+func AuraDurationUnsupported(e *spelldata.Effect) []string {
+	if spelldata.Find(e.SpellID).DurationMs <= 0 {
+		return []string{fmt.Sprintf("%d states no duration for its aura", e.SpellID)}
+	}
+	return nil
 }
 
 func withValue(s *spelldata.Spell, value float64) *spelldata.Spell {

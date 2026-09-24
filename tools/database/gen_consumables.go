@@ -91,7 +91,7 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 	switch {
 	case onUse.Supported() && onUse.Damage:
 		routing.Kind = ConsumableDamage
-		routing.Unsupported = damageConsumableUnsupported(spelldata.Find(routing.SpellID))
+		routing.Unsupported = shared.DamageConsumableUnsupported(spelldata.Find(routing.SpellID))
 		return routing
 	case onUse.Supported() && onUse.Heal:
 		routing.Kind = ConsumableHeal
@@ -116,81 +116,36 @@ func consumableShape(c *dbc.Consumable, s *spelldata.Spell) (ConsumableKind, []s
 		switch {
 		case dbc.IsTemporaryEnchantEffect(e.Type):
 			return ConsumableTemporaryEnchant, temporaryEnchantUnsupported(c.TemporaryEnchant)
-		case !landsOnTheUser(e):
+		case !shared.LandsOnTheUser(e):
 		case e.Type == dbcenums.E_ENERGIZE, e.Type == dbcenums.E_ENERGIZE_PCT,
 			e.Aura == dbcenums.A_PERIODIC_ENERGIZE, e.Aura == dbcenums.A_OBS_MOD_POWER:
 			return ConsumableEnergize, shared.ConsumableUnsupported(s)
 		case e.Aura == dbcenums.A_SCHOOL_ABSORB:
 			return ConsumableAbsorb, []string{fmt.Sprintf("%d absorbs damage, which no builder takes from the rows", e.SpellID)}
 		case e.Aura == dbcenums.A_MOD_PERCENT_STAT, e.Aura == dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE:
-			return ConsumablePercentStat, auraDurationUnsupported(e)
+			return ConsumablePercentStat, shared.AuraDurationUnsupported(e)
 		case e.ParsedAura() && spelldata.Find(e.SpellID).WhileSeated():
 			seated = cmp.Or(seated, e)
 		case e.ParsedAura():
-			return ConsumableStatAura, statAuraUnsupported(s)
+			return ConsumableStatAura, shared.StatConsumableUnsupported(s)
 		}
 	}
 	if seated != nil {
 		return ConsumableStatAura, append([]string{fmt.Sprintf("%d restores only while the user sits, out of combat (%v)",
-			seated.SpellID, seated.Aura)}, statAuraUnsupported(s)...)
+			seated.SpellID, seated.Aura)}, shared.StatConsumableUnsupported(s)...)
 	}
 	return "", nil
 }
 
-// The auras of a stat consumable's spells that the stat builder cannot put up: one the parser does
-// not attach, other than the model's size, one whose amount the server rolls, and a spell that states
-// no duration for its aura. The eating and drinking are left out, since they last only while seated.
-func statAuraUnsupported(s *spelldata.Spell) []string {
-	var unsupported []string
-	for _, e := range consumableEffects(s) {
-		spell := spelldata.Find(e.SpellID)
-		switch {
-		case !landsOnTheUser(e), e.Aura == 0, spell.WhileSeated():
-		case e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL, e.Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE,
-			e.Aura == dbcenums.A_MOD_SCALE:
-		case !e.ParsedAura():
-			unsupported = append(unsupported, fmt.Sprintf("%d applies %v, which the parser does not attach", e.SpellID, e.Aura))
-		case e.Variance != 0:
-			unsupported = append(unsupported, fmt.Sprintf("%d rolls its %v amount (variance %v), which the parser reads as its average",
-				e.SpellID, e.Aura, e.Variance))
-		default:
-			unsupported = append(unsupported, auraDurationUnsupported(e)...)
-		}
-	}
-	return slices.Compact(unsupported)
-}
-
-// The user, or the one friendly unit the spell is cast on, which in the sim is the user: a scroll
-// states the latter.
-func landsOnTheUser(e *spelldata.Effect) bool {
-	return slices.Contains([]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER, dbcenums.TARGET_UNIT_TARGET_ALLY,
-		dbcenums.TARGET_UNIT_TARGET_ANY}, e.Target[0])
-}
-
-// The spell's effects, followed by those of each spell it triggers on the user: food puts its
-// Well Fed buff up that way.
+// The effects of the consumable's spell and of each spell it triggers on the user.
 func consumableEffects(s *spelldata.Spell) []*spelldata.Effect {
-	var effects, triggered []*spelldata.Effect
-	for i := range s.Effects {
-		e := &s.Effects[i]
-		effects = append(effects, e)
-		if e.TriggerID == 0 || !landsOnTheUser(e) || (e.Type != dbcenums.E_TRIGGER_SPELL &&
-			e.Aura != dbcenums.A_PERIODIC_TRIGGER_SPELL && e.Aura != dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE) {
-			continue
-		}
-		trigger := e.Trigger()
-		for j := range trigger.Effects {
-			triggered = append(triggered, &trigger.Effects[j])
+	var effects []*spelldata.Effect
+	for _, spell := range shared.ConsumableSpells(s) {
+		for i := range spell.Effects {
+			effects = append(effects, &spell.Effects[i])
 		}
 	}
-	return append(effects, triggered...)
-}
-
-func auraDurationUnsupported(e *spelldata.Effect) []string {
-	if spelldata.Find(e.SpellID).DurationMs <= 0 {
-		return []string{fmt.Sprintf("%d states no duration for its aura", e.SpellID)}
-	}
-	return nil
+	return effects
 }
 
 // A temporary enchant's slots, by what the sim's enchant handling reads: flat weapon damage, a
