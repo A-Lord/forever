@@ -1,4 +1,4 @@
-import { type ConsumableRelevance, makeConsumableInput, makeElixirGroupInput, makeIdListInput } from '@features/settings/model/consumables';
+import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
 import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
@@ -14,23 +14,25 @@ export interface ConsumeConfigs {
 	potion: ConsumeConfig;
 	conjured: ConsumeConfig;
 	flask: ConsumeConfig;
-	// One pick per elixir group, in the order of the groups' aura and misc value.
+	// One pick per exclusive group, in the order of the groups' keys: those holding an elixir, those
+	// holding a scroll, and the rest.
 	elixirs: Array<ConsumeConfig>;
+	scrolls: Array<ConsumeConfig>;
+	groups: Array<ConsumeConfig>;
 	food: ConsumeConfig;
 	explosive: ConsumeConfig;
 	explosiveExtras: Array<ConsumeToggle>;
 	mhImbue: ConsumeConfig;
 	ohImbue: ConsumeConfig;
-	scrolls: Array<ConsumeToggle>;
 	miscellaneous: Array<ConsumeToggle>;
 }
+
+type GroupRow = 'elixirs' | 'scrolls' | 'groups';
 
 // Feral druids cannot take Windfury, so their main-hand imbue shows under it.
 const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
 const mainHandImbueShown = (player: Player<any>) =>
 	SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty() || !player.getParty()!.getBuffs().windfuryTotem;
-
-const isScroll = (consumable: Consumable) => consumable.type === ConsumableType.ConsumableTypeScroll;
 
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
@@ -39,7 +41,12 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		higherRanks: higherRanks(all),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
+	const byGroup = new Map<string, Array<Consumable>>();
 	for (const consumable of all) {
+		if (consumable.groupKey) {
+			byGroup.set(consumable.groupKey, [...(byGroup.get(consumable.groupKey) ?? []), consumable]);
+			continue;
+		}
 		const slot = consumableSlot(consumable);
 		bySlot.set(slot, [...(bySlot.get(slot) ?? []), consumable]);
 	}
@@ -47,21 +54,23 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[2], consumables = inSlot(slot)) =>
 		makeConsumableInput(consumables, relevance, options);
 
-	const elixirGroups = new Map<string, Array<Consumable>>();
-	const elixirs = [...inSlot(ConsumableSlot.Elixir)].sort((a, b) => a.groupKey.localeCompare(b.groupKey, 'en', { numeric: true }));
-	for (const elixir of elixirs) {
-		elixirGroups.set(elixir.groupKey, [...(elixirGroups.get(elixir.groupKey) ?? []), elixir]);
-	}
+	const groups = [...byGroup.keys()].sort((a, b) => a.localeCompare(b, 'en', { numeric: true })).map(key => byGroup.get(key)!);
+	const holds = (group: Array<Consumable>, type: ConsumableType) => group.some(consumable => consumable.type === type);
+	const rowOf = (group: Array<Consumable>): GroupRow =>
+		holds(group, ConsumableType.ConsumableTypeElixir) ? 'elixirs' : holds(group, ConsumableType.ConsumableTypeScroll) ? 'scrolls' : 'groups';
+	const groupInputs = (row: GroupRow) =>
+		groups.filter(group => rowOf(group) === row).map(group => makeConsumableGroupInput(group, relevance, group[0].groupName));
 	const explosives = inSlot(ConsumableSlot.Explosive);
 	const imbues = inSlot(ConsumableSlot.Imbue);
-	const extras = inSlot(ConsumableSlot.Extra);
 	const handItem = (p: Player<any>, slot: ItemSlot) => p.getEquippedItem(slot)?.item;
 
 	return {
 		potion: input(ConsumableSlot.Potion, { consumesFieldName: 'potId', tooltip: i18n.t('settings_tab.consumables.potions.combat') }),
 		conjured: input(ConsumableSlot.Conjured, { consumesFieldName: 'conjuredId' }),
 		flask: input(ConsumableSlot.Flask, { consumesFieldName: 'flaskId' }),
-		elixirs: [...elixirGroups.values()].map(group => makeElixirGroupInput(group, relevance, group[0].groupName)),
+		elixirs: groupInputs('elixirs'),
+		scrolls: groupInputs('scrolls'),
+		groups: groupInputs('groups'),
 		food: input(ConsumableSlot.Food, { consumesFieldName: 'foodId' }),
 		explosive: input(
 			ConsumableSlot.Explosive,
@@ -88,7 +97,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 			},
 			imbues,
 		),
-		scrolls: extras.filter(isScroll).map(consumable => makeIdListInput(consumable, relevance)),
-		miscellaneous: extras.filter(consumable => !isScroll(consumable)).map(consumable => makeIdListInput(consumable, relevance)),
+		miscellaneous: inSlot(ConsumableSlot.Extra).map(consumable => makeIdListInput(consumable, relevance)),
 	};
 };

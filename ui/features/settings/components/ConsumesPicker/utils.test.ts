@@ -13,8 +13,11 @@ const onUse = (categoryId: number, cooldownMs = 0) =>
 	ItemEffect.create({ effect: { oneofKind: 'onUse', onUse: { categoryId, cooldownMs, categoryCooldownMs: 0 } } });
 const statArray = (stat: Stat, value: number) => Object.assign(new Array<number>(42).fill(0), { [stat]: value });
 const strength = (value: number) => statArray(Stat.StatStrength, value);
-const elixir = (id: number, name: string, stats: Array<number>, groupKey: string, groupName: string) =>
-	Consumable.create({ id, name, type: ConsumableType.ConsumableTypeElixir, stats, groupKey, groupName });
+const grouped = (type: ConsumableType) => (id: number, name: string, stats: Array<number>, groupKey: string, groupName: string) =>
+	Consumable.create({ id, name, type, stats, groupKey, groupName });
+const elixir = grouped(ConsumableType.ConsumableTypeElixir);
+const scroll = grouped(ConsumableType.ConsumableTypeScroll);
+const other = grouped(ConsumableType.ConsumableTypeOther);
 
 const CONSUMABLES = [
 	Consumable.create({
@@ -32,6 +35,7 @@ const CONSUMABLES = [
 	elixir(6662, 'Elixir of Giant Growth', strength(8), 'elixir 29/0', 'Strength'),
 	elixir(3383, 'Elixir of Wisdom', statArray(Stat.StatIntellect, 6), 'elixir 29/3', 'Intellect'),
 	elixir(12820, 'Winterfall Firewater', statArray(Stat.StatAttackPower, 35), 'elixir 99/0', 'Attack Power'),
+	grouped(ConsumableType.ConsumableTypeUnknown)(12451, 'Juju Power', strength(30), 'elixir 29/0', 'Strength'),
 	Consumable.create({
 		id: 238637,
 		name: 'Prowler Steak',
@@ -51,8 +55,12 @@ const CONSUMABLES = [
 	}),
 	Consumable.create({ id: 12404, name: 'Dense Sharpening Stone', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 33219 }),
 	Consumable.create({ id: 228980, name: 'Conductive Shield Coating', type: ConsumableType.ConsumableTypeImbue, weaponInventoryTypeMask: 16384 }),
-	Consumable.create({ id: 2289, name: 'Scroll of Strength II', type: ConsumableType.ConsumableTypeScroll, stats: strength(9) }),
-	Consumable.create({ id: 10310, name: 'Scroll of Strength IV', type: ConsumableType.ConsumableTypeScroll, stats: strength(17) }),
+	scroll(2289, 'Scroll of Strength II', strength(9), 'scroll 29/0', 'Strength'),
+	scroll(10310, 'Scroll of Strength IV', strength(17), 'scroll 29/0', 'Strength'),
+	scroll(1180, 'Scroll of Stamina', statArray(Stat.StatStamina, 4), 'scroll 29/2', 'Stamina'),
+	other(8410, 'R.O.I.D.S.', strength(25), 'Zanza', 'Zanza'),
+	other(20079, 'Spirit of Zanza', statArray(Stat.StatSpirit, 50), 'Zanza', 'Zanza'),
+	other(23327, 'Fire-toasted Bun', statArray(Stat.StatMeleeHitRating, 2), 'Hit food', 'Hit food'),
 	Consumable.create({ id: 4376, name: 'Flame Deflector', type: ConsumableType.ConsumableTypeDevice }),
 ];
 
@@ -112,11 +120,12 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662], [], [12820]]);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451], [], [12820]]);
+		expect(configs.scrolls.map(config => offered(config, player))).toEqual([[10310], []]);
+		expect(configs.groups.map(config => offered(config, player))).toEqual([[], [8410]]);
 		expect(offered(configs.food, player)).toEqual([238637]);
 		expect(offered(configs.explosive, player)).toEqual([18588]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
-		expect(toggled(configs.scrolls, player)).toEqual([10310]);
 		expect(toggled(configs.miscellaneous, player)).toEqual([4376]);
 	});
 
@@ -141,11 +150,15 @@ describe('consumeConfigs', () => {
 		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
 	});
 
-	it('names each elixir group by its aura and hides one that offers the player nothing', () => {
+	it('labels each group as db.json does and hides one that offers the player nothing', () => {
 		const { player } = playerOf();
-		const configs = consumeConfigs(player, db).elixirs;
-		expect(configs.map(config => config.tooltip)).toEqual(['Strength', 'Intellect', 'Attack Power']);
-		expect(configs.map(config => iconEnumPickerShown(config, player))).toEqual([true, false, true]);
+		const { elixirs, scrolls, groups } = consumeConfigs(player, db);
+		expect(elixirs.map(config => config.tooltip)).toEqual(['Strength', 'Intellect', 'Attack Power']);
+		expect(elixirs.map(config => iconEnumPickerShown(config, player))).toEqual([true, false, true]);
+		expect(scrolls.map(config => config.tooltip)).toEqual(['Strength', 'Stamina']);
+		expect(scrolls.map(config => iconEnumPickerShown(config, player))).toEqual([true, false]);
+		expect(groups.map(config => config.tooltip)).toEqual(['Hit food', 'Zanza']);
+		expect(groups.map(config => iconEnumPickerShown(config, player))).toEqual([false, true]);
 	});
 
 	it('picks one elixir of each group, and any number of groups', () => {
@@ -169,25 +182,34 @@ describe('consumeConfigs', () => {
 		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([13510, [9206, 12820]]);
 	});
 
-	it('toggles an item in the extra ids', () => {
-		const { player, state } = playerOf({ cls: Class.ClassHunter, spec: Spec.SpecHunter });
-		const scroll = consumeConfigs(player, db).scrolls.find(toggle => toggle.actionId.itemId === 10310)!;
-		scroll.setValue(player, true);
-		expect(state.consumes.extraIds).toEqual([10310]);
-		scroll.setValue(player, false);
-		expect(state.consumes.extraIds).toEqual([]);
+	it('picks a group member into the elixir ids or the extra ids by its type', () => {
+		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ extraIds: [4376] }) });
+		const [strengthGroup] = consumeConfigs(player, db).elixirs;
+		strengthGroup.setValue(player, 9206);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[9206], [4376]]);
+		strengthGroup.setValue(player, 12451);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[], [4376, 12451]]);
+		expect(strengthGroup.getValue(player)).toBe(12451);
+		strengthGroup.setValue(player, 0);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[], [4376]]);
+	});
+
+	it('picks one scroll of each stat and one of the Zanza group into the extra ids', () => {
+		const { player, state } = playerOf();
+		const configs = consumeConfigs(player, db);
+		configs.scrolls[0].setValue(player, 10310);
+		configs.scrolls[1].setValue(player, 1180);
+		configs.groups[1].setValue(player, 8410);
+		expect(state.consumes.extraIds).toEqual([10310, 1180, 8410]);
+		configs.groups[1].setValue(player, 20079);
+		configs.scrolls[0].setValue(player, 0);
+		expect(state.consumes.extraIds).toEqual([1180, 20079]);
 	});
 
 	it('offers the highest rank the player can use, below a top rank it cannot', () => {
 		const ranks = [
-			Consumable.create({ id: 2289, name: 'Scroll of Strength II', type: ConsumableType.ConsumableTypeScroll, stats: strength(9) }),
-			Consumable.create({
-				id: 10310,
-				name: 'Scroll of Strength IV',
-				type: ConsumableType.ConsumableTypeScroll,
-				stats: strength(17),
-				classAllowlist: [Class.ClassRogue],
-			}),
+			scroll(2289, 'Scroll of Strength II', strength(9), 'scroll 29/0', 'Strength'),
+			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), 'scroll 29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
 			Consumable.create({ id: 12404, name: 'Dense Sharpening Stone II', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 7 }),
 			Consumable.create({ id: 12643, name: 'Dense Sharpening Stone III', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 15 }),
 		];
@@ -197,12 +219,12 @@ describe('consumeConfigs', () => {
 
 		const warrior = playerOf({ mainHand: sword }).player;
 		const configs = consumeConfigs(warrior, rankDb);
-		expect(toggled(configs.scrolls, warrior)).toEqual([2289]);
+		expect(offered(configs.scrolls[0], warrior)).toEqual([2289]);
 		expect(offered(configs.mhImbue, warrior)).toEqual([12404]);
 
 		const rogue = playerOf({ cls: Class.ClassRogue, mainHand: dagger }).player;
 		const rogueConfigs = consumeConfigs(rogue, rankDb);
-		expect(toggled(rogueConfigs.scrolls, rogue)).toEqual([10310]);
+		expect(offered(rogueConfigs.scrolls[0], rogue)).toEqual([10310]);
 		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([12643]);
 	});
 });

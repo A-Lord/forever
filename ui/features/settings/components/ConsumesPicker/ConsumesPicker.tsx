@@ -7,7 +7,7 @@ import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
 import { ConsumeRow } from './ConsumeRow';
-import { consumeConfigs, type ConsumeToggle } from './utils';
+import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
 
 export interface ConsumesPickerProps {
 	// Potions, explosives and the combat-only miscellany matter inside an encounter; a gear planner
@@ -17,6 +17,9 @@ export interface ConsumesPickerProps {
 
 const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) =>
 	toggles.map(config => <IconPicker key={config.actionId.itemId} modObject={player} config={config} />);
+
+const Pickers = ({ player, configs }: { player: Player<any>; configs: ReadonlyArray<ConsumeConfig> }) =>
+	configs.map((config, i) => <IconEnumPicker key={i} modObject={player} config={config} />);
 
 export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps) => {
 	const player = usePlayer() as Player<any>;
@@ -37,14 +40,18 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					<div data-testid="consumes-flasks">
 						<IconEnumPicker modObject={player} config={configs.flask} />
 					</div>
-					{configs.elixirs.map((config, i) => (
-						<IconEnumPicker key={i} modObject={player} config={config} />
-					))}
+					<Pickers player={player} configs={configs.elixirs} />
+				</PickerGroup>
+			</ConsumeRow>
+			<ConsumeRow name="scrolls" configs={configs.scrolls}>
+				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-scrolls">
+					<Pickers player={player} configs={configs.scrolls} />
 				</PickerGroup>
 			</ConsumeRow>
 			<ConsumeRow name="food">
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-food">
 					<IconEnumPicker modObject={player} config={configs.food} />
+					<Pickers player={player} configs={configs.groups} />
 				</PickerGroup>
 			</ConsumeRow>
 			{encounterConsumes && (
@@ -59,11 +66,6 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-imbue">
 					<IconEnumPicker modObject={player} config={configs.mhImbue} />
 					<IconEnumPicker modObject={player} config={configs.ohImbue} />
-				</PickerGroup>
-			</ConsumeRow>
-			<ConsumeRow name="scrolls" configs={configs.scrolls}>
-				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-scrolls">
-					<Toggles player={player} toggles={configs.scrolls} />
 				</PickerGroup>
 			</ConsumeRow>
 			{encounterConsumes && (

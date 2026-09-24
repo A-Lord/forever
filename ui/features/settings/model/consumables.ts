@@ -1,4 +1,4 @@
-import { ConsumesSpec } from '@generated/proto/common';
+import { ConsumableType, ConsumesSpec } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
@@ -39,15 +39,27 @@ export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, rele
 		(consumes, newValue) => ({ ...consumes, [options.consumesFieldName]: newValue }),
 	);
 
-// One elixir group's pick: at most one of the group's elixirs in the spec's elixir list.
-export const makeElixirGroupInput = (elixirs: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, tooltip: string) => {
-	const ids = new Set(elixirs.map(elixir => elixir.id));
+// The spec's list a grouped consumable is picked into: an elixir's elixir ids, anything else's extra ids.
+const idListOf = (consumable: Consumable): 'elixirIds' | 'extraIds' => (consumable.type === ConsumableType.ConsumableTypeElixir ? 'elixirIds' : 'extraIds');
+
+// One exclusive group's pick: at most one of the group's consumables in the spec's elixir and extra ids.
+export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, tooltip: string) => {
+	const ids = new Set(consumables.map(consumable => consumable.id));
+	const lists = new Map(consumables.map(consumable => [consumable.id, idListOf(consumable)]));
 	return consumablePicker(
-		elixirs,
+		consumables,
 		relevance,
 		{ tooltip },
-		consumes => consumes.elixirIds.find(id => ids.has(id)) ?? 0,
-		(consumes, newValue) => ({ ...consumes, elixirIds: [...consumes.elixirIds.filter(id => !ids.has(id)), ...(newValue ? [newValue] : [])] }),
+		consumes => [...consumes.elixirIds, ...consumes.extraIds].find(id => ids.has(id)) ?? 0,
+		(consumes, newValue) => {
+			const picked = {
+				...consumes,
+				elixirIds: consumes.elixirIds.filter(id => !ids.has(id)),
+				extraIds: consumes.extraIds.filter(id => !ids.has(id)),
+			};
+			if (newValue) picked[lists.get(newValue)!].push(newValue);
+			return picked;
+		},
 	);
 };
 
