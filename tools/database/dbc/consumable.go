@@ -48,7 +48,7 @@ func IsTemporaryEnchantEffect(effect dbcenums.SpellEffectType) bool {
 // that spell's row.
 func (t TemporaryEnchant) ToProto() *proto.SimEnchant {
 	enchant := Enchant{EffectId: t.ID, Effects: t.Effects[:], EffectPoints: t.Points[:], EffectArgs: t.Args[:], IsWeaponEnchant: true}
-	parsed := enchant.ToProto()
+	parsed, slots := enchant.ToProtoWithSlots()
 	simEnchant := &proto.SimEnchant{
 		EffectId:       parsed.EffectId,
 		Stats:          parsed.Stats,
@@ -56,9 +56,9 @@ func (t TemporaryEnchant) ToProto() *proto.SimEnchant {
 		WeaponDamage:   parsed.WeaponDamage,
 		EnchantEffects: parsed.EnchantEffects,
 	}
-	for idx, effect := range t.Effects {
-		spellID, chancePct := int32(t.Args[idx]), t.Points[idx]
-		if effect != ITEM_ENCHANTMENT_COMBAT_SPELL || spellID == 0 || chancePct <= 0 || slices.ContainsFunc(simEnchant.EnchantEffects, func(e *proto.ItemEffect) bool {
+	for _, slot := range slots {
+		spellID := int32(slot.SpellID)
+		if !slot.IsCombatSpell || slot.ChancePct <= 0 || slices.ContainsFunc(simEnchant.EnchantEffects, func(e *proto.ItemEffect) bool {
 			return e.BuffId == spellID
 		}) {
 			continue
