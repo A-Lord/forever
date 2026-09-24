@@ -36,23 +36,11 @@ var ItemSetJusticeBattlegear = core.NewItemSet(core.ItemSet{
 				AttachMultiplyCastSpeed(1.01).
 				ExposeToAPL(1300951)
 		},
-		4: func(agent core.Agent, setBonusAura *core.Aura) {
+		4: func(_ core.Agent, setBonusAura *core.Aura) {
 			// +36 Attack Power against Undead. The client's text says Demons; the effect's
 			// creature-type mask is Undead.
-			character := agent.GetCharacter()
-			bonus := stats.Stats{stats.AttackPower: 36, stats.RangedAttackPower: 36}
-
 			setBonusAura.
-				ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-					for _, at := range character.AttackTables {
-						at.MobTypeBonusStats[proto.MobType_MobTypeUndead] = at.MobTypeBonusStats[proto.MobType_MobTypeUndead].Add(bonus)
-					}
-				}).
-				ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-					for _, at := range character.AttackTables {
-						at.MobTypeBonusStats[proto.MobType_MobTypeUndead] = at.MobTypeBonusStats[proto.MobType_MobTypeUndead].Subtract(bonus)
-					}
-				}).
+				AttachMobTypeBonusStats(stats.Stats{stats.AttackPower: 36, stats.RangedAttackPower: 36}, proto.MobType_MobTypeUndead).
 				ExposeToAPL(1301084)
 		},
 		5: func(_ core.Agent, setBonusAura *core.Aura) {

@@ -90,21 +90,7 @@ func init() {
 		core.MakePermanent(character.RegisterAura(core.Aura{
 			Label:    "Tenets of the Silver Hand",
 			ActionID: core.ActionID{SpellID: 1302545},
-		})).
-			ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-				for _, at := range character.AttackTables {
-					if at.Defender.MobType == proto.MobType_MobTypeUndead {
-						at.DamageDealtMultiplier *= 1.01
-					}
-				}
-			}).
-			ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-				for _, at := range character.AttackTables {
-					if at.Defender.MobType == proto.MobType_MobTypeUndead {
-						at.DamageDealtMultiplier /= 1.01
-					}
-				}
-			})
+		})).AttachDamageMultiplierVersus(1.01, false, proto.MobType_MobTypeUndead)
 	})
 
 	// Sentinel's Libram
