@@ -9,11 +9,32 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// NewRogue panics in its unported poisons before it adds its stat dependencies, so the rogue's rate
-// is checked in the table the constructor reads.
-func TestRogueDodgePerAgility(t *testing.T) {
-	if got := core.DodgePerAgiMaxLevel[proto.Class_ClassRogue]; got != 0.069 {
-		t.Errorf("rogue gains %v%% dodge per agility, want 0.069%%", got)
+func statsFromHundredAgility(t *testing.T, class proto.Class, race proto.Race) stats.Stats {
+	t.Helper()
+	character, _ := nakedSheet(t, class, race)
+	base := character.GetStats()
+	more := base
+	more[stats.Agility] += 100
+	return character.ApplyStatDependencies(more).Subtract(character.ApplyStatDependencies(base))
+}
+
+func TestRogueAgility(t *testing.T) {
+	gained := statsFromHundredAgility(t, proto.Class_ClassRogue, proto.Race_RaceHuman)
+	if got := gained[stats.DodgePercent]; math.Abs(got-6.9) > 1e-9 {
+		t.Errorf("100 agility gives %v%% dodge, want 6.9%%", got)
+	}
+	if got := gained[stats.AttackPower]; math.Abs(got-100) > 1e-9 {
+		t.Errorf("100 agility gives %v attack power, want 100", got)
+	}
+}
+
+func TestHunterAgility(t *testing.T) {
+	gained := statsFromHundredAgility(t, proto.Class_ClassHunter, proto.Race_RaceNightElf)
+	if got := gained[stats.RangedAttackPower]; math.Abs(got-200) > 1e-9 {
+		t.Errorf("100 agility gives %v ranged attack power, want 200", got)
+	}
+	if got := gained[stats.DodgePercent]; math.Abs(got-3.78) > 1e-9 {
+		t.Errorf("100 agility gives %v%% dodge, want 3.78%%", got)
 	}
 }
 

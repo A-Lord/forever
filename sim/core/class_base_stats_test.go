@@ -8,9 +8,11 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/druid"
+	"github.com/wowsims/forever/sim/hunter"
 	"github.com/wowsims/forever/sim/mage"
 	"github.com/wowsims/forever/sim/paladin"
 	"github.com/wowsims/forever/sim/priest"
+	"github.com/wowsims/forever/sim/rogue"
 	"github.com/wowsims/forever/sim/shaman"
 	"github.com/wowsims/forever/sim/warlock"
 	"github.com/wowsims/forever/sim/warrior"
@@ -33,6 +35,10 @@ func nakedPlayer(class proto.Class, race proto.Race) *proto.Player {
 		player.Spec = &proto.Player_Warlock{}
 	case proto.Class_ClassDruid:
 		player.Spec = &proto.Player_BalanceDruid{}
+	case proto.Class_ClassRogue:
+		player.Spec = &proto.Player_Rogue{Rogue: &proto.Rogue{Options: &proto.Rogue_Options{ClassOptions: &proto.RogueOptions{}}}}
+	case proto.Class_ClassHunter:
+		player.Spec = &proto.Player_Hunter{Hunter: &proto.Hunter{Options: &proto.Hunter_Options{ClassOptions: &proto.HunterOptions{}}}}
 	}
 	return player
 }
@@ -60,6 +66,10 @@ func nakedSheet(t *testing.T, class proto.Class, race proto.Race) (*core.Charact
 		built = &warlock.NewWarlock(&character, player, &proto.WarlockOptions{SacrificeSummon: true}, raid).Character
 	case proto.Class_ClassDruid:
 		built = &druid.New(&character, druid.Humanoid, druid.SelfBuffs{}, "").Character
+	case proto.Class_ClassRogue:
+		built = &rogue.NewRogue(&character, player, "").Character
+	case proto.Class_ClassHunter:
+		built = &hunter.NewHunter(&character, player, player.GetHunter().Options.ClassOptions, raid).Character
 	default:
 		t.Fatalf("no constructor for %v", class)
 	}

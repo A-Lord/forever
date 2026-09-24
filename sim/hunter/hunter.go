@@ -187,6 +187,9 @@ func (hunter *Hunter) applyQuiverBonus(weapon *core.Item) {
 
 // TODO: To be implemented.
 func (hunter *Hunter) applyAmmoDPS() {
+	if hunter.Options.Ammo == proto.HunterOptions_AmmoNone {
+		return
+	}
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
