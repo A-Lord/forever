@@ -97,24 +97,30 @@ A hand-written effect wins over a data-driven one for the same id, whichever reg
 two can live in different packages with no init order between them. Two hand-written effects, or two
 data-driven ones, for one id panic. An id db.json does not carry registers nothing.
 
-gen_db writes the data-driven registrations into `sim/common/forever`, one file per family, and
-`common.RegisterAllEffects` runs them. The explosive and potion files keep a consumable their builder
-refuses, commented out with the reason: Potion of Demonslaying 9224 ships through the allow list and
-is registered by hand.
+`GenerateConsumableRegistrations` (`tools/database/gen_consumable_registrations.go`) writes the
+data-driven registrations into `sim/common/forever`, one file per family, and
+`common.RegisterAllEffects` runs them. It picks each consumable's builder once, by its type, the
+category its on-use shares and how its spell routes, in the order of the table. The explosive and
+potion files keep a consumable their builder refuses, commented out with the reason: Potion of
+Demonslaying 9224 ships through the allow list and is registered by hand. Each builder states what it
+refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsupported`,
+`StatConsumableUnsupported`), and the router reads the same checks.
 
-| family                                                         | file                                 | builder                                      |
-| -------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
-| explosives that route as `damage`                              | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`                      |
-| potions (category 4) and conjured items (category 1153)        | `consumables_potions_auto_gen.go`    | `NewSpellDataPotion`, `NewSpellDataConjured` |
-| other consumables that route as `heal`, `energize` or `absorb` | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`                |
-| `temporary enchant`                                            | `consumables_imbues_auto_gen.go`     | `NewTemporaryEnchantConsumable`              |
-| `stat aura`, outside the potion and conjured categories        | `consumable_stats_auto_gen.go`       | `NewSpellDataStatConsumable`                 |
+| family                                                                 | file                                 | builder                         |
+| ---------------------------------------------------------------------- | ------------------------------------ | ------------------------------- |
+| `ConsumableTypeImbue`                                                  | `consumables_imbues_auto_gen.go`     | `NewTemporaryEnchantConsumable` |
+| `ConsumableTypeExplosive` that routes as `damage`                      | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`         |
+| potions (category 4) and `ConsumableTypeConjured`                      | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
+| other consumables that route as `heal`, `energize` or `absorb`         | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
+| other consumables that route as `stat aura`                            | `consumable_stats_auto_gen.go`       | `NewSpellDataStatConsumable`    |
 
 The potion builder runs one spell on the user: a heal, an absorb, a gain of mana, rage or energy, damage
 to the user and the auras the parser attaches. A potion shares category 4's timer and is a major
 cooldown only as the spec's combat potion; a conjured item is one only as the spec's conjured item; any
-other is one whenever the spec names it. The stat builder puts an aura that outlasts the item's
-cooldown up from the pull, and uses the item on its cooldown otherwise.
+other is one whenever the spec names it. The builder tells them apart by the consumable's type. Damage a
+consumable deals its own user, a sapper's or Demonic Rune's, always lands and can crit. The stat builder
+puts an aura that outlasts the item's cooldown up from the pull, and uses the item on its cooldown
+otherwise.
 
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
@@ -147,7 +153,7 @@ func init() {
 		core.NewConsumableEffect(itemID, func(agent core.Agent) {
 			character := agent.GetCharacter()
 			consumable := core.GetConsumableByID(itemID)
-			row := spelldata.MustFind(consumable.ItemEffects[0].BuffId)
+			row := spelldata.MustFind(consumable.OnUse().BuffId)
 
 			config := spelldata.AuraConfig(row, spelldata.Label(consumable.Name))
 			config.ActionID = core.ActionID{ItemID: itemID}
@@ -156,21 +162,31 @@ func init() {
 			aura := character.GetOrRegisterAura(config)
 
 			spelldata.ParseEffects(character, aura, row, spelldata.Effects(1))
-			attachNaturalFlaskZoneBonus(aura, row, row.EffectN(2).Average(character.Level))
+			bonus, err := NaturalFlaskZoneBonusOf(row, row.EffectN(2).Average(character.Level))
+			if err != nil {
+				panic(err)
+			}
+			aura.AttachStatsBuff(bonus.Stats)
+			if bonus.AttackHastePercent != 0 {
+				aura.AttachMultiplyAttackSpeed(1 + bonus.AttackHastePercent/100)
+			}
+			if bonus.CastHastePercent != 0 {
+				aura.AttachMultiplyCastSpeed(1 + bonus.CastHastePercent/100)
+			}
 		})
 	}
 }
 ```
 
-The Stamina is the parser's, from the first effect. `attachNaturalFlaskZoneBonus` applies the dummy's
-amount as the later auras name it, as though every fight is in those zones; `A_MOD_EXPERTISE` takes it
-as a percent at four points of expertise each, since the text reads "5% reduced chance to be dodged or
+The Stamina is the parser's, from the first effect. `NaturalFlaskZoneBonusOf` reads the dummy's amount
+as the later auras name it, as though every fight is in those zones; `A_MOD_EXPERTISE` takes it as a
+percent at four points of expertise each, since the text reads "5% reduced chance to be dodged or
 parried". A hand-written effect for an id a builder does register takes that registration's place;
 deleting the hand-written one hands the id back to the rows.
 
 The settings offer a consumable by the stats db.json lists for it, and the parser lists only the
-Stamina. `AddNaturalFlaskZoneBonusStats` (`tools/database/consumable_zone_bonus.go`) adds the bonus to
-each flask's db.json stats at the rating one percent takes (Accuracy 50 melee and spell hit rating,
+Stamina. `AddNaturalFlaskZoneBonusStats` (`tools/database/consumable_zone_bonus.go`) adds the same
+`NaturalFlaskZoneBonusOf` to each flask's db.json stats at the rating one percent takes (Accuracy 50 melee and spell hit rating,
 Aggression 56 melee and spell crit rating, Precision 50 expertise rating, Swiftness 50 melee and spell
 haste rating). The sim reads the rows, not those stats.
 
@@ -250,18 +266,21 @@ should not take is a hand-written effect for the consumable.
 ## What the settings offer
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
-consumable. `ui/sim/settings/consumables.ts` puts each in a picker: on-use category 1153 is the conjured
-item, category 4 or `ConsumableTypePotion` the combat potion, then the flask, the two elixir pickers
-(`ConsumableTypeElixir`, Battle or Guardian), category 11 or 59 or `ConsumableTypeFood` the food, the
-explosive, the imbues and the pet's food. Everything else is picked any number at a time into the spec's
-`extra_ids`: the scrolls in their row, the rest in the miscellaneous row, and an explosive with a
-cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside the explosive picker. The
-pet's scrolls go into `pet_extra_ids`.
+consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
+the conjured item, `ConsumableTypePotion` the combat potion, then the flask, the two elixir pickers
+(`ConsumableTypeElixir`, Battle or Guardian), `ConsumableTypeFood` the food, the explosive, the imbues and
+the pet's food. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
+in their row, the rest in the miscellaneous row, and an explosive with a cooldown of its own beside the
+shared one (Goblin Sapper Charge 10646) beside the explosive picker. The pet's scrolls go into
+`pet_extra_ids`.
 
-The category is the consumable's `category_id`, which `AddOnUseCategories`
-(`tools/database/gen_consumable_effects.go`) sets to the one `OnUseCategory` reads: the item row's, or
-where it states none, its spell's. It types a consumable in category 4 a potion: Potion of Demonslaying
-9224 is an Elixir-subclass item and only its spell 11406 names the category.
+The generator writes the type (`Consumable.ToProto` in `tools/database/dbc/consumable.go`) from the
+category the first on-use row shares, which is also the consumable's `category_id`: the item row's, or
+where it states none, its spell's. An imbue or an explosive is typed by what it does; category 4 makes a
+potion (Potion of Demonslaying 9224 is an Elixir-subclass item and only its spell 11406 names the
+category) and 1153 a conjured item (Demonic Rune 12662 is not even a Consumable-class item); food and
+drink categories 11 and 59 make food of what its subclass leaves neither a potion, a flask nor an elixir;
+everything else takes its item subclass.
 
 `isConsumableRelevant` then decides whether the player sees it:
 

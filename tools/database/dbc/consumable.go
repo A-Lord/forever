@@ -9,21 +9,21 @@ import (
 )
 
 type Consumable struct {
-	Id                       int             // Item ID
-	Name                     string          // Item name
-	ItemLevel                int             // Item level
-	RequiredLevel            int             // Required level to use
-	ClassId                  int             // Item class ID (should be 0 for consumables)
-	SubClassId               ConsumableClass // Item subclass ID
-	IconFileDataID           int             // Icon file data ID
-	SpellCategoryID          int             // Spell category ID
-	SpellCategoryFlags       int             // Spell category flags
-	ItemEffects              []int           // Item effect IDs
-	ElixirType               int
-	ClassMask                int
-	RaceMask                 int64
-	RequiredSkill            int
-	TemporaryEnchant         TemporaryEnchant
+	Id                 int             // Item ID
+	Name               string          // Item name
+	ItemLevel          int             // Item level
+	RequiredLevel      int             // Required level to use
+	ClassId            int             // Item class ID (should be 0 for consumables)
+	SubClassId         ConsumableClass // Item subclass ID
+	IconFileDataID     int             // Icon file data ID
+	SpellCategoryID    int             // Spell category ID
+	SpellCategoryFlags int             // Spell category flags
+	ItemEffects        []int           // Item effect IDs
+	ElixirType         int
+	ClassMask          int
+	RaceMask           int64
+	RequiredSkill      int
+	TemporaryEnchant   TemporaryEnchant
 }
 
 // The SpellItemEnchantment row a consumable's temporary enchant (Effect 54, or the imbue Effect 360)
@@ -88,26 +88,32 @@ func (c *Consumable) ToMap() map[string]interface{} {
 
 // ToProto converts the Consumable to a proto representation.
 func (c *Consumable) ToProto() *proto.Consumable {
+	onUses := c.OnUseEffects()
+	enchant := temporaryEnchantSpell(onUses)
+	category := onUseCategory(onUses)
 	consumable := &proto.Consumable{
-		Id:                       int32(c.Id),
-		Type:                     c.GetConsumableType(),
-		Stats:                    c.GetStatModifiers().ToProtoArray(),
-		Name:                     c.Name,
-		BuffsMainStat:            false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
-		CategoryId:               int32(c.SpellCategoryID),
-		EffectIds:                c.GetNonStatEffectIds(),
-		ItemEffects:              c.OnUseEffects(),
-		ClassAllowlist:           GetClassesFromClassMask(c.ClassMask),
-		RequiredProfession:       GetProfession(c.RequiredSkill),
+		Id:                 int32(c.Id),
+		Type:               c.consumableType(onUses, enchant, category),
+		Stats:              c.GetStatModifiers().ToProtoArray(),
+		Name:               c.Name,
+		BuffsMainStat:      false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
+		CategoryId:         int32(c.SpellCategoryID),
+		EffectIds:          c.GetNonStatEffectIds(),
+		ItemEffects:        onUses,
+		ClassAllowlist:     GetClassesFromClassMask(c.ClassMask),
+		RequiredProfession: GetProfession(c.RequiredSkill),
+	}
+	if category > 0 {
+		consumable.CategoryId = category
 	}
 	if c.RaceMask != -1 {
 		consumable.AllowableRace = c.RaceMask
 	}
-	if enchant := c.temporaryEnchantSpell(); enchant != nil && enchant.EquippedItemClass == ITEM_CLASS_WEAPON {
+	if enchant != nil && enchant.EquippedItemClass == ITEM_CLASS_WEAPON {
 		consumable.WeaponSubclassMask = enchant.EquippedItemSubclass
 		consumable.WeaponInventoryTypeMask = enchant.EquippedItemInvTypes
 	}
-	if c.TemporaryEnchant.ID != 0 && c.temporaryEnchantSpell() != nil {
+	if c.TemporaryEnchant.ID != 0 && enchant != nil {
 		consumable.TemporaryEnchant = c.TemporaryEnchant.ToProto()
 	}
 	return consumable
@@ -133,8 +139,8 @@ func (c *Consumable) OnUseEffects() []*proto.ItemEffect {
 	return effects
 }
 
-func (c *Consumable) temporaryEnchantSpell() *Spell {
-	for _, e := range c.OnUseEffects() {
+func temporaryEnchantSpell(onUses []*proto.ItemEffect) *Spell {
+	for _, e := range onUses {
 		for _, se := range dbcInstance.SpellEffects[int(e.BuffId)] {
 			if IsTemporaryEnchantEffect(se.EffectType) {
 				spell := dbcInstance.Spells[int(e.BuffId)]
@@ -145,19 +151,53 @@ func (c *Consumable) temporaryEnchantSpell() *Spell {
 	return nil
 }
 
-func (c *Consumable) sharesExplosivesCategory() bool {
-	return slices.ContainsFunc(c.OnUseEffects(), func(e *proto.ItemEffect) bool {
-		return e.GetOnUse().CategoryId == EXPLOSIVES_SPELL_CATEGORY
-	})
+// The category the first on-use shares: the item's row, or where it states none, its spell's. The
+// Spellblasting, Frenzy and Mender's potions state theirs on the spell alone.
+func onUseCategory(onUses []*proto.ItemEffect) int32 {
+	if len(onUses) == 0 {
+		return 0
+	}
+	if category := onUses[0].GetOnUse().CategoryId; category > 0 {
+		return category
+	}
+	return dbcInstance.Spells[int(onUses[0].BuffId)].Category
 }
 
 func (c *Consumable) GetConsumableType() proto.ConsumableType {
+	onUses := c.OnUseEffects()
+	return c.consumableType(onUses, temporaryEnchantSpell(onUses), onUseCategory(onUses))
+}
+
+// A consumable's type, which the settings pick it by: an imbue or an explosive by what it does, one
+// sharing the potion or conjured category a potion or conjured item (Potion of Demonslaying 9224 is
+// an Elixir-subclass item whose spell 11406 shares category 4), and otherwise its item subclass, with
+// what shares the food or drink category food.
+func (c *Consumable) consumableType(onUses []*proto.ItemEffect, enchant *Spell, category int32) proto.ConsumableType {
 	switch {
-	case c.temporaryEnchantSpell() != nil:
+	case enchant != nil:
 		return proto.ConsumableType_ConsumableTypeImbue
-	case c.sharesExplosivesCategory(), c.ClassId == ITEM_CLASS_TRADE_GOODS && c.SubClassId == TRADE_GOODS_EXPLOSIVES:
+	case slices.ContainsFunc(onUses, func(e *proto.ItemEffect) bool { return e.GetOnUse().CategoryId == EXPLOSIVES_SPELL_CATEGORY }),
+		c.ClassId == ITEM_CLASS_TRADE_GOODS && c.SubClassId == TRADE_GOODS_EXPLOSIVES:
 		return proto.ConsumableType_ConsumableTypeExplosive
-	case c.ClassId != ITEM_CLASS_CONSUMABLE:
+	case category == POTION_SPELL_CATEGORY:
+		return proto.ConsumableType_ConsumableTypePotion
+	case category == CONJURED_SPELL_CATEGORY:
+		return proto.ConsumableType_ConsumableTypeConjured
+	}
+	itemType := c.itemType()
+	switch itemType {
+	case proto.ConsumableType_ConsumableTypePotion, proto.ConsumableType_ConsumableTypeFlask, proto.ConsumableType_ConsumableTypeElixir,
+		proto.ConsumableType_ConsumableTypeBattleElixir, proto.ConsumableType_ConsumableTypeGuardianElixir:
+		return itemType
+	}
+	if category == FOOD_SPELL_CATEGORY || category == DRINK_SPELL_CATEGORY {
+		return proto.ConsumableType_ConsumableTypeFood
+	}
+	return itemType
+}
+
+func (c *Consumable) itemType() proto.ConsumableType {
+	if c.ClassId != ITEM_CLASS_CONSUMABLE {
 		return proto.ConsumableType_ConsumableTypeUnknown
 	}
 	if c.SubClassId == ELIXIR {

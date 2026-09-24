@@ -14,31 +14,14 @@ import (
 // potions have on the wearer by $s1%."
 const alchemistsStoneSpellID int32 = 17619
 
-// A potion: the spell its on-use row casts on the drinker, on the item's cooldown and the category
-// it shares. Only the spec's combat potion is a major cooldown; the other potions are the rotation's.
-func NewSpellDataPotion(itemID int32) {
-	registerSpellDataConsumable(itemID, potionConsumable, core.NewDataDrivenConsumableEffect, attachedAuras{})
-}
-
-// A conjured item, a healthstone, mana gem, rune or tea, built the way a potion is. It is a major
-// cooldown the manager uses only while it is the spec's chosen one.
-func NewSpellDataConjured(itemID int32) {
-	registerSpellDataConsumable(itemID, conjuredConsumable, core.NewDataDrivenConsumableEffect, attachedAuras{})
-}
-
-// Any other consumable whose on-use the potion builder runs, such as the Flame Deflector's shield or
-// the Scroll of Minor Evocation's mana: a major cooldown whenever the spec names it.
+// A consumable whose on-use spell the potion builder runs on the user, on the item's cooldown and the
+// category it shares. A potion is a major cooldown only as the spec's combat potion, the other potions
+// are the rotation's; a conjured item (a healthstone, mana gem, rune or tea) is one only while it is
+// the spec's chosen one; any other, such as the Flame Deflector's shield or the Scroll of Minor
+// Evocation's mana, whenever the spec names it.
 func NewSpellDataOnUseConsumable(itemID int32) {
-	registerSpellDataConsumable(itemID, otherConsumable, core.NewDataDrivenConsumableEffect, attachedAuras{})
+	registerSpellDataConsumable(itemID, core.NewDataDrivenConsumableEffect, attachedAuras{})
 }
-
-type spellDataConsumableKind uint8
-
-const (
-	potionConsumable spellDataConsumableKind = iota
-	conjuredConsumable
-	otherConsumable
-)
 
 // Auras of the spell the parser does not attach, which attach puts on the consumable's aura.
 type attachedAuras struct {
@@ -134,11 +117,11 @@ func consumablePartsOf(row *spelldata.Spell, attached []dbcenums.EffectAuraType)
 	return parts, unsupported
 }
 
-func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, register func(int32, core.ApplyEffect), attached attachedAuras) {
+func registerSpellDataConsumable(itemID int32, register func(int32, core.ApplyEffect), attached attachedAuras) {
 	register(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
-		itemEffect := consumableOnUse(consumable)
+		itemEffect := consumable.OnUse()
 		row := spelldata.MustFind(itemEffect.BuffId)
 		parts, unsupported := consumablePartsOf(row, attached.auras)
 		if len(unsupported) > 0 {
@@ -147,7 +130,7 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, reg
 
 		actionID := core.ActionID{ItemID: itemID}
 		potionBonus := 1.0
-		if kind == potionConsumable && character.HasAlchStone() {
+		if consumable.Type == proto.ConsumableType_ConsumableTypePotion && character.HasAlchStone() {
 			potionBonus += spelldata.MustFind(alchemistsStoneSpellID).EffectN(1).Percent()
 		}
 
@@ -164,12 +147,12 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, reg
 		config.ActionID = actionID
 		config.Flags &^= core.SpellFlagPassiveSpell | core.SpellFlagProc
 		config.Flags |= core.SpellFlagNoOnCastComplete | core.SpellFlagAPL
-		switch kind {
-		case potionConsumable:
+		switch consumable.Type {
+		case proto.ConsumableType_ConsumableTypePotion:
 			// Encounter-only, so a prepull potion is the generic Potion action and the rotation cannot
 			// name one the consumes do not.
 			config.Flags |= core.SpellFlagEncounterOnly | core.SpellFlagPotion
-		case conjuredConsumable:
+		case proto.ConsumableType_ConsumableTypeConjured:
 			config.Flags |= core.SpellFlagConjured
 		}
 
@@ -263,13 +246,13 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, reg
 			}
 		}
 
-		switch kind {
-		case potionConsumable:
+		switch consumable.Type {
+		case proto.ConsumableType_ConsumableTypePotion:
 			if consumables.PotId != itemID {
 				return
 			}
 			spell.Flags |= core.SpellFlagCombatPotion
-		case conjuredConsumable:
+		case proto.ConsumableType_ConsumableTypeConjured:
 			shouldActivate := mcd.ShouldActivate
 			mcd.ShouldActivate = func(sim *core.Simulation, character *core.Character) bool {
 				return consumables.ConjuredId == itemID && (shouldActivate == nil || shouldActivate(sim, character))
@@ -277,15 +260,6 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, reg
 		}
 		character.AddMajorCooldown(mcd)
 	})
-}
-
-func consumableOnUse(consumable core.Consumable) *proto.ItemEffect {
-	for _, effect := range consumable.ItemEffects {
-		if effect.GetOnUse() != nil {
-			return effect
-		}
-	}
-	panic(fmt.Sprintf("consumable %d states no on-use row", consumable.Id))
 }
 
 // The item's own cooldown and the category cooldown it shares. -1 on the item's row, and a category

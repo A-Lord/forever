@@ -23,10 +23,7 @@ func NewSpellDataStatConsumable(itemID int32) {
 	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
-		if len(consumable.ItemEffects) == 0 {
-			panic(fmt.Sprintf("consumable %d states no on-use spell", itemID))
-		}
-		itemEffect := consumable.ItemEffects[0]
+		itemEffect := consumable.OnUse()
 
 		buffs := consumableBuffs(spelldata.MustFind(itemEffect.BuffId))
 		if len(buffs) == 0 {

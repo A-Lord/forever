@@ -9,12 +9,6 @@ import { UIItem as Item } from '@generated/proto/ui';
 import type { SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
 
-// The spell categories an on-use shares its cooldown through (SpellCategory.ID).
-const COMBAT_POTION_CATEGORY = 4; // Item - Combat Consumable (Potion)
-const FOOD_CATEGORY = 11; // Item - Food
-const DRINK_CATEGORY = 59; // Item - Drink
-const CONJURED_CATEGORY = 1153; // Item - Combat Consumable (Non-Aggressive)
-
 export enum ConsumableSlot {
 	Potion,
 	Conjured,
@@ -42,18 +36,31 @@ export interface SpellEffectSource {
 
 const ELIXIR_TYPES = [ConsumableType.ConsumableTypeElixir, ConsumableType.ConsumableTypeBattleElixir, ConsumableType.ConsumableTypeGuardianElixir];
 
-// The category is the one the on-use shares: the item's or, where the item states none, its spell's.
+// The generator types a consumable by the category its on-use shares where that says potion, conjured
+// item, food or drink, and by its item subclass otherwise.
 export function consumableSlot(consumable: Consumable): ConsumableSlot {
-	const category = consumable.categoryId;
-	if (category === CONJURED_CATEGORY) return ConsumableSlot.Conjured;
-	if (consumable.type === ConsumableType.ConsumableTypePotion || category === COMBAT_POTION_CATEGORY) return ConsumableSlot.Potion;
-	if (consumable.type === ConsumableType.ConsumableTypeFlask) return ConsumableSlot.Flask;
-	if (ELIXIR_TYPES.includes(consumable.type)) return ConsumableSlot.Elixir;
-	if (consumable.type === ConsumableType.ConsumableTypeFood || category === FOOD_CATEGORY || category === DRINK_CATEGORY) return ConsumableSlot.Food;
-	if (consumable.type === ConsumableType.ConsumableTypeExplosive) return ConsumableSlot.Explosive;
-	if (consumable.type === ConsumableType.ConsumableTypeImbue) return ConsumableSlot.Imbue;
-	if (consumable.type === ConsumableType.ConsumableTypePetFood) return ConsumableSlot.PetFood;
-	return ConsumableSlot.Extra;
+	switch (consumable.type) {
+		case ConsumableType.ConsumableTypeConjured:
+			return ConsumableSlot.Conjured;
+		case ConsumableType.ConsumableTypePotion:
+			return ConsumableSlot.Potion;
+		case ConsumableType.ConsumableTypeFlask:
+			return ConsumableSlot.Flask;
+		case ConsumableType.ConsumableTypeElixir:
+		case ConsumableType.ConsumableTypeBattleElixir:
+		case ConsumableType.ConsumableTypeGuardianElixir:
+			return ConsumableSlot.Elixir;
+		case ConsumableType.ConsumableTypeFood:
+			return ConsumableSlot.Food;
+		case ConsumableType.ConsumableTypeExplosive:
+			return ConsumableSlot.Explosive;
+		case ConsumableType.ConsumableTypeImbue:
+			return ConsumableSlot.Imbue;
+		case ConsumableType.ConsumableTypePetFood:
+			return ConsumableSlot.PetFood;
+		default:
+			return ConsumableSlot.Extra;
+	}
 }
 
 // An explosive with a cooldown of its own besides the one explosives share is used beside the
@@ -181,6 +188,7 @@ const restoresForSpec = (resource: ResourceType, stats: Set<Stat>): boolean => {
 // Types whose consumables exist to grant a stat: one granting none the spec weighs does nothing for it.
 const STAT_TYPES = [
 	ConsumableType.ConsumableTypeUnknown,
+	ConsumableType.ConsumableTypeConjured,
 	ConsumableType.ConsumableTypeFlask,
 	ConsumableType.ConsumableTypeFood,
 	ConsumableType.ConsumableTypeScroll,

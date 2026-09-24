@@ -20,7 +20,7 @@ func init() {
 		core.NewConsumableEffect(itemID, func(agent core.Agent) {
 			character := agent.GetCharacter()
 			consumable := core.GetConsumableByID(itemID)
-			row := spelldata.MustFind(consumable.ItemEffects[0].BuffId)
+			row := spelldata.MustFind(consumable.OnUse().BuffId)
 
 			config := spelldata.AuraConfig(row, spelldata.Label(consumable.Name))
 			config.ActionID = core.ActionID{ItemID: itemID}

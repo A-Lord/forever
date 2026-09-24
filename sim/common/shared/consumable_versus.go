@@ -35,7 +35,7 @@ func NewVersusPotion(itemID int32) {
 	for aura := range versusAuras {
 		auras = append(auras, aura)
 	}
-	registerSpellDataConsumable(itemID, potionConsumable, core.NewConsumableEffect, attachedAuras{
+	registerSpellDataConsumable(itemID, core.NewConsumableEffect, attachedAuras{
 		auras: auras,
 		attach: func(character *core.Character, aura *core.Aura, row *spelldata.Spell) {
 			attachVersusBonus(character, aura, versusBonus(row, character.Level))

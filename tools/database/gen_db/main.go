@@ -180,8 +180,11 @@ func main() {
 		}
 	}
 
+	consumableRoutes := map[int]*database.ConsumableRouting{}
 	for _, consumable := range consumables {
-		if !database.ShipsConsumable(database.RouteConsumable(&consumable, instance)) {
+		routing := database.RouteConsumable(&consumable, instance)
+		consumableRoutes[consumable.Id] = routing
+		if !database.ShipsConsumable(routing) {
 			continue
 		}
 		db.MergeConsumable(consumable.ToProto())
@@ -194,7 +197,6 @@ func main() {
 		log.Fatalf("failed to add the Natural flasks' zone bonus: %v", err)
 	}
 	database.AddVersusStats(db)
-	database.AddOnUseCategories(db)
 
 	db.MergeItems(database.ItemOverrides)
 	db.MergeGems(database.GemOverrides)
@@ -208,13 +210,8 @@ func main() {
 
 	database.GenerateItemEffects(instance, db, dropSources)
 	database.GenerateEnchantEffects(instance, db)
-	if err := database.GenerateExplosiveEffects(instance); err != nil {
-		log.Fatalf("failed to generate the explosive registrations: %v", err)
-	}
-	database.GeneratePotionAndConjuredEffects(instance, db)
-	database.GenerateTemporaryEnchantConsumables(db)
-	if err := database.GenerateStatConsumables(instance, db); err != nil {
-		panic(err)
+	if err := database.GenerateConsumableRegistrations(instance, db, consumableRoutes); err != nil {
+		log.Fatalf("failed to generate the consumable registrations: %v", err)
 	}
 	if err := database.GenerateConsumablesTSFile(db); err != nil {
 		log.Fatalf("failed to generate the consumables TS file: %v", err)

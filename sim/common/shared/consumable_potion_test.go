@@ -48,19 +48,25 @@ func energyUser() *proto.Player {
 }
 
 type testConsumable struct {
-	id       int32
-	register func(int32)
-	effect   *proto.ItemEffect
+	id             int32
+	consumableType proto.ConsumableType
+	effect         *proto.ItemEffect
 }
 
-// The player with the consumables in its spec, each registered through its constructor, at half
-// health, with its spells certain to hit and never to crit.
+const (
+	potion   = proto.ConsumableType_ConsumableTypePotion
+	conjured = proto.ConsumableType_ConsumableTypeConjured
+	other    = proto.ConsumableType_ConsumableTypeOther
+)
+
+// The player with the consumables in its spec, each of its type and registered through the potion
+// builder, at half health, with its spells certain to hit and never to crit.
 func newConsumableSim(t *testing.T, player *proto.Player, consumes *proto.ConsumesSpec, trinket int32, consumables ...testConsumable) (*core.Simulation, *testCaster) {
 	t.Helper()
 	for _, c := range consumables {
 		core.AddToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{{Id: c.id, Name: "Test Consumable",
-			ItemEffects: []*proto.ItemEffect{c.effect}}}})
-		c.register(c.id)
+			Type: c.consumableType, ItemEffects: []*proto.ItemEffect{c.effect}}}})
+		NewSpellDataOnUseConsumable(c.id)
 	}
 
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotTrinket2+1)
@@ -126,8 +132,8 @@ func gainedBy(caster *testCaster, itemID int32) float64 {
 func TestPotionRestoresManaOnThePotionCategory(t *testing.T) {
 	const combatID, otherID int32 = 992001, 992002
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: combatID, Potions: []int32{otherID}}, 0,
-		testConsumable{combatID, NewSpellDataPotion, testOnUse(17531, 0, 4, 120000)},
-		testConsumable{otherID, NewSpellDataPotion, testOnUse(17531, 0, 4, 120000)})
+		testConsumable{combatID, potion, testOnUse(17531, 0, 4, 120000)},
+		testConsumable{otherID, potion, testOnUse(17531, 0, 4, 120000)})
 	potion, other := consumableSpell(t, drinker, combatID), consumableSpell(t, drinker, otherID)
 
 	mcd := drinker.GetInitialMajorCooldown(potion.ActionID)
@@ -167,7 +173,7 @@ func TestPotionRestoresManaOnThePotionCategory(t *testing.T) {
 func TestPotionGivesRageAndItsStrength(t *testing.T) {
 	const potionID int32 = 992003
 	sim, drinker := newConsumableSim(t, rageUser(), &proto.ConsumesSpec{PotId: potionID}, 0,
-		testConsumable{potionID, NewSpellDataPotion, testOnUse(17528, 0, 4, 120000)})
+		testConsumable{potionID, potion, testOnUse(17528, 0, 4, 120000)})
 	potion := consumableSpell(t, drinker, potionID)
 	strength := drinker.GetStat(stats.Strength)
 
@@ -193,8 +199,8 @@ func TestPotionGivesRageAndItsStrength(t *testing.T) {
 func TestConjuredRuneRestoresManaAtTheCostOfLife(t *testing.T) {
 	const runeID, otherID int32 = 992004, 992005
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ConjuredId: otherID, ConjuredItems: []int32{runeID, otherID}}, 0,
-		testConsumable{runeID, NewSpellDataConjured, testOnUse(16666, -1, 1153, 120000)},
-		testConsumable{otherID, NewSpellDataConjured, testOnUse(10058, 0, 1153, 120000)})
+		testConsumable{runeID, conjured, testOnUse(16666, -1, 1153, 120000)},
+		testConsumable{otherID, conjured, testOnUse(10058, 0, 1153, 120000)})
 	rune, other := consumableSpell(t, drinker, runeID), consumableSpell(t, drinker, otherID)
 
 	drinker.SpendMana(sim, drinker.CurrentMana()-100, drinker.NewManaMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 99}))
@@ -222,7 +228,7 @@ func TestConjuredRuneRestoresManaAtTheCostOfLife(t *testing.T) {
 func TestConjuredRuneAlwaysHitsTheUser(t *testing.T) {
 	const runeID int32 = 992031
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ConjuredId: runeID, ConjuredItems: []int32{runeID}}, 0,
-		testConsumable{runeID, NewSpellDataConjured, testOnUse(16666, -1, 1153, 120000)})
+		testConsumable{runeID, conjured, testOnUse(16666, -1, 1153, 120000)})
 	drinker.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -1000})
 	rune := consumableSpell(t, drinker, runeID)
 	self := drinker.GetSpell(core.ActionID{ItemID: runeID}.WithTag(1))
@@ -244,7 +250,7 @@ func TestConjuredRuneAlwaysHitsTheUser(t *testing.T) {
 func TestConjuredTeaRestoresAFlatHundredEnergy(t *testing.T) {
 	const teaID int32 = 992006
 	sim, drinker := newConsumableSim(t, energyUser(), &proto.ConsumesSpec{ConjuredId: teaID, ConjuredItems: []int32{teaID}}, 0,
-		testConsumable{teaID, NewSpellDataConjured, testOnUse(9512, 300000, 1153, 120000)})
+		testConsumable{teaID, conjured, testOnUse(9512, 300000, 1153, 120000)})
 	tea := consumableSpell(t, drinker, teaID)
 	mcd := drinker.GetInitialMajorCooldown(tea.ActionID)
 
@@ -266,7 +272,7 @@ func TestConjuredTeaRestoresAFlatHundredEnergy(t *testing.T) {
 func TestConjuredRootHealsAndRestoresManaOverTime(t *testing.T) {
 	const rootID int32 = 992007
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ConjuredItems: []int32{rootID}}, 0,
-		testConsumable{rootID, NewSpellDataConjured, testOnUse(21955, 0, 1153, 120000)})
+		testConsumable{rootID, conjured, testOnUse(21955, 0, 1153, 120000)})
 	root := consumableSpell(t, drinker, rootID)
 
 	drinker.SpendMana(sim, 2000, drinker.NewManaMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 99}))
@@ -285,7 +291,7 @@ func TestConjuredRootHealsAndRestoresManaOverTime(t *testing.T) {
 func TestPotionRestoresAShareOfTheBar(t *testing.T) {
 	const potionID int32 = 992008
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{Potions: []int32{potionID}}, 0,
-		testConsumable{potionID, NewSpellDataPotion, testOnUse(1312702, 0, 4, 120000)})
+		testConsumable{potionID, potion, testOnUse(1312702, 0, 4, 120000)})
 
 	drinker.SpendMana(sim, drinker.CurrentMana(), drinker.NewManaMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 99}))
 	consumableSpell(t, drinker, potionID).Cast(sim, &drinker.Unit)
@@ -299,8 +305,8 @@ func TestPotionRestoresAShareOfTheBar(t *testing.T) {
 func TestPotionDefersToItsSpellsCategory(t *testing.T) {
 	const blastingID, manaID int32 = 992009, 992010
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{Potions: []int32{blastingID, manaID}}, 0,
-		testConsumable{blastingID, NewSpellDataPotion, testOnUse(1251919, -1, 0, -1)},
-		testConsumable{manaID, NewSpellDataPotion, testOnUse(17531, 0, 4, 120000)})
+		testConsumable{blastingID, potion, testOnUse(1251919, -1, 0, -1)},
+		testConsumable{manaID, potion, testOnUse(17531, 0, 4, 120000)})
 	blasting, mana := consumableSpell(t, drinker, blastingID), consumableSpell(t, drinker, manaID)
 
 	blasting.Cast(sim, &drinker.Unit)
@@ -326,9 +332,9 @@ func TestAlchemistsStoneRaisesHealingAndManaPotions(t *testing.T) {
 
 	gains := func(trinket int32, heal, mana, healthstone int32) (float64, float64, float64) {
 		sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{Potions: []int32{heal, mana}, ConjuredItems: []int32{healthstone}}, trinket,
-			testConsumable{heal, NewSpellDataPotion, testOnUse(17534, 0, 4, 120000)},
-			testConsumable{mana, NewSpellDataPotion, testOnUse(17531, 0, 4, 120000)},
-			testConsumable{healthstone, NewSpellDataConjured, testOnUse(11732, 0, 1153, 120000)})
+			testConsumable{heal, potion, testOnUse(17534, 0, 4, 120000)},
+			testConsumable{mana, potion, testOnUse(17531, 0, 4, 120000)},
+			testConsumable{healthstone, conjured, testOnUse(11732, 0, 1153, 120000)})
 		drinker.AddStatsDynamic(sim, stats.Stats{stats.Mana: 10000, stats.Health: 10000})
 		drinker.SpendMana(sim, drinker.CurrentMana(), drinker.NewManaMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 99}))
 		drinker.RemoveHealth(sim, drinker.CurrentHealth()-1)
@@ -360,7 +366,7 @@ func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 	const fireProtection int32 = 17543
 	withoutSpread(t, fireProtection)
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: potionID}, alchemistsStoneID,
-		testConsumable{potionID, NewSpellDataPotion, testOnUse(fireProtection, 0, 4, 120000)})
+		testConsumable{potionID, potion, testOnUse(fireProtection, 0, 4, 120000)})
 	potion := consumableSpell(t, drinker, potionID)
 	shield := absorbAura(t, drinker, fireProtection, potionID)
 
@@ -389,7 +395,7 @@ func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
 	const deflectorID int32 = 992022
 	sim, user := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{BattleElixirId: deflectorID}, 0,
-		testConsumable{deflectorID, NewSpellDataOnUseConsumable, testOnUse(4057, 900000, 0, 0)})
+		testConsumable{deflectorID, other, testOnUse(4057, 900000, 0, 0)})
 	deflector := consumableSpell(t, user, deflectorID)
 
 	mcd := user.GetInitialMajorCooldown(deflector.ActionID)

@@ -29,10 +29,7 @@ func NewSpellDataExplosive(itemID int32) {
 			return
 		}
 
-		for _, itemEffect := range consumable.ItemEffects {
-			if itemEffect.GetOnUse() == nil {
-				continue
-			}
+		for _, itemEffect := range consumable.OnUseEffects() {
 			config := onUseSpellConfig(character, itemID, itemEffect, spellDataOnUseDamageSpell)
 			config.Flags |= core.SpellFlagExplosive
 			if self := spelldata.MustFind(itemEffect.BuffId).CasterDamageEffect(); self != spelldata.NilEffect {

@@ -126,6 +126,20 @@ type Consumable struct {
 	WeaponInventoryTypeMask int32
 }
 
+// The item's on-use rows.
+func (consumable Consumable) OnUseEffects() []*proto.ItemEffect {
+	return FilterSlice(consumable.ItemEffects, func(effect *proto.ItemEffect) bool { return effect.GetOnUse() != nil })
+}
+
+// The first on-use row, the one a consumable's builder runs.
+func (consumable Consumable) OnUse() *proto.ItemEffect {
+	onUses := consumable.OnUseEffects()
+	if len(onUses) == 0 {
+		panic(fmt.Sprintf("consumable %d (%s) states no on-use row", consumable.Id, consumable.Name))
+	}
+	return onUses[0]
+}
+
 func ConsumableFromProto(consumable *proto.Consumable) Consumable {
 	var temporaryEnchant *Enchant
 	if consumable.TemporaryEnchant != nil {

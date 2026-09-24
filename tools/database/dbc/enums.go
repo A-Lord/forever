@@ -215,6 +215,12 @@ const (
 	TRADE_GOODS_EXPLOSIVES = 2
 	// The client's shared cooldown category for explosives, 60 s.
 	EXPLOSIVES_SPELL_CATEGORY = 24
+	// The categories potions, food, drink and conjured items (healthstones, mana gems, runes, Thistle
+	// Tea) share their cooldown through.
+	POTION_SPELL_CATEGORY   = 4
+	FOOD_SPELL_CATEGORY     = 11
+	DRINK_SPELL_CATEGORY    = 59
+	CONJURED_SPELL_CATEGORY = 1153
 )
 
 // Power type in EffectMiscValue_0 of A_MOD_INCREASE_ENERGY. Only mana maps to a stat.

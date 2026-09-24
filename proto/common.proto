@@ -770,6 +770,8 @@ enum ConsumableType {
 	ConsumableTypeDevice = 13;
 	// An elixir whose spell calls it neither a Battle nor a Guardian Elixir.
 	ConsumableTypeElixir = 14;
+	// A healthstone, mana gem, rune or tea: its on-use shares conjured category 1153.
+	ConsumableTypeConjured = 15;
 }
 
 
