@@ -158,6 +158,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.AttackPower, v)
 	},
+
+	// A stat against the creature types the misc value masks.
+	dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS:  mobTypeStatRow,
+	dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS: mobTypeStatRow,
+	dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS:   mobTypeStatRow,
+
 	dbcenums.A_MOD_RANGED_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.RangedAttackPower, v)
 	},
@@ -509,6 +515,22 @@ func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 		a.parts = append(a.parts, part)
 	}
 	return a
+}
+
+// A stat the unit has against the mob types a creature type mask names, which the sim keeps on the
+// attack tables. The tables exist only once the environment is set up, so the static path skips it.
+func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
+	stat := versusStats[e.Aura]
+	mobTypes := MobTypes(e.Misc)
+	if p.static || len(mobTypes) == 0 {
+		return nil
+	}
+
+	return additive("mob-type-stat "+stat.StatName(), v, func(_ *core.Simulation, delta float64) {
+		var bonus stats.Stats
+		bonus[stat] = delta
+		p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
+	})
 }
 
 func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {
