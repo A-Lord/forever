@@ -42,9 +42,9 @@ func TestTemporaryEnchantWeaponDamageGoesOnItsHand(t *testing.T) {
 		TemporaryEnchant: &core.Enchant{EffectID: 1643, WeaponDamage: 8}}
 
 	character := newTestAgent().character
-	character.Equipment[proto.ItemSlot_ItemSlotOffHand] = core.Item{ID: 1, TempEnchant: 1643}
-	character.AutoAttacks.MH().BaseDamageMin, character.AutoAttacks.MH().BaseDamageMax = 100, 150
-	character.AutoAttacks.OH().BaseDamageMin, character.AutoAttacks.OH().BaseDamageMax = 100, 150
+	character.Equipment[proto.ItemSlot_ItemSlotOffHand] = core.Item{ID: 1, TempEnchant: 1643, SwingSpeed: 2.6}
+	*character.AutoAttacks.MH() = core.Weapon{BaseDamageMin: 100, BaseDamageMax: 150, SwingSpeed: 2.6}
+	*character.AutoAttacks.OH() = core.Weapon{BaseDamageMin: 100, BaseDamageMax: 150, SwingSpeed: 2.6}
 	applyTemporaryEnchant(character, stone)
 
 	if oh := character.AutoAttacks.OH(); oh.BaseDamageMin != 108 || oh.BaseDamageMax != 158 {
