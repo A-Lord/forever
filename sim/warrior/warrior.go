@@ -186,8 +186,7 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 	warrior.PseudoStats.CanParry = true
 
 	warrior.AddStatDependency(stats.Strength, stats.AttackPower, 2)
-	warrior.AddStatDependency(stats.Strength, stats.BlockValue, 0.05)
-	warrior.AddStat(stats.BlockValue, -1)
+	warrior.PseudoStats.BlockValuePerStrength = 0.05
 	warrior.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
 	warrior.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[character.Class])
 	warrior.AddStatDependency(stats.BonusArmor, stats.Armor, 1)

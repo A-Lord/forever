@@ -570,7 +570,7 @@ func (unit *Unit) Armor() float64 {
 }
 
 func (unit *Unit) BlockDamageReduction() float64 {
-	return max(0, unit.stats[stats.BlockValue]*unit.PseudoStats.BlockValueMultiplier)
+	return max(0, unit.stats[stats.Strength]*unit.PseudoStats.BlockValuePerStrength-1) + unit.stats[stats.BlockValue]*unit.PseudoStats.BlockValueMultiplier
 }
 
 func (unit *Unit) TotalRangedHasteMultiplier() float64 {

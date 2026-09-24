@@ -116,8 +116,11 @@ export const statDisplayString = (
 			rootRatingValue += racial.rangedImbueStatOffsets.getStat(rootStat);
 		}
 	} else if (rootStat == Stat.StatBlockValue) {
-		if (rootRatingValue !== null && rootRatingValue > 0) {
-			rootRatingValue *= deltaStats.getPseudoStat(PseudoStat.PseudoStatBlockValueMultiplier) || 1;
+		if (rootRatingValue !== null) {
+			if (rootRatingValue > 0) {
+				rootRatingValue *= deltaStats.getPseudoStat(PseudoStat.PseudoStatBlockValueMultiplier) || 1;
+			}
+			rootRatingValue += Math.max(0, deltaStats.getStat(Stat.StatStrength) * deltaStats.getPseudoStat(PseudoStat.PseudoStatBlockValuePerStrength) - 1);
 		}
 	} else if (rootStat && SCHOOL_DAMAGE_STATS.includes(rootStat)) {
 		// School damage reads as "total (+school)": the rating column carries the school's own

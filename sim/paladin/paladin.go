@@ -162,8 +162,7 @@ func NewPaladin(character *core.Character, talentsStr string, _ *proto.PaladinOp
 	})
 
 	paladin.AddStatDependency(stats.Strength, stats.AttackPower, 2)
-	paladin.AddStatDependency(stats.Strength, stats.BlockValue, 0.05)
-	paladin.AddStat(stats.BlockValue, -1)
+	paladin.PseudoStats.BlockValuePerStrength = 0.05
 	paladin.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
 	paladin.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[character.Class])
 	paladin.AddStatDependency(stats.BonusArmor, stats.Armor, 1)

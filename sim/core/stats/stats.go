@@ -575,7 +575,8 @@ type PseudoStats struct {
 	BonusAttackPower       float64 // Also Hunter's Mark
 
 	// Important when unit is attacker or target
-	BlockValueMultiplier float64
+	BlockValueMultiplier  float64
+	BlockValuePerStrength float64
 
 	// Only used for NPCs, governs variance in enemy auto-attack damage
 	DamageSpread float64

@@ -100,10 +100,15 @@ func TestBlockValueFromStrength(t *testing.T) {
 		{proto.Class_ClassDruid, proto.Race_RaceTauren, 0},
 	} {
 		t.Run(tc.class.String(), func(t *testing.T) {
-			_, sheet := nakedSheet(t, tc.class, tc.race)
-			want := max(0, sheet[stats.Strength]*tc.perStrength-1)
-			if got := sheet[stats.BlockValue]; math.Abs(got-want) > 1e-9 {
-				t.Errorf("block value %v from %v strength, want %v", got, sheet[stats.Strength], want)
+			character, sheet := nakedSheet(t, tc.class, tc.race)
+			if got := character.PseudoStats.BlockValuePerStrength; got != tc.perStrength {
+				t.Errorf("block value per strength %v, want %v", got, tc.perStrength)
+			}
+			if got := sheet[stats.BlockValue]; got != 0 {
+				t.Errorf("block value stat %v, want 0: strength adds to the block reduction only", got)
+			}
+			if got := character.GetPseudoStatsProto()[proto.PseudoStat_PseudoStatBlockValuePerStrength]; got != tc.perStrength {
+				t.Errorf("sheet block value per strength %v, want %v", got, tc.perStrength)
 			}
 		})
 	}

@@ -719,6 +719,7 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatParryPercent:            (TernaryFloat64(character.PseudoStats.CanParry, 0.05, 0) + character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
 		proto.PseudoStat_PseudoStatBlockPercent:            (TernaryFloat64(character.PseudoStats.CanBlock, 0.05, 0) + character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
 		proto.PseudoStat_PseudoStatBlockValueMultiplier:    character.PseudoStats.BlockValueMultiplier,
+		proto.PseudoStat_PseudoStatBlockValuePerStrength:   character.PseudoStats.BlockValuePerStrength,
 		proto.PseudoStat_PseudoStatReducedCritTakenPercent: character.PseudoStats.ReducedCritTakenPercent * 100,
 
 		// Used by UI to incorporate multiplicative Haste buffs into final character stats display.
