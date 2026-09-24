@@ -714,10 +714,10 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatOffHandDps:  character.AutoAttacks.OH().DPS(),
 		proto.PseudoStat_PseudoStatRangedDps:   character.AutoAttacks.Ranged().DPS(),
 
-		// Base values are modified by Enemy attackTables, but we display for LVL 70 enemy as paperdoll default
+		// Avoidance against an attacker of the character's own level, whose attack table adds 5% parry and 5% block.
 		proto.PseudoStat_PseudoStatDodgePercent:            (character.PseudoStats.BaseDodgeChance + character.GetDodgeFromRating()) * 100,
-		proto.PseudoStat_PseudoStatParryPercent:            (character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
-		proto.PseudoStat_PseudoStatBlockPercent:            (character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
+		proto.PseudoStat_PseudoStatParryPercent:            (TernaryFloat64(character.PseudoStats.CanParry, 0.05, 0) + character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
+		proto.PseudoStat_PseudoStatBlockPercent:            (TernaryFloat64(character.PseudoStats.CanBlock, 0.05, 0) + character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
 		proto.PseudoStat_PseudoStatBlockValueMultiplier:    character.PseudoStats.BlockValueMultiplier,
 		proto.PseudoStat_PseudoStatReducedCritTakenPercent: character.PseudoStats.ReducedCritTakenPercent * 100,
 

@@ -67,6 +67,27 @@ func TestWarriorAndPaladinParry(t *testing.T) {
 	}
 }
 
+func TestSheetParryAndBlockAgainstAnAttackerOfTheSameLevel(t *testing.T) {
+	warrior, _ := nakedSheet(t, proto.Class_ClassWarrior, proto.Race_RaceHuman)
+	sheet := warrior.GetPseudoStatsProto()
+	if got := sheet[proto.PseudoStat_PseudoStatParryPercent]; math.Abs(got-5) > 1e-9 {
+		t.Errorf("naked warrior parry %v%%, want 5%%", got)
+	}
+	if got := sheet[proto.PseudoStat_PseudoStatBlockPercent]; got != 0 {
+		t.Errorf("warrior without a shield blocks %v%%, want 0%%", got)
+	}
+
+	warrior.PseudoStats.CanBlock = true
+	if got := warrior.GetPseudoStatsProto()[proto.PseudoStat_PseudoStatBlockPercent]; math.Abs(got-5) > 1e-9 {
+		t.Errorf("naked warrior with a shield blocks %v%%, want 5%%", got)
+	}
+
+	mage, _ := nakedSheet(t, proto.Class_ClassMage, proto.Race_RaceHuman)
+	if got := mage.GetPseudoStatsProto()[proto.PseudoStat_PseudoStatParryPercent]; got != 0 {
+		t.Errorf("mage parry %v%%, want 0%%", got)
+	}
+}
+
 func TestBlockValueFromStrength(t *testing.T) {
 	for _, tc := range []struct {
 		class       proto.Class
