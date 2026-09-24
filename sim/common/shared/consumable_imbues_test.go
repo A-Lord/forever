@@ -43,7 +43,7 @@ func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	shadowOil := core.Consumable{Id: 3824, Name: "Shadow Oil", TemporaryEnchant: &core.Enchant{
 		EffectID:       25,
-		EnchantEffects: []*proto.ItemEffect{{BuffId: 350026, Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}}},
+		EnchantEffects: []*proto.ItemEffect{{BuffId: 350026}},
 	}}
 
 	character := newTestAgent().character
