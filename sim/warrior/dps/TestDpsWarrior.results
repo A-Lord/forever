@@ -55,15 +55,6 @@ character_stats_results: {
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-AegisofPreservation-19345"
- value: {
-  dps: 565.2664
-  tps: 322.67786
-  dtps: 3.17352
-  hps: 26.48572
- }
-}
-dps_results: {
  key: "TestDpsWarrior-AllItems-Annihilator-12798"
  value: {
   dps: 565.2664
@@ -133,6 +124,15 @@ dps_results: {
   tps: 322.11786
   dtps: 3.17352
   hps: 26.73464
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-EarthenSigil-20525"
+ value: {
+  dps: 565.2664
+  tps: 322.67786
+  dtps: 3.17352
+  hps: 26.48572
  }
 }
 dps_results: {
@@ -289,7 +289,7 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-Gri'lek'sCharmofValor-19952"
+ key: "TestDpsWarrior-AllItems-Gri'lek'sCharmofMight-19951"
  value: {
   dps: 565.2664
   tps: 322.67786
@@ -325,15 +325,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-HighborneResearchTablet-260205"
- value: {
-  dps: 679.49596
-  tps: 386.64642
-  dtps: 3.17352
-  hps: 26.48572
- }
-}
-dps_results: {
  key: "TestDpsWarrior-AllItems-InfernalLasso-219345"
  value: {
   dps: 565.2664
@@ -349,6 +340,15 @@ dps_results: {
   tps: 322.67786
   dtps: 3.17352
   hps: 26.48572
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-KissoftheSpider-22954"
+ value: {
+  dps: 605.99536
+  tps: 347.03067
+  dtps: 3.17352
+  hps: 27.22264
  }
 }
 dps_results: {
@@ -515,6 +515,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Uther'sStrength-11302"
+ value: {
+  dps: 565.2664
+  tps: 322.67786
+  dtps: 3.17352
+  hps: 26.48572
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-WarmthofForgiveness-23027"
  value: {
   dps: 565.2664
   tps: 322.67786
