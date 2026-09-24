@@ -409,34 +409,36 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 	}
 
 	if defender.Type == EnemyUnit {
-		defenseDiff := float64(defender.Level-attacker.Level) * 5
+		levelDiff := combatLevelDiff(attacker, defender)
+		defenseDiff := float64(levelDiff) * 5
 
 		if defenseDiff > 10 {
 			table.BaseParryChance = 0.05 + defenseDiff*0.006
 		} else {
 			table.BaseParryChance = 0.05 + defenseDiff*0.001
 		}
-		table.BaseSpellMissChance = UnitLevelFloat64(defender.Level-attacker.Level, 0.04, 0.05, 0.06, 0.17)
+		table.BaseSpellMissChance = UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
 		table.BaseBlockChance = 0.05
-		table.BaseGlanceChance = max(0, 0.1+defenseDiff*0.02)
+		table.BaseGlanceChance = Clamp(0.1+defenseDiff*0.02, 0, 1)
 
 		if defenseDiff > 0 {
 			table.MeleeCritSuppression = defenseDiff * 0.002
 		} else {
 			table.MeleeCritSuppression = defenseDiff * 0.0004
 		}
-		if defender.Level-attacker.Level >= 3 {
+		if levelDiff >= 3 {
 			table.MeleeCritSuppression += 0.018
 		}
 
 		table.setWeapons(nil, nil, nil)
 	} else {
-		levelDelta := 0.002 * float64(defender.Level-attacker.Level)
+		levelDiff := combatLevelDiff(defender, attacker)
+		levelDelta := -0.002 * float64(levelDiff)
 
 		table.BaseSpellMissChance = 0.05
 		table.BaseBlockChance = 0.05 + levelDelta
 		table.BaseParryChance = 0.05 + levelDelta
-		table.BaseCrushChance = UnitLevelFloat64(attacker.Level-defender.Level, 0, 0, 0, 0.15)
+		table.BaseCrushChance = UnitLevelFloat64(levelDiff, 0, 0, 0, 0.15)
 
 		table.MH = AttackTableHand{
 			BaseMissChance:  0.05 + levelDelta,
@@ -451,6 +453,10 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 	return table
 }
 
+func combatLevelDiff(attacker *Unit, defender *Unit) int32 {
+	return min(defender.Level-attacker.Level, 3)
+}
+
 // The parts of an attack table that depend on the weapon skill of the attacking hand.
 type AttackTableHand struct {
 	BaseMissChance      float64
@@ -461,7 +467,7 @@ type AttackTableHand struct {
 }
 
 func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTableHand {
-	skillDiff := float64(defender.Level*5) - (float64(attacker.Level*5) + GetWeaponSkill(attacker, weapon))
+	skillDiff := float64(combatLevelDiff(attacker, defender)*5) - GetWeaponSkill(attacker, weapon)
 
 	hand := AttackTableHand{
 		BaseDodgeChance:     0.05 + skillDiff*0.001,

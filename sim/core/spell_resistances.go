@@ -81,7 +81,7 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, pureDot
 	// Level-based resistance does not apply to binary spells.
 	if !binary && unit.Type == EnemyUnit && unit.Level > attacker.Level {
 		// 2% average mitigation per level difference
-		avgMitigationAdded := 0.02 * float64(unit.Level-attacker.Level)
+		avgMitigationAdded := 0.02 * float64(combatLevelDiff(attacker, unit))
 		// coef is scaled 0 to 1, not 0 to 0.75
 		resistanceCoef += avgMitigationAdded * 1 / 0.75
 	}

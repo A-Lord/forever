@@ -54,7 +54,7 @@ func createDynamicAddsAIPreset() {
 		Config: &proto.Target{
 			Id:        dynamicAddID,
 			Name:      addName,
-			Level:     72,
+			Level:     63,
 			MobType:   proto.MobType_MobTypeMechanical,
 			TankIndex: 1,
 

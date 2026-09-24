@@ -106,7 +106,7 @@ export const aiConfig = ({ encounter, targetIndex, getTarget }: TargetFieldConte
 export const levelConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => ({
 	id: targetId(targetIndex, 'level'),
 	label: i18n.t('settings_tab.encounter.level'),
-	values: [73, 72, 71, 70, 68].map(value => ({ name: String(value), value })),
+	values: [63, 62, 61, 60].map(value => ({ name: String(value), value })),
 	storeSubscribe: onTargets(encounter),
 	getValue: () => getTarget().level,
 	setValue: (_: null, newValue: number) => {
