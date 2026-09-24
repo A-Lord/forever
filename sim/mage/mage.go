@@ -5,7 +5,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -73,40 +72,40 @@ func (mage *Mage) Initialize() {
 	// client's Fire Vulnerability (22959) is A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER,
 	// so it raises the fire damage this mage deals rather than the damage the
 	// target takes, and sim/core has no aura to build it from.
-	mage.registerPassives()
+	//mage.registerPassives()
 	mage.registerSpells()
 }
 
 func (mage *Mage) registerPassives() {
-	mage.registerArcaneCharges()
+	//mage.registerArcaneCharges()
 }
 
 func (mage *Mage) registerSpells() {
-	mage.registerArcaneBlastSpell()
-	mage.registerArcaneExplosionSpell()
-	mage.registerArcaneMissilesSpell()
-	mage.registerArmorSpells()
-	mage.registerBlizzardSpell()
-	mage.registerConeOfColdSpell()
+	// mage.registerArcaneBlastSpell()
+	// mage.registerArcaneExplosionSpell()
+	// mage.registerArcaneMissilesSpell()
+	// mage.registerArmorSpells()
+	// mage.registerBlizzardSpell()
+	// mage.registerConeOfColdSpell()
 	mage.registerFrostboltSpell()
-	mage.registerEvocation()
-	mage.registerFireballSpell()
-	mage.registerFireBlastSpell()
-	mage.registerFrostNovaSpell()
-	mage.registerManaGems()
-	mage.registerScorchSpell()
+	// mage.registerEvocation()
+	// mage.registerFireballSpell()
+	// mage.registerFireBlastSpell()
+	// mage.registerFrostNovaSpell()
+	// mage.registerManaGems()
+	// mage.registerScorchSpell()
 
-	FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
+	//FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
 
 	//TalentSpells
-	mage.registerPresenceOfMindSpell()
-	mage.registerArcanePowerSpell()
+	// mage.registerPresenceOfMindSpell()
+	// mage.registerArcanePowerSpell()
 
-	mage.registerBlastWaveSpell()
-	mage.registerPyroblastSpell()
-	mage.registerCombustionSpell()
+	// mage.registerBlastWaveSpell()
+	// mage.registerPyroblastSpell()
+	// mage.registerCombustionSpell()
 
-	mage.registerColdSnapSpell()
+	// mage.registerColdSnapSpell()
 }
 
 func (mage *Mage) Reset(sim *core.Simulation) {

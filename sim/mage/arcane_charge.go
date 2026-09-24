@@ -1,8 +1,8 @@
 package mage
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+arcaneBlastTriggered := spelldata.ArcaneBlastTriggered.Highest()
+
 func (mage *Mage) registerArcaneCharges() {
-	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
 	// powerCostIncrease := 0.75

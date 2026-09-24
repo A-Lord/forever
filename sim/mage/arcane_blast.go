@@ -1,10 +1,21 @@
 package mage
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var arcaneBlastRank = spellData.ArcaneBlast.Highest()
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneBlastSpell() {
-	panic("To be implemented")
+
+	config := spelldata.SpellConfig(&mage.Unit, arcaneBlastRank, spelldata.Magic(core.ProcMaskSpellDamage))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+
+	}
+
+	mage.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	//
