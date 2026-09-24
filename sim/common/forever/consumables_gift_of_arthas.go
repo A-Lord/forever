@@ -13,7 +13,7 @@ func init() {
 		character := agent.GetCharacter()
 		character.AddStat(stats.ShadowResistance, 10)
 		auras := character.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-			return buffs.GiftOfArthasAura(target, true, 0)
+			return buffs.NewSpellDataGiftOfArthasAura(target, true, 0)
 		})
 		procSpell := character.RegisterSpell(core.SpellConfig{
 			ActionID:    core.ActionID{SpellID: 11374},

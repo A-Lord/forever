@@ -9,7 +9,7 @@ func (warlock *Warlock) registerCurseOfRecklessness() {
 
 	// The TBC implementation, kept for the port:
 	// warlock.CurseOfRecklessnessAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	return buffs.CurseOfRecklessnessAura(target, true, 0)
+	// 	return buffs.NewSpellDataCurseOfRecklessnessAura(target, true, 0)
 	// })
 	// warlock.CurseOfRecklessness = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: curseOfRecklessnessRank.ID},

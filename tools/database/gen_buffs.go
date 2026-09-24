@@ -750,7 +750,7 @@ func buffApply(row ResolvedBuff) (string, string, bool) {
 		if row.Scope == buffmanifest.ScopeDebuff {
 			target = "target"
 		}
-		body = fmt.Sprintf("core.MakePermanent(%sAura(%s, false, %s))", row.Go, target, points)
+		body = fmt.Sprintf("core.MakePermanent(NewSpellData%sAura(%s, false, %s))", row.Go, target, points)
 	}
 	return cond, body, true
 }

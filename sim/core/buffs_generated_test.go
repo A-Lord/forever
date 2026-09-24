@@ -76,7 +76,7 @@ func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	core.ApplyBuffEffects(generatedBuffTestAgent{char},
 		&proto.RaidBuffs{}, &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
 
-	player := buffs.BattleShoutAura(&char.Unit, true, 0)
+	player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
 	if want := (core.ActionID{SpellID: 25289, Tag: 0}); player.ActionID != want {
 		t.Errorf("the player's copy is %v, want %v", player.ActionID, want)
 	}
@@ -149,7 +149,7 @@ func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
 
 			core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
 
-			player := buffs.BattleShoutAura(&char.Unit, true, 0)
+			player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
 			if row.playerBonus != 0 {
 				core.AddGeneratedFlatBonus(player, stats.AttackPower, buffs.BattleShoutValue(0), row.playerBonus)
 			}
@@ -259,7 +259,7 @@ func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testin
 		t.Errorf("the external copy joined the shared category with %d effects, want none", len(shared.Effects()))
 	}
 
-	player := buffs.DevotionAuraAura(&char.Unit, true, 0)
+	player := buffs.NewSpellDataDevotionAuraAura(&char.Unit, true, 0)
 	if len(shared.Effects()) != 1 {
 		t.Errorf("the player's copy put %d effects in the shared category, want one", len(shared.Effects()))
 	}
@@ -703,7 +703,7 @@ func TestGeneratedRetributionAuraHoldsThePaladinSlot(t *testing.T) {
 			len(shared.Effects()))
 	}
 
-	player := buffs.RetributionAuraAura(&char.Unit, true, 0)
+	player := buffs.NewSpellDataRetributionAuraAura(&char.Unit, true, 0)
 	if shared := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.PaladinAuraCategory); len(shared.Effects()) != 1 {
 		t.Errorf("the paladin's own copy put %d effects in the shared category, want one", len(shared.Effects()))
 	}

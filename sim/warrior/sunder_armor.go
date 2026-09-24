@@ -13,7 +13,7 @@ var sunderArmorRank = spellData.SunderArmor.Highest()
 
 func (warrior *Warrior) registerSunderArmor() {
 	warrior.SunderArmorAuras = warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return buffs.SunderArmorAura(target, true, 0)
+		return buffs.NewSpellDataSunderArmorAura(target, true, 0)
 	})
 
 	config := spelldata.SpellConfig(&warrior.Unit, sunderArmorRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))

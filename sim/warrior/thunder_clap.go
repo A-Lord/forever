@@ -22,7 +22,7 @@ func (warrior *Warrior) registerThunderClap() {
 		// on the target is the only one applied. The generated aura holds the category at the
 		// client's amount; the clap sets its bid before it lands, and the effect applies what the
 		// bid is worth.
-		aura := buffs.ThunderClapAura(target, true, 0)
+		aura := buffs.NewSpellDataThunderClapAura(target, true, 0)
 		speed := 1.0
 		bid := aura.ExclusiveEffects[0]
 		bid.OnGain = func(ee *core.ExclusiveEffect, sim *core.Simulation) {

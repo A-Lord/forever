@@ -33,7 +33,7 @@ const BattleShoutT2Bonus = 30.0
 // the player's own shout rather than being up from the start. Its improved state
 // says that warrior shouted with the set on.
 func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
-	aura := BattleShoutAura(&char.Unit, false, 0)
+	aura := NewSpellDataBattleShoutAura(&char.Unit, false, 0)
 	if party.BattleShout == proto.TristateEffect_TristateEffectImproved {
 		core.AddGeneratedFlatBonus(aura, stats.AttackPower, BattleShoutValue(0), BattleShoutT2Bonus)
 	}
@@ -44,7 +44,7 @@ func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
 // mana cooldown is spent first. The aura forces full spirit regen while it is
 // up and the metrics record what the character gains from it.
 func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
-	aura := InnervatesAura(&char.Unit, false, 0)
+	aura := NewSpellDataInnervatesAura(&char.Unit, false, 0)
 	manaMetrics := char.NewManaMetrics(aura.ActionID)
 
 	threshold, expectedMana := 0.0, 0.0
@@ -94,7 +94,7 @@ func innervateManaThreshold(char *core.Character) float64 {
 
 // The priest has nothing to hold Power Infusion for, so it goes out on cooldown.
 func drivePowerInfusions(char *core.Character, individual *proto.IndividualBuffs) {
-	core.NewGeneratedExternalCD(char, PowerInfusionsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
+	core.NewGeneratedExternalCD(char, NewSpellDataPowerInfusionsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
 		NumSources: individual.PowerInfusions,
 		Cooldown:   PowerInfusionsCooldown(),
 		Type:       core.CooldownTypeDPS,
@@ -109,7 +109,7 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 		initialDelay = min(char.Env.BaseDuration/2, time.Second*40)
 	})
 
-	core.NewGeneratedExternalCD(char, ManaTideTotemsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
+	core.NewGeneratedExternalCD(char, NewSpellDataManaTideTotemsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
 		NumSources: party.ManaTideTotems,
 		Cooldown:   ManaTideTotemsCooldown(),
 		Type:       core.CooldownTypeMana,
@@ -128,7 +128,7 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	if !char.TakesWindfuryTotem() {
 		return
 	}
-	procAura := WindfuryTotemAura(&char.Unit, false, 0)
+	procAura := NewSpellDataWindfuryTotemAura(&char.Unit, false, 0)
 	// The attack power is only there for a moment after a proc, so it is not
 	// part of the stats the character sheet is measured with.
 	procAura.BuildPhase = core.CharacterBuildPhaseNone
@@ -212,7 +212,7 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 // because the air slot is holding another totem the rest of the time; a shaman
 // who is not twisting leaves it standing.
 func driveGraceOfAirTotem(char *core.Character, party *proto.PartyBuffs) {
-	aura := GraceOfAirTotemAura(&char.Unit, false, 0)
+	aura := NewSpellDataGraceOfAirTotemAura(&char.Unit, false, 0)
 
 	if !party.TotemTwisting {
 		core.MakePermanent(aura)
@@ -242,45 +242,45 @@ func driveRetributionAura(char *core.Character, party *proto.PartyBuffs) {
 // The blessing does nothing on its own: the paladin's Holy Light and Flash of
 // Light read their bonus off their own rows when the target carries it.
 func driveGreaterBlessingOfLight(char *core.Character, _ *proto.IndividualBuffs) {
-	core.MakePermanent(GreaterBlessingOfLightAura(&char.Unit, false, 0))
+	core.MakePermanent(NewSpellDataGreaterBlessingOfLightAura(&char.Unit, false, 0))
 }
 
 // The staff's aura is worth its amounts once per Atiesh in the party.
 func driveAtieshDruid(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshDruidAura(&char.Unit, false, 0, float64(party.AtieshDruid)))
+	core.MakePermanent(NewSpellDataAtieshDruidAura(&char.Unit, false, 0, float64(party.AtieshDruid)))
 }
 
 func driveAtieshMage(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshMageAura(&char.Unit, false, 0, float64(party.AtieshMage)))
+	core.MakePermanent(NewSpellDataAtieshMageAura(&char.Unit, false, 0, float64(party.AtieshMage)))
 }
 
 func driveAtieshPriest(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshPriestAura(&char.Unit, false, 0, float64(party.AtieshPriest)))
+	core.MakePermanent(NewSpellDataAtieshPriestAura(&char.Unit, false, 0, float64(party.AtieshPriest)))
 }
 
 func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshWarlockAura(&char.Unit, false, 0, float64(party.AtieshWarlock)))
+	core.MakePermanent(NewSpellDataAtieshWarlockAura(&char.Unit, false, 0, float64(party.AtieshWarlock)))
 }
 
 // The judgement the paladin leaves on the target heals whoever strikes it; the
 // client's trigger spell 5373 is a dummy, so how much and how often is the
 // driver's. The raid's copy is the top rank the paladin's own judgement states.
 func driveJudgementOfLight(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	AttachJudgementOfLightHeal(core.MakePermanent(JudgementOfLightAura(target, false, 0)), JudgementOfLightMaxRank)
+	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), JudgementOfLightMaxRank)
 }
 
 // Judgement of Wisdom returns mana to whoever strikes the target, on the same
 // terms: 1826 is a dummy, so the amount and the chance stay with the paladin's
 // top rank.
 func driveJudgementOfWisdom(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	AttachJudgementOfWisdomMana(core.MakePermanent(JudgementOfWisdomAura(target, false, 0)), JudgementOfWisdomMaxRank)
+	AttachJudgementOfWisdomMana(core.MakePermanent(NewSpellDataJudgementOfWisdomAura(target, false, 0)), JudgementOfWisdomMaxRank)
 }
 
 // A stack of Sunder Armor is worth nothing until it is on the target, so the
 // raid's copy is ramped to five over the first five global cooldowns, which is
 // how long a warrior takes to stack it.
 func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	aura := core.MakePermanent(SunderArmorAura(target, false, 0))
+	aura := core.MakePermanent(NewSpellDataSunderArmorAura(target, false, 0))
 
 	core.ScheduledAura(aura, core.PeriodicActionOptions{
 		Period:          core.GCDDefault,
