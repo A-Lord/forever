@@ -44,7 +44,7 @@ func TestProtection(t *testing.T) {
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:            proto.Class_ClassPaladin,
-			Race:             proto.Race_RaceBloodElf,
+			Race:             proto.Race_RaceUndead,
 			OtherRaces:       []proto.Race{proto.Race_RaceHuman},
 			GearSet:          core.GetGearSet("../../../ui/specs/paladin/protection/gear_sets", "p2"),
 			Talents:          DefaultProtectionTalents,
@@ -93,11 +93,5 @@ var DefaultOptions = &proto.Player_ProtectionPaladin{
 var DefaultProtectionTalents = "-0530513050000142521051-052050003003"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	FlaskId:    22861, // Flask of Blinding Light
-	FoodId:     27657, // Blackened Basilisk
-	PotId:      22832, // Super Mana Potion
 	ConjuredId: 12662, // Dark Rune
-	ScrollStr:  true,
-	ScrollAgi:  true,
-	ScrollArm:  true,
 }

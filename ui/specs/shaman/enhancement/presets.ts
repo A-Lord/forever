@@ -1,15 +1,15 @@
 import * as PresetUtils from '@app/preset_utils';
-import { Class, ConsumesSpec, Debuffs, Drums, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, Profession, Race, TristateEffect } from '@generated/proto/common';
 import { EnhancementShaman_Options as EnhancementShamanOptions, ShamanImbue, ShamanSyncType } from '@generated/proto/shaman';
-import { defaultExposeWeaknessSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
 import DefaultApl from './apls/default.apl.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfMight: true,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfMight: true,
 });
 
 export const DefaultOptions = EnhancementShamanOptions.create({
@@ -29,44 +29,28 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: 22838, // Haste Potion
-	flaskId: 22854, // Flask of Relentless Assault
-	foodId: 27658, // Roasted Clefthoof
-	drumsId: Drums.LesserDrumsOfBattle,
-	conjuredId: 22788,
-	explosiveId: 30217,
-	superSapper: true,
 	goblinSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	ferociousInspiration: 2,
-	braidedEterniumChain: true,
-	leaderOfThePack: TristateEffect.TristateEffectRegular,
-	battleShout: TristateEffect.TristateEffectImproved,
+	leaderOfThePack: true,
+	battleShout: TristateEffect.TristateEffectRegular,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(Class.ClassShaman),
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
+	prayerOfFortitude: true,
+	giftOfTheWild: true,
 	arcaneBrilliance: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	...defaultExposeWeaknessSettings(),
 	judgementOfWisdom: true,
-	screech: true,
-	misery: true,
-	bloodFrenzy: true,
 	giftOfArthas: true,
 	mangle: true,
-	exposeArmor: TristateEffect.TristateEffectImproved,
-	faerieFire: TristateEffect.TristateEffectImproved,
+	exposeArmor: true,
+	faerieFire: true,
 	sunderArmor: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
+	curseOfElements: true,
 	curseOfRecklessness: true,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	huntersMark: true,
 });

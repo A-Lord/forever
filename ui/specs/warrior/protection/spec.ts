@@ -1,8 +1,8 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation } from '@generated/proto/apl';
-import { Debuffs, EquipmentSpec, IndividualBuffs, ItemSlot, PartyBuffs, PseudoStat, RaidBuffs, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
-import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -33,7 +33,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		Stat.StatMeleeCritRating,
 		Stat.StatArmorPenetration,
 		Stat.StatExpertiseRating,
-		Stat.StatResilienceRating,
 		Stat.StatDefenseRating,
 		Stat.StatBlockRating,
 		Stat.StatBlockValue,
@@ -58,8 +57,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			Stat.StatAttackPower,
 			Stat.StatBlockValue,
 			Stat.StatDefenseRating,
-			Stat.StatExpertiseRating,
-			Stat.StatResilienceRating,
 			Stat.StatArcaneResistance,
 			Stat.StatFireResistance,
 			Stat.StatFrostResistance,
@@ -73,6 +70,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			PseudoStat.PseudoStatBlockPercent,
 			PseudoStat.PseudoStatDodgePercent,
 			PseudoStat.PseudoStatParryPercent,
+			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
 
@@ -83,7 +81,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		epWeights: new Stats(),
 		statCaps: (() => {
 			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 9);
-			const expCap = new Stats().withStat(Stat.StatExpertiseRating, 6.5 * 4 * Mechanics.EXPERTISE_PER_QUARTER_PERCENT_REDUCTION);
+			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			const critImmunityCap = new Stats().withPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent, 5.6);
 
 			return hitCap.add(expCap).add(critImmunityCap);
@@ -98,16 +96,15 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		// Default raid/party buffs settings.
 		raidBuffs: RaidBuffs.create({
 			...WarriorPresets.DefaultRaidBuffs,
-			thorns: TristateEffect.TristateEffectRegular,
-			shadowProtection: true,
+			thorns: true,
+			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
-			braidedEterniumChain: true,
-			graceOfAirTotem: TristateEffect.TristateEffectImproved,
-			strengthOfEarthTotem: TristateEffect.TristateEffectImproved,
-			windfuryTotem: TristateEffect.TristateEffectImproved,
+			graceOfAirTotem: true,
+			strengthOfEarthTotem: true,
+			windfuryTotem: true,
 			totemTwisting: true,
-			battleShout: TristateEffect.TristateEffectImproved,
+			battleShout: TristateEffect.TristateEffectRegular,
 		}),
 		individualBuffs: IndividualBuffs.create({
 			...WarriorPresets.DefaultIndividualBuffs,
@@ -116,8 +113,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			...WarriorPresets.DefaultDebuffs,
 			giftOfArthas: false,
 			insectSwarm: true,
-			shadowEmbrace: true,
-			screech: true,
 		}),
 	},
 

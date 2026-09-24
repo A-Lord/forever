@@ -1,10 +1,9 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
-import { APLListItem, APLRotation, APLRotation_Type, APLValueVariable } from '@generated/proto/apl';
+import { APLRotation, APLRotation_Type } from '@generated/proto/apl';
 import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
-import * as AplUtils from '@sim/proto/apl_utils';
 import { SpecRotation } from '@sim/proto/spec_types';
 import { DEFAULT_CASTER_GEM_STATS, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
@@ -135,7 +134,7 @@ export default defineSpec<Spec.SpecMage>({
 	presets: {
 		epWeights: [],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.ROTATION_PRESET_ARCANE, Presets.APL_ARCANE_SIMPLE, Presets.ROTATION_PRESET_ARCANEBRAID],
+		rotations: [Presets.DEFAULT_APL, Presets.APL_ARCANE_SIMPLE],
 		// Preset talents that the user can quickly select.
 		talents: [],
 		// Preset gear configurations that the user can quickly select.
@@ -147,48 +146,51 @@ export default defineSpec<Spec.SpecMage>({
 		// if (numTargets >= 2) {
 		// 	return Presets.ROTATION_PRESET_CLEAVE.rotation.rotation!;
 		// } else {
-		return Presets.ROTATION_PRESET_ARCANE.rotation.rotation!;
+		return Presets.DEFAULT_APL.rotation.rotation!;
 		// }
 	},
 
-	simpleRotation: (_player: Player<Spec.SpecMage>, simple: SpecRotation<Spec.SpecMage>, cooldowns: Cooldowns): APLRotation => {
-		const actions = AplUtils.simpleCooldownActions(cooldowns);
-		const rotation = APLRotation.clone(Presets.ROTATION_PRESET_ARCANE.rotation.rotation!);
-
-		const { conserveStart = 20, conserveEnd = 30, delayMajorCDs = 10 } = simple;
-
-		const conserveStartString = APLValueVariable.fromJson({
-			name: 'Conserve Start',
-			value: { const: { val: String(conserveStart) + '%' } },
-		});
-
-		const conserveEndString = APLValueVariable.fromJson({
-			name: 'Conserve End',
-			value: { const: { val: String(conserveEnd) + '%' } },
-		});
-
-		const delayMajorCDsString = APLValueVariable.fromJson({
-			name: 'Delay Major CDs',
-			value: { const: { val: String(delayMajorCDs) + 's' } },
-		});
-
-		rotation.valueVariables[0] = conserveStartString;
-		rotation.valueVariables[1] = conserveEndString;
-		rotation.valueVariables[2] = delayMajorCDsString;
-
-		return APLRotation.create({
-			prepullActions: rotation.prepullActions,
-			priorityList: [
-				...actions.map(action =>
-					APLListItem.create({
-						action: action,
-					}),
-				),
-				...rotation.priorityList,
-			],
-			groups: rotation.groups,
-			valueVariables: rotation.valueVariables,
-		});
+	// TODO: To be implemented. The default APL (apls/default.apl.json) is an empty stub, so
+	// there are no value variables or actions left to clone and adjust.
+	simpleRotation: (_player: Player<Spec.SpecMage>, _simple: SpecRotation<Spec.SpecMage>, _cooldowns: Cooldowns): APLRotation => {
+		// const actions = AplUtils.simpleCooldownActions(cooldowns);
+		// const rotation = APLRotation.clone(Presets.ROTATION_PRESET_ARCANE.rotation.rotation!);
+		//
+		// const { conserveStart = 20, conserveEnd = 30, delayMajorCDs = 10 } = simple;
+		//
+		// const conserveStartString = APLValueVariable.fromJson({
+		// 	name: 'Conserve Start',
+		// 	value: { const: { val: String(conserveStart) + '%' } },
+		// });
+		//
+		// const conserveEndString = APLValueVariable.fromJson({
+		// 	name: 'Conserve End',
+		// 	value: { const: { val: String(conserveEnd) + '%' } },
+		// });
+		//
+		// const delayMajorCDsString = APLValueVariable.fromJson({
+		// 	name: 'Delay Major CDs',
+		// 	value: { const: { val: String(delayMajorCDs) + 's' } },
+		// });
+		//
+		// rotation.valueVariables[0] = conserveStartString;
+		// rotation.valueVariables[1] = conserveEndString;
+		// rotation.valueVariables[2] = delayMajorCDsString;
+		//
+		// return APLRotation.create({
+		// 	prepullActions: rotation.prepullActions,
+		// 	priorityList: [
+		// 		...actions.map(action =>
+		// 			APLListItem.create({
+		// 				action: action,
+		// 			}),
+		// 		),
+		// 		...rotation.priorityList,
+		// 	],
+		// 	groups: rotation.groups,
+		// 	valueVariables: rotation.valueVariables,
+		// });
+		return APLRotation.clone(Presets.DEFAULT_APL.rotation.rotation!);
 	},
 
 	reforge: {},

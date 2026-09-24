@@ -11,9 +11,9 @@ func (druid *Druid) registerFaerieFireSpell() {
 
 	// The TBC implementation, kept for the port:
 	// auras := druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	// TODO: Forever drops Improved Faerie Fire; untalented (0 points) until we know
-	// 	// whether the effect moved onto another talent.
-	// 	return core.FaerieFireAura(target, 0)
+	// 	// The druid's own copy of the aura; the client has no Improved Faerie
+	// 	// Fire node, so there are no talent points to pass.
+	// 	return buffs.FaerieFireAura(target, true, 0)
 	// })
 	//
 	// druid.FaerieFire = druid.RegisterSpell(core.SpellConfig{
@@ -59,9 +59,9 @@ func (druid *Druid) registerFaerieFireFeralSpell() {
 
 	// The TBC implementation, kept for the port:
 	// druid.FaerieFireAuras = druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	// TODO: Forever drops Improved Faerie Fire; untalented (0 points) until we know
-	// 	// whether the effect moved onto another talent.
-	// 	return core.FaerieFireAura(target, 0)
+	// 	// The druid's own copy of the aura; the client has no Improved Faerie
+	// 	// Fire node, so there are no talent points to pass.
+	// 	return buffs.FaerieFireAura(target, true, 0)
 	// })
 	//
 	// druid.FaerieFireFeral = druid.RegisterSpell(core.SpellConfig{

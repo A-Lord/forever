@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-func auraEffect(index uint8, aura dbcenums.EffectAuraType, misc int32, points float64, target dbcenums.ImplicitTarget) Effect {
+func itemAuraEffect(index uint8, aura dbcenums.EffectAuraType, misc int32, points float64, target dbcenums.ImplicitTarget) Effect {
 	return Effect{Index: index, Type: dbcenums.E_APPLY_AURA, Aura: aura, Misc: misc, BasePoints: points,
 		Target: [2]dbcenums.ImplicitTarget{target}}
 }
@@ -16,17 +16,17 @@ func auraEffect(index uint8, aura dbcenums.EffectAuraType, misc int32, points fl
 func itemAuraRows() []Spell {
 	return append(parseRows(),
 		Spell{ID: 7000, Name: "Wearer Aura", DurationMs: 20000, Effects: []Effect{
-			auraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscMagicSchool, 20, dbcenums.TARGET_UNIT_CASTER),
-			auraEffect(1, dbcenums.A_MOD_HEALING_DONE_PERCENT, miscMagicSchool, 20, dbcenums.TARGET_UNIT_CASTER),
-			auraEffect(2, dbcenums.A_MOD_POWER_COST_SCHOOL_PCT, miscMagicSchool, 20, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscMagicSchool, 20, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(1, dbcenums.A_MOD_HEALING_DONE_PERCENT, miscMagicSchool, 20, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(2, dbcenums.A_MOD_POWER_COST_SCHOOL_PCT, miscMagicSchool, 20, dbcenums.TARGET_UNIT_CASTER),
 		}},
 		Spell{ID: 7100, Name: "Mixed Aura", DurationMs: 5000, Effects: []Effect{
-			auraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, miscMagicSchool, 15, dbcenums.TARGET_UNIT_TARGET_ENEMY),
-			auraEffect(1, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscAllSchools, 3, dbcenums.TARGET_UNIT_PET),
-			auraEffect(2, dbcenums.A_MOD_DAMAGE_DONE, 1, 10, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, miscMagicSchool, 15, dbcenums.TARGET_UNIT_TARGET_ENEMY),
+			itemAuraEffect(1, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscAllSchools, 3, dbcenums.TARGET_UNIT_PET),
+			itemAuraEffect(2, dbcenums.A_MOD_DAMAGE_DONE, 1, 10, dbcenums.TARGET_UNIT_CASTER),
 		}},
 		Spell{ID: 7200, Name: "Pet Armor", DurationMs: 4000, Effects: []Effect{
-			auraEffect(0, dbcenums.A_MOD_BASE_RESISTANCE_PCT, miscArmor, 10, dbcenums.TARGET_UNIT_PET),
+			itemAuraEffect(0, dbcenums.A_MOD_BASE_RESISTANCE_PCT, miscArmor, 10, dbcenums.TARGET_UNIT_PET),
 		}},
 		Spell{ID: 7300, Name: "Keeps Pet Armor Up", Effects: []Effect{
 			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_TRIGGER_SPELL, PeriodMs: 3000, TriggerID: 7200},
@@ -35,15 +35,15 @@ func itemAuraRows() []Spell {
 			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_TRIGGER_SPELL, PeriodMs: 5000, TriggerID: 7200},
 		}},
 		Spell{ID: 7500, Name: "Aura And Damage", DurationMs: 10000, Effects: []Effect{
-			auraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscAllSchools, 5, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscAllSchools, 5, dbcenums.TARGET_UNIT_CASTER),
 			{Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 100, Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_TARGET_ENEMY}},
-			auraEffect(2, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscAllSchools, 5, dbcenums.TARGET_UNIT_NEARBY_ALLY),
+			itemAuraEffect(2, dbcenums.A_MOD_DAMAGE_PERCENT_DONE, miscAllSchools, 5, dbcenums.TARGET_UNIT_NEARBY_ALLY),
 		}},
 		Spell{ID: 7600, Name: "Forest Aura", DurationMs: -1, RequiredAreas: 9161, Effects: []Effect{
-			auraEffect(0, dbcenums.A_MOD_DAMAGE_TAKEN, miscMagicSchool, -10, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(0, dbcenums.A_MOD_DAMAGE_TAKEN, miscMagicSchool, -10, dbcenums.TARGET_UNIT_CASTER),
 		}},
 		Spell{ID: 7700, Name: "Arena Aura", DurationMs: -1, RequiredAreas: 9337, Effects: []Effect{
-			auraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, miscAllSchools, -6, dbcenums.TARGET_UNIT_CASTER),
+			itemAuraEffect(0, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, miscAllSchools, -6, dbcenums.TARGET_UNIT_CASTER),
 		}},
 	)
 }

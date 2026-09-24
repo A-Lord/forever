@@ -59,16 +59,9 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 	druid.SetCurrentPowerBar(core.ManaBar)
 }
 
-func (druid *Druid) weaponImbueFlatDamage() float64 {
-	if druid.Consumables.MhImbueId == 34340 { // Adamantite Weightstone
-		return 12
-	}
-	return 0
-}
-
 func (druid *Druid) GetCatWeapon() core.Weapon {
 	unscaledWeapon := druid.WeaponFromMainHand()
-	imbueBonus := druid.weaponImbueFlatDamage()
+	imbueBonus := druid.MHImbueFlatWeaponDamage()
 	return core.Weapon{
 		BaseDamageMin:        (unscaledWeapon.BaseDamageMin + imbueBonus) / unscaledWeapon.SwingSpeed,
 		BaseDamageMax:        (unscaledWeapon.BaseDamageMax + imbueBonus) / unscaledWeapon.SwingSpeed,
@@ -81,7 +74,7 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 
 func (druid *Druid) GetBearWeapon() core.Weapon {
 	unscaledWeapon := druid.WeaponFromMainHand()
-	imbueBonus := druid.weaponImbueFlatDamage()
+	imbueBonus := druid.MHImbueFlatWeaponDamage()
 	return core.Weapon{
 		BaseDamageMin:        (unscaledWeapon.BaseDamageMin + imbueBonus) / unscaledWeapon.SwingSpeed * 2.5,
 		BaseDamageMax:        (unscaledWeapon.BaseDamageMax + imbueBonus) / unscaledWeapon.SwingSpeed * 2.5,

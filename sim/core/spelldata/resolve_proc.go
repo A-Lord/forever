@@ -74,14 +74,15 @@ func ChanceFrom(e *Effect) ProcOpt {
 
 // A weapon proc's listener, which no row states: the game casts a "Chance on hit" effect and a
 // combat enchant off every eligible weapon hit, so the trigger hears them all and the weapon it
-// sits on decides which ones count. The outcome stays what the row's tooltip hint read, and the
+// sits on decides which ones count. A hit that lands is enough, so a special that deals no damage,
+// such as Sunder Armor, rolls it too. The outcome stays what the row's tooltip hint read, and the
 // aura-side proc-ness attribute goes: a weapon proc ignores proc-ness by its own rule. A rate option
 // that reads the mask has to come after this one.
 func WeaponProc() ProcOpt {
 	return func(_ *core.Character, trigger *core.ProcTrigger) {
 		trigger.Callback = core.CallbackOnSpellHitDealt
 		trigger.ProcMask = core.ProcMaskUnknown
-		trigger.RequireDamageDealt = true
+		trigger.RequireDamageDealt = false
 		trigger.CanProcFromProcs = false
 		trigger.SpellFlagsExclude &^= core.SpellFlagSuppressWeaponProcs
 		trigger.IsWeaponProc = true

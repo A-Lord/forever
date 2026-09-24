@@ -2,18 +2,18 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 var demoralizingShoutRank = spellData.DemoralizingShout.Highest()
 
-// TODO: The core Demoralizing Shout aura still takes Booming Voice and Improved Demoralizing
-// Shout points. In the client Booming Voice (12321) widens the radius only, the improved talent
-// does not exist, and the shout states -205 attack power for 45 seconds (11556). Pending the
-// shared shout aura rework, both are passed as 0.
 func (warrior *Warrior) registerDemoralizingShout() {
 	warrior.DemoralizingShoutAuras = warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return core.DemoralizingShoutAura(target, 0, 0)
+		// Nothing in the warrior tree prices this shout: Forever has no Improved
+		// Demoralizing Shout, and Booming Voice widens the radius only, so the
+		// aura is the client's attack power reduction for 45 seconds.
+		return buffs.DemoralizingShoutAura(target, true, 0)
 	})
 
 	config := spelldata.SpellConfig(&warrior.Unit, demoralizingShoutRank, spelldata.Flags(core.SpellFlagAPL))

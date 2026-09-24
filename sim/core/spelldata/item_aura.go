@@ -38,7 +38,7 @@ func (e *Effect) AuraTarget() AuraTarget {
 func EffectsOn(s *Spell, target AuraTarget) []int32 {
 	var positions []int32
 	for i := range s.Effects {
-		if appliesAura(s.Effects[i].Type) && s.Effects[i].AuraTarget() == target {
+		if AppliesAura(s.Effects[i].Type) && s.Effects[i].AuraTarget() == target {
 			positions = append(positions, int32(i+1))
 		}
 	}
@@ -86,7 +86,7 @@ func ItemAuraUnsupported(s *Spell, equipped bool) []string {
 	for i := range s.Effects {
 		e := &s.Effects[i]
 		switch {
-		case !appliesAura(e.Type):
+		case !AppliesAura(e.Type):
 			unsupported = append(unsupported, fmt.Sprintf("effect %d is %v", i+1, e.Type))
 		case e.AuraTarget() == 0:
 			unsupported = append(unsupported, fmt.Sprintf("effect %d lands on implicit target %d", i+1, e.Target[0]))

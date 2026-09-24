@@ -5,6 +5,7 @@ option go_package = "./proto";
 
 import "api.proto";
 import "apl.proto";
+import "buffs.proto";
 import "common.proto";
 import "db.proto";
 import "spell.proto";

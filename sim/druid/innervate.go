@@ -1,12 +1,12 @@
 package druid
 
-// TODO: To be implemented.
-// Returns the time to wait before the next action, or 0 if innervate is on CD
-// or disabled.
+// TODO: To be implemented. The spirit regen the raid config's innervate applies
+// lives in the driver next to the generated aura and has no exported entry
+// point, so the druid's own cast needs one before this body comes back.
 func (druid *Druid) registerInnervateCD() {
 	panic("To be implemented")
 
-	// The TBC implementation, kept for the port:
+	// The body the port needs:
 	// innervateTarget := druid.GetUnit(druid.SelfBuffs.InnervateTarget)
 	// if innervateTarget == nil {
 	// 	innervateTarget = &druid.Unit
@@ -16,7 +16,7 @@ func (druid *Druid) registerInnervateCD() {
 	// actionID := core.ActionID{SpellID: 29166, Tag: druid.Index}
 	// var innervateSpell *DruidSpell
 	//
-	// innervateCD := core.InnervateCD
+	// innervateCD := buffs.InnervatesCooldown()
 	//
 	// amount := 0.05
 	// if innervateTarget == &druid.Unit {
@@ -25,7 +25,7 @@ func (druid *Druid) registerInnervateCD() {
 	// 	amount = 0.2
 	// }
 	//
-	// var innervateAura = core.InnervateAura(innervateTargetChar, amount, actionID.Tag)
+	// var innervateAura = buffs.InnervatesAura(innervateTarget, true, 0)
 	//
 	// innervateSpell = druid.RegisterSpell(core.SpellConfig{
 	// 	ActionID:        actionID,
@@ -42,7 +42,7 @@ func (druid *Druid) registerInnervateCD() {
 	// 	},
 	// 	ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
 	// 		// If target already has another innervate, don't cast.
-	// 		return !innervateTarget.HasActiveAuraWithTag(core.InnervateAuraTag)
+	// 		return !innervateTarget.HasActiveAuraWithTag(buffs.InnervatesCategory)
 	// 	},
 	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 	// 		innervateAura.Activate(sim)

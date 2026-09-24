@@ -1,25 +1,13 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation } from '@generated/proto/apl';
-import {
-	Debuffs,
-	Drums,
-	EquipmentSpec,
-	IndividualBuffs,
-	ItemSlot,
-	PartyBuffs,
-	PseudoStat,
-	RaidBuffs,
-	Spec,
-	Stat,
-	TristateEffect,
-} from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
-import { defaultExposeWeaknessSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 import { defineSpec } from '@sim/spec_config';
 
 import * as Presets from './presets';
@@ -60,14 +48,18 @@ export default defineSpec<Spec.SpecRogue>({
 			Stat.StatStrength,
 			Stat.StatAttackPower,
 			Stat.StatArmorPenetration,
-			Stat.StatExpertiseRating,
 			Stat.StatArcaneResistance,
 			Stat.StatFireResistance,
 			Stat.StatFrostResistance,
 			Stat.StatNatureResistance,
 			Stat.StatShadowResistance,
 		],
-		[PseudoStat.PseudoStatMeleeHitPercent, PseudoStat.PseudoStatMeleeCritPercent, PseudoStat.PseudoStatMeleeHastePercent],
+		[
+			PseudoStat.PseudoStatMeleeHitPercent,
+			PseudoStat.PseudoStatMeleeCritPercent,
+			PseudoStat.PseudoStatMeleeHastePercent,
+			PseudoStat.PseudoStatExpertisePercent,
+		],
 	),
 
 	defaults: {
@@ -76,7 +68,7 @@ export default defineSpec<Spec.SpecRogue>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			const expCap = new Stats().withStat(Stat.StatExpertiseRating, 6.5 * 4 * Mechanics.EXPERTISE_PER_QUARTER_PERCENT_REDUCTION);
+			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			return expCap;
 		})(),
 		softCapBreakpoints: (() => {
@@ -97,32 +89,25 @@ export default defineSpec<Spec.SpecRogue>({
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
 		raidBuffs: RaidBuffs.create({
-			...defaultRaidBuffMajorDamageCooldowns(),
-			giftOfTheWild: TristateEffect.TristateEffectImproved,
+			giftOfTheWild: true,
 		}),
 		partyBuffs: PartyBuffs.create({
-			battleShout: TristateEffect.TristateEffectImproved,
-			ferociousInspiration: 1,
-			strengthOfEarthTotem: TristateEffect.TristateEffectImproved,
-			graceOfAirTotem: TristateEffect.TristateEffectImproved,
-			windfuryTotem: TristateEffect.TristateEffectImproved,
-			leaderOfThePack: TristateEffect.TristateEffectRegular,
+			battleShout: TristateEffect.TristateEffectRegular,
+			strengthOfEarthTotem: true,
+			graceOfAirTotem: true,
+			windfuryTotem: true,
+			leaderOfThePack: true,
 			totemTwisting: true,
-			drums: Drums.LesserDrumsOfBattle,
 		}),
 		individualBuffs: IndividualBuffs.create({
-			blessingOfKings: true,
-			blessingOfMight: true,
-			unleashedRage: true,
+			greaterBlessingOfKings: true,
+			greaterBlessingOfMight: true,
 		}),
 		debuffs: Debuffs.create({
-			...defaultExposeWeaknessSettings(),
-			bloodFrenzy: true,
-			huntersMark: TristateEffect.TristateEffectImproved,
+			huntersMark: true,
 			mangle: true,
-			misery: true,
 			curseOfRecklessness: true,
-			faerieFire: TristateEffect.TristateEffectImproved,
+			faerieFire: true,
 			giftOfArthas: true,
 			sunderArmor: true,
 		}),

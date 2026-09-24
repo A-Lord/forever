@@ -24,6 +24,8 @@ import (
 //   - the spell granting the enchant of each enchant equip spell in the store, with that spell's
 //     description: the equip spell ships none of its own.
 //   - the chance the enchantments state for each enchant combat spell in the store.
+//   - every SpellShapeshiftForm row, whole, since renderFormsFile reads it on its own rather than
+//     through the store's ids.
 //
 // Derived, and captured all the same because re-deriving it needs tables the store does not otherwise
 // read: the root ids. They come from the item, enchant and set-bonus tables, from the ladder and tree
@@ -58,6 +60,10 @@ type storeInputs struct {
 	// client's EffectIndex and rank.
 	TraitNodes  []traitNode
 	TraitPoints map[int32]map[int32]map[int32]float64
+
+	// Every SpellShapeshiftForm row, whole: renderFormsFile reads it directly rather than through the
+	// store's own ids, since a form names no spell for the closure to reach it by.
+	Forms []formRow
 }
 
 // The tables the generator reads, from the captured rows.

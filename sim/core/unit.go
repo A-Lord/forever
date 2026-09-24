@@ -647,7 +647,7 @@ func (unit *Unit) updateMeleeAndRangedHaste() {
 	}
 }
 
-// Helper for when true haste effects are multiplied for i.E. Bloodlust
+// Helper for when true haste effects are multiplied.
 // Seems to also always impact the regen rate
 func (unit *Unit) MultiplyAttackSpeed(sim *Simulation, amount float64) {
 	unit.PseudoStats.AttackSpeedMultiplier *= amount
@@ -696,6 +696,7 @@ var RatingConversions = []RatingConversion{
 	{stats.SpellHitRating, stats.SpellHitPercent, SpellHitRatingPerHitPercent, 0},
 	{stats.MeleeCritRating, stats.PhysicalCritPercent, PhysicalCritRatingPerCritPercent, 0},
 	{stats.SpellCritRating, stats.SpellCritPercent, SpellCritRatingPerCritPercent, 0},
+	{stats.ExpertiseRating, stats.ExpertisePercent, ExpertiseRatingPerExpertisePercent, 0},
 	{stats.DodgeRating, stats.DodgePercent, DodgeRatingPerDodgePercent, 0},
 	{stats.ParryRating, stats.ParryPercent, ParryRatingPerParryPercent, 0},
 	{stats.BlockRating, stats.BlockPercent, BlockRatingPerBlockPercent, 0},
@@ -703,7 +704,6 @@ var RatingConversions = []RatingConversion{
 	{stats.DefenseRating, stats.DodgePercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.ParryPercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.BlockPercent, DefenseRatingPerAvoidancePercent, 0},
-	{stats.ResilienceRating, stats.ReducedCritTakenPercent, ResilienceRatingPerCritReductionChance, 0},
 }
 
 func AddRatingConversions(sdm *stats.StatDependencyManager) {
@@ -958,10 +958,6 @@ func (unit *Unit) GetTotalBlockChanceAsDefender(atkTable *AttackTable) float64 {
 		atkTable.BaseBlockChance +
 		unit.GetBlockFromRating()
 	return math.Max(chance, 0.0)
-}
-
-func (unit *Unit) GetResilienceReduction() float64 {
-	return unit.GetStat(stats.ResilienceRating) / ResilienceRatingPerCritReductionChance / 100
 }
 
 func (unit *Unit) updateReducedCritTakenPercent() {

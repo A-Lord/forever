@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
-import { ConsumesSpec, Debuffs, Drums, IndividualBuffs, PartyBuffs, Profession, RaidBuffs, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, Profession, TristateEffect } from '@generated/proto/common';
 import { DpsPriest_Options as Options } from '@generated/proto/priest';
-import { defaultImprovedShadowBoltSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
 import DefaultApl from './apls/default.apl.json';
 
@@ -14,45 +14,31 @@ export const DefaultOptions = Options.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22866, // Flask of Pure Death
-	foodId: 27657, // Blackened Basilisk
 	conjuredId: 12662, // Demonic Rune
 	mhImbueId: 25122, // Brilliant Wizard Oil
-	potId: 22839, // Destruction Potion
-	explosiveId: 30217,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(),
 	arcaneBrilliance: true,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	divineSpirit: TristateEffect.TristateEffectImproved,
+	giftOfTheWild: true,
+	prayerOfFortitude: true,
+	prayerOfSpirit: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	wrathOfAirTotem: TristateEffect.TristateEffectImproved,
-	eyeOfTheNight: true,
-	chainOfTheTwilightOwl: true,
-	drums: Drums.LesserDrumsOfBattle,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfWisdom: true,
-	shadowPriestDps: 0,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
 	judgementOfWisdom: true,
-	misery: false,
-	shadowWeaving: false,
-	faerieFire: TristateEffect.TristateEffectImproved,
-	shadowEmbrace: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
-	exposeArmor: TristateEffect.TristateEffectImproved,
-	...defaultImprovedShadowBoltSettings(),
+	faerieFire: true,
+	curseOfElements: true,
+	exposeArmor: true,
 });
 
 export const OtherDefaults = {

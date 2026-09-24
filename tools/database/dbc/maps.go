@@ -72,8 +72,6 @@ func MapBonusStatIndexToStat(index int) (proto.Stat, bool) {
 		return proto.Stat_StatParryRating, true
 	case ITEM_MOD_BLOCK_RATING:
 		return proto.Stat_StatBlockRating, true
-	case ITEM_MOD_RESILIENCE_RATING:
-		return proto.Stat_StatResilienceRating, true
 
 	// Secondary ratings
 	case ITEM_MOD_HIT_MELEE_RATING, ITEM_MOD_HIT_RANGED_RATING, ITEM_MOD_HIT_RATING:
@@ -441,7 +439,7 @@ var RatingModToStat = map[RatingModType]proto.Stat{
 	RATING_MOD_MULTISTRIKE:  -1,
 	RATING_MOD_READINESS:    -1,
 	RATING_MOD_SPEED:        -1,
-	RATING_MOD_RESILIENCE:   proto.Stat_StatResilienceRating,
+	RATING_MOD_RESILIENCE:   -1,
 	RATING_MOD_LEECH:        -1,
 	RATING_MOD_HASTE_MELEE:  proto.Stat_StatMeleeHasteRating,
 	RATING_MOD_HASTE_RANGED: proto.Stat_StatMeleeHasteRating,

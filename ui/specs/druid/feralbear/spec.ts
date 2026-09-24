@@ -1,26 +1,13 @@
+import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import {
-	Cooldowns,
-	Debuffs,
-	Drums,
-	EquipmentSpec,
-	IndividualBuffs,
-	ItemSlot,
-	PartyBuffs,
-	PseudoStat,
-	RaidBuffs,
-	Spec,
-	Stat,
-	TristateEffect,
-} from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { FeralBearDruid_Rotation as DruidRotation } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
-import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
-import { defaultExposeWeaknessSettings } from '@sim/proto/utils';
 import { defineSpec } from '@sim/spec_config';
 
 import * as FeralBearInputs from './inputs';
@@ -52,7 +39,6 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		Stat.StatMeleeCritRating,
 		Stat.StatMeleeHasteRating,
 		Stat.StatExpertiseRating,
-		Stat.StatResilienceRating,
 		Stat.StatPhysicalDamage,
 		Stat.StatArmorPenetration,
 	],
@@ -70,8 +56,6 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 			Stat.StatBonusArmor,
 			Stat.StatDodgeRating,
 			Stat.StatDefenseRating,
-			Stat.StatExpertiseRating,
-			Stat.StatResilienceRating,
 			Stat.StatNatureResistance,
 			Stat.StatFireResistance,
 			Stat.StatFrostResistance,
@@ -83,6 +67,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 			PseudoStat.PseudoStatMeleeCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatDodgePercent,
+			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
 
@@ -91,7 +76,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		epWeights: new Stats(),
 		statCaps: (() => {
 			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 9);
-			const expCap = new Stats().withStat(Stat.StatExpertiseRating, 6.5 * 4 * Mechanics.EXPERTISE_PER_QUARTER_PERCENT_REDUCTION);
+			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			const critImmunityCap = new Stats().withPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent, 5.6);
 			return hitCap.add(expCap).add(critImmunityCap);
 		})(),
@@ -103,41 +88,32 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
 			arcaneBrilliance: true,
-			giftOfTheWild: TristateEffect.TristateEffectImproved,
-			powerWordFortitude: TristateEffect.TristateEffectImproved,
-			bloodlust: true,
-			shadowProtection: true,
-			thorns: TristateEffect.TristateEffectRegular,
-			divineSpirit: TristateEffect.TristateEffectImproved,
+			giftOfTheWild: true,
+			prayerOfFortitude: true,
+			prayerOfShadowProtection: true,
+			thorns: true,
+			prayerOfSpirit: true,
 		}),
 		partyBuffs: PartyBuffs.create({
-			drums: Drums.LesserDrumsOfBattle,
-			ferociousInspiration: 2,
-			battleShout: TristateEffect.TristateEffectImproved,
-			graceOfAirTotem: TristateEffect.TristateEffectImproved,
-			windfuryTotem: TristateEffect.TristateEffectImproved,
+			battleShout: TristateEffect.TristateEffectRegular,
+			graceOfAirTotem: true,
+			windfuryTotem: true,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
-			strengthOfEarthTotem: TristateEffect.TristateEffectImproved,
+			strengthOfEarthTotem: true,
 			totemTwisting: true,
 		}),
 		individualBuffs: IndividualBuffs.create({
-			blessingOfKings: true,
-			blessingOfMight: true,
-			unleashedRage: true,
+			greaterBlessingOfKings: true,
+			greaterBlessingOfMight: true,
 		}),
 		debuffs: Debuffs.create({
-			...defaultExposeWeaknessSettings(),
-			bloodFrenzy: true,
-			exposeArmor: TristateEffect.TristateEffectImproved,
-			faerieFire: TristateEffect.TristateEffectImproved,
+			exposeArmor: true,
+			faerieFire: true,
 			giftOfArthas: false,
-			huntersMark: TristateEffect.TristateEffectImproved,
+			huntersMark: true,
 			curseOfRecklessness: true,
 			insectSwarm: true,
 			judgementOfWisdom: true,
-			misery: true,
-			screech: true,
-			shadowEmbrace: true,
 			sunderArmor: true,
 		}),
 	},
@@ -145,7 +121,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	playerIconInputs: [],
 	rotationInputs: FeralBearInputs.FeralBearRotationConfig,
 	includeBuffDebuffInputs: [Stat.StatStamina, Stat.StatArmor],
-	excludeBuffDebuffInputs: [Stat.StatParryRating],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem],
 	otherInputs: {
 		inputs: [
 			OtherInputs.TotemTwisting,

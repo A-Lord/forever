@@ -17,21 +17,6 @@ func init() {
 func TestHunter(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
 		"the golden numbers cannot be meaningful until then")
-	weaveRotation := core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default")
-	weaveRotation.Label = "weave"
-
-	turretRotation := core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default").Rotation
-	turretRotation.ValueVariables[2] = &proto.APLValueVariable{
-		Name: "Melee weave",
-		Value: &proto.APLValue{
-			Value: &proto.APLValue_Const{
-				Const: &proto.APLValueConst{
-					Val: "false",
-				},
-			},
-		},
-	}
-
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassHunter,
@@ -48,10 +33,7 @@ func TestHunter(t *testing.T) {
 			Profession1:      proto.Profession_Engineering,
 			Profession2:      proto.Profession_Blacksmithing,
 
-			Rotation: weaveRotation,
-			OtherRotations: []core.RotationCombo{
-				{Label: "Turret", Rotation: turretRotation},
-			},
+			Rotation: core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default"),
 
 			ItemFilter: core.ItemFilter{
 				ArmorType: proto.ArmorType_ArmorTypeMail,
@@ -97,17 +79,6 @@ var DefaultBMTalents = "512002005250122431051-0505201205"
 var DefaultSVTalents = "502-0550201205-333200022003223005103"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	BattleElixirId:   22831, // Elixir of Major Agility
-	GuardianElixirId: 22840, // Elixir of Major Mageblood
-	FoodId:           27659, // Warp Burger
-	PotId:            22838, // Haste Potion
-	ConjuredId:       12662, // Demonic Rune
-	ExplosiveId:      30217, // Adamantite Grenade
-	PetFoodId:        33874, // Kibler's Bits
-	PetScrollAgi:     true,
-	PetScrollStr:     true,
-	SuperSapper:      true,
-	GoblinSapper:     true,
-	ScrollAgi:        true,
-	ScrollStr:        true,
+	ConjuredId:   12662, // Demonic Rune
+	GoblinSapper: true,
 }

@@ -1,6 +1,7 @@
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { APLRotation } from '@generated/proto/apl';
-import { Debuffs, EquipmentSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
+import { Debuffs } from '@generated/proto/buffs';
+import { EquipmentSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
@@ -70,19 +71,10 @@ export default defineSpec<Spec.SpecRestorationDruid>({
 	playerIconInputs: [],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	// Stamina is not an EP stat for healers, but the buff still belongs in the stats panel.
-	includeBuffDebuffInputs: [BuffDebuffInputs.PowerWordFortitude],
+	includeBuffDebuffInputs: [BuffDebuffInputs.PrayerOfFortitude],
 	// Nothing is simulated, so buffs that only matter inside an encounter (damage, cooldowns,
 	// mana returns over a fight) would only mislead.
-	excludeBuffDebuffInputs: [
-		BuffDebuffInputs.Bloodlust,
-		BuffDebuffInputs.Thorns,
-		BuffDebuffInputs.Innervate,
-		BuffDebuffInputs.PowerInfusion,
-		BuffDebuffInputs.FerociousInspiration,
-		BuffDebuffInputs.ManaTideTotem,
-		BuffDebuffInputs.ShadowPriestDPS,
-		BuffDebuffInputs.DrumsBuff,
-	],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.Thorns, BuffDebuffInputs.Innervate, BuffDebuffInputs.PowerInfusion, BuffDebuffInputs.ManaTideTotem],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [],

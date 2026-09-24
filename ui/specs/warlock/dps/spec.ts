@@ -101,7 +101,7 @@ export default defineSpec<Spec.SpecWarlock>({
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
-		inputs: [OtherInputs.IsbUptime, OtherInputs.DistanceFromTarget],
+		inputs: [OtherInputs.DistanceFromTarget],
 	},
 	itemSwapSlots: [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2],
 	encounterPicker: {
@@ -114,14 +114,14 @@ export default defineSpec<Spec.SpecWarlock>({
 		// Preset talents that the user can quickly select.
 		talents: [],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.AfflictionAPL, Presets.DemoAPL, Presets.DestroAPL, Presets.DestroFireAPL],
+		rotations: [Presets.DEFAULT_APL],
 
 		// Preset gear configurations that the user can quickly select.
 		gear: [],
 	},
 
 	autoRotation: (_player: Player<Spec.SpecWarlock>): APLRotation => {
-		return Presets.DestroAPL.rotation.rotation!;
+		return Presets.DEFAULT_APL.rotation.rotation!;
 	},
 	sections: [WarlockInputs.CursesSection],
 

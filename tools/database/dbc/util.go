@@ -379,8 +379,6 @@ func ConvertModRatingFlagToRatingStat(flag int) proto.Stat {
 		return proto.Stat_StatMeleeCritRating
 	case 1024:
 		return proto.Stat_StatSpellCritRating
-	case 49152:
-		return proto.Stat_StatResilienceRating
 	case 131072:
 		return proto.Stat_StatMeleeHasteRating
 	case 393216:

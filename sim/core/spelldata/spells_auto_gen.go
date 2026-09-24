@@ -7745,6 +7745,10 @@ var generatedSpells = []Spell{
 			{ID: 689170, SpellID: 11743, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_INVISIBILITY_DETECT, BasePoints: 300, SpellLevel: 50, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
 		},
 		Powers: []Power{{Cost: 140}}},
+	{ID: 11767, Name: "Blood Pact", Rank: "Rank 5", School: 32, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 50, BaseLevel: 50, MaxLevel: 60, DurationMs: -1, MaxRange: 20, ClassFlags: core.ClassFlags{Family: 5}, Labels: []int16{19},
+		Effects: []Effect{
+			{ID: 690675, SpellID: 11767, Type: dbcenums.E_APPLY_AREA_AURA_PARTY, Aura: dbcenums.A_MOD_STAT, BasePoints: 49, PPL: 0.5, SpellLevel: 50, MaxLevel: 60, PvpMult: 1, RadiusMax: 30, Misc: 2, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 11789, Name: "Water Breathing", School: 8, Attr: [17]uint32{0: 0x40, 1: 0x10000000, 15: 0x2000}, SpellLevel: 20, GCDMs: 1500, StartRecoveryCategory: 133,
 		Effects: []Effect{
 			{ID: 689453, SpellID: 11789, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_WATER_BREATHING, BasePoints: 50, SpellLevel: 20, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

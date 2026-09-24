@@ -1,12 +1,9 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
-import { APLListItem, APLRotation, APLRotation_Type, APLValueVariable } from '@generated/proto/apl';
+import { APLRotation, APLRotation_Type } from '@generated/proto/apl';
 import { Cooldowns, EquipmentSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { PaladinAura } from '@generated/proto/paladin';
 import { SavedTalents } from '@generated/proto/ui';
-import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
-import * as AplUtils from '@sim/proto/apl_utils';
 import { SpecRotation } from '@sim/proto/spec_types';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
@@ -14,31 +11,32 @@ import { defineSpec } from '@sim/spec_config';
 import * as Inputs from './inputs';
 import * as Presets from './presets';
 
-// Fixed indices into the default APL (apls/default.apl.json). simpleRotation
-// relies on these — if you reorder the APL, update these too.
-const PREPULL_AURA_INDEX = 0; // The paladin aura at -18.5s
-const EXO_OR_CONSEC_CONSEC_INDEX = 1; // Consecration is the 2nd action inside the ExoOrConsec group
-
-// Spell IDs for each rank of Consecration.
-const CONSECRATION_RANK_SPELL_IDS: Record<number, number> = {
-	1: 26573,
-	2: 20116,
-	3: 20922,
-	4: 20923,
-	5: 20924,
-	6: 27173,
-};
-
-// SpellIDs for each paladin aura option.
-const AURA_SPELL_IDS: Record<PaladinAura, number | null> = {
-	[PaladinAura.AuraNone]: null,
-	[PaladinAura.DevotionAura]: 10293,
-	[PaladinAura.RetributionAura]: 10301,
-	[PaladinAura.ConcentrationAura]: 19746,
-	[PaladinAura.FireResistanceAura]: 19900,
-	[PaladinAura.FrostResistanceAura]: 19898,
-	[PaladinAura.ShadowResistanceAura]: 19896,
-};
+// // Fixed indices into the default APL (apls/default.apl.json). simpleRotation
+// // relies on these — if you reorder the APL, update these too.
+// const PREPULL_AURA_INDEX = 0; // Sanctity Aura at -18.5s
+// const EXO_OR_CONSEC_CONSEC_INDEX = 1; // Consecration is the 2nd action inside the ExoOrConsec group
+//
+// // Spell IDs for each rank of Consecration.
+// const CONSECRATION_RANK_SPELL_IDS: Record<number, number> = {
+// 1: 26573,
+// 2: 20116,
+// 3: 20922,
+// 4: 20923,
+// 5: 20924,
+// 6: 27173,
+// };
+//
+// // SpellIDs for each paladin aura option.
+// const AURA_SPELL_IDS: Record<PaladinAura, number | null> = {
+// [PaladinAura.AuraNone]: null,
+// [PaladinAura.DevotionAura]: 27149,
+// [PaladinAura.RetributionAura]: 27150,
+// [PaladinAura.ConcentrationAura]: 19746,
+// [PaladinAura.FireResistanceAura]: 27153,
+// [PaladinAura.FrostResistanceAura]: 27152,
+// [PaladinAura.ShadowResistanceAura]: 27151,
+// [PaladinAura.SanctityAura]: 20218,
+// };
 
 export default defineSpec<Spec.SpecRetributionPaladin>({
 	spec: Spec.SpecRetributionPaladin,
@@ -76,7 +74,6 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 			Stat.StatMana,
 			Stat.StatHealth,
 			Stat.StatStamina,
-			Stat.StatExpertiseRating,
 			Stat.StatHolyDamage,
 			Stat.StatArcaneResistance,
 			Stat.StatFireResistance,
@@ -91,6 +88,7 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 			PseudoStat.PseudoStatSpellHastePercent,
 			PseudoStat.PseudoStatSpellCritPercent,
 			PseudoStat.PseudoStatSpellHitPercent,
+			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
 
@@ -101,7 +99,7 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 		epWeights: new Stats(),
 		statCaps: (() => {
 			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 9);
-			const expCap = new Stats().withStat(Stat.StatExpertiseRating, 6.5 * 4 * Mechanics.EXPERTISE_PER_QUARTER_PERCENT_REDUCTION);
+			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 
 			return hitCap.add(expCap);
 		})(),
@@ -151,76 +149,84 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 		return Presets.APL_PRESET.rotation.rotation!;
 	},
 
-	simpleRotation: (player: Player<Spec.SpecRetributionPaladin>, simple: SpecRotation<Spec.SpecRetributionPaladin>, cooldowns: Cooldowns): APLRotation => {
-		const actions = AplUtils.simpleCooldownActions(cooldowns);
-		const rotation = APLRotation.clone(Presets.APL_PRESET.rotation.rotation!);
-
-		const { useExorcism = false, consecrationRank = 0, delayMajorCDs = 11, prepullSotC = true, aura = PaladinAura.RetributionAura } = simple;
-
-		const useExorcismBool = APLValueVariable.fromJson({
-			name: 'Use Exorcism',
-			value: { const: { val: String(useExorcism) } },
-		});
-
-		// "Use Consecrate" gates the Consecrate action inside the ExoOrConsec
-		// group. The rank of the Consecrate cast itself is swapped below.
-		const useConsecrateBool = APLValueVariable.fromJson({
-			name: 'Use Consecrate',
-			value: { const: { val: String(consecrationRank !== 0) } },
-		});
-
-		const delayMajorCDsString = APLValueVariable.fromJson({
-			name: 'Delay Major CDs',
-			value: { const: { val: String(delayMajorCDs) + 's' } },
-		});
-
-		const prepullSotCBool = APLValueVariable.fromJson({
-			name: 'Prepull Seal Of the Crusader',
-			value: { const: { val: String(prepullSotC) } },
-		});
-
-		rotation.valueVariables[2] = useExorcismBool;
-		rotation.valueVariables[3] = useConsecrateBool;
-		rotation.valueVariables[4] = delayMajorCDsString;
-		rotation.valueVariables[5] = prepullSotCBool;
-
-		// Consecration rank swap inside the ExoOrConsec group. When the user
-		// picked "Do not use" (rank 0), the Use Consecrate variable above is
-		// false and the action is dormant, so no rank swap is needed.
-		if (consecrationRank !== 0) {
-			const exoOrConsecGroup = rotation.groups.find(g => g.name === 'ExoOrConsec')!;
-			const consecCast = (exoOrConsecGroup.actions[EXO_OR_CONSEC_CONSEC_INDEX].action!.action as any).castSpell;
-			consecCast.spellId.rawId = { oneofKind: 'spellId', spellId: CONSECRATION_RANK_SPELL_IDS[consecrationRank] };
-			consecCast.spellId.rank = consecrationRank;
-		}
-
-		// Aura swap: replace the SpellID of the prepull aura cast. If None is
-		// picked the action is filtered out entirely.
-		const auraSpellId = AURA_SPELL_IDS[aura];
-		if (auraSpellId !== null) {
-			const auraCast = (rotation.prepullActions[PREPULL_AURA_INDEX].action!.action as any).castSpell;
-			auraCast.spellId.rawId = { oneofKind: 'spellId', spellId: auraSpellId };
-			auraCast.spellId.rank = 0;
-		}
-
-		const prepullActions = rotation.prepullActions.filter((_, i) => {
-			if (i === PREPULL_AURA_INDEX && auraSpellId === null) return false;
-			return true;
-		});
-
-		return APLRotation.create({
-			prepullActions: prepullActions,
-			priorityList: [
-				...actions.map(action =>
-					APLListItem.create({
-						action: action,
-					}),
-				),
-				...rotation.priorityList,
-			],
-			groups: rotation.groups,
-			valueVariables: rotation.valueVariables,
-		});
+	// TODO: To be implemented. The default APL (apls/default.apl.json) is an empty stub, so
+	// there are no prepull actions, priority list entries, or groups left to index into.
+	simpleRotation: (_player: Player<Spec.SpecRetributionPaladin>, _simple: SpecRotation<Spec.SpecRetributionPaladin>, _cooldowns: Cooldowns): APLRotation => {
+		// const actions = AplUtils.simpleCooldownActions(cooldowns);
+		// const rotation = APLRotation.clone(Presets.APL_PRESET.rotation.rotation!);
+		//
+		// const { useExorcism = false, consecrationRank = 0, delayMajorCDs = 11, prepullSotC = true, aura: rawAura = PaladinAura.SanctityAura } = simple;
+		//
+		// // Sanctity Aura requires the talent. If the user picked it without the
+		// // talent (e.g. dropped the point after selecting), fall back to None.
+		// // TODO: Forever drops the Sanctity Aura talent, so the pick always falls back.
+		// const aura = rawAura === PaladinAura.SanctityAura ? PaladinAura.AuraNone : rawAura;
+		//
+		// const useExorcismBool = APLValueVariable.fromJson({
+		// name: 'Use Exorcism',
+		// value: { const: { val: String(useExorcism) } },
+		// });
+		//
+		// // "Use Consecrate" gates the Consecrate action inside the ExoOrConsec
+		// // group. The rank of the Consecrate cast itself is swapped below.
+		// const useConsecrateBool = APLValueVariable.fromJson({
+		// name: 'Use Consecrate',
+		// value: { const: { val: String(consecrationRank !== 0) } },
+		// });
+		//
+		// const delayMajorCDsString = APLValueVariable.fromJson({
+		// name: 'Delay Major CDs',
+		// value: { const: { val: String(delayMajorCDs) + 's' } },
+		// });
+		//
+		// const prepullSotCBool = APLValueVariable.fromJson({
+		// name: 'Prepull Seal Of the Crusader',
+		// value: { const: { val: String(prepullSotC) } },
+		// });
+		//
+		// rotation.valueVariables[2] = useExorcismBool;
+		// rotation.valueVariables[3] = useConsecrateBool;
+		// rotation.valueVariables[4] = delayMajorCDsString;
+		// rotation.valueVariables[5] = prepullSotCBool;
+		//
+		// // Consecration rank swap inside the ExoOrConsec group. When the user
+		// // picked "Do not use" (rank 0), the Use Consecrate variable above is
+		// // false and the action is dormant, so no rank swap is needed.
+		// if (consecrationRank !== 0) {
+		// const exoOrConsecGroup = rotation.groups.find(g => g.name === 'ExoOrConsec')!;
+		// const consecCast = (exoOrConsecGroup.actions[EXO_OR_CONSEC_CONSEC_INDEX].action!.action as any).castSpell;
+		// consecCast.spellId.rawId = { oneofKind: 'spellId', spellId: CONSECRATION_RANK_SPELL_IDS[consecrationRank] };
+		// consecCast.spellId.rank = consecrationRank;
+		// }
+		//
+		// // Aura swap: replace the SpellID of the prepull aura cast. If None is
+		// // picked the action is filtered out entirely.
+		// const auraSpellId = AURA_SPELL_IDS[aura];
+		// if (auraSpellId !== null) {
+		// const auraCast = (rotation.prepullActions[PREPULL_AURA_INDEX].action!.action as any).castSpell;
+		// auraCast.spellId.rawId = { oneofKind: 'spellId', spellId: auraSpellId };
+		// auraCast.spellId.rank = 0;
+		// }
+		//
+		// const prepullActions = rotation.prepullActions.filter((_, i) => {
+		// if (i === PREPULL_AURA_INDEX && auraSpellId === null) return false;
+		// return true;
+		// });
+		//
+		// return APLRotation.create({
+		// prepullActions: prepullActions,
+		// priorityList: [
+		// ...actions.map(action =>
+		// APLListItem.create({
+		// action: action,
+		// }),
+		// ),
+		// ...rotation.priorityList,
+		// ],
+		// groups: rotation.groups,
+		// valueVariables: rotation.valueVariables,
+		// });
+		return APLRotation.clone(Presets.APL_PRESET.rotation.rotation!);
 	},
 
 	reforge: {},

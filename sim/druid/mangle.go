@@ -14,7 +14,7 @@ func (druid *Druid) registerMangleAuras() {
 	// if druid.MangleAuras != nil {
 	// 	return
 	// }
-	// druid.MangleAuras = druid.NewEnemyAuraArray(core.MangleAura)
+	// druid.MangleAuras = druid.NewEnemyAuraArray(buffs.MangleAura)
 }
 
 // TODO: To be implemented. Forever ships ONE Mangle -- spells 407995 and 1238069/1238070/1238073

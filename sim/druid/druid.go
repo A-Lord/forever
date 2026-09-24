@@ -149,9 +149,9 @@ func (druid *Druid) GetCharacter() *core.Character {
 
 func (druid *Druid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 	if druid.InForm(Cat|Bear) && druid.Talents.LeaderOfThePack {
-		partyBuffs.LeaderOfThePack = core.Ternary(druid.HasItemEquipped(32387, []proto.ItemSlot{proto.ItemSlot_ItemSlotRanged}), proto.TristateEffect_TristateEffectImproved, proto.TristateEffect_TristateEffectRegular)
+		partyBuffs.LeaderOfThePack = true
 	} else if druid.InForm(Moonkin) && druid.Talents.MoonkinForm {
-		partyBuffs.MoonkinAura = core.Ternary(druid.HasItemEquipped(32387, []proto.ItemSlot{proto.ItemSlot_ItemSlotRanged}), proto.TristateEffect_TristateEffectImproved, proto.TristateEffect_TristateEffectRegular)
+		partyBuffs.MoonkinAura = true
 	}
 }
 

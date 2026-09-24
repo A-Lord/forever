@@ -1,5 +1,6 @@
 import * as PresetUtils from '@app/preset_utils';
-import { Class, ConsumesSpec, Debuffs, Drums, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, Spec, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, Profession, Race, Spec, TristateEffect } from '@generated/proto/common';
 import {
 	Hunter_Options as HunterOptions,
 	Hunter_Rotation,
@@ -7,7 +8,6 @@ import {
 	HunterOptions_PetType as PetType,
 	HunterOptions_QuiverBonus,
 } from '@generated/proto/hunter';
-import { defaultExposeWeaknessSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
 import DefaultAPL from './apls/default.apl.json';
 
@@ -44,64 +44,45 @@ export const DefaultOptions = HunterOptions.create({
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfMight: true,
-	blessingOfWisdom: true,
-	unleashedRage: true,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfMight: true,
+	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	battleShout: TristateEffect.TristateEffectImproved,
-	braidedEterniumChain: true,
-	ferociousInspiration: 1,
-	graceOfAirTotem: TristateEffect.TristateEffectImproved,
-	leaderOfThePack: TristateEffect.TristateEffectImproved,
-	strengthOfEarthTotem: TristateEffect.TristateEffectImproved,
+	battleShout: TristateEffect.TristateEffectRegular,
+	graceOfAirTotem: true,
+	leaderOfThePack: true,
+	strengthOfEarthTotem: true,
 	totemTwisting: true,
-	windfuryTotem: TristateEffect.TristateEffectImproved,
-	drums: Drums.LesserDrumsOfBattle,
+	windfuryTotem: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(Class.ClassWarrior),
 	arcaneBrilliance: true,
-	divineSpirit: TristateEffect.TristateEffectImproved,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	shadowProtection: true,
+	prayerOfSpirit: true,
+	giftOfTheWild: true,
+	prayerOfFortitude: true,
+	prayerOfShadowProtection: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	bloodFrenzy: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
+	curseOfElements: true,
 	curseOfRecklessness: true,
-	exposeArmor: TristateEffect.TristateEffectImproved,
-	...defaultExposeWeaknessSettings(),
-	faerieFire: TristateEffect.TristateEffectImproved,
+	exposeArmor: true,
+	faerieFire: true,
 	giftOfArthas: true,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	huntersMark: true,
 	insectSwarm: true,
 	judgementOfLight: true,
 	judgementOfWisdom: true,
 	mangle: true,
-	misery: true,
 	sunderArmor: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	battleElixirId: 22831, // Elixir of Major Agility
-	guardianElixirId: 22840, // Elixir of Major Mageblood
-	foodId: 27659, // Warp Burger
-	potId: 22838, // Haste Potion
 	conjuredId: 12662,
-	explosiveId: 30217,
-	petFoodId: 33874, // Kibler's Bits
-	petScrollAgi: true,
-	petScrollStr: true,
-	superSapper: true,
 	goblinSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
 });
 
 export const OtherDefaults = {

@@ -123,8 +123,6 @@ type reforgeOptimizer struct {
 	baseStrippedGear  *proto.EquipmentSpec
 	originalEquipment *core.Equipment
 	baseStats         core.UnitStats
-	// capBaseStats adds the raid's debuffs on top of baseStats; caps are evaluated against it.
-	capBaseStats core.UnitStats
 }
 
 // newReforgeOptimizer builds the optimizer context from the request: strips gems for the
@@ -179,7 +177,6 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 		baseStrippedGear:  baseStrippedGear,
 		originalEquipment: &originalEquipment,
 		baseStats:         baseStats,
-		capBaseStats:      addUnitStats(baseStats, buildDebuffUnitStats(request.Raid)),
 	}, nil
 }
 
@@ -187,13 +184,13 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 // gap-to-cap form, build the LP model, solve it with cap refinement, then apply the winning gems
 // back onto the gear.
 func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, error) {
-	reforgeCaps := computeStatCapsDelta(o.capBaseStats, protoToCoreUnitStats(o.settings.GetStatCaps()))
+	reforgeCaps := computeStatCapsDelta(o.baseStats, protoToCoreUnitStats(o.settings.GetStatCaps()))
 
 	var softCapConfigs []*proto.StatCapConfig
 	if o.settings.GetUseSoftCapBreakpoints() {
 		softCapConfigs = o.request.GetSoftCaps()
 	}
-	reforgeSoftCaps := computeReforgeSoftCaps(o.capBaseStats, softCapConfigs)
+	reforgeSoftCaps := computeReforgeSoftCaps(o.baseStats, softCapConfigs)
 
 	weights := checkWeights(protoToCoreUnitStats(o.request.GetPreCapEpWeights()), reforgeCaps, reforgeSoftCaps)
 

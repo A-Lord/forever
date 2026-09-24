@@ -308,10 +308,6 @@ func (character *Character) applyAllEffects(agent Agent, raidBuffs *proto.RaidBu
 	playerStats.ConsumesStats = measureStats()
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 
-	for _, petAgent := range character.PetAgents {
-		applyPetBuffEffects(petAgent, raidBuffs, partyBuffs, individualBuffs)
-	}
-
 	return playerStats
 }
 func (character *Character) applyBuildPhaseAuras(phase CharacterBuildPhase) {
@@ -746,6 +742,7 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatMeleeCritPercent:       character.GetStat(stats.PhysicalCritPercent),
 		proto.PseudoStat_PseudoStatSpellCritPercent:       character.GetStat(stats.SpellCritPercent),
 		proto.PseudoStat_PseudoStatRangedCritPercent:      character.GetStat(stats.RangedCritPercent) + character.GetStat(stats.PhysicalCritPercent),
+		proto.PseudoStat_PseudoStatExpertisePercent:       character.GetStat(stats.ExpertisePercent),
 	}
 	character.sheetAvoidance().Gate(pseudoStats)
 	return pseudoStats

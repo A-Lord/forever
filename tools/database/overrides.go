@@ -2,7 +2,6 @@ package database
 
 import (
 	"regexp"
-	"time"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -69,10 +68,7 @@ var UnsupportedAbsorbBySpellID = map[int32]string{
 }
 
 var OtherItemIdsToFetch = []string{}
-var ConsumableOverrides = []*proto.Consumable{
-	{Id: 23334, CooldownDuration: int32(time.Hour.Seconds())}, // Cracked Power Core
-	{Id: 23381, CooldownDuration: int32(time.Hour.Seconds())}, // Chipped Power Core
-}
+var ConsumableOverrides = []*proto.Consumable{}
 
 // Empty: all 26 entries were TBC items absent from this client.
 var ItemOverrides = []*proto.UIItem{}
@@ -106,42 +102,38 @@ var ExtraItemIcons = []int32{
 	// Demonic Rune
 	12662,
 
-	// Food IDs
-	27655,
-	27657,
-	27658,
-	27664,
-
 	// Flask IDs
 	13512,
-	22854,
-	22866,
 
 	// Elixer IDs
 	9224,
 	13452,
 	13454,
-	22827,
-	22833,
-	22835,
-	22840,
 
 	// Potions / In Battle Consumes
 	13442,
-	22105,
-	22788,
-	22828,
-	22837,
-	22838,
-	22849,
+	9421,
 
 	// Thistle Tea
 	7676,
 
 	// Scrolls
-	27498,
-	27499,
-	27503,
+	10305,
+	10306,
+	10308,
+	10309,
+	10310,
+
+	// Weapon Imbues
+	12404,
+	12643,
+	18262,
+	20750,
+	23123,
+
+	// Explosives
+	15993,
+	18641,
 }
 
 // Item Ids of consumables to allow
@@ -150,15 +142,11 @@ var ConsumableAllowList = []int32{
 	9088,  // Gift of Arthas
 	9155,  // Arcane Elixir
 	9224,  // Elixir of Demonslaying
+	9421,  // Major Healthstone
 	13442, // Migty Rage Potion
 	13452, // Elixir of the Mongoose
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
-	22105, // Master Healthstone
-	22788, // Flamecap
-	22797, // Nightmare Seed
-	23334, // Cracked Power Core
-	23381, // Chipped Power Core
 	5206,  // Bogling Root
 }
 var ConsumableDenyList = []int32{}
@@ -204,7 +192,6 @@ var SharedSpellsIcons = []int32{
 	3738,
 	8227,
 
-	6562,
 	16840,
 
 	// Raid Debuffs
@@ -250,22 +237,38 @@ var SharedSpellsIcons = []int32{
 	17768, // Wolfshead Helm
 	18803, // Focus
 	19615, // Frenzy Effect
+	20554, // Berserking
+	20572, // Blood Fury
 	20574, // Axe Specialization
-	20575, // Command
-	20576, // Command
 	20594, // Stoneform
-	20595, // Gun Specialization
 	20597, // Sword Specialization
-	20864, // Mace Specialization
 	23110, // Dash
 	23563, // Enhanced Battle Shout
 	25076, // Cobra Reflexes
-	25894, // Greater Blessing of Wisdom
+	21564, // Prayer of Fortitude
 	25895, // Greater Blessing of Salvation
+	25916, // Greater Blessing of Might
+	25918, // Greater Blessing of Wisdom
+	27681, // Prayer of Spirit
+	27683, // Prayer of Shadow Protection
 	26654, // Sweeping Strikes
 	28142, // Power of the Guardian
 	28143, // Power of the Guardian
 	29414, // Haste
+
+	1259686, // Skysight
+	1259688, // Elemental Blessing
+	1259705, // Read Ley Line
+	1259719, // Mace Specialization
+	1259799, // Elune's Light
+	1259812, // Eureka!
+	1259813, // Eureka!
+	1259817, // Eureka!
+	1259821, // Eureka!
+	1259823, // Eureka!
+	1260198, // Touch of the Grave
+	1270842, // Energized
+	1299026, // Shatter Curse
 }
 
 // If any of these match the item name, don't include it.

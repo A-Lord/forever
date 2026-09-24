@@ -33,7 +33,6 @@ var safeDepsOrder = []Stat{
 	SpellCritRating,
 	SpellHasteRating,
 	DefenseRating,
-	ResilienceRating,
 	BlockRating,
 	BlockPercent,
 	DodgeRating,
@@ -49,6 +48,7 @@ var safeDepsOrder = []Stat{
 	DodgePercent,
 	ParryPercent,
 	ReducedCritTakenPercent,
+	ExpertisePercent,
 }
 
 func isSafeDep(s Stat) bool {

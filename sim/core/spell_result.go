@@ -111,10 +111,6 @@ func (result *SpellResult) DidCrit() bool {
 	return result.Outcome.Matches(OutcomeCrit)
 }
 
-func (result *SpellResult) DidSuppressedCrit() bool {
-	return result.Outcome.Matches(OutcomeSuppressedCrit)
-}
-
 func (result *SpellResult) DidGlance() bool {
 	return result.Outcome.Matches(OutcomeGlance)
 }
@@ -171,9 +167,11 @@ func (spell *Spell) RangedAttackPower(target *Unit) float64 {
 	return spell.Unit.stats[stats.RangedAttackPower] + target.PseudoStats.BonusRangedAttackPower + spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.RangedAttackPower]
 }
 
+// ExpertisePercent is fed by ExpertiseRating through a stat dependency and directly by the
+// flat-percent sources; Forever formats every source as a plain percent, so there is no
+// quarter-point rounding.
 func (spell *Spell) DodgeParrySuppression() float64 {
-	expertiseRating := spell.Unit.stats[stats.ExpertiseRating] + spell.BonusExpertiseRating
-	return math.Floor(expertiseRating/ExpertisePerQuarterPercentReduction) / 400
+	return (spell.Unit.stats[stats.ExpertisePercent] + spell.BonusExpertisePercent) / 100
 }
 
 func (spell *Spell) PhysicalHitChance(attackTable *AttackTable) float64 {
@@ -277,19 +275,8 @@ func (spell *Spell) MagicCritCheck(sim *Simulation, target *Unit) bool {
 	return sim.RandomFloat("Magical Crit Roll") < critChance
 }
 
-type critChances struct {
-	actual     float64
-	suppressed float64
-}
-
-func getCritChances(rawChance float64, target *Unit) critChances {
-	actual := max(rawChance-target.PseudoStats.ReducedCritTakenPercent, 0)
-	defenseReduction := target.stats[stats.ReducedCritTakenPercent]/100 - target.GetResilienceReduction()
-	resilienceSuppression := max(rawChance-defenseReduction, 0)
-	return critChances{
-		actual:     actual,
-		suppressed: min(resilienceSuppression, target.GetResilienceReduction()),
-	}
+func getCritChance(rawChance float64, target *Unit) float64 {
+	return max(rawChance-target.PseudoStats.ReducedCritTakenPercent, 0)
 }
 
 func (spell *Spell) HealingPower(target *Unit) float64 {

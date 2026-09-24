@@ -46,18 +46,6 @@ func setUnitStat(unitStats core.UnitStats, unitStat stats.UnitStat, value float6
 	return unitStats
 }
 
-func addUnitStats(unitStats core.UnitStats, other core.UnitStats) core.UnitStats {
-	result := unitStats
-	result.Stats = unitStats.Stats.Add(other.Stats)
-	maxLen := max(len(unitStats.PseudoStats), len(other.PseudoStats))
-	result.PseudoStats = make([]float64, maxLen)
-	copy(result.PseudoStats, unitStats.PseudoStats)
-	for idx, value := range other.PseudoStats {
-		result.PseudoStats[idx] += value
-	}
-	return result
-}
-
 func isEmptyUnitStats(unitStats core.UnitStats) bool {
 	for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
 		if unitStats.Stats[statIdx] != 0 {

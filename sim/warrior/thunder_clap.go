@@ -2,6 +2,7 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -10,14 +11,28 @@ var thunderClapRank = spellData.ThunderClap.Highest()
 var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average(core.CharacterLevel)
 var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
 
+// The melee speed factor the warrior's clap leaves on the target, the Conqueror's set included.
+func (warrior *Warrior) thunderClapSpeed() float64 {
+	return 1 / core.SlowedTimeMultiplier(thunderClapSlow*(1+warrior.thunderClapEffectBonus))
+}
+
 func (warrior *Warrior) registerThunderClap() {
 	auras := warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return core.ThunderClapAura(target).ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-			attackTimeMultiplier := core.SlowedTimeMultiplier(thunderClapSlow * (1 + warrior.thunderClapEffectBonus))
-			if ee := aura.ExclusiveEffects[0]; ee.Priority != attackTimeMultiplier {
-				ee.SetPriority(sim, attackTimeMultiplier)
-			}
-		})
+		// The clap bids its whole slow in the attack-speed category, so the strongest single slow
+		// on the target is the only one applied. The generated aura holds the category at the
+		// client's amount; the clap sets its bid before it lands, and the effect applies what the
+		// bid is worth.
+		aura := buffs.ThunderClapAura(target, true, 0)
+		speed := 1.0
+		bid := aura.ExclusiveEffects[0]
+		bid.OnGain = func(ee *core.ExclusiveEffect, sim *core.Simulation) {
+			speed = 1 - ee.Priority
+			ee.Aura.Unit.MultiplyMeleeSpeed(sim, speed)
+		}
+		bid.OnExpire = func(ee *core.ExclusiveEffect, sim *core.Simulation) {
+			ee.Aura.Unit.MultiplyMeleeSpeed(sim, 1/speed)
+		}
+		return aura
 	})
 
 	// Thunder Clap is Physical but Magic in SpellCategories: it rolls on the spell hit table
@@ -38,7 +53,11 @@ func (warrior *Warrior) registerThunderClap() {
 
 		for _, result := range results {
 			if result.Landed() {
-				auras.Get(result.Target).Activate(sim)
+				aura := auras.Get(result.Target)
+				if bid := aura.ExclusiveEffects[0]; bid.Priority != 1-warrior.thunderClapSpeed() {
+					bid.SetPriority(sim, 1-warrior.thunderClapSpeed())
+				}
+				aura.Activate(sim)
 			}
 			spell.DealDamage(sim, result)
 		}

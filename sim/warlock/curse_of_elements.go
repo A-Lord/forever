@@ -2,13 +2,16 @@ package warlock
 
 var curseOfElementsRank = spellData.CurseOfTheElements.Highest()
 
-// TODO: To be implemented. Port the TBC Curse Of Elements implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. The body below builds the spell around the generated
+// aura and has not been checked against the client past the aura itself.
 func (warlock *Warlock) registerCurseOfElements() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
 	// warlock.CurseOfElementsAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	return core.CurseOfElementsAura(target, 1, warlock.Talents.Malediction)
+	// 	// The warlock's own copy of the aura. Malediction's modifier masks do
+	// 	// not cover this curse, so there are no talent points to pass.
+	// 	return buffs.CurseOfElementsAura(target, true, 0)
 	// })
 	// warlock.CurseOfElements = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: curseOfElementsRank.ID},

@@ -6,7 +6,7 @@ func (hunter *Hunter) registerScorpidStingSpell() {
 
 	// The TBC implementation, kept for the port:
 	// auraArray := hunter.NewEnemyAuraArray(func(unit *core.Unit) *core.Aura {
-	// 	aura := core.ScorpidStingAura(unit)
+	// 	aura := buffs.ScorpidStingAura(unit, true, 0)
 	// 	aura.Tag = "Sting"
 	// 	return aura
 	// })

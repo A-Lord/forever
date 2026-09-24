@@ -7,6 +7,7 @@ import (
 
 	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -246,7 +247,7 @@ func (paladin *Paladin) applySacredArbiter() {
 		Outcome:            core.OutcomeLanded,
 		TriggerImmediately: true,
 		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-			for _, aura := range result.Target.GetAurasWithTag(core.JudgementAuraTag) {
+			for _, aura := range result.Target.GetAurasWithTag(buffs.JudgementAuraTag) {
 				if aura.IsActive() {
 					aura.Refresh(sim)
 				}

@@ -522,13 +522,20 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_OFFHAND_DAMAGE_PCT, 0, 25, "SpellMod_DamageDone_Pct", 0.25, false},
 		{dbcenums.A_MOD_PERCENT_STAT, 4, 100, "multiply-stat Spirit", 2, false},
 		{dbcenums.A_MOD_PERCENT_STAT, -1, 5, "multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.05, false},
+		{dbcenums.A_MOD_DAMAGE_TAKEN, 1, 8, "physical-damage-taken-flat", 8, false},
+		{dbcenums.A_MOD_DAMAGE_TAKEN, 126, 8, "spell-damage-taken-flat", 8, false},
+		{dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS, 0, 71, "ranged-attack-power-attacker-bonus", 71, false},
+		{dbcenums.A_REDUCE_PUSHBACK, 127, 35, "pushback", -0.35, false},
+		{dbcenums.A_MOD_RATING, 4, 10, "stat DodgeRating", 10, false},
+		{dbcenums.A_MOD_RATING, 256, 10, "stat MeleeCritRating", 10, false},
+		{dbcenums.A_MOD_RATING, 768, 10, "stat MeleeCritRating", 10, false},
 		{dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, -1, 10,
 			"multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.1, false},
 		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_FEAR), -20, "fear-duration", 0.8, false},
 		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_STUN), -20, "stun-duration", 0.8, false},
-		{dbcenums.A_MOD_EXPERTISE, 0, 5, "stat ExpertiseRating", 5 * core.ExpertisePerQuarterPercentReduction, false},
+		{dbcenums.A_MOD_EXPERTISE, 0, 5, "stat ExpertisePercent", 5, false},
 		{dbcenums.A_MOD_MELEE_HASTE_3, 0, 25, "melee-speed", 1.25, true},
-		{dbcenums.A_MOD_DAMAGE_TAKEN, 126, -10, "damage-taken-flat", -10, false},
+		{dbcenums.A_MOD_DAMAGE_TAKEN, 127, -10, "damage-taken-flat", -10, false},
 		{dbcenums.A_MOD_POWER_COST_SCHOOL_PCT, 126, 20, "SpellMod_PowerCost_Pct", 0.2, false},
 	}
 
@@ -630,8 +637,8 @@ func TestParseStaticStatConventions(t *testing.T) {
 
 	expertise := parseWarrior()
 	ParseStatic(expertise, oneEffectRow(dbcenums.A_MOD_EXPERTISE, 0, 5))
-	if got := expertise.GetStat(stats.ExpertiseRating); math.Abs(got-12.5) > 1e-9 {
-		t.Errorf("expertise from a 5 point row: %v rating, want 12.5", got)
+	if got := expertise.GetStat(stats.ExpertisePercent); math.Abs(got-5) > 1e-9 {
+		t.Errorf("expertise from a 5 point row: %v percent, want 5", got)
 	}
 }
 
