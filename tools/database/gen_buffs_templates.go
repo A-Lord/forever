@@ -36,12 +36,12 @@ func {{.Go}}Cooldown() time.Duration {
 	return {{.MetaVar}}.Cooldown()
 }
 {{- end}}
-func NewSpellData{{.Go}}Aura(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraParams}}) *core.Aura {
+func {{.Builder}}(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraParams}}) *core.Aura {
 	{{.Constructor}}
 }
 {{- else}}
 {{if .HasSpell}}// {{.Label}}
-{{end}}// func NewSpellData{{.Go}}Aura(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraParams}}) *core.Aura // {{.Field}}, {{.Kind}}: {{.Reason}}
+{{end}}// func {{.Builder}}(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraParams}}) *core.Aura // {{.Field}}, {{.Kind}}: {{.Reason}}
 {{- end}}
 {{- end}}
 `

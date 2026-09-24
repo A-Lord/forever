@@ -37,23 +37,23 @@ func paladinAuraMeta(base *Meta, rank PaladinAuraRank) *Meta {
 	return &m
 }
 
-func DevotionAuraBuff(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
+func NewSpellDataDevotionAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
 	return newBuff(&char.Unit, paladinAuraMeta(devotionAuraMeta, rank), isPlayer, 0)
 }
 
-func ConcentrationAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
+func NewSpellDataConcentrationAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
 	return newBuff(&char.Unit, paladinAuraMeta(concentrationAuraMeta, rank), isPlayer, 0)
 }
 
-func FireResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
+func NewSpellDataFireResistanceAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
 	return newBuff(&char.Unit, paladinAuraMeta(fireResistanceAuraMeta, rank), isPlayer, 0)
 }
 
-func FrostResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
+func NewSpellDataFrostResistanceAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
 	return newBuff(&char.Unit, paladinAuraMeta(frostResistanceAuraMeta, rank), isPlayer, 0)
 }
 
-func ShadowResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
+func NewSpellDataShadowResistanceAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
 	return newBuff(&char.Unit, paladinAuraMeta(shadowResistanceAuraMeta, rank), isPlayer, 0)
 }
 
@@ -66,11 +66,11 @@ func ShadowResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraR
 // shown mostly 17.
 const RetributionAuraSpellPowerCoefficient = 1.5 / 3.5 / 3 * 0.95
 
-// RetributionAuraBuff is the aura on the unit the shield protects. The self-cast variant reads
+// NewSpellDataRetributionAuraRank is the aura on the unit the shield protects. The self-cast variant reads
 // the paladin's own Holy spell power through the proc spell; the external (party-buff) variant
 // cannot see the providing paladin, so externalSpellPower stands in for it and the recipient's
 // own stats stay out of the damage.
-func RetributionAuraBuff(char *core.Character, isPlayer bool, rank PaladinAuraRank, externalSpellPower float64) *core.Aura {
+func NewSpellDataRetributionAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank, externalSpellPower float64) *core.Aura {
 	m := paladinAuraMeta(retributionAuraMeta, rank)
 	label := m.label(isPlayer)
 	if char.HasAura(label) {
@@ -127,7 +127,7 @@ const judgementProcChance = 0.5
 // Judgement of the Crusader raises the Holy damage the target takes by a flat amount. Every rank
 // and every paladin share one exclusive category, so the strongest active one is the one that
 // counts.
-func JudgementOfTheCrusaderAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfTheCrusaderAura(target *core.Unit, rank JudgementRank) *core.Aura {
 	bonus := rank.Value
 	label := paladinRankName("Judgement of the Crusader", rank.Rank)
 	if target.HasAura(label) {
@@ -156,7 +156,7 @@ func JudgementOfTheCrusaderAura(target *core.Unit, rank JudgementRank) *core.Aur
 
 // The paladin's own Judgement of Light at one rank: the bare 40-second debuff, plus the heal it
 // grants whoever strikes the target.
-func JudgementOfLightRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfLightRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Light", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)
@@ -189,7 +189,7 @@ func AttachJudgementOfLightHeal(aura *core.Aura, rank JudgementRank) *core.Aura 
 }
 
 // The paladin's own Judgement of Wisdom at one rank.
-func JudgementOfWisdomRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfWisdomRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Wisdom", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)

@@ -1813,7 +1813,7 @@ sim and every class test; core's own tests reach it through the generated-buff t
 | `Field`, `Number`, `Scope` | the proto field, its number and the message it lives on. Each scope's numbers are dense from 1, so a row that goes away is a renumber of the rows after it                                                                                                                                                                                                                                                                    |
 | `Proto`                    | `ProtoBool`, `ProtoTristate`, `ProtoInt32` or `ProtoDouble`. Declared, not derived, so the emitter runs while the compiled protos are stale; the generator checks it against the compiled message                                                                                                                                                                                                                             |
 | `Kind`                     | what the generator emits, below                                                                                                                                                                                                                                                                                                                                                                                               |
-| `Go`                       | the identifier stem: `BattleShout` gives `NewSpellDataBattleShoutAura`, `BattleShoutValue`, `BattleShoutDuration`, `BattleShoutCategory`, `battleShoutSpell` and `battleShoutMeta`                                                                                                                                                                                                                                            |
+| `Go`                       | the identifier stem: `BattleShout` gives `NewSpellDataBattleShoutAura`, `BattleShoutValue`, `BattleShoutDuration`, `BattleShoutCategory`, `battleShoutSpell` and `battleShoutMeta`; a stem ending in Aura takes no second one (`DevotionAura` gives `NewSpellDataDevotionAura`)                                                                                                                                               |
 | `SpellID`                  | the spell the numbers are read from, and a root of the store: the top rank of the castable family, or the aura that family's cast applies when the cast is a summon or a dummy                                                                                                                                                                                                                                                |
 | `CastID`                   | the cast, for a row whose timing only the cast states: Mana Tide's aura 17360 carries the mana, the cast 17359 the 13 seconds and the 5 minutes                                                                                                                                                                                                                                                                               |
 | `Name`, `AuraName`         | the castable family's `SpellName.Name_lang` and, for a summon or a dummy, the aura family's. `Name` is the label's default; both are what `TestManifestAnchorsMatchTheClient` resolves the pins from                                                                                                                                                                                                                          |
@@ -1847,7 +1847,12 @@ Judgement of the Crusader and Mangle state their effect in a shape no manifest r
 school alone, and dummies - so their rows are shells and `applyDebuffs` in `sim/core/buffs/debuffs.go`
 applies the hand-written auras after the generated ones. The paladin's own aura and judgement ranks
 (`PaladinAuraRank`, `JudgementRank`) live in `sim/core/buffs/paladin.go` beside the generated
-categories they join.
+categories they join. Each is built at the rank the paladin cast: `NewSpellDataDevotionAuraRank`
+beside the generated top rank `NewSpellDataDevotionAura`, and so for Concentration, Retribution and
+the three resistance auras; `NewSpellDataJudgementOfLightRankAura` and
+`NewSpellDataJudgementOfWisdomRankAura` beside the generated `NewSpellDataJudgementOfLightAura` and
+`NewSpellDataJudgementOfWisdomAura`; `NewSpellDataJudgementOfTheCrusaderAura` is the only builder of
+its debuff.
 
 ### Drivers
 
@@ -1855,7 +1860,7 @@ A row the generator cannot express outright states `Driver: true`, or is a kind 
 and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buffs/drivers.go`: a buff
 row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
 debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
-`party.TotemTwisting`. The driver builds the generated aura with `NewSpellData<Go>Aura(...)` and adds what the
+`party.TotemTwisting`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
 client does not state: a proc trigger, a cooldown, a delay, a regen. Declaring the function is what
 makes the row compile.
 

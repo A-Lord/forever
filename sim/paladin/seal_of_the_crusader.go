@@ -23,7 +23,7 @@ import (
 func (paladin *Paladin) registerSealOfTheCrusader(row shared.SpellData) {
 	judgementRow := spellData.SealOfTheCrusaderTriggered.BySpellID(int32(effectAt(row, 2).Value))
 	judgementAuras := paladin.newJudgementAuras(func(target *core.Unit) *core.Aura {
-		return buffs.JudgementOfTheCrusaderAura(target, buffs.JudgementRank{
+		return buffs.NewSpellDataJudgementOfTheCrusaderAura(target, buffs.JudgementRank{
 			SpellID: judgementRow.SpellID,
 			Rank:    row.Rank,
 			Value:   shared.SpellDataMin(judgementRow.Direct) + paladin.judgementOfTheCrusaderBonus,

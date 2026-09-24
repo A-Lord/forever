@@ -211,7 +211,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 				"FrostResistance": 27, "NatureResistance": 27, "ShadowResistance": 27,
 			}),
 		}},
-		{"FireResistanceAura", false, true, NewSpellDataFireResistanceAuraAura, auraShape{
+		{"FireResistanceAura", false, true, NewSpellDataFireResistanceAura, auraShape{
 			Label: "Fire Resistance Aura (Player)", ActionID: core.ActionID{SpellID: 19900}, Tag: "FireResistanceAura",
 			Duration: core.NeverExpires,
 			Bids: []string{
@@ -221,7 +221,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 			},
 			Stacks: statsOnly(map[string]float64{"FireResistance": 60}),
 		}},
-		{"ConcentrationAura", false, false, NewSpellDataConcentrationAuraAura, auraShape{
+		{"ConcentrationAura", false, false, NewSpellDataConcentrationAura, auraShape{
 			Label: "Concentration Aura (External)", ActionID: external(19746), Tag: "ConcentrationAura",
 			Duration: core.NeverExpires, BuildPhase: core.CharacterBuildPhaseBuffs,
 			Bids:   []string{"ConcentrationAura single=true priority=0.35"},

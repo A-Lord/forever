@@ -197,7 +197,7 @@ export const HpPercentForDefensives = {
 };
 
 // The Holy spell power of the paladin providing Retribution Aura as a party buff (sim/core's
-// RetributionAuraBuff turns it into damage per hit). Only a tank takes the hits, and the number
+// NewSpellDataRetributionAuraRank turns it into damage per hit). Only a tank takes the hits, and the number
 // means nothing without the aura, so it shows under both conditions.
 export const RetributionAuraSpellPower = {
 	id: 'retributionAuraSpellPower',

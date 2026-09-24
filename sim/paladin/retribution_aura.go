@@ -16,7 +16,7 @@ func (paladin *Paladin) registerRetributionAura() {
 	RetributionAuraRankMap.RegisterAll(func(row shared.SpellData) {
 		rank := auraRank(row)
 		rank.Value = shared.SpellDataMin(row.Direct)
-		aura := buffs.RetributionAuraBuff(&paladin.Character, true, rank, 0)
+		aura := buffs.NewSpellDataRetributionAuraRank(&paladin.Character, true, rank, 0)
 		paladin.registerAuraSpell(row, aura, SpellMaskRetributionAura)
 	})
 }

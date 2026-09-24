@@ -117,7 +117,7 @@ func SynthDevotionAuraValue(talentPoints int32) float64 {
 func SynthDevotionAuraDuration(talentPoints int32) time.Duration {
 	return synthDevotionAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataSynthDevotionAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataSynthDevotionAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, synthDevotionAuraMeta, isPlayer, talentPoints)
 }
 
@@ -138,7 +138,7 @@ func SynthFrostResistanceAuraValue(talentPoints int32) float64 {
 func SynthFrostResistanceAuraDuration(talentPoints int32) time.Duration {
 	return synthFrostResistanceAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataSynthFrostResistanceAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataSynthFrostResistanceAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, synthFrostResistanceAuraMeta, isPlayer, talentPoints)
 }
 
@@ -256,10 +256,10 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		driveSynthBattleShout(char, party)
 	}
 	if party.DevotionAura {
-		core.MakePermanent(NewSpellDataSynthDevotionAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataSynthDevotionAura(&char.Unit, false, 0))
 	}
 	if raid.FrostResistanceAura {
-		core.MakePermanent(NewSpellDataSynthFrostResistanceAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataSynthFrostResistanceAura(&char.Unit, false, 0))
 	}
 	if raid.FrostResistanceTotem {
 		core.MakePermanent(NewSpellDataSynthFrostResistanceTotemAura(&char.Unit, false, 0))

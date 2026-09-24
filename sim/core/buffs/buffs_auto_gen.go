@@ -70,7 +70,7 @@ func DevotionAuraValue(talentPoints int32) float64 {
 func DevotionAuraDuration(talentPoints int32) time.Duration {
 	return devotionAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataDevotionAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataDevotionAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, devotionAuraMeta, isPlayer, talentPoints)
 }
 
@@ -154,7 +154,7 @@ func MoonkinAuraValue(talentPoints int32) float64 {
 func MoonkinAuraDuration(talentPoints int32) time.Duration {
 	return moonkinAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataMoonkinAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataMoonkinAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, moonkinAuraMeta, isPlayer, talentPoints)
 }
 
@@ -176,7 +176,7 @@ func RetributionAuraValue(talentPoints int32) float64 {
 func RetributionAuraDuration(talentPoints int32) time.Duration {
 	return retributionAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataRetributionAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataRetributionAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newDamageShield(unit, retributionAuraMeta, isPlayer, talentPoints)
 }
 
@@ -200,7 +200,7 @@ func ConcentrationAuraValue(talentPoints int32) float64 {
 func ConcentrationAuraDuration(talentPoints int32) time.Duration {
 	return concentrationAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataConcentrationAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataConcentrationAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, concentrationAuraMeta, isPlayer, talentPoints)
 }
 
@@ -217,7 +217,7 @@ func TrueshotAuraValue(talentPoints int32) float64 {
 func TrueshotAuraDuration(talentPoints int32) time.Duration {
 	return trueshotAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataTrueshotAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataTrueshotAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, trueshotAuraMeta, isPlayer, talentPoints)
 }
 
@@ -562,7 +562,7 @@ func FireResistanceAuraValue(talentPoints int32) float64 {
 func FireResistanceAuraDuration(talentPoints int32) time.Duration {
 	return fireResistanceAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataFireResistanceAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataFireResistanceAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, fireResistanceAuraMeta, isPlayer, talentPoints)
 }
 
@@ -584,7 +584,7 @@ func FrostResistanceAuraValue(talentPoints int32) float64 {
 func FrostResistanceAuraDuration(talentPoints int32) time.Duration {
 	return frostResistanceAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataFrostResistanceAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataFrostResistanceAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, frostResistanceAuraMeta, isPlayer, talentPoints)
 }
 
@@ -606,7 +606,7 @@ func ShadowResistanceAuraValue(talentPoints int32) float64 {
 func ShadowResistanceAuraDuration(talentPoints int32) time.Duration {
 	return shadowResistanceAuraMeta.Duration(talentPoints)
 }
-func NewSpellDataShadowResistanceAuraAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataShadowResistanceAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, shadowResistanceAuraMeta, isPlayer, talentPoints)
 }
 
@@ -729,7 +729,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		driveBattleShout(char, party)
 	}
 	if party.DevotionAura {
-		core.MakePermanent(NewSpellDataDevotionAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataDevotionAura(&char.Unit, false, 0))
 	}
 	if party.LeaderOfThePack {
 		core.MakePermanent(NewSpellDataLeaderOfThePackAura(&char.Unit, false, 0))
@@ -741,16 +741,16 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		driveManaTideTotems(char, party)
 	}
 	if party.MoonkinAura {
-		core.MakePermanent(NewSpellDataMoonkinAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataMoonkinAura(&char.Unit, false, 0))
 	}
 	if party.RetributionAura {
 		driveRetributionAura(char, party)
 	}
 	if party.ConcentrationAura {
-		core.MakePermanent(NewSpellDataConcentrationAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataConcentrationAura(&char.Unit, false, 0))
 	}
 	if party.TrueshotAura {
-		core.MakePermanent(NewSpellDataTrueshotAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataTrueshotAura(&char.Unit, false, 0))
 	}
 	if party.AtieshMage > 0 {
 		driveAtieshMage(char, party)
@@ -807,13 +807,13 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		core.MakePermanent(NewSpellDataPrayerOfShadowProtectionAura(&char.Unit, false, 0))
 	}
 	if raid.FireResistanceAura {
-		core.MakePermanent(NewSpellDataFireResistanceAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataFireResistanceAura(&char.Unit, false, 0))
 	}
 	if raid.FrostResistanceAura {
-		core.MakePermanent(NewSpellDataFrostResistanceAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataFrostResistanceAura(&char.Unit, false, 0))
 	}
 	if raid.ShadowResistanceAura {
-		core.MakePermanent(NewSpellDataShadowResistanceAuraAura(&char.Unit, false, 0))
+		core.MakePermanent(NewSpellDataShadowResistanceAura(&char.Unit, false, 0))
 	}
 	if raid.FireResistanceTotem {
 		core.MakePermanent(NewSpellDataFireResistanceTotemAura(&char.Unit, false, 0))
