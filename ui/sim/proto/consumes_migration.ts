@@ -31,14 +31,16 @@ const LEGACY_VALUE_FIELDS = ['explosiveId', 'mhImbueId', 'ohImbueId'] as const;
 // The ConsumesSpec flags and lists removed since api version 1, each reserved by name: the JSON name
 // each had, its number in a version-1 or version-2 payload (0 where neither had such a field) and in a
 // payload from before the version restarted at 1, and the item a set flag selected, 0 where the client
-// ships none or the field held no item. The pet takes no consumables of its own, so its scrolls and
-// extra ids go.
+// ships none or the field held no item. A field whose value is an item id names the list it moves to:
+// the Battle and Guardian elixirs, 3 and 4 in every layout, move into the elixir list. The pet takes no
+// consumables of its own, so its scrolls and extra ids go.
 export interface RemovedConsumesField {
 	name: string;
 	jsonName: string;
 	no: number;
 	preRestartNo: number;
 	itemId: number;
+	moveTo?: 'elixirIds';
 }
 
 export const REMOVED_CONSUMES_FIELDS: ReadonlyArray<RemovedConsumesField> = [
@@ -57,20 +59,25 @@ export const REMOVED_CONSUMES_FIELDS: ReadonlyArray<RemovedConsumesField> = [
 	{ name: 'pet_food_id', jsonName: 'petFoodId', no: 0, preRestartNo: 21, itemId: 0 }, // the client ships no pet food
 	{ name: 'bloodthistle', jsonName: 'bloodthistle', no: 0, preRestartNo: 24, itemId: 0 }, // Bloodthistle 22710
 	{ name: 'pet_extra_ids', jsonName: 'petExtraIds', no: 20, preRestartNo: 0, itemId: 0 },
+	{ name: 'battle_elixir_id', jsonName: 'battleElixirId', no: 3, preRestartNo: 3, itemId: 0, moveTo: 'elixirIds' },
+	{ name: 'guardian_elixir_id', jsonName: 'guardianElixirId', no: 4, preRestartNo: 4, itemId: 0, moveTo: 'elixirIds' },
 ];
 
-// The Battle and Guardian elixir fields, 3 and 4 in every layout a payload may carry, whose item ids
-// the elixir list takes.
-export const REMOVED_ELIXIR_FIELDS = [
-	{ name: 'battle_elixir_id', jsonName: 'battleElixirId', no: 3 },
-	{ name: 'guardian_elixir_id', jsonName: 'guardianElixirId', no: 4 },
-] as const;
+const REMOVED_JSON_KEYS = REMOVED_CONSUMES_FIELDS.map(field => [field, [...new Set([field.jsonName, field.name])]] as const);
 
 // A payload from before the version restarted at 1 is stamped 16 or lower.
 const isPreRestart = (apiVersion: number) => apiVersion > 2 && apiVersion <= 16;
 
 // The repeated fields a payload from before the restart held the potions and conjured items in.
 const PRE_RESTART_LIST_NUMBERS = [22, 23];
+
+// The removed fields by their number in each layout, and the unknown fields each layout drops.
+const removedByNumber = (preRestart: boolean) =>
+	new Map(REMOVED_CONSUMES_FIELDS.map(field => [preRestart ? field.preRestartNo : field.no, field] as const).filter(([no]) => no !== 0));
+const REMOVED_BY_NUMBER = removedByNumber(false);
+const REMOVED_BY_PRE_RESTART_NUMBER = removedByNumber(true);
+const DROPPED_NUMBERS: ReadonlySet<number> = new Set(REMOVED_BY_NUMBER.keys());
+const DROPPED_PRE_RESTART_NUMBERS: ReadonlySet<number> = new Set([...REMOVED_BY_PRE_RESTART_NUMBER.keys(), ...PRE_RESTART_LIST_NUMBERS]);
 
 const withItem = (ids: ReadonlyArray<number> | undefined, itemId: number): Array<number> => {
 	const out = [...(ids ?? [])];
@@ -91,14 +98,14 @@ export const migrateConsumesJson = (json: unknown): unknown => {
 	if (!json || typeof json !== 'object') return json;
 	const consumes = { ...(json as Record<string, unknown>) } as Record<string, any>;
 	let changed = false;
-	for (const field of [...REMOVED_CONSUMES_FIELDS, ...REMOVED_ELIXIR_FIELDS]) {
-		for (const key of new Set([field.jsonName, field.name])) {
+	for (const [field, keys] of REMOVED_JSON_KEYS) {
+		for (const key of keys) {
 			if (!(key in consumes)) continue;
 			changed = true;
 			const value = consumes[key];
 			delete consumes[key];
-			if ('itemId' in field && value === true) addFlagItem(consumes, field);
-			if (!('itemId' in field) && typeof value === 'number') consumes.elixirIds = withItem(consumes.elixirIds, value);
+			if (value === true) addFlagItem(consumes, field);
+			if (field.moveTo && typeof value === 'number') consumes[field.moveTo] = withItem(consumes[field.moveTo], value);
 		}
 	}
 	return changed ? consumes : json;
@@ -138,19 +145,20 @@ export const parseIndividualSimSettingsJson = (text: string): IndividualSimSetti
 // a 1, and the pet's food.
 export const migrateConsumesUnknownFields = (consumes: ConsumesSpec, apiVersion: number) => {
 	const preRestart = isPreRestart(apiVersion);
-	const numbered = new Map(REMOVED_CONSUMES_FIELDS.map(field => [preRestart ? field.preRestartNo : field.no, field] as const).filter(([no]) => no !== 0));
-	const elixirNumbers: ReadonlyArray<number> = REMOVED_ELIXIR_FIELDS.map(field => field.no);
-	const set: Array<RemovedConsumesField> = [];
-	const elixirIds: Array<number> = [];
-	for (const entry of UnknownFieldHandler.list(consumes)) {
-		if (entry.wireType !== WireType.Varint) continue;
-		if (elixirNumbers.includes(entry.no)) elixirIds.push(new BinaryReader(entry.data).int32());
-		const field = numbered.get(entry.no);
-		if (field && new BinaryReader(entry.data).bool()) set.push(field);
-	}
-	const dropped = new Set([...numbered.keys(), ...elixirNumbers, ...(preRestart ? PRE_RESTART_LIST_NUMBERS : [])]);
 	const container = consumes as unknown as Record<symbol, Array<{ no: number }> | undefined>;
 	const unknown = container[UnknownFieldHandler.symbol];
+	if (!preRestart && !unknown?.length) return;
+
+	const numbered = preRestart ? REMOVED_BY_PRE_RESTART_NUMBER : REMOVED_BY_NUMBER;
+	const set: Array<RemovedConsumesField> = [];
+	const moved: Array<readonly [RemovedConsumesField, number]> = [];
+	for (const entry of UnknownFieldHandler.list(consumes)) {
+		const field = numbered.get(entry.no);
+		if (!field || entry.wireType !== WireType.Varint) continue;
+		if (field.moveTo) moved.push([field, new BinaryReader(entry.data).int32()]);
+		else if (new BinaryReader(entry.data).bool()) set.push(field);
+	}
+	const dropped = preRestart ? DROPPED_PRE_RESTART_NUMBERS : DROPPED_NUMBERS;
 	if (unknown) container[UnknownFieldHandler.symbol] = unknown.filter(entry => !dropped.has(entry.no));
 
 	if (preRestart) {
@@ -163,7 +171,7 @@ export const migrateConsumesUnknownFields = (consumes: ConsumesSpec, apiVersion:
 		}
 	}
 	set.forEach(field => addFlagItem(consumes, field));
-	elixirIds.forEach(id => (consumes.elixirIds = withItem(consumes.elixirIds, id)));
+	moved.forEach(([field, id]) => (consumes[field.moveTo!] = withItem(consumes[field.moveTo!], id)));
 };
 
 export const migrateLegacyConsumableValues = (consumes: ConsumesSpec) => {

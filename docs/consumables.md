@@ -343,6 +343,7 @@ number, `sim_links.ts`) or a saved blob's (JSON, by name) flags into item ids an
 explosive and imbue fields held into the items that cast them; `migrateLegacyConsumes` does it for
 both JSON shapes, saved settings and a sim's settings, and drops the party's drums. The pet's scroll
 flags and `pet_extra_ids` (20 in a version-2 link) are dropped, and the Battle and Guardian elixirs
-(3 and 4 in every layout, `REMOVED_ELIXIR_FIELDS`) move into `elixir_ids`.
+(3 and 4 in every layout) are rows of the same table whose `moveTo` puts their item ids into
+`elixir_ids`. A current link with no unknown fields is left as it is.
 `TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of those fields reserved in
 `ConsumesSpec`, version 1's by number as well.
