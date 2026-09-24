@@ -221,7 +221,11 @@ func registerSpellDataConsumable(itemID int32, kind spellDataConsumableKind, reg
 
 		var selfDamage *core.Spell
 		if parts.selfDamage != nil {
-			selfDamage = character.RegisterSpell(consumableSelfDamageSpell(character, row, parts.selfDamage, actionID))
+			selfConfig := spelldata.SpellConfig(&character.Unit, row, spelldata.Magic(core.ProcMaskEmpty), spelldata.Proc())
+			selfConfig.ActionID = actionID
+			selfConfig.Flags &^= core.SpellFlagHelpful
+			selfConfig.DefenseType = damageDefenseType(selfConfig.DefenseType, selfConfig.SpellSchool, false)
+			selfDamage = registerCasterDamageSpell(character, selfConfig, parts.selfDamage)
 		}
 
 		ownEffects := config.ApplyEffects
@@ -380,18 +384,4 @@ func newConsumableGain(character *core.Character, row *spelldata.Spell, e *spell
 		return room >= amount(func(e *spelldata.Effect) float64 { return e.Max(level) })*float64(ticks)
 	}
 	return gain
-}
-
-// The damage the spell deals its user, as its own spell so the hit is one the character takes.
-func consumableSelfDamageSpell(character *core.Character, row *spelldata.Spell, e *spelldata.Effect, actionID core.ActionID) core.SpellConfig {
-	config := spelldata.SpellConfig(&character.Unit, row, spelldata.Magic(core.ProcMaskEmpty), spelldata.Proc())
-	config.ActionID = actionID.WithTag(1)
-	config.Flags &^= core.SpellFlagHelpful
-	config.DefenseType = damageDefenseType(config.DefenseType, config.SpellSchool, false)
-	outcome := damageOutcome(config.DefenseType, row.CannotCrit(), OutcomeDefault)
-
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, e.Roll(sim, character.Level), GetOutcome(spell, outcome))
-	}
-	return config
 }

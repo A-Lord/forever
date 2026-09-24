@@ -24,7 +24,20 @@ func NewSpellDataExplosive(itemID int32) {
 			config := onUseSpellConfig(character, itemID, itemEffect, spellDataOnUseDamageSpell)
 			config.Flags |= core.SpellFlagExplosive
 			if self := spelldata.MustFind(itemEffect.BuffId).CasterDamageEffect(); self != spelldata.NilEffect {
-				config.ApplyEffects = withCasterDamage(character, config, self)
+				selfSpell := registerCasterDamageSpell(character, core.SpellConfig{
+					ActionID:         config.ActionID,
+					SpellSchool:      config.SpellSchool,
+					DefenseType:      config.DefenseType,
+					ProcMask:         core.ProcMaskSpellDamage,
+					Flags:            core.SpellFlagExplosive,
+					DamageMultiplier: 1,
+					ThreatMultiplier: 1,
+				}, self)
+				applyEffects := config.ApplyEffects
+				config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+					applyEffects(sim, target, spell)
+					selfSpell.ApplyEffects(sim, &character.Unit, selfSpell)
+				}
 			}
 
 			// An explosive with a cooldown of its own, such as the sapper, goes before the ones only the
@@ -42,27 +55,18 @@ func NewSpellDataExplosive(itemID int32) {
 	})
 }
 
-// The spell's effects, then the roll of its caster effect on the thrower. That half is a spell of its
-// own, tagged 1, so that it reaches the character as a harmful spell hit, which is what a listener on
-// spell damage taken hears.
-func withCasterDamage(character *core.Character, config core.SpellConfig, self *spelldata.Effect) core.ApplySpellResults {
-	selfSpell := character.RegisterSpell(core.SpellConfig{
-		ActionID:    config.ActionID.WithTag(1),
-		SpellSchool: config.SpellSchool,
-		DefenseType: config.DefenseType,
-		ProcMask:    core.ProcMaskSpellDamage,
-		Flags:       core.SpellFlagExplosive,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-	})
-	outcome := casterDamageOutcome(selfSpell, spelldata.Find(self.SpellID).CannotCrit())
-
-	applyEffects := config.ApplyEffects
-	return func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		applyEffects(sim, target, spell)
-		selfSpell.CalcAndDealDamage(sim, &character.Unit, self.Roll(sim, character.Level), outcome)
+// The damage a consumable's spell deals its user, rolled from e, as a spell of its own under config,
+// tagged 1, so that it reaches the character as a harmful spell hit, which is what a listener on spell
+// damage taken hears.
+func registerCasterDamageSpell(character *core.Character, config core.SpellConfig, e *spelldata.Effect) *core.Spell {
+	config.ActionID = config.ActionID.WithTag(1)
+	var outcome core.OutcomeApplier
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, e.Roll(sim, character.Level), outcome)
 	}
+	spell := character.RegisterSpell(config)
+	outcome = casterDamageOutcome(spell, spelldata.Find(e.SpellID).CannotCrit())
+	return spell
 }
 
 // Damage a spell deals to its own caster always lands; it can still crit, on the crit of its defense

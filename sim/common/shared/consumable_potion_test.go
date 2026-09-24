@@ -218,6 +218,27 @@ func TestConjuredRuneRestoresManaAtTheCostOfLife(t *testing.T) {
 	}
 }
 
+// 16666's damage to the user lands however poor the user's spell hit.
+func TestConjuredRuneAlwaysHitsTheUser(t *testing.T) {
+	const runeID int32 = 992031
+	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ConjuredId: runeID, ConjuredItems: []int32{runeID}}, 0,
+		testConsumable{runeID, NewSpellDataConjured, testOnUse(16666, -1, 1153, 120000)})
+	drinker.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -1000})
+	rune := consumableSpell(t, drinker, runeID)
+	self := drinker.GetSpell(core.ActionID{ItemID: runeID}.WithTag(1))
+	damage := spelldata.MustFind(16666).CasterDamageEffect()
+
+	for range 20 {
+		rune.SharedCD.Reset()
+		health := drinker.CurrentHealth()
+		rune.Cast(sim, &drinker.Unit)
+		if lost := health - drinker.CurrentHealth(); lost < damage.Min(core.CharacterLevel) {
+			t.Errorf("the rune cost %v health, want at least %v", lost, damage.Min(core.CharacterLevel))
+		}
+		drinker.GainHealth(sim, drinker.MaxHealth(), self.HealthMetrics(&drinker.Unit))
+	}
+}
+
 // Thistle Tea 7676 casts 9512, E_ENERGIZE 100 into energy with no spread, on a 300 s cooldown of its
 // own and conjured category 1153 for 120 s.
 func TestConjuredTeaRestoresAFlatHundredEnergy(t *testing.T) {
