@@ -44,7 +44,7 @@ func warriorWithFlask(t *testing.T, flaskID int32) *core.Character {
 }
 
 // Each flask's 1293740-1293743 states 60 Stamina, and in its A_DUMMY the zone bonus the text names: 5%
-// hit, 4% crit, 5% less chance to be dodged or parried (20 expertise), 5% haste.
+// hit, 4% crit, 5% less chance to be dodged or parried (5% expertise), 5% haste.
 func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 	bare := warriorWithFlask(t, 0)
 	for _, tc := range []struct {
@@ -54,7 +54,7 @@ func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 	}{
 		{274273, stats.Stats{stats.PhysicalHitPercent: 5, stats.SpellHitPercent: 5}, 1},
 		{274274, stats.Stats{stats.PhysicalCritPercent: 4, stats.SpellCritPercent: 4}, 1},
-		{274275, stats.Stats{stats.ExpertiseRating: 5 * core.ExpertiseRatingPerExpertisePercent}, 1},
+		{274275, stats.Stats{stats.ExpertisePercent: 5}, 1},
 		{274276, stats.Stats{}, 1.05},
 	} {
 		flasked := warriorWithFlask(t, tc.itemID)
@@ -68,7 +68,7 @@ func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 			t.Errorf("%d: Stamina rose by %v, want 60", tc.itemID, gained[stats.Stamina])
 		}
 		for _, stat := range []stats.Stat{stats.PhysicalHitPercent, stats.SpellHitPercent, stats.PhysicalCritPercent,
-			stats.SpellCritPercent, stats.ExpertiseRating} {
+			stats.SpellCritPercent, stats.ExpertiseRating, stats.ExpertisePercent} {
 			if math.Abs(gained[stat]-tc.bonus[stat]) > 1e-9 {
 				t.Errorf("%d: %s rose by %v, want %v", tc.itemID, stat.StatName(), gained[stat], tc.bonus[stat])
 			}

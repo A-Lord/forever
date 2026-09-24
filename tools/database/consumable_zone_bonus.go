@@ -26,7 +26,7 @@ func AddNaturalFlaskZoneBonusStats(db *WowDatabase) error {
 		ratings[stats.SpellHitRating] = bonus.Stats[stats.SpellHitPercent] * core.SpellHitRatingPerHitPercent
 		ratings[stats.MeleeCritRating] = bonus.Stats[stats.PhysicalCritPercent] * core.PhysicalCritRatingPerCritPercent
 		ratings[stats.SpellCritRating] = bonus.Stats[stats.SpellCritPercent] * core.SpellCritRatingPerCritPercent
-		ratings[stats.ExpertiseRating] = bonus.Stats[stats.ExpertiseRating]
+		ratings[stats.ExpertiseRating] = bonus.Stats[stats.ExpertisePercent] * core.ExpertiseRatingPerExpertisePercent
 		ratings[stats.MeleeHasteRating] = bonus.AttackHastePercent * core.PhysicalHasteRatingPerHastePercent
 		ratings[stats.SpellHasteRating] = bonus.CastHastePercent * core.SpellHasteRatingPerHastePercent
 		consumable.Stats = stats.FromProtoArray(consumable.Stats).Add(ratings).ToProtoArray()

@@ -64,7 +64,7 @@ func NaturalFlaskZoneBonusOf(row *spelldata.Spell, percent float64) (NaturalFlas
 			bonus.Stats[stats.PhysicalCritPercent] = percent
 			bonus.Stats[stats.SpellCritPercent] = percent
 		case dbcenums.A_MOD_EXPERTISE:
-			bonus.Stats[stats.ExpertiseRating] = percent * core.ExpertiseRatingPerExpertisePercent
+			bonus.Stats[stats.ExpertisePercent] = percent
 		case dbcenums.A_MOD_MELEE_RANGED_HASTE_2:
 			bonus.AttackHastePercent = percent
 		case dbcenums.A_MOD_CASTING_SPEED_NOT_STACK:

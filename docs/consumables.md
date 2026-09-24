@@ -181,16 +181,16 @@ func init() {
 ```
 
 The Stamina is the parser's, from the first effect. `NaturalFlaskZoneBonusOf` reads the dummy's amount
-as the later auras name it, as though every fight is in those zones; `A_MOD_EXPERTISE` takes it as a
-percent at `core.ExpertiseRatingPerExpertisePercent` (10) expertise rating each, since the text reads "5% reduced chance to be dodged or
-parried". A hand-written effect for an id a builder does register takes that registration's place;
+as the later auras name it, as though every fight is in those zones; `A_MOD_EXPERTISE` takes it as
+`stats.ExpertisePercent`, since the text reads "5% reduced chance to be dodged or parried". A
+hand-written effect for an id a builder does register takes that registration's place;
 deleting the hand-written one hands the id back to the rows.
 
 The settings offer a consumable by the stats db.json lists for it, and the parser lists only the
 Stamina. `AddNaturalFlaskZoneBonusStats` (`tools/database/consumable_zone_bonus.go`) adds the same
 `NaturalFlaskZoneBonusOf` to each flask's db.json stats at the rating one percent takes (Accuracy 50 melee and spell hit rating,
-Aggression 56 melee and spell crit rating, Precision 50 expertise rating, Swiftness 50 melee and spell
-haste rating). The sim reads the rows, not those stats.
+Aggression 56 melee and spell crit rating, Precision 50 expertise rating at
+`core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 melee and spell haste rating). The sim reads the rows, not those stats.
 
 ## Adding a consumable the rows do not support
 
