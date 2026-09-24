@@ -2,8 +2,10 @@ package database
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
@@ -39,10 +41,11 @@ func auraGroup(kind string, aura dbcenums.EffectAuraType, misc int) ConsumableGr
 }
 
 // Writes the consumable's exclusive group. ConsumableExclusiveGroups names it first. Otherwise an
-// elixir's is the aura type and misc value of the first aura its on-use spell applies, and a scroll's
-// the same among the scrolls, so the ranks of one scroll share a group and a scroll stacks with every
-// elixir. A stat consumable used one at a time with the others of its category
-// (shared.OneAtATimeCategory) is grouped by that category. Any other consumable has no group.
+// elixir's is the aura type and misc value of the first aura its on-use spell applies, and a scroll
+// joins the elixir group of the same key; a scroll whose key no shipped elixir has keeps a group of
+// its own, which the ranks of that scroll share. A stat consumable used one at a time with the others
+// of its category (shared.OneAtATimeCategory) is grouped by that category. Any other consumable has
+// no group.
 func setConsumableGroup(c *dbc.Consumable, consumable *proto.Consumable, routing *ConsumableRouting, instance *dbc.DBC) {
 	group := consumableGroupOf(c, consumable, routing, instance)
 	consumable.GroupKey, consumable.GroupName = group.Key, group.Name
@@ -66,10 +69,11 @@ func rowGroupOf(c *dbc.Consumable, consumable *proto.Consumable, routing *Consum
 		if !ok {
 			return ConsumableGroupKey{}
 		}
-		if consumable.Type == proto.ConsumableType_ConsumableTypeScroll {
+		group := ElixirGroup(aura, misc)
+		if consumable.Type == proto.ConsumableType_ConsumableTypeScroll && !shippedElixirGroups(instance)[group.Key] {
 			return scrollGroup(aura, misc)
 		}
-		return ElixirGroup(aura, misc)
+		return group
 	}
 	if runsAsStatConsumable(c, consumable, routing) {
 		if category := shared.OneAtATimeCategory(onUse); category > 0 {
@@ -77,6 +81,34 @@ func rowGroupOf(c *dbc.Consumable, consumable *proto.Consumable, routing *Consum
 		}
 	}
 	return ConsumableGroupKey{}
+}
+
+var elixirGroupsOf = struct {
+	sync.Mutex
+	keys map[*dbc.DBC]map[string]bool
+}{keys: map[*dbc.DBC]map[string]bool{}}
+
+// The keys of the groups the rows give the elixirs the catalogue ships.
+func shippedElixirGroups(instance *dbc.DBC) map[string]bool {
+	elixirGroupsOf.Lock()
+	defer elixirGroupsOf.Unlock()
+	if keys, ok := elixirGroupsOf.keys[instance]; ok {
+		return keys
+	}
+	keys := map[string]bool{}
+	for _, id := range slices.Sorted(maps.Keys(instance.Consumables)) {
+		catalogued := instance.Consumables[id]
+		consumable := catalogued.ToProto()
+		if consumable.Type != proto.ConsumableType_ConsumableTypeElixir || len(consumable.ItemEffects) == 0 ||
+			!ShipsConsumable(RouteConsumable(&catalogued, instance)) || !KeepConsumable(consumable) {
+			continue
+		}
+		if aura, misc, ok := firstAura(instance, int(consumable.ItemEffects[0].BuffId)); ok {
+			keys[ElixirGroup(aura, misc).Key] = true
+		}
+	}
+	elixirGroupsOf.keys[instance] = keys
+	return keys
 }
 
 func exclusiveGroupOverride(id int32) (ConsumableGroupKey, bool) {

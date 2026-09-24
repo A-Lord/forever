@@ -174,16 +174,59 @@ func TestAJujuAndAnElixirOfItsGroupDoNotStack(t *testing.T) {
 	}
 }
 
-// The scrolls are groups of their own: Scroll of Agility IV 10309 (12174, 17 Agility) stacks with
-// Elixir of the Mongoose 13452's 25.
-func TestAScrollStacksWithAnElixirOfItsStat(t *testing.T) {
+// A scroll joins the elixir group of its stat: Scroll of Agility IV 10309 (12174, 17 Agility) and
+// Elixir of the Mongoose 13452 (17538, 25 Agility) are one Agility group, and the elixir the spec
+// names comes before its extra ids.
+func TestAScrollAndAnElixirOfItsStatDoNotStack(t *testing.T) {
 	const scrollOfAgilityIV int32 = 10309
 	registerStatConsumable(t, scrollOfAgilityIV)
 	registerStatConsumable(t, elixirOfTheMongooseID)
 
+	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{scrollOfAgilityIV}}, &proto.RaidBuffs{}); gain[stats.Agility] != 17 {
+		t.Errorf("Scroll of Agility IV adds %v Agility, want 17", gain[stats.Agility])
+	}
 	both := &proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}, ExtraIds: []int32{scrollOfAgilityIV}}
-	if gain := statGain(both, &proto.RaidBuffs{}); gain[stats.Agility] != 42 {
-		t.Errorf("Scroll of Agility IV and Elixir of the Mongoose add %v Agility, want 42", gain[stats.Agility])
+	if gain := statGain(both, &proto.RaidBuffs{}); gain[stats.Agility] != 25 {
+		t.Errorf("Scroll of Agility IV and Elixir of the Mongoose add %v Agility, want the elixir's 25", gain[stats.Agility])
+	}
+}
+
+// Scroll of Strength IV 10310 (12179, 17 Strength), Juju Power 12451 (16323, 30) and Elixir of Greater
+// Strength 9206 (11405, 25) are one Strength group: only the first the spec names applies.
+func TestOnlyOneOfAStrengthScrollJujuAndElixirApplies(t *testing.T) {
+	const scrollOfStrengthIV, jujuPower, greaterStrength int32 = 10310, 12451, 9206
+	for _, id := range []int32{scrollOfStrengthIV, jujuPower, greaterStrength} {
+		registerStatConsumable(t, id)
+	}
+
+	for _, tc := range []struct {
+		name     string
+		consumes *proto.ConsumesSpec
+		gain     float64
+	}{
+		{"the scroll then Juju Power", &proto.ConsumesSpec{ExtraIds: []int32{scrollOfStrengthIV, jujuPower}}, 17},
+		{"Juju Power then the scroll", &proto.ConsumesSpec{ExtraIds: []int32{jujuPower, scrollOfStrengthIV}}, 30},
+		{"the elixir, the scroll and Juju Power", &proto.ConsumesSpec{ElixirIds: []int32{greaterStrength}, ExtraIds: []int32{scrollOfStrengthIV, jujuPower}}, 25},
+	} {
+		if gain := statGain(tc.consumes, &proto.RaidBuffs{}); gain[stats.Strength] != tc.gain {
+			t.Errorf("%s: %v Strength, want %v", tc.name, gain[stats.Strength], tc.gain)
+		}
+	}
+}
+
+// No elixir opens on A_MOD_STAT Stamina, so Scroll of Stamina IV 10307 (12178, 16 Stamina) keeps a group
+// of its own and stacks with Elixir of the Mongoose 13452.
+func TestAScrollNoElixirSharesStacksWithTheElixirs(t *testing.T) {
+	const scrollOfStaminaIV int32 = 10307
+	registerStatConsumable(t, scrollOfStaminaIV)
+	registerStatConsumable(t, elixirOfTheMongooseID)
+
+	scroll := statGain(&proto.ConsumesSpec{ExtraIds: []int32{scrollOfStaminaIV}}, &proto.RaidBuffs{})
+	elixir := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}}, &proto.RaidBuffs{})
+	both := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}, ExtraIds: []int32{scrollOfStaminaIV}}, &proto.RaidBuffs{})
+	if scroll[stats.Stamina] != 16 || both != scroll.Add(elixir) {
+		t.Errorf("Scroll of Stamina IV adds %v Stamina, and with Elixir of the Mongoose %v, want 16 and each one's in full: %v and %v",
+			scroll[stats.Stamina], both, scroll, elixir)
 	}
 }
 
