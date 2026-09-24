@@ -1,11 +1,13 @@
+import { readFileSync } from 'node:fs';
+
 import { Player as PlayerProto } from '@generated/proto/api';
-import { ConsumesSpec } from '@generated/proto/common';
+import { ConsumableType, ConsumesSpec } from '@generated/proto/common';
 import { IndividualSimSettings } from '@generated/proto/ui';
 import { BinaryWriter, UnknownFieldHandler, WireType } from '@protobuf-ts/runtime';
 import { describe, expect, it } from 'vitest';
 
 import { Player } from '../player/player';
-import { migrateConsumesJson, migrateConsumesToItemIds, migrateLegacyConsumes, REMOVED_CONSUMES_FIELDS } from './consumes_migration';
+import { LEGACY_CONSUMABLE_VALUES, migrateConsumesJson, migrateConsumesToItemIds, migrateLegacyConsumes, REMOVED_CONSUMES_FIELDS } from './consumes_migration';
 
 // A ConsumesSpec as a version-16 link encoded it: pot_id 1, the explosive and main-hand imbue as spell
 // ids, and the flags and drums by their old field numbers.
@@ -134,5 +136,19 @@ describe('Player.updateProtoVersion', () => {
 		const player = PlayerProto.create({ apiVersion: 17, consumables: ConsumesSpec.create({ explosiveId: 15239 }) });
 		Player.updateProtoVersion(player);
 		expect(player.consumables?.explosiveId).toBe(15239);
+	});
+});
+
+describe('LEGACY_CONSUMABLE_VALUES', () => {
+	it('turns each legacy spell id into an explosive or imbue db.json ships, or into 0', () => {
+		const consumables: Array<{ id: number; type?: ConsumableType }> = JSON.parse(readFileSync('assets/database/db.json', 'utf-8')).consumables;
+		const shipped = new Set(
+			consumables
+				.filter(consumable => consumable.type === ConsumableType.ConsumableTypeExplosive || consumable.type === ConsumableType.ConsumableTypeImbue)
+				.map(consumable => consumable.id),
+		);
+		for (const [spellId, itemId] of LEGACY_CONSUMABLE_VALUES) {
+			if (itemId) expect(shipped.has(itemId), `${spellId} -> ${itemId}`).toBe(true);
+		}
 	});
 });

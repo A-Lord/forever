@@ -1,10 +1,6 @@
 package database
 
-import (
-	"testing"
-
-	"github.com/wowsims/forever/sim/core/proto"
-)
+import "testing"
 
 func TestConsumableTSName(t *testing.T) {
 	for name, want := range map[string]string{
@@ -19,18 +15,6 @@ func TestConsumableTSName(t *testing.T) {
 	} {
 		if got := consumableTSName(name); got != want {
 			t.Errorf("consumableTSName(%q) = %q, want %q", name, got, want)
-		}
-	}
-}
-
-func TestConsumableTypeListName(t *testing.T) {
-	for consumableType, want := range map[proto.ConsumableType]string{
-		proto.ConsumableType_ConsumableTypePotion:       "POTION_CONSUMABLES",
-		proto.ConsumableType_ConsumableTypeBattleElixir: "BATTLE_ELIXIR_CONSUMABLES",
-		proto.ConsumableType_ConsumableTypePetFood:      "PET_FOOD_CONSUMABLES",
-	} {
-		if got := consumableTypeListName(consumableType); got != want {
-			t.Errorf("consumableTypeListName(%v) = %q, want %q", consumableType, got, want)
 		}
 	}
 }

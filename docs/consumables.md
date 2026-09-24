@@ -281,9 +281,9 @@ and which specs have a pet. `Player.getConsumes(true)` sends the relevant potion
 the spec's lists.
 
 `gen_db -gen=db` writes `ui/features/settings/model/consumables_auto_gen.ts` in the same pass as db.json:
-one named export per shipped consumable (`MightyRagePotion`, with its id, type, `ActionId` and the
-fields above) and one list per type. Presets name consumables through it, so a preset cannot name one
-db.json does not ship. A name several items share takes each item's id (`MajorHealthstone9421`).
+one named export per shipped consumable, carrying its item id (`MightyRagePotion = { id: 13442 }`).
+Presets name consumables through it, so a preset cannot name one db.json does not ship. A name several
+items share takes each item's id (`MajorHealthstone9421`).
 
 ## The browser path
 
