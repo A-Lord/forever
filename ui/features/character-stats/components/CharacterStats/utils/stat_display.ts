@@ -31,21 +31,17 @@ export interface RacialBonuses {
 	hasRacialHitBonus: boolean;
 	/** Human/Orc weapon expertise, main hand then off hand. */
 	activeRacialExpertiseBonuses: boolean[];
-	/** Weapon stones credit melee crit rating that the ranged rows have to offset back out. */
-	rangedImbueStatOffsets: Stats;
 }
 
 export const readRacialBonuses = (player: Player<any>): RacialBonuses => ({
 	hasRacialHitBonus: player.getRace() === Race.RaceDraenei,
 	activeRacialExpertiseBonuses: player.getActiveRacialExpertiseBonuses(),
-	rangedImbueStatOffsets: player.getRangedImbueStatOffsets(),
 });
 
 /**
- * TBC's five-parameter form. `includeBase`/`includeGear`/`includeConsumes` say which stage the
- * delta being rendered covers, because several stats are only correct once the stage that hides
- * them is known: the base defense skill, the Draenei hit rating, the racial expertise rating, the
- * scope enchants, and the weapon-stone crit offset.
+ * `includeBase`/`includeGear` say which stage the delta being rendered covers, because several
+ * stats are only correct once the stage that hides them is known: the base defense skill, the
+ * Draenei hit rating, the racial expertise rating and the scope enchants.
  */
 export const statDisplayString = (
 	player: Player<any>,
@@ -54,7 +50,6 @@ export const statDisplayString = (
 	unitStat: UnitStat,
 	includeBase?: boolean,
 	includeGear?: boolean,
-	includeConsumes?: boolean,
 ): string => {
 	const rootStat = unitStat.hasRootStat() ? unitStat.getRootStat() : null;
 	let rootRatingValue = rootStat !== null ? deltaStats.getStat(rootStat) : null;
@@ -109,11 +104,6 @@ export const statDisplayString = (
 	} else if (rootRatingValue !== null && unitStat.equalsPseudoStat(PseudoStat.PseudoStatRangedCritPercent)) {
 		if (includeGear && player.getEquippedItem(ItemSlot.ItemSlotRanged)?.enchant?.effectId === SCOPE_CRIT_ENCHANT_EFFECT_ID) {
 			rootRatingValue += 28;
-		}
-
-		// Remove the weapon stone rating display and only show %
-		if (includeConsumes && rootStat !== null) {
-			rootRatingValue += racial.rangedImbueStatOffsets.getStat(rootStat);
 		}
 	} else if (rootStat == Stat.StatBlockValue) {
 		if (rootRatingValue !== null && rootRatingValue > 0) {

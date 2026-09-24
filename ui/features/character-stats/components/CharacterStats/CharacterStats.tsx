@@ -35,10 +35,8 @@ export const CharacterStats = () => {
 	const talentsString = usePlayerStore('talentsString');
 	const inFrontOfTarget = usePlayerStore('inFrontOfTarget');
 	// Not player state, but read by the facade getters below: getDebuffStats and getMissChanceInfo
-	// go through raid.debuffs, getRangedImbueStatOffsets through the party's windfury totem, and
-	// getMeleeCritCapInfo through the primary target's level.
+	// go through raid.debuffs, and getMeleeCritCapInfo through the primary target's level.
 	const debuffs = useStore(host.sim.store, s => s.raid.debuffs);
-	const partyBuffs = useStore(host.sim.store, s => s.raid.partyBuffs);
 	const targets = useStore(host.sim.store, s => s.encounter.targets);
 
 	const snapshot = useMemo(() => {
@@ -72,15 +70,14 @@ export const CharacterStats = () => {
 		talentsString,
 		inFrontOfTarget,
 		debuffs,
-		partyBuffs,
 		targets,
 		modifyDisplayStats,
 		overwriteDisplayStats,
 	]);
 
 	const { pending, racial, attribution, rangedWeapon, critCap, miss, avoidance, critImmunity } = snapshot;
-	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean, includeConsumes?: boolean) =>
-		statDisplayString(player, racial, deltaStats, unitStat, includeBase, includeGear, includeConsumes);
+	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean) =>
+		statDisplayString(player, racial, deltaStats, unitStat, includeBase, includeGear);
 
 	const hasParry = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatParryPercent));
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));

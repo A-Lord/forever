@@ -1,4 +1,4 @@
-import { ConsumesSpec, Debuffs, Faction, IndividualBuffs, PartyBuffs, RaidBuffs, Spec } from '@generated/proto/common';
+import { Debuffs, Faction, IndividualBuffs, PartyBuffs, RaidBuffs, Spec } from '@generated/proto/common';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import { Party } from '@sim/raid/party';
@@ -81,23 +81,6 @@ export const makeBooleanPartyBuffInput = <SpecType extends Spec>(
 	);
 };
 
-export const makeBooleanConsumeInput = <SpecType extends Spec>(
-	config: BooleanInputConfig<ConsumesSpec>,
-): InputHelpers.TypedIconPickerConfig<Player<SpecType>, boolean> => {
-	return InputHelpers.makeBooleanIconInput<any, ConsumesSpec, Player<SpecType>>(
-		{
-			getModObject: (player: Player<SpecType>) => player,
-			getValue: (player: Player<SpecType>) => player.getConsumes(),
-			setValue: (player: Player<SpecType>, newVal: ConsumesSpec) => player.setConsumes(newVal),
-			storeField: ['consumables', 'profession1', 'profession2'],
-			showWhen: (player: Player<SpecType>) => !config.showWhen || config.showWhen(player),
-			enableWhen: config.enableWhen,
-		},
-		config.actionId,
-		config.fieldName,
-		config.value,
-	);
-};
 export const makeBooleanDebuffInput = <SpecType extends Spec>(
 	config: BooleanInputConfig<Debuffs>,
 ): InputHelpers.TypedIconPickerConfig<Player<SpecType>, boolean> => {

@@ -686,12 +686,6 @@ export class Player<SpecType extends Spec> {
 		return ConsumesSpec.clone(this.slice().consumables);
 	}
 
-	// The crit rating a melee weapon imbue grants, which ranged stat displays offset back out. No
-	// imbue in this client grants crit rating.
-	getRangedImbueStatOffsets(): Stats {
-		return new Stats();
-	}
-
 	setConsumes(newConsumes: ConsumesSpec) {
 		if (ConsumesSpec.equals(this.slice().consumables, newConsumes)) return;
 

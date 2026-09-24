@@ -16,7 +16,7 @@ vi.mock('@i18n/config', () => ({ default: { t: (key: string) => STRINGS[key] ?? 
 const { bonusStatClass, critCapClass, critImmunityCapDisplayString, critImmunityClass, statDisplayString } = await import('./stat_display');
 type RacialBonuses = Parameters<typeof statDisplayString>[1];
 
-const NO_RACIALS: RacialBonuses = { hasRacialHitBonus: false, activeRacialExpertiseBonuses: [false, false], rangedImbueStatOffsets: new Stats() };
+const NO_RACIALS: RacialBonuses = { hasRacialHitBonus: false, activeRacialExpertiseBonuses: [false, false] };
 
 const fakePlayer = (overrides: Record<string, unknown> = {}) =>
 	({
@@ -25,8 +25,8 @@ const fakePlayer = (overrides: Record<string, unknown> = {}) =>
 		...overrides,
 	}) as unknown as Player<any>;
 
-const show = (stats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean, includeConsumes?: boolean, racial = NO_RACIALS) =>
-	statDisplayString(fakePlayer(), racial, stats, unitStat, includeBase, includeGear, includeConsumes);
+const show = (stats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean, racial = NO_RACIALS) =>
+	statDisplayString(fakePlayer(), racial, stats, unitStat, includeBase, includeGear);
 
 describe('statDisplayString, defense rating', () => {
 	const defense = UnitStat.fromStat(Stat.StatDefenseRating);
@@ -58,17 +58,6 @@ describe('statDisplayString, TBC-only stats', () => {
 		expect(show(stats, UnitStat.fromStat(Stat.StatFireDamage))).toBe('250 (+50)');
 	});
 
-	it('offsets the weapon-stone crit rating back out of the ranged crit row at the consumes stage', () => {
-		const rangedCrit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedCritPercent);
-		const stats = new Stats()
-			.withStat(Stat.StatMeleeCritRating, Mechanics.PHYSICAL_CRIT_RATING_PER_CRIT_PERCENT)
-			.withPseudoStat(PseudoStat.PseudoStatRangedCritPercent, 1);
-		const racial = { ...NO_RACIALS, rangedImbueStatOffsets: new Stats().withStat(Stat.StatMeleeCritRating, -14) };
-
-		expect(show(stats, rangedCrit, false, false, false, racial)).toBe('14 (1.00%)');
-		expect(show(stats, rangedCrit, false, false, true, racial)).toBe('1.00%');
-	});
-
 	it('adds the ranged hit enchant rating at the gear stage only', () => {
 		const rangedHit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent);
 		const stats = new Stats().withPseudoStat(PseudoStat.PseudoStatRangedHitPercent, 2);
@@ -85,8 +74,8 @@ describe('statDisplayString, TBC-only stats', () => {
 			.withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 2);
 		const racial = { ...NO_RACIALS, hasRacialHitBonus: true };
 
-		expect(show(stats, meleeHit, true, false, false, racial)).toBe('10 (2.00%)');
-		expect(show(stats, meleeHit, false, false, false, racial)).toBe('20 (2.00%)');
+		expect(show(stats, meleeHit, true, false, racial)).toBe('10 (2.00%)');
+		expect(show(stats, meleeHit, false, false, racial)).toBe('20 (2.00%)');
 	});
 });
 
