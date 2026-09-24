@@ -1187,21 +1187,22 @@ func registerSpellDataOnUseCooldown(itemID int32, onUse func(*core.Character, *s
 		character := agent.GetCharacter()
 
 		for _, itemEffect := range onUseEffectsFor(itemID) {
-			config, cooldown, ok := onUse(character, spelldata.MustFind(itemEffect.BuffId))
+			row := spelldata.MustFind(itemEffect.BuffId)
+			config, cooldown, ok := onUse(character, row)
 			if !ok {
 				continue
 			}
-			cooldown.Spell = character.RegisterSpell(onUseSpellConfig(character, itemID, itemEffect, config))
+			cooldown.Spell = character.RegisterSpell(onUseSpellConfig(character, itemID, itemEffect, row, config))
 			character.AddMajorCooldown(cooldown)
 		}
 	})
 }
 
-func onUseSpellConfig(character *core.Character, itemID int32, itemEffect *proto.ItemEffect, config core.SpellConfig) core.SpellConfig {
+func onUseSpellConfig(character *core.Character, itemID int32, itemEffect *proto.ItemEffect, row *spelldata.Spell, config core.SpellConfig) core.SpellConfig {
 	config.ActionID = core.ActionID{ItemID: itemID}
 
 	onUse := onUseCast(character, itemEffect)
-	config.Cast = spelldata.Cast(spelldata.MustFind(itemEffect.BuffId))
+	config.Cast = spelldata.Cast(row)
 	config.Cast.CD, config.Cast.SharedCD = onUse.CD, onUse.SharedCD
 	return config
 }
