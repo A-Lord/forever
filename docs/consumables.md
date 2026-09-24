@@ -294,8 +294,9 @@ shared one (Goblin Sapper Charge 10646) beside the explosive picker.
 The generator writes the type (`Consumable.ToProto` in `tools/database/dbc/consumable.go`) from the
 category the first on-use row shares, which is also the consumable's `category_id`: the item row's, or
 where it states none, its spell's. An imbue is typed by what it does, and an explosive is what shares
-the explosives' category 24 and routes as damage (`ShippedConsumable`), so the explosive picker offers
-nothing else: Bag of Marbles 1191 shares the category and deals no damage. Category 4 makes a
+the explosives' category 24 and routes as damage (`IsExplosive` in `tools/database/gen_consumables.go`,
+which db.json's type and the explosive registrations both read), so the explosive picker offers nothing
+else: Bag of Marbles 1191 shares the category and deals no damage. Category 4 makes a
 potion (Potion of Demonslaying 9224 is an Elixir-subclass item and only its spell 11406 names the
 category) and 1153 a conjured item (Demonic Rune 12662 is not even a Consumable-class item); food and
 drink categories 11 and 59 make food of what its subclass leaves neither a potion, a flask nor an elixir;

@@ -48,36 +48,29 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 		if routing == nil && inCatalogue {
 			routing = RouteConsumable(&catalogued, instance)
 		}
-		consumableType := proto.ConsumableType_ConsumableTypeUnknown
 		name := catalogued.Name
 		if shipped {
-			consumableType, name = c.Type, c.Name
-		} else if inCatalogue {
-			consumableType = catalogued.GetConsumableType()
+			name = c.Name
 		}
 		entry := consumableRegistration{id: id, name: name}
 
 		switch {
-		case shipped && consumableType == proto.ConsumableType_ConsumableTypeImbue:
+		case shipped && c.Type == proto.ConsumableType_ConsumableTypeImbue:
 			entry.constructor = "NewTemporaryEnchantConsumable"
 			imbues = append(imbues, entry)
-		case inCatalogue && consumableType == proto.ConsumableType_ConsumableTypeExplosive:
+		case inCatalogue && IsExplosive(&catalogued, routing):
 			entry.constructor = "NewSpellDataExplosive"
-			switch {
-			case routing.Supported() && routing.Kind == ConsumableDamage:
+			if routing.Supported() {
 				explosives = append(explosives, entry)
 				continue
-			case routing.Supported():
-				entry.unsupported = []string{fmt.Sprintf("%d routes as %s, which the explosives builder does not build", routing.SpellID, routing.Kind)}
-			default:
-				entry.unsupported = routing.Unsupported
 			}
+			entry.unsupported = routing.Unsupported
 			refusedExplosives = append(refusedExplosives, entry)
 		case !shipped:
 		case c.CategoryId == dbc.POTION_SPELL_CATEGORY:
 			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
 			potions = append(potions, entry)
-		case consumableType == proto.ConsumableType_ConsumableTypeConjured:
+		case c.Type == proto.ConsumableType_ConsumableTypeConjured:
 			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
 			conjured = append(conjured, entry)
 		case !inCatalogue:

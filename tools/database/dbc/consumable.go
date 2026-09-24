@@ -93,7 +93,7 @@ func (c *Consumable) ToProto() *proto.Consumable {
 	category := onUseCategory(onUses)
 	consumable := &proto.Consumable{
 		Id:                 int32(c.Id),
-		Type:               c.consumableType(onUses, enchant, category, true),
+		Type:               c.consumableType(enchant, category),
 		Stats:              c.GetStatModifiers().ToProtoArray(),
 		Name:               c.Name,
 		BuffsMainStat:      false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
@@ -163,27 +163,22 @@ func onUseCategory(onUses []*proto.ItemEffect) int32 {
 	return dbcInstance.Spells[int(onUses[0].BuffId)].Category
 }
 
-func (c *Consumable) GetConsumableType() proto.ConsumableType {
-	onUses := c.OnUseEffects()
-	return c.consumableType(onUses, temporaryEnchantSpell(onUses), onUseCategory(onUses), true)
+// Whether an on-use row shares the explosives' category 24.
+func (c *Consumable) SharesExplosivesCategory() bool {
+	return slices.ContainsFunc(c.OnUseEffects(), func(e *proto.ItemEffect) bool {
+		return e.GetOnUse().CategoryId == EXPLOSIVES_SPELL_CATEGORY
+	})
 }
 
-// The type of a consumable whose on-use shares the explosives' category but is not an explosive's.
-func (c *Consumable) NonExplosiveType() proto.ConsumableType {
-	onUses := c.OnUseEffects()
-	return c.consumableType(onUses, temporaryEnchantSpell(onUses), onUseCategory(onUses), false)
-}
-
-// A consumable's type, which the settings pick it by: an imbue by what it does, an explosive by the
-// explosives' category its on-use shares, one sharing the potion or conjured category a potion or
-// conjured item (Potion of Demonslaying 9224 is an Elixir-subclass item whose spell 11406 shares
-// category 4), and otherwise its item subclass, with what shares the food or drink category food.
-func (c *Consumable) consumableType(onUses []*proto.ItemEffect, enchant *Spell, category int32, explosive bool) proto.ConsumableType {
+// A consumable's type, which the settings pick it by: an imbue by what it does, one sharing the potion
+// or conjured category a potion or conjured item (Potion of Demonslaying 9224 is an Elixir-subclass
+// item whose spell 11406 shares category 4), and otherwise its item subclass, with what shares the
+// food or drink category food. Whether it is an explosive takes how its spell routes, which the
+// database package decides.
+func (c *Consumable) consumableType(enchant *Spell, category int32) proto.ConsumableType {
 	switch {
 	case enchant != nil:
 		return proto.ConsumableType_ConsumableTypeImbue
-	case explosive && slices.ContainsFunc(onUses, func(e *proto.ItemEffect) bool { return e.GetOnUse().CategoryId == EXPLOSIVES_SPELL_CATEGORY }):
-		return proto.ConsumableType_ConsumableTypeExplosive
 	case category == POTION_SPELL_CATEGORY:
 		return proto.ConsumableType_ConsumableTypePotion
 	case category == CONJURED_SPELL_CATEGORY:

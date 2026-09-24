@@ -56,14 +56,20 @@ func ShipsConsumable(routing *ConsumableRouting) bool {
 		slices.ContainsFunc(ConsumableOverrides, func(c *proto.Consumable) bool { return c.Id == id })
 }
 
-// The catalogue's consumable as db.json carries it. One whose on-use shares the explosives' category
-// is an explosive, which the explosive picker offers, only where its spell routes as damage.
+// The catalogue's consumable as db.json carries it, typed an explosive where IsExplosive says so.
 func ShippedConsumable(c *dbc.Consumable, routing *ConsumableRouting) *proto.Consumable {
 	consumable := c.ToProto()
-	if consumable.Type == proto.ConsumableType_ConsumableTypeExplosive && routing.Kind != ConsumableDamage {
-		consumable.Type = c.NonExplosiveType()
+	if IsExplosive(c, routing) {
+		consumable.Type = proto.ConsumableType_ConsumableTypeExplosive
 	}
 	return consumable
+}
+
+// Whether the catalogue's consumable is an explosive, which the explosive picker offers and the
+// explosives builder runs: its on-use shares the explosives' category and its spell routes as damage.
+// Bag of Marbles 1191 shares the category and deals no damage.
+func IsExplosive(c *dbc.Consumable, routing *ConsumableRouting) bool {
+	return routing.Kind == ConsumableDamage && c.SharesExplosivesCategory()
 }
 
 // Whether a consumable in db.json survives the global filters. ConsumableAllowList keeps it,
