@@ -10,8 +10,8 @@ import (
 // A temporary enchant consumable, applied to each hand core put its enchant on: the enchant's stats
 // once per hand and each combat spell cast off that hand's hits at the chance its row states. Its flat
 // weapon damage is core's, on every weapon built from that hand's item.
-func NewTemporaryEnchantConsumable(itemID int32) {
-	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
+func NewSpellDataTemporaryEnchant(itemID int32) {
+	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		applyTemporaryEnchant(agent.GetCharacter(), core.GetConsumableByID(itemID))
 	})
 }

@@ -56,7 +56,7 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 
 		switch {
 		case shipped && c.Type == proto.ConsumableType_ConsumableTypeImbue:
-			entry.constructor = "NewTemporaryEnchantConsumable"
+			entry.constructor = "NewSpellDataTemporaryEnchant"
 			imbues = append(imbues, entry)
 		case inCatalogue && IsExplosive(&catalogued, routing):
 			entry.constructor = "NewSpellDataExplosive"

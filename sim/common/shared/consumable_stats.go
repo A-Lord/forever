@@ -19,7 +19,7 @@ import (
 // iteration too, and its stat is exclusive with the raid buffs that grant the same stat. A buff its
 // cooldown outlasts is used in combat, on that cooldown.
 func NewSpellDataStatConsumable(itemID int32) {
-	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
+	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
 		itemEffect := consumable.OnUse()

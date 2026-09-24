@@ -92,7 +92,7 @@ rewrites the registrations below.
 the `ConsumesSpec` names. There are two ways in:
 
 - `core.NewConsumableEffect(id, apply)` registers a hand-written effect.
-- `core.NewDataDrivenConsumableEffect(id, apply)` registers an effect a builder in `sim/common/shared`
+- `core.NewSpellDataConsumableEffect(id, apply)` registers an effect a builder in `sim/common/shared`
   made from the consumable's rows.
 
 A hand-written effect wins over a data-driven one for the same id, whichever registers first, so the
@@ -110,7 +110,7 @@ refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsuppor
 
 | family                                                         | file                                 | builder                         |
 | -------------------------------------------------------------- | ------------------------------------ | ------------------------------- |
-| `ConsumableTypeImbue`                                          | `consumables_imbues_auto_gen.go`     | `NewTemporaryEnchantConsumable` |
+| `ConsumableTypeImbue`                                          | `consumables_imbues_auto_gen.go`     | `NewSpellDataTemporaryEnchant`  |
 | `ConsumableTypeExplosive` that routes as `damage`              | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`         |
 | potions (category 4) and `ConsumableTypeConjured`              | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
 | other consumables that route as `heal`, `energize` or `absorb` | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
@@ -130,12 +130,12 @@ cooldown and the category it shares, where the item row states -1 or no category
 pull registers no spell and no cooldown. Which consumables stack is their
 [exclusive group](#exclusive-groups).
 
-`shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
+`shared.NewSpellDataVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
 on the potion's aura: 185 attack power and 108 spell damage against the creature types their misc
 value masks (4, Demon), for the row's 120 s, on category 4's 120 s timer. The same file registers
-Consecrated Sharpening Stone 23122 with `shared.NewVersusTemporaryEnchant`: core puts its enchant 2684
-on each hand whose weapon the masks take, and the enchant's equip spell 28893 grants 99 melee and 99
+Consecrated Sharpening Stone 23122 with `shared.NewSpellDataVersusTemporaryEnchant`: core puts its
+enchant 2684 on each hand whose weapon the masks take, and the enchant's equip spell 28893 grants 99 melee and 99
 ranged attack power against Undead once per such hand, since each weapon carries its own equip aura
 and 28893 marks no aura unique. Blessed Wizard Oil 23123 goes the same way: its enchant 2685's equip
 spell 28890 grants 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, mask 32). `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.

@@ -56,7 +56,7 @@ func NewConsumableEffect(id int32, consumableEffect ApplyEffect) {
 
 // Registers an ApplyEffect function built from the consumable's rows, which applies unless a
 // hand-written one is registered for the id.
-func NewDataDrivenConsumableEffect(id int32, consumableEffect ApplyEffect) {
+func NewSpellDataConsumableEffect(id int32, consumableEffect ApplyEffect) {
 	if !consumableInDatabase(id) {
 		return
 	}

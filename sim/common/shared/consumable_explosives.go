@@ -22,7 +22,7 @@ func DamageConsumableUnsupported(s *spelldata.Spell) []string {
 // category cooldown every explosive shares, and the damage the spell deals to the thrower where the
 // row states one. Only a character with the profession the item requires can use it.
 func NewSpellDataExplosive(itemID int32) {
-	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
+	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
 		if consumable.RequiredProfession != proto.Profession_ProfessionUnknown && !character.HasProfession(consumable.RequiredProfession) {

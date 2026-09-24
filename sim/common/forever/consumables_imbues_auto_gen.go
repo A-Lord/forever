@@ -5,50 +5,50 @@ package forever
 import "github.com/wowsims/forever/sim/common/shared"
 
 func RegisterAllTemporaryEnchantConsumables() {
-	shared.NewTemporaryEnchantConsumable(1254)   // Lesser Firestone
-	shared.NewTemporaryEnchantConsumable(2862)   // Rough Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(2863)   // Coarse Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(2871)   // Heavy Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(3239)   // Rough Weightstone
-	shared.NewTemporaryEnchantConsumable(3240)   // Coarse Weightstone
-	shared.NewTemporaryEnchantConsumable(3241)   // Heavy Weightstone
-	shared.NewTemporaryEnchantConsumable(3824)   // Shadow Oil
-	shared.NewTemporaryEnchantConsumable(3829)   // Frost Oil
-	shared.NewTemporaryEnchantConsumable(5522)   // Spellstone
-	shared.NewTemporaryEnchantConsumable(5654)   // Instant Toxin
-	shared.NewTemporaryEnchantConsumable(6947)   // Instant Poison
-	shared.NewTemporaryEnchantConsumable(6949)   // Instant Poison II
-	shared.NewTemporaryEnchantConsumable(6950)   // Instant Poison III
-	shared.NewTemporaryEnchantConsumable(7964)   // Solid Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(7965)   // Solid Weightstone
-	shared.NewTemporaryEnchantConsumable(8926)   // Instant Poison IV
-	shared.NewTemporaryEnchantConsumable(8927)   // Instant Poison V
-	shared.NewTemporaryEnchantConsumable(8928)   // Instant Poison VI
-	shared.NewTemporaryEnchantConsumable(12404)  // Dense Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(12643)  // Dense Weightstone
-	shared.NewTemporaryEnchantConsumable(13602)  // Greater Spellstone
-	shared.NewTemporaryEnchantConsumable(13603)  // Major Spellstone
-	shared.NewTemporaryEnchantConsumable(13699)  // Firestone
-	shared.NewTemporaryEnchantConsumable(13700)  // Greater Firestone
-	shared.NewTemporaryEnchantConsumable(13701)  // Major Firestone
-	shared.NewTemporaryEnchantConsumable(18262)  // Elemental Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(20744)  // Minor Wizard Oil
-	shared.NewTemporaryEnchantConsumable(20745)  // Minor Mana Oil
-	shared.NewTemporaryEnchantConsumable(20746)  // Lesser Wizard Oil
-	shared.NewTemporaryEnchantConsumable(20747)  // Lesser Mana Oil
-	shared.NewTemporaryEnchantConsumable(20748)  // Brilliant Mana Oil
-	shared.NewTemporaryEnchantConsumable(20749)  // Brilliant Wizard Oil
-	shared.NewTemporaryEnchantConsumable(20750)  // Wizard Oil
-	shared.NewTemporaryEnchantConsumable(23122)  // Consecrated Sharpening Stone
-	shared.NewTemporaryEnchantConsumable(23123)  // Blessed Wizard Oil
-	shared.NewTemporaryEnchantConsumable(228980) // Conductive Shield Coating
-	shared.NewTemporaryEnchantConsumable(232611) // Magnificent Trollshine
-	shared.NewTemporaryEnchantConsumable(274947) // Scroll of Imbue Lesser Flame
-	shared.NewTemporaryEnchantConsumable(277485) // Scroll of Imbue Frost
-	shared.NewTemporaryEnchantConsumable(277494) // Scroll of Imbue Accuracy
-	shared.NewTemporaryEnchantConsumable(277497) // Scroll of Imbue Flame
-	shared.NewTemporaryEnchantConsumable(277500) // Scroll of Imbue Greater Flame
-	shared.NewTemporaryEnchantConsumable(277501) // Scroll of Imbue Greater Frost
-	shared.NewTemporaryEnchantConsumable(277502) // Scroll of Imbue Precision
-	shared.NewTemporaryEnchantConsumable(277503) // Scroll of Imbue Spellbreak
+	shared.NewSpellDataTemporaryEnchant(1254)   // Lesser Firestone
+	shared.NewSpellDataTemporaryEnchant(2862)   // Rough Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(2863)   // Coarse Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(2871)   // Heavy Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(3239)   // Rough Weightstone
+	shared.NewSpellDataTemporaryEnchant(3240)   // Coarse Weightstone
+	shared.NewSpellDataTemporaryEnchant(3241)   // Heavy Weightstone
+	shared.NewSpellDataTemporaryEnchant(3824)   // Shadow Oil
+	shared.NewSpellDataTemporaryEnchant(3829)   // Frost Oil
+	shared.NewSpellDataTemporaryEnchant(5522)   // Spellstone
+	shared.NewSpellDataTemporaryEnchant(5654)   // Instant Toxin
+	shared.NewSpellDataTemporaryEnchant(6947)   // Instant Poison
+	shared.NewSpellDataTemporaryEnchant(6949)   // Instant Poison II
+	shared.NewSpellDataTemporaryEnchant(6950)   // Instant Poison III
+	shared.NewSpellDataTemporaryEnchant(7964)   // Solid Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(7965)   // Solid Weightstone
+	shared.NewSpellDataTemporaryEnchant(8926)   // Instant Poison IV
+	shared.NewSpellDataTemporaryEnchant(8927)   // Instant Poison V
+	shared.NewSpellDataTemporaryEnchant(8928)   // Instant Poison VI
+	shared.NewSpellDataTemporaryEnchant(12404)  // Dense Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(12643)  // Dense Weightstone
+	shared.NewSpellDataTemporaryEnchant(13602)  // Greater Spellstone
+	shared.NewSpellDataTemporaryEnchant(13603)  // Major Spellstone
+	shared.NewSpellDataTemporaryEnchant(13699)  // Firestone
+	shared.NewSpellDataTemporaryEnchant(13700)  // Greater Firestone
+	shared.NewSpellDataTemporaryEnchant(13701)  // Major Firestone
+	shared.NewSpellDataTemporaryEnchant(18262)  // Elemental Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(20744)  // Minor Wizard Oil
+	shared.NewSpellDataTemporaryEnchant(20745)  // Minor Mana Oil
+	shared.NewSpellDataTemporaryEnchant(20746)  // Lesser Wizard Oil
+	shared.NewSpellDataTemporaryEnchant(20747)  // Lesser Mana Oil
+	shared.NewSpellDataTemporaryEnchant(20748)  // Brilliant Mana Oil
+	shared.NewSpellDataTemporaryEnchant(20749)  // Brilliant Wizard Oil
+	shared.NewSpellDataTemporaryEnchant(20750)  // Wizard Oil
+	shared.NewSpellDataTemporaryEnchant(23122)  // Consecrated Sharpening Stone
+	shared.NewSpellDataTemporaryEnchant(23123)  // Blessed Wizard Oil
+	shared.NewSpellDataTemporaryEnchant(228980) // Conductive Shield Coating
+	shared.NewSpellDataTemporaryEnchant(232611) // Magnificent Trollshine
+	shared.NewSpellDataTemporaryEnchant(274947) // Scroll of Imbue Lesser Flame
+	shared.NewSpellDataTemporaryEnchant(277485) // Scroll of Imbue Frost
+	shared.NewSpellDataTemporaryEnchant(277494) // Scroll of Imbue Accuracy
+	shared.NewSpellDataTemporaryEnchant(277497) // Scroll of Imbue Flame
+	shared.NewSpellDataTemporaryEnchant(277500) // Scroll of Imbue Greater Flame
+	shared.NewSpellDataTemporaryEnchant(277501) // Scroll of Imbue Greater Frost
+	shared.NewSpellDataTemporaryEnchant(277502) // Scroll of Imbue Precision
+	shared.NewSpellDataTemporaryEnchant(277503) // Scroll of Imbue Spellbreak
 }

@@ -30,7 +30,7 @@ var versusMobTypes = map[int32]proto.MobType{
 
 // A potion whose aura grants attack power or spell damage against creature types, as a
 // hand-written effect: Potion of Demonslaying 9224.
-func NewVersusPotion(itemID int32) {
+func NewSpellDataVersusPotion(itemID int32) {
 	auras := make([]dbcenums.EffectAuraType, 0, len(versusAuras))
 	for aura := range versusAuras {
 		auras = append(auras, aura)
@@ -47,7 +47,7 @@ func NewVersusPotion(itemID int32) {
 // as a hand-written effect: Consecrated Sharpening Stone 23122, whose enchant 2684 casts 28893, and
 // Blessed Wizard Oil 23123, whose enchant 2685 casts 28890. Each hand core put the enchant on carries
 // its own copy of the equip aura, so the bonus counts once per hand.
-func NewVersusTemporaryEnchant(itemID, equipSpellID int32) {
+func NewSpellDataVersusTemporaryEnchant(itemID, equipSpellID int32) {
 	core.NewConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		hands := applyTemporaryEnchant(character, core.GetConsumableByID(itemID))

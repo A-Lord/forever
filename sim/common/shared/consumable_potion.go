@@ -21,7 +21,7 @@ const alchemistsStoneSpellID int32 = 17619
 // the spec's chosen one; any other, such as the Flame Deflector's shield or the Scroll of Minor
 // Evocation's mana, whenever the spec names it.
 func NewSpellDataOnUseConsumable(itemID int32) {
-	registerSpellDataConsumable(itemID, core.NewDataDrivenConsumableEffect, attachedAuras{})
+	registerSpellDataConsumable(itemID, core.NewSpellDataConsumableEffect, attachedAuras{})
 }
 
 // Auras of the spell the parser does not attach, which attach puts on the consumable's aura.

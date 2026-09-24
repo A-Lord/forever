@@ -61,7 +61,7 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 	for _, handFirst := range []bool{true, false} {
 		applied := ""
 		hand := func() { NewConsumableEffect(majorHealingPotion, func(Agent) { applied = "hand" }) }
-		dataDriven := func() { NewDataDrivenConsumableEffect(majorHealingPotion, func(Agent) { applied = "rows" }) }
+		dataDriven := func() { NewSpellDataConsumableEffect(majorHealingPotion, func(Agent) { applied = "rows" }) }
 		if handFirst {
 			hand()
 			dataDriven()
@@ -86,7 +86,7 @@ func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
 	const majorHealingPotion = 13446
 	for name, register := range map[string]func(int32, ApplyEffect){
 		"hand-written": NewConsumableEffect,
-		"data-driven":  NewDataDrivenConsumableEffect,
+		"data-driven":  NewSpellDataConsumableEffect,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Cleanup(func() {
