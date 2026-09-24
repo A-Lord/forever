@@ -3,8 +3,13 @@ package dbcenums
 // EffectAuraType defines the custom type for aura effects.
 type EffectAuraType int
 
-// Enum constants defined using the A_ naming convention.
-// (Keys that were commented out in the JavaScript object are left commented here.)
+// The two auras that cast their trigger spell when the proc fires.
+func (a EffectAuraType) IsProcTrigger() bool {
+	return a == A_PROC_TRIGGER_SPELL || a == A_PROC_TRIGGER_SPELL_WITH_VALUE
+}
+
+// Enum constants defined using the A_ naming convention. Every id is listed: one with no known name
+// is A_<id>, and one that is neither named nor read is commented out.
 const (
 	A_NONE                       EffectAuraType = 0
 	A_BIND_SIGHT                 EffectAuraType = 1
@@ -52,7 +57,7 @@ const (
 	A_PROC_TRIGGER_DAMAGE        EffectAuraType = 43
 	A_TRACK_CREATURES            EffectAuraType = 44
 	A_TRACK_RESOURCES            EffectAuraType = 45
-	// 46 is commented out in the JS mapping
+	// A_46 EffectAuraType = 46
 	A_MOD_PARRY_PERCENT                  EffectAuraType = 47
 	A_PERIODIC_TRIGGER_SPELL_FROM_CLIENT EffectAuraType = 48
 	A_MOD_DODGE_PERCENT                  EffectAuraType = 49
@@ -96,90 +101,90 @@ const (
 	A_MOD_DAMAGE_PERCENT_TAKEN           EffectAuraType = 87
 	A_MOD_HEALTH_REGEN_PERCENT           EffectAuraType = 88
 	A_PERIODIC_DAMAGE_PERCENT            EffectAuraType = 89
-	// 90 is commented out
-	A_MOD_DETECT_RANGE                   EffectAuraType = 91
-	A_PREVENTS_FLEEING                   EffectAuraType = 92
-	A_MOD_UNATTACKABLE                   EffectAuraType = 93
-	A_INTERRUPT_REGEN                    EffectAuraType = 94
-	A_GHOST                              EffectAuraType = 95
-	A_SPELL_MAGNET                       EffectAuraType = 96
-	A_MANA_SHIELD                        EffectAuraType = 97
-	A_MOD_SKILL_TALENT                   EffectAuraType = 98
-	A_MOD_ATTACK_POWER                   EffectAuraType = 99
-	A_AURAS_VISIBLE                      EffectAuraType = 100
-	A_MOD_RESISTANCE_PCT                 EffectAuraType = 101
-	A_MOD_MELEE_ATTACK_POWER_VERSUS      EffectAuraType = 102
-	A_MOD_TOTAL_THREAT                   EffectAuraType = 103
-	A_WATER_WALK                         EffectAuraType = 104
-	A_FEATHER_FALL                       EffectAuraType = 105
-	A_HOVER                              EffectAuraType = 106
-	A_ADD_FLAT_MODIFIER                  EffectAuraType = 107
-	A_ADD_PCT_MODIFIER                   EffectAuraType = 108
-	A_ADD_TARGET_TRIGGER                 EffectAuraType = 109
-	A_MOD_POWER_REGEN_PERCENT            EffectAuraType = 110
-	A_INTERCEPT_MELEE_RANGED_ATTACKS     EffectAuraType = 111
-	A_OVERRIDE_CLASS_SCRIPTS             EffectAuraType = 112
-	A_MOD_RANGED_DAMAGE_TAKEN            EffectAuraType = 113
-	A_MOD_RANGED_DAMAGE_TAKEN_PCT        EffectAuraType = 114
-	A_MOD_HEALING                        EffectAuraType = 115
-	A_MOD_REGEN_DURING_COMBAT            EffectAuraType = 116
-	A_MOD_MECHANIC_RESISTANCE            EffectAuraType = 117
-	A_MOD_HEALING_PCT                    EffectAuraType = 118
-	A_PVP_TALENTS                        EffectAuraType = 119
-	A_UNTRACKABLE                        EffectAuraType = 120
-	A_EMPATHY                            EffectAuraType = 121
-	A_MOD_OFFHAND_DAMAGE_PCT             EffectAuraType = 122
-	A_MOD_TARGET_RESISTANCE              EffectAuraType = 123
-	A_MOD_RANGED_ATTACK_POWER            EffectAuraType = 124
-	A_MOD_MELEE_DAMAGE_TAKEN             EffectAuraType = 125
-	A_MOD_MELEE_DAMAGE_TAKEN_PCT         EffectAuraType = 126
-	A_RANGED_ATTACK_POWER_ATTACKER_BONUS EffectAuraType = 127
-	A_MOD_FIXATE                         EffectAuraType = 128
-	A_MOD_SPEED_ALWAYS                   EffectAuraType = 129
-	A_MOD_MOUNTED_SPEED_ALWAYS           EffectAuraType = 130
-	A_MOD_RANGED_ATTACK_POWER_VERSUS     EffectAuraType = 131
-	A_MOD_INCREASE_ENERGY_PERCENT        EffectAuraType = 132
-	A_MOD_INCREASE_HEALTH_PERCENT        EffectAuraType = 133
-	A_MOD_MANA_REGEN_INTERRUPT           EffectAuraType = 134
-	A_MOD_HEALING_DONE                   EffectAuraType = 135
-	A_MOD_HEALING_DONE_PERCENT           EffectAuraType = 136
-	A_MOD_TOTAL_STAT_PERCENTAGE          EffectAuraType = 137
-	A_MOD_MELEE_HASTE                    EffectAuraType = 138
-	A_FORCE_REACTION                     EffectAuraType = 139
-	A_MOD_RANGED_HASTE                   EffectAuraType = 140
-	// 141 is commented out
-	A_MOD_BASE_RESISTANCE_PCT          EffectAuraType = 142
-	A_MOD_RECOVERY_RATE_BY_SPELL_LABEL EffectAuraType = 143
-	A_SAFE_FALL                        EffectAuraType = 144
-	A_MOD_INCREASE_HEALTH_PERCENT2     EffectAuraType = 145
-	A_ALLOW_TAME_PET_TYPE              EffectAuraType = 146
-	A_MECHANIC_IMMUNITY_MASK           EffectAuraType = 147
-	A_MOD_CHARGE_RECOVERY_RATE         EffectAuraType = 148
-	A_REDUCE_PUSHBACK                  EffectAuraType = 149
-	A_MOD_SHIELD_BLOCKVALUE_PCT        EffectAuraType = 150
-	A_TRACK_STEALTHED                  EffectAuraType = 151
-	A_MOD_DETECTED_RANGE               EffectAuraType = 152
-	A_MOD_AUTOATTACK_RANGE             EffectAuraType = 153
-	A_MOD_STEALTH_LEVEL                EffectAuraType = 154
-	A_MOD_WATER_BREATHING              EffectAuraType = 155
-	A_MOD_REPUTATION_GAIN              EffectAuraType = 156
-	A_PET_DAMAGE_MULTI                 EffectAuraType = 157
-	A_ALLOW_TALENT_SWAPPING            EffectAuraType = 158
-	A_NO_PVP_CREDIT                    EffectAuraType = 159
-	// 160 is commented out
-	A_MOD_HEALTH_REGEN_IN_COMBAT        EffectAuraType = 161
-	A_POWER_BURN                        EffectAuraType = 162
-	A_MOD_CRIT_DAMAGE_BONUS             EffectAuraType = 163
-	A_FORCE_BREATH_BAR                  EffectAuraType = 164
-	A_MELEE_ATTACK_POWER_ATTACKER_BONUS EffectAuraType = 165
-	A_MOD_ATTACK_POWER_PCT              EffectAuraType = 166
-	A_MOD_RANGED_ATTACK_POWER_PCT       EffectAuraType = 167
-	A_MOD_DAMAGE_DONE_VERSUS            EffectAuraType = 168
-	A_SET_FFA_PVP                       EffectAuraType = 169
-	A_DETECT_AMORE                      EffectAuraType = 170
-	A_MOD_SPEED_NOT_STACK               EffectAuraType = 171
-	A_MOD_MOUNTED_SPEED_NOT_STACK       EffectAuraType = 172
-	// 173 is commented out
+	// A_90 EffectAuraType = 90
+	A_MOD_DETECT_RANGE                            EffectAuraType = 91
+	A_PREVENTS_FLEEING                            EffectAuraType = 92
+	A_MOD_UNATTACKABLE                            EffectAuraType = 93
+	A_INTERRUPT_REGEN                             EffectAuraType = 94
+	A_GHOST                                       EffectAuraType = 95
+	A_SPELL_MAGNET                                EffectAuraType = 96
+	A_MANA_SHIELD                                 EffectAuraType = 97
+	A_MOD_SKILL_TALENT                            EffectAuraType = 98
+	A_MOD_ATTACK_POWER                            EffectAuraType = 99
+	A_AURAS_VISIBLE                               EffectAuraType = 100
+	A_MOD_RESISTANCE_PCT                          EffectAuraType = 101
+	A_MOD_MELEE_ATTACK_POWER_VERSUS               EffectAuraType = 102
+	A_MOD_TOTAL_THREAT                            EffectAuraType = 103
+	A_WATER_WALK                                  EffectAuraType = 104
+	A_FEATHER_FALL                                EffectAuraType = 105
+	A_HOVER                                       EffectAuraType = 106
+	A_ADD_FLAT_MODIFIER                           EffectAuraType = 107
+	A_ADD_PCT_MODIFIER                            EffectAuraType = 108
+	A_ADD_TARGET_TRIGGER                          EffectAuraType = 109
+	A_MOD_POWER_REGEN_PERCENT                     EffectAuraType = 110
+	A_INTERCEPT_MELEE_RANGED_ATTACKS              EffectAuraType = 111
+	A_OVERRIDE_CLASS_SCRIPTS                      EffectAuraType = 112
+	A_MOD_RANGED_DAMAGE_TAKEN                     EffectAuraType = 113
+	A_MOD_RANGED_DAMAGE_TAKEN_PCT                 EffectAuraType = 114
+	A_MOD_HEALING                                 EffectAuraType = 115
+	A_MOD_REGEN_DURING_COMBAT                     EffectAuraType = 116
+	A_MOD_MECHANIC_RESISTANCE                     EffectAuraType = 117
+	A_MOD_HEALING_PCT                             EffectAuraType = 118
+	A_PVP_TALENTS                                 EffectAuraType = 119
+	A_UNTRACKABLE                                 EffectAuraType = 120
+	A_EMPATHY                                     EffectAuraType = 121
+	A_MOD_OFFHAND_DAMAGE_PCT                      EffectAuraType = 122
+	A_MOD_TARGET_RESISTANCE                       EffectAuraType = 123
+	A_MOD_RANGED_ATTACK_POWER                     EffectAuraType = 124
+	A_MOD_MELEE_DAMAGE_TAKEN                      EffectAuraType = 125
+	A_MOD_MELEE_DAMAGE_TAKEN_PCT                  EffectAuraType = 126
+	A_RANGED_ATTACK_POWER_ATTACKER_BONUS          EffectAuraType = 127
+	A_MOD_FIXATE                                  EffectAuraType = 128
+	A_MOD_SPEED_ALWAYS                            EffectAuraType = 129
+	A_MOD_MOUNTED_SPEED_ALWAYS                    EffectAuraType = 130
+	A_MOD_RANGED_ATTACK_POWER_VERSUS              EffectAuraType = 131
+	A_MOD_INCREASE_ENERGY_PERCENT                 EffectAuraType = 132
+	A_MOD_INCREASE_HEALTH_PERCENT                 EffectAuraType = 133
+	A_MOD_MANA_REGEN_INTERRUPT                    EffectAuraType = 134
+	A_MOD_HEALING_DONE                            EffectAuraType = 135
+	A_MOD_HEALING_DONE_PERCENT                    EffectAuraType = 136
+	A_MOD_TOTAL_STAT_PERCENTAGE                   EffectAuraType = 137
+	A_MOD_MELEE_HASTE                             EffectAuraType = 138
+	A_FORCE_REACTION                              EffectAuraType = 139
+	A_MOD_RANGED_HASTE                            EffectAuraType = 140
+	A_MOD_RANGED_AMMO_HASTE                       EffectAuraType = 141
+	A_MOD_BASE_RESISTANCE_PCT                     EffectAuraType = 142
+	A_MOD_RECOVERY_RATE_BY_SPELL_LABEL            EffectAuraType = 143
+	A_SAFE_FALL                                   EffectAuraType = 144
+	A_MOD_INCREASE_HEALTH_PERCENT2                EffectAuraType = 145
+	A_ALLOW_TAME_PET_TYPE                         EffectAuraType = 146
+	A_MECHANIC_IMMUNITY_MASK                      EffectAuraType = 147
+	A_MOD_CHARGE_RECOVERY_RATE                    EffectAuraType = 148
+	A_REDUCE_PUSHBACK                             EffectAuraType = 149
+	A_MOD_SHIELD_BLOCKVALUE_PCT                   EffectAuraType = 150
+	A_TRACK_STEALTHED                             EffectAuraType = 151
+	A_MOD_DETECTED_RANGE                          EffectAuraType = 152
+	A_MOD_AUTOATTACK_RANGE                        EffectAuraType = 153
+	A_MOD_STEALTH_LEVEL                           EffectAuraType = 154
+	A_MOD_WATER_BREATHING                         EffectAuraType = 155
+	A_MOD_REPUTATION_GAIN                         EffectAuraType = 156
+	A_PET_DAMAGE_MULTI                            EffectAuraType = 157
+	A_ALLOW_TALENT_SWAPPING                       EffectAuraType = 158
+	A_NO_PVP_CREDIT                               EffectAuraType = 159
+	A_MOD_AOE_AVOIDANCE                           EffectAuraType = 160
+	A_MOD_HEALTH_REGEN_IN_COMBAT                  EffectAuraType = 161
+	A_POWER_BURN                                  EffectAuraType = 162
+	A_MOD_CRIT_DAMAGE_BONUS                       EffectAuraType = 163
+	A_FORCE_BREATH_BAR                            EffectAuraType = 164
+	A_MELEE_ATTACK_POWER_ATTACKER_BONUS           EffectAuraType = 165
+	A_MOD_ATTACK_POWER_PCT                        EffectAuraType = 166
+	A_MOD_RANGED_ATTACK_POWER_PCT                 EffectAuraType = 167
+	A_MOD_DAMAGE_DONE_VERSUS                      EffectAuraType = 168
+	A_SET_FFA_PVP                                 EffectAuraType = 169
+	A_DETECT_AMORE                                EffectAuraType = 170
+	A_MOD_SPEED_NOT_STACK                         EffectAuraType = 171
+	A_MOD_MOUNTED_SPEED_NOT_STACK                 EffectAuraType = 172
+	A_MOD_RECHARGE_TIME_PCT_CATEGORY_MASK         EffectAuraType = 173
 	A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT            EffectAuraType = 174
 	A_MOD_SPELL_HEALING_OF_STAT_PERCENT           EffectAuraType = 175
 	A_SPIRIT_OF_REDEMPTION                        EffectAuraType = 176
@@ -205,22 +210,22 @@ const (
 	A_MOD_COOLDOWN                                EffectAuraType = 196
 	A_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE   EffectAuraType = 197
 	A_MOD_COMBAT_RATING_FROM_COMBAT_RATING        EffectAuraType = 198
-	// 199 is commented out
-	A_MOD_XP_PCT                        EffectAuraType = 200
-	A_FLY                               EffectAuraType = 201
-	A_IGNORE_COMBAT_RESULT              EffectAuraType = 202
-	A_PREVENT_INTERRUPT                 EffectAuraType = 203
-	A_PREVENT_CORPSE_RELEASE            EffectAuraType = 204
-	A_MOD_CHARGE_COOLDOWN               EffectAuraType = 205
-	A_MOD_INCREASE_VEHICLE_FLIGHT_SPEED EffectAuraType = 206
-	A_MOD_INCREASE_MOUNTED_FLIGHT_SPEED EffectAuraType = 207
-	A_MOD_INCREASE_FLIGHT_SPEED         EffectAuraType = 208
-	A_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS   EffectAuraType = 209
-	A_MOD_VEHICLE_SPEED_ALWAYS          EffectAuraType = 210
-	A_MOD_FLIGHT_SPEED_NOT_STACK        EffectAuraType = 211
-	A_MOD_HONOR_GAIN_PCT                EffectAuraType = 212
-	A_MOD_RAGE_FROM_DAMAGE_DEALT        EffectAuraType = 213
-	// 214 is commented out
+	A_MOD_INCREASES_SPELL_PCT_TO_HIT              EffectAuraType = 199
+	A_MOD_XP_PCT                                  EffectAuraType = 200
+	A_FLY                                         EffectAuraType = 201
+	A_IGNORE_COMBAT_RESULT                        EffectAuraType = 202
+	A_PREVENT_INTERRUPT                           EffectAuraType = 203
+	A_PREVENT_CORPSE_RELEASE                      EffectAuraType = 204
+	A_MOD_CHARGE_COOLDOWN                         EffectAuraType = 205
+	A_MOD_INCREASE_VEHICLE_FLIGHT_SPEED           EffectAuraType = 206
+	A_MOD_INCREASE_MOUNTED_FLIGHT_SPEED           EffectAuraType = 207
+	A_MOD_INCREASE_FLIGHT_SPEED                   EffectAuraType = 208
+	A_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS             EffectAuraType = 209
+	A_MOD_VEHICLE_SPEED_ALWAYS                    EffectAuraType = 210
+	A_MOD_FLIGHT_SPEED_NOT_STACK                  EffectAuraType = 211
+	A_MOD_HONOR_GAIN_PCT                          EffectAuraType = 212
+	A_MOD_RAGE_FROM_DAMAGE_DEALT                  EffectAuraType = 213
+	// A_214 EffectAuraType = 214
 	A_ARENA_PREPARATION                               EffectAuraType = 215
 	A_HASTE_SPELLS                                    EffectAuraType = 216
 	A_MOD_MELEE_HASTE_2                               EffectAuraType = 217
@@ -271,19 +276,19 @@ const (
 	A_ABILITY_IGNORE_AURASTATE                        EffectAuraType = 262
 	A_DISABLE_CASTING_EXCEPT_ABILITIES                EffectAuraType = 263
 	A_DISABLE_ATTACKING_EXCEPT_ABILITIES              EffectAuraType = 264
-	// 265 is commented out
-	A_SET_VIGNETTE                       EffectAuraType = 266
-	A_MOD_IMMUNE_AURA_APPLY_SCHOOL       EffectAuraType = 267
-	A_MOD_ARMOR_PCT_FROM_STAT            EffectAuraType = 268
-	A_MOD_IGNORE_TARGET_RESIST           EffectAuraType = 269
-	A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER EffectAuraType = 270
-	A_MOD_SPELL_DAMAGE_FROM_CASTER       EffectAuraType = 271
-	A_MOD_BLOCK_VALUE_PCT                EffectAuraType = 272
-	A_X_RAY                              EffectAuraType = 273
-	A_MOD_BLOCK_VALUE_FLAT               EffectAuraType = 274
-	A_MOD_IGNORE_SHAPESHIFT              EffectAuraType = 275
-	A_MOD_DAMAGE_DONE_FOR_MECHANIC       EffectAuraType = 276
-	// 277 is commented out
+	// A_265 EffectAuraType = 265
+	A_SET_VIGNETTE                         EffectAuraType = 266
+	A_MOD_IMMUNE_AURA_APPLY_SCHOOL         EffectAuraType = 267
+	A_MOD_ARMOR_PCT_FROM_STAT              EffectAuraType = 268
+	A_MOD_IGNORE_TARGET_RESIST             EffectAuraType = 269
+	A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER   EffectAuraType = 270
+	A_MOD_SPELL_DAMAGE_FROM_CASTER         EffectAuraType = 271
+	A_MOD_BLOCK_VALUE_PCT                  EffectAuraType = 272
+	A_X_RAY                                EffectAuraType = 273
+	A_MOD_BLOCK_VALUE_FLAT                 EffectAuraType = 274
+	A_MOD_IGNORE_SHAPESHIFT                EffectAuraType = 275
+	A_MOD_DAMAGE_DONE_FOR_MECHANIC         EffectAuraType = 276
+	A_MOD_MAX_AFFECTED_TARGETS             EffectAuraType = 277
 	A_MOD_DISARM_RANGED                    EffectAuraType = 278
 	A_INITIALIZE_IMAGES                    EffectAuraType = 279
 	A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT EffectAuraType = 280
@@ -305,12 +310,12 @@ const (
 	A_SET_VEHICLE_ID                       EffectAuraType = 296
 	A_MOD_ROOT_DISABLE_GRAVITY             EffectAuraType = 297
 	A_MOD_STUN_DISABLE_GRAVITY             EffectAuraType = 298
-	// 299 is commented out
+	// A_299 EffectAuraType = 299
 	A_SHARE_DAMAGE_PCT   EffectAuraType = 300
 	A_SCHOOL_HEAL_ABSORB EffectAuraType = 301
-	// 302 is commented out
+	// A_302 EffectAuraType = 302
 	A_MOD_DAMAGE_DONE_VERSUS_AURASTATE          EffectAuraType = 303
-	A_MOD_DRUNK                                 EffectAuraType = 304
+	A_MOD_FAKE_INEBRIATE                        EffectAuraType = 304
 	A_MOD_MINIMUM_SPEED                         EffectAuraType = 305
 	A_MOD_CRIT_CHANCE_FOR_CASTER                EffectAuraType = 306
 	A_CAST_WHILE_WALKING_BY_SPELL_LABEL         EffectAuraType = 307
@@ -319,17 +324,17 @@ const (
 	A_MOD_CREATURE_AOE_DAMAGE_AVOIDANCE         EffectAuraType = 310
 	A_IGNORE_COMBAT                             EffectAuraType = 311
 	A_ANIM_REPLACEMENT_SET                      EffectAuraType = 312
-	// 313 is commented out
-	A_PREVENT_RESURRECTION   EffectAuraType = 314
-	A_UNDERWATER_WALKING     EffectAuraType = 315
-	A_SCHOOL_ABSORB_OVERKILL EffectAuraType = 316
-	A_MOD_SPELL_POWER_PCT    EffectAuraType = 317
-	A_MASTERY                EffectAuraType = 318
-	A_MOD_MELEE_HASTE_3      EffectAuraType = 319
-	A_MOD_RANGED_HASTE_2     EffectAuraType = 320
-	A_MOD_NO_ACTIONS         EffectAuraType = 321
-	A_INTERFERE_TARGETTING   EffectAuraType = 322
-	// 323 is commented out
+	A_REPLACE_MOUNT_ANIMATION_SET               EffectAuraType = 313
+	A_PREVENT_RESURRECTION                      EffectAuraType = 314
+	A_UNDERWATER_WALKING                        EffectAuraType = 315
+	A_SCHOOL_ABSORB_OVERKILL                    EffectAuraType = 316
+	A_MOD_SPELL_POWER_PCT                       EffectAuraType = 317
+	A_MASTERY                                   EffectAuraType = 318
+	A_MOD_MELEE_HASTE_3                         EffectAuraType = 319
+	A_MOD_RANGED_HASTE_2                        EffectAuraType = 320
+	A_MOD_NO_ACTIONS                            EffectAuraType = 321
+	A_INTERFERE_TARGETTING                      EffectAuraType = 322
+	// A_323 EffectAuraType = 323
 	A_OVERRIDE_UNLOCKED_AZERITE_ESSENCE_RANK EffectAuraType = 324
 	A_LEARN_PVP_TALENT                       EffectAuraType = 325
 	A_PHASE_GROUP                            EffectAuraType = 326
@@ -341,7 +346,7 @@ const (
 	A_OVERRIDE_ACTIONBAR_SPELLS              EffectAuraType = 332
 	A_OVERRIDE_ACTIONBAR_SPELLS_TRIGGERED    EffectAuraType = 333
 	A_MOD_AUTOATTACK_CRIT_CHANCE             EffectAuraType = 334
-	// 335 is commented out
+	// A_DETECT_VISIBLE_WHILE_INVISIBLE EffectAuraType = 335
 	A_MOUNT_RESTRICTIONS                     EffectAuraType = 336
 	A_MOD_VENDOR_ITEMS_PRICES                EffectAuraType = 337
 	A_MOD_DURABILITY_LOSS                    EffectAuraType = 338
@@ -357,41 +362,48 @@ const (
 	A_MOD_MONEY_GAIN                         EffectAuraType = 348
 	A_MOD_CURRENCY_GAIN                      EffectAuraType = 349
 	A_350                                    EffectAuraType = 350
-	// 351,352 are commented out
-	A_MOD_CAMOUFLAGE EffectAuraType = 353
-	// 354 is commented out
-	A_MOD_CASTING_SPEED                    EffectAuraType = 355
-	A_PROVIDE_TOTEM_CATEGORY               EffectAuraType = 356
-	A_ENABLE_BOSS1_UNIT_FRAME              EffectAuraType = 357
-	A_WORGEN_ALTERED_FORM                  EffectAuraType = 358
-	A_MOD_HEALING_DONE_VERSUS_AURASTATE    EffectAuraType = 359
-	A_PROC_TRIGGER_SPELL_COPY              EffectAuraType = 360
-	A_OVERRIDE_AUTOATTACK_WITH_MELEE_SPELL EffectAuraType = 361
-	// 362 is commented out
+	A_MOD_CURRENCY_GAIN_PCT_CATEGORY         EffectAuraType = 351
+	// A_352 EffectAuraType = 352
+	A_MOD_CAMOUFLAGE                        EffectAuraType = 353
+	A_MOD_HEALING_DONE_PCT_VS_TARGET_HEALTH EffectAuraType = 354
+	A_MOD_CASTING_SPEED                     EffectAuraType = 355
+	A_PROVIDE_TOTEM_CATEGORY                EffectAuraType = 356
+	A_ENABLE_BOSS1_UNIT_FRAME               EffectAuraType = 357
+	A_WORGEN_ALTERED_FORM                   EffectAuraType = 358
+	A_MOD_HEALING_DONE_VERSUS_AURASTATE     EffectAuraType = 359
+	A_PROC_TRIGGER_SPELL_COPY               EffectAuraType = 360
+	A_OVERRIDE_AUTOATTACK_WITH_MELEE_SPELL  EffectAuraType = 361
+	// A_362 EffectAuraType = 362
 	A_MOD_NEXT_SPELL EffectAuraType = 363
-	// 364 is commented out
+	// A_364 EffectAuraType = 364
 	A_MAX_FAR_CLIP_PLANE                    EffectAuraType = 365
 	A_OVERRIDE_SPELL_POWER_BY_AP_PCT        EffectAuraType = 366
 	A_OVERRIDE_AUTOATTACK_WITH_RANGED_SPELL EffectAuraType = 367
-	// 368 is commented out
+	// A_368 EffectAuraType = 368
 	A_ENABLE_POWER_BAR_TIMER    EffectAuraType = 369
 	A_SPELL_OVERRIDE_NAME_GROUP EffectAuraType = 370
-	// 371 is commented out
-	A_OVERRIDE_MOUNT_FROM_SET         EffectAuraType = 372
-	A_MOD_SPEED_NO_CONTROL            EffectAuraType = 373
-	A_MOD_FALL_DAMAGE_PCT             EffectAuraType = 374
-	A_HIDE_MODEL_AND_EQUIPEMENT_SLOTS EffectAuraType = 375
-	A_MOD_CURRENCY_GAIN_FROM_SOURCE   EffectAuraType = 376
-	A_CAST_WHILE_WALKING_ALL          EffectAuraType = 377
-	A_MOD_POSSESS_PET                 EffectAuraType = 378
-	A_MOD_MANA_REGEN_PCT              EffectAuraType = 379
-	// 380 is commented out
+	// A_DISABLE_AUTOATTACK EffectAuraType = 371
+	A_OVERRIDE_MOUNT_FROM_SET          EffectAuraType = 372
+	A_MOD_SPEED_NO_CONTROL             EffectAuraType = 373
+	A_MOD_FALL_DAMAGE_PCT              EffectAuraType = 374
+	A_HIDE_MODEL_AND_EQUIPEMENT_SLOTS  EffectAuraType = 375
+	A_MOD_CURRENCY_GAIN_FROM_SOURCE    EffectAuraType = 376
+	A_CAST_WHILE_WALKING_ALL           EffectAuraType = 377
+	A_MOD_POSSESS_PET                  EffectAuraType = 378
+	A_MOD_MANA_REGEN_PCT               EffectAuraType = 379
+	A_MOD_DAMAGE_FROM_CASTER_GUARDIAN  EffectAuraType = 380
 	A_MOD_DAMAGE_TAKEN_FROM_CASTER_PET EffectAuraType = 381
 	A_MOD_PET_STAT_PCT                 EffectAuraType = 382
 	A_IGNORE_SPELL_COOLDOWN            EffectAuraType = 383
-	// 384,385,386,387 are commented out
+	// A_384 EffectAuraType = 384
+	// A_385 EffectAuraType = 385
+	// A_386 EffectAuraType = 386
+	// A_387 EffectAuraType = 387
 	A_MOD_TAXI_FLIGHT_SPEED EffectAuraType = 388
-	// 389,390,391,392 are commented out
+	// A_389 EffectAuraType = 389
+	// A_390 EffectAuraType = 390
+	// A_391 EffectAuraType = 391
+	// A_392 EffectAuraType = 392
 	A_BLOCK_SPELLS_IN_FRONT                  EffectAuraType = 393
 	A_SHOW_CONFIRMATION_PROMPT               EffectAuraType = 394
 	A_AREA_TRIGGER                           EffectAuraType = 395
@@ -400,21 +412,21 @@ const (
 	A_BATTLEGROUND_PLAYER_POSITION           EffectAuraType = 398
 	A_MOD_TIME_RATE                          EffectAuraType = 399
 	A_MOD_SKILL_2                            EffectAuraType = 400
-	// 401 is commented out
-	A_MOD_OVERRIDE_POWER_DISPLAY      EffectAuraType = 402
-	A_OVERRIDE_SPELL_VISUAL           EffectAuraType = 403
-	A_OVERRIDE_ATTACK_POWER_BY_SP_PCT EffectAuraType = 404
-	A_MOD_RATING_PCT                  EffectAuraType = 405
-	A_KEYBOUND_OVERRIDE               EffectAuraType = 406
-	A_MOD_FEAR_2                      EffectAuraType = 407
-	A_SET_ACTION_BUTTON_SPELL_COUNT   EffectAuraType = 408
-	A_CAN_TURN_WHILE_FALLING          EffectAuraType = 409
-	// 410 is commented out
+	A_ACT_AS_CONTROL_ZONE                    EffectAuraType = 401
+	A_MOD_OVERRIDE_POWER_DISPLAY             EffectAuraType = 402
+	A_OVERRIDE_SPELL_VISUAL                  EffectAuraType = 403
+	A_OVERRIDE_ATTACK_POWER_BY_SP_PCT        EffectAuraType = 404
+	A_MOD_RATING_PCT                         EffectAuraType = 405
+	A_KEYBOUND_OVERRIDE                      EffectAuraType = 406
+	A_MOD_FEAR_2                             EffectAuraType = 407
+	A_SET_ACTION_BUTTON_SPELL_COUNT          EffectAuraType = 408
+	A_CAN_TURN_WHILE_FALLING                 EffectAuraType = 409
+	// A_410 EffectAuraType = 410
 	A_MOD_MAX_CHARGES EffectAuraType = 411
-	// 412 is commented out
+	// A_412 EffectAuraType = 412
 	A_MOD_RANGED_ATTACK_DEFLECT_CHANCE        EffectAuraType = 413
 	A_MOD_RANGED_ATTACK_BLOCK_CHANCE_IN_FRONT EffectAuraType = 414
-	// 415 is commented out
+	// A_415 EffectAuraType = 415
 	A_MOD_COOLDOWN_BY_HASTE_REGEN        EffectAuraType = 416
 	A_MOD_GLOBAL_COOLDOWN_BY_HASTE_REGEN EffectAuraType = 417
 	A_MOD_MAX_POWER                      EffectAuraType = 418
@@ -424,28 +436,34 @@ const (
 	A_MOD_ABSORB_EFFECTS_TAKEN_PCT       EffectAuraType = 422
 	A_MOD_MANA_COST_PCT                  EffectAuraType = 423
 	A_CASTER_IGNORE_LOS                  EffectAuraType = 424
-	// 425,426 are commented out
+	// A_425 EffectAuraType = 425
+	// A_426 EffectAuraType = 426
 	A_SCALE_PLAYER_LEVEL         EffectAuraType = 427
 	A_LINKED_SUMMON              EffectAuraType = 428
 	A_MOD_SUMMON_DAMAGE          EffectAuraType = 429
 	A_PLAY_SCENE                 EffectAuraType = 430
 	A_MOD_OVERRIDE_ZONE_PVP_TYPE EffectAuraType = 431
-	// 432,433,434,435 are commented out
+	// A_432 EffectAuraType = 432
+	// A_433 EffectAuraType = 433
+	// A_434 EffectAuraType = 434
+	// A_435 EffectAuraType = 435
 	A_MOD_ENVIRONMENTAL_DAMAGE_TAKEN EffectAuraType = 436
 	A_MOD_MINIMUM_SPEED_RATE         EffectAuraType = 437
 	A_PRELOAD_PHASE                  EffectAuraType = 438
-	// 439 is commented out
+	// A_439 EffectAuraType = 439
 	A_MOD_MULTISTRIKE_DAMAGE EffectAuraType = 440
 	A_MOD_MULTISTRIKE_CHANCE EffectAuraType = 441
 	A_MOD_READINESS          EffectAuraType = 442
 	A_MOD_LEECH              EffectAuraType = 443
-	// 444,445 are commented out
+	// A_444 EffectAuraType = 444
+	// A_445 EffectAuraType = 445
 	A_SPELL_AURA_ADVANCED_FLYING EffectAuraType = 446
 	A_MOD_XP_FROM_CREATURE_TYPE  EffectAuraType = 447
-	// 448 is commented out (Related to PvP rules)
-	// 449,450 are commented out
+	// A_448 EffectAuraType = 448
+	// A_449 EffectAuraType = 449
+	// A_450 EffectAuraType = 450
 	A_OVERRIDE_PET_SPECS EffectAuraType = 451
-	// 452 is commented out
+	// A_452 EffectAuraType = 452
 	A_CHARGE_RECOVERY_MOD                     EffectAuraType = 453
 	A_CHARGE_RECOVERY_MULTIPLIER              EffectAuraType = 454
 	A_MOD_ROOT_2                              EffectAuraType = 455
@@ -454,7 +472,7 @@ const (
 	A_IGNORE_DUAL_WIELD_HIT_PENALTY           EffectAuraType = 458
 	A_IGNORE_MOVEMENT_FORCES                  EffectAuraType = 459
 	A_RESET_COOLDOWNS_ON_DUEL_START           EffectAuraType = 460
-	// 461 is commented out
+	// A_461 EffectAuraType = 461
 	A_MOD_HEALING_AND_ABSORB_FROM_CASTER       EffectAuraType = 462
 	A_CONVERT_CRIT_RATING_PCT_TO_PARRY_RATING  EffectAuraType = 463
 	A_MOD_ATTACK_POWER_OF_BONUS_ARMOR          EffectAuraType = 464
@@ -465,23 +483,26 @@ const (
 	A_SHOW_CONFIRMATION_PROMPT_WITH_DIFFICULTY EffectAuraType = 469
 	A_MOD_AURA_TIME_RATE_BY_SPELL_LABEL        EffectAuraType = 470
 	A_MOD_VERSATILITY                          EffectAuraType = 471
-	// 472 is commented out
+	// A_472 EffectAuraType = 472
 	A_PREVENT_DURABILITY_LOSS_FROM_COMBAT   EffectAuraType = 473
 	A_REPLACE_ITEM_BONUS_TREE               EffectAuraType = 474
 	A_ALLOW_USING_GAMEOBJECTS_WHILE_MOUNTED EffectAuraType = 475
 	A_MOD_CURRENCY_GAIN_LOOTED_PCT          EffectAuraType = 476
-	// 477,478,479 are commented out
+	// A_477 EffectAuraType = 477
+	// A_478 EffectAuraType = 478
+	// A_479 EffectAuraType = 479
 	A_MOD_ARTIFACT_ITEM_LEVEL EffectAuraType = 480
 	A_CONVERT_CONSUMED_RUNE   EffectAuraType = 481
-	// 482 is commented out
+	// A_482 EffectAuraType = 482
 	A_SUPPRESS_TRANSFORMS          EffectAuraType = 483
 	A_ALLOW_INTERRUPT_SPELL        EffectAuraType = 484
 	A_MOD_MOVEMENT_FORCE_MAGNITUDE EffectAuraType = 485
-	// 486 is commented out
-	A_COSMETIC_MOUNTED EffectAuraType = 487
-	// 488 is commented out
+	// A_INTERFERE_ALL_TARGETING EffectAuraType = 486
+	A_COSMETIC_MOUNTED                 EffectAuraType = 487
+	A_DISABLE_GRAVITY                  EffectAuraType = 488
 	A_MOD_ALTERNATIVE_DEFAULT_LANGUAGE EffectAuraType = 489
-	// 490,491 are commented out
+	// A_490 EffectAuraType = 490
+	// A_491 EffectAuraType = 491
 	A_MOD_RESTED_XP_CONSUMPTION             EffectAuraType = 492
 	A_MOD_RESTED_XP_CONSUMPTION_DUP         EffectAuraType = 493 // duplicate string?
 	A_SET_POWER_POINT_CHARGE                EffectAuraType = 494
@@ -498,32 +519,54 @@ const (
 	A_MOD_PLAYER_CHOICE_REROLLS             EffectAuraType = 505
 	A_DISABLE_INERTIA                       EffectAuraType = 506
 	A_MOD_DAMAGE_TAKEN_FROM_CASTER_BY_LABEL EffectAuraType = 507
-	// 508,509 are commented out
-	A_MODIFIED_RAID_INSTANCE  EffectAuraType = 510
-	A_APPLY_PROFESSION_EFFECT EffectAuraType = 511
-	A_CONVERT_RUNE            EffectAuraType = 512
-	// 513-518 are commented out
-	A_MOD_COOLDOWN_RECOVERY_RATE_ALL EffectAuraType = 519
-	// 520-524 are commented out
-	A_DISPLAY_PROFESSION_EQUIPMENT EffectAuraType = 525
-	// 526,527 are commented out
-	A_ALLOW_BLOCKING_SPELLS  EffectAuraType = 528
-	A_MOD_SPELL_BLOCK_CHANCE EffectAuraType = 529
-	// 530-535 are commented out
+	// A_508 EffectAuraType = 508
+	// A_509 EffectAuraType = 509
+	A_MODIFIED_RAID_INSTANCE            EffectAuraType = 510
+	A_APPLY_PROFESSION_EFFECT           EffectAuraType = 511
+	A_CONVERT_RUNE                      EffectAuraType = 512
+	A_MOD_DRAGONRIDING_AIR_FRICTION     EffectAuraType = 513
+	A_MOD_DRAGONRIDING_MAX_VELOCITY     EffectAuraType = 514
+	A_MOD_DRAGONRIDING_LIFT_COEFFICIENT EffectAuraType = 515
+	// A_516 EffectAuraType = 516
+	// A_517 EffectAuraType = 517
+	A_MOD_DRAGONRIDING_ADD_IMPULSE_MAX_SPEED EffectAuraType = 518
+	A_MOD_COOLDOWN_RECOVERY_RATE_ALL         EffectAuraType = 519
+	A_MOD_DRAGONRIDING_BRAKING_RATE          EffectAuraType = 520
+	A_MOD_DRAGONRIDING_PITCHING_RATE_DOWN    EffectAuraType = 521
+	A_MOD_DRAGONRIDING_PITCHING_RATE_UP      EffectAuraType = 522
+	// A_523 EffectAuraType = 523
+	A_MOD_DRAGONRIDING_MAX_DECELERATION EffectAuraType = 524
+	A_DISPLAY_PROFESSION_EQUIPMENT      EffectAuraType = 525
+	// A_526 EffectAuraType = 526
+	// A_527 EffectAuraType = 527
+	A_ALLOW_BLOCKING_SPELLS      EffectAuraType = 528
+	A_MOD_SPELL_BLOCK_CHANCE     EffectAuraType = 529
+	A_MOD_AUTO_ATTACK_DAMAGE_PCT EffectAuraType = 530
+	A_MOD_GUARDIAN_DAMAGE_DONE   EffectAuraType = 531
+	// A_532 EffectAuraType = 532
+	A_DISABLE_NAVIGATION EffectAuraType = 533
+	// A_534 EffectAuraType = 534
+	// A_535 EffectAuraType = 535
 	A_IGNORE_SPELL_CREATURE_TYPE_REQUIREMENTS EffectAuraType = 536
-	// 537 is commented out
-	A_MOD_FAKE_INEBRIATION_MOVEMENT_ONLY  EffectAuraType = 538
-	A_ALLOW_MOUNT_IN_COMBAT               EffectAuraType = 539
-	A_MOD_SUPPORT_STAT                    EffectAuraType = 540
-	A_MOD_REQUIRED_MOUNT_CAPABILITY_FLAGS EffectAuraType = 541
-	// 542-546 are commented out
+	A_MOD_DAMAGE_FROM_CASTER_SPELLS_LABEL     EffectAuraType = 537
+	A_MOD_FAKE_INEBRIATION_MOVEMENT_ONLY      EffectAuraType = 538
+	A_ALLOW_MOUNT_IN_COMBAT                   EffectAuraType = 539
+	A_MOD_SUPPORT_STAT                        EffectAuraType = 540
+	A_MOD_REQUIRED_MOUNT_CAPABILITY_FLAGS     EffectAuraType = 541
+	A_TRIGGER_SPELL_ON_STACK_AMOUNT           EffectAuraType = 542
+	// A_543 EffectAuraType = 543
+	// A_544 EffectAuraType = 544
+	A_SET_CANT_SWIM EffectAuraType = 545
+	// A_546 EffectAuraType = 546
 	A_MOD_CRIT_PERCENT_VERSUS EffectAuraType = 547
 	A_MOD_RUNE_REGEN_SPEED    EffectAuraType = 548
-	// 549,550 are commented out
+	// A_549 EffectAuraType = 549
+	// A_550 EffectAuraType = 550
 	A_EXTRA_ATTACKS                EffectAuraType = 551
 	A_MOD_SPELL_CRIT_CHANCE_SCHOOL EffectAuraType = 552
 	A_MOD_POWER_COST_SCHOOL2       EffectAuraType = 553
-	// 554,555 are commented out
+	// A_554 EffectAuraType = 554
+	// A_555 EffectAuraType = 555
 	A_MOD_MELEE_DAMAGE_TAKEN2            EffectAuraType = 556
 	A_MOD_RANGED_HASTE_QUIVER            EffectAuraType = 557
 	A_MOD_RESISTANCE_EXCLUSIVE           EffectAuraType = 558
@@ -535,46 +578,106 @@ const (
 	A_MOD_SHIELD_BLOCKVALUE              EffectAuraType = 564
 	A_SPELL_AURA_MOD_AOE_AVOIDANCE       EffectAuraType = 565
 	A_MELEE_ATTACK_POWER_ATTACKER_BONUS2 EffectAuraType = 566
-	// 567,568 are commented out
+	// A_567 EffectAuraType = 567
+	// A_568 EffectAuraType = 568
 	A_MOD_ATTACKER_SPELL_CRIT_CHANCE EffectAuraType = 569
-	// 570 is commented out
+	// A_570 EffectAuraType = 570
 	A_MOD_RESISTANCE_OF_STAT_PERCENT   EffectAuraType = 571
 	A_MOD_CRITICAL_THREAT              EffectAuraType = 572
 	A_MOD_ATTACKER_RANGED_CRIT_CHANCE  EffectAuraType = 573
 	A_MOD_TARGET_ABILITY_ABSORB_SCHOOL EffectAuraType = 574
-	// 575,576 are commented out
+	// A_575 EffectAuraType = 575
+	// A_576 EffectAuraType = 576
 	A_MOD_ATTACKER_MELEE_CRIT_DAMAGE  EffectAuraType = 577
 	A_MOD_ATTACKER_RANGED_CRIT_DAMAGE EffectAuraType = 578
 	A_MOD_SCHOOL_CRIT_DMG_TAKEN       EffectAuraType = 579
-	// 580-582 are commented out
+	A_580                             EffectAuraType = 580
+	// A_581 EffectAuraType = 581
+	// A_582 EffectAuraType = 582
 	A_MOD_RATING_FROM_STAT EffectAuraType = 583
-	// 584 is commented out
+	// A_584 EffectAuraType = 584
 	A_RAID_PROC_FROM_CHARGE EffectAuraType = 585
-	// 586,587 are commented out
+	// A_586 EffectAuraType = 586
+	// A_587 EffectAuraType = 587
 	A_MOD_DISPEL_RESIST                 EffectAuraType = 588
 	A_MOD_SPELL_DAMAGE_OF_ATTACK_POWER  EffectAuraType = 589
 	A_MOD_SPELL_HEALING_OF_ATTACK_POWER EffectAuraType = 590
 	A_MOD_SCALE_3                       EffectAuraType = 591
-	// 592 is commented out
+	// A_592 EffectAuraType = 592
 	A_MOD_COMBAT_RESULT_CHANCE2         EffectAuraType = 593
 	A_MOD_TARGET_RESIST_BY_SPELL_CLASS2 EffectAuraType = 594
-	// 595-598 are commented out
+	// A_595 EffectAuraType = 595
+	// A_596 EffectAuraType = 596
+	// A_597 EffectAuraType = 597
+	A_598                            EffectAuraType = 598
 	A_MOD_IGNORE_TARGET_RESIST2      EffectAuraType = 599
 	A_SCHOOL_MASK_DAMAGE_FROM_CASTER EffectAuraType = 600
 	A_IGNORE_MELEE_RESET             EffectAuraType = 601
-	// 602,603 are commented out
+	// A_602 EffectAuraType = 602
+	// A_603 EffectAuraType = 603
 	A_MOD_HONOR_GAIN_PCT2 EffectAuraType = 604
-	// 605 is commented out
+	// A_605 EffectAuraType = 605
 	A_MOD_BASE_HEALTH_PCT2      EffectAuraType = 606
 	A_MOD_ATTACK_POWER_OF_ARMOR EffectAuraType = 607
 	A_ABILITY_PERIODIC_CRIT     EffectAuraType = 608
-	// 609-614 are commented out
+	// A_609 EffectAuraType = 609
+	// A_610 EffectAuraType = 610
+	// A_611 EffectAuraType = 611
+	// A_612 EffectAuraType = 612
+	// A_613 EffectAuraType = 613
+	// A_614 EffectAuraType = 614
 	A_MOD_RANGED_HASTE_3 EffectAuraType = 615
-	// 616-618 are commented out
+	// A_616 EffectAuraType = 616
+	// A_617 EffectAuraType = 617
+	// A_618 EffectAuraType = 618
 	A_MOD_BLIND                  EffectAuraType = 619
 	A_MOD_VENDOR_ITEMS_PRICES2   EffectAuraType = 620
 	A_INCREASE_SKILL_GAIN_CHANCE EffectAuraType = 621
-	// 622 is commented out
+	// A_622 EffectAuraType = 622
 	A_MOD_GATHERING_ITEMS_GAINED_PERCENT EffectAuraType = 623
 	A_MOD_DAMAGE_FROM_MANA               EffectAuraType = 624
+	// A_625 EffectAuraType = 625
+	// A_626 EffectAuraType = 626
+	// A_627 EffectAuraType = 627
+	// A_628 EffectAuraType = 628
+	// A_629 EffectAuraType = 629
+	// A_630 EffectAuraType = 630
+	// A_631 EffectAuraType = 631
+	// A_632 EffectAuraType = 632
+	// A_633 EffectAuraType = 633
+	// A_634 EffectAuraType = 634
+	A_635 EffectAuraType = 635
+	// A_636 EffectAuraType = 636
+	A_MOD_EXPLORATION_EXPERIENCE            EffectAuraType = 637
+	A_MOD_CRITICAL_BLOCK_AMOUNT             EffectAuraType = 638
+	A_MOD_DAMAGE_DONE_TO_CASTER_FROM_SCHOOL EffectAuraType = 639
+	// A_640 EffectAuraType = 640
+	// A_641 EffectAuraType = 641
+	// A_642 EffectAuraType = 642
+	A_MOD_RANGED_ATTACK_SPEED_FLAT EffectAuraType = 643
+	// A_644 EffectAuraType = 644
+	// A_645 EffectAuraType = 645
+	A_MOD_FLAT_PVP_MULTIPLIER       EffectAuraType = 646
+	A_MOD_PCT_PVP_MULTIPLIER        EffectAuraType = 647
+	A_MOD_FLAT_LABEL_PVP_MULTIPLIER EffectAuraType = 648
+	A_MOD_PCT_LABEL_PVP_MULTIPLIER  EffectAuraType = 649
+	// A_650 EffectAuraType = 650
+	// A_651 EffectAuraType = 651
+	// A_652 EffectAuraType = 652
+	// A_653 EffectAuraType = 653
+	// A_654 EffectAuraType = 654
+	// A_655 EffectAuraType = 655
+	// A_656 EffectAuraType = 656
+	// A_657 EffectAuraType = 657
+	// A_658 EffectAuraType = 658
+	// A_659 EffectAuraType = 659
+	// A_660 EffectAuraType = 660
+	// A_661 EffectAuraType = 661
+	// A_662 EffectAuraType = 662
+	// A_663 EffectAuraType = 663
+	// A_664 EffectAuraType = 664
+	// A_665 EffectAuraType = 665
+	// A_666 EffectAuraType = 666
+	// A_667 EffectAuraType = 667
+	// A_668 EffectAuraType = 668
 )

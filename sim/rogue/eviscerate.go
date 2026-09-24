@@ -21,7 +21,7 @@ func (rogue *Rogue) registerEviscerate() {
 	// 	ClassSpellMask: RogueSpellEviscerate,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: eviscerateRank.Cost(),
+	// 		Cost: int32(eviscerateRank.Cost()),
 	// 		// TODO: Forever drops Quick Recovery; no energy refund until we know whether the
 	// 		// effect moved onto another talent.
 	// 		Refund:        0,

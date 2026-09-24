@@ -11,6 +11,10 @@
 // DBCache.bin, or the community list carries (--keys <file>, default
 // tools/db2tool/TACTKeys.txt, refreshed from wowdev/TACTKeys).
 //
+// With --cdn, the same pipeline reads the product's current build straight
+// off Blizzard's CDN (--region picks the version service, default us) — no
+// install required, and hotfixes come from --dbcache or tools/db2tool/caches.
+//
 // With --build (and optionally --db2dir/--dbddir), the offline mode decodes
 // pre-extracted .db2 files instead — no install required and no hotfixes
 // unless --dbcache is given.
@@ -47,6 +51,8 @@ type options struct {
 	dbCaches     []string // explicit DBCache files, overriding the default scan
 	noHotfixes   bool     // skip hotfix application entirely
 	keyFile      string   // community TACT key list; empty → tools/db2tool/TACTKeys.txt
+	cdn          bool     // read the current build from Blizzard's CDN instead of BaseDir
+	region       string   // version service region for --cdn
 }
 
 // parseArgs scans the args pairwise. --settings/-s and --output/-output/-o
@@ -55,6 +61,7 @@ func parseArgs(args []string) (options, error) {
 	opts := options{
 		settingsFile: "appsettings.json",
 		databaseFile: "wowsims.db",
+		region:       "us",
 	}
 	for i := 0; i < len(args); i++ {
 		next := func() (string, error) {
@@ -83,6 +90,10 @@ func parseArgs(args []string) (options, error) {
 			opts.noHotfixes = true
 		case "--keys":
 			opts.keyFile, err = next()
+		case "--cdn":
+			opts.cdn = true
+		case "--region":
+			opts.region, err = next()
 		case "--build":
 			var v string
 			if v, err = next(); err == nil {
@@ -154,7 +165,7 @@ func run(args []string) error {
 
 	var buildNumber uint32
 	var openTable func(tableName string) (*wdc.Table, error)
-	var build *tact.Build // local-CASC mode only
+	var build *tact.Build // local-CASC and CDN modes only
 
 	if opts.buildNumber != 0 {
 		// Offline mode: pre-extracted .db2 files.
@@ -167,16 +178,24 @@ func run(args []string) error {
 			return wdc.ReadFile(filepath.Join(db2Dir, tableName+".db2"))
 		}
 	} else {
-		// Local-CASC mode (the default): everything from the install.
-		if settings.Settings.BaseDir == "" {
-			return fmt.Errorf("settings BaseDir is required (or pass --build for offline mode)")
+		// Local-CASC mode (the default) and CDN mode: everything from the
+		// install or the CDN, through the same Build.
+		if opts.cdn {
+			build, err = tact.OpenCDN(settings.Settings.Product, opts.region, filepath.Join(toolHome, "cdncache"))
+		} else if settings.Settings.BaseDir == "" {
+			return fmt.Errorf("settings BaseDir is required (or pass --cdn, or --build for offline mode)")
+		} else {
+			build, err = tact.Open(settings.Settings.BaseDir, settings.Settings.Product)
 		}
-		build, err = tact.Open(settings.Settings.BaseDir, settings.Settings.Product)
 		if err != nil {
 			return err
 		}
 		buildNumber = build.BuildNumber
-		fmt.Printf("Extracting %s %s (build %d) from local install\n", build.Entry.Product, build.Entry.Version, buildNumber)
+		source := "local install"
+		if opts.cdn {
+			source = opts.region + " CDN"
+		}
+		fmt.Printf("Extracting %s %s (build %d) from %s\n", build.Entry.Product, build.Entry.Version, buildNumber, source)
 
 		listfile := &tact.Listfile{Path: filepath.Join(toolHome, "listfile.csv")}
 		if err := listfile.Refresh(); err != nil {
@@ -230,8 +249,8 @@ func run(args []string) error {
 	// table. Only a cache for this exact build applies; having none is not an
 	// error. --dbcache pins specific cache files (deterministic runs); with no
 	// override, local-CASC mode scans tools/db2tool/caches plus
-	// <BaseDir>/**/DBCache.bin, while the offline --build mode stays
-	// hotfix-free.
+	// <BaseDir>/**/DBCache.bin, CDN mode only tools/db2tool/caches, and the
+	// offline --build mode stays hotfix-free.
 	var hotfixReader *wdc.HotfixReader
 	if !opts.noHotfixes {
 		var readers map[uint32]*wdc.HotfixReader
@@ -240,7 +259,11 @@ func run(args []string) error {
 				return err
 			}
 		} else if opts.buildNumber == 0 {
-			if readers, err = wdc.LoadHotfixCaches(filepath.Join(toolHome, "caches"), settings.Settings.BaseDir); err != nil {
+			baseDir := settings.Settings.BaseDir
+			if opts.cdn {
+				baseDir = ""
+			}
+			if readers, err = wdc.LoadHotfixCaches(filepath.Join(toolHome, "caches"), baseDir); err != nil {
 				return err
 			}
 		}
@@ -250,6 +273,8 @@ func run(args []string) error {
 		switch {
 		case hotfixReader == nil && len(opts.dbCaches) > 0:
 			fmt.Fprintf(os.Stderr, "db2tool: warning: none of the given --dbcache files hold hotfixes for build %d; continuing without the overlay\n", buildNumber)
+		case hotfixReader == nil && opts.cdn:
+			fmt.Fprintf(os.Stderr, "db2tool: warning: no DBCache.bin for build %d found under %s; continuing without the overlay\n", buildNumber, filepath.Join(toolHome, "caches"))
 		case hotfixReader == nil && opts.buildNumber == 0:
 			fmt.Fprintf(os.Stderr, "db2tool: warning: no DBCache.bin for build %d found under %s or %s; continuing without the overlay\n", buildNumber, settings.Settings.BaseDir, filepath.Join(toolHome, "caches"))
 		}
@@ -289,8 +314,8 @@ func run(args []string) error {
 
 	// TACT keys: the client's own TactKey/TactKeyLookup tables (with any
 	// pushed keys the hotfix overlay adds) plus the community list. Only the
-	// local-CASC mode can use them: offline .db2 files were already written
-	// with their encrypted chunks zero-filled.
+	// local-CASC and CDN modes can use them: offline .db2 files were already
+	// written with their encrypted chunks zero-filled.
 	var keys *tact.KeyStore
 	if build != nil {
 		keys = tact.NewKeyStore()

@@ -185,7 +185,7 @@ func (rogue *Rogue) registerVilePoisons() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  RogueSpellPoisons,
-	// 	FloatValue: spellData.VilePoisons.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(rogue.Talents.VilePoisons),
+	// 	FloatValue: spellData.VilePoisons.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(rogue.Talents.VilePoisons),
 	// })
 }
 
@@ -298,7 +298,7 @@ func (rogue *Rogue) registerMutilate() {
 	// 	ClassSpellMask: RogueSpellMutilate,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   mutilateRank.Cost(),
+	// 		Cost:   int32(mutilateRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{

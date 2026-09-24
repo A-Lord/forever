@@ -59,7 +59,7 @@ func (rogue *Rogue) registerOpportunity() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  RogueSpellBackstab | RogueSpellMutilate | RogueSpellAmbush,
-	// 	FloatValue: spellData.Opportunity.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(rogue.Talents.Opportunity),
+	// 	FloatValue: spellData.Opportunity.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(rogue.Talents.Opportunity),
 	// })
 }
 
@@ -200,7 +200,7 @@ func (rogue *Rogue) registerSerratedBlades() {
 	// rogue.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// 	ClassMask:  RogueSpellRupture,
-	// 	FloatValue: spellData.SerratedBlades.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DOT).FractionAt(rogue.Talents.SerratedBlades),
+	// 	FloatValue: spellData.SerratedBlades.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DOT)).FractionAt(rogue.Talents.SerratedBlades),
 	// })
 }
 
@@ -320,7 +320,7 @@ func (rogue *Rogue) registerHemorrhage() {
 	// 		IgnoreHaste: true,
 	// 	},
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   hemorrhageRank.Cost(),
+	// 		Cost:   int32(hemorrhageRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	//

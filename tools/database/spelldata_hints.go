@@ -30,15 +30,17 @@ var tooltipEffectChance = regexp.MustCompile(`\$[ms]([123])%\s+chance`)
 
 // Reads the proc shape off the tooltip and the aura columns and writes it onto the row.
 func applyTooltipHints(t *spellTables, s *storeSpell) {
-	description := t.descriptions[s.ID]
+	description := t.Descriptions[s.ID]
+
+	ownChance := tooltipOwnChance.MatchString(description)
 
 	s.ProcHint = procTooltipHints(description)
-	s.ProcChanceSource, s.ProcChanceEffect = procChanceSource(description, s)
-	s.tooltipStatesChance = tooltipOwnChance.MatchString(description) || s.ProcChanceSource == procChanceEffectN
+	s.ProcChanceSource, s.ProcChanceEffect = procChanceSource(description, ownChance, s)
+	s.tooltipStatesChance = ownChance || s.ProcChanceSource == procChanceEffectN
 }
 
-func procChanceSource(description string, s *storeSpell) (storeProcChanceSource, int8) {
-	if tooltipOwnChance.MatchString(description) {
+func procChanceSource(description string, ownChance bool, s *storeSpell) (storeProcChanceSource, int8) {
+	if ownChance {
 		return procChanceColumn, 0
 	}
 
@@ -82,12 +84,7 @@ func procChanceSource(description string, s *storeSpell) (storeProcChanceSource,
 // An effect a tooltip can state a chance for: the two trigger auras, and the dummy the server hangs
 // a hand-written proc off - Furor's and Unbridled Wrath's chances both sit on one.
 func isProcEffect(e *storeEffect) bool {
-	if e == nil {
-		return false
-	}
-	aura := dbcenums.EffectAuraType(e.Aura)
-	return aura == dbcenums.A_PROC_TRIGGER_SPELL || aura == dbcenums.A_PROC_TRIGGER_SPELL_WITH_VALUE ||
-		aura == dbcenums.A_DUMMY
+	return e.Aura.IsProcTrigger() || e.Aura == dbcenums.A_DUMMY
 }
 
 // Whether the spell fires something through the client's own proc machinery, which is what makes a
@@ -95,8 +92,7 @@ func isProcEffect(e *storeEffect) bool {
 // Missiles all carry one, and none of them is a proc.
 func (s *storeSpell) triggersAProc() bool {
 	for i := range s.Effects {
-		aura := dbcenums.EffectAuraType(s.Effects[i].Aura)
-		if aura == dbcenums.A_PROC_TRIGGER_SPELL || aura == dbcenums.A_PROC_TRIGGER_SPELL_WITH_VALUE {
+		if s.Effects[i].Aura.IsProcTrigger() {
 			return true
 		}
 	}

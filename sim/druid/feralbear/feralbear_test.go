@@ -129,15 +129,6 @@ var DefaultSpecOptions = &proto.Player_FeralBearDruid{
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:            22849, // Ironshield Potion
-	BattleElixirId:   22831, // Elixir of Major Agility
-	GuardianElixirId: 9088,  // Gift of Arthas
-	FoodId:           27667, // Spicy Crawdad
-	ConjuredId:       22105, // Healthstone
-	SuperSapper:      true,
+	GuardianElixirId: 9088, // Gift of Arthas
 	GoblinSapper:     true,
-	ScrollAgi:        true,
-	ScrollStr:        true,
-	ScrollArm:        true,
-	NightmareSeed:    true,
 }

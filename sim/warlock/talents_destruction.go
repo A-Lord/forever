@@ -32,17 +32,13 @@ func (warlock *Warlock) registerDestructionTalents() {
 	warlock.applyIncinerate()
 }
 
-// TODO: To be implemented. Port the TBC Improved Shadow Bolt implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Improved Shadow Bolt (17793) is one dummy effect
+// with no trigger spell and its debuff 17800 has no SpellName row, so there is
+// nothing in the client to build the aura this talent applies from.
 func (warlock *Warlock) applyImprovedShadowBolt() {
 	if warlock.Talents.ImprovedShadowBolt == 0 {
 		return
 	}
-
-	// The TBC implementation, kept for the port:
-	// if warlock.Talents.ImprovedShadowBolt == 0 {
-	// 	return
-	// }
-	// warlock.ImpShadowboltAura = core.ImprovedShadowBoltAura(warlock.CurrentTarget, 0, warlock.Talents.ImprovedShadowBolt)
 }
 
 // TODO: To be implemented. Port the TBC Cataclysm implementation below; not yet verified against the Forever client.

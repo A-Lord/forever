@@ -19,7 +19,7 @@ export const PaladinRotationConfig = {
 		InputHelpers.makeRotationNumberInput<Spec.SpecRetributionPaladin>({
 			fieldName: 'delayMajorCDs',
 			label: 'Delay Major CDs',
-			labelTooltip: 'Delays the first automatic use of major cooldowns (e.g. Bloodlust, Drums) by the specified number of seconds.',
+			labelTooltip: 'Delays the first automatic use of major cooldowns, such as trinkets, by the specified number of seconds.',
 			getValue: player => player.getSimpleRotation().delayMajorCDs,
 			positive: true,
 		}),
@@ -36,7 +36,5 @@ export const PaladinRotationConfig = {
 // Icon-enum pickers cannot sit in an `inputs` array any more; they go in the spec's
 // `rotationIconInputs`, which the simple-rotation pane renders as an icon row.
 export const PaladinRotationIconInputs = [
-	SharedPaladinInputs.AuraInput<Spec.SpecRetributionPaladin>(
-		'Which paladin aura to activate in the prepull. <b>Sanctity Aura</b> requires the talent. Pick <b>None</b> to skip casting an aura.',
-	),
+	SharedPaladinInputs.AuraInput<Spec.SpecRetributionPaladin>('Which paladin aura to activate in the prepull. Pick <b>None</b> to skip casting an aura.'),
 ];

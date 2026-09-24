@@ -18,7 +18,7 @@ func (warlock *Warlock) registerDeathCoil() {
 	// 	MissileSpeed:   float64(deathCoilRank.Speed),
 	// 	MaxRange:       float64(deathCoilRank.MaxRange),
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: deathCoilRank.Cost()},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(deathCoilRank.Cost())},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
 	// 			GCD: deathCoilRank.GCD(),

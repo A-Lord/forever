@@ -25,7 +25,7 @@ func TestHolyPaladin(t *testing.T) {
 		player := core.WithSpec(
 			&proto.Player{
 				Class:         proto.Class_ClassPaladin,
-				Race:          proto.Race_RaceBloodElf,
+				Race:          proto.Race_RaceUndead,
 				Equipment:     core.GetGearSet("../../../ui/specs/paladin/holy/gear_sets", gearSet).GearSet,
 				Consumables:   FullConsumes,
 				Buffs:         core.FullIndividualBuffs,

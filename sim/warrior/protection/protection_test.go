@@ -61,9 +61,9 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 	ProtectionWarrior: &proto.ProtectionWarrior{
 		Options: &proto.ProtectionWarrior_Options{
 			ClassOptions: &proto.WarriorOptions{
-				StartingRage:  100,
-				DefaultShout:  proto.WarriorShout_WarriorShoutBattle,
-				DefaultStance: proto.WarriorStance_WarriorStanceDefensive,
+				StartingRage:   100,
+				UseBattleShout: true,
+				DefaultStance:  proto.WarriorStance_WarriorStanceDefensive,
 			},
 		},
 	},
@@ -72,16 +72,5 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 var DefaultProtectionTalents = "05--552531233311210531"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:            22849,
-	FoodId:           27667,
-	ConjuredId:       22105,
-	ExplosiveId:      30217,
-	SuperSapper:      true,
-	OhImbueId:        29453,
-	ScrollAgi:        true,
-	ScrollStr:        true,
-	ScrollArm:        true,
-	BattleElixirId:   22831,
 	GuardianElixirId: 9088,
-	NightmareSeed:    true,
 }

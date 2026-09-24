@@ -20,7 +20,7 @@ func (rogue *Rogue) registerBackstabSpell() {
 	// 	ClassSpellMask: RogueSpellBackstab,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   backstabRank.Cost(),
+	// 		Cost:   int32(backstabRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{

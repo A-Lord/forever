@@ -25,7 +25,7 @@ func (warrior *Warrior) registerExecute() {
 	config.ThreatMultiplier = 1
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BerserkerStance|BattleStance) && sim.IsExecutePhase20()
+		return sim.IsExecutePhase20()
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

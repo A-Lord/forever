@@ -1,6 +1,9 @@
 package paladin
 
 import (
+	"time"
+
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -8,31 +11,49 @@ import (
 
 var TalentTreeSizes = [3]int{18, 16, 18}
 
-const JudgementAuraTag = "JudgementAura"
-
 type Paladin struct {
 	core.Character
 
 	Talents *proto.PaladinTalents
 
-	Forbearance *core.Aura
+	Forbearance       *core.Aura
+	RighteousFuryAura *core.Aura
 
-	PreviousSeal      *core.Aura
-	PreviousJudgement *core.Spell
-	PreviousSealSpell *core.Spell
-	CurrentSeal       *core.Aura
-	CurrentJudgement  *core.Spell
-	CurrentSealSpell  *core.Spell
+	Judgement *core.Spell
 
-	// Timers for spells with multiple ranks
-	consecrationTimer  *core.Timer
-	hammerOfWrathTimer *core.Timer
-	holyShieldTimer    *core.Timer
-	holyShockTimer     *core.Timer
-	holyWrathTimer     *core.Timer
-	exorcismTimer      *core.Timer
+	// The seal the paladin is under, and the ranks it has cast so far this iteration.
+	currentSeal *sealConfig
 
+	// The judgement effects this paladin can put on enemies; its melee strikes refresh them.
 	JudgementAuras []core.AuraArray
+
+	// Twist of Light: one Echo per seal that leaves one, keyed by the Echo's spell id.
+	echoes map[int32]*sealEcho
+
+	// Consecrated Ground: the targets the talent's bonus is active on, one aura per enemy.
+	consecratedGroundAuras core.AuraArray
+
+	// Light's Vigil: one entry per rank, so Holy Shock can find the vigil it consumes.
+	lightsVigils []*lightsVigil
+
+	// What gear adds to numbers the spells read as they register. Item effects and set bonuses
+	// apply before Initialize, so the spells pick these up.
+	sealOfTheCrusaderBonusAttackPower float64
+	judgementOfTheCrusaderBonus       float64
+	flashOfLightBonusHealing          float64
+	holyShieldBlockValueMultiplier    float64
+	forbearanceReduction              time.Duration
+
+	// Timers shared by the ranks of one ability.
+	judgementTimer     *core.Timer
+	holyStrikeTimer    *core.Timer
+	consecrationTimer  *core.Timer
+	exorcismTimer      *core.Timer
+	hammerOfWrathTimer *core.Timer
+	holyWrathTimer     *core.Timer
+	holyShockTimer     *core.Timer
+	holyShieldTimer    *core.Timer
+	lightsVigilTimer   *core.Timer
 }
 
 // Implemented by each Paladin spec.
@@ -55,39 +76,32 @@ func (paladin *Paladin) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (paladin *Paladin) Initialize() {
-	paladin.registerSpells()
-}
-
-func (paladin *Paladin) registerSpells() {
-	// Core abilities
-	paladin.registerJudgement()
-	ConsecrationRankMap.RegisterAll(paladin.registerConsecration)
-	HammerOfWrathRankMap.RegisterAll(paladin.registerHammerOfWrath)
-	HolyWrathRankMap.RegisterAll(paladin.registerHolyWrath)
-	ExorcismRankMap.RegisterAll(paladin.registerExorcism)
+	paladin.registerForbearance()
 	paladin.registerRighteousFury()
 
-	paladin.registerForbearance()
-
-	// Seals
+	paladin.registerJudgement()
 	paladin.registerSeals()
-
-	// Auras
 	paladin.registerAuras()
 
-	// // Blessings
-	// paladin.registerBlessings()
+	HolyStrikeRankMap.RegisterAll(paladin.registerHolyStrike)
+	ConsecrationRankMap.RegisterAll(paladin.registerConsecration)
+	ExorcismRankMap.RegisterAll(paladin.registerExorcism)
+	HammerOfWrathRankMap.RegisterAll(paladin.registerHammerOfWrath)
+	HolyWrathRankMap.RegisterAll(paladin.registerHolyWrath)
 
-	// Healing spells
-	paladin.registerHealingSpells()
+	HolyLightRankMap.RegisterAll(paladin.registerHolyLight)
+	FlashOfLightRankMap.RegisterAll(paladin.registerFlashOfLight)
+	LayOnHandsRankMap.RegisterAll(paladin.registerLayOnHands)
 }
 
-func (paladin *Paladin) Reset(sim *core.Simulation) {
-	paladin.CurrentSeal = nil
-	paladin.PreviousSeal = nil
+func (paladin *Paladin) Reset(_ *core.Simulation) {
+	paladin.currentSeal = nil
+	for _, echo := range paladin.echoes {
+		echo.seal = nil
+	}
 }
 
-func (paladin *Paladin) OnEncounterStart(sim *core.Simulation) {
+func (paladin *Paladin) OnEncounterStart(_ *core.Simulation) {
 }
 
 func (paladin *Paladin) GetMainHandType() proto.HandType {
@@ -100,10 +114,39 @@ func (paladin *Paladin) GetMainHandType() proto.HandType {
 	return proto.HandType_HandTypeOneHand
 }
 
-func NewPaladin(character *core.Character, talentsStr string, options *proto.PaladinOptions) *Paladin {
+func (paladin *Paladin) sharedTimer(timer **core.Timer) *core.Timer {
+	if *timer == nil {
+		*timer = paladin.NewTimer()
+	}
+	return *timer
+}
+
+// The cost a row states: a flat number, or a share of base mana for the spells the client prices
+// that way (Judgement, Righteous Fury, Seal of Justice).
+func manaCost(row shared.SpellData) core.ManaCostOptions {
+	if row.PowerCostPct > 0 {
+		return core.ManaCostOptions{BaseCostPercent: row.PowerCostPct}
+	}
+	return core.ManaCostOptions{FlatCost: row.Cost}
+}
+
+// The effect at the client's EffectIndex, for the effects Effect(aura, misc) cannot name: the
+// weapon-damage effects carry no aura.
+func effectAt(row shared.SpellData, index int32) shared.SpellDataEffect {
+	for _, e := range row.Effects {
+		if e.Index == index {
+			return e
+		}
+	}
+	panic("spell has no effect at the index")
+}
+
+func NewPaladin(character *core.Character, talentsStr string, _ *proto.PaladinOptions) *Paladin {
 	paladin := &Paladin{
 		Character: *character,
 		Talents:   &proto.PaladinTalents{},
+
+		holyShieldBlockValueMultiplier: 1,
 	}
 
 	core.FillTalentsProto(paladin.Talents.ProtoReflect(), talentsStr, TalentTreeSizes)

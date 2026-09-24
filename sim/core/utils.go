@@ -13,16 +13,13 @@ import (
 	googleproto "google.golang.org/protobuf/proto"
 )
 
-func MinTristate(a proto.TristateEffect, b proto.TristateEffect) proto.TristateEffect {
-	if a < b {
-		return a
-	} else {
-		return b
-	}
-}
-
 func DurationFromSeconds(numSeconds float64) time.Duration {
 	return time.Duration(float64(time.Second) * numSeconds)
+}
+
+// A float is truncated to whole milliseconds, which is how the client's millisecond columns read.
+func DurationFromMillis[T int32 | float64](ms T) time.Duration {
+	return time.Duration(ms) * time.Millisecond
 }
 
 func StringFromStatTypes(statTypes []stats.Stat) string {
@@ -71,20 +68,6 @@ func GetTristateValueInt32(effect proto.TristateEffect, regularValue int32, impV
 	} else {
 		return 0
 	}
-}
-
-func GetTristateValueFloat(effect proto.TristateEffect, regularValue float64, impValue float64) float64 {
-	if effect == proto.TristateEffect_TristateEffectRegular {
-		return regularValue
-	} else if effect == proto.TristateEffect_TristateEffectImproved {
-		return impValue
-	} else {
-		return 0
-	}
-}
-
-func IsImproved(effect proto.TristateEffect) bool {
-	return effect == proto.TristateEffect_TristateEffectImproved
 }
 
 func MakeTristateValue(hasRegular bool, hasImproved bool) proto.TristateEffect {

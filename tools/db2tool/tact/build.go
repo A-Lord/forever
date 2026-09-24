@@ -5,9 +5,11 @@
 // consults them but the local .idx always wins for resident files).
 // Copyright (c) 2024 Martin Benjamins. MIT License — see tools/db2tool/NOTICES.md.
 
-// Package tact reads files out of a local World of Warcraft CASC install:
-// .build.info picks the build, then root → encoding → .idx → data.NNN → BLTE
-// resolves a file data id to its bytes. There is no CDN fallback.
+// Package tact reads World of Warcraft client files either out of a local
+// CASC install (.build.info picks the build, then root → encoding → .idx →
+// data.NNN → BLTE resolves a file data id to its bytes) or straight off
+// Blizzard's CDN (see cdn.go), which swaps the .idx/data.NNN step for archive
+// indexes and range reads. Nothing falls back from one to the other.
 package tact
 
 import (
@@ -21,9 +23,15 @@ type Build struct {
 	BuildNumber uint32
 	Keys        *KeyStore // TACT keys for encrypted BLTE chunks; nil leaves them zero-filled
 
-	store    *cascStore
+	store    eKeyStore
 	encoding *encodingTable
 	root     *rootTable
+}
+
+// eKeyStore hands back the raw BLTE bytes behind an encoding key; the local
+// CASC archives and the CDN are the two implementations.
+type eKeyStore interface {
+	readEKey(eKey []byte) ([]byte, error)
 }
 
 // Open loads everything needed to serve OpenFileByFDID from a local install.
@@ -53,7 +61,12 @@ func Open(baseDir, product string) (*Build, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening local CASC store: %w", err)
 	}
+	return load(entry, buildNumber, buildConfig, store)
+}
 
+// load reads the encoding and root files the build config names out of
+// store, after which OpenFileByFDID works.
+func load(entry AvailableBuild, buildNumber uint32, buildConfig map[string][]string, store eKeyStore) (*Build, error) {
 	b := &Build{
 		Entry:       entry,
 		BuildNumber: buildNumber,

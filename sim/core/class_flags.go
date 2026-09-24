@@ -1,5 +1,21 @@
 package core
 
+import "github.com/wowsims/forever/sim/core/proto"
+
+// The client's SpellClassSet per class: the family every one of that class's spells files its class
+// mask under. Verified row by row against the spell store in spelldata's TestClassSpellFamilies.
+var ClassSpellFamilies = map[proto.Class]int32{
+	proto.Class_ClassMage:    3,
+	proto.Class_ClassWarrior: 4,
+	proto.Class_ClassWarlock: 5,
+	proto.Class_ClassPriest:  6,
+	proto.Class_ClassDruid:   7,
+	proto.Class_ClassRogue:   8,
+	proto.Class_ClassHunter:  9,
+	proto.Class_ClassPaladin: 10,
+	proto.Class_ClassShaman:  11,
+}
+
 // ClassFlags is the client's SpellClassOptions: the family (SpellClassSet) and the four
 // 32-bit words of SpellClassMask. A talent effect carries the same shape (EffectSpellClassMask)
 // naming the spells it modifies.

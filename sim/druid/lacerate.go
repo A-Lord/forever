@@ -10,16 +10,17 @@ func (druid *Druid) registerLacerateSpell() {
 	// The TBC implementation, kept for the port:
 	// tickDamageBase := lacerateTick.Average(core.CharacterLevel)
 	//
-	// druid.Lacerate = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: lacerateRank.ID},
-	// 	SpellSchool:    lacerateRank.SpellSchool(),
-	// 	DefenseType:    lacerateRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellLacerate,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.Lacerate = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: lacerateRank.ID},
+	// 	CastRequirement: lacerateRank.CastRequirement(),
+	// 	SpellSchool:     lacerateRank.SpellSchool(),
+	// 	DefenseType:     lacerateRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellLacerate,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
-	// 		Cost:   lacerateRank.Cost(),
+	// 		Cost:   int32(lacerateRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{
@@ -61,11 +62,9 @@ func (druid *Druid) registerLacerateSpell() {
 	// 			if dot.IsActive() {
 	// 				dot.Refresh(sim)
 	// 				dot.AddStack(sim)
-	// 				dot.TakeSnapshot(sim)
 	// 			} else {
 	// 				dot.Apply(sim)
 	// 				dot.SetStacks(sim, 1)
-	// 				dot.TakeSnapshot(sim)
 	// 			}
 	// 		} else {
 	// 			spell.IssueRefund(sim)

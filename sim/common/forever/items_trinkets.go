@@ -3,20 +3,12 @@ package forever
 import (
 	"time"
 
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func init() {
-	// Summoning figurines. The generator skips a spell with a summon effect (type 28) outright,
-	// which also drops the stat buff the same spell carries. Only the buff is simulated.
-	shared.NewSimpleStatActive(24126) // Figurine - Living Ruby Serpent - https://www.wowhead.com/forever/spell=31040
-	shared.NewSimpleStatActive(24128) // Figurine - Nightseye Panther - https://www.wowhead.com/forever/spell=31047
-	shared.NewSimpleStatActive(35700) // Figurine - Crimson Serpent - https://www.wowhead.com/forever/spell=46783
-	shared.NewSimpleStatActive(35702) // Figurine - Shadowsong Panther - https://www.wowhead.com/forever/spell=46784
-
 	// Jom Gabbar
 	// Use: Increases attack power by 65 and an additional 65 every 2 sec. Lasts 20 sec. (2 Min Cooldown)
 	core.NewItemEffect(23570, func(agent core.Agent) {

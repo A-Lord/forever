@@ -134,6 +134,13 @@ binary_dist: $(OUT_DIR)/.dirstamp
 .PHONY: proto
 proto: sim/core/proto/api.pb.go ui/generated/proto/api.ts
 
+# The buff messages come from the checked-in manifest, not from hand-edited proto. The manifest
+# imports the compiled protos, so this is run by hand after a manifest edit rather than as a
+# prerequisite of them; TestBuffFilesRegenerateFromTheCommittedInputs fails while buffs.proto is stale.
+.PHONY: buffs-proto
+buffs-proto:
+	go run ./tools/gen_buffs_proto
+
 # Builds the web server with the compiled client.
 .PHONY: wowsimforever
 wowsimforever: binary_dist devserver
@@ -237,6 +244,9 @@ simdb: sim/core/items/all_items.go sim/core/proto/api.pb.go
 CLIENTDATA_SETTINGS := $(abspath ./tools/database/generator-settings.json)
 CLIENTDATAPTR_SETTINGS := $(abspath ./tools/database/ptr-generator-settings.json)
 CLIENTDATA_OUTPUT   := $(abspath ./tools/database/wowsims.db)
+# Extra db2tool flags. `make db DB2TOOL_FLAGS="--cdn --dbcache path/to/DBCache.bin"`
+# reads the build off Blizzard's CDN instead of BaseDir (no install needed).
+DB2TOOL_FLAGS ?=
 
 # The spell store is regenerated before the item database, and the order is load-bearing: gen_db
 # classifies every item and enchant proc from the store compiled into it, so running it against a
@@ -245,11 +255,17 @@ CLIENTDATA_OUTPUT   := $(abspath ./tools/database/wowsims.db)
 .PHONY: db
 db:
 	@echo "Extracting client data"
-	go run ./tools/db2tool -s $(CLIENTDATA_SETTINGS) --output $(CLIENTDATA_OUTPUT)
+	go run ./tools/db2tool -s $(CLIENTDATA_SETTINGS) --output $(CLIENTDATA_OUTPUT) $(DB2TOOL_FLAGS)
 	@echo "Regenerating the spell store"
 	go run ./tools/database/gen_spelldata
 	@echo "Running DBC generation tool"
 	go run tools/database/gen_db/*.go -outDir=./assets -gen=db
+
+# Regenerates sim/<class>/spell_data_auto_gen.go from tools/database/wowsims.db, so it
+# runs after `make db` and from the repo root.
+.PHONY: spelldata
+spelldata:
+	go run ./tools/database/gen_spelldata
 
 # Regenerates sim/core/base_stats_auto_gen.go and ui/sim/constants/mechanics.ts from
 # the same numbers, so the sim and the UI cannot disagree about a rating conversion.
@@ -262,7 +278,7 @@ basestats:
 .PHONY: ptrdb
 ptrdb:
 	@echo "Extracting client data"
-	go run ./tools/db2tool -s $(CLIENTDATAPTR_SETTINGS) --output $(CLIENTDATA_OUTPUT)
+	go run ./tools/db2tool -s $(CLIENTDATAPTR_SETTINGS) --output $(CLIENTDATA_OUTPUT) $(DB2TOOL_FLAGS)
 	@echo "Regenerating the spell store"
 	go run ./tools/database/gen_spelldata
 	@echo "Running DBC generation tool"

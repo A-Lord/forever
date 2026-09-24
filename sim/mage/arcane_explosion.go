@@ -18,7 +18,7 @@ func (mage *Mage) registerArcaneExplosionSpell() {
 	// 	ClassSpellMask: MageSpellArcaneExplosion,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneExplosionRank.Cost(),
+	// 		FlatCost: int32(arcaneExplosionRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

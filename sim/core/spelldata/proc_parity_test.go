@@ -1,7 +1,9 @@
 // What the item procs the sim registered before it read them off the rows resolve to. The table is
 // the sixteen registrations sim/common/forever/stat_bonus_procs_auto_gen.go carried at 60266be6f7,
 // transcribed by hand, and every field is what that generated call stated. Two of them state a
-// number the client contradicts, and one is no longer registered at all; both say so here.
+// number the client contradicts, one a mask that leaves out the heals the client's mask names, one
+// is no longer registered at all, and one required damage where a weapon proc needs only a landed
+// hit; each says so here.
 //
 // A pin rather than a comparison: the generated file carries spell ids now, so there are no literals
 // left to compare against, and what this guards is that resolving those ids still produces the
@@ -87,13 +89,17 @@ func liveProcs() []liveProc {
 			outcome: core.OutcomeLanded, requireDamageDealt: true, chance: 1,
 		},
 		{
+			// The generated call required damage. A weapon proc fires off any hit that lands, so a
+			// special that deals none rolls it too.
 			itemID: 12798, name: "Annihilator", triggerSpellID: 16928, isWeaponProc: true,
 			callback: core.CallbackOnSpellHitDealt, procMask: core.ProcMaskUnknown,
-			outcome: core.OutcomeLanded, requireDamageDealt: true, ppm: 1,
+			outcome: core.OutcomeLanded, ppm: 1,
 		},
 		{
+			// The generated call stated ProcMaskSpellDamage alone. 23688's mask 0x14000 names helpful
+			// spells beside harmful ones, so heal casts roll it too.
 			itemID: 19288, name: "Darkmoon Card: Blue Dragon", triggerSpellID: 23688,
-			callback: core.CallbackOnCastComplete, procMask: core.ProcMaskSpellDamage,
+			callback: core.CallbackOnCastComplete, procMask: core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
 			outcome: core.OutcomeEmpty, chance: 0.02,
 		},
 		{
@@ -149,7 +155,11 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 		}
 
 		character := &core.Character{}
-		trigger := ProcTrigger(character, row, nil, weaponProcShapeForTest(live.isWeaponProc), procRateForTest(row))
+		var opts []ProcOpt
+		if live.isWeaponProc {
+			opts = append(opts, WeaponProc())
+		}
+		trigger := ProcTrigger(character, row, nil, append(opts, procRateForTest(row))...)
 
 		report := func(field string, got any, want any) {
 			t.Helper()
@@ -197,26 +207,10 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 	}
 }
 
-// The two options sim/common/shared gives the resolver, copied rather than called: shared imports
-// this package, so a test inside it cannot import shared back. Their rules are pinned by the shared
-// package's own tests; what this file pins is the numbers the pair of them produces.
-func weaponProcShapeForTest(isWeaponProc bool) ProcOpt {
-	return func(_ *core.Character, trigger *core.ProcTrigger) {
-		if !isWeaponProc {
-			return
-		}
-
-		trigger.Callback = core.CallbackOnSpellHitDealt
-		trigger.ProcMask = core.ProcMaskUnknown
-		trigger.RequireDamageDealt = true
-		trigger.CanProcFromProcs = false
-		trigger.SpellFlagsExclude &^= core.SpellFlagSuppressWeaponProcs
-		trigger.IsWeaponProc = true
-	}
-}
-
-// A weapon's rate is measured on the weapon carrying it, so the manager is the dynamic one and the
-// item is named to it - Annihilator is the only row here that has one.
+// The rate option sim/common/shared gives the resolver, copied rather than called: shared imports
+// this package, so a test inside it cannot import shared back. A weapon's rate is measured on the
+// weapon carrying it, so the manager is the dynamic one and the item is named to it - Annihilator is
+// the only row here that has one.
 func procRateForTest(row *Spell) ProcOpt {
 	return func(character *core.Character, trigger *core.ProcTrigger) {
 		if row.RPPM <= 0 {

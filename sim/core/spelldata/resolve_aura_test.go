@@ -8,7 +8,7 @@ import (
 )
 
 func TestAuraConfigFromARow(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	aura := AuraConfig(Find(800))
 
 	if aura.Label != "Bleed" {
@@ -27,7 +27,7 @@ func TestAuraConfigFromARow(t *testing.T) {
 
 // The client states a permanent aura as -1, and its charges in the field the stacks share.
 func TestAuraConfigPermanentRowAndCharges(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	aura := AuraConfig(Find(900))
 
 	if aura.Duration != core.NeverExpires {
@@ -39,7 +39,7 @@ func TestAuraConfigPermanentRowAndCharges(t *testing.T) {
 }
 
 func TestAuraConfigOptions(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	aura := AuraConfig(Find(1000), Label("Tickless Aura - Debuff"), Permanent())
 
 	if aura.Label != "Tickless Aura - Debuff" {
@@ -54,7 +54,7 @@ func TestAuraConfigOptions(t *testing.T) {
 }
 
 func TestDotConfigFromARow(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	bleed := Find(800)
 	dot := DotConfig(bleed, bleed.PeriodicEffect())
 
@@ -83,7 +83,7 @@ func TestDotConfigFromARow(t *testing.T) {
 
 // The callback is a field, so a caller that needs its own replaces it.
 func TestDotConfigCallerReplacesOnTick(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	bleed := Find(800)
 	config := DotConfig(bleed, bleed.PeriodicEffect())
 
@@ -97,7 +97,7 @@ func TestDotConfigCallerReplacesOnTick(t *testing.T) {
 }
 
 func TestDotConfigTakesAuraOptions(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	bleed := Find(800)
 
 	if got := DotConfig(bleed, bleed.PeriodicEffect(), Label("Bleed - Off-hand")).Aura.Label; got != "Bleed - Off-hand" {
@@ -108,7 +108,7 @@ func TestDotConfigTakesAuraOptions(t *testing.T) {
 // An effect that does not tick and a spell with no duration cannot answer a tick count, so they say
 // so rather than registering a dot that never ticks.
 func TestDotConfigPanicsWithoutAPeriodOrADuration(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	tickless := Find(1000)
 	requirePanic(t, "states no tick period", func() {

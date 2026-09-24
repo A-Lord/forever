@@ -31,7 +31,7 @@ func TestRogue(t *testing.T) {
 			Consumables: DefaultConsumables,
 			SpecOptions: core.SpecOptionsCombo{Label: "Rogue", SpecOptions: DefaultOptions},
 
-			Rotation:       core.GetAplRotation("../../ui/specs/rogue/dps/apls", "swords"),
+			Rotation:       core.GetAplRotation("../../ui/specs/rogue/dps/apls", "default"),
 			OtherRotations: []core.RotationCombo{},
 			ItemFilter: core.ItemFilter{
 				ArmorType: proto.ArmorType_ArmorTypeLeather,
@@ -62,9 +62,5 @@ var DefaultOptions = &proto.Player_Rogue{
 var DefaultTalents = "00532012502-023305200005015002321151"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	FlaskId:    22854,
-	FoodId:     33872,
-	PotId:      22838,
 	ConjuredId: 7676,
-	OhImbueId:  27186,
 }

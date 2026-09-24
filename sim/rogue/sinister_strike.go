@@ -19,7 +19,7 @@ func (rogue *Rogue) registerSinisterStrikeSpell() {
 	// 	ClassSpellMask: RogueSpellSinisterStrike,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   sinisterStrikeRank.Cost(),
+	// 		Cost:   int32(sinisterStrikeRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{

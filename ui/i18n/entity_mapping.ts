@@ -1,4 +1,5 @@
 import {
+	AreaType,
 	ArmorType,
 	Class,
 	ItemQuality,
@@ -25,7 +26,7 @@ export const statI18nKeys: Record<Stat, string> = {
 	[Stat.StatStamina]: 'stamina',
 	[Stat.StatIntellect]: 'intellect',
 	[Stat.StatSpirit]: 'spirit',
-	[Stat.StatExpertiseRating]: 'expertise',
+	[Stat.StatExpertiseRating]: 'expertise_rating',
 	[Stat.StatDodgeRating]: 'dodge',
 	[Stat.StatParryRating]: 'parry',
 	[Stat.StatAttackPower]: 'attack_power',
@@ -145,6 +146,7 @@ export const pseudoStatI18nKeys: Record<PseudoStat, string> = {
 	[PseudoStat.PseudoStatBlockValuePerStrength]: 'block_per_strength',
 	[PseudoStat.PseudoStatRangedHitPercent]: 'ranged_hit',
 	[PseudoStat.PseudoStatRangedCritPercent]: 'ranged_crit',
+	[PseudoStat.PseudoStatExpertisePercent]: 'expertise',
 };
 
 export const spellSchoolI18nKeys: Record<SpellSchool, string> = {
@@ -260,10 +262,23 @@ export const mobTypeI18nKeys: Record<MobType, string> = {
 	[MobType.MobTypeUndead]: 'undead',
 };
 
+export const areaTypeI18nKeys: Record<AreaType, string> = {
+	[AreaType.AreaTypeUnknown]: 'unknown',
+	[AreaType.AreaTypeForestGrassland]: 'forest_grassland',
+	[AreaType.AreaTypeMountainous]: 'mountainous',
+	[AreaType.AreaTypeSnowy]: 'snowy',
+	[AreaType.AreaTypeDesert]: 'desert',
+	[AreaType.AreaTypeSwamp]: 'swamp',
+	[AreaType.AreaTypeWasteland]: 'wasteland',
+	[AreaType.AreaTypeHaunted]: 'haunted',
+	[AreaType.AreaTypeCavernous]: 'cavernous',
+	[AreaType.AreaTypeVolcanic]: 'volcanic',
+	[AreaType.AreaTypeStrongholdsCities]: 'strongholds_cities',
+};
+
 export const raceI18nKeys: Record<Race, string> = {
 	[Race.RaceUnknown]: 'unknown',
 	[Race.RaceBloodElf]: 'blood_elf',
-	[Race.RaceDraenei]: 'draenei',
 	[Race.RaceDwarf]: 'dwarf',
 	[Race.RaceGnome]: 'gnome',
 	[Race.RaceHuman]: 'human',
@@ -272,6 +287,8 @@ export const raceI18nKeys: Record<Race, string> = {
 	[Race.RaceTauren]: 'tauren',
 	[Race.RaceTroll]: 'troll',
 	[Race.RaceUndead]: 'undead',
+	[Race.RaceHighOrderSkyborne]: 'high_order_skyborne',
+	[Race.RaceWindshaperSkyborne]: 'windshaper_skyborne',
 };
 
 export const professionI18nKeys: Record<Profession, string> = {
@@ -409,6 +426,8 @@ export const getStatusI18nKey = (status: LaunchStatus): string => statusI18nKeys
 export const getTargetInputI18nKey = (label: string): string => targetInputI18nKeys[label] || label.toLowerCase().replace(/[()]/g, '').replace(/\s+/g, '_');
 
 export const getMobTypeI18nKey = (mobType: MobType): string => mobTypeI18nKeys[mobType] || MobType[mobType].toLowerCase();
+
+export const getAreaTypeI18nKey = (areaType: AreaType): string => areaTypeI18nKeys[areaType] || AreaType[areaType].toLowerCase();
 
 export const getRaceI18nKey = (race: Race): string => raceI18nKeys[race] || Race[race].toLowerCase();
 

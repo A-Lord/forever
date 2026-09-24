@@ -5,11 +5,7 @@ export const DefaultOptions = RestorationShamanOptions.create({
 	classOptions: {},
 });
 
-export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22853, // Flask of Mighty Restoration
-	foodId: 27666, // Golden Fish Sticks
-	potId: 22832, // Super Mana Potion
-});
+export const DefaultConsumables = ConsumesSpec.create({});
 
 export const OtherDefaults = {
 	distanceFromTarget: 20,

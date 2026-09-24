@@ -1,12 +1,12 @@
 import * as PresetUtils from '@app/preset_utils';
-import { ConsumesSpec, Debuffs, Drums, HealingModel, IndividualBuffs, PartyBuffs, Profession, RaidBuffs, Spec, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, HealingModel, Profession, Spec, TristateEffect } from '@generated/proto/common';
 import {
 	PaladinAura,
 	PaladinJudgement,
 	ProtectionPaladin_Options as ProtectionPaladinOptions,
 	ProtectionPaladin_Rotation as ProtectionPaladinRotation,
 } from '@generated/proto/paladin';
-import { defaultExposeWeaknessSettings } from '@sim/proto/utils';
 
 import DefaultApl from './apls/default.apl.json';
 
@@ -16,9 +16,7 @@ export const DefaultSimpleRotation = ProtectionPaladinRotation.create({
 	prioritizeHolyShield: true,
 	consecrationRank: 6,
 	useExorcism: true,
-	useAvengersShield: false,
 	useHammerOfWrath: false,
-	precastAvengersShield: true,
 	maintainJudgement: PaladinJudgement.JudgementNone,
 	aura: PaladinAura.DevotionAura,
 });
@@ -30,62 +28,43 @@ export const DefaultOptions = ProtectionPaladinOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	flaskId: 22861, // Flask of Blinding Light
-	foodId: 27657, // Blackened Basilisk
-	potId: 22849, // Ironshield Potion
 	conjuredId: 12662, // Dark Rune
-	mhImbueId: 28017,
-	explosiveId: 30217,
-	superSapper: true,
 	goblinSapper: true,
-	nightmareSeed: true,
-	scrollStr: true,
-	scrollAgi: true,
-	scrollArm: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	bloodlust: true,
-	divineSpirit: TristateEffect.TristateEffectImproved,
+	prayerOfSpirit: true,
 	arcaneBrilliance: true,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	shadowProtection: true,
-	thorns: TristateEffect.TristateEffectImproved,
+	giftOfTheWild: true,
+	prayerOfFortitude: true,
+	prayerOfShadowProtection: true,
+	thorns: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	wrathOfAirTotem: TristateEffect.TristateEffectRegular,
-	graceOfAirTotem: TristateEffect.TristateEffectMissing,
-	strengthOfEarthTotem: TristateEffect.TristateEffectImproved,
-	windfuryTotem: TristateEffect.TristateEffectMissing,
+	graceOfAirTotem: false,
+	strengthOfEarthTotem: true,
+	windfuryTotem: false,
 	battleShout: TristateEffect.TristateEffectMissing,
-	drums: Drums.LesserDrumsOfBattle,
-	sanctityAura: TristateEffect.TristateEffectMissing,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfWisdom: TristateEffect.TristateEffectImproved,
-	blessingOfMight: TristateEffect.TristateEffectImproved,
-	blessingOfSanctuary: true,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfWisdom: true,
+	greaterBlessingOfMight: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	misery: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
-	improvedSealOfTheCrusader: TristateEffect.TristateEffectImproved,
+	curseOfElements: true,
 	judgementOfWisdom: true,
 	judgementOfLight: true,
-	bloodFrenzy: true,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	huntersMark: true,
 	curseOfRecklessness: true,
 	sunderArmor: true,
-	faerieFire: TristateEffect.TristateEffectImproved,
-	exposeArmor: TristateEffect.TristateEffectImproved,
+	faerieFire: true,
+	exposeArmor: true,
 	insectSwarm: true,
-	...defaultExposeWeaknessSettings(),
 });
 
 export const OtherDefaults = {

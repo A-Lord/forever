@@ -18,10 +18,6 @@ func (warrior *Warrior) registerRecklessness() {
 	config := spelldata.SpellConfig(&warrior.Unit, recklessnessRank,
 		spelldata.Flags(core.SpellFlagAPL|core.SpellFlagCastWhileIncapacitated))
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BerserkerStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		aura.Activate(sim)
 	}

@@ -2,161 +2,47 @@ package main
 
 import (
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
+	"math/bits"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The client's names for an effect type, an aura, a proc flag and a modifier op are Go constants, and
-// a Go program cannot ask a constant for its name, so they are parsed out of the source the way
-// tools/database's gen_spell_data_enums.go does. A name the parse cannot reach reads as its number,
-// which is what the tool prints when it is run from outside the repository.
-const (
-	dbcEnumsDir  = "sim/core/dbcenums"
-	spellModFile = "sim/core/spelldata/parse_effects_table.go"
-)
-
-var (
-	loadNames    sync.Once
-	effectName   = map[int32]string{}
-	auraNames    = map[int32]string{}
-	procFlagName = map[uint32]string{}
-	spellModName = map[int32]string{}
-)
-
-func effectTypeName(t dbcenums.SpellEffectType) string {
-	loadNames.Do(parseEnumNames)
-	if name, ok := effectName[int32(t)]; ok {
+// The name dbcenums gives a value, or its number in format where it gives none.
+func namedOr[T fmt.Stringer](v T, format string) string {
+	if name, ok := dbcenums.Named(v); ok {
 		return name
 	}
-	return fmt.Sprintf("E_%d", t)
+	return fmt.Sprintf(format, v)
 }
 
-func auraName(a dbcenums.EffectAuraType) string {
-	loadNames.Do(parseEnumNames)
-	if name, ok := auraNames[int32(a)]; ok {
-		return name
-	}
-	return fmt.Sprintf("A_%d", a)
-}
-
-// The op an A_ADD_FLAT_MODIFIER or A_ADD_PCT_MODIFIER names in its misc value. Only the ops the
-// parse table declares have a name; the rest read as their number, which is also what the parser
-// does with them.
-func spellModOpName(misc int32) string {
-	loadNames.Do(parseEnumNames)
-	if name, ok := spellModName[misc]; ok {
-		return name
-	}
-	return fmt.Sprintf("op %d", misc)
-}
-
-// The bits of SpellAuraOptions.ProcTypeMask by name. Word 1 carries no named bit, so anything set
-// there reads as the word's own hex.
+// The bits of SpellAuraOptions.ProcTypeMask by name, word 0 then word 1.
 func procFlagNames(flags [2]uint32) []string {
-	loadNames.Do(parseEnumNames)
+	out := setBits(uint64(flags[0]), func(bit uint64) (string, bool) {
+		return constName(procFlagConsts, int64(bit))
+	})
+	return append(out, setBits(uint64(flags[1]), func(bit uint64) (string, bool) {
+		return constName(procFlag2Consts, int64(bit))
+	})...)
+}
 
+// The bits a mask sets, lowest first, each by its name or as `bit 0x…` where it has none.
+func setBits(mask uint64, name func(bit uint64) (string, bool)) []string {
 	var out []string
-	for bit := uint32(1); bit != 0; bit <<= 1 {
-		if flags[0]&bit == 0 {
-			continue
-		}
-		if name, ok := procFlagName[bit]; ok {
-			out = append(out, name)
+	for mask != 0 {
+		bit := mask & -mask
+		mask &^= bit
+		if named, ok := name(bit); ok {
+			out = append(out, named)
 		} else {
 			out = append(out, fmt.Sprintf("bit %#x", bit))
 		}
 	}
-	if flags[1] != 0 {
-		out = append(out, fmt.Sprintf("word1 %#x", flags[1]))
-	}
 	return out
-}
-
-func parseEnumNames() {
-	root, err := moduleRoot()
-	if err != nil {
-		return
-	}
-
-	byType := map[string]map[int32]string{
-		"SpellEffectType": effectName,
-		"EffectAuraType":  auraNames,
-	}
-
-	dir := filepath.Join(root, dbcEnumsDir)
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return
-	}
-	for _, entry := range entries {
-		if !strings.HasSuffix(entry.Name(), ".go") || strings.HasSuffix(entry.Name(), "_test.go") {
-			continue
-		}
-		eachConst(filepath.Join(dir, entry.Name()), func(c constDecl) {
-			if into, ok := byType[c.typeName]; ok {
-				into[int32(c.value)] = c.name
-			}
-			// The composite PROC_FLAG_ANY_* names are expressions rather than literals, so they never
-			// reach here; the zero one would claim every unset word.
-			if strings.HasPrefix(c.name, "PROC_FLAG_") && c.value != 0 {
-				procFlagName[uint32(c.value)] = c.name
-			}
-		})
-	}
-
-	eachConst(filepath.Join(root, spellModFile), func(c constDecl) {
-		if strings.HasPrefix(c.name, "SPELLMOD_") {
-			spellModName[int32(c.value)] = c.name
-		}
-	})
-}
-
-type constDecl struct {
-	typeName string
-	name     string
-	value    int64
-}
-
-func eachConst(path string, fn func(constDecl)) {
-	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
-	if err != nil {
-		return
-	}
-	for _, decl := range file.Decls {
-		gen, ok := decl.(*ast.GenDecl)
-		if !ok || gen.Tok != token.CONST {
-			continue
-		}
-		for _, spec := range gen.Specs {
-			vs, ok := spec.(*ast.ValueSpec)
-			if !ok || len(vs.Names) != 1 || len(vs.Values) != 1 {
-				continue
-			}
-			lit, ok := vs.Values[0].(*ast.BasicLit)
-			if !ok || lit.Kind != token.INT {
-				continue
-			}
-			value, err := strconv.ParseInt(lit.Value, 0, 64)
-			if err != nil {
-				continue
-			}
-			decl := constDecl{name: vs.Names[0].Name, value: value}
-			if ident, ok := vs.Type.(*ast.Ident); ok {
-				decl.typeName = ident.Name
-			}
-			fn(decl)
-		}
-	}
 }
 
 // The repository the tool is reading, found by walking up from the working directory. The extension
@@ -189,7 +75,7 @@ type implicitTarget struct {
 // The ImplicitTarget values the store's rows carry, under the client's own numbering. The ones this
 // table leaves out read as "target N": naming a value the store carries only a handful of times, on
 // no evidence beyond its number, would put a guess where the literal already states the fact.
-var implicitTargets = map[uint8]implicitTarget{
+var implicitTargets = map[dbcenums.ImplicitTarget]implicitTarget{
 	1:  {phrase: "to the caster"},
 	2:  {phrase: "to a nearby enemy"},
 	3:  {phrase: "to a nearby party member"},
@@ -339,7 +225,7 @@ func equipRequirement(s *spelldata.Spell) string {
 
 	slots := ""
 	if s.EquipInvType != 0 {
-		slots = maskNames(s.EquipInvType, inventoryTypes, "slot")
+		slots = maskNames(s.EquipInvType, inventoryTypes)
 	}
 
 	switch {
@@ -357,7 +243,7 @@ func armorRequirement(mask int32) string {
 	if mask == 1<<shieldSubclass {
 		return "a shield"
 	}
-	return maskNames(mask, armorSubclasses, "armor subclass")
+	return maskNames(mask, armorSubclasses)
 }
 
 const shieldSubclass = 6
@@ -371,7 +257,7 @@ func weaponRequirement(mask int32) string {
 	if covers(mask, meleeWeapons) && !overlaps(mask, rangedWeapons) {
 		return "melee weapon"
 	}
-	return maskNames(mask, weaponSubclasses, "weapon subclass")
+	return maskNames(mask, weaponSubclasses)
 }
 
 func covers(mask int32, bits []int) bool {
@@ -392,20 +278,12 @@ func overlaps(mask int32, bits []int) bool {
 	return false
 }
 
-// A mask as the names it sets, lowest bit first, with an unnamed bit read as its number.
-func maskNames(mask int32, names map[int]string, unknown string) string {
-	var out []string
-	for bit := 0; bit < 32; bit++ {
-		if mask&(1<<uint(bit)) == 0 {
-			continue
-		}
-		if name, ok := names[bit]; ok {
-			out = append(out, name)
-		} else {
-			out = append(out, fmt.Sprintf("%s %d", unknown, bit))
-		}
-	}
-	return orList(out)
+// A mask of bit positions as the names it sets.
+func maskNames(mask int32, names map[int]string) string {
+	return orList(setBits(uint64(uint32(mask)), func(bit uint64) (string, bool) {
+		name, ok := names[bits.TrailingZeros64(bit)]
+		return name, ok
+	}))
 }
 
 func orList(names []string) string {
@@ -474,26 +352,24 @@ func procHintNames(hint core.ProcHint) []string {
 	return out
 }
 
-// SpellPower.PowerType, of which the store's rows carry six: the client's health is -2.
-func powerName(t int8) string {
+// SpellPower.PowerType, of which the store's rows carry six.
+func powerName(t dbcenums.PowerType) string {
 	switch t {
-	case -2:
+	case dbcenums.POWER_HEALTH:
 		return "health"
-	case 0:
+	case dbcenums.POWER_MANA:
 		return "mana"
-	case powerTypeRage:
+	case dbcenums.POWER_RAGE:
 		return "rage"
-	case 2:
+	case dbcenums.POWER_FOCUS:
 		return "focus"
-	case 3:
+	case dbcenums.POWER_ENERGY:
 		return "energy"
-	case 4:
+	case dbcenums.POWER_COMBO_POINTS:
 		return "combo points"
 	}
 	return fmt.Sprintf("power %d", t)
 }
-
-const powerTypeRage int8 = 1
 
 // A_MOD_STAT states the stat in its misc value, and -1 is the client's "every stat".
 func statName(misc int32) string {
@@ -536,38 +412,31 @@ func dispelName(t int32) string {
 }
 
 // The school mask as the schools it holds, since a row can carry more than one bit.
-func schoolName(mask uint8) string {
-	if mask == 0 {
-		return ""
-	}
+func schoolName(mask core.SpellSchool) string {
 	if mask == allSchools {
 		return "every school"
 	}
-	var names []string
-	for _, s := range []struct {
-		bit  core.SpellSchool
-		name string
-	}{
-		{core.SpellSchoolPhysical, "physical"},
-		{core.SpellSchoolHoly, "holy"},
-		{core.SpellSchoolFire, "fire"},
-		{core.SpellSchoolNature, "nature"},
-		{core.SpellSchoolFrost, "frost"},
-		{core.SpellSchoolShadow, "shadow"},
-		{core.SpellSchoolArcane, "arcane"},
-	} {
-		if core.SpellSchool(mask)&s.bit != 0 {
-			names = append(names, s.name)
-		}
-	}
-	return strings.Join(names, "+")
+	return strings.Join(setBits(uint64(mask), func(bit uint64) (string, bool) {
+		name, ok := schoolWords[core.SpellSchool(bit)]
+		return name, ok
+	}), "+")
+}
+
+var schoolWords = map[core.SpellSchool]string{
+	core.SpellSchoolPhysical: "physical",
+	core.SpellSchoolHoly:     "holy",
+	core.SpellSchoolFire:     "fire",
+	core.SpellSchoolNature:   "nature",
+	core.SpellSchoolFrost:    "frost",
+	core.SpellSchoolShadow:   "shadow",
+	core.SpellSchoolArcane:   "arcane",
 }
 
 // Every school bit, which a damage aura states as one mask rather than as seven.
-const allSchools = 127
+const allSchools core.SpellSchool = 127
 
-func defenseName(t uint8) string {
-	switch core.DefenseType(t) {
+func defenseName(t core.DefenseType) string {
+	switch t {
 	case core.DefenseTypeMagic:
 		return "magic"
 	case core.DefenseTypeMelee:

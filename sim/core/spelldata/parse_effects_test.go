@@ -27,11 +27,11 @@ func parseRows() []Spell {
 			ID: 1000, Name: "Mod Talent", ClassFlags: parseFamily,
 			Effects: []Effect{
 				{SpellID: 1000, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-					Misc: SPELLMOD_DAMAGE, BasePoints: 15, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 15, ClassFlags: parseTargetMask},
 				{SpellID: 1000, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER,
-					Misc: SPELLMOD_COST, BasePoints: -30, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_COST), BasePoints: -30, ClassFlags: parseTargetMask},
 				{SpellID: 1000, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER,
-					Misc: SPELLMOD_CASTING_TIME, BasePoints: -500, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_CASTING_TIME), BasePoints: -500, ClassFlags: parseTargetMask},
 				{SpellID: 1000, Index: 3, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY,
 					BasePoints: 7},
 			},
@@ -40,16 +40,16 @@ func parseRows() []Spell {
 			ID: 1100, Name: "Dot Talent", ClassFlags: parseFamily,
 			Effects: []Effect{
 				{SpellID: 1100, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-					Misc: SPELLMOD_DAMAGE, BasePoints: 10, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 10, ClassFlags: parseTargetMask},
 				{SpellID: 1100, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-					Misc: SPELLMOD_DOT, BasePoints: 10, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_DOT), BasePoints: 10, ClassFlags: parseTargetMask},
 			},
 		},
 		{
 			ID: 1200, Name: "Stacking Buff", DurationMs: 12000, MaxStack: 3, ClassFlags: parseFamily,
 			Effects: []Effect{
 				{SpellID: 1200, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-					Misc: SPELLMOD_DAMAGE, BasePoints: 5, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 5, ClassFlags: parseTargetMask},
 				{SpellID: 1200, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_THREAT,
 					Misc: 127, BasePoints: 30},
 			},
@@ -77,12 +77,6 @@ func parseRows() []Spell {
 			},
 		},
 	}
-}
-
-func withParseRows(t *testing.T) {
-	t.Helper()
-	replaceForTest(parseRows())
-	t.Cleanup(func() { replaceForTest(fixture()) })
 }
 
 // A character with its pseudo-stats and dependencies in place, which is what a stat buff and a
@@ -123,7 +117,7 @@ func appliedKinds(p *Parsed) []string {
 }
 
 func TestParseStaticBuildsTheModTable(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 	character.EnableRageBar(core.RageBarOptions{})
 
@@ -157,7 +151,7 @@ func TestParseStaticBuildsTheModTable(t *testing.T) {
 
 // The same cost modifier on a mana bar is the client's own number.
 func TestParseStaticCostOnAManaBar(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseCharacter(&proto.Player{
 		Class: proto.Class_ClassMage,
 		Spec:  &proto.Player_Mage{Mage: &proto.Mage{}},
@@ -172,7 +166,7 @@ func TestParseStaticCostOnAManaBar(t *testing.T) {
 
 // A mod reaches the spells its own effect names and no others.
 func TestParseStaticCarriesTheClassFlags(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 	character.EnableRageBar(core.RageBarOptions{})
 
@@ -191,7 +185,7 @@ func TestParseStaticCarriesTheClassFlags(t *testing.T) {
 
 // An effect naming no spells at all means every spell of the caster's family.
 func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	family := parseSpell(character, 2200, parseOtherMask)
@@ -199,7 +193,7 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 
 	row := *Find(1100)
 	row.Effects = []Effect{{SpellID: 1100, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-		Misc: SPELLMOD_DAMAGE, BasePoints: 10}}
+		Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 10}}
 
 	ParseStatic(character, &row)
 
@@ -214,7 +208,7 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 // The client states the same bonus twice on a talent that raises a spell and its dot, and one
 // SpellMod_DamageDone_Flat already reaches the ticks as well as the hit.
 func TestParseFoldsTheDotModifier(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	parsed := ParseStatic(character, Find(1100))
@@ -231,7 +225,7 @@ func TestParseFoldsTheDotModifier(t *testing.T) {
 
 // A dot modifier the spell states no matching hit modifier for stands on its own.
 func TestParseKeepsAnUnpairedDotModifier(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	row := *Find(1100)
@@ -245,7 +239,7 @@ func TestParseKeepsAnUnpairedDotModifier(t *testing.T) {
 }
 
 func TestParseReadsOnlyTheNamedEffects(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 	character.EnableRageBar(core.RageBarOptions{})
 
@@ -265,7 +259,7 @@ func TestParseReadsOnlyTheNamedEffects(t *testing.T) {
 
 // A conditional parse attaches everything and turns it on only while the condition holds.
 func TestParseConditionalAndRefresh(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	baseAttackPower := character.GetStat(stats.AttackPower)
@@ -310,7 +304,7 @@ func TestParseConditionalAndRefresh(t *testing.T) {
 
 // The proc effect is the one a port still has to wire, and the report names it.
 func TestParseSkipsWhatTheTableDoesNotKnow(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	parsed := ParseStatic(character, Find(1400))
@@ -322,7 +316,7 @@ func TestParseSkipsWhatTheTableDoesNotKnow(t *testing.T) {
 
 // A rank the character does not have is the store's empty row, which attaches nothing.
 func TestParseNilSpell(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	parsed := ParseStatic(character, Nil)
@@ -337,7 +331,7 @@ func TestParseNilSpell(t *testing.T) {
 }
 
 func TestParseEffectsFollowsTheAuraAndItsStacks(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	sim := &core.Simulation{}
 	character := parseWarrior()
 
@@ -376,7 +370,7 @@ func TestParseEffectsFollowsTheAuraAndItsStacks(t *testing.T) {
 // A row that states charges rather than cumulative stacks is worth its value once, however many
 // charges the aura carries.
 func TestParseEffectsChargesAreNotStacks(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	sim := &core.Simulation{}
 	character := parseWarrior()
 
@@ -398,7 +392,7 @@ func TestParseEffectsChargesAreNotStacks(t *testing.T) {
 // The rows whose value cannot follow the stacks are skipped on a stacking aura rather than attached
 // at one stack, unless the caller says the value does not follow them.
 func TestParseEffectsSkipsWhatCannotFollowTheStacks(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	row := *Find(1300)
@@ -418,7 +412,7 @@ func TestParseEffectsSkipsWhatCannotFollowTheStacks(t *testing.T) {
 // The aura every rank of a family points at takes a duration modifier once, however many ranks the
 // modifier's mask names.
 func TestParseStaticDurationModOnASharedAura(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	buff := character.RegisterAura(core.Aura{Label: "Shared Buff", Duration: time.Second * 10})
@@ -435,7 +429,7 @@ func TestParseStaticDurationModOnASharedAura(t *testing.T) {
 	row := Spell{
 		ID: 3000, Name: "Duration Talent", ClassFlags: parseFamily,
 		Effects: []Effect{{SpellID: 3000, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER,
-			Misc: SPELLMOD_DURATION, BasePoints: 5000, ClassFlags: parseTargetMask}},
+			Misc: int32(dbcenums.SPELLMOD_DURATION), BasePoints: 5000, ClassFlags: parseTargetMask}},
 	}
 
 	ParseStatic(character, &row)
@@ -449,7 +443,7 @@ func TestParseStaticDurationModOnASharedAura(t *testing.T) {
 // haste rows run through ParseEffects, since the speeds they multiply need the Simulation an aura's
 // gain hands over.
 func TestEveryTableRow(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 
 	const (
 		flat = dbcenums.A_ADD_FLAT_MODIFIER
@@ -464,31 +458,31 @@ func TestEveryTableRow(t *testing.T) {
 		value  float64
 		onAura bool
 	}{
-		{flat, SPELLMOD_DURATION, 5000, "SpellMod_Duration_Flat", 5000, false},
-		{flat, SPELLMOD_CHARGES, 1, "SpellMod_BuffMaxStacks_Flat", 1, false},
-		{flat, SPELLMOD_RANGE, 5, "SpellMod_Range_Flat", 5, false},
-		{flat, SPELLMOD_CRITICAL_CHANCE, 6, "SpellMod_BonusCrit_Percent", 6, false},
-		{flat, SPELLMOD_CASTING_TIME, -500, "SpellMod_CastTime_Flat", -500, false},
-		{flat, SPELLMOD_COOLDOWN, -2000, "SpellMod_Cooldown_Flat", -2000, false},
-		{flat, SPELLMOD_COST, -30, "SpellMod_PowerCost_Flat", -30, false},
-		{flat, SPELLMOD_RESIST_MISS_CHANCE, 3, "SpellMod_BonusHit_Percent", 3, false},
-		{flat, SPELLMOD_GLOBAL_COOLDOWN, -500, "SpellMod_GlobalCooldown_Flat", -500, false},
-		{flat, SPELLMOD_EFFECT1, 20, "effect1-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
-		{flat, SPELLMOD_EFFECT2, 20, "effect2-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
-		{flat, SPELLMOD_EFFECT3, 20, "effect3-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
+		{flat, int32(dbcenums.SPELLMOD_DURATION), 5000, "SpellMod_Duration_Flat", 5000, false},
+		{flat, int32(dbcenums.SPELLMOD_CHARGES), 1, "SpellMod_BuffMaxStacks_Flat", 1, false},
+		{flat, int32(dbcenums.SPELLMOD_RANGE), 5, "SpellMod_Range_Flat", 5, false},
+		{flat, int32(dbcenums.SPELLMOD_CRITICAL_CHANCE), 6, "SpellMod_BonusCrit_Percent", 6, false},
+		{flat, int32(dbcenums.SPELLMOD_CASTING_TIME), -500, "SpellMod_CastTime_Flat", -500, false},
+		{flat, int32(dbcenums.SPELLMOD_COOLDOWN), -2000, "SpellMod_Cooldown_Flat", -2000, false},
+		{flat, int32(dbcenums.SPELLMOD_COST), -30, "SpellMod_PowerCost_Flat", -30, false},
+		{flat, int32(dbcenums.SPELLMOD_RESIST_MISS_CHANCE), 3, "SpellMod_BonusHit_Percent", 3, false},
+		{flat, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -500, "SpellMod_GlobalCooldown_Flat", -500, false},
+		{flat, int32(dbcenums.SPELLMOD_EFFECT1), 20, "effect1-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
+		{flat, int32(dbcenums.SPELLMOD_EFFECT2), 20, "effect2-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
+		{flat, int32(dbcenums.SPELLMOD_EFFECT3), 20, "effect3-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 
-		{pct, SPELLMOD_DAMAGE, 15, "SpellMod_DamageDone_Flat", 0.15, false},
-		{pct, SPELLMOD_ALL_EFFECTS, 15, "SpellMod_DamageDone_Flat", 0.15, false},
-		{pct, SPELLMOD_DURATION, 20, "SpellMod_DotBaseDuration_Pct", 0.2, false},
-		{pct, SPELLMOD_THREAT, -20, "SpellMod_ThreatMultiplier_Pct", -0.2, false},
-		{pct, SPELLMOD_CASTING_TIME, -10, "SpellMod_CastTime_Pct", -0.1, false},
-		{pct, SPELLMOD_COOLDOWN, -20, "SpellMod_Cooldown_Multiplier", 0.8, false},
-		{pct, SPELLMOD_COST, -20, "SpellMod_PowerCost_Pct_Add", -0.2, false},
-		{pct, SPELLMOD_CRIT_DAMAGE_BONUS, 20, "SpellMod_CritMultiplier_Flat", 0.2, false},
-		{pct, SPELLMOD_DOT, 10, "SpellMod_DotDamageDone_Pct", 0.1, false},
-		{pct, SPELLMOD_EFFECT1, 10, "effect1-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
-		{pct, SPELLMOD_EFFECT2, 10, "effect2-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
-		{pct, SPELLMOD_EFFECT3, 10, "effect3-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_DAMAGE), 15, "SpellMod_DamageDone_Flat", 0.15, false},
+		{pct, int32(dbcenums.SPELLMOD_ALL_EFFECTS), 15, "SpellMod_DamageDone_Flat", 0.15, false},
+		{pct, int32(dbcenums.SPELLMOD_DURATION), 20, "SpellMod_DotBaseDuration_Pct", 0.2, false},
+		{pct, int32(dbcenums.SPELLMOD_THREAT), -20, "SpellMod_ThreatMultiplier_Pct", -0.2, false},
+		{pct, int32(dbcenums.SPELLMOD_CASTING_TIME), -10, "SpellMod_CastTime_Pct", -0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_COOLDOWN), -20, "SpellMod_Cooldown_Multiplier", 0.8, false},
+		{pct, int32(dbcenums.SPELLMOD_COST), -20, "SpellMod_PowerCost_Pct_Add", -0.2, false},
+		{pct, int32(dbcenums.SPELLMOD_CRIT_DAMAGE_BONUS), 20, "SpellMod_CritMultiplier_Flat", 0.2, false},
+		{pct, int32(dbcenums.SPELLMOD_DOT), 10, "SpellMod_DotDamageDone_Pct", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_EFFECT1), 10, "effect1-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_EFFECT2), 10, "effect2-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_EFFECT3), 10, "effect3-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 
 		{dbcenums.A_MOD_ATTACKSPEED, 0, 20, "attack-speed", 1.2, true},
 		{dbcenums.A_MOD_THREAT, 127, 30, "threat", 1.3, false},
@@ -526,25 +520,32 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_HEALING_DONE, 0, 30, "stat HealingPower", 30, false},
 		{dbcenums.A_MOD_HEALING_DONE_PERCENT, 0, 10, "healing-dealt", 1.1, false},
 		{dbcenums.A_MOD_OFFHAND_DAMAGE_PCT, 0, 25, "SpellMod_DamageDone_Pct", 0.25, false},
+		{dbcenums.A_MOD_DAMAGE_TAKEN, 1, 8, "physical-damage-taken-flat", 8, false},
+		{dbcenums.A_MOD_DAMAGE_TAKEN, 126, 8, "spell-damage-taken-flat", 8, false},
+		{dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS, 0, 71, "ranged-attack-power-attacker-bonus", 71, false},
+		{dbcenums.A_REDUCE_PUSHBACK, 127, 35, "pushback", -0.35, false},
+		{dbcenums.A_MOD_RATING, 4, 10, "stat DodgeRating", 10, false},
+		{dbcenums.A_MOD_RATING, 256, 10, "stat MeleeCritRating", 10, false},
+		{dbcenums.A_MOD_RATING, 768, 10, "stat MeleeCritRating", 10, false},
 		{dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, -1, 10,
 			"multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.1, false},
-		{dbcenums.A_MECHANIC_DURATION_MOD, 1, -20, "fear-duration", 0.8, false},
-		{dbcenums.A_MECHANIC_DURATION_MOD, 12, -20, "stun-duration", 0.8, false},
-		{dbcenums.A_MOD_EXPERTISE, 0, 5, "stat ExpertiseRating", 5 * core.ExpertisePerQuarterPercentReduction, false},
+		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_FEAR), -20, "fear-duration", 0.8, false},
+		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_STUN), -20, "stun-duration", 0.8, false},
+		{dbcenums.A_MOD_EXPERTISE, 0, 5, "stat ExpertisePercent", 5, false},
 		{dbcenums.A_MOD_MELEE_HASTE_3, 0, 25, "melee-speed", 1.25, true},
 	}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases
 	// are read back as the coverage they are.
 	auras := map[dbcenums.EffectAuraType]bool{}
-	flatMods, pctMods := map[int32]bool{}, map[int32]bool{}
+	flatMods, pctMods := map[dbcenums.SpellModOp]bool{}, map[dbcenums.SpellModOp]bool{}
 	for _, c := range cases {
 		auras[c.aura] = true
 		switch c.aura {
 		case flat:
-			flatMods[c.misc] = true
+			flatMods[dbcenums.SpellModOp(c.misc)] = true
 		case pct:
-			pctMods[c.misc] = true
+			pctMods[dbcenums.SpellModOp(c.misc)] = true
 		}
 	}
 	for aura := range auraTable {
@@ -600,7 +601,7 @@ func oneEffectRow(aura dbcenums.EffectAuraType, misc int32, points float64) *Spe
 // Each stat the table writes is stored in the units core reads it in, and those units differ: a
 // rating, a percentage point and a fraction all come out of a client percentage.
 func TestParseStaticStatConventions(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 
 	dodge := parseWarrior()
 	ParseStatic(dodge, oneEffectRow(dbcenums.A_MOD_DODGE_PERCENT, 0, 5))
@@ -632,14 +633,14 @@ func TestParseStaticStatConventions(t *testing.T) {
 
 	expertise := parseWarrior()
 	ParseStatic(expertise, oneEffectRow(dbcenums.A_MOD_EXPERTISE, 0, 5))
-	if got := expertise.GetStat(stats.ExpertiseRating); math.Abs(got-12.5) > 1e-9 {
-		t.Errorf("expertise from a 5 point row: %v rating, want 12.5", got)
+	if got := expertise.GetStat(stats.ExpertisePercent); math.Abs(got-5) > 1e-9 {
+		t.Errorf("expertise from a 5 point row: %v percent, want 5", got)
 	}
 }
 
 // The armor modifier scales the equipment share of the stat, which is what the tooltip states.
 func TestParseStaticScalesEquippedArmor(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 
 	character := parseCharacter(&proto.Player{
 		Class:      proto.Class_ClassWarrior,
@@ -666,7 +667,7 @@ func bonusArmor(amount float64) []float64 {
 
 // A parse narrowed to the dot modifier alone has no hit modifier to fold it into.
 func TestParseFoldsOnlyIntoAHitModifierItReads(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	parsed := ParseStatic(character, Find(1100), Effects(2))
@@ -678,10 +679,10 @@ func TestParseFoldsOnlyIntoAHitModifierItReads(t *testing.T) {
 
 // A cooldown multiplier cannot follow the stacks any more than the other multiplier rows can.
 func TestParseSkipsACooldownMultiplierOnAStackingRow(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
-	row := oneEffectRow(dbcenums.A_ADD_PCT_MODIFIER, SPELLMOD_COOLDOWN, -20)
+	row := oneEffectRow(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_COOLDOWN), -20)
 	row.MaxStack = 3
 
 	parsed := ParseEffects(character, character.RegisterAura(AuraConfig(row)), row)
@@ -694,7 +695,7 @@ func TestParseSkipsACooldownMultiplierOnAStackingRow(t *testing.T) {
 // An aura that is already up when it is parsed takes what the rows say at once, except for the rows
 // that read a Simulation to act.
 func TestParseEffectsCatchesUpAnActiveAura(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	sim := &core.Simulation{}
 	character := parseWarrior()
 	spell := parseSpell(character, 2500, parseTargetMask)
@@ -725,7 +726,7 @@ func TestParseEffectsCatchesUpAnActiveAura(t *testing.T) {
 // A debuff sits on the enemy, and its amount is still the caster's: the value scales by the
 // character's level, not by the level of the unit the aura is on.
 func TestParseEffectsScalesByTheCharactersLevel(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	row := &Spell{ID: 6100, Name: "Enemy Debuff", DurationMs: 30000,
@@ -748,7 +749,7 @@ func TestParseEffectsScalesByTheCharactersLevel(t *testing.T) {
 // A multiplier of zero or less cannot be taken back off: expiry divides by it. The row is reported
 // the way an unmapped one is rather than leaving the field at zero or at an infinity.
 func TestParseSkipsANonPositiveMultiplier(t *testing.T) {
-	withParseRows(t)
+	withRows(t, parseRows())
 	character := parseWarrior()
 
 	row := &Spell{ID: 6200, Name: "Not There", DurationMs: 10000,

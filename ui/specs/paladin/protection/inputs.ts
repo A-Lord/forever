@@ -32,27 +32,6 @@ export const PaladinRotationConfig = {
 			labelTooltip: 'If <b>true</b>, will use Hammer of Wrath in the rotation when the target is in execute range.',
 			getValue: player => player.getSimpleRotation().useHammerOfWrath,
 		}),
-		InputHelpers.makeRotationBooleanInput<Spec.SpecProtectionPaladin>({
-			fieldName: 'useAvengersShield',
-			label: "Use Avenger's Shield",
-			labelTooltip: "If <b>true</b>, will use Avenger's Shield in the rotation.",
-			storeField: ['rotation', 'talentsString'] as const,
-			getValue: player => player.getSimpleRotation().useAvengersShield,
-			// TODO: Forever drops the Avenger's Shield talent; the input stays hidden until
-			// we know what gates the ability now.
-			showWhen: () => false,
-		}),
-		InputHelpers.makeRotationBooleanInput<Spec.SpecProtectionPaladin>({
-			fieldName: 'precastAvengersShield',
-			label: "Precast Avenger's Shield",
-			labelTooltip:
-				"If <b>true</b>, opens combat with a prepull Avenger's Shield cast that lands at pull. Adjusts the prepull Holy Shield and seal cast timings to fit.",
-			storeField: ['rotation', 'talentsString'] as const,
-			getValue: player => player.getSimpleRotation().precastAvengersShield,
-			// TODO: Forever drops the Avenger's Shield talent; the input stays hidden until
-			// we know what gates the ability now.
-			showWhen: () => false,
-		}),
 	],
 };
 
@@ -66,12 +45,10 @@ export const PaladinRotationIconInputs = [
 			'Which Judgement debuff to keep active on the target. The matching Seal will be used before each Judgement. Pick <b>None</b> to keep Seal of Righteousness up and skip Judgement maintenance.',
 		values: [
 			{ color: 'grey', value: PaladinJudgement.JudgementNone, tooltip: 'None' },
-			{ actionId: ActionId.fromSpellId(27162), value: PaladinJudgement.JudgementOfLight, tooltip: 'Judgement of Light' },
-			{ actionId: ActionId.fromSpellId(27164), value: PaladinJudgement.JudgementOfWisdom, tooltip: 'Judgement of Wisdom' },
+			{ actionId: ActionId.fromSpellId(20346), value: PaladinJudgement.JudgementOfLight, tooltip: 'Judgement of Light' },
+			{ actionId: ActionId.fromSpellId(20355), value: PaladinJudgement.JudgementOfWisdom, tooltip: 'Judgement of Wisdom' },
 		],
 		getValue: player => player.getSimpleRotation().maintainJudgement,
 	}),
-	SharedPaladinInputs.AuraInput<Spec.SpecProtectionPaladin>(
-		'Which paladin aura to activate in the prepull. <b>Sanctity Aura</b> requires the talent. Pick <b>None</b> to skip casting an aura.',
-	),
+	SharedPaladinInputs.AuraInput<Spec.SpecProtectionPaladin>('Which paladin aura to activate in the prepull. Pick <b>None</b> to skip casting an aura.'),
 ];

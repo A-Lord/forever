@@ -23,7 +23,7 @@
 				"wowsims-spelldata.goBinary": {
 					"type": "string",
 					"default": "go",
-					"description": "The go binary that starts the hover server with `go run ./tools/spelldata -lsp`."
+					"description": "The go binary that starts the hover server. `go` searches the PATH, then GOROOT and the usual install directories; set a full path if none of them has it."
 				},
 				"wowsims-spelldata.trace": {
 					"type": "string",

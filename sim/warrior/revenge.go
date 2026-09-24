@@ -35,7 +35,7 @@ func (warrior *Warrior) registerRevenge() {
 	config.FlatThreatBonus = 0
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(DefensiveStance) && aura.IsActive()
+		return aura.IsActive()
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

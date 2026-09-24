@@ -3,7 +3,7 @@ export const MANIFEST_KEYS = ['name', 'displayName', 'version', 'publisher', 'en
 export function generatedManifest(pkg) {
 	const manifest = {};
 	for (const key of MANIFEST_KEYS) {
-		manifest[key] = key === 'contributes' ? { configuration: pkg.contributes.configuration } : pkg[key];
+		manifest[key] = pkg[key];
 	}
 	manifest['x-generated'] = 'make vscode-spelldata';
 	return manifest;

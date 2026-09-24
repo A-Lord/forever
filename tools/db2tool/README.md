@@ -10,27 +10,42 @@ finds the bytes inside the WoW install, `wdc` + `dbd` turn them into typed rows
 ## Usage
 
 The normal entry points are `make db` (live client) and `make ptrdb` (PTR
-client), which run this tool and then `gen_db`. To run it directly, do so from
-the repository root (the tool is CWD-dependent, like `gen_db`):
+client), which run this tool and then `gen_db`; `DB2TOOL_FLAGS` passes extra
+flags through (`make db DB2TOOL_FLAGS="--cdn --dbcache caches/DBCache.bin"`).
+To run it directly, do so from the repository root (the tool is
+CWD-dependent, like `gen_db`):
 
 ```sh
 go run ./tools/db2tool -s tools/database/generator-settings.json --output tools/database/wowsims.db
 ```
 
-Two modes:
+Three modes:
 
 - **Local-CASC mode (default)** — reads the WoW install named by the settings'
   `BaseDir`: `.build.info` picks the build, files come out of local CASC
   storage, and the client's `DBCache.bin` hotfixes for that build are applied
   to the decoded rows. `BaseDir` may be a symlink; the cache scan resolves it
   first, and the run warns when it finds no cache for the build.
+- **CDN mode (`--cdn`)** — the same pipeline, but the build is whatever
+  Blizzard's version service (`--region`, default `us`) says the settings'
+  `Product` is on right now, and every file comes off the CDN: configs, the
+  per-archive indexes, encoding and root as loose files, the `.db2` tables as
+  range reads out of the archives. No install required. Downloads are
+  verified against their hash (configs, loose files) or encoding key (every
+  encoded file) and kept under `tools/db2tool/cdncache/` (a few hundred MB
+  per build, safe to delete), so a re-run of the same build is offline.
+  Hotfixes come from `--dbcache` or `tools/db2tool/caches/`; raidbots mirrors
+  the live client's cache at
+  https://storage.googleapis.com/raidbots-static/wow/classic_beta/enUS/DBCache.bin,
+  which is what the `Update DB` GitHub workflow feeds it.
 - **Offline mode (`--build <number|version>`)** — decodes pre-extracted `.db2`
   files (from `dbfilesclient/` or `--db2dir`) instead. No install required, no
   hotfixes unless `--dbcache` is given.
 
-Flags: `--settings/-s`, `--output/-o`, `--build`, `--db2dir`, `--dbddir`,
-`--dbcache <file>` (pin specific hotfix caches for deterministic runs),
-`--no-hotfixes`, `--keys <file>` (community TACT key list).
+Flags: `--settings/-s`, `--output/-o`, `--cdn`, `--region <r>`, `--build`,
+`--db2dir`, `--dbddir`, `--dbcache <file>` (pin specific hotfix caches for
+deterministic runs), `--no-hotfixes`, `--keys <file>` (community TACT key
+list).
 
 ## Encrypted sections and TACT keys
 
@@ -41,7 +56,7 @@ known. Keys reach a client three ways: shipped in `TactKey.db2`, pushed by the
 server as TACTKEY hotfix records into `DBCache.bin`, or published by the
 community at https://github.com/wowdev/TACTKeys.
 
-Local-CASC mode gathers all three before extracting: it decodes
+Local-CASC and CDN modes gather all three before extracting: they decode
 `TactKeyLookup`/`TactKey` with the hotfix overlay applied, then loads
 `tools/db2tool/TACTKeys.txt`, which is downloaded from the community list when
 missing and refreshed when older than a day (`--keys <file>` points at another
@@ -72,9 +87,13 @@ can't just open `Spell.db2` off disk. This package walks the chain:
 root manifest map a FileDataID to a content hash (`build.go`, `config.go`,
 `root.go`), the encoding table and `.idx` files locate that hash inside the
 big `data.NNN` archives (`encoding.go`, `cascidx.go`), and BLTE decompresses
-the result (`blte.go`). `listfile.go` handles the community-maintained
-`listfile.csv` that maps human filenames (`dbfilesclient/spell.db2`) to
-FileDataIDs, since the game itself only knows numbers.
+the result (`blte.go`). `cdn.go` swaps the last step for the CDN: the version
+service picks the build, the per-archive `.index` files (merged in memory,
+since the CDN serves no group index) locate a key inside a remote archive,
+and an HTTP range read fetches it. `listfile.go` handles the
+community-maintained `listfile.csv` that maps human filenames
+(`dbfilesclient/spell.db2`) to FileDataIDs, since the game itself only knows
+numbers.
 
 **`wdc/`** — the DB2 file format decoder. Once tact hands over raw bytes, this
 parses the WDC5 container format (`wdc5.go`, `row.go`, `bitreader.go` for its
@@ -100,7 +119,10 @@ format (`dbd.go`), and picks the definition version matching our build number
 - `DBDCache/` — cached `.dbd` definition downloads.
 - `listfile.csv` — cached filename→FileDataID mapping.
 - `caches/` — optional extra `DBCache.bin` hotfix files, scanned in
-  local-CASC mode alongside `<BaseDir>/**/DBCache.bin`.
+  local-CASC mode alongside `<BaseDir>/**/DBCache.bin` and on their own in
+  CDN mode.
+- `cdncache/` — CDN mode's hash-addressed downloads (configs, indexes,
+  encoding, root and other loose files).
 
 `NOTICES.md` carries license attributions for the projects the format-parsing
 code was ported from.

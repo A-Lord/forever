@@ -236,6 +236,58 @@
 					"additionalProperties": false,
 					"required": ["unknown", "beast", "demon", "dragonkin", "elemental", "giant", "humanoid", "mechanical", "undead"]
 				},
+				"area_types": {
+					"type": "object",
+					"properties": {
+						"unknown": {
+							"type": "string"
+						},
+						"forest_grassland": {
+							"type": "string"
+						},
+						"mountainous": {
+							"type": "string"
+						},
+						"snowy": {
+							"type": "string"
+						},
+						"desert": {
+							"type": "string"
+						},
+						"swamp": {
+							"type": "string"
+						},
+						"wasteland": {
+							"type": "string"
+						},
+						"haunted": {
+							"type": "string"
+						},
+						"cavernous": {
+							"type": "string"
+						},
+						"volcanic": {
+							"type": "string"
+						},
+						"strongholds_cities": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": [
+						"unknown",
+						"forest_grassland",
+						"mountainous",
+						"snowy",
+						"desert",
+						"swamp",
+						"wasteland",
+						"haunted",
+						"cavernous",
+						"volcanic",
+						"strongholds_cities"
+					]
+				},
 				"sources": {
 					"type": "object",
 					"properties": {
@@ -705,6 +757,9 @@
 						"melee_haste_rating": {
 							"type": "string"
 						},
+						"expertise_rating": {
+							"type": "string"
+						},
 						"armor_penetration": {
 							"type": "string"
 						},
@@ -808,6 +863,7 @@
 						"melee_hit_rating",
 						"melee_crit_rating",
 						"melee_haste_rating",
+						"expertise_rating",
 						"armor_penetration",
 						"all_hit_rating",
 						"all_crit_rating",
@@ -977,6 +1033,7 @@
 				"tanks",
 				"status",
 				"mob_types",
+				"area_types",
 				"sources",
 				"raids",
 				"armor_types",
@@ -1532,9 +1589,6 @@
 						"tooltip": {
 							"type": "string"
 						},
-						"bloodlust": {
-							"type": "string"
-						},
 						"skull_banner": {
 							"type": "string"
 						},
@@ -1552,7 +1606,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "tooltip", "bloodlust", "skull_banner", "stormlash_totem", "tricks_of_the_trade", "unholy_frenzy", "shattering_throw"]
+					"required": ["title", "tooltip", "skull_banner", "stormlash_totem", "tricks_of_the_trade", "unholy_frenzy", "shattering_throw"]
 				},
 				"external_defensive_cooldowns": {
 					"type": "object",
@@ -1782,59 +1836,7 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"isb_uptime": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
-						"hemo_uptime": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
-						"shadow_priest_dps": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
-						"expose_weakness_uptime": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
-						"expose_weakness_hunter_agility": {
+						"retribution_aura_spell_power": {
 							"type": "object",
 							"properties": {
 								"label": {
@@ -2302,11 +2304,7 @@
 						"absorb_frac",
 						"burst_window",
 						"hp_percent_for_defensives",
-						"isb_uptime",
-						"hemo_uptime",
-						"shadow_priest_dps",
-						"expose_weakness_uptime",
-						"expose_weakness_hunter_agility",
+						"retribution_aura_spell_power",
 						"totem_twisting",
 						"pet_uptime",
 						"pet_single_ability",
@@ -2393,16 +2391,6 @@
 							"additionalProperties": false,
 							"required": ["title", "explosives"]
 						},
-						"pet": {
-							"type": "object",
-							"properties": {
-								"title": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["title"]
-						},
 						"imbue": {
 							"type": "object",
 							"properties": {
@@ -2418,16 +2406,6 @@
 							},
 							"additionalProperties": false,
 							"required": ["title", "mhImbue", "ohImbue"]
-						},
-						"drums": {
-							"type": "object",
-							"properties": {
-								"title": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["title"]
 						},
 						"scrolls": {
 							"type": "object",
@@ -2451,7 +2429,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "potions", "elixirs", "food", "engineering", "pet", "imbue", "drums", "scrolls", "miscellaneous"]
+					"required": ["title", "potions", "elixirs", "food", "engineering", "imbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
@@ -2729,6 +2707,44 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
+						"zone": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
+						"area_types": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"open": {
+									"type": "string"
+								},
+								"placeholder": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "placeholder", "empty", "open", "remove", "tooltip"]
+						},
 						"advanced": {
 							"type": "string"
 						},
@@ -2919,6 +2935,8 @@
 						"execute_duration_45",
 						"duration_below_high_hp",
 						"encounter_preset",
+						"zone",
+						"area_types",
 						"advanced",
 						"target",
 						"num_allies",
@@ -6923,19 +6941,6 @@
 									"additionalProperties": false,
 									"required": ["label", "none", "help", "maintain"]
 								},
-								"bloodlust_timing": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
 								"dps": {
 									"type": "object",
 									"properties": {
@@ -6981,7 +6986,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["sunder_armor", "bloodlust_timing", "dps"]
+							"required": ["sunder_armor", "dps"]
 						}
 					},
 					"additionalProperties": false,

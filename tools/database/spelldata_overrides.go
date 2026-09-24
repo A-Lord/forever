@@ -6,7 +6,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
-	"github.com/wowsims/forever/tools/database/dbc"
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
@@ -65,7 +64,7 @@ func applyOverride(s *storeSpell, o overrides.Override) error {
 
 	case overrides.FlatThreat:
 		for i := range s.Effects {
-			if IsThreatEffect(dbc.SpellEffectType(s.Effects[i].Type)) {
+			if IsThreatEffect(s.Effects[i].Type) {
 				return fmt.Errorf("spell %d now states threat on effect %d, so its hand-supplied flat threat is stale",
 					s.ID, s.Effects[i].Index)
 			}
@@ -133,10 +132,47 @@ func (s *storeSpell) directEffect() *storeEffect {
 		if e.PeriodMs != 0 {
 			continue
 		}
-		effect := dbc.SpellEffectType(e.Type)
+		effect := e.Type
 		if effect == dbcenums.E_SCHOOL_DAMAGE || effect == dbcenums.E_HEAL || IsWeaponDamageEffect(effect) {
 			return e
 		}
+	}
+	return nil
+}
+
+// Stale once the row states its own RequiredAreasID.
+func applyAreaBonuses(rows []storeSpell, list []overrides.AreaBonus) error {
+	byID := map[int32]*storeSpell{}
+	for i := range rows {
+		byID[rows[i].ID] = &rows[i]
+	}
+
+	seen := map[int32]bool{}
+	for _, b := range list {
+		if b.Reason == "" {
+			return fmt.Errorf("the area bonus of spell %d states no reason", b.SpellID)
+		}
+		if seen[b.SpellID] {
+			return fmt.Errorf("spell %d carries two area bonuses", b.SpellID)
+		}
+		seen[b.SpellID] = true
+		if len(b.Groups) == 0 || b.Multiplier <= 0 || b.DurationMultiplier <= 0 {
+			return fmt.Errorf("the area bonus of spell %d names no area group or a factor of zero", b.SpellID)
+		}
+
+		row, ok := byID[b.SpellID]
+		if !ok {
+			return fmt.Errorf("the area bonus names spell %d, which the store does not carry", b.SpellID)
+		}
+		if row.RequiredAreas != 0 {
+			return fmt.Errorf("spell %d now states area group %d itself, so its hand-supplied area bonus is stale",
+				b.SpellID, row.RequiredAreas)
+		}
+		row.AreaBonusGroups = b.Groups
+		row.AreaMultiplier, row.AreaDurationMultiplier = b.Multiplier, b.DurationMultiplier
+		row.overrideNotes = append(row.overrideNotes,
+			fmt.Sprintf("override: AreaBonus x%s (duration x%s) in %v -- %s",
+				num(b.Multiplier), num(b.DurationMultiplier), b.Groups, b.Reason))
 	}
 	return nil
 }
@@ -146,8 +182,7 @@ func (s *storeSpell) directEffect() *storeEffect {
 func (s *storeSpell) periodicEffect() *storeEffect {
 	for i := range s.Effects {
 		e := &s.Effects[i]
-		if IsPeriodicAura(dbc.EffectAuraType(e.Aura)) ||
-			(dbc.SpellEffectType(e.Type) == dbcenums.E_SCHOOL_DAMAGE && e.PeriodMs > 0) {
+		if IsPeriodicAura(e.Aura) || (e.Type == dbcenums.E_SCHOOL_DAMAGE && e.PeriodMs > 0) {
 			return e
 		}
 	}

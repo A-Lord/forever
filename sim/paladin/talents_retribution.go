@@ -1,5 +1,17 @@
 package paladin
 
+import (
+	"fmt"
+	"slices"
+	"time"
+
+	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
+	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
 func (paladin *Paladin) registerRetributionTalents() {
 	// Tier 1
 	paladin.applyDeflection()
@@ -24,7 +36,6 @@ func (paladin *Paladin) registerRetributionTalents() {
 	// Tier 5
 	paladin.applyTwoHandedWeaponSpecialization()
 	paladin.applyVengeance()
-	// Repentance not implemented
 
 	// Tier 6
 	paladin.applyChampionOfTheLight()
@@ -34,293 +45,372 @@ func (paladin *Paladin) registerRetributionTalents() {
 	paladin.applyTwistOfLight()
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Benediction - Reduces the mana cost of your Judgement and Seal spells by 3/6/9/12/15%
-func (paladin *Paladin) applyBenediction() {
-	if paladin.Talents.Benediction == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.Benediction == 0 {
-	// 	return
-	// }
-	//
-	// paladin.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  SpellMaskAllSeals | SpellMaskJudgement,
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// 	FloatValue: -.03 * float64(paladin.Talents.Benediction),
-	// })
-}
-
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Improved Judgement - Decreases the cooldown of your Judgement spell by 1/2 sec
-func (paladin *Paladin) applyImprovedJudgement() {
-	if paladin.Talents.ImprovedJudgement == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.ImprovedJudgement == 0 {
-	// 	return
-	// }
-	//
-	// paladin.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask: SpellMaskJudgement,
-	// 	Kind:      core.SpellMod_Cooldown_Flat,
-	// 	TimeValue: -time.Second * time.Duration(paladin.Talents.ImprovedJudgement),
-	// })
-}
-
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Deflection - Increases your Parry chance by 1/2/3/4/5%
+// Deflection - Increases your Parry chance by 1/2/3/4/5%.
 func (paladin *Paladin) applyDeflection() {
 	if paladin.Talents.Deflection == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.Deflection == 0 {
-	// 	return
-	// }
-	//
-	// paladin.PseudoStats.BaseParryChance += spellData.Deflection.FractionAt(paladin.Talents.Deflection)
+	paladin.PseudoStats.BaseParryChance += spellData.Deflection.FractionAt(paladin.Talents.Deflection)
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Conviction - Increases your chance to get a critical strike with melee attacks by 1/2/3/4/5%
+// Benediction - Reduces the Mana cost of all instant cast spells and abilities by 2/4/6/8/10%.
+func (paladin *Paladin) applyBenediction() {
+	if paladin.Talents.Benediction == 0 {
+		return
+	}
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  SpellMaskInstantSpells,
+		Kind:       core.SpellMod_PowerCost_Pct_Add,
+		FloatValue: spellData.Benediction.FractionAt(paladin.Talents.Benediction),
+	})
+}
+
+// Improved Judgement - Decreases the cooldown of your Judgement ability by 1/2 sec.
+func (paladin *Paladin) applyImprovedJudgement() {
+	if paladin.Talents.ImprovedJudgement == 0 {
+		return
+	}
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask: SpellMaskJudgement,
+		Kind:      core.SpellMod_Cooldown_Flat,
+		TimeValue: time.Duration(spellData.ImprovedJudgement.ValueAt(paladin.Talents.ImprovedJudgement)) * time.Millisecond,
+	})
+}
+
+// Holy Conduit - Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of
+// Wrath spells by 20/40%.
+func (paladin *Paladin) applyHolyConduit() {
+	if paladin.Talents.HolyConduit == 0 {
+		return
+	}
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  SpellMaskConsecration | SpellMaskHolyWrath | SpellMaskExorcism | SpellMaskHammerOfWrath,
+		Kind:       core.SpellMod_PowerCost_Pct_Add,
+		FloatValue: spellData.HolyConduit.FractionAt(paladin.Talents.HolyConduit),
+	})
+}
+
+// Conviction - Improves your chance to get a critical strike with melee attacks by 1/2/3/4/5%.
 func (paladin *Paladin) applyConviction() {
 	if paladin.Talents.Conviction == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.Conviction == 0 {
-	// 	return
-	// }
-	//
-	// paladin.AddStat(stats.PhysicalCritPercent, float64(paladin.Talents.Conviction))
+	paladin.AddStat(stats.PhysicalCritPercent, spellData.Conviction.ValueAt(paladin.Talents.Conviction))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// Vindication - Gives your damaging melee attacks a chance to reduce the target's Attack Power by
+// 67/134/201, and increase your Attack Power by 1/2/3% for 30 sec.
 //
-// Crusade - Increases all damage caused by 1/2/3% against Humanoids, Demons, Undead and Elementals
-func (paladin *Paladin) applyCrusade() {
-	if paladin.Talents.Crusade == 0 {
+// The Classic, TBC and Forever clients all state the chance as 100%, which the tooltip's "a chance"
+// and the players who used it say it never was; the WotLK client says 50%, the only number Blizzard
+// ever shipped below 100, and that is what rolls here.
+const vindicationProcChance = 0.5
+
+func (paladin *Paladin) applyVindication() {
+	if paladin.Talents.Vindication == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.Crusade == 0 {
-	// 	return
-	// }
-	//
-	// paladin.Env.RegisterPostFinalizeEffect(func() {
-	// 	for _, at := range paladin.AttackTables {
-	// 		if slices.Contains([]proto.MobType{proto.MobType_MobTypeDemon, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeUndead, proto.MobType_MobTypeElemental}, at.Defender.MobType) {
-	// 			// Misc 36 is the creature-type mask the client states the bonus against; the
-	// 			// mob list above is the sim's own reading of it.
-	// 			at.DamageDealtMultiplier *= spellData.Crusade.Effect(shared.A_MOD_DAMAGE_DONE_VERSUS, 36).MultiplierAt(paladin.Talents.Crusade)
-	// 		}
-	// 	}
-	// })
+	row := spellData.VindicationTriggered.HighestRank()
+	points := spellData.Vindication.EffectAt(0).ValueAt(paladin.Talents.Vindication)
+	// The tooltip's ${$m1/-3*$440667m1}: the trigger's -201 scaled by the points over three.
+	targetAttackPower := row.Effect(shared.A_MOD_ATTACK_POWER, 0).Value * points / 3
+
+	targetAuras := paladin.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return target.GetOrRegisterAura(core.Aura{
+			Label:    "Vindication" + paladin.Label,
+			ActionID: core.ActionID{SpellID: row.SpellID},
+			Duration: row.Duration,
+		}).AttachStatBuff(stats.AttackPower, targetAttackPower)
+	})
+
+	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)
+	selfAura := paladin.RegisterAura(core.Aura{
+		Label:    "Vindication" + paladin.Label,
+		ActionID: core.ActionID{SpellID: row.SpellID}.WithTag(1),
+		Duration: row.Duration,
+	}).AttachStatDependency(attackPowerDep)
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:       "Vindication - Trigger" + paladin.Label,
+		Callback:   core.CallbackOnSpellHitDealt,
+		ProcMask:   core.ProcMaskMelee,
+		Outcome:    core.OutcomeLanded,
+		ProcChance: vindicationProcChance,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			targetAuras.Get(result.Target).Activate(sim)
+			selfAura.Activate(sim)
+		},
+	})
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Two-Handed Weapon Specialization - Increases the damage you deal with two-handed melee weapons by 2/4/6%
-func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
-	if paladin.Talents.TwoHandedWeaponSpecialization == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.TwoHandedWeaponSpecialization == 0 {
-	// 	return
-	// }
-	//
-	// weaponMod := paladin.AddDynamicMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Pct,
-	// 	ProcMask:   core.ProcMaskMelee,
-	// 	FloatValue: spellData.TwoHandedWeaponSpecialization.FractionAt(paladin.Talents.TwoHandedWeaponSpecialization),
-	// })
-	//
-	// if paladin.GetMainHandType() == proto.HandType_HandTypeTwoHand {
-	// 	weaponMod.Activate()
-	// }
-	//
-	// paladin.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, slot proto.ItemSlot) {
-	// 	if paladin.GetMainHandType() == proto.HandType_HandTypeTwoHand {
-	// 		weaponMod.Activate()
-	// 	} else {
-	// 		weaponMod.Deactivate()
-	// 	}
-	// })
-}
-
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Vengeance - Gives you a 1/2/3/4/5% bonus to Physical and Holy damage you deal for 30 sec after dealing a critical strike from a weapon swing, spell, or ability
-func (paladin *Paladin) applyVengeance() {
-	if paladin.Talents.Vengeance == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.Vengeance == 0 {
-	// 	return
-	// }
-	//
-	// bonusMod := .01 * float64(paladin.Talents.Vengeance)
-	//
-	// dmgMod := paladin.AddDynamicMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Pct,
-	// 	FloatValue: bonusMod,
-	// 	School:     core.SpellSchoolHoly | core.SpellSchoolPhysical,
-	// })
-	//
-	// aura := paladin.RegisterAura(core.Aura{
-	// 	Label:     "Vengeance",
-	// 	ActionID:  core.ActionID{SpellID: 20055},
-	// 	Duration:  time.Second * 30,
-	// 	MaxStacks: 3,
-	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// 		dmgMod.Activate()
-	// 	},
-	// 	OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// 		dmgMod.Deactivate()
-	// 	},
-	// 	OnStacksChange: func(aura *core.Aura, sim *core.Simulation, oldStacks, newStacks int32) {
-	// 		stacks := float64(newStacks)
-	// 		dmgMod.UpdateFloatValue(bonusMod * stacks)
-	// 	},
-	// })
-	//
-	// paladin.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:             "Vengeance - Trigger",
-	// 	Callback:         core.CallbackOnSpellHitDealt,
-	// 	Outcome:          core.OutcomeCrit,
-	// 	ProcChance:       1,
-	// 	CanProcFromProcs: true, // 20049/20056/20057 carry the bit: Seal of Blood crits count.
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		aura.Activate(sim)
-	// 		aura.AddStack(sim)
-	// 	},
-	// })
-}
-
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Sanctified Judgement - Gives your Judgement spell a 33/66/100% chance to return 80% of the mana cost of the Judged Seal
+// Sanctified Judgement - Gives your Judgement ability a 33/66/100% chance to return 20/40/60% of
+// the Mana cost of the judged seal.
 func (paladin *Paladin) applySanctifiedJudgement() {
 	if paladin.Talents.SanctifiedJudgement == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.SanctifiedJudgement == 0 {
-	// 	return
-	// }
-	//
-	// procChance := []float64{0, 0.33, 0.66, 1}[paladin.Talents.SanctifiedJudgement]
-	// sancJudgementManaMetric := paladin.NewManaMetrics(core.ActionID{SpellID: 31930})
-	//
-	// paladin.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:               "Sanctified Judgement - Trigger",
-	// 	ClassSpellMask:     SpellMaskAllJudgements,
-	// 	Callback:           core.CallbackOnSpellHitDealt,
-	// 	ProcChance:         procChance,
-	// 	TriggerImmediately: true,
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		if paladin.PreviousSeal.IsActive() {
-	// 			paladin.AddMana(sim, paladin.PreviousSealSpell.CurCast.Cost*.8, sancJudgementManaMetric)
-	// 		} else {
-	// 			paladin.AddMana(sim, paladin.CurrentSealSpell.CurCast.Cost*.8, sancJudgementManaMetric)
-	// 		}
-	// 	},
-	// })
+	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: spellData.SanctifiedJudgement.HighestRank().SpellID})
+	refund := spellData.SanctifiedJudgement.EffectAt(1).FractionAt(paladin.Talents.SanctifiedJudgement)
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Sanctified Judgement" + paladin.Label,
+		Callback:           core.CallbackOnCastComplete,
+		ClassSpellMask:     SpellMaskJudgement,
+		ProcChance:         spellData.SanctifiedJudgement.EffectAt(0).FractionAt(paladin.Talents.SanctifiedJudgement),
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			if seal := paladin.activeSeal(); seal != nil {
+				paladin.AddMana(sim, seal.spell.CurCast.Cost*refund, manaMetrics)
+			}
+		},
+	})
 }
 
-// applyChampionOfTheLight implements Champion of the Light, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyChampionOfTheLight() {
-	if paladin.Talents.ChampionOfTheLight == 0 {
-		return
-	}
-}
-
-// applyEyeForAnEye implements Eye for an Eye, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Eye for an Eye - All critical strikes against you cause 5/10% of the damage taken to the attacker
+// as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.
 func (paladin *Paladin) applyEyeForAnEye() {
 	if paladin.Talents.EyeForAnEye == 0 {
 		return
 	}
+
+	row := spellData.EyeForAnEye.HighestRank()
+	share := spellData.EyeForAnEye.FractionAt(paladin.Talents.EyeForAnEye)
+
+	var reflected float64
+	reflect := paladin.RegisterSpell(core.SpellConfig{
+		ActionID:    core.ActionID{SpellID: row.SpellID},
+		SpellSchool: core.SpellSchoolHoly,
+		ProcMask:    core.ProcMaskEmpty,
+		Flags:       core.SpellFlagBinary | core.SpellFlagPassiveSpell | core.SpellFlagIgnoreModifiers,
+
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+
+		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			spell.CalcAndDealDamage(sim, target, reflected, spell.OutcomeAlwaysHit)
+		},
+	})
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Eye for an Eye" + paladin.Label,
+		Callback:           core.CallbackOnSpellHitTaken,
+		Outcome:            core.OutcomeCrit,
+		RequireDamageDealt: true,
+		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			reflected = min(result.Damage*share, paladin.MaxHealth()/2)
+			reflect.Cast(sim, spell.Unit)
+		},
+	})
 }
 
-// applyHolyConduit implements Holy Conduit, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyHolyConduit() {
-	if paladin.Talents.HolyConduit == 0 {
-		return
-	}
-}
-
-// applyInstrumentOfLaw implements Instrument of Law, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyInstrumentOfLaw() {
-	if paladin.Talents.InstrumentOfLaw == 0 {
-		return
-	}
-}
-
-// applyPursuitOfJustice implements Pursuit of Justice, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Pursuit of Justice - Increases movement speed and mounted movement speed by 8/15%. This does not
+// stack with other movement speed increasing effects.
 func (paladin *Paladin) applyPursuitOfJustice() {
 	if paladin.Talents.PursuitOfJustice == 0 {
 		return
 	}
+
+	row := spellData.PursuitOfJustice.HighestRank()
+	paladin.NewPassiveMovementSpeedAura(
+		"Pursuit of Justice",
+		core.ActionID{SpellID: row.SpellID},
+		spellData.PursuitOfJustice.Effect(shared.A_MOD_INCREASE_SPEED, 0).FractionAt(paladin.Talents.PursuitOfJustice),
+	)
 }
 
-// applySacredArbiter implements Sacred Arbiter, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Sacred Arbiter - Increases the damage of your Holy Strike ability by 10% and causes it to refresh
+// all Judgement effects on the target. The paladin's own melee strikes already refresh its own
+// judgements; Holy Strike with the talent refreshes every judgement on the target, whoever put it
+// there, the way Crusader Strike did in TBC.
 func (paladin *Paladin) applySacredArbiter() {
 	if !paladin.Talents.SacredArbiter {
 		return
 	}
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  SpellMaskHolyStrike,
+		Kind:       core.SpellMod_DamageDone_Flat,
+		FloatValue: spellData.SacredArbiter.FractionAt(1),
+	})
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Sacred Arbiter" + paladin.Label,
+		Callback:           core.CallbackOnSpellHitDealt,
+		ClassSpellMask:     SpellMaskHolyStrike,
+		Outcome:            core.OutcomeLanded,
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			for _, aura := range result.Target.GetAurasWithTag(buffs.JudgementAuraTag) {
+				if aura.IsActive() {
+					aura.Refresh(sim)
+				}
+			}
+		},
+	})
 }
 
-// applyTwistOfLight implements Twist of Light, new in Forever.
+// Crusade - Increases all damage dealt by 1/2%. Increased by an additional 1/2% against Demon and
+// Undead targets.
+func (paladin *Paladin) applyCrusade() {
+	if paladin.Talents.Crusade == 0 {
+		return
+	}
+
+	paladin.PseudoStats.DamageDealtMultiplier *= spellData.Crusade.Effect(shared.A_MOD_DAMAGE_PERCENT_DONE, 127).MultiplierAt(paladin.Talents.Crusade)
+
+	// Misc 36 is the creature-type mask the client states the bonus against: Demon and Undead.
+	versus := spellData.Crusade.Effect(shared.A_MOD_DAMAGE_DONE_VERSUS, 36).MultiplierAt(paladin.Talents.Crusade)
+	paladin.Env.RegisterPostFinalizeEffect(func() {
+		for _, at := range paladin.AttackTables {
+			if slices.Contains([]proto.MobType{proto.MobType_MobTypeDemon, proto.MobType_MobTypeUndead}, at.Defender.MobType) {
+				at.DamageDealtMultiplier *= versus
+			}
+		}
+	})
+}
+
+// Two-Handed Weapon Specialization - Increases the damage you deal with two-handed melee weapons
+// by 3/6/9%. The client puts it on the Physical school alone.
+func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
+	if paladin.Talents.TwoHandedWeaponSpecialization == 0 {
+		return
+	}
+
+	paladin.applyWeaponSpecialization(
+		spellData.TwoHandedWeaponSpecialization.FractionAt(paladin.Talents.TwoHandedWeaponSpecialization),
+		proto.HandType_HandTypeTwoHand,
+	)
+}
+
+// Vengeance - Increases your Physical and Holy damage dealt by 1/2/3% for 30 sec after landing a
+// critical strike. Stacks up to 5 times.
+func (paladin *Paladin) applyVengeance() {
+	if paladin.Talents.Vengeance == 0 {
+		return
+	}
+
+	row := spellData.VengeanceTriggered.HighestRank()
+	perStack := spellData.Vengeance.FractionAt(paladin.Talents.Vengeance)
+
+	damageMod := paladin.AddDynamicMod(core.SpellModConfig{
+		School:     core.SpellSchoolHoly | core.SpellSchoolPhysical,
+		Kind:       core.SpellMod_DamageDone_Pct,
+		FloatValue: perStack,
+	})
+
+	vengeance := paladin.RegisterAura(core.Aura{
+		Label:     "Vengeance" + paladin.Label,
+		ActionID:  core.ActionID{SpellID: row.SpellID},
+		Duration:  row.Duration,
+		MaxStacks: 5,
+		OnGain: func(_ *core.Aura, _ *core.Simulation) {
+			damageMod.Activate()
+		},
+		OnExpire: func(_ *core.Aura, _ *core.Simulation) {
+			damageMod.Deactivate()
+		},
+		OnStacksChange: func(_ *core.Aura, _ *core.Simulation, _, newStacks int32) {
+			damageMod.UpdateFloatValue(perStack * float64(newStacks))
+		},
+	})
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:             "Vengeance - Trigger" + paladin.Label,
+		Callback:         core.CallbackOnSpellHitDealt,
+		Outcome:          core.OutcomeCrit,
+		CanProcFromProcs: true, // 20049 carries the bit: seal crits count.
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			vengeance.Activate(sim)
+			vengeance.AddStack(sim)
+		},
+	})
+}
+
+// Champion of the Light - Increases your spell damage and healing by up to 33/66/100% of your
+// Intellect. The healing effect states no rank curve, so both follow the damage ladder.
+func (paladin *Paladin) applyChampionOfTheLight() {
+	if paladin.Talents.ChampionOfTheLight == 0 {
+		return
+	}
+
+	share := spellData.ChampionOfTheLight.Effect(shared.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, 126).FractionAt(paladin.Talents.ChampionOfTheLight)
+	paladin.AddStatDependency(stats.Intellect, stats.SpellDamage, share)
+	paladin.AddStatDependency(stats.Intellect, stats.HealingPower, share)
+}
+
+// Instrument of Law - Reduces the cast time of your Hammer of Wrath by 0.5/1.0 sec, and reduces all
+// threat you generate by 10/20% while Righteous Fury is not active.
+func (paladin *Paladin) applyInstrumentOfLaw() {
+	if paladin.Talents.InstrumentOfLaw == 0 {
+		return
+	}
+
+	row := spellData.InstrumentOfLaw.HighestRank()
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask: SpellMaskHammerOfWrath,
+		Kind:      core.SpellMod_CastTime_Flat,
+		TimeValue: time.Duration(spellData.InstrumentOfLaw.EffectAt(0).ValueAt(paladin.Talents.InstrumentOfLaw)) * time.Millisecond,
+	})
+
+	// The client states the threat reduction as a positive number Righteous Fury zeroes.
+	threat := core.MakePermanent(paladin.RegisterAura(core.Aura{
+		Label:    "Instrument of Law" + paladin.Label,
+		ActionID: core.ActionID{SpellID: row.SpellID},
+	}).AttachMultiplicativePseudoStatBuff(
+		&paladin.PseudoStats.ThreatMultiplier,
+		1-spellData.InstrumentOfLaw.Effect(shared.A_MOD_THREAT, 127).FractionAt(paladin.Talents.InstrumentOfLaw),
+	))
+
+	paladin.OnSpellRegistered(func(spell *core.Spell) {
+		if spell.Matches(SpellMaskRighteousFury) {
+			spell.RelatedSelfBuff.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+				threat.Deactivate(sim)
+			}).ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+				threat.Activate(sim)
+			})
+		}
+	})
+}
+
+// Twist of Light - When you replace your Seal of Command, Seal of Righteousness, Seal of Fury, or
+// Seal of Justice with a different Seal, gain an Echo. Your next melee attack applies the replaced
+// Seal's effects, consuming the Echo.
 //
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Each seal leaves its own Echo (Echo of Command, of Fury, of Righteousness, of Justice): one
+// charge, no duration, consumed by the next auto attack that lands.
 func (paladin *Paladin) applyTwistOfLight() {
 	if !paladin.Talents.TwistOfLight {
 		return
 	}
-}
 
-// applyVindication implements Vindication, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyVindication() {
-	if paladin.Talents.Vindication == 0 {
-		return
+	paladin.echoes = map[int32]*sealEcho{}
+	for _, id := range []int32{echoOfCommandID, echoOfFuryID, echoOfRighteousnessID, echoOfJusticeID} {
+		echo := &sealEcho{}
+		echo.aura = paladin.RegisterAura(core.Aura{
+			Label:    fmt.Sprintf("Echo (%d)%s", id, paladin.Label),
+			ActionID: core.ActionID{SpellID: id},
+			Duration: core.NeverExpires,
+		}).AttachProcTrigger(core.ProcTrigger{
+			Callback:           core.CallbackOnSpellHitDealt,
+			ProcMask:           core.ProcMaskMeleeWhiteHit,
+			Outcome:            core.OutcomeLanded,
+			TriggerImmediately: true,
+			Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+				if echo.seal != nil && echo.seal.echo != nil {
+					echo.seal.echo(sim, result.Target)
+				}
+				echo.seal = nil
+				echo.aura.Deactivate(sim)
+			},
+		})
+		paladin.echoes[id] = echo
 	}
 }

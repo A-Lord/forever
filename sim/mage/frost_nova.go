@@ -19,7 +19,7 @@ func (mage *Mage) registerFrostNovaSpell() {
 	// 	ClassSpellMask: MageSpellFrostNova,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: frostNovaRank.Cost(),
+	// 		FlatCost: int32(frostNovaRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{

@@ -23,6 +23,16 @@ func evalJSON(t *testing.T, expr string) exprJSON {
 	return got
 }
 
+// The effect the chain read, counted from 1, or 0 where it read none.
+func readEffect(got exprJSON) int {
+	for i, line := range got.Effects {
+		if line.Read {
+			return i + 1
+		}
+	}
+	return 0
+}
+
 func TestExprValue(t *testing.T) {
 	cases := []struct {
 		expr  string
@@ -82,14 +92,23 @@ func TestExprValue(t *testing.T) {
 			read:  0,
 			id:    20662,
 		},
+		{
+			// core.SpellSchool is a byte.
+			expr:  "spelldata.MustFind(11574).SpellSchool()",
+			kind:  kindValue,
+			trail: "spelldata.MustFind(11574).SpellSchool()",
+			value: "1",
+			read:  0,
+			id:    11574,
+		},
 	}
 
 	for _, c := range cases {
 		got := evalJSON(t, c.expr)
 		if got.Kind != c.kind || got.Trail != c.trail || got.Value != c.value ||
-			got.ReadEffect != c.read || got.Resolved != c.id {
+			readEffect(got) != c.read || got.ID != c.id {
 			t.Errorf("%s answered kind %q trail %q value %q effect %d of %d",
-				c.expr, got.Kind, got.Trail, got.Value, got.ReadEffect, got.Resolved)
+				c.expr, got.Kind, got.Trail, got.Value, readEffect(got), got.ID)
 		}
 	}
 }
@@ -162,9 +181,13 @@ func TestExprChainRefused(t *testing.T) {
 		{"spellData.Execute.Highest().EffectN(1, 2)", "*spelldata.Spell.EffectN takes 1 argument, not 2"},
 		{"spellData.Execute.Highest().EffectN(1).Average(level)", "level is not a literal"},
 		{"spellData.Execute.Highest().EffectN(1).Average(60.5)", "60.5 is not the int32 it takes"},
+		{"spellData.Execute.Highest().EffectN(1).Average(4294967356)", "4294967356 is not the int32 it takes"},
+		{"spellData.Execute.Highest().EffectN([]int{1}[0])", "[]int{…}[0] is not a literal"},
+		{"spelldata.MustFind(4294978870)", "4294978870 is not the int32 it takes"},
 		{"spellData.Execute.Highest().Refs()", "a []*spelldata.Spell is not a value to read"},
-		{"spellData.Execute.Highest().ChainAmp", `"ChainAmp" is not a method of *spelldata.Spell`},
+		{"spellData.Execute.Highest().ChainAmp", `"ChainAmp" is not a field of *spelldata.Spell`},
 		{"spellData.Execute.Highest() + 1", "is not a chain of accessor calls"},
+		{"spellData.Execute", "names a ladder, not a rank"},
 		// The store panics where the row states no effect the finder names, and the panic is the answer.
 		{"spellData.Execute.Highest().Effect(6, 0)", "has no effect with aura 6 misc 0"},
 	}
@@ -179,5 +202,51 @@ func TestExprChainRefused(t *testing.T) {
 		if !strings.Contains(err.Error(), c.want) {
 			t.Errorf("%s failed with %q, want %q in it", c.expr, err, c.want)
 		}
+	}
+}
+
+// A value read off the ladder itself reads the rank its ...At(rank) names, with the effect it read.
+func TestExprLadderAccessors(t *testing.T) {
+	cases := []struct {
+		expr  string
+		trail string
+		value string
+		title string
+		read  int
+	}{
+		{
+			expr:  "spellData.Bloodrage.EffectAt(1).TenthsAt(1)",
+			trail: "spellData.Bloodrage.EffectAt(1).TenthsAt(1)",
+			value: "10",
+			title: "2687 Bloodrage",
+			read:  1,
+		},
+		{
+			expr:  "spellData.ImprovedBloodrage.MultiplierAt(2)",
+			trail: "spellData.ImprovedBloodrage.MultiplierAt(2)",
+			value: "1.5",
+			title: "12301 Improved Bloodrage (rank 2 of 2)",
+			read:  1,
+		},
+		{
+			expr:  "spellData.BattleShout.Highest().Effect(dbcenums.A_MOD_ATTACK_POWER, 0).Average(core.CharacterLevel)",
+			trail: "spellData.BattleShout.Highest().Effect(99, 0).Average(60)",
+			value: "139",
+			title: "25289 Battle Shout (Rank 7)",
+			read:  1,
+		},
+	}
+	for _, c := range cases {
+		got := evalJSON(t, c.expr)
+		if got.Kind != kindValue || got.Trail != c.trail || got.Value != c.value || got.heading() != c.title || readEffect(got) != c.read {
+			t.Errorf("%s answered kind %q trail %q value %q on %q effect %d",
+				c.expr, got.Kind, got.Trail, got.Value, got.heading(), readEffect(got))
+		}
+	}
+
+	var out bytes.Buffer
+	err := run([]string{"-expr", "spellData.Bloodrage.EffectAt(1)", "-package", "warrior"}, &out)
+	if err == nil || !strings.Contains(err.Error(), "names a ladder, not a rank") {
+		t.Errorf("a chain ending on the ladder answered %q, %v", out.String(), err)
 	}
 }

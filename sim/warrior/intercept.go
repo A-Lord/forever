@@ -23,10 +23,6 @@ func (warrior *Warrior) registerIntercept() {
 		spell.CalcAndDealDamage(sim, interceptTarget, interceptStunDamage, spell.OutcomeAlwaysHit)
 	})
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BerserkerStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		interceptTarget = target
 		aura.Duration = spell.CD.Duration

@@ -14,10 +14,11 @@ import (
 // so every example puts them back on its way out; the values themselves are the ones snapshot_test.go
 // pins.
 func generatedStore() func() {
-	install(generatedSpells, generatedCurves)
+	install(generatedSpells, generatedCurves, generatedHandTriggers)
 	return func() {
-		replaceForTest(fixture())
+		setSpells(fixture())
 		curves = map[int32][][]float64{}
+		handTriggers = map[int32][]int32{}
 	}
 }
 

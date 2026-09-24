@@ -188,7 +188,7 @@ func (warrior *Warrior) registerShieldSlam() {
 		return
 	}
 
-	config := spelldata.SpellConfig(&warrior.Unit, shieldSlamRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config := spelldata.SpellConfig(&warrior.Unit, shieldSlamRank, spelldata.Melee(core.ProcMaskMeleeOHSpecial))
 	// TODO: In-game testing needed for threat multiplier / flat threat
 	config.FlatThreatBonus = 0
 

@@ -83,20 +83,5 @@ func weaponProcRateStated(s *Spell) bool {
 // procs-per-minute an override wrote onto it. A row stating neither would fire on every hit, which
 // is never what the client means.
 func procRateStated(s *Spell) bool {
-	if s.RPPM > 0 {
-		return true
-	}
-
-	switch s.ProcChanceSource {
-	case ProcChanceColumn:
-		return s.ProcChance > 0
-	case ProcChanceEffectN:
-		// The position the roll is stated at can be past the effects the row carries.
-		return s.EffectN(int(s.ProcChanceEffect)).Percent() != 0
-	case ProcChanceAlways:
-		return true
-	default:
-		// ProcChancePPM: the client states nothing, and no override answered it.
-		return false
-	}
+	return s.RPPM > 0 || s.StatedChance() != 0
 }

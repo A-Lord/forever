@@ -44,7 +44,7 @@ func (warlock *Warlock) registerDrainLife() {
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellDrainLife,
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: drainLifeRank.Cost()},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(drainLifeRank.Cost())},
 	// 	Cast:     core.CastConfig{DefaultCast: core.Cast{GCD: drainLifeRank.GCD()}},
 	//
 	// 	DamageMultiplierAdditive: 1,

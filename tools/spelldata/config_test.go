@@ -6,49 +6,36 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-func TestCoreConstantsMatchCore(t *testing.T) {
-	cases := []struct {
-		typeName string
-		name     string
-		want     uint64
-	}{
-		{"SpellFlag", "SpellFlagAPL", uint64(core.SpellFlagAPL)},
-		{"SpellFlag", "SpellFlagMeleeMetrics", uint64(core.SpellFlagMeleeMetrics)},
-		{"SpellFlag", "SpellFlagNoOnCastComplete", uint64(core.SpellFlagNoOnCastComplete)},
-		{"SpellFlag", "SpellFlagPassiveSpell", uint64(core.SpellFlagPassiveSpell)},
-		{"SpellFlag", "SpellFlagHelpful", uint64(core.SpellFlagHelpful)},
-		{"ProcMask", "ProcMaskMeleeMHSpecial", uint64(core.ProcMaskMeleeMHSpecial)},
-		{"ProcMask", "ProcMaskMeleeOHSpecial", uint64(core.ProcMaskMeleeOHSpecial)},
-		{"ProcMask", "ProcMaskMelee", uint64(core.ProcMaskMelee)},
-		{"ProcMask", "ProcMaskSpellDamage", uint64(core.ProcMaskSpellDamage)},
-		{"SpellSchool", "SpellSchoolPhysical", uint64(core.SpellSchoolPhysical)},
-		{"SpellSchool", "SpellSchoolFrostfire", uint64(core.SpellSchoolFrostfire)},
-		{"DefenseType", "DefenseTypeMelee", uint64(core.DefenseTypeMelee)},
-		{"DefenseType", "DefenseTypeRanged", uint64(core.DefenseTypeRanged)},
+// Every name the printer states for a constant: the stringer's for a typed enum, the declaration's for
+// the PROC_FLAG_ bits and SPELLMOD_ ops, and a number where neither has one.
+func TestConstantNames(t *testing.T) {
+	spellFlag := func(bit uint64) (string, bool) { return dbcenums.Named(core.SpellFlag(bit)) }
+	if got := strings.Join(setBits(uint64(core.SpellFlagAPL|core.SpellFlagMeleeMetrics), spellFlag), " | "); got != "SpellFlagMeleeMetrics | SpellFlagAPL" {
+		t.Errorf("the flag bits read %q", got)
 	}
-	for _, c := range cases {
-		found := false
-		for _, named := range coreConstants(c.typeName) {
-			if named.name == c.name {
-				found = true
-				if named.value != c.want {
-					t.Errorf("%s resolved to %d, core states %d", c.name, named.value, c.want)
-				}
-			}
-		}
-		if !found {
-			t.Errorf("%s is not among the %s constants", c.name, c.typeName)
-		}
+	if got := setBits(1<<63, spellFlag); len(got) != 1 || got[0] != "bit 0x8000000000000000" {
+		t.Errorf("an unnamed flag bit reads %q", got)
 	}
 
-	if got := strings.Join(bitNames("SpellFlag", uint64(core.SpellFlagAPL|core.SpellFlagMeleeMetrics)), " | "); got != "SpellFlagMeleeMetrics | SpellFlagAPL" &&
-		got != "SpellFlagAPL | SpellFlagMeleeMetrics" {
-		t.Errorf("the bits read %q", got)
+	flags := procFlagNames([2]uint32{dbcenums.PROC_FLAG_KILL, dbcenums.PROC_FLAG_2_KNOCKBACK | 1<<3})
+	if strings.Join(flags, ", ") != "PROC_FLAG_KILL, PROC_FLAG_2_KNOCKBACK, bit 0x8" {
+		t.Errorf("the proc flags read %q", flags)
 	}
-	if got := exactName("DefenseType", uint64(core.DefenseTypeMelee)); got != "DefenseTypeMelee" {
-		t.Errorf("DefenseTypeMelee reads %q", got)
+
+	for got, want := range map[string]string{
+		namedOr(dbcenums.SPELLMOD_COST, "op %d"):        "SPELLMOD_COST",
+		namedOr(dbcenums.SpellModOp(99), "op %d"):       "op 99",
+		namedOr(dbcenums.E_SCHOOL_DAMAGE, "E_%d"):       "E_SCHOOL_DAMAGE",
+		namedOr(dbcenums.SpellEffectType(9999), "E_%d"): "E_9999",
+		namedOr(dbcenums.A_DUMMY, "A_%d"):               "A_DUMMY",
+		namedOr(dbcenums.EffectAuraType(9999), "A_%d"):  "A_9999",
+	} {
+		if got != want {
+			t.Errorf("named %q, want %q", got, want)
+		}
 	}
 }
 
@@ -64,7 +51,7 @@ func (warrior *Warrior) registerExecute() {
 		spelldata.Melee(core.ProcMaskMeleeOHSpecial), // the off hand
 		spelldata.Proc(), spelldata.Tag(2))
 
-	odd := spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Flags(flags), spelldata.Label(3), spelldata.Flags(core.SpellFlagAPL|core.SpellFlagHelpful))
+	odd := spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Flags(flags), spelldata.Label(3), spelldata.Flags(core.SpellFlagAPL|core.SpellFlagHelpful), spelldata.Tag(1<<40))
 }
 `
 
@@ -141,6 +128,7 @@ func TestHoverSpellConfigUnevaluated(t *testing.T) {
 	for _, want := range []string{
 		"unevaluated: `spelldata.Flags(flags)`",
 		"unevaluated: `spelldata.Label(3)` (spelldata.Label is not an option this reads)",
+		"unevaluated: `spelldata.Tag(1 << 40)` (1 << 40 is not the int32 it takes)",
 		"Flags(SpellFlagAPL \\| SpellFlagHelpful)",
 	} {
 		if !strings.Contains(markdown, want) {

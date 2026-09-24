@@ -267,6 +267,9 @@ func main() {
 	atlasDBProto := atlaslootDB.ToUIProto()
 	db.MergeZones(atlasDBProto.Zones)
 	db.MergeNpcs(atlasDBProto.Npcs)
+	if err := database.LoadZoneAreas(db, helper); err != nil {
+		log.Fatal(err)
+	}
 	db.WriteBinaryAndJson(fmt.Sprintf("%s/db.bin", dbDir), fmt.Sprintf("%s/db.json", dbDir))
 }
 
@@ -704,7 +707,7 @@ func GetAllRotationSpellIds() map[string][]int32 {
 		}, &proto.Player_ProtectionPaladin{ProtectionPaladin: &proto.ProtectionPaladin{Options: &proto.ProtectionPaladin_Options{ClassOptions: &proto.PaladinOptions{}}}}), nil, nil, nil)},
 		{Name: "retPaladin", Raid: core.SinglePlayerRaidProto(core.WithSpec(&proto.Player{
 			Class:         proto.Class_ClassPaladin,
-			Race:          proto.Race_RaceBloodElf,
+			Race:          proto.Race_RaceUndead,
 			Equipment:     &proto.EquipmentSpec{},
 			TalentsString: rotationTalentsString("paladin"),
 		}, &proto.Player_RetributionPaladin{RetributionPaladin: &proto.RetributionPaladin{Options: &proto.RetributionPaladin_Options{ClassOptions: &proto.PaladinOptions{}}}}), nil, nil, nil)},

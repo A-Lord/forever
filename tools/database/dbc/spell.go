@@ -46,6 +46,7 @@ type Spell struct {
 	Variables             string
 	MaxCumulativeStacks   int32
 	MaxTargets            int32
+	RequiredAreasID       int32
 	IconPath              string
 }
 

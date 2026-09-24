@@ -23,7 +23,7 @@ func (warlock *Warlock) registerImmolate() {
 	// 	ClassSpellMask: WarlockSpellImmolate,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: immolateRank.Cost(),
+	// 		FlatCost: int32(immolateRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
@@ -71,7 +71,7 @@ func (warlock *Warlock) registerImmolate() {
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
 	// 		dot := spell.Dot(target)
-	// 		result := dot.Spell.CalcPeriodicDamage(sim, target, warlock.ImmolateTickBaseDamage*float64(tickCount), spell.OutcomeExpectedMagicHit)
+	// 		result := spell.CalcPeriodicDamage(sim, target, warlock.ImmolateTickBaseDamage*float64(tickCount), spell.OutcomeExpectedMagicHit)
 	// 		result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
 	// 		return result
 	// 	},

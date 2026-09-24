@@ -1,25 +1,31 @@
 package paladin
 
-// TBC Paladin Spell Masks
-// These are used for spell identification, talent modifiers, and proc triggers
-
+// Spell masks identify the paladin's spells to talents, proc triggers and spell mods.
 const (
 	SpellMaskNone int64 = 0
 
-	// Core Abilities
+	// Abilities
 	SpellMaskJudgement int64 = 1 << iota
+	SpellMaskHolyStrike
 	SpellMaskConsecration
 	SpellMaskExorcism
+	SpellMaskHammerOfWrath
+	SpellMaskHolyWrath
 	SpellMaskHolyLight
 	SpellMaskFlashOfLight
 	SpellMaskLayOnHands
-	SpellMaskHammerOfJustice
-	SpellMaskCleanse
-	SpellMaskDivineShield
-	SpellMaskDivineProtection
-	SpellMaskBlessingOfProtection
-	SpellMaskHammerOfWrath
-	SpellMaskHolyWrath
+	SpellMaskRighteousFury
+
+	// Talent abilities
+	SpellMaskDivineFavor
+	SpellMaskHolyShock
+	SpellMaskHolyShockHeal
+	SpellMaskHolyShield
+	SpellMaskHolyShieldProc
+	SpellMaskSwiftJudgement
+	SpellMaskTemplarsBulwark
+	SpellMaskLightsVigil
+	SpellMaskLightsVigilStrike
 
 	// Seals
 	SpellMaskSealOfRighteousness
@@ -28,14 +34,23 @@ const (
 	SpellMaskSealOfWisdom
 	SpellMaskSealOfJustice
 	SpellMaskSealOfTheCrusader
+	SpellMaskSealOfFury
 
-	// Judgement Effects (different from the Judgement spell itself)
+	// What the seals do on a hit
+	SpellMaskSealOfRighteousnessProc
+	SpellMaskSealOfCommandProc
+	SpellMaskSealOfLightProc
+	SpellMaskSealOfWisdomProc
+	SpellMaskSealOfFuryProc
+
+	// What Judgement unleashes
 	SpellMaskJudgementOfRighteousness
 	SpellMaskJudgementOfCommand
 	SpellMaskJudgementOfLight
 	SpellMaskJudgementOfWisdom
 	SpellMaskJudgementOfJustice
 	SpellMaskJudgementOfTheCrusader
+	SpellMaskJudgementOfFury
 
 	// Auras
 	SpellMaskDevotionAura
@@ -44,38 +59,30 @@ const (
 	SpellMaskFireResistanceAura
 	SpellMaskFrostResistanceAura
 	SpellMaskShadowResistanceAura
-
-	// Blessings
-	SpellMaskBlessingOfMight
-	SpellMaskBlessingOfWisdom
-	SpellMaskBlessingOfKings
-	SpellMaskBlessingOfSalvation
-	SpellMaskBlessingOfSanctuary
-
-	// Talent Abilities
-	SpellMaskDivineFavor
-	SpellMaskHolyShock
-	SpellMaskHolyShield
-	SpellMaskHolyShieldProc
-	SpellMaskRepentance
-	SpellMaskRighteousFury
 )
 
-// Composite masks
 const (
 	SpellMaskAllSeals = SpellMaskSealOfRighteousness |
 		SpellMaskSealOfCommand |
 		SpellMaskSealOfLight |
 		SpellMaskSealOfWisdom |
 		SpellMaskSealOfJustice |
-		SpellMaskSealOfTheCrusader
+		SpellMaskSealOfTheCrusader |
+		SpellMaskSealOfFury
+
+	SpellMaskSealProcs = SpellMaskSealOfRighteousnessProc |
+		SpellMaskSealOfCommandProc |
+		SpellMaskSealOfLightProc |
+		SpellMaskSealOfWisdomProc |
+		SpellMaskSealOfFuryProc
 
 	SpellMaskAllJudgements = SpellMaskJudgementOfRighteousness |
 		SpellMaskJudgementOfCommand |
 		SpellMaskJudgementOfLight |
 		SpellMaskJudgementOfWisdom |
 		SpellMaskJudgementOfJustice |
-		SpellMaskJudgementOfTheCrusader
+		SpellMaskJudgementOfTheCrusader |
+		SpellMaskJudgementOfFury
 
 	SpellMaskAllAuras = SpellMaskDevotionAura |
 		SpellMaskRetributionAura |
@@ -84,31 +91,24 @@ const (
 		SpellMaskFrostResistanceAura |
 		SpellMaskShadowResistanceAura
 
-	SpellMaskAllBlessings = SpellMaskBlessingOfMight |
-		SpellMaskBlessingOfWisdom |
-		SpellMaskBlessingOfKings |
-		SpellMaskBlessingOfSalvation |
-		SpellMaskBlessingOfSanctuary
-
+	// The heals Healing Light, Illumination and Divine Favor name.
 	SpellMaskHealingSpells = SpellMaskHolyLight |
 		SpellMaskFlashOfLight |
-		SpellMaskLayOnHands |
-		SpellMaskHolyShock
+		SpellMaskHolyShockHeal
 
-	// Spells that can trigger Seal of Command
-	SpellMaskCanTriggerSealOfCommand = SpellMaskJudgement
-
-	SpellMaskCanProcTome = SpellMaskAllAuras |
-		SpellMaskAllBlessings |
-		SpellMaskAllSeals |
-		SpellMaskAllJudgements |
+	// Everything cast without a cast time, for Benediction.
+	SpellMaskInstantSpells = SpellMaskAllSeals |
+		SpellMaskAllAuras |
+		SpellMaskJudgement |
+		SpellMaskHolyStrike |
 		SpellMaskConsecration |
-		SpellMaskDivineFavor |
 		SpellMaskExorcism |
-		SpellMaskHammerOfWrath |
-		SpellMaskHealingSpells |
-		SpellMaskHolyShield |
+		SpellMaskLayOnHands |
+		SpellMaskRighteousFury |
+		SpellMaskDivineFavor |
 		SpellMaskHolyShock |
-		SpellMaskHolyWrath |
-		SpellMaskRighteousFury
+		SpellMaskHolyShockHeal |
+		SpellMaskHolyShield |
+		SpellMaskSwiftJudgement |
+		SpellMaskTemplarsBulwark
 )

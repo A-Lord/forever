@@ -19,7 +19,7 @@ func TestRetribution(t *testing.T) {
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassPaladin,
-			Race:       proto.Race_RaceBloodElf,
+			Race:       proto.Race_RaceUndead,
 			OtherRaces: []proto.Race{proto.Race_RaceHuman},
 			SpecOptions: core.SpecOptionsCombo{Label: "Default", SpecOptions: &proto.Player_RetributionPaladin{
 				RetributionPaladin: &proto.RetributionPaladin{
@@ -52,13 +52,6 @@ func TestRetribution(t *testing.T) {
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:        22838,
-	FlaskId:      22854,
-	FoodId:       27658,
 	ConjuredId:   12662,
-	SuperSapper:  true,
 	GoblinSapper: true,
-	ScrollAgi:    true,
-	ScrollStr:    true,
-	ExplosiveId:  30217,
 }

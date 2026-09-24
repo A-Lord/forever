@@ -19,7 +19,7 @@ func (mage *Mage) registerArcaneBlastSpell() {
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellArcaneBlast,
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneBlastRank.Cost(),
+	// 		FlatCost: int32(arcaneBlastRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

@@ -24,8 +24,18 @@ func LoadConfig(baseDir, hash string) (map[string][]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	values, err := parseConfig(raw)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return values, nil
+}
+
+// parseConfig decodes the `key = value [value...]` lines of a build/CDN
+// config, which always opens with a `# ...` comment line.
+func parseConfig(raw []byte) (map[string][]string, error) {
 	if len(raw) == 0 || raw[0] != '#' {
-		return nil, fmt.Errorf("%s: config file is unreadable", path)
+		return nil, fmt.Errorf("config file is unreadable")
 	}
 	values := map[string][]string{}
 	for line := range strings.SplitSeq(string(raw), "\n") {

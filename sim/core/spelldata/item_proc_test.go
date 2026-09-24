@@ -10,7 +10,7 @@ import (
 
 // One refusal per shape, against the rows the resolver's own tests are built from.
 func TestItemProcUnsupported(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	for _, tc := range []struct {
 		spellID      int32
@@ -51,7 +51,7 @@ func TestItemProcUnsupported(t *testing.T) {
 // The sim refuses to register a proc whose row states no callback, and the audit has to see the same
 // rows that way or the two would drift apart silently.
 func TestItemProcUnsupportedCoversTheRegistrationsOwnRefusal(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	row := *Find(2000)
 	row.ProcFlags = [2]uint32{0: dbcenums.PROC_FLAG_KILL}

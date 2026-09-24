@@ -21,46 +21,46 @@ func resolverRows() []Spell {
 			CooldownMs: 6000, GCDMs: 1500, StartRecoveryCategory: 133, MaxRange: 5,
 			ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 0x20}},
 			Effects: []Effect{
-				{SpellID: 100, Type: dbcenums.E_WEAPON_PERCENT_DAMAGE, BasePoints: 100, Target: [2]uint8{6, 0}},
+				{SpellID: 100, Type: dbcenums.E_WEAPON_PERCENT_DAMAGE, BasePoints: 100, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			},
 			Powers: []Power{{Type: 1, Cost: 300}},
 		},
 		{
 			ID: 200, Name: "Category Only", School: 1, DefenseType: 2,
 			CategoryCooldownMs: 6000, GCDMs: 1500, StartRecoveryCategory: 133, Category: testCategory,
-			Effects: []Effect{{SpellID: 200, Type: dbcenums.E_SCHOOL_DAMAGE, Target: [2]uint8{6, 0}}},
+			Effects: []Effect{{SpellID: 200, Type: dbcenums.E_SCHOOL_DAMAGE, Target: [2]dbcenums.ImplicitTarget{6, 0}}},
 			Powers:  []Power{{Type: 1, Cost: 150}},
 		},
 		{
 			ID: 250, Name: "Physical Shout", School: 1, DefenseType: 1,
 			GCDMs: 1500, StartRecoveryCategory: 133,
-			Effects: []Effect{{SpellID: 250, Type: dbcenums.E_APPLY_AURA, Target: [2]uint8{20, 0}}},
+			Effects: []Effect{{SpellID: 250, Type: dbcenums.E_APPLY_AURA, Target: [2]dbcenums.ImplicitTarget{20, 0}}},
 			Powers:  []Power{{Type: 1, Cost: 100}},
 		},
 		{
 			ID: 300, Name: "Own And Category", School: 1, DefenseType: 2,
 			CooldownMs: 30000, CategoryCooldownMs: 6000, GCDMs: 1500, StartRecoveryCategory: 133,
 			Category: testCategory,
-			Effects:  []Effect{{SpellID: 300, Type: dbcenums.E_SCHOOL_DAMAGE, Target: [2]uint8{6, 0}}},
+			Effects:  []Effect{{SpellID: 300, Type: dbcenums.E_SCHOOL_DAMAGE, Target: [2]dbcenums.ImplicitTarget{6, 0}}},
 		},
 		{
 			ID: 350, Name: "Categoryless Cooldown", School: 1, DefenseType: 2,
 			CategoryCooldownMs: 8000, GCDMs: 1500, StartRecoveryCategory: 133,
-			Effects: []Effect{{SpellID: 350, Type: dbcenums.E_SCHOOL_DAMAGE, Target: [2]uint8{6, 0}}},
+			Effects: []Effect{{SpellID: 350, Type: dbcenums.E_SCHOOL_DAMAGE, Target: [2]dbcenums.ImplicitTarget{6, 0}}},
 		},
 		{
 			ID: 400, Name: "Mana Caster", Rank: "Rank 7", School: 16, DefenseType: 1, Speed: 24,
 			CastTimeMs: 2500, GCDMs: 1500, StartRecoveryCategory: 133, MinRange: 8, MaxRange: 30,
 			Effects: []Effect{
 				{SpellID: 400, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 500, SPCoef: 0.814,
-					Target: [2]uint8{6, 0}},
+					Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			},
 			Powers: []Power{{Type: 0, Cost: 425, CostPct: 19}},
 		},
 		{
 			ID: 500, Name: "Passive Aura", Rank: "Passive",
 			Attr:    [17]uint32{dbcenums.ATTR_INDEX_BASE: dbcenums.ATTR_PASSIVE},
-			Effects: []Effect{{SpellID: 500, Type: dbcenums.E_APPLY_AURA, Target: [2]uint8{1, 0}}},
+			Effects: []Effect{{SpellID: 500, Type: dbcenums.E_APPLY_AURA, Target: [2]dbcenums.ImplicitTarget{1, 0}}},
 		},
 		{
 			ID: 600, Name: "Energy Channel", School: 8, DefenseType: 1,
@@ -69,48 +69,41 @@ func resolverRows() []Spell {
 				dbcenums.ATTR_INDEX_EX_4: dbcenums.ATTR_EX_4_SUPPRESS_WEAPON_PROCS,
 			},
 			DurationMs: 6000, GCDMs: 1000, StartRecoveryCategory: 133,
-			Effects: []Effect{{SpellID: 600, Type: dbcenums.E_APPLY_AURA, Target: [2]uint8{6, 0}}},
+			Effects: []Effect{{SpellID: 600, Type: dbcenums.E_APPLY_AURA, Target: [2]dbcenums.ImplicitTarget{6, 0}}},
 			Powers:  []Power{{Type: 3, Cost: 60}},
 		},
 		{
 			ID: 700, Name: "Raid Heal", School: 2, DefenseType: 1,
 			Effects: []Effect{{SpellID: 700, Type: dbcenums.E_HEAL, BasePoints: 900, SPCoef: 0.6,
-				Target: [2]uint8{57, 0}}},
+				Target: [2]dbcenums.ImplicitTarget{57, 0}}},
 			Powers: []Power{{Type: 2, Cost: 40}},
 		},
 		{
 			ID: 750, Name: "Percent Cost Form", School: 1,
-			Effects: []Effect{{SpellID: 750, Type: dbcenums.E_APPLY_AURA, Target: [2]uint8{1, 0}}},
+			Effects: []Effect{{SpellID: 750, Type: dbcenums.E_APPLY_AURA, Target: [2]dbcenums.ImplicitTarget{1, 0}}},
 			Powers:  []Power{{Type: 0, CostPct: 4}},
 		},
 		{
 			ID: 800, Name: "Bleed", School: 1, DefenseType: 2, SpellLevel: 50, DurationMs: 21000,
-			Mechanic:              uint8(dbcenums.MECHANIC_BLEED),
+			Mechanic:              dbcenums.MECHANIC_BLEED,
 			GCDMs:                 1500,
 			StartRecoveryCategory: 133,
 			MaxStack:              5,
 			Effects: []Effect{
 				{SpellID: 800, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE,
-					BasePoints: 70, PPL: 1, SpellLevel: 50, PeriodMs: 3000, SPCoef: 0.1, Target: [2]uint8{6, 0}},
+					BasePoints: 70, PPL: 1, SpellLevel: 50, PeriodMs: 3000, SPCoef: 0.1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			},
 			Powers: []Power{{Type: 1, Cost: 100}},
 		},
 		{
 			ID: 900, Name: "Permanent Charge Aura", DurationMs: -1, ProcCharges: 3,
-			Effects: []Effect{{SpellID: 900, Type: dbcenums.E_APPLY_AURA, Target: [2]uint8{1, 0}}},
+			Effects: []Effect{{SpellID: 900, Type: dbcenums.E_APPLY_AURA, Target: [2]dbcenums.ImplicitTarget{1, 0}}},
 		},
 		{
 			ID: 1000, Name: "Tickless Aura", DurationMs: 10000,
-			Effects: []Effect{{SpellID: 1000, Type: dbcenums.E_APPLY_AURA, Target: [2]uint8{1, 0}}},
+			Effects: []Effect{{SpellID: 1000, Type: dbcenums.E_APPLY_AURA, Target: [2]dbcenums.ImplicitTarget{1, 0}}},
 		},
 	}
-}
-
-// The resolver rows for one test, with the package's own fixture put back afterwards.
-func withResolverRows(t *testing.T) {
-	t.Helper()
-	replaceForTest(resolverRows())
-	t.Cleanup(func() { replaceForTest(fixture()) })
 }
 
 // The timers are all a resolved config needs off the unit, and both are created on demand.
@@ -119,7 +112,7 @@ func testUnit() *core.Unit {
 }
 
 func TestSpellConfigFromARow(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	config := SpellConfig(testUnit(), Find(400))
 
 	if config.ActionID != (core.ActionID{SpellID: 400}) {
@@ -160,7 +153,7 @@ func TestSpellConfigFromARow(t *testing.T) {
 
 // A rank the client does not state answers 0, which is what the APL UI reads as "no ranks".
 func TestSpellConfigRank(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	if got := SpellConfig(testUnit(), Find(100)).Rank; got != 3 {
 		t.Errorf("Rank of a ranked spell = %d, want 3", got)
@@ -174,7 +167,7 @@ func TestSpellConfigRank(t *testing.T) {
 }
 
 func TestSpellConfigBleedMultipliers(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	config := SpellConfig(testUnit(), Find(800))
 	if config.DamageMultiplier != 1 || config.ThreatMultiplier != 1 {
@@ -187,7 +180,7 @@ func TestSpellConfigBleedMultipliers(t *testing.T) {
 }
 
 func TestSpellConfigRageCostAndRefund(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	rage := SpellConfig(testUnit(), Find(100)).RageCost
 	if rage.Cost != 30 {
@@ -203,7 +196,7 @@ func TestSpellConfigRageCostAndRefund(t *testing.T) {
 }
 
 func TestSpellConfigEnergyAndFocusCosts(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	energy := SpellConfig(testUnit(), Find(600)).EnergyCost
 	if energy.Cost != 60 || energy.Refund != 0.8 {
@@ -218,7 +211,7 @@ func TestSpellConfigEnergyAndFocusCosts(t *testing.T) {
 
 // A spell the row states no cost for leaves every cost option empty.
 func TestSpellConfigWithoutAPowerRow(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	config := SpellConfig(testUnit(), Find(300))
 
 	if config.ManaCost.FlatCost != 0 || config.RageCost.Cost != 0 || config.EnergyCost.Cost != 0 ||
@@ -228,7 +221,7 @@ func TestSpellConfigWithoutAPowerRow(t *testing.T) {
 }
 
 func TestSpellConfigOwnCooldown(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	unit := testUnit()
 	config := SpellConfig(unit, Find(100))
 
@@ -248,7 +241,7 @@ func TestSpellConfigOwnCooldown(t *testing.T) {
 
 // Two spells in one category run off the unit's timer for that category.
 func TestSpellConfigCategoryCooldownSharesTheTimer(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	unit := testUnit()
 	config := SpellConfig(unit, Find(200))
 
@@ -265,7 +258,7 @@ func TestSpellConfigCategoryCooldownSharesTheTimer(t *testing.T) {
 
 // A category cooldown with no category to share is the spell's own recovery time.
 func TestSpellConfigCategoryCooldownWithoutACategory(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	unit := testUnit()
 	config := SpellConfig(unit, Find(350))
 
@@ -282,7 +275,7 @@ func TestSpellConfigCategoryCooldownWithoutACategory(t *testing.T) {
 
 // A spell with both keeps its own cooldown and shares the category's.
 func TestSpellConfigBothCooldowns(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	unit := testUnit()
 	config := SpellConfig(unit, Find(300))
 
@@ -302,7 +295,7 @@ func TestSpellConfigBothCooldowns(t *testing.T) {
 
 // Only the client's global cooldown category spends the GCD.
 func TestSpellConfigGCDGate(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	if got := SpellConfig(testUnit(), Find(100)).Cast.DefaultCast.GCD; got != time.Millisecond*1500 {
 		t.Errorf("GCD of a row in category 133 = %v, want 1.5s", got)
@@ -315,7 +308,7 @@ func TestSpellConfigGCDGate(t *testing.T) {
 // A cast that spends a resource without a GCD or a cast time reads as a cast rather than as the empty
 // one core takes for a proc, whether the row states the cost flat or as a share of the bar.
 func TestSpellConfigMarksACostedOffGCDCastNonEmpty(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	if !SpellConfig(testUnit(), Find(700)).Cast.DefaultCast.NonEmpty {
 		t.Error("a focus cost with no GCD resolved to an empty cast")
@@ -331,7 +324,7 @@ func TestSpellConfigMarksACostedOffGCDCastNonEmpty(t *testing.T) {
 // Haste shortens a cast and its GCD by school, not by the hit table the row files the spell under:
 // the client's shouts are physical spells with the magic defense type.
 func TestSpellConfigIgnoreHasteFollowsTheSchool(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	if !SpellConfig(testUnit(), Find(250)).Cast.IgnoreHaste {
 		t.Error("a physical spell with the magic defense type did not ignore haste")
@@ -345,7 +338,7 @@ func TestSpellConfigIgnoreHasteFollowsTheSchool(t *testing.T) {
 }
 
 func TestSpellConfigFlagsFromTheRow(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 
 	passive := SpellConfig(testUnit(), Find(500)).Flags
 	if !passive.Matches(core.SpellFlagPassiveSpell) {
@@ -372,7 +365,7 @@ func TestSpellConfigFlagsFromTheRow(t *testing.T) {
 }
 
 func TestSpellConfigMeleeOption(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	config := SpellConfig(testUnit(), Find(100), Melee(core.ProcMaskMeleeMHSpecial))
 
 	if config.ProcMask != core.ProcMaskMeleeMHSpecial {
@@ -393,7 +386,7 @@ func TestSpellConfigMeleeOption(t *testing.T) {
 }
 
 func TestSpellConfigMagicOption(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	config := SpellConfig(testUnit(), Find(400), Magic(core.ProcMaskSpellDamage))
 
 	if config.ProcMask != core.ProcMaskSpellDamage {
@@ -413,7 +406,7 @@ func TestSpellConfigMagicOption(t *testing.T) {
 }
 
 func TestSpellConfigProcFlagsAndTag(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	config := SpellConfig(testUnit(), Find(100), Proc(), Flags(core.SpellFlagIgnoreResists), Tag(2))
 
 	if !config.Flags.Matches(core.SpellFlagPassiveSpell) ||
@@ -438,7 +431,7 @@ func TestSpellConfigProcFlagsAndTag(t *testing.T) {
 // Melee and Magic put a spell in the rotation, and Proc takes the sub-spell they resolve back out of
 // it: the flags the warrior's own proc sub-spells carry today.
 func TestSpellConfigProcLeavesTheRotation(t *testing.T) {
-	withResolverRows(t)
+	withRows(t, resolverRows())
 	config := SpellConfig(testUnit(), Find(100), Melee(core.ProcMaskMeleeMHSpecial), Proc())
 
 	want := core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete

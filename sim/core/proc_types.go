@@ -35,7 +35,8 @@ const (
 	// The tooltip names a critical strike as the trigger.
 	ProcHintCrit
 	// The tooltip's trigger clause names healing, or an unrestricted "a spell". Either is the
-	// evidence that a helpful-spell bit carries a real trigger rather than a leftover.
+	// evidence that a helpful-spell bit without the harmful one carries a real trigger rather than
+	// a leftover.
 	ProcHintHeals
 	// The tooltip restricts the trigger to healing spells.
 	ProcHintPureHeal
@@ -163,7 +164,13 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 		info.Callback |= CallbackOnPeriodicDamageDealt
 	}
 
-	if word&dbcenums.PROC_FLAG_DEAL_HELPFUL_SPELL != 0 && hint.Matches(ProcHintHeals) {
+	// The helpful-spell bit beside the harmful one is the client's "any spell", heals included,
+	// which the mask states on its own. A helpful bit without the harmful one needs the tooltip's
+	// evidence that it is a trigger at all.
+	helpfulSpells := word&dbcenums.PROC_FLAG_DEAL_HELPFUL_SPELL != 0 &&
+		(word&dbcenums.PROC_FLAG_DEAL_HARMFUL_SPELL != 0 || hint.Matches(ProcHintHeals))
+
+	if helpfulSpells {
 		info.RequireDamageDealt = false
 		info.ProcMask |= ProcMaskSpellHealing
 

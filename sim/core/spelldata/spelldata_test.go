@@ -77,9 +77,17 @@ func fixture() []Spell {
 }
 
 func TestMain(m *testing.M) {
-	replaceForTest(fixture())
+	handTriggers = map[int32][]int32{}
+	setSpells(fixture())
 	curves = map[int32][][]float64{}
 	os.Exit(m.Run())
+}
+
+// Rows for one test, with the package's own fixture put back afterwards.
+func withRows(t *testing.T, rows []Spell) {
+	t.Helper()
+	setSpells(rows)
+	t.Cleanup(func() { setSpells(fixture()) })
 }
 
 func TestFindMisses(t *testing.T) {
@@ -292,13 +300,13 @@ func TestTalentCurveLengthPanics(t *testing.T) {
 
 // Find binary searches, so the store refuses rows it could not search.
 func TestOutOfOrderIDsPanic(t *testing.T) {
-	defer replaceForTest(fixture())
+	defer setSpells(fixture())
 
 	requirePanic(t, "spelldata: spell ids are out of order at 1: 116 after 324", func() {
-		replaceForTest([]Spell{{ID: 324}, {ID: 116}})
+		setSpells([]Spell{{ID: 324}, {ID: 116}})
 	})
 	requirePanic(t, "spelldata: spell ids are out of order at 1: 116 after 116", func() {
-		replaceForTest([]Spell{{ID: 116}, {ID: 116}})
+		setSpells([]Spell{{ID: 116}, {ID: 116}})
 	})
 }
 

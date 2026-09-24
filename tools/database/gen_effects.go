@@ -638,7 +638,7 @@ func BuildItemDifficultyPostfix(itemSources map[int][]*proto.DropSource, itemId 
 }
 
 func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMapProc map[string]Group) EffectParseResult {
-	if itemEffect.GetProc() != nil && parsed.ScalingOptions[0].Ilvl > MIN_EFFECT_ILVL {
+	if itemEffect.GetProc() != nil && parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
 		// Effect was already manually implemented
 		if core.HasItemEffect(parsed.Id) {
 			return EffectParseResultSuccess
@@ -724,7 +724,7 @@ func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, inst
 	}
 
 	// check if the item has any kind of proc as we only support stat proc parsing right now
-	if effects, ok := instance.ItemEffectsByParentID[int(parsed.Id)]; ok && parsed.ScalingOptions[0].Ilvl > MIN_EFFECT_ILVL {
+	if effects, ok := instance.ItemEffectsByParentID[int(parsed.Id)]; ok && parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
 		for _, effect := range effects {
 			if SpellHasTriggerEffect(effect.SpellID, instance) {
 				return EffectParseResultUnsupported
@@ -752,7 +752,7 @@ func TryParseOnUseEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, ins
 		return EffectParseResultSuccess
 	}
 
-	if itemEffect.GetOnUse() != nil && parsed.ScalingOptions[0].Ilvl > MIN_EFFECT_ILVL {
+	if itemEffect.GetOnUse() != nil && parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
 		if itemEffect.GetOnUse().CooldownMs < 0 && itemEffect.GetOnUse().CategoryCooldownMs < 0 {
 			return EffectParseResultUnsupported
 		}
@@ -878,7 +878,7 @@ func routeEnchantProc(enchant *proto.UIEnchant, instance *dbc.DBC) *ProcRouting 
 }
 
 func ParseTooltipForMissingEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMap map[string]Group, groupMapName string) {
-	if parsed.ScalingOptions[0].Ilvl > MIN_EFFECT_ILVL {
+	if parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
 		// Effect was already manually implemented
 		if core.HasItemEffect(parsed.Id) {
 			return

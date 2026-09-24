@@ -2,8 +2,7 @@ package spelldata
 
 import "github.com/wowsims/forever/sim/core/dbcenums"
 
-// A word past the end of the client's 17 reads as unset rather than panicking, so an attribute the
-// store does not carry never takes a caller down.
+// Whether the spell sets bit in Attributes[word]. A word outside the client's 17 reads as unset.
 func (s *Spell) HasAttr(word int, bit uint32) bool {
 	if word < 0 || word >= len(s.Attr) {
 		return false
@@ -15,12 +14,20 @@ func (s *Spell) IsPassive() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_PASSIVE)
 }
 
+func (s *Spell) NotShapeshifted() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_NOT_SHAPESHIFTED)
+}
+
+func (s *Spell) CastableInCasterForm() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_EX_2, dbcenums.ATTR_EX_2_CASTABLE_IN_CASTER_FORM)
+}
+
 func (s *Spell) IsChanneled() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_IS_CHANNELLED|dbcenums.ATTR_EX_1_IS_SELF_CHANNELLED)
 }
 
 func (s *Spell) IsBleed() bool {
-	return dbcenums.Mechanic(s.Mechanic) == dbcenums.MECHANIC_BLEED
+	return s.Mechanic == dbcenums.MECHANIC_BLEED
 }
 
 func (s *Spell) RefundsOnMiss() bool {

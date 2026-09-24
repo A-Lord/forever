@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
-	"sync"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/tools/database/dbc"
@@ -17,10 +16,8 @@ import (
 const RankLevel = 60
 
 // Rage is stored in tenths: Heroic Strike costs 150, not 15. Mana, energy and focus are not.
-const powerTypeRage = 1
-
 func NormalizePowerCost(cost int32, powerType int32) int32 {
-	if powerType == powerTypeRage {
+	if dbcenums.PowerType(powerType).InTenths() {
 		return cost / 10
 	}
 	return cost
@@ -31,8 +28,6 @@ func IsWeaponDamageEffect(effect dbc.SpellEffectType) bool {
 		effect == dbcenums.E_NORMALIZED_WEAPON_DMG
 }
 
-// Devouring Plague ticks as a leech rather than as plain periodic damage, so "is this a DoT" cannot be
-// a single aura check.
 // The client states a flat threat amount on the abilities whose point is threat: Feint and Cower
 // shed it, Distracting Shot adds it. 22 ranked spells across four families carry one.
 func IsThreatEffect(effect dbc.SpellEffectType) bool {
@@ -48,8 +43,12 @@ type RankEffect struct {
 	Effect       dbc.SpellEffectType
 	Aura         dbc.EffectAuraType
 	BasePoints   int32
-	DieSides     int32
 	PointsPerLvl float64
+
+	// SpellEffect.Variance: the spread the server rolls the amount over, as a fraction of it. The
+	// client has no die sides any more; a spell that used to read 93 + 1d8 now states 97 with a
+	// Variance of 8/97, and rolls average * (1 -/+ Variance/2). Zero on an effect that does not roll.
+	Variance     float64
 	Coefficient  float64
 	APCoef       float64
 	MiscValue    int32
@@ -127,25 +126,8 @@ type RankSpell struct {
 	Referenced []RankEffect
 }
 
-// Absent from a database extracted before SpellCastTimes went into generator-settings.json. Keyed by
-// handle, not once per process: gen_db opens two databases and one must not answer for the other.
-var castTimesByDB sync.Map
-
-func castTimesAvailable(db *sql.DB) bool {
-	if cached, ok := castTimesByDB.Load(db); ok {
-		return cached.(bool)
-	}
-
-	var n int
-	err := db.QueryRow(
-		`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'SpellCastTimes'`).Scan(&n)
-	available := err == nil && n > 0
-	castTimesByDB.Store(db, available)
-	return available
-}
-
-func RequireSpellCastTimes(db *sql.DB) error {
-	if castTimesAvailable(db) {
+func RequireSpellCastTimes(helper *DBHelper) error {
+	if helper.tableExists("SpellCastTimes") {
 		return nil
 	}
 	return errors.New("the client database has no SpellCastTimes table, so every generated cast time would " +
@@ -172,16 +154,16 @@ func DeriveRankAmount(e RankEffect, spellLevel, maxLevel int32) (min float64, ma
 	}
 
 	base := float32(e.BasePoints) + float32(float32(delta)*float32(e.PointsPerLvl))
-	// The old EffectBasePoints column stored the value MINUS ONE, so the roll was
-	// basePoints+1 .. basePoints+dieSides and the +1 below was the true minimum. This
-	// client stores the real value in EffectBasePointsF, so the +1 is gone: Improved
-	// Battle Shout reads 5/10/15/20/25 and must generate as 5/10/15/20/25, not 6..26.
-	min = math.Floor(float64(base))
-	max = math.Ceil(float64(base)) + float64(e.DieSides)
-	if e.DieSides <= 0 {
-		max = min
+	// EffectBasePointsF is the amount itself: Improved Battle Shout reads 5/10/15/20/25 and generates
+	// as 5/10/15/20/25.
+	average := math.Floor(float64(base))
+
+	// The spread rides on the floored average, the way sim/core/spelldata's Effect.Min and Max
+	// read it, so the two paths answer the same roll for the same effect.
+	if e.Variance == 0 {
+		return average, average
 	}
-	return min, max
+	return average * (1 - e.Variance/2), average * (1 + e.Variance/2)
 }
 
 // Whether the spell carries the Passive attribute: never cast, only applied.
@@ -201,11 +183,7 @@ func spellHasAttribute(db *sql.DB, spellID int32, attrIndex int, flag uint32) (b
 func LoadRankSpell(db *sql.DB, spellID int32) (RankSpell, error) {
 	s := RankSpell{SpellID: spellID}
 	err := db.QueryRow(`
-		SELECT l.SpellLevel, l.MaxLevel,
-		       (SELECT ManaCost FROM SpellPower WHERE SpellID = l.SpellID ORDER BY OrderIndex LIMIT 1),
-		       COALESCE((SELECT PowerType FROM SpellPower WHERE SpellID = l.SpellID ORDER BY OrderIndex LIMIT 1), 0),
-		       COALESCE((SELECT PowerCostPct FROM SpellPower WHERE SpellID = l.SpellID ORDER BY OrderIndex LIMIT 1), 0)
-		FROM SpellLevels l WHERE l.SpellID = ?`, spellID).Scan(&s.SpellLevel, &s.MaxLevel, &s.ManaCost, &s.PowerType, &s.PowerCostPct)
+		SELECT SpellLevel, MaxLevel FROM SpellLevels WHERE SpellID = ?`, spellID).Scan(&s.SpellLevel, &s.MaxLevel)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		// Passive talents such as the warrior's Blood Craze have no SpellLevels row at all. No level
@@ -213,6 +191,14 @@ func LoadRankSpell(db *sql.DB, spellID int32) (RankSpell, error) {
 		s.SpellLevel = RankLevel
 	case err != nil:
 		return s, fmt.Errorf("levels for spell %d: %w", spellID, err)
+	}
+
+	// The cost stands on its own: Divine Favor has no SpellLevels row and still costs 4% of base
+	// mana, so it cannot ride on the level query.
+	if err := scanOptional(db, `
+		SELECT ManaCost, COALESCE(PowerType, 0), COALESCE(PowerCostPct, 0)
+		FROM SpellPower WHERE SpellID = ? ORDER BY OrderIndex LIMIT 1`, spellID, &s.ManaCost, &s.PowerType, &s.PowerCostPct); err != nil {
+		return s, fmt.Errorf("power for spell %d: %w", spellID, err)
 	}
 
 	// Duration and its period are what a DoT's NumberOfTicks and TickLength are derived from.
@@ -275,13 +261,11 @@ func LoadRankSpell(db *sql.DB, spellID int32) (RankSpell, error) {
 		return s, fmt.Errorf("defense type for spell %d: %w", spellID, err)
 	}
 
-	if castTimesAvailable(db) {
-		if err := scanOptional(db, `
-			SELECT COALESCE(ct.Base, 0)
-			FROM SpellMisc m JOIN SpellCastTimes ct ON ct.ID = m.CastingTimeIndex
-			WHERE m.SpellID = ?`, spellID, &s.CastTimeMs); err != nil {
-			return s, fmt.Errorf("cast time for spell %d: %w", spellID, err)
-		}
+	if err := scanOptional(db, `
+		SELECT COALESCE(ct.Base, 0)
+		FROM SpellMisc m JOIN SpellCastTimes ct ON ct.ID = m.CastingTimeIndex
+		WHERE m.SpellID = ?`, spellID, &s.CastTimeMs); err != nil {
+		return s, fmt.Errorf("cast time for spell %d: %w", spellID, err)
 	}
 
 	if s.Effects, err = RankEffectsOf(db, spellID); err != nil {
@@ -432,15 +416,12 @@ func scanOptional(db *sql.DB, query string, spellID int32, dest ...any) error {
 
 func RankEffectsOf(db *sql.DB, spellID int32) ([]RankEffect, error) {
 	rows, err := db.Query(`
-		-- EffectBasePoints became the REAL EffectBasePointsF in this client's layout, and
-		-- EffectDieSides is gone entirely (Variance carries the spread now). BasePoints stays
-		-- integral here because the dummy-target heuristic below reads base+dieSides as a
-		-- spell id.
+		-- EffectBasePointsF is a REAL, and Variance carries the spread. BasePoints stays integral
+		-- here because the dummy-target heuristic below reads the base as a spell id.
 		--
 		-- TODO: ~1.8% of SpellEffect rows have a fractional EffectBasePointsF and lose it to
-		-- this cast. TODO: with DieSides pinned to 0, DeriveRankAmount collapses min and max
-		-- onto the same value, so generated rank tables no longer carry a damage range.
-		SELECT EffectIndex, Effect, EffectAura, CAST(EffectBasePointsF AS INTEGER), 0,
+		-- this cast.
+		SELECT EffectIndex, Effect, EffectAura, CAST(EffectBasePointsF AS INTEGER), COALESCE(Variance, 0),
 		       EffectRealPointsPerLevel, EffectBonusCoefficient, BonusCoefficientFromAP, EffectAuraPeriod,
 		       COALESCE(EffectMiscValue_0, 0), COALESCE(EffectTriggerSpell, 0), COALESCE(EffectChainAmplitude, 0)
 		FROM SpellEffect WHERE SpellID = ? ORDER BY EffectIndex`, spellID)
@@ -457,7 +438,7 @@ func RankEffectsOf(db *sql.DB, spellID int32) ([]RankEffect, error) {
 	var out []RankEffect
 	for rows.Next() {
 		e := RankEffect{OwnerSpellID: spellID, SpellLevel: spellLevel, MaxLevel: maxLevel}
-		if err := rows.Scan(&e.Index, &e.Effect, &e.Aura, &e.BasePoints, &e.DieSides, &e.PointsPerLvl, &e.Coefficient, &e.APCoef, &e.AuraPeriod, &e.MiscValue, &e.TriggerSpell, &e.ChainAmplitude); err != nil {
+		if err := rows.Scan(&e.Index, &e.Effect, &e.Aura, &e.BasePoints, &e.Variance, &e.PointsPerLvl, &e.Coefficient, &e.APCoef, &e.AuraPeriod, &e.MiscValue, &e.TriggerSpell, &e.ChainAmplitude); err != nil {
 			return nil, err
 		}
 		// Stored as a float32, so 0.7 arrives as 0.699999988079071.
@@ -468,9 +449,9 @@ func RankEffectsOf(db *sql.DB, spellID int32) ([]RankEffect, error) {
 }
 
 // Judgement of Command's rows sit on the Retribution skill line with ClassMask 0, so the sibling
-// search by name finds nothing. The dummy names its target itself: base points plus the one die side
-// derive to the damage spell's ID - 20425 states 20466+1 = 20467 - and that spell shares the name and
-// the rank subtext, which is what is checked before its effects are taken. Following the pointer
+// search by name finds nothing. The dummy names its target itself: its base points derive to the
+// damage spell's ID - 20425 states 20467 - and that spell shares the name and the rank subtext, which
+// is what is checked before its effects are taken. Following the pointer
 // rather than widening the name search keeps Blizzard's tick spell out of its parent's Direct.
 func dummyTargetEffects(db *sql.DB, spell RankSpell) ([]RankEffect, error) {
 	if len(spell.Effects) != 1 || spell.Effects[0].Effect != dbcenums.E_DUMMY {

@@ -1,66 +1,72 @@
 package paladin
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
+import (
+	"github.com/wowsims/forever/sim/core"
+)
+
+var JudgementRankMap = spellData.Judgement
+
 // Judgement
 // https://www.wowhead.com/forever/spell=20271
 //
-// Unleashes the energy of a Seal to judge an enemy for 20 sec.
-// The effect depends on which Seal is active.
+// Unleash the energy of a Seal spell upon an enemy. Does not consume the Seal. Refer to individual
+// Seals for Judgement effect.
+//
+// The spell itself has no defense type and rolls nothing: the seal's own judgement spell is Melee in
+// SpellCategories and carries the hit roll along with the effect.
 func (paladin *Paladin) registerJudgement() {
-	panic("To be implemented")
+	row := JudgementRankMap.HighestRank()
 
-	// The TBC implementation, kept for the port:
-	// // Judgement functions as a dummy spell in TBC.
-	// // It rolls on the spell hit table and can only miss or hit.
-	// // Individual seals have their own effects that this spell triggers,
-	// // that are handled in the implementations of the seal auras.
-	// paladin.RegisterSpell(core.SpellConfig{
-	// 	ActionID:    core.ActionID{SpellID: 20271},
-	// 	SpellSchool: core.SpellSchoolHoly,
-	// 	ProcMask:    core.ProcMaskEmpty,
-	// 	Flags:       core.SpellFlagMeleeMetrics | core.SpellFlagAPL | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
-	//
-	// 	ClassSpellMask: SpellMaskJudgement,
-	//
-	// 	DamageMultiplier: 1,
-	// 	ThreatMultiplier: 1,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			NonEmpty: true,
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    paladin.NewTimer(),
-	// 			Duration: time.Second * 10,
-	// 		},
-	// 	},
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		BaseCostPercent: 5,
-	// 	},
-	//
-	// 	ExtraCastCondition: func(_ *core.Simulation, _ *core.Unit) bool {
-	// 		return paladin.CurrentSeal.IsActive() || paladin.PreviousSeal.IsActive()
-	// 	},
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		// The oldest seal is consumed, if active. This only matters for if the paladin judges during a twist.
-	// 		if paladin.PreviousSeal.IsActive() {
-	// 			paladin.PreviousJudgement.Cast(sim, target)
-	// 			paladin.PreviousSeal.Deactivate(sim)
-	// 		} else {
-	// 			paladin.CurrentJudgement.Cast(sim, target)
-	// 			paladin.CurrentSeal.Deactivate(sim)
-	// 		}
-	//
-	// 		pa := sim.GetConsumedPendingActionFromPool()
-	// 		pa.NextActionAt = sim.CurrentTime + spell.TimeToReady(sim) + core.SpellBatchWindow
-	//
-	// 		pa.OnAction = func(sim *core.Simulation) {
-	// 			paladin.ReactToEvent(sim, false, false)
-	// 		}
-	//
-	// 		sim.AddPendingAction(pa)
-	// 	},
-	// })
+	paladin.Judgement = paladin.RegisterSpell(core.SpellConfig{
+		ActionID:       core.ActionID{SpellID: row.SpellID},
+		SpellSchool:    row.SpellSchool,
+		DefenseType:    row.DefenseType,
+		ProcMask:       core.ProcMaskEmpty,
+		Flags:          core.SpellFlagAPL | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
+		ClassSpellMask: SpellMaskJudgement,
+		MaxRange:       row.MaxRange,
+
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+
+		ManaCost: manaCost(row),
+		Cast: core.CastConfig{
+			// Off the global cooldown, as the client states.
+			DefaultCast: core.Cast{
+				NonEmpty: true,
+			},
+			CD: core.Cooldown{
+				Timer:    paladin.sharedTimer(&paladin.judgementTimer),
+				Duration: row.Cooldown,
+			},
+		},
+
+		ExtraCastCondition: func(_ *core.Simulation, _ *core.Unit) bool {
+			return paladin.activeSeal() != nil
+		},
+
+		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			paladin.activeSeal().judgement.Cast(sim, target)
+
+			// Let the rotation react when the cooldown ends, since nothing on the GCD marks it.
+			pa := sim.GetConsumedPendingActionFromPool()
+			pa.NextActionAt = sim.CurrentTime + spell.TimeToReady(sim) + core.SpellBatchWindow
+			pa.OnAction = func(sim *core.Simulation) {
+				paladin.ReactToEvent(sim, false, false)
+			}
+			sim.AddPendingAction(pa)
+		},
+	})
+
+	// Every melee strike that lands refreshes the judgement debuffs on its target.
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Judgement Refresh" + paladin.Label,
+		Callback:           core.CallbackOnSpellHitDealt,
+		ProcMask:           core.ProcMaskMelee,
+		Outcome:            core.OutcomeLanded,
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			paladin.refreshJudgements(sim, result.Target)
+		},
+	})
 }

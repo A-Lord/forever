@@ -21,7 +21,7 @@ func (rogue *Rogue) registerAmbushSpell() {
 	// 	MaxRange:       core.MaxMeleeRange,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   ambushRank.Cost(),
+	// 		Cost:   int32(ambushRank.Cost()),
 	// 		Refund: 0,
 	// 	},
 	// 	Cast: core.CastConfig{

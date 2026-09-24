@@ -20,9 +20,15 @@ type generatedSpellData struct {
 	AbolishPoison             spelldata.Ladder
 	AbolishPoisonTriggered    spelldata.Ladder
 	AbolishPoisonEffect       spelldata.Ladder
+	AquaticForm               spelldata.Ladder
+	AquaticFormTriggered      spelldata.Ladder
 	Barkskin                  spelldata.Ladder
 	Bash                      spelldata.Ladder
+	BearForm                  spelldata.Ladder
+	BearFormTriggered         spelldata.Ladder
 	BrutalImpact              spelldata.Ladder
+	CatForm                   spelldata.Ladder
+	CatFormTriggered          spelldata.Ladder
 	ChallengingRoar           spelldata.Ladder
 	Claw                      spelldata.Ladder
 	Cower                     spelldata.Ladder
@@ -30,6 +36,8 @@ type generatedSpellData struct {
 	Dash                      spelldata.Ladder
 	DeeperWilds               spelldata.Ladder
 	DemoralizingRoar          spelldata.Ladder
+	DireBearForm              spelldata.Ladder
+	DireBearFormTriggered     spelldata.Ladder
 	Eclipse                   spelldata.Ladder
 	EclipseTriggered          spelldata.Ladder
 	Enrage                    spelldata.Ladder
@@ -81,6 +89,8 @@ type generatedSpellData struct {
 	Moonfire                  spelldata.Ladder
 	Moonfury                  spelldata.Ladder
 	Moonglow                  spelldata.Ladder
+	MoonkinForm               spelldata.Ladder
+	MoonkinFormTriggered      spelldata.Ladder
 	NaturalReaction           spelldata.Ladder
 	NaturalReactionTriggered  spelldata.Ladder
 	NaturalShapeshifter       spelldata.Ladder
@@ -133,6 +143,8 @@ type generatedSpellData struct {
 	TrackHumanoids            spelldata.Ladder
 	TranquilSpirit            spelldata.Ladder
 	Tranquility               spelldata.Ladder
+	TravelForm                spelldata.Ladder
+	TravelFormTriggered       spelldata.Ladder
 	Vengeance                 spelldata.Ladder
 	WildGrowth                spelldata.Ladder
 	Wrath                     spelldata.Ladder
@@ -142,9 +154,15 @@ var spellData = generatedSpellData{
 	AbolishPoison:             spelldata.Ranked(2893),
 	AbolishPoisonTriggered:    spelldata.Ranked(3137),
 	AbolishPoisonEffect:       spelldata.Ranked(3137),
+	AquaticForm:               spelldata.Ranked(1066),
+	AquaticFormTriggered:      spelldata.Ranked(5421),
 	Barkskin:                  spelldata.Ranked(22812),
 	Bash:                      spelldata.Ranked(5211, 6798, 8983),
+	BearForm:                  spelldata.Ranked(5487),
+	BearFormTriggered:         spelldata.Ranked(1178),
 	BrutalImpact:              spelldata.Talent(16940, 2),
+	CatForm:                   spelldata.Ranked(768),
+	CatFormTriggered:          spelldata.Ranked(3025),
 	ChallengingRoar:           spelldata.Ranked(5209),
 	Claw:                      spelldata.Ranked(1082, 3029, 5201, 9849, 9850),
 	Cower:                     spelldata.Ranked(8998, 9000, 9892),
@@ -152,6 +170,8 @@ var spellData = generatedSpellData{
 	Dash:                      spelldata.Ranked(1850, 9821),
 	DeeperWilds:               spelldata.Ranked(436956),
 	DemoralizingRoar:          spelldata.Ranked(99, 1735, 9490, 9747, 9898),
+	DireBearForm:              spelldata.Ranked(9634),
+	DireBearFormTriggered:     spelldata.Ranked(9635),
 	Eclipse:                   spelldata.Talent(408248, 3),
 	EclipseTriggered:          spelldata.Ranked(408255),
 	Enrage:                    spelldata.Ranked(5229),
@@ -203,6 +223,8 @@ var spellData = generatedSpellData{
 	Moonfire:                  spelldata.Ranked(8921, 8924, 8925, 8926, 8927, 8928, 8929, 9833, 9834, 9835),
 	Moonfury:                  spelldata.Talent(16896, 5),
 	Moonglow:                  spelldata.Talent(16845, 3),
+	MoonkinForm:               spelldata.Ranked(24858),
+	MoonkinFormTriggered:      spelldata.Ranked(24905, 24907),
 	NaturalReaction:           spelldata.Talent(417051, 5),
 	NaturalReactionTriggered:  spelldata.Ranked(417053),
 	NaturalShapeshifter:       spelldata.Talent(16833, 3),
@@ -255,6 +277,8 @@ var spellData = generatedSpellData{
 	TrackHumanoids:            spelldata.Ranked(5225),
 	TranquilSpirit:            spelldata.Talent(24968, 5),
 	Tranquility:               spelldata.Ranked(740, 8918, 9862, 9863),
+	TravelForm:                spelldata.Ranked(783),
+	TravelFormTriggered:       spelldata.Ranked(5419),
 	Vengeance:                 spelldata.Talent(16909, 5),
 	WildGrowth:                spelldata.Ranked(408120, 1238214, 1238215),
 	Wrath:                     spelldata.Ranked(5176, 5177, 5178, 5179, 5180, 6780, 8905, 9912),

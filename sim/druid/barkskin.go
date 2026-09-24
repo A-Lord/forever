@@ -21,10 +21,11 @@ func (druid *Druid) registerBarkskin() {
 	// 	// pushback?
 	// })
 	//
-	// druid.Barkskin = druid.RegisterSpell(Any, core.SpellConfig{
-	// 	ActionID:    actionId,
-	// 	DefenseType: core.DefenseTypeMagic,
-	// 	Flags:       core.SpellFlagAPL,
+	// druid.Barkskin = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        actionId,
+	// 	CastRequirement: spellData.Barkskin.Highest().CastRequirement(),
+	// 	DefenseType:     core.DefenseTypeMagic,
+	// 	Flags:           core.SpellFlagAPL,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{

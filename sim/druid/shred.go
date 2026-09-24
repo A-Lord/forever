@@ -7,16 +7,17 @@ func (druid *Druid) registerShredSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.Shred = druid.RegisterSpell(Cat, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: shredRank.ID},
-	// 	SpellSchool:    shredRank.SpellSchool(),
-	// 	DefenseType:    shredRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellShred,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.Shred = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: shredRank.ID},
+	// 	CastRequirement: shredRank.CastRequirement(),
+	// 	SpellSchool:     shredRank.SpellSchool(),
+	// 	DefenseType:     shredRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellShred,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   shredRank.Cost(),
+	// 		Cost:   int32(shredRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{

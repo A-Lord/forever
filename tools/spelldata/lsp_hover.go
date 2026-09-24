@@ -4,24 +4,22 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/token"
+	"maps"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"unicode/utf16"
 	"unicode/utf8"
-
-	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Each pattern captures the id in group 1.
 var spellIDPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`\bMustFind\(\s*(\d+)\s*\)`),
-	regexp.MustCompile(`\bFind\(\s*(\d+)\s*\)`),
+	regexp.MustCompile(`\b(?:Must)?Find\(\s*(\d+)\s*\)`),
 	regexp.MustCompile(`\.ByID\(\s*(\d+)\s*\)`),
 	regexp.MustCompile(`\bSpellID:\s*(\d+)`),
 	regexp.MustCompile(`"spellId":\s*(\d+)`),
@@ -29,263 +27,261 @@ var spellIDPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`\bspellId:\s*(\d+)`),
 }
 
-var familyPattern = regexp.MustCompile(`\bspellData\.([A-Za-z_]\w*)`)
-
-var identPattern = regexp.MustCompile(`[A-Za-z_]\w*`)
-
-// `name = value`, `var name = value` or `name := value`; a value starting with `=` is the right half of
-// a comparison.
-var declarationPattern = regexp.MustCompile(`^(\s*(?:var\s+)?)([A-Za-z_]\w*)(\s*(?::=|=)\s*)(\S.*)$`)
-
-var goKeywords = map[string]bool{}
-
-func init() {
-	for _, keyword := range strings.Fields("break case chan const continue default defer else fallthrough " +
-		"for func go goto if import interface map package range return select struct switch type var") {
-		goKeywords[keyword] = true
-	}
-}
-
-var picks = map[string]bool{"Highest": true, "Rank": true, "ByID": true}
-
 const maxSubstitutions = 4
 
-type chainSegment struct {
-	name  string
-	text  string
-	call  bool
-	start int
-	end   int
-}
-
-type chain struct {
-	head      string
-	headStart int
-	headEnd   int
-	segments  []chainSegment
-}
-
-func (c *chain) text(upTo int) string {
-	var out strings.Builder
-	out.WriteString(c.head)
-	for _, seg := range c.segments[:upTo] {
-		out.WriteString("." + seg.text)
-	}
-	return out.String()
-}
-
-func (c *chain) isPick() bool {
-	return len(c.segments) > 0 && c.segments[0].call && picks[c.segments[0].name]
-}
-
-func parseChainAt(text string, offset int) (*chain, error) {
-	node, err := parser.ParseExpr(text)
-	if err != nil {
-		return nil, fmt.Errorf("%q is not a chain of accessor calls", text)
-	}
-	c := &chain{}
-	if err := walkChain(node, text, offset, c); err != nil {
-		return nil, err
-	}
-	return c, nil
-}
-
-func walkChain(node ast.Expr, text string, offset int, c *chain) error {
-	at := func(pos int) int { return offset + pos - 1 }
-
-	switch n := node.(type) {
-	case *ast.Ident:
-		c.head, c.headStart, c.headEnd = n.Name, at(int(n.Pos())), at(int(n.End()))
-		return nil
-
-	case *ast.SelectorExpr:
-		if err := walkChain(n.X, text, offset, c); err != nil {
-			return err
-		}
-		if c.head == "spellData" && len(c.segments) == 0 {
-			c.head, c.headEnd = "spellData."+n.Sel.Name, at(int(n.End()))
-			return nil
-		}
-		c.segments = append(c.segments, chainSegment{
-			name: n.Sel.Name, text: n.Sel.Name, start: at(int(n.X.End())), end: at(int(n.End())),
-		})
-		return nil
-
-	case *ast.CallExpr:
-		sel, ok := n.Fun.(*ast.SelectorExpr)
-		if !ok {
-			return fmt.Errorf("%s is not an accessor call", nodeText(n.Fun))
-		}
-		if err := walkChain(sel.X, text, offset, c); err != nil {
-			return err
-		}
-		if _, err := readArgs(n.Args); err != nil {
-			return err
-		}
-		c.segments = append(c.segments, chainSegment{
-			name: sel.Sel.Name, text: text[sel.Sel.Pos()-1 : n.End()-1], call: true,
-			start: at(int(sel.X.End())), end: at(int(n.End())),
-		})
-		return nil
-	}
-	return fmt.Errorf("%s is not a chain of accessor calls", nodeText(node))
-}
-
+// A name a Go file binds to a chain, with `var`, `=` or `:=`. A name bound inside a function is seen
+// from its binding to the end of that function's body, as offsets in its file; to is 0 on a name
+// bound at package level, which every file of the package sees.
 type declaration struct {
-	name      string
-	nameStart int
-	nameEnd   int
-	chain     *chain
-	file      string
-	line      int
+	name     string
+	chain    *chain
+	file     string
+	line     int
+	from, to int
 }
 
-func declarationOnLine(lineText string) (*declaration, error) {
-	if strings.HasPrefix(strings.TrimSpace(lineText), "//") {
-		return nil, nil
-	}
-	code, _, _ := strings.Cut(lineText, "//")
-	match := declarationPattern.FindStringSubmatchIndex(code)
-	if match == nil || strings.HasPrefix(code[match[8]:], "=") {
-		return nil, nil
-	}
-	if goKeywords[code[match[4]:match[5]]] {
-		return nil, nil
-	}
-
-	d := &declaration{name: code[match[4]:match[5]], nameStart: match[4], nameEnd: match[5]}
-	c, err := parseChainAt(strings.TrimRight(code[match[8]:match[9]], " \t"), match[8])
-	if err != nil {
-		return d, err
-	}
-	d.chain = c
-	return d, nil
+// A Go file as the hover reads it. The AST is partial where the text does not parse, and nil where it
+// states no package clause.
+type parsedFile struct {
+	path  string
+	text  string
+	file  *ast.File
+	tok   *token.File
+	decls []declaration
+	// The names the file binds to a value that is not a chain, with why.
+	unread map[*ast.Ident]error
 }
 
-func declarationsIn(text, file string) []declaration {
-	var out []declaration
-	for i, line := range strings.Split(text, "\n") {
-		if d, err := declarationOnLine(line); err == nil && d != nil {
-			d.file, d.line = file, i+1
-			out = append(out, *d)
+func parseGo(path, text string) *parsedFile {
+	fset := token.NewFileSet()
+	file, _ := parser.ParseFile(fset, path, text, parser.SkipObjectResolution)
+	f := &parsedFile{path: path, text: text, unread: map[*ast.Ident]error{}}
+	// ParseFile answers an empty file, not nil, where the text states no package clause.
+	if file == nil || !file.Package.IsValid() {
+		return f
+	}
+	f.file, f.tok = file, fset.File(file.Pos())
+
+	bind := func(name ast.Expr, value ast.Expr) {
+		ident, ok := name.(*ast.Ident)
+		if !ok || ident.Name == "_" {
+			return
+		}
+		c, err := walkChain(value, f.tok.Offset)
+		if err != nil {
+			f.unread[ident] = err
+			return
+		}
+		d := declaration{name: ident.Name, chain: c, file: path, line: f.tok.Line(ident.Pos())}
+		if body := enclosingBody(f.enclosing(ident.Pos())); body != nil {
+			d.from, d.to = f.tok.Offset(ident.Pos()), f.tok.Offset(body.End())
+		}
+		f.decls = append(f.decls, d)
+	}
+	ast.Inspect(file, func(node ast.Node) bool {
+		switch n := node.(type) {
+		case *ast.ValueSpec:
+			if len(n.Names) == len(n.Values) {
+				for i, name := range n.Names {
+					bind(name, n.Values[i])
+				}
+			}
+		case *ast.AssignStmt:
+			if (n.Tok == token.DEFINE || n.Tok == token.ASSIGN) && len(n.Lhs) == len(n.Rhs) {
+				for i, name := range n.Lhs {
+					bind(name, n.Rhs[i])
+				}
+			}
+		}
+		return true
+	})
+	return f
+}
+
+func enclosingBody(nodes []ast.Node) *ast.BlockStmt {
+	for i := len(nodes) - 1; i >= 0; i-- {
+		switch fn := nodes[i].(type) {
+		case *ast.FuncDecl:
+			return fn.Body
+		case *ast.FuncLit:
+			return fn.Body
 		}
 	}
+	return nil
+}
+
+// The nodes that hold pos, outermost first. An end counts as inside, so the cursor just past a name
+// is on it.
+func (f *parsedFile) enclosing(pos token.Pos) []ast.Node {
+	var out []ast.Node
+	ast.Inspect(f.file, func(node ast.Node) bool {
+		if node == nil || pos < node.Pos() || pos > node.End() {
+			return false
+		}
+		out = append(out, node)
+		return true
+	})
 	return out
 }
 
 type workspace struct {
-	mu      sync.Mutex
 	buffers map[string]string
-	folders map[string]map[string][]declaration
+	// The declarations of each Go file read, by folder.
+	folders map[string]map[string]cachedFile
+	root    string
+	current *parsedFile
+}
+
+// A file's declarations and what they were read at: the editor's text for a file it holds, else the
+// modification time on disk, which is how a change the editor does not report - a checkout, a
+// generator, another session - reaches the cache.
+type cachedFile struct {
+	key   any
+	decls []declaration
 }
 
 func newWorkspace() *workspace {
-	return &workspace{buffers: map[string]string{}, folders: map[string]map[string][]declaration{}}
+	root, _ := moduleRoot()
+	return &workspace{buffers: map[string]string{}, folders: map[string]map[string]cachedFile{}, root: root}
 }
 
-var defaultWorkspace = newWorkspace()
-
-// The hover for a position in a document, as markdown, and the lines saying how it was reached. The
-// line and column are 0-based and the column counts UTF-16 code units, as LSP positions do.
-func Hover(text string, line, col int, uri string) (string, []string, bool) {
-	return defaultWorkspace.hover(text, line, col, uri)
-}
-
-func (w *workspace) setBuffer(uri, text string) {
+// The text an editor holds for a file, or with open false, the file as it stands on disk again.
+func (w *workspace) update(uri, text string, open bool) {
 	path := uriPath(uri)
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.buffers[path] = text
-	delete(w.folders, filepath.Dir(path))
+	if open {
+		w.buffers[path] = text
+	} else {
+		delete(w.buffers, path)
+	}
 }
 
-func (w *workspace) dropBuffer(uri string) {
-	path := uriPath(uri)
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	delete(w.buffers, path)
-	delete(w.folders, filepath.Dir(path))
+// A file as the editor holds it, else as it stands on disk.
+func (w *workspace) text(path string) (string, error) {
+	if text, open := w.buffers[path]; open {
+		return text, nil
+	}
+	data, err := os.ReadFile(path)
+	return string(data), err
 }
 
-func (w *workspace) invalidate(uri string) {
-	path := uriPath(uri)
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	delete(w.folders, filepath.Dir(path))
+// The file being hovered, parsed once per text.
+func (w *workspace) parse(path, text string) *parsedFile {
+	if w.current == nil || w.current.path != path || w.current.text != text {
+		w.current = parseGo(path, text)
+	}
+	return w.current
 }
 
-func (w *workspace) buffer(uri string) (string, bool) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	text, ok := w.buffers[uriPath(uri)]
-	return text, ok
-}
-
-func (w *workspace) declarations(folder, current, text string, trace *tracer) map[string]declaration {
-	files, hit := w.folders[folder]
-	if hit {
+// Every name the package folder binds at package level, and the names the current file binds in the
+// function around the offset at, the last binding before at winning. With no current file there is
+// no position to scope by, and every binding of the folder is read.
+func (w *workspace) declarations(folder string, current *parsedFile, at int, trace *tracer) map[string]declaration {
+	files, cached := w.folders[folder]
+	if !cached {
+		files = map[string]cachedFile{}
+		w.folders[folder] = files
+	}
+	read := w.refresh(folder, files, trace)
+	if cached && read == 0 {
 		trace.add("declarations %s: cache hit", trace.rel(folder))
 	} else {
-		files = map[string][]declaration{}
-		entries, err := os.ReadDir(folder)
-		if err != nil {
-			trace.add("declarations %s: %v", trace.rel(folder), err)
-		}
-		for _, entry := range entries {
-			if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
-				continue
-			}
-			path := filepath.Join(folder, entry.Name())
-			source, open := w.buffers[path]
-			if !open {
-				data, err := os.ReadFile(path)
-				if err != nil {
-					continue
-				}
-				source = string(data)
-			}
-			files[path] = declarationsIn(source, path)
-		}
-		for path, source := range w.buffers {
-			if _, read := files[path]; !read && filepath.Dir(path) == folder && strings.HasSuffix(path, ".go") {
-				files[path] = declarationsIn(source, path)
-			}
-		}
-		w.folders[folder] = files
-		trace.add("declarations %s: cache miss, read %d files", trace.rel(folder), len(files))
+		trace.add("declarations %s: cache miss, read %d files", trace.rel(folder), read)
 	}
 
-	paths := make([]string, 0, len(files)+1)
-	for path := range files {
-		paths = append(paths, path)
+	own := current.pathIn(folder)
+	paths := slices.Collect(maps.Keys(files))
+	if _, listed := files[own]; own != "" && !listed {
+		paths = append(paths, own)
 	}
-	if _, listed := files[current]; !listed {
-		paths = append(paths, current)
-	}
-	sort.Strings(paths)
+	slices.Sort(paths)
 
 	out := map[string]declaration{}
 	for _, path := range paths {
-		decls := files[path]
-		if path == current {
-			decls = declarationsIn(text, path)
+		decls := files[path].decls
+		if path == own {
+			decls = current.decls
 		}
 		for _, d := range decls {
-			out[d.name] = d
+			if d.to == 0 || current == nil {
+				out[d.name] = d
+			}
+		}
+	}
+	if own != "" {
+		for _, d := range current.decls {
+			if d.to != 0 && d.from <= at && at <= d.to {
+				out[d.name] = d
+			}
 		}
 	}
 	return out
 }
 
+// Reads again each Go file of the folder whose text or modification time moved since it was read, and
+// drops the ones that are gone. Answers how many files it read or dropped.
+func (w *workspace) refresh(folder string, files map[string]cachedFile, trace *tracer) int {
+	keys := map[string]any{}
+	for path, text := range w.buffers {
+		if filepath.Dir(path) == folder && strings.HasSuffix(path, ".go") {
+			keys[path] = text
+		}
+	}
+	entries, err := os.ReadDir(folder)
+	if err != nil {
+		trace.add("declarations %s: %v", trace.rel(folder), err)
+	}
+	for _, entry := range entries {
+		path := filepath.Join(folder, entry.Name())
+		if _, open := keys[path]; open || entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
+			continue
+		}
+		if info, err := entry.Info(); err == nil {
+			keys[path] = info.ModTime().UnixNano()
+		}
+	}
+
+	read := 0
+	for path := range files {
+		if _, ok := keys[path]; !ok {
+			delete(files, path)
+			read++
+		}
+	}
+	for path, key := range keys {
+		if file, ok := files[path]; ok && file.key == key {
+			continue
+		}
+		read++
+		text, err := w.text(path)
+		if err != nil {
+			delete(files, path)
+			continue
+		}
+		file := w.current
+		if file == nil || file.path != path || file.text != text {
+			file = parseGo(path, text)
+		}
+		files[path] = cachedFile{key: key, decls: file.decls}
+	}
+	return read
+}
+
+func (f *parsedFile) pathIn(folder string) string {
+	if f == nil || filepath.Dir(f.path) != folder {
+		return ""
+	}
+	return f.path
+}
+
+// What a chain hover evaluates, and the name it answers for where the cursor was on a bound name
+// rather than on a part of a chain.
 type chainHover struct {
-	label   string
-	expr    string
-	segment bool
+	chain *chain
+	name  string
 }
 
 type tracer struct {
 	root  string
-	here  string
 	lines []string
 }
 
@@ -307,29 +303,25 @@ func (t *tracer) fail(format string, args ...any) (string, []string, bool) {
 	return "", t.lines, false
 }
 
+// The hover for a position in a document, as markdown, and the lines saying how it was reached. The
+// line and column are 0-based and the column counts UTF-16 code units, as LSP positions do.
 func (w *workspace) hover(text string, line, col int, uri string) (string, []string, bool) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
 	path := uriPath(uri)
-	trace := &tracer{}
-	trace.root, _ = moduleRoot()
+	trace := &tracer{root: w.root}
 
-	lines := strings.Split(text, "\n")
-	if line < 0 || line >= len(lines) {
+	lineText, start, ok := lineAt(text, line)
+	if !ok {
 		return trace.fail("%s:%d is past the end of the document", trace.rel(path), line+1)
 	}
-	lineText := strings.TrimSuffix(lines[line], "\r")
 	column := byteOffsetOfUTF16Column(lineText, col)
-	trace.here = fmt.Sprintf("%s:%d", trace.rel(path), line+1)
-	trace.add("%s:%d", trace.here, col+1)
+	trace.add("%s:%d:%d", trace.rel(path), line+1, col+1)
 
-	if match := matchCovering(spellIDPatterns, lineText, column); match != nil {
+	if match := matchCovering(lineText, column, spellIDPatterns...); match != nil {
 		id, _ := strconv.ParseInt(lineText[match[2]:match[3]], 10, 32)
 		trace.add("id %d", id)
-		s := spelldata.Find(int32(id))
-		if s == spelldata.Nil {
-			return trace.fail("spell %d is not in the store", id)
+		s, err := findSpell(int32(id))
+		if err != nil {
+			return trace.fail("%v", err)
 		}
 		trace.add("✓ %s", title(s))
 		return idMarkdown(s), trace.lines, true
@@ -338,20 +330,18 @@ func (w *workspace) hover(text string, line, col int, uri string) (string, []str
 	if filepath.Ext(path) != ".go" {
 		return trace.fail("no spell id under the cursor")
 	}
+	f := w.parse(path, text)
+	if f.file == nil {
+		return trace.fail("no spell id, family or name under the cursor")
+	}
 	folder := filepath.Dir(path)
 	pkg := filepath.Base(folder)
+	at := start + column
+	nodes := f.enclosing(f.tok.Pos(at))
 
-	if match := matchCovering([]*regexp.Regexp{spellConfigPattern}, lineText, column); match != nil {
+	if call := spellConfigAt(nodes, f.tok.Pos(at)); call != nil {
 		trace.add("SpellConfig")
-		start := match[0]
-		for _, previous := range lines[:line] {
-			start += len(previous) + 1
-		}
-		call, err := callText(text, start)
-		if err != nil {
-			return trace.fail("%v", err)
-		}
-		result, err := evalSpellConfig(call, w.declarations(folder, path, text, trace), pkg, trace)
+		result, err := evalSpellConfig(call, w.declarations(folder, f, at, trace), pkg, trace)
 		if err != nil {
 			return trace.fail("%v", err)
 		}
@@ -359,25 +349,27 @@ func (w *workspace) hover(text string, line, col int, uri string) (string, []str
 		return configMarkdown(result), trace.lines, true
 	}
 
-	if match := matchCovering([]*regexp.Regexp{familyPattern}, lineText, column); match != nil {
-		field := lineText[match[2]:match[3]]
+	if field := familyAt(nodes); field != "" {
 		trace.add("family %s/%s", pkg, field)
 		family, err := findFamily(ladderFamilies(), field, pkg)
 		if err != nil {
 			return trace.fail("%v", err)
 		}
-		trace.add("✓ %s, %d ranks", family.key(), family.rankCount())
+		if family.err != nil {
+			return trace.fail("%v", family.err)
+		}
+		trace.add("✓ %s, %d ranks", family.key(), family.ladder.Len())
 		return familyMarkdown(family), trace.lines, true
 	}
 
-	declarations := w.declarations(folder, path, text, trace)
-	hover, ok := chainHoverAt(lineText, column, declarations, trace.rel(folder), trace)
+	declarations := w.declarations(folder, f, at, trace)
+	hover, ok := chainHoverAt(f, nodes, at, declarations, trace.rel(folder), trace)
 	if !ok {
 		return "", trace.lines, false
 	}
 
-	trace.add("expr %s", hover.expr)
-	result, err := evalExpr(ladderFamilies(), hover.expr, pkg)
+	trace.add("expr %s", hover.chain.text(false))
+	result, err := evalExpr(ladderFamilies(), hover.chain, pkg)
 	if err != nil {
 		return trace.fail("%v", err)
 	}
@@ -385,8 +377,44 @@ func (w *workspace) hover(text string, line, col int, uri string) (string, []str
 	return exprMarkdown(result, hover), trace.lines, true
 }
 
+func spellConfigAt(nodes []ast.Node, pos token.Pos) *ast.CallExpr {
+	for _, node := range nodes {
+		call, ok := node.(*ast.CallExpr)
+		if !ok {
+			continue
+		}
+		if name, ok := pkgSelector(call.Fun, "spelldata"); ok && name == "SpellConfig" && pos >= call.Fun.Pos() && pos <= call.Fun.End() {
+			return call
+		}
+	}
+	return nil
+}
+
+func familyAt(nodes []ast.Node) string {
+	for _, node := range nodes {
+		if expr, ok := node.(ast.Expr); ok {
+			if field, ok := pkgSelector(expr, "spellData"); ok {
+				return field
+			}
+		}
+	}
+	return ""
+}
+
+// The name a `<pkg>.<Name>` selector picks, where expr is one.
+func pkgSelector(expr ast.Expr, pkg string) (string, bool) {
+	sel, ok := expr.(*ast.SelectorExpr)
+	if !ok {
+		return "", false
+	}
+	if ident, ok := sel.X.(*ast.Ident); !ok || ident.Name != pkg {
+		return "", false
+	}
+	return sel.Sel.Name, true
+}
+
 func resultSummary(result *exprResult) string {
-	parts := []string{result.title()}
+	parts := []string{result.card().heading()}
 	if result.readEffect > 0 {
 		parts = append(parts, fmt.Sprintf("effect %d", result.readEffect))
 	}
@@ -396,115 +424,128 @@ func resultSummary(result *exprResult) string {
 	return strings.Join(parts, " → ")
 }
 
-func chainHoverAt(lineText string, column int, declarations map[string]declaration, folder string, trace *tracer) (chainHover, bool) {
-	declared, declErr := declarationOnLine(lineText)
-	if declErr == nil && declared != nil {
-		if hover, found, ok := hoverInDeclaration(declared, column, declarations, trace); found {
-			return hover, ok
+// The outermost chain under the cursor answers for the accessor the cursor is on, arguments included,
+// and a name on its own answers for what the package binds it to.
+func chainHoverAt(f *parsedFile, nodes []ast.Node, at int, declarations map[string]declaration, folder string, trace *tracer) (chainHover, bool) {
+	for _, node := range nodes {
+		expr, ok := node.(ast.Expr)
+		if !ok {
+			continue
 		}
+		c, err := walkChain(expr, f.tok.Offset)
+		if err != nil {
+			continue
+		}
+		if row := c.root.byID; row != nil && row.covers(at) {
+			trace.add("segment %s", row.text(false))
+			return resolved(&chain{root: c.root}, "", declarations, trace)
+		}
+		for i, seg := range c.segments {
+			if seg.covers(at) {
+				trace.add("segment %s", seg.text(false))
+				return resolved(&chain{root: c.root, segments: c.segments[:i+1]}, "", declarations, trace)
+			}
+		}
+		if c.root.name == "" || len(c.segments) == 0 {
+			break
+		}
+		trace.add("ident %s", c.root.name)
+		return resolved(&chain{root: c.root}, "", declarations, trace)
 	}
 
-	name := identifierAt(lineText, column)
-	if name == "" {
+	var ident *ast.Ident
+	for _, node := range nodes {
+		if name, ok := node.(*ast.Ident); ok {
+			ident = name
+		}
+	}
+	if ident == nil {
 		trace.add("✗ no spell id, family or name under the cursor")
 		return chainHover{}, false
 	}
-	trace.add("ident %s", name)
-	if _, bound := declarations[name]; bound {
-		return resolved(name, name, false, declarations, trace)
+	trace.add("ident %s", ident.Name)
+	if _, bound := declarations[ident.Name]; bound {
+		return resolved(&chain{root: root{name: ident.Name}}, ident.Name, declarations, trace)
 	}
-	if declErr != nil && name == declared.name {
-		trace.add("✗ %s is bound to no chain the evaluator reads: %v", name, declErr)
+	if err, ok := f.unread[ident]; ok {
+		trace.add("✗ %s is bound to no chain the evaluator reads: %v", ident.Name, err)
 	} else {
-		trace.add("✗ no ladder-shaped declaration of %s in %s", name, folder)
+		trace.add("✗ no ladder-shaped declaration of %s in %s", ident.Name, folder)
 	}
 	return chainHover{}, false
 }
 
-func hoverInDeclaration(declared *declaration, column int, declarations map[string]declaration, trace *tracer) (chainHover, bool, bool) {
-	c := declared.chain
-	if column >= declared.nameStart && column <= declared.nameEnd {
-		trace.add("ident %s", declared.name)
-		trace.add("  %s = %s  (%s)", declared.name, c.text(len(c.segments)), trace.here)
-		hover, ok := resolved(declared.name, c.text(len(c.segments)), false, declarations, trace)
-		return hover, true, ok
-	}
-	for i, seg := range c.segments {
-		if column >= seg.start && column <= seg.end {
-			trace.add("segment %s", seg.text)
-			hover, ok := resolved(seg.text, c.text(i+1), true, declarations, trace)
-			return hover, true, ok
-		}
-	}
-	if column >= c.headStart && column <= c.headEnd {
-		trace.add("ident %s", c.head)
-		hover, ok := resolved(c.head, c.head, true, declarations, trace)
-		return hover, true, ok
-	}
-	return chainHover{}, false, false
-}
-
-func resolved(label, text string, segment bool, declarations map[string]declaration, trace *tracer) (chainHover, bool) {
-	expr, err := resolveChain(text, declarations, maxSubstitutions, map[string]bool{}, trace)
+func resolved(c *chain, name string, declarations map[string]declaration, trace *tracer) (chainHover, bool) {
+	resolved, err := resolveChain(c, declarations, trace)
 	if err != nil {
 		trace.add("✗ %v", err)
 		return chainHover{}, false
 	}
-	return chainHover{label: label, expr: expr, segment: segment}, true
+	return chainHover{chain: resolved, name: name}, true
 }
 
-func resolveChain(text string, declarations map[string]declaration, depth int, seen map[string]bool, trace *tracer) (string, error) {
-	c, err := parseChainAt(text, 0)
-	if err != nil {
-		return "", err
+// The chain with every name the package binds substituted by the chain it stands for, down to a
+// ladder: at most maxSubstitutions names deep, and never through a name twice.
+func resolveChain(c *chain, declarations map[string]declaration, trace *tracer) (*chain, error) {
+	return resolveFrom(c, declarations, maxSubstitutions, map[string]bool{}, trace)
+}
+
+func resolveFrom(c *chain, declarations map[string]declaration, depth int, seen map[string]bool, trace *tracer) (*chain, error) {
+	if c.rooted() {
+		return c, nil
 	}
 
-	if strings.HasPrefix(c.head, "spellData.") {
-		if !c.isPick() {
-			return "", fmt.Errorf("%s names a family, not a rank: follow it with Highest(), Rank(n) or ByID(id)", text)
-		}
-		return text, nil
-	}
-
-	bound, ok := declarations[c.head]
+	name := c.root.name
+	bound, ok := declarations[name]
 	if !ok {
-		if c.isPick() {
-			return "spellData." + text, nil
+		if isFamilyName(name) {
+			return &chain{root: root{family: name}, segments: c.segments}, nil
 		}
-		return "", fmt.Errorf("no ladder-shaped declaration of %s in the package", c.head)
+		return nil, fmt.Errorf("no ladder-shaped declaration of %s in the package", name)
 	}
-	if seen[c.head] {
-		return "", fmt.Errorf("%s stands on itself", c.head)
+	if seen[name] {
+		return nil, fmt.Errorf("%s stands on itself", name)
 	}
 	if depth <= 0 {
-		return "", fmt.Errorf("%s stands on more than %d names", text, maxSubstitutions)
+		return nil, fmt.Errorf("%s stands on more than %d names", c.text(false), maxSubstitutions)
 	}
 
-	seen[c.head] = true
-	boundText := bound.chain.text(len(bound.chain.segments))
-	if trace != nil {
-		trace.add("  %s = %s  (%s:%d)", c.head, boundText, trace.rel(bound.file), bound.line)
-	}
-	head, err := resolveChain(boundText, declarations, depth-1, seen, trace)
+	seen[name] = true
+	trace.add("  %s = %s  (%s:%d)", name, bound.chain.text(false), trace.rel(bound.file), bound.line)
+	head, err := resolveFrom(bound.chain, declarations, depth-1, seen, trace)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return head + strings.TrimPrefix(text, c.head), nil
+	return &chain{root: head.root, segments: append(slices.Clip(head.segments), c.segments...)}, nil
 }
 
-func identifierAt(lineText string, column int) string {
-	match := matchCovering([]*regexp.Regexp{identPattern}, lineText, column)
-	if match == nil {
-		return ""
+// A line of the text, counted from 0, without its line ending, and the byte offset it starts at.
+func lineAt(text string, line int) (string, int, bool) {
+	if line < 0 {
+		return "", 0, false
 	}
-	name := lineText[match[0]:match[1]]
-	if goKeywords[name] {
-		return ""
+	start := 0
+	for ; line > 0; line-- {
+		next := strings.IndexByte(text[start:], '\n')
+		if next < 0 {
+			return "", 0, false
+		}
+		start += next + 1
 	}
-	return name
+	lineText, _, _ := strings.Cut(text[start:], "\n")
+	return strings.TrimSuffix(lineText, "\r"), start, true
 }
 
-func matchCovering(patterns []*regexp.Regexp, lineText string, column int) []int {
+// The byte offset of an LSP position, clamped to the end of its line and of the text.
+func offsetOf(text string, line, col int) int {
+	lineText, start, ok := lineAt(text, line)
+	if !ok {
+		return len(text)
+	}
+	return start + byteOffsetOfUTF16Column(lineText, col)
+}
+
+func matchCovering(lineText string, column int, patterns ...*regexp.Regexp) []int {
 	for _, pattern := range patterns {
 		for _, match := range pattern.FindAllStringSubmatchIndex(lineText, -1) {
 			if column >= match[0] && column <= match[1] {
@@ -519,15 +560,20 @@ func byteOffsetOfUTF16Column(lineText string, units int) int {
 	offset := 0
 	for offset < len(lineText) && units > 0 {
 		r, size := utf8.DecodeRuneInString(lineText[offset:])
-		units -= len(utf16.Encode([]rune{r}))
+		units -= utf16.RuneLen(r)
 		offset += size
 	}
 	return offset
 }
 
+// A Windows URI states the drive after the path's leading slash, file:///c:/x.
 func uriPath(uri string) string {
 	if u, err := url.Parse(uri); err == nil && u.Scheme == "file" {
-		return filepath.Clean(u.Path)
+		path := u.Path
+		if filepath.VolumeName(strings.TrimPrefix(path, "/")) != "" {
+			path = strings.TrimPrefix(path, "/")
+		}
+		return filepath.Clean(filepath.FromSlash(path))
 	}
 	return filepath.Clean(uri)
 }
@@ -536,6 +582,10 @@ func pathURI(path string) string {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		abs = path
+	}
+	abs = filepath.ToSlash(abs)
+	if !strings.HasPrefix(abs, "/") {
+		abs = "/" + abs
 	}
 	return (&url.URL{Scheme: "file", Path: abs}).String()
 }

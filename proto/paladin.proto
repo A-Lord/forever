@@ -65,15 +65,6 @@ message PaladinTalents {
 
 // END GENERATED
 
-enum Blessings {
-	BlessingUnknown = 0;
-	BlessingOfKings = 1;
-	BlessingOfMight = 2;
-	BlessingOfWisdom = 3;
-	BlessingOfSalvation = 4;
-	BlessingOfSanctuary = 5;
-}
-
 enum PaladinJudgement {
 	JudgementNone = 0;
 	JudgementOfLight = 1;
@@ -88,7 +79,6 @@ enum PaladinAura {
 	FireResistanceAura = 4;
 	FrostResistanceAura = 5;
 	ShadowResistanceAura = 6;
-	SanctityAura = 7;
 }
 
 message PaladinOptions {
@@ -114,10 +104,8 @@ message ProtectionPaladin {
 		bool prioritizeHolyShield = 1;
 		int32 consecrationRank = 2;
 		bool useExorcism = 3;
-		bool useAvengersShield = 4;
 		PaladinJudgement maintainJudgement = 5;
 		PaladinAura aura = 6;
-		bool precastAvengersShield = 7;
 		bool useHammerOfWrath = 8;
 	}
 

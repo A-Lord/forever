@@ -6,7 +6,7 @@
 //	go run ./tools/spelldata 11574           # the row, humanised and with the client's own literal
 //	go run ./tools/spelldata Whirlwind       # every row with that name, then the highest rank
 //	go run ./tools/spelldata Rend -all       # every match in full
-//	go run ./tools/spelldata 11574 -json     # the same as JSON, which tools/vscode-spelldata reads
+//	go run ./tools/spelldata 11574 -json     # the same as JSON, for a script or an agent: see README.md
 //	go run ./tools/spelldata -family warrior/Execute   # the ladder's ranks, then its highest in full
 //	go run ./tools/spelldata -expr 'spellData.Execute.Rank(3)' -package warrior   # the row that reaches
 //	go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)' -package warrior   # the value that reads
@@ -16,41 +16,23 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"go/ast"
+	"go/parser"
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// An editor's language client may add its own transport flag, such as --stdio.
-func isLSPInvocation(args []string) bool {
-	if len(args) == 0 || strings.TrimLeft(args[0], "-") != "lsp" {
-		return false
-	}
-	for _, arg := range args[1:] {
-		if strings.TrimLeft(arg, "-") != "stdio" {
-			return false
-		}
-	}
-	return true
-}
-
 func main() {
-	if isLSPInvocation(os.Args[1:]) {
-		shutdown, err := serveLSP(os.Stdin, os.Stdout)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "spelldata:", err)
-		}
-		if !shutdown || err != nil {
-			os.Exit(1)
-		}
-		return
-	}
 	if err := run(os.Args[1:], os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "spelldata:", err)
 		os.Exit(1)
@@ -58,74 +40,76 @@ func main() {
 }
 
 type options struct {
-	query  string
-	family string
-	expr   string
-	pkg    string
-	hover  string
-	config string
-	json   bool
-	all    bool
+	// spell, family, expr, config, hover or lsp.
+	mode string
+	// What the mode reads: the spell, the family, the chain, the call or the file.
+	arg string
+	// -hover's <line>:<column>.
+	position string
+	pkg      string
+	json     bool
+	all      bool
 }
+
+const usage = "usage: go run ./tools/spelldata <id | name> [-all] [-json] | -family <class>/<Family> | -expr <call> [-package <class>] | -config <SpellConfig call> [-package <class>] | -hover <file> <line>:<column> | -lsp"
 
 // The flags are taken in any position: `11574 -json` is how a caller writes it, and the stdlib flag
 // package stops reading flags at the first positional argument. The ones that take a value read it as
-// the next argument or after an `=`.
+// the next argument or after an `=`. An editor's language client may add its own transport flag after
+// -lsp, such as --stdio.
 func parseArgs(args []string) (options, error) {
 	var opts options
-	valued := map[string]*string{"family": &opts.family, "expr": &opts.expr, "package": &opts.pkg, "hover": &opts.hover, "config": &opts.config}
+	var positional []string
+	askOne := fmt.Errorf("ask for one thing: a spell, -family, -expr, -config, -hover or -lsp")
 
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
-		switch arg {
-		case "-json", "--json":
+		if !strings.HasPrefix(arg, "-") {
+			positional = append(positional, arg)
+			continue
+		}
+		name, value, valued := strings.Cut(strings.TrimLeft(arg, "-"), "=")
+		switch {
+		case name == "json" && !valued:
 			opts.json = true
-			continue
-		case "-all", "--all":
+		case name == "all" && !valued:
 			opts.all = true
-			continue
-		}
-
-		if name, value, ok := strings.Cut(strings.TrimLeft(arg, "-"), "="); ok && strings.HasPrefix(arg, "-") {
-			into, known := valued[name]
-			if !known {
-				return opts, fmt.Errorf("unknown argument %q", arg)
+		case name == "stdio" && !valued && opts.mode == "lsp":
+		case name == "lsp" && !valued, name == "package", name == "family", name == "expr", name == "config", name == "hover":
+			if name != "lsp" && !valued {
+				if i+1 >= len(args) {
+					return opts, fmt.Errorf("%s takes a value", arg)
+				}
+				i++
+				value = args[i]
 			}
-			*into = value
-			continue
-		}
-		if into, known := valued[strings.TrimLeft(arg, "-")]; known && strings.HasPrefix(arg, "-") {
-			if i+1 >= len(args) {
-				return opts, fmt.Errorf("%s takes a value", arg)
+			if name == "package" {
+				opts.pkg = value
+				continue
 			}
-			i++
-			*into = args[i]
-			continue
-		}
-
-		if strings.HasPrefix(arg, "-") {
+			if opts.mode != "" {
+				return opts, askOne
+			}
+			opts.mode, opts.arg = name, value
+		default:
 			return opts, fmt.Errorf("unknown argument %q", arg)
 		}
-		if opts.query != "" {
-			return opts, fmt.Errorf("name one spell, not both %q and %q", opts.query, arg)
-		}
-		opts.query = arg
 	}
 
-	asked := 0
-	for _, mode := range []string{opts.family, opts.expr, opts.hover, opts.config} {
-		if mode != "" {
-			asked++
+	switch {
+	case opts.mode == "hover":
+		if len(positional) != 1 {
+			return opts, fmt.Errorf("-hover takes a file and a position: -hover <file> <line>:<column>")
 		}
-	}
-	if opts.hover != "" && opts.query == "" {
-		return opts, fmt.Errorf("-hover takes a file and a position: -hover <file> <line>:<column>")
-	}
-	if asked > 1 || asked == 1 && opts.query != "" && opts.hover == "" {
-		return opts, fmt.Errorf("ask for one thing: a spell, -family, -expr, -config or -hover")
-	}
-	if opts.query == "" && asked == 0 {
-		return opts, fmt.Errorf("usage: go run ./tools/spelldata <id | name> [-all] [-json] | -family <class>/<Family> | -expr <call> [-package <class>] | -config <SpellConfig call> [-package <class>] | -hover <file> <line>:<column> | -lsp")
+		opts.position = positional[0]
+	case len(positional) > 1:
+		return opts, fmt.Errorf("name one spell, not both %q and %q", positional[0], positional[1])
+	case len(positional) == 1 && opts.mode != "":
+		return opts, askOne
+	case len(positional) == 1:
+		opts.mode, opts.arg = "spell", positional[0]
+	case opts.mode == "":
+		return opts, errors.New(usage)
 	}
 	return opts, nil
 }
@@ -136,34 +120,35 @@ func run(args []string, out io.Writer) error {
 		return err
 	}
 
-	if opts.family != "" {
+	switch opts.mode {
+	case "family":
 		return runFamily(out, opts)
-	}
-	if opts.expr != "" {
+	case "expr":
 		return runExpr(out, opts)
-	}
-	if opts.hover != "" {
+	case "hover":
 		return runHover(out, opts)
-	}
-	if opts.config != "" {
+	case "config":
 		return runConfig(out, opts)
+	case "lsp":
+		return runLSP(os.Stdin, out)
 	}
 
-	if id, err := strconv.ParseInt(opts.query, 10, 32); err == nil {
-		s := spelldata.Find(int32(id))
-		if s == spelldata.Nil {
-			return fmt.Errorf("spell %d is not in the store", id)
+	if id, err := strconv.ParseInt(opts.arg, 10, 32); err == nil {
+		s, err := findSpell(int32(id))
+		if err != nil {
+			return err
 		}
+		c := newCard(s, s.Rank, 0)
 		if opts.json {
-			return writeJSON(out, asJSON(s))
+			return writeJSON(out, c)
 		}
-		writeText(out, s, 0)
+		c.writeText(out)
 		return nil
 	}
 
-	matches := spelldata.ByName(opts.query)
+	matches := spelldata.ByName(opts.arg)
 	if len(matches) == 0 {
-		return fmt.Errorf("no spell is named %q", opts.query)
+		return fmt.Errorf("no spell is named %q", opts.arg)
 	}
 
 	picked := matches
@@ -171,12 +156,12 @@ func run(args []string, out io.Writer) error {
 		picked = []*spelldata.Spell{highestRank(matches)}
 	}
 
+	cards := make([]card, 0, len(picked))
+	for _, s := range picked {
+		cards = append(cards, newCard(s, s.Rank, 0))
+	}
 	if opts.json {
-		rows := make([]spellJSON, 0, len(picked))
-		for _, s := range picked {
-			rows = append(rows, asJSON(s))
-		}
-		return writeJSON(out, rows)
+		return writeJSON(out, cards)
 	}
 
 	if len(matches) > 1 {
@@ -185,11 +170,11 @@ func run(args []string, out io.Writer) error {
 		}
 		fmt.Fprintln(out)
 	}
-	for i, s := range picked {
+	for i, c := range cards {
 		if i > 0 {
 			fmt.Fprintln(out)
 		}
-		writeText(out, s, 0)
+		c.writeText(out)
 	}
 	return nil
 }
@@ -197,111 +182,125 @@ func run(args []string, out io.Writer) error {
 // A ladder as a whole: its rank index, then the highest rank in full, which is the rank most callers
 // are after and the one a bare Highest() reaches.
 func runFamily(out io.Writer, opts options) error {
-	family, err := findFamily(ladderFamilies(), opts.family, opts.pkg)
+	family, err := findFamily(ladderFamilies(), opts.arg, opts.pkg)
 	if err != nil {
 		return err
 	}
 
-	highest, err := familyHighest(family)
-	if err != nil {
-		return err
+	if family.err != nil {
+		return family.err
 	}
+	highest := family.ladder.Highest()
+	top := newCard(highest, rankLabel(family, highest), 0)
 
 	if opts.json {
-		top := asJSON(highest.spell)
-		top.Title = highest.title()
-		return writeJSON(out, familyJSON{
-			Family:  family.key(),
-			Ranks:   familyRows(family),
-			Highest: top,
-		})
+		return writeJSON(out, familyJSON{Family: family.key(), Ranks: familyRows(family), Highest: top})
 	}
 
 	writeFamilyText(out, family)
-	writeTitledText(out, highest.title(), highest.spell, 0)
+	top.writeText(out)
 	return nil
 }
 
 func runExpr(out io.Writer, opts options) error {
-	result, err := evalExpr(ladderFamilies(), opts.expr, opts.pkg)
+	c, err := parseChain(opts.arg)
 	if err != nil {
 		return err
 	}
+	c, err = resolveChain(c, nil, &tracer{})
+	if err != nil {
+		return err
+	}
+	result, err := evalExpr(ladderFamilies(), c, opts.pkg)
+	if err != nil {
+		return err
+	}
+	doc := ""
+	if n := len(c.segments); n > 0 {
+		doc = methodDoc(result.owner, c.segments[n-1].name)
+	}
 
 	if opts.json {
-		row := asJSON(result.spell)
-		row.Title = result.title()
 		return writeJSON(out, exprJSON{
-			spellJSON:  row,
-			Expr:       opts.expr,
-			Resolved:   result.spell.ID,
-			Kind:       result.kind,
-			Trail:      result.trail,
-			Value:      result.value,
-			Doc:        result.doc,
-			ReadEffect: result.readEffect,
-			Accessors:  result.accessors,
+			card:      result.card(),
+			Kind:      result.kind,
+			Trail:     result.trail,
+			Value:     result.value,
+			Doc:       doc,
+			Accessors: result.accessors,
 		})
 	}
 
-	writeExprText(out, result, opts.expr)
+	writeExprText(out, result, opts.arg, doc)
 	return nil
 }
 
 func runConfig(out io.Writer, opts options) error {
+	node, err := parser.ParseExpr(opts.arg)
+	call, ok := node.(*ast.CallExpr)
+	if err != nil || !ok {
+		return fmt.Errorf("%q is not a SpellConfig call", opts.arg)
+	}
 	trace := &tracer{}
 	var declarations map[string]declaration
-	if root, err := moduleRoot(); err == nil && opts.pkg != "" {
-		declarations = defaultWorkspace.declarations(filepath.Join(root, "sim", opts.pkg), "", "", trace)
+	if ws := newWorkspace(); ws.root != "" && opts.pkg != "" {
+		declarations = ws.declarations(filepath.Join(ws.root, "sim", opts.pkg), nil, 0, trace)
 	}
-	result, err := evalSpellConfig(opts.config, declarations, opts.pkg, trace)
+	result, err := evalSpellConfig(call, declarations, opts.pkg, trace)
 	if err != nil {
 		return err
 	}
-	var text strings.Builder
-	writeConfigText(&text, result)
-	_, err = io.WriteString(out, text.String())
-	return err
+	writeConfigText(out, result)
+	return nil
 }
 
 func runHover(out io.Writer, opts options) error {
-	lineText, colText, ok := strings.Cut(opts.query, ":")
+	lineText, colText, ok := strings.Cut(opts.position, ":")
 	line, lineErr := strconv.Atoi(lineText)
 	col, colErr := strconv.Atoi(colText)
 	if !ok || lineErr != nil || colErr != nil || line < 1 || col < 1 {
-		return fmt.Errorf("%q is not a position: write <line>:<column>, both counted from 1", opts.query)
+		return fmt.Errorf("%q is not a position: write <line>:<column>, both counted from 1", opts.position)
 	}
-	text, err := os.ReadFile(opts.hover)
+	text, err := os.ReadFile(opts.arg)
 	if err != nil {
 		return err
 	}
 
-	markdown, trace, found := Hover(string(text), line-1, col-1, pathURI(opts.hover))
+	markdown, trace, found := newWorkspace().hover(string(text), line-1, col-1, pathURI(opts.arg))
 	for _, entry := range trace {
 		fmt.Fprintln(os.Stderr, entry)
 	}
 	if !found {
-		return fmt.Errorf("no hover at %s:%s", opts.hover, opts.query)
+		return fmt.Errorf("no hover at %s:%s", opts.arg, opts.position)
 	}
 	_, err = io.WriteString(out, markdown)
+	return err
+}
+
+func runLSP(in io.Reader, out io.Writer) error {
+	shutdown, err := serveLSP(in, out)
+	if err == nil && !shutdown {
+		err = fmt.Errorf("the client exited without a shutdown")
+	}
 	return err
 }
 
 // What the chain answered, then the row it was read off. A pick states the call as the caller wrote it,
 // since nothing in it was substituted; a longer chain states the trail, which is that call with every
 // name resolved to the number it stands for.
-func writeExprText(out io.Writer, result *exprResult, expr string) {
+func writeExprText(out io.Writer, result *exprResult, expr, doc string) {
+	c := result.card()
 	switch result.kind {
 	case kindSpell:
 		fmt.Fprintf(out, "%s = %s\n\n", expr, result.value)
 	case kindEffect:
-		fmt.Fprintf(out, "%s = %s of %s\n\n", result.trail, result.value, result.title())
+		fmt.Fprintf(out, "%s = %s of %s\n\n", result.trail, result.value, c.heading())
 	default:
 		fmt.Fprintf(out, "%s = %s\n\n", result.trail, result.value)
 	}
 
-	if result.doc != "" {
-		for _, line := range strings.Split(result.doc, "\n") {
+	if doc != "" {
+		for _, line := range strings.Split(doc, "\n") {
 			fmt.Fprintln(out, strings.TrimRight("    "+line, " "))
 		}
 		fmt.Fprintln(out)
@@ -318,111 +317,33 @@ func writeExprText(out io.Writer, result *exprResult, expr string) {
 		fmt.Fprintln(out)
 	}
 
-	writeTitledText(out, result.title(), result.spell, result.readEffect)
+	c.writeText(out)
 }
 
 // The rank a caller means out of several rows with one name: the highest one the client states, and
 // the lowest id among rows that state no rank, which is the ability itself ahead of the item and set
 // rows that share its name.
 func highestRank(matches []*spelldata.Spell) *spelldata.Spell {
-	best := matches[0]
-	for _, s := range matches[1:] {
-		if s.RankNumber() > best.RankNumber() {
-			best = s
-		}
-	}
-	return best
+	return slices.MaxFunc(matches, func(a, b *spelldata.Spell) int { return cmp.Compare(a.RankNumber(), b.RankNumber()) })
 }
 
-func writeText(out io.Writer, s *spelldata.Spell, read int) {
-	writeTitledText(out, title(s), s, read)
+func findSpell(id int32) (*spelldata.Spell, error) {
+	if s := spelldata.Find(id); s != spelldata.Nil {
+		return s, nil
+	}
+	return nil, fmt.Errorf("spell %d is not in the store", id)
 }
 
-func writeTitledText(out io.Writer, heading string, s *spelldata.Spell, read int) {
-	fmt.Fprintln(out, join(heading, strings.Join(ladderRefs(s.ID), "  ")))
-	for _, line := range header(s) {
-		fmt.Fprintln(out, line)
-	}
-	if proc := procSummary(s); proc != "" {
-		fmt.Fprintf(out, "%-9s %s\n", "proc", proc)
-	}
-	if refs := refList(s); len(refs) > 0 {
-		fmt.Fprintf(out, "%-9s %s\n", "refs", strings.Join(refs, ", "))
-	}
-
-	effects := effectLines(s)
-	if len(effects) > 0 {
-		fmt.Fprintln(out)
-	}
-	for i, line := range effects {
-		label := fmt.Sprintf("effect %-2d", i+1)
-		if i+1 == read {
-			label = fmt.Sprintf("effect %d (read)", i+1)
-		}
-		fmt.Fprintf(out, "%s %s\n", label, line.Human)
-		fmt.Fprintf(out, "%9s %s\n", "", line.Literal)
-	}
-
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, wowheadURL(s.ID))
-}
-
-type spellJSON struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
-	Rank string `json:"rank"`
-
-	// The heading the text form prints, and the ladder calls a class file reaches this id through.
-	Title  string   `json:"title"`
-	Ladder []string `json:"ladder"`
-
-	Header  []string `json:"header"`
-	Effects []Line   `json:"effects"`
-
-	// Empty on a row that is not a proc and on one the tooltip names no spell from.
-	Proc string   `json:"proc"`
-	Refs []string `json:"refs"`
-
-	Wowhead string `json:"wowhead"`
-}
-
-// The row the chain reached, and what the chain itself answered: the kind of value, the chain with
-// every name substituted, the value as it prints, the doc comment of the accessor that answered it, the
-// effect the chain read and, where it stopped on an effect, the accessors that read something off it.
+// The row a chain reached, and what the chain answered: the kind of value, the chain with every name
+// resolved, the value as it prints, the doc comment of the accessor that answered it and, where it
+// stopped on an effect, the accessors that read something off it.
 type exprJSON struct {
-	spellJSON
-	Expr     string `json:"expr"`
-	Resolved int32  `json:"resolved"`
-
-	Kind       string   `json:"kind"`
-	Trail      string   `json:"trail"`
-	Value      string   `json:"value"`
-	Doc        string   `json:"doc"`
-	ReadEffect int      `json:"read_effect"`
-	Accessors  []string `json:"accessors"`
-}
-
-func asJSON(s *spelldata.Spell) spellJSON {
-	effects := effectLines(s)
-	if effects == nil {
-		effects = []Line{}
-	}
-	ladder := ladderRefs(s.ID)
-	if ladder == nil {
-		ladder = []string{}
-	}
-	return spellJSON{
-		ID:      s.ID,
-		Name:    s.Name,
-		Rank:    s.Rank,
-		Title:   title(s),
-		Ladder:  ladder,
-		Header:  header(s),
-		Effects: effects,
-		Proc:    procSummary(s),
-		Refs:    refList(s),
-		Wowhead: wowheadURL(s.ID),
-	}
+	card
+	Kind      string   `json:"kind"`
+	Trail     string   `json:"trail"`
+	Value     string   `json:"value"`
+	Doc       string   `json:"doc,omitempty"`
+	Accessors []string `json:"accessors,omitempty"`
 }
 
 func writeJSON(out io.Writer, v any) error {

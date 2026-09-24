@@ -7,8 +7,9 @@ import (
 	"go/token"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"sync"
+
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Where a spell id sits in a class file's ladders: the package, the field name the generator gave the
@@ -23,18 +24,15 @@ func (r ladderRef) String() string {
 	return fmt.Sprintf("%s spellData.%s.%s", r.pkg, r.field, r.call)
 }
 
-// One generated ladder, as the class file states it: the ranks in rank order, each with the call that
-// reaches it. A talent states one rank line, since its ranks are one spell's curve.
+// One generated ladder, built the way the class file builds it: the ids its constructor names and the
+// Ladder that constructor answers, or the panic it answered with instead.
 type ladderFamily struct {
-	pkg         string
-	field       string
-	talentRanks int32
-	ranks       []familyRank
-}
-
-type familyRank struct {
-	id       int32
-	accessor string
+	pkg    string
+	field  string
+	talent bool
+	ids    []int32
+	ladder spelldata.Ladder
+	err    error
 }
 
 func (f *ladderFamily) key() string {
@@ -45,6 +43,8 @@ var (
 	loadLadders sync.Once
 	ladderIndex = map[int32][]ladderRef{}
 	familyIndex = map[string]*ladderFamily{}
+	// The field names every class states a ladder under.
+	familyFields = map[string]bool{}
 )
 
 // The ladder calls that reach this id, in package and field order. A class whose generated file is
@@ -102,98 +102,78 @@ func collectLadders(file *ast.File) {
 		if !ok {
 			return true
 		}
-		ctor, args := ladderCall(kv.Value)
-		if ctor == "" {
-			return true
-		}
-
-		family := newLadderFamily(pkg, field.Name, ctor, args)
+		family := newLadderFamily(pkg, field.Name, kv.Value)
 		if family == nil {
 			return true
 		}
 		familyIndex[family.key()] = family
-		for _, entry := range family.refs() {
-			ladderIndex[entry.id] = append(ladderIndex[entry.id], entry.ref)
+		familyFields[family.field] = true
+		for id, call := range family.refs() {
+			ladderIndex[id] = append(ladderIndex[id], ladderRef{pkg: pkg, field: field.Name, call: call})
 		}
 		return true
 	})
 }
 
-// The constructor name and its integer arguments, for a value that is a call on the spelldata
-// package. Anything else answers an empty name.
-func ladderCall(value ast.Expr) (string, []int32) {
+// The family a `spelldata.Ranked(ids...)` or `spelldata.Talent(id, ranks)` states, or nil for any other
+// value and for arguments that are not the constants the generator writes.
+func newLadderFamily(pkg, field string, value ast.Expr) *ladderFamily {
 	call, ok := value.(*ast.CallExpr)
 	if !ok {
-		return "", nil
+		return nil
 	}
-	sel, ok := call.Fun.(*ast.SelectorExpr)
+	constructor, ok := pkgSelector(call.Fun, "spelldata")
 	if !ok {
-		return "", nil
-	}
-	if pkg, ok := sel.X.(*ast.Ident); !ok || pkg.Name != "spelldata" {
-		return "", nil
+		return nil
 	}
 
 	args := make([]int32, 0, len(call.Args))
 	for _, arg := range call.Args {
-		lit, ok := arg.(*ast.BasicLit)
-		if !ok || lit.Kind != token.INT {
-			return "", nil
-		}
-		value, err := strconv.ParseInt(lit.Value, 0, 32)
+		n, err := evalInt(arg)
 		if err != nil {
-			return "", nil
-		}
-		args = append(args, int32(value))
-	}
-	return sel.Sel.Name, args
-}
-
-type ladderEntry struct {
-	id  int32
-	ref ladderRef
-}
-
-// The ladder a constructor states. Ranked states one spell per rank, so the ranks are its arguments in
-// order; Talent states one spell whose ranks are a curve, so the ladder is that one id reached by rank
-// number. Any other call, or one whose arguments are not the integers the generator writes, is none.
-func newLadderFamily(pkg, field, ctor string, args []int32) *ladderFamily {
-	switch ctor {
-	case "Talent":
-		if len(args) != 2 || args[1] <= 0 {
 			return nil
 		}
-		return &ladderFamily{pkg: pkg, field: field, talentRanks: args[1], ranks: []familyRank{
-			{id: args[0], accessor: fmt.Sprintf("Rank(n), n up to %d", args[1])},
-		}}
-
-	case "Ranked":
-		if len(args) == 0 {
-			return nil
-		}
-		family := &ladderFamily{pkg: pkg, field: field}
-		for i, id := range args {
-			accessor := fmt.Sprintf("Rank(%d)", i+1)
-			if i == len(args)-1 {
-				accessor = "Highest()"
-			}
-			family.ranks = append(family.ranks, familyRank{id: id, accessor: accessor})
-		}
-		return family
+		args = append(args, int32(n))
 	}
-	return nil
+
+	family := &ladderFamily{pkg: pkg, field: field}
+	switch {
+	case constructor == "Talent" && len(args) == 2 && args[1] > 0:
+		family.talent, family.ids = true, args[:1]
+		family.ladder, family.err = buildLadder(func() spelldata.Ladder { return spelldata.Talent(args[0], args[1]) })
+	case constructor == "Ranked" && len(args) > 0:
+		family.ids = args
+		family.ladder, family.err = buildLadder(func() spelldata.Ladder { return spelldata.Ranked(args...) })
+	default:
+		return nil
+	}
+	return family
+}
+
+// Ranked and Talent panic on a spell the store does not carry and on a curve whose rank count
+// disagrees with the talent's, and that panic is answered as an error.
+func buildLadder(build func() spelldata.Ladder) (ladder spelldata.Ladder, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+	return build(), nil
 }
 
 // How a class file names each of the ladder's ids. A rank below the top is named by its own id rather
-// than by position, which is what a reader holding that id is looking for.
-func (f *ladderFamily) refs() []ladderEntry {
-	out := make([]ladderEntry, 0, len(f.ranks))
-	for i, rank := range f.ranks {
-		call := rank.accessor
-		if f.talentRanks == 0 && i < len(f.ranks)-1 {
-			call = fmt.Sprintf("ByID(%d)", rank.id)
+// than by position, which is what a reader holding that id is looking for; a talent's ranks are one
+// spell, named by rank number.
+func (f *ladderFamily) refs() map[int32]string {
+	if f.talent {
+		return map[int32]string{f.ids[0]: fmt.Sprintf("Rank(n), n up to %d", f.ladder.Len())}
+	}
+	out := map[int32]string{}
+	for i, id := range f.ids {
+		out[id] = fmt.Sprintf("ByID(%d)", id)
+		if i == len(f.ids)-1 {
+			out[id] = "Highest()"
 		}
-		out = append(out, ladderEntry{id: rank.id, ref: ladderRef{pkg: f.pkg, field: f.field, call: call}})
 	}
 	return out
 }

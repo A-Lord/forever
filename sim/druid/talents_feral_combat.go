@@ -187,7 +187,7 @@ func (druid *Druid) applySavageFury() {
 	// druid.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  DruidSpellRake,
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.SavageFury.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(druid.Talents.SavageFury),
+	// 	FloatValue: spellData.SavageFury.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(druid.Talents.SavageFury),
 	// })
 }
 

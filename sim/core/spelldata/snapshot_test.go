@@ -6,15 +6,19 @@ package spelldata
 // number says so here instead of in a sim result.
 
 import (
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/wowsims/forever/sim/core/proto"
 )
 
 // What the committed spells_auto_gen.go holds today. The bounds are wide enough that adding a class
 // or a patch's spells does not fail the gate, and the exact numbers are here so drift is visible.
 const (
-	generatedSpellCount  = 7035
-	generatedEffectCount = 9636
+	generatedSpellCount  = 7058
+	generatedEffectCount = 9688
 )
 
 // The client's EffectIndex has gaps: 46 of the store's rows state an index that is not the
@@ -26,11 +30,7 @@ const gappedIndexRows = 46
 // swaps the fixture in for the whole package.
 func withGeneratedStore(t *testing.T) {
 	t.Helper()
-	install(generatedSpells, generatedCurves)
-	t.Cleanup(func() {
-		replaceForTest(fixture())
-		curves = map[int32][][]float64{}
-	})
+	t.Cleanup(generatedStore())
 }
 
 func TestGeneratedStoreShape(t *testing.T) {
@@ -151,6 +151,33 @@ func TestGeneratedLightningShield(t *testing.T) {
 	}
 }
 
+// Stolen Power's companion row requires Forest and Grassland; Staff of Westfall's group is a single zone.
+func TestGeneratedRequiredAreas(t *testing.T) {
+	withGeneratedStore(t)
+
+	if s := MustFind(1318002); s.RequiredAreas != 9161 || s.AreaType() != proto.AreaType_AreaTypeForestGrassland {
+		t.Errorf("Stolen Power 1318002 requires area group %d (%v), want 9161 (ForestGrassland)", s.RequiredAreas, s.AreaType())
+	}
+	if s := MustFind(1287561); s.RequiredAreas != 0 || s.AreaType() != proto.AreaType_AreaTypeUnknown {
+		t.Errorf("Stolen Power 1287561 requires area group %d, want none", s.RequiredAreas)
+	}
+	if s := MustFind(1292011); s.RequiredAreas != 9071 || s.AreaType() != proto.AreaType_AreaTypeUnknown {
+		t.Errorf("Staff of Westfall requires area group %d (%v), want 9071 (Unknown)", s.RequiredAreas, s.AreaType())
+	}
+}
+
+// Area bonuses come from the override table, not the client.
+func TestGeneratedAreaBonus(t *testing.T) {
+	withGeneratedStore(t)
+
+	if s := MustFind(1249113); len(s.AreaBonusGroups) != 1 || s.AreaBonusGroups[0] != 9203 || s.AreaMultiplier != 2 || s.AreaDurationMultiplier != 1 {
+		t.Errorf("Molten Fury's area bonus reads %v x%v (duration x%v), want [9203] x2 (duration x1)", s.AreaBonusGroups, s.AreaMultiplier, s.AreaDurationMultiplier)
+	}
+	if s := MustFind(1287571); s.AreaMultiplier != 2 || s.AreaDurationMultiplier != 2 {
+		t.Errorf("Monkey Business's area bonus reads x%v (duration x%v), want x2 (duration x2)", s.AreaMultiplier, s.AreaDurationMultiplier)
+	}
+}
+
 // Arcane Missiles rank 2: a periodic trigger reaches its tick spell through the effect.
 func TestGeneratedTriggerResolves(t *testing.T) {
 	withGeneratedStore(t)
@@ -160,8 +187,8 @@ func TestGeneratedTriggerResolves(t *testing.T) {
 	}
 }
 
-// Retaliation's counterattack is a link the client does not state and handTriggers supplies, so it
-// has to come back out of Triggered().
+// Retaliation's counterattack is a link the client does not state and overrides.HandTriggers
+// supplies, so it has to come back out of Triggered() and Drivers().
 func TestGeneratedHandLink(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -169,8 +196,16 @@ func TestGeneratedHandLink(t *testing.T) {
 	for _, s := range MustFind(20230).Triggered() {
 		ids = append(ids, s.ID)
 	}
-	if !contains(ids, 20240) {
+	if !slices.Contains(ids, 20240) {
 		t.Errorf("Retaliation triggers %v, want the counterattack 20240 among them", ids)
+	}
+
+	ids = nil
+	for _, s := range MustFind(20240).Drivers() {
+		ids = append(ids, s.ID)
+	}
+	if !slices.Contains(ids, 20230) {
+		t.Errorf("the counterattack is driven by %v, want Retaliation 20230 among them", ids)
 	}
 }
 
@@ -206,6 +241,38 @@ func TestGeneratedOverrideRow(t *testing.T) {
 	}
 }
 
+// Wrath is castable in Moonkin Form and excludes Tree Form, Healing Touch the reverse. Tiger's Fury
+// states its Cat Form requirement as a caster aura; its SpellShapeshift row is empty.
+func TestGeneratedStanceAndAuraRestriction(t *testing.T) {
+	withGeneratedStore(t)
+
+	wrath := MustFind(5176)
+	if wrath.StanceMask != 0x40000000 || wrath.StanceExclude != 0x2 {
+		t.Errorf("Wrath's stance mask is %#x exclude %#x, want 0x40000000 exclude 0x2",
+			wrath.StanceMask, wrath.StanceExclude)
+	}
+
+	healingTouch := MustFind(5185)
+	if healingTouch.StanceMask != 0x2 || healingTouch.StanceExclude != 0x40000000 {
+		t.Errorf("Healing Touch's stance mask is %#x exclude %#x, want 0x2 exclude 0x40000000",
+			healingTouch.StanceMask, healingTouch.StanceExclude)
+	}
+
+	tigersFury := MustFind(5217)
+	if tigersFury.CasterAura != 768 {
+		t.Errorf("Tiger's Fury's caster aura is %d, want 768", tigersFury.CasterAura)
+	}
+
+	for id, want := range map[int32]dbcenums.ShapeshiftForm{
+		2457: dbcenums.FORM_BATTLE_STANCE, 71: dbcenums.FORM_DEFENSIVE_STANCE, 2458: dbcenums.FORM_BERSERKER_STANCE,
+		768: dbcenums.FORM_CAT_FORM, 9634: dbcenums.FORM_DIRE_BEAR_FORM, 24858: dbcenums.FORM_MOONKIN_FORM,
+	} {
+		if got := MustFind(id).ShapeshiftForm(); got != want {
+			t.Errorf("spell %d puts the caster in form %d, want %d", id, got, want)
+		}
+	}
+}
+
 func TestGeneratedStoreMisses(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -231,15 +298,6 @@ func TestGeneratedStoreMisses(t *testing.T) {
 func drives(s *Spell, id int32) bool {
 	for _, driver := range s.Drivers() {
 		if driver.ID == id {
-			return true
-		}
-	}
-	return false
-}
-
-func contains(ids []int32, id int32) bool {
-	for _, got := range ids {
-		if got == id {
 			return true
 		}
 	}

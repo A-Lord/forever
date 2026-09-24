@@ -35,10 +35,10 @@ async function buildInto(target) {
 	copyFileSync(join(source, 'README.md'), join(target, 'README.md'));
 }
 
-function filesUnder(dir, prefix = '') {
-	return readdirSync(join(dir, prefix), { withFileTypes: true }).flatMap(entry =>
-		entry.isDirectory() ? filesUnder(dir, join(prefix, entry.name)) : [join(prefix, entry.name)],
-	);
+function filesUnder(dir) {
+	return readdirSync(dir, { recursive: true, withFileTypes: true })
+		.filter(entry => entry.isFile())
+		.map(entry => relative(dir, join(entry.parentPath, entry.name)));
 }
 
 if (process.argv.includes('--check')) {

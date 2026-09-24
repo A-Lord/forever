@@ -1,4 +1,4 @@
-import { TristateEffect, UnitReference } from '@generated/proto/common';
+import { UnitReference } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { Player } from '@sim/player/player';
 import { emptyUnitReference } from '@sim/proto/utils';
@@ -196,76 +196,22 @@ export const HpPercentForDefensives = {
 	},
 };
 
-export const IsbUptime = {
-	id: 'isbUptime',
+// The Holy spell power of the paladin providing Retribution Aura as a party buff (sim/core's
+// RetributionAuraBuff turns it into damage per hit). Only a tank takes the hits, and the number
+// means nothing without the aura, so it shows under both conditions.
+export const RetributionAuraSpellPower = {
+	id: 'retributionAuraSpellPower',
 	type: 'number' as const,
-	float: true,
-	label: i18n.t('settings_tab.other.isb_uptime.label'),
-	labelTooltip: i18n.t('settings_tab.other.isb_uptime.tooltip'),
-	storeField: 'raid:debuffs' as const,
-	getValue: (player: Player<any>) => Math.round(player.getRaid()!.getDebuffs().isbUptime! * 100),
+	label: i18n.t('settings_tab.other.retribution_aura_spell_power.label'),
+	labelTooltip: i18n.t('settings_tab.other.retribution_aura_spell_power.tooltip'),
+	storeField: 'raid:partyBuffs' as const,
+	showWhen: (player: Player<any>) => player.getPlayerSpec().isTankSpec && !!player.getParty()?.getBuffs().retributionAura,
+	getValue: (player: Player<any>) => player.getParty()!.getBuffs().retributionAuraSpellPower,
 	setValue: (player: Player<any>, newValue: number) => {
-		const newDebuffs = player.getRaid()!.getDebuffs();
-		newDebuffs.isbUptime = newValue / 100;
-		player.getRaid()!.setDebuffs(newDebuffs);
-	},
-};
-
-export const HemoUptime = {
-	id: 'hemoUptime',
-	type: 'number' as const,
-	float: true,
-	label: i18n.t('settings_tab.other.hemo_uptime.label'),
-	labelTooltip: i18n.t('settings_tab.other.hemo_uptime.tooltip'),
-	storeField: 'raid:debuffs' as const,
-	getValue: (player: Player<any>) => Math.round(player.getRaid()!.getDebuffs().hemorrhageUptime! * 100),
-	setValue: (player: Player<any>, newValue: number) => {
-		const newDebuffs = player.getRaid()!.getDebuffs();
-		newDebuffs.hemorrhageUptime = newValue / 100;
-		player.getRaid()!.setDebuffs(newDebuffs);
-	},
-};
-
-export const ShadowPriestDPS = {
-	id: 'shadowPriestDps',
-	type: 'number' as const,
-	float: true,
-	label: i18n.t('settings_tab.other.shadow_priest_dps.label'),
-	labelTooltip: i18n.t('settings_tab.other.shadow_priest_dps.tooltip'),
-	storeField: 'buffs' as const,
-	getValue: (player: Player<any>) => player.getBuffs().shadowPriestDps,
-	setValue: (player: Player<any>, newValue: number) => {
-		const buffs = player.getBuffs();
-		buffs.shadowPriestDps = newValue;
-		player.setBuffs(buffs);
-	},
-};
-
-export const ExposeWeaknessUptime = {
-	id: 'exposeWeaknessUptime',
-	type: 'number' as const,
-	label: i18n.t('settings_tab.other.expose_weakness_uptime.label'),
-	labelTooltip: i18n.t('settings_tab.other.expose_weakness_uptime.tooltip'),
-	storeField: 'raid:debuffs' as const,
-	getValue: (player: Player<any>) => Math.round(player.getRaid()!.getDebuffs().exposeWeaknessUptime * 100),
-	setValue: (player: Player<any>, newValue: number) => {
-		const debuffs = player.getRaid()!.getDebuffs();
-		debuffs.exposeWeaknessUptime = newValue / 100;
-		player.getRaid()!.setDebuffs(debuffs);
-	},
-};
-
-export const ExposeWeaknessHunterAgility = {
-	id: 'exposeWeaknessHunterAgility',
-	type: 'number' as const,
-	label: i18n.t('settings_tab.other.expose_weakness_hunter_agility.label'),
-	labelTooltip: i18n.t('settings_tab.other.expose_weakness_hunter_agility.tooltip'),
-	storeField: 'raid:debuffs' as const,
-	getValue: (player: Player<any>) => player.getRaid()!.getDebuffs().exposeWeaknessHunterAgility,
-	setValue: (player: Player<any>, newValue: number) => {
-		const debuffs = player.getRaid()!.getDebuffs();
-		debuffs.exposeWeaknessHunterAgility = newValue;
-		player.getRaid()!.setDebuffs(debuffs);
+		const party = player.getParty()!;
+		const buffs = party.getBuffs();
+		buffs.retributionAuraSpellPower = newValue;
+		party.setBuffs(buffs);
 	},
 };
 
@@ -277,7 +223,7 @@ export const TotemTwisting = {
 	storeField: 'raid:partyBuffs' as const,
 	enableWhen: (player: Player<any>) => {
 		const buffs = player.getParty()!.getBuffs();
-		return buffs.windfuryTotem != TristateEffect.TristateEffectMissing && buffs.graceOfAirTotem != TristateEffect.TristateEffectMissing;
+		return buffs.windfuryTotem && buffs.graceOfAirTotem;
 	},
 	getValue: (player: Player<any>) => player.getParty()!.getBuffs().totemTwisting,
 	setValue: (player: Player<any>, newValue: boolean) => {

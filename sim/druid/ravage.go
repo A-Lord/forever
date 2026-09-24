@@ -17,8 +17,9 @@ func (druid *Druid) registerRavageSpell() {
 	// const weaponMultiplier = 3.85
 	// const highHpCritPercentBonus = 50.0
 	//
-	// druid.Ravage = druid.RegisterSpell(Cat, core.SpellConfig{
+	// druid.Ravage = druid.RegisterSpell(core.SpellConfig{
 	// 	ActionID:         core.ActionID{SpellID: ravageRank.ID},
+	// 	CastRequirement:  ravageRank.CastRequirement(),
 	// 	SpellSchool:      ravageRank.SpellSchool(),
 	// 	DefenseType:      ravageRank.DefenseTypeCore(),
 	// 	ProcMask:         core.ProcMaskMeleeMHSpecial,
@@ -30,7 +31,7 @@ func (druid *Druid) registerRavageSpell() {
 	// 	MaxRange:         core.MaxMeleeRange,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   ravageRank.Cost(),
+	// 		Cost:   int32(ravageRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	//

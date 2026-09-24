@@ -26,6 +26,7 @@
 		]
 	},
 	"ignorePatterns": [
+		"ui/features/settings/model/buffs_debuffs_auto_gen.ts",
 		"ui/worker/highs.js",
 		"ui/**/apls/*.apl.json",
 		"ui/**/builds/**/*.build.json",
@@ -33,6 +34,7 @@
 		"ui/**/presets/**/*.json",
 		"ui/sim/talents/trees/*.json",
 		"assets/**",
-		"**/test-fixtures/*.json"
+		"**/test-fixtures/*.json",
+		".vscode/extensions/*/out/**"
 	]
 }

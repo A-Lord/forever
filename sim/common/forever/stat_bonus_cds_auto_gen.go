@@ -10,7 +10,10 @@ import (
 func RegisterAllOnUseCds() {
 
 	//
+	// shared.NewSimpleStatActive(2820) // Nifty Stopwatch - https://www.wowhead.com/forever/spell=14530
+	// shared.NewSimpleStatActive(4130) // Smotts' Compass - https://www.wowhead.com/forever/spell=1317740
 	// shared.NewSimpleStatActive(7734) // Six Demon Bag - https://www.wowhead.com/forever/spell=14537
+	// shared.NewSimpleStatActive(8348) // Helm of Fire - https://www.wowhead.com/forever/spell=10578
 	// shared.NewSimpleStatActive(8367) // Dragonscale Breastplate - https://www.wowhead.com/forever/spell=10618
 	// shared.NewSimpleStatActive(11905) // Linken's Boomerang - https://www.wowhead.com/forever/spell=15712
 	// shared.NewSimpleStatActive(14134) // Cloak of Fire - https://www.wowhead.com/forever/spell=18364
@@ -25,6 +28,7 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(18639) // Ultra-Flash Shadow Reflector - https://www.wowhead.com/forever/spell=23132
 	// shared.NewSimpleStatActive(18986) // Ultrasafe Transporter: Gadgetzan - https://www.wowhead.com/forever/spell=23453
 	// shared.NewSimpleStatActive(19024) // Arena Grand Master - https://www.wowhead.com/forever/spell=23506
+	// shared.NewSimpleStatActive(19141) // Luffa - https://www.wowhead.com/forever/spell=23595
 	// shared.NewSimpleStatActive(19336) // Arcane Infused Gem - https://www.wowhead.com/forever/spell=23721
 	// shared.NewSimpleStatActive(19339) // Mind Quickening Gem - https://www.wowhead.com/forever/spell=23723
 	// shared.NewSimpleStatActive(19340) // Rune of Metamorphosis - https://www.wowhead.com/forever/spell=23724
@@ -59,6 +63,7 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(23027) // Warmth of Forgiveness - https://www.wowhead.com/forever/spell=28760
 	// shared.NewSimpleStatActive(23040) // Glyph of Deflection - https://www.wowhead.com/forever/spell=28773
 	// shared.NewSimpleStatActive(23558) // The Burrower's Shell - https://www.wowhead.com/forever/spell=29506
+	// shared.NewSimpleStatActive(219345) // Infernal Lasso - https://www.wowhead.com/forever/spell=443265
 	// shared.NewSimpleStatActive(221315) // Traveler's Symbols - https://www.wowhead.com/forever/spell=1306267
 	// shared.NewSimpleStatActive(260819) // EZ-Thro Field Transporter: Gadgetzan - https://www.wowhead.com/forever/spell=23453
 	// shared.NewSimpleStatActive(260821) // EZ and SAF Field Transporter: Mt. Hyjal - https://www.wowhead.com/forever/spell=1269339
@@ -75,6 +80,9 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(275347) // Lichbane - https://www.wowhead.com/forever/spell=1296564
 	// shared.NewSimpleStatActive(275729) // Rusty Propeller Blade - https://www.wowhead.com/forever/spell=1297762
 	// shared.NewSimpleStatActive(276337) // Thaelemaches' Talisman - https://www.wowhead.com/forever/spell=1299440
+
+	// Agility / Intellect / Spirit / Stamina / Strength
+	shared.NewSimpleStatActive(270226) // Golden Banana - https://www.wowhead.com/forever/spell=1287571
 
 	// ArcaneResistance / FireResistance / FrostResistance / NatureResistance / ShadowResistance
 	shared.NewSimpleStatActive(23042) // Loatheb's Reflection - https://www.wowhead.com/forever/spell=28778
@@ -118,8 +126,8 @@ func RegisterAllOnUseCds() {
 		Name:                  "Talisman of Ascendance",
 		ID:                    22678,
 		CD:                    time.Millisecond * 60000,
-		Callback:              core.CallbackOnSpellHitDealt,
-		ProcMask:              core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage,
+		Callback:              core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt,
+		ProcMask:              core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
 		Outcome:               core.OutcomeLanded,
 		RequireDamageDealt:    false,
 		TrinketLimitsDuration: true,

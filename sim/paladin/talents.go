@@ -1,36 +1,39 @@
 package paladin
 
-import (
-	"github.com/wowsims/forever/sim/common/shared"
-)
-
-func (paladin *Paladin) registerTalentSpells() {
-	// Holy Tree
-	if paladin.Talents.DivineFavor {
-		paladin.registerDivineFavor()
-	}
-	if paladin.Talents.HolyShock {
-		paladin.registerHolyShock(shared.SpellData{})
-	}
-
-	// Protection Tree
-	if paladin.Talents.HolyShield {
-		HolyShieldRankMap.RegisterAll(paladin.registerHolyShield)
-	}
-
-	// Retribution Tree
-	if paladin.Talents.SealOfCommand {
-		SealOfCommandRanks.RegisterAll(paladin.registerSealOfCommandRank)
-	}
-	// if paladin.Talents.Repentance {
-	// 	paladin.registerRepentance()
-	// }
-}
-
 func (paladin *Paladin) ApplyTalents() {
 	paladin.registerTalentSpells()
 
 	paladin.registerHolyTalents()
 	paladin.registerProtectionTalents()
 	paladin.registerRetributionTalents()
+}
+
+// The abilities a talent point buys.
+func (paladin *Paladin) registerTalentSpells() {
+	// Holy
+	if paladin.Talents.DivineFavor {
+		paladin.registerDivineFavor()
+	}
+	if paladin.Talents.HolyShock {
+		paladin.registerHolyShock()
+	}
+	if paladin.Talents.LightsVigil {
+		paladin.registerLightsVigil()
+	}
+
+	// Protection
+	if paladin.Talents.SwiftJudgement {
+		paladin.registerSwiftJudgement()
+	}
+	if paladin.Talents.TemplarsBulwark {
+		paladin.registerTemplarsBulwark()
+	}
+	if paladin.Talents.HolyShield {
+		HolyShieldRankMap.RegisterAll(paladin.registerHolyShield)
+	}
+
+	// Retribution
+	if paladin.Talents.SealOfCommand {
+		SealOfCommandRankMap.RegisterAll(paladin.registerSealOfCommand)
+	}
 }

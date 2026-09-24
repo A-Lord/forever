@@ -16,11 +16,11 @@ func TestFamilyIndex(t *testing.T) {
 	lines := strings.Split(out.String(), "\n")
 	want := []string{
 		"warrior spellData.Execute",
-		"5308     Execute  Rank 1   Rank(1)",
-		"20658    Execute  Rank 2   Rank(2)",
-		"20660    Execute  Rank 3   Rank(3)",
-		"20661    Execute  Rank 4   Rank(4)",
-		"20662    Execute  Rank 5   Highest()",
+		"5308     Execute  Rank 1   Rank(1)   effect 1 = 125",
+		"20658    Execute  Rank 2   Rank(2)   effect 1 = 200",
+		"20660    Execute  Rank 3   Rank(3)   effect 1 = 325",
+		"20661    Execute  Rank 4   Rank(4)   effect 1 = 450",
+		"20662    Execute  Rank 5   Highest() effect 1 = 600",
 		"",
 		"20662 Execute (Rank 5) warrior spellData.Execute.Highest()",
 	}
@@ -74,8 +74,8 @@ func TestFamilyTalentJSON(t *testing.T) {
 	if strings.Join(values, ", ") != "effect 1 = 12, effect 1 = 23, effect 1 = 35" {
 		t.Errorf("the ranks read %v", values)
 	}
-	if got.Highest.Title != "12286 Improved Rend (rank 3 of 3)" {
-		t.Errorf("the highest rank is titled %q", got.Highest.Title)
+	if got.Highest.heading() != "12286 Improved Rend (rank 3 of 3)" {
+		t.Errorf("the highest rank is titled %q", got.Highest.heading())
 	}
 }
 
@@ -105,7 +105,7 @@ func TestFamilyJSON(t *testing.T) {
 	if len(got.Ranks) != 5 {
 		t.Fatalf("%d ranks", len(got.Ranks))
 	}
-	if got.Ranks[0] != (familyRankJSON{ID: 5308, Name: "Execute", Rank: "Rank 1", Accessor: "Rank(1)"}) {
+	if got.Ranks[0] != (familyRow{ID: 5308, Name: "Execute", Rank: "Rank 1", Accessor: "Rank(1)", Value: "effect 1 = 125"}) {
 		t.Errorf("rank 1 is %+v", got.Ranks[0])
 	}
 	if got.Ranks[4].Accessor != "Highest()" {
@@ -142,11 +142,8 @@ func TestExpr(t *testing.T) {
 			t.Errorf("%s: %v", c.expr, err)
 			continue
 		}
-		if got.Resolved != c.id || got.ID != c.id {
-			t.Errorf("%s resolves to %d and prints %d, want %d", c.expr, got.Resolved, got.ID, c.id)
-		}
-		if got.Expr != c.expr {
-			t.Errorf("%s echoes %q", c.expr, got.Expr)
+		if got.ID != c.id {
+			t.Errorf("%s resolves to %d, want %d", c.expr, got.ID, c.id)
 		}
 	}
 }
@@ -171,8 +168,8 @@ func TestExprTalentRank(t *testing.T) {
 		}
 	}
 
-	if got := evalJSON(t, "spellData.Cruelty.Rank(3)"); got.Title != "12320 Cruelty (rank 3 of 5)" {
-		t.Errorf("the rank is titled %q", got.Title)
+	if got := evalJSON(t, "spellData.Cruelty.Rank(3)"); got.Rank != "rank 3 of 5" {
+		t.Errorf("the rank is %q", got.Rank)
 	}
 
 	var out bytes.Buffer
@@ -211,9 +208,10 @@ func TestExprRefused(t *testing.T) {
 		want string
 	}{
 		{[]string{"-expr", "spellData.Execute.Rank(9)", "-package", "warrior"}, "has 5 ranks, not rank 9"},
+		{[]string{"-expr", "spellData.Execute.Rank(9.0)", "-package", "warrior"}, "has 5 ranks, not rank 9"},
 		{[]string{"-expr", "spellData.Execute.ByID(25236)", "-package", "warrior"}, "no rank with id 25236"},
 		{[]string{"-expr", "spellData.Nope.Highest()", "-package", "warrior"}, `warrior states no ladder named "Nope"`},
-		{[]string{"-expr", "executeRank.EffectN(1)", "-package", "warrior"}, "is not a ladder call"},
+		{[]string{"-expr", "executeRank.EffectN(1)", "-package", "warrior"}, "no ladder-shaped declaration of executeRank"},
 		{[]string{"-family", "warrior/Nope"}, `warrior states no ladder named "Nope"`},
 		{[]string{"-family", "Execute", "-expr", "spellData.Execute.Highest()"}, "ask for one thing"},
 		{[]string{"-family"}, "-family takes a value"},
@@ -236,9 +234,9 @@ func TestExprRefused(t *testing.T) {
 // classes is tested against one that is.
 func TestFamilyAcrossClasses(t *testing.T) {
 	index := map[string]*ladderFamily{
-		"warrior/Execute": {pkg: "warrior", field: "Execute", ranks: []familyRank{{id: 1, accessor: "Highest()"}}},
-		"paladin/Execute": {pkg: "paladin", field: "Execute", ranks: []familyRank{{id: 2, accessor: "Highest()"}}},
-		"rogue/Rupture":   {pkg: "rogue", field: "Rupture", ranks: []familyRank{{id: 3, accessor: "Highest()"}}},
+		"warrior/Execute": {pkg: "warrior", field: "Execute"},
+		"paladin/Execute": {pkg: "paladin", field: "Execute"},
+		"rogue/Rupture":   {pkg: "rogue", field: "Rupture"},
 	}
 
 	if _, err := findFamily(index, "Execute", ""); err == nil ||

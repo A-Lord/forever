@@ -3,7 +3,7 @@ package database
 // Rebuilds sim/core/spelldata/spells_auto_gen.go from the client rows committed in
 // assets/db_inputs/spell_store_inputs.json and asserts the committed file is what comes out, so a
 // hand-edited or stale store fails here. No client database and no build tag: this is the one gate
-// over the store's 7035 rows that CI can run, since tools/database/wowsims.db is gitignored.
+// over the store that CI can run, since tools/database/wowsims.db is gitignored.
 //
 // It re-runs everything the generator derives - the closure over triggers, overrides and tooltip
 // references, the hand links, the talent curves, the tooltip hints, the overrides and the emitter -
@@ -15,37 +15,58 @@ import (
 	"bytes"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
-// The generator reads its paths from the repository root - the enum names out of sim/core/dbcenums,
-// the extra ids out of the store's own source - and a test runs in its own package's directory.
+// The generator reads its paths from the repository root - the captured inputs, and the proc audit's
+// list beside this file - and a test runs in its own package's directory.
 const repositoryRoot = "../.."
 
 func TestStoreRegeneratesFromTheCommittedInputs(t *testing.T) {
 	inRepositoryRoot(t)
 
-	inputs, err := readStoreInputs(spellStoreInputsPath)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-
-	namer, err := newRankEnumNamer()
-	if err != nil {
-		t.Fatalf("reading the spell enum names: %v", err)
-	}
-
-	rendered, err := renderStore(inputs, namer)
+	rendered, err := renderStore(committedInputs(t), newRankEnumNamer())
 	if err != nil {
 		t.Fatalf("rendering the store: %v", err)
 	}
+	assertRendersCommitted(t, "sim/core/spelldata/spells_auto_gen.go", rendered)
+}
 
-	const storePath = "sim/core/spelldata/spells_auto_gen.go"
-	committed, err := os.ReadFile(storePath)
+// The committed inputs, read once for every test that renders from them: nothing a rendering does
+// writes through them. The first caller has to be in the repository root.
+func committedInputs(t *testing.T) *storeInputs {
+	t.Helper()
+
+	inputs, err := readCommittedInputs()
 	if err != nil {
 		t.Fatalf("%v", err)
+	}
+	return inputs
+}
+
+var readCommittedInputs = sync.OnceValues(func() (*storeInputs, error) {
+	return readStoreInputs(spellStoreInputsPath)
+})
+
+// The rendering counts its rows on stderr, which says nothing a passing gate needs, so it goes
+// nowhere for the duration.
+func inRepositoryRoot(t *testing.T) {
+	t.Helper()
+
+	t.Chdir(repositoryRoot)
+	progress = io.Discard
+	t.Cleanup(func() { progress = os.Stderr })
+}
+
+func assertRendersCommitted(t *testing.T, path string, rendered []byte) {
+	t.Helper()
+
+	committed, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("%v", err)
+		return
 	}
 	if bytes.Equal(committed, rendered) {
 		return
@@ -53,30 +74,8 @@ func TestStoreRegeneratesFromTheCommittedInputs(t *testing.T) {
 
 	line, want, got := firstDifference(committed, rendered)
 	t.Errorf("%s is not what the committed inputs render, from line %d:\n  committed: %s\n  rendered:  %s\n"+
-		"regenerate both with `go run ./tools/database/gen_spelldata`",
-		storePath, line, want, got)
-}
-
-// The rendering counts its rows on stderr, which says nothing a passing gate needs, so it goes
-// nowhere for the duration.
-func inRepositoryRoot(t *testing.T) {
-	t.Helper()
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-	if err := os.Chdir(filepath.Join(cwd, repositoryRoot)); err != nil {
-		t.Fatalf("%v", err)
-	}
-
-	progress = io.Discard
-	t.Cleanup(func() {
-		progress = os.Stderr
-		if err := os.Chdir(cwd); err != nil {
-			t.Fatalf("%v", err)
-		}
-	})
+		"regenerate with `go run ./tools/database/gen_spelldata`",
+		path, line, want, got)
 }
 
 // The first line the two differ on, so a diff of megabytes reports as one row.

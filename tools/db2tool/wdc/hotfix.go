@@ -175,9 +175,10 @@ func CombineHotfixFiles(files []string) (map[uint32]*HotfixReader, error) {
 
 // LoadHotfixCaches scans for cache files: if cachesDir exists, every *.bin
 // under it (recursively) loads first, then every file named DBCache.bin
-// anywhere under baseDir. Finding no cache file is not an error; a malformed
-// or unsupported-version file fails loud. Files are visited in WalkDir's
-// deterministic lexical order.
+// anywhere under baseDir (skipped when baseDir is empty, as in CDN mode).
+// Finding no cache file is not an error; a malformed or unsupported-version
+// file fails loud. Files are visited in WalkDir's deterministic lexical
+// order.
 //
 // Both roots are resolved through any symlinks before the walk. WalkDir never
 // follows symlinks, and that includes a root that is itself one: it stats the
@@ -204,6 +205,9 @@ func LoadHotfixCaches(cachesDir, baseDir string) (map[uint32]*HotfixReader, erro
 		if err != nil {
 			return nil, err
 		}
+	}
+	if baseDir == "" { // CDN mode: no install to scan
+		return CombineHotfixFiles(files)
 	}
 	root, err := filepath.EvalSymlinks(baseDir)
 	if err != nil {

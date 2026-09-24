@@ -75,12 +75,6 @@ func procRows() []Spell {
 	}
 }
 
-func withProcRows(t *testing.T) {
-	t.Helper()
-	replaceForTest(procRows())
-	t.Cleanup(func() { replaceForTest(fixture()) })
-}
-
 // The proc managers are all a resolved trigger needs off the character, and one with no weapons
 // swinging answers an empty manager rather than reaching for an environment.
 func testCharacter() *core.Character {
@@ -90,7 +84,7 @@ func testCharacter() *core.Character {
 func noopHandler(*core.Simulation, *core.Spell, *core.SpellResult) {}
 
 func TestProcTriggerFromARow(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 	trigger := ProcTrigger(testCharacter(), Find(2000), noopHandler)
 
 	if trigger.Name != "Column Chance" {
@@ -128,9 +122,43 @@ func TestProcTriggerFromARow(t *testing.T) {
 	}
 }
 
+// A weapon proc rolls off any hit of its weapon that lands, a special that deals no damage
+// included, and off nothing that misses or is avoided.
+func TestWeaponProcHearsALandedHitThatDealsNoDamage(t *testing.T) {
+	withRows(t, procRows())
+
+	procs := 0
+	trigger := ProcTrigger(testCharacter(), Find(2100), func(*core.Simulation, *core.Spell, *core.SpellResult) {
+		procs++
+	}, WeaponProc())
+	trigger.TriggerImmediately = true
+
+	aura := &core.Aura{}
+	aura.AttachProcTriggerCallback(&core.Unit{}, trigger)
+
+	sim := &core.Simulation{}
+	special := &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}
+	for _, row := range []struct {
+		name    string
+		outcome core.HitOutcome
+		want    int
+	}{
+		{"a landed special that deals no damage", core.OutcomeHit, 1},
+		{"a miss", core.OutcomeMiss, 0},
+		{"a dodge", core.OutcomeDodge, 0},
+		{"a parry", core.OutcomeParry, 0},
+	} {
+		procs = 0
+		aura.OnSpellHitDealt(aura, sim, special, &core.SpellResult{Outcome: row.outcome})
+		if procs != row.want {
+			t.Errorf("%s rolled the proc %d times, want %d", row.name, procs, row.want)
+		}
+	}
+}
+
 // The column is the roll only where the source says so, and the 101 sentinel is not a roll at all.
 func TestProcTriggerChanceBySource(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 	character := testCharacter()
 
 	if got := ProcTrigger(character, Find(2000), noopHandler).ProcChance; got != 0.05 {
@@ -147,7 +175,7 @@ func TestProcTriggerChanceBySource(t *testing.T) {
 // A row that states no rate is the shape whose real rate lives outside the spell data, so it has to
 // be given one rather than firing on every hit.
 func TestProcTriggerUnstatedRatePanics(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	requirePanic(t, "states no proc chance", func() {
 		ProcTrigger(testCharacter(), Find(2300), noopHandler)
@@ -155,7 +183,7 @@ func TestProcTriggerUnstatedRatePanics(t *testing.T) {
 }
 
 func TestProcTriggerRateOptions(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 	character := testCharacter()
 
 	ppm := ProcTrigger(character, Find(2300), noopHandler, PPM(2))
@@ -177,7 +205,7 @@ func TestProcTriggerRateOptions(t *testing.T) {
 
 // An override-baked rate is a manager rather than a roll, and it needs a mask to measure hits on.
 func TestProcTriggerOverriddenProcsPerMinute(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	trigger := ProcTrigger(testCharacter(), Find(2400), noopHandler)
 	if trigger.DPM == nil {
@@ -196,7 +224,7 @@ func TestProcTriggerOverriddenProcsPerMinute(t *testing.T) {
 // shape, where the weapon says which hits count - leaves nothing to measure, so the row's own rate
 // cannot stand in for one.
 func TestProcTriggerRateFollowsTheOptionsMask(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	requirePanic(t, "no proc mask", func() {
 		ProcTrigger(testCharacter(), Find(2400), noopHandler, func(_ *core.Character, trigger *core.ProcTrigger) {
@@ -216,7 +244,7 @@ func TestProcTriggerRateFollowsTheOptionsMask(t *testing.T) {
 // A weapon proc's mask comes from the weapon rather than from the row, so the caller supplies the
 // manager and the rate check is satisfied by it.
 func TestProcTriggerMasklessRateFromTheCaller(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 	character := testCharacter()
 
 	trigger := ProcTrigger(character, Find(2500), noopHandler, func(_ *core.Character, trigger *core.ProcTrigger) {
@@ -230,7 +258,7 @@ func TestProcTriggerMasklessRateFromTheCaller(t *testing.T) {
 
 // The trigger is still built for a row the decode reads past; the audit is where that shows up.
 func TestProcTriggerUnsupportedNamesTheBitsAndTheHints(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	trigger := ProcTrigger(testCharacter(), Find(2600), noopHandler)
 	if trigger.Callback != core.CallbackOnSpellHitDealt {
@@ -250,7 +278,7 @@ func TestProcTriggerUnsupportedNamesTheBitsAndTheHints(t *testing.T) {
 // character can cast. The row is Dreadnaught's 8pc 28845, whose proc effect sits in the warlock's
 // family 5 and is worn by every class.
 func TestProcTriggerDropsAClassMaskOfAnotherFamily(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	warrior := &core.Character{Class: proto.Class_ClassWarrior}
 	if got := ProcTrigger(warrior, Find(2700), noopHandler).ClassFlags; !got.IsZero() {
@@ -277,7 +305,7 @@ func TestProcTriggerDropsAClassMaskOfAnotherFamily(t *testing.T) {
 // A family no class files its spells under names spells everyone can use - 13 is the potions - so
 // the mask stays whatever the wearer's class is.
 func TestProcTriggerKeepsAMaskOutsideEveryClassFamily(t *testing.T) {
-	withProcRows(t)
+	withRows(t, procRows())
 
 	warrior := &core.Character{Class: proto.Class_ClassWarrior}
 	if got := ProcTrigger(warrior, Find(2800), noopHandler).ClassFlags; got != (core.ClassFlags{Family: 13, Mask: [4]uint32{0: 0x1}}) {
@@ -307,13 +335,13 @@ func TestClassSpellFamilies(t *testing.T) {
 		{proto.Class_ClassPaladin, 20271, "Judgement"},
 		{proto.Class_ClassShaman, 403, "Lightning Bolt"},
 	} {
-		if got := MustFind(row.spellID).ClassFlags.Family; got != classSpellFamilies[row.class] {
+		if got := MustFind(row.spellID).ClassFlags.Family; got != core.ClassSpellFamilies[row.class] {
 			t.Errorf("%s (%d) files under family %d, and the table says class %v is family %d",
-				row.name, row.spellID, got, row.class, classSpellFamilies[row.class])
+				row.name, row.spellID, got, row.class, core.ClassSpellFamilies[row.class])
 		}
 	}
 
-	if len(classSpellFamilies) != 9 {
-		t.Errorf("the table holds %d classes, and this client has 9", len(classSpellFamilies))
+	if len(core.ClassSpellFamilies) != 9 {
+		t.Errorf("the table holds %d classes, and this client has 9", len(core.ClassSpellFamilies))
 	}
 }

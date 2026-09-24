@@ -74,6 +74,19 @@
 			"mechanical": "Mechanical",
 			"undead": "Undead"
 		},
+		"area_types": {
+			"unknown": "None",
+			"forest_grassland": "Forest and Grassland",
+			"mountainous": "Mountainous",
+			"snowy": "Snowy",
+			"desert": "Desert",
+			"swamp": "Marsh and Swamp",
+			"wasteland": "Wasteland",
+			"haunted": "Haunted",
+			"cavernous": "Cavernous or Underground",
+			"volcanic": "Volcanic",
+			"strongholds_cities": "Strongholds and Cities"
+		},
 		"sources": {
 			"unknown": "Unknown",
 			"crafting": "Crafting",
@@ -219,6 +232,7 @@
 			"melee_hit_rating": "Melee Hit Rating",
 			"melee_crit_rating": "Melee Crit Rating",
 			"melee_haste_rating": "Melee Haste Rating",
+			"expertise_rating": "Expertise Rating",
 			"armor_penetration": "Armor Penetration",
 			"all_hit_rating": "Hit Rating",
 			"all_crit_rating": "Crit Rating",
@@ -427,7 +441,6 @@
 		"external_damage_cooldowns": {
 			"title": "External Damage Cooldowns",
 			"tooltip": "Major damage cooldowns provided by <strong>other</strong> party/raid members.",
-			"bloodlust": "Bloodlust",
 			"skull_banner": "Skull Banner",
 			"stormlash_totem": "Stormlash Totem",
 			"tricks_of_the_trade": "Tricks of the Trade",
@@ -505,25 +518,9 @@
 				"label": "HP % for Defensive CDs",
 				"tooltip": "% of Maximum Health, below which defensive cooldowns are allowed to be used. If set to 0, this restriction is disabled."
 			},
-			"isb_uptime": {
-				"label": "ISB Uptime",
-				"tooltip": "Amount of uptime for ISB"
-			},
-			"hemo_uptime": {
-				"label": "Hemorrhage Uptime",
-				"tooltip": "Amount of time hemorrhage is on the boss from a subtely rogue"
-			},
-			"shadow_priest_dps": {
-				"label": "Shadow Priest DPS",
-				"tooltip": "Shadow Priest DPS for Mana Battery purposes. 1000 DPS = 50 mana/sec(250 MP5)."
-			},
-			"expose_weakness_uptime": {
-				"label": "Expose Weakness Uptime",
-				"tooltip": "Uptime of Expose Weakness in %."
-			},
-			"expose_weakness_hunter_agility": {
-				"label": "Expose Weakness Hunter Agility",
-				"tooltip": "The amount of Agility provided by your Hunter. Used for calculating the value of Expose Weakness."
+			"retribution_aura_spell_power": {
+				"label": "Retribution Aura Spell Power",
+				"tooltip": "The Holy spell power of the paladin providing Retribution Aura. Each hit you take deals the aura's base damage plus about 13.6% of this."
 			},
 			"totem_twisting": {
 				"label": "Totem Twisting",
@@ -578,8 +575,8 @@
 				"tooltip": "Simulates raid doing damage to targets such that seed detonates immediately on cast."
 			},
 			"default_shout": {
-				"label": "Default Shout",
-				"tooltip": "Which shout to use by default (can be overridden in the APL."
+				"label": "Battle Shout",
+				"tooltip": "Whether the warrior keeps its own Battle Shout up (can be overridden in the APL)."
 			},
 			"default_stance": {
 				"label": "Default Stance",
@@ -678,16 +675,10 @@
 				"title": "Engineering",
 				"explosives": "Explosives"
 			},
-			"pet": {
-				"title": "Pet"
-			},
 			"imbue": {
 				"title": "Imbues",
 				"mhImbue": "Main Hand",
 				"ohImbue": "Off Hand"
-			},
-			"drums": {
-				"title": "Drums"
 			},
 			"scrolls": {
 				"title": "Scrolls"
@@ -776,6 +767,18 @@
 			"encounter_preset": {
 				"label": "Encounter",
 				"tooltip": "Selects a preset encounter configuration."
+			},
+			"zone": {
+				"label": "Zone",
+				"tooltip": "Picks every kind of area the zone counts as; picking a preset boss fills it in from the boss's zone. Custom means the areas below were set by hand."
+			},
+			"area_types": {
+				"label": "Area",
+				"placeholder": "Select area type(s)",
+				"empty": "No kind of area matches",
+				"open": "Show all kinds of area",
+				"remove": "Remove area",
+				"tooltip": "Every kind of area the fight's zone counts as. Effects that only work in certain areas, such as Rune of the Guard Captain's extra attack power in Forest and Grassland areas, apply when their area is picked. A zone can count as several: Redridge Mountains is Forest and Mountainous, Deadwind Pass is Mountainous, Wasteland and Haunted."
 			},
 			"advanced": "Advanced",
 			"target": "Target",
@@ -1965,10 +1968,6 @@
 					"none": "Never",
 					"help": "Help stack",
 					"maintain": "Maintain debuff"
-				},
-				"bloodlust_timing": {
-					"label": "Bloodlust timing (Seconds)",
-					"tooltip": "When, in seconds, to use Bloodlust/Heroism."
 				},
 				"dps": {
 					"spec": {

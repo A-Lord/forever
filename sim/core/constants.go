@@ -17,7 +17,11 @@ const MaxSpellQueueWindow = time.Millisecond * 400
 const SpellBatchWindow = time.Millisecond * 10
 const PetUpdateInterval = time.Millisecond * 5250
 const SpellPushbackDuration = time.Millisecond * 500
-const MaxMeleeRange = 5.0 // in yards
+
+// How often a ranged auto that came due while moving checks whether it can fire.
+const RangedAutoRetryInterval = time.Millisecond * 500
+const MaxMeleeRange = 5.0  // in yards
+const MinRangedRange = 8.0 // in yards; bows, guns and crossbows cannot fire inside this, leaving a deadzone above melee range
 
 const DefaultAttackPowerPerDPS = 14.0
 
@@ -50,6 +54,8 @@ func AllWeaponSlots() []proto.ItemSlot {
 func AllMeleeWeaponSlots() []proto.ItemSlot {
 	return []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand}
 }
+
+//go:generate stringer -type=DefenseType
 
 // Which hit table a spell rolls on and which crit multiplier it takes. Values match the
 // DefenseType column of the client's SpellCategories table, so a spell's value is looked up

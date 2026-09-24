@@ -19,7 +19,7 @@ func (mage *Mage) registerConeOfColdSpell() {
 	// 	ClassSpellMask: MageSpellConeOfCold,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: coneOfColdRank.Cost(),
+	// 		FlatCost: int32(coneOfColdRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{

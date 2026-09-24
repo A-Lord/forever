@@ -20,7 +20,7 @@ func (rogue *Rogue) registerGarrote() {
 	// 	ClassSpellMask: RogueSpellGarrote,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   garroteRank.Cost(),
+	// 		Cost:   int32(garroteRank.Cost()),
 	// 		Refund: 0.8,
 	// 	},
 	// 	Cast: core.CastConfig{

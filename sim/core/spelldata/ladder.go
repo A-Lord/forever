@@ -94,53 +94,65 @@ func (l Ladder) Each(fn func(rank int32, s *Spell)) {
 
 // The rank's only effect, in the client's units. Rank 0 is untaken and answers 0.
 func (l Ladder) ValueAt(rank int32) float64 {
-	return l.value(rank, nil)
+	return l.only().ValueAt(rank)
 }
 
 // The client states a percentage as an integer: 16, not 0.16.
 func (l Ladder) FractionAt(rank int32) float64 {
-	return l.ValueAt(rank) / 100
+	return l.only().FractionAt(rank)
 }
 
 // The sign comes from the data: Improved Righteous Fury states -2/-4/-6, so rank 3 gives 0.94.
 func (l Ladder) MultiplierAt(rank int32) float64 {
-	return 1 + l.FractionAt(rank)
+	return l.only().MultiplierAt(rank)
 }
 
-// The client states rage and energy on a 0-1000 bar.
+// The client states rage on a 0-1000 bar.
 func (l Ladder) TenthsAt(rank int32) float64 {
-	return l.ValueAt(rank) / 10
+	return l.only().TenthsAt(rank)
 }
 
 // The effect at a position, counted from 1, for the ranks that carry more than one.
 func (l Ladder) EffectAt(index int32) LadderEffect {
-	return LadderEffect{ladder: l, pick: func(s *Spell) float64 {
+	return LadderEffect{ladder: l, pick: func(s *Spell, _ int32) *Effect {
 		e := s.EffectN(int(index))
 		if e == NilEffect {
 			panic(fmt.Sprintf("spell %d has no effect at position %d, in %d effects",
 				s.ID, index, len(s.Effects)))
 		}
-		return e.BasePoints
+		return e
 	}}
 }
 
 // The effect with this aura and misc value, which panics when the rank has two of them.
 func (l Ladder) Effect(aura dbcenums.EffectAuraType, misc int32) LadderEffect {
-	return LadderEffect{ladder: l, pick: func(s *Spell) float64 { return s.Effect(aura, misc).BasePoints }}
+	return LadderEffect{ladder: l, pick: func(s *Spell, _ int32) *Effect { return s.Effect(aura, misc) }}
+}
+
+// Nothing named means nothing to choose between - reading the first of several silently is the bug
+// this shape exists to prevent.
+func (l Ladder) only() LadderEffect {
+	return LadderEffect{ladder: l, pick: func(s *Spell, rank int32) *Effect {
+		if len(s.Effects) != 1 {
+			panic(fmt.Sprintf("spell %d rank %d has %d effects - name the one you mean with Effect(aura, misc)",
+				s.ID, rank, len(s.Effects)))
+		}
+		return &s.Effects[0]
+	}}
 }
 
 // One named effect across the ladder's ranks.
 type LadderEffect struct {
 	ladder Ladder
-	pick   func(*Spell) float64
+	pick   func(s *Spell, rank int32) *Effect
 }
 
 func (e LadderEffect) ValueAt(rank int32) float64 {
-	return e.ladder.value(rank, e.pick)
+	return e.at(rank).BasePoints
 }
 
 func (e LadderEffect) FractionAt(rank int32) float64 {
-	return e.ValueAt(rank) / 100
+	return e.at(rank).Percent()
 }
 
 func (e LadderEffect) MultiplierAt(rank int32) float64 {
@@ -148,27 +160,16 @@ func (e LadderEffect) MultiplierAt(rank int32) float64 {
 }
 
 func (e LadderEffect) TenthsAt(rank int32) float64 {
-	return e.ValueAt(rank) / 10
+	return e.at(rank).Tenths()
 }
 
-func (l Ladder) value(rank int32, pick func(*Spell) float64) float64 {
+// The effect at a rank. Rank 0 is untaken and answers NilEffect, which reads as zero.
+func (e LadderEffect) at(rank int32) *Effect {
 	if rank <= 0 {
-		return 0
+		return NilEffect
 	}
-	if rank > l.Len() {
-		panic(fmt.Sprintf("rank %d in a ladder of %d ranks", rank, l.Len()))
+	if rank > e.ladder.Len() {
+		panic(fmt.Sprintf("rank %d in a ladder of %d ranks", rank, e.ladder.Len()))
 	}
-
-	s := l.Rank(rank)
-	if pick != nil {
-		return pick(s)
-	}
-
-	// Nothing named means nothing to choose between - reading the first of several silently is the
-	// bug this shape exists to prevent.
-	if len(s.Effects) != 1 {
-		panic(fmt.Sprintf("spell %d rank %d has %d effects - name the one you mean with Effect(aura, misc)",
-			s.ID, rank, len(s.Effects)))
-	}
-	return s.Effects[0].BasePoints
+	return e.pick(e.ladder.Rank(rank), rank)
 }

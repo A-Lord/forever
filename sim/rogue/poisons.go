@@ -4,10 +4,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-const instantImbueID = 26891
-const woundImbueID = 27188
-const deadlyImbueID = 27186
-
 func (rogue *Rogue) applyPoisons() {
 	rogue.applyDeadlyPoison()
 	rogue.applyWoundPoison()
@@ -45,12 +41,9 @@ func (rogue *Rogue) registerDeadlyPoisonSpell() {
 	// 		NumberOfTicks: 4,
 	// 		TickLength:    time.Second * 3,
 	//
-	// 		OnSnapshot: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.Snapshot(target, 45.0*float64(dot.GetStacks()))
-	// 		},
-	//
 	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			dot.CalcAndDealPeriodicSnapshotDamage(sim, target, dot.OutcomeTick)
+	// 			base := 45.0 * float64(dot.GetStacks())
+	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, base, dot.OutcomeTick)
 	// 		},
 	// 	},
 	//
@@ -64,11 +57,9 @@ func (rogue *Rogue) registerDeadlyPoisonSpell() {
 	// 		if dot.IsActive() {
 	// 			dot.Refresh(sim)
 	// 			dot.AddStack(sim)
-	// 			dot.TakeSnapshot(sim)
 	// 		} else {
 	// 			dot.Apply(sim)
 	// 			dot.SetStacks(sim, 1)
-	// 			dot.TakeSnapshot(sim)
 	// 		}
 	// 	},
 	// })
@@ -176,7 +167,7 @@ func (rogue *Rogue) applyDeadlyPoison() {
 	// if procMask == core.ProcMaskUnknown {
 	// 	return
 	// }
-	// pph := 0.3 + spellData.ImprovedPoisons.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_CHANCE_OF_SUCCESS).FractionAt(rogue.Talents.ImprovedPoisons)
+	// pph := 0.3 + spellData.ImprovedPoisons.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS)).FractionAt(rogue.Talents.ImprovedPoisons)
 	// rogue.deadlyPoisonPPHM = rogue.NewFixedProcChanceManager(pph, procMask)
 	//
 	// rogue.MakeProcTriggerAura(core.ProcTrigger{
@@ -204,7 +195,7 @@ func (rogue *Rogue) applyWoundPoison() {
 	// if procMask == core.ProcMaskUnknown {
 	// 	return
 	// }
-	// pph := 0.3 + spellData.ImprovedPoisons.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_CHANCE_OF_SUCCESS).FractionAt(rogue.Talents.ImprovedPoisons)
+	// pph := 0.3 + spellData.ImprovedPoisons.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS)).FractionAt(rogue.Talents.ImprovedPoisons)
 	// rogue.woundPoisonPPHM = rogue.NewFixedProcChanceManager(pph, procMask)
 	//
 	// rogue.MakeProcTriggerAura(core.ProcTrigger{
@@ -232,7 +223,7 @@ func (rogue *Rogue) applyInstantPoison() {
 	// if procMask == core.ProcMaskUnknown {
 	// 	return
 	// }
-	// pph := 0.2 + spellData.ImprovedPoisons.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_CHANCE_OF_SUCCESS).FractionAt(rogue.Talents.ImprovedPoisons)
+	// pph := 0.2 + spellData.ImprovedPoisons.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS)).FractionAt(rogue.Talents.ImprovedPoisons)
 	// rogue.instantPoisonPPHM = rogue.NewFixedProcChanceManager(pph, procMask)
 	//
 	// rogue.MakeProcTriggerAura(core.ProcTrigger{

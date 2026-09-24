@@ -24,18 +24,8 @@ export const DefaultOptions = DruidOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	battleElixirId: 22831, // Elixir of Major Agility
 	guardianElixirId: 9088, // Gift of Arthas
-	foodId: 27667, // Spicy Crawdad
-	potId: 22849, // Ironshield Potion
-	conjuredId: 22105, // Healthstone
-	mhImbueId: 34340, // Adamantite Weightstone
 	goblinSapper: true,
-	superSapper: true,
-	scrollAgi: true,
-	scrollStr: true,
-	scrollArm: true,
-	nightmareSeed: true,
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

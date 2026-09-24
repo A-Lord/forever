@@ -49,7 +49,7 @@ func (rogue *Rogue) registerSliceAndDice() {
 	// 	ClassSpellMask: RogueSpellSliceAndDice,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: sliceAndDiceRank.Cost(),
+	// 		Cost: int32(sliceAndDiceRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

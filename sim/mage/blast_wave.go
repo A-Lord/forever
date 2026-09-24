@@ -26,7 +26,7 @@ func (mage *Mage) registerBlastWaveSpell() {
 	// 	ThreatMultiplier: 1,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: blastWaveRank.Cost(),
+	// 		FlatCost: int32(blastWaveRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{

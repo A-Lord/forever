@@ -2,6 +2,7 @@ package druid
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 type DruidForm uint8
@@ -12,7 +13,6 @@ const (
 	Cat
 	Moonkin
 	Tree
-	Any = Humanoid | Bear | Cat | Moonkin | Tree
 )
 
 // Converts from 0.009327 to 0.0085
@@ -30,6 +30,18 @@ func (form DruidForm) Matches(other DruidForm) bool {
 // 	return druid.form
 // }
 
+var formShapeshifts = map[DruidForm]dbcenums.ShapeshiftForm{
+	Bear:    dbcenums.FORM_DIRE_BEAR_FORM,
+	Cat:     dbcenums.FORM_CAT_FORM,
+	Moonkin: dbcenums.FORM_MOONKIN_FORM,
+	Tree:    dbcenums.FORM_TREE_FORM,
+}
+
+func (druid *Druid) setForm(form DruidForm) {
+	druid.form = form
+	druid.ShapeshiftForm = formShapeshifts[form]
+}
+
 func (druid *Druid) InForm(form DruidForm) bool {
 	return druid.form.Matches(form)
 }
@@ -43,20 +55,13 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 		druid.MoonkinFormAura.Deactivate(sim)
 	}
 
-	druid.form = Humanoid
+	druid.setForm(Humanoid)
 	druid.SetCurrentPowerBar(core.ManaBar)
-}
-
-func (druid *Druid) weaponImbueFlatDamage() float64 {
-	if druid.Consumables.MhImbueId == 34340 { // Adamantite Weightstone
-		return 12
-	}
-	return 0
 }
 
 func (druid *Druid) GetCatWeapon() core.Weapon {
 	unscaledWeapon := druid.WeaponFromMainHand()
-	imbueBonus := druid.weaponImbueFlatDamage()
+	imbueBonus := druid.MHImbueFlatWeaponDamage()
 	return core.Weapon{
 		BaseDamageMin:        (unscaledWeapon.BaseDamageMin + imbueBonus) / unscaledWeapon.SwingSpeed,
 		BaseDamageMax:        (unscaledWeapon.BaseDamageMax + imbueBonus) / unscaledWeapon.SwingSpeed,
@@ -69,7 +74,7 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 
 func (druid *Druid) GetBearWeapon() core.Weapon {
 	unscaledWeapon := druid.WeaponFromMainHand()
-	imbueBonus := druid.weaponImbueFlatDamage()
+	imbueBonus := druid.MHImbueFlatWeaponDamage()
 	return core.Weapon{
 		BaseDamageMin:        (unscaledWeapon.BaseDamageMin + imbueBonus) / unscaledWeapon.SwingSpeed * 2.5,
 		BaseDamageMax:        (unscaledWeapon.BaseDamageMax + imbueBonus) / unscaledWeapon.SwingSpeed * 2.5,
@@ -117,7 +122,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	// if !druid.Env.MeasuringStats && druid.form != Humanoid {
 	// druid.ClearForm(sim)
 	// }
-	// druid.form = Cat
+	// druid.setForm(Cat)
 	// druid.SetCurrentPowerBar(core.EnergyBar)
 	//
 	// druid.PseudoStats.ThreatMultiplier *= 0.71
@@ -154,7 +159,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	// }
 	// },
 	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// druid.form = Humanoid
+	// druid.setForm(Humanoid)
 	//
 	// druid.PseudoStats.ThreatMultiplier /= 0.71
 	// druid.PseudoStats.SpiritRegenMultiplier /= AnimalSpiritRegenSuppression
@@ -187,10 +192,11 @@ func (druid *Druid) registerCatFormSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.CatForm = druid.RegisterSpell(Any, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 768},
-	// 	ClassSpellMask: DruidSpellCatForm,
-	// 	Flags:          core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
+	// druid.CatForm = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: 768},
+	// 	CastRequirement: spellData.CatForm.Highest().CastRequirement(),
+	// 	ClassSpellMask:  DruidSpellCatForm,
+	// 	Flags:           core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		BaseCostPercent: 35,
@@ -246,7 +252,7 @@ func (druid *Druid) RegisterBearFormAura() {
 	// if !druid.Env.MeasuringStats && druid.form != Humanoid {
 	// druid.ClearForm(sim)
 	// }
-	// druid.form = Bear
+	// druid.setForm(Bear)
 	// druid.SetCurrentPowerBar(core.RageBar)
 	//
 	// druid.PseudoStats.ThreatMultiplier *= 1.3
@@ -273,7 +279,7 @@ func (druid *Druid) RegisterBearFormAura() {
 	// }
 	// },
 	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// druid.form = Humanoid
+	// druid.setForm(Humanoid)
 	//
 	// druid.PseudoStats.ThreatMultiplier /= 1.3
 	// druid.PseudoStats.SpiritRegenMultiplier /= AnimalSpiritRegenSuppression
@@ -308,10 +314,11 @@ func (druid *Druid) registerBearFormSpell() {
 	// actionID := core.ActionID{SpellID: 9634} // Dire Bear Form
 	// rageMetrics := druid.NewRageMetrics(actionID)
 	//
-	// druid.BearForm = druid.RegisterSpell(Any, core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	ClassSpellMask: DruidSpellBearForm,
-	// 	Flags:          core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
+	// druid.BearForm = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        actionID,
+	// 	CastRequirement: spellData.DireBearForm.Highest().CastRequirement(),
+	// 	ClassSpellMask:  DruidSpellBearForm,
+	// 	Flags:           core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		BaseCostPercent: 35,
@@ -363,12 +370,12 @@ func (druid *Druid) RegisterMoonkinFormAura() {
 	//
 	// druid.ApplyDynamicEquipScaling(sim, stats.Armor, 4)
 	//
-	// druid.form = Moonkin
+	// druid.setForm(Moonkin)
 	// druid.SetCurrentPowerBar(core.ManaBar)
 	// },
 	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
 	// druid.RemoveDynamicEquipScaling(sim, stats.Armor, 4)
-	// druid.form = Humanoid
+	// druid.setForm(Humanoid)
 	// },
 	// })
 	//
@@ -398,9 +405,10 @@ func (druid *Druid) RegisterMoonkinFormSpell() {
 	// return
 	// }
 	//
-	// druid.MoonkinForm = druid.RegisterSpell(Any, core.SpellConfig{
-	// ActionID: core.ActionID{SpellID: 24858},
-	// Flags:    core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
+	// druid.MoonkinForm = druid.RegisterSpell(core.SpellConfig{
+	// ActionID:        core.ActionID{SpellID: 24858},
+	// CastRequirement: spellData.MoonkinForm.Highest().CastRequirement(),
+	// Flags:           core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
 	//
 	// ManaCost: core.ManaCostOptions{
 	// BaseCostPercent: 9.3,

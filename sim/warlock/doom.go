@@ -66,7 +66,7 @@ func (warlock *Warlock) registerCurseOfDoom() {
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
 	// 		dot := spell.Dot(target)
-	// 		return dot.Spell.CalcPeriodicDamage(sim, target, calculateBaseDamage(), spell.OutcomeExpectedMagicHit)
+	// 		return spell.CalcPeriodicDamage(sim, target, calculateBaseDamage(), spell.OutcomeExpectedMagicHit)
 	// 	},
 	// })
 }

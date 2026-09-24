@@ -199,28 +199,12 @@ func (d DBCTooltipDataProvider) GetClass(spellId int64) proto.Class {
 		return proto.Class_ClassUnknown
 	}
 
-	switch spellEntry.SpellClassSet {
-	case 11:
-		return proto.Class_ClassShaman
-	case 10:
-		return proto.Class_ClassPaladin
-	case 9:
-		return proto.Class_ClassHunter
-	case 8:
-		return proto.Class_ClassRogue
-	case 7:
-		return proto.Class_ClassDruid
-	case 6:
-		return proto.Class_ClassPriest
-	case 5:
-		return proto.Class_ClassWarlock
-	case 4:
-		return proto.Class_ClassWarrior
-	case 3:
-		return proto.Class_ClassMage
-	default:
-		return proto.Class_ClassUnknown
+	for class, family := range core.ClassSpellFamilies {
+		if family == spellEntry.SpellClassSet {
+			return class
+		}
 	}
+	return proto.Class_ClassUnknown
 }
 
 // GetEffectBaseDamage implements TooltipDataProvider.

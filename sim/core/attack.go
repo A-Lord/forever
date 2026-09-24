@@ -65,7 +65,7 @@ func getWeaponMinRange(item *Item) float64 {
 	case proto.RangedWeaponType_RangedWeaponTypeWand:
 		return 0.
 	default:
-		return 5
+		return MinRangedRange
 	}
 
 	return 0
@@ -270,12 +270,6 @@ func (aa *AutoAttacks) PreviousRangedAttack() time.Duration {
 	return aa.ranged.previousSwing
 }
 
-// Ranged swings have a 0.5s 'windup' time before they can fire, affected by haste.
-// This function computes the amount of windup time based on the current haste.
-func (aa *AutoAttacks) RangedSwingWindup() time.Duration {
-	return time.Duration(float64(time.Millisecond*500) / aa.character.TotalRangedHasteMultiplier())
-}
-
 func (aa *AutoAttacks) SetOffhandSwingAt(offhandSwingAt time.Duration) {
 	aa.oh.swingAt = offhandSwingAt
 }
@@ -320,7 +314,7 @@ type WeaponAttack struct {
 	naturalReadyAt time.Duration
 
 	// Set by swing() immediately before firing the cast, read by the ranged
-	// auto-attack ModifyCast to populate cast.AutoSwingDelay.
+	// auto ApplyEffects to log how late the shot fired.
 	pendingSwingDelay time.Duration
 
 	curSwingSpeed    float64
@@ -347,6 +341,15 @@ func (wa *WeaponAttack) trySwing(sim *Simulation) time.Duration {
 
 func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	attackSpell := wa.spell
+	isRanged := wa == &wa.unit.AutoAttacks.ranged
+
+	// A ranged auto can't fire while moving. The hidden retry timer then
+	// checks every 500ms, and the shot goes off at the first check after the
+	// move ends. Casts never hold it.
+	if isRanged && wa.unit.Moving {
+		wa.swingAt = sim.CurrentTime + RangedAutoRetryInterval
+		return wa.swingAt
+	}
 
 	if wa.replaceSwing != nil {
 		// Need to check APL here to allow last-moment HS queue casts.
@@ -370,6 +373,11 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	// produce a negative diff.
 	wa.pendingSwingDelay = max(0, sim.CurrentTime-wa.naturalReadyAt)
 	wa.naturalReadyAt = wa.swingAt
+
+	// A melee swing resets the ranged auto timer, as if the shot had just fired.
+	if !isRanged && wa.unit.AutoAttacks.AutoSwingRanged {
+		wa.unit.AutoAttacks.StopRangedUntil(sim, sim.CurrentTime)
+	}
 
 	attackSpell.Cast(sim, wa.unit.CurrentTarget)
 
@@ -513,35 +521,21 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 		MinRange:     unit.AutoAttacks.ranged.MinRange,
 		MaxRange:     unit.AutoAttacks.ranged.MaxRange,
 
-		Cast: CastConfig{
-			DefaultCast: Cast{
-				CastTime: 1,
-			},
-
-			ModifyCast: func(sim *Simulation, spell *Spell, cast *Cast) {
-				cast.CastTime = spell.CastTime()
-
-				// Emit an "auto delayed" log line whenever the ranged auto fired
-				// later than it would have in an uncontested rotation. Below 1ms
-				// is treated as rounding noise so the common case stays silent.
-				delay := unit.AutoAttacks.RangedPendingSwingDelay()
-				readyAt := sim.CurrentTime - delay
-				if sim.Log != nil && delay > time.Millisecond && readyAt > 0 {
-					spell.Unit.Log(sim, "%s delayed by %s, was ready at %s", spell.ActionID, delay, readyAt)
-				}
-			},
-
-			CastTime: func(spell *Spell) time.Duration {
-				return unit.AutoAttacks.RangedSwingWindup()
-			},
-		},
-
 		DamageMultiplier:         1,
 		DamageMultiplierAdditive: 1,
 		ThreatMultiplier:         1,
 		BonusCoefficient:         1,
 
 		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+			// Emit an "auto delayed" log line whenever the ranged auto fired
+			// later than it would have in an uncontested rotation. Below 1ms
+			// is treated as rounding noise so the common case stays silent.
+			delay := unit.AutoAttacks.RangedPendingSwingDelay()
+			readyAt := sim.CurrentTime - delay
+			if sim.Log != nil && delay > time.Millisecond && readyAt > 0 {
+				spell.Unit.Log(sim, "%s delayed by %s, was ready at %s", spell.ActionID, delay, readyAt)
+			}
+
 			baseDamage := spell.Unit.RangedWeaponDamage(sim, spell.RangedAttackPower(target))
 
 			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
@@ -1029,11 +1023,20 @@ func (aa *AutoAttacks) PPMProc(sim *Simulation, ppm float64, procMask ProcMask, 
 	case spell.ProcMask.Matches(procMask &^ ProcMaskMeleeOH &^ ProcMaskRanged):
 		return sim.RandomFloat(label) < ppm*aa.mh.SwingSpeed/60.0
 	case spell.ProcMask.Matches(procMask & ProcMaskMeleeOH):
-		return sim.RandomFloat(label) < ppm*aa.oh.SwingSpeed/60.0
+		return sim.RandomFloat(label) < ppm*aa.offHandProcSpeed()/60.0
 	case spell.ProcMask.Matches(procMask & ProcMaskRanged):
 		return sim.RandomFloat(label) < ppm*aa.ranged.SwingSpeed/60.0
 	}
 	return false
+}
+
+// The swing speed a procs-per-minute rate is measured against for an off-hand hit. A hit with no
+// off-hand weapon behind it, such as a shield's, is measured against the main hand.
+func (aa *AutoAttacks) offHandProcSpeed() float64 {
+	if aa.oh.SwingSpeed == 0 {
+		return aa.mh.SwingSpeed
+	}
+	return aa.oh.SwingSpeed
 }
 
 func (unit *Unit) applyParryHaste() {

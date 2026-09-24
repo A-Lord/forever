@@ -20,6 +20,7 @@ export const INCLUDED_STATS: UnitStat[] = [
 	UnitStat.fromStat(Stat.StatMeleeCritRating),
 	UnitStat.fromStat(Stat.StatMeleeHasteRating),
 	UnitStat.fromStat(Stat.StatExpertiseRating),
+	UnitStat.fromPseudoStat(PseudoStat.PseudoStatExpertisePercent),
 	UnitStat.fromStat(Stat.StatArmorPenetration),
 	UnitStat.fromStat(Stat.StatDodgeRating),
 	UnitStat.fromStat(Stat.StatParryRating),

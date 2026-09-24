@@ -1,7 +1,7 @@
 package database
 
 // Re-derives the families below from the client database and asserts the committed table agrees, so
-// a hand-edited or stale generated file fails. Covers 20 of 809 families; regenerating and checking
+// a hand-edited or stale generated file fails. Covers 8 of 809 families; regenerating and checking
 // the diff is empty is the only check that reaches every row.
 //
 // Skips when tools/database/wowsims.db is absent, which is why CI is unaffected.
@@ -28,19 +28,32 @@ type rankFamily struct {
 	Table    shared.SpellDataTable
 }
 
-// TODO: Exorcism, Holy Shock, Avenger's Shield and Vampiric Touch left this gate when their
-// abilities were stubbed. Exorcism's ladder is generated again now that the resolver drops the
-// Season of Discovery stand-ins an override aura swaps in; the other three still have no ladder
-// the generator can read. Restore each row once its ability is implemented.
+// TODO: Holy Shock, Avenger's Shield and Vampiric Touch left this gate when their abilities were
+// stubbed. Holy Shock's damage and heal chains share one name, which the generator refuses, so its
+// table is by hand in sim/paladin/holy_shock.go; the other two still have no ladder the generator
+// can read. Restore each row once its ability is implemented.
 var rankFamilies = []rankFamily{
 	{"Consecration", classPaladin, paladin.ConsecrationRankMap},
+	{"Exorcism", classPaladin, paladin.ExorcismRankMap},
 	{"Hammer of Wrath", classPaladin, paladin.HammerOfWrathRankMap},
+	{"Holy Strike", classPaladin, paladin.HolyStrikeRankMap},
 	{"Holy Wrath", classPaladin, paladin.HolyWrathRankMap},
 	{"Holy Light", classPaladin, paladin.HolyLightRankMap},
 	{"Flash of Light", classPaladin, paladin.FlashOfLightRankMap},
 	{"Lay on Hands", classPaladin, paladin.LayOnHandsRankMap},
+	{"Light's Vigil", classPaladin, paladin.LightsVigilRankMap},
 	{"Holy Shield", classPaladin, paladin.HolyShieldRankMap},
-	{"Seal of Righteousness", classPaladin, paladin.SealOfRighteousnessTable},
+	{"Seal of Righteousness", classPaladin, paladin.SealOfRighteousnessRankMap},
+	{"Seal of Command", classPaladin, paladin.SealOfCommandRankMap},
+	{"Seal of Light", classPaladin, paladin.SealOfLightRankMap},
+	{"Seal of Wisdom", classPaladin, paladin.SealOfWisdomRankMap},
+	{"Seal of the Crusader", classPaladin, paladin.SealOfTheCrusaderRankMap},
+	{"Seal of Fury", classPaladin, paladin.SealOfFuryRankMap},
+	{"Devotion Aura", classPaladin, paladin.DevotionAuraRankMap},
+	{"Retribution Aura", classPaladin, paladin.RetributionAuraRankMap},
+	{"Fire Resistance Aura", classPaladin, paladin.FireResistanceAuraRankMap},
+	{"Frost Resistance Aura", classPaladin, paladin.FrostResistanceAuraRankMap},
+	{"Shadow Resistance Aura", classPaladin, paladin.ShadowResistanceAuraRankMap},
 }
 
 // One value in the committed table against the same value re-derived from the database.
@@ -158,10 +171,12 @@ func compareRow(t *testing.T, db *sql.DB, fam rankFamily, row shared.SpellData) 
 
 // Holy Shield's per-block damage lives on an aura effect (EffectAura 43) rather than on a damage
 // effect, and the generator files it under Direct all the same, so any aura effect is a candidate too.
+// A weapon-damage effect's points are the flat part the generator files there as well, which is
+// where Holy Strike's Holy damage sits.
 func directCandidates(effects []RankEffect) []RankEffect {
 	var out []RankEffect
 	for _, e := range effects {
-		if e.Effect == dbcenums.E_SCHOOL_DAMAGE || e.Effect == dbcenums.E_HEAL || e.Effect == dbcenums.E_ENERGIZE || e.Aura != 0 {
+		if e.Effect == dbcenums.E_SCHOOL_DAMAGE || e.Effect == dbcenums.E_HEAL || e.Effect == dbcenums.E_ENERGIZE || e.Aura != 0 || IsWeaponDamageEffect(e.Effect) {
 			out = append(out, e)
 		}
 	}

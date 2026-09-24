@@ -67,7 +67,7 @@ const (
 	// Stats in UnitStats proto messages, since they are not required in the
 	// database files. However, it is valuable to keep these as proper Stats
 	// in the back-end, since they are used in various stat dependencies.
-	// The units for all 7 of these are percentages (between 0 and 100).
+	// The units for all 8 of these are percentages (between 0 and 100).
 	PhysicalHitPercent
 	SpellHitPercent
 	PhysicalCritPercent
@@ -75,6 +75,7 @@ const (
 	BlockPercent
 	RangedHitPercent
 	RangedCritPercent
+	ExpertisePercent
 	// DO NOT add new stats here without discussing it first; new stats come
 	// with a performance penalty.
 
@@ -204,6 +205,12 @@ func (s Stat) StatName() string {
 		return "SpellCritPercent"
 	case BlockPercent:
 		return "BlockPercent"
+	case RangedHitPercent:
+		return "RangedHitPercent"
+	case RangedCritPercent:
+		return "RangedCritPercent"
+	case ExpertisePercent:
+		return "ExpertisePercent"
 	case DefenseRating:
 		return "DefenseRating"
 	case BlockRating:
@@ -253,6 +260,9 @@ func FromUnitStatsProto(unitStatsMessage *proto.UnitStats) Stats {
 		simStats[BlockPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatBlockPercent]
 		simStats[RangedHitPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatRangedHitPercent] - pseudoStatsMessage[proto.PseudoStat_PseudoStatMeleeHitPercent]
 		simStats[RangedCritPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatRangedCritPercent] - pseudoStatsMessage[proto.PseudoStat_PseudoStatMeleeCritPercent]
+		if int(proto.PseudoStat_PseudoStatExpertisePercent) < len(pseudoStatsMessage) {
+			simStats[ExpertisePercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatExpertisePercent]
+		}
 	}
 
 	return simStats
@@ -467,7 +477,7 @@ type PseudoStats struct {
 	MeleeSpeedMultiplier  float64
 	RangedSpeedMultiplier float64
 	RangedHasteMultiplier float64
-	AttackSpeedMultiplier float64 // Used for real haste effects like Bloodlust that modify resoruce regen and are used for RPPM effects
+	AttackSpeedMultiplier float64 // Used for real haste effects that modify resoruce regen and are used for RPPM effects
 
 	FiveSecondRuleRefreshTime time.Duration // last time a spell was cast
 	SpiritRegenRateCasting    float64       // percentage of spirit regen allowed during casting

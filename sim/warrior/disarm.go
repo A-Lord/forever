@@ -17,10 +17,6 @@ func (warrior *Warrior) registerDisarm() {
 	config.ProcMask = core.ProcMaskMeleeMHSpecial
 	config.ThreatMultiplier = 1
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(DefensiveStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 

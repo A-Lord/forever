@@ -12,8 +12,8 @@ import (
 var TalentTreeSizes = [3]int{17, 18, 18}
 
 type WarriorInputs struct {
-	DefaultShout  proto.WarriorShout
-	DefaultStance proto.WarriorStance
+	UseBattleShout bool
+	DefaultStance  proto.WarriorStance
 
 	StartingRage   float64
 	StanceSnapshot bool
@@ -63,7 +63,6 @@ type Warrior struct {
 	WarriorInputs
 
 	// Current state
-	Stance                 Stance
 	thunderClapEffectBonus float64
 
 	BattleShout       *core.Spell
@@ -144,11 +143,11 @@ func (warrior *Warrior) Initialize() {
 func (warrior *Warrior) Reset(_ *core.Simulation) {
 	switch warrior.DefaultStance {
 	case proto.WarriorStance_WarriorStanceBattle:
-		warrior.Stance = BattleStance
+		warrior.ShapeshiftForm = battleStanceRank.ShapeshiftForm()
 	case proto.WarriorStance_WarriorStanceDefensive:
-		warrior.Stance = DefensiveStance
+		warrior.ShapeshiftForm = defensiveStanceRank.ShapeshiftForm()
 	case proto.WarriorStance_WarriorStanceBerserker:
-		warrior.Stance = BerserkerStance
+		warrior.ShapeshiftForm = berserkerStanceRank.ShapeshiftForm()
 	}
 }
 

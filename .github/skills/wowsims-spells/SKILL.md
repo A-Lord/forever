@@ -38,23 +38,23 @@ spelldata.Find(id)                               // Nil where the store does not
 spelldata.MustFind(id)                           // panics instead, for a spell the caller depends on
 ```
 
-| on a `*Spell` | |
-| --- | --- |
-| `EffectN(n)` | the n-th effect **by position**, counted from 1. `Effect.Index` is the client's own number, which has gaps |
-| `Effect(aura, misc)` | the one effect with that aura and misc value; panics on none and on two |
-| `DamageEffect()`, `HealEffect()`, `EnergizeEffect()`, `PeriodicEffect()` | the first effect of that role, or `NilEffect` |
-| `CastTime()`, `Cooldown()`, `CategoryCooldown()`, `GCD()`, `Duration()`, `ICD()` | times; the client's -1 duration becomes `core.NeverExpires` |
-| `PowerCost(t)` | the cost in the units the sim spends — rage off the 0-1000 bar |
-| `SpellSchool()`, `DefenseTypeCore()`, `MissRefund()`, `TickOutcome(dot)` | core's own forms |
-| `Refs()`, `Triggered()`, `Drivers()` | the tooltip's spells, the ones the effects fire, the ones that fire this |
+| on a `*Spell`                                                                    |                                                                                                            |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `EffectN(n)`                                                                     | the n-th effect **by position**, counted from 1. `Effect.Index` is the client's own number, which has gaps |
+| `Effect(aura, misc)`                                                             | the one effect with that aura and misc value; panics on none and on two                                    |
+| `DamageEffect()`, `HealEffect()`, `EnergizeEffect()`, `PeriodicEffect()`         | the first effect of that role, or `NilEffect`                                                              |
+| `CastTime()`, `Cooldown()`, `CategoryCooldown()`, `GCD()`, `Duration()`, `ICD()` | times; the client's -1 duration becomes `core.NeverExpires`                                                |
+| `PowerCost(t)`                                                                   | the cost in the units the sim spends — rage off the 0-1000 bar                                             |
+| `SpellSchool()`, `DefenseTypeCore()`, `MissRefund()`, `TickOutcome(dot)`         | core's own forms                                                                                           |
+| `Refs()`, `Triggered()`, `Drivers()`                                             | the tooltip's spells, the ones the effects fire, the ones that fire this                                   |
 
-| on an `*Effect` | |
-| --- | --- |
-| `BaseValue()` | the client's number, unconverted |
-| `Percent()`, `Tenths()`, `TimeValue()`, `Period()` | over 100, over 10, as milliseconds, the tick interval |
+| on an `*Effect`                                                  |                                                                |
+| ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| `BaseValue()`                                                    | the client's number, unconverted                               |
+| `Percent()`, `Tenths()`, `TimeValue()`, `Period()`               | over 100, over 10, as milliseconds, the tick interval          |
 | `Average(level)`, `Min(level)`, `Max(level)`, `Roll(sim, level)` | the folded amount, the ends of the spread, and one cast's roll |
-| `Coeff()`, `APCoeff()` | the spell power and attack power shares |
-| `Trigger()` | the spell the effect fires |
+| `Coeff()`, `APCoeff()`                                           | the spell power and attack power shares                        |
+| `Trigger()`                                                      | the spell the effect fires                                     |
 
 A `Ladder` reads per rank: `ValueAt`, `FractionAt`, `MultiplierAt`, `TenthsAt`, and `EffectAt(n)` / `Effect(aura, misc)` for a rank with more than one effect. Rank 0 answers 0, so no `if rank > 0` guard.
 
@@ -78,6 +78,8 @@ func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string
 Each fills what the row states and nothing else; the caller adds `ApplyEffects`, the proc mask, the conditions and any flag the client does not carry. `ParseEffects` must be called before the aura activates. `*Parsed` carries `Applied` and `Skipped` — `SPELLDATA_REPORT=1` prints the skipped effects, which are what the port still has to wire by hand.
 
 `Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ClassSpellMask` and `ApplyEffects` by hand. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
+
+Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions and the shapeshift attribute bits, and core enforces it. Never write a stance or form check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
 
 ## Porting a class
 
@@ -127,7 +129,7 @@ go run ./tools/database/gen_spelldata            # rewrite the store, the enums 
 go run ./tools/database/gen_spelldata -check     # name what is stale, write nothing (make spelldata-check)
 go test ./sim/core/spelldata/ -count=1           # the store's own tests, no database needed
 go test ./tools/database/ -count=1               # the regeneration from the committed inputs
-go test --tags=with_db ./sim/<class>/ -count=1   # a class, parity test included
+go test --tags=with_db ./sim/<class>/ -count=1   # a class; paladin's run includes its parity test
 git status --porcelain -- '*.results'            # empty unless a number was meant to move
 ```
 

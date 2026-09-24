@@ -18,27 +18,6 @@ type reforgeSoftCap struct {
 	capType     proto.StatCapType
 }
 
-// buildDebuffUnitStats returns the pseudo-stat contributions from raid debuffs that the
-// UI adds to the character-sheet display. These debuffs (e.g. Improved Faerie Fire, Improved
-// Seal of the Crusader) lower the target's effective miss/crit chance rather than raising
-// the player's stats, so they are absent from FinalStats. Soft-cap breakpoints configured
-// by the user are based on the UI display values (which include the debuff contribution),
-// so we add these offsets to the base stats before computing the gap to each cap.
-func buildDebuffUnitStats(raid *proto.Raid) core.UnitStats {
-	debuffs := raid.GetDebuffs()
-	result := core.NewUnitStats()
-	if debuffs.GetFaerieFire() == proto.TristateEffect_TristateEffectImproved {
-		result = setUnitStat(result, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatMeleeHitPercent), 3)
-		result = setUnitStat(result, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatRangedHitPercent), 3)
-	}
-	if debuffs.GetImprovedSealOfTheCrusader() != proto.TristateEffect_TristateEffectMissing {
-		result = setUnitStat(result, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatMeleeCritPercent), 3)
-		result = setUnitStat(result, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatRangedCritPercent), 3)
-		result = setUnitStat(result, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatSpellCritPercent), 3)
-	}
-	return result
-}
-
 // ---------------------------------------------------------------------------
 // LP-path cap computation (mirrors the reference solver). These run alongside the legacy
 // buildReforgeHardCaps/buildReforgeSoftCaps/validateReforgeWeights until the MIP path is removed.
@@ -122,6 +101,7 @@ func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSof
 		stats.SpellHasteRating,
 		stats.DefenseRating,
 		stats.ResilienceRating,
+		stats.ExpertiseRating,
 	} {
 		children := childPseudoStats(parent)
 		if len(children) == 0 {

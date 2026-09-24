@@ -25,9 +25,8 @@ type Spell struct {
 	// Spell.NameSubtext_lang: "Rank 4" on a ranked spell, empty on everything else.
 	Rank string
 
-	// SpellMisc.SchoolMask. core.SpellSchool holds the same bit values - see sim/core/flags.go - so
-	// SpellSchool() converts without translating.
-	School uint8
+	// SpellMisc.SchoolMask, which core.SpellSchool states in the same bits.
+	School core.SpellSchool
 
 	// SpellMisc.Speed: how fast the missile flies, in yards per second. Zero hits on cast.
 	Speed float32
@@ -57,9 +56,12 @@ type Spell struct {
 	// SpellCategories.Category, StartRecoveryCategory and ChargeCategory.
 	Category, StartRecoveryCategory, ChargeCategory int16
 
-	// SpellCategories.DefenseType (0 none, 1 magic, 2 melee, 3 ranged), DispelType, Mechanic and
-	// PreventionType.
-	DefenseType, DispelType, Mechanic, PreventionType uint8
+	// SpellCategories.DefenseType, DispelType, Mechanic and PreventionType. The client counts defense
+	// types none, magic, melee, ranged, which is the order core.DefenseType is declared in.
+	DefenseType    core.DefenseType
+	DispelType     uint8
+	Mechanic       dbcenums.Mechanic
+	PreventionType uint8
 
 	// SpellAuraOptions.CumulativeAura: how high the aura stacks. Zero is one application.
 	MaxStack int16
@@ -88,6 +90,10 @@ type Spell struct {
 	// effect, so this is zero unless an override fills it.
 	FlatThreat float32
 
+	// An area bonus from an override: AreaGroup ids (any counts), amount and duration factors.
+	AreaBonusGroups                        []int32
+	AreaMultiplier, AreaDurationMultiplier float32
+
 	// SpellClassOptions.SpellClassSet and SpellClassMask_0..3: the set of spells a talent effect
 	// naming this family reaches.
 	ClassFlags core.ClassFlags
@@ -98,8 +104,20 @@ type Spell struct {
 	// SpellShapeshift.ShapeshiftMask_0 | ShapeshiftMask_1 << 32: the forms the spell is usable in.
 	StanceMask uint64
 
+	// SpellShapeshift.ShapeshiftExclude_0 | ShapeshiftExclude_1 << 32: the forms the spell is barred from.
+	StanceExclude uint64
+
+	// SpellAuraRestrictions.CasterAuraSpell: the spell id whose aura the caster must carry to cast this one.
+	CasterAura int32
+
+	// SpellAuraRestrictions.ExcludeCasterAuraSpell: the spell id whose aura bars the caster from casting this one.
+	ExcludeCasterAura int32
+
 	// SpellTargetRestrictions.MaxTargets for an area effect. Zero is unlimited.
 	MaxTargets int16
+
+	// SpellCastingRequirements.RequiredAreasID. Zero is anywhere.
+	RequiredAreas int32
 
 	// SpellEquippedItems: the item class, subclass mask and inventory-type mask the spell requires,
 	// which is how a weapon-specific proc states the weapons it fires from.
@@ -206,13 +224,13 @@ type Effect struct {
 	ChainAmp     float32
 
 	// EffectMechanic.
-	Mechanic uint8
+	Mechanic dbcenums.Mechanic
 
 	// EffectPointsPerResource: what the amount gains per point of the resource spent.
 	PointsPerResource float32
 
 	// ImplicitTarget_0/_1.
-	Target [2]uint8
+	Target [2]dbcenums.ImplicitTarget
 
 	// EffectAttributes.
 	Attributes int32
@@ -220,9 +238,9 @@ type Effect struct {
 
 // One SpellPower row: what the spell costs and out of which bar.
 type Power struct {
-	// SpellPower.PowerType: 0 mana, 1 rage, 2 focus, 3 energy. Rage is on a 0-1000 bar, so PowerCost
-	// divides it; the rest are stated in whole points.
-	Type int8
+	// SpellPower.PowerType. Rage is on a 0-1000 bar, so PowerCost divides it; the rest are stated in
+	// whole points.
+	Type dbcenums.PowerType
 
 	// ManaCost and ManaCostPerLevel, in the bar's own units.
 	Cost, CostPerLevel int32

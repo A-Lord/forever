@@ -44,7 +44,7 @@ func (hunter *Hunter) registerEnduranceTraining() {
 	// }
 	//
 	// hunter.Pet.StatDependencyManager.EnableDynamicStatDep(
-	// 	hunter.Pet.NewDynamicMultiplyStat(stats.Health, spellData.EnduranceTraining.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_ALL_EFFECTS).MultiplierAt(hunter.Talents.EnduranceTraining)),
+	// 	hunter.Pet.NewDynamicMultiplyStat(stats.Health, spellData.EnduranceTraining.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_ALL_EFFECTS)).MultiplierAt(hunter.Talents.EnduranceTraining)),
 	// )
 	//
 	// // TODO: Forever drops the hunter's own health bonus from Endurance Training; the spell

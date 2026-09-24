@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 // An addition to the resolved config for what the client does not state: the proc mask, the metrics
@@ -16,17 +17,13 @@ type SpellOpt func(*core.SpellConfig, *Spell)
 // carries - 1763 rows state 133 and the rest state nothing - so a row outside it spends no GCD.
 const globalCooldownCategory int16 = 133
 
-// SpellPower.PowerType. Rage is powerTypeRage in spell.go, where the 0-1000 bar is converted.
-const (
-	powerTypeMana   int8 = 0
-	powerTypeFocus  int8 = 2
-	powerTypeEnergy int8 = 3
-)
-
-// ImplicitTarget_0 values that name a friendly unit, by the client's Targets enum: TARGET_UNIT_CASTER,
-// _PET, _CASTER_AREA_PARTY, _TARGET_ALLY, _SRC_AREA_ALLY, _DEST_AREA_ALLY, _SRC_AREA_PARTY,
-// _DEST_AREA_PARTY, _TARGET_PARTY, _TARGET_CHAINHEAL_ALLY, _CASTER_AREA_RAID and _TARGET_RAID.
-var helpfulTargets = []uint8{1, 5, 20, 21, 30, 31, 33, 34, 35, 45, 56, 57}
+// ImplicitTarget_0 values that name a friendly unit.
+var helpfulTargets = []dbcenums.ImplicitTarget{
+	dbcenums.TARGET_UNIT_CASTER, dbcenums.TARGET_UNIT_PET, dbcenums.TARGET_UNIT_CASTER_AREA_PARTY,
+	dbcenums.TARGET_UNIT_TARGET_ALLY, dbcenums.TARGET_UNIT_SRC_AREA_ALLY, dbcenums.TARGET_UNIT_DEST_AREA_ALLY,
+	dbcenums.TARGET_UNIT_SRC_AREA_PARTY, dbcenums.TARGET_UNIT_DEST_AREA_PARTY, dbcenums.TARGET_UNIT_TARGET_PARTY,
+	dbcenums.TARGET_UNIT_TARGET_CHAINHEAL_ALLY, dbcenums.TARGET_UNIT_CASTER_AREA_RAID, dbcenums.TARGET_UNIT_TARGET_RAID,
+}
 
 // What the client states about a spell, as the fields core registers it through. The caller adds the
 // proc mask, ApplyEffects and anything the client does not carry to the returned value before handing
@@ -47,6 +44,8 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 		MinRange:     float64(s.MinRange),
 		MaxRange:     float64(s.MaxRange),
 		Cast:         castConfig(unit, s),
+
+		CastRequirement: s.CastRequirement(),
 	}
 	applyCost(&config, s)
 	if s.IsBleed() {
@@ -85,7 +84,7 @@ func Magic(mask core.ProcMask) SpellOpt {
 }
 
 // A spell another spell or an aura casts: it is out of the rotation Melee and Magic put it in, it
-// does not feed on-cast effects, and it has no cast, cost or cooldown of its own even when it shares
+// does not feed on-cast effects, and it has no cast, cost, cooldown or form requirement of its own even when it shares
 // the row of the ability that casts it, the way the warrior's Blood Craze heal and Whirlwind's
 // off-hand strike are registered. Its damage and healing are still measured, its casts are not: the
 // metrics aggregator counts no cast for a passive spell, so a sub-spell whose casts the sim reports -
@@ -95,6 +94,7 @@ func Proc() SpellOpt {
 		config.Flags |= core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete
 		config.Flags &^= core.SpellFlagAPL
 		config.Cast = core.CastConfig{}
+		config.CastRequirement = core.CastRequirement{}
 		config.ManaCost = core.ManaCostOptions{}
 		config.RageCost = core.RageCostOptions{}
 		config.EnergyCost = core.EnergyCostOptions{}
@@ -113,6 +113,17 @@ func Flags(flags core.SpellFlag) SpellOpt {
 func Tag(tag int32) SpellOpt {
 	return func(config *core.SpellConfig, _ *Spell) {
 		config.ActionID.Tag = tag
+	}
+}
+
+func (s *Spell) CastRequirement() core.CastRequirement {
+	return core.CastRequirement{
+		Forms:             s.StanceMask,
+		ExcludedForms:     s.StanceExclude,
+		CasterForm:        s.CastableInCasterForm(),
+		NotShapeshifted:   s.NotShapeshifted(),
+		CasterAura:        s.CasterAura,
+		ExcludeCasterAura: s.ExcludeCasterAura,
 	}
 }
 
@@ -173,11 +184,11 @@ func castConfig(unit *core.Unit, s *Spell) core.CastConfig {
 	}
 
 	switch {
-	case s.CooldownMs > 0 && s.CategoryCooldownMs > 0:
-		cast.CD = core.Cooldown{Timer: unit.NewTimer(), Duration: s.Cooldown()}
-		cast.SharedCD = core.Cooldown{Timer: categoryTimer(unit, s), Duration: s.CategoryCooldown()}
 	case s.CooldownMs > 0:
 		cast.CD = core.Cooldown{Timer: unit.NewTimer(), Duration: s.Cooldown()}
+		if s.CategoryCooldownMs > 0 {
+			cast.SharedCD = core.Cooldown{Timer: categoryTimer(unit, s), Duration: s.CategoryCooldown()}
+		}
 	case s.CategoryCooldownMs > 0:
 		cast.CD = core.Cooldown{Timer: categoryTimer(unit, s), Duration: s.CategoryCooldown()}
 	}
@@ -218,16 +229,16 @@ func applyCost(config *core.SpellConfig, s *Spell) {
 	costPct := float64(s.Powers[0].CostPct)
 
 	switch powerType {
-	case powerTypeMana:
+	case dbcenums.POWER_MANA:
 		config.ManaCost = core.ManaCostOptions{FlatCost: cost}
 		if costPct > 0 {
 			config.ManaCost.BaseCostPercent = costPct
 		}
-	case powerTypeRage:
+	case dbcenums.POWER_RAGE:
 		config.RageCost = core.RageCostOptions{Cost: cost, Refund: s.MissRefund()}
-	case powerTypeEnergy:
+	case dbcenums.POWER_ENERGY:
 		config.EnergyCost = core.EnergyCostOptions{Cost: cost, Refund: s.MissRefund()}
-	case powerTypeFocus:
+	case dbcenums.POWER_FOCUS:
 		config.FocusCost = core.FocusCostOptions{Cost: cost, Refund: s.MissRefund()}
 	default:
 		return

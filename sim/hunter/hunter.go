@@ -76,7 +76,7 @@ func RegisterHunter() {
 	)
 }
 
-func NewHunter(character *core.Character, options *proto.Player, hunterOptions *proto.HunterOptions, raid *proto.Raid) *Hunter {
+func NewHunter(character *core.Character, options *proto.Player, hunterOptions *proto.HunterOptions, _ *proto.Raid) *Hunter {
 	hunter := &Hunter{
 		Character: *character,
 		Talents:   &proto.HunterTalents{},
@@ -84,15 +84,6 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	}
 
 	core.FillTalentsProto(hunter.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
-
-	if raid.Debuffs != nil {
-		if hunter.Options.PetType == proto.HunterOptions_Bat || hunter.Options.PetType == proto.HunterOptions_Owl {
-			raid.Debuffs.Screech = false
-		}
-
-		// TODO: Forever drops Expose Weakness; this hunter can no longer self-provide the
-		// debuff, so the raid.Debuffs fallback values are never cleared.
-	}
 
 	hunter.PseudoStats.CanParry = true
 
@@ -220,7 +211,7 @@ func (hunter *Hunter) RegisterRangedSpell(config core.SpellConfig) *core.Spell {
 		config.MissileSpeed = 40
 	}
 
-	config.MinRange = core.MaxMeleeRange + 0.01
+	config.MinRange = core.MinRangedRange
 	config.MaxRange = HunterBaseMaxRange
 	config.Cast.DefaultCast.GCD = core.GCDDefault
 	config.Cast.IgnoreHaste = true
@@ -229,7 +220,6 @@ func (hunter *Hunter) RegisterRangedSpell(config core.SpellConfig) *core.Spell {
 		if config.Cast.ModifyCast == nil {
 			config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
 				cast.CastTime = spell.CastTime()
-				hunter.AutoAttacks.DelayRangedUntil(sim, sim.CurrentTime+cast.CastTime+1)
 			}
 		}
 
@@ -283,7 +273,7 @@ func (hunter *Hunter) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 		partyBuffs.TrueshotAura = true
 	}
 
-	if partyBuffs.WindfuryTotem != proto.TristateEffect_TristateEffectMissing {
+	if partyBuffs.WindfuryTotem {
 		hunter.windFuryEnabled = true
 	}
 }

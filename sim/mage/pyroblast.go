@@ -23,7 +23,7 @@ func (mage *Mage) registerPyroblastSpell() {
 	// 	MissileSpeed:   float64(pyroblastRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: pyroblastRank.Cost(),
+	// 		FlatCost: int32(pyroblastRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

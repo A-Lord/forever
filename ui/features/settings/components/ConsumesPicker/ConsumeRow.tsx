@@ -15,7 +15,7 @@ const rowConfigShown = (config: ConsumeRowConfig, player: Player<any>): boolean 
 	'values' in config ? iconEnumPickerShown(config, player) : !config.showWhen || config.showWhen(player);
 
 export interface ConsumeRowProps {
-	name: 'potions' | 'elixirs' | 'food' | 'engineering' | 'imbue' | 'drums' | 'scrolls' | 'miscellaneous' | 'pet';
+	name: 'potions' | 'elixirs' | 'food' | 'engineering' | 'imbue' | 'scrolls' | 'miscellaneous';
 	configs?: ReadonlyArray<ConsumeRowConfig>;
 	// Hides the row whatever its configs say; the pickers stay mounted (see below).
 	hidden?: boolean;

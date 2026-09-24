@@ -41,7 +41,7 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	// 	DamageMultiplier: 0,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: arcaneMissilesRank.Cost(),
+	// 		FlatCost: int32(arcaneMissilesRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{

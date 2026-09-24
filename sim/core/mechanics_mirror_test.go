@@ -21,9 +21,9 @@ func TestMechanicsConstantsMatchTheUI(t *testing.T) {
 	}
 
 	goValues := map[string]float64{
-		"CHARACTER_LEVEL": CharacterLevel,
-		"BOSS_LEVEL":      CharacterLevel + 3,
-		"EXPERTISE_PER_QUARTER_PERCENT_REDUCTION":        ExpertisePerQuarterPercentReduction,
+		"CHARACTER_LEVEL":                                CharacterLevel,
+		"BOSS_LEVEL":                                     CharacterLevel + 3,
+		"EXPERTISE_RATING_PER_EXPERTISE_PERCENT":         ExpertiseRatingPerExpertisePercent,
 		"PHYSICAL_HASTE_RATING_PER_HASTE_PERCENT":        PhysicalHasteRatingPerHastePercent,
 		"SPELL_HASTE_RATING_PER_HASTE_PERCENT":           SpellHasteRatingPerHastePercent,
 		"SPELL_CRIT_RATING_PER_CRIT_PERCENT":             SpellCritRatingPerCritPercent,

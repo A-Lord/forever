@@ -209,8 +209,7 @@ func (s *SpellEffect) scaledMax(avg, delta float64) float64 {
 // Reports whether the aura fires another spell when its owner procs. Both forms are the same edge
 // for the purposes of walking a trigger chain; only the amount differs.
 func (effect *SpellEffect) IsProcTrigger() bool {
-	return effect.EffectAura == dbcenums.A_PROC_TRIGGER_SPELL ||
-		effect.EffectAura == dbcenums.A_PROC_TRIGGER_SPELL_WITH_VALUE
+	return effect.EffectAura.IsProcTrigger()
 }
 
 // Reports whether the aura resolves to nothing on its own. Either the client applies it as a

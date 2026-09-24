@@ -1838,6 +1838,7 @@ func ScanSpells(rows *sql.Rows) (dbc.Spell, error) {
 		&spell.Variables,
 		&spell.MaxCumulativeStacks,
 		&spell.MaxTargets,
+		&spell.RequiredAreasID,
 		&iconId,
 	)
 	if err != nil {
@@ -1919,6 +1920,7 @@ func LoadAndWriteSpells(dbHelper *DBHelper, inputsDir string) ([]dbc.Spell, erro
 	COALESCE(sdv.Variables, ""),
 	COALESCE(sao.CumulativeAura, 0),
 	COALESCE(str.MaxTargets, 0),
+	COALESCE(scr.RequiredAreasID, 0),
 	COALESCE(sm.SpellIconFileDataID, 0)
 FROM
     Spell as s
@@ -1990,6 +1992,14 @@ FROM
 		GROUP BY
 			SpellID
 	) str ON s.ID = str.SpellID
+	LEFT JOIN (
+		SELECT
+			*
+		FROM
+			SpellCastingRequirements
+		GROUP BY
+			SpellID
+	) scr ON s.ID = scr.SpellID
 	LEFT JOIN SpellRange sr ON sr.ID = sm.RangeIndex
 	GROUP BY s.ID
 	ORDER BY s.ID asc

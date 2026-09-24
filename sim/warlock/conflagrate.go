@@ -20,7 +20,7 @@ func (warlock *Warlock) registerConflagrate() {
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellConflagrate,
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: conflagrateRank.Cost()},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(conflagrateRank.Cost())},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
 	// 			GCD: conflagrateRank.GCD(),

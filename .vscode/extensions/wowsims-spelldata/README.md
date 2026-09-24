@@ -32,10 +32,10 @@ from, and the result or why it stopped - to the `WoWSims Spelldata` output chann
 
 ## Settings
 
-|                              |                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| `wowsims-spelldata.goBinary` | the `go` binary that starts the server, `go` by default                        |
-| `wowsims-spelldata.trace`    | `on` (default) or `off`: whether each hover's trace goes to the output channel |
+|                              |                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `wowsims-spelldata.goBinary` | the `go` binary that starts the server; `go` looks on the PATH, then GOROOT and the usual install dirs |
+| `wowsims-spelldata.trace`    | `on` (default) or `off`: whether each hover's trace goes to the output channel                         |
 
 ## Build and install
 

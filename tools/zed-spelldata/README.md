@@ -13,6 +13,15 @@ Zed builds a dev extension itself, which needs Rust installed through `rustup`:
 1. Run `zed: install dev extension` from the command palette.
 2. Pick this folder, `tools/zed-spelldata`.
 
+With Zed on Windows and the repository in WSL, copy this folder to a Windows drive first and pick the
+copy: Zed links the installed extension to its folder with a junction, which cannot point at
+`\\wsl.localhost`. Zed compiles it on Windows, so the toolchain there has to link on its own:
+`rustup default stable-x86_64-pc-windows-gnu`, or the MSVC toolchain with Visual Studio's C++ build
+tools. The server itself still runs in WSL, from the repository.
+
+`.zed/settings.json` lists gopls before this server for Go. Zed shows each server's hover as a
+separate popover.
+
 Open the repository root as the worktree - the server is run from there and reads the store it
 compiles. The first hover waits for `go run` to compile, a few seconds. `go` has to be on the PATH of
 the shell Zed starts in.

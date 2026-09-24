@@ -2,6 +2,8 @@
 node_modules
 
 ui/**/*_auto_gen.ts
+# Generated from the client database, which CI does not have, so it is committed.
+!ui/features/settings/model/buffs_debuffs_auto_gen.ts
 .dirstamp
 
 # IDE folders
@@ -51,6 +53,7 @@ tools/db2tool/TACTKeys.txt
 tools/db2tool/DBDCache
 tools/db2tool/dbfilesclient/
 tools/db2tool/caches/
+tools/db2tool/cdncache/
 
 # Client-extracted databases and caches. Output of `make db` from a local WoW
 # install, tens of MB each, and rebuildable - the same reason wowsims.db is here.

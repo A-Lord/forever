@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -111,6 +112,11 @@ type Unit struct {
 	stats.StatDependencyManager
 
 	PseudoStats stats.PseudoStats
+
+	// The client form the unit is in; the class writes it.
+	ShapeshiftForm dbcenums.ShapeshiftForm
+	// Leaves the current form, for a cast the form refuses but no form allows. Nil: none.
+	AutoUnshift func(sim *Simulation)
 
 	currentPowerBar PowerBarType
 	healthBar
@@ -641,7 +647,7 @@ func (unit *Unit) updateMeleeAndRangedHaste() {
 	}
 }
 
-// Helper for when true haste effects are multiplied for i.E. Bloodlust
+// Helper for when true haste effects are multiplied.
 // Seems to also always impact the regen rate
 func (unit *Unit) MultiplyAttackSpeed(sim *Simulation, amount float64) {
 	unit.PseudoStats.AttackSpeedMultiplier *= amount
@@ -682,6 +688,7 @@ func (unit *Unit) addUniversalStatDependencies() {
 	unit.AddStatDependency(stats.SpellHitRating, stats.SpellHitPercent, 1/SpellHitRatingPerHitPercent)
 	unit.AddStatDependency(stats.MeleeCritRating, stats.PhysicalCritPercent, 1/PhysicalCritRatingPerCritPercent)
 	unit.AddStatDependency(stats.SpellCritRating, stats.SpellCritPercent, 1/SpellCritRatingPerCritPercent)
+	unit.AddStatDependency(stats.ExpertiseRating, stats.ExpertisePercent, 1/ExpertiseRatingPerExpertisePercent)
 }
 
 func (unit *Unit) finalize() {

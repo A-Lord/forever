@@ -19,7 +19,7 @@ func (warlock *Warlock) registerHellfire() *core.Spell {
 	// hellfireActionID := core.ActionID{SpellID: hellfireRank.ID}
 	// tickLength := hellfireTick.Period()
 	//
-	// manaCost := hellfireRank.Cost()
+	// manaCost := int32(hellfireRank.Cost())
 	// warlock.Hellfire = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:         hellfireActionID,
 	// 	SpellSchool:      core.SpellSchoolFire,

@@ -14,10 +14,6 @@ func (warrior *Warrior) registerMockingBlow() {
 	// TODO: Test in-game
 	config.ThreatMultiplier = 1
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, mockingBlowBaseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
 

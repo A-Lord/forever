@@ -16,7 +16,7 @@ func (warlock *Warlock) registerSoulfire() {
 	// 	ClassSpellMask: WarlockSpellSoulFire,
 	// 	MissileSpeed:   float64(soulfireRank.Speed),
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: soulfireRank.Cost()},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(soulfireRank.Cost())},
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

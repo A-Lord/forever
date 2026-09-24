@@ -17,20 +17,20 @@ func (e *Effect) Percent() float64 {
 	return e.BasePoints / 100
 }
 
-// The client states rage and energy on a 0-1000 bar: a -30 cost modifier is 3 rage, Charge's energize
-// of 150 is 15.
+// The client states rage on a 0-1000 bar: a -30 cost modifier is 3 rage, Charge's energize of 150 is
+// 15.
 func (e *Effect) Tenths() float64 {
 	return e.BasePoints / 10
 }
 
 // The value read as a time, which is the unit a duration or delay modifier states it in.
 func (e *Effect) TimeValue() time.Duration {
-	return time.Duration(e.BasePoints) * time.Millisecond
+	return core.DurationFromMillis(e.BasePoints)
 }
 
 // EffectAuraPeriod: how long one tick of the aura lasts.
 func (e *Effect) Period() time.Duration {
-	return millis(e.PeriodMs)
+	return core.DurationFromMillis(e.PeriodMs)
 }
 
 func (e *Effect) Coeff() float64 {
@@ -86,8 +86,9 @@ func (e *Effect) Max(level int32) float64 {
 
 // The amount for one cast: rolled where the client states a spread, the average where it does not.
 func (e *Effect) Roll(sim *core.Simulation, level int32) float64 {
+	average := e.Average(level)
 	if e.Variance == 0 {
-		return e.Average(level)
+		return average
 	}
-	return sim.Roll(e.Min(level), e.Max(level))
+	return sim.Roll(average*(1-e.Variance/2), average*(1+e.Variance/2))
 }

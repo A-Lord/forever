@@ -41,6 +41,7 @@ Both:
 - [Regenerating and checking](#regenerating-and-checking)
 - [Porting a class to the store](#porting-a-class-to-the-store)
 - [Traps](#traps)
+- [Buffs and debuffs](#buffs-and-debuffs)
 
 The accessor, spell config, aura and ladder snippets below are pinned by
 `sim/core/spelldata/example_test.go`, which runs them against the committed store. The ones that need a
@@ -51,13 +52,14 @@ character - the parses, the proc triggers - are read off the warrior files they 
 `sim/core/spelldata/spells_auto_gen.go` holds every spell the sim can reach: the ones the class files
 name, the ones items, enchants and set bonuses cast, and everything those reach in turn through a
 trigger effect, an actionbar override or a tooltip reference. `sim/core/spelldata/snapshot_test.go`
-pins what that comes to - 7035 rows carrying 9636 effects - so a regeneration that moves the universe
+pins what that comes to - 7048 rows carrying 9651 effects - so a regeneration that moves the universe
 says so there.
 
 Every field is the client's column in the client's units: a percentage is the integer 16, rage is on a
 0-1000 bar, times are milliseconds. The conversion is in the accessors, so a row always matches what
 the DBC says. `sim/core` must not import the package: the store imports core, and the import back
-would be a cycle.
+would be a cycle. That is why the raid buffs live in `sim/core/buffs` - see
+[Buffs and debuffs](#buffs-and-debuffs).
 
 ### Finding a row
 
@@ -88,7 +90,7 @@ that accessor carries and the row with the effect it read marked `(read)`.
 
 The worded line states each number in the unit the sim spends it in, which is also how it names the
 accessor it was read with: a plain amount is `Average(60)` and a range is `Min`/`Max`, a percentage is
-`Percent()`, rage and energy are `Tenths()`, a time is `TimeValue()`, and a share of spell or attack
+`Percent()`, rage is `Tenths()`, a time is `TimeValue()`, and a share of spell or attack
 power is `Coeff()`/`APCoeff()`. A dummy line states the row's number and nothing about what it means,
 which is the one shape that always needs the tooltip. An effect whose type or aura the printer has no
 wording for says `unrecognised shape`, and the literal beneath it is then the whole answer.
@@ -138,17 +140,17 @@ damage or any of the weapon-damage effects), `HealEffect()`, `EnergizeEffect()` 
 
 ### Reading a value
 
-|                          |                                                                         |
-| ------------------------ | ----------------------------------------------------------------------- |
-| `BaseValue()`            | the client's own number, unconverted                                    |
-| `Percent()`              | over 100, because the client states a percentage as the integer 16      |
-| `Tenths()`               | over 10, because rage and energy sit on a 0-1000 bar                    |
-| `TimeValue()`            | the number read as milliseconds, which is what a duration modifier is   |
-| `Period()`               | `EffectAuraPeriod`, the tick interval                                   |
-| `Coeff()` / `APCoeff()`  | the spell power and attack power shares of the effect                   |
-| `Average(level)`         | the amount at a caster level                                            |
-| `Min(level)`/`Max(level)`| the ends of the roll                                                    |
-| `Roll(sim, level)`       | the amount for one cast                                                 |
+|                           |                                                                       |
+| ------------------------- | --------------------------------------------------------------------- |
+| `BaseValue()`             | the client's own number, unconverted                                  |
+| `Percent()`               | over 100, because the client states a percentage as the integer 16    |
+| `Tenths()`                | over 10, because rage sits on a 0-1000 bar                            |
+| `TimeValue()`             | the number read as milliseconds, which is what a duration modifier is |
+| `Period()`                | `EffectAuraPeriod`, the tick interval                                 |
+| `Coeff()` / `APCoeff()`   | the spell power and attack power shares of the effect                 |
+| `Average(level)`          | the amount at a caster level                                          |
+| `Min(level)`/`Max(level)` | the ends of the roll                                                  |
+| `Roll(sim, level)`        | the amount for one cast                                               |
 
 `Average(level)` is the fold the family tables do: the base points truncated to a whole number, plus
 `EffectRealPointsPerLevel` for each level between the spell's own `SpellLevel` and the caster's,
@@ -169,12 +171,12 @@ acts on: `IsPassive`, `IsChanneled`, `RefundsOnMiss` with `MissRefund()` (the 0.
 `CannotCrit`, `IsAProc`, `SuppressesWeaponProcs` and `IsWeaponProcAura`; `IsBleed` reads
 `SpellCategories.Mechanic` instead.
 
-|                        |                                                                                    |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| `effect.Trigger()`     | the spell `EffectTriggerSpell` names                                               |
-| `spell.Triggered()`    | every spell the row's effects fire, deduped, in effect order                       |
-| `spell.Drivers()`      | the spells whose effects fire this one, and the ones whose actionbar override replaces a spell with it |
-| `spell.Refs()`         | the spells the tooltip names (`$12880d`, `$12966n`), in the order it names them    |
+|                     |                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| `effect.Trigger()`  | the spell `EffectTriggerSpell` names                                                                   |
+| `spell.Triggered()` | every spell the row's effects fire, deduped, in effect order                                           |
+| `spell.Drivers()`   | the spells whose effects fire this one, and the ones whose actionbar override replaces a spell with it |
+| `spell.Refs()`      | the spells the tooltip names (`$12880d`, `$12966n`), in the order it names them                        |
 
 An id the store does not carry is left out of those lists rather than answered as `Nil`. Lightning
 Shield rank 1 shows why the two kinds of edge are separate: its aura effect triggers 26545, the
@@ -205,15 +207,15 @@ as one spell whose per-rank numbers live in a curve: each rank is that spell wit
 the effects the curve covers, and an effect it has no row for keeps the spell's own base value. Both
 `MustFind` every id, so a family that loses a spell fails at startup rather than registering nothing.
 
-|                                                        |                                                                                      |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| `Rank(n)`                                              | the spell at rank n. Rank 0 is untaken and answers `Nil`, so no `if rank > 0` guard   |
-| `Highest()`                                            | the top rank                                                                          |
-| `ByID(id)`                                             | the rank with this spell id; panics on one the ladder does not carry                  |
-| `Len()`, `Each(fn)`                                    | how many ranks, and each of them with its number                                      |
-| `ValueAt(rank)`                                        | the rank's only effect in the client's units; panics where the rank has more than one |
-| `FractionAt`, `MultiplierAt`, `TenthsAt`               | the same over 100, as `1 +` that, and over 10                                         |
-| `EffectAt(n)`, `Effect(aura, misc)`                    | one named effect across the ranks, carrying the same four readers                     |
+|                                          |                                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Rank(n)`                                | the spell at rank n. Rank 0 is untaken and answers `Nil`, so no `if rank > 0` guard   |
+| `Highest()`                              | the top rank                                                                          |
+| `ByID(id)`                               | the rank with this spell id; panics on one the ladder does not carry                  |
+| `Len()`, `Each(fn)`                      | how many ranks, and each of them with its number                                      |
+| `ValueAt(rank)`                          | the rank's only effect in the client's units; panics where the rank has more than one |
+| `FractionAt`, `MultiplierAt`, `TenthsAt` | the same over 100, as `1 +` that, and over 10                                         |
+| `EffectAt(n)`, `Effect(aura, misc)`      | one named effect across the ranks, carrying the same four readers                     |
 
 `MultiplierAt` takes its sign from the data: a talent the client states as -2/-4/-6 gives 0.94 at rank
 3 and nobody writes the minus.
@@ -231,9 +233,6 @@ leaves everything else to the caller:
 var pummelRank = spellData.Pummel.ByID(6554)
 
 config := spelldata.SpellConfig(&warrior.Unit, pummelRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-	return warrior.StanceMatches(BerserkerStance)
-}
 config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) { /* ... */ }
 warrior.RegisterSpell(config)
 ```
@@ -242,27 +241,61 @@ What the row fills: the `ActionID`, `Rank` (from "Rank 4", which is what flips `
 UI), `SpellSchool`, `DefenseType`, `ClassFlags`, `MissileSpeed`, `MinRange`/`MaxRange`, the cast - cast
 time, the GCD where the row sits in the global cooldown category, its own cooldown and the category one
 it shares - and the cost out of the first bar it states, with rage divided off the 0-1000 bar and the
-refund the Discount Power On Miss attribute states. `Flags` gets what the attributes and targets say:
+refund the Discount Power On Miss attribute states. `CastRequirement` gets the forms and caster auras
+the client requires (see below), which is why Pummel needs no Berserker Stance condition. `Flags` gets
+what the attributes and targets say:
 `SpellFlagPassiveSpell`, `SpellFlagChanneled`, `SpellFlagSuppressWeaponProcs` and `SpellFlagHelpful`.
 
 A bleed row also fills the damage and threat multipliers with 1.
 
 What it does not: `ApplyEffects`, `ProcMask`, the multipliers on any other row, `ClassSpellMask`, `ExtraCastCondition`,
 `Dot`, `RelatedSelfBuff`, the threat numbers the client does not carry - and `MaxTargets`, which has no
-`SpellConfig` field at all, so a caller that caps an area effect reads `row.MaxTargets` itself. A unit
+`SpellConfig` field at all, so a caller that caps an area effect reads `row.MaxTargets` itself. The same
+goes for `RequiredAreas`, the area group a spell only works in: `row.AreaType()` names the kind of
+terrain it stands for (Forest and Grassland, Mountainous, ...) and a caller gates on
+`sim.Encounter.InArea(row.AreaType())`; a group that is a single zone reads as `AreaTypeUnknown`. A unit
 is needed for the cooldown timers, so a config is built where the sim has a character rather than at
 package init.
 
-|                 |                                                                                                                     |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `Melee(mask)`   | the proc mask, `SpellFlagMeleeMetrics` and `SpellFlagAPL`, damage and threat multipliers of 1, and `IgnoreHaste`     |
-| `Magic(mask)`   | the proc mask, `SpellFlagAPL`, the multipliers, and `BonusCoefficient` from the damage effect's spell power share - the heal's where the spell damages nothing |
-| `Proc()`        | `SpellFlagPassiveSpell` and `SpellFlagNoOnCastComplete`, clears `SpellFlagAPL`, and empties the cast - cast time, GCD, cooldowns - and every cost |
-| `Flags(f)`      | ors in flags the client does not state                                                                               |
-| `Tag(n)`        | splits one spell id into several actions                                                                             |
+|               |                                                                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Melee(mask)` | the proc mask, `SpellFlagMeleeMetrics` and `SpellFlagAPL`, damage and threat multipliers of 1, and `IgnoreHaste`                                                       |
+| `Magic(mask)` | the proc mask, `SpellFlagAPL`, the multipliers, and `BonusCoefficient` from the damage effect's spell power share - the heal's where the spell damages nothing         |
+| `Proc()`      | `SpellFlagPassiveSpell` and `SpellFlagNoOnCastComplete`, clears `SpellFlagAPL`, and empties the cast - cast time, GCD, cooldowns - every cost and the cast requirement |
+| `Flags(f)`    | ors in flags the client does not state                                                                                                                                 |
+| `Tag(n)`      | splits one spell id into several actions                                                                                                                               |
 
 The row is filled first and the options run on top in the order given, so an option sees what the row
 put there.
+
+### Where a spell can be cast
+
+`core.CastRequirement` is what the client requires of the caster's form and auras, and core refuses a
+cast, `CanCast` and `CanQueue` that break it ("wrong form", "missing caster aura", "excluded caster
+aura"). It reads four client sources: `SpellShapeshift`'s mask and exclude mask (`StanceMask`,
+`StanceExclude`), `SpellAuraRestrictions` (`CasterAura`, `ExcludeCasterAura` - Tiger's Fury states its
+Cat Form requirement there, not in a mask), the not-shapeshifted and castable-in-caster-form attribute
+bits, and `SpellShapeshiftForm`'s stance flag (`dbcenums.ShapeshiftForm.IsStance`, generated into
+`sim/core/dbcenums/forms_auto_gen.go`).
+
+For the caster's form `f`: an excluded form refuses; a form in the mask allows; in a shapeshift that is
+not a stance (Cat, Bear) a spell with a mask or the not-shapeshifted bit is refused; with no form or in
+a stance (the warrior's, Moonkin, Tree) a spell with a mask is refused unless it is castable in caster
+form. A required caster aura must then be active on the caster, matched by `ActionID.SpellID`.
+
+The class reports its form in `Unit.ShapeshiftForm` - the warrior's `setStance`, the druid's `setForm` -
+and nothing else. A unit that sets `Unit.AutoUnshift` (the druid, to `ClearForm`) casts a spell its form
+refuses but no form allows by leaving the form first, once, after every other check passed. That
+holds in a stance-type form too: Healing Touch in Moonkin Form and Wrath in Tree of Life leave the form.
+
+- A class that reads the store by hand takes `row.CastRequirement()`.
+- A hand-built spell with no row states it by hand: `core.InForms(dbcenums.FORM_BATTLE_STANCE)`, with
+  `.Excluding(...)` and `.OrCasterForm()`, or the struct literal for the attribute bits.
+- A talent that swaps a spell on the action bar (`A_OVERRIDE_ACTIONBAR_SPELLS`) swaps its row too:
+  Vanguard's Charge takes `chargeRank.OverriddenBy(spellData.Vanguard.Highest()).CastRequirement()`,
+  whose row allows Defensive Stance.
+- A form spell (subtext "Shapeshift") is a single-rank ladder like a warrior stance, so
+  `spellData.CatForm` exists.
 
 ### The three shapes a registration takes
 
@@ -351,12 +384,12 @@ speed multipliers - stay off until the aura is applied again.
 **An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
 names, because the mod is attached to the aura and not to each spell pointing at it.
 
-|                        |                                                                                             |
-| ---------------------- | --------------------------------------------------------------------------------------------- |
-| `Effects(1, 2)`        | only these effects, counted from 1 by position the way `EffectN` counts                     |
-| `SkipEffects(3)`       | everything but these                                                                        |
-| `Conditional(fn)`      | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)` |
-| `IgnoreStacks()`       | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
+|                   |                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Effects(1, 2)`   | only these effects, counted from 1 by position the way `EffectN` counts                                             |
+| `SkipEffects(3)`  | everything but these                                                                                                |
+| `Conditional(fn)` | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)`                 |
+| `IgnoreStacks()`  | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
 
 Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance passive is parsed onto
 the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its
@@ -373,21 +406,21 @@ the five rank-swap effects behind them have no sim kind and are reported.
 
 The table writes the sim's own units, and which unit that is differs per stat. The conversions:
 
-|                                                                     | the sim stores       | the parse writes                        |
-| ------------------------------------------------------------------- | -------------------- | ----------------------------------------- |
-| Strength, Agility, Stamina, Intellect, Spirit                       | flat points          | the value                                 |
-| Health, Armor, the five resistances                                 | flat points          | the value                                 |
-| PhysicalDamage, SpellDamage and the per-school damage stats         | flat power           | the value                                 |
-| HealingPower, AttackPower, RangedAttackPower                        | flat power           | the value                                 |
-| MP5                                                                 | mana per five seconds| the value                                 |
-| PhysicalHitPercent, SpellHitPercent                                 | percentage points    | the value                                 |
-| PhysicalCritPercent, SpellCritPercent                               | percentage points    | the value                                 |
-| **BlockPercent**                                                    | **a fraction**       | **the value over 100**                    |
-| DodgeRating                                                         | rating               | value x `DodgeRatingPerDodgePercent`      |
-| ParryRating                                                         | rating               | value x `ParryRatingPerParryPercent`      |
-| ExpertiseRating                                                     | rating               | value x `ExpertisePerQuarterPercentReduction` |
-| `PseudoStats.BonusHealingTaken`                                     | flat healing         | the value                                 |
-| every pseudo-stat multiplier and stat dependency                    | a multiplier near 1  | `1 + value/100`                           |
+|                                                             | the sim stores        | the parse writes                              |
+| ----------------------------------------------------------- | --------------------- | --------------------------------------------- |
+| Strength, Agility, Stamina, Intellect, Spirit               | flat points           | the value                                     |
+| Health, Armor, the five resistances                         | flat points           | the value                                     |
+| PhysicalDamage, SpellDamage and the per-school damage stats | flat power            | the value                                     |
+| HealingPower, AttackPower, RangedAttackPower                | flat power            | the value                                     |
+| MP5                                                         | mana per five seconds | the value                                     |
+| PhysicalHitPercent, SpellHitPercent                         | percentage points     | the value                                     |
+| PhysicalCritPercent, SpellCritPercent                       | percentage points     | the value                                     |
+| **BlockPercent**                                            | **a fraction**        | **the value over 100**                        |
+| DodgeRating                                                 | rating                | value x `DodgeRatingPerDodgePercent`          |
+| ParryRating                                                 | rating                | value x `ParryRatingPerParryPercent`          |
+| ExpertiseRating                                             | rating                | value x `ExpertisePerQuarterPercentReduction` |
+| `PseudoStats.BonusHealingTaken`                             | flat healing          | the value                                     |
+| every pseudo-stat multiplier and stat dependency            | a multiplier near 1   | `1 + value/100`                               |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
@@ -410,12 +443,12 @@ Rows the table does know are skipped by the shape of the parse. A value the sim 
 per unit cannot be applied once per stack, and the static path has no aura to follow and no
 `Simulation` to answer a later `Refresh` with:
 
-|                                             | skips                                                                 |
-| ------------------------------------------- | ----------------------------------------------------------------------- |
-| a stacking aura (`MaxStack` > 0)            | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier |
-| `ParseStatic`                               | the speed multipliers, which need the `Simulation` an aura's gain hands over |
-| `ParseStatic` with `Conditional`            | the stat multipliers and the equipment scaling as well                |
-| an aura on a unit with no character         | the equipment scaling, whose helper is a character's                  |
+|                                     | skips                                                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier |
+| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
+| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
+| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.
@@ -425,12 +458,12 @@ than cumulative stacks.
 The client's proc chance column is not always a chance, so the generator bakes what the tooltip says
 about it into the row as a `ProcChanceSource`. The four shapes:
 
-|                      |                                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| `ProcChanceColumn`   | the tooltip renders `$h%`, so `SpellAuraOptions.ProcChance` is the roll                          |
-| `ProcChanceEffectN`  | the tooltip renders `$mN%`: the value of the effect at position `ProcChanceEffect` is the roll   |
-| `ProcChanceAlways`   | the column reads 100 or 101 and the trigger clause states no chance at all, so the aura fires whenever its own condition is met |
-| `ProcChancePPM`      | the client states no chance anywhere, or a 100/101 column sits beside a trigger clause saying the effect only sometimes happens ("Chance to strike your ranged target"), so the rate has to come from an override into `RPPM` |
+|                     |                                                                                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ProcChanceColumn`  | the tooltip renders `$h%`, so `SpellAuraOptions.ProcChance` is the roll                                                                                                                                                       |
+| `ProcChanceEffectN` | the tooltip renders `$mN%`: the value of the effect at position `ProcChanceEffect` is the roll                                                                                                                                |
+| `ProcChanceAlways`  | the column reads 100 or 101 and the trigger clause states no chance at all, so the aura fires whenever its own condition is met                                                                                               |
+| `ProcChancePPM`     | the client states no chance anywhere, or a 100/101 column sits beside a trigger clause saying the effect only sometimes happens ("Chance to strike your ranged target"), so the rate has to come from an override into `RPPM` |
 
 Reading `ProcChance` directly is the bug `ProcChanceSource` exists to prevent: 100 and 101 are the
 client's "fires on its own condition" sentinel at least as often as they are a certainty.
@@ -450,11 +483,11 @@ out of `ProcTypeMask`, the internal cooldown, `CanProcFromProcs` and `ClassSpell
 attributes, the class mask the proc effect names, and the rate the source above points at. A row that
 is a weapon proc aura also excludes the hits of spells flagged Suppress Weapon Procs.
 
-|                   |                                                                                                     |
-| ----------------- | ----------------------------------------------------------------------------------------------------- |
-| `PPM(n)`          | a rate the client does not carry. It clears the chance and binds a manager to the trigger's proc mask, so an option that narrows the mask has to come first |
-| `Chance(f)`       | a rate the caller states outright, manager included                                                 |
-| `ChanceFrom(e)`   | the chance an effect states, for a `$mN` the generator could not resolve                            |
+|                 |                                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PPM(n)`        | a rate the client does not carry. It clears the chance and binds a manager to the trigger's proc mask, so an option that narrows the mask has to come first |
+| `Chance(f)`     | a rate the caller states outright, manager included                                                                                                         |
+| `ChanceFrom(e)` | the chance an effect states, for a `$mN` the generator could not resolve                                                                                    |
 
 A trigger that ends with neither a chance nor a manager panics naming the spell. A listener that fires
 on every qualifying hit is never what a row with no stated rate means, and a procs-per-minute rate with
@@ -474,14 +507,14 @@ caller's either way, since no `ProcTypeMask` has a bit for any of them.
 The mask states which hits reach the listener; it cannot state the condition around them, so the
 generator reads that off the tooltip into `core.ProcHint`:
 
-|                        |                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------ |
-| `ProcHintCastTrigger`  | the tooltip names the cast itself, which turns a mask of the spell bits alone into `OnCastComplete` with no outcome |
-| `ProcHintCrit`         | the tooltip names a critical strike, which sets `Outcome = OutcomeCrit` and keeps the listener on the hit rather than the cast |
+|                        |                                                                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ProcHintCastTrigger`  | the tooltip names the cast itself, which turns a mask of the spell bits alone into `OnCastComplete` with no outcome                                     |
+| `ProcHintCrit`         | the tooltip names a critical strike, which sets `Outcome = OutcomeCrit` and keeps the listener on the hit rather than the cast                          |
 | `ProcHintHeals`        | the trigger clause names healing or an unrestricted spell, which is the evidence that a helpful-spell bit carries a real trigger rather than a leftover |
-| `ProcHintPureHeal`     | the trigger is healing only, so the damage callbacks come off                             |
-| `ProcHintNamedAbility` | the clause names one ability ("your Shock spells"), which no proc mask can state          |
-| `ProcHintOutcomeTaken` | the clause names an outcome the mask has no bit for, which clears `RequireDamageDealt`    |
+| `ProcHintPureHeal`     | the trigger is healing only, so the damage callbacks come off                                                                                           |
+| `ProcHintNamedAbility` | the clause names one ability ("your Shock spells"), which no proc mask can state                                                                        |
+| `ProcHintOutcomeTaken` | the clause names an outcome the mask has no bit for, which clears `RequireDamageDealt`                                                                  |
 
 The last two are shapes the decode reads past rather than models, and they are what
 `ProcTriggerUnsupported(character, row)` reports alongside the decoder's own unsupported bits. A
@@ -535,7 +568,8 @@ say enough. The generator calls it when it writes the item files, the audit call
 it, so a proc the generator emits is one the sim can build and a proc it comments out carries the
 reason in the comment. `tools/database/unsupported_procs.txt` is the audit's census of every proc an
 item, enchant or set can reach and what the rows refuse; `sim/common/forever/registered_effects.txt`
-lists the item and enchant effects that do register, and moves in it are reviewed line by line.
+lists the item and enchant effects that do register. Neither is tracked: each is a local baseline its
+test writes on the first run and then compares against, naming every line that moved.
 
 ## Overrides
 
@@ -553,24 +587,34 @@ the generator refuses a row without a reason. `Source` names where it came from 
 Every field names a rule the generator checks before it writes the value, so an override outlives its
 reason no longer than the next regeneration:
 
-|                                     |                                                             | stale when                                                    |
-| ----------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
-| `PPM`                               | procs per minute, onto `Spell.RPPM`                         | the row states a `SpellProcsPerMinuteID`                      |
-| `FlatThreat`                        | threat the tooltip states without a number                  | the spell gains a threat effect                               |
-| `APCoefDirect` / `APCoefPeriodic`   | an attack power coefficient the client keeps in script      | the client states one on that effect                          |
-| `ProcChancePct`                     | a whole percentage onto `Spell.ProcChance`                  | the tooltip states a chance of its own                        |
-| `DurationMs`                        | an aura duration                                            | the client states a `SpellDuration`                           |
-| `Hint`                              | the `ProcHint` bits the tooltip's wording did not yield     | -                                                             |
+|                                   |                                                         | stale when                               |
+| --------------------------------- | ------------------------------------------------------- | ---------------------------------------- |
+| `PPM`                             | procs per minute, onto `Spell.RPPM`                     | the row states a `SpellProcsPerMinuteID` |
+| `FlatThreat`                      | threat the tooltip states without a number              | the spell gains a threat effect          |
+| `APCoefDirect` / `APCoefPeriodic` | an attack power coefficient the client keeps in script  | the client states one on that effect     |
+| `ProcChancePct`                   | a whole percentage onto `Spell.ProcChance`              | the tooltip states a chance of its own   |
+| `DurationMs`                      | an aura duration                                        | the client states a `SpellDuration`      |
+| `Hint`                            | the `ProcHint` bits the tooltip's wording did not yield | -                                        |
 
 Two more refusals have nothing to do with the field: an override naming a spell the store does not
 carry, and two overrides of the same field on one spell. Every one that is applied leaves an
 `// override: <field> <value> -- <reason>` comment on the row it wrote to, so reading the generated
 store says which numbers are not the client's.
 
-`sim/core/spelldata/extra_ids.go` is the other hand-kept list: spells the generator force-includes
-although no class, item, enchant or set reaches them. It is empty today, and each entry that joins it
-says why. The generator re-reads that file from source while it renders, so adding an id without
-regenerating fails the check rather than shipping a store that does not match its own source.
+`overrides.AreaBonuses` is the second table in the same file, for an effect whose tooltip says it is
+doubled in some kind of area while the client states no companion row for it ("This effect is doubled
+in Volcanic areas" on Molten Fury). A row names the AreaGroup ids any of which counts, the factor on
+the effect's amounts and the factor on its duration, onto `Spell.AreaBonusGroups`, `AreaMultiplier`
+and `AreaDurationMultiplier`; `row.AreaBonus(&character.Env.Encounter)` reads them against the
+encounter's area set, and is stale once the row states a `RequiredAreasID` of its own. The on-use stat
+actives `shared.NewSimpleStatActive` registers read it; a proc chance the tooltip says is doubled has
+no reader yet.
+
+`tools/database/overrides/extra_spells.go` is the other hand-kept list: spells the generator
+force-includes although no class, item, enchant or set reaches them. It is empty today. Each entry
+states a reason and a source like an override, and the generator refuses one without a reason. The
+extras are added while the store renders, so adding one without regenerating fails the check rather
+than shipping a store that does not match its source.
 
 ## Reading a row by hand
 
@@ -595,15 +639,15 @@ MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 
 What a registration reads off the row, since there is no resolver to read it for the caller:
 
-|                                            |                                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------------ |
-| `rank.ID`, `rank.RankNumber()`              | the `ActionID` and the `Rank` field a `core.SpellConfig` wants; `RankNumber()` is `NameSubtext_lang`'s "Rank N", 0 where the client states none |
-| `rank.Cost()`                               | the cost off the first power the row states, in the sim's units - rage already divided by ten; it answers a `float64`, so an `int32` field like `ManaCostOptions.FlatCost` needs a cast |
-| `rank.GCD()`, `rank.CastTime()`             | the global cooldown and the cast time                                          |
-| `max(rank.Cooldown(), rank.CategoryCooldown())` | the row's own cooldown, or the one it shares with a category               |
-| `rank.Duration()`                           | an aura or dot's length; the client's -1 becomes `core.NeverExpires`           |
-| `rank.SpellSchool()`, `rank.DefenseTypeCore()` | already in core's enums - the accessor converts the client's byte           |
-| `float64(rank.MaxRange)`, `float64(rank.MinRange)` | the plain fields, in yards                                              |
+|                                                    |                                                                                                                                                                                         |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rank.ID`, `rank.RankNumber()`                     | the `ActionID` and the `Rank` field a `core.SpellConfig` wants; `RankNumber()` is `NameSubtext_lang`'s "Rank N", 0 where the client states none                                         |
+| `rank.Cost()`                                      | the cost off the first power the row states, in the sim's units - rage already divided by ten; it answers a `float64`, so an `int32` field like `ManaCostOptions.FlatCost` needs a cast |
+| `rank.GCD()`, `rank.CastTime()`                    | the global cooldown and the cast time                                                                                                                                                   |
+| `max(rank.Cooldown(), rank.CategoryCooldown())`    | the row's own cooldown, or the one it shares with a category                                                                                                                            |
+| `rank.Duration()`                                  | an aura or dot's length; the client's -1 becomes `core.NeverExpires`                                                                                                                    |
+| `rank.SpellSchool()`, `rank.DefenseTypeCore()`     | already in core's enums - the accessor converts the client's byte                                                                                                                       |
+| `float64(rank.MaxRange)`, `float64(rank.MinRange)` | the plain fields, in yards                                                                                                                                                              |
 
 Straight off `sim/shaman/shocks.go`:
 
@@ -916,7 +960,7 @@ table beside it: `spellData.EnrageTriggered` holds the buff 12880 that Enrage's 
 `InterceptTriggered` the stun of each rank, `OffensiveStateTriggered` the 5 s Overpower window 1282733
 that the Defense-line passive Offensive State (DND) fires on a melee hit, `DefensiveStateTriggered` the
 Revenge one. A spell only a server-side handler casts, with no edge,
-token or skill-line row naming it, is linked by hand in the generator's `handTriggers`:
+token or skill-line row naming it, is linked by hand in `tools/database/overrides.HandTriggers`:
 `RetaliationTriggered` holds the counterattack 20240 that Retaliation's dummy aura fires. Where every
 rank triggers the same spell the table has one row, rank 1; where each rank triggers its own, the row
 takes the rank's number.
@@ -1154,9 +1198,9 @@ rather than guess:
 
 ```go
 spellData.ImprovedRighteousFury.
-    Effect(shared.A_ADD_PCT_MODIFIER, shared.SPELLMOD_ALL_EFFECTS).MultiplierAt(rank)   // 1.50 threat
+    Effect(shared.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_ALL_EFFECTS)).MultiplierAt(rank)   // 1.50 threat
 spellData.ImprovedRighteousFury.
-    Effect(shared.A_ADD_FLAT_MODIFIER, shared.SPELLMOD_EFFECT2).MultiplierAt(rank)      // 0.94 taken
+    Effect(shared.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_EFFECT2)).MultiplierAt(rank)      // 0.94 taken
 ```
 
 **Do not pick the effect by which one matches the number.** Survival of the Fittest states +1/2/3% to
@@ -1192,7 +1236,7 @@ may state a percentage now, and the other way round.
 3. **No chance in the tooltip and the column reads 100 or 101.** The aura fires on its own condition
    and there is no roll: Flurry and Deep Wounds on a crit, Dual Wield Specialization on every hit. A
    101 on something that is not a proc at all (Sunder Armor, Demoralizing Shout) means nothing. A
-   tooltip whose *trigger clause* says the effect only happens sometimes - "Chance to strike your
+   tooltip whose _trigger clause_ says the effect only happens sometimes - "Chance to strike your
    ranged target", "your melee swings have a chance to" - is shape 4 rather than this one, and on a
    chance-on-hit weapon, where the game consults no condition at all, the 100 and 101 always are.
 4. **No chance in the tooltip, and a column the tooltip's trigger clause contradicts.** A procs-per-minute
@@ -1200,13 +1244,13 @@ may state a percentage now, and the other way round.
    hand-supplied the way threat and attack power coefficients are, with the manual-review TODO
    quoting the raw column on the line:
 
-   ```go
-   var imbue = shared.WithSpellDataPPM(spellData.Imbue, 2)                          // one PPM, every rank
-   var strike = shared.WithSpellDataPPMs(spellData.Strike, map[int32]float64{1: 1, 2: 1.5})
-   dpm := character.NewLegacyPPMManager(imbue.PPMAt(rank), core.ProcMaskMelee)
-   ```
+    ```go
+    var imbue = shared.WithSpellDataPPM(spellData.Imbue, 2)                          // one PPM, every rank
+    var strike = shared.WithSpellDataPPMs(spellData.Strike, map[int32]float64{1: 1, 2: 1.5})
+    dpm := character.NewLegacyPPMManager(imbue.PPMAt(rank), core.ProcMaskMelee)
+    ```
 
-   The per-rank form has to name every rank, and both panic on a table that already carries a PPM.
+    The per-rank form has to name every rank, and both panic on a table that already carries a PPM.
 
 A `$<id>h` in a tooltip reads another spell's column, so the chance sits on that spell's table, not on
 the one the tooltip belongs to.
@@ -1229,15 +1273,11 @@ spellData.SealOfTheCrusader.ByRank(rank).Effects[0].High()   // 41 at rank 1, 18
 under `A_ADD_PCT_MODIFIER` and `A_ADD_FLAT_MODIFIER`, a stat under `A_MOD_TOTAL_STAT_PERCENTAGE`, a
 school mask under `A_MOD_DAMAGE_DONE`. There is no single enum for it, so it stays an int.
 
-For the two modifier auras the `SPELLMOD_*` constants name it. Those are hand-written in
-`sim/common/shared/spell_data_talents.go`, because the client ships no name list - each carries the
-talents it was read off. All 23 were then checked against [TrinityCore's `SpellModOp`][tc] (3.3.5) and
-[cmangos-tbc's][cm] (2.4.3), which agree with every value, and with every name except 24 and 27 where
-cmangos says `SPELL_BONUS_DAMAGE` and `MULTIPLE_VALUE`. No modifier effect in the tables uses a value
-outside those 23; the ones the cores name and TBC does not use are 13, 17, 20, 21 and 26.
+For the two modifier auras the `SPELLMOD_*` constants name it. Those are the `SpellModOp` values in
+`sim/core/dbcenums/spellmods.go`, written by hand because the client ships no name list; each says
+what it modifies. Ops 0 to 30 carry [TrinityCore's 3.3.5 names][tc], 31 to 40 its current ones.
 
 [tc]: https://github.com/TrinityCore/TrinityCore/blob/3.3.5/src/server/game/Spells/SpellDefines.h
-[cm]: https://github.com/cmangos/mangos-tbc/blob/master/src/game/Spells/SpellDefines.h
 
 ## Worked examples
 
@@ -1424,9 +1464,11 @@ make spelldata-check                               # the same check
 ```
 
 The generator reads `tools/database/wowsims.db` and writes all of it in one pass:
-`sim/core/spelldata/spells_auto_gen.go`, `sim/common/shared/spell_data_enums_auto_gen.go`, and a
+`sim/core/spelldata/spells_auto_gen.go`, `sim/common/shared/spell_data_enums_auto_gen.go`, a
 `sim/<class>/spell_data_auto_gen.go` for every class - ladders into the store for a store-backed class,
-the family tables for the rest. `storeBackedClasses` in `tools/database/gen_spell_data.go` lists eight
+the family tables for the rest - `sim/core/dbcenums/forms_auto_gen.go`, and the raid buffs, which
+[Buffs and debuffs](#buffs-and-debuffs) describes. `storeBackedClasses` in
+`tools/database/gen_spell_data.go` lists eight
 classes; paladin is the one it does not. It is its own binary rather than a mode of `gen_db` on purpose:
 `gen_db` imports the sim and the sim reads these files, so a stale one would stop the generator that
 fixes it from compiling. For the same reason nothing is written until all of it type-checks: the
@@ -1445,17 +1487,20 @@ everything those reach. A family that could not be resolved is named in the `// 
 at the head of the class file.
 
 `assets/db_inputs/spell_store_inputs.json` is the client rows the store was built from, committed
-beside it. It is gzip-compressed JSON despite the name, like everything under `assets/db_inputs/dbc` -
-`zcat` it to read it. It exists so the store can be rebuilt without the client database, which is
-gitignored and comes from a local WoW install, and `-check` compares it too: a capture that no longer
-matches the database would render the committed store all the same, so nothing else would notice it
-going stale.
+beside it, and every `SpellShapeshiftForm` row whole alongside them, since a form names no spell for
+the store's closure to reach it by. It is gzip-compressed JSON despite the name, like everything under
+`assets/db_inputs/dbc` - `zcat` it to read it. It exists so the store, the buffs and the shapeshift
+forms can all be rebuilt without the client database, which is gitignored and comes from a local WoW
+install, and `-check` compares it too: a capture that no longer matches the database would render the
+committed files all the same, so nothing else would notice it going stale.
 
 What guards the outputs:
 
 - `TestStoreRegeneratesFromTheCommittedInputs` in `tools/database` re-derives the closure, the hand
   links, the curves, the tooltip hints, the overrides and the emitter from that capture and asserts the
   committed store is what comes out. No build tag and no database, so it runs everywhere.
+  `TestBuffFilesRegenerateFromTheCommittedInputs` does the same for the buff files, and
+  `TestFormsRegenerateFromTheCommittedInputs` for `sim/core/dbcenums/forms_auto_gen.go`.
 - `sim/core/spelldata/snapshot_test.go` pins the shape and the counts of the committed store, and a
   handful of rows read out of the client by hand, so a regeneration that moves a number says so there
   instead of in a sim result.
@@ -1463,9 +1508,9 @@ What guards the outputs:
   same spell as the store carries it, through `sim/core/spelldata/parity`. That is what has to stay
   green for paladin before it ports; the eight store-backed classes carry no parity test of their
   own - it retires with the family table it checked.
-- `go test ./tools/database/ -run GeneratedRankTables` re-derives amounts and coefficients for the 20
-  families listed in `tools/database/spelldata_regen_test.go` from the database itself - 405 values out
-  of the rows paladin's family tables hold, so it is no substitute for regenerating and finding
+- `go test ./tools/database/ -run GeneratedRankTables` re-derives amounts and coefficients for the 8
+  families listed in `tools/database/spelldata_regen_test.go` from the database itself - 147 comparisons
+  out of the rows paladin's family tables hold, so it is no substitute for regenerating and finding
   the diff empty. It skips when `wowsims.db` is absent.
 - The repository's `pre-commit` hook runs `-check` when the database is present and the commit touches
   the generator or one of its outputs.
@@ -1493,8 +1538,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
 3. **Pass `Ladder.Rank(n)`, never `MustFind(id)`,** for anything the talent tree prices: a trait
    talent's per-rank numbers live in the curve, and the base row's effect can read 0.
 4. **Check the cooldown categories.** A category cooldown resolves to `Unit.CategoryTimer`, which is
-   one map per unit and the same one consumables and racials use for categories 4, 30, 1141, 1153 and
-   1190. A class row stating one of those would share a cooldown with a potion. Two of the class's own
+   one map per unit and the same one consumables and racials use for categories 4, 30, 1141, 1153 and 1190. A class row stating one of those would share a cooldown with a potion. Two of the class's own
    abilities sharing a category share the timer, which is what the client does: the warrior's Revenge
    and Overpower run off 65, Shield Bash and Pummel off 88, and Mortal Strike, Bloodthirst and Shield
    Slam off 971.
@@ -1514,7 +1558,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
    carries `ProcHintOutcomeTaken`; clear it by hand only where the wording yielded no hint. The outcome
    itself is always the caller's.
 10. **Rename a trigger whose driver and buff share a name**, and split a row that decodes to hits dealt
-    *and* taken into two listeners with a condition each.
+    _and_ taken into two listeners with a condition each.
 11. **Say which source won.** Where the row and the tooltip disagree, the decision goes in a comment
     that names the tooltip's wording. Where a number stays by hand, its review marker stays with it.
 12. **Isolate every golden move** by reverting exactly one change and re-running. Two causes in one
@@ -1587,7 +1631,7 @@ regeneration that drops or renumbers an id stops the sim with the id in the mess
 package-level `var` reaching for a spell this build does not carry takes the whole package down,
 including tests that never touch that spell.
 
-**`SPCoef` of exactly 1 is the column's filler.** 2,112 of the store's 9,636 effects carry it, on
+**`SPCoef` of exactly 1 is the column's filler.** 2,113 of the store's 9,651 effects carry it, on
 weapon-damage effects, speed auras and shapeshifts among them, and no physical-school row in this
 client states a fractional coefficient at all. `Magic()` and `DotConfig` hand the row's coefficient
 to core as it stands, so a physical row read through either would take spell power per hit or per
@@ -1600,3 +1644,261 @@ generation, is the answer, and `spelldata.ProcTrigger` reads it rather than the 
 **A proc row with no stated rate panics when the trigger is built.** `ProcChancePPM` with no override
 behind it means the client states nothing anywhere, so `spelldata.ProcTrigger` demands a `PPM()` rather
 than build a listener that fires on every hit.
+
+## Buffs and debuffs
+
+Every raid, party, individual and enemy-debuff proto field has one row in
+`tools/database/buffmanifest`. The manifest owns the field numbers and names the spell each row reads;
+the store owns the values. The same `gen_spelldata` pass that renders the store renders, from the same
+captured inputs:
+
+- `sim/core/buffs/buffs_auto_gen.go` and `sim/core/buffs/debuffs_auto_gen.go`, a constructor per row;
+- `ui/features/settings/model/buffs_debuffs_auto_gen.ts`, the settings inputs;
+- `proto/buffs.proto`, the four messages.
+
+They go through the same staging type-check and the same `-check` as the store, and regenerate without
+the client database.
+
+### How a buff reads the store
+
+The generated constructors live in `sim/core/buffs`, above core, because the store imports core. Each
+supported row holds a package-level `*Meta` and reads every number off it at runtime, through the same
+`spelldata.ParseEffects` a class's own aura reads its stats through - a generated buff carries no effect
+routing of its own:
+
+```go
+var battleShoutSpell = spelldata.MustFind(25289)
+var battleShoutMeta = &Meta{
+	Label:      "Battle Shout",
+	Spell:      battleShoutSpell,
+	Category:   BattleShoutCategory,
+	SingleAura: true,
+}
+
+func BattleShoutValue(talentPoints int32) float64 {
+	return battleShoutMeta.Value(talentPoints)
+}
+func BattleShoutDuration(talentPoints int32) time.Duration {
+	return battleShoutMeta.Duration(talentPoints)
+}
+func BattleShoutAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, battleShoutMeta, isPlayer, talentPoints)
+}
+```
+
+`Meta.Options(talentPoints)` states the `spelldata.ParseOpt`s every row needs:
+`spelldata.RaidBuffOptions` - `Level(core.CharacterLevel)`, `BuffAuras`, `SkipAuras` where the row
+states any and `FullComboPoints` for a finisher, which the generator parses with too - and `ScaledBy`
+the improving talent (left out where the talent scales the duration instead, since `Duration` reads
+that separately). `newBuff` adds `SchoolResistances` and, where
+`Category` is set, `Exclusive(Category, true)` for a `SingleAura` row or `ExclusivePerStat(Category)`
+for any other, so a generated buff and a hand-written scroll of the same stat or resistance bid
+against each other under the categories core's own exclusive stat buffs use. `newDebuff` adds only
+`Exclusive(Category, SingleAura)`, since a debuff never carries a resistance of its own;
+`newItemCountBuff` adds `Count` so that a party with several of the same item is worth that many
+copies of the amount. `Value` is a damage shield's own effect where the row states one, and otherwise
+the first thing `spelldata.DryRun` attaches for those options. `Duration` reads the spell, or `Cast` where the
+spell states no duration of its own; `Cooldown` reads `Cast` where the row pins one, else the spell
+itself; both go through the helpers in `sim/core/buffs/amounts.go`, and a talent that scales the
+duration truncates it the way `talentScaled` truncates an amount everywhere else. A row whose aura is
+a damage shield skips the parse outright: `newDamageShield` calls `core.NewDamageShield` with the
+spell's school and `Value`.
+
+`sim/core/spelldata/buff.go` holds a second table, read only when a parse states `BuffAuras()`:
+`A_PERIODIC_ENERGIZE` on a mana row becomes MP5 there, and `A_MOD_ATTACK_POWER_PCT` a percentage on
+attack power. Neither sits in the parse's shared table, because warrior rows carry them for a value the
+class wires itself - Bloodrage's rage tick is an `A_PERIODIC_ENERGIZE`, Berserker Stance Passive an
+`A_MOD_ATTACK_POWER_PCT` of 0 - and reading either off the shared table would change what those rows
+mean there.
+
+The generator asks the same parse for every manifest row: `spelldata.DryRun`, given the row's options
+and no character, answers what it attaches, and `SkippedNotes` on that answer what it leaves out, so a
+row the generator writes is one the sim builds the same way. A row a driver decides
+the meaning of - `KindExternalCD`, `KindProc`, `KindManual`, `KindDebuffUptime` - is written whatever
+the parse attaches; every other kind needs an amount, or for `KindDamageShield` the shield effect
+itself. A row the parse attaches nothing of renders as a commented shell naming the reason, and a row
+it does write states what it could not read as a `// Left out:` note above it in the generated file,
+one per aura effect the parse has no row for.
+
+Core applies the buffs through `core.BuffHooks`, which `sim/core/buffs` registers from its `init`:
+`ApplyBuffs`, `ApplyDebuffs` and the Gift of Arthas elixir's debuff. A sim that
+never imported the package panics naming the import. `sim/common` imports it, which links it into every
+sim and every class test; core's own tests reach it through the generated-buff tests, which sit in
+`package core_test` beside `sim/core/export_test.go`.
+
+### Adding a buff
+
+1. Add the proto field's row to `buffmanifest.Manifest`: field, number, scope, proto type, kind, Go stem,
+   and the `SpellID` its numbers are read from. Pin a `CastID` where the cast states the timing the
+   aura does not, and a `Talent` with its `SpellID` where a talent improves it.
+2. `go run ./tools/gen_buffs_proto` and `make proto`, so the compiled protos carry the field. The pass
+   below type-checks against them and writes nothing while the field is missing.
+3. `go run ./tools/database/gen_spelldata`. The spell becomes a root of the store, and the constructor,
+   the apply block and the settings input are written.
+4. A row the kind cannot express outright states `Driver: true`, and `sim/core/buffs/drivers.go`
+   declares `drive<Go>`.
+5. With a database, `TestManifestAnchorsMatchTheClient` checks the pin is the top rank the owner's skill
+   lines grant.
+
+### The manifest row
+
+`BuffSpec` in `tools/database/buffmanifest/manifest.go`:
+
+| Field                      | What it is                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Field`, `Number`, `Scope` | the proto field, its number and the message it lives on. Each scope's numbers are dense from 1, so a row that goes away is a renumber of the rows after it                                                                                                                                                                                                                                                                    |
+| `Proto`                    | `ProtoBool`, `ProtoTristate`, `ProtoInt32` or `ProtoDouble`. Declared, not derived, so the emitter runs while the compiled protos are stale; the generator checks it against the compiled message                                                                                                                                                                                                                             |
+| `Kind`                     | what the generator emits, below                                                                                                                                                                                                                                                                                                                                                                                               |
+| `Go`                       | the identifier stem: `BattleShout` gives `BattleShoutAura`, `BattleShoutValue`, `BattleShoutDuration`, `BattleShoutCategory`, `battleShoutSpell` and `battleShoutMeta`                                                                                                                                                                                                                                                        |
+| `SpellID`                  | the spell the numbers are read from, and a root of the store: the top rank of the castable family, or the aura that family's cast applies when the cast is a summon or a dummy                                                                                                                                                                                                                                                |
+| `CastID`                   | the cast, for a row whose timing only the cast states: Mana Tide's aura 17360 carries the mana, the cast 17359 the 13 seconds and the 5 minutes                                                                                                                                                                                                                                                                               |
+| `Name`, `AuraName`         | the castable family's `SpellName.Name_lang` and, for a summon or a dummy, the aura family's. `Name` is the label's default; both are what `TestManifestAnchorsMatchTheClient` resolves the pins from                                                                                                                                                                                                                          |
+| `Owner`                    | the class that casts it, which narrows the rank lookup and marks the row "(External)" on that class's settings tab                                                                                                                                                                                                                                                                                                            |
+| `Talent`                   | the improving talent's `SpellID`, name, effect index, and whether it scales the value, the duration or adds a stat. Only a `ProtoTristate` row may state one, and its effect has to be a modifier whose class mask reaches the row's spell. The generated `Meta.TalentEffect` names the same effect by its `EffectN` position rather than by this index                                                                       |
+| `Category`                 | the exclusive-effect category the aura bids in, `""` for none                                                                                                                                                                                                                                                                                                                                                                 |
+| `SharedCategory`           | a second category the aura joins without an effect of its own, which is how the paladin auras exclude each other across schools. Applied to the player's copy only, and declared once in the generated file as `<Name>Category`                                                                                                                                                                                               |
+| `SingleAura`               | the category holds one aura at a time, so the loser is deactivated rather than outbid                                                                                                                                                                                                                                                                                                                                         |
+| `Driver`                   | the apply block hands the row to `drive<Go>` instead of activating the aura outright                                                                                                                                                                                                                                                                                                                                          |
+| `SkipAuras`                | aura names, spelled the way `sim/core/dbcenums` spells them, for an effect of the row's spell that sits beside the buff and that the raid's copy does not apply. Resolved to `dbcenums.EffectAuraType`s while the row is built; the six paladin auras skip `A_MOD_HEALING_PCT`, which each states as a healing-taken row of 0, and `A_MECHANIC_DURATION_MOD`, which only Concentration Aura states, as two mechanic rows of 0 |
+| `Stats`                    | the UI relevance tags a spec's `epStats` and `displayStats` are matched against                                                                                                                                                                                                                                                                                                                                               |
+| `ImpAction`                | the improved state's source when it is not a talent - an item, or the spell an item set grants at a piece threshold - and the icon that state shows. A `ProtoTristate` row states this or a `Talent`                                                                                                                                                                                                                          |
+| `Label`                    | a UI label override; the client's name is the default                                                                                                                                                                                                                                                                                                                                                                         |
+| `Notes`                    | why a `KindManual`, `KindAbsent` or `KindFlag` row is one. Required for those three                                                                                                                                                                                                                                                                                                                                           |
+
+### The kinds
+
+`KindStatFlat`, `KindStatPct` and `KindResistance` are stat buffs; `KindPseudoMult` moves a
+pseudo-stat; `KindDamageShield` is a retaliation proc; `KindProc` and `KindExternalCD` need a driver
+for the trigger or the cooldown; `KindItemCount` takes a count and applies its amounts per item;
+`KindDebuffStat`, `KindDebuffStacking`, `KindDebuffDamageTaken`, `KindDebuffAtkSpeed` and
+`KindDebuffUptime` are the debuff shapes. `KindManual` is a row the sim models by hand, `KindFlag`
+is a sim input rather than a buff (a toggle, or a number such as `retribution_aura_spell_power`), and
+`KindAbsent` is a field the Forever client describes no spell for. The last two resolve to a commented
+shell naming the reason, as does a row whose spell states no aura effect the parse attaches. No `Proto`
+value is an enum, and a field that wants one would add its own value and a name for it in both emitters.
+
+### What stays hand-written
+
+Judgement of the Crusader and Mangle state their effect in a shape no manifest row can carry - a holy
+school alone, and dummies - so their rows are shells and `applyDebuffs` in `sim/core/buffs/debuffs.go`
+applies the hand-written auras after the generated ones. The paladin's own aura and judgement ranks
+(`PaladinAuraRank`, `JudgementRank`) live in `sim/core/buffs/paladin.go` beside the generated
+categories they join.
+
+### Drivers
+
+A row the generator cannot express outright states `Driver: true`, or is a kind that always needs one,
+and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buffs/drivers.go`: a buff
+row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
+debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
+`party.TotemTwisting`. The driver builds the generated aura with `<Go>Aura(...)` and adds what the
+client does not state: a proc trigger, a cooldown, a delay, a regen. Declaring the function is what
+makes the row compile.
+
+### Regenerating
+
+`go run ./tools/database/gen_spelldata` writes the buff files with everything else, and `-check` names
+them when they are stale. `tools/database` imports `sim/core`, so the generator cannot run while the
+tree it generates into does not compile. A change that breaks it - retiring a proto field, deleting a
+driver the generated file still calls - needs the generated file cut by hand first: delete the lines
+that name the field or symbol that is going away, `go build ./...`, then run the generator, which
+writes the whole file back. `tools/gen_buffs_proto` renders `proto/buffs.proto` alone, with nothing but
+the manifest, for the one moment the sim cannot build: before protoc has seen a new field.
+
+### The guard tests
+
+`go test ./tools/database/...` needs no client database and runs in CI; only
+`TestManifestAnchorsMatchTheClient`, `TestGeneratedRankTablesMatchTheDatabase` and
+`TestProcShapeOfNamedSpells` skip without one.
+
+| Test                                                                                                              | What it holds                                                                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TestUniqueScopeField`, `TestUniqueScopeNumber`, `TestUniqueGoStem`                                               | no two rows collide                                                                                                                                  |
+| `TestScopeNumbersAreDense`                                                                                        | every scope's field numbers are 1..N with no gap                                                                                                     |
+| `TestProtoTypeMatchesKind`, `TestTalentImpliesTristate`, `TestShellRowsHaveNotes`, `TestResolvableRowsNameASpell` | the schema rules above                                                                                                                               |
+| `TestFieldNaming`, `TestFieldNamesRoundTrip`                                                                      | `GoField()` and `TSField()` reproduce protoc's and protobuf-ts's camel case                                                                          |
+| `TestRenderProtoNextIndex`, `TestRenderProtoHeader`                                                               | the next free number above each message, and the header protoc reads                                                                                 |
+| `TestBuffFilesRegenerateFromTheCommittedInputs`                                                                   | the two Go files, the settings inputs and `proto/buffs.proto` are what the committed store inputs render                                             |
+| `TestRenderedBuffFilesMatchTheFixtures`, `TestRenderedBuffFilesCompile`                                           | synthetic rows of every shape render to the committed fixtures, and those fixtures compile against the real `sim/core/buffs` through a build overlay |
+| `TestRenderBuffsDebuffsTS*`                                                                                       | the settings inputs each proto type and kind renders                                                                                                 |
+| `TestResolvedBuffInvariants`                                                                                      | the pinned talent, categories and stat amounts                                                                                                       |
+| `TestScopeMatchesTheClientTargeting`                                                                              | a row whose spell states an area aura, or an aura aimed over an area, sits in the scope that targeting names                                         |
+| `TestManifestAnchorsMatchTheClient`                                                                               | with a database, each pinned spell is still the top rank, aura or cast the client's skill lines grant                                                |
+
+The generated constructors' behaviour - categories, stacks, drivers - is held by
+`sim/core/buffs_generated_test.go` and `sim/core/debuffs_generated_test.go`. Rewrite the synthetic
+fixtures with `UPDATE_BUFF_FIXTURES=1 go test ./tools/database/`.
+
+### Traps
+
+**A negative amount that scales by level floors away from zero.** `Average` floors the folded amount,
+so Demoralizing Shout's -196 and -1.4 a level read -205 at 60, and Demoralizing Roar's -193 does too;
+a client that truncated the per-level part toward zero would state -204. The store's reading is the one
+the sim takes until the game says otherwise.
+
+**A debuff prices at the character's level, not the target's.** `Meta.Options` states `Level`
+unconditionally, so `newDebuff` reads the row at `core.CharacterLevel` (60) whatever level the target
+carries. Demoralizing Shout's -196 and -1.4 a level reads -205 against a level 60 target and -205 still
+against a level 63 raid boss, not the -209 pricing the boss's own level would give: a raid's debuff is
+cast by a player of the sim's level, and the target has no character for the parse to read a level off
+in the first place.
+
+**`A_PERIODIC_ENERGIZE` and `A_MOD_ATTACK_POWER_PCT` read only for a buff.** Both sit in the table
+`BuffAuras()` adds rather than the shared one. Bloodrage reads its rage tick by hand
+(`sim/warrior/bloodrage.go`); Berserker Stance Passive's own `A_MOD_ATTACK_POWER_PCT` of 0 is already
+parsed onto the stance aura through the shared table (`sim/warrior/stances.go`), which skips and
+reports it today because the shared table names no row for it. A shared-table entry for either aura
+would start attaching a stat change there instead, changing what the class's own row means.
+
+**Dropping a row renumbers the ones after it.** Each scope's numbers are dense from 1, so a field that
+goes away shifts every later number down by one and `TestScopeNumbersAreDense` holds that. Nothing is
+live, so no saved payload rides on the old numbers.
+
+**A proto change here breaks whatever a browser holds.** Nothing migrates a saved payload: a field the
+manifest retypes makes `fromJson` throw on the enum name an older save spells out. Every `fromJson` of
+a settings envelope passes `ignoreUnknownFields`, so a field that only goes away costs nothing.
+
+**Drums are not a Forever consumable.** The client describes no row for the TBC drums - 35476, 35475
+and 35478, Battle, War and Restoration, nor their Greater variants - so there is nothing to model and
+no manifest row to hang them on. The only "Drums of War" it knows is 1259907, fifteen seconds of party
+movement speed, which is no stat buff at all.
+
+**A talent curve only scales the row's first stat.** A row whose talent improves a second amount would
+need the generator extended; nothing in the manifest does today.
+
+**A set bonus is not a talent, but it can be a tristate.** The resolver reads `SkillLineAbility`, the
+trait trees and the spell effects; it does not read `ItemSetSpell`, so a set that modifies a buff
+cannot be a manifest `Talent`. What it can be is the row's `ImpAction`, which is the improved state a
+tristate row needs when no trait node prices one, and the icon that state shows. Battlegear of Wrath
+is the case: item set 218's `ItemSetSpell` at three pieces (2336) is 23563, an `A_ADD_FLAT_MODIFIER`
+of 30 against every effect of the Battle Shout family, which makes the shout worth 169 attack power
+rather than 139. The two halves of that are modelled separately. The warrior's own cast reads the
+`has_bs_t2` class option - the user's word that this warrior wears the set, not the equipped gear -
+and the party's copy is `battle_shout`'s improved state, which `driveBattleShout` reads because the
+resolver has no curve to give it. Both call `AddGeneratedFlatBonus`, which raises what the aura
+applies and what it bids for its category together, so the stronger of the two copies is the one the
+character sheet shows. It is told what the buff is worth without the bonus, because the aura belongs
+to the unit rather than to whoever raised it: two warriors in a party wearing the same set ask for
+the same total and the second call does nothing. The 30 itself lives in
+`buffs.BattleShoutT2Bonus`, with the set and the spell it came from written next to it.
+
+**A party or raid flag means an external caster provides the buff.** The generated apply block builds
+the row's `isPlayer=false` copy whenever the proto field is set, so a class port that registers its own
+`isPlayer=true` copy has two copies on the character. It either stops setting the flag in
+`AddPartyBuffs`/`AddRaidBuffs`, or the row states a `Category` with `SingleAura` and the two copies bid
+against each other, so the character sheet shows the buff once. The higher bid deactivates the other
+copy; on a tie the incumbent keeps the category when its remaining duration is the longer one, which
+is why a druid casting its own Thorns is turned away while the raid's permanent copy is up - both deal
+the same 22, so the character strikes back for the same either way. Battle Shout is the worked example:
+neither copy is permanent, and the two are worth the same unless one side wears the tier 2 set, so
+`TestPlayerBattleShoutTakesTheCategoryOnATie` holds the player's own to the tie and
+`TestTheStrongerBattleShoutTakesTheCategory` holds the stronger one to the rest. The rows this decides
+are `thorns`, `leader_of_the_pack`, `moonkin_aura` and `trueshot_aura`: `sim/druid/druid.go`,
+`sim/druid/feralcat` and `sim/druid/feralbear` raise the party's Leader of the Pack or Moonkin Aura
+from a talent, `sim/hunter/hunter.go` raises Trueshot Aura, and the druid's own Thorns waits on the
+druid port. `thorns`, `battle_shout`, `leader_of_the_pack` and `moonkin_aura` carry a category, so a
+druid registering its own copy of any of them has nothing to decide: the copy joins the same category
+and the two bid. The last two share one, `DruidCritAura`, because spell 17007 calls Leader of the
+Pack exclusive with Moonkin Aura - a druid's own cast of either joins it, so a party that ticks both
+and a druid who casts one are worth the client's 3 and not two threes. Only `trueshot_aura` is left
+without a category, so the hunter port has to choose.

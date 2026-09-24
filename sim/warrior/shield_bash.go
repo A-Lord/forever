@@ -8,7 +8,7 @@ import (
 var shieldBashRank = spellData.ShieldBash.Highest()
 
 func (warrior *Warrior) registerShieldBash() {
-	config := spelldata.SpellConfig(&warrior.Unit, shieldBashRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config := spelldata.SpellConfig(&warrior.Unit, shieldBashRank, spelldata.Melee(core.ProcMaskMeleeOHSpecial))
 	config.ClassSpellMask = SpellMaskShieldBash
 
 	// TODO: Manual review needed -- the client states no threat coefficient; 1 until measured in game.
@@ -17,7 +17,7 @@ func (warrior *Warrior) registerShieldBash() {
 	config.FlatThreatBonus = 0
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.PseudoStats.CanBlock && warrior.StanceMatches(DefensiveStance|BattleStance)
+		return warrior.PseudoStats.CanBlock
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

@@ -508,23 +508,12 @@ func spellDataTrigger(character *core.Character, cfg SpellDataProc, source effec
 	return config
 }
 
-// A weapon proc's listener, which no row states: the game casts a "Chance on hit" effect and a
-// combat enchant off every eligible weapon hit, so the trigger hears them all and the weapon it
-// sits on decides which ones count. The outcome stays what the row's tooltip hint read, and the
-// aura-side proc-ness attribute goes: a weapon proc ignores proc-ness by its own rule.
+// A weapon proc's listener, which no row states; anything else keeps the one its row decodes to.
 func weaponProcShape(cfg SpellDataProc) spelldata.ProcOpt {
-	return func(_ *core.Character, trigger *core.ProcTrigger) {
-		if !cfg.IsWeaponProc {
-			return
-		}
-
-		trigger.Callback = core.CallbackOnSpellHitDealt
-		trigger.ProcMask = core.ProcMaskUnknown
-		trigger.RequireDamageDealt = true
-		trigger.CanProcFromProcs = false
-		trigger.SpellFlagsExclude &^= core.SpellFlagSuppressWeaponProcs
-		trigger.IsWeaponProc = true
+	if !cfg.IsWeaponProc {
+		return func(*core.Character, *core.ProcTrigger) {}
 	}
+	return spelldata.WeaponProc()
 }
 
 // The rate for a proc the client states none for. Procs per minute are not in the client's spell
@@ -646,20 +635,11 @@ func statesATrigger(s *spelldata.Spell) bool {
 		return false
 	}
 
-	switch {
-	case s.RPPM > 0:
-		// A procs-per-minute rate is measured against the mask, which an empty one cannot do.
+	// A procs-per-minute rate is measured against the mask, which an empty one cannot do.
+	if s.RPPM > 0 {
 		return decoded.ProcMask != core.ProcMaskUnknown
-	case s.ProcChanceSource == spelldata.ProcChancePPM:
-		return false
-	case s.ProcChanceSource == spelldata.ProcChanceColumn:
-		return s.ProcChance > 0
-	case s.ProcChanceSource == spelldata.ProcChanceEffectN:
-		// The position the roll is stated at can be past the effects the row carries.
-		return s.EffectN(int(s.ProcChanceEffect)).Percent() != 0
-	default:
-		return true
 	}
+	return s.StatedChance() != 0
 }
 
 func registerSpellDataDamageProc(cfg SpellDataProc) {
@@ -827,9 +807,17 @@ func NewSimpleStatActive(itemID int32) {
 			}
 			spellConfig.Cast.SharedCD = sharedCooldown(character, itemEffect)
 
-			core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, stats.FromProtoMap(itemEffect.GetScalingOptions()[int32(0)].GetStats()), time.Millisecond*time.Duration(itemEffect.EffectDurationMs), spellConfig)
+			buffStats, buffDuration := onUseStatBuff(character, itemEffect)
+			core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig)
 		}
 	})
+}
+
+// The on-use buff's stats and duration, scaled by its area bonus.
+func onUseStatBuff(character *core.Character, itemEffect *proto.ItemEffect) (stats.Stats, time.Duration) {
+	amount, duration := spelldata.Find(itemEffect.BuffId).AreaBonus(&character.Env.Encounter)
+	buffStats := stats.FromProtoMap(itemEffect.GetScalingOptions()[int32(0)].GetStats()).Multiply(amount)
+	return buffStats, time.Duration(float64(itemEffect.EffectDurationMs)*duration) * time.Millisecond
 }
 
 type StackingStatBonusCD struct {

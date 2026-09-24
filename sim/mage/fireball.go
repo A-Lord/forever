@@ -20,7 +20,7 @@ func (mage *Mage) registerFireballSpell() {
 	// 	MissileSpeed:   float64(fireballRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: fireballRank.Cost(),
+	// 		FlatCost: int32(fireballRank.Cost()),
 	// 	},
 	//
 	// 	Cast: core.CastConfig{

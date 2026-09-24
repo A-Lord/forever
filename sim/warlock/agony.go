@@ -37,7 +37,7 @@ func (warlock *Warlock) registerCurseOfAgony() {
 	// 	},
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: agonyRank.Cost(),
+	// 		FlatCost: int32(agonyRank.Cost()),
 	// 	},
 	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHit)

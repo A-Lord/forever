@@ -33,19 +33,12 @@ export const AuraInput = <SpecType extends PaladinSimpleSpec>(labelTooltip: stri
 		labelTooltip,
 		values: [
 			{ color: 'grey', value: PaladinAura.AuraNone, tooltip: 'None' },
-			{ actionId: ActionId.fromSpellId(27149), value: PaladinAura.DevotionAura, tooltip: 'Devotion Aura' },
-			{ actionId: ActionId.fromSpellId(27150), value: PaladinAura.RetributionAura, tooltip: 'Retribution Aura' },
+			{ actionId: ActionId.fromSpellId(10293), value: PaladinAura.DevotionAura, tooltip: 'Devotion Aura' },
+			{ actionId: ActionId.fromSpellId(10301), value: PaladinAura.RetributionAura, tooltip: 'Retribution Aura' },
 			{ actionId: ActionId.fromSpellId(19746), value: PaladinAura.ConcentrationAura, tooltip: 'Concentration Aura' },
-			{ actionId: ActionId.fromSpellId(27153, 0, 1), value: PaladinAura.FireResistanceAura, tooltip: 'Fire Resistance Aura' },
-			{ actionId: ActionId.fromSpellId(27152, 0, 1), value: PaladinAura.FrostResistanceAura, tooltip: 'Frost Resistance Aura' },
-			{ actionId: ActionId.fromSpellId(27151, 0, 1), value: PaladinAura.ShadowResistanceAura, tooltip: 'Shadow Resistance Aura' },
-			{
-				actionId: ActionId.fromSpellId(20218),
-				value: PaladinAura.SanctityAura,
-				tooltip: 'Sanctity Aura',
-				// TODO: Forever drops the Sanctity Aura talent, so this option can never be taken.
-				showWhen: () => false,
-			},
+			{ actionId: ActionId.fromSpellId(19900, 0, 1), value: PaladinAura.FireResistanceAura, tooltip: 'Fire Resistance Aura' },
+			{ actionId: ActionId.fromSpellId(19898, 0, 1), value: PaladinAura.FrostResistanceAura, tooltip: 'Frost Resistance Aura' },
+			{ actionId: ActionId.fromSpellId(19896, 0, 1), value: PaladinAura.ShadowResistanceAura, tooltip: 'Shadow Resistance Aura' },
 		],
 		storeField: ['rotation', 'talentsString'] as const,
 	});

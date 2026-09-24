@@ -13,10 +13,6 @@ func (warrior *Warrior) registerTaunt() {
 	config.ThreatMultiplier = 1
 	config.Cast.DefaultCast.NonEmpty = true
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(DefensiveStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
 	}

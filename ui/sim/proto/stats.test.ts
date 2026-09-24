@@ -34,6 +34,14 @@ describe('UnitStat', () => {
 		}
 	});
 
+	it('roots ExpertisePercent at ExpertiseRating and converts at the gametable ratio, with no quarter-point floor', () => {
+		const percent = UnitStat.fromPseudoStat(PseudoStat.PseudoStatExpertisePercent);
+		expect(percent.getRootStat()).toBe(Stat.StatExpertiseRating);
+		expect(UnitStat.getChildren(Stat.StatExpertiseRating)).toEqual([PseudoStat.PseudoStatExpertisePercent]);
+		expect(UnitStat.fromStat(Stat.StatExpertiseRating).convertRatingToPercent(12)).toBeCloseTo(1.2);
+		expect(percent.convertPercentToRating(6.5)).toBeCloseTo(6.5 * Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT);
+	});
+
 	// Melee and spell hit each convert through their own constant. Forever's CombatRatings
 	// gametable happens to give both the same value at level 60, where TBC's differed, so an
 	// accidentally shared constant would pass unnoticed today and break on the next retune.

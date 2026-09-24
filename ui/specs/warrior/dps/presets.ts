@@ -1,13 +1,6 @@
 import * as PresetUtils from '@app/preset_utils';
 import { ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec } from '@generated/proto/common';
-import {
-	DpsWarrior_Options as WarriorOptions,
-	DpsWarrior_Rotation,
-	DpsWarriorSpec,
-	WarriorShout,
-	WarriorStance,
-	WarriorSunder,
-} from '@generated/proto/warrior';
+import { DpsWarrior_Options as WarriorOptions, DpsWarrior_Rotation, DpsWarriorSpec, WarriorStance, WarriorSunder } from '@generated/proto/warrior';
 import { Player } from '@sim/player/player';
 
 import * as WarriorPresets from '../shared/presets';
@@ -36,7 +29,6 @@ export const SIMPLE_ROTATION = DpsWarrior_Rotation.create({
 	sunderArmor: WarriorSunder.WarriorSunderHelp,
 	useOverpower: true,
 	useRecklessness: false,
-	bloodlustTiming: 5,
 });
 export const SIMPLE_DEFAULT_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecDpsWarrior, SIMPLE_ROTATION);
 export const SIMPLE_ARMS_DEFAULT_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecDpsWarrior, {
@@ -47,7 +39,7 @@ export const SIMPLE_ARMS_DEFAULT_ROTATION = PresetUtils.makePresetSimpleRotation
 export const DefaultOptions = WarriorOptions.create({
 	classOptions: {
 		startingRage: 50,
-		defaultShout: WarriorShout.WarriorShoutBattle,
+		useBattleShout: true,
 		defaultStance: WarriorStance.WarriorStanceBerserker,
 		hasBsT2: true,
 		stanceSnapshot: true,

@@ -3,82 +3,61 @@ package paladin
 import (
 	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 )
-
-func (paladin *Paladin) getHolyWrathTimer() *core.Timer {
-	if paladin.holyWrathTimer == nil {
-		paladin.holyWrathTimer = paladin.NewTimer()
-	}
-	return paladin.holyWrathTimer
-}
 
 var HolyWrathRankMap = spellData.HolyWrath
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
 // Holy Wrath
-// https://www.wowhead.com/forever/spell=2812/holy-wrath
+// https://www.wowhead.com/forever/spell=10318
 //
-// Sends bolts of holy power in all directions, causing Holy damage
-// to all Undead and Demon targets within 20 yds.
-// 2 sec cast, 1 min cooldown.
-func (paladin *Paladin) registerHolyWrath(rankConfig shared.SpellData) {
-	panic("To be implemented")
+// Sends bolts of holy power in all directions, causing 533 Holy damage to all Undead and Demon
+// targets within 20 yds and stunning them for 2 sec. The stun has no place in the sim.
+func (paladin *Paladin) registerHolyWrath(row shared.SpellData) {
+	paladin.RegisterSpell(core.SpellConfig{
+		ActionID:       core.ActionID{SpellID: row.SpellID},
+		SpellSchool:    row.SpellSchool,
+		DefenseType:    row.DefenseType,
+		ProcMask:       core.ProcMaskSpellDamage,
+		Flags:          core.SpellFlagAPL,
+		ClassSpellMask: SpellMaskHolyWrath,
+		Rank:           row.Rank,
+		MaxRange:       20,
+		MissileSpeed:   row.MissileSpeed,
 
-	// The TBC implementation, kept for the port:
-	// spellID := rankConfig.SpellID
-	// cost := rankConfig.Cost
-	// coefficient := rankConfig.Direct.BonusCoefficient()
-	//
-	// paladin.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: spellID},
-	// 	SpellSchool:    core.SpellSchoolHoly,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	Flags:          core.SpellFlagAPL,
-	// 	ClassSpellMask: SpellMaskHolyWrath,
-	// 	Rank:           rankConfig.Rank,
-	//
-	// 	DamageMultiplier: 1,
-	// 	ThreatMultiplier: 1,
-	//
-	// 	MaxRange:     20,
-	// 	MissileSpeed: rankConfig.MissileSpeed,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: cost,
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD:      rankConfig.GCD,
-	// 			CastTime: rankConfig.CastTime,
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    paladin.getHolyWrathTimer(),
-	// 			Duration: rankConfig.Cooldown,
-	// 		},
-	// 		ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-	// 			castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
-	// 			paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-	// 		},
-	// 	},
-	//
-	// 	BonusCoefficient: coefficient,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		results := []*core.SpellResult{}
-	// 		for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {
-	// 			if aoeTarget.MobType == proto.MobType_MobTypeUndead || aoeTarget.MobType == proto.MobType_MobTypeDemon {
-	// 				damage := rankConfig.Direct.Damage(sim)
-	// 				results = append(results, spell.CalcDamage(sim, aoeTarget, damage, spell.OutcomeMagicHitAndCrit))
-	// 			}
-	// 		}
-	//
-	// 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-	// 			for _, result := range results {
-	// 				spell.DealDamage(sim, result)
-	// 			}
-	// 		})
-	// 	},
-	// })
+		ManaCost: manaCost(row),
+		Cast: core.CastConfig{
+			DefaultCast: core.Cast{
+				GCD:      row.GCD,
+				CastTime: row.CastTime,
+			},
+			CD: core.Cooldown{
+				Timer:    paladin.sharedTimer(&paladin.holyWrathTimer),
+				Duration: row.Cooldown,
+			},
+			ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
+				castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
+				paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
+			},
+		},
+
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+		BonusCoefficient: row.Direct.BonusCoefficient(),
+
+		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+			results := []*core.SpellResult{}
+			for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {
+				if aoeTarget.MobType == proto.MobType_MobTypeUndead || aoeTarget.MobType == proto.MobType_MobTypeDemon {
+					results = append(results, spell.CalcDamage(sim, aoeTarget, row.Direct.Damage(sim), spell.OutcomeMagicHitAndCrit))
+				}
+			}
+
+			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+				for _, result := range results {
+					spell.DealDamage(sim, result)
+				}
+			})
+		},
+	})
 }

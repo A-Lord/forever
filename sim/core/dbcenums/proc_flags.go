@@ -1,7 +1,6 @@
 package dbcenums
 
-// Named bits of SpellAuraOptions.ProcTypeMask word 0, under TrinityCore's names for them. Word 1
-// carries no bit the sim models.
+// Named bits of SpellAuraOptions.ProcTypeMask word 0, under TrinityCore's names for them.
 const (
 	PROC_FLAG_NONE uint32 = 0
 
@@ -42,12 +41,14 @@ const (
 	PROC_FLAG_MAIN_HAND_WEAPON_SWING uint32 = 0x00400000 // 22 Done main-hand melee attacks (spell and autoattack)
 	PROC_FLAG_OFF_HAND_WEAPON_SWING  uint32 = 0x00800000 // 23 Done off-hand melee attacks (spell and autoattack)
 
-	PROC_FLAG_DEATH           uint32 = 0x01000000 // 24 The caster died
-	PROC_FLAG_JUMP            uint32 = 0x02000000 // 25 The caster jumped
-	PROC_FLAG_ENTER_COMBAT    uint32 = 0x08000000 // 27 The caster entered combat
-	PROC_FLAG_ENCOUNTER_START uint32 = 0x10000000 // 28 The encounter started
-	PROC_FLAG_CAST_ENDED      uint32 = 0x20000000 // 29 A cast ended, however it ended
-	PROC_FLAG_LOOTED          uint32 = 0x40000000 // 30 The caster looted
+	PROC_FLAG_DEATH                 uint32 = 0x01000000 // 24 The caster died
+	PROC_FLAG_JUMP                  uint32 = 0x02000000 // 25 The caster jumped
+	PROC_FLAG_PROC_CLONE_SPELL      uint32 = 0x04000000 // 26 Proc clone spell
+	PROC_FLAG_ENTER_COMBAT          uint32 = 0x08000000 // 27 The caster entered combat
+	PROC_FLAG_ENCOUNTER_START       uint32 = 0x10000000 // 28 The encounter started
+	PROC_FLAG_CAST_ENDED            uint32 = 0x20000000 // 29 A cast ended, however it ended
+	PROC_FLAG_LOOTED                uint32 = 0x40000000 // 30 The caster looted
+	PROC_FLAG_TAKE_HELPFUL_PERIODIC uint32 = 0x80000000 // 31 Taken helpful periodic
 
 	PROC_FLAG_ANY_DIRECT_TAKEN uint32 = PROC_FLAG_TAKE_MELEE_SWING |
 		PROC_FLAG_TAKE_MELEE_ABILITY |
@@ -67,4 +68,13 @@ const (
 	PROC_FLAG_ANY_HEAL uint32 = PROC_FLAG_DEAL_HELPFUL_PERIODIC |
 		PROC_FLAG_DEAL_HELPFUL_ABILITY |
 		PROC_FLAG_DEAL_HELPFUL_SPELL
+)
+
+// Named bits of ProcTypeMask word 1, under TrinityCore's names. The sim models none of them.
+const (
+	PROC_FLAG_2_TARGET_DIES       uint32 = 0x00000001 // 32 Kill or assist in killing the target
+	PROC_FLAG_2_KNOCKBACK         uint32 = 0x00000002 // 33 Knockback
+	PROC_FLAG_2_CAST_SUCCESSFUL   uint32 = 0x00000004 // 34 Cast successful
+	PROC_FLAG_2_SUCCESSFUL_DISPEL uint32 = 0x00000010 // 36 Successful dispel
+	PROC_FLAG_2_DO_EMOTE          uint32 = 0x00000040 // 38 Do emote
 )

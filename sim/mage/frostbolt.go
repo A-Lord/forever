@@ -41,7 +41,7 @@ func (mage *Mage) registerFrostboltSpell() {
 	// 	Flags:    core.SpellFlagAPL | core.SpellFlagBinary,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: frostboltRank.Cost(),
+	// 		FlatCost: int32(frostboltRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

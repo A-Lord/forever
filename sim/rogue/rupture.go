@@ -32,7 +32,7 @@ func (rogue *Rogue) registerRupture() {
 	// 	ClassSpellMask: RogueSpellRupture,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: ruptureRank.Cost(),
+	// 		Cost: int32(ruptureRank.Cost()),
 	// 		// TODO: Forever drops Quick Recovery; no energy refund until we know whether the
 	// 		// effect moved onto another talent.
 	// 		Refund:        0,

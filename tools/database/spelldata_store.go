@@ -3,9 +3,9 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 // The store's rows as the generator builds them: the fields sim/core/spelldata.Spell, .Effect and
@@ -26,7 +26,7 @@ type storeSpell struct {
 	Name string
 	Rank string
 
-	School uint8
+	School core.SpellSchool
 	Speed  float64
 	Attr   [17]uint32
 
@@ -53,13 +53,22 @@ type storeSpell struct {
 	// A flat threat bonus for a spell the client states no E_THREAT effect on, from an override.
 	FlatThreat float64
 
-	ClassFlags storeClassFlags
+	// An area bonus, from an override.
+	AreaBonusGroups                        []int32
+	AreaMultiplier, AreaDurationMultiplier float64
+
+	ClassFlags core.ClassFlags
 
 	AuraInterrupt, ChannelInterrupt [2]uint32
 
-	StanceMask uint64
+	StanceMask    uint64
+	StanceExclude uint64
+
+	CasterAura, ExcludeCasterAura int32
 
 	MaxTargets int16
+
+	RequiredAreas int32
 
 	EquipClass                  int8
 	EquipSubclass, EquipInvType int32
@@ -84,22 +93,12 @@ type storeSpell struct {
 	overrideNotes       []string
 }
 
-// core.ClassFlags: the family a spell belongs to and the four mask words naming it.
-type storeClassFlags struct {
-	Family int32
-	Mask   [4]uint32
-}
-
-func (f storeClassFlags) isZero() bool {
-	return f.Family == 0 && f.Mask == [4]uint32{}
-}
-
 type storeEffect struct {
 	ID, SpellID int32
 	Index       uint8
 
-	Type int32
-	Aura int32
+	Type dbcenums.SpellEffectType
+	Aura dbcenums.EffectAuraType
 
 	BasePoints float64
 	PPL        float64
@@ -120,7 +119,7 @@ type storeEffect struct {
 
 	Misc, Misc2 int32
 
-	ClassFlags storeClassFlags
+	ClassFlags core.ClassFlags
 
 	TriggerID int32
 
@@ -131,15 +130,9 @@ type storeEffect struct {
 
 	PointsPerResource float64
 
-	Target [2]uint8
+	Target [2]dbcenums.ImplicitTarget
 
 	Attributes int32
-
-	// The client states no edge from this effect to the spell it fires, and handTriggers does. Set
-	// on the effect the hand link was written onto, so the emitted row says where the trigger came
-	// from. Never captured: it is decided while the store is rendered, and a capture that carried it
-	// would hand the regeneration the answer it is meant to re-derive.
-	HandLinked bool `json:"-"`
 }
 
 type storePower struct {
@@ -151,31 +144,38 @@ type storePower struct {
 
 // Every table the store reads, loaded once for the whole client database rather than per spell: the
 // closure walks the effects and descriptions of spells it has not selected yet, so the rows have to
-// be there before the set of wanted ids is known.
+// be there before the set of wanted ids is known. Exported because storeInputs embeds it, which is
+// what writes the captured rows under these names.
 type spellTables struct {
-	names        map[int32]string
-	subtexts     map[int32]string
-	descriptions map[int32]string
+	Names        map[int32]string
+	Subtexts     map[int32]string
+	Descriptions map[int32]string
 
-	misc         map[int32]miscRow
-	levels       map[int32]levelsRow
-	cooldowns    map[int32]cooldownRow
-	categories   map[int32]categoryRow
-	auraOptions  map[int32]auraOptionRow
-	classOptions map[int32]storeClassFlags
-	interrupts   map[int32]interruptRow
-	shapeshift   map[int32]uint64
-	targets      map[int32]int16
-	equipped     map[int32]equippedRow
+	Misc             map[int32]miscRow
+	Levels           map[int32]levelsRow
+	Cooldowns        map[int32]cooldownRow
+	Categories       map[int32]categoryRow
+	AuraOptions      map[int32]auraOptionRow
+	ClassOptions     map[int32]core.ClassFlags
+	Interrupts       map[int32]interruptRow
+	Shapeshift       map[int32]shapeshiftRow
+	AuraRestrictions map[int32]auraRestrictionRow
+	Targets          map[int32]int16
+	Requirements     map[int32]int32
+	Equipped         map[int32]equippedRow
 
-	labels  map[int32][]int16
-	powers  map[int32][]storePower
-	effects map[int32][]storeEffect
+	Labels  map[int32][]int16
+	Powers  map[int32][]storePower
+	Effects map[int32][]storeEffect
+
+	// The tooltip references by spell id, filled as referencedIDs reads them: the closure asks for
+	// the same spell on every pass over the store.
+	refs map[int32][]int32
 }
 
 type miscRow struct {
 	Attr                   [17]uint32
-	School                 uint8
+	School                 core.SpellSchool
 	Speed                  float64
 	CastTimeMs, DurationMs int32
 	MinRange, MaxRange     float64
@@ -207,6 +207,14 @@ type interruptRow struct {
 	AuraInterrupt, ChannelInterrupt [2]uint32
 }
 
+type shapeshiftRow struct {
+	Mask, Exclude uint64
+}
+
+type auraRestrictionRow struct {
+	CasterAura, ExcludeCasterAura int32
+}
+
 type equippedRow struct {
 	Class              int8
 	Subclass, InvTypes int32
@@ -216,65 +224,34 @@ type equippedRow struct {
 // difficulty 0 and 10 at 186 - and difficulty 0 is the one the sim plays.
 func loadSpellTables(db *sql.DB) (*spellTables, error) {
 	t := &spellTables{
-		names:        map[int32]string{},
-		subtexts:     map[int32]string{},
-		descriptions: map[int32]string{},
-		misc:         map[int32]miscRow{},
-		levels:       map[int32]levelsRow{},
-		cooldowns:    map[int32]cooldownRow{},
-		categories:   map[int32]categoryRow{},
-		auraOptions:  map[int32]auraOptionRow{},
-		classOptions: map[int32]storeClassFlags{},
-		interrupts:   map[int32]interruptRow{},
-		shapeshift:   map[int32]uint64{},
-		targets:      map[int32]int16{},
-		equipped:     map[int32]equippedRow{},
-		labels:       map[int32][]int16{},
-		powers:       map[int32][]storePower{},
-		effects:      map[int32][]storeEffect{},
+		Names:            map[int32]string{},
+		Subtexts:         map[int32]string{},
+		Descriptions:     map[int32]string{},
+		Misc:             map[int32]miscRow{},
+		Levels:           map[int32]levelsRow{},
+		Cooldowns:        map[int32]cooldownRow{},
+		Categories:       map[int32]categoryRow{},
+		AuraOptions:      map[int32]auraOptionRow{},
+		ClassOptions:     map[int32]core.ClassFlags{},
+		Interrupts:       map[int32]interruptRow{},
+		Shapeshift:       map[int32]shapeshiftRow{},
+		AuraRestrictions: map[int32]auraRestrictionRow{},
+		Targets:          map[int32]int16{},
+		Requirements:     map[int32]int32{},
+		Equipped:         map[int32]equippedRow{},
+		Labels:           map[int32][]int16{},
+		Powers:           map[int32][]storePower{},
+		Effects:          map[int32][]storeEffect{},
 	}
 
-	if err := t.loadNames(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadMisc(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadLevels(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadCooldowns(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadCategories(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadAuraOptions(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadClassOptions(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadInterrupts(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadShapeshift(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadTargetRestrictions(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadEquippedItems(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadLabels(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadPowers(db); err != nil {
-		return nil, err
-	}
-	if err := t.loadEffects(db); err != nil {
-		return nil, err
+	for _, load := range []func(*sql.DB) error{
+		t.loadNames, t.loadMisc, t.loadLevels, t.loadCooldowns, t.loadCategories, t.loadAuraOptions,
+		t.loadClassOptions, t.loadInterrupts, t.loadShapeshift, t.loadAuraRestrictions, t.loadTargetRestrictions,
+		t.loadCastingRequirements, t.loadEquippedItems, t.loadLabels, t.loadPowers, t.loadEffects,
+	} {
+		if err := load(db); err != nil {
+			return nil, err
+		}
 	}
 	return t, nil
 }
@@ -283,48 +260,54 @@ func loadSpellTables(db *sql.DB) (*spellTables, error) {
 // too, for the ids the tooltip names, but never stored: the store is data the sim reads, and the
 // tooltip text is generator input.
 func (t *spellTables) row(id int32) storeSpell {
-	s := storeSpell{ID: id, Name: t.names[id], Rank: t.subtexts[id]}
+	s := storeSpell{ID: id, Name: t.Names[id], Rank: t.Subtexts[id]}
 
-	m := t.misc[id]
+	m := t.Misc[id]
 	s.School, s.Speed, s.Attr = m.School, m.Speed, m.Attr
 	s.CastTimeMs, s.DurationMs = m.CastTimeMs, m.DurationMs
 	s.MinRange, s.MaxRange = m.MinRange, m.MaxRange
 
 	// No SpellLevels row is the client's "no level scaling", which is the spell's own level at the
 	// cap and no maximum - the reading levelsOf gives the generated rank tables.
-	if l, ok := t.levels[id]; ok {
+	if l, ok := t.Levels[id]; ok {
 		s.SpellLevel, s.BaseLevel, s.MaxLevel = l.SpellLevel, l.BaseLevel, l.MaxLevel
 	} else {
 		s.SpellLevel = RankLevel
 	}
 
-	c := t.cooldowns[id]
+	c := t.Cooldowns[id]
 	s.CooldownMs, s.CategoryCooldownMs, s.GCDMs = c.CooldownMs, c.CategoryCooldownMs, c.GCDMs
 
-	cat := t.categories[id]
+	cat := t.Categories[id]
 	s.Category, s.StartRecoveryCategory, s.ChargeCategory = cat.Category, cat.StartRecoveryCategory, cat.ChargeCategory
 	s.DefenseType, s.DispelType = cat.DefenseType, cat.DispelType
 	s.Mechanic, s.PreventionType = cat.Mechanic, cat.PreventionType
 
-	a := t.auraOptions[id]
+	a := t.AuraOptions[id]
 	s.MaxStack, s.ProcChance, s.ProcCharges = a.MaxStack, a.ProcChance, a.ProcCharges
 	s.ProcFlags, s.ICDMs = a.ProcFlags, a.ICDMs
 	s.procsPerMinuteID = a.ProcsPerMinuteID
 
-	s.ClassFlags = t.classOptions[id]
+	s.ClassFlags = t.ClassOptions[id]
 
-	i := t.interrupts[id]
+	i := t.Interrupts[id]
 	s.AuraInterrupt, s.ChannelInterrupt = i.AuraInterrupt, i.ChannelInterrupt
 
-	s.StanceMask = t.shapeshift[id]
-	s.MaxTargets = t.targets[id]
+	ss := t.Shapeshift[id]
+	s.StanceMask, s.StanceExclude = ss.Mask, ss.Exclude
 
-	e := t.equipped[id]
+	ar := t.AuraRestrictions[id]
+	s.CasterAura, s.ExcludeCasterAura = ar.CasterAura, ar.ExcludeCasterAura
+
+	s.MaxTargets = t.Targets[id]
+	s.RequiredAreas = t.Requirements[id]
+
+	e := t.Equipped[id]
 	s.EquipClass, s.EquipSubclass, s.EquipInvType = e.Class, e.Subclass, e.InvTypes
 
-	s.Labels = t.labels[id]
+	s.Labels = t.Labels[id]
 	s.RefIDs = t.referencedIDs(id)
-	s.Powers = t.powers[id]
+	s.Powers = t.Powers[id]
 
 	// The effect's class mask is read against the owning spell's family: the mask words alone name
 	// nothing, since the same bit is a different spell in each family. The family is carried only
@@ -333,10 +316,10 @@ func (t *spellTables) row(id int32) storeSpell {
 	//
 	// The spell's levels go onto every effect for the same reason the family does: the amount an
 	// effect scales to is priced from them, and the effect is what the caller holds.
-	s.Effects = make([]storeEffect, len(t.effects[id]))
-	copy(s.Effects, t.effects[id])
+	s.Effects = make([]storeEffect, len(t.Effects[id]))
+	copy(s.Effects, t.Effects[id])
 	for i := range s.Effects {
-		if !s.Effects[i].ClassFlags.isZero() {
+		if !s.Effects[i].ClassFlags.IsZero() {
 			s.Effects[i].ClassFlags.Family = s.ClassFlags.Family
 		}
 		s.Effects[i].SpellLevel, s.Effects[i].MaxLevel = s.SpellLevel, s.MaxLevel
@@ -352,7 +335,7 @@ func (t *spellTables) loadNames(db *sql.DB) error {
 		if err := rows.Scan(&id, &name); err != nil {
 			return err
 		}
-		t.names[id] = name
+		t.Names[id] = name
 		return nil
 	}); err != nil {
 		return err
@@ -366,8 +349,8 @@ func (t *spellTables) loadNames(db *sql.DB) error {
 		if err := rows.Scan(&id, &subtext, &description); err != nil {
 			return err
 		}
-		t.subtexts[id] = subtext
-		t.descriptions[id] = description
+		t.Subtexts[id] = subtext
+		t.Descriptions[id] = description
 		return nil
 	})
 }
@@ -403,16 +386,18 @@ func (t *spellTables) loadMisc(db *sql.DB) error {
 		for i, word := range attr {
 			m.Attr[i] = uint32(word)
 		}
-		m.School = uint8(school)
-		return t.putMisc(id, m)
+		m.School = core.SpellSchool(school)
+		return putOnce(t.Misc, id, m, "SpellMisc rows at difficulty 0")
 	})
 }
 
-func (t *spellTables) putMisc(id int32, m miscRow) error {
-	if _, dup := t.misc[id]; dup {
-		return fmt.Errorf("spell %d has two SpellMisc rows at difficulty 0", id)
+// A table the client states once per spell. A second row is an error rather than a silent overwrite:
+// the store would carry whichever came last.
+func putOnce[V any](into map[int32]V, id int32, v V, rows string) error {
+	if _, dup := into[id]; dup {
+		return fmt.Errorf("spell %d has two %s", id, rows)
 	}
-	t.misc[id] = m
+	into[id] = v
 	return nil
 }
 
@@ -425,11 +410,7 @@ func (t *spellTables) loadLevels(db *sql.DB) error {
 		if err := rows.Scan(&id, &l.SpellLevel, &l.BaseLevel, &l.MaxLevel); err != nil {
 			return err
 		}
-		if _, dup := t.levels[id]; dup {
-			return fmt.Errorf("spell %d has two SpellLevels rows at difficulty 0", id)
-		}
-		t.levels[id] = l
-		return nil
+		return putOnce(t.Levels, id, l, "SpellLevels rows at difficulty 0")
 	})
 }
 
@@ -443,11 +424,7 @@ func (t *spellTables) loadCooldowns(db *sql.DB) error {
 		if err := rows.Scan(&id, &c.CooldownMs, &c.CategoryCooldownMs, &c.GCDMs); err != nil {
 			return err
 		}
-		if _, dup := t.cooldowns[id]; dup {
-			return fmt.Errorf("spell %d has two SpellCooldowns rows at difficulty 0", id)
-		}
-		t.cooldowns[id] = c
-		return nil
+		return putOnce(t.Cooldowns, id, c, "SpellCooldowns rows at difficulty 0")
 	})
 }
 
@@ -466,11 +443,7 @@ func (t *spellTables) loadCategories(db *sql.DB) error {
 		}
 		c.DefenseType, c.DispelType = uint8(defense), uint8(dispel)
 		c.Mechanic, c.PreventionType = uint8(mechanic), uint8(prevention)
-		if _, dup := t.categories[id]; dup {
-			return fmt.Errorf("spell %d has two SpellCategories rows at difficulty 0", id)
-		}
-		t.categories[id] = c
-		return nil
+		return putOnce(t.Categories, id, c, "SpellCategories rows at difficulty 0")
 	})
 }
 
@@ -491,11 +464,7 @@ func (t *spellTables) loadAuraOptions(db *sql.DB) error {
 		}
 		a.ProcChance = uint8(chance)
 		a.ProcFlags = [2]uint32{uint32(mask0), uint32(mask1)}
-		if _, dup := t.auraOptions[id]; dup {
-			return fmt.Errorf("spell %d has two SpellAuraOptions rows at difficulty 0", id)
-		}
-		t.auraOptions[id] = a
-		return nil
+		return putOnce(t.AuraOptions, id, a, "SpellAuraOptions rows at difficulty 0")
 	})
 }
 
@@ -505,7 +474,7 @@ func (t *spellTables) loadClassOptions(db *sql.DB) error {
 		       COALESCE(SpellClassMask_1, 0), COALESCE(SpellClassMask_2, 0), COALESCE(SpellClassMask_3, 0)
 		FROM SpellClassOptions ORDER BY SpellID`, func(rows *sql.Rows) error {
 		var id int32
-		var f storeClassFlags
+		var f core.ClassFlags
 		var mask [4]int64
 		if err := rows.Scan(&id, &f.Family, &mask[0], &mask[1], &mask[2], &mask[3]); err != nil {
 			return err
@@ -513,11 +482,7 @@ func (t *spellTables) loadClassOptions(db *sql.DB) error {
 		for i, word := range mask {
 			f.Mask[i] = uint32(word)
 		}
-		if _, dup := t.classOptions[id]; dup {
-			return fmt.Errorf("spell %d has two SpellClassOptions rows", id)
-		}
-		t.classOptions[id] = f
-		return nil
+		return putOnce(t.ClassOptions, id, f, "SpellClassOptions rows")
 	})
 }
 
@@ -531,32 +496,44 @@ func (t *spellTables) loadInterrupts(db *sql.DB) error {
 		if err := rows.Scan(&id, &aura0, &aura1, &channel0, &channel1); err != nil {
 			return err
 		}
-		if _, dup := t.interrupts[id]; dup {
-			return fmt.Errorf("spell %d has two SpellInterrupts rows at difficulty 0", id)
-		}
-		t.interrupts[id] = interruptRow{
+		return putOnce(t.Interrupts, id, interruptRow{
 			AuraInterrupt:    [2]uint32{uint32(aura0), uint32(aura1)},
 			ChannelInterrupt: [2]uint32{uint32(channel0), uint32(channel1)},
-		}
-		return nil
+		}, "SpellInterrupts rows at difficulty 0")
 	})
 }
 
 // The two mask words are one 64-bit set of forms, which is how core reads a stance mask.
 func (t *spellTables) loadShapeshift(db *sql.DB) error {
 	return eachRow(db, `
-		SELECT SpellID, COALESCE(ShapeshiftMask_0, 0), COALESCE(ShapeshiftMask_1, 0)
+		SELECT SpellID, COALESCE(ShapeshiftMask_0, 0), COALESCE(ShapeshiftMask_1, 0),
+		       COALESCE(ShapeshiftExclude_0, 0), COALESCE(ShapeshiftExclude_1, 0)
 		FROM SpellShapeshift ORDER BY SpellID`, func(rows *sql.Rows) error {
 		var id int32
-		var low, high int64
-		if err := rows.Scan(&id, &low, &high); err != nil {
+		var low, high, excludeLow, excludeHigh int64
+		if err := rows.Scan(&id, &low, &high, &excludeLow, &excludeHigh); err != nil {
 			return err
 		}
-		if _, dup := t.shapeshift[id]; dup {
-			return fmt.Errorf("spell %d has two SpellShapeshift rows", id)
+		return putOnce(t.Shapeshift, id, shapeshiftRow{
+			Mask:    uint64(uint32(low)) | uint64(uint32(high))<<32,
+			Exclude: uint64(uint32(excludeLow)) | uint64(uint32(excludeHigh))<<32,
+		}, "SpellShapeshift rows")
+	})
+}
+
+// The aura a spell needs on its caster to be cast, and the one that bars it, where the client states
+// neither as a form: Tiger's Fury names Cat Form here rather than in SpellShapeshift, whose row for
+// it is empty.
+func (t *spellTables) loadAuraRestrictions(db *sql.DB) error {
+	return eachRow(db, `
+		SELECT SpellID, COALESCE(CasterAuraSpell, 0), COALESCE(ExcludeCasterAuraSpell, 0)
+		FROM SpellAuraRestrictions WHERE DifficultyID = 0 ORDER BY SpellID`, func(rows *sql.Rows) error {
+		var id int32
+		var r auraRestrictionRow
+		if err := rows.Scan(&id, &r.CasterAura, &r.ExcludeCasterAura); err != nil {
+			return err
 		}
-		t.shapeshift[id] = uint64(uint32(low)) | uint64(uint32(high))<<32
-		return nil
+		return putOnce(t.AuraRestrictions, id, r, "SpellAuraRestrictions rows at difficulty 0")
 	})
 }
 
@@ -569,10 +546,22 @@ func (t *spellTables) loadTargetRestrictions(db *sql.DB) error {
 		if err := rows.Scan(&id, &maxTargets); err != nil {
 			return err
 		}
-		if _, dup := t.targets[id]; dup {
-			return fmt.Errorf("spell %d has two SpellTargetRestrictions rows at difficulty 0", id)
+		return putOnce(t.Targets, id, maxTargets, "SpellTargetRestrictions rows at difficulty 0")
+	})
+}
+
+func (t *spellTables) loadCastingRequirements(db *sql.DB) error {
+	return eachRow(db, `
+		SELECT SpellID, COALESCE(RequiredAreasID, 0)
+		FROM SpellCastingRequirements WHERE RequiredAreasID != 0 ORDER BY SpellID`, func(rows *sql.Rows) error {
+		var id, areas int32
+		if err := rows.Scan(&id, &areas); err != nil {
+			return err
 		}
-		t.targets[id] = maxTargets
+		if _, dup := t.Requirements[id]; dup {
+			return fmt.Errorf("spell %d has two SpellCastingRequirements rows naming an area group", id)
+		}
+		t.Requirements[id] = areas
 		return nil
 	})
 }
@@ -589,11 +578,7 @@ func (t *spellTables) loadEquippedItems(db *sql.DB) error {
 			return err
 		}
 		e.Class = int8(class)
-		if _, dup := t.equipped[id]; dup {
-			return fmt.Errorf("spell %d has two SpellEquippedItems rows", id)
-		}
-		t.equipped[id] = e
-		return nil
+		return putOnce(t.Equipped, id, e, "SpellEquippedItems rows")
 	})
 }
 
@@ -605,7 +590,7 @@ func (t *spellTables) loadLabels(db *sql.DB) error {
 		if err := rows.Scan(&id, &label); err != nil {
 			return err
 		}
-		t.labels[id] = append(t.labels[id], label)
+		t.Labels[id] = append(t.Labels[id], label)
 		return nil
 	})
 }
@@ -623,7 +608,7 @@ func (t *spellTables) loadPowers(db *sql.DB) error {
 			return err
 		}
 		p.Type = int8(powerType)
-		t.powers[id] = append(t.powers[id], p)
+		t.Powers[id] = append(t.Powers[id], p)
 		return nil
 	})
 }
@@ -669,16 +654,16 @@ func (t *spellTables) loadEffects(db *sql.DB) error {
 			e.ClassFlags.Mask[i] = uint32(word)
 		}
 		e.Mechanic = uint8(mechanic)
-		e.Target = [2]uint8{uint8(target0), uint8(target1)}
+		e.Target = [2]dbcenums.ImplicitTarget{dbcenums.ImplicitTarget(target0), dbcenums.ImplicitTarget(target1)}
 
 		// The rows arrive in index order, so a second row at one index is the one just read. The
 		// store would carry both, and the position EffectN counts by would answer the first.
-		if prior := t.effects[e.SpellID]; len(prior) > 0 && prior[len(prior)-1].Index == e.Index {
+		if prior := t.Effects[e.SpellID]; len(prior) > 0 && prior[len(prior)-1].Index == e.Index {
 			return fmt.Errorf("spell %d states effect index %d twice, as rows %d and %d",
 				e.SpellID, e.Index, prior[len(prior)-1].ID, e.ID)
 		}
 
-		t.effects[e.SpellID] = append(t.effects[e.SpellID], e)
+		t.Effects[e.SpellID] = append(t.Effects[e.SpellID], e)
 		return nil
 	})
 }
@@ -686,29 +671,28 @@ func (t *spellTables) loadEffects(db *sql.DB) error {
 // The spell ids the tooltip names, in the order it names them, each once. An id no SpellName row
 // carries is left out: the closure walks the same tokens and only follows the ones that are spells.
 func (t *spellTables) referencedIDs(id int32) []int32 {
+	if refs, read := t.refs[id]; read {
+		return refs
+	}
+
 	var refs []int32
 	seen := map[int32]bool{}
-	for _, m := range descriptionSpellRef.FindAllStringSubmatch(t.descriptions[id], -1) {
+	for _, m := range descriptionSpellRef.FindAllStringSubmatch(t.Descriptions[id], -1) {
 		ref := parseSpellID(m[1])
 		if ref == 0 || ref == id || seen[ref] {
 			continue
 		}
 		seen[ref] = true
-		if _, named := t.names[ref]; named {
+		if _, named := t.Names[ref]; named {
 			refs = append(refs, ref)
 		}
 	}
-	return refs
-}
 
-// The ids in the store, in the order Find binary searches them in.
-func sortedIDs(set map[int32]bool) []int32 {
-	ids := make([]int32, 0, len(set))
-	for id := range set {
-		ids = append(ids, id)
+	if t.refs == nil {
+		t.refs = map[int32][]int32{}
 	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	return ids
+	t.refs[id] = refs
+	return refs
 }
 
 func eachRow(db *sql.DB, query string, scan func(*sql.Rows) error) error {

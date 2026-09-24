@@ -16,7 +16,7 @@ func (warlock *Warlock) registerShadowBurn() {
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
 	// 	ClassSpellMask: WarlockSpellShadowBurn,
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: shadowBurnRank.Cost()},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(shadowBurnRank.Cost())},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
 	// 			GCD: shadowBurnRank.GCD(),

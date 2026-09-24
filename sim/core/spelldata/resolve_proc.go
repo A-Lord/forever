@@ -5,7 +5,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
-	"github.com/wowsims/forever/sim/core/proto"
 )
 
 // An addition to the resolved trigger for what the client does not state, which on a proc is the
@@ -73,6 +72,23 @@ func ChanceFrom(e *Effect) ProcOpt {
 	return Chance(e.Percent())
 }
 
+// A weapon proc's listener, which no row states: the game casts a "Chance on hit" effect and a
+// combat enchant off every eligible weapon hit, so the trigger hears them all and the weapon it
+// sits on decides which ones count. A hit that lands is enough, so a special that deals no damage,
+// such as Sunder Armor, rolls it too. The outcome stays what the row's tooltip hint read, and the
+// aura-side proc-ness attribute goes: a weapon proc ignores proc-ness by its own rule. A rate option
+// that reads the mask has to come after this one.
+func WeaponProc() ProcOpt {
+	return func(_ *core.Character, trigger *core.ProcTrigger) {
+		trigger.Callback = core.CallbackOnSpellHitDealt
+		trigger.ProcMask = core.ProcMaskUnknown
+		trigger.RequireDamageDealt = false
+		trigger.CanProcFromProcs = false
+		trigger.SpellFlagsExclude &^= core.SpellFlagSuppressWeaponProcs
+		trigger.IsWeaponProc = true
+	}
+}
+
 // A rate the caller states outright, which replaces whatever the row said, manager included.
 func Chance(chance float64) ProcOpt {
 	return func(_ *core.Character, trigger *core.ProcTrigger) {
@@ -121,9 +137,8 @@ func rowClassFlags(s *Spell) core.ClassFlags {
 	for i := range s.Effects {
 		e := &s.Effects[i]
 
-		switch e.Aura {
-		case dbcenums.A_PROC_TRIGGER_SPELL, dbcenums.A_PROC_TRIGGER_SPELL_WITH_VALUE,
-			dbcenums.A_PROC_TRIGGER_SPELL_COPY, dbcenums.A_PROC_TRIGGER_DAMAGE, dbcenums.A_DUMMY:
+		if e.Aura.IsProcTrigger() || e.Aura == dbcenums.A_PROC_TRIGGER_SPELL_COPY ||
+			e.Aura == dbcenums.A_PROC_TRIGGER_DAMAGE || e.Aura == dbcenums.A_DUMMY {
 			if !e.ClassFlags.IsZero() {
 				return e.ClassFlags
 			}
@@ -149,13 +164,13 @@ func othersFamily(character *core.Character, flags core.ClassFlags) bool {
 		return false
 	}
 
-	family, stated := classSpellFamilies[character.Class]
+	family, stated := core.ClassSpellFamilies[character.Class]
 	return stated && !flags.IsZero() && flags.Family != family && isClassFamily(flags.Family)
 }
 
 // Whether the family is the one some class files its own spells under.
 func isClassFamily(family int32) bool {
-	for _, classFamily := range classSpellFamilies {
+	for _, classFamily := range core.ClassSpellFamilies {
 		if classFamily == family {
 			return true
 		}
@@ -163,42 +178,31 @@ func isClassFamily(family int32) bool {
 	return false
 }
 
-// The client's SpellClassSet per class: the family every one of that class's spells files its class
-// mask under. Verified row by row against the store in TestClassSpellFamilies.
-var classSpellFamilies = map[proto.Class]int32{
-	proto.Class_ClassMage:    3,
-	proto.Class_ClassWarrior: 4,
-	proto.Class_ClassWarlock: 5,
-	proto.Class_ClassPriest:  6,
-	proto.Class_ClassDruid:   7,
-	proto.Class_ClassRogue:   8,
-	proto.Class_ClassHunter:  9,
-	proto.Class_ClassPaladin: 10,
-	proto.Class_ClassShaman:  11,
-}
-
 // The roll the row states, by the source that says where it is stated. The ProcChance column is the
 // roll only under ProcChanceColumn; under the others it means nothing, which is why reading it
-// directly is the bug ProcChanceSource exists to prevent.
-//
+// directly is the bug ProcChanceSource exists to prevent. 0 where the row states no roll, which under
+// ProcChancePPM is a rate the caller supplies through PPM().
+func (s *Spell) StatedChance() float64 {
+	switch s.ProcChanceSource {
+	case ProcChanceColumn:
+		// 101 is the client's "fires on its own condition" sentinel next to a real 100.
+		return min(float64(s.ProcChance)/100, 1)
+	case ProcChanceEffectN:
+		// The position the roll is stated at can be past the effects the row carries.
+		return s.EffectN(int(s.ProcChanceEffect)).Percent()
+	case ProcChanceAlways:
+		return 1
+	}
+	return 0
+}
+
 // A row whose rate is procs per minute states no roll: that rate is a manager, and settleProcRate
 // builds it once the options have had their say about the mask it measures hits on.
 func fillProcChance(s *Spell, trigger *core.ProcTrigger) {
 	if s.RPPM > 0 {
 		return
 	}
-
-	switch s.ProcChanceSource {
-	case ProcChanceColumn:
-		// 101 is the client's "fires on its own condition" sentinel next to a real 100.
-		trigger.ProcChance = min(float64(s.ProcChance)/100, 1)
-	case ProcChanceEffectN:
-		trigger.ProcChance = s.EffectN(int(s.ProcChanceEffect)).Percent()
-	case ProcChanceAlways:
-		trigger.ProcChance = 1
-	case ProcChancePPM:
-		// The client states nothing, so the rate is the caller's to supply through PPM().
-	}
+	trigger.ProcChance = s.StatedChance()
 }
 
 // The rate the trigger ends up with. An override-supplied procs-per-minute rate wins over every

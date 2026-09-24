@@ -2,14 +2,29 @@ package dbc
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"slices"
 	"strings"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
+
+// Kept apart from the item's stats so the sim can apply them per encounter.
+func addAreaStats(opts *proto.ScalingItemProperties, areaType proto.AreaType, statMap map[int32]float64) {
+	for _, existing := range opts.AreaStats {
+		if existing.AreaType == areaType {
+			for stat, value := range statMap {
+				existing.Stats[stat] += value
+			}
+			return
+		}
+	}
+	opts.AreaStats = append(opts.AreaStats, &proto.AreaStats{AreaType: areaType, Stats: maps.Clone(statMap)})
+}
 
 // ItemEffect represents an item effect in the game.
 type ItemEffect struct {
@@ -424,6 +439,10 @@ func MergeItemEffectsForAllStates(parsed *proto.UIItem) []*proto.ItemEffect {
 		hasStats := len(props.Stats) > 0
 
 		if e.TriggerType == ITEM_SPELLTRIGGER_ON_EQUIP && hasStats {
+			if areaType := spelldata.AreaTypeOfGroup(dbcInstance.Spells[e.SpellID].RequiredAreasID); areaType != proto.AreaType_AreaTypeUnknown {
+				addAreaStats(parsed.ScalingOptions[0], areaType, props.Stats)
+				continue
+			}
 			for stat, value := range props.Stats {
 				parsed.ScalingOptions[0].Stats[int32(stat)] += value
 			}

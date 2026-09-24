@@ -8,20 +8,21 @@ func (druid *Druid) registerInsectSwarmSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.InsectSwarm = druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: insectSwarmRank.ID},
-	// 	SpellSchool:    insectSwarmRank.SpellSchool(),
-	// 	DefenseType:    insectSwarmRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	ClassSpellMask: DruidSpellInsectSwarm,
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
+	// druid.InsectSwarm = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: insectSwarmRank.ID},
+	// 	CastRequirement: insectSwarmRank.CastRequirement(),
+	// 	SpellSchool:     insectSwarmRank.SpellSchool(),
+	// 	DefenseType:     insectSwarmRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskSpellDamage,
+	// 	ClassSpellMask:  DruidSpellInsectSwarm,
+	// 	Flags:           core.SpellFlagAPL | core.SpellFlagBinary,
 	//
 	// 	DamageMultiplier: 1,
 	// 	ThreatMultiplier: 1,
 	// 	MaxRange:         float64(insectSwarmRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: insectSwarmRank.Cost(),
+	// 		FlatCost: int32(insectSwarmRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

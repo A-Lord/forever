@@ -6,17 +6,15 @@
 // Slices are added here as each facade is converted; a slice absent from this
 // file still lives in its class.
 import type { PlayerStats } from '@generated/proto/api';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import {
+	type AreaType,
 	ConsumesSpec,
-	Debuffs,
 	Faction,
 	HealingModel,
-	IndividualBuffs,
 	type ItemQuality,
 	type ItemSlot,
 	type ItemSpec,
-	PartyBuffs,
-	RaidBuffs,
 	Target as TargetProto,
 	UnitReference,
 	type WeaponType,
@@ -57,6 +55,8 @@ export interface EncounterSlice {
 	executeProportion45: number;
 	executeProportion90: number;
 	useHealth: boolean;
+	areaTypes: Array<AreaType>;
+	zoneId: number;
 	targets: Array<TargetProto>;
 }
 
@@ -285,6 +285,8 @@ const initialState = (): SimState => ({
 	encounter: {
 		...ENCOUNTER_DEFAULTS,
 		useHealth: false,
+		areaTypes: [],
+		zoneId: 0,
 		targets: [],
 	},
 	players: {},

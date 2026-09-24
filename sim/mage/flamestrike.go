@@ -36,7 +36,7 @@ func (mage *Mage) registerFlamestrike(rankConfig *spelldata.Spell) {
 	// 	Rank:           rankConfig.RankNumber(),
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: rankConfig.Cost(),
+	// 		FlatCost: int32(rankConfig.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

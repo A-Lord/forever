@@ -76,7 +76,7 @@ func (mage *Mage) registerImprovedFireball() {
 	//
 	// mage.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask: MageSpellFireball,
-	// 	TimeValue: time.Millisecond * time.Duration(spellData.ImprovedFireball.Effect(dbcenums.A_ADD_FLAT_MODIFIER, spelldata.SPELLMOD_CASTING_TIME).ValueAt(mage.Talents.ImprovedFireball)),
+	// 	TimeValue: time.Millisecond * time.Duration(spellData.ImprovedFireball.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_CASTING_TIME)).ValueAt(mage.Talents.ImprovedFireball)),
 	// 	Kind:      core.SpellMod_CastTime_Flat,
 	// })
 }
@@ -303,7 +303,7 @@ func (mage *Mage) registerFirePower() {
 	//
 	// mage.AddStaticMod(core.SpellModConfig{
 	// 	School:     core.SpellSchoolFire,
-	// 	FloatValue: spellData.FirePower.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(mage.Talents.FirePower),
+	// 	FloatValue: spellData.FirePower.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(mage.Talents.FirePower),
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
 	// })
 }

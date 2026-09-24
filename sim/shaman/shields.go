@@ -141,7 +141,7 @@ func (shaman *Shaman) registerLightningShieldSpell() {
 	// 	DefenseType: core.DefenseTypeMagic,
 	// 	Flags:       core.SpellFlagAPL | SpellFlagInstant,
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: lightningShieldRank.Cost(),
+	// 		FlatCost: int32(lightningShieldRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

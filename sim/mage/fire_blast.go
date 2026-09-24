@@ -17,7 +17,7 @@ func (mage *Mage) registerFireBlastSpell() {
 	// 	ClassSpellMask: MageSpellFireBlast,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: fireBlastRank.Cost(),
+	// 		FlatCost: int32(fireBlastRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

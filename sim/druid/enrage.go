@@ -25,10 +25,11 @@ func (druid *Druid) registerEnrageSpell() {
 	// 	}
 	// })
 	//
-	// druid.Enrage = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	ClassSpellMask: DruidSpellEnrage,
-	// 	Flags:          core.SpellFlagAPL,
+	// druid.Enrage = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        actionID,
+	// 	CastRequirement: spellData.Enrage.Highest().CastRequirement(),
+	// 	ClassSpellMask:  DruidSpellEnrage,
+	// 	Flags:           core.SpellFlagAPL,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{

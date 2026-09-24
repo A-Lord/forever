@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/textproto"
-	"os"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 const (
@@ -35,24 +33,30 @@ type rpcError struct {
 	Message string `json:"message"`
 }
 
-type textDocumentItem struct {
-	URI  string `json:"uri"`
-	Text string `json:"text"`
+// The params of every textDocument method the server reads.
+type documentParams struct {
+	TextDocument struct {
+		URI  string `json:"uri"`
+		Text string `json:"text"`
+	} `json:"textDocument"`
+	ContentChanges []struct {
+		// Nil where the change is the whole text.
+		Range *struct {
+			Start position `json:"start"`
+			End   position `json:"end"`
+		} `json:"range"`
+		Text string `json:"text"`
+	} `json:"contentChanges"`
+	Position position `json:"position"`
 }
 
-type textDocumentPosition struct {
-	TextDocument struct {
-		URI string `json:"uri"`
-	} `json:"textDocument"`
-	Position struct {
-		Line      int `json:"line"`
-		Character int `json:"character"`
-	} `json:"position"`
+type position struct {
+	Line      int `json:"line"`
+	Character int `json:"character"`
 }
 
 type lspServer struct {
 	out      io.Writer
-	outMu    sync.Mutex
 	ws       *workspace
 	trace    bool
 	shutdown bool
@@ -89,7 +93,7 @@ func readFrame(reader *textproto.Reader) ([]byte, error) {
 		return nil, err
 	}
 	length, err := strconv.Atoi(header.Get("Content-Length"))
-	if err != nil {
+	if err != nil || length < 0 {
 		return nil, fmt.Errorf("a frame without a Content-Length: %v", header)
 	}
 	body := make([]byte, length)
@@ -124,8 +128,7 @@ func (s *lspServer) handle(msg rpcMessage) {
 				"hoverProvider": true,
 				"textDocumentSync": map[string]any{
 					"openClose": true,
-					"change":    1,
-					"save":      map[string]any{"includeText": false},
+					"change":    2,
 				},
 			},
 			"serverInfo": map[string]any{"name": "wowsims-spelldata"},
@@ -135,48 +138,35 @@ func (s *lspServer) handle(msg rpcMessage) {
 		s.shutdown = true
 		s.respond(msg.ID, nil, nil)
 
-	case "textDocument/didOpen":
-		var params struct {
-			TextDocument textDocumentItem `json:"textDocument"`
-		}
-		if json.Unmarshal(msg.Params, &params) == nil {
-			s.ws.setBuffer(params.TextDocument.URI, params.TextDocument.Text)
-		}
-
-	case "textDocument/didChange":
-		var params struct {
-			TextDocument   textDocumentItem `json:"textDocument"`
-			ContentChanges []struct {
-				Text string `json:"text"`
-			} `json:"contentChanges"`
-		}
-		if json.Unmarshal(msg.Params, &params) == nil && len(params.ContentChanges) > 0 {
-			s.ws.setBuffer(params.TextDocument.URI, params.ContentChanges[len(params.ContentChanges)-1].Text)
-		}
-
-	case "textDocument/didSave":
-		var params struct {
-			TextDocument textDocumentItem `json:"textDocument"`
-		}
-		if json.Unmarshal(msg.Params, &params) == nil {
-			s.ws.invalidate(params.TextDocument.URI)
-		}
-
-	case "textDocument/didClose":
-		var params struct {
-			TextDocument textDocumentItem `json:"textDocument"`
-		}
-		if json.Unmarshal(msg.Params, &params) == nil {
-			s.ws.dropBuffer(params.TextDocument.URI)
-		}
-
-	case "textDocument/hover":
-		var params textDocumentPosition
+	case "textDocument/didOpen", "textDocument/didChange", "textDocument/didClose", "textDocument/hover":
+		var params documentParams
 		if err := json.Unmarshal(msg.Params, &params); err != nil {
-			s.respond(msg.ID, nil, &rpcError{Code: codeParseError, Message: err.Error()})
+			if request {
+				s.respond(msg.ID, nil, &rpcError{Code: codeParseError, Message: err.Error()})
+			}
 			return
 		}
-		s.respond(msg.ID, s.hover(params), nil)
+		uri := params.TextDocument.URI
+		switch msg.Method {
+		case "textDocument/didOpen":
+			s.ws.update(uri, params.TextDocument.Text, true)
+		case "textDocument/didChange":
+			text := s.ws.buffers[uriPath(uri)]
+			for _, change := range params.ContentChanges {
+				if change.Range == nil {
+					text = change.Text
+					continue
+				}
+				start := offsetOf(text, change.Range.Start.Line, change.Range.Start.Character)
+				end := max(start, offsetOf(text, change.Range.End.Line, change.Range.End.Character))
+				text = text[:start] + change.Text + text[end:]
+			}
+			s.ws.update(uri, text, true)
+		case "textDocument/didClose":
+			s.ws.update(uri, "", false)
+		case "textDocument/hover":
+			s.respond(msg.ID, s.hover(uri, params.Position), nil)
+		}
 
 	default:
 		if request {
@@ -185,19 +175,14 @@ func (s *lspServer) handle(msg rpcMessage) {
 	}
 }
 
-func (s *lspServer) hover(params textDocumentPosition) any {
-	uri := params.TextDocument.URI
-	text, open := s.ws.buffer(uri)
-	if !open {
-		data, err := os.ReadFile(uriPath(uri))
-		if err != nil {
-			s.log("✗ " + err.Error())
-			return nil
-		}
-		text = string(data)
+func (s *lspServer) hover(uri string, at position) any {
+	text, err := s.ws.text(uriPath(uri))
+	if err != nil {
+		s.log("✗ " + err.Error())
+		return nil
 	}
 
-	markdown, trace, ok := s.ws.hover(text, params.Position.Line, params.Position.Character, uri)
+	markdown, trace, ok := s.ws.hover(text, at.Line, at.Character, uri)
 	s.log(strings.Join(trace, "\n"))
 	if !ok {
 		return nil
@@ -238,7 +223,5 @@ func (s *lspServer) write(msg rpcMessage) {
 	if err != nil {
 		return
 	}
-	s.outMu.Lock()
-	defer s.outMu.Unlock()
 	fmt.Fprintf(s.out, "Content-Length: %d\r\n\r\n%s", len(body), body)
 }

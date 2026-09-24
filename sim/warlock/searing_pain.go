@@ -17,7 +17,7 @@ func (warlock *Warlock) registerSearingPain() {
 	// 	ClassSpellMask: WarlockSpellSearingPain,
 	// 	MaxRange:       float64(searingPainRank.MaxRange),
 	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: searingPainRank.Cost()},
+	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(searingPainRank.Cost())},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
 	// 			GCD:      searingPainRank.GCD(),

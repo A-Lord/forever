@@ -3,161 +3,19 @@ package main
 import (
 	"fmt"
 	"go/ast"
-	"go/constant"
-	"go/parser"
-	"go/scanner"
 	"go/token"
 	"go/types"
-	"math/bits"
-	"path/filepath"
-	"regexp"
-	"sort"
+	"io"
+	"reflect"
+	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
-
-var spellConfigPattern = regexp.MustCompile(`\bspelldata\.SpellConfig\b`)
-
-var coreConstantFiles = []string{"sim/core/flags.go", "sim/core/constants.go"}
-
-var (
-	loadCoreConstants sync.Once
-	coreFset          = token.NewFileSet()
-	corePackage       *types.Package
-	coreNames         = map[string][]namedConstant{}
-)
-
-type namedConstant struct {
-	name  string
-	value uint64
-}
-
-// No import is followed: type-checking proto and stats from source takes seconds, and the flag
-// constants do not use them. The errors that leaves behind are ignored; the constants still resolve.
-type noImports struct{}
-
-func (noImports) Import(path string) (*types.Package, error) {
-	return nil, fmt.Errorf("%s is not imported", path)
-}
-
-func scanCoreConstants() {
-	root, err := moduleRoot()
-	if err != nil {
-		return
-	}
-	var files []*ast.File
-	for _, name := range coreConstantFiles {
-		file, err := parser.ParseFile(coreFset, filepath.Join(root, name), nil, parser.SkipObjectResolution)
-		if err != nil {
-			return
-		}
-		files = append(files, file)
-	}
-
-	conf := types.Config{Importer: noImports{}, Error: func(error) {}}
-	corePackage, _ = conf.Check("github.com/wowsims/forever/sim/core", coreFset, files, nil)
-
-	scope := corePackage.Scope()
-	for _, name := range scope.Names() {
-		c, ok := scope.Lookup(name).(*types.Const)
-		if !ok {
-			continue
-		}
-		named, ok := c.Type().(*types.Named)
-		if !ok {
-			continue
-		}
-		value, exact := constant.Uint64Val(constant.ToInt(c.Val()))
-		if !exact {
-			continue
-		}
-		typeName := named.Obj().Name()
-		coreNames[typeName] = append(coreNames[typeName], namedConstant{name: name, value: value})
-	}
-	for _, names := range coreNames {
-		sort.SliceStable(names, func(i, j int) bool { return names[i].value < names[j].value })
-	}
-}
-
-func coreConstants(typeName string) []namedConstant {
-	loadCoreConstants.Do(scanCoreConstants)
-	return coreNames[typeName]
-}
-
-func evalCoreConstant(expr ast.Expr) (constant.Value, error) {
-	loadCoreConstants.Do(scanCoreConstants)
-	if corePackage == nil {
-		return nil, fmt.Errorf("sim/core's constants did not load")
-	}
-
-	local, err := unqualify(expr)
-	if err != nil {
-		return nil, err
-	}
-	tv, err := types.Eval(coreFset, corePackage, token.NoPos, nodeText(local))
-	if err != nil || tv.Value == nil {
-		return nil, fmt.Errorf("%s is not a constant of sim/core", nodeText(expr))
-	}
-	return tv.Value, nil
-}
-
-func unqualify(expr ast.Expr) (ast.Expr, error) {
-	switch n := expr.(type) {
-	case *ast.BasicLit:
-		return n, nil
-	case *ast.ParenExpr:
-		return unqualify(n.X)
-	case *ast.SelectorExpr:
-		if pkg, ok := n.X.(*ast.Ident); ok && pkg.Name == "core" {
-			return ast.NewIdent(n.Sel.Name), nil
-		}
-	case *ast.BinaryExpr:
-		if n.Op != token.OR {
-			break
-		}
-		x, err := unqualify(n.X)
-		if err != nil {
-			return nil, err
-		}
-		y, err := unqualify(n.Y)
-		if err != nil {
-			return nil, err
-		}
-		return &ast.BinaryExpr{X: x, Op: token.OR, Y: y}, nil
-	}
-	return nil, fmt.Errorf("%s is not a constant expression over sim/core's names", nodeText(expr))
-}
-
-func exactName(typeName string, value uint64) string {
-	for _, c := range coreConstants(typeName) {
-		if c.value == value && !strings.HasSuffix(c.name, "Len") {
-			return c.name
-		}
-	}
-	return strconv.FormatUint(value, 10)
-}
-
-func bitNames(typeName string, value uint64) []string {
-	var out []string
-	for value != 0 {
-		bit := value & -value
-		value &^= bit
-		name := fmt.Sprintf("bit %d", bits.TrailingZeros64(bit))
-		for _, c := range coreConstants(typeName) {
-			if c.value == bit {
-				name = c.name
-				break
-			}
-		}
-		out = append(out, name)
-	}
-	return out
-}
 
 type configOption struct {
 	label  string
@@ -166,29 +24,23 @@ type configOption struct {
 	err    error
 }
 
-var optionBuilders = map[string]struct {
-	args  int
-	build func(args []uint64) spelldata.SpellOpt
-}{
-	"Melee": {1, func(a []uint64) spelldata.SpellOpt { return spelldata.Melee(core.ProcMask(a[0])) }},
-	"Magic": {1, func(a []uint64) spelldata.SpellOpt { return spelldata.Magic(core.ProcMask(a[0])) }},
-	"Proc":  {0, func([]uint64) spelldata.SpellOpt { return spelldata.Proc() }},
-	"Flags": {1, func(a []uint64) spelldata.SpellOpt { return spelldata.Flags(core.SpellFlag(a[0])) }},
-	"Tag":   {1, func(a []uint64) spelldata.SpellOpt { return spelldata.Tag(int32(a[0])) }},
+// The options a SpellConfig call can pass, called with the arguments converted to what each takes.
+var optionBuilders = map[string]any{
+	"Melee": spelldata.Melee,
+	"Magic": spelldata.Magic,
+	"Proc":  spelldata.Proc,
+	"Flags": spelldata.Flags,
+	"Tag":   spelldata.Tag,
 }
 
 func readOption(expr ast.Expr) configOption {
-	source := nodeText(expr)
+	source := types.ExprString(expr)
 	option := configOption{label: source, source: source}
 
 	call, ok := expr.(*ast.CallExpr)
-	var sel *ast.SelectorExpr
+	var name string
 	if ok {
-		sel, ok = call.Fun.(*ast.SelectorExpr)
-	}
-	if ok {
-		pkg, isIdent := sel.X.(*ast.Ident)
-		ok = isIdent && pkg.Name == "spelldata"
+		name, ok = pkgSelector(call.Fun, "spelldata")
 	}
 	if !ok {
 		option.err = fmt.Errorf("not a spelldata option call")
@@ -197,66 +49,40 @@ func readOption(expr ast.Expr) configOption {
 
 	args := make([]string, 0, len(call.Args))
 	for _, arg := range call.Args {
-		args = append(args, strings.ReplaceAll(nodeText(arg), "core.", ""))
+		args = append(args, strings.ReplaceAll(types.ExprString(arg), "core.", ""))
 	}
-	option.label = sel.Sel.Name + "(" + strings.Join(args, " | ") + ")"
+	option.label = name + "(" + strings.Join(args, " | ") + ")"
 	if len(option.label) > 48 {
-		option.label = sel.Sel.Name + "(…)"
+		option.label = name + "(…)"
 	}
 
-	builder, known := optionBuilders[sel.Sel.Name]
+	builder, known := optionBuilders[name]
 	if !known {
-		option.err = fmt.Errorf("spelldata.%s is not an option this reads", sel.Sel.Name)
+		option.err = fmt.Errorf("spelldata.%s is not an option this reads", name)
 		return option
 	}
-	if len(call.Args) != builder.args {
-		option.err = fmt.Errorf("spelldata.%s takes %s", sel.Sel.Name, arguments(builder.args))
+	build := reflect.ValueOf(builder)
+	if len(call.Args) != build.Type().NumIn() {
+		option.err = fmt.Errorf("spelldata.%s takes %s", name, arguments(build.Type().NumIn()))
 		return option
 	}
 
-	values := make([]uint64, 0, len(call.Args))
-	for _, arg := range call.Args {
-		value, err := evalCoreConstant(arg)
+	in := make([]reflect.Value, 0, len(call.Args))
+	for i, arg := range call.Args {
+		value, err := evalConst(arg)
 		if err != nil {
 			option.err = err
 			return option
 		}
-		v, exact := constant.Uint64Val(constant.ToInt(value))
-		if !exact {
-			if i, ok := constant.Int64Val(constant.ToInt(value)); ok {
-				v = uint64(i)
-			} else {
-				option.err = fmt.Errorf("%s is not an integer", nodeText(arg))
-				return option
-			}
+		converted, err := convertArg(argument{source: types.ExprString(arg), value: value}, build.Type().In(i))
+		if err != nil {
+			option.err = err
+			return option
 		}
-		values = append(values, v)
+		in = append(in, converted)
 	}
-	option.opt = builder.build(values)
+	option.opt = build.Call(in)[0].Interface().(spelldata.SpellOpt)
 	return option
-}
-
-func callText(text string, start int) (string, error) {
-	var s scanner.Scanner
-	fset := token.NewFileSet()
-	file := fset.AddFile("", fset.Base(), len(text)-start)
-	s.Init(file, []byte(text[start:]), nil, scanner.ScanComments)
-
-	depth := 0
-	for {
-		pos, tok, _ := s.Scan()
-		switch tok {
-		case token.EOF:
-			return "", fmt.Errorf("the SpellConfig call is not closed")
-		case token.LPAREN:
-			depth++
-		case token.RPAREN:
-			depth--
-			if depth == 0 {
-				return text[start : start+file.Offset(pos)+1], nil
-			}
-		}
-	}
 }
 
 type configRow struct {
@@ -272,14 +98,9 @@ type configResult struct {
 	skipped []configOption
 }
 
-func evalSpellConfig(call string, declarations map[string]declaration, pkg string, trace *tracer) (*configResult, error) {
-	node, err := parser.ParseExpr(call)
-	if err != nil {
-		return nil, fmt.Errorf("%q is not a SpellConfig call", call)
-	}
-	expr, ok := node.(*ast.CallExpr)
-	if !ok || len(expr.Args) < 2 {
-		return nil, fmt.Errorf("%q is not a SpellConfig call with a row", call)
+func evalSpellConfig(expr *ast.CallExpr, declarations map[string]declaration, pkg string, trace *tracer) (*configResult, error) {
+	if len(expr.Args) < 2 {
+		return nil, fmt.Errorf("%s is not a SpellConfig call with a row", types.ExprString(expr))
 	}
 
 	s, pick, err := configPick(expr.Args[1], declarations, pkg, trace)
@@ -311,42 +132,30 @@ func evalSpellConfig(call string, declarations map[string]declaration, pkg strin
 }
 
 func configPick(arg ast.Expr, declarations map[string]declaration, pkg string, trace *tracer) (*spelldata.Spell, string, error) {
-	if call, ok := arg.(*ast.CallExpr); ok {
-		if sel, ok := call.Fun.(*ast.SelectorExpr); ok && (sel.Sel.Name == "MustFind" || sel.Sel.Name == "Find") && len(call.Args) == 1 {
-			if pkgIdent, ok := sel.X.(*ast.Ident); ok && pkgIdent.Name == "spelldata" {
-				if lit, ok := call.Args[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
-					id, _ := strconv.ParseInt(lit.Value, 0, 32)
-					s := spelldata.Find(int32(id))
-					if s == spelldata.Nil {
-						return nil, "", fmt.Errorf("spell %d is not in the store", id)
-					}
-					return s, nodeText(arg), nil
-				}
-			}
-		}
-	}
-
-	text := nodeText(arg)
-	trace.add("  row %s", text)
-	expr, err := resolveChain(text, declarations, maxSubstitutions, map[string]bool{}, trace)
+	trace.add("  row %s", types.ExprString(arg))
+	c, err := walkChain(arg, func(token.Pos) int { return 0 })
 	if err != nil {
 		return nil, "", err
 	}
-	result, err := evalExpr(ladderFamilies(), expr, pkg)
+	c, err = resolveChain(c, declarations, trace)
+	if err != nil {
+		return nil, "", err
+	}
+	result, err := evalExpr(ladderFamilies(), c, pkg)
 	if err != nil {
 		return nil, "", err
 	}
 	if result.kind != kindSpell {
-		return nil, "", fmt.Errorf("%s reads a %s, not a row", text, result.kind)
+		return nil, "", fmt.Errorf("%s reads a %s, not a row", types.ExprString(arg), result.kind)
 	}
-	return result.spell, expr, nil
+	return result.spell, c.text(false), nil
 }
 
 type configField struct {
-	name  string
-	read  func(*core.SpellConfig) string
-	flags string
-	bits  func(*core.SpellConfig) uint64
+	name    string
+	read    func(*core.SpellConfig) string
+	bits    func(*core.SpellConfig) uint64
+	bitName func(bit uint64) (string, bool)
 }
 
 func nonZero[T comparable](v T, format func(T) string) string {
@@ -370,14 +179,12 @@ var configFields = []configField{
 		return nonZero(c.ActionID.SpellID, func(id int32) string { return fmt.Sprintf("SpellID %d", id) })
 	}},
 	{name: "Rank", read: func(c *core.SpellConfig) string { return nonZero(c.Rank, intText[int32]) }},
-	{name: "SpellSchool", read: func(c *core.SpellConfig) string {
-		return nonZero(c.SpellSchool, func(v core.SpellSchool) string { return exactName("SpellSchool", uint64(v)) })
-	}},
-	{name: "DefenseType", read: func(c *core.SpellConfig) string {
-		return nonZero(c.DefenseType, func(v core.DefenseType) string { return exactName("DefenseType", uint64(v)) })
-	}},
-	{name: "Flags", flags: "SpellFlag", bits: func(c *core.SpellConfig) uint64 { return uint64(c.Flags) }},
-	{name: "ProcMask", flags: "ProcMask", bits: func(c *core.SpellConfig) uint64 { return uint64(c.ProcMask) }},
+	{name: "SpellSchool", read: func(c *core.SpellConfig) string { return nonZero(c.SpellSchool, core.SpellSchool.String) }},
+	{name: "DefenseType", read: func(c *core.SpellConfig) string { return nonZero(c.DefenseType, core.DefenseType.String) }},
+	{name: "Flags", bits: func(c *core.SpellConfig) uint64 { return uint64(c.Flags) },
+		bitName: func(bit uint64) (string, bool) { return dbcenums.Named(core.SpellFlag(bit)) }},
+	{name: "ProcMask", bits: func(c *core.SpellConfig) uint64 { return uint64(c.ProcMask) },
+		bitName: func(bit uint64) (string, bool) { return dbcenums.Named(core.ProcMask(bit)) }},
 	{name: "Cast.DefaultCast.CastTime", read: func(c *core.SpellConfig) string { return nonZero(c.Cast.DefaultCast.CastTime, durationText) }},
 	{name: "Cast.DefaultCast.GCD", read: func(c *core.SpellConfig) string { return nonZero(c.Cast.DefaultCast.GCD, durationText) }},
 	{name: "Cast.DefaultCast.NonEmpty", read: func(c *core.SpellConfig) string { return nonZero(c.Cast.DefaultCast.NonEmpty, boolText) }},
@@ -413,12 +220,16 @@ func attribute(stages []core.SpellConfig, labels []string) []configRow {
 			}
 			var from []string
 			for i := range stages {
-				added := field.bits(&stages[i]) &^ previousBits(stages, i, field.bits) & value
-				if added != 0 && !contains(from, labels[i]) {
+				var previous uint64
+				if i > 0 {
+					previous = field.bits(&stages[i-1])
+				}
+				added := field.bits(&stages[i]) &^ previous & value
+				if added != 0 && !slices.Contains(from, labels[i]) {
 					from = append(from, labels[i])
 				}
 			}
-			rows = append(rows, configRow{field.name, strings.Join(bitNames(field.flags, value), " | "), strings.Join(from, ", ")})
+			rows = append(rows, configRow{field.name, strings.Join(setBits(value, field.bitName), " | "), strings.Join(from, ", ")})
 			continue
 		}
 
@@ -440,22 +251,6 @@ func attribute(stages []core.SpellConfig, labels []string) []configRow {
 	return rows
 }
 
-func previousBits(stages []core.SpellConfig, i int, read func(*core.SpellConfig) uint64) uint64 {
-	if i == 0 {
-		return 0
-	}
-	return read(&stages[i-1])
-}
-
-func contains(list []string, s string) bool {
-	for _, item := range list {
-		if item == s {
-			return true
-		}
-	}
-	return false
-}
-
 const configFootnote = "Assignments to the config after the call are not folded in."
 
 func configMarkdown(result *configResult) string {
@@ -475,12 +270,12 @@ func configMarkdown(result *configResult) string {
 	return md.String()
 }
 
-func writeConfigText(out *strings.Builder, result *configResult) {
+func writeConfigText(out io.Writer, result *configResult) {
 	fmt.Fprintf(out, "SpellConfig of %s\n", title(result.spell))
 	if result.pick != "" {
 		fmt.Fprintf(out, "%s\n", result.pick)
 	}
-	out.WriteString("\n")
+	fmt.Fprintln(out)
 	fieldWidth, valueWidth := 0, 0
 	for _, row := range result.rows {
 		fieldWidth = max(fieldWidth, len(row.field))

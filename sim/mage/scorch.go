@@ -19,7 +19,7 @@ func (mage *Mage) registerScorchSpell() {
 	// 	ClassSpellMask: MageSpellScorch,
 	//
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: scorchRank.Cost(),
+	// 		FlatCost: int32(scorchRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

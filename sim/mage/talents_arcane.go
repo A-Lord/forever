@@ -298,7 +298,7 @@ func (mage *Mage) registerArcaneInstability() {
 	//
 	// mage.AddStaticMod(core.SpellModConfig{
 	// 	ClassMask:  MageSpellsAll,
-	// 	FloatValue: spellData.ArcaneInstability.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(mage.Talents.ArcaneInstability),
+	// 	FloatValue: spellData.ArcaneInstability.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(mage.Talents.ArcaneInstability),
 	// 	Kind:       core.SpellMod_DamageDone_Pct,
 	// })
 	//

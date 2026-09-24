@@ -5,29 +5,27 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// TODO: Ingame test needed -- the client states no amount for the extra rage a hit taken
+// generates while Berserker Rage is up; doubled.
+const berserkerRageDamageTakenRageMultiplier = 2.0
+
 var berserkerRageRank = spellData.BerserkerRage.Highest()
 
 func (warrior *Warrior) registerBerserkerRage() {
 	rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: berserkerRageRank.ID})
 	rageGain := spellData.ImprovedBerserkerRage.EffectAt(1).TenthsAt(warrior.Talents.ImprovedBerserkerRage)
 
-	// TODO: Ingame test needed -- the client states no amount for the extra rage a hit taken
-	// generates; doubled here.
 	auraConfig := spelldata.AuraConfig(berserkerRageRank)
 	auraConfig.OnGain = func(aura *core.Aura, sim *core.Simulation) {
-		warrior.MultiplyDamageTakenRageGen(2)
+		warrior.MultiplyDamageTakenRageGen(berserkerRageDamageTakenRageMultiplier)
 	}
 	auraConfig.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-		warrior.MultiplyDamageTakenRageGen(0.5)
+		warrior.MultiplyDamageTakenRageGen(1 / berserkerRageDamageTakenRageMultiplier)
 	}
 	aura := warrior.RegisterAura(auraConfig).AttachFearImmunity()
 
 	config := spelldata.SpellConfig(&warrior.Unit, berserkerRageRank,
 		spelldata.Flags(core.SpellFlagAPL|core.SpellFlagCastWhileIncapacitated))
-
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BerserkerStance)
-	}
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		if rageGain > 0 {

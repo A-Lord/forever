@@ -47,7 +47,6 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			Stat.StatStrength,
 			Stat.StatAgility,
 			Stat.StatAttackPower,
-			Stat.StatExpertiseRating,
 			Stat.StatArmorPenetration,
 			Stat.StatArcaneResistance,
 			Stat.StatFireResistance,
@@ -55,7 +54,12 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			Stat.StatNatureResistance,
 			Stat.StatShadowResistance,
 		],
-		[PseudoStat.PseudoStatMeleeHitPercent, PseudoStat.PseudoStatMeleeCritPercent, PseudoStat.PseudoStatMeleeHastePercent],
+		[
+			PseudoStat.PseudoStatMeleeHitPercent,
+			PseudoStat.PseudoStatMeleeCritPercent,
+			PseudoStat.PseudoStatMeleeHastePercent,
+			PseudoStat.PseudoStatExpertisePercent,
+		],
 	),
 
 	defaults: {
@@ -64,7 +68,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			const expCap = new Stats().withStat(Stat.StatExpertiseRating, 6.5 * 4 * Mechanics.EXPERTISE_PER_QUARTER_PERCENT_REDUCTION);
+			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			return expCap;
 		})(),
 		softCapBreakpoints: (() => {
@@ -139,7 +143,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	},
 
 	simpleRotation: (player: Player<Spec.SpecDpsWarrior>, simple: SpecRotation<Spec.SpecDpsWarrior>, _: Cooldowns): APLRotation => {
-		let { spec, sunderArmor = WarriorSunder.WarriorSunderHelp, useOverpower = true, useRecklessness = false, bloodlustTiming = 5 } = simple;
+		let { spec, sunderArmor = WarriorSunder.WarriorSunderHelp, useOverpower = true, useRecklessness = false } = simple;
 
 		if (!spec) {
 			if (Presets.isArmsSpec(player) || Presets.isArmsKebabSpec(player)) {
@@ -152,10 +156,6 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		const rotation = APLRotation.clone(
 			spec == DpsWarriorSpec.DpsWarriorSpecFury ? Presets.FURY_DEFAULT_ROTATION.rotation.rotation! : Presets.ARMS_DEFAULT_ROTATION.rotation.rotation!,
 		);
-
-		const bloodlustTimingVariable = rotation.valueVariables.find(variable => variable.name === 'Bloodlust time');
-		if (bloodlustTimingVariable && bloodlustTimingVariable.value?.value.oneofKind === 'const')
-			bloodlustTimingVariable.value.value.const.val = String(bloodlustTiming);
 
 		const recklessnessAction = rotation.priorityList.find(
 			action => action.action?.action.oneofKind === 'groupReference' && action.action.action.groupReference.groupName === 'Recklessness ON/OFF',

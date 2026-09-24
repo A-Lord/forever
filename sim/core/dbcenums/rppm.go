@@ -10,4 +10,5 @@ const (
 	RPPMModifierRace                                  // 5
 	RPPMModifierIlevel                                // 6
 	RPPMModifierUnkAdjust                             // 7
+	RPPMModifierAura                                  // 8
 )

@@ -7,6 +7,8 @@ import (
 
 //go:generate stringer -type=ProcMask
 //go:generate stringer -type=AuraCallback
+//go:generate stringer -type=SpellFlag
+//go:generate stringer -type=SpellSchool
 type ProcMask uint32
 
 // Returns whether there is any overlap between the given masks.

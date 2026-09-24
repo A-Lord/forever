@@ -147,7 +147,7 @@ func (warlock *Warlock) applyShadowMastery() {
 	//
 	// warlock.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.ShadowMastery.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(warlock.Talents.ShadowMastery),
+	// 	FloatValue: spellData.ShadowMastery.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(warlock.Talents.ShadowMastery),
 	// 	ClassMask:  WarlockShadowDamage,
 	// })
 }

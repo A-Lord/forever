@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -9,45 +10,17 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// One effect as both readings: what it does in words, and the client's own columns, which is what a
-// developer checks the words against. Human is "unrecognised shape" on an effect no branch covers,
-// and the literal is then all there is to read.
-type Line struct {
-	Human   string `json:"human"`
-	Literal string `json:"literal"`
-}
-
-func title(s *spelldata.Spell) string {
-	if s.Rank == "" {
-		return fmt.Sprintf("%d %s", s.ID, s.Name)
-	}
-	return fmt.Sprintf("%d %s (%s)", s.ID, s.Name, s.Rank)
-}
-
-// The spell's own columns, one label per line, leaving out what the row does not state.
-func header(s *spelldata.Spell) []string {
-	var out []string
-	for _, field := range headerFields(s) {
-		out = append(out, fmt.Sprintf("%-9s %s", field.label, field.value))
-	}
-	return out
-}
-
-type headerField struct {
-	label string
-	value string
-}
-
-func headerFields(s *spelldata.Spell) []headerField {
-	var out []headerField
-	add := func(label, value string) {
+// The spell's own columns, leaving out what the row does not state.
+func headerFields(s *spelldata.Spell) []field {
+	out := []field{}
+	add := func(key, value string) {
 		if value != "" {
-			out = append(out, headerField{label, value})
+			out = append(out, field{key, value})
 		}
 	}
 
-	add("school", schoolName(s.School))
-	add("defense", defenseName(s.DefenseType))
+	add("school", schoolName(s.SpellSchool()))
+	add("defense", defenseName(s.DefenseTypeCore()))
 	if s.IsBleed() {
 		add("mechanic", "bleed")
 	} else if s.Mechanic != 0 {
@@ -69,6 +42,13 @@ func headerFields(s *spelldata.Spell) []headerField {
 	}
 	add("range", rangePhrase(s))
 	add("stance", stanceList(s.StanceMask))
+	add("stance exclude", stanceList(s.StanceExclude))
+	if s.CasterAura != 0 {
+		add("caster aura", spellRef(s.CasterAura))
+	}
+	if s.ExcludeCasterAura != 0 {
+		add("excluded caster aura", spellRef(s.ExcludeCasterAura))
+	}
 	add("equip", equipRequirement(s))
 	if s.MaxTargets != 0 {
 		add("targets", fmt.Sprintf("up to %d", s.MaxTargets))
@@ -180,16 +160,20 @@ func refList(s *spelldata.Spell) []string {
 	return out
 }
 
+// A SpellAuraRestrictions caster aura by id, named where the store carries it.
+func spellRef(id int32) string {
+	if s := spelldata.Find(id); s != spelldata.Nil {
+		return fmt.Sprintf("%d %s", s.ID, s.Name)
+	}
+	return fmt.Sprint(id)
+}
+
 func labelList(s *spelldata.Spell) string {
 	var out []string
 	for _, label := range s.Labels {
 		out = append(out, strconv.Itoa(int(label)))
 	}
 	return strings.Join(out, ", ")
-}
-
-func wowheadURL(id int32) string {
-	return fmt.Sprintf("https://www.wowhead.com/forever/spell=%d", id)
 }
 
 func seconds(ms int32) string {
@@ -213,11 +197,9 @@ func signed(v float64) string {
 }
 
 func join(parts ...string) string {
-	var kept []string
-	for _, p := range parts {
-		if p != "" {
-			kept = append(kept, p)
-		}
-	}
-	return strings.Join(kept, " ")
+	return strings.Join(nonEmpty(parts), " ")
+}
+
+func nonEmpty(parts []string) []string {
+	return slices.DeleteFunc(slices.Clone(parts), func(part string) bool { return part == "" })
 }

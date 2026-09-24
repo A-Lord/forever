@@ -44,7 +44,7 @@ func (shaman *Shaman) applyCallOfFlame() {
 	// }
 	// shaman.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.CallOfFlame.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(shaman.Talents.CallOfFlame),
+	// 	FloatValue: spellData.CallOfFlame.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(shaman.Talents.CallOfFlame),
 	// 	ClassMask:  SpellMaskFireTotem,
 	// })
 }
@@ -81,7 +81,7 @@ func (shaman *Shaman) applyConcussion() {
 	// }
 	// shaman.AddStaticMod(core.SpellModConfig{
 	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.Concussion.Effect(dbcenums.A_ADD_PCT_MODIFIER, spelldata.SPELLMOD_DAMAGE).FractionAt(shaman.Talents.Concussion),
+	// 	FloatValue: spellData.Concussion.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(shaman.Talents.Concussion),
 	// 	ClassMask:  SpellMaskLightningBolt | SpellMaskChainLightning | SpellMaskOverload | SpellMaskShock,
 	// })
 }

@@ -89,14 +89,9 @@
 							]
 						},
 						"consumables": {
-							"potId": 22838,
-							"battleElixirId": 22831,
-							"guardianElixirId": 32062,
-							"foodId": 33872,
 							"conjuredId": 7676,
-							"ohImbueId": 27186,
-							"potions": [13442, 22828, 22837, 22838],
-							"conjuredItems": [7676, 22105, 22788]
+							"potions": [13442],
+							"conjuredItems": [7676]
 						},
 						"bonusStats": {
 							"stats": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -128,9 +123,8 @@
 							}
 						},
 						"buffs": {
-							"blessingOfKings": true,
-							"blessingOfMight": 2,
-							"unleashedRage": true
+							"greaterBlessingOfKings": true,
+							"greaterBlessingOfMight": 2
 						},
 						"cooldowns": {},
 						"healingModel": {}
@@ -149,9 +143,7 @@
 					}
 				],
 				"buffs": {
-					"ferociousInspiration": 1,
 					"leaderOfThePack": 1,
-					"drums": 4,
 					"graceOfAirTotem": 2,
 					"strengthOfEarthTotem": 2,
 					"windfuryTotem": 2,
@@ -242,21 +234,16 @@
 		],
 		"numActiveParties": 5,
 		"buffs": {
-			"giftOfTheWild": 2,
-			"bloodlust": true
+			"giftOfTheWild": 2
 		},
 		"debuffs": {
 			"improvedSealOfTheCrusader": 2,
-			"misery": true,
-			"bloodFrenzy": true,
 			"giftOfArthas": true,
 			"mangle": true,
 			"faerieFire": 2,
 			"sunderArmor": true,
 			"curseOfRecklessness": true,
-			"huntersMark": 2,
-			"exposeWeaknessUptime": 0.9,
-			"exposeWeaknessHunterAgility": 1150
+			"huntersMark": 2
 		}
 	},
 	"preCapEpWeights": {

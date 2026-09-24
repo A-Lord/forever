@@ -34,7 +34,7 @@ func (warrior *Warrior) registerOverpower() {
 	config.ThreatMultiplier = 1
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance) && warrior.OverpowerAura.IsActive()
+		return warrior.OverpowerAura.IsActive()
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

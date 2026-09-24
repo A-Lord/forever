@@ -39,7 +39,7 @@ func (mage *Mage) registerBlizzardSpell() {
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellBlizzard,
 	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: blizzardRank.Cost(),
+	// 		FlatCost: int32(blizzardRank.Cost()),
 	// 	},
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

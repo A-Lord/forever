@@ -60,7 +60,7 @@ func (warlock *Warlock) registerSiphonLifeSpell() {
 	//
 	// 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
 	// 		dot := spell.Dot(target)
-	// 		result := dot.Spell.CalcPeriodicDamage(sim, target, siphonLifeTick.Average(core.CharacterLevel)*float64(int32(siphonLifeRank.Duration()/tickLength)), spell.OutcomeExpectedMagicHit)
+	// 		result := spell.CalcPeriodicDamage(sim, target, siphonLifeTick.Average(core.CharacterLevel)*float64(int32(siphonLifeRank.Duration()/tickLength)), spell.OutcomeExpectedMagicHit)
 	// 		result.Damage /= dot.CalcTickPeriod().Round(time.Millisecond).Seconds()
 	// 		return result
 	// 	},

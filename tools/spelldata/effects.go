@@ -14,7 +14,7 @@ import (
 const unrecognised = "unrecognised shape"
 
 func effectLines(s *spelldata.Spell) []Line {
-	var out []Line
+	out := []Line{}
 	for i := range s.Effects {
 		e := &s.Effects[i]
 		human := humanise(s, e)
@@ -57,7 +57,7 @@ func tenths(e *spelldata.Effect) float64 {
 func humanise(s *spelldata.Spell, e *spelldata.Effect) string {
 	switch e.Type {
 	case dbcenums.E_SCHOOL_DAMAGE:
-		return sentence(join(amount(e), schoolName(s.School), "damage", targetPhrase(e)),
+		return sentence(join(amount(e), schoolName(s.SpellSchool()), "damage", targetPhrase(e)),
 			scaling(e), coefficients(e))
 	case dbcenums.E_HEAL:
 		return sentence(join(amount(e), "healing", targetPhrase(e)), scaling(e), coefficients(e))
@@ -75,7 +75,7 @@ func humanise(s *spelldata.Spell, e *spelldata.Effect) string {
 	case dbcenums.E_ENERGIZE:
 		return sentence(join("restores", powerAmount(e), targetPhrase(e)), scaling(e))
 	case dbcenums.E_ENERGIZE_PCT:
-		return join("restores", percent(e), "of maximum", powerName(int8(e.Misc)), targetPhrase(e))
+		return join("restores", percent(e), "of maximum", powerName(dbcenums.PowerType(e.Misc)), targetPhrase(e))
 
 	case dbcenums.E_TRIGGER_SPELL, dbcenums.E_TRIGGER_SPELL_2:
 		return join("casts", triggerPhrase(e), targetPhrase(e))
@@ -137,13 +137,11 @@ func humaniseAura(s *spelldata.Spell, e *spelldata.Effect) string {
 // An aura on the caster is the ordinary case and says nothing worth a clause, so only an aura
 // reaching somebody else names who.
 func auraTarget(e *spelldata.Effect) string {
-	if e.Target[0] == targetCaster {
+	if e.Target[0] == dbcenums.TARGET_UNIT_CASTER {
 		return ""
 	}
 	return targetPhrase(e)
 }
-
-const targetCaster uint8 = 1
 
 // The spell power and attack power shares, for the auras whose amount those columns really add to. On
 // a modifier or a proc row the coefficient column carries a 1 that means nothing.
@@ -163,7 +161,7 @@ func auraCoefficients(e *spelldata.Effect) string {
 func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	switch e.Aura {
 	case dbcenums.A_PERIODIC_DAMAGE:
-		return join(amount(e), schoolName(s.School), "damage", every(e))
+		return join(amount(e), schoolName(s.SpellSchool()), "damage", every(e))
 	case dbcenums.A_PERIODIC_HEAL:
 		return join(amount(e), "healing", every(e))
 	case dbcenums.A_PERIODIC_LEECH:
@@ -173,10 +171,10 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	case dbcenums.A_PERIODIC_TRIGGER_SPELL:
 		return join("casts", triggerPhrase(e), every(e))
 	case dbcenums.A_PROC_TRIGGER_SPELL:
-		return join("casts", triggerPhrase(e), "on its trigger", onSpells(s, e))
+		return join("casts", triggerPhrase(e), "on its trigger", onSpells(e))
 
 	case dbcenums.A_DUMMY, dbcenums.A_PERIODIC_DUMMY:
-		return join(dummyPhrase("aura", e), every(e), onSpells(s, e))
+		return join(dummyPhrase("aura", e), every(e), onSpells(e))
 
 	case dbcenums.A_MOD_DECREASE_SPEED, dbcenums.A_MOD_INCREASE_SPEED:
 		return join(signedPercent(e), "movement speed")
@@ -192,33 +190,33 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		return "taunts"
 
 	case dbcenums.A_SCHOOL_ABSORB:
-		return join("absorbs", amount(e), schoolName(uint8(e.Misc)), "damage")
+		return join("absorbs", amount(e), schoolName(core.SpellSchool(e.Misc)), "damage")
 	case dbcenums.A_SCHOOL_IMMUNITY:
-		return join("immune to", schoolName(uint8(e.Misc)))
+		return join("immune to", schoolName(core.SpellSchool(e.Misc)))
 	case dbcenums.A_MECHANIC_IMMUNITY:
 		return join("immune to", mechanicName(e.Misc))
 	case dbcenums.A_DAMAGE_SHIELD:
-		return sentence(join(amount(e), schoolName(s.School), "damage back to melee attackers"), scaling(e))
+		return sentence(join(amount(e), schoolName(s.SpellSchool()), "damage back to melee attackers"), scaling(e))
 
 	case dbcenums.A_MOD_SKILL:
 		return fmt.Sprintf("%s to skill %d", signed(value(e)), e.Misc)
 	case dbcenums.A_MOD_INCREASE_ENERGY:
-		return join(signed(value(e)), "maximum", powerName(int8(e.Misc)))
+		return join(signed(value(e)), "maximum", powerName(dbcenums.PowerType(e.Misc)))
 	case dbcenums.A_MOD_MANA_REGEN_INTERRUPT:
 		return join(signedPercent(e), "mana regen while casting")
 	case dbcenums.A_ADD_TARGET_TRIGGER:
-		return join("casts", triggerPhrase(e), "when the target is hit", onSpells(s, e))
+		return join("casts", triggerPhrase(e), "when the target is hit", onSpells(e))
 	case dbcenums.A_OVERRIDE_ACTIONBAR_SPELLS:
 		return join("replaces an action bar spell with", triggerOrMisc(e))
 	case dbcenums.A_MOD_SHAPESHIFT:
 		return join("shifts into", formName(int(e.Misc)))
 	case dbcenums.A_REFLECT_SPELLS_SCHOOL:
-		return join("reflects", percent(e), "of", schoolName(uint8(e.Misc)), "damage")
+		return join("reflects", percent(e), "of", schoolName(core.SpellSchool(e.Misc)), "damage")
 
 	case dbcenums.A_ADD_FLAT_MODIFIER:
-		return join(spellModOpName(e.Misc), flatModAmount(e), modTargets(s, e))
+		return join(namedOr(dbcenums.SpellModOp(e.Misc), "op %d"), flatModAmount(e), modTargets(s, e))
 	case dbcenums.A_ADD_PCT_MODIFIER:
-		return join(spellModOpName(e.Misc), signedPercent(e), modTargets(s, e))
+		return join(namedOr(dbcenums.SpellModOp(e.Misc), "op %d"), signedPercent(e), modTargets(s, e))
 
 	case dbcenums.A_MOD_STAT:
 		return join(signed(value(e)), statName(e.Misc))
@@ -236,20 +234,20 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		return join(signed(value(e)), "ranged attack power")
 
 	case dbcenums.A_MOD_DAMAGE_DONE:
-		return join(signed(value(e)), schoolName(uint8(e.Misc)), "damage done")
+		return join(signed(value(e)), schoolName(core.SpellSchool(e.Misc)), "damage done")
 	case dbcenums.A_MOD_DAMAGE_PERCENT_DONE:
-		return join(signedPercent(e), schoolName(uint8(e.Misc)), "damage done")
+		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage done")
 	case dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN:
-		return join(signedPercent(e), schoolName(uint8(e.Misc)), "damage taken")
+		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage taken")
 	case dbcenums.A_MOD_DAMAGE_TAKEN:
-		return join(signed(value(e)), schoolName(uint8(e.Misc)), "damage taken")
+		return join(signed(value(e)), schoolName(core.SpellSchool(e.Misc)), "damage taken")
 
 	case dbcenums.A_MOD_THREAT:
 		return join(signedPercent(e), "threat")
 	case dbcenums.A_MOD_POWER_COST_SCHOOL_PCT:
-		return join(signedPercent(e), schoolName(uint8(e.Misc)), "power cost")
+		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "power cost")
 	case dbcenums.A_MOD_ADDITIONAL_POWER_COST:
-		return join(signed(value(e)), "extra", powerName(int8(e.Misc)), "per cast")
+		return join(signed(value(e)), "extra", powerName(dbcenums.PowerType(e.Misc)), "per cast")
 
 	case dbcenums.A_MOD_HIT_CHANCE:
 		return join(signedPercent(e), "physical hit")
@@ -281,7 +279,7 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		return join(signed(value(e)), "healing taken")
 
 	case dbcenums.A_MOD_POWER_REGEN:
-		return join(signed(value(e)), powerName(int8(e.Misc)), "per 5 s")
+		return join(signed(value(e)), powerName(dbcenums.PowerType(e.Misc)), "per 5 s")
 	case dbcenums.A_MOD_INCREASE_HEALTH:
 		return join(signed(value(e)), "health")
 	case dbcenums.A_MOD_INCREASE_HEALTH_PERCENT:
@@ -307,16 +305,16 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 // A_ADD_FLAT_MODIFIER states its amount in the units of the property it names, which is what the
 // flat table in parse_effects_table.go converts by op.
 func flatModAmount(e *spelldata.Effect) string {
-	switch e.Misc {
-	case spelldata.SPELLMOD_CASTING_TIME, spelldata.SPELLMOD_COOLDOWN,
-		spelldata.SPELLMOD_GLOBAL_COOLDOWN, spelldata.SPELLMOD_DURATION:
+	switch dbcenums.SpellModOp(e.Misc) {
+	case dbcenums.SPELLMOD_CASTING_TIME, dbcenums.SPELLMOD_COOLDOWN,
+		dbcenums.SPELLMOD_GLOBAL_COOLDOWN, dbcenums.SPELLMOD_DURATION:
 		return signed(value(e)/1000) + " s"
-	case spelldata.SPELLMOD_COST:
+	case dbcenums.SPELLMOD_COST:
 		// Which conversion applies is the caster's bar, not the row's: the flat table divides by ten
 		// only for a unit with a rage bar, so both readings are stated.
-		return fmt.Sprintf("%s (%s on a rage or energy bar)", signed(value(e)), signed(tenths(e)))
-	case spelldata.SPELLMOD_CRITICAL_CHANCE, spelldata.SPELLMOD_RESIST_MISS_CHANCE,
-		spelldata.SPELLMOD_CHANCE_OF_SUCCESS:
+		return fmt.Sprintf("%s (%s on a rage bar)", signed(value(e)), signed(tenths(e)))
+	case dbcenums.SPELLMOD_CRITICAL_CHANCE, dbcenums.SPELLMOD_RESIST_MISS_CHANCE,
+		dbcenums.SPELLMOD_CHANCE_OF_SUCCESS:
 		return signedPercent(e)
 	}
 	return signed(value(e))
@@ -337,10 +335,7 @@ func triggerOrMisc(e *spelldata.Effect) string {
 	if e.TriggerID != 0 {
 		return triggerPhrase(e)
 	}
-	if s := spelldata.Find(e.Misc); s != spelldata.Nil {
-		return fmt.Sprintf("%d %s", s.ID, s.Name)
-	}
-	return fmt.Sprint(e.Misc)
+	return spellRef(e.Misc)
 }
 
 // The spells a modifier effect reaches. An empty mask on a spell that has a family of its own is the
@@ -357,7 +352,7 @@ func modTargets(s *spelldata.Spell, e *spelldata.Effect) string {
 
 // The spells a proc or dummy effect names, where it names any: the same mask, read the way
 // rowClassFlags() reads it.
-func onSpells(s *spelldata.Spell, e *spelldata.Effect) string {
+func onSpells(e *spelldata.Effect) string {
 	if phrase := classFlagsPhrase(e.ClassFlags); phrase != "" {
 		return "from " + phrase
 	}
@@ -368,10 +363,7 @@ func triggerPhrase(e *spelldata.Effect) string {
 	if e.TriggerID == 0 {
 		return "nothing"
 	}
-	if s := spelldata.Find(e.TriggerID); s != spelldata.Nil {
-		return fmt.Sprintf("%d %s", s.ID, s.Name)
-	}
-	return fmt.Sprint(e.TriggerID)
+	return spellRef(e.TriggerID)
 }
 
 // A weapon effect states a bonus on top of the swing rather than an amount, so a zero there is no
@@ -408,9 +400,9 @@ func share(coeff float64, of string) string {
 // The effect as the client states it: the columns it fills, in the units the row keeps them in, so the
 // words above can be checked against them.
 func literal(e *spelldata.Effect, pos int) string {
-	parts := []string{effectTypeName(e.Type)}
+	parts := []string{namedOr(e.Type, "E_%d")}
 	if e.Aura != 0 {
-		parts = append(parts, auraName(e.Aura))
+		parts = append(parts, namedOr(e.Aura, "A_%d"))
 	}
 	parts = append(parts, "base="+number(e.BasePoints))
 
@@ -503,7 +495,7 @@ func targetPhrase(e *spelldata.Effect) string {
 	return targetWord(e.Target[0], first)
 }
 
-func targetWord(t uint8, named implicitTarget) string {
+func targetWord(t dbcenums.ImplicitTarget, named implicitTarget) string {
 	if named.phrase != "" {
 		return named.phrase
 	}
@@ -517,10 +509,10 @@ func targetWord(t uint8, named implicitTarget) string {
 // the way a cost is.
 func powerAmount(e *spelldata.Effect) string {
 	amount := value(e)
-	if int8(e.Misc) == powerTypeRage {
+	if dbcenums.PowerType(e.Misc) == dbcenums.POWER_RAGE {
 		amount = tenths(e)
 	}
-	bar := powerName(int8(e.Misc))
+	bar := powerName(dbcenums.PowerType(e.Misc))
 	if amount == 1 {
 		bar = strings.TrimSuffix(bar, "s")
 	}
@@ -529,12 +521,13 @@ func powerAmount(e *spelldata.Effect) string {
 
 // A_MOD_RESISTANCE and A_MOD_BASE_RESISTANCE_PCT state armor as school 1 and a magic resistance as
 // that school's own bit.
-func resistanceName(mask int32) string {
-	if mask == int32(core.SpellSchoolPhysical) {
+func resistanceName(misc int32) string {
+	mask := core.SpellSchool(misc)
+	if mask == core.SpellSchoolPhysical {
 		return "armor"
 	}
-	names := schoolName(uint8(mask))
-	if mask&int32(core.SpellSchoolPhysical) != 0 {
+	names := schoolName(mask)
+	if mask.Matches(core.SpellSchoolPhysical) {
 		return strings.Replace(names, "physical", "armor", 1) + " resistance"
 	}
 	return names + " resistance"
@@ -542,24 +535,16 @@ func resistanceName(mask int32) string {
 
 // EffectMiscValue_0 on A_MECHANIC_DURATION_MOD, of which the parse table acts on two.
 func mechanicName(misc int32) string {
-	switch misc {
-	case 1:
-		return "fear"
-	case 12:
-		return "stun"
-	case int32(dbcenums.MECHANIC_BLEED):
-		return "bleed"
+	if misc >= 0 && misc <= 0xff {
+		if name, ok := strings.CutPrefix(dbcenums.Mechanic(misc).String(), "MECHANIC_"); ok {
+			return strings.ToLower(strings.ReplaceAll(name, "_", " "))
+		}
 	}
 	return fmt.Sprintf("mechanic %d", misc)
 }
 
 func sentence(phrase string, notes ...string) string {
-	var kept []string
-	for _, note := range notes {
-		if note != "" {
-			kept = append(kept, note)
-		}
-	}
+	kept := nonEmpty(notes)
 	if len(kept) == 0 {
 		return phrase
 	}

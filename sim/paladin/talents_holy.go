@@ -1,5 +1,14 @@
 package paladin
 
+import (
+	"time"
+
+	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
 func (paladin *Paladin) registerHolyTalents() {
 	// Tier 1
 	paladin.applyImprovedHolyStrike()
@@ -10,10 +19,10 @@ func (paladin *Paladin) registerHolyTalents() {
 	paladin.applyHealingLight()
 	paladin.applySpiritualFocus()
 	paladin.applyImprovedSeals()
-	paladin.applyUnyieldingFaith()
+	// Unyielding Faith shortens Fear and Disorient effects, which the sim never suffers.
 
 	// Tier 3
-	paladin.applyVoiceOfTruth()
+	// Voice of Truth grants immunity to Silence and Interrupt effects, which the sim never suffers.
 	paladin.applyReverence()
 	paladin.applyPurifyingPower()
 
@@ -28,219 +37,214 @@ func (paladin *Paladin) registerHolyTalents() {
 	paladin.applyConsecratedGround()
 
 	// Tier 6
-	paladin.applyHolyPowerTalent()
+	paladin.applyHolyPower()
 
 	// Tier 7
-	paladin.applyLightsVigil()
+	// Light's Vigil registered in registerTalentSpells
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Divine Strength - Increases your total Strength by 2/4/6/8/10%
+// Improved Holy Strike - Reduces the cooldown of your Holy Strike ability by 1/2 sec.
+func (paladin *Paladin) applyImprovedHolyStrike() {
+	if paladin.Talents.ImprovedHolyStrike == 0 {
+		return
+	}
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask: SpellMaskHolyStrike,
+		Kind:      core.SpellMod_Cooldown_Flat,
+		TimeValue: time.Duration(spellData.ImprovedHolyStrike.ValueAt(paladin.Talents.ImprovedHolyStrike)) * time.Millisecond,
+	})
+}
+
+// Divine Strength - Increases your Strength by 2/4/6/8/10%.
 func (paladin *Paladin) applyDivineStrength() {
 	if paladin.Talents.DivineStrength == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.DivineStrength == 0 {
-	// 	return
-	// }
-	//
-	// paladin.MultiplyStat(stats.Strength, 1+(float64(paladin.Talents.DivineStrength)*.02))
+	paladin.MultiplyStat(stats.Strength, spellData.DivineStrength.MultiplierAt(paladin.Talents.DivineStrength))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Divine Intellect - Increases your total Intellect by 2/4/6/8/10%
+// Divine Intellect - Increases your total Intellect by 2/4/6/8/10%.
 func (paladin *Paladin) applyDivineIntellect() {
 	if paladin.Talents.DivineIntellect == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.DivineIntellect == 0 {
-	// 	return
-	// }
-	//
-	// bonus := 1.0 + 0.02*float64(paladin.Talents.DivineIntellect)
-	// paladin.MultiplyStat(stats.Intellect, bonus)
+	paladin.MultiplyStat(stats.Intellect, spellData.DivineIntellect.MultiplierAt(paladin.Talents.DivineIntellect))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Healing Light - Increases the amount healed by your Holy Light and Flash of Light spells by 4/8/12%
+// Healing Light - Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock
+// spells by 4/8/12%.
 func (paladin *Paladin) applyHealingLight() {
 	if paladin.Talents.HealingLight == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.HealingLight == 0 {
-	// 	return
-	// }
-	//
-	// paladin.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: 0.04 * float64(paladin.Talents.HealingLight),
-	// 	ClassMask:  SpellMaskHolyLight | SpellMaskFlashOfLight,
-	// })
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  SpellMaskHealingSpells,
+		Kind:       core.SpellMod_DamageDone_Flat,
+		FloatValue: spellData.HealingLight.FractionAt(paladin.Talents.HealingLight),
+	})
 }
 
-// Illumination - After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, you have a 20/40/60/80/100% chance to gain mana equal to 60% of the base cost of the spell
-func (paladin *Paladin) applyIllumination() {
-	if paladin.Talents.Illumination == 0 {
+// Spiritual Focus - Gives your Flash of Light, Holy Light, and Light's Vigil spells a 35/70% chance
+// to not lose casting time when you take damage.
+func (paladin *Paladin) applySpiritualFocus() {
+	if paladin.Talents.SpiritualFocus == 0 {
 		return
 	}
 
-	// TODO: Implement mana return on crit
+	paladin.PseudoStats.PushbackChance -= spellData.SpiritualFocus.FractionAt(paladin.Talents.SpiritualFocus)
 }
 
-// TODO: To be implemented. TBC body below already accounts for Forever dropping Purifying Power's crit bonus (pinned to 0, per the TODO inside); kept commented until this class's port is reviewed.
+// Improved Seals - Increases the damage done by your Seals and Judgements by 5/10/15%.
 //
-// Purifying Power - Reduces the mana cost of your Cleanse and Consecration spells by 5/10%, and increases the critical strike chance of your Exorcism and Holy Wrath spells by 10/20%
+// The Seal of Command proc takes the talent through its weapon percent instead, see
+// registerSealOfCommand: the target's extra Holy damage taken sits outside the percent and the
+// talent must not reach it.
+func (paladin *Paladin) applyImprovedSeals() {
+	if paladin.Talents.ImprovedSeals == 0 {
+		return
+	}
+
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  (SpellMaskSealProcs &^ SpellMaskSealOfCommandProc) | SpellMaskAllJudgements,
+		Kind:       core.SpellMod_DamageDone_Flat,
+		FloatValue: spellData.ImprovedSeals.FractionAt(paladin.Talents.ImprovedSeals),
+	})
+}
+
+// Reverence - Allows 10/20/30% of your Mana regeneration to continue while casting.
+func (paladin *Paladin) applyReverence() {
+	if paladin.Talents.Reverence == 0 {
+		return
+	}
+
+	paladin.PseudoStats.SpiritRegenRateCasting += spellData.Reverence.FractionAt(paladin.Talents.Reverence)
+}
+
+// Purifying Power - Reduces the mana cost of your Cleanse and Purify spells by 10/20% and reduces
+// the cooldown of your Exorcism and Holy Wrath spells by 17/33%. Cleanse and Purify are not
+// modelled.
 func (paladin *Paladin) applyPurifyingPower() {
 	if paladin.Talents.PurifyingPower == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.PurifyingPower == 0 {
-	// 	return
-	// }
-	//
-	// paladin.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// 	FloatValue: -0.05 * float64(paladin.Talents.PurifyingPower),
-	// 	ClassMask:  SpellMaskConsecration, // Cleanse not modeled
-	// })
-	// // TODO: Forever drops Purifying Power's crit bonus; the spell carries only a cost
-	// // (-10% per rank) and a cooldown (-16.5% per rank) modifier, so the crit bonus is pinned
-	// // to the untalented 0.
-	// exorcismHolyWrathBonusCrit := 0.0
-	// paladin.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	FloatValue: exorcismHolyWrathBonusCrit,
-	// 	ClassMask:  SpellMaskExorcism | SpellMaskHolyWrath,
-	// })
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  SpellMaskExorcism | SpellMaskHolyWrath,
+		Kind:       core.SpellMod_Cooldown_Multiplier,
+		FloatValue: spellData.PurifyingPower.EffectAt(1).MultiplierAt(paladin.Talents.PurifyingPower),
+	})
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-//
-// Holy Power (talent) - Increases the critical effect chance of your Holy spells by 1/2/3/4/5%
-func (paladin *Paladin) applyHolyPowerTalent() {
-	if paladin.Talents.HolyPower == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if paladin.Talents.HolyPower == 0 {
-	// 	return
-	// }
-	//
-	// paladin.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	FloatValue: float64(paladin.Talents.HolyPower),
-	// 	School:     core.SpellSchoolHoly,
-	// })
-}
-
-// applyImprovedHolyStrike implements Improved Holy Strike, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyImprovedHolyStrike() {
-	if paladin.Talents.ImprovedHolyStrike == 0 {
-		return
-	}
-}
-
-// applyImprovedSeals implements Improved Seals, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyImprovedSeals() {
-	if paladin.Talents.ImprovedSeals == 0 {
-		return
-	}
-}
-
-// applyInfusionOfLight implements Infusion of Light, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Infusion of Light - Your Holy Shock and Flash of Light critical hits reduce the cast time of your
+// next Holy Light cast within 15 sec by 0.5/1.0 sec.
 func (paladin *Paladin) applyInfusionOfLight() {
 	if paladin.Talents.InfusionOfLight == 0 {
 		return
 	}
+
+	row := spellData.InfusionOfLightTriggered.HighestRank()
+
+	var infusion *core.Aura
+	infusion = paladin.RegisterAura(core.Aura{
+		Label:    "Infusion of Light" + paladin.Label,
+		ActionID: core.ActionID{SpellID: row.SpellID},
+		Duration: row.Duration,
+	}).AttachSpellMod(core.SpellModConfig{
+		ClassMask: SpellMaskHolyLight,
+		Kind:      core.SpellMod_CastTime_Flat,
+		TimeValue: time.Duration(spellData.InfusionOfLight.ValueAt(paladin.Talents.InfusionOfLight)) * time.Millisecond,
+	}).AttachProcTrigger(core.ProcTrigger{
+		Callback:           core.CallbackOnCastComplete,
+		ClassSpellMask:     SpellMaskHolyLight,
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			infusion.Deactivate(sim)
+		},
+	})
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:           "Infusion of Light - Trigger" + paladin.Label,
+		Callback:       core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt,
+		ClassSpellMask: SpellMaskHolyShock | SpellMaskHolyShockHeal | SpellMaskFlashOfLight,
+		Outcome:        core.OutcomeCrit,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			infusion.Activate(sim)
+		},
+	})
 }
 
-// applyLightsVigil implements Light's Vigil, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyLightsVigil() {
-	if !paladin.Talents.LightsVigil {
+// Illumination - After getting a critical effect from your Flash of Light, Holy Light, Light's
+// Vigil, or Holy Shock heal spell you have a 20/40/60/80/100% chance to gain Mana equal to 50% of
+// the base cost of the spell. Light's Vigil's heal is not modelled.
+func (paladin *Paladin) applyIllumination() {
+	if paladin.Talents.Illumination == 0 {
 		return
 	}
+
+	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: spellData.Illumination.HighestRank().SpellID})
+	refund := spellData.Illumination.EffectAt(2).FractionAt(paladin.Talents.Illumination)
+
+	paladin.MakeProcTriggerAura(core.ProcTrigger{
+		Name:           "Illumination" + paladin.Label,
+		Callback:       core.CallbackOnHealDealt,
+		ClassSpellMask: SpellMaskHealingSpells,
+		Outcome:        core.OutcomeCrit,
+		ProcChance:     spellData.Illumination.EffectAt(0).FractionAt(paladin.Talents.Illumination),
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			paladin.AddMana(sim, float64(spell.Cost.BaseCost)*refund, manaMetrics)
+		},
+	})
 }
 
-// applyDivinePrecision implements Divine Precision, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Divine Precision - Improves your chance to hit with Holy spells by 6/12/18%.
 func (paladin *Paladin) applyDivinePrecision() {
 	if paladin.Talents.DivinePrecision == 0 {
 		return
 	}
+
+	paladin.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexHoly] += spellData.DivinePrecision.ValueAt(paladin.Talents.DivinePrecision)
 }
 
-// applyConsecratedGround implements Consecrated Ground, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Consecrated Ground - Gives your Holy spells 5/10% increased damage against the first 4 enemies
+// that enter your Consecration. Consecration marks those targets each tick; the mark lasts as long
+// as the ground does.
 func (paladin *Paladin) applyConsecratedGround() {
 	if paladin.Talents.ConsecratedGround == 0 {
 		return
 	}
+
+	row := spellData.ConsecratedGround.HighestRank()
+	multiplier := spellData.ConsecratedGround.MultiplierAt(paladin.Talents.ConsecratedGround)
+
+	paladin.consecratedGroundAuras = paladin.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return target.GetOrRegisterAura(core.Aura{
+			Label:    "Consecrated Ground" + paladin.Label,
+			ActionID: core.ActionID{SpellID: row.SpellID},
+			Duration: spellData.ConsecratedGroundTriggered.HighestRank().Duration,
+		}).AttachDDBC(0, 1, &paladin.AttackTables, func(_ *core.Simulation, spell *core.Spell, _ *core.AttackTable) float64 {
+			if spell.SpellSchool.Matches(core.SpellSchoolHoly) {
+				return multiplier
+			}
+			return 1
+		})
+	})
 }
 
-// applyReverence implements Reverence, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyReverence() {
-	if paladin.Talents.Reverence == 0 {
+// Holy Power - Increases the critical strike chance of your Holy Shock spell by 3/6/9/12/15%, and
+// all other spells by 1/2/3/4/5%.
+func (paladin *Paladin) applyHolyPower() {
+	if paladin.Talents.HolyPower == 0 {
 		return
 	}
-}
 
-// applySpiritualFocus implements Spiritual Focus, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applySpiritualFocus() {
-	if paladin.Talents.SpiritualFocus == 0 {
-		return
-	}
-}
-
-// applyUnyieldingFaith implements Unyielding Faith, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyUnyieldingFaith() {
-	if paladin.Talents.UnyieldingFaith == 0 {
-		return
-	}
-}
-
-// applyVoiceOfTruth implements Voice of Truth, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (paladin *Paladin) applyVoiceOfTruth() {
-	if !paladin.Talents.VoiceOfTruth {
-		return
-	}
+	paladin.AddStat(stats.SpellCritPercent, spellData.HolyPower.Effect(shared.A_MOD_SPELL_CRIT_CHANCE, 0).ValueAt(paladin.Talents.HolyPower))
+	paladin.AddStaticMod(core.SpellModConfig{
+		ClassMask:  SpellMaskHolyShock | SpellMaskHolyShockHeal,
+		Kind:       core.SpellMod_BonusCrit_Percent,
+		FloatValue: spellData.HolyPower.Effect(shared.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_CRITICAL_CHANCE)).ValueAt(paladin.Talents.HolyPower),
+	})
 }
