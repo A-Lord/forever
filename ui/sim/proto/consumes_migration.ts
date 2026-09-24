@@ -28,35 +28,38 @@ export const LEGACY_CONSUMABLE_VALUES: ReadonlyMap<number, number> = new Map([
 
 const LEGACY_VALUE_FIELDS = ['explosiveId', 'mhImbueId', 'ohImbueId'] as const;
 
-// The ConsumesSpec fields removed in api version 2, each reserved by name: the JSON name each had, its
+// The ConsumesSpec fields removed since api version 1, each reserved by name: the JSON name each had, its
 // number in a version-1 payload (0 where version 1 had no such field) and in a payload from before
 // the version restarted at 1, and the item a set flag selected, 0 where the client ships none or the
-// field held no item.
+// field held no item. The pet takes no consumables of its own, so its scrolls and extra ids go.
 export interface RemovedConsumesField {
 	name: string;
 	jsonName: string;
 	no: number;
 	preRestartNo: number;
 	itemId: number;
-	pet: boolean;
 }
 
 export const REMOVED_CONSUMES_FIELDS: ReadonlyArray<RemovedConsumesField> = [
-	{ name: 'goblinSapper', jsonName: 'goblinSapper', no: 8, preRestartNo: 9, itemId: 10646, pet: false },
-	{ name: 'bogling_root', jsonName: 'boglingRoot', no: 9, preRestartNo: 25, itemId: 5206, pet: false },
-	{ name: 'scroll_agi', jsonName: 'scrollAgi', no: 12, preRestartNo: 13, itemId: 10309, pet: false }, // Scroll of Agility IV
-	{ name: 'scroll_str', jsonName: 'scrollStr', no: 13, preRestartNo: 14, itemId: 10310, pet: false }, // Scroll of Strength IV
-	{ name: 'scroll_int', jsonName: 'scrollInt', no: 14, preRestartNo: 15, itemId: 10308, pet: false }, // Scroll of Intellect IV
-	{ name: 'scroll_spi', jsonName: 'scrollSpi', no: 15, preRestartNo: 16, itemId: 10306, pet: false }, // Scroll of Spirit IV
-	{ name: 'scroll_arm', jsonName: 'scrollArm', no: 16, preRestartNo: 17, itemId: 10305, pet: false }, // Scroll of Protection IV
-	{ name: 'superSapper', jsonName: 'superSapper', no: 0, preRestartNo: 8, itemId: 0, pet: false }, // Super Sapper Charge 23827
-	{ name: 'drums_id', jsonName: 'drumsId', no: 0, preRestartNo: 12, itemId: 0, pet: false },
-	{ name: 'pet_scroll_agi', jsonName: 'petScrollAgi', no: 0, preRestartNo: 18, itemId: 10309, pet: true },
-	{ name: 'pet_scroll_str', jsonName: 'petScrollStr', no: 0, preRestartNo: 19, itemId: 10310, pet: true },
-	{ name: 'nightmare_seed', jsonName: 'nightmareSeed', no: 0, preRestartNo: 20, itemId: 0, pet: false }, // Nightmare Seed 22797
-	{ name: 'pet_food_id', jsonName: 'petFoodId', no: 0, preRestartNo: 21, itemId: 0, pet: false }, // the client ships no pet food
-	{ name: 'bloodthistle', jsonName: 'bloodthistle', no: 0, preRestartNo: 24, itemId: 0, pet: false }, // Bloodthistle 22710
+	{ name: 'goblinSapper', jsonName: 'goblinSapper', no: 8, preRestartNo: 9, itemId: 10646 },
+	{ name: 'bogling_root', jsonName: 'boglingRoot', no: 9, preRestartNo: 25, itemId: 5206 },
+	{ name: 'scroll_agi', jsonName: 'scrollAgi', no: 12, preRestartNo: 13, itemId: 10309 }, // Scroll of Agility IV
+	{ name: 'scroll_str', jsonName: 'scrollStr', no: 13, preRestartNo: 14, itemId: 10310 }, // Scroll of Strength IV
+	{ name: 'scroll_int', jsonName: 'scrollInt', no: 14, preRestartNo: 15, itemId: 10308 }, // Scroll of Intellect IV
+	{ name: 'scroll_spi', jsonName: 'scrollSpi', no: 15, preRestartNo: 16, itemId: 10306 }, // Scroll of Spirit IV
+	{ name: 'scroll_arm', jsonName: 'scrollArm', no: 16, preRestartNo: 17, itemId: 10305 }, // Scroll of Protection IV
+	{ name: 'superSapper', jsonName: 'superSapper', no: 0, preRestartNo: 8, itemId: 0 }, // Super Sapper Charge 23827
+	{ name: 'drums_id', jsonName: 'drumsId', no: 0, preRestartNo: 12, itemId: 0 },
+	{ name: 'pet_scroll_agi', jsonName: 'petScrollAgi', no: 0, preRestartNo: 18, itemId: 0 },
+	{ name: 'pet_scroll_str', jsonName: 'petScrollStr', no: 0, preRestartNo: 19, itemId: 0 },
+	{ name: 'nightmare_seed', jsonName: 'nightmareSeed', no: 0, preRestartNo: 20, itemId: 0 }, // Nightmare Seed 22797
+	{ name: 'pet_food_id', jsonName: 'petFoodId', no: 0, preRestartNo: 21, itemId: 0 }, // the client ships no pet food
+	{ name: 'bloodthistle', jsonName: 'bloodthistle', no: 0, preRestartNo: 24, itemId: 0 }, // Bloodthistle 22710
+	{ name: 'pet_extra_ids', jsonName: 'petExtraIds', no: 0, preRestartNo: 0, itemId: 0 },
 ];
+
+// The fields a version-2 payload may carry that the current ConsumesSpec reserves: the pet's extra ids.
+const VERSION_TWO_REMOVED_NUMBERS = [20];
 
 // A payload from before the version restarted at 1 is stamped 16 or lower.
 const isPreRestart = (apiVersion: number) => apiVersion > 2 && apiVersion <= 16;
@@ -70,13 +73,8 @@ const withItem = (ids: ReadonlyArray<number> | undefined, itemId: number): Array
 	return out;
 };
 
-const addFlagItem = (consumes: { extraIds?: Array<number>; petExtraIds?: Array<number> }, field: RemovedConsumesField) => {
-	if (!field.itemId) return;
-	if (field.pet) {
-		consumes.petExtraIds = withItem(consumes.petExtraIds, field.itemId);
-	} else {
-		consumes.extraIds = withItem(consumes.extraIds, field.itemId);
-	}
+const addFlagItem = (consumes: { extraIds?: Array<number> }, field: RemovedConsumesField) => {
+	if (field.itemId) consumes.extraIds = withItem(consumes.extraIds, field.itemId);
 };
 
 const legacyValue = (value: number | undefined): number | undefined =>
@@ -129,11 +127,16 @@ export const parseIndividualSimSettingsJson = (text: string): IndividualSimSetti
 };
 
 // A binary payload carries the removed fields as unknown fields, by the numbers of the version it was
-// written at. A payload from before the restart also held four flags at the numbers the potions, the
+// written at. A payload from before the restart also held three flags at the numbers the potions, the
 // conjured items and the extra ids now take, where each reads as a list holding a 1.
 export const migrateConsumesUnknownFields = (consumes: ConsumesSpec, apiVersion: number) => {
 	const preRestart = isPreRestart(apiVersion);
-	if (!preRestart && apiVersion >= 2) return;
+	const container = consumes as unknown as Record<symbol, Array<{ no: number }> | undefined>;
+	if (!preRestart && apiVersion >= 2) {
+		const unknown = container[UnknownFieldHandler.symbol];
+		if (unknown) container[UnknownFieldHandler.symbol] = unknown.filter(entry => !VERSION_TWO_REMOVED_NUMBERS.includes(entry.no));
+		return;
+	}
 
 	const numbered = new Map(REMOVED_CONSUMES_FIELDS.map(field => [preRestart ? field.preRestartNo : field.no, field] as const).filter(([no]) => no !== 0));
 	const set: Array<RemovedConsumesField> = [];
@@ -141,7 +144,6 @@ export const migrateConsumesUnknownFields = (consumes: ConsumesSpec, apiVersion:
 		const field = numbered.get(entry.no);
 		if (field && entry.wireType === WireType.Varint && new BinaryReader(entry.data).bool()) set.push(field);
 	}
-	const container = consumes as unknown as Record<symbol, Array<{ no: number }> | undefined>;
 	const dropped = new Set([...numbered.keys(), ...(preRestart ? PRE_RESTART_LIST_NUMBERS : [])]);
 	const unknown = container[UnknownFieldHandler.symbol];
 	if (unknown) container[UnknownFieldHandler.symbol] = unknown.filter(entry => !dropped.has(entry.no));

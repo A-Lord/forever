@@ -10,9 +10,9 @@ export const extendPlayerProtoWithMissingEffects = (playerProto: Player, db: Dat
 	const seenConsumableIds = new Set<number>();
 	const seenEffectIds = new Set<number>();
 
-	const { potions = [], conjuredItems = [], extraIds = [], petExtraIds = [], ...consumables } = playerProto.consumables || {};
+	const { potions = [], conjuredItems = [], extraIds = [], ...consumables } = playerProto.consumables || {};
 	const allConsumableIds = Object.values(consumables).filter((c): c is number => typeof c === 'number');
-	const allConsumables = [...potions, ...conjuredItems, ...extraIds, ...petExtraIds, ...allConsumableIds];
+	const allConsumables = [...potions, ...conjuredItems, ...extraIds, ...allConsumableIds];
 
 	allConsumables.forEach((cid: number) => {
 		if (!cid || seenConsumableIds.has(cid)) return;

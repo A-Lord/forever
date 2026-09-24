@@ -87,6 +87,4 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	ExplosiveId:      18588,  // Ez-Thro Dynamite II
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
 	ExtraIds: []int32{10646, 10309, 10310},
-	// Scroll of Agility IV, Scroll of Strength IV
-	PetExtraIds: []int32{10309, 10310},
 }

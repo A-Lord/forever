@@ -141,8 +141,8 @@ ranged attack power against Undead once per such hand, since each weapon carries
 and 28893 marks no aura unique. Blessed Wizard Oil 23123 goes the same way: its enchant 2685's equip
 spell 28890 grants 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, mask 32). `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
 
-`applyConsumeEffects` handles one thing itself: the pet's `pet_extra_ids`, whose db.json stats go on
-the pet.
+A pet takes no consumables of its own; the scrolls the client marks `ONLY_TARGET_PLAYERS` cannot be
+used on one.
 
 ## Writing an effect by hand: the Natural flasks
 
@@ -282,8 +282,7 @@ the conjured item, `ConsumableTypePotion` the combat potion, then the flask, the
 (`ConsumableTypeElixir`, Battle or Guardian), `ConsumableTypeFood` the food, the explosive and the
 imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
 in their row, the rest in the miscellaneous row, and an explosive with a cooldown of its own beside the
-shared one (Goblin Sapper Charge 10646) beside the explosive picker. The pet's scrolls go into
-`pet_extra_ids`.
+shared one (Goblin Sapper Charge 10646) beside the explosive picker.
 
 The generator writes the type (`Consumable.ToProto` in `tools/database/dbc/consumable.go`) from the
 category the first on-use row shares, which is also the consumable's `category_id`: the item row's, or
@@ -307,9 +306,8 @@ everything else takes its item subclass.
 
 Of the ranks of one name (Scroll of Agility .. IV) the settings offer the highest numeral among those
 the player is offered, so a top rank the class, the hand or the profession rules out leaves the rank
-below it in the picker; the pet's scrolls, offered by spec, keep the highest numeral. The UI keeps
-the rows and their text, the flask and elixir exclusion, the Windfury Totem rule for the main-hand imbue
-and which specs have a pet. `Player.getConsumes(true)` sends the relevant potions and conjured items as
+below it in the picker. The UI keeps the rows and their text, the flask and elixir exclusion and the
+Windfury Totem rule for the main-hand imbue. `Player.getConsumes(true)` sends the relevant potions and conjured items as
 the spec's lists.
 
 `gen_db -gen=db` writes `ui/features/settings/model/consumables_auto_gen.ts` in the same pass as db.json:
@@ -322,7 +320,7 @@ items share takes each item's id (`MajorHealthstone9421`).
 `lib.wasm` is built without the database. Each request carries the consumables it needs in the player's
 `database`, which `extendPlayerProtoWithMissingEffects` (`ui/sim/proto/proto_migration.ts`) fills from
 the UI's db.json: every id field and every id list of the `ConsumesSpec` (the potions, the conjured
-items, `extra_ids` and `pet_extra_ids`). A consumable travels whole, its item effects and temporary
+items and `extra_ids`). A consumable travels whole, its item effects and temporary
 enchant with it.
 
 `TestRequestCarriesEveryConsumableThePresetSelects` (`sim/common`) runs a warrior once with every
@@ -335,6 +333,7 @@ the number it had in the two layouts a link may carry: version 1's, and the one 
 version restarted at 1, whose links are stamped 16. The same file turns a link's (binary, by field
 number, `sim_links.ts`) or a saved blob's (JSON, by name) flags into item ids and the spell ids the
 explosive and imbue fields held into the items that cast them; `migrateLegacyConsumes` does it for
-both JSON shapes, saved settings and a sim's settings, and drops the party's drums.
+both JSON shapes, saved settings and a sim's settings, and drops the party's drums. The pet's scroll
+flags and `pet_extra_ids` (20 in a version-2 link) are dropped.
 `TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of those fields reserved in
 `ConsumesSpec`, version 1's by number as well.

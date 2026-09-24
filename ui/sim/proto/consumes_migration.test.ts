@@ -94,12 +94,15 @@ describe('migrateConsumesJson', () => {
 		const consumes = ConsumesSpec.fromJson(migrated as never);
 		expect(consumes.potId).toBe(13444);
 		expect(consumes.extraIds).toEqual([10646, 10309]);
-		expect(consumes.petExtraIds).toEqual([10310]);
 	});
 
 	it('reads the proto field names too', () => {
 		const migrated = migrateConsumesJson({ scroll_arm: true, bogling_root: true, pet_scroll_agi: true });
-		expect(migrated).toEqual({ extraIds: [5206, 10305], petExtraIds: [10309] });
+		expect(migrated).toEqual({ extraIds: [5206, 10305] });
+	});
+
+	it('drops the pet’s scrolls and extra ids', () => {
+		expect(migrateConsumesJson({ petExtraIds: [10309, 10310], petScrollStr: true, extraIds: [10646] })).toEqual({ extraIds: [10646] });
 	});
 
 	it('adds to the ids a spec already lists, once each', () => {
@@ -114,7 +117,7 @@ describe('migrateConsumesJson', () => {
 	it('names every removed field by an item or by 0', () => {
 		for (const field of REMOVED_CONSUMES_FIELDS) {
 			expect(migrateConsumesJson({ [field.jsonName]: true }), field.jsonName).toEqual(
-				field.itemId ? { [field.pet ? 'petExtraIds' : 'extraIds']: [field.itemId] } : {},
+				field.itemId ? { extraIds: [field.itemId] } : {},
 			);
 		}
 	});
@@ -162,7 +165,6 @@ describe('migrateConsumesToItemIds', () => {
 		expect(consumes.mhImbueId).toBe(12404);
 		expect(consumes.potions).toEqual([13444]);
 		expect(consumes.extraIds).toEqual([10646, 5206, 10309]);
-		expect(consumes.petExtraIds).toEqual([]);
 		expect(UnknownFieldHandler.list(consumes)).toEqual([]);
 	});
 
@@ -177,7 +179,15 @@ describe('migrateConsumesToItemIds', () => {
 		expect(consumes.potions).toEqual([]);
 		expect(consumes.conjuredItems).toEqual([]);
 		expect(consumes.extraIds).toEqual([10646, 10309, 5206, 10305]);
-		expect(consumes.petExtraIds).toEqual([10309]);
+		expect(UnknownFieldHandler.list(consumes)).toEqual([]);
+	});
+
+	it('drops the pet’s extra ids a version-2 link carries at 20', () => {
+		const bytes = new BinaryWriter().tag(19, WireType.LengthDelimited).fork().int32(10646).join().tag(20, WireType.LengthDelimited).fork().int32(10309).join().finish();
+		const settings = linkSettings(bytes, 2);
+		const consumes = settings.player!.consumables!;
+		migrateConsumesToItemIds(consumes, settings.player!.apiVersion);
+		expect(consumes.extraIds).toEqual([10646]);
 		expect(UnknownFieldHandler.list(consumes)).toEqual([]);
 	});
 

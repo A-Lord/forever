@@ -85,30 +85,19 @@ export function makeConsumableInput(
 	};
 }
 
-export interface ExtraIdInputOptions {
-	pet?: boolean;
-	// The pet's consumables are offered by the spec, not by what the player's spec weighs.
-	showWhen?: (player: Player<any>) => boolean;
-}
-
-export function makeExtraIdInput(
-	consumable: Consumable,
-	relevance: ConsumableRelevance,
-	{ pet = false, showWhen }: ExtraIdInputOptions = {},
-): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
-	const field = pet ? 'petExtraIds' : 'extraIds';
+export function makeExtraIdInput(consumable: Consumable, relevance: ConsumableRelevance): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
 	return {
 		type: 'icon',
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
 		storeField: STORE_FIELDS,
-		showWhen: showWhen ?? offeredTo(consumable, relevance),
-		getValue: (player: Player<any>) => player.getConsumes()[field].includes(consumable.id),
+		showWhen: offeredTo(consumable, relevance),
+		getValue: (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id),
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();
-			const ids = consumes[field].filter(id => id !== consumable.id);
-			if (newValue) ids.push(consumable.id);
-			player.setConsumes({ ...consumes, [field]: ids });
+			const extraIds = consumes.extraIds.filter(id => id !== consumable.id);
+			if (newValue) extraIds.push(consumable.id);
+			player.setConsumes({ ...consumes, extraIds });
 		},
 	};
 }

@@ -20,13 +20,12 @@ const sentIds = (consumes: Partial<ConsumesSpec>, db: Database) => {
 describe('extendPlayerProtoWithMissingEffects', () => {
 	const db = catalogue([5206, 10305, 10306, 10308, 10309, 10310, 10646, 20749, 13444].map(id => Consumable.create({ id })));
 
-	it('carries every item the extra ids and the pet’s extra ids name', () => {
+	it('carries every item the extra ids name', () => {
 		expect(sentIds({ extraIds: [10309, 10310, 10308, 10306, 10305, 5206, 10646] }, db)).toEqual([5206, 10305, 10306, 10308, 10309, 10310, 10646]);
-		expect(sentIds({ petExtraIds: [10309] }, db)).toEqual([10309]);
 	});
 
 	it('carries an item two fields name once', () => {
-		expect(sentIds({ potId: 13444, extraIds: [10309], petExtraIds: [10309] }, db)).toEqual([10309, 13444]);
+		expect(sentIds({ potId: 13444, potions: [13444], extraIds: [10309] }, db)).toEqual([10309, 13444]);
 	});
 
 	it('carries the temporary enchant an imbue puts on the weapon', () => {

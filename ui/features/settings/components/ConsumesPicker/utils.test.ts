@@ -150,18 +150,13 @@ describe('consumeConfigs', () => {
 		expect([state.consumes.flaskId, state.consumes.battleElixirId]).toEqual([0, 9206]);
 	});
 
-	it('toggles an item in the extra ids, and a pet scroll in the pet’s', () => {
+	it('toggles an item in the extra ids', () => {
 		const { player, state } = playerOf({ cls: Class.ClassHunter, spec: Spec.SpecHunter });
-		const configs = consumeConfigs(player, db);
-		const scroll = configs.scrolls.find(toggle => toggle.actionId.itemId === 10310)!;
+		const scroll = consumeConfigs(player, db).scrolls.find(toggle => toggle.actionId.itemId === 10310)!;
 		scroll.setValue(player, true);
-		configs.petScrolls[0].setValue(player, true);
-		expect([state.consumes.extraIds, state.consumes.petExtraIds]).toEqual([[10310], [10310]]);
+		expect(state.consumes.extraIds).toEqual([10310]);
 		scroll.setValue(player, false);
 		expect(state.consumes.extraIds).toEqual([]);
-		expect(toggled(configs.petScrolls, player)).toEqual([10310]);
-		const warrior = playerOf().player;
-		expect(toggled(consumeConfigs(warrior, db).petScrolls, warrior)).toEqual([]);
 	});
 
 	it('offers the highest rank the player can use, below a top rank it cannot', () => {

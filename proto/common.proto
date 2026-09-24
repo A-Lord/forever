@@ -451,11 +451,11 @@ message ConsumesSpec {
 	repeated int32 conjured_items = 18;
 	// Item ids of the consumables the character uses besides the one-per-kind fields above.
 	repeated int32 extra_ids = 19;
-	// Item ids of the consumables used on the pet.
-	repeated int32 pet_extra_ids = 20;
+	reserved 20;
 
 	reserved "goblinSapper", "bogling_root", "scroll_agi", "scroll_str", "scroll_int", "scroll_spi", "scroll_arm",
-		"superSapper", "drums_id", "pet_scroll_agi", "pet_scroll_str", "nightmare_seed", "bloodthistle", "pet_food_id";
+		"superSapper", "drums_id", "pet_scroll_agi", "pet_scroll_str", "nightmare_seed", "bloodthistle", "pet_food_id",
+		"pet_extra_ids";
 }
 
 enum MobType {

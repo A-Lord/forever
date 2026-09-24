@@ -11,7 +11,6 @@ import {
 	explosiveUsedBeside,
 	handTakesImbue,
 	higherRanks,
-	highestRanks,
 	relevanceFor,
 } from '@sim/settings/consumables';
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
@@ -32,11 +31,7 @@ export interface ConsumeConfigs {
 	ohImbue: ConsumeConfig;
 	scrolls: Array<ConsumeToggle>;
 	miscellaneous: Array<ConsumeToggle>;
-	petScrolls: Array<ConsumeToggle>;
 }
-
-const PET_SPECS = [Spec.SpecHunter, Spec.SpecWarlock, Spec.SpecDpsPriest];
-const hasPet = (player: Player<any>) => PET_SPECS.includes(player.getSpec());
 
 // Feral druids cannot take Windfury, so their main-hand imbue shows under it.
 const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
@@ -108,8 +103,5 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		),
 		scrolls: extras.filter(isScroll).map(consumable => makeExtraIdInput(consumable, relevance)),
 		miscellaneous: extras.filter(consumable => !isScroll(consumable)).map(consumable => makeExtraIdInput(consumable, relevance)),
-		petScrolls: highestRanks(
-			extras.filter(consumable => isScroll(consumable) && !consumable.classAllowlist.length && consumable.stats.some(value => value > 0)),
-		).map(consumable => makeExtraIdInput(consumable, relevance, { pet: true, showWhen: hasPet })),
 	};
 };

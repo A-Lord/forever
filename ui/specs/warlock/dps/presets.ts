@@ -29,7 +29,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	mhImbueId: Consumables.BrilliantWizardOil.id,
 	potId: Consumables.MajorSpellblastingPotion.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
-	petExtraIds: [Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {

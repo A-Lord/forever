@@ -89,7 +89,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: Consumables.DemonicRune.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
-	petExtraIds: [Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {

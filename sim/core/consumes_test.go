@@ -19,7 +19,6 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		OhImbueId:     12404,
 		ConjuredItems: []int32{7676},
 		ExtraIds:      []int32{10646, 10309, 10305, 5206},
-		PetExtraIds:   []int32{10310},
 	}
 
 	got := selectedConsumableIDs(consumes, true)
@@ -96,7 +95,7 @@ func TestRemovedConsumesFieldsStayReserved(t *testing.T) {
 	for name, number := range map[protoreflect.Name]protoreflect.FieldNumber{
 		"goblinSapper": 8, "bogling_root": 9, "scroll_agi": 12, "scroll_str": 13, "scroll_int": 14,
 		"scroll_spi": 15, "scroll_arm": 16, "superSapper": 0, "drums_id": 0, "pet_scroll_agi": 0,
-		"pet_scroll_str": 0, "nightmare_seed": 0, "bloodthistle": 0, "pet_food_id": 0,
+		"pet_scroll_str": 0, "nightmare_seed": 0, "bloodthistle": 0, "pet_food_id": 0, "pet_extra_ids": 20,
 	} {
 		if !descriptor.ReservedNames().Has(name) || (number != 0 && !descriptor.ReservedRanges().Has(number)) {
 			t.Errorf("ConsumesSpec does not reserve %s = %d", name, number)

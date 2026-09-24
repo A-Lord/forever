@@ -11,8 +11,8 @@ import { ConsumeRow } from './ConsumeRow';
 import { consumeConfigs, type ConsumeToggle } from './utils';
 
 export interface ConsumesPickerProps {
-	// Potions, explosives, pet consumables and the combat-only miscellany matter inside an
-	// encounter; a gear planner never runs one and passes false.
+	// Potions, explosives and the combat-only miscellany matter inside an encounter; a gear planner
+	// never runs one and passes false.
 	encounterConsumes?: boolean;
 }
 
@@ -78,11 +78,6 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					</PickerGroup>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="pet" configs={configs.petScrolls} hidden={!encounterConsumes}>
-				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-pet">
-					<Toggles player={player} toggles={configs.petScrolls} />
-				</PickerGroup>
-			</ConsumeRow>
 		</div>
 	);
 };
