@@ -3,7 +3,6 @@ package shared
 import (
 	"fmt"
 	"slices"
-	"time"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -31,8 +30,9 @@ func NewSpellDataStatConsumable(itemID int32) {
 				itemID, consumable.Name, itemEffect.BuffId))
 		}
 
+		cd, sharedCD := consumableCooldowns(character, itemEffect, spelldata.MustFind(itemEffect.BuffId))
 		inCombat := slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
-			return buff.DurationMs > 0 && buff.Duration() < onUseCooldown(itemEffect)
+			return buff.DurationMs > 0 && buff.Duration() < max(cd.Duration, sharedCD.Duration)
 		})
 
 		auras := make([]*core.Aura, len(buffs))
@@ -41,7 +41,7 @@ func NewSpellDataStatConsumable(itemID int32) {
 		}
 
 		if inCombat {
-			registerConsumableOnUse(character, consumable, itemEffect, auras)
+			registerConsumableOnUse(character, consumable, itemEffect, cd, sharedCD, auras)
 		}
 	})
 }
@@ -131,11 +131,6 @@ func withValue(s *spelldata.Spell, value float64) *spelldata.Spell {
 	return &valued
 }
 
-func onUseCooldown(itemEffect *proto.ItemEffect) time.Duration {
-	onUse := itemEffect.GetOnUse()
-	return time.Duration(max(onUse.GetCooldownMs(), onUse.GetCategoryCooldownMs())) * time.Millisecond
-}
-
 func consumableAura(character *core.Character, consumable core.Consumable, buff *spelldata.Spell, index int, count int, inCombat bool) *core.Aura {
 	config := spelldata.AuraConfig(buff, spelldata.Label(consumable.Name))
 	config.ActionID = core.ActionID{ItemID: consumable.Id}
@@ -168,14 +163,10 @@ func consumableAura(character *core.Character, consumable core.Consumable, buff 
 
 // The item used from the bar on its own cooldown and the category cooldown it shares, with the cast
 // time and global cooldown its spell states.
-func registerConsumableOnUse(character *core.Character, consumable core.Consumable, itemEffect *proto.ItemEffect, auras []*core.Aura) {
-	row := spelldata.MustFind(itemEffect.BuffId)
-	onUse := onUseCast(character, itemEffect)
-	cast := spelldata.Cast(row)
-	if onUse.CD.Duration > 0 {
-		cast.CD = onUse.CD
-	}
-	cast.SharedCD = onUse.SharedCD
+func registerConsumableOnUse(character *core.Character, consumable core.Consumable, itemEffect *proto.ItemEffect,
+	cd core.Cooldown, sharedCD core.Cooldown, auras []*core.Aura) {
+	cast := spelldata.Cast(spelldata.MustFind(itemEffect.BuffId))
+	cast.CD, cast.SharedCD = cd, sharedCD
 
 	spell := character.RegisterSpell(core.SpellConfig{
 		ActionID: core.ActionID{ItemID: consumable.Id},

@@ -30,9 +30,13 @@ func NewSpellDataExplosive(itemID int32) {
 		}
 
 		for _, itemEffect := range consumable.OnUseEffects() {
-			config := onUseSpellConfig(character, itemID, itemEffect, spellDataOnUseDamageSpell(character, spelldata.MustFind(itemEffect.BuffId)))
+			row := spelldata.MustFind(itemEffect.BuffId)
+			config := spellDataOnUseDamageSpell(character, row)
+			config.ActionID = core.ActionID{ItemID: itemID}
 			config.Flags |= core.SpellFlagExplosive
-			if self := spelldata.MustFind(itemEffect.BuffId).CasterDamageEffect(); self != spelldata.NilEffect {
+			config.Cast = spelldata.Cast(row)
+			config.Cast.CD, config.Cast.SharedCD = consumableCooldowns(character, itemEffect, row)
+			if self := row.CasterDamageEffect(); self != spelldata.NilEffect {
 				selfSpell := registerCasterDamageSpell(character, core.SpellConfig{
 					ActionID:         config.ActionID,
 					SpellSchool:      config.SpellSchool,
@@ -52,7 +56,7 @@ func NewSpellDataExplosive(itemID int32) {
 			// An explosive with a cooldown of its own, such as the sapper, goes before the ones only the
 			// shared category holds back, which would otherwise delay it by that category's cooldown.
 			priority := int32(core.CooldownPriorityLow)
-			if itemEffect.GetOnUse().CooldownMs > 0 {
+			if config.Cast.CD.Duration > 0 {
 				priority += 10
 			}
 			character.AddMajorCooldown(core.MajorCooldown{

@@ -262,9 +262,9 @@ func registerSpellDataConsumable(itemID int32, register func(int32, core.ApplyEf
 	})
 }
 
-// The item's own cooldown and the category cooldown it shares. -1 on the item's row, and a category
-// of 0, defer to the spell's row: the Spellblasting potions 250932-250937 state neither and share
-// potion category 4 for 120 s through their spells.
+// The item's own cooldown and the category cooldown it shares, which every consumable builder reads.
+// -1 on the item's row, and a category of 0, defer to the spell's row: the Spellblasting potions
+// 250932-250937 state neither and share potion category 4 for 120 s through their spells.
 func consumableCooldowns(character *core.Character, itemEffect *proto.ItemEffect, row *spelldata.Spell) (core.Cooldown, core.Cooldown) {
 	onUse := itemEffect.GetOnUse()
 	cooldownMs, categoryMs, category := onUse.CooldownMs, onUse.CategoryCooldownMs, onUse.CategoryId
