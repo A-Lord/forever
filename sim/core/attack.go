@@ -581,7 +581,7 @@ func (aa *AutoAttacks) anyEnabled() bool {
 	return aa.mh.enabled || aa.oh.enabled || aa.ranged.enabled
 }
 
-func (aa *AutoAttacks) reset(_ *Simulation) {
+func (aa *AutoAttacks) reset(sim *Simulation) {
 	if !aa.AutoSwingMelee && !aa.AutoSwingRanged {
 		return
 	}
@@ -609,6 +609,17 @@ func (aa *AutoAttacks) reset(_ *Simulation) {
 			aa.oh.swingAt = DurationFromSeconds(aa.oh.SwingSpeed / 2)
 		}
 
+		// Each enemy opens at its own point in its swing timer, so a pack does not swing in volleys.
+		if aa.mh.unit.Type == EnemyUnit {
+			offset := time.Duration(sim.RandomFloat("Enemy Swing Offset") * float64(aa.MainhandSwingSpeed()))
+			aa.mh.previousSwing += offset
+			aa.mh.swingAt += offset
+			aa.mh.naturalReadyAt += offset
+			if aa.IsDualWielding {
+				aa.oh.previousSwing += offset
+				aa.oh.swingAt += offset
+			}
+		}
 	}
 
 	aa.ranged.previousSwing = -NeverExpires
