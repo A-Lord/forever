@@ -40,7 +40,7 @@ func (paladin *Paladin) registerConsecration(row shared.SpellData) {
 		SpellSchool:    row.SpellSchool,
 		DefenseType:    row.DefenseType,
 		ProcMask:       core.ProcMaskSpellDamage,
-		Flags:          core.SpellFlagAPL,
+		Flags:          core.SpellFlagAPL | core.SpellFlagPureDot,
 		ClassSpellMask: SpellMaskConsecration,
 		Rank:           row.Rank,
 
