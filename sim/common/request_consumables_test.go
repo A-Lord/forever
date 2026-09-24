@@ -46,9 +46,8 @@ var requestPreset = &proto.ConsumesSpec{
 	ExplosiveId: 18588,                // Ez-Thro Dynamite II
 	MhImbueId:   12404,                // Dense Sharpening Stone
 	OhImbueId:   12404,
-	// Goblin Sapper Charge, Scrolls of Agility, Strength, Intellect, Spirit and Protection IV,
-	// Bogling Root
-	ExtraIds: []int32{10646, 10309, 10310, 10308, 10306, 10305, 5206},
+	// Goblin Sapper Charge, Scrolls of Strength, Intellect, Spirit and Stamina IV, Bogling Root
+	ExtraIds: []int32{10646, 10310, 10308, 10306, 10307, 5206},
 }
 
 type appliedConsumables struct {
@@ -106,7 +105,7 @@ func TestRequestCarriesEveryConsumableThePresetSelects(t *testing.T) {
 	requested := applyRequestPreset(t)
 	restore()
 
-	for _, id := range []int32{13442, 13446, 13510, 9187, 13445, 20452, 18588, 10646, 10309, 10310, 10308, 10306, 10305, 5206} {
+	for _, id := range []int32{13442, 13446, 13510, 9187, 13445, 20452, 18588, 10646, 10310, 10308, 10306, 10307, 5206} {
 		found := slices.ContainsFunc(whole.spells, func(actionID core.ActionID) bool { return actionID.ItemID == id }) ||
 			slices.ContainsFunc(slices.Collect(maps.Values(whole.auras)), func(actionID core.ActionID) bool { return actionID.ItemID == id })
 		if !found {
