@@ -9,14 +9,11 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func TestRogueDodgesFromAgility(t *testing.T) {
-	unit := &core.Unit{StatDependencyManager: stats.NewStatDependencyManager()}
-	unit.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[proto.Class_ClassRogue])
-	unit.FinalizeStatDeps()
-
-	sheet := unit.ApplyStatDependencies(stats.Stats{stats.Agility: 130})
-	if got := sheet[stats.DodgePercent]; math.Abs(got-130*0.069) > 1e-9 {
-		t.Errorf("130 agility gives a rogue %v%% dodge, want %v%%", got, 130*0.069)
+// NewRogue panics in its unported poisons before it adds its stat dependencies, so the rogue's rate
+// is checked in the table the constructor reads.
+func TestRogueDodgePerAgility(t *testing.T) {
+	if got := core.DodgePerAgiMaxLevel[proto.Class_ClassRogue]; got != 0.069 {
+		t.Errorf("rogue gains %v%% dodge per agility, want 0.069%%", got)
 	}
 }
 

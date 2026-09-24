@@ -269,3 +269,58 @@ func TestAttackTableHandFollowsTheProcMask(t *testing.T) {
 		}
 	}
 }
+
+func TestGlanceDamageRollsWithinTheHandsRange(t *testing.T) {
+	sim := &Simulation{rand: NewSplitMix(42)}
+	table := &AttackTable{
+		BaseGlanceChance: 1,
+		MH:               AttackTableHand{GlanceMultiplierMin: 0.55, GlanceMultiplierMax: 0.75},
+		OH:               AttackTableHand{GlanceMultiplierMin: 0.80, GlanceMultiplierMax: 0.90},
+	}
+	target := &Unit{}
+
+	for _, tc := range []struct {
+		name     string
+		procMask ProcMask
+		min, max float64
+	}{
+		{"main hand", ProcMaskMeleeMHAuto, 55, 75},
+		{"off hand", ProcMaskMeleeOHAuto, 80, 90},
+	} {
+		spell := &Spell{ProcMask: tc.procMask, SpellMetrics: make([]SpellMetrics, 1)}
+		lowest, highest := math.Inf(1), math.Inf(-1)
+		for range 1000 {
+			result := &SpellResult{Target: target, Damage: 100}
+			chance := 0.0
+			if !result.applyAttackTableGlance(sim, spell, table, 0, &chance) || result.Outcome != OutcomeGlance {
+				t.Fatalf("%s: a roll of 0 against a 100%% glance chance did not glance", tc.name)
+			}
+			lowest, highest = min(lowest, result.Damage), max(highest, result.Damage)
+		}
+		if lowest < tc.min || highest > tc.max {
+			t.Errorf("%s: glancing damage ranged %v to %v, want within %v to %v", tc.name, lowest, highest, tc.min, tc.max)
+		}
+		if spread := tc.max - tc.min; lowest > tc.min+spread/10 || highest < tc.max-spread/10 {
+			t.Errorf("%s: glancing damage ranged %v to %v, want it to cover %v to %v", tc.name, lowest, highest, tc.min, tc.max)
+		}
+	}
+}
+
+func TestExpectedWhiteDamageUsesTheGlanceMidpoint(t *testing.T) {
+	attacker := &Unit{PseudoStats: stats.NewPseudoStats()}
+	target := &Unit{PseudoStats: stats.NewPseudoStats()}
+	table := &AttackTable{
+		Attacker:         attacker,
+		Defender:         target,
+		CritMultiplier:   1,
+		BaseGlanceChance: 0.4,
+		MH:               AttackTableHand{GlanceMultiplierMin: 0.55, GlanceMultiplierMax: 0.75},
+	}
+	spell := &Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHAuto, DefenseType: DefenseTypeMelee, CritMultiplierPct: 1}
+
+	result := &SpellResult{Target: target, Damage: 100}
+	spell.OutcomeExpectedMeleeWhite(nil, result, table)
+	if want := 100 * (1 - 0.4*(1-0.65)); math.Abs(result.Damage-want) > 1e-9 {
+		t.Errorf("expected white damage %v, want %v from the 0.65 midpoint", result.Damage, want)
+	}
+}

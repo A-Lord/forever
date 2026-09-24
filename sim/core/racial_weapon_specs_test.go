@@ -72,6 +72,72 @@ func racialCritWithMainHand(race proto.Race, itemID int32) (physical float64, sp
 	return character.GetStat(stats.PhysicalCritPercent), character.GetStat(stats.SpellCritPercent)
 }
 
+func racialWeaponSwapSim(race proto.Race, mainHand, offHand, swapMainHand, swapOffHand int32) (*Simulation, *Character) {
+	hands := func(mainHand, offHand int32) []*proto.ItemSpec {
+		items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotOffHand+1)
+		for i := range items {
+			items[i] = &proto.ItemSpec{}
+		}
+		items[proto.ItemSlot_ItemSlotMainHand] = &proto.ItemSpec{Id: mainHand}
+		items[proto.ItemSlot_ItemSlotOffHand] = &proto.ItemSpec{Id: offHand}
+		return items
+	}
+
+	sim := NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 100},
+		Raid: &proto.Raid{
+			Parties: []*proto.Party{{
+				Players: []*proto.Player{{
+					Name:           "Racial Swap Tester",
+					Class:          proto.Class_ClassWarrior,
+					Race:           race,
+					Buffs:          &proto.IndividualBuffs{},
+					Spec:           &proto.Player_DpsWarrior{},
+					Equipment:      &proto.EquipmentSpec{Items: hands(mainHand, offHand)},
+					EnableItemSwap: true,
+					ItemSwap:       &proto.ItemSwap{Items: hands(swapMainHand, swapOffHand)},
+					Rotation:       &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
+				}},
+				Buffs: &proto.PartyBuffs{},
+			}},
+		},
+		Encounter: &proto.Encounter{
+			Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
+			Duration: 180,
+		},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
+
+func TestRacialWeaponSpecializationFollowsItemSwaps(t *testing.T) {
+	addRacialTestWeapons()
+
+	_, withoutSword := racialWeaponSwapSim(proto.Race_RaceHuman, racialTestDaggerID, racialTestDaggerID, racialTestDaggerID, racialTestDaggerID)
+	base := withoutSword.GetStat(stats.PhysicalCritPercent)
+
+	for _, tc := range []struct {
+		name                          string
+		mainHand, offHand             int32
+		swapMainHand, swapOffHand     int32
+		critBeforeSwap, critAfterSwap float64
+	}{
+		{"sword swapped out of the main hand", racialTestSwordID, racialTestDaggerID, racialTestDaggerID, racialTestDaggerID, 2, 0},
+		{"sword swapped into the off hand", racialTestDaggerID, racialTestDaggerID, racialTestDaggerID, racialTestSwordID, 0, 2},
+		{"sword in the off hand only, swapped out", racialTestDaggerID, racialTestSwordID, racialTestDaggerID, racialTestDaggerID, 2, 0},
+	} {
+		sim, character := racialWeaponSwapSim(proto.Race_RaceHuman, tc.mainHand, tc.offHand, tc.swapMainHand, tc.swapOffHand)
+		if got := character.GetStat(stats.PhysicalCritPercent) - base; math.Abs(got-tc.critBeforeSwap) > 1e-9 {
+			t.Errorf("%s: +%v%% crit before the swap, want +%v%%", tc.name, got, tc.critBeforeSwap)
+		}
+
+		character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+		if got := character.GetStat(stats.PhysicalCritPercent) - base; math.Abs(got-tc.critAfterSwap) > 1e-9 {
+			t.Errorf("%s: +%v%% crit after the swap, want +%v%%", tc.name, got, tc.critAfterSwap)
+		}
+	}
+}
+
 func TestRacialWeaponSpecializationsRaiseAllCrit(t *testing.T) {
 	addRacialTestWeapons()
 
