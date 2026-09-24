@@ -30,10 +30,13 @@ func NewShaman(character *core.Character, talents string, selfBuffs SelfBuffs) *
 	// Add Shaman stat dependencies
 	shaman.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 	shaman.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[shaman.Class])
-	shaman.AddStatDependency(stats.Agility, stats.DodgeRating, 1.0/25*core.DodgeRatingPerDodgePercent)
+	shaman.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[shaman.Class])
+	shaman.PseudoStats.BaseDodgeChance += 0.017
 	shaman.EnableManaBarWithModifier()
 
 	shaman.AddStatDependency(stats.Strength, stats.AttackPower, 2.0)
+	shaman.AddStatDependency(stats.Strength, stats.BlockValue, 0.05)
+	shaman.AddStat(stats.BlockValue, -1)
 
 	shaman.WindfuryAPBonus = 475.0 //Base Windfury Bonus
 

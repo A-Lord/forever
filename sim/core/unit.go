@@ -570,7 +570,7 @@ func (unit *Unit) Armor() float64 {
 }
 
 func (unit *Unit) BlockDamageReduction() float64 {
-	return unit.stats[stats.BlockValue] * unit.PseudoStats.BlockValueMultiplier
+	return max(0, unit.stats[stats.BlockValue]*unit.PseudoStats.BlockValueMultiplier)
 }
 
 func (unit *Unit) TotalRangedHasteMultiplier() float64 {
@@ -946,8 +946,10 @@ func (unit *Unit) GetTotalParryChanceAsDefender(spell *Spell, atkTable *AttackTa
 
 func (unit *Unit) GetTotalChanceToBeMissedAsDefender(atkTable *AttackTable) float64 {
 	// ReducedPhysicalHitTakenChance is stored in percent points, BaseMissChance as a fraction.
+	defense :=math.Floor(unit.stats[stats.DefenseRating] / DefenseRatingPerDefenseLevel)
 	chance := atkTable.BaseMissChance +
-		unit.PseudoStats.ReducedPhysicalHitTakenChance/100
+		unit.PseudoStats.ReducedPhysicalHitTakenChance/100 +
+		defense*MissDodgeParryBlockCritChancePerDefense/100
 	return math.Max(chance, 0.0)
 }
 

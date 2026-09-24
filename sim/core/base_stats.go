@@ -199,6 +199,20 @@ var ClassBaseStats = map[proto.Class]stats.Stats{
 	},
 }
 
+// Dodge percent per point of Agility at level 60.
+var DodgePerAgiMaxLevel = map[proto.Class]float64{
+	proto.Class_ClassUnknown: 0,
+	proto.Class_ClassWarrior: 0.0500,
+	proto.Class_ClassPaladin: 0.0506,
+	proto.Class_ClassHunter:  0.0378,
+	proto.Class_ClassRogue:   0.0690,
+	proto.Class_ClassPriest:  0.0500,
+	proto.Class_ClassShaman:  0.0508,
+	proto.Class_ClassMage:    0.0514,
+	proto.Class_ClassWarlock: 0.0500,
+	proto.Class_ClassDruid:   0.0500,
+}
+
 // The LEVEL 60 rows of GameTables/SpellScaling.txt. Only tools/tooltip reads this
 // (dbc_data_provider.go:249), so the sim is unaffected either way, but tooltip spell
 // values used to be computed off the level 90 row -- a MoP-port leftover that was never
