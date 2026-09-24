@@ -13,13 +13,11 @@ import { Player } from './player';
 
 const weights = Stats.fromMap({ [Stat.StatStrength]: 2 }, { [PseudoStat.PseudoStatMainHandDps]: 10, [PseudoStat.PseudoStatOffHandDps]: 4 });
 
-const computeEnchantEP = (enchant: Enchant, slot?: ItemSlot, weapon?: Item | null, epWeights: Stats = weights) =>
-	Player.prototype.computeEnchantEP.call(
-		{ enchantEPCache: new Map<number, number>(), computeStatsEP: (stats: Stats) => stats.computeEP(epWeights) } as unknown as Player<any>,
-		enchant,
-		slot,
-		weapon,
-	);
+const computeEnchantEP = (enchant: Enchant, slot?: ItemSlot, weapon?: Item | null, epWeights: Stats = weights) => {
+	const player = { enchantEPCache: new Map<number, number>(), computeStatsEP: (stats: Stats) => stats.computeEP(epWeights) } as unknown as Player<any>;
+	const epPerWeaponDps = slot === undefined ? 0 : Player.prototype.computeWeaponDpsEP.call(player, slot);
+	return Player.prototype.computeEnchantEP.call(player, enchant, weapon?.weaponSpeed ?? 0, epPerWeaponDps);
+};
 
 const striking = Enchant.create({ effectId: 1897, weaponDamage: 5 });
 const sword = Item.create({ id: 1, weaponSpeed: 2.5 });
@@ -58,6 +56,10 @@ describe('Player.computeEnchantEP on percent pseudo stats', () => {
 
 	it('values the ranged-only 2523 Biznicks 247x128 Accurascope at the hit rating weight', () => {
 		expect(enchantEP(2523, { [PseudoStat.PseudoStatRangedHitPercent]: 3 })).toBeCloseTo(3 * Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT * 5);
+	});
+
+	it('values a melee-only hit percent at the hit rating weight, with no ranged total to take it back', () => {
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1 })).toBeCloseTo(Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT * 5);
 	});
 
 	it("uses a percent pseudo stat's own weight where it has one", () => {

@@ -6,7 +6,73 @@ import (
 
 func RegisterAllProcs() {
 
+	// Equip
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Reduces your damage taken by 6% in the Battle Ring and The Maul.
+	// https://www.wowhead.com/forever/spell=1318318
+	// unsupported: the row applies only in area group 9337, which names no area type
+	// equip: 1318318 (A_MOD_DAMAGE_PERCENT_TAKEN)
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1318318},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 19024, ItemName: "Arena Grand Master"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Increases your pet's armor by 10%.
+	// https://www.wowhead.com/forever/spell=27225
+	// unsupported: effect 1 A_MOD_BASE_RESISTANCE_PCT misc 1 is not parsed on a pet
+	// equip: 27225 keeps 27208 up (A_MOD_BASE_RESISTANCE_PCT)
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27225},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 22060, ItemName: "Beastmaster's Tunic"},
+	//	{ItemID: 226886, ItemName: "Beastmaster's Tunic"},
+	// })
+
+	// Increases damage dealt by your pet by 3%.
+	// https://www.wowhead.com/forever/spell=27206
+	// equip: 27206 keeps 27205 up (A_MOD_DAMAGE_PERCENT_DONE)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27206},
+		[]shared.ItemVariant{
+			{ItemID: 22061, ItemName: "Beastmaster's Boots"},
+		})
+
+	// Spell Damage received is reduced by 10.
+	// https://www.wowhead.com/forever/spell=27518
+	// equip: 27518 (A_MOD_DAMAGE_TAKEN)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27518},
+		[]shared.ItemVariant{
+			{ItemID: 22191, ItemName: "Obsidian Mail Tunic"},
+		})
+
+	// Increases damage dealt by your pet by 3%.
+	// https://www.wowhead.com/forever/spell=27206
+	// equip: 27206 keeps 27205 up (A_MOD_DAMAGE_PERCENT_DONE)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27206},
+		[]shared.ItemVariant{
+			{ItemID: 226881, ItemName: "Beastmaster's Treads"},
+		})
+
 	// Procs
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.
+	// https://www.wowhead.com/forever/spell=13439
+	// unsupported: states no rate
+	// trigger 13439 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 13439, BuffSpellID: 13439, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 810, ItemName: "Hammer of the Northern Wind"},
+	// })
 
 	// TODO: Manual implementation required
 	//       This can be ignored if the effect has already been implemented.
@@ -121,7 +187,7 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=15280
 	// unsupported: states no rate
 	// trigger 15280 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
-	// shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 15280, IsWeaponProc: true},
+	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 15280, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 11607, ItemName: "Dark Iron Sunderer"},
 	// })
@@ -195,7 +261,7 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=16871
 	// unsupported: states no rate
 	// trigger 16871 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
-	// shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 16871, IsWeaponProc: true},
+	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 16871, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 12769, ItemName: "Bleakwood Hew"},
 	// })
@@ -297,6 +363,19 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 12796, ItemName: "Hammer of the Titans"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Target's movement slowed by 30% and increasing the time between attacks by 25% for 5s.
+	// https://www.wowhead.com/forever/spell=16927
+	// unsupported: states no rate
+	// trigger 16927 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 16927, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 12797, ItemName: "Frostguard"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1060,21 +1139,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Reduces your damage taken by 6% in the Battle Ring and The Maul.
-	// https://www.wowhead.com/forever/spell=1318318
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 19024, ItemName: "Arena Grand Master"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Blasts a target for 45 Frost damage.
 	// https://www.wowhead.com/forever/spell=18398
 	// unsupported: states no rate
@@ -1118,12 +1182,10 @@ func RegisterAllProcs() {
 	//
 	// Spell damage taken by target increased by 15% for 5s.
 	// https://www.wowhead.com/forever/spell=23605
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
+	// unsupported: states no rate
+	// trigger 23605 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataAuraProc(shared.SpellDataProc{TriggerSpellID: 23605, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
 	//	{ItemID: 19169, ItemName: "Nightfall"},
 	// })
 
@@ -1147,7 +1209,7 @@ func RegisterAllProcs() {
 	// Sometimes heals bearer of 150 damage when damaging an enemy in melee.
 	// https://www.wowhead.com/forever/spell=23682
 	// unsupported: states no rate
-	// trigger 23689 (every time, core.CallbackOnSpellHitDealt, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial) -> buff 23682
+	// trigger 23689 (no stated rate, core.CallbackOnSpellHitDealt, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial) -> buff 23682
 	// shared.NewSpellDataHealProc(shared.SpellDataProc{TriggerSpellID: 23689, BuffSpellID: 23682},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 19287, ItemName: "Darkmoon Card: Heroism"},
@@ -1649,52 +1711,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Increases your pet's armor by 10%.
-	// https://www.wowhead.com/forever/spell=27225
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 22060, ItemName: "Beastmaster's Tunic"},
-	//	{ItemID: 226886, ItemName: "Beastmaster's Tunic"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases damage dealt by your pet by 3%.
-	// https://www.wowhead.com/forever/spell=27206
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 22061, ItemName: "Beastmaster's Boots"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Spell Damage received is reduced by 10.
-	// https://www.wowhead.com/forever/spell=27518
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 22191, ItemName: "Obsidian Mail Tunic"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// On successful melee or ranged attack gain 8 mana and if possible drain 8 mana from the target.
 	// https://www.wowhead.com/forever/spell=18350
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
@@ -2134,21 +2150,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 223077, ItemName: "Sergeant Major's Mail Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases damage dealt by your pet by 3%.
-	// https://www.wowhead.com/forever/spell=27206
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 226881, ItemName: "Beastmaster's Treads"},
 	// })
 
 	// TODO: Manual implementation required
@@ -3808,6 +3809,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Chance on hit to deal 75 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.
+	// https://www.wowhead.com/forever/spell=1265634
+	// unsupported: states no rate
+	// trigger 1318159 (no stated rate, core.CallbackOnSpellHitDealt, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage) -> buff 1265634
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1318159, BuffSpellID: 1265634},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 260205, ItemName: "Highborne Research Tablet"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// https://www.wowhead.com/forever/spell=1318514
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -4705,6 +4719,20 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Chance on harmful spell cast to reduce target enemy's attack power by 60 for 30s.
+	//
+	// https://www.wowhead.com/forever/spell=1297082
+	// unsupported: states no rate
+	// trigger 1297085 (no stated rate, core.CallbackOnCastComplete, core.ProcMaskSpellDamage) -> buff 1297082
+	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 1297085, BuffSpellID: 1297082},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 275630, ItemName: "Depleted Eye of Influence"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Heals wielder of 182 damage over 14s.
 	// https://www.wowhead.com/forever/spell=1297357
 	// unsupported: states no rate
@@ -4827,7 +4855,7 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=1315767
 	// unsupported: states no rate
 	// trigger 1315767 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
-	// shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 1315767, IsWeaponProc: true},
+	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 1315767, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 284262, ItemName: "Howling Hide"},
 	// })
@@ -4875,7 +4903,7 @@ func RegisterAllProcs() {
 	// Reduces an enemy's armor by 165. Stacks up to 3 times.
 	// https://www.wowhead.com/forever/spell=16928
 	// trigger 16928 (1 ppm, core.CallbackEmpty, core.ProcMaskUnknown)
-	shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 16928, IsWeaponProc: true},
+	shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 16928, IsWeaponProc: true},
 		[]shared.ItemVariant{
 			{ItemID: 12798, ItemName: "Annihilator"},
 		})
@@ -4945,14 +4973,6 @@ func RegisterAllProcs() {
 			{ItemID: 234588, ItemName: "Grand Marshal's Aegis -  - "},
 		})
 
-	// Chance on hit to deal 75 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.
-	// https://www.wowhead.com/forever/spell=1265634
-	// trigger 1318159 (every time, core.CallbackOnSpellHitDealt, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage) -> buff 1265634
-	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1318159, BuffSpellID: 1265634},
-		[]shared.ItemVariant{
-			{ItemID: 260205, ItemName: "Highborne Research Tablet"},
-		})
-
 	// When struck in combat has a 5% chance of inflicting 50 Nature damage to the attacker.
 	// https://www.wowhead.com/forever/spell=16782
 	// trigger 13959 (5%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 16782
@@ -4969,15 +4989,6 @@ func RegisterAllProcs() {
 			{ItemID: 272838, ItemName: "Premier Grand Marshal's Aegis"},
 		})
 
-	// Chance on harmful spell cast to reduce target enemy's attack power by 60 for 30s.
-	//
-	// https://www.wowhead.com/forever/spell=1297082
-	// trigger 1297085 (every time, core.CallbackOnCastComplete, core.ProcMaskSpellDamage) -> buff 1297082
-	shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 1297085, BuffSpellID: 1297082},
-		[]shared.ItemVariant{
-			{ItemID: 275630, ItemName: "Depleted Eye of Influence"},
-		})
-
 	// Thrown attacks explode on impact, causing 21 Fire damage to nearby enemies.
 	// https://www.wowhead.com/forever/spell=1318121
 	// trigger 1318123 (every time, core.CallbackOnSpellHitDealt, core.ProcMaskRangedAuto) -> buff 1318121
@@ -4987,12 +4998,8 @@ func RegisterAllProcs() {
 		})
 
 	// Skipped
-	// Not simulated: Hammer of the Northern Wind: "Frostbolt" (13439) - ignored aura type 33
-	// https://www.wowhead.com/forever/spell=13439
 	// Not simulated: Rod of the Sleepwalker: "Resist Sleep 05" (1292652) - ignored aura type 117
 	// https://www.wowhead.com/forever/spell=1292652
-	// Not simulated: Frost Tiger Blade: "Frostbolt" (13439) - ignored aura type 33
-	// https://www.wowhead.com/forever/spell=13439
 	// Not simulated: Mug O' Hurt: "Dazed" (13496) - ignored aura type 33
 	// https://www.wowhead.com/forever/spell=13496
 	// Not simulated: Girdle of the Blindwatcher: "Stealth Detection 05" (1292149) - ignored aura type 17
@@ -5007,8 +5014,6 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=13587
 	// Not simulated: Stronghold Gauntlets: "Immune to Disarm" (7219) - ignored aura type 77
 	// https://www.wowhead.com/forever/spell=7219
-	// Not simulated: Frostguard: "Chilled" (16927) - ignored aura type 33
-	// https://www.wowhead.com/forever/spell=16927
 	// Not simulated: Voice Amplification Modulator: "Resist Silence 07" (19786) - ignored aura type 117
 	// https://www.wowhead.com/forever/spell=19786
 	// Not simulated: Knight-Lieutenant's Dragonhide Gloves: "Stealth Detection 10" (23217) - ignored aura type 17

@@ -1168,7 +1168,7 @@ export class Player<SpecType extends Spec> {
 		return ep;
 	}
 
-	computeEnchantEP(enchant: Enchant, slot?: ItemSlot, weapon?: Item | null): number {
+	computeEnchantEP(enchant: Enchant, weaponSpeed = 0, epPerWeaponDps = 0): number {
 		let ep = this.enchantEPCache.get(enchant.effectId);
 		if (ep === undefined) {
 			ep = this.computeStatsEP(new Stats(enchant.stats, enchant.pseudoStats));
@@ -1176,10 +1176,14 @@ export class Player<SpecType extends Spec> {
 		}
 
 		// Flat weapon damage is worth the DPS it adds at the enchanted weapon's speed, as a weapon's own damage is.
-		if (enchant.weaponDamage && slot !== undefined && weapon?.weaponSpeed) {
-			ep += this.computeStatsEP(getWeaponDpsStatsBySlot(enchant.weaponDamage / weapon.weaponSpeed, slot));
+		if (enchant.weaponDamage && weaponSpeed) {
+			ep += (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps;
 		}
 		return ep;
+	}
+
+	computeWeaponDpsEP(slot: ItemSlot): number {
+		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {

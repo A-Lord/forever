@@ -14,6 +14,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -164,10 +165,7 @@ func processEnchantmentEffects(
 				}
 			}
 		case ITEM_ENCHANTMENT_EQUIP_SPELL: //Buff
-			if outPseudoStats != nil {
-				AddEquipSpellPseudoStats(outPseudoStats, effectArgs[i])
-			}
-			AddEquipSpellStats(outStats, effectArgs[i])
+			AddEquipSpellStats(outStats, outPseudoStats, effectArgs[i])
 			spellEffects := dbcInstance.SpellEffects[effectArgs[i]]
 			for _, spellEffect := range spellEffects {
 				points := spellEffect.EffectBasePoints + spellEffect.EffectDieSides
@@ -223,9 +221,14 @@ func processEnchantmentEffects(
 
 const rangedWeaponSubclassMask = rangedMask | ITEM_SUBCLASS_BIT_WEAPON_THROWN | ITEM_SUBCLASS_BIT_WEAPON_WAND
 
-// Adds the percents an equip spell states for hit, crit, block, dodge, parry and attack and cast speed
-// to pseudoStats, which is indexed by proto.PseudoStat, and reports whether it added any. Only auras on
-// the wearer count: Atiesh's 28142 is a party aura and reaches the sim as a raid buff.
+const SkillLineDefense = 95
+
+// Adds what an equip spell states that no stat index carries, and reports whether it added to each of
+// the two: to outStats the defense skill and flat block value - 24148 (Presence of Might) states
+// A_MOD_SKILL 7 on the Defense skill line and A_MOD_BLOCK_VALUE_FLAT 15 - and to pseudoStats, indexed by
+// proto.PseudoStat and skipped where nil, the percents for hit, crit, block, dodge, parry and attack and
+// cast speed. Only auras on the wearer count: Atiesh's 28142 is a party aura and reaches the sim as a
+// raid buff.
 //
 // A spell that names weapons applies its hit and weapon crit only to attacks with them. Melee is
 // credited when it names no weapon or a melee one and ranged when it names no weapon or a ranged one,
@@ -233,16 +236,15 @@ const rangedWeaponSubclassMask = rangedMask | ITEM_SUBCLASS_BIT_WEAPON_THROWN | 
 // stats.FromPseudoStatsProto takes back out. So 22780 (Biznicks 247x128 Accurascope, hit restricted to
 // bows, guns and crossbows) is ranged hit alone, and 1310308 (SAF-T Ultra Precision Scope, the all-crit
 // aura under the same restriction) is ranged crit alone, with no spell crit.
-func AddEquipSpellPseudoStats(pseudoStats []float64, spellID int) bool {
+func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID int) (addedStats bool, addedPseudoStats bool) {
 	spell := dbcInstance.Spells[spellID]
 	namesWeapons := spell.EquippedItemClass == ITEM_CLASS_WEAPON && spell.EquippedItemSubclass != 0
 	melee := !namesWeapons || spell.EquippedItemSubclass&^rangedWeaponSubclassMask != 0
 	ranged := !namesWeapons || spell.EquippedItemSubclass&rangedWeaponSubclassMask != 0
 
-	added := false
 	add := func(pseudoStat proto.PseudoStat, value float64) {
 		pseudoStats[pseudoStat] += value
-		added = true
+		addedPseudoStats = true
 	}
 	addWeapon := func(meleeStat, rangedStat proto.PseudoStat, value float64) {
 		if melee {
@@ -258,6 +260,22 @@ func AddEquipSpellPseudoStats(pseudoStats []float64, spellID int) bool {
 			continue
 		}
 		value := effect.EffectBasePoints + effect.EffectDieSides
+
+		switch {
+		case effect.EffectAura == dbcenums.A_MOD_SKILL && effect.EffectMiscValues[0] == SkillLineDefense:
+			outStats[proto.Stat_StatDefenseRating] += value * core.DefenseRatingPerDefenseLevel
+			addedStats = true
+			continue
+		case effect.EffectAura == dbcenums.A_MOD_BLOCK_VALUE_FLAT:
+			outStats[proto.Stat_StatBlockValue] += value
+			addedStats = true
+			continue
+		}
+
+		// 1293881 (Pendulum of Doom) states a zero melee haste and changes the speed through its procs.
+		if pseudoStats == nil || value == 0 {
+			continue
+		}
 
 		switch effect.EffectAura {
 		case dbcenums.A_MOD_HIT_CHANCE:
@@ -281,51 +299,12 @@ func AddEquipSpellPseudoStats(pseudoStats []float64, spellID int) bool {
 			add(proto.PseudoStat_PseudoStatParryPercent, value)
 		}
 
-		// 1293881 (Pendulum of Doom) states a zero melee haste and changes the speed through its procs.
-		if value != 0 {
-			for _, pseudoStat := range equipSpellHasteAuras[effect.EffectAura] {
-				add(pseudoStat, value)
-			}
+		for _, pseudoStat := range spelldata.SpeedAuraPseudoStats[effect.EffectAura] {
+			add(pseudoStat, value)
 		}
 	}
 
-	return added
-}
-
-// Unlike ranged hit and crit, ranged haste is not a total including melee: the sim applies melee,
-// ranged and cast speed each on its own.
-var equipSpellHasteAuras = map[EffectAuraType][]proto.PseudoStat{
-	dbcenums.A_MOD_MELEE_HASTE_3:           {proto.PseudoStat_PseudoStatMeleeHastePercent},
-	dbcenums.A_MOD_RANGED_HASTE:            {proto.PseudoStat_PseudoStatRangedHastePercent},
-	dbcenums.A_MOD_MELEE_RANGED_HASTE_2:    {proto.PseudoStat_PseudoStatMeleeHastePercent, proto.PseudoStat_PseudoStatRangedHastePercent},
-	dbcenums.A_MOD_CASTING_SPEED_NOT_STACK: {proto.PseudoStat_PseudoStatSpellHastePercent},
-}
-
-const skillLineDefense = 95
-
-// Adds the defense skill and flat block value an equip spell states to outStats, and reports whether it
-// added any. 24148 (Presence of Might) states A_MOD_SKILL 7 on the Defense skill line and
-// A_MOD_BLOCK_VALUE_FLAT 15.
-func AddEquipSpellStats(outStats *stats.Stats, spellID int) bool {
-	added := false
-	for _, effect := range dbcInstance.SpellEffectsInOrder(spellID) {
-		if effect.EffectType != dbcenums.E_APPLY_AURA {
-			continue
-		}
-		value := effect.EffectBasePoints + effect.EffectDieSides
-
-		switch {
-		case effect.EffectAura == dbcenums.A_MOD_SKILL && effect.EffectMiscValues[0] == skillLineDefense:
-			outStats[proto.Stat_StatDefenseRating] += value * core.DefenseRatingPerDefenseLevel
-		case effect.EffectAura == dbcenums.A_MOD_BLOCK_VALUE_FLAT:
-			outStats[proto.Stat_StatBlockValue] += value
-		default:
-			continue
-		}
-		added = true
-	}
-
-	return added
+	return addedStats, addedPseudoStats
 }
 
 func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) proto.Stat {

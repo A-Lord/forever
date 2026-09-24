@@ -10,30 +10,6 @@ import { migrateOldProto, ProtoConversionMap } from './proto_migration';
 const STATS_LEN = getEnumValues(Stat).length;
 const PSEUDOSTATS_LEN = getEnumValues(PseudoStat).length;
 
-const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = [
-	PseudoStat.PseudoStatMeleeHitPercent,
-	PseudoStat.PseudoStatMeleeCritPercent,
-	PseudoStat.PseudoStatSpellHitPercent,
-	PseudoStat.PseudoStatSpellCritPercent,
-	PseudoStat.PseudoStatRangedHitPercent,
-	PseudoStat.PseudoStatRangedCritPercent,
-	PseudoStat.PseudoStatDodgePercent,
-	PseudoStat.PseudoStatParryPercent,
-	PseudoStat.PseudoStatBlockPercent,
-	PseudoStat.PseudoStatMeleeHastePercent,
-	PseudoStat.PseudoStatRangedHastePercent,
-	PseudoStat.PseudoStatSpellHastePercent,
-];
-
-// A ranged percent is the total the character sheet shows, melee share included. Valued at a rating's
-// weight, the share is counted once: by the melee pseudo stat, unless the ranged total has a weight of
-// its own and counts it there.
-const RANGED_TOTAL_MELEE_SHARE = new Map<PseudoStat, PseudoStat>([
-	[PseudoStat.PseudoStatRangedHitPercent, PseudoStat.PseudoStatMeleeHitPercent],
-	[PseudoStat.PseudoStatRangedCritPercent, PseudoStat.PseudoStatMeleeCritPercent],
-]);
-const MELEE_SHARE_RANGED_TOTAL = new Map([...RANGED_TOTAL_MELEE_SHARE].map(([ranged, melee]) => [melee, ranged]));
-
 export class UnitStat {
 	private readonly stat: Stat | null;
 	private readonly pseudoStat: PseudoStat | null;
@@ -423,6 +399,24 @@ export class UnitStat {
 	}
 }
 
+const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Set(
+	(getEnumValues(PseudoStat) as PseudoStat[]).filter(pseudoStat => {
+		const unitStat = UnitStat.fromPseudoStat(pseudoStat);
+		return unitStat.hasRootStat() && unitStat.getRootStat() !== Stat.StatBlockValue;
+	}),
+);
+
+// A ranged percent is the total the character sheet shows, melee share included. Valued at a rating's
+// weight, the share is counted once: by the melee pseudo stat, unless the ranged total has a weight of
+// its own and counts it there.
+const RANGED_TOTAL_MELEE_SHARE = new Map(
+	[Stat.StatMeleeHitRating, Stat.StatMeleeCritRating].map(rating => {
+		const [melee, ranged] = UnitStat.getChildren(rating);
+		return [ranged, melee] as const;
+	}),
+);
+const MELEE_SHARE_RANGED_TOTAL = new Map([...RANGED_TOTAL_MELEE_SHARE].map(([ranged, melee]) => [melee, ranged]));
+
 export const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromStat(Stat.StatHealth),
 	UnitStat.fromStat(Stat.StatMana),
@@ -577,15 +571,18 @@ export class Stats {
 			total += stat * epWeights.stats[idx];
 		});
 		this.pseudoStats.forEach((value, idx) => {
+			if (value === 0) {
+				return;
+			}
 			const weight = epWeights.pseudoStats[idx];
-			if (weight !== 0 || !RATING_WEIGHTED_PERCENT_PSEUDO_STATS.includes(idx)) {
+			if (weight !== 0 || !RATING_WEIGHTED_PERCENT_PSEUDO_STATS.has(idx)) {
 				total += value * weight;
 				return;
 			}
 
 			const meleeShare = RANGED_TOTAL_MELEE_SHARE.get(idx);
 			if (meleeShare !== undefined) {
-				value -= this.pseudoStats[meleeShare];
+				value = Math.max(0, value - this.pseudoStats[meleeShare]);
 			}
 			// Melee and ranged haste are separate speeds, but one haste rating raises both.
 			if (idx === PseudoStat.PseudoStatRangedHastePercent) {

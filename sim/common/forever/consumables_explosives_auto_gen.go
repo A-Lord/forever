@@ -104,7 +104,7 @@ func RegisterAllExplosives() {
 	// shared.NewSpellDataExplosive(21713) // Elune's Candle
 	// unsupported: 29305 deals no damage and heals no one (E_SUMMON)
 	// shared.NewSpellDataExplosive(23379) // Cinder Bracers
-	// unsupported: 398117 deals no damage and heals no one (A_MOD_DAMAGE_TAKEN)
+	// unsupported: effect 1 A_MOD_DAMAGE_TAKEN misc 0 is not parsed on an enemy
 	// shared.NewSpellDataExplosive(202251) // Bag of Pet Treats
 	// unsupported: 435968's damage over time lands on an area, which the damage builder applies to one target
 	// shared.NewSpellDataExplosive(215168) // Ez-Thro Radiation Bomb

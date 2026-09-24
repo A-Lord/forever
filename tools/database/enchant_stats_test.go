@@ -179,7 +179,7 @@ func TestEquipSpellStats(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := stats.Stats{}
-			added := dbc.AddEquipSpellStats(&got, tc.spellID)
+			added, _ := dbc.AddEquipSpellStats(&got, nil, tc.spellID)
 			if got != tc.want {
 				t.Errorf("stats %v, want %v", got.FlatString(), tc.want.FlatString())
 			}

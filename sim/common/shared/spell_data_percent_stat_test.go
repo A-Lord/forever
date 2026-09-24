@@ -68,7 +68,7 @@ func newTestCasterSim(equipped, swapped []*proto.ItemSpec) *core.Simulation {
 	return newTestCasterSimAgainst(equipped, swapped, 1)
 }
 
-func newTestCasterSimAgainst(equipped, swapped []*proto.ItemSpec, targetCount int) *core.Simulation {
+func newTestCasterSimAgainst(equipped, swapped []*proto.ItemSpec, targetCount int, playerOpts ...func(*proto.Player)) *core.Simulation {
 	targets := make([]*proto.Target, targetCount)
 	for i := range targets {
 		targets[i] = &proto.Target{Name: "target", Level: 60, MobType: proto.MobType_MobTypeDemon}
@@ -85,6 +85,9 @@ func newTestCasterSimAgainst(equipped, swapped []*proto.ItemSpec, targetCount in
 	if swapped != nil {
 		player.EnableItemSwap = true
 		player.ItemSwap = &proto.ItemSwap{Items: swapped}
+	}
+	for _, opt := range playerOpts {
+		opt(player)
 	}
 
 	sim := core.NewSim(&proto.RaidSimRequest{
@@ -180,8 +183,7 @@ func TestInsightMultipliesSpirit(t *testing.T) {
 
 	cfg := SpellDataProc{Name: "Test Insight", EnchantID: insightEnchantID, TriggerSpellID: 1248758,
 		BuffSpellID: 1299796}
-	listener := spellDataTrigger(newTestAgent().character, cfg, cfg.effectSource(),
-		spelldata.MustFind(1248758), spelldata.MustFind(1299796), nil, nil)
+	listener := spellDataProcListener(newTestAgent().character, cfg, cfg.effectSource(), spelldata.MustFind(1248758), nil)
 	if want := core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt; listener.Callback != want {
 		t.Errorf("callback = %v, want %v", listener.Callback, want)
 	}

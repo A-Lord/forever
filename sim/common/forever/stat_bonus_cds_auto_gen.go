@@ -18,8 +18,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(7734) // Six Demon Bag - https://www.wowhead.com/forever/spell=14537
 	// unsupported: 18364 deals no damage and heals no one (A_PERIODIC_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(14134) // Cloak of Fire - https://www.wowhead.com/forever/spell=18364
-	// unsupported: 18385 deals no damage and heals no one (E_ENERGIZE)
-	// shared.NewSimpleStatActive(14152) // Robe of the Archmage - https://www.wowhead.com/forever/spell=18385
 	// on use: 18386 (E_HEAL)
 	// unsupported: the heal lands on implicit target 5, not the wearer
 	// shared.NewSpellDataHealOnUse(14153) // Robe of the Void - https://www.wowhead.com/forever/spell=18386
@@ -41,30 +39,20 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(19141) // Luffa - https://www.wowhead.com/forever/spell=23595
 	// unsupported: 23721 deals no damage and heals no one (A_PROC_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(19336) // Arcane Infused Gem - https://www.wowhead.com/forever/spell=23721
-	// unsupported: 23723 deals no damage and heals no one (A_MOD_CASTING_SPEED_NOT_STACK)
-	// shared.NewSimpleStatActive(19339) // Mind Quickening Gem - https://www.wowhead.com/forever/spell=23723
 	// unsupported: 23724 deals no damage and heals no one (A_ADD_PCT_MODIFIER)
 	// shared.NewSimpleStatActive(19340) // Rune of Metamorphosis - https://www.wowhead.com/forever/spell=23724
 	// unsupported: 23725 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(19341) // Lifegiving Gem - https://www.wowhead.com/forever/spell=23725
 	// unsupported: 23726 deals no damage and heals no one (A_ADD_FLAT_MODIFIER)
 	// shared.NewSimpleStatActive(19342) // Venomous Totem - https://www.wowhead.com/forever/spell=23726
-	// unsupported: 23733 deals no damage and heals no one (A_MOD_CASTING_SPEED_NOT_STACK, A_MOD_MELEE_HASTE_3)
-	// shared.NewSimpleStatActive(19343) // Scrolls of Blinding Light - https://www.wowhead.com/forever/spell=23733
-	// unsupported: 23734 deals no damage and heals no one (A_MOD_DAMAGE_PERCENT_DONE, A_MOD_HEALING_DONE_PERCENT, A_MOD_POWER_COST_SCHOOL_PCT)
-	// shared.NewSimpleStatActive(19344) // Natural Alignment Crystal - https://www.wowhead.com/forever/spell=23734
 	// unsupported: 24574 deals no damage and heals no one (A_PROC_TRIGGER_SPELL, E_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(19948) // Zandalarian Hero Badge - https://www.wowhead.com/forever/spell=24574
 	// unsupported: 24661 deals no damage and heals no one (A_DUMMY)
 	// shared.NewSimpleStatActive(19949) // Zandalarian Hero Medallion - https://www.wowhead.com/forever/spell=24661
 	// unsupported: 24658 deals no damage and heals no one (A_DUMMY, E_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(19950) // Zandalarian Hero Charm - https://www.wowhead.com/forever/spell=24658
-	// unsupported: 24571 deals no damage and heals no one (E_ENERGIZE)
-	// shared.NewSimpleStatActive(19951) // Gri'lek's Charm of Might - https://www.wowhead.com/forever/spell=24571
 	// unsupported: 24531 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(19953) // Renataki's Charm of Beasts - https://www.wowhead.com/forever/spell=24531
-	// unsupported: 24532 deals no damage and heals no one (E_ENERGIZE)
-	// shared.NewSimpleStatActive(19954) // Renataki's Charm of Trickery - https://www.wowhead.com/forever/spell=24532
 	// unsupported: 24542 deals no damage and heals no one (A_ADD_PCT_MODIFIER, A_ADD_PCT_MODIFIER)
 	// shared.NewSimpleStatActive(19955) // Wushoolay's Charm of Nature - https://www.wowhead.com/forever/spell=24542
 	// unsupported: 24499 deals no damage and heals no one (A_ADD_PCT_MODIFIER)
@@ -75,8 +63,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(19958) // Hazza'rah's Charm of Healing - https://www.wowhead.com/forever/spell=24546
 	// unsupported: 24544 deals no damage and heals no one (A_ADD_FLAT_MODIFIER, A_ADD_PCT_MODIFIER)
 	// shared.NewSimpleStatActive(19959) // Hazza'rah's Charm of Magic - https://www.wowhead.com/forever/spell=24544
-	// unsupported: 24884 deals no damage and heals no one (A_PERIODIC_ENERGIZE)
-	// shared.NewSimpleStatActive(20525) // Earthen Sigil - https://www.wowhead.com/forever/spell=24884
 	// unsupported: 25892 deals no damage and heals no one (E_THREAT)
 	// shared.NewSimpleStatActive(21181) // Grace of Earth - https://www.wowhead.com/forever/spell=25892
 	// unsupported: 26168 deals no damage and heals no one (A_DAMAGE_SHIELD)
@@ -87,12 +73,8 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(21647) // Fetish of the Sand Reaver - https://www.wowhead.com/forever/spell=26400
 	// unsupported: 26463 deals no damage and heals no one (A_PROC_TRIGGER_SPELL, E_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(21685) // Petrified Scarab - https://www.wowhead.com/forever/spell=26463
-	// unsupported: 28866 deals no damage and heals no one (A_MOD_MELEE_HASTE_3, A_MOD_RANGED_HASTE)
-	// shared.NewSimpleStatActive(22954) // Kiss of the Spider - https://www.wowhead.com/forever/spell=28866
 	// unsupported: 28862 deals no damage and heals no one (A_MOD_THREAT)
 	// shared.NewSimpleStatActive(23001) // Eye of Diminution - https://www.wowhead.com/forever/spell=28862
-	// unsupported: 28760 deals no damage and heals no one (E_ENERGIZE)
-	// shared.NewSimpleStatActive(23027) // Warmth of Forgiveness - https://www.wowhead.com/forever/spell=28760
 	// unsupported: 28773 deals no damage and heals no one (A_MOD_BLOCK_VALUE_FLAT)
 	// shared.NewSimpleStatActive(23040) // Glyph of Deflection - https://www.wowhead.com/forever/spell=28773
 	// unsupported: 1306267 deals no damage and heals no one (E_FORCE_CAST_2)
@@ -174,6 +156,10 @@ func RegisterAllOnUseCds() {
 	shared.NewSimpleStatActive(23041)  // Slayer's Crest - https://www.wowhead.com/forever/spell=28777
 	shared.NewSimpleStatActive(249470) // Molten Heart of the Mountain - https://www.wowhead.com/forever/spell=1249113
 
+	// Auras
+	// on use: 23734 (A_MOD_DAMAGE_PERCENT_DONE, A_MOD_HEALING_DONE_PERCENT, A_MOD_POWER_COST_SCHOOL_PCT)
+	shared.NewSpellDataAuraOnUse(19344) // Natural Alignment Crystal - https://www.wowhead.com/forever/spell=23734
+
 	// Damage
 	// on use: 10578 (E_SCHOOL_DAMAGE, A_PERIODIC_DAMAGE)
 	shared.NewSpellDataDamageOnUse(8348) // Helm of Fire - https://www.wowhead.com/forever/spell=10578
@@ -218,6 +204,18 @@ func RegisterAllOnUseCds() {
 	// MP5
 	shared.NewSimpleStatActive(4696) // Lapidis Tankard of Tidesippe - https://www.wowhead.com/forever/spell=1135
 
+	// Resources
+	// on use: 18385 (E_ENERGIZE)
+	shared.NewSpellDataEnergizeOnUse(14152) // Robe of the Archmage - https://www.wowhead.com/forever/spell=18385
+	// on use: 24571 (E_ENERGIZE)
+	shared.NewSpellDataEnergizeOnUse(19951) // Gri'lek's Charm of Might - https://www.wowhead.com/forever/spell=24571
+	// on use: 24532 (E_ENERGIZE)
+	shared.NewSpellDataEnergizeOnUse(19954) // Renataki's Charm of Trickery - https://www.wowhead.com/forever/spell=24532
+	// on use: 24884 (A_PERIODIC_ENERGIZE)
+	shared.NewSpellDataEnergizeOnUse(20525) // Earthen Sigil - https://www.wowhead.com/forever/spell=24884
+	// on use: 28760 (E_ENERGIZE)
+	shared.NewSpellDataEnergizeOnUse(23027) // Warmth of Forgiveness - https://www.wowhead.com/forever/spell=28760
+
 	// Skipped
 	// Not simulated: Staff of Conjuring: "Conjure Food" (8736) - ignored effect type 24
 	// https://www.wowhead.com/forever/spell=8736
@@ -225,8 +223,6 @@ func RegisterAllOnUseCds() {
 	// https://www.wowhead.com/forever/spell=16739
 	// Not simulated: Spider Belt: "Immune Root" (9774) - ignored aura type 77
 	// https://www.wowhead.com/forever/spell=9774
-	// Not simulated: Cold Basilisk Eye: "Cold Eye" (1139) - ignored aura type 33
-	// https://www.wowhead.com/forever/spell=1139
 	// Not simulated: Enchanted Moonstalker Cloak: "Form of the Moonstalker" (6298) - ignored aura type 56
 	// https://www.wowhead.com/forever/spell=6298
 	// Not simulated: Ornate Mithril Boots: "Immune Root" (9774) - ignored aura type 77
@@ -317,6 +313,14 @@ func RegisterAllOnUseCds() {
 	// https://www.wowhead.com/forever/spell=438273
 	// Not simulated: Field Agent Beverage: "Field Agent Beverage" (1297448) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=1297448
+
+	// Speed
+	// on use: 23723 (A_MOD_CASTING_SPEED_NOT_STACK)
+	shared.NewSpellDataSpeedOnUse(19339) // Mind Quickening Gem - https://www.wowhead.com/forever/spell=23723
+	// on use: 23733 (A_MOD_CASTING_SPEED_NOT_STACK, A_MOD_MELEE_HASTE_3)
+	shared.NewSpellDataSpeedOnUse(19343) // Scrolls of Blinding Light - https://www.wowhead.com/forever/spell=23733
+	// on use: 28866 (A_MOD_MELEE_HASTE_3, A_MOD_RANGED_HASTE)
+	shared.NewSpellDataSpeedOnUse(22954) // Kiss of the Spider - https://www.wowhead.com/forever/spell=28866
 
 	// SpellCritRating
 	shared.NewSimpleStatActive(19952) // Gri'lek's Charm of Valor - https://www.wowhead.com/forever/spell=24498

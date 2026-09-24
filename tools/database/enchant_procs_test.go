@@ -18,7 +18,6 @@ import (
 func TestEnchantProcRouting(t *testing.T) {
 	inRepositoryRoot(t)
 	instance := dbc.GetDBC()
-	grants := enchantGrantEffects(instance.SpellEffectsById)
 
 	type want struct {
 		trigger   int
@@ -52,21 +51,20 @@ func TestEnchantProcRouting(t *testing.T) {
 			if !ok {
 				t.Fatalf("enchant %d is not in the enchant inputs", tc.effectID)
 			}
-			grant, ok := grants[tc.effectID]
-			if !ok {
-				t.Fatalf("no spell grants enchant %d", tc.effectID)
-			}
-
-			got := routeEnchantProcs(enchant.ProcSlots(), instance, renderSpellTooltip(instance, grant.SpellID))
+			got := routeEnchantProcs(enchant.ProcSlots(), instance)
 			if len(got) != len(tc.want) {
 				t.Fatalf("%d routings, want %d", len(got), len(tc.want))
 			}
 
 			for i, w := range tc.want {
 				r := got[i]
-				if r.TriggerSpellID != w.trigger || r.Damage != w.damage || r.ProcChancePct != w.chancePct {
-					t.Errorf("routing %d: trigger %d, damage %v, chance %d%%; want %d, %v, %d%%",
-						i, r.TriggerSpellID, r.Damage, r.ProcChancePct, w.trigger, w.damage, w.chancePct)
+				chance := 0
+				if r.IsWeaponProc {
+					chance = int(spelldata.Find(int32(r.TriggerSpellID)).ProcChance)
+				}
+				if damage := r.Shape == ShapeDamage; r.TriggerSpellID != w.trigger || damage != w.damage || chance != w.chancePct {
+					t.Errorf("routing %d: trigger %d, damage %v, combat chance %d%%; want %d, %v, %d%%",
+						i, r.TriggerSpellID, damage, chance, w.trigger, w.damage, w.chancePct)
 				}
 				if w.reason == "" && !r.Supported() {
 					t.Errorf("routing %d is refused (%s), want it registered", i, r.Reason())
@@ -85,7 +83,6 @@ func TestEnchantProcRouting(t *testing.T) {
 func TestEnchantProcRoutingTakesAPPMOverride(t *testing.T) {
 	inRepositoryRoot(t)
 	instance := dbc.GetDBC()
-	grants := enchantGrantEffects(instance.SpellEffectsById)
 
 	for _, tc := range []struct {
 		effectID   int
@@ -102,8 +99,7 @@ func TestEnchantProcRoutingTakesAPPMOverride(t *testing.T) {
 			enchant := instance.EnchantsByEffectId[tc.effectID]
 			route := func() *ProcRouting {
 				t.Helper()
-				got := routeEnchantProcs(enchant.ProcSlots(), instance,
-					renderSpellTooltip(instance, grants[tc.effectID].SpellID))
+				got := routeEnchantProcs(enchant.ProcSlots(), instance)
 				if len(got) != 1 || got[0].TriggerSpellID != int(tc.overrideOn) {
 					t.Fatalf("routings %v, want one through %d", got, tc.overrideOn)
 				}
@@ -139,30 +135,28 @@ func TestEnchantProcRoutingTakesAPPMOverride(t *testing.T) {
 func TestEnchantPercentStatBuffIsTheAppliedSpell(t *testing.T) {
 	inRepositoryRoot(t)
 	instance := dbc.GetDBC()
-	grants := enchantGrantEffects(instance.SpellEffectsById)
 
 	enchant := instance.EnchantsByEffectId[8216]
-	got := routeEnchantProcs(enchant.ProcSlots(), instance, renderSpellTooltip(instance, grants[8216].SpellID))
+	got := routeEnchantProcs(enchant.ProcSlots(), instance)
 	if len(got) != 1 || got[0].TriggerSpellID != 1248758 || got[0].BuffSpellID != 1299796 {
 		t.Fatalf("routings %v, want one from 1248758 to 1299796", got)
 	}
 
-	want := []spelldata.StatMultiplier{{Stat: stats.Spirit, Multiplier: 2}}
+	want := []core.StatMultiplier{{Stat: stats.Spirit, Multiplier: 2}}
 	if got := spelldata.PercentStats(spelldata.Find(1299796), 60); !slices.Equal(got, want) {
 		t.Errorf("multipliers %v, want %v", got, want)
 	}
 }
 
 // Recovery's equip aura 1248761 carries no description; its grant 1248760 reads "trigger Recovery when
-// you are Parried or Dodged". The routing carries that outcome, the row's 10 s ProcCategoryRecovery
-// and its ProcChance of 100, and casts the 5% E_HEAL_PCT heal 1248759 it applies.
+// you are Parried or Dodged". The row carries that outcome, its 10 s ProcCategoryRecovery and its
+// ProcChance of 100, and the routing casts the 5% E_HEAL_PCT heal 1248759 it applies.
 func TestRecoveryHealsOnTheWearersAttackDodgedOrParried(t *testing.T) {
 	inRepositoryRoot(t)
 	instance := dbc.GetDBC()
-	grants := enchantGrantEffects(instance.SpellEffectsById)
 
 	enchant := instance.EnchantsByEffectId[8721]
-	got := routeEnchantProcs(enchant.ProcSlots(), instance, renderSpellTooltip(instance, grants[8721].SpellID))
+	got := routeEnchantProcs(enchant.ProcSlots(), instance)
 	if len(got) != 1 {
 		t.Fatalf("%d routings, want 1", len(got))
 	}
@@ -171,16 +165,16 @@ func TestRecoveryHealsOnTheWearersAttackDodgedOrParried(t *testing.T) {
 	if !r.Supported() {
 		t.Fatalf("refused (%s), want it registered", r.Reason())
 	}
-	if !r.Heal || r.Damage || r.TriggerSpellID != 1248761 || r.BuffSpellID != 1248759 {
-		t.Errorf("heal %v, damage %v, trigger %d, buff %d; want a heal from 1248761 casting 1248759",
-			r.Heal, r.Damage, r.TriggerSpellID, r.BuffSpellID)
+	if r.Shape != ShapeHeal || r.TriggerSpellID != 1248761 || r.BuffSpellID != 1248759 {
+		t.Errorf("shape %v, trigger %d, buff %d; want a heal from 1248761 casting 1248759",
+			r.Shape, r.TriggerSpellID, r.BuffSpellID)
 	}
-	if want := core.ProcHintAttackDodged | core.ProcHintAttackParried; r.ProcHint != want {
-		t.Errorf("hint %q, want %q", formatProcHint(r.ProcHint), formatProcHint(want))
+	trigger := spelldata.Find(1248761)
+	if want := core.ProcHintAttackDodged | core.ProcHintAttackParried; trigger.ProcHint != want {
+		t.Errorf("hint %q, want %q", formatProcHint(trigger.ProcHint), formatProcHint(want))
 	}
 
-	trigger := spelldata.Find(1248761)
-	decoded := core.DecodeProcTypeMask(trigger.ProcFlags, trigger.ProcHint|r.ProcHint)
+	decoded := core.DecodeProcTypeMask(trigger.ProcFlags, trigger.ProcHint)
 	if decoded.Callback != core.CallbackOnSpellHitDealt {
 		t.Errorf("callback %v, want the wearer's own hits dealt", decoded.Callback)
 	}
@@ -215,14 +209,14 @@ func withPPMOverride(t *testing.T, spellID int32, ppm float32) {
 }
 
 // Recovery's tooltip states a cooldown with "more often than", which is not the "often" of a rate.
-func TestEnchantTooltipRateWording(t *testing.T) {
+func TestTooltipRateWording(t *testing.T) {
 	for tooltip, want := range map[string]bool{
 		"Permanently enchant a melee weapon to often strike for 40 additional fire damage.":                   true,
 		"Permanently enchant a Weapon to cause all spells and attacks to sometimes deal 76 additional damage": true,
 		"Permanently enchant a Melee Weapon to have a chance to trigger Revelation when a non-periodic spell": true,
 		"healing you for 5% of your maximum health. Cannot occur more often than once every 10 sec.":          false,
 	} {
-		if got := enchantTooltipStatesAnUnknownRate(tooltip); got != want {
+		if got := tooltipStatesAnUnknownRate(tooltip); got != want {
 			t.Errorf("%q: %v, want %v", tooltip, got, want)
 		}
 	}

@@ -117,37 +117,32 @@ func (s *Spell) ProcHealEffect() *Effect {
 	if e := s.firstOfType(dbcenums.E_HEAL_PCT, dbcenums.E_HEAL); e != NilEffect {
 		return e
 	}
-	for i := range s.Effects {
-		if e := &s.Effects[i]; e.Type == dbcenums.E_APPLY_AURA && e.Aura == dbcenums.A_PERIODIC_HEAL {
-			return e
-		}
-	}
-	return NilEffect
+	return s.FirstAura(dbcenums.A_PERIODIC_HEAL)
 }
 
 // The A_PERIODIC_DAMAGE aura the spell applies, or NilEffect where it applies none.
 func (s *Spell) PeriodicDamageEffect() *Effect {
-	for i := range s.Effects {
-		if e := &s.Effects[i]; e.Type == dbcenums.E_APPLY_AURA && e.Aura == dbcenums.A_PERIODIC_DAMAGE {
-			return e
-		}
-	}
-	return NilEffect
+	return s.FirstAura(dbcenums.A_PERIODIC_DAMAGE)
 }
 
 // The A_SCHOOL_ABSORB aura the spell applies, or NilEffect where it applies none. Its Misc is the mask
 // of the schools it absorbs, in core.SpellSchool's bits.
 func (s *Spell) AbsorbEffect() *Effect {
-	for i := range s.Effects {
-		if e := &s.Effects[i]; e.Type == dbcenums.E_APPLY_AURA && e.Aura == dbcenums.A_SCHOOL_ABSORB {
-			return e
-		}
-	}
-	return NilEffect
+	return s.FirstAura(dbcenums.A_SCHOOL_ABSORB)
 }
 
 func (s *Spell) EnergizeEffect() *Effect {
 	return s.firstOfType(dbcenums.E_ENERGIZE)
+}
+
+// The effect a resource gain lands through: E_ENERGIZE, an amount into the bar its misc value names
+// (Burst of Energy 24532 reads 60 energy), or an A_PERIODIC_ENERGIZE aura that restores the amount
+// every period (Earthen Sigil 24884 reads 40 mana every 1 s).
+func (s *Spell) ProcEnergizeEffect() *Effect {
+	if e := s.EnergizeEffect(); e != NilEffect {
+		return e
+	}
+	return s.FirstAura(dbcenums.A_PERIODIC_ENERGIZE)
 }
 
 // The effect that ticks: an aura application whose aura carries a per-tick value, which is damage,
@@ -173,6 +168,15 @@ func (s *Spell) firstOfType(types ...dbcenums.SpellEffectType) *Effect {
 			if s.Effects[i].Type == t {
 				return &s.Effects[i]
 			}
+		}
+	}
+	return NilEffect
+}
+
+func (s *Spell) FirstAura(auras ...dbcenums.EffectAuraType) *Effect {
+	for i := range s.Effects {
+		if e := &s.Effects[i]; e.Type == dbcenums.E_APPLY_AURA && slices.Contains(auras, e.Aura) {
+			return e
 		}
 	}
 	return NilEffect
@@ -251,6 +255,19 @@ func (s *Spell) TickOutcome(dot *core.Dot) core.OutcomeApplier {
 		return dot.Spell.OutcomeTickPhysicalCrit
 	case tickOutcomeMagicHit:
 		return dot.OutcomeTickMagicHit
+	default:
+		return dot.OutcomeTick
+	}
+}
+
+// A tick of a damage over time whose hit was rolled when it was applied: a crit only where the row
+// states Periodic Can Crit, on the crit of the dot spell's defense type.
+func (s *Spell) TickOutcomeHitRolled(dot *core.Dot) core.OutcomeApplier {
+	switch tickOutcomeKind(s.PeriodicCanCrit(), dot.Spell.DefenseType == core.DefenseTypeMagic) {
+	case tickOutcomeMagicCrit:
+		return dot.Spell.OutcomeTickMagicCrit
+	case tickOutcomePhysicalCrit:
+		return dot.Spell.OutcomeTickPhysicalCrit
 	default:
 		return dot.OutcomeTick
 	}

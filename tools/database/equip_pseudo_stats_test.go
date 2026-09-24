@@ -55,7 +55,7 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := make([]float64, stats.PseudoStatsLen)
-			added := dbc.AddEquipSpellPseudoStats(got, tc.spellID)
+			_, added := dbc.AddEquipSpellStats(&stats.Stats{}, got, tc.spellID)
 
 			want := make([]float64, stats.PseudoStatsLen)
 			for pseudoStat, value := range tc.want {

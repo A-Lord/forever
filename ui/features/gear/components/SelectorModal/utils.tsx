@@ -50,9 +50,10 @@ export const eligibilityFor = ({ player, slot, equippedItem }: Omit<SelectorTabs
 
 export const buildSelectorTabs = ({ player, slot, gearData, equippedItem }: SelectorTabsOptions): SelectorTab[] => {
 	// `equippedItem.item` clones the proto on every read, and `computeEP` runs once per sort
-	// comparison, so the suffix scale and the weapon are read once here.
+	// comparison, so the suffix scale, the weapon's speed and what its DPS is worth are read once here.
 	const randPropPoints = equippedItem?.item.randPropPoints ?? 0;
-	const weapon = equippedItem?.item;
+	const weaponSpeed = equippedItem?.item.weaponSpeed ?? 0;
+	const epPerWeaponDps = weaponSpeed ? player.computeWeaponDpsEP(slot) : 0;
 
 	const tabs: Array<SelectorTab | null> = [
 		describe({
@@ -65,7 +66,7 @@ export const buildSelectorTabs = ({ player, slot, gearData, equippedItem }: Sele
 		describe({
 			label: SelectorModalTabs.Enchants,
 			itemData: enchantsTabData(gearData, player.getEnchants(slot)),
-			computeEP: enchant => player.computeEnchantEP(enchant, slot, weapon),
+			computeEP: enchant => player.computeEnchantEP(enchant, weaponSpeed, epPerWeaponDps),
 			equippedToItem: item => item?.enchant,
 			onRemove: () => {
 				const current = gearData.getEquippedItem();

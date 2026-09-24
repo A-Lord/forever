@@ -37,7 +37,12 @@ var enemyTargets = []dbcenums.ImplicitTarget{
 
 // Whether either of the effect's implicit targets is an enemy.
 func (e *Effect) HitsAnEnemy() bool {
-	return slices.Contains(enemyTargets, e.Target[0]) || slices.Contains(enemyTargets, e.Target[1])
+	return TargetsAnEnemy(e.Target[0]) || TargetsAnEnemy(e.Target[1])
+}
+
+// Whether the implicit target names an enemy unit, or a point or area chosen on one.
+func TargetsAnEnemy(target dbcenums.ImplicitTarget) bool {
+	return slices.Contains(enemyTargets, target)
 }
 
 // The enemy targets that pick every enemy in an area, cone, rectangle or line rather than one unit.

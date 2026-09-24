@@ -54,6 +54,7 @@ message SimItem {
 	int32 limit_category = 16;
 	bool unique = 17;
 	repeated double pseudo_stats = 18; // Indexed by PseudoStat.
+	repeated Class class_allowlist = 19; // Empty means every class may use the item.
 }
 
 message Consumable {

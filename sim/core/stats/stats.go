@@ -253,34 +253,16 @@ func FromProtoArray(values []float64) Stats {
 // dependencies). Make sure to update this function if you add any back-end Stat entries that are modeled as
 // PseudoStats in the front-end.
 func FromUnitStatsProto(unitStatsMessage *proto.UnitStats) Stats {
-	simStats := FromProtoArray(unitStatsMessage.Stats)
-
-	if unitStatsMessage.PseudoStats != nil {
-		pseudoStatsMessage := unitStatsMessage.PseudoStats
-		simStats[PhysicalHitPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatMeleeHitPercent]
-		simStats[SpellHitPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatSpellHitPercent]
-		simStats[PhysicalCritPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatMeleeCritPercent]
-		simStats[SpellCritPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatSpellCritPercent]
-		simStats[BlockPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatBlockPercent] / 100
-		simStats[RangedHitPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatRangedHitPercent] - pseudoStatsMessage[proto.PseudoStat_PseudoStatMeleeHitPercent]
-		simStats[RangedCritPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatRangedCritPercent] - pseudoStatsMessage[proto.PseudoStat_PseudoStatMeleeCritPercent]
-		// Read as chance added to the base; GetPseudoStatsProto writes these two as the total chance.
-		simStats[DodgePercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatDodgePercent]
-		simStats[ParryPercent] = pseudoStatsMessage[proto.PseudoStat_PseudoStatParryPercent]
-	}
-
-	return simStats
+	return FromProtoArray(unitStatsMessage.Stats).Add(FromPseudoStatsProto(unitStatsMessage.PseudoStats))
 }
 
 // The percent PseudoStats an item or enchant states, as the back-end Stats that model them. Ranged hit and
-// crit are totals that include the melee share, as in FromUnitStatsProto. Block arrives in percent and is
-// stored as the probability GetBlockFromRating reads.
+// crit are totals that include the melee share. Block arrives in percent and is stored as the probability
+// GetBlockFromRating reads. Dodge and parry are read as chance added to the base; GetPseudoStatsProto
+// writes them as the total chance.
 func FromPseudoStatsProto(pseudoStats []float64) Stats {
 	get := func(pseudoStat proto.PseudoStat) float64 {
-		if int(pseudoStat) < len(pseudoStats) {
-			return pseudoStats[pseudoStat]
-		}
-		return 0
+		return PseudoStatValue(pseudoStats, pseudoStat)
 	}
 
 	var simStats Stats
@@ -294,6 +276,13 @@ func FromPseudoStatsProto(pseudoStats []float64) Stats {
 	simStats[DodgePercent] = get(proto.PseudoStat_PseudoStatDodgePercent)
 	simStats[ParryPercent] = get(proto.PseudoStat_PseudoStatParryPercent)
 	return simStats
+}
+
+func PseudoStatValue(pseudoStats []float64, pseudoStat proto.PseudoStat) float64 {
+	if int(pseudoStat) < len(pseudoStats) {
+		return pseudoStats[pseudoStat]
+	}
+	return 0
 }
 
 // Adds two Stats together, returning the new Stats.

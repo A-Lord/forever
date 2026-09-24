@@ -55,16 +55,17 @@ func (t TemporaryEnchant) ToProto() *proto.SimEnchant {
 		WeaponDamage:   parsed.WeaponDamage,
 		EnchantEffects: parsed.EnchantEffects,
 	}
-	for _, slot := range enchant.ProcSlots() {
-		if !slot.IsCombatSpell || slot.ChancePct <= 0 || slices.ContainsFunc(simEnchant.EnchantEffects, func(e *proto.ItemEffect) bool {
-			return e.BuffId == int32(slot.SpellID)
+	for idx, effect := range t.Effects {
+		spellID, chancePct := int32(t.Args[idx]), t.Points[idx]
+		if effect != ITEM_ENCHANTMENT_COMBAT_SPELL || spellID == 0 || chancePct <= 0 || slices.ContainsFunc(simEnchant.EnchantEffects, func(e *proto.ItemEffect) bool {
+			return e.BuffId == spellID
 		}) {
 			continue
 		}
 		simEnchant.EnchantEffects = append(simEnchant.EnchantEffects, &proto.ItemEffect{
-			BuffId: int32(slot.SpellID),
+			BuffId: spellID,
 			Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{
-				ProcRate: &proto.ProcEffect_ProcChance{ProcChance: float64(slot.ChancePct) / 100},
+				ProcRate: &proto.ProcEffect_ProcChance{ProcChance: float64(chancePct) / 100},
 			}},
 		})
 	}

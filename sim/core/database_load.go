@@ -41,6 +41,7 @@ func init() {
 			LimitCategory:    item.LimitCategory,
 			SetName:          item.SetName,
 			SetId:            item.SetId,
+			ClassAllowlist:   item.ClassAllowlist,
 			ScalingOptions:   item.ScalingOptions,
 			ItemEffects:      item.ItemEffects,
 		}

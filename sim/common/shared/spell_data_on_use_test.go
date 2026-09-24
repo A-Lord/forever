@@ -371,7 +371,7 @@ func listeningNeck(neckID int32, callback core.AuraCallback, procRow int32) (*pr
 			Handler:            func(*core.Simulation, *core.Spell, *core.SpellResult) { *heard++ },
 		})
 		if procRow != 0 {
-			character.RegisterSpell(spellDataProcDamageSpell(character, spelldata.MustFind(procRow)))
+			character.RegisterSpell(spellDataProcDamageSpell(character, spelldata.MustFind(procRow), true))
 		}
 	})
 	return &proto.ItemSpec{Id: neckID}, heard

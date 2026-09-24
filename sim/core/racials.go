@@ -194,34 +194,15 @@ func applyRaceEffects(agent Agent) {
 
 		// Blood Fury
 		actionID := ActionID{SpellID: 20572}
-		bloodFuryStats := []stats.Stat{stats.AttackPower, stats.RangedAttackPower, stats.SpellDamage, stats.HealingPower}
-		bloodFuryDeps := make([]*stats.StatDependency, len(bloodFuryStats))
-		for i, stat := range bloodFuryStats {
-			bloodFuryDeps[i] = character.NewDynamicMultiplyStat(stat, 1.1)
-		}
-
-		toggleBloodFury := func(aura *Aura, sim *Simulation, toggle func(*Simulation, *stats.StatDependency)) {
-			before := character.stats
-			for _, dep := range bloodFuryDeps {
-				toggle(sim, dep)
-			}
-
-			change := character.stats.Subtract(before)
-			for i := range character.OnTemporaryStatsChanges {
-				character.OnTemporaryStatsChanges[i](sim, aura, change)
-			}
-		}
-
-		bloodFuryAura := character.RegisterAura(Aura{
+		bloodFuryAura := character.NewTemporaryStatMultiplierAura(Aura{
 			Label:    "Blood Fury",
 			ActionID: actionID,
 			Duration: time.Second * 15,
-			OnGain: func(aura *Aura, sim *Simulation) {
-				toggleBloodFury(aura, sim, character.EnableBuildPhaseStatDep)
-			},
-			OnExpire: func(aura *Aura, sim *Simulation) {
-				toggleBloodFury(aura, sim, character.DisableBuildPhaseStatDep)
-			},
+		}, []StatMultiplier{
+			{Stat: stats.AttackPower, Multiplier: 1.1},
+			{Stat: stats.RangedAttackPower, Multiplier: 1.1},
+			{Stat: stats.SpellDamage, Multiplier: 1.1},
+			{Stat: stats.HealingPower, Multiplier: 1.1},
 		})
 
 		bloodFuryCD := Cooldown{
@@ -239,13 +220,13 @@ func applyRaceEffects(agent Agent) {
 			ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
 				bloodFuryAura.Activate(sim)
 			},
-			RelatedSelfBuff: bloodFuryAura,
+			RelatedSelfBuff: bloodFuryAura.Aura,
 		})
 
 		character.AddMajorCooldown(MajorCooldown{
 			Spell:    bloodFurySpell,
 			Type:     CooldownTypeDPS,
-			BuffAura: &StatBuffAura{Aura: bloodFuryAura, BuffedStatTypes: bloodFuryStats},
+			BuffAura: bloodFuryAura,
 		})
 
 		applyWeaponSpecialization(character, "Axe Specialization", 20574, false, proto.WeaponType_WeaponTypeAxe)

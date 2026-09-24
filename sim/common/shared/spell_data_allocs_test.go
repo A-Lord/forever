@@ -29,3 +29,16 @@ func TestProcDamageWithoutAMissileSpeedDoesNotAllocate(t *testing.T) {
 		}
 	}
 }
+
+// A proc's missile, Linken's Boomerang 15712 at one target, carries its result to the arrival in the
+// closure alone: the flight allocates the pending arrival, not a copy of the results.
+func TestProcDamageMissileAllocatesOnlyItsFlight(t *testing.T) {
+	neck, _ := listeningNeck(991132, core.CallbackOnSpellHitDealt, 15712)
+	sim, caster := newOnUseSimAgainst(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{}, neck, 1)
+	spell := caster.GetSpell(core.ActionID{SpellID: 15712})
+	target := sim.Encounter.ActiveTargetUnits[0]
+
+	if allocs := testing.AllocsPerRun(100, func() { spell.Cast(sim, target) }); allocs > 4 {
+		t.Errorf("a missile cast allocates %v times, want at most the flight's 4", allocs)
+	}
+}

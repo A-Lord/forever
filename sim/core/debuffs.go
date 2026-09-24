@@ -326,6 +326,19 @@ func castSlowReductionAura(target *Unit, label string, spellID int32, multiplier
 	return aura
 }
 
+// A slow on casts alone, in the category Slow's cast and ranged slow takes: only the strongest applies.
+func CastSpeedReductionEffect(aura *Aura, castTimeMultiplier float64) *ExclusiveEffect {
+	return aura.NewExclusiveEffect("CastSpdReduction", false, ExclusiveEffect{
+		Priority: castTimeMultiplier,
+		OnGain: func(ee *ExclusiveEffect, sim *Simulation) {
+			ee.Aura.Unit.MultiplyCastSpeed(sim, 1/ee.Priority)
+		},
+		OnExpire: func(ee *ExclusiveEffect, sim *Simulation) {
+			ee.Aura.Unit.MultiplyCastSpeed(sim, ee.Priority)
+		},
+	})
+}
+
 type ExposeWeaknessAgiFunc func() float64
 
 func ExposeWeaknessAura(target *Unit, agilityFunc ExposeWeaknessAgiFunc) *Aura {
@@ -840,16 +853,22 @@ func WintersChillAura(target *Unit, startingStacks int32) *Aura {
 	})
 }
 
-// Spell 11581: -20% melee haste for 30 s on every rank; Improved Thunder Clap discounts the
-// rage cost and leaves the slow alone.
+// Spell 11581: -20% melee haste for 30 s on every rank, the time between attacks 20% longer;
+// Improved Thunder Clap discounts the rage cost and leaves the slow alone.
 func ThunderClapAura(target *Unit) *Aura {
 	aura := target.GetOrRegisterAura(Aura{
 		Label:    "Thunder Clap",
 		ActionID: ActionID{SpellID: 11581},
 		Duration: time.Second * 30,
 	})
-	AtkSpeedReductionEffect(aura, 1/0.8)
+	AtkSpeedReductionEffect(aura, SlowedTimeMultiplier(-20))
 	return aura
+}
+
+// A slow the client states as a negative speed percentage makes the time between attacks, or a cast
+// time, that much longer: -20 is 20% longer, which divides the speed by 1.2.
+func SlowedTimeMultiplier(speedPercent float64) float64 {
+	return 1 - speedPercent/100
 }
 
 // The priority is the slow, so SetPriority from an aura's OnGain can rescale it: the Conqueror's

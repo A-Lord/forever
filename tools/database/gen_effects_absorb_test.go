@@ -55,7 +55,7 @@ func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 			entry = grp.Entries[0]
 		}
 		r := entry.Proc
-		if r == nil || !r.Absorb || !entry.Absorbs || r.Damage || r.Heal || r.TriggerSpellID != int(tc.spellID) ||
+		if r == nil || r.Shape != ShapeAbsorb || r.TriggerSpellID != int(tc.spellID) ||
 			r.OnUseConstructor() != "NewSpellDataAbsorbOnUse" || entry.Supported != (tc.want == EffectParseResultSuccess) {
 			t.Errorf("item %d: routing %+v, supported %v; want an absorb on-use casting %d", tc.itemID, r, entry.Supported, tc.spellID)
 			continue
@@ -97,10 +97,10 @@ func TestItemProcAbsorbRoutes(t *testing.T) {
 
 		entry := groups["Procs"].Entries[0]
 		r := entry.Proc
-		if !entry.Absorbs || !r.Absorb || r.TriggerSpellID != tc.trigger || r.BuffSpellID != int(tc.buffID) ||
+		if r.Shape != ShapeAbsorb || r.TriggerSpellID != tc.trigger || r.BuffSpellID != int(tc.buffID) ||
 			r.ProcConstructor() != "NewSpellDataAbsorbProc" {
-			t.Errorf("item %d: absorb %v/%v, trigger %d, buff %d, constructor %s; want an absorb proc %d -> %d",
-				tc.itemID, entry.Absorbs, r.Absorb, r.TriggerSpellID, r.BuffSpellID, r.ProcConstructor(), tc.trigger, tc.buffID)
+			t.Errorf("item %d: shape %v, trigger %d, buff %d, constructor %s; want an absorb proc %d -> %d",
+				tc.itemID, r.Shape, r.TriggerSpellID, r.BuffSpellID, r.ProcConstructor(), tc.trigger, tc.buffID)
 		}
 		if !slices.Equal(r.Unsupported, tc.reasons) {
 			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, tc.reasons)
@@ -116,7 +116,6 @@ func TestItemProcAbsorbRoutes(t *testing.T) {
 func TestEnchantAbsorbRoutes(t *testing.T) {
 	inRepositoryRoot(t)
 	instance := dbc.GetDBC()
-	grants := enchantGrantEffects(instance.SpellEffectsById)
 
 	for _, tc := range []struct {
 		effectID int
@@ -131,14 +130,14 @@ func TestEnchantAbsorbRoutes(t *testing.T) {
 		if !ok {
 			t.Fatalf("enchant %d is not in the enchant inputs", tc.effectID)
 		}
-		got := routeEnchantProcs(enchant.ProcSlots(), instance, renderSpellTooltip(instance, grants[tc.effectID].SpellID))
+		got := routeEnchantProcs(enchant.ProcSlots(), instance)
 		if len(got) != 1 {
 			t.Fatalf("enchant %d: %d routings, want 1", tc.effectID, len(got))
 		}
 		r := got[0]
-		if !r.Absorb || r.TriggerSpellID != tc.trigger || r.BuffSpellID != tc.absorb || !r.Supported() {
-			t.Errorf("enchant %d: absorb %v, trigger %d, buff %d, refused for %q; want absorb %d -> %d registered",
-				tc.effectID, r.Absorb, r.TriggerSpellID, r.BuffSpellID, r.Reason(), tc.trigger, tc.absorb)
+		if r.Shape != ShapeAbsorb || r.TriggerSpellID != tc.trigger || r.BuffSpellID != tc.absorb || !r.Supported() {
+			t.Errorf("enchant %d: shape %v, trigger %d, buff %d, refused for %q; want absorb %d -> %d registered",
+				tc.effectID, r.Shape, r.TriggerSpellID, r.BuffSpellID, r.Reason(), tc.trigger, tc.absorb)
 		}
 	}
 }

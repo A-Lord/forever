@@ -271,6 +271,9 @@ func renderStore(in *storeInputs, namer *rankEnumNamer) ([]byte, error) {
 	for i, id := range ids {
 		rows[i] = tables.row(id)
 		applyTooltipHints(tables, &rows[i])
+		if err := applyEnchantChance(tables, &rows[i]); err != nil {
+			return nil, err
+		}
 	}
 	if err := applyOverrides(rows, overrides.Spells); err != nil {
 		return nil, err

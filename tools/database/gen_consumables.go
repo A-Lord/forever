@@ -89,15 +89,15 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 
 	onUse := routeOnUseSpell(c.Id, routing.SpellID, instance)
 	switch {
-	case onUse.Supported() && onUse.Damage:
+	case onUse.Supported() && onUse.Shape == ShapeDamage:
 		routing.Kind = ConsumableDamage
 		routing.Unsupported = shared.DamageConsumableUnsupported(spelldata.Find(routing.SpellID))
 		return routing
-	case onUse.Supported() && onUse.Heal:
+	case onUse.Supported() && onUse.Shape == ShapeHeal:
 		routing.Kind = ConsumableHeal
 		routing.Unsupported = shared.ConsumableUnsupported(spelldata.Find(routing.SpellID))
 		return routing
-	case onUse.Absorb:
+	case onUse.Shape == ShapeAbsorb:
 		routing.Kind = ConsumableAbsorb
 		routing.Unsupported = append(onUse.Unsupported, shared.ConsumableUnsupported(spelldata.Find(routing.SpellID))...)
 		return routing

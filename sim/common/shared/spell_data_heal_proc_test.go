@@ -13,12 +13,11 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Recovery 8721's rows: the equip aura 1248761 and the 5% E_HEAL_PCT heal 1248759 it casts. The
-// hint is the one its grant 1248760 states, "when you are Parried or Dodged".
+// Recovery 8721's rows: the equip aura 1248761 and the 5% E_HEAL_PCT heal 1248759 it casts. The aura
+// carries the hint its grant 1248760 states, "when you are Parried or Dodged".
 const (
 	recoveryTrigger int32 = 1248761
 	recoveryHeal    int32 = 1248759
-	recoveryHint          = core.ProcHintAttackDodged | core.ProcHintAttackParried
 )
 
 // A caster wearing a test weapon enchanted with a heal proc on the given rows, at half health so a
@@ -31,7 +30,7 @@ func newHealProcSim(t *testing.T, weaponID, enchantID int32, healSpellID int32, 
 			Type: proto.ItemType_ItemTypeWeapon}},
 	})
 	registerSpellDataHealProc(SpellDataProc{Name: "Test Heal Enchant", EnchantID: enchantID,
-		TriggerSpellID: recoveryTrigger, BuffSpellID: healSpellID, ProcHint: recoveryHint})
+		TriggerSpellID: recoveryTrigger, BuffSpellID: healSpellID})
 
 	sim := newTestCasterSim(testHands(&proto.ItemSpec{Id: weaponID, Enchant: enchantID}, &proto.ItemSpec{}), nil)
 	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
@@ -111,10 +110,7 @@ func TestProcHealCritsUnlessTheRowRulesItOut(t *testing.T) {
 		t.Errorf("at 100%% spell crit the heal was %v, want the critical %v", got, want)
 	}
 
-	row := spelldata.MustFind(recoveryHeal)
-	original := *row
-	row.Attr[dbcenums.ATTR_INDEX_EX_2] |= dbcenums.ATTR_EX_2_CANT_CRIT
-	t.Cleanup(func() { *row = original })
+	editRow(t, recoveryHeal, func(s *spelldata.Spell) { s.Attr[dbcenums.ATTR_INDEX_EX_2] |= dbcenums.ATTR_EX_2_CANT_CRIT })
 
 	sim, caster, _ = newHealProcSim(t, 990975, 990976, recoveryHeal, 100)
 	want = 0.05 * caster.MaxHealth()
@@ -151,6 +147,13 @@ func editRow(t *testing.T, id int32, edit func(*spelldata.Spell)) {
 	row.Effects = slices.Clone(row.Effects)
 	edit(row)
 	t.Cleanup(func() { *row = original })
+}
+
+// A trigger whose row states no rate, rolled at 100% for the test.
+func everyHit(t *testing.T, id int32) {
+	editRow(t, id, func(s *spelldata.Spell) {
+		s.ProcChance, s.ProcChanceSource, s.ProcChanceEffect = 100, spelldata.ProcChanceColumn, 0
+	})
 }
 
 // What the caster heals for between now and the given time after start, stepping just past it so a

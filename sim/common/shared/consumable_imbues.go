@@ -55,7 +55,7 @@ func handWeapon(character *core.Character, slot proto.ItemSlot) *core.Weapon {
 // The combat spell rolls on the hits of the weapons carrying the enchant, at their own speeds.
 func registerTemporaryEnchantCombatSpell(character *core.Character, consumable core.Consumable, effect *proto.ItemEffect) {
 	damage := spelldata.MustFind(effect.BuffId)
-	damageSpell := character.RegisterSpell(spellDataProcDamageSpell(character, damage))
+	damageSpell := character.RegisterSpell(spellDataProcDamageSpell(character, damage, true))
 	enchantID := consumable.TemporaryEnchant.EffectID
 	chance := effect.GetProc().GetProcChance()
 

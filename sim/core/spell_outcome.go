@@ -201,21 +201,7 @@ func (spell *Spell) OutcomeTickHealingCrit(sim *Simulation, result *SpellResult,
 
 func (spell *Spell) OutcomeTickMagicHitAndCrit(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
 	if spell.MagicHitCheck(sim, attackTable) {
-		isPartialResist := result.DidResist()
-		if spell.MagicCritCheck(sim, result.Target) {
-			result.Outcome = OutcomeCrit
-			result.Damage *= spell.CritDamageMultiplier(attackTable)
-			spell.SpellMetrics[result.Target.UnitIndex].CritTicks++
-			if isPartialResist {
-				spell.SpellMetrics[result.Target.UnitIndex].ResistedCritTicks++
-			}
-		} else {
-			result.Outcome = OutcomeHit
-			spell.SpellMetrics[result.Target.UnitIndex].Ticks++
-			if isPartialResist {
-				spell.SpellMetrics[result.Target.UnitIndex].ResistedTicks++
-			}
-		}
+		spell.OutcomeTickMagicCrit(sim, result, attackTable)
 	} else {
 		result.Outcome = OutcomeMiss
 		result.Damage = 0

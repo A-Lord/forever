@@ -43,9 +43,9 @@ func TestChanceOnHitHotRoutesAsAHealAndStatesNoRate(t *testing.T) {
 		}
 		entry := groups["Procs"].Entries[0]
 		r := entry.Proc
-		if !entry.Heals || !r.Heal || r.Damage || !r.IsWeaponProc || r.TriggerSpellID != int(tc.spellID) || r.BuffSpellID != int(tc.spellID) {
-			t.Errorf("item %d: heal %v/%v, damage %v, weapon proc %v, trigger %d, buff %d; want a weapon proc healing through %d",
-				tc.itemID, entry.Heals, r.Heal, r.Damage, r.IsWeaponProc, r.TriggerSpellID, r.BuffSpellID, tc.spellID)
+		if r.Shape != ShapeHeal || !r.IsWeaponProc || r.TriggerSpellID != int(tc.spellID) || r.BuffSpellID != int(tc.spellID) {
+			t.Errorf("item %d: shape %v, weapon proc %v, trigger %d, buff %d; want a weapon proc healing through %d",
+				tc.itemID, r.Shape, r.IsWeaponProc, r.TriggerSpellID, r.BuffSpellID, tc.spellID)
 		}
 		if want := []string{spelldata.ReasonStatesNoRate}; !slices.Equal(r.Unsupported, want) {
 			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, want)
@@ -104,13 +104,55 @@ func TestOnUseRoutesFromTheSpellItCasts(t *testing.T) {
 			entry = grp.Entries[0]
 		}
 		r := entry.Proc
-		if r == nil || r.TriggerSpellID != int(tc.spellID) || r.Damage != tc.damage || r.Heal != tc.heal ||
-			entry.DealsDamage != tc.damage || entry.Heals != tc.heal || entry.Supported != (tc.want == EffectParseResultSuccess) {
+		if r == nil || r.TriggerSpellID != int(tc.spellID) || (r.Shape == ShapeDamage) != tc.damage || (r.Shape == ShapeHeal) != tc.heal ||
+			entry.Supported != (tc.want == EffectParseResultSuccess) {
 			t.Errorf("item %d: routing %+v, supported %v; want spell %d, damage %v, heal %v", tc.itemID, r, entry.Supported, tc.spellID, tc.damage, tc.heal)
 			continue
 		}
 		if !slices.Equal(r.Unsupported, tc.reasons) {
 			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, tc.reasons)
+		}
+	}
+}
+
+// An on-use whose spell raises the wearer's speeds registers as a speed buff, every speed effect of
+// its row modelled.
+func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
+	inRepositoryRoot(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID  int
+		spellID int32
+		summary string
+	}{
+		{19339, 23723, "on use: 23723 (A_MOD_CASTING_SPEED_NOT_STACK)"},                      // Mind Quickening Gem
+		{19343, 23733, "on use: 23733 (A_MOD_CASTING_SPEED_NOT_STACK, A_MOD_MELEE_HASTE_3)"}, // Scrolls of Blinding Light
+		{22954, 28866, "on use: 28866 (A_MOD_MELEE_HASTE_3, A_MOD_RANGED_HASTE)"},            // Kiss of the Spider
+	} {
+		item := instance.Items[tc.itemID]
+		parsed := item.ToUIItem()
+		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+		i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == tc.spellID && e.GetOnUse() != nil })
+		if i < 0 {
+			t.Fatalf("item %d carries no on-use effect on %d", tc.itemID, tc.spellID)
+		}
+
+		groups := map[string]Group{}
+		if got := TryParseOnUseEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+			t.Errorf("item %d parsed as %v, want registered", tc.itemID, got)
+			continue
+		}
+
+		entries := groups["Speed"].Entries
+		if len(entries) != 1 {
+			t.Fatalf("item %d: %d entries in the Speed group, want 1", tc.itemID, len(entries))
+		}
+		r := entries[0].Proc
+		if !entries[0].Supported || r.Shape != ShapeSpeed || r.TriggerSpellID != int(tc.spellID) ||
+			r.OnUseConstructor() != "NewSpellDataSpeedOnUse" || r.Summary != tc.summary {
+			t.Errorf("item %d: routing %+v, supported %v; want %d registered through NewSpellDataSpeedOnUse with %q",
+				tc.itemID, r, entries[0].Supported, tc.spellID, tc.summary)
 		}
 	}
 }

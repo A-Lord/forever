@@ -124,6 +124,7 @@ func getDatabase(itemIds *int32, numItems int32, enchantIds *int32, numEnchants 
 			LimitCategory:    item.LimitCategory,
 			SetName:          item.SetName,
 			SetId:            item.SetID,
+			ClassAllowlist:   item.ClassAllowlist,
 			ScalingOptions:   item.ScalingOptions,
 			ItemEffects:      item.ItemEffects,
 		}

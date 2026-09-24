@@ -246,7 +246,7 @@ func (item *Item) GetGemBonus() stats.Stats {
 			for _, effectAura := range effectAuras {
 				stat := ConvertEffectAuraToStatIndex(effectAura.EffectAura, effectAura.EffectMiscValues[0])
 				if stat > 0 {
-					stats[stat] = float64(effectAura.EffectBasePoints + 1)
+					stats[stat] = float64(effectAura.EffectBasePoints)
 				}
 			}
 		}

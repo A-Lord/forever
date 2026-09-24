@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -44,6 +45,43 @@ func applyTooltipHints(t *spellTables, s *storeSpell) {
 	s.ProcHint = procTooltipHints(description)
 	s.ProcChanceSource, s.ProcChanceEffect = procChanceSource(description, ownChance, s)
 	s.tooltipStatesChance = ownChance || s.ProcChanceSource == procChanceEffectN
+
+	if grant, ok := t.EnchantGrants[s.ID]; ok && description == "" {
+		applyEnchantGrantHints(t.Descriptions[grant], s)
+	}
+}
+
+// What an enchant's grant states about the equip spell it hangs on a hit. The grant describes the
+// enchant rather than the spell's mask, so only what no mask can state is read off it: a named
+// ability, an outcome the mask has no bit for, the wearer's attack dodged or parried, and whether a
+// column of 100 is a rate the rows do not carry. Which hits feed the proc stays the mask's to say.
+func applyEnchantGrantHints(grant string, s *storeSpell) {
+	s.ProcHint |= procTooltipHints(grant) &
+		(core.ProcHintNamedAbility | core.ProcHintOutcomeTaken | core.ProcHintAttackDodged | core.ProcHintAttackParried)
+
+	if s.ProcChanceSource == procChanceAlways && tooltipStatesAnUnknownRate(grant) {
+		s.ProcChanceSource = procChancePPM
+	}
+}
+
+// A combat spell's roll as its enchantments state it, which is the one the game casts it at: the
+// spell's own column is no roll there, and on Fiery Blaze's 6297 there is none. A tooltip stating a
+// chance of its own that the enchantments contradict is an error.
+func applyEnchantChance(t *spellTables, s *storeSpell) error {
+	stated, ok := t.EnchantChances[s.ID]
+	if !ok {
+		return nil
+	}
+	if s.tooltipStatesChance && (s.ProcChanceSource != procChanceColumn || s.ProcChance != stated.Chance) {
+		return fmt.Errorf("spell %d states its own proc chance in the tooltip, and enchantments %v state %d%%",
+			s.ID, stated.Enchants, stated.Chance)
+	}
+
+	s.ProcChance = stated.Chance
+	s.ProcChanceSource, s.ProcChanceEffect = procChanceColumn, 0
+	s.overrideNotes = append(s.overrideNotes,
+		fmt.Sprintf("enchantment: ProcChance %d -- EffectPointsMin of SpellItemEnchantment %s", stated.Chance, joinIDs(stated.Enchants)))
+	return nil
 }
 
 func procChanceSource(description string, ownChance bool, s *storeSpell) (storeProcChanceSource, int8) {

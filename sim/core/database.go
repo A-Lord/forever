@@ -182,6 +182,8 @@ type Item struct {
 	SetName       string // Empty string if not part of a set.
 	SetID         int32  // 0 if not part of a set.
 
+	ClassAllowlist []proto.Class
+
 	GemSockets  []proto.GemColor
 	SocketBonus stats.Stats
 
@@ -215,9 +217,14 @@ func ItemFromProto(pData *proto.SimItem) Item {
 		LimitCategory:    pData.LimitCategory,
 		SetName:          pData.SetName,
 		SetID:            pData.SetId,
+		ClassAllowlist:   pData.ClassAllowlist,
 		ScalingOptions:   pData.ScalingOptions,
 		ItemEffects:      pData.ItemEffects,
 	}
+}
+
+func (item *Item) UsableBy(class proto.Class) bool {
+	return len(item.ClassAllowlist) == 0 || slices.Contains(item.ClassAllowlist, class)
 }
 
 func (item *Item) ToItemSpecProto() *proto.ItemSpec {

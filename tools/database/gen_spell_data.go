@@ -76,11 +76,6 @@ const (
 	acquireGranted = 3
 )
 
-// The Defense skill line carries the one-class passives that open a counterattack window - Offensive
-// State (DND) fires the 5 s Overpower aura 1282733 on a melee hit, Defensive State (DND) the Revenge
-// one - beside Parry and Block, which have several classes' bits.
-const skillLineDefense = 95
-
 type rankCandidate struct {
 	SpellID       int32
 	Rank          int32
@@ -158,6 +153,9 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int) ([]rankLadder, 
 		return nil, nil, nil, err
 	}
 
+	// The Defense skill line carries the one-class passives that open a counterattack window - Offensive
+	// State (DND) fires the 5 s Overpower aura 1282733 on a melee hit, Defensive State (DND) the Revenge
+	// one - beside Parry and Block, which have several classes' bits.
 	rows, err := db.Query(`
 		SELECT n.Name_lang, sla.Spell, s.NameSubtext_lang, sla.ClassMask, sla.SkillLine, sla.AcquireMethod,
 		       COALESCE(lv.BaseLevel, 0), (COALESCE(json_extract(sm.Attributes, '$[0]'), 0) & ?) != 0
@@ -175,7 +173,7 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int) ([]rankLadder, 
 		AND (s.NameSubtext_lang LIKE 'Rank %' OR s.NameSubtext_lang = '')
 		AND sla.SkillLine NOT IN (2851, 2853)
 		AND NOT EXISTS (SELECT 1 FROM SpellEffect se WHERE se.SpellID = sla.Spell AND se.EffectAura = ?)
-		ORDER BY n.Name_lang, sla.Spell`, dbcenums.ATTR_PASSIVE, mask, skillLineDefense, mask, acquireOnLevel, dbcenums.A_MOUNTED)
+		ORDER BY n.Name_lang, sla.Spell`, dbcenums.ATTR_PASSIVE, mask, dbc.SkillLineDefense, mask, acquireOnLevel, dbcenums.A_MOUNTED)
 	if err != nil {
 		return nil, nil, nil, err
 	}

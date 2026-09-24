@@ -137,10 +137,10 @@ func registerSpellDataConsumable(itemID int32, register func(int32, core.ApplyEf
 		var config core.SpellConfig
 		switch {
 		case parts.heal != nil:
-			config = spellDataProcHealSpell(character, row)
+			config = spellDataProcHealSpell(character, row, false)
 			config.DamageMultiplier *= potionBonus
 		case parts.absorb != nil:
-			config = spellDataAbsorbSpell(character, row, itemID)
+			config = spellDataAbsorbSpell(character, row, itemID, false)
 		default:
 			config = spelldata.SpellConfig(&character.Unit, row)
 		}

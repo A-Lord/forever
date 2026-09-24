@@ -206,8 +206,8 @@ func TestItemProcRollsTheColumnOverAnEffectsChance(t *testing.T) {
 		t.Fatalf("8397 states %v on its effect, want 0.02", got)
 	}
 
-	config := spellDataDamageTrigger(&caster.Character, SpellDataProc{Name: "Uther's Strength", ItemID: 11302, TriggerSpellID: 8397},
-		effectSource{id: 11302}, uther)
+	config := spellDataProcListener(&caster.Character, SpellDataProc{Name: "Uther's Strength", ItemID: 11302, TriggerSpellID: 8397},
+		effectSource{id: 11302}, uther, nil)
 	if config.ProcChance != 0.04 || config.DPM != nil {
 		t.Errorf("the proc rolls %v (manager %v), want the column's 0.04", config.ProcChance, config.DPM != nil)
 	}

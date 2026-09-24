@@ -64,18 +64,24 @@ func TestItemProcUnsupportedCoversTheRegistrationsOwnRefusal(t *testing.T) {
 	}
 }
 
-// A combat enchant whose own row states the chance answers the rate its spell's 100 sentinel leaves
-// open, and nothing else.
+// A combat enchant's chance, which the store writes into its row's column where the enchantment
+// states it, answers the rate its spell's 100 sentinel leaves open, and nothing else.
 func TestCombatEnchantUnsupported(t *testing.T) {
 	withRows(t, procRows())
 
-	if got := CombatEnchantUnsupported(Find(2100), true); got != nil {
+	stated := func(id int32) *Spell {
+		row := *Find(id)
+		row.ProcChance, row.ProcChanceSource = 15, ProcChanceColumn
+		return &row
+	}
+
+	if got := CombatEnchantUnsupported(stated(2100)); got != nil {
 		t.Errorf("unsupported = %v, want none with the enchant stating the chance", got)
 	}
-	if got := CombatEnchantUnsupported(Find(2100), false); !slices.Equal(got, []string{ReasonStatesNoRate}) {
+	if got := CombatEnchantUnsupported(Find(2100)); !slices.Equal(got, []string{ReasonStatesNoRate}) {
 		t.Errorf("unsupported = %v, want the rate named with no chance stated", got)
 	}
-	if got := CombatEnchantUnsupported(Find(2600), true); !slices.Contains(got, "named ability") {
+	if got := CombatEnchantUnsupported(stated(2600)); !slices.Contains(got, "named ability") {
 		t.Errorf("unsupported = %v, want a stated chance to leave the other refusals in place", got)
 	}
 }

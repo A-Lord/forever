@@ -4,6 +4,12 @@
 
 export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
+		810, // Hammer of the Northern Wind
+		[
+			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
+		]
+	],
+	[
 		2820, // Nifty Stopwatch
 		[
 			"Increases run speed by 40% for 10s.", // 14530 - https://www.wowhead.com/forever/spell=14530
@@ -148,6 +154,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		12797, // Frostguard
+		[
+			"Target's movement slowed by 30% and increasing the time between attacks by 25% for 5s.", // 16927 - https://www.wowhead.com/forever/spell=16927
+		]
+	],
+	[
 		12802, // Darkspear
 		[
 			"Chance on hit to grant nearby party members 4% increased critical strike chance.", // 16939 - https://www.wowhead.com/forever/spell=16939
@@ -193,12 +205,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		14134, // Cloak of Fire
 		[
 			"Deals 25 Fire damage every 5.0 sec to all nearby enemies for 15s.", // 18364 - https://www.wowhead.com/forever/spell=18364
-		]
-	],
-	[
-		14152, // Robe of the Archmage
-		[
-			"Restores 500 mana.", // 18385 - https://www.wowhead.com/forever/spell=18385
 		]
 	],
 	[
@@ -575,12 +581,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19339, // Mind Quickening Gem
-		[
-			"Quickens the mind, increasing the Mage's casting speed by 33% for 20s.", // 23723 - https://www.wowhead.com/forever/spell=23723
-		]
-	],
-	[
 		19340, // Rune of Metamorphosis
 		[
 			"Decreases the mana cost of all Druid shapeshifting forms by 100% for 20s.", // 23724 - https://www.wowhead.com/forever/spell=23724
@@ -596,18 +596,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19342, // Venomous Totem
 		[
 			"Increases the chance to apply Rogue poisons to your target by 30% for 20s.", // 23726 - https://www.wowhead.com/forever/spell=23726
-		]
-	],
-	[
-		19343, // Scrolls of Blinding Light
-		[
-			"Energizes a Paladin with light, increasing melee attack speed by 25% and spell casting speed by 33% for 20s.", // 23733 - https://www.wowhead.com/forever/spell=23733
-		]
-	],
-	[
-		19344, // Natural Alignment Crystal
-		[
-			"Aligns the Shaman with nature, increasing spell damage by 20%, improving heal effects by 20%, and increasing mana cost of spells by 20% for 20s.", // 23734 - https://www.wowhead.com/forever/spell=23734
 		]
 	],
 	[
@@ -689,21 +677,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19951, // Gri'lek's Charm of Might
-		[
-			"Instantly increases your rage by 30.0.", // 24571 - https://www.wowhead.com/forever/spell=24571
-		]
-	],
-	[
 		19953, // Renataki's Charm of Beasts
 		[
 			"Instantly clears the cooldowns of Aimed Shot, Multishot, Volley, and Arcane Shot.", // 24531 - https://www.wowhead.com/forever/spell=24531
-		]
-	],
-	[
-		19954, // Renataki's Charm of Trickery
-		[
-			"Instantly increases your energy by 60.", // 24532 - https://www.wowhead.com/forever/spell=24532
 		]
 	],
 	[
@@ -911,12 +887,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		20525, // Earthen Sigil
-		[
-			"Restores 400 mana over 10s.", // 24884 - https://www.wowhead.com/forever/spell=24884
-		]
-	],
-	[
 		21134, // Dark Edge of Insanity
 		[
 			"Disorients the target, causing it to wander aimlessly for up to 3s.", // 26108 - https://www.wowhead.com/forever/spell=26108
@@ -980,18 +950,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		22060, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
-		]
-	],
-	[
-		22061, // Beastmaster's Boots
-		[
-			"Increases damage dealt by your pet by 3%.", // 27206 - https://www.wowhead.com/forever/spell=27206
-		]
-	],
-	[
-		22191, // Obsidian Mail Tunic
-		[
-			"Spell Damage received is reduced by 10.", // 27518 - https://www.wowhead.com/forever/spell=27518
 		]
 	],
 	[
@@ -1073,12 +1031,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22954, // Kiss of the Spider
-		[
-			"Increases your attack speed by 20% for 15s.", // 28866 - https://www.wowhead.com/forever/spell=28866
-		]
-	],
-	[
 		23001, // Eye of Diminution
 		[
 			"Reduces the threat you generate by 35% for 20s.", // 28862 - https://www.wowhead.com/forever/spell=28862
@@ -1094,12 +1046,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		23005, // Totem of Flowing Water
 		[
 			"Regain up to 10 mana each time you cast Lesser Healing Wave.", // 28849 - https://www.wowhead.com/forever/spell=28849
-		]
-	],
-	[
-		23027, // Warmth of Forgiveness
-		[
-			"Restores 500 mana.", // 28760 - https://www.wowhead.com/forever/spell=28760
 		]
 	],
 	[
@@ -1208,12 +1154,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		223077, // Sergeant Major's Mail Sabatons
 		[
 			"Minor increase to running and swimming speed. Does not stack with similar effects.", // 24090 - https://www.wowhead.com/forever/spell=24090
-		]
-	],
-	[
-		226881, // Beastmaster's Treads
-		[
-			"Increases damage dealt by your pet by 3%.", // 27206 - https://www.wowhead.com/forever/spell=27206
 		]
 	],
 	[
@@ -2188,6 +2128,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		260205, // Highborne Research Tablet
+		[
+			"Chance on hit to deal 75 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.", // 1265634 - https://www.wowhead.com/forever/spell=1265634
+		]
+	],
+	[
 		260819, // EZ-Thro Field Transporter: Gadgetzan
 		[
 			"Safely transport yourself to Gadgetzan in Tanaris! Emphasis on Safe! Yup, nothing bad could ever happen while using this device!", // 23453 - https://www.wowhead.com/forever/spell=23453
@@ -2607,6 +2553,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		275441, // Cremation Longbow
 		[
 			"Cremate the target for 56 Fire damage.", // 1297921 - https://www.wowhead.com/forever/spell=1297921
+		]
+	],
+	[
+		275630, // Depleted Eye of Influence
+		[
+			"Chance on harmful spell cast to reduce target enemy's attack power by 60 for 30s. ", // 1297082 - https://www.wowhead.com/forever/spell=1297082
 		]
 	],
 	[
