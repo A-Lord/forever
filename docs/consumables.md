@@ -297,8 +297,9 @@ enchant with it.
 consumable loaded and once with only those a request carries, and checks both apply the same.
 
 Settings saved before api version 17 name the Goblin Sapper Charge, the scrolls, Bogling Root and the
-pet's scrolls by flags, and drums by an enum. `RemovedConsumesFields`
-(`tools/database/gen_consumable_flags_ts.go`) names each removed field with the item a set flag
-selected; `gen_db -gen=go-to-ts` writes it to `ui/sim/proto/consumable_flags_auto_gen.ts`, and
-`ui/sim/proto/consumes_migration.ts` turns a link's (binary, by field number) or a saved blob's (JSON,
-by name) flags into item ids.
+pet's scrolls by flags, and drums by an enum. `REMOVED_CONSUMES_FIELDS`
+(`ui/sim/proto/consumes_migration.ts`) names each removed field with the item a set flag selected, and
+the same file turns a link's (binary, by field number) or a saved blob's (JSON, by name) flags into
+item ids; `migrateLegacyConsumes` does it for both JSON shapes, saved settings and a sim's settings,
+and drops the party's drums. `TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of
+those fields reserved in `ConsumesSpec`.

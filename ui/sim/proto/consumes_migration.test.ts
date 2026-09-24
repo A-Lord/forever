@@ -5,8 +5,7 @@ import { BinaryWriter, UnknownFieldHandler, WireType } from '@protobuf-ts/runtim
 import { describe, expect, it } from 'vitest';
 
 import { Player } from '../player/player';
-import { REMOVED_CONSUMES_FIELDS } from './consumable_flags_auto_gen';
-import { migrateConsumesJson, migrateConsumesToItemIds } from './consumes_migration';
+import { migrateConsumesJson, migrateConsumesToItemIds, migrateLegacyConsumes, REMOVED_CONSUMES_FIELDS } from './consumes_migration';
 
 // A ConsumesSpec as a version-16 link encoded it: pot_id 1, the explosive and main-hand imbue as spell
 // ids, and the flags and drums by their old field numbers.
@@ -73,6 +72,27 @@ describe('migrateConsumesJson', () => {
 				field.itemId ? { [field.pet ? 'petExtraIds' : 'extraIds']: [field.itemId] } : {},
 			);
 		}
+	});
+});
+
+describe('migrateLegacyConsumes', () => {
+	it('migrates saved settings, whose consumables and party buffs sit at the top', () => {
+		const migrated = migrateLegacyConsumes({
+			consumables: { potId: 13444, goblinSapper: true },
+			partyBuffs: { drums: 'LesserDrumsOfBattle', bloodlust: 1 },
+		});
+		expect(migrated).toEqual({ consumables: { potId: 13444, extraIds: [10646] }, partyBuffs: { bloodlust: 1 } });
+	});
+
+	it('migrates a sim’s settings, whose consumables sit on the player', () => {
+		const migrated = migrateLegacyConsumes({ player: { name: 'A', consumables: { scrollAgi: true } }, partyBuffs: { drums: 'LesserDrumsOfBattle' } });
+		expect(migrated).toEqual({ player: { name: 'A', consumables: { extraIds: [10309] } }, partyBuffs: {} });
+	});
+
+	it('returns current settings and a non-object as they are', () => {
+		const current = { consumables: { potId: 13444 }, player: { consumables: { extraIds: [10646] } }, partyBuffs: { bloodlust: 1 } };
+		expect(migrateLegacyConsumes(current)).toBe(current);
+		expect(migrateLegacyConsumes(null)).toBeNull();
 	});
 });
 

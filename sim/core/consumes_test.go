@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func TestSelectedConsumableIDs(t *testing.T) {
@@ -86,5 +87,20 @@ func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
 			}()
 			register(majorHealingPotion, func(Agent) {})
 		})
+	}
+}
+
+// ui/sim/proto/consumes_migration.ts reads the fields ConsumesSpec dropped in api version 17 by these
+// names and numbers, so they must stay reserved.
+func TestRemovedConsumesFieldsStayReserved(t *testing.T) {
+	descriptor := (&proto.ConsumesSpec{}).ProtoReflect().Descriptor()
+	for name, number := range map[protoreflect.Name]protoreflect.FieldNumber{
+		"superSapper": 8, "goblinSapper": 9, "drums_id": 12, "scroll_agi": 13, "scroll_str": 14,
+		"scroll_int": 15, "scroll_spi": 16, "scroll_arm": 17, "pet_scroll_agi": 18, "pet_scroll_str": 19,
+		"nightmare_seed": 20, "bloodthistle": 24, "bogling_root": 25,
+	} {
+		if !descriptor.ReservedNames().Has(name) || !descriptor.ReservedRanges().Has(number) {
+			t.Errorf("ConsumesSpec does not reserve %s = %d", name, number)
+		}
 	}
 }

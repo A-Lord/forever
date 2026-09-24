@@ -1,6 +1,6 @@
 import { SavedSettings } from '@generated/proto/ui';
 import { useSimHost } from '@sim/context/SimHostContext';
-import { migrateConsumesJson, migrateLegacyConsumableValues } from '@sim/proto/consumes_migration';
+import { migrateLegacyConsumableValues, migrateLegacyConsumes } from '@sim/proto/consumes_migration';
 import type { SavedDataCodec } from '@ui-kit/hooks/useSavedData';
 import { useSavedData } from '@ui-kit/hooks/useSavedData';
 
@@ -20,24 +20,10 @@ const migrateLegacyDebuffs = (json: any): any => {
 	};
 };
 
-// The consumables' flags and drums and the party's drums left the protos in api version 17. A saved
-// settings entry states no version, so the spell ids the explosive and imbue fields held are mapped
-// whenever they appear.
-const migrateLegacyConsumes = (json: any): any => {
-	let migrated = json;
-	if (migrated?.consumables) {
-		const consumables = migrateConsumesJson(migrated.consumables);
-		if (consumables !== migrated.consumables) migrated = { ...migrated, consumables };
-	}
-	if (migrated?.partyBuffs && 'drums' in migrated.partyBuffs) {
-		const { drums: _drums, ...partyBuffs } = migrated.partyBuffs;
-		migrated = { ...migrated, partyBuffs };
-	}
-	return migrated;
-};
-
+// A saved settings entry states no api version, so the spell ids the explosive and imbue fields held
+// before version 17 are mapped whenever they appear.
 const parseSavedSettings = (json: any): SavedSettings => {
-	const settings = SavedSettings.fromJson(migrateLegacyConsumes(migrateLegacyDebuffs(json)));
+	const settings = SavedSettings.fromJson(migrateLegacyConsumes(migrateLegacyDebuffs(json)) as never);
 	if (settings.consumables) migrateLegacyConsumableValues(settings.consumables);
 	return settings;
 };
