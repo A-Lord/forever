@@ -19,7 +19,11 @@ func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpe
 // Windfury Totem does nothing for a druid in Cat or Bear Form, so the feral specs neither proc it nor
 // give their main-hand imbue up for it.
 func (character *Character) TakesWindfuryTotem() bool {
-	return character.Spec != proto.Spec_SpecFeralCatDruid && character.Spec != proto.Spec_SpecFeralBearDruid
+	return !character.isFeralDruid()
+}
+
+func (character *Character) isFeralDruid() bool {
+	return character.Spec == proto.Spec_SpecFeralCatDruid || character.Spec == proto.Spec_SpecFeralBearDruid
 }
 
 func (character *Character) applyTemporaryEnchant(itemID int32, slot proto.ItemSlot) {
