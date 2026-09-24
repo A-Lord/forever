@@ -1182,19 +1182,16 @@ func registerSpellDataOnUseCooldown(itemID int32, onUse func(*core.Character, *s
 			if !ok {
 				continue
 			}
-			cooldown.Spell = character.RegisterSpell(onUseSpellConfig(character, itemID, itemEffect, row, config))
+			config.ActionID = core.ActionID{ItemID: itemID}
+
+			itemCast := onUseCast(character, itemEffect)
+			config.Cast = spelldata.Cast(row)
+			config.Cast.CD, config.Cast.SharedCD = itemCast.CD, itemCast.SharedCD
+
+			cooldown.Spell = character.RegisterSpell(config)
 			character.AddMajorCooldown(cooldown)
 		}
 	})
-}
-
-func onUseSpellConfig(character *core.Character, itemID int32, itemEffect *proto.ItemEffect, row *spelldata.Spell, config core.SpellConfig) core.SpellConfig {
-	config.ActionID = core.ActionID{ItemID: itemID}
-
-	onUse := onUseCast(character, itemEffect)
-	config.Cast = spelldata.Cast(row)
-	config.Cast.CD, config.Cast.SharedCD = onUse.CD, onUse.SharedCD
-	return config
 }
 
 func onUseEffectsFor(itemID int32) []*proto.ItemEffect {
