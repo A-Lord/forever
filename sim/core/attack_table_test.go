@@ -152,7 +152,7 @@ func TestTargetBaseCritAndBlockValue(t *testing.T) {
 }
 
 func TestItemSwapRecomputesTheHandEntries(t *testing.T) {
-	const swordID, maceID int32 = 990601, 990602
+	const swordID, maceID int32 = 991501, 991502
 
 	oneHander := func(id int32, weaponType proto.WeaponType) *proto.SimItem {
 		return &proto.SimItem{
