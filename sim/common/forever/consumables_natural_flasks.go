@@ -2,7 +2,6 @@ package forever
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -30,50 +29,50 @@ func init() {
 			aura := character.GetOrRegisterAura(config)
 
 			spelldata.ParseEffects(character, aura, row, spelldata.Effects(1))
-			attachNaturalFlaskZoneBonus(aura, row, row.EffectN(2).Average(character.Level))
+			bonus, err := NaturalFlaskZoneBonusOf(row, row.EffectN(2).Average(character.Level))
+			if err != nil {
+				panic(err)
+			}
+			aura.AttachStatsBuff(bonus.Stats)
+			if bonus.AttackHastePercent != 0 {
+				aura.AttachMultiplyAttackSpeed(1 + bonus.AttackHastePercent/100)
+			}
+			if bonus.CastHastePercent != 0 {
+				aura.AttachMultiplyCastSpeed(1 + bonus.CastHastePercent/100)
+			}
 		})
 	}
 }
 
-// The zone bonus as the auras after the dummy name it: hit, crit, a lower chance to be dodged or
-// parried, or melee, ranged and casting speed, each by the dummy's percent.
-func attachNaturalFlaskZoneBonus(aura *core.Aura, row *spelldata.Spell, percent float64) {
-	var bonus stats.Stats
-	attackSpeed, castSpeed := 1.0, 1.0
+// The zone bonus as the auras after the dummy name it, each by the dummy's percent: hit, crit and a
+// lower chance to be dodged or parried as stats, and melee and ranged or casting speed as haste.
+type NaturalFlaskZoneBonus struct {
+	Stats              stats.Stats
+	AttackHastePercent float64
+	CastHastePercent   float64
+}
+
+func NaturalFlaskZoneBonusOf(row *spelldata.Spell, percent float64) (NaturalFlaskZoneBonus, error) {
+	var bonus NaturalFlaskZoneBonus
 	for _, e := range row.Effects[2:] {
 		switch e.Aura {
 		case dbcenums.A_MOD_HIT_CHANCE:
-			bonus[stats.PhysicalHitPercent] = percent
+			bonus.Stats[stats.PhysicalHitPercent] = percent
 		case dbcenums.A_MOD_SPELL_HIT_CHANCE:
-			bonus[stats.SpellHitPercent] = percent
+			bonus.Stats[stats.SpellHitPercent] = percent
 		case dbcenums.A_MOD_CRIT_PCT:
-			bonus[stats.PhysicalCritPercent] = percent
-			bonus[stats.SpellCritPercent] = percent
+			bonus.Stats[stats.PhysicalCritPercent] = percent
+			bonus.Stats[stats.SpellCritPercent] = percent
 		case dbcenums.A_MOD_EXPERTISE:
 			// Four points of expertise to the percent.
-			bonus[stats.ExpertiseRating] = percent * 4 * core.ExpertisePerQuarterPercentReduction
+			bonus.Stats[stats.ExpertiseRating] = percent * 4 * core.ExpertisePerQuarterPercentReduction
 		case dbcenums.A_MOD_MELEE_RANGED_HASTE_2:
-			attackSpeed = 1 + percent/100
+			bonus.AttackHastePercent = percent
 		case dbcenums.A_MOD_CASTING_SPEED_NOT_STACK:
-			castSpeed = 1 + percent/100
+			bonus.CastHastePercent = percent
 		default:
-			panic(fmt.Sprintf("%d %s: no zone bonus for %v", row.ID, row.Name, e.Aura))
+			return bonus, fmt.Errorf("%d %s: no zone bonus for %v", row.ID, row.Name, e.Aura)
 		}
 	}
-
-	speeds := func(aura *core.Aura, sim *core.Simulation, exponent float64) {
-		if attackSpeed != 1 {
-			aura.Unit.MultiplyAttackSpeed(sim, math.Pow(attackSpeed, exponent))
-		}
-		if castSpeed != 1 {
-			aura.Unit.MultiplyCastSpeed(sim, math.Pow(castSpeed, exponent))
-		}
-	}
-	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		aura.Unit.AddStatsDynamic(sim, bonus)
-		speeds(aura, sim, 1)
-	}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-		aura.Unit.AddStatsDynamic(sim, bonus.Invert())
-		speeds(aura, sim, -1)
-	})
+	return bonus, nil
 }
