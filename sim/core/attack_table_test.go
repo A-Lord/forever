@@ -100,6 +100,57 @@ func TestWeaponSkillNarrowsTheHandsTableAgainstALevel63Target(t *testing.T) {
 	}
 }
 
+func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
+	for _, tc := range []struct {
+		level                            int32
+		miss, dodge, parry, block, crush float64
+	}{
+		{60, 0.05, 0, 0.05, 0.05, 0},
+		{62, 0.046, -0.004, 0.046, 0.046, 0},
+		{63, 0.044, -0.006, 0.044, 0.044, 0.15},
+	} {
+		attacker, defender := attackTableUnits(EnemyUnit, tc.level, PlayerUnit, 60)
+		table := NewAttackTable(attacker, defender)
+		values := []attackTableValue{
+			{"miss", table.BaseMissChance, tc.miss},
+			{"dodge", table.BaseDodgeChance, tc.dodge},
+			{"parry", table.BaseParryChance, tc.parry},
+			{"block", table.BaseBlockChance, tc.block},
+			{"crush", table.BaseCrushChance, tc.crush},
+			{"spell miss", table.BaseSpellMissChance, 0.05},
+		}
+		for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
+			values = append(values,
+				attackTableValue{hand + " miss", entry.BaseMissChance, tc.miss},
+				attackTableValue{hand + " dodge", entry.BaseDodgeChance, tc.dodge},
+				attackTableValue{hand + " hit suppression", entry.HitSuppression, 0},
+			)
+		}
+		checkAttackTableValues(t, fmt.Sprintf("level %d against 60", tc.level), values)
+	}
+}
+
+func TestTargetBaseCritAndBlockValue(t *testing.T) {
+	for _, tc := range []struct {
+		level int32
+		crit  float64
+	}{
+		{58, 5.0},
+		{60, 5.0},
+		{61, 5.2},
+		{62, 5.4},
+		{63, 5.6},
+	} {
+		target := NewTarget(&proto.Target{Level: tc.level}, 0)
+		if got := target.GetStat(stats.PhysicalCritPercent); math.Abs(got-tc.crit) > 1e-9 {
+			t.Errorf("level %d target crit = %v, want %v", tc.level, got, tc.crit)
+		}
+		if got := target.GetStat(stats.BlockValue); got != 0 {
+			t.Errorf("level %d target block value = %v, want 0", tc.level, got)
+		}
+	}
+}
+
 func TestItemSwapRecomputesTheHandEntries(t *testing.T) {
 	const swordID, maceID int32 = 990601, 990602
 
