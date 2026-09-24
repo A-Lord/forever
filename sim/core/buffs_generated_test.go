@@ -83,7 +83,7 @@ func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	if player.Label != "Battle Shout (Player)" {
 		t.Errorf("the player's copy is labelled %q, want %q", player.Label, "Battle Shout (Player)")
 	}
-	// What a warrior whose DefaultShout is Battle does with its own aura.
+	// What a warrior whose UseBattleShout is set does with its own aura.
 	player.BuildPhase = core.CharacterBuildPhaseBuffs
 
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
@@ -431,69 +431,6 @@ func measureGeneratedBuffStats(char *core.Character) {
 	char.SetStats(char.SortAndApplyStatDependencies(char.GetStats()).FloorGameStats())
 }
 
-// Every buff a pet is given or denied, field by field, for a pet that is out
-// when the fight starts and one that is summoned during it.
-func TestGeneratedPetBuffsStripExactlyTheRowsThePolicyNames(t *testing.T) {
-	ticked := func() (*proto.RaidBuffs, *proto.PartyBuffs, *proto.IndividualBuffs) {
-		return &proto.RaidBuffs{
-				Thorns: true, ArcaneBrilliance: true, PrayerOfSpirit: true,
-				GiftOfTheWild: true, PrayerOfFortitude: true, PrayerOfShadowProtection: true,
-			},
-			&proto.PartyBuffs{
-				WindfuryTotem: true, BattleShout: proto.TristateEffect_TristateEffectRegular, GraceOfAirTotem: true,
-				MoonkinAura: true, LeaderOfThePack: true,
-				AtieshMage: 2,
-			},
-			&proto.IndividualBuffs{
-				Innervates: 1, PowerInfusions: 1,
-				GreaterBlessingOfKings: true, GreaterBlessingOfMight: true, GreaterBlessingOfWisdom: true,
-				GreaterBlessingOfSalvation: true,
-			}
-	}
-
-	owner := core.NewGeneratedBuffTestCharacter()
-	pet := core.NewGeneratedBuffTestPet(owner, true)
-
-	raid, party, individual := ticked()
-	core.StripPetBuffs(pet, raid, party, individual)
-
-	// Stripped whenever the pet is out: Thorns is not given to it, it cannot
-	// gain an extra attack, and nobody spends a cooldown on a pet.
-	if raid.Thorns || party.WindfuryTotem ||
-		individual.Innervates != 0 || individual.PowerInfusions != 0 {
-		t.Errorf("a pet out from the start kept %v, %v, %v", raid, party, individual)
-	}
-
-	// Everything else the party grants is still the pet's.
-	if party.BattleShout == proto.TristateEffect_TristateEffectMissing || !party.GraceOfAirTotem || !party.MoonkinAura ||
-		!party.LeaderOfThePack || party.AtieshMage != 2 {
-		t.Errorf("a pet out from the start lost a buff no policy strips: %v, %v", party, individual)
-	}
-	// A pet that was there from the start keeps every targeted buff.
-	if !raid.ArcaneBrilliance || !raid.PrayerOfSpirit || !raid.GiftOfTheWild ||
-		!raid.PrayerOfFortitude || !raid.PrayerOfShadowProtection || !individual.GreaterBlessingOfKings ||
-		!individual.GreaterBlessingOfMight || !individual.GreaterBlessingOfWisdom ||
-		!individual.GreaterBlessingOfSalvation {
-		t.Errorf("a pet out from the start lost a targeted buff: %v, %v", raid, individual)
-	}
-
-	late := core.NewGeneratedBuffTestPet(owner, false)
-	raid, party, individual = ticked()
-	core.StripPetBuffs(late, raid, party, individual)
-
-	if raid.ArcaneBrilliance || raid.PrayerOfSpirit || raid.GiftOfTheWild ||
-		raid.PrayerOfFortitude || raid.PrayerOfShadowProtection {
-		t.Errorf("a pet summoned late kept a raid buff cast at the pull: %v", raid)
-	}
-	if individual.GreaterBlessingOfKings || individual.GreaterBlessingOfMight || individual.GreaterBlessingOfWisdom ||
-		individual.GreaterBlessingOfSalvation {
-		t.Errorf("a pet summoned late kept a targeted individual buff: %v", individual)
-	}
-	if party.BattleShout == proto.TristateEffect_TristateEffectMissing || !party.GraceOfAirTotem {
-		t.Error("a pet summoned late lost a party aura, which no policy strips")
-	}
-}
-
 // Grace of Air is the row whose uptime another field decides: with totem
 // twisting on it is 9 seconds long and re-cast every 10, and without it the
 // totem simply stands.
@@ -621,6 +558,76 @@ func TestGeneratedWindfuryTotemProcAppliesTheClientsAttackPower(t *testing.T) {
 	}
 	if char.GetAura("Windfury Totem Trigger") == nil {
 		t.Error("the driver registered no proc trigger for the totem")
+	}
+}
+
+// The proc holds the client's 2 charges and each landed auto attack, in either
+// hand, spends one. A melee special or a missed swing spends none, and a proc no
+// auto lands on keeps its attack power for the whole second.
+func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{WindfuryTotem: true}, &proto.IndividualBuffs{})
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+	proc := char.GetAura("Windfury Totem (External)")
+	if proc == nil {
+		t.Fatalf("no aura is labelled %q; the unit has %v", "Windfury Totem (External)", auraLabels(char))
+	}
+
+	mhAuto := &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}
+	ohAuto := &core.Spell{ProcMask: core.ProcMaskMeleeOHAuto}
+	special := &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}
+	landed := &core.SpellResult{Target: &char.Unit, Outcome: core.OutcomeHit, Damage: 100}
+	missed := &core.SpellResult{Target: &char.Unit, Outcome: core.OutcomeMiss}
+	swing := func(spell *core.Spell, result *core.SpellResult) {
+		proc.OnSpellHitDealt(proc, sim, spell, result)
+	}
+
+	if proc.MaxStacks != 2 {
+		t.Fatalf("the proc holds %d charges, want the client's 2", proc.MaxStacks)
+	}
+	fullCharges := func() {
+		proc.Activate(sim)
+		proc.SetStacks(sim, proc.MaxStacks)
+	}
+
+	before := char.GetStats()[stats.AttackPower]
+	fullCharges()
+
+	swing(special, landed)
+	swing(mhAuto, missed)
+	if got := proc.GetStacks(); got != 2 {
+		t.Errorf("a special and a missed auto left %d charges, want both still there", got)
+	}
+
+	swing(mhAuto, landed)
+	if !proc.IsActive() || proc.GetStacks() != 1 {
+		t.Fatalf("one landed auto left the proc active %v with %d charges, want it up with 1",
+			proc.IsActive(), proc.GetStacks())
+	}
+	if got := char.GetStats()[stats.AttackPower] - before; got != 246 {
+		t.Errorf("the proc holds %v attack power on its last charge, want the client's 246", got)
+	}
+
+	swing(ohAuto, landed)
+	if proc.IsActive() {
+		t.Error("the proc is still up after its second landed auto, want the charges spent")
+	}
+	if got := char.GetStats()[stats.AttackPower]; got != before {
+		t.Errorf("the spent proc left %v attack power behind", got-before)
+	}
+
+	fullCharges()
+	start := sim.CurrentTime
+	swing(special, landed)
+	if !proc.IsActive() || proc.RemainingDuration(sim) != time.Second {
+		t.Fatalf("a proc no auto landed on is active %v with %v left, want the full second",
+			proc.IsActive(), proc.RemainingDuration(sim))
+	}
+	for proc.IsActive() && sim.CurrentTime < start+time.Second*2 {
+		sim.Step()
+	}
+	if proc.IsActive() || proc.GetStacks() != 0 {
+		t.Errorf("the lingering proc is active %v with %d charges at %v, want it gone after its second",
+			proc.IsActive(), proc.GetStacks(), sim.CurrentTime-start)
 	}
 }
 

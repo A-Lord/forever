@@ -834,31 +834,3 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		drivePowerInfusions(char, individual)
 	}
 }
-
-// What a pet is given of its owner's buffs, by the policy each manifest row
-// states. A buff the owner's raid casts on the party reaches the pet as well
-// unless the row says otherwise: PetStrip is for one the pet cannot use or is
-// given during the fight instead, PetInheritOwnerAura for a neck the pet picks
-// up by standing next to the wearer, and PetStripWhenSummonedLate for one that
-// is cast on whoever is there when the fight starts. PetCapAtRegular says a
-// pet's share of the buff is the unimproved amount, which every row that states
-// it now grants anyway, so nothing is emitted for it.
-func applyGeneratedPetBuffs(pet *core.Pet, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
-	party.WindfuryTotem = false
-	raid.Thorns = false
-	individual.Innervates = 0
-	individual.PowerInfusions = 0
-
-	if !pet.EnabledOnStart() {
-		raid.ArcaneBrilliance = false
-		individual.GreaterBlessingOfKings = false
-		raid.PrayerOfSpirit = false
-		raid.GiftOfTheWild = false
-		raid.PrayerOfFortitude = false
-		individual.GreaterBlessingOfMight = false
-		individual.GreaterBlessingOfWisdom = false
-		individual.GreaterBlessingOfSalvation = false
-		individual.GreaterBlessingOfLight = false
-		raid.PrayerOfShadowProtection = false
-	}
-}

@@ -11,9 +11,8 @@ import (
 
 func init() {
 	core.RegisterBuffHooks(core.BuffHooks{
-		ApplyBuffs:    applyGeneratedBuffs,
-		StripPetBuffs: applyGeneratedPetBuffs,
-		ApplyDebuffs:  applyDebuffs,
+		ApplyBuffs:   applyGeneratedBuffs,
+		ApplyDebuffs: applyDebuffs,
 		GiftOfArthasAura: func(target *core.Unit) *core.Aura {
 			return GiftOfArthasAura(target, true, 0)
 		},

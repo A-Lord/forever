@@ -68,12 +68,6 @@ message WarriorTalents {
 
 // END GENERATED
 
-enum WarriorShout {
-    WarriorShoutNone = 0;
-    WarriorShoutBattle = 1;
-    WarriorShoutCommanding = 2;
-}
-
 enum WarriorStance {
     WarriorStanceNone = 0;
     WarriorStanceBattle = 1;
@@ -83,12 +77,15 @@ enum WarriorStance {
 }
 
 message WarriorOptions {
-	WarriorShout default_shout = 1;
+	reserved 1;
+	reserved "default_shout";
+
 	WarriorStance default_stance = 2;
 
 	double starting_rage = 3;
 	bool stance_snapshot = 4;
 	bool has_bs_t2 = 5;
+	bool use_battle_shout = 6;
 }
 
 enum DpsWarriorSpec {

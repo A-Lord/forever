@@ -202,11 +202,7 @@ func SynthPowerInfusionsAura(unit *core.Unit, isPlayer bool, talentPoints int32)
 	return newBuff(unit, synthPowerInfusionsMeta, isPlayer, talentPoints)
 }
 
-// The label a pet looks for on its owner, and the label the buff's own aura
-// carries.
-var SynthInheritedNeckAuraLabel = "Inherited Neck"
-
-// func SynthInheritedNeckAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura // totem_twisting, KindAbsent: the neck has no Item row
+// func SynthAbsentAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura // totem_twisting, KindAbsent: the client has no row for it
 
 // Atiesh - Mage
 var synthAtieshMageSpell = spelldata.MustFind(28142)
@@ -279,22 +275,5 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if raid.Thorns {
 		core.MakePermanent(SynthThornsAura(&char.Unit, false, 0))
-	}
-}
-
-// What a pet is given of its owner's buffs, by the policy each manifest row
-// states. A buff the owner's raid casts on the party reaches the pet as well
-// unless the row says otherwise: PetStrip is for one the pet cannot use or is
-// given during the fight instead, PetInheritOwnerAura for a neck the pet picks
-// up by standing next to the wearer, and PetStripWhenSummonedLate for one that
-// is cast on whoever is there when the fight starts. PetCapAtRegular says a
-// pet's share of the buff is the unimproved amount, which every row that states
-// it now grants anyway, so nothing is emitted for it.
-func applyGeneratedPetBuffs(pet *core.Pet, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
-	raid.Thorns = false
-	party.TotemTwisting = party.TotemTwisting || pet.Owner.HasAura(SynthInheritedNeckAuraLabel)
-
-	if !pet.EnabledOnStart() {
-		individual.GreaterBlessingOfKings = false
 	}
 }

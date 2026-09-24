@@ -66,7 +66,6 @@ func syntheticBuffRows() []ResolvedBuff {
 				Field: "greater_blessing_of_kings", Scope: buffmanifest.ScopeIndividual,
 				Proto: buffmanifest.ProtoBool, Kind: buffmanifest.KindStatPct,
 				Go: "SynthBlessingOfKings", Name: "Blessing of Kings",
-				Pet: buffmanifest.PetStripWhenSummonedLate,
 			},
 			SpellID: 20217, CastSpellID: 20217, DurationMs: 3600000, Supported: true,
 			Spell: spell(20217, core.SpellSchoolHoly, 3600000,
@@ -158,10 +157,9 @@ func syntheticBuffRows() []ResolvedBuff {
 			BuffSpec: buffmanifest.BuffSpec{
 				Field: "totem_twisting", Scope: buffmanifest.ScopeParty,
 				Proto: buffmanifest.ProtoBool, Kind: buffmanifest.KindAbsent,
-				Go: "SynthInheritedNeck", Category: "Inherited Neck",
-				Pet: buffmanifest.PetInheritOwnerAura,
+				Go: "SynthAbsent", Category: "Absent",
 			},
-			Reason: "the neck has no Item row",
+			Reason: "the client has no row for it",
 		},
 		{
 			BuffSpec: buffmanifest.BuffSpec{
@@ -177,7 +175,6 @@ func syntheticBuffRows() []ResolvedBuff {
 				Field: "thorns", Scope: buffmanifest.ScopeRaid,
 				Proto: buffmanifest.ProtoBool, Kind: buffmanifest.KindDamageShield,
 				Go: "SynthThorns", Name: "Thorns", Category: "Thorns",
-				Pet: buffmanifest.PetStrip,
 			},
 			SpellID: 9910, CastSpellID: 9910, DurationMs: 600000, Supported: true,
 			Spell:         spell(9910, core.SpellSchoolNature, 600000, aura(dbcenums.A_DAMAGE_SHIELD, 0, 18)),

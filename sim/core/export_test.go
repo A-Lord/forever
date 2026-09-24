@@ -34,20 +34,12 @@ func NewGeneratedDebuffTestTarget() *Unit {
 	return target
 }
 
-func NewGeneratedBuffTestPet(owner *Character, enabledOnStart bool) *Pet {
-	return &Pet{Character: *NewGeneratedBuffTestCharacter(), Owner: owner, enabledOnStart: enabledOnStart}
-}
-
 func ApplyBuffEffects(agent Agent, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
 	applyBuffEffects(agent, raid, party, individual)
 }
 
 func ApplyDebuffEffects(target *Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	applyDebuffEffects(target, 0, debuffs, raid)
-}
-
-func StripPetBuffs(pet *Pet, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
-	registeredBuffs().StripPetBuffs(pet, raid, party, individual)
 }
 
 func (character *Character) ApplyBuildPhaseAuras(phase CharacterBuildPhase) {

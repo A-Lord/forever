@@ -229,6 +229,12 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
+	// A modifier on the off-hand's hits alone is one on the off-hand weapon's, and an off-hand hit
+	// with no weapon behind it, such as a shield's, takes none of them.
+	if mod.ProcMask > 0 && mod.ProcMask&^ProcMaskMeleeOH == 0 && !spell.Unit.AutoAttacks.IsDualWielding {
+		return false
+	}
+
 	if mod.SpellFlag > 0 && !mod.SpellFlag.Matches(spell.Flags) {
 		return false
 	}

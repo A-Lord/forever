@@ -10,24 +10,30 @@ var thunderClapRank = spellData.ThunderClap.Highest()
 
 var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average(core.CharacterLevel)
 var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
-var thunderClapGeneratedSlow = buffs.ThunderClapValue(0)
+
+// The melee speed factor the warrior's clap leaves on the target: the client's -20 lengthens the time
+// between attacks by 20%, which the Conqueror's set deepens.
+func (warrior *Warrior) thunderClapSpeed() float64 {
+	return 1 / core.SlowedTimeMultiplier(thunderClapSlow*(1+warrior.thunderClapEffectBonus))
+}
 
 func (warrior *Warrior) registerThunderClap() {
 	auras := warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		// The generated aura multiplies the speed by the client's -20%; the slow lengthens the time
-		// between attacks by 20%, which the Conqueror's set deepens, and the difference rides on the
-		// aura for as long as it is up.
-		extraSlow := 1.0
-		return buffs.ThunderClapAura(target, true, 0).ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-			extraSlow = 1 / core.SlowedTimeMultiplier(thunderClapSlow*(1+warrior.thunderClapEffectBonus)) / thunderClapGeneratedSlow
-			if extraSlow != 1 {
-				aura.Unit.MultiplyMeleeSpeed(sim, extraSlow)
-			}
-		}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-			if extraSlow != 1 {
-				aura.Unit.MultiplyMeleeSpeed(sim, 1/extraSlow)
-			}
-		})
+		// The clap bids its whole slow in the attack-speed category, so the strongest single slow
+		// on the target is the only one applied. The generated aura holds the category at the
+		// client's amount; the clap sets its bid before it lands, and the effect applies what the
+		// bid is worth.
+		aura := buffs.ThunderClapAura(target, true, 0)
+		speed := 1.0
+		bid := aura.ExclusiveEffects[0]
+		bid.OnGain = func(ee *core.ExclusiveEffect, sim *core.Simulation) {
+			speed = 1 - ee.Priority
+			ee.Aura.Unit.MultiplyMeleeSpeed(sim, speed)
+		}
+		bid.OnExpire = func(ee *core.ExclusiveEffect, sim *core.Simulation) {
+			ee.Aura.Unit.MultiplyMeleeSpeed(sim, 1/speed)
+		}
+		return aura
 	})
 
 	// Thunder Clap is Physical but Magic in SpellCategories: it rolls on the spell hit table
@@ -48,7 +54,11 @@ func (warrior *Warrior) registerThunderClap() {
 
 		for _, result := range results {
 			if result.Landed() {
-				auras.Get(result.Target).Activate(sim)
+				aura := auras.Get(result.Target)
+				if bid := aura.ExclusiveEffects[0]; bid.Priority != 1-warrior.thunderClapSpeed() {
+					bid.SetPriority(sim, 1-warrior.thunderClapSpeed())
+				}
+				aura.Activate(sim)
 			}
 			spell.DealDamage(sim, result)
 		}

@@ -61,9 +61,9 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 	ProtectionWarrior: &proto.ProtectionWarrior{
 		Options: &proto.ProtectionWarrior_Options{
 			ClassOptions: &proto.WarriorOptions{
-				StartingRage:  100,
-				DefaultShout:  proto.WarriorShout_WarriorShoutBattle,
-				DefaultStance: proto.WarriorStance_WarriorStanceDefensive,
+				StartingRage:   100,
+				UseBattleShout: true,
+				DefaultStance:  proto.WarriorStance_WarriorStanceDefensive,
 			},
 		},
 	},

@@ -136,34 +136,6 @@ func (a TalentApplies) String() string {
 	return "TalentApplies(unknown)"
 }
 
-type PetPolicy int
-
-const (
-	PetNormal PetPolicy = iota
-	PetStrip
-	PetInheritOwnerAura
-	PetCapAtRegular
-	// PetStripWhenSummonedLate drops the buff only for a pet that is not enabled
-	// at fight start.
-	PetStripWhenSummonedLate
-)
-
-func (p PetPolicy) String() string {
-	switch p {
-	case PetNormal:
-		return "PetNormal"
-	case PetStrip:
-		return "PetStrip"
-	case PetInheritOwnerAura:
-		return "PetInheritOwnerAura"
-	case PetCapAtRegular:
-		return "PetCapAtRegular"
-	case PetStripWhenSummonedLate:
-		return "PetStripWhenSummonedLate"
-	}
-	return "PetPolicy(unknown)"
-}
-
 type TalentMod struct {
 	// SpellID is the spell of the trait node that prices the improvement, which the store carries as
 	// a talent ladder.
@@ -199,7 +171,6 @@ type BuffSpec struct {
 	SharedCategory string      // second exclusive category the aura also joins, "" = none
 	SingleAura     bool
 	Driver         bool // apply block hands the field to drive<Go>; the aura is not simply always up
-	Pet            PetPolicy
 	// SkipAuras names auras of the spell the buff leaves out, spelled the way
 	// sim/core/dbcenums spells them, for a row the client states beside the
 	// buff that the raid's copy does not apply. The names are checked while the

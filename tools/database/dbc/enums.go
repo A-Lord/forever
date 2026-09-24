@@ -342,14 +342,14 @@ func (race Race) Matches(other Race) bool {
 type ImplicitTarget int
 
 const (
-	TARGET_UNIT_CASTER              ImplicitTarget = 1
-	TARGET_UNIT_TARGET_ENEMY        ImplicitTarget = 6
-	TARGET_UNIT_SRC_AREA_ENEMY      ImplicitTarget = 15
-	TARGET_UNIT_CASTER_AREA_PARTY   ImplicitTarget = 20
-	TARGET_UNIT_TARGET_ALLY         ImplicitTarget = 21
-	TARGET_SRC_CASTER               ImplicitTarget = 22
-	TARGET_UNIT_TARGET_ANY          ImplicitTarget = 25
-	TARGET_UNIT_CASTER_AREA_RAID    ImplicitTarget = 56
-	TARGET_UNIT_TARGET_RAID         ImplicitTarget = 57
-	TARGET_UNIT_TARGET_ALLY_OR_RAID ImplicitTarget = 153
+	TARGET_UNIT_CASTER            ImplicitTarget = 1
+	TARGET_UNIT_TARGET_ENEMY      ImplicitTarget = 6
+	TARGET_UNIT_SRC_AREA_ENEMY    ImplicitTarget = 15
+	TARGET_UNIT_CASTER_AREA_PARTY ImplicitTarget = 20
+	TARGET_UNIT_TARGET_ALLY       ImplicitTarget = 21
+	TARGET_SRC_CASTER             ImplicitTarget = 22
+	TARGET_UNIT_TARGET_ANY        ImplicitTarget = 25
+	TARGET_UNIT_CASTER_AREA_RAID  ImplicitTarget = 56
+	TARGET_UNIT_TARGET_RAID       ImplicitTarget = 57
+	TARGET_153                    ImplicitTarget = 153
 )

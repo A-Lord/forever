@@ -5,7 +5,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -19,7 +18,7 @@ func (warrior *Warrior) registerBattleShout() {
 	// A warrior that shouts builds a copy of its own; one that shouts nothing
 	// gets the isPlayer=false constructor, whose aura is the party's external
 	// copy, and what that copy is worth is the party's Battle Shout state's to say.
-	castsOwnShout := warrior.DefaultShout != proto.WarriorShout_WarriorShoutNone
+	castsOwnShout := warrior.UseBattleShout
 
 	// Three pieces of Battlegear of Wrath add a flat 30 to the shout. HasBsT2 is
 	// the user saying this warrior wears them; the equipped set is not read. The
@@ -43,7 +42,7 @@ func (warrior *Warrior) registerBattleShout() {
 			core.AddGeneratedFlatBonus(aura, stats.AttackPower, battleShoutBase, buffs.BattleShoutT2Bonus)
 		}
 		if !partyShout {
-			aura.BuildPhase = core.Ternary(warrior.DefaultShout == proto.WarriorShout_WarriorShoutBattle, core.CharacterBuildPhaseBuffs, core.CharacterBuildPhaseNone)
+			aura.BuildPhase = core.Ternary(castsOwnShout, core.CharacterBuildPhaseBuffs, core.CharacterBuildPhaseNone)
 		}
 		return aura
 	})

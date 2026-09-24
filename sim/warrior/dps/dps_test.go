@@ -70,8 +70,8 @@ var DefaultOptions = &proto.Player_DpsWarrior{
 	DpsWarrior: &proto.DpsWarrior{
 		Options: &proto.DpsWarrior_Options{
 			ClassOptions: &proto.WarriorOptions{
-				DefaultShout:  proto.WarriorShout_WarriorShoutBattle,
-				DefaultStance: proto.WarriorStance_WarriorStanceBerserker,
+				UseBattleShout: true,
+				DefaultStance:  proto.WarriorStance_WarriorStanceBerserker,
 			},
 		},
 	},

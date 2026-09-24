@@ -22,7 +22,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"slices"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -31,7 +30,6 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/buffmanifest"
-	"github.com/wowsims/forever/tools/database/dbc"
 )
 
 const buffsGenFile = "sim/core/buffs/buffs_auto_gen.go"
@@ -111,17 +109,6 @@ func resolveBuff(t *spellTables, nodes []traitNode, spec buffmanifest.BuffSpec) 
 	compiled, err := compiledProtoType(spec)
 	if err != nil {
 		return row, err
-	}
-
-	// A pet inherits the buff by finding the aura on its owner, so the row has
-	// to name it whether or not the client describes the buff at all.
-	if spec.Pet == buffmanifest.PetInheritOwnerAura && spec.Label == "" && spec.Name == "" && spec.Category == "" {
-		return row, fmt.Errorf("states %s but names no aura for the pet to find on its owner", spec.Pet)
-	}
-	// A pet policy is about what its owner's buffs reach it, which a debuff is
-	// not, and applyGeneratedPetBuffs never sees the debuff message.
-	if spec.Scope == buffmanifest.ScopeDebuff && spec.Pet != buffmanifest.PetNormal {
-		return row, fmt.Errorf("states %s, which only a buff row can", spec.Pet)
 	}
 
 	if spec.Kind == buffmanifest.KindAbsent || spec.Kind == buffmanifest.KindFlag {
@@ -385,12 +372,12 @@ func clientScope(row ResolvedBuff) (buffmanifest.BuffScope, bool) {
 		case dbcenums.E_APPLY_AREA_AURA_PARTY:
 			return buffmanifest.ScopeParty, true
 		case dbcenums.E_APPLY_AURA:
-			switch dbc.ImplicitTarget(effect.Target[0]) {
-			case dbc.TARGET_UNIT_CASTER_AREA_RAID:
+			switch effect.Target[0] {
+			case dbcenums.TARGET_UNIT_CASTER_AREA_RAID:
 				return buffmanifest.ScopeRaid, true
-			case dbc.TARGET_UNIT_CASTER_AREA_PARTY:
+			case dbcenums.TARGET_UNIT_CASTER_AREA_PARTY:
 				return buffmanifest.ScopeParty, true
-			case dbc.TARGET_UNIT_TARGET_ALLY, dbc.TARGET_UNIT_TARGET_ALLY_OR_RAID:
+			case dbcenums.TARGET_UNIT_TARGET_ALLY, dbcenums.TARGET_153:
 				return buffmanifest.ScopeIndividual, true
 			}
 		}
@@ -492,29 +479,27 @@ func lowerFirst(s string) string {
 // buffRow is what the templates see: every expression the generated file needs,
 // already spelled as Go source.
 type buffRow struct {
-	Go           string
-	Field        string
-	Label        string
-	SpellID      int32
-	Kind         string
-	Reason       string
-	LeftOut      []string
-	Supported    bool
-	HasSpell     bool
-	SpellVar     string
-	MetaVar      string
-	MetaFields   string
-	Category     string
-	CategoryVar  string
-	HasValue     bool
-	HasCooldown  bool
-	ExtraParams  string
-	OwnerAura    string
-	OwnerAuraVar string
-	Constructor  string
-	ApplyIf      string
-	ApplyBody    string
-	HasApply     bool
+	Go          string
+	Field       string
+	Label       string
+	SpellID     int32
+	Kind        string
+	Reason      string
+	LeftOut     []string
+	Supported   bool
+	HasSpell    bool
+	SpellVar    string
+	MetaVar     string
+	MetaFields  string
+	Category    string
+	CategoryVar string
+	HasValue    bool
+	HasCooldown bool
+	ExtraParams string
+	Constructor string
+	ApplyIf     string
+	ApplyBody   string
+	HasApply    bool
 }
 
 // Every file the manifest renders, by the path it is written to: the two Go
@@ -589,7 +574,7 @@ func renderBuffFile(resolved []ResolvedBuff, debuffs bool) ([]byte, error) {
 	var rendered bytes.Buffer
 	if err := tmpl.Execute(&rendered, map[string]any{
 		"Rows": rows, "NeedsSpells": needsSpells, "NeedsEnums": needsEnums,
-		"SharedCategories": shared, "PetRows": petBuffRows(resolved),
+		"SharedCategories": shared,
 	}); err != nil {
 		return nil, fmt.Errorf("rendering %s: %w", name, err)
 	}
@@ -603,52 +588,6 @@ func renderBuffFile(resolved []ResolvedBuff, debuffs bool) ([]byte, error) {
 	return out, nil
 }
 
-// petBuffRow is one line of applyGeneratedPetBuffs: the field the policy reads,
-// what the field is set to when the pet does not get the buff, and the aura the
-// pet inherits by standing next to its owner.
-type petBuffRow struct {
-	Access    string
-	Zero      string
-	OwnerAura string
-	Strip     bool
-	Inherit   bool
-	StripLate bool
-}
-
-// Every row whose pet policy says something, in manifest order. A row the
-// generator could not express is included too: the policy is about the proto
-// field, which the hand-written apply block reads just the same.
-func petBuffRows(resolved []ResolvedBuff) []petBuffRow {
-	var rows []petBuffRow
-	for _, row := range resolved {
-		if row.Scope == buffmanifest.ScopeDebuff || row.Pet == buffmanifest.PetNormal {
-			continue
-		}
-		out := petBuffRow{
-			Access:    buffScopeField(row.Scope) + "." + row.GoField(),
-			Zero:      buffProtoZero(row.Proto),
-			Strip:     row.Pet == buffmanifest.PetStrip,
-			Inherit:   row.Pet == buffmanifest.PetInheritOwnerAura,
-			StripLate: row.Pet == buffmanifest.PetStripWhenSummonedLate,
-		}
-		if out.Inherit {
-			out.OwnerAura = petOwnerAuraVar(row)
-		}
-		rows = append(rows, out)
-	}
-	return rows
-}
-
-// The label of the aura the owner carries, which for a row the client does not
-// describe is the name its hand-written constructor registers, and the manifest
-// keeps that as the row's exclusive category.
-func petOwnerAura(row ResolvedBuff) string {
-	if label := buffLabel(row); label != "" {
-		return label
-	}
-	return row.Category
-}
-
 // sharedCategoryRow is one `var <Name>Category = "<Name>"` line: several rows
 // name the same shared category, so the generated file declares it once.
 type sharedCategoryRow struct {
@@ -660,22 +599,6 @@ type sharedCategoryRow struct {
 // that joins it and every caller in sim/core/buffs name.
 func sharedCategoryVar(category string) string {
 	return category + "Category"
-}
-
-// The identifier the generated file gives that label, which the buff's own
-// hand-written constructor names as well.
-func petOwnerAuraVar(row ResolvedBuff) string {
-	return row.Go + "AuraLabel"
-}
-
-func buffProtoZero(protoType buffmanifest.BuffProtoType) string {
-	switch protoType {
-	case buffmanifest.ProtoBool:
-		return "false"
-	case buffmanifest.ProtoTristate:
-		return "proto.TristateEffect_TristateEffectMissing"
-	}
-	return "0"
 }
 
 func buffScopeField(scope buffmanifest.BuffScope) string {
@@ -695,9 +618,6 @@ func renderRow(row ResolvedBuff) buffRow {
 		Go: row.Go, Field: row.Field, Label: buffLabel(row),
 		SpellID: row.SpellID, Kind: row.Kind.String(), Reason: row.Reason, LeftOut: row.LeftOut,
 		Supported: row.Supported, HasSpell: row.SpellID != 0,
-	}
-	if row.Pet == buffmanifest.PetInheritOwnerAura {
-		out.OwnerAura, out.OwnerAuraVar = strconv.Quote(petOwnerAura(row)), petOwnerAuraVar(row)
 	}
 
 	// A row whose amounts are worth one item each takes the number of them, so

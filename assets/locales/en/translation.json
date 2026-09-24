@@ -575,8 +575,8 @@
 				"tooltip": "Simulates raid doing damage to targets such that seed detonates immediately on cast."
 			},
 			"default_shout": {
-				"label": "Default Shout",
-				"tooltip": "Which shout to use by default (can be overridden in the APL."
+				"label": "Battle Shout",
+				"tooltip": "Whether the warrior keeps its own Battle Shout up (can be overridden in the APL)."
 			},
 			"default_stance": {
 				"label": "Default Stance",

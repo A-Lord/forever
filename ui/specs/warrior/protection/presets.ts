@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, HealingModel, Profession, Race } from '@generated/proto/common';
-import { ProtectionWarrior_Options as ProtectionWarriorOptions, WarriorShout, WarriorStance } from '@generated/proto/warrior';
+import { ProtectionWarrior_Options as ProtectionWarriorOptions, WarriorStance } from '@generated/proto/warrior';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
 
 import * as WarriorPresets from '../shared/presets';
@@ -16,7 +16,7 @@ export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('Generic', Gen
 export const DefaultOptions = ProtectionWarriorOptions.create({
 	classOptions: {
 		startingRage: 100,
-		defaultShout: WarriorShout.WarriorShoutBattle,
+		useBattleShout: true,
 		defaultStance: WarriorStance.WarriorStanceDefensive,
 		hasBsT2: true,
 		stanceSnapshot: true,

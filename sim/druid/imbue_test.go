@@ -92,6 +92,25 @@ func TestCatPawKeepsTheWeaponstoneWhenRebuilt(t *testing.T) {
 	}
 }
 
+// Dire Bear Form swings every 2.5 seconds for the staff's damage per second, the stone's 8 included
+// once, through shifts to the paw and back: (60 + 8) / 2.4 * 2.5 to (90 + 8) / 2.4 * 2.5.
+func TestBearWeaponTakesTheWeaponstoneOnce(t *testing.T) {
+	const monksStaff, denseWeightstone = 866, 12643
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{})
+	cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
+
+	for range 2 {
+		character.AutoAttacks.SetMH(cat.GetBearWeapon())
+		character.AutoAttacks.SetMH(cat.GetCatWeapon())
+	}
+	character.AutoAttacks.SetMH(cat.GetBearWeapon())
+	bear := character.AutoAttacks.MH()
+	if wantMin, wantMax := 68/2.4*2.5, 98/2.4*2.5; !approxEqual(bear.BaseDamageMin, wantMin) || !approxEqual(bear.BaseDamageMax, wantMax) || bear.SwingSpeed != 2.5 {
+		t.Errorf("the bear weapon deals %.3f-%.3f at %.1f s, want %.3f-%.3f at 2.5 s",
+			bear.BaseDamageMin, bear.BaseDamageMax, bear.SwingSpeed, wantMin, wantMax)
+	}
+}
+
 // Windfury Totem does nothing in Cat Form, so the cat keeps the stone under it and hears no
 // Windfury procs.
 func TestCatKeepsItsMainHandImbueUnderWindfuryTotem(t *testing.T) {

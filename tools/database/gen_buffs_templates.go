@@ -12,13 +12,6 @@ const tmplStrBuffRows = `
 var {{.Var}} = "{{.Name}}"
 {{- end}}
 {{- range .Rows}}
-{{- if .OwnerAuraVar}}
-
-// The label a pet looks for on its owner, and the label the buff's own aura
-// carries.
-var {{.OwnerAuraVar}} = {{.OwnerAura}}
-{{- end}}
-
 {{if .Supported}}
 // {{.Label}}
 {{- range .LeftOut}}
@@ -80,35 +73,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 {{- end}}
 {{- end}}
-}
-
-// What a pet is given of its owner's buffs, by the policy each manifest row
-// states. A buff the owner's raid casts on the party reaches the pet as well
-// unless the row says otherwise: PetStrip is for one the pet cannot use or is
-// given during the fight instead, PetInheritOwnerAura for a neck the pet picks
-// up by standing next to the wearer, and PetStripWhenSummonedLate for one that
-// is cast on whoever is there when the fight starts. PetCapAtRegular says a
-// pet's share of the buff is the unimproved amount, which every row that states
-// it now grants anyway, so nothing is emitted for it.
-func applyGeneratedPetBuffs(pet *core.Pet, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
-{{- range .PetRows}}
-{{- if .Strip}}
-	{{.Access}} = {{.Zero}}
-{{- end}}
-{{- end}}
-{{- range .PetRows}}
-{{- if .Inherit}}
-	{{.Access}} = {{.Access}} || pet.Owner.HasAura({{.OwnerAura}})
-{{- end}}
-{{- end}}
-
-	if !pet.EnabledOnStart() {
-{{- range .PetRows}}
-{{- if .StripLate}}
-		{{.Access}} = {{.Zero}}
-{{- end}}
-{{- end}}
-	}
 }
 `
 

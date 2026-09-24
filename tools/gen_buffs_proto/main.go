@@ -1,11 +1,11 @@
 // Command gen_buffs_proto renders proto/buffs.proto from tools/database/buffmanifest.
 //
-// It imports nothing but the standard library and the manifest, so it runs while
-// sim/core/proto and the generated buff files are stale: protoc needs buffs.proto
-// before anything that reads the compiled protos can build. The spell data pass
-// renders the same file and names it in -check when it is stale.
+// The manifest names classes and stats through sim/core/proto, so the compiled
+// protos must exist, but they may be stale: this runs while the generated buff
+// files do not build yet, and protoc then compiles the field it adds. The spell
+// data pass renders the same file and names it in -check when it is stale.
 //
-//	go run ./tools/gen_buffs_proto
+//	go run ./tools/gen_buffs_proto (or make buffs-proto)
 package main
 
 import (

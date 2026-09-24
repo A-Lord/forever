@@ -8,10 +8,9 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// The golden suites are skipped while the class is stubbed, so this is what
-// checks that the warrior's own enemy debuff is the generated aura. Only
-// Demoralizing Shout is registered so far: registerSunderArmor and
-// registerThunderClap are still commented out in Warrior.Initialize.
+// The warrior's own Demoralizing Shout on the enemy is the generated aura:
+// the client's id and duration, the bid its value makes, and the one the
+// spell's aura array holds.
 func TestWarriorAppliesTheGeneratedDemoralizingShout(t *testing.T) {
 	player := &proto.Player{
 		Name:          "Debuffs",

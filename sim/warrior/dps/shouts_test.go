@@ -69,9 +69,9 @@ func TestWarriorShoutsForTheTierTwoBonus(t *testing.T) {
 				DpsWarrior: &proto.DpsWarrior{
 					Options: &proto.DpsWarrior_Options{
 						ClassOptions: &proto.WarriorOptions{
-							DefaultShout:  proto.WarriorShout_WarriorShoutBattle,
-							DefaultStance: proto.WarriorStance_WarriorStanceBerserker,
-							HasBsT2:       hasT2,
+							UseBattleShout: true,
+							DefaultStance:  proto.WarriorStance_WarriorStanceBerserker,
+							HasBsT2:        hasT2,
 						},
 					},
 				},
@@ -100,7 +100,7 @@ func TestWarriorShoutsForTheTierTwoBonus(t *testing.T) {
 	}
 }
 
-// A warrior whose default shout is none builds the isPlayer=false copy through
+// A warrior with Battle Shout off builds the isPlayer=false copy through
 // its ally array, so the aura it holds is the party's "Battle Shout (External)"
 // one. The set is worth 30 on the shout this warrior makes, and it makes none,
 // so what that copy is worth is the party's Battle Shout state's to say.
@@ -118,9 +118,9 @@ func TestAWarriorThatShoutsNothingLeavesTheExternalCopyAlone(t *testing.T) {
 				DpsWarrior: &proto.DpsWarrior{
 					Options: &proto.DpsWarrior_Options{
 						ClassOptions: &proto.WarriorOptions{
-							DefaultShout:  proto.WarriorShout_WarriorShoutNone,
-							DefaultStance: proto.WarriorStance_WarriorStanceBerserker,
-							HasBsT2:       true,
+							UseBattleShout: false,
+							DefaultStance:  proto.WarriorStance_WarriorStanceBerserker,
+							HasBsT2:        true,
 						},
 					},
 				},
@@ -166,9 +166,9 @@ func TestTwoWarriorsWearingTheSetShoutForOneBonus(t *testing.T) {
 				DpsWarrior: &proto.DpsWarrior{
 					Options: &proto.DpsWarrior_Options{
 						ClassOptions: &proto.WarriorOptions{
-							DefaultShout:  proto.WarriorShout_WarriorShoutBattle,
-							DefaultStance: proto.WarriorStance_WarriorStanceBerserker,
-							HasBsT2:       true,
+							UseBattleShout: true,
+							DefaultStance:  proto.WarriorStance_WarriorStanceBerserker,
+							HasBsT2:        true,
 						},
 					},
 				},
@@ -218,9 +218,9 @@ func TestWarriorShoutsOnlyWhenTheCategoryWillTakeIt(t *testing.T) {
 				DpsWarrior: &proto.DpsWarrior{
 					Options: &proto.DpsWarrior_Options{
 						ClassOptions: &proto.WarriorOptions{
-							DefaultShout:  proto.WarriorShout_WarriorShoutBattle,
-							DefaultStance: proto.WarriorStance_WarriorStanceBerserker,
-							HasBsT2:       hasT2,
+							UseBattleShout: true,
+							DefaultStance:  proto.WarriorStance_WarriorStanceBerserker,
+							HasBsT2:        hasT2,
 						},
 					},
 				},

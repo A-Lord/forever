@@ -527,6 +527,7 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS, 0, 71, "ranged-attack-power-attacker-bonus", 71, false},
 		{dbcenums.A_REDUCE_PUSHBACK, 127, 35, "pushback", -0.35, false},
 		{dbcenums.A_MOD_RATING, 4, 10, "stat DodgeRating", 10, false},
+		{dbcenums.A_MOD_RATING, 256, 10, "stat MeleeCritRating", 10, false},
 		{dbcenums.A_MOD_RATING, 768, 10, "stat MeleeCritRating", 10, false},
 		{dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, -1, 10,
 			"multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.1, false},

@@ -272,7 +272,7 @@ func auraFamilyMember(db *sql.DB, name string, subtext string) (int32, error) {
 func isSharedTarget(target dbc.ImplicitTarget) bool {
 	switch target {
 	case dbc.TARGET_UNIT_CASTER_AREA_PARTY, dbc.TARGET_UNIT_CASTER_AREA_RAID,
-		dbc.TARGET_UNIT_TARGET_ALLY, dbc.TARGET_UNIT_TARGET_RAID, dbc.TARGET_UNIT_TARGET_ALLY_OR_RAID:
+		dbc.TARGET_UNIT_TARGET_ALLY, dbc.TARGET_UNIT_TARGET_RAID, dbc.TARGET_153:
 		return true
 	}
 	return false

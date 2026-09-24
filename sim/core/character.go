@@ -308,10 +308,6 @@ func (character *Character) applyAllEffects(agent Agent, raidBuffs *proto.RaidBu
 	playerStats.ConsumesStats = measureStats()
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 
-	for _, petAgent := range character.PetAgents {
-		applyPetBuffEffects(petAgent, raidBuffs, partyBuffs, individualBuffs)
-	}
-
 	return playerStats
 }
 func (character *Character) applyBuildPhaseAuras(phase CharacterBuildPhase) {

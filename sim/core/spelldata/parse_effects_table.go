@@ -770,8 +770,8 @@ func resistanceStats(mask int32) []stats.Stat {
 }
 
 // The rating a combat rating mask names. The sim keeps one stat for melee and ranged together, so the
-// masks that name both read as the melee stat, and a mask of ranged alone has none. Melee crit alone,
-// 256, is left unread.
+// masks that name both read as the melee stat, as does melee crit alone, 256, and a mask of ranged
+// alone has none.
 func ratingStats(mask int32) []stats.Stat {
 	switch mask {
 	case 2:
@@ -786,7 +786,7 @@ func ratingStats(mask int32) []stats.Stat {
 		return []stats.Stat{stats.MeleeHitRating}
 	case 128:
 		return []stats.Stat{stats.SpellHitRating}
-	case 768:
+	case 256, 768:
 		return []stats.Stat{stats.MeleeCritRating}
 	case 1024:
 		return []stats.Stat{stats.SpellCritRating}

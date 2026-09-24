@@ -3,8 +3,6 @@ package core
 import (
 	"time"
 
-	googleProto "google.golang.org/protobuf/proto"
-
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -112,24 +110,6 @@ func ApplyInspiration(character *Character, uptime float64) {
 	inspirationAura := InspirationAura(&character.Unit, 3)
 
 	ApplyFixedUptimeAura(inspirationAura, uptime, time.Millisecond*2500, 1)
-}
-
-// Applies buffs to pets. Which of the owner's buffs a pet is given is each
-// manifest row's pet policy, so the copies below are only there to keep the
-// policy from writing into the raid's own configuration.
-func applyPetBuffEffects(petAgent PetAgent, raidBuffs *proto.RaidBuffs, partyBuffs *proto.PartyBuffs, individualBuffs *proto.IndividualBuffs) {
-	// Summoned pets, like Mage Water Elemental, aren't around to receive raid buffs.
-	if petAgent.GetPet().IsGuardian() {
-		return
-	}
-
-	raidBuffs = googleProto.Clone(raidBuffs).(*proto.RaidBuffs)
-	partyBuffs = googleProto.Clone(partyBuffs).(*proto.PartyBuffs)
-	individualBuffs = googleProto.Clone(individualBuffs).(*proto.IndividualBuffs)
-
-	registeredBuffs().StripPetBuffs(petAgent.GetPet(), raidBuffs, partyBuffs, individualBuffs)
-
-	applyBuffEffects(petAgent, raidBuffs, partyBuffs, individualBuffs)
 }
 
 // Used for approximating cooldowns applied by other players to you, such as

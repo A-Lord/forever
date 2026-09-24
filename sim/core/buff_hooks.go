@@ -8,8 +8,6 @@ import "github.com/wowsims/forever/sim/core/proto"
 type BuffHooks struct {
 	ApplyBuffs func(char *Character, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs)
 
-	StripPetBuffs func(pet *Pet, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs)
-
 	ApplyDebuffs func(target *Unit, debuffs *proto.Debuffs, raid *proto.Raid)
 
 	GiftOfArthasAura func(target *Unit) *Aura
