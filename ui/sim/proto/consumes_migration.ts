@@ -2,6 +2,8 @@ import { ConsumesSpec } from '@generated/proto/common';
 import { IndividualSimSettings } from '@generated/proto/ui';
 import { BinaryReader, UnknownFieldHandler, WireType } from '@protobuf-ts/runtime';
 
+import { CURRENT_API_VERSION } from '../constants/other';
+
 // The spell ids the explosive and imbue fields held before they held item ids, by the item that
 // casts each; 0 where the client ships no such item.
 export const LEGACY_CONSUMABLE_VALUES: ReadonlyMap<number, number> = new Map([
@@ -65,8 +67,8 @@ export const REMOVED_CONSUMES_FIELDS: ReadonlyArray<RemovedConsumesField> = [
 
 const REMOVED_JSON_KEYS = REMOVED_CONSUMES_FIELDS.map(field => [field, [...new Set([field.jsonName, field.name])]] as const);
 
-// A payload from before the version restarted at 1 is stamped 16 or lower.
-const isPreRestart = (apiVersion: number) => apiVersion > 2 && apiVersion <= 16;
+// A payload from before the version restarted at 1 is stamped 16 or lower, and above the current version.
+const isPreRestart = (apiVersion: number) => apiVersion > CURRENT_API_VERSION && apiVersion <= 16;
 
 // The repeated fields a payload from before the restart held the potions and conjured items in.
 const PRE_RESTART_LIST_NUMBERS = [22, 23];
