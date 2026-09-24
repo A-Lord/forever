@@ -806,20 +806,7 @@ func (result *SpellResult) applyEnemyAttackTableCrit(spell *Spell, attackTable *
 	if spell.ProcMask.Matches(ProcMaskRanged) {
 		critPercent += spell.Unit.stats[stats.RangedCritPercent]
 	}
-	chances := getCritChances(critPercent/100-attackTable.MeleeCritSuppression, result.Target)
-	*chance += chances.suppressed
-	if roll < *chance {
-		result.Outcome = OutcomeSuppressedCrit
-		if countHits {
-			spell.SpellMetrics[result.Target.UnitIndex].Hits++
-			if result.DidResist() {
-				spell.SpellMetrics[result.Target.UnitIndex].ResistedHits++
-			}
-		}
-		return true
-	}
-
-	*chance += chances.actual
+	*chance += getCritChance(critPercent/100-attackTable.MeleeCritSuppression, result.Target)
 
 	if roll < *chance {
 		isPartialResist := result.DidResist()
@@ -830,8 +817,7 @@ func (result *SpellResult) applyEnemyAttackTableCrit(spell *Spell, attackTable *
 				spell.SpellMetrics[result.Target.UnitIndex].ResistedCrits++
 			}
 		}
-		resilCritMultiplier := 1 - (max(0, result.Target.GetResilienceReduction()/2))
-		result.Damage *= 2 * resilCritMultiplier
+		result.Damage *= 2
 		return true
 	}
 	return false

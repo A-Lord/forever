@@ -71,7 +71,6 @@ func TestCapSpaceDeltaMatchesTheSheet(t *testing.T) {
 			}{
 				{stats.BlockRating, []proto.PseudoStat{block}},
 				{stats.DefenseRating, []proto.PseudoStat{block, dodge, parry, critTaken}},
-				{stats.ResilienceRating, []proto.PseudoStat{critTaken}},
 				{stats.DodgeRating, []proto.PseudoStat{dodge}},
 				{stats.ParryRating, []proto.PseudoStat{parry}},
 			} {

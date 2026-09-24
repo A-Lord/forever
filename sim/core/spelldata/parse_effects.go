@@ -331,6 +331,17 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 	return parsed
 }
 
+// The stats the attachments add to or multiply, in effect order.
+func (p *Parsed) Stats() []stats.Stat {
+	var sts []stats.Stat
+	for _, a := range p.attachments {
+		if a != nil {
+			sts = append(sts, a.stats...)
+		}
+	}
+	return sts
+}
+
 // The finisher the raid config has on the target is cast at the most combo points there are.
 const fullComboPoints = 5
 
@@ -342,17 +353,6 @@ func (o *parseOptions) row(aura dbcenums.EffectAuraType) row {
 		}
 	}
 	return auraTable[aura]
-}
-
-// The stats the attachments add to or multiply, in effect order.
-func (p *Parsed) Stats() []stats.Stat {
-	var sts []stats.Stat
-	for _, a := range p.attachments {
-		if a != nil {
-			sts = append(sts, a.stats...)
-		}
-	}
-	return sts
 }
 
 // Reads the condition again and turns the attachments on or off accordingly, for a caller whose

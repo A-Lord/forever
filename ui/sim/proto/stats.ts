@@ -134,7 +134,7 @@ export class UnitStat {
 	// Convert a UnitStat value from its percentage representation (0-100) to the equivalent amount of
 	// Rating. If a Rating representation does not make sense for the stat in question (Block in Cata
 	// for example), then null is returned.
-	// For PseudoStatReducedCritTakenPercent, parentStat specifies the source (DefenseRating or ResilienceRating).
+	// For PseudoStatReducedCritTakenPercent, parentStat specifies the source (DefenseRating).
 	convertPercentToRating(percentOrPointsValue: number, parentStat?: Stat): number | null {
 		if (this.linkedToStat(Stat.StatSpellHitRating)) {
 			return percentOrPointsValue * Mechanics.SPELL_HIT_RATING_PER_HIT_PERCENT;
@@ -173,8 +173,6 @@ export class UnitStat {
 		} else if (this.equalsPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent)) {
 			if (parentStat === Stat.StatDefenseRating) {
 				return percentOrPointsValue * (Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL / Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE);
-			} else if (parentStat === Stat.StatResilienceRating) {
-				return percentOrPointsValue * Mechanics.RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE;
 			}
 			return null;
 		} else {
@@ -373,8 +371,6 @@ export class UnitStat {
 				return [PseudoStat.PseudoStatSpellCritPercent];
 			case Stat.StatSpellHasteRating:
 				return [PseudoStat.PseudoStatSpellHastePercent];
-			case Stat.StatResilienceRating:
-				return [PseudoStat.PseudoStatReducedCritTakenPercent];
 			case Stat.StatDefenseRating:
 				return [PseudoStat.PseudoStatReducedCritTakenPercent];
 			case Stat.StatExpertiseRating:
@@ -450,7 +446,6 @@ export const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedCritPercent),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHastePercent),
-	UnitStat.fromStat(Stat.StatResilienceRating),
 	UnitStat.fromStat(Stat.StatDefenseRating),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatBlockPercent),
 	UnitStat.fromStat(Stat.StatBlockValue),

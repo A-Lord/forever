@@ -775,19 +775,16 @@ export class Player<SpecType extends Spec> {
 		const critImmuneCap = 5.6;
 		const currentStats = this.slice().currentStats;
 		const defense = currentStats.finalStats?.stats[Stat.StatDefenseRating] || 0;
-		const resilience = currentStats.finalStats?.stats[Stat.StatResilienceRating] || 0;
 
 		const defenseContribution = Math.floor(defense / Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL) * Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE;
-		const resilienceContribution = resilience / Mechanics.RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE;
-		// PseudoStatReducedCritTakenPercent includes all sources: defense, resilience, and talents.
+		// PseudoStatReducedCritTakenPercent includes all sources: defense and talents.
 		const total = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatReducedCritTakenPercent] || 0;
-		const talentContribution = total - defenseContribution - resilienceContribution;
+		const talentContribution = total - defenseContribution;
 
 		return {
 			total: total,
 			delta: critImmuneCap - total,
 			defense: defenseContribution,
-			resilience: resilienceContribution,
 			talents: talentContribution,
 		};
 	}

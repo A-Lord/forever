@@ -1,9 +1,9 @@
 // What the item procs the sim registered before it read them off the rows resolve to. The table is
 // the sixteen registrations sim/common/forever/stat_bonus_procs_auto_gen.go carried at 60266be6f7,
 // transcribed by hand, and every field is what that generated call stated. Two of them state a
-// number the client contradicts, one a mask that leaves out the heals the client's mask names,
-// three are no longer registered at all, and one required damage where a weapon proc needs only a
-// landed hit; each says so here.
+// number the client contradicts, one a mask that leaves out the heals the client's mask names, three
+// are no longer registered at all, and one required damage where a weapon proc needs only a landed
+// hit; each says so here.
 //
 // A pin rather than a comparison: the generated file carries spell ids now, so there are no literals
 // left to compare against, and what this guards is that resolving those ids still produces the

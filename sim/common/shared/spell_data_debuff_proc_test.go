@@ -108,7 +108,7 @@ func TestFrostguardSlowsTheTargetsMeleeAttacks(t *testing.T) {
 // on top, and Thunder Clap's returns when Frostguard's runs out.
 func TestFrostguardsSlowSharesThunderClapsSlot(t *testing.T) {
 	editRow(t, frostguardChilled, alwaysProcs)
-	neck := permanentSlowNeck(991402, func(target *core.Unit) *core.Aura { return buffs.ThunderClapAura(target, false, 0) })
+	neck := permanentSlowNeck(991402, func(target *core.Unit) *core.Aura { return buffs.ThunderClapAura(target, true, 0) })
 	sim, caster, target := newSlowProcSim(t, 991403, registerSpellDataDebuffProc, frostguardChilled, neck)
 	expectSpeeds(t, "under Thunder Clap", target, 1/1.2, 1)
 

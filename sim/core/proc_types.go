@@ -141,9 +141,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 
 	// A mask made of nothing but the spell-cast bits. The harmful one has to be present: a
 	// helpful-only mask carries no evidence that casting is the trigger at all, and the helpful
-	// branch below already demands tooltip evidence before it believes one - the PvP Librams
-	// that buff a heal target read "Causes your Flash of Light to increase the target's
-	// Resilience" and are neither a self buff nor unrestricted.
+	// branch below already demands tooltip evidence before it believes one.
 	spellCastMask := castWord&dbcenums.PROC_FLAG_DEAL_HARMFUL_SPELL != 0 &&
 		castWord&^(dbcenums.PROC_FLAG_DEAL_HARMFUL_SPELL|dbcenums.PROC_FLAG_DEAL_HELPFUL_SPELL) == 0
 

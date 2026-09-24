@@ -33,7 +33,7 @@ func TestEnchantGrantEffectsReadOnlyEnchantItemEffects(t *testing.T) {
 // off: the lowest, which for an equip spell several enchants share is the lowest of theirs.
 func TestStoreEnchantGrantsMatchTheGenerators(t *testing.T) {
 	tables := clientSpellTables(t)
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 	grants := enchantGrantEffects(instance.SpellEffectsById)
 

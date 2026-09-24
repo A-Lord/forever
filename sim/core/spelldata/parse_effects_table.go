@@ -41,12 +41,12 @@ type parser struct {
 	// IgnoreStacks clears the stacks' share of it.
 	stacking bool
 
-	// DryRun: the rows are read for what they would attach, and nothing is registered on the unit.
-	dry bool
-
 	// The aura the attachments follow, which the unit's temporary stats listeners are told about.
 	// Nil on the static path.
 	aura *core.Aura
+
+	// DryRun: the rows are read for what they would attach, and nothing is registered on the unit.
+	dry bool
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -75,6 +75,7 @@ type attachment struct {
 	stat    stats.Stat
 	statBid bool
 
+	// The stats the attachment adds to or multiplies.
 	stats []stats.Stat
 }
 
@@ -107,12 +108,6 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_DAMAGE_DONE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statsBuff(damageDoneStats(e.Misc), v)
 	},
-	// Flat damage taken per hit, which the sim keeps once for physical hits and once for magic ones.
-	dbcenums.A_MOD_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
-		kind, key, fields := p.damageTakenFields(e.Misc)
-		return p.pseudoAdd(kind, key, fields, v)
-	},
-
 	// The cost of the spells of the schools the mask names, in core's multiplicative cost bucket.
 	// Whether a second stack multiplies again or adds again is not stated, so a stacking row is
 	// skipped.
@@ -124,6 +119,35 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			Kind:   core.SpellMod_PowerCost_Pct,
 			School: core.SpellSchool(e.Misc),
 		}, v/100)
+	},
+
+	// Flat damage taken, which the sim keeps once for physical and once for every spell school
+	// together: every school is both, and a mask that names some spell schools and not others has no
+	// field to land on.
+	dbcenums.A_MOD_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
+		physical := func() *attachment {
+			return p.pseudoAdd("physical-damage-taken-flat", "BonusPhysicalDamageTaken",
+				&p.unit.PseudoStats.BonusPhysicalDamageTaken, v)
+		}
+		spell := func() *attachment {
+			return p.pseudoAdd("spell-damage-taken-flat", "BonusSpellDamageTaken",
+				&p.unit.PseudoStats.BonusSpellDamageTaken, v)
+		}
+		switch {
+		case e.Misc&miscAllSchools == miscAllSchools:
+			a := &attachment{kind: "damage-taken-flat", value: v, parts: []*attachment{physical(), spell()}}
+			a.set = func(sim *core.Simulation, level float64) {
+				for _, part := range a.parts {
+					part.set(sim, level)
+				}
+			}
+			return a
+		case e.Misc&int32(core.SpellSchoolPhysical) != 0:
+			return physical()
+		case e.Misc&miscMagicSchool == miscMagicSchool:
+			return spell()
+		}
+		return nil
 	},
 
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
@@ -141,7 +165,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// Ranged attack power for whoever shoots the unit, which the sim keeps on the unit shot.
 	dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoAdd("ranged-attack-power-attacker-bonus", "BonusRangedAttackPower",
-			[]*float64{&p.unit.PseudoStats.BonusRangedAttackPower}, v)
+			&p.unit.PseudoStats.BonusRangedAttackPower, v)
 	},
 
 	// The ratings the misc value names as a mask of the client's combat ratings, by the combinations
@@ -174,7 +198,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 
 	// The three haste auras. Each multiplies a speed the unit recomputes, so each needs the
-	// Simulation an aura's gain hands over. A negative one is a slow.
+	// Simulation an aura's gain hands over.
 	dbcenums.A_MOD_CASTING_SPEED_NOT_STACK: func(p *parser, e *Effect, v float64) *attachment {
 		return p.speed("cast-speed", "CastSpeedMultiplier", (*core.Unit).MultiplyCastSpeed, speedMultiplier(v))
 	},
@@ -199,13 +223,13 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			[]*float64{&p.unit.PseudoStats.HealingTakenMultiplier}, percentMultiplier(v))
 	},
 	dbcenums.A_MOD_HEALING: func(p *parser, e *Effect, v float64) *attachment {
-		return p.pseudoAdd("healing-taken-flat", "BonusHealingTaken", []*float64{&p.unit.PseudoStats.BonusHealingTaken}, v)
+		return p.pseudoAdd("healing-taken-flat", "BonusHealingTaken", &p.unit.PseudoStats.BonusHealingTaken, v)
 	},
 
 	// The chance a hit pushes a cast back, which the sim keeps as a chance that starts at 1: the
 	// client's 35% less pushback is -0.35 there.
 	dbcenums.A_REDUCE_PUSHBACK: func(p *parser, e *Effect, v float64) *attachment {
-		return p.pseudoAdd("pushback", "PushbackChance", []*float64{&p.unit.PseudoStats.PushbackChance}, -v/100)
+		return p.pseudoAdd("pushback", "PushbackChance", &p.unit.PseudoStats.PushbackChance, -v/100)
 	},
 
 	// Mana regen, which the client states per five seconds on the mana bar.
@@ -538,39 +562,42 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 		}
 		a.parts = append(a.parts, part)
 	}
+	active := false
 	a.set = func(sim *core.Simulation, level float64) {
+		if (level > 0) == active {
+			return
+		}
+		active = level > 0
+		if sim == nil || len(p.unit.OnTemporaryStatsChanges) == 0 {
+			for _, part := range a.parts {
+				part.set(sim, level)
+			}
+			return
+		}
+
+		before := p.unit.GetStats()
 		for _, part := range a.parts {
 			part.set(sim, level)
+		}
+		change := p.unit.GetStats().Subtract(before)
+		for _, onChange := range p.unit.OnTemporaryStatsChanges {
+			onChange(sim, p.aura, change)
 		}
 	}
 	return a
 }
 
 func (p *parser) statDependency(dep *stats.StatDependency) func(sim *core.Simulation, level float64) {
-	toggle := func(sim *core.Simulation, active bool) {
-		if active {
-			p.unit.EnableBuildPhaseStatDep(sim, dep)
-		} else {
-			p.unit.DisableBuildPhaseStatDep(sim, dep)
-		}
-	}
-
 	active := false
 	return func(sim *core.Simulation, level float64) {
 		if (level > 0) == active {
 			return
 		}
 		active = level > 0
-		if sim == nil || len(p.unit.OnTemporaryStatsChanges) == 0 {
-			toggle(sim, active)
-			return
-		}
-
-		before := p.unit.GetStats()
-		toggle(sim, active)
-		change := p.unit.GetStats().Subtract(before)
-		for _, onChange := range p.unit.OnTemporaryStatsChanges {
-			onChange(sim, p.aura, change)
+		if active {
+			p.unit.EnableBuildPhaseStatDep(sim, dep)
+		} else {
+			p.unit.DisableBuildPhaseStatDep(sim, dep)
 		}
 	}
 }
@@ -615,34 +642,13 @@ func (p *parser) pseudoMultiplier(kind string, key string, fields []*float64, mu
 	return a
 }
 
-// Pseudo-stats the sim adds to, which follow the stacks the way a flat stat does.
-func (p *parser) pseudoAdd(kind string, key string, fields []*float64, v float64) *attachment {
-	if len(fields) == 0 {
-		return nil
-	}
-
+// A pseudo-stat the sim adds to, which follows the stacks the way a flat stat does.
+func (p *parser) pseudoAdd(kind string, key string, field *float64, v float64) *attachment {
 	a := additive(kind, v, func(_ *core.Simulation, delta float64) {
-		for _, field := range fields {
-			*field += delta
-		}
+		*field += delta
 	})
 	a.key = key
 	return a
-}
-
-// The flat damage-taken fields a school mask names: every school is both, and a mask the two fields
-// cannot state on their own - a single magic school - names none.
-func (p *parser) damageTakenFields(mask int32) (kind string, key string, fields []*float64) {
-	physical, magic := &p.unit.PseudoStats.BonusPhysicalDamageTaken, &p.unit.PseudoStats.BonusSpellDamageTaken
-	switch mask {
-	case miscAllSchools:
-		return "damage-taken-flat", "BonusPhysicalDamageTaken+BonusSpellDamageTaken", []*float64{physical, magic}
-	case miscMagicSchool:
-		return "spell-damage-taken-flat", "BonusSpellDamageTaken", []*float64{magic}
-	case int32(core.SpellSchoolPhysical):
-		return "physical-damage-taken-flat", "BonusPhysicalDamageTaken", []*float64{physical}
-	}
-	return "", "", nil
 }
 
 // One of the speeds the unit recomputes on every change. They take the Simulation the aura's gain
@@ -711,17 +717,17 @@ func (p *parser) schoolMultiplier(kind string, key string, mask int32, mult floa
 }
 
 // The client states a percentage as an integer, and its sign comes from the data: a -6 is 0.94.
-func percentMultiplier(v float64) float64 {
-	return 1 + v/100
-}
-
-// A speed raise multiplies the speed by 1 + v/100; a slow makes the time between attacks, or the cast
-// time, |v|% longer, which divides the speed by core.SlowedTimeMultiplier(v).
+// A speed the client states as a percentage. A negative one is a slow, which makes the time between
+// attacks or the cast time that much longer rather than taking that share off the speed.
 func speedMultiplier(v float64) float64 {
 	if v < 0 {
 		return 1 / core.SlowedTimeMultiplier(v)
 	}
-	return percentMultiplier(v)
+	return 1 + v/100
+}
+
+func percentMultiplier(v float64) float64 {
+	return 1 + v/100
 }
 
 // The stats a client stat index names: -1 is all five, and 0 through 4 are one of them.
@@ -790,8 +796,6 @@ func ratingStats(mask int32) []stats.Stat {
 		return []stats.Stat{stats.MeleeCritRating}
 	case 1024:
 		return []stats.Stat{stats.SpellCritRating}
-	case 49152:
-		return []stats.Stat{stats.ResilienceRating}
 	case 131072, 393216, 524288:
 		return []stats.Stat{stats.MeleeHasteRating}
 	}

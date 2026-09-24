@@ -28,7 +28,7 @@ func parsedItem(t *testing.T, instance *dbc.DBC, itemID int, spellID int32) (*pr
 // does not list, and Adaptive Combat Assistant 272437's 1291097 names the Nature damage 1291099 its
 // shield deals when broken early; both are refused and listed.
 func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -74,7 +74,7 @@ func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 // column over the 2% its tooltip states on effect 1; Jang'thraze the Protector 9380's chance on hit
 // states no rate.
 func TestItemProcAbsorbRoutes(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -114,7 +114,7 @@ func TestItemProcAbsorbRoutes(t *testing.T) {
 // The chest absorption enchants' equip auras state their chance and a 5 s lockout, and each casts the
 // absorb its A_PROC_TRIGGER_SPELL names.
 func TestEnchantAbsorbRoutes(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {

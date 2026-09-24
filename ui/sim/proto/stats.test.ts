@@ -14,9 +14,9 @@ import { displayStatOrder, Stats, UnitStat } from './stats';
 describe('UnitStat', () => {
 	// The MoP placeholder evaluated `displayStatOrder` at module scope against MoP's PseudoStat set
 	// and threw inside getRootStat on TBC's, taking every transitive importer down with it.
-	it('builds displayStatOrder at module scope over TBC 42-stat shape', () => {
+	it('builds displayStatOrder at module scope over the 41-stat shape', () => {
 		expect(displayStatOrder.length).toBeGreaterThan(0);
-		expect(new Stats().asProtoArray().length).toBe(42);
+		expect(new Stats().asProtoArray().length).toBe(41);
 	});
 
 	it('roots the six school hit pseudo-stats at SpellHitRating and leaves their own root null', () => {
@@ -62,11 +62,9 @@ describe('UnitStat', () => {
 		expect(() => unitStat.convertEpToRatingScale(0).toFixed(2)).not.toThrow();
 	});
 
-	// TBC-only second parameter: ReducedCritTakenPercent has two possible rating sources.
 	it('needs a parentStat to turn ReducedCritTakenPercent back into a rating', () => {
 		const unitStat = UnitStat.fromPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent);
 		expect(unitStat.convertPercentToRating(1)).toBeNull();
-		expect(unitStat.convertPercentToRating(1, Stat.StatResilienceRating)).toBeCloseTo(Mechanics.RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE);
 		expect(unitStat.convertPercentToRating(1, Stat.StatDefenseRating)).toBeCloseTo(
 			Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL / Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE,
 		);

@@ -34,16 +34,15 @@ func TestBlockRatingAndDefenseReachTheAvoidancePercents(t *testing.T) {
 	}
 }
 
-func TestCritTakenCountsWholeDefenseAndResilience(t *testing.T) {
+func TestCritTakenCountsWholeDefense(t *testing.T) {
 	unit := &Unit{StatDependencyManager: stats.NewStatDependencyManager()}
 	unit.addUniversalStatDependencies()
 	unit.FinalizeStatDeps()
 	unit.stats = unit.ApplyStatDependencies(stats.Stats{
-		stats.DefenseRating:    25.9 * DefenseRatingPerDefenseLevel,
-		stats.ResilienceRating: 2 * ResilienceRatingPerCritReductionChance,
+		stats.DefenseRating: 25.9 * DefenseRatingPerDefenseLevel,
 	})
 
-	if got := unit.GetStat(stats.ReducedCritTakenPercent); math.Abs(got-3) > 1e-12 {
-		t.Errorf("25.9 defense and the resilience for 2%% reduce crit taken by %v%%, want 3", got)
+	if got := unit.GetStat(stats.ReducedCritTakenPercent); math.Abs(got-1) > 1e-12 {
+		t.Errorf("25.9 defense reduces crit taken by %v%%, want 1", got)
 	}
 }

@@ -133,10 +133,9 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	// part of the stats the character sheet is measured with.
 	procAura.BuildPhase = core.CharacterBuildPhaseNone
 
-	// The row's own proc flags say what spends a charge: an auto attack that
-	// lands, every time. The row's chance is the 20% the enchantment casts it
-	// at, not a roll on the charges. The attack power stays until the charges
-	// are gone or the row's duration runs out.
+	// The row's own proc flags say what spends a charge: every auto attack that
+	// lands, since the column's chance is the enchantment's roll. The attack
+	// power stays until the charges are gone or the row's duration runs out.
 	procAura.MaxStacks = int32(windfuryTotemSpell.ProcCharges)
 	spender := spelldata.ProcTrigger(char, windfuryTotemSpell, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		procAura.RemoveStack(sim)

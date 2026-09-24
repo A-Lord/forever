@@ -78,7 +78,7 @@ var Manifest = []BuffSpec{
 		Go:      "RetributionAura", Name: "Retribution Aura", Owner: proto.Class_ClassPaladin,
 		Category: "RetributionAura", SharedCategory: "PaladinAura", SingleAura: true, Driver: true,
 		SkipAuras: paladinAuraSkips,
-		Stats:     []proto.Stat{proto.Stat_StatResilienceRating, proto.Stat_StatArmor, proto.Stat_StatDefenseRating},
+		Stats:     []proto.Stat{proto.Stat_StatArmor, proto.Stat_StatDefenseRating},
 		Notes:     "the only paladin trait matching Retribution Aura is Benediction (20101), which modifies cost (misc 14). Driven because the damage scales with the providing paladin's Holy spell power, which retribution_aura_spell_power states.",
 	},
 	{
@@ -192,7 +192,7 @@ var Manifest = []BuffSpec{
 		SpellID: 9910,
 		Go:      "Thorns", Name: "Thorns", Owner: proto.Class_ClassDruid,
 		Category: "Thorns", SingleAura: true,
-		Stats: []proto.Stat{proto.Stat_StatResilienceRating, proto.Stat_StatDefenseRating, proto.Stat_StatStamina},
+		Stats: []proto.Stat{proto.Stat_StatDefenseRating, proto.Stat_StatStamina},
 		Notes: "no Brambles node in druid tree 1089; the only matching trait is Moonglow (16845), which modifies cost (misc 14).",
 	},
 	{
@@ -326,7 +326,7 @@ var Manifest = []BuffSpec{
 		Field: "judgement_of_light", Number: 2, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindProc,
 		SpellID: 20346,
 		Go:      "JudgementOfLight", Name: "Judgement of Light", Owner: proto.Class_ClassPaladin,
-		Stats: []proto.Stat{proto.Stat_StatResilienceRating},
+		Stats: []proto.Stat{proto.Stat_StatDefenseRating},
 	},
 	{
 		Field: "judgement_of_wisdom", Number: 1, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindProc,
@@ -384,7 +384,7 @@ var Manifest = []BuffSpec{
 		Field: "gift_of_arthas", Number: 5, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffDamageTaken,
 		SpellID: 11374,
 		Go:      "GiftOfArthas", Category: "GiftOfArthasAura", SingleAura: true,
-		Stats: []proto.Stat{proto.Stat_StatAttackPower, proto.Stat_StatResilienceRating},
+		Stats: []proto.Stat{proto.Stat_StatAttackPower, proto.Stat_StatDefenseRating},
 		Notes: "applied by an elixir, so 11374 has no SkillLineAbility row and the anchor is explicit.",
 	},
 	{
@@ -392,7 +392,7 @@ var Manifest = []BuffSpec{
 		SpellID: 9898,
 		Go:      "DemoralizingRoar", Name: "Demoralizing Roar", Owner: proto.Class_ClassDruid,
 		Category: "Demoralizing", SingleAura: true,
-		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatResilienceRating},
+		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},
 		Notes: "no Feral Aggression node in druid tree 1089.",
 	},
 	{
@@ -400,7 +400,7 @@ var Manifest = []BuffSpec{
 		SpellID: 11556,
 		Go:      "DemoralizingShout", Name: "Demoralizing Shout", Owner: proto.Class_ClassWarrior,
 		Category: "Demoralizing", SingleAura: true,
-		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatResilienceRating},
+		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},
 		Notes: "no Improved Demoralizing Shout node in warrior tree 1117.",
 	},
 	{
@@ -408,21 +408,21 @@ var Manifest = []BuffSpec{
 		SpellID: 11581,
 		Go:      "ThunderClap", Name: "Thunder Clap", Owner: proto.Class_ClassWarrior,
 		Category: "AtkSpdReduction",
-		Stats:    []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatResilienceRating},
+		Stats:    []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},
 		Notes:    "Improved Thunder Clap (12287) is in warrior tree 1117 but its only 107/108 effect is misc 14 (cost).",
 	},
 	{
 		Field: "insect_swarm", Number: 15, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 24977,
 		Go:      "InsectSwarm", Name: "Insect Swarm", Owner: proto.Class_ClassDruid,
-		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatResilienceRating},
+		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},
 		Notes: "Nature's Splendor (1223083) effect 2 extends the duration (misc 1); the field is a plain bool, so the talent is not carried.",
 	},
 	{
 		Field: "scorpid_sting", Number: 16, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 3043,
 		Go:      "ScorpidSting", Name: "Scorpid Sting", Owner: proto.Class_ClassHunter,
-		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatResilienceRating},
+		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},
 		Notes: "Improved Stings (1310661) effect 2 extends the duration (misc 1); the field is a plain bool, so the talent is not carried.",
 	},
 }

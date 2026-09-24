@@ -1,6 +1,7 @@
 package database
 
 import (
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -12,10 +13,20 @@ import (
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
+// Moves to the repository root and skips without the client DBC inputs, which are not in the repo.
+func withDBCInputs(t *testing.T) {
+	t.Helper()
+
+	inRepositoryRoot(t)
+	if _, err := os.Stat("./assets/db_inputs/dbc/spells.json"); err != nil {
+		t.Skip("no client DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable this test")
+	}
+}
+
 // Which slots of a real enchant reach the generator, in which shape and at which chance. Every
 // entry names the reason it is refused, or none where it registers.
 func TestEnchantProcRouting(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	type want struct {
@@ -80,7 +91,7 @@ func TestEnchantProcRouting(t *testing.T) {
 // of an Effect 1 slot, the equip aura of an Effect 3 one - and leaves every other refusal in place.
 // On an equip aura that hears only spells the rate is refused in turn: it would never roll.
 func TestEnchantProcRoutingTakesAPPMOverride(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -132,7 +143,7 @@ func TestEnchantProcRoutingTakesAPPMOverride(t *testing.T) {
 // Insight's effect entry resolves no flat stats, so the slot applies its buff 1299796 as auras, whose
 // row multiplies Spirit by 2.
 func TestEnchantPercentStatBuffIsTheAppliedSpell(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	enchant := instance.EnchantsByEffectId[8216]
@@ -154,7 +165,7 @@ func TestEnchantPercentStatBuffIsTheAppliedSpell(t *testing.T) {
 // you are Parried or Dodged". The row carries that outcome, its 10 s ProcCategoryRecovery and its
 // ProcChance of 100, and the routing casts the 5% E_HEAL_PCT heal 1248759 it applies.
 func TestRecoveryHealsOnTheWearersAttackDodgedOrParried(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	enchant := instance.EnchantsByEffectId[8721]
