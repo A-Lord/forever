@@ -30,17 +30,47 @@ const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offer
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'race'];
 
-// The flask and the elixirs exclude each other.
-const withExclusions = (consumes: ConsumesSpec, field: ConsumableIdField, newValue: number): ConsumesSpec => {
+// The flask and the elixirs exclude each other: picking one clears the other.
+const withExclusions = <F extends ConsumableIdField | 'elixirIds'>(
+	consumes: ConsumesSpec,
+	field: F,
+	newValue: ConsumesSpec[F],
+	picked: boolean,
+): ConsumesSpec => {
 	const newConsumes = { ...consumes, [field]: newValue };
-	if (field === 'flaskId' && newValue) newConsumes.elixirIds = [];
+	if (picked && field === 'flaskId') newConsumes.elixirIds = [];
+	if (picked && field === 'elixirIds') newConsumes.flaskId = 0;
 	return newConsumes;
 };
 
-export function makeConsumableInput(
+export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, options: ConsumableInputOptions) =>
+	consumablePicker(
+		consumables,
+		relevance,
+		options,
+		consumes => consumes[options.consumesFieldName],
+		(consumes, newValue) => withExclusions(consumes, options.consumesFieldName, newValue, newValue !== 0),
+	);
+
+// One elixir group's pick: at most one of the group's elixirs in the spec's elixir list.
+export const makeElixirGroupInput = (elixirs: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, tooltip: string) => {
+	const ids = new Set(elixirs.map(elixir => elixir.id));
+	return consumablePicker(
+		elixirs,
+		relevance,
+		{ tooltip },
+		consumes => consumes.elixirIds.find(id => ids.has(id)) ?? 0,
+		(consumes, newValue) =>
+			withExclusions(consumes, 'elixirIds', [...consumes.elixirIds.filter(id => !ids.has(id)), ...(newValue ? [newValue] : [])], newValue !== 0),
+	);
+};
+
+function consumablePicker(
 	consumables: ReadonlyArray<Consumable>,
 	relevance: ConsumableRelevance,
-	options: ConsumableInputOptions,
+	options: Omit<ConsumableInputOptions, 'consumesFieldName'>,
+	pickOf: (consumes: ConsumesSpec) => number,
+	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
 	const values: Array<IconEnumValueConfig<Player<any>, number>> = consumables.map(consumable => ({
 		value: consumable.id,
@@ -61,35 +91,29 @@ export function makeConsumableInput(
 		// `raid:partyBuffs` because the main-hand imbue's showWhen reads Windfury Totem off the party.
 		storeField: [...STORE_FIELDS, 'raid:partyBuffs'],
 		showWhen: options.showWhen,
-		getValue: (player: Player<any>) => player.getConsumes()[options.consumesFieldName],
+		getValue: (player: Player<any>) => pickOf(player.getConsumes()),
 		setValue: (player: Player<any>, newValue: number) => {
 			const consumes = player.getConsumes();
-			if (consumes[options.consumesFieldName] === newValue) return;
-			player.setConsumes(withExclusions(consumes, options.consumesFieldName, newValue));
+			if (pickOf(consumes) === newValue) return;
+			player.setConsumes(withPick(consumes, newValue));
 		},
 	};
 }
 
-// A consumable picked any number at a time into one of the spec's id lists. Picking an elixir clears
-// the flask.
-export function makeIdListInput(
-	consumable: Consumable,
-	relevance: ConsumableRelevance,
-	field: 'extraIds' | 'elixirIds' = 'extraIds',
-): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
+// A consumable picked any number at a time into the spec's extra ids.
+export function makeIdListInput(consumable: Consumable, relevance: ConsumableRelevance): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
 	return {
 		type: 'icon',
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
 		storeField: STORE_FIELDS,
 		showWhen: offeredTo(consumable, relevance),
-		getValue: (player: Player<any>) => player.getConsumes()[field].includes(consumable.id),
+		getValue: (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id),
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();
-			const ids = consumes[field].filter(id => id !== consumable.id);
-			if (newValue) ids.push(consumable.id);
-			const flaskId = field === 'elixirIds' && newValue ? 0 : consumes.flaskId;
-			player.setConsumes({ ...consumes, [field]: ids, flaskId });
+			const extraIds = consumes.extraIds.filter(id => id !== consumable.id);
+			if (newValue) extraIds.push(consumable.id);
+			player.setConsumes({ ...consumes, extraIds });
 		},
 	};
 }

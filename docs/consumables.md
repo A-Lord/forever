@@ -133,10 +133,14 @@ for every consumable the spec names).
 The Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411, Ground Scorpok Assay 8412,
 Cerebral Cortex Compound 8423, Gizzard Gum 8424) share category 103's 1 h and last 1 h. The Zanza
 potions (category 79, 3 s) and the Marks of the Dawn (no category) state nothing of the kind and stack.
-Elixirs of the same stat do not stack: each stat or pseudo-stat an elixir's auras attach bids under
-the `Elixir` category, so of two elixirs that attach one only the larger applies, and each keeps its
-other stats (Elixir of the Mongoose 13452's 25 Agility over Elixir of Agility 8949's 15, its crit
-beside).
+Each elixir belongs to one group: the aura type and misc value of the first aura its on-use spell
+applies, which `Consumable.ToProto` writes into db.json as `elixir_group_aura` and
+`elixir_group_misc`. Of the elixirs the spec names only the first of each group applies
+(`firstElixirOfEachGroup` in `sim/core/consumes.go`), in full; elixirs of different groups stack.
+Elixir of Agility 8949 and Elixir of the Mongoose 13452 both open on `A_MOD_STAT` Agility (29/1), so
+only one of them applies; Elixir of the Sages 13447 (29/3, Intellect then Spirit) and Elixir of the
+Whale 250348 (29/4, Spirit) stack, and so do Arcane Elixir 9155 (`A_MOD_DAMAGE_DONE` every school,
+13/126) and Elixir of Fire Power 6373 (13/4). The flask excludes every elixir in the settings.
 
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
@@ -286,8 +290,10 @@ should not take is a hand-written effect for the consumable.
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
 consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
 the conjured item, `ConsumableTypePotion` the combat potion, then the flask, `ConsumableTypeElixir`
-the elixirs, picked any number at a time into `elixir_ids` (the client states no Battle or Guardian
-split), `ConsumableTypeFood` the food, the explosive and the imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
+the elixirs, one picker per elixir group, each writing at most one id into `elixir_ids` and named from
+its aura (`elixirGroupName`: "Strength", "Spell Power", "Fire Spell Power", ...), a group that offers
+the player nothing hidden (the client states no Battle or Guardian split),
+`ConsumableTypeFood` the food, the explosive and the imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
 in their row, the rest in the miscellaneous row, and an explosive with a cooldown of its own beside the
 shared one (Goblin Sapper Charge 10646) beside the explosive picker.
 

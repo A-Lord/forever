@@ -162,19 +162,40 @@ func TestOnlyACategoryCooldownAsLongAsTheBuffKeepsConsumablesApart(t *testing.T)
 }
 
 // Elixir of Agility 8949 (11328, 15 Agility) and Elixir of the Mongoose 13452 (17538, 25 Agility and
-// 2% crit) attach the same stat, Agility, so only the Mongoose's 25 applies; its crit stays.
-func TestElixirsOfTheSameStatDoNotStack(t *testing.T) {
+// 2% crit) both open on A_MOD_STAT Agility (29/1), one group: only the one the spec names first
+// applies, in full.
+func TestOnlyTheFirstElixirOfAGroupApplies(t *testing.T) {
 	const elixirOfAgilityID int32 = 8949
 	registerStatConsumable(t, elixirOfAgilityID)
 	registerStatConsumable(t, elixirOfTheMongooseID)
 
-	if gain := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfAgilityID}}, &proto.RaidBuffs{}); gain[stats.Agility] != 15 {
-		t.Errorf("Elixir of Agility adds %v Agility, want 15", gain[stats.Agility])
+	gain := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfAgilityID, elixirOfTheMongooseID}}, &proto.RaidBuffs{})
+	if gain[stats.Agility] != 15 || gain[stats.PhysicalCritPercent] != 0 {
+		t.Errorf("Agility then Mongoose add %v Agility and %v%% crit, want 15 and 0", gain[stats.Agility], gain[stats.PhysicalCritPercent])
 	}
-	for _, ids := range [][]int32{{elixirOfAgilityID, elixirOfTheMongooseID}, {elixirOfTheMongooseID, elixirOfAgilityID}} {
-		gain := statGain(&proto.ConsumesSpec{ElixirIds: ids}, &proto.RaidBuffs{})
-		if gain[stats.Agility] != 25 || gain[stats.PhysicalCritPercent] < 2-1e-9 {
-			t.Errorf("%v add %v Agility and %v%% crit, want 25 and 2", ids, gain[stats.Agility], gain[stats.PhysicalCritPercent])
-		}
+	gain = statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID, elixirOfAgilityID}}, &proto.RaidBuffs{})
+	if gain[stats.Agility] != 25 || gain[stats.PhysicalCritPercent] < 2-1e-9 {
+		t.Errorf("Mongoose then Agility add %v Agility and %v%% crit, want 25 and 2", gain[stats.Agility], gain[stats.PhysicalCritPercent])
+	}
+}
+
+// Elixirs of different groups stack in full. Elixir of the Sages 13447 (17535, 18 Intellect then 18
+// Spirit) is an Intellect elixir (29/3) and Elixir of the Whale 250348 (1250981, 25 Spirit) a Spirit
+// one (29/4): 43 Spirit. Arcane Elixir 9155 (11390, 20 spell damage, 13/126) and Elixir of Fire Power
+// 6373 (7844, 10 fire damage, 13/4) are two groups as well.
+func TestElixirsOfDifferentGroupsStack(t *testing.T) {
+	const sagesID, whaleID, arcaneID, firePowerID int32 = 13447, 250348, 9155, 6373
+	for _, id := range []int32{sagesID, whaleID, arcaneID, firePowerID} {
+		registerStatConsumable(t, id)
+	}
+
+	gain := statGain(&proto.ConsumesSpec{ElixirIds: []int32{sagesID, whaleID}}, &proto.RaidBuffs{})
+	if gain[stats.Intellect] != 18 || gain[stats.Spirit] != 43 {
+		t.Errorf("Sages and Whale add %v Intellect and %v Spirit, want 18 and 43", gain[stats.Intellect], gain[stats.Spirit])
+	}
+	arcane := statGain(&proto.ConsumesSpec{ElixirIds: []int32{arcaneID}}, &proto.RaidBuffs{})
+	fire := statGain(&proto.ConsumesSpec{ElixirIds: []int32{firePowerID}}, &proto.RaidBuffs{})
+	if both := statGain(&proto.ConsumesSpec{ElixirIds: []int32{arcaneID, firePowerID}}, &proto.RaidBuffs{}); both != arcane.Add(fire) {
+		t.Errorf("Arcane Elixir and Elixir of Fire Power add %v, want each one's in full: %v and %v", both, arcane, fire)
 	}
 }

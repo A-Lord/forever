@@ -1,10 +1,20 @@
-import { type ConsumableRelevance, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
+import { type ConsumableRelevance, makeConsumableInput, makeElixirGroupInput, makeIdListInput } from '@features/settings/model/consumables';
 import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, higherRanks, relevanceFor } from '@sim/settings/consumables';
+import {
+	ConsumableSlot,
+	consumableSlot,
+	consumableStatsOf,
+	elixirGroupKey,
+	elixirGroupName,
+	explosiveUsedBeside,
+	handTakesImbue,
+	higherRanks,
+	relevanceFor,
+} from '@sim/settings/consumables';
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
@@ -14,7 +24,8 @@ export interface ConsumeConfigs {
 	potion: ConsumeConfig;
 	conjured: ConsumeConfig;
 	flask: ConsumeConfig;
-	elixirs: Array<ConsumeToggle>;
+	// One pick per elixir group, in the order of the groups' aura and misc value.
+	elixirs: Array<ConsumeConfig>;
 	food: ConsumeConfig;
 	explosive: ConsumeConfig;
 	explosiveExtras: Array<ConsumeToggle>;
@@ -46,7 +57,11 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[2], consumables = inSlot(slot)) =>
 		makeConsumableInput(consumables, relevance, options);
 
-	const elixirs = inSlot(ConsumableSlot.Elixir);
+	const elixirGroups = new Map<string, Array<Consumable>>();
+	const elixirs = [...inSlot(ConsumableSlot.Elixir)].sort((a, b) => a.elixirGroupAura - b.elixirGroupAura || a.elixirGroupMisc - b.elixirGroupMisc);
+	for (const elixir of elixirs) {
+		elixirGroups.set(elixirGroupKey(elixir), [...(elixirGroups.get(elixirGroupKey(elixir)) ?? []), elixir]);
+	}
 	const explosives = inSlot(ConsumableSlot.Explosive);
 	const imbues = inSlot(ConsumableSlot.Imbue);
 	const extras = inSlot(ConsumableSlot.Extra);
@@ -56,7 +71,7 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		potion: input(ConsumableSlot.Potion, { consumesFieldName: 'potId', tooltip: i18n.t('settings_tab.consumables.potions.combat') }),
 		conjured: input(ConsumableSlot.Conjured, { consumesFieldName: 'conjuredId' }),
 		flask: input(ConsumableSlot.Flask, { consumesFieldName: 'flaskId' }),
-		elixirs: elixirs.map(consumable => makeIdListInput(consumable, relevance, 'elixirIds')),
+		elixirs: [...elixirGroups.values()].map(group => makeElixirGroupInput(group, relevance, elixirGroupName(group[0]))),
 		food: input(ConsumableSlot.Food, { consumesFieldName: 'foodId' }),
 		explosive: input(
 			ConsumableSlot.Explosive,

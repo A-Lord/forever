@@ -36,6 +36,42 @@ func TestAConsumableIsTypedByTheCategoryItsOnUseShares(t *testing.T) {
 	}
 }
 
+// An elixir's group is the aura type and misc value of the first aura its on-use spell applies, and
+// every elixir db.json ships has one.
+func TestAnElixirIsGroupedByItsFirstAura(t *testing.T) {
+	inRepositoryRoot(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		name       string
+		id         int
+		aura, misc int32
+	}{
+		{"Elixir of the Mongoose, A_MOD_STAT Agility then crit", 13452, 29, 1},
+		{"Elixir of the Sages, A_MOD_STAT Intellect then Spirit", 13447, 29, 3},
+		{"Arcane Elixir, A_MOD_DAMAGE_DONE every school", 9155, 13, 126},
+		{"Elixir of Fire Power, A_MOD_DAMAGE_DONE fire", 6373, 13, 4},
+		{"Gift of Arthas, A_MOD_RESISTANCE shadow", 9088, 22, 32},
+	} {
+		catalogued, ok := instance.Consumables[tc.id]
+		if !ok {
+			t.Fatalf("%s: %d is not in the catalogue", tc.name, tc.id)
+		}
+		if got := catalogued.ToProto(); got.ElixirGroupAura != tc.aura || got.ElixirGroupMisc != tc.misc {
+			t.Errorf("%s: group %d/%d, want %d/%d", tc.name, got.ElixirGroupAura, got.ElixirGroupMisc, tc.aura, tc.misc)
+		}
+	}
+
+	for id, catalogued := range instance.Consumables {
+		if !ShipsConsumable(RouteConsumable(&catalogued, instance)) {
+			continue
+		}
+		if got := catalogued.ToProto(); got.Type == proto.ConsumableType_ConsumableTypeElixir && got.ElixirGroupAura == 0 {
+			t.Errorf("elixir %d %s applies no aura to group it by", id, catalogued.Name)
+		}
+	}
+}
+
 // The explosive picker offers what shares the explosives' category 24 and routes as damage.
 func TestOnlyADamagingExplosiveIsTypedAnExplosive(t *testing.T) {
 	inRepositoryRoot(t)

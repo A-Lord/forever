@@ -4,13 +4,17 @@ import { ItemEffect } from '@generated/proto/spell';
 import { UIItem } from '@generated/proto/ui';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
+import { iconEnumPickerShown } from '@ui-kit/IconEnumPicker';
 import { describe, expect, it } from 'vitest';
 
 import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
 
 const onUse = (categoryId: number, cooldownMs = 0) =>
 	ItemEffect.create({ effect: { oneofKind: 'onUse', onUse: { categoryId, cooldownMs, categoryCooldownMs: 0 } } });
-const strength = (value: number) => Object.assign(new Array<number>(42).fill(0), { [Stat.StatStrength]: value });
+const statArray = (stat: Stat, value: number) => Object.assign(new Array<number>(42).fill(0), { [stat]: value });
+const strength = (value: number) => statArray(Stat.StatStrength, value);
+const elixir = (id: number, name: string, stats: Array<number>, elixirGroupAura: number, elixirGroupMisc: number) =>
+	Consumable.create({ id, name, type: ConsumableType.ConsumableTypeElixir, stats, elixirGroupAura, elixirGroupMisc });
 
 const CONSUMABLES = [
 	Consumable.create({
@@ -24,8 +28,10 @@ const CONSUMABLES = [
 	}),
 	Consumable.create({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeConjured, categoryId: 1153, itemEffects: [onUse(1153)] }),
 	Consumable.create({ id: 13510, name: 'Flask of the Titans', type: ConsumableType.ConsumableTypeFlask, stats: strength(10) }),
-	Consumable.create({ id: 9206, name: 'Elixir of Greater Strength', type: ConsumableType.ConsumableTypeElixir, stats: strength(20) }),
-	Consumable.create({ id: 6662, name: 'Elixir of Giant Growth', type: ConsumableType.ConsumableTypeElixir, stats: strength(8) }),
+	elixir(9206, 'Elixir of Greater Strength', strength(25), 29, 0),
+	elixir(6662, 'Elixir of Giant Growth', strength(8), 29, 0),
+	elixir(3383, 'Elixir of Wisdom', statArray(Stat.StatIntellect, 6), 29, 3),
+	elixir(12820, 'Winterfall Firewater', statArray(Stat.StatAttackPower, 35), 99, 0),
 	Consumable.create({
 		id: 238637,
 		name: 'Prowler Steak',
@@ -106,7 +112,7 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(toggled(configs.elixirs, player)).toEqual([9206, 6662]);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662], [], [12820]]);
 		expect(offered(configs.food, player)).toEqual([238637]);
 		expect(offered(configs.explosive, player)).toEqual([18588]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
@@ -135,22 +141,32 @@ describe('consumeConfigs', () => {
 		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
 	});
 
-	it('picks any number of elixirs', () => {
+	it('names each elixir group by its aura and hides one that offers the player nothing', () => {
+		const { player } = playerOf();
+		const configs = consumeConfigs(player, db).elixirs;
+		expect(configs.map(config => config.tooltip)).toEqual(['Strength', 'Intellect', 'Attack Power']);
+		expect(configs.map(config => iconEnumPickerShown(config, player))).toEqual([true, false, true]);
+	});
+
+	it('picks one elixir of each group, and any number of groups', () => {
 		const { player, state } = playerOf();
-		const [greaterStrength, giantGrowth] = consumeConfigs(player, db).elixirs;
-		greaterStrength.setValue(player, true);
-		giantGrowth.setValue(player, true);
-		expect(state.consumes.elixirIds).toEqual([9206, 6662]);
-		greaterStrength.setValue(player, false);
-		expect(state.consumes.elixirIds).toEqual([6662]);
+		const [strengthGroup, , attackPowerGroup] = consumeConfigs(player, db).elixirs;
+		strengthGroup.setValue(player, 9206);
+		attackPowerGroup.setValue(player, 12820);
+		expect(state.consumes.elixirIds).toEqual([9206, 12820]);
+		strengthGroup.setValue(player, 6662);
+		expect(state.consumes.elixirIds).toEqual([12820, 6662]);
+		expect(strengthGroup.getValue(player)).toBe(6662);
+		strengthGroup.setValue(player, 0);
+		expect(state.consumes.elixirIds).toEqual([12820]);
 	});
 
 	it('clears the elixirs for a flask and the flask for an elixir', () => {
-		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206, 6662] }) });
+		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206, 12820] }) });
 		const configs = consumeConfigs(player, db);
 		configs.flask.setValue(player, 13510);
 		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([13510, []]);
-		configs.elixirs[0].setValue(player, true);
+		configs.elixirs[0].setValue(player, 9206);
 		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([0, [9206]]);
 	});
 

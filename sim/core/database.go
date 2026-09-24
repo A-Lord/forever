@@ -126,6 +126,9 @@ type Consumable struct {
 	TemporaryEnchant        *Enchant
 	WeaponSubclassMask      int32
 	WeaponInventoryTypeMask int32
+	// An elixir's group, the aura type and misc value of its spell's first aura; 0 on others.
+	ElixirGroupAura int32
+	ElixirGroupMisc int32
 }
 
 // The item's on-use rows.
@@ -160,6 +163,8 @@ func ConsumableFromProto(consumable *proto.Consumable) Consumable {
 		TemporaryEnchant:        temporaryEnchant,
 		WeaponSubclassMask:      consumable.WeaponSubclassMask,
 		WeaponInventoryTypeMask: consumable.WeaponInventoryTypeMask,
+		ElixirGroupAura:         consumable.ElixirGroupAura,
+		ElixirGroupMisc:         consumable.ElixirGroupMisc,
 	}
 }
 

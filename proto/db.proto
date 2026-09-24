@@ -82,6 +82,11 @@ message Consumable {
 	SimEnchant temporary_enchant = 18;
 	// Empty when every race can use it.
 	repeated Race race_allowlist = 19;
+	// An elixir's group: the aura type and misc value of the first aura its on-use spell applies. Of
+	// the elixirs a spec names only the first of each group applies; elixirs of different groups
+	// stack. The aura is 0 on consumables that are not elixirs.
+	int32 elixir_group_aura = 20;
+	int32 elixir_group_misc = 21;
 
 	reserved 7, 9, 10, 14;
 	reserved "buff_duration", "cooldown_duration", "category_cooldown_duration", "allowable_race";

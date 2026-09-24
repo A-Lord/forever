@@ -9,6 +9,8 @@ import {
 	ConsumableSlot,
 	consumableSlot,
 	type ConsumableUser,
+	elixirGroupKey,
+	elixirGroupName,
 	explosiveUsedBeside,
 	handTakesImbue,
 	higherRanks,
@@ -60,6 +62,36 @@ describe('consumableSlot', () => {
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeImbue }))).toBe(ConsumableSlot.Imbue);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeScroll }))).toBe(ConsumableSlot.Extra);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeDevice }))).toBe(ConsumableSlot.Extra);
+	});
+});
+
+describe('elixir groups', () => {
+	const grouped = (elixirGroupAura: number, elixirGroupMisc: number) =>
+		consumable({ type: ConsumableType.ConsumableTypeElixir, elixirGroupAura, elixirGroupMisc });
+
+	it('keys an elixir by the aura and misc value of its first aura', () => {
+		expect(elixirGroupKey(grouped(29, 1))).toBe('29/1');
+		expect(elixirGroupKey(grouped(13, 126))).not.toBe(elixirGroupKey(grouped(13, 4)));
+	});
+
+	it('names a group from its aura', () => {
+		for (const [aura, misc, name] of [
+			[29, 0, 'Strength'],
+			[29, 4, 'Spirit'],
+			[13, 126, 'Spell Power'],
+			[13, 4, 'Fire Spell Power'],
+			[13, 1, 'Physical Damage'],
+			[22, 1, 'Armor'],
+			[22, 32, 'Shadow Resistance'],
+			[34, 0, 'Health'],
+			[85, 0, 'Mana Regeneration'],
+			[99, 0, 'Attack Power'],
+			[135, 126, 'Healing'],
+			[290, 0, 'Critical Strike'],
+			[4, 0, 'Other'],
+		] as const) {
+			expect(elixirGroupName(grouped(aura, misc)), `${aura}/${misc}`).toBe(name);
+		}
 	});
 });
 

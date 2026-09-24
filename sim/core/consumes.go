@@ -99,7 +99,7 @@ func (character *Character) SelectedConsumableIDs() []int32 {
 // The agent's own consumables the spec names, each once. The main-hand imbue counts only where
 // applyTemporaryEnchants put its enchant on the main hand.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec, mainHandEnchanted bool) []int32 {
-	ids := append([]int32{consumables.PotId, consumables.FlaskId}, consumables.ElixirIds...)
+	ids := append([]int32{consumables.PotId, consumables.FlaskId}, firstElixirOfEachGroup(consumables.ElixirIds)...)
 	ids = append(ids, consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId)
 	if mainHandEnchanted {
 		ids = append(ids, consumables.MhImbueId)
@@ -115,4 +115,24 @@ func selectedConsumableIDs(consumables *proto.ConsumesSpec, mainHandEnchanted bo
 		}
 	}
 	return selected
+}
+
+// Of the elixirs the spec names, the first of each group; the rest of a group do not apply. An id
+// that names no elixir group counts as it is.
+func firstElixirOfEachGroup(elixirIDs []int32) []int32 {
+	type group struct{ aura, misc int32 }
+	var taken []group
+	var kept []int32
+	for _, id := range elixirIDs {
+		elixir := GetConsumableByID(id)
+		if elixir.ElixirGroupAura != 0 {
+			g := group{elixir.ElixirGroupAura, elixir.ElixirGroupMisc}
+			if slices.Contains(taken, g) {
+				continue
+			}
+			taken = append(taken, g)
+		}
+		kept = append(kept, id)
+	}
+	return kept
 }

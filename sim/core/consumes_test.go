@@ -33,6 +33,21 @@ func TestSelectedConsumableIDs(t *testing.T) {
 	}
 }
 
+func TestSelectedConsumableIDsKeepTheFirstElixirOfEachGroup(t *testing.T) {
+	const agility, mongoose, sages, ungrouped = 990401, 990402, 990403, 990404
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
+		{Id: agility, Type: proto.ConsumableType_ConsumableTypeElixir, ElixirGroupAura: 29, ElixirGroupMisc: 1},
+		{Id: mongoose, Type: proto.ConsumableType_ConsumableTypeElixir, ElixirGroupAura: 29, ElixirGroupMisc: 1},
+		{Id: sages, Type: proto.ConsumableType_ConsumableTypeElixir, ElixirGroupAura: 29, ElixirGroupMisc: 3},
+		{Id: ungrouped, Type: proto.ConsumableType_ConsumableTypeElixir},
+	}})
+
+	got := selectedConsumableIDs(&proto.ConsumesSpec{ElixirIds: []int32{agility, mongoose, sages, ungrouped}}, false)
+	if want := []int32{agility, sages, ungrouped}; !slices.Equal(got, want) {
+		t.Errorf("selected %v, want %v", got, want)
+	}
+}
+
 func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 	const majorHealingPotion = 13446
 	unregister := func() {
