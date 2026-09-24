@@ -7,6 +7,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // How a parse is narrowed: which effects it reads, what gates them and whether their values follow
@@ -229,6 +230,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		conditional: o.cond != nil,
 		stacking:    stacking || o.count != 0,
 		dry:         dry,
+		aura:        aura,
 	}
 
 	folded := foldedDotEffects(s, o)
@@ -327,6 +329,17 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 	}
 
 	return parsed
+}
+
+// The stats the attachments add to or multiply, in effect order.
+func (p *Parsed) Stats() []stats.Stat {
+	var sts []stats.Stat
+	for _, a := range p.attachments {
+		if a != nil {
+			sts = append(sts, a.stats...)
+		}
+	}
+	return sts
 }
 
 // The finisher the raid config has on the target is cast at the most combo points there are.

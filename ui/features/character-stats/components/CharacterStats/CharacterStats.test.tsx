@@ -75,7 +75,7 @@ const TANK_DISPLAY_STATS = [...DISPLAY_STATS, UnitStat.fromStat(Stat.StatDefense
 
 const MISS_INFO = { base: 5, defense: 2, debuffs: 0, total: 7 };
 const AVOIDANCE_INFO = { miss: 7, dodge: 18, parry: 14, block: 25, total: 64, shear: 57 };
-const CRIT_IMMUNITY_INFO = { total: 5.6, delta: 0, defense: 4.6, resilience: 0, talents: 1 };
+const CRIT_IMMUNITY_INFO = { total: 5.6, delta: 0, defense: 4.6, talents: 1 };
 
 // The tank sheet adds three rows the DPS sheet has no equivalent for -- miss, avoidance and
 // crit immunity -- appended to the Defense group. They are TBC-only, so upstream has nothing

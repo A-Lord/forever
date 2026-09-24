@@ -340,6 +340,8 @@ func (character *Character) applyItemEffects(agent Agent) {
 	if character.ItemSwap.IsEnabled() {
 		character.ItemSwap.unEquippedItems.applyItemEffects(agent, registeredItemEffects, registeredItemEnchantEffects, false)
 	}
+
+	character.registerEquipSpeedAuras()
 }
 
 func (character *Character) AddPet(pet PetAgent) {
@@ -684,16 +686,33 @@ func (character *Character) doneIteration(sim *Simulation) {
 	character.Unit.doneIteration(sim)
 }
 
+// Which of block and parry the character sheet shows: a character that cannot block or parry shows
+// no Block% or Parry%, and no change in its stats moves either.
+type SheetAvoidance struct{ CanBlock, CanParry bool }
+
+func (sheet SheetAvoidance) Gate(pseudoStats []float64) {
+	if !sheet.CanBlock {
+		pseudoStats[proto.PseudoStat_PseudoStatBlockPercent] = 0
+	}
+	if !sheet.CanParry {
+		pseudoStats[proto.PseudoStat_PseudoStatParryPercent] = 0
+	}
+}
+
+func (character *Character) sheetAvoidance() SheetAvoidance {
+	return SheetAvoidance{CanBlock: character.PseudoStats.CanBlock, CanParry: character.PseudoStats.CanParry}
+}
+
 func (character *Character) GetPseudoStatsProto() []float64 {
-	return []float64{
+	pseudoStats := []float64{
 		proto.PseudoStat_PseudoStatMainHandDps: character.AutoAttacks.MH().DPS(),
 		proto.PseudoStat_PseudoStatOffHandDps:  character.AutoAttacks.OH().DPS(),
 		proto.PseudoStat_PseudoStatRangedDps:   character.AutoAttacks.Ranged().DPS(),
 
 		// Base values are modified by Enemy attackTables, but we display for LVL 70 enemy as paperdoll default
-		proto.PseudoStat_PseudoStatDodgePercent:            (character.PseudoStats.BaseDodgeChance + character.GetDodgeFromRating() + character.GetDefenseReduction()) * 100,
-		proto.PseudoStat_PseudoStatParryPercent:            Ternary(character.PseudoStats.CanParry, (character.PseudoStats.BaseParryChance+character.GetParryFromRating()+character.GetDefenseReduction())*100, 0),
-		proto.PseudoStat_PseudoStatBlockPercent:            Ternary(character.PseudoStats.CanBlock, (character.PseudoStats.BaseBlockChance+character.GetBlockFromRating()+character.GetDefenseReduction())*100, 0),
+		proto.PseudoStat_PseudoStatDodgePercent:            (character.PseudoStats.BaseDodgeChance + character.GetDodgeFromRating()) * 100,
+		proto.PseudoStat_PseudoStatParryPercent:            (character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
+		proto.PseudoStat_PseudoStatBlockPercent:            (character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
 		proto.PseudoStat_PseudoStatBlockValueMultiplier:    character.PseudoStats.BlockValueMultiplier,
 		proto.PseudoStat_PseudoStatReducedCritTakenPercent: character.PseudoStats.ReducedCritTakenPercent * 100,
 
@@ -723,6 +742,8 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatRangedCritPercent:      character.GetStat(stats.RangedCritPercent) + character.GetStat(stats.PhysicalCritPercent),
 		proto.PseudoStat_PseudoStatExpertisePercent:       character.GetStat(stats.ExpertisePercent),
 	}
+	character.sheetAvoidance().Gate(pseudoStats)
+	return pseudoStats
 }
 
 func (character *Character) GetMetricsProto() *proto.UnitMetrics {

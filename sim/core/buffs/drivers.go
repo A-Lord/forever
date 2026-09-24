@@ -121,22 +121,22 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 
 // The totem's aura is the attack power a windfury proc grants. The totem hands
 // the proc out as a combat enchant on the main hand (SpellItemEnchantment 564:
-// 10610 at 20%), which the store does not carry, so the driver keeps the 20%
-// chance, the 1.5 second internal cooldown and the extra attack the proc lands,
-// and the totem aura that holds the category.
+// 10610 at 20%), whose chance the store carries in 10610's ProcChance column.
+// The driver keeps the 1.5 second internal cooldown and the extra attack the
+// proc lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	procAura := WindfuryTotemAura(&char.Unit, false, 0)
 	// The attack power is only there for a moment after a proc, so it is not
 	// part of the stats the character sheet is measured with.
 	procAura.BuildPhase = core.CharacterBuildPhaseNone
 
-	// The row's own proc flags say what spends a charge: an auto attack that
-	// lands. The attack power stays until the charges are gone or the row's
-	// duration runs out.
+	// The row's own proc flags say what spends a charge: every auto attack that
+	// lands, since the column's chance is the enchantment's roll. The attack
+	// power stays until the charges are gone or the row's duration runs out.
 	procAura.MaxStacks = int32(windfuryTotemSpell.ProcCharges)
 	spender := spelldata.ProcTrigger(char, windfuryTotemSpell, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		procAura.RemoveStack(sim)
-	})
+	}, spelldata.Chance(1))
 	spender.Name = "Windfury Totem Charges"
 	spender.TriggerImmediately = true
 	procAura.AttachProcTriggerCallback(&char.Unit, spender)
@@ -149,7 +149,7 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	trigger := core.ProcTrigger{
 		Name:               "Windfury Totem Trigger",
 		MetricsActionID:    core.ActionID{SpellID: 25580, Tag: -1},
-		ProcChance:         0.2,
+		ProcChance:         windfuryTotemSpell.StatedChance(),
 		Duration:           core.NeverExpires,
 		Outcome:            core.OutcomeLanded,
 		ICD:                time.Millisecond * 1500,

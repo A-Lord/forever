@@ -240,7 +240,6 @@
 			"defense_rating": "Defense Rating",
 			"block_rating": "Block Rating",
 			"block_value": "Block Value",
-			"resilience": "Resilience",
 			"arcane_resistance": "Arcane Resistance",
 			"frost_resistance": "Frost Resistance",
 			"fire_resistance": "Fire Resistance",
@@ -2547,7 +2546,6 @@
 				"parry": "Parry:",
 				"block": "Block:",
 				"defense": "Defense:",
-				"resilience": "Resilience:",
 				"crush": "Crush (102.4%):",
 				"shear": "Shear (101.8%):",
 				"with_holy_shield": " (with HS)"

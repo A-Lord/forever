@@ -169,7 +169,7 @@ enum Profession {
 // the Go Stats array to be larger than the size of the Stat enum proto, but the
 // shared indices between the two must exactly match.
 //
-// NextIndex: 42;
+// NextIndex: 41;
 enum Stat {
 	// Primary attributes ("main stat")
 	StatStrength = 0;
@@ -212,25 +212,24 @@ enum Stat {
 	StatBlockValue = 27;
 	StatDodgeRating = 28;
 	StatParryRating = 29;
-	StatResilienceRating = 30;
-	StatArmor = 31;
-	StatBonusArmor = 32;
+	StatArmor = 30;
+	StatBonusArmor = 31;
 
 	// Composite stats that are built up from the above gear stats + buffs.
 	// These still belong in the Stat enum because they can be present on
 	// some enchants and because the base values need to be stored for NPCs.
-	StatHealth = 33;
-	StatMana = 34;
-	StatMP5 = 35;
+	StatHealth = 32;
+	StatMana = 33;
+	StatMP5 = 34;
 
 	// Resistances
-	StatArcaneResistance = 36;
-	StatFireResistance = 37;
-	StatFrostResistance = 38;
-	StatNatureResistance = 39;
-	StatShadowResistance = 40;
+	StatArcaneResistance = 35;
+	StatFireResistance = 36;
+	StatFrostResistance = 37;
+	StatNatureResistance = 38;
+	StatShadowResistance = 39;
 
-	StatPhysicalDamage = 41;
+	StatPhysicalDamage = 40;
 
 	// DO NOT add new stats here without discussing it first; new stats come
 	// with a performance penalty.

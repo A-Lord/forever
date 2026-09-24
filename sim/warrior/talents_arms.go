@@ -58,8 +58,8 @@ func (warrior *Warrior) registerDeflection() {
 		return
 	}
 
-	// The row states parry as a percentage, which the parse stores as the rating the sim sums with
-	// the base chance.
+	// The row states parry as a percentage, which the parse adds to ParryPercent on top of the base
+	// chance.
 	spelldata.ParseStatic(&warrior.Character, spellData.Deflection.Rank(warrior.Talents.Deflection))
 }
 

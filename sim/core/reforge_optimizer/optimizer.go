@@ -117,6 +117,7 @@ type reforgeOptimizer struct {
 	// each LP variable's cap-space coefficients (the FULL dependency graph), separately from the
 	// EP-calibrated objective coefficients produced by applyReforgeStat.
 	statDeps *stats.StatDependencyManager
+	sheet    core.SheetAvoidance
 
 	baseRaidProto     *proto.Raid
 	baseStrippedGear  *proto.EquipmentSpec
@@ -146,7 +147,7 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 
 	// One environment build yields both FinalStats and the finalized StatDependencyManager,
 	// instead of building the character twice for the same base raid.
-	baseResult, baseSDM := computeReforgeStatsAndDeps(&proto.ComputeStatsRequest{Raid: baseRaid})
+	baseResult, baseSDM, sheet := computeReforgeStatsAndDeps(&proto.ComputeStatsRequest{Raid: baseRaid})
 	if baseResult.ErrorResult != "" {
 		return nil, errors.New(baseResult.ErrorResult)
 	}
@@ -170,6 +171,7 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 		gemOptions:     request.GetGemOptions(),
 
 		statDeps: baseSDM,
+		sheet:    sheet,
 
 		baseRaidProto:     baseRaid,
 		baseStrippedGear:  baseStrippedGear,
@@ -215,7 +217,7 @@ func computeReforgeStats(request *proto.ComputeStatsRequest) *proto.ComputeStats
 	return core.ComputeStats(request)
 }
 
-func computeReforgeStatsAndDeps(request *proto.ComputeStatsRequest) (*proto.ComputeStatsResult, *stats.StatDependencyManager) {
+func computeReforgeStatsAndDeps(request *proto.ComputeStatsRequest) (*proto.ComputeStatsResult, *stats.StatDependencyManager, core.SheetAvoidance) {
 	request.SkipRotation = true
 	return core.ComputeStatsAndDeps(request)
 }

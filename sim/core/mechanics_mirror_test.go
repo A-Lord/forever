@@ -35,7 +35,6 @@ func TestMechanicsConstantsMatchTheUI(t *testing.T) {
 		"DEFENSE_RATING_PER_DEFENSE_LEVEL":               DefenseRatingPerDefenseLevel,
 		"BLOCK_RATING_PER_BLOCK_PERCENT":                 BlockRatingPerBlockPercent,
 		"MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE": MissDodgeParryBlockCritChancePerDefense,
-		"RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE":    ResilienceRatingPerCritReductionChance,
 	}
 
 	// BOSS_LEVEL is an expression rather than a literal, so it is checked separately

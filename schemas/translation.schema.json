@@ -781,9 +781,6 @@
 						"block_value": {
 							"type": "string"
 						},
-						"resilience": {
-							"type": "string"
-						},
 						"arcane_resistance": {
 							"type": "string"
 						},
@@ -871,7 +868,6 @@
 						"defense_rating",
 						"block_rating",
 						"block_value",
-						"resilience",
 						"arcane_resistance",
 						"frost_resistance",
 						"fire_resistance",
@@ -8963,9 +8959,6 @@
 								"defense": {
 									"type": "string"
 								},
-								"resilience": {
-									"type": "string"
-								},
 								"crush": {
 									"type": "string"
 								},
@@ -8986,7 +8979,6 @@
 								"parry",
 								"block",
 								"defense",
-								"resilience",
 								"crush",
 								"shear",
 								"with_holy_shield"

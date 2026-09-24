@@ -18,7 +18,6 @@ var IgnoreSpellEffectByAuraType = map[dbc.EffectAuraType][]int{
 	dbcenums.A_MOD_STEALTH:             {},
 	dbcenums.A_MOD_STEALTH_DETECT:      {},
 	dbcenums.A_MOD_STEALTH_LEVEL:       {},
-	dbcenums.A_MOD_DECREASE_SPEED:      {},
 	dbcenums.A_MOD_INVISIBILITY:        {},
 	dbcenums.A_MOD_INVISIBILITY_DETECT: {},
 	dbcenums.A_MOD_SKILL: {
@@ -37,6 +36,12 @@ var IgnoreSpellEffectByAuraType = map[dbc.EffectAuraType][]int{
 	dbcenums.A_FAR_SIGHT:                         {},
 }
 
+// Auras the sim has nothing to simulate for, which put a spell out of scope only where they are all
+// it carries: Frostguard's Chilled 16927 slows movement beside a melee slow.
+var IgnoreSpellEffectAloneByAuraType = []dbc.EffectAuraType{
+	dbcenums.A_MOD_DECREASE_SPEED,
+}
+
 var IgnoreSpellEffectBySpellEffectType = map[dbc.SpellEffectType][]int{
 	dbcenums.E_CREATE_ITEM:    {},
 	dbcenums.E_SUMMON:         {},
@@ -53,6 +58,13 @@ var IgnoreSpellEffectBySpellEffectType = map[dbc.SpellEffectType][]int{
 // entries here and only a handful of them were noise.
 var IgnoreMissingEffectBySpellID = map[int]string{
 	16372: "Seal of Ascension - no tooltip and no mechanic",
+}
+
+// Absorbs a server script restricts to spells the client does not list, keyed by spell ID with the
+// reason the generated file gives. 1287808, Onyxia Blood Talisman's, states 10000000000 beside the
+// A_DUMMY that names the Dragon Breath spells.
+var UnsupportedAbsorbBySpellID = map[int32]string{
+	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the client does not list",
 }
 
 var OtherItemIdsToFetch = []string{}
@@ -310,31 +322,16 @@ var EnchantDenyListSpells = map[int32]struct{}{}
 var EnchantDenyListItems = map[int32]struct{}{}
 var GemDenyList = map[int32]struct{}{}
 
-var EnchantDenyList = map[int32]struct{}{
-	3269: {}, // Truesilver Fishing Line
-	3289: {}, // Skybreaker Whip/Riding Crop
-	3315: {}, // Carrot on a Stick
-	4671: {}, // Kyle's Test Enchantment
-	4687: {}, // Enchant Weapon - Ninja (TEST VERSION)
-	4717: {}, // Enchant Weapon - Pandamonium (DNT)
-	5029: {}, // Custom - Jaina - Crackling Lightning
-	5110: {}, // Lightweave Embroidery - Junk
-}
+var EnchantDenyList = map[int32]struct{}{}
 
 var EnchantAllowList = []int32{
-	368,  // Enchant Cloak - Greater Agility
 	804,  // Enchant Cloak - Lesser Shadow Resistance
-	369,  // Enchant Bracer - Major Intellect
 	684,  // Enchant Gloves - Major Strength
 	963,  // Enchant Weapon - Major Striking
-	1593, // Bracer 24 AP
-	1594, // Gloves 26 AP
 	1900, // Enchant Weapon - Crusader
 	2564, // Weapon 15 Agi
 	2583, // Presence of Might
 	2588, // Presence of Sight
-	2647, // Enchant Bracer - Brawn
-	2659, // Enchant Chest - Exceptional Health
 }
 
 // Note: EffectId is required for all enchants, because they are

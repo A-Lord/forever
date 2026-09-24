@@ -44,7 +44,7 @@ import { SimSettingCategories } from '../constants/sim_settings';
 import type { PresetEpWeights } from '../presets/types';
 import { ActionId } from '../proto/action_id';
 import { Database } from '../proto/database';
-import { EquippedItem } from '../proto/equipped_item';
+import { EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
 import { Gear, ItemSwapGear } from '../proto/gear';
 import { gemMatchesSocket, isUnrestrictedGem } from '../proto/gems';
 import { canEquipEnchant, canEquipItem, enchantAppliesToItem, getMetaGemEffectEP, isPVPItem } from '../proto/items';
@@ -770,19 +770,16 @@ export class Player<SpecType extends Spec> {
 		const critImmuneCap = 5.6;
 		const currentStats = this.slice().currentStats;
 		const defense = currentStats.finalStats?.stats[Stat.StatDefenseRating] || 0;
-		const resilience = currentStats.finalStats?.stats[Stat.StatResilienceRating] || 0;
 
 		const defenseContribution = Math.floor(defense / Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL) * Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE;
-		const resilienceContribution = resilience / Mechanics.RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE;
-		// PseudoStatReducedCritTakenPercent includes all sources: defense, resilience, and talents.
+		// PseudoStatReducedCritTakenPercent includes all sources: defense and talents.
 		const total = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatReducedCritTakenPercent] || 0;
-		const talentContribution = total - defenseContribution - resilienceContribution;
+		const talentContribution = total - defenseContribution;
 
 		return {
 			total: total,
 			delta: critImmuneCap - total,
 			defense: defenseContribution,
-			resilience: resilienceContribution,
 			talents: talentContribution,
 		};
 	}
@@ -1143,14 +1140,22 @@ export class Player<SpecType extends Spec> {
 		return ep;
 	}
 
-	computeEnchantEP(enchant: Enchant): number {
-		if (this.enchantEPCache.has(enchant.effectId)) {
-			return this.enchantEPCache.get(enchant.effectId)!;
+	computeEnchantEP(enchant: Enchant, weaponSpeed = 0, epPerWeaponDps = 0): number {
+		let ep = this.enchantEPCache.get(enchant.effectId);
+		if (ep === undefined) {
+			ep = this.computeStatsEP(new Stats(enchant.stats, enchant.pseudoStats));
+			this.enchantEPCache.set(enchant.effectId, ep);
 		}
 
-		const ep = this.computeStatsEP(new Stats(enchant.stats));
-		this.enchantEPCache.set(enchant.effectId, ep);
+		// Flat weapon damage is worth the DPS it adds at the enchanted weapon's speed, as a weapon's own damage is.
+		if (enchant.weaponDamage && weaponSpeed) {
+			ep += (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps;
+		}
 		return ep;
+	}
+
+	computeWeaponDpsEP(slot: ItemSlot): number {
+		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {

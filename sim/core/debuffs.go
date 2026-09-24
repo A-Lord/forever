@@ -42,8 +42,27 @@ func castSlowReductionAura(target *Unit, label string, spellID int32, multiplier
 	return aura
 }
 
+// A slow on casts alone, in the category Slow's cast and ranged slow takes: only the strongest applies.
+func CastSpeedReductionEffect(aura *Aura, castTimeMultiplier float64) *ExclusiveEffect {
+	return aura.NewExclusiveEffect("CastSpdReduction", false, ExclusiveEffect{
+		Priority: 1 - 1/castTimeMultiplier,
+		OnGain: func(ee *ExclusiveEffect, sim *Simulation) {
+			ee.Aura.Unit.MultiplyCastSpeed(sim, 1/castTimeMultiplier)
+		},
+		OnExpire: func(ee *ExclusiveEffect, sim *Simulation) {
+			ee.Aura.Unit.MultiplyCastSpeed(sim, castTimeMultiplier)
+		},
+	})
+}
+
 func ScreechAura(target *Unit) *Aura {
 	return statsDebuff(target, 0, "Screech", 27051, stats.Stats{stats.AttackPower: -210}, time.Second*4)
+}
+
+// A slow the client states as a negative speed percentage makes the time between attacks, or a cast
+// time, that much longer: -20 is 20% longer, which divides the speed by 1.2.
+func SlowedTimeMultiplier(speedPercent float64) float64 {
+	return 1 - speedPercent/100
 }
 
 func AtkSpeedReductionEffect(aura *Aura, speedMultiplier float64) *ExclusiveEffect {

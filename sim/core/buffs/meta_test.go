@@ -47,7 +47,7 @@ func TestGeneratedRowsReadTheClientsNumbers(t *testing.T) {
 		{"SunderArmor", SunderArmorValue, SunderArmorDuration, []float64{-450}, 30 * time.Second},
 		{"GiftOfArthas", GiftOfArthasValue, GiftOfArthasDuration, []float64{8}, 3 * time.Minute},
 		{"DemoralizingShout", DemoralizingShoutValue, DemoralizingShoutDuration, []float64{-205}, 45 * time.Second},
-		{"ThunderClap", ThunderClapValue, ThunderClapDuration, []float64{0.8}, 30 * time.Second},
+		{"ThunderClap", ThunderClapValue, ThunderClapDuration, []float64{1 / 1.2}, 30 * time.Second},
 		{"InsectSwarm", InsectSwarmValue, InsectSwarmDuration, []float64{-2}, 12 * time.Second},
 	}
 

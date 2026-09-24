@@ -343,7 +343,7 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: Thorns,
-		stats: [Stat.StatResilienceRating, Stat.StatDefenseRating, Stat.StatStamina],
+		stats: [Stat.StatDefenseRating, Stat.StatStamina],
 		ownerClass: Class.ClassDruid,
 	},
 	{
@@ -507,7 +507,7 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: JudgementOfLight,
-		stats: [Stat.StatResilienceRating],
+		stats: [Stat.StatDefenseRating],
 		ownerClass: Class.ClassPaladin,
 	},
 	{
@@ -547,31 +547,31 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: GiftOfArthas,
-		stats: [Stat.StatAttackPower, Stat.StatResilienceRating],
+		stats: [Stat.StatAttackPower, Stat.StatDefenseRating],
 	},
 	{
 		config: DemoralizingRoar,
-		stats: [Stat.StatStamina, Stat.StatResilienceRating],
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassDruid,
 	},
 	{
 		config: DemoralizingShout,
-		stats: [Stat.StatStamina, Stat.StatResilienceRating],
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassWarrior,
 	},
 	{
 		config: ThunderClap,
-		stats: [Stat.StatStamina, Stat.StatResilienceRating],
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassWarrior,
 	},
 	{
 		config: InsectSwarm,
-		stats: [Stat.StatStamina, Stat.StatResilienceRating],
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassDruid,
 	},
 	{
 		config: ScorpidSting,
-		stats: [Stat.StatStamina, Stat.StatResilienceRating],
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassHunter,
 	},
 ];

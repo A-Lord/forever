@@ -164,13 +164,15 @@ func TestGeneratedThunderClapSlowsTheTarget(t *testing.T) {
 
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ThunderClap: true})
 
-	if got := buffs.ThunderClapValue(0); got != 0.8 {
-		t.Errorf("the clap is worth %v, want the client's -20%% as 0.8", got)
+	// The client's -20 is 20% more time between attacks, so the speed is divided by 1.2.
+	want := 1 / core.SlowedTimeMultiplier(-20)
+	if got := buffs.ThunderClapValue(0); got != want {
+		t.Errorf("the clap is worth %v, want the client's -20%% as %v", got, want)
 	}
-	if got := target.PseudoStats.MeleeSpeedMultiplier; got != 0.8 {
-		t.Errorf("the melee speed multiplier is %v, want 0.8", got)
+	if got := target.PseudoStats.MeleeSpeedMultiplier; got != want {
+		t.Errorf("the melee speed multiplier is %v, want %v", got, want)
 	}
-	if got := target.TotalMeleeHasteMultiplier(); got != 0.8 {
+	if got := target.TotalMeleeHasteMultiplier(); got != want {
 		t.Errorf("the target swings at %v times its speed, want the slow to have reached the swing timers", got)
 	}
 }
@@ -184,7 +186,7 @@ func TestGeneratedThunderClapBidsAgainstTheHandWrittenSlows(t *testing.T) {
 	clap := target.GetAura("Thunder Clap (External)")
 
 	// A hand-written slow states the multiplier the target's speed is divided
-	// by, so 1.5 is a third slower and outbids the clap's fifth.
+	// by, so 1.5 is a third slower and outbids the clap's sixth.
 	slower := target.GetOrRegisterAura(core.Aura{
 		Label:    "Hand-written Slow",
 		ActionID: core.ActionID{SpellID: 27648},
@@ -211,10 +213,9 @@ func TestGeneratedThunderClapBidsAgainstTheHandWrittenSlows(t *testing.T) {
 	}
 }
 
-// Thunderfury's Cyclone states 1.2, which divides the target's speed by 1.2 and
-// is a 16.67% slow, so the clap's 20% has to keep the category when the proc
-// lands. The two forms are what made the scales easy to confuse: 1.2 - 1 is
-// bit-for-bit the clap's 1 - 0.8.
+// Thunderfury's Cyclone 27648 and Thunder Clap 11581 both state -20, the same slow, so they bid
+// the same. The raid's clap outlasts the proc's 12 seconds, so it keeps the category when the
+// proc lands.
 func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	sim := applyGeneratedTestDebuffs(target, &proto.Debuffs{ThunderClap: true})
@@ -225,22 +226,22 @@ func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 		ActionID: core.ActionID{SpellID: 27648},
 		Duration: time.Second * 12,
 	})
-	weaker := core.AtkSpeedReductionEffect(cyclone, 1.2)
-	if clapBid := clap.ExclusiveEffects[0].Priority; weaker.Priority >= clapBid {
-		t.Fatalf("the proc bids %v against the clap's %v, want the 16.67%% slow to be worth less",
-			weaker.Priority, clapBid)
+	tied := core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(-20))
+	if clapBid := clap.ExclusiveEffects[0].Priority; tied.Priority != clapBid {
+		t.Fatalf("the proc bids %v against the clap's %v, want the same -20%% slow to tie", tied.Priority, clapBid)
 	}
 
 	cyclone.Activate(sim)
 
-	if got := target.PseudoStats.MeleeSpeedMultiplier; got != 0.8 {
-		t.Errorf("the melee speed multiplier is %v, want the clap's 0.8 to have stayed", got)
+	want := 1 / core.SlowedTimeMultiplier(-20)
+	if got := target.PseudoStats.MeleeSpeedMultiplier; got != want {
+		t.Errorf("the melee speed multiplier is %v, want the clap's %v to have stayed", got, want)
 	}
 	if got := target.PseudoStats.AttackSpeedMultiplier; got != 1 {
-		t.Errorf("the attack speed multiplier is %v, want the weaker proc to have applied nothing", got)
+		t.Errorf("the attack speed multiplier is %v, want the tied proc to have applied nothing", got)
 	}
-	if got := target.TotalMeleeHasteMultiplier(); got != 0.8 {
-		t.Errorf("the target swings at %v times its speed, want the stronger slow's 0.8", got)
+	if got := target.TotalMeleeHasteMultiplier(); got != want {
+		t.Errorf("the target swings at %v times its speed, want the clap's %v", got, want)
 	}
 }
 

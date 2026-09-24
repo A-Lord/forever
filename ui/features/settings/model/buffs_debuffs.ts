@@ -50,7 +50,7 @@ export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS
 	Generated.MoonkinAura,
 	{
 		config: RetributionAura,
-		stats: [Stat.StatResilienceRating, Stat.StatArmor, Stat.StatDefenseRating],
+		stats: [Stat.StatArmor, Stat.StatDefenseRating],
 		ownerClass: Class.ClassPaladin,
 	},
 	Generated.ConcentrationAura,

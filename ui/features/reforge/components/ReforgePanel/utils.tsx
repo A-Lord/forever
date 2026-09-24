@@ -25,7 +25,6 @@ export const INCLUDED_STATS: UnitStat[] = [
 	UnitStat.fromStat(Stat.StatDodgeRating),
 	UnitStat.fromStat(Stat.StatParryRating),
 	UnitStat.fromStat(Stat.StatDefenseRating),
-	UnitStat.fromStat(Stat.StatResilienceRating),
 ];
 
 export const isIncludedStat = (unitStat: UnitStat): boolean => INCLUDED_STATS.some(included => included.equals(unitStat));

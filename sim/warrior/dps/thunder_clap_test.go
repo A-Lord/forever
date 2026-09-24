@@ -10,10 +10,13 @@ import (
 )
 
 // With five pieces of Conqueror's Battlegear the warrior's clap bids its whole
-// 30% slow in the attack-speed category. The raid's plain 20% clap loses to it,
-// a slow bidding past it keeps the category, and the target never carries two
-// slows at once.
+// 30% slow in the attack-speed category: 30% more time between attacks, a speed
+// of 1/1.3. The raid's plain 20% clap loses to it, a slow bidding past it keeps
+// the category, and the target never carries two slows at once.
 func TestThunderClapBidsItsWholeSlowInTheAttackSpeedCategory(t *testing.T) {
+	raidSpeed := 1 / core.SlowedTimeMultiplier(-20)
+	setSpeed := 1 / core.SlowedTimeMultiplier(-30)
+
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Spell, *core.Aura, *core.Aura) {
 		t.Helper()
 
@@ -68,17 +71,17 @@ func TestThunderClapBidsItsWholeSlowInTheAttackSpeedCategory(t *testing.T) {
 
 	t.Run("the raid's weaker clap loses to the set", func(t *testing.T) {
 		sim, target, clap, own, external := setup(t)
-		speedIs(t, target, 0.8, "the raid's clap alone")
+		speedIs(t, target, raidSpeed, "the raid's clap alone")
 
 		landClap(t, sim, target, clap, own)
-		if got := own.ExclusiveEffects[0].Priority; math.Abs(got-0.3) > 1e-9 {
-			t.Errorf("the warrior's clap bids %v, want its whole 0.3", got)
+		if got, want := own.ExclusiveEffects[0].Priority, 1-setSpeed; math.Abs(got-want) > 1e-9 {
+			t.Errorf("the warrior's clap bids %v, want its whole %v", got, want)
 		}
 		if !own.ExclusiveEffects[0].IsActive() || external.ExclusiveEffects[0].IsActive() {
 			t.Errorf("the warrior's clap holds the category %v and the raid's %v, want the warrior's alone",
 				own.ExclusiveEffects[0].IsActive(), external.ExclusiveEffects[0].IsActive())
 		}
-		speedIs(t, target, 0.7, "the warrior's clap over the raid's")
+		speedIs(t, target, setSpeed, "the warrior's clap over the raid's")
 	})
 
 	t.Run("a stronger slow keeps the category", func(t *testing.T) {
@@ -89,12 +92,12 @@ func TestThunderClapBidsItsWholeSlowInTheAttackSpeedCategory(t *testing.T) {
 		if own.ExclusiveEffects[0].IsActive() {
 			t.Error("the warrior's clap took the category from a slow bidding past it")
 		}
-		speedIs(t, target, 0.8, "the stronger slow over the warrior's clap")
+		speedIs(t, target, raidSpeed, "the stronger slow over the warrior's clap")
 
 		external.Deactivate(sim)
 		if !own.ExclusiveEffects[0].IsActive() {
 			t.Error("the warrior's clap did not take the category once the stronger slow dropped")
 		}
-		speedIs(t, target, 0.7, "the warrior's clap after the stronger slow dropped")
+		speedIs(t, target, setSpeed, "the warrior's clap after the stronger slow dropped")
 	})
 }

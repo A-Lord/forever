@@ -196,6 +196,25 @@ func (s *Spell) StatedChance() float64 {
 	return 0
 }
 
+// Whether an item or enchant proc rolls the ProcChance column rather than the chance its tooltip
+// states on an effect: the column holds a real roll, 1 to 99, that the effect's contradicts. Uther's
+// Light 8397 states 2% on effect 1 and 4 in the column. A class spell keeps the effect's, which is
+// where a talent's ranks state theirs.
+func (s *Spell) ItemProcRollsTheColumn() bool {
+	return s.ProcChanceSource == ProcChanceEffectN && s.RPPM == 0 && s.ProcChance > 0 && s.ProcChance < 100 &&
+		float64(s.ProcChance)/100 != s.StatedChance()
+}
+
+// The column's chance on an item or enchant proc ItemProcRollsTheColumn picks it for. A rate option
+// that replaces the chance has to come after this one.
+func ItemProcChance(s *Spell) ProcOpt {
+	return func(_ *core.Character, trigger *core.ProcTrigger) {
+		if s.ItemProcRollsTheColumn() {
+			trigger.ProcChance = float64(s.ProcChance) / 100
+		}
+	}
+}
+
 // A row whose rate is procs per minute states no roll: that rate is a manager, and settleProcRate
 // builds it once the options have had their say about the mask it measures hits on.
 func fillProcChance(s *Spell, trigger *core.ProcTrigger) {

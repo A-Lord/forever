@@ -310,8 +310,9 @@ func TestExclusivePricesAMultiplierByItsDistanceFromOne(t *testing.T) {
 	aura := character.RegisterAura(AuraConfig(row))
 	ParseEffects(character, aura, row, Exclusive("AtkSpdReduction", false))
 
-	if got := aura.ExclusiveEffects[0].Priority; math.Abs(got-0.2) > 1e-9 {
-		t.Errorf("a 20%% slow bids %v, want 0.2", got)
+	// -20 divides the speed by 1.2, which takes a sixth off it.
+	if got := aura.ExclusiveEffects[0].Priority; math.Abs(got-1.0/6) > 1e-9 {
+		t.Errorf("a 20%% slow bids %v, want 1/6", got)
 	}
 	if aura.ExclusiveEffects[0].Category.SingleAura {
 		t.Error("the category turned single-aura, which the caller did not ask for")
