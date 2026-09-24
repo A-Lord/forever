@@ -109,9 +109,10 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 }
 
 // The equip spells of a temporary enchant that the imbue builder parses: those that add no stat,
-// resistance or weapon damage to the enchant's own fields, and whose every aura the parser attaches.
-// Consecrated Sharpening Stone's enchant 2684 names 28893, its attack power against Undead; a wizard
-// oil's equip spell is already the enchant's spell damage.
+// resistance or weapon damage to the enchant's own fields, whose every effect lands on the user, and
+// whose every aura the builder's parse, counted once per hand, attaches. Consecrated Sharpening
+// Stone's enchant 2684 names 28893, its attack power against Undead; a wizard oil's equip spell is
+// already the enchant's spell damage.
 func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 	var spellIDs []int32
 	for slot, effect := range enchant.Effects {
@@ -125,12 +126,17 @@ func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 		row := spelldata.Find(spellID)
 		if slices.ContainsFunc(fields.Stats, isNonZero) || slices.ContainsFunc(fields.PseudoStats, isNonZero) ||
 			fields.WeaponDamage != 0 || len(fields.EnchantEffects) > 0 ||
-			row == spelldata.Nil || len(equipSpellUnsupported(enchant.ID, row, spellID)) > 0 {
+			row == spelldata.Nil || len(equipSpellUnsupported(enchant.ID, row, spellID)) > 0 ||
+			slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0 {
 			continue
 		}
 		spellIDs = append(spellIDs, spellID)
 	}
 	return spellIDs
+}
+
+func landsOffTheUser(e spelldata.Effect) bool {
+	return !shared.LandsOnTheUser(&e)
 }
 
 func isNonZero(v float64) bool {
