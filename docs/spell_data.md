@@ -406,21 +406,22 @@ the five rank-swap effects behind them have no sim kind and are reported.
 
 The table writes the sim's own units, and which unit that is differs per stat. The conversions:
 
-|                                                             | the sim stores        | the parse writes                              |
-| ----------------------------------------------------------- | --------------------- | --------------------------------------------- |
-| Strength, Agility, Stamina, Intellect, Spirit               | flat points           | the value                                     |
-| Health, Armor, the five resistances                         | flat points           | the value                                     |
-| PhysicalDamage, SpellDamage and the per-school damage stats | flat power            | the value                                     |
-| HealingPower, AttackPower, RangedAttackPower                | flat power            | the value                                     |
-| MP5                                                         | mana per five seconds | the value                                     |
-| PhysicalHitPercent, SpellHitPercent                         | percentage points     | the value                                     |
-| PhysicalCritPercent, SpellCritPercent                       | percentage points     | the value                                     |
-| **BlockPercent**                                            | **a fraction**        | **the value over 100**                        |
-| DodgeRating                                                 | rating                | value x `DodgeRatingPerDodgePercent`          |
-| ParryRating                                                 | rating                | value x `ParryRatingPerParryPercent`          |
-| ExpertiseRating                                             | rating                | value x `ExpertisePerQuarterPercentReduction` |
-| `PseudoStats.BonusHealingTaken`                             | flat healing          | the value                                     |
-| every pseudo-stat multiplier and stat dependency            | a multiplier near 1   | `1 + value/100`                               |
+|                                                                     | the sim stores                                        | the parse writes                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| Strength, Agility, Stamina, Intellect, Spirit                       | flat points                                           | the value                                                              |
+| Health, Armor, the five resistances                                 | flat points                                           | the value                                                              |
+| PhysicalDamage, SpellDamage and the per-school damage stats         | flat power                                            | the value                                                              |
+| HealingPower, AttackPower, RangedAttackPower                        | flat power                                            | the value                                                              |
+| MP5                                                                 | mana per five seconds                                 | the value                                                              |
+| PhysicalHitPercent, SpellHitPercent                                 | percentage points                                     | the value                                                              |
+| PhysicalCritPercent, SpellCritPercent                               | percentage points                                     | the value                                                              |
+| **BlockPercent**                                                    | **a fraction**                                        | **the value over 100**                                                 |
+| DodgeRating                                                         | rating                                                | value x `DodgeRatingPerDodgePercent`                                   |
+| ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
+| ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
+| `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
+| every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
@@ -443,12 +444,12 @@ Rows the table does know are skipped by the shape of the parse. A value the sim 
 per unit cannot be applied once per stack, and the static path has no aura to follow and no
 `Simulation` to answer a later `Refresh` with:
 
-|                                     | skips                                                                                                                       |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier |
-| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
-| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
-| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
+|                                     | skips                                                                                                                                                                                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier                                                                                                                                           |
+| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over, and the bonuses against a creature type (`A_MOD_MELEE_ATTACK_POWER_VERSUS`, `A_MOD_RANGED_ATTACK_POWER_VERSUS`, `A_MOD_FLAT_SPELL_DAMAGE_VERSUS`), whose attack tables do not exist yet |
+| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                                                                                                                                                                |
+| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                                                                                                                                                                  |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.

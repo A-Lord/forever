@@ -103,8 +103,8 @@ data-driven ones, for one id panic. An id db.json does not carry registers nothi
 data-driven registrations into `sim/common/forever`, one file per family, and
 `common.RegisterAllEffects` runs them. It picks each consumable's builder once, by its type, the
 category its on-use shares and how its spell routes, in the order of the table. The explosive and
-potion files keep a consumable their builder refuses, commented out with the reason: Potion of
-Demonslaying 9224 ships through the allow list and is registered by hand. Each builder states what it
+potion files keep a consumable their builder refuses, commented out with the reason: Ez-Thro
+Radiation Bomb 215168's damage over time lands on an area. Each builder states what it
 refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsupported`,
 `StatConsumableUnsupported`), and the router reads the same checks.
 
@@ -130,15 +130,17 @@ cooldown and the category it shares, where the item row states -1 or no category
 pull registers no spell and no cooldown. Which consumables stack is their
 [exclusive group](#exclusive-groups).
 
-`shared.NewSpellDataVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
-Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
-on the potion's aura: 185 attack power and 108 spell damage against the creature types their misc
-value masks (4, Demon), for the row's 120 s, on category 4's 120 s timer. The same file registers
-Consecrated Sharpening Stone 23122 with `shared.NewSpellDataVersusTemporaryEnchant`: core puts its
-enchant 2684 on each hand whose weapon the masks take, and the enchant's equip spell 28893 grants 99 melee and 99
-ranged attack power against Undead once per such hand, since each weapon carries its own equip aura
-and 28893 marks no aura unique. Blessed Wizard Oil 23123 goes the same way: its enchant 2685's equip
-spell 28890 grants 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, mask 32). `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
+A bonus against creature types is an aura the parser attaches like any other (see
+[Spell Data](spell_data.md)): Potion of Demonslaying 9224's spell 11406 grants 185 attack power and
+108 spell damage against the creature types its misc values mask (4, Demon), for the row's 120 s, on
+category 4's 120 s timer. The imbue builder takes the equip spells of the enchant that add nothing to
+the enchant's own stats, which the generator names after the item: Consecrated Sharpening Stone
+23122's enchant 2684 names 28893, and core puts the enchant on each hand whose weapon the masks take.
+28893 grants 99 melee and 99 ranged attack power against Undead once per such hand, since each weapon
+carries its own equip aura and 28893 marks no aura unique. Blessed Wizard Oil 23123's enchant 2685
+names 28890, 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, mask 32). A wizard
+oil's equip spell is already the enchant's spell damage, and is not named.
+`consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
 
 A pet takes no consumables of its own; the scrolls the client marks `ONLY_TARGET_PLAYERS` cannot be
 used on one.
@@ -283,13 +285,13 @@ Aggression 56 melee and spell crit rating, Precision 50 expertise rating at
 
 The consumable needs a db.json entry and a hand-written effect.
 
-**The client has it.** Add the id to `ConsumableAllowList`, as with the Natural flasks above. Potion of
-Demonslaying 9224 routes to no shape (its 11406 applies `A_MOD_FLAT_SPELL_DAMAGE_VERSUS`) and ships
-because the list names it:
+**The client has it.** Add the id to `ConsumableAllowList`, as with the Natural flasks above. Gift of
+Arthas 9088 routes to no shape (its 11371 applies `A_PROC_TRIGGER_SPELL`) and ships because the list
+names it:
 
 ```go
 var ConsumableAllowList = []int32{
-	9224, // Potion of Demonslaying
+	9088, // Gift of Arthas
 	// ...
 }
 ```
