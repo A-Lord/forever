@@ -285,18 +285,19 @@ func (priest *Priest) applyDivineAegis() {
 	}
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's brought back.
+// TODO: To be implemented. The priest's own cast still needs a spell around the
+// generated aura, which is +20% damage and healing done for 15 seconds.
 func (priest *Priest) applyPowerInfusion() {
 	if !priest.Talents.PowerInfusion {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
+	// The body the port needs:
 	// if !priest.Talents.PowerInfusion {
 	// 	return
 	// }
 	//
-	// piAura := core.PowerInfusionAura(priest.GetCharacter(), 0)
+	// piAura := buffs.PowerInfusionsAura(&priest.Unit, true, 0)
 	//
 	// piSpell := priest.RegisterSpell(core.SpellConfig{
 	// 	ActionID:    core.ActionID{SpellID: 10060},
@@ -308,7 +309,7 @@ func (priest *Priest) applyPowerInfusion() {
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{
 	// 			Timer:    priest.NewTimer(),
-	// 			Duration: core.PowerInfusionCD,
+	// 			Duration: buffs.PowerInfusionsCooldown(),
 	// 		},
 	// 		DefaultCast: core.Cast{
 	// 			NonEmpty: true,

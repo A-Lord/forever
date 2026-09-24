@@ -9,13 +9,14 @@ func (druid *Druid) registerDemoralizingRoarSpell() {
 	// The TBC implementation, kept for the port:
 	// druid.registerDemoralizingRoarAura()
 	//
-	// druid.DemoralizingRoar = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: demoralizingRoarRank.ID},
-	// 	SpellSchool:    demoralizingRoarRank.SpellSchool(),
-	// 	DefenseType:    demoralizingRoarRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskEmpty,
-	// 	ClassSpellMask: DruidSpellDemoralizingRoar,
-	// 	Flags:          core.SpellFlagAPL,
+	// druid.DemoralizingRoar = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: demoralizingRoarRank.ID},
+	// 	CastRequirement: demoralizingRoarRank.CastRequirement(),
+	// 	SpellSchool:     demoralizingRoarRank.SpellSchool(),
+	// 	DefenseType:     demoralizingRoarRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskEmpty,
+	// 	ClassSpellMask:  DruidSpellDemoralizingRoar,
+	// 	Flags:           core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
 	// 		Cost: int32(demoralizingRoarRank.Cost()),
@@ -47,8 +48,8 @@ func (druid *Druid) registerDemoralizingRoarAura() {
 
 	// The TBC implementation, kept for the port:
 	// druid.DemoralizingRoarAuras = druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	// TODO: Forever drops Feral Aggression; untalented (0 points) until we know
-	// 	// whether the effect moved onto another talent.
-	// 	return core.DemoralizingRoarAura(target, 0)
+	// 	// The druid's own copy of the aura; the client has no Feral Aggression
+	// 	// node, so there are no talent points to pass.
+	// 	return buffs.DemoralizingRoarAura(target, true, 0)
 	// })
 }

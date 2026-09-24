@@ -5,6 +5,7 @@ import { IndividualSimSettings } from '@generated/proto/ui';
 import pako from 'pako';
 
 import { SIM_CATEGORY_KEYS, SimSettingCategories } from '../constants/sim_settings';
+import { migrateConsumesToItemIds } from '../proto/consumes_migration';
 import { getEnumValues } from '../utils/collections';
 
 export const LINK_CATEGORY_PARAM = 'i';
@@ -39,6 +40,7 @@ export function tryParseUrlLocation(loc: UrlLocation): UrlParseData | null {
 
 	const settingsBytes = pako.inflate(bytes);
 	const settings = IndividualSimSettings.fromBinary(settingsBytes);
+	if (settings.player?.consumables) migrateConsumesToItemIds(settings.player.consumables, settings.player.apiVersion);
 
 	let exportCategories = LINK_DEFAULT_CATEGORIES;
 	const urlParams = new URLSearchParams(loc.search);

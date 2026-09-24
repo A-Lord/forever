@@ -3,29 +3,28 @@ package druid
 var thornsRank = spellData.Thorns.Highest()
 
 // TODO: To be implemented.
-// Self-cast Thorns (rank 7). Reuses the core raid-buff aura, passing the
-// druid's own Brambles talent points. If the Thorns raid buff is selected it
-// is already registered (buffs apply before Initialize) and wins; otherwise
-// the self-cast version uses the druid's actual talent.
+// Self-cast Thorns. The druid's own copy of the generated shield deals the
+// client's 22 nature damage; the raid buff registers the external copy before
+// Initialize runs, and the two auras bid in ThornsCategory, which holds one of
+// them at a time.
 func (druid *Druid) registerThornsSpell() {
 	panic("To be implemented")
 
-	// The TBC implementation, kept for the port:
-	// thornsAura := druid.GetAura("Thorns")
+	// The body the port needs:
+	// thornsAura := druid.GetAura("Thorns (Player)")
 	// if thornsAura == nil {
-	// 	// TODO: Forever drops Brambles; the core aura still takes a rank for it, so it is
-	// 	// pinned to 0 until we know whether the effect moved onto another talent.
-	// 	thornsAura = core.ThornsAura(druid.GetCharacter(), 0)
+	// 	thornsAura = buffs.ThornsAura(&druid.Unit, true, 0)
 	// }
 	//
-	// druid.RegisterSpell(Humanoid, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: thornsRank.ID},
-	// 	SpellSchool:    thornsRank.SpellSchool(),
-	// 	DefenseType:    thornsRank.DefenseTypeCore(),
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
-	// 	ClassSpellMask: DruidSpellThorns,
-	// 	ProcMask:       core.ProcMaskEmpty,
-	// 	MaxRange:       float64(thornsRank.MaxRange),
+	// druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: thornsRank.ID},
+	// 	CastRequirement: thornsRank.CastRequirement(),
+	// 	SpellSchool:     thornsRank.SpellSchool(),
+	// 	DefenseType:     thornsRank.DefenseTypeCore(),
+	// 	Flags:           core.SpellFlagAPL | core.SpellFlagHelpful,
+	// 	ClassSpellMask:  DruidSpellThorns,
+	// 	ProcMask:        core.ProcMaskEmpty,
+	// 	MaxRange:        float64(thornsRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(thornsRank.Cost()),

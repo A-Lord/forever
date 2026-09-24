@@ -86,7 +86,7 @@ func TestTemporaryEnchantGoesOnTheHandsTheSpecNames(t *testing.T) {
 	}
 
 	underWindfury := newCharacter()
-	applyTemporaryEnchants(underWindfury, consumes, &proto.PartyBuffs{WindfuryTotem: proto.TristateEffect_TristateEffectRegular})
+	applyTemporaryEnchants(underWindfury, consumes, &proto.PartyBuffs{WindfuryTotem: true})
 	if got := underWindfury.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
 		t.Errorf("main hand carries enchant %d under Windfury Totem", got)
 	}

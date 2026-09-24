@@ -33,6 +33,7 @@ type SpellConfig struct {
 
 	Cast               CastConfig
 	ExtraCastCondition CanCastCondition
+	CastRequirement    CastRequirement
 
 	// Optional range constraints. If supplied, these are used to modify the ExtraCastCondition above to additionally check for DistanceFromTarget.
 	MinRange     float64
@@ -40,10 +41,10 @@ type SpellConfig struct {
 	Charges      int // The maximum amount of charges this spell can have
 	RechargeTime time.Duration
 
-	BonusHitPercent      float64
-	BonusCritPercent     float64
-	BonusSpellDamage     float64
-	BonusExpertiseRating float64
+	BonusHitPercent       float64
+	BonusCritPercent      float64
+	BonusSpellDamage      float64
+	BonusExpertisePercent float64
 
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
@@ -117,6 +118,11 @@ type Spell struct {
 	IgnoreHaste        bool
 	ExtraCastCondition CanCastCondition
 
+	CastRequirement    CastRequirement
+	hasCastRequirement bool
+	casterAuras        []*Aura
+	excludeCasterAuras []*Aura
+
 	// Optional range constraints. If supplied, these are used to modify the ExtraCastCondition above to additionally check for DistanceFromTarget.
 	MinRange     float64
 	MaxRange     float64
@@ -148,7 +154,7 @@ type Spell struct {
 	BonusHitPercent          float64
 	BonusCritPercent         float64
 	BonusSpellDamage         float64
-	BonusExpertiseRating     float64
+	BonusExpertisePercent    float64
 	CastTimeMultiplier       float64
 	CdMultiplier             float64
 	DamageMultiplier         float64
@@ -246,6 +252,8 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		SharedCD:           config.Cast.SharedCD,
 		IgnoreHaste:        config.Cast.IgnoreHaste,
 		ExtraCastCondition: config.ExtraCastCondition,
+		CastRequirement:    config.CastRequirement,
+		hasCastRequirement: config.CastRequirement != CastRequirement{},
 
 		castTimeFn: config.Cast.CastTime,
 
@@ -257,7 +265,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		BonusHitPercent:          config.BonusHitPercent,
 		BonusCritPercent:         config.BonusCritPercent,
 		BonusSpellDamage:         config.BonusSpellDamage,
-		BonusExpertiseRating:     config.BonusExpertiseRating,
+		BonusExpertisePercent:    config.BonusExpertisePercent,
 		CastTimeMultiplier:       1,
 		CdMultiplier:             1,
 		DamageMultiplier:         config.DamageMultiplier,
@@ -336,7 +344,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 	}
 
 	if spell.DefaultCast == emptyCast {
-		if config.ExtraCastCondition == nil && config.Cast.CD.Timer == nil && config.Cast.SharedCD.Timer == nil {
+		if config.ExtraCastCondition == nil && config.Cast.CD.Timer == nil && config.Cast.SharedCD.Timer == nil && !spell.hasCastRequirement {
 			spell.castFn = spell.makeCastFuncAutosOrProcs()
 		} else {
 			spell.castFn = spell.makeCastFuncSimple()
@@ -507,6 +515,10 @@ func (spell *Spell) finalize() {
 	}
 	spell.SpellMetrics = spell.splitSpellMetrics[0]
 
+	if spell.hasCastRequirement {
+		spell.resolveCasterAuras()
+	}
+
 	// Set the "static" "default" cost here
 	if spell.Cost != nil {
 		spell.DefaultCast.Cost = spell.Cost.GetCurrentCost()
@@ -673,6 +685,15 @@ func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailur
 			return spell.castFailureHelper(sim, "target is disabled")
 		}
 		return false
+	}
+
+	if spell.hasCastRequirement {
+		if reason, _ := spell.castRequirementFailure(); reason != "" {
+			if logCastFailure {
+				return spell.castFailureHelper(sim, reason)
+			}
+			return false
+		}
 	}
 
 	if spell.ExtraCastCondition != nil && !spell.ExtraCastCondition(sim, target) {

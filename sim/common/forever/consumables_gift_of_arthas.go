@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -12,7 +13,7 @@ func init() {
 		character := agent.GetCharacter()
 		character.AddStat(stats.ShadowResistance, 10)
 		auras := character.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-			return core.GiftOfArthasAura(target)
+			return buffs.GiftOfArthasAura(target, true, 0)
 		})
 		procSpell := character.RegisterSpell(core.SpellConfig{
 			ActionID:    core.ActionID{SpellID: 11374},

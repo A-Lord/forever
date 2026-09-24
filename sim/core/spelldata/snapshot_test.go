@@ -6,6 +6,7 @@ package spelldata
 // number says so here instead of in a sim result.
 
 import (
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"slices"
 	"strings"
 	"testing"
@@ -16,8 +17,8 @@ import (
 // What the committed spells_auto_gen.go holds today. The bounds are wide enough that adding a class
 // or a patch's spells does not fail the gate, and the exact numbers are here so drift is visible.
 const (
-	generatedSpellCount  = 7955
-	generatedEffectCount = 11119
+	generatedSpellCount  = 7966
+	generatedEffectCount = 11157
 )
 
 // The client's EffectIndex has gaps: 53 of the store's rows state an index that is not the
@@ -237,6 +238,38 @@ func TestGeneratedOverrideRow(t *testing.T) {
 	}
 	if s.ProcChanceSource != ProcChancePPM {
 		t.Errorf("Armor Shatter's proc chance source is %d, want ProcChancePPM", s.ProcChanceSource)
+	}
+}
+
+// Wrath is castable in Moonkin Form and excludes Tree Form, Healing Touch the reverse. Tiger's Fury
+// states its Cat Form requirement as a caster aura; its SpellShapeshift row is empty.
+func TestGeneratedStanceAndAuraRestriction(t *testing.T) {
+	withGeneratedStore(t)
+
+	wrath := MustFind(5176)
+	if wrath.StanceMask != 0x40000000 || wrath.StanceExclude != 0x2 {
+		t.Errorf("Wrath's stance mask is %#x exclude %#x, want 0x40000000 exclude 0x2",
+			wrath.StanceMask, wrath.StanceExclude)
+	}
+
+	healingTouch := MustFind(5185)
+	if healingTouch.StanceMask != 0x2 || healingTouch.StanceExclude != 0x40000000 {
+		t.Errorf("Healing Touch's stance mask is %#x exclude %#x, want 0x2 exclude 0x40000000",
+			healingTouch.StanceMask, healingTouch.StanceExclude)
+	}
+
+	tigersFury := MustFind(5217)
+	if tigersFury.CasterAura != 768 {
+		t.Errorf("Tiger's Fury's caster aura is %d, want 768", tigersFury.CasterAura)
+	}
+
+	for id, want := range map[int32]dbcenums.ShapeshiftForm{
+		2457: dbcenums.FORM_BATTLE_STANCE, 71: dbcenums.FORM_DEFENSIVE_STANCE, 2458: dbcenums.FORM_BERSERKER_STANCE,
+		768: dbcenums.FORM_CAT_FORM, 9634: dbcenums.FORM_DIRE_BEAR_FORM, 24858: dbcenums.FORM_MOONKIN_FORM,
+	} {
+		if got := MustFind(id).ShapeshiftForm(); got != want {
+			t.Errorf("spell %d puts the caster in form %d, want %d", id, got, want)
+		}
 	}
 }
 

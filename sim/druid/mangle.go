@@ -1,7 +1,7 @@
 package druid
 
 // Package-level state the commented-out implementation used:
-// var mangleBearRank = spellData.MangleBear.ByID(33987)
+// var mangleBearRank = spellData.Mangle.ByID(1238073)
 
 // TODO: To be implemented.
 func (druid *Druid) registerMangleAuras() {
@@ -14,7 +14,7 @@ func (druid *Druid) registerMangleAuras() {
 	// if druid.MangleAuras != nil {
 	// 	return
 	// }
-	// druid.MangleAuras = druid.NewEnemyAuraArray(core.MangleAura)
+	// druid.MangleAuras = druid.NewEnemyAuraArray(buffs.MangleAura)
 }
 
 // TODO: To be implemented. Forever ships ONE Mangle -- spells 407995 and 1238069/1238070/1238073
@@ -34,13 +34,14 @@ func (druid *Druid) registerMangleBearSpell() {
 	//
 	// druid.registerMangleAuras()
 	//
-	// druid.MangleBear = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: mangleBearRank.ID},
-	// 	SpellSchool:    mangleBearRank.SpellSchool(),
-	// 	DefenseType:    mangleBearRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellMangleBear,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.MangleBear = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: mangleBearRank.ID},
+	// 	CastRequirement: mangleBearRank.CastRequirement(),
+	// 	SpellSchool:     mangleBearRank.SpellSchool(),
+	// 	DefenseType:     mangleBearRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellMangleBear,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
 	// 		Cost:   int32(mangleBearRank.Cost()),

@@ -109,7 +109,7 @@ func (shaman *Shaman) registerWindfuryTotemSpell() {
 	// 	},
 	// })
 	//
-	// wfIntermediateAuraForExclusitivity.NewExclusiveEffect(core.WindfuryTotemCategory, false, core.ExclusiveEffect{
+	// wfIntermediateAuraForExclusitivity.NewExclusiveEffect(buffs.WindfuryTotemCategory, false, core.ExclusiveEffect{
 	// 	Priority: value,
 	// 	OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
 	// 		wfProcTrigger.Activate(sim)
@@ -136,29 +136,17 @@ func (shaman *Shaman) registerWindfuryTotemSpell() {
 	// shaman.RegisterSpell(config)
 }
 
-// TODO: To be implemented. Port the TBC Strength Of Earth Totem Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. The body below builds the totem around the generated
+// aura, whose value the client states; kept commented until this class's port is reviewed.
 func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {
 	panic("To be implemented")
 
-	// The TBC implementation, kept for the port:
+	// The implementation, kept for the port:
 	// duration := time.Second * 120
-	// // TODO: Forever drops Enhancing Totems; untalented Strength of Earth Totem value only.
-	// value := core.StrengthOfEarthTotemValue(0, false)
 	// config := shaman.newTotemSpellConfig(int32(strengthOfEarthTotemRank.Cost()), strengthOfEarthTotemRank.ID, SpellMaskBasicTotem, strengthOfEarthTotemRank.GCD())
-	// buffAura := shaman.RegisterAura(core.Aura{
-	// 	Label:    "Strength Of Earth Totem (Self)",
-	// 	ActionID: config.ActionID,
-	// 	Duration: duration,
-	// })
-	// buffAura.NewExclusiveEffect(core.StrengthOfEarthTotemCategory+stats.Strength.StatName()+"Add", false, core.ExclusiveEffect{
-	// 	Priority: value,
-	// 	OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		ee.Aura.Unit.AddStatDynamic(sim, stats.Strength, value)
-	// 	},
-	// 	OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		ee.Aura.Unit.AddStatDynamic(sim, stats.Strength, -value)
-	// 	},
-	// })
+	// // Enhancing Totems (16295) has no node in shaman tree 1082, so the aura is untalented.
+	// buffAura := buffs.StrengthOfEarthTotemAura(&shaman.Unit, true, 0)
+	// buffAura.Duration = duration
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 	if shaman.EarthTotemAura != nil {
 	// 		shaman.EarthTotemAura.Deactivate(sim)
@@ -170,29 +158,17 @@ func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {
 	// shaman.RegisterSpell(config)
 }
 
-// TODO: To be implemented. Port the TBC Grace Of Air Totem Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. The body below builds the totem around the generated
+// aura, which is the client's 89 agility; Enhancing Totems (16295) has no node
+// in shaman tree 1082, so there are no talent points to pass.
 func (shaman *Shaman) registerGraceOfAirTotemSpell() {
 	panic("To be implemented")
 
-	// The TBC implementation, kept for the port:
+	// The body the port needs:
 	// duration := time.Second * 120
-	// // TODO: Forever drops Enhancing Totems; untalented Grace of Air Totem value only.
-	// value := 77.0
 	// config := shaman.newTotemSpellConfig(int32(graceOfAirTotemRank.Cost()), graceOfAirTotemRank.ID, SpellMaskBasicTotem, graceOfAirTotemRank.GCD())
-	// buffAura := shaman.RegisterAura(core.Aura{
-	// 	Label:    "Grace Of Air Totem (Self)",
-	// 	ActionID: config.ActionID,
-	// 	Duration: duration,
-	// })
-	// buffAura.NewExclusiveEffect(core.GraceOfAirTotemCategory+stats.Agility.StatName()+"Add", false, core.ExclusiveEffect{
-	// 	Priority: value,
-	// 	OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		ee.Aura.Unit.AddStatDynamic(sim, stats.Agility, value)
-	// 	},
-	// 	OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		ee.Aura.Unit.AddStatDynamic(sim, stats.Agility, -value)
-	// 	},
-	// })
+	// buffAura := buffs.GraceOfAirTotemAura(&shaman.Unit, true, 0)
+	// buffAura.Duration = duration
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 	if shaman.AirTotemAura != nil {
 	// 		shaman.AirTotemAura.Deactivate(sim)
@@ -204,28 +180,16 @@ func (shaman *Shaman) registerGraceOfAirTotemSpell() {
 	// shaman.RegisterSpell(config)
 }
 
-// TODO: To be implemented. Port the TBC Mana Spring Totem Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. The body below builds the totem around the generated
+// aura, which Restorative Totems prices; kept commented until this class's port is reviewed.
 func (shaman *Shaman) registerManaSpringTotemSpell() {
 	panic("To be implemented")
 
-	// The TBC implementation, kept for the port:
+	// The implementation, kept for the port:
 	// duration := time.Second * 120
-	// value := 50 * (1 + 0.05*float64(shaman.Talents.RestorativeTotems))
 	// config := shaman.newTotemSpellConfig(int32(manaSpringTotemRank.Cost()), manaSpringTotemRank.ID, SpellMaskBasicTotem, manaSpringTotemRank.GCD())
-	// buffAura := shaman.RegisterAura(core.Aura{
-	// 	Label:    "Mana Spring Totem (Self)",
-	// 	ActionID: config.ActionID,
-	// 	Duration: duration,
-	// })
-	// buffAura.NewExclusiveEffect(core.ManaSpringTotemCategory+stats.MP5.StatName()+"Add", false, core.ExclusiveEffect{
-	// 	Priority: value,
-	// 	OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		ee.Aura.Unit.AddStatDynamic(sim, stats.MP5, value)
-	// 	},
-	// 	OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		ee.Aura.Unit.AddStatDynamic(sim, stats.MP5, -value)
-	// 	},
-	// })
+	// buffAura := buffs.ManaSpringTotemAura(&shaman.Unit, true, shaman.Talents.RestorativeTotems)
+	// buffAura.Duration = duration
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 	if shaman.WaterTotemAura != nil {
 	// 		shaman.WaterTotemAura.Deactivate(sim)

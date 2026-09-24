@@ -36,10 +36,6 @@ func (warrior *Warrior) registerRetaliation() {
 
 	config := spelldata.SpellConfig(&warrior.Unit, retaliationRank)
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		aura.Activate(sim)
 		aura.SetStacks(sim, aura.MaxStacks)

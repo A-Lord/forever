@@ -171,9 +171,11 @@ func (spell *Spell) RangedAttackPower(target *Unit) float64 {
 	return spell.Unit.stats[stats.RangedAttackPower] + target.PseudoStats.BonusRangedAttackPower + spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.RangedAttackPower]
 }
 
+// ExpertisePercent is fed by ExpertiseRating through a stat dependency and directly by the
+// flat-percent sources; Forever formats every source as a plain percent, so there is no
+// quarter-point rounding.
 func (spell *Spell) DodgeParrySuppression() float64 {
-	expertiseRating := spell.Unit.stats[stats.ExpertiseRating] + spell.BonusExpertiseRating
-	return math.Floor(expertiseRating/ExpertisePerQuarterPercentReduction) / 400
+	return (spell.Unit.stats[stats.ExpertisePercent] + spell.BonusExpertisePercent) / 100
 }
 
 func (spell *Spell) PhysicalHitChance(attackTable *AttackTable) float64 {

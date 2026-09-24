@@ -59,7 +59,6 @@ describe('consumableSlot', () => {
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeFood }))).toBe(ConsumableSlot.Food);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeExplosive }))).toBe(ConsumableSlot.Explosive);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeImbue }))).toBe(ConsumableSlot.Imbue);
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypePetFood }))).toBe(ConsumableSlot.PetFood);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeScroll }))).toBe(ConsumableSlot.Extra);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeDevice }))).toBe(ConsumableSlot.Extra);
 	});

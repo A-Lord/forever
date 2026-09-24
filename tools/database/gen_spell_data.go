@@ -143,8 +143,8 @@ func fieldNameOf(spellName string) string {
 }
 
 // Every family a class can learn, from two sources: every spell in one of the class's skill lines
-// whose subtext reads "Rank N" or is empty (a single-rank ability like Whirlwind is its own rank 1),
-// and every talent in the class's tree. Nothing hand-maintained.
+// whose subtext reads "Rank N", "Shapeshift" or is empty (a single-rank ability like Whirlwind or Cat
+// Form is its own rank 1), and every talent in the class's tree. Nothing hand-maintained.
 func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int) ([]rankLadder, []string, []string, error) {
 	mask := classMaskOf(class)
 
@@ -170,7 +170,7 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int) ([]rankLadder, 
 			JOIN SkillLine sl2 ON sl2.ID = sla2.SkillLine AND sl2.CategoryID = 7
 			WHERE (sla2.ClassMask & ?) != 0
 		) OR (sla.SkillLine = ? AND sla.ClassMask = ? AND sla.AcquireMethod = ?))
-		AND (s.NameSubtext_lang LIKE 'Rank %' OR s.NameSubtext_lang = '')
+		AND (s.NameSubtext_lang LIKE 'Rank %' OR s.NameSubtext_lang IN ('', 'Shapeshift'))
 		AND sla.SkillLine NOT IN (2851, 2853)
 		AND NOT EXISTS (SELECT 1 FROM SpellEffect se WHERE se.SpellID = sla.Spell AND se.EffectAura = ?)
 		ORDER BY n.Name_lang, sla.Spell`, dbcenums.ATTR_PASSIVE, mask, dbc.SkillLineDefense, mask, acquireOnLevel, dbcenums.A_MOUNTED)
@@ -1206,10 +1206,20 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 		return nil, nil, err
 	}
 
-	files := map[string][]byte{
-		"sim/common/shared/spell_data_enums_auto_gen.go": enums,
-		"sim/core/spelldata/spells_auto_gen.go":          store,
+	formsFile, err := renderFormsFile(inputs.Forms)
+	if err != nil {
+		return nil, nil, err
 	}
+
+	// The buffs read the store's rows, so they are rendered from the same inputs, and checked and
+	// type-checked with the rest.
+	files, err := renderBuffOutputs(inputs)
+	if err != nil {
+		return nil, nil, fmt.Errorf("buffs: %w", err)
+	}
+	files["sim/core/dbcenums/forms_auto_gen.go"] = formsFile
+	files["sim/common/shared/spell_data_enums_auto_gen.go"] = enums
+	files["sim/core/spelldata/spells_auto_gen.go"] = store
 	for pkg, out := range rendered {
 		files[fmt.Sprintf("sim/%s/spell_data_auto_gen.go", pkg)] = out
 	}

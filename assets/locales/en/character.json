@@ -51,7 +51,6 @@
 	"races": {
 		"unknown": "None",
 		"blood_elf": "Blood Elf",
-		"draenei": "Draenei",
 		"dwarf": "Dwarf",
 		"gnome": "Gnome",
 		"goblin": "Goblin",
@@ -63,7 +62,9 @@
 		"tauren": "Tauren",
 		"troll": "Troll",
 		"undead": "Undead",
-		"worgen": "Worgen"
+		"worgen": "Worgen",
+		"high_order_skyborne": "High Order Skyborne",
+		"windshaper_skyborne": "Windshaper Skyborne"
 	},
 	"professions": {
 		"unknown": "None",

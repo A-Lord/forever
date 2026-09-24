@@ -42,18 +42,6 @@ func setUnitStat(unitStats core.UnitStats, unitStat stats.UnitStat, value float6
 	return unitStats
 }
 
-func addUnitStats(unitStats core.UnitStats, other core.UnitStats) core.UnitStats {
-	result := unitStats
-	result.Stats = unitStats.Stats.Add(other.Stats)
-	maxLen := max(len(unitStats.PseudoStats), len(other.PseudoStats))
-	result.PseudoStats = make([]float64, maxLen)
-	copy(result.PseudoStats, unitStats.PseudoStats)
-	for idx, value := range other.PseudoStats {
-		result.PseudoStats[idx] += value
-	}
-	return result
-}
-
 func isEmptyUnitStats(unitStats core.UnitStats) bool {
 	for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
 		if unitStats.Stats[statIdx] != 0 {
@@ -128,6 +116,7 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 	delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatRangedCritPercent), delta.Stats[stats.PhysicalCritPercent]+delta.Stats[stats.RangedCritPercent])
 	delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatSpellCritPercent), delta.Stats[stats.SpellCritPercent])
 	delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatBlockPercent), delta.Stats[stats.BlockPercent])
+	delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatExpertisePercent), delta.Stats[stats.ExpertisePercent])
 
 	// Haste% pseudo-stats: read speed multipliers from baseStats.PseudoStats, which
 	// GetPseudoStatsProto populates as MeleeSpeedMultiplier×AttackSpeedMultiplier etc.
@@ -179,6 +168,8 @@ func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 		return []proto.PseudoStat{proto.PseudoStat_PseudoStatSpellHastePercent}
 	case stats.ResilienceRating, stats.DefenseRating:
 		return []proto.PseudoStat{proto.PseudoStat_PseudoStatReducedCritTakenPercent}
+	case stats.ExpertiseRating:
+		return []proto.PseudoStat{proto.PseudoStat_PseudoStatExpertisePercent}
 	default:
 		return nil
 	}
@@ -204,6 +195,8 @@ func ratingPerPseudoStatPercent(pseudoStat proto.PseudoStat, parent stats.Stat) 
 		return core.PhysicalHasteRatingPerHastePercent
 	case proto.PseudoStat_PseudoStatSpellHastePercent:
 		return core.SpellHasteRatingPerHastePercent
+	case proto.PseudoStat_PseudoStatExpertisePercent:
+		return core.ExpertiseRatingPerExpertisePercent
 	case proto.PseudoStat_PseudoStatReducedCritTakenPercent:
 		if parent == stats.DefenseRating {
 			return core.DefenseRatingPerDefenseLevel / core.MissDodgeParryBlockCritChancePerDefense

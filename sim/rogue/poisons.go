@@ -4,10 +4,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-const instantImbueID = 26891
-const woundImbueID = 27188
-const deadlyImbueID = 27186
-
 func (rogue *Rogue) applyPoisons() {
 	rogue.applyDeadlyPoison()
 	rogue.applyWoundPoison()

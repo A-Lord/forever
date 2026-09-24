@@ -79,6 +79,8 @@ Each fills what the row states and nothing else; the caller adds `ApplyEffects`,
 
 `Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ClassSpellMask` and `ApplyEffects` by hand. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
 
+Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions and the shapeshift attribute bits, and core enforces it. Never write a stance or form check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
+
 ## Porting a class
 
 `docs/spell_data.md` has the checklist under "Porting a class to the store". The short form: flip the class in `storeBackedClasses` and regenerate, dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), keep the parity test green, and move goldens only for a cause you isolated by reverting one change.

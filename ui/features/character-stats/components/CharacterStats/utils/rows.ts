@@ -48,7 +48,7 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHastePercent) },
 			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier) },
 			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedSpeedMultiplier) },
-			{ stat: UnitStat.fromStat(Stat.StatExpertiseRating) },
+			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatExpertisePercent) },
 			{ stat: UnitStat.fromStat(Stat.StatArmorPenetration) },
 		],
 	],

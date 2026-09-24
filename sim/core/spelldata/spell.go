@@ -223,6 +223,22 @@ func (s *Spell) Refs() []*Spell {
 	return resolve(s.RefIDs)
 }
 
+// The spell an A_OVERRIDE_ACTIONBAR_SPELLS effect of overrider puts on the action bar in place of
+// this one. It panics when overrider does not replace this spell.
+func (s *Spell) OverriddenBy(overrider *Spell) *Spell {
+	return MustFind(int32(overrider.Effect(dbcenums.A_OVERRIDE_ACTIONBAR_SPELLS, s.ID).BasePoints))
+}
+
+// The form an A_MOD_SHAPESHIFT effect puts the caster in, or none.
+func (s *Spell) ShapeshiftForm() dbcenums.ShapeshiftForm {
+	for i := range s.Effects {
+		if s.Effects[i].Aura == dbcenums.A_MOD_SHAPESHIFT {
+			return dbcenums.ShapeshiftForm(s.Effects[i].Misc)
+		}
+	}
+	return 0
+}
+
 // The spells whose effects fire this one, from the trigger index.
 func (s *Spell) Drivers() []*Spell {
 	return resolve(drivers[s.ID])

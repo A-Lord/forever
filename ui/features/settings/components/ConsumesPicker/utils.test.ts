@@ -1,4 +1,4 @@
-import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec, Stat, TristateEffect, WeaponType } from '@generated/proto/common';
+import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
 import { UIItem } from '@generated/proto/ui';
@@ -56,7 +56,7 @@ interface PlayerState {
 	cls: Class;
 	spec: Spec;
 	professions: Array<Profession>;
-	windfury: TristateEffect;
+	windfury: boolean;
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	consumes: ConsumesSpec;
@@ -67,7 +67,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		cls: Class.ClassWarrior,
 		spec: Spec.SpecDpsWarrior,
 		professions: [],
-		windfury: TristateEffect.TristateEffectMissing,
+		windfury: false,
 		consumes: ConsumesSpec.create(),
 		...state,
 	};
@@ -130,9 +130,9 @@ describe('consumeConfigs', () => {
 	});
 
 	it('hides the main-hand imbue under Windfury Totem', () => {
-		const { player } = playerOf({ windfury: TristateEffect.TristateEffectRegular });
+		const { player } = playerOf({ windfury: true });
 		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
-		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, windfury: TristateEffect.TristateEffectRegular }).player;
+		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, windfury: true }).player;
 		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
 	});
 

@@ -1,4 +1,4 @@
-import { Race, TristateEffect } from '@generated/proto/common';
+import { Race } from '@generated/proto/common';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost } from '@sim/testing';
 import { renderHook } from '@testing-library/react';
@@ -34,31 +34,17 @@ describe('useSavedSettings', () => {
 		expect(entries[0].data.race).toBe(Race.RaceOrc);
 	});
 
-	// Saves from before Forever hold the TBC talent field, which `SavedSettings.fromJson` throws on;
-	// `useSavedData` swallows that and the entry would be gone from the panel without a word.
-	it('keeps an entry whose debuffs carry the legacy improvedSealOfTheCrusader bool', () => {
-		store({ Legacy: { race: 'RaceOrc', debuffs: { improvedSealOfTheCrusader: true, misery: true } } });
+	it('reads every entry of the slot', () => {
+		store({ Raid: { debuffs: { improvedSealOfTheCrusader: true } }, Current: { race: 'RaceOrc' } });
 
-		const { entries } = load();
-		expect(entries.map(entry => entry.name)).toEqual(['Legacy']);
-		expect(entries[0].data.debuffs?.judgementOfTheCrusader).toBe(true);
-		expect(entries[0].data.debuffs?.misery).toBe(true);
+		expect(load().entries.map(entry => entry.name)).toEqual(['Raid', 'Current']);
 	});
 
-	// The later TBC shape was an enum name; any rank of the debuff maps to the one Forever has.
-	it('maps a legacy enum name onto the bool', () => {
-		store({ Current: { debuffs: { improvedSealOfTheCrusader: 'TristateEffectRegular', jocRetribution2Pt4: true } } });
-
-		const debuffs = load().entries[0].data.debuffs;
-		expect(debuffs?.judgementOfTheCrusader).toBe(true);
-		expect(debuffs).not.toHaveProperty('improvedSealOfTheCrusader');
-	});
-
-	it('keeps an entry whose consumables and party buffs carry the flags and drums of version 16', () => {
+	it('keeps an entry whose consumables and party buffs carry the flags and drums of before version 2', () => {
 		store({
 			Legacy: {
 				consumables: { explosiveId: 15239, mhImbueId: 25122, goblinSapper: true, scrollStr: true, drumsId: 'LesserDrumsOfBattle' },
-				partyBuffs: { drums: 'LesserDrumsOfBattle', windfuryTotem: 'TristateEffectRegular' },
+				partyBuffs: { drums: 'LesserDrumsOfBattle', windfuryTotem: true },
 			},
 		});
 
@@ -67,12 +53,6 @@ describe('useSavedSettings', () => {
 		const { consumables, partyBuffs } = entries[0].data;
 		expect(consumables?.extraIds).toEqual([10646, 10310]);
 		expect([consumables?.explosiveId, consumables?.mhImbueId]).toEqual([11566, 20749]);
-		expect(partyBuffs?.windfuryTotem).toBe(TristateEffect.TristateEffectRegular);
-	});
-
-	it('does not drop the other entries of the slot', () => {
-		store({ Legacy: { debuffs: { improvedSealOfTheCrusader: true } }, Current: { race: 'RaceOrc' } });
-
-		expect(load().entries.map(entry => entry.name)).toEqual(['Legacy', 'Current']);
+		expect(partyBuffs?.windfuryTotem).toBe(true);
 	});
 });

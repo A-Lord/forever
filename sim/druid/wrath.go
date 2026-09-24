@@ -7,14 +7,15 @@ func (druid *Druid) registerWrathSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.Wrath = druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: wrathRank.ID},
-	// 	SpellSchool:    wrathRank.SpellSchool(),
-	// 	DefenseType:    wrathRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	ClassSpellMask: DruidSpellWrath,
-	// 	Flags:          core.SpellFlagAPL,
-	// 	MissileSpeed:   float64(wrathRank.Speed),
+	// druid.Wrath = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: wrathRank.ID},
+	// 	CastRequirement: wrathRank.CastRequirement(),
+	// 	SpellSchool:     wrathRank.SpellSchool(),
+	// 	DefenseType:     wrathRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskSpellDamage,
+	// 	ClassSpellMask:  DruidSpellWrath,
+	// 	Flags:           core.SpellFlagAPL,
+	// 	MissileSpeed:    float64(wrathRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(wrathRank.Cost()),

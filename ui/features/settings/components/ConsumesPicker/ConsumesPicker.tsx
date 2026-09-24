@@ -78,9 +78,8 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					</PickerGroup>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="pet" configs={[configs.petFood, ...configs.petScrolls]} hidden={!encounterConsumes}>
+			<ConsumeRow name="pet" configs={configs.petScrolls} hidden={!encounterConsumes}>
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-pet">
-					<IconEnumPicker modObject={player} config={configs.petFood} />
 					<Toggles player={player} toggles={configs.petScrolls} />
 				</PickerGroup>
 			</ConsumeRow>

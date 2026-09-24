@@ -1,26 +1,16 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, Profession, RaidBuffs, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, Profession, TristateEffect } from '@generated/proto/common';
 import { Warlock_Options as WarlockOptions, WarlockOptions_Armor, WarlockOptions_CurseOptions, WarlockOptions_Summon } from '@generated/proto/warlock';
-import { defaultExposeWeaknessSettings, defaultImprovedShadowBoltSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
-import AfflictionRot from './apls/affliction.apl.json';
-import BlankAPL from './apls/blank.apl.json';
-import DemoRot from './apls/demonology.apl.json';
-import DestroFireRot from './apls/destro_fire.apl.json';
-import DestroRot from './apls/destruction.apl.json';
+import DefaultApl from './apls/default.apl.json';
 
 // Preset options for this spec.
 // Eventually we will import these values for the raid sim too, so its good to
 // keep them in a separate file.
 
-export const BLANK_APL = PresetUtils.makePresetAPLRotation('Blank', BlankAPL);
-
-// Rotations
-export const AfflictionAPL = PresetUtils.makePresetAPLRotation('Affliction', AfflictionRot);
-export const DemoAPL = PresetUtils.makePresetAPLRotation('Demonology', DemoRot);
-export const DestroAPL = PresetUtils.makePresetAPLRotation('Destruction', DestroRot);
-export const DestroFireAPL = PresetUtils.makePresetAPLRotation('Destruction (Fire)', DestroFireRot);
+export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
 // Defaults
 export const DefaultOptions = WarlockOptions.create({
@@ -49,43 +39,30 @@ export const OtherDefaults = {
 };
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(),
 	arcaneBrilliance: true,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	divineSpirit: TristateEffect.TristateEffectImproved,
+	giftOfTheWild: true,
+	prayerOfFortitude: true,
+	prayerOfSpirit: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	moonkinAura: TristateEffect.TristateEffectRegular,
-	totemOfWrath: 1,
-	wrathOfAirTotem: TristateEffect.TristateEffectImproved,
-	eyeOfTheNight: true,
-	chainOfTheTwilightOwl: true,
+	moonkinAura: true,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfWisdom: true,
-	shadowPriestDps: 0,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	...defaultExposeWeaknessSettings(),
-	...defaultImprovedShadowBoltSettings(),
 	judgementOfWisdom: true,
-	misery: true,
-	shadowWeaving: true,
 	sunderArmor: true,
-	screech: true,
-	faerieFire: TristateEffect.TristateEffectImproved,
+	faerieFire: true,
 	curseOfRecklessness: true,
-	shadowEmbrace: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
-	bloodFrenzy: true,
+	curseOfElements: true,
 	giftOfArthas: true,
 	mangle: true,
-	exposeArmor: TristateEffect.TristateEffectImproved,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	exposeArmor: true,
+	huntersMark: true,
 });

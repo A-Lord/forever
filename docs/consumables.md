@@ -129,9 +129,11 @@ value masks (4, Demon), for the row's 120 s, on category 4's 120 s timer. The sa
 Consecrated Sharpening Stone 23122 with `shared.NewVersusTemporaryEnchant`: core puts its enchant 2684
 on each hand whose weapon the masks take, and the enchant's equip spell 28893 grants 99 melee and 99
 ranged attack power against Undead once per such hand, since each weapon carries its own equip aura
-and 28893 marks no aura unique. `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
+and 28893 marks no aura unique. Blessed Wizard Oil 23123 goes the same way: its enchant 2685's equip
+spell 28890 grants 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, mask 32). `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
 
-`applyConsumeEffects` handles one thing itself: the pet's food, whose db.json stats go on the pet.
+`applyConsumeEffects` handles one thing itself: the pet's `pet_extra_ids`, whose db.json stats go on
+the pet.
 
 ## Writing an effect by hand: the Natural flasks
 
@@ -180,7 +182,7 @@ func init() {
 
 The Stamina is the parser's, from the first effect. `NaturalFlaskZoneBonusOf` reads the dummy's amount
 as the later auras name it, as though every fight is in those zones; `A_MOD_EXPERTISE` takes it as a
-percent at four points of expertise each, since the text reads "5% reduced chance to be dodged or
+percent at `core.ExpertiseRatingPerExpertisePercent` (10) expertise rating each, since the text reads "5% reduced chance to be dodged or
 parried". A hand-written effect for an id a builder does register takes that registration's place;
 deleting the hand-written one hands the id back to the rows.
 
@@ -261,15 +263,15 @@ should not take is a hand-written effect for the consumable.
   goldens.
 - `ui/sim/settings/consumables.test.ts` pins the pickers and the relevance rules below,
   `ConsumesPicker/utils.test.ts` the settings rows, and `consumes_migration.test.ts` the migration of
-  settings saved before api version 17.
+  settings saved before api version 2.
 
 ## What the settings offer
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
 consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
 the conjured item, `ConsumableTypePotion` the combat potion, then the flask, the two elixir pickers
-(`ConsumableTypeElixir`, Battle or Guardian), `ConsumableTypeFood` the food, the explosive, the imbues and
-the pet's food. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
+(`ConsumableTypeElixir`, Battle or Guardian), `ConsumableTypeFood` the food, the explosive and the
+imbues. Everything else is picked any number at a time into the spec's `extra_ids`: the scrolls
 in their row, the rest in the miscellaneous row, and an explosive with a cooldown of its own beside the
 shared one (Goblin Sapper Charge 10646) beside the explosive picker. The pet's scrolls go into
 `pet_extra_ids`.
@@ -315,10 +317,13 @@ enchant with it.
 `TestRequestCarriesEveryConsumableThePresetSelects` (`sim/common`) runs a warrior once with every
 consumable loaded and once with only those a request carries, and checks both apply the same.
 
-Settings saved before api version 17 name the Goblin Sapper Charge, the scrolls, Bogling Root and the
-pet's scrolls by flags, and drums by an enum. `REMOVED_CONSUMES_FIELDS`
-(`ui/sim/proto/consumes_migration.ts`) names each removed field with the item a set flag selected, and
-the same file turns a link's (binary, by field number) or a saved blob's (JSON, by name) flags into
-item ids; `migrateLegacyConsumes` does it for both JSON shapes, saved settings and a sim's settings,
-and drops the party's drums. `TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of
-those fields reserved in `ConsumesSpec`.
+Settings saved before api version 2 name the Goblin Sapper Charge, the scrolls, Bogling Root and the
+pet's scrolls by flags, drums by an enum and the pet's food by an id. `REMOVED_CONSUMES_FIELDS`
+(`ui/sim/proto/consumes_migration.ts`) names each removed field with the item a set flag selected and
+the number it had in the two layouts a link may carry: version 1's, and the one from before the
+version restarted at 1, whose links are stamped 16. The same file turns a link's (binary, by field
+number, `sim_links.ts`) or a saved blob's (JSON, by name) flags into item ids and the spell ids the
+explosive and imbue fields held into the items that cast them; `migrateLegacyConsumes` does it for
+both JSON shapes, saved settings and a sim's settings, and drops the party's drums.
+`TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of those fields reserved in
+`ConsumesSpec`, version 1's by number as well.

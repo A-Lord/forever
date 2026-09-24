@@ -234,8 +234,14 @@ func loadStoreInputs(db *sql.DB, ladderIDs []int32, trees map[int]int) (*storeIn
 		return nil, err
 	}
 
+	forms, err := loadShapeshiftForms(db)
+	if err != nil {
+		return nil, err
+	}
+
 	in := captureStoreInputs(tables, roots, ids, nodes, points)
 	in.ItemRoots = gearRoots
+	in.Forms = forms
 	return in, nil
 }
 

@@ -75,11 +75,6 @@ func (cat *FeralDruid) shift(sim *core.Simulation) bool {
 		if !mcd.IsReady(sim) {
 			continue
 		}
-		// Bloodlust is fired at a fixed time (5s) via a scheduled pending action
-		// — skip it here so it doesn't fire opportunistically during powershifts.
-		if mcd.Spell.ActionID.SpellID == core.BloodlustActionID.SpellID {
-			continue
-		}
 		mcd.TryActivate(sim, &cat.Character)
 	}
 

@@ -103,12 +103,14 @@ var ConsumableAllowList = []int32{
 	9088,  // Gift of Arthas
 	9155,  // Arcane Elixir
 	9224,  // Elixir of Demonslaying
+	9421,  // Major Healthstone
 	13442, // Migty Rage Potion
 	13452, // Elixir of the Mongoose
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
 	23122, // Consecrated Sharpening Stone, whose attack power against Undead sim/common registers by hand
+	23123, // Blessed Wizard Oil, whose spell damage against Undead sim/common registers by hand
 	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
 	274273, // Flask of Natural Accuracy
 	274274, // Flask of Natural Aggression
@@ -158,7 +160,6 @@ var SharedSpellsIcons = []int32{
 	3738,
 	8227,
 
-	6562,
 	16840,
 
 	// Raid Debuffs
@@ -204,22 +205,38 @@ var SharedSpellsIcons = []int32{
 	17768, // Wolfshead Helm
 	18803, // Focus
 	19615, // Frenzy Effect
+	20554, // Berserking
+	20572, // Blood Fury
 	20574, // Axe Specialization
-	20575, // Command
-	20576, // Command
 	20594, // Stoneform
-	20595, // Gun Specialization
 	20597, // Sword Specialization
-	20864, // Mace Specialization
 	23110, // Dash
 	23563, // Enhanced Battle Shout
 	25076, // Cobra Reflexes
-	25894, // Greater Blessing of Wisdom
+	21564, // Prayer of Fortitude
 	25895, // Greater Blessing of Salvation
+	25916, // Greater Blessing of Might
+	25918, // Greater Blessing of Wisdom
+	27681, // Prayer of Spirit
+	27683, // Prayer of Shadow Protection
 	26654, // Sweeping Strikes
 	28142, // Power of the Guardian
 	28143, // Power of the Guardian
 	29414, // Haste
+
+	1259686, // Skysight
+	1259688, // Elemental Blessing
+	1259705, // Read Ley Line
+	1259719, // Mace Specialization
+	1259799, // Elune's Light
+	1259812, // Eureka!
+	1259813, // Eureka!
+	1259817, // Eureka!
+	1259821, // Eureka!
+	1259823, // Eureka!
+	1260198, // Touch of the Grave
+	1270842, // Energized
+	1299026, // Shatter Curse
 }
 
 // If any of these match the item name, don't include it.

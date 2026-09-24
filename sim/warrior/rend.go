@@ -16,10 +16,6 @@ func (warrior *Warrior) registerRend() {
 
 	config.Dot = spelldata.DotConfig(rendRank, tick)
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance | DefensiveStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {

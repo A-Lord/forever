@@ -393,9 +393,9 @@ const (
 	// Uses: FloatValue
 	SpellMod_BonusSpellDamage_Flat
 
-	// Add/subtract bonus expertise rating
+	// Add/subtract bonus expertise, in percent
 	// Uses: FloatValue
-	SpellMod_BonusExpertise_Rating
+	SpellMod_BonusExpertise_Percent
 
 	// Add/subtract duration for associated debuff
 	// Uses: KeyValue, TimeValue
@@ -553,9 +553,9 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 		Remove: removeBonusSpellDamageFlat,
 	},
 
-	SpellMod_BonusExpertise_Rating: {
-		Apply:  applyBonusExpertiseRating,
-		Remove: removeBonusExpertiseRating,
+	SpellMod_BonusExpertise_Percent: {
+		Apply:  applyBonusExpertisePercent,
+		Remove: removeBonusExpertisePercent,
 	},
 
 	SpellMod_DebuffDuration_Flat: {
@@ -837,12 +837,12 @@ func removeBonusSpellDamageFlat(mod *SpellMod, spell *Spell) {
 	spell.BonusSpellDamage -= mod.floatValue
 }
 
-func applyBonusExpertiseRating(mod *SpellMod, spell *Spell) {
-	spell.BonusExpertiseRating += mod.floatValue
+func applyBonusExpertisePercent(mod *SpellMod, spell *Spell) {
+	spell.BonusExpertisePercent += mod.floatValue
 }
 
-func removeBonusExpertiseRating(mod *SpellMod, spell *Spell) {
-	spell.BonusExpertiseRating -= mod.floatValue
+func removeBonusExpertisePercent(mod *SpellMod, spell *Spell) {
+	spell.BonusExpertisePercent -= mod.floatValue
 }
 
 func modDebuffDurationFlat(mod *SpellMod, spell *Spell, value time.Duration, claim func(*Aura) bool) {

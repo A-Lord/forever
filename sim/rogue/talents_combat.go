@@ -1,5 +1,7 @@
 package rogue
 
+import "github.com/wowsims/forever/sim/core/stats"
+
 func (rogue *Rogue) registerCombatTalents() {
 	// Tier 1
 	rogue.registerImprovedGouge()
@@ -203,19 +205,14 @@ func (rogue *Rogue) registerBladeFlurry() {
 	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
+// "Reduces the chance for your attacks to be Dodged or Parried by 1%/2%." A_MOD_EXPERTISE
+// carries the percent directly.
 func (rogue *Rogue) registerWeaponExpertise() {
 	if rogue.Talents.WeaponExpertise == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.WeaponExpertise == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStat(stats.ExpertiseRating, core.ExpertisePerQuarterPercentReduction*spellData.WeaponExpertise.ValueAt(rogue.Talents.WeaponExpertise))
+	rogue.AddStat(stats.ExpertisePercent, spellData.WeaponExpertise.ValueAt(rogue.Talents.WeaponExpertise))
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's

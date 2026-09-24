@@ -13,7 +13,10 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 
 	// The TBC implementation, kept for the port:
 	// rogue.ExposeArmorAuras = rogue.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	return core.ExposeArmorAura(target, rogue.ComboPoints, rogue.Talents.ImprovedExposeArmor)
+	// 	// The generated aura is the five-point finisher, which is what the raid
+	// 	// config applies; a cast that spends fewer combo points needs a driver
+	// 	// that prices the aura from rogue.ComboPoints, and there is none yet.
+	// 	return buffs.ExposeArmorAura(target, true, 0)
 	// })
 	//
 	// rogue.ExposeArmor = rogue.RegisterSpell(core.SpellConfig{

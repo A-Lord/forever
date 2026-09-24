@@ -296,6 +296,7 @@ export const DarkDesire = { id: 22237 };
 export const VeryBerryCream = { id: 22238 };
 export const SweetSurprise = { id: 22239 };
 export const ConsecratedSharpeningStone = { id: 23122 };
+export const BlessedWizardOil = { id: 23123 };
 export const BubblyBeverage = { id: 23164 };
 export const LesserMarkOfTheDawn = { id: 23194 };
 export const MarkOfTheDawn = { id: 23195 };

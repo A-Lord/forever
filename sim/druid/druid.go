@@ -149,44 +149,19 @@ func (druid *Druid) GetCharacter() *core.Character {
 
 func (druid *Druid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 	if druid.InForm(Cat|Bear) && druid.Talents.LeaderOfThePack {
-		partyBuffs.LeaderOfThePack = core.Ternary(druid.HasItemEquipped(32387, []proto.ItemSlot{proto.ItemSlot_ItemSlotRanged}), proto.TristateEffect_TristateEffectImproved, proto.TristateEffect_TristateEffectRegular)
+		partyBuffs.LeaderOfThePack = true
 	} else if druid.InForm(Moonkin) && druid.Talents.MoonkinForm {
-		partyBuffs.MoonkinAura = core.Ternary(druid.HasItemEquipped(32387, []proto.ItemSlot{proto.ItemSlot_ItemSlotRanged}), proto.TristateEffect_TristateEffectImproved, proto.TristateEffect_TristateEffectRegular)
+		partyBuffs.MoonkinAura = true
 	}
 }
 
-func (druid *Druid) RegisterSpell(formMask DruidForm, config core.SpellConfig) *DruidSpell {
-	prev := config.ExtraCastCondition
-	prevModify := config.Cast.ModifyCast
-
-	ds := &DruidSpell{FormMask: formMask}
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		// Check if we're in allowed form to cast
-		// Allow 'humanoid' auto unshift casts
-		if (ds.FormMask != Any && !druid.InForm(ds.FormMask)) && !ds.FormMask.Matches(Humanoid) {
-			if sim.Log != nil {
-				sim.Log("Failed cast to spell %s, wrong form", ds.ActionID)
-			}
-			return false
-		}
-		return prev == nil || prev(sim, target)
-	}
-	config.Cast.ModifyCast = func(sim *core.Simulation, s *core.Spell, c *core.Cast) {
-		if !druid.InForm(ds.FormMask) && ds.FormMask.Matches(Humanoid) {
-			druid.ClearForm(sim)
-		}
-		if prevModify != nil {
-			prevModify(sim, s, c)
-		}
-	}
-
-	ds.Spell = druid.Unit.RegisterSpell(config)
-
-	return ds
+func (druid *Druid) RegisterSpell(config core.SpellConfig) *DruidSpell {
+	return &DruidSpell{Spell: druid.Unit.RegisterSpell(config)}
 }
 
 func (druid *Druid) Initialize() {
-	druid.form = druid.StartingForm
+	druid.setForm(druid.StartingForm)
+	druid.AutoUnshift = druid.ClearForm
 
 	druid.Env.RegisterPostFinalizeEffect(func() {
 		druid.MHAutoSpell = druid.AutoAttacks.MHAuto()
@@ -270,7 +245,7 @@ func (druid *Druid) RegisterFeralTankSpells() {
 }
 
 func (druid *Druid) Reset(_ *core.Simulation) {
-	druid.form = druid.StartingForm
+	druid.setForm(druid.StartingForm)
 }
 
 func (druid *Druid) OnEncounterStart(sim *core.Simulation) {
@@ -282,8 +257,8 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 		SelfBuffs:    selfBuffs,
 		Talents:      &proto.DruidTalents{},
 		StartingForm: form,
-		form:         form,
 	}
+	druid.setForm(form)
 
 	core.FillTalentsProto(druid.Talents.ProtoReflect(), talents, TalentTreeSizes)
 	druid.EnableManaBar()
@@ -301,7 +276,6 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 
 type DruidSpell struct {
 	*core.Spell
-	FormMask DruidForm
 
 	// Optional fields used in snapshotting calculations
 	CurrentSnapshotPower float64

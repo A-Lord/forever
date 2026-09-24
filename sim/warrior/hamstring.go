@@ -17,10 +17,6 @@ func (warrior *Warrior) registerHamstring() {
 	// TODO: Ingame research needed if this adds flat threat
 	config.FlatThreatBonus = 0
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance | BerserkerStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, hamstringBaseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
 

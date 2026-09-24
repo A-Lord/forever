@@ -7,13 +7,14 @@ func (druid *Druid) registerSwipeBearSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.Swipe = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: swipeRank.ID},
-	// 	SpellSchool:    swipeRank.SpellSchool(),
-	// 	DefenseType:    swipeRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellSwipe,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.Swipe = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: swipeRank.ID},
+	// 	CastRequirement: swipeRank.CastRequirement(),
+	// 	SpellSchool:     swipeRank.SpellSchool(),
+	// 	DefenseType:     swipeRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellSwipe,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
 	// 		Cost:   int32(swipeRank.Cost()),

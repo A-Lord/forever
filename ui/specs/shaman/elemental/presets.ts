@@ -1,8 +1,8 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { Class, ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, TristateEffect } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, Profession, Race } from '@generated/proto/common';
 import { ElementalShaman_Options as ElementalShamanOptions } from '@generated/proto/shaman';
-import { defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
 import DefaultApl from './apls/default.apl.json';
 
@@ -18,40 +18,34 @@ export const OtherDefaults = {
 	distanceFromTarget: 20,
 	profession1: Profession.Leatherworking,
 	profession2: Profession.Enchanting,
-	race: Race.RaceDraenei,
+	race: Race.RaceTroll,
 };
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(Class.ClassShaman),
 	arcaneBrilliance: true,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	divineSpirit: TristateEffect.TristateEffectImproved,
+	giftOfTheWild: true,
+	prayerOfFortitude: true,
+	prayerOfSpirit: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	moonkinAura: TristateEffect.TristateEffectImproved,
-	chainOfTheTwilightOwl: true,
-	eyeOfTheNight: true,
+	moonkinAura: true,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfWisdom: true,
-	shadowPriestDps: 800,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	bloodFrenzy: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
+	curseOfElements: true,
 	curseOfRecklessness: true,
-	exposeArmor: TristateEffect.TristateEffectImproved,
-	faerieFire: TristateEffect.TristateEffectImproved,
+	exposeArmor: true,
+	faerieFire: true,
 	giftOfArthas: true,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	huntersMark: true,
 	judgementOfWisdom: true,
 	mangle: true,
-	misery: true,
 	sunderArmor: true,
 });
 

@@ -14,6 +14,14 @@ func (s *Spell) IsPassive() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_PASSIVE)
 }
 
+func (s *Spell) NotShapeshifted() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_NOT_SHAPESHIFTED)
+}
+
+func (s *Spell) CastableInCasterForm() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_EX_2, dbcenums.ATTR_EX_2_CASTABLE_IN_CASTER_FORM)
+}
+
 func (s *Spell) IsChanneled() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_IS_CHANNELLED|dbcenums.ATTR_EX_1_IS_SELF_CHANNELLED)
 }

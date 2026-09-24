@@ -14,13 +14,14 @@ func (druid *Druid) registerMaulSpell() {
 
 	// The TBC implementation, kept for the port:
 	// // The actual Maul spell that fires on the next auto-attack swing.
-	// maulSpell := druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: maulRank.ID},
-	// 	SpellSchool:    maulRank.SpellSchool(),
-	// 	DefenseType:    maulRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellMaul,
-	// 	Flags:          core.SpellFlagMeleeMetrics,
+	// maulSpell := druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: maulRank.ID},
+	// 	CastRequirement: maulRank.CastRequirement(),
+	// 	SpellSchool:     maulRank.SpellSchool(),
+	// 	DefenseType:     maulRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellMaul,
+	// 	Flags:           core.SpellFlagMeleeMetrics,
 	//
 	// 	RageCost: core.RageCostOptions{
 	// 		Cost:   int32(maulRank.Cost()),
@@ -84,12 +85,13 @@ func (druid *Druid) makeMaulQueueSpellAndAura(maulSpell *DruidSpell) *DruidSpell
 		Duration: time.Millisecond * 50,
 	}
 
-	queueSpell := druid.RegisterSpell(Bear, core.SpellConfig{
-		ActionID:    maulSpell.ActionID.WithTag(1),
-		SpellSchool: core.SpellSchoolPhysical,
-		DefenseType: core.DefenseTypeMelee,
-		ProcMask:    core.ProcMaskMeleeMHSpecial,
-		Flags:       core.SpellFlagMeleeMetrics | core.SpellFlagAPL | core.SpellFlagNoMetrics,
+	queueSpell := druid.RegisterSpell(core.SpellConfig{
+		ActionID:        maulSpell.ActionID.WithTag(1),
+		CastRequirement: maulRank.CastRequirement(),
+		SpellSchool:     core.SpellSchoolPhysical,
+		DefenseType:     core.DefenseTypeMelee,
+		ProcMask:        core.ProcMaskMeleeMHSpecial,
+		Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL | core.SpellFlagNoMetrics,
 
 		Cast: core.CastConfig{
 			DefaultCast: core.Cast{

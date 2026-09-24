@@ -40,11 +40,12 @@ func (druid *Druid) registerProwlSpell() {
 	// 	}
 	// })
 	//
-	// druid.Prowl = druid.RegisterSpell(Any, core.SpellConfig{
-	// 	ActionID:    actionID,
-	// 	SpellSchool: core.SpellSchoolPhysical,
-	// 	ProcMask:    core.ProcMaskEmpty,
-	// 	Flags:       core.SpellFlagAPL,
+	// druid.Prowl = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        actionID,
+	// 	CastRequirement: prowlRank.CastRequirement(),
+	// 	SpellSchool:     core.SpellSchoolPhysical,
+	// 	ProcMask:        core.ProcMaskEmpty,
+	// 	Flags:           core.SpellFlagAPL,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: icd,
@@ -55,10 +56,6 @@ func (druid *Druid) registerProwlSpell() {
 	// 	},
 	//
 	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-	// 		if !druid.InForm(Cat) {
-	// 			druid.CatFormAura.Activate(sim)
-	// 		}
-	//
 	// 		druid.ProwlAura.Activate(sim)
 	// 	},
 	// })

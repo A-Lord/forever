@@ -17,11 +17,6 @@ export const RotationInputs = {
 				{ name: i18n.t('rotation_tab.options.warrior.dps.spec.arms'), value: DpsWarriorSpec.DpsWarriorSpecArms },
 			],
 		}),
-		InputHelpers.makeRotationNumberInput<Spec.SpecDpsWarrior>({
-			fieldName: 'bloodlustTiming',
-			label: i18n.t('rotation_tab.options.warrior.bloodlust_timing.label'),
-			labelTooltip: i18n.t('rotation_tab.options.warrior.bloodlust_timing.tooltip'),
-		}),
 		InputHelpers.makeRotationEnumInput<Spec.SpecDpsWarrior, WarriorSunder>({
 			fieldName: 'sunderArmor',
 			label: i18n.t('rotation_tab.options.warrior.sunder_armor.label'),

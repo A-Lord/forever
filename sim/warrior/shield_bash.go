@@ -17,7 +17,7 @@ func (warrior *Warrior) registerShieldBash() {
 	config.FlatThreatBonus = 0
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.PseudoStats.CanBlock && warrior.StanceMatches(DefensiveStance|BattleStance)
+		return warrior.PseudoStats.CanBlock
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

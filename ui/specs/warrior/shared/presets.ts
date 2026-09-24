@@ -1,40 +1,33 @@
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { Class, ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs, TristateEffect } from '@generated/proto/common';
-import { defaultExposeWeaknessSettings, defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec } from '@generated/proto/common';
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfMight: true,
-	unleashedRage: true,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfMight: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	ferociousInspiration: 2,
-	braidedEterniumChain: true,
-	graceOfAirTotem: TristateEffect.TristateEffectImproved,
-	strengthOfEarthTotem: TristateEffect.TristateEffectImproved,
-	windfuryTotem: TristateEffect.TristateEffectImproved,
-	leaderOfThePack: TristateEffect.TristateEffectRegular,
+	graceOfAirTotem: true,
+	strengthOfEarthTotem: true,
+	windfuryTotem: true,
+	leaderOfThePack: true,
 	totemTwisting: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(Class.ClassWarrior),
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
+	prayerOfFortitude: true,
+	giftOfTheWild: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	...defaultExposeWeaknessSettings(),
-	misery: true,
-	bloodFrenzy: true,
 	giftOfArthas: true,
 	mangle: true,
-	exposeArmor: TristateEffect.TristateEffectImproved,
-	faerieFire: TristateEffect.TristateEffectImproved,
+	exposeArmor: true,
+	faerieFire: true,
 	sunderArmor: true,
 	curseOfRecklessness: true,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	huntersMark: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({

@@ -17,7 +17,6 @@ export enum ConsumableSlot {
 	Food,
 	Explosive,
 	Imbue,
-	PetFood,
 	// Everything else, picked any number at a time into extra_ids.
 	Extra,
 }
@@ -56,8 +55,6 @@ export function consumableSlot(consumable: Consumable): ConsumableSlot {
 			return ConsumableSlot.Explosive;
 		case ConsumableType.ConsumableTypeImbue:
 			return ConsumableSlot.Imbue;
-		case ConsumableType.ConsumableTypePetFood:
-			return ConsumableSlot.PetFood;
 		default:
 			return ConsumableSlot.Extra;
 	}

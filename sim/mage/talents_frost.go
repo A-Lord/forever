@@ -280,9 +280,10 @@ func (mage *Mage) registerWinterChill() {
 	// // Effect 1 is the stack count (1..5); effect 2 is the chance (20..100).
 	// procChance := spellData.WintersChill.EffectAt(2).FractionAt(mage.Talents.WintersChill)
 	//
-	// wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	return core.WintersChillAura(target, 0)
-	// })
+	// // The debuff 12579 is A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, so it
+	// // raises this mage's frost crit alone and sim/core holds no aura for it;
+	// // the port has to build wcAuras here.
+	// wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura { ... })
 	//
 	// mage.Env.RegisterPreFinalizeEffect(func() {
 	// 	for _, spell := range mage.GetSpellsMatchingSchool(core.SpellSchoolFrost) {

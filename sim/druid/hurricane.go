@@ -15,14 +15,15 @@ func (druid *Druid) registerHurricaneSpell() {
 	// hurricaneTickSpell := spellData.HurricaneTriggered.Highest()
 	// hurricaneTick := hurricaneTickSpell.DamageEffect()
 	//
-	// druid.Hurricane = druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: hurricaneRank.ID},
-	// 	SpellSchool:    hurricaneRank.SpellSchool(),
-	// 	DefenseType:    hurricaneRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
-	// 	ClassSpellMask: DruidSpellHurricane,
-	// 	MaxRange:       float64(hurricaneRank.MaxRange),
+	// druid.Hurricane = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: hurricaneRank.ID},
+	// 	CastRequirement: hurricaneRank.CastRequirement(),
+	// 	SpellSchool:     hurricaneRank.SpellSchool(),
+	// 	DefenseType:     hurricaneRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskSpellDamage,
+	// 	Flags:           core.SpellFlagChanneled | core.SpellFlagAPL,
+	// 	ClassSpellMask:  DruidSpellHurricane,
+	// 	MaxRange:        float64(hurricaneRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(hurricaneRank.Cost()),

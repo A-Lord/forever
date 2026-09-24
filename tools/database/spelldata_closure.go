@@ -10,6 +10,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/tools/database/buffmanifest"
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
@@ -100,7 +101,24 @@ func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 		extras = append(extras, extra.SpellID)
 	}
 
-	return namedIDs(t, roots, extras), nil
+	return namedIDs(t, roots, extras, buffManifestIDs()), nil
+}
+
+// Every spell the buff manifest names. The generated buffs read their numbers off these rows, so they
+// are roots the way the extra spells are, and added at the same point for the same reason: a
+// manifest row added without a regeneration fails the check.
+func buffManifestIDs() []int32 {
+	var ids []int32
+	for _, spec := range buffmanifest.Manifest {
+		ids = append(ids, spec.SpellID, spec.CastID)
+		if spec.Talent != nil {
+			ids = append(ids, spec.Talent.SpellID)
+		}
+		if spec.ImpAction != nil {
+			ids = append(ids, spec.ImpAction.SpellID)
+		}
+	}
+	return ids
 }
 
 // The ids of every list that this build names as a spell, deduped and in search order. An id no

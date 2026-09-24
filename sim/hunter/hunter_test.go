@@ -17,21 +17,6 @@ func init() {
 func TestHunter(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
 		"the golden numbers cannot be meaningful until then")
-	weaveRotation := core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default")
-	weaveRotation.Label = "weave"
-
-	turretRotation := core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default").Rotation
-	turretRotation.ValueVariables[2] = &proto.APLValueVariable{
-		Name: "Melee weave",
-		Value: &proto.APLValue{
-			Value: &proto.APLValue_Const{
-				Const: &proto.APLValueConst{
-					Val: "false",
-				},
-			},
-		},
-	}
-
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassHunter,
@@ -48,10 +33,7 @@ func TestHunter(t *testing.T) {
 			Profession1:      proto.Profession_Engineering,
 			Profession2:      proto.Profession_Blacksmithing,
 
-			Rotation: weaveRotation,
-			OtherRotations: []core.RotationCombo{
-				{Label: "Turret", Rotation: turretRotation},
-			},
+			Rotation: core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default"),
 
 			ItemFilter: core.ItemFilter{
 				ArmorType: proto.ArmorType_ArmorTypeMail,

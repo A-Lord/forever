@@ -27,10 +27,6 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		for _, id := range consumables.PetExtraIds {
 			pet.AddStats(GetConsumableByID(id).Stats)
 		}
-		if consumables.PetFoodId != 0 {
-			petFood := GetConsumableByID(consumables.PetFoodId)
-			pet.AddStats(petFood.Stats)
-		}
 	}
 
 	for _, id := range selected {
@@ -92,7 +88,7 @@ func consumableInDatabase(id int32) bool {
 }
 
 // The agent's own consumables the spec names, each once. The main-hand imbue counts only where
-// applyTemporaryEnchants put its enchant on the main hand; the pet's food and extra ids are the pet's.
+// applyTemporaryEnchants put its enchant on the main hand; the pet's extra ids are the pet's.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec, mainHandEnchanted bool) []int32 {
 	ids := []int32{consumables.PotId, consumables.FlaskId, consumables.BattleElixirId, consumables.GuardianElixirId,
 		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}

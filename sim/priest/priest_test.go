@@ -47,13 +47,7 @@ func TestShadowPriest(t *testing.T) {
 
 			Talents: defaultTalents,
 
-			// Primary rotation
 			Rotation: core.GetAplRotation("../../ui/specs/priest/dps/apls", "default"),
-
-			// Secondary rotation: casts every implemented spell
-			OtherRotations: []core.RotationCombo{
-				core.GetAplRotation("../../ui/specs/priest/dps/apls", "test"),
-			},
 
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{

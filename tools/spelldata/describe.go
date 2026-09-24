@@ -42,6 +42,13 @@ func headerFields(s *spelldata.Spell) []field {
 	}
 	add("range", rangePhrase(s))
 	add("stance", stanceList(s.StanceMask))
+	add("stance exclude", stanceList(s.StanceExclude))
+	if s.CasterAura != 0 {
+		add("caster aura", spellRef(s.CasterAura))
+	}
+	if s.ExcludeCasterAura != 0 {
+		add("excluded caster aura", spellRef(s.ExcludeCasterAura))
+	}
 	add("equip", equipRequirement(s))
 	if s.MaxTargets != 0 {
 		add("targets", fmt.Sprintf("up to %d", s.MaxTargets))
@@ -151,6 +158,14 @@ func refList(s *spelldata.Spell) []string {
 		out = append(out, fmt.Sprintf("%d %s", ref.ID, ref.Name))
 	}
 	return out
+}
+
+// A SpellAuraRestrictions caster aura by id, named where the store carries it.
+func spellRef(id int32) string {
+	if s := spelldata.Find(id); s != spelldata.Nil {
+		return fmt.Sprintf("%d %s", s.ID, s.Name)
+	}
+	return fmt.Sprint(id)
 }
 
 func labelList(s *spelldata.Spell) string {

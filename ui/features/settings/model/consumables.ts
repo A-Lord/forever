@@ -16,8 +16,7 @@ export type ConsumableIdField =
 	| 'foodId'
 	| 'explosiveId'
 	| 'mhImbueId'
-	| 'ohImbueId'
-	| 'petFoodId';
+	| 'ohImbueId';
 
 export interface ConsumableRelevance {
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;

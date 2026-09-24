@@ -19,7 +19,7 @@ func TestRetribution(t *testing.T) {
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassPaladin,
-			Race:       proto.Race_RaceBloodElf,
+			Race:       proto.Race_RaceUndead,
 			OtherRaces: []proto.Race{proto.Race_RaceHuman},
 			SpecOptions: core.SpecOptionsCombo{Label: "Default", SpecOptions: &proto.Player_RetributionPaladin{
 				RetributionPaladin: &proto.RetributionPaladin{

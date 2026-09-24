@@ -8,7 +8,7 @@ import (
 // hand's weapon; the main hand's only without Windfury Totem. The consumable's registered effect
 // then applies the enchant to the hands carrying it.
 func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) {
-	if partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
+	if !partyBuffs.WindfuryTotem {
 		character.applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand)
 	}
 	character.applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand)

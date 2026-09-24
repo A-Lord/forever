@@ -27,10 +27,6 @@ func (warrior *Warrior) registerBerserkerRage() {
 	config := spelldata.SpellConfig(&warrior.Unit, berserkerRageRank,
 		spelldata.Flags(core.SpellFlagAPL|core.SpellFlagCastWhileIncapacitated))
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BerserkerStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		if rageGain > 0 {
 			warrior.AddRage(sim, rageGain, rageMetrics)

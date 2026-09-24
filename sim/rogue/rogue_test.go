@@ -31,7 +31,7 @@ func TestRogue(t *testing.T) {
 			Consumables: DefaultConsumables,
 			SpecOptions: core.SpecOptionsCombo{Label: "Rogue", SpecOptions: DefaultOptions},
 
-			Rotation:       core.GetAplRotation("../../ui/specs/rogue/dps/apls", "swords"),
+			Rotation:       core.GetAplRotation("../../ui/specs/rogue/dps/apls", "default"),
 			OtherRotations: []core.RotationCombo{},
 			ItemFilter: core.ItemFilter{
 				ArmorType: proto.ArmorType_ArmorTypeLeather,

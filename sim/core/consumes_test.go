@@ -18,7 +18,6 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		MhImbueId:     20749,
 		OhImbueId:     12404,
 		ConjuredItems: []int32{7676},
-		PetFoodId:     33874,
 		ExtraIds:      []int32{10646, 10309, 10305, 5206},
 		PetExtraIds:   []int32{10310},
 	}
@@ -90,16 +89,16 @@ func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
 	}
 }
 
-// ui/sim/proto/consumes_migration.ts reads the fields ConsumesSpec dropped in api version 17 by these
-// names and numbers, so they must stay reserved.
+// ui/sim/proto/consumes_migration.ts reads the fields ConsumesSpec dropped in api version 2 by these
+// names, and by these numbers where a binary payload can still carry them, so they must stay reserved.
 func TestRemovedConsumesFieldsStayReserved(t *testing.T) {
 	descriptor := (&proto.ConsumesSpec{}).ProtoReflect().Descriptor()
 	for name, number := range map[protoreflect.Name]protoreflect.FieldNumber{
-		"superSapper": 8, "goblinSapper": 9, "drums_id": 12, "scroll_agi": 13, "scroll_str": 14,
-		"scroll_int": 15, "scroll_spi": 16, "scroll_arm": 17, "pet_scroll_agi": 18, "pet_scroll_str": 19,
-		"nightmare_seed": 20, "bloodthistle": 24, "bogling_root": 25,
+		"goblinSapper": 8, "bogling_root": 9, "scroll_agi": 12, "scroll_str": 13, "scroll_int": 14,
+		"scroll_spi": 15, "scroll_arm": 16, "superSapper": 0, "drums_id": 0, "pet_scroll_agi": 0,
+		"pet_scroll_str": 0, "nightmare_seed": 0, "bloodthistle": 0, "pet_food_id": 0,
 	} {
-		if !descriptor.ReservedNames().Has(name) || !descriptor.ReservedRanges().Has(number) {
+		if !descriptor.ReservedNames().Has(name) || (number != 0 && !descriptor.ReservedRanges().Has(number)) {
 			t.Errorf("ConsumesSpec does not reserve %s = %d", name, number)
 		}
 	}

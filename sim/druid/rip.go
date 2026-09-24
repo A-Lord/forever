@@ -10,13 +10,14 @@ func (druid *Druid) registerRipSpell() {
 	// The TBC implementation, kept for the port:
 	// var cp int32
 	//
-	// druid.Rip = druid.RegisterSpell(Cat, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: ripRank.ID},
-	// 	SpellSchool:    ripRank.SpellSchool(),
-	// 	DefenseType:    ripRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellRip,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.Rip = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: ripRank.ID},
+	// 	CastRequirement: ripRank.CastRequirement(),
+	// 	SpellSchool:     ripRank.SpellSchool(),
+	// 	DefenseType:     ripRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellRip,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(ripRank.Cost()),

@@ -111,7 +111,6 @@ message DpsWarrior {
 		bool use_recklessness = 3;
 		bool use_overpower = 4;
 		WarriorSunder sunder_armor = 5;
-		int32 bloodlust_timing = 6;
 	}
 
 	message Options {

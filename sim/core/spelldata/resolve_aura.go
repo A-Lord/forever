@@ -46,7 +46,7 @@ func PercentStats(s *Spell, level int32) []core.StatMultiplier {
 	var multipliers []core.StatMultiplier
 	for i := range s.Effects {
 		e := &s.Effects[i]
-		if !appliesAura(e.Type) || e.Aura != dbcenums.A_MOD_PERCENT_STAT {
+		if !AppliesAura(e.Type) || e.Aura != dbcenums.A_MOD_PERCENT_STAT {
 			continue
 		}
 		for _, stat := range clientStatList(e.Misc) {

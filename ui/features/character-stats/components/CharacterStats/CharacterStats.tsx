@@ -15,7 +15,6 @@ import { buildRows } from './utils/rows';
 import {
 	critImmunityCapDisplayString,
 	meleeCritCapDisplayString,
-	readRacialBonuses,
 	shouldShowCritImmunity,
 	shouldShowMeleeCritCap,
 	statDisplayString,
@@ -40,7 +39,6 @@ export const CharacterStats = () => {
 	const targets = useStore(host.sim.store, s => s.encounter.targets);
 
 	const snapshot = useMemo(() => {
-		const racial = readRacialBonuses(player);
 		const attribution = computeStatAttribution(
 			player.getCurrentStats(),
 			bonusStats,
@@ -51,7 +49,6 @@ export const CharacterStats = () => {
 		const isTank = shouldShowCritImmunity(player);
 		return {
 			pending: !currentStats.finalStats,
-			racial,
 			attribution,
 			rangedWeapon: player.getEquippedItem(ItemSlot.ItemSlotRanged),
 			critCap: shouldShowMeleeCritCap(player) ? { info: player.getMeleeCritCapInfo(), text: meleeCritCapDisplayString(player) } : null,
@@ -75,9 +72,9 @@ export const CharacterStats = () => {
 		overwriteDisplayStats,
 	]);
 
-	const { pending, racial, attribution, rangedWeapon, critCap, miss, avoidance, critImmunity } = snapshot;
+	const { pending, attribution, rangedWeapon, critCap, miss, avoidance, critImmunity } = snapshot;
 	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean) =>
-		statDisplayString(player, racial, deltaStats, unitStat, includeBase, includeGear);
+		statDisplayString(player, deltaStats, unitStat, includeBase, includeGear);
 
 	const hasParry = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatParryPercent));
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));

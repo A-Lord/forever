@@ -41,21 +41,22 @@ func NullFloat(arr []float64) []float64 {
 	return nil
 }
 
-// The playable races by ChrRaces.ID, whose bit in ItemSparse.AllowableRace is ID - 1.
+// The playable races by ChrRaces.PlayableRaceBit, their bit in ItemSparse.AllowableRace: ChrRaces.ID - 1
+// for the classic races, 32 and 33 for High Order (ChrRaces 95) and Windshaper (96) Skyborne.
 var playableRaces = []struct {
 	race proto.Race
-	id   int
+	bit  int
 }{
-	{proto.Race_RaceHuman, 1}, {proto.Race_RaceOrc, 2}, {proto.Race_RaceDwarf, 3}, {proto.Race_RaceNightElf, 4},
-	{proto.Race_RaceUndead, 5}, {proto.Race_RaceTauren, 6}, {proto.Race_RaceGnome, 7}, {proto.Race_RaceTroll, 8},
-	{proto.Race_RaceBloodElf, 10}, {proto.Race_RaceDraenei, 11},
+	{proto.Race_RaceHuman, 0}, {proto.Race_RaceOrc, 1}, {proto.Race_RaceDwarf, 2}, {proto.Race_RaceNightElf, 3},
+	{proto.Race_RaceUndead, 4}, {proto.Race_RaceTauren, 5}, {proto.Race_RaceGnome, 6}, {proto.Race_RaceTroll, 7},
+	{proto.Race_RaceBloodElf, 9}, {proto.Race_RaceHighOrderSkyborne, 32}, {proto.Race_RaceWindshaperSkyborne, 33},
 }
 
 // The playable races an AllowableRace mask names, or none where it names every one of them.
 func GetRacesFromRaceMask(mask int64) []proto.Race {
 	var result []proto.Race
 	for _, r := range playableRaces {
-		if mask&(1<<(r.id-1)) != 0 {
+		if mask&(1<<r.bit) != 0 {
 			result = append(result, r.race)
 		}
 	}

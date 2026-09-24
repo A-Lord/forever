@@ -2,6 +2,7 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -11,7 +12,9 @@ import (
 var sunderArmorRank = spellData.SunderArmor.Highest()
 
 func (warrior *Warrior) registerSunderArmor() {
-	warrior.SunderArmorAuras = warrior.NewEnemyAuraArray(core.SunderArmorAura)
+	warrior.SunderArmorAuras = warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return buffs.SunderArmorAura(target, true, 0)
+	})
 
 	config := spelldata.SpellConfig(&warrior.Unit, sunderArmorRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.FlatThreatBonus = sunderArmorRank.FindEffect(dbcenums.E_THREAT, 0, 0).Average(core.CharacterLevel)

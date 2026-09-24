@@ -45,6 +45,7 @@ var safeDepsOrder = []Stat{
 	PhysicalHitPercent,
 	DodgePercent,
 	ParryPercent,
+	ExpertisePercent,
 }
 
 func isSafeDep(s Stat) bool {

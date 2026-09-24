@@ -6,6 +6,9 @@ const (
 	// The spell is never cast: a stance's passive, a talent that only modifies other spells.
 	ATTR_PASSIVE uint32 = 0x40
 
+	// The spell cannot be cast while the caster is in any shapeshift form.
+	ATTR_NOT_SHAPESHIFTED uint32 = 0x10000
+
 	// The two bits the client marks a channel with. Arcane Missiles and Blizzard carry the first,
 	// Evocation and Tranquility only the second, so a channel check has to read both.
 	ATTR_EX_1_IS_CHANNELLED      uint32 = 0x4
@@ -16,6 +19,10 @@ const (
 	ATTR_EX_1_DISCOUNT_POWER_ON_MISS uint32 = 0x8000000
 
 	ATTR_EX_2_CANT_CRIT uint32 = 0x20000000
+
+	// The spell is castable while shapeshifted even though its form bars casting: the exception to
+	// ATTR_NOT_SHAPESHIFTED.
+	ATTR_EX_2_CASTABLE_IN_CASTER_FORM uint32 = 0x80000
 
 	// On a triggered spell: aura listeners treat its hits like a normal ability hit. Seal of
 	// Command damage, every Judgement, Stormstrike's bonus hits and Sweeping Strikes carry it.

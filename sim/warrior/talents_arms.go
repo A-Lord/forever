@@ -474,10 +474,6 @@ func (warrior *Warrior) registerSweepingStrikes() {
 	// The sim casts the ability under the id of the strike it grants, which is what the APL names.
 	config.ActionID = actionID
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		spell.RelatedSelfBuff.Activate(sim)
 		warrior.SweepingStrikesAura.SetStacks(sim, int32(sweepingStrikesRank.ProcCharges))

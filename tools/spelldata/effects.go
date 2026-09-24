@@ -335,10 +335,7 @@ func triggerOrMisc(e *spelldata.Effect) string {
 	if e.TriggerID != 0 {
 		return triggerPhrase(e)
 	}
-	if s := spelldata.Find(e.Misc); s != spelldata.Nil {
-		return fmt.Sprintf("%d %s", s.ID, s.Name)
-	}
-	return fmt.Sprint(e.Misc)
+	return spellRef(e.Misc)
 }
 
 // The spells a modifier effect reaches. An empty mask on a spell that has a family of its own is the
@@ -366,10 +363,7 @@ func triggerPhrase(e *spelldata.Effect) string {
 	if e.TriggerID == 0 {
 		return "nothing"
 	}
-	if s := spelldata.Find(e.TriggerID); s != spelldata.Nil {
-		return fmt.Sprintf("%d %s", s.ID, s.Name)
-	}
-	return fmt.Sprint(e.TriggerID)
+	return spellRef(e.TriggerID)
 }
 
 // A weapon effect states a bonus on top of the swing rather than an amount, so a zero there is no

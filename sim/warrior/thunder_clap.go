@@ -2,6 +2,7 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -9,13 +10,22 @@ var thunderClapRank = spellData.ThunderClap.Highest()
 
 var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average(core.CharacterLevel)
 var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
+var thunderClapGeneratedSlow = buffs.ThunderClapValue(0)
 
 func (warrior *Warrior) registerThunderClap() {
 	auras := warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return core.ThunderClapAura(target).ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-			attackTimeMultiplier := core.SlowedTimeMultiplier(thunderClapSlow * (1 + warrior.thunderClapEffectBonus))
-			if ee := aura.ExclusiveEffects[0]; ee.Priority != attackTimeMultiplier {
-				ee.SetPriority(sim, attackTimeMultiplier)
+		// The generated aura multiplies the speed by the client's -20%; the slow lengthens the time
+		// between attacks by 20%, which the Conqueror's set deepens, and the difference rides on the
+		// aura for as long as it is up.
+		extraSlow := 1.0
+		return buffs.ThunderClapAura(target, true, 0).ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+			extraSlow = 1 / core.SlowedTimeMultiplier(thunderClapSlow*(1+warrior.thunderClapEffectBonus)) / thunderClapGeneratedSlow
+			if extraSlow != 1 {
+				aura.Unit.MultiplyMeleeSpeed(sim, extraSlow)
+			}
+		}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
+			if extraSlow != 1 {
+				aura.Unit.MultiplyMeleeSpeed(sim, 1/extraSlow)
 			}
 		})
 	})
@@ -31,10 +41,6 @@ func (warrior *Warrior) registerThunderClap() {
 	config.DamageMultiplier = 1
 	// TODO: In-game verification needed for threat multiplier / flat threat.
 	config.ThreatMultiplier = 1
-
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.StanceMatches(BattleStance | DefensiveStance)
-	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		results := spell.CalcCleaveDamage(sim, target, int32(thunderClapRank.MaxTargets), thunderClapBaseDamage, spell.OutcomeMagicHitAndCrit)

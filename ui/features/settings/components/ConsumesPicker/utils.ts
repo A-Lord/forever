@@ -1,5 +1,5 @@
 import { type ConsumableRelevance, makeConsumableInput, makeExtraIdInput } from '@features/settings/model/consumables';
-import { ConsumableType, ItemSlot, Spec, TristateEffect } from '@generated/proto/common';
+import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
@@ -32,7 +32,6 @@ export interface ConsumeConfigs {
 	ohImbue: ConsumeConfig;
 	scrolls: Array<ConsumeToggle>;
 	miscellaneous: Array<ConsumeToggle>;
-	petFood: ConsumeConfig;
 	petScrolls: Array<ConsumeToggle>;
 }
 
@@ -42,9 +41,7 @@ const hasPet = (player: Player<any>) => PET_SPECS.includes(player.getSpec());
 // Feral druids cannot take Windfury, so their main-hand imbue shows under it.
 const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
 const mainHandImbueShown = (player: Player<any>) =>
-	SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) ||
-	!player.getParty() ||
-	player.getParty()!.getBuffs().windfuryTotem == TristateEffect.TristateEffectMissing;
+	SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty() || !player.getParty()!.getBuffs().windfuryTotem;
 
 const isScroll = (consumable: Consumable) => consumable.type === ConsumableType.ConsumableTypeScroll;
 
@@ -111,7 +108,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		),
 		scrolls: extras.filter(isScroll).map(consumable => makeExtraIdInput(consumable, relevance)),
 		miscellaneous: extras.filter(consumable => !isScroll(consumable)).map(consumable => makeExtraIdInput(consumable, relevance)),
-		petFood: input(ConsumableSlot.PetFood, { consumesFieldName: 'petFoodId', showWhen: hasPet }),
 		petScrolls: highestRanks(
 			extras.filter(consumable => isScroll(consumable) && !consumable.classAllowlist.length && consumable.stats.some(value => value > 0)),
 		).map(consumable => makeExtraIdInput(consumable, relevance, { pet: true, showWhen: hasPet })),

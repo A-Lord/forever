@@ -19,7 +19,7 @@ export const PaladinRotationConfig = {
 		InputHelpers.makeRotationNumberInput<Spec.SpecRetributionPaladin>({
 			fieldName: 'delayMajorCDs',
 			label: 'Delay Major CDs',
-			labelTooltip: 'Delays the first automatic use of major cooldowns (e.g. Bloodlust) by the specified number of seconds.',
+			labelTooltip: 'Delays the first automatic use of major cooldowns, such as trinkets, by the specified number of seconds.',
 			getValue: player => player.getSimpleRotation().delayMajorCDs,
 			positive: true,
 		}),

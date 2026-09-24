@@ -104,6 +104,15 @@ type Spell struct {
 	// SpellShapeshift.ShapeshiftMask_0 | ShapeshiftMask_1 << 32: the forms the spell is usable in.
 	StanceMask uint64
 
+	// SpellShapeshift.ShapeshiftExclude_0 | ShapeshiftExclude_1 << 32: the forms the spell is barred from.
+	StanceExclude uint64
+
+	// SpellAuraRestrictions.CasterAuraSpell: the spell id whose aura the caster must carry to cast this one.
+	CasterAura int32
+
+	// SpellAuraRestrictions.ExcludeCasterAuraSpell: the spell id whose aura bars the caster from casting this one.
+	ExcludeCasterAura int32
+
 	// SpellTargetRestrictions.MaxTargets for an area effect. Zero is unlimited.
 	MaxTargets int16
 

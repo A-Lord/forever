@@ -27,7 +27,7 @@ func (warrior *Warrior) registerShieldBlock() {
 	config := spelldata.SpellConfig(&warrior.Unit, shieldBlockRank, spelldata.Flags(core.SpellFlagAPL))
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.PseudoStats.CanBlock && warrior.StanceMatches(DefensiveStance)
+		return warrior.PseudoStats.CanBlock
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {

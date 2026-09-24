@@ -3,6 +3,7 @@ node_modules
 
 ui/**/*_auto_gen.ts
 # Generated from the client database, which CI does not have, so it is committed.
+!ui/features/settings/model/buffs_debuffs_auto_gen.ts
 !ui/features/settings/model/consumables_auto_gen.ts
 .dirstamp
 

@@ -50,6 +50,7 @@ clean:
 	  node_modules
 	find . -name "*.results.tmp" -type f -delete
 
+ui/generated/proto/api.ts: proto/buffs.proto
 ui/generated/proto/api.ts: proto/*.proto node_modules
 	mkdir -p ui/generated/proto
 	npx protoc --ts_opt generate_dependencies --ts_out ui/generated/proto --proto_path proto proto/api.proto
@@ -134,6 +135,10 @@ binary_dist: $(OUT_DIR)/.dirstamp
 .PHONY: proto
 proto: sim/core/proto/api.pb.go ui/generated/proto/api.ts
 
+# The buff messages come from the checked-in manifest, not from hand-edited proto.
+proto/buffs.proto: $(wildcard tools/database/buffmanifest/*.go) tools/gen_buffs_proto/*.go
+	go run ./tools/gen_buffs_proto
+
 # Builds the web server with the compiled client.
 .PHONY: wowsimforever
 wowsimforever: binary_dist devserver
@@ -189,6 +194,7 @@ release: wowsimforever wowsimforever-windows.exe
 	zip wowsimcli-arm64-darwin.zip wowsimcli-arm64-darwin
 	zip wowsimcli-windows.exe.zip wowsimcli-windows.exe
 
+sim/core/proto/api.pb.go: proto/buffs.proto
 sim/core/proto/api.pb.go: proto/*.proto
 	@if go version -m "$$(command -v protoc-gen-go)" 2>/dev/null | grep -qE '^[[:space:]]+mod[[:space:]]+github\.com/golang/protobuf[[:space:]]'; then \
 		echo "ERROR: your protoc-gen-go is the deprecated github.com/golang/protobuf plugin;"; \
@@ -253,6 +259,12 @@ db:
 	go run ./tools/database/gen_spelldata
 	@echo "Running DBC generation tool"
 	go run tools/database/gen_db/*.go -outDir=./assets -gen=db
+
+# Regenerates sim/<class>/spell_data_auto_gen.go from tools/database/wowsims.db, so it
+# runs after `make db` and from the repo root.
+.PHONY: spelldata
+spelldata:
+	go run ./tools/database/gen_spelldata
 
 # Regenerates sim/core/base_stats_auto_gen.go and ui/sim/constants/mechanics.ts from
 # the same numbers, so the sim and the UI cannot disagree about a rating conversion.

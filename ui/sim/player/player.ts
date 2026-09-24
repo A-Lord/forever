@@ -7,6 +7,7 @@ import {
 	UnitMetadata as UnitMetadataProto,
 } from '@generated/proto/api';
 import { APLRotation, APLRotation_Type as APLRotationType, SimpleRotation } from '@generated/proto/apl';
+import { IndividualBuffs } from '@generated/proto/buffs';
 import {
 	Class,
 	ConsumesSpec,
@@ -15,7 +16,6 @@ import {
 	GemColor,
 	HandType,
 	HealingModel,
-	IndividualBuffs,
 	ItemRandomSuffix,
 	ItemSlot,
 	Profession,
@@ -23,10 +23,8 @@ import {
 	Race,
 	Spec,
 	Stat,
-	TristateEffect,
 	UnitReference,
 	UnitStats,
-	WeaponType,
 } from '@generated/proto/common';
 import { SimDatabase } from '@generated/proto/db';
 import {
@@ -44,13 +42,11 @@ import { CURRENT_API_VERSION } from '../constants/other';
 import { SimSettingCategories } from '../constants/sim_settings';
 import type { PresetEpWeights } from '../presets/types';
 import { ActionId } from '../proto/action_id';
-import { migrateConsumesToItemIds } from '../proto/consumes_migration';
 import { Database } from '../proto/database';
 import { EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
 import { Gear, ItemSwapGear } from '../proto/gear';
 import { gemMatchesSocket, isUnrestrictedGem } from '../proto/gems';
 import { canEquipEnchant, canEquipItem, enchantAppliesToItem, getMetaGemEffectEP, isPVPItem } from '../proto/items';
-import { migrateOldProto, ProtoConversionMap } from '../proto/proto_migration';
 import { specTypeFunctions, withSpec } from '../proto/spec_functions';
 import type { ClassOptions, ClassSpecs, SpecClasses, SpecOptions, SpecRotation, SpecTalents, SpecTypeFunctions } from '../proto/spec_types';
 import { Stats, UnitStat } from '../proto/stats';
@@ -764,28 +760,12 @@ export class Player<SpecType extends Spec> {
 		let debuffStats = new Stats();
 		const debuffs = this.sim.raid.getDebuffs();
 
-		if (debuffs.faerieFire == TristateEffect.TristateEffectImproved) {
-			debuffStats = debuffStats.addPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 3);
-			debuffStats = debuffStats.addPseudoStat(PseudoStat.PseudoStatRangedHitPercent, 3);
-		}
-
-		if (debuffs.exposeWeaknessUptime && debuffs.exposeWeaknessHunterAgility) {
-			let agi = debuffs.exposeWeaknessHunterAgility;
-
-			// TODO: Forever drops the Expose Weakness talent, so a hunter can no longer
-			// self-provide this debuff and the agility always comes from the raid setting.
-			// Restore the spec branch if Forever reintroduces an equivalent talent.
-
-			debuffStats = debuffStats.addStat(Stat.StatAttackPower, agi * 0.25);
-			debuffStats = debuffStats.addStat(Stat.StatRangedAttackPower, agi * 0.25);
-		}
-
-		if (debuffs.huntersMark != TristateEffect.TristateEffectMissing) {
-			debuffStats = debuffStats.addStat(Stat.StatRangedAttackPower, 440);
-
-			if (debuffs.huntersMark == TristateEffect.TristateEffectImproved) {
-				debuffStats = debuffStats.addStat(Stat.StatAttackPower, 110);
-			}
+		// Spell 14325, the top rank the buff generator resolves, which HuntersMarkValue
+		// in sim/core/debuffs_auto_gen.go states. Nothing exports it to TypeScript, so
+		// the sheet repeats the number and this is the second place to change;
+		// TestHuntersMarkOnTheCharacterSheetMatchesTheSim holds the two together.
+		if (debuffs.huntersMark) {
+			debuffStats = debuffStats.addStat(Stat.StatRangedAttackPower, 71);
 		}
 
 		return debuffStats;
@@ -867,7 +847,7 @@ export class Player<SpecType extends Spec> {
 
 		const meleeCrit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritPercent] || 0) + debuffCrit;
 		const meleeHit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeHitPercent] || 0) + debuffHit;
-		const expertise = (currentStats.finalStats?.stats[Stat.StatExpertiseRating] || 0) / Mechanics.EXPERTISE_PER_QUARTER_PERCENT_REDUCTION / 4;
+		const expertise = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatExpertisePercent] || 0;
 		const targetLevel = this.sim.encounter.primaryTarget.level;
 		const critSuppression = { 68: 0, 70: 0, 71: 1, 72: 2, 73: 4.8 }[targetLevel] ?? 0;
 		const hitSuppression = { 68: 0, 70: 0, 71: 0, 72: 0, 73: 1 }[targetLevel] ?? 0;
@@ -1532,9 +1512,7 @@ export class Player<SpecType extends Spec> {
 	}
 
 	fromProto(proto: PlayerProto, includeCategories?: Array<SimSettingCategories>) {
-		// Fix potential out-of-date protos before importing
 		batch(() => {
-			Player.updateProtoVersion(proto);
 			const loadCategory = (cat: SimSettingCategories) => !includeCategories || includeCategories.length == 0 || includeCategories.includes(cat);
 			if (loadCategory(SimSettingCategories.Gear)) {
 				this.setGear(proto.equipment ? this.sim.db.lookupEquipmentSpec(proto.equipment) : new Gear({}));
@@ -1607,79 +1585,7 @@ export class Player<SpecType extends Spec> {
 		return Mechanics.CHARACTER_LEVEL * 5;
 	}
 
-	static updateProtoVersion(playerProto: PlayerProto) {
-		if (!(playerProto.apiVersion < CURRENT_API_VERSION)) {
-			return;
-		}
-
-		const conversionMap: ProtoConversionMap<PlayerProto> = new Map([
-			[
-				12,
-				(oldProto: PlayerProto) => {
-					oldProto.apiVersion = 13;
-
-					// v12: ret paladin useConsecrate(bool) -> consecrationRank(int32).
-					if (playerProto.spec?.oneofKind === 'retributionPaladin') {
-						const jsonStr = playerProto.rotation?.simple?.specRotationJson;
-						if (jsonStr) {
-							try {
-								const parsed = JSON.parse(jsonStr);
-
-								if (parsed.useConsecrate) {
-									parsed.consecrationRank = 6;
-								}
-
-								delete parsed.useConsecrate;
-
-								playerProto.rotation!.simple!.specRotationJson = JSON.stringify(parsed);
-							} catch {
-								// Malformed JSON - nothing to migrate.
-							}
-						}
-					}
-
-					return oldProto;
-				},
-			],
-			[
-				17,
-				(oldProto: PlayerProto) => {
-					if (oldProto.consumables) migrateConsumesToItemIds(oldProto.consumables);
-					return oldProto;
-				},
-			],
-		]);
-
-		// Run the migration utility using the above map.
-		migrateOldProto<PlayerProto>(playerProto, playerProto.apiVersion, conversionMap);
-
-		// Flag the version as up-to-date once all migrations are done.
-		playerProto.apiVersion = CURRENT_API_VERSION;
-	}
-
 	getSpecConfig(): SpecConfigData<SpecType> {
 		return this.specConfig;
-	}
-
-	// Returns true/false for main-hand / off-hand
-	getActiveRacialExpertiseBonuses(): [boolean, boolean] {
-		const mainHand = this.getEquippedItem(ItemSlot.ItemSlotMainHand);
-		const offHand = this.getEquippedItem(ItemSlot.ItemSlotOffHand);
-
-		if (!mainHand && !offHand) {
-			return [false, false];
-		}
-
-		switch (this.getRace()) {
-			case Race.RaceHuman:
-				return [
-					mainHand?.item.weaponType === WeaponType.WeaponTypeMace || mainHand?.item.weaponType === WeaponType.WeaponTypeSword,
-					offHand?.item.weaponType === WeaponType.WeaponTypeMace || offHand?.item.weaponType === WeaponType.WeaponTypeSword,
-				];
-			case Race.RaceOrc:
-				return [mainHand?.item.weaponType === WeaponType.WeaponTypeAxe, offHand?.item.weaponType === WeaponType.WeaponTypeAxe];
-		}
-
-		return [false, false];
 	}
 }

@@ -8,13 +8,14 @@ func (druid *Druid) registerRakeSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.Rake = druid.RegisterSpell(Cat, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: rakeRank.ID},
-	// 	SpellSchool:    rakeRank.SpellSchool(),
-	// 	DefenseType:    rakeRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellRake,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.Rake = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: rakeRank.ID},
+	// 	CastRequirement: rakeRank.CastRequirement(),
+	// 	SpellSchool:     rakeRank.SpellSchool(),
+	// 	DefenseType:     rakeRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellRake,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost:   int32(rakeRank.Cost()),

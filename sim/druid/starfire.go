@@ -13,15 +13,16 @@ func (druid *Druid) registerStarfireSpell(rankConfig *spelldata.Spell) {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// spell := druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: rankConfig.ID},
-	// 	SpellSchool:    core.SpellSchoolArcane,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	ClassSpellMask: DruidSpellStarfire,
-	// 	Flags:          core.SpellFlagAPL,
-	// 	Rank:           rankConfig.RankNumber(),
-	// 	MaxRange:       float64(rankConfig.MaxRange),
+	// spell := druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: rankConfig.ID},
+	// 	CastRequirement: rankConfig.CastRequirement(),
+	// 	SpellSchool:     core.SpellSchoolArcane,
+	// 	DefenseType:     core.DefenseTypeMagic,
+	// 	ProcMask:        core.ProcMaskSpellDamage,
+	// 	ClassSpellMask:  DruidSpellStarfire,
+	// 	Flags:           core.SpellFlagAPL,
+	// 	Rank:            rankConfig.RankNumber(),
+	// 	MaxRange:        float64(rankConfig.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(rankConfig.Cost()),

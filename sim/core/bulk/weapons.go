@@ -30,9 +30,8 @@ func isBluntWeaponType(wt proto.WeaponType) bool {
 	}
 }
 
-// adjustWeaponImbueID rewrites the Dense sharpening/weightstone pair to match the equipped
-// weapon type; all other imbue ids pass through unchanged. Returns 0 when neither stone family is
-// valid for the weapon (no weapon, or a shield / offhand-only item).
+// Swaps the Dense sharpening stone and weightstone to match the weapon, 0 when neither fits it;
+// any other imbue passes through.
 func adjustWeaponImbueID(imbueID int32, weapon *proto.ItemSpec) int32 {
 	if imbueID != denseSharpeningStoneID && imbueID != denseWeightstoneID {
 		return imbueID
@@ -53,8 +52,6 @@ func adjustWeaponImbueID(imbueID int32, weapon *proto.ItemSpec) int32 {
 	return 0
 }
 
-// adjustCandidateImbues keeps the MH/OH weapon stone imbues in sync with the candidate's equipped
-// weapon types, mirroring the frontend auto-switch so bulk sim combos use the correct stone.
 func adjustCandidateImbues(player *proto.Player) {
 	consumables := player.GetConsumables()
 	if consumables == nil {

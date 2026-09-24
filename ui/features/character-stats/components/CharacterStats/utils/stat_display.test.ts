@@ -14,9 +14,6 @@ const STRINGS: Record<string, string> = {
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => STRINGS[key] ?? key } }));
 
 const { bonusStatClass, critCapClass, critImmunityCapDisplayString, critImmunityClass, statDisplayString } = await import('./stat_display');
-type RacialBonuses = Parameters<typeof statDisplayString>[1];
-
-const NO_RACIALS: RacialBonuses = { hasRacialHitBonus: false, activeRacialExpertiseBonuses: [false, false] };
 
 const fakePlayer = (overrides: Record<string, unknown> = {}) =>
 	({
@@ -25,8 +22,8 @@ const fakePlayer = (overrides: Record<string, unknown> = {}) =>
 		...overrides,
 	}) as unknown as Player<any>;
 
-const show = (stats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean, racial = NO_RACIALS) =>
-	statDisplayString(fakePlayer(), racial, stats, unitStat, includeBase, includeGear);
+const show = (stats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean) =>
+	statDisplayString(fakePlayer(), stats, unitStat, includeBase, includeGear);
 
 describe('statDisplayString, defense rating', () => {
 	const defense = UnitStat.fromStat(Stat.StatDefenseRating);
@@ -58,24 +55,23 @@ describe('statDisplayString, TBC-only stats', () => {
 		expect(show(stats, UnitStat.fromStat(Stat.StatFireDamage))).toBe('250 (+50)');
 	});
 
+	it('shows a weapon stone as melee crit percent only, leaving the ranged crit row at zero', () => {
+		const stats = new Stats()
+			.withPseudoStat(PseudoStat.PseudoStatMeleeCritPercent, 2)
+			.withPseudoStat(PseudoStat.PseudoStatRangedCritPercent, 0)
+			.withStat(Stat.StatMeleeCritRating, 0);
+
+		expect(show(stats, UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent))).toBe('2.00%');
+		expect(show(stats, UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedCritPercent))).toBe('0.00%');
+	});
+
 	it('adds the ranged hit enchant rating at the gear stage only', () => {
 		const rangedHit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent);
 		const stats = new Stats().withPseudoStat(PseudoStat.PseudoStatRangedHitPercent, 2);
 		const scoped = fakePlayer({ getEquippedItem: (slot: ItemSlot) => (slot === ItemSlot.ItemSlotRanged ? { enchant: { effectId: 2523 } } : null) });
 
-		expect(statDisplayString(scoped, NO_RACIALS, stats, rangedHit, false, true)).toBe('30 (2.00%)');
-		expect(statDisplayString(scoped, NO_RACIALS, stats, rangedHit)).toBe('2.00%');
-	});
-
-	it('strips the Draenei racial hit rating from the base row', () => {
-		const meleeHit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent);
-		const stats = new Stats()
-			.withStat(Stat.StatMeleeHitRating, Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT * 2)
-			.withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 2);
-		const racial = { ...NO_RACIALS, hasRacialHitBonus: true };
-
-		expect(show(stats, meleeHit, true, false, racial)).toBe('10 (2.00%)');
-		expect(show(stats, meleeHit, false, false, racial)).toBe('20 (2.00%)');
+		expect(statDisplayString(scoped, stats, rangedHit, false, true)).toBe('30 (2.00%)');
+		expect(statDisplayString(scoped, stats, rangedHit)).toBe('2.00%');
 	});
 });
 

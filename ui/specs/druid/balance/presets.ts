@@ -1,8 +1,8 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { Class, ConsumesSpec, Debuffs, IndividualBuffs, PartyBuffs, Profession, Race, RaidBuffs, TristateEffect, UnitReference } from '@generated/proto/common';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ConsumesSpec, Profession, Race, UnitReference } from '@generated/proto/common';
 import { BalanceDruid_Options as BalanceDruidOptions } from '@generated/proto/druid';
-import { defaultRaidBuffMajorDamageCooldowns } from '@sim/proto/utils';
 
 import DefaultAPL from './apls/default.apl.json';
 
@@ -15,37 +15,27 @@ export const DefaultOptions = BalanceDruidOptions.create({
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
-	...defaultRaidBuffMajorDamageCooldowns(Class.ClassShaman),
 	arcaneBrilliance: true,
-	giftOfTheWild: TristateEffect.TristateEffectImproved,
-	powerWordFortitude: TristateEffect.TristateEffectImproved,
-	divineSpirit: TristateEffect.TristateEffectImproved,
+	giftOfTheWild: true,
+	prayerOfFortitude: true,
+	prayerOfSpirit: true,
 });
 
-export const DefaultPartyBuffs = PartyBuffs.create({
-	chainOfTheTwilightOwl: true,
-	draeneiRacialCaster: true,
-	eyeOfTheNight: true,
-	totemOfWrath: 1,
-	wrathOfAirTotem: TristateEffect.TristateEffectImproved,
-});
+export const DefaultPartyBuffs = PartyBuffs.create({});
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
-	blessingOfKings: true,
-	blessingOfWisdom: true,
-	shadowPriestDps: 800,
+	greaterBlessingOfKings: true,
+	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
-	bloodFrenzy: true,
-	curseOfElements: TristateEffect.TristateEffectImproved,
+	curseOfElements: true,
 	curseOfRecklessness: true,
-	exposeArmor: TristateEffect.TristateEffectImproved,
+	exposeArmor: true,
 	giftOfArthas: true,
-	huntersMark: TristateEffect.TristateEffectImproved,
+	huntersMark: true,
 	judgementOfWisdom: true,
 	mangle: true,
-	misery: true,
 	sunderArmor: true,
 });
 

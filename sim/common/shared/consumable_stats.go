@@ -162,17 +162,7 @@ func consumableAura(character *core.Character, consumable core.Consumable, buff 
 		return aura
 	}
 
-	var exclusive []int32
-	for i := range buff.Effects {
-		e := &buff.Effects[i]
-		for _, stat := range e.FlatStats() {
-			core.MakeExclusiveFlatStatBuff(aura, stat, e.Average(character.Level), core.StatBuffCategory)
-		}
-		if len(e.FlatStats()) > 0 {
-			exclusive = append(exclusive, int32(i+1))
-		}
-	}
-	spelldata.ParseEffects(character, aura, buff, spelldata.SkipEffects(exclusive...))
+	spelldata.ParseEffects(character, aura, buff, spelldata.ExclusivePerStat(core.StatBuffCategory))
 	return aura
 }
 

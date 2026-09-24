@@ -14,13 +14,14 @@ func (druid *Druid) registerFerociousBiteSpell() {
 	// The TBC implementation, kept for the port:
 	// var energyMetrics *core.ResourceMetrics
 	//
-	// druid.FerociousBite = druid.RegisterSpell(Cat, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: ferociousBiteRank.ID},
-	// 	SpellSchool:    ferociousBiteRank.SpellSchool(),
-	// 	DefenseType:    ferociousBiteRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellFerociousBite,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.FerociousBite = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: ferociousBiteRank.ID},
+	// 	CastRequirement: ferociousBiteRank.CastRequirement(),
+	// 	SpellSchool:     ferociousBiteRank.SpellSchool(),
+	// 	DefenseType:     ferociousBiteRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellFerociousBite,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(ferociousBiteRank.Cost()),

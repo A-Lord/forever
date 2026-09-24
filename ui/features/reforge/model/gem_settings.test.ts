@@ -37,9 +37,9 @@ describe('gem optimizer settings', () => {
 		const proto = makeSettings().toProto();
 
 		expect(proto.statCaps?.stats).toHaveLength(42);
-		expect(proto.statCaps?.pseudoStats).toHaveLength(27);
+		expect(proto.statCaps?.pseudoStats).toHaveLength(28);
 		expect(proto.breakpointLimits?.stats).toHaveLength(42);
-		expect(proto.breakpointLimits?.pseudoStats).toHaveLength(27);
+		expect(proto.breakpointLimits?.pseudoStats).toHaveLength(28);
 	});
 
 	it('round-trips the gem knobs back out of a proto', () => {

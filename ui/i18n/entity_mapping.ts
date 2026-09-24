@@ -26,7 +26,7 @@ export const statI18nKeys: Record<Stat, string> = {
 	[Stat.StatStamina]: 'stamina',
 	[Stat.StatIntellect]: 'intellect',
 	[Stat.StatSpirit]: 'spirit',
-	[Stat.StatExpertiseRating]: 'expertise',
+	[Stat.StatExpertiseRating]: 'expertise_rating',
 	[Stat.StatDodgeRating]: 'dodge',
 	[Stat.StatParryRating]: 'parry',
 	[Stat.StatAttackPower]: 'attack_power',
@@ -146,6 +146,7 @@ export const pseudoStatI18nKeys: Record<PseudoStat, string> = {
 	[PseudoStat.PseudoStatBlockValuePerStrength]: 'block_per_strength',
 	[PseudoStat.PseudoStatRangedHitPercent]: 'ranged_hit',
 	[PseudoStat.PseudoStatRangedCritPercent]: 'ranged_crit',
+	[PseudoStat.PseudoStatExpertisePercent]: 'expertise',
 };
 
 export const spellSchoolI18nKeys: Record<SpellSchool, string> = {
@@ -278,7 +279,6 @@ export const areaTypeI18nKeys: Record<AreaType, string> = {
 export const raceI18nKeys: Record<Race, string> = {
 	[Race.RaceUnknown]: 'unknown',
 	[Race.RaceBloodElf]: 'blood_elf',
-	[Race.RaceDraenei]: 'draenei',
 	[Race.RaceDwarf]: 'dwarf',
 	[Race.RaceGnome]: 'gnome',
 	[Race.RaceHuman]: 'human',
@@ -287,6 +287,8 @@ export const raceI18nKeys: Record<Race, string> = {
 	[Race.RaceTauren]: 'tauren',
 	[Race.RaceTroll]: 'troll',
 	[Race.RaceUndead]: 'undead',
+	[Race.RaceHighOrderSkyborne]: 'high_order_skyborne',
+	[Race.RaceWindshaperSkyborne]: 'windshaper_skyborne',
 };
 
 export const professionI18nKeys: Record<Profession, string> = {

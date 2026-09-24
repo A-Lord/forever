@@ -52,13 +52,14 @@ func (druid *Druid) registerMoonfireImpactSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// druid.Moonfire = druid.RegisterSpell(Humanoid|Moonkin, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: moonfireRank.ID},
-	// 	SpellSchool:    moonfireRank.SpellSchool(),
-	// 	DefenseType:    moonfireRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	ClassSpellMask: DruidSpellMoonfire,
-	// 	Flags:          core.SpellFlagAPL,
+	// druid.Moonfire = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: moonfireRank.ID},
+	// 	CastRequirement: moonfireRank.CastRequirement(),
+	// 	SpellSchool:     moonfireRank.SpellSchool(),
+	// 	DefenseType:     moonfireRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskSpellDamage,
+	// 	ClassSpellMask:  DruidSpellMoonfire,
+	// 	Flags:           core.SpellFlagAPL,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(moonfireRank.Cost()),

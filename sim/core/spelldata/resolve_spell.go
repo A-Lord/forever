@@ -78,6 +78,8 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 		MinRange:     float64(s.MinRange),
 		MaxRange:     float64(s.MaxRange),
 		Cast:         castConfig(unit, s),
+
+		CastRequirement: s.CastRequirement(),
 	}
 	applyCost(&config, s)
 	if s.IsBleed() {
@@ -116,7 +118,7 @@ func Magic(mask core.ProcMask) SpellOpt {
 }
 
 // A spell another spell or an aura casts: it is out of the rotation Melee and Magic put it in, it
-// does not feed on-cast effects, and it has no cast, cost or cooldown of its own even when it shares
+// does not feed on-cast effects, and it has no cast, cost, cooldown or form requirement of its own even when it shares
 // the row of the ability that casts it, the way the warrior's Blood Craze heal and Whirlwind's
 // off-hand strike are registered. Its damage and healing are still measured, its casts are not: the
 // metrics aggregator counts no cast for a passive spell, so a sub-spell whose casts the sim reports -
@@ -126,6 +128,7 @@ func Proc() SpellOpt {
 		config.Flags |= core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete
 		config.Flags &^= core.SpellFlagAPL
 		config.Cast = core.CastConfig{}
+		config.CastRequirement = core.CastRequirement{}
 		config.ManaCost = core.ManaCostOptions{}
 		config.RageCost = core.RageCostOptions{}
 		config.EnergyCost = core.EnergyCostOptions{}
@@ -144,6 +147,17 @@ func Flags(flags core.SpellFlag) SpellOpt {
 func Tag(tag int32) SpellOpt {
 	return func(config *core.SpellConfig, _ *Spell) {
 		config.ActionID.Tag = tag
+	}
+}
+
+func (s *Spell) CastRequirement() core.CastRequirement {
+	return core.CastRequirement{
+		Forms:             s.StanceMask,
+		ExcludedForms:     s.StanceExclude,
+		CasterForm:        s.CastableInCasterForm(),
+		NotShapeshifted:   s.NotShapeshifted(),
+		CasterAura:        s.CasterAura,
+		ExcludeCasterAura: s.ExcludeCasterAura,
 	}
 }
 

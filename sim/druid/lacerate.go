@@ -10,13 +10,14 @@ func (druid *Druid) registerLacerateSpell() {
 	// The TBC implementation, kept for the port:
 	// tickDamageBase := lacerateTick.Average(core.CharacterLevel)
 	//
-	// druid.Lacerate = druid.RegisterSpell(Bear, core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: lacerateRank.ID},
-	// 	SpellSchool:    lacerateRank.SpellSchool(),
-	// 	DefenseType:    lacerateRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask: DruidSpellLacerate,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
+	// druid.Lacerate = druid.RegisterSpell(core.SpellConfig{
+	// 	ActionID:        core.ActionID{SpellID: lacerateRank.ID},
+	// 	CastRequirement: lacerateRank.CastRequirement(),
+	// 	SpellSchool:     lacerateRank.SpellSchool(),
+	// 	DefenseType:     lacerateRank.DefenseTypeCore(),
+	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
+	// 	ClassSpellMask:  DruidSpellLacerate,
+	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	//
 	// 	RageCost: core.RageCostOptions{
 	// 		Cost:   int32(lacerateRank.Cost()),

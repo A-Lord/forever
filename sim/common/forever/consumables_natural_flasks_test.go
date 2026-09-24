@@ -54,7 +54,7 @@ func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 	}{
 		{274273, stats.Stats{stats.PhysicalHitPercent: 5, stats.SpellHitPercent: 5}, 1},
 		{274274, stats.Stats{stats.PhysicalCritPercent: 4, stats.SpellCritPercent: 4}, 1},
-		{274275, stats.Stats{stats.ExpertiseRating: 20 * core.ExpertisePerQuarterPercentReduction}, 1},
+		{274275, stats.Stats{stats.ExpertiseRating: 5 * core.ExpertiseRatingPerExpertisePercent}, 1},
 		{274276, stats.Stats{}, 1.05},
 	} {
 		flasked := warriorWithFlask(t, tc.itemID)

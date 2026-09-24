@@ -107,3 +107,16 @@ func TestConsecratedSharpeningStoneCountsOncePerHandItTakes(t *testing.T) {
 		}
 	}
 }
+
+// Blessed Wizard Oil 23123 puts enchant 2685 on the weapon, whose equip spell 28890 grants 58 spell
+// damage against Undead (creature type mask 32).
+func TestBlessedWizardOilGrantsSpellDamageAgainstUndead(t *testing.T) {
+	const sword = 727
+	_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 23123}, sword, 0)
+	if got, want := bonusAgainst(character, proto.MobType_MobTypeUndead), (stats.Stats{stats.SpellDamage: 58}); got != want {
+		t.Errorf("the bonus against Undead is %v, want %v", got, want)
+	}
+	if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != (stats.Stats{}) {
+		t.Errorf("the bonus against Demons is %v, want none", got)
+	}
+}

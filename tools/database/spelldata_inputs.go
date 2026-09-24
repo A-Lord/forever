@@ -25,6 +25,8 @@ import (
 //   - the spell granting the enchant of each enchant equip spell in the store, with that spell's
 //     description: the equip spell ships none of its own.
 //   - the chance the enchantments state for each enchant combat spell in the store.
+//   - every SpellShapeshiftForm row, whole, since renderFormsFile reads it on its own rather than
+//     through the store's ids.
 //
 // Derived, and captured all the same because re-deriving it needs tables the store does not otherwise
 // read: the root ids. They come from the item, enchant and set-bonus tables, from the ladder and tree
@@ -59,6 +61,10 @@ type storeInputs struct {
 	// client's EffectIndex and rank.
 	TraitNodes  []traitNode
 	TraitPoints map[int32]map[int32]map[int32]float64
+
+	// Every SpellShapeshiftForm row, whole: renderFormsFile reads it directly rather than through the
+	// store's own ids, since a form names no spell for the closure to reach it by.
+	Forms []formRow
 }
 
 // The tables the generator reads, from the captured rows.
@@ -81,26 +87,27 @@ func captureStoreInputs(t *spellTables, roots []int32, ids []int32,
 	nodes []traitNode, points map[int32]map[int32]map[int32]float64) *storeInputs {
 	in := &storeInputs{
 		spellTables: spellTables{
-			Names:          t.Names,
-			Subtexts:       map[int32]string{},
-			Descriptions:   map[int32]string{},
-			Misc:           map[int32]miscRow{},
-			Levels:         map[int32]levelsRow{},
-			Cooldowns:      map[int32]cooldownRow{},
-			Categories:     map[int32]categoryRow{},
-			AuraOptions:    map[int32]auraOptionRow{},
-			ClassOptions:   map[int32]core.ClassFlags{},
-			Interrupts:     map[int32]interruptRow{},
-			Shapeshift:     map[int32]uint64{},
-			Targets:        map[int32]int16{},
-			CreatureType:   map[int32]int32{},
-			Requirements:   map[int32]int32{},
-			Equipped:       map[int32]equippedRow{},
-			Labels:         map[int32][]int16{},
-			Powers:         map[int32][]storePower{},
-			Effects:        map[int32][]storeEffect{},
-			EnchantGrants:  map[int32]int32{},
-			EnchantChances: map[int32]enchantChance{},
+			Names:            t.Names,
+			Subtexts:         map[int32]string{},
+			Descriptions:     map[int32]string{},
+			Misc:             map[int32]miscRow{},
+			Levels:           map[int32]levelsRow{},
+			Cooldowns:        map[int32]cooldownRow{},
+			Categories:       map[int32]categoryRow{},
+			AuraOptions:      map[int32]auraOptionRow{},
+			ClassOptions:     map[int32]core.ClassFlags{},
+			Interrupts:       map[int32]interruptRow{},
+			Shapeshift:       map[int32]shapeshiftRow{},
+			AuraRestrictions: map[int32]auraRestrictionRow{},
+			Targets:          map[int32]int16{},
+			CreatureType:     map[int32]int32{},
+			Requirements:     map[int32]int32{},
+			Equipped:         map[int32]equippedRow{},
+			Labels:           map[int32][]int16{},
+			Powers:           map[int32][]storePower{},
+			Effects:          map[int32][]storeEffect{},
+			EnchantGrants:    map[int32]int32{},
+			EnchantChances:   map[int32]enchantChance{},
 		},
 		Roots:       roots,
 		TraitNodes:  nodes,
@@ -119,6 +126,7 @@ func captureStoreInputs(t *spellTables, roots []int32, ids []int32,
 		keepValue(in.ClassOptions, id, t.ClassOptions)
 		keepValue(in.Interrupts, id, t.Interrupts)
 		keepValue(in.Shapeshift, id, t.Shapeshift)
+		keepValue(in.AuraRestrictions, id, t.AuraRestrictions)
 		keepValue(in.Targets, id, t.Targets)
 		keepValue(in.CreatureType, id, t.CreatureType)
 		keepValue(in.Requirements, id, t.Requirements)

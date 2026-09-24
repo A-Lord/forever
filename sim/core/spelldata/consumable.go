@@ -28,7 +28,7 @@ func (s *Spell) WhileSeated() bool {
 // A_MOD_STAT by the client's stat index, A_MOD_RESISTANCE by its school mask, where armor is school 1.
 // Nil for any other effect.
 func (e *Effect) FlatStats() []stats.Stat {
-	if !appliesAura(e.Type) {
+	if !AppliesAura(e.Type) {
 		return nil
 	}
 	switch e.Aura {
