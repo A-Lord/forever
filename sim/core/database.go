@@ -193,10 +193,11 @@ type Item struct {
 	Enchant      Enchant
 
 	//Internal use
-	TempEnchant    int32
-	ScalingOptions map[int32]*proto.ScalingItemProperties
-	RandPropPoints int32
-	ItemEffects    []*proto.ItemEffect
+	TempEnchant             int32
+	TempEnchantWeaponDamage float64
+	ScalingOptions          map[int32]*proto.ScalingItemProperties
+	RandPropPoints          int32
+	ItemEffects             []*proto.ItemEffect
 }
 
 func ItemFromProto(pData *proto.SimItem) Item {

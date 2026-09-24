@@ -5,10 +5,12 @@ import (
 )
 
 // Puts the temporary enchant each imbue the spec names on its hand, where the enchant takes that
-// hand's weapon; the main hand's only where Windfury Totem does not take its place. The consumable's
-// registered effect then applies the enchant to the hands carrying it.
+// hand's weapon; the main hand's only where the party's Windfury Totem does not take its place. It
+// runs before the weapons are built, and a weapon built from a hand's item takes the enchant's flat
+// weapon damage. The consumable's registered effect then applies the rest of the enchant to the hands
+// carrying it.
 func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) {
-	if !partyBuffs.WindfuryTotem || !character.TakesWindfuryTotem() {
+	if !partyBuffs.GetWindfuryTotem() || !character.TakesWindfuryTotem() {
 		character.applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand)
 	}
 	character.applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand)
@@ -26,7 +28,7 @@ func (character *Character) applyTemporaryEnchant(itemID int32, slot proto.ItemS
 		return
 	}
 	character.Equipment[slot].TempEnchant = consumable.TemporaryEnchant.EffectID
-	character.ItemSwap.AddTempEnchant(consumable.TemporaryEnchant.EffectID, slot, false)
+	character.Equipment[slot].TempEnchantWeaponDamage = consumable.TemporaryEnchant.WeaponDamage
 }
 
 // Whether the temporary enchant's SpellEquippedItems masks take the item.

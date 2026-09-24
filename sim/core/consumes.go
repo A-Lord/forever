@@ -8,14 +8,12 @@ import (
 )
 
 // Registers all consume-related effects to the Agent.
-func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
+func applyConsumeEffects(agent Agent) {
 	character := agent.GetCharacter()
-	consumables := character.Consumables
-	if consumables == nil {
+	if character.Consumables == nil {
 		return
 	}
 
-	applyTemporaryEnchants(character, consumables, partyBuffs)
 	for _, id := range character.SelectedConsumableIDs() {
 		if apply, ok := consumableEffect(id); ok {
 			apply(agent)

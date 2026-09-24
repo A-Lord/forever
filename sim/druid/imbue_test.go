@@ -76,6 +76,22 @@ func TestCatPawTakesTheWeaponstoneOnce(t *testing.T) {
 	}
 }
 
+// A form swap rebuilds the paw from the main hand, as the druid's item swap callback does; the rebuilt
+// paw keeps the stone's 8, once.
+func TestCatPawKeepsTheWeaponstoneWhenRebuilt(t *testing.T) {
+	const monksStaff, denseWeightstone = 866, 12643
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{})
+	cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
+
+	for range 2 {
+		character.AutoAttacks.SetMH(cat.GetCatWeapon())
+	}
+	paw := character.AutoAttacks.MH()
+	if wantMin, wantMax := 68/2.4, 98/2.4; !approxEqual(paw.BaseDamageMin, wantMin) || !approxEqual(paw.BaseDamageMax, wantMax) {
+		t.Errorf("the rebuilt paw deals %.3f-%.3f, want %.3f-%.3f", paw.BaseDamageMin, paw.BaseDamageMax, wantMin, wantMax)
+	}
+}
+
 // Windfury Totem does nothing in Cat Form, so the cat keeps the stone under it and hears no
 // Windfury procs.
 func TestCatKeepsItsMainHandImbueUnderWindfuryTotem(t *testing.T) {

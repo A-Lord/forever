@@ -38,25 +38,6 @@ func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
 	}
 }
 
-// Dense Sharpening Stone 12404, enchant 1643: 8 weapon damage on the hand carrying it only.
-func TestTemporaryEnchantWeaponDamageGoesOnItsHand(t *testing.T) {
-	stone := core.Consumable{Id: 12404, Name: "Dense Sharpening Stone",
-		TemporaryEnchant: &core.Enchant{EffectID: 1643, WeaponDamage: 8}}
-
-	character := newTestAgent().character
-	character.Equipment[proto.ItemSlot_ItemSlotOffHand] = core.Item{ID: 1, TempEnchant: 1643, SwingSpeed: 2.6}
-	*character.AutoAttacks.MH() = core.Weapon{BaseDamageMin: 100, BaseDamageMax: 150, SwingSpeed: 2.6}
-	*character.AutoAttacks.OH() = core.Weapon{BaseDamageMin: 100, BaseDamageMax: 150, SwingSpeed: 2.6}
-	applyTemporaryEnchant(character, stone)
-
-	if oh := character.AutoAttacks.OH(); oh.BaseDamageMin != 108 || oh.BaseDamageMax != 158 {
-		t.Errorf("off hand deals %v-%v, want 108-158", oh.BaseDamageMin, oh.BaseDamageMax)
-	}
-	if mh := character.AutoAttacks.MH(); mh.BaseDamageMin != 100 || mh.BaseDamageMax != 150 {
-		t.Errorf("main hand deals %v-%v, want its own 100-150", mh.BaseDamageMin, mh.BaseDamageMax)
-	}
-}
-
 // Shadow Oil 3824, enchant 25: its combat spell 350026 is cast off the enchanted weapon's hits, at the
 // 15% the store writes onto 350026's row from the enchantment.
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
