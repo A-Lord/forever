@@ -60,7 +60,7 @@ func TestTheDenyListRemovesAConsumable(t *testing.T) {
 }
 
 func TestACustomConsumableTheClientLacksIsKept(t *testing.T) {
-	custom := &proto.Consumable{Id: 999001, Name: "Custom Elixir", Type: proto.ConsumableType_ConsumableTypeBattleElixir}
+	custom := &proto.Consumable{Id: 999001, Name: "Custom Elixir", Type: proto.ConsumableType_ConsumableTypeElixir}
 	if !KeepConsumable(custom) {
 		t.Error("a consumable ConsumableOverrides adds is filtered out")
 	}

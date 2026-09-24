@@ -19,7 +19,6 @@ type Consumable struct {
 	SpellCategoryID    int             // Spell category ID
 	SpellCategoryFlags int             // Spell category flags
 	ItemEffects        []int           // Item effect IDs
-	ElixirType         int
 	ClassMask          int
 	RaceMask           int64
 	RequiredSkill      int
@@ -183,8 +182,7 @@ func (c *Consumable) consumableType(enchant *Spell, category int32) proto.Consum
 	}
 	itemType := c.itemType()
 	switch itemType {
-	case proto.ConsumableType_ConsumableTypePotion, proto.ConsumableType_ConsumableTypeFlask, proto.ConsumableType_ConsumableTypeElixir,
-		proto.ConsumableType_ConsumableTypeBattleElixir, proto.ConsumableType_ConsumableTypeGuardianElixir:
+	case proto.ConsumableType_ConsumableTypePotion, proto.ConsumableType_ConsumableTypeFlask, proto.ConsumableType_ConsumableTypeElixir:
 		return itemType
 	}
 	if category == FOOD_SPELL_CATEGORY || category == DRINK_SPELL_CATEGORY {
@@ -198,12 +196,6 @@ func (c *Consumable) itemType() proto.ConsumableType {
 		return proto.ConsumableType_ConsumableTypeUnknown
 	}
 	if c.SubClassId == ELIXIR {
-		switch c.ElixirType {
-		case 1:
-			return proto.ConsumableType_ConsumableTypeGuardianElixir
-		case 2:
-			return proto.ConsumableType_ConsumableTypeBattleElixir
-		}
 		return proto.ConsumableType_ConsumableTypeElixir
 	}
 	if c.SubClassId == FOOD {

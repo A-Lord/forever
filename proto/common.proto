@@ -618,14 +618,15 @@ enum ConsumableType {
 	ConsumableTypeFood = 3;
 	ConsumableTypeScroll = 4;
 	ConsumableTypeExplosive = 5;
-	ConsumableTypeBattleElixir = 6;
-	ConsumableTypeGuardianElixir = 7;
+	// The client states no Battle or Guardian split among its elixirs.
+	reserved 6, 7;
+	reserved "ConsumableTypeBattleElixir", "ConsumableTypeGuardianElixir";
 	ConsumableTypeImbue = 8;
 	ConsumableTypeOther = 9;
 	ConsumableTypeHerb = 10;
 	ConsumableTypeBandage = 11;
 	ConsumableTypeDevice = 12;
-	// An elixir whose spell calls it neither a Battle nor a Guardian Elixir.
+	// An Elixir-subclass item that shares no potion, conjured, food or drink category.
 	ConsumableTypeElixir = 13;
 	// A healthstone, mana gem, rune or tea: its on-use shares conjured category 1153.
 	ConsumableTypeConjured = 14;

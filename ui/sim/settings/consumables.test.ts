@@ -55,7 +55,6 @@ describe('consumableSlot', () => {
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypePotion }))).toBe(ConsumableSlot.Potion);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeFlask }))).toBe(ConsumableSlot.Flask);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeElixir }))).toBe(ConsumableSlot.Elixir);
-		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeGuardianElixir }))).toBe(ConsumableSlot.Elixir);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeFood }))).toBe(ConsumableSlot.Food);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeExplosive }))).toBe(ConsumableSlot.Explosive);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeImbue }))).toBe(ConsumableSlot.Imbue);

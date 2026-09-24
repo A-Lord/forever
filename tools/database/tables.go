@@ -930,7 +930,6 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.SpellCategoryID,
 		&consumable.SpellCategoryFlags,
 		&itemEffectsStr,
-		&consumable.ElixirType,
 		&consumable.ClassMask,
 		&consumable.RaceMask,
 		&consumable.RequiredSkill,
@@ -1023,12 +1022,6 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 					JOIN ItemXItemEffect ixie2 ON ixie2.ItemEffectID = ie2.ID
 					WHERE ixie2.ItemID = i.ID
 				) AS ItemEffects,
-				CASE
-					WHEN sp.Description_lang LIKE '%Counts as both a Battle%' THEN 0
-					WHEN sp.Description_lang LIKE '%Guardian Elixir%' THEN 1
-					WHEN sp.Description_lang LIKE '%Battle Elixir%' THEN 2
-					ELSE 0
-				END AS ElixirType,
 				s.AllowableClass,
 				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
 				s.RequiredSkill,
@@ -1045,7 +1038,6 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 			LEFT JOIN ItemXItemEffect ixie ON ixie.ItemID = i.ID
 			LEFT JOIN ItemEffect ie ON ie.ID = ixie.ItemEffectID
 			LEFT JOIN SpellCategory sc ON ie.SpellCategoryID = sc.ID
-			LEFT JOIN Spell sp ON ie.SpellID = sp.ID
 			LEFT JOIN SpellItemEnchantment tsie ON tsie.ID = (
 				SELECT tse.EffectMiscValue_0
 				FROM ItemXItemEffect tx

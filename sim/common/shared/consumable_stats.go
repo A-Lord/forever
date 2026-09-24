@@ -180,21 +180,13 @@ const elixirCategory = "Elixir"
 // grant the same stat, an elixir's with the other elixirs'. Empty for any other consumable, whose
 // stats stack.
 func exclusiveCategory(consumable core.Consumable) string {
-	switch {
-	case consumable.Type == proto.ConsumableType_ConsumableTypeScroll:
+	switch consumable.Type {
+	case proto.ConsumableType_ConsumableTypeScroll:
 		return core.StatBuffCategory
-	case isElixir(consumable):
+	case proto.ConsumableType_ConsumableTypeElixir:
 		return elixirCategory
 	}
 	return ""
-}
-
-func isElixir(consumable core.Consumable) bool {
-	switch consumable.Type {
-	case proto.ConsumableType_ConsumableTypeElixir, proto.ConsumableType_ConsumableTypeBattleElixir, proto.ConsumableType_ConsumableTypeGuardianElixir:
-		return true
-	}
-	return false
 }
 
 // The item used from the bar on its own cooldown and the category cooldown it shares, with the cast

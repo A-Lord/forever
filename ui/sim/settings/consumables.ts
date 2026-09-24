@@ -33,8 +33,6 @@ export interface SpellEffectSource {
 	getSpellEffect(effectId: number): SpellEffect | undefined;
 }
 
-const ELIXIR_TYPES = [ConsumableType.ConsumableTypeElixir, ConsumableType.ConsumableTypeBattleElixir, ConsumableType.ConsumableTypeGuardianElixir];
-
 // The generator types a consumable by the category its on-use shares where that says potion, conjured
 // item, food or drink, and by its item subclass otherwise.
 export function consumableSlot(consumable: Consumable): ConsumableSlot {
@@ -46,8 +44,6 @@ export function consumableSlot(consumable: Consumable): ConsumableSlot {
 		case ConsumableType.ConsumableTypeFlask:
 			return ConsumableSlot.Flask;
 		case ConsumableType.ConsumableTypeElixir:
-		case ConsumableType.ConsumableTypeBattleElixir:
-		case ConsumableType.ConsumableTypeGuardianElixir:
 			return ConsumableSlot.Elixir;
 		case ConsumableType.ConsumableTypeFood:
 			return ConsumableSlot.Food;
@@ -176,7 +172,7 @@ const STAT_TYPES = [
 	ConsumableType.ConsumableTypeFood,
 	ConsumableType.ConsumableTypeScroll,
 	ConsumableType.ConsumableTypeOther,
-	...ELIXIR_TYPES,
+	ConsumableType.ConsumableTypeElixir,
 ];
 
 // Whether the settings offer the consumable to this player: the class, race and profession the
