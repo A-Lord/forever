@@ -70,6 +70,7 @@ interface PlayerState {
 	cls: Class;
 	spec: Spec;
 	professions: Array<Profession>;
+	epStats: Array<Stat>;
 	windfury: boolean;
 	mainHand?: UIItem;
 	offHand?: UIItem;
@@ -81,6 +82,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		cls: Class.ClassWarrior,
 		spec: Spec.SpecDpsWarrior,
 		professions: [],
+		epStats: [Stat.StatStrength, Stat.StatAttackPower],
 		windfury: false,
 		consumes: ConsumesSpec.create(),
 		...state,
@@ -94,7 +96,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 			const item = slot === ItemSlot.ItemSlotMainHand ? full.mainHand : slot === ItemSlot.ItemSlotOffHand ? full.offHand : undefined;
 			return item ? { item } : null;
 		},
-		getSpecConfig: () => ({ epStats: [Stat.StatStrength, Stat.StatAttackPower] }),
+		getSpecConfig: () => ({ epStats: full.epStats }),
 		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury }) }),
 		getConsumes: () => ConsumesSpec.clone(full.consumes),
 		setConsumes: (consumes: ConsumesSpec) => (full.consumes = ConsumesSpec.clone(consumes)),
@@ -159,6 +161,14 @@ describe('consumeConfigs', () => {
 		expect(scrolls.map(config => iconEnumPickerShown(config, player))).toEqual([false]);
 		expect(groups.map(config => config.tooltip)).toEqual(['Hit food', 'Zanza']);
 		expect(groups.map(config => iconEnumPickerShown(config, player))).toEqual([false, true]);
+	});
+
+	it('shows the Hit food to a spec that weighs melee hit', () => {
+		const { player } = playerOf({ epStats: [Stat.StatStrength, Stat.StatMeleeHitRating] });
+		const [hitFood] = consumeConfigs(player, db).groups;
+		expect(hitFood.tooltip).toBe('Hit food');
+		expect(iconEnumPickerShown(hitFood, player)).toBe(true);
+		expect(offered(hitFood, player)).toEqual([23327]);
 	});
 
 	it('picks one elixir of each group, and any number of groups', () => {
