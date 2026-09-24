@@ -28,3 +28,42 @@ func TestEnchantGrantEffectsReadOnlyEnchantItemEffects(t *testing.T) {
 		t.Errorf("%d grants, want 2: %v", len(grants), grants)
 	}
 }
+
+// The store reads an enchant equip spell's tooltip off the grant the generator reads the enchant's
+// off: the lowest, which for an equip spell several enchants share is the lowest of theirs.
+func TestStoreEnchantGrantsMatchTheGenerators(t *testing.T) {
+	tables := clientSpellTables(t)
+	inRepositoryRoot(t)
+	instance := dbc.GetDBC()
+	grants := enchantGrantEffects(instance.SpellEffectsById)
+
+	want := map[int32]int{}
+	for _, enchant := range instance.Enchants {
+		grant, ok := grants[enchant.EffectId]
+		if !ok {
+			continue
+		}
+		for idx, effect := range enchant.Effects {
+			if effect != dbc.ITEM_ENCHANTMENT_EQUIP_SPELL || idx >= len(enchant.EffectArgs) {
+				continue
+			}
+			spellID := int32(enchant.EffectArgs[idx])
+			if _, inStore := tables.EnchantGrants[spellID]; !inStore {
+				continue
+			}
+			if lowest, seen := want[spellID]; !seen || grant.SpellID < lowest {
+				want[spellID] = grant.SpellID
+			}
+		}
+	}
+
+	if len(want) == 0 {
+		t.Fatal("no enchant equip spell of the store is granted by an enchant the generator reads")
+	}
+	t.Logf("%d of the store's %d enchant equip spells compared", len(want), len(tables.EnchantGrants))
+	for spellID, grant := range want {
+		if got := tables.EnchantGrants[spellID]; int(got) != grant {
+			t.Errorf("the store reads equip spell %d's tooltip off grant %d, the generator off %d", spellID, got, grant)
+		}
+	}
+}

@@ -43,6 +43,10 @@ type parser struct {
 
 	// DryRun: the rows are read for what they would attach, and nothing is registered on the unit.
 	dry bool
+
+	// The aura the attachments follow, which the unit's temporary stats listeners are told about.
+	// Nil on the static path.
+	aura *core.Aura
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -70,6 +74,8 @@ type attachment struct {
 	parts   []*attachment
 	stat    stats.Stat
 	statBid bool
+
+	stats []stats.Stat
 }
 
 // What the parser does with one effect, by the aura it applies. A row answers nil for an effect it
@@ -147,12 +153,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_STAT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statsBuff(clientStatList(e.Misc), v)
 	},
-	dbcenums.A_MOD_PERCENT_STAT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statMultiplier(clientStatList(e.Misc), percentMultiplier(v))
-	},
-	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statMultiplier(clientStatList(e.Misc), percentMultiplier(v))
-	},
+	dbcenums.A_MOD_PERCENT_STAT:          percentStatRow,
+	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: percentStatRow,
 
 	// Hit and crit, which the sim states in percentage points the way the client does.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
@@ -235,10 +237,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.equipScaling(stats.Armor, percentMultiplier(v))
 	},
 
-	// Avoidance. The sim keeps block as a fraction (sim/core/unit.go:888 adds the rating share as
-	// rating/per-percent/100) and dodge and parry as percentage points.
+	// Avoidance, in percentage points.
 	dbcenums.A_MOD_BLOCK_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statBuff(stats.BlockPercent, v/100)
+		return p.statBuff(stats.BlockPercent, v)
 	},
 	dbcenums.A_MOD_DODGE_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.DodgePercent, v)
@@ -390,6 +391,10 @@ func skipRow(_ *parser, _ *Effect, _ float64) *attachment {
 	return nil
 }
 
+func percentStatRow(p *parser, e *Effect, v float64) *attachment {
+	return p.statMultiplier(clientStatList(e.Misc), percentMultiplier(v))
+}
+
 // The spells a modifier effect names. The client leaves the mask empty on an effect that means the
 // caster's whole family, and a spell with no family of its own leaves the mod unrestricted.
 func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfig {
@@ -473,6 +478,7 @@ func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 	}
 
 	a := additive("stat "+statNames(sts), v, p.addStats(sts))
+	a.stats = sts
 	for _, stat := range sts {
 		part := additive("stat "+stat.StatName(), v, p.addStats([]stats.Stat{stat}))
 		part.key, part.stat, part.statBid = stat.StatName(), stat, true
@@ -497,7 +503,9 @@ func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta flo
 
 // A multiplier on a stat. The sim states it as a dependency, which cannot carry a per-stack value, so
 // a stacking row is skipped rather than attached at one stack. The static path has no aura to follow
-// and no Simulation to answer a later Refresh with, so a conditional row is skipped there too.
+// and no Simulation to answer a later Refresh with, so a conditional row is skipped there too. The
+// unit's temporary stats listeners hear the stats the dependencies add or remove, measured at that
+// moment.
 func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 	if len(sts) == 0 || p.stacking {
 		return nil
@@ -510,7 +518,7 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 			return nil
 		}
 		applied := false
-		return &attachment{kind: kind, value: mult, multiplicative: true, set: func(_ *core.Simulation, level float64) {
+		return &attachment{kind: kind, value: mult, multiplicative: true, stats: sts, set: func(_ *core.Simulation, level float64) {
 			if level <= 0 || applied {
 				return
 			}
@@ -521,7 +529,7 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 		}}
 	}
 
-	a := &attachment{kind: kind, value: mult, multiplicative: true}
+	a := &attachment{kind: kind, value: mult, multiplicative: true, stats: sts}
 	for _, stat := range sts {
 		part := &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
 			key: stat.StatName(), stat: stat, statBid: true}
@@ -539,16 +547,30 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 }
 
 func (p *parser) statDependency(dep *stats.StatDependency) func(sim *core.Simulation, level float64) {
+	toggle := func(sim *core.Simulation, active bool) {
+		if active {
+			p.unit.EnableBuildPhaseStatDep(sim, dep)
+		} else {
+			p.unit.DisableBuildPhaseStatDep(sim, dep)
+		}
+	}
+
 	active := false
 	return func(sim *core.Simulation, level float64) {
 		if (level > 0) == active {
 			return
 		}
 		active = level > 0
-		if active {
-			p.unit.EnableBuildPhaseStatDep(sim, dep)
-		} else {
-			p.unit.DisableBuildPhaseStatDep(sim, dep)
+		if sim == nil || len(p.unit.OnTemporaryStatsChanges) == 0 {
+			toggle(sim, active)
+			return
+		}
+
+		before := p.unit.GetStats()
+		toggle(sim, active)
+		change := p.unit.GetStats().Subtract(before)
+		for _, onChange := range p.unit.OnTemporaryStatsChanges {
+			onChange(sim, p.aura, change)
 		}
 	}
 }

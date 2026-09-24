@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 // An addition to the resolved aura for what the client does not state: the label the sim keys the
@@ -38,22 +37,6 @@ func maxStacks(s *Spell) int32 {
 		return int32(s.MaxStack)
 	}
 	return int32(s.ProcCharges)
-}
-
-// The stats a spell's A_MOD_PERCENT_STAT effects multiply, in effect order, at a caster level. A misc
-// value of -1 names all five.
-func PercentStats(s *Spell, level int32) []core.StatMultiplier {
-	var multipliers []core.StatMultiplier
-	for i := range s.Effects {
-		e := &s.Effects[i]
-		if !AppliesAura(e.Type) || e.Aura != dbcenums.A_MOD_PERCENT_STAT {
-			continue
-		}
-		for _, stat := range clientStatList(e.Misc) {
-			multipliers = append(multipliers, core.StatMultiplier{Stat: stat, Multiplier: percentMultiplier(e.Average(level))})
-		}
-	}
-	return multipliers
 }
 
 // Two auras of the same spell on one unit need labels of their own.

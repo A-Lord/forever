@@ -3,6 +3,7 @@ package shared
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // The auras a row puts on the wearer, on each of its pets and on an enemy, each carrying the effects
@@ -11,9 +12,10 @@ import (
 // first to register it parses it and the multiplier reaches every attacker's hits once. A row
 // restricted to an area puts nothing on anyone in an encounter outside it.
 type spellDataAuras struct {
-	wearer  *core.Aura
-	pets    []*core.Aura
-	enemies core.AuraArray
+	wearer      *core.Aura
+	wearerStats []stats.Stat
+	pets        []*core.Aura
+	enemies     core.AuraArray
 }
 
 func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config core.Aura) *spellDataAuras {
@@ -24,7 +26,7 @@ func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config c
 
 	if effects := spelldata.EffectsOn(row, spelldata.AuraOnWearer); len(effects) > 0 {
 		auras.wearer = character.RegisterAura(config)
-		spelldata.ParseEffects(character, auras.wearer, row, spelldata.Effects(effects...))
+		auras.wearerStats = spelldata.ParseEffects(character, auras.wearer, row, spelldata.Effects(effects...)).Stats()
 	}
 
 	if effects := spelldata.EffectsOn(row, spelldata.AuraOnPet); len(effects) > 0 {
@@ -80,7 +82,19 @@ func registerSpellDataAuraProc(cfg SpellDataProc) {
 			auras.activate(sim, procDamageTarget(character, callback, spell, result))
 		}
 
-		source.registerTrigger(character, proc)
+		triggerAura := source.registerTrigger(character, proc)
+		if auras.wearer == nil {
+			return
+		}
+
+		// The registrations applySpellDataProc makes for a stat buff: an item swap drops an enchant's
+		// buff with its weapon or shield, and the stat-proc APL values find a buff that moves stats.
+		procAura := &core.StatBuffAura{Aura: auras.wearer, BuffedStatTypes: auras.wearerStats}
+		source.registerWeaponEnchantBuff(character, procAura)
+		if len(auras.wearerStats) > 0 {
+			procAura.Icd = triggerAura.Icd
+			character.AddStatProcBuff(source.id, procAura, source.isEnchant, source.eligibleSlots(character))
+		}
 	})
 }
 

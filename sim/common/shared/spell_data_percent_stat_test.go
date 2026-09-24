@@ -126,7 +126,7 @@ func TestShieldEnchantBuffDropsWithItsShield(t *testing.T) {
 		},
 	})
 	for name, id := range map[string]int32{"Test Weapon Enchant": weaponEnchantID, "Test Shield Enchant": shieldEnchantID} {
-		registerSpellDataProc(SpellDataProc{Name: name, EnchantID: id, TriggerSpellID: 1248758, BuffSpellID: 1299796})
+		registerSpellDataAuraProc(SpellDataProc{Name: name, EnchantID: id, TriggerSpellID: 1248758, BuffSpellID: 1299796})
 	}
 
 	for _, tc := range []struct {
@@ -178,7 +178,7 @@ func TestInsightMultipliesSpirit(t *testing.T) {
 		Enchants: []*proto.SimEnchant{{EffectId: insightEnchantID, Name: "Test Insight",
 			Type: proto.ItemType_ItemTypeWeapon}},
 	})
-	registerSpellDataProc(SpellDataProc{Name: "Test Insight", EnchantID: insightEnchantID,
+	registerSpellDataAuraProc(SpellDataProc{Name: "Test Insight", EnchantID: insightEnchantID,
 		TriggerSpellID: 1248758, BuffSpellID: 1299796})
 
 	cfg := SpellDataProc{Name: "Test Insight", EnchantID: insightEnchantID, TriggerSpellID: 1248758,
@@ -203,6 +203,9 @@ func TestInsightMultipliesSpirit(t *testing.T) {
 	}
 	if insight.Duration != 10*time.Second {
 		t.Errorf("buff duration = %v, want 1299796's 10s", insight.Duration)
+	}
+	if procBuffs := caster.GetMatchingItemProcAuras([]stats.Stat{stats.Spirit}, 0); len(procBuffs) != 1 || procBuffs[0].Aura != insight {
+		t.Errorf("Spirit proc buffs %v, want Insight's", procBuffs)
 	}
 
 	var heard []stats.Stats

@@ -7,7 +7,6 @@ import (
 	"os"
 	"slices"
 
-	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -86,33 +85,12 @@ func (in *storeInputs) tables() *spellTables {
 func captureStoreInputs(t *spellTables, roots []int32, ids []int32,
 	nodes []traitNode, points map[int32]map[int32]map[int32]float64) *storeInputs {
 	in := &storeInputs{
-		spellTables: spellTables{
-			Names:            t.Names,
-			Subtexts:         map[int32]string{},
-			Descriptions:     map[int32]string{},
-			Misc:             map[int32]miscRow{},
-			Levels:           map[int32]levelsRow{},
-			Cooldowns:        map[int32]cooldownRow{},
-			Categories:       map[int32]categoryRow{},
-			AuraOptions:      map[int32]auraOptionRow{},
-			ClassOptions:     map[int32]core.ClassFlags{},
-			Interrupts:       map[int32]interruptRow{},
-			Shapeshift:       map[int32]shapeshiftRow{},
-			AuraRestrictions: map[int32]auraRestrictionRow{},
-			Targets:          map[int32]int16{},
-			CreatureType:     map[int32]int32{},
-			Requirements:     map[int32]int32{},
-			Equipped:         map[int32]equippedRow{},
-			Labels:           map[int32][]int16{},
-			Powers:           map[int32][]storePower{},
-			Effects:          map[int32][]storeEffect{},
-			EnchantGrants:    map[int32]int32{},
-			EnchantChances:   map[int32]enchantChance{},
-		},
+		spellTables: *newSpellTables(),
 		Roots:       roots,
 		TraitNodes:  nodes,
 		TraitPoints: points,
 	}
+	in.Names = t.Names
 
 	for _, id := range ids {
 		keepString(in.Subtexts, id, t.Subtexts[id])
@@ -136,12 +114,10 @@ func captureStoreInputs(t *spellTables, roots []int32, ids []int32,
 		keepSlice(in.Powers, id, t.Powers)
 		keepSlice(in.Effects, id, t.Effects)
 
-		if grant, ok := t.EnchantGrants[id]; ok {
-			in.EnchantGrants[id] = grant
+		keepValue(in.EnchantGrants, id, t.EnchantGrants)
+		keepValue(in.EnchantChances, id, t.EnchantChances)
+		if grant, ok := in.EnchantGrants[id]; ok {
 			keepString(in.Descriptions, grant, t.Descriptions[grant])
-		}
-		if chance, ok := t.EnchantChances[id]; ok {
-			in.EnchantChances[id] = chance
 		}
 	}
 	return in
@@ -149,7 +125,7 @@ func captureStoreInputs(t *spellTables, roots []int32, ids []int32,
 
 // A row is kept only where the client states one: the absence of a SpellLevels row is itself a
 // reading - no level scaling - so writing a zero row in its place would change what the store says.
-func keepValue[V comparable](into map[int32]V, id int32, from map[int32]V) {
+func keepValue[V any](into map[int32]V, id int32, from map[int32]V) {
 	if v, ok := from[id]; ok {
 		into[id] = v
 	}

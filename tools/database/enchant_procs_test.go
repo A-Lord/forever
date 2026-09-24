@@ -9,7 +9,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
-	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -130,21 +129,24 @@ func TestEnchantProcRoutingTakesAPPMOverride(t *testing.T) {
 	}
 }
 
-// Insight's effect entry resolves no flat stats, so the slot names the buff its equip aura applies,
-// 1299796, whose row multiplies Spirit by 2.
+// Insight's effect entry resolves no flat stats, so the slot applies its buff 1299796 as auras, whose
+// row multiplies Spirit by 2.
 func TestEnchantPercentStatBuffIsTheAppliedSpell(t *testing.T) {
 	inRepositoryRoot(t)
 	instance := dbc.GetDBC()
 
 	enchant := instance.EnchantsByEffectId[8216]
 	got := routeEnchantProcs(enchant.ProcSlots(), instance)
-	if len(got) != 1 || got[0].TriggerSpellID != 1248758 || got[0].BuffSpellID != 1299796 {
-		t.Fatalf("routings %v, want one from 1248758 to 1299796", got)
+	if len(got) != 1 || got[0].Shape != ShapeAura || got[0].TriggerSpellID != 1248758 || got[0].BuffSpellID != 1299796 {
+		t.Fatalf("routings %v, want one aura from 1248758 to 1299796", got)
+	}
+	if !got[0].Supported() {
+		t.Fatalf("refused (%s), want it registered", got[0].Reason())
 	}
 
-	want := []core.StatMultiplier{{Stat: stats.Spirit, Multiplier: 2}}
-	if got := spelldata.PercentStats(spelldata.Find(1299796), 60); !slices.Equal(got, want) {
-		t.Errorf("multipliers %v, want %v", got, want)
+	buff := spelldata.Find(1299796)
+	if e := buff.FirstAura(dbcenums.A_MOD_PERCENT_STAT); e == spelldata.NilEffect || e.Misc != 4 || e.BasePoints != 100 {
+		t.Errorf("1299796 states %+v, want A_MOD_PERCENT_STAT on client stat 4 (Spirit) at 100%%", e)
 	}
 }
 

@@ -286,7 +286,8 @@ type critChances struct {
 
 func getCritChances(rawChance float64, target *Unit) critChances {
 	actual := max(rawChance-target.PseudoStats.ReducedCritTakenPercent, 0)
-	resilienceSuppression := max(rawChance-target.GetDefenseReduction(), 0)
+	defenseReduction := target.stats[stats.ReducedCritTakenPercent]/100 - target.GetResilienceReduction()
+	resilienceSuppression := max(rawChance-defenseReduction, 0)
 	return critChances{
 		actual:     actual,
 		suppressed: min(resilienceSuppression, target.GetResilienceReduction()),

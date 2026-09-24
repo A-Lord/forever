@@ -45,7 +45,7 @@ type EnchantProcSlot struct {
 
 // The auras through which an equip spell answers a hit: the proc triggers, the retaliation of a
 // damage shield, and the dummy a server-side proc hangs off.
-var enchantProcAuras = []EffectAuraType{
+var EnchantProcAuras = []EffectAuraType{
 	dbcenums.A_PROC_TRIGGER_SPELL, dbcenums.A_PROC_TRIGGER_SPELL_WITH_VALUE, dbcenums.A_PROC_TRIGGER_SPELL_COPY,
 	dbcenums.A_PROC_TRIGGER_DAMAGE, dbcenums.A_DAMAGE_SHIELD, dbcenums.A_DUMMY,
 }
@@ -68,7 +68,7 @@ func (enchant *Enchant) ProcSlots() []EnchantProcSlot {
 			slots = append(slots, slot)
 		case ITEM_ENCHANTMENT_EQUIP_SPELL:
 			for _, spellEffect := range dbcInstance.SpellEffectsInOrder(spellID) {
-				if slices.Contains(enchantProcAuras, spellEffect.EffectAura) {
+				if slices.Contains(EnchantProcAuras, spellEffect.EffectAura) {
 					slots = append(slots, EnchantProcSlot{SpellID: spellID, AppliesSpellID: spellEffect.EffectTriggerSpell})
 					break
 				}

@@ -482,7 +482,7 @@ func TestSpellDataProcTakesAPPMOverride(t *testing.T) {
 			row := *spelldata.MustFind(tc.spellID)
 			unsupported := func() []string {
 				if tc.isWeaponProc {
-					return spelldata.CombatEnchantUnsupported(&row)
+					return spelldata.ItemProcUnsupported(&row, true)
 				}
 				return spelldata.EnchantAuraUnsupported(&row)
 			}

@@ -53,7 +53,7 @@ const (
 )
 
 // The wearer's own attack landing on nothing, which the decoder turns into the outcome it names.
-const procHintAttackAvoided = ProcHintAttackDodged | ProcHintAttackParried
+const ProcHintAttackAvoided = ProcHintAttackDodged | ProcHintAttackParried
 
 // Returns whether there is any overlap between the given hints.
 func (h ProcHint) Matches(other ProcHint) bool {
@@ -217,7 +217,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 	// An avoidance outcome - a dodge, a parry, a miss, a full block or a resist - is a hit that
 	// landed on nothing, so a listener whose trigger is one hears a hit that dealt no damage.
 	// Which of them it is stays the caller's: no ProcTypeMask has a bit for any of them.
-	if hint.Matches(ProcHintOutcomeTaken | procHintAttackAvoided) {
+	if hint.Matches(ProcHintOutcomeTaken | ProcHintAttackAvoided) {
 		info.RequireDamageDealt = false
 	}
 
@@ -228,7 +228,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 	switch {
 	case info.Callback.Matches(CallbackOnCastComplete):
 		info.Outcome = OutcomeEmpty
-	case hint.Matches(procHintAttackAvoided):
+	case hint.Matches(ProcHintAttackAvoided):
 		if hint.Matches(ProcHintAttackDodged) {
 			info.Outcome |= OutcomeDodge
 		}

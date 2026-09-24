@@ -50,32 +50,11 @@ func (testSuite *IndividualTestSuite) TestStatWeights(testName string, swr *prot
 	testSuite.testNames = append(testSuite.testNames, testName)
 
 	result := StatWeights(swr)
-	weights := weightsFromUnitStatsProto(result.Dps.EpValues)
+	weights := stats.WeightsFromUnitStatsProto(result.Dps.EpValues)
 
 	testSuite.testResults.StatWeightsResults[testName] = &proto.StatWeightsTestResult{
 		Weights: toFixedStats(weights[:], storagePrecision),
 	}
-}
-
-// A weight is per point of whatever its stat counts, so each percent pseudo stat's weight is kept as it
-// is: Block% stays per percent rather than becoming the probability a stat value would, and ranged hit
-// and crit keep their own weight rather than one less the melee share.
-func weightsFromUnitStatsProto(weights *proto.UnitStats) stats.Stats {
-	simStats := stats.FromProtoArray(weights.Stats)
-	for stat, pseudoStat := range map[stats.Stat]proto.PseudoStat{
-		stats.PhysicalHitPercent:  proto.PseudoStat_PseudoStatMeleeHitPercent,
-		stats.SpellHitPercent:     proto.PseudoStat_PseudoStatSpellHitPercent,
-		stats.PhysicalCritPercent: proto.PseudoStat_PseudoStatMeleeCritPercent,
-		stats.SpellCritPercent:    proto.PseudoStat_PseudoStatSpellCritPercent,
-		stats.BlockPercent:        proto.PseudoStat_PseudoStatBlockPercent,
-		stats.RangedHitPercent:    proto.PseudoStat_PseudoStatRangedHitPercent,
-		stats.RangedCritPercent:   proto.PseudoStat_PseudoStatRangedCritPercent,
-		stats.DodgePercent:        proto.PseudoStat_PseudoStatDodgePercent,
-		stats.ParryPercent:        proto.PseudoStat_PseudoStatParryPercent,
-	} {
-		simStats[stat] = stats.PseudoStatValue(weights.PseudoStats, pseudoStat)
-	}
-	return simStats
 }
 
 func (testSuite *IndividualTestSuite) TestDPS(testName string, rsr *proto.RaidSimRequest) *proto.RaidSimResult {

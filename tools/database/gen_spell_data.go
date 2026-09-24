@@ -55,6 +55,8 @@ type generatedEffect struct {
 	Value          float64
 	ValueMax       float64
 	ChainAmplitude float64
+	Coef           float64
+	APCoef         float64
 }
 
 type generatedAmount struct {
@@ -1038,7 +1040,7 @@ func buildRow(db *sql.DB, rank int32, spellID int32, mask int, points map[int32]
 		}
 		row.Effects = append(row.Effects, generatedEffect{
 			Index: e.Index, Effect: e.Effect, Aura: e.Aura, Misc: e.MiscValue, Value: min, ValueMax: max,
-			ChainAmplitude: e.ChainAmplitude,
+			ChainAmplitude: e.ChainAmplitude, Coef: e.Coefficient, APCoef: e.APCoef,
 		})
 	}
 
@@ -1528,6 +1530,12 @@ func formatRow(row generatedRow, namer *rankEnumNamer) string {
 			}
 			if e.ChainAmplitude != 0 && e.ChainAmplitude != 1 {
 				f += ", ChainAmplitude: " + num(e.ChainAmplitude)
+			}
+			if e.Coef != 0 {
+				f += ", Coef: " + num(e.Coef)
+			}
+			if e.APCoef != 0 {
+				f += ", APCoef: " + num(e.APCoef)
 			}
 			es = append(es, f+"}")
 		}

@@ -56,8 +56,7 @@ func applyTooltipHints(t *spellTables, s *storeSpell) {
 // ability, an outcome the mask has no bit for, the wearer's attack dodged or parried, and whether a
 // column of 100 is a rate the rows do not carry. Which hits feed the proc stays the mask's to say.
 func applyEnchantGrantHints(grant string, s *storeSpell) {
-	s.ProcHint |= procTooltipHints(grant) &
-		(core.ProcHintNamedAbility | core.ProcHintOutcomeTaken | core.ProcHintAttackDodged | core.ProcHintAttackParried)
+	s.ProcHint |= procTooltipHints(grant) & (core.ProcHintNamedAbility | core.ProcHintOutcomeTaken | core.ProcHintAttackAvoided)
 
 	if s.ProcChanceSource == procChanceAlways && tooltipStatesAnUnknownRate(grant) {
 		s.ProcChanceSource = procChancePPM

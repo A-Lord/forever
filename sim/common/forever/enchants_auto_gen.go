@@ -316,7 +316,7 @@ func RegisterAllEnchants() {
 	// Spirit by 100% for 10s.
 	// https://www.wowhead.com/forever/spell=1248757
 	// trigger 1248758 (35%, core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt, core.ProcMaskSpellDamage | core.ProcMaskSpellHealing) -> buff 1299796
-	shared.NewSpellDataProc(shared.SpellDataProc{
+	shared.NewSpellDataAuraProc(shared.SpellDataProc{
 		Name:           "Enchant Weapon - Insight",
 		EnchantID:      8216,
 		TriggerSpellID: 1248758,

@@ -99,13 +99,17 @@ func (paladin *Paladin) applySpiritualFocus() {
 }
 
 // Improved Seals - Increases the damage done by your Seals and Judgements by 5/10/15%.
+//
+// The Seal of Command proc takes the talent through its weapon percent instead, see
+// registerSealOfCommand: the target's extra Holy damage taken sits outside the percent and the
+// talent must not reach it.
 func (paladin *Paladin) applyImprovedSeals() {
 	if paladin.Talents.ImprovedSeals == 0 {
 		return
 	}
 
 	paladin.AddStaticMod(core.SpellModConfig{
-		ClassMask:  SpellMaskSealProcs | SpellMaskAllJudgements,
+		ClassMask:  (SpellMaskSealProcs &^ SpellMaskSealOfCommandProc) | SpellMaskAllJudgements,
 		Kind:       core.SpellMod_DamageDone_Flat,
 		FloatValue: spellData.ImprovedSeals.FractionAt(paladin.Talents.ImprovedSeals),
 	})

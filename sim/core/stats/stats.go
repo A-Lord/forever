@@ -67,8 +67,7 @@ const (
 	// Stats in UnitStats proto messages, since they are not required in the
 	// database files. However, it is valuable to keep these as proper Stats
 	// in the back-end, since they are used in various stat dependencies.
-	// The units for all 10 of these are percentages (between 0 and 100),
-	// except BlockPercent, which is a probability (between 0 and 1).
+	// The units for all 11 of these are percentages (between 0 and 100).
 	PhysicalHitPercent
 	SpellHitPercent
 	PhysicalCritPercent
@@ -79,6 +78,7 @@ const (
 	DodgePercent
 	ParryPercent
 	ExpertisePercent
+	ReducedCritTakenPercent
 	// DO NOT add new stats here without discussing it first; new stats come
 	// with a performance penalty.
 
@@ -218,6 +218,8 @@ func (s Stat) StatName() string {
 		return "ParryPercent"
 	case ExpertisePercent:
 		return "ExpertisePercent"
+	case ReducedCritTakenPercent:
+		return "ReducedCritTakenPercent"
 	case DefenseRating:
 		return "DefenseRating"
 	case BlockRating:
@@ -260,26 +262,53 @@ func FromUnitStatsProto(unitStatsMessage *proto.UnitStats) Stats {
 }
 
 // The percent PseudoStats an item or enchant states, as the back-end Stats that model them. Ranged hit and
-// crit are totals that include the melee share. Block arrives in percent and is stored as the probability
-// GetBlockFromRating reads. Dodge and parry are read as chance added to the base; GetPseudoStatsProto
-// writes them as the total chance.
+// crit are totals that include the melee share. Dodge, parry and block are read as chance added to the
+// base; GetPseudoStatsProto writes them as the total chance.
 func FromPseudoStatsProto(pseudoStats []float64) Stats {
-	get := func(pseudoStat proto.PseudoStat) float64 {
-		return PseudoStatValue(pseudoStats, pseudoStat)
-	}
-
 	var simStats Stats
-	simStats[PhysicalHitPercent] = get(proto.PseudoStat_PseudoStatMeleeHitPercent)
-	simStats[SpellHitPercent] = get(proto.PseudoStat_PseudoStatSpellHitPercent)
-	simStats[PhysicalCritPercent] = get(proto.PseudoStat_PseudoStatMeleeCritPercent)
-	simStats[SpellCritPercent] = get(proto.PseudoStat_PseudoStatSpellCritPercent)
-	simStats[BlockPercent] = get(proto.PseudoStat_PseudoStatBlockPercent) / 100
-	simStats[RangedHitPercent] = get(proto.PseudoStat_PseudoStatRangedHitPercent) - get(proto.PseudoStat_PseudoStatMeleeHitPercent)
-	simStats[RangedCritPercent] = get(proto.PseudoStat_PseudoStatRangedCritPercent) - get(proto.PseudoStat_PseudoStatMeleeCritPercent)
-	simStats[DodgePercent] = get(proto.PseudoStat_PseudoStatDodgePercent)
-	simStats[ParryPercent] = get(proto.PseudoStat_PseudoStatParryPercent)
-	simStats[ExpertisePercent] = get(proto.PseudoStat_PseudoStatExpertisePercent)
+	for _, pair := range PercentPseudoStats {
+		simStats[pair.Stat] = PseudoStatValue(pseudoStats, pair.PseudoStat)
+		if pair.MeleeShare != nil {
+			simStats[pair.Stat] -= PseudoStatValue(pseudoStats, pair.MeleeShare.PseudoStat)
+		}
+	}
 	return simStats
+}
+
+// The weights a UnitStats message carries, per point of whatever each stat counts: a percent's weight
+// is copied as it is, so Block% stays per percent and ranged hit and crit keep their own weight.
+func WeightsFromUnitStatsProto(weights *proto.UnitStats) Stats {
+	simStats := FromProtoArray(weights.Stats)
+	for _, pair := range PercentPseudoStats {
+		simStats[pair.Stat] = PseudoStatValue(weights.PseudoStats, pair.PseudoStat)
+	}
+	return simStats
+}
+
+// A percent the character sheet shows as a PseudoStat and the back end models as a Stat. A ranged total
+// on the sheet includes its MeleeShare, which the ranged Stat leaves out.
+type PercentPseudoStat struct {
+	Stat       Stat
+	PseudoStat proto.PseudoStat
+	MeleeShare *PercentPseudoStat
+}
+
+var (
+	meleeHitPercent  = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
+	meleeCritPercent = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+)
+
+var PercentPseudoStats = []PercentPseudoStat{
+	meleeHitPercent,
+	{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil},
+	meleeCritPercent,
+	{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil},
+	{BlockPercent, proto.PseudoStat_PseudoStatBlockPercent, nil},
+	{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPercent},
+	{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPercent},
+	{DodgePercent, proto.PseudoStat_PseudoStatDodgePercent, nil},
+	{ParryPercent, proto.PseudoStat_PseudoStatParryPercent, nil},
+	{ExpertisePercent, proto.PseudoStat_PseudoStatExpertisePercent, nil},
 }
 
 func PseudoStatValue(pseudoStats []float64, pseudoStat proto.PseudoStat) float64 {

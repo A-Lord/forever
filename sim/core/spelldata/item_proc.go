@@ -27,12 +27,6 @@ func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string {
 	return itemProcUnsupported(trigger, isWeaponProc, false)
 }
 
-// The same for a combat enchant. The chance its enchantments state is on the spell's row: Fiery
-// Blaze's 15, SpellItemEnchantment.EffectPointsMin of enchantment 36, is 6297's ProcChance.
-func CombatEnchantUnsupported(trigger *Spell) []string {
-	return itemProcUnsupported(trigger, true, true)
-}
-
 // The same for an enchant's equip aura, whose procs-per-minute rate rolls on weapon hits only: the
 // sim never procs one from a spell or a heal.
 func EnchantAuraUnsupported(trigger *Spell) []string {

@@ -46,14 +46,18 @@ func TestCritChancesSeparateResilienceFromDefense(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			target := &Unit{PseudoStats: stats.NewPseudoStats()}
+			target := &Unit{PseudoStats: stats.NewPseudoStats(), StatDependencyManager: stats.NewStatDependencyManager()}
+			target.addUniversalStatDependencies()
+			target.FinalizeStatDeps()
 			target.PseudoStats.ReducedCritTakenPercent = test.reducedCritTaken
 			defenseRating := 0.0
 			if test.defenseReduction > 0 {
 				defenseRating = test.defenseReduction/(MissDodgeParryBlockCritChancePerDefense/100)*DefenseRatingPerDefenseLevel + DefenseRatingPerDefenseLevel/2
 			}
-			target.AddStats(stats.Stats{stats.DefenseRating: defenseRating})
-			target.AddStats(stats.Stats{stats.ResilienceRating: test.resilienceReduction * ResilienceRatingPerCritReductionChance * 100})
+			target.stats = target.ApplyStatDependencies(stats.Stats{
+				stats.DefenseRating:    defenseRating,
+				stats.ResilienceRating: test.resilienceReduction * ResilienceRatingPerCritReductionChance * 100,
+			})
 
 			actual := getCritChances(test.rawChance, target)
 			if math.Abs(actual.actual-test.wantActual) > 1e-9 || math.Abs(actual.suppressed-test.wantSupp) > 1e-9 {

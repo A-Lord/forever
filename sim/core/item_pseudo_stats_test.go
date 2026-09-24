@@ -52,7 +52,7 @@ func TestItemAndEnchantPseudoStatsReachTheWearer(t *testing.T) {
 		{stats.PhysicalHitPercent, 1},
 		{stats.RangedHitPercent, 3},
 		{stats.DodgePercent, 2},
-		{stats.BlockPercent, 0.03},
+		{stats.BlockPercent, 3},
 		{stats.DodgeRating, DodgeRatingPerDodgePercent},
 	} {
 		if got := equipStats[want.stat]; math.Abs(got-want.value) > 1e-9 {

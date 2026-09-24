@@ -8,29 +8,48 @@ package database
 // Skips when tools/database/wowsims.db is absent, which is why CI is unaffected.
 
 import (
+	"fmt"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
-func TestProcShapeOfNamedSpells(t *testing.T) {
+var clientTables struct {
+	once   sync.Once
+	tables *spellTables
+	err    error
+}
+
+func clientSpellTables(t *testing.T) *spellTables {
+	t.Helper()
 	DatabasePath = "wowsims.db"
 	if _, err := os.Stat(DatabasePath); err != nil {
 		t.Skipf("no client database at %s - run `make db` from a local WoW install to enable this gate", DatabasePath)
 	}
 
-	helper, err := NewDBHelper()
-	if err != nil {
-		t.Fatalf("opening %s: %v", DatabasePath, err)
-	}
-	defer helper.Close()
+	clientTables.once.Do(func() {
+		helper, err := NewDBHelper()
+		if err != nil {
+			clientTables.err = fmt.Errorf("opening %s: %w", DatabasePath, err)
+			return
+		}
+		defer helper.Close()
 
-	tables, err := loadSpellTables(helper.db)
-	if err != nil {
-		t.Fatalf("loading the spell tables: %v", err)
+		if clientTables.tables, err = loadSpellTables(helper.db); err != nil {
+			clientTables.err = fmt.Errorf("loading the spell tables: %w", err)
+		}
+	})
+	if clientTables.err != nil {
+		t.Fatal(clientTables.err)
 	}
+	return clientTables.tables
+}
+
+func TestProcShapeOfNamedSpells(t *testing.T) {
+	tables := clientSpellTables(t)
 
 	for _, want := range []struct {
 		id      int32
@@ -117,21 +136,7 @@ func TestProcShapeOfNamedSpells(t *testing.T) {
 
 // A combat spell's roll is the one its enchantments state, whatever its own column says.
 func TestEnchantChanceOfNamedCombatSpells(t *testing.T) {
-	DatabasePath = "wowsims.db"
-	if _, err := os.Stat(DatabasePath); err != nil {
-		t.Skipf("no client database at %s - run `make db` from a local WoW install to enable this gate", DatabasePath)
-	}
-
-	helper, err := NewDBHelper()
-	if err != nil {
-		t.Fatalf("opening %s: %v", DatabasePath, err)
-	}
-	defer helper.Close()
-
-	tables, err := loadSpellTables(helper.db)
-	if err != nil {
-		t.Fatalf("loading the spell tables: %v", err)
-	}
+	tables := clientSpellTables(t)
 
 	for _, want := range []struct {
 		id     int32
@@ -162,21 +167,7 @@ func TestEnchantChanceOfNamedCombatSpells(t *testing.T) {
 }
 
 func TestSplitDamageOfNamedSpells(t *testing.T) {
-	DatabasePath = "wowsims.db"
-	if _, err := os.Stat(DatabasePath); err != nil {
-		t.Skipf("no client database at %s - run `make db` from a local WoW install to enable this gate", DatabasePath)
-	}
-
-	helper, err := NewDBHelper()
-	if err != nil {
-		t.Fatalf("opening %s: %v", DatabasePath, err)
-	}
-	defer helper.Close()
-
-	tables, err := loadSpellTables(helper.db)
-	if err != nil {
-		t.Fatalf("loading the spell tables: %v", err)
-	}
+	tables := clientSpellTables(t)
 
 	for _, want := range []struct {
 		id     int32

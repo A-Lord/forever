@@ -465,15 +465,11 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 	eligibleSlots := source.eligibleSlots(character)
 
 	effect := source.procEffects()[buff.ID]
-	var percentStats []core.StatMultiplier
 	if effect == nil {
-		percentStats = spelldata.PercentStats(buff, character.Level)
-		if len(percentStats) == 0 {
-			panic(fmt.Sprintf("Error getting proc effects for item/enchant %v", source.id))
-		}
+		panic(fmt.Sprintf("Error getting proc effects for item/enchant %v", source.id))
 	}
 
-	procAura := spellDataProcAura(character, cfg, trigger, buff, effect, percentStats)
+	procAura := spellDataProcAura(character, cfg, trigger, buff, effect)
 
 	listener := spellDataProcListener(character, cfg, source, trigger, effect.GetProc())
 	listener.Handler = spellDataProcHandler(buff, procAura)
@@ -504,7 +500,7 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 // the effect entry states.
 func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell, proc *proto.ProcEffect) core.ProcTrigger {
 	config := spelldata.ProcTrigger(character, trigger, nil, spelldata.ItemProcChance(trigger),
-		weaponProcShape(cfg), spellDataProcRate(source, trigger, proc), statedWeaponProcChance(cfg, source, trigger))
+		weaponProcShape(cfg), spellDataProcRate(source, trigger, proc), statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
 	config.Name = cfg.Name
 	config.ActionID = source.actionID()
 
@@ -546,9 +542,9 @@ func spellDataProcRate(source effectSource, row *spelldata.Spell, proc *proto.Pr
 // A combat enchant's chance, which its row states in the column, rolled on the hits of the enchanted
 // weapon only: the weapon shape hears every hit, so a flat chance on the trigger would also roll on
 // the other hand's.
-func statedWeaponProcChance(cfg SpellDataProc, source effectSource, row *spelldata.Spell) spelldata.ProcOpt {
+func statedWeaponProcChance(isWeaponProc bool, source effectSource, row *spelldata.Spell) spelldata.ProcOpt {
 	return func(character *core.Character, trigger *core.ProcTrigger) {
-		if !cfg.IsWeaponProc || !source.isEnchant || row.ProcChanceSource != spelldata.ProcChanceColumn || row.ProcChance == 0 {
+		if !isWeaponProc || !source.isEnchant || row.ProcChanceSource != spelldata.ProcChanceColumn || row.StatedChance() == 0 {
 			return
 		}
 
@@ -575,7 +571,7 @@ func spellDataProcHandler(buff *spelldata.Spell, procAura *core.StatBuffAura) co
 // The buff the proc applies. Which shape it takes is the client's to say, and the two counts it
 // keeps in one field are not the same thing: a CumulativeAura count is stacks that each add their
 // own stats, a ProcCharges count is one buff at full stats that the game spends by uses.
-func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *spelldata.Spell, buff *spelldata.Spell, effect *proto.ItemEffect, percentStats []core.StatMultiplier) *core.StatBuffAura {
+func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *spelldata.Spell, buff *spelldata.Spell, effect *proto.ItemEffect) *core.StatBuffAura {
 	// A trinket whose trigger opens a window and whose stats accumulate on a second aura inside it
 	// resolves no stats on the aura the trigger applies, so building one here would grant nothing at
 	// all. That shape needs the window machinery in factory_StatBonusEffect.
@@ -585,12 +581,6 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 
 	aura := spelldata.AuraConfig(buff, spelldata.Label(cfg.Name+" Proc"))
 	aura.Duration = procBuffDuration(cfg, trigger, buff)
-
-	// An effect entry states flat stats only, so a buff the client states as a percentage of a stat
-	// has none and multiplies instead.
-	if effect == nil {
-		return character.NewTemporaryStatMultiplierAura(aura, percentStats)
-	}
 
 	buffStats := stats.FromProtoMap(effect.GetScalingOptions()[int32(0)].GetStats())
 

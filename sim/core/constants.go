@@ -27,6 +27,7 @@ const DefaultAttackPowerPerDPS = 14.0
 
 const ArmorPenPerPercentArmor = 5.92
 const MissDodgeParryBlockCritChancePerDefense = 0.04
+const DefenseRatingPerAvoidancePercent = DefenseRatingPerDefenseLevel / MissDodgeParryBlockCritChancePerDefense
 const ResilienceRatingPerCritReductionChance = 25
 
 const EnemyAutoAttackAPCoefficient = 0.00052
