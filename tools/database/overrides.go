@@ -120,7 +120,16 @@ var ConsumableAllowList = []int32{
 	12451, // Juju Power
 	12460, // Juju Might
 }
-var ConsumableDenyList = []int32{}
+var ConsumableDenyList = []int32{
+	// Not obtainable in the game
+	23794, // Permanent Sheen of Zanza
+	23795, // Permanent Spirit of Zanza
+	23796, // Permanent Swiftness of Zanza
+	// Mage familiar summons, which the settings leave out
+	275069, // Scroll of Rat Familiar
+	277483, // Scroll of Frog Familiar
+	277493, // Scroll of Cat Familiar
+}
 
 // Exclusive groups the server keeps that the rows do not state: the client carries no stacking table,
 // and these items share no aura with their group and no category whose cooldown outlasts their buffs.
