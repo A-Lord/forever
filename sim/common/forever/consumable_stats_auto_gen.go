@@ -173,7 +173,6 @@ func RegisterAllStatConsumables() {
 	shared.NewSpellDataStatConsumable(23211)  // Toasted Smorc
 	shared.NewSpellDataStatConsumable(23326)  // Midsummer Sausage
 	shared.NewSpellDataStatConsumable(23327)  // Fire-toasted Bun
-	shared.NewSpellDataStatConsumable(23795)  // Permanent Spirit of Zanza
 	shared.NewSpellDataStatConsumable(206177) // Pine Nut Butter
 	shared.NewSpellDataStatConsumable(210708) // Elixir of Coalesced Regret
 	shared.NewSpellDataStatConsumable(211815) // Silverwing Battle Hymn
@@ -255,7 +254,4 @@ func RegisterAllStatConsumables() {
 	shared.NewSpellDataStatConsumable(268913) // Expiring Crocolisk Steak
 	shared.NewSpellDataStatConsumable(274971) // Briny Seafood Stew
 	shared.NewSpellDataStatConsumable(274976) // Plain Ol' Paletusk
-	shared.NewSpellDataStatConsumable(275069) // Scroll of Rat Familiar
-	shared.NewSpellDataStatConsumable(277483) // Scroll of Frog Familiar
-	shared.NewSpellDataStatConsumable(277493) // Scroll of Cat Familiar
 }
