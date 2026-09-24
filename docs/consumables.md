@@ -159,9 +159,13 @@ The client carries no stacking table, so the generator resolves each consumable'
   `A_MOD_STAT` Agility (29/1), so only one of them applies; Elixir of the Sages 13447 (29/3, Intellect
   then Spirit) and Elixir of the Whale 250348 (29/4, Spirit) stack, and so do Arcane Elixir 9155
   (`A_MOD_DAMAGE_DONE` every school, 13/126) and Elixir of Fire Power 6373 (13/4);
-- a scroll's is the same among the scrolls, keyed `scroll <aura>/<misc>`, so the ranks of one scroll
-  share a group (Scroll of Agility 3012 to IV 10309, 29/1) and a scroll stacks with every elixir and
-  with the scrolls of other stats. A scroll still yields to the raid buff of its stat;
+- a scroll joins the elixir group of the same aura type and misc value, where an elixir db.json ships
+  has that key (`shippedElixirGroups`): Scroll of Agility 3012 to IV 10309 (29/1) join the Agility
+  elixirs, the Strength scrolls the Strength elixirs and Juju Power, Protection the Armor elixirs,
+  Intellect and Spirit theirs. A scroll whose key no elixir has keeps a group of its own, keyed
+  `scroll <aura>/<misc>` and shared by its ranks: Scroll of Stamina 1180 to IV 10307 (29/2), and Scroll
+  of Minor Evocation 213564 (`A_PERIODIC_ENERGIZE`, 24/0), whose Mageblood elixirs open on
+  `A_MOD_POWER_REGEN` (85/0). A scroll still yields to the raid buff of its stat;
 - a stat consumable whose on-use category cooldown lasts as long as each of its buffs, which are up
   from the pull, is used one at a time with the others of the category (`shared.OneAtATimeCategory`),
   keyed `category <id>`. Only the Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411,
@@ -203,7 +207,12 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 ```
 
 The Jujus are Quest-class items the catalogue filter leaves out, so `ConsumableAllowList` names them
-as well. The Blasted Lands buffs leave their category group for Zanza.
+as well. The Blasted Lands buffs leave their category group for Zanza. The permanent Zanza items
+(23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
+apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddHitChanceStats`
+(`tools/database/consumable_hit_stats.go`) lists it in their db.json stats as 20 melee hit rating
+(`core.PhysicalHitRatingPerHitPercent`, 10), and a spec that weighs hit sees the Hit food picker. The sim
+reads the rows, not those stats.
 
 **Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `Joins` to put items into a row group,
 or a new `Name` for a group of their own, and every item id with its name. An item that is not in
@@ -355,8 +364,8 @@ food, the explosive and the imbues. A consumable with an [exclusive group](#excl
 its group's picker instead (`makeConsumableGroupInput`), which writes at most one of the group's ids:
 into `elixir_ids` for an elixir, into `extra_ids` for anything else (Juju Power beside the Strength
 elixirs). The pickers are labelled with `group_name` and ordered by `group_key`: a group holding an
-elixir in the Elixirs row after the flask, one holding a scroll as a column of the Scrolls row, and the
-rest (Hit food, Zanza) after the food. A group, a column or a row that offers the player nothing hides.
+elixir in the Elixirs row after the flask (a scroll of that group among them), one holding a scroll and
+no elixir as a column of the Scrolls row, and the rest (Hit food, Zanza) after the food. A group, a column or a row that offers the player nothing hides.
 Everything else is picked any number at a time into the spec's `extra_ids`: in the miscellaneous row,
 and an explosive with a cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside
 the explosive picker.
