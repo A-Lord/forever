@@ -1,10 +1,12 @@
 package shared
 
 import (
+	"math"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -55,7 +57,8 @@ func TestTemporaryEnchantWeaponDamageGoesOnItsHand(t *testing.T) {
 	}
 }
 
-// Shadow Oil 3824, enchant 25: its combat spell 350026 is cast off the enchanted weapon's hits.
+// Shadow Oil 3824, enchant 25: its combat spell 350026 is cast off the enchanted weapon's hits, at the
+// 15% the store writes onto 350026's row from the enchantment.
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	shadowOil := core.Consumable{Id: 3824, Name: "Shadow Oil", TemporaryEnchant: &core.Enchant{
 		EffectID:       25,
@@ -71,6 +74,9 @@ func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	}
 	if character.GetSpell(core.ActionID{SpellID: 350026}) == nil {
 		t.Error("the combat spell 350026 was not registered")
+	}
+	if chance := spelldata.MustFind(350026).StatedChance(); math.Abs(chance-0.15) > 1e-9 {
+		t.Errorf("350026 rolls a %v chance, want enchant 25's 15%%", chance)
 	}
 }
 
