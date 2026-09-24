@@ -53,8 +53,7 @@ type Character struct {
 	ItemSwap ItemSwap
 
 	// Consumables this Character will be using.
-	Consumables               *proto.ConsumesSpec
-	firstConsumableOfCategory map[int32]int32
+	Consumables *proto.ConsumesSpec
 
 	// Base stats for this Character.
 	baseStats stats.Stats

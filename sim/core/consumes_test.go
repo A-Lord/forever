@@ -33,17 +33,19 @@ func TestSelectedConsumableIDs(t *testing.T) {
 	}
 }
 
-func TestSelectedConsumableIDsKeepTheFirstElixirOfEachGroup(t *testing.T) {
-	const agility, mongoose, sages, ungrouped = 990401, 990402, 990403, 990404
+func TestSelectedConsumableIDsKeepTheFirstOfEachGroup(t *testing.T) {
+	const agility, mongoose, sages, ungrouped, juju, scroll = 990401, 990402, 990403, 990404, 990405, 990406
 	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
-		{Id: agility, Type: proto.ConsumableType_ConsumableTypeElixir, ElixirGroupAura: 29, ElixirGroupMisc: 1},
-		{Id: mongoose, Type: proto.ConsumableType_ConsumableTypeElixir, ElixirGroupAura: 29, ElixirGroupMisc: 1},
-		{Id: sages, Type: proto.ConsumableType_ConsumableTypeElixir, ElixirGroupAura: 29, ElixirGroupMisc: 3},
+		{Id: agility, Type: proto.ConsumableType_ConsumableTypeElixir, GroupKey: "elixir 29/1"},
+		{Id: mongoose, Type: proto.ConsumableType_ConsumableTypeElixir, GroupKey: "elixir 29/1"},
+		{Id: sages, Type: proto.ConsumableType_ConsumableTypeElixir, GroupKey: "elixir 29/3"},
 		{Id: ungrouped, Type: proto.ConsumableType_ConsumableTypeElixir},
+		{Id: juju, GroupKey: "elixir 29/3"},
+		{Id: scroll, Type: proto.ConsumableType_ConsumableTypeScroll, GroupKey: "scroll 29/1"},
 	}})
 
-	got := selectedConsumableIDs(&proto.ConsumesSpec{ElixirIds: []int32{agility, mongoose, sages, ungrouped}}, false)
-	if want := []int32{agility, sages, ungrouped}; !slices.Equal(got, want) {
+	got := selectedConsumableIDs(&proto.ConsumesSpec{ElixirIds: []int32{agility, mongoose, sages, ungrouped}, ExtraIds: []int32{juju, scroll}}, false)
+	if want := []int32{agility, sages, ungrouped, scroll}; !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}
 }

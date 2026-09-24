@@ -13,8 +13,8 @@ const onUse = (categoryId: number, cooldownMs = 0) =>
 	ItemEffect.create({ effect: { oneofKind: 'onUse', onUse: { categoryId, cooldownMs, categoryCooldownMs: 0 } } });
 const statArray = (stat: Stat, value: number) => Object.assign(new Array<number>(42).fill(0), { [stat]: value });
 const strength = (value: number) => statArray(Stat.StatStrength, value);
-const elixir = (id: number, name: string, stats: Array<number>, elixirGroupAura: number, elixirGroupMisc: number) =>
-	Consumable.create({ id, name, type: ConsumableType.ConsumableTypeElixir, stats, elixirGroupAura, elixirGroupMisc });
+const elixir = (id: number, name: string, stats: Array<number>, groupKey: string, groupName: string) =>
+	Consumable.create({ id, name, type: ConsumableType.ConsumableTypeElixir, stats, groupKey, groupName });
 
 const CONSUMABLES = [
 	Consumable.create({
@@ -28,10 +28,10 @@ const CONSUMABLES = [
 	}),
 	Consumable.create({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeConjured, categoryId: 1153, itemEffects: [onUse(1153)] }),
 	Consumable.create({ id: 13510, name: 'Flask of the Titans', type: ConsumableType.ConsumableTypeFlask, stats: strength(10) }),
-	elixir(9206, 'Elixir of Greater Strength', strength(25), 29, 0),
-	elixir(6662, 'Elixir of Giant Growth', strength(8), 29, 0),
-	elixir(3383, 'Elixir of Wisdom', statArray(Stat.StatIntellect, 6), 29, 3),
-	elixir(12820, 'Winterfall Firewater', statArray(Stat.StatAttackPower, 35), 99, 0),
+	elixir(9206, 'Elixir of Greater Strength', strength(25), 'elixir 29/0', 'Strength'),
+	elixir(6662, 'Elixir of Giant Growth', strength(8), 'elixir 29/0', 'Strength'),
+	elixir(3383, 'Elixir of Wisdom', statArray(Stat.StatIntellect, 6), 'elixir 29/3', 'Intellect'),
+	elixir(12820, 'Winterfall Firewater', statArray(Stat.StatAttackPower, 35), 'elixir 99/0', 'Attack Power'),
 	Consumable.create({
 		id: 238637,
 		name: 'Prowler Steak',

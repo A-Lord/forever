@@ -129,13 +129,12 @@ func TestShortBuffIsUsedOnItsCooldown(t *testing.T) {
 	}
 }
 
-// R.O.I.D.S. 8410 (10667, 25 Strength) and Ground Scorpok Assay 8412 (10669, 25 Agility) share
-// category 103's 1 h, as long as each buff lasts, so only the first the spec names is up. Spirit of
-// Zanza 20079 (24382, 50 Spirit and 50 Stamina, category 79's 3 s) and Lung Juice Cocktail 8411
-// (10668, 25 Stamina) state nothing that keeps them apart, so both are up.
-func TestOnlyACategoryCooldownAsLongAsTheBuffKeepsConsumablesApart(t *testing.T) {
-	const roids, scorpok, zanza, lungJuice int32 = 8410, 8412, 20079, 8411
-	for _, id := range []int32{roids, scorpok, zanza, lungJuice} {
+// The Zanza group holds Spirit of Zanza 20079 (24382, 50 Spirit and 50 Stamina) and the Blasted Lands
+// buffs, R.O.I.D.S. 8410 (10667, 25 Strength) and Ground Scorpok Assay 8412 (10669, 25 Agility) among
+// them: only the first the spec names is up.
+func TestOnlyTheFirstOfTheZanzaGroupApplies(t *testing.T) {
+	const roids, scorpok, zanza int32 = 8410, 8412, 20079
+	for _, id := range []int32{roids, scorpok, zanza} {
 		registerStatConsumable(t, id)
 	}
 
@@ -146,8 +145,10 @@ func TestOnlyACategoryCooldownAsLongAsTheBuffKeepsConsumablesApart(t *testing.T)
 		gain  float64
 		other stats.Stat
 	}{
-		{"R.O.I.D.S. first", []int32{roids, scorpok}, stats.Strength, 25, stats.Agility},
-		{"Ground Scorpok Assay first", []int32{scorpok, roids}, stats.Agility, 25, stats.Strength},
+		{"R.O.I.D.S. then Ground Scorpok Assay", []int32{roids, scorpok}, stats.Strength, 25, stats.Agility},
+		{"Ground Scorpok Assay then R.O.I.D.S.", []int32{scorpok, roids}, stats.Agility, 25, stats.Strength},
+		{"Spirit of Zanza then R.O.I.D.S.", []int32{zanza, roids}, stats.Spirit, 50, stats.Strength},
+		{"R.O.I.D.S. then Spirit of Zanza", []int32{roids, zanza}, stats.Strength, 25, stats.Spirit},
 	} {
 		gain := statGain(&proto.ConsumesSpec{ExtraIds: tc.ids}, &proto.RaidBuffs{})
 		if gain[tc.stat] != tc.gain || gain[tc.other] != 0 {
@@ -155,9 +156,64 @@ func TestOnlyACategoryCooldownAsLongAsTheBuffKeepsConsumablesApart(t *testing.T)
 				tc.other.StatName(), gain[tc.other], tc.gain)
 		}
 	}
+}
 
-	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{zanza, lungJuice}}, &proto.RaidBuffs{}); gain[stats.Stamina] != 75 {
-		t.Errorf("Spirit of Zanza and Lung Juice Cocktail add %v Stamina, want 75", gain[stats.Stamina])
+// Juju Power 12451 (16323, 30 Strength) joins the Strength elixirs, Elixir of Greater Strength 9206
+// (11405, 25 Strength) among them. An elixir the spec names comes before its extra ids.
+func TestAJujuAndAnElixirOfItsGroupDoNotStack(t *testing.T) {
+	const greaterStrength, jujuPower int32 = 9206, 12451
+	registerStatConsumable(t, greaterStrength)
+	registerStatConsumable(t, jujuPower)
+
+	if gain := statGain(&proto.ConsumesSpec{ExtraIds: []int32{jujuPower}}, &proto.RaidBuffs{}); gain[stats.Strength] != 30 {
+		t.Errorf("Juju Power adds %v Strength, want 30", gain[stats.Strength])
+	}
+	both := &proto.ConsumesSpec{ElixirIds: []int32{greaterStrength}, ExtraIds: []int32{jujuPower}}
+	if gain := statGain(both, &proto.RaidBuffs{}); gain[stats.Strength] != 25 {
+		t.Errorf("Elixir of Greater Strength and Juju Power add %v Strength, want the elixir's 25", gain[stats.Strength])
+	}
+}
+
+// The scrolls are groups of their own: Scroll of Agility IV 10309 (12174, 17 Agility) stacks with
+// Elixir of the Mongoose 13452's 25.
+func TestAScrollStacksWithAnElixirOfItsStat(t *testing.T) {
+	const scrollOfAgilityIV int32 = 10309
+	registerStatConsumable(t, scrollOfAgilityIV)
+	registerStatConsumable(t, elixirOfTheMongooseID)
+
+	both := &proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}, ExtraIds: []int32{scrollOfAgilityIV}}
+	if gain := statGain(both, &proto.RaidBuffs{}); gain[stats.Agility] != 42 {
+		t.Errorf("Scroll of Agility IV and Elixir of the Mongoose add %v Agility, want 42", gain[stats.Agility])
+	}
+}
+
+// A flask has no group: Flask of Supreme Power 13512 (17628, 150 spell damage) stacks with Arcane
+// Elixir 9155 (11390, 20), whose aura is the same A_MOD_DAMAGE_DONE every school.
+func TestAFlaskStacksWithAnElixir(t *testing.T) {
+	const supremePower, arcane int32 = 13512, 9155
+	registerStatConsumable(t, supremePower)
+	registerStatConsumable(t, arcane)
+
+	flask := statGain(&proto.ConsumesSpec{FlaskId: supremePower}, &proto.RaidBuffs{})
+	elixir := statGain(&proto.ConsumesSpec{ElixirIds: []int32{arcane}}, &proto.RaidBuffs{})
+	if both := statGain(&proto.ConsumesSpec{FlaskId: supremePower, ElixirIds: []int32{arcane}}, &proto.RaidBuffs{}); both != flask.Add(elixir) {
+		t.Errorf("Flask of Supreme Power and Arcane Elixir add %v, want each one's in full: %v and %v", both, flask, elixir)
+	}
+}
+
+// Fire-toasted Bun 23327 (29332) and Dark Desire 22237 (27723) each grant 2% hit, one Hit food group:
+// only the first applies.
+func TestOnlyOneHitFoodApplies(t *testing.T) {
+	const bun, darkDesire int32 = 23327, 22237
+	registerStatConsumable(t, bun)
+	registerStatConsumable(t, darkDesire)
+
+	one := statGain(&proto.ConsumesSpec{ExtraIds: []int32{bun}}, &proto.RaidBuffs{})
+	if one == (stats.Stats{}) {
+		t.Fatal("Fire-toasted Bun adds nothing")
+	}
+	if both := statGain(&proto.ConsumesSpec{ExtraIds: []int32{bun, darkDesire}}, &proto.RaidBuffs{}); both != one {
+		t.Errorf("Fire-toasted Bun and Dark Desire add %v, want the Bun's alone: %v", both, one)
 	}
 }
 

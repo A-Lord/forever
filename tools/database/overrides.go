@@ -116,8 +116,35 @@ var ConsumableAllowList = []int32{
 	274274, // Flask of Natural Aggression
 	274275, // Flask of Natural Precision
 	274276, // Flask of Natural Swiftness
+	// Quest-class items the catalogue filter leaves out, which ConsumableExclusiveGroups groups
+	12451, // Juju Power
+	12460, // Juju Might
 }
 var ConsumableDenyList = []int32{}
+
+// Exclusive groups the server keeps that the rows do not state: the client carries no stacking table,
+// and these items share no aura with their group and no category whose cooldown outlasts their buffs.
+// A consumable named here takes this group instead of the one its rows give it.
+var ConsumableExclusiveGroups = []ConsumableGroup{
+	{Name: "Strength", Joins: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
+		12451, // Juju Power
+	}},
+	{Name: "Attack Power", Joins: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
+		12460, // Juju Might
+	}},
+	{Name: "Zanza", Items: []int32{
+		8410,  // R.O.I.D.S.
+		8411,  // Lung Juice Cocktail
+		8412,  // Ground Scorpok Assay
+		8423,  // Cerebral Cortex Compound
+		8424,  // Gizzard Gum
+		20079, // Spirit of Zanza
+	}},
+	{Name: "Hit food", Items: []int32{
+		22237, // Dark Desire
+		23327, // Fire-toasted Bun
+	}},
+}
 
 // Raid buffs / debuffs
 var SharedSpellsIcons = []int32{

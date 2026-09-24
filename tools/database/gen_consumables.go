@@ -56,12 +56,14 @@ func ShipsConsumable(routing *ConsumableRouting) bool {
 		slices.ContainsFunc(ConsumableOverrides, func(c *proto.Consumable) bool { return c.Id == id })
 }
 
-// The catalogue's consumable as db.json carries it, typed an explosive where IsExplosive says so.
-func ShippedConsumable(c *dbc.Consumable, routing *ConsumableRouting) *proto.Consumable {
+// The catalogue's consumable as db.json carries it, typed an explosive where IsExplosive says so, with
+// its exclusive group.
+func ShippedConsumable(c *dbc.Consumable, routing *ConsumableRouting, instance *dbc.DBC) *proto.Consumable {
 	consumable := c.ToProto()
 	if IsExplosive(c, routing) {
 		consumable.Type = proto.ConsumableType_ConsumableTypeExplosive
 	}
+	setConsumableGroup(c, consumable, routing, instance)
 	return consumable
 }
 

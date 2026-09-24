@@ -112,24 +112,7 @@ func (c *Consumable) ToProto() *proto.Consumable {
 	if c.TemporaryEnchant.ID != 0 && enchant != nil {
 		consumable.TemporaryEnchant = c.TemporaryEnchant.ToProto()
 	}
-	if consumable.Type == proto.ConsumableType_ConsumableTypeElixir && len(onUses) > 0 {
-		consumable.ElixirGroupAura, consumable.ElixirGroupMisc = firstAura(int(onUses[0].BuffId))
-	}
 	return consumable
-}
-
-// The aura type and misc value of the spell's first aura effect, 0 and 0 where it applies none.
-func firstAura(spellID int) (int32, int32) {
-	for _, e := range dbcInstance.SpellEffectsInOrder(spellID) {
-		if e.EffectType == dbcenums.E_APPLY_AURA {
-			misc := 0
-			if len(e.EffectMiscValues) > 0 {
-				misc = e.EffectMiscValues[0]
-			}
-			return int32(e.EffectAura), int32(misc)
-		}
-	}
-	return 0, 0
 }
 
 // The spell each on-use row casts, with the cooldowns and category the item states for it.

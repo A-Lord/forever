@@ -31,13 +31,7 @@ func NewSpellDataStatConsumable(itemID int32) {
 				itemID, consumable.Name, itemEffect.BuffId))
 		}
 
-		cooldowns := consumableCooldownsOf(itemEffect, row)
-		inCombat := slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
-			return buff.DurationMs > 0 && buff.Duration() < cooldowns.longest()
-		})
-		if !inCombat && heldBackByCategory(character, consumable, cooldowns, buffs) {
-			return
-		}
+		inCombat := usedInCombat(buffs, consumableCooldownsOf(itemEffect, row))
 
 		auras := make([]*core.Aura, len(buffs))
 		for i, buff := range buffs {
@@ -50,15 +44,28 @@ func NewSpellDataStatConsumable(itemID int32) {
 	})
 }
 
-// A consumable whose category cooldown lasts as long as each of its buffs is used one at a time with
-// the others of its category, so of those the spec names only the first is up: the Blasted Lands
-// buffs 8410-8424 share category 103's 1 h, as long as each lasts. The rows state no other
-// exclusivity between consumables of different spells.
-func heldBackByCategory(character *core.Character, consumable core.Consumable, cooldowns consumableCooldowns, buffs []*spelldata.Spell) bool {
-	oneAtATime := cooldowns.category > 0 && !slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
-		return buff.DurationMs <= 0 || buff.DurationMs > cooldowns.categoryMs
+// Whether a buff of the consumable is shorter than the item's cooldown, so the item is used in combat
+// rather than up from the pull.
+func usedInCombat(buffs []*spelldata.Spell, cooldowns consumableCooldowns) bool {
+	return slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
+		return buff.DurationMs > 0 && buff.Duration() < cooldowns.longest()
 	})
-	return oneAtATime && character.ConsumableCategoryTakenBefore(consumable.Id, cooldowns.category)
+}
+
+// The category a stat consumable is used one at a time with the others of, or 0: one whose cooldown
+// lasts as long as each of the consumable's buffs, which are up from the pull. The Blasted Lands buffs
+// 8410-8424 share category 103's 1 h, as long as each lasts. The generator makes the category an
+// exclusive group.
+func OneAtATimeCategory(itemEffect *proto.ItemEffect) int32 {
+	row := spelldata.Find(itemEffect.BuffId)
+	buffs := consumableBuffs(row)
+	cooldowns := consumableCooldownsOf(itemEffect, row)
+	if len(buffs) == 0 || cooldowns.category <= 0 || usedInCombat(buffs, cooldowns) || slices.ContainsFunc(buffs, func(buff *spelldata.Spell) bool {
+		return buff.DurationMs <= 0 || buff.DurationMs > cooldowns.categoryMs
+	}) {
+		return 0
+	}
+	return cooldowns.category
 }
 
 // The consumable's on-use spell and each spell it triggers on the user: food puts its Well Fed buff up

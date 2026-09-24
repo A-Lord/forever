@@ -14,27 +14,11 @@ func applyConsumeEffects(agent Agent) {
 		return
 	}
 
-	ids := character.SelectedConsumableIDs()
-	character.firstConsumableOfCategory = map[int32]int32{}
-	for _, id := range ids {
-		if category := GetConsumableByID(id).CategoryId; category > 0 {
-			if _, ok := character.firstConsumableOfCategory[category]; !ok {
-				character.firstConsumableOfCategory[category] = id
-			}
-		}
-	}
-
-	for _, id := range ids {
+	for _, id := range character.SelectedConsumableIDs() {
 		if apply, ok := consumableEffect(id); ok {
 			apply(agent)
 		}
 	}
-}
-
-// Whether the spec names another consumable sharing the category before this one.
-func (character *Character) ConsumableCategoryTakenBefore(id int32, category int32) bool {
-	first, ok := character.firstConsumableOfCategory[category]
-	return ok && first != id
 }
 
 var consumableEffects = map[int32]ApplyEffect{}
@@ -96,10 +80,10 @@ func (character *Character) SelectedConsumableIDs() []int32 {
 	return selectedConsumableIDs(character.Consumables, character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant != 0)
 }
 
-// The agent's own consumables the spec names, each once. The main-hand imbue counts only where
-// applyTemporaryEnchants put its enchant on the main hand.
+// The agent's own consumables the spec names, each once, and of each exclusive group only the first.
+// The main-hand imbue counts only where applyTemporaryEnchants put its enchant on the main hand.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec, mainHandEnchanted bool) []int32 {
-	ids := append([]int32{consumables.PotId, consumables.FlaskId}, firstElixirOfEachGroup(consumables.ElixirIds)...)
+	ids := append([]int32{consumables.PotId, consumables.FlaskId}, consumables.ElixirIds...)
 	ids = append(ids, consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId)
 	if mainHandEnchanted {
 		ids = append(ids, consumables.MhImbueId)
@@ -109,30 +93,18 @@ func selectedConsumableIDs(consumables *proto.ConsumesSpec, mainHandEnchanted bo
 	ids = append(ids, consumables.ConjuredItems...)
 
 	var selected []int32
+	var groups []string
 	for _, id := range ids {
-		if id != 0 && !slices.Contains(selected, id) {
-			selected = append(selected, id)
+		if id == 0 || slices.Contains(selected, id) {
+			continue
 		}
-	}
-	return selected
-}
-
-// Of the elixirs the spec names, the first of each group; the rest of a group do not apply. An id
-// that names no elixir group counts as it is.
-func firstElixirOfEachGroup(elixirIDs []int32) []int32 {
-	type group struct{ aura, misc int32 }
-	var taken []group
-	var kept []int32
-	for _, id := range elixirIDs {
-		elixir := GetConsumableByID(id)
-		if elixir.ElixirGroupAura != 0 {
-			g := group{elixir.ElixirGroupAura, elixir.ElixirGroupMisc}
-			if slices.Contains(taken, g) {
+		if group := GetConsumableByID(id).GroupKey; group != "" {
+			if slices.Contains(groups, group) {
 				continue
 			}
-			taken = append(taken, g)
+			groups = append(groups, group)
 		}
-		kept = append(kept, id)
+		selected = append(selected, id)
 	}
-	return kept
+	return selected
 }

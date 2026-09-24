@@ -8,7 +8,6 @@ import { UIItem as Item } from '@generated/proto/ui';
 
 import type { SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
-import { SpellSchool, spellSchoolNames } from '../proto/names';
 
 export enum ConsumableSlot {
 	Potion,
@@ -56,47 +55,6 @@ export function consumableSlot(consumable: Consumable): ConsumableSlot {
 			return ConsumableSlot.Extra;
 	}
 }
-
-// An elixir's group, the aura type and misc value of the first aura its on-use spell applies, as the
-// generator writes them: of the elixirs a spec names only the first of each group applies.
-export const elixirGroupKey = (elixir: Consumable): string => `${elixir.elixirGroupAura}/${elixir.elixirGroupMisc}`;
-
-const MOD_DAMAGE_DONE = 13;
-const MOD_RESISTANCE = 22;
-const MOD_STAT = 29;
-const MOD_INCREASE_HEALTH = 34;
-const MOD_POWER_REGEN = 85;
-const MOD_ATTACK_POWER = 99;
-const MOD_HEALING_DONE = 135;
-const MOD_CRIT_PCT = 290;
-const ALL_SPELL_SCHOOLS = 126;
-const MOD_STAT_NAMES = ['Strength', 'Agility', 'Stamina', 'Intellect', 'Spirit'];
-
-// The name of an elixir's group, from its aura and the stat or schools its misc value names.
-export const elixirGroupName = (elixir: Consumable): string => {
-	const misc = elixir.elixirGroupMisc;
-	switch (elixir.elixirGroupAura) {
-		case MOD_STAT:
-			return MOD_STAT_NAMES[misc] ?? 'All Stats';
-		case MOD_DAMAGE_DONE:
-			if (misc === ALL_SPELL_SCHOOLS) return 'Spell Power';
-			if (misc === SpellSchool.Physical) return 'Physical Damage';
-			return `${spellSchoolNames.get(misc) ?? 'School'} Spell Power`;
-		case MOD_RESISTANCE:
-			return misc === SpellSchool.Physical ? 'Armor' : `${spellSchoolNames.get(misc) ?? 'School'} Resistance`;
-		case MOD_INCREASE_HEALTH:
-			return 'Health';
-		case MOD_POWER_REGEN:
-			return 'Mana Regeneration';
-		case MOD_ATTACK_POWER:
-			return 'Attack Power';
-		case MOD_HEALING_DONE:
-			return 'Healing';
-		case MOD_CRIT_PCT:
-			return 'Critical Strike';
-	}
-	return 'Other';
-};
 
 // An explosive with a cooldown of its own besides the one explosives share is used beside the
 // spec's explosive, so it is picked into extra_ids.

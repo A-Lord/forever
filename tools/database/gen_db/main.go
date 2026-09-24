@@ -187,7 +187,7 @@ func main() {
 		if !database.ShipsConsumable(routing) {
 			continue
 		}
-		db.MergeConsumable(database.ShippedConsumable(&consumable, routing))
+		db.MergeConsumable(database.ShippedConsumable(&consumable, routing, instance))
 	}
 
 	for _, consumable := range database.ConsumableOverrides {
