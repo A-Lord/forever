@@ -9,10 +9,22 @@ import (
 
 // A temporary enchant consumable, applied to each hand core put its enchant on: the enchant's stats
 // once per hand and each combat spell cast off that hand's hits at the chance its row states. Its flat
-// weapon damage is core's, on every weapon built from that hand's item.
-func NewSpellDataTemporaryEnchant(itemID int32) {
+// weapon damage is core's, on every weapon built from that hand's item. The equip spells named are
+// the enchant's that grant no stat of the enchant's own, such as Consecrated Sharpening Stone's 28893:
+// their auras are parsed onto one permanent aura counted once per hand, since each weapon carries its
+// own copy of the equip aura.
+func NewSpellDataTemporaryEnchant(itemID int32, equipSpellIDs ...int32) {
 	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
-		applyTemporaryEnchant(agent.GetCharacter(), core.GetConsumableByID(itemID))
+		character := agent.GetCharacter()
+		hands := applyTemporaryEnchant(character, core.GetConsumableByID(itemID))
+		if hands == 0 {
+			return
+		}
+		for _, spellID := range equipSpellIDs {
+			row := spelldata.MustFind(spellID)
+			aura := character.GetOrRegisterAura(spelldata.AuraConfig(row, spelldata.Permanent()))
+			spelldata.ParseEffects(character, aura, row, spelldata.Count(float64(hands)))
+		}
 	})
 }
 

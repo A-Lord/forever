@@ -6,11 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/wowsims/forever/sim/common/forever"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 )
+
+func init() {
+	forever.RegisterPotionsAndConjured()
+}
 
 func warriorWithConsumes(t *testing.T, consumes *proto.ConsumesSpec, mainHand, offHand int32) (*core.Simulation, *core.Character) {
 	t.Helper()

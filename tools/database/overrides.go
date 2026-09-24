@@ -102,15 +102,12 @@ var ConsumableAllowList = []int32{
 	7676,  // Thisle Tea
 	9088,  // Gift of Arthas
 	9155,  // Arcane Elixir
-	9224,  // Elixir of Demonslaying
 	9421,  // Major Healthstone
 	13442, // Migty Rage Potion
 	13452, // Elixir of the Mongoose
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
-	23122, // Consecrated Sharpening Stone, whose attack power against Undead sim/common registers by hand
-	23123, // Blessed Wizard Oil, whose spell damage against Undead sim/common registers by hand
 	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
 	274273, // Flask of Natural Accuracy
 	274274, // Flask of Natural Aggression

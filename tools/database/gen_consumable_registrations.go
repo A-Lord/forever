@@ -18,6 +18,8 @@ type consumableRegistration struct {
 	id          int32
 	name        string
 	constructor string
+	// The ids the call passes after the consumable's own.
+	args []int32
 	// Why the builder refuses the consumable; its call is then written commented out beneath it.
 	unsupported []string
 }
@@ -57,6 +59,9 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 		switch {
 		case shipped && c.Type == proto.ConsumableType_ConsumableTypeImbue:
 			entry.constructor = "NewSpellDataTemporaryEnchant"
+			if inCatalogue {
+				entry.args = parsedEquipSpells(catalogued.TemporaryEnchant)
+			}
 			imbues = append(imbues, entry)
 		case inCatalogue && IsExplosive(&catalogued, routing):
 			entry.constructor = "NewSpellDataExplosive"
@@ -103,6 +108,35 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 	return nil
 }
 
+// The equip spells of a temporary enchant that the imbue builder parses: those that add no stat,
+// resistance or weapon damage to the enchant's own fields, and whose every aura the parser attaches.
+// Consecrated Sharpening Stone's enchant 2684 names 28893, its attack power against Undead; a wizard
+// oil's equip spell is already the enchant's spell damage.
+func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
+	var spellIDs []int32
+	for slot, effect := range enchant.Effects {
+		spellID := int32(enchant.Args[slot])
+		if effect != dbc.ITEM_ENCHANTMENT_EQUIP_SPELL || spellID == 0 {
+			continue
+		}
+		alone := dbc.TemporaryEnchant{ID: enchant.ID}
+		alone.Effects[0], alone.Points[0], alone.Args[0] = effect, enchant.Points[slot], enchant.Args[slot]
+		fields := alone.ToProto()
+		row := spelldata.Find(spellID)
+		if slices.ContainsFunc(fields.Stats, isNonZero) || slices.ContainsFunc(fields.PseudoStats, isNonZero) ||
+			fields.WeaponDamage != 0 || len(fields.EnchantEffects) > 0 ||
+			row == spelldata.Nil || len(equipSpellUnsupported(enchant.ID, row, spellID)) > 0 {
+			continue
+		}
+		spellIDs = append(spellIDs, spellID)
+	}
+	return spellIDs
+}
+
+func isNonZero(v float64) bool {
+	return v != 0
+}
+
 // Why the potion builder cannot run the spell the consumable's first on-use row casts.
 func onUseUnsupported(c *proto.Consumable) []string {
 	for _, effect := range c.ItemEffects {
@@ -126,12 +160,16 @@ func writeRegistrationFile(path, function string, groups []registrationGroup) er
 			body.WriteString("\n")
 		}
 		for _, e := range group.entries {
+			args := fmt.Sprint(e.id)
+			for _, arg := range e.args {
+				args += fmt.Sprintf(", %d", arg)
+			}
 			if len(e.unsupported) > 0 {
-				fmt.Fprintf(&body, "\t// unsupported: %s\n\t// shared.%s(%d) // %s\n", strings.Join(e.unsupported, "; "), e.constructor, e.id, e.name)
+				fmt.Fprintf(&body, "\t// unsupported: %s\n\t// shared.%s(%s) // %s\n", strings.Join(e.unsupported, "; "), e.constructor, args, e.name)
 				continue
 			}
 			live = true
-			fmt.Fprintf(&body, "\tshared.%s(%d) // %s\n", e.constructor, e.id, e.name)
+			fmt.Fprintf(&body, "\tshared.%s(%s) // %s\n", e.constructor, args, e.name)
 		}
 	}
 
