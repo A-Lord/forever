@@ -16,9 +16,6 @@ func AddHitChanceStats(db *WowDatabase) {
 			continue
 		}
 		row := spelldata.Find(consumable.ItemEffects[0].BuffId)
-		if row == nil {
-			continue
-		}
 		var hit stats.Stats
 		for i := range row.Effects {
 			e := &row.Effects[i]
