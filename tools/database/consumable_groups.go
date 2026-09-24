@@ -88,7 +88,6 @@ var elixirGroupsOf = struct {
 	keys map[*dbc.DBC]map[string]bool
 }{keys: map[*dbc.DBC]map[string]bool{}}
 
-// The keys of the groups the rows give the elixirs the catalogue ships.
 func shippedElixirGroups(instance *dbc.DBC) map[string]bool {
 	elixirGroupsOf.Lock()
 	defer elixirGroupsOf.Unlock()
