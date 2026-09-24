@@ -38,7 +38,7 @@ func NewSpellDataVersusPotion(itemID int32) {
 	registerSpellDataConsumable(itemID, core.NewConsumableEffect, attachedAuras{
 		auras: auras,
 		attach: func(character *core.Character, aura *core.Aura, row *spelldata.Spell) {
-			attachVersusBonus(character, aura, versusBonus(row, character.Level))
+			attachVersusBonus(aura, versusBonus(row, character.Level))
 		},
 	})
 }
@@ -61,7 +61,7 @@ func NewSpellDataVersusTemporaryEnchant(itemID, equipSpellID int32) {
 			bonus[mobType] = granted.Multiply(float64(hands))
 		}
 		aura := character.GetOrRegisterAura(spelldata.AuraConfig(row, spelldata.Permanent()))
-		attachVersusBonus(character, aura, bonus)
+		attachVersusBonus(aura, bonus)
 	})
 }
 
@@ -96,18 +96,8 @@ func versusBonus(row *spelldata.Spell, level int32) map[proto.MobType]stats.Stat
 	return bonus
 }
 
-func attachVersusBonus(character *core.Character, aura *core.Aura, bonus map[proto.MobType]stats.Stats) {
-	aura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-		for _, at := range character.AttackTables {
-			for mobType, bonusStats := range bonus {
-				at.MobTypeBonusStats[mobType] = at.MobTypeBonusStats[mobType].Add(bonusStats)
-			}
-		}
-	}).ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-		for _, at := range character.AttackTables {
-			for mobType, bonusStats := range bonus {
-				at.MobTypeBonusStats[mobType] = at.MobTypeBonusStats[mobType].Subtract(bonusStats)
-			}
-		}
-	})
+func attachVersusBonus(aura *core.Aura, bonus map[proto.MobType]stats.Stats) {
+	for mobType, bonusStats := range bonus {
+		aura.AttachMobTypeBonusStats(bonusStats, mobType)
+	}
 }
