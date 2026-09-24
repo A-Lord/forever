@@ -356,9 +356,8 @@ type AttackTable struct {
 	Attacker *Unit
 	Defender *Unit
 
-	// The main hand entry's miss and dodge, read by the defender's avoidance.
-	BaseMissChance  float64
-	BaseDodgeChance float64
+	// The main hand entry's miss, read by the defender's avoidance.
+	BaseMissChance float64
 
 	BaseSpellMissChance float64
 	BaseBlockChance     float64
@@ -447,7 +446,6 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		table.OH = table.MH
 		table.Ranged = table.MH
 		table.BaseMissChance = table.MH.BaseMissChance
-		table.BaseDodgeChance = table.MH.BaseDodgeChance
 	}
 
 	return table
@@ -489,7 +487,6 @@ func (at *AttackTable) setWeapons(mh *Item, oh *Item, ranged *Item) {
 	at.OH = newAttackTableHand(at.Attacker, at.Defender, oh)
 	at.Ranged = newAttackTableHand(at.Attacker, at.Defender, ranged)
 	at.BaseMissChance = at.MH.BaseMissChance
-	at.BaseDodgeChance = at.MH.BaseDodgeChance
 }
 
 // Hand returns the entry of the hand the spell attacks with.

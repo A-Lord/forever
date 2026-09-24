@@ -54,7 +54,6 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 		}
 		checkAttackTableValues(t, fmt.Sprintf("level 60 against %d", tc.level), []attackTableValue{
 			{"table miss", table.BaseMissChance, tc.miss},
-			{"table dodge", table.BaseDodgeChance, tc.dodge},
 			{"parry", table.BaseParryChance, tc.parry},
 			{"block", table.BaseBlockChance, 0.05},
 			{"glance chance", table.BaseGlanceChance, tc.glance},
@@ -90,7 +89,6 @@ func TestWeaponSkillNarrowsTheHandsTableAgainstALevel63Target(t *testing.T) {
 			{"sword hand glance multiplier min", table.MH.GlanceMultiplierMin, tc.min},
 			{"sword hand glance multiplier max", table.MH.GlanceMultiplierMax, tc.max},
 			{"table miss", table.BaseMissChance, tc.miss},
-			{"table dodge", table.BaseDodgeChance, tc.dodge},
 			{"mace hand miss", table.OH.BaseMissChance, 0.08},
 			{"mace hand hit suppression", table.OH.HitSuppression, 0.01},
 			{"parry", table.BaseParryChance, 0.14},
@@ -113,7 +111,6 @@ func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
 		table := NewAttackTable(attacker, defender)
 		values := []attackTableValue{
 			{"miss", table.BaseMissChance, tc.miss},
-			{"dodge", table.BaseDodgeChance, tc.dodge},
 			{"parry", table.BaseParryChance, tc.parry},
 			{"block", table.BaseBlockChance, tc.block},
 			{"crush", table.BaseCrushChance, tc.crush},
