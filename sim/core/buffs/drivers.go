@@ -123,6 +123,9 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 // main-hand swing, the 1.5 second internal cooldown and the extra attack the
 // proc lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
+	if !char.TakesWindfuryTotem() {
+		return
+	}
 	procAura := WindfuryTotemAura(&char.Unit, false, 0)
 	// The attack power is only there for the second after a proc, so it is not
 	// part of the stats the character sheet is measured with.

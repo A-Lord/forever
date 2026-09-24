@@ -5,13 +5,19 @@ import (
 )
 
 // Puts the temporary enchant each imbue the spec names on its hand, where the enchant takes that
-// hand's weapon; the main hand's only without Windfury Totem. The consumable's registered effect
-// then applies the enchant to the hands carrying it.
+// hand's weapon; the main hand's only where Windfury Totem does not take its place. The consumable's
+// registered effect then applies the enchant to the hands carrying it.
 func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) {
-	if !partyBuffs.WindfuryTotem {
+	if !partyBuffs.WindfuryTotem || !character.TakesWindfuryTotem() {
 		character.applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand)
 	}
 	character.applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand)
+}
+
+// Windfury Totem does nothing for a druid in Cat or Bear Form, so the feral specs neither proc it nor
+// give their main-hand imbue up for it.
+func (character *Character) TakesWindfuryTotem() bool {
+	return character.Spec != proto.Spec_SpecFeralCatDruid && character.Spec != proto.Spec_SpecFeralBearDruid
 }
 
 func (character *Character) applyTemporaryEnchant(itemID int32, slot proto.ItemSlot) {

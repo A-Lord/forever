@@ -76,6 +76,23 @@ func TestCatPawTakesTheWeaponstoneOnce(t *testing.T) {
 	}
 }
 
+// Windfury Totem does nothing in Cat Form, so the cat keeps the stone under it and hears no
+// Windfury procs.
+func TestCatKeepsItsMainHandImbueUnderWindfuryTotem(t *testing.T) {
+	const monksStaff, denseWeightstone = 866, 12643
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{WindfuryTotem: true})
+
+	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 1703 {
+		t.Errorf("the main hand carries temporary enchant %d, want Dense Weightstone's 1703", got)
+	}
+	if paw := character.AutoAttacks.MH(); !approxEqual(paw.BaseDamageMin, 68/2.4) {
+		t.Errorf("the paw deals %.3f at least, want %.3f", paw.BaseDamageMin, 68/2.4)
+	}
+	if character.GetAura("Windfury Totem Trigger") != nil {
+		t.Error("the cat registers the Windfury Totem proc")
+	}
+}
+
 func approxEqual(a, b float64) bool {
 	return a-b < 1e-9 && b-a < 1e-9
 }
