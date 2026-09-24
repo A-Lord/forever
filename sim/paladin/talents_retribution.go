@@ -8,6 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -265,9 +266,10 @@ func (paladin *Paladin) applyCrusade() {
 	paladin.PseudoStats.DamageDealtMultiplier *= spellData.Crusade.Effect(shared.A_MOD_DAMAGE_PERCENT_DONE, 127).MultiplierAt(paladin.Talents.Crusade)
 
 	// Misc 36 is the creature-type mask the client states the bonus against: Demon and Undead.
-	versus := spellData.Crusade.Effect(shared.A_MOD_DAMAGE_DONE_VERSUS, 36).MultiplierAt(paladin.Talents.Crusade)
+	const versusMask = 36
+	versus := spellData.Crusade.Effect(shared.A_MOD_DAMAGE_DONE_VERSUS, versusMask).MultiplierAt(paladin.Talents.Crusade)
 	paladin.Env.RegisterPostFinalizeEffect(func() {
-		paladin.MultiplyDamageVersus(versus, false, proto.MobType_MobTypeDemon, proto.MobType_MobTypeUndead)
+		paladin.MultiplyDamageVersus(versus, false, spelldata.MobTypes(versusMask)...)
 	})
 }
 
