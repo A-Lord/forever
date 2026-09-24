@@ -61,3 +61,12 @@ func GetWeaponSkill(unit *Unit, weapon *Item) float64 {
 	}
 	return 0
 }
+
+func (character *Character) updateAttackTableWeapons() {
+	mh, oh, ranged := character.GetMHWeapon(), character.GetOHWeapon(), character.GetRangedWeapon()
+	for _, table := range character.AttackTables {
+		if table.Defender.Type == EnemyUnit {
+			table.setWeapons(mh, oh, ranged)
+		}
+	}
+}

@@ -214,7 +214,7 @@ func NewTarget(options *proto.Target, targetIndex int32) *Target {
 	// accomplished by specifying the extra (or reduced) Crit within the CritRating field of the
 	// proto stats array. Any specified CritRating will be applied as an OFFSET to the default
 	// level-based values, rather than as a replacement.
-	target.stats[stats.PhysicalCritPercent] += UnitLevelFloat64(target.Level, 4.6, 5.0, 5.2, 5.4, 5.6)
+	target.stats[stats.PhysicalCritPercent] += UnitLevelFloat64(target.Level-CharacterLevel, 5.0, 5.2, 5.4, 5.6)
 	target.stats[stats.BlockValue] = 54
 	target.addUniversalStatDependencies()
 
@@ -357,18 +357,21 @@ type AttackTable struct {
 	Attacker *Unit
 	Defender *Unit
 
-	BaseMissChance      float64
+	// The main hand entry's miss and dodge, read by the defender's avoidance.
+	BaseMissChance  float64
+	BaseDodgeChance float64
+
 	BaseSpellMissChance float64
 	BaseBlockChance     float64
-	BaseDodgeChance     float64
 	BaseParryChance     float64
 	BaseGlanceChance    float64
 	BaseCrushChance     float64
 
-	GlanceMultiplier     float64
 	MeleeCritSuppression float64
-	SpellCritSuppression float64
-	HitSuppression       float64
+
+	MH     AttackTableHand
+	OH     AttackTableHand
+	Ranged AttackTableHand
 
 	// All "Apply Aura: Mod All Damage Done Against Creature" effects in Vanilla and TBC also increase the CritMultiplier.
 	// Explicitly for hunters' "Monster Slaying" and "Humanoid Slaying", but likewise for rogues' "Murder", or trolls' "Beastslaying".
@@ -407,29 +410,92 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 	}
 
 	if defender.Type == EnemyUnit {
-		// Assumes attacker (the Player) is level 60.
-		table.BaseSpellMissChance = UnitLevelFloat64(defender.Level, 0.02, 0.04, 0.05, 0.06, 0.17)
-		table.BaseMissChance = UnitLevelFloat64(defender.Level, 0.04, 0.05, 0.055, 0.06, 0.08)
-		table.BaseBlockChance = 0.05
-		table.BaseDodgeChance = UnitLevelFloat64(defender.Level, 0.04, 0.05, 0.055, 0.06, 0.065)
-		table.BaseParryChance = UnitLevelFloat64(defender.Level, 0.04, 0.05, 0.055, 0.06, 0.14)
-		table.BaseGlanceChance = UnitLevelFloat64(defender.Level, 0, 0.06, 0.12, 0.18, 0.24)
+		defenseDiff := float64(defender.Level-attacker.Level) * 5
 
-		table.GlanceMultiplier = UnitLevelFloat64(defender.Level, 0.95, 0.95, 0.95, 0.85, 0.75)
-		table.HitSuppression = UnitLevelFloat64(defender.Level, 0, 0, 0, 0, 0.01)
-		table.MeleeCritSuppression = UnitLevelFloat64(defender.Level, 0, 0, 0.01, 0.02, 0.048)
-		table.SpellCritSuppression = UnitLevelFloat64(defender.Level, 0, 0, 0, 0.003, 0.021)
+		if defenseDiff > 10 {
+			table.BaseParryChance = 0.05 + defenseDiff*0.006
+		} else {
+			table.BaseParryChance = 0.05 + defenseDiff*0.001
+		}
+		table.BaseSpellMissChance = UnitLevelFloat64(defender.Level-attacker.Level, 0.04, 0.05, 0.06, 0.17)
+		table.BaseBlockChance = 0.05
+		table.BaseGlanceChance = max(0, 0.1+defenseDiff*0.02)
+
+		if defenseDiff > 0 {
+			table.MeleeCritSuppression = defenseDiff * 0.002
+		} else {
+			table.MeleeCritSuppression = defenseDiff * 0.0004
+		}
+		if defender.Level-attacker.Level >= 3 {
+			table.MeleeCritSuppression += 0.018
+		}
+
+		table.setWeapons(nil, nil, nil)
 	} else {
-		// Assumes defender (the Player) is level 60.
+		levelDelta := 0.002 * float64(defender.Level-attacker.Level)
+
 		table.BaseSpellMissChance = 0.05
-		table.BaseMissChance = UnitLevelFloat64(attacker.Level, 0.054, 0.05, 0.048, 0.046, 0.044)
-		table.BaseBlockChance = UnitLevelFloat64(attacker.Level, 0.054, 0.05, 0.048, 0.046, 0.044)
-		table.BaseDodgeChance = UnitLevelFloat64(attacker.Level, 0.004, 0, -0.002, -0.004, -0.006)
-		table.BaseParryChance = UnitLevelFloat64(attacker.Level, 0.054, 0.05, 0.048, 0.046, 0.044)
-		table.BaseCrushChance = UnitLevelFloat64(attacker.Level, 0.0, 0.0, 0.0, 0.0, 0.15)
+		table.BaseBlockChance = 0.05 + levelDelta
+		table.BaseParryChance = 0.05 + levelDelta
+		table.BaseCrushChance = UnitLevelFloat64(attacker.Level-defender.Level, 0, 0, 0, 0.15)
+
+		table.MH = AttackTableHand{
+			BaseMissChance:  0.05 + levelDelta,
+			BaseDodgeChance: levelDelta,
+		}
+		table.OH = table.MH
+		table.Ranged = table.MH
+		table.BaseMissChance = table.MH.BaseMissChance
+		table.BaseDodgeChance = table.MH.BaseDodgeChance
 	}
 
 	return table
+}
+
+// The parts of an attack table that depend on the weapon skill of the attacking hand.
+type AttackTableHand struct {
+	BaseMissChance      float64
+	HitSuppression      float64
+	BaseDodgeChance     float64
+	GlanceMultiplierMin float64
+	GlanceMultiplierMax float64
+}
+
+func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTableHand {
+	skillDiff := float64(defender.Level*5) - (float64(attacker.Level*5) + GetWeaponSkill(attacker, weapon))
+
+	hand := AttackTableHand{
+		BaseDodgeChance:     0.05 + skillDiff*0.001,
+		GlanceMultiplierMin: max(min(1.3-0.05*skillDiff, 0.91), 0.01),
+		GlanceMultiplierMax: max(min(1.2-0.03*skillDiff, 0.99), 0.2),
+	}
+	if skillDiff > 10 {
+		hand.BaseMissChance = 0.05 + skillDiff*0.002
+		hand.HitSuppression = (skillDiff - 10) * 0.002
+	} else {
+		hand.BaseMissChance = 0.05 + skillDiff*0.001
+	}
+	return hand
+}
+
+// Recomputes the hand entries against an enemy defender from the weapons in each hand.
+func (at *AttackTable) setWeapons(mh *Item, oh *Item, ranged *Item) {
+	at.MH = newAttackTableHand(at.Attacker, at.Defender, mh)
+	at.OH = newAttackTableHand(at.Attacker, at.Defender, oh)
+	at.Ranged = newAttackTableHand(at.Attacker, at.Defender, ranged)
+	at.BaseMissChance = at.MH.BaseMissChance
+	at.BaseDodgeChance = at.MH.BaseDodgeChance
+}
+
+// Hand returns the entry of the hand the spell attacks with.
+func (at *AttackTable) Hand(spell *Spell) *AttackTableHand {
+	if spell.ProcMask.Matches(ProcMaskRanged) {
+		return &at.Ranged
+	}
+	if spell.ProcMask.Matches(ProcMaskMeleeOH) && !spell.ProcMask.Matches(ProcMaskMeleeMH) {
+		return &at.OH
+	}
+	return &at.MH
 }
 
 func EnableDamageDoneByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicDamageDoneByCaster) {

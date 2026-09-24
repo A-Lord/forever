@@ -408,6 +408,10 @@ func (swap *ItemSwap) swapItem(sim *Simulation, slot proto.ItemSlot, isPrepull b
 
 	swap.unEquippedItems[slot] = oldItem
 
+	if slices.Contains(AllWeaponSlots(), slot) {
+		swap.character.updateAttackTableWeapons()
+	}
+
 	if isPrepull {
 		return
 	}
