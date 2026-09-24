@@ -977,13 +977,15 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 // casts a temporary enchant (Effect 54, or the imbue Effect 360, as IsTemporaryEnchantEffect reads
 // it), whatever class the client files it under: Crystal Charge 11566 is a Quest item and Lesser Mana
 // Oil 20747 an Enchanting trade good. The item has to state an on-use spell, and one that also teaches
-// a spell is an Engrave rune rather than a consumable.
+// a spell is an Engrave rune rather than a consumable. Test, QA, UNUSED, placeholder ([PH]) and
+// deprecated ([DEP]) names are left out: UNUSED Flask of Merciless Pursuit 215126.
 func ConsumableItemFilter() string {
 	onUse := func(condition string) string {
 		return fmt.Sprintf(`EXISTS (SELECT 1 FROM ItemXItemEffect cx JOIN ItemEffect ce ON ce.ID = cx.ItemEffectID
 			WHERE cx.ItemID = i.ID AND ce.TriggerType = %d AND ce.SpellID > 0 AND %s)`, dbc.ITEM_SPELLTRIGGER_ON_USE, condition)
 	}
 	return fmt.Sprintf(`s.Display_lang != '' AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%'
+		AND s.Display_lang NOT LIKE 'UNUSED%%' AND s.Display_lang NOT LIKE '[PH]%%' AND s.Display_lang NOT LIKE '%%[DEP]%%'
 		AND %s
 		AND NOT EXISTS (SELECT 1 FROM ItemXItemEffect lx JOIN ItemEffect le ON le.ID = lx.ItemEffectID
 			WHERE lx.ItemID = i.ID AND le.TriggerType = %d)
