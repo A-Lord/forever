@@ -37,7 +37,7 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 
 	resistanceRoll := sim.RandomFloat("Partial Resist")
 
-	threshold00, threshold25, threshold50 := attackTable.GetPartialResistThresholds(spell)
+	threshold00, threshold25, threshold50 := attackTable.GetPartialResistThresholds(spell, spell.Flags.Matches(SpellFlagPureDot))
 	//if sim.Log != nil {
 	//	sim.Log("Resist thresholds: %0.04f, %0.04f, %0.04f", threshold00, threshold25, threshold50)
 	//}
@@ -54,8 +54,8 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 	}
 }
 
-func (at *AttackTable) GetPartialResistThresholds(spell *Spell) (float64, float64, float64) {
-	return at.Defender.partialResistRollThresholds(spell, at.Attacker)
+func (at *AttackTable) GetPartialResistThresholds(spell *Spell, pureDot bool) (float64, float64, float64) {
+	return at.Defender.partialResistRollThresholds(spell, at.Attacker, pureDot)
 }
 
 func (at *AttackTable) GetBinaryHitChance(spell *Spell) float64 {
@@ -65,25 +65,23 @@ func (at *AttackTable) GetBinaryHitChance(spell *Spell) float64 {
 // All of the following calculations are based on this guide:
 // https://royalgiraffe.github.io/resist-guide
 
-func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool) float64 {
+func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, pureDot bool) float64 {
 	if spell.SchoolIndex <= stats.SchoolIndexPhysical {
 		return 0
 	}
 
 	resistance := max(0, unit.GetStat(spell.SpellSchool.ResistanceStat())-attacker.stats[stats.SpellPiercing])
-	if resistance <= 0 {
-		// Level-based resistance does not apply to binary spells.
-		if binary {
-			return 0
-		}
-		return unit.levelBasedResist(attacker)
-	}
-
 	resistanceCap := float64(attacker.Level * 5)
 	resistanceCoef := resistance / resistanceCap
 
+	if pureDot {
+		resistanceCoef /= 10
+	}
+
+	// Level-based resistance does not apply to binary spells.
 	if !binary && unit.Type == EnemyUnit && unit.Level > attacker.Level {
-		avgMitigationAdded := unit.levelBasedResist(attacker)
+		// 2% average mitigation per level difference
+		avgMitigationAdded := 0.02 * float64(unit.Level-attacker.Level)
 		// coef is scaled 0 to 1, not 0 to 0.75
 		resistanceCoef += avgMitigationAdded * 1 / 0.75
 	}
@@ -91,22 +89,14 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool) float64
 	return min(1, resistanceCoef)
 }
 
-func (unit *Unit) levelBasedResist(attacker *Unit) float64 {
-	if unit.Type == EnemyUnit && unit.Level > attacker.Level {
-		// 2% average mitigation per level difference
-		return 0.02 * float64(unit.Level-attacker.Level)
-	}
-	return 0
-}
-
 func (unit *Unit) binaryHitChance(spell *Spell, attacker *Unit) float64 {
-	resistCoeff := unit.resistCoeff(spell, attacker, true)
+	resistCoeff := unit.resistCoeff(spell, attacker, true, false)
 	return 1 - 0.75*resistCoeff
 }
 
 // Roll threshold for each type of partial resist.
-func (unit *Unit) partialResistRollThresholds(spell *Spell, attacker *Unit) (float64, float64, float64) {
-	resistCoeff := unit.resistCoeff(spell, attacker, false)
+func (unit *Unit) partialResistRollThresholds(spell *Spell, attacker *Unit, pureDot bool) (float64, float64, float64) {
+	resistCoeff := unit.resistCoeff(spell, attacker, false, pureDot)
 
 	// Based on the piecewise linear regression estimates at https://royalgiraffe.github.io/partial-resist-table.
 	if val := resistCoeff * 3; val <= 1 {
