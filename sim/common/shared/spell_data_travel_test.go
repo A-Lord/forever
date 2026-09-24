@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -16,6 +17,9 @@ func TestMissileDamageLandsAfterItsTravelTime(t *testing.T) {
 	target := sim.Encounter.ActiveTargetUnits[0]
 	table := caster.AttackTables[target.UnitIndex]
 	table.BaseMissChance, table.BaseDodgeChance, table.BaseParryChance, table.BaseBlockChance = 0, 0, 0, 0
+	for _, hand := range []*core.AttackTableHand{&table.MH, &table.OH, &table.Ranged} {
+		hand.BaseMissChance, hand.BaseDodgeChance = 0, 0
+	}
 
 	boomerang := onUseSpell(t, caster, itemID)
 	metrics := &boomerang.SpellMetrics[target.UnitIndex]

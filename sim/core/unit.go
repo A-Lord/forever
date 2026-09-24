@@ -929,7 +929,7 @@ func (unit *Unit) GetBlockFromRating() float64 {
 
 func (unit *Unit) GetTotalDodgeChanceAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	chance := unit.PseudoStats.BaseDodgeChance +
-		atkTable.BaseDodgeChance +
+		atkTable.Hand(spell).BaseDodgeChance +
 		unit.GetDodgeFromRating() -
 		spell.DodgeParrySuppression() -
 		spell.Unit.PseudoStats.DodgeReduction
