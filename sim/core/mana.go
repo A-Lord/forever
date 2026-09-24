@@ -21,7 +21,7 @@ type manaBar struct {
 	spiritRegenBase      float64
 	spiritRegenPerSpirit float64
 
-	manaCastingMetrics   *ResourceMetrics
+	manaCastingMetrics    *ResourceMetrics
 	manaNotCastingMetrics *ResourceMetrics
 	JowManaMetrics        *ResourceMetrics
 	VtManaMetrics         *ResourceMetrics

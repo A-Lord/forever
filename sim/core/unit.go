@@ -946,7 +946,7 @@ func (unit *Unit) GetTotalParryChanceAsDefender(spell *Spell, atkTable *AttackTa
 
 func (unit *Unit) GetTotalChanceToBeMissedAsDefender(atkTable *AttackTable) float64 {
 	// ReducedPhysicalHitTakenChance is stored in percent points, BaseMissChance as a fraction.
-	defense :=math.Floor(unit.stats[stats.DefenseRating] / DefenseRatingPerDefenseLevel)
+	defense := math.Floor(unit.stats[stats.DefenseRating] / DefenseRatingPerDefenseLevel)
 	chance := atkTable.BaseMissChance +
 		unit.PseudoStats.ReducedPhysicalHitTakenChance/100 +
 		defense*MissDodgeParryBlockCritChancePerDefense/100
