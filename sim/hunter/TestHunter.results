@@ -5,8 +5,8 @@ character_stats_results: {
   final_stats: 623
   final_stats: 474
   final_stats: 273
-  final_stats: 135
-  final_stats: 33
+  final_stats: 190
+  final_stats: 88
   final_stats: 0
   final_stats: 0
   final_stats: 0
@@ -20,7 +20,7 @@ character_stats_results: {
   final_stats: 183
   final_stats: 1499
   final_stats: 1712
-  final_stats: 359
+  final_stats: 358
   final_stats: 20
   final_stats: 154
   final_stats: 0
@@ -30,7 +30,6 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 299.04
-  final_stats: 0
   final_stats: 0
   final_stats: 2366
   final_stats: 40
@@ -50,15 +49,10 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 0
+  final_stats: 24.92
   final_stats: 0
- }
-}
-dps_results: {
- key: "TestHunter-AllItems-AegisofPreservation-19345"
- value: {
-  dps: 512.04802
-  tps: 367.59559
-  dtps: 3.51533
+  final_stats: 0
+  final_stats: 0
  }
 }
 dps_results: {
@@ -70,6 +64,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-ArenaGrandMaster-19024"
+ value: {
+  dps: 512.3086
+  tps: 367.778
+  dtps: 0.01983
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-BadgeoftheSwarmguard-21670"
  value: {
   dps: 516.7886
@@ -78,10 +80,18 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunter-AllItems-Biznicks247x128Accurascope-2523"
+ key: "TestHunter-AllItems-Beastmaster'sBoots-22061"
  value: {
-  dps: 523.69724
-  tps: 375.75005
+  dps: 509.36304
+  tps: 365.75159
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Beastmaster'sTreads-226881"
+ value: {
+  dps: 510.48536
+  tps: 366.53053
   dtps: 3.51533
  }
 }
@@ -126,6 +136,38 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-Defiler'sTalisman-20072"
+ value: {
+  dps: 512.3086
+  tps: 367.778
+  dtps: 3.20008
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Defiler'sTalisman-21115"
+ value: {
+  dps: 512.3086
+  tps: 367.778
+  dtps: 3.20008
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-DragonscaleBreastplate-8367"
+ value: {
+  dps: 481.43252
+  tps: 346.20116
+  dtps: 0.61608
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EarthenSigil-20525"
+ value: {
+  dps: 512.04802
+  tps: 368.51084
+  dtps: 3.51533
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-Earthstrike-21180"
  value: {
   dps: 520.21641
@@ -134,7 +176,39 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunter-AllItems-Enchant2HWeapon-GreaterImpact-963"
+ key: "TestHunter-AllItems-Enchant2HWeapon-GrandArcanist-7941"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Enchant:FieryBlaze-36"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EnchantChest-Absorption-8220"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EnchantChest-LesserAbsorption-63"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EnchantChest-MinorAbsorption-44"
  value: {
   dps: 512.04802
   tps: 367.59559
@@ -162,6 +236,38 @@ dps_results: {
  value: {
   dps: 512.04802
   tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EnchantWeapon-GrandSorcerer-7942"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EnchantWeapon-Insight-8216"
+ value: {
+  dps: 512.04802
+  tps: 367.54643
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EnchantWeapon-Recovery-8721"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-EverlookPathcarver-274759"
+ value: {
+  dps: 514.2087
+  tps: 369.10807
   dtps: 3.51533
  }
 }
@@ -206,19 +312,19 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunter-AllItems-Gri'lek'sCharmofValor-19952"
- value: {
-  dps: 512.04802
-  tps: 367.59559
-  dtps: 3.51533
- }
-}
-dps_results: {
  key: "TestHunter-AllItems-HeartoftheScale-13164"
  value: {
   dps: 512.04802
   tps: 367.59559
   dtps: 3.3849
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-HelmofFire-8348"
+ value: {
+  dps: 501.80941
+  tps: 360.45612
+  dtps: 3.55656
  }
 }
 dps_results: {
@@ -230,11 +336,11 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunter-AllItems-HighborneResearchTablet-260205"
+ key: "TestHunter-AllItems-InfernalLasso-219345"
  value: {
-  dps: 566.10975
-  tps: 405.43881
-  dtps: 3.63397
+  dps: 515.11042
+  tps: 369.73928
+  dtps: 3.51533
  }
 }
 dps_results: {
@@ -242,6 +348,14 @@ dps_results: {
  value: {
   dps: 522.37101
   tps: 374.82168
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-KissoftheSpider-22954"
+ value: {
+  dps: 530.16261
+  tps: 380.70322
   dtps: 3.51533
  }
 }
@@ -254,11 +368,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-Linken'sBoomerang-11905"
+ value: {
+  dps: 512.30735
+  tps: 367.80991
+  dtps: 3.51533
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-Loatheb'sReflection-23042"
  value: {
   dps: 512.04802
   tps: 367.59559
   dtps: 3.06919
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-MarkofResolution-17759"
+ value: {
+  dps: 512.3086
+  tps: 367.778
+  dtps: 3.20008
  }
 }
 dps_results: {
@@ -286,11 +416,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-ObsidianMailTunic-22191"
+ value: {
+  dps: 484.95091
+  tps: 348.66403
+  dtps: 3.46574
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-SerenityField-272439"
  value: {
   dps: 511.98433
   tps: 367.44829
   dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-ShardoftheFallenStar-21891"
+ value: {
+  dps: 514.80499
+  tps: 369.52547
+  dtps: 3.55656
  }
 }
 dps_results: {
@@ -310,6 +456,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-TalismanofArathor-20071"
+ value: {
+  dps: 512.3086
+  tps: 367.778
+  dtps: 3.20008
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-TalismanofArathor-21117"
+ value: {
+  dps: 512.3086
+  tps: 367.778
+  dtps: 3.20008
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-TalismanofAscendance-22678"
  value: {
   dps: 512.04802
@@ -326,11 +488,35 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-TheBurrower'sShell-23558"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 0.08341
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
   dps: 512.04802
   tps: 367.59559
   dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Uther'sStrength-11302"
+ value: {
+  dps: 512.04802
+  tps: 367.59559
+  dtps: 3.51533
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-WarmthofForgiveness-23027"
+ value: {
+  dps: 512.00211
+  tps: 368.65837
+  dtps: 3.52155
  }
 }
 dps_results: {

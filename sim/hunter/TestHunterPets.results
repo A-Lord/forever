@@ -5,8 +5,8 @@ character_stats_results: {
   final_stats: 623
   final_stats: 474
   final_stats: 273
-  final_stats: 135
-  final_stats: 33
+  final_stats: 190
+  final_stats: 88
   final_stats: 0
   final_stats: 0
   final_stats: 0
@@ -20,7 +20,7 @@ character_stats_results: {
   final_stats: 183
   final_stats: 1499
   final_stats: 1712
-  final_stats: 359
+  final_stats: 358
   final_stats: 20
   final_stats: 154
   final_stats: 0
@@ -30,7 +30,6 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 299.04
-  final_stats: 0
   final_stats: 0
   final_stats: 2366
   final_stats: 40
@@ -50,15 +49,10 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 0
+  final_stats: 24.92
   final_stats: 0
- }
-}
-dps_results: {
- key: "TestHunterPets-AllItems-AegisofPreservation-19345"
- value: {
-  dps: 495.60507
-  tps: 269.89348
-  dtps: 2.76038
+  final_stats: 0
+  final_stats: 0
  }
 }
 dps_results: {
@@ -70,6 +64,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-ArenaGrandMaster-19024"
+ value: {
+  dps: 495.3127
+  tps: 269.70749
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-BadgeoftheSwarmguard-21670"
  value: {
   dps: 499.73387
@@ -78,10 +79,18 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunterPets-AllItems-Biznicks247x128Accurascope-2523"
+ key: "TestHunterPets-AllItems-Beastmaster'sBoots-22061"
  value: {
-  dps: 500.73131
-  tps: 274.16077
+  dps: 496.70083
+  tps: 268.63352
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-Beastmaster'sTreads-226881"
+ value: {
+  dps: 497.61687
+  tps: 269.19173
   dtps: 2.76038
  }
 }
@@ -126,10 +135,34 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunterPets-AllItems-DepletedEyeofInfluence-275630"
+ key: "TestHunterPets-AllItems-Defiler'sTalisman-20072"
+ value: {
+  dps: 495.3127
+  tps: 269.70749
+  dtps: 2.81132
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-Defiler'sTalisman-21115"
+ value: {
+  dps: 495.3127
+  tps: 269.70749
+  dtps: 2.81132
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-DragonscaleBreastplate-8367"
+ value: {
+  dps: 473.96847
+  tps: 257.02584
+  dtps: 0.12529
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EarthenSigil-20525"
  value: {
   dps: 495.60507
-  tps: 269.89348
+  tps: 270.75374
   dtps: 2.76038
  }
 }
@@ -142,7 +175,39 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunterPets-AllItems-Enchant2HWeapon-GreaterImpact-963"
+ key: "TestHunterPets-AllItems-Enchant2HWeapon-GrandArcanist-7941"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-Enchant:FieryBlaze-36"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EnchantChest-Absorption-8220"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EnchantChest-LesserAbsorption-63"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EnchantChest-MinorAbsorption-44"
  value: {
   dps: 495.60507
   tps: 269.89348
@@ -170,6 +235,38 @@ dps_results: {
  value: {
   dps: 495.60507
   tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EnchantWeapon-GrandSorcerer-7942"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EnchantWeapon-Insight-8216"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EnchantWeapon-Recovery-8721"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-EverlookPathcarver-274759"
+ value: {
+  dps: 497.36161
+  tps: 271.12305
   dtps: 2.76038
  }
 }
@@ -206,6 +303,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-FurbolgMedicinePouch-16768"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+  hps: 5.55556
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-General'sChainGloves-16571"
  value: {
   dps: 495.60507
@@ -238,19 +344,19 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunterPets-AllItems-Gri'lek'sCharmofValor-19952"
- value: {
-  dps: 495.60507
-  tps: 269.89348
-  dtps: 2.76038
- }
-}
-dps_results: {
  key: "TestHunterPets-AllItems-HeartoftheScale-13164"
  value: {
   dps: 495.60507
   tps: 269.89348
   dtps: 2.66054
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-HelmofFire-8348"
+ value: {
+  dps: 487.94522
+  tps: 266.14898
+  dtps: 2.90004
  }
 }
 dps_results: {
@@ -278,11 +384,11 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunterPets-AllItems-HighborneResearchTablet-260205"
+ key: "TestHunterPets-AllItems-InfernalLasso-219345"
  value: {
-  dps: 533.51869
-  tps: 296.45338
-  dtps: 3.15084
+  dps: 497.88092
+  tps: 271.48657
+  dtps: 2.76038
  }
 }
 dps_results: {
@@ -290,6 +396,14 @@ dps_results: {
  value: {
   dps: 504.56075
   tps: 275.60244
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-KissoftheSpider-22954"
+ value: {
+  dps: 506.90067
+  tps: 277.88676
   dtps: 2.76038
  }
 }
@@ -310,11 +424,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-Linken'sBoomerang-11905"
+ value: {
+  dps: 493.94758
+  tps: 268.72181
+  dtps: 2.76038
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-Loatheb'sReflection-23042"
  value: {
   dps: 495.60507
   tps: 269.89348
   dtps: 2.37514
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-MarkofResolution-17759"
+ value: {
+  dps: 495.3127
+  tps: 269.70749
+  dtps: 2.81132
  }
 }
 dps_results: {
@@ -339,6 +469,14 @@ dps_results: {
   dps: 497.95253
   tps: 271.49798
   dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-ObsidianMailTunic-22191"
+ value: {
+  dps: 477.08283
+  tps: 258.55289
+  dtps: 2.7108
  }
 }
 dps_results: {
@@ -374,6 +512,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-ShardoftheFallenStar-21891"
+ value: {
+  dps: 497.2387
+  tps: 271.05569
+  dtps: 2.7982
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-SmokingHeartoftheMountain-11811"
  value: {
   dps: 495.60507
@@ -387,6 +533,22 @@ dps_results: {
   dps: 487.07888
   tps: 265.81752
   dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-TalismanofArathor-20071"
+ value: {
+  dps: 495.3127
+  tps: 269.70749
+  dtps: 2.81132
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-TalismanofArathor-21117"
+ value: {
+  dps: 495.3127
+  tps: 269.70749
+  dtps: 2.81132
  }
 }
 dps_results: {
@@ -406,10 +568,33 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-TheBurrower'sShell-23558"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
   dps: 495.60507
   tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-Uther'sStrength-11302"
+ value: {
+  dps: 495.60507
+  tps: 269.89348
+  dtps: 2.76038
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-WarmthofForgiveness-23027"
+ value: {
+  dps: 495.60507
+  tps: 270.84248
   dtps: 2.76038
  }
 }
