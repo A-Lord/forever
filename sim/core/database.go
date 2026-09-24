@@ -155,11 +155,14 @@ type Item struct {
 
 	Name          string
 	Stats         stats.Stats // Stats applied to wearer
+	PseudoStats   []float64   // Indexed by proto.PseudoStat; percents through stats.FromPseudoStatsProto, haste through registerEquipSpeedAuras
 	Quality       proto.ItemQuality
 	Unique        bool
 	LimitCategory int32
 	SetName       string // Empty string if not part of a set.
 	SetID         int32  // 0 if not part of a set.
+
+	ClassAllowlist []proto.Class
 
 	GemSockets  []proto.GemColor
 	SocketBonus stats.Stats
@@ -189,13 +192,19 @@ func ItemFromProto(pData *proto.SimItem) Item {
 		QualityModifier:  pData.QualityModifier,
 		GemSockets:       pData.GemSockets,
 		SocketBonus:      stats.FromProtoArray(pData.SocketBonus),
+		PseudoStats:      pData.PseudoStats,
 		Unique:           pData.Unique,
 		LimitCategory:    pData.LimitCategory,
 		SetName:          pData.SetName,
 		SetID:            pData.SetId,
+		ClassAllowlist:   pData.ClassAllowlist,
 		ScalingOptions:   pData.ScalingOptions,
 		ItemEffects:      pData.ItemEffects,
 	}
+}
+
+func (item *Item) UsableBy(class proto.Class) bool {
+	return len(item.ClassAllowlist) == 0 || slices.Contains(item.ClassAllowlist, class)
 }
 
 func (item *Item) ToItemSpecProto() *proto.ItemSpec {
@@ -229,6 +238,8 @@ func RandomSuffixFromProto(pData *proto.ItemRandomSuffix) RandomSuffix {
 type Enchant struct {
 	EffectID       int32 // Used by UI to apply effect to tooltip
 	Stats          stats.Stats
+	PseudoStats    []float64 // Indexed by proto.PseudoStat; percents through stats.FromPseudoStatsProto, haste through registerEquipSpeedAuras
+	WeaponDamage   float64   // Applied by newWeaponFromItem
 	EnchantEffects []*proto.ItemEffect
 	Name           string         // Only needed for unit tests
 	Type           proto.ItemType // Only needed for unit tests
@@ -240,6 +251,8 @@ func EnchantFromProto(pData *proto.SimEnchant) Enchant {
 	return Enchant{
 		EffectID:       pData.EffectId,
 		Stats:          stats.FromProtoArray(pData.Stats),
+		PseudoStats:    pData.PseudoStats,
+		WeaponDamage:   pData.WeaponDamage,
 		EnchantEffects: pData.EnchantEffects,
 		Name:           pData.Name,
 		Type:           pData.Type,
@@ -625,6 +638,7 @@ func ItemEquipmentBaseStats(item Item) stats.Stats {
 	}
 
 	equipStats = equipStats.Add(item.Stats)
+	equipStats = equipStats.Add(stats.FromPseudoStatsProto(item.PseudoStats))
 
 	// Random suffix stats can be Reforged, so apply those prior to any Reforges
 	rawSuffixStats := item.RandomSuffix.Stats
@@ -640,6 +654,7 @@ func ItemEquipmentGemAndEnchantStats(item Item) stats.Stats {
 
 	equipStats := stats.Stats{}
 	equipStats = equipStats.Add(item.Enchant.Stats)
+	equipStats = equipStats.Add(stats.FromPseudoStatsProto(item.Enchant.PseudoStats))
 
 	for _, gem := range item.Gems {
 		// A disabled meta gem keeps its color below so the socket bonus still matches.

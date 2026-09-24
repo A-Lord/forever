@@ -267,8 +267,8 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{"ThunderClap", true, false, ThunderClapAura, auraShape{
 			Label: "Thunder Clap (External)", ActionID: external(11581), Tag: "AtkSpdReduction",
 			Duration: 30 * time.Second,
-			Bids:     []string{"AtkSpdReduction single=false priority=0.2"},
-			Stacks:   pseudoOnly(map[string]float64{"MeleeSpeedMultiplier": -0.2}),
+			Bids:     []string{"AtkSpdReduction single=false priority=0.166667"},
+			Stacks:   pseudoOnly(map[string]float64{"MeleeSpeedMultiplier": -0.166667}),
 		}},
 		{"InsectSwarm", true, false, InsectSwarmAura, auraShape{
 			Label: "Insect Swarm (External)", ActionID: external(24977), Duration: 12 * time.Second,

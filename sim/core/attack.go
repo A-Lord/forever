@@ -84,8 +84,8 @@ func newWeaponFromItem(item *Item, bonusDps float64) Weapon {
 	}
 
 	return Weapon{
-		BaseDamageMin:        item.WeaponDamageMin + bonusDps*item.SwingSpeed,
-		BaseDamageMax:        item.WeaponDamageMax + bonusDps*item.SwingSpeed,
+		BaseDamageMin:        item.WeaponDamageMin + item.Enchant.WeaponDamage + bonusDps*item.SwingSpeed,
+		BaseDamageMax:        item.WeaponDamageMax + item.Enchant.WeaponDamage + bonusDps*item.SwingSpeed,
 		SwingSpeed:           item.SwingSpeed,
 		NormalizedSwingSpeed: normalizedWeaponSpeed,
 		AttackPowerPerDPS:    DefaultAttackPowerPerDPS,

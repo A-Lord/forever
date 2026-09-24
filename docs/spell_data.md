@@ -563,6 +563,28 @@ the sim's item level scaling lives. `IsWeaponProc` states the one shape no row d
 casts a chance-on-hit effect off the weapon's hit without consulting a proc mask, and there the 100/101
 sentinel is never a rate.
 
+A buff the client states as a percentage of a stat (`A_MOD_PERCENT_STAT`, misc the stat index, -1 all
+five) has no effect entry, which carries flat stats only, so the generator routes it as auras:
+`NewSpellDataAuraProc` parses the buff's row, whose multiplier works through a dynamic stat dependency
+and reports what it adds and removes to the temporary stats listeners. Insight 8216's 1299796 doubles
+Spirit for 10 s. The aura proc registers the wearer's buff with the item swap, so an enchant's buff
+drops with its weapon or shield, and, where the buff moves stats, with the stat-proc APL values. The
+client has no item proc of this shape. `ParseStatic` reads the same aura as a multiplier applied once,
+which reports nothing.
+
+An enchant's procs are read one per slot of its `SpellItemEnchantment` row that casts a combat spell
+(Effect 1) or hangs an equip aura off a hit (Effect 3), and at most one of them registers. A combat spell's chance, where the client states
+one, is on the enchantment rather than on the spell - `EffectPointsMin`, Fiery Blaze's 15 - and the
+store writes it onto the spell's row as its `ProcChance` column, noted beside the row. Every
+enchantment casting one spell states the same chance for it; the generator stops on one that does
+not. The chance is rolled on the hits of the enchanted weapon only
+(`shared.statedWeaponProcChance`). An equip aura's own description is empty, so the store reads
+the description of the spell granting the enchant in its place, for what no proc mask can state: the
+named ability, outcome-taken, attack-dodged and attack-parried hints, and whether its 100 is a
+sentinel ("often", "sometimes", "a chance to"), which makes it `ProcChancePPM`. The grant's cast,
+crit and heal wording is left alone: which hits feed the aura is its own mask's to say.
+A combat spell and an aura applying the same spell (Crusader) register once, as the combat spell.
+
 `spelldata.ItemProcUnsupported(trigger, isWeaponProc)` is the single decision about whether the rows
 say enough. The generator calls it when it writes the item files, the audit calls it, and a test pins
 it, so a proc the generator emits is one the sim can build and a proc it comments out carries the
@@ -600,6 +622,44 @@ Two more refusals have nothing to do with the field: an override naming a spell 
 carry, and two overrides of the same field on one spell. Every one that is applied leaves an
 `// override: <field> <value> -- <reason>` comment on the row it wrote to, so reading the generated
 store says which numbers are not the client's.
+
+An item or enchant proc refused as `states no rate` loses that refusal once a `PPM` override sits on
+the spell it is routed through - the `TriggerSpellID` of its commented-out registration, the id on its
+`// trigger N` line - and registers where it was the only one:
+
+- A combat enchant (Effect 1) or a chance-on-hit item effect: the combat spell itself - Fiery Weapon's
+  13897, Unholy Weapon's 20006 - not the spell that grants the enchant. The rate is measured on the
+  hits of the weapon carrying it (`NewDynamicLegacyProcForEnchant(id, ppm, 0)`, or `...ForWeapon` for an
+  item).
+- An equip aura (Effect 3): the aura carrying the proc trigger - Revelation's 1248806 - not the spell it
+  triggers (1248808) nor the grant (1248805). The rate is measured on the aura's own proc mask, so an
+  aura whose flags decode to no mask stays refused as `no proc mask to measure its rate on`.
+
+A procs-per-minute enchant proc rolls on weapon hits only: its mask keeps its melee and ranged bits,
+and a spell or heal hit never procs it. `dpmForMask` strips the rest for every enchant, and
+`spelldata.EnchantAuraUnsupported` refuses a rate on an equip aura that hears only spells as
+`a procs-per-minute rate hears no weapon hits in this mask`, so it stays listed rather than
+registering to never fire. An enchant the game does let spells proc is an exception to state there,
+by enchant; there is none today. A stated chance (Fiery Blaze 36's 15%, Insight 8216's 35%) is not a
+rate and hears what its row says.
+
+Revelation 8217 stays listed. Its rate is scripted and the client does not state it: trigger 1248806's
+`ProcChance` 100 is the sentinel beside the tooltip's "a chance", and its effect entry resolves no stats
+from 1248808.
+
+A rate follows the weapon the enchant sits on. A weapon enchant, ranged ones included
+(`NewDynamicLegacyProcForEnchantWithMask`), rolls only on the hand carrying it, at that weapon's speed;
+an item swap moves it with the weapon. An enchant on no weapon - armor, a cloak, a shield or a
+held-in-off-hand item - is priced off the main hand (`NewLegacyPPMManager`, which prices every mask but
+the off hand's and the ranged one's at the main hand's speed).
+
+Where a combat spell and an aura apply the same spell (Crusader), the slot whose row states a rate is
+the one kept, so the override goes on the combat spell to keep it the combat spell. After adding a row,
+run `gen_spelldata` and then `gen_db`, which classifies the procs out of the store compiled into it.
+`TestEnchantProcRoutingTakesAPPMOverride` in `tools/database` and `TestSpellDataProcTakesAPPMOverride`
+in `sim/common/shared` pin both halves on those three rows with a rate that exists only in the test.
+`TestEnchantAuraPPMFollowsItsWeapon` beside the latter pins the routing by slot, and
+`TestEnchantPPMFollowsTheEnchantedWeapon` in `sim/core` the move across an item swap.
 
 `overrides.AreaBonuses` is the second table in the same file, for an effect whose tooltip says it is
 doubled in some kind of area while the client states no companion row for it ("This effect is doubled
@@ -1237,7 +1297,8 @@ may state a percentage now, and the other way round.
    and there is no roll: Flurry and Deep Wounds on a crit, Dual Wield Specialization on every hit. A
    101 on something that is not a proc at all (Sunder Armor, Demoralizing Shout) means nothing. A
    tooltip whose _trigger clause_ says the effect only happens sometimes - "Chance to strike your
-   ranged target", "your melee swings have a chance to" - is shape 4 rather than this one, and on a
+   ranged target", "your melee swings have a chance to" - or that says "often", "sometimes" or
+   "occasionally" (Darkmoon Card: Heroism's "Sometimes heals") is shape 4 rather than this one, and on a
    chance-on-hit weapon, where the game consults no condition at all, the 100 and 101 always are.
 4. **No chance in the tooltip, and a column the tooltip's trigger clause contradicts.** A procs-per-minute
    proc the client does not carry (`SpellProcsPerMinuteID` is 0 on every row). The PPM is

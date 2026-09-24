@@ -207,7 +207,6 @@ def GenMechanicsTsFile(cs: ClassStats):
         f"export const BLOCK_RATING_PER_BLOCK_PERCENT = {num(ratings['Block'])};",
         "",
         f"export const MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE = {num(GoConstant('MissDodgeParryBlockCritChancePerDefense'))};",
-        f"export const RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE = {num(GoConstant('ResilienceRatingPerCritReductionChance'))};",
         "",
     ]
     return "\n".join(lines)

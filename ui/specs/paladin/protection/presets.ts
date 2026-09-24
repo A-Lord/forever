@@ -29,6 +29,7 @@ export const DefaultOptions = ProtectionPaladinOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: 12662, // Dark Rune
+	mhImbueId: 25122, // Brilliant Wizard Oil
 	goblinSapper: true,
 });
 

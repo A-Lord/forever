@@ -628,11 +628,12 @@ func registerStaticImbue(agent Agent, imbueId int32, weapon *Weapon) {
 	character := agent.GetCharacter()
 	switch imbueId {
 	case 25123: // Mana Oil
-		character.AddStat(stats.HealingPower, 25)
-		character.AddStat(stats.MP5, 12)
+		character.AddStat(stats.HealingPower, 30)
+		character.AddStat(stats.MP5, 15)
 	case 25122: // Briliant Wizard Oil
 		character.AddStat(stats.SpellDamage, 36)
-		character.AddStat(stats.SpellCritRating, 14)
+		character.AddStat(stats.HealingPower, 36)
+		character.AddStat(stats.SpellCritPercent, 1)
 	case 25121: // Wizard Oil
 		character.AddStat(stats.SpellDamage, 30)
 	case 22756: // Elemental Sharpening Stone

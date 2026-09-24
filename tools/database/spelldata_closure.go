@@ -11,6 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/tools/database/buffmanifest"
+	"github.com/wowsims/forever/tools/database/dbc"
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
@@ -180,12 +181,9 @@ func allowListedItemIDs() string {
 // An enchant states the spell it applies in the EffectArg of the effect that applies it, which is
 // what LoadAndWriteRawEnchants reads as its spell id: effect 1 and effect 3 are the two that name a
 // spell.
-const enchantSpellQuery = `
-	SELECT DISTINCT EffectArg_0 FROM SpellItemEnchantment WHERE Effect_0 IN (1, 3) AND EffectArg_0 > 0
-	UNION
-	SELECT DISTINCT EffectArg_1 FROM SpellItemEnchantment WHERE Effect_1 IN (1, 3) AND EffectArg_1 > 0
-	UNION
-	SELECT DISTINCT EffectArg_2 FROM SpellItemEnchantment WHERE Effect_2 IN (1, 3) AND EffectArg_2 > 0`
+var enchantSpellQuery = enchantSlotsCTE + fmt.Sprintf(`
+	SELECT DISTINCT SpellID FROM slots WHERE Effect IN (%d, %d) AND SpellID > 0`,
+	dbc.ITEM_ENCHANTMENT_COMBAT_SPELL, dbc.ITEM_ENCHANTMENT_EQUIP_SPELL)
 
 // Every spell the roots reach: what an effect triggers, what an actionbar override swaps in, what a
 // hand link names, and what a tooltip's $<id> token points at. A spell the sim registers reads its

@@ -134,7 +134,7 @@ export class UnitStat {
 	// Convert a UnitStat value from its percentage representation (0-100) to the equivalent amount of
 	// Rating. If a Rating representation does not make sense for the stat in question (Block in Cata
 	// for example), then null is returned.
-	// For PseudoStatReducedCritTakenPercent, parentStat specifies the source (DefenseRating or ResilienceRating).
+	// For PseudoStatReducedCritTakenPercent, parentStat specifies the source (DefenseRating).
 	convertPercentToRating(percentOrPointsValue: number, parentStat?: Stat): number | null {
 		if (this.linkedToStat(Stat.StatSpellHitRating)) {
 			return percentOrPointsValue * Mechanics.SPELL_HIT_RATING_PER_HIT_PERCENT;
@@ -173,8 +173,6 @@ export class UnitStat {
 		} else if (this.equalsPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent)) {
 			if (parentStat === Stat.StatDefenseRating) {
 				return percentOrPointsValue * (Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL / Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE);
-			} else if (parentStat === Stat.StatResilienceRating) {
-				return percentOrPointsValue * Mechanics.RESILIENCE_RATING_PER_CRIT_REDUCTION_CHANCE;
 			}
 			return null;
 		} else {
@@ -373,8 +371,6 @@ export class UnitStat {
 				return [PseudoStat.PseudoStatSpellCritPercent];
 			case Stat.StatSpellHasteRating:
 				return [PseudoStat.PseudoStatSpellHastePercent];
-			case Stat.StatResilienceRating:
-				return [PseudoStat.PseudoStatReducedCritTakenPercent];
 			case Stat.StatDefenseRating:
 				return [PseudoStat.PseudoStatReducedCritTakenPercent];
 			case Stat.StatExpertiseRating:
@@ -392,6 +388,24 @@ export class UnitStat {
 		);
 	}
 }
+
+const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Set(
+	(getEnumValues(PseudoStat) as PseudoStat[]).filter(pseudoStat => {
+		const unitStat = UnitStat.fromPseudoStat(pseudoStat);
+		return unitStat.hasRootStat() && unitStat.getRootStat() !== Stat.StatBlockValue;
+	}),
+);
+
+// A ranged percent is the total the character sheet shows, melee share included. Valued at a rating's
+// weight, the share is counted once: by the melee pseudo stat, unless the ranged total has a weight of
+// its own and counts it there.
+const RANGED_TOTAL_MELEE_SHARE = new Map(
+	[Stat.StatMeleeHitRating, Stat.StatMeleeCritRating].map(rating => {
+		const [melee, ranged] = UnitStat.getChildren(rating);
+		return [ranged, melee] as const;
+	}),
+);
+const MELEE_SHARE_RANGED_TOTAL = new Map([...RANGED_TOTAL_MELEE_SHARE].map(([ranged, melee]) => [melee, ranged]));
 
 export const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromStat(Stat.StatHealth),
@@ -432,7 +446,6 @@ export const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedCritPercent),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHastePercent),
-	UnitStat.fromStat(Stat.StatResilienceRating),
 	UnitStat.fromStat(Stat.StatDefenseRating),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatBlockPercent),
 	UnitStat.fromStat(Stat.StatBlockValue),
@@ -539,13 +552,37 @@ export class Stats {
 		);
 	}
 
+	// A percent pseudo stat with a weight of its own is worth that weight, and one the weights leave at
+	// 0 is worth its linked rating's weight.
 	computeEP(epWeights: Stats): number {
 		let total = 0;
 		this.stats.forEach((stat, idx) => {
 			total += stat * epWeights.stats[idx];
 		});
-		this.pseudoStats.forEach((stat, idx) => {
-			total += stat * epWeights.pseudoStats[idx];
+		this.pseudoStats.forEach((value, idx) => {
+			if (value === 0) {
+				return;
+			}
+			const weight = epWeights.pseudoStats[idx];
+			if (weight !== 0 || !RATING_WEIGHTED_PERCENT_PSEUDO_STATS.has(idx)) {
+				total += value * weight;
+				return;
+			}
+
+			const meleeShare = RANGED_TOTAL_MELEE_SHARE.get(idx);
+			if (meleeShare !== undefined) {
+				value = Math.max(0, value - this.pseudoStats[meleeShare]);
+			}
+			// Melee and ranged haste are separate speeds, but one haste rating raises both.
+			if (idx === PseudoStat.PseudoStatRangedHastePercent) {
+				value = Math.max(0, value - this.pseudoStats[PseudoStat.PseudoStatMeleeHastePercent]);
+			}
+			const rangedTotal = MELEE_SHARE_RANGED_TOTAL.get(idx);
+			if (value === 0 || (rangedTotal !== undefined && epWeights.pseudoStats[rangedTotal] !== 0)) {
+				return;
+			}
+			const unitStat = UnitStat.fromPseudoStat(idx);
+			total += unitStat.convertPercentToRating(value)! * epWeights.stats[unitStat.getRootStat()];
 		});
 		return total;
 	}

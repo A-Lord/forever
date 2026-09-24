@@ -78,35 +78,40 @@ func applyRaceEffects(agent Agent) {
 
 		bloodFuryID := ActionID{SpellID: 20572}
 
-		bloodFuryAura := character.RegisterAura(Aura{
+		bloodFuryAura := character.NewTemporaryStatMultiplierAura(Aura{
 			Label:    "Blood Fury",
 			ActionID: bloodFuryID,
 			Duration: time.Second * 15,
-		}).
-			AttachStatDependency(character.NewDynamicMultiplyStat(stats.AttackPower, 1.1)).
-			AttachStatDependency(character.NewDynamicMultiplyStat(stats.RangedAttackPower, 1.1)).
-			AttachStatDependency(character.NewDynamicMultiplyStat(stats.SpellDamage, 1.1)).
-			AttachStatDependency(character.NewDynamicMultiplyStat(stats.HealingPower, 1.1))
+		}, []StatMultiplier{
+			{Stat: stats.AttackPower, Multiplier: 1.1},
+			{Stat: stats.RangedAttackPower, Multiplier: 1.1},
+			{Stat: stats.SpellDamage, Multiplier: 1.1},
+			{Stat: stats.HealingPower, Multiplier: 1.1},
+		})
+
+		bloodFuryCD := Cooldown{
+			Timer:    character.NewTimer(),
+			Duration: time.Minute * 2,
+		}
+		bloodFuryAura.Icd = &bloodFuryCD
 
 		bloodFury := character.RegisterSpell(SpellConfig{
 			ActionID: bloodFuryID,
 			Flags:    SpellFlagNoOnCastComplete,
 			Cast: CastConfig{
-				CD: Cooldown{
-					Timer:    character.NewTimer(),
-					Duration: time.Minute * 2,
-				},
+				CD: bloodFuryCD,
 			},
 			ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
 				bloodFuryAura.Activate(sim)
 			},
 
-			RelatedSelfBuff: bloodFuryAura,
+			RelatedSelfBuff: bloodFuryAura.Aura,
 		})
 
 		character.AddMajorCooldown(MajorCooldown{
-			Spell: bloodFury,
-			Type:  CooldownTypeDPS,
+			Spell:    bloodFury,
+			Type:     CooldownTypeDPS,
+			BuffAura: bloodFuryAura,
 		})
 
 		shatterCurseID := ActionID{SpellID: 1299026}

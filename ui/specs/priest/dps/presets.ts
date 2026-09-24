@@ -15,6 +15,7 @@ export const DefaultOptions = Options.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	conjuredId: 12662, // Demonic Rune
+	mhImbueId: 25122, // Brilliant Wizard Oil
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

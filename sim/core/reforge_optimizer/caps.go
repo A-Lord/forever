@@ -89,7 +89,7 @@ func isSchoolHitChildOfSpellHit(parent stats.Stat, child proto.PseudoStat) bool 
 // When a child already carries EP the parent rating is simply zeroed (it would double count) — the
 // per-school spell-hit children are exempt, since a spec may weight both. Conversions ACCUMULATE
 // onto any existing child EP because several parents can share one child (both DefenseRating and
-// ResilienceRating feed ReducedCritTakenPercent).
+// DodgeRating feed DodgePercent).
 func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSoftCaps []*reforgeSoftCap) core.UnitStats {
 	validated := weights
 	for _, parent := range []stats.Stat{
@@ -100,7 +100,9 @@ func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSof
 		stats.MeleeHasteRating,
 		stats.SpellHasteRating,
 		stats.DefenseRating,
-		stats.ResilienceRating,
+		stats.DodgeRating,
+		stats.ParryRating,
+		stats.BlockRating,
 		stats.ExpertiseRating,
 	} {
 		children := childPseudoStats(parent)

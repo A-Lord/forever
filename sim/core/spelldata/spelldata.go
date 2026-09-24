@@ -116,6 +116,10 @@ type Spell struct {
 	// SpellTargetRestrictions.MaxTargets for an area effect. Zero is unlimited.
 	MaxTargets int16
 
+	// SpellTargetRestrictions.TargetCreatureType: the creature types the spell can hit, as a mask of
+	// 1 << (CreatureType - 1), so 4 is demons and 256 mechanicals. Zero is any.
+	TargetCreatureType int32
+
 	// SpellCastingRequirements.RequiredAreasID. Zero is anywhere.
 	RequiredAreas int32
 
@@ -141,6 +145,11 @@ type Spell struct {
 
 	// What the tooltip states about the trigger that the proc mask cannot, baked in at generation.
 	ProcHint core.ProcHint
+
+	// Whether one roll of the damage is divided evenly among the targets hit, baked in at generation.
+	// No column states it; the tooltip reads "split between", "divided up evenly" or "$s1 total ...
+	// damage".
+	SplitsDamage bool
 
 	Effects []Effect
 	Powers  []Power

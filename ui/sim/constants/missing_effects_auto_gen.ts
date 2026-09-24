@@ -4,6 +4,12 @@
 
 export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
+		810, // Hammer of the Northern Wind
+		[
+			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
+		]
+	],
+	[
 		2820, // Nifty Stopwatch
 		[
 			"Increases run speed by 40% for 10s.", // 14530 - https://www.wowhead.com/forever/spell=14530
@@ -52,18 +58,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		8348, // Helm of Fire
-		[
-			"Hurls a fiery ball that causes 331 Fire damage and an additional 132 damage over 8s.", // 10578 - https://www.wowhead.com/forever/spell=10578
-		]
-	],
-	[
-		8367, // Dragonscale Breastplate
-		[
-			"Absorbs 600 magical damage. Lasts 2min.", // 10618 - https://www.wowhead.com/forever/spell=10618
-		]
-	],
-	[
 		8708, // Hammer of Expertise
 		[
 			"Deal 112 Fire damage. Deals 3 times as much damage to Earth Elementals, Fire Elementals, and Mountain Giants.", // 1317432 - https://www.wowhead.com/forever/spell=1317432
@@ -82,12 +76,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		11302, // Uther's Strength
-		[
-			"2% chance when struck in melee to gain a holy shield, absorbing 216 damage for 15s. This chance is doubled in Wasteland and Haunted areas.", // 10368 - https://www.wowhead.com/forever/spell=10368
-		]
-	],
-	[
 		11607, // Dark Iron Sunderer
 		[
 			"Reduces targets armor by 300 for 20s.", // 15280 - https://www.wowhead.com/forever/spell=15280
@@ -103,12 +91,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		11902, // Linken's Sword of Mastery
 		[
 			"Blasts a target for 60 Nature damage.", // 18089 - https://www.wowhead.com/forever/spell=18089
-		]
-	],
-	[
-		11905, // Linken's Boomerang
-		[
-			"Flings a magical boomerang towards target enemy dealing 150 Physical damage and has a chance to Stun for 2s or Disarm for 10s.", // 15712 - https://www.wowhead.com/forever/spell=15712
 		]
 	],
 	[
@@ -172,6 +154,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		12797, // Frostguard
+		[
+			"Target's movement slowed by 30% and increasing the time between attacks by 25% for 5s.", // 16927 - https://www.wowhead.com/forever/spell=16927
+		]
+	],
+	[
 		12802, // Darkspear
 		[
 			"Chance on hit to grant nearby party members 4% increased critical strike chance.", // 16939 - https://www.wowhead.com/forever/spell=16939
@@ -217,12 +205,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		14134, // Cloak of Fire
 		[
 			"Deals 25 Fire damage every 5.0 sec to all nearby enemies for 15s.", // 18364 - https://www.wowhead.com/forever/spell=18364
-		]
-	],
-	[
-		14152, // Robe of the Archmage
-		[
-			"Restores 500 mana.", // 18385 - https://www.wowhead.com/forever/spell=18385
 		]
 	],
 	[
@@ -370,12 +352,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		16768, // Furbolg Medicine Pouch
-		[
-			"Restores 100 health every 1.0 sec for 10s.", // 20631 - https://www.wowhead.com/forever/spell=20631
-		]
-	],
-	[
 		17002, // Ichor Spitter
 		[
 			"Poisons target for 8 Nature damage every 2.0 sec for 20s.", // 17511 - https://www.wowhead.com/forever/spell=17511
@@ -473,12 +449,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		17759, // Mark of Resolution
-		[
-			"Absorbs 780 Physical damage. Lasts 10s.", // 21956 - https://www.wowhead.com/forever/spell=21956
-		]
-	],
-	[
 		18355, // Ferra's Collar
 		[
 			"Increases the damage done by your pets by 4%.", // 22854 - https://www.wowhead.com/forever/spell=22854
@@ -541,7 +511,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		19024, // Arena Grand Master
 		[
-			"Absorbs 1080 damage. Lasts 20s.", // 23506 - https://www.wowhead.com/forever/spell=23506
 			"Reduces your damage taken by 6% in the Battle Ring and The Maul.", // 1318318 - https://www.wowhead.com/forever/spell=1318318
 		]
 	],
@@ -612,12 +581,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19339, // Mind Quickening Gem
-		[
-			"Quickens the mind, increasing the Mage's casting speed by 33% for 20s.", // 23723 - https://www.wowhead.com/forever/spell=23723
-		]
-	],
-	[
 		19340, // Rune of Metamorphosis
 		[
 			"Decreases the mana cost of all Druid shapeshifting forms by 100% for 20s.", // 23724 - https://www.wowhead.com/forever/spell=23724
@@ -636,15 +599,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19343, // Scrolls of Blinding Light
+		19345, // Aegis of Preservation
 		[
-			"Energizes a Paladin with light, increasing melee attack speed by 25% and spell casting speed by 33% for 20s.", // 23733 - https://www.wowhead.com/forever/spell=23733
-		]
-	],
-	[
-		19344, // Natural Alignment Crystal
-		[
-			"Aligns the Shaman with nature, increasing spell damage by 20%, improving heal effects by 20%, and increasing mana cost of spells by 20% for 20s.", // 23734 - https://www.wowhead.com/forever/spell=23734
+			"Increases armor by 500, and heals 35 damage every time you take ranged or melee damage for 20s.", // 23780 - https://www.wowhead.com/forever/spell=23780
 		]
 	],
 	[
@@ -720,21 +677,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19951, // Gri'lek's Charm of Might
-		[
-			"Instantly increases your rage by 30.0.", // 24571 - https://www.wowhead.com/forever/spell=24571
-		]
-	],
-	[
 		19953, // Renataki's Charm of Beasts
 		[
 			"Instantly clears the cooldowns of Aimed Shot, Multishot, Volley, and Arcane Shot.", // 24531 - https://www.wowhead.com/forever/spell=24531
-		]
-	],
-	[
-		19954, // Renataki's Charm of Trickery
-		[
-			"Instantly increases your energy by 60.", // 24532 - https://www.wowhead.com/forever/spell=24532
 		]
 	],
 	[
@@ -813,18 +758,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		20054, // Highlander's Cloth Boots
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
-		]
-	],
-	[
-		20071, // Talisman of Arathor
-		[
-			"Absorbs 616 physical damage. Lasts 15s.", // 23991 - https://www.wowhead.com/forever/spell=23991
-		]
-	],
-	[
-		20072, // Defiler's Talisman
-		[
-			"Absorbs 616 physical damage. Lasts 15s.", // 23991 - https://www.wowhead.com/forever/spell=23991
 		]
 	],
 	[
@@ -954,24 +887,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		20525, // Earthen Sigil
-		[
-			"Restores 400 mana over 10s.", // 24884 - https://www.wowhead.com/forever/spell=24884
-		]
-	],
-	[
-		21115, // Defiler's Talisman
-		[
-			"Absorbs 504 physical damage. Lasts 15s.", // 25746 - https://www.wowhead.com/forever/spell=25746
-		]
-	],
-	[
-		21117, // Talisman of Arathor
-		[
-			"Absorbs 504 physical damage. Lasts 15s.", // 25746 - https://www.wowhead.com/forever/spell=25746
-		]
-	],
-	[
 		21134, // Dark Edge of Insanity
 		[
 			"Disorients the target, causing it to wander aimlessly for up to 3s.", // 26108 - https://www.wowhead.com/forever/spell=26108
@@ -1020,12 +935,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		21891, // Shard of the Fallen Star
-		[
-			"Calls down a meteor, burning all enemies within the area for 421 total Fire damage.", // 26789 - https://www.wowhead.com/forever/spell=26789
-		]
-	],
-	[
 		22013, // Beastmaster's Cap
 		[
 			"Increases your pet's maximum health by 3%.", // 27038 - https://www.wowhead.com/forever/spell=27038
@@ -1041,18 +950,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		22060, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
-		]
-	],
-	[
-		22061, // Beastmaster's Boots
-		[
-			"Increases damage dealt by your pet by 3%.", // 27206 - https://www.wowhead.com/forever/spell=27206
-		]
-	],
-	[
-		22191, // Obsidian Mail Tunic
-		[
-			"Spell Damage received is reduced by 10.", // 27518 - https://www.wowhead.com/forever/spell=27518
 		]
 	],
 	[
@@ -1134,12 +1031,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22954, // Kiss of the Spider
-		[
-			"Increases your attack speed by 20% for 15s.", // 28866 - https://www.wowhead.com/forever/spell=28866
-		]
-	],
-	[
 		23001, // Eye of Diminution
 		[
 			"Reduces the threat you generate by 35% for 20s.", // 28862 - https://www.wowhead.com/forever/spell=28862
@@ -1155,12 +1046,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		23005, // Totem of Flowing Water
 		[
 			"Regain up to 10 mana each time you cast Lesser Healing Wave.", // 28849 - https://www.wowhead.com/forever/spell=28849
-		]
-	],
-	[
-		23027, // Warmth of Forgiveness
-		[
-			"Restores 500 mana.", // 28760 - https://www.wowhead.com/forever/spell=28760
 		]
 	],
 	[
@@ -1206,12 +1091,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		23558, // The Burrower's Shell
-		[
-			"Absorbs 900 damage. Lasts 20s.", // 29506 - https://www.wowhead.com/forever/spell=29506
-		]
-	],
-	[
 		191312, // Failsafe Phylactery
 		[
 			"Prevents an attack that would otherwise kill you. Triggering this effect also grants you 3s of damage immunity and shatters the phylactery.", // 370391 - https://www.wowhead.com/forever/spell=370391
@@ -1233,12 +1112,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		211941, // Windwalker's Yari
 		[
 			"Blasts enemies in front of you with the power of wind, fire, all that kind of thing!", // 14537 - https://www.wowhead.com/forever/spell=14537
-		]
-	],
-	[
-		219345, // Infernal Lasso
-		[
-			"Deals 504 Fire damage over 12s. Demons and Beasts are Rooted in place for 6s.", // 443265 - https://www.wowhead.com/forever/spell=443265
 		]
 	],
 	[
@@ -1281,12 +1154,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		223077, // Sergeant Major's Mail Sabatons
 		[
 			"Minor increase to running and swimming speed. Does not stack with similar effects.", // 24090 - https://www.wowhead.com/forever/spell=24090
-		]
-	],
-	[
-		226881, // Beastmaster's Treads
-		[
-			"Increases damage dealt by your pet by 3%.", // 27206 - https://www.wowhead.com/forever/spell=27206
 		]
 	],
 	[
@@ -2261,6 +2128,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		260205, // Highborne Research Tablet
+		[
+			"Chance on hit to deal 75 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.", // 1265634 - https://www.wowhead.com/forever/spell=1265634
+		]
+	],
+	[
 		260819, // EZ-Thro Field Transporter: Gadgetzan
 		[
 			"Safely transport yourself to Gadgetzan in Tanaris! Emphasis on Safe! Yup, nothing bad could ever happen while using this device!", // 23453 - https://www.wowhead.com/forever/spell=23453
@@ -2652,12 +2525,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		274759, // Everlook Pathcarver
-		[
-			"Deal 607 Physical damage split between up to 4 nearby enemies. Deals 2 times as much damage to Plants.", // 1295270 - https://www.wowhead.com/forever/spell=1295270
-		]
-	],
-	[
 		274760, // Everlook Delivery Bot
 		[
 			"Marks a target for delivery. After landing 6 to 8 spells or attacks, deal 467 Fire damage. Number of spells or attacks is halved in Snowy areas.", // 1295271 - https://www.wowhead.com/forever/spell=1295271
@@ -2686,6 +2553,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		275441, // Cremation Longbow
 		[
 			"Cremate the target for 56 Fire damage.", // 1297921 - https://www.wowhead.com/forever/spell=1297921
+		]
+	],
+	[
+		275630, // Depleted Eye of Influence
+		[
+			"Chance on harmful spell cast to reduce target enemy's attack power by 60 for 30s. ", // 1297082 - https://www.wowhead.com/forever/spell=1297082
 		]
 	],
 	[
@@ -2764,9 +2637,93 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 
 export const MISSING_ENCHANT_EFFECTS = new Map<number, string[]>([
 	[
+		43, // Iron Shield Spike
+		[
+			"Attaches an Iron Spike to your shield that deals damage every time you block with it.", // 9784 - https://www.wowhead.com/forever/spell=9784
+		]
+	],
+	[
+		463, // Mithril Shield Spike
+		[
+			"Attaches a Mithril Spike to your shield that deals damage every time you block with it.", // 9782 - https://www.wowhead.com/forever/spell=9782
+		]
+	],
+	[
+		803, // Enchant Weapon - Fiery Weapon
+		[
+			"Permanently enchant a melee weapon to often strike for 40 additional fire damage.", // 13897 - https://www.wowhead.com/forever/spell=13897
+		]
+	],
+	[
+		912, // Enchant Weapon - Demonslaying
+		[
+			"Permanently enchant a melee weapon to have a chance of stunning and doing heavy damage to demons.", // 13907 - https://www.wowhead.com/forever/spell=13907
+		]
+	],
+	[
+		1704, // Thorium Shield Spike
+		[
+			"Attaches a Thorium Spike to your shield that deals damage every time you block with it.", // 16624 - https://www.wowhead.com/forever/spell=16624
+		]
+	],
+	[
+		1894, // Enchant Weapon - Icy Chill
+		[
+			"Permanently enchant a melee weapon to often chill the target reducing their movement and attack speed.", // 20005 - https://www.wowhead.com/forever/spell=20005
+		]
+	],
+	[
+		1898, // Enchant Weapon - Lifestealing
+		[
+			"Permanently enchant a melee weapon to often steal life from the enemy and give it to the wielder.", // 20004 - https://www.wowhead.com/forever/spell=20004
+		]
+	],
+	[
 		1899, // Enchant Weapon - Unholy Weapon
 		[
 			"Permanently enchant a melee weapon to often inflict a curse on the target reducing their melee damage.", // 20006 - https://www.wowhead.com/forever/spell=20006
+		]
+	],
+	[
+		7124, // Wolfshead Trophy
+		[
+			"Permanently enchant a helm slot item, causing you to gain 20 energy or 5 rage when shapeshifting into Cat or Bear form.", // 17768 - https://www.wowhead.com/forever/spell=17768
+		]
+	],
+	[
+		7210, // Enchant Weapon - Dismantle
+		[
+			"Permanently enchant a Weapon to cause all spells and attacks to sometimes deal 75 additional damage to mechanical creatures.", // 435467 - https://www.wowhead.com/forever/spell=435467
+		]
+	],
+	[
+		7223, // Enchant Chest - Retricutioner
+		[
+			"Teaches you how to permanently enchant a piece of chest armor to reflect 9 damage back to the attacker when the bearer is struck in Melee. ", // 435901 - https://www.wowhead.com/forever/spell=435901
+		]
+	],
+	[
+		7940, // Enchant Weapon - Grand Crusader
+		[
+			"Permanently enchant a melee weapon so that often when attacking in melee it heals for 400 and increases Strength by 120 for 20s.", // 1231124 - https://www.wowhead.com/forever/spell=1231124
+		]
+	],
+	[
+		7943, // Enchant 2H Weapon - Grand Inquisitor
+		[
+			"Permanently enchant a two-handed melee weapon so that often when attacking in melee it heals for 400 and increases Strength by 200 for 20s.", // 1232169 - https://www.wowhead.com/forever/spell=1232169
+		]
+	],
+	[
+		8217, // Enchant Weapon - Revelation
+		[
+			"Permanently enchant a Melee Weapon to have a chance to trigger Revelation when a non-periodic spell fails to critically strike. Revelation grants 100% increased critical strike chance to the next spell cast. Revelation's chance to trigger is diminished as your critical strike chance increases.", // 1248806 - https://www.wowhead.com/forever/spell=1248806
+		]
+	],
+	[
+		8695, // Enchant Gloves - Lotus Claw
+		[
+			"Permanently enchant a pair of gloves to give a small chance to acquire Death Lotus when gathering any herb in Hyjal.", // 1294053 - https://www.wowhead.com/forever/spell=1294053
 		]
 	],
 ])

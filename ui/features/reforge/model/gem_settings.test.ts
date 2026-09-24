@@ -36,9 +36,9 @@ describe('gem optimizer settings', () => {
 	it('serializes caps on TBC’s stat enum, not MoP’s', () => {
 		const proto = makeSettings().toProto();
 
-		expect(proto.statCaps?.stats).toHaveLength(42);
+		expect(proto.statCaps?.stats).toHaveLength(41);
 		expect(proto.statCaps?.pseudoStats).toHaveLength(28);
-		expect(proto.breakpointLimits?.stats).toHaveLength(42);
+		expect(proto.breakpointLimits?.stats).toHaveLength(41);
 		expect(proto.breakpointLimits?.pseudoStats).toHaveLength(28);
 	});
 
