@@ -31,7 +31,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	potId: Consumables.GreaterStoneshieldPotion.id,
 	conjuredId: Consumables.MajorHealthstone9421.id,
 	mhImbueId: Consumables.DenseWeightstone.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

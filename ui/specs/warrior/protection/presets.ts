@@ -30,7 +30,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: undefined,
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GiftOfArthas.id],
 	potId: Consumables.GreaterStoneshieldPotion.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

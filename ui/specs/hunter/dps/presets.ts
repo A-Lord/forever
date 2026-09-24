@@ -87,7 +87,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	potId: Consumables.MajorFrenzyPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {
