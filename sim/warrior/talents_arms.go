@@ -300,20 +300,15 @@ func (warrior *Warrior) registerWeaponmaster() {
 	}
 
 	armorIgnore := spellData.Weaponmaster.EffectAt(2).FractionAt(rank)
-	addArmorIgnore := func(delta float64) {
-		for _, attackTable := range warrior.AttackTables {
-			attackTable.ArmorIgnoreFactor += delta
-		}
-	}
 	armorIgnoreAura := warrior.RegisterAura(core.Aura{
 		Label:    "Weaponmaster (Mace/Staff)",
 		ActionID: actionID.WithTag(2),
 		Duration: core.NeverExpires,
 		OnGain: func(_ *core.Aura, _ *core.Simulation) {
-			addArmorIgnore(armorIgnore)
+			warrior.AddArmorIgnoreFactor(armorIgnore)
 		},
 		OnExpire: func(_ *core.Aura, _ *core.Simulation) {
-			addArmorIgnore(-armorIgnore)
+			warrior.AddArmorIgnoreFactor(-armorIgnore)
 		},
 	})
 	if armorIgnoreOn {
