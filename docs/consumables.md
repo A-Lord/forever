@@ -108,13 +108,13 @@ Demonslaying 9224 ships through the allow list and is registered by hand. Each b
 refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsupported`,
 `StatConsumableUnsupported`), and the router reads the same checks.
 
-| family                                                         | file                                 | builder                         |
-| -------------------------------------------------------------- | ------------------------------------ | ------------------------------- |
-| `ConsumableTypeImbue`                                          | `consumables_imbues_auto_gen.go`     | `NewSpellDataTemporaryEnchant`  |
-| `ConsumableTypeExplosive` that routes as `damage`              | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`         |
-| potions (category 4) and `ConsumableTypeConjured`              | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
-| other consumables that route as `heal`, `energize` or `absorb` | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`   |
-| other consumables that route as `stat aura`                    | `consumable_stats_auto_gen.go`       | `NewSpellDataStatConsumable`    |
+| family                                                         | file                                 | builder                        |
+| -------------------------------------------------------------- | ------------------------------------ | ------------------------------ |
+| `ConsumableTypeImbue`                                          | `consumables_imbues_auto_gen.go`     | `NewSpellDataTemporaryEnchant` |
+| `ConsumableTypeExplosive` that routes as `damage`              | `consumables_explosives_auto_gen.go` | `NewSpellDataExplosive`        |
+| potions (category 4) and `ConsumableTypeConjured`              | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`  |
+| other consumables that route as `heal`, `energize` or `absorb` | `consumables_potions_auto_gen.go`    | `NewSpellDataOnUseConsumable`  |
+| other consumables that route as `stat aura`                    | `consumable_stats_auto_gen.go`       | `NewSpellDataStatConsumable`   |
 
 The potion builder runs one spell on the user: a heal, an absorb, a gain of mana, rage or energy, damage
 to the user and the auras the parser attaches. A potion shares category 4's timer and is a major
@@ -351,9 +351,8 @@ should not take is a hand-written effect for the consumable.
 - `TestAConsumableTakesItsExclusiveGroup`, `TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory`
   and `TestEveryExclusiveGroupOverrideShips` (`tools/database`) pin the groups; the stat builder's
   tests which consumables of one group apply and which stack.
-- `ui/sim/settings/consumables.test.ts` pins the pickers and the relevance rules below,
-  `ConsumesPicker/utils.test.ts` the settings rows, and `consumes_migration.test.ts` the migration of
-  settings saved before api version 2.
+- `ui/sim/settings/consumables.test.ts` pins the pickers and the relevance rules below, and
+  `ConsumesPicker/utils.test.ts` the settings rows.
 
 ## What the settings offer
 
@@ -412,17 +411,3 @@ enchant with it.
 
 `TestRequestCarriesEveryConsumableThePresetSelects` (`sim/common`) runs a warrior once with every
 consumable loaded and once with only those a request carries, and checks both apply the same.
-
-Settings saved before api version 2 name the Goblin Sapper Charge, the scrolls, Bogling Root and the
-pet's scrolls by flags, drums by an enum and the pet's food by an id. `REMOVED_CONSUMES_FIELDS`
-(`ui/sim/proto/consumes_migration.ts`) names each removed field with the item a set flag selected and
-the number it had in the two layouts a link may carry: version 1's, and the one from before the
-version restarted at 1, whose links are stamped 16. The same file turns a link's (binary, by field
-number, `sim_links.ts`) or a saved blob's (JSON, by name) flags into item ids and the spell ids the
-explosive and imbue fields held into the items that cast them; `migrateLegacyConsumes` does it for
-both JSON shapes, saved settings and a sim's settings, and drops the party's drums. The pet's scroll
-flags and `pet_extra_ids` (20 in a version-2 link) are dropped, and the Battle and Guardian elixirs
-(3 and 4 in every layout) are rows of the same table whose `moveTo` puts their item ids into
-`elixir_ids`. A current link with no unknown fields is left as it is.
-`TestRemovedConsumesFieldsStayReserved` (`sim/core`) keeps every one of those fields reserved in
-`ConsumesSpec`, version 1's by number as well.

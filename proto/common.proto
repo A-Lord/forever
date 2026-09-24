@@ -16,10 +16,11 @@ extend google.protobuf.MessageOptions {
 }
 
 message ProtoVersion {
-	// The version the UI stamps every api_version field with. Settings saved
-	// before version 2 name the consumables by flags, which
-	// ui/sim/proto/consumes_migration.ts turns into item ids.
-	option (current_version_number) = 2;
+	// The version the UI stamps every api_version field with. The sim is not
+	// deployed anywhere, so no saved browser data or sim link predates this
+	// number and nothing converts one: a breaking proto change simply breaks
+	// whatever a browser still holds.
+	option (current_version_number) = 1;
 
 	// The actual field value is only used within unit tests.
 	int32 saved_version_number = 1;
@@ -435,27 +436,19 @@ enum TristateEffect {
 message ConsumesSpec {
 	int32 pot_id = 1;
 	int32 flask_id = 2;
-	reserved 3, 4;
 	int32 food_id = 5;
 	int32 conjured_id = 6;
 	int32 explosive_id = 7;
-	reserved 8, 9;
 	int32 mhImbue_id = 10;
 	int32 ohImbue_id = 11;
-	reserved 12 to 16;
 	// Contains all available potions
 	repeated int32 potions = 17;
 	// Contains all available conjured items
 	repeated int32 conjured_items = 18;
 	// Item ids of the consumables the character uses besides the one-per-kind fields above.
 	repeated int32 extra_ids = 19;
-	reserved 20;
 	// Item ids of the elixirs the character uses, any number of them.
 	repeated int32 elixir_ids = 21;
-
-	reserved "goblinSapper", "bogling_root", "scroll_agi", "scroll_str", "scroll_int", "scroll_spi", "scroll_arm",
-		"superSapper", "drums_id", "pet_scroll_agi", "pet_scroll_str", "nightmare_seed", "bloodthistle", "pet_food_id",
-		"pet_extra_ids", "battle_elixir_id", "guardian_elixir_id";
 }
 
 enum MobType {

@@ -1,4 +1,3 @@
-import { CURRENT_API_VERSION } from '@sim/constants/other';
 import { PlayerSpecs } from '@sim/player/specs';
 import { SETTINGS_STORAGE_SUFFIX, SHARED_SAVED_ENCOUNTER_STORAGE_KEY } from '@sim/state/persistence';
 import {
@@ -46,13 +45,5 @@ describe('the storage keys SimHostObject builds', () => {
 	// The one key that is deliberately not spec-prefixed, so saved encounters are shared by every sim.
 	it('keeps the saved encounter key out of the spec prefix', () => {
 		expect(SHARED_SAVED_ENCOUNTER_STORAGE_KEY.startsWith('__forever')).toBe(false);
-	});
-});
-
-describe('the settings envelope version', () => {
-	// Version 2 turned the consumables' flags into item ids and dropped the drums, migrated by
-	// ui/sim/proto/consumes_migration.ts.
-	it('matches the version the settings envelope is stamped with', () => {
-		expect(CURRENT_API_VERSION).toBe(2);
 	});
 });
