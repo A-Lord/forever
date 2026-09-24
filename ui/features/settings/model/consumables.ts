@@ -30,26 +30,13 @@ const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offer
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'race'];
 
-// The flask and the elixirs exclude each other: picking one clears the other.
-const withExclusions = <F extends ConsumableIdField | 'elixirIds'>(
-	consumes: ConsumesSpec,
-	field: F,
-	newValue: ConsumesSpec[F],
-	picked: boolean,
-): ConsumesSpec => {
-	const newConsumes = { ...consumes, [field]: newValue };
-	if (picked && field === 'flaskId') newConsumes.elixirIds = [];
-	if (picked && field === 'elixirIds') newConsumes.flaskId = 0;
-	return newConsumes;
-};
-
 export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, options: ConsumableInputOptions) =>
 	consumablePicker(
 		consumables,
 		relevance,
 		options,
 		consumes => consumes[options.consumesFieldName],
-		(consumes, newValue) => withExclusions(consumes, options.consumesFieldName, newValue, newValue !== 0),
+		(consumes, newValue) => ({ ...consumes, [options.consumesFieldName]: newValue }),
 	);
 
 // One elixir group's pick: at most one of the group's elixirs in the spec's elixir list.
@@ -60,8 +47,7 @@ export const makeElixirGroupInput = (elixirs: ReadonlyArray<Consumable>, relevan
 		relevance,
 		{ tooltip },
 		consumes => consumes.elixirIds.find(id => ids.has(id)) ?? 0,
-		(consumes, newValue) =>
-			withExclusions(consumes, 'elixirIds', [...consumes.elixirIds.filter(id => !ids.has(id)), ...(newValue ? [newValue] : [])], newValue !== 0),
+		(consumes, newValue) => ({ ...consumes, elixirIds: [...consumes.elixirIds.filter(id => !ids.has(id)), ...(newValue ? [newValue] : [])] }),
 	);
 };
 

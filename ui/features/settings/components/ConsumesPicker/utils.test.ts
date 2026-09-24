@@ -161,13 +161,12 @@ describe('consumeConfigs', () => {
 		expect(state.consumes.elixirIds).toEqual([12820]);
 	});
 
-	it('clears the elixirs for a flask and the flask for an elixir', () => {
-		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206, 12820] }) });
+	it('keeps the elixirs beside a flask', () => {
+		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206] }) });
 		const configs = consumeConfigs(player, db);
 		configs.flask.setValue(player, 13510);
-		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([13510, []]);
-		configs.elixirs[0].setValue(player, 9206);
-		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([0, [9206]]);
+		configs.elixirs[2].setValue(player, 12820);
+		expect([state.consumes.flaskId, state.consumes.elixirIds]).toEqual([13510, [9206, 12820]]);
 	});
 
 	it('toggles an item in the extra ids', () => {

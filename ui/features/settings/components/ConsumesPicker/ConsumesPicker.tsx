@@ -1,4 +1,3 @@
-import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { Database } from '@sim/proto/database';
@@ -38,7 +37,6 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					<div data-testid="consumes-flasks">
 						<IconEnumPicker modObject={player} config={configs.flask} />
 					</div>
-					<span className="flex w-6 items-center justify-center">{i18n.t('settings_tab.consumables.elixirs.separator')}</span>
 					{configs.elixirs.map((config, i) => (
 						<IconEnumPicker key={i} modObject={player} config={config} />
 					))}

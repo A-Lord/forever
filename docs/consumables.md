@@ -140,7 +140,7 @@ applies, which `Consumable.ToProto` writes into db.json as `elixir_group_aura` a
 Elixir of Agility 8949 and Elixir of the Mongoose 13452 both open on `A_MOD_STAT` Agility (29/1), so
 only one of them applies; Elixir of the Sages 13447 (29/3, Intellect then Spirit) and Elixir of the
 Whale 250348 (29/4, Spirit) stack, and so do Arcane Elixir 9155 (`A_MOD_DAMAGE_DONE` every school,
-13/126) and Elixir of Fire Power 6373 (13/4). The flask excludes every elixir in the settings.
+13/126) and Elixir of Fire Power 6373 (13/4). A flask stacks with every elixir.
 
 `shared.NewVersusPotion`, which `sim/common/forever/consumables_versus.go` registers Potion of
 Demonslaying 9224 with by hand, is the potion builder with its spell 11406's `A_MOD_*_VERSUS` auras put
@@ -320,7 +320,7 @@ everything else takes its item subclass.
 
 Of the ranks of one name (Scroll of Agility .. IV) the settings offer the highest numeral among those
 the player is offered, so a top rank the class, the hand or the profession rules out leaves the rank
-below it in the picker. The UI keeps the rows and their text, the flask and elixir exclusion and the
+below it in the picker. The UI keeps the rows and their text and the
 Windfury Totem rule for the main-hand imbue. `Player.getConsumes(true)` sends the relevant potions and conjured items as
 the spec's lists.
 

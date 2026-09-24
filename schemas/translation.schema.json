@@ -2360,13 +2360,10 @@
 							"properties": {
 								"title": {
 									"type": "string"
-								},
-								"separator": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "separator"]
+							"required": ["title"]
 						},
 						"food": {
 							"type": "object",
