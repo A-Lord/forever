@@ -13053,6 +13053,15 @@ var generatedSpells = []Spell{
 			{ID: 693488, SpellID: 16316, Type: dbcenums.E_360, BasePoints: 1800, SpellLevel: 54, PvpMult: 1, Misc: 1664, ChainAmp: 1},
 		},
 		Powers: []Power{{Cost: 150}}},
+	{ID: 16323, Name: "Juju Power", School: 8, Attr: [17]uint32{0: 0x10100, 15: 0x2000}, SpellLevel: 65, MaxLevel: 65, DurationMs: 1800000, MaxRange: 20, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
+		Effects: []Effect{
+			{ID: 693528, SpellID: 16323, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STAT, BasePoints: 30, SpellLevel: 65, MaxLevel: 65, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
+		}},
+	{ID: 16329, Name: "Juju Might", School: 2, Attr: [17]uint32{0: 0x10100, 2: 0x80000, 15: 0x2000}, SpellLevel: 50, DurationMs: 600000, MaxRange: 20, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 6, Mask: [4]uint32{0: 2147483648}}, StanceMask: 0x8000000,
+		Effects: []Effect{
+			{ID: 693538, SpellID: 16329, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER, BasePoints: 40, SpellLevel: 50, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
+			{ID: 870621, SpellID: 16329, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RANGED_ATTACK_POWER, BasePoints: 40, SpellLevel: 50, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
+		}},
 	{ID: 16339, Name: "Flametongue Weapon", Rank: "Rank 4", School: 4, Attr: [17]uint32{0: 0x50200, 15: 0x2000}, SpellLevel: 36, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, EquipClass: 2, EquipSubclass: 173555, RefIDs: []int32{10445},
 		Effects: []Effect{
 			{ID: 694389, SpellID: 16339, Type: dbcenums.E_360, BasePoints: 1800, SpellLevel: 36, PvpMult: 1, Misc: 523, ChainAmp: 1},

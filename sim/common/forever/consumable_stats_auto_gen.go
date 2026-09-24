@@ -116,6 +116,8 @@ func RegisterAllStatConsumables() {
 	shared.NewSpellDataStatConsumable(12216)  // Spiced Chili Crab
 	shared.NewSpellDataStatConsumable(12218)  // Monster Omelet
 	shared.NewSpellDataStatConsumable(12224)  // Crispy Bat Wing
+	shared.NewSpellDataStatConsumable(12451)  // Juju Power
+	shared.NewSpellDataStatConsumable(12460)  // Juju Might
 	shared.NewSpellDataStatConsumable(12820)  // Winterfall Firewater
 	shared.NewSpellDataStatConsumable(13445)  // Elixir of Greater Defense
 	shared.NewSpellDataStatConsumable(13447)  // Elixir of the Sages
