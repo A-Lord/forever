@@ -16,31 +16,33 @@ func NewTemporaryEnchantConsumable(itemID int32) {
 	})
 }
 
-func applyTemporaryEnchant(character *core.Character, consumable core.Consumable) {
+// Returns the number of hands carrying the enchant.
+func applyTemporaryEnchant(character *core.Character, consumable core.Consumable) int {
 	enchant := consumable.TemporaryEnchant
 	if enchant == nil {
-		return
+		return 0
 	}
 
-	enchanted := false
+	hands := 0
 	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
 		if character.Equipment[slot].TempEnchant != enchant.EffectID {
 			continue
 		}
-		enchanted = true
+		hands++
 		character.AddStats(enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats)))
 		if weapon := handWeapon(character, slot); weapon != nil && enchant.WeaponDamage != 0 {
 			weapon.BaseDamageMin += enchant.WeaponDamage
 			weapon.BaseDamageMax += enchant.WeaponDamage
 		}
 	}
-	if !enchanted {
-		return
+	if hands == 0 {
+		return 0
 	}
 
 	for _, effect := range enchant.EnchantEffects {
 		registerTemporaryEnchantCombatSpell(character, consumable, effect)
 	}
+	return hands
 }
 
 func handWeapon(character *core.Character, slot proto.ItemSlot) *core.Weapon {

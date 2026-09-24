@@ -49,15 +49,7 @@ func NewVersusPotion(itemID int32) {
 func NewVersusTemporaryEnchant(itemID, equipSpellID int32) {
 	core.NewConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
-		consumable := core.GetConsumableByID(itemID)
-		applyTemporaryEnchant(character, consumable)
-
-		hands := 0
-		for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
-			if consumable.TemporaryEnchant != nil && character.Equipment[slot].TempEnchant == consumable.TemporaryEnchant.EffectID {
-				hands++
-			}
-		}
+		hands := applyTemporaryEnchant(character, core.GetConsumableByID(itemID))
 		if hands == 0 {
 			return
 		}
@@ -70,6 +62,18 @@ func NewVersusTemporaryEnchant(itemID, equipSpellID int32) {
 		aura := character.GetOrRegisterAura(spelldata.AuraConfig(row, spelldata.Permanent()))
 		attachVersusBonus(character, aura, bonus)
 	})
+}
+
+// The stats the row's versus auras grant, whatever creature types they name.
+func VersusStats(row *spelldata.Spell, level int32) stats.Stats {
+	var granted stats.Stats
+	for i := range row.Effects {
+		e := &row.Effects[i]
+		if stat, ok := versusAuras[e.Aura]; ok && e.Type == dbcenums.E_APPLY_AURA {
+			granted[stat] += e.Average(level)
+		}
+	}
+	return granted
 }
 
 func versusBonus(row *spelldata.Spell, level int32) map[proto.MobType]stats.Stats {
