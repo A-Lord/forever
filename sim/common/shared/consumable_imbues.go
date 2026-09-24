@@ -9,7 +9,7 @@ import (
 
 // A temporary enchant consumable, applied to each hand core put its enchant on: the enchant's stats
 // once per hand, its flat weapon damage on that hand's weapon, and each combat spell cast off that
-// hand's hits at the chance its slot states. The flat damage is the item's per swing: a hand swinging
+// hand's hits at the chance its row states. The flat damage is the item's per swing: a hand swinging
 // at another speed, a druid's paw, takes the same damage per second.
 func NewTemporaryEnchantConsumable(itemID int32) {
 	core.NewDataDrivenConsumableEffect(itemID, func(agent core.Agent) {
@@ -59,7 +59,7 @@ func registerTemporaryEnchantCombatSpell(character *core.Character, consumable c
 	damage := spelldata.MustFind(effect.BuffId)
 	damageSpell := character.RegisterSpell(spellDataProcDamageSpell(character, damage, true))
 	enchantID := consumable.TemporaryEnchant.EffectID
-	chance := effect.GetProc().GetProcChance()
+	chance := damage.StatedChance()
 
 	config := spelldata.ProcTrigger(character, damage, nil, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
 		trigger.ProcChance = 0

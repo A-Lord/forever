@@ -59,9 +59,7 @@ func TestTemporaryEnchantWeaponDamageGoesOnItsHand(t *testing.T) {
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	shadowOil := core.Consumable{Id: 3824, Name: "Shadow Oil", TemporaryEnchant: &core.Enchant{
 		EffectID: 25,
-		EnchantEffects: []*proto.ItemEffect{{BuffId: 350026, Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{
-			ProcRate: &proto.ProcEffect_ProcChance{ProcChance: 0.15},
-		}}}},
+		EnchantEffects: []*proto.ItemEffect{{BuffId: 350026, Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}}},
 	}}
 
 	character := newTestAgent().character

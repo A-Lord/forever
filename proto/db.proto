@@ -77,8 +77,8 @@ message Consumable {
 	int32 weapon_subclass_mask = 16;
 	int32 weapon_inventory_type_mask = 17;
 	// The SpellItemEnchantment row a temporary enchant applies to the weapon. Its enchant_effects are
-	// the combat spells it casts off that weapon's hits, each at the chance its slot states. Absent on
-	// consumables that enchant nothing.
+	// the combat spells it casts off that weapon's hits, each at the chance its spell's row states.
+	// Absent on consumables that enchant nothing.
 	SimEnchant temporary_enchant = 18;
 	// Empty when every race can use it.
 	repeated Race race_allowlist = 19;

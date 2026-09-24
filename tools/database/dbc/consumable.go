@@ -43,8 +43,9 @@ func IsTemporaryEnchantEffect(effect dbcenums.SpellEffectType) bool {
 }
 
 // The enchant as the enchant table reads a permanent one: stats and pseudo stats from its stat,
-// resistance and equip spell slots, and its flat weapon damage. A combat spell slot adds the spell it
-// casts off the enchanted weapon's hits, at the chance the slot states.
+// resistance and equip spell slots, and its flat weapon damage. A combat spell slot that states a
+// chance adds the spell it casts off the enchanted weapon's hits; the store writes the chance onto
+// that spell's row.
 func (t TemporaryEnchant) ToProto() *proto.SimEnchant {
 	enchant := Enchant{EffectId: t.ID, Effects: t.Effects[:], EffectPoints: t.Points[:], EffectArgs: t.Args[:], IsWeaponEnchant: true}
 	parsed := enchant.ToProto()
@@ -64,9 +65,7 @@ func (t TemporaryEnchant) ToProto() *proto.SimEnchant {
 		}
 		simEnchant.EnchantEffects = append(simEnchant.EnchantEffects, &proto.ItemEffect{
 			BuffId: spellID,
-			Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{
-				ProcRate: &proto.ProcEffect_ProcChance{ProcChance: float64(chancePct) / 100},
-			}},
+			Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}},
 		})
 	}
 	return simEnchant
