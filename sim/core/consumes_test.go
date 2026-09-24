@@ -23,15 +23,15 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		PetExtraIds:   []int32{10310},
 	}
 
-	got := selectedConsumableIDs(consumes, &proto.PartyBuffs{})
+	got := selectedConsumableIDs(consumes, true)
 	want := []int32{13444, 13510, 238637, 18588, 12404, 20749, 10646, 10309, 10305, 5206, 13446, 7676}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}
 
-	underWindfury := selectedConsumableIDs(consumes, &proto.PartyBuffs{WindfuryTotem: proto.TristateEffect_TristateEffectRegular})
-	if slices.Contains(underWindfury, 20749) {
-		t.Errorf("selected the main-hand imbue under Windfury Totem: %v", underWindfury)
+	bareMainHand := selectedConsumableIDs(consumes, false)
+	if slices.Contains(bareMainHand, 20749) {
+		t.Errorf("selected the main-hand imbue while the main hand carries no enchant: %v", bareMainHand)
 	}
 }
 

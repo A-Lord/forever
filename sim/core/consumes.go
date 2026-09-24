@@ -15,9 +15,8 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 		return
 	}
 
-	selected := selectedConsumableIDs(consumables, partyBuffs)
-
 	applyTemporaryEnchants(character, consumables, partyBuffs)
+	selected := selectedConsumableIDs(consumables, character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant != 0)
 
 	// Pet Consumes
 	for _, pet := range character.Pets {
@@ -92,13 +91,12 @@ func consumableInDatabase(id int32) bool {
 	return !WITH_DB || GetConsumableByID(id).Id != 0
 }
 
-// The agent's own consumables the spec names, each once. The main-hand imbue is left out under
-// Windfury Totem, which applyTemporaryEnchants keeps off the main hand too; the pet's food and
-// extra ids are the pet's.
-func selectedConsumableIDs(consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) []int32 {
+// The agent's own consumables the spec names, each once. The main-hand imbue counts only where
+// applyTemporaryEnchants put its enchant on the main hand; the pet's food and extra ids are the pet's.
+func selectedConsumableIDs(consumables *proto.ConsumesSpec, mainHandEnchanted bool) []int32 {
 	ids := []int32{consumables.PotId, consumables.FlaskId, consumables.BattleElixirId, consumables.GuardianElixirId,
 		consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId, consumables.OhImbueId}
-	if partyBuffs.WindfuryTotem == proto.TristateEffect_TristateEffectMissing {
+	if mainHandEnchanted {
 		ids = append(ids, consumables.MhImbueId)
 	}
 	ids = append(ids, consumables.ExtraIds...)
