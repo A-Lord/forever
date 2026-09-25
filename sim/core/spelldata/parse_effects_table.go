@@ -520,22 +520,34 @@ func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 }
 
 // A stat the unit has against the mob types a creature type mask names, which the sim keeps on the
-// attack tables. The tables exist only once the environment is set up, so the static path skips it.
+// attack tables.
 func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
 	stat := versusStats[e.Aura]
 	mobTypes := MobTypes(e.Misc)
-	if p.static || len(mobTypes) == 0 {
+	if len(mobTypes) == 0 {
 		return nil
 	}
 
 	a := additive("mob-type-stat "+stat.StatName(), v, func(_ *core.Simulation, delta float64) {
 		var bonus stats.Stats
 		bonus[stat] = delta
-		p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
+		p.onAttackTables(func() {
+			p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
+		})
 	})
 	// A bonus against other creature types does not compete with this one.
 	a.key = fmt.Sprintf("%sVersus%d", stat.StatName(), e.Misc)
 	return a
+}
+
+// The attack tables exist once the environment is finalized, so the static path, which runs while
+// the unit is being built, acts on them after that; an aura's gain acts at once.
+func (p *parser) onAttackTables(apply func()) {
+	if env := p.unit.Env; p.static && env != nil && !env.IsFinalized() {
+		env.RegisterPostFinalizeEffect(apply)
+		return
+	}
+	apply()
 }
 
 func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {

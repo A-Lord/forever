@@ -366,7 +366,9 @@ speed multipliers - so a port writes which row it is reading rather than what th
 spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents.Cruelty))
 ```
 
-`ParseStatic` applies now and never comes off, which is what a talent or a class passive is.
+`ParseStatic` applies now and never comes off, which is what a talent or a class passive is. A bonus
+against a creature type lives on the attack tables, which exist once the environment is finalized, so
+the static path puts it there from a post-finalize effect.
 `ParseEffects(character, aura, row, opts...)` makes the same attachments follow an aura: they turn on
 when it is gained, off when it expires, and scale with its stacks where the row states
 `CumulativeAura`.
@@ -448,12 +450,12 @@ Rows the table does know are skipped by the shape of the parse. A value the sim 
 per unit cannot be applied once per stack, and the static path has no aura to follow and no
 `Simulation` to answer a later `Refresh` with:
 
-|                                     | skips                                                                                                                                                                                                                                                                 |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier                                                                                                                                           |
-| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over, and the bonuses against a creature type (`A_MOD_MELEE_ATTACK_POWER_VERSUS`, `A_MOD_RANGED_ATTACK_POWER_VERSUS`, `A_MOD_FLAT_SPELL_DAMAGE_VERSUS`), whose attack tables do not exist yet |
-| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                                                                                                                                                                |
-| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                                                                                                                                                                  |
+|                                     | skips                                                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier |
+| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
+| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
+| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.

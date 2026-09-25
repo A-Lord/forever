@@ -44,8 +44,36 @@ func TestAVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
 		t.Errorf("attack power against Undead after expiry: %v, want 0", got)
 	}
 
-	if parsed := ParseStatic(parseWarrior(), row); len(parsed.Applied) != 0 {
-		t.Errorf("the static path attached %v, want nothing before the attack tables exist", appliedKinds(parsed))
+}
+
+// The static path runs while the unit is being built, before the attack tables exist, so it puts
+// the bonus on them once the environment is finalized.
+func TestAStaticVersusRowWaitsForTheAttackTables(t *testing.T) {
+	withRows(t, parseRows())
+	row := oneEffectRow(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, 32, 99)
+	undeadTable := func(character *core.Character) *core.AttackTable {
+		table := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
+		character.AttackTables = []*core.AttackTable{table}
+		return table
+	}
+
+	building := parseWarrior()
+	building.Env = &core.Environment{}
+	table := undeadTable(building)
+	parsed := ParseStatic(building, row)
+	if kinds := appliedKinds(parsed); !slices.Equal(kinds, []string{"mob-type-stat AttackPower"}) {
+		t.Fatalf("the static path attached %v, want the bonus against Undead", kinds)
+	}
+	if got := table.MobTypeBonusStats[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 0 {
+		t.Errorf("attack power against Undead before the environment is finalized: %v, want 0", got)
+	}
+
+	finalized := parseWarrior()
+	finalized.Env = &core.Environment{State: core.Finalized}
+	table = undeadTable(finalized)
+	ParseStatic(finalized, row)
+	if got := table.MobTypeBonusStats[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 99 {
+		t.Errorf("attack power against Undead once finalized: %v, want 99", got)
 	}
 }
 
