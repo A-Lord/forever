@@ -2195,6 +2195,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		272438, // Weakness Analyzer
+		[
+			"Increases your critical strike chance with all spells and attacks by 5% for 20s or until you deal a non-periodic critical effect.", // 1291101 - https://www.wowhead.com/forever/spell=1291101
+		]
+	],
+	[
 		272440, // Defender's Grip Stabilizer
 		[
 			"Increases your Block chance by 8% for 15s. This effect is doubled in Strongholds and Cities.", // 1291105 - https://www.wowhead.com/forever/spell=1291105
