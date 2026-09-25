@@ -553,7 +553,7 @@ func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
 		if level > 0 {
 			p.unit.MultiplyDamageVersus(mult, false, mobTypes...)
 		} else {
-			p.unit.DivideDamageVersus(mult, false, mobTypes...)
+			p.unit.MultiplyDamageVersus(1/mult, false, mobTypes...)
 		}
 	})
 	active := false
