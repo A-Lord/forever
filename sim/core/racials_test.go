@@ -296,3 +296,32 @@ func TestSwordSpecializationReachesTheSwordAlone(t *testing.T) {
 		}
 	}
 }
+
+// The Sword Specialization aura is up while a hand holds a sword, and its crit goes with it.
+func TestSwordSpecializationAuraFollowsTheSword(t *testing.T) {
+	sim, character := setupWeaponSimAs(t, proto.Race_RaceHuman,
+		weaponSlots(equipTestSwordID, equipTestDaggerID, 0),
+		weaponSlots(equipTestDaggerID, equipTestShieldID, 0))
+	aura := character.GetAura("Sword Specialization")
+	if aura == nil {
+		t.Fatal("a human has no Sword Specialization aura")
+	}
+	mhAuto := character.AutoAttacks.MHAuto()
+
+	check := func(when string, active bool, crit float64) {
+		t.Helper()
+		if aura.IsActive() != active {
+			t.Errorf("%s: aura active = %v, want %v", when, aura.IsActive(), active)
+		}
+		if mhAuto.BonusCritPercent != crit {
+			t.Errorf("%s: main-hand auto has %v%% crit, want %v%%", when, mhAuto.BonusCritPercent, crit)
+		}
+	}
+	check("sword in the main hand", true, 2)
+
+	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+	check("dagger and shield", false, 0)
+
+	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
+	check("sword swapped back", true, 2)
+}

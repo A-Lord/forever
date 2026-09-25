@@ -49,4 +49,9 @@ func TestArmsTalentsReachTheTwoHandedAxe(t *testing.T) {
 	if crit := warrior.AutoAttacks.MHAuto().BonusCritPercent; crit != 11 {
 		t.Errorf("two-handed axe crit = %0.2f%%, want 11%%", crit)
 	}
+	for _, label := range []string{"Axe Specialization", "Weaponmaster (Axe/Polearm)"} {
+		if aura := warrior.GetAura(label); aura == nil || !aura.IsActive() {
+			t.Errorf("%s is not up with a two-handed axe", label)
+		}
+	}
 }

@@ -280,21 +280,31 @@ func (warrior *Warrior) registerWeaponmaster() {
 	mainHandIs := func(weaponTypes ...proto.WeaponType) bool {
 		return warrior.GetProcMaskForTypes(weaponTypes...).Matches(core.ProcMaskMeleeMH)
 	}
-	var armorIgnoreOn bool
+	var critOn, armorIgnoreOn bool
 	var swordMask core.ProcMask
 	readWeapons := func() {
+		critOn = warrior.GetProcMaskForTypes(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm).Matches(core.ProcMaskMelee)
 		armorIgnoreOn = mainHandIs(proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff)
 		swordMask = warrior.GetProcMaskForTypes(proto.WeaponType_WeaponTypeSword)
 	}
 	readWeapons()
 
-	// The crit reaches the attacks made with an axe or a polearm, in either hand.
-	warrior.AddStaticMod(core.SpellModConfig{
+	// The aura is up while either hand holds an axe or a polearm, and its crit reaches the attacks
+	// made with one.
+	critAura := warrior.RegisterAura(core.Aura{
+		Label:      "Weaponmaster (Axe/Polearm)",
+		ActionID:   actionID.WithTag(1),
+		Duration:   core.NeverExpires,
+		BuildPhase: core.Ternary(critOn, core.CharacterBuildPhaseTalents, core.CharacterBuildPhaseNone),
+	}).AttachSpellMod(core.SpellModConfig{
 		Kind:          core.SpellMod_BonusCrit_Percent,
 		FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
 		ProcMask:      core.ProcMaskMelee,
 		EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm),
 	})
+	if critOn {
+		core.MakePermanent(critAura)
+	}
 
 	armorIgnore := spellData.Weaponmaster.EffectAt(2).FractionAt(rank)
 	addArmorIgnore := func(delta float64) {
@@ -350,6 +360,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 	}
 	warrior.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, slot proto.ItemSlot) {
 		readWeapons()
+		setActive(sim, critAura, critOn)
 		setActive(sim, armorIgnoreAura, armorIgnoreOn)
 	})
 }
