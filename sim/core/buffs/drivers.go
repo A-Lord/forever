@@ -295,3 +295,19 @@ func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		},
 	})
 }
+
+// Annihilator procs often enough to keep all three stacks on the target.
+func driveArmorShatter(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
+	aura := core.MakePermanent(NewSpellDataArmorShatterAura(target, false, 0))
+	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		aura.SetStacks(sim, aura.MaxStacks)
+	})
+}
+
+// The client states one stack, so the raid's copy takes it as soon as it lands.
+func driveDustCloud(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
+	aura := core.MakePermanent(NewSpellDataDustCloudAura(target, false, 0))
+	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		aura.SetStacks(sim, aura.MaxStacks)
+	})
+}

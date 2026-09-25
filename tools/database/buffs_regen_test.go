@@ -152,4 +152,6 @@ var pinnedCategories = map[string]string{
 	"shadow_resistance_aura":      "ShadowResistanceAura",
 	"devotion_aura":               "DevotionAura",
 	"furious_howl":                "FuriousHowl",
+	"hex_of_weakness":             "Demoralizing",
+	"demoralizing_screech":        "Demoralizing",
 }

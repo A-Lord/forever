@@ -548,4 +548,60 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatDefenseRating,
 		},
 	},
+	// Every flat attack-power reduction on a target bids in one category: the strongest applies.
+	{
+		Field:      "hex_of_weakness",
+		SpellID:    19285,
+		Category:   "Demoralizing",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	{
+		Field:      "demoralizing_screech",
+		SpellID:    24579,
+		Owner:      proto.Class_ClassHunter,
+		Category:   "Demoralizing",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	{
+		Field:      "curse_of_weakness",
+		SpellID:    11708,
+		Category:   "CurseOfWeakness",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	// The client states one stack, and a stacking row's amount follows its stacks, so the raid's
+	// copy takes it from a driver rather than sitting at zero.
+	{
+		Field:      "dust_cloud",
+		SpellID:    1265904,
+		CastID:     1265911,
+		Category:   "DustCloud",
+		SingleAura: true,
+		Driver:     true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	// Annihilator's proc keeps the stacks up, so the raid's copy holds all three from the start.
+	{
+		Field:      "armor_shatter",
+		SpellID:    16928,
+		Category:   "ArmorShatter",
+		SingleAura: true,
+		Driver:     true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
 }

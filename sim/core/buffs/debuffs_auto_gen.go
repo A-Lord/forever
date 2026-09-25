@@ -283,6 +283,106 @@ func NewSpellDataScorpidStingAura(unit *core.Unit, isPlayer bool, talentPoints i
 	return newDebuff(unit, scorpidStingMeta, isPlayer, talentPoints)
 }
 
+// Hex of Weakness
+var HexOfWeaknessCategory = "Demoralizing"
+var hexOfWeaknessSpell = spelldata.MustFind(19285)
+var hexOfWeaknessMeta = &Meta{
+	Label:      "Hex of Weakness",
+	Spell:      hexOfWeaknessSpell,
+	Category:   HexOfWeaknessCategory,
+	SingleAura: true,
+}
+
+func HexOfWeaknessValue(talentPoints int32) float64 {
+	return hexOfWeaknessMeta.Value(talentPoints)
+}
+func HexOfWeaknessDuration(talentPoints int32) time.Duration {
+	return hexOfWeaknessMeta.Duration(talentPoints)
+}
+func NewSpellDataHexOfWeaknessAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, hexOfWeaknessMeta, isPlayer, talentPoints)
+}
+
+// Demoralizing Screech
+var DemoralizingScreechCategory = "Demoralizing"
+var demoralizingScreechSpell = spelldata.MustFind(24579)
+var demoralizingScreechMeta = &Meta{
+	Label:      "Demoralizing Screech",
+	Spell:      demoralizingScreechSpell,
+	Category:   DemoralizingScreechCategory,
+	SingleAura: true,
+}
+
+func DemoralizingScreechValue(talentPoints int32) float64 {
+	return demoralizingScreechMeta.Value(talentPoints)
+}
+func DemoralizingScreechDuration(talentPoints int32) time.Duration {
+	return demoralizingScreechMeta.Duration(talentPoints)
+}
+func NewSpellDataDemoralizingScreechAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, demoralizingScreechMeta, isPlayer, talentPoints)
+}
+
+// Curse of Weakness
+var CurseOfWeaknessCategory = "CurseOfWeakness"
+var curseOfWeaknessSpell = spelldata.MustFind(11708)
+var curseOfWeaknessMeta = &Meta{
+	Label:      "Curse of Weakness",
+	Spell:      curseOfWeaknessSpell,
+	Category:   CurseOfWeaknessCategory,
+	SingleAura: true,
+}
+
+func CurseOfWeaknessValue(talentPoints int32) float64 {
+	return curseOfWeaknessMeta.Value(talentPoints)
+}
+func CurseOfWeaknessDuration(talentPoints int32) time.Duration {
+	return curseOfWeaknessMeta.Duration(talentPoints)
+}
+func NewSpellDataCurseOfWeaknessAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, curseOfWeaknessMeta, isPlayer, talentPoints)
+}
+
+// Dust Cloud
+var DustCloudCategory = "DustCloud"
+var dustCloudSpell = spelldata.MustFind(1265904)
+var dustCloudMeta = &Meta{
+	Label:      "Dust Cloud",
+	Spell:      dustCloudSpell,
+	Category:   DustCloudCategory,
+	SingleAura: true,
+}
+
+func DustCloudValue(talentPoints int32) float64 {
+	return dustCloudMeta.Value(talentPoints)
+}
+func DustCloudDuration(talentPoints int32) time.Duration {
+	return dustCloudMeta.Duration(talentPoints)
+}
+func NewSpellDataDustCloudAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, dustCloudMeta, isPlayer, talentPoints)
+}
+
+// Armor Shatter
+var ArmorShatterCategory = "ArmorShatter"
+var armorShatterSpell = spelldata.MustFind(16928)
+var armorShatterMeta = &Meta{
+	Label:      "Armor Shatter",
+	Spell:      armorShatterSpell,
+	Category:   ArmorShatterCategory,
+	SingleAura: true,
+}
+
+func ArmorShatterValue(talentPoints int32) float64 {
+	return armorShatterMeta.Value(talentPoints)
+}
+func ArmorShatterDuration(talentPoints int32) time.Duration {
+	return armorShatterMeta.Duration(talentPoints)
+}
+func NewSpellDataArmorShatterAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, armorShatterMeta, isPlayer, talentPoints)
+}
+
 func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	if debuffs.HuntersMark {
 		core.MakePermanent(NewSpellDataHuntersMarkAura(target, false, 0))
@@ -325,5 +425,20 @@ func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *prot
 	}
 	if debuffs.ScorpidSting {
 		core.MakePermanent(NewSpellDataScorpidStingAura(target, false, 0))
+	}
+	if debuffs.HexOfWeakness {
+		core.MakePermanent(NewSpellDataHexOfWeaknessAura(target, false, 0))
+	}
+	if debuffs.DemoralizingScreech {
+		core.MakePermanent(NewSpellDataDemoralizingScreechAura(target, false, 0))
+	}
+	if debuffs.CurseOfWeakness {
+		core.MakePermanent(NewSpellDataCurseOfWeaknessAura(target, false, 0))
+	}
+	if debuffs.DustCloud {
+		driveDustCloud(target, debuffs, raid)
+	}
+	if debuffs.ArmorShatter {
+		driveArmorShatter(target, debuffs, raid)
 	}
 }

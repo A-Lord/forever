@@ -342,6 +342,36 @@ export const ScorpidSting = makeBooleanDebuffInput({
 	label: 'Scorpid Sting',
 });
 
+export const HexOfWeakness = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(19285),
+	fieldName: 'hexOfWeakness',
+	label: 'Hex of Weakness',
+});
+
+export const DemoralizingScreech = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(24579),
+	fieldName: 'demoralizingScreech',
+	label: 'Demoralizing Screech',
+});
+
+export const CurseOfWeakness = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(11708),
+	fieldName: 'curseOfWeakness',
+	label: 'Curse of Weakness',
+});
+
+export const DustCloud = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(1265904),
+	fieldName: 'dustCloud',
+	label: 'Dust Cloud',
+});
+
+export const ArmorShatter = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(16928),
+	fieldName: 'armorShatter',
+	label: 'Armor Shatter',
+});
+
 export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: ArcaneBrilliance,
@@ -605,5 +635,29 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 		config: ScorpidSting,
 		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: HexOfWeakness,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassPriest,
+	},
+	{
+		config: DemoralizingScreech,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: CurseOfWeakness,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassWarlock,
+	},
+	{
+		config: DustCloud,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: ArmorShatter,
+		stats: [Stat.StatAttackPower],
 	},
 ];
