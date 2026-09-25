@@ -116,15 +116,11 @@ func (paladin *Paladin) applyVindication() {
 
 	rank := spellData.VindicationTriggered.Highest()
 	points := spellData.Vindication.EffectAt(1).ValueAt(paladin.Talents.Vindication)
-	// The tooltip's ${$m1/-3*$440667m1}: the trigger's -204 scaled by the points over three.
-	targetAttackPower := rank.Effect(dbcenums.A_MOD_ATTACK_POWER, 0).Average(core.CharacterLevel) * points / 3
 
+	// The raid's Vindication row, priced at the paladin's ranks, so it bids against the raid's
+	// attack power reductions rather than stacking with them.
 	targetAuras := paladin.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.GetOrRegisterAura(core.Aura{
-			Label:    "Vindication" + paladin.Label,
-			ActionID: core.ActionID{SpellID: rank.ID},
-			Duration: rank.Duration(),
-		}).AttachStatBuff(stats.AttackPower, targetAttackPower)
+		return buffs.NewSpellDataVindicationAura(target, true, paladin.Talents.Vindication)
 	})
 
 	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)

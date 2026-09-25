@@ -171,17 +171,24 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	trigger.ProcMask = core.ProcMaskMeleeMH
 	procTrigger := char.MakeProcTriggerAura(trigger)
 
-	// The totem stands for 10 seconds and the shaman drops a new one every 5,
-	// so the aura that holds the category is simply refreshed.
 	totemAura := char.GetOrRegisterAura(core.Aura{
 		Label:    "Windfury Totem",
 		ActionID: core.ActionID{SpellID: 25587, Tag: -1},
-		Duration: time.Second * 10,
 	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
 		config := *char.AutoAttacks.MHConfig()
 		config.ActionID = config.ActionID.WithTag(25584)
 		windfurySpell = char.GetOrRegisterSpell(config)
-	}).ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
+	})
+	holdTotemEnchant(char, totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
+}
+
+// A weapon totem's enchant lasts 10 seconds and the shaman puts it back every
+// 5, so the aura that holds the category is simply refreshed and keeps the
+// proc trigger up; a weapon swapped into the main hand goes without it until
+// the next refresh.
+func holdTotemEnchant(char *core.Character, totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
+	totemAura.Duration = time.Second * 10
+	totemAura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
 		aura.Activate(sim)
 		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
 			Period:   time.Second * 5,
@@ -192,8 +199,8 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 		})
 	})
 
-	totemAura.NewExclusiveEffect(WindfuryTotemCategory, false, core.ExclusiveEffect{
-		Priority: WindfuryTotemValue(0),
+	totemAura.NewExclusiveEffect(category, false, core.ExclusiveEffect{
+		Priority: priority,
 		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
 			procTrigger.Activate(sim)
 		},
@@ -203,7 +210,7 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 		},
 	})
 
-	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, slot proto.ItemSlot) {
+	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, _ proto.ItemSlot) {
 		totemAura.Deactivate(sim)
 	})
 }
@@ -257,36 +264,9 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	trigger.ProcMask = core.ProcMaskMeleeMH
 	procTrigger := char.MakeProcTriggerAura(trigger)
 
-	// The enchant lasts 10 seconds and the totem puts it back every 5, as
-	// Windfury Totem's does, so the aura that holds the category is simply
-	// refreshed; a weapon swapped into the main hand goes without it until then.
 	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
 	totemAura.BuildPhase = core.CharacterBuildPhaseNone
-	totemAura.Duration = time.Second * 10
-	totemAura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
-		aura.Activate(sim)
-		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
-			Period:   time.Second * 5,
-			Priority: core.ActionPriorityAuto,
-			OnAction: func(sim *core.Simulation) {
-				aura.Activate(sim)
-			},
-		})
-	})
-
-	totemAura.NewExclusiveEffect(FlametongueTotemCategory, false, core.ExclusiveEffect{
-		Priority: flametongueTotemProc.EffectN(1).BaseValue(),
-		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
-			procTrigger.Activate(sim)
-		},
-		OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
-			procTrigger.Deactivate(sim)
-		},
-	})
-
-	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, slot proto.ItemSlot) {
-		totemAura.Deactivate(sim)
-	})
+	holdTotemEnchant(char, totemAura, FlametongueTotemCategory, flametongueTotemProc.EffectN(1).BaseValue(), procTrigger)
 }
 
 // A shaman twisting totems keeps Grace of Air up for 9 seconds out of every 10,
@@ -379,15 +359,15 @@ func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 
 // Annihilator procs often enough to keep all three stacks on the target.
 func driveArmorShatter(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	aura := core.MakePermanent(NewSpellDataArmorShatterAura(target, false, 0))
-	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		aura.SetStacks(sim, aura.MaxStacks)
-	})
+	holdMaxStacks(core.MakePermanent(NewSpellDataArmorShatterAura(target, false, 0)))
 }
 
 // The client states one stack, so the raid's copy takes it as soon as it lands.
 func driveDustCloud(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	aura := core.MakePermanent(NewSpellDataDustCloudAura(target, false, 0))
+	holdMaxStacks(core.MakePermanent(NewSpellDataDustCloudAura(target, false, 0)))
+}
+
+func holdMaxStacks(aura *core.Aura) {
 	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
 		aura.SetStacks(sim, aura.MaxStacks)
 	})

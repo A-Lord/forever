@@ -86,7 +86,7 @@ function consumablePicker(
 		values: [{ value: 0, iconUrl: '', tooltip: i18n.t('common.none') }, ...values],
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,
-		// `raid:partyBuffs` because the main-hand imbue's showWhen reads Windfury Totem off the party.
+		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party.
 		storeField: [...STORE_FIELDS, 'raid:partyBuffs'],
 		showWhen: options.showWhen,
 		getValue: (player: Player<any>) => pickOf(player.getConsumes()),
