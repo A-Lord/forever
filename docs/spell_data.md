@@ -492,15 +492,18 @@ tooltip disagree, the tooltip wins and the call site names the wording.
 | a per-weapon bonus the row states as 52, 54 or a ranged-only 290        | `ParseStatic` or `ParseEffects`; `Applied` names a `SpellMod_BonusHit_Percent` or `SpellMod_BonusCrit_Percent`                         |
 | a per-weapon bonus the row does not state, or states as a 290 exception | `AddStaticMod(core.SpellModConfig{...})` with the Equip fields                                                                         |
 | a per-weapon bonus that shows as an aura                                | `AttachSpellMod` on that aura, with the Equip fields                                                                                   |
-| stats on every spell and attack while a weapon is equipped              | `character.NewEquipGatedStats(req, bonus)`, which the parse's 290 path uses, or an aura toggled by `RegisterWeaponRequirementCallback` |
+| stats on every spell and attack while a weapon is equipped              | `character.NewEquipGatedStats(req, bonus)`, which the parse's 290 path uses                                                            |
+| a temporary enchant's per-weapon effects                                | `spelldata.OnHand(...)`, which binds them to the hand carrying the enchant                                                             |
 
-Weaponmaster (`sim/warrior/talents_arms.go`) keeps its crit visible as an aura:
+Weaponmaster (`sim/warrior/talents_arms.go`) keeps its crit visible as an aura. `critOn` is whether
+either hand holds an axe or a polearm as the character is built:
 
 ```go
 critAura := warrior.RegisterAura(core.Aura{
-	Label:    "Weaponmaster (Axe/Polearm)",
-	ActionID: actionID.WithTag(1),
-	Duration: core.NeverExpires,
+	Label:      "Weaponmaster (Axe/Polearm)",
+	ActionID:   actionID.WithTag(1),
+	Duration:   core.NeverExpires,
+	BuildPhase: core.Ternary(critOn, core.CharacterBuildPhaseTalents, core.CharacterBuildPhaseNone),
 }).AttachSpellMod(core.SpellModConfig{
 	Kind:          core.SpellMod_BonusCrit_Percent,
 	FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
@@ -514,20 +517,17 @@ Stats held while a weapon is equipped, the shape the parse's 290 path builds
 `SetLevel(nil, 1)` adds them as the character is built, and 0 takes them off:
 
 ```go
-req := core.EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeMace)}
+req := core.EquipRequirement{SubclassMask: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeMace)}
 character.NewEquipGatedStats(req, stats.Stats{stats.PhysicalCritPercent: 1, stats.SpellCritPercent: 1}).SetLevel(nil, 1)
 ```
-
-`RegisterWeaponRequirementCallback(req, func(sim, equipped))` hands the same answer to a callback on
-every weapon-slot swap, for an aura that has to show while the weapon is equipped.
 
 The Equip fields are the client's own masks. `EquipSubclass` takes `dbcenums.ITEM_SUBCLASS_BIT_WEAPON_*`
 bits, and `core.WeaponSubclassMask(types...)` builds one from `proto.WeaponType`s, one- and two-handed
 alike. `EquipInvType` takes `dbcenums.INVTYPE_BIT_*` bits, and `EquipHand` the `ProcMaskMeleeMH` or
-`ProcMaskMeleeOH` a hand bit names. `core.EquipRequirement{Class, SubclassMask, InvTypeMask, Hand}` holds
-the same with the item class: `Matches(unit, procMask)` answers for one attack, `Equipped(character)`
-for any weapon slot. An item's own bits are `(*Item).WeaponSubclassBit()` and `core.InvTypeBit(slot,
-item)`, where a one-hander also counts as the main- or off-hand weapon of the hand holding it.
+`ProcMaskMeleeOH` a hand bit names. `core.EquipRequirement{SubclassMask, InvTypeMask, Hand}` holds the
+same: `Matches(unit, procMask)` answers for one attack, `Equipped(character)` for any weapon slot. An
+item's own bits are `(*Item).WeaponSubclassBit()` and `core.InvTypeBit(slot, item)`, where a one-hander
+also counts as the main- or off-hand weapon of the hand holding it.
 
 ### What core does with the Equip fields
 
