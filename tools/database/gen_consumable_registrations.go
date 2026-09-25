@@ -56,14 +56,18 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 		}
 		entry := consumableRegistration{id: id, name: name}
 
-		switch {
-		case shipped && c.Type == proto.ConsumableType_ConsumableTypeImbue:
+		var catalogueEntry *dbc.Consumable
+		if inCatalogue {
+			catalogueEntry = &catalogued
+		}
+		switch registrationFamilyOf(c, catalogueEntry, routing) {
+		case imbueFamily:
 			entry.constructor = "NewSpellDataTemporaryEnchant"
 			if inCatalogue {
 				entry.args = parsedEquipSpells(catalogued.TemporaryEnchant)
 			}
 			imbues = append(imbues, entry)
-		case inCatalogue && IsExplosive(&catalogued, routing):
+		case explosiveFamily:
 			entry.constructor = "NewSpellDataExplosive"
 			if routing.Supported() {
 				explosives = append(explosives, entry)
@@ -71,18 +75,16 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 			}
 			entry.unsupported = routing.Unsupported
 			refusedExplosives = append(refusedExplosives, entry)
-		case !shipped:
-		case c.CategoryId == dbc.POTION_SPELL_CATEGORY:
+		case potionFamily:
 			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
 			potions = append(potions, entry)
-		case c.Type == proto.ConsumableType_ConsumableTypeConjured:
+		case conjuredFamily:
 			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
 			conjured = append(conjured, entry)
-		case !inCatalogue:
-		case routing.Kind == ConsumableHeal, routing.Kind == ConsumableAbsorb, routing.Kind == ConsumableEnergize:
+		case otherOnUseFamily:
 			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
 			others = append(others, entry)
-		case routing.Supported() && routing.Kind == ConsumableStatAura:
+		case statFamily:
 			entry.constructor = "NewSpellDataStatConsumable"
 			stats = append(stats, entry)
 		}
@@ -106,6 +108,42 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 		}
 	}
 	return nil
+}
+
+type registrationFamily int
+
+const (
+	unregisteredFamily registrationFamily = iota
+	imbueFamily
+	explosiveFamily
+	potionFamily
+	conjuredFamily
+	otherOnUseFamily
+	statFamily
+)
+
+// The family GenerateConsumableRegistrations registers the consumable in, which names its builder. c
+// is nil for a consumable db.json does not ship, catalogued for one the catalogue does not carry.
+func registrationFamilyOf(c *proto.Consumable, catalogued *dbc.Consumable, routing *ConsumableRouting) registrationFamily {
+	switch {
+	case c != nil && c.Type == proto.ConsumableType_ConsumableTypeImbue:
+		return imbueFamily
+	case catalogued != nil && IsExplosive(catalogued, routing):
+		return explosiveFamily
+	case c == nil:
+		return unregisteredFamily
+	case c.CategoryId == dbc.POTION_SPELL_CATEGORY:
+		return potionFamily
+	case c.Type == proto.ConsumableType_ConsumableTypeConjured:
+		return conjuredFamily
+	case catalogued == nil:
+		return unregisteredFamily
+	case routing.Kind == ConsumableHeal, routing.Kind == ConsumableAbsorb, routing.Kind == ConsumableEnergize:
+		return otherOnUseFamily
+	case routing.Supported() && routing.Kind == ConsumableStatAura:
+		return statFamily
+	}
+	return unregisteredFamily
 }
 
 // The equip spells of a temporary enchant that the imbue builder parses: those that add no stat,

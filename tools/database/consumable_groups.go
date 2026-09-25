@@ -56,7 +56,7 @@ func rowGroupOf(c *dbc.Consumable, consumable *proto.Consumable, routing *Consum
 		}
 		return ElixirGroup(aura, misc)
 	}
-	if runsAsStatConsumable(c, consumable, routing) {
+	if registrationFamilyOf(consumable, c, routing) == statFamily {
 		if category := shared.OneAtATimeCategory(onUse); category > 0 {
 			return ConsumableGroupKey{Key: fmt.Sprintf("category %d", category), Name: fmt.Sprintf("Category %d", category)}
 		}
@@ -71,17 +71,6 @@ func exclusiveGroupOverride(id int32) (ConsumableGroupKey, bool) {
 		}
 	}
 	return ConsumableGroupKey{}, false
-}
-
-// Whether NewSpellDataStatConsumable registers the consumable, as GenerateConsumableRegistrations
-// picks it.
-func runsAsStatConsumable(c *dbc.Consumable, consumable *proto.Consumable, routing *ConsumableRouting) bool {
-	switch {
-	case consumable.Type == proto.ConsumableType_ConsumableTypeImbue, IsExplosive(c, routing),
-		consumable.CategoryId == dbc.POTION_SPELL_CATEGORY, consumable.Type == proto.ConsumableType_ConsumableTypeConjured:
-		return false
-	}
-	return routing.Supported() && routing.Kind == ConsumableStatAura
 }
 
 func firstAura(instance *dbc.DBC, spellID int) (dbcenums.EffectAuraType, int, bool) {
