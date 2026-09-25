@@ -80,19 +80,3 @@ func TestAttachMobTypeBonusStatsFollowsTheAura(t *testing.T) {
 		t.Errorf("spell damage against Undead %v after expiry, want 0", got)
 	}
 }
-
-func TestAttachDamageMultiplierVersusFollowsTheAura(t *testing.T) {
-	unit, undead, humanoid := newVersusTestUnit()
-	aura := unit.RegisterAura(Aura{Label: "Versus", Duration: NeverExpires}).
-		AttachDamageMultiplierVersus(1.01, false, proto.MobType_MobTypeUndead)
-
-	aura.OnGain(aura, nil)
-	if undead.DamageDealtMultiplier != 1.01 || undead.CritMultiplier != 1 || humanoid.DamageDealtMultiplier != 1 {
-		t.Errorf("while up: Undead damage %v crit %v, Humanoid damage %v; want 1.01, 1, 1",
-			undead.DamageDealtMultiplier, undead.CritMultiplier, humanoid.DamageDealtMultiplier)
-	}
-	aura.OnExpire(aura, nil)
-	if undead.DamageDealtMultiplier != 1.01/1.01 {
-		t.Errorf("Undead damage %v after expiry, want 1", undead.DamageDealtMultiplier)
-	}
-}

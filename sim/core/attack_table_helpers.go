@@ -68,21 +68,3 @@ func (parentAura *Aura) AttachMobTypeBonusStats(bonus stats.Stats, mobTypes ...p
 
 	return parentAura
 }
-
-// The damage multiplier against the mob types while the aura is up.
-// Returns parent aura for chaining
-func (parentAura *Aura) AttachDamageMultiplierVersus(mult float64, crit bool, mobTypes ...proto.MobType) *Aura {
-	parentAura.ApplyOnGain(func(aura *Aura, _ *Simulation) {
-		aura.Unit.MultiplyDamageVersus(mult, crit, mobTypes...)
-	})
-
-	parentAura.ApplyOnExpire(func(aura *Aura, _ *Simulation) {
-		aura.Unit.DivideDamageVersus(mult, crit, mobTypes...)
-	})
-
-	if parentAura.IsActive() {
-		parentAura.Unit.MultiplyDamageVersus(mult, crit, mobTypes...)
-	}
-
-	return parentAura
-}
