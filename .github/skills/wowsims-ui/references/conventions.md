@@ -37,8 +37,8 @@ never to wrap or line-break a fixed list.
 `.oxfmtrc.json` deliberately ignores the preset JSON (`ui/**/apls/*.apl.json`,
 `ui/**/builds/*.build.json`, `ui/**/gear_sets/*.gear.json` — check the current list with the command
 above, since a new preset JSON category needs its own entry). Reformatting one of those is a diff
-nobody can review. Its ignore list also still names `ui/worker/highs.js`, which no longer exists —
-the solver comes from the npm `highs` package now.
+nobody can review. Its ignore list also names `ui/worker/highs.js`, which does not exist — the solver
+comes from the npm `highs` package.
 
 Stylesheets: Tailwind utilities, no SCSS or Bootstrap anywhere in `ui/`. A component that needs
 reusable multi-utility classes or state/descendant selectors gets a co-located
@@ -50,8 +50,7 @@ reusable multi-utility classes or state/descendant selectors gets a co-located
 
 React is the **only** dialect. `tsconfig.json` is `jsx: react-jsx` / `jsxImportSource: react` and
 both vite configs use the automatic runtime, so every `.tsx` file is a React file and there is no
-per-file opt-out: the `@jsxImportSource` pragma, the `tsx-vanilla` package and the shim under
-`ui/shared/` that they routed to are all gone, along with the vanilla widget stack that used them.
+per-file opt-out: there is no `@jsxImportSource` pragma and no `tsx-vanilla` package.
 A `.tsx` file with no JSX in it should be `.ts`.
 
 ## Fixtures and generated files
@@ -102,8 +101,7 @@ Two traps:
 - **A custom settings section is data, never DOM.** Declare `sections: [CustomSection]` (typed in
   `ui/sim/spec_config.ts`) and `ui/features/settings/components/CustomSection/CustomSection.tsx`
   renders it, from `ui/app/tabs/SettingsTabBody.tsx`, through the same `ContentBlock` + picker path
-  the standard sections use. `sections` is the only shape — the older `customSections` (an array of
-  functions returning a `ContentBlock`) was deprecated and is now deleted.
+  the standard sections use. `sections` is the only shape.
   `ui/specs/shaman/shared/inputs.ts` is the worked example.
 
 Rules shared by several specs of one class live in `ui/specs/<class>/shared/`
@@ -141,8 +139,8 @@ whole change.
 | Decision                                                     | Why                                                                                                                                |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `import/no-cycle` is off                                     | 61 cycles (43 `ui/sim`, 17 `ui/features`, 1 `ui/i18n`) — a triage project, see `references/layers.md`. Cycles are caught by review |
-| Aliases are `tsconfig` `paths`, not `package.json` `imports` | `tsc` under `moduleResolution: "bundler"` does not resolve `#foo/*`                                                                |
-| Only `ui/app` may `createRoot`                               | lint-banned in ui-kit and features; createRoot-per-leaf was rejected                                                               |
-| `sections` is the only custom-section shape                  | one renderer, not two; `customSections` was deprecated, then deleted                                                               |
-| The move tool is gone                                        | move by hand and re-sort imports (see `layers.md`)                                                                                 |
+| Aliases are `tsconfig` `paths`, not `package.json` `imports` | `tsc` under `moduleResolution: "bundler"` does not resolve `#foo/*`, so aliases live in `tsconfig` `paths`                         |
+| Only `ui/app` may `createRoot`                               | lint-banned in ui-kit and features; one React root per page, not one per leaf                                                      |
+| `sections` is the only custom-section shape                  | one renderer, not two                                                                                                              |
+| Files move by hand                                           | there is no move tool; move with `git mv` and re-sort imports (see `layers.md`)                                                    |
 | `oxfmt`, not prettier                                        | prettier is not a dependency; do not add a second formatter for `ui/`                                                              |

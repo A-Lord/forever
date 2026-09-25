@@ -77,8 +77,8 @@ is `UI_ALIASES` in `vite.config.mts`, which `getBaseConfig` (inherited by the wo
 `vitest.config.mts` both spread into `resolve.alias`. The two must agree; a mismatch shows up as a type-check that passes and a
 build that cannot resolve.
 
-Node's `package.json` `imports` field was tried first and rejected: `tsc` under
-`moduleResolution: "bundler"` does not resolve `#foo/*` subpaths.
+The aliases are `tsconfig` `paths` rather than Node's `package.json` `imports` field because `tsc`
+under `moduleResolution: "bundler"` does not resolve `#foo/*` subpaths.
 
 ## Crossing layers without importing downward
 

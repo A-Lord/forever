@@ -24,7 +24,7 @@ here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo=$(CDPATH= cd -- "$here/../../.." && pwd)
 cd "$repo"
 
-# Paths this skill names precisely because they are gone.
+# Paths this skill names precisely because they do not exist.
 ABSENT_BY_DESIGN="ui/worker/highs.js"
 
 fail=0

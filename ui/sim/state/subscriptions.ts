@@ -25,7 +25,7 @@ import type {
 import { PLAYER_FIELDS } from './sim_store';
 
 // Fields whose change counts as a "player settings change" for aggregate
-// subscribers (mirrors the old Player.changeEmitter composition): everything
+// subscribers: everything
 // the user edits. Server-derived `currentStats` is excluded — including it
 // would make stat recomputation re-trigger itself.
 export const PLAYER_CHANGE_FIELDS = PLAYER_FIELDS.filter(f => f !== 'currentStats');
@@ -95,7 +95,7 @@ function composeAll(subs: Array<StoreSubscribe>): StoreSubscribe {
 
 // ---------------------------------------------------------------------------
 // Field subscriptions. Player/reforge fields watch a version counter, which the
-// facade bumps exactly when the old emitter would have fired.
+// facade bumps on every write that should notify.
 
 export function subscribePlayerField(player: Player<any>, field: PlayerField): StoreSubscribe {
 	const storeKey = player.storeKey;
@@ -146,7 +146,7 @@ function flattenKeys(keys: Array<Array<number> | null>): Array<unknown> {
 	return out;
 }
 
-// Domain-level sim settings (mirrors the old Sim.settingsChangeEmitter): the
+// Domain-level sim settings: the
 // sim + ui slices minus the run-derived rng seed / metadata counters.
 export function simSettingsKey(s: SimState): Array<unknown> {
 	return [s.sim.iterations, s.sim.phase, s.sim.faction, s.sim.fixedRngSeed, s.sim.filters, s.ui];
@@ -194,12 +194,12 @@ export function subscribeEncounterChange(encounter: Encounter): StoreSubscribe {
 	return cached(encounter, 'change', () => fromSelector(encounter.sim.store, s => s.encounter));
 }
 
-// Sim settings + UI flags (legacy Sim.settingsChangeEmitter).
+// Sim settings + UI flags.
 export function subscribeSimSettingsChange(sim: Sim): StoreSubscribe {
 	return cached(sim, 'settingsChange', () => fromSelector(sim.store, simSettingsKey, shallowArrayEquals));
 }
 
-// Mirrors the old Sim.changeEmitter: settings + raid + encounter. Server-derived
+// Settings + raid + encounter. Server-derived
 // state (currentStats, metadata, rng seed) and the reforge / stat-weight slices
 // are NOT included — subscribe to those explicitly where needed.
 export function subscribeSimChange(sim: Sim): StoreSubscribe {

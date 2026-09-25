@@ -144,7 +144,7 @@ override banning `@app`/`@features`/`@ui-kit`/`@specs/**` (`@sim` is allowed).
 
 Configured via `tsconfig.json` (`paths`) and `UI_ALIASES` in `vite.config.mts`, which
 `getBaseConfig` (inherited by worker builds) and `vitest.config.mts` both spread into
-`resolve.alias`. Node's `package.json` `imports` field was tried first but rejected: `tsc` under
+`resolve.alias`. The aliases are not Node's `package.json` `imports` field, because `tsc` under
 `moduleResolution: "bundler"` does not resolve `#foo/*` subpaths (it only works under `node16`/`nodenext`, and even then requires an
 explicit extension on every specifier).
 
@@ -255,7 +255,7 @@ no `@@CLASS@@`/`@@SPEC@@` placeholders and every asset reference is root-absolut
 (`/styles/style.css`, `/app/spec_entry.tsx`, `/i18n/localization.ts`), so vite rewrites them all to
 `/forever/...` and nothing in the built page depends on where it is served from. It is also the reason
 the 18 pages share one entry chunk (`bundle/spec_entry-<hash>.entry.js`, from the `spec_entry` key
-in `rollupOptions.input`) instead of the 18 near-identical ones the old per-page inputs produced.
+in `rollupOptions.input`) instead of one near-identical chunk per page.
 `ui/i18n/localization.ts`'s `extractClassAndSpecFromDataAttributes`
 derives class/spec from `location.pathname` the same way `specModuleKey` does above, falling back
 to `data-class`/`data-spec` attributes only if present. It is the spec page's path only: the landing

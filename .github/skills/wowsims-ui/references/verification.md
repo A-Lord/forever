@@ -147,7 +147,7 @@ faster. Never run `gen_db` concurrently with another copy of itself.
 
 The wart to watch for is a `AUTO_GEN_FILES_TS` entry the generator does not actually write: a stale
 path there makes the prerequisite never appear, so every `make` that depends on it re-runs `gen_db`
-and re-bundles even when nothing changed. After the restructure the three agree — deleting all
+and re-bundles even when nothing changed. Today the three agree — deleting all
 three and running `make go-to-ts` brings back byte-identical copies, and a second `make go-to-ts`
 then says "Nothing to be done". Re-derive rather than trusting this paragraph:
 

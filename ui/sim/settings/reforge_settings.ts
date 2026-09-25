@@ -38,7 +38,7 @@ export class ReforgeSettings {
 		this.store = player.sim.store;
 		this.storeKey = player.storeKey;
 
-		// Seed the slice (emit-less, like the old field initializers).
+		// Seed the slice without notifying.
 		seedKeyed(this.store, 'reforge', this.storeKey, {
 			statCaps: defaults.statCaps || new Stats(),
 			breakpointLimits: new Stats(),
@@ -60,7 +60,7 @@ export class ReforgeSettings {
 	}
 
 	// Writes `patch` and bumps the given counters in one store write. No bumps
-	// = the old silent field assignment.
+	// = a silent write.
 	private write(patch: Partial<Omit<ReforgeSlice, 'v'>>, bumps: ReadonlyArray<ReforgeField> = []) {
 		patchKeyed(this.store, 'reforge', this.storeKey, patch, bumps);
 	}
@@ -91,7 +91,7 @@ export class ReforgeSettings {
 	get undershootCaps(): Stats {
 		return this.slice.undershootCaps;
 	}
-	// Silent assignment (no emit), matching the old direct field write.
+	// Silent assignment (no emit).
 	set undershootCaps(value: Stats) {
 		this.write({ undershootCaps: value });
 	}

@@ -58,8 +58,8 @@ Reach for a **named utility** first, including its variants and `!`-free forms. 
   when an argument is conditional or a variable, never to wrap or line-break a fixed list.
 
 Breakpoints are named tokens in `ui/styles/theme/breakpoints.css`: `sm md lg xl xxl xxxl fhd qhd uhd`
-(`576px` through `3841px`; `fhd` is the legacy `1080p` 1921px cutover, kept as a layout breakpoint even
-though the root font-size no longer changes there). All breakpoints are px, so they never depend on
+(`576px` through `3841px`; `fhd` is the 1921px `1080p` cutover, a layout breakpoint only: the root
+font-size does not change there). All breakpoints are px, so they never depend on
 the root.
 
 **Spec themes are CSS variables, not per-spec CSS.** `ui/styles/theme/specs.css`'s `.sim-ui` block
@@ -240,21 +240,17 @@ checkers below is wired to anything today.
   class-hook removal for free. Cover the default state of each top-level tab **and** the sub-panes
   (sub-tabs, dialogs, modals, expanded rows) — a sweep that only opens top-level tabs at rest misses
   whole areas of the app.
-    - That gap is how a real regression once slipped through: the log runner's rows grew from 32.5px
-      to 34px when a real `@utility` (`icon-sm`) was deleted as if it were a retired class hook. A
-      default-pane sweep stayed green because it never opened the log tab. **The lesson: a custom
-      `@utility` or a `ui-*` composition class is real styling, not a hook** — the class-hook gate
+    - A default-pane sweep misses what it never opens: deleting a real `@utility` (`icon-sm`) as if
+      it were a retired class hook grows the log runner's rows from 32.5px to 34px, and a sweep that
+      never opens the log tab stays green. **A custom `@utility` or a `ui-*` composition class is
+      real styling, not a hook** — the class-hook gate
       and the hook census tell the two apart by compiling every candidate against Tailwind's own
       design system (`ui/testing/tailwind/canonical-classes.mjs`), never a hand-written name list,
       and deleting one because it "looks like" an old semantic class is the mistake to avoid. Run
       the diff before calling a class-hook or utility change done — with the class-hook gate
       unwired, it is the only automated protection there is.
-    - A second regression, historical but worth knowing: three early utility conversions rendered
-      **12.5% smaller** than the SCSS they replaced (`padding: 10px` → `p-2.5` computed to 8.75px,
-      not 10px — `1rem` is 14px here, not 16px), passing type-check, the unit tests, oxlint and all
-      17 snapshots straight through. **The rule (superseding that fixed-`[Npx]` reaction) is the
-      exact dynamic spacing step**: Tailwind v4's spacing scale here accepts any multiple of `0.25`,
-      so a source px value converts to its exact step — `10px` → `p-2.5`, `5px` → `p-1.25`,
+    - **A px value converts to its exact dynamic spacing step**: Tailwind v4's spacing scale here
+      accepts any multiple of `0.25`, so a source px value converts to its exact step — `10px` → `p-2.5`, `5px` → `p-1.25`,
       `18px` → `w-4.5` — computed-identically, and `ui/testing/tailwind/canonical-classes.mjs`
       rewrites a lingering `p-[5px]` to `p-1.25` automatically. Keep an arbitrary `[Npx]` only where
       no named or dynamic step exists (an odd one-off border width, say), and add a token instead of

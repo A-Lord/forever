@@ -202,9 +202,8 @@ export class Sim {
 	}
 
 	// True only while loadIndividualSettings is applying stored settings; see the
-	// stats subscription in the constructor. Replaces a guard that recognised the
-	// load by its EventID being 0, which stopped working once subscribers minted
-	// their own ids instead of receiving the originating one.
+	// stats subscription in the constructor. Subscribers mint their own event ids,
+	// so the load cannot be recognised by its EventID.
 	private applyingLoadedSettings = false;
 
 	// Runs `apply` with the initial-settings-load flag set. Anything that does not
@@ -894,7 +893,7 @@ export class Sim {
 		this.setLastUsedRngSeed(rngSeed);
 		return rngSeed;
 	}
-	// Counts as a change on every call (like the old unconditional write), so
+	// Counts as a change on every call, so
 	// subscribers watch the version counter, not the value.
 	private setLastUsedRngSeed(rngSeed: number) {
 		this.store.setState(s => ({ sim: { ...s.sim, lastUsedRngSeed: rngSeed, lastUsedRngSeedVersion: s.sim.lastUsedRngSeedVersion + 1 } }));

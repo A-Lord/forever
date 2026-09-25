@@ -196,7 +196,7 @@ same way you treat a missing one — go read the callee, don't trust the lint's 
 
 - A **value in the store changed** → a store subscription. Class-side values (`aplRotation`, item
   swap, rng seed, reforge / stat-weight settings) are tracked by version counters in their slice;
-  bump the counter where the old emitter fired.
+  bump the counter on every write that should notify.
 - **Something happened** (a sim result, a crash, a reference set or swapped, progress, "filters
   changed") → `Emitter<T>` from `ui/sim/state/events.ts`. `on` returns an unsubscribe function,
   `emit` fires synchronously. No `EventID`, no batching, no dedup. **Never put these in the store.**
@@ -223,8 +223,8 @@ place, and relies on the store notification to re-render, deliberately. Confirm 
 1. Add it to the slice with its default in `sim_store.ts`. Player fields must also be appended to
    `PLAYER_FIELDS` (the version counters are derived from that list), reforge fields to
    `REFORGE_FIELDS`.
-2. Facade getter reads the store; setter keeps the old equality guard and writes via `patchSlice` /
-   `patchKeyed`. If the old code notified unconditionally, pass the field in `bumps`.
+2. Facade getter reads the store; setter keeps an equality guard and writes via `patchSlice` /
+   `patchKeyed`. If the setter must notify even on an equal value, pass the field in `bumps`.
 3. Consumers read it through `usePlayerStore('<field>')` where it is a player field, or by naming it
    as an `InputConfig.storeField` — see "Reading the store from React". A non-React consumer calls
    the matching `subscribe*` helper and keeps the returned unsubscribe.
