@@ -1,5 +1,5 @@
 import { PseudoStat, Stat } from '@generated/proto/common';
-import { UnitStat } from '@sim/proto/stats';
+import { SCHOOL_HIT_PERCENT_PSEUDO_STATS, UnitStat } from '@sim/proto/stats';
 import type { StatTooltipContent } from '@sim/spec_config';
 import type { ReactNode } from 'react';
 
@@ -8,12 +8,7 @@ export const INCLUDED_STATS: UnitStat[] = [
 	UnitStat.fromStat(Stat.StatHitRating),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentArcane),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFire),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFrost),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentHoly),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow),
+	...SCHOOL_HIT_PERCENT_PSEUDO_STATS.map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent),
 	UnitStat.fromStat(Stat.StatCritRating),
 	UnitStat.fromStat(Stat.StatHasteRating),
