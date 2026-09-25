@@ -11,7 +11,7 @@ sed -n '/^export interface SimState {/,/^}/p' ui/sim/state/sim_store.ts
 
 There is exactly one store per page: `Sim.store`, built by `createSimStore()` and wrapped in
 `subscribeWithSelector`. It is UI-free _and_ browser-free (see the `no-restricted-globals` ban in
-`layers.md`), which is what lets `tools/state-snapshots` construct the whole model in node.
+`layers.md`), which is what lets `ui/sim/sim.test.ts` build a `Sim` against an in-memory `Env`.
 
 ## Slices and who owns them
 
@@ -229,8 +229,8 @@ deliberately. Confirm with `/usr/bin/grep -n splice ui/ui-kit/ListPicker/ListPic
 3. Consumers read it through `usePlayerStore('<field>')` where it is a player field, or by naming it
    as an `InputConfig.storeField` — see "Reading the store from React". A non-React consumer calls
    the matching `subscribe*` helper and keeps the returned unsubscribe.
-4. `npm run test:snapshots` — the store contract test runs first and asserts the notification
-   contract, so a field that notifies twice fails there rather than in the browser.
+4. `npm run test:unit` covers the store hooks' gating (`ui/sim/hooks/*.test.tsx`), but no suite
+   asserts one notification per facade write, so check a new field's notification count yourself.
 
 ## Player lifetime
 

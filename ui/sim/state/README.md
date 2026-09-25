@@ -5,7 +5,7 @@ Everything in this directory is UI-free (a lint rule bans imports from
 `window` / `document` / `localStorage` / `location` / `navigator` here, so
 anything that needs one goes through the injected `Env` adapter (`env.ts`,
 reachable as `sim.env`; browser implementation in `ui/app/browser_env.ts`,
-memory implementation in `tools/state-snapshots/memory_env.ts`).
+in-memory `makeEnv()` in `ui/sim/sim.test.ts`).
 Imports of the facades (`../player`, `../sim`, the satellites) are
 `import type` — the one remaining runtime edge out of this directory is
 `reforge_request.ts` → `ReforgeGearCache` (`../cache/reforge_cache`).
@@ -97,7 +97,7 @@ No batching, no dedup, fires synchronously. Never put these in the store.
 
 `persistence.ts` (load-order contract + autosave; the localStorage key is built
 by the caller and handed in), `serialization.ts` (IndividualSimSettings
-envelope, snapshot-tested), `sim_links.ts`, `reforge_request.ts`, `env.ts`.
+envelope), `sim_links.ts`, `reforge_request.ts`, `env.ts`.
 
 ## Not here (facades, in `ui/sim/settings/`)
 

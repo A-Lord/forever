@@ -1,6 +1,6 @@
 ---
 name: wowsims-ui
-description: 'Work on the wowsims TBC frontend, ui/ (React 19 + TypeScript). Use when touching ui/sim (the Sim/Player/Raid/Encounter facades, the Zustand store in ui/sim/state, the store hooks in ui/sim/hooks, batching, persistence, the IndividualSimSettings envelope), ui/ui-kit, ui/features, ui/app, ui/i18n, ui/specs or ui/generated/proto; when an import trips the oxlint layer rules; or when a UI change needs verifying (type-check, lint, vitest, the state-snapshot harness, a dev-server or real-sim smoke). Start here, then open the one file under references/ that owns the subject — the routing table is in this file.'
+description: 'Work on the wowsims TBC frontend, ui/ (React 19 + TypeScript). Use when touching ui/sim (the Sim/Player/Raid/Encounter facades, the Zustand store in ui/sim/state, the store hooks in ui/sim/hooks, batching, persistence, the IndividualSimSettings envelope), ui/ui-kit, ui/features, ui/app, ui/i18n, ui/specs or ui/generated/proto; when an import trips the oxlint layer rules; or when a UI change needs verifying (type-check, lint, vitest, a dev-server or real-sim smoke). Start here, then open the one file under references/ that owns the subject — the routing table is in this file.'
 ---
 
 # wowsims-ui
@@ -92,9 +92,8 @@ npm run test:unit      # vitest + happy-dom, ui/**/*.test.ts(x)
 npm run test:locales   # ajv, assets/locales/** against schemas/**
 ```
 
-There is no `test:snapshots` script on this tree — the harness it would run is developer-local, see
-`references/verification.md`. That file says what each command actually covers, which of them CI
-runs, and which gate catches which class of mistake.
+`references/verification.md` says what each command actually covers, which of them CI runs, and
+which gate catches which class of mistake.
 
 ## Working on this tree
 
@@ -133,7 +132,7 @@ change, the way you would a stale comment.
 | `ui/sim/state/sim_store.ts`, `subscriptions.ts`, `batch.ts`, `events.ts`                                   | `references/state.md`                          |
 | `ui/sim/hooks/*`, `ui/sim/context/SimHostContext.tsx`, `ui/ui-kit/hooks/useInput.ts`, `ui/ui-kit/input.ts` | `references/state.md`                          |
 | `ui/sim/state/persistence.ts`, `serialization.ts`, `sim_links.ts`                                          | `references/persistence.md`                    |
-| a `package.json` script, `.github/workflows/run_tests.yml`, or the snapshot harness                        | `references/verification.md`                   |
+| a `package.json` script or `.github/workflows/run_tests.yml`                                               | `references/verification.md`                   |
 | `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets      | `references/running-locally.md`                |
 | `.oxfmtrc.json`, `ui/specs/**` authoring, or a decision recorded as settled                                | `references/conventions.md`                    |
 | `ui/styles/*.css`, a `ui-*` class, a class-hook gate, or how elements are located in tests/tools           | `ui/STYLING.md`                                |

@@ -73,11 +73,12 @@ and language do not travel through a shared link).
 
 ## What is gated
 
-`npm run test:snapshots` covers this end to end: for every launched spec it builds `Sim` + `Player`
-in node, applies defaults, serializes, and compares byte-for-byte against the state-snapshot capture, then
-asserts `fromProto(toProto(x))` is a fixed point. A persistence change that alters the serialized
-shape shows up there as a diff — which is the point, so read the diff before regenerating.
+No suite pins the serialized shape: no test imports `serialization.ts`, so a persistence change
+that alters the envelope can pass every gate. Check it by hand — serialize a
+default page before and after the change and diff the two.
 
-Two `Sim` round-tripping quirks will bite you here specifically — the filter-array collapse and the
-fact that `Sim.fromProto` mutates its **argument**. They are written up once, under "The snapshot
-harness" in `verification.md`; read them before you write a round-trip.
+Two `Sim` round-tripping quirks will bite you here specifically:
+
+- `Sim.toProto` collapses all-selected filter arrays to `[]`; `Sim.fromProto` re-expands them, so
+  the form is only a fixed point from the second pass. Canonicalize once before comparing.
+- `Sim.fromProto` mutates its **argument** in place. Serialize before round-tripping.

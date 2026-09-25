@@ -142,7 +142,7 @@ describe('PresetConfigurationPicker, grouped by phase', () => {
 		expect([...container.querySelectorAll('[data-testid="preset-group-label"]')].map(label => label.textContent)).toEqual(['Beast Mastery', 'Survival']);
 	});
 
-	// The state-snapshot capture records a default page load as leaving `__presetFilters__` absent.
+	// A default page load leaves `__presetFilters__` absent.
 	it('writes the filter key only once a phase is chosen', () => {
 		const { container } = setup(phased);
 

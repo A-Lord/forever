@@ -27,7 +27,7 @@ can drift from the build silently.
 Global bans (`no-restricted-globals`, error): `window` `document` `localStorage` `location`
 `navigator` in `ui/sim/**` and in `ui/features/*/model/**`. Anything that needs one takes an
 injected `Env` (`ui/sim/state/env.ts`; `sim.env` at runtime, `ui/app/browser_env.ts` in the browser,
-`tools/state-snapshots/memory_env.ts` in the harness).
+an in-memory `makeEnv()` in `ui/sim/sim.test.ts`).
 
 **Naming a DOM type is not the same as being a view.** A function that takes an `HTMLElement` it is
 _handed_ and enriches it — with an icon, an href, a Wowhead dataset — can still belong in the sim
@@ -110,14 +110,7 @@ class modules it aggregates, `specToPlayerSpec` gets built from `undefined`s, an
 `PlayerSpecs.fromProto` silently returns `undefined` — which surfaces as a crash inside
 `new Player`, far from the cause.
 
-Rule: `player/specs/*` and `player/classes/*` import leaf modules only. Check it after a harness
-build (`npm run test:snapshots` leaves the bundle behind):
-
-```
-/usr/bin/grep -nE '^//#region ' tmp/harness/snapshot.js
-```
-
-Every `player/specs/<class>.ts` region must be emitted before `ui/sim/player/specs/index.ts`.
+Rule: `player/specs/*` and `player/classes/*` import leaf modules only.
 
 `import/no-cycle` is deliberately **not** enabled. It reported 188 warnings on the source port's
 equivalent tree, enough that the rule was rejected outright rather than triaged; measured against
@@ -128,7 +121,7 @@ still a triage project, not a switch to flip. Re-derive the number before arguin
 npx oxlint --import-plugin -D import/no-cycle ./ui 2>&1 | grep -c 'import(no-cycle)'
 ```
 
-Until someone does that work, cycles are caught by the check above and by review, not by lint.
+Until someone does that work, cycles are caught by review, not by lint.
 
 ## Moving a file
 
@@ -136,4 +129,4 @@ There is no move tool. Move by hand with `git mv`, then repair specifiers:
 emit alias form when the importer and the target end up in different top-level `ui/` directories and
 a relative specifier otherwise, and run `npx oxlint ./ui --fix` to re-sort the imports the rewrite
 disturbs. Then the gates in `verification.md` — a move is exactly the change that passes
-`type-check` and fails `test:snapshots`.
+`type-check` and only fails at runtime.

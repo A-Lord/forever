@@ -71,12 +71,5 @@ shape by serving a known-good build of the parent branch on a second port and co
 URL, rather than trusting a remembered element count — those numbers rot faster than anything else
 in a document like this.
 
-There is no _committed_ browser or perf harness. `tools/browser-perf/` (timings) is **untracked**:
-it exists wherever its owner made it and nowhere else — not in a fresh clone, not in CI, and not
-necessarily in the worktree you are in. It is not in this clone's `.git/info/exclude` today (only
-`tools/state-snapshots/` is), and that file is never committed anyway: it lives in the shared common
-git dir, so a rule in it applies to every worktree of this clone and travels with none of them.
-
-So: check before you rely on it (`/usr/bin/ls tools/browser-perf/`), and do not tell anyone else a
-path is there. If it is not present and you need APL-edit timings, drive the page
-with Playwright yourself and record the protocol in the PR.
+There is no browser or perf harness in this tree. If you need APL-edit timings, drive the page with
+Playwright yourself and record the protocol in the PR.
