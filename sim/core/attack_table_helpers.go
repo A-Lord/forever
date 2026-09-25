@@ -32,7 +32,8 @@ func (unit *Unit) MultiplyDamageVersus(mult float64, crit bool, mobTypes ...prot
 	}
 }
 
-func (unit *Unit) divideDamageVersus(mult float64, crit bool, mobTypes []proto.MobType) {
+// Takes a multiplier MultiplyDamageVersus put on back off.
+func (unit *Unit) DivideDamageVersus(mult float64, crit bool, mobTypes ...proto.MobType) {
 	for _, at := range unit.AttackTables {
 		if slices.Contains(mobTypes, at.Defender.MobType) {
 			at.DamageDealtMultiplier /= mult
@@ -76,7 +77,7 @@ func (parentAura *Aura) AttachDamageMultiplierVersus(mult float64, crit bool, mo
 	})
 
 	parentAura.ApplyOnExpire(func(aura *Aura, _ *Simulation) {
-		aura.Unit.divideDamageVersus(mult, crit, mobTypes)
+		aura.Unit.DivideDamageVersus(mult, crit, mobTypes...)
 	})
 
 	if parentAura.IsActive() {

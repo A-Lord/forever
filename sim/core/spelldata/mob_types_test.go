@@ -113,3 +113,43 @@ func TestAVersusAuraBidsPerCreatureTypeMask(t *testing.T) {
 		t.Errorf("attack power against Demons: %v, want 185", got)
 	}
 }
+
+// A_MOD_DAMAGE_DONE_VERSUS multiplies the damage dealt to the masked mob types while its aura is up,
+// and divides it back out on expiry; crit damage follows the damage rather than being multiplied
+// again. Row 1302545 states 1 against mask 32, Undead.
+func TestADamageVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
+	sim := &core.Simulation{}
+	character := parseWarrior()
+	undead := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
+	demon := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeDemon})
+	character.AttackTables = []*core.AttackTable{undead, demon}
+	crit := undead.CritMultiplier
+
+	row := oneEffectRow(dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1)
+	aura := character.RegisterAura(AuraConfig(row))
+	ParseEffects(character, aura, row)
+
+	aura.Activate(sim)
+	if got := undead.DamageDealtMultiplier; got != 1.01 {
+		t.Errorf("damage against Undead while up: %v, want 1.01", got)
+	}
+	if got := demon.DamageDealtMultiplier; got != 1 {
+		t.Errorf("damage against Demons while up: %v, want 1", got)
+	}
+	if got := undead.CritMultiplier; got != crit {
+		t.Errorf("crit multiplier against Undead while up: %v, want %v", got, crit)
+	}
+	aura.Deactivate(sim)
+	if got := undead.DamageDealtMultiplier; got != 1 {
+		t.Errorf("damage against Undead after expiry: %v, want 1", got)
+	}
+
+	static := parseWarrior()
+	static.Env = &core.Environment{State: core.Finalized}
+	table := core.NewAttackTable(&static.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
+	static.AttackTables = []*core.AttackTable{table}
+	ParseStatic(static, row)
+	if got := table.DamageDealtMultiplier; got != 1.01 {
+		t.Errorf("damage against Undead from the static path: %v, want 1.01", got)
+	}
+}

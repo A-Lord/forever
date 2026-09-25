@@ -161,10 +161,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.AttackPower, v)
 	},
 
-	// A stat against the creature types the misc value masks.
+	// A stat, or the damage dealt, against the creature types the misc value masks.
 	dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS:  mobTypeStatRow,
 	dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS: mobTypeStatRow,
 	dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS:   mobTypeStatRow,
+	dbcenums.A_MOD_DAMAGE_DONE_VERSUS:         damageVersusRow,
 
 	dbcenums.A_MOD_RANGED_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.RangedAttackPower, v)
@@ -537,6 +538,33 @@ func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
 	})
 	// A bonus against other creature types does not compete with this one.
 	a.key = fmt.Sprintf("%sVersus%d", stat.StatName(), e.Misc)
+	return a
+}
+
+// A multiplier on the damage the unit deals to the mob types a creature type mask names, which the
+// sim keeps on the attack tables. Whether a second stack multiplies again is not stated, so a
+// stacking row is skipped.
+func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
+	mobTypes := MobTypes(e.Misc)
+	mult := percentMultiplier(v)
+	if p.stacking || len(mobTypes) == 0 || mult <= 0 {
+		return nil
+	}
+
+	active := false
+	a := &attachment{kind: "damage-dealt-versus", value: mult, multiplicative: true,
+		key: fmt.Sprintf("DamageDealtVersus%d", e.Misc)}
+	a.set = func(_ *core.Simulation, level float64) {
+		if (level > 0) == active {
+			return
+		}
+		active = level > 0
+		if active {
+			p.onAttackTables(func() { p.unit.MultiplyDamageVersus(mult, false, mobTypes...) })
+		} else {
+			p.onAttackTables(func() { p.unit.DivideDamageVersus(mult, false, mobTypes...) })
+		}
+	}
 	return a
 }
 
