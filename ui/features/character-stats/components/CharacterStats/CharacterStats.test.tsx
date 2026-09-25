@@ -55,6 +55,7 @@ const renderStats = (settled: boolean) => {
 		getCurrentStats: () => currentStats,
 		getDebuffStats: () => new Stats(),
 		getEquippedItem: () => null,
+		isDualWielding: () => false,
 		getMeleeCritCap: () => CRIT_CAP_DELTA,
 		getMeleeCritCapInfo: () => CRIT_CAP_INFO,
 	};
@@ -103,6 +104,7 @@ const renderTankStats = (settled: boolean) => {
 		getCurrentStats: () => currentStats,
 		getDebuffStats: () => new Stats(),
 		getEquippedItem: () => null,
+		isDualWielding: () => false,
 		isSpec: () => false,
 		getMissChanceInfo: () => MISS_INFO,
 		getAvoidanceInfo: () => AVOIDANCE_INFO,

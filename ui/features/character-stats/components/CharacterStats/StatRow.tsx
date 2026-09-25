@@ -16,7 +16,7 @@ import { bonusStatClass } from './utils/stat_display';
 /** The weapons whose speed the effective-weapon-speed tooltip row is meaningful for. */
 const HUNTER_RANGED_TYPES = [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeCrossbow, RangedWeaponType.RangedWeaponTypeGun];
 
-export type ShowStat = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean) => string;
+export type ShowStat = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean) => string;
 
 export interface StatRowProps {
 	displayStat: DisplayStat;
@@ -30,7 +30,7 @@ export interface StatRowProps {
 export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeapon, pending }: StatRowProps) => {
 	const player = usePlayer();
 	const id = useId();
-	const { stat: unitStat, notEditable } = displayStat;
+	const { stat: unitStat, notEditable, label } = displayStat;
 	const bonusStatValue = unitStat.hasRootStat()
 		? bonusStats.getStat(unitStat.getRootStat())
 		: unitStat.isPseudoStat()
@@ -46,7 +46,7 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 
 	return (
 		<tr data-testid="character-stats-table-row" className="ui-character-stats-row">
-			<td className="ui-character-stats-label">{unitStat.getShortName(player.getClass())}</td>
+			<td className="ui-character-stats-label">{label ? label() : unitStat.getShortName(player.getClass())}</td>
 			<td className="ui-character-stats-value">
 				{pending ? (
 					<Skeleton />
@@ -54,7 +54,7 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 					<>
 						<div className="ui-stat-value-link-container">
 							<Button variant="unstyled" data-testid="stat-value-link" className={contextualClass} {...tooltipAnchorProps(id)}>
-								{`${show(attribution.final, unitStat, true, true)} `}
+								{`${show(attribution.final, unitStat, true)} `}
 							</Button>
 						</div>
 						{!notEditable && <BonusStatsLink unitStat={unitStat} />}
@@ -63,7 +63,7 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 							content={
 								<div>
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.base')} value={show(attribution.base, unitStat, true)} />
-									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.gear')} value={show(attribution.gear, unitStat, false, true)} />
+									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.gear')} value={show(attribution.gear, unitStat)} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.talents')} value={show(attribution.talents, unitStat)} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.buffs')} value={show(attribution.buffs, unitStat)} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.consumes')} value={show(attribution.consumes, unitStat)} />
@@ -71,7 +71,7 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 									{bonusStatValue !== 0 && (
 										<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.bonus')} value={show(bonusStats, unitStat)} />
 									)}
-									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.total')} value={show(attribution.final, unitStat, true, true)} />
+									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.total')} value={show(attribution.final, unitStat, true)} />
 									{showEffectiveWeaponSpeed && (
 										<TooltipRow
 											label={i18n.t('sidebar.character_stats.tooltip.eWS')}

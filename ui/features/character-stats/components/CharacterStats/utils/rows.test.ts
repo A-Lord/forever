@@ -65,6 +65,24 @@ describe('buildRows', () => {
 		expect(kinds(layout, 'Defense')).toEqual(['stat']);
 	});
 
+	it('shows the off-hand rows, followed by the dual-wield footnote, only while dual wielding', () => {
+		const statList = [
+			PseudoStat.PseudoStatMeleeHitPercent,
+			PseudoStat.PseudoStatMeleeCritPercent,
+			PseudoStat.PseudoStatOffHandHitPercent,
+			PseudoStat.PseudoStatOffHandCritPercent,
+			PseudoStat.PseudoStatMeleeHastePercent,
+		].map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat));
+
+		const dualWielding = buildRows(fakePlayer({}), statList, true);
+		expect(dualWielding.shownStats.map(stat => stat.getKey())).toEqual(statList.map(stat => stat.getKey()));
+		expect(kinds(dualWielding, 'Physical')).toEqual(['stat', 'stat', 'stat', 'stat', 'dual-wield-penalty', 'stat']);
+
+		const oneWeapon = buildRows(fakePlayer({}), statList, false);
+		expect(oneWeapon.shownStats.map(stat => stat.getKey())).toEqual([statList[0], statList[1], statList[4]].map(stat => stat.getKey()));
+		expect(kinds(oneWeapon, 'Physical')).toEqual(['stat', 'stat', 'stat']);
+	});
+
 	// TBC puts the melee crit cap after the whole table, not next to the crit row.
 	it('trails the melee crit cap as its own group for a melee dps spec', () => {
 		const layout = buildRows(fakePlayer({ isMeleeDpsSpec: true }), [UnitStat.fromStat(Stat.StatHealth)]);

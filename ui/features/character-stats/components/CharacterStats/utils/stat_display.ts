@@ -1,13 +1,17 @@
-import { ItemSlot, PseudoStat, Stat } from '@generated/proto/common';
+import { PseudoStat, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Stats, UnitStat } from '@sim/proto/stats';
 import { TONE_TEXT } from '@ui-kit/utils/colors';
 
-/** Enchant that grants +30 ranged hit rating; the server folds it into the pseudo stat but not the rating. */
-const SCOPE_HIT_ENCHANT_EFFECT_ID = 2523;
-/** Enchant that grants +28 ranged crit rating, same story. */
-const SCOPE_CRIT_ENCHANT_EFFECT_ID = 2724;
+const PER_ATTACK_RATING = new Map<PseudoStat, PseudoStat>([
+	[PseudoStat.PseudoStatMeleeHitPercent, PseudoStat.PseudoStatMainHandHitRating],
+	[PseudoStat.PseudoStatMeleeCritPercent, PseudoStat.PseudoStatMainHandCritRating],
+	[PseudoStat.PseudoStatOffHandHitPercent, PseudoStat.PseudoStatOffHandHitRating],
+	[PseudoStat.PseudoStatOffHandCritPercent, PseudoStat.PseudoStatOffHandCritRating],
+	[PseudoStat.PseudoStatRangedHitPercent, PseudoStat.PseudoStatRangedHitRating],
+	[PseudoStat.PseudoStatRangedCritPercent, PseudoStat.PseudoStatRangedCritRating],
+]);
 
 const SCHOOL_DAMAGE_STATS = [
 	Stat.StatArcaneDamage,
@@ -18,13 +22,15 @@ const SCHOOL_DAMAGE_STATS = [
 	Stat.StatShadowDamage,
 ];
 
-/**
- * `includeBase`/`includeGear` say which stage the delta being rendered covers, because the base
- * defense skill and the scope enchants are only correct once the stage that hides them is known.
- */
-export const statDisplayString = (player: Player<any>, deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean): string => {
+/** `includeBase` says the delta covers the base stage, which is where the base defense skill belongs. */
+export const statDisplayString = (player: Player<any>, deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean): string => {
 	const rootStat = unitStat.hasRootStat() ? unitStat.getRootStat() : null;
+	const perAttackRating = unitStat.isPseudoStat() ? PER_ATTACK_RATING.get(unitStat.getPseudoStat()) : undefined;
 	let rootRatingValue = rootStat !== null ? deltaStats.getStat(rootStat) : null;
+	// Bonus stats carry the rating alone, with no per-attack value to read.
+	if (perAttackRating !== undefined && deltaStats.getPseudoStat(perAttackRating) !== 0) {
+		rootRatingValue = deltaStats.getPseudoStat(perAttackRating);
+	}
 	let percentDecimals = 2;
 	let derivedPercentOrPointsValue = unitStat.convertDefaultUnitsToPercent(deltaStats.getUnitStat(unitStat));
 	let displayPrefix = '';
@@ -37,14 +43,6 @@ export const statDisplayString = (player: Player<any>, deltaStats: Stats, unitSt
 		percentDecimals = 0;
 		if (includeBase) {
 			derivedPercentOrPointsValue! += player.getBaseDefense();
-		}
-	} else if (includeGear && rootRatingValue !== null && unitStat.equalsPseudoStat(PseudoStat.PseudoStatRangedHitPercent)) {
-		if (player.getEquippedItem(ItemSlot.ItemSlotRanged)?.enchant?.effectId === SCOPE_HIT_ENCHANT_EFFECT_ID) {
-			rootRatingValue += 30;
-		}
-	} else if (rootRatingValue !== null && unitStat.equalsPseudoStat(PseudoStat.PseudoStatRangedCritPercent)) {
-		if (includeGear && player.getEquippedItem(ItemSlot.ItemSlotRanged)?.enchant?.effectId === SCOPE_CRIT_ENCHANT_EFFECT_ID) {
-			rootRatingValue += 28;
 		}
 	} else if (rootStat == Stat.StatBlockValue) {
 		if (rootRatingValue !== null && rootRatingValue > 0) {
