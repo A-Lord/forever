@@ -509,8 +509,9 @@ critAura := warrior.RegisterAura(core.Aura{
 })
 ```
 
-Stats held while a weapon is equipped follow the weapon slots through item swaps; `SetLevel(nil, 1)`
-adds them as the character is built, and 0 takes them off:
+Stats held while a weapon is equipped, the shape the parse's 290 path builds
+(`sim/core/spelldata/parse_effects_table.go`), follow the weapon slots through item swaps;
+`SetLevel(nil, 1)` adds them as the character is built, and 0 takes them off:
 
 ```go
 req := core.EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeMace)}
