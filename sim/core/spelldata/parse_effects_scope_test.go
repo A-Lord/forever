@@ -116,7 +116,7 @@ func parseScoped(t *testing.T, row *Spell) *scopeResult {
 		Raid: &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{{
 			Name:      "Scope Tester",
 			Class:     proto.Class_ClassRogue,
-			Race:      proto.Race_RaceHuman,
+			Race:      proto.Race_RaceUndead,
 			Buffs:     &proto.IndividualBuffs{},
 			Spec:      &proto.Player_Rogue{},
 			Equipment: &proto.EquipmentSpec{Items: items},

@@ -77,10 +77,15 @@ func weaponSlots(mainHand, offHand, ranged int32) []*proto.ItemSpec {
 
 func setupWeaponSim(t *testing.T, equipped, swapped []*proto.ItemSpec) (*Simulation, *Character) {
 	t.Helper()
+	return setupWeaponSimAs(t, proto.Race_RaceUndead, equipped, swapped)
+}
+
+func setupWeaponSimAs(t *testing.T, race proto.Race, equipped, swapped []*proto.ItemSpec) (*Simulation, *Character) {
+	t.Helper()
 	player := &proto.Player{
 		Name:      "Weapon Tester",
 		Class:     proto.Class_ClassRogue,
-		Race:      proto.Race_RaceHuman,
+		Race:      race,
 		Buffs:     &proto.IndividualBuffs{},
 		Spec:      &proto.Player_Rogue{},
 		Equipment: &proto.EquipmentSpec{Items: equipped},

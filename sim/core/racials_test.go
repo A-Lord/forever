@@ -284,3 +284,15 @@ func TestBloodFuryReportsItsTemporaryStats(t *testing.T) {
 		t.Errorf("expire reported %v attack power, want the reverse of the gain's %v", got, heard[0][stats.AttackPower])
 	}
 }
+
+// Sword Specialization's crit reaches the attacks made with a sword, and neither the off-hand dagger's
+// nor the bow's.
+func TestSwordSpecializationReachesTheSwordAlone(t *testing.T) {
+	_, character := setupWeaponSimAs(t, proto.Race_RaceHuman, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+
+	for name, want := range map[string]float64{"main-hand auto": 2, "off-hand auto": 0, "ranged auto": 0} {
+		if got := autos(character)[name].BonusCritPercent; !WithinToleranceFloat64(want, got, 0.0001) {
+			t.Errorf("Sword Specialization gives the %s %0.2f%% crit, want %0.2f%%", name, got, want)
+		}
+	}
+}

@@ -100,30 +100,31 @@ func TestScrollDoesNotStackWithTheRaidBuffOfTheSameStat(t *testing.T) {
 	}
 }
 
-func TestElementalSharpeningStoneCritIsMeleeOnly(t *testing.T) {
+func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 	_, without := setupConsumesSim(nil)
-	_, with := setupConsumesSim(func(request *proto.RaidSimRequest) {
-		consumesOf(request).MhImbueId = 22756
-	})
+	for _, tc := range []struct {
+		name           string
+		set            func(*proto.ConsumesSpec)
+		wantMH, wantOH float64
+	}{
+		{"main hand", func(c *proto.ConsumesSpec) { c.MhImbueId = 22756 }, 2, 0},
+		{"off hand", func(c *proto.ConsumesSpec) { c.OhImbueId = 22756 }, 0, 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, with := setupConsumesSim(func(request *proto.RaidSimRequest) {
+				tc.set(consumesOf(request))
+			})
 
-	meleeDelta := with.GetStat(stats.PhysicalCritPercent) - without.GetStat(stats.PhysicalCritPercent)
-	if !WithinToleranceFloat64(2, meleeDelta, 0.001) {
-		t.Fatalf("Elemental Sharpening Stone should grant 2%% melee crit, got %0.3f%%", meleeDelta)
-	}
-
-	rangedCrit := func(fw *FakeRageWarrior) float64 {
-		return fw.GetStat(stats.RangedCritPercent) + fw.GetStat(stats.PhysicalCritPercent)
-	}
-	if rangedDelta := rangedCrit(with) - rangedCrit(without); !WithinToleranceFloat64(0, rangedDelta, 0.001) {
-		t.Fatalf("Elemental Sharpening Stone should leave ranged crit alone, got %0.3f%%", rangedDelta)
-	}
-
-	pseudoStats := with.GetPseudoStatsProto()
-	basePseudoStats := without.GetPseudoStatsProto()
-	meleeShown := pseudoStats[proto.PseudoStat_PseudoStatMeleeCritPercent] - basePseudoStats[proto.PseudoStat_PseudoStatMeleeCritPercent]
-	rangedShown := pseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] - basePseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent]
-	if !WithinToleranceFloat64(2, meleeShown, 0.001) || !WithinToleranceFloat64(0, rangedShown, 0.001) {
-		t.Fatalf("Character stats should show +2%% melee and +0%% ranged crit, got %0.3f%% and %0.3f%%", meleeShown, rangedShown)
+			if delta := with.GetStat(stats.PhysicalCritPercent) - without.GetStat(stats.PhysicalCritPercent); delta != 0 {
+				t.Fatalf("Elemental Sharpening Stone should grant no crit to every attack, got %0.3f%%", delta)
+			}
+			mh := with.AutoAttacks.MHAuto().BonusCritPercent - without.AutoAttacks.MHAuto().BonusCritPercent
+			oh := with.AutoAttacks.OHAuto().BonusCritPercent - without.AutoAttacks.OHAuto().BonusCritPercent
+			if !WithinToleranceFloat64(tc.wantMH, mh, 0.001) || !WithinToleranceFloat64(tc.wantOH, oh, 0.001) {
+				t.Fatalf("Elemental Sharpening Stone should grant %0.0f%% main hand and %0.0f%% off hand crit, got %0.3f%% and %0.3f%%",
+					tc.wantMH, tc.wantOH, mh, oh)
+			}
+		})
 	}
 }
 

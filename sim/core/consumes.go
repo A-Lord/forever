@@ -94,10 +94,10 @@ func applyConsumeEffects(agent Agent, partyBuffs *proto.PartyBuffs) {
 
 	// Static Imbues
 	if consumables.MhImbueId != 0 && !partyBuffs.WindfuryTotem {
-		registerStaticImbue(agent, consumables.MhImbueId, character.AutoAttacks.MH())
+		registerStaticImbue(agent, consumables.MhImbueId, character.AutoAttacks.MH(), proto.ItemSlot_ItemSlotMainHand)
 	}
 	if consumables.OhImbueId != 0 {
-		registerStaticImbue(agent, consumables.OhImbueId, character.AutoAttacks.OH())
+		registerStaticImbue(agent, consumables.OhImbueId, character.AutoAttacks.OH(), proto.ItemSlot_ItemSlotOffHand)
 	}
 
 	// Scrolls
@@ -624,7 +624,7 @@ func (character *Character) MHImbueFlatWeaponDamage() float64 {
 	return imbueFlatWeaponDamage(character.Consumables.MhImbueId)
 }
 
-func registerStaticImbue(agent Agent, imbueId int32, weapon *Weapon) {
+func registerStaticImbue(agent Agent, imbueId int32, weapon *Weapon, slot proto.ItemSlot) {
 	character := agent.GetCharacter()
 	switch imbueId {
 	case 25123: // Mana Oil
@@ -637,10 +637,12 @@ func registerStaticImbue(agent Agent, imbueId int32, weapon *Weapon) {
 	case 25121: // Wizard Oil
 		character.AddStat(stats.SpellDamage, 30)
 	case 22756: // Elemental Sharpening Stone
-		// RangedCritPercent is the ranged offset from PhysicalCritPercent, so the melee-only
-		// crit has to be cancelled there.
-		character.AddStat(stats.PhysicalCritPercent, 2)
-		character.AddStat(stats.RangedCritPercent, -2)
+		// The crit reaches the attacks made with the weapon the stone is on.
+		character.AddStaticMod(SpellModConfig{
+			Kind:       SpellMod_BonusCrit_Percent,
+			FloatValue: 2,
+			ProcMask:   character.GetProcMaskForWeaponSlot(slot),
+		})
 	case 28898: // Blessed Wizard Oil
 		character.Env.RegisterPostFinalizeEffect(func() {
 			for _, at := range character.AttackTables {
