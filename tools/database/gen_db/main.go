@@ -516,6 +516,11 @@ func ApplyNonSimmableFilters(db *database.WowDatabase) {
 	db.Enchants = core.FilterMap(db.Enchants, func(id database.EnchantDBKey, enchant *proto.UIEnchant) bool {
 		return !simmableEnchantFilter(id, enchant)
 	})
+	// db.json ships every consumable and its icon.
+	for id := range db.Consumables {
+		delete(db.ItemIcons, id)
+	}
+	db.Consumables = map[int32]*proto.Consumable{}
 }
 func simmableItemFilter(_ int32, item *proto.UIItem) bool {
 	if _, ok := database.ItemAllowList[item.Id]; ok {

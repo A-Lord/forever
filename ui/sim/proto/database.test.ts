@@ -1,3 +1,4 @@
+import { EquipmentSpec, ItemSpec } from '@generated/proto/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // `Database.get` memoises its load in module scope, so every case resets the module registry to get
@@ -59,6 +60,22 @@ describe('Database.get', () => {
 		await drainRetries(fetchMock, attemptsBeforeSecond + 1);
 		await second;
 		expect(fetchMock.mock.calls.length).toBeGreaterThan(attemptsWhileFailing);
+	}, 30000);
+
+	it('keeps the consumables of db.json when it merges the leftovers', async () => {
+		const bodies: Record<string, object> = {
+			'/forever/assets/database/db.json': { consumables: [{ id: 5, name: 'Potion' }], itemIcons: [{ id: 5, name: 'Potion', icon: 'inv_potion' }] },
+			'/forever/assets/database/leftover_db.json': { items: [{ id: 7, name: 'Grey Sword', scalingOptions: { 0: { ilvl: 5 } } }] },
+		};
+		const fetchMock = vi.fn((url: string) => Promise.resolve({ json: () => Promise.resolve(bodies[url]) }));
+		vi.stubGlobal('fetch', fetchMock);
+
+		const Database = await freshDatabase();
+		const db = await Database.loadLeftoversIfNecessary(EquipmentSpec.create({ items: [ItemSpec.create({ id: 7 })] }));
+
+		expect(fetchMock).toHaveBeenCalledWith('/forever/assets/database/leftover_db.json');
+		expect(db.getItemById(7)?.name).toBe('Grey Sword');
+		expect(db.getConsumable(5)?.name).toBe('Potion');
 	}, 30000);
 
 	it('shares one load between concurrent callers', async () => {
