@@ -1156,8 +1156,8 @@ func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
 // Furious Howl is a flat attack power grant that competes with nothing Battle Shout holds, so both
 // land on the character at once.
 func TestGeneratedFuriousHowlStacksWithBattleShout(t *testing.T) {
-	if got := buffs.FuriousHowlValue(0); got <= 0 {
-		t.Fatalf("Furious Howl is worth %v attack power, want a positive amount", got)
+	if got := buffs.FuriousHowlValue(0); got != 138 {
+		t.Fatalf("Furious Howl is worth %v attack power, want the client's 136 plus 4 levels of 0.7, floored to 138", got)
 	}
 
 	shoutOnly := core.NewGeneratedBuffTestCharacter()

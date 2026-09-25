@@ -349,6 +349,24 @@ func TestGeneratedAttackPowerReductionsApplyTheStrongestOnce(t *testing.T) {
 	}
 }
 
+// Without the shout, Demoralizing Screech's -205 outbids Hex of Weakness's -204.
+func TestGeneratedDemoralizingScreechOutbidsHexOfWeakness(t *testing.T) {
+	target := core.NewGeneratedDebuffTestTarget()
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{HexOfWeakness: true, DemoralizingScreech: true})
+	if got := target.GetStats()[stats.AttackPower]; got != -205 {
+		t.Errorf("attack power is %v, want the screech's -205 once", got)
+	}
+
+	hex := target.GetAura("Hex of Weakness (External)")
+	screech := target.GetAura("Demoralizing Screech (External)")
+	if hex == nil || screech == nil {
+		t.Fatalf("the target has %v, want both attack power reductions", targetAuraLabels(target))
+	}
+	if !screech.IsActive() || hex.IsActive() {
+		t.Errorf("screech active %v, hex active %v; want the screech alone on the target", screech.IsActive(), hex.IsActive())
+	}
+}
+
 // Curse of Weakness lowers the damage each hit does, not attack power, so it stacks with the shouts.
 func TestGeneratedCurseOfWeaknessStacksWithDemoralizingShout(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
@@ -388,8 +406,7 @@ func TestGeneratedDustCloudStacksWithFaerieFire(t *testing.T) {
 func TestGeneratedArmorShatterHoldsThreeStacks(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	base := target.GetStats()[stats.Armor]
-	sim := applyGeneratedTestDebuffs(target, &proto.Debuffs{ArmorShatter: true})
-	_ = sim
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{ArmorShatter: true})
 	if got := buffs.ArmorShatterValue(0); got != -165 {
 		t.Errorf("Armor Shatter is worth %v, want the client's -165", got)
 	}
