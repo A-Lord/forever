@@ -20,8 +20,8 @@ func init() {
 // 2% crit and a ranged one nothing.
 func TestElementalSharpeningStoneGrantsMeleeCrit(t *testing.T) {
 	const sword = 727
-	_, bare := warriorWithConsumes(t, &proto.ConsumesSpec{}, sword, 0)
-	_, stoned := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 18262}, sword, 0)
+	_, bare := warriorWithConsumes(t, &proto.ConsumesSpec{}, sword, 0, proto.MobType_MobTypeUnknown)
+	_, stoned := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 18262}, sword, 0, proto.MobType_MobTypeUnknown)
 
 	gained := stoned.GetStats().Subtract(bare.GetStats())
 	melee := gained[stats.PhysicalCritPercent]

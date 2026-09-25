@@ -20,16 +20,11 @@ func TestAddMobTypeBonusStatsAddsAgainstTheNamedTypes(t *testing.T) {
 	bonus := stats.Stats{stats.AttackPower: 150}
 
 	unit.AddMobTypeBonusStats(bonus, proto.MobType_MobTypeUndead, proto.MobType_MobTypeDemon)
-	for _, at := range []*AttackTable{undead, humanoid} {
-		if got := at.MobTypeBonusStats[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 150 {
-			t.Errorf("Undead attack power %v, want 150", got)
-		}
-		if got := at.MobTypeBonusStats[proto.MobType_MobTypeDemon][stats.AttackPower]; got != 150 {
-			t.Errorf("Demon attack power %v, want 150", got)
-		}
-		if got := at.MobTypeBonusStats[proto.MobType_MobTypeHumanoid][stats.AttackPower]; got != 0 {
-			t.Errorf("Humanoid attack power %v, want 0", got)
-		}
+	if got := undead.MobTypeBonusStats[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 150 {
+		t.Errorf("Undead attack power %v, want 150", got)
+	}
+	if got := humanoid.MobTypeBonusStats[proto.MobType_MobTypeHumanoid][stats.AttackPower]; got != 0 {
+		t.Errorf("Humanoid attack power %v, want 0", got)
 	}
 
 	unit.AddMobTypeBonusStats(bonus.Invert(), proto.MobType_MobTypeUndead)

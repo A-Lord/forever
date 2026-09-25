@@ -83,7 +83,8 @@ func TestAVersusAuraBidsPerCreatureTypeMask(t *testing.T) {
 	sim := &core.Simulation{}
 	character := parseWarrior()
 	undead := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
-	character.AttackTables = []*core.AttackTable{undead}
+	demon := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeDemon})
+	character.AttackTables = []*core.AttackTable{undead, demon}
 
 	register := func(label string, mask int32, points float64) *core.Aura {
 		row := buffRow(7070, auraEffect(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, mask, points))
@@ -105,11 +106,10 @@ func TestAVersusAuraBidsPerCreatureTypeMask(t *testing.T) {
 	againstUndead.Activate(sim)
 	againstDemons.Activate(sim)
 	weakerAgainstUndead.Activate(sim)
-	bonus := undead.MobTypeBonusStats
-	if got := bonus[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 99 {
+	if got := undead.MobTypeBonusStats[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 99 {
 		t.Errorf("attack power against Undead: %v, want the stronger 99 alone", got)
 	}
-	if got := bonus[proto.MobType_MobTypeDemon][stats.AttackPower]; got != 185 {
+	if got := demon.MobTypeBonusStats[proto.MobType_MobTypeDemon][stats.AttackPower]; got != 185 {
 		t.Errorf("attack power against Demons: %v, want 185", got)
 	}
 }

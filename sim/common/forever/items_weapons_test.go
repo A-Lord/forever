@@ -13,12 +13,12 @@ import (
 // power, which the item's stats carry, and 12 of each against Undead (creature type mask 32).
 func TestGraverobbersShovelGrantsAttackPowerAgainstUndead(t *testing.T) {
 	const shovel = 273817
-	_, character := warriorWithConsumes(t, &proto.ConsumesSpec{}, shovel, 0)
-
-	if got, want := bonusAgainst(character, proto.MobType_MobTypeUndead), (stats.Stats{stats.AttackPower: 12, stats.RangedAttackPower: 12}); got != want {
+	_, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{}, shovel, 0, proto.MobType_MobTypeUndead)
+	if got, want := bonusAgainstTarget(againstUndead), (stats.Stats{stats.AttackPower: 12, stats.RangedAttackPower: 12}); got != want {
 		t.Errorf("the bonus against Undead is %v, want %v", got, want)
 	}
-	if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != (stats.Stats{}) {
+	_, againstDemons := warriorWithConsumes(t, &proto.ConsumesSpec{}, shovel, 0, proto.MobType_MobTypeDemon)
+	if got := bonusAgainstTarget(againstDemons); got != (stats.Stats{}) {
 		t.Errorf("the bonus against Demons is %v, want none", got)
 	}
 }

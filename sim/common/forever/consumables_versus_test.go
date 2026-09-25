@@ -17,7 +17,7 @@ func init() {
 	forever.RegisterPotionsAndConjured()
 }
 
-func warriorWithConsumes(t *testing.T, consumes *proto.ConsumesSpec, mainHand, offHand int32) (*core.Simulation, *core.Character) {
+func warriorWithConsumes(t *testing.T, consumes *proto.ConsumesSpec, mainHand, offHand int32, mobType proto.MobType) (*core.Simulation, *core.Character) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotOffHand+1)
 	for i := range items {
@@ -39,20 +39,21 @@ func warriorWithConsumes(t *testing.T, consumes *proto.ConsumesSpec, mainHand, o
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
-		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 63}}, Duration: 180},
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 63, MobType: mobType}}, Duration: 180},
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
 }
 
-func bonusAgainst(character *core.Character, mobType proto.MobType) stats.Stats {
-	return character.AttackTables[character.CurrentTarget.UnitIndex].MobTypeBonusStats[mobType]
+func bonusAgainstTarget(character *core.Character) stats.Stats {
+	target := character.CurrentTarget
+	return character.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType]
 }
 
 // Potion of Demonslaying 9224 casts 11406: 108 spell damage and 185 attack power against Demons
 // (creature type mask 4) for 120 s, on potion category 4's 120 s timer.
 func TestPotionOfDemonslayingIsAPotion(t *testing.T) {
-	sim, character := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0)
+	sim, character := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0, proto.MobType_MobTypeDemon)
 
 	spell := character.GetSpell(core.ActionID{ItemID: 9224})
 	if spell == nil {
@@ -66,7 +67,7 @@ func TestPotionOfDemonslayingIsAPotion(t *testing.T) {
 	}
 
 	want := stats.Stats{stats.AttackPower: 185, stats.SpellDamage: 108}
-	if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != (stats.Stats{}) {
+	if got := bonusAgainstTarget(character); got != (stats.Stats{}) {
 		t.Errorf("before the potion, the bonus against Demons is %v, want none", got)
 	}
 	aura := character.GetAuraByID(core.ActionID{SpellID: 11406})
@@ -74,15 +75,18 @@ func TestPotionOfDemonslayingIsAPotion(t *testing.T) {
 	if aura.Duration != 120*time.Second {
 		t.Errorf("the potion's aura lasts %v, want 120 s", aura.Duration)
 	}
-	if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != want {
+	if got := bonusAgainstTarget(character); got != want {
 		t.Errorf("under the potion, the bonus against Demons is %v, want %v", got, want)
 	}
-	if got := bonusAgainst(character, proto.MobType_MobTypeUndead); got != (stats.Stats{}) {
-		t.Errorf("under the potion, the bonus against Undead is %v, want none", got)
-	}
 	aura.Deactivate(sim)
-	if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != (stats.Stats{}) {
+	if got := bonusAgainstTarget(character); got != (stats.Stats{}) {
 		t.Errorf("after the potion, the bonus against Demons is %v, want none", got)
+	}
+
+	undeadSim, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0, proto.MobType_MobTypeUndead)
+	againstUndead.GetAuraByID(core.ActionID{SpellID: 11406}).Activate(undeadSim)
+	if got := bonusAgainstTarget(againstUndead); got != (stats.Stats{}) {
+		t.Errorf("under the potion, the bonus against Undead is %v, want none", got)
 	}
 }
 
@@ -102,12 +106,13 @@ func TestConsecratedSharpeningStoneCountsOncePerHandItTakes(t *testing.T) {
 		{"on a sword and a shield it cannot take", sword, shield, &proto.ConsumesSpec{MhImbueId: 23122, OhImbueId: 23122}, 1},
 		{"on nothing", sword, dagger, &proto.ConsumesSpec{}, 0},
 	} {
-		_, character := warriorWithConsumes(t, tc.consumes, tc.mainHand, tc.offHand)
+		_, againstUndead := warriorWithConsumes(t, tc.consumes, tc.mainHand, tc.offHand, proto.MobType_MobTypeUndead)
 		want := stats.Stats{stats.AttackPower: 99 * tc.hands, stats.RangedAttackPower: 99 * tc.hands}
-		if got := bonusAgainst(character, proto.MobType_MobTypeUndead); got != want {
+		if got := bonusAgainstTarget(againstUndead); got != want {
 			t.Errorf("%s: the bonus against Undead is %v, want %v", tc.name, got, want)
 		}
-		if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != (stats.Stats{}) {
+		_, againstDemons := warriorWithConsumes(t, tc.consumes, tc.mainHand, tc.offHand, proto.MobType_MobTypeDemon)
+		if got := bonusAgainstTarget(againstDemons); got != (stats.Stats{}) {
 			t.Errorf("%s: the bonus against Demons is %v, want none", tc.name, got)
 		}
 	}
@@ -117,11 +122,12 @@ func TestConsecratedSharpeningStoneCountsOncePerHandItTakes(t *testing.T) {
 // damage against Undead (creature type mask 32).
 func TestBlessedWizardOilGrantsSpellDamageAgainstUndead(t *testing.T) {
 	const sword = 727
-	_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 23123}, sword, 0)
-	if got, want := bonusAgainst(character, proto.MobType_MobTypeUndead), (stats.Stats{stats.SpellDamage: 58}); got != want {
+	_, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 23123}, sword, 0, proto.MobType_MobTypeUndead)
+	if got, want := bonusAgainstTarget(againstUndead), (stats.Stats{stats.SpellDamage: 58}); got != want {
 		t.Errorf("the bonus against Undead is %v, want %v", got, want)
 	}
-	if got := bonusAgainst(character, proto.MobType_MobTypeDemon); got != (stats.Stats{}) {
+	_, againstDemons := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 23123}, sword, 0, proto.MobType_MobTypeDemon)
+	if got := bonusAgainstTarget(againstDemons); got != (stats.Stats{}) {
 		t.Errorf("the bonus against Demons is %v, want none", got)
 	}
 }

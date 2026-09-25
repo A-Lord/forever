@@ -13,7 +13,7 @@ import (
 // Adds stats the unit has against every defender of the mob types; a negative bonus takes them away.
 func (unit *Unit) AddMobTypeBonusStats(bonus stats.Stats, mobTypes ...proto.MobType) {
 	for _, at := range unit.AttackTables {
-		for _, mobType := range mobTypes {
+		if mobType := at.Defender.MobType; slices.Contains(mobTypes, mobType) {
 			at.MobTypeBonusStats[mobType] = at.MobTypeBonusStats[mobType].Add(bonus)
 		}
 	}
