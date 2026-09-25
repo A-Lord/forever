@@ -32,6 +32,9 @@ type Meta struct {
 	Talent               spelldata.Ladder
 	TalentEffect         int32
 	TalentScalesDuration bool
+	// TalentDivisor prices the buff at talentPoints/TalentDivisor of the spell's amount, for a talent
+	// that states its effect only in its tooltip; 0 for a talent priced by a spell modifier.
+	TalentDivisor int32
 
 	// The aura effects the buff leaves out, by aura.
 	SkipAuras []dbcenums.EffectAuraType
@@ -42,7 +45,10 @@ type Meta struct {
 // The parse options the row states, for a caster with these talent points.
 func (m *Meta) Options(talentPoints int32) []spelldata.ParseOpt {
 	opts := spelldata.RaidBuffOptions(m.SkipAuras, m.FullComboPoints)
-	if !m.TalentScalesDuration {
+	switch {
+	case m.TalentDivisor > 0:
+		opts = append(opts, spelldata.ScaledByRanks(talentPoints, m.TalentDivisor))
+	case !m.TalentScalesDuration:
 		opts = append(opts, spelldata.ScaledBy(m.talentMod(talentPoints)))
 	}
 	return opts

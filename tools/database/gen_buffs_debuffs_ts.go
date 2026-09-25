@@ -19,13 +19,14 @@ import (
 
 const buffsDebuffsTSFile = "ui/features/settings/model/buffs_debuffs_auto_gen.ts"
 
-// The state count a multistate input counts up to, copied from the hand-written
-// input for that field in ui/features/settings/model/buffs_debuffs.ts. An int32
-// field counts casts or mana, and how far it counts is a UI choice the client
-// database does not state.
+// The state count a multistate input counts up to. An int32 field counts casts
+// or mana, and how far it counts is a UI choice the client database does not
+// state; the four Atiesh inputs share one count.
 var buffInputNumStates = map[string]int{
 	"atiesh_mage":      5,
 	"atiesh_warlock":   5,
+	"atiesh_druid":     5,
+	"atiesh_priest":    5,
 	"mana_tide_totems": 5,
 	"innervates":       11,
 	"power_infusions":  11,
@@ -37,8 +38,6 @@ var manualBuffInputs = map[string]string{
 	"greater_blessing_of_salvation": "the hand-written input hides itself for tank and healing specs, a role gate no manifest row carries.",
 	"greater_blessing_of_light":     "the hand-written input shows itself for tank and healing specs only, a role gate no manifest row carries.",
 	"retribution_aura":              "the hand-written input shows itself for tank specs only, since a damage shield only matters on the unit being hit; a role gate no manifest row carries.",
-	"atiesh_druid":                  "no settings input over this field.",
-	"atiesh_priest":                 "no settings input over this field.",
 }
 
 type tsBuffInput struct {
@@ -229,10 +228,19 @@ func uninputtableBuffReason(row ResolvedBuff) string {
 	return fixed
 }
 
+// The spell the settings input shows as its icon and tooltip: the row's TooltipID when it names one,
+// else the cast the manifest pins for it, else the aura itself.
+func buffInputActionID(row ResolvedBuff) int32 {
+	if row.TooltipID != 0 {
+		return row.TooltipID
+	}
+	return row.CastSpellID
+}
+
 func buffInput(row ResolvedBuff) (*tsBuffInput, error) {
 	input := &tsBuffInput{
 		Const:     row.Go,
-		SpellID:   row.SpellID,
+		SpellID:   buffInputActionID(row),
 		FieldName: row.TSField(),
 		Label:     tsString(buffLabel(row)),
 	}

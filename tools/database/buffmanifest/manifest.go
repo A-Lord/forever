@@ -107,6 +107,10 @@ type BuffSpec struct {
 	// roots of the spell store.
 	SpellID int32
 	CastID  int32
+	// TooltipID is the spell the settings input shows as its icon and tooltip, for a row whose aura
+	// states no text and whose CastID is not that spell either. 0 defers to CastID, then SpellID; it
+	// never changes the numbers the row reads.
+	TooltipID int32
 	// Talent is the spell of the trait node that prices the improved state, 0 when none does.
 	Talent         int32
 	Category       string // exclusive-effect category value, "" = none

@@ -122,7 +122,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	rotationInputs: FeralInputs.FeralDruidRotationConfig,
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatIntellect, Stat.StatStamina],
-	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem, BuffDebuffInputs.FlametongueTotem],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [
