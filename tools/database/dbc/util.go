@@ -223,8 +223,6 @@ func processEnchantmentEffects(
 	}
 }
 
-const rangedWeaponSubclassMask = rangedMask | ITEM_SUBCLASS_BIT_WEAPON_THROWN | ITEM_SUBCLASS_BIT_WEAPON_WAND
-
 const SkillLineDefense = 95
 
 // Whether an equip spell's auras fold into the stats of the item or enchant carrying it. They do when
@@ -238,28 +236,27 @@ func EquipSpellFolds(spellID int) bool {
 	if spell.EquippedItemClass != ITEM_CLASS_WEAPON || (spell.EquippedItemSubclass == 0 && spell.EquippedItemInvTypes == 0) {
 		return true
 	}
-	return spell.EquippedItemInvTypes == 0 && spell.EquippedItemSubclass&^rangedWeaponSubclassMask == 0
+	return spell.EquippedItemInvTypes == 0 && spell.EquippedItemSubclass&^dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED == 0
 }
 
 // The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points. A
 // mask with any other bit names a rating stat instead, and grants none of these.
 func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64 {
-	const rangedBits = RATING_MOD_HIT_RANGED | RATING_MOD_CRIT_RANGED | RATING_MOD_HASTE_RANGED
-	if mask == 0 || mask&^rangedBits != 0 {
+	if mask == 0 || mask&^dbcenums.RATING_MOD_MASK_RANGED != 0 {
 		return nil
 	}
 
 	percents := map[proto.PseudoStat]float64{}
-	if mask&RATING_MOD_HIT_RANGED != 0 {
-		percents[proto.PseudoStat_PseudoStatRangedHitPercent] = rating / core.HitRatingPerHitPercent
-	}
-	if mask&RATING_MOD_CRIT_RANGED != 0 {
-		percents[proto.PseudoStat_PseudoStatRangedCritPercent] = rating / core.CritRatingPerCritPercent
-	}
-	if mask&RATING_MOD_HASTE_RANGED != 0 {
-		percents[proto.PseudoStat_PseudoStatRangedHastePercent] = rating / core.HasteRatingPerHastePercent
+	for _, scoped := range spelldata.ScopedRatingPercents(int32(mask), rating) {
+		percents[rangedPercentStats[scoped.Stat]] = scoped.Percent
 	}
 	return percents
+}
+
+var rangedPercentStats = map[stats.Stat]proto.PseudoStat{
+	stats.HitRating:   proto.PseudoStat_PseudoStatRangedHitPercent,
+	stats.CritRating:  proto.PseudoStat_PseudoStatRangedCritPercent,
+	stats.HasteRating: proto.PseudoStat_PseudoStatRangedHastePercent,
 }
 
 // Adds what an equip spell states that no stat index carries, and reports whether it added to each of
@@ -421,23 +418,16 @@ func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {
 	}
 }
 
-// The rating stat a combat rating mask names, read bit by bit through RatingModToStat, so a mask of
-// only ranged bits names none. The callers read one stat per aura, so a mask naming two different
-// stats names none either; no client aura carries one.
+// The rating stat a combat rating mask names, read bit by bit through spelldata.RatingStats, so a
+// mask of only ranged bits names none. The callers read one stat per aura, so a mask naming two
+// different stats names none either; no client aura carries one.
 func ConvertModRatingFlagToRatingStat(flag int) proto.Stat {
-	stat := proto.Stat(-1)
-	for _, rating := range getMatchingRatingMods(flag) {
-		switch named := RatingModToStat[rating]; {
-		case named == -1 || named == stat:
-		case stat == -1:
-			stat = named
-		default:
-			println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
-			return -1
-		}
+	ratings := spelldata.RatingStats(int32(flag))
+	if len(ratings) == 1 {
+		return proto.Stat(ratings[0])
 	}
-	if stat == -1 && flag&^(RATING_MOD_HIT_RANGED|RATING_MOD_CRIT_RANGED|RATING_MOD_HASTE_RANGED) != 0 {
+	if len(ratings) > 1 || flag&^dbcenums.RATING_MOD_MASK_RANGED != 0 {
 		println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
 	}
-	return stat
+	return -1
 }

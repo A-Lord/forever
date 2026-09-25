@@ -469,14 +469,12 @@ func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.Sp
 func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64) *attachment {
 	scope.FromRating = true
 	var parts []*attachment
-	for _, stat := range ScopedRatingStats(mask) {
-		switch stat {
+	for _, rating := range ScopedRatingPercents(mask, v) {
+		switch rating.Stat {
 		case stats.HitRating:
-			parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope,
-				v/core.HitRatingPerHitPercent))
+			parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, rating.Percent))
 		case stats.CritRating:
-			parts = append(parts, p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope,
-				v/core.CritRatingPerCritPercent))
+			parts = append(parts, p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, rating.Percent))
 		}
 	}
 
@@ -934,22 +932,22 @@ func resistanceStats(mask int32) []stats.Stat {
 
 // The ratings a combat rating mask names, read bit by bit, so a mask naming several ratings gives each
 // of them. One rating feeds melee, ranged and spells alike, so its melee and spell bits name the same
-// stat. The ranged bits 64, 512 and 262144 are not read: beside the melee or spell bit of the same
-// rating they add nothing, and a mask of them alone is a ranged row, which ScopedRatingStats reads.
+// stat. The ranged bits are not read: beside the melee or spell bit of the same rating they add
+// nothing, and a mask of them alone is a ranged row, which ScopedRatingStats reads.
 func RatingStats(mask int32) []stats.Stat {
 	var out []stats.Stat
 	for _, rating := range []struct {
 		bits int32
 		stat stats.Stat
 	}{
-		{2, stats.DefenseRating},
-		{4, stats.DodgeRating},
-		{8, stats.ParryRating},
-		{16, stats.BlockRating},
-		{32 | 128, stats.HitRating},
-		{256 | 1024, stats.CritRating},
-		{131072 | 524288, stats.HasteRating},
-		{8388608, stats.ExpertiseRating},
+		{dbcenums.RATING_MOD_DEFENSE, stats.DefenseRating},
+		{dbcenums.RATING_MOD_DODGE, stats.DodgeRating},
+		{dbcenums.RATING_MOD_PARRY, stats.ParryRating},
+		{dbcenums.RATING_MOD_BLOCK, stats.BlockRating},
+		{dbcenums.RATING_MOD_HIT_MELEE | dbcenums.RATING_MOD_HIT_SPELL, stats.HitRating},
+		{dbcenums.RATING_MOD_CRIT_MELEE | dbcenums.RATING_MOD_CRIT_SPELL, stats.CritRating},
+		{dbcenums.RATING_MOD_HASTE_MELEE | dbcenums.RATING_MOD_HASTE_SPELL, stats.HasteRating},
+		{dbcenums.RATING_MOD_EXPERTISE, stats.ExpertiseRating},
 	} {
 		if mask&rating.bits != 0 {
 			out = append(out, rating.stat)

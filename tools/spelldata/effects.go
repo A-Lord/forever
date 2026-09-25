@@ -182,20 +182,21 @@ func ratingPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		return join(signed(value(e)), ratingNames(ratings))
 	}
 
-	ratings := spelldata.ScopedRatingStats(e.Misc)
-	if len(ratings) == 0 {
+	scoped := spelldata.ScopedRatingPercents(e.Misc, value(e))
+	if len(scoped) == 0 {
 		return ""
 	}
+	var ratings, unread []stats.Stat
 	var worth []string
-	var unread []stats.Stat
-	for _, stat := range ratings {
-		switch stat {
+	for _, rating := range scoped {
+		ratings = append(ratings, rating.Stat)
+		switch rating.Stat {
 		case stats.HitRating:
-			worth = append(worth, signed(value(e)/core.HitRatingPerHitPercent)+"% hit")
+			worth = append(worth, signed(rating.Percent)+"% hit")
 		case stats.CritRating:
-			worth = append(worth, signed(value(e)/core.CritRatingPerCritPercent)+"% crit")
+			worth = append(worth, signed(rating.Percent)+"% crit")
 		default:
-			unread = append(unread, stat)
+			unread = append(unread, rating.Stat)
 		}
 	}
 

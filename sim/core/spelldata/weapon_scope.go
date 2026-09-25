@@ -26,15 +26,7 @@ const (
 	WeaponRuleRangedRatings
 )
 
-const (
-	rangedSubclasses int32 = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_THROWN |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_WAND
-	rangedInvTypes int32 = dbcenums.INVTYPE_BIT_RANGED | dbcenums.INVTYPE_BIT_THROWN | dbcenums.INVTYPE_BIT_RANGEDRIGHT
-)
-
-// The combat rating bits for ranged attacks: hit, crit and haste.
-const rangedRatings int32 = 64 | 512 | 262144
+const rangedInvTypes int32 = dbcenums.INVTYPE_BIT_RANGED | dbcenums.INVTYPE_BIT_THROWN | dbcenums.INVTYPE_BIT_RANGEDRIGHT
 
 // The rule the parse applies to a hit, crit or rating effect, and the scope a mod under it takes: the
 // proc mask and the Equip fields, with no class flags, so the mod reaches auto attacks whatever family
@@ -54,11 +46,11 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 	scope, scoped := weaponScope(s, e)
 	switch {
 	case scoped && e.Aura == dbcenums.A_MOD_CRIT_PCT &&
-		(s.EquipSubclass == 0 || s.EquipSubclass&^rangedSubclasses != 0 || scope.EquipInvType != 0 || scope.EquipHand != 0):
+		(s.EquipSubclass == 0 || s.EquipSubclass&^dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || scope.EquipInvType != 0 || scope.EquipHand != 0):
 		return WeaponRuleWhileEquipped, scope
 	case scoped:
 		return WeaponRulePerWeapon, scope
-	case e.Aura == dbcenums.A_MOD_RATING && e.Misc&rangedRatings != 0 && e.Misc&^rangedRatings == 0:
+	case e.Aura == dbcenums.A_MOD_RATING && e.Misc&dbcenums.RATING_MOD_MASK_RANGED != 0 && e.Misc&^dbcenums.RATING_MOD_MASK_RANGED == 0:
 		return WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged}
 	case s.EquipClass == dbcenums.ITEM_CLASS_WEAPON && e.Target[0] != dbcenums.TARGET_UNIT_CASTER:
 		return WeaponRuleCastOnly, core.SpellModConfig{}
@@ -70,7 +62,32 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 // scoped row converts the hit and crit among them. Haste has no mod that reaches some attacks and not
 // others, so it is not read, and neither are the other ratings.
 func ScopedRatingStats(mask int32) []stats.Stat {
-	return RatingStats(mask | (mask&rangedRatings)>>1)
+	return RatingStats(mask | (mask&dbcenums.RATING_MOD_MASK_RANGED)>>1)
+}
+
+type RatingPercent struct {
+	Stat    stats.Stat
+	Percent float64
+}
+
+// The ratings ScopedRatingStats reads, each with the percent v points of it are worth. A rating with
+// no percent of its own is worth 0.
+func ScopedRatingPercents(mask int32, v float64) []RatingPercent {
+	ratings := ScopedRatingStats(mask)
+	out := make([]RatingPercent, 0, len(ratings))
+	for _, stat := range ratings {
+		percent := 0.0
+		switch stat {
+		case stats.HitRating:
+			percent = v / core.HitRatingPerHitPercent
+		case stats.CritRating:
+			percent = v / core.CritRatingPerCritPercent
+		case stats.HasteRating:
+			percent = v / core.HasteRatingPerHastePercent
+		}
+		out = append(out, RatingPercent{stat, percent})
+	}
+	return out
 }
 
 func weaponRequirement(s *Spell, scope core.SpellModConfig) core.EquipRequirement {
@@ -103,10 +120,10 @@ func weaponScope(s *Spell, e *Effect) (core.SpellModConfig, bool) {
 	}
 
 	var procMask core.ProcMask
-	if s.EquipSubclass&rangedSubclasses != 0 || s.EquipInvType&rangedInvTypes != 0 {
+	if s.EquipSubclass&dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || s.EquipInvType&rangedInvTypes != 0 {
 		procMask |= core.ProcMaskRanged
 	}
-	if s.EquipSubclass&^rangedSubclasses != 0 || s.EquipInvType&^rangedInvTypes != 0 || hand != 0 {
+	if s.EquipSubclass&^dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || s.EquipInvType&^rangedInvTypes != 0 || hand != 0 {
 		procMask |= core.ProcMaskMelee
 	}
 

@@ -201,18 +201,13 @@ var inventoryTypes = map[int]string{
 	28: "relic",
 }
 
-// Every melee weapon and every weapon that shoots, the two masks a row naming a whole family reads
-// better as.
-const (
-	meleeWeapons = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_MACE_1H | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_MACE_2H |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_2H | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_STAFF |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_DAGGERS |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SPEAR
-	rangedWeapons = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW
-)
+// Every melee weapon, a mask a row naming the whole family reads better as.
+const meleeWeapons = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE |
+	dbcenums.ITEM_SUBCLASS_BIT_WEAPON_MACE_1H | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_MACE_2H |
+	dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H |
+	dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_2H | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_STAFF |
+	dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_DAGGERS |
+	dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SPEAR
 
 // What the spell states it needs equipped: the item class and subclass mask a weapon-specific
 // ability or proc names, the inventory slots an enchant names, and the hand an ATTR_EX_3 bit names.
@@ -277,7 +272,7 @@ const shieldSubclass = 6
 // what the client states on a stance ability and on a shot.
 func weaponRequirement(mask int32) string {
 	switch mask {
-	case rangedWeapons:
+	case dbcenums.ITEM_SUBCLASS_MASK_WEAPON_SHOOTING:
 		return "bow, gun or crossbow"
 	case meleeWeapons:
 		return "melee weapon"
