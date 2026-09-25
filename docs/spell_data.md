@@ -128,10 +128,11 @@ damage or any of the weapon-damage effects), `HealEffect()`, `EnergizeEffect()` 
 | `Roll(sim, level)`        | the amount for one cast                                               |
 
 `Average(level)` folds the amount the way the tooltip does: the base points plus
-`EffectRealPointsPerLevel` for each level between the spell's own `SpellLevel` and the caster's,
-stopped at `MaxLevel` where the row states one, and floored. The arithmetic is float32 on purpose -
-the client's per-level gain is a float32 widened into the database, and folding it in float64 moves
-six rows off the tooltip.
+`EffectRealPointsPerLevel` for each level between the spell's `BaseLevel` and the caster's, stopped
+at `MaxLevel` where the row states one, and floored. `BaseLevel` equals `SpellLevel` on most ranks;
+where it does not - Vindication's debuff states 0 and 1 - the in-game amount counts from `BaseLevel`.
+The arithmetic is float32 on purpose - the client's per-level gain is a float32 widened into the
+database, and folding it in float64 moves six rows off the tooltip.
 
 `EffectVariance` is the spread the server rolls the amount over: `Min` and `Max` are the average times
 `1 -/+ Variance/2`. `Roll` rolls it where the row states one and answers the average where it does
@@ -776,7 +777,7 @@ FloatValue: spellData.PuncturingWounds.EffectAt(3).ValueAt(rogue.Talents.Punctur
 `EffectAt(n)` and `Effect(aura, misc)` answer base points across the ranks, which is right for a
 `Talent`, whose curve states base points outright. A `Ranked` family - one spell per rank - can still
 carry `EffectRealPointsPerLevel` on that effect, so `ValueAt`/`FractionAt`/`MultiplierAt`/`TenthsAt`
-read low wherever the client scales it past the rank's own `SpellLevel`. Read the rank's own effect
+read low wherever the client scales it past the rank's `BaseLevel`. Read the rank's own effect
 through `Average` instead of the ladder's per-rank reader:
 
 ```go
@@ -1087,7 +1088,7 @@ float64 gives a different answer on those rows.
 read the first of several, and `Effect(aura, misc)` panics when two effects match. Both are the same
 rule: `EffectAt(n)` or `EffectN(n)` is how a caller says which.
 
-**A hand-built `Effect` scales from its own `SpellLevel` and `MaxLevel`.** The generator stamps both onto
+**A hand-built `Effect` scales from its own `BaseLevel` and `MaxLevel`.** The generator stamps both onto
 every effect so `Average(level)` needs no lookup; an `Effect` literal in a test or a hand-written config
 that leaves them zero scales `PPL` from level 0 up to the caster's level. Copy them from the spell's row,
 or set `PPL` to 0.

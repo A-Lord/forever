@@ -113,7 +113,7 @@ type storeEffect struct {
 
 	// The owning spell's SpellLevels, stamped on while the row is built so that the store's Average
 	// does not look its owner up. Never captured: it is derived from the captured Levels row.
-	SpellLevel, MaxLevel int16 `json:"-"`
+	BaseLevel, MaxLevel int16 `json:"-"`
 
 	SPCoef  float64
 	APCoef  float64
@@ -294,12 +294,12 @@ func (t *spellTables) row(id int32) storeSpell {
 	s.CastTimeMs, s.DurationMs = m.CastTimeMs, m.DurationMs
 	s.MinRange, s.MaxRange = m.MinRange, m.MaxRange
 
-	// No SpellLevels row is the client's "no level scaling", which is the spell's own level at the
-	// cap and no maximum.
+	// No SpellLevels row is the client's "no level scaling", which is the spell's own and base level
+	// at the cap and no maximum.
 	if l, ok := t.Levels[id]; ok {
 		s.SpellLevel, s.BaseLevel, s.MaxLevel = l.SpellLevel, l.BaseLevel, l.MaxLevel
 	} else {
-		s.SpellLevel = RankLevel
+		s.SpellLevel, s.BaseLevel = RankLevel, RankLevel
 	}
 
 	c := t.Cooldowns[id]
@@ -350,7 +350,7 @@ func (t *spellTables) row(id int32) storeSpell {
 		if !s.Effects[i].ClassFlags.IsZero() {
 			s.Effects[i].ClassFlags.Family = s.ClassFlags.Family
 		}
-		s.Effects[i].SpellLevel, s.Effects[i].MaxLevel = s.SpellLevel, s.MaxLevel
+		s.Effects[i].BaseLevel, s.Effects[i].MaxLevel = s.BaseLevel, s.MaxLevel
 	}
 
 	return s

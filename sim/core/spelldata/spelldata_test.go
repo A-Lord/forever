@@ -30,7 +30,7 @@ func fixture() []Spell {
 			Effects: []Effect{
 				{SpellID: 116, Index: 0, Type: dbcenums.E_APPLY_AURA, Aura: 33, BasePoints: -40},
 				{SpellID: 116, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 19, PPL: 0.5,
-					SpellLevel: 4, MaxLevel: 8, Variance: 0.105263, SPCoef: 0.407},
+					BaseLevel: 4, MaxLevel: 8, Variance: 0.105263, SPCoef: 0.407},
 			},
 			Powers: []Power{{Type: 0, Cost: 25}},
 		},
@@ -62,7 +62,7 @@ func fixture() []Spell {
 			MaxLevel:   7,
 			Effects: []Effect{
 				{SpellID: 800, Index: 0, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 19.7, PPL: 0.5,
-					SpellLevel: 4, MaxLevel: 7},
+					BaseLevel: 4, MaxLevel: 7},
 			},
 		},
 		{
