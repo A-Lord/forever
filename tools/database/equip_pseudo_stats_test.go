@@ -1,9 +1,11 @@
 package database
 
 import (
+	"maps"
 	"slices"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/tools/database/dbc"
@@ -52,6 +54,9 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 				proto.PseudoStat_PseudoStatRangedHastePercent: 1,
 			}},
 		{"1293881 Pendulum of Doom, a zero melee speed aura", 1293881, map[pseudo]float64{}},
+		{"22755 Critical Weapon +2, crit on melee weapons", 22755, map[pseudo]float64{}},
+		{"430391 Hit Weapon +2, hit on melee weapons", 430391, map[pseudo]float64{}},
+		{"1306681 Increased Off Hand Hit 02, hit in the off hand", 1306681, map[pseudo]float64{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := make([]float64, stats.PseudoStatsLen)
@@ -88,4 +93,57 @@ func TestEnchantCarriesEquipSpellPseudoStats(t *testing.T) {
 		return
 	}
 	t.Fatal("enchant 2523 is not in the enchant inputs")
+}
+
+// An equip spell folds into the stats of what carries it when it names no weapon or only ranged ones.
+// Any other weapon requirement is left to run time, whole.
+func TestEquipSpellFolds(t *testing.T) {
+	withDBCInputs(t)
+	dbc.GetDBC()
+
+	for _, tc := range []struct {
+		name    string
+		spellID int
+		want    bool
+	}{
+		{"24154 Falcon's Call, no weapon requirement", 24154, true},
+		{"22780 Biznicks 247x128 Accurascope, bows, guns and crossbows", 22780, true},
+		{"1310308 SAF-T Ultra Precision Scope, bows, guns and crossbows", 1310308, true},
+		{"22755 Critical Weapon +2, melee weapons", 22755, false},
+		{"430391 Hit Weapon +2, melee weapons", 430391, false},
+		{"1306681 Increased Off Hand Hit 02, the off hand", 1306681, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := dbc.EquipSpellFolds(tc.spellID); got != tc.want {
+				t.Errorf("folds %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+// A combat rating of ranged bits alone is the ranged percent it converts to; one naming any other bit
+// is a rating stat and grants none.
+func TestRangedRatingPercents(t *testing.T) {
+	type pseudo = proto.PseudoStat
+	for _, tc := range []struct {
+		name string
+		mask int
+		want map[pseudo]float64
+	}{
+		{"ranged hit", dbc.RATING_MOD_HIT_RANGED, map[pseudo]float64{proto.PseudoStat_PseudoStatRangedHitPercent: 20 / core.HitRatingPerHitPercent}},
+		{"ranged crit", dbc.RATING_MOD_CRIT_RANGED, map[pseudo]float64{proto.PseudoStat_PseudoStatRangedCritPercent: 20 / core.CritRatingPerCritPercent}},
+		{"ranged haste", dbc.RATING_MOD_HASTE_RANGED, map[pseudo]float64{proto.PseudoStat_PseudoStatRangedHastePercent: 20 / core.HasteRatingPerHastePercent}},
+		{"ranged hit and crit", dbc.RATING_MOD_HIT_RANGED | dbc.RATING_MOD_CRIT_RANGED, map[pseudo]float64{
+			proto.PseudoStat_PseudoStatRangedHitPercent:  20 / core.HitRatingPerHitPercent,
+			proto.PseudoStat_PseudoStatRangedCritPercent: 20 / core.CritRatingPerCritPercent,
+		}},
+		{"melee and ranged hit", dbc.RATING_MOD_HIT_MELEE | dbc.RATING_MOD_HIT_RANGED, nil},
+		{"no bits", 0, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := dbc.RangedRatingPercents(tc.mask, 20); !maps.Equal(got, tc.want) {
+				t.Errorf("percents %v, want %v", got, tc.want)
+			}
+		})
+	}
 }

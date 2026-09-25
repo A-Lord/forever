@@ -157,6 +157,47 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 	}
 }
 
+// An on-use whose spell applies a hit or crit percent, which no item stat holds, registers as an
+// aura: Gri'lek's Charm of Valor's 24498 is spell crit alone.
+func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID  int
+		spellID int32
+		summary string
+	}{
+		{19952, 24498, "on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)"}, // Gri'lek's Charm of Valor
+		{272438, 1291101, "on use: 1291101 (A_MOD_CRIT_PCT)"},     // Weakness Analyzer
+	} {
+		item := instance.Items[tc.itemID]
+		parsed := item.ToUIItem()
+		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+		i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == tc.spellID && e.GetOnUse() != nil })
+		if i < 0 {
+			t.Fatalf("item %d carries no on-use effect on %d", tc.itemID, tc.spellID)
+		}
+
+		groups := map[string]Group{}
+		if got := TryParseOnUseEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+			t.Errorf("item %d parsed as %v, want registered", tc.itemID, got)
+			continue
+		}
+
+		entries := groups["Auras"].Entries
+		if len(entries) != 1 {
+			t.Fatalf("item %d: %d entries in the Auras group, want 1", tc.itemID, len(entries))
+		}
+		r := entries[0].Proc
+		if !entries[0].Supported || r.Shape != ShapeAura || r.TriggerSpellID != int(tc.spellID) ||
+			r.OnUseConstructor() != "NewSpellDataAuraOnUse" || r.Summary != tc.summary {
+			t.Errorf("item %d: routing %+v, supported %v; want %d registered through NewSpellDataAuraOnUse with %q",
+				tc.itemID, r, entries[0].Supported, tc.spellID, tc.summary)
+		}
+	}
+}
+
 // Aegis of Preservation 19345 registers its 500 armor and lists the heal on every hit taken, 23781,
 // that its buff 23780 procs.
 func TestOnUseStatBuffListsTheProcItCarries(t *testing.T) {

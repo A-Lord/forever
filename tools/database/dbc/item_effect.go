@@ -445,7 +445,7 @@ func MergeItemEffectsForAllStates(parsed *proto.UIItem) []*proto.ItemEffect {
 			equipPseudoStats := make([]float64, stats.PseudoStatsLen)
 			addedStats, addedPseudoStats := AddEquipSpellStats(&equipStats, equipPseudoStats, baseEff.SpellID)
 
-			if len(props.Stats) > 0 || addedStats || addedPseudoStats {
+			if EquipSpellFolds(baseEff.SpellID) && (len(props.Stats) > 0 || addedStats || addedPseudoStats) {
 				if areaType := spelldata.AreaTypeOfGroup(dbcInstance.Spells[baseEff.SpellID].RequiredAreasID); areaType != proto.AreaType_AreaTypeUnknown {
 					addAreaStats(parsed.ScalingOptions[0], areaType, equipStats.ToProtoMap())
 					continue

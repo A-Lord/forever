@@ -549,6 +549,7 @@ func GenerateEnchantEffects(instance *dbc.DBC, db *WowDatabase) {
 
 		TryParseEnchantEffect(parsed, slots, groupMapProc, instance, enchantSpellEffects)
 		storeUnmappedSpeedEnchant(instance, enchant, parsed, enchantSpellEffects)
+		storeWeaponScopedEnchant(instance, enchant, parsed, enchantSpellEffects)
 	}
 
 	var procGroups []*Group
@@ -586,6 +587,30 @@ func storeUnmappedSpeedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *p
 				})
 				return
 			}
+		}
+	}
+}
+
+// An equip spell whose weapon requirement dbc.EquipSpellFolds leaves to run time reaches no enchant
+// field, and no enchant registers an equip spell's auras, so the enchant is listed as missing its
+// effect unless it is implemented by hand.
+func storeWeaponScopedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *proto.UIEnchant, enchantSpellEffects map[int]*dbc.SpellEffect) {
+	grant, ok := enchantSpellEffects[int(parsed.EffectId)]
+	if !ok || core.HasEnchantEffect(parsed.EffectId) {
+		return
+	}
+
+	for idx, effect := range enchant.Effects {
+		if effect != dbc.ITEM_ENCHANTMENT_EQUIP_SPELL || idx >= len(enchant.EffectArgs) {
+			continue
+		}
+		if spellID := enchant.EffectArgs[idx]; !dbc.EquipSpellFolds(spellID) {
+			StoreMissingEffect("EnchantEffects", parsed.Name, Variant{
+				ID:      int(parsed.EffectId),
+				Name:    renderSpellTooltip(instance, grant.SpellID) + " (a weapon-scoped equip spell, which no enchant registers)",
+				SpellID: spellID,
+			})
+			return
 		}
 	}
 }
@@ -1225,8 +1250,10 @@ func (r *ProcRouting) ProcConstructor() string {
 	return procShapes[r.Shape].procConstructor
 }
 
-// The auras the item aura shape is emitted for: the damage, healing, cost, armor and stat multipliers
-// and the flat damage taken, none of which an item states as a stat.
+// The auras the item aura shape is emitted for: the damage, healing, cost, armor and stat multipliers,
+// the flat damage taken, and the hit and crit percents, none of which an item states as a stat. The
+// percents reach the item stats only through an equip spell that folds; an on-use or a weapon-scoped
+// equip spell applies them as an aura.
 var itemAuraKinds = []dbcenums.EffectAuraType{
 	dbcenums.A_MOD_DAMAGE_PERCENT_DONE,
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN,
@@ -1235,6 +1262,11 @@ var itemAuraKinds = []dbcenums.EffectAuraType{
 	dbcenums.A_MOD_DAMAGE_TAKEN,
 	dbcenums.A_MOD_BASE_RESISTANCE_PCT,
 	dbcenums.A_MOD_PERCENT_STAT,
+	dbcenums.A_MOD_HIT_CHANCE,
+	dbcenums.A_MOD_WEAPON_CRIT_PERCENT,
+	dbcenums.A_MOD_SPELL_HIT_CHANCE,
+	dbcenums.A_MOD_SPELL_CRIT_CHANCE,
+	dbcenums.A_MOD_CRIT_PCT,
 }
 
 func appliesAnItemAura(s *spelldata.Spell) bool {

@@ -422,8 +422,8 @@ func getMatchingRatingMods(value int) []RatingModType {
 // The stat each combat rating bit names. One rating feeds melee, ranged and spells alike, so the melee
 // and spell bits of a rating name the same stat. A ranged bit names none: beside the melee or spell
 // bit it adds nothing, and alone it names a rating for ranged attacks only, which the global stat
-// would overstate.
-// TODO: give a ranged-only rating to ranged attacks alone.
+// would overstate. An equip spell folds that into the ranged offset percent instead, through
+// RangedRatingPercents.
 var RatingModToStat = map[RatingModType]proto.Stat{
 	RATING_MOD_DEFENSE:      proto.Stat_StatDefenseRating,
 	RATING_MOD_DODGE:        proto.Stat_StatDodgeRating,

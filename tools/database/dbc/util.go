@@ -139,6 +139,9 @@ func processEnchantmentEffects(
 				}
 			}
 		case ITEM_ENCHANTMENT_EQUIP_SPELL: //Buff
+			if !EquipSpellFolds(effectArgs[i]) {
+				continue
+			}
 			AddEquipSpellStats(outStats, outPseudoStats, effectArgs[i])
 			spellEffects := dbcInstance.SpellEffects[effectArgs[i]]
 			for _, spellEffect := range spellEffects {
@@ -197,36 +200,70 @@ const rangedWeaponSubclassMask = rangedMask | ITEM_SUBCLASS_BIT_WEAPON_THROWN | 
 
 const SkillLineDefense = 95
 
+// Whether an equip spell's auras fold into the stats of the item or enchant carrying it. They do when
+// the spell names no weapon, and when it names only ranged weapons: those fill the ranged offset. Any
+// other weapon requirement - a set of melee weapons, or an inventory type such as the off hand of
+// 1306681 (Increased Off Hand Hit) - leaves the spell to be applied at run time, where the attack's
+// own weapon decides. Every such spell on an item or enchant is a single hit or crit aura, so the
+// whole spell goes one way.
+func EquipSpellFolds(spellID int) bool {
+	spell := dbcInstance.Spells[spellID]
+	if spell.EquippedItemClass != ITEM_CLASS_WEAPON || (spell.EquippedItemSubclass == 0 && spell.EquippedItemInvTypes == 0) {
+		return true
+	}
+	return spell.EquippedItemInvTypes == 0 && spell.EquippedItemSubclass&^rangedWeaponSubclassMask == 0
+}
+
+// The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points. A
+// mask with any other bit names a rating stat instead, and grants none of these.
+func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64 {
+	const rangedBits = RATING_MOD_HIT_RANGED | RATING_MOD_CRIT_RANGED | RATING_MOD_HASTE_RANGED
+	if mask == 0 || mask&^rangedBits != 0 {
+		return nil
+	}
+
+	percents := map[proto.PseudoStat]float64{}
+	if mask&RATING_MOD_HIT_RANGED != 0 {
+		percents[proto.PseudoStat_PseudoStatRangedHitPercent] = rating / core.HitRatingPerHitPercent
+	}
+	if mask&RATING_MOD_CRIT_RANGED != 0 {
+		percents[proto.PseudoStat_PseudoStatRangedCritPercent] = rating / core.CritRatingPerCritPercent
+	}
+	if mask&RATING_MOD_HASTE_RANGED != 0 {
+		percents[proto.PseudoStat_PseudoStatRangedHastePercent] = rating / core.HasteRatingPerHastePercent
+	}
+	return percents
+}
+
 // Adds what an equip spell states that no stat index carries, and reports whether it added to each of
 // the two: to outStats the defense skill and flat block value - 24148 (Presence of Might) states
 // A_MOD_SKILL 7 on the Defense skill line and A_MOD_BLOCK_VALUE_FLAT 15 - and to pseudoStats, indexed by
 // proto.PseudoStat and skipped where nil, the percents for hit, crit, block, dodge, parry and attack and
 // cast speed. Only auras on the wearer count: Atiesh's 28142 is a party aura and reaches the sim as a
-// raid buff.
+// raid buff. A spell EquipSpellFolds leaves to run time adds nothing.
 //
-// A spell that names weapons applies its hit and weapon crit only to attacks with them. Melee is
-// credited when it names no weapon or a melee one and ranged when it names no weapon or a ranged one,
-// and ranged is written as the total the character sheet shows, melee share included, which
-// stats.FromPseudoStatsProto takes back out. So 22780 (Biznicks 247x128 Accurascope, hit restricted to
-// bows, guns and crossbows) is ranged hit alone, and 1310308 (SAF-T Ultra Precision Scope, the all-crit
-// aura under the same restriction) is ranged crit alone, with no spell crit.
+// A spell naming only ranged weapons gives its hit and crit to ranged attacks alone, written as the
+// total the character sheet shows, melee share included, which stats.FromPseudoStatsProto takes back
+// out. So 22780 (Biznicks 247x128 Accurascope, hit restricted to bows, guns and crossbows) is ranged
+// hit alone, and 1310308 (SAF-T Ultra Precision Scope, the all-crit aura under the same restriction) is
+// ranged crit alone, with no spell crit. A combat rating of ranged bits alone is the ranged percent
+// that rating converts to.
 func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID int) (addedStats bool, addedPseudoStats bool) {
+	if !EquipSpellFolds(spellID) {
+		return false, false
+	}
 	spell := dbcInstance.Spells[spellID]
-	namesWeapons := spell.EquippedItemClass == ITEM_CLASS_WEAPON && spell.EquippedItemSubclass != 0
-	melee := !namesWeapons || spell.EquippedItemSubclass&^rangedWeaponSubclassMask != 0
-	ranged := !namesWeapons || spell.EquippedItemSubclass&rangedWeaponSubclassMask != 0
+	ranged := spell.EquippedItemClass == ITEM_CLASS_WEAPON && spell.EquippedItemSubclass != 0
 
 	add := func(pseudoStat proto.PseudoStat, value float64) {
 		pseudoStats[pseudoStat] += value
 		addedPseudoStats = true
 	}
 	addWeapon := func(meleeStat, rangedStat proto.PseudoStat, value float64) {
-		if melee {
+		if !ranged {
 			add(meleeStat, value)
 		}
-		if ranged {
-			add(rangedStat, value)
-		}
+		add(rangedStat, value)
 	}
 
 	for _, effect := range dbcInstance.SpellEffectsInOrder(spellID) {
@@ -258,7 +295,7 @@ func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID in
 			addWeapon(proto.PseudoStat_PseudoStatMeleeCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, value)
 		case dbcenums.A_MOD_CRIT_PCT:
 			addWeapon(proto.PseudoStat_PseudoStatMeleeCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, value)
-			if !namesWeapons {
+			if !ranged {
 				add(proto.PseudoStat_PseudoStatSpellCritPercent, value)
 			}
 		case dbcenums.A_MOD_SPELL_HIT_CHANCE:
@@ -271,6 +308,10 @@ func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID in
 			add(proto.PseudoStat_PseudoStatDodgePercent, value)
 		case dbcenums.A_MOD_PARRY_PERCENT:
 			add(proto.PseudoStat_PseudoStatParryPercent, value)
+		case dbcenums.A_MOD_RATING:
+			for pseudoStat, percent := range RangedRatingPercents(effect.EffectMiscValues[0], value) {
+				add(pseudoStat, percent)
+			}
 		}
 
 		for _, pseudoStat := range spelldata.SpeedAuraPseudoStats[effect.EffectAura] {
