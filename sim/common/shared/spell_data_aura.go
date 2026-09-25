@@ -98,8 +98,8 @@ func registerSpellDataAuraProc(cfg SpellDataProc) {
 	})
 }
 
-// An item whose equip spell applies auras: the row's auras on the wearer and on each summoned pet for
-// as long as the item is worn. An equip spell that only re-applies another aura on a period is read as
+// An item or enchant whose equip spell applies auras: the row's auras on the wearer and on each
+// summoned pet for as long as the item or the enchant is worn. An equip spell that only re-applies another aura on a period is read as
 // that aura.
 func NewSpellDataEquipAura(cfg SpellDataProc, variants []ItemVariant) {
 	forEachSpellDataVariant(cfg, variants, registerSpellDataEquipAura)
@@ -124,7 +124,7 @@ func registerSpellDataEquipAura(cfg SpellDataProc) {
 		config := spelldata.AuraConfig(row, spelldata.Label(cfg.Name))
 		config.Duration = core.NeverExpires
 		config.OnReset = func(aura *core.Aura, sim *core.Simulation) {
-			if character.HasItemEquipped(source.id, slots) {
+			if source.isEquipped(character, slots) {
 				aura.Activate(sim)
 			}
 		}

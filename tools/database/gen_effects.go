@@ -549,7 +549,7 @@ func GenerateEnchantEffects(instance *dbc.DBC, db *WowDatabase) {
 
 		TryParseEnchantEffect(parsed, slots, groupMapProc, instance, enchantSpellEffects)
 		storeUnmappedSpeedEnchant(instance, enchant, parsed, enchantSpellEffects)
-		storeWeaponScopedEnchant(instance, enchant, parsed, enchantSpellEffects)
+		storeWeaponScopedEnchant(instance, enchant, parsed, enchantSpellEffects, groupMapProc)
 	}
 
 	var procGroups []*Group
@@ -592,9 +592,10 @@ func storeUnmappedSpeedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *p
 }
 
 // An equip spell whose weapon requirement dbc.EquipSpellFolds leaves to run time reaches no enchant
-// field, and no enchant registers an equip spell's auras, so the enchant is listed as missing its
-// effect unless it is implemented by hand.
-func storeWeaponScopedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *proto.UIEnchant, enchantSpellEffects map[int]*dbc.SpellEffect) {
+// field, so the enchant registers the spell's auras as an equip aura, kept up while the enchant is
+// worn. One the rows cannot build, and one whose enchant already registers a proc, is listed as
+// missing its effect unless it is implemented by hand.
+func storeWeaponScopedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *proto.UIEnchant, enchantSpellEffects map[int]*dbc.SpellEffect, groupMapProc map[string]Group) {
 	grant, ok := enchantSpellEffects[int(parsed.EffectId)]
 	if !ok || core.HasEnchantEffect(parsed.EffectId) {
 		return
@@ -604,15 +605,49 @@ func storeWeaponScopedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *pr
 		if effect != dbc.ITEM_ENCHANTMENT_EQUIP_SPELL || idx >= len(enchant.EffectArgs) {
 			continue
 		}
-		if spellID := enchant.EffectArgs[idx]; !dbc.EquipSpellFolds(spellID) {
+		spellID := enchant.EffectArgs[idx]
+		if dbc.EquipSpellFolds(spellID) {
+			continue
+		}
+
+		rendered := renderSpellTooltip(instance, grant.SpellID)
+		equip := spelldata.Find(int32(spellID))
+		row := spelldata.EquipAuraRow(equip)
+		if !appliesAnItemAura(row) {
 			StoreMissingEffect("EnchantEffects", parsed.Name, Variant{
 				ID:      int(parsed.EffectId),
-				Name:    renderSpellTooltip(instance, grant.SpellID) + " (a weapon-scoped equip spell, which no enchant registers)",
+				Name:    rendered + " (a weapon-scoped equip spell whose auras no equip aura builds)",
 				SpellID: spellID,
 			})
 			return
 		}
+
+		routing := equipAuraRouting(instance, equip, row)
+		if enchantRegisters(groupMapProc, parsed.EffectId) {
+			routing.Unsupported = append(routing.Unsupported, "another slot of the enchant registers")
+		}
+
+		grp := groupMapProc["Enchants"]
+		grp.Name = "Enchants"
+		grp.Entries = append(grp.Entries, &Entry{
+			Tooltip:   strings.Split(rendered, "\n"),
+			Variants:  []*Variant{{ID: int(parsed.EffectId), Name: parsed.Name, SpellID: grant.SpellID}},
+			Proc:      routing,
+			Supported: routing.Supported(),
+		})
+		groupMapProc["Enchants"] = grp
+
+		if !routing.Supported() {
+			StoreMissingEffect("EnchantEffects", parsed.Name, Variant{ID: int(parsed.EffectId), Name: rendered, SpellID: spellID})
+		}
+		return
 	}
+}
+
+func enchantRegisters(groupMapProc map[string]Group, effectID int32) bool {
+	return slices.ContainsFunc(groupMapProc["Enchants"].Entries, func(entry *Entry) bool {
+		return entry.Supported && entry.Variants[0].ID == int(effectID)
+	})
 }
 
 // The E_ENCHANT_ITEM effect that grants each enchant, by enchant ID. Only that effect names an
@@ -1009,16 +1044,7 @@ func TryParseEquipAuraEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect,
 		return EffectParseResultInvalid
 	}
 
-	routing := &ProcRouting{
-		TriggerSpellID: int(itemEffect.BuffId),
-		Shape:          ShapeEquip,
-		Unsupported:    spelldata.ItemAuraUnsupported(row, true),
-		Summary:        fmt.Sprintf("equip: %d", equip.ID),
-	}
-	if row != equip {
-		routing.Summary += fmt.Sprintf(" keeps %d up", row.ID)
-	}
-	routing.Summary += fmt.Sprintf(" (%s)", spellEffectKinds(instance, int(row.ID)))
+	routing := equipAuraRouting(instance, equip, row)
 
 	rendered := itemEffectTooltip(parsed, itemEffect, instance)
 	entry := &Entry{
@@ -1039,6 +1065,21 @@ func TryParseEquipAuraEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect,
 
 	StoreMissingEffect("ItemEffects", parsed.Name, Variant{ID: int(parsed.Id), Name: rendered, SpellID: int(itemEffect.BuffId)})
 	return EffectParseResultRefused
+}
+
+// The equip aura shape for an item's or an enchant's equip spell, read from the row it keeps up.
+func equipAuraRouting(instance *dbc.DBC, equip *spelldata.Spell, row *spelldata.Spell) *ProcRouting {
+	routing := &ProcRouting{
+		TriggerSpellID: int(equip.ID),
+		Shape:          ShapeEquip,
+		Unsupported:    spelldata.ItemAuraUnsupported(row, true),
+		Summary:        fmt.Sprintf("equip: %d", equip.ID),
+	}
+	if row != equip {
+		routing.Summary += fmt.Sprintf(" keeps %d up", row.ID)
+	}
+	routing.Summary += fmt.Sprintf(" (%s)", spellEffectKinds(instance, int(row.ID)))
+	return routing
 }
 
 func TryParseOnUseEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMap map[string]Group) EffectParseResult {

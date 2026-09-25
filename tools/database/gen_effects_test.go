@@ -295,3 +295,45 @@ func TestAttackAvoidedWording(t *testing.T) {
 		}
 	}
 }
+
+// An enchant whose equip spell names a melee weapon subset registers the spell as an equip aura, kept
+// up while the enchant is worn. 430391 (Hit Weapon +2) states A_MOD_HIT_CHANCE on the melee weapons
+// but not spears, which no enchant stat can hold; its row is freed of its area group for the test. An
+// enchant that already registers a proc lists it.
+func TestWeaponScopedEnchantRegistersAnEquipAura(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	const effectID, spellID = 990991, 430391
+	row := spelldata.MustFind(spellID)
+	areas := row.RequiredAreas
+	row.RequiredAreas = 0
+	t.Cleanup(func() { row.RequiredAreas = areas })
+	enchant := dbc.Enchant{EffectId: effectID, Name: "Test Hit Enchant",
+		Effects: []int{dbc.ITEM_ENCHANTMENT_EQUIP_SPELL}, EffectArgs: []int{spellID}}
+	parsed := &proto.UIEnchant{EffectId: effectID, Name: enchant.Name}
+	grants := map[int]*dbc.SpellEffect{effectID: {SpellID: spellID}}
+	if dbc.EquipSpellFolds(spellID) {
+		t.Fatalf("%d folds into the enchant stats; the test needs one left to run time", spellID)
+	}
+
+	groups := map[string]Group{}
+	storeWeaponScopedEnchant(instance, enchant, parsed, grants, groups)
+	entries := groups["Enchants"].Entries
+	if len(entries) != 1 {
+		t.Fatalf("%d entries in the Enchants group, want 1", len(entries))
+	}
+	r := entries[0].Proc
+	if r.Shape != ShapeEquip || r.TriggerSpellID != spellID || r.ProcConstructor() != "NewSpellDataEquipAura" ||
+		entries[0].Variants[0].ID != effectID || !entries[0].Supported {
+		t.Errorf("routing %+v for enchant %d, supported %v; want %d registered through NewSpellDataEquipAura",
+			r, entries[0].Variants[0].ID, entries[0].Supported, spellID)
+	}
+
+	registered := map[string]Group{"Enchants": {Name: "Enchants", Entries: []*Entry{{
+		Variants: []*Variant{{ID: effectID}}, Proc: &ProcRouting{}, Supported: true}}}}
+	storeWeaponScopedEnchant(instance, enchant, parsed, grants, registered)
+	if second := registered["Enchants"].Entries; len(second) != 2 || second[1].Supported {
+		t.Errorf("an enchant that already registers should list the equip aura, got %d entries", len(second))
+	}
+}

@@ -1669,6 +1669,14 @@ func (s effectSource) eligibleSlots(character *core.Character) []proto.ItemSlot 
 	return character.ItemSwap.EligibleSlotsForItem(s.id)
 }
 
+func (s effectSource) isEquipped(character *core.Character, slots []proto.ItemSlot) bool {
+	if s.isEnchant {
+		return character.HasEnchantEquipped(s.id, slots)
+	}
+
+	return character.HasItemEquipped(s.id, slots)
+}
+
 // The proc-carrying effects this item or enchant declares, keyed by the aura each one applies.
 func (s effectSource) procEffects() map[int32]*proto.ItemEffect {
 	var declared []*proto.ItemEffect
