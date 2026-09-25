@@ -132,13 +132,13 @@ var ConsumableDenyList = []int32{
 // and these items share no aura with their group and no category whose cooldown outlasts their buffs.
 // A consumable named here takes this group instead of the one its rows give it.
 var ConsumableExclusiveGroups = []ConsumableGroup{
-	{Name: "Strength", Joins: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
+	{Group: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
 		12451, // Juju Power
 	}},
-	{Name: "Attack Power", Joins: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
+	{Group: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
 		12460, // Juju Might
 	}},
-	{Name: "Zanza", Items: []int32{
+	{Group: ConsumableGroupKey{Key: "Zanza", Name: "Zanza"}, Items: []int32{
 		8410,  // R.O.I.D.S.
 		8411,  // Lung Juice Cocktail
 		8412,  // Ground Scorpok Assay
@@ -146,7 +146,7 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 		8424,  // Gizzard Gum
 		20079, // Spirit of Zanza
 	}},
-	{Name: "Hit food", Items: []int32{
+	{Group: ConsumableGroupKey{Key: "Hit food", Name: "Hit food"}, Items: []int32{
 		22237, // Dark Desire
 		23327, // Fire-toasted Bun
 	}},

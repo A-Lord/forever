@@ -14,11 +14,9 @@ import (
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
-// An exclusive group the rows do not state. Items join the row group Joins names, or with an empty
-// Joins form a group of their own, keyed and labelled by Name.
+// An exclusive group the rows do not state: a row group the items join, or one of their own.
 type ConsumableGroup struct {
-	Name  string
-	Joins ConsumableGroupKey
+	Group ConsumableGroupKey
 	Items []int32
 }
 
@@ -47,15 +45,11 @@ func auraGroup(kind string, aura dbcenums.EffectAuraType, misc int) ConsumableGr
 // of its category (shared.OneAtATimeCategory) is grouped by that category. Any other consumable has
 // no group.
 func setConsumableGroup(c *dbc.Consumable, consumable *proto.Consumable, routing *ConsumableRouting, instance *dbc.DBC) {
-	group := consumableGroupOf(c, consumable, routing, instance)
-	consumable.GroupKey, consumable.GroupName = group.Key, group.Name
-}
-
-func consumableGroupOf(c *dbc.Consumable, consumable *proto.Consumable, routing *ConsumableRouting, instance *dbc.DBC) ConsumableGroupKey {
-	if group, ok := exclusiveGroupOverride(consumable.Id); ok {
-		return group
+	group, ok := exclusiveGroupOverride(consumable.Id)
+	if !ok {
+		group = rowGroupOf(c, consumable, routing, instance)
 	}
-	return rowGroupOf(c, consumable, routing, instance)
+	consumable.GroupKey, consumable.GroupName = group.Key, group.Name
 }
 
 func rowGroupOf(c *dbc.Consumable, consumable *proto.Consumable, routing *ConsumableRouting, instance *dbc.DBC) ConsumableGroupKey {
@@ -112,13 +106,9 @@ func shippedElixirGroups(instance *dbc.DBC) map[string]bool {
 
 func exclusiveGroupOverride(id int32) (ConsumableGroupKey, bool) {
 	for _, group := range ConsumableExclusiveGroups {
-		if !slices.Contains(group.Items, id) {
-			continue
+		if slices.Contains(group.Items, id) {
+			return group.Group, true
 		}
-		if group.Joins.Key != "" {
-			return group.Joins, true
-		}
-		return ConsumableGroupKey{Key: group.Name, Name: group.Name}, true
 	}
 	return ConsumableGroupKey{}, false
 }

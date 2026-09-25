@@ -96,9 +96,6 @@ func TestEveryExclusiveGroupOverrideShips(t *testing.T) {
 
 	seen := map[int32]bool{}
 	for _, group := range ConsumableExclusiveGroups {
-		if group.Joins.Key != "" && group.Joins.Name != group.Name {
-			t.Errorf("group %q joins %q, labelled %q", group.Name, group.Joins.Key, group.Joins.Name)
-		}
 		for _, id := range group.Items {
 			if seen[id] {
 				t.Errorf("%d is in more than one group", id)

@@ -182,18 +182,18 @@ Power", "Armor", "Mana Regeneration", and so on.
 
 **From the override table.** `ConsumableExclusiveGroups` in `tools/database/overrides.go` holds the
 server rules the rows do not state, and a consumable it names takes that group instead of its rows'.
-An entry either joins a row group (`Joins: ElixirGroup(aura, misc)`, which carries that group's key and
-label) or forms a group of its own, keyed and labelled by its `Name`:
+An entry's `Group` either is a row group (`ElixirGroup(aura, misc)`, which carries that group's key and
+label) or a group of its own, with a key and a label of its own:
 
 ```go
 var ConsumableExclusiveGroups = []ConsumableGroup{
-	{Name: "Strength", Joins: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
+	{Group: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
 		12451, // Juju Power
 	}},
-	{Name: "Attack Power", Joins: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
+	{Group: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
 		12460, // Juju Might
 	}},
-	{Name: "Zanza", Items: []int32{
+	{Group: ConsumableGroupKey{Key: "Zanza", Name: "Zanza"}, Items: []int32{
 		8410,  // R.O.I.D.S.
 		8411,  // Lung Juice Cocktail
 		8412,  // Ground Scorpok Assay
@@ -201,7 +201,7 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 		8424,  // Gizzard Gum
 		20079, // Spirit of Zanza
 	}},
-	{Name: "Hit food", Items: []int32{
+	{Group: ConsumableGroupKey{Key: "Hit food", Name: "Hit food"}, Items: []int32{
 		22237, // Dark Desire
 		23327, // Fire-toasted Bun
 	}},
@@ -216,11 +216,11 @@ apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddHitChance
 (`core.PhysicalHitRatingPerHitPercent`, 10), and a spec that weighs hit sees the Hit food picker. The sim
 reads the rows, not those stats.
 
-**Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `Joins` to put items into a row group,
-or a new `Name` for a group of their own, and every item id with its name. An item that is not in
+**Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `ElixirGroup` to put items into a row
+group, or a new key and label for a group of their own, and every item id with its name. An item that is not in
 db.json yet needs `ConsumableAllowList` first, as the Jujus did. Then regenerate (store first, then
 db.json). `TestEveryExclusiveGroupOverrideShips` fails for an id that does not ship or sits in two
-groups, and for a `Joins` whose label is not the entry's `Name`; `TestAConsumableTakesItsExclusiveGroup`
+groups; `TestAConsumableTakesItsExclusiveGroup`
 pins the groups of the consumables it names. The settings pick the new group up by its key with no
 change of their own.
 
