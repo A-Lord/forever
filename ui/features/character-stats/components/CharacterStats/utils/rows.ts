@@ -5,14 +5,13 @@ import { UnitStat } from '@sim/proto/stats';
 import { shouldShowCritImmunity, shouldShowMeleeCritCap } from './stat_display';
 
 /**
- * A row's stat plus its per-row display flags. `notEditable` suppresses the bonus-stat picker,
- * `label` replaces the stat's own name on the sheet, and `offHandStat` pairs an off-hand pseudo
- * stat with a main-hand one so a single row can show both while dual wielding.
+ * A row's stat plus its per-row display flags. `notEditable` suppresses the bonus-stat picker, and
+ * `offHandStat` pairs an off-hand pseudo stat with a main-hand one so a single row can show both
+ * while dual wielding.
  */
 export type DisplayStat = {
 	stat: UnitStat;
 	notEditable?: boolean;
-	label?: () => string;
 	offHandStat?: UnitStat;
 };
 

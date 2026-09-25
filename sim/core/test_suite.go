@@ -353,7 +353,7 @@ func sheetRangedOffsets(csr *proto.ComputeStatsRequest) (hit, crit float64) {
 	if encounter == nil {
 		encounter = &proto.Encounter{}
 	}
-	env, _, _ := NewEnvironment(csr.Raid, encounter, false, csr.SkipRotation)
+	env, _, _ := NewEnvironment(csr.Raid, encounter, false, true)
 	character := env.Raid.Parties[0].Players[0].GetCharacter()
 	character.applyBuildPhaseAuras(CharacterBuildPhaseAll)
 	defer character.clearBuildPhaseAuras(CharacterBuildPhaseAll)

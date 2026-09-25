@@ -32,7 +32,7 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 	const player = usePlayer();
 	const mainHandId = useId();
 	const offHandId = useId();
-	const { stat: unitStat, notEditable, label, offHandStat } = displayStat;
+	const { stat: unitStat, notEditable, offHandStat } = displayStat;
 	const bonusStatValue = unitStat.hasRootStat()
 		? bonusStats.getStat(unitStat.getRootStat())
 		: unitStat.isPseudoStat()
@@ -78,7 +78,7 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 
 	return (
 		<tr data-testid="character-stats-table-row" className="ui-character-stats-row">
-			<td className="ui-character-stats-label">{label ? label() : unitStat.getShortName(player.getClass())}</td>
+			<td className="ui-character-stats-label">{unitStat.getShortName(player.getClass())}</td>
 			<td className="ui-character-stats-value">
 				{pending ? (
 					<Skeleton />

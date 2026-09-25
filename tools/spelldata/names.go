@@ -225,7 +225,7 @@ func equipRequirement(s *spelldata.Spell) string {
 		}
 		return "needs an item in the " + maskNames(s.EquipInvType, inventoryTypes)
 	case dbcenums.ITEM_CLASS_WEAPON:
-		return "needs " + weaponsPhrase(s.EquipSubclass, s.EquipInvType, requiredHand(s))
+		return "needs " + weaponsPhrase(s.EquipSubclass, s.EquipInvType, spelldata.RequiredHand(s))
 	case 4:
 		item := armorRequirement(s.EquipSubclass)
 		if s.EquipInvType != 0 {
@@ -238,18 +238,6 @@ func equipRequirement(s *spelldata.Spell) string {
 		item += " in the " + maskNames(s.EquipInvType, inventoryTypes)
 	}
 	return "needs " + item
-}
-
-// The hand ATTR_EX_3_REQ_MAIN_HAND and ATTR_EX_3_REQ_OFF_HAND name, as the proc mask core reads it.
-func requiredHand(s *spelldata.Spell) core.ProcMask {
-	var hand core.ProcMask
-	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_MAIN_HAND) {
-		hand |= core.ProcMaskMeleeMH
-	}
-	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_OFF_HAND) {
-		hand |= core.ProcMaskMeleeOH
-	}
-	return hand
 }
 
 // A weapon requirement in words, from the Equip fields a row or a SpellModConfig states: the weapons,

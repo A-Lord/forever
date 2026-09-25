@@ -78,13 +78,8 @@ func weaponRequirement(s *Spell, scope core.SpellModConfig) core.EquipRequiremen
 		InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand}
 }
 
-// An aura cast at someone else is not bound to the weapon: the requirement is the caster's, for the
-// cast.
-func weaponScope(s *Spell, e *Effect) (core.SpellModConfig, bool) {
-	if s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] != dbcenums.TARGET_UNIT_CASTER {
-		return core.SpellModConfig{}, false
-	}
-
+// The hand ATTR_EX_3_REQ_MAIN_HAND and ATTR_EX_3_REQ_OFF_HAND name, as a melee proc mask.
+func RequiredHand(s *Spell) core.ProcMask {
 	var hand core.ProcMask
 	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_MAIN_HAND) {
 		hand |= core.ProcMaskMeleeMH
@@ -92,6 +87,17 @@ func weaponScope(s *Spell, e *Effect) (core.SpellModConfig, bool) {
 	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_OFF_HAND) {
 		hand |= core.ProcMaskMeleeOH
 	}
+	return hand
+}
+
+// An aura cast at someone else is not bound to the weapon: the requirement is the caster's, for the
+// cast.
+func weaponScope(s *Spell, e *Effect) (core.SpellModConfig, bool) {
+	if s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] != dbcenums.TARGET_UNIT_CASTER {
+		return core.SpellModConfig{}, false
+	}
+
+	hand := RequiredHand(s)
 	if s.EquipSubclass == 0 && s.EquipInvType == 0 && hand == 0 {
 		return core.SpellModConfig{}, false
 	}

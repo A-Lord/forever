@@ -178,7 +178,7 @@ func (swap *ItemSwap) registerProcInternal(config ItemSwapProcConfig) {
 		if isItemProc {
 			isItemSlotMatch = character.HasItemEquipped(config.ItemID, config.Slots)
 		} else if isEnchantEffectProc {
-			isItemSlotMatch = character.hasEnchantEquipped(config.EnchantId, config.Slots)
+			isItemSlotMatch = character.HasEnchantEquipped(config.EnchantId, config.Slots)
 		}
 
 		if isItemSlotMatch {
@@ -200,7 +200,7 @@ func (swap *ItemSwap) RegisterWeaponEnchantBuff(buffAura *Aura, enchantID int32)
 func (swap *ItemSwap) RegisterEnchantBuffWithSlots(buffAura *Aura, enchantID int32, slots []proto.ItemSlot) {
 	character := swap.character
 	character.RegisterItemSwapCallback(slots, func(sim *Simulation, _ proto.ItemSlot) {
-		if !character.hasEnchantEquipped(enchantID, slots) {
+		if !character.HasEnchantEquipped(enchantID, slots) {
 			buffAura.Deactivate(sim)
 		}
 	})
@@ -282,7 +282,7 @@ func (swap *ItemSwap) CouldHaveItemEquippedInSlot(itemID int32, slot proto.ItemS
 	return swap.character.Equipment.containsItemInSlots(itemID, []proto.ItemSlot{slot}) || swap.unEquippedItems.containsItemInSlots(itemID, []proto.ItemSlot{slot})
 }
 
-func (character *Character) hasEnchantEquipped(effectID int32, possibleSlots []proto.ItemSlot) bool {
+func (character *Character) HasEnchantEquipped(effectID int32, possibleSlots []proto.ItemSlot) bool {
 	return character.Equipment.containsEnchantInSlots(effectID, possibleSlots)
 }
 
