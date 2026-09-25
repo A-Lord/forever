@@ -201,6 +201,7 @@ export interface SpecConfigData<SpecType extends Spec> extends PlayerConfig<Spec
 	// Override for required talent rows. If unset, all rows [0..5] are required.
 	requiredTalentRows?: number[];
 	epStats: Array<Stat>;
+	epPseudoStats?: Array<PseudoStat>;
 	consumableStats?: Array<Stat>;
 	gemStats?: Array<Stat>;
 	// Per-spec override for the default EP ratios; must be exactly numEpRatios long.

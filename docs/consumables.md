@@ -214,10 +214,17 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 The Jujus are Quest-class items the catalogue filter leaves out; naming them here brings them into
 the catalogue as well. The Blasted Lands buffs leave their category group for Zanza. The permanent
 Zanza items (23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
-apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddUnparsedStats`
-(`tools/database/consumable_unparsed_stats.go`) lists it in their db.json stats as 20 hit rating
-(`core.HitRatingPerHitPercent`, 10), and a spec that weighs hit sees the Hit food picker. The sim
-reads the rows, not those stats.
+apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list and which reaches melee and ranged
+attacks alone, so `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) lists it in their
+db.json `pseudoStats` as 2 `PseudoStatMeleeHitPercent` and 2 `PseudoStatRangedHitPercent` (the ranged
+total includes the melee share, as `stats.PercentPseudoStats` reads it). The same
+goes for the other one-channel auras: `A_MOD_SPELL_HIT_CHANCE` lists spell hit (Scroll of Arcane
+Accuracy I 211954, 1%), `A_MOD_WEAPON_CRIT_PERCENT` melee and ranged crit, and
+`A_MOD_SPELL_CRIT_CHANCE` spell crit (Scroll of Arcane Power I 211957, 1%). The settings offer such a
+consumable to a spec whose `displayStats` or `epPseudoStats` name one of its percents
+(`consumablePseudoStatsOf` in `ui/sim/settings/consumables.ts`), not by the hit or crit rating the
+spec weighs, so the Hit food picker shows for the melee and ranged specs and not for the casters. The
+sim reads the rows, not these lists.
 
 **Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `ElixirGroup` to put items into a row
 group, or a new key and label for a group of their own, and every item id with its name. An item the
@@ -284,7 +291,9 @@ Stamina. `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) adds
 `NaturalFlaskZoneBonusOf` to each flask's db.json stats at the rating one percent takes (Accuracy 50 hit rating,
 Aggression 56 crit rating, Precision 50 expertise rating at
 `core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 haste rating). One rating feeds the
-physical and the spell percent alike, so a flask that grants both lists the rating once. The sim reads the rows, not those stats.
+physical and the spell percent alike, so a flask that grants both lists the rating once; a hit or
+crit of one channel alone is listed by that channel's pseudo stats instead, as with the hit foods
+above. The sim reads the rows, not those stats.
 
 ## Adding a consumable the rows do not support
 
