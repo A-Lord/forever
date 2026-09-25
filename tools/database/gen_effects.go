@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"iter"
 	"os"
 	"regexp"
 	"slices"
@@ -573,11 +574,7 @@ func storeUnmappedSpeedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *p
 		return
 	}
 
-	for idx, effect := range enchant.Effects {
-		if effect != dbc.ITEM_ENCHANTMENT_EQUIP_SPELL || idx >= len(enchant.EffectArgs) {
-			continue
-		}
-		spellID := enchant.EffectArgs[idx]
+	for spellID := range enchantEquipSpellIDs(enchant) {
 		for _, spellEffect := range instance.SpellEffectsInOrder(spellID) {
 			if spellEffect.EffectType == dbcenums.E_APPLY_AURA && slices.Contains(speedAuras, spellEffect.EffectAura) {
 				StoreMissingEffect("EnchantEffects", parsed.Name, Variant{
@@ -601,11 +598,7 @@ func storeWeaponScopedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *pr
 		return
 	}
 
-	for idx, effect := range enchant.Effects {
-		if effect != dbc.ITEM_ENCHANTMENT_EQUIP_SPELL || idx >= len(enchant.EffectArgs) {
-			continue
-		}
-		spellID := enchant.EffectArgs[idx]
+	for spellID := range enchantEquipSpellIDs(enchant) {
 		if dbc.EquipSpellFolds(spellID) {
 			continue
 		}
@@ -627,21 +620,36 @@ func storeWeaponScopedEnchant(instance *dbc.DBC, enchant dbc.Enchant, parsed *pr
 			routing.Unsupported = append(routing.Unsupported, "another slot of the enchant registers")
 		}
 
-		grp := groupMapProc["Enchants"]
-		grp.Name = "Enchants"
-		grp.Entries = append(grp.Entries, &Entry{
-			Tooltip:   strings.Split(rendered, "\n"),
-			Variants:  []*Variant{{ID: int(parsed.EffectId), Name: parsed.Name, SpellID: grant.SpellID}},
-			Proc:      routing,
-			Supported: routing.Supported(),
-		})
-		groupMapProc["Enchants"] = grp
-
-		if !routing.Supported() {
+		variant := &Variant{ID: int(parsed.EffectId), Name: parsed.Name, SpellID: grant.SpellID}
+		if !appendEquipEntry(groupMapProc, "Enchants", rendered, variant, routing) {
 			StoreMissingEffect("EnchantEffects", parsed.Name, Variant{ID: int(parsed.EffectId), Name: rendered, SpellID: spellID})
 		}
 		return
 	}
+}
+
+func enchantEquipSpellIDs(enchant dbc.Enchant) iter.Seq[int] {
+	return func(yield func(int) bool) {
+		for idx, effect := range enchant.Effects {
+			if effect == dbc.ITEM_ENCHANTMENT_EQUIP_SPELL && idx < len(enchant.EffectArgs) && !yield(enchant.EffectArgs[idx]) {
+				return
+			}
+		}
+	}
+}
+
+// Files an equip aura's entry under the group, and answers whether it registers.
+func appendEquipEntry(groupMapProc map[string]Group, group string, rendered string, variant *Variant, routing *ProcRouting) bool {
+	grp := groupMapProc[group]
+	grp.Name = group
+	grp.Entries = append(grp.Entries, &Entry{
+		Tooltip:   strings.Split(rendered, "\n"),
+		Variants:  []*Variant{variant},
+		Proc:      routing,
+		Supported: routing.Supported(),
+	})
+	groupMapProc[group] = grp
+	return routing.Supported()
 }
 
 func enchantRegisters(groupMapProc map[string]Group, effectID int32) bool {
@@ -1047,19 +1055,8 @@ func TryParseEquipAuraEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect,
 	routing := equipAuraRouting(instance, equip, row)
 
 	rendered := itemEffectTooltip(parsed, itemEffect, instance)
-	entry := &Entry{
-		Tooltip:   strings.Split(rendered, "\n"),
-		Variants:  []*Variant{{ID: int(parsed.Id), Name: parsed.Name, SpellID: int(itemEffect.BuffId)}},
-		Proc:      routing,
-		Supported: routing.Supported(),
-	}
-
-	grp := groupMapProc["Equip"]
-	grp.Name = "Equip"
-	grp.Entries = append(grp.Entries, entry)
-	groupMapProc["Equip"] = grp
-
-	if entry.Supported {
+	variant := &Variant{ID: int(parsed.Id), Name: parsed.Name, SpellID: int(itemEffect.BuffId)}
+	if appendEquipEntry(groupMapProc, "Equip", rendered, variant, routing) {
 		return EffectParseResultSuccess
 	}
 

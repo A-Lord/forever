@@ -252,14 +252,14 @@ func runConfig(out io.Writer, opts options) error {
 		declarations = ws.declarations(filepath.Join(ws.root, "sim", opts.pkg), nil, 0, trace)
 	}
 	if isLit {
-		writeModConfigText(out, evalSpellModConfig(lit, declarations, opts.pkg, trace))
+		evalSpellModConfig(lit, declarations, opts.pkg, trace).table().writeText(out)
 		return nil
 	}
 	result, err := evalSpellConfig(call, declarations, opts.pkg, trace)
 	if err != nil {
 		return err
 	}
-	writeConfigText(out, result)
+	result.table().writeText(out)
 	return nil
 }
 

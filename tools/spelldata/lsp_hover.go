@@ -346,14 +346,14 @@ func (w *workspace) hover(text string, line, col int, uri string) (string, []str
 			return trace.fail("%v", err)
 		}
 		trace.add("✓ %s → %d fields", title(result.spell), len(result.rows))
-		return configMarkdown(result), trace.lines, true
+		return result.table().markdown(), trace.lines, true
 	}
 
 	if lit := spellModConfigAt(nodes, f.tok.Pos(at)); lit != nil {
 		trace.add("SpellModConfig")
 		result := evalSpellModConfig(lit, w.declarations(folder, f, at, trace), pkg, trace)
 		trace.add("✓ SpellModConfig → %d fields", len(result.rows))
-		return modConfigMarkdown(result), trace.lines, true
+		return result.table().markdown(), trace.lines, true
 	}
 
 	if field := familyAt(nodes); field != "" {

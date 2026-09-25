@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"go/ast"
 	"go/constant"
-	"go/token"
 	"go/types"
-	"io"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
@@ -85,15 +82,7 @@ func modFieldValue(expr ast.Expr, want reflect.Type, declarations map[string]dec
 
 	value, err := evalConst(expr)
 	if err != nil {
-		c, err := walkChain(expr, func(token.Pos) int { return 0 })
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		c, err = resolveChain(c, declarations, trace)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		read, err := evalExpr(ladderFamilies(), c, pkg)
+		_, read, err := evalDeclaredExpr(expr, declarations, pkg, trace)
 		if err != nil {
 			return reflect.Value{}, err
 		}
@@ -130,7 +119,7 @@ type modConfigField struct {
 }
 
 func procMaskNames(mask core.ProcMask) string {
-	return strings.Join(setBits(uint64(mask), func(bit uint64) (string, bool) { return dbcenums.Named(core.ProcMask(bit)) }), " | ")
+	return strings.Join(setBits(uint64(mask), procMaskBit), " | ")
 }
 
 var modConfigFields = []modConfigField{
@@ -148,9 +137,7 @@ var modConfigFields = []modConfigField{
 	{"School", func(c *core.SpellModConfig) string { return nonZero(c.School, core.SpellSchool.String) }},
 	{"DefenseType", func(c *core.SpellModConfig) string { return nonZero(c.DefenseType, core.DefenseType.String) }},
 	{"ProcMask", func(c *core.SpellModConfig) string { return nonZero(c.ProcMask, procMaskNames) }},
-	{"SpellFlag", func(c *core.SpellModConfig) string {
-		return strings.Join(setBits(uint64(c.SpellFlag), func(bit uint64) (string, bool) { return dbcenums.Named(core.SpellFlag(bit)) }), " | ")
-	}},
+	{"SpellFlag", func(c *core.SpellModConfig) string { return strings.Join(setBits(uint64(c.SpellFlag), spellFlagBit), " | ") }},
 	{"ResourceType", func(c *core.SpellModConfig) string {
 		return nonZero(c.ResourceType, proto.ResourceType.String)
 	}},
@@ -182,36 +169,6 @@ func modWeaponRule(c *core.SpellModConfig) string {
 	return rule
 }
 
-func modConfigMarkdown(result *modConfigResult) string {
-	var md strings.Builder
-	md.WriteString("`SpellModConfig`\n\n---\n| field | value | from |\n|---|---|---|\n")
-	for _, row := range result.rows {
-		fmt.Fprintf(&md, "| **%s** | %s | %s |\n", row.field, codeCell(row.value), codeCell(row.from))
-	}
-	if result.weapon != "" {
-		fmt.Fprintf(&md, "\n%s\n", result.weapon)
-	}
-	for _, option := range result.skipped {
-		fmt.Fprintf(&md, "\nunevaluated: `%s` (%s)\n", option.source, option.err)
-	}
-	return md.String()
-}
-
-func writeModConfigText(out io.Writer, result *modConfigResult) {
-	fmt.Fprintln(out, "SpellModConfig")
-	fmt.Fprintln(out)
-	fieldWidth, valueWidth := 0, 0
-	for _, row := range result.rows {
-		fieldWidth = max(fieldWidth, len(row.field))
-		valueWidth = max(valueWidth, len(row.value))
-	}
-	for _, row := range result.rows {
-		fmt.Fprintf(out, "%-*s  %-*s  %s\n", fieldWidth, row.field, valueWidth, row.value, row.from)
-	}
-	if result.weapon != "" {
-		fmt.Fprintf(out, "\n%s\n", result.weapon)
-	}
-	for _, option := range result.skipped {
-		fmt.Fprintf(out, "\nunevaluated: %s (%s)\n", option.source, option.err)
-	}
+func (result *modConfigResult) table() configTable {
+	return configTable{kind: "SpellModConfig", rows: result.rows, codeFrom: true, note: result.weapon, skipped: result.skipped}
 }
