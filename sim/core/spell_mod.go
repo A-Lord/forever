@@ -253,7 +253,8 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	if req := mod.equipRequirement(); !req.IsZero() && !req.Matches(spell.Unit, spell.ProcMask) {
+	// A magic-defense spell rolls on the spell tables, which no weapon's bonus reaches.
+	if req := mod.equipRequirement(); !req.IsZero() && (spell.DefenseType == DefenseTypeMagic || !req.Matches(spell.Unit, spell.ProcMask)) {
 		return false
 	}
 

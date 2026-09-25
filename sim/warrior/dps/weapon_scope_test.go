@@ -55,3 +55,43 @@ func TestArmsTalentsReachTheTwoHandedAxe(t *testing.T) {
 		}
 	}
 }
+
+// Thunder Clap is a magic-defense spell on the ranged proc mask: a bow's hit bonus reaches a ranged
+// attack made with the bow and not the clap, and an axe's crit bonus still reaches Heroic Strike. A
+// warrior swings no ranged auto attack, so the test registers one.
+func TestWeaponBoundModsSkipThunderClap(t *testing.T) {
+	warrior := orcWarrior(t, "p1_fury", DefaultFuryTalents)
+	clap := warrior.GetSpell(core.ActionID{SpellID: 11581})
+	strike := warrior.GetSpell(core.ActionID{SpellID: 25286})
+	rangedAuto := warrior.RegisterSpell(core.SpellConfig{ActionID: core.ActionID{SpellID: 990970},
+		SpellSchool: core.SpellSchoolPhysical, ProcMask: core.ProcMaskRangedAuto, DefenseType: core.DefenseTypeRanged})
+	if clap == nil || strike == nil || warrior.Ranged() == nil {
+		t.Fatalf("clap %v, Heroic Strike %v, ranged weapon %v; want all three", clap, strike, warrior.Ranged())
+	}
+	if clap.DefenseType != core.DefenseTypeMagic || clap.ProcMask != core.ProcMaskRangedSpecial {
+		t.Fatalf("clap has defense %v and proc mask %v, want magic and ranged special", clap.DefenseType, clap.ProcMask)
+	}
+
+	clapHit, rangedHit, strikeCrit := clap.BonusHitPercent, rangedAuto.BonusHitPercent, strike.BonusCritPercent
+	probeHit := warrior.ScopedBonusPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto)
+	probeRating := warrior.ScopedRatingPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto)
+	warrior.AddStaticMod(core.SpellModConfig{Kind: core.SpellMod_BonusHit_Percent, FloatValue: 3,
+		ProcMask: core.ProcMaskRanged, EquipSubclass: 262156, FromRating: true})
+	warrior.AddStaticMod(core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, FloatValue: 4,
+		ProcMask: core.ProcMaskMelee, EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe)})
+
+	for _, c := range []struct {
+		name      string
+		got, want float64
+	}{
+		{"Thunder Clap hit", clap.BonusHitPercent - clapHit, 0},
+		{"ranged attack hit", rangedAuto.BonusHitPercent - rangedHit, 3},
+		{"Heroic Strike crit", strike.BonusCritPercent - strikeCrit, 4},
+		{"probed ranged hit", warrior.ScopedBonusPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto) - probeHit, 3},
+		{"probed ranged hit from rating", warrior.ScopedRatingPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto) - probeRating, 3},
+	} {
+		if c.got != c.want {
+			t.Errorf("%s moved by %v, want %v", c.name, c.got, c.want)
+		}
+	}
+}
