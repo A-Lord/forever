@@ -428,6 +428,10 @@ share already divided by 100, so the client's integer 5 is 0.05 there and a row 
 is five hundred percent block. `TestParseStaticStatConventions` pins one row of each family against
 what core reads back.
 
+A bonus against a creature type bids in a per-stat category under its stat and its mask,
+`AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
+the same creature types.
+
 A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
 effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks
 and attaching both would double the bonus. The `Applied` entry says `folded-into`. A parse narrowed to

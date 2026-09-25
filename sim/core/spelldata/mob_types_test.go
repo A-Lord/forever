@@ -48,3 +48,40 @@ func TestAVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
 		t.Errorf("the static path attached %v, want nothing before the attack tables exist", appliedKinds(parsed))
 	}
 }
+
+// Per stat, a bonus against one creature type bids apart from the same stat against another, and
+// competes only with the same stat against the same mask.
+func TestAVersusAuraBidsPerCreatureTypeMask(t *testing.T) {
+	sim := &core.Simulation{}
+	character := parseWarrior()
+	undead := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
+	character.AttackTables = []*core.AttackTable{undead}
+
+	register := func(label string, mask int32, points float64) *core.Aura {
+		row := buffRow(7070, auraEffect(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, mask, points))
+		aura := character.RegisterAura(AuraConfig(row, Label(label)))
+		ParseEffects(character, aura, row, ExclusivePerStat("StatBuff"))
+		return aura
+	}
+	againstUndead := register("Undead", 32, 99)
+	againstDemons := register("Demons", 4, 185)
+	weakerAgainstUndead := register("Weaker Undead", 32, 36)
+
+	if a, b := categoryNames(againstUndead), categoryNames(againstDemons); slices.Equal(a, b) {
+		t.Fatalf("masks 32 and 4 bid in the same category %v", a)
+	}
+	if a, b := categoryNames(againstUndead), categoryNames(weakerAgainstUndead); !slices.Equal(a, b) {
+		t.Fatalf("two bonuses against mask 32 bid in %v and %v, want one category", a, b)
+	}
+
+	againstUndead.Activate(sim)
+	againstDemons.Activate(sim)
+	weakerAgainstUndead.Activate(sim)
+	bonus := undead.MobTypeBonusStats
+	if got := bonus[proto.MobType_MobTypeUndead][stats.AttackPower]; got != 99 {
+		t.Errorf("attack power against Undead: %v, want the stronger 99 alone", got)
+	}
+	if got := bonus[proto.MobType_MobTypeDemon][stats.AttackPower]; got != 185 {
+		t.Errorf("attack power against Demons: %v, want 185", got)
+	}
+}

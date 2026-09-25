@@ -1,6 +1,8 @@
 package spelldata
 
 import (
+	"fmt"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -526,11 +528,14 @@ func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
 		return nil
 	}
 
-	return additive("mob-type-stat "+stat.StatName(), v, func(_ *core.Simulation, delta float64) {
+	a := additive("mob-type-stat "+stat.StatName(), v, func(_ *core.Simulation, delta float64) {
 		var bonus stats.Stats
 		bonus[stat] = delta
 		p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
 	})
+	// A bonus against other creature types does not compete with this one.
+	a.key = fmt.Sprintf("%sVersus%d", stat.StatName(), e.Misc)
+	return a
 }
 
 func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {
