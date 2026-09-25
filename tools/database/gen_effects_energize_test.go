@@ -11,7 +11,7 @@ import (
 // An on-use whose spell restores the wearer's mana, rage or energy registers through the energize
 // constructor, in a group of its own.
 func TestOnUseEnergizeRoutesFromTheSpellItCasts(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {

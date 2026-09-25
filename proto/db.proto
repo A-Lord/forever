@@ -64,14 +64,33 @@ message Consumable {
 	bool buffs_main_stat = 4;
 	string name = 5;
 	string icon = 6;
-	//In seconds
-	int32 buff_duration = 7;
-	//In seconds
-	int32 cooldown_duration = 9;
-	//In seconds
-	int32 category_cooldown_duration = 10;
 	int32 category_id = 11;
 	repeated int32 effect_ids = 8;
+
+	// The item's on-use rows: the spell each casts and the item's cooldown and category for it.
+	repeated ItemEffect item_effects = 12;
+	// Empty when every class can use it.
+	repeated Class class_allowlist = 13;
+	Profession required_profession = 15;
+	// SpellEquippedItems of a temporary enchant's spell: the weapon subclasses and inventory types
+	// it can be applied to. Zero on consumables that enchant nothing.
+	int32 weapon_subclass_mask = 16;
+	int32 weapon_inventory_type_mask = 17;
+	// The SpellItemEnchantment row a temporary enchant applies to the weapon. Its enchant_effects name,
+	// by buff_id alone, the combat spells it casts off that weapon's hits, each at the chance its
+	// spell's row states. Absent on consumables that enchant nothing.
+	SimEnchant temporary_enchant = 18;
+	// Empty when every race can use it.
+	repeated Race race_allowlist = 19;
+	// The consumable's exclusive group: of the consumables a spec names only the first of each group
+	// applies, and consumables of different groups stack. The generator resolves it from the rows and
+	// ConsumableExclusiveGroups. An empty key stacks with everything.
+	string group_key = 20;
+	// The group's label in the settings.
+	string group_name = 21;
+
+	reserved 7, 9, 10, 14;
+	reserved "buff_duration", "cooldown_duration", "category_cooldown_duration", "allowable_race";
 }
 
 message ItemEffectRandPropPoints {

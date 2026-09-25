@@ -20,7 +20,7 @@ func enchantByName(t *testing.T, effectID int, name string) *proto.UIEnchant {
 }
 
 func TestEnchantStats(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 
 	for _, tc := range []struct {
 		effectID int
@@ -46,7 +46,7 @@ func TestEnchantStats(t *testing.T) {
 }
 
 func TestEnchantWeaponDamage(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 
 	for _, tc := range []struct {
 		effectID int
@@ -72,7 +72,7 @@ func TestEnchantWeaponDamage(t *testing.T) {
 }
 
 func TestEnchantHaste(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 
 	for _, tc := range []struct {
 		effectID             int
@@ -113,7 +113,7 @@ func TestEnchantHaste(t *testing.T) {
 }
 
 func TestEnchantSlot(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 
 	for _, tc := range []struct {
 		effectID    int
@@ -165,7 +165,7 @@ func TestWeaponEnchantSubclassType(t *testing.T) {
 }
 
 func TestEquipSpellStats(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -193,7 +193,7 @@ func TestEquipSpellStats(t *testing.T) {
 // Healing items state spell power (45) and their extra healing (41) in separate slots, and the
 // two add up: 231622 Field Marshal's Satin Hood.
 func TestItemSpellPowerAddsToHealing(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 
 	item, ok := dbc.GetDBC().Items[231622]
 	if !ok {

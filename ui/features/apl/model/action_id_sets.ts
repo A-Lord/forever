@@ -37,8 +37,8 @@ export interface ActionIdOption extends DropdownValueConfig<ActionId> {
 	/**
 	 * Read by the field, which drops the entries the list it is in cannot use.
 	 *
-	 * Master marked them with a CSS class instead and hid them with a rule scoped to the enclosing
-	 * list; the port's menu renders in a portal on `document.body`, where no such rule can reach it.
+	 * A CSS rule scoped to the enclosing list cannot hide them: the menu renders in a portal on
+	 * `document.body`, where no such rule can reach it.
 	 */
 	listScope?: LIST_SCOPE;
 }

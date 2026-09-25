@@ -19,7 +19,7 @@ func init() {
 // path the UI's stats request takes.
 func TestRestorationDruid(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
+		"the expected .results numbers cannot be meaningful until then")
 	var generators []core.TestGenerator
 	for _, gearSet := range []string{"preraid", "p3"} {
 		player := core.WithSpec(
@@ -50,9 +50,8 @@ func TestRestorationDruid(t *testing.T) {
 var StandardTalents = "--50353351531522531351"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FlaskId: 22853, // Flask of Mighty Restoration
-	FoodId:  27666, // Golden Fish Sticks
-	PotId:   22832, // Super Mana Potion
+	FoodId: 238639, // Sunrise Omelette
+	PotId:  13444,  // Major Mana Potion
 }
 
 var PlayerOptions = &proto.Player_RestorationDruid{

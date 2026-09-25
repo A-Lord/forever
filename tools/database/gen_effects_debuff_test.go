@@ -20,7 +20,7 @@ import (
 // damage shape, whose spell carries the debuff. None states a rate for its chance on hit, so all stay
 // commented out. Mug O' Hurt 4090's Dazed 13496 slows movement alone and stays skipped.
 func TestChanceOnHitDebuffsRouteAndStateNoRate(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	if ItemEffectIsSupported(instance, 13496) {

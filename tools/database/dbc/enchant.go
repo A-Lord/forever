@@ -35,6 +35,8 @@ type EnchantProcSlot struct {
 	// A combat spell (Effect 1), which the game casts off the weapon's hit rather than through a
 	// proc mask.
 	IsCombatSpell bool
+	// The chance in percent a combat spell slot states for it, 0 where it states none.
+	ChancePct int
 	// What the slot applies: the combat spell itself, or the spell its equip aura triggers.
 	AppliesSpellID int
 	// The effect entry the slot's spell resolves to, where it resolves stats.
@@ -59,7 +61,11 @@ func (enchant *Enchant) ProcSlots() []EnchantProcSlot {
 
 		switch effect {
 		case ITEM_ENCHANTMENT_COMBAT_SPELL:
-			slots = append(slots, EnchantProcSlot{SpellID: spellID, IsCombatSpell: true, AppliesSpellID: spellID})
+			slot := EnchantProcSlot{SpellID: spellID, IsCombatSpell: true, AppliesSpellID: spellID}
+			if idx < len(enchant.EffectPoints) {
+				slot.ChancePct = enchant.EffectPoints[idx]
+			}
+			slots = append(slots, slot)
 		case ITEM_ENCHANTMENT_EQUIP_SPELL:
 			for _, spellEffect := range dbcInstance.SpellEffectsInOrder(spellID) {
 				if slices.Contains(EnchantProcAuras, spellEffect.EffectAura) {

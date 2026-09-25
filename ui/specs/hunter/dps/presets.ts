@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, Race, Spec, TristateEffect } from '@generated/proto/common';
 import {
@@ -76,13 +77,16 @@ export const DefaultDebuffs = Debuffs.create({
 	insectSwarm: true,
 	judgementOfLight: true,
 	judgementOfWisdom: true,
-	mangle: true,
 	sunderArmor: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 12662,
-	goblinSapper: true,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GreaterMagebloodElixir.id],
+	foodId: Consumables.FiletOFlank.id,
+	potId: Consumables.MajorFrenzyPotion.id,
+	conjuredId: Consumables.DemonicRune.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {

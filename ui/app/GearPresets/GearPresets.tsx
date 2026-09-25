@@ -148,8 +148,8 @@ const GroupedGearPresets = () => {
 									),
 								}))
 							: [],
-						// An empty title renders an empty heading, which is how the pre-port layout put the
-						// user's own saved sets under the grouped presets without repeating "Gear Sets".
+						// An empty title renders an empty heading, which puts the user's own saved sets under
+						// the grouped presets without repeating "Gear Sets".
 						footer: (
 							<SavedDataPanel
 								title=""

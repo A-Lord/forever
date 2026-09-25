@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, TristateEffect } from '@generated/proto/common';
 import { Warlock_Options as WarlockOptions, WarlockOptions_Armor, WarlockOptions_CurseOptions, WarlockOptions_Summon } from '@generated/proto/warlock';
@@ -22,8 +23,12 @@ export const DefaultOptions = WarlockOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 12662, // Demonic Rune
-	mhImbueId: 25122, // Brilliant Wizard Oil
+	flaskId: Consumables.FlaskOfSupremePower.id,
+	foodId: Consumables.SunriseOmelette.id,
+	conjuredId: Consumables.DemonicRune.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	potId: Consumables.MajorSpellblastingPotion.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
 });
 
 export const OtherDefaults = {
@@ -56,7 +61,6 @@ export const DefaultDebuffs = Debuffs.create({
 	curseOfRecklessness: true,
 	curseOfElements: true,
 	giftOfArthas: true,
-	mangle: true,
 	exposeArmor: true,
 	huntersMark: true,
 });

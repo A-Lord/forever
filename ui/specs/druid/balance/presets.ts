@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, Race, UnitReference } from '@generated/proto/common';
 import { BalanceDruid_Options as BalanceDruidOptions } from '@generated/proto/druid';
@@ -34,13 +35,15 @@ export const DefaultDebuffs = Debuffs.create({
 	giftOfArthas: true,
 	huntersMark: true,
 	judgementOfWisdom: true,
-	mangle: true,
 	sunderArmor: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 12662, // Demonic Rune
-	mhImbueId: 25122, // Brilliant Wizard Oil
+	conjuredId: Consumables.DemonicRune.id,
+	flaskId: Consumables.FlaskOfSupremePower.id,
+	foodId: Consumables.SunriseOmelette.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {

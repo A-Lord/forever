@@ -117,8 +117,8 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	// The two Battle Shout icon toggles used to sit in `otherInputs`; icon pickers are not part
-	// of the `InputConfig` union any more, so they join the player icon row.
+	// Icon pickers are not part of the `InputConfig` union, so the two Battle Shout icon toggles
+	// sit in the player icon row.
 	playerIconInputs: [WarriorInputs.ShoutPicker(), WarriorInputs.StancePicker(), WarriorInputs.BattleShoutT2()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [],

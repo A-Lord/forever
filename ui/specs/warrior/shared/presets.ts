@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec } from '@generated/proto/common';
 
@@ -21,7 +22,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 
 export const DefaultDebuffs = Debuffs.create({
 	giftOfArthas: true,
-	mangle: true,
 	exposeArmor: true,
 	faerieFire: true,
 	sunderArmor: true,
@@ -30,5 +30,10 @@ export const DefaultDebuffs = Debuffs.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	goblinSapper: true,
+	potId: Consumables.MajorFrenzyPotion.id,
+	flaskId: Consumables.FlaskOfNaturalAggression.id,
+	foodId: Consumables.ProwlerSteak.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	ohImbueId: Consumables.DenseSharpeningStone.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });

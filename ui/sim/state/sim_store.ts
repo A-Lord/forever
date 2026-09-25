@@ -180,11 +180,11 @@ export interface ReforgeSlice {
 	softCapBreakpoints: Array<StatCap>;
 	freezeItemSlots: boolean;
 	frozenItemSlots: Array<number>;
-	// TBC optimizes gems, not reforges: these three are the gem-pool knobs.
+	// The optimizer picks gems, not reforges: these three are the gem-pool knobs.
 	maxGemPhase: number;
 	maxGemQuality: ItemQuality;
 	disableUniqueGems: boolean;
-	// Written silently by the optimizer (no counter, like the old bare field).
+	// Written silently by the optimizer (no counter).
 	undershootCaps: Stats;
 	v: Record<ReforgeField, number>;
 }
@@ -346,8 +346,8 @@ export function seedKeyed<N extends KeyedSlice>(store: SimStore, slice: N, key: 
 }
 
 // Writes `patch` into store[slice][key] and bumps the given version counters.
-// A bump with an empty patch is the old bare emit; a patch with no bumps is
-// the old silent field write.
+// A bump with an empty patch notifies without a value change; a patch with no
+// bumps is a silent write.
 export function patchKeyed<N extends KeyedSlice>(
 	store: SimStore,
 	slice: N,

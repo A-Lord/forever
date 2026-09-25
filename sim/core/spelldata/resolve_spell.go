@@ -196,6 +196,9 @@ func rowFlags(s *Spell) core.SpellFlag {
 	if s.SuppressesWeaponProcs() {
 		flags |= core.SpellFlagSuppressWeaponProcs
 	}
+	if s.PushedBack() {
+		flags |= core.SpellFlagPushback
+	}
 	// Helpful decides who the APL casts the spell on, so it follows the first effect's target. An
 	// attack whose first effect is a self side-effect reads as helpful here and the caller clears it.
 	if slices.Contains(helpfulTargets, s.EffectN(1).Target[0]) {
@@ -264,8 +267,7 @@ func applyCost(config *core.SpellConfig, s *Spell) {
 
 	powerType := s.Powers[0].Type
 
-	// Truncated rather than rounded, which is what the generated rank tables answer for the same
-	// row: Retaliation states one rage-tenth and so costs nothing.
+	// Truncated rather than rounded: Retaliation states one rage-tenth and so costs nothing.
 	cost := int32(s.PowerCost(powerType))
 	costPct := float64(s.Powers[0].CostPct)
 

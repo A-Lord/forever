@@ -1,36 +1,34 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, HealingModel, Profession, Spec, TristateEffect } from '@generated/proto/common';
-import {
-	PaladinAura,
-	PaladinJudgement,
-	ProtectionPaladin_Options as ProtectionPaladinOptions,
-	ProtectionPaladin_Rotation as ProtectionPaladinRotation,
-} from '@generated/proto/paladin';
+import { ConsumesSpec, HealingModel, Profession, TristateEffect } from '@generated/proto/common';
+import { ProtectionPaladin_Options as ProtectionPaladinOptions } from '@generated/proto/paladin';
 
 import DefaultApl from './apls/default.apl.json';
+import DefaultGear from './gear_sets/default.gear.json';
 
+// Seal of Righteousness, Judgement and Holy Strike on cooldown. A rotation worth the name waits
+// for the Forever numbers above level 20.
 export const APL_PRESET = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
-export const DefaultSimpleRotation = ProtectionPaladinRotation.create({
-	prioritizeHolyShield: true,
-	consecrationRank: 6,
-	useExorcism: true,
-	useHammerOfWrath: false,
-	maintainJudgement: PaladinJudgement.JudgementNone,
-	aura: PaladinAura.DevotionAura,
+// Level 60 blues from dungeons, quests, reputations and crafting: a placeholder until Phase 1
+// gear is known.
+export const GEAR_DEFAULT = PresetUtils.makePresetGear('Default', DefaultGear, {
+	tooltip: 'Level 60 blues from dungeons, quests, reputations and crafting. A placeholder until the Phase 1 gear is known.',
 });
-
-export const APL_SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecProtectionPaladin, DefaultSimpleRotation);
 
 export const DefaultOptions = ProtectionPaladinOptions.create({
 	classOptions: {},
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 12662, // Dark Rune
-	mhImbueId: 25122, // Brilliant Wizard Oil
-	goblinSapper: true,
+	flaskId: Consumables.FlaskOfSupremePower.id,
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.GreaterStoneshieldPotion.id,
+	conjuredId: Consumables.DemonicRune.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfProtectionIV.id],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

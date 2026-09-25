@@ -24,7 +24,8 @@ export interface IconEnumValueConfig<ModObject, T> {
 }
 
 interface IconEnumPickerBase<ModObject, T> extends InputConfig<ModObject, T> {
-	numColumns?: number;
+	// A function is read on every render, for a picker whose shown values change.
+	numColumns?: number | ((obj: ModObject) => number);
 	values: Array<IconEnumValueConfig<ModObject, T>>;
 	// Value that will be considered inactive.
 	zeroValue: T;

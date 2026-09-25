@@ -64,7 +64,7 @@ const makePresetGearHelper = (name: string, gear: EquipmentSpec, options: Preset
 		gear,
 		enableWhen: !!conditions.length ? (player: Player<any>) => conditions.every(cond => cond(player)) : undefined,
 		onLoad: options?.onLoad,
-		// TBC-only: the gear tab groups its preset chips by phase and named group.
+		// The gear tab groups its preset chips by phase and named group.
 		phase: options.phase,
 		group: options.group,
 	};

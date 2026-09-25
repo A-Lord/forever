@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	denseSharpeningStoneID int32 = 16138
-	denseWeightstoneID     int32 = 16622
+	denseSharpeningStoneID int32 = 12404
+	denseWeightstoneID     int32 = 12643
 )
 
 func isSharpWeaponType(wt proto.WeaponType) bool {

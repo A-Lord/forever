@@ -34,9 +34,9 @@ type Spell struct {
 	// SpellMisc.Attributes_0..16, read through HasAttr and the named accessors in attributes.go.
 	Attr [17]uint32
 
-	// SpellLevels: the level the rank is taught at, the level the caster is treated as, and the level
-	// its scaling stops at. A spell with no SpellLevels row carries SpellLevel 60 and MaxLevel 0,
-	// which is what the generator writes for "no level scaling".
+	// SpellLevels: the level the rank is taught at, the level its per-level scaling counts from, and
+	// the level that scaling stops at. A spell with no SpellLevels row carries SpellLevel and BaseLevel
+	// 60 and MaxLevel 0, which is what the generator writes for "no level scaling".
 	SpellLevel, BaseLevel, MaxLevel int16
 
 	// SpellCastTimes.Base through SpellMisc.CastingTimeIndex.
@@ -97,6 +97,9 @@ type Spell struct {
 	// SpellClassOptions.SpellClassSet and SpellClassMask_0..3: the set of spells a talent effect
 	// naming this family reaches.
 	ClassFlags core.ClassFlags
+
+	// SpellInterrupts.InterruptFlags, read through PushedBack.
+	InterruptFlags uint32
 
 	// SpellInterrupts.AuraInterruptFlags_0/_1 and ChannelInterruptFlags_0/_1.
 	AuraInterrupt, ChannelInterrupt [2]uint32
@@ -189,14 +192,14 @@ type Effect struct {
 	// 0-1000 bar. Average() adds the per-level scaling on top.
 	BasePoints float64
 
-	// EffectRealPointsPerLevel: what the effect gains for each level between the spell's own level and
+	// EffectRealPointsPerLevel: what the effect gains for each level between the spell's BaseLevel and
 	// the caster's.
 	PPL float64
 
 	// The owning spell's SpellLevels, copied onto the effect at generation: Average() prices the
 	// per-level gain off them, and reading them here rather than looking the owner up in the store
 	// keeps the answer the same for an effect whose spell the store does not carry.
-	SpellLevel, MaxLevel int16
+	BaseLevel, MaxLevel int16
 
 	// EffectVariance: the spread the server rolls the amount over, as min/max = average * (1 -/+
 	// Variance/2). Zero on an effect that does not roll.

@@ -58,16 +58,16 @@ Reach for a **named utility** first, including its variants and `!`-free forms. 
   when an argument is conditional or a variable, never to wrap or line-break a fixed list.
 
 Breakpoints are named tokens in `ui/styles/theme/breakpoints.css`: `sm md lg xl xxl xxxl fhd qhd uhd`
-(`576px` through `3841px`; `fhd` is the legacy `1080p` 1921px cutover, kept as a layout breakpoint even
-though the root font-size no longer changes there). All breakpoints are px, so they never depend on
+(`576px` through `3841px`; `fhd` is the 1921px `1080p` cutover, a layout breakpoint only: the root
+font-size does not change there). All breakpoints are px, so they never depend on
 the root.
 
 **Spec themes are CSS variables, not per-spec CSS.** `ui/styles/theme/specs.css`'s `.sim-ui` block
 declares `--color-primary`/`--color-primary-foreground` from `--theme-color`/`--theme-color-foreground`, and
-17 per-spec blocks (e.g. `.dps-warrior-sim-ui { --theme-color: var(--color-class-warrior); … }` and
+one block per spec (e.g. `.dps-warrior-sim-ui { --theme-color: var(--color-class-warrior); … }` and
 `.protection-warrior-sim-ui { --theme-color: var(--color-class-warrior); … }`, each with its own
-background-image variable — TBC's pre-port `_sim.scss` gives every spec its own background even
-where two specs of a class share `--theme-color`) set those variables. A component never needs a
+background-image variable — every spec has its own background even where two specs of a class
+share `--theme-color`) set those variables. A component never needs a
 spec-aware variant —
 `bg-primary`/`text-primary`/`border-primary` already re-theme per spec because the sim root carries
 the spec's class. Derived shades (`--color-primary-hover/-active/-dampened/-disabled`) are
@@ -110,7 +110,7 @@ Rules:
   `::after`), and element/descendant parts are allowed _inside_ a `ui-*` rule, but the file may never
   target a semantic hook class, a `data-testid`, or a raw element selector at the top level. The two
   exceptions are `ui/styles/theme/specs.css` (the spec theme selectors) and `vendor.css` (see below).
-- Built with `@apply`, unlayered classes stay unlayered (until the global element rules that used to
+- Built with `@apply`, unlayered classes stay unlayered (until the global element rules that
   fight them are fully gone); the file itself lives inside `@layer components` in the ones written so
   far, matching the layer order declared in `style.css:1`.
 - No comments — including lint-disable directives — in any `ui/` `.css` file, same rule as `.ts`/`.tsx`.
@@ -185,7 +185,7 @@ is a review rule on this tree, not a checked one.
 - **`data-testid` value convention:** when a class hook is retired and something still needs to find
   the element, the testid keeps the old class name verbatim (`className="apl-list-item-picker"` →
   `data-testid="apl-list-item-picker"`), so the mechanical rewrite is a search-and-replace and every
-  `\.name(\.|$)` regex a tool used to run against the class keeps matching the testid instead. An
+  `\.name(\.|$)` regex a tool runs against the class keeps matching the testid instead. An
   _unread_ hook is just deleted — don't add a testid nobody consumes.
 - **`data-testid` is never a styling hook.** No `.css` rule, `@apply` selector, or TSX arbitrary
   variant may key off `[data-testid=…]`; `class-hooks.mjs`'s `findTestidStyling()` is the check for
@@ -240,21 +240,17 @@ checkers below is wired to anything today.
   class-hook removal for free. Cover the default state of each top-level tab **and** the sub-panes
   (sub-tabs, dialogs, modals, expanded rows) — a sweep that only opens top-level tabs at rest misses
   whole areas of the app.
-    - That gap is how a real regression once slipped through: the log runner's rows grew from 32.5px
-      to 34px when a real `@utility` (`icon-sm`) was deleted as if it were a retired class hook. A
-      default-pane sweep stayed green because it never opened the log tab. **The lesson: a custom
-      `@utility` or a `ui-*` composition class is real styling, not a hook** — the class-hook gate
+    - A default-pane sweep misses what it never opens: deleting a real `@utility` (`icon-sm`) as if
+      it were a retired class hook grows the log runner's rows from 32.5px to 34px, and a sweep that
+      never opens the log tab stays green. **A custom `@utility` or a `ui-*` composition class is
+      real styling, not a hook** — the class-hook gate
       and the hook census tell the two apart by compiling every candidate against Tailwind's own
       design system (`ui/testing/tailwind/canonical-classes.mjs`), never a hand-written name list,
       and deleting one because it "looks like" an old semantic class is the mistake to avoid. Run
       the diff before calling a class-hook or utility change done — with the class-hook gate
       unwired, it is the only automated protection there is.
-    - A second regression, historical but worth knowing: three early utility conversions rendered
-      **12.5% smaller** than the SCSS they replaced (`padding: 10px` → `p-2.5` computed to 8.75px,
-      not 10px — `1rem` is 14px here, not 16px), passing type-check, the unit tests, oxlint and all
-      17 snapshots straight through. **The rule (superseding that fixed-`[Npx]` reaction) is the
-      exact dynamic spacing step**: Tailwind v4's spacing scale here accepts any multiple of `0.25`,
-      so a source px value converts to its exact step — `10px` → `p-2.5`, `5px` → `p-1.25`,
+    - **A px value converts to its exact dynamic spacing step**: Tailwind v4's spacing scale here
+      accepts any multiple of `0.25`, so a source px value converts to its exact step — `10px` → `p-2.5`, `5px` → `p-1.25`,
       `18px` → `w-4.5` — computed-identically, and `ui/testing/tailwind/canonical-classes.mjs`
       rewrites a lingering `p-[5px]` to `p-1.25` automatically. Keep an arbitrary `[Npx]` only where
       no named or dynamic step exists (an odd one-off border width, say), and add a token instead of

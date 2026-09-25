@@ -204,6 +204,7 @@ const (
 	SpellFlagSwapped                                        // Indicates that this spell is not useable because it is from a currently swapped item
 	SpellFlagCastWhileIncapacitated                         // Allows the cast while the unit is incapacitated, e.g. Berserker Rage breaking a Fear.
 	SpellFlagPureDot                                        // A DoT with no direct damage component: its partial resists count a tenth of the target's resistance.
+	SpellFlagPushback                                       // Damage taken while hardcasting pushes the cast back: SpellInterrupts.InterruptFlags 0x2.
 
 	// Used to let agents categorize their spells.
 	SpellFlagAgentReserved1

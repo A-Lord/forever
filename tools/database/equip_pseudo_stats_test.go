@@ -10,7 +10,7 @@ import (
 )
 
 func TestEquipSpellPseudoStats(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	dbc.GetDBC()
 
 	type pseudo = proto.PseudoStat
@@ -73,7 +73,7 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 
 // The enchant carries what its equip spell states: 2523 applies 22780.
 func TestEnchantCarriesEquipSpellPseudoStats(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 
 	for _, enchant := range dbc.GetDBC().Enchants {
 		if enchant.EffectId != 2523 {

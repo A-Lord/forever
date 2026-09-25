@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"sync"
-	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -113,30 +112,58 @@ func ItemEffectRandPropPointsToProto(ieRpp ItemEffectRandPropPoints) *proto.Item
 }
 
 type Consumable struct {
-	Id                       int32
-	Type                     proto.ConsumableType
-	Stats                    stats.Stats
-	BuffsMainStat            bool
-	Name                     string
-	BuffDuration             time.Duration
-	CooldownDuration         time.Duration
-	CategoryCooldownDuration time.Duration
-	CategoryId               int32
-	EffectIds                []int32
+	Id                 int32
+	Type               proto.ConsumableType
+	Stats              stats.Stats
+	BuffsMainStat      bool
+	Name               string
+	ItemEffects        []*proto.ItemEffect
+	RequiredProfession proto.Profession
+	// The category the first on-use shares: the item row's, or where it states none, its spell's.
+	CategoryId int32
+	// The enchant a temporary enchant puts on a weapon, nil on consumables that enchant nothing, and
+	// the weapon subclasses and inventory types it takes, where a zero mask takes any.
+	TemporaryEnchant        *Enchant
+	WeaponSubclassMask      int32
+	WeaponInventoryTypeMask int32
+	// The exclusive group, of which only the first consumable the spec names applies; empty on
+	// consumables that stack with everything.
+	GroupKey string
+}
+
+// The item's on-use rows.
+func (consumable Consumable) OnUseEffects() []*proto.ItemEffect {
+	return FilterSlice(consumable.ItemEffects, func(effect *proto.ItemEffect) bool { return effect.GetOnUse() != nil })
+}
+
+// The first on-use row, the one a consumable's builder runs.
+func (consumable Consumable) OnUse() *proto.ItemEffect {
+	onUses := consumable.OnUseEffects()
+	if len(onUses) == 0 {
+		panic(fmt.Sprintf("consumable %d (%s) states no on-use row", consumable.Id, consumable.Name))
+	}
+	return onUses[0]
 }
 
 func ConsumableFromProto(consumable *proto.Consumable) Consumable {
+	var temporaryEnchant *Enchant
+	if consumable.TemporaryEnchant != nil {
+		enchant := EnchantFromProto(consumable.TemporaryEnchant)
+		temporaryEnchant = &enchant
+	}
 	return Consumable{
-		Id:                       consumable.Id,
-		Type:                     consumable.Type,
-		Stats:                    stats.FromProtoArray(consumable.Stats),
-		BuffsMainStat:            consumable.BuffsMainStat,
-		Name:                     consumable.Name,
-		BuffDuration:             time.Second * time.Duration(consumable.BuffDuration),
-		CooldownDuration:         time.Second * time.Duration(consumable.CooldownDuration),
-		CategoryCooldownDuration: time.Second * time.Duration(consumable.CategoryCooldownDuration),
-		CategoryId:               consumable.CategoryId,
-		EffectIds:                consumable.EffectIds,
+		Id:                      consumable.Id,
+		Type:                    consumable.Type,
+		Stats:                   stats.FromProtoArray(consumable.Stats),
+		BuffsMainStat:           consumable.BuffsMainStat,
+		Name:                    consumable.Name,
+		ItemEffects:             consumable.ItemEffects,
+		RequiredProfession:      consumable.RequiredProfession,
+		CategoryId:              consumable.CategoryId,
+		TemporaryEnchant:        temporaryEnchant,
+		WeaponSubclassMask:      consumable.WeaponSubclassMask,
+		WeaponInventoryTypeMask: consumable.WeaponInventoryTypeMask,
+		GroupKey:                consumable.GroupKey,
 	}
 }
 
@@ -173,10 +200,11 @@ type Item struct {
 	Enchant      Enchant
 
 	//Internal use
-	TempEnchant    int32
-	ScalingOptions map[int32]*proto.ScalingItemProperties
-	RandPropPoints int32
-	ItemEffects    []*proto.ItemEffect
+	TempEnchant             int32
+	TempEnchantWeaponDamage float64
+	ScalingOptions          map[int32]*proto.ScalingItemProperties
+	RandPropPoints          int32
+	ItemEffects             []*proto.ItemEffect
 }
 
 func ItemFromProto(pData *proto.SimItem) Item {
@@ -452,6 +480,37 @@ func GetConsumableByID(id int32) Consumable {
 	c := consumablesByID[id]
 	dbMu.RUnlock()
 	return c
+}
+
+// The ids of every consumable the loaded database carries, sorted.
+func ConsumableIDs() []int32 {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	ids := make([]int32, 0, len(consumablesByID))
+	for id := range consumablesByID {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	return ids
+}
+
+// Narrows the loaded consumables to these ids until the returned function restores the rest, for a
+// test that runs the sim on the consumables a browser request carries.
+func KeepOnlyConsumablesForTest(ids []int32) (restore func()) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	all := consumablesByID
+	consumablesByID = make(map[int32]Consumable, len(ids))
+	for _, id := range ids {
+		if consumable, ok := all[id]; ok {
+			consumablesByID[id] = consumable
+		}
+	}
+	return func() {
+		dbMu.Lock()
+		consumablesByID = all
+		dbMu.Unlock()
+	}
 }
 
 func GetSpellEffectByID(id int32) *proto.SpellEffect {

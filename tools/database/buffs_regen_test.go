@@ -37,12 +37,12 @@ func TestBuffFilesRegenerateFromTheCommittedInputs(t *testing.T) {
 
 func TestResolvedBuffInvariants(t *testing.T) {
 	rows := resolveCommittedBuffs(t)
-	if len(rows) != len(buffmanifest.Manifest) {
-		t.Fatalf("resolved %d rows for a manifest of %d", len(rows), len(buffmanifest.Manifest))
+	if len(rows) != len(buffmanifest.All()) {
+		t.Fatalf("resolved %d rows for a manifest of %d", len(rows), len(buffmanifest.All()))
 	}
 
 	for _, row := range rows {
-		if row.Kind == buffmanifest.KindAbsent || row.Kind == buffmanifest.KindFlag {
+		if row.Kind == buffmanifest.KindFlag {
 			if row.SpellID != 0 {
 				t.Errorf("%s: %s resolved to spell %d", row.Field, row.Kind, row.SpellID)
 			}
@@ -122,7 +122,7 @@ func scopeComplaint(row ResolvedBuff) string {
 // point, and the raid config's debuff is the five-point finisher.
 //
 // The paladin auras state a healing-taken row of 0 beside the aura, which the
-// manifest's SkipAuras leaves out.
+// parse leaves out.
 var pinnedAmounts = map[string]map[string]float64{
 	"leader_of_the_pack": {"stat PhysicalCritPercent+SpellCritPercent": 3},
 	"moonkin_aura":       {"stat PhysicalCritPercent+SpellCritPercent": 3},
@@ -132,16 +132,20 @@ var pinnedAmounts = map[string]map[string]float64{
 	"retribution_aura":   {},
 }
 
-// Mana Spring is the only buff an improving talent prices: Restorative Totems, five points.
+// The talents that price an improved state: Restorative Totems on Mana Spring, five points,
+// Guardian Totems on Stoneskin Totem, two points, and Vindication's talent on its debuff, three.
 var pinnedTalentRanks = map[string]int32{
 	"mana_spring_totem": 5,
+	"stoneskin_totem":   2,
+	"vindication":       3,
 }
 
-// What a resistance row competes under, as (stats, own aura). A source that has
-// no exclusivity beyond the school itself keeps no category of its own, which is
-// how every totem, Aspect of the Wild and Shadow Protection read; a paladin aura
-// also holds its own slot. Armor is not a school, so Devotion Aura has only the
-// slot.
+// What a pinned row competes under, as (stats, own aura). A resistance source
+// that has no exclusivity beyond the school itself keeps no category of its own,
+// which is how every totem, Aspect of the Wild and Shadow Protection read; a
+// paladin aura also holds its own slot. Armor is not a school, so Devotion Aura
+// has only the slot. Furious Howl holds a category of its own, and the attack
+// power reductions bid in Demoralizing Shout's.
 var pinnedCategories = map[string]string{
 	"frost_resistance_totem":      "",
 	"aspect_of_the_wild":          "",
@@ -149,4 +153,8 @@ var pinnedCategories = map[string]string{
 	"frost_resistance_aura":       "FrostResistanceAura",
 	"shadow_resistance_aura":      "ShadowResistanceAura",
 	"devotion_aura":               "DevotionAura",
+	"furious_howl":                "FuriousHowl",
+	"hex_of_weakness":             "Demoralizing",
+	"demoralizing_screech":        "Demoralizing",
+	"vindication":                 "Demoralizing",
 }

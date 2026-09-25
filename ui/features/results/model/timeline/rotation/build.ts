@@ -42,8 +42,8 @@ function castOutcome(castLog: CastLog): CastOutcome {
 		case 'dodge':
 		case 'parry':
 			return 'miss';
-		// A pre-union BlockedCrit set both `block` and `crit`, and the old chain tested `block`
-		// first, so it read as partial rather than crit. Same for a plain block/glance.
+		// A blocked crit (`critical-block`) reads as partial rather than crit, the same as a plain
+		// block or glance.
 		case 'block':
 		case 'glance':
 		case 'critical-block':

@@ -137,7 +137,7 @@ describe('DetailedResults', () => {
 		expect(container.querySelectorAll('#timelineTab [data-testid="dr-row"] > [data-testid="timeline"] > .timeline-root')).toHaveLength(1);
 	});
 
-	it('holds every ported metrics table in the container the vanilla pane built for it', () => {
+	it('holds every metrics table in its own container', () => {
 		metrics.threat = true;
 		metrics.healing = true;
 		const { container } = renderPane();

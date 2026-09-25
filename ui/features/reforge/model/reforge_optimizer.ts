@@ -2,8 +2,8 @@
 // (cache lookup, sim request, abort). The rendering half lives in ../components/ReforgePanel and
 // owns every button, tooltip, toast and modal.
 //
-// TBC has no item reforging. The "reforge" naming is inherited from the MoP port; what this
-// optimizer actually chooses is gems and socket bonuses.
+// There is no item reforging. Despite the "reforge" naming, what this optimizer chooses is gems
+// and socket bonuses.
 import { ReforgeOptimizeRequest, ReforgeSettings } from '@generated/proto/api';
 import { ItemQuality, Spec, Stat } from '@generated/proto/common';
 import { ReforgeGearCache } from '@sim/cache/reforge_cache';

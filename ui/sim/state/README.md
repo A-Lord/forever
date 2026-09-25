@@ -5,13 +5,13 @@ Everything in this directory is UI-free (a lint rule bans imports from
 `window` / `document` / `localStorage` / `location` / `navigator` here, so
 anything that needs one goes through the injected `Env` adapter (`env.ts`,
 reachable as `sim.env`; browser implementation in `ui/app/browser_env.ts`,
-memory implementation in `tools/state-snapshots/memory_env.ts`).
+in-memory `makeEnv()` in `ui/sim/sim.test.ts`).
 Imports of the facades (`../player`, `../sim`, the satellites) are
 `import type` — the one remaining runtime edge out of this directory is
 `reforge_request.ts` → `ReforgeGearCache` (`../cache/reforge_cache`).
 The sim's data state lives in one Zustand vanilla store
 per page, consumed from plain TS today and from React later (`useStore(sim.store, selector)`)
-with no store changes. There is no separate event system any more.
+with no store changes. There is no separate event system.
 
 ## Topology
 
@@ -61,7 +61,7 @@ Consumers subscribe through `subscriptions.ts`:
 
 All of these are **batch-gated** (`batch.ts`): inside `batch(() => ...)` a
 subscriber is deferred and fires once at the end with final state (selector
-equality ⇒ once per changed field). `batch` replaced `freezeAllAndDo`.
+equality ⇒ once per changed field).
 Selectors run for every subscriber on every write; the raid tuple is memoized
 per state object, and field helpers select a single counter.
 
@@ -87,9 +87,9 @@ No batching, no dedup, fires synchronously. Never put these in the store.
 1. Add it to the slice with its default in `sim_store.ts`; for player fields
    also append it to `PLAYER_FIELDS` (version counters derive from that list),
    for reforge fields to `REFORGE_FIELDS`.
-2. Facade getter reads the store; setter keeps the old guard, writes via
-   `patchSlice` / `patchKeyed`; if the old code notified unconditionally, pass
-   the field in `bumps`.
+2. Facade getter reads the store; setter keeps an equality guard, writes via
+   `patchSlice` / `patchKeyed`; if the setter must notify even on an equal
+   value, pass the field in `bumps`.
 3. Consumers use the matching `subscribe*` helper; store the unsubscribe on the
    component's dispose list.
 
@@ -97,7 +97,7 @@ No batching, no dedup, fires synchronously. Never put these in the store.
 
 `persistence.ts` (load-order contract + autosave; the localStorage key is built
 by the caller and handed in), `serialization.ts` (IndividualSimSettings
-envelope, golden-tested), `sim_links.ts`, `reforge_request.ts`, `env.ts`.
+envelope), `sim_links.ts`, `reforge_request.ts`, `env.ts`.
 
 ## Not here (facades, in `ui/sim/settings/`)
 

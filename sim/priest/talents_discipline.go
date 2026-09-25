@@ -297,7 +297,7 @@ func (priest *Priest) applyPowerInfusion() {
 	// 	return
 	// }
 	//
-	// piAura := buffs.PowerInfusionsAura(&priest.Unit, true, 0)
+	// piAura := buffs.NewSpellDataPowerInfusionsAura(&priest.Unit, true, 0)
 	//
 	// piSpell := priest.RegisterSpell(core.SpellConfig{
 	// 	ActionID:    core.ActionID{SpellID: 10060},

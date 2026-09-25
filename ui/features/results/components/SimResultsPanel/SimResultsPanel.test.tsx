@@ -240,7 +240,7 @@ describe('SimResultsPanel', () => {
 		const { view } = await mount(new ResultsPanelStore(), new WarningsRegistry(), true);
 		const viewer = zone(view, '[data-testid="results-viewer"]');
 		expect(viewer.lastElementChild!.getAttribute('data-testid')).toBe('sim-ui-unlaunched-container');
-		// One paragraph: TBC has no external healing sim to point at.
+		// One paragraph: there is no external healing sim to point at.
 		expect(viewer.querySelectorAll('[data-testid="sim-ui-unlaunched-container"] p').length).toBe(1);
 		expect(viewer.querySelector('a[href*="questionablyepic"]')).toBeNull();
 	});
@@ -253,7 +253,7 @@ describe('SimResultsPanel', () => {
 		const planner = await mount(new ResultsPanelStore(), new WarningsRegistry(), false, null, true);
 		const viewer = zone(planner.view, '[data-testid="results-viewer"]');
 		expect(viewer.lastElementChild!.getAttribute('data-testid')).toBe('sim-ui-gear-planner-container');
-		// One paragraph for every gear planner: TBC has no external healing sim to point at.
+		// One paragraph for every gear planner: there is no external healing sim to point at.
 		expect(viewer.querySelectorAll('[data-testid="sim-ui-gear-planner-container"] p').length).toBe(1);
 		expect(viewer.querySelector('a[href*="questionablyepic"]')).toBeNull();
 		expect(viewer.querySelector('[data-testid="sim-ui-unlaunched-container"]')).toBeNull();

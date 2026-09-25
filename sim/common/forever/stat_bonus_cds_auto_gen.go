@@ -33,8 +33,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(18638) // Hyper-Radiant Flame Reflector - https://www.wowhead.com/forever/spell=23097
 	// unsupported: 23132 deals no damage and heals no one (A_REFLECT_SPELLS_SCHOOL)
 	// shared.NewSimpleStatActive(18639) // Ultra-Flash Shadow Reflector - https://www.wowhead.com/forever/spell=23132
-	// unsupported: 23453 deals no damage and heals no one (E_DUMMY)
-	// shared.NewSimpleStatActive(18986) // Ultrasafe Transporter: Gadgetzan - https://www.wowhead.com/forever/spell=23453
 	// unsupported: 23595 deals no damage and heals no one (E_DISPEL_MECHANIC)
 	// shared.NewSimpleStatActive(19141) // Luffa - https://www.wowhead.com/forever/spell=23595
 	// unsupported: 23721 deals no damage and heals no one (A_PROC_TRIGGER_SPELL)
@@ -83,8 +81,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(260819) // EZ-Thro Field Transporter: Gadgetzan - https://www.wowhead.com/forever/spell=23453
 	// unsupported: 1269339 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(260821) // EZ and SAF Field Transporter: Mt. Hyjal - https://www.wowhead.com/forever/spell=1269339
-	// unsupported: 1269339 deals no damage and heals no one (E_DUMMY)
-	// shared.NewSimpleStatActive(260823) // Dimensional Transporter - Mt. Hyjal - https://www.wowhead.com/forever/spell=1269339
 	// unsupported: 1270941 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(260824) // Gnomish Poultryizer - https://www.wowhead.com/forever/spell=1270941
 	// unsupported: 1296664 deals no damage and heals no one (A_MOD_CHARM)
@@ -263,8 +259,6 @@ func RegisterAllOnUseCds() {
 	// https://www.wowhead.com/forever/spell=23277
 	// Not simulated: Insignia of the Alliance: "Immune Fear/Polymorph/Stun" (23276) - ignored aura type 77
 	// https://www.wowhead.com/forever/spell=23276
-	// Not simulated: Dimensional Ripper - Everlook: "Everlook Transporter" (23442) - ignored effect type 252
-	// https://www.wowhead.com/forever/spell=23442
 	// Not simulated: Defender of the Timbermaw: "Defender of the Timbermaw" (26066) - ignored effect type 28
 	// https://www.wowhead.com/forever/spell=26066
 	// Not simulated: Vanquished Tentacle of C'Thun: "Tentacle Call" (26391) - ignored effect type 28

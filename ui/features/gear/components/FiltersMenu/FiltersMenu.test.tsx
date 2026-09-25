@@ -116,7 +116,7 @@ describe('FiltersMenu', () => {
 		expect(pickerIds()).toEqual(expect.arrayContaining(['filters-min-oh-weapon-speed', 'filters-max-oh-weapon-speed']));
 	});
 
-	// TBC's ranged weapons live in their own slot, so the ranged sections belong to it and never to
+	// Ranged weapons live in their own slot, so the ranged sections belong to it and never to
 	// a melee weapon slot.
 	it('keeps the ranged sections off a melee weapon slot', () => {
 		setup({ weaponTypes: [WeaponType.WeaponTypeAxe], rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeBow] }, { slot: ItemSlot.ItemSlotMainHand });

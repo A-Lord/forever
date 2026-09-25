@@ -1,4 +1,4 @@
-// The 17 spec pages are one constant page served at 17 URLs.
+// The 18 spec pages are one constant page served at 18 URLs.
 //
 // `ui/index_template.html` carries nothing per-spec — no placeholders, and every asset
 // reference is root-absolute (`/forever/...` once vite rewrites it) — so the build processes it

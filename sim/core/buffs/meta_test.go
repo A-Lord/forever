@@ -49,6 +49,7 @@ func TestGeneratedRowsReadTheClientsNumbers(t *testing.T) {
 		{"DemoralizingShout", DemoralizingShoutValue, DemoralizingShoutDuration, []float64{-205}, 45 * time.Second},
 		{"ThunderClap", ThunderClapValue, ThunderClapDuration, []float64{1 / 1.2}, 30 * time.Second},
 		{"InsectSwarm", InsectSwarmValue, InsectSwarmDuration, []float64{-2}, 12 * time.Second},
+		{"Vindication", VindicationValue, VindicationDuration, []float64{-204, -68, -136, -204}, 30 * time.Second},
 	}
 
 	for _, c := range cases {
@@ -85,5 +86,25 @@ func TestGeneratedRowsReadTheClientsNumbers(t *testing.T) {
 func TestMetaValueOfADamageShieldIsItsDamage(t *testing.T) {
 	if got := (&Meta{Spell: spelldata.MustFind(10301)}).Value(0); got != 30 {
 		t.Errorf("Retribution Aura without the skips reads %v, want the shield's 30", got)
+	}
+}
+
+// A Vindication rank is worth rank/3 of the debuff's amount at the caster's level, rounded half away
+// from zero, on both of its attack powers: rank 1 reads 21 at level 20 and 17 at level 16.
+func TestVindicationRankReadsLikeItsTooltip(t *testing.T) {
+	for _, c := range []struct {
+		level int32
+		want  float64
+	}{{20, -21}, {16, -17}} {
+		opts := append(vindicationMeta.Options(1), spelldata.Level(c.level))
+		applied := spelldata.DryRun(vindicationMeta.Spell, opts...).Applied
+		if len(applied) != 2 {
+			t.Fatalf("level %d: the parse attaches %d amounts, want attack power and ranged attack power", c.level, len(applied))
+		}
+		for _, a := range applied {
+			if a.Value != c.want {
+				t.Errorf("level %d: %s is %v, want %v", c.level, a.Kind, a.Value, c.want)
+			}
+		}
 	}
 }

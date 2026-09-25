@@ -50,6 +50,6 @@ func (druid *Druid) registerDemoralizingRoarAura() {
 	// druid.DemoralizingRoarAuras = druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 	// 	// The druid's own copy of the aura; the client has no Feral Aggression
 	// 	// node, so there are no talent points to pass.
-	// 	return buffs.DemoralizingRoarAura(target, true, 0)
+	// 	return buffs.NewSpellDataDemoralizingRoarAura(target, true, 0)
 	// })
 }

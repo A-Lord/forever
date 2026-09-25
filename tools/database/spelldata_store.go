@@ -62,6 +62,7 @@ type storeSpell struct {
 
 	ClassFlags core.ClassFlags
 
+	InterruptFlags                  uint32
 	AuraInterrupt, ChannelInterrupt [2]uint32
 
 	StanceMask    uint64
@@ -112,7 +113,7 @@ type storeEffect struct {
 
 	// The owning spell's SpellLevels, stamped on while the row is built so that the store's Average
 	// does not look its owner up. Never captured: it is derived from the captured Levels row.
-	SpellLevel, MaxLevel int16 `json:"-"`
+	BaseLevel, MaxLevel int16 `json:"-"`
 
 	SPCoef  float64
 	APCoef  float64
@@ -217,6 +218,7 @@ type auraOptionRow struct {
 }
 
 type interruptRow struct {
+	InterruptFlags                  uint32
 	AuraInterrupt, ChannelInterrupt [2]uint32
 }
 
@@ -292,12 +294,12 @@ func (t *spellTables) row(id int32) storeSpell {
 	s.CastTimeMs, s.DurationMs = m.CastTimeMs, m.DurationMs
 	s.MinRange, s.MaxRange = m.MinRange, m.MaxRange
 
-	// No SpellLevels row is the client's "no level scaling", which is the spell's own level at the
-	// cap and no maximum - the reading levelsOf gives the generated rank tables.
+	// No SpellLevels row is the client's "no level scaling", which is the spell's own and base level
+	// at the cap and no maximum.
 	if l, ok := t.Levels[id]; ok {
 		s.SpellLevel, s.BaseLevel, s.MaxLevel = l.SpellLevel, l.BaseLevel, l.MaxLevel
 	} else {
-		s.SpellLevel = RankLevel
+		s.SpellLevel, s.BaseLevel = RankLevel, RankLevel
 	}
 
 	c := t.Cooldowns[id]
@@ -316,7 +318,7 @@ func (t *spellTables) row(id int32) storeSpell {
 	s.ClassFlags = t.ClassOptions[id]
 
 	i := t.Interrupts[id]
-	s.AuraInterrupt, s.ChannelInterrupt = i.AuraInterrupt, i.ChannelInterrupt
+	s.InterruptFlags, s.AuraInterrupt, s.ChannelInterrupt = i.InterruptFlags, i.AuraInterrupt, i.ChannelInterrupt
 
 	ss := t.Shapeshift[id]
 	s.StanceMask, s.StanceExclude = ss.Mask, ss.Exclude
@@ -348,7 +350,7 @@ func (t *spellTables) row(id int32) storeSpell {
 		if !s.Effects[i].ClassFlags.IsZero() {
 			s.Effects[i].ClassFlags.Family = s.ClassFlags.Family
 		}
-		s.Effects[i].SpellLevel, s.Effects[i].MaxLevel = s.SpellLevel, s.MaxLevel
+		s.Effects[i].BaseLevel, s.Effects[i].MaxLevel = s.BaseLevel, s.MaxLevel
 	}
 
 	return s
@@ -514,15 +516,16 @@ func (t *spellTables) loadClassOptions(db *sql.DB) error {
 
 func (t *spellTables) loadInterrupts(db *sql.DB) error {
 	return eachRow(db, `
-		SELECT SpellID, COALESCE(AuraInterruptFlags_0, 0), COALESCE(AuraInterruptFlags_1, 0),
+		SELECT SpellID, COALESCE(InterruptFlags, 0), COALESCE(AuraInterruptFlags_0, 0), COALESCE(AuraInterruptFlags_1, 0),
 		       COALESCE(ChannelInterruptFlags_0, 0), COALESCE(ChannelInterruptFlags_1, 0)
 		FROM SpellInterrupts WHERE DifficultyID = 0 ORDER BY SpellID`, func(rows *sql.Rows) error {
 		var id int32
-		var aura0, aura1, channel0, channel1 int64
-		if err := rows.Scan(&id, &aura0, &aura1, &channel0, &channel1); err != nil {
+		var flags, aura0, aura1, channel0, channel1 int64
+		if err := rows.Scan(&id, &flags, &aura0, &aura1, &channel0, &channel1); err != nil {
 			return err
 		}
 		return putOnce(t.Interrupts, id, interruptRow{
+			InterruptFlags:   uint32(flags),
 			AuraInterrupt:    [2]uint32{uint32(aura0), uint32(aura1)},
 			ChannelInterrupt: [2]uint32{uint32(channel0), uint32(channel1)},
 		}, "SpellInterrupts rows at difficulty 0")

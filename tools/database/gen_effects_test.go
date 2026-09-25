@@ -16,7 +16,7 @@ import (
 // states a rate: 8348's ProcChance is the 100 that means no roll, 1297357 carries no aura options at
 // all, and "Chance on hit" beside neither names a percentage, so both stay commented out.
 func TestChanceOnHitHotRoutesAsAHealAndStatesNoRate(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -65,7 +65,7 @@ func TestChanceOnHitHotRoutesAsAHealAndStatesNoRate(t *testing.T) {
 // on the wearer registers, a heal on anyone else or a spell that does neither is refused with the
 // reason and listed.
 func TestOnUseRoutesFromTheSpellItCasts(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -118,7 +118,7 @@ func TestOnUseRoutesFromTheSpellItCasts(t *testing.T) {
 // An on-use whose spell raises the wearer's speeds registers as a speed buff, every speed effect of
 // its row modelled.
 func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -160,7 +160,7 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 // Aegis of Preservation 19345 registers its 500 armor and lists the heal on every hit taken, 23781,
 // that its buff 23780 procs.
 func TestOnUseStatBuffListsTheProcItCarries(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	item := instance.Items[19345]

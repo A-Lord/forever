@@ -112,7 +112,7 @@ func TestFlatDamageTakenNeedsAField(t *testing.T) {
 func TestLevelPricesADebuffOnABoss(t *testing.T) {
 	row := &Spell{ID: 11556, Name: "Demoralizing Shout", DurationMs: 45000,
 		Effects: []Effect{{SpellID: 11556, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER,
-			BasePoints: -196, PPL: -1.399999976158142, SpellLevel: 54, MaxLevel: 64}}}
+			BasePoints: -196, PPL: -1.399999976158142, BaseLevel: 54, MaxLevel: 64}}}
 
 	boss := &core.Unit{Level: 63}
 

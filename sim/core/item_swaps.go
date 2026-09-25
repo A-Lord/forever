@@ -90,7 +90,7 @@ func (character *Character) enableItemSwap(itemSwap *proto.ItemSwap) {
 	}
 
 	character.ItemSwap = ItemSwap{
-		isFeralDruid:    character.Spec == proto.Spec_SpecFeralCatDruid || character.Spec == proto.Spec_SpecFeralBearDruid,
+		isFeralDruid:    character.isFeralDruid(),
 		slots:           slots,
 		originalEquip:   character.Equipment,
 		swapEquip:       swapItems,

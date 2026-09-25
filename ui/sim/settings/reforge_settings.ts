@@ -1,7 +1,7 @@
 // Persisted gem-optimizer settings, extracted from the ReforgeOptimizer
 // component (ui/features/reforge/components/ReforgePanel) so the state surface is UI-free.
-// TBC has no item reforging: the "reforge" naming is inherited from the MoP port and what the
-// optimizer actually chooses is gems and socket bonuses.
+// There is no item reforging: despite the "reforge" naming, what the optimizer chooses is gems
+// and socket bonuses.
 // Values live in the sim store (`reforge[player.storeKey]`) with per-field
 // version counters; this class is the facade over that slice.
 // Serialization lands in IndividualSimSettings.reforgeSettings.
@@ -38,7 +38,7 @@ export class ReforgeSettings {
 		this.store = player.sim.store;
 		this.storeKey = player.storeKey;
 
-		// Seed the slice (emit-less, like the old field initializers).
+		// Seed the slice without notifying.
 		seedKeyed(this.store, 'reforge', this.storeKey, {
 			statCaps: defaults.statCaps || new Stats(),
 			breakpointLimits: new Stats(),
@@ -60,7 +60,7 @@ export class ReforgeSettings {
 	}
 
 	// Writes `patch` and bumps the given counters in one store write. No bumps
-	// = the old silent field assignment.
+	// = a silent write.
 	private write(patch: Partial<Omit<ReforgeSlice, 'v'>>, bumps: ReadonlyArray<ReforgeField> = []) {
 		patchKeyed(this.store, 'reforge', this.storeKey, patch, bumps);
 	}
@@ -91,7 +91,7 @@ export class ReforgeSettings {
 	get undershootCaps(): Stats {
 		return this.slice.undershootCaps;
 	}
-	// Silent assignment (no emit), matching the old direct field write.
+	// Silent assignment (no emit).
 	set undershootCaps(value: Stats) {
 		this.write({ undershootCaps: value });
 	}
@@ -150,7 +150,7 @@ export class ReforgeSettings {
 		return (this.slice.frozenItemSlots as ItemSlot[]).includes(slot);
 	}
 
-	// ---- the gem pool knobs. TBC-only: MoP's reforger has no counterpart for any of them.
+	// ---- the gem pool knobs.
 	setMaxGemPhase(phase: number) {
 		this.write({ maxGemPhase: phase }, ['maxGemPhase']);
 	}

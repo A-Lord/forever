@@ -27,16 +27,14 @@ can drift from the build silently.
 Global bans (`no-restricted-globals`, error): `window` `document` `localStorage` `location`
 `navigator` in `ui/sim/**` and in `ui/features/*/model/**`. Anything that needs one takes an
 injected `Env` (`ui/sim/state/env.ts`; `sim.env` at runtime, `ui/app/browser_env.ts` in the browser,
-`tools/state-snapshots/memory_env.ts` in the harness).
+an in-memory `makeEnv()` in `ui/sim/sim.test.ts`).
 
 **Naming a DOM type is not the same as being a view.** A function that takes an `HTMLElement` it is
 _handed_ and enriches it — with an icon, an href, a Wowhead dataset — can still belong in the sim
-layer: it never creates an element and it touches no browser global, so it satisfies the rule.
-`ui/sim/proto/action_id/dom.ts` used to be that example, sitting beside the `ActionId` value object
-it served; its imperative DOM writers were deleted as dead code once the React port took over
-icon/href rendering, leaving `ui/sim/proto/action_id/tooltip_data.ts` behind. Do not "tidy" a
-sim-layer function that names `HTMLElement` into `features/` on sight — the test for this layer is
-browser globals and element _creation_, not whether `HTMLElement` appears in a signature.
+layer: it never creates an element and it touches no browser global, so it satisfies the rule. Do
+not "tidy" a sim-layer function that names `HTMLElement` into `features/` on sight — the test for
+this layer is browser globals and element _creation_, not whether `HTMLElement` appears in a
+signature.
 
 ## Three ways these rules surprise people
 
@@ -75,12 +73,12 @@ line silently disables it.
 | `@i18n/*`      | `ui/i18n/*`      |
 
 Check with `node -e "console.log(require('./tsconfig.json').compilerOptions.paths)"`. The same table
-is `resolve.alias` in `vite.config.mts` (`getBaseConfig`, inherited by the worker builds) and in
-`vite.harness.mts`. All three must agree; a mismatch shows up as a type-check that passes and a
+is `UI_ALIASES` in `vite.config.mts`, which `getBaseConfig` (inherited by the worker builds) and
+`vitest.config.mts` both spread into `resolve.alias`. The two must agree; a mismatch shows up as a type-check that passes and a
 build that cannot resolve.
 
-Node's `package.json` `imports` field was tried first and rejected: `tsc` under
-`moduleResolution: "bundler"` does not resolve `#foo/*` subpaths.
+The aliases are `tsconfig` `paths` rather than Node's `package.json` `imports` field because `tsc`
+under `moduleResolution: "bundler"` does not resolve `#foo/*` subpaths.
 
 ## Crossing layers without importing downward
 
@@ -96,9 +94,9 @@ being the bottom layer.
 
 The per-spec config schema is `@sim/spec_config` (`ui/sim/spec_config.ts`): `IndividualSimUIConfig`,
 `InputConfig`, `InputSection`, `CustomSection`, `OtherDefaults`, `Settings`, `SpecDefinition`,
-`SpecBehaviors`, `DerivedSetting`, `defineSpec`, `registerSpecConfig`, `itemSwapEnabledSpecs`. In
-the source port this moved from `@features/` to `@sim/` mid-port because it names ui-kit picker
-configs — the same reshuffle can happen here, so check where it actually is before importing, with
+`SpecBehaviors`, `DerivedSetting`, `defineSpec`, `registerSpecConfig`, `itemSwapEnabledSpecs`. It
+names ui-kit picker configs, so it can move between `@features/` and `@sim/`; check where it
+actually is before importing, with
 `/usr/bin/grep -rn "from '@sim/spec_config'" ui/ | wc -l`.
 
 ## The module-evaluation-order trap
@@ -110,25 +108,16 @@ class modules it aggregates, `specToPlayerSpec` gets built from `undefined`s, an
 `PlayerSpecs.fromProto` silently returns `undefined` — which surfaces as a crash inside
 `new Player`, far from the cause.
 
-Rule: `player/specs/*` and `player/classes/*` import leaf modules only. Check it after a harness
-build (`npm run test:snapshots` leaves the bundle behind):
+Rule: `player/specs/*` and `player/classes/*` import leaf modules only.
 
-```
-/usr/bin/grep -nE '^//#region ' tmp/harness/snapshot.js
-```
-
-Every `player/specs/<class>.ts` region must be emitted before `ui/sim/player/specs/index.ts`.
-
-`import/no-cycle` is deliberately **not** enabled. It reported 188 warnings on the source port's
-equivalent tree, enough that the rule was rejected outright rather than triaged; measured against
-the finished TBC tree it reports **63** — 46 in `ui/sim`, 17 in `ui/features` — which is smaller but
-still a triage project, not a switch to flip. Re-derive the number before arguing either way:
+`import/no-cycle` is deliberately **not** enabled. It reports **61** cycles — 43 in `ui/sim`, 17 in
+`ui/features`, 1 in `ui/i18n` — a triage project, not a switch to flip. Re-derive the number before arguing either way:
 
 ```
 npx oxlint --import-plugin -D import/no-cycle ./ui 2>&1 | grep -c 'import(no-cycle)'
 ```
 
-Until someone does that work, cycles are caught by the check above and by review, not by lint.
+Until someone does that work, cycles are caught by review, not by lint.
 
 ## Moving a file
 
@@ -136,4 +125,4 @@ There is no move tool. Move by hand with `git mv`, then repair specifiers:
 emit alias form when the importer and the target end up in different top-level `ui/` directories and
 a relative specifier otherwise, and run `npx oxlint ./ui --fix` to re-sort the imports the rewrite
 disturbs. Then the gates in `verification.md` — a move is exactly the change that passes
-`type-check` and fails `test:snapshots`.
+`type-check` and only fails at runtime.

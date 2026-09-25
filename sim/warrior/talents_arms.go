@@ -300,20 +300,15 @@ func (warrior *Warrior) registerWeaponmaster() {
 	}
 
 	armorIgnore := spellData.Weaponmaster.EffectAt(2).FractionAt(rank)
-	addArmorIgnore := func(delta float64) {
-		for _, attackTable := range warrior.AttackTables {
-			attackTable.ArmorIgnoreFactor += delta
-		}
-	}
 	armorIgnoreAura := warrior.RegisterAura(core.Aura{
 		Label:    "Weaponmaster (Mace/Staff)",
 		ActionID: actionID.WithTag(2),
 		Duration: core.NeverExpires,
 		OnGain: func(_ *core.Aura, _ *core.Simulation) {
-			addArmorIgnore(armorIgnore)
+			warrior.AddArmorIgnoreFactor(armorIgnore)
 		},
 		OnExpire: func(_ *core.Aura, _ *core.Simulation) {
-			addArmorIgnore(-armorIgnore)
+			warrior.AddArmorIgnoreFactor(-armorIgnore)
 		},
 	})
 	if armorIgnoreOn {
@@ -391,8 +386,8 @@ func (warrior *Warrior) registerImprovedSlam() {
 		return
 	}
 
-	// The five rank-swap effects the row states past the cast time and the global cooldown have no
-	// sim kind and are reported as skipped.
+	// The four rank-swap effects the row states past the cast time, the global cooldown and Slam's
+	// cooldown have no sim kind and are reported as skipped.
 	spelldata.ParseStatic(&warrior.Character, spellData.ImprovedSlam.Rank(warrior.Talents.ImprovedSlam))
 }
 
