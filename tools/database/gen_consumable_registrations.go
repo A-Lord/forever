@@ -164,8 +164,7 @@ func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 		row := spelldata.Find(spellID)
 		if slices.ContainsFunc(fields.Stats, isNonZero) || slices.ContainsFunc(fields.PseudoStats, isNonZero) ||
 			fields.WeaponDamage != 0 || len(fields.EnchantEffects) > 0 ||
-			row == spelldata.Nil || len(equipSpellUnsupported(enchant.ID, row, spellID)) > 0 ||
-			slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0 {
+			row == spelldata.Nil || slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0 {
 			continue
 		}
 		spellIDs = append(spellIDs, spellID)
