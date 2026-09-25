@@ -109,9 +109,19 @@ export const WindfuryTotem = makeBooleanPartyBuffInput({
 	label: 'Windfury Totem',
 });
 
-// atiesh_druid: no settings input over this field.
+export const AtieshDruid = makeMultistatePartyBuffInput({
+	actionId: ActionId.fromSpellId(28145),
+	numStates: 5,
+	fieldName: 'atieshDruid',
+	label: 'Atiesh - Druid',
+});
 
-// atiesh_priest: no settings input over this field.
+export const AtieshPriest = makeMultistatePartyBuffInput({
+	actionId: ActionId.fromSpellId(28144),
+	numStates: 5,
+	fieldName: 'atieshPriest',
+	label: 'Atiesh - Priest',
+});
 
 // totem_twisting: sim behaviour toggle with no spell source; rendered under Other Inputs.
 
@@ -457,6 +467,16 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: WindfuryTotem,
 		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: AtieshDruid,
+		stats: [Stat.StatMP5],
+		ownerClass: Class.ClassDruid,
+	},
+	{
+		config: AtieshPriest,
+		stats: [Stat.StatHealingPower],
+		ownerClass: Class.ClassPriest,
 	},
 ];
 

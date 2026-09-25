@@ -24,6 +24,8 @@ describe('the buff registries', () => {
 			'Trueshot Aura',
 			'Atiesh - Mage',
 			'Atiesh - Warlock',
+			'Atiesh - Druid',
+			'Atiesh - Priest',
 			'Strength of Earth Totem',
 			'Grace of Air Totem',
 			'Windfury Totem',

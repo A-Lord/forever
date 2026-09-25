@@ -297,6 +297,9 @@ var Party = []BuffSpec{
 		Owner:   proto.Class_ClassDruid,
 		Kind:    KindItemCount,
 		Label:   "Atiesh - Druid",
+		Stats: []proto.Stat{
+			proto.Stat_StatMP5,
+		},
 	},
 	{
 		Field:   "atiesh_priest",
@@ -304,6 +307,9 @@ var Party = []BuffSpec{
 		Owner:   proto.Class_ClassPriest,
 		Kind:    KindItemCount,
 		Label:   "Atiesh - Priest",
+		Stats: []proto.Stat{
+			proto.Stat_StatHealingPower,
+		},
 	},
 	{
 		Field:  "totem_twisting",
