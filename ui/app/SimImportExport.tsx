@@ -37,7 +37,7 @@ export const SimImportExport = () => {
 				{ready && (
 					<>
 						<ImportExportItem label="JSON" dialog={JsonImporterDialog} />
-						<ImportExportItem label="60U TBC" dialog={SixtyUpgradesImporterDialog} />
+						<ImportExportItem label="60U" dialog={SixtyUpgradesImporterDialog} />
 						<ImportExportItem label="WoWHead" dialog={WowheadImporterDialog} />
 						<ImportExportItem label="Addon" dialog={AddonImporterDialog} />
 					</>
@@ -49,7 +49,7 @@ export const SimImportExport = () => {
 						<ImportExportItem label="Link" dialog={LinkExporterDialog} />
 						<ImportExportItem label="JSON" dialog={JsonExporterDialog} />
 						<ImportExportItem label="WoWHead" dialog={WowheadExporterDialog} />
-						<ImportExportItem label="60U TBC EP" dialog={SixtyUpgradesExporterDialog} />
+						<ImportExportItem label="60U EP" dialog={SixtyUpgradesExporterDialog} />
 						<ImportExportItem label="Pawn EP" dialog={PawnExporterDialog} />
 						<ImportExportItem label="CLI" dialog={CliExporterDialog} />
 					</>
