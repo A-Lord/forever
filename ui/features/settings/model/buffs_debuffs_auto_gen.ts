@@ -125,6 +125,19 @@ export const AtieshPriest = makeMultistatePartyBuffInput({
 
 // totem_twisting: sim behaviour toggle with no spell source; rendered under Other Inputs.
 
+export const StoneskinTotem = makeTristatePartyBuffInput({
+	actionId: ActionId.fromSpellId(10405),
+	impId: ActionId.fromSpellId(16258),
+	fieldName: 'stoneskinTotem',
+	label: 'Stoneskin Totem',
+});
+
+export const FuriousHowl = makeBooleanPartyBuffInput({
+	actionId: ActionId.fromSpellId(24597),
+	fieldName: 'furiousHowl',
+	label: 'Furious Howl',
+});
+
 export const ArcaneBrilliance = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(23028),
 	fieldName: 'arcaneBrilliance',
@@ -477,6 +490,16 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: AtieshPriest,
 		stats: [Stat.StatHealingPower],
 		ownerClass: Class.ClassPriest,
+	},
+	{
+		config: StoneskinTotem,
+		stats: [Stat.StatArmor, Stat.StatStamina],
+		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: FuriousHowl,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassHunter,
 	},
 ];
 

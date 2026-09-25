@@ -55,11 +55,13 @@ export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS
 	},
 	Generated.ConcentrationAura,
 	Generated.TrueshotAura,
+	Generated.FuriousHowl,
 	Generated.AtieshMage,
 	Generated.AtieshWarlock,
 	Generated.AtieshDruid,
 	Generated.AtieshPriest,
 	Generated.StrengthOfEarthTotem,
+	Generated.StoneskinTotem,
 	Generated.GraceOfAirTotem,
 	Generated.WindfuryTotem,
 ]);

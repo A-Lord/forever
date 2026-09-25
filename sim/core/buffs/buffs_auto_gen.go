@@ -350,6 +350,47 @@ func NewSpellDataAtieshPriestAura(unit *core.Unit, isPlayer bool, talentPoints i
 
 // func NewSpellDataTotemTwistingAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura // totem_twisting, KindFlag: sim behaviour toggle with no spell source; rendered under Other Inputs.
 
+// Stoneskin Totem
+var StoneskinTotemCategory = "StoneskinTotem"
+var stoneskinTotemSpell = spelldata.MustFind(10405)
+var stoneskinTotemMeta = &Meta{
+	Label:        "Stoneskin Totem",
+	Spell:        stoneskinTotemSpell,
+	Category:     StoneskinTotemCategory,
+	Talent:       spelldata.Talent(16258, 2),
+	TalentEffect: 1,
+	SkipAuras:    []dbcenums.EffectAuraType{dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN},
+}
+
+func StoneskinTotemValue(talentPoints int32) float64 {
+	return stoneskinTotemMeta.Value(talentPoints)
+}
+func StoneskinTotemDuration(talentPoints int32) time.Duration {
+	return stoneskinTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataStoneskinTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, stoneskinTotemMeta, isPlayer, talentPoints)
+}
+
+// Furious Howl
+var FuriousHowlCategory = "FuriousHowl"
+var furiousHowlSpell = spelldata.MustFind(24597)
+var furiousHowlMeta = &Meta{
+	Label:    "Furious Howl",
+	Spell:    furiousHowlSpell,
+	Category: FuriousHowlCategory,
+}
+
+func FuriousHowlValue(talentPoints int32) float64 {
+	return furiousHowlMeta.Value(talentPoints)
+}
+func FuriousHowlDuration(talentPoints int32) time.Duration {
+	return furiousHowlMeta.Duration(talentPoints)
+}
+func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
+}
+
 // Arcane Brilliance
 var ArcaneBrillianceCategory = "StatBuff"
 var arcaneBrillianceSpell = spelldata.MustFind(23028)
@@ -774,6 +815,12 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.AtieshPriest > 0 {
 		driveAtieshPriest(char, party)
+	}
+	if party.StoneskinTotem != proto.TristateEffect_TristateEffectMissing {
+		core.MakePermanent(NewSpellDataStoneskinTotemAura(&char.Unit, false, core.GetTristateValueInt32(party.StoneskinTotem, 0, 2)))
+	}
+	if party.FuriousHowl {
+		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
 	}
 	if raid.ArcaneBrilliance {
 		core.MakePermanent(NewSpellDataArcaneBrillianceAura(&char.Unit, false, 0))

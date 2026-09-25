@@ -316,6 +316,27 @@ var Party = []BuffSpec{
 		Kind:   KindFlag,
 		Reason: "sim behaviour toggle with no spell source; rendered under Other Inputs.",
 	},
+	{
+		Field:    "stoneskin_totem",
+		SpellID:  10405,
+		CastID:   10408,
+		Talent:   16258,
+		Category: "StoneskinTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatArmor,
+			proto.Stat_StatStamina,
+		},
+	},
+	// A pet ability the hunter class family does not file, so the owner is stated.
+	{
+		Field:    "furious_howl",
+		SpellID:  24597,
+		Owner:    proto.Class_ClassHunter,
+		Category: "FuriousHowl",
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
 }
 
 var Individual = []BuffSpec{

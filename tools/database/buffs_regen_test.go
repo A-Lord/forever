@@ -132,9 +132,11 @@ var pinnedAmounts = map[string]map[string]float64{
 	"retribution_aura":   {},
 }
 
-// Mana Spring is the only buff an improving talent prices: Restorative Totems, five points.
+// The talents that price an improved state: Restorative Totems on Mana Spring, five points, and
+// Guardian Totems on Stoneskin Totem, two points.
 var pinnedTalentRanks = map[string]int32{
 	"mana_spring_totem": 5,
+	"stoneskin_totem":   2,
 }
 
 // What a resistance row competes under, as (stats, own aura). A source that has
@@ -149,4 +151,5 @@ var pinnedCategories = map[string]string{
 	"frost_resistance_aura":       "FrostResistanceAura",
 	"shadow_resistance_aura":      "ShadowResistanceAura",
 	"devotion_aura":               "DevotionAura",
+	"furious_howl":                "FuriousHowl",
 }

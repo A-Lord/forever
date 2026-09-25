@@ -920,6 +920,56 @@ func TestGeneratedDrivenBuffsAreNotBuildPhaseAuras(t *testing.T) {
 	}
 }
 
+// Stoneskin takes a flat amount off every physical hit, and Guardian Totems raises it by 10% a rank.
+// The reduction lands on PseudoStats.BonusPhysicalDamageTaken, not a stats.Stats entry.
+func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
+	if got := buffs.StoneskinTotemValue(0); got != -30 {
+		t.Errorf("untalented Stoneskin is worth %v, want the client's -30", got)
+	}
+	if got := buffs.StoneskinTotemValue(2); got != -36 {
+		t.Errorf("Stoneskin with 2/2 Guardian Totems is worth %v, want -36", got)
+	}
+
+	char := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+		&proto.PartyBuffs{StoneskinTotem: proto.TristateEffect_TristateEffectImproved}, &proto.IndividualBuffs{})
+	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	aura := char.GetAura("Stoneskin Totem (External)")
+	if aura == nil {
+		t.Fatalf("no aura is labelled %q; the unit has %v", "Stoneskin Totem (External)", auraLabels(char))
+	}
+	if got := char.PseudoStats.BonusPhysicalDamageTaken; got != -36 {
+		t.Errorf("the talented totem applied %v physical damage taken, want -36", got)
+	}
+}
+
+// Furious Howl is a flat attack power grant that competes with nothing Battle Shout holds, so both
+// land on the character at once.
+func TestGeneratedFuriousHowlStacksWithBattleShout(t *testing.T) {
+	if got := buffs.FuriousHowlValue(0); got <= 0 {
+		t.Fatalf("Furious Howl is worth %v attack power, want a positive amount", got)
+	}
+
+	shoutOnly := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(generatedBuffTestAgent{shoutOnly}, &proto.RaidBuffs{},
+		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
+	shoutOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	char := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
+	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	want := buffs.BattleShoutValue(0) + buffs.FuriousHowlValue(0)
+	if got := char.GetStats()[stats.AttackPower]; got != want {
+		t.Errorf("attack power is %v, want both shouts' %v", got, want)
+	}
+	if got := char.GetStats()[stats.AttackPower] - shoutOnly.GetStats()[stats.AttackPower]; got != buffs.FuriousHowlValue(0) {
+		t.Errorf("Furious Howl added %v attack power over Battle Shout alone, want %v", got, buffs.FuriousHowlValue(0))
+	}
+}
+
 func auraLabels(char *core.Character) []string {
 	labels := make([]string, 0, len(char.GetAuras()))
 	for _, aura := range char.GetAuras() {

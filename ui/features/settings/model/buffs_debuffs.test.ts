@@ -22,11 +22,13 @@ describe('the buff registries', () => {
 			'Retribution Aura',
 			'Concentration Aura',
 			'Trueshot Aura',
+			'Furious Howl',
 			'Atiesh - Mage',
 			'Atiesh - Warlock',
 			'Atiesh - Druid',
 			'Atiesh - Priest',
 			'Strength of Earth Totem',
+			'Stoneskin Totem',
 			'Grace of Air Totem',
 			'Windfury Totem',
 		]);
