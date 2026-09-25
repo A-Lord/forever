@@ -8,7 +8,7 @@ import (
 )
 
 func TestAConsumableIsTypedByTheCategoryItsOnUseShares(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -38,7 +38,7 @@ func TestAConsumableIsTypedByTheCategoryItsOnUseShares(t *testing.T) {
 
 // The explosive picker offers what shares the explosives' category 24 and routes as damage.
 func TestOnlyADamagingExplosiveIsTypedAnExplosive(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {

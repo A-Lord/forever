@@ -16,7 +16,7 @@ func keepConsumableLists(t *testing.T) {
 }
 
 func TestAnAllowListedOrOverriddenConsumableShipsUnsupported(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	keepConsumableLists(t)
 
 	blastingCharge := dbc.GetDBC().Consumables[221325]

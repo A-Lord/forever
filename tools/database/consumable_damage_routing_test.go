@@ -8,7 +8,7 @@ import (
 )
 
 func TestADamageOverTimeOnAnAreaIsNotRoutedAsDamage(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	radiationBomb := instance.Consumables[215168]

@@ -24,7 +24,7 @@ func shippedConsumable(t *testing.T, instance *dbc.DBC, id int) *proto.Consumabl
 }
 
 func TestAConsumableTakesItsExclusiveGroup(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -65,7 +65,7 @@ func TestAConsumableTakesItsExclusiveGroup(t *testing.T) {
 // Every elixir db.json ships has a group, and of the other consumables only the Blasted Lands buffs
 // are grouped by their category in their rows: category 103's 1 h lasts as long as each buff.
 func TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	byCategory := map[int32]string{}
@@ -91,7 +91,7 @@ func TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory(t *testing.T) {
 }
 
 func TestEveryExclusiveGroupOverrideShips(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	seen := map[int32]bool{}

@@ -22,7 +22,7 @@ import (
 const unsupportedConsumablesPath = "tools/database/unsupported_consumables.txt"
 
 func TestConsumablesRouteByTheirSpell(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
@@ -86,7 +86,7 @@ func TestConsumablesRouteByTheirSpell(t *testing.T) {
 }
 
 func TestEveryConsumableIsRoutedOrListed(t *testing.T) {
-	inRepositoryRoot(t)
+	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	var out strings.Builder
