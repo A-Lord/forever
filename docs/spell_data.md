@@ -526,7 +526,7 @@ bits, and `core.WeaponSubclassMask(types...)` builds one from `proto.WeaponType`
 alike. `EquipInvType` takes `dbcenums.INVTYPE_BIT_*` bits, and `EquipHand` the `ProcMaskMeleeMH` or
 `ProcMaskMeleeOH` a hand bit names. `core.EquipRequirement{SubclassMask, InvTypeMask, Hand}` holds the
 same: `Matches(unit, procMask)` answers for one attack, `Equipped(character)` for any weapon slot. An
-item's own bits are `(*Item).WeaponSubclassBit()` and `core.InvTypeBit(slot, item)`, where a one-hander
+item's own bits are `(*Item).WeaponSubclassBit()` and the slot's inventory-type bit, where a one-hander
 also counts as the main- or off-hand weapon of the hand holding it.
 
 ### What core does with the Equip fields

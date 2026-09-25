@@ -142,8 +142,8 @@ carries its own equip aura and 28893 marks no aura unique. Blessed Wizard Oil 23
 names 28890, 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, mask 32). A wizard
 oil's equip spell is already the enchant's spell damage, and is not named. Elemental Sharpening Stone
 18262's enchant 2506 names 22755, 2% crit (`A_MOD_WEAPON_CRIT_PERCENT`) on the melee weapons its mask
-42483 names; `consumables_elemental_sharpening_stone.go` takes that registration's place and keys the
-crit to the attacks of the hand carrying the stone.
+42483 names; the generated entry parses it once per stoned hand with `spelldata.OnHand`, so the crit
+reaches only the attacks of the hand carrying the stone.
 `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
 
 A pet takes no consumables of its own; the scrolls the client marks `ONLY_TARGET_PLAYERS` cannot be
