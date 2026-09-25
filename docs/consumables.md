@@ -210,8 +210,8 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 The Jujus are Quest-class items the catalogue filter leaves out; naming them here brings them into
 the catalogue as well. The Blasted Lands buffs leave their category group for Zanza. The permanent Zanza items
 (23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
-apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddHitChanceStats`
-(`tools/database/consumable_hit_stats.go`) lists it in their db.json stats as 20 melee hit rating
+apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddUnparsedStats`
+(`tools/database/consumable_unparsed_stats.go`) lists it in their db.json stats as 20 melee hit rating
 (`core.PhysicalHitRatingPerHitPercent`, 10), and a spec that weighs hit sees the Hit food picker. The sim
 reads the rows, not those stats.
 
@@ -276,7 +276,7 @@ hand-written effect for an id a builder does register takes that registration's 
 deleting the hand-written one hands the id back to the rows.
 
 The settings offer a consumable by the stats db.json lists for it, and the parser lists only the
-Stamina. `AddNaturalFlaskZoneBonusStats` (`tools/database/consumable_zone_bonus.go`) adds the same
+Stamina. `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) adds the same
 `NaturalFlaskZoneBonusOf` to each flask's db.json stats at the rating one percent takes (Accuracy 50 melee and spell hit rating,
 Aggression 56 melee and spell crit rating, Precision 50 expertise rating at
 `core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 melee and spell haste rating). The sim reads the rows, not those stats.
