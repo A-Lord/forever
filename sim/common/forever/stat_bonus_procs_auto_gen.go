@@ -12,6 +12,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Chance on hit to grant nearby party members 4% increased critical strike chance.
+	// https://www.wowhead.com/forever/spell=16939
+	// unsupported: effect 1 lands on implicit target 20
+	// equip: 16939 (A_MOD_CRIT_PCT)
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 16939},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 12802, ItemName: "Darkspear"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Reduces your damage taken by 6% in the Battle Ring and The Maul.
 	// https://www.wowhead.com/forever/spell=1318318
 	// unsupported: the row applies only in area group 9337, which names no area type
@@ -35,6 +48,14 @@ func RegisterAllProcs() {
 	//	{ItemID: 226886, ItemName: "Beastmaster's Tunic"},
 	// })
 
+	// Increases your pet's critical strike chance by 2%.
+	// https://www.wowhead.com/forever/spell=27043
+	// equip: 27043 keeps 27042 up (A_MOD_WEAPON_CRIT_PERCENT)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27043},
+		[]shared.ItemVariant{
+			{ItemID: 22015, ItemName: "Beastmaster's Gloves"},
+		})
+
 	// Increases damage dealt by your pet by 3%.
 	// https://www.wowhead.com/forever/spell=27206
 	// equip: 27206 keeps 27205 up (A_MOD_DAMAGE_PERCENT_DONE)
@@ -57,6 +78,14 @@ func RegisterAllProcs() {
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27206},
 		[]shared.ItemVariant{
 			{ItemID: 226881, ItemName: "Beastmaster's Treads"},
+		})
+
+	// Increases your pet's critical strike chance by 2%.
+	// https://www.wowhead.com/forever/spell=27043
+	// equip: 27043 keeps 27042 up (A_MOD_WEAPON_CRIT_PERCENT)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27043},
+		[]shared.ItemVariant{
+			{ItemID: 226883, ItemName: "Beastmaster's Gauntlets"},
 		})
 
 	// Procs
@@ -376,21 +405,6 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 16927, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 12797, ItemName: "Frostguard"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Chance on hit to grant nearby party members 4% increased critical strike chance.
-	// https://www.wowhead.com/forever/spell=16939
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 12802, ItemName: "Darkspear"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1696,21 +1710,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Increases your pet's critical strike chance by 2%.
-	// https://www.wowhead.com/forever/spell=27043
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 22015, ItemName: "Beastmaster's Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// On successful melee or ranged attack gain 8 mana and if possible drain 8 mana from the target.
 	// https://www.wowhead.com/forever/spell=18350
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
@@ -2150,21 +2149,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 223077, ItemName: "Sergeant Major's Mail Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases your pet's critical strike chance by 2%.
-	// https://www.wowhead.com/forever/spell=27043
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 226883, ItemName: "Beastmaster's Gauntlets"},
 	// })
 
 	// TODO: Manual implementation required

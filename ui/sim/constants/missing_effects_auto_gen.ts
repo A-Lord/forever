@@ -671,12 +671,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19952, // Gri'lek's Charm of Valor
-		[
-			"Increases the critical hit chance of spells by 10% for 15s.", // 24498 - https://www.wowhead.com/forever/spell=24498
-		]
-	],
-	[
 		19953, // Renataki's Charm of Beasts
 		[
 			"Instantly clears the cooldowns of Aimed Shot, Multishot, Volley, and Arcane Shot.", // 24531 - https://www.wowhead.com/forever/spell=24531
@@ -941,12 +935,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22015, // Beastmaster's Gloves
-		[
-			"Increases your pet's critical strike chance by 2%.", // 27043 - https://www.wowhead.com/forever/spell=27043
-		]
-	],
-	[
 		22060, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
@@ -1154,12 +1142,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		223077, // Sergeant Major's Mail Sabatons
 		[
 			"Minor increase to running and swimming speed. Does not stack with similar effects.", // 24090 - https://www.wowhead.com/forever/spell=24090
-		]
-	],
-	[
-		226883, // Beastmaster's Gauntlets
-		[
-			"Increases your pet's critical strike chance by 2%.", // 27043 - https://www.wowhead.com/forever/spell=27043
 		]
 	],
 	[
@@ -2210,12 +2192,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		272437, // Adaptive Combat Assistant
 		[
 			"Absorbs 450 damage for 15s. If this shield expires before 15s, 100 Nature damage will be dealt to all enemies in melee range.", // 1291097 - https://www.wowhead.com/forever/spell=1291097
-		]
-	],
-	[
-		272438, // Weakness Analyzer
-		[
-			"Increases your critical strike chance with all spells and attacks by 5% for 20s or until you deal a non-periodic critical effect.", // 1291101 - https://www.wowhead.com/forever/spell=1291101
 		]
 	],
 	[
