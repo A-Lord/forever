@@ -189,8 +189,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: percentStatRow,
 
 	// Hit and crit, which the sim states in percentage points the way the client does. A row that
-	// names the weapon it needs is a mod on the attacks made with that weapon, and a weapon's
-	// A_MOD_CRIT_PCT is physical crit alone.
+	// names the weapon it needs is a mod on the attacks made with that weapon, except an A_MOD_CRIT_PCT
+	// whose weapons are not ranged alone: that is crit on every spell and attack while one is equipped.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		if scope, ok := p.weaponScope(e); ok {
 			return p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, v)
@@ -210,10 +210,17 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.SpellCritPercent, v)
 	},
 	dbcenums.A_MOD_CRIT_PCT: func(p *parser, e *Effect, v float64) *attachment {
-		if scope, ok := p.weaponScope(e); ok {
+		crit := []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}
+		scope, ok := p.weaponScope(e)
+		switch {
+		case !ok:
+			return p.statsBuff(crit, v)
+		case p.spell.EquipSubclass != 0 && p.spell.EquipSubclass&^rangedSubclasses == 0 &&
+			scope.EquipInvType == 0 && scope.EquipHand == 0:
 			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
 		}
-		return p.statsBuff([]stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}, v)
+		return p.statsWhileEquipped(crit, v, core.EquipRequirement{Class: int32(p.spell.EquipClass),
+			SubclassMask: scope.EquipSubclass, InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand})
 	},
 
 	// The three haste auras. Each multiplies a speed the unit recomputes, so each needs the
@@ -604,6 +611,36 @@ func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 	a.stats = sts
 	for _, stat := range sts {
 		part := additive("stat "+stat.StatName(), v, p.addStats([]stats.Stat{stat}))
+		part.key, part.stat, part.statBid = stat.StatName(), stat, true
+		a.parts = append(a.parts, part)
+	}
+	return a
+}
+
+// Flat stats that hold only while a weapon meeting the requirement is equipped, as well as while the
+// parse is on. They follow item swaps. A unit with no character wears no weapon, so the row is skipped
+// there.
+func (p *parser) statsWhileEquipped(sts []stats.Stat, v float64, req core.EquipRequirement) *attachment {
+	if p.character == nil && !p.dry {
+		return nil
+	}
+
+	gated := func(sts []stats.Stat) *attachment {
+		a := &attachment{kind: "stat-while-equipped " + statNames(sts), value: v, stats: sts}
+		if p.dry {
+			return a
+		}
+		bonus := stats.Stats{}
+		for _, stat := range sts {
+			bonus[stat] = v
+		}
+		a.set = p.character.NewEquipGatedStats(req, bonus).SetLevel
+		return a
+	}
+
+	a := gated(sts)
+	for _, stat := range sts {
+		part := gated([]stats.Stat{stat})
 		part.key, part.stat, part.statBid = stat.StatName(), stat, true
 		a.parts = append(a.parts, part)
 	}

@@ -78,8 +78,10 @@ func init() {
 }
 
 type scopeResult struct {
+	sim       *core.Simulation
 	character *core.Character
 	spell     *core.Spell
+	aura      *core.Aura
 	parsed    *Parsed
 	before    stats.Stats
 	after     stats.Stats
@@ -88,6 +90,28 @@ type scopeResult struct {
 // Builds the tester, parses row as its talent, and answers what the attacks and stats look like.
 // A spell-damage spell is registered beside the autos, for the rows that must not reach spells.
 func parseScoped(t *testing.T, row *Spell) *scopeResult {
+	t.Helper()
+	result := parseScopedWith(t, row, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, false)
+	if !result.character.AutoAttacks.IsDualWielding {
+		t.Fatal("the sword and dagger should dual wield")
+	}
+	return result
+}
+
+func scopeWeapons(mainHand, offHand, ranged int32) []*proto.ItemSpec {
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
+	for i := range items {
+		items[i] = &proto.ItemSpec{}
+	}
+	items[proto.ItemSlot_ItemSlotMainHand] = &proto.ItemSpec{Id: mainHand}
+	items[proto.ItemSlot_ItemSlotOffHand] = &proto.ItemSpec{Id: offHand}
+	items[proto.ItemSlot_ItemSlotRanged] = &proto.ItemSpec{Id: ranged}
+	return items
+}
+
+// parseScoped with the weapons and item swap set the test names. With onAura the row is parsed onto
+// an aura the tester registers rather than as a talent.
+func parseScopedWith(t *testing.T, row *Spell, equipped, swapped []*proto.ItemSpec, onAura bool) *scopeResult {
 	t.Helper()
 
 	result := &scopeResult{}
@@ -98,30 +122,33 @@ func parseScoped(t *testing.T, row *Spell) *scopeResult {
 			SpellSchool: core.SpellSchoolFire,
 		})
 		result.before = character.GetStats()
-		result.parsed = ParseStatic(character, row)
+		if onAura {
+			result.aura = character.RegisterAura(core.Aura{Label: "Scope Aura", ActionID: core.ActionID{SpellID: row.ID},
+				Duration: core.NeverExpires})
+			result.parsed = ParseEffects(character, result.aura, row)
+		} else {
+			result.parsed = ParseStatic(character, row)
+		}
 		result.after = character.GetStats()
 	}
 	t.Cleanup(func() { scopeTalents = nil })
 
-	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
-	for i := range items {
-		items[i] = &proto.ItemSpec{}
+	player := &proto.Player{
+		Name:      "Scope Tester",
+		Class:     proto.Class_ClassRogue,
+		Race:      proto.Race_RaceUndead,
+		Buffs:     &proto.IndividualBuffs{},
+		Spec:      &proto.Player_Rogue{},
+		Equipment: &proto.EquipmentSpec{Items: equipped},
+		Rotation:  &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
 	}
-	items[proto.ItemSlot_ItemSlotMainHand] = &proto.ItemSpec{Id: scopeSwordID}
-	items[proto.ItemSlot_ItemSlotOffHand] = &proto.ItemSpec{Id: scopeDaggerID}
-	items[proto.ItemSlot_ItemSlotRanged] = &proto.ItemSpec{Id: scopeBowID}
-
+	if swapped != nil {
+		player.EnableItemSwap = true
+		player.ItemSwap = &proto.ItemSwap{Items: swapped}
+	}
 	sim := core.NewSim(&proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
-		Raid: &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{{
-			Name:      "Scope Tester",
-			Class:     proto.Class_ClassRogue,
-			Race:      proto.Race_RaceUndead,
-			Buffs:     &proto.IndividualBuffs{},
-			Spec:      &proto.Player_Rogue{},
-			Equipment: &proto.EquipmentSpec{Items: items},
-			Rotation:  &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
-		}}, Buffs: &proto.PartyBuffs{}}}},
+		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
 		Encounter: &proto.Encounter{
 			Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
 			Duration: 180,
@@ -129,10 +156,8 @@ func parseScoped(t *testing.T, row *Spell) *scopeResult {
 	}, simsignals.CreateSignals())
 	sim.Reset()
 
+	result.sim = sim
 	result.character = sim.Raid.Parties[0].Players[0].GetCharacter()
-	if !result.character.AutoAttacks.IsDualWielding {
-		t.Fatal("the sword and dagger should dual wield")
-	}
 	return result
 }
 
@@ -263,15 +288,72 @@ func TestParseScopedRangedOnlyRating(t *testing.T) {
 	}
 }
 
-// 16255: a weapon's A_MOD_CRIT_PCT is physical crit on that weapon's attacks, and no spell crit.
-func TestParseScopedCritPctIsNoSpellCrit(t *testing.T) {
-	r := parseScoped(t, &Spell{ID: 16255, Name: "Thundering Strikes", EquipClass: 2, EquipSubclass: 173555,
-		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}})
+// 16255: A_MOD_CRIT_PCT with any melee weapon is physical and spell crit while one is equipped, on
+// every spell and attack, and no mod on the weapon's attacks.
+func TestParseCritPctWithAMeleeWeaponHoldsWhileEquipped(t *testing.T) {
+	row := &Spell{ID: 16255, Name: "Thundering Strikes", EquipClass: 2, EquipSubclass: 173555,
+		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}}
+	r := parseScoped(t, row)
+
+	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"stat-while-equipped PhysicalCritPercent+SpellCritPercent"}) {
+		t.Errorf("attached %v, want the crit stats while equipped", kinds)
+	}
+	r.check(t, bonusCrit, 0, 0, 0, 0)
+	for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+		if got := r.statChange(stat); got != 1 {
+			t.Errorf("%s moved by %v, want 1", stat.StatName(), got)
+		}
+	}
+}
+
+// The crit follows the melee weapon through item swaps, as a talent and on an aura alike, and the
+// aura's crit holds only while the aura is up.
+func TestParseCritPctFollowsTheMeleeWeapon(t *testing.T) {
+	row := &Spell{ID: 16255, Name: "Thundering Strikes", EquipClass: 2, EquipSubclass: 173555,
+		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}}
+	bowOnly := scopeWeapons(0, 0, scopeBowID)
+	melee := scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID)
+
+	for _, onAura := range []bool{false, true} {
+		r := parseScopedWith(t, row, bowOnly, melee, onAura)
+		base := r.character.GetStats()
+		check := func(when string, want float64) {
+			t.Helper()
+			for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+				if got := r.character.GetStat(stat) - base[stat]; math.Abs(got-want) > 1e-9 {
+					t.Errorf("on aura %v, %s: %s moved by %v, want %v", onAura, when, stat.StatName(), got, want)
+				}
+			}
+		}
+
+		if r.aura != nil {
+			r.aura.Activate(r.sim)
+		}
+		check("bow alone", 0)
+
+		r.character.ItemSwap.SwapItems(r.sim, proto.APLActionItemSwap_Swap1, false)
+		check("sword swapped in", 1)
+
+		if r.aura != nil {
+			r.aura.Deactivate(r.sim)
+			check("aura down", 0)
+			r.aura.Activate(r.sim)
+		}
+
+		r.character.ItemSwap.SwapItems(r.sim, proto.APLActionItemSwap_Main, false)
+		check("bow alone again", 0)
+	}
+}
+
+// 1310308: A_MOD_CRIT_PCT with ranged weapons alone is a mod on the ranged attacks.
+func TestParseCritPctWithRangedWeaponsIsRangedMod(t *testing.T) {
+	r := parseScoped(t, &Spell{ID: 1310308, Name: "Ranged Crit Bonus +02", EquipClass: 2, EquipSubclass: 262156,
+		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 2)}})
 
 	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"SpellMod_BonusCrit_Percent"}) {
 		t.Errorf("attached %v, want one crit mod", kinds)
 	}
-	r.check(t, bonusCrit, 1, 1, 0, 0)
+	r.check(t, bonusCrit, 0, 0, 2, 0)
 	r.checkNoStats(t, stats.PhysicalCritPercent, stats.SpellCritPercent)
 }
 
