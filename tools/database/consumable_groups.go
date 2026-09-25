@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -96,15 +97,13 @@ func firstAura(instance *dbc.DBC, spellID int) (dbcenums.EffectAuraType, int, bo
 	return 0, 0, false
 }
 
-var modStatNames = []string{"Strength", "Agility", "Stamina", "Intellect", "Spirit"}
-
 const allSpellSchools = 126
 
 func auraGroupName(aura dbcenums.EffectAuraType, misc int) string {
 	switch aura {
 	case dbcenums.A_MOD_STAT:
-		if misc >= 0 && misc < len(modStatNames) {
-			return modStatNames[misc]
+		if stat, ok := dbc.MapMainStatToStat(misc); ok {
+			return stats.Stat(stat).StatName()
 		}
 		return "All Stats"
 	case dbcenums.A_MOD_DAMAGE_DONE:
