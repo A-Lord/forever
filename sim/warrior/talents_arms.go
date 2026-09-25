@@ -391,8 +391,8 @@ func (warrior *Warrior) registerImprovedSlam() {
 		return
 	}
 
-	// The five rank-swap effects the row states past the cast time and the global cooldown have no
-	// sim kind and are reported as skipped.
+	// The four rank-swap effects the row states past the cast time, the global cooldown and Slam's
+	// cooldown have no sim kind and are reported as skipped.
 	spelldata.ParseStatic(&warrior.Character, spellData.ImprovedSlam.Rank(warrior.Talents.ImprovedSlam))
 }
 

@@ -50,11 +50,10 @@ func storeRoots(db *sql.DB, t *spellTables, ladderIDs []int32) (roots []int32, g
 	return namedIDs(t, roots), namedIDs(t, gear), nil
 }
 
-// The spells a rank reads its numbers off by name. The class-table generator falls back to them
-// wherever a rank states no amount of its own - Frenzied Regeneration's heal is on 22845, Tiger's
-// Fury's energize on 417045 - and the store has to carry the same spells, or the sim can read a
-// number off the table that it cannot read off the store. Mirrors SiblingRankEffects: same name,
-// same rank subtext, a shared class bit, and taught by a skill line rather than merely existing.
+// The spells a rank reads its numbers off by name. A rank that states no amount of its own keeps it
+// on a same-name sibling - Frenzied Regeneration's heal is on 22845, Tiger's Fury's energize on
+// 417045 - so the store carries those too: same name, same rank subtext, a shared class bit, and
+// taught by a skill line rather than merely existing.
 //
 // One pass over everything already reached is enough: the relation is the name and subtext, so a
 // sibling's siblings are the ones already in hand.

@@ -226,6 +226,19 @@ func TestGeneratedOverrideRow(t *testing.T) {
 	}
 }
 
+// Frostbolt and Slam state 15, whose 0x2 pushes the cast back; EZ-Thro Bronze Mortar states 5.
+func TestGeneratedInterruptFlags(t *testing.T) {
+	withGeneratedStore(t)
+
+	for id, want := range map[int32]uint32{116: 15, 11605: 15, 1269268: 5} {
+		s := MustFind(id)
+		if s.InterruptFlags != want || s.PushedBack() != (want == 15) {
+			t.Errorf("%s (%d) states interrupt flags %d, pushed back %v; want %d", s.Name, id,
+				s.InterruptFlags, s.PushedBack(), want)
+		}
+	}
+}
+
 // Wrath is castable in Moonkin Form and excludes Tree Form, Healing Touch the reverse. Tiger's Fury
 // states its Cat Form requirement as a caster aura; its SpellShapeshift row is empty.
 func TestGeneratedStanceAndAuraRestriction(t *testing.T) {

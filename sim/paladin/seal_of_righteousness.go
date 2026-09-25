@@ -1,12 +1,12 @@
 package paladin
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The damage spell each rank fires on a hit. They carry no rank subtext, so no table holds them.
+// The damage spell each rank fires on a hit. They carry no rank subtext, so no ladder holds them.
 var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4: 25738, 5: 25737, 6: 25736, 7: 25735, 8: 25713}
 
 // Seal of Righteousness
@@ -18,35 +18,38 @@ var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4
 //
 // Unleashing this Seal's energy will cause Holy damage to an enemy.
 //
-// The row's Direct is the judgement's dummy the seal's tooltip renders each hit from: the number
-// and the coefficient the per-hit damage scales on. The hit itself is a function of weapon speed:
-// the value per hundred, times the swing speed, times 0.85 for a one-hander or 1.2 for a
+// The seal's second effect names its judgement (the row has no effect at the client's index 1).
+// The judgement's dummy, its second effect, is what the seal's tooltip renders each hit from: the
+// number and the coefficient the per-hit damage scales on. The hit itself is a function of weapon
+// speed: the value per hundred, times the swing speed, times 0.85 for a one-hander or 1.2 for a
 // two-hander, the formula the Classic sim settled on from testing.
-func (paladin *Paladin) registerSealOfRighteousness(row shared.SpellData) {
-	judgeRow := spellData.JudgementOfRighteousness.BySpellID(int32(effectAt(row, 2).Value))
+func (paladin *Paladin) registerSealOfRighteousness(_ int32, rank *spelldata.Spell) {
+	judgeRank := spellData.JudgementOfRighteousness.ByID(int32(rank.EffectN(2).BaseValue()))
+	judgeDamage := judgeRank.DamageEffect()
+	perHit := judgeRank.EffectN(2)
 
 	// The judgement is Melee in SpellCategories and carries No Active Defense: it rolls hit and
 	// crit on the melee table and cannot be dodged, parried or blocked.
 	judgement := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: judgeRow.SpellID},
-		SpellSchool:    judgeRow.SpellSchool,
-		DefenseType:    judgeRow.DefenseType,
+		ActionID:       core.ActionID{SpellID: judgeRank.ID},
+		SpellSchool:    judgeRank.SpellSchool(),
+		DefenseType:    judgeRank.DefenseTypeCore(),
 		ProcMask:       core.ProcMaskMeleeMHSpecial,
 		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagBinary,
 		ClassSpellMask: SpellMaskJudgementOfRighteousness,
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
-		BonusCoefficient: judgeRow.Direct.BonusCoefficient(),
+		BonusCoefficient: judgeDamage.Coeff(),
 
 		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealDamage(sim, target, judgeRow.Direct.Damage(sim), spell.OutcomeMeleeSpecialNoBlockDodgeParry)
+			spell.CalcAndDealDamage(sim, target, judgeDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMeleeSpecialNoBlockDodgeParry)
 		},
 	})
 
-	value := shared.SpellDataMin(row.Direct)
+	value := perHit.Average(core.CharacterLevel)
 	procSpell := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: sealOfRighteousnessProcIDs[row.Rank]},
+		ActionID:    core.ActionID{SpellID: sealOfRighteousnessProcIDs[rank.RankNumber()]},
 		SpellSchool: core.SpellSchoolHoly,
 		DefenseType: core.DefenseTypeMelee,
 		ProcMask:    core.ProcMaskMeleeMHSpecial,
@@ -58,7 +61,7 @@ func (paladin *Paladin) registerSealOfRighteousness(row shared.SpellData) {
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
-		BonusCoefficient: shared.SpellDataCoef(row.Direct),
+		BonusCoefficient: perHit.Coeff(),
 
 		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 			mh := paladin.MainHand()
@@ -70,9 +73,9 @@ func (paladin *Paladin) registerSealOfRighteousness(row shared.SpellData) {
 	})
 
 	aura := paladin.makeSealExclusive(paladin.MakeProcTriggerAura(core.ProcTrigger{
-		Name:            sealLabel("Seal of Righteousness", paladin, row),
-		ActionID:        core.ActionID{SpellID: row.SpellID},
-		MetricsActionID: core.ActionID{SpellID: row.SpellID},
+		Name:            sealLabel("Seal of Righteousness", paladin, rank),
+		ActionID:        core.ActionID{SpellID: rank.ID},
+		MetricsActionID: core.ActionID{SpellID: rank.ID},
 		Duration:        sealDuration,
 		Callback:        core.CallbackOnSpellHitDealt,
 		ProcMask:        core.ProcMaskMeleeWhiteHit,
@@ -83,7 +86,7 @@ func (paladin *Paladin) registerSealOfRighteousness(row shared.SpellData) {
 	}))
 
 	paladin.registerSealSpell(&sealConfig{
-		row:       row,
+		rank:      rank,
 		classMask: SpellMaskSealOfRighteousness,
 		aura:      aura,
 		judgement: judgement,

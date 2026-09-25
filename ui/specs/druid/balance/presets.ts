@@ -34,7 +34,6 @@ export const DefaultDebuffs = Debuffs.create({
 	giftOfArthas: true,
 	huntersMark: true,
 	judgementOfWisdom: true,
-	mangle: true,
 	sunderArmor: true,
 });
 

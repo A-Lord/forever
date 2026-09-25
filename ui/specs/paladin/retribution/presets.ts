@@ -1,20 +1,20 @@
 import * as PresetUtils from '@app/preset_utils';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, Profession, Race, Spec, TristateEffect } from '@generated/proto/common';
-import { PaladinAura, RetributionPaladin_Options as RetributionPaladinOptions, RetributionPaladin_Rotation as PaladinRotation } from '@generated/proto/paladin';
+import { ConsumesSpec, Profession, Race, TristateEffect } from '@generated/proto/common';
+import { RetributionPaladin_Options as RetributionPaladinOptions } from '@generated/proto/paladin';
 
 import DefaultApl from './apls/default.apl.json';
+import DefaultGear from './gear_sets/default.gear.json';
 
-export const DefaultSimpleRotation = PaladinRotation.create({
-	useExorcism: false,
-	consecrationRank: 0,
-	delayMajorCDs: 11,
-	prepullSotC: true,
-	aura: PaladinAura.RetributionAura,
-});
-
+// Seal of Righteousness, Judgement and Holy Strike on cooldown. A rotation worth the name waits
+// for the Forever numbers above level 20.
 export const APL_PRESET = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
-export const APL_SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRetributionPaladin, DefaultSimpleRotation);
+
+// Level 60 blues from dungeons, quests, reputations and crafting: a placeholder until Phase 1
+// gear is known.
+export const GEAR_DEFAULT = PresetUtils.makePresetGear('Default', DefaultGear, {
+	tooltip: 'Level 60 blues from dungeons, quests, reputations and crafting. A placeholder until the Phase 1 gear is known.',
+});
 
 export const DefaultOptions = RetributionPaladinOptions.create({
 	classOptions: {},

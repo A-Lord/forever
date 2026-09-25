@@ -98,6 +98,9 @@ type Spell struct {
 	// naming this family reaches.
 	ClassFlags core.ClassFlags
 
+	// SpellInterrupts.InterruptFlags, read through PushedBack.
+	InterruptFlags uint32
+
 	// SpellInterrupts.AuraInterruptFlags_0/_1 and ChannelInterruptFlags_0/_1.
 	AuraInterrupt, ChannelInterrupt [2]uint32
 

@@ -18,10 +18,8 @@ func init() {
 // rotation and the fake prepull (no SkipRotation) make it exercise a full environment reset, the
 // path the UI's stats request takes.
 func TestHolyPaladin(t *testing.T) {
-	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
 	var generators []core.TestGenerator
-	for _, gearSet := range []string{"preraid", "p3"} {
+	for _, gearSet := range []string{"default"} {
 		player := core.WithSpec(
 			&proto.Player{
 				Class:         proto.Class_ClassPaladin,
@@ -46,13 +44,14 @@ func TestHolyPaladin(t *testing.T) {
 	core.RunTestSuite(t, t.Name(), generators)
 }
 
-// 45/11/5, wowhead's TBC raid build.
-var StandardTalents = "05503121520132531051-500231-5"
+// 36/15: Illumination, Divine Favor, Holy Shock, Holy Power and Light's Vigil, with Toughness,
+// Precision, Anticipation and Sacred Duty behind them.
+var StandardTalents = "55320030025131051-503050002"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FlaskId: 22853, // Flask of Mighty Restoration
-	FoodId:  27666, // Golden Fish Sticks
-	PotId:   22832, // Super Mana Potion
+	FlaskId: 13512,  // Flask of Supreme Power
+	FoodId:  18300,  // Hyjal Nectar
+	PotId:   250949, // Major Mender's Potion
 }
 
 var PlayerOptions = &proto.Player_HolyPaladin{

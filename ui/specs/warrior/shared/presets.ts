@@ -21,7 +21,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 
 export const DefaultDebuffs = Debuffs.create({
 	giftOfArthas: true,
-	mangle: true,
 	exposeArmor: true,
 	faerieFire: true,
 	sunderArmor: true,

@@ -37,7 +37,7 @@ type petFamily struct {
 const hunterPetScaling = "Hunter Pet Scaling"
 const tamedPetPassive = "Tamed Pet Passive (DND)"
 
-func discoverPetFamilies(db *sql.DB, ladders []rankLadder, triggered map[string][]generatedRow) ([]petFamily, []string, error) {
+func discoverPetFamilies(db *sql.DB, ladders []rankLadder, triggered map[string][]triggeredRow) ([]petFamily, []string, error) {
 	rows, err := db.Query(`
 		SELECT sl.DisplayName_lang, sla.Spell, n.Name_lang, s.NameSubtext_lang,
 		       (COALESCE(json_extract(sm.Attributes, '$[0]'), 0) & ?) != 0,

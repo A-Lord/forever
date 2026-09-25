@@ -354,9 +354,9 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-HelmofFire-8348"
  value: {
-  dps: 487.94522
-  tps: 266.14898
-  dtps: 2.90004
+  dps: 487.88379
+  tps: 266.10599
+  dtps: 2.96847
  }
 }
 dps_results: {
@@ -386,8 +386,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-InfernalLasso-219345"
  value: {
-  dps: 497.88092
-  tps: 271.48657
+  dps: 498.11654
+  tps: 271.6515
   dtps: 2.76038
  }
 }
@@ -1112,7 +1112,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Hyena-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 570.98081
+  dps: 569.48671
   tps: 447.0536
   dtps: 2.26754
  }
@@ -1120,7 +1120,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Hyena-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 495.57603
+  dps: 494.08193
   tps: 270.08455
   dtps: 2.76038
  }
@@ -1128,7 +1128,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Hyena-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 513.71085
+  dps: 512.16687
   tps: 277.91287
   dtps: 8.28114
  }
@@ -1157,7 +1157,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Raptor-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 586.70879
+  dps: 584.47904
   tps: 446.19819
   dtps: 2.46579
  }
@@ -1165,7 +1165,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Raptor-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 516.26472
+  dps: 514.03496
   tps: 270.40114
   dtps: 2.97145
  }
@@ -1173,7 +1173,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Raptor-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 537.79067
+  dps: 535.20247
   tps: 279.3369
   dtps: 8.91436
  }

@@ -61,7 +61,6 @@ describe('the buff registries', () => {
 			'Judgement of the Crusader',
 			'Judgement of Light',
 			'Judgement of Wisdom',
-			'Mangle',
 			'Curse of the Elements',
 			'Curse of Recklessness',
 			'Faerie Fire',

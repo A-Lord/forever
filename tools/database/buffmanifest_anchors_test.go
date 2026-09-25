@@ -214,7 +214,7 @@ func topRank(cands []buffCandidate, classMask int32) buffCandidate {
 // The aura of a totem or of a dummy passive, which the client only ties to the cast by name. The
 // rank subtext of the cast picks the matching rank; where neither carries one - Leader of the Pack
 // is 17007 and 24932, both rankless - the spell that applies a party or raid aura is the one other
-// players see.
+// players see, unless it only procs the buff, the way Windfury Totem's 10612 procs 10610.
 func auraFamilyMember(db *sql.DB, name string, subtext string) (int32, error) {
 	type auraCandidate struct {
 		SpellID int32
@@ -262,11 +262,25 @@ func auraFamilyMember(db *sql.DB, name string, subtext string) (int32, error) {
 	if len(matching) > 1 {
 		for _, c := range matching {
 			if c.Shared {
-				return c.SpellID, nil
+				return procTarget(db, c.SpellID)
 			}
 		}
 	}
 	return matching[0].SpellID, nil
+}
+
+// The spell a proc-trigger aura fires, named by EffectTriggerSpell or, where that is 0, by the base
+// points; any other aura is its own buff.
+func procTarget(db *sql.DB, aura int32) (int32, error) {
+	var target int32
+	err := db.QueryRow(`
+		SELECT CASE WHEN EffectTriggerSpell != 0 THEN EffectTriggerSpell ELSE CAST(EffectBasePointsF AS INTEGER) END
+		FROM SpellEffect WHERE SpellID = ? AND EffectAura IN (?, ?)`,
+		aura, dbcenums.A_PROC_TRIGGER_SPELL, dbcenums.A_PROC_TRIGGER_SPELL_WITH_VALUE).Scan(&target)
+	if err == sql.ErrNoRows {
+		return aura, nil
+	}
+	return target, err
 }
 
 func isSharedTarget(target dbc.ImplicitTarget) bool {

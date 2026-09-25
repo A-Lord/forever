@@ -14,8 +14,6 @@ func init() {
 }
 
 func TestRetribution(t *testing.T) {
-	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassPaladin,
@@ -31,8 +29,8 @@ func TestRetribution(t *testing.T) {
 			Consumables: DefaultConsumables,
 			Profession1: proto.Profession_Engineering,
 			Profession2: proto.Profession_Blacksmithing,
-			GearSet:     core.GetGearSet("../../../ui/specs/paladin/retribution/gear_sets", "p1"),
-			Talents:     "5-053201-0523005120033125331051",
+			GearSet:     core.GetGearSet("../../../ui/specs/paladin/retribution/gear_sets", "default"),
+			Talents:     DefaultRetributionTalents,
 			Rotation:    core.GetAplRotation("../../../ui/specs/paladin/retribution/apls", "default"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
@@ -51,7 +49,12 @@ func TestRetribution(t *testing.T) {
 	}))
 }
 
+// 10/8/33: Seal of Command, Sacred Arbiter, Two-Handed Weapon Specialization, Vengeance, Champion
+// of the Light and Twist of Light, with Improved Holy Strike, Improved Seals and Precision behind
+// them.
+var DefaultRetributionTalents = "50003-5030-05225321001330301"
+
 var DefaultConsumables = &proto.ConsumesSpec{
-	ConjuredId:   12662,
+	ConjuredId:   12662, // Demonic Rune
 	GoblinSapper: true,
 }

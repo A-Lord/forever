@@ -10,7 +10,7 @@ type HandTrigger struct {
 	Source   string
 }
 
-// The trigger edges the generator adds by hand, to the family tables and to the store alike.
+// The trigger edges the generator adds by hand to the store.
 var HandTriggers = []HandTrigger{
 	{
 		Spell:    20230,
