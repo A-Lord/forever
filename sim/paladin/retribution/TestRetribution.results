@@ -259,8 +259,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-Graverobber'sShovel-273817"
  value: {
-  dps: 415.83504
-  tps: 296.25852
+  dps: 416.43752
+  tps: 296.68026
  }
 }
 dps_results: {
