@@ -2384,16 +2384,6 @@
 							"additionalProperties": false,
 							"required": ["title", "explosives"]
 						},
-						"pet": {
-							"type": "object",
-							"properties": {
-								"title": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["title"]
-						},
 						"imbue": {
 							"type": "object",
 							"properties": {
@@ -2432,7 +2422,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "potions", "elixirs", "food", "engineering", "pet", "imbue", "scrolls", "miscellaneous"]
+					"required": ["title", "potions", "elixirs", "food", "engineering", "imbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
