@@ -59,6 +59,8 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			PseudoStat.PseudoStatMeleeCritPercent,
 			PseudoStat.PseudoStatOffHandHitPercent,
 			PseudoStat.PseudoStatOffHandCritPercent,
+			PseudoStat.PseudoStatRangedHitPercent,
+			PseudoStat.PseudoStatRangedCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatExpertisePercent,
 		],

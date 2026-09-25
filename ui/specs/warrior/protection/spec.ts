@@ -68,6 +68,8 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			PseudoStat.PseudoStatMeleeCritPercent,
 			PseudoStat.PseudoStatOffHandHitPercent,
 			PseudoStat.PseudoStatOffHandCritPercent,
+			PseudoStat.PseudoStatRangedHitPercent,
+			PseudoStat.PseudoStatRangedCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatBlockPercent,
 			PseudoStat.PseudoStatDodgePercent,
