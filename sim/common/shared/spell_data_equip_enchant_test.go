@@ -33,8 +33,9 @@ func init() {
 const hitWeapon int32 = 430391
 
 // A weapon enchant whose equip spell is weapon-scoped puts its aura up while the enchant is worn, and
-// the aura's hit reaches the attacks made with a weapon its row names. The row is narrowed to daggers
-// and freed of its area, and the enchant sits on the off-hand dagger beside a main-hand sword.
+// the aura's hit reaches the attacks made with the hand the enchant is on, while that hand holds a
+// weapon its row names. The row is narrowed to daggers and freed of its area, and the enchant sits on
+// the off-hand dagger beside a main-hand sword or a second dagger.
 func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 	const swordID, daggerID, enchantID int32 = 990981, 990982, 990983
 
@@ -54,11 +55,13 @@ func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 
 	for _, tc := range []struct {
 		name           string
+		mainHand       int32
 		enchanted      bool
 		wantMH, wantOH float64
 	}{
-		{"enchanted", true, 0, 2},
-		{"not enchanted", false, 0, 0},
+		{"enchanted", swordID, true, 0, 2},
+		{"not enchanted", swordID, false, 0, 0},
+		{"enchanted beside a main-hand dagger", daggerID, true, 0, 2},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			offHand := &proto.ItemSpec{Id: daggerID}
@@ -74,7 +77,7 @@ func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 						Race:      proto.Race_RaceTroll,
 						Buffs:     &proto.IndividualBuffs{},
 						Spec:      &proto.Player_EnhancementShaman{},
-						Equipment: &proto.EquipmentSpec{Items: testHands(&proto.ItemSpec{Id: swordID}, offHand)},
+						Equipment: &proto.EquipmentSpec{Items: testHands(&proto.ItemSpec{Id: tc.mainHand}, offHand)},
 					}},
 					Buffs: &proto.PartyBuffs{},
 				}}},
@@ -87,7 +90,7 @@ func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 			wielder := sim.Raid.Parties[0].Players[0].(*testCaster)
 
 			if !wielder.AutoAttacks.IsDualWielding {
-				t.Fatal("sword and dagger should dual wield")
+				t.Fatal("the two one-handers should dual wield")
 			}
 			mh, oh := wielder.AutoAttacks.MHAuto().BonusHitPercent, wielder.AutoAttacks.OHAuto().BonusHitPercent
 			if mh != tc.wantMH || oh != tc.wantOH {

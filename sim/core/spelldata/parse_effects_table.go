@@ -49,6 +49,9 @@ type parser struct {
 
 	// DryRun: the rows are read for what they would attach, and nothing is registered on the unit.
 	dry bool
+
+	// OnHand: the weapon the row sits on.
+	hand core.ProcMask
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -181,7 +184,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// the sim keeps one stat for. A row that names the weapon it needs, and a mask of ranged bits
 	// alone, hold for some attacks only, and become the percent the rating is worth on them.
 	dbcenums.A_MOD_RATING: func(p *parser, e *Effect, v float64) *attachment {
-		switch rule, scope := WeaponScope(p.spell, e); rule {
+		rule, scope, ok := p.weaponScope(e)
+		if !ok {
+			return nil
+		}
+		switch rule {
 		case WeaponRulePerWeapon, WeaponRuleRangedRatings:
 			return p.scopedRatings(e.Misc, scope, v)
 		}
@@ -198,7 +205,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// names the weapon it needs is a mod on the attacks made with that weapon, except an A_MOD_CRIT_PCT
 	// whose weapons are not ranged alone: that is crit on every spell and attack while one is equipped.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
-		if rule, scope := WeaponScope(p.spell, e); rule == WeaponRulePerWeapon {
+		if rule, scope, ok := p.weaponScope(e); !ok {
+			return nil
+		} else if rule == WeaponRulePerWeapon {
 			return p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, v)
 		}
 		return p.statBuff(stats.PhysicalHitPercent, v)
@@ -207,7 +216,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.SpellHitPercent, v)
 	},
 	dbcenums.A_MOD_WEAPON_CRIT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		if rule, scope := WeaponScope(p.spell, e); rule == WeaponRulePerWeapon {
+		if rule, scope, ok := p.weaponScope(e); !ok {
+			return nil
+		} else if rule == WeaponRulePerWeapon {
 			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
 		}
 		return p.statBuff(stats.PhysicalCritPercent, v)
@@ -217,7 +228,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 	dbcenums.A_MOD_CRIT_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		crit := []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}
-		switch rule, scope := WeaponScope(p.spell, e); rule {
+		rule, scope, ok := p.weaponScope(e)
+		if !ok {
+			return nil
+		}
+		switch rule {
 		case WeaponRulePerWeapon:
 			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
 		case WeaponRuleWhileEquipped:
@@ -459,6 +474,25 @@ func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfi
 		}
 	}
 	return cfg
+}
+
+// WeaponScope, narrowed to the hand OnHand names for a row bound to a weapon. Answers false for a row
+// that hand cannot carry.
+func (p *parser) weaponScope(e *Effect) (WeaponRule, core.SpellModConfig, bool) {
+	rule, scope := WeaponScope(p.spell, e)
+	if p.hand == 0 || (rule != WeaponRulePerWeapon && rule != WeaponRuleWhileEquipped) {
+		return rule, scope, true
+	}
+
+	hand := p.hand
+	if scope.EquipHand != 0 {
+		hand &= scope.EquipHand
+	}
+	scope.EquipHand = hand
+	if rule == WeaponRulePerWeapon {
+		scope.ProcMask &= hand
+	}
+	return rule, scope, scope.EquipHand != 0 && (rule != WeaponRulePerWeapon || scope.ProcMask != 0)
 }
 
 func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.SpellModConfig, v float64) *attachment {

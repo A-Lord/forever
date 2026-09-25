@@ -1678,6 +1678,24 @@ func (s effectSource) isEquipped(character *core.Character, slots []proto.ItemSl
 	return character.HasItemEquipped(s.id, slots)
 }
 
+// The melee hands an enchant sits on, as proc masks, or 0 for an item and for an enchant in any other
+// slot.
+func (s effectSource) weaponHands(character *core.Character, slots []proto.ItemSlot) core.ProcMask {
+	if !s.isEnchant {
+		return 0
+	}
+	var hands core.ProcMask
+	for _, slot := range slots {
+		switch slot {
+		case proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand:
+			hands |= character.GetProcMaskForWeaponSlot(slot)
+		default:
+			return 0
+		}
+	}
+	return hands
+}
+
 // The proc-carrying effects this item or enchant declares, keyed by the aura each one applies.
 func (s effectSource) procEffects() map[int32]*proto.ItemEffect {
 	var declared []*proto.ItemEffect

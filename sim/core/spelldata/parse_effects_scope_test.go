@@ -208,6 +208,23 @@ func casterAura(aura dbcenums.EffectAuraType, points float64) Effect {
 		Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}
 }
 
+// 22755 on the main hand's weapon: the crit reaches the main hand's attacks alone, and a ranged row
+// on it is skipped.
+func TestParseOnHandBindsTheRowToThatHand(t *testing.T) {
+	melee := &Spell{ID: 22755, Name: "Critical Weapon +2", EquipClass: 2, EquipSubclass: 42483,
+		Effects: []Effect{casterAura(dbcenums.A_MOD_WEAPON_CRIT_PERCENT, 2)}}
+	r := parseScopedWith(t, melee, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, true, OnHand(core.ProcMaskMeleeMH))
+	r.aura.Activate(r.sim)
+	r.check(t, bonusCrit, 2, 0, 0, 0)
+
+	ranged := &Spell{ID: 22780, Name: "Ranged Hit Bonus +3", EquipClass: 2, EquipSubclass: 262156,
+		Effects: []Effect{casterAura(dbcenums.A_MOD_HIT_CHANCE, 3)}}
+	r = parseScopedWith(t, ranged, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, true, OnHand(core.ProcMaskMeleeMH))
+	if len(r.parsed.Applied) != 0 || len(r.parsed.Skipped) != 1 {
+		t.Errorf("attached %v, want the ranged row skipped on the main hand", appliedKinds(r.parsed))
+	}
+}
+
 // 22780: +3 hit with a bow, gun or crossbow.
 func TestParseScopedRangedHitBonus(t *testing.T) {
 	r := parseScoped(t, &Spell{ID: 22780, Name: "Ranged Hit Bonus +3", EquipClass: 2, EquipSubclass: 262156,

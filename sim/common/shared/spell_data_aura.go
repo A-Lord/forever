@@ -18,7 +18,7 @@ type spellDataAuras struct {
 	enemies     core.AuraArray
 }
 
-func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config core.Aura) *spellDataAuras {
+func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config core.Aura, wearerOpts ...spelldata.ParseOpt) *spellDataAuras {
 	auras := &spellDataAuras{}
 	if row.RequiredAreas != 0 && !character.Env.Encounter.InArea(row.AreaType()) {
 		return auras
@@ -26,7 +26,8 @@ func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config c
 
 	if effects := spelldata.EffectsOn(row, spelldata.AuraOnWearer); len(effects) > 0 {
 		auras.wearer = character.RegisterAura(config)
-		auras.wearerStats = spelldata.ParseEffects(character, auras.wearer, row, spelldata.Effects(effects...)).Stats()
+		auras.wearerStats = spelldata.ParseEffects(character, auras.wearer, row,
+			append([]spelldata.ParseOpt{spelldata.Effects(effects...)}, wearerOpts...)...).Stats()
 	}
 
 	if effects := spelldata.EffectsOn(row, spelldata.AuraOnPet); len(effects) > 0 {
@@ -129,7 +130,11 @@ func registerSpellDataEquipAura(cfg SpellDataProc) {
 			}
 		}
 
-		auras := newSpellDataAuras(character, row, config)
+		var opts []spelldata.ParseOpt
+		if hands := source.weaponHands(character, slots); hands != 0 {
+			opts = append(opts, spelldata.OnHand(hands))
+		}
+		auras := newSpellDataAuras(character, row, config, opts...)
 		for _, aura := range append([]*core.Aura{auras.wearer}, auras.pets...) {
 			if aura != nil {
 				source.registerProc(character, aura, slots)
