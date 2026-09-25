@@ -169,8 +169,16 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 
 	// The ratings the misc value names as a mask of the client's combat ratings, by the combinations
-	// the sim keeps one stat for.
+	// the sim keeps one stat for. A row that names the weapon it needs, and a mask of ranged bits
+	// alone, hold for some attacks only, and become the percent the rating is worth on them.
 	dbcenums.A_MOD_RATING: func(p *parser, e *Effect, v float64) *attachment {
+		scope, scoped := p.weaponScope(e)
+		if !scoped && e.Misc&rangedRatings != 0 && e.Misc&^rangedRatings == 0 {
+			scope, scoped = core.SpellModConfig{ProcMask: core.ProcMaskRanged}, true
+		}
+		if scoped {
+			return p.scopedRatings(e.Misc, scope, v)
+		}
 		return p.statsBuff(ratingStats(e.Misc), v)
 	},
 
@@ -180,20 +188,31 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_PERCENT_STAT:          percentStatRow,
 	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: percentStatRow,
 
-	// Hit and crit, which the sim states in percentage points the way the client does.
+	// Hit and crit, which the sim states in percentage points the way the client does. A row that
+	// names the weapon it needs is a mod on the attacks made with that weapon, and a weapon's
+	// A_MOD_CRIT_PCT is physical crit alone.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
+		if scope, ok := p.weaponScope(e); ok {
+			return p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, v)
+		}
 		return p.statBuff(stats.PhysicalHitPercent, v)
 	},
 	dbcenums.A_MOD_SPELL_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.SpellHitPercent, v)
 	},
 	dbcenums.A_MOD_WEAPON_CRIT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
+		if scope, ok := p.weaponScope(e); ok {
+			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
+		}
 		return p.statBuff(stats.PhysicalCritPercent, v)
 	},
 	dbcenums.A_MOD_SPELL_CRIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.SpellCritPercent, v)
 	},
 	dbcenums.A_MOD_CRIT_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		if scope, ok := p.weaponScope(e); ok {
+			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
+		}
 		return p.statsBuff([]stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}, v)
 	},
 
@@ -430,6 +449,85 @@ func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfi
 		}
 	}
 	return cfg
+}
+
+const (
+	rangedSubclasses int32 = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS |
+		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_THROWN |
+		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_WAND
+	rangedInvTypes int32 = dbcenums.INVTYPE_BIT_RANGED | dbcenums.INVTYPE_BIT_THROWN | dbcenums.INVTYPE_BIT_RANGEDRIGHT
+)
+
+// The combat rating bits for ranged attacks: hit, crit and haste.
+const rangedRatings int32 = 64 | 512 | 262144
+
+// The scope carries no class flags, so the mod reaches auto attacks whatever family the spell belongs
+// to. An aura cast at someone else is not bound to the weapon: the requirement is the caster's, for
+// the cast.
+func (p *parser) weaponScope(e *Effect) (core.SpellModConfig, bool) {
+	s := p.spell
+	if s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] != dbcenums.TARGET_UNIT_CASTER {
+		return core.SpellModConfig{}, false
+	}
+
+	var hand core.ProcMask
+	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_MAIN_HAND) {
+		hand |= core.ProcMaskMeleeMH
+	}
+	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_OFF_HAND) {
+		hand |= core.ProcMaskMeleeOH
+	}
+	if s.EquipSubclass == 0 && s.EquipInvType == 0 && hand == 0 {
+		return core.SpellModConfig{}, false
+	}
+
+	var procMask core.ProcMask
+	if s.EquipSubclass&rangedSubclasses != 0 || s.EquipInvType&rangedInvTypes != 0 {
+		procMask |= core.ProcMaskRanged
+	}
+	if s.EquipSubclass&^rangedSubclasses != 0 || s.EquipInvType&^rangedInvTypes != 0 || hand != 0 {
+		procMask |= core.ProcMaskMelee
+	}
+
+	return core.SpellModConfig{
+		ProcMask:      procMask,
+		EquipSubclass: s.EquipSubclass,
+		EquipInvType:  s.EquipInvType,
+		EquipHand:     hand,
+	}, true
+}
+
+func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.SpellModConfig, v float64) *attachment {
+	scope.Kind = modKind
+	return p.modFloat(kind, scope, v)
+}
+
+// Haste has no mod that reaches some attacks and not others, so its bits are not read, and neither
+// are the other ratings.
+func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64) *attachment {
+	var parts []*attachment
+	if mask&(32|64|128) != 0 {
+		parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope,
+			v/core.HitRatingPerHitPercent))
+	}
+	if mask&(256|512|1024) != 0 {
+		parts = append(parts, p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope,
+			v/core.CritRatingPerCritPercent))
+	}
+
+	switch len(parts) {
+	case 0:
+		return nil
+	case 1:
+		return parts[0]
+	}
+	a := &attachment{kind: parts[0].kind + "+" + parts[1].kind, value: parts[0].value, parts: parts}
+	a.set = func(sim *core.Simulation, level float64) {
+		for _, part := range a.parts {
+			part.set(sim, level)
+		}
+	}
+	return a
 }
 
 // A spell mod the parse turns on and off. AddDynamicMod rather than AddStaticMod even on a passive:
@@ -778,9 +876,7 @@ func resistanceStats(mask int32) []stats.Stat {
 // The ratings a combat rating mask names, read bit by bit, so a mask naming several ratings gives each
 // of them. One rating feeds melee, ranged and spells alike, so its melee and spell bits name the same
 // stat. The ranged bits 64, 512 and 262144 are not read: beside the melee or spell bit of the same
-// rating they add nothing, and alone they name a rating for ranged attacks only, which the global
-// stat would overstate.
-// TODO: give a ranged-only rating to ranged attacks alone.
+// rating they add nothing, and a mask of them alone never reaches here.
 func ratingStats(mask int32) []stats.Stat {
 	var out []stats.Stat
 	for _, rating := range []struct {

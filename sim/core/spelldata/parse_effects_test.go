@@ -607,20 +607,6 @@ func oneEffectRow(aura dbcenums.EffectAuraType, misc int32, points float64) *Spe
 			ClassFlags: parseTargetMask}}}
 }
 
-// A mask naming only the ranged bit of a rating attaches nothing, since the one rating would reach
-// melee attacks and spells as well.
-func TestParseStaticRangedOnlyRatingAttachesNothing(t *testing.T) {
-	withRows(t, parseRows())
-
-	for _, mask := range []int32{64, 512, 262144, 64 | 512 | 262144} {
-		character := parseWarrior()
-		parsed := ParseStatic(character, oneEffectRow(dbcenums.A_MOD_RATING, mask, 10))
-		if len(parsed.Applied) != 0 {
-			t.Errorf("mask %d attached %v, want nothing", mask, appliedKinds(parsed))
-		}
-	}
-}
-
 // Each stat the table writes is stored in the units core reads it in, and those units differ: a
 // rating, a percentage point and a fraction all come out of a client percentage.
 func TestParseStaticStatConventions(t *testing.T) {
