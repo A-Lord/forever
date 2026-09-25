@@ -384,6 +384,12 @@ export const Vindication = makeBooleanDebuffInput({
 	label: 'Vindication',
 });
 
+export const Thunderfury = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(21992),
+	fieldName: 'thunderfury',
+	label: 'Thunderfury',
+});
+
 export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: ArcaneBrilliance,
@@ -680,5 +686,9 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: Vindication,
 		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+	},
+	{
+		config: Thunderfury,
+		stats: [Stat.StatNatureDamage, Stat.StatStamina, Stat.StatDefenseRating],
 	},
 ];

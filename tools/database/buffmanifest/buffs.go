@@ -628,4 +628,16 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatDefenseRating,
 		},
 	},
+	// The resistance is 21992's own; the slow is its triggered 27648, which the driver bids in the
+	// attack-speed category on an aura of its own so that a tie there leaves the resistance up.
+	{
+		Field:   "thunderfury",
+		SpellID: 21992,
+		Driver:  true,
+		Stats: []proto.Stat{
+			proto.Stat_StatNatureDamage,
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
 }

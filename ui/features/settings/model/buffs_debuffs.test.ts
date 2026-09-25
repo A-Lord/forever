@@ -81,6 +81,7 @@ describe('the buff registries', () => {
 			'Demoralizing Screech',
 			'Vindication',
 			'Thunder Clap',
+			'Thunderfury',
 			'Insect Swarm',
 			'Scorpid Sting',
 		]);

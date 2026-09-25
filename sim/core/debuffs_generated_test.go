@@ -246,6 +246,32 @@ func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 	}
 }
 
+// The raid's Thunderfury takes 25 nature resistance off the target and slows it.
+func TestGeneratedThunderfuryLowersNatureResistanceAndSlows(t *testing.T) {
+	target := core.NewGeneratedDebuffTestTarget()
+	base := target.GetStats()[stats.NatureResistance]
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{Thunderfury: true})
+	if got := target.GetStats()[stats.NatureResistance] - base; got != -25 {
+		t.Errorf("nature resistance moved by %v, want -25", got)
+	}
+	if got, want := target.TotalMeleeHasteMultiplier(), 1/core.SlowedTimeMultiplier(-20); got != want {
+		t.Errorf("the target swings at %v, want the -20%% slow's %v", got, want)
+	}
+}
+
+// Thunder Clap ties the slow, which must not take the resistance with it.
+func TestGeneratedThunderfuryKeepsItsResistanceBesideThunderClap(t *testing.T) {
+	target := core.NewGeneratedDebuffTestTarget()
+	base := target.GetStats()[stats.NatureResistance]
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{Thunderfury: true, ThunderClap: true})
+	if got := target.GetStats()[stats.NatureResistance] - base; got != -25 {
+		t.Errorf("nature resistance moved by %v, want -25 whatever the slow tie decides", got)
+	}
+	if got, want := target.TotalMeleeHasteMultiplier(), 1/core.SlowedTimeMultiplier(-20); got != want {
+		t.Errorf("the target swings at %v, want one -20%% slow, %v", got, want)
+	}
+}
+
 // Demoralizing Roar and Demoralizing Shout are the same category, so the attack
 // power comes off the target once however many of them the raid brings.
 func TestGeneratedDemoralizingDebuffsApplyOnce(t *testing.T) {

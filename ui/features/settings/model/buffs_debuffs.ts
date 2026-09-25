@@ -113,6 +113,7 @@ export const DEBUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_DEBUFFS_CONFIG,
 	Generated.DemoralizingScreech,
 	Generated.Vindication,
 	Generated.ThunderClap,
+	Generated.Thunderfury,
 	Generated.InsectSwarm,
 	Generated.ScorpidSting,
 ]);

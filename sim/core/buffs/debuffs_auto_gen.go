@@ -406,6 +406,23 @@ func NewSpellDataVindicationAura(unit *core.Unit, isPlayer bool, talentPoints in
 	return newDebuff(unit, vindicationMeta, isPlayer, talentPoints)
 }
 
+// Thunderfury
+var thunderfurySpell = spelldata.MustFind(21992)
+var thunderfuryMeta = &Meta{
+	Label: "Thunderfury",
+	Spell: thunderfurySpell,
+}
+
+func ThunderfuryValue(talentPoints int32) float64 {
+	return thunderfuryMeta.Value(talentPoints)
+}
+func ThunderfuryDuration(talentPoints int32) time.Duration {
+	return thunderfuryMeta.Duration(talentPoints)
+}
+func NewSpellDataThunderfuryAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, thunderfuryMeta, isPlayer, talentPoints)
+}
+
 func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	if debuffs.HuntersMark {
 		core.MakePermanent(NewSpellDataHuntersMarkAura(target, false, 0))
@@ -466,5 +483,8 @@ func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *prot
 	}
 	if debuffs.Vindication {
 		core.MakePermanent(NewSpellDataVindicationAura(target, false, 0))
+	}
+	if debuffs.Thunderfury {
+		driveThunderfury(target, debuffs, raid)
 	}
 }

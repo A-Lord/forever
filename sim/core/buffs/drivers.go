@@ -391,3 +391,18 @@ func driveDustCloud(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		aura.SetStacks(sim, aura.MaxStacks)
 	})
 }
+
+var thunderfuryCycloneSpell = spelldata.MustFind(27648)
+
+// The resistance aura is the row's; the triggered slow is an aura of its own in the attack-speed
+// category, so the strongest slow on the target wins without touching the resistance.
+func driveThunderfury(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
+	core.MakePermanent(NewSpellDataThunderfuryAura(target, false, 0))
+
+	cyclone := core.MakePermanent(target.GetOrRegisterAura(core.Aura{
+		Label:    "Thunderfury Cyclone (External)",
+		ActionID: core.ActionID{SpellID: thunderfuryCycloneSpell.ID, Tag: -1},
+		Duration: core.NeverExpires,
+	}))
+	core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(thunderfuryCycloneSpell.EffectN(1).BaseValue()))
+}
