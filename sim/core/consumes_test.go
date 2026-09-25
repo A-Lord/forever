@@ -100,20 +100,49 @@ func TestScrollDoesNotStackWithTheRaidBuffOfTheSameStat(t *testing.T) {
 	}
 }
 
+// A weapon-carrying character for imbue tests: registerStaticImbue keys the Elemental Sharpening
+// Stone's crit to the stoned weapon's slot and subclass, which an unarmed test character never matches.
+func setupImbueSim(t *testing.T, mhImbueId, ohImbueId int32, equipped, swapped []*proto.ItemSpec) (*Simulation, *Character) {
+	t.Helper()
+	player := &proto.Player{
+		Name:        "Weapon Tester",
+		Class:       proto.Class_ClassRogue,
+		Race:        proto.Race_RaceUndead,
+		Buffs:       &proto.IndividualBuffs{},
+		Consumables: &proto.ConsumesSpec{MhImbueId: mhImbueId, OhImbueId: ohImbueId},
+		Spec:        &proto.Player_Rogue{},
+		Equipment:   &proto.EquipmentSpec{Items: equipped},
+		Rotation:    &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
+	}
+	if swapped != nil {
+		player.EnableItemSwap = true
+		player.ItemSwap = &proto.ItemSwap{Items: swapped}
+	}
+	sim := NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
+		Encounter: &proto.Encounter{
+			Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
+			Duration: 180,
+		},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
+
 func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
-	_, without := setupConsumesSim(nil)
+	_, without := setupImbueSim(t, 0, 0, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), nil)
 	for _, tc := range []struct {
 		name           string
-		set            func(*proto.ConsumesSpec)
+		mhImbueId      int32
+		ohImbueId      int32
 		wantMH, wantOH float64
 	}{
-		{"main hand", func(c *proto.ConsumesSpec) { c.MhImbueId = 22756 }, 2, 0},
-		{"off hand", func(c *proto.ConsumesSpec) { c.OhImbueId = 22756 }, 0, 2},
+		{"main hand", 22756, 0, 2, 0},
+		{"off hand", 0, 22756, 0, 2},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			_, with := setupConsumesSim(func(request *proto.RaidSimRequest) {
-				tc.set(consumesOf(request))
-			})
+			_, with := setupImbueSim(t, tc.mhImbueId, tc.ohImbueId, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), nil)
 
 			if delta := with.GetStat(stats.PhysicalCritPercent) - without.GetStat(stats.PhysicalCritPercent); delta != 0 {
 				t.Fatalf("Elemental Sharpening Stone should grant no crit to every attack, got %0.3f%%", delta)
@@ -123,6 +152,47 @@ func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 			if !WithinToleranceFloat64(tc.wantMH, mh, 0.001) || !WithinToleranceFloat64(tc.wantOH, oh, 0.001) {
 				t.Fatalf("Elemental Sharpening Stone should grant %0.0f%% main hand and %0.0f%% off hand crit, got %0.3f%% and %0.3f%%",
 					tc.wantMH, tc.wantOH, mh, oh)
+			}
+		})
+	}
+}
+
+func TestElementalSharpeningStoneSkipsAMagicDefenseSpell(t *testing.T) {
+	_, character := setupImbueSim(t, 22756, 0, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), nil)
+
+	magicSpell := character.RegisterSpell(SpellConfig{
+		ActionID:    ActionID{SpellID: 990980},
+		SpellSchool: SpellSchoolFrost,
+		ProcMask:    ProcMaskMeleeMHSpecial,
+		DefenseType: DefenseTypeMagic,
+	})
+	if magicSpell.BonusCritPercent != 0 {
+		t.Fatalf("Elemental Sharpening Stone should skip a magic-defense spell, got %0.3f%% crit", magicSpell.BonusCritPercent)
+	}
+	if mh := character.AutoAttacks.MHAuto().BonusCritPercent; mh != 2 {
+		t.Fatalf("Elemental Sharpening Stone should still grant 2%% crit to the main hand auto, got %0.3f%%", mh)
+	}
+}
+
+func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		swapped []*proto.ItemSpec
+	}{
+		{"swapped to a non-matching item", weaponSlots(equipTestShieldID, equipTestDaggerID, 0)},
+		{"swapped to empty", weaponSlots(0, equipTestDaggerID, 0)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			sim, character := setupImbueSim(t, 22756, 0, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), tc.swapped)
+			mhAuto := character.AutoAttacks.MHAuto()
+			if mhAuto.BonusCritPercent != 2 {
+				t.Fatalf("Elemental Sharpening Stone should grant 2%% crit before the swap, got %0.3f%%", mhAuto.BonusCritPercent)
+			}
+
+			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+
+			if mhAuto.BonusCritPercent != 0 {
+				t.Fatalf("Elemental Sharpening Stone should grant no crit once its weapon is swapped away, got %0.3f%%", mhAuto.BonusCritPercent)
 			}
 		})
 	}

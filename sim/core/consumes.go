@@ -637,11 +637,14 @@ func registerStaticImbue(agent Agent, imbueId int32, weapon *Weapon, slot proto.
 	case 25121: // Wizard Oil
 		character.AddStat(stats.SpellDamage, 30)
 	case 22756: // Elemental Sharpening Stone
-		// The crit reaches the attacks made with the weapon the stone is on.
+		// The crit reaches the attacks made with the weapon the stone is on, and follows that
+		// weapon across an item swap.
 		character.AddStaticMod(SpellModConfig{
-			Kind:       SpellMod_BonusCrit_Percent,
-			FloatValue: 2,
-			ProcMask:   character.GetProcMaskForWeaponSlot(slot),
+			Kind:          SpellMod_BonusCrit_Percent,
+			FloatValue:    2,
+			ProcMask:      character.GetProcMaskForWeaponSlot(slot),
+			EquipHand:     character.GetProcMaskForWeaponSlot(slot),
+			EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypePolearm, proto.WeaponType_WeaponTypeStaff, proto.WeaponType_WeaponTypeSword),
 		})
 	case 28898: // Blessed Wizard Oil
 		character.Env.RegisterPostFinalizeEffect(func() {
