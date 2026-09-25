@@ -277,7 +277,7 @@ func unitStatFromUIStat(uiStat *proto.UIStat) (stats.UnitStat, bool) {
 // LP coefficient-key scheme
 // ---------------------------------------------------------------------------
 //
-// Coefficients are keyed by the proto enum NAME (e.g. "StatMeleeHitRating",
+// Coefficients are keyed by the proto enum NAME (e.g. "StatHitRating",
 // "PseudoStatSpellHitPercent", "ItemSlotHead") so checkCaps can recover the stat from a key.
 // Slot keys ("ItemSlot...") and special keys (SocketBonusLink_*, JewelcraftingGem, unique-gem
 // IDs, score) are not stat names and parse to (_, false).
