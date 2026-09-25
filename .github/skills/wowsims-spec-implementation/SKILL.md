@@ -59,6 +59,20 @@ the readers and the worked examples; `wowsims-spells` has the pipeline.
 Where the sim and the client disagree, decide rather than assume, and record the decision at the call
 site. A literal that survives needs the reason on its line.
 
+### Hit, crit and haste, and the weapon they need
+
+Gear and auras give one `stats.HitRating`, `stats.CritRating` and `stats.HasteRating`, each reaching
+physical and spell alike; there is no melee- or spell-only rating to write. A talent that names a weapon
+is not always "only that weapon's attacks": a 52 or 54 is per weapon, a melee-weapon 290 is crit on
+everything while the weapon is equipped, and an aura on the enemy only needs the weapon to cast. The
+parse applies each of those, and `go run ./tools/spelldata <id>` words the rule on the effect line. Read
+the tooltip first: a 290 whose tooltip says "with <weapons>" is per weapon, and a dummy branch
+(Weaponmaster, Hack and Slash) is built by hand. "Weapon requirements and the one rating" in
+`docs/spell_data.md` has the APIs - `SpellModConfig`'s Equip fields, `AttachSpellMod`,
+`NewEquipGatedStats`, `RegisterWeaponRequirementCallback` - and the weapon-bound talents already
+audited for the classes still to port: rogue Precision, Hack and Slash and Fist Weapon Specialization,
+Lethal Shots, shaman Thundering Strikes and the shaman Dual Wield Specialization rune.
+
 ## Verifying
 
 ```
