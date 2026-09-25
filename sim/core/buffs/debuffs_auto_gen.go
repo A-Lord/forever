@@ -383,6 +383,29 @@ func NewSpellDataArmorShatterAura(unit *core.Unit, isPlayer bool, talentPoints i
 	return newDebuff(unit, armorShatterMeta, isPlayer, talentPoints)
 }
 
+// Vindication
+var VindicationCategory = "Demoralizing"
+var vindicationSpell = spelldata.MustFind(440667)
+var vindicationMeta = &Meta{
+	Label:         "Vindication",
+	Spell:         vindicationSpell,
+	Category:      VindicationCategory,
+	SingleAura:    true,
+	Talent:        spelldata.Talent(9452, 3),
+	TalentEffect:  1,
+	TalentDivisor: 3,
+}
+
+func VindicationValue(talentPoints int32) float64 {
+	return vindicationMeta.Value(talentPoints)
+}
+func VindicationDuration(talentPoints int32) time.Duration {
+	return vindicationMeta.Duration(talentPoints)
+}
+func NewSpellDataVindicationAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newDebuff(unit, vindicationMeta, isPlayer, talentPoints)
+}
+
 func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	if debuffs.HuntersMark {
 		core.MakePermanent(NewSpellDataHuntersMarkAura(target, false, 0))
@@ -440,5 +463,8 @@ func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *prot
 	}
 	if debuffs.ArmorShatter {
 		driveArmorShatter(target, debuffs, raid)
+	}
+	if debuffs.Vindication {
+		core.MakePermanent(NewSpellDataVindicationAura(target, false, 0))
 	}
 }

@@ -132,11 +132,12 @@ var pinnedAmounts = map[string]map[string]float64{
 	"retribution_aura":   {},
 }
 
-// The talents that price an improved state: Restorative Totems on Mana Spring, five points, and
-// Guardian Totems on Stoneskin Totem, two points.
+// The talents that price an improved state: Restorative Totems on Mana Spring, five points,
+// Guardian Totems on Stoneskin Totem, two points, and Vindication's talent on its debuff, three.
 var pinnedTalentRanks = map[string]int32{
 	"mana_spring_totem": 5,
 	"stoneskin_totem":   2,
+	"vindication":       3,
 }
 
 // What a resistance row competes under, as (stats, own aura). A source that has
@@ -154,4 +155,5 @@ var pinnedCategories = map[string]string{
 	"furious_howl":                "FuriousHowl",
 	"hex_of_weakness":             "Demoralizing",
 	"demoralizing_screech":        "Demoralizing",
+	"vindication":                 "Demoralizing",
 }

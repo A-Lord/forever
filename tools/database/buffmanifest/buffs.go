@@ -604,4 +604,17 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// The talent's rank prices the debuff, which the talent states only in its tooltip.
+	{
+		Field:      "vindication",
+		SpellID:    440667,
+		Talent:     9452,
+		Proto:      ProtoBool,
+		Category:   "Demoralizing",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
 }

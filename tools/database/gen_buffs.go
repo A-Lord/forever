@@ -21,7 +21,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -83,6 +85,10 @@ type ResolvedBuff struct {
 	// EffectN counts.
 	TalentSpellID  int32
 	TalentPosition int32
+	// TalentDivisor prices a row whose talent states its effect only in its tooltip, as
+	// ${$m1/-N*$<SpellID>m1}: rank m1 of N is worth m1/N of the spell's amount. 0 for a talent
+	// priced by a spell modifier.
+	TalentDivisor int32
 
 	ScopeFromClient buffmanifest.BuffScope
 
@@ -324,7 +330,8 @@ func (row *ResolvedBuff) hasDamageShield() bool {
 // The improving talent the manifest pins, which the store keeps as a ladder of
 // its ranks. The one spell modifier of it whose class mask reaches the buff's
 // spell is the improvement; one that modifies misc 1 scales the duration,
-// anything else the value.
+// anything else the value. Where none reaches it, a tooltip term naming the
+// buff's spell prices the value by rank: see tooltipTalentDivisor.
 func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 	id := row.Talent
 	if id == 0 {
@@ -346,7 +353,15 @@ func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 		position = i
 	}
 	if position < 0 {
-		return fmt.Errorf("talent %d has no spell modifier that reaches spell %d", id, row.SpellID)
+		divisor := tooltipTalentDivisor(t.Descriptions[id], row.SpellID)
+		if divisor == 0 {
+			return fmt.Errorf("talent %d has no spell modifier that reaches spell %d", id, row.SpellID)
+		}
+		row.TalentSpellID = id
+		row.TalentPosition = 1
+		row.TalentDivisor = divisor
+		row.TalentRanks = nodes[node].MaxRanks
+		return nil
 	}
 
 	row.TalentSpellID = id
@@ -358,6 +373,22 @@ func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 	}
 	row.TalentRanks = nodes[node].MaxRanks
 	return nil
+}
+
+// A talent tooltip term that scales another spell's first amount by the talent's rank:
+// ${$m1/-3*$440667m1} is rank/3 of spell 440667's effect 1. The sign only flips the tooltip's
+// wording; the amount keeps the spell's own sign.
+var tooltipRankFraction = regexp.MustCompile(`\$\{\$m1/-?(\d+)\*\$(\d+)m1\}`)
+
+func tooltipTalentDivisor(description string, spellID int32) int32 {
+	for _, m := range tooltipRankFraction.FindAllStringSubmatch(description, -1) {
+		divisor, _ := strconv.Atoi(m[1])
+		id, _ := strconv.Atoi(m[2])
+		if int32(id) == spellID && divisor > 0 {
+			return int32(divisor)
+		}
+	}
+	return 0
 }
 
 // A passive talent that raises an effect's value on the buff's spell prices an
@@ -729,6 +760,9 @@ func buffMetaFields(row ResolvedBuff, rendered buffRow) string {
 	if row.TalentRanks > 0 {
 		fmt.Fprintf(&b, "Talent: spelldata.Talent(%d, %d),\n", row.TalentSpellID, row.TalentRanks)
 		fmt.Fprintf(&b, "TalentEffect: %d,\n", row.TalentPosition)
+		if row.TalentDivisor > 0 {
+			fmt.Fprintf(&b, "TalentDivisor: %d,\n", row.TalentDivisor)
+		}
 		if row.TalentScalesDuration {
 			b.WriteString("TalentScalesDuration: true,\n")
 		}

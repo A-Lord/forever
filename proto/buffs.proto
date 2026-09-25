@@ -61,7 +61,7 @@ message IndividualBuffs {
 	int32 power_infusions = 7;
 }
 
-// Next index: 21
+// Next index: 22
 message Debuffs {
 	bool hunters_mark = 1;
 	bool judgement_of_the_crusader = 2;
@@ -83,4 +83,5 @@ message Debuffs {
 	bool curse_of_weakness = 18;
 	bool dust_cloud = 19;
 	bool armor_shatter = 20;
+	bool vindication = 21;
 }

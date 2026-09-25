@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -401,5 +402,27 @@ func TestHuntersMarkOnTheCharacterSheetMatchesTheSim(t *testing.T) {
 	}
 	if want := buffs.HuntersMarkValue(0); sheet != want {
 		t.Errorf("the sheet credits Hunter's Mark with %v ranged attack power, want the %v HuntersMarkValue states", sheet, want)
+	}
+}
+
+// Vindication's talent rank prices it; the raid's copy is the full 3/3 amount.
+func TestGeneratedVindicationScalesWithTheTalentRank(t *testing.T) {
+	full := buffs.VindicationValue(0)
+	if full >= 0 {
+		t.Fatalf("the raid's Vindication is worth %v, want an attack power reduction", full)
+	}
+	if got := buffs.VindicationValue(3); got != full {
+		t.Errorf("3/3 is worth %v, want the full %v", got, full)
+	}
+	if got, want := buffs.VindicationValue(1), math.Round(full/3); got != want {
+		t.Errorf("1/3 is worth %v, want a third of %v rounded, %v", got, full, want)
+	}
+	target := core.NewGeneratedDebuffTestTarget()
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{Vindication: true})
+	if got := target.GetStats()[stats.AttackPower]; got != full {
+		t.Errorf("attack power is %v, want the raid's %v", got, full)
+	}
+	if got := target.GetStats()[stats.RangedAttackPower]; got != full {
+		t.Errorf("ranged attack power is %v, want the raid's %v", got, full)
 	}
 }

@@ -372,6 +372,12 @@ export const ArmorShatter = makeBooleanDebuffInput({
 	label: 'Armor Shatter',
 });
 
+export const Vindication = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(440667),
+	fieldName: 'vindication',
+	label: 'Vindication',
+});
+
 export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: ArcaneBrilliance,
@@ -659,5 +665,9 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: ArmorShatter,
 		stats: [Stat.StatAttackPower],
+	},
+	{
+		config: Vindication,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 	},
 ];

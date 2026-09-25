@@ -78,6 +78,7 @@ describe('the buff registries', () => {
 			'Demoralizing Shout',
 			'Hex of Weakness',
 			'Demoralizing Screech',
+			'Vindication',
 			'Thunder Clap',
 			'Insect Swarm',
 			'Scorpid Sting',
