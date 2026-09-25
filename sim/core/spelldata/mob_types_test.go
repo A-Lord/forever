@@ -114,6 +114,30 @@ func TestAVersusAuraBidsPerCreatureTypeMask(t *testing.T) {
 	}
 }
 
+func TestAVersusAuraGainAndExpireDoNotAllocate(t *testing.T) {
+	sim := &core.Simulation{}
+	character := parseWarrior()
+	character.AttackTables = []*core.AttackTable{
+		core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead}),
+		core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeDemon}),
+	}
+
+	for id, effect := range map[int32]Effect{
+		7071: auraEffect(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, 32, 99),
+		7072: auraEffect(dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1),
+	} {
+		row := buffRow(id, effect)
+		aura := character.RegisterAura(AuraConfig(row))
+		ParseEffects(character, aura, row)
+		if allocs := testing.AllocsPerRun(100, func() {
+			aura.Activate(sim)
+			aura.Deactivate(sim)
+		}); allocs != 0 {
+			t.Errorf("%v: a gain and an expiry allocate %v times, want 0", effect.Aura, allocs)
+		}
+	}
+}
+
 // A_MOD_DAMAGE_DONE_VERSUS multiplies the damage dealt to the masked mob types while its aura is up,
 // and divides it back out on expiry; crit damage follows the damage rather than being multiplied
 // again. Row 1302545 states 1 against mask 32, Undead.

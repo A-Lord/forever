@@ -529,13 +529,11 @@ func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
 		return nil
 	}
 
-	a := additive("mob-type-stat "+stat.StatName(), v, func(_ *core.Simulation, delta float64) {
+	a := additive("mob-type-stat "+stat.StatName(), v, p.onAttackTables(func(_ *core.Simulation, delta float64) {
 		var bonus stats.Stats
 		bonus[stat] = delta
-		p.onAttackTables(func() {
-			p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
-		})
-	})
+		p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
+	}))
 	// A bonus against other creature types does not compete with this one.
 	a.key = fmt.Sprintf("%sVersus%d", stat.StatName(), e.Misc)
 	return a
@@ -551,31 +549,39 @@ func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
 		return nil
 	}
 
+	toggle := p.onAttackTables(func(_ *core.Simulation, level float64) {
+		if level > 0 {
+			p.unit.MultiplyDamageVersus(mult, false, mobTypes...)
+		} else {
+			p.unit.DivideDamageVersus(mult, false, mobTypes...)
+		}
+	})
 	active := false
 	a := &attachment{kind: "damage-dealt-versus", value: mult, multiplicative: true,
 		key: fmt.Sprintf("DamageDealtVersus%d", e.Misc)}
-	a.set = func(_ *core.Simulation, level float64) {
+	a.set = func(sim *core.Simulation, level float64) {
 		if (level > 0) == active {
 			return
 		}
 		active = level > 0
-		if active {
-			p.onAttackTables(func() { p.unit.MultiplyDamageVersus(mult, false, mobTypes...) })
-		} else {
-			p.onAttackTables(func() { p.unit.DivideDamageVersus(mult, false, mobTypes...) })
-		}
+		toggle(sim, level)
 	}
 	return a
 }
 
 // The attack tables exist once the environment is finalized, so the static path, which runs while
 // the unit is being built, acts on them after that; an aura's gain acts at once.
-func (p *parser) onAttackTables(apply func()) {
-	if env := p.unit.Env; p.static && env != nil && !env.IsFinalized() {
-		env.RegisterPostFinalizeEffect(apply)
-		return
+func (p *parser) onAttackTables(apply func(sim *core.Simulation, v float64)) func(sim *core.Simulation, v float64) {
+	if !p.static {
+		return apply
 	}
-	apply()
+	return func(sim *core.Simulation, v float64) {
+		if env := p.unit.Env; env != nil && !env.IsFinalized() {
+			env.RegisterPostFinalizeEffect(func() { apply(sim, v) })
+			return
+		}
+		apply(sim, v)
+	}
 }
 
 func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {
