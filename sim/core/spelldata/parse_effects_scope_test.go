@@ -8,34 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
-)
-
-// A player with a sword in the main hand, a dagger in the off hand and a bow, whose talents are
-// whatever the test hands to scopeTalents: a weapon-bound mod needs a player in a raid to find the
-// weapon behind the attack.
-type scopeTester struct {
-	core.Character
-}
-
-var scopeTalents func(character *core.Character)
-
-func (st *scopeTester) GetCharacter() *core.Character { return &st.Character }
-func (st *scopeTester) Initialize()                   {}
-func (st *scopeTester) ApplyTalents() {
-	if scopeTalents != nil {
-		scopeTalents(&st.Character)
-	}
-}
-func (st *scopeTester) Reset(_ *core.Simulation)            {}
-func (st *scopeTester) OnGCDReady(_ *core.Simulation)       {}
-func (st *scopeTester) OnEncounterStart(_ *core.Simulation) {}
-
-const (
-	scopeSwordID int32 = 990951 + iota
-	scopeDaggerID
-	scopeBowID
 )
 
 func init() {
@@ -44,37 +17,6 @@ func init() {
 		ApplyBuffs:   func(*core.Character, *proto.RaidBuffs, *proto.PartyBuffs, *proto.IndividualBuffs) {},
 		ApplyDebuffs: func(*core.Unit, *proto.Debuffs, *proto.Raid) {},
 	})
-
-	core.RegisterAgentFactory(
-		proto.Player_Rogue{},
-		proto.Spec_SpecRogue,
-		func(character *core.Character, _ *proto.Player, _ *proto.Raid) core.Agent {
-			st := &scopeTester{Character: *character}
-			st.EnableAutoAttacks(st, core.AutoAttackOptions{
-				MainHand:        st.WeaponFromMainHand(),
-				OffHand:         st.WeaponFromOffHand(),
-				Ranged:          st.WeaponFromRanged(),
-				AutoSwingMelee:  true,
-				AutoSwingRanged: true,
-			})
-			return st
-		},
-		func(player *proto.Player, spec interface{}) {
-			player.Spec = spec.(*proto.Player_Rogue)
-		},
-	)
-
-	damage := map[int32]*proto.ScalingItemProperties{0: {WeaponDamageMin: 50, WeaponDamageMax: 90}}
-	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{
-		{Id: scopeSwordID, Name: "Scope Sword", Type: proto.ItemType_ItemTypeWeapon,
-			WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeOneHand,
-			WeaponSpeed: 2.6, ScalingOptions: damage},
-		{Id: scopeDaggerID, Name: "Scope Dagger", Type: proto.ItemType_ItemTypeWeapon,
-			WeaponType: proto.WeaponType_WeaponTypeDagger, HandType: proto.HandType_HandTypeOneHand,
-			WeaponSpeed: 1.8, ScalingOptions: damage},
-		{Id: scopeBowID, Name: "Scope Bow", Type: proto.ItemType_ItemTypeRanged,
-			RangedWeaponType: proto.RangedWeaponType_RangedWeaponTypeBow, WeaponSpeed: 3.0, ScalingOptions: damage},
-	}})
 }
 
 type scopeResult struct {
@@ -91,22 +33,11 @@ type scopeResult struct {
 // A spell-damage spell is registered beside the autos, for the rows that must not reach spells.
 func parseScoped(t *testing.T, row *Spell) *scopeResult {
 	t.Helper()
-	result := parseScopedWith(t, row, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, false)
+	result := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, false)
 	if !result.character.AutoAttacks.IsDualWielding {
 		t.Fatal("the sword and dagger should dual wield")
 	}
 	return result
-}
-
-func scopeWeapons(mainHand, offHand, ranged int32) []*proto.ItemSpec {
-	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
-	for i := range items {
-		items[i] = &proto.ItemSpec{}
-	}
-	items[proto.ItemSlot_ItemSlotMainHand] = &proto.ItemSpec{Id: mainHand}
-	items[proto.ItemSlot_ItemSlotOffHand] = &proto.ItemSpec{Id: offHand}
-	items[proto.ItemSlot_ItemSlotRanged] = &proto.ItemSpec{Id: ranged}
-	return items
 }
 
 // parseScoped with the weapons and item swap set the test names. With onAura the row is parsed onto
@@ -115,7 +46,7 @@ func parseScopedWith(t *testing.T, row *Spell, equipped, swapped []*proto.ItemSp
 	t.Helper()
 
 	result := &scopeResult{}
-	scopeTalents = func(character *core.Character) {
+	result.sim, result.character = core.NewWeaponTestSim(t, proto.Race_RaceUndead, equipped, swapped, func(character *core.Character) {
 		result.spell = character.RegisterSpell(core.SpellConfig{
 			ActionID:    core.ActionID{SpellID: 990960},
 			ProcMask:    core.ProcMaskSpellDamage,
@@ -130,34 +61,7 @@ func parseScopedWith(t *testing.T, row *Spell, equipped, swapped []*proto.ItemSp
 			result.parsed = ParseStatic(character, row)
 		}
 		result.after = character.GetStats()
-	}
-	t.Cleanup(func() { scopeTalents = nil })
-
-	player := &proto.Player{
-		Name:      "Scope Tester",
-		Class:     proto.Class_ClassRogue,
-		Race:      proto.Race_RaceUndead,
-		Buffs:     &proto.IndividualBuffs{},
-		Spec:      &proto.Player_Rogue{},
-		Equipment: &proto.EquipmentSpec{Items: equipped},
-		Rotation:  &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
-	}
-	if swapped != nil {
-		player.EnableItemSwap = true
-		player.ItemSwap = &proto.ItemSwap{Items: swapped}
-	}
-	sim := core.NewSim(&proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{RandomSeed: 1},
-		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
-		Encounter: &proto.Encounter{
-			Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
-			Duration: 180,
-		},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-
-	result.sim = sim
-	result.character = sim.Raid.Parties[0].Players[0].GetCharacter()
+	})
 	return result
 }
 
@@ -213,13 +117,13 @@ func casterAura(aura dbcenums.EffectAuraType, points float64) Effect {
 func TestParseOnHandBindsTheRowToThatHand(t *testing.T) {
 	melee := &Spell{ID: 22755, Name: "Critical Weapon +2", EquipClass: 2, EquipSubclass: 42483,
 		Effects: []Effect{casterAura(dbcenums.A_MOD_WEAPON_CRIT_PERCENT, 2)}}
-	r := parseScopedWith(t, melee, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, true, OnHand(core.ProcMaskMeleeMH))
+	r := parseScopedWith(t, melee, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true, OnHand(core.ProcMaskMeleeMH))
 	r.aura.Activate(r.sim)
 	r.check(t, bonusCrit, 2, 0, 0, 0)
 
 	ranged := &Spell{ID: 22780, Name: "Ranged Hit Bonus +3", EquipClass: 2, EquipSubclass: 262156,
 		Effects: []Effect{casterAura(dbcenums.A_MOD_HIT_CHANCE, 3)}}
-	r = parseScopedWith(t, ranged, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, true, OnHand(core.ProcMaskMeleeMH))
+	r = parseScopedWith(t, ranged, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true, OnHand(core.ProcMaskMeleeMH))
 	if len(r.parsed.Applied) != 0 || len(r.parsed.Skipped) != 1 {
 		t.Errorf("attached %v, want the ranged row skipped on the main hand", appliedKinds(r.parsed))
 	}
@@ -327,7 +231,7 @@ func TestParseCritPctWithAMeleeWeaponHoldsWhileEquipped(t *testing.T) {
 func TestParseCritPctWhileEquippedBidsPerStat(t *testing.T) {
 	row := &Spell{ID: 16255, Name: "Thundering Strikes", EquipClass: 2, EquipSubclass: 173555,
 		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}}
-	r := parseScopedWith(t, row, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, true, ExclusivePerStat("Test"))
+	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true, ExclusivePerStat("Test"))
 	base := r.character.GetStats()
 
 	for _, step := range []struct {
@@ -352,8 +256,8 @@ func TestParseCritPctWhileEquippedBidsPerStat(t *testing.T) {
 func TestParseCritPctFollowsTheMeleeWeapon(t *testing.T) {
 	row := &Spell{ID: 16255, Name: "Thundering Strikes", EquipClass: 2, EquipSubclass: 173555,
 		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}}
-	bowOnly := scopeWeapons(0, 0, scopeBowID)
-	melee := scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID)
+	bowOnly := core.WeaponTestSlots(0, 0, core.WeaponTestBowID)
+	melee := core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID)
 
 	for _, onAura := range []bool{false, true} {
 		r := parseScopedWith(t, row, bowOnly, melee, onAura)

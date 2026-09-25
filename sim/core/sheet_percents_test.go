@@ -43,12 +43,21 @@ func checkSheetDelta(t *testing.T, delta map[proto.PseudoStat]float64, want map[
 }
 
 func TestSheetAttackPercentsMatchTheAutos(t *testing.T) {
-	_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
-	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
-		EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})
-	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 2, ProcMask: ProcMaskMeleeOH, EquipHand: ProcMaskMeleeOH})
-	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 3, ProcMask: ProcMaskRanged, EquipSubclass: 262156})
-	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 1, ProcMask: ProcMaskMelee | ProcMaskRanged})
+	_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
+	for _, config := range []SpellModConfig{
+		{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee, EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)},
+		{Kind: SpellMod_BonusCrit_Percent, FloatValue: 3, EquipSubclass: 262156},
+		{Kind: SpellMod_BonusCrit_Percent, FloatValue: 2, ProcMask: ProcMaskMeleeOH},
+		{Kind: SpellMod_BonusCrit_Percent, FloatValue: 1},
+		{Kind: SpellMod_BonusCrit_Percent, FloatValue: 7, ClassMask: 1 << 40},
+		{Kind: SpellMod_BonusCrit_Percent, FloatValue: 7, School: SpellSchoolFire},
+		{Kind: SpellMod_BonusHit_Percent, FloatValue: 2, ProcMask: ProcMaskMeleeOH, EquipHand: ProcMaskMeleeOH},
+		{Kind: SpellMod_BonusHit_Percent, FloatValue: 3, ProcMask: ProcMaskRanged, EquipSubclass: 262156},
+		{Kind: SpellMod_BonusHit_Percent, FloatValue: 11},
+	} {
+		character.AddStaticMod(config)
+	}
+	character.AddDynamicMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 13})
 
 	pseudoStats := character.GetPseudoStatsProto()
 	hit, crit := character.GetStat(stats.PhysicalHitPercent), character.GetStat(stats.PhysicalCritPercent)
@@ -58,25 +67,23 @@ func TestSheetAttackPercentsMatchTheAutos(t *testing.T) {
 		auto                *Spell
 		hitShown, critShown proto.PseudoStat
 		hitBase, critBase   float64
-		minHit, minCrit     float64
+		wantHit, wantCrit   float64
 	}{
 		{"main hand", ProcMaskMeleeMHAuto, character.AutoAttacks.MHAuto(),
-			proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, hit, crit, 0, 6},
+			proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, hit, crit, 11, 6},
 		{"off hand", ProcMaskMeleeOHAuto, character.AutoAttacks.OHAuto(),
-			proto.PseudoStat_PseudoStatOffHandHitPercent, proto.PseudoStat_PseudoStatOffHandCritPercent, hit, crit, 2, 1},
+			proto.PseudoStat_PseudoStatOffHandHitPercent, proto.PseudoStat_PseudoStatOffHandCritPercent, hit, crit, 13, 3},
 		{"ranged", ProcMaskRangedAuto, character.AutoAttacks.RangedAuto(),
 			proto.PseudoStat_PseudoStatRangedHitPercent, proto.PseudoStat_PseudoStatRangedCritPercent,
-			hit + character.GetStat(stats.RangedHitPercent), crit + character.GetStat(stats.RangedCritPercent), 3, 1},
+			hit + character.GetStat(stats.RangedHitPercent), crit + character.GetStat(stats.RangedCritPercent), 14, 4},
 	} {
-		if tc.auto.BonusHitPercent < tc.minHit || tc.auto.BonusCritPercent < tc.minCrit {
-			t.Errorf("%s: auto attack has %v hit and %v crit, want at least %v and %v",
-				tc.name, tc.auto.BonusHitPercent, tc.auto.BonusCritPercent, tc.minHit, tc.minCrit)
+		probedHit, probedCrit := character.ScopedBonusPercent(SpellMod_BonusHit_Percent, tc.probe), character.ScopedBonusPercent(SpellMod_BonusCrit_Percent, tc.probe)
+		if probedHit != tc.wantHit || probedCrit != tc.wantCrit {
+			t.Errorf("%s: probed %v hit and %v crit, want %v and %v", tc.name, probedHit, probedCrit, tc.wantHit, tc.wantCrit)
 		}
-		if got := character.ScopedBonusPercent(SpellMod_BonusHit_Percent, tc.probe); got != tc.auto.BonusHitPercent {
-			t.Errorf("%s: probed hit %v, auto attack has %v", tc.name, got, tc.auto.BonusHitPercent)
-		}
-		if got := character.ScopedBonusPercent(SpellMod_BonusCrit_Percent, tc.probe); got != tc.auto.BonusCritPercent {
-			t.Errorf("%s: probed crit %v, auto attack has %v", tc.name, got, tc.auto.BonusCritPercent)
+		if probedHit != tc.auto.BonusHitPercent || probedCrit != tc.auto.BonusCritPercent {
+			t.Errorf("%s: probed %v hit and %v crit, the auto attack carries %v and %v",
+				tc.name, probedHit, probedCrit, tc.auto.BonusHitPercent, tc.auto.BonusCritPercent)
 		}
 		if got, want := pseudoStats[tc.hitShown], tc.hitBase+tc.auto.BonusHitPercent; !WithinToleranceFloat64(want, got, 1e-9) {
 			t.Errorf("%s: sheet shows %v hit, want %v", tc.name, got, want)
@@ -88,7 +95,7 @@ func TestSheetAttackPercentsMatchTheAutos(t *testing.T) {
 }
 
 func TestSheetOffHandIsZeroWithoutDualWielding(t *testing.T) {
-	_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestShieldID, equipTestBowID), nil)
+	_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestShieldID, WeaponTestBowID), nil, nil)
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 4, ProcMask: ProcMaskMelee})
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 2, ProcMask: ProcMaskMeleeOH})
 
@@ -106,7 +113,7 @@ func TestSheetOffHandIsZeroWithoutDualWielding(t *testing.T) {
 }
 
 func TestSheetRangedHitModRaisesOnlyRanged(t *testing.T) {
-	_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+	_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 	delta := sheetDeltaOf(character, func() {
 		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 3, ProcMask: ProcMaskRanged, EquipSubclass: 262156})
 	})
@@ -116,7 +123,7 @@ func TestSheetRangedHitModRaisesOnlyRanged(t *testing.T) {
 }
 
 func TestSheetSwordCritReachesOnlyTheSwordHand(t *testing.T) {
-	_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+	_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 	delta := sheetDeltaOf(character, func() {
 		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
 			EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})
@@ -127,9 +134,9 @@ func TestSheetSwordCritReachesOnlyTheSwordHand(t *testing.T) {
 }
 
 func TestSheetSwordSpecializationShowsInEveryCritRow(t *testing.T) {
-	sim, character := setupWeaponSimAs(t, proto.Race_RaceHuman,
-		weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID),
-		weaponSlots(equipTestDaggerID, equipTestDaggerID, equipTestBowID))
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceHuman,
+		WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID),
+		WeaponTestSlots(WeaponTestDaggerID, WeaponTestDaggerID, WeaponTestBowID), nil)
 	spellCrit := character.GetStat(stats.SpellCritPercent)
 	delta := sheetDeltaOf(character, func() {
 		character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
@@ -147,10 +154,10 @@ func TestSheetSwordSpecializationShowsInEveryCritRow(t *testing.T) {
 // The sheet counts Sword Specialization in the base stage, so no later stage adds it again.
 func TestSheetSwordSpecializationSitsInTheBaseStage(t *testing.T) {
 	stages := func(mainHand int32) *proto.PlayerStats {
-		raid := weaponTestRaid(proto.Race_RaceHuman, weaponSlots(mainHand, equipTestDaggerID, equipTestBowID), nil)
-		return ComputeStats(&proto.ComputeStatsRequest{Raid: raid, Encounter: weaponTestEncounter()}).RaidStats.Parties[0].Players[0]
+		raid := WeaponTestRaid(proto.Race_RaceHuman, WeaponTestSlots(mainHand, WeaponTestDaggerID, WeaponTestBowID), nil)
+		return ComputeStats(&proto.ComputeStatsRequest{Raid: raid, Encounter: WeaponTestEncounter()}).RaidStats.Parties[0].Players[0]
 	}
-	sword, axe := stages(equipTestSwordID), stages(equipTestAxeID)
+	sword, axe := stages(WeaponTestSwordID), stages(WeaponTestAxeID)
 	for name, stage := range map[string]func(*proto.PlayerStats) *proto.UnitStats{
 		"base":     func(s *proto.PlayerStats) *proto.UnitStats { return s.BaseStats },
 		"gear":     func(s *proto.PlayerStats) *proto.UnitStats { return s.GearStats },
@@ -187,7 +194,7 @@ func TestSheetRatingShowsOnlyTheModsFromARating(t *testing.T) {
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+			_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 			delta := sheetDeltaOf(character, func() {
 				character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
 					EquipSubclass: meleeWeapons, FromRating: tc.fromRating})
@@ -198,7 +205,7 @@ func TestSheetRatingShowsOnlyTheModsFromARating(t *testing.T) {
 }
 
 func TestSheetRatingsAddTheOneRating(t *testing.T) {
-	_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+	_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 	pseudoStats := character.GetPseudoStatsProto()
 	hitRating, critRating := character.GetStat(stats.HitRating), character.GetStat(stats.CritRating)
 	for _, tc := range []struct {
@@ -217,7 +224,7 @@ func TestSheetRatingsAddTheOneRating(t *testing.T) {
 }
 
 func TestSheetRangedRatingShowsTheRangedOnlyPercent(t *testing.T) {
-	sim, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 	delta := sheetDeltaOf(character, func() {
 		character.AddStatDynamic(sim, stats.RangedHitPercent, 2)
 		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 1, ProcMask: ProcMaskRanged, EquipSubclass: 262156,
@@ -230,7 +237,7 @@ func TestSheetRangedRatingShowsTheRangedOnlyPercent(t *testing.T) {
 }
 
 func TestSheetRangedOffsetsLeaveOutTheMainHandsMods(t *testing.T) {
-	sim, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 	hitBefore, critBefore := character.sheetRangedOffsets()
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
 		EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})

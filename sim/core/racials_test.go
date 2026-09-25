@@ -299,11 +299,11 @@ func TestWeaponSpecializationFollowsAnItemSwapInCombat(t *testing.T) {
 		{race: proto.Race_RaceOrc, axeCrit: 1},
 	} {
 		t.Run(tc.race.String(), func(t *testing.T) {
-			withSword := weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID)
-			withAxe := weaponSlots(equipTestAxeID, equipTestDaggerID, equipTestBowID)
+			withSword := WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID)
+			withAxe := WeaponTestSlots(WeaponTestAxeID, WeaponTestDaggerID, WeaponTestBowID)
 
 			finalStats := func(equipped, swapped []*proto.ItemSpec) stats.Stats {
-				result := ComputeStats(&proto.ComputeStatsRequest{Raid: weaponTestRaid(tc.race, equipped, swapped), Encounter: weaponTestEncounter()})
+				result := ComputeStats(&proto.ComputeStatsRequest{Raid: WeaponTestRaid(tc.race, equipped, swapped), Encounter: WeaponTestEncounter()})
 				return stats.FromUnitStatsProto(result.RaidStats.Parties[0].Players[0].FinalStats)
 			}
 			startSword, startAxe := finalStats(withSword, withAxe), finalStats(withAxe, withSword)
@@ -313,7 +313,7 @@ func TestWeaponSpecializationFollowsAnItemSwapInCombat(t *testing.T) {
 				}
 			}
 
-			sim, character := setupWeaponSimAs(t, tc.race, withSword, withAxe)
+			sim, character := NewWeaponTestSim(t, tc.race, withSword, withAxe, nil)
 			startCrit := stats.Stats{
 				stats.PhysicalCritPercent: character.GetStat(stats.PhysicalCritPercent),
 				stats.SpellCritPercent:    character.GetStat(stats.SpellCritPercent),
