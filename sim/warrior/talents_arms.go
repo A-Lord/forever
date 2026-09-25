@@ -6,7 +6,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
-	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func (warrior *Warrior) registerArmsTalents() {
@@ -281,23 +280,21 @@ func (warrior *Warrior) registerWeaponmaster() {
 	mainHandIs := func(weaponTypes ...proto.WeaponType) bool {
 		return warrior.GetProcMaskForTypes(weaponTypes...).Matches(core.ProcMaskMeleeMH)
 	}
-	var critOn, armorIgnoreOn bool
+	var armorIgnoreOn bool
 	var swordMask core.ProcMask
 	readWeapons := func() {
-		critOn = mainHandIs(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm)
 		armorIgnoreOn = mainHandIs(proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff)
 		swordMask = warrior.GetProcMaskForTypes(proto.WeaponType_WeaponTypeSword)
 	}
 	readWeapons()
 
-	critAura := warrior.RegisterAura(core.Aura{
-		Label:    "Weaponmaster (Axe/Polearm)",
-		ActionID: actionID.WithTag(1),
-		Duration: core.NeverExpires,
-	}).AttachStatBuff(stats.PhysicalCritPercent, spellData.Weaponmaster.EffectAt(1).ValueAt(rank))
-	if critOn {
-		core.MakePermanent(critAura)
-	}
+	// The crit reaches the attacks made with an axe or a polearm, in either hand.
+	warrior.AddStaticMod(core.SpellModConfig{
+		Kind:          core.SpellMod_BonusCrit_Percent,
+		FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
+		ProcMask:      core.ProcMaskMelee,
+		EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm),
+	})
 
 	armorIgnore := spellData.Weaponmaster.EffectAt(2).FractionAt(rank)
 	addArmorIgnore := func(delta float64) {
@@ -353,7 +350,6 @@ func (warrior *Warrior) registerWeaponmaster() {
 	}
 	warrior.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, slot proto.ItemSlot) {
 		readWeapons()
-		setActive(sim, critAura, critOn)
 		setActive(sim, armorIgnoreAura, armorIgnoreOn)
 	})
 }
