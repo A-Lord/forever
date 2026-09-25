@@ -159,12 +159,12 @@ func itemEffectSpellQuery() string {
 			OR i.ID IN (` + allowListedItemIDs() + `))`
 }
 
-// The items gen_db ships by id: ItemAllowList bypasses the gear filter and ConsumableAllowList is
-// added to the consumable query. Hand of Justice and Skullflame Shield have no ItemSparse row in
+// The items gen_db ships by id: ItemAllowList bypasses the gear filter and catalogueConsumableIDs
+// are added to the consumable query. Hand of Justice and Skullflame Shield have no ItemSparse row in
 // this build, which is why the join to it above is a left one: an allowlisted item is taken by id,
 // whatever the sparse table says about it.
 func allowListedItemIDs() string {
-	ids := append(slices.Collect(maps.Keys(ItemAllowList)), ConsumableAllowList...)
+	ids := append(slices.Collect(maps.Keys(ItemAllowList)), catalogueConsumableIDs()...)
 	slices.Sort(ids)
 
 	list := make([]string, len(ids))

@@ -48,6 +48,16 @@ func (r *ConsumableRouting) Reason() string {
 	return strings.Join(r.Unsupported, "; ")
 }
 
+// The consumables the catalogue takes by id, whatever ConsumableItemFilter says: those
+// ConsumableAllowList names and those an exclusive group names, such as the Quest-class Jujus.
+func catalogueConsumableIDs() []int32 {
+	ids := slices.Clone(ConsumableAllowList)
+	for _, group := range ConsumableExclusiveGroups {
+		ids = append(ids, group.Items...)
+	}
+	return ids
+}
+
 // Whether the catalogue's consumable goes into db.json: its spell routes to a shape, or
 // ConsumableAllowList or ConsumableOverrides names it. KeepConsumable runs after.
 func ShipsConsumable(routing *ConsumableRouting) bool {

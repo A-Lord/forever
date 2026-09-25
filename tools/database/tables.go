@@ -999,8 +999,9 @@ func ConsumableItemFilter() string {
 }
 
 func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consumable, error) {
-	allowListStrs := make([]string, 0, len(ConsumableAllowList))
-	for _, id := range ConsumableAllowList {
+	cataloguedByID := catalogueConsumableIDs()
+	allowListStrs := make([]string, 0, len(cataloguedByID))
+	for _, id := range cataloguedByID {
 		allowListStrs = append(allowListStrs, strconv.FormatInt(int64(id), 10))
 	}
 	allowList := strings.Join(allowListStrs, ", ")

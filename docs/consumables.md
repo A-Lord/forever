@@ -31,8 +31,8 @@ an on-use spell and is one of:
 
 An item that also teaches a spell is an Engrave rune and is left out, and so is a name containing
 `Test` or `[DEP]` or starting with `QA`, `UNUSED` or `[PH]` (UNUSED Flask of Merciless Pursuit
-215126). The ids in `ConsumableAllowList` (`tools/database/overrides.go`) join the
-catalogue by id, whatever the filter says. The catalogue's spells, and everything they trigger, are
+215126). The ids in `ConsumableAllowList` and `ConsumableExclusiveGroups` (`tools/database/overrides.go`)
+join the catalogue by id, whatever the filter says (`catalogueConsumableIDs`). The catalogue's spells, and everything they trigger, are
 carried in the spell store.
 
 **Routing.** `RouteConsumable` in `tools/database/gen_consumables.go` reads the spell the consumable's
@@ -207,8 +207,8 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 }
 ```
 
-The Jujus are Quest-class items the catalogue filter leaves out, so `ConsumableAllowList` names them
-as well. The Blasted Lands buffs leave their category group for Zanza. The permanent Zanza items
+The Jujus are Quest-class items the catalogue filter leaves out; naming them here brings them into
+the catalogue as well. The Blasted Lands buffs leave their category group for Zanza. The permanent Zanza items
 (23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
 apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddHitChanceStats`
 (`tools/database/consumable_hit_stats.go`) lists it in their db.json stats as 20 melee hit rating
@@ -216,8 +216,9 @@ apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddHitChance
 reads the rows, not those stats.
 
 **Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `ElixirGroup` to put items into a row
-group, or a new key and label for a group of their own, and every item id with its name. An item that is not in
-db.json yet needs `ConsumableAllowList` first, as the Jujus did. Then regenerate (store first, then
+group, or a new key and label for a group of their own, and every item id with its name. An item the
+catalogue filter leaves out joins the catalogue through the entry; one whose spell routes to no shape
+needs `ConsumableAllowList` as well to ship. Then regenerate (store first, then
 db.json). `TestEveryExclusiveGroupOverrideShips` fails for an id that does not ship or sits in two
 groups; `TestAConsumableTakesItsExclusiveGroup`
 pins the groups of the consumables it names. The settings pick the new group up by its key with no

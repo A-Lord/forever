@@ -113,9 +113,6 @@ var ConsumableAllowList = []int32{
 	274274, // Flask of Natural Aggression
 	274275, // Flask of Natural Precision
 	274276, // Flask of Natural Swiftness
-	// Quest-class items the catalogue filter leaves out, which ConsumableExclusiveGroups groups
-	12451, // Juju Power
-	12460, // Juju Might
 }
 var ConsumableDenyList = []int32{
 	// Not obtainable in the game
