@@ -1092,23 +1092,39 @@ func TestGeneratedManaTideTotemRestoresTheClientsMana(t *testing.T) {
 }
 
 // A buff that is not simply up is not part of the stats the character sheet is
-// measured with: the cooldowns and the windfury proc.
+// measured with: the cooldowns and the weapon totems. A main hand carries one
+// totem enchant, so Flametongue Totem is measured on a party without Windfury.
 func TestGeneratedDrivenBuffsAreNotBuildPhaseAuras(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
-		&proto.PartyBuffs{ManaTideTotems: 1, WindfuryTotem: true},
-		&proto.IndividualBuffs{Innervates: 1, PowerInfusions: 1})
-	char := sim.Raid.Parties[0].Players[0].GetCharacter()
-
-	for _, label := range []string{
-		"Innervates (External)", "Power Infusions (External)", "Mana Tide Totem (External)",
-		"Windfury Totem (External)",
+	for _, tc := range []struct {
+		party      *proto.PartyBuffs
+		individual *proto.IndividualBuffs
+		labels     []string
+	}{
+		{
+			party:      &proto.PartyBuffs{ManaTideTotems: 1, WindfuryTotem: true},
+			individual: &proto.IndividualBuffs{Innervates: 1, PowerInfusions: 1},
+			labels: []string{
+				"Innervates (External)", "Power Infusions (External)", "Mana Tide Totem (External)",
+				"Windfury Totem (External)",
+			},
+		},
+		{
+			party:      &proto.PartyBuffs{FlametongueTotem: true},
+			individual: &proto.IndividualBuffs{},
+			labels:     []string{"Flametongue Totem (External)"},
+		},
 	} {
-		aura := char.GetAura(label)
-		if aura == nil {
-			t.Fatalf("no aura is labelled %q; the unit has %v", label, auraLabels(char))
-		}
-		if aura.BuildPhase != core.CharacterBuildPhaseNone {
-			t.Errorf("%s is measured in build phase %v, want none of them", label, aura.BuildPhase)
+		sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, tc.party, tc.individual)
+		char := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+		for _, label := range tc.labels {
+			aura := char.GetAura(label)
+			if aura == nil {
+				t.Fatalf("no aura is labelled %q; the unit has %v", label, auraLabels(char))
+			}
+			if aura.BuildPhase != core.CharacterBuildPhaseNone {
+				t.Errorf("%s is measured in build phase %v, want none of them", label, aura.BuildPhase)
+			}
 		}
 	}
 }

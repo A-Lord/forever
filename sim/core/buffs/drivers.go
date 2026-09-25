@@ -261,6 +261,7 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	// Windfury Totem's does, so the aura that holds the category is simply
 	// refreshed; a weapon swapped into the main hand goes without it until then.
 	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
+	totemAura.BuildPhase = core.CharacterBuildPhaseNone
 	totemAura.Duration = time.Second * 10
 	totemAura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
 		aura.Activate(sim)
