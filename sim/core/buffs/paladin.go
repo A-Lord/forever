@@ -37,24 +37,24 @@ func paladinAuraMeta(base *Meta, rank PaladinAuraRank) *Meta {
 	return &m
 }
 
-func NewSpellDataDevotionAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(devotionAuraMeta, rank), isPlayer, 0)
+func NewSpellDataDevotionAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(devotionAuraMeta, rank), true, 0)
 }
 
-func NewSpellDataConcentrationAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(concentrationAuraMeta, rank), isPlayer, 0)
+func NewSpellDataConcentrationAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(concentrationAuraMeta, rank), true, 0)
 }
 
-func NewSpellDataFireResistanceAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(fireResistanceAuraMeta, rank), isPlayer, 0)
+func NewSpellDataFireResistanceAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(fireResistanceAuraMeta, rank), true, 0)
 }
 
-func NewSpellDataFrostResistanceAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(frostResistanceAuraMeta, rank), isPlayer, 0)
+func NewSpellDataFrostResistanceAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(frostResistanceAuraMeta, rank), true, 0)
 }
 
-func NewSpellDataShadowResistanceAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(shadowResistanceAuraMeta, rank), isPlayer, 0)
+func NewSpellDataShadowResistanceAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(shadowResistanceAuraMeta, rank), true, 0)
 }
 
 // Retribution Aura scales with the casting paladin's Holy spell power in Forever even though its
