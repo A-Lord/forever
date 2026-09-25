@@ -39,7 +39,7 @@ func TestReforgeWeightsKeepPercentWeightsPerPercent(t *testing.T) {
 
 func TestReforgeHitCapMatchesTheBackEndHitPercent(t *testing.T) {
 	sdm := stats.NewStatDependencyManager()
-	sdm.AddStatDependency(stats.MeleeHitRating, stats.PhysicalHitPercent, 1/core.PhysicalHitRatingPerHitPercent)
+	sdm.AddStatDependency(stats.HitRating, stats.PhysicalHitPercent, 1/core.HitRatingPerHitPercent)
 	sdm.FinalizeStatDeps()
 
 	baseStats := protoToCoreUnitStats(pseudoStatsProto(map[proto.PseudoStat]float64{
@@ -60,7 +60,7 @@ func TestReforgeHitCapMatchesTheBackEndHitPercent(t *testing.T) {
 	}
 
 	delta := core.NewUnitStats()
-	delta.Stats[stats.MeleeHitRating] = 2 * core.PhysicalHitRatingPerHitPercent
+	delta.Stats[stats.HitRating] = 2 * core.HitRatingPerHitPercent
 	resolved := resolveStatDelta(&sdm, baseStats, delta)
 	if got := getUnitStat(resolved, meleeHit); math.Abs(got-2) > 1e-9 {
 		t.Errorf("rating for 2%% hit fills %v of the hit cap gap, want 2", got)

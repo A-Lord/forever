@@ -64,10 +64,10 @@ func computeReforgeSoftCaps(baseStats core.UnitStats, configs []*proto.StatCapCo
 }
 
 // isSchoolHitChildOfSpellHit reports whether a child pseudo-stat is one of the per-school spell-hit
-// percentages. A non-zero EP on one of these does NOT suppress the SpellHitRating conversion: a
-// spec can weight both the pure rating and its school percentages, and the two are summed.
+// percentages. A non-zero EP on one of these does NOT suppress the HitRating conversion: a spec can
+// weight both the pure rating and its school percentages, and the two are summed.
 func isSchoolHitChildOfSpellHit(parent stats.Stat, child proto.PseudoStat) bool {
-	if parent != stats.SpellHitRating {
+	if parent != stats.HitRating {
 		return false
 	}
 	switch child {
@@ -93,12 +93,9 @@ func isSchoolHitChildOfSpellHit(parent stats.Stat, child proto.PseudoStat) bool 
 func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSoftCaps []*reforgeSoftCap) core.UnitStats {
 	validated := weights
 	for _, parent := range []stats.Stat{
-		stats.MeleeHitRating,
-		stats.SpellHitRating,
-		stats.MeleeCritRating,
-		stats.SpellCritRating,
-		stats.MeleeHasteRating,
-		stats.SpellHasteRating,
+		stats.HitRating,
+		stats.CritRating,
+		stats.HasteRating,
 		stats.DefenseRating,
 		stats.DodgeRating,
 		stats.ParryRating,
