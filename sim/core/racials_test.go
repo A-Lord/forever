@@ -4,6 +4,7 @@ import (
 	"math"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
@@ -285,53 +286,98 @@ func TestBloodFuryReportsItsTemporaryStats(t *testing.T) {
 	}
 }
 
-// Sword Specialization is up while a sword sits in a weapon slot, and its crit reaches the main hand,
-// the off-hand dagger, the bow and spells alike.
-func TestSwordSpecializationCritReachesEverySpellAndAttack(t *testing.T) {
-	sim, character := setupWeaponSimAs(t, proto.Race_RaceHuman,
-		weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID),
-		weaponSlots(equipTestDaggerID, equipTestDaggerID, equipTestBowID))
-	aura := character.GetAura("Sword Specialization")
-	if aura == nil {
-		t.Fatal("a human has no Sword Specialization aura")
-	}
-	target := sim.Encounter.ActiveTargetUnits[0]
-	attackTable := character.AttackTables[target.UnitIndex]
-	spell := &Spell{Unit: &character.Unit, ProcMask: ProcMaskSpellDamage}
-	// Lifts every chance clear of the level 63 target's crit suppression, which floors it at 0.
-	character.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 20, stats.SpellCritPercent: 20})
+// A weapon specialization follows the weapons through an item swap in combat: a human's Sword
+// Specialization and an orc's Axe Specialization move the crit of the sheet, of spells and of every
+// auto when the main hand changes between a sword and an axe, and move it back on the swap back.
+func TestWeaponSpecializationFollowsAnItemSwapInCombat(t *testing.T) {
+	for _, tc := range []struct {
+		race      proto.Race
+		swordCrit float64
+		axeCrit   float64
+	}{
+		{race: proto.Race_RaceHuman, swordCrit: 2},
+		{race: proto.Race_RaceOrc, axeCrit: 1},
+	} {
+		t.Run(tc.race.String(), func(t *testing.T) {
+			withSword := weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID)
+			withAxe := weaponSlots(equipTestAxeID, equipTestDaggerID, equipTestBowID)
 
-	critChances := func() map[string]float64 {
-		chances := map[string]float64{"spell": spell.SpellCritChance(target)}
-		for name, auto := range autos(character) {
-			if auto.BonusCritPercent != 0 {
-				t.Errorf("the %s carries %v%% crit of its own, want none", name, auto.BonusCritPercent)
+			finalStats := func(equipped, swapped []*proto.ItemSpec) stats.Stats {
+				result := ComputeStats(&proto.ComputeStatsRequest{Raid: weaponTestRaid(tc.race, equipped, swapped), Encounter: weaponTestEncounter()})
+				return stats.FromUnitStatsProto(result.RaidStats.Parties[0].Players[0].FinalStats)
 			}
-			chances[name] = auto.PhysicalCritChance(attackTable)
-		}
-		return chances
-	}
-	check := func(when string, active bool, before, after map[string]float64, want float64) {
-		t.Helper()
-		if aura.IsActive() != active {
-			t.Errorf("%s: aura active = %v, want %v", when, aura.IsActive(), active)
-		}
-		for name := range before {
-			if got := after[name] - before[name]; !WithinToleranceFloat64(want, got, 1e-9) {
-				t.Errorf("%s: the %s's crit chance moved by %v, want %v", when, name, got, want)
+			startSword, startAxe := finalStats(withSword, withAxe), finalStats(withAxe, withSword)
+			for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+				if got := startSword[stat] - startAxe[stat]; !WithinToleranceFloat64(tc.swordCrit-tc.axeCrit, got, 1e-9) {
+					t.Errorf("starting with the sword over the axe moves the sheet's %s by %v, want %v", stat.StatName(), got, tc.swordCrit-tc.axeCrit)
+				}
 			}
-		}
+
+			sim, character := setupWeaponSimAs(t, tc.race, withSword, withAxe)
+			startCrit := stats.Stats{
+				stats.PhysicalCritPercent: character.GetStat(stats.PhysicalCritPercent),
+				stats.SpellCritPercent:    character.GetStat(stats.SpellCritPercent),
+			}
+			sim.PrePull()
+			for sim.CurrentTime < 3*time.Second {
+				sim.Step()
+			}
+
+			target := sim.Encounter.ActiveTargetUnits[0]
+			attackTable := character.AttackTables[target.UnitIndex]
+			spell := &Spell{Unit: &character.Unit, ProcMask: ProcMaskSpellDamage}
+			// Lifts every chance clear of the level 63 target's crit suppression, which floors it at 0.
+			character.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 20, stats.SpellCritPercent: 20})
+
+			critChances := func() map[string]float64 {
+				chances := map[string]float64{
+					"physical crit stat": character.GetStat(stats.PhysicalCritPercent) / 100,
+					"spell crit stat":    character.GetStat(stats.SpellCritPercent) / 100,
+					"spell":              spell.SpellCritChance(target),
+				}
+				for name, auto := range autos(character) {
+					if auto.BonusCritPercent != 0 {
+						t.Errorf("the %s carries %v%% crit of its own, want none", name, auto.BonusCritPercent)
+					}
+					chances[name] = auto.PhysicalCritChance(attackTable)
+				}
+				return chances
+			}
+			check := func(when string, weaponType proto.WeaponType, before, after map[string]float64, want float64) {
+				t.Helper()
+				if got := character.MainHand().WeaponType; got != weaponType {
+					t.Fatalf("%s: main hand holds a %s, want a %s", when, got, weaponType)
+				}
+				for name := range before {
+					if got := after[name] - before[name]; !WithinToleranceFloat64(want/100, got, 1e-9) {
+						t.Errorf("%s at %v: the %s moved by %v, want %v", when, sim.CurrentTime, name, got, want/100)
+					}
+				}
+			}
+
+			sword := critChances()
+			if sim.CurrentTime <= 0 {
+				t.Fatalf("the swap is at %v, want it in combat", sim.CurrentTime)
+			}
+			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+			axe := critChances()
+			check("sword swapped for the axe", proto.WeaponType_WeaponTypeAxe, sword, axe, tc.axeCrit-tc.swordCrit)
+
+			for sim.CurrentTime < 6*time.Second {
+				sim.Step()
+			}
+			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
+			check("axe swapped back for the sword", proto.WeaponType_WeaponTypeSword, axe, critChances(), tc.swordCrit-tc.axeCrit)
+
+			// An iteration that ends on the axe starts the next one on the sword with the crit it began with.
+			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+			sim.Cleanup()
+			sim.Reset()
+			for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+				if got := character.GetStat(stat); !WithinToleranceFloat64(startCrit[stat], got, 1e-9) {
+					t.Errorf("the next iteration starts at %v %s, want %v", got, stat.StatName(), startCrit[stat])
+				}
+			}
+		})
 	}
-
-	withSword := critChances()
-	if !aura.IsActive() {
-		t.Error("sword in the main hand: aura is down")
-	}
-
-	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
-	withoutSword := critChances()
-	check("daggers in both hands", false, withSword, withoutSword, -0.02)
-
-	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
-	check("sword swapped back", true, withoutSword, critChances(), 0.02)
 }

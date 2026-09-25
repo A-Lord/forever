@@ -52,6 +52,7 @@ const (
 	equipTestDaggerID
 	equipTestShieldID
 	equipTestBowID
+	equipTestAxeID
 )
 
 func init() {
@@ -61,6 +62,7 @@ func init() {
 		{Id: equipTestDaggerID, Name: "Test Dagger", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeDagger, HandType: proto.HandType_HandTypeOneHand, WeaponSpeed: 1.8, ScalingOptions: damage},
 		{Id: equipTestShieldID, Name: "Test Shield", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeShield, HandType: proto.HandType_HandTypeOffHand, ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
 		{Id: equipTestBowID, Name: "Test Bow", Type: proto.ItemType_ItemTypeRanged, RangedWeaponType: proto.RangedWeaponType_RangedWeaponTypeBow, WeaponSpeed: 3.0, ScalingOptions: damage},
+		{Id: equipTestAxeID, Name: "Test Axe", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeAxe, HandType: proto.HandType_HandTypeOneHand, WeaponSpeed: 2.6, ScalingOptions: damage},
 	}})
 }
 
@@ -82,6 +84,23 @@ func setupWeaponSim(t *testing.T, equipped, swapped []*proto.ItemSpec) (*Simulat
 
 func setupWeaponSimAs(t *testing.T, race proto.Race, equipped, swapped []*proto.ItemSpec) (*Simulation, *Character) {
 	t.Helper()
+	sim := NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid:       weaponTestRaid(race, equipped, swapped),
+		Encounter:  weaponTestEncounter(),
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
+
+func weaponTestEncounter() *proto.Encounter {
+	return &proto.Encounter{
+		Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
+		Duration: 180,
+	}
+}
+
+func weaponTestRaid(race proto.Race, equipped, swapped []*proto.ItemSpec) *proto.Raid {
 	player := &proto.Player{
 		Name:      "Weapon Tester",
 		Class:     proto.Class_ClassRogue,
@@ -95,16 +114,7 @@ func setupWeaponSimAs(t *testing.T, race proto.Race, equipped, swapped []*proto.
 		player.EnableItemSwap = true
 		player.ItemSwap = &proto.ItemSwap{Items: swapped}
 	}
-	sim := NewSim(&proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{RandomSeed: 1},
-		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
-		Encounter: &proto.Encounter{
-			Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
-			Duration: 180,
-		},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+	return &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}}
 }
 
 func checkReaches(t *testing.T, when string, mod *SpellMod, spells map[string]*Spell, want ...string) {

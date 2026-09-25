@@ -144,6 +144,30 @@ func TestSheetSwordSpecializationShowsInEveryCritRow(t *testing.T) {
 	}
 }
 
+// The sheet counts Sword Specialization in the base stage, so no later stage adds it again.
+func TestSheetSwordSpecializationSitsInTheBaseStage(t *testing.T) {
+	stages := func(mainHand int32) *proto.PlayerStats {
+		raid := weaponTestRaid(proto.Race_RaceHuman, weaponSlots(mainHand, equipTestDaggerID, equipTestBowID), nil)
+		return ComputeStats(&proto.ComputeStatsRequest{Raid: raid, Encounter: weaponTestEncounter()}).RaidStats.Parties[0].Players[0]
+	}
+	sword, axe := stages(equipTestSwordID), stages(equipTestAxeID)
+	for name, stage := range map[string]func(*proto.PlayerStats) *proto.UnitStats{
+		"base":     func(s *proto.PlayerStats) *proto.UnitStats { return s.BaseStats },
+		"gear":     func(s *proto.PlayerStats) *proto.UnitStats { return s.GearStats },
+		"talents":  func(s *proto.PlayerStats) *proto.UnitStats { return s.TalentsStats },
+		"buffs":    func(s *proto.PlayerStats) *proto.UnitStats { return s.BuffsStats },
+		"consumes": func(s *proto.PlayerStats) *proto.UnitStats { return s.ConsumesStats },
+		"final":    func(s *proto.PlayerStats) *proto.UnitStats { return s.FinalStats },
+	} {
+		delta := stats.FromUnitStatsProto(stage(sword)).Subtract(stats.FromUnitStatsProto(stage(axe)))
+		for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+			if !WithinToleranceFloat64(2, delta[stat], 1e-9) {
+				t.Errorf("the %s stage holds %v %s more with a sword than with an axe, want 2", name, delta[stat], stat.StatName())
+			}
+		}
+	}
+}
+
 func TestSheetRatingShowsOnlyTheModsFromARating(t *testing.T) {
 	const meleeWeapons = 173555
 	for _, tc := range []struct {
