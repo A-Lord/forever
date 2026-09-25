@@ -12,17 +12,18 @@ type sheetAttackStats struct {
 // percent, the channel's own percent, and the hit or crit mods that reach the attack. The dual-wield
 // miss penalty is not in them.
 //
-// The rating is the one hit or crit rating plus the rest of the percent at the rating per percent: a
-// scoped mod keeps no record of whether it came from a rating or a percent, so each counts as the
-// rating it is worth.
+// The rating is the one hit or crit rating, plus the channel's own percent and the mods converted
+// from a rating, each at the rating per percent. A mod stated as a percent is in the percent alone.
 func (character *Character) sheetAttackStats(probe ProcMask, channelHit, channelCrit float64) sheetAttackStats {
-	hit := channelHit + character.ScopedBonusPercent(SpellMod_BonusHit_Percent, probe)
-	crit := channelCrit + character.ScopedBonusPercent(SpellMod_BonusCrit_Percent, probe)
 	return sheetAttackStats{
-		HitPercent:  character.GetStat(stats.PhysicalHitPercent) + hit,
-		CritPercent: character.GetStat(stats.PhysicalCritPercent) + crit,
-		HitRating:   character.GetStat(stats.HitRating) + hit*HitRatingPerHitPercent,
-		CritRating:  character.GetStat(stats.CritRating) + crit*CritRatingPerCritPercent,
+		HitPercent: character.GetStat(stats.PhysicalHitPercent) + channelHit +
+			character.ScopedBonusPercent(SpellMod_BonusHit_Percent, probe),
+		CritPercent: character.GetStat(stats.PhysicalCritPercent) + channelCrit +
+			character.ScopedBonusPercent(SpellMod_BonusCrit_Percent, probe),
+		HitRating: character.GetStat(stats.HitRating) +
+			(channelHit+character.ScopedRatingPercent(SpellMod_BonusHit_Percent, probe))*HitRatingPerHitPercent,
+		CritRating: character.GetStat(stats.CritRating) +
+			(channelCrit+character.ScopedRatingPercent(SpellMod_BonusCrit_Percent, probe))*CritRatingPerCritPercent,
 	}
 }
 

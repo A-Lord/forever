@@ -112,7 +112,6 @@ func TestSheetRangedHitModRaisesOnlyRanged(t *testing.T) {
 	})
 	checkSheetDelta(t, delta, map[proto.PseudoStat]float64{
 		proto.PseudoStat_PseudoStatRangedHitPercent: 3,
-		proto.PseudoStat_PseudoStatRangedHitRating:  3 * HitRatingPerHitPercent,
 	})
 }
 
@@ -123,9 +122,37 @@ func TestSheetSwordCritReachesOnlyTheSwordHand(t *testing.T) {
 			EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})
 	})
 	checkSheetDelta(t, delta, map[proto.PseudoStat]float64{
-		proto.PseudoStat_PseudoStatMeleeCritPercent:   5,
-		proto.PseudoStat_PseudoStatMainHandCritRating: 5 * CritRatingPerCritPercent,
+		proto.PseudoStat_PseudoStatMeleeCritPercent: 5,
 	})
+}
+
+func TestSheetRatingShowsOnlyTheModsFromARating(t *testing.T) {
+	const meleeWeapons = 173555
+	for _, tc := range []struct {
+		name       string
+		fromRating bool
+		want       map[proto.PseudoStat]float64
+	}{
+		{"a percent talent", false, map[proto.PseudoStat]float64{
+			proto.PseudoStat_PseudoStatMeleeCritPercent:   5,
+			proto.PseudoStat_PseudoStatOffHandCritPercent: 5,
+		}},
+		{"a rating", true, map[proto.PseudoStat]float64{
+			proto.PseudoStat_PseudoStatMeleeCritPercent:   5,
+			proto.PseudoStat_PseudoStatOffHandCritPercent: 5,
+			proto.PseudoStat_PseudoStatMainHandCritRating: 5 * CritRatingPerCritPercent,
+			proto.PseudoStat_PseudoStatOffHandCritRating:  5 * CritRatingPerCritPercent,
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+			delta := sheetDeltaOf(character, func() {
+				character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
+					EquipSubclass: meleeWeapons, FromRating: tc.fromRating})
+			})
+			checkSheetDelta(t, delta, tc.want)
+		})
+	}
 }
 
 func TestSheetRatingsAddTheOneRating(t *testing.T) {
@@ -136,10 +163,10 @@ func TestSheetRatingsAddTheOneRating(t *testing.T) {
 		shown proto.PseudoStat
 		want  float64
 	}{
-		{proto.PseudoStat_PseudoStatMainHandHitRating, hitRating + character.ScopedBonusPercent(SpellMod_BonusHit_Percent, ProcMaskMeleeMHAuto)*HitRatingPerHitPercent},
-		{proto.PseudoStat_PseudoStatOffHandCritRating, critRating + character.ScopedBonusPercent(SpellMod_BonusCrit_Percent, ProcMaskMeleeOHAuto)*CritRatingPerCritPercent},
+		{proto.PseudoStat_PseudoStatMainHandHitRating, hitRating + character.ScopedRatingPercent(SpellMod_BonusHit_Percent, ProcMaskMeleeMHAuto)*HitRatingPerHitPercent},
+		{proto.PseudoStat_PseudoStatOffHandCritRating, critRating + character.ScopedRatingPercent(SpellMod_BonusCrit_Percent, ProcMaskMeleeOHAuto)*CritRatingPerCritPercent},
 		{proto.PseudoStat_PseudoStatRangedHitRating, hitRating + (character.GetStat(stats.RangedHitPercent)+
-			character.ScopedBonusPercent(SpellMod_BonusHit_Percent, ProcMaskRangedAuto))*HitRatingPerHitPercent},
+			character.ScopedRatingPercent(SpellMod_BonusHit_Percent, ProcMaskRangedAuto))*HitRatingPerHitPercent},
 	} {
 		if !WithinToleranceFloat64(tc.want, pseudoStats[tc.shown], 1e-9) {
 			t.Errorf("%s = %v, want %v", tc.shown, pseudoStats[tc.shown], tc.want)
@@ -151,7 +178,8 @@ func TestSheetRangedRatingShowsTheRangedOnlyPercent(t *testing.T) {
 	sim, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
 	delta := sheetDeltaOf(character, func() {
 		character.AddStatDynamic(sim, stats.RangedHitPercent, 2)
-		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 1, ProcMask: ProcMaskRanged, EquipSubclass: 262156})
+		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 1, ProcMask: ProcMaskRanged, EquipSubclass: 262156,
+			FromRating: true})
 	})
 	checkSheetDelta(t, delta, map[proto.PseudoStat]float64{
 		proto.PseudoStat_PseudoStatRangedHitPercent: 3,

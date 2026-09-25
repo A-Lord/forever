@@ -39,6 +39,9 @@ type SpellModConfig struct {
 	EquipSubclass int32
 	EquipInvType  int32
 	EquipHand     ProcMask
+
+	// A hit or crit percent mod that is a rating's worth on the attacks it reaches.
+	FromRating bool
 }
 
 type SpellMod struct {
@@ -53,6 +56,7 @@ type SpellMod struct {
 	EquipSubclass  int32
 	EquipInvType   int32
 	EquipHand      ProcMask
+	FromRating     bool
 	floatValue     float64
 	intValue       int32
 	timeValue      time.Duration
@@ -144,6 +148,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		EquipSubclass: config.EquipSubclass,
 		EquipInvType:  config.EquipInvType,
 		EquipHand:     config.EquipHand,
+		FromRating:    config.FromRating,
 		floatValue:    config.FloatValue,
 		intValue:      config.IntValue,
 		timeValue:     config.TimeValue,
@@ -285,6 +290,15 @@ func (unit *Unit) refilterEquipMods() {
 // The sum of the active hit or crit mods that reach every attack with this proc mask: those naming
 // no spell class, school or flag, whose proc mask and weapon match the attack's.
 func (unit *Unit) ScopedBonusPercent(kind SpellModType, probe ProcMask) float64 {
+	return unit.scopedBonusPercent(kind, probe, false)
+}
+
+// The part of ScopedBonusPercent that the mods converted from a rating give.
+func (unit *Unit) ScopedRatingPercent(kind SpellModType, probe ProcMask) float64 {
+	return unit.scopedBonusPercent(kind, probe, true)
+}
+
+func (unit *Unit) scopedBonusPercent(kind SpellModType, probe ProcMask, fromRatingOnly bool) float64 {
 	probeSpell := &Spell{Unit: unit, ProcMask: probe}
 	switch {
 	case probe.Matches(ProcMaskMelee):
@@ -294,7 +308,7 @@ func (unit *Unit) ScopedBonusPercent(kind SpellModType, probe ProcMask) float64 
 	}
 	total := 0.0
 	for _, mod := range unit.spellMods {
-		if mod.IsActive && mod.Kind == kind && shouldApply(probeSpell, mod) {
+		if mod.IsActive && mod.Kind == kind && (mod.FromRating || !fromRatingOnly) && shouldApply(probeSpell, mod) {
 			total += mod.floatValue
 		}
 	}

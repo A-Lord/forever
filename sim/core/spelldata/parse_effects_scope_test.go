@@ -218,6 +218,9 @@ func TestParseScopedCruelty(t *testing.T) {
 
 	r.check(t, bonusCrit, 5, 5, 0, 0)
 	r.checkNoStats(t, stats.PhysicalCritPercent, stats.SpellCritPercent)
+	if got := r.character.ScopedRatingPercent(core.SpellMod_BonusCrit_Percent, core.ProcMaskMeleeMHAuto); got != 0 {
+		t.Errorf("a percent talent counts %v percent as rating, want 0", got)
+	}
 }
 
 // 1306681: hit with a one-hander held in the off hand, by the inventory type as well as the hand bit.
@@ -255,6 +258,9 @@ func TestParseScopedRangedOnlyRating(t *testing.T) {
 
 	r.check(t, bonusHit, 0, 0, 20/core.HitRatingPerHitPercent, 0)
 	r.checkNoStats(t, stats.HitRating, stats.PhysicalHitPercent)
+	if got := r.character.ScopedRatingPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto); math.Abs(got-20/core.HitRatingPerHitPercent) > 1e-9 {
+		t.Errorf("the ranged rating counts %v percent as rating, want %v", got, 20/core.HitRatingPerHitPercent)
+	}
 }
 
 // 16255: a weapon's A_MOD_CRIT_PCT is physical crit on that weapon's attacks, and no spell crit.

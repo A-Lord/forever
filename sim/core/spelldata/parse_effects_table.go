@@ -505,6 +505,7 @@ func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.Sp
 // Haste has no mod that reaches some attacks and not others, so its bits are not read, and neither
 // are the other ratings.
 func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64) *attachment {
+	scope.FromRating = true
 	var parts []*attachment
 	if mask&(32|64|128) != 0 {
 		parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope,
