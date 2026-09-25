@@ -41,7 +41,7 @@ func (hunter *Hunter) NewHunterPet() *HunterPet {
 			stats.AttackPower: -20, // Apparently pets and warriors have a AP penalty.
 
 			// Add 1.8% because pets aren't affected by that component of crit suppression.
-			stats.MeleeCritRating: (1.1515 + 1.8) * core.PhysicalCritRatingPerCritPercent,
+			stats.PhysicalCritPercent: 1.1515 + 1.8,
 		},
 		StatInheritance:       hunter.makeStatInheritance(),
 		EnabledOnStart:        true,

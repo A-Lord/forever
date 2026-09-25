@@ -50,7 +50,7 @@ var BaseStats = map[BaseStatsKey]stats.Stats{}
 //   4. 2.169*22.08 (rating per crit percent) = 47.89 crit rating.
 //
 // TODO: the 22.08 in step 4 is the level-70 crit rating per percent. At level 60
-// it is 14 (see SpellCritRatingPerCritPercent in base_stats_auto_gen.go), so this
+// it is 14 (see CritRatingPerCritPercent in base_stats_auto_gen.go), so this
 // worked example no longer reproduces the numbers above it.
 
 // Base mana can be looked up here: https://wowwiki-archive.fandom.com/wiki/Base_mana

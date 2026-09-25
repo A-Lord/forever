@@ -395,12 +395,10 @@ func (unit *Unit) processDynamicBonus(sim *Simulation, bonus stats.Stats) {
 			unit.currentMana = unit.MaxMana()
 		}
 	}
-	if bonus[stats.MeleeHasteRating] != 0 {
+	if bonus[stats.HasteRating] != 0 {
 		unit.updateAttackSpeed()
 		unit.updateMeleeAndRangedHaste()
 		unit.AutoAttacks.UpdateSwingTimers(sim)
-	}
-	if bonus[stats.SpellHasteRating] != 0 {
 		unit.updateCastSpeed()
 	}
 	if bonus[stats.ReducedCritTakenPercent] != 0 {
@@ -510,7 +508,7 @@ func (unit *Unit) SpellGCD() time.Duration {
 }
 
 func (unit *Unit) TotalSpellHasteMultiplier() float64 {
-	return unit.PseudoStats.CastSpeedMultiplier * (1 + unit.stats[stats.SpellHasteRating]/(SpellHasteRatingPerHastePercent*100))
+	return unit.PseudoStats.CastSpeedMultiplier * (1 + unit.stats[stats.HasteRating]/(HasteRatingPerHastePercent*100))
 }
 
 func (unit *Unit) updateCastSpeed() {
@@ -552,17 +550,17 @@ func (unit *Unit) ApplyRealRangedHaste(dur time.Duration) time.Duration {
 	return time.Duration(float64(dur) / unit.TotalRealRangedHasteMultiplier())
 }
 func (unit *Unit) TotalMeleeHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.MeleeSpeedMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.MeleeSpeedMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
 }
 
 // Returns the melee haste multiplier only including equip haste and real haste modifiers like lust
 // Same value for ranged and melee
 func (unit *Unit) TotalRealHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
 }
 
 func (unit *Unit) TotalRealRangedHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedHasteMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedHasteMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
 }
 
 func (unit *Unit) Armor() float64 {
@@ -574,7 +572,7 @@ func (unit *Unit) BlockDamageReduction() float64 {
 }
 
 func (unit *Unit) TotalRangedHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedSpeedMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedSpeedMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
 }
 
 func (unit *Unit) updateMeleeAttackSpeed() {
@@ -692,10 +690,10 @@ type RatingConversion struct {
 
 // The rating conversions every unit has, in the order the reforge optimizer tries a rating's percents.
 var RatingConversions = []RatingConversion{
-	{stats.MeleeHitRating, stats.PhysicalHitPercent, PhysicalHitRatingPerHitPercent, 0},
-	{stats.SpellHitRating, stats.SpellHitPercent, SpellHitRatingPerHitPercent, 0},
-	{stats.MeleeCritRating, stats.PhysicalCritPercent, PhysicalCritRatingPerCritPercent, 0},
-	{stats.SpellCritRating, stats.SpellCritPercent, SpellCritRatingPerCritPercent, 0},
+	{stats.HitRating, stats.PhysicalHitPercent, HitRatingPerHitPercent, 0},
+	{stats.HitRating, stats.SpellHitPercent, HitRatingPerHitPercent, 0},
+	{stats.CritRating, stats.PhysicalCritPercent, CritRatingPerCritPercent, 0},
+	{stats.CritRating, stats.SpellCritPercent, CritRatingPerCritPercent, 0},
 	{stats.ExpertiseRating, stats.ExpertisePercent, ExpertiseRatingPerExpertisePercent, 0},
 	{stats.DodgeRating, stats.DodgePercent, DodgeRatingPerDodgePercent, 0},
 	{stats.ParryRating, stats.ParryPercent, ParryRatingPerParryPercent, 0},
