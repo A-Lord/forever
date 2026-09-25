@@ -711,7 +711,11 @@ func (character *Character) sheetAvoidance() SheetAvoidance {
 }
 
 func (character *Character) GetPseudoStatsProto() []float64 {
-	mainHand, offHand, ranged := character.sheetMainHandStats(), character.sheetOffHandStats(), character.sheetRangedStats()
+	mainHand, ranged := character.sheetAttackStats(ProcMaskMeleeMHAuto), character.sheetAttackStats(ProcMaskRangedAuto)
+	var offHand sheetAttackStats
+	if character.AutoAttacks.IsDualWielding {
+		offHand = character.sheetAttackStats(ProcMaskMeleeOHAuto)
+	}
 	pseudoStats := []float64{
 		proto.PseudoStat_PseudoStatMainHandDps: character.AutoAttacks.MH().DPS(),
 		proto.PseudoStat_PseudoStatOffHandDps:  character.AutoAttacks.OH().DPS(),

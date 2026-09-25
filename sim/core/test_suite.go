@@ -359,3 +359,11 @@ func sheetRangedOffsets(csr *proto.ComputeStatsRequest) (hit, crit float64) {
 	defer character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 	return character.sheetRangedOffsets()
 }
+
+// The ranged hit and crit the sheet shows beyond the physical percent: the ranged percent stats and
+// the mods that reach the ranged auto attack. The sheet's melee row holds the main hand's weapon-bound
+// mods, so the ranged row less the melee row is no ranged offset once the two weapons' mods differ.
+func (character *Character) sheetRangedOffsets() (hit, crit float64) {
+	ranged := character.sheetAttackStats(ProcMaskRangedAuto)
+	return ranged.HitPercent - character.GetStat(stats.PhysicalHitPercent), ranged.CritPercent - character.GetStat(stats.PhysicalCritPercent)
+}

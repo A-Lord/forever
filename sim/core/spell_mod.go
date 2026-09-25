@@ -289,15 +289,21 @@ func (unit *Unit) refilterEquipMods() {
 // The sum of the active hit or crit mods that reach every attack with this proc mask: those naming
 // no spell class, school or flag, whose proc mask and weapon match the attack's.
 func (unit *Unit) ScopedBonusPercent(kind SpellModType, probe ProcMask) float64 {
-	return unit.scopedBonusPercent(kind, probe, false)
+	scoped := unit.scopedPercents(probe)
+	return Ternary(kind == SpellMod_BonusHit_Percent, scoped.hit, scoped.crit)
 }
 
 // The part of ScopedBonusPercent that the mods converted from a rating give.
 func (unit *Unit) ScopedRatingPercent(kind SpellModType, probe ProcMask) float64 {
-	return unit.scopedBonusPercent(kind, probe, true)
+	scoped := unit.scopedPercents(probe)
+	return Ternary(kind == SpellMod_BonusHit_Percent, scoped.hitFromRating, scoped.critFromRating)
 }
 
-func (unit *Unit) scopedBonusPercent(kind SpellModType, probe ProcMask, fromRatingOnly bool) float64 {
+type scopedPercents struct {
+	hit, crit, hitFromRating, critFromRating float64
+}
+
+func (unit *Unit) scopedPercents(probe ProcMask) scopedPercents {
 	probeSpell := &Spell{Unit: unit, ProcMask: probe}
 	switch {
 	case probe.Matches(ProcMaskMelee):
@@ -305,13 +311,22 @@ func (unit *Unit) scopedBonusPercent(kind SpellModType, probe ProcMask, fromRati
 	case probe.Matches(ProcMaskRanged):
 		probeSpell.DefenseType = DefenseTypeRanged
 	}
-	total := 0.0
+	var scoped scopedPercents
 	for _, mod := range unit.spellMods {
-		if mod.IsActive && mod.Kind == kind && (mod.FromRating || !fromRatingOnly) && shouldApply(probeSpell, mod) {
-			total += mod.floatValue
+		if !mod.IsActive || (mod.Kind != SpellMod_BonusHit_Percent && mod.Kind != SpellMod_BonusCrit_Percent) ||
+			!shouldApply(probeSpell, mod) {
+			continue
+		}
+		total, fromRating := &scoped.crit, &scoped.critFromRating
+		if mod.Kind == SpellMod_BonusHit_Percent {
+			total, fromRating = &scoped.hit, &scoped.hitFromRating
+		}
+		*total += mod.floatValue
+		if mod.FromRating {
+			*fromRating += mod.floatValue
 		}
 	}
-	return total
+	return scoped
 }
 
 func (mod *SpellMod) UpdateIntValue(value int32) {
