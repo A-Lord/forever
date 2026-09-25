@@ -290,6 +290,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Graverobber'sShovel-273817"
+ value: {
+  dps: 312.99247
+  tps: 180.03689
+  dtps: 2.90588
+  hps: 19.46713
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Gri'lek'sCharmofMight-19951"
  value: {
   dps: 312.99247
