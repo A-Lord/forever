@@ -44,7 +44,7 @@ func TestFlametongueTotemStrikesOffAFightingWarriorsMainHand(t *testing.T) {
 
 	var strikes *proto.TargetedActionMetrics
 	for _, action := range result.RaidMetrics.Parties[0].Players[0].Actions {
-		if action.Id.GetSpellId() == 16389 {
+		if action.Id.GetSpellId() == 16389 && action.Id.GetTag() == -1 {
 			strikes = action.Targets[0]
 		}
 	}

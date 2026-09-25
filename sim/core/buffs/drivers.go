@@ -223,7 +223,7 @@ func FlametongueTotemDamage(weaponSpeed float64) float64 {
 // priced by the weapon's speed. 16389 states no defense type, and a fire proc
 // with none rolls on the spell hit and crit tables.
 func driveFlametongueTotem(char *core.Character, _ *proto.PartyBuffs) {
-	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc())
+	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc(), spelldata.Tag(-1))
 	config.DefenseType = core.DefenseTypeMagic
 	config.ProcMask = core.ProcMaskSpellDamageProc
 	if flametongueTotemProc.IsAProc() {

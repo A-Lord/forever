@@ -659,7 +659,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		t.Errorf("the category holds %d effects, want the totem's one", len(category.Effects()))
 	}
 
-	strike := char.GetSpell(core.ActionID{SpellID: 16389})
+	strike := char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1})
 	if strike == nil {
 		t.Fatal("the totem registered no spell for its proc")
 	}
