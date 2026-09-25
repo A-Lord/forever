@@ -186,3 +186,20 @@ func TestSheetRangedRatingShowsTheRangedOnlyPercent(t *testing.T) {
 		proto.PseudoStat_PseudoStatRangedHitRating:  3 * HitRatingPerHitPercent,
 	})
 }
+
+func TestSheetRangedOffsetsLeaveOutTheMainHandsMods(t *testing.T) {
+	sim, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
+	hitBefore, critBefore := character.sheetRangedOffsets()
+	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
+		EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})
+	character.AddStatDynamic(sim, stats.RangedHitPercent, 2)
+	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 1, ProcMask: ProcMaskRanged, EquipSubclass: 262156})
+	hitAfter, critAfter := character.sheetRangedOffsets()
+
+	if got := critAfter - critBefore; got != 0 {
+		t.Errorf("a sword's crit moved the ranged crit offset by %v, want 0", got)
+	}
+	if got := hitAfter - hitBefore; !WithinToleranceFloat64(3, got, 1e-9) {
+		t.Errorf("ranged hit and a ranged hit mod moved the ranged hit offset by %v, want 3", got)
+	}
+}
