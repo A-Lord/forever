@@ -80,12 +80,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 
 ## Weapon requirements and the one rating
 
-- **One rating.** `stats.HitRating`, `stats.CritRating` and `stats.HasteRating` each feed the physical and the spell percent, and haste rating every speed: `core.HitRatingPerHitPercent` 10, `core.CritRatingPerCritPercent` 14, `core.HasteRatingPerHastePercent` 10. There is no melee-, ranged- or spell-only rating; a one-channel bonus is a percent stat or a mod. `spelldata.RatingStats(mask)` reads an `A_MOD_RATING` mask bit by bit, the expertise bit included.
-- **A weapon-bound hit or crit row.** `spelldata.WeaponScope(row, effect)` answers the rule the parse applies: per weapon (52, 54, a ranged-only 290, a scoped 189), while equipped (a melee-weapon 290), ranged attacks (a ranged-only rating mask) or only the cast (an aura on another unit). `ParseStatic` and `ParseEffects` already attach each; a shield row, spell hit, spell crit and haste are never scoped.
-- **By hand.** A per-weapon bonus is a `core.SpellModConfig` with `EquipSubclass` (`core.WeaponSubclassMask(types...)` or `dbcenums.ITEM_SUBCLASS_BIT_WEAPON_*`), `EquipInvType` (`dbcenums.INVTYPE_BIT_*`) and `EquipHand`, through `AddStaticMod`, or `AttachSpellMod` on an aura to keep it visible. Stats while a weapon is equipped are `character.NewEquipGatedStats(req, bonus)`, or an aura toggled by `RegisterWeaponRequirementCallback(req, ...)`, with `req` a `core.EquipRequirement`.
-- **What core does.** The weapon behind the spell's proc mask is checked (main hand, else off hand, else ranged); magic-defense spells, pets and spells with no weapon bit never match; an item swap re-filters. `FromRating` marks a mod the character sheet shows as rating, read through `ScopedBonusPercent` and `ScopedRatingPercent`.
-
-"Weapon requirements and the one rating" in `docs/spell_data.md` has the rule table, the API table and the weapon-bound talents of the classes still to port.
+"Weapon requirements and the one rating" in `docs/spell_data.md` has the one rating, `spelldata.WeaponScope`, the rule table, the API table and the weapon-bound talents of the classes still to port.
 
 ## Porting a class
 
