@@ -9,7 +9,7 @@ import { getEnumValues } from '../utils/collections';
 const STATS_LEN = getEnumValues(Stat).length;
 const PSEUDOSTATS_LEN = getEnumValues(PseudoStat).length;
 
-const SCHOOL_HIT_PERCENT_PSEUDO_STATS = [
+export const SCHOOL_HIT_PERCENT_PSEUDO_STATS = [
 	PseudoStat.PseudoStatSchoolHitPercentArcane,
 	PseudoStat.PseudoStatSchoolHitPercentFire,
 	PseudoStat.PseudoStatSchoolHitPercentFrost,
@@ -97,31 +97,36 @@ export class UnitStat {
 		return this.isStat() ? Stat[this.stat!] : PseudoStat[this.getPseudoStat()];
 	}
 
+	// The rating a percentage point of this stat costs, or null where a rating representation does not
+	// make sense for the stat in question (Strength for example).
+	private ratingPerPercent(): number | null {
+		if (this.linkedToStat(Stat.StatHitRating) || this.isSchoolHitPercent()) {
+			return Mechanics.HIT_RATING_PER_HIT_PERCENT;
+		} else if (this.linkedToStat(Stat.StatCritRating)) {
+			return Mechanics.CRIT_RATING_PER_CRIT_PERCENT;
+		} else if (this.linkedToStat(Stat.StatHasteRating)) {
+			return Mechanics.HASTE_RATING_PER_HASTE_PERCENT;
+		} else if (this.linkedToStat(Stat.StatExpertiseRating)) {
+			return Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT;
+		} else if (this.linkedToStat(Stat.StatDefenseRating)) {
+			return Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL;
+		} else if (this.linkedToStat(Stat.StatDodgeRating)) {
+			return Mechanics.DODGE_RATING_PER_DODGE_PERCENT;
+		} else if (this.linkedToStat(Stat.StatParryRating)) {
+			return Mechanics.PARRY_RATING_PER_PARRY_PERCENT;
+		} else if (this.linkedToStat(Stat.StatBlockRating)) {
+			return Mechanics.BLOCK_RATING_PER_BLOCK_PERCENT;
+		} else {
+			return null;
+		}
+	}
+
 	// Convert a UnitStat value from its Rating representation to a percentage representation
 	// (0-100). If a percentage representation does not make sense for the stat in question
 	// (Strength for example), then null is returned.
 	convertRatingToPercent(ratingValue: number): number | null {
-		if (this.linkedToStat(Stat.StatHitRating)) {
-			return ratingValue / Mechanics.HIT_RATING_PER_HIT_PERCENT;
-		} else if (this.linkedToStat(Stat.StatCritRating)) {
-			return ratingValue / Mechanics.CRIT_RATING_PER_CRIT_PERCENT;
-		} else if (this.linkedToStat(Stat.StatHasteRating)) {
-			return ratingValue / Mechanics.HASTE_RATING_PER_HASTE_PERCENT;
-		} else if (this.linkedToStat(Stat.StatExpertiseRating)) {
-			return ratingValue / Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT;
-		} else if (this.linkedToStat(Stat.StatDefenseRating)) {
-			return ratingValue / Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL;
-		} else if (this.linkedToStat(Stat.StatDodgeRating)) {
-			return ratingValue / Mechanics.DODGE_RATING_PER_DODGE_PERCENT;
-		} else if (this.linkedToStat(Stat.StatParryRating)) {
-			return ratingValue / Mechanics.PARRY_RATING_PER_PARRY_PERCENT;
-		} else if (this.linkedToStat(Stat.StatBlockRating)) {
-			return ratingValue / Mechanics.BLOCK_RATING_PER_BLOCK_PERCENT;
-		} else if (this.isSchoolHitPercent()) {
-			return ratingValue / Mechanics.HIT_RATING_PER_HIT_PERCENT;
-		} else {
-			return null;
-		}
+		const perPercent = this.ratingPerPercent();
+		return perPercent === null ? null : ratingValue / perPercent;
 	}
 
 	// Convert a UnitStat value from its percentage representation (0-100) to the equivalent amount of
@@ -129,32 +134,14 @@ export class UnitStat {
 	// for example), then null is returned.
 	// For PseudoStatReducedCritTakenPercent, parentStat specifies the source (DefenseRating).
 	convertPercentToRating(percentOrPointsValue: number, parentStat?: Stat): number | null {
-		if (this.linkedToStat(Stat.StatHitRating)) {
-			return percentOrPointsValue * Mechanics.HIT_RATING_PER_HIT_PERCENT;
-		} else if (this.linkedToStat(Stat.StatCritRating)) {
-			return percentOrPointsValue * Mechanics.CRIT_RATING_PER_CRIT_PERCENT;
-		} else if (this.linkedToStat(Stat.StatHasteRating)) {
-			return percentOrPointsValue * Mechanics.HASTE_RATING_PER_HASTE_PERCENT;
-		} else if (this.linkedToStat(Stat.StatExpertiseRating)) {
-			return percentOrPointsValue * Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT;
-		} else if (this.linkedToStat(Stat.StatDefenseRating)) {
-			return percentOrPointsValue * Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL;
-		} else if (this.linkedToStat(Stat.StatDodgeRating)) {
-			return percentOrPointsValue * Mechanics.DODGE_RATING_PER_DODGE_PERCENT;
-		} else if (this.linkedToStat(Stat.StatParryRating)) {
-			return percentOrPointsValue * Mechanics.PARRY_RATING_PER_PARRY_PERCENT;
-		} else if (this.linkedToStat(Stat.StatBlockRating)) {
-			return percentOrPointsValue * Mechanics.BLOCK_RATING_PER_BLOCK_PERCENT;
-		} else if (this.isSchoolHitPercent()) {
-			return percentOrPointsValue * Mechanics.HIT_RATING_PER_HIT_PERCENT;
-		} else if (this.equalsPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent)) {
-			if (parentStat === Stat.StatDefenseRating) {
-				return percentOrPointsValue * (Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL / Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE);
-			}
-			return null;
-		} else {
-			return null;
+		const perPercent = this.ratingPerPercent();
+		if (perPercent !== null) {
+			return percentOrPointsValue * perPercent;
 		}
+		if (this.equalsPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent) && parentStat === Stat.StatDefenseRating) {
+			return percentOrPointsValue * (Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL / Mechanics.MISS_DODGE_PARRY_BLOCK_CRIT_CHANCE_PER_DEFENSE);
+		}
+		return null;
 	}
 
 	private isSchoolHitPercent(): boolean {
@@ -531,7 +518,7 @@ export class Stats {
 		this.stats.forEach((stat, idx) => {
 			total += stat * epWeights.stats[idx];
 		});
-		const ratingFromPercents = new Map<Stat, number>();
+		let ratingFromPercents: Map<Stat, number> | undefined;
 		this.pseudoStats.forEach((value, idx) => {
 			if (value === 0) {
 				return;
@@ -553,10 +540,11 @@ export class Stats {
 			const unitStat = UnitStat.fromPseudoStat(idx);
 			const rootStat = unitStat.getRootStat();
 			const rating = unitStat.convertPercentToRating(value)!;
+			ratingFromPercents ??= new Map<Stat, number>();
 			const counted = ratingFromPercents.get(rootStat);
 			ratingFromPercents.set(rootStat, counted === undefined ? rating : Math.max(counted, rating));
 		});
-		ratingFromPercents.forEach((rating, rootStat) => {
+		ratingFromPercents?.forEach((rating, rootStat) => {
 			total += rating * epWeights.stats[rootStat];
 		});
 		return total;
