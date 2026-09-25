@@ -8,9 +8,9 @@ vi.mock('@i18n/localization', () => ({
 
 import { TargetedActionMetrics } from './sim_result';
 
-// TBC calls a blocked critical hit `blockedCrit*` where MoP renamed the same three fields to
+// This proto calls a blocked critical hit `blockedCrit*` where MoP's names the same three fields
 // `critBlock*`. Both names exist in the two codebases and neither is a type error against the
-// other's proto, so pin TBC's.
+// other's proto, so pin this one's.
 describe('TargetedActionMetrics blocked-crit and crush getters', () => {
 	const metrics = (over: Partial<TargetedActionMetricsProto>) =>
 		new TargetedActionMetrics(TargetedActionMetricsProto.create(over), { iterations: 2, duration: 100 });
@@ -34,7 +34,7 @@ describe('TargetedActionMetrics blocked-crit and crush getters', () => {
 		expect(m.landedHitsRaw).toBe(12);
 	});
 
-	it('exposes the TBC-only crush family', () => {
+	it('exposes the crush family', () => {
 		const m = metrics({ hits: 10, crushes: 10, crushDamage: 4000 });
 		expect(m.crushes).toBe(5);
 		expect(m.crushDamage).toBe(4000);

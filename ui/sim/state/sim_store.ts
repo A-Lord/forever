@@ -180,7 +180,7 @@ export interface ReforgeSlice {
 	softCapBreakpoints: Array<StatCap>;
 	freezeItemSlots: boolean;
 	frozenItemSlots: Array<number>;
-	// TBC optimizes gems, not reforges: these three are the gem-pool knobs.
+	// The optimizer picks gems, not reforges: these three are the gem-pool knobs.
 	maxGemPhase: number;
 	maxGemQuality: ItemQuality;
 	disableUniqueGems: boolean;

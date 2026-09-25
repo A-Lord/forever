@@ -71,24 +71,20 @@ A spec is **data**. `ui/specs/<class>/<spec>/spec.ts` default-exports one `defin
 the only code file the spec owns besides `presets.ts` / `inputs.ts`. There is no `sim.ts`, no
 per-spec `index.ts`, and no `SimHostObject` subclass anywhere — `SimHostObject` is concrete and
 takes a `SpecDefinition<S>`, running the behaviour slots (`features` → `reforge` →
-`derivedSettings`) as its last constructor statements, exactly where a subclass body used to run.
+`derivedSettings`) as its last constructor statements.
 
 Adding one is three edits and no page:
 
-1. `ui/specs/<class>/<spec>/spec.ts`. Use `.ts`: **no TBC spec carries real JSX.** The source port
-   had two specs with a computed reforge tooltip; TBC has no equivalent. Of TBC's two pre-port
-   `.tsx` spec files, mage/dps's carried no JSX whatsoever and warlock/dps's only JSX was
-   tsx-vanilla DOM construction, which the React port replaced outright; neither file survives.
-   Promote to `.tsx` only if a spec genuinely renders a React element.
+1. `ui/specs/<class>/<spec>/spec.ts`. Use `.ts`: **no spec carries real JSX.** Promote to `.tsx`
+   only if a spec genuinely renders a React element.
 2. A `PlayerSpec` class in `ui/sim/player/specs/<class>.ts` with its `launch: { phase, status }`,
    exported through `ui/sim/player/specs/index.ts`. That field is the single source of truth for
    launch status: `ui/app/header/SimTitleDropdown/` reads it on a spec page, and the landing page
    (`ui/app/landing/`, entered from `ui/app/landing_entry.tsx`) builds its class menu and its per-spec
    status badges from `PlayerSpecs` via `ui/app/landing/landing_classes.ts`, not a hand-written list.
-3. A theme block in `ui/styles/theme/specs.css`. TBC's pre-port `_sim.scss` per spec sets both a
-   `--theme-color` (shared per class, e.g. every warrior spec references `$warrior`) and its own
-   background image (`dps-warrior` and `protection-warrior` use two different files) — 17 blocks,
-   not one per class. The source port is structured identically: class-grouped selector lists carry
+3. A theme block in `ui/styles/theme/specs.css`. Every spec has a `--theme-color` shared per class
+   and its own background image (`dps-warrior` and `protection-warrior` use two different files), so
+   the file has two halves: class-grouped selector lists carry
    `--theme-color`/`--theme-color-foreground`, and a separate per-spec rule carries
    `--theme-background-image`. A new spec needs an entry in both halves (see `ui/STYLING.md`).
 
@@ -119,35 +115,34 @@ encounters more than one class's presets reference) — live in
 
 Proto-serialisable preset data lives as JSON, never a TS literal: gear, APLs, builds, EP weights and
 talents under `ui/specs/<class>/<spec>/`. EP JSON stores enum fields **by name** (`"StatCritRating"`)
-so the file survives a proto regeneration. TBC's `SavedTalents` is a single `talentsString` field
+so the file survives a proto regeneration. `SavedTalents` is a single `talentsString` field
 (no glyphs, no per-talent enum), so a talent preset is just that string, not enum-resolved JSON.
 Anything that references a TS symbol or a callback — a computed EP preset via `.withStat()`, an
 `onLoad` handler — stays a TS literal.
 
 ## Localization
 
-TBC ships one locale, `en`. Every new user-facing string ships in `assets/locales/en/`, and a new key
+The tree ships one locale, `en`. Every new user-facing string ships in `assets/locales/en/`, and a new key
 needs a matching property in `schemas/<name>.schema.json` (`additionalProperties: false`). See
 `verification.md`. There is no second locale to keep in register with, so a key added to `en` is the
 whole change.
 
-## TBC quirks that look like bugs
+## Quirks that look like bugs
 
-- There is no raid sim UI, and never has been — TBC's individual sim models a one-party raid, and the
+- There is no raid sim UI — the individual sim models a one-party raid, and the
   `Raid` and `Party` model classes in `ui/sim` exist for that reason, not because a fuller raid sim UI
   was cut.
 - `PartyBuffs` (`proto/buffs.proto`) is a real, populated message here (`ferocious_inspiration`,
-  `blood_pact`, `moonkin_aura`, `leader_of_the_pack`, …) — unlike the source port's tree, where the
-  same message is empty and the party-buff code paths are vestigial. Do not carry that assumption
-  over: TBC's party-buff slice, subscription and picker are live code.
+  `blood_pact`, `moonkin_aura`, `leader_of_the_pack`, …), and its party-buff slice, subscription and
+  picker are live code, not vestigial paths to delete.
 
 ## Decisions already made — do not re-litigate without new evidence
 
-| Decision                                                     | Why                                                                                                                                                                                      |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `import/no-cycle` is off                                     | rejected on the source port's equivalent tree at 188 warnings; 63 here (46 `ui/sim`, 17 `ui/features`) — still a triage project, see `references/layers.md`. Cycles are caught by review |
-| Aliases are `tsconfig` `paths`, not `package.json` `imports` | `tsc` under `moduleResolution: "bundler"` does not resolve `#foo/*`                                                                                                                      |
-| Only `ui/app` may `createRoot`                               | lint-banned in ui-kit and features; createRoot-per-leaf was rejected                                                                                                                     |
-| `sections` is the only custom-section shape                  | one renderer, not two; `customSections` was deprecated, then deleted                                                                                                                     |
-| The move tool is gone                                        | move by hand and re-sort imports (see `layers.md`)                                                                                                                                       |
-| `oxfmt`, not prettier                                        | prettier is not a dependency; do not add a second formatter for `ui/`                                                                                                                    |
+| Decision                                                     | Why                                                                                                                                |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `import/no-cycle` is off                                     | 61 cycles (43 `ui/sim`, 17 `ui/features`, 1 `ui/i18n`) — a triage project, see `references/layers.md`. Cycles are caught by review |
+| Aliases are `tsconfig` `paths`, not `package.json` `imports` | `tsc` under `moduleResolution: "bundler"` does not resolve `#foo/*`                                                                |
+| Only `ui/app` may `createRoot`                               | lint-banned in ui-kit and features; createRoot-per-leaf was rejected                                                               |
+| `sections` is the only custom-section shape                  | one renderer, not two; `customSections` was deprecated, then deleted                                                               |
+| The move tool is gone                                        | move by hand and re-sort imports (see `layers.md`)                                                                                 |
+| `oxfmt`, not prettier                                        | prettier is not a dependency; do not add a second formatter for `ui/`                                                              |

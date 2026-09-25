@@ -119,7 +119,7 @@ APLs (`apls/*.apl.json`), builds (`builds/*.build.json`), EP weights (`presets/e
 talents (`presets/talents/*.talents.json`) under `ui/specs/<class>/<spec>/`. EP JSON stores enum
 fields by name (e.g. `"StatCritRating"`) rather than numeric value, so the file stays stable across
 proto regenerations; `PresetUtils.makePresetEpWeightsFromJSON` resolves the names back through the
-enum (`Stat`/`PseudoStat`) and builds the preset the same way the old literal call did. TBC's
+enum (`Stat`/`PseudoStat`) and builds the preset from them. The
 `SavedTalents` proto is a single `talentsString` field — there is no per-talent enum to resolve, so
 `makePresetTalentsFromJSON` just wraps the string. Anything that references a TS symbol or a
 callback (a computed EP preset built from another via `.withStat()`, an `onLoad` handler) stays a
@@ -169,8 +169,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 ```
 
 `SpecDefinition` is `IndividualSimUIConfig` plus `spec` plus the optional `SpecBehaviors`
-(`reforge`, `enableHealing`, `derivedSettings`, `features`) — the four things spec constructors
-used to do by hand. `defineSpec` is an identity function; it exists only so the object is
+(`reforge`, `enableHealing`, `derivedSettings`, `features`). `defineSpec` is an identity function; it exists only so the object is
 checked without an annotation that would widen the literal spec type. Pass the spec as an
 explicit type argument so `Player<Spec.SpecX>` callbacks keep their narrow type.
 
@@ -210,10 +209,7 @@ The `getEPDefaults` / `updateSoftCaps` callbacks receive `(…, player, ctx)` wh
 `ui/index_template.html`. It derives the module key from `location.pathname`
 (`/forever/<class>/<spec>/` → `../specs/<class>/<spec>/spec`), loads it from a lazy
 `import.meta.glob('../specs/*/*/spec.{ts,tsx}')` — `.tsx` only for a spec module that carries real
-JSX, which today is **none of TBC's 17**. (Of the two pre-port `.tsx` spec files, mage/dps's carried
-no JSX at all and warlock/dps's only JSX was `appendChild(<p>)` / `(<></>) as HTMLElement`
-tsx-vanilla DOM construction that the React port replaced outright; neither file survives.)
-Default every spec to `.ts` — so each spec ships its own chunk and only the
+JSX, which today is **none of them**. Default every spec to `.ts` — so each spec ships its own chunk and only the
 visited one is fetched — then:
 
 ```
@@ -227,12 +223,10 @@ ordering matters, and `spec_entry.ts` is the only place it is expressed.
 
 `SimHostObject` is concrete — a spec does not subclass it. Its constructor takes a
 `SpecDefinition<S>`, and runs the behaviour slots (features → reforge → derivedSettings) as its
-last statements, exactly where a subclass constructor body used to run. `derivedSettings` runs
-`apply` once there (before defaults load, mirroring the old constructor timing) and then again
+last statements. `derivedSettings` runs `apply` once there (before defaults load) and then again
 whenever `subscribe`'s source fires — including when the defaults land.
 
-All 17 specs are converted: there is no `sim.ts`, no per-spec `index.ts` and no
-`SimHostObject` subclass anywhere. Adding a spec is:
+There is no `sim.ts`, no per-spec `index.ts` and no `SimHostObject` subclass anywhere. Adding a spec is:
 
 1. `ui/specs/<class>/<spec>/spec.ts` (or `.tsx`) default-exporting `defineSpec({...})`, plus its
    `presets.ts` / `inputs.ts`.
@@ -241,11 +235,10 @@ All 17 specs are converted: there is no `sim.ts`, no per-spec `index.ts` and no
    single source of truth for launch status, read by the sim dropdown and the landing page
    (`ui/app/landing/` renders the landing page's sim links from `PlayerSpecs`, no hand-written
    list; a class row's badge is the roll-up of its specs', in `landing_classes.ts`).
-3. A theme block in `ui/styles/theme/specs.css`. TBC's pre-port per-spec `_sim.scss` sets a
-   `--theme-color` shared per class but its own background image per spec (`dps-warrior` and
-   `protection-warrior` use different files) — 17 blocks, not one reused per class. This is the
-   same split the source port uses: `--theme-color`/`--theme-color-foreground` in selector lists
-   grouped by class, then one `--theme-background-image` rule per spec. A new spec needs both.
+3. A theme block in `ui/styles/theme/specs.css`. Every spec has a `--theme-color` shared per class
+   but its own background image (`dps-warrior` and `protection-warrior` use different files), so
+   the file splits in two: `--theme-color`/`--theme-color-foreground` in selector lists grouped by
+   class, then one `--theme-background-image` rule per spec. A new spec needs both.
 
 The page itself is not one of the steps: there is no per-spec `index.html`, in the source tree or
 anywhere else. `ui/index_template.html` is the _one_ spec page, and `tools/vite/spec_pages.mts`
@@ -270,8 +263,7 @@ page translates through `i18n.t` as it renders and calls `updateLandingPageMetad
 and `<meta name="description">`.
 
 Anything shared by several specs of the same class lives in `ui/specs/<class>/shared/`, under a
-fixed name: `inputs.ts` for the input configs that would otherwise sit at the pre-port
-`<class>/inputs.ts`, and `presets.ts` for encounter presets, EP-breakpoint tables and a class's
+fixed name: `inputs.ts` for the input configs its specs share, and `presets.ts` for encounter presets, EP-breakpoint tables and a class's
 `DefaultRaidBuffs` where its specs share one raid-buff default. Only the classes that need it have
 the directory — today `shaman/shared/inputs.ts` and `warrior/shared/{inputs,presets}.ts`; druid's
 four specs and paladin's three share nothing at this level, so there is no `druid/shared/` or

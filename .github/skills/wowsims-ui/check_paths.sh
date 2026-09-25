@@ -25,11 +25,7 @@ repo=$(CDPATH= cd -- "$here/../../.." && pwd)
 cd "$repo"
 
 # Paths this skill names precisely because they are gone.
-ABSENT_BY_DESIGN="ui/core
-ui/scss
-ui/index.ts
-ui/sim/proto/action_id/dom.ts
-ui/worker/highs.js"
+ABSENT_BY_DESIGN="ui/worker/highs.js"
 
 fail=0
 

@@ -12,7 +12,7 @@ import { sum } from '../utils/math';
 
 export const NUM_SPECS = getEnumValues(Spec).length;
 
-// Converts '1231321-12313123-0' to [13, 16, 0]. TBC talent strings are one run of per-row digits
+// Converts '1231321-12313123-0' to [13, 16, 0]. Talent strings are one run of per-row digits
 // per tree, so the interesting number is the per-tree total and not the digits themselves.
 export function getTalentTreePoints(talentsString: string): Array<number> {
 	const trees = talentsString.split('-');

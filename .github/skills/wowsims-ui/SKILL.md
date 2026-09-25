@@ -1,6 +1,6 @@
 ---
 name: wowsims-ui
-description: 'Work on the wowsims TBC frontend, ui/ (React 19 + TypeScript). Use when touching ui/sim (the Sim/Player/Raid/Encounter facades, the Zustand store in ui/sim/state, the store hooks in ui/sim/hooks, batching, persistence, the IndividualSimSettings envelope), ui/ui-kit, ui/features, ui/app, ui/i18n, ui/specs or ui/generated/proto; when an import trips the oxlint layer rules; or when a UI change needs verifying (type-check, lint, vitest, a dev-server or real-sim smoke). Start here, then open the one file under references/ that owns the subject — the routing table is in this file.'
+description: 'Work on the wowsims Forever frontend, ui/ (React 19 + TypeScript). Use when touching ui/sim (the Sim/Player/Raid/Encounter facades, the Zustand store in ui/sim/state, the store hooks in ui/sim/hooks, batching, persistence, the IndividualSimSettings envelope), ui/ui-kit, ui/features, ui/app, ui/i18n, ui/specs or ui/generated/proto; when an import trips the oxlint layer rules; or when a UI change needs verifying (type-check, lint, vitest, a dev-server or real-sim smoke). Start here, then open the one file under references/ that owns the subject — the routing table is in this file.'
 ---
 
 # wowsims-ui
@@ -9,20 +9,14 @@ description: 'Work on the wowsims TBC frontend, ui/ (React 19 + TypeScript). Use
 Go compiled to WASM behind `ui/worker/*`; the UI only ever speaks protobuf to it, so nothing in
 `ui/` models combat.
 
-This layout — and this skill — are ported from wowsims/mop's React/Tailwind migration
-(wowsims/mop#1579). TBC differs from that source in ways load-bearing enough to change the docs, not
-just the paths: 17 specs instead of 34 (no death knight, no monk, and TBC collapses several specs
-MoP splits, e.g. one `mage/dps` instead of `mage/{arcane,fire,frost}`), no glyphs anywhere in the
-proto or the locale set, `en` is the only shipped locale, and talents are classic three-tree/61-point
-TBC talents rather than MoP's row-gated trees.
+Facts about this tree that change the docs, not just the paths: several classes have a single spec
+page (one `mage/dps`, one `hunter/dps`), there are no glyphs anywhere in the proto or the locale set,
+`en` is the only shipped locale, and talents are three free-form trees.
 
-The view layer is **React 19**, and it is now the only dialect. The `tsx-vanilla` runtime that half
-of `ui/` used to be written in has been retired: the package is uninstalled, no file carries a
-`@jsxImportSource` pragma, and the shim they pointed at is deleted — along with the vanilla
-`Component`/`Input` stack and every picker built on it, tippy, and the `ui/index.ts` entry that
-booted the old landing page. Bootstrap and SCSS are gone too, JavaScript and stylesheet both: there
-is no `.scss` file anywhere in `ui/`, both HTML entries link a single `ui/styles/style.css`, and
-`form-control`/`d-none`/`btn` are retired class names, not classes to reach for. Styling is Tailwind
+The view layer is **React 19**, and it is the only dialect: no file carries a `@jsxImportSource`
+pragma, and there is no Bootstrap, no tippy and no `.scss` file anywhere in `ui/`. Both HTML entries
+link a single `ui/styles/style.css`, and `form-control`/`d-none`/`btn` are retired class names, not
+classes to reach for. Styling is Tailwind
 utilities plus co-located `ui-*` composition classes — see `ui/STYLING.md`.
 
 What the view is built from — reach for the existing thing before writing a new one:
@@ -97,27 +91,21 @@ which gate catches which class of mistake.
 
 ## Working on this tree
 
-The port is finished: `ui/core`, `ui/scss` and the eleven per-class spec directories are gone, the
-whole repo type-checks, and every gate in `references/verification.md` runs against the layout above.
-Two habits survive from the migration because they are about this machine, not about the port:
+The whole repo type-checks, and every gate in `references/verification.md` runs against the layout
+above. Two habits are about this machine:
 
 - **Every diff uses `/usr/bin/diff`.** The bare `diff` here is wrapper-intercepted and has produced a
   false "files are identical" reading — never trust it. The same goes for `grep` and `find`, and
   `rtk` compresses some command output: if a result looks summarised rather than raw, re-run it
   through `rtk proxy` or redirect to a file and read that.
-- **Rename detection needs the full `-- ui/` pathspec.** The restructure moved files across
-  top-level directories, so a pathspec naming only a source directory filters away every
-  destination and reports plain deletions with zero renames — a convincing-looking "this file has no
-  ancestor" that is purely an artefact of the query. Compare `master..<branch> -- ui/` when reviewing
-  the port's history. Eight files genuinely have no lineage even then — `bulk_tab.tsx`,
-  `character_stats.tsx`, `talents_picker.tsx`, `suggest_reforges_action.tsx`, `apl_helpers.tsx`,
-  `preset_configuration_picker.tsx`, `individual_sim_ui.tsx` and `encounter.ts` — because they are
-  rewrites driven from the TBC original as a behavioural spec, not diff-and-reapply.
+- **Rename detection needs the full `-- ui/` pathspec.** Files move across top-level `ui/`
+  directories, so a pathspec naming only a source directory filters away every destination and
+  reports plain deletions with zero renames — a convincing-looking "this file has no ancestor" that
+  is purely an artefact of the query. Compare `<base>..<branch> -- ui/`.
 
 ## Keeping this skill true
 
-The old version of this file rotted because it described the tree in prose and nothing checked the
-prose. Two rules keep that from recurring.
+Prose that nothing checks rots. Two rules keep this skill true.
 
 **Point at code, not at copies of code.** Every reference file opens with a _Source of truth_ line
 naming the file that defines the behaviour and a command that re-derives the claim. When the two
@@ -143,9 +131,5 @@ Then run the path check, which fails on any file this skill names that no longer
 .github/skills/wowsims-ui/check_paths.sh
 ```
 
-There is no change log here any more. It was 73% of this file, it was a worse copy of
-`git log`, and by the end it was naming three tools that had been deleted. The narrative is still
-in git — `git log --oneline -- .github/skills/wowsims-ui/SKILL.md`, then `git show <rev>:<path>` —
-and every claim from it that was still load-bearing was promoted into the reference file that owns
-the subject. Facts about how the UI works go in a reference; the record of when they changed stays
-in git.
+There is no change log here. Facts about how the UI works go in a reference; the record of when
+they changed stays in git (`git log --oneline -- .github/skills/wowsims-ui/`).

@@ -939,9 +939,9 @@ export class Sim {
 		if (newShowThreatMetrics != this.ui.showThreatMetrics) this.setUi({ showThreatMetrics: newShowThreatMetrics });
 	}
 
-	// Upstream ORs in "threat metrics on, and the player is a tank", with its own tank list. TBC's
-	// is a plain field read, and `toProto` serializes whatever this returns — so the derived form
-	// writes showHealingMetrics: true into all three tank specs' saved settings.
+	// A plain field read with no "threat metrics on, and the player is a tank" term: `toProto`
+	// serializes whatever this returns, so a derived form would write showHealingMetrics: true into
+	// every tank spec's saved settings.
 	getShowHealingMetrics(): boolean {
 		return this.ui.showHealingMetrics;
 	}
@@ -1054,7 +1054,7 @@ export class Sim {
 			const filters = proto.filters || this.defaultFilters();
 			if (filters.armorTypes.length == 0) {
 				if (this.type == SimType.SimTypeIndividual) {
-					// TBC has no armor specialization, so a class can wear every armor type it
+					// There is no armor specialization, so a class can wear every armor type it
 					// is proficient in -- a druid leather and cloth, a shaman mail down to cloth.
 					filters.armorTypes = this.raid.getActivePlayers()[0].getPlayerClass().armorTypes.slice();
 				} else {

@@ -76,8 +76,8 @@ Subscribe through `ui/sim/state/subscriptions.ts`, never by hand:
   only non-selector sources fall back to one fire per source.
 
 Everything above is **batch-gated** through `subscribeGated` (`ui/sim/state/batch.ts`): inside
-`batch(() => …)` a subscriber is deferred and fires once at the end with final state. `batch()`
-replaced `freezeAllAndDo` and logs errors the same way. `TypedEvent` is gone.
+`batch(() => …)` a subscriber is deferred and fires once at the end with final state. An error
+thrown inside `batch()` is logged rather than propagated, and pending listeners still flush.
 
 Aggregates deliberately exclude server-derived state: `PLAYER_CHANGE_FIELDS` drops `currentStats`
 and `simSettingsKey` drops the rng seed and metadata counters. Including them makes stat
@@ -216,8 +216,7 @@ disappears.
 
 **Lists.** A picker that hands a list to `ListPicker` must return a COPY from `getValue`
 (`.slice()`), never the live store array. `ListPicker.tsx` splices the array `getValue` returns, in
-place, and relies on the store notification to re-render — the React port kept that behaviour
-deliberately. Confirm with `/usr/bin/grep -n splice ui/ui-kit/ListPicker/ListPicker.tsx`.
+place, and relies on the store notification to re-render, deliberately. Confirm with `/usr/bin/grep -n splice ui/ui-kit/ListPicker/ListPicker.tsx`.
 
 ## Adding a field
 

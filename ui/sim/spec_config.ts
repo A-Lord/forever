@@ -68,7 +68,7 @@ export interface OtherDefaults {
 	highHpThreshold?: number;
 	iterationCount?: number;
 	race?: Race;
-	// TBC-only: applied by applyIndividualDefaults after the encounter defaults.
+	// Applied by applyIndividualDefaults after the encounter defaults.
 	healingModel?: HealingModel;
 }
 

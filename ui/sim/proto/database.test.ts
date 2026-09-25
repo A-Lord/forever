@@ -39,8 +39,8 @@ describe('Database.get', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(3);
 	}, 30000);
 
-	// The regression this exists for: the memo used to hold the rejected promise for the page
-	// lifetime, so every later caller awaited the same failure and the app could not recover.
+	// A memo that held the rejected promise for the page lifetime would make every later caller
+	// await the same failure, and the app could not recover.
 	it('does not memoize a failure — a later call tries again and can succeed', async () => {
 		const fetchMock = vi.fn().mockRejectedValue(new Error('offline'));
 		vi.stubGlobal('fetch', fetchMock);

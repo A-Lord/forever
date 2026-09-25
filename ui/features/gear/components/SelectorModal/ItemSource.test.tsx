@@ -9,8 +9,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ItemSource } from './ItemSource';
 
-// A TBC faction whose quartermaster is known. Named here rather than read out of the shared tables
-// so the rep case still asserts the wiring while `@sim/proto/names` is being ported.
+// A faction whose quartermaster is known. Named here rather than read out of the shared tables so
+// the rep case asserts the wiring on its own.
 const REP_FACTION = RepFaction.RepFactionTheConsortium;
 
 interface DbStub {

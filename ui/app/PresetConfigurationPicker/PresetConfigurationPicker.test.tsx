@@ -104,7 +104,7 @@ describe('PresetConfigurationPicker', () => {
 	});
 });
 
-// TBC-only: a spec whose builds carry a phase gets the tab bar, and only the chosen phase's chips.
+// A spec whose builds carry a phase gets the tab bar, and only the chosen phase's chips.
 describe('PresetConfigurationPicker, grouped by phase', () => {
 	const phased = [
 		{ name: 'P1', gear: {}, phase: 1 },

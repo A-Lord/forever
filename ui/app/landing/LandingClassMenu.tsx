@@ -27,12 +27,11 @@ export const LandingClassMenu = ({ playerClass }: LandingClassMenuProps) => {
 	const className = translatePlayerClass(playerClass);
 	const specs = Object.values(playerClass.specs) as Array<PlayerSpec<any>>;
 	// Priest's class-level icon (`getIcon`) is a spell icon (spell_shadow_shadowwordpain), not the
-	// generic class_*.jpg every other class returns; the pre-port landing page hardcoded class_priest.jpg here.
+	// generic class_*.jpg every other class returns, so the landing page hardcodes class_priest.jpg here.
 	const classIconPath =
 		playerClass.classID === Class.ClassPriest ? 'https://wow.zamimg.com/images/wow/icons/large/class_priest.jpg' : playerClass.getIcon('large');
 
-	// Five of TBC's nine classes have a single spec, and the pre-port page linked straight to it
-	// rather than opening a one-entry menu.
+	// A class with a single spec links straight to it rather than opening a one-entry menu.
 	if (specs.length === 1) {
 		const [spec] = specs;
 		return (

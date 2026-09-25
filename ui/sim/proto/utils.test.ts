@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { adjustWeaponImbueId, DENSE_SHARPENING_STONE_ID, DENSE_WEIGHTSTONE_ID, getTalentPoints, getTalentTreePoints } from './utils';
 
-// TBC talent strings are one dash-separated run of per-row digits per tree, so the number a caller
-// wants is the per-tree total. MoP's factory returns the digits themselves; swapping the two
-// type-checks cleanly and quietly breaks talent-preset auto-matching.
+// Talent strings are one dash-separated run of per-row digits per tree, so the number a caller
+// wants is the per-tree total. Returning the digits instead type-checks cleanly and quietly breaks
+// talent-preset auto-matching.
 describe('getTalentTreePoints', () => {
 	it('sums each tree, and reads an empty middle tree as zero', () => {
-		// A real TBC default (feral druid): the middle tree is empty, spelled as '--'.
+		// A feral druid talent string: the middle tree is empty, spelled as '--'.
 		expect(getTalentTreePoints('2500052300030150330125--053500031003001')).toEqual([40, 0, 21]);
 	});
 

@@ -206,8 +206,7 @@ export function subscribeSimChange(sim: Sim): StoreSubscribe {
 	return cached(sim, 'change', () => fromSelector(sim.store, s => [...simSettingsKey(s), s.encounter, ...raidTuple(s)], shallowArrayEquals));
 }
 
-// Party buffs for one party. Unlike MoP's, where the message is vestigial, TBC's
-// PartyBuffs is populated and drives a picker row of its own.
+// Party buffs for one party. PartyBuffs is populated and drives a picker row of its own.
 export function subscribePartyBuffs(party: Party): StoreSubscribe {
 	const index = party.getIndex();
 	return cached(party, 'buffs', () => fromSelector(party.sim.store, s => s.raid.partyBuffs[index]));

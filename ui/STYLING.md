@@ -64,10 +64,10 @@ the root.
 
 **Spec themes are CSS variables, not per-spec CSS.** `ui/styles/theme/specs.css`'s `.sim-ui` block
 declares `--color-primary`/`--color-primary-foreground` from `--theme-color`/`--theme-color-foreground`, and
-17 per-spec blocks (e.g. `.dps-warrior-sim-ui { --theme-color: var(--color-class-warrior); … }` and
+one block per spec (e.g. `.dps-warrior-sim-ui { --theme-color: var(--color-class-warrior); … }` and
 `.protection-warrior-sim-ui { --theme-color: var(--color-class-warrior); … }`, each with its own
-background-image variable — TBC's pre-port `_sim.scss` gives every spec its own background even
-where two specs of a class share `--theme-color`) set those variables. A component never needs a
+background-image variable — every spec has its own background even where two specs of a class
+share `--theme-color`) set those variables. A component never needs a
 spec-aware variant —
 `bg-primary`/`text-primary`/`border-primary` already re-theme per spec because the sim root carries
 the spec's class. Derived shades (`--color-primary-hover/-active/-dampened/-disabled`) are
@@ -110,7 +110,7 @@ Rules:
   `::after`), and element/descendant parts are allowed _inside_ a `ui-*` rule, but the file may never
   target a semantic hook class, a `data-testid`, or a raw element selector at the top level. The two
   exceptions are `ui/styles/theme/specs.css` (the spec theme selectors) and `vendor.css` (see below).
-- Built with `@apply`, unlayered classes stay unlayered (until the global element rules that used to
+- Built with `@apply`, unlayered classes stay unlayered (until the global element rules that
   fight them are fully gone); the file itself lives inside `@layer components` in the ones written so
   far, matching the layer order declared in `style.css:1`.
 - No comments — including lint-disable directives — in any `ui/` `.css` file, same rule as `.ts`/`.tsx`.
@@ -185,7 +185,7 @@ is a review rule on this tree, not a checked one.
 - **`data-testid` value convention:** when a class hook is retired and something still needs to find
   the element, the testid keeps the old class name verbatim (`className="apl-list-item-picker"` →
   `data-testid="apl-list-item-picker"`), so the mechanical rewrite is a search-and-replace and every
-  `\.name(\.|$)` regex a tool used to run against the class keeps matching the testid instead. An
+  `\.name(\.|$)` regex a tool runs against the class keeps matching the testid instead. An
   _unread_ hook is just deleted — don't add a testid nobody consumes.
 - **`data-testid` is never a styling hook.** No `.css` rule, `@apply` selector, or TSX arbitrary
   variant may key off `[data-testid=…]`; `class-hooks.mjs`'s `findTestidStyling()` is the check for

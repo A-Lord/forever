@@ -1428,9 +1428,9 @@ export class Player<SpecType extends Spec> {
 				return false;
 			}
 
-			// MoP drops gems whose positive stats are all outside the spec's EP/gem stat list. TBC
-			// does not: a meta's effect is not in its stat block at all, and the per-spec
-			// allowlist was found to hide gems people wanted. Every gem that reaches here is kept.
+			// No gem is dropped for having all its positive stats outside the spec's EP/gem stat
+			// list: a meta's effect is not in its stat block at all, and such a per-spec allowlist
+			// hides gems people want. Every gem that reaches here is kept.
 			return true;
 		});
 	}

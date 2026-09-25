@@ -21,7 +21,7 @@ const socketedItem = () =>
 const gem = (id: number) => Gem.create({ id, color: GemColor.GemColorRed });
 const enchant = (effectId: number) => Enchant.create({ effectId, itemId: effectId });
 
-// TBC's signature is equals(other, ignoreEnchants?, ignoreGems?) where MoP's is
+// This tree's signature is equals(other, ignoreEnchants?, ignoreGems?) where MoP's is
 // equals(other, ignoreReforge?, ignoreEnchants?, ignoreGems?, ignoreUpgrades?). A call written
 // against one silently means something else against the other, so pin the positions.
 describe('EquippedItem.equals', () => {

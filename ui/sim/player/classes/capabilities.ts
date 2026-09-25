@@ -33,6 +33,6 @@ export const getClassRaces = (classID: Class): Race[] => classRaces.get(classID)
 
 export const isSpecDualWieldCapable = (spec: Spec): boolean => dualWieldSpecs.has(spec);
 
-// TBC has no Titan's Grip, so no spec may wield a two-hander in the off hand. Kept as a
+// There is no Titan's Grip, so no spec may wield a two-hander in the off hand. Kept as a
 // function so the gear code that asks stays shape-compatible with the later expansions.
 export const isSpecDualWield2HCapable = (_spec: Spec): boolean => false;

@@ -115,8 +115,8 @@ done
 
 `npm run test:locales` runs `test-locales.mjs`, which compiles each `schemas/<name>.schema.json`
 with ajv and validates every `assets/locales/**/<name>.json` against it. Today that is `character`,
-`talents` and `translation` — TBC ships only `assets/locales/en/`, no second locale. There is no
-`glyphs` schema or locale file (TBC's proto has no `Glyphs` message). `gear.schema.json` exists but
+`talents` and `translation` — only `assets/locales/en/` ships, no second locale. There is no
+`glyphs` schema or locale file (the proto has no `Glyphs` message). `gear.schema.json` exists but
 matches no locale file, so it validates nothing; `assets/locales/en/updates.json` has no matching
 schema either, so it is never validated by this script.
 
@@ -157,7 +157,5 @@ then says "Nothing to be done". Re-derive rather than trusting this paragraph:
 ```
 
 A fourth generated TS file, `ui/sim/constants/missing_effects_auto_gen.ts`, is _not_ in that list and
-is not written by `-gen=go-to-ts`: `tools/database/gen_effects.go` emits it during full database
-generation, which needs `assets/db_inputs`. `ui/features/gear/item_notices.tsx` imports it, so a
-checkout without it fails `type-check`. That has always been true here — master has the same
-arrangement at the pre-port path — so copy the file in rather than trying to regenerate it.
+is not written by `-gen=go-to-ts`: it is tracked, and `tools/database/gen_effects.go` rewrites it
+during full database generation, which needs `assets/db_inputs`.
