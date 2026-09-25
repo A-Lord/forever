@@ -5,6 +5,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -36,12 +37,11 @@ var ItemSetJusticeBattlegear = core.NewItemSet(core.ItemSet{
 				AttachMultiplyCastSpeed(1.01).
 				ExposeToAPL(1300951)
 		},
-		4: func(_ core.Agent, setBonusAura *core.Aura) {
+		4: func(agent core.Agent, setBonusAura *core.Aura) {
 			// +36 Attack Power against Undead. The client's text says Demons; the effect's
 			// creature-type mask is Undead.
-			setBonusAura.
-				AttachMobTypeBonusStats(stats.Stats{stats.AttackPower: 36, stats.RangedAttackPower: 36}, proto.MobType_MobTypeUndead).
-				ExposeToAPL(1301084)
+			spelldata.ParseEffects(agent.GetCharacter(), setBonusAura, spelldata.MustFind(1301084))
+			setBonusAura.ExposeToAPL(1301084)
 		},
 		5: func(_ core.Agent, setBonusAura *core.Aura) {
 			// Reduces the cooldown on your Judgement spell by 0.5 sec.
