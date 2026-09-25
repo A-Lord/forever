@@ -20,8 +20,8 @@ export const BASE_PATH = path.resolve(__dirname, 'ui');
 export const OUT_DIR = path.join(__dirname, 'dist', 'forever');
 
 // The ui/ path aliases. Mirrored by `compilerOptions.paths` in tsconfig.json and by the
-// layering rules in .oxlintrc.json; shared with vite.harness.mts from here so the two vite
-// configs cannot drift.
+// layering rules in .oxlintrc.json; shared with vitest.config.mts from here so the site build and
+// the unit tests cannot drift.
 export const UI_ALIASES: Record<string, string> = {
 	'@sim': path.resolve(BASE_PATH, 'sim'),
 	'@generated': path.resolve(BASE_PATH, 'generated'),

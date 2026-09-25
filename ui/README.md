@@ -142,10 +142,10 @@ override banning `@app`/`@features`/`@ui-kit`/`@specs/**` (`@sim` is allowed).
 | `@specs/*`     | `ui/specs/*`     |
 | `@i18n/*`      | `ui/i18n/*`      |
 
-Configured via `tsconfig.json` (`paths`) and `resolve.alias` in `vite.config.mts`
-(`getBaseConfig`, inherited by worker builds) and `vite.harness.mts`. Node's `package.json`
-`imports` field was tried first but rejected: `tsc` under `moduleResolution: "bundler"` does not
-resolve `#foo/*` subpaths (it only works under `node16`/`nodenext`, and even then requires an
+Configured via `tsconfig.json` (`paths`) and `UI_ALIASES` in `vite.config.mts`, which
+`getBaseConfig` (inherited by worker builds) and `vitest.config.mts` both spread into
+`resolve.alias`. Node's `package.json` `imports` field was tried first but rejected: `tsc` under
+`moduleResolution: "bundler"` does not resolve `#foo/*` subpaths (it only works under `node16`/`nodenext`, and even then requires an
 explicit extension on every specifier).
 
 ## How to author a spec

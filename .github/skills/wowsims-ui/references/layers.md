@@ -75,8 +75,8 @@ line silently disables it.
 | `@i18n/*`      | `ui/i18n/*`      |
 
 Check with `node -e "console.log(require('./tsconfig.json').compilerOptions.paths)"`. The same table
-is `resolve.alias` in `vite.config.mts` (`getBaseConfig`, inherited by the worker builds) and in
-`vite.harness.mts`. All three must agree; a mismatch shows up as a type-check that passes and a
+is `UI_ALIASES` in `vite.config.mts`, which `getBaseConfig` (inherited by the worker builds) and
+`vitest.config.mts` both spread into `resolve.alias`. The two must agree; a mismatch shows up as a type-check that passes and a
 build that cannot resolve.
 
 Node's `package.json` `imports` field was tried first and rejected: `tsc` under
