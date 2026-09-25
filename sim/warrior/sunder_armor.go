@@ -7,8 +7,6 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// TODO: rank 1 reads a flat threat of 1, which looks like placeholder data next to the
-// rest of the ladder. Harmless while this pins the highest rank, but worth confirming.
 var sunderArmorRank = spellData.SunderArmor.Highest()
 
 func (warrior *Warrior) registerSunderArmor() {
