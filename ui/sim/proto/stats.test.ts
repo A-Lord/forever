@@ -14,12 +14,12 @@ import { displayStatOrder, Stats, UnitStat } from './stats';
 describe('UnitStat', () => {
 	// The MoP placeholder evaluated `displayStatOrder` at module scope against MoP's PseudoStat set
 	// and threw inside getRootStat on TBC's, taking every transitive importer down with it.
-	it('builds displayStatOrder at module scope over the 41-stat shape', () => {
+	it('builds displayStatOrder at module scope over the 38-stat shape', () => {
 		expect(displayStatOrder.length).toBeGreaterThan(0);
-		expect(new Stats().asProtoArray().length).toBe(41);
+		expect(new Stats().asProtoArray().length).toBe(38);
 	});
 
-	it('roots the six school hit pseudo-stats at SpellHitRating and leaves their own root null', () => {
+	it('lists the six school hit pseudo-stats under HitRating and leaves their own root null', () => {
 		const schools = [
 			PseudoStat.PseudoStatSchoolHitPercentArcane,
 			PseudoStat.PseudoStatSchoolHitPercentFire,
@@ -30,7 +30,7 @@ describe('UnitStat', () => {
 		];
 		for (const school of schools) {
 			expect(UnitStat.fromPseudoStat(school).hasRootStat()).toBe(false);
-			expect(UnitStat.getChildren(Stat.StatSpellHitRating)).toContain(school);
+			expect(UnitStat.getChildren(Stat.StatHitRating)).toContain(school);
 		}
 	});
 
@@ -42,12 +42,65 @@ describe('UnitStat', () => {
 		expect(percent.convertPercentToRating(6.5)).toBeCloseTo(6.5 * Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT);
 	});
 
-	// Melee and spell hit each convert through their own constant. Forever's CombatRatings
-	// gametable happens to give both the same value at level 60, where TBC's differed, so an
-	// accidentally shared constant would pass unnoticed today and break on the next retune.
-	it('converts melee and spell ratings through their own constants', () => {
-		expect(UnitStat.fromStat(Stat.StatMeleeHitRating).convertRatingToPercent(Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT)).toBeCloseTo(1);
-		expect(UnitStat.fromStat(Stat.StatSpellHitRating).convertRatingToPercent(Mechanics.SPELL_HIT_RATING_PER_HIT_PERCENT)).toBeCloseTo(1);
+	it('roots every melee, off-hand, ranged and spell percent at the one rating of its kind', () => {
+		const roots: Array<[PseudoStat, Stat]> = [
+			[PseudoStat.PseudoStatMeleeHitPercent, Stat.StatHitRating],
+			[PseudoStat.PseudoStatOffHandHitPercent, Stat.StatHitRating],
+			[PseudoStat.PseudoStatRangedHitPercent, Stat.StatHitRating],
+			[PseudoStat.PseudoStatSpellHitPercent, Stat.StatHitRating],
+			[PseudoStat.PseudoStatMeleeCritPercent, Stat.StatCritRating],
+			[PseudoStat.PseudoStatOffHandCritPercent, Stat.StatCritRating],
+			[PseudoStat.PseudoStatRangedCritPercent, Stat.StatCritRating],
+			[PseudoStat.PseudoStatSpellCritPercent, Stat.StatCritRating],
+			[PseudoStat.PseudoStatMeleeHastePercent, Stat.StatHasteRating],
+			[PseudoStat.PseudoStatRangedHastePercent, Stat.StatHasteRating],
+			[PseudoStat.PseudoStatSpellHastePercent, Stat.StatHasteRating],
+		];
+		for (const [pseudoStat, rating] of roots) {
+			expect(UnitStat.fromPseudoStat(pseudoStat).getRootStat()).toBe(rating);
+		}
+	});
+
+	it('lists the melee, ranged and spell percents as the children of each rating', () => {
+		expect(UnitStat.getChildren(Stat.StatHitRating).slice(0, 3)).toEqual([
+			PseudoStat.PseudoStatMeleeHitPercent,
+			PseudoStat.PseudoStatRangedHitPercent,
+			PseudoStat.PseudoStatSpellHitPercent,
+		]);
+		expect(UnitStat.getChildren(Stat.StatCritRating)).toEqual([
+			PseudoStat.PseudoStatMeleeCritPercent,
+			PseudoStat.PseudoStatRangedCritPercent,
+			PseudoStat.PseudoStatSpellCritPercent,
+		]);
+		expect(UnitStat.getChildren(Stat.StatHasteRating)).toEqual([
+			PseudoStat.PseudoStatMeleeHastePercent,
+			PseudoStat.PseudoStatRangedHastePercent,
+			PseudoStat.PseudoStatSpellHastePercent,
+		]);
+	});
+
+	it('leaves the per-attack rating pseudo-stats without a root', () => {
+		const ratings = [
+			PseudoStat.PseudoStatMainHandHitRating,
+			PseudoStat.PseudoStatMainHandCritRating,
+			PseudoStat.PseudoStatOffHandHitRating,
+			PseudoStat.PseudoStatOffHandCritRating,
+			PseudoStat.PseudoStatRangedHitRating,
+			PseudoStat.PseudoStatRangedCritRating,
+		];
+		for (const rating of ratings) {
+			expect(UnitStat.fromPseudoStat(rating).hasRootStat()).toBe(false);
+			expect(UnitStat.fromPseudoStat(rating).convertDefaultUnitsToRating(10)).toBeNull();
+		}
+	});
+
+	it('converts each rating and its percents through the one constant', () => {
+		expect(UnitStat.fromStat(Stat.StatHitRating).convertRatingToPercent(Mechanics.HIT_RATING_PER_HIT_PERCENT)).toBeCloseTo(1);
+		expect(UnitStat.fromStat(Stat.StatCritRating).convertRatingToPercent(Mechanics.CRIT_RATING_PER_CRIT_PERCENT)).toBeCloseTo(1);
+		expect(UnitStat.fromStat(Stat.StatHasteRating).convertRatingToPercent(Mechanics.HASTE_RATING_PER_HASTE_PERCENT)).toBeCloseTo(1);
+		expect(UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent).convertPercentToRating(1)).toBeCloseTo(Mechanics.HIT_RATING_PER_HIT_PERCENT);
+		expect(UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFire).convertPercentToRating(1)).toBeCloseTo(Mechanics.HIT_RATING_PER_HIT_PERCENT);
+		expect(UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent).convertPercentToRating(1)).toBeCloseTo(Mechanics.CRIT_RATING_PER_CRIT_PERCENT);
 	});
 
 	// The inverse of the parentStat case below: convertRatingToPercent has no branch for
@@ -78,7 +131,7 @@ describe('Stats.computeGapToCap', () => {
 	});
 
 	it('never reports an exactly-zero gap', () => {
-		const stats = new Stats().withStat(Stat.StatMeleeHitRating, 100);
-		expect(stats.computeGapToCap(UnitStat.fromStat(Stat.StatMeleeHitRating), 100)).toBeGreaterThan(0);
+		const stats = new Stats().withStat(Stat.StatHitRating, 100);
+		expect(stats.computeGapToCap(UnitStat.fromStat(Stat.StatHitRating), 100)).toBeGreaterThan(0);
 	});
 });

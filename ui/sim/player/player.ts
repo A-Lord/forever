@@ -831,6 +831,10 @@ export class Player<SpecType extends Spec> {
 		};
 	}
 
+	isDualWielding(): boolean {
+		return (this.getGear().getEquippedItem(ItemSlot.ItemSlotOffHand)?.item.weaponSpeed ?? 0) > 0;
+	}
+
 	getMeleeCritCapInfo(): MeleeCritCapInfo {
 		const currentStats = this.slice().currentStats;
 		const debuffStats = this.getDebuffStats();
@@ -848,7 +852,7 @@ export class Player<SpecType extends Spec> {
 		const oneHandHitCap = ({ 68: 4, 70: 5, 71: 6, 72: 7, 73: 8 }[targetLevel] ?? 4) + hitSuppression;
 		// DW Penalty is a fixed 19%
 		const dualWieldHitCap = oneHandHitCap + 19;
-		const hasOffhandWeapon = this.getGear().getEquippedItem(ItemSlot.ItemSlotOffHand)?.item.weaponSpeed !== undefined;
+		const hasOffhandWeapon = this.isDualWielding();
 		// Due to warrior HS bug, hit cap for crit cap calculation should be 8% instead of 27%
 		const meleeHitCap = hasOffhandWeapon && this.getClass() != Class.ClassWarrior ? dualWieldHitCap : oneHandHitCap;
 		const dodgeCap = { 68: 4, 70: 5, 71: 5.5, 72: 6, 73: 6.5 }[targetLevel] ?? 4;
