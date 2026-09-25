@@ -14,6 +14,7 @@ type OnItemSwap func(*Simulation, proto.ItemSlot)
 type ItemSwap struct {
 	character           *Character
 	onItemSwapCallbacks [NumItemSlots][]OnItemSwap
+	onWeaponChange      []func(*Simulation)
 
 	isFeralDruid bool
 
@@ -129,6 +130,19 @@ func (character *Character) RegisterItemSwapCallback(slots []proto.ItemSlot, cal
 	for _, slot := range slots {
 		character.ItemSwap.onItemSwapCallbacks[slot] = append(character.ItemSwap.onItemSwapCallbacks[slot], callback)
 	}
+}
+
+// Runs the callback once per swap that changes the item in a weapon slot, after every slot is swapped.
+func (character *Character) RegisterWeaponChangeCallback(callback func(*Simulation)) {
+	if character == nil || !character.ItemSwap.IsEnabled() {
+		return
+	}
+
+	if (character.Env != nil) && character.Env.IsFinalized() {
+		panic("Tried to add a new weapon change callback in a finalized environment!")
+	}
+
+	character.ItemSwap.onWeaponChange = append(character.ItemSwap.onWeaponChange, callback)
 }
 
 // Helper for handling Item Effects that use the itemID to toggle the aura on and off
@@ -356,6 +370,7 @@ func (swap *ItemSwap) SwapItems(sim *Simulation, swapSet proto.APLActionItemSwap
 	character := swap.character
 	weaponSlotSwapped := false
 	isPrepull := sim.CurrentTime < 0
+	weapons := swap.weaponIDs()
 
 	for _, slot := range swap.slots {
 		if slot == proto.ItemSlot_ItemSlotMainHand || slot == proto.ItemSlot_ItemSlotOffHand || slot == proto.ItemSlot_ItemSlotRanged {
@@ -368,6 +383,12 @@ func (swap *ItemSwap) SwapItems(sim *Simulation, swapSet proto.APLActionItemSwap
 
 		for _, onSwapSlot := range swap.onItemSwapCallbacks[slot] {
 			onSwapSlot(sim, slot)
+		}
+	}
+
+	if swap.weaponIDs() != weapons {
+		for _, onWeaponChange := range swap.onWeaponChange {
+			onWeaponChange(sim)
 		}
 	}
 
@@ -395,6 +416,15 @@ func (swap *ItemSwap) SwapItems(sim *Simulation, swapSet proto.APLActionItemSwap
 	swap.itemSwapAuras[swapSet].Activate(sim)
 
 	swap.swapSet = swapSet
+}
+
+func (swap *ItemSwap) weaponIDs() [3]int32 {
+	equipment := &swap.character.Equipment
+	return [3]int32{
+		equipment[proto.ItemSlot_ItemSlotMainHand].ID,
+		equipment[proto.ItemSlot_ItemSlotOffHand].ID,
+		equipment[proto.ItemSlot_ItemSlotRanged].ID,
+	}
 }
 
 func (swap *ItemSwap) swapItem(sim *Simulation, slot proto.ItemSlot, isPrepull bool, isReset bool) {

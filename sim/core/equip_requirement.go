@@ -22,15 +22,13 @@ func (req EquipRequirement) IsZero() bool {
 // main hand's for a main-hand bit, else the off hand's, else the ranged slot's. An attack with no
 // weapon bit, a unit that is not a player, and a shield or held item in the off hand never match.
 func (req EquipRequirement) Matches(unit *Unit, spellProcMask ProcMask) bool {
-	if unit == nil || unit.Type != PlayerUnit || unit.Env == nil {
-		return false
-	}
-	agent := unit.Env.Raid.GetPlayerFromUnit(unit)
-	if agent == nil {
-		return false
-	}
-	equipment := &agent.GetCharacter().Equipment
+	return req.matchesEquipment(unit.playerEquipment(), spellProcMask)
+}
 
+func (req EquipRequirement) matchesEquipment(equipment *Equipment, spellProcMask ProcMask) bool {
+	if equipment == nil {
+		return false
+	}
 	if req.Hand != 0 {
 		spellProcMask &= req.Hand
 	}
@@ -47,6 +45,18 @@ func (req EquipRequirement) Matches(unit *Unit, spellProcMask ProcMask) bool {
 	}
 
 	return req.matchesItem(slot, &equipment[slot])
+}
+
+// The equipment of the player the unit is, or nil for any other unit.
+func (unit *Unit) playerEquipment() *Equipment {
+	if unit == nil || unit.Type != PlayerUnit || unit.Env == nil {
+		return nil
+	}
+	agent := unit.Env.Raid.GetPlayerFromUnit(unit)
+	if agent == nil {
+		return nil
+	}
+	return &agent.GetCharacter().Equipment
 }
 
 func (req EquipRequirement) matchesItem(slot proto.ItemSlot, item *Item) bool {

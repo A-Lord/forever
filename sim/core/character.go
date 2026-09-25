@@ -366,7 +366,7 @@ func (character *Character) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 func (character *Character) initialize(agent Agent) {
 	character.majorCooldownManager.initialize(character)
 	character.ItemSwap.initialize(character)
-	character.RegisterItemSwapCallback(AllWeaponSlots(), func(_ *Simulation, _ proto.ItemSlot) {
+	character.RegisterWeaponChangeCallback(func(_ *Simulation) {
 		character.refilterEquipMods()
 	})
 

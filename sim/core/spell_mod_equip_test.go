@@ -247,6 +247,29 @@ func TestSubclassModFollowsAnItemSwap(t *testing.T) {
 	check("mod turned on with the sword in the off hand", 0, 5)
 }
 
+func TestWeaponChangeRunsOncePerSwapThatMovesAWeapon(t *testing.T) {
+	sim, character := setupWeaponSim(t,
+		weaponSlots(equipTestSwordID, equipTestDaggerID, 0),
+		weaponSlots(equipTestDaggerID, equipTestSwordID, 0))
+	calls := 0
+	character.ItemSwap.onWeaponChange = append(character.ItemSwap.onWeaponChange, func(*Simulation) { calls++ })
+
+	for _, step := range []struct {
+		when string
+		swap func()
+		want int
+	}{
+		{"swapped", func() { character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false) }, 1},
+		{"reset to the main set", func() { character.ItemSwap.reset(sim) }, 2},
+		{"reset again", func() { character.ItemSwap.reset(sim) }, 2},
+	} {
+		step.swap()
+		if calls != step.want {
+			t.Errorf("%s: the weapon change ran %d times, want %d", step.when, calls, step.want)
+		}
+	}
+}
+
 func TestScopedBonusPercentMatchesTheAutos(t *testing.T) {
 	_, character := setupWeaponSim(t, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
 	mhAuto, ohAuto, rangedAuto := character.AutoAttacks.MHAuto(), character.AutoAttacks.OHAuto(), character.AutoAttacks.RangedAuto()

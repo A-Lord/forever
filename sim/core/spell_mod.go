@@ -53,6 +53,7 @@ type SpellMod struct {
 	SpellFlag      SpellFlag
 	ResourceType   proto.ResourceType
 	Equip          EquipRequirement
+	equipment      *Equipment
 	FromRating     bool
 	floatValue     float64
 	intValue       int32
@@ -154,6 +155,10 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		OnReset:      resetFn,
 	}
 	unit.spellMods = append(unit.spellMods, mod)
+	if !mod.Equip.IsZero() {
+		mod.equipment = unit.playerEquipment()
+		unit.equipMods = append(unit.equipMods, mod)
+	}
 
 	unit.OnSpellRegistered(func(spell *Spell) {
 		if shouldApply(spell, mod) {
@@ -248,12 +253,13 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	// A magic-defense spell rolls on the spell tables, which no weapon's bonus reaches.
-	if !mod.Equip.IsZero() && (spell.DefenseType == DefenseTypeMagic || !mod.Equip.Matches(spell.Unit, spell.ProcMask)) {
+	if mod.SpellFlag > 0 && !mod.SpellFlag.Matches(spell.Flags) {
 		return false
 	}
 
-	if mod.SpellFlag > 0 && !mod.SpellFlag.Matches(spell.Flags) {
+	// A magic-defense spell rolls on the spell tables, which no weapon's bonus reaches.
+	if !mod.Equip.IsZero() && (spell.DefenseType == DefenseTypeMagic || spell.Unit.Type != PlayerUnit ||
+		!mod.Equip.matchesEquipment(mod.equipment, spell.ProcMask)) {
 		return false
 	}
 
@@ -261,18 +267,19 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 }
 
 func (unit *Unit) refilterEquipMods() {
-	for _, mod := range unit.spellMods {
-		if mod.Equip.IsZero() {
+	for _, mod := range unit.equipMods {
+		var affected []*Spell
+		for _, spell := range unit.Spellbook {
+			if shouldApply(spell, mod) {
+				affected = append(affected, spell)
+			}
+		}
+		if slices.Equal(affected, mod.AffectedSpells) {
 			continue
 		}
 		wasActive := mod.IsActive
 		mod.Deactivate()
-		mod.AffectedSpells = mod.AffectedSpells[:0]
-		for _, spell := range unit.Spellbook {
-			if shouldApply(spell, mod) {
-				mod.AffectedSpells = append(mod.AffectedSpells, spell)
-			}
-		}
+		mod.AffectedSpells = affected
 		if wasActive {
 			mod.Activate()
 		}

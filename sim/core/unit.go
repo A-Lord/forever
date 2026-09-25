@@ -130,6 +130,7 @@ type Unit struct {
 	spellRegistrationHandlers []SpellRegisteredHandler
 
 	spellMods []*SpellMod
+	equipMods []*SpellMod
 
 	// Pets owned by this Unit.
 	PetAgents []PetAgent
