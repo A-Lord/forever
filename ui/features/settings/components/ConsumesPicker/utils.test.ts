@@ -22,7 +22,6 @@ const grouped = (type: ConsumableType) => (id: number, name: string, stats: Arra
 const elixir = grouped(ConsumableType.ConsumableTypeElixir);
 const scroll = grouped(ConsumableType.ConsumableTypeScroll);
 const other = grouped(ConsumableType.ConsumableTypeOther);
-// A_MOD_HIT_CHANCE 2: melee and ranged hit alone.
 const meleeHit = (food: Consumable) =>
 	Consumable.create({
 		...food,
@@ -83,7 +82,6 @@ interface PlayerState {
 	professions: Array<Profession>;
 	epStats: Array<Stat>;
 	displayStats: Array<UnitStat>;
-	// The spec's whole config, in place of the stat lists above.
 	specConfig?: SpecConfigData<any>;
 	windfury: boolean;
 	mainHand?: UIItem;
