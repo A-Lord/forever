@@ -1981,11 +1981,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"label",
-								"tooltip",
-								"no_ammo"
-							]
+							"required": ["label", "tooltip", "no_ammo"]
 						},
 						"quiver": {
 							"type": "object",
@@ -2001,11 +1997,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"label",
-								"tooltip",
-								"no_quiver"
-							]
+							"required": ["label", "tooltip", "no_quiver"]
 						},
 						"detonate_seed": {
 							"type": "object",
@@ -2306,13 +2298,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"label",
-								"tooltip",
-								"none",
-								"faster_attack",
-								"slower_attack"
-							]
+							"required": ["label", "tooltip", "none", "faster_attack", "slower_attack"]
 						},
 						"pet_training": {
 							"type": "object",
@@ -2334,12 +2320,7 @@
 										}
 									},
 									"additionalProperties": false,
-									"required": [
-										"label",
-										"tooltip",
-										"untrained",
-										"trained"
-									]
+									"required": ["label", "tooltip", "untrained", "trained"]
 								},
 								"pet_aggression": {
 									"type": "object",
@@ -2358,19 +2339,11 @@
 										}
 									},
 									"additionalProperties": false,
-									"required": [
-										"label",
-										"tooltip",
-										"untrained",
-										"rank"
-									]
+									"required": ["label", "tooltip", "untrained", "rank"]
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"cobra_reflexes",
-								"pet_aggression"
-							]
+							"required": ["cobra_reflexes", "pet_aggression"]
 						},
 						"pet_section": {
 							"type": "object",
@@ -2380,9 +2353,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"title"
-							]
+							"required": ["title"]
 						}
 					},
 					"additionalProperties": false,
@@ -6949,12 +6920,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"melee_weave",
-								"time_to_weave",
-								"use_multi",
-								"use_arcane"
-							]
+							"required": ["melee_weave", "time_to_weave", "use_multi", "use_arcane"]
 						},
 						"warrior": {
 							"type": "object",
