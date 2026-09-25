@@ -31,11 +31,11 @@ const CONSUMABLES = [
 	}),
 	Consumable.create({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeConjured, categoryId: 1153, itemEffects: [onUse(1153)] }),
 	Consumable.create({ id: 13510, name: 'Flask of the Titans', type: ConsumableType.ConsumableTypeFlask, stats: strength(10) }),
-	elixir(9206, 'Elixir of Greater Strength', strength(25), 'elixir 29/0', 'Strength'),
-	elixir(6662, 'Elixir of Giant Growth', strength(8), 'elixir 29/0', 'Strength'),
-	elixir(3383, 'Elixir of Wisdom', statArray(Stat.StatIntellect, 6), 'elixir 29/3', 'Intellect'),
-	elixir(12820, 'Winterfall Firewater', statArray(Stat.StatAttackPower, 35), 'elixir 99/0', 'Attack Power'),
-	grouped(ConsumableType.ConsumableTypeUnknown)(12451, 'Juju Power', strength(30), 'elixir 29/0', 'Strength'),
+	elixir(9206, 'Elixir of Greater Strength', strength(25), '29/0', 'Strength'),
+	elixir(6662, 'Elixir of Giant Growth', strength(8), '29/0', 'Strength'),
+	elixir(3383, 'Elixir of Wisdom', statArray(Stat.StatIntellect, 6), '29/3', 'Intellect'),
+	elixir(12820, 'Winterfall Firewater', statArray(Stat.StatAttackPower, 35), '99/0', 'Attack Power'),
+	grouped(ConsumableType.ConsumableTypeUnknown)(12451, 'Juju Power', strength(30), '29/0', 'Strength'),
 	Consumable.create({
 		id: 238637,
 		name: 'Prowler Steak',
@@ -55,9 +55,9 @@ const CONSUMABLES = [
 	}),
 	Consumable.create({ id: 12404, name: 'Dense Sharpening Stone', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 33219 }),
 	Consumable.create({ id: 228980, name: 'Conductive Shield Coating', type: ConsumableType.ConsumableTypeImbue, weaponInventoryTypeMask: 16384 }),
-	scroll(2289, 'Scroll of Strength II', strength(9), 'elixir 29/0', 'Strength'),
-	scroll(10310, 'Scroll of Strength IV', strength(17), 'elixir 29/0', 'Strength'),
-	scroll(1180, 'Scroll of Stamina', statArray(Stat.StatStamina, 4), 'scroll 29/2', 'Stamina'),
+	scroll(2289, 'Scroll of Strength II', strength(9), '29/0', 'Strength'),
+	scroll(10310, 'Scroll of Strength IV', strength(17), '29/0', 'Strength'),
+	scroll(1180, 'Scroll of Stamina', statArray(Stat.StatStamina, 4), '29/2', 'Stamina'),
 	other(8410, 'R.O.I.D.S.', strength(25), 'Zanza', 'Zanza'),
 	other(20079, 'Spirit of Zanza', statArray(Stat.StatSpirit, 50), 'Zanza', 'Zanza'),
 	other(23327, 'Fire-toasted Bun', statArray(Stat.StatMeleeHitRating, 2), 'Hit food', 'Hit food'),
@@ -226,8 +226,8 @@ describe('consumeConfigs', () => {
 
 	it('offers the highest rank the player can use, below a top rank it cannot', () => {
 		const ranks = [
-			scroll(2289, 'Scroll of Strength II', strength(9), 'scroll 29/0', 'Strength'),
-			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), 'scroll 29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
+			scroll(2289, 'Scroll of Strength II', strength(9), '29/0', 'Strength'),
+			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), '29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
 			Consumable.create({ id: 12404, name: 'Dense Sharpening Stone II', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 7 }),
 			Consumable.create({ id: 12643, name: 'Dense Sharpening Stone III', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 15 }),
 		];

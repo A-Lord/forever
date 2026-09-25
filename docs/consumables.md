@@ -156,18 +156,17 @@ The client carries no stacking table, so the generator resolves each consumable'
 
 **From the rows** (`rowGroupOf` in `tools/database/consumable_groups.go`):
 
-- an elixir's group is the aura type and misc value of the first aura its on-use spell applies, keyed
-  `elixir <aura>/<misc>`. Elixir of Agility 8949 and Elixir of the Mongoose 13452 both open on
+- an elixir's or a scroll's group is the aura type and misc value of the first aura its on-use spell
+  applies, keyed `<aura>/<misc>`. Elixir of Agility 8949 and Elixir of the Mongoose 13452 both open on
   `A_MOD_STAT` Agility (29/1), so only one of them applies; Elixir of the Sages 13447 (29/3, Intellect
   then Spirit) and Elixir of the Whale 250348 (29/4, Spirit) stack, and so do Arcane Elixir 9155
   (`A_MOD_DAMAGE_DONE` every school, 13/126) and Elixir of Fire Power 6373 (13/4);
-- a scroll joins the elixir group of the same aura type and misc value, where an elixir db.json ships
-  has that key (`shippedElixirGroups`): Scroll of Agility 3012 to IV 10309 (29/1) join the Agility
-  elixirs, the Strength scrolls the Strength elixirs and Juju Power, Protection the Armor elixirs,
-  Intellect and Spirit theirs. A scroll whose key no elixir has keeps a group of its own, keyed
-  `scroll <aura>/<misc>` and shared by its ranks: Scroll of Stamina 1180 to IV 10307 (29/2), and Scroll
-  of Minor Evocation 213564 (`A_PERIODIC_ENERGIZE`, 24/0), whose Mageblood elixirs open on
-  `A_MOD_POWER_REGEN` (85/0). A scroll still yields to the raid buff of its stat;
+- a scroll therefore joins the elixirs of the same key: Scroll of Agility 3012 to IV 10309 (29/1) join
+  the Agility elixirs, the Strength scrolls the Strength elixirs and Juju Power, Protection the Armor
+  elixirs, Intellect and Spirit theirs. A scroll whose key no elixir has shares its group with its
+  ranks alone: Scroll of Stamina 1180 to IV 10307 (29/2), and Scroll of Minor Evocation 213564
+  (`A_PERIODIC_ENERGIZE`, 24/0), whose Mageblood elixirs open on `A_MOD_POWER_REGEN` (85/0). A scroll
+  still yields to the raid buff of its stat;
 - a stat consumable whose on-use category cooldown lasts as long as each of its buffs, which are up
   from the pull, is used one at a time with the others of the category (`shared.OneAtATimeCategory`),
   keyed `category <id>`. Only the Blasted Lands buffs (R.O.I.D.S. 8410, Lung Juice Cocktail 8411,
