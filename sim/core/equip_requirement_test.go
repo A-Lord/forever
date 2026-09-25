@@ -77,11 +77,11 @@ func TestInvTypeBit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := InvTypeBit(test.slot, &test.item); got != test.want {
-			t.Errorf("%s: InvTypeBit = %#x, want %#x", test.name, got, test.want)
+		if got := invTypeBit(test.slot, &test.item); got != test.want {
+			t.Errorf("%s: invTypeBit = %#x, want %#x", test.name, got, test.want)
 		}
 	}
-	if InvTypeBit(oh, &oneHand)&(1<<22) == 0 || InvTypeBit(mh, &oneHand)&(1<<22) != 0 {
+	if invTypeBit(oh, &oneHand)&(1<<22) == 0 || invTypeBit(mh, &oneHand)&(1<<22) != 0 {
 		t.Error("the off-hand inventory type 22 should name a one-hand weapon in the off hand and not in the main hand")
 	}
 }

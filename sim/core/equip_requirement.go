@@ -57,7 +57,7 @@ func (req EquipRequirement) matchesItem(slot proto.ItemSlot, item *Item) bool {
 	if req.SubclassMask != 0 && req.SubclassMask&subclass == 0 {
 		return false
 	}
-	if req.InvTypeMask != 0 && req.InvTypeMask&InvTypeBit(slot, item) == 0 {
+	if req.InvTypeMask != 0 && req.InvTypeMask&invTypeBit(slot, item) == 0 {
 		return false
 	}
 	return true
@@ -174,7 +174,7 @@ func (item *Item) WeaponSubclassBit() int32 {
 
 // The item's bits in a spell's inventory-type mask while it sits in this slot. A one-hand weapon also
 // counts as the main-hand or off-hand weapon of the hand holding it.
-func InvTypeBit(slot proto.ItemSlot, item *Item) int32 {
+func invTypeBit(slot proto.ItemSlot, item *Item) int32 {
 	switch item.RangedWeaponType {
 	case proto.RangedWeaponType_RangedWeaponTypeBow:
 		return dbcenums.INVTYPE_BIT_RANGED
