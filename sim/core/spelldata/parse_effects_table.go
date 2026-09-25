@@ -185,7 +185,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		case WeaponRulePerWeapon, WeaponRuleRangedRatings:
 			return p.scopedRatings(e.Misc, scope, v)
 		}
-		return p.statsBuff(ratingStats(e.Misc), v)
+		return p.statsBuff(RatingStats(e.Misc), v)
 	},
 
 	dbcenums.A_MOD_STAT: func(p *parser, e *Effect, v float64) *attachment {
@@ -466,18 +466,18 @@ func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.Sp
 	return p.modFloat(kind, scope, v)
 }
 
-// Haste has no mod that reaches some attacks and not others, so its bits are not read, and neither
-// are the other ratings.
 func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64) *attachment {
 	scope.FromRating = true
 	var parts []*attachment
-	if mask&(32|64|128) != 0 {
-		parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope,
-			v/core.HitRatingPerHitPercent))
-	}
-	if mask&(256|512|1024) != 0 {
-		parts = append(parts, p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope,
-			v/core.CritRatingPerCritPercent))
+	for _, stat := range ScopedRatingStats(mask) {
+		switch stat {
+		case stats.HitRating:
+			parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope,
+				v/core.HitRatingPerHitPercent))
+		case stats.CritRating:
+			parts = append(parts, p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope,
+				v/core.CritRatingPerCritPercent))
+		}
 	}
 
 	switch len(parts) {
@@ -935,8 +935,8 @@ func resistanceStats(mask int32) []stats.Stat {
 // The ratings a combat rating mask names, read bit by bit, so a mask naming several ratings gives each
 // of them. One rating feeds melee, ranged and spells alike, so its melee and spell bits name the same
 // stat. The ranged bits 64, 512 and 262144 are not read: beside the melee or spell bit of the same
-// rating they add nothing, and a mask of them alone never reaches here.
-func ratingStats(mask int32) []stats.Stat {
+// rating they add nothing, and a mask of them alone is a ranged row, which ScopedRatingStats reads.
+func RatingStats(mask int32) []stats.Stat {
 	var out []stats.Stat
 	for _, rating := range []struct {
 		bits int32

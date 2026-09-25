@@ -3,6 +3,7 @@ package spelldata
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // How the parse binds a hit, crit or rating aura to the weapon its row requires in
@@ -63,6 +64,13 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 		return WeaponRuleCastOnly, core.SpellModConfig{}
 	}
 	return WeaponRuleNone, core.SpellModConfig{}
+}
+
+// The ratings a scoped A_MOD_RATING mask names, its ranged bits read as the rating they belong to. The
+// scoped row converts the hit and crit among them. Haste has no mod that reaches some attacks and not
+// others, so it is not read, and neither are the other ratings.
+func ScopedRatingStats(mask int32) []stats.Stat {
+	return RatingStats(mask | (mask&rangedRatings)>>1)
 }
 
 func weaponRequirement(s *Spell, scope core.SpellModConfig) core.EquipRequirement {

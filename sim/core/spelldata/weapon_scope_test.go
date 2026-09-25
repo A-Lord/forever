@@ -1,10 +1,12 @@
 package spelldata
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func TestWeaponScopeRules(t *testing.T) {
@@ -60,5 +62,21 @@ func TestWeaponScopeRules(t *testing.T) {
 			scope.EquipInvType != c.scope.EquipInvType || scope.EquipHand != c.scope.EquipHand {
 			t.Errorf("%s: rule %d scope %+v, want rule %d scope %+v", c.name, rule, scope, c.rule, c.scope)
 		}
+	}
+}
+
+func TestScopedRatingStatsReadsTheRangedBits(t *testing.T) {
+	for mask, want := range map[int32][]stats.Stat{
+		64:                {stats.HitRating},
+		512 | 262144:      {stats.CritRating, stats.HasteRating},
+		32 | 8388608:      {stats.HitRating, stats.ExpertiseRating},
+		64 | 512 | 262144: {stats.HitRating, stats.CritRating, stats.HasteRating},
+	} {
+		if got := ScopedRatingStats(mask); !slices.Equal(got, want) {
+			t.Errorf("mask %d reads %v, want %v", mask, got, want)
+		}
+	}
+	if got := RatingStats(64); len(got) != 0 {
+		t.Errorf("the unscoped read of a ranged bit alone gives %v, want nothing", got)
 	}
 }
