@@ -45,7 +45,6 @@ const STAT_NAMES: Record<Stat, string> = {
 	[Stat.StatShadowResistance]: 'shadowResistance',
 };
 
-// Hit, crit and haste are weighted per percent, not per point of rating.
 const RATING_PER_PERCENT: Partial<Record<Stat, number>> = {
 	[Stat.StatHitRating]: Mechanics.HIT_RATING_PER_HIT_PERCENT,
 	[Stat.StatCritRating]: Mechanics.CRIT_RATING_PER_CRIT_PERCENT,
