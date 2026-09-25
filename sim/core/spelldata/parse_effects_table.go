@@ -775,31 +775,31 @@ func resistanceStats(mask int32) []stats.Stat {
 	return out
 }
 
-// The rating a combat rating mask names. The sim keeps one stat for melee and ranged together, so the
-// masks that name both read as the melee stat, as does melee crit alone, 256, and a mask of ranged
-// alone has none.
+// The ratings a combat rating mask names, read bit by bit, so a mask naming several ratings gives each
+// of them. One rating feeds melee, ranged and spells alike, so its melee and spell bits name the same
+// stat. The ranged bits 64, 512 and 262144 are not read: beside the melee or spell bit of the same
+// rating they add nothing, and alone they name a rating for ranged attacks only, which the global
+// stat would overstate.
+// TODO: give a ranged-only rating to ranged attacks alone.
 func ratingStats(mask int32) []stats.Stat {
-	switch mask {
-	case 2:
-		return []stats.Stat{stats.DefenseRating}
-	case 4:
-		return []stats.Stat{stats.DodgeRating}
-	case 8:
-		return []stats.Stat{stats.ParryRating}
-	case 16:
-		return []stats.Stat{stats.BlockRating}
-	case 96:
-		return []stats.Stat{stats.MeleeHitRating}
-	case 128:
-		return []stats.Stat{stats.SpellHitRating}
-	case 256, 768:
-		return []stats.Stat{stats.MeleeCritRating}
-	case 1024:
-		return []stats.Stat{stats.SpellCritRating}
-	case 131072, 393216, 524288:
-		return []stats.Stat{stats.MeleeHasteRating}
+	var out []stats.Stat
+	for _, rating := range []struct {
+		bits int32
+		stat stats.Stat
+	}{
+		{2, stats.DefenseRating},
+		{4, stats.DodgeRating},
+		{8, stats.ParryRating},
+		{16, stats.BlockRating},
+		{32 | 128, stats.HitRating},
+		{256 | 1024, stats.CritRating},
+		{131072 | 524288, stats.HasteRating},
+	} {
+		if mask&rating.bits != 0 {
+			out = append(out, rating.stat)
+		}
 	}
-	return nil
+	return out
 }
 
 // The school bits a mask names, as the positions the sim's per-school arrays index by.

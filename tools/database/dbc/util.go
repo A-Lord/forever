@@ -353,40 +353,23 @@ func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {
 	}
 }
 
+// The rating stat a combat rating mask names, read bit by bit through RatingModToStat, so a mask of
+// only ranged bits names none. The callers read one stat per aura, so a mask naming two different
+// stats names none either; no client aura carries one.
 func ConvertModRatingFlagToRatingStat(flag int) proto.Stat {
-	switch flag {
-	case 2:
-		return proto.Stat_StatDefenseRating
-	case 4:
-		return proto.Stat_StatDodgeRating
-	case 8:
-		return proto.Stat_StatParryRating
-	case 16:
-		return proto.Stat_StatBlockRating
-	case 64:
-		// The forbidden "Only Ranged Hit". There's a single instance of this (Enchant 2523, SpellID 22780).
-		return -1
-	case 96:
-		return proto.Stat_StatMeleeHitRating
-	case 128:
-		return proto.Stat_StatSpellHitRating
-	case 256:
-		return proto.Stat_StatFireResistance
-	case 512:
-		// The forbidden "Only Ranged Crit". Only two of these exist, one is low level gloves another is an enchant.
-		return -1
-	case 768:
-		return proto.Stat_StatMeleeCritRating
-	case 1024:
-		return proto.Stat_StatSpellCritRating
-	case 131072:
-		return proto.Stat_StatMeleeHasteRating
-	case 393216:
-		return proto.Stat_StatMeleeHasteRating
-	case 524288:
-		return proto.Stat_StatMeleeHasteRating
-	default:
-		println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
-		return -1
+	stat := proto.Stat(-1)
+	for _, rating := range getMatchingRatingMods(flag) {
+		switch named := RatingModToStat[rating]; {
+		case named == -1 || named == stat:
+		case stat == -1:
+			stat = named
+		default:
+			println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
+			return -1
+		}
 	}
+	if stat == -1 && flag&^(RATING_MOD_HIT_RANGED|RATING_MOD_CRIT_RANGED|RATING_MOD_HASTE_RANGED) != 0 {
+		println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
+	}
+	return stat
 }

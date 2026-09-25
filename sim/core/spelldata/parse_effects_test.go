@@ -527,8 +527,13 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS, 0, 71, "ranged-attack-power-attacker-bonus", 71, false},
 		{dbcenums.A_REDUCE_PUSHBACK, 127, 35, "pushback", -0.35, false},
 		{dbcenums.A_MOD_RATING, 4, 10, "stat DodgeRating", 10, false},
-		{dbcenums.A_MOD_RATING, 256, 10, "stat MeleeCritRating", 10, false},
-		{dbcenums.A_MOD_RATING, 768, 10, "stat MeleeCritRating", 10, false},
+		{dbcenums.A_MOD_RATING, 256, 10, "stat CritRating", 10, false},
+		{dbcenums.A_MOD_RATING, 768, 10, "stat CritRating", 10, false},
+		{dbcenums.A_MOD_RATING, 224, 5, "stat HitRating", 5, false},
+		{dbcenums.A_MOD_RATING, 1792, 21, "stat CritRating", 21, false},
+		{dbcenums.A_MOD_RATING, 393216, 10, "stat HasteRating", 10, false},
+		{dbcenums.A_MOD_RATING, 524288, 10, "stat HasteRating", 10, false},
+		{dbcenums.A_MOD_RATING, 32 | 256, 10, "stat HitRating+CritRating", 10, false},
 		{dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, -1, 10,
 			"multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.1, false},
 		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_FEAR), -20, "fear-duration", 0.8, false},
@@ -600,6 +605,20 @@ func oneEffectRow(aura dbcenums.EffectAuraType, misc int32, points float64) *Spe
 	return &Spell{ID: 6000, Name: "One Effect", DurationMs: 10000, ClassFlags: parseFamily,
 		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: aura, Misc: misc, BasePoints: points,
 			ClassFlags: parseTargetMask}}}
+}
+
+// A mask naming only the ranged bit of a rating attaches nothing, since the one rating would reach
+// melee attacks and spells as well.
+func TestParseStaticRangedOnlyRatingAttachesNothing(t *testing.T) {
+	withRows(t, parseRows())
+
+	for _, mask := range []int32{64, 512, 262144, 64 | 512 | 262144} {
+		character := parseWarrior()
+		parsed := ParseStatic(character, oneEffectRow(dbcenums.A_MOD_RATING, mask, 10))
+		if len(parsed.Applied) != 0 {
+			t.Errorf("mask %d attached %v, want nothing", mask, appliedKinds(parsed))
+		}
+	}
 }
 
 // Each stat the table writes is stored in the units core reads it in, and those units differ: a

@@ -164,8 +164,7 @@ var Party = []BuffSpec{
 		Category:   "DruidCritAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
-			proto.Stat_StatMeleeCritRating,
-			proto.Stat_StatSpellCritRating,
+			proto.Stat_StatCritRating,
 		},
 	},
 	{
@@ -197,8 +196,7 @@ var Party = []BuffSpec{
 		Category:   "DruidCritAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
-			proto.Stat_StatMeleeCritRating,
-			proto.Stat_StatSpellCritRating,
+			proto.Stat_StatCritRating,
 		},
 	},
 	// Driven because the damage scales with the providing paladin's Holy spell power.
@@ -371,7 +369,7 @@ var Individual = []BuffSpec{
 		Kind:     KindExternalCD,
 		Category: "PowerInfusion",
 		Stats: []proto.Stat{
-			proto.Stat_StatSpellHasteRating,
+			proto.Stat_StatHasteRating,
 		},
 		Label: "Power Infusions",
 	},
@@ -441,7 +439,7 @@ var Debuffs = []BuffSpec{
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
-			proto.Stat_StatMeleeHitRating,
+			proto.Stat_StatHitRating,
 		},
 	},
 	// The -450 armor is per combo point, so the raid config's debuff is the five-point finisher. A
