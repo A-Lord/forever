@@ -1,41 +1,56 @@
 package mage
 
-arcaneBlastTriggered := spelldata.ArcaneBlastTriggered.Highest()
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
+var arcaneBlastTriggered = spellData.ArcaneBlastTriggered.Highest()
+var damageModIncrease = arcaneBlastTriggered.Effect(dbcenums.A_ADD_PCT_MODIFIER, 22).Percent()
+var powerCostIncrease = arcaneBlastTriggered.Effect(dbcenums.A_ADD_PCT_MODIFIER, 14).Percent()
 
 func (mage *Mage) registerArcaneCharges() {
+	//damage mod only affects non-AB spells
+	damageMod := mage.AddDynamicMod(core.SpellModConfig{
+		ClassMask:  MageSpellsAll ^ MageSpellArcaneBlast,
+		FloatValue: damageModIncrease,
+		Kind:       core.SpellMod_DamageDone_Pct,
+	})
 
-	// The TBC implementation, kept for the port:
-	// powerCostIncrease := 0.75
-	// abCostMod := mage.AddDynamicMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellArcaneBlast,
-	// 	FloatValue: powerCostIncrease,
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// })
-	//
-	// castTimeReduction := time.Millisecond * -334
-	// abCastMod := mage.AddDynamicMod(core.SpellModConfig{
-	// 	ClassMask: MageSpellArcaneBlast,
-	// 	TimeValue: castTimeReduction,
-	// 	Kind:      core.SpellMod_CastTime_Flat,
-	// })
-	//
-	// mage.ArcaneChargesAura = core.BlockPrepull(mage.GetOrRegisterAura(core.Aura{
-	// 	Label:     "Arcane Charges Aura",
-	// 	ActionID:  core.ActionID{SpellID: 36032},
-	// 	Duration:  time.Second * 8,
-	// 	MaxStacks: 3,
-	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// 		abCastMod.Activate()
-	// 		abCostMod.Activate()
-	// 	},
-	// 	OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// 		abCastMod.Deactivate()
-	// 		abCostMod.Deactivate()
-	// 	},
-	// 	OnStacksChange: func(aura *core.Aura, sim *core.Simulation, oldStacks int32, newStacks int32) {
-	// 		stacks := float64(newStacks)
-	// 		abCastMod.UpdateTimeValue(castTimeReduction * time.Duration(newStacks))
-	// 		abCostMod.UpdateFloatValue(powerCostIncrease * stacks)
-	// 	},
-	// }))
+	//AB manacost mod
+	abCostMod := mage.AddDynamicMod(core.SpellModConfig{
+		ClassMask:  MageSpellArcaneBlast,
+		FloatValue: powerCostIncrease,
+		Kind:       core.SpellMod_PowerCost_Pct_Add,
+	})
+
+	config := spelldata.AuraConfig(arcaneBlastTriggered)
+
+	config.OnGain = func(aura *core.Aura, sim *core.Simulation) {
+		damageMod.Activate()
+		abCostMod.Activate()
+	}
+
+	config.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
+		abCostMod.Deactivate()
+		damageMod.Deactivate()
+	}
+
+	config.OnStacksChange = func(aura *core.Aura, sim *core.Simulation, oldStacks, newStacks int32) {
+		stacks := float64(newStacks)
+		damageMod.UpdateFloatValue(damageModIncrease * stacks)
+		abCostMod.UpdateFloatValue(powerCostIncrease * stacks)
+	}
+
+	//New in Forever - AB Stacks modifies damage of all spells excluding AB, consuming the stacks
+	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if spell.Matches(MageSpellArcaneBlast) {
+			return
+		}
+
+		aura.Deactivate(sim)
+	}
+
+	mage.ArcaneChargesAura = core.BlockPrepull(mage.RegisterAura(config))
 }

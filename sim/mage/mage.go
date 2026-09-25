@@ -72,28 +72,28 @@ func (mage *Mage) Initialize() {
 	// client's Fire Vulnerability (22959) is A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER,
 	// so it raises the fire damage this mage deals rather than the damage the
 	// target takes, and sim/core has no aura to build it from.
-	//mage.registerPassives()
+	mage.registerPassives()
 	mage.registerSpells()
 }
 
 func (mage *Mage) registerPassives() {
-	//mage.registerArcaneCharges()
+	mage.registerArcaneCharges()
 }
 
 func (mage *Mage) registerSpells() {
-	// mage.registerArcaneBlastSpell()
+	mage.registerArcaneBlastSpell()
 	// mage.registerArcaneExplosionSpell()
-	// mage.registerArcaneMissilesSpell()
+	mage.registerArcaneMissilesSpell()
 	// mage.registerArmorSpells()
 	// mage.registerBlizzardSpell()
 	// mage.registerConeOfColdSpell()
 	mage.registerFrostboltSpell()
 	// mage.registerEvocation()
 	// mage.registerFireballSpell()
-	// mage.registerFireBlastSpell()
+	mage.registerFireBlastSpell()
 	// mage.registerFrostNovaSpell()
 	// mage.registerManaGems()
-	// mage.registerScorchSpell()
+	mage.registerScorchSpell()
 
 	//FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
 

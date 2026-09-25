@@ -1,10 +1,42 @@
 package mage
 
-var arcaneMissilesRank = spellData.ArcaneMissiles.Highest()
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+var arcaneMissilesRank = spellData.ArcaneMissiles.Highest()
+var triggered = spellData.ArcaneMissilesTriggered.Highest()
+var arcaneMissilesBaseDamage = triggered.DamageEffect().Average(core.CharacterLevel)
+
 func (mage *Mage) registerArcaneMissilesSpell() {
-	panic("To be implemented")
+	tickConfig := spelldata.SpellConfig(&mage.Unit, triggered, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
+	tickConfig.ClassSpellMask = MageSpellArcaneMissilesTick
+
+	tickConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, arcaneMissilesBaseDamage, spell.OutcomeTickMagicHitAndCrit)
+	}
+
+	tickSpell := mage.RegisterSpell(tickConfig)
+
+	config := spelldata.SpellConfig(&mage.Unit, arcaneMissilesRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = MageSpellArcaneMissilesCast
+
+	dotConfig := spelldata.DotConfig(arcaneMissilesRank, arcaneMissilesRank.PeriodicEffect())
+	dotConfig.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		tickSpell.Cast(sim, target)
+	}
+
+	config.Dot = dotConfig
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+	}
+
+	mage.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// // Values found at https://wago.tools/db2/SpellEffect?build=2.5.5.65295&filter%5BSpellID%5D=exact%253A7268

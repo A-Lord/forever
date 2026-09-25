@@ -10,6 +10,7 @@ var frostboltBaseDamage = frostboltRank.EffectN(2).Average(core.CharacterLevel)
 
 func (mage *Mage) registerFrostboltSpell() {
 	config := spelldata.SpellConfig(&mage.Unit, frostboltRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = MageSpellFrostbolt
 
 	config.ThreatMultiplier = 1
 
