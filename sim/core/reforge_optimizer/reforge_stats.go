@@ -120,6 +120,9 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 		}
 		delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(pair.PseudoStat), value)
 	}
+	for percent, offHand := range offHandPercents {
+		delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(offHand), delta.Stats[percent])
+	}
 	spellHitDelta := delta.Stats[stats.SpellHitPercent]
 	for _, schoolHitPS := range schoolHitPercents {
 		delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(schoolHitPS), spellHitDelta)
@@ -162,8 +165,16 @@ var schoolHitPercents = []proto.PseudoStat{
 	proto.PseudoStat_PseudoStatSchoolHitPercentShadow,
 }
 
+// The off hand's percent moves with the physical percent. The per-attack ratings on the sheet are left
+// out: a rating's children are counted in percent.
+var offHandPercents = map[stats.Stat]proto.PseudoStat{
+	stats.PhysicalHitPercent:  proto.PseudoStat_PseudoStatOffHandHitPercent,
+	stats.PhysicalCritPercent: proto.PseudoStat_PseudoStatOffHandCritPercent,
+}
+
 // sheetPseudoStats returns the pseudo-stats the character sheet shows a back-end percent stat in: its
-// own, the ranged total it is the melee share of, and for spell hit the per-school percentages.
+// own, the ranged total it is the melee share of, the off hand's for physical hit and crit, and for
+// spell hit the per-school percentages.
 func sheetPseudoStats(percent stats.Stat) []proto.PseudoStat {
 	if percent == stats.ReducedCritTakenPercent {
 		return []proto.PseudoStat{proto.PseudoStat_PseudoStatReducedCritTakenPercent}
@@ -173,6 +184,9 @@ func sheetPseudoStats(percent stats.Stat) []proto.PseudoStat {
 		if pair.Stat == percent || (pair.MeleeShare != nil && pair.MeleeShare.Stat == percent) {
 			pseudoStats = append(pseudoStats, pair.PseudoStat)
 		}
+	}
+	if offHand, ok := offHandPercents[percent]; ok {
+		pseudoStats = append(pseudoStats, offHand)
 	}
 	if percent == stats.SpellHitPercent {
 		pseudoStats = append(pseudoStats, schoolHitPercents...)
