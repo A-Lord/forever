@@ -262,7 +262,6 @@
 		},
 		"debuffs": {
 			"improvedSealOfTheCrusader": 2,
-			"mangle": true,
 			"exposeArmor": 2,
 			"faerieFire": 2,
 			"sunderArmor": true,

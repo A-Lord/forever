@@ -61,7 +61,6 @@ export const DefaultDebuffs = Debuffs.create({
 	curseOfRecklessness: true,
 	curseOfElements: true,
 	giftOfArthas: true,
-	mangle: true,
 	exposeArmor: true,
 	huntersMark: true,
 });

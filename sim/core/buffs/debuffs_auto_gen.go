@@ -64,9 +64,6 @@ func NewSpellDataJudgementOfWisdomAura(unit *core.Unit, isPlayer bool, talentPoi
 	return newDebuff(unit, judgementOfWisdomMeta, isPlayer, talentPoints)
 }
 
-// Mangle
-// func NewSpellDataMangleAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura // mangle, KindDebuffDamageTaken: spell 1238073 states no aura effect the parse attaches
-
 // Curse of the Elements
 var CurseOfElementsCategory = "CurseOfElements"
 var curseOfElementsSpell = spelldata.MustFind(1311680)

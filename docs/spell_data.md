@@ -1851,9 +1851,9 @@ value is an enum, and a field that wants one would add its own value and a name 
 
 ### What stays hand-written
 
-Judgement of the Crusader and Mangle state their effect in a shape no manifest row can carry - a holy
-school alone, and dummies - so their rows are shells and `applyDebuffs` in `sim/core/buffs/debuffs.go`
-applies the hand-written auras after the generated ones. The paladin's own aura and judgement ranks
+Judgement of the Crusader states its effect in a shape no manifest row can carry - a holy school
+alone - so its row is a shell and `applyDebuffs` in `sim/core/buffs/debuffs.go` applies the
+hand-written aura after the generated ones. The paladin's own aura and judgement ranks
 (`PaladinAuraRank`, `JudgementRank`) live in `sim/core/buffs/paladin.go` beside the generated
 categories they join. Each is built at the rank the paladin cast: `NewSpellDataDevotionAuraRank`
 beside the generated top rank `NewSpellDataDevotionAura`, and so for Concentration, Retribution and

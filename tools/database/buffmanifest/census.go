@@ -307,7 +307,7 @@ var Manifest = []BuffSpec{
 		Notes: "Power Infusion (10060) grants +20% damage and healing done for 15 s.",
 	},
 	{
-		Field: "hunters_mark", Number: 11, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "hunters_mark", Number: 10, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 14325,
 		Go:      "HuntersMark", Name: "Hunter's Mark", Owner: proto.Class_ClassHunter,
 		Category: "HuntersMark", SingleAura: true,
@@ -335,13 +335,6 @@ var Manifest = []BuffSpec{
 		Stats: []proto.Stat{proto.Stat_StatMP5},
 	},
 	{
-		Field: "mangle", Number: 6, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffDamageTaken,
-		SpellID: 1238073,
-		Go:      "Mangle", Name: "Mangle", Owner: proto.Class_ClassDruid,
-		Category: "Mangle", SingleAura: true,
-		Notes: "SkillLineAbility resolves the name to ranks 407995/1238069/1238070/1238073, so the top rank is 1238073.",
-	},
-	{
 		Field: "curse_of_elements", Number: 4, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffDamageTaken,
 		SpellID: 1311680,
 		Go:      "CurseOfElements", Name: "Curse of the Elements", Owner: proto.Class_ClassWarlock,
@@ -350,14 +343,14 @@ var Manifest = []BuffSpec{
 		Notes: "Malediction (1225177) is in warlock tree 1116 but its modifier masks do not cover Curse of the Elements (mask 4194304); the only overlapping trait is Amplify Curse (18288), an ability with a 3 minute cooldown, so there is no passive improved state. The ungranted ranks 11723/11724 have no SkillLineAbility row.",
 	},
 	{
-		Field: "curse_of_recklessness", Number: 10, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "curse_of_recklessness", Number: 9, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 11717,
 		Go:      "CurseOfRecklessness", Name: "Curse of Recklessness", Owner: proto.Class_ClassWarlock,
 		Category: "CurseOfRecklessness", SingleAura: true,
 		Stats: []proto.Stat{proto.Stat_StatAttackPower},
 	},
 	{
-		Field: "faerie_fire", Number: 8, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "faerie_fire", Number: 7, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 9907,
 		Go:      "FaerieFire", Name: "Faerie Fire", Owner: proto.Class_ClassDruid,
 		Category: "FaerieFireAura", SingleAura: true,
@@ -365,7 +358,7 @@ var Manifest = []BuffSpec{
 		Notes: "no Improved Faerie Fire node in druid tree 1089; the ungranted twins 1288561/1289452 have no SkillLineAbility row.",
 	},
 	{
-		Field: "expose_armor", Number: 7, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "expose_armor", Number: 6, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 11198,
 		Go:      "ExposeArmor", Name: "Expose Armor", Owner: proto.Class_ClassRogue,
 		Category: "MajorArmorReduction", SingleAura: true,
@@ -373,7 +366,7 @@ var Manifest = []BuffSpec{
 		Notes: "effect 0 states 0 and -450 per combo point, so the row is resolved as the five-point finisher, which is what the raid config applies; a rogue casting it for fewer combo points needs a driver that prices the aura, and there is none. Improved Expose Armor (14168) is in rogue tree 1111 but its only 107/108 effect is misc 14 (cost); effects 1 and 2 are dummy auras.",
 	},
 	{
-		Field: "sunder_armor", Number: 9, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStacking,
+		Field: "sunder_armor", Number: 8, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStacking,
 		SpellID: 11597,
 		Go:      "SunderArmor", Name: "Sunder Armor", Owner: proto.Class_ClassWarrior,
 		Category: "MajorArmorReduction", SingleAura: true, Driver: true,
@@ -388,7 +381,7 @@ var Manifest = []BuffSpec{
 		Notes: "applied by an elixir, so 11374 has no SkillLineAbility row and the anchor is explicit.",
 	},
 	{
-		Field: "demoralizing_roar", Number: 12, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "demoralizing_roar", Number: 11, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 9898,
 		Go:      "DemoralizingRoar", Name: "Demoralizing Roar", Owner: proto.Class_ClassDruid,
 		Category: "Demoralizing", SingleAura: true,
@@ -396,7 +389,7 @@ var Manifest = []BuffSpec{
 		Notes: "no Feral Aggression node in druid tree 1089.",
 	},
 	{
-		Field: "demoralizing_shout", Number: 13, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "demoralizing_shout", Number: 12, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 11556,
 		Go:      "DemoralizingShout", Name: "Demoralizing Shout", Owner: proto.Class_ClassWarrior,
 		Category: "Demoralizing", SingleAura: true,
@@ -404,7 +397,7 @@ var Manifest = []BuffSpec{
 		Notes: "no Improved Demoralizing Shout node in warrior tree 1117.",
 	},
 	{
-		Field: "thunder_clap", Number: 14, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffAtkSpeed,
+		Field: "thunder_clap", Number: 13, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffAtkSpeed,
 		SpellID: 11581,
 		Go:      "ThunderClap", Name: "Thunder Clap", Owner: proto.Class_ClassWarrior,
 		Category: "AtkSpdReduction",
@@ -412,14 +405,14 @@ var Manifest = []BuffSpec{
 		Notes:    "Improved Thunder Clap (12287) is in warrior tree 1117 but its only 107/108 effect is misc 14 (cost).",
 	},
 	{
-		Field: "insect_swarm", Number: 15, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "insect_swarm", Number: 14, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 24977,
 		Go:      "InsectSwarm", Name: "Insect Swarm", Owner: proto.Class_ClassDruid,
 		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},
 		Notes: "Nature's Splendor (1223083) effect 2 extends the duration (misc 1); the field is a plain bool, so the talent is not carried.",
 	},
 	{
-		Field: "scorpid_sting", Number: 16, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
+		Field: "scorpid_sting", Number: 15, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindDebuffStat,
 		SpellID: 3043,
 		Go:      "ScorpidSting", Name: "Scorpid Sting", Owner: proto.Class_ClassHunter,
 		Stats: []proto.Stat{proto.Stat_StatStamina, proto.Stat_StatDefenseRating},

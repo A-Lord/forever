@@ -253,12 +253,6 @@ export const JudgementOfWisdom = makeBooleanDebuffInput({
 	label: 'Judgement of Wisdom',
 });
 
-export const Mangle = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(1238073),
-	fieldName: 'mangle',
-	label: 'Mangle',
-});
-
 export const CurseOfElements = makeBooleanDebuffInput({
 	actionId: ActionId.fromSpellId(1311680),
 	fieldName: 'curseOfElements',
@@ -514,11 +508,6 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 		config: JudgementOfWisdom,
 		stats: [Stat.StatMP5],
 		ownerClass: Class.ClassPaladin,
-	},
-	{
-		config: Mangle,
-		stats: [],
-		ownerClass: Class.ClassDruid,
 	},
 	{
 		config: CurseOfElements,
