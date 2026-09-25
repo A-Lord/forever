@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
@@ -33,6 +34,11 @@ type SpellModConfig struct {
 	RemoveCustom      SpellModRemove
 	ResetCustom       SpellModOnReset
 	ShouldApplyToPets bool
+
+	// The weapon the attack has to be made with, as SpellEquippedItems states it. 0 is no restriction.
+	EquipSubclass int32
+	EquipInvType  int32
+	EquipHand     ProcMask
 }
 
 type SpellMod struct {
@@ -44,6 +50,9 @@ type SpellMod struct {
 	ProcMask       ProcMask
 	SpellFlag      SpellFlag
 	ResourceType   proto.ResourceType
+	EquipSubclass  int32
+	EquipInvType   int32
+	EquipHand      ProcMask
 	floatValue     float64
 	intValue       int32
 	timeValue      time.Duration
@@ -124,23 +133,27 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 
 	mod := &SpellMod{
-		ClassMask:    config.ClassMask,
-		ClassFlags:   config.ClassFlags,
-		Kind:         config.Kind,
-		School:       config.School,
-		DefenseType:  config.DefenseType,
-		ProcMask:     config.ProcMask,
-		SpellFlag:    config.SpellFlag,
-		ResourceType: config.ResourceType,
-		floatValue:   config.FloatValue,
-		intValue:     config.IntValue,
-		timeValue:    config.TimeValue,
-		keyValue:     config.KeyValue,
-		Apply:        applyFn,
-		Remove:       removeFn,
-		IsActive:     false,
-		OnReset:      resetFn,
+		ClassMask:     config.ClassMask,
+		ClassFlags:    config.ClassFlags,
+		Kind:          config.Kind,
+		School:        config.School,
+		DefenseType:   config.DefenseType,
+		ProcMask:      config.ProcMask,
+		SpellFlag:     config.SpellFlag,
+		ResourceType:  config.ResourceType,
+		EquipSubclass: config.EquipSubclass,
+		EquipInvType:  config.EquipInvType,
+		EquipHand:     config.EquipHand,
+		floatValue:    config.FloatValue,
+		intValue:      config.IntValue,
+		timeValue:     config.TimeValue,
+		keyValue:      config.KeyValue,
+		Apply:         applyFn,
+		Remove:        removeFn,
+		IsActive:      false,
+		OnReset:       resetFn,
 	}
+	unit.spellMods = append(unit.spellMods, mod)
 
 	unit.OnSpellRegistered(func(spell *Spell) {
 		if shouldApply(spell, mod) {
@@ -235,11 +248,57 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
+	if req := mod.equipRequirement(); !req.IsZero() && !req.Matches(spell.Unit, spell.ProcMask) {
+		return false
+	}
+
 	if mod.SpellFlag > 0 && !mod.SpellFlag.Matches(spell.Flags) {
 		return false
 	}
 
 	return true
+}
+
+func (mod *SpellMod) equipRequirement() EquipRequirement {
+	return EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: mod.EquipSubclass, InvTypeMask: mod.EquipInvType, Hand: mod.EquipHand}
+}
+
+func (unit *Unit) refilterEquipMods() {
+	for _, mod := range unit.spellMods {
+		if mod.equipRequirement().IsZero() {
+			continue
+		}
+		wasActive := mod.IsActive
+		mod.Deactivate()
+		mod.AffectedSpells = mod.AffectedSpells[:0]
+		for _, spell := range unit.Spellbook {
+			if shouldApply(spell, mod) {
+				mod.AffectedSpells = append(mod.AffectedSpells, spell)
+			}
+		}
+		if wasActive {
+			mod.Activate()
+		}
+	}
+}
+
+// The sum of the active hit or crit mods that reach every attack with this proc mask: those naming
+// no spell class, school or flag, whose proc mask and weapon match the attack's.
+func (unit *Unit) ScopedBonusPercent(kind SpellModType, probe ProcMask) float64 {
+	probeSpell := &Spell{Unit: unit, ProcMask: probe}
+	switch {
+	case probe.Matches(ProcMaskMelee):
+		probeSpell.DefenseType = DefenseTypeMelee
+	case probe.Matches(ProcMaskRanged):
+		probeSpell.DefenseType = DefenseTypeRanged
+	}
+	total := 0.0
+	for _, mod := range unit.spellMods {
+		if mod.IsActive && mod.Kind == kind && shouldApply(probeSpell, mod) {
+			total += mod.floatValue
+		}
+	}
+	return total
 }
 
 func (mod *SpellMod) UpdateIntValue(value int32) {
