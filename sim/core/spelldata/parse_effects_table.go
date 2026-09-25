@@ -181,11 +181,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// the sim keeps one stat for. A row that names the weapon it needs, and a mask of ranged bits
 	// alone, hold for some attacks only, and become the percent the rating is worth on them.
 	dbcenums.A_MOD_RATING: func(p *parser, e *Effect, v float64) *attachment {
-		scope, scoped := p.weaponScope(e)
-		if !scoped && e.Misc&rangedRatings != 0 && e.Misc&^rangedRatings == 0 {
-			scope, scoped = core.SpellModConfig{ProcMask: core.ProcMaskRanged}, true
-		}
-		if scoped {
+		switch rule, scope := WeaponScope(p.spell, e); rule {
+		case WeaponRulePerWeapon, WeaponRuleRangedRatings:
 			return p.scopedRatings(e.Misc, scope, v)
 		}
 		return p.statsBuff(ratingStats(e.Misc), v)
@@ -201,7 +198,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// names the weapon it needs is a mod on the attacks made with that weapon, except an A_MOD_CRIT_PCT
 	// whose weapons are not ranged alone: that is crit on every spell and attack while one is equipped.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
-		if scope, ok := p.weaponScope(e); ok {
+		if rule, scope := WeaponScope(p.spell, e); rule == WeaponRulePerWeapon {
 			return p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, v)
 		}
 		return p.statBuff(stats.PhysicalHitPercent, v)
@@ -210,7 +207,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.SpellHitPercent, v)
 	},
 	dbcenums.A_MOD_WEAPON_CRIT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		if scope, ok := p.weaponScope(e); ok {
+		if rule, scope := WeaponScope(p.spell, e); rule == WeaponRulePerWeapon {
 			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
 		}
 		return p.statBuff(stats.PhysicalCritPercent, v)
@@ -220,16 +217,13 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 	dbcenums.A_MOD_CRIT_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		crit := []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}
-		scope, ok := p.weaponScope(e)
-		switch {
-		case !ok:
-			return p.statsBuff(crit, v)
-		case p.spell.EquipSubclass != 0 && p.spell.EquipSubclass&^rangedSubclasses == 0 &&
-			scope.EquipInvType == 0 && scope.EquipHand == 0:
+		switch rule, scope := WeaponScope(p.spell, e); rule {
+		case WeaponRulePerWeapon:
 			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
+		case WeaponRuleWhileEquipped:
+			return p.statsWhileEquipped(crit, v, weaponRequirement(p.spell, scope))
 		}
-		return p.statsWhileEquipped(crit, v, core.EquipRequirement{Class: int32(p.spell.EquipClass),
-			SubclassMask: scope.EquipSubclass, InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand})
+		return p.statsBuff(crit, v)
 	},
 
 	// The three haste auras. Each multiplies a speed the unit recomputes, so each needs the
@@ -465,52 +459,6 @@ func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfi
 		}
 	}
 	return cfg
-}
-
-const (
-	rangedSubclasses int32 = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_THROWN |
-		dbcenums.ITEM_SUBCLASS_BIT_WEAPON_WAND
-	rangedInvTypes int32 = dbcenums.INVTYPE_BIT_RANGED | dbcenums.INVTYPE_BIT_THROWN | dbcenums.INVTYPE_BIT_RANGEDRIGHT
-)
-
-// The combat rating bits for ranged attacks: hit, crit and haste.
-const rangedRatings int32 = 64 | 512 | 262144
-
-// The scope carries no class flags, so the mod reaches auto attacks whatever family the spell belongs
-// to. An aura cast at someone else is not bound to the weapon: the requirement is the caster's, for
-// the cast.
-func (p *parser) weaponScope(e *Effect) (core.SpellModConfig, bool) {
-	s := p.spell
-	if s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] != dbcenums.TARGET_UNIT_CASTER {
-		return core.SpellModConfig{}, false
-	}
-
-	var hand core.ProcMask
-	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_MAIN_HAND) {
-		hand |= core.ProcMaskMeleeMH
-	}
-	if s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_REQ_OFF_HAND) {
-		hand |= core.ProcMaskMeleeOH
-	}
-	if s.EquipSubclass == 0 && s.EquipInvType == 0 && hand == 0 {
-		return core.SpellModConfig{}, false
-	}
-
-	var procMask core.ProcMask
-	if s.EquipSubclass&rangedSubclasses != 0 || s.EquipInvType&rangedInvTypes != 0 {
-		procMask |= core.ProcMaskRanged
-	}
-	if s.EquipSubclass&^rangedSubclasses != 0 || s.EquipInvType&^rangedInvTypes != 0 || hand != 0 {
-		procMask |= core.ProcMaskMelee
-	}
-
-	return core.SpellModConfig{
-		ProcMask:      procMask,
-		EquipSubclass: s.EquipSubclass,
-		EquipInvType:  s.EquipInvType,
-		EquipHand:     hand,
-	}, true
 }
 
 func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.SpellModConfig, v float64) *attachment {
