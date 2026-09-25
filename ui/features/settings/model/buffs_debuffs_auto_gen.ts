@@ -34,27 +34,27 @@ export const DevotionAura = makeBooleanPartyBuffInput({
 });
 
 export const LeaderOfThePack = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(24932),
+	actionId: ActionId.fromSpellId(17007),
 	fieldName: 'leaderOfThePack',
 	label: 'Leader of the Pack',
 });
 
 export const ManaSpringTotem = makeTristatePartyBuffInput({
-	actionId: ActionId.fromSpellId(10494),
+	actionId: ActionId.fromSpellId(10497),
 	impId: ActionId.fromSpellId(16187),
 	fieldName: 'manaSpringTotem',
 	label: 'Mana Spring Totem',
 });
 
 export const ManaTideTotems = makeMultistatePartyBuffInput({
-	actionId: ActionId.fromSpellId(17360),
+	actionId: ActionId.fromSpellId(17359),
 	numStates: 5,
 	fieldName: 'manaTideTotems',
 	label: 'Mana Tide Totem',
 });
 
 export const MoonkinAura = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(24907),
+	actionId: ActionId.fromSpellId(24858),
 	fieldName: 'moonkinAura',
 	label: 'Moonkin Aura',
 });
@@ -92,19 +92,19 @@ export const AtieshWarlock = makeMultistatePartyBuffInput({
 });
 
 export const StrengthOfEarthTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(25362),
+	actionId: ActionId.fromSpellId(25361),
 	fieldName: 'strengthOfEarthTotem',
 	label: 'Strength of Earth Totem',
 });
 
 export const GraceOfAirTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(25360),
+	actionId: ActionId.fromSpellId(25359),
 	fieldName: 'graceOfAirTotem',
 	label: 'Grace of Air Totem',
 });
 
 export const WindfuryTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(10610),
+	actionId: ActionId.fromSpellId(10614),
 	fieldName: 'windfuryTotem',
 	label: 'Windfury Totem',
 });
@@ -126,7 +126,7 @@ export const AtieshPriest = makeMultistatePartyBuffInput({
 // totem_twisting: sim behaviour toggle with no spell source; rendered under Other Inputs.
 
 export const StoneskinTotem = makeTristatePartyBuffInput({
-	actionId: ActionId.fromSpellId(10405),
+	actionId: ActionId.fromSpellId(10408),
 	impId: ActionId.fromSpellId(16258),
 	fieldName: 'stoneskinTotem',
 	label: 'Stoneskin Totem',
@@ -139,7 +139,7 @@ export const FuriousHowl = makeBooleanPartyBuffInput({
 });
 
 export const FlametongueTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(15036),
+	actionId: ActionId.fromSpellId(16387),
 	fieldName: 'flametongueTotem',
 	label: 'Flametongue Totem',
 });
@@ -199,19 +199,19 @@ export const ShadowResistanceAura = makeBooleanRaidBuffInput({
 });
 
 export const FireResistanceTotem = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(10535),
+	actionId: ActionId.fromSpellId(10538),
 	fieldName: 'fireResistanceTotem',
 	label: 'Fire Resistance Totem',
 });
 
 export const FrostResistanceTotem = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(10477),
+	actionId: ActionId.fromSpellId(10479),
 	fieldName: 'frostResistanceTotem',
 	label: 'Frost Resistance Totem',
 });
 
 export const NatureResistanceTotem = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(10599),
+	actionId: ActionId.fromSpellId(10601),
 	fieldName: 'natureResistanceTotem',
 	label: 'Nature Resistance Totem',
 });
@@ -265,19 +265,19 @@ export const HuntersMark = makeBooleanDebuffInput({
 });
 
 export const JudgementOfTheCrusader = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(20303),
+	actionId: ActionId.fromSpellId(20308),
 	fieldName: 'judgementOfTheCrusader',
 	label: 'Judgement of the Crusader',
 });
 
 export const JudgementOfLight = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(20346),
+	actionId: ActionId.fromSpellId(20349),
 	fieldName: 'judgementOfLight',
 	label: 'Judgement of Light',
 });
 
 export const JudgementOfWisdom = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(20355),
+	actionId: ActionId.fromSpellId(20357),
 	fieldName: 'judgementOfWisdom',
 	label: 'Judgement of Wisdom',
 });
@@ -367,7 +367,7 @@ export const CurseOfWeakness = makeBooleanDebuffInput({
 });
 
 export const DustCloud = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(1265904),
+	actionId: ActionId.fromSpellId(1265911),
 	fieldName: 'dustCloud',
 	label: 'Dust Cloud',
 });
@@ -379,7 +379,7 @@ export const ArmorShatter = makeBooleanDebuffInput({
 });
 
 export const Vindication = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(440667),
+	actionId: ActionId.fromSpellId(9452),
 	fieldName: 'vindication',
 	label: 'Vindication',
 });

@@ -194,6 +194,7 @@ var Party = []BuffSpec{
 	{
 		Field:      "moonkin_aura",
 		SpellID:    24907,
+		TooltipID:  24858,
 		Category:   "DruidCritAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
@@ -431,6 +432,7 @@ var Debuffs = []BuffSpec{
 	{
 		Field:      "judgement_of_the_crusader",
 		SpellID:    20303,
+		TooltipID:  20308,
 		Category:   "Judgement of the Crusader",
 		SingleAura: true,
 		Stats: []proto.Stat{
@@ -439,17 +441,19 @@ var Debuffs = []BuffSpec{
 		},
 	},
 	{
-		Field:   "judgement_of_light",
-		SpellID: 20346,
-		Kind:    KindProc,
+		Field:     "judgement_of_light",
+		SpellID:   20346,
+		TooltipID: 20349,
+		Kind:      KindProc,
 		Stats: []proto.Stat{
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:   "judgement_of_wisdom",
-		SpellID: 20355,
-		Kind:    KindProc,
+		Field:     "judgement_of_wisdom",
+		SpellID:   20355,
+		TooltipID: 20357,
+		Kind:      KindProc,
 		Stats: []proto.Stat{
 			proto.Stat_StatMP5,
 		},
@@ -619,6 +623,7 @@ var Debuffs = []BuffSpec{
 	{
 		Field:      "vindication",
 		SpellID:    440667,
+		TooltipID:  9452,
 		Owner:      proto.Class_ClassPaladin,
 		Talent:     9452,
 		Proto:      ProtoBool,

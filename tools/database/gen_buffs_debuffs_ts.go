@@ -228,10 +228,19 @@ func uninputtableBuffReason(row ResolvedBuff) string {
 	return fixed
 }
 
+// The spell the settings input shows as its icon and tooltip: the row's TooltipID when it names one,
+// else the cast the manifest pins for it, else the aura itself.
+func buffInputActionID(row ResolvedBuff) int32 {
+	if row.TooltipID != 0 {
+		return row.TooltipID
+	}
+	return row.CastSpellID
+}
+
 func buffInput(row ResolvedBuff) (*tsBuffInput, error) {
 	input := &tsBuffInput{
 		Const:     row.Go,
-		SpellID:   row.SpellID,
+		SpellID:   buffInputActionID(row),
 		FieldName: row.TSField(),
 		Label:     tsString(buffLabel(row)),
 	}
