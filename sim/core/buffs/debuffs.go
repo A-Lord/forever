@@ -11,6 +11,6 @@ func applyDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	applyGeneratedDebuffs(target, debuffs, raid)
 
 	if debuffs.JudgementOfTheCrusader {
-		core.MakePermanent(NewSpellDataJudgementOfTheCrusaderRankAura(target, JudgementOfTheCrusaderMaxRank))
+		core.MakePermanent(NewSpellDataJudgementOfTheCrusaderAuraRank(target, JudgementOfTheCrusaderMaxRank))
 	}
 }

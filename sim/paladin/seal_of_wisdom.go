@@ -24,7 +24,7 @@ func (paladin *Paladin) registerSealOfWisdom(row shared.SpellData) {
 	judgementID := int32(effectAt(row, 2).Value)
 	manaRow := spellData.SealOfWisdomTriggered.BySpellID(judgementOfWisdomManaIDs[row.Rank])
 	judgementAuras := paladin.newJudgementAuras(func(target *core.Unit) *core.Aura {
-		return buffs.NewSpellDataJudgementOfWisdomRankAura(target, buffs.JudgementRank{
+		return buffs.NewSpellDataJudgementOfWisdomAuraRank(target, buffs.JudgementRank{
 			SpellID: judgementID,
 			Rank:    row.Rank,
 			Value:   shared.SpellDataMin(manaRow.Energize),

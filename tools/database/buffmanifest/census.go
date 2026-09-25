@@ -320,7 +320,7 @@ var Manifest = []BuffSpec{
 		Go:      "JudgementOfTheCrusader", Name: "Judgement of the Crusader", Owner: proto.Class_ClassPaladin,
 		Category: "Judgement of the Crusader", SingleAura: true,
 		Stats: []proto.Stat{proto.Stat_StatHolyDamage, proto.Stat_StatSpellDamage},
-		Notes: "the Holy damage taken the judgement adds is applied by NewSpellDataJudgementOfTheCrusaderRankAura in debuffs.go, which the paladin's own ranks share. Improved Seal of the Crusader (20337) exists as a spell but has no node in paladin tree 1100.",
+		Notes: "the Holy damage taken the judgement adds is applied by NewSpellDataJudgementOfTheCrusaderAuraRank in debuffs.go, which the paladin's own ranks share. Improved Seal of the Crusader (20337) exists as a spell but has no node in paladin tree 1100.",
 	},
 	{
 		Field: "judgement_of_light", Number: 2, Scope: ScopeDebuff, Proto: ProtoBool, Kind: KindProc,

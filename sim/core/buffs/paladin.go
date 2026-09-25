@@ -127,7 +127,7 @@ const judgementProcChance = 0.5
 // Judgement of the Crusader raises the Holy damage the target takes by a flat amount. Every rank
 // and every paladin share one exclusive category, so the strongest active one is the one that
 // counts.
-func NewSpellDataJudgementOfTheCrusaderRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfTheCrusaderAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
 	bonus := rank.Value
 	label := paladinRankName("Judgement of the Crusader", rank.Rank)
 	if target.HasAura(label) {
@@ -156,7 +156,7 @@ func NewSpellDataJudgementOfTheCrusaderRankAura(target *core.Unit, rank Judgemen
 
 // The paladin's own Judgement of Light at one rank: the bare 40-second debuff, plus the heal it
 // grants whoever strikes the target.
-func NewSpellDataJudgementOfLightRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Light", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)
@@ -189,7 +189,7 @@ func AttachJudgementOfLightHeal(aura *core.Aura, rank JudgementRank) *core.Aura 
 }
 
 // The paladin's own Judgement of Wisdom at one rank.
-func NewSpellDataJudgementOfWisdomRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfWisdomAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Wisdom", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)

@@ -1857,8 +1857,8 @@ hand-written aura after the generated ones. The paladin's own aura and judgement
 (`PaladinAuraRank`, `JudgementRank`) live in `sim/core/buffs/paladin.go` beside the generated
 categories they join. Each is built at the rank the paladin cast: `NewSpellDataDevotionAuraRank`
 beside the generated top rank `NewSpellDataDevotionAura`, and so for Concentration, Retribution and
-the three resistance auras; `NewSpellDataJudgementOfLightRankAura`,
-`NewSpellDataJudgementOfWisdomRankAura` and `NewSpellDataJudgementOfTheCrusaderRankAura` beside the
+the three resistance auras; `NewSpellDataJudgementOfLightAuraRank`,
+`NewSpellDataJudgementOfWisdomAuraRank` and `NewSpellDataJudgementOfTheCrusaderAuraRank` beside the
 generated `NewSpellDataJudgementOfLightAura`, `NewSpellDataJudgementOfWisdomAura` and the commented
 shell `NewSpellDataJudgementOfTheCrusaderAura`.
 
