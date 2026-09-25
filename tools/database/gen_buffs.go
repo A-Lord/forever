@@ -86,8 +86,8 @@ type ResolvedBuff struct {
 	TalentSpellID  int32
 	TalentPosition int32
 	// TalentDivisor prices a row whose talent states its effect only in its tooltip, as
-	// ${$m1/-N*$<SpellID>m1}: rank m1 of N is worth m1/N of the spell's amount. 0 for a talent
-	// priced by a spell modifier.
+	// ${$m1/-N*$<SpellID>m1}: rank m1 of N is worth m1/N of every amount the spell attaches. 0 for
+	// a talent priced by a spell modifier.
 	TalentDivisor int32
 
 	ScopeFromClient buffmanifest.BuffScope
@@ -375,9 +375,9 @@ func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 	return nil
 }
 
-// A talent tooltip term that scales another spell's first amount by the talent's rank:
-// ${$m1/-3*$440667m1} is rank/3 of spell 440667's effect 1. The sign only flips the tooltip's
-// wording; the amount keeps the spell's own sign.
+// A talent tooltip term that scales another spell by the talent's rank: ${$m1/-3*$440667m1} is
+// rank/3 of spell 440667's effect 1, and the fraction applies to every amount the spell attaches.
+// The sign only flips the tooltip's wording; the amount keeps the spell's own sign.
 var tooltipRankFraction = regexp.MustCompile(`\$\{\$m1/-?(\d+)\*\$(\d+)m1\}`)
 
 func tooltipTalentDivisor(description string, spellID int32) int32 {

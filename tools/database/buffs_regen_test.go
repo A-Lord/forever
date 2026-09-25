@@ -140,11 +140,12 @@ var pinnedTalentRanks = map[string]int32{
 	"vindication":       3,
 }
 
-// What a resistance row competes under, as (stats, own aura). A source that has
-// no exclusivity beyond the school itself keeps no category of its own, which is
-// how every totem, Aspect of the Wild and Shadow Protection read; a paladin aura
-// also holds its own slot. Armor is not a school, so Devotion Aura has only the
-// slot.
+// What a pinned row competes under, as (stats, own aura). A resistance source
+// that has no exclusivity beyond the school itself keeps no category of its own,
+// which is how every totem, Aspect of the Wild and Shadow Protection read; a
+// paladin aura also holds its own slot. Armor is not a school, so Devotion Aura
+// has only the slot. Furious Howl holds a category of its own, and the attack
+// power reductions bid in Demoralizing Shout's.
 var pinnedCategories = map[string]string{
 	"frost_resistance_totem":      "",
 	"aspect_of_the_wild":          "",

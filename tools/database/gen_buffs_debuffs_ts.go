@@ -19,10 +19,9 @@ import (
 
 const buffsDebuffsTSFile = "ui/features/settings/model/buffs_debuffs_auto_gen.ts"
 
-// The state count a multistate input counts up to, copied from the hand-written
-// input for that field in ui/features/settings/model/buffs_debuffs.ts. An int32
-// field counts casts or mana, and how far it counts is a UI choice the client
-// database does not state.
+// The state count a multistate input counts up to. An int32 field counts casts
+// or mana, and how far it counts is a UI choice the client database does not
+// state; the four Atiesh inputs share one count.
 var buffInputNumStates = map[string]int{
 	"atiesh_mage":      5,
 	"atiesh_warlock":   5,
