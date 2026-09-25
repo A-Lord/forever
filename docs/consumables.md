@@ -220,7 +220,10 @@ db.json `pseudoStats` as 2 `PseudoStatMeleeHitPercent` and 2 `PseudoStatRangedHi
 total includes the melee share, as `stats.PercentPseudoStats` reads it). The same
 goes for the other one-channel auras: `A_MOD_SPELL_HIT_CHANCE` lists spell hit (Scroll of Arcane
 Accuracy I 211954, 1%), `A_MOD_WEAPON_CRIT_PERCENT` melee and ranged crit, and
-`A_MOD_SPELL_CRIT_CHANCE` spell crit (Scroll of Arcane Power I 211957, 1%). The settings offer such a
+`A_MOD_SPELL_CRIT_CHANCE` spell crit (Scroll of Arcane Power I 211957, 1%). `A_MOD_CRIT_PCT` reaches
+every channel, so it lists melee, ranged and spell crit alike: Elixir of the Mongoose 13452 and the
+250337/250338/250348/250351 elixirs each carry 2, listed as 2 `PseudoStatMeleeCritPercent`, 2
+`PseudoStatRangedCritPercent` and 2 `PseudoStatSpellCritPercent`. The settings offer such a
 consumable to a spec whose `displayStats` or `epPseudoStats` name one of its percents
 (`consumablePseudoStatsOf` in `ui/sim/settings/consumables.ts`), not by the hit or crit rating the
 spec weighs, so the Hit food picker shows for the melee and ranged specs and not for the casters. The

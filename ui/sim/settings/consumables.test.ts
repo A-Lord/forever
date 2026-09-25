@@ -125,6 +125,22 @@ describe('isConsumableRelevant', () => {
 		expect(isConsumableRelevant(darkDesire, user({ ...caster, epPseudoStats: [PseudoStat.PseudoStatRangedHitPercent] }), db)).toBe(true);
 	});
 
+	it('offers an all-channel crit percent to a melee spec and to a caster that shows spell crit', () => {
+		// Elixir of the Mongoose 13452: A_MOD_CRIT_PCT 2, melee, ranged and spell crit alike.
+		const mongoose = consumable({
+			type: ConsumableType.ConsumableTypeElixir,
+			pseudoStats: pseudoStats({
+				[PseudoStat.PseudoStatMeleeCritPercent]: 2,
+				[PseudoStat.PseudoStatRangedCritPercent]: 2,
+				[PseudoStat.PseudoStatSpellCritPercent]: 2,
+			}),
+		});
+		const rogue = user({ cls: Class.ClassRogue, epStats: [Stat.StatAgility], displayPseudoStats: [PseudoStat.PseudoStatMeleeCritPercent] });
+		const mage = user({ cls: Class.ClassMage, epStats: [Stat.StatIntellect], displayPseudoStats: [PseudoStat.PseudoStatSpellCritPercent] });
+		expect(isConsumableRelevant(mongoose, rogue, db)).toBe(true);
+		expect(isConsumableRelevant(mongoose, mage, db)).toBe(true);
+	});
+
 	it('offers a restore by the resource the spec spends', () => {
 		const mana = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
 		const health = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [2] });

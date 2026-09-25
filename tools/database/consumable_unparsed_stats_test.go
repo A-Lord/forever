@@ -19,6 +19,8 @@ func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
 	db.Consumables[13510] = &proto.Consumable{Id: 13510, ItemEffects: []*proto.ItemEffect{{BuffId: 17626}}}
 	db.Consumables[211954] = &proto.Consumable{Id: 211954, ItemEffects: []*proto.ItemEffect{{BuffId: 430949}}}
 	db.Consumables[211957] = &proto.Consumable{Id: 211957, ItemEffects: []*proto.ItemEffect{{BuffId: 430952}}}
+	db.Consumables[13452] = &proto.Consumable{Id: 13452, ItemEffects: []*proto.ItemEffect{{BuffId: 17538}}}
+	db.Consumables[250337] = &proto.Consumable{Id: 250337, ItemEffects: []*proto.ItemEffect{{BuffId: 1250940}}}
 	for id, spellID := range map[int32]int32{274273: 1293740, 274274: 1293741, 274275: 1293742, 274276: 1293743} {
 		db.Consumables[id] = flask(id, spellID)
 	}
@@ -27,6 +29,9 @@ func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
 	}
 
 	meleeHit := map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatMeleeHitPercent: 2, proto.PseudoStat_PseudoStatRangedHitPercent: 2}
+	allCrit := map[proto.PseudoStat]float64{
+		proto.PseudoStat_PseudoStatMeleeCritPercent: 2, proto.PseudoStat_PseudoStatRangedCritPercent: 2, proto.PseudoStat_PseudoStatSpellCritPercent: 2,
+	}
 	for id, want := range map[int32]struct {
 		stats       map[proto.Stat]float64
 		pseudoStats map[proto.PseudoStat]float64
@@ -36,6 +41,8 @@ func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
 		22237:  {pseudoStats: meleeHit},
 		211954: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellHitPercent: 1}},
 		211957: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellCritPercent: 1}},
+		13452:  {pseudoStats: allCrit},
+		250337: {pseudoStats: allCrit},
 		274273: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHitRating: 50}},
 		274274: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatCritRating: 56}},
 		274275: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatExpertiseRating: 50}},

@@ -30,8 +30,9 @@ var percentRatings = []struct {
 // Adds to the stats and pseudo stats db.json lists for a consumable, which the settings offer it by,
 // what its on-use grants that the stat parse leaves out: the stats against creature types (Potion of
 // Demon Slaying 9224's 11406: 180 attack power against Demons), the hit and crit of one channel
-// (Fire-toasted Bun 23327's 29332: A_MOD_HIT_CHANCE 2 as 2% melee and ranged hit), and a Natural
-// flask's zone bonus at the rating one percent takes, attack and casting speed as haste.
+// (Fire-toasted Bun 23327's 29332: A_MOD_HIT_CHANCE 2 as 2% melee and ranged hit), an all-channel crit
+// (Elixir of the Mongoose 13452's 17538: A_MOD_CRIT_PCT 2 as 2% melee, ranged and spell crit), and a
+// Natural flask's zone bonus at the rating one percent takes, attack and casting speed as haste.
 func AddUnparsedStats(db *WowDatabase) error {
 	for id, consumable := range db.Consumables {
 		if len(consumable.ItemEffects) == 0 {
@@ -40,6 +41,7 @@ func AddUnparsedStats(db *WowDatabase) error {
 		row := spelldata.Find(consumable.ItemEffects[0].BuffId)
 
 		var granted, percents stats.Stats
+		var allCrit float64
 		for i := range row.Effects {
 			e := &row.Effects[i]
 			if e.Type != dbcenums.E_APPLY_AURA {
@@ -57,6 +59,8 @@ func AddUnparsedStats(db *WowDatabase) error {
 				percents[stats.PhysicalCritPercent] += e.Average(core.CharacterLevel)
 			case dbcenums.A_MOD_SPELL_CRIT_CHANCE:
 				percents[stats.SpellCritPercent] += e.Average(core.CharacterLevel)
+			case dbcenums.A_MOD_CRIT_PCT:
+				allCrit += e.Average(core.CharacterLevel)
 			}
 		}
 		if slices.Contains(forever.NaturalFlasks, id) {
@@ -81,6 +85,11 @@ func AddUnparsedStats(db *WowDatabase) error {
 			case spell > 0:
 				pseudoStats[r.spellPseudo] += spell
 			}
+		}
+		if allCrit != 0 {
+			pseudoStats[proto.PseudoStat_PseudoStatMeleeCritPercent] += allCrit
+			pseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] += allCrit
+			pseudoStats[proto.PseudoStat_PseudoStatSpellCritPercent] += allCrit
 		}
 
 		if granted != (stats.Stats{}) {
