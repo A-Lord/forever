@@ -50,7 +50,7 @@ export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>,
 		consumables,
 		relevance,
 		{ tooltip },
-		consumes => [...consumes.elixirIds, ...consumes.extraIds].find(id => ids.has(id)) ?? 0,
+		consumes => consumes.elixirIds.find(id => ids.has(id)) ?? consumes.extraIds.find(id => ids.has(id)) ?? 0,
 		(consumes, newValue) => {
 			const picked = {
 				...consumes,

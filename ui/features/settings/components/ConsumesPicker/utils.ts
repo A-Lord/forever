@@ -42,13 +42,14 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
 	const byGroup = new Map<string, Array<Consumable>>();
+	const add = <K>(map: Map<K, Array<Consumable>>, key: K, consumable: Consumable) => {
+		const list = map.get(key);
+		if (list) list.push(consumable);
+		else map.set(key, [consumable]);
+	};
 	for (const consumable of all) {
-		if (consumable.groupKey) {
-			byGroup.set(consumable.groupKey, [...(byGroup.get(consumable.groupKey) ?? []), consumable]);
-			continue;
-		}
-		const slot = consumableSlot(consumable);
-		bySlot.set(slot, [...(bySlot.get(slot) ?? []), consumable]);
+		if (consumable.groupKey) add(byGroup, consumable.groupKey, consumable);
+		else add(bySlot, consumableSlot(consumable), consumable);
 	}
 	const inSlot = (slot: ConsumableSlot) => bySlot.get(slot) ?? [];
 	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[2], consumables = inSlot(slot)) =>
