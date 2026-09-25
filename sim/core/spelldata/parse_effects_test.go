@@ -542,6 +542,10 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_MELEE_HASTE_3, 0, 25, "melee-speed", 1.25, true},
 		{dbcenums.A_MOD_DAMAGE_TAKEN, 127, -10, "damage-taken-flat", -10, false},
 		{dbcenums.A_MOD_POWER_COST_SCHOOL_PCT, 126, 20, "SpellMod_PowerCost_Pct", 0.2, false},
+		{dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, 4, 185, "mob-type-stat AttackPower", 185, true},
+		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},
+		{dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, 32, 58, "mob-type-stat SpellDamage", 58, true},
+		{dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1, "damage-dealt-versus", 1.01, false},
 	}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases

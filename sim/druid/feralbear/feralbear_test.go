@@ -15,7 +15,7 @@ func init() {
 
 func TestFeralBear(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
+		"the expected .results numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassDruid,
@@ -129,6 +129,10 @@ var DefaultSpecOptions = &proto.Player_FeralBearDruid{
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	GuardianElixirId: 9088, // Gift of Arthas
-	GoblinSapper:     true,
+	PotId:      13455,                // Greater Stoneshield Potion
+	ElixirIds:  []int32{13452, 9088}, // Elixir of the Mongoose, Gift of Arthas
+	FoodId:     21023,                // Dirge's Kickin' Chimaerok Chops
+	ConjuredId: 9421,                 // Major Healthstone
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV, Scroll of Protection IV
+	ExtraIds: []int32{10646, 10309, 10310, 10305},
 }

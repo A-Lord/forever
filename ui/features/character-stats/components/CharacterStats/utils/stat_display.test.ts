@@ -43,7 +43,7 @@ describe('statDisplayString, defense rating', () => {
 	});
 });
 
-describe('statDisplayString, TBC-only stats', () => {
+describe('statDisplayString, stats with a composite display', () => {
 	it('scales block value by the block-value multiplier pseudo stat', () => {
 		const stats = new Stats().withStat(Stat.StatBlockValue, 100).withPseudoStat(PseudoStat.PseudoStatBlockValueMultiplier, 1.3);
 		expect(show(stats, UnitStat.fromStat(Stat.StatBlockValue))).toBe('130');

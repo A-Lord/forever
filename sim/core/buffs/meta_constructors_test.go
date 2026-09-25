@@ -184,18 +184,18 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		build    ctor
 		want     auraShape
 	}{
-		{"BloodPact", false, false, BloodPactAura, auraShape{
+		{"BloodPact", false, false, NewSpellDataBloodPactAura, auraShape{
 			Label: "Blood Pact (External)", ActionID: external(11767), Duration: core.NeverExpires,
 			BuildPhase: core.CharacterBuildPhaseBuffs,
 			Stacks:     statsOnly(map[string]float64{"Stamina": 54, "Health": 540}),
 		}},
-		{"ArcaneBrilliance", false, false, ArcaneBrillianceAura, auraShape{
+		{"ArcaneBrilliance", false, false, NewSpellDataArcaneBrillianceAura, auraShape{
 			Label: "Arcane Brilliance (External)", ActionID: external(23028), Tag: "StatBuff", Duration: time.Hour,
 			BuildPhase: core.CharacterBuildPhaseBuffs,
 			Bids:       []string{"StatBuffIntellectAdd single=false priority=31"},
 			Stacks:     statsOnly(map[string]float64{"Intellect": 31}),
 		}},
-		{"GiftOfTheWild", false, false, GiftOfTheWildAura, auraShape{
+		{"GiftOfTheWild", false, false, NewSpellDataGiftOfTheWildAura, auraShape{
 			Label: "Gift of the Wild (External)", ActionID: external(21850), Duration: time.Hour,
 			BuildPhase: core.CharacterBuildPhaseBuffs,
 			Bids: []string{
@@ -211,7 +211,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 				"FrostResistance": 27, "NatureResistance": 27, "ShadowResistance": 27,
 			}),
 		}},
-		{"FireResistanceAura", false, true, FireResistanceAuraAura, auraShape{
+		{"FireResistanceAura", false, true, NewSpellDataFireResistanceAura, auraShape{
 			Label: "Fire Resistance Aura (Player)", ActionID: core.ActionID{SpellID: 19900}, Tag: "FireResistanceAura",
 			Duration: core.NeverExpires,
 			Bids: []string{
@@ -221,13 +221,13 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 			},
 			Stacks: statsOnly(map[string]float64{"FireResistance": 60}),
 		}},
-		{"ConcentrationAura", false, false, ConcentrationAuraAura, auraShape{
+		{"ConcentrationAura", false, false, NewSpellDataConcentrationAura, auraShape{
 			Label: "Concentration Aura (External)", ActionID: external(19746), Tag: "ConcentrationAura",
 			Duration: core.NeverExpires, BuildPhase: core.CharacterBuildPhaseBuffs,
 			Bids:   []string{"ConcentrationAura single=true priority=0.35"},
 			Stacks: pseudoOnly(map[string]float64{"PushbackChance": -0.35}),
 		}},
-		{"PowerInfusions", false, false, PowerInfusionsAura, auraShape{
+		{"PowerInfusions", false, false, NewSpellDataPowerInfusionsAura, auraShape{
 			Label: "Power Infusions (External)", ActionID: external(10060), Tag: "PowerInfusion",
 			Duration: 15 * time.Second, BuildPhase: core.CharacterBuildPhaseBuffs,
 			Bids: []string{
@@ -241,14 +241,14 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 				"SchoolDamageDealtMultiplier[6]": 0.2, "SchoolDamageDealtMultiplier[7]": 0.2,
 			}),
 		}},
-		{"Thorns", false, false, ThornsAura, auraShape{
+		{"Thorns", false, false, NewSpellDataThornsAura, auraShape{
 			Label: "Thorns (External)", ActionID: external(9910), Duration: 10 * time.Minute,
 			BuildPhase: core.CharacterBuildPhaseBuffs,
 			Bids:       []string{"Thorns single=true priority=22"},
 			Stacks:     []unitDelta{{}},
 			Shield:     "{SpellID: 9910, Tag: 1} school SpellSchoolNature",
 		}},
-		{"CurseOfElements", true, false, CurseOfElementsAura, auraShape{
+		{"CurseOfElements", true, false, NewSpellDataCurseOfElementsAura, auraShape{
 			Label: "Curse of the Elements (External)", ActionID: external(1311680), Tag: "CurseOfElements",
 			Duration: 5 * time.Minute,
 			Bids:     []string{"CurseOfElements single=true priority=75"},
@@ -264,13 +264,13 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 				},
 			}},
 		}},
-		{"ThunderClap", true, false, ThunderClapAura, auraShape{
+		{"ThunderClap", true, false, NewSpellDataThunderClapAura, auraShape{
 			Label: "Thunder Clap (External)", ActionID: external(11581), Tag: "AtkSpdReduction",
 			Duration: 30 * time.Second,
 			Bids:     []string{"AtkSpdReduction single=false priority=0.166667"},
 			Stacks:   pseudoOnly(map[string]float64{"MeleeSpeedMultiplier": -0.166667}),
 		}},
-		{"InsectSwarm", true, false, InsectSwarmAura, auraShape{
+		{"InsectSwarm", true, false, NewSpellDataInsectSwarmAura, auraShape{
 			Label: "Insect Swarm (External)", ActionID: external(24977), Duration: 12 * time.Second,
 			Stacks: statsOnly(map[string]float64{"PhysicalHitPercent": -2}),
 		}},

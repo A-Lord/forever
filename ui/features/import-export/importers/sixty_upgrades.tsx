@@ -43,9 +43,9 @@ export const SIXTY_UPGRADES_IMPORTER: ImporterDefinition = {
 			throw new Error('Could not parse Race!');
 		}
 
-		// Sixty Upgrades names a talent by the spell id of the rank taken, which is how the rank
-		// used to come back. A Forever talent reports one id for all of its ranks, so the export
-		// no longer says how many points went in and every talent would import as 1/N.
+		// Sixty Upgrades names a talent by the spell id of the rank taken. A Forever talent reports
+		// one id for all of its ranks, so the export does not say how many points went in and every
+		// talent would import as 1/N.
 		const droppedTalents = (importJson?.talents as any[] | undefined)?.length ?? 0;
 
 		let hasRemovedRandomSuffix = false;

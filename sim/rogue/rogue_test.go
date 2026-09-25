@@ -16,7 +16,7 @@ func init() {
 
 func TestRogue(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
+		"the expected .results numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassRogue,
@@ -62,5 +62,8 @@ var DefaultOptions = &proto.Player_Rogue{
 var DefaultTalents = "00532012502-023305200005015002321151"
 
 var DefaultConsumables = &proto.ConsumesSpec{
+	FlaskId:    274274, // Flask of Natural Aggression
+	FoodId:     238638, // Filet o' Flank
+	PotId:      250943, // Major Frenzy Potion
 	ConjuredId: 7676,
 }

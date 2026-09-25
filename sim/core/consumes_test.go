@@ -1,334 +1,105 @@
 package core
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/simsignals"
-	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func setupConsumesSim(tweak func(*proto.RaidSimRequest)) (*Simulation, *FakeRageWarrior) {
-	request := &proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{
-			RandomSeed: 100,
-		},
-		Raid: &proto.Raid{
-			Parties: []*proto.Party{
-				{
-					Players: []*proto.Player{
-						{
-							Name:        "Warrior",
-							Class:       proto.Class_ClassWarrior,
-							Race:        proto.Race_RaceOrc,
-							Buffs:       &proto.IndividualBuffs{},
-							Consumables: &proto.ConsumesSpec{},
-							Spec:        &proto.Player_DpsWarrior{},
-							Equipment:   &proto.EquipmentSpec{},
-							Rotation:    &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
-						},
-					},
-					Buffs: &proto.PartyBuffs{},
-				},
-			},
-			Buffs: &proto.RaidBuffs{},
-		},
-		Encounter: &proto.Encounter{
-			Targets: []*proto.Target{
-				{Name: "target", Level: 63, MobType: proto.MobType_MobTypeUndead},
-			},
-			Duration: 180,
-		},
-	}
-	if tweak != nil {
-		tweak(request)
+func TestSelectedConsumableIDs(t *testing.T) {
+	consumes := &proto.ConsumesSpec{
+		PotId:         13444,
+		Potions:       []int32{13444, 13446},
+		FlaskId:       13510,
+		FoodId:        238637,
+		ExplosiveId:   18588,
+		MhImbueId:     20749,
+		OhImbueId:     12404,
+		ConjuredItems: []int32{7676},
+		ExtraIds:      []int32{10646, 10309, 10305, 5206},
 	}
 
-	sim := NewSim(request, simsignals.CreateSignals())
-	sim.Reset()
+	got := selectedConsumableIDs(consumes, true)
+	want := []int32{13444, 13510, 238637, 18588, 12404, 20749, 10646, 10309, 10305, 5206, 13446, 7676}
+	if !slices.Equal(got, want) {
+		t.Errorf("selected %v, want %v", got, want)
+	}
 
-	return sim, sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
-}
-
-func consumesOf(request *proto.RaidSimRequest) *proto.ConsumesSpec {
-	return request.Raid.Parties[0].Players[0].Consumables
-}
-
-func consumesStatDelta(t *testing.T, stat stats.Stat, tweak func(*proto.RaidSimRequest)) float64 {
-	t.Helper()
-	_, without := setupConsumesSim(nil)
-	_, with := setupConsumesSim(tweak)
-	return with.GetStat(stat) - without.GetStat(stat)
-}
-
-func TestScrollsGrantTheirClientStats(t *testing.T) {
-	for _, tc := range []struct {
-		name   string
-		stat   stats.Stat
-		amount float64
-		set    func(*proto.ConsumesSpec)
-	}{
-		{"Scroll of Agility IV", stats.Agility, 17, func(c *proto.ConsumesSpec) { c.ScrollAgi = true }},
-		{"Scroll of Strength IV", stats.Strength, 17, func(c *proto.ConsumesSpec) { c.ScrollStr = true }},
-		{"Scroll of Intellect IV", stats.Intellect, 16, func(c *proto.ConsumesSpec) { c.ScrollInt = true }},
-		{"Scroll of Spirit IV", stats.Spirit, 15, func(c *proto.ConsumesSpec) { c.ScrollSpi = true }},
-		{"Scroll of Protection IV", stats.Armor, 240, func(c *proto.ConsumesSpec) { c.ScrollArm = true }},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			delta := consumesStatDelta(t, tc.stat, func(request *proto.RaidSimRequest) {
-				tc.set(consumesOf(request))
-			})
-			if !WithinToleranceFloat64(tc.amount, delta, 0.01) {
-				t.Fatalf("%s should grant %0.0f %s, got %0.2f", tc.name, tc.amount, tc.stat.StatName(), delta)
-			}
-		})
+	bareMainHand := selectedConsumableIDs(consumes, false)
+	if slices.Contains(bareMainHand, 20749) {
+		t.Errorf("selected the main-hand imbue while the main hand carries no enchant: %v", bareMainHand)
 	}
 }
 
-func TestScrollDoesNotStackWithTheRaidBuffOfTheSameStat(t *testing.T) {
-	arcaneBrilliance := func(request *proto.RaidSimRequest) {
-		request.Raid.Buffs.ArcaneBrilliance = true
-	}
-	buffOnly := consumesStatDelta(t, stats.Intellect, arcaneBrilliance)
-	buffAndScroll := consumesStatDelta(t, stats.Intellect, func(request *proto.RaidSimRequest) {
-		arcaneBrilliance(request)
-		consumesOf(request).ScrollInt = true
-	})
+func TestSelectedConsumableIDsKeepTheFirstOfEachGroup(t *testing.T) {
+	const agility, mongoose, sages, ungrouped, juju, scroll = 990401, 990402, 990403, 990404, 990405, 990406
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
+		{Id: agility, Type: proto.ConsumableType_ConsumableTypeElixir, GroupKey: "29/1"},
+		{Id: mongoose, Type: proto.ConsumableType_ConsumableTypeElixir, GroupKey: "29/1"},
+		{Id: sages, Type: proto.ConsumableType_ConsumableTypeElixir, GroupKey: "29/3"},
+		{Id: ungrouped, Type: proto.ConsumableType_ConsumableTypeElixir},
+		{Id: juju, GroupKey: "29/3"},
+		{Id: scroll, Type: proto.ConsumableType_ConsumableTypeScroll, GroupKey: "29/2"},
+	}})
 
-	if !WithinToleranceFloat64(buffOnly, buffAndScroll, 0.01) {
-		t.Fatalf("Scroll of Intellect should not add to Arcane Brilliance: buff %0.2f, buff + scroll %0.2f", buffOnly, buffAndScroll)
-	}
-}
-
-// A weapon-carrying character for imbue tests: registerStaticImbue keys the Elemental Sharpening
-// Stone's crit to the stoned weapon's slot and subclass, which an unarmed test character never matches.
-func setupImbueSim(t *testing.T, mhImbueId, ohImbueId int32, equipped, swapped []*proto.ItemSpec) (*Simulation, *Character) {
-	t.Helper()
-	player := &proto.Player{
-		Name:        "Weapon Tester",
-		Class:       proto.Class_ClassRogue,
-		Race:        proto.Race_RaceUndead,
-		Buffs:       &proto.IndividualBuffs{},
-		Consumables: &proto.ConsumesSpec{MhImbueId: mhImbueId, OhImbueId: ohImbueId},
-		Spec:        &proto.Player_Rogue{},
-		Equipment:   &proto.EquipmentSpec{Items: equipped},
-		Rotation:    &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
-	}
-	if swapped != nil {
-		player.EnableItemSwap = true
-		player.ItemSwap = &proto.ItemSwap{Items: swapped}
-	}
-	sim := NewSim(&proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{RandomSeed: 1},
-		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
-		Encounter: &proto.Encounter{
-			Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
-			Duration: 180,
-		},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
-}
-
-func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
-	_, without := setupImbueSim(t, 0, 0, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), nil)
-	for _, tc := range []struct {
-		name           string
-		mhImbueId      int32
-		ohImbueId      int32
-		wantMH, wantOH float64
-	}{
-		{"main hand", 22756, 0, 2, 0},
-		{"off hand", 0, 22756, 0, 2},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			_, with := setupImbueSim(t, tc.mhImbueId, tc.ohImbueId, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), nil)
-
-			if delta := with.GetStat(stats.PhysicalCritPercent) - without.GetStat(stats.PhysicalCritPercent); delta != 0 {
-				t.Fatalf("Elemental Sharpening Stone should grant no crit to every attack, got %0.3f%%", delta)
-			}
-			mh := with.AutoAttacks.MHAuto().BonusCritPercent - without.AutoAttacks.MHAuto().BonusCritPercent
-			oh := with.AutoAttacks.OHAuto().BonusCritPercent - without.AutoAttacks.OHAuto().BonusCritPercent
-			if !WithinToleranceFloat64(tc.wantMH, mh, 0.001) || !WithinToleranceFloat64(tc.wantOH, oh, 0.001) {
-				t.Fatalf("Elemental Sharpening Stone should grant %0.0f%% main hand and %0.0f%% off hand crit, got %0.3f%% and %0.3f%%",
-					tc.wantMH, tc.wantOH, mh, oh)
-			}
-		})
+	got := selectedConsumableIDs(&proto.ConsumesSpec{ElixirIds: []int32{agility, mongoose, sages, ungrouped}, ExtraIds: []int32{juju, scroll}}, false)
+	if want := []int32{agility, sages, ungrouped, scroll}; !slices.Equal(got, want) {
+		t.Errorf("selected %v, want %v", got, want)
 	}
 }
 
-func TestElementalSharpeningStoneSkipsAMagicDefenseSpell(t *testing.T) {
-	_, character := setupImbueSim(t, 22756, 0, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), nil)
-
-	magicSpell := character.RegisterSpell(SpellConfig{
-		ActionID:    ActionID{SpellID: 990980},
-		SpellSchool: SpellSchoolFrost,
-		ProcMask:    ProcMaskMeleeMHSpecial,
-		DefenseType: DefenseTypeMagic,
-	})
-	if magicSpell.BonusCritPercent != 0 {
-		t.Fatalf("Elemental Sharpening Stone should skip a magic-defense spell, got %0.3f%% crit", magicSpell.BonusCritPercent)
+func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
+	const majorHealingPotion = 13446
+	unregister := func() {
+		delete(consumableEffects, majorHealingPotion)
+		delete(dataDrivenConsumableEffects, majorHealingPotion)
 	}
-	if mh := character.AutoAttacks.MHAuto().BonusCritPercent; mh != 2 {
-		t.Fatalf("Elemental Sharpening Stone should still grant 2%% crit to the main hand auto, got %0.3f%%", mh)
-	}
-}
+	t.Cleanup(unregister)
 
-func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing.T) {
-	for _, tc := range []struct {
-		name    string
-		swapped []*proto.ItemSpec
-	}{
-		{"swapped to a non-matching item", weaponSlots(equipTestShieldID, equipTestDaggerID, 0)},
-		{"swapped to empty", weaponSlots(0, equipTestDaggerID, 0)},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			sim, character := setupImbueSim(t, 22756, 0, weaponSlots(equipTestSwordID, equipTestDaggerID, 0), tc.swapped)
-			mhAuto := character.AutoAttacks.MHAuto()
-			if mhAuto.BonusCritPercent != 2 {
-				t.Fatalf("Elemental Sharpening Stone should grant 2%% crit before the swap, got %0.3f%%", mhAuto.BonusCritPercent)
-			}
-
-			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
-
-			if mhAuto.BonusCritPercent != 0 {
-				t.Fatalf("Elemental Sharpening Stone should grant no crit once its weapon is swapped away, got %0.3f%%", mhAuto.BonusCritPercent)
-			}
-		})
-	}
-}
-
-func TestDenseStoneOnlyArmsTheHandItIsOn(t *testing.T) {
-	for _, tc := range []struct {
-		name    string
-		imbueId int32
-	}{
-		{"Dense Sharpening Stone", 16138},
-		{"Dense Weightstone", 16622},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			_, mainHand := setupConsumesSim(func(request *proto.RaidSimRequest) {
-				consumesOf(request).MhImbueId = tc.imbueId
-			})
-			if mainHand.AutoAttacks.MH().BaseDamageMin != 8 || mainHand.AutoAttacks.MH().BaseDamageMax != 8 {
-				t.Fatalf("%s should add 8 main hand weapon damage, got %0.2f - %0.2f",
-					tc.name, mainHand.AutoAttacks.MH().BaseDamageMin, mainHand.AutoAttacks.MH().BaseDamageMax)
-			}
-			if mainHand.AutoAttacks.OH().BaseDamageMax != 0 || mainHand.AutoAttacks.Ranged().BaseDamageMax != 0 {
-				t.Fatalf("%s on the main hand should leave the off hand and the ranged weapon alone", tc.name)
-			}
-
-			_, offHand := setupConsumesSim(func(request *proto.RaidSimRequest) {
-				consumesOf(request).OhImbueId = tc.imbueId
-			})
-			if offHand.AutoAttacks.OH().BaseDamageMin != 8 || offHand.AutoAttacks.OH().BaseDamageMax != 8 {
-				t.Fatalf("%s should add 8 off hand weapon damage, got %0.2f - %0.2f",
-					tc.name, offHand.AutoAttacks.OH().BaseDamageMin, offHand.AutoAttacks.OH().BaseDamageMax)
-			}
-			if offHand.AutoAttacks.MH().BaseDamageMax != 0 {
-				t.Fatalf("%s on the off hand should leave the main hand alone", tc.name)
-			}
-		})
-	}
-}
-
-func TestWizardOilGrantsSpellDamage(t *testing.T) {
-	delta := consumesStatDelta(t, stats.SpellDamage, func(request *proto.RaidSimRequest) {
-		consumesOf(request).MhImbueId = 25121
-	})
-	if !WithinToleranceFloat64(30, delta, 0.01) {
-		t.Fatalf("Wizard Oil should grant 30 spell damage, got %0.2f", delta)
-	}
-}
-
-func TestBlessedWizardOilOnlyHelpsVersusUndead(t *testing.T) {
-	_, fw := setupConsumesSim(func(request *proto.RaidSimRequest) {
-		consumesOf(request).MhImbueId = 28898
-	})
-
-	if delta := fw.GetStat(stats.SpellDamage); delta != 0 {
-		t.Fatalf("Blessed Wizard Oil should not grant flat spell damage, got %0.2f", delta)
-	}
-
-	attackTable := fw.AttackTables[fw.CurrentTarget.UnitIndex]
-	undead := attackTable.MobTypeBonusStats[proto.MobType_MobTypeUndead][stats.SpellDamage]
-	if !WithinToleranceFloat64(58, undead, 0.01) {
-		t.Fatalf("Blessed Wizard Oil should grant 58 spell damage versus Undead, got %0.2f", undead)
-	}
-	if demon := attackTable.MobTypeBonusStats[proto.MobType_MobTypeDemon][stats.SpellDamage]; demon != 0 {
-		t.Fatalf("Blessed Wizard Oil should not help versus Demons, got %0.2f", demon)
-	}
-}
-
-func TestThoriumGrenadeDealsItsClientDamage(t *testing.T) {
-	sim, fw := setupConsumesSim(func(request *proto.RaidSimRequest) {
-		request.Raid.Parties[0].Players[0].Profession1 = proto.Profession_Engineering
-		consumesOf(request).ExplosiveId = 19769
-	})
-
-	grenade := fw.GetSpell(ThoriumGrenadeActionID)
-	if grenade == nil {
-		t.Fatal("Thorium Grenade is not registered")
-	}
-	if !grenade.Cast(sim, fw.CurrentTarget) {
-		t.Fatal("Thorium Grenade could not be cast")
-	}
-	metrics := &grenade.SpellMetrics[fw.CurrentTarget.UnitIndex]
-	for range 100 {
-		if metrics.TotalDamage > 0 {
-			break
+	for _, handFirst := range []bool{true, false} {
+		applied := ""
+		hand := func() { NewConsumableEffect(majorHealingPotion, func(Agent) { applied = "hand" }) }
+		dataDriven := func() { NewSpellDataConsumableEffect(majorHealingPotion, func(Agent) { applied = "rows" }) }
+		if handFirst {
+			hand()
+			dataDriven()
+		} else {
+			dataDriven()
+			hand()
 		}
-		sim.Step()
-	}
 
-	if metrics.Hits+metrics.Crits != 1 {
-		t.Fatalf("Thorium Grenade should have landed exactly once, got %d hits and %d crits", metrics.Hits, metrics.Crits)
-	}
-	scale := 1.0
-	if metrics.Crits == 1 {
-		scale = grenade.CritDamageMultiplier(fw.AttackTables[fw.CurrentTarget.UnitIndex])
-	}
-	if metrics.TotalDamage < 300*scale || metrics.TotalDamage > 500*scale {
-		t.Fatalf("Thorium Grenade should deal %0.2f - %0.2f damage, got %0.2f", 300*scale, 500*scale, metrics.TotalDamage)
+		if !HasConsumableEffect(majorHealingPotion) {
+			t.Fatalf("hand first %v: %d has no effect registered", handFirst, majorHealingPotion)
+		}
+		apply, _ := consumableEffect(majorHealingPotion)
+		apply(nil)
+		if applied != "hand" {
+			t.Errorf("hand first %v: the %s effect applied, want the hand-written one", handFirst, applied)
+		}
+		unregister()
 	}
 }
 
-func TestMajorHealthstoneHeal(t *testing.T) {
-	sim, fw := setupConsumesSim(func(request *proto.RaidSimRequest) {
-		consumes := consumesOf(request)
-		consumes.ConjuredId = 9421
-		consumes.ConjuredItems = []int32{9421}
-	})
+func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
+	const majorHealingPotion = 13446
+	for name, register := range map[string]func(int32, ApplyEffect){
+		"hand-written": NewConsumableEffect,
+		"data-driven":  NewSpellDataConsumableEffect,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Cleanup(func() {
+				delete(consumableEffects, majorHealingPotion)
+				delete(dataDrivenConsumableEffects, majorHealingPotion)
+			})
 
-	healthstone := fw.GetSpell(ActionID{ItemID: 9421})
-	if healthstone == nil {
-		t.Fatal("Major Healthstone is not registered")
-	}
-	fw.RemoveHealth(sim, 2000)
-	before := fw.CurrentHealth()
-	if !healthstone.Cast(sim, fw.CurrentTarget) {
-		t.Fatal("Major Healthstone could not be cast")
-	}
-	if healed := fw.CurrentHealth() - before; healed != 1440 {
-		t.Fatalf("Major Healthstone should heal 1440, healed %0.2f", healed)
-	}
-}
-
-func TestConjuredItemMissingFromTheDatabaseIsSkipped(t *testing.T) {
-	_, fw := setupConsumesSim(func(request *proto.RaidSimRequest) {
-		consumes := consumesOf(request)
-		consumes.ConjuredId = 22105
-		consumes.ConjuredItems = []int32{22105}
-	})
-
-	for _, spell := range fw.Spellbook {
-		if spell.ActionID.IsEmptyAction() {
-			t.Fatalf("A conjured item missing from the database registered a spell without an action id")
-		}
-	}
-	for _, mcd := range fw.GetMajorCooldowns() {
-		if mcd.Spell.Flags.Matches(SpellFlagConjured) {
-			t.Fatalf("A conjured item missing from the database should not add a major cooldown")
-		}
+			register(majorHealingPotion, func(Agent) {})
+			defer func() {
+				if recover() == nil {
+					t.Errorf("a second %s effect for one consumable registered without a panic", name)
+				}
+			}()
+			register(majorHealingPotion, func(Agent) {})
+		})
 	}
 }

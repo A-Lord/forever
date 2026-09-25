@@ -112,7 +112,7 @@ export const IconPicker = <ModObject, ValueType>({ modObject, config }: IconPick
 					className={clsx('pointer-events-none absolute top-0.5 left-0.5 size-9.5', currentValue > 0 ? 'filter-none' : 'grayscale')}
 					data-testid="icon-input-level-container"
 					{...stateEvents}>
-					{/* Both badges stay visible in opposite corners, as on master: at a state below its own, a quadstate
+					{/* Both badges stay visible in opposite corners: at a state below its own, a quadstate
 					    icon's grey second badge is the only affordance that a fourth state exists. */}
 					{fillImproved1 && config.improvedId && (
 						<ImprovedAnchor actionId={config.improvedId} testId="icon-input-improved1" active={currentValue > 1} corner="right" />

@@ -133,6 +133,7 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	if player.Consumables != nil {
 		character.Consumables = player.Consumables
 	}
+	applyTemporaryEnchants(&character, character.Consumables, party.buffs)
 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 
@@ -302,7 +303,7 @@ func (character *Character) applyAllEffects(agent Agent, raidBuffs *proto.RaidBu
 	character.applyBuildPhaseAuras(CharacterBuildPhaseBuffs)
 	playerStats.BuffsStats = measureStats()
 
-	applyConsumeEffects(agent, partyBuffs)
+	applyConsumeEffects(agent)
 	character.applyBuildPhaseAuras(CharacterBuildPhaseConsumes)
 	playerStats.ConsumesStats = measureStats()
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
@@ -787,9 +788,6 @@ func (character *Character) GetOffensiveTrinketCD() *Timer {
 }
 func (character *Character) GetConjuredCD() *Timer {
 	return character.GetOrInitSpellCategoryTimer(30)
-}
-func (character *Character) GetPotionCD() *Timer {
-	return character.GetOrInitSpellCategoryTimer(4)
 }
 
 func (character *Character) AddStatProcBuff(effectID int32, procAura *StatBuffAura, isEnchant bool, eligibleSlots []proto.ItemSlot) {

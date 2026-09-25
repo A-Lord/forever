@@ -11,7 +11,7 @@ func (warlock *Warlock) registerCurseOfElements() {
 	// warlock.CurseOfElementsAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 	// 	// The warlock's own copy of the aura. Malediction's modifier masks do
 	// 	// not cover this curse, so there are no talent points to pass.
-	// 	return buffs.CurseOfElementsAura(target, true, 0)
+	// 	return buffs.NewSpellDataCurseOfElementsAura(target, true, 0)
 	// })
 	// warlock.CurseOfElements = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: curseOfElementsRank.ID},

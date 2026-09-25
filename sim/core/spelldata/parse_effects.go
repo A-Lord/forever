@@ -427,6 +427,12 @@ func AppliesAura(t dbcenums.SpellEffectType) bool {
 		t == dbcenums.E_APPLY_AREA_AURA_RAID
 }
 
+// Whether ParseEffects attaches something for the effect's aura. A row can still refuse one effect by
+// its misc value, which only a parse against a unit finds out.
+func (e *Effect) ParsedAura() bool {
+	return AppliesAura(e.Type) && auraTable[e.Aura] != nil
+}
+
 // The dot modifiers a spell states twice. A talent that raises a spell's damage states the same
 // number once for the hit and once for the dot, and one SpellMod_DamageDone_Flat already reaches the
 // ticks as well as the hit, so the second effect would double the bonus on the dot. Only a hit

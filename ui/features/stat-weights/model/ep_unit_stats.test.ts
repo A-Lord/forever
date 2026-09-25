@@ -74,7 +74,7 @@ describe('visibleEpUnitStats', () => {
 		expect(names(shown)).toContain(UnitStat.fromStat(Stat.StatIntellect).getKey());
 	});
 
-	// Master gates only the `Stat` clause on `showAllStats`; an off-spec pseudo-stat is hidden
+	// Only the `Stat` clause is gated on `showAllStats`; an off-spec pseudo-stat is hidden
 	// unconditionally, because its row carries an editable Current EP cell.
 	it('keeps an off-spec pseudo-stat hidden when showAllStats is on', () => {
 		expect(names(visibleEpUnitStats(statSet, true))).toEqual(

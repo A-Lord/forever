@@ -10,7 +10,6 @@ import { APLRotation, APLRotation_Type as APLRotationType, SimpleRotation } from
 import { IndividualBuffs } from '@generated/proto/buffs';
 import {
 	Class,
-	ConsumableType,
 	ConsumesSpec,
 	Cooldowns,
 	Faction,
@@ -54,7 +53,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { CONJURED_CONFIG, relevantConsumableOptions } from '../settings/conjured';
+import { ConsumableSlot, relevantConsumableIds } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -258,6 +257,9 @@ export class Player<SpecType extends Spec> {
 	private gemEPCache = new Map<number, number>();
 	private randomSuffixEPCache = new Map<number, number>();
 	private enchantEPCache = new Map<number, number>();
+	// The potions and conjured items getConsumes(true) lists, by the spec, class, race and
+	// professions they were worked out for.
+	private relevantConsumablesCache: { key: string; db: Database; potions: Array<number>; conjuredItems: Array<number> } | null = null;
 	private talents: SpecTalents<SpecType> | null = null;
 	private specConfig: SpecConfigData<SpecType>;
 
@@ -672,16 +674,19 @@ export class Player<SpecType extends Spec> {
 
 	getConsumes(forSimming?: boolean): ConsumesSpec {
 		if (forSimming) {
-			const epStats = [...(this.specConfig.consumableStats ?? []), ...this.specConfig.epStats];
-			const dbPotions = this.sim.db.getConsumablesByTypeAndStats(ConsumableType.ConsumableTypePotion, epStats);
-			const dbConjured = relevantConsumableOptions(CONJURED_CONFIG, this.specConfig)
-				.filter(option => (option.showWhen ? option.showWhen(this) : true))
-				.map(option => option.value);
-			return ConsumesSpec.create({
-				...this.slice().consumables,
-				potions: dbPotions.map(p => p.id),
-				conjuredItems: dbConjured,
-			});
+			const db = this.sim.db;
+			const key = [this.getSpec(), this.getClass(), this.getRace(), this.getProfession1(), this.getProfession2()].join(':');
+			let cache = this.relevantConsumablesCache;
+			if (cache?.key !== key || cache.db !== db) {
+				const consumables = db.getConsumables();
+				cache = this.relevantConsumablesCache = {
+					key,
+					db,
+					potions: relevantConsumableIds(consumables, ConsumableSlot.Potion, this, db),
+					conjuredItems: relevantConsumableIds(consumables, ConsumableSlot.Conjured, this, db),
+				};
+			}
+			return ConsumesSpec.create({ ...this.slice().consumables, potions: [...cache.potions], conjuredItems: [...cache.conjuredItems] });
 		}
 		// Make a defensive copy
 		return ConsumesSpec.clone(this.slice().consumables);
@@ -1427,9 +1432,9 @@ export class Player<SpecType extends Spec> {
 				return false;
 			}
 
-			// MoP drops gems whose positive stats are all outside the spec's EP/gem stat list. TBC
-			// does not: a meta's effect is not in its stat block at all, and the per-spec
-			// allowlist was found to hide gems people wanted. Every gem that reaches here is kept.
+			// No gem is dropped for having all its positive stats outside the spec's EP/gem stat
+			// list: a meta's effect is not in its stat block at all, and such a per-spec allowlist
+			// hides gems people want. Every gem that reaches here is kept.
 			return true;
 		});
 	}

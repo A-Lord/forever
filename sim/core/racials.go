@@ -277,12 +277,7 @@ func applySkyborneSharedRacials(character *Character) {
 
 func applyCreatureTypeSlaying(character *Character, mobType proto.MobType) {
 	character.Env.RegisterPostFinalizeEffect(func() {
-		for _, at := range character.AttackTables {
-			if at.Defender.MobType == mobType {
-				at.DamageDealtMultiplier *= 1.05
-				at.CritMultiplier *= 1.05
-			}
-		}
+		character.MultiplyDamageVersus(1.05, true, mobType)
 	})
 }
 

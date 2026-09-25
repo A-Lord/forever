@@ -17,7 +17,7 @@ var BaseStats = map[BaseStatsKey]stats.Stats{}
 // base_stats_auto_gen.go, nothing regenerates these two maps, so a level-60
 // character currently runs on level-70 str/agi/sta/int/spi. Needs a level-60
 // source. Until then every sim number that depends on base attributes is wrong,
-// and the goldens bake that in.
+// and the .results files bake that in.
 //
 // The client is NOT that source, verified against build 1.60.1.69913 by extracting
 // every candidate table: CharBaseInfo is race x class validity only; ChrClasses has

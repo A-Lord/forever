@@ -225,7 +225,7 @@ func (unit *Unit) getSpellDamageValueImpl(spell *Spell, _ *Unit) float64 {
 }
 
 func (unit *Unit) getAttackPowerValueImpl(spell *Spell, target *Unit) float64 {
-	return unit.GetStat(stats.AttackPower) + target.PseudoStats.BonusAttackPower + spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.RangedAttackPower]
+	return unit.GetStat(stats.AttackPower) + target.PseudoStats.BonusAttackPower + spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.AttackPower]
 }
 
 // Units can be disabled for several reasons:

@@ -46,7 +46,7 @@ const grouping: MetricGrouping<ActionMetrics> = {
 };
 
 /**
- * TBC's per-action threat table. Threat is a first-class metric here — TPS decides who tanks — so it
+ * The per-action threat table. Threat is a first-class metric here — TPS decides who tanks — so it
  * gets its own tab rather than the per-column threat tooltips the damage table carries. The table is
  * mounted only while `showThreatMetrics` is on; nothing inside it re-checks that.
  */

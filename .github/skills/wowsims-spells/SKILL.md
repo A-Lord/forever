@@ -80,7 +80,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 
 ## Porting a class
 
-`docs/spell_data.md` has the checklist under "Porting a class onto the resolvers". The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move goldens only for a cause you isolated by reverting one change.
+`docs/spell_data.md` has the checklist under "Porting a class onto the resolvers". The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move .results files only for a cause you isolated by reverting one change.
 
 ## Traps
 
@@ -97,7 +97,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 - **The `SPELLMOD_*` names are read off the talents that use them**, because the client ships no list. All 23 were confirmed against TrinityCore's `SpellModOp` and cmangos-tbc's; a value the cores name but these do not means the data changed, not that a name is missing.
 - **core's `SpellSchool` bits are the client's**, so a school mask is carried rather than translated. `stats.SchoolIndex` is a separate enum for array positions and `proto.SpellSchool` a third.
 - **Never delete a generated file before regenerating it.** `gen_db` imports the sim, so a class package missing its file does not compile and neither does the generator that would recreate it.
-- **`make update-tests` deletes every .results before promoting .tmp.** A test that cannot run locally produces no .tmp and loses its golden outright. Check `git status -- '*.results'` for a `D` afterwards, or promote individual goldens with `cp`.
+- **`make update-tests` deletes every .results before promoting .tmp.** A test that cannot run locally produces no .tmp and loses its .results outright. Check `git status -- '*.results'` for a `D` afterwards, or promote individual .results files with `cp`.
 - **`rtk`-wrapped `go test` exits 0 with failing tests.** Read the summary line, not the exit code.
 - **CI runs `npm run fmt` from the merge with master**, which is `npx oxfmt . --check` over the whole repository, not only `ui/`.
 

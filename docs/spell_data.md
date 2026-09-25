@@ -337,7 +337,9 @@ speed multipliers - so a port writes which row it is reading rather than what th
 spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents.Cruelty))
 ```
 
-`ParseStatic` applies now and never comes off, which is what a talent or a class passive is.
+`ParseStatic` applies now and never comes off, which is what a talent or a class passive is. A bonus
+against a creature type lives on the attack tables, which exist once the environment is finalized, so
+the static path puts it there from a post-finalize effect.
 `ParseEffects(character, aura, row, opts...)` makes the same attachments follow an aura: they turn on
 when it is gained, off when it expires, and scale with its stacks where the row states
 `CumulativeAura`.
@@ -377,26 +379,32 @@ the five rank-swap effects behind them have no sim kind and are reported.
 
 The table writes the sim's own units, and which unit that is differs per stat. The conversions:
 
-|                                                             | the sim stores        | the parse writes                              |
-| ----------------------------------------------------------- | --------------------- | --------------------------------------------- |
-| Strength, Agility, Stamina, Intellect, Spirit               | flat points           | the value                                     |
-| Health, Armor, the five resistances                         | flat points           | the value                                     |
-| PhysicalDamage, SpellDamage and the per-school damage stats | flat power            | the value                                     |
-| HealingPower, AttackPower, RangedAttackPower                | flat power            | the value                                     |
-| MP5                                                         | mana per five seconds | the value                                     |
-| PhysicalHitPercent, SpellHitPercent                         | percentage points     | the value                                     |
-| PhysicalCritPercent, SpellCritPercent                       | percentage points     | the value                                     |
-| **BlockPercent**                                            | **a fraction**        | **the value over 100**                        |
-| DodgeRating                                                 | rating                | value x `DodgeRatingPerDodgePercent`          |
-| ParryRating                                                 | rating                | value x `ParryRatingPerParryPercent`          |
-| ExpertiseRating                                             | rating                | value x `ExpertisePerQuarterPercentReduction` |
-| `PseudoStats.BonusHealingTaken`                             | flat healing          | the value                                     |
-| every pseudo-stat multiplier and stat dependency            | a multiplier near 1   | `1 + value/100`                               |
+|                                                                     | the sim stores                                        | the parse writes                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| Strength, Agility, Stamina, Intellect, Spirit                       | flat points                                           | the value                                                              |
+| Health, Armor, the five resistances                                 | flat points                                           | the value                                                              |
+| PhysicalDamage, SpellDamage and the per-school damage stats         | flat power                                            | the value                                                              |
+| HealingPower, AttackPower, RangedAttackPower                        | flat power                                            | the value                                                              |
+| MP5                                                                 | mana per five seconds                                 | the value                                                              |
+| PhysicalHitPercent, SpellHitPercent                                 | percentage points                                     | the value                                                              |
+| PhysicalCritPercent, SpellCritPercent                               | percentage points                                     | the value                                                              |
+| **BlockPercent**                                                    | **a fraction**                                        | **the value over 100**                                                 |
+| DodgeRating                                                         | rating                                                | value x `DodgeRatingPerDodgePercent`                                   |
+| ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
+| ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
+| `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
+| damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
+| every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
 is five hundred percent block. `TestParseStaticStatConventions` pins one row of each family against
 what core reads back.
+
+A bonus against a creature type bids in a per-stat category under its stat and its mask,
+`AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
+the same creature types.
 
 A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
 effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks
@@ -640,6 +648,9 @@ and `AreaDurationMultiplier`; `row.AreaBonus(&character.Env.Encounter)` reads th
 encounter's area set, and is stale once the row states a `RequiredAreasID` of its own. The on-use stat
 actives `shared.NewSimpleStatActive` registers read it; a proc chance the tooltip says is doubled has
 no reader yet.
+
+A consumable's spells take these overrides like any other spell's; the lists that add, remove or
+replace a consumable itself are in [Consumables](consumables.md).
 
 `tools/database/overrides/extra_spells.go` is the other hand-kept list: spells the generator
 force-includes although no class, item, enchant or set reaches them. It is empty today. Each entry
@@ -984,9 +995,9 @@ What guards the outputs:
 - The repository's `pre-commit` hook runs `-check` when the database is present and the commit touches
   the generator or one of its outputs.
 
-Goldens are the last check and the one that costs time: run the suites of the class that changed, and
-diff the `.results` against the `.results.tmp` with a local goldendiff helper or by hand. A port that
-was meant to be mechanical and moves a golden is a wrong port, not a new baseline.
+The .results files are the last check and the one that costs time: run the suites of the class that changed, and
+diff the `.results` against the `.results.tmp` with a local diff helper or by hand. A port that
+was meant to be mechanical and moves a .results number is a wrong port, not a new baseline.
 
 ## Porting a class onto the resolvers
 
@@ -996,7 +1007,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
    `ParseEffects`, `ProcTrigger` - is the warrior's move, and this checklist is written for it.
 2. **Dump the rows before touching a call site**, three ways: the effects at the rank taken, which
    registered spells each modifier's `EffectSpellClassMask` names, and the whole `ProcTrigger` the row
-   decodes to. The mask dump is what turns a golden move into something you knew before you ran it.
+   decodes to. The mask dump is what turns a .results move into something you knew before you ran it.
 3. **Pass `Ladder.Rank(n)`, never `MustFind(id)`,** for anything the talent tree prices: a trait
    talent's per-rank numbers live in the curve, and the base row's effect can read 0.
 4. **Check the cooldown categories.** A category cooldown resolves to `Unit.CategoryTimer`, which is
@@ -1009,7 +1020,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
    cleared. `Rank` comes from "Rank N" and flips `HasRanks` there. `IgnoreHaste` follows the physical
    school, not the defense type.
 6. **A row with a `Variance` rolls.** Use `Roll(sim, level)` where the client states a spread; the
-   extra draw reshuffles every later roll, which is a golden move with a known cause.
+   extra draw reshuffles every later roll, which is a .results move with a known cause.
 7. **Parse before you activate.** `ParseEffects` attaches on gain, so an aura already up when the parse
    runs loses the rows that need a `Simulation`.
 8. **Compare value by value before deleting a hand modifier.** A mod that lands in a different bucket -
@@ -1023,7 +1034,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
     _and_ taken into two listeners with a condition each.
 11. **Say which source won.** Where the row and the tooltip disagree, the decision goes in a comment
     that names the tooltip's wording. Where a number stays by hand, its review marker stays with it.
-12. **Isolate every golden move** by reverting exactly one change and re-running. Two causes in one
+12. **Isolate every .results move** by reverting exactly one change and re-running. Two causes in one
     commit look like one inexplicable cause.
 13. **Delete the class masks last**, and only where the constant's sole reader is the `ClassSpellMask`
     write. A handler calling `spell.Matches` is a reader too.
@@ -1136,7 +1147,7 @@ func BattleShoutValue(talentPoints int32) float64 {
 func BattleShoutDuration(talentPoints int32) time.Duration {
 	return battleShoutMeta.Duration(talentPoints)
 }
-func BattleShoutAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+func NewSpellDataBattleShoutAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, battleShoutMeta, isPlayer, talentPoints)
 }
 ```
@@ -1228,8 +1239,9 @@ anywhere but the end renumbers the rows after it. `buffmanifest.All()` pairs eve
 The last four are exceptions; most rows state none of them. The rest of a row is derived:
 
 - **Go stem.** `GoStem()` is `GoField()`, protoc-gen-go's name for the field, without underscores:
-  `battle_shout` gives `BattleShoutAura`, `BattleShoutValue`, `BattleShoutDuration`,
-  `BattleShoutCategory`, `battleShoutSpell` and `battleShoutMeta`.
+  `battle_shout` gives `NewSpellDataBattleShoutAura`, `BattleShoutValue`, `BattleShoutDuration`,
+  `BattleShoutCategory`, `battleShoutSpell` and `battleShoutMeta`. A stem ending in Aura takes no
+  second one: `devotion_aura` gives `NewSpellDataDevotionAura`.
 - **Proto type.** `ProtoType()` is `ProtoTristate` where a `Talent` or an `ImpAction` prices an improved
   state, `ProtoInt32` for `KindExternalCD` and `KindItemCount`, and `ProtoBool` otherwise. The pass
   checks it against the compiled message, and renders a row whose field protoc has not retyped yet as a
@@ -1286,7 +1298,12 @@ Judgement of the Crusader states its effect in a shape no manifest row can carry
 alone - so its row is a shell and `applyDebuffs` in `sim/core/buffs/debuffs.go` applies the
 hand-written aura after the generated ones. The paladin's own aura and judgement ranks
 (`PaladinAuraRank`, `JudgementRank`) live in `sim/core/buffs/paladin.go` beside the generated
-categories they join.
+categories they join. Each is built at the rank the paladin cast: `NewSpellDataDevotionAuraRank`
+beside the generated top rank `NewSpellDataDevotionAura`, and so for Concentration, Retribution and
+the three resistance auras; `NewSpellDataJudgementOfLightAuraRank`,
+`NewSpellDataJudgementOfWisdomAuraRank` and `NewSpellDataJudgementOfTheCrusaderAuraRank` beside the
+generated `NewSpellDataJudgementOfLightAura`, `NewSpellDataJudgementOfWisdomAura` and the commented
+shell `NewSpellDataJudgementOfTheCrusaderAura`.
 
 ### Drivers
 
@@ -1294,7 +1311,7 @@ A row the generator cannot express outright states `Driver: true`, or is a kind 
 and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buffs/drivers.go`: a buff
 row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
 debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
-`party.TotemTwisting`. The driver builds the generated aura with `<Go>Aura(...)` and adds what the
+`party.TotemTwisting`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
 client does not state: a proc trigger, a cooldown, a delay, a regen. Declaring the function is what
 makes the row compile.
 

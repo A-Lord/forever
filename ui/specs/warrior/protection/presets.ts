@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, HealingModel, Profession, Race } from '@generated/proto/common';
 import { ProtectionWarrior_Options as ProtectionWarriorOptions, WarriorStance } from '@generated/proto/warrior';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
@@ -24,8 +25,12 @@ export const DefaultOptions = ProtectionWarriorOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	...WarriorPresets.DefaultConsumables,
+	conjuredId: Consumables.MajorHealthstone9421.id,
+	foodId: Consumables.DirgesKickinChimaerokChops.id,
 	flaskId: undefined,
-	guardianElixirId: 9088,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GiftOfArthas.id],
+	potId: Consumables.GreaterStoneshieldPotion.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

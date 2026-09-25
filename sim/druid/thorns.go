@@ -13,7 +13,7 @@ func (druid *Druid) registerThornsSpell() {
 	// The body the port needs:
 	// thornsAura := druid.GetAura("Thorns (Player)")
 	// if thornsAura == nil {
-	// 	thornsAura = buffs.ThornsAura(&druid.Unit, true, 0)
+	// 	thornsAura = buffs.NewSpellDataThornsAura(&druid.Unit, true, 0)
 	// }
 	//
 	// druid.RegisterSpell(core.SpellConfig{

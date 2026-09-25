@@ -40,7 +40,7 @@ describe('relevantStatOptions', () => {
 		expect(relevantStatOptions([hitBuff], hit)).toEqual([hitBuff]);
 	});
 
-	it('includes by stat, the way every TBC spec lists them', () => {
+	it('includes by stat, the way every spec lists them', () => {
 		expect(relevantStatOptions(options, host({ include: [Stat.StatStrength] }))).toEqual([untagged, strengthOfEarth]);
 	});
 

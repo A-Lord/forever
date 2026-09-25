@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession, UnitReference } from '@generated/proto/common';
 import { RestorationDruid_Options as RestorationDruidOptions } from '@generated/proto/druid';
 
@@ -7,7 +8,10 @@ export const DefaultOptions = RestorationDruidOptions.create({
 	},
 });
 
-export const DefaultConsumables = ConsumesSpec.create({});
+export const DefaultConsumables = ConsumesSpec.create({
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.MajorManaPotion.id,
+});
 
 export const OtherDefaults = {
 	distanceFromTarget: 20,

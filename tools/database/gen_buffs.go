@@ -516,6 +516,7 @@ func lowerFirst(s string) string {
 // already spelled as Go source.
 type buffRow struct {
 	Go          string
+	Builder     string
 	Field       string
 	Label       string
 	SpellID     int32
@@ -651,7 +652,7 @@ func buffScopeField(scope buffmanifest.BuffScope) string {
 
 func renderRow(row ResolvedBuff) buffRow {
 	out := buffRow{
-		Go: row.Go, Field: row.Field, Label: buffLabel(row),
+		Go: row.Go, Builder: buffBuilder(row.Go), Field: row.Field, Label: buffLabel(row),
 		SpellID: row.SpellID, Reason: row.Reason, LeftOut: row.LeftOut,
 		Supported: row.Supported, HasSpell: row.SpellID != 0,
 	}
@@ -684,6 +685,15 @@ func renderRow(row ResolvedBuff) buffRow {
 	out.Constructor = buffConstructor(row, out)
 	out.ApplyIf, out.ApplyBody, out.HasApply = buffApply(row)
 	return out
+}
+
+// The constructor's name: the stem with the NewSpellData prefix, and Aura after it unless the stem
+// already ends in Aura.
+func buffBuilder(stem string) string {
+	if strings.HasSuffix(stem, "Aura") {
+		return "NewSpellData" + stem
+	}
+	return "NewSpellData" + stem + "Aura"
 }
 
 // The label the generated Meta and the settings input both show, which is the
@@ -789,7 +799,7 @@ func buffApply(row ResolvedBuff) (string, string, bool) {
 		if row.Scope == buffmanifest.ScopeDebuff {
 			target = "target"
 		}
-		body = fmt.Sprintf("core.MakePermanent(%sAura(%s, false, %s))", row.Go, target, points)
+		body = fmt.Sprintf("core.MakePermanent(%s(%s, false, %s))", buffBuilder(row.Go), target, points)
 	}
 	return cond, body, true
 }

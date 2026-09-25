@@ -187,7 +187,7 @@ export const translatePlayerSpec = (playerSpec: PlayerSpec<any>): string => {
  */
 
 // The spec page template is identical for every spec (see ui/index_template.html),
-// so class/spec are no longer baked in as data-class/data-spec attributes; derive
+// so class/spec are not baked in as data-class/data-spec attributes; derive
 // them from the URL the same way ui/app/spec_entry.ts derives its spec module key
 // ('/forever/warrior/arms/' -> ['warrior', 'arms']). Data attributes are kept as a
 // fallback for any caller that isn't served from a real spec URL.

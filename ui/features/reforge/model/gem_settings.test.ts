@@ -11,7 +11,7 @@ const makeSettings = (phase = CURRENT_PHASE) =>
 	new ReforgeSettings({ sim: { store: createSimStore(), getPhase: () => phase }, storeKey: 1 } as any, {}, EP_STATS);
 
 describe('gem optimizer settings', () => {
-	it('defaults the three gem knobs the TBC optimizer is driven by', () => {
+	it('defaults the three gem knobs the optimizer is driven by', () => {
 		const settings = makeSettings();
 
 		expect(settings.getMaxGemPhase()).toBe(CURRENT_PHASE);
@@ -33,7 +33,7 @@ describe('gem optimizer settings', () => {
 		expect(proto.epStats).toEqual(EP_STATS);
 	});
 
-	it('serializes caps on TBC’s stat enum, not MoP’s', () => {
+	it('serializes caps on the 41-entry stat enum', () => {
 		const proto = makeSettings().toProto();
 
 		expect(proto.statCaps?.stats).toHaveLength(38);

@@ -12,8 +12,8 @@ import * as Mechanics from '../constants/mechanics';
 import { displayStatOrder, Stats, UnitStat } from './stats';
 
 describe('UnitStat', () => {
-	// The MoP placeholder evaluated `displayStatOrder` at module scope against MoP's PseudoStat set
-	// and threw inside getRootStat on TBC's, taking every transitive importer down with it.
+	// `displayStatOrder` is built at module scope, so a throw inside getRootStat there takes every
+	// transitive importer down with it.
 	it('builds displayStatOrder at module scope over the 38-stat shape', () => {
 		expect(displayStatOrder.length).toBeGreaterThan(0);
 		expect(new Stats().asProtoArray().length).toBe(38);

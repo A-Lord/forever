@@ -25,7 +25,7 @@ import (
 func (paladin *Paladin) registerSealOfTheCrusader(_ int32, rank *spelldata.Spell) {
 	judgementRank := spellData.SealOfTheCrusaderTriggered.ByID(int32(rank.EffectN(3).BaseValue()))
 	judgementAuras := paladin.newJudgementAuras(func(target *core.Unit) *core.Aura {
-		return buffs.JudgementOfTheCrusaderAura(target, buffs.JudgementRank{
+		return buffs.NewSpellDataJudgementOfTheCrusaderAuraRank(target, buffs.JudgementRank{
 			SpellID: judgementRank.ID,
 			Rank:    rank.RankNumber(),
 			Value:   judgementRank.Effect(dbcenums.A_MOD_DAMAGE_TAKEN, 2).Average(core.CharacterLevel) + paladin.judgementOfTheCrusaderBonus,

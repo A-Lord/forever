@@ -189,7 +189,7 @@ describe('NumberPicker', () => {
 		expect(settings.value).toBe(12.5);
 	});
 
-	it('keeps a positive-float value at 1000+, which the thousands separator used to swallow', () => {
+	it('keeps a positive-float value at 1000+ past the thousands separator', () => {
 		const settings = new Settings(0);
 		render(<NumberPicker modObject={settings} config={configFor({ positive: true, float: true })} />);
 		fireEvent.change(input(), { target: { value: '-1234.5' } });

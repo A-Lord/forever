@@ -80,4 +80,12 @@ var DefaultOptions = &proto.Player_DpsWarrior{
 var DefaultFuryTalents = "30305003-050530205052310051"
 var DefaultArmsTalents = "30305213032115201-05052030004"
 
-var DefaultConsumables = &proto.ConsumesSpec{}
+var DefaultConsumables = &proto.ConsumesSpec{
+	PotId:       250943, // Major Frenzy Potion
+	FlaskId:     274274, // Flask of Natural Aggression
+	FoodId:      238637, // Prowler Steak
+	ExplosiveId: 18588,
+	OhImbueId:   12404,
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
+	ExtraIds: []int32{10646, 10309, 10310},
+}

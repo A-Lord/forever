@@ -97,59 +97,57 @@ var ItemDenyList = map[int32]struct{}{
 	24265: {},
 }
 
-// Item icons to include in the DB, so they don't need to be separately loaded in the UI.
-var ExtraItemIcons = []int32{
-	// Demonic Rune
-	12662,
-
-	// Flask IDs
-	13512,
-
-	// Elixer IDs
-	9224,
-	13452,
-	13454,
-
-	// Potions / In Battle Consumes
-	13442,
-	9421,
-
-	// Thistle Tea
-	7676,
-
-	// Scrolls
-	10305,
-	10306,
-	10308,
-	10309,
-	10310,
-
-	// Weapon Imbues
-	12404,
-	12643,
-	18262,
-	20750,
-	23123,
-
-	// Explosives
-	15993,
-	18641,
-}
-
 // Item Ids of consumables to allow
 var ConsumableAllowList = []int32{
 	7676,  // Thisle Tea
 	9088,  // Gift of Arthas
 	9155,  // Arcane Elixir
-	9224,  // Elixir of Demonslaying
 	9421,  // Major Healthstone
 	13442, // Migty Rage Potion
 	13452, // Elixir of the Mongoose
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
+	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
+	274273, // Flask of Natural Accuracy
+	274274, // Flask of Natural Aggression
+	274275, // Flask of Natural Precision
+	274276, // Flask of Natural Swiftness
 }
-var ConsumableDenyList = []int32{}
+var ConsumableDenyList = []int32{
+	// Not obtainable in the game
+	23794, // Permanent Sheen of Zanza
+	23795, // Permanent Spirit of Zanza
+	23796, // Permanent Swiftness of Zanza
+	// Mage familiar summons, which the settings leave out
+	275069, // Scroll of Rat Familiar
+	277483, // Scroll of Frog Familiar
+	277493, // Scroll of Cat Familiar
+}
+
+// Exclusive groups the server keeps that the rows do not state: the client carries no stacking table,
+// and these items share no aura with their group and no category whose cooldown outlasts their buffs.
+// A consumable named here takes this group instead of the one its rows give it.
+var ConsumableExclusiveGroups = []ConsumableGroup{
+	{Group: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
+		12451, // Juju Power
+	}},
+	{Group: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
+		12460, // Juju Might
+	}},
+	{Group: ConsumableGroupKey{Key: "Zanza", Name: "Zanza"}, Items: []int32{
+		8410,  // R.O.I.D.S.
+		8411,  // Lung Juice Cocktail
+		8412,  // Ground Scorpok Assay
+		8423,  // Cerebral Cortex Compound
+		8424,  // Gizzard Gum
+		20079, // Spirit of Zanza
+	}},
+	{Group: ConsumableGroupKey{Key: "Hit food", Name: "Hit food"}, Items: []int32{
+		22237, // Dark Desire
+		23327, // Fire-toasted Bun
+	}},
+}
 
 // Raid buffs / debuffs
 var SharedSpellsIcons = []int32{

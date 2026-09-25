@@ -11,7 +11,7 @@ sed -n '/^export interface SimState {/,/^}/p' ui/sim/state/sim_store.ts
 
 There is exactly one store per page: `Sim.store`, built by `createSimStore()` and wrapped in
 `subscribeWithSelector`. It is UI-free _and_ browser-free (see the `no-restricted-globals` ban in
-`layers.md`), which is what lets `tools/state-snapshots` construct the whole model in node.
+`layers.md`), which is what lets `ui/sim/sim.test.ts` build a `Sim` against an in-memory `Env`.
 
 ## Slices and who owns them
 
@@ -76,8 +76,8 @@ Subscribe through `ui/sim/state/subscriptions.ts`, never by hand:
   only non-selector sources fall back to one fire per source.
 
 Everything above is **batch-gated** through `subscribeGated` (`ui/sim/state/batch.ts`): inside
-`batch(() => …)` a subscriber is deferred and fires once at the end with final state. `batch()`
-replaced `freezeAllAndDo` and logs errors the same way. `TypedEvent` is gone.
+`batch(() => …)` a subscriber is deferred and fires once at the end with final state. An error
+thrown inside `batch()` is logged rather than propagated, and pending listeners still flush.
 
 Aggregates deliberately exclude server-derived state: `PLAYER_CHANGE_FIELDS` drops `currentStats`
 and `simSettingsKey` drops the rng seed and metadata counters. Including them makes stat
@@ -196,7 +196,7 @@ same way you treat a missing one — go read the callee, don't trust the lint's 
 
 - A **value in the store changed** → a store subscription. Class-side values (`aplRotation`, item
   swap, rng seed, reforge / stat-weight settings) are tracked by version counters in their slice;
-  bump the counter where the old emitter fired.
+  bump the counter on every write that should notify.
 - **Something happened** (a sim result, a crash, a reference set or swapped, progress, "filters
   changed") → `Emitter<T>` from `ui/sim/state/events.ts`. `on` returns an unsubscribe function,
   `emit` fires synchronously. No `EventID`, no batching, no dedup. **Never put these in the store.**
@@ -216,21 +216,20 @@ disappears.
 
 **Lists.** A picker that hands a list to `ListPicker` must return a COPY from `getValue`
 (`.slice()`), never the live store array. `ListPicker.tsx` splices the array `getValue` returns, in
-place, and relies on the store notification to re-render — the React port kept that behaviour
-deliberately. Confirm with `/usr/bin/grep -n splice ui/ui-kit/ListPicker/ListPicker.tsx`.
+place, and relies on the store notification to re-render, deliberately. Confirm with `/usr/bin/grep -n splice ui/ui-kit/ListPicker/ListPicker.tsx`.
 
 ## Adding a field
 
 1. Add it to the slice with its default in `sim_store.ts`. Player fields must also be appended to
    `PLAYER_FIELDS` (the version counters are derived from that list), reforge fields to
    `REFORGE_FIELDS`.
-2. Facade getter reads the store; setter keeps the old equality guard and writes via `patchSlice` /
-   `patchKeyed`. If the old code notified unconditionally, pass the field in `bumps`.
+2. Facade getter reads the store; setter keeps an equality guard and writes via `patchSlice` /
+   `patchKeyed`. If the setter must notify even on an equal value, pass the field in `bumps`.
 3. Consumers read it through `usePlayerStore('<field>')` where it is a player field, or by naming it
    as an `InputConfig.storeField` — see "Reading the store from React". A non-React consumer calls
    the matching `subscribe*` helper and keeps the returned unsubscribe.
-4. `npm run test:snapshots` — the store contract test runs first and asserts the notification
-   contract, so a field that notifies twice fails there rather than in the browser.
+4. `npm run test:unit` covers the store hooks' gating (`ui/sim/hooks/*.test.tsx`), but no suite
+   asserts one notification per facade write, so check a new field's notification count yourself.
 
 ## Player lifetime
 

@@ -7,9 +7,8 @@ import { getTalentPoints } from '@sim/proto/utils';
 import type { SimWarning } from '@sim/sim_host';
 import { subscribeAll, subscribePlayerField } from '@sim/state/subscriptions';
 
-// TBC talents are three free-form trees rather than MoP's row-gated ones, so there is no
-// per-row requirement to check: the only thing the string can be wrong about is the point
-// total. `@sim/talents/requirements` is MoP's row reader and is deliberately absent here.
+// Talents are three free-form trees, so there is no per-row requirement to check: the only
+// thing the string can be wrong about is the point total.
 const MAX_TALENT_POINTS = CHARACTER_LEVEL - 9;
 
 export function defaultSimWarnings<SpecType extends number>(player: Player<SpecType>): Array<SimWarning> {

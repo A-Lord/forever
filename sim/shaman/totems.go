@@ -145,7 +145,7 @@ func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {
 	// duration := time.Second * 120
 	// config := shaman.newTotemSpellConfig(int32(strengthOfEarthTotemRank.Cost()), strengthOfEarthTotemRank.ID, SpellMaskBasicTotem, strengthOfEarthTotemRank.GCD())
 	// // Enhancing Totems (16295) has no node in shaman tree 1082, so the aura is untalented.
-	// buffAura := buffs.StrengthOfEarthTotemAura(&shaman.Unit, true, 0)
+	// buffAura := buffs.NewSpellDataStrengthOfEarthTotemAura(&shaman.Unit, true, 0)
 	// buffAura.Duration = duration
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 	if shaman.EarthTotemAura != nil {
@@ -167,7 +167,7 @@ func (shaman *Shaman) registerGraceOfAirTotemSpell() {
 	// The body the port needs:
 	// duration := time.Second * 120
 	// config := shaman.newTotemSpellConfig(int32(graceOfAirTotemRank.Cost()), graceOfAirTotemRank.ID, SpellMaskBasicTotem, graceOfAirTotemRank.GCD())
-	// buffAura := buffs.GraceOfAirTotemAura(&shaman.Unit, true, 0)
+	// buffAura := buffs.NewSpellDataGraceOfAirTotemAura(&shaman.Unit, true, 0)
 	// buffAura.Duration = duration
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 	if shaman.AirTotemAura != nil {
@@ -188,7 +188,7 @@ func (shaman *Shaman) registerManaSpringTotemSpell() {
 	// The implementation, kept for the port:
 	// duration := time.Second * 120
 	// config := shaman.newTotemSpellConfig(int32(manaSpringTotemRank.Cost()), manaSpringTotemRank.ID, SpellMaskBasicTotem, manaSpringTotemRank.GCD())
-	// buffAura := buffs.ManaSpringTotemAura(&shaman.Unit, true, shaman.Talents.RestorativeTotems)
+	// buffAura := buffs.NewSpellDataManaSpringTotemAura(&shaman.Unit, true, shaman.Talents.RestorativeTotems)
 	// buffAura.Duration = duration
 	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 	if shaman.WaterTotemAura != nil {

@@ -386,8 +386,8 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
-	// The Holy damage taken is applied by JudgementOfTheCrusaderAura in debuffs.go, which the
-	// paladin's own ranks share.
+	// The Holy damage taken is applied by NewSpellDataJudgementOfTheCrusaderAuraRank in debuffs.go,
+	// which the paladin's own ranks share.
 	{
 		Field:      "judgement_of_the_crusader",
 		SpellID:    20303,

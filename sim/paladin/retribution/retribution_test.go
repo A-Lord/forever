@@ -55,6 +55,6 @@ func TestRetribution(t *testing.T) {
 var DefaultRetributionTalents = "50003-5030-05225321001330301"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	ConjuredId:   12662, // Demonic Rune
-	GoblinSapper: true,
+	ConjuredId: 12662,          // Demonic Rune
+	ExtraIds:   []int32{10646}, // Goblin Sapper Charge
 }
