@@ -253,6 +253,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Graverobber'sShovel-273817"
+ value: {
+  dps: 415.83504
+  tps: 296.25852
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-Gri'lek'sCharmofValor-19952"
  value: {
   dps: 414.61489
