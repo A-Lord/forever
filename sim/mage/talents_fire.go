@@ -1,5 +1,9 @@
 package mage
 
+import (
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 func (mage *Mage) registerFireTalents() {
 	// Tier 1
 	mage.registerWakeOfFire()
@@ -36,13 +40,12 @@ func (mage *Mage) registerFireTalents() {
 }
 
 // registerWakeOfFire implements Wake of Fire, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (mage *Mage) registerWakeOfFire() {
 	if mage.Talents.WakeOfFire == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&mage.Character, spellData.WakeOfFire.Rank(mage.Talents.WakeOfFire))
 }
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
@@ -51,16 +54,7 @@ func (mage *Mage) registerIncineration() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.Incineration == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellFireBlast | MageSpellScorch,
-	// 	FloatValue: spellData.Incineration.ValueAt(mage.Talents.Incineration),
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.Incineration.Rank(mage.Talents.Incineration))
 }
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
@@ -69,16 +63,7 @@ func (mage *Mage) registerImprovedFireball() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ImprovedFireball == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask: MageSpellFireball,
-	// 	TimeValue: time.Millisecond * time.Duration(spellData.ImprovedFireball.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_CASTING_TIME)).ValueAt(mage.Talents.ImprovedFireball)),
-	// 	Kind:      core.SpellMod_CastTime_Flat,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFireball.Rank(mage.Talents.ImprovedFireball))
 }
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
@@ -165,6 +150,8 @@ func (mage *Mage) registerFlameThrowing() {
 	if mage.Talents.FlameThrowing == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&mage.Character, spellData.FlameThrowing.Rank(mage.Talents.FlameThrowing))
 }
 
 // registerImpact implements Impact, new in Forever.

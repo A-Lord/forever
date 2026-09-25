@@ -89,7 +89,7 @@ func (mage *Mage) registerSpells() {
 	// mage.registerConeOfColdSpell()
 	mage.registerFrostboltSpell()
 	// mage.registerEvocation()
-	// mage.registerFireballSpell()
+	mage.registerFireballSpell()
 	mage.registerFireBlastSpell()
 	// mage.registerFrostNovaSpell()
 	// mage.registerManaGems()

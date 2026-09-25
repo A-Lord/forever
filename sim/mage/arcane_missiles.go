@@ -10,33 +10,39 @@ var triggered = spellData.ArcaneMissilesTriggered.Highest()
 var arcaneMissilesBaseDamage = triggered.DamageEffect().Average(core.CharacterLevel)
 
 func (mage *Mage) registerArcaneMissilesSpell() {
-	tickConfig := spelldata.SpellConfig(&mage.Unit, triggered, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
+	tickConfig := spelldata.SpellConfig(&mage.Unit, triggered, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.RemoveFlags(core.SpellFlagAPL))
 	tickConfig.ClassSpellMask = MageSpellArcaneMissilesTick
-
+	tickConfig.MissileSpeed = 20
 	tickConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, arcaneMissilesBaseDamage, spell.OutcomeTickMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, arcaneMissilesBaseDamage, spell.OutcomeTickMagicHitAndCrit)
+		spell.SpellMetrics[result.Target.UnitIndex].Casts--
 	}
 
 	tickSpell := mage.RegisterSpell(tickConfig)
 
-	config := spelldata.SpellConfig(&mage.Unit, arcaneMissilesRank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = MageSpellArcaneMissilesCast
+	spellConfig := spelldata.SpellConfig(&mage.Unit, arcaneMissilesRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	spellConfig.ClassSpellMask = MageSpellArcaneMissilesCast
 
 	dotConfig := spelldata.DotConfig(arcaneMissilesRank, arcaneMissilesRank.PeriodicEffect())
 	dotConfig.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		tickSpell.Cast(sim, target)
 	}
 
-	config.Dot = dotConfig
+	spellConfig.Dot = dotConfig
 
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+	spellConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
+
+		tickSpell.SpellMetrics[target.UnitIndex].Casts++
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
+			tickSpell.SpellMetrics[target.UnitIndex].Hits++
 		}
 	}
 
-	mage.RegisterSpell(config)
+	mage.RegisterSpell(spellConfig)
+
+	//Below i'm keeping for visibility and confirmation while using spelldata methods
 
 	// The TBC implementation, kept for the port:
 	// // Values found at https://wago.tools/db2/SpellEffect?build=2.5.5.65295&filter%5BSpellID%5D=exact%253A7268
