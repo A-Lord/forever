@@ -125,7 +125,7 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 // The driver keeps the 1.5 second internal cooldown and the extra attack the
 // proc lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
-	if !char.TakesWindfuryTotem() {
+	if !char.TakesTotemEnchant() {
 		return
 	}
 	procAura := NewSpellDataWindfuryTotemAura(&char.Unit, false, 0)
@@ -222,7 +222,13 @@ func FlametongueTotemDamage(weaponSpeed float64) float64 {
 // 16389's ProcChance column. Every main-hand hit that lands adds fire damage
 // priced by the weapon's speed. 16389 states no defense type, and a fire proc
 // with none rolls on the spell hit and crit tables.
-func driveFlametongueTotem(char *core.Character, _ *proto.PartyBuffs) {
+//
+// A main hand carries one totem enchant, so under both totems it carries
+// Windfury Totem's and Flametongue Totem does nothing.
+func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
+	if party.WindfuryTotem || !char.TakesTotemEnchant() {
+		return
+	}
 	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc(), spelldata.Tag(-1))
 	config.DefenseType = core.DefenseTypeMagic
 	config.ProcMask = core.ProcMaskSpellDamageProc
@@ -251,7 +257,22 @@ func driveFlametongueTotem(char *core.Character, _ *proto.PartyBuffs) {
 	trigger.ProcMask = core.ProcMaskMeleeMH
 	procTrigger := char.MakeProcTriggerAura(trigger)
 
-	totemAura := core.MakePermanent(NewSpellDataFlametongueTotemAura(&char.Unit, false, 0))
+	// The enchant lasts 10 seconds and the totem puts it back every 5, as
+	// Windfury Totem's does, so the aura that holds the category is simply
+	// refreshed; a weapon swapped into the main hand goes without it until then.
+	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
+	totemAura.Duration = time.Second * 10
+	totemAura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
+		aura.Activate(sim)
+		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
+			Period:   time.Second * 5,
+			Priority: core.ActionPriorityAuto,
+			OnAction: func(sim *core.Simulation) {
+				aura.Activate(sim)
+			},
+		})
+	})
+
 	totemAura.NewExclusiveEffect(FlametongueTotemCategory, false, core.ExclusiveEffect{
 		Priority: flametongueTotemProc.EffectN(1).BaseValue(),
 		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
@@ -260,6 +281,10 @@ func driveFlametongueTotem(char *core.Character, _ *proto.PartyBuffs) {
 		OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
 			procTrigger.Deactivate(sim)
 		},
+	})
+
+	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, slot proto.ItemSlot) {
+		totemAura.Deactivate(sim)
 	})
 }
 

@@ -723,6 +723,107 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 	}
 }
 
+// The totem's enchant lasts 10 seconds and is refreshed every 5, so a weapon
+// swapped into the main hand goes without it until the next refresh.
+func TestGeneratedFlametongueTotemLeavesASwappedInMainHandUntilTheNextRefresh(t *testing.T) {
+	const arcaniteReaper, whirlwindAxe = 12784, 6975
+	withMainHand := func(id int32) []*proto.ItemSpec {
+		items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
+		for i := range items {
+			items[i] = &proto.ItemSpec{}
+		}
+		items[proto.ItemSlot_ItemSlotMainHand].Id = id
+		return items
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 100},
+		Raid: &proto.Raid{Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name:           "Caster",
+				Class:          proto.Class_ClassShaman,
+				Buffs:          &proto.IndividualBuffs{},
+				Spec:           &proto.Player_ElementalShaman{},
+				Equipment:      &proto.EquipmentSpec{Items: withMainHand(arcaniteReaper)},
+				EnableItemSwap: true,
+				ItemSwap:       &proto.ItemSwap{Items: withMainHand(whirlwindAxe)},
+			}},
+			Buffs: &proto.PartyBuffs{FlametongueTotem: true},
+		}}},
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+	totem := char.GetAura("Flametongue Totem (External)")
+	trigger := char.GetAura("Flametongue Totem Trigger")
+	if totem == nil || trigger == nil {
+		t.Fatalf("totem %v, trigger %v; want both registered", totem, trigger)
+	}
+	if totem.Duration != time.Second*10 {
+		t.Errorf("the totem's enchant lasts %v, want 10 seconds", totem.Duration)
+	}
+
+	stepUntil := func(done func() bool, limit time.Duration) {
+		t.Helper()
+		for !done() && sim.CurrentTime < limit {
+			if sim.Step() {
+				t.Fatalf("the fight ended at %v", sim.CurrentTime)
+			}
+		}
+	}
+	stepUntil(trigger.IsActive, time.Second*10)
+	if !totem.IsActive() || !trigger.IsActive() {
+		t.Fatalf("by %v the totem is active %v and its trigger %v, want both up", sim.CurrentTime,
+			totem.IsActive(), trigger.IsActive())
+	}
+
+	swappedAt := sim.CurrentTime
+	char.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+	if totem.IsActive() || trigger.IsActive() {
+		t.Errorf("after the swap the totem is active %v and its trigger %v, want the new main hand bare",
+			totem.IsActive(), trigger.IsActive())
+	}
+
+	stepUntil(trigger.IsActive, swappedAt+time.Second*10)
+	if !trigger.IsActive() || sim.CurrentTime != swappedAt+time.Second*5 {
+		t.Errorf("the trigger is active %v at %v, want it back at the refresh 5 seconds after the swap",
+			trigger.IsActive(), sim.CurrentTime)
+	}
+	stepUntil(func() bool { return false }, time.Second*30)
+	if !trigger.IsActive() {
+		t.Errorf("the trigger has dropped by %v, want the refresh to keep it up", sim.CurrentTime)
+	}
+}
+
+// Both totems enchant the main hand, which carries one of them: under both, the
+// party's Windfury Totem holds it and Flametongue Totem registers nothing.
+func TestGeneratedWindfuryTotemHoldsTheMainHandOverFlametongueTotem(t *testing.T) {
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
+		&proto.PartyBuffs{WindfuryTotem: true, FlametongueTotem: true}, &proto.IndividualBuffs{})
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) != nil {
+		t.Error("Flametongue Totem registered its proc next to Windfury Totem")
+	}
+	if len(char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory).Effects()) != 0 {
+		t.Error("Flametongue Totem bids in its category next to Windfury Totem")
+	}
+
+	trigger := char.GetAura("Windfury Totem Trigger")
+	proc := char.GetAura("Windfury Totem (External)")
+	if trigger == nil || !trigger.IsActive() || proc == nil {
+		t.Fatalf("Windfury Totem's trigger %v, proc %v; want both registered and the trigger up", trigger, proc)
+	}
+	target := sim.Encounter.AllTargetUnits[0]
+	for i := 0; i < 200 && !proc.IsActive(); i++ {
+		trigger.OnSpellHitDealt(trigger, sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial},
+			&core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
+	}
+	if !proc.IsActive() {
+		t.Error("200 landed main-hand hits never procced Windfury Totem")
+	}
+}
+
 // A generated damage shield deals the client's damage back to whoever lands a
 // melee hit, and nothing to a spell.
 func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {

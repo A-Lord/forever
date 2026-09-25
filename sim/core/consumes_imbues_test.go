@@ -94,4 +94,9 @@ func TestTemporaryEnchantGoesOnTheHandsTheSpecNames(t *testing.T) {
 	if got := underWindfury.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
 		t.Errorf("main hand carries enchant %d under Windfury Totem", got)
 	}
+
+	underFlametongue := newCharacter(&proto.PartyBuffs{FlametongueTotem: true})
+	if got := underFlametongue.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
+		t.Errorf("main hand carries enchant %d under Flametongue Totem", got)
+	}
 }
