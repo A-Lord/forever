@@ -49,6 +49,8 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(19949) // Zandalarian Hero Medallion - https://www.wowhead.com/forever/spell=24661
 	// unsupported: 24658 deals no damage and heals no one (A_DUMMY, E_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(19950) // Zandalarian Hero Charm - https://www.wowhead.com/forever/spell=24658
+	// unsupported: 24498 deals no damage and heals no one (A_MOD_SPELL_CRIT_CHANCE)
+	// shared.NewSimpleStatActive(19952) // Gri'lek's Charm of Valor - https://www.wowhead.com/forever/spell=24498
 	// unsupported: 24531 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(19953) // Renataki's Charm of Beasts - https://www.wowhead.com/forever/spell=24531
 	// unsupported: 24542 deals no damage and heals no one (A_ADD_PCT_MODIFIER, A_ADD_PCT_MODIFIER)
@@ -315,9 +317,6 @@ func RegisterAllOnUseCds() {
 	shared.NewSpellDataSpeedOnUse(19343) // Scrolls of Blinding Light - https://www.wowhead.com/forever/spell=23733
 	// on use: 28866 (A_MOD_MELEE_HASTE_3, A_MOD_RANGED_HASTE)
 	shared.NewSpellDataSpeedOnUse(22954) // Kiss of the Spider - https://www.wowhead.com/forever/spell=28866
-
-	// SpellCritRating
-	shared.NewSimpleStatActive(19952) // Gri'lek's Charm of Valor - https://www.wowhead.com/forever/spell=24498
 
 	// SpellDamage / SpellPiercing
 	shared.NewSimpleStatActive(21473) // Eye of Moam - https://www.wowhead.com/forever/spell=26166

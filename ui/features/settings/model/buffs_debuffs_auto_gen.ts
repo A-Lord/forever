@@ -405,7 +405,7 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: LeaderOfThePack,
-		stats: [Stat.StatMeleeCritRating, Stat.StatSpellCritRating],
+		stats: [Stat.StatCritRating],
 		ownerClass: Class.ClassDruid,
 	},
 	{
@@ -420,7 +420,7 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: MoonkinAura,
-		stats: [Stat.StatMeleeCritRating, Stat.StatSpellCritRating],
+		stats: [Stat.StatCritRating],
 		ownerClass: Class.ClassDruid,
 	},
 	{
@@ -483,7 +483,7 @@ export const GENERATED_INDIVIDUAL_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: PowerInfusions,
-		stats: [Stat.StatSpellHasteRating],
+		stats: [Stat.StatHasteRating],
 		ownerClass: Class.ClassPriest,
 	},
 ];
@@ -521,7 +521,7 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: FaerieFire,
-		stats: [Stat.StatAttackPower, Stat.StatMeleeHitRating],
+		stats: [Stat.StatAttackPower, Stat.StatHitRating],
 		ownerClass: Class.ClassDruid,
 	},
 	{

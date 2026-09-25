@@ -671,6 +671,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		19952, // Gri'lek's Charm of Valor
+		[
+			"Increases the critical hit chance of spells by 10% for 15s.", // 24498 - https://www.wowhead.com/forever/spell=24498
+		]
+	],
+	[
 		19953, // Renataki's Charm of Beasts
 		[
 			"Instantly clears the cooldowns of Aimed Shot, Multishot, Volley, and Arcane Shot.", // 24531 - https://www.wowhead.com/forever/spell=24531
