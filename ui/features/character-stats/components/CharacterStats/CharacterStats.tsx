@@ -9,7 +9,6 @@ import { useStore } from 'zustand';
 import { AvoidanceRow } from './AvoidanceRow';
 import { CritCapRow } from './CritCapRow';
 import { CritImmunityRow } from './CritImmunityRow';
-import { DualWieldPenaltyRow } from './DualWieldPenaltyRow';
 import { MissRow } from './MissRow';
 import { StatRow } from './StatRow';
 import { buildRows } from './utils/rows';
@@ -29,7 +28,7 @@ export const CharacterStats = () => {
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
 	const dualWielding = player.isDualWielding();
-	const { groups, shownStats } = useMemo(() => buildRows(player, displayStats, dualWielding), [player, displayStats, dualWielding]);
+	const { groups, shownStats } = useMemo(() => buildRows(player, displayStats), [player, displayStats]);
 	const race = usePlayerStore('race');
 	const consumables = usePlayerStore('consumables');
 	const talentsString = usePlayerStore('talentsString');
@@ -98,6 +97,7 @@ export const CharacterStats = () => {
 											attribution={attribution}
 											show={show}
 											rangedWeapon={rangedWeapon}
+											dualWielding={dualWielding}
 											pending={pending}
 										/>
 									);
@@ -120,8 +120,6 @@ export const CharacterStats = () => {
 									return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
 								case 'melee-crit-cap':
 									return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
-								case 'dual-wield-penalty':
-									return <DualWieldPenaltyRow key={row.id} />;
 							}
 						})}
 					</tbody>
