@@ -928,6 +928,7 @@ func ratingStats(mask int32) []stats.Stat {
 		{32 | 128, stats.HitRating},
 		{256 | 1024, stats.CritRating},
 		{131072 | 524288, stats.HasteRating},
+		{8388608, stats.ExpertiseRating},
 	} {
 		if mask&rating.bits != 0 {
 			out = append(out, rating.stat)
