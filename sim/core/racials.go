@@ -14,7 +14,7 @@ func applyRaceEffects(agent Agent) {
 
 	switch character.Race {
 	case proto.Race_RaceDwarf:
-		applyWeaponSpecialization(character, "Mace Specialization", 1259719, 1, proto.WeaponType_WeaponTypeMace)
+		applyWeaponSpecialization(character, 1, proto.WeaponType_WeaponTypeMace) // Mace Specialization 1259719
 		applyCreatureTypeSlaying(character, proto.MobType_MobTypeBeast)
 
 		actionID := ActionID{SpellID: 20594}
@@ -53,7 +53,7 @@ func applyRaceEffects(agent Agent) {
 		applyEureka(character)
 	case proto.Race_RaceHuman:
 		character.MultiplyStat(stats.Spirit, 1.05)
-		applyWeaponSpecialization(character, "Sword Specialization", 20597, 2, proto.WeaponType_WeaponTypeSword)
+		applyWeaponSpecialization(character, 2, proto.WeaponType_WeaponTypeSword) // Sword Specialization 20597
 	case proto.Race_RaceNightElf:
 		character.PseudoStats.BaseDodgeChance += 0.01
 		character.PseudoStats.MovementSpeedMultiplier *= 1.02
@@ -75,7 +75,7 @@ func applyRaceEffects(agent Agent) {
 				},
 			})
 	case proto.Race_RaceOrc:
-		applyWeaponSpecialization(character, "Axe Specialization", 20574, 1, proto.WeaponType_WeaponTypeAxe)
+		applyWeaponSpecialization(character, 1, proto.WeaponType_WeaponTypeAxe) // Axe Specialization 20574
 
 		bloodFuryID := ActionID{SpellID: 20572}
 
@@ -281,33 +281,14 @@ func applyCreatureTypeSlaying(character *Character, mobType proto.MobType) {
 	})
 }
 
-// The aura is up while any weapon slot holds a weapon of this type, one- or two-handed, and its crit
-// reaches every spell and attack.
-func applyWeaponSpecialization(character *Character, label string, spellID int32, critPercent float64, weaponType proto.WeaponType) {
+// The crit holds while any weapon slot holds a weapon of this type, one- or two-handed, follows item
+// swaps, and reaches every spell and attack. The sheet counts it in the base stage.
+func applyWeaponSpecialization(character *Character, critPercent float64, weaponType proto.WeaponType) {
 	req := EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: WeaponSubclassMask(weaponType)}
-	equipped := req.Equipped(character)
-
-	aura := character.RegisterAura(Aura{
-		Label:      label,
-		ActionID:   ActionID{SpellID: spellID},
-		Duration:   NeverExpires,
-		BuildPhase: Ternary(equipped, CharacterBuildPhaseBase, CharacterBuildPhaseNone),
-	}).AttachStatsBuff(stats.Stats{
+	character.NewEquipGatedStats(req, stats.Stats{
 		stats.PhysicalCritPercent: critPercent,
 		stats.SpellCritPercent:    critPercent,
-	})
-
-	if equipped {
-		MakePermanent(aura)
-	}
-
-	character.RegisterWeaponRequirementCallback(req, func(sim *Simulation, equipped bool) {
-		if equipped {
-			aura.Activate(sim)
-		} else {
-			aura.Deactivate(sim)
-		}
-	})
+	}).SetLevel(nil, 1)
 }
 
 func applyExpansiveMind(character *Character) {

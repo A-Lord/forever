@@ -42,17 +42,15 @@ func TestFuryTalentsReachTheirWeapons(t *testing.T) {
 	}
 }
 
-// A two-handed axe takes Cruelty's 5% and Weaponmaster's 5% crit, and Axe Specialization is up.
+// A two-handed axe takes Cruelty's 5% and Weaponmaster's 5% crit, and Weaponmaster's aura is up.
 func TestArmsTalentsReachTheTwoHandedAxe(t *testing.T) {
 	warrior := orcWarrior(t, "p1_arms", DefaultArmsTalents)
 
 	if crit := warrior.AutoAttacks.MHAuto().BonusCritPercent; crit != 10 {
 		t.Errorf("two-handed axe crit = %0.2f%%, want 10%%", crit)
 	}
-	for _, label := range []string{"Axe Specialization", "Weaponmaster (Axe/Polearm)"} {
-		if aura := warrior.GetAura(label); aura == nil || !aura.IsActive() {
-			t.Errorf("%s is not up with a two-handed axe", label)
-		}
+	if aura := warrior.GetAura("Weaponmaster (Axe/Polearm)"); aura == nil || !aura.IsActive() {
+		t.Errorf("Weaponmaster (Axe/Polearm) is not up with a two-handed axe")
 	}
 }
 
