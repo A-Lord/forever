@@ -48,7 +48,6 @@ func (mage *Mage) registerWakeOfFire() {
 	spelldata.ParseStatic(&mage.Character, spellData.WakeOfFire.Rank(mage.Talents.WakeOfFire))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerIncineration() {
 	if mage.Talents.Incineration == 0 {
 		return
@@ -57,7 +56,6 @@ func (mage *Mage) registerIncineration() {
 	spelldata.ParseStatic(&mage.Character, spellData.Incineration.Rank(mage.Talents.Incineration))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerImprovedFireball() {
 	if mage.Talents.ImprovedFireball == 0 {
 		return
@@ -143,9 +141,6 @@ func (mage *Mage) registerIgnite() {
 }
 
 // registerFlameThrowing implements Flame Throwing, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (mage *Mage) registerFlameThrowing() {
 	if mage.Talents.FlameThrowing == 0 {
 		return
@@ -164,51 +159,29 @@ func (mage *Mage) registerImpact() {
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerBurningSoul() {
 	if mage.Talents.BurningSoul == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.BurningSoul == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	School:     core.SpellSchoolFire,
-	// 	FloatValue: -.05 * float64(mage.Talents.BurningSoul),
-	// 	Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.BurningSoul.Rank(mage.Talents.BurningSoul))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerImprovedFlamestrike() {
 	if mage.Talents.ImprovedFlamestrike == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ImprovedFlamestrike == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellFlamestrike,
-	// 	FloatValue: spellData.ImprovedFlamestrike.ValueAt(mage.Talents.ImprovedFlamestrike),
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFlamestrike.Rank(mage.Talents.ImprovedFlamestrike))
 }
 
 // registerPyroblastTalent implements the Forever talent gate for Pyroblast.
-//
-// TODO: Forever makes Pyroblast a talent; the baseline registration in
-// pyroblast.go (registerPyroblastSpell, called unconditionally from
-// registerSpells) is untouched and should be gated on this field.
 func (mage *Mage) registerPyroblastTalent() {
 	if !mage.Talents.Pyroblast {
 		return
 	}
+
+	mage.registerPyroblastSpell()
 }
 
 // registerImprovedFireWard implements Improved Fire Ward, new in Forever.
