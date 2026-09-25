@@ -24,7 +24,7 @@ message RaidBuffs {
 }
 
 // Buffs that affect a single party.
-// Next index: 20
+// Next index: 23
 message PartyBuffs {
 	bool blood_pact = 1;
 	TristateEffect battle_shout = 2;
@@ -45,6 +45,9 @@ message PartyBuffs {
 	int32 atiesh_druid = 17;
 	int32 atiesh_priest = 18;
 	bool totem_twisting = 19;
+	TristateEffect stoneskin_totem = 20;
+	bool furious_howl = 21;
+	bool flametongue_totem = 22;
 }
 
 // These are usually individual actions taken by other Characters.
@@ -59,7 +62,7 @@ message IndividualBuffs {
 	int32 power_infusions = 7;
 }
 
-// Next index: 16
+// Next index: 23
 message Debuffs {
 	bool hunters_mark = 1;
 	bool judgement_of_the_crusader = 2;
@@ -76,4 +79,11 @@ message Debuffs {
 	bool thunder_clap = 13;
 	bool insect_swarm = 14;
 	bool scorpid_sting = 15;
+	bool hex_of_weakness = 16;
+	bool demoralizing_screech = 17;
+	bool curse_of_weakness = 18;
+	bool dust_cloud = 19;
+	bool armor_shatter = 20;
+	bool vindication = 21;
+	bool thunderfury = 22;
 }

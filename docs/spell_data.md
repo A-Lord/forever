@@ -128,10 +128,11 @@ damage or any of the weapon-damage effects), `HealEffect()`, `EnergizeEffect()` 
 | `Roll(sim, level)`        | the amount for one cast                                               |
 
 `Average(level)` folds the amount the way the tooltip does: the base points plus
-`EffectRealPointsPerLevel` for each level between the spell's own `SpellLevel` and the caster's,
-stopped at `MaxLevel` where the row states one, and floored. The arithmetic is float32 on purpose -
-the client's per-level gain is a float32 widened into the database, and folding it in float64 moves
-six rows off the tooltip.
+`EffectRealPointsPerLevel` for each level between the spell's `BaseLevel` and the caster's, stopped
+at `MaxLevel` where the row states one, and floored. `BaseLevel` equals `SpellLevel` on most ranks;
+where it does not - Vindication's debuff states 0 and 1 - the in-game amount counts from `BaseLevel`.
+The arithmetic is float32 on purpose - the client's per-level gain is a float32 widened into the
+database, and folding it in float64 moves six rows off the tooltip.
 
 `EffectVariance` is the spread the server rolls the amount over: `Min` and `Max` are the average times
 `1 -/+ Variance/2`. `Roll` rolls it where the row states one and answers the average where it does
@@ -776,7 +777,7 @@ FloatValue: spellData.PuncturingWounds.EffectAt(3).ValueAt(rogue.Talents.Punctur
 `EffectAt(n)` and `Effect(aura, misc)` answer base points across the ranks, which is right for a
 `Talent`, whose curve states base points outright. A `Ranked` family - one spell per rank - can still
 carry `EffectRealPointsPerLevel` on that effect, so `ValueAt`/`FractionAt`/`MultiplierAt`/`TenthsAt`
-read low wherever the client scales it past the rank's own `SpellLevel`. Read the rank's own effect
+read low wherever the client scales it past the rank's `BaseLevel`. Read the rank's own effect
 through `Average` instead of the ladder's per-rank reader:
 
 ```go
@@ -1087,7 +1088,7 @@ float64 gives a different answer on those rows.
 read the first of several, and `Effect(aura, misc)` panics when two effects match. Both are the same
 rule: `EffectAt(n)` or `EffectN(n)` is how a caller says which.
 
-**A hand-built `Effect` scales from its own `SpellLevel` and `MaxLevel`.** The generator stamps both onto
+**A hand-built `Effect` scales from its own `BaseLevel` and `MaxLevel`.** The generator stamps both onto
 every effect so `Average(level)` needs no lookup; an `Effect` literal in a test or a hand-written config
 that leaves them zero scales `PPL` from level 0 up to the caster's level. Copy them from the spell's row,
 or set `PPL` to 0.
@@ -1119,7 +1120,9 @@ the store owns the values. The same `gen_spelldata` pass that renders the store 
 captured inputs:
 
 - `sim/core/buffs/buffs_auto_gen.go` and `sim/core/buffs/debuffs_auto_gen.go`, a constructor per row;
-- `ui/features/settings/model/buffs_debuffs_auto_gen.ts`, the settings inputs;
+- `ui/features/settings/model/buffs_debuffs_auto_gen.ts`, the settings inputs. An input's icon and
+  tooltip is `TooltipID` where the row names one, else `CastID`, else `SpellID` - the choice never
+  changes the numbers a row reads;
 - `proto/buffs.proto`, the four messages.
 
 They go through the same staging type-check and the same `-check` as the store, and regenerate without
@@ -1156,7 +1159,9 @@ func NewSpellDataBattleShoutAura(unit *core.Unit, isPlayer bool, talentPoints in
 `spelldata.RaidBuffOptions` - `Level(core.CharacterLevel)`, `BuffAuras`, `SkipAuras` where the
 generator found any and `FullComboPoints` for a finisher, which the generator parses with too - and `ScaledBy`
 the improving talent (left out where the talent scales the duration instead, since `Duration` reads
-that separately). `newBuff` adds `SchoolResistances` and, where
+that separately). A row with a `TalentDivisor` takes `ScaledByRanks(talentPoints, TalentDivisor)`
+instead: every amount the parse attaches is worth that fraction of the spell's, rounded to the nearest
+whole amount the way the tooltip shows it, and 0 points is the full amount. `newBuff` adds `SchoolResistances` and, where
 `Category` is set, `Exclusive(Category, true)` for a `SingleAura` row or `ExclusivePerStat(Category)`
 for any other, so a generated buff and a hand-written scroll of the same stat or resistance bid
 against each other under the categories core's own exclusive stat buffs use. `newDebuff` adds only
@@ -1218,23 +1223,24 @@ its proto number its position there, so each message's numbers are dense from 1,
 anywhere but the end renumbers the rows after it. `buffmanifest.All()` pairs every row with both as a
 `Row`.
 
-| Field            | What it is                                                                                                                                                                                                                                                                                                                         |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Field`          | the proto field, snake_case                                                                                                                                                                                                                                                                                                        |
-| `SpellID`        | the spell the numbers are read from, and a root of the store: the top rank of the castable family, or the aura that family's cast applies when the cast is a summon or a dummy                                                                                                                                                     |
-| `CastID`         | the cast the player learns, where it is not `SpellID`. It names the buff and times an external cooldown: Mana Tide's aura 17360 carries the mana, the cast 17359 the 13 seconds and the 5 minutes                                                                                                                                  |
-| `Talent`         | the spell of the trait node that prices the improved state. Its one spell modifier whose class mask reaches `SpellID` is the improvement - none or two fails the pass - and a `SPELLMOD_DURATION` modifier scales the duration, any other the value. The generated `Meta.TalentEffect` names that effect by its `EffectN` position |
-| `Category`       | the exclusive-effect category the aura bids in, `""` for none                                                                                                                                                                                                                                                                      |
-| `SharedCategory` | a second category the aura joins without an effect of its own, which is how the paladin auras exclude each other across schools. Applied to the player's copy only, and declared once in the generated file as `<Name>Category`                                                                                                    |
-| `SingleAura`     | the category holds one aura at a time, so the loser is deactivated rather than outbid                                                                                                                                                                                                                                              |
-| `Driver`         | the apply block hands the row to `drive<Go>` instead of activating the aura outright                                                                                                                                                                                                                                               |
-| `Stats`          | the UI relevance tags a spec's `epStats` and `displayStats` are matched against                                                                                                                                                                                                                                                    |
-| `ImpAction`      | the improved state's source when it is not a talent - an item, or the spell an item set grants at a piece threshold - and the icon that state shows                                                                                                                                                                                |
-| `Label`          | a UI label override                                                                                                                                                                                                                                                                                                                |
-| `Kind`           | what the row is when it is not simply the aura its spell states, below                                                                                                                                                                                                                                                             |
-| `Proto`          | an override of the derived proto type, for a flag that is a number: `retribution_aura_spell_power` is `ProtoDouble`                                                                                                                                                                                                                |
-| `Owner`          | the providing class, only for a spell no class family files: the four Atiesh rows. A row whose spell a family files and that names an owner fails the pass                                                                                                                                                                         |
-| `Reason`         | what a `KindFlag` row is, which the shell it renders as carries. Required on a flag and refused on any other row                                                                                                                                                                                                                   |
+| Field            | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Field`          | the proto field, snake_case                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `SpellID`        | the spell the numbers are read from, and a root of the store: the top rank of the castable family, or the aura that family's cast applies when the cast is a summon or a dummy                                                                                                                                                                                                                                                                                                                                                            |
+| `CastID`         | the cast the player learns, where it is not `SpellID`. It names the buff and times an external cooldown: Mana Tide's aura 17360 carries the mana, the cast 17359 the 13 seconds and the 5 minutes                                                                                                                                                                                                                                                                                                                                         |
+| `TooltipID`      | the settings input's icon and tooltip spell, for a row whose aura states no `Description_lang` and whose `CastID` is not that spell either (Moonkin Aura's row points at Moonkin Form, Vindication's at the talent). `0` defers to `CastID`, then `SpellID`; it never changes the numbers the row reads                                                                                                                                                                                                                                   |
+| `Talent`         | the spell of the trait node that prices the improved state. Its one spell modifier whose class mask reaches `SpellID` is the improvement - two fail the pass - and a `SPELLMOD_DURATION` modifier scales the duration, any other the value. The generated `Meta.TalentEffect` names that effect by its `EffectN` position. Where no modifier reaches it, a tooltip term `${$m1/-N*$<SpellID>m1}` prices the buff at rank/N of its amount (Vindication), which the generated `Meta.TalentDivisor` states as N; with neither the pass fails |
+| `Category`       | the exclusive-effect category the aura bids in, `""` for none                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `SharedCategory` | a second category the aura joins without an effect of its own, which is how the paladin auras exclude each other across schools. Applied to the player's copy only, and declared once in the generated file as `<Name>Category`                                                                                                                                                                                                                                                                                                           |
+| `SingleAura`     | the category holds one aura at a time, so the loser is deactivated rather than outbid                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `Driver`         | the apply block hands the row to `drive<Go>` instead of activating the aura outright                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `Stats`          | the UI relevance tags a spec's `epStats` and `displayStats` are matched against                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `ImpAction`      | the improved state's source when it is not a talent - an item, or the spell an item set grants at a piece threshold - and the icon that state shows                                                                                                                                                                                                                                                                                                                                                                                       |
+| `Label`          | a UI label override                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `Kind`           | what the row is when it is not simply the aura its spell states, below                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `Proto`          | an override of the derived proto type, for a flag that is a number: `retribution_aura_spell_power` is `ProtoDouble`                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `Owner`          | the providing class, only for a spell no class family files: the Atiesh rows, pet abilities and talent-granted debuffs. A row whose spell a family files and that names an owner fails the pass                                                                                                                                                                                                                                                                                                                                           |
+| `Reason`         | what a `KindFlag` row is, which the shell it renders as carries. Required on a flag and refused on any other row                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 The last four are exceptions; most rows state none of them. The rest of a row is derived:
 
@@ -1250,7 +1256,9 @@ The last four are exceptions; most rows state none of them. The rest of a row is
   is pinned. `AuraName` is the `SpellName` of `SpellID`, only where a cast is pinned. `Name` is the label
   unless `Label` overrides it; a spell no class family files has neither and is labelled by its own name. `TestManifestAnchorsMatchTheClient` resolves the
   pins from both.
-- **Owner.** The class whose `core.ClassSpellFamilies` entry is the spell's family. It narrows the rank
+- **Owner.** The providing class: the one whose `core.ClassSpellFamilies` entry is the spell's family,
+  or, for a spell no class family files (the Atiesh rows, pet abilities, talent-granted debuffs), the
+  row's own `Owner`. It narrows the rank
   lookup, and marks the row "(External)" on that class's settings tab.
 - **SkipAuras.** Every effect the parse attaches at 0, as above: the six paladin auras skip
   `A_MOD_HEALING_PCT`.

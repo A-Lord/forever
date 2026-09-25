@@ -2,6 +2,7 @@ package spelldata
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"slices"
 
@@ -21,11 +22,12 @@ type parseOptions struct {
 	cond         func() bool
 	ignoreStacks bool
 
-	level       int32
-	scale       *Effect
-	comboPoints bool
-	count       float64
-	buffAuras   bool
+	level        int32
+	scale        *Effect
+	rankFraction float64
+	comboPoints  bool
+	count        float64
+	buffAuras    bool
 
 	exclusive         bool
 	category          string
@@ -87,6 +89,17 @@ func ScaledBy(mod *Effect) ParseOpt {
 	return func(o *parseOptions) {
 		if mod != nil && mod != NilEffect {
 			o.scale = mod
+		}
+	}
+}
+
+// The talent's ranks out of divisor, for a talent whose tooltip prices the buff as a fraction of the
+// spell's own amount. Every amount the parse attaches is scaled, in the client's units, and rounded
+// to the nearest whole amount the way the tooltip shows it. Rank 0 changes nothing: the full amount.
+func ScaledByRanks(ranks, divisor int32) ParseOpt {
+	return func(o *parseOptions) {
+		if ranks > 0 && divisor > 0 {
+			o.rankFraction = float64(ranks) / float64(divisor)
 		}
 	}
 }
@@ -277,6 +290,9 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 
 		if scale != nil {
 			value = Scaled(value, scale)
+		}
+		if o.rankFraction > 0 {
+			value = math.Round(value * o.rankFraction)
 		}
 		a := attached(p, e, value)
 		if a == nil {

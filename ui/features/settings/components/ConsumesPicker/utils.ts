@@ -29,10 +29,13 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'groups';
 
-// Feral druids cannot take Windfury, so their main-hand imbue shows under it.
+// Feral druids cannot take Windfury or Flametongue Totem, so their main-hand imbue shows under them.
 const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
-const mainHandImbueShown = (player: Player<any>) =>
-	SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty() || !player.getParty()!.getBuffs().windfuryTotem;
+const mainHandImbueShown = (player: Player<any>) => {
+	if (SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty()) return true;
+	const buffs = player.getParty()!.getBuffs();
+	return !buffs.windfuryTotem && !buffs.flametongueTotem;
+};
 
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();

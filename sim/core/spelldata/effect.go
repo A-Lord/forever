@@ -46,7 +46,7 @@ func (e *Effect) Trigger() *Spell {
 	return Find(e.TriggerID)
 }
 
-// The amount at a caster level: the base points plus the per-level gain over the spell's own level,
+// The amount at a caster level: the base points plus the per-level gain over the spell's BaseLevel,
 // stopping at the level the spell stops scaling at. Both levels are the owning spell's, stamped onto
 // the effect at generation, so an effect answers the same amount however the caller reached it.
 //
@@ -63,7 +63,7 @@ func (e *Effect) Average(level int32) float64 {
 		lvl = int32(e.MaxLevel)
 	}
 
-	delta := lvl - int32(e.SpellLevel)
+	delta := lvl - int32(e.BaseLevel)
 	if delta < 0 {
 		delta = 0
 	}

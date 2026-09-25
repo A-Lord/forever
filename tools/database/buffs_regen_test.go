@@ -132,16 +132,20 @@ var pinnedAmounts = map[string]map[string]float64{
 	"retribution_aura":   {},
 }
 
-// Mana Spring is the only buff an improving talent prices: Restorative Totems, five points.
+// The talents that price an improved state: Restorative Totems on Mana Spring, five points,
+// Guardian Totems on Stoneskin Totem, two points, and Vindication's talent on its debuff, three.
 var pinnedTalentRanks = map[string]int32{
 	"mana_spring_totem": 5,
+	"stoneskin_totem":   2,
+	"vindication":       3,
 }
 
-// What a resistance row competes under, as (stats, own aura). A source that has
-// no exclusivity beyond the school itself keeps no category of its own, which is
-// how every totem, Aspect of the Wild and Shadow Protection read; a paladin aura
-// also holds its own slot. Armor is not a school, so Devotion Aura has only the
-// slot.
+// What a pinned row competes under, as (stats, own aura). A resistance source
+// that has no exclusivity beyond the school itself keeps no category of its own,
+// which is how every totem, Aspect of the Wild and Shadow Protection read; a
+// paladin aura also holds its own slot. Armor is not a school, so Devotion Aura
+// has only the slot. Furious Howl holds a category of its own, and the attack
+// power reductions bid in Demoralizing Shout's.
 var pinnedCategories = map[string]string{
 	"frost_resistance_totem":      "",
 	"aspect_of_the_wild":          "",
@@ -149,4 +153,8 @@ var pinnedCategories = map[string]string{
 	"frost_resistance_aura":       "FrostResistanceAura",
 	"shadow_resistance_aura":      "ShadowResistanceAura",
 	"devotion_aura":               "DevotionAura",
+	"furious_howl":                "FuriousHowl",
+	"hex_of_weakness":             "Demoralizing",
+	"demoralizing_screech":        "Demoralizing",
+	"vindication":                 "Demoralizing",
 }

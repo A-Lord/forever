@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -631,6 +632,198 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 	}
 }
 
+// Every main-hand hit adds 1363 x weapon speed / 100 fire damage.
+func TestGeneratedFlametongueTotemDamageFollowsWeaponSpeed(t *testing.T) {
+	if got := buffs.FlametongueTotemDamage(2.6); math.Abs(got-35.438) > 0.001 {
+		t.Errorf("a 2.6 speed weapon procs %v, want 1363 x 2.6 / 100", got)
+	}
+}
+
+// A main-hand hit that lands, auto or special, strikes the target for the
+// client's 1363 x the weapon's speed / 100 in fire damage on the spell hit and
+// crit tables; an off-hand hit or a missed swing strikes nothing.
+func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{FlametongueTotem: true}, &proto.IndividualBuffs{})
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+	target := sim.Encounter.AllTargetUnits[0]
+
+	trigger := char.GetAura("Flametongue Totem Trigger")
+	if trigger == nil {
+		t.Fatalf("no aura is labelled %q; the unit has %v", "Flametongue Totem Trigger", auraLabels(char))
+	}
+	if !trigger.IsActive() {
+		t.Fatal("the totem's trigger is not up at the pull")
+	}
+	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory)
+	if len(category.Effects()) != 1 {
+		t.Errorf("the category holds %d effects, want the totem's one", len(category.Effects()))
+	}
+
+	strike := char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1})
+	if strike == nil {
+		t.Fatal("the totem registered no spell for its proc")
+	}
+	if strike.SpellSchool != core.SpellSchoolFire || strike.DefenseType != core.DefenseTypeMagic {
+		t.Errorf("the proc is %v on %v, want fire on the spell tables", strike.SpellSchool, strike.DefenseType)
+	}
+	if !strike.Flags.Matches(core.SpellFlagProc) {
+		t.Error("the proc's hits are not flagged as a proc, which 16389 does not opt out of")
+	}
+
+	metrics := &strike.SpellMetrics[target.UnitIndex]
+	offer := func(procMask core.ProcMask, outcome core.HitOutcome) (casts int32, damage float64, crit bool) {
+		casts, damage, crits := metrics.Casts, metrics.TotalDamage, metrics.Crits
+		trigger.OnSpellHitDealt(trigger, sim, &core.Spell{ProcMask: procMask},
+			&core.SpellResult{Target: target, Outcome: outcome, Damage: 100})
+		return metrics.Casts - casts, metrics.TotalDamage - damage, metrics.Crits > crits
+	}
+
+	for _, row := range []struct {
+		name     string
+		speed    float64
+		procMask core.ProcMask
+	}{
+		{"a 2.6 speed main-hand auto", 2.6, core.ProcMaskMeleeMHAuto},
+		{"a 2.6 speed main-hand special", 2.6, core.ProcMaskMeleeMHSpecial},
+		{"a 1.3 speed main-hand auto", 1.3, core.ProcMaskMeleeMHAuto},
+	} {
+		char.AutoAttacks.SetMH(core.Weapon{SwingSpeed: row.speed})
+		want := 1363 * row.speed / 100
+		landedDamage := false
+		for i := 0; i < 20; i++ {
+			casts, damage, crit := offer(row.procMask, core.OutcomeHit)
+			if casts != 1 {
+				t.Fatalf("%s cast the proc %d times, want once", row.name, casts)
+			}
+			if damage == 0 {
+				continue
+			}
+			landedDamage = true
+			if expected := core.TernaryFloat64(crit, want*1.5, want); math.Abs(damage-expected) > 1e-9 {
+				t.Errorf("%s struck for %v (crit %v), want %v", row.name, damage, crit, expected)
+			}
+		}
+		if !landedDamage {
+			t.Errorf("20 of %s dealt no damage", row.name)
+		}
+	}
+
+	for _, row := range []struct {
+		name     string
+		procMask core.ProcMask
+		outcome  core.HitOutcome
+	}{
+		{"an off-hand auto", core.ProcMaskMeleeOHAuto, core.OutcomeHit},
+		{"a ranged auto", core.ProcMaskRangedAuto, core.OutcomeHit},
+		{"a missed main-hand auto", core.ProcMaskMeleeMHAuto, core.OutcomeMiss},
+	} {
+		if casts, _, _ := offer(row.procMask, row.outcome); casts != 0 {
+			t.Errorf("%s cast the proc %d times, want none", row.name, casts)
+		}
+	}
+}
+
+// The totem's enchant lasts 10 seconds and is refreshed every 5, so a weapon
+// swapped into the main hand goes without it until the next refresh.
+func TestGeneratedFlametongueTotemLeavesASwappedInMainHandUntilTheNextRefresh(t *testing.T) {
+	const arcaniteReaper, whirlwindAxe = 12784, 6975
+	withMainHand := func(id int32) []*proto.ItemSpec {
+		items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
+		for i := range items {
+			items[i] = &proto.ItemSpec{}
+		}
+		items[proto.ItemSlot_ItemSlotMainHand].Id = id
+		return items
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 100},
+		Raid: &proto.Raid{Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name:           "Caster",
+				Class:          proto.Class_ClassShaman,
+				Buffs:          &proto.IndividualBuffs{},
+				Spec:           &proto.Player_ElementalShaman{},
+				Equipment:      &proto.EquipmentSpec{Items: withMainHand(arcaniteReaper)},
+				EnableItemSwap: true,
+				ItemSwap:       &proto.ItemSwap{Items: withMainHand(whirlwindAxe)},
+			}},
+			Buffs: &proto.PartyBuffs{FlametongueTotem: true},
+		}}},
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+	totem := char.GetAura("Flametongue Totem (External)")
+	trigger := char.GetAura("Flametongue Totem Trigger")
+	if totem == nil || trigger == nil {
+		t.Fatalf("totem %v, trigger %v; want both registered", totem, trigger)
+	}
+	if totem.Duration != time.Second*10 {
+		t.Errorf("the totem's enchant lasts %v, want 10 seconds", totem.Duration)
+	}
+
+	stepUntil := func(done func() bool, limit time.Duration) {
+		t.Helper()
+		for !done() && sim.CurrentTime < limit {
+			if sim.Step() {
+				t.Fatalf("the fight ended at %v", sim.CurrentTime)
+			}
+		}
+	}
+	stepUntil(trigger.IsActive, time.Second*10)
+	if !totem.IsActive() || !trigger.IsActive() {
+		t.Fatalf("by %v the totem is active %v and its trigger %v, want both up", sim.CurrentTime,
+			totem.IsActive(), trigger.IsActive())
+	}
+
+	swappedAt := sim.CurrentTime
+	char.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+	if totem.IsActive() || trigger.IsActive() {
+		t.Errorf("after the swap the totem is active %v and its trigger %v, want the new main hand bare",
+			totem.IsActive(), trigger.IsActive())
+	}
+
+	stepUntil(trigger.IsActive, swappedAt+time.Second*10)
+	if !trigger.IsActive() || sim.CurrentTime != swappedAt+time.Second*5 {
+		t.Errorf("the trigger is active %v at %v, want it back at the refresh 5 seconds after the swap",
+			trigger.IsActive(), sim.CurrentTime)
+	}
+	stepUntil(func() bool { return false }, time.Second*30)
+	if !trigger.IsActive() {
+		t.Errorf("the trigger has dropped by %v, want the refresh to keep it up", sim.CurrentTime)
+	}
+}
+
+// Both totems enchant the main hand, which carries one of them: under both, the
+// party's Windfury Totem holds it and Flametongue Totem registers nothing.
+func TestGeneratedWindfuryTotemHoldsTheMainHandOverFlametongueTotem(t *testing.T) {
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
+		&proto.PartyBuffs{WindfuryTotem: true, FlametongueTotem: true}, &proto.IndividualBuffs{})
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) != nil {
+		t.Error("Flametongue Totem registered its proc next to Windfury Totem")
+	}
+	if len(char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory).Effects()) != 0 {
+		t.Error("Flametongue Totem bids in its category next to Windfury Totem")
+	}
+
+	trigger := char.GetAura("Windfury Totem Trigger")
+	proc := char.GetAura("Windfury Totem (External)")
+	if trigger == nil || !trigger.IsActive() || proc == nil {
+		t.Fatalf("Windfury Totem's trigger %v, proc %v; want both registered and the trigger up", trigger, proc)
+	}
+	target := sim.Encounter.AllTargetUnits[0]
+	for i := 0; i < 200 && !proc.IsActive(); i++ {
+		trigger.OnSpellHitDealt(trigger, sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial},
+			&core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
+	}
+	if !proc.IsActive() {
+		t.Error("200 landed main-hand hits never procced Windfury Totem")
+	}
+}
+
 // A generated damage shield deals the client's damage back to whoever lands a
 // melee hit, and nothing to a spell.
 func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
@@ -899,24 +1092,90 @@ func TestGeneratedManaTideTotemRestoresTheClientsMana(t *testing.T) {
 }
 
 // A buff that is not simply up is not part of the stats the character sheet is
-// measured with: the cooldowns and the windfury proc.
+// measured with: the cooldowns and the weapon totems. A main hand carries one
+// totem enchant, so Flametongue Totem is measured on a party without Windfury.
 func TestGeneratedDrivenBuffsAreNotBuildPhaseAuras(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
-		&proto.PartyBuffs{ManaTideTotems: 1, WindfuryTotem: true},
-		&proto.IndividualBuffs{Innervates: 1, PowerInfusions: 1})
-	char := sim.Raid.Parties[0].Players[0].GetCharacter()
-
-	for _, label := range []string{
-		"Innervates (External)", "Power Infusions (External)", "Mana Tide Totem (External)",
-		"Windfury Totem (External)",
+	for _, tc := range []struct {
+		party      *proto.PartyBuffs
+		individual *proto.IndividualBuffs
+		labels     []string
+	}{
+		{
+			party:      &proto.PartyBuffs{ManaTideTotems: 1, WindfuryTotem: true},
+			individual: &proto.IndividualBuffs{Innervates: 1, PowerInfusions: 1},
+			labels: []string{
+				"Innervates (External)", "Power Infusions (External)", "Mana Tide Totem (External)",
+				"Windfury Totem (External)",
+			},
+		},
+		{
+			party:      &proto.PartyBuffs{FlametongueTotem: true},
+			individual: &proto.IndividualBuffs{},
+			labels:     []string{"Flametongue Totem (External)"},
+		},
 	} {
-		aura := char.GetAura(label)
-		if aura == nil {
-			t.Fatalf("no aura is labelled %q; the unit has %v", label, auraLabels(char))
+		sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, tc.party, tc.individual)
+		char := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+		for _, label := range tc.labels {
+			aura := char.GetAura(label)
+			if aura == nil {
+				t.Fatalf("no aura is labelled %q; the unit has %v", label, auraLabels(char))
+			}
+			if aura.BuildPhase != core.CharacterBuildPhaseNone {
+				t.Errorf("%s is measured in build phase %v, want none of them", label, aura.BuildPhase)
+			}
 		}
-		if aura.BuildPhase != core.CharacterBuildPhaseNone {
-			t.Errorf("%s is measured in build phase %v, want none of them", label, aura.BuildPhase)
-		}
+	}
+}
+
+// Stoneskin takes a flat amount off every physical hit, and Guardian Totems raises it by 10% a rank.
+// The reduction lands on PseudoStats.BonusPhysicalDamageTaken, not a stats.Stats entry.
+func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
+	if got := buffs.StoneskinTotemValue(0); got != -30 {
+		t.Errorf("untalented Stoneskin is worth %v, want the client's -30", got)
+	}
+	if got := buffs.StoneskinTotemValue(2); got != -36 {
+		t.Errorf("Stoneskin with 2/2 Guardian Totems is worth %v, want -36", got)
+	}
+
+	char := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+		&proto.PartyBuffs{StoneskinTotem: proto.TristateEffect_TristateEffectImproved}, &proto.IndividualBuffs{})
+	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	aura := char.GetAura("Stoneskin Totem (External)")
+	if aura == nil {
+		t.Fatalf("no aura is labelled %q; the unit has %v", "Stoneskin Totem (External)", auraLabels(char))
+	}
+	if got := char.PseudoStats.BonusPhysicalDamageTaken; got != -36 {
+		t.Errorf("the talented totem applied %v physical damage taken, want -36", got)
+	}
+}
+
+// Furious Howl is a flat attack power grant that competes with nothing Battle Shout holds, so both
+// land on the character at once.
+func TestGeneratedFuriousHowlStacksWithBattleShout(t *testing.T) {
+	if got := buffs.FuriousHowlValue(0); got != 138 {
+		t.Fatalf("Furious Howl is worth %v attack power, want the client's 136 plus 4 levels of 0.7, floored to 138", got)
+	}
+
+	shoutOnly := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(generatedBuffTestAgent{shoutOnly}, &proto.RaidBuffs{},
+		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
+	shoutOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	char := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
+	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	want := buffs.BattleShoutValue(0) + buffs.FuriousHowlValue(0)
+	if got := char.GetStats()[stats.AttackPower]; got != want {
+		t.Errorf("attack power is %v, want both shouts' %v", got, want)
+	}
+	if got := char.GetStats()[stats.AttackPower] - shoutOnly.GetStats()[stats.AttackPower]; got != buffs.FuriousHowlValue(0) {
+		t.Errorf("Furious Howl added %v attack power over Battle Shout alone, want %v", got, buffs.FuriousHowlValue(0))
 	}
 }
 

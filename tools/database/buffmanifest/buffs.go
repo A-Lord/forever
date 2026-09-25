@@ -194,6 +194,7 @@ var Party = []BuffSpec{
 	{
 		Field:      "moonkin_aura",
 		SpellID:    24907,
+		TooltipID:  24858,
 		Category:   "DruidCritAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
@@ -297,6 +298,9 @@ var Party = []BuffSpec{
 		Owner:   proto.Class_ClassDruid,
 		Kind:    KindItemCount,
 		Label:   "Atiesh - Druid",
+		Stats: []proto.Stat{
+			proto.Stat_StatMP5,
+		},
 	},
 	{
 		Field:   "atiesh_priest",
@@ -304,11 +308,46 @@ var Party = []BuffSpec{
 		Owner:   proto.Class_ClassPriest,
 		Kind:    KindItemCount,
 		Label:   "Atiesh - Priest",
+		Stats: []proto.Stat{
+			proto.Stat_StatHealingPower,
+		},
 	},
 	{
 		Field:  "totem_twisting",
 		Kind:   KindFlag,
 		Reason: "sim behaviour toggle with no spell source; rendered under Other Inputs.",
+	},
+	{
+		Field:    "stoneskin_totem",
+		SpellID:  10405,
+		CastID:   10408,
+		Talent:   16258,
+		Category: "StoneskinTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatArmor,
+			proto.Stat_StatStamina,
+		},
+	},
+	// A pet ability the hunter class family does not file, so the owner is stated.
+	{
+		Field:    "furious_howl",
+		SpellID:  24597,
+		Owner:    proto.Class_ClassHunter,
+		Category: "FuriousHowl",
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	// The totem's party aura procs 16389 on every main-hand hit; the fire damage is the driver's.
+	{
+		Field:    "flametongue_totem",
+		SpellID:  15036,
+		CastID:   16387,
+		Kind:     KindProc,
+		Category: "FlametongueTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
 	},
 }
 
@@ -393,6 +432,7 @@ var Debuffs = []BuffSpec{
 	{
 		Field:      "judgement_of_the_crusader",
 		SpellID:    20303,
+		TooltipID:  20308,
 		Category:   "Judgement of the Crusader",
 		SingleAura: true,
 		Stats: []proto.Stat{
@@ -401,17 +441,19 @@ var Debuffs = []BuffSpec{
 		},
 	},
 	{
-		Field:   "judgement_of_light",
-		SpellID: 20346,
-		Kind:    KindProc,
+		Field:     "judgement_of_light",
+		SpellID:   20346,
+		TooltipID: 20349,
+		Kind:      KindProc,
 		Stats: []proto.Stat{
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:   "judgement_of_wisdom",
-		SpellID: 20355,
-		Kind:    KindProc,
+		Field:     "judgement_of_wisdom",
+		SpellID:   20355,
+		TooltipID: 20357,
+		Kind:      KindProc,
 		Stats: []proto.Stat{
 			proto.Stat_StatMP5,
 		},
@@ -517,6 +559,89 @@ var Debuffs = []BuffSpec{
 		Field:   "scorpid_sting",
 		SpellID: 3043,
 		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	// Every flat attack-power reduction on a target bids in one category: the strongest applies.
+	{
+		Field:      "hex_of_weakness",
+		SpellID:    19285,
+		Category:   "Demoralizing",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	{
+		Field:      "demoralizing_screech",
+		SpellID:    24579,
+		Owner:      proto.Class_ClassHunter,
+		Category:   "Demoralizing",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	{
+		Field:      "curse_of_weakness",
+		SpellID:    11708,
+		Category:   "CurseOfWeakness",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	// The client states one stack, and a stacking row's amount follows its stacks, so the raid's
+	// copy takes it from a driver rather than sitting at zero.
+	{
+		Field:      "dust_cloud",
+		SpellID:    1265904,
+		CastID:     1265911,
+		Category:   "DustCloud",
+		SingleAura: true,
+		Driver:     true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	// Annihilator's proc keeps the stacks up, so the raid's copy holds all three from the start.
+	{
+		Field:      "armor_shatter",
+		SpellID:    16928,
+		Category:   "ArmorShatter",
+		SingleAura: true,
+		Driver:     true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	// The talent's rank prices the debuff, which the talent states only in its tooltip.
+	{
+		Field:      "vindication",
+		SpellID:    440667,
+		TooltipID:  9452,
+		Owner:      proto.Class_ClassPaladin,
+		Talent:     9452,
+		Proto:      ProtoBool,
+		Category:   "Demoralizing",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
+		},
+	},
+	// The resistance is 21992's own; the slow is its triggered 27648, which the driver bids in the
+	// attack-speed category on an aura of its own so that a tie there leaves the resistance up.
+	{
+		Field:   "thunderfury",
+		SpellID: 21992,
+		Driver:  true,
+		Stats: []proto.Stat{
+			proto.Stat_StatNatureDamage,
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
 		},

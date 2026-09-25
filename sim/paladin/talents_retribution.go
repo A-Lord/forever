@@ -102,7 +102,7 @@ func (paladin *Paladin) applyConviction() {
 }
 
 // Vindication - Gives your damaging melee attacks a chance to reduce the target's Attack Power by
-// 67/134/201, and increase your Attack Power by 1/2/3% for 30 sec.
+// 68/136/204, and increase your Attack Power by 1/2/3% for 30 sec.
 //
 // The Classic, TBC and Forever clients all state the chance as 100%, which the tooltip's "a chance"
 // and the players who used it say it never was; the WotLK client says 50%, the only number Blizzard
@@ -116,15 +116,11 @@ func (paladin *Paladin) applyVindication() {
 
 	rank := spellData.VindicationTriggered.Highest()
 	points := spellData.Vindication.EffectAt(1).ValueAt(paladin.Talents.Vindication)
-	// The tooltip's ${$m1/-3*$440667m1}: the trigger's -201 scaled by the points over three.
-	targetAttackPower := rank.Effect(dbcenums.A_MOD_ATTACK_POWER, 0).Average(core.CharacterLevel) * points / 3
 
+	// The raid's Vindication row, priced at the paladin's ranks, so it bids against the raid's
+	// attack power reductions rather than stacking with them.
 	targetAuras := paladin.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.GetOrRegisterAura(core.Aura{
-			Label:    "Vindication" + paladin.Label,
-			ActionID: core.ActionID{SpellID: rank.ID},
-			Duration: rank.Duration(),
-		}).AttachStatBuff(stats.AttackPower, targetAttackPower)
+		return buffs.NewSpellDataVindicationAura(target, true, paladin.Talents.Vindication)
 	})
 
 	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)

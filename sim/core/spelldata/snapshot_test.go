@@ -105,6 +105,26 @@ func TestGeneratedFrostbolt(t *testing.T) {
 	}
 }
 
+// Per-level scaling counts from the spell's BaseLevel: Vindication's debuff states BaseLevel 0 and
+// SpellLevel 1, and the game shows the BaseLevel amount.
+func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
+	withGeneratedStore(t)
+
+	vindication := MustFind(440667).EffectN(1)
+	for _, c := range []struct {
+		level int32
+		want  float64
+	}{{16, -50}, {20, -64}, {60, -204}} {
+		if got := vindication.Average(c.level); got != c.want {
+			t.Errorf("Vindication's debuff at %d is %v, want %v", c.level, got, c.want)
+		}
+	}
+	// BaseLevel equals SpellLevel on ordinary ranks, so their amounts do not move.
+	if got := MustFind(11556).EffectN(1).Average(60); got != -205 {
+		t.Errorf("Demoralizing Shout at 60 is %v, want -205", got)
+	}
+}
+
 // Lightning Shield rank 1: the proc columns, and the two edges a proc row is read through. The aura
 // triggers the shared dispatcher 26545, which every rank triggers; the rank's own damage spell is
 // named by the tooltip instead, which is what RefIDs carries.

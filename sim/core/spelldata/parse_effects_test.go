@@ -739,7 +739,7 @@ func TestParseEffectsScalesByTheCharactersLevel(t *testing.T) {
 
 	row := &Spell{ID: 6100, Name: "Enemy Debuff", DurationMs: 30000,
 		Effects: []Effect{{SpellID: 6100, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_THREAT,
-			Misc: 127, BasePoints: 30, PPL: 1, SpellLevel: 10}}}
+			Misc: 127, BasePoints: 30, PPL: 1, BaseLevel: 10}}}
 
 	enemy := &core.Unit{Level: character.Level + 3}
 	parsed := ParseEffects(character, &core.Aura{Unit: enemy}, row)
