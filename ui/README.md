@@ -41,7 +41,7 @@ ui/
   specs/<class>/<spec>/   spec data, presets. alias @specs. No html on disk: the one page at
                      ui/index_template.html is served (dev) and emitted (build) at every
                      /forever/<class>/<spec>/ by tools/vite/spec_pages.mts
-  styles/            the one CSS entry (style.css), theme/ (tokens + the 17 spec themes, split by
+  styles/            the one CSS entry (style.css), theme/ (tokens + the 18 spec themes, split by
                      type: colors.css, spacing.css, breakpoints.css, typography.css, effects.css,
                      z-index.css, vars.css, specs.css, imported via index.css),
                      base.css (element defaults), vendor.css (third-party-only selectors) — see
@@ -242,7 +242,7 @@ There is no `sim.ts`, no per-spec `index.ts` and no `SimHostObject` subclass any
 
 The page itself is not one of the steps: there is no per-spec `index.html`, in the source tree or
 anywhere else. `ui/index_template.html` is the _one_ spec page, and `tools/vite/spec_pages.mts`
-(the `spec-pages` vite plugin) puts it at all 17 URLs — `configureServer` answers
+(the `spec-pages` vite plugin) puts it at all 18 URLs — `configureServer` answers
 `/forever/<class>/<spec>/` and `.../index.html` with it through `transformIndexHtml` in dev, and a
 `post` `generateBundle` takes the page vite already processed, drops its own output path from the
 bundle, and re-emits it as `<class>/<spec>/index.html` for every spec. Both halves discover the
@@ -250,12 +250,12 @@ spec list from `ui/specs/*/*/spec.ts(x)` (`discoverSpecPages`) — the same glob
 before the makefile stopped generating pages — and `spec_entry.ts`'s `import.meta.glob` then picks
 the spec module up from the URL. A new spec's page therefore appears with no build-config edit.
 
-Copying one page 17× is only sound because the page is constant: `ui/index_template.html` carries
+Copying one page 18× is only sound because the page is constant: `ui/index_template.html` carries
 no `@@CLASS@@`/`@@SPEC@@` placeholders and every asset reference is root-absolute
 (`/styles/style.css`, `/app/spec_entry.tsx`, `/i18n/localization.ts`), so vite rewrites them all to
 `/forever/...` and nothing in the built page depends on where it is served from. It is also the reason
-the 17 pages share one entry chunk (`bundle/spec_entry-<hash>.entry.js`, from the `spec_entry` key
-in `rollupOptions.input`) instead of the 17 near-identical ones the old per-page inputs produced.
+the 18 pages share one entry chunk (`bundle/spec_entry-<hash>.entry.js`, from the `spec_entry` key
+in `rollupOptions.input`) instead of the 18 near-identical ones the old per-page inputs produced.
 `ui/i18n/localization.ts`'s `extractClassAndSpecFromDataAttributes`
 derives class/spec from `location.pathname` the same way `specModuleKey` does above, falling back
 to `data-class`/`data-spec` attributes only if present. It is the spec page's path only: the landing

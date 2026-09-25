@@ -50,7 +50,7 @@ generated → worker → {sim, i18n} → ui-kit → features → app → specs �
 | `ui/app/`                  | `@app`       | composition root: `SimHostObject` (`individual_sim_ui.tsx`), `SimApp`/`SimShell`/`SimTabs`, `header/`, `tabs/`, `landing/`, `spec_entry.tsx`, `browser_env.ts`                                                          |
 | `ui/specs/<class>/<spec>/` | `@specs`     | spec data — one `spec.ts` per spec, may import everything                                                                                                                                                               |
 
-Not layers, and not in the arrow: `ui/styles/` (Tailwind entry, tokens, the 17 spec themes as CSS
+Not layers, and not in the arrow: `ui/styles/` (Tailwind entry, tokens, the 18 spec themes as CSS
 variables — see `ui/STYLING.md`), `ui/shared/` (two browser helpers — `pointer.ts` and
 `page_boot.ts`; the DOM helpers a component reaches for are `ui/ui-kit/utils/dom.ts`),
 `ui/testing/` (the Tailwind class checkers), `ui/types/` (ambient `.d.ts`),

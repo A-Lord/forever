@@ -47,7 +47,7 @@ Simulate, reference swap and timeline tooltips all work.
 make binary_dist/dist.go          # stub package so ./sim/web compiles — no built checkout needed
 make wasm                         # dist/forever/lib.wasm.gz (needs Go)
 npx tsx vite.build-workers.mts    # dist/forever/*_worker.js
-npx vite build                    # dist/forever bundle + the 17 per-spec index.html
+npx vite build                    # dist/forever bundle + the 18 per-spec index.html
 cp -r assets dist/forever/assets      # `make` does this; a plain `vite build` does not
 make devserver                    # go build -o wowsimforever ./sim/web
 ./wowsimforever --usefs=true --launch=false --host=":3333"
