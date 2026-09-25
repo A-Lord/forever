@@ -285,43 +285,53 @@ func TestBloodFuryReportsItsTemporaryStats(t *testing.T) {
 	}
 }
 
-// Sword Specialization's crit reaches the attacks made with a sword, and neither the off-hand dagger's
-// nor the bow's.
-func TestSwordSpecializationReachesTheSwordAlone(t *testing.T) {
-	_, character := setupWeaponSimAs(t, proto.Race_RaceHuman, weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID), nil)
-
-	for name, want := range map[string]float64{"main-hand auto": 2, "off-hand auto": 0, "ranged auto": 0} {
-		if got := autos(character)[name].BonusCritPercent; !WithinToleranceFloat64(want, got, 0.0001) {
-			t.Errorf("Sword Specialization gives the %s %0.2f%% crit, want %0.2f%%", name, got, want)
-		}
-	}
-}
-
-// The Sword Specialization aura is up while a hand holds a sword, and its crit goes with it.
-func TestSwordSpecializationAuraFollowsTheSword(t *testing.T) {
+// Sword Specialization is up while a sword sits in a weapon slot, and its crit reaches the main hand,
+// the off-hand dagger, the bow and spells alike.
+func TestSwordSpecializationCritReachesEverySpellAndAttack(t *testing.T) {
 	sim, character := setupWeaponSimAs(t, proto.Race_RaceHuman,
-		weaponSlots(equipTestSwordID, equipTestDaggerID, 0),
-		weaponSlots(equipTestDaggerID, equipTestShieldID, 0))
+		weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID),
+		weaponSlots(equipTestDaggerID, equipTestDaggerID, equipTestBowID))
 	aura := character.GetAura("Sword Specialization")
 	if aura == nil {
 		t.Fatal("a human has no Sword Specialization aura")
 	}
-	mhAuto := character.AutoAttacks.MHAuto()
+	target := sim.Encounter.ActiveTargetUnits[0]
+	attackTable := character.AttackTables[target.UnitIndex]
+	spell := &Spell{Unit: &character.Unit, ProcMask: ProcMaskSpellDamage}
+	// Lifts every chance clear of the level 63 target's crit suppression, which floors it at 0.
+	character.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 20, stats.SpellCritPercent: 20})
 
-	check := func(when string, active bool, crit float64) {
+	critChances := func() map[string]float64 {
+		chances := map[string]float64{"spell": spell.SpellCritChance(target)}
+		for name, auto := range autos(character) {
+			if auto.BonusCritPercent != 0 {
+				t.Errorf("the %s carries %v%% crit of its own, want none", name, auto.BonusCritPercent)
+			}
+			chances[name] = auto.PhysicalCritChance(attackTable)
+		}
+		return chances
+	}
+	check := func(when string, active bool, before, after map[string]float64, want float64) {
 		t.Helper()
 		if aura.IsActive() != active {
 			t.Errorf("%s: aura active = %v, want %v", when, aura.IsActive(), active)
 		}
-		if mhAuto.BonusCritPercent != crit {
-			t.Errorf("%s: main-hand auto has %v%% crit, want %v%%", when, mhAuto.BonusCritPercent, crit)
+		for name := range before {
+			if got := after[name] - before[name]; !WithinToleranceFloat64(want, got, 1e-9) {
+				t.Errorf("%s: the %s's crit chance moved by %v, want %v", when, name, got, want)
+			}
 		}
 	}
-	check("sword in the main hand", true, 2)
+
+	withSword := critChances()
+	if !aura.IsActive() {
+		t.Error("sword in the main hand: aura is down")
+	}
 
 	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
-	check("dagger and shield", false, 0)
+	withoutSword := critChances()
+	check("daggers in both hands", false, withSword, withoutSword, -0.02)
 
 	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
-	check("sword swapped back", true, 2)
+	check("sword swapped back", true, withoutSword, critChances(), 0.02)
 }

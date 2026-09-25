@@ -155,3 +155,37 @@ func TestWeaponSubclassMask(t *testing.T) {
 		}
 	}
 }
+
+func TestEquipRequirementEquipped(t *testing.T) {
+	sword := WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)
+	oneHandSword := weaponItem(proto.WeaponType_WeaponTypeSword, proto.HandType_HandTypeOneHand)
+	twoHandSword := weaponItem(proto.WeaponType_WeaponTypeSword, proto.HandType_HandTypeTwoHand)
+	dagger := weaponItem(proto.WeaponType_WeaponTypeDagger, proto.HandType_HandTypeOneHand)
+	bow := rangedItem(proto.RangedWeaponType_RangedWeaponTypeBow)
+
+	tests := []struct {
+		name                      string
+		unitType                  UnitType
+		mainHand, offHand, ranged Item
+		req                       EquipRequirement
+		want                      bool
+	}{
+		{"two-handed sword", PlayerUnit, twoHandSword, Item{}, bow, EquipRequirement{SubclassMask: sword}, true},
+		{"sword in the off hand", PlayerUnit, dagger, oneHandSword, bow, EquipRequirement{SubclassMask: sword}, true},
+		{"no sword", PlayerUnit, dagger, dagger, bow, EquipRequirement{SubclassMask: sword}, false},
+		{"bow in the ranged slot", PlayerUnit, dagger, dagger, bow, EquipRequirement{SubclassMask: 262156}, true},
+		{"off hand named, sword in the main hand", PlayerUnit, oneHandSword, dagger, bow,
+			EquipRequirement{SubclassMask: sword, Hand: ProcMaskMeleeOH}, false},
+		{"armor class", PlayerUnit, oneHandSword, dagger, bow, EquipRequirement{Class: 4, SubclassMask: sword}, false},
+		{"pet", PetUnit, oneHandSword, dagger, bow, EquipRequirement{SubclassMask: sword}, false},
+	}
+	for _, test := range tests {
+		character := &Character{Unit: Unit{Type: test.unitType}}
+		character.Equipment[proto.ItemSlot_ItemSlotMainHand] = test.mainHand
+		character.Equipment[proto.ItemSlot_ItemSlotOffHand] = test.offHand
+		character.Equipment[proto.ItemSlot_ItemSlotRanged] = test.ranged
+		if got := test.req.Equipped(character); got != test.want {
+			t.Errorf("%s: Equipped = %v, want %v", test.name, got, test.want)
+		}
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -285,32 +286,28 @@ func applyCreatureTypeSlaying(character *Character, mobType proto.MobType) {
 	})
 }
 
-// The aura is up while either hand holds a weapon of this type, and its crit reaches the attacks
-// made with such a weapon, one- or two-handed, in either hand.
+// The aura is up while any weapon slot holds a weapon of this type, one- or two-handed, and its crit
+// reaches every spell and attack.
 func applyWeaponSpecialization(character *Character, label string, spellID int32, critPercent float64, weaponType proto.WeaponType) {
-	hasWeaponEquipped := func() bool {
-		mh, oh := character.MainHand(), character.OffHand()
-		return (mh != nil && mh.WeaponType == weaponType) || (oh != nil && oh.WeaponType == weaponType)
-	}
+	req := EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: WeaponSubclassMask(weaponType)}
+	equipped := req.Equipped(character)
 
 	aura := character.RegisterAura(Aura{
 		Label:      label,
 		ActionID:   ActionID{SpellID: spellID},
 		Duration:   NeverExpires,
-		BuildPhase: Ternary(hasWeaponEquipped(), CharacterBuildPhaseBase, CharacterBuildPhaseNone),
-	}).AttachSpellMod(SpellModConfig{
-		Kind:          SpellMod_BonusCrit_Percent,
-		FloatValue:    critPercent,
-		ProcMask:      ProcMaskMelee,
-		EquipSubclass: WeaponSubclassMask(weaponType),
+		BuildPhase: Ternary(equipped, CharacterBuildPhaseBase, CharacterBuildPhaseNone),
+	}).AttachStatsBuff(stats.Stats{
+		stats.PhysicalCritPercent: critPercent,
+		stats.SpellCritPercent:    critPercent,
 	})
 
-	if hasWeaponEquipped() {
+	if equipped {
 		MakePermanent(aura)
 	}
 
-	character.RegisterItemSwapCallback(AllWeaponSlots(), func(sim *Simulation, _ proto.ItemSlot) {
-		if hasWeaponEquipped() {
+	character.RegisterWeaponRequirementCallback(req, func(sim *Simulation, equipped bool) {
+		if equipped {
 			aura.Activate(sim)
 		} else {
 			aura.Deactivate(sim)

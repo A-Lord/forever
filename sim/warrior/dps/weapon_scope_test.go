@@ -29,7 +29,7 @@ func orcWarrior(t *testing.T, gearSet string, talents string) *DpsWarrior {
 }
 
 // Dual Wield Specialization 5/5 gives the off-hand axe's attacks 10% hit and the main hand's none.
-// Cruelty 5/5 and Axe Specialization give each axe 6% crit.
+// Cruelty 5/5 gives each axe 5% crit. Axe Specialization is crit on every attack, not a mod on the axes.
 func TestFuryTalentsReachTheirWeapons(t *testing.T) {
 	warrior := orcWarrior(t, "p1_fury", DefaultFuryTalents)
 	mh, oh := warrior.AutoAttacks.MHAuto(), warrior.AutoAttacks.OHAuto()
@@ -37,17 +37,17 @@ func TestFuryTalentsReachTheirWeapons(t *testing.T) {
 	if mh.BonusHitPercent != 0 || oh.BonusHitPercent != 10 {
 		t.Errorf("main-hand and off-hand hit = %0.2f%% and %0.2f%%, want 0%% and 10%%", mh.BonusHitPercent, oh.BonusHitPercent)
 	}
-	if mh.BonusCritPercent != 6 || oh.BonusCritPercent != 6 {
-		t.Errorf("main-hand and off-hand crit = %0.2f%% and %0.2f%%, want 6%% each", mh.BonusCritPercent, oh.BonusCritPercent)
+	if mh.BonusCritPercent != 5 || oh.BonusCritPercent != 5 {
+		t.Errorf("main-hand and off-hand crit = %0.2f%% and %0.2f%%, want 5%% each", mh.BonusCritPercent, oh.BonusCritPercent)
 	}
 }
 
-// A two-handed axe takes Cruelty's 5%, Axe Specialization's 1% and Weaponmaster's 5% crit.
+// A two-handed axe takes Cruelty's 5% and Weaponmaster's 5% crit, and Axe Specialization is up.
 func TestArmsTalentsReachTheTwoHandedAxe(t *testing.T) {
 	warrior := orcWarrior(t, "p1_arms", DefaultArmsTalents)
 
-	if crit := warrior.AutoAttacks.MHAuto().BonusCritPercent; crit != 11 {
-		t.Errorf("two-handed axe crit = %0.2f%%, want 11%%", crit)
+	if crit := warrior.AutoAttacks.MHAuto().BonusCritPercent; crit != 10 {
+		t.Errorf("two-handed axe crit = %0.2f%%, want 10%%", crit)
 	}
 	for _, label := range []string{"Axe Specialization", "Weaponmaster (Axe/Polearm)"} {
 		if aura := warrior.GetAura(label); aura == nil || !aura.IsActive() {

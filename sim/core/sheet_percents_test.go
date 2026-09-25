@@ -126,6 +126,24 @@ func TestSheetSwordCritReachesOnlyTheSwordHand(t *testing.T) {
 	})
 }
 
+func TestSheetSwordSpecializationShowsInEveryCritRow(t *testing.T) {
+	sim, character := setupWeaponSimAs(t, proto.Race_RaceHuman,
+		weaponSlots(equipTestSwordID, equipTestDaggerID, equipTestBowID),
+		weaponSlots(equipTestDaggerID, equipTestDaggerID, equipTestBowID))
+	spellCrit := character.GetStat(stats.SpellCritPercent)
+	delta := sheetDeltaOf(character, func() {
+		character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+	})
+	checkSheetDelta(t, delta, map[proto.PseudoStat]float64{
+		proto.PseudoStat_PseudoStatMeleeCritPercent:   -2,
+		proto.PseudoStat_PseudoStatOffHandCritPercent: -2,
+		proto.PseudoStat_PseudoStatRangedCritPercent:  -2,
+	})
+	if got := character.GetStat(stats.SpellCritPercent) - spellCrit; !WithinToleranceFloat64(-2, got, 1e-9) {
+		t.Errorf("spell crit moved by %v, want -2", got)
+	}
+}
+
 func TestSheetRatingShowsOnlyTheModsFromARating(t *testing.T) {
 	const meleeWeapons = 173555
 	for _, tc := range []struct {

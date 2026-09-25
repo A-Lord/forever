@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // The client's SpellEquippedItems for a weapon: the item class, the weapon subclass and inventory-type
@@ -49,7 +50,10 @@ func (req EquipRequirement) Matches(unit *Unit, spellProcMask ProcMask) bool {
 		return false
 	}
 
-	item := &equipment[slot]
+	return req.matchesItem(slot, &equipment[slot])
+}
+
+func (req EquipRequirement) matchesItem(slot proto.ItemSlot, item *Item) bool {
 	subclass := item.WeaponSubclassBit()
 	if subclass == 0 {
 		return false
@@ -61,6 +65,83 @@ func (req EquipRequirement) Matches(unit *Unit, spellProcMask ProcMask) bool {
 		return false
 	}
 	return true
+}
+
+// Whether a weapon meeting the requirement sits in the main-hand, off-hand or ranged slot. A hand bit
+// narrows the slots to that hand's. A unit that is not a player never meets it.
+func (req EquipRequirement) Equipped(character *Character) bool {
+	if req.Class != 0 && req.Class != dbcenums.ITEM_CLASS_WEAPON {
+		return false
+	}
+	if character == nil || character.Type != PlayerUnit {
+		return false
+	}
+
+	slots := AllWeaponSlots()
+	if req.Hand != 0 {
+		slots = nil
+		if req.Hand.Matches(ProcMaskMeleeMH) {
+			slots = append(slots, proto.ItemSlot_ItemSlotMainHand)
+		}
+		if req.Hand.Matches(ProcMaskMeleeOH) {
+			slots = append(slots, proto.ItemSlot_ItemSlotOffHand)
+		}
+	}
+	for _, slot := range slots {
+		if req.matchesItem(slot, &character.Equipment[slot]) {
+			return true
+		}
+	}
+	return false
+}
+
+// Hands the callback whether the requirement is met each time an item swap changes a weapon slot.
+func (character *Character) RegisterWeaponRequirementCallback(req EquipRequirement, callback func(sim *Simulation, equipped bool)) {
+	character.RegisterItemSwapCallback(AllWeaponSlots(), func(sim *Simulation, _ proto.ItemSlot) {
+		callback(sim, req.Equipped(character))
+	})
+}
+
+// Stats the character holds while their level is above zero and a weapon meeting the requirement is
+// equipped. They follow the weapon slots through item swaps.
+type EquipGatedStats struct {
+	character *Character
+	req       EquipRequirement
+	bonus     stats.Stats
+	level     float64
+	applied   stats.Stats
+}
+
+func (character *Character) NewEquipGatedStats(req EquipRequirement, bonus stats.Stats) *EquipGatedStats {
+	gated := &EquipGatedStats{character: character, req: req, bonus: bonus}
+	character.RegisterWeaponRequirementCallback(req, func(sim *Simulation, _ bool) {
+		gated.refresh(sim)
+	})
+	return gated
+}
+
+// Counts the stats level times over: 0 is off and 1 the plain amount. A nil Simulation adds them to
+// the character as it is built.
+func (gated *EquipGatedStats) SetLevel(sim *Simulation, level float64) {
+	gated.level = level
+	gated.refresh(sim)
+}
+
+func (gated *EquipGatedStats) refresh(sim *Simulation) {
+	var want stats.Stats
+	if gated.level != 0 && gated.req.Equipped(gated.character) {
+		want = gated.bonus.Multiply(gated.level)
+	}
+	delta := want.Subtract(gated.applied)
+	if delta == (stats.Stats{}) {
+		return
+	}
+	gated.applied = want
+	if sim == nil {
+		gated.character.AddStats(delta)
+	} else {
+		gated.character.AddStatsDynamic(sim, delta)
+	}
 }
 
 // The item's bit in a spell's weapon subclass mask, or 0 for an item that is not a weapon.
