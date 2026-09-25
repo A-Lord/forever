@@ -15,12 +15,11 @@ import (
 )
 
 type consumableRegistration struct {
-	id          int32
-	name        string
-	constructor string
-	// The ids the call passes after the consumable's own.
+	id   int32
+	name string
+	// The imbue's equip spells, which the builder takes after the consumable's own id.
 	args []int32
-	// Why the builder refuses the consumable; its call is then written commented out beneath it.
+	// Why the builder refuses the consumable; its table entry is then written commented out beneath it.
 	unsupported []string
 }
 
@@ -30,7 +29,7 @@ type registrationGroup struct {
 }
 
 // Writes the registration of every consumable a builder in sim/common/shared runs from its rows, one
-// file per family, and each one a builder refuses as a commented-out call beneath the reason. The ids
+// file per family, and each one a builder refuses as a commented-out table entry beneath the reason. The ids
 // are spelled out rather than read from the loaded database, which the browser's sim does not have
 // when the effects register. routes holds the routings gen_db already made, by item id.
 func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes map[int]*ConsumableRouting) error {
@@ -62,13 +61,11 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 		}
 		switch registrationFamilyOf(c, catalogueEntry, routing) {
 		case imbueFamily:
-			entry.constructor = "NewSpellDataTemporaryEnchant"
 			if inCatalogue {
 				entry.args = parsedEquipSpells(catalogued.TemporaryEnchant)
 			}
 			imbues = append(imbues, entry)
 		case explosiveFamily:
-			entry.constructor = "NewSpellDataExplosive"
 			if routing.Supported() {
 				explosives = append(explosives, entry)
 				continue
@@ -76,34 +73,34 @@ func GenerateConsumableRegistrations(instance *dbc.DBC, db *WowDatabase, routes 
 			entry.unsupported = routing.Unsupported
 			refusedExplosives = append(refusedExplosives, entry)
 		case potionFamily:
-			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
+			entry.unsupported = onUseUnsupported(c)
 			potions = append(potions, entry)
 		case conjuredFamily:
-			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
+			entry.unsupported = onUseUnsupported(c)
 			conjured = append(conjured, entry)
 		case otherOnUseFamily:
-			entry.constructor, entry.unsupported = "NewSpellDataOnUseConsumable", onUseUnsupported(c)
+			entry.unsupported = onUseUnsupported(c)
 			others = append(others, entry)
 		case statFamily:
-			entry.constructor = "NewSpellDataStatConsumable"
 			stats = append(stats, entry)
 		}
 	}
 
 	for _, file := range []struct {
-		path, function string
-		groups         []registrationGroup
+		path, function, constructor string
+		equipSpells                 bool
+		groups                      []registrationGroup
 	}{
-		{"sim/common/forever/consumables_explosives_auto_gen.go", "RegisterAllExplosives",
+		{"sim/common/forever/consumables_explosives_auto_gen.go", "RegisterAllExplosives", "NewSpellDataExplosive", false,
 			[]registrationGroup{{entries: explosives}, {entries: refusedExplosives}}},
-		{"sim/common/forever/consumables_potions_auto_gen.go", "RegisterPotionsAndConjured",
+		{"sim/common/forever/consumables_potions_auto_gen.go", "RegisterPotionsAndConjured", "NewSpellDataOnUseConsumable", false,
 			[]registrationGroup{{"Potions", potions}, {"Conjured", conjured}, {"Other on-use consumables", others}}},
-		{"sim/common/forever/consumables_imbues_auto_gen.go", "RegisterAllTemporaryEnchantConsumables",
+		{"sim/common/forever/consumables_imbues_auto_gen.go", "RegisterAllTemporaryEnchantConsumables", "NewSpellDataTemporaryEnchant", true,
 			[]registrationGroup{{entries: imbues}}},
-		{"sim/common/forever/consumable_stats_auto_gen.go", "RegisterAllStatConsumables",
+		{"sim/common/forever/consumable_stats_auto_gen.go", "RegisterAllStatConsumables", "NewSpellDataStatConsumable", false,
 			[]registrationGroup{{entries: stats}}},
 	} {
-		if err := writeRegistrationFile(file.path, file.function, file.groups); err != nil {
+		if err := writeRegistrationFile(file.path, file.function, file.constructor, file.equipSpells, file.groups); err != nil {
 			return err
 		}
 	}
@@ -190,38 +187,51 @@ func onUseUnsupported(c *proto.Consumable) []string {
 	return nil
 }
 
-// An empty file, or one whose every call is commented out, imports nothing: gen_db links sim/common,
-// so an unused import in a file it just wrote breaks the build the next run needs.
-func writeRegistrationFile(path, function string, groups []registrationGroup) error {
-	var body strings.Builder
-	live := false
+// Each family is one table and one loop that calls its builder: the compiler inlines the builder, and
+// the closure it hands core, into every call site, so a call per consumable copies the builder once
+// per consumable.
+func writeRegistrationFile(path, function, constructor string, equipSpells bool, groups []registrationGroup) error {
+	var table strings.Builder
 	for i, group := range groups {
 		switch {
+		case group.title != "" && i > 0:
+			fmt.Fprintf(&table, "\n\t\t// %s\n", group.title)
 		case group.title != "":
-			fmt.Fprintf(&body, "\n\t// %s\n", group.title)
+			fmt.Fprintf(&table, "\t\t// %s\n", group.title)
 		case i > 0 && len(group.entries) > 0:
-			body.WriteString("\n")
+			table.WriteString("\n")
 		}
 		for _, e := range group.entries {
-			args := fmt.Sprint(e.id)
-			for _, arg := range e.args {
-				args += fmt.Sprintf(", %d", arg)
+			entry := fmt.Sprintf("%d,", e.id)
+			if equipSpells {
+				entry = fmt.Sprintf("{itemID: %d},", e.id)
+			}
+			if len(e.args) > 0 {
+				args := make([]string, len(e.args))
+				for j, arg := range e.args {
+					args[j] = fmt.Sprint(arg)
+				}
+				entry = fmt.Sprintf("{itemID: %d, equipSpellIDs: []int32{%s}},", e.id, strings.Join(args, ", "))
 			}
 			if len(e.unsupported) > 0 {
-				fmt.Fprintf(&body, "\t// unsupported: %s\n\t// shared.%s(%s) // %s\n", strings.Join(e.unsupported, "; "), e.constructor, args, e.name)
+				fmt.Fprintf(&table, "\t\t// unsupported: %s\n\t\t// %s // %s\n", strings.Join(e.unsupported, "; "), entry, e.name)
 				continue
 			}
-			live = true
-			fmt.Fprintf(&body, "\tshared.%s(%s) // %s\n", e.constructor, args, e.name)
+			fmt.Fprintf(&table, "\t\t%s // %s\n", entry, e.name)
 		}
 	}
 
 	var out strings.Builder
 	out.WriteString("// Code generated by tools/database/gen_consumable_registrations.go. DO NOT EDIT.\n\npackage forever\n\n")
-	if live {
-		out.WriteString("import \"github.com/wowsims/forever/sim/common/shared\"\n\n")
+	out.WriteString("import \"github.com/wowsims/forever/sim/common/shared\"\n\n")
+	fmt.Fprintf(&out, "func %s() {\n", function)
+	if equipSpells {
+		fmt.Fprintf(&out, "\tfor _, imbue := range []struct {\n\t\titemID int32\n\t\tequipSpellIDs []int32\n\t}{\n%s\t} {\n", table.String())
+		fmt.Fprintf(&out, "\t\tshared.%s(imbue.itemID, imbue.equipSpellIDs...)\n\t}\n}\n", constructor)
+	} else {
+		fmt.Fprintf(&out, "\tfor _, itemID := range []int32{\n%s\t} {\n", table.String())
+		fmt.Fprintf(&out, "\t\tshared.%s(itemID)\n\t}\n}\n", constructor)
 	}
-	fmt.Fprintf(&out, "func %s() {\n%s}\n", function, body.String())
 
 	formatted, err := format.Source([]byte(out.String()))
 	if err != nil {

@@ -5,50 +5,57 @@ package forever
 import "github.com/wowsims/forever/sim/common/shared"
 
 func RegisterAllTemporaryEnchantConsumables() {
-	shared.NewSpellDataTemporaryEnchant(1254)         // Lesser Firestone
-	shared.NewSpellDataTemporaryEnchant(2862)         // Rough Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(2863)         // Coarse Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(2871)         // Heavy Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(3239)         // Rough Weightstone
-	shared.NewSpellDataTemporaryEnchant(3240)         // Coarse Weightstone
-	shared.NewSpellDataTemporaryEnchant(3241)         // Heavy Weightstone
-	shared.NewSpellDataTemporaryEnchant(3824)         // Shadow Oil
-	shared.NewSpellDataTemporaryEnchant(3829)         // Frost Oil
-	shared.NewSpellDataTemporaryEnchant(5522)         // Spellstone
-	shared.NewSpellDataTemporaryEnchant(5654)         // Instant Toxin
-	shared.NewSpellDataTemporaryEnchant(6947)         // Instant Poison
-	shared.NewSpellDataTemporaryEnchant(6949)         // Instant Poison II
-	shared.NewSpellDataTemporaryEnchant(6950)         // Instant Poison III
-	shared.NewSpellDataTemporaryEnchant(7964)         // Solid Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(7965)         // Solid Weightstone
-	shared.NewSpellDataTemporaryEnchant(8926)         // Instant Poison IV
-	shared.NewSpellDataTemporaryEnchant(8927)         // Instant Poison V
-	shared.NewSpellDataTemporaryEnchant(8928)         // Instant Poison VI
-	shared.NewSpellDataTemporaryEnchant(12404)        // Dense Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(12643)        // Dense Weightstone
-	shared.NewSpellDataTemporaryEnchant(13602)        // Greater Spellstone
-	shared.NewSpellDataTemporaryEnchant(13603)        // Major Spellstone
-	shared.NewSpellDataTemporaryEnchant(13699)        // Firestone
-	shared.NewSpellDataTemporaryEnchant(13700)        // Greater Firestone
-	shared.NewSpellDataTemporaryEnchant(13701)        // Major Firestone
-	shared.NewSpellDataTemporaryEnchant(18262)        // Elemental Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(20744)        // Minor Wizard Oil
-	shared.NewSpellDataTemporaryEnchant(20745)        // Minor Mana Oil
-	shared.NewSpellDataTemporaryEnchant(20746)        // Lesser Wizard Oil
-	shared.NewSpellDataTemporaryEnchant(20747)        // Lesser Mana Oil
-	shared.NewSpellDataTemporaryEnchant(20748)        // Brilliant Mana Oil
-	shared.NewSpellDataTemporaryEnchant(20749)        // Brilliant Wizard Oil
-	shared.NewSpellDataTemporaryEnchant(20750)        // Wizard Oil
-	shared.NewSpellDataTemporaryEnchant(23122, 28893) // Consecrated Sharpening Stone
-	shared.NewSpellDataTemporaryEnchant(23123, 28890) // Blessed Wizard Oil
-	shared.NewSpellDataTemporaryEnchant(228980)       // Conductive Shield Coating
-	shared.NewSpellDataTemporaryEnchant(232611)       // Magnificent Trollshine
-	shared.NewSpellDataTemporaryEnchant(274947)       // Scroll of Imbue Lesser Flame
-	shared.NewSpellDataTemporaryEnchant(277485)       // Scroll of Imbue Frost
-	shared.NewSpellDataTemporaryEnchant(277494)       // Scroll of Imbue Accuracy
-	shared.NewSpellDataTemporaryEnchant(277497)       // Scroll of Imbue Flame
-	shared.NewSpellDataTemporaryEnchant(277500)       // Scroll of Imbue Greater Flame
-	shared.NewSpellDataTemporaryEnchant(277501)       // Scroll of Imbue Greater Frost
-	shared.NewSpellDataTemporaryEnchant(277502)       // Scroll of Imbue Precision
-	shared.NewSpellDataTemporaryEnchant(277503)       // Scroll of Imbue Spellbreak
+	for _, imbue := range []struct {
+		itemID        int32
+		equipSpellIDs []int32
+	}{
+		{itemID: 1254},  // Lesser Firestone
+		{itemID: 2862},  // Rough Sharpening Stone
+		{itemID: 2863},  // Coarse Sharpening Stone
+		{itemID: 2871},  // Heavy Sharpening Stone
+		{itemID: 3239},  // Rough Weightstone
+		{itemID: 3240},  // Coarse Weightstone
+		{itemID: 3241},  // Heavy Weightstone
+		{itemID: 3824},  // Shadow Oil
+		{itemID: 3829},  // Frost Oil
+		{itemID: 5522},  // Spellstone
+		{itemID: 5654},  // Instant Toxin
+		{itemID: 6947},  // Instant Poison
+		{itemID: 6949},  // Instant Poison II
+		{itemID: 6950},  // Instant Poison III
+		{itemID: 7964},  // Solid Sharpening Stone
+		{itemID: 7965},  // Solid Weightstone
+		{itemID: 8926},  // Instant Poison IV
+		{itemID: 8927},  // Instant Poison V
+		{itemID: 8928},  // Instant Poison VI
+		{itemID: 12404}, // Dense Sharpening Stone
+		{itemID: 12643}, // Dense Weightstone
+		{itemID: 13602}, // Greater Spellstone
+		{itemID: 13603}, // Major Spellstone
+		{itemID: 13699}, // Firestone
+		{itemID: 13700}, // Greater Firestone
+		{itemID: 13701}, // Major Firestone
+		{itemID: 18262}, // Elemental Sharpening Stone
+		{itemID: 20744}, // Minor Wizard Oil
+		{itemID: 20745}, // Minor Mana Oil
+		{itemID: 20746}, // Lesser Wizard Oil
+		{itemID: 20747}, // Lesser Mana Oil
+		{itemID: 20748}, // Brilliant Mana Oil
+		{itemID: 20749}, // Brilliant Wizard Oil
+		{itemID: 20750}, // Wizard Oil
+		{itemID: 23122, equipSpellIDs: []int32{28893}}, // Consecrated Sharpening Stone
+		{itemID: 23123, equipSpellIDs: []int32{28890}}, // Blessed Wizard Oil
+		{itemID: 228980}, // Conductive Shield Coating
+		{itemID: 232611}, // Magnificent Trollshine
+		{itemID: 274947}, // Scroll of Imbue Lesser Flame
+		{itemID: 277485}, // Scroll of Imbue Frost
+		{itemID: 277494}, // Scroll of Imbue Accuracy
+		{itemID: 277497}, // Scroll of Imbue Flame
+		{itemID: 277500}, // Scroll of Imbue Greater Flame
+		{itemID: 277501}, // Scroll of Imbue Greater Frost
+		{itemID: 277502}, // Scroll of Imbue Precision
+		{itemID: 277503}, // Scroll of Imbue Spellbreak
+	} {
+		shared.NewSpellDataTemporaryEnchant(imbue.itemID, imbue.equipSpellIDs...)
+	}
 }

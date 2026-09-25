@@ -5,253 +5,257 @@ package forever
 import "github.com/wowsims/forever/sim/common/shared"
 
 func RegisterAllStatConsumables() {
-	shared.NewSpellDataStatConsumable(724)    // Goretusk Liver Pie
-	shared.NewSpellDataStatConsumable(787)    // Slitherskin Mackerel
-	shared.NewSpellDataStatConsumable(954)    // Scroll of Strength
-	shared.NewSpellDataStatConsumable(955)    // Scroll of Intellect
-	shared.NewSpellDataStatConsumable(1017)   // Seasoned Wolf Kabob
-	shared.NewSpellDataStatConsumable(1082)   // Redridge Goulash
-	shared.NewSpellDataStatConsumable(1177)   // Oil of Olaf
-	shared.NewSpellDataStatConsumable(1180)   // Scroll of Stamina
-	shared.NewSpellDataStatConsumable(1181)   // Scroll of Spirit
-	shared.NewSpellDataStatConsumable(1262)   // Keg of Thunderbrew
-	shared.NewSpellDataStatConsumable(1400)   // Swiftfeather Token
-	shared.NewSpellDataStatConsumable(1477)   // Scroll of Agility II
-	shared.NewSpellDataStatConsumable(1478)   // Scroll of Protection II
-	shared.NewSpellDataStatConsumable(1711)   // Scroll of Stamina II
-	shared.NewSpellDataStatConsumable(1712)   // Scroll of Spirit II
-	shared.NewSpellDataStatConsumable(2289)   // Scroll of Strength II
-	shared.NewSpellDataStatConsumable(2290)   // Scroll of Intellect II
-	shared.NewSpellDataStatConsumable(2454)   // Elixir of Minor Strength
-	shared.NewSpellDataStatConsumable(2457)   // Elixir of Minor Agility
-	shared.NewSpellDataStatConsumable(2458)   // Elixir of Minor Fortitude
-	shared.NewSpellDataStatConsumable(2680)   // Spiced Wolf Meat
-	shared.NewSpellDataStatConsumable(2681)   // Roasted Boar Meat
-	shared.NewSpellDataStatConsumable(2682)   // Cooked Crab Claw
-	shared.NewSpellDataStatConsumable(2683)   // Crab Cake
-	shared.NewSpellDataStatConsumable(2684)   // Coyote Steak
-	shared.NewSpellDataStatConsumable(2685)   // Succulent Pork Ribs
-	shared.NewSpellDataStatConsumable(2687)   // Dry Pork Ribs
-	shared.NewSpellDataStatConsumable(2888)   // Beer Basted Boar Ribs
-	shared.NewSpellDataStatConsumable(3012)   // Scroll of Agility
-	shared.NewSpellDataStatConsumable(3013)   // Scroll of Protection
-	shared.NewSpellDataStatConsumable(3220)   // Blood Sausage
-	shared.NewSpellDataStatConsumable(3383)   // Elixir of Wisdom
-	shared.NewSpellDataStatConsumable(3389)   // Elixir of Lesser Defense
-	shared.NewSpellDataStatConsumable(3390)   // Elixir of Lesser Agility
-	shared.NewSpellDataStatConsumable(3391)   // Elixir of Ogre Strength
-	shared.NewSpellDataStatConsumable(3662)   // Crocolisk Steak
-	shared.NewSpellDataStatConsumable(3663)   // Murloc Fin Soup
-	shared.NewSpellDataStatConsumable(3664)   // Crocolisk Gumbo
-	shared.NewSpellDataStatConsumable(3665)   // Curiously Tasty Omelet
-	shared.NewSpellDataStatConsumable(3666)   // Gooey Spider Cake
-	shared.NewSpellDataStatConsumable(3726)   // Big Bear Steak
-	shared.NewSpellDataStatConsumable(3727)   // Hot Lion Chops
-	shared.NewSpellDataStatConsumable(3728)   // Tasty Lion Steak
-	shared.NewSpellDataStatConsumable(3729)   // Soothing Turtle Bisque
-	shared.NewSpellDataStatConsumable(3825)   // Elixir of Lesser Fortitude
-	shared.NewSpellDataStatConsumable(4419)   // Scroll of Intellect III
-	shared.NewSpellDataStatConsumable(4421)   // Scroll of Protection III
-	shared.NewSpellDataStatConsumable(4422)   // Scroll of Stamina III
-	shared.NewSpellDataStatConsumable(4424)   // Scroll of Spirit III
-	shared.NewSpellDataStatConsumable(4425)   // Scroll of Agility III
-	shared.NewSpellDataStatConsumable(4426)   // Scroll of Strength III
-	shared.NewSpellDataStatConsumable(4457)   // Barbecued Buzzard Wing
-	shared.NewSpellDataStatConsumable(4546)   // Call of the Raptor
-	shared.NewSpellDataStatConsumable(4592)   // Longjaw Mud Snapper
-	shared.NewSpellDataStatConsumable(4593)   // Bristle Whisker Catfish
-	shared.NewSpellDataStatConsumable(4594)   // Rockscale Cod
-	shared.NewSpellDataStatConsumable(4952)   // Stormstout
-	shared.NewSpellDataStatConsumable(5095)   // Rainbow Fin Albacore
-	shared.NewSpellDataStatConsumable(5206)   // Bogling Root
-	shared.NewSpellDataStatConsumable(5265)   // Watered-down Beer
-	shared.NewSpellDataStatConsumable(5342)   // Raptor Punch
-	shared.NewSpellDataStatConsumable(5472)   // Kaldorei Spider Kabob
-	shared.NewSpellDataStatConsumable(5474)   // Roasted Kodo Meat
-	shared.NewSpellDataStatConsumable(5476)   // Fillet of Frenzy
-	shared.NewSpellDataStatConsumable(5477)   // Strider Stew
-	shared.NewSpellDataStatConsumable(5479)   // Crispy Lizard Tail
-	shared.NewSpellDataStatConsumable(5480)   // Lean Venison
-	shared.NewSpellDataStatConsumable(5527)   // Goblin Deviled Clams
-	shared.NewSpellDataStatConsumable(5997)   // Elixir of Minor Defense
-	shared.NewSpellDataStatConsumable(6038)   // Giant Clam Scorcho
-	shared.NewSpellDataStatConsumable(6290)   // Brilliant Smallfish
-	shared.NewSpellDataStatConsumable(6316)   // Loch Frenzy Delight
-	shared.NewSpellDataStatConsumable(6373)   // Elixir of Fire Power
-	shared.NewSpellDataStatConsumable(6662)   // Elixir of Giant Growth
-	shared.NewSpellDataStatConsumable(6887)   // Spotted Yellowtail
-	shared.NewSpellDataStatConsumable(6888)   // Herb Baked Egg
-	shared.NewSpellDataStatConsumable(6890)   // Smoked Bear Meat
-	shared.NewSpellDataStatConsumable(7806)   // Lollipop
-	shared.NewSpellDataStatConsumable(7807)   // Candy Bar
-	shared.NewSpellDataStatConsumable(7808)   // Chocolate Square
-	shared.NewSpellDataStatConsumable(8364)   // Mithril Head Trout
-	shared.NewSpellDataStatConsumable(8410)   // R.O.I.D.S.
-	shared.NewSpellDataStatConsumable(8411)   // Lung Juice Cocktail
-	shared.NewSpellDataStatConsumable(8412)   // Ground Scorpok Assay
-	shared.NewSpellDataStatConsumable(8423)   // Cerebral Cortex Compound
-	shared.NewSpellDataStatConsumable(8424)   // Gizzard Gum
-	shared.NewSpellDataStatConsumable(8949)   // Elixir of Agility
-	shared.NewSpellDataStatConsumable(8951)   // Elixir of Defense
-	shared.NewSpellDataStatConsumable(8957)   // Spinefin Halibut
-	shared.NewSpellDataStatConsumable(9155)   // Arcane Elixir
-	shared.NewSpellDataStatConsumable(9179)   // Elixir of Greater Intellect
-	shared.NewSpellDataStatConsumable(9187)   // Elixir of Greater Agility
-	shared.NewSpellDataStatConsumable(9206)   // Elixir of Greater Strength
-	shared.NewSpellDataStatConsumable(9264)   // Elixir of Shadow Power
-	shared.NewSpellDataStatConsumable(10305)  // Scroll of Protection IV
-	shared.NewSpellDataStatConsumable(10306)  // Scroll of Spirit IV
-	shared.NewSpellDataStatConsumable(10307)  // Scroll of Stamina IV
-	shared.NewSpellDataStatConsumable(10308)  // Scroll of Intellect IV
-	shared.NewSpellDataStatConsumable(10309)  // Scroll of Agility IV
-	shared.NewSpellDataStatConsumable(10310)  // Scroll of Strength IV
-	shared.NewSpellDataStatConsumable(11584)  // Cactus Apple Surprise
-	shared.NewSpellDataStatConsumable(11950)  // Windblossom Berries
-	shared.NewSpellDataStatConsumable(12209)  // Lean Wolf Steak
-	shared.NewSpellDataStatConsumable(12210)  // Roast Raptor
-	shared.NewSpellDataStatConsumable(12212)  // Jungle Stew
-	shared.NewSpellDataStatConsumable(12213)  // Carrion Surprise
-	shared.NewSpellDataStatConsumable(12214)  // Mystery Stew
-	shared.NewSpellDataStatConsumable(12215)  // Heavy Kodo Stew
-	shared.NewSpellDataStatConsumable(12216)  // Spiced Chili Crab
-	shared.NewSpellDataStatConsumable(12218)  // Monster Omelet
-	shared.NewSpellDataStatConsumable(12224)  // Crispy Bat Wing
-	shared.NewSpellDataStatConsumable(12451)  // Juju Power
-	shared.NewSpellDataStatConsumable(12460)  // Juju Might
-	shared.NewSpellDataStatConsumable(12820)  // Winterfall Firewater
-	shared.NewSpellDataStatConsumable(13445)  // Elixir of Greater Defense
-	shared.NewSpellDataStatConsumable(13447)  // Elixir of the Sages
-	shared.NewSpellDataStatConsumable(13452)  // Elixir of the Mongoose
-	shared.NewSpellDataStatConsumable(13453)  // Elixir of Brute Force
-	shared.NewSpellDataStatConsumable(13454)  // Greater Arcane Elixir
-	shared.NewSpellDataStatConsumable(13510)  // Flask of the Titans
-	shared.NewSpellDataStatConsumable(13512)  // Flask of Supreme Power
-	shared.NewSpellDataStatConsumable(13513)  // Flask of Chromatic Resistance
-	shared.NewSpellDataStatConsumable(13810)  // Blessed Sunfruit
-	shared.NewSpellDataStatConsumable(13813)  // Blessed Sunfruit Juice
-	shared.NewSpellDataStatConsumable(13851)  // Hot Wolf Ribs
-	shared.NewSpellDataStatConsumable(13927)  // Cooked Glossy Mightfish
-	shared.NewSpellDataStatConsumable(13928)  // Grilled Squid
-	shared.NewSpellDataStatConsumable(13929)  // Hot Smoked Bass
-	shared.NewSpellDataStatConsumable(13930)  // Filet of Redgill
-	shared.NewSpellDataStatConsumable(13931)  // Nightfin Soup
-	shared.NewSpellDataStatConsumable(13932)  // Poached Sunscale Salmon
-	shared.NewSpellDataStatConsumable(13933)  // Lobster Stew
-	shared.NewSpellDataStatConsumable(13934)  // Mightfish Steak
-	shared.NewSpellDataStatConsumable(13935)  // Baked Salmon
-	shared.NewSpellDataStatConsumable(16971)  // Clamlette Surprise
-	shared.NewSpellDataStatConsumable(17048)  // Rumsey Rum
-	shared.NewSpellDataStatConsumable(17197)  // Gingerbread Cookie
-	shared.NewSpellDataStatConsumable(17198)  // Egg Nog
-	shared.NewSpellDataStatConsumable(17222)  // Spider Sausage
-	shared.NewSpellDataStatConsumable(17708)  // Elixir of Frost Power
-	shared.NewSpellDataStatConsumable(18045)  // Tender Wolf Steak
-	shared.NewSpellDataStatConsumable(18254)  // Runn Tum Tuber Surprise
-	shared.NewSpellDataStatConsumable(18269)  // Gordok Green Grog
-	shared.NewSpellDataStatConsumable(18284)  // Kreeg's Stout Beatdown
-	shared.NewSpellDataStatConsumable(19318)  // Bottled Alterac Spring Water
-	shared.NewSpellDataStatConsumable(20007)  // Mageblood Elixir
-	shared.NewSpellDataStatConsumable(20074)  // Heavy Crocolisk Stew
-	shared.NewSpellDataStatConsumable(20079)  // Spirit of Zanza
-	shared.NewSpellDataStatConsumable(20452)  // Smoked Desert Dumplings
-	shared.NewSpellDataStatConsumable(20709)  // Rumsey Rum Light
-	shared.NewSpellDataStatConsumable(21023)  // Dirge's Kickin' Chimaerok Chops
-	shared.NewSpellDataStatConsumable(21072)  // Smoked Sagefish
-	shared.NewSpellDataStatConsumable(21114)  // Rumsey Rum Dark
-	shared.NewSpellDataStatConsumable(21151)  // Rumsey Rum Black Label
-	shared.NewSpellDataStatConsumable(21217)  // Sagefish Delight
-	shared.NewSpellDataStatConsumable(21546)  // Elixir of Holy Power
-	shared.NewSpellDataStatConsumable(22192)  // Bloodkelp Elixir of Dodging
-	shared.NewSpellDataStatConsumable(22193)  // Bloodkelp Elixir of Resistance
-	shared.NewSpellDataStatConsumable(22237)  // Dark Desire
-	shared.NewSpellDataStatConsumable(22238)  // Very Berry Cream
-	shared.NewSpellDataStatConsumable(22239)  // Sweet Surprise
-	shared.NewSpellDataStatConsumable(23164)  // Bubbly Beverage
-	shared.NewSpellDataStatConsumable(23194)  // Lesser Mark of the Dawn
-	shared.NewSpellDataStatConsumable(23195)  // Mark of the Dawn
-	shared.NewSpellDataStatConsumable(23196)  // Greater Mark of the Dawn
-	shared.NewSpellDataStatConsumable(23211)  // Toasted Smorc
-	shared.NewSpellDataStatConsumable(23326)  // Midsummer Sausage
-	shared.NewSpellDataStatConsumable(23327)  // Fire-toasted Bun
-	shared.NewSpellDataStatConsumable(206177) // Pine Nut Butter
-	shared.NewSpellDataStatConsumable(210708) // Elixir of Coalesced Regret
-	shared.NewSpellDataStatConsumable(211815) // Silverwing Battle Hymn
-	shared.NewSpellDataStatConsumable(211816) // Warsong Battle Drum
-	shared.NewSpellDataStatConsumable(211953) // Scroll of Arcane Recovery I
-	shared.NewSpellDataStatConsumable(211954) // Scroll of Arcane Accuracy I
-	shared.NewSpellDataStatConsumable(211955) // Scroll of Arcane Protection - Fire I
-	shared.NewSpellDataStatConsumable(211956) // Scroll of Arcane Protection - Frost I
-	shared.NewSpellDataStatConsumable(211957) // Scroll of Arcane Power I
-	shared.NewSpellDataStatConsumable(217308) // Enchanted Sigil: Innovation
-	shared.NewSpellDataStatConsumable(217398) // Lesser Arcane Elixir
-	shared.NewSpellDataStatConsumable(227286) // Warmed Rumsey Rum with Cream
-	shared.NewSpellDataStatConsumable(228978) // Enchanted Sigil: Flowing Waters
-	shared.NewSpellDataStatConsumable(232436) // Darkclaw Bisque
-	shared.NewSpellDataStatConsumable(232438) // Smoked Redgill
-	shared.NewSpellDataStatConsumable(238637) // Prowler Steak
-	shared.NewSpellDataStatConsumable(238638) // Filet o' Flank
-	shared.NewSpellDataStatConsumable(238639) // Sunrise Omelette
-	shared.NewSpellDataStatConsumable(246948) // Distilled Firewater
-	shared.NewSpellDataStatConsumable(247754) // Minor Arcane Elixir
-	shared.NewSpellDataStatConsumable(247755) // Elixir of Minor Force
-	shared.NewSpellDataStatConsumable(248613) // Lightning in a Bottle
-	shared.NewSpellDataStatConsumable(249865) // Peace Tea
-	shared.NewSpellDataStatConsumable(249866) // Royal Tea
-	shared.NewSpellDataStatConsumable(249867) // Root Tea
-	shared.NewSpellDataStatConsumable(249868) // Triage Tea
-	shared.NewSpellDataStatConsumable(249869) // Sunny Tea
-	shared.NewSpellDataStatConsumable(249870) // Sage's Tea
-	shared.NewSpellDataStatConsumable(249871) // Venomous Smoothie
-	shared.NewSpellDataStatConsumable(249872) // Slimy Smoothie
-	shared.NewSpellDataStatConsumable(249873) // Mrrggl Smrrthle
-	shared.NewSpellDataStatConsumable(249874) // Calcified Smoothie
-	shared.NewSpellDataStatConsumable(249875) // Spicy Smoothie
-	shared.NewSpellDataStatConsumable(249876) // Wicked Smoothie
-	shared.NewSpellDataStatConsumable(250065) // Savory Stag Sliders
-	shared.NewSpellDataStatConsumable(250066) // Soaring Pamplona
-	shared.NewSpellDataStatConsumable(250067) // Bat Hachee
-	shared.NewSpellDataStatConsumable(250068) // Savory Turtle Stew
-	shared.NewSpellDataStatConsumable(250069) // Flank au Poivre
-	shared.NewSpellDataStatConsumable(250070) // Bear Bruscitti
-	shared.NewSpellDataStatConsumable(250071) // Steaming Stag Steak
-	shared.NewSpellDataStatConsumable(250072) // Swiftstrike Steak
-	shared.NewSpellDataStatConsumable(250073) // Raging Raptor Ribs
-	shared.NewSpellDataStatConsumable(250074) // Bear Brisket
-	shared.NewSpellDataStatConsumable(250075) // Prehistoric Pulled Raptor
-	shared.NewSpellDataStatConsumable(250076) // Raptor Rouladen
-	shared.NewSpellDataStatConsumable(250077) // Twice-Spiced Raptor Slice
-	shared.NewSpellDataStatConsumable(250078) // Giant Scrambled Eggs
-	shared.NewSpellDataStatConsumable(250079) // Tasty Raptor Bites
-	shared.NewSpellDataStatConsumable(250080) // Breakfast Omelette
-	shared.NewSpellDataStatConsumable(250328) // Elixir of Cunning
-	shared.NewSpellDataStatConsumable(250329) // Elixir of the Phalanx
-	shared.NewSpellDataStatConsumable(250330) // Minor Cleric's Elixir
-	shared.NewSpellDataStatConsumable(250331) // Lesser Cleric's Elixir
-	shared.NewSpellDataStatConsumable(250332) // Cleric's Elixir
-	shared.NewSpellDataStatConsumable(250333) // Greater Cleric's Elixir
-	shared.NewSpellDataStatConsumable(250334) // Elixir of Fortitude
-	shared.NewSpellDataStatConsumable(250335) // Elixir of Greater Fortitude
-	shared.NewSpellDataStatConsumable(250337) // Elixir of the Owl
-	shared.NewSpellDataStatConsumable(250338) // Elixir of Sages
-	shared.NewSpellDataStatConsumable(250339) // Minor Mageblood Elixir
-	shared.NewSpellDataStatConsumable(250340) // Lesser Mageblood Elixir
-	shared.NewSpellDataStatConsumable(250341) // Greater Mageblood Elixir
-	shared.NewSpellDataStatConsumable(250342) // Lesser Arcane Elixir
-	shared.NewSpellDataStatConsumable(250343) // Elixir of Nature Power
-	shared.NewSpellDataStatConsumable(250344) // Elixir of Minor Spirit
-	shared.NewSpellDataStatConsumable(250345) // Elixir of Lesser Spirit
-	shared.NewSpellDataStatConsumable(250346) // Elixir of Spirit
-	shared.NewSpellDataStatConsumable(250347) // Elixir of Greater Spirit
-	shared.NewSpellDataStatConsumable(250348) // Elixir of the Whale
-	shared.NewSpellDataStatConsumable(250349) // Elixir of Strength
-	shared.NewSpellDataStatConsumable(250350) // Elixir of Ferocity
-	shared.NewSpellDataStatConsumable(250351) // Elixir of the Grizzly
-	shared.NewSpellDataStatConsumable(250353) // Elixir of Lesser Intellect
-	shared.NewSpellDataStatConsumable(250354) // Elixir of Intellect
-	shared.NewSpellDataStatConsumable(263509) // Skywall Souffle
-	shared.NewSpellDataStatConsumable(263512) // Pincer Bites
-	shared.NewSpellDataStatConsumable(268912) // Expiring Crab Cake
-	shared.NewSpellDataStatConsumable(268913) // Expiring Crocolisk Steak
-	shared.NewSpellDataStatConsumable(274971) // Briny Seafood Stew
-	shared.NewSpellDataStatConsumable(274976) // Plain Ol' Paletusk
+	for _, itemID := range []int32{
+		724,    // Goretusk Liver Pie
+		787,    // Slitherskin Mackerel
+		954,    // Scroll of Strength
+		955,    // Scroll of Intellect
+		1017,   // Seasoned Wolf Kabob
+		1082,   // Redridge Goulash
+		1177,   // Oil of Olaf
+		1180,   // Scroll of Stamina
+		1181,   // Scroll of Spirit
+		1262,   // Keg of Thunderbrew
+		1400,   // Swiftfeather Token
+		1477,   // Scroll of Agility II
+		1478,   // Scroll of Protection II
+		1711,   // Scroll of Stamina II
+		1712,   // Scroll of Spirit II
+		2289,   // Scroll of Strength II
+		2290,   // Scroll of Intellect II
+		2454,   // Elixir of Minor Strength
+		2457,   // Elixir of Minor Agility
+		2458,   // Elixir of Minor Fortitude
+		2680,   // Spiced Wolf Meat
+		2681,   // Roasted Boar Meat
+		2682,   // Cooked Crab Claw
+		2683,   // Crab Cake
+		2684,   // Coyote Steak
+		2685,   // Succulent Pork Ribs
+		2687,   // Dry Pork Ribs
+		2888,   // Beer Basted Boar Ribs
+		3012,   // Scroll of Agility
+		3013,   // Scroll of Protection
+		3220,   // Blood Sausage
+		3383,   // Elixir of Wisdom
+		3389,   // Elixir of Lesser Defense
+		3390,   // Elixir of Lesser Agility
+		3391,   // Elixir of Ogre Strength
+		3662,   // Crocolisk Steak
+		3663,   // Murloc Fin Soup
+		3664,   // Crocolisk Gumbo
+		3665,   // Curiously Tasty Omelet
+		3666,   // Gooey Spider Cake
+		3726,   // Big Bear Steak
+		3727,   // Hot Lion Chops
+		3728,   // Tasty Lion Steak
+		3729,   // Soothing Turtle Bisque
+		3825,   // Elixir of Lesser Fortitude
+		4419,   // Scroll of Intellect III
+		4421,   // Scroll of Protection III
+		4422,   // Scroll of Stamina III
+		4424,   // Scroll of Spirit III
+		4425,   // Scroll of Agility III
+		4426,   // Scroll of Strength III
+		4457,   // Barbecued Buzzard Wing
+		4546,   // Call of the Raptor
+		4592,   // Longjaw Mud Snapper
+		4593,   // Bristle Whisker Catfish
+		4594,   // Rockscale Cod
+		4952,   // Stormstout
+		5095,   // Rainbow Fin Albacore
+		5206,   // Bogling Root
+		5265,   // Watered-down Beer
+		5342,   // Raptor Punch
+		5472,   // Kaldorei Spider Kabob
+		5474,   // Roasted Kodo Meat
+		5476,   // Fillet of Frenzy
+		5477,   // Strider Stew
+		5479,   // Crispy Lizard Tail
+		5480,   // Lean Venison
+		5527,   // Goblin Deviled Clams
+		5997,   // Elixir of Minor Defense
+		6038,   // Giant Clam Scorcho
+		6290,   // Brilliant Smallfish
+		6316,   // Loch Frenzy Delight
+		6373,   // Elixir of Fire Power
+		6662,   // Elixir of Giant Growth
+		6887,   // Spotted Yellowtail
+		6888,   // Herb Baked Egg
+		6890,   // Smoked Bear Meat
+		7806,   // Lollipop
+		7807,   // Candy Bar
+		7808,   // Chocolate Square
+		8364,   // Mithril Head Trout
+		8410,   // R.O.I.D.S.
+		8411,   // Lung Juice Cocktail
+		8412,   // Ground Scorpok Assay
+		8423,   // Cerebral Cortex Compound
+		8424,   // Gizzard Gum
+		8949,   // Elixir of Agility
+		8951,   // Elixir of Defense
+		8957,   // Spinefin Halibut
+		9155,   // Arcane Elixir
+		9179,   // Elixir of Greater Intellect
+		9187,   // Elixir of Greater Agility
+		9206,   // Elixir of Greater Strength
+		9264,   // Elixir of Shadow Power
+		10305,  // Scroll of Protection IV
+		10306,  // Scroll of Spirit IV
+		10307,  // Scroll of Stamina IV
+		10308,  // Scroll of Intellect IV
+		10309,  // Scroll of Agility IV
+		10310,  // Scroll of Strength IV
+		11584,  // Cactus Apple Surprise
+		11950,  // Windblossom Berries
+		12209,  // Lean Wolf Steak
+		12210,  // Roast Raptor
+		12212,  // Jungle Stew
+		12213,  // Carrion Surprise
+		12214,  // Mystery Stew
+		12215,  // Heavy Kodo Stew
+		12216,  // Spiced Chili Crab
+		12218,  // Monster Omelet
+		12224,  // Crispy Bat Wing
+		12451,  // Juju Power
+		12460,  // Juju Might
+		12820,  // Winterfall Firewater
+		13445,  // Elixir of Greater Defense
+		13447,  // Elixir of the Sages
+		13452,  // Elixir of the Mongoose
+		13453,  // Elixir of Brute Force
+		13454,  // Greater Arcane Elixir
+		13510,  // Flask of the Titans
+		13512,  // Flask of Supreme Power
+		13513,  // Flask of Chromatic Resistance
+		13810,  // Blessed Sunfruit
+		13813,  // Blessed Sunfruit Juice
+		13851,  // Hot Wolf Ribs
+		13927,  // Cooked Glossy Mightfish
+		13928,  // Grilled Squid
+		13929,  // Hot Smoked Bass
+		13930,  // Filet of Redgill
+		13931,  // Nightfin Soup
+		13932,  // Poached Sunscale Salmon
+		13933,  // Lobster Stew
+		13934,  // Mightfish Steak
+		13935,  // Baked Salmon
+		16971,  // Clamlette Surprise
+		17048,  // Rumsey Rum
+		17197,  // Gingerbread Cookie
+		17198,  // Egg Nog
+		17222,  // Spider Sausage
+		17708,  // Elixir of Frost Power
+		18045,  // Tender Wolf Steak
+		18254,  // Runn Tum Tuber Surprise
+		18269,  // Gordok Green Grog
+		18284,  // Kreeg's Stout Beatdown
+		19318,  // Bottled Alterac Spring Water
+		20007,  // Mageblood Elixir
+		20074,  // Heavy Crocolisk Stew
+		20079,  // Spirit of Zanza
+		20452,  // Smoked Desert Dumplings
+		20709,  // Rumsey Rum Light
+		21023,  // Dirge's Kickin' Chimaerok Chops
+		21072,  // Smoked Sagefish
+		21114,  // Rumsey Rum Dark
+		21151,  // Rumsey Rum Black Label
+		21217,  // Sagefish Delight
+		21546,  // Elixir of Holy Power
+		22192,  // Bloodkelp Elixir of Dodging
+		22193,  // Bloodkelp Elixir of Resistance
+		22237,  // Dark Desire
+		22238,  // Very Berry Cream
+		22239,  // Sweet Surprise
+		23164,  // Bubbly Beverage
+		23194,  // Lesser Mark of the Dawn
+		23195,  // Mark of the Dawn
+		23196,  // Greater Mark of the Dawn
+		23211,  // Toasted Smorc
+		23326,  // Midsummer Sausage
+		23327,  // Fire-toasted Bun
+		206177, // Pine Nut Butter
+		210708, // Elixir of Coalesced Regret
+		211815, // Silverwing Battle Hymn
+		211816, // Warsong Battle Drum
+		211953, // Scroll of Arcane Recovery I
+		211954, // Scroll of Arcane Accuracy I
+		211955, // Scroll of Arcane Protection - Fire I
+		211956, // Scroll of Arcane Protection - Frost I
+		211957, // Scroll of Arcane Power I
+		217308, // Enchanted Sigil: Innovation
+		217398, // Lesser Arcane Elixir
+		227286, // Warmed Rumsey Rum with Cream
+		228978, // Enchanted Sigil: Flowing Waters
+		232436, // Darkclaw Bisque
+		232438, // Smoked Redgill
+		238637, // Prowler Steak
+		238638, // Filet o' Flank
+		238639, // Sunrise Omelette
+		246948, // Distilled Firewater
+		247754, // Minor Arcane Elixir
+		247755, // Elixir of Minor Force
+		248613, // Lightning in a Bottle
+		249865, // Peace Tea
+		249866, // Royal Tea
+		249867, // Root Tea
+		249868, // Triage Tea
+		249869, // Sunny Tea
+		249870, // Sage's Tea
+		249871, // Venomous Smoothie
+		249872, // Slimy Smoothie
+		249873, // Mrrggl Smrrthle
+		249874, // Calcified Smoothie
+		249875, // Spicy Smoothie
+		249876, // Wicked Smoothie
+		250065, // Savory Stag Sliders
+		250066, // Soaring Pamplona
+		250067, // Bat Hachee
+		250068, // Savory Turtle Stew
+		250069, // Flank au Poivre
+		250070, // Bear Bruscitti
+		250071, // Steaming Stag Steak
+		250072, // Swiftstrike Steak
+		250073, // Raging Raptor Ribs
+		250074, // Bear Brisket
+		250075, // Prehistoric Pulled Raptor
+		250076, // Raptor Rouladen
+		250077, // Twice-Spiced Raptor Slice
+		250078, // Giant Scrambled Eggs
+		250079, // Tasty Raptor Bites
+		250080, // Breakfast Omelette
+		250328, // Elixir of Cunning
+		250329, // Elixir of the Phalanx
+		250330, // Minor Cleric's Elixir
+		250331, // Lesser Cleric's Elixir
+		250332, // Cleric's Elixir
+		250333, // Greater Cleric's Elixir
+		250334, // Elixir of Fortitude
+		250335, // Elixir of Greater Fortitude
+		250337, // Elixir of the Owl
+		250338, // Elixir of Sages
+		250339, // Minor Mageblood Elixir
+		250340, // Lesser Mageblood Elixir
+		250341, // Greater Mageblood Elixir
+		250342, // Lesser Arcane Elixir
+		250343, // Elixir of Nature Power
+		250344, // Elixir of Minor Spirit
+		250345, // Elixir of Lesser Spirit
+		250346, // Elixir of Spirit
+		250347, // Elixir of Greater Spirit
+		250348, // Elixir of the Whale
+		250349, // Elixir of Strength
+		250350, // Elixir of Ferocity
+		250351, // Elixir of the Grizzly
+		250353, // Elixir of Lesser Intellect
+		250354, // Elixir of Intellect
+		263509, // Skywall Souffle
+		263512, // Pincer Bites
+		268912, // Expiring Crab Cake
+		268913, // Expiring Crocolisk Steak
+		274971, // Briny Seafood Stew
+		274976, // Plain Ol' Paletusk
+	} {
+		shared.NewSpellDataStatConsumable(itemID)
+	}
 }

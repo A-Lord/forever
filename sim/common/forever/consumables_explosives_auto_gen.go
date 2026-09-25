@@ -5,53 +5,57 @@ package forever
 import "github.com/wowsims/forever/sim/common/shared"
 
 func RegisterAllExplosives() {
-	shared.NewSpellDataExplosive(1127)   // Flash Bundle
-	shared.NewSpellDataExplosive(1178)   // Explosive Rocket
-	shared.NewSpellDataExplosive(1399)   // Magic Candle
-	shared.NewSpellDataExplosive(1402)   // Brimstone
-	shared.NewSpellDataExplosive(4358)   // Rough Dynamite
-	shared.NewSpellDataExplosive(4360)   // Rough Copper Bomb
-	shared.NewSpellDataExplosive(4365)   // Coarse Dynamite
-	shared.NewSpellDataExplosive(4370)   // Large Copper Bomb
-	shared.NewSpellDataExplosive(4374)   // Small Bronze Bomb
-	shared.NewSpellDataExplosive(4378)   // Heavy Dynamite
-	shared.NewSpellDataExplosive(4380)   // Big Bronze Bomb
-	shared.NewSpellDataExplosive(4390)   // Iron Grenade
-	shared.NewSpellDataExplosive(4394)   // Big Iron Bomb
-	shared.NewSpellDataExplosive(4403)   // Portable Bronze Mortar
-	shared.NewSpellDataExplosive(4598)   // Goblin Fishing Pole
-	shared.NewSpellDataExplosive(5013)   // Fertile Bulb
-	shared.NewSpellDataExplosive(6714)   // Ez-Thro Dynamite
-	shared.NewSpellDataExplosive(10507)  // Solid Dynamite
-	shared.NewSpellDataExplosive(10514)  // Mithril Frag Bomb
-	shared.NewSpellDataExplosive(10562)  // Hi-Explosive Bomb
-	shared.NewSpellDataExplosive(10586)  // The Big One
-	shared.NewSpellDataExplosive(10646)  // Goblin Sapper Charge
-	shared.NewSpellDataExplosive(10830)  // M73 Frag Grenade
-	shared.NewSpellDataExplosive(11566)  // Crystal Charge
-	shared.NewSpellDataExplosive(13180)  // Stratholme Holy Water
-	shared.NewSpellDataExplosive(15993)  // Thorium Grenade
-	shared.NewSpellDataExplosive(16005)  // Dark Iron Bomb
-	shared.NewSpellDataExplosive(18588)  // Ez-Thro Dynamite II
-	shared.NewSpellDataExplosive(18641)  // Dense Dynamite
-	shared.NewSpellDataExplosive(22151)  // Anthion's Holy Water
-	shared.NewSpellDataExplosive(215127) // High-Yield Radiation Bomb
-	shared.NewSpellDataExplosive(217495) // Scroll of Cryoblast
-	shared.NewSpellDataExplosive(260792) // SAF-T Dynamite
-	shared.NewSpellDataExplosive(260793) // SAF-T Copper Bomb
-	shared.NewSpellDataExplosive(260795) // EZ-Thro Copper Bomb XL
-	shared.NewSpellDataExplosive(260797) // SAF-T Bronze Bomb
-	shared.NewSpellDataExplosive(260798) // SAF-T Jumbo Dynamite
-	shared.NewSpellDataExplosive(260803) // EZ-Thro Grenade
-	shared.NewSpellDataExplosive(260805) // SAF-T Bomb
-	shared.NewSpellDataExplosive(260809) // Tru-Trigger Frag Bomb
-	shared.NewSpellDataExplosive(260814) // SAF-T Clever Dynamite
-	shared.NewSpellDataExplosive(260816) // EZ-Thro Thorium Grenade
-	shared.NewSpellDataExplosive(260817) // EZ-Thro Dark Bomb
-	shared.NewSpellDataExplosive(276145) // Explosive Runeshard
-	shared.NewSpellDataExplosive(277499) // Scroll of Greater Cryoblast
-	shared.NewSpellDataExplosive(284868) // Holy Hand Grenade of Alterac
+	for _, itemID := range []int32{
+		1127,   // Flash Bundle
+		1178,   // Explosive Rocket
+		1399,   // Magic Candle
+		1402,   // Brimstone
+		4358,   // Rough Dynamite
+		4360,   // Rough Copper Bomb
+		4365,   // Coarse Dynamite
+		4370,   // Large Copper Bomb
+		4374,   // Small Bronze Bomb
+		4378,   // Heavy Dynamite
+		4380,   // Big Bronze Bomb
+		4390,   // Iron Grenade
+		4394,   // Big Iron Bomb
+		4403,   // Portable Bronze Mortar
+		4598,   // Goblin Fishing Pole
+		5013,   // Fertile Bulb
+		6714,   // Ez-Thro Dynamite
+		10507,  // Solid Dynamite
+		10514,  // Mithril Frag Bomb
+		10562,  // Hi-Explosive Bomb
+		10586,  // The Big One
+		10646,  // Goblin Sapper Charge
+		10830,  // M73 Frag Grenade
+		11566,  // Crystal Charge
+		13180,  // Stratholme Holy Water
+		15993,  // Thorium Grenade
+		16005,  // Dark Iron Bomb
+		18588,  // Ez-Thro Dynamite II
+		18641,  // Dense Dynamite
+		22151,  // Anthion's Holy Water
+		215127, // High-Yield Radiation Bomb
+		217495, // Scroll of Cryoblast
+		260792, // SAF-T Dynamite
+		260793, // SAF-T Copper Bomb
+		260795, // EZ-Thro Copper Bomb XL
+		260797, // SAF-T Bronze Bomb
+		260798, // SAF-T Jumbo Dynamite
+		260803, // EZ-Thro Grenade
+		260805, // SAF-T Bomb
+		260809, // Tru-Trigger Frag Bomb
+		260814, // SAF-T Clever Dynamite
+		260816, // EZ-Thro Thorium Grenade
+		260817, // EZ-Thro Dark Bomb
+		276145, // Explosive Runeshard
+		277499, // Scroll of Greater Cryoblast
+		284868, // Holy Hand Grenade of Alterac
 
-	// unsupported: 435968's damage over time lands on an area, which the damage builder applies to one target
-	// shared.NewSpellDataExplosive(215168) // Ez-Thro Radiation Bomb
+		// unsupported: 435968's damage over time lands on an area, which the damage builder applies to one target
+		// 215168, // Ez-Thro Radiation Bomb
+	} {
+		shared.NewSpellDataExplosive(itemID)
+	}
 }
