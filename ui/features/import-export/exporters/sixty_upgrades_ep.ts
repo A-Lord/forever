@@ -29,8 +29,8 @@ const STAT_NAMES: Record<Stat, string> = {
 	[Stat.StatNatureDamage]: 'natureDamage',
 	[Stat.StatShadowDamage]: 'shadowDamage',
 	[Stat.StatPhysicalDamage]: 'physicalDamage',
-	[Stat.StatSpellHitRating]: '',
-	[Stat.StatSpellCritRating]: '',
+	[Stat.StatSpellHitRating]: 'hit',
+	[Stat.StatSpellCritRating]: 'crit',
 	[Stat.StatSpellHasteRating]: '',
 	[Stat.StatSpellPiercing]: 'spellPen',
 	[Stat.StatFeralAttackPower]: '',
@@ -49,9 +49,13 @@ const STAT_NAMES: Record<Stat, string> = {
 };
 
 // Sixty Upgrades takes these as a percent chance, so a per-rating weight is scaled to per-percent.
+// Its Forever mode has one hit and one crit that cover melee, ranged and spells, so both weights go
+// into it.
 const RATING_PER_PERCENT: Partial<Record<Stat, number>> = {
 	[Stat.StatMeleeHitRating]: Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT,
+	[Stat.StatSpellHitRating]: Mechanics.SPELL_HIT_RATING_PER_HIT_PERCENT,
 	[Stat.StatMeleeCritRating]: Mechanics.PHYSICAL_CRIT_RATING_PER_CRIT_PERCENT,
+	[Stat.StatSpellCritRating]: Mechanics.SPELL_CRIT_RATING_PER_CRIT_PERCENT,
 	[Stat.StatMeleeHasteRating]: Mechanics.PHYSICAL_HASTE_RATING_PER_HASTE_PERCENT,
 	[Stat.StatExpertiseRating]: Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT,
 	[Stat.StatDodgeRating]: Mechanics.DODGE_RATING_PER_DODGE_PERCENT,

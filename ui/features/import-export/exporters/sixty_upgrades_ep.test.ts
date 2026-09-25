@@ -21,10 +21,31 @@ describe('SIXTY_UPGRADES_EP_EXPORTER', () => {
 		expect(url).toContain('&block=1.000');
 	});
 
-	it('leaves out the spell ratings the Forever import has no field for', () => {
-		const url = exportFor(new Stats().withStat(Stat.StatSpellHitRating, 1).withStat(Stat.StatSpellDamage, 0.5));
-		expect(url).not.toContain('spellHit');
+	it("sends a caster's spell hit and crit as its hit and crit", () => {
+		const url = exportFor(new Stats().withStat(Stat.StatSpellHitRating, 1.3).withStat(Stat.StatSpellCritRating, 0.5).withStat(Stat.StatSpellDamage, 0.5));
+		expect(url).toContain('&hit=13.000');
+		expect(url).toContain('&crit=7.000');
 		expect(url).toContain('&spellDamage=0.500');
+		expect(url).not.toContain('spellHit');
+		expect(url).not.toContain('spellCrit');
+		expect(url).not.toContain('rangedHit');
+	});
+
+	it('sums melee and spell weights into one hit and one crit', () => {
+		const url = exportFor(
+			new Stats()
+				.withStat(Stat.StatMeleeHitRating, 1)
+				.withStat(Stat.StatSpellHitRating, 0.5)
+				.withStat(Stat.StatMeleeCritRating, 1)
+				.withStat(Stat.StatSpellCritRating, 0.5),
+		);
+		expect(url).toContain('&hit=15.000');
+		expect(url).toContain('&crit=21.000');
+	});
+
+	it('leaves out spell haste, which the Forever import has no field for', () => {
+		const url = exportFor(new Stats().withStat(Stat.StatSpellHasteRating, 1));
+		expect(url).not.toContain('haste');
 	});
 
 	it('names healing, spell penetration and resistances the way the import reads them', () => {
