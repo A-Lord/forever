@@ -111,7 +111,7 @@ func scopeWeapons(mainHand, offHand, ranged int32) []*proto.ItemSpec {
 
 // parseScoped with the weapons and item swap set the test names. With onAura the row is parsed onto
 // an aura the tester registers rather than as a talent.
-func parseScopedWith(t *testing.T, row *Spell, equipped, swapped []*proto.ItemSpec, onAura bool) *scopeResult {
+func parseScopedWith(t *testing.T, row *Spell, equipped, swapped []*proto.ItemSpec, onAura bool, opts ...ParseOpt) *scopeResult {
 	t.Helper()
 
 	result := &scopeResult{}
@@ -125,7 +125,7 @@ func parseScopedWith(t *testing.T, row *Spell, equipped, swapped []*proto.ItemSp
 		if onAura {
 			result.aura = character.RegisterAura(core.Aura{Label: "Scope Aura", ActionID: core.ActionID{SpellID: row.ID},
 				Duration: core.NeverExpires})
-			result.parsed = ParseEffects(character, result.aura, row)
+			result.parsed = ParseEffects(character, result.aura, row, opts...)
 		} else {
 			result.parsed = ParseStatic(character, row)
 		}
@@ -302,6 +302,30 @@ func TestParseCritPctWithAMeleeWeaponHoldsWhileEquipped(t *testing.T) {
 	for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
 		if got := r.statChange(stat); got != 1 {
 			t.Errorf("%s moved by %v, want 1", stat.StatName(), got)
+		}
+	}
+}
+
+// Under a per-stat category each crit stat of the row bids alone and follows its own bid.
+func TestParseCritPctWhileEquippedBidsPerStat(t *testing.T) {
+	row := &Spell{ID: 16255, Name: "Thundering Strikes", EquipClass: 2, EquipSubclass: 173555,
+		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}}
+	r := parseScopedWith(t, row, scopeWeapons(scopeSwordID, scopeDaggerID, scopeBowID), nil, true, ExclusivePerStat("Test"))
+	base := r.character.GetStats()
+
+	for _, step := range []struct {
+		when   string
+		toggle func(*core.Simulation)
+		want   float64
+	}{
+		{"aura up", r.aura.Activate, 1},
+		{"aura down", r.aura.Deactivate, 0},
+	} {
+		step.toggle(r.sim)
+		for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+			if got := r.character.GetStat(stat) - base[stat]; math.Abs(got-step.want) > 1e-9 {
+				t.Errorf("%s: %s moved by %v, want %v", step.when, stat.StatName(), got, step.want)
+			}
 		}
 	}
 }

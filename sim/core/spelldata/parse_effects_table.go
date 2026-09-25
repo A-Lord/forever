@@ -580,23 +580,22 @@ func (p *parser) statsWhileEquipped(sts []stats.Stat, v float64, req core.EquipR
 		return nil
 	}
 
-	gated := func(sts []stats.Stat) *attachment {
-		a := &attachment{kind: "stat-while-equipped " + statNames(sts), value: v, stats: sts}
-		if p.dry {
-			return a
-		}
+	a := &attachment{kind: "stat-while-equipped " + statNames(sts), value: v, stats: sts}
+	var gated *core.EquipGatedStats
+	if !p.dry {
 		bonus := stats.Stats{}
 		for _, stat := range sts {
 			bonus[stat] = v
 		}
-		a.set = p.character.NewEquipGatedStats(req, bonus).SetLevel
-		return a
+		gated = p.character.NewEquipGatedStats(req, bonus)
+		a.set = gated.SetLevel
 	}
-
-	a := gated(sts)
 	for _, stat := range sts {
-		part := gated([]stats.Stat{stat})
-		part.key, part.stat, part.statBid = stat.StatName(), stat, true
+		part := &attachment{kind: "stat-while-equipped " + stat.StatName(), value: v, stats: []stats.Stat{stat},
+			key: stat.StatName(), stat: stat, statBid: true}
+		if gated != nil {
+			part.set = func(sim *core.Simulation, level float64) { gated.SetStatLevel(sim, stat, level) }
+		}
 		a.parts = append(a.parts, part)
 	}
 	return a

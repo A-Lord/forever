@@ -98,48 +98,71 @@ func (req EquipRequirement) Equipped(character *Character) bool {
 	return false
 }
 
-// Hands the callback whether the requirement is met each time an item swap changes a weapon slot.
-func (character *Character) RegisterWeaponRequirementCallback(req EquipRequirement, callback func(sim *Simulation, equipped bool)) {
-	character.RegisterItemSwapCallback(AllWeaponSlots(), func(sim *Simulation, _ proto.ItemSlot) {
-		callback(sim, req.Equipped(character))
-	})
-}
-
-// Stats the character holds while their level is above zero and a weapon meeting the requirement is
-// equipped. They follow the weapon slots through item swaps.
+// Stats the character holds while a weapon meeting the requirement is equipped, each counted at its
+// own level. They follow the weapon slots through item swaps.
 type EquipGatedStats struct {
 	character *Character
 	req       EquipRequirement
-	bonus     stats.Stats
-	level     float64
-	applied   stats.Stats
+	stats     []gatedStat
+}
+
+type gatedStat struct {
+	stat         stats.Stat
+	value        float64
+	level        float64
+	appliedLevel float64
 }
 
 func (character *Character) NewEquipGatedStats(req EquipRequirement, bonus stats.Stats) *EquipGatedStats {
-	gated := &EquipGatedStats{character: character, req: req, bonus: bonus}
-	character.RegisterWeaponRequirementCallback(req, func(sim *Simulation, _ bool) {
-		gated.refresh(sim)
-	})
+	gated := &EquipGatedStats{character: character, req: req}
+	for stat, value := range bonus {
+		if value != 0 {
+			gated.stats = append(gated.stats, gatedStat{stat: stats.Stat(stat), value: value})
+		}
+	}
+	character.RegisterWeaponChangeCallback(gated.refresh)
 	return gated
 }
 
-// Counts the stats level times over: 0 is off and 1 the plain amount. A nil Simulation adds them to
+// Counts every stat level times over: 0 is off and 1 the plain amount. A nil Simulation adds them to
 // the character as it is built.
 func (gated *EquipGatedStats) SetLevel(sim *Simulation, level float64) {
-	gated.level = level
+	for i := range gated.stats {
+		gated.stats[i].level = level
+	}
+	gated.refresh(sim)
+}
+
+// Counts one stat level times over, the way SetLevel counts them all.
+func (gated *EquipGatedStats) SetStatLevel(sim *Simulation, stat stats.Stat, level float64) {
+	for i := range gated.stats {
+		if gated.stats[i].stat == stat {
+			gated.stats[i].level = level
+		}
+	}
 	gated.refresh(sim)
 }
 
 func (gated *EquipGatedStats) refresh(sim *Simulation) {
-	var want stats.Stats
-	if gated.level != 0 && gated.req.Equipped(gated.character) {
-		want = gated.bonus.Multiply(gated.level)
+	equipped := gated.req.Equipped(gated.character)
+	var delta stats.Stats
+	changed := false
+	for i := range gated.stats {
+		gs := &gated.stats[i]
+		want := 0.0
+		if equipped {
+			want = gs.level
+		}
+		if want == gs.appliedLevel {
+			continue
+		}
+		delta[gs.stat] += gs.value*want - gs.value*gs.appliedLevel
+		gs.appliedLevel = want
+		changed = true
 	}
-	delta := want.Subtract(gated.applied)
-	if delta == (stats.Stats{}) {
+	if !changed {
 		return
 	}
-	gated.applied = want
 	if sim == nil {
 		gated.character.AddStats(delta)
 	} else {
