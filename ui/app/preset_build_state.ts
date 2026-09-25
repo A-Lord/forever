@@ -9,9 +9,8 @@ import type { IndividualSimHost } from '@sim/sim_host';
 
 import type { PresetBuild } from './preset_utils';
 
-// Keys the walk below must not name: `phase`/`group` are grouping metadata rather than settings
-// (TBC's picker lists them only because its exclusion list predates those two fields), and the
-// rest are re-added by their own rules so they read once rather than under two labels.
+// Keys the walk below must not name: `phase`/`group` are grouping metadata rather than settings,
+// and the rest are re-added by their own rules so they read once rather than under two labels.
 const NON_CATEGORY_BUILD_KEYS = ['name', 'encounter', 'settings', 'phase', 'group', 'epWeights', 'reforgeSettings'];
 
 /** The categories a build touches, as the chip tooltip lists them: de-duplicated and sorted. */

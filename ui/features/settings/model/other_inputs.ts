@@ -6,7 +6,7 @@ import { emptyUnitReference } from '@sim/proto/utils';
 const INPUT_DELAY_FIELDS = ['reactionTime', 'channelClipDelay'] as const;
 // The healing-model inputs below are enabled only while the player is one of the
 // raid's tanks, so they have to re-evaluate on a tank-assignment change as well as
-// on their own value (the old `raid.changeEmitter` source covered both).
+// on their own value.
 const HEALING_MODEL_FIELDS = ['healingModel', 'raid:tanks'] as const;
 
 export const InputDelay = {
@@ -197,7 +197,7 @@ export const HpPercentForDefensives = {
 };
 
 // The Holy spell power of the paladin providing Retribution Aura as a party buff (sim/core's
-// RetributionAuraBuff turns it into damage per hit). Only a tank takes the hits, and the number
+// NewSpellDataRetributionAuraRank turns it into damage per hit). Only a tank takes the hits, and the number
 // means nothing without the aura, so it shows under both conditions.
 export const RetributionAuraSpellPower = {
 	id: 'retributionAuraSpellPower',

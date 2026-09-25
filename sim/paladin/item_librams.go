@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // The librams the client ships unencrypted. Item effects apply before the spells register, so a
@@ -87,24 +87,11 @@ func init() {
 	// Increases your damage against Undead by 1%.
 	core.NewItemEffect(249397, func(agent core.Agent) {
 		character := agent.GetCharacter()
-		core.MakePermanent(character.RegisterAura(core.Aura{
+		aura := core.MakePermanent(character.RegisterAura(core.Aura{
 			Label:    "Tenets of the Silver Hand",
 			ActionID: core.ActionID{SpellID: 1302545},
-		})).
-			ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-				for _, at := range character.AttackTables {
-					if at.Defender.MobType == proto.MobType_MobTypeUndead {
-						at.DamageDealtMultiplier *= 1.01
-					}
-				}
-			}).
-			ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-				for _, at := range character.AttackTables {
-					if at.Defender.MobType == proto.MobType_MobTypeUndead {
-						at.DamageDealtMultiplier /= 1.01
-					}
-				}
-			})
+		}))
+		spelldata.ParseEffects(character, aura, spelldata.MustFind(1302545))
 	})
 
 	// Sentinel's Libram

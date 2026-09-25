@@ -1,10 +1,9 @@
 // What CharacterStats re-renders on. The probe mirrors the subscription set in CharacterStats.tsx,
 // one assertion per store write.
 //
-// TBC's sheet reads more than the player: the debuffs stage comes from raid.debuffs, the weapon-stone
-// offsets from the party's windfury totem, and the melee crit cap from the primary target's level. The
-// MoP component subscribes to player fields only, so copying its "no longer re-renders on raid" case
-// here would pin the bug rather than the behaviour.
+// The sheet reads more than the player: the debuffs stage comes from raid.debuffs, the weapon-stone
+// offsets from the party's windfury totem, and the melee crit cap from the primary target's level, so
+// a case asserting it does not re-render on raid state would pin a bug rather than the behaviour.
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
@@ -85,7 +84,7 @@ describe('what CharacterStats re-renders on', () => {
 		h.unmount();
 	});
 
-	// The TBC-only half of the read set. Raid debuffs feed the debuffs attribution stage, the miss
+	// The non-player half of the read set. Raid debuffs feed the debuffs attribution stage, the miss
 	// breakdown and the crit-cap crit; party buffs decide whether a weapon stone applied; the target's
 	// level sets the crit cap itself.
 	it('re-renders on the raid and encounter state the facade getters reach', () => {

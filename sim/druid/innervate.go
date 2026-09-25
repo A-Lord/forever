@@ -25,7 +25,7 @@ func (druid *Druid) registerInnervateCD() {
 	// 	amount = 0.2
 	// }
 	//
-	// var innervateAura = buffs.InnervatesAura(innervateTarget, true, 0)
+	// var innervateAura = buffs.NewSpellDataInnervatesAura(innervateTarget, true, 0)
 	//
 	// innervateSpell = druid.RegisterSpell(core.SpellConfig{
 	// 	ActionID:        actionID,

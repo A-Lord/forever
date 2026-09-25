@@ -18,7 +18,7 @@ describe('the landing page class list', () => {
 		expect(classes().flatMap(playerClass => Object.values(playerClass.specs))).toHaveLength(18);
 	});
 
-	it('opens with the priest, as the pre-port page did', () => {
+	it('opens with the priest', () => {
 		expect(classes()[0].friendlyName).toBe('Priest');
 	});
 });

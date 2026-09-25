@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, Race, TristateEffect } from '@generated/proto/common';
 import { EnhancementShaman_Options as EnhancementShamanOptions, ShamanImbue, ShamanSyncType } from '@generated/proto/shaman';
@@ -29,7 +30,11 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	goblinSapper: true,
+	potId: Consumables.MajorFrenzyPotion.id,
+	flaskId: Consumables.FlaskOfNaturalAggression.id,
+	foodId: Consumables.ProwlerSteak.id,
+	explosiveId: Consumables.EzThroDynamiteII.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({

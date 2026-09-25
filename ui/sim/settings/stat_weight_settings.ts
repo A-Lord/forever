@@ -32,8 +32,7 @@ export class StatWeightActionSettings {
 		return this.store.getState().statWeights[this.storeKey];
 	}
 
-	// One store write per logical change (the old code assigned the fields
-	// silently and then emitted once).
+	// One store write per logical change.
 	private write(patch: Partial<Omit<StatWeightsSlice, 'v'>>) {
 		patchKeyed(this.store, 'statWeights', this.storeKey, patch, ['settings']);
 	}

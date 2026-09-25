@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/wowsims/forever/sim/common"
@@ -21,8 +22,10 @@ import (
 
 const registeredEffectsPath = "forever/registered_effects.txt"
 
+var registerAllEffects = sync.OnceFunc(common.RegisterAllEffects)
+
 func TestRegisteredEffects(t *testing.T) {
-	common.RegisterAllEffects()
+	registerAllEffects()
 
 	var out strings.Builder
 	out.WriteString("# The items and enchants sim/common registers an effect for, written by\n")

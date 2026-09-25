@@ -3,13 +3,11 @@ import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
 import { ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
-import * as ConsumablesInputs from '@features/settings/model/consumables';
 import { applyOwnerClassLabels, relevantStatOptions } from '@features/settings/model/stat_options';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
 import { usePlayer, useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { useSimReady } from '@sim/hooks/useSimReady';
-import { CONJURED_CONFIG, relevantConsumableOptions } from '@sim/settings/conjured';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import { useMemo } from 'react';
@@ -31,12 +29,8 @@ export const SettingsTabBody = () => {
 			partyBuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.PARTY_BUFFS_CONFIG, host), player),
 			debuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_CONFIG, host), player),
 			debuffsMisc: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_MISC_CONFIG, host), player),
-			conjured: ConsumablesInputs.conjuredStatOptionsFrom(relevantConsumableOptions(CONJURED_CONFIG, config)),
-			explosive: relevantStatOptions(ConsumablesInputs.EXPLOSIVE_CONFIG, host),
-			imbueMH: relevantStatOptions(ConsumablesInputs.IMBUE_CONFIG_MH, host),
-			imbueOH: relevantStatOptions(ConsumablesInputs.IMBUE_CONFIG_OH, host),
 		}),
-		[host, config, player],
+		[host, player],
 	);
 
 	const itemSwapSlots = config.itemSwapSlots || [];
@@ -76,14 +70,7 @@ export const SettingsTabBody = () => {
 							<ContentBlock
 								rootDataAttributes={{ 'data-block': 'consumes-settings' }}
 								config={{ header: { title: i18n.t('settings_tab.consumables.title') } }}>
-								<ConsumesPicker
-									consumableStats={[...(config.consumableStats ?? []), ...config.epStats]}
-									conjuredOptions={options.conjured}
-									explosiveOptions={options.explosive}
-									imbueMHOptions={options.imbueMH}
-									imbueOHOptions={options.imbueOH}
-									encounterConsumes={!gearPlanner}
-								/>
+								<ConsumesPicker encounterConsumes={!gearPlanner} />
 							</ContentBlock>
 							{hasOtherSettings && (
 								<ContentBlock

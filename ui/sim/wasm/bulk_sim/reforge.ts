@@ -38,7 +38,7 @@ export const optimizeReforgeCandidates = async (
 
 	const gearCache = makeBulkSimReforgeGearCache(request, reforgeRequest, workerPool, signals);
 	const collector = makeBulkSimReforgeCollector(request.baseRequest.raid.parties[0]?.players[0]?.equipment, candidates.length);
-	// TBC's reforger is gem-driven, so the gem-inclusive model is the one with gem options.
+	// The reforger is gem-driven, so the gem-inclusive model is the one with gem options.
 	const includeGems = reforgeRequest.gemOptions.length > 0;
 
 	const reforgeQueue = queue<BulkSimReforgeCandidateTask, Error>(async ({ candidate, position }) => {

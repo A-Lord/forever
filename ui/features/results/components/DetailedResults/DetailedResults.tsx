@@ -137,8 +137,7 @@ export const DetailedResults = ({ resultsManager }: DetailedResultsProps) => {
 		[resultsManager, releaseEditedSeed, updateResults],
 	);
 
-	// The filter's `changeEmitter`, whose only subscriber this was: picking a target re-emits the
-	// last run under the new filter. Guarded on the value rather than on a mount flag, so a change
+	// Picking a target re-emits the last run under the new filter. Guarded on the value rather than on a mount flag, so a change
 	// of `updateResults` cannot fire it on its own.
 	useEffect(() => {
 		if (emittedTarget.current === target) return;

@@ -59,6 +59,7 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 	const disabledAttribute = (disabled ? { disabled: true } : {}) as Record<string, boolean>;
 
 	const horizontal = config.direction === IconEnumPickerDirection.Horizontal;
+	const numColumns = typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns;
 	const tooltips = !!config.tooltip || config.values.some(valueConfig => !!valueConfig.tooltip);
 
 	return (
@@ -97,7 +98,7 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 					popupProps={{
 						'data-testid': 'icon-enum-picker-menu',
 						style: {
-							gridTemplateColumns: config.numColumns ? `repeat(${config.numColumns}, 1fr)` : undefined,
+							gridTemplateColumns: numColumns ? `repeat(${numColumns}, 1fr)` : undefined,
 							gridAutoFlow: horizontal ? 'column' : undefined,
 						},
 					}}>

@@ -12,8 +12,8 @@ import * as Mechanics from '../constants/mechanics';
 import { displayStatOrder, Stats, UnitStat } from './stats';
 
 describe('UnitStat', () => {
-	// The MoP placeholder evaluated `displayStatOrder` at module scope against MoP's PseudoStat set
-	// and threw inside getRootStat on TBC's, taking every transitive importer down with it.
+	// `displayStatOrder` is built at module scope, so a throw inside getRootStat there takes every
+	// transitive importer down with it.
 	it('builds displayStatOrder at module scope over the 41-stat shape', () => {
 		expect(displayStatOrder.length).toBeGreaterThan(0);
 		expect(new Stats().asProtoArray().length).toBe(41);
@@ -43,8 +43,8 @@ describe('UnitStat', () => {
 	});
 
 	// Melee and spell hit each convert through their own constant. Forever's CombatRatings
-	// gametable happens to give both the same value at level 60, where TBC's differed, so an
-	// accidentally shared constant would pass unnoticed today and break on the next retune.
+	// gametable happens to give both the same value at level 60, so an accidentally shared constant
+	// would pass unnoticed today and break on the next retune.
 	it('converts melee and spell ratings through their own constants', () => {
 		expect(UnitStat.fromStat(Stat.StatMeleeHitRating).convertRatingToPercent(Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT)).toBeCloseTo(1);
 		expect(UnitStat.fromStat(Stat.StatSpellHitRating).convertRatingToPercent(Mechanics.SPELL_HIT_RATING_PER_HIT_PERCENT)).toBeCloseTo(1);

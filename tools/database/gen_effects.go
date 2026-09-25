@@ -1115,13 +1115,17 @@ func parseOnUseSpell(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instanc
 // used on, a heal, an absorb, mana, rage or energy for the wearer, or a buff raising the wearer's
 // speeds. What else the row does - a root, a stun - is left out, and the summary names it.
 func routeOnUse(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC) *ProcRouting {
-	spellID := int(itemEffect.BuffId)
+	return routeOnUseSpell(int(parsed.Id), itemEffect.BuffId, instance)
+}
+
+func routeOnUseSpell(itemID int, buffID int32, instance *dbc.DBC) *ProcRouting {
+	spellID := int(buffID)
 	routing := &ProcRouting{TriggerSpellID: spellID}
-	s := spelldata.Find(itemEffect.BuffId)
+	s := spelldata.Find(buffID)
 	direct, periodic, heal, absorb, energize := s.DamageEffect(), s.PeriodicDamageEffect(), s.ProcHealEffect(), s.AbsorbEffect(), s.ProcEnergizeEffect()
 
 	switch {
-	case !castsOnUse(parsed, spellID, instance):
+	case !castsOnUse(itemID, spellID, instance):
 		routing.Unsupported = append(routing.Unsupported, fmt.Sprintf("the item's on-use row does not cast %d itself", spellID))
 	case s == spelldata.Nil:
 		routing.Unsupported = append(routing.Unsupported, "the spell has no row in the store")
@@ -1171,8 +1175,8 @@ func routeOnUse(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *db
 
 // Whether the item's own on-use row names the spell, rather than a spell that reaches it through a
 // trigger: the sim casts the spell the effect names.
-func castsOnUse(parsed *proto.UIItem, spellID int, instance *dbc.DBC) bool {
-	return slices.ContainsFunc(instance.ItemEffectsByParentID[int(parsed.Id)], func(e dbc.ItemEffect) bool {
+func castsOnUse(itemID int, spellID int, instance *dbc.DBC) bool {
+	return slices.ContainsFunc(instance.ItemEffectsByParentID[itemID], func(e dbc.ItemEffect) bool {
 		return e.TriggerType == dbc.ITEM_SPELLTRIGGER_ON_USE && e.SpellID == spellID
 	})
 }

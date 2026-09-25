@@ -16,7 +16,7 @@ func init() {
 
 func TestHunter(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
+		"the expected .results numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassHunter,
@@ -79,6 +79,11 @@ var DefaultBMTalents = "512002005250122431051-0505201205"
 var DefaultSVTalents = "502-0550201205-333200022003223005103"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	ConjuredId:   12662, // Demonic Rune
-	GoblinSapper: true,
+	ElixirIds:   []int32{13452, 250341}, // Elixir of the Mongoose, Greater Mageblood Elixir
+	FoodId:      238638,                 // Filet o' Flank
+	PotId:       250943,                 // Major Frenzy Potion
+	ConjuredId:  12662,                  // Demonic Rune
+	ExplosiveId: 18588,                  // Ez-Thro Dynamite II
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
+	ExtraIds: []int32{10646, 10309, 10310},
 }

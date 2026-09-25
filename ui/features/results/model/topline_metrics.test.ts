@@ -55,7 +55,7 @@ describe('toplineResultMetrics', () => {
 		expect(keys(simResult([player({ spec: PlayerSpecs.FeralBearDruid })]))).toEqual(['dps', 'tps', 'dtps', 'tmi', 'cod']);
 	});
 
-	// TBC's tank list is the bear and the protection paladin only, so a protection warrior keeps the
+	// The tank list is the bear and the protection paladin only, so a protection warrior keeps the
 	// mana rows a tank would otherwise drop.
 	it('keeps tto and hps for a protection warrior', () => {
 		expect(keys(simResult([player({ spec: PlayerSpecs.ProtectionWarrior })]))).toEqual(['dps', 'tps', 'dtps', 'tmi', 'cod', 'tto', 'hps']);

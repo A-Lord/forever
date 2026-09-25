@@ -1,6 +1,8 @@
 package spelldata
 
 import (
+	"fmt"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -158,6 +160,13 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.AttackPower, v)
 	},
+
+	// A stat, or the damage dealt, against the creature types the misc value masks.
+	dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS:  mobTypeStatRow,
+	dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS: mobTypeStatRow,
+	dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS:   mobTypeStatRow,
+	dbcenums.A_MOD_DAMAGE_DONE_VERSUS:         damageVersusRow,
+
 	dbcenums.A_MOD_RANGED_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.RangedAttackPower, v)
 	},
@@ -509,6 +518,70 @@ func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 		a.parts = append(a.parts, part)
 	}
 	return a
+}
+
+// A stat the unit has against the mob types a creature type mask names, which the sim keeps on the
+// attack tables.
+func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
+	stat := versusStats[e.Aura]
+	mobTypes := MobTypes(e.Misc)
+	if len(mobTypes) == 0 {
+		return nil
+	}
+
+	a := additive("mob-type-stat "+stat.StatName(), v, p.onAttackTables(func(_ *core.Simulation, delta float64) {
+		var bonus stats.Stats
+		bonus[stat] = delta
+		p.unit.AddMobTypeBonusStats(bonus, mobTypes...)
+	}))
+	// A bonus against other creature types does not compete with this one.
+	a.key = fmt.Sprintf("%sVersus%d", stat.StatName(), e.Misc)
+	return a
+}
+
+// A multiplier on the damage the unit deals to the mob types a creature type mask names, which the
+// sim keeps on the attack tables. Whether a second stack multiplies again is not stated, so a
+// stacking row is skipped.
+func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
+	mobTypes := MobTypes(e.Misc)
+	mult := percentMultiplier(v)
+	if p.stacking || len(mobTypes) == 0 || mult <= 0 {
+		return nil
+	}
+
+	toggle := p.onAttackTables(func(_ *core.Simulation, level float64) {
+		if level > 0 {
+			p.unit.MultiplyDamageVersus(mult, false, mobTypes...)
+		} else {
+			p.unit.MultiplyDamageVersus(1/mult, false, mobTypes...)
+		}
+	})
+	active := false
+	a := &attachment{kind: "damage-dealt-versus", value: mult, multiplicative: true,
+		key: fmt.Sprintf("DamageDealtVersus%d", e.Misc)}
+	a.set = func(sim *core.Simulation, level float64) {
+		if (level > 0) == active {
+			return
+		}
+		active = level > 0
+		toggle(sim, level)
+	}
+	return a
+}
+
+// The attack tables exist once the environment is finalized, so the static path, which runs while
+// the unit is being built, acts on them after that; an aura's gain acts at once.
+func (p *parser) onAttackTables(apply func(sim *core.Simulation, v float64)) func(sim *core.Simulation, v float64) {
+	if !p.static {
+		return apply
+	}
+	return func(sim *core.Simulation, v float64) {
+		if env := p.unit.Env; env != nil && !env.IsFinalized() {
+			env.RegisterPostFinalizeEffect(func() { apply(sim, v) })
+			return
+		}
+		apply(sim, v)
+	}
 }
 
 func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {

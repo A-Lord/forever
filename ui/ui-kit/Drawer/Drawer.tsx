@@ -9,7 +9,7 @@ export interface DrawerProps {
 	ignoreOutsidePress?: (event: Event) => boolean;
 	modal?: boolean;
 	className?: string;
-	/** Positions the portalled popup, since it no longer shares a containing block with its anchor. */
+	/** Positions the portalled popup, since it does not share a containing block with its anchor. */
 	style?: CSSProperties;
 	children?: ReactNode;
 	testId?: string;

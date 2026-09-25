@@ -52,7 +52,7 @@ export const runConcurrentStatWeights = async (
 	let simsTotal = 1;
 	let simsDone = 0;
 
-	// TBC's backend leaves RequestLow unset for the school-split hit/crit stats, whose low-side
+	// The backend leaves RequestLow unset for the school-split hit/crit stats, whose low-side
 	// modifier is always zero (sim/core/statweight.go). Skip the low sim when it is absent rather
 	// than counting iterations for a request that does not exist.
 	for (const statReqData of manualResponse.statSimRequests) {

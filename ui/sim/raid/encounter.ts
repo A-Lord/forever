@@ -57,8 +57,8 @@ export class Encounter {
 	}
 
 	setTargets(newTargets: Array<TargetProto>) {
-		// The old setter notified unconditionally; a same-reference write is
-		// stored as a fresh array so subscribers still see a change.
+		// Always notifies: a same-reference write is stored as a fresh array so
+		// subscribers still see a change.
 		this.set({ targets: newTargets === this.enc.targets ? newTargets.slice() : newTargets });
 	}
 

@@ -12,7 +12,7 @@ import { sum } from '../utils/math';
 
 export const NUM_SPECS = getEnumValues(Spec).length;
 
-// Converts '1231321-12313123-0' to [13, 16, 0]. TBC talent strings are one run of per-row digits
+// Converts '1231321-12313123-0' to [13, 16, 0]. Talent strings are one run of per-row digits
 // per tree, so the interesting number is the per-tree total and not the digits themselves.
 export function getTalentTreePoints(talentsString: string): Array<number> {
 	const trees = talentsString.split('-');
@@ -83,8 +83,8 @@ export function getPlayerSpecFromPlayer<SpecType extends Spec>(player: Player): 
 	throw new Error('Unable to parse spec from player proto: ' + JSON.stringify(Player.toJson(player), null, 2));
 }
 
-export const DENSE_SHARPENING_STONE_ID = 16138;
-export const DENSE_WEIGHTSTONE_ID = 16622;
+export const DENSE_SHARPENING_STONE_ID = 12404;
+export const DENSE_WEIGHTSTONE_ID = 12643;
 
 // Swaps the Dense sharpening stone and weightstone to match the weapon; any other imbue passes through.
 export function adjustWeaponImbueId(imbueId: number, hasSharp: boolean, hasBlunt: boolean): number {
