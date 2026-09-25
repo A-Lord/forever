@@ -74,7 +74,7 @@ and language do not travel through a shared link).
 ## What is gated
 
 `npm run test:snapshots` covers this end to end: for every launched spec it builds `Sim` + `Player`
-in node, applies defaults, serializes, and compares byte-for-byte against `golden.json`, then
+in node, applies defaults, serializes, and compares byte-for-byte against the state-snapshot capture, then
 asserts `fromProto(toProto(x))` is a fixed point. A persistence change that alters the serialized
 shape shows up there as a diff — which is the point, so read the diff before regenerating.
 

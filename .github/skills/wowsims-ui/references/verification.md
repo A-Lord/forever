@@ -18,7 +18,7 @@ npm run test:unit      # vitest run — happy-dom, ui/**/*.test.ts(x)
 npm run test:locales   # ajv, assets/locales/** against schemas/**
 ```
 
-That is every script this tree has. **There is no `test:snapshots` script** — the golden harness it
+That is every script this tree has. **There is no `test:snapshots` script** — the state-snapshot harness it
 would run is developer-local and absent here; see "The snapshot harness" below, and read anything
 elsewhere in this skill that says "`npm run test:snapshots` covers X" as "the harness covers X, if
 you have it".
@@ -72,7 +72,7 @@ they read the tree off disk and need no DOM — and both read data files beside 
 `ui/retired_class_names.json` and `ui/class_hook_allowlist.json`.
 
 **The one thing CI does not run is the snapshot harness**, which is developer-local and not on this
-tree at all. A golden diff still reaches master green.
+tree at all. A snapshot diff still reaches master green.
 
 `build-ui` is reused through `workflow_call` by `deploy.yml` and `release.yml`, both with
 `needs: tests`, so every gate above also blocks a deploy and a release.
@@ -145,7 +145,7 @@ here, ahead of the harness itself landing — it is absent from this checkout). 
 `node -e "console.log(require('./package.json').scripts)"` before quoting either. Once they exist,
 expect the same shape as the source port: they do nothing in a fresh clone, and the 17/17 figure a PR
 quotes cannot be reproduced by a reviewer who does not have the harness, because it stays local —
-`golden.json` is a multi-MB fixture and regenerating it is a fixture update, which only the repo
+the state-snapshot capture is a multi-MB fixture and regenerating it is a fixture update, which only the repo
 owner does. The `virtual:i18next-loader` alias the unit tests need should be a separate, **tracked**
 file (`tools/vite/stub-i18n.js`), so `npm run test:unit` works in a fresh clone regardless.
 
@@ -159,7 +159,7 @@ checkout so `Database.get()` loads the real `db.bin`):
    and composition selectors, the satellites, `Emitter`, `setGearAsync`. Nothing else runs if this
    fails.
 2. **`snapshot.ts`** — for every launched spec, build `Sim` + `Player` in node, apply defaults,
-   serialize player / sim / raid / encounter, and compare byte-for-byte against `golden.json`. It
+   serialize player / sim / raid / encounter, and compare byte-for-byte against the state-snapshot capture. It
    also asserts `fromProto(toProto(x))` is a fixed point per spec.
 
 Quirks it encodes **on purpose** — do not "fix" them:
@@ -173,8 +173,8 @@ Quirks it encodes **on purpose** — do not "fix" them:
   satellites. When defaults application moves into `ui/sim/state/`, replace the mirror with the real
   implementation — the snapshot diff then verifies the move.
 
-`npm run test:snapshots:update` regenerates `golden.json`. **Never run it to make a red gate green,
-and never commit a regenerated golden without asking** — diff the old and new JSON and confirm only
+`npm run test:snapshots:update` regenerates the state-snapshot capture. **Never run it to make a red gate green,
+and never commit a regenerated capture without asking** — diff the old and new JSON and confirm only
 the fields you intended moved. The same rule covers every fixture in this repo.
 
 Because the harness builds the real module graph, it is also the gate that catches a
@@ -184,10 +184,10 @@ module-evaluation-order cycle (see `layers.md`) — that failure looks like a cr
 
 Rendering, layout and interaction. None of the five commands above constructs the shell —
 `tools/state-snapshots/snapshot.ts` imports `IndividualSimUIConfig` as a _type_ and mirrors
-`applyDefaults` by hand, so the goldens prove no state write leaked into a component and say nothing
+`applyDefaults` by hand, so the snapshots prove no state write leaked into a component and say nothing
 about whether anything rendered.
 
-**Nothing above proves the page rendered.** The goldens are a state contract, not a render check, so
+**Nothing above proves the page rendered.** The snapshots are a state contract, not a render check, so
 a change that only moves DOM or CSS around can pass every command here. When a change touches
 rendering, layout or interaction, drive the built page yourself — build it, serve it, and compare
 against a build of the parent commit rather than against a remembered element count. Say in the PR

@@ -28,7 +28,7 @@ export const phasesOf = (items: ReadonlyArray<Phased>): Array<Phase> =>
 /**
  * The phase tab the grouped pickers are filtered by. Stored under the spec's `__presetFilters__`
  * key and written only when a phase is actually chosen — the pre-port picker never wrote on load,
- * and the golden capture records a default page load as leaving that key absent.
+ * and the state-snapshot capture records a default page load as leaving that key absent.
  */
 export const usePresetFilterPhase = (items: ReadonlyArray<Phased>): PresetFilterPhase => {
 	const host = useSimHost();

@@ -28,7 +28,6 @@ cd "$repo"
 ABSENT_BY_DESIGN="tools/browser-perf/
 tools/state-snapshots
 tools/state-snapshots/
-tools/state-snapshots/golden.json
 tools/state-snapshots/memory_env.ts
 tools/state-snapshots/snapshot.ts
 ui/core

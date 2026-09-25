@@ -97,7 +97,7 @@ No batching, no dedup, fires synchronously. Never put these in the store.
 
 `persistence.ts` (load-order contract + autosave; the localStorage key is built
 by the caller and handed in), `serialization.ts` (IndividualSimSettings
-envelope, golden-tested), `sim_links.ts`, `reforge_request.ts`, `env.ts`.
+envelope, snapshot-tested), `sim_links.ts`, `reforge_request.ts`, `env.ts`.
 
 ## Not here (facades, in `ui/sim/settings/`)
 

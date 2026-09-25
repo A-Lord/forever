@@ -995,9 +995,9 @@ What guards the outputs:
 - The repository's `pre-commit` hook runs `-check` when the database is present and the commit touches
   the generator or one of its outputs.
 
-Goldens are the last check and the one that costs time: run the suites of the class that changed, and
-diff the `.results` against the `.results.tmp` with a local goldendiff helper or by hand. A port that
-was meant to be mechanical and moves a golden is a wrong port, not a new baseline.
+The .results files are the last check and the one that costs time: run the suites of the class that changed, and
+diff the `.results` against the `.results.tmp` with a local diff helper or by hand. A port that
+was meant to be mechanical and moves a .results number is a wrong port, not a new baseline.
 
 ## Porting a class onto the resolvers
 
@@ -1007,7 +1007,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
    `ParseEffects`, `ProcTrigger` - is the warrior's move, and this checklist is written for it.
 2. **Dump the rows before touching a call site**, three ways: the effects at the rank taken, which
    registered spells each modifier's `EffectSpellClassMask` names, and the whole `ProcTrigger` the row
-   decodes to. The mask dump is what turns a golden move into something you knew before you ran it.
+   decodes to. The mask dump is what turns a .results move into something you knew before you ran it.
 3. **Pass `Ladder.Rank(n)`, never `MustFind(id)`,** for anything the talent tree prices: a trait
    talent's per-rank numbers live in the curve, and the base row's effect can read 0.
 4. **Check the cooldown categories.** A category cooldown resolves to `Unit.CategoryTimer`, which is
@@ -1020,7 +1020,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
    cleared. `Rank` comes from "Rank N" and flips `HasRanks` there. `IgnoreHaste` follows the physical
    school, not the defense type.
 6. **A row with a `Variance` rolls.** Use `Roll(sim, level)` where the client states a spread; the
-   extra draw reshuffles every later roll, which is a golden move with a known cause.
+   extra draw reshuffles every later roll, which is a .results move with a known cause.
 7. **Parse before you activate.** `ParseEffects` attaches on gain, so an aura already up when the parse
    runs loses the rows that need a `Simulation`.
 8. **Compare value by value before deleting a hand modifier.** A mod that lands in a different bucket -
@@ -1034,7 +1034,7 @@ was meant to be mechanical and moves a golden is a wrong port, not a new baselin
     _and_ taken into two listeners with a condition each.
 11. **Say which source won.** Where the row and the tooltip disagree, the decision goes in a comment
     that names the tooltip's wording. Where a number stays by hand, its review marker stays with it.
-12. **Isolate every golden move** by reverting exactly one change and re-running. Two causes in one
+12. **Isolate every .results move** by reverting exactly one change and re-running. Two causes in one
     commit look like one inexplicable cause.
 13. **Delete the class masks last**, and only where the constant's sole reader is the `ClassSpellMask`
     write. A handler calling `spell.Matches` is a reader too.

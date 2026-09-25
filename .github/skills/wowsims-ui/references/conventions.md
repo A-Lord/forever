@@ -56,7 +56,7 @@ A `.tsx` file with no JSX in it should be `.ts`.
 
 ## Fixtures and generated files
 
-- **Never** regenerate `tools/state-snapshots/golden.json`, a `.results` file or a `.test.json`
+- **Never** regenerate the state-snapshot capture, a `.results` file or a `.test.json`
   reforge fixture to make a gate pass, and never commit one without asking. Diff first, then ask.
 - **Never** hand-edit anything under `ui/generated/` or any `*_auto_gen.ts` — regenerate through the
   makefile.
@@ -94,7 +94,7 @@ Adding one is three edits and no page:
 
 `tools/vite/spec_pages.mts` globs `ui/specs/*/*/spec.ts(x)`, so the page at `/forever/<class>/<spec>/`
 appears with no build-config edit and no html anywhere. Check the count with
-`/usr/bin/find ui/specs -name 'spec.ts' -o -name 'spec.tsx' | wc -l`; the golden harness covers the
+`/usr/bin/find ui/specs -name 'spec.ts' -o -name 'spec.tsx' | wc -l`; the state-snapshot harness covers the
 same set.
 
 Two traps:

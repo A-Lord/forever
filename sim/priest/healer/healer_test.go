@@ -19,7 +19,7 @@ func init() {
 // path the UI's stats request takes.
 func TestHealerPriest(t *testing.T) {
 	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the golden numbers cannot be meaningful until then")
+		"the expected .results numbers cannot be meaningful until then")
 	var generators []core.TestGenerator
 	for _, gearSet := range []string{"preraid", "p3_t5", "p3"} {
 		player := core.WithSpec(

@@ -350,7 +350,7 @@ should not take is a hand-written effect for the consumable.
 - Each builder has unit tests beside it in `sim/common/shared` (`consumable_*_test.go`), and the Natural
   flasks have theirs in `sim/common/forever`.
 - The warrior suites select consumables from db.json; a regeneration that moves them shows up in their
-  goldens.
+  .results files.
 - `TestAConsumableTakesItsExclusiveGroup`, `TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory`
   and `TestEveryExclusiveGroupOverrideShips` (`tools/database`) pin the groups; the stat builder's
   tests which consumables of one group apply and which stack.

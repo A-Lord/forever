@@ -10,7 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/warrior"
 )
 
-// The golden suites are skipped while the class is stubbed, so this is what
+// The .results suites are skipped while the class is stubbed, so this is what
 // checks that registerShouts still runs and that the warrior's own Battle Shout
 // is the generated aura.
 func TestWarriorCastsTheGeneratedBattleShout(t *testing.T) {
