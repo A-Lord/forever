@@ -29,7 +29,7 @@ vi.mock('@i18n/localization', () => ({
 const trackEvent = vi.hoisted(() => vi.fn());
 vi.mock('../../../../tracking/utils', () => ({ trackEvent }));
 
-const defaultTarget = () => TargetProto.create({ level: 73, swingSpeed: 2 });
+const defaultTarget = () => TargetProto.create({ level: 63, swingSpeed: 2 });
 
 /** Stands in for the `Encounter` facade: the seven members the target pickers reach for. */
 class FakeEncounter {
@@ -117,16 +117,16 @@ describe('TargetsPicker', () => {
 	});
 
 	it('reads each target row from its own index rather than from the first, and writes a level change back to it', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 73 }), TargetProto.create({ level: 68 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 63 }), TargetProto.create({ level: 61 })]);
 		mount(encounter);
 
 		const levelOf = (index: number) => targetRoots()[index].querySelector('#target-' + index + '-picker-level') as HTMLSelectElement;
-		expect(levelOf(0).value).toBe('73');
-		expect(levelOf(1).value).toBe('68');
+		expect(levelOf(0).value).toBe('63');
+		expect(levelOf(1).value).toBe('61');
 
-		act(() => void fireEvent.change(levelOf(1), { target: { value: '70' } }));
+		act(() => void fireEvent.change(levelOf(1), { target: { value: '62' } }));
 
-		expect(encounter.targets.map(target => target.level)).toEqual([73, 70]);
+		expect(encounter.targets.map(target => target.level)).toEqual([63, 62]);
 	});
 
 	it('disables the dual-wield miss penalty until dual wield is on', () => {
