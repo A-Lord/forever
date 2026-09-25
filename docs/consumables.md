@@ -31,9 +31,10 @@ an on-use spell and is one of:
 
 An item that also teaches a spell is an Engrave rune and is left out, and so is a name containing
 `Test` or `[DEP]` or starting with `QA`, `UNUSED` or `[PH]` (UNUSED Flask of Merciless Pursuit
-215126). The ids in `ConsumableAllowList` and `ConsumableExclusiveGroups` (`tools/database/overrides.go`)
-join the catalogue by id, whatever the filter says (`catalogueConsumableIDs`). The catalogue's spells, and everything they trigger, are
-carried in the spell store.
+215126). The ids in `ConsumableAllowList` and `ConsumableExclusiveGroups`
+(`tools/database/overrides.go`) join the catalogue by id, whatever the filter says
+(`catalogueConsumableIDs`). The catalogue's spells, and everything they trigger, are carried in the
+spell store.
 
 **Routing.** `RouteConsumable` in `tools/database/gen_consumables.go` reads the spell the consumable's
 first on-use row casts. Damage, heals and absorbs are routed the way an item's on-use is; otherwise the
@@ -208,8 +209,8 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 ```
 
 The Jujus are Quest-class items the catalogue filter leaves out; naming them here brings them into
-the catalogue as well. The Blasted Lands buffs leave their category group for Zanza. The permanent Zanza items
-(23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
+the catalogue as well. The Blasted Lands buffs leave their category group for Zanza. The permanent
+Zanza items (23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
 apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list, so `AddUnparsedStats`
 (`tools/database/consumable_unparsed_stats.go`) lists it in their db.json stats as 20 melee hit rating
 (`core.PhysicalHitRatingPerHitPercent`, 10), and a spec that weighs hit sees the Hit food picker. The sim
