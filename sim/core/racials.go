@@ -4,7 +4,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -284,7 +283,7 @@ func applyCreatureTypeSlaying(character *Character, mobType proto.MobType) {
 // The crit holds while any weapon slot holds a weapon of this type, one- or two-handed, follows item
 // swaps, and reaches every spell and attack. The sheet counts it in the base stage.
 func applyWeaponSpecialization(character *Character, critPercent float64, weaponType proto.WeaponType) {
-	req := EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: WeaponSubclassMask(weaponType)}
+	req := EquipRequirement{SubclassMask: WeaponSubclassMask(weaponType)}
 	character.NewEquipGatedStats(req, stats.Stats{
 		stats.PhysicalCritPercent: critPercent,
 		stats.SpellCritPercent:    critPercent,

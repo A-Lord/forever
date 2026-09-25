@@ -176,7 +176,6 @@ func TestEquipRequirementEquipped(t *testing.T) {
 		{"bow in the ranged slot", PlayerUnit, dagger, dagger, bow, EquipRequirement{SubclassMask: 262156}, true},
 		{"off hand named, sword in the main hand", PlayerUnit, oneHandSword, dagger, bow,
 			EquipRequirement{SubclassMask: sword, Hand: ProcMaskMeleeOH}, false},
-		{"armor class", PlayerUnit, oneHandSword, dagger, bow, EquipRequirement{Class: 4, SubclassMask: sword}, false},
 		{"pet", PetUnit, oneHandSword, dagger, bow, EquipRequirement{SubclassMask: sword}, false},
 	}
 	for _, test := range tests {

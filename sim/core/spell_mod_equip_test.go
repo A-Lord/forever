@@ -202,7 +202,7 @@ func TestEquipRequirementNeverMatchesOtherUnits(t *testing.T) {
 		if anyWeapon.Matches(unit, ProcMaskMeleeMHAuto) {
 			t.Errorf("a %s matched a weapon requirement", name)
 		}
-		mod := &SpellMod{EquipSubclass: -1}
+		mod := &SpellMod{Equip: anyWeapon}
 		if shouldApply(&Spell{Unit: unit, ProcMask: ProcMaskMeleeMHAuto}, mod) {
 			t.Errorf("a weapon mod applied to a %s's attack", name)
 		}

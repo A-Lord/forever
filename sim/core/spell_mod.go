@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
@@ -53,9 +52,7 @@ type SpellMod struct {
 	ProcMask       ProcMask
 	SpellFlag      SpellFlag
 	ResourceType   proto.ResourceType
-	EquipSubclass  int32
-	EquipInvType   int32
-	EquipHand      ProcMask
+	Equip          EquipRequirement
 	FromRating     bool
 	floatValue     float64
 	intValue       int32
@@ -137,26 +134,24 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 
 	mod := &SpellMod{
-		ClassMask:     config.ClassMask,
-		ClassFlags:    config.ClassFlags,
-		Kind:          config.Kind,
-		School:        config.School,
-		DefenseType:   config.DefenseType,
-		ProcMask:      config.ProcMask,
-		SpellFlag:     config.SpellFlag,
-		ResourceType:  config.ResourceType,
-		EquipSubclass: config.EquipSubclass,
-		EquipInvType:  config.EquipInvType,
-		EquipHand:     config.EquipHand,
-		FromRating:    config.FromRating,
-		floatValue:    config.FloatValue,
-		intValue:      config.IntValue,
-		timeValue:     config.TimeValue,
-		keyValue:      config.KeyValue,
-		Apply:         applyFn,
-		Remove:        removeFn,
-		IsActive:      false,
-		OnReset:       resetFn,
+		ClassMask:    config.ClassMask,
+		ClassFlags:   config.ClassFlags,
+		Kind:         config.Kind,
+		School:       config.School,
+		DefenseType:  config.DefenseType,
+		ProcMask:     config.ProcMask,
+		SpellFlag:    config.SpellFlag,
+		ResourceType: config.ResourceType,
+		Equip:        EquipRequirement{SubclassMask: config.EquipSubclass, InvTypeMask: config.EquipInvType, Hand: config.EquipHand},
+		FromRating:   config.FromRating,
+		floatValue:   config.FloatValue,
+		intValue:     config.IntValue,
+		timeValue:    config.TimeValue,
+		keyValue:     config.KeyValue,
+		Apply:        applyFn,
+		Remove:       removeFn,
+		IsActive:     false,
+		OnReset:      resetFn,
 	}
 	unit.spellMods = append(unit.spellMods, mod)
 
@@ -254,7 +249,7 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 	}
 
 	// A magic-defense spell rolls on the spell tables, which no weapon's bonus reaches.
-	if req := mod.equipRequirement(); !req.IsZero() && (spell.DefenseType == DefenseTypeMagic || !req.Matches(spell.Unit, spell.ProcMask)) {
+	if !mod.Equip.IsZero() && (spell.DefenseType == DefenseTypeMagic || !mod.Equip.Matches(spell.Unit, spell.ProcMask)) {
 		return false
 	}
 
@@ -265,13 +260,9 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 	return true
 }
 
-func (mod *SpellMod) equipRequirement() EquipRequirement {
-	return EquipRequirement{Class: dbcenums.ITEM_CLASS_WEAPON, SubclassMask: mod.EquipSubclass, InvTypeMask: mod.EquipInvType, Hand: mod.EquipHand}
-}
-
 func (unit *Unit) refilterEquipMods() {
 	for _, mod := range unit.spellMods {
-		if mod.equipRequirement().IsZero() {
+		if mod.Equip.IsZero() {
 			continue
 		}
 		wasActive := mod.IsActive

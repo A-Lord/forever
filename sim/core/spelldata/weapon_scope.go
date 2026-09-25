@@ -11,12 +11,9 @@ import (
 type WeaponRule uint8
 
 const (
-	// The effect gives its stat: the row names no weapon, names a shield, or the effect is not a hit,
-	// crit or rating aura.
+	// The effect gives its stat: the row names no weapon, names a shield, the aura reaches another unit,
+	// or the effect is not a hit, crit or rating aura.
 	WeaponRuleNone WeaponRule = iota
-	// The row names a weapon but the aura reaches another unit, so the requirement is the caster's
-	// for the cast and the effect gives its stat.
-	WeaponRuleCastOnly
 	// A mod on the attacks made with a matching weapon.
 	WeaponRulePerWeapon
 	// The stat on every spell and attack while a matching weapon is in a weapon slot.
@@ -30,7 +27,7 @@ const rangedInvTypes int32 = dbcenums.INVTYPE_BIT_RANGED | dbcenums.INVTYPE_BIT_
 
 // The rule the parse applies to a hit, crit or rating effect, and the scope a mod under it takes: the
 // proc mask and the Equip fields, with no class flags, so the mod reaches auto attacks whatever family
-// the spell belongs to. The scope is zero under WeaponRuleNone and WeaponRuleCastOnly.
+// the spell belongs to. The scope is zero under WeaponRuleNone.
 //
 // A_MOD_HIT_CHANCE and A_MOD_WEAPON_CRIT_PERCENT are per weapon. A_MOD_CRIT_PCT is per weapon where
 // its weapons are ranged weapons alone, named by subclass only, and holds while equipped otherwise.
@@ -52,8 +49,6 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 		return WeaponRulePerWeapon, scope
 	case e.Aura == dbcenums.A_MOD_RATING && e.Misc&dbcenums.RATING_MOD_MASK_RANGED != 0 && e.Misc&^dbcenums.RATING_MOD_MASK_RANGED == 0:
 		return WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged}
-	case s.EquipClass == dbcenums.ITEM_CLASS_WEAPON && e.Target[0] != dbcenums.TARGET_UNIT_CASTER:
-		return WeaponRuleCastOnly, core.SpellModConfig{}
 	}
 	return WeaponRuleNone, core.SpellModConfig{}
 }
@@ -90,9 +85,8 @@ func ScopedRatingPercents(mask int32, v float64) []RatingPercent {
 	return out
 }
 
-func weaponRequirement(s *Spell, scope core.SpellModConfig) core.EquipRequirement {
-	return core.EquipRequirement{Class: int32(s.EquipClass), SubclassMask: scope.EquipSubclass,
-		InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand}
+func weaponRequirement(scope core.SpellModConfig) core.EquipRequirement {
+	return core.EquipRequirement{SubclassMask: scope.EquipSubclass, InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand}
 }
 
 // The hand ATTR_EX_3_REQ_MAIN_HAND and ATTR_EX_3_REQ_OFF_HAND name, as a melee proc mask.

@@ -233,12 +233,8 @@ const SkillLineDefense = 95
 func EquipSpellFolds(spellID int) bool {
 	s := spelldata.Find(int32(spellID))
 	for i := range s.Effects {
-		switch rule, scope := spelldata.WeaponScope(s, &s.Effects[i]); rule {
-		case spelldata.WeaponRuleNone, spelldata.WeaponRuleCastOnly:
-		default:
-			if scope.ProcMask != core.ProcMaskRanged {
-				return false
-			}
+		if rule, scope := spelldata.WeaponScope(s, &s.Effects[i]); rule != spelldata.WeaponRuleNone && scope.ProcMask != core.ProcMaskRanged {
+			return false
 		}
 	}
 	return true

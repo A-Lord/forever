@@ -161,12 +161,19 @@ func perWeapon(scope core.SpellModConfig) string {
 	return "per weapon: only attacks made with " + weapons
 }
 
-// A row whose weapon requirement binds nothing the effect gives, since the aura reaches another unit.
+// A hit, crit or rating aura on a row whose weapon requirement binds nothing the effect gives, since
+// the aura reaches another unit.
 func castOnly(s *spelldata.Spell, e *spelldata.Effect) string {
-	if rule, _ := spelldata.WeaponScope(s, e); rule == spelldata.WeaponRuleCastOnly {
-		return "the weapon requirement only gates casting"
+	switch e.Aura {
+	case dbcenums.A_MOD_HIT_CHANCE, dbcenums.A_MOD_WEAPON_CRIT_PERCENT, dbcenums.A_MOD_CRIT_PCT, dbcenums.A_MOD_RATING:
+	default:
+		return ""
 	}
-	return ""
+	if rule, _ := spelldata.WeaponScope(s, e); rule != spelldata.WeaponRuleNone ||
+		s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] == dbcenums.TARGET_UNIT_CASTER {
+		return ""
+	}
+	return "the weapon requirement only gates casting"
 }
 
 // A_MOD_RATING by the ratings its mask names, read the way the parse reads them. A row bound to a

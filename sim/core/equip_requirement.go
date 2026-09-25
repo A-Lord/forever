@@ -6,10 +6,9 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// The client's SpellEquippedItems for a weapon: the item class, the weapon subclass and inventory-type
-// masks, and the hand an ATTR_EX_3 hand bit names. A zero field is no restriction.
+// The client's SpellEquippedItems for a weapon: the weapon subclass and inventory-type masks, and the
+// hand an ATTR_EX_3 hand bit names. A zero field is no restriction.
 type EquipRequirement struct {
-	Class        int32
 	SubclassMask int32
 	InvTypeMask  int32
 	Hand         ProcMask
@@ -23,9 +22,6 @@ func (req EquipRequirement) IsZero() bool {
 // main hand's for a main-hand bit, else the off hand's, else the ranged slot's. An attack with no
 // weapon bit, a unit that is not a player, and a shield or held item in the off hand never match.
 func (req EquipRequirement) Matches(unit *Unit, spellProcMask ProcMask) bool {
-	if req.Class != 0 && req.Class != dbcenums.ITEM_CLASS_WEAPON {
-		return false
-	}
 	if unit == nil || unit.Type != PlayerUnit || unit.Env == nil {
 		return false
 	}
@@ -70,9 +66,6 @@ func (req EquipRequirement) matchesItem(slot proto.ItemSlot, item *Item) bool {
 // Whether a weapon meeting the requirement sits in the main-hand, off-hand or ranged slot. A hand bit
 // narrows the slots to that hand's. A unit that is not a player never meets it.
 func (req EquipRequirement) Equipped(character *Character) bool {
-	if req.Class != 0 && req.Class != dbcenums.ITEM_CLASS_WEAPON {
-		return false
-	}
 	if character == nil || character.Type != PlayerUnit {
 		return false
 	}

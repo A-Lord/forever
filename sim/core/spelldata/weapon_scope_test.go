@@ -44,7 +44,7 @@ func TestWeaponScopeRules(t *testing.T) {
 			casterAura(dbcenums.A_MOD_CRIT_PCT, 2), WeaponRuleWhileEquipped,
 			core.SpellModConfig{ProcMask: core.ProcMaskRanged, EquipSubclass: 262156, EquipInvType: dbcenums.INVTYPE_BIT_RANGED}},
 		{"hit taken off an enemy", Spell{EquipClass: 2, EquipSubclass: 262156},
-			enemyAura(dbcenums.A_MOD_HIT_CHANCE), WeaponRuleCastOnly, core.SpellModConfig{}},
+			enemyAura(dbcenums.A_MOD_HIT_CHANCE), WeaponRuleNone, core.SpellModConfig{}},
 		{"hit with a shield", Spell{EquipClass: 4, EquipSubclass: 64},
 			casterAura(dbcenums.A_MOD_HIT_CHANCE, 1), WeaponRuleNone, core.SpellModConfig{}},
 		{"spell hit with melee weapons", Spell{EquipClass: 2, EquipSubclass: 173555},
