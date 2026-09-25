@@ -6,28 +6,32 @@ import (
 	"github.com/wowsims/forever/sim/common/forever"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // One rating feeds the physical and the spell percent alike, so a consumable granting both is listed
-// at the larger of the two, once.
+// at the rating of the larger of the two, once. A consumable granting one of them is listed by that
+// channel's pseudo stats: physical as melee and ranged, spell as spell.
 var percentRatings = []struct {
-	percents   []stats.Stat
-	rating     stats.Stat
-	perPercent float64
+	physical, spell stats.Stat
+	rating          stats.Stat
+	perPercent      float64
+	melee, ranged   proto.PseudoStat
+	spellPseudo     proto.PseudoStat
 }{
-	{[]stats.Stat{stats.PhysicalHitPercent, stats.SpellHitPercent}, stats.HitRating, core.HitRatingPerHitPercent},
-	{[]stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}, stats.CritRating, core.CritRatingPerCritPercent},
-	{[]stats.Stat{stats.ExpertisePercent}, stats.ExpertiseRating, core.ExpertiseRatingPerExpertisePercent},
+	{stats.PhysicalHitPercent, stats.SpellHitPercent, stats.HitRating, core.HitRatingPerHitPercent,
+		proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent},
+	{stats.PhysicalCritPercent, stats.SpellCritPercent, stats.CritRating, core.CritRatingPerCritPercent,
+		proto.PseudoStat_PseudoStatMeleeCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent},
 }
 
-// Adds to the stats db.json lists for a consumable, which the settings offer it by, what its on-use
-// grants that the stat parse leaves out, a percent at the rating one percent takes: the stats against
-// creature types (Potion of Demon Slaying 9224's 11406: 180 attack power against Demons),
-// A_MOD_HIT_CHANCE as physical hit (Fire-toasted Bun 23327's 29332: 2% as 20 hit rating),
-// A_MOD_SPELL_CRIT_CHANCE as spell crit (Scroll of Arcane Power I 211957's 430952: 1% as 14 crit
-// rating), and a Natural flask's zone bonus, attack and casting speed as haste.
+// Adds to the stats and pseudo stats db.json lists for a consumable, which the settings offer it by,
+// what its on-use grants that the stat parse leaves out: the stats against creature types (Potion of
+// Demon Slaying 9224's 11406: 180 attack power against Demons), the hit and crit of one channel
+// (Fire-toasted Bun 23327's 29332: A_MOD_HIT_CHANCE 2 as 2% melee and ranged hit), and a Natural
+// flask's zone bonus at the rating one percent takes, attack and casting speed as haste.
 func AddUnparsedStats(db *WowDatabase) error {
 	for id, consumable := range db.Consumables {
 		if len(consumable.ItemEffects) == 0 {
@@ -47,6 +51,10 @@ func AddUnparsedStats(db *WowDatabase) error {
 			switch e.Aura {
 			case dbcenums.A_MOD_HIT_CHANCE:
 				percents[stats.PhysicalHitPercent] += e.Average(core.CharacterLevel)
+			case dbcenums.A_MOD_SPELL_HIT_CHANCE:
+				percents[stats.SpellHitPercent] += e.Average(core.CharacterLevel)
+			case dbcenums.A_MOD_WEAPON_CRIT_PERCENT:
+				percents[stats.PhysicalCritPercent] += e.Average(core.CharacterLevel)
 			case dbcenums.A_MOD_SPELL_CRIT_CHANCE:
 				percents[stats.SpellCritPercent] += e.Average(core.CharacterLevel)
 			}
@@ -59,16 +67,27 @@ func AddUnparsedStats(db *WowDatabase) error {
 			percents = percents.Add(bonus.Stats)
 			granted[stats.HasteRating] += max(bonus.AttackHastePercent, bonus.CastHastePercent) * core.HasteRatingPerHastePercent
 		}
+		granted[stats.ExpertiseRating] += percents[stats.ExpertisePercent] * core.ExpertiseRatingPerExpertisePercent
+
+		pseudoStats := make([]float64, stats.PseudoStatsLen)
 		for _, r := range percentRatings {
-			var percent float64
-			for _, stat := range r.percents {
-				percent = max(percent, percents[stat])
+			physical, spell := percents[r.physical], percents[r.spell]
+			switch {
+			case physical > 0 && spell > 0:
+				granted[r.rating] += max(physical, spell) * r.perPercent
+			case physical > 0:
+				pseudoStats[r.melee] += physical
+				pseudoStats[r.ranged] += physical
+			case spell > 0:
+				pseudoStats[r.spellPseudo] += spell
 			}
-			granted[r.rating] += percent * r.perPercent
 		}
 
 		if granted != (stats.Stats{}) {
 			consumable.Stats = stats.FromProtoArray(consumable.Stats).Add(granted).ToProtoArray()
+		}
+		if slices.ContainsFunc(pseudoStats, func(v float64) bool { return v != 0 }) {
+			consumable.PseudoStats = pseudoStats
 		}
 	}
 	return nil

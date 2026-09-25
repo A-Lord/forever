@@ -88,6 +88,9 @@ message Consumable {
 	string group_key = 20;
 	// The group's label in the settings.
 	string group_name = 21;
+	// The hit and crit percents an on-use grants to one channel alone, which no rating stands for. Indexed
+	// by PseudoStat; ranged totals include the melee share.
+	repeated double pseudo_stats = 22;
 
 	reserved 7, 9, 10, 14;
 	reserved "buff_duration", "cooldown_duration", "category_cooldown_duration", "allowable_race";
