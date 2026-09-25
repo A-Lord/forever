@@ -138,6 +138,12 @@ export const FuriousHowl = makeBooleanPartyBuffInput({
 	label: 'Furious Howl',
 });
 
+export const FlametongueTotem = makeBooleanPartyBuffInput({
+	actionId: ActionId.fromSpellId(15036),
+	fieldName: 'flametongueTotem',
+	label: 'Flametongue Totem',
+});
+
 export const ArcaneBrilliance = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(23028),
 	fieldName: 'arcaneBrilliance',
@@ -536,6 +542,11 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: FuriousHowl,
 		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: FlametongueTotem,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassShaman,
 	},
 ];
 

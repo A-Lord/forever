@@ -208,6 +208,61 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	})
 }
 
+// The totem's party aura names its proc in its base points rather than its
+// trigger column, so the proc is read by id.
+var flametongueTotemProc = spelldata.MustFind(16389)
+
+// The fire damage a main-hand hit adds for a weapon of this speed.
+func FlametongueTotemDamage(weaponSpeed float64) float64 {
+	return flametongueTotemProc.EffectN(1).BaseValue() * weaponSpeed / 100
+}
+
+// The totem hands its proc out as a combat enchant on the main hand
+// (SpellItemEnchantment 1683: 16389 at 100%), whose chance the store carries in
+// 16389's ProcChance column. Every main-hand hit that lands adds fire damage
+// priced by the weapon's speed. 16389 states no defense type, and a fire proc
+// with none rolls on the spell hit and crit tables.
+func driveFlametongueTotem(char *core.Character, _ *proto.PartyBuffs) {
+	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc())
+	config.DefenseType = core.DefenseTypeMagic
+	config.ProcMask = core.ProcMaskSpellDamageProc
+	if flametongueTotemProc.IsAProc() {
+		config.Flags |= core.SpellFlagProc
+	}
+	config.DamageMultiplier = 1
+	config.ThreatMultiplier = 1
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		damage := FlametongueTotemDamage(char.AutoAttacks.MH().SwingSpeed)
+		spell.CalcAndDealDamage(sim, target, damage, spell.OutcomeMagicHitAndCrit)
+	}
+	strike := char.RegisterSpell(config)
+
+	trigger := core.ProcTrigger{
+		Name:               "Flametongue Totem Trigger",
+		ProcChance:         flametongueTotemProc.StatedChance(),
+		Duration:           core.NeverExpires,
+		Outcome:            core.OutcomeLanded,
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			strike.Cast(sim, result.Target)
+		},
+	}
+	spelldata.WeaponProc()(char, &trigger)
+	trigger.ProcMask = core.ProcMaskMeleeMH
+	procTrigger := char.MakeProcTriggerAura(trigger)
+
+	totemAura := core.MakePermanent(NewSpellDataFlametongueTotemAura(&char.Unit, false, 0))
+	totemAura.NewExclusiveEffect(FlametongueTotemCategory, false, core.ExclusiveEffect{
+		Priority: flametongueTotemProc.EffectN(1).BaseValue(),
+		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
+			procTrigger.Activate(sim)
+		},
+		OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
+			procTrigger.Deactivate(sim)
+		},
+	})
+}
+
 // A shaman twisting totems keeps Grace of Air up for 9 seconds out of every 10,
 // because the air slot is holding another totem the rest of the time; a shaman
 // who is not twisting leaves it standing.

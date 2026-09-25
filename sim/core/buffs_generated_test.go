@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -628,6 +629,97 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 	if proc.IsActive() || proc.GetStacks() != 0 {
 		t.Errorf("the lingering proc is active %v with %d charges at %v, want it gone after its second",
 			proc.IsActive(), proc.GetStacks(), sim.CurrentTime-start)
+	}
+}
+
+// Every main-hand hit adds 1363 x weapon speed / 100 fire damage.
+func TestGeneratedFlametongueTotemDamageFollowsWeaponSpeed(t *testing.T) {
+	if got := buffs.FlametongueTotemDamage(2.6); math.Abs(got-35.438) > 0.001 {
+		t.Errorf("a 2.6 speed weapon procs %v, want 1363 x 2.6 / 100", got)
+	}
+}
+
+// A main-hand hit that lands, auto or special, strikes the target for the
+// client's 1363 x the weapon's speed / 100 in fire damage on the spell hit and
+// crit tables; an off-hand hit or a missed swing strikes nothing.
+func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{FlametongueTotem: true}, &proto.IndividualBuffs{})
+	char := sim.Raid.Parties[0].Players[0].GetCharacter()
+	target := sim.Encounter.AllTargetUnits[0]
+
+	trigger := char.GetAura("Flametongue Totem Trigger")
+	if trigger == nil {
+		t.Fatalf("no aura is labelled %q; the unit has %v", "Flametongue Totem Trigger", auraLabels(char))
+	}
+	if !trigger.IsActive() {
+		t.Fatal("the totem's trigger is not up at the pull")
+	}
+	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory)
+	if len(category.Effects()) != 1 {
+		t.Errorf("the category holds %d effects, want the totem's one", len(category.Effects()))
+	}
+
+	strike := char.GetSpell(core.ActionID{SpellID: 16389})
+	if strike == nil {
+		t.Fatal("the totem registered no spell for its proc")
+	}
+	if strike.SpellSchool != core.SpellSchoolFire || strike.DefenseType != core.DefenseTypeMagic {
+		t.Errorf("the proc is %v on %v, want fire on the spell tables", strike.SpellSchool, strike.DefenseType)
+	}
+	if !strike.Flags.Matches(core.SpellFlagProc) {
+		t.Error("the proc's hits are not flagged as a proc, which 16389 does not opt out of")
+	}
+
+	metrics := &strike.SpellMetrics[target.UnitIndex]
+	offer := func(procMask core.ProcMask, outcome core.HitOutcome) (casts int32, damage float64, crit bool) {
+		casts, damage, crits := metrics.Casts, metrics.TotalDamage, metrics.Crits
+		trigger.OnSpellHitDealt(trigger, sim, &core.Spell{ProcMask: procMask},
+			&core.SpellResult{Target: target, Outcome: outcome, Damage: 100})
+		return metrics.Casts - casts, metrics.TotalDamage - damage, metrics.Crits > crits
+	}
+
+	for _, row := range []struct {
+		name     string
+		speed    float64
+		procMask core.ProcMask
+	}{
+		{"a 2.6 speed main-hand auto", 2.6, core.ProcMaskMeleeMHAuto},
+		{"a 2.6 speed main-hand special", 2.6, core.ProcMaskMeleeMHSpecial},
+		{"a 1.3 speed main-hand auto", 1.3, core.ProcMaskMeleeMHAuto},
+	} {
+		char.AutoAttacks.SetMH(core.Weapon{SwingSpeed: row.speed})
+		want := 1363 * row.speed / 100
+		landedDamage := false
+		for i := 0; i < 20; i++ {
+			casts, damage, crit := offer(row.procMask, core.OutcomeHit)
+			if casts != 1 {
+				t.Fatalf("%s cast the proc %d times, want once", row.name, casts)
+			}
+			if damage == 0 {
+				continue
+			}
+			landedDamage = true
+			if expected := core.TernaryFloat64(crit, want*1.5, want); math.Abs(damage-expected) > 1e-9 {
+				t.Errorf("%s struck for %v (crit %v), want %v", row.name, damage, crit, expected)
+			}
+		}
+		if !landedDamage {
+			t.Errorf("20 of %s dealt no damage", row.name)
+		}
+	}
+
+	for _, row := range []struct {
+		name     string
+		procMask core.ProcMask
+		outcome  core.HitOutcome
+	}{
+		{"an off-hand auto", core.ProcMaskMeleeOHAuto, core.OutcomeHit},
+		{"a ranged auto", core.ProcMaskRangedAuto, core.OutcomeHit},
+		{"a missed main-hand auto", core.ProcMaskMeleeMHAuto, core.OutcomeMiss},
+	} {
+		if casts, _, _ := offer(row.procMask, row.outcome); casts != 0 {
+			t.Errorf("%s cast the proc %d times, want none", row.name, casts)
+		}
 	}
 }
 

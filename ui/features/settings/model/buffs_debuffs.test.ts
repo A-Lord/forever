@@ -31,6 +31,7 @@ describe('the buff registries', () => {
 			'Stoneskin Totem',
 			'Grace of Air Totem',
 			'Windfury Totem',
+			'Flametongue Totem',
 		]);
 	});
 

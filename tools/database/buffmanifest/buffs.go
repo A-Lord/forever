@@ -337,6 +337,17 @@ var Party = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// The totem's party aura procs 16389 on every main-hand hit; the fire damage is the driver's.
+	{
+		Field:    "flametongue_totem",
+		SpellID:  15036,
+		CastID:   16387,
+		Kind:     KindProc,
+		Category: "FlametongueTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
 }
 
 var Individual = []BuffSpec{

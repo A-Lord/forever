@@ -391,6 +391,23 @@ func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints in
 	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
 }
 
+// Flametongue Totem
+// Left out: effect 1 A_PROC_TRIGGER_SPELL(42) misc 0
+var FlametongueTotemCategory = "FlametongueTotem"
+var flametongueTotemSpell = spelldata.MustFind(15036)
+var flametongueTotemMeta = &Meta{
+	Label:    "Flametongue Totem",
+	Spell:    flametongueTotemSpell,
+	Category: FlametongueTotemCategory,
+}
+
+func FlametongueTotemDuration(talentPoints int32) time.Duration {
+	return flametongueTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
+}
+
 // Arcane Brilliance
 var ArcaneBrillianceCategory = "StatBuff"
 var arcaneBrillianceSpell = spelldata.MustFind(23028)
@@ -821,6 +838,9 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.FuriousHowl {
 		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
+	}
+	if party.FlametongueTotem {
+		driveFlametongueTotem(char, party)
 	}
 	if raid.ArcaneBrilliance {
 		core.MakePermanent(NewSpellDataArcaneBrillianceAura(&char.Unit, false, 0))
