@@ -158,7 +158,8 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 }
 
 // An on-use whose spell applies a hit or crit percent, which no item stat holds, registers as an
-// aura: Gri'lek's Charm of Valor's 24498 is spell crit alone.
+// aura: Gri'lek's Charm of Valor's 24498 is spell crit alone. Weakness Analyzer's 1291101 drops at the
+// first crit, a charge the aura does not spend, and is refused.
 func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -167,9 +168,11 @@ func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 		itemID  int
 		spellID int32
 		summary string
+		reasons []string
 	}{
-		{19952, 24498, "on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)"}, // Gri'lek's Charm of Valor
-		{272438, 1291101, "on use: 1291101 (A_MOD_CRIT_PCT)"},     // Weakness Analyzer
+		{19952, 24498, "on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)", nil}, // Gri'lek's Charm of Valor
+		{272438, 1291101, "on use: 1291101 (A_MOD_CRIT_PCT)", // Weakness Analyzer
+			[]string{"the buff drops after ProcCharges 1, which the aura does not spend"}},
 	} {
 		item := instance.Items[tc.itemID]
 		parsed := item.ToUIItem()
@@ -179,21 +182,25 @@ func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 			t.Fatalf("item %d carries no on-use effect on %d", tc.itemID, tc.spellID)
 		}
 
+		want, group := EffectParseResultSuccess, "Auras"
+		if tc.reasons != nil {
+			want, group = EffectParseResultRefused, ""
+		}
 		groups := map[string]Group{}
-		if got := TryParseOnUseEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
-			t.Errorf("item %d parsed as %v, want registered", tc.itemID, got)
+		if got := TryParseOnUseEffect(parsed, parsed.ItemEffects[i], instance, groups); got != want {
+			t.Errorf("item %d parsed as %v, want %v", tc.itemID, got, want)
 			continue
 		}
 
-		entries := groups["Auras"].Entries
+		entries := groups[group].Entries
 		if len(entries) != 1 {
-			t.Fatalf("item %d: %d entries in the Auras group, want 1", tc.itemID, len(entries))
+			t.Fatalf("item %d: %d entries in the %q group, want 1", tc.itemID, len(entries), group)
 		}
 		r := entries[0].Proc
-		if !entries[0].Supported || r.Shape != ShapeAura || r.TriggerSpellID != int(tc.spellID) ||
-			r.OnUseConstructor() != "NewSpellDataAuraOnUse" || r.Summary != tc.summary {
-			t.Errorf("item %d: routing %+v, supported %v; want %d registered through NewSpellDataAuraOnUse with %q",
-				tc.itemID, r, entries[0].Supported, tc.spellID, tc.summary)
+		if r.Shape != ShapeAura || r.TriggerSpellID != int(tc.spellID) || r.OnUseConstructor() != "NewSpellDataAuraOnUse" ||
+			r.Summary != tc.summary || !slices.Equal(r.Unsupported, tc.reasons) {
+			t.Errorf("item %d: routing %+v; want %d through NewSpellDataAuraOnUse with %q, refused for %q",
+				tc.itemID, r, tc.spellID, tc.summary, tc.reasons)
 		}
 	}
 }

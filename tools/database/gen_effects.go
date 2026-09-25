@@ -1186,6 +1186,9 @@ func routeOnUse(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *db
 		routing.Shape = ShapeAura
 		routing.Summary = onUseSummary(s, allEffects(s)...)
 		routing.Unsupported = append(routing.Unsupported, procAuraUnsupported(s)...)
+		if s.ProcCharges > 0 {
+			routing.Unsupported = append(routing.Unsupported, fmt.Sprintf("the buff drops after ProcCharges %d, which the aura does not spend", s.ProcCharges))
+		}
 	default:
 		routing.Unsupported = append(routing.Unsupported,
 			fmt.Sprintf("%d deals no damage and heals no one (%s)", spellID, spellEffectKinds(instance, spellID)))
