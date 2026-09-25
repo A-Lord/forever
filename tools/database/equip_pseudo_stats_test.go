@@ -8,6 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
@@ -57,7 +58,6 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 		{"1293881 Pendulum of Doom, a zero melee speed aura", 1293881, map[pseudo]float64{}},
 		{"22755 Critical Weapon +2, crit on melee weapons", 22755, map[pseudo]float64{}},
 		{"430391 Hit Weapon +2, hit on melee weapons", 430391, map[pseudo]float64{}},
-		{"1306681 Increased Off Hand Hit 02, hit in the off hand", 1306681, map[pseudo]float64{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := make([]float64, stats.PseudoStatsLen)
@@ -75,6 +75,13 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("430391 Hit Weapon +2 held to the off hand's slot, hit in the off hand", func(t *testing.T) {
+		got := make([]float64, stats.PseudoStatsLen)
+		if _, added := dbc.AddEquipSpellStats(&stats.Stats{}, got, offHandHitWeapon(t)); added {
+			t.Errorf("pseudo stats %v, want none", got)
+		}
+	})
 }
 
 // The enchant carries what its equip spell states: 2523 applies 22780.
@@ -112,7 +119,6 @@ func TestEquipSpellFolds(t *testing.T) {
 		{"1310308 SAF-T Ultra Precision Scope, bows, guns and crossbows", 1310308, true},
 		{"22755 Critical Weapon +2, melee weapons", 22755, false},
 		{"430391 Hit Weapon +2, melee weapons", 430391, false},
-		{"1306681 Increased Off Hand Hit 02, the off hand", 1306681, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := dbc.EquipSpellFolds(tc.spellID); got != tc.want {
@@ -120,6 +126,12 @@ func TestEquipSpellFolds(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("430391 Hit Weapon +2 held to the off hand's slot", func(t *testing.T) {
+		if dbc.EquipSpellFolds(offHandHitWeapon(t)) {
+			t.Error("folds true, want false")
+		}
+	})
 }
 
 // A combat rating of ranged bits alone is the ranged percent it converts to; one naming any other bit
@@ -147,4 +159,14 @@ func TestRangedRatingPercents(t *testing.T) {
 			}
 		})
 	}
+}
+
+// 430391 Hit Weapon +2 with its melee weapons traded for the off hand's inventory type, a requirement
+// no equip spell the store carries states.
+func offHandHitWeapon(t *testing.T) int {
+	row := spelldata.Find(430391)
+	subclass, invType := row.EquipSubclass, row.EquipInvType
+	row.EquipSubclass, row.EquipInvType = 0, dbcenums.INVTYPE_BIT_WEAPONOFFHAND
+	t.Cleanup(func() { row.EquipSubclass, row.EquipInvType = subclass, invType })
+	return 430391
 }

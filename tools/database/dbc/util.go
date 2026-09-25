@@ -225,18 +225,23 @@ func processEnchantmentEffects(
 
 const SkillLineDefense = 95
 
-// Whether an equip spell's auras fold into the stats of the item or enchant carrying it. They do when
-// the spell names no weapon, and when it names only ranged weapons: those fill the ranged offset. Any
-// other weapon requirement - a set of melee weapons, or an inventory type such as the off hand of
-// 1306681 (Increased Off Hand Hit) - leaves the spell to be applied at run time, where the attack's
-// own weapon decides. Every such spell on an item or enchant is a single hit or crit aura, so the
-// whole spell goes one way.
+// Whether an equip spell's auras fold into the stats of the item or enchant carrying it: they do
+// unless the parse binds a hit, crit or rating aura of the spell to a weapon, through
+// spelldata.WeaponScope, beyond the ranged attacks alone, which fill the ranged offset. A bound spell
+// is applied at run time, where the attack's own weapon decides. Every such spell on an item or
+// enchant is a single hit or crit aura, so the whole spell goes one way.
 func EquipSpellFolds(spellID int) bool {
-	spell := dbcInstance.Spells[spellID]
-	if spell.EquippedItemClass != ITEM_CLASS_WEAPON || (spell.EquippedItemSubclass == 0 && spell.EquippedItemInvTypes == 0) {
-		return true
+	s := spelldata.Find(int32(spellID))
+	for i := range s.Effects {
+		switch rule, scope := spelldata.WeaponScope(s, &s.Effects[i]); rule {
+		case spelldata.WeaponRuleNone, spelldata.WeaponRuleCastOnly:
+		default:
+			if scope.ProcMask != core.ProcMaskRanged {
+				return false
+			}
+		}
 	}
-	return spell.EquippedItemInvTypes == 0 && spell.EquippedItemSubclass&^dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED == 0
+	return true
 }
 
 // The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points. A
