@@ -30,7 +30,7 @@ func RegisterPotionsAndConjured() {
 		6149,   // Greater Mana Potion
 		9036,   // Magic Resistance Potion
 		9144,   // Wildvine Potion
-		9224,   // Potion of Demonslaying
+		9224,   // Potion of Demon Slaying
 		13442,  // Mighty Rage Potion
 		13443,  // Superior Mana Potion
 		13444,  // Major Mana Potion
@@ -71,8 +71,8 @@ func RegisterPotionsAndConjured() {
 		250947, // Greater Mender's Potion
 		250948, // Superior Mender's Potion
 		250949, // Major Mender's Potion
-		250954, // Potion of Elemental Siphoning
-		250955, // Potion of Beast Culling
+		250954, // Potion of Elemental Purging
+		250955, // Potion of Beast Slaying
 		255663, // Windstone
 		268881, // Perishable Minor Healing Potion
 		268882, // Perishable Lesser Healing Potion

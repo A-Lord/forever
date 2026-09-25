@@ -41,7 +41,7 @@ func {{.Builder}}(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraPara
 }
 {{- else}}
 {{if .HasSpell}}// {{.Label}}
-{{end}}// func {{.Builder}}(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraParams}}) *core.Aura // {{.Field}}, {{.Kind}}: {{.Reason}}
+{{end}}// func {{.Builder}}(unit *core.Unit, isPlayer bool, talentPoints int32{{.ExtraParams}}) *core.Aura // {{.Field}}{{with .Kind}}, {{.}}{{end}}: {{.Reason}}
 {{- end}}
 {{- end}}
 `

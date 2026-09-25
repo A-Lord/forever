@@ -1,11 +1,11 @@
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { APLRotation } from '@generated/proto/apl';
 import { Debuffs } from '@generated/proto/buffs';
-import { EquipmentSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
+import { PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
-import { DEFAULT_HEALER_GEM_STATS, Stats, UnitStat } from '@sim/proto/stats';
+import { Stats, UnitStat } from '@sim/proto/stats';
 import { defaultHealerIndividualBuffs, defaultHealerPartyBuffs, defaultHealerRaidBuffs } from '@sim/proto/utils';
 import { defineSpec } from '@sim/spec_config';
 
@@ -46,11 +46,10 @@ export default defineSpec<Spec.SpecHolyPaladin>({
 		],
 		[PseudoStat.PseudoStatSpellCritPercent, PseudoStat.PseudoStatSpellHastePercent],
 	),
-	gemStats: DEFAULT_HEALER_GEM_STATS,
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.GEAR_DEFAULT.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		// Default consumes settings.
@@ -91,13 +90,10 @@ export default defineSpec<Spec.SpecHolyPaladin>({
 		// Preset rotations that the user can quickly select.
 		rotations: [],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.GEAR_DEFAULT],
 	},
 
 	autoRotation: (_: Player<Spec.SpecHolyPaladin>): APLRotation => {
 		return APLRotation.create();
 	},
-
-	// The gem optimizer.
-	reforge: {},
 });

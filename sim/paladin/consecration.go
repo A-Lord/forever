@@ -1,8 +1,11 @@
 package paladin
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
+	"fmt"
+
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 var ConsecrationRankMap = spellData.Consecration
@@ -12,21 +15,29 @@ var ConsecrationRankMap = spellData.Consecration
 //
 // Consecrates the land beneath the Paladin, doing X Holy damage over 8 sec to enemies who enter the
 // area. The first 4 enemies who enter the area will take an additional Y damage over 8 sec.
-func (paladin *Paladin) registerConsecration(row shared.SpellData) {
-	tick := row.Periodic.(shared.SpellDataPeriodic)
+//
+// The ticks sit on the spell the tooltip names, which the family's triggered ladder carries rank
+// for rank: the tick everyone takes on its first effect, and on its second the extra damage the
+// first few targets take, the only part of the spell the client gives a spell power coefficient.
+// The rank's own periodic dummy carries no damage: it times the ticks and states how many targets
+// take the bonus.
+func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
+	tickSpell := spellData.ConsecrationTriggered.Rank(n)
+	tick := tickSpell.EffectN(1)
+	bonus := tickSpell.EffectN(2)
 
-	// The extra damage the first few targets take, which is the only part of the spell the client
-	// gives a spell power coefficient: the tick everyone takes has none.
-	bonus := row.SecondaryPeriodic.(shared.SpellDataPeriodic)
-	bonusTargets := int(row.Effect(shared.A_PERIODIC_DUMMY, 0).Value)
+	dummy := rank.Effect(dbcenums.A_PERIODIC_DUMMY, 0)
+	bonusTargets := int(dummy.Average(core.CharacterLevel))
+	tickLength := dummy.Period()
+	numberOfTicks := int32(rank.Duration() / tickLength)
 
 	// The bonus scales on its own coefficient, so it is added to the base damage here rather than
 	// through the dot's, which is the base tick's. Consecrated Ground marks the same targets.
 	dealTick := func(sim *core.Simulation, dot *core.Dot) {
 		for i, target := range sim.Encounter.ActiveTargetUnits {
-			damage := tick.Tick
+			damage := tick.Average(core.CharacterLevel)
 			if i < bonusTargets {
-				damage += bonus.Tick + bonus.Coef*dot.Spell.BonusDamage(dot.Spell.Unit.AttackTables[target.UnitIndex])
+				damage += bonus.Average(core.CharacterLevel) + bonus.Coeff()*dot.Spell.BonusDamage(dot.Spell.Unit.AttackTables[target.UnitIndex])
 				if paladin.consecratedGroundAuras != nil {
 					paladin.consecratedGroundAuras.Get(target).Activate(sim)
 				}
@@ -36,39 +47,39 @@ func (paladin *Paladin) registerConsecration(row shared.SpellData) {
 	}
 
 	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: row.SpellID},
-		SpellSchool:    row.SpellSchool,
-		DefenseType:    row.DefenseType,
+		ActionID:       core.ActionID{SpellID: rank.ID},
+		SpellSchool:    rank.SpellSchool(),
+		DefenseType:    rank.DefenseTypeCore(),
 		ProcMask:       core.ProcMaskSpellDamage,
 		Flags:          core.SpellFlagAPL,
 		ClassSpellMask: SpellMaskConsecration,
-		Rank:           row.Rank,
+		Rank:           rank.RankNumber(),
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
 
 		MaxRange: 8,
 
-		ManaCost: manaCost(row),
+		ManaCost: manaCost(rank),
 		Cast: core.CastConfig{
 			DefaultCast: core.Cast{
-				GCD: row.GCD,
+				GCD: rank.GCD(),
 			},
 			CD: core.Cooldown{
 				Timer:    paladin.sharedTimer(&paladin.consecrationTimer),
-				Duration: row.Cooldown,
+				Duration: cooldown(rank),
 			},
 		},
 
 		Dot: core.DotConfig{
 			IsAOE: true,
 			Aura: core.Aura{
-				ActionID: core.ActionID{SpellID: row.SpellID},
-				Label:    "Consecration" + paladin.Label + " " + row.GetRankLabel(),
+				ActionID: core.ActionID{SpellID: rank.ID},
+				Label:    fmt.Sprintf("Consecration%s Rank %d", paladin.Label, rank.RankNumber()),
 			},
-			NumberOfTicks:    tick.NumberOfTicks - 1, // the sim adds an immediate tick below
-			TickLength:       tick.TickLength,
-			BonusCoefficient: tick.Coef,
+			NumberOfTicks:    numberOfTicks - 1, // the sim adds an immediate tick below
+			TickLength:       tickLength,
+			BonusCoefficient: tick.Coeff(),
 			OnTick: func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
 				dealTick(sim, dot)
 			},

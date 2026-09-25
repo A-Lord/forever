@@ -23,9 +23,9 @@ var percentRatings = []struct {
 
 // Adds to the stats db.json lists for a consumable, which the settings offer it by, what its on-use
 // grants that the stat parse leaves out, a percent at the rating one percent takes: the stats against
-// creature types (Potion of Demonslaying 9224's 11406: 185 attack power and 108 spell damage against
-// Demons), A_MOD_HIT_CHANCE as physical hit (Fire-toasted Bun 23327's 29332: 2% as 20 melee hit
-// rating), and a Natural flask's zone bonus, attack and casting speed as haste.
+// creature types (Potion of Demon Slaying 9224's 11406: 180 attack power against Demons),
+// A_MOD_HIT_CHANCE as physical hit (Fire-toasted Bun 23327's 29332: 2% as 20 melee hit rating), and a
+// Natural flask's zone bonus, attack and casting speed as haste.
 func AddUnparsedStats(db *WowDatabase) error {
 	for id, consumable := range db.Consumables {
 		if len(consumable.ItemEffects) == 0 {

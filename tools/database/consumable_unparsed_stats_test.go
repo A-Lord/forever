@@ -25,7 +25,7 @@ func TestUnparsedStatsListVersusStatsHitChanceAndZoneBonus(t *testing.T) {
 	}
 
 	for id, want := range map[int32]map[proto.Stat]float64{
-		9224:   {proto.Stat_StatAttackPower: 185, proto.Stat_StatSpellDamage: 108},
+		9224:   {proto.Stat_StatAttackPower: 180},
 		23327:  {proto.Stat_StatMeleeHitRating: 20},
 		22237:  {proto.Stat_StatMeleeHitRating: 20},
 		274273: {proto.Stat_StatStamina: 60, proto.Stat_StatMeleeHitRating: 50, proto.Stat_StatSpellHitRating: 50},

@@ -1225,7 +1225,17 @@
 {"id":281631,"name":"Collector's Edition Tabard","quality":1,"unique":true,"scalingOptions":{"0":{"ilvl":1}}},
 {"id":282294,"name":"Guild Tabard","icon":"inv_shirt_guildtabard_01","quality":1,"scalingOptions":{"0":{"ilvl":1}}},
 {"id":285327,"name":"Kirin Tor Tabard","icon":"inv_shirt_guildtabard_01","quality":1,"scalingOptions":{"0":{"ilvl":1}}},
-{"id":285362,"name":"Red Wine Glass","icon":"inv_drink_02","type":13,"weaponType":5,"handType":3,"quality":1,"scalingOptions":{"0":{"ilvl":1}}}
+{"id":285362,"name":"Red Wine Glass","icon":"inv_drink_02","type":13,"weaponType":5,"handType":3,"quality":1,"scalingOptions":{"0":{"ilvl":1}}},
+{"id":286728,"name":"Kolkar Hammer","type":13,"weaponType":4,"handType":2,"weaponSpeed":2.4,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":5,"weaponDamageMax":11,"ilvl":8}}},
+{"id":286729,"name":"Kolkar Bow","type":14,"rangedWeaponType":1,"weaponSpeed":2.8,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":5,"weaponDamageMax":10,"ilvl":8}}},
+{"id":286733,"name":"Fightin' Fish","type":13,"weaponType":4,"handType":2,"weaponSpeed":2.4,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":4,"weaponDamageMax":9,"ilvl":7}}},
+{"id":286735,"name":"Sentinel's Slasher","type":13,"weaponType":9,"handType":2,"weaponSpeed":2.4,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":6,"weaponDamageMax":12,"ilvl":9}}},
+{"id":286737,"name":"Avala's Binding","icon":"inv_jewelry_ring_07","type":11,"quality":1,"scalingOptions":{"0":{"ilvl":8}}},
+{"id":286740,"name":"Proud Brave's Guard","type":13,"weaponType":7,"handType":3,"quality":1,"scalingOptions":{"0":{"stats":{"27":3},"ilvl":9}}},
+{"id":286741,"name":"Centaur Skull Basher","type":13,"weaponType":4,"handType":4,"weaponSpeed":3.3,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":13,"weaponDamageMax":20,"ilvl":9}}},
+{"id":286746,"name":"Shal'ma's Shawl","type":4,"armorType":1,"quality":1,"scalingOptions":{"0":{"ilvl":9}}},
+{"id":286749,"name":"Wrathroot","type":13,"weaponType":8,"handType":4,"weaponSpeed":3.3,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":10,"weaponDamageMax":19,"ilvl":8}}},
+{"id":287090,"name":"Sharpened Letter Opener","icon":"inv_weapon_shortblade_20","type":13,"weaponType":5,"handType":3,"weaponSpeed":1.7,"quality":1,"unique":true,"scalingOptions":{"0":{"ilvl":17}}}
 ],
 "randomSuffixes":[
 ],

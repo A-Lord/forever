@@ -132,9 +132,9 @@ pull registers no spell and no cooldown. Which consumables stack is their
 [exclusive group](#exclusive-groups).
 
 A bonus against creature types is an aura the parser attaches like any other (see
-[Spell Data](spell_data.md)): Potion of Demonslaying 9224's spell 11406 grants 185 attack power and
-108 spell damage against the creature types its misc values mask (4, Demon), for the row's 120 s, on
-category 4's 120 s timer. The imbue builder takes the equip spells of the enchant that add nothing to
+[Spell Data](spell_data.md)): Potion of Demon Slaying 9224's spell 11406 grants 180 attack power
+against the creature types its misc value masks (4, Demon), for the row's 300 s, on category 4's
+120 s timer. The imbue builder takes the equip spells of the enchant that add nothing to
 the enchant's own stats, which the generator names after the item: Consecrated Sharpening Stone
 23122's enchant 2684 names 28893, and core puts the enchant on each hand whose weapon the masks take.
 28893 grants 99 melee and 99 ranged attack power against Undead once per such hand, since each weapon
@@ -378,7 +378,7 @@ where it states none, its spell's. An imbue is typed by what it does, and an exp
 the explosives' category 24 and routes as damage (`IsExplosive` in `tools/database/gen_consumables.go`,
 which db.json's type and the explosive registrations both read), so the explosive picker offers nothing
 else: Bag of Marbles 1191 shares the category and deals no damage. Category 4 makes a
-potion (Potion of Demonslaying 9224 is an Elixir-subclass item and only its spell 11406 names the
+potion (Potion of Demon Slaying 9224 is an Elixir-subclass item and only its spell 11406 names the
 category) and 1153 a conjured item (Demonic Rune 12662 is not even a Consumable-class item); food and
 drink categories 11 and 59 make food of what its subclass leaves neither a potion, a flask nor an elixir;
 everything else takes its item subclass.

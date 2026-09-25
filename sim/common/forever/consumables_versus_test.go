@@ -50,9 +50,9 @@ func bonusAgainstTarget(character *core.Character) stats.Stats {
 	return character.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType]
 }
 
-// Potion of Demonslaying 9224 casts 11406: 108 spell damage and 185 attack power against Demons
-// (creature type mask 4) for 120 s, on potion category 4's 120 s timer.
-func TestPotionOfDemonslayingIsAPotion(t *testing.T) {
+// Potion of Demon Slaying 9224 casts 11406: 180 attack power against Demons (creature type mask 4)
+// for 300 s, on potion category 4's 120 s timer.
+func TestPotionOfDemonSlayingIsAPotion(t *testing.T) {
 	sim, character := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0, proto.MobType_MobTypeDemon)
 
 	spell := character.GetSpell(core.ActionID{ItemID: 9224})
@@ -66,14 +66,14 @@ func TestPotionOfDemonslayingIsAPotion(t *testing.T) {
 		t.Errorf("9224's shared cooldown is %v on another timer than category 4's, want 120 s on it", spell.SharedCD.Duration)
 	}
 
-	want := stats.Stats{stats.AttackPower: 185, stats.SpellDamage: 108}
+	want := stats.Stats{stats.AttackPower: 180}
 	if got := bonusAgainstTarget(character); got != (stats.Stats{}) {
 		t.Errorf("before the potion, the bonus against Demons is %v, want none", got)
 	}
 	aura := character.GetAuraByID(core.ActionID{SpellID: 11406})
 	aura.Activate(sim)
-	if aura.Duration != 120*time.Second {
-		t.Errorf("the potion's aura lasts %v, want 120 s", aura.Duration)
+	if aura.Duration != 300*time.Second {
+		t.Errorf("the potion's aura lasts %v, want 300 s", aura.Duration)
 	}
 	if got := bonusAgainstTarget(character); got != want {
 		t.Errorf("under the potion, the bonus against Demons is %v, want %v", got, want)

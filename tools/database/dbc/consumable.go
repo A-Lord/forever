@@ -167,7 +167,7 @@ func (c *Consumable) SharesExplosivesCategory() bool {
 }
 
 // A consumable's type, which the settings pick it by: an imbue by what it does, one sharing the potion
-// or conjured category a potion or conjured item (Potion of Demonslaying 9224 is an Elixir-subclass
+// or conjured category a potion or conjured item (Potion of Demon Slaying 9224 is an Elixir-subclass
 // item whose spell 11406 shares category 4), and otherwise its item subclass, with what shares the
 // food or drink category food. Whether it is an explosive takes how its spell routes, which the
 // database package decides.

@@ -217,8 +217,11 @@ func TestProcHotTicksOnTheHealingPowerOfTheTick(t *testing.T) {
 }
 
 // A tick crits only where the row states Periodic Can Crit and does not rule crits out. 8348 states
-// neither, so at 100% spell crit it ticks plain; flagged copies stand in for the rows that do.
+// the flag; a copy without it ticks plain at 100% spell crit.
 func TestProcHotCritsOnlyWhereTheRowLetsItsTicksCrit(t *testing.T) {
+	editRow(t, julieHot, func(s *spelldata.Spell) {
+		s.Attr[dbcenums.ATTR_INDEX_EX_8] &^= dbcenums.ATTR_EX_8_PERIODIC_CAN_CRIT
+	})
 	sim, caster, hot := newHealProcSim(t, 990983, 990984, julieHot, 100)
 	swingHealed(sim, caster, core.OutcomeDodge, 0)
 	if got := healedUntil(t, sim, caster, sim.CurrentTime, 2*time.Second); got != 13 {

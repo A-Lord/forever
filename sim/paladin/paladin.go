@@ -3,13 +3,13 @@ package paladin
 import (
 	"time"
 
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-var TalentTreeSizes = [3]int{18, 16, 18}
+var TalentTreeSizes = [3]int{17, 16, 17}
 
 type Paladin struct {
 	core.Character
@@ -83,15 +83,15 @@ func (paladin *Paladin) Initialize() {
 	paladin.registerSeals()
 	paladin.registerAuras()
 
-	HolyStrikeRankMap.RegisterAll(paladin.registerHolyStrike)
-	ConsecrationRankMap.RegisterAll(paladin.registerConsecration)
-	ExorcismRankMap.RegisterAll(paladin.registerExorcism)
-	HammerOfWrathRankMap.RegisterAll(paladin.registerHammerOfWrath)
-	HolyWrathRankMap.RegisterAll(paladin.registerHolyWrath)
+	HolyStrikeRankMap.Each(paladin.registerHolyStrike)
+	ConsecrationRankMap.Each(paladin.registerConsecration)
+	ExorcismRankMap.Each(paladin.registerExorcism)
+	HammerOfWrathRankMap.Each(paladin.registerHammerOfWrath)
+	HolyWrathRankMap.Each(paladin.registerHolyWrath)
 
-	HolyLightRankMap.RegisterAll(paladin.registerHolyLight)
-	FlashOfLightRankMap.RegisterAll(paladin.registerFlashOfLight)
-	LayOnHandsRankMap.RegisterAll(paladin.registerLayOnHands)
+	HolyLightRankMap.Each(paladin.registerHolyLight)
+	FlashOfLightRankMap.Each(paladin.registerFlashOfLight)
+	LayOnHandsRankMap.Each(paladin.registerLayOnHands)
 }
 
 func (paladin *Paladin) Reset(_ *core.Simulation) {
@@ -123,22 +123,17 @@ func (paladin *Paladin) sharedTimer(timer **core.Timer) *core.Timer {
 
 // The cost a row states: a flat number, or a share of base mana for the spells the client prices
 // that way (Judgement, Righteous Fury, Seal of Justice).
-func manaCost(row shared.SpellData) core.ManaCostOptions {
-	if row.PowerCostPct > 0 {
-		return core.ManaCostOptions{BaseCostPercent: row.PowerCostPct}
+func manaCost(rank *spelldata.Spell) core.ManaCostOptions {
+	if len(rank.Powers) > 0 && rank.Powers[0].CostPct > 0 {
+		return core.ManaCostOptions{BaseCostPercent: float64(rank.Powers[0].CostPct)}
 	}
-	return core.ManaCostOptions{FlatCost: row.Cost}
+	return core.ManaCostOptions{FlatCost: int32(rank.Cost())}
 }
 
-// The effect at the client's EffectIndex, for the effects Effect(aura, misc) cannot name: the
-// weapon-damage effects carry no aura.
-func effectAt(row shared.SpellData, index int32) shared.SpellDataEffect {
-	for _, e := range row.Effects {
-		if e.Index == index {
-			return e
-		}
-	}
-	panic("spell has no effect at the index")
+// A rank's own cooldown, or the one it shares with its category: the client keeps every paladin
+// ability cooldown but Judgement's and the talent cooldowns on the category.
+func cooldown(rank *spelldata.Spell) time.Duration {
+	return max(rank.Cooldown(), rank.CategoryCooldown())
 }
 
 func NewPaladin(character *core.Character, talentsStr string, _ *proto.PaladinOptions) *Paladin {

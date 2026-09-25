@@ -1,4 +1,8 @@
 {
 	"type": "TypeAPL",
-	"priorityList": []
+	"priorityList": [
+		{"action":{"condition":{"auraIsInactive":{"auraId":{"spellId":20293,"rank":8}}},"castSpell":{"spellId":{"spellId":20293,"rank":8}}}},
+		{"action":{"castSpell":{"spellId":{"spellId":20271}}}},
+		{"action":{"castSpell":{"spellId":{"spellId":10333,"rank":8}}}}
+	]
 }

@@ -1,12 +1,12 @@
 character_stats_results: {
- key: "TestHolyPaladin-p3"
+ key: "TestHolyPaladin-default"
  value: {
-  final_stats: 269
-  final_stats: 210
-  final_stats: 850
-  final_stats: 717
-  final_stats: 2499
-  final_stats: 1223.95
+  final_stats: 287
+  final_stats: 207
+  final_stats: 454
+  final_stats: 290
+  final_stats: 382
+  final_stats: 287
   final_stats: 0
   final_stats: 0
   final_stats: 0
@@ -14,94 +14,43 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 332
-  final_stats: 62
-  final_stats: 0
-  final_stats: 200
-  final_stats: 1648.9
-  final_stats: 389
-  final_stats: 0
-  final_stats: 0
-  final_stats: 48
   final_stats: 0
   final_stats: 0
   final_stats: 0
+  final_stats: 232
+  final_stats: 1006
+  final_stats: 50
   final_stats: 0
   final_stats: 0
-  final_stats: 160
-  final_stats: 158.95386
+  final_stats: 7
   final_stats: 0
   final_stats: 0
-  final_stats: 19580.32
   final_stats: 0
-  final_stats: 13047
-  final_stats: 13428
-  final_stats: 222.5
-  final_stats: 45
-  final_stats: 45
-  final_stats: 45
-  final_stats: 45
-  final_stats: 82
+  final_stats: 20
   final_stats: 0
+  final_stats: 34
+  final_stats: 99.36
+  final_stats: 0
+  final_stats: 1654
+  final_stats: 120
+  final_stats: 7737
+  final_stats: 5582
+  final_stats: 798
+  final_stats: 27
+  final_stats: 34
+  final_stats: 34
+  final_stats: 34
+  final_stats: 67
   final_stats: 0
   final_stats: 3
-  final_stats: 16.22622
-  final_stats: 37.33633
-  final_stats: 5
-  final_stats: 0
-  final_stats: 0
- }
-}
-character_stats_results: {
- key: "TestHolyPaladin-preraid"
- value: {
-  final_stats: 269
-  final_stats: 210
-  final_stats: 715
-  final_stats: 638
-  final_stats: 1962
-  final_stats: 1069.3
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 113
-  final_stats: 0
-  final_stats: 0
-  final_stats: 330
-  final_stats: 1648.9
-  final_stats: 389
-  final_stats: 0
-  final_stats: 0
-  final_stats: 48
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 0
-  final_stats: 115
-  final_stats: 158.95386
-  final_stats: 0
-  final_stats: 18
-  final_stats: 10408.14
-  final_stats: 0
-  final_stats: 11697
-  final_stats: 12243
-  final_stats: 196.5
-  final_stats: 45
-  final_stats: 45
-  final_stats: 45
-  final_stats: 45
-  final_stats: 82
-  final_stats: 0
-  final_stats: 0
   final_stats: 3
-  final_stats: 16.22622
-  final_stats: 26.42897
-  final_stats: 5
+  final_stats: 14.6262
+  final_stats: 13.1785
+  final_stats: 5.8
+  final_stats: 0
+  final_stats: 0
+  final_stats: 9.73
+  final_stats: 5.8
   final_stats: 0
   final_stats: 0
  }

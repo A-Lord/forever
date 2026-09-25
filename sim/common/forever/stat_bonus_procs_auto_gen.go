@@ -211,7 +211,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Blasts a target for 60 Nature damage.
+	// Blasts a target for 98 Nature damage.
 	// https://www.wowhead.com/forever/spell=18089
 	// unsupported: states no rate
 	// trigger 18089 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
@@ -300,10 +300,10 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Heal self for 360 and Increases Strength by 120 for 30s.
+	// Heal yourself for 360 and increase your Strength by 120 for 30s.
 	// https://www.wowhead.com/forever/spell=16916
 	// unsupported: states no rate
-	// trigger 16916 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
+	// trigger 16916 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
 	// shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 16916, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 12790, ItemName: "Arcanite Champion"},
@@ -369,7 +369,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Target's movement slowed by 30% and increasing the time between attacks by 25% for 5s.
+	// Slows the target's movement speed by 30% and increases the time between their attacks by 25% for 5s.
 	// https://www.wowhead.com/forever/spell=16927
 	// unsupported: states no rate
 	// trigger 16927 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
@@ -4864,7 +4864,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Thrown hammers have a low chance to stun the target for 1s.
+	// Stun the target for 1s.
 	// https://www.wowhead.com/forever/spell=1318178
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
