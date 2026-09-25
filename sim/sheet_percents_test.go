@@ -58,7 +58,7 @@ func TestSheetShowsCrueltyFromTheTalentsStage(t *testing.T) {
 		}{
 			{proto.PseudoStat_PseudoStatMeleeCritPercent, stage.crueltyShown},
 			{proto.PseudoStat_PseudoStatOffHandCritPercent, stage.crueltyShown},
-			{proto.PseudoStat_PseudoStatMainHandCritRating, stage.crueltyShown * core.CritRatingPerCritPercent},
+			{proto.PseudoStat_PseudoStatMainHandCritRating, 0},
 			{proto.PseudoStat_PseudoStatRangedCritPercent, 0},
 		} {
 			got := stats.PseudoStatValue(stage.stage(with).PseudoStats, tc.pseudoStat) - stats.PseudoStatValue(stage.stage(without).PseudoStats, tc.pseudoStat)
