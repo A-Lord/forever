@@ -46,7 +46,7 @@ export function relevantStatOptions<T, OptionsType extends ItemStatOptions<T> | 
 	simUI: IndividualSimHost<any>,
 ): StatOptions<T, OptionsType> {
 	const individualConfig = simUI.individualConfig;
-	const displayStatSet = new Set(individualConfig.displayStats.map(us => (us.hasRootStat() ? us.getRootStat() : us.getPseudoStat())));
+	const displayStatSet = new Set(individualConfig.displayStats.filter(us => us.hasRootStat()).map(us => us.getRootStat()));
 	const listed = (list: ReadonlyArray<unknown>, option: OptionsType) => list.includes(option.config) || option.stats.some(stat => list.includes(stat));
 
 	return options

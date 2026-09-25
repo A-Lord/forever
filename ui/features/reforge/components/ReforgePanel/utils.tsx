@@ -5,7 +5,9 @@ import type { ReactNode } from 'react';
 
 /** The stats the optimizer offers a cap for. Held as UnitStats because several are pseudo-stats. */
 export const INCLUDED_STATS: UnitStat[] = [
-	UnitStat.fromStat(Stat.StatSpellHitRating),
+	UnitStat.fromStat(Stat.StatHitRating),
+	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
+	UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentArcane),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFire),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFrost),
@@ -13,12 +15,8 @@ export const INCLUDED_STATS: UnitStat[] = [
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent),
-	UnitStat.fromStat(Stat.StatSpellCritRating),
-	UnitStat.fromStat(Stat.StatSpellHasteRating),
-	UnitStat.fromStat(Stat.StatMeleeHitRating),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
-	UnitStat.fromStat(Stat.StatMeleeCritRating),
-	UnitStat.fromStat(Stat.StatMeleeHasteRating),
+	UnitStat.fromStat(Stat.StatCritRating),
+	UnitStat.fromStat(Stat.StatHasteRating),
 	UnitStat.fromStat(Stat.StatExpertiseRating),
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatExpertisePercent),
 	UnitStat.fromStat(Stat.StatArmorPenetration),
@@ -30,12 +28,7 @@ export const INCLUDED_STATS: UnitStat[] = [
 export const isIncludedStat = (unitStat: UnitStat): boolean => INCLUDED_STATS.some(included => included.equals(unitStat));
 
 const DEFAULT_STAT_TOOLTIPS: Partial<Record<Stat, ReactNode>> = {
-	[Stat.StatMeleeHasteRating]: (
-		<>
-			Final percentage value <strong>including</strong> all buffs/gear.
-		</>
-	),
-	[Stat.StatSpellHasteRating]: (
+	[Stat.StatHasteRating]: (
 		<>
 			Final percentage value <strong>including</strong> all buffs/gear.
 		</>

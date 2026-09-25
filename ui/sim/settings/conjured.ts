@@ -29,7 +29,7 @@ export function relevantConsumableOptions<SpecType extends Spec>(
 	options: Array<ConsumableOption>,
 	specConfig: SpecConfigData<SpecType>,
 ): Array<ConsumableOption> {
-	const displayStatSet = new Set((specConfig.displayStats ?? []).map(us => (us.hasRootStat() ? us.getRootStat() : us.getPseudoStat())));
+	const displayStatSet = new Set((specConfig.displayStats ?? []).filter(us => us.hasRootStat()).map(us => us.getRootStat()));
 	const include = specConfig.includeBuffDebuffInputs ?? [];
 	const exclude = specConfig.excludeBuffDebuffInputs ?? [];
 

@@ -28,6 +28,8 @@ describe('EP_UNIT_STATS', () => {
 			PseudoStat.PseudoStatSpellHitPercent,
 			PseudoStat.PseudoStatMeleeCritPercent,
 			PseudoStat.PseudoStatSpellCritPercent,
+			PseudoStat.PseudoStatRangedHitPercent,
+			PseudoStat.PseudoStatRangedCritPercent,
 			PseudoStat.PseudoStatExpertisePercent,
 		]);
 	});

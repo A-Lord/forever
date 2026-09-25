@@ -20,6 +20,8 @@ const EP_PSEUDO_STATS = [
 	PseudoStat.PseudoStatSchoolHitPercentShadow,
 	PseudoStat.PseudoStatMeleeCritPercent,
 	PseudoStat.PseudoStatSpellCritPercent,
+	PseudoStat.PseudoStatRangedHitPercent,
+	PseudoStat.PseudoStatRangedCritPercent,
 	PseudoStat.PseudoStatExpertisePercent,
 ];
 

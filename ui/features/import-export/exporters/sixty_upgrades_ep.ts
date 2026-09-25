@@ -1,4 +1,5 @@
 import { PseudoStat, Stat } from '@generated/proto/common';
+import * as Mechanics from '@sim/constants/mechanics';
 import { UnitStat } from '@sim/proto/stats';
 
 import type { ExporterDefinition } from './types';
@@ -28,14 +29,11 @@ const STAT_NAMES: Record<Stat, string> = {
 	[Stat.StatNatureDamage]: 'natureDamage',
 	[Stat.StatShadowDamage]: 'shadowDamage',
 	[Stat.StatPhysicalDamage]: 'physicalDamage',
-	[Stat.StatSpellHitRating]: 'spellHitRating',
-	[Stat.StatSpellCritRating]: 'spellCritRating',
-	[Stat.StatSpellHasteRating]: 'spellHasteRating',
+	[Stat.StatHitRating]: 'hit',
+	[Stat.StatCritRating]: 'crit',
+	[Stat.StatHasteRating]: 'haste',
 	[Stat.StatSpellPiercing]: 'spellPenetration',
 	[Stat.StatFeralAttackPower]: '',
-	[Stat.StatMeleeHitRating]: 'hitRating',
-	[Stat.StatMeleeCritRating]: 'critRating',
-	[Stat.StatMeleeHasteRating]: 'hasteRating',
 	[Stat.StatArmorPenetration]: 'armorPen',
 	[Stat.StatDefenseRating]: 'defense',
 	[Stat.StatBlockRating]: 'block',
@@ -45,6 +43,13 @@ const STAT_NAMES: Record<Stat, string> = {
 	[Stat.StatFrostResistance]: 'frostResistance',
 	[Stat.StatNatureResistance]: 'natureResistance',
 	[Stat.StatShadowResistance]: 'shadowResistance',
+};
+
+// Hit, crit and haste are weighted per percent, not per point of rating.
+const RATING_PER_PERCENT: Partial<Record<Stat, number>> = {
+	[Stat.StatHitRating]: Mechanics.HIT_RATING_PER_HIT_PERCENT,
+	[Stat.StatCritRating]: Mechanics.CRIT_RATING_PER_CRIT_PERCENT,
+	[Stat.StatHasteRating]: Mechanics.HASTE_RATING_PER_HASTE_PERCENT,
 };
 
 const PSEUDO_STAT_NAMES: Partial<Record<PseudoStat, string>> = {
@@ -65,7 +70,7 @@ export const SIXTY_UPGRADES_EP_EXPORTER: ExporterDefinition = {
 		const namesToWeights: Record<string, number> = {};
 		allUnitStats.forEach(stat => {
 			const statName = getName(stat);
-			const weight = epValues.getUnitStat(stat);
+			const weight = epValues.getUnitStat(stat) * ((stat.isStat() && RATING_PER_PERCENT[stat.getStat()]) || 1);
 			if (weight == 0 || statName == '') {
 				return;
 			}
