@@ -1,6 +1,6 @@
 ---
 name: wowsims-spec-implementation
-description: 'Use when picking up a [Spec] tracking issue for Forever: turning the datamined talent and ability checklist into a working spec, generating the class spell data, deciding what client content is actually live, and verifying work the goldens cannot see.'
+description: 'Use when picking up a [Spec] tracking issue for Forever: turning the datamined talent and ability checklist into a working spec, generating the class spell data, deciding what client content is actually live, and verifying work the expected results cannot see.'
 argument-hint: 'Name the spec and the issue number to work from.'
 ---
 
@@ -67,8 +67,8 @@ git status --porcelain -- '*.results'      # empty unless a number was meant to 
 go run ./tools/database/gen_spelldata      # regenerate; the diff must be empty
 ```
 
-**A golden that cannot move proves nothing.** Check that the suite actually exercises what was
-changed before reading a pass as evidence - grep the golden for the spell id. The TBC paladin goldens
+**A .results file that cannot move proves nothing.** Check that the suite actually exercises what was
+changed before reading a pass as evidence - grep the .results for the spell id. The TBC paladin .results
 carry no seal spell id at all, so every seal change "passed" while testing nothing; that port was
 verified instead by dumping each constructed row against the literal it replaced, field by field,
 which is what found the bugs.

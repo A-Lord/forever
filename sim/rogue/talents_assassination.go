@@ -94,12 +94,8 @@ func (rogue *Rogue) registerMurder() {
 	//
 	// var multiplier float64 = spellData.Murder.MultiplierAt(rogue.Talents.Murder)
 	// rogue.Env.RegisterPostFinalizeEffect(func() {
-	// 	for _, at := range rogue.AttackTables {
-	// 		if slices.Contains([]proto.MobType{proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeGiant, proto.MobType_MobTypeBeast, proto.MobType_MobTypeDragonkin}, at.Defender.MobType) {
-	// 			at.DamageDealtMultiplier *= multiplier
-	// 			at.CritMultiplier *= multiplier
-	// 		}
-	// 	}
+	// 	rogue.MultiplyDamageVersus(multiplier, true, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeGiant,
+	// 		proto.MobType_MobTypeBeast, proto.MobType_MobTypeDragonkin)
 	// })
 }
 

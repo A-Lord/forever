@@ -129,9 +129,9 @@ describe('ConsumeRow', () => {
 	});
 
 	it('re-evaluates on any player change, not only a profession change', () => {
-		// TBC's rows gate on more than professions — imbues on gear, the misc row on ep weights —
-		// so this subscribes to the whole player-change aggregate rather than naming individual
-		// fields the way the profession-only rows would suggest.
+		// The rows gate on more than professions — imbues on gear and the party's Windfury Totem, the
+		// rest on the spec's stats — so this subscribes to the whole player-change aggregate rather
+		// than naming individual fields the way the profession-only rows would suggest.
 		const options = new Options();
 		row(options, [configFor(opts => opts.engineer)]);
 

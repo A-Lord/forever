@@ -47,7 +47,7 @@ const simpleRotation = (json: string) =>
 	}) as unknown as NonNullable<PresetBuild['rotation']>;
 
 describe('applyBuild rotation', () => {
-	// TBC's builds are hand-written and set both. Taking only the type branch left the
+	// Builds are hand-written and set both. Taking only the type branch would leave the
 	// previous spec rotation in place — apply "Arms", keep simming Fury.
 	it('applies the rotation when the build carries both a type and a rotation', () => {
 		applyBuild({ name: 'Arms', rotationType: APLRotationType.TypeSimple, rotation: simpleRotation('{"spec":"Arms"}') }, host());

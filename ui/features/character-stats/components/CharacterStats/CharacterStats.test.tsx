@@ -1,4 +1,4 @@
-// The loading state of the sheet. TBC's crit-cap row trails the table in a tbody of its own, so it
+// The loading state of the sheet. The crit-cap row trails the table in a tbody of its own, so it
 // is the last row either way; what is pinned here is that it skeletons with its siblings instead of
 // reading as settled while the stats are still in flight.
 import { Class, PseudoStat, Race, Stat } from '@generated/proto/common';
@@ -78,9 +78,8 @@ const AVOIDANCE_INFO = { miss: 7, dodge: 18, parry: 14, block: 25, total: 64, sh
 const CRIT_IMMUNITY_INFO = { total: 5.6, delta: 0, defense: 4.6, talents: 1 };
 
 // The tank sheet adds three rows the DPS sheet has no equivalent for -- miss, avoidance and
-// crit immunity -- appended to the Defense group. They are TBC-only, so upstream has nothing
-// to compare against; what is pinned here is that they skeleton with every other row rather
-// than reading as settled while the stats are still in flight.
+// crit immunity -- appended to the Defense group. What is pinned here is that they skeleton with
+// every other row rather than reading as settled while the stats are still in flight.
 const renderTankStats = (settled: boolean) => {
 	const store = createSimStore();
 	const currentStats = settled ? { finalStats: new Stats().toProto() } : {};

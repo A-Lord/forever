@@ -147,6 +147,11 @@ var DefaultMMTalents = "-30535525115023051-5"
 var DefaultSVTalents = "-00505505-500250030050220151"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	ConjuredId:   12662, // Demonic Rune
-	GoblinSapper: true,
+	ElixirIds:   []int32{13452, 250341}, // Elixir of the Mongoose, Greater Mageblood Elixir
+	FoodId:      238638,                 // Filet o' Flank
+	PotId:       250943,                 // Major Frenzy Potion
+	ConjuredId:  12662,                  // Demonic Rune
+	ExplosiveId: 18588,                  // Ez-Thro Dynamite II
+	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
+	ExtraIds: []int32{10646, 10309, 10310},
 }

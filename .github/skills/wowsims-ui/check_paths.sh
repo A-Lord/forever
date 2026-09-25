@@ -15,8 +15,8 @@
 # `file.ts:123` citation is checked as the file. Generated and build output is
 # skipped because it is absent in a clean checkout by design — that covers
 # ui/generated, dist, tmp, binary_dist, node_modules and every *_auto_gen.ts.
-# Anything this skill deliberately names as *not* existing, or as present only
-# through .git/info/exclude, goes in ABSENT_BY_DESIGN below.
+# Anything this skill deliberately names as *not* existing goes in ABSENT_BY_DESIGN
+# below.
 
 set -eu
 
@@ -24,18 +24,8 @@ here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo=$(CDPATH= cd -- "$here/../../.." && pwd)
 cd "$repo"
 
-# Paths this skill names precisely because they are gone or uncommitted.
-ABSENT_BY_DESIGN="tools/browser-perf/
-tools/state-snapshots
-tools/state-snapshots/
-tools/state-snapshots/golden.json
-tools/state-snapshots/memory_env.ts
-tools/state-snapshots/snapshot.ts
-ui/core
-ui/scss
-ui/index.ts
-ui/sim/proto/action_id/dom.ts
-ui/worker/highs.js"
+# Paths this skill names precisely because they do not exist.
+ABSENT_BY_DESIGN="ui/worker/highs.js"
 
 fail=0
 

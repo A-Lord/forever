@@ -190,12 +190,11 @@ export function buildResourceGroups(logs: Array<CombatLog>): Record<ResourceType
 type UnmatchedGained = { gained: AuraLog; stacks: Array<AuraStacksLog> };
 
 export function buildAuraUptimes(logs: Array<CombatLog>, entity: Entity, encounterDuration: number): Array<AuraUptimeLog> {
-	// openEntries preserves the same append-only order as the old flat unmatchedGainedLogs
-	// array; openByKey buckets its indices by equalsIgnoringTag identity so a fade/stacks event
+	// openEntries is append-only, in log order; openByKey buckets its indices by equalsIgnoringTag identity so a fade/stacks event
 	// finds its match in O(1) instead of rescanning every still-open aura. Within a bucket an
 	// exact-tag match wins over the earliest open instance: the same spell id can be open under
-	// two tags at once (Steady Focus and its counter share 53224), which master's
-	// `equals(x) || equalsIgnoringTag(x)` predicate collapsed into the tag-blind half.
+	// two tags at once (Steady Focus and its counter share 53224), which an
+	// `equals(x) || equalsIgnoringTag(x)` predicate would collapse into the tag-blind half.
 	const openEntries: Array<UnmatchedGained | null> = [];
 	const openByKey = new Map<string, Array<number>>();
 	const uptimeLogs: Array<AuraUptimeLog> = [];
@@ -218,8 +217,8 @@ export function buildAuraUptimes(logs: Array<CombatLog>, entity: Entity, encount
 		const exact = indices.findIndex(index => openEntries[index]!.gained.actionId!.equals(actionId));
 		return { indices, pos: exact >= 0 ? exact : 0 };
 	};
-	// Mutates the matched entry in place without removing it, mirroring the old code's
-	// unmatchedGainedLogs[idx].stacks.push - a stacks-change log doesn't close the aura.
+	// Mutates the matched entry in place without removing it - a stacks-change log doesn't close
+	// the aura.
 	const peekOpen = (actionId: ActionId): UnmatchedGained | null => {
 		const found = findOpen(actionId);
 		return found ? openEntries[found.indices[found.pos]] : null;
@@ -452,7 +451,7 @@ export function buildCastLogs(logs: Array<CombatLog>): Array<CastLog> {
 		let castSkipIdx = 0;
 		// abilityCastsCancelled is in the same log order as abilityCastsBegan, and each cbLog's
 		// cancel window starts where the previous one's ended - a monotonic cursor never needs to
-		// revisit a candidate the old per-cbLog .find() had already passed.
+		// revisit a candidate an earlier cbLog already passed.
 		let cancelCursor = 0;
 		for (let cbIdx = 0; cbIdx < abilityCastsBegan.length; cbIdx++) {
 			const cbLog = abilityCastsBegan[cbIdx];

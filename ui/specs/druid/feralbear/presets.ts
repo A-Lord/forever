@@ -15,6 +15,8 @@ export const DefaultSimpleRotation = DruidRotation.create({
 	swipeApThreshold: 2700,
 });
 
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
+
 import DefaultApl from './apls/default.apl.json';
 export const ROTATION_SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralBearDruid, DefaultSimpleRotation);
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
@@ -24,8 +26,12 @@ export const DefaultOptions = DruidOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	guardianElixirId: 9088, // Gift of Arthas
-	goblinSapper: true,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GiftOfArthas.id],
+	foodId: Consumables.DirgesKickinChimaerokChops.id,
+	potId: Consumables.GreaterStoneshieldPotion.id,
+	conjuredId: Consumables.MajorHealthstone9421.id,
+	mhImbueId: Consumables.DenseWeightstone.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
 });
 
 export const OtherDefaults: Partial<SimUIOtherDefaults> = {

@@ -262,7 +262,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 		};
 	}, [schedule, scrollVerticalBy, portalMounted]);
 
-	// Grab-to-pan. The horizontal scrollbar sits at the far end of the rotation now that the page owns
+	// Grab-to-pan. The horizontal scrollbar sits at the far end of the rotation because the page owns
 	// vertical scrolling, so dragging and shift+wheel are the reachable ways to pan.
 	const pan = useRef<{ pointerId: number; x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
 	const panned = useRef(false);
@@ -327,8 +327,8 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 
 	// Measured off a copy of the widest label rather than assumed: the lg breakpoint that hides
 	// `.rotation-label-text` applies inside the pane, so the measurer has to live there too. It is
-	// mounted for the one frame the measurement takes and gone again, so the pane's resting DOM is
-	// the same as it was before the port.
+	// mounted for the one frame the measurement takes and gone again, so the pane's resting DOM
+	// carries no measurer.
 	const measureInput = `${longestLabel}|${paneWidth}`;
 	const [measureFor, setMeasureFor] = useState<string | null>(null);
 	const [seenMeasureInput, setSeenMeasureInput] = useState(measureInput);

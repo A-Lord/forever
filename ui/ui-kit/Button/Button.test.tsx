@@ -118,7 +118,7 @@ describe('Button', () => {
 		expect(screen.getByRole('button').className).toBe('ui-button-link ui-button-link-danger');
 	});
 
-	it('ignores size for a link variant: the legacy [class*=btn-link] rule always zeroed its padding', () => {
+	it('ignores size for a link variant', () => {
 		render(
 			<Button variant="link-danger" size="sm">
 				Reset

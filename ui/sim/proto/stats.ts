@@ -71,7 +71,7 @@ export class UnitStat {
 
 	getFullName(playerClass: Class): string {
 		const fullName = this.isStat() ? translateStat(this.getStat()) : translatePseudoStat(this.getPseudoStat());
-		// Not sure if this is needed anymore, but keeping it for now
+		// A hunter reads its physical stats as ranged.
 		if (playerClass == Class.ClassHunter) {
 			return fullName.replace('Physical', 'Ranged');
 		} else {

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/dbc"
 	"github.com/wowsims/forever/tools/tooltip"
@@ -929,10 +930,20 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.SpellCategoryID,
 		&consumable.SpellCategoryFlags,
 		&itemEffectsStr,
-		&consumable.ElixirType,
-		&consumable.Duration,
-		&consumable.CooldownDuration,
-		&consumable.CategoryCooldownDuration,
+		&consumable.ClassMask,
+		&consumable.RaceMask,
+		&consumable.RequiredSkill,
+		&consumable.TemporaryEnchant.ID,
+		&consumable.TemporaryEnchant.Effects[0],
+		&consumable.TemporaryEnchant.Effects[1],
+		&consumable.TemporaryEnchant.Effects[2],
+		&consumable.TemporaryEnchant.Points[0],
+		&consumable.TemporaryEnchant.Points[1],
+		&consumable.TemporaryEnchant.Points[2],
+		&consumable.TemporaryEnchant.Args[0],
+		&consumable.TemporaryEnchant.Args[1],
+		&consumable.TemporaryEnchant.Args[2],
+		&consumable.TemporaryEnchant.RequiredAreasID,
 	)
 	if err != nil {
 		return consumable, fmt.Errorf("scanning consumable data: %w", err)
@@ -959,12 +970,41 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 	return consumable, nil
 }
 
+// The items the consumable catalogue is built from, over Item as i and ItemSparse as s. Every
+// Consumable-class item but the permanent enhancements of subclass 6, which the enchant table
+// carries; the Trade Goods explosives; and any item whose on-use shares the explosives' category or
+// casts a temporary enchant (Effect 54, or the imbue Effect 360, as IsTemporaryEnchantEffect reads
+// it), whatever class the client files it under: Crystal Charge 11566 is a Quest item and Lesser Mana
+// Oil 20747 an Enchanting trade good. The item has to state an on-use spell, and one that also teaches
+// a spell is an Engrave rune rather than a consumable. Test, QA, UNUSED, placeholder ([PH]) and
+// deprecated ([DEP]) names are left out: UNUSED Flask of Merciless Pursuit 215126.
+func ConsumableItemFilter() string {
+	onUse := func(condition string) string {
+		return fmt.Sprintf(`EXISTS (SELECT 1 FROM ItemXItemEffect cx JOIN ItemEffect ce ON ce.ID = cx.ItemEffectID
+			WHERE cx.ItemID = i.ID AND ce.TriggerType = %d AND ce.SpellID > 0 AND %s)`, dbc.ITEM_SPELLTRIGGER_ON_USE, condition)
+	}
+	return fmt.Sprintf(`s.Display_lang != '' AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%'
+		AND s.Display_lang NOT LIKE 'UNUSED%%' AND s.Display_lang NOT LIKE '[PH]%%' AND s.Display_lang NOT LIKE '%%[DEP]%%'
+		AND %s
+		AND NOT EXISTS (SELECT 1 FROM ItemXItemEffect lx JOIN ItemEffect le ON le.ID = lx.ItemEffectID
+			WHERE lx.ItemID = i.ID AND le.TriggerType = %d)
+		AND ((i.ClassID = 0 AND i.SubclassID != 6) OR (i.ClassID = 7 AND i.SubclassID = 2)
+			OR %s
+			OR %s)`,
+		onUse("1"),
+		dbc.ITEM_SPELLTRIGGER_LEARN_SPELL_ID,
+		onUse(fmt.Sprintf("ce.SpellCategoryID = %d", dbc.EXPLOSIVES_SPELL_CATEGORY)),
+		onUse(fmt.Sprintf("EXISTS (SELECT 1 FROM SpellEffect cse WHERE cse.SpellID = ce.SpellID AND cse.Effect IN (%d, %d))",
+			dbcenums.E_ENCHANT_ITEM_TEMPORARY, dbcenums.E_360)))
+}
+
 func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consumable, error) {
-	allowListStrs := make([]string, 0, len(ConsumableAllowList))
-	for _, id := range ConsumableAllowList {
+	cataloguedByID := catalogueConsumableIDs()
+	allowListStrs := make([]string, 0, len(cataloguedByID))
+	for _, id := range cataloguedByID {
 		allowListStrs = append(allowListStrs, strconv.FormatInt(int64(id), 10))
 	}
-	additionalConsumesQuery := "OR i.ID = " + strings.Join(allowListStrs, " OR i.ID = ")
+	allowList := strings.Join(allowListStrs, ", ")
 
 	query := `
 		SELECT
@@ -983,27 +1023,31 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 					JOIN ItemXItemEffect ixie2 ON ixie2.ItemEffectID = ie2.ID
 					WHERE ixie2.ItemID = i.ID
 				) AS ItemEffects,
-				CASE
-					WHEN sp.Description_lang LIKE '%Counts as both a Battle%' THEN 0
-					WHEN sp.Description_lang LIKE '%Guardian Elixir%' THEN 1
-					WHEN sp.Description_lang LIKE '%Battle Elixir%' THEN 2
-					ELSE 0
-				END AS ElixirType,
-				COALESCE(sd.Duration, 0) as Duration,
-				COALESCE(ie.CoolDownMSec, 0) as CooldownDuration,
-				COALESCE(ie.CategoryCoolDownMSec, 0) as CategoryCooldownDuration
+				s.AllowableClass,
+				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
+				s.RequiredSkill,
+				COALESCE(tsie.ID, 0),
+				COALESCE(tsie.Effect_0, 0), COALESCE(tsie.Effect_1, 0), COALESCE(tsie.Effect_2, 0),
+				COALESCE(tsie.EffectPointsMin_0, 0), COALESCE(tsie.EffectPointsMin_1, 0), COALESCE(tsie.EffectPointsMin_2, 0),
+				COALESCE(tsie.EffectArg_0, 0), COALESCE(tsie.EffectArg_1, 0), COALESCE(tsie.EffectArg_2, 0),
+				COALESCE((
+					SELECT MAX(scr.RequiredAreasID) FROM SpellCastingRequirements scr
+					WHERE scr.SpellID > 0 AND scr.SpellID IN (tsie.EffectArg_0, tsie.EffectArg_1, tsie.EffectArg_2)
+				), 0)
 			FROM Item i
 			JOIN ItemSparse s ON i.ID = s.ID
 			LEFT JOIN ItemXItemEffect ixie ON ixie.ItemID = i.ID
 			LEFT JOIN ItemEffect ie ON ie.ID = ixie.ItemEffectID
 			LEFT JOIN SpellCategory sc ON ie.SpellCategoryID = sc.ID
-			LEFT JOIN Spell sp ON ie.SpellID = sp.ID
-			LEFT JOIN SpellMisc sm ON ie.SpellId = sm.SpellID
-			LEFT JOIN SpellDuration sd ON sm.DurationIndex = sd.ID
-			WHERE ((i.ClassID = 0 AND i.SubclassID IS NOT 0 AND i.SubclassID IS NOT 8 AND i.SubclassID IS NOT 6) OR (i.ClassID = 7 AND i.SubclassID = 2)) AND ItemEffects is not null AND s.RequiredLevel >= 50 ` + additionalConsumesQuery + `
-			AND s.Display_lang != ''
-			AND s.Display_lang NOT LIKE '%Test%'
-			AND s.Display_lang NOT LIKE 'QA%'
+			LEFT JOIN SpellItemEnchantment tsie ON tsie.ID = (
+				SELECT tse.EffectMiscValue_0
+				FROM ItemXItemEffect tx
+				JOIN ItemEffect te ON te.ID = tx.ItemEffectID
+				JOIN SpellEffect tse ON tse.SpellID = te.SpellID
+				WHERE tx.ItemID = i.ID AND te.TriggerType = ` + strconv.Itoa(dbc.ITEM_SPELLTRIGGER_ON_USE) + `
+					AND tse.Effect IN (` + strconv.Itoa(int(dbcenums.E_ENCHANT_ITEM_TEMPORARY)) + `, ` + strconv.Itoa(int(dbcenums.E_360)) + `)
+				LIMIT 1)
+			WHERE (` + ConsumableItemFilter() + `) OR i.ID IN (` + allowList + `)
 			GROUP BY i.ID
 	`
 

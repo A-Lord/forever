@@ -129,7 +129,7 @@ func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 		t.Fatalf("one stack of sunder reduced armor by %v, want the client's -450", got)
 	}
 
-	expose := core.MakePermanent(buffs.ExposeArmorAura(target, false, 0))
+	expose := core.MakePermanent(buffs.NewSpellDataExposeArmorAura(target, false, 0))
 	expose.Activate(sim)
 
 	if got := target.GetStats()[stats.Armor]; got != -2250 {

@@ -80,8 +80,7 @@ export function loadIndividualSettings(
 	);
 
 	// The subscription above only sees changes made after it was registered,
-	// so write once explicitly here (the old code saved once at the end of the
-	// initial load too).
+	// so write once explicitly here, at the end of the initial load.
 	persist();
 
 	function schedulePersist() {

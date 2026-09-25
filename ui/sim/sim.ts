@@ -202,9 +202,8 @@ export class Sim {
 	}
 
 	// True only while loadIndividualSettings is applying stored settings; see the
-	// stats subscription in the constructor. Replaces a guard that recognised the
-	// load by its EventID being 0, which stopped working once subscribers minted
-	// their own ids instead of receiving the originating one.
+	// stats subscription in the constructor. Subscribers mint their own event ids,
+	// so the load cannot be recognised by its EventID.
 	private applyingLoadedSettings = false;
 
 	// Runs `apply` with the initial-settings-load flag set. Anything that does not
@@ -894,7 +893,7 @@ export class Sim {
 		this.setLastUsedRngSeed(rngSeed);
 		return rngSeed;
 	}
-	// Counts as a change on every call (like the old unconditional write), so
+	// Counts as a change on every call, so
 	// subscribers watch the version counter, not the value.
 	private setLastUsedRngSeed(rngSeed: number) {
 		this.store.setState(s => ({ sim: { ...s.sim, lastUsedRngSeed: rngSeed, lastUsedRngSeedVersion: s.sim.lastUsedRngSeedVersion + 1 } }));
@@ -939,9 +938,9 @@ export class Sim {
 		if (newShowThreatMetrics != this.ui.showThreatMetrics) this.setUi({ showThreatMetrics: newShowThreatMetrics });
 	}
 
-	// Upstream ORs in "threat metrics on, and the player is a tank", with its own tank list. TBC's
-	// is a plain field read, and `toProto` serializes whatever this returns — so the derived form
-	// writes showHealingMetrics: true into all three tank specs' saved settings.
+	// A plain field read with no "threat metrics on, and the player is a tank" term: `toProto`
+	// serializes whatever this returns, so a derived form would write showHealingMetrics: true into
+	// every tank spec's saved settings.
 	getShowHealingMetrics(): boolean {
 		return this.ui.showHealingMetrics;
 	}
@@ -1054,7 +1053,7 @@ export class Sim {
 			const filters = proto.filters || this.defaultFilters();
 			if (filters.armorTypes.length == 0) {
 				if (this.type == SimType.SimTypeIndividual) {
-					// TBC has no armor specialization, so a class can wear every armor type it
+					// There is no armor specialization, so a class can wear every armor type it
 					// is proficient in -- a druid leather and cloth, a shaman mail down to cloth.
 					filters.armorTypes = this.raid.getActivePlayers()[0].getPlayerClass().armorTypes.slice();
 				} else {

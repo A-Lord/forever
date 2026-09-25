@@ -1,17 +1,6 @@
-import {
-	ConsumableType,
-	EquipmentSpec,
-	GemColor,
-	ItemRandomSuffix,
-	ItemSlot,
-	ItemSpec,
-	ItemSwap,
-	PresetEncounter,
-	PresetTarget,
-	Stat,
-} from '@generated/proto/common';
+import { EquipmentSpec, GemColor, ItemRandomSuffix, ItemSlot, ItemSpec, ItemSwap, PresetEncounter, PresetTarget } from '@generated/proto/common';
 import { Consumable, ItemEffectRandPropPoints, SimDatabase } from '@generated/proto/db';
-import { ResourceType, SpellEffect } from '@generated/proto/spell';
+import { SpellEffect } from '@generated/proto/spell';
 import { IconData, UIDatabase, UIEnchant as Enchant, UIGem as Gem, UIItem as Item, UINPC as Npc, UIZone as Zone } from '@generated/proto/ui';
 
 import { CacheHandler } from '../cache/cache_handler';
@@ -212,48 +201,6 @@ export class Database {
 	}
 	getConsumable(itemId: number): Consumable | undefined {
 		return this.consumables.get(itemId);
-	}
-	getConsumablesByType(type: ConsumableType): Array<Consumable> {
-		return this.getConsumables().filter(consume => consume.type == type);
-	}
-	getConsumablesByTypeAndStats(type: ConsumableType, stats: Array<Stat>): Array<Consumable> {
-		if (stats.includes(Stat.StatStamina)) {
-			stats.push(Stat.StatHealth);
-			stats.push(Stat.StatArcaneResistance);
-			stats.push(Stat.StatFireResistance);
-			stats.push(Stat.StatFrostResistance);
-			stats.push(Stat.StatNatureResistance);
-			stats.push(Stat.StatShadowResistance);
-		}
-
-		const hasManaStat = stats.includes(Stat.StatMana) || stats.includes(Stat.StatMP5);
-		const hasAttackPowerStat = stats.find(stat => stat === Stat.StatAttackPower);
-
-		return this.getConsumablesByType(type).filter(consume => {
-			// Manually configure Elixirs that buff MobType Attack Power
-			if (type == ConsumableType.ConsumableTypeBattleElixir && hasAttackPowerStat) {
-				// Elixir of Demon Slaying
-				if (consume.id == 9224) {
-					return true;
-				}
-			}
-
-			// Add consumables that buff Mana as a resource
-			let includesResourceType = false;
-			if (hasManaStat) {
-				includesResourceType = consume.effectIds.some(effectId => {
-					const spellEffect = this.getSpellEffect(effectId);
-					if (spellEffect?.miscValue0.oneofKind === 'resourceType') {
-						if (spellEffect.miscValue0.resourceType === ResourceType.ResourceTypeMana) {
-							return true;
-						}
-					}
-					return false;
-				});
-			}
-
-			return consume.buffsMainStat || stats.some(index => consume.stats[index] > 0) || includesResourceType;
-		});
 	}
 	getRandomSuffixById(id: number): ItemRandomSuffix | undefined {
 		return this.randomSuffixes.get(id);

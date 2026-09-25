@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, Spec } from '@generated/proto/common';
 import { Mage_Options as MageOptions, Mage_Rotation, MageArmor } from '@generated/proto/mage';
@@ -40,7 +41,10 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	mhImbueId: 25122, // Brilliant Wizard Oil
+	elixirIds: [Consumables.GreaterArcaneElixir.id, Consumables.ElixirOfTheSages.id],
+	foodId: Consumables.SunriseOmelette.id,
+	mhImbueId: Consumables.BrilliantWizardOil.id,
+	potId: Consumables.MajorManaPotion.id,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

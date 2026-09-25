@@ -1206,13 +1206,14 @@ func onUseEffectsFor(itemID int32) []*proto.ItemEffect {
 
 // The item effect's own cooldown and the category cooldown it shares, whatever the spell's row states.
 func onUseCast(character *core.Character, itemEffect *proto.ItemEffect) core.CastConfig {
-	return core.CastConfig{
-		CD: core.Cooldown{
+	cast := core.CastConfig{SharedCD: sharedCooldown(character, itemEffect)}
+	if cooldownMs := itemEffect.GetOnUse().CooldownMs; cooldownMs > 0 {
+		cast.CD = core.Cooldown{
 			Timer:    character.NewTimer(),
-			Duration: time.Duration(itemEffect.GetOnUse().CooldownMs) * time.Millisecond,
-		},
-		SharedCD: sharedCooldown(character, itemEffect),
+			Duration: time.Duration(cooldownMs) * time.Millisecond,
+		}
 	}
+	return cast
 }
 
 // The on-use buff's stats and duration, scaled by its area bonus.

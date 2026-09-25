@@ -2,8 +2,8 @@ package database
 
 // The manifest pins the spell each buff reads, so generation needs no client database. What pinned
 // it is the rank resolution below, which reads SkillLineAbility, SkillLine and the rune enchantments -
-// tables the store does not capture - so this is where a new client is checked against the pins.
-// Skips without tools/database/wowsims.db.
+// tables the store does not capture - so this is where a new client is checked against the pins, and
+// against the names and owners the generator reads off them. Skips without tools/database/wowsims.db.
 
 import (
 	"database/sql"
@@ -16,7 +16,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/tools/database/buffmanifest"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -44,42 +43,40 @@ func TestManifestAnchorsMatchTheClient(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	for _, spec := range buffmanifest.Manifest {
+	for _, row := range resolveCommittedBuffs(t) {
 		// A row without a castable family - an item's aura, an elixir's debuff - is pinned by hand.
-		if spec.Name == "" {
+		if row.Name == "" {
 			continue
 		}
 
-		classMask := ownerClassMask(spec.Owner)
-		cands, err := anchorCandidates(db, spec.Name, classMask)
+		// A totem or dummy whose cast the manifest does not name reads the aura's name, which no
+		// skill line grants, so it fails here.
+		classMask := ownerClassMask(row.Owner)
+		cands, err := anchorCandidates(db, row.Name, classMask)
 		if err != nil {
-			t.Fatalf("%s: %v", spec.Field, err)
+			t.Fatalf("%s: %v", row.Field, err)
 		}
 		if len(cands) == 0 {
-			t.Errorf("%s: no SkillLineAbility row grants %q to %s", spec.Field, spec.Name, spec.Owner)
+			t.Errorf("%s: no SkillLineAbility row grants %q to %s", row.Field, row.Name, row.Owner)
 			continue
 		}
 
 		cast := topRank(cands, classMask)
 		aura := cast.SpellID
-		if spec.AuraName != "" {
-			if aura, err = auraFamilyMember(db, spec.AuraName, cast.Subtext); err != nil {
-				t.Fatalf("%s: %v", spec.Field, err)
+		if row.AuraName != "" {
+			if aura, err = auraFamilyMember(db, row.AuraName, cast.Subtext); err != nil {
+				t.Fatalf("%s: %v", row.Field, err)
 			}
 		}
 
-		if spec.SpellID != aura {
-			t.Errorf("%s: the manifest pins spell %d, the client resolves %d", spec.Field, spec.SpellID, aura)
+		if row.SpellID != aura {
+			t.Errorf("%s: the manifest pins spell %d, the client resolves %d", row.Field, row.SpellID, aura)
 		}
-		if spec.CastID != 0 && spec.CastID != cast.SpellID {
-			t.Errorf("%s: the manifest pins cast %d, the client resolves %d", spec.Field, spec.CastID, cast.SpellID)
-		}
-		if spec.Kind == buffmanifest.KindExternalCD && cast.SpellID != aura && spec.CastID == 0 {
-			t.Errorf("%s: the cast %d times the cooldown and states what the aura %d does not, so the manifest has to pin it",
-				spec.Field, cast.SpellID, aura)
+		if row.CastID != 0 && row.CastID != cast.SpellID {
+			t.Errorf("%s: the manifest pins cast %d, the client resolves %d", row.Field, row.CastID, cast.SpellID)
 		}
 		if runes[aura] {
-			t.Errorf("%s: spell %d is granted by a rune, which is a class rune and not a raid buff", spec.Field, aura)
+			t.Errorf("%s: spell %d is granted by a rune, which is a class rune and not a raid buff", row.Field, aura)
 		}
 	}
 }

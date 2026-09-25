@@ -1,3 +1,4 @@
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession } from '@generated/proto/common';
 import { HealerPriest_Options as HealerPriestOptions, PriestOptions_Armor } from '@generated/proto/priest';
 
@@ -7,7 +8,10 @@ export const DefaultOptions = HealerPriestOptions.create({
 	},
 });
 
-export const DefaultConsumables = ConsumesSpec.create({});
+export const DefaultConsumables = ConsumesSpec.create({
+	foodId: Consumables.SunriseOmelette.id,
+	potId: Consumables.MajorManaPotion.id,
+});
 
 export const OtherDefaults = {
 	distanceFromTarget: 20,

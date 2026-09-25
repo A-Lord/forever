@@ -31,7 +31,7 @@ describe('relevantStatOptions', () => {
 		expect(shown).toEqual([manaSpring, manaTide, untagged, fortitude]);
 	});
 
-	it('includes by stat, the way every TBC spec lists them', () => {
+	it('includes by stat, the way every spec lists them', () => {
 		expect(relevantStatOptions(options, host({ include: [Stat.StatStrength] }))).toEqual([untagged, strengthOfEarth]);
 	});
 

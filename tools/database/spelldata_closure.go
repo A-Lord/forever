@@ -33,6 +33,7 @@ func storeRoots(db *sql.DB, t *spellTables, ladderIDs []int32) (roots []int32, g
 		{"item effects", itemEffectSpellQuery()},
 		{"enchant effects", enchantSpellQuery},
 		{"set bonuses", `SELECT DISTINCT SpellID FROM ItemSetSpell WHERE SpellID > 0`},
+		{"every class spell", everyClassSpellQuery()},
 	} {
 		if err := eachRow(db, source.query, func(rows *sql.Rows) error {
 			var id int32
@@ -48,6 +49,18 @@ func storeRoots(db *sql.DB, t *spellTables, ladderIDs []int32) (roots []int32, g
 	}
 
 	return namedIDs(t, roots), namedIDs(t, gear), nil
+}
+
+// Set by gen_spelldata -everyClassSpell: roots the store at every spell of a class family as well,
+// for an export of the client's class spells rather than a store the sim is built against.
+var EveryClassSpell bool
+
+// Selects nothing unless EveryClassSpell is set.
+func everyClassSpellQuery() string {
+	if !EveryClassSpell {
+		return `SELECT SpellID FROM SpellClassOptions WHERE 0`
+	}
+	return `SELECT DISTINCT SpellID FROM SpellClassOptions WHERE SpellClassSet BETWEEN 3 AND 11`
 }
 
 // The spells a rank reads its numbers off by name. A rank that states no amount of its own keeps it
@@ -109,11 +122,8 @@ func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 // manifest row added without a regeneration fails the check.
 func buffManifestIDs() []int32 {
 	var ids []int32
-	for _, spec := range buffmanifest.Manifest {
-		ids = append(ids, spec.SpellID, spec.CastID)
-		if spec.Talent != nil {
-			ids = append(ids, spec.Talent.SpellID)
-		}
+	for _, spec := range buffmanifest.All() {
+		ids = append(ids, spec.SpellID, spec.CastID, spec.Talent)
 		if spec.ImpAction != nil {
 			ids = append(ids, spec.ImpAction.SpellID)
 		}
@@ -137,9 +147,8 @@ func namedIDs(t *spellTables, lists ...[]int32) []int32 {
 }
 
 // The gear and consumables gen_db ships, which is where the item procs the sim registers come from.
-// The gear half is the predicate gen_db itself passes to LoadAndWriteRawItems; the consumable half
-// states the classes LoadAndWriteConsumables selects, whose query cannot be reused as it stands
-// because its own filter reads a subquery alias. Both halves let the allowlists through, as gen_db
+// Each half is the predicate gen_db itself selects with: SimItemFilter for LoadAndWriteRawItems and
+// ConsumableItemFilter for LoadAndWriteConsumables. Both halves let the allowlists through, as gen_db
 // does: Hand of Justice and the raid consumables are shipped by id rather than by predicate.
 //
 // The predicate runs over Item left-joined to ItemSparse alone, without the inner joins to
@@ -155,19 +164,16 @@ func itemEffectSpellQuery() string {
 		LEFT JOIN ItemSparse s ON s.ID = i.ID
 		WHERE ie.SpellID > 0 AND (
 			(` + SimItemFilter(core.CharacterLevel) + `)
-			OR (((i.ClassID = 0 AND i.SubclassID IS NOT 0 AND i.SubclassID IS NOT 8 AND i.SubclassID IS NOT 6)
-			     OR (i.ClassID = 7 AND i.SubclassID = 2))
-			    AND s.RequiredLevel >= 50 AND s.Display_lang != ''
-			    AND s.Display_lang NOT LIKE '%Test%' AND s.Display_lang NOT LIKE 'QA%')
+			OR (` + ConsumableItemFilter() + `)
 			OR i.ID IN (` + allowListedItemIDs() + `))`
 }
 
-// The items gen_db ships by id: ItemAllowList bypasses the gear filter and ConsumableAllowList is
-// added to the consumable query. Hand of Justice and Skullflame Shield have no ItemSparse row in
+// The items gen_db ships by id: ItemAllowList bypasses the gear filter and catalogueConsumableIDs
+// are added to the consumable query. Hand of Justice and Skullflame Shield have no ItemSparse row in
 // this build, which is why the join to it above is a left one: an allowlisted item is taken by id,
 // whatever the sparse table says about it.
 func allowListedItemIDs() string {
-	ids := append(slices.Collect(maps.Keys(ItemAllowList)), ConsumableAllowList...)
+	ids := append(slices.Collect(maps.Keys(ItemAllowList)), catalogueConsumableIDs()...)
 	slices.Sort(ids)
 
 	list := make([]string, len(ids))

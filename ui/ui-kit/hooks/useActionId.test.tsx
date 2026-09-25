@@ -88,10 +88,8 @@ describe('useActionId', () => {
 		expect(anchor(container).dataset.icon).toContain('ability_hunter_pet_wolf');
 	});
 
-	// Upstream varied the reforge id here; TBC has no item reforging, and its
-	// ActionId.fromItemId is (itemId, tag?, randomSuffixId?). The random suffix is
-	// the equivalent url-bearing field, so the case still covers what it is for:
-	// the href is derived before any fill, and re-derived when the id changes.
+	// ActionId.fromItemId is (itemId, tag?, randomSuffixId?), and the random suffix is its
+	// url-bearing field: the href is derived before any fill, and re-derived when the id changes.
 	it('knows the href without filling, and re-derives it when the random suffix changes', () => {
 		deferFill();
 		const { container, rerender } = render(<Probe actionId={ActionId.fromItemId(7, 0, 111)} />);
