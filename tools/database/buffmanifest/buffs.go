@@ -619,6 +619,7 @@ var Debuffs = []BuffSpec{
 	{
 		Field:      "vindication",
 		SpellID:    440667,
+		Owner:      proto.Class_ClassPaladin,
 		Talent:     9452,
 		Proto:      ProtoBool,
 		Category:   "Demoralizing",

@@ -686,6 +686,7 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: Vindication,
 		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassPaladin,
 	},
 	{
 		config: Thunderfury,
