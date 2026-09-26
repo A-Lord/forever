@@ -547,6 +547,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RANGED_HASTE, 0, 40, "ranged-speed", 1.4, true},
 		{dbcenums.A_MOD_MELEE_RANGED_HASTE_2, 0, 30, "attack-speed", 1.3, true},
 		{dbcenums.A_MOD_ARMOR_PCT_FROM_STAT, 3, 50, "stat-share Intellect>Armor", 0.5, false},
+		{dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT, 1, 100, "stat-share Agility>AttackPower", 1, false},
+		{dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT, 3, 20, "stat-share Intellect>RangedAttackPower", 0.2, false},
 		{dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, 126, 8, "stat-share Spirit>SpellDamage", 0.08, false},
 		{dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT, 4, 25, "stat-share Spirit>HealingPower", 0.25, false},
 		{dbcenums.A_MOD_MAX_POWER_PCT, 0, 15, "multiply-stat Mana", 1.15, false},
@@ -682,7 +684,8 @@ func TestParseStaticScalesEquippedArmor(t *testing.T) {
 }
 
 // A share of a stat reaches the stat it names, read from whichever misc value the aura keeps its
-// stat in: the first for armor and healing, the second for spell damage, whose first is its schools.
+// stat in: the first for armor, attack power and healing, the second for spell damage, whose first is
+// its schools.
 func TestParseStaticStatShare(t *testing.T) {
 	withRows(t, parseRows())
 
@@ -691,17 +694,21 @@ func TestParseStaticStatShare(t *testing.T) {
 		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, Misc: 126, Misc2: 4,
 			BasePoints: 8},
 		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT, Misc: 4, BasePoints: 25},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT, Misc: 1, BasePoints: 100},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT, Misc: 3,
+			BasePoints: 20},
 	}}
 
 	base, parsed := parseWarrior(), parseWarrior()
 	ParseStatic(parsed, row)
 
-	source := stats.Stats{stats.Intellect: 100, stats.Spirit: 100}
+	source := stats.Stats{stats.Agility: 100, stats.Intellect: 100, stats.Spirit: 100}
 	gained := parsed.SortAndApplyStatDependencies(source).Subtract(base.SortAndApplyStatDependencies(source))
 
-	for stat, want := range map[stats.Stat]float64{stats.Armor: 50, stats.SpellDamage: 8, stats.HealingPower: 25} {
+	for stat, want := range map[stats.Stat]float64{stats.Armor: 50, stats.SpellDamage: 8, stats.HealingPower: 25,
+		stats.AttackPower: 100, stats.RangedAttackPower: 20} {
 		if got := gained[stat]; math.Abs(got-want) > 1e-9 {
-			t.Errorf("%s from 100 Intellect and 100 Spirit: %v, want %v", stat.StatName(), got, want)
+			t.Errorf("%s from 100 Agility, Intellect and Spirit: %v, want %v", stat.StatName(), got, want)
 		}
 	}
 }

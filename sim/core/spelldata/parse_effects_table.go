@@ -288,11 +288,17 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statMultiplier([]stats.Stat{stats.Armor}, percentMultiplier(v))
 	},
 
-	// Armor, spell damage and healing worth a share of a stat. The spell damage aura names its schools
-	// in the first misc value and the stat in the second, and only the mask of every magic school has a
-	// stat to land on.
+	// Armor, attack power, spell damage and healing worth a share of a stat. The spell damage aura names
+	// its schools in the first misc value and the stat in the second, and only the mask of every magic
+	// school has a stat to land on.
 	dbcenums.A_MOD_ARMOR_PCT_FROM_STAT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statShare(clientStatList(e.Misc), stats.Armor, v/100)
+	},
+	dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.statShare(clientStatList(e.Misc), stats.AttackPower, v/100)
+	},
+	dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.statShare(clientStatList(e.Misc), stats.RangedAttackPower, v/100)
 	},
 	dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc != miscMagicSchool {
