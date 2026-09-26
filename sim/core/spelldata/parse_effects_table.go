@@ -156,6 +156,20 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return nil
 	},
 
+	// Melee and ranged attacks alone. The melee multiplier reaches a melee attack of any school; the
+	// flat ranged amount reaches physical ranged attacks, and a mask without physical has no field.
+	dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.pseudoMultiplier("melee-damage-taken", "MeleeDamageTakenMultiplier",
+			[]*float64{&p.unit.PseudoStats.MeleeDamageTakenMultiplier}, percentMultiplier(v))
+	},
+	dbcenums.A_MOD_RANGED_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc&int32(core.SpellSchoolPhysical) == 0 {
+			return nil
+		}
+		return p.pseudoAdd("ranged-damage-taken-flat", "BonusRangedDamageTaken",
+			&p.unit.PseudoStats.BonusRangedDamageTaken, v)
+	},
+
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("threat", "ThreatMultiplier", []*float64{&p.unit.PseudoStats.ThreatMultiplier},
 			percentMultiplier(v))

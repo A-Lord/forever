@@ -784,6 +784,9 @@ func (result *SpellResult) applyTargetModifiers(sim *Simulation, spell *Spell, a
 
 	if spell.SpellSchool.Matches(SpellSchoolPhysical) {
 		result.Damage += attackTable.Defender.PseudoStats.BonusPhysicalDamageTaken
+		if spell.ProcMask.Matches(ProcMaskRanged) {
+			result.Damage += attackTable.Defender.PseudoStats.BonusRangedDamageTaken
+		}
 	} else if !spell.SpellSchool.Matches(SpellSchoolPhysical) && !spell.SpellSchool.Matches(SpellSchoolNone) {
 		result.Damage += attackTable.Defender.PseudoStats.BonusSpellDamageTaken
 	}
@@ -805,6 +808,10 @@ func (spell *Spell) TargetDamageMultiplier(sim *Simulation, attackTable *AttackT
 
 	if isPeriodic && spell.SpellSchool.Matches(SpellSchoolPhysical) {
 		multiplier *= attackTable.Defender.PseudoStats.PeriodicPhysicalDamageTakenMultiplier
+	}
+
+	if spell.ProcMask.Matches(ProcMaskMelee) {
+		multiplier *= attackTable.Defender.PseudoStats.MeleeDamageTakenMultiplier
 	}
 
 	if attackTable.DamageDoneByCasterMultiplier != nil {

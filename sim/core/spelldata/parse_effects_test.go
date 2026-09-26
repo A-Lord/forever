@@ -537,6 +537,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_EXPERTISE, 0, 5, "stat ExpertisePercent", 5, false},
 		{dbcenums.A_MOD_MELEE_HASTE_3, 0, 25, "melee-speed", 1.25, true},
 		{dbcenums.A_MOD_DAMAGE_TAKEN, 127, -10, "damage-taken-flat", -10, false},
+		{dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT, 0, -20, "melee-damage-taken", 0.8, false},
+		{dbcenums.A_MOD_RANGED_DAMAGE_TAKEN, 1, -32, "ranged-damage-taken-flat", -32, false},
 		{dbcenums.A_MOD_POWER_COST_SCHOOL_PCT, 126, 20, "SpellMod_PowerCost_Pct", 0.2, false},
 		{dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, 4, 185, "mob-type-stat AttackPower", 185, true},
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},

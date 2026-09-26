@@ -420,6 +420,8 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| `PseudoStats.BonusRangedDamageTaken`                                | flat damage on each physical ranged attack            | the value, where the school mask names physical                        |
+| `PseudoStats.MeleeDamageTakenMultiplier`                            | a multiplier on each melee attack, of any school      | `1 + value/100`                                                        |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
 | damage taken from the caster, by school or by class flags           | the caster's `DamageDoneByCasterExtraMultiplier` slot | `1 + stacks x value/100`                                               |
