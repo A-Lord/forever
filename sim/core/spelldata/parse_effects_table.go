@@ -51,6 +51,10 @@ type parser struct {
 
 	// DryRun: the rows are read for what they would attach, and nothing is registered on the unit.
 	dry bool
+
+	// The slot FromCaster names, which the rows that reach only the caster's attacks share. Nil
+	// without a caster.
+	casterSlot *casterSlot
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -160,6 +164,20 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return nil
 	},
 
+	// Melee and ranged attacks alone. The melee multiplier reaches a melee attack of any school; the
+	// flat ranged amount reaches physical ranged attacks, and a mask without physical has no field.
+	dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.pseudoMultiplier("melee-damage-taken", "MeleeDamageTakenMultiplier",
+			[]*float64{&p.unit.PseudoStats.MeleeDamageTakenMultiplier}, percentMultiplier(v))
+	},
+	dbcenums.A_MOD_RANGED_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc&int32(core.SpellSchoolPhysical) == 0 {
+			return nil
+		}
+		return p.pseudoAdd("ranged-damage-taken-flat", "BonusRangedDamageTaken",
+			[]*float64{&p.unit.PseudoStats.BonusRangedDamageTaken}, v)
+	},
+
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("threat", "ThreatMultiplier", []*float64{&p.unit.PseudoStats.ThreatMultiplier},
 			percentMultiplier(v))
@@ -259,6 +277,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.MP5, v)
 	},
 
+	dbcenums.A_MOD_MAX_POWER:       maxPowerRow,
+	dbcenums.A_MOD_INCREASE_ENERGY: maxPowerRow,
+
 	dbcenums.A_MOD_INCREASE_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.Health, v)
 	},
@@ -336,6 +357,24 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// The client states expertise as the percent it takes off dodge and parry.
 	dbcenums.A_MOD_EXPERTISE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.ExpertisePercent, v)
+	},
+
+	// The damage the unit takes from the attacks of the aura's caster, and the caster's crit chance
+	// against it: see FromCaster.
+	dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc <= 0 {
+			return nil
+		}
+		school := core.SpellSchool(e.Misc)
+		return p.casterDamage("caster-damage-by-school", v, func(spell *core.Spell) bool {
+			return spell.SpellSchool.Matches(school)
+		})
+	},
+	dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER: func(p *parser, e *Effect, v float64) *attachment {
+		return p.casterDamage("caster-damage-by-spell", v, p.namesSpell(e))
+	},
+	dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES: func(p *parser, e *Effect, v float64) *attachment {
+		return p.casterCrit("caster-crit-by-spell", v, p.namesSpell(e))
 	},
 
 	// How long a crowd control effect lasts on the unit, by the mechanic the misc value names.
@@ -429,6 +468,9 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
 		return p.procChanceMod("SpellMod_ProcChance_Pct", p.modConfig(e, core.SpellMod_ProcChance_Pct), v)
 	},
+	dbcenums.SPELLMOD_GLOBAL_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
+	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT3: pctEffectAmount,
@@ -508,6 +550,54 @@ func skipRow(_ *parser, _ *Effect, _ float64) *attachment {
 	return nil
 }
 
+// The most power the unit's bar holds, by the power type the misc value names. The client states
+// rage on a 0-1000 bar and energy as it is; mana is the Mana stat, which the sim keeps as the maximum.
+// A unit without the rage or energy bar the row names has no maximum to raise, so the row is skipped
+// there. A dry run's unit has no bar at all, so it answers what a unit with the bar would attach.
+func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
+	switch dbcenums.PowerType(e.Misc) {
+	case dbcenums.POWER_MANA:
+		return p.statBuff(stats.Mana, v)
+	case dbcenums.POWER_RAGE:
+		if !p.dry && !p.unit.HasRageBar() {
+			return nil
+		}
+		metrics := p.powerMetrics(p.unit.NewRageMetrics)
+		return maxPower("max-rage", "MaxRage", v/10, func(sim *core.Simulation, delta float64) {
+			p.unit.SetMaximumRage(sim, p.unit.MaximumRage()+delta, metrics)
+		})
+	case dbcenums.POWER_ENERGY:
+		if !p.dry && !p.unit.HasEnergyBar() {
+			return nil
+		}
+		metrics := p.powerMetrics(p.unit.NewEnergyMetrics)
+		return maxPower("max-energy", "MaxEnergy", v, func(sim *core.Simulation, delta float64) {
+			p.unit.SetMaximumEnergy(sim, p.unit.MaximumEnergy()+delta, metrics)
+		})
+	}
+	return nil
+}
+
+// The metrics a lowered maximum counts the lost power against. Only a parse a Simulation reaches -
+// an aura's, or a conditional one's Refresh - can lose any, and metrics registered on a unit are
+// reported, so the static path leaves them out.
+func (p *parser) powerMetrics(newMetrics func(core.ActionID) *core.ResourceMetrics) *core.ResourceMetrics {
+	if p.dry || (p.static && !p.conditional) {
+		return nil
+	}
+	actionID := core.ActionID{SpellID: p.spell.ID}
+	if p.aura != nil {
+		actionID = p.aura.ActionID
+	}
+	return newMetrics(actionID)
+}
+
+func maxPower(kind string, key string, v float64, apply func(sim *core.Simulation, delta float64)) *attachment {
+	a := additive(kind, v, apply)
+	a.key = key
+	return a
+}
+
 func percentStatRow(p *parser, e *Effect, v float64) *attachment {
 	return p.statMultiplier(clientStatList(e.Misc), percentMultiplier(v))
 }
@@ -515,14 +605,28 @@ func percentStatRow(p *parser, e *Effect, v float64) *attachment {
 // The spells a modifier effect names. The client leaves the mask empty on an effect that means the
 // caster's whole family, and a spell with no family of its own leaves the mod unrestricted.
 func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfig {
-	cfg := core.SpellModConfig{Kind: kind, ClassFlags: e.ClassFlags}
+	return core.SpellModConfig{Kind: kind, ClassFlags: p.classFlags(e)}
+}
+
+func (p *parser) classFlags(e *Effect) core.ClassFlags {
 	if e.ClassFlags.IsZero() && p.spell.ClassFlags.Family != 0 {
-		cfg.ClassFlags = core.ClassFlags{
+		return core.ClassFlags{
 			Family: p.spell.ClassFlags.Family,
 			Mask:   [4]uint32{^uint32(0), ^uint32(0), ^uint32(0), ^uint32(0)},
 		}
 	}
-	return cfg
+	return e.ClassFlags
+}
+
+// Whether a spell is one the effect names, the way a modifier's class flags reach it.
+func (p *parser) namesSpell(e *Effect) func(*core.Spell) bool {
+	flags := p.classFlags(e)
+	if flags.IsZero() {
+		return func(*core.Spell) bool { return true }
+	}
+	return func(spell *core.Spell) bool {
+		return spell.MatchesFlags(flags)
+	}
 }
 
 // A spell mod the parse turns on and off. AddDynamicMod rather than AddStaticMod even on a passive:

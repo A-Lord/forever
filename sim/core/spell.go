@@ -157,6 +157,8 @@ type Spell struct {
 	BonusExpertisePercent    float64
 	CastTimeMultiplier       float64
 	CdMultiplier             float64
+	GCDMultiplier            float64       // Scales DefaultCast.GCD, after the flat GCD mods and before haste and the GCD minimum; 1 = unmodified. Fed by SpellMod_GlobalCooldown_Pct.
+	unscaledGCD              time.Duration // DefaultCast.GCD is rewritten from this on every GCD mod, so a direct write there is lost.
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
 	// Added to DamageMultiplierAdditive on direct hits only. Unlike that bucket this one is 0
@@ -268,6 +270,8 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		BonusExpertisePercent:    config.BonusExpertisePercent,
 		CastTimeMultiplier:       1,
 		CdMultiplier:             1,
+		GCDMultiplier:            1,
+		unscaledGCD:              config.Cast.DefaultCast.GCD,
 		DamageMultiplier:         config.DamageMultiplier,
 		DamageMultiplierAdditive: config.DamageMultiplierAdditive,
 		CritMultiplierPct:        1,
@@ -846,6 +850,12 @@ func (spell *Spell) Matches(mask int64) bool {
 // Returns true if the given class flags name this spell
 func (spell *Spell) MatchesFlags(f ClassFlags) bool {
 	return f.Matches(spell.ClassFlags)
+}
+
+// Whether a modifier or trigger restricted to these class flags reaches the spell: zero flags mean
+// every spell.
+func (f ClassFlags) Reaches(spell *Spell) bool {
+	return f.IsZero() || spell.MatchesFlags(f)
 }
 
 // Handles computing the cost of spells and checking whether the Unit

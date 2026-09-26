@@ -17,6 +17,7 @@ func (mage *Mage) registerFireballSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellFireball,
+	// 	ClassFlags:     fireballRank.ClassFlags,
 	// 	MissileSpeed:   float64(fireballRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{

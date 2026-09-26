@@ -17,6 +17,7 @@ func (mage *Mage) registerFrostNovaSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
 	// 	ClassSpellMask: MageSpellFrostNova,
+	// 	ClassFlags:     frostNovaRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(frostNovaRank.Cost()),

@@ -19,6 +19,7 @@ func (mage *Mage) registerIceLanceSpell() {
 			ProcMask:       core.ProcMaskSpellDamage,
 			Flags:          config.Flags,
 			ClassSpellMask: MageSpellIceLance,
+			ClassFlags:     spellData.IceLance.Highest().ClassFlags,
 			MissileSpeed:   38,
 
 			ManaCost: config.ManaCost,

@@ -19,6 +19,7 @@ func (rogue *Rogue) registerEviscerate() {
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagFinisher | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellEviscerate,
+	// 	ClassFlags:     eviscerateRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(eviscerateRank.Cost()),

@@ -98,6 +98,7 @@ func (mage *Mage) registerIgnite() {
 	// 	SpellSchool:      core.SpellSchoolFire,
 	// 	ProcMask:         core.ProcMaskSpellDamage,
 	// 	ClassSpellMask:   MageSpellIgnite,
+	// 	ClassFlags:       spellData.IgniteTriggered.Highest().ClassFlags,
 	// 	Flags:            core.SpellFlagIgnoreModifiers | core.SpellFlagNoSpellMods | core.SpellFlagNoOnCastComplete | core.SpellFlagIgnoreResists | core.SpellFlagProc,
 	// 	DamageMultiplier: 1,
 	// 	ThreatMultiplier: 1,

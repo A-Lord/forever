@@ -15,6 +15,7 @@ func (mage *Mage) registerFireBlastSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellFireBlast,
+	// 	ClassFlags:     fireBlastRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(fireBlastRank.Cost()),

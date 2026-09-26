@@ -25,6 +25,7 @@ func (warlock *Warlock) registerCurseOfDoom() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfDoom,
+	// 	ClassFlags:     doomRank.ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

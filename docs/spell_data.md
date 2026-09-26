@@ -364,12 +364,34 @@ speed multipliers - stay off until the aura is applied again.
 **An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
 names, because the mod is attached to the aura and not to each spell pointing at it.
 
-|                   |                                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `Effects(1, 2)`   | only these effects, counted from 1 by position the way `EffectN` counts                                             |
-| `SkipEffects(3)`  | everything but these                                                                                                |
-| `Conditional(fn)` | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)`                 |
-| `IgnoreStacks()`  | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
+|                              |                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Effects(1, 2)`              | only these effects, counted from 1 by position the way `EffectN` counts                                             |
+| `SkipEffects(3)`             | everything but these                                                                                                |
+| `Conditional(fn)`            | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)`                 |
+| `IgnoreStacks()`             | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
+| `FromCaster(unit, i, total)` | the unit that cast a debuff, for the rows that reach only its attacks, in slot `i` of `total` on its attack table   |
+
+**A debuff that reaches only its caster's attacks** sits on the target and is parsed onto the target's
+aura with `FromCaster`: Shadow Weaving's shadow damage (`A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER`, by the
+school mask in its misc value), Hemorrhage's Rupture and Wrack's other shadow dots
+(`A_MOD_SPELL_DAMAGE_FROM_CASTER`) and Winter's Chill's crit on Frostbolt and Ice Lance
+(`A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES`), the last two by the effect's class flags the way a
+modifier's are. Each is a percentage applied once per stack, so Shadow Weaving at three stacks is 6%.
+The parse holds one slot on the caster's attack table against the target: its damage effects multiply
+into one `DamageDoneByCasterExtraMultiplier` handler and its crit effects add into one
+`CritChanceByCasterBonus` handler, which core's `EnableDamageDoneByCaster` and
+`EnableCritChanceByCaster` switch on while an effect is up. The class numbers those slots the way it
+numbers its own `AttachDDBC` calls, and a slot is its parse's, so two debuffs a class parses take two
+indexes. Another caster's attacks on the same target are untouched, and so is every spell of a raid
+debuff's caster, which the sim does not model: without `FromCaster` the rows are skipped. The
+character argument is nil, since the aura is the target's, and the parse reads the row at the caster's
+level.
+
+```go
+spelldata.ParseEffects(nil, swAura, spellData.ShadowWeavingTriggered.Highest(),
+	spelldata.FromCaster(&priest.Unit, DDBC_ShadowWeaving, DDBC_Total))
+```
 
 Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance passive is parsed onto
 the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its
@@ -400,6 +422,8 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| `PseudoStats.BonusRangedDamageTaken`                                | flat damage on each physical ranged attack            | the value, where the school mask names physical                        |
+| `PseudoStats.MeleeDamageTakenMultiplier`                            | a multiplier on each melee attack, of any school      | `1 + value/100`                                                        |
 | ArmorPenetration, SpellPiercing                                     | flat points of the target's armor or resistance       | the value's size, whichever sign the row states it with                |
 | `PseudoStats.SchoolSpellPiercing`                                   | flat points of one school's resistance                | the value's size, for each school the misc value's mask names          |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
@@ -408,12 +432,37 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | the share of armor ignored                                          | `ArmorIgnoreFactor` of each attack table, a fraction  | the value over 100                                                     |
 | a flat proc chance modifier                                         | percentage points on the trigger's chance             | the value                                                              |
 | a percentage proc chance modifier                                   | a fraction: the chance times one plus it              | the value over 100                                                     |
+| damage taken from the caster, by school or by class flags           | the caster's `DamageDoneByCasterExtraMultiplier` slot | `1 + stacks x value/100`                                               |
+| crit chance for the caster, by class flags                          | the caster's `CritChanceByCasterBonus` slot           | stacks x value, in percentage points                                   |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
+| the rage bar's maximum (`A_MOD_MAX_POWER` misc 1)                   | rage                                                  | the value over 10                                                      |
+| the energy bar's maximum (misc 3, and `A_MOD_INCREASE_ENERGY`)      | energy                                                | the value                                                              |
+| the maximum mana (misc 0 of either)                                 | Mana, flat points                                     | the value                                                              |
+| a percentage GCD modifier (`SPELLMOD_GLOBAL_COOLDOWN`)              | `spell.GCDMultiplier`, summed from 1                  | the value over 100                                                     |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
 is five hundred percent block. `TestParseStaticStatConventions` pins one row of each family against
 what core reads back.
+
+A maximum power row raises the bar its misc value names, through `SetMaximumRage` or
+`SetMaximumEnergy`: a raised maximum grants nothing, and when an aura carrying one drops, the power
+above the old maximum is lost and counted against the aura's metrics. A reset starts the rage bar at
+the starting rage the options asked for, clamped to the maximum as it stands then. Mana is the Mana
+stat, which the sim keeps as the maximum, so misc 0 is a flat stat buff on any unit: the Flask of
+Distilled Wisdom's 17627 is 2000 Mana. The generator's `ParseStatEffect` reads the same misc 0 as Mana
+for the consumable and item stats it bakes. A unit without the rage or energy bar the row names skips
+it.
+
+Where a maximum is raised decides whether the gnome's Expansive Mind scales it. The racial multiplies
+the maximum rage and energy by 1.05 once, in `applyRaceEffects`, which runs after the class constructor
+and before `ApplyTalents`. So Boundless Rage is parsed in `NewWarrior` straight after `EnableRageBar`,
+and the rogue reads Vigor by hand into the `MaxEnergy` it enables the bar with; parsed with the
+talents, either would miss the racial.
+
+A percentage GCD modifier scales `DefaultCast.GCD` the moment it toggles, after the flat GCD mods, so
+every reader of the default cast sees the same GCD; haste applies at the cast, and the GCD minimum
+still floors what is left: Nature's Grace's -10 takes a 1.5 second GCD to 1.35 seconds.
 
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
@@ -453,6 +502,7 @@ per unit cannot be applied once per stack, and the static path has no aura to fo
 | `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
 | `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
 | an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
+| a parse without `FromCaster`        | the damage and crit a debuff adds to its caster's attacks alone, and `ParseStatic` those too                                |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.
@@ -490,16 +540,18 @@ is a weapon proc aura also excludes the hits of spells flagged Suppress Weapon P
 The class flags of the spell that procs go on the trigger as `ProcSpellClassFlags`, and those are
 what a `SPELLMOD_CHANCE_OF_SUCCESS` names: the rows its class mask reaches are the proc auras and the poison
 spells themselves, not the spells that feed them. Improved Poisons 14113 names Instant Poison 8680, so
-the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. The trigger reads the unit's
-active `SpellMod_ProcChance_Flat` and `SpellMod_ProcChance_Pct` mods when it rolls, the flat points first
-and the percentage on the sum: on the manager's chance where a hit rolls one, on the chance it states
-otherwise. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A trigger built by
-hand leaves `ProcSpellClassFlags` empty and no talent reaches it, so a class porting its poisons builds them
-with `spelldata.ProcTrigger` and does not also add the talent's chance by hand, which would count it
-twice. A proc chance row whose class mask names no store row that states a proc and keeps its auras on
-the caster is skipped with the reason in `Skipped`, since no trigger on the caster carries those flags:
-Improved Judgement of Light 23564 names a trigger on the target and Frenzy 19621 a proc the store does
-not carry.
+the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. A trigger
+`spelldata.ProcTrigger` builds draws once per hit: one with a manager rolls the manager's chance for
+the hit's proc mask, and a mask the manager does not hear fails without a draw; one without rolls the
+chance it states, and a stated 1 draws nothing. The unit's active `SpellMod_ProcChance_Flat` and
+`SpellMod_ProcChance_Pct` mods go on whichever chance that is, the flat points first and the
+percentage on the sum. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A
+trigger built by hand leaves `ProcSpellClassFlags` empty and no talent reaches it, so a class porting
+its poisons or another talented proc builds it with `spelldata.ProcTrigger` and does not also add the
+talent's chance by hand, which would count it twice. A proc chance row whose class mask names no store
+row that states a proc and keeps its auras on the caster is skipped with the reason in `Skipped`, since
+no trigger on the caster carries those flags: a trigger on the target (Improved Judgement of Light
+23564), a pet's proc, or a proc the store does not carry (Frenzy 19621).
 
 |                 |                                                                                                                                                             |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
