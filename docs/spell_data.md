@@ -346,8 +346,8 @@ spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents
 ```
 
 `ParseStatic` applies now and never comes off, which is what a talent or a class passive is. A bonus
-against a creature type lives on the attack tables, which exist once the environment is finalized, so
-the static path puts it there from a post-finalize effect.
+against a creature type and the share of armor the unit ignores live on the attack tables, which exist
+once the environment is finalized, so the static path puts them there from a post-finalize effect.
 `ParseEffects(character, aura, row, opts...)` makes the same attachments follow an aura: they turn on
 when it is gained, off when it expires, and scale with its stacks where the row states
 `CumulativeAura`.
@@ -432,6 +432,10 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | `PseudoStats.SchoolSpellPiercing`                                   | flat points of one school's resistance                | the value's size, for each school the misc value's mask names          |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
+| crit damage dealt against a creature type                           | `CritMultiplier` of each masked table                 | `1 + value/100`                                                        |
+| the share of armor ignored                                          | `ArmorIgnoreFactor` of each attack table, a fraction  | the value over 100                                                     |
+| a flat proc chance modifier                                         | percentage points on the trigger's chance             | the value                                                              |
+| a percentage proc chance modifier                                   | a fraction: the chance times one plus it              | the value over 100                                                     |
 | damage taken from the caster, by school or by class flags           | the caster's `DamageDoneByCasterExtraMultiplier` slot | `1 + stacks x value/100`                                               |
 | crit chance for the caster, by class flags                          | the caster's `CritChanceByCasterBonus` slot           | stacks x value, in percentage points                                   |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
@@ -489,6 +493,11 @@ still floors what is left: Nature's Grace's -10 takes a 1.5 second GCD to 1.35 s
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
 the same creature types.
+
+Two aura names read as something else. `A_MOD_CRIT_PERCENT_VERSUS` is crit damage against the creature
+types, not crit chance: Humanoid Slaying 19153 states it next to the same 3% of damage dealt.
+`A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT` is the share of the defender's armor ignored, not a rating:
+Serrated Blades 14171 ignores 9% at three ranks.
 
 Target resistance by mask 1 is `ArmorPenetration`, by a mask of all five resistances `SpellPiercing`,
 and by a mask of some spell schools `SchoolSpellPiercing` for each of them; a mask of armor and a spell
@@ -553,6 +562,22 @@ name and action id, the `Callback`, `ProcMask`, `Outcome` and `RequireDamageDeal
 out of `ProcTypeMask`, the internal cooldown, `CanProcFromProcs` and `ClassSpellsOnly` from the
 attributes, the class mask the proc effect names, and the rate the source above points at. A row that
 is a weapon proc aura also excludes the hits of spells flagged Suppress Weapon Procs.
+
+The class flags of the spell that procs go on the trigger as `ProcSpellClassFlags`, and those are
+what a `SPELLMOD_CHANCE_OF_SUCCESS` names: the rows its class mask reaches are the proc auras and the poison
+spells themselves, not the spells that feed them. Improved Poisons 14113 names Instant Poison 8680, so
+the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. A trigger
+`spelldata.ProcTrigger` builds draws once per hit: one with a manager rolls the manager's chance for
+the hit's proc mask, and a mask the manager does not hear fails without a draw; one without rolls the
+chance it states, and a stated 1 draws nothing. The unit's active `SpellMod_ProcChance_Flat` and
+`SpellMod_ProcChance_Pct` mods go on whichever chance that is, the flat points first and the
+percentage on the sum. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A
+trigger built by hand leaves `ProcSpellClassFlags` empty and no talent reaches it, so a class porting
+its poisons or another talented proc builds it with `spelldata.ProcTrigger` and does not also add the
+talent's chance by hand, which would count it twice. A proc chance row whose class mask names no store
+row that states a proc and keeps its auras on the caster is skipped with the reason in `Skipped`, since
+no trigger on the caster carries those flags: a trigger on the target (Improved Judgement of Light
+23564), a pet's proc, or a proc the store does not carry (Frenzy 19621).
 
 |                 |                                                                                                                                                             |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

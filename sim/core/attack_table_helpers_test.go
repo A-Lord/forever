@@ -36,8 +36,9 @@ func TestAddMobTypeBonusStatsAddsAgainstTheNamedTypes(t *testing.T) {
 func TestMultiplyDamageVersusMultipliesOnlyTheNamedTypes(t *testing.T) {
 	unit, undead, humanoid := newVersusTestUnit()
 
-	unit.MultiplyDamageVersus(1.05, true, proto.MobType_MobTypeUndead)
-	unit.MultiplyDamageVersus(1.02, false, proto.MobType_MobTypeDemon, proto.MobType_MobTypeUndead)
+	unit.MultiplyDamageVersus(1.05, proto.MobType_MobTypeUndead)
+	unit.MultiplyCritDamageVersus(1.05, proto.MobType_MobTypeUndead)
+	unit.MultiplyDamageVersus(1.02, proto.MobType_MobTypeDemon, proto.MobType_MobTypeUndead)
 	want := 1.0
 	want *= 1.05
 	want *= 1.02

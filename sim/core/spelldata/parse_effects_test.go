@@ -445,7 +445,11 @@ func TestParseStaticDurationModOnASharedAura(t *testing.T) {
 // haste rows run through ParseEffects, since the speeds they multiply need the Simulation an aura's
 // gain hands over.
 func TestEveryTableRow(t *testing.T) {
-	withRows(t, parseRows())
+	// The caster's proc a proc chance row's class mask has to name.
+	withRows(t, append(parseRows(), Spell{ID: 1500, Name: "Caster Proc", ProcChance: 10,
+		ProcFlags: [2]uint32{0: 0x14}, ClassFlags: parseTargetMask,
+		Effects: []Effect{{SpellID: 1500, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY,
+			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}))
 
 	const (
 		flat = dbcenums.A_ADD_FLAT_MODIFIER
@@ -470,6 +474,7 @@ func TestEveryTableRow(t *testing.T) {
 		{flat, int32(dbcenums.SPELLMOD_RESIST_MISS_CHANCE), 3, "SpellMod_BonusHit_Percent", 3, false},
 		{flat, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -500, "SpellMod_GlobalCooldown_Flat", -500, false},
 		{flat, int32(dbcenums.SPELLMOD_ACTIVATION_TIME), -500, "SpellMod_DotTickLength_Flat", -500, false},
+		{flat, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS), 10, "SpellMod_ProcChance_Flat", 10, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT1), 20, "effect1-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT2), 20, "effect2-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT3), 20, "effect3-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
@@ -484,6 +489,7 @@ func TestEveryTableRow(t *testing.T) {
 		{pct, int32(dbcenums.SPELLMOD_CRIT_DAMAGE_BONUS), 20, "SpellMod_CritMultiplier_Flat", 0.2, false},
 		{pct, int32(dbcenums.SPELLMOD_CRITICAL_CHANCE), 7, "SpellMod_BonusCrit_Percent", 7, false},
 		{pct, int32(dbcenums.SPELLMOD_DOT), 10, "SpellMod_DotDamageDone_Pct", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS), 100, "SpellMod_ProcChance_Pct", 1, false},
 		{pct, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -10, "SpellMod_GlobalCooldown_Pct", -0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT1), 10, "effect1-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT2), 10, "effect2-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
@@ -552,6 +558,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},
 		{dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, 32, 58, "mob-type-stat SpellDamage", 58, true},
 		{dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1, "damage-dealt-versus", 1.01, false},
+		{dbcenums.A_MOD_CRIT_PERCENT_VERSUS, 64, 3, "crit-damage-versus", 1.03, false},
+		{dbcenums.A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT, 0, 9, "armor-ignore", 0.09, false},
 		{dbcenums.A_MOD_RANGED_HASTE, 0, 40, "ranged-speed", 1.4, true},
 		{dbcenums.A_MOD_MELEE_RANGED_HASTE_2, 0, 30, "attack-speed", 1.3, true},
 		{dbcenums.A_MOD_ARMOR_PCT_FROM_STAT, 3, 50, "stat-share Intellect>Armor", 0.5, false},
