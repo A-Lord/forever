@@ -178,6 +178,17 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int) ([]rankLadder, 
 		return nil, nil, nil, err
 	}
 
+	imbues, err := discoverImbueFamilies(db, exclusive)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	for name, byRank := range imbues {
+		if byName[name] != nil {
+			return nil, nil, nil, fmt.Errorf("%s: both a class ability and a crafted imbue carry the name", name)
+		}
+		byName[name] = byRank
+	}
+
 	traits, traitSkipped, traitPartial, err := discoverTraitLadders(db, treeID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -261,6 +272,61 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int) ([]rankLadder, 
 	}
 
 	return ladders, skipped, partial, nil
+}
+
+// A trailing roman numeral on a crafted imbue's name: "Deadly Poison IV", "Occult Poison I".
+var imbueRankNumeral = regexp.MustCompile(` (?:I|II|III|IV|V|VI|VII|VIII|IX|X)$`)
+
+// The weapon imbues a class crafts, by family and rank, each rank the spell its enchant casts off the
+// weapon's hits. Poisons sit in skill line 40, outside the class category, and its rows are recipes:
+// Instant Poison VI 11343 creates item 8928, whose use spell puts enchant 625 on the weapon, and the
+// enchant's combat spell slot casts 11337 - the spell the sim registers. The use spell's effect is
+// E_360 on the trained poisons and E_ENCHANT_ITEM_TEMPORARY on the newer ones. The numeral in the
+// recipe's name is its rank, so the family is the name without it; a recipe with no rank subtext is
+// rank 1. Only lines no other class appears in are read, and a recipe whose chain ends in no combat
+// spell - Blinding Powder is a reagent - is no imbue.
+func discoverImbueFamilies(db *sql.DB, exclusive map[int32]bool) (map[string]map[int32][]rankCandidate, error) {
+	families := map[string]map[int32][]rankCandidate{}
+	for line := range exclusive {
+		rows, err := db.Query(enchantSlotsCTE+fmt.Sprintf(`
+			SELECT DISTINCT n.Name_lang, s.NameSubtext_lang, sla.ClassMask, sla.AcquireMethod, slot.SpellID
+			FROM SkillLineAbility sla
+			JOIN SpellName n ON n.ID = sla.Spell
+			JOIN Spell s ON s.ID = sla.Spell
+			JOIN SpellEffect recipe ON recipe.SpellID = sla.Spell AND recipe.Effect = %d
+			JOIN ItemXItemEffect x ON x.ItemID = recipe.EffectItemType
+			JOIN ItemEffect ie ON ie.ID = x.ItemEffectID
+			JOIN SpellEffect imbue ON imbue.SpellID = ie.SpellID AND imbue.Effect IN (%d, %d)
+			JOIN slots slot ON slot.ID = imbue.EffectMiscValue_0 AND slot.Effect = %d AND slot.SpellID > 0
+			WHERE sla.SkillLine = ?`,
+			dbcenums.E_CREATE_ITEM, dbcenums.E_ENCHANT_ITEM_TEMPORARY, dbcenums.E_360, dbc.ITEM_ENCHANTMENT_COMBAT_SPELL), line)
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			var name, subtext string
+			c := rankCandidate{SkillLine: line, Rank: 1}
+			if err := rows.Scan(&name, &subtext, &c.ClassMask, &c.AcquireMethod, &c.SpellID); err != nil {
+				rows.Close()
+				return nil, err
+			}
+			if m := rankSubtext.FindStringSubmatch(subtext); m != nil {
+				rank, _ := strconv.Atoi(m[1])
+				c.Rank = int32(rank)
+			}
+			family := imbueRankNumeral.ReplaceAllString(name, "")
+			if families[family] == nil {
+				families[family] = map[int32][]rankCandidate{}
+			}
+			families[family][c.Rank] = append(families[family][c.Rank], c)
+		}
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		rows.Close()
+	}
+	return families, nil
 }
 
 // A $<spellID><token> in a description: "$12880d" on Enrage, "$12976s1" on Last Stand.
