@@ -271,7 +271,9 @@ func (warrior *Warrior) registerImprovedShieldBash() {
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			silenceAuras.Get(result.Target).Activate(sim)
 		})
-	trigger.ClassSpellMask = SpellMaskShieldBash
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.ShieldBash.Contains(spell)
+	}
 	trigger.TriggerImmediately = true
 
 	warrior.MakeProcTriggerAura(trigger)

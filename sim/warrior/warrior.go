@@ -20,27 +20,6 @@ type WarriorInputs struct {
 	HasBsT2        bool
 }
 
-// What is left of the sim's own spell masks now that the client's spell class mask addresses the
-// rest: the two Sweeping Strikes copies and the Whirlwind off-hand strike, which have no client row
-// to be named by, and the six abilities a handler or a listener singles out by hand.
-const (
-	SpellMaskNone int64 = 0
-
-	SpellMaskSweepingStrikesHit int64 = 1 << iota
-	SpellMaskSweepingStrikesNormalizedHit
-	SpellMaskWhirlwindOh
-
-	SpellMaskExecute
-	SpellMaskThunderClap
-	SpellMaskWhirlwind
-	SpellMaskShieldBash
-	SpellMaskBloodthirst
-	SpellMaskHamstring
-
-	WarriorSpellLast
-	WarriorSpellsAll = WarriorSpellLast<<1 - 1
-)
-
 // The client's SpellClassOptions for the registrations that do not resolve a row of their own: the
 // stance spells, and the sim-only sub-spells that take their parent's flags, the client having no
 // row for a Whirlwind off-hand strike or a Sweeping Strikes copy.

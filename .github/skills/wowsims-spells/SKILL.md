@@ -53,7 +53,7 @@ spelldata.MustFind(id)                           // panics instead, for a spell 
 | `Coeff()`, `APCoeff()`                                           | the spell power and attack power shares                        |
 | `Trigger()`                                                      | the spell the effect fires                                     |
 
-A `Ladder` reads per rank: `ValueAt`, `FractionAt`, `MultiplierAt`, `TenthsAt`, and `EffectAt(n)` / `Effect(aura, misc)` for a rank with more than one effect. Rank 0 answers 0, so no `if rank > 0` guard.
+A `Ladder` reads per rank: `ValueAt`, `FractionAt`, `MultiplierAt`, `TenthsAt`, and `EffectAt(n)` / `Effect(aura, misc)` for a rank with more than one effect. Rank 0 answers 0, so no `if rank > 0` guard. `Contains(spell)` asks whether a registered spell is one of the ladder's ranks, by spell id: it is how a handler or a `ProcTrigger`'s `ExtraCondition` names one ability, and the class `SpellMask*` constants it replaced are gone from the warrior.
 
 ## The resolvers
 
@@ -74,7 +74,7 @@ func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string
 
 Each fills what the row states and nothing else; the caller adds `ApplyEffects`, the proc mask, the conditions and any flag the client does not carry. `ParseEffects` must be called before the aura activates. `*Parsed` carries `Applied` and `Skipped` — `SPELLDATA_REPORT=1` prints the skipped effects, which are what the port still has to wire by hand.
 
-`Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ClassSpellMask` and `ApplyEffects` by hand. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
+`Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ApplyEffects` by hand; Flurry tells it from the main-hand strike with `spellData.Whirlwind.Contains(spell)` and an off-hand proc mask. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
 
 Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions and the shapeshift attribute bits, and core enforces it. Never write a stance or form check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
 
@@ -89,6 +89,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 ## Traps
 
 - **Read a hit or crit row's tooltip before scoping it; 290 is ambiguous.** "All spells and attacks" is crit on everything while the weapon is equipped, which the parse makes of a melee-weapon 290. "With Axes and Polearms" is per weapon although the client states it as 290 too; Weaponmaster and Hack and Slash carry that crit as a dummy and are built by hand.
+- **Class flags are not an ability's identity.** Mortal Strike shares a mask bit with Bloodthirst, and Retaliation's strike one with Whirlwind, so `MatchesFlags` or a trigger's `ClassFlags` hears both. Ask whether a spell is one ability with `spellData.X.Contains(spell)`; keep class flags for the talent and set filters the client states.
 - **`--tags=with_db` is required** on any sim test run, or it panics with `No DB data for enchant with id: 2613`. That panic is the missing tag, not a broken fixture.
 - **The data carries ranks the game never grants.** Fireball 38692 and Frostbolt 38697 are rank 14 entries at level 70 the generator cannot tell from the real rank 13s. Name the rank by spell id — `ByID` on a ladder — rather than reaching for the top one.
 - **Rage is stored in tenths.** The client tracks a 0-1000 bar where the UI shows 0-100, so Heroic Strike reads 150 against the sim's 15. `PowerCost` and `Tenths()` divide it through; mana, energy and focus need no conversion.

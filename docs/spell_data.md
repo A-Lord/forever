@@ -166,6 +166,11 @@ modifier effect reaches, and `spell.AffectedBy(effect)` asks whether this spell 
 `core.SpellConfig.ClassFlags` carries the row's own, which is what puts a registered spell inside the
 talents that name it.
 
+Class flags name the spells a modifier reaches, not one ability each: Mortal Strike and Bloodthirst
+share word 0 `0x02000000`, and Retaliation's strike 20240 shares word 0 `0x80000000` with Whirlwind.
+A handler or listener asking whether a spell is one ability takes `spellData.X.Contains(spell)`, which
+matches the spell id against every rank, so `spellData.Execute.Contains(spell)` hears all five.
+
 ### A class file is ladders
 
 Every class file is a generated `spellData` global with a `spelldata.Ladder` per family and no numbers
@@ -190,6 +195,7 @@ the effects the curve covers, and an effect it has no row for keeps the spell's 
 | `Highest()`                              | the top rank                                                                          |
 | `ByID(id)`                               | the rank with this spell id; panics on one the ladder does not carry                  |
 | `Len()`, `Each(fn)`                      | how many ranks, and each of them with its number                                      |
+| `Contains(spell)`                        | whether a registered spell's id is one of the ladder's ranks                          |
 | `ValueAt(rank)`                          | the rank's only effect in the client's units; panics where the rank has more than one |
 | `FractionAt`, `MultiplierAt`, `TenthsAt` | the same over 100, as `1 +` that, and over 10                                         |
 | `EffectAt(n)`, `Effect(aura, misc)`      | one named effect across the ranks, carrying the same four readers                     |
@@ -274,9 +280,9 @@ holds in a stance-type form too: Healing Touch in Moonkin Form and Wrath in Tree
 
 1. **The row, plus what no row states.** `sim/warrior/pummel.go` and `sim/warrior/slam.go`: the
    resolver, then the cast condition and `ApplyEffects`.
-2. **The row, then an override of one of its fields.** `sim/warrior/hamstring.go` adds
-   `ClassSpellMask` and pins the threat numbers with their review marker, because the client states no
-   threat coefficient. Write the override after the call, on its own line, with the reason beside it.
+2. **The row, then an override of one of its fields.** `sim/warrior/hamstring.go` pins the threat
+   numbers with their review marker, because the client states no threat coefficient. Write the
+   override after the call, on its own line, with the reason beside it.
 3. **A hand-written `core.SpellConfig` reading the row's values.** The Sweeping Strikes hit spell in
    `sim/warrior/talents_arms.go` is a spell the sim registers and the store does not carry, so it is
    built by hand out of the parent's numbers.
@@ -292,8 +298,8 @@ holds in a stance-type form too: Healing Touch in Moonkin Form and Wrath in Tree
   passive spell. Blood Craze's heal takes it on its own row, `BloodCrazeTriggered`
   (`sim/warrior/talents_fury.go`); Whirlwind's off-hand strike takes it on the Whirlwind row itself -
   `Melee(ProcMaskMeleeOHSpecial)`, `Proc()`, `Tag(2)` - which is what lets a spell with a cast time and
-  a cooldown of its own lend its row to a sub-spell that has neither, writing only `ClassSpellMask`
-  and `ApplyEffects` by hand (`sim/warrior/whirlwind.go`). Deep Wounds (`sim/warrior/talents_arms.go`)
+  a cooldown of its own lend its row to a sub-spell that has neither, writing only `ApplyEffects`
+  by hand (`sim/warrior/whirlwind.go`). Deep Wounds (`sim/warrior/talents_arms.go`)
   and Retaliation's counterattack (`sim/warrior/retaliation.go`) name the flags they need by hand
   instead - the bleed takes `SpellFlagNoOnCastComplete` with `SpellFlagIgnoreResists` and
   `SpellFlagProc`, the counterattack `SpellFlagMeleeMetrics`.
@@ -1166,8 +1172,12 @@ was meant to be mechanical and moves a .results number is a wrong port, not a ne
     that names the tooltip's wording. Where a number stays by hand, its review marker stays with it.
 12. **Isolate every .results move** by reverting exactly one change and re-running. Two causes in one
     commit look like one inexplicable cause.
-13. **Delete the class masks last**, and only where the constant's sole reader is the `ClassSpellMask`
-    write. A handler calling `spell.Matches` is a reader too.
+13. **Replace the class masks last.** A handler calling `spell.Matches` takes `spellData.X.Contains(spell)`;
+    a `ProcTrigger` narrowed by `ClassSpellMask` takes the same call as its `ExtraCondition`, which runs
+    before the proc roll and so draws no extra random number. A sim-only sub-spell with no row of its own
+    is compared by its `*core.Spell` (Sweeping Strikes' copies), and Whirlwind's off-hand strike is
+    `Whirlwind.Contains(spell)` with an off-hand proc mask. Never the row's `ClassFlags`: they share bits
+    across abilities.
 14. **A gear proc is three calls, not one.** `ProcTrigger` for the listener, `AuraConfig` for the buff
     it applies and `ParseEffects` for what that buff does - the idiom `sim/warrior/items.go` uses for
     every set bonus and item buff the class owns.
@@ -1177,6 +1187,10 @@ was meant to be mechanical and moves a .results number is a wrong port, not a ne
     already wrote - keep it only where its review marker says the number is still to be measured.
 
 ## Traps
+
+**Class flags are not an ability's identity.** Filtering Blood Craze's Bloodthirst listener by
+Bloodthirst's `ClassFlags` fired it on Mortal Strike too and moved multi-target HPS from 0.16 to 15. Ask
+the ladder: `spellData.Bloodthirst.Contains(spell)`.
 
 **The data contains ranks the game never grants.** Fireball 38692 and Frostbolt 38697 are rank 14
 entries at level 70 whose `SkillLineAbility` rows and spell attributes are byte-for-byte

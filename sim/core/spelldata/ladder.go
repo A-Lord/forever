@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
@@ -84,6 +85,11 @@ func (l Ladder) ByID(id int32) *Spell {
 
 func (l Ladder) Len() int32 {
 	return int32(len(l.ranks))
+}
+
+// Whether the spell was registered from one of the ladder's ranks.
+func (l Ladder) Contains(spell *core.Spell) bool {
+	return slices.ContainsFunc(l.ranks, func(s *Spell) bool { return s.ID == spell.SpellID })
 }
 
 func (l Ladder) Each(fn func(rank int32, s *Spell)) {
