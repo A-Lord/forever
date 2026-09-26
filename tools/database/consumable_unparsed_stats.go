@@ -11,22 +11,6 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// One rating feeds the physical and the spell percent alike, so a consumable granting both is listed
-// at the rating of the larger of the two, once. A consumable granting one of them is listed by that
-// channel's pseudo stats: physical as melee and ranged, spell as spell.
-var percentRatings = []struct {
-	physical, spell stats.Stat
-	rating          stats.Stat
-	perPercent      float64
-	melee, ranged   proto.PseudoStat
-	spellPseudo     proto.PseudoStat
-}{
-	{stats.PhysicalHitPercent, stats.SpellHitPercent, stats.HitRating, core.HitRatingPerHitPercent,
-		proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent},
-	{stats.PhysicalCritPercent, stats.SpellCritPercent, stats.CritRating, core.CritRatingPerCritPercent,
-		proto.PseudoStat_PseudoStatMeleeCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent},
-}
-
 // Adds to the stats and pseudo stats db.json lists for a consumable, which the settings offer it by,
 // what its on-use grants that the stat parse leaves out: the stats against creature types (Potion of
 // Demon Slaying 9224's 11406: 180 attack power against Demons), the hit and crit of one channel
@@ -74,16 +58,22 @@ func AddUnparsedStats(db *WowDatabase) error {
 		granted[stats.ExpertiseRating] += percents[stats.ExpertisePercent] * core.ExpertiseRatingPerExpertisePercent
 
 		pseudoStats := make([]float64, stats.PseudoStatsLen)
-		for _, r := range percentRatings {
-			physical, spell := percents[r.physical], percents[r.spell]
+		// One rating feeds the physical and the spell percent alike, so a consumable granting both is
+		// listed at the rating of the larger of the two, once. A consumable granting one of them is listed
+		// by that channel's pseudo stats: physical as melee and ranged, spell as spell.
+		for _, r := range core.RatingChannelTable {
+			if r.Melee.Percent == nil {
+				continue
+			}
+			physical, spell := percents[r.Melee.Percent.Stat], percents[r.Spell.Percent.Stat]
 			switch {
 			case physical > 0 && spell > 0:
-				granted[r.rating] += max(physical, spell) * r.perPercent
+				granted[r.Rating] += max(physical, spell) * r.RatingPerPercent
 			case physical > 0:
-				pseudoStats[r.melee] += physical
-				pseudoStats[r.ranged] += physical
+				pseudoStats[r.Melee.PseudoStat] += physical
+				pseudoStats[r.Ranged.PseudoStat] += physical
 			case spell > 0:
-				pseudoStats[r.spellPseudo] += spell
+				pseudoStats[r.Spell.PseudoStat] += spell
 			}
 		}
 		if allCrit != 0 {

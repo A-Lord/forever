@@ -140,6 +140,47 @@ func TestEquipSpellFolds(t *testing.T) {
 	})
 }
 
+// Each effect of an equip spell goes to the stats, to ranged attacks alone, or to run time.
+func TestEquipEffectFold(t *testing.T) {
+	withDBCInputs(t)
+	dbc.GetDBC()
+
+	for _, tc := range []struct {
+		name    string
+		spellID func(t *testing.T) int
+		want    dbc.EquipFold
+	}{
+		{"24154 Falcon's Call, hit on any weapon", fixedSpell(24154), dbc.FoldStats},
+		{"22780 Biznicks 247x128 Accurascope, hit on bows, guns and crossbows", fixedSpell(22780), dbc.FoldRanged},
+		{"1310308 SAF-T Ultra Precision Scope, all crit on bows, guns and crossbows", fixedSpell(1310308), dbc.FoldRanged},
+		{"22755 Critical Weapon +2, crit on melee weapons", fixedSpell(22755), dbc.FoldRuntime},
+		{"430391 Hit Weapon +2 held to the off hand's slot", offHandHitWeapon, dbc.FoldRuntime},
+		{"22780 as a hit rating on every channel, bows, guns and crossbows", rangedWeaponHitRating, dbc.FoldRuntime},
+		{"24154 as a ranged hit rating on any weapon", rangedHitRating, dbc.FoldRanged},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			effect := dbc.GetDBC().SpellEffectsInOrder(tc.spellID(t))[0]
+			if got := dbc.EquipEffectFold(effect); got != tc.want {
+				t.Errorf("fold %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func fixedSpell(spellID int) func(t *testing.T) int {
+	return func(*testing.T) int { return spellID }
+}
+
+// 24154 Falcon's Call with its hit chance traded for hit rating on the ranged bit alone, a shape no equip
+// spell the store carries states.
+func rangedHitRating(t *testing.T) int {
+	effect := &spelldata.Find(24154).Effects[0]
+	aura, misc := effect.Aura, effect.Misc
+	effect.Aura, effect.Misc = dbcenums.A_MOD_RATING, dbcenums.RATING_MOD_HIT_RANGED
+	t.Cleanup(func() { effect.Aura, effect.Misc = aura, misc })
+	return 24154
+}
+
 // A combat rating of ranged bits alone is the ranged percent it converts to; one naming any other bit
 // is a rating stat and grants none.
 func TestRangedRatingPercents(t *testing.T) {
