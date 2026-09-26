@@ -34,6 +34,10 @@ type parseOptions struct {
 	singleAura        bool
 	perStatCategory   string
 	schoolResistances bool
+
+	caster      *core.Unit
+	casterIndex int
+	casterTotal int
 }
 
 // Only these effects, counted from 1 by position the way EffectN counts.
@@ -154,6 +158,17 @@ func SchoolResistances() ParseOpt {
 	}
 }
 
+// The unit that put the aura on the unit it sits on, for the rows that reach only that caster's
+// attacks on it: Shadow Weaving's shadow damage, Hemorrhage's Rupture, Winter's Chill's crit. Those
+// rows share one slot, index out of total, in the caster's attack table against the aura's unit: the
+// slot core's EnableDamageDoneByCaster and EnableCritChanceByCaster fill. The class numbers its slots
+// the way it numbers its AttachDDBC calls, one per parse. Without a caster those rows are skipped.
+func FromCaster(caster *core.Unit, index, total int) ParseOpt {
+	return func(o *parseOptions) {
+		o.caster, o.casterIndex, o.casterTotal = caster, index, total
+	}
+}
+
 // One attachment the parse made, for a log or a test: the effect it came from, the sim kind it
 // became and the value it carries in the sim's own units. A time value is stated in milliseconds,
 // and a multiplier as the factor itself.
@@ -244,6 +259,9 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		stacking:    stacking || o.count != 0,
 		dry:         dry,
 		aura:        aura,
+	}
+	if o.caster != nil {
+		p.casterSlot = &casterSlot{caster: o.caster, target: unit, index: o.casterIndex, total: o.casterTotal}
 	}
 
 	folded := foldedDotEffects(s, o)

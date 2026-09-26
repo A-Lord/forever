@@ -542,6 +542,9 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},
 		{dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, 32, 58, "mob-type-stat SpellDamage", 58, true},
 		{dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1, "damage-dealt-versus", 1.01, false},
+		{dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, 32, 2, "caster-damage-by-school", 1.02, true},
+		{dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER, 0, 15, "caster-damage-by-spell", 1.15, true},
+		{dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, 16, 2, "caster-crit-by-spell", 2, true},
 	}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases
@@ -580,9 +583,12 @@ func TestEveryTableRow(t *testing.T) {
 				Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: c.aura, Misc: c.misc,
 					BasePoints: c.points, ClassFlags: parseTargetMask}}}
 
+			// The character casts the aura it wears, which is all a row that reaches only its caster's
+			// attacks needs to attach.
 			var parsed *Parsed
 			if c.onAura {
-				parsed = ParseEffects(character, character.RegisterAura(AuraConfig(&row)), &row)
+				parsed = ParseEffects(character, character.RegisterAura(AuraConfig(&row)), &row,
+					FromCaster(&character.Unit, 0, 1))
 			} else {
 				parsed = ParseStatic(character, &row)
 			}
