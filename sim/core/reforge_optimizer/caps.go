@@ -19,8 +19,7 @@ type reforgeSoftCap struct {
 }
 
 // ---------------------------------------------------------------------------
-// LP-path cap computation (mirrors the reference solver). These run alongside the legacy
-// buildReforgeHardCaps/buildReforgeSoftCaps/validateReforgeWeights until the MIP path is removed.
+// LP-path cap computation (mirrors the reference solver).
 // ---------------------------------------------------------------------------
 
 // computeReforgeSoftCaps converts each configured soft cap's absolute breakpoints into
@@ -63,59 +62,37 @@ func computeReforgeSoftCaps(baseStats core.UnitStats, configs []*proto.StatCapCo
 	return result
 }
 
-// isAvoidanceRating reports whether a rating's percent children are shared with another rating:
-// defense moves dodge, parry and block alongside their own ratings.
-func isAvoidanceRating(parent stats.Stat) bool {
-	switch parent {
-	case stats.DefenseRating, stats.DodgeRating, stats.ParryRating, stats.BlockRating:
-		return true
-	default:
-		return false
-	}
-}
+var offenseRatings = []stats.Stat{stats.HitRating, stats.CritRating, stats.HasteRating, stats.ExpertiseRating}
 
-// checkWeights routes each pure-rating stat's EP into the percent pseudo-stat that actually carries
-// a cap, so the solver values the stat in the same units the caps are expressed in.
-//
-// A gem's rating moves every percent child together, so a hit, crit, haste or expertise rating with
-// EP is worth its own EP and its children's weights are dropped: the first capped child takes the
-// rating's EP per percent, and without a capped child the rating keeps it. A rating without EP is
-// valued through its children's weights.
-//
-// An avoidance rating's children are shared, so a child weight there may be another rating's only
-// value: when a child carries EP the avoidance rating is zeroed instead. Conversions ACCUMULATE onto
-// any existing child EP because several parents can share one child (both DefenseRating and
-// DodgeRating feed DodgePercent).
+// avoidanceRatings share percent children: defense moves dodge, parry and block alongside their own
+// ratings.
+var avoidanceRatings = []stats.Stat{stats.DefenseRating, stats.DodgeRating, stats.ParryRating, stats.BlockRating}
+
+// checkWeights moves each weighted rating's EP onto the first of its percent children that carries
+// a cap, as EP per percent, so the solver values the rating in the units its caps use. Without a
+// capped child the rating keeps its EP; a rating without EP is valued through its children.
+// A hit, crit, haste or expertise rating with EP drops its children's weights first. An avoidance
+// rating is zeroed instead when any of its children already carries a weight; defense runs first,
+// so its EP landing on Dodge% zeroes dodge rating.
 func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSoftCaps []*reforgeSoftCap) core.UnitStats {
 	validated := weights
-	for _, parent := range []stats.Stat{
-		stats.HitRating,
-		stats.CritRating,
-		stats.HasteRating,
-		stats.DefenseRating,
-		stats.DodgeRating,
-		stats.ParryRating,
-		stats.BlockRating,
-		stats.ExpertiseRating,
-	} {
+	for _, parent := range slices.Concat(offenseRatings, avoidanceRatings) {
+		if validated.Stats[parent] == 0 {
+			continue
+		}
 		children := childPseudoStats(parent)
 		if len(children) == 0 {
 			continue
 		}
 
-		if isAvoidanceRating(parent) {
-			childHasWeight := false
-			for _, child := range children {
-				if getUnitStat(validated, stats.UnitStatFromPseudoStat(child)) != 0 {
-					childHasWeight = true
-					break
-				}
-			}
-			if childHasWeight {
+		if slices.Contains(avoidanceRatings, parent) {
+			if slices.ContainsFunc(children, func(child proto.PseudoStat) bool {
+				return getUnitStat(validated, stats.UnitStatFromPseudoStat(child)) != 0
+			}) {
 				validated.Stats[parent] = 0
 				continue
 			}
-		} else if validated.Stats[parent] != 0 {
+		} else {
 			for _, child := range children {
 				validated = setUnitStat(validated, stats.UnitStatFromPseudoStat(child), 0)
 			}
