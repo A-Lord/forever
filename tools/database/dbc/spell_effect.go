@@ -409,8 +409,9 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 			}
 		}
 	case effect.EffectAura == dbcenums.A_MOD_TARGET_RESISTANCE:
-		resist := ConvertTargetResistanceFlagToPenetrationStat(effect.EffectMiscValues[0])
-		effectStats[resist] = math.Abs(float64(effect.EffectBasePoints + effect.EffectDieSides))
+		if resist := ConvertTargetResistanceFlagToPenetrationStat(effect.EffectMiscValues[0]); resist >= 0 {
+			effectStats[resist] = math.Abs(float64(effect.EffectBasePoints + effect.EffectDieSides))
+		}
 	case effect.EffectAura == dbcenums.A_MOD_POWER_REGEN && effect.EffectType == dbcenums.E_APPLY_AURA:
 		if effect.Coefficient != 0 && effect.ScalingType != 0 {
 			effectStats[proto.Stat_StatMP5] = effect.CalcCoefficientStatValue(core.TernaryInt(scalesWithIlvl, ilvl, 0))
