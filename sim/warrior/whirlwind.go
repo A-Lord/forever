@@ -12,7 +12,6 @@ func (warrior *Warrior) registerWhirlwind() {
 	if warrior.Talents.RagingBlows {
 		config := spelldata.SpellConfig(&warrior.Unit, whirlwindRank,
 			spelldata.Melee(core.ProcMaskMeleeOHSpecial), spelldata.Proc(), spelldata.Tag(2))
-		config.ClassSpellMask = SpellMaskWhirlwindOh
 
 		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 			baseDamage := warrior.OHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
@@ -25,7 +24,6 @@ func (warrior *Warrior) registerWhirlwind() {
 
 	config := spelldata.SpellConfig(&warrior.Unit, whirlwindRank,
 		spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Tag(1))
-	config.ClassSpellMask = SpellMaskWhirlwind
 
 	// TODO: In-game testing required for threat multiplier / threat bonus.
 	config.ThreatMultiplier = 1

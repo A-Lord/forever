@@ -38,6 +38,8 @@ type ProcInfo struct {
 	MaxCumulativeStacks int32
 	RequireDamageDealt  bool
 	ClassSpellsOnly     bool
+	// See core.ProcTrigger.
+	RequireDamageComponent bool
 	// The listener's Can Proc From Procs attribute: it also hears hits from proc spells.
 	CanProcFromProcs bool
 	// A "Chance on hit" item effect or a combat enchant, cast by the game off every eligible
@@ -1498,6 +1500,10 @@ func ParseTooltipForMissingEffect(parsed *proto.UIItem, itemEffect *proto.ItemEf
 // chance", "critical strike damage" or "critical strike rating", in the singular.
 var critMatcher = regexp.MustCompile(`critical ([^\s]+|damage,?)( chance)? [^fbc]|[Yy]our [a-z ]{0,20}critical strikes`)
 var pureHealMatcher = regexp.MustCompile(`healing spells`)
+
+// A trigger clause restricted to spells with a damage component: "your damaging spells", "damage
+// spells", "Your next 5 damage or healing spells", "abilities that deal damage".
+var damageTriggerMatcher = regexp.MustCompile(`(?i)\bdamaging\b|\bdamage (or healing )?spells?\b|\bdeals? damage\b`)
 var hasHealMatcher = regexp.MustCompile(`heal(ing)?[^,]`)
 var hasGenericMatcher = regexp.MustCompile(`a spell`)
 
@@ -1610,7 +1616,10 @@ func procTooltipHints(tooltip string) core.ProcHint {
 		hints |= core.ProcHintHeals
 	}
 
-	if pureHealMatcher.MatchString(tooltip) {
+	// "damage or healing spells" names healing spells without being restricted to them.
+	if damageTriggerMatcher.MatchString(tooltip) {
+		hints |= core.ProcHintDamage
+	} else if pureHealMatcher.MatchString(tooltip) {
 		hints |= core.ProcHintPureHeal
 	}
 
@@ -1640,7 +1649,14 @@ func buildStackProcInfo(itemEffect *proto.ItemEffect, instance *dbc.DBC, tooltip
 		return nil
 	}
 
-	info, supported := BuildSpellProcInfo(&container, tooltip, proto.ItemType_ItemTypeUnknown)
+	// The container's own tooltip is what states what adds a stack, and the store row carries its
+	// reading along with any hint an override supplies.
+	hint := procTooltipHints(tooltip)
+	if row := spelldata.Find(container.ID); row != spelldata.Nil {
+		hint = row.ProcHint
+	}
+
+	info, supported := buildSpellProcInfo(&container, tooltip, proto.ItemType_ItemTypeUnknown, hint)
 	if !supported {
 		return nil
 	}
@@ -1680,6 +1696,10 @@ func BuildProcInfo(parsed *proto.UIItem, itemEffectID int, instance *dbc.DBC, to
 }
 
 func BuildSpellProcInfo(procSpell *dbc.Spell, tooltip string, itemType proto.ItemType) (ProcInfo, bool) {
+	return buildSpellProcInfo(procSpell, tooltip, itemType, procTooltipHints(tooltip))
+}
+
+func buildSpellProcInfo(procSpell *dbc.Spell, tooltip string, itemType proto.ItemType, hint core.ProcHint) (ProcInfo, bool) {
 	var info = ProcInfo{
 		RequireDamageDealt:  true,
 		MaxCumulativeStacks: procSpell.MaxCumulativeStacks,
@@ -1744,12 +1764,13 @@ func BuildSpellProcInfo(procSpell *dbc.Spell, tooltip string, itemType proto.Ite
 	if !onHitProc && len(procSpell.ProcTypeMask) > 0 {
 		decoded := core.DecodeProcTypeMask(
 			[2]uint32{uint32(procSpell.ProcTypeMask[0]), uint32(procSpell.ProcTypeMask[1])},
-			procTooltipHints(tooltip),
+			hint,
 		)
 
 		info.Callback |= decoded.Callback
 		info.ProcMask |= decoded.ProcMask
 		info.RequireDamageDealt = decoded.RequireDamageDealt
+		info.RequireDamageComponent = decoded.RequireDamageComponent
 		info.Outcome = decoded.Outcome
 		requiresOutcome = false
 	}

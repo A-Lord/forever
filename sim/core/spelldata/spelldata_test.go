@@ -297,6 +297,18 @@ func TestTalentCurveLengthPanics(t *testing.T) {
 	requirePanic(t, "spelldata: spell 116 curve row 1 has 2 ranks, want 3", func() { Talent(116, 3) })
 }
 
+func TestLadderContains(t *testing.T) {
+	withRows(t, []Spell{{ID: 116}, {ID: 205}, {ID: 837}})
+
+	ladder := Ranked(116, 205)
+	if !ladder.Contains(&core.Spell{ActionID: core.ActionID{SpellID: 205}}) {
+		t.Error("rank 2 is not contained")
+	}
+	if ladder.Contains(&core.Spell{ActionID: core.ActionID{SpellID: 837}}) {
+		t.Error("a spell outside the ladder is contained")
+	}
+}
+
 // Find binary searches, so the store refuses rows it could not search.
 func TestOutOfOrderIDsPanic(t *testing.T) {
 	defer setSpells(fixture())
