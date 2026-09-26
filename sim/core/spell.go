@@ -431,6 +431,10 @@ func (spell *Spell) CurDot() *Dot {
 func (spell *Spell) AOEDot() *Dot {
 	return spell.aoeDot
 }
+
+func (spell *Spell) hasDot(target *Unit) bool {
+	return spell.Dot(target) != nil || spell.aoeDot != nil
+}
 func (spell *Spell) Hot(target *Unit) *Dot {
 	if spell.dots == nil {
 		return nil

@@ -161,7 +161,7 @@ func (warrior *Warrior) registerFlurry() {
 	// spell hits too; the tooltip says a melee critical strike, so the mask stays the caller's.
 	trigger := spelldata.ProcTrigger(&warrior.Character, spellData.Flurry.Rank(warrior.Talents.Flurry),
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if spell.Matches(SpellMaskWhirlwindOh) {
+			if spellData.Whirlwind.Contains(spell) && spell.ProcMask.Matches(core.ProcMaskMeleeOH) {
 				return
 			}
 
@@ -200,7 +200,6 @@ func (warrior *Warrior) registerBloodthirst() {
 	apShare := bloodthirstRank.EffectN(2).Percent()
 
 	config := spelldata.SpellConfig(&warrior.Unit, bloodthirstRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.ClassSpellMask = SpellMaskBloodthirst
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := spell.MeleeAttackPower(target)*apShare + bloodthirstRank.DamageEffect().Roll(sim, core.CharacterLevel)
@@ -274,7 +273,9 @@ func (warrior *Warrior) registerBloodCraze() {
 	dealt.Name = "Blood Craze - Bloodthirst"
 	dealt.Callback = core.CallbackOnSpellHitDealt
 	dealt.Outcome = core.OutcomeLanded
-	dealt.ClassSpellMask = SpellMaskBloodthirst
+	dealt.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.Bloodthirst.Contains(spell)
+	}
 	warrior.MakeProcTriggerAura(dealt)
 }
 

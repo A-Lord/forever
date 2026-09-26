@@ -7,6 +7,8 @@
 // shares with the SQL overrides is read for *.sql alone.
 package overrides
 
+import "github.com/wowsims/forever/sim/core"
+
 // Which field of the row the value belongs on. Every one of them names a rule the generator checks
 // before it writes the value, so an override outlives its reason no longer than the next
 // regeneration.
@@ -95,6 +97,14 @@ var Spells = []Override{
 	{16928, PPM, 1, "Annihilator: ProcChance 101 sentinel; TBC 1 PPM, unverified on Forever", "tbc-carryover"},
 	{23686, PPM, 1, "Darkmoon Card: Maelstrom: column reads 100, tooltip says 'Chance to strike'", "tbc-carryover"},
 	{26480, PPM, 10, "Badge of the Swarmguard: stack accumulator inside the on-use window", "tbc-carryover"},
+
+	// Melee procs whose tooltips name no trigger condition, ruled to hear only hits with a damage
+	// component: a hit that deals damage, or the landed application of a DoT such as Rend's.
+	{7711, Hint, float64(core.ProcHintDamage), "Blazefury Medallion: fires on hits with a damage component", "owner decision, PR #99"},
+	{7721, Hint, float64(core.ProcHintDamage), "Fiery Plate Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
+	{16615, Hint, float64(core.ProcHintDamage), "Storm Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
+	{23686, Hint, float64(core.ProcHintDamage), "Darkmoon Card: Maelstrom: fires on hits with a damage component", "owner decision, PR #99"},
+	{26480, Hint, float64(core.ProcHintDamage), "Badge of the Swarmguard: stacks on hits with a damage component", "owner decision, PR #99"},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it

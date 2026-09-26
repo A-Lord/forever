@@ -2,8 +2,8 @@
 // the sixteen registrations sim/common/forever/stat_bonus_procs_auto_gen.go carried at 60266be6f7,
 // transcribed by hand, and every field is what that generated call stated. Two of them state a
 // number the client contradicts, one a mask that leaves out the heals the client's mask names, three
-// are no longer registered at all, and one required damage where a weapon proc needs only a landed
-// hit; each says so here.
+// are no longer registered at all, one required damage where a weapon proc needs only a landed
+// hit, and three required damage where their rows now take any damage component; each says so here.
 //
 // A pin rather than a comparison: the generated file carries spell ids now, so there are no literals
 // left to compare against, and what this guards is that resolving those ids still produces the
@@ -31,6 +31,8 @@ type liveProc struct {
 	requireDamageDealt bool
 	canProcFromProcs   bool
 
+	requireDamageComponent bool
+
 	// The rate the registration fired at. A procs-per-minute rate is a manager and no roll, which is
 	// what ppm says.
 	chance float64
@@ -57,10 +59,12 @@ func liveProcs() []liveProc {
 			callback: core.CallbackOnSpellHitTaken, procMask: shieldSpikeMask,
 			outcome: core.OutcomeLanded, requireDamageDealt: true, chance: 0.05}
 	}
+	// The generated call required damage. An override rules these to hits with a damage
+	// component, so the landed application of a DoT that deals none rolls them too.
 	weaponDamage := func(itemID int32, trigger int32, name string) liveProc {
 		return liveProc{itemID: itemID, name: name, triggerSpellID: trigger,
 			callback: core.CallbackOnSpellHitDealt, procMask: meleeAllMask,
-			outcome: core.OutcomeLanded, requireDamageDealt: true, chance: 1}
+			outcome: core.OutcomeLanded, requireDamageComponent: true, chance: 1}
 	}
 
 	const reissue = "the reissued shields carry trigger 1216968, whose Electrostatic Charge is a 20% roll, " +
@@ -186,6 +190,9 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 		}
 		if trigger.RequireDamageDealt != live.requireDamageDealt {
 			report("RequireDamageDealt", trigger.RequireDamageDealt, live.requireDamageDealt)
+		}
+		if trigger.RequireDamageComponent != live.requireDamageComponent {
+			report("RequireDamageComponent", trigger.RequireDamageComponent, live.requireDamageComponent)
 		}
 		if trigger.CanProcFromProcs != live.canProcFromProcs {
 			report("CanProcFromProcs", trigger.CanProcFromProcs, live.canProcFromProcs)

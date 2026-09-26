@@ -9,7 +9,6 @@ var shieldBashRank = spellData.ShieldBash.Highest()
 
 func (warrior *Warrior) registerShieldBash() {
 	config := spelldata.SpellConfig(&warrior.Unit, shieldBashRank, spelldata.Melee(core.ProcMaskMeleeOHSpecial))
-	config.ClassSpellMask = SpellMaskShieldBash
 
 	// TODO: Manual review needed -- the client states no threat coefficient; 1 until measured in game.
 	config.ThreatMultiplier = 1
