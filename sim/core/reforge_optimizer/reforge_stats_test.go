@@ -197,6 +197,88 @@ func TestReforgeDefenseWeightMovesOntoItsFirstCappedPercent(t *testing.T) {
 	}
 }
 
+func TestReforgeRatingKeepsItsWeightOverItsPercentWeights(t *testing.T) {
+	rangedHit := stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatRangedHitPercent)
+	rangedCrit := stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatRangedCritPercent)
+	weights := core.NewUnitStats()
+	weights.Stats[stats.HitRating] = 2
+	weights.Stats[stats.CritRating] = 1.5
+	weights = setUnitStat(weights, rangedHit, 50)
+	weights = setUnitStat(weights, rangedCrit, 40)
+	softCaps := []*reforgeSoftCap{{
+		unitStat:    rangedHit,
+		breakpoints: []float64{3},
+		postCapEPs:  []float64{0},
+		capType:     proto.StatCapType_TypeSoftCap,
+	}}
+
+	validated := checkWeights(weights, core.NewUnitStats(), softCaps)
+	if got := getUnitStat(validated, rangedHit); got != 2*core.HitRatingPerHitPercent {
+		t.Errorf("ranged hit weighs %v per percent, want the hit rating's 2 per rating", got)
+	}
+	for _, child := range childPseudoStats(stats.HitRating) {
+		if child != proto.PseudoStat_PseudoStatRangedHitPercent && getUnitStat(validated, stats.UnitStatFromPseudoStat(child)) != 0 {
+			t.Errorf("%s keeps a weight beside the capped ranged hit", child)
+		}
+	}
+	if validated.Stats[stats.CritRating] != 1.5 || getUnitStat(validated, rangedCrit) != 0 {
+		t.Errorf("uncapped crit weighs %v per rating and %v per ranged crit percent, want 1.5 and 0",
+			validated.Stats[stats.CritRating], getUnitStat(validated, rangedCrit))
+	}
+
+	o := &reforgeOptimizer{player: &proto.Player{}, undershootCaps: core.NewUnitStats()}
+	hitGem := map[string]float64{}
+	o.applyReforgeStat(hitGem, stats.HitRating, 10, validated)
+	if got := computeCoeffScore(hitGem, validated); math.Abs(got-20) > 1e-9 {
+		t.Errorf("10 hit rating scores %v, want 20", got)
+	}
+	critGem := map[string]float64{}
+	o.applyReforgeStat(critGem, stats.CritRating, 10, validated)
+	if got := computeCoeffScore(critGem, validated); math.Abs(got-15) > 1e-9 {
+		t.Errorf("10 crit rating scores %v, want 15", got)
+	}
+
+	variables := newLPVariables()
+	variables.set("hitGem", map[string]float64{coeffKeyForUnitStat(rangedHit): 4})
+	variables.setObj("hitGem", hitGem)
+	exceeded, constraints, capped, _ := o.checkCaps(lpSolution{variables: []string{"hitGem"}}, core.NewUnitStats(), softCaps, variables, newLPConstraints(), validated)
+	if !exceeded {
+		t.Fatal("ranged hit past the soft cap gap leaves the cap unenforced")
+	}
+	if got := constraints.byName[coeffKeyForUnitStat(rangedHit)]; got != greaterEq(3) {
+		t.Errorf("ranged hit row %+v, want at least the 3%% gap", got)
+	}
+	if got := computeCoeffScore(hitGem, capped); got != 0 {
+		t.Errorf("10 hit rating past the soft cap scores %v, want the post-cap 0", got)
+	}
+}
+
+func TestReforgeRatingWithoutPercentWeightsIsUnchanged(t *testing.T) {
+	meleeHit := stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatMeleeHitPercent)
+	hitWeight := func() core.UnitStats {
+		weights := core.NewUnitStats()
+		weights.Stats[stats.HitRating] = 2
+		return weights
+	}
+
+	validated := checkWeights(hitWeight(), setUnitStat(core.NewUnitStats(), meleeHit, 2), nil)
+	if validated.Stats[stats.HitRating] != 0 || getUnitStat(validated, meleeHit) != 2*core.HitRatingPerHitPercent {
+		t.Errorf("hit under a melee hit cap weighs %v per rating and %v per percent, want 0 and %v",
+			validated.Stats[stats.HitRating], getUnitStat(validated, meleeHit), 2*core.HitRatingPerHitPercent)
+	}
+
+	validated = checkWeights(hitWeight(), core.NewUnitStats(), nil)
+	if validated.Stats[stats.HitRating] != 2 || getUnitStat(validated, meleeHit) != 0 {
+		t.Errorf("uncapped hit weighs %v per rating and %v per percent, want 2 and 0",
+			validated.Stats[stats.HitRating], getUnitStat(validated, meleeHit))
+	}
+
+	validated = checkWeights(setUnitStat(core.NewUnitStats(), meleeHit, 30), setUnitStat(core.NewUnitStats(), meleeHit, 2), nil)
+	if validated.Stats[stats.HitRating] != 0 || getUnitStat(validated, meleeHit) != 30 {
+		t.Errorf("an unweighted hit rating leaves melee hit at %v per percent, want 30", getUnitStat(validated, meleeHit))
+	}
+}
+
 func TestReforgeCapSpaceSkipsBlockAndParryTheCharacterLacks(t *testing.T) {
 	sdm := stats.NewStatDependencyManager()
 	sdm.AddStatDependency(stats.DodgeRating, stats.DodgePercent, 1/core.DodgeRatingPerDodgePercent)

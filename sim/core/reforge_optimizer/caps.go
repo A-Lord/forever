@@ -63,20 +63,11 @@ func computeReforgeSoftCaps(baseStats core.UnitStats, configs []*proto.StatCapCo
 	return result
 }
 
-// isSchoolHitChildOfSpellHit reports whether a child pseudo-stat is one of the per-school spell-hit
-// percentages. A non-zero EP on one of these does NOT suppress the HitRating conversion: a spec can
-// weight both the pure rating and its school percentages, and the two are summed.
-func isSchoolHitChildOfSpellHit(parent stats.Stat, child proto.PseudoStat) bool {
-	if parent != stats.HitRating {
-		return false
-	}
-	switch child {
-	case proto.PseudoStat_PseudoStatSchoolHitPercentArcane,
-		proto.PseudoStat_PseudoStatSchoolHitPercentFire,
-		proto.PseudoStat_PseudoStatSchoolHitPercentFrost,
-		proto.PseudoStat_PseudoStatSchoolHitPercentHoly,
-		proto.PseudoStat_PseudoStatSchoolHitPercentNature,
-		proto.PseudoStat_PseudoStatSchoolHitPercentShadow:
+// isAvoidanceRating reports whether a rating's percent children are shared with another rating:
+// defense moves dodge, parry and block alongside their own ratings.
+func isAvoidanceRating(parent stats.Stat) bool {
+	switch parent {
+	case stats.DefenseRating, stats.DodgeRating, stats.ParryRating, stats.BlockRating:
 		return true
 	default:
 		return false
@@ -86,9 +77,14 @@ func isSchoolHitChildOfSpellHit(parent stats.Stat, child proto.PseudoStat) bool 
 // checkWeights routes each pure-rating stat's EP into the percent pseudo-stat that actually carries
 // a cap, so the solver values the stat in the same units the caps are expressed in.
 //
-// When a child already carries EP the parent rating is simply zeroed (it would double count) — the
-// per-school spell-hit children are exempt, since a spec may weight both. Conversions ACCUMULATE
-// onto any existing child EP because several parents can share one child (both DefenseRating and
+// A gem's rating moves every percent child together, so a hit, crit, haste or expertise rating with
+// EP is worth its own EP and its children's weights are dropped: the first capped child takes the
+// rating's EP per percent, and without a capped child the rating keeps it. A rating without EP is
+// valued through its children's weights.
+//
+// An avoidance rating's children are shared, so a child weight there may be another rating's only
+// value: when a child carries EP the avoidance rating is zeroed instead. Conversions ACCUMULATE onto
+// any existing child EP because several parents can share one child (both DefenseRating and
 // DodgeRating feed DodgePercent).
 func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSoftCaps []*reforgeSoftCap) core.UnitStats {
 	validated := weights
@@ -107,19 +103,22 @@ func checkWeights(weights core.UnitStats, reforgeCaps core.UnitStats, reforgeSof
 			continue
 		}
 
-		childHasWeight := false
-		for _, child := range children {
-			if isSchoolHitChildOfSpellHit(parent, child) {
+		if isAvoidanceRating(parent) {
+			childHasWeight := false
+			for _, child := range children {
+				if getUnitStat(validated, stats.UnitStatFromPseudoStat(child)) != 0 {
+					childHasWeight = true
+					break
+				}
+			}
+			if childHasWeight {
+				validated.Stats[parent] = 0
 				continue
 			}
-			if getUnitStat(validated, stats.UnitStatFromPseudoStat(child)) != 0 {
-				childHasWeight = true
-				break
+		} else if validated.Stats[parent] != 0 {
+			for _, child := range children {
+				validated = setUnitStat(validated, stats.UnitStatFromPseudoStat(child), 0)
 			}
-		}
-		if childHasWeight {
-			validated.Stats[parent] = 0
-			continue
 		}
 
 		for _, child := range children {
