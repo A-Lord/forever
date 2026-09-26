@@ -316,18 +316,12 @@ export class UnitStat {
 
 	// Inverse of the above
 	static getChildren(parentStat: Stat): PseudoStat[] {
+		const channels = RATING_CHANNELS.get(parentStat);
+		if (channels) {
+			const children = [channels.melee, channels.ranged, channels.spell];
+			return parentStat === Stat.StatHitRating ? [...children, ...SCHOOL_HIT_PERCENT_PSEUDO_STATS] : children;
+		}
 		switch (parentStat) {
-			case Stat.StatHitRating:
-				return [
-					PseudoStat.PseudoStatMeleeHitPercent,
-					PseudoStat.PseudoStatRangedHitPercent,
-					PseudoStat.PseudoStatSpellHitPercent,
-					...SCHOOL_HIT_PERCENT_PSEUDO_STATS,
-				];
-			case Stat.StatCritRating:
-				return [PseudoStat.PseudoStatMeleeCritPercent, PseudoStat.PseudoStatRangedCritPercent, PseudoStat.PseudoStatSpellCritPercent];
-			case Stat.StatHasteRating:
-				return [PseudoStat.PseudoStatMeleeHastePercent, PseudoStat.PseudoStatRangedHastePercent, PseudoStat.PseudoStatSpellHastePercent];
 			case Stat.StatDefenseRating:
 				return [PseudoStat.PseudoStatReducedCritTakenPercent];
 			case Stat.StatExpertiseRating:
@@ -354,7 +348,8 @@ const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Set(
 );
 
 // The melee, ranged and spell percents one hit, crit or haste rating raises together. Each percent's
-// weight measures its own channel alone: melee attacks, ranged attacks or spells.
+// weight measures its own channel alone: melee attacks, ranged attacks or spells. RatingChannelTable in
+// sim/core/unit.go is the back end's copy of the same channels; the two are kept in sync by hand.
 const RATING_CHANNELS = new Map<Stat, { melee: PseudoStat; ranged: PseudoStat; spell: PseudoStat }>([
 	[
 		Stat.StatHitRating,

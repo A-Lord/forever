@@ -356,24 +356,32 @@ func (unit *Unit) AddOnTemporaryStatsChange(otsc OnTemporaryStatsChange) {
 }
 
 func (unit *Unit) AddStatsDynamic(sim *Simulation, bonus stats.Stats) {
+	unit.addStatsDynamic(sim, &bonus)
+}
+
+func (unit *Unit) addStatsDynamic(sim *Simulation, bonus *stats.Stats) {
 	if unit.Env == nil {
 		panic("Environment not constructed.")
 	} else if !unit.Env.IsFinalized() && !unit.Env.MeasuringStats {
 		panic("Not finalized, use AddStats instead!")
 	}
 
-	unit.statsWithoutDeps.AddInplace(&bonus)
+	unit.statsWithoutDeps.AddInplace(bonus)
 
 	if !unit.Env.MeasuringStats || unit.Env.State == Finalized {
 		// Recompute the full total rather than applying dependencies to the
 		// delta: floored stats are only path-independent as floor(newTotal) -
 		// floor(oldTotal), while flooring per-delta would drift on every
 		// aura gain/expire cycle.
-		newStats := unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
-		bonus = newStats.Subtract(unit.stats)
-		unit.stats = newStats
+		old := &unit.stats
+		*bonus = unit.statsWithoutDeps
+		unit.StatDependencyManager.ApplyStatDependenciesInPlace(bonus)
+		bonus.FloorGameStatsInPlace()
+		for k := range bonus {
+			bonus[k], old[k] = bonus[k]-old[k], bonus[k]
+		}
 	} else {
-		unit.stats.AddInplace(&bonus)
+		unit.stats.AddInplace(bonus)
 	}
 
 	if sim.Log != nil {
@@ -384,12 +392,12 @@ func (unit *Unit) AddStatsDynamic(sim *Simulation, bonus stats.Stats) {
 }
 
 func (unit *Unit) AddStatDynamic(sim *Simulation, stat stats.Stat, amount float64) {
-	bonus := stats.Stats{}
+	var bonus stats.Stats
 	bonus[stat] = amount
-	unit.AddStatsDynamic(sim, bonus)
+	unit.addStatsDynamic(sim, &bonus)
 }
 
-func (unit *Unit) processDynamicBonus(sim *Simulation, bonus stats.Stats) {
+func (unit *Unit) processDynamicBonus(sim *Simulation, bonus *stats.Stats) {
 	if bonus[stats.MP5] != 0 || bonus[stats.Intellect] != 0 || bonus[stats.Spirit] != 0 {
 		unit.UpdateManaRegenRates()
 	}
@@ -414,7 +422,7 @@ func (unit *Unit) processDynamicBonus(sim *Simulation, bonus stats.Stats) {
 			continue
 		}
 
-		pet.pendingStatInheritance.AddInplace(&bonus)
+		pet.pendingStatInheritance.AddInplace(bonus)
 
 		if pet.statInheritanceAction.consumed || (pet.statInheritanceAction.NextActionAt == 0) {
 			numHeartbeats := (sim.CurrentTime - unit.Env.heartbeatOffset) / PetUpdateInterval
@@ -428,7 +436,8 @@ func (unit *Unit) EnableDynamicStatDep(sim *Simulation, dep *stats.StatDependenc
 	if unit.StatDependencyManager.EnableDynamicStatDep(dep) {
 		oldStats := unit.stats
 		unit.stats = unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
-		unit.processDynamicBonus(sim, unit.stats.Subtract(oldStats))
+		d := unit.stats.Subtract(oldStats)
+		unit.processDynamicBonus(sim, &d)
 
 		if sim.Log != nil {
 			unit.Log(sim, "Dynamic dep enabled (%s): %s", dep.String(), unit.stats.Subtract(oldStats).FlatString())
@@ -439,7 +448,8 @@ func (unit *Unit) DisableDynamicStatDep(sim *Simulation, dep *stats.StatDependen
 	if unit.StatDependencyManager.DisableDynamicStatDep(dep) {
 		oldStats := unit.stats
 		unit.stats = unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
-		unit.processDynamicBonus(sim, unit.stats.Subtract(oldStats))
+		d := unit.stats.Subtract(oldStats)
+		unit.processDynamicBonus(sim, &d)
 
 		if sim.Log != nil {
 			unit.Log(sim, "Dynamic dep disabled (%s): %s", dep.String(), unit.stats.Subtract(oldStats).FlatString())
@@ -454,7 +464,7 @@ func (unit *Unit) UpdateDynamicStatDep(sim *Simulation, dep *stats.StatDependenc
 		oldStats := unit.stats
 		unit.stats = unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
 		statsChange := unit.stats.Subtract(oldStats)
-		unit.processDynamicBonus(sim, statsChange)
+		unit.processDynamicBonus(sim, &statsChange)
 
 		if sim.Log != nil {
 			unit.Log(sim, "Dynamic dep updated (%s): %s", dep.String(), statsChange.FlatString())
@@ -592,9 +602,11 @@ func (unit *Unit) MultiplyMeleeSpeed(sim *Simulation, amount float64) {
 	unit.PseudoStats.MeleeSpeedMultiplier *= amount
 	unit.updateMeleeAttackSpeed()
 
-	unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
-		pet.dynamicMeleeSpeedInheritance(sim, amount)
-	})
+	if len(unit.DynamicMeleeSpeedPets) > 0 {
+		unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
+			pet.dynamicMeleeSpeedInheritance(sim, amount)
+		})
+	}
 
 	unit.AutoAttacks.UpdateSwingTimers(sim)
 }
@@ -656,9 +668,11 @@ func (unit *Unit) MultiplyAttackSpeed(sim *Simulation, amount float64) {
 	unit.updateAttackSpeed()
 	unit.updateMeleeAndRangedHaste()
 
-	unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
-		pet.dynamicMeleeSpeedInheritance(sim, amount)
-	})
+	if len(unit.DynamicMeleeSpeedPets) > 0 {
+		unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
+			pet.dynamicMeleeSpeedInheritance(sim, amount)
+		})
+	}
 
 	unit.AutoAttacks.UpdateSwingTimers(sim)
 }
@@ -691,12 +705,57 @@ type RatingConversion struct {
 	Step             float64
 }
 
+// A percent one rating raises in one channel: the PseudoStat the character sheet shows and, for hit and
+// crit, its pair in stats.PercentPseudoStats. Haste has no back-end percent Stat, so its Percent is nil.
+type RatingChannel struct {
+	PseudoStat proto.PseudoStat
+	Percent    *stats.PercentPseudoStat
+}
+
+func percentChannel(percent *stats.PercentPseudoStat) RatingChannel {
+	return RatingChannel{percent.PseudoStat, percent}
+}
+
+// The melee, ranged and spell percents one rating raises together, at RatingPerPercent rating per percent
+// point. A ranged percent with a MeleeShare is a total over the melee percent.
+type RatingChannels struct {
+	Rating               stats.Stat
+	Melee, Ranged, Spell RatingChannel
+	RatingPerPercent     float64
+}
+
+func (channels RatingChannels) Channels() [3]RatingChannel {
+	return [3]RatingChannel{channels.Melee, channels.Ranged, channels.Spell}
+}
+
+// The channels of the hit, crit and haste ratings. RATING_CHANNELS in ui/sim/proto/stats.ts is the UI's
+// copy of the same channels; the two are kept in sync by hand.
+var RatingChannelTable = []RatingChannels{
+	{stats.HitRating, percentChannel(&stats.MeleeHitPseudoStat), percentChannel(&stats.RangedHitPseudoStat),
+		percentChannel(&stats.SpellHitPseudoStat), HitRatingPerHitPercent},
+	{stats.CritRating, percentChannel(&stats.MeleeCritPseudoStat), percentChannel(&stats.RangedCritPseudoStat),
+		percentChannel(&stats.SpellCritPseudoStat), CritRatingPerCritPercent},
+	{stats.HasteRating, RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatMeleeHastePercent},
+		RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatRangedHastePercent},
+		RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatSpellHastePercent}, HasteRatingPerHastePercent},
+}
+
+// The melee and spell percent of each channel table rating with back-end percent Stats. The ranged Stat
+// holds only what exceeds the melee percent, so no rating converts into it.
+func channelConversions() []RatingConversion {
+	var conversions []RatingConversion
+	for _, channels := range RatingChannelTable {
+		if channels.Melee.Percent != nil {
+			conversions = append(conversions,
+				RatingConversion{channels.Rating, channels.Melee.Percent.Stat, channels.RatingPerPercent, 0},
+				RatingConversion{channels.Rating, channels.Spell.Percent.Stat, channels.RatingPerPercent, 0})
+		}
+	}
+	return conversions
+}
+
 // The rating conversions every unit has, in the order the reforge optimizer tries a rating's percents.
-var RatingConversions = []RatingConversion{
-	{stats.HitRating, stats.PhysicalHitPercent, HitRatingPerHitPercent, 0},
-	{stats.HitRating, stats.SpellHitPercent, HitRatingPerHitPercent, 0},
-	{stats.CritRating, stats.PhysicalCritPercent, CritRatingPerCritPercent, 0},
-	{stats.CritRating, stats.SpellCritPercent, CritRatingPerCritPercent, 0},
+var RatingConversions = append(channelConversions(), []RatingConversion{
 	{stats.ExpertiseRating, stats.ExpertisePercent, ExpertiseRatingPerExpertisePercent, 0},
 	{stats.DodgeRating, stats.DodgePercent, DodgeRatingPerDodgePercent, 0},
 	{stats.ParryRating, stats.ParryPercent, ParryRatingPerParryPercent, 0},
@@ -705,7 +764,7 @@ var RatingConversions = []RatingConversion{
 	{stats.DefenseRating, stats.DodgePercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.ParryPercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.BlockPercent, DefenseRatingPerAvoidancePercent, 0},
-}
+}...)
 
 func AddRatingConversions(sdm *stats.StatDependencyManager) {
 	for _, conversion := range RatingConversions {

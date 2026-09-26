@@ -60,18 +60,13 @@ func isEmptyUnitStats(unitStats core.UnitStats) bool {
 	return true
 }
 
-// hasteRatingSpeedMultiplierPairs maps each (haste rating stat, haste% pseudo-stat) to its
-// speed multiplier pseudo-stat for the analytical haste delta calculation.
+// hasteSpeedMultipliers maps each haste% pseudo-stat to its speed multiplier pseudo-stat for the
+// analytical haste delta calculation.
 // Δhaste% = speedMult × ΔHasteRating / HasteRatingPerHastePercent
-var hasteRatingSpeedMultiplierPairs = [3]struct {
-	hasteRatingStat  stats.Stat
-	hastePS          proto.PseudoStat
-	speedMultPS      proto.PseudoStat
-	hasteRatingConst float64
-}{
-	{stats.HasteRating, proto.PseudoStat_PseudoStatMeleeHastePercent, proto.PseudoStat_PseudoStatMeleeSpeedMultiplier, core.HasteRatingPerHastePercent},
-	{stats.HasteRating, proto.PseudoStat_PseudoStatRangedHastePercent, proto.PseudoStat_PseudoStatRangedSpeedMultiplier, core.HasteRatingPerHastePercent},
-	{stats.HasteRating, proto.PseudoStat_PseudoStatSpellHastePercent, proto.PseudoStat_PseudoStatCastSpeedMultiplier, core.HasteRatingPerHastePercent},
+var hasteSpeedMultipliers = map[proto.PseudoStat]proto.PseudoStat{
+	proto.PseudoStat_PseudoStatMeleeHastePercent:  proto.PseudoStat_PseudoStatMeleeSpeedMultiplier,
+	proto.PseudoStat_PseudoStatRangedHastePercent: proto.PseudoStat_PseudoStatRangedSpeedMultiplier,
+	proto.PseudoStat_PseudoStatSpellHastePercent:  proto.PseudoStat_PseudoStatCastSpeedMultiplier,
 }
 
 func rawUnitStatsFromStats(statValues stats.Stats) core.UnitStats {
@@ -132,10 +127,16 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 
 	// Haste% pseudo-stats: read speed multipliers from baseStats.PseudoStats, which
 	// GetPseudoStatsProto populates as MeleeSpeedMultiplier×AttackSpeedMultiplier etc.
-	for _, p := range hasteRatingSpeedMultiplierPairs {
-		if hasteRatingDelta := delta.Stats[p.hasteRatingStat]; hasteRatingDelta != 0 {
-			speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(p.speedMultPS))
-			delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(p.hastePS), speedMult*hasteRatingDelta/p.hasteRatingConst)
+	for _, channels := range core.RatingChannelTable {
+		for _, channel := range channels.Channels() {
+			speedMultPS, ok := hasteSpeedMultipliers[channel.PseudoStat]
+			if !ok {
+				continue
+			}
+			if hasteRatingDelta := delta.Stats[channels.Rating]; hasteRatingDelta != 0 {
+				speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(speedMultPS))
+				delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(channel.PseudoStat), speedMult*hasteRatingDelta/channels.RatingPerPercent)
+			}
 		}
 	}
 
@@ -195,7 +196,7 @@ func sheetPseudoStats(percent stats.Stat) []proto.PseudoStat {
 }
 
 // childPseudoStats returns the percent pseudo-stats a rating moves, from the core rating conversions
-// and the haste ratings, in the order core.RatingConversions lists them.
+// in the order core.RatingConversions lists them, then the channels without a back-end percent Stat.
 func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 	var children []proto.PseudoStat
 	for _, conversion := range core.RatingConversions {
@@ -203,9 +204,11 @@ func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 			children = append(children, sheetPseudoStats(conversion.Percent)...)
 		}
 	}
-	for _, p := range hasteRatingSpeedMultiplierPairs {
-		if p.hasteRatingStat == parent {
-			children = append(children, p.hastePS)
+	for _, channels := range core.RatingChannelTable {
+		for _, channel := range channels.Channels() {
+			if channels.Rating == parent && channel.Percent == nil {
+				children = append(children, channel.PseudoStat)
+			}
 		}
 	}
 	return children
@@ -217,9 +220,11 @@ func ratingPerPseudoStatPercent(pseudoStat proto.PseudoStat, parent stats.Stat) 
 			return conversion.RatingPerPercent
 		}
 	}
-	for _, p := range hasteRatingSpeedMultiplierPairs {
-		if p.hasteRatingStat == parent && p.hastePS == pseudoStat {
-			return p.hasteRatingConst
+	for _, channels := range core.RatingChannelTable {
+		for _, channel := range channels.Channels() {
+			if channels.Rating == parent && channel.PseudoStat == pseudoStat {
+				return channels.RatingPerPercent
+			}
 		}
 	}
 	return 1

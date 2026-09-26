@@ -191,28 +191,8 @@ func processEnchantmentEffects(
 						continue
 					}
 					outStats[stat] += float64(points)
-				} else if spellEffect.EffectType == dbcenums.E_APPLY_AURA && spellEffect.EffectAura == dbcenums.A_MOD_RESISTANCE && (SpellSchool(spellEffect.EffectMiscValues[0]) == ALL_SPELL_DAMAGE || SpellSchool(spellEffect.EffectMiscValues[0]) == SPELL_PENETRATION) {
-					outStats[proto.Stat_StatArcaneResistance] += float64(points)
-					outStats[proto.Stat_StatFireResistance] += float64(points)
-					outStats[proto.Stat_StatFrostResistance] += float64(points)
-					outStats[proto.Stat_StatNatureResistance] += float64(points)
-					outStats[proto.Stat_StatShadowResistance] += float64(points)
 				} else {
-					stat := ConvertEffectAuraToStatIndex(spellEffect.EffectAura, spellEffect.EffectMiscValues[0])
-					if stat >= 0 || stat == -2 {
-						value := float64(points)
-						if stat == proto.Stat_StatArmorPenetration || stat == proto.Stat_StatSpellPiercing {
-							// Make sure it's not Feral AP
-							if strings.Contains(dbcInstance.Spells[spellEffect.SpellID].Description, "forms only") {
-								stat = proto.Stat_StatFeralAttackPower
-							}
-							if stat == proto.Stat_StatArmorPenetration || stat == proto.Stat_StatSpellPiercing {
-								// Make these not negative
-								value = math.Abs(value)
-							}
-						}
-						outStats[stat] += value
-					}
+					addEquipAuraStat(outStats, spellEffect, float64(points))
 				}
 			}
 		case ITEM_ENCHANTMENT_COMBAT_SPELL:
@@ -225,21 +205,85 @@ func processEnchantmentEffects(
 
 const SkillLineDefense = 95
 
-// Whether an equip spell's auras fold into the stats of the item or enchant carrying it: they do
-// unless the parse binds a hit, crit or rating aura of the spell to a weapon, through
-// spelldata.WeaponScope. A hit or crit aura bound to ranged weapons alone still folds, into the ranged
-// offset, and so does a rating mask of ranged bits alone. A rating aura bound to any weapon does not,
-// as the fold would read its mask as a rating on every channel. A bound spell is applied at run time,
-// where the attack's own weapon decides. Every such spell on an item or enchant is a single hit or
-// crit aura, so the whole spell goes one way.
+// Where one effect of an equip spell goes in the data of the item or enchant carrying it.
+type EquipFold uint8
+
+const (
+	// The effect's stat, on every channel it names.
+	FoldStats EquipFold = iota
+	// Ranged attacks alone: a hit or crit aura bound to ranged weapons alone, or a rating mask of
+	// ranged bits alone, as the ranged percents.
+	FoldRanged
+	// Applied at run time, where the attack's own weapon decides: any other hit or crit aura the parse
+	// binds to a weapon, and a rating aura bound to any weapon, whose mask the fold would read as a
+	// rating on every channel.
+	FoldRuntime
+)
+
+// The fold of an effect, from the rule spelldata.WeaponScope gives it.
+func equipFold(s *spelldata.Spell, e *spelldata.Effect) EquipFold {
+	switch rule, scope := spelldata.WeaponScope(s, e); {
+	case rule == spelldata.WeaponRuleNone:
+		return FoldStats
+	case rule == spelldata.WeaponRuleRangedRatings:
+		return FoldRanged
+	case e.Aura == dbcenums.A_MOD_RATING, scope.ProcMask != core.ProcMaskRanged:
+		return FoldRuntime
+	}
+	return FoldRanged
+}
+
+// The fold of a client effect, read off its row in the spell store. An effect of a spell the store
+// does not carry names no weapon.
+func EquipEffectFold(effect SpellEffect) EquipFold {
+	s := spelldata.Find(int32(effect.SpellID))
+	for i := range s.Effects {
+		if int(s.Effects[i].Index) == effect.EffectIndex {
+			return equipFold(s, &s.Effects[i])
+		}
+	}
+	return equipFold(s, &spelldata.Effect{Aura: effect.EffectAura, Misc: int32(effect.EffectMiscValues[0])})
+}
+
+// Whether an equip spell folds into the stats of the item or enchant carrying it: it does unless an
+// effect of it is FoldRuntime. Every such spell on an item or enchant is a single hit, crit or rating
+// aura, so the whole spell goes one way.
 func EquipSpellFolds(spellID int) bool {
 	s := spelldata.Find(int32(spellID))
 	for i := range s.Effects {
-		switch rule, scope := spelldata.WeaponScope(s, &s.Effects[i]); {
-		case rule == spelldata.WeaponRuleNone, rule == spelldata.WeaponRuleRangedRatings:
-		case s.Effects[i].Aura == dbcenums.A_MOD_RATING, scope.ProcMask != core.ProcMaskRanged:
+		if equipFold(s, &s.Effects[i]) == FoldRuntime {
 			return false
 		}
+	}
+	return true
+}
+
+// Adds the stat ConvertEffectAuraToStatIndex names for an equip spell's aura to out, value points of
+// it, and reports whether it named one. A FoldStats effect alone adds. A resistance to every magic
+// school is each of the five resistances, a spell whose description says "forms only" gives feral
+// attack power, and armor penetration and spell piercing count as positive.
+func addEquipAuraStat(out *stats.Stats, effect SpellEffect, value float64) bool {
+	if EquipEffectFold(effect) != FoldStats {
+		return false
+	}
+	stat := ConvertEffectAuraToStatIndex(effect.EffectAura, effect.EffectMiscValues[0])
+	if stat < 0 && stat != -2 {
+		return false
+	}
+	if strings.Contains(dbcInstance.Spells[effect.SpellID].Description, "forms only") {
+		stat = proto.Stat_StatFeralAttackPower
+	}
+	switch stat {
+	case -2:
+		out[proto.Stat_StatArcaneResistance] += value
+		out[proto.Stat_StatFireResistance] += value
+		out[proto.Stat_StatFrostResistance] += value
+		out[proto.Stat_StatNatureResistance] += value
+		out[proto.Stat_StatShadowResistance] += value
+	case proto.Stat_StatArmorPenetration, proto.Stat_StatSpellPiercing:
+		out[stat] += math.Abs(value)
+	default:
+		out[stat] += value
 	}
 	return true
 }
@@ -253,15 +297,13 @@ func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64
 
 	percents := map[proto.PseudoStat]float64{}
 	for _, scoped := range spelldata.ScopedRatingPercents(int32(mask), rating) {
-		percents[rangedPercentStats[scoped.Stat]] = scoped.Percent
+		for _, channels := range core.RatingChannelTable {
+			if channels.Rating == scoped.Stat {
+				percents[channels.Ranged.PseudoStat] = scoped.Percent
+			}
+		}
 	}
 	return percents
-}
-
-var rangedPercentStats = map[stats.Stat]proto.PseudoStat{
-	stats.HitRating:   proto.PseudoStat_PseudoStatRangedHitPercent,
-	stats.CritRating:  proto.PseudoStat_PseudoStatRangedCritPercent,
-	stats.HasteRating: proto.PseudoStat_PseudoStatRangedHastePercent,
 }
 
 // Adds what an equip spell states that no stat index carries, and reports whether it added to each of
@@ -271,28 +313,19 @@ var rangedPercentStats = map[stats.Stat]proto.PseudoStat{
 // cast speed. Only auras on the wearer count: Atiesh's 28142 is a party aura and reaches the sim as a
 // raid buff. A spell EquipSpellFolds leaves to run time adds nothing.
 //
-// A spell naming only ranged weapons gives its hit and crit to ranged attacks alone, written as the
-// total the character sheet shows, melee share included, which stats.FromPseudoStatsProto takes back
-// out. So 22780 (Biznicks 247x128 Accurascope, hit restricted to bows, guns and crossbows) is ranged
-// hit alone, and 1310308 (SAF-T Ultra Precision Scope, the all-crit aura under the same restriction) is
-// ranged crit alone, with no spell crit. A combat rating of ranged bits alone is the ranged percent
-// that rating converts to.
+// A FoldRanged hit or crit aura gives its hit and crit to ranged attacks alone, written as the total
+// the character sheet shows, melee share included, which stats.FromPseudoStatsProto takes back out. So
+// 22780 (Biznicks 247x128 Accurascope, hit restricted to bows, guns and crossbows) is ranged hit alone,
+// and 1310308 (SAF-T Ultra Precision Scope, the all-crit aura under the same restriction) is ranged
+// crit alone, with no spell crit. A FoldRanged combat rating is the ranged percent that rating
+// converts to.
 func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID int) (addedStats bool, addedPseudoStats bool) {
 	if !EquipSpellFolds(spellID) {
 		return false, false
 	}
-	spell := dbcInstance.Spells[spellID]
-	ranged := spell.EquippedItemClass == ITEM_CLASS_WEAPON && spell.EquippedItemSubclass != 0
-
 	add := func(pseudoStat proto.PseudoStat, value float64) {
 		pseudoStats[pseudoStat] += value
 		addedPseudoStats = true
-	}
-	addWeapon := func(meleeStat, rangedStat proto.PseudoStat, value float64) {
-		if !ranged {
-			add(meleeStat, value)
-		}
-		add(rangedStat, value)
 	}
 
 	for _, effect := range dbcInstance.SpellEffectsInOrder(spellID) {
@@ -317,6 +350,14 @@ func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID in
 			continue
 		}
 
+		ranged := EquipEffectFold(effect) == FoldRanged
+		addWeapon := func(meleeStat, rangedStat proto.PseudoStat, value float64) {
+			if !ranged {
+				add(meleeStat, value)
+			}
+			add(rangedStat, value)
+		}
+
 		switch effect.EffectAura {
 		case dbcenums.A_MOD_HIT_CHANCE:
 			addWeapon(proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, value)
@@ -338,6 +379,9 @@ func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID in
 		case dbcenums.A_MOD_PARRY_PERCENT:
 			add(proto.PseudoStat_PseudoStatParryPercent, value)
 		case dbcenums.A_MOD_RATING:
+			if !ranged {
+				break
+			}
 			for pseudoStat, percent := range RangedRatingPercents(effect.EffectMiscValues[0], value) {
 				add(pseudoStat, percent)
 			}
@@ -393,13 +437,12 @@ func ConvertResistanceFlagToResistanceStat(flag int) proto.Stat {
 	return -1
 }
 
+// See core.SpellSchool.PiercingStat; a mask without a stat returns -1.
 func ConvertTargetResistanceFlagToPenetrationStat(flag int) proto.Stat {
-	switch flag {
-	case 1:
-		return proto.Stat_StatArmorPenetration
-	default:
-		return proto.Stat_StatSpellPiercing
+	if stat, ok := core.SpellSchool(flag).PiercingStat(); ok {
+		return proto.Stat(stat)
 	}
+	return -1
 }
 
 func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {

@@ -49,7 +49,9 @@ func RegisterAllTemporaryEnchantConsumables() {
 		{itemID: 232611}, // Magnificent Trollshine
 		{itemID: 274947}, // Scroll of Imbue Lesser Flame
 		{itemID: 277485}, // Scroll of Imbue Frost
+		{itemID: 277487, equipSpellIDs: []int32{1306572}}, // Scroll of Imbue Baleflame
 		{itemID: 277494}, // Scroll of Imbue Accuracy
+		{itemID: 277496, equipSpellIDs: []int32{1306580}}, // Scroll of Imbue Balefrost
 		{itemID: 277497}, // Scroll of Imbue Flame
 		{itemID: 277500}, // Scroll of Imbue Greater Flame
 		{itemID: 277501}, // Scroll of Imbue Greater Frost
