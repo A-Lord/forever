@@ -67,9 +67,67 @@ describe('Player.computeEnchantEP on percent pseudo stats', () => {
 		expect(enchantEP(2717, { [PseudoStat.PseudoStatMeleeCritPercent]: 1, [PseudoStat.PseudoStatRangedCritPercent]: 1 }, ownWeight)).toBeCloseTo(7);
 	});
 
-	it("values 2586 Falcon's Call's hit at a weighted ranged total alone, which carries the melee share", () => {
+	it("values 2586 Falcon's Call's hit as melee hit, which its ranged total holds, at the hit rating weight for a spec weighing ranged hit", () => {
 		const hunterWeights = Stats.fromMap({ [Stat.StatHitRating]: 5 }, { [PseudoStat.PseudoStatRangedHitPercent]: 5 });
-		expect(enchantEP(2586, { [PseudoStat.PseudoStatMeleeHitPercent]: 1, [PseudoStat.PseudoStatRangedHitPercent]: 1 }, hunterWeights)).toBeCloseTo(5);
+		expect(enchantEP(2586, { [PseudoStat.PseudoStatMeleeHitPercent]: 1, [PseudoStat.PseudoStatRangedHitPercent]: 1 }, hunterWeights)).toBeCloseTo(
+			Mechanics.HIT_RATING_PER_HIT_PERCENT * 5,
+		);
+	});
+
+	it('values ranged hit alone at the ranged hit weight for a spec weighing it', () => {
+		const hunterWeights = Stats.fromMap({ [Stat.StatHitRating]: 5 }, { [PseudoStat.PseudoStatRangedHitPercent]: 8 });
+		expect(enchantEP(2523, { [PseudoStat.PseudoStatRangedHitPercent]: 3 }, hunterWeights)).toBeCloseTo(3 * 8);
+	});
+
+	it('values hit on every channel at the hit rating weight alone, though the spec weighs melee and ranged hit', () => {
+		const hitWeights = Stats.fromMap(
+			{ [Stat.StatHitRating]: 5 },
+			{ [PseudoStat.PseudoStatMeleeHitPercent]: 40, [PseudoStat.PseudoStatRangedHitPercent]: 30 },
+		);
+		expect(
+			enchantEP(
+				1,
+				{
+					[PseudoStat.PseudoStatMeleeHitPercent]: 1,
+					[PseudoStat.PseudoStatRangedHitPercent]: 1,
+					[PseudoStat.PseudoStatSpellHitPercent]: 1,
+				},
+				hitWeights,
+			),
+		).toBeCloseTo(Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
+	});
+
+	it('values crit on every channel at the crit rating weight alone, though the spec weighs the crit percents', () => {
+		const critWeights = Stats.fromMap(
+			{ [Stat.StatCritRating]: 3 },
+			{ [PseudoStat.PseudoStatMeleeCritPercent]: 7, [PseudoStat.PseudoStatRangedCritPercent]: 9, [PseudoStat.PseudoStatSpellCritPercent]: 11 },
+		);
+		expect(
+			enchantEP(
+				1220596,
+				{
+					[PseudoStat.PseudoStatMeleeCritPercent]: 1,
+					[PseudoStat.PseudoStatRangedCritPercent]: 1,
+					[PseudoStat.PseudoStatSpellCritPercent]: 1,
+				},
+				critWeights,
+			),
+		).toBeCloseTo(Mechanics.CRIT_RATING_PER_CRIT_PERCENT * 3);
+	});
+
+	it('values the spell crit beyond the part every channel holds at the spell crit weight', () => {
+		const critWeights = Stats.fromMap({ [Stat.StatCritRating]: 3 }, { [PseudoStat.PseudoStatSpellCritPercent]: 11 });
+		expect(
+			enchantEP(
+				1,
+				{
+					[PseudoStat.PseudoStatMeleeCritPercent]: 1,
+					[PseudoStat.PseudoStatRangedCritPercent]: 1,
+					[PseudoStat.PseudoStatSpellCritPercent]: 2,
+				},
+				critWeights,
+			),
+		).toBeCloseTo(Mechanics.CRIT_RATING_PER_CRIT_PERCENT * 3 + 11);
 	});
 
 	it('counts melee and spell hit once, as the largest, since one hit rating raises both', () => {
@@ -119,8 +177,20 @@ describe('Player.computeEnchantEP on haste pseudo stats for a spec weighing rang
 		);
 	});
 
-	it('counts melee and ranged haste together once, at the ranged haste weight', () => {
-		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHastePercent]: 1, [PseudoStat.PseudoStatRangedHastePercent]: 1 })).toBeCloseTo(7);
+	it('values haste on every channel at the haste rating weight alone', () => {
+		expect(
+			enchantEP(931, {
+				[PseudoStat.PseudoStatMeleeHastePercent]: 1,
+				[PseudoStat.PseudoStatRangedHastePercent]: 1,
+				[PseudoStat.PseudoStatSpellHastePercent]: 1,
+			}),
+		).toBeCloseTo(1 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
+	});
+
+	it('values melee and ranged haste with no cast speed, as Arcanum of Rapidity states them, as melee haste at the haste rating weight and ranged haste at its own', () => {
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHastePercent]: 1, [PseudoStat.PseudoStatRangedHastePercent]: 1 })).toBeCloseTo(
+			Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2 + 7,
+		);
 	});
 
 	it('values ranged haste alone at the ranged haste weight', () => {
