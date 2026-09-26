@@ -23,6 +23,9 @@ type rageBar struct {
 	startingRage float64
 	currentRage  float64
 
+	// The starting rage the options asked for, which a new maximum clamps again.
+	requestedStartingRage float64
+
 	offHandRageMultiplier     float64
 	damageTakenRageMultiplier float64
 
@@ -114,6 +117,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 		unit:                      unit,
 		maxRage:                   maxRage,
 		startingRage:              max(0, min(options.StartingRage, maxRage)),
+		requestedStartingRage:     options.StartingRage,
 		offHandRageMultiplier:     1,
 		damageTakenRageMultiplier: 1,
 		RageRefundMetrics:         unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionRefund}),
@@ -131,6 +135,18 @@ func (rb *rageBar) CurrentRage() float64 {
 
 func (rb *rageBar) MaximumRage() float64 {
 	return rb.maxRage
+}
+
+// Sets the most rage the bar holds, and clamps the starting rage the options asked for to it. A raised
+// maximum grants no rage; rage above a lowered one is lost and counted against the metrics. Without a
+// Simulation there is no rage yet to lose, so only the two limits move.
+func (rb *rageBar) SetMaximumRage(sim *Simulation, maxRage float64, metrics *ResourceMetrics) {
+	rb.maxRage = maxRage
+	rb.startingRage = max(0, min(rb.requestedStartingRage, maxRage))
+
+	if sim != nil && rb.currentRage > maxRage {
+		rb.SpendRage(sim, rb.currentRage-maxRage, metrics)
+	}
 }
 
 func (rb *rageBar) SetOffHandRageMultiplier(multiplier float64) {
