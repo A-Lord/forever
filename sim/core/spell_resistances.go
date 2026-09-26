@@ -70,7 +70,11 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool) float64
 		return 0
 	}
 
-	resistance := max(0, unit.GetStat(spell.SpellSchool.ResistanceStat())-attacker.stats[stats.SpellPiercing])
+	resistance := 0.0
+	if stat, ok := spell.SpellSchool.ResistanceStat(); ok {
+		piercing := attacker.stats[stats.SpellPiercing] + attacker.PseudoStats.SchoolSpellPiercing[spell.SchoolIndex]
+		resistance = unit.GetStat(stat) - piercing
+	}
 	if resistance <= 0 {
 		// Level-based resistance does not apply to binary spells.
 		if binary {

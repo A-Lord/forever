@@ -192,6 +192,9 @@ func init() {
 			ActionID: core.ActionID{SpellID: 46662},
 			ProcMask: core.ProcMaskSpellDamage,
 			Outcome:  core.OutcomeLanded,
+
+			RequireDamageComponent: true,
+
 			ExtraCondition: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
 				if !lockout.IsReady(sim) || !sim.Proc(0.5, "Deathfrost (Spell)") {
 					return false

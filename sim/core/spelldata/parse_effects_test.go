@@ -549,6 +549,9 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, 32, 2, "caster-damage-by-school", 1.02, true},
 		{dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER, 0, 15, "caster-damage-by-spell", 1.15, true},
 		{dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, 16, 2, "caster-crit-by-spell", 2, true},
+		{dbcenums.A_MOD_TARGET_RESISTANCE, 1, -200, "stat ArmorPenetration", 200, false},
+		{dbcenums.A_MOD_TARGET_RESISTANCE, 126, -15, "stat SpellPiercing", 15, false},
+		{dbcenums.A_MOD_TARGET_RESISTANCE, 4, -10, "school-spell-piercing", 10, false},
 	}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases
@@ -842,6 +845,34 @@ func TestParseStaticFlatDamageTakenBySchool(t *testing.T) {
 	fire := ParseStatic(parseWarrior(), oneEffectRow(dbcenums.A_MOD_DAMAGE_TAKEN, int32(core.SpellSchoolFire), -10))
 	if len(fire.Applied) != 0 || len(fire.Skipped) != 1 {
 		t.Errorf("a fire-only mask attached %v, want it skipped", appliedKinds(fire))
+	}
+}
+
+// Target resistance by a mask of some schools lands on the per-school piercing of each school it names,
+// its size whichever sign the row states, and leaves SpellPiercing and the other schools alone.
+func TestParseStaticSchoolSpellPiercing(t *testing.T) {
+	withRows(t, parseRows())
+
+	for _, c := range []struct {
+		misc        int32
+		fire, frost float64
+	}{
+		{int32(core.SpellSchoolFire | core.SpellSchoolFrost), 10, 10},
+	} {
+		character := parseWarrior()
+		ParseStatic(character, oneEffectRow(dbcenums.A_MOD_TARGET_RESISTANCE, c.misc, -10))
+
+		piercing := character.PseudoStats.SchoolSpellPiercing
+		if piercing[stats.SchoolIndexFire] != c.fire || piercing[stats.SchoolIndexFrost] != c.frost {
+			t.Errorf("misc %d: fire and frost piercing %v and %v, want %v and %v", c.misc,
+				piercing[stats.SchoolIndexFire], piercing[stats.SchoolIndexFrost], c.fire, c.frost)
+		}
+		if got := piercing[stats.SchoolIndexArcane] + piercing[stats.SchoolIndexShadow]; got != 0 {
+			t.Errorf("misc %d: arcane and shadow piercing %v, want 0", c.misc, got)
+		}
+		if got := character.GetStat(stats.SpellPiercing); got != 0 {
+			t.Errorf("misc %d: SpellPiercing %v, want 0", c.misc, got)
+		}
 	}
 }
 
