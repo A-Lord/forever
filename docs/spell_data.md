@@ -487,14 +487,14 @@ out of `ProcTypeMask`, the internal cooldown, `CanProcFromProcs` and `ClassSpell
 attributes, the class mask the proc effect names, and the rate the source above points at. A row that
 is a weapon proc aura also excludes the hits of spells flagged Suppress Weapon Procs.
 
-The row's own class flags go on the trigger as `SelfClassFlags`, which is what a
-`SPELLMOD_CHANCE_OF_SUCCESS` names: the rows its class mask reaches are the proc auras and the poison
+The class flags of the spell that procs go on the trigger as `ProcSpellClassFlags`, and those are
+what a `SPELLMOD_CHANCE_OF_SUCCESS` names: the rows its class mask reaches are the proc auras and the poison
 spells themselves, not the spells that feed them. Improved Poisons 14113 names Instant Poison 8680, so
 the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. The trigger reads the unit's
 active `SpellMod_ProcChance_Flat` and `SpellMod_ProcChance_Pct` mods when it rolls, the flat points first
 and the percentage on the sum: on the manager's chance where a hit rolls one, on the chance it states
 otherwise. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A trigger built by
-hand leaves `SelfClassFlags` empty and no talent reaches it, so a class porting its poisons builds them
+hand leaves `ProcSpellClassFlags` empty and no talent reaches it, so a class porting its poisons builds them
 with `spelldata.ProcTrigger` and does not also add the talent's chance by hand, which would count it
 twice. A proc chance row whose class mask names no store row that states a proc and keeps its auras on
 the caster is skipped with the reason in `Skipped`, since no trigger on the caster carries those flags:

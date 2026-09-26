@@ -356,10 +356,10 @@ func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 	rogue := parseCharacter(&proto.Player{Class: proto.Class_ClassRogue, Spec: &proto.Player_Rogue{Rogue: &proto.Rogue{}}})
 	instantPoison := MustFind(8680)
 	trigger := ProcTrigger(rogue, instantPoison, noopHandler, WeaponProc())
-	if trigger.SelfClassFlags != instantPoison.ClassFlags {
-		t.Fatalf("the trigger's own class flags = %v, want the row's %v", trigger.SelfClassFlags, instantPoison.ClassFlags)
+	if trigger.ProcSpellClassFlags != instantPoison.ClassFlags {
+		t.Fatalf("the trigger's own class flags = %v, want the row's %v", trigger.ProcSpellClassFlags, instantPoison.ClassFlags)
 	}
-	if got := rogue.ModifiedProcChance(trigger.SelfClassFlags, trigger.ProcChance); got != 0.2 {
+	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); got != 0.2 {
 		t.Errorf("Instant Poison's chance before the talent: %v, want 0.2", got)
 	}
 
@@ -367,7 +367,7 @@ func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 	if kinds := appliedKinds(parsed); len(kinds) == 0 || kinds[0] != "SpellMod_ProcChance_Flat" {
 		t.Fatalf("Improved Poisons attached %v, want the proc chance mod first", kinds)
 	}
-	if got := rogue.ModifiedProcChance(trigger.SelfClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
+	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
 		t.Errorf("Instant Poison's chance with the talent: %v, want 0.3", got)
 	}
 
@@ -423,7 +423,7 @@ func TestAProcChanceModNamingNoRollOfTheCasterIsSkipped(t *testing.T) {
 	rogue := parseCharacter(&proto.Player{Class: proto.Class_ClassRogue, Spec: &proto.Player_Rogue{Rogue: &proto.Rogue{}}})
 	trigger := ProcTrigger(rogue, MustFind(8680), noopHandler, WeaponProc())
 	ParseStatic(rogue, MustFind(14113))
-	if got := rogue.ModifiedProcChance(trigger.SelfClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
+	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
 		t.Errorf("Instant Poison's chance with Improved Poisons: %v, want 0.3", got)
 	}
 }

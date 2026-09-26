@@ -59,12 +59,13 @@ type ProcTrigger struct {
 	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
 	// both this and ClassSpellMask fires only on the spells both name.
 	ClassFlags ClassFlags
-	// The client's SpellClassMask of the row the trigger is built from, which is what a proc chance
-	// mod names: the trigger rolls at the chance Unit.ModifiedProcChance makes of its own.
-	// spelldata.ProcTrigger sets it; a trigger built by hand leaves it empty and no mod reaches it.
-	SelfClassFlags  ClassFlags
-	ClassSpellsOnly bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
-	ExtraCondition  ProcExtraCondition
+	// The class flags of the spell that procs, e.g. Instant Poison for a poison trigger. A proc chance
+	// talent such as Improved Poisons raises this trigger's chance when its mask names these flags.
+	// spelldata.ProcTrigger fills it from the row; a trigger built by hand leaves it empty, so no
+	// proc chance talent reaches it.
+	ProcSpellClassFlags ClassFlags
+	ClassSpellsOnly     bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
+	ExtraCondition      ProcExtraCondition
 
 	// The Can Proc From Procs attribute (Attributes[3] 0x4000000): the listener also fires on hits
 	// from spells flagged SpellFlagProc. Without it a proc's hits are invisible to this listener,
@@ -127,7 +128,7 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
 	stated := config.ProcChance
 	if dpm == nil {
-		stated = unit.ModifiedProcChance(config.SelfClassFlags, stated)
+		stated = unit.ModifiedProcChance(config.ProcSpellClassFlags, stated)
 	}
 	if stated != 1 && sim.RandomFloat(config.Name) > stated {
 		return false
@@ -137,7 +138,7 @@ func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcMa
 	}
 
 	chance, heard := dpm.chanceFor(procMask, sim)
-	return heard && sim.Proc(unit.ModifiedProcChance(config.SelfClassFlags, chance), config.Name)
+	return heard && sim.Proc(unit.ModifiedProcChance(config.ProcSpellClassFlags, chance), config.Name)
 }
 
 type deferredProc struct {
