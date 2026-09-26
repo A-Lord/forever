@@ -250,7 +250,7 @@ func buildBaseStatScalingProps(spellID int, itemSpellID int) *proto.ScalingItemE
 	// check if spell is procced by a SPELL_WITH_VALUE
 	if effects := dbcInstance.SpellEffectsInOrder(itemSpellID); len(effects) > 0 {
 		for _, se := range effects {
-			if se.HitsAnEnemy() || rangedRatingEffect(itemSpellID, se) {
+			if se.HitsAnEnemy() {
 				continue
 			}
 			// TBC ANNI: Items can have "static" ItemEffects that don't have a duration.

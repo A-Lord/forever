@@ -170,53 +170,6 @@ func (gated *EquipGatedStats) refresh(sim *Simulation) {
 	}
 }
 
-// Attack speed the character holds while a weapon meeting the requirement is behind the attacks the
-// proc mask names: melee speed for its main-hand and off-hand bits, ranged speed for its ranged bits.
-// The sim keeps one melee speed for both hands, so a matching weapon in either hand the mask names
-// speeds up both. It follows the weapon slots through item swaps.
-type EquipGatedSpeed struct {
-	character  *Character
-	req        EquipRequirement
-	procMask   ProcMask
-	multiplier float64
-	active     bool
-	melee      bool
-	ranged     bool
-}
-
-func (character *Character) NewEquipGatedSpeed(req EquipRequirement, procMask ProcMask, multiplier float64) *EquipGatedSpeed {
-	gated := &EquipGatedSpeed{character: character, req: req, procMask: procMask, multiplier: multiplier}
-	character.RegisterWeaponChangeCallback(gated.refresh)
-	return gated
-}
-
-// On at any level above 0 and off at 0: the speed does not follow stacks.
-func (gated *EquipGatedSpeed) SetLevel(sim *Simulation, level float64) {
-	gated.active = level > 0
-	gated.refresh(sim)
-}
-
-func (gated *EquipGatedSpeed) refresh(sim *Simulation) {
-	var melee, ranged bool
-	if gated.active && gated.character.Type == PlayerUnit {
-		equipment := &gated.character.Equipment
-		melee = gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskMeleeMH) ||
-			gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskMeleeOH)
-		ranged = gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskRanged)
-	}
-
-	gated.flip(sim, &gated.melee, melee, (*Unit).MultiplyMeleeSpeed)
-	gated.flip(sim, &gated.ranged, ranged, (*Unit).MultiplyRangedSpeed)
-}
-
-func (gated *EquipGatedSpeed) flip(sim *Simulation, applied *bool, want bool, multiply func(*Unit, *Simulation, float64)) {
-	if want == *applied {
-		return
-	}
-	*applied = want
-	multiply(&gated.character.Unit, sim, Ternary(want, gated.multiplier, 1/gated.multiplier))
-}
-
 // The item's bit in a spell's weapon subclass mask, or 0 for an item that is not a weapon.
 func (item *Item) WeaponSubclassBit() int32 {
 	switch item.RangedWeaponType {

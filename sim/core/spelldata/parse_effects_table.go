@@ -2,7 +2,6 @@ package spelldata
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -141,8 +140,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}
 		switch {
 		case e.Misc&miscAllSchools == miscAllSchools:
-			a := combined([]*attachment{physical(), spell()})
-			a.kind = "damage-taken-flat"
+			a := &attachment{kind: "damage-taken-flat", value: v, parts: []*attachment{physical(), spell()}}
+			a.set = func(sim *core.Simulation, level float64) {
+				for _, part := range a.parts {
+					part.set(sim, level)
+				}
+			}
 			return a
 		case e.Misc&int32(core.SpellSchoolPhysical) != 0:
 			return physical()
@@ -179,8 +182,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 
 	// The ratings the misc value names as a mask of the client's combat ratings, by the combinations
 	// the sim keeps one stat for. A row that names the weapon it needs, and a mask of ranged bits
-	// alone, hold for some attacks only: hit and crit become the percent the rating is worth on them,
-	// and haste the attack speed it is worth.
+	// alone, hold for some attacks only, and become the percent the rating is worth on them.
 	dbcenums.A_MOD_RATING: func(p *parser, e *Effect, v float64) *attachment {
 		rule, scope, ok := p.weaponScope(e)
 		if !ok {
@@ -188,7 +190,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}
 		switch rule {
 		case WeaponRulePerWeapon, WeaponRuleRangedRatings:
-			return p.scopedRatings(e.Misc, rule, scope, v)
+			return p.scopedRatings(e.Misc, scope, v)
 		}
 		return p.statsBuff(RatingStats(e.Misc), v)
 	},
@@ -501,68 +503,29 @@ func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.Sp
 	return p.modFloat(kind, scope, v)
 }
 
-func (p *parser) scopedRatings(mask int32, rule WeaponRule, scope core.SpellModConfig, v float64) *attachment {
+func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64) *attachment {
 	scope.FromRating = true
 	var parts []*attachment
 	for _, rating := range ScopedRatingPercents(mask, v) {
-		var part *attachment
 		switch rating.Stat {
 		case stats.HitRating:
-			part = p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, rating.Percent)
+			parts = append(parts, p.scopedMod("SpellMod_BonusHit_Percent", core.SpellMod_BonusHit_Percent, scope, rating.Percent))
 		case stats.CritRating:
-			part = p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, rating.Percent)
-		case stats.HasteRating:
-			part = p.scopedSpeed(rule, scope, rating.Percent)
-		}
-		if part != nil {
-			parts = append(parts, part)
+			parts = append(parts, p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, rating.Percent))
 		}
 	}
-	return combined(parts)
-}
 
-// One attachment for parts that apply together, its kind theirs joined by "+" and its value the first
-// part's. A part that reads the Simulation is left out while there is none, and the whole needs one
-// only where every part does. Nil for no parts, and the part itself for one.
-func combined(parts []*attachment) *attachment {
 	switch len(parts) {
 	case 0:
 		return nil
 	case 1:
 		return parts[0]
 	}
-	kinds := make([]string, len(parts))
-	needsSim := true
-	for i, part := range parts {
-		kinds[i] = part.kind
-		needsSim = needsSim && part.needsSim
-	}
-	a := &attachment{kind: strings.Join(kinds, "+"), value: parts[0].value, parts: parts, needsSim: needsSim}
+	a := &attachment{kind: parts[0].kind + "+" + parts[1].kind, value: parts[0].value, parts: parts}
 	a.set = func(sim *core.Simulation, level float64) {
 		for _, part := range a.parts {
-			if sim == nil && part.needsSim {
-				continue
-			}
 			part.set(sim, level)
 		}
-	}
-	return a
-}
-
-// Haste on the attacks a scoped rating reaches, as their attack speed.
-func (p *parser) scopedSpeed(rule WeaponRule, scope core.SpellModConfig, percent float64) *attachment {
-	mult := speedMultiplier(percent)
-	if rule == WeaponRuleRangedRatings {
-		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, mult)
-	}
-	if p.static || p.stacking || (p.character == nil && !p.dry) {
-		return nil
-	}
-
-	a := &attachment{kind: "speed-while-equipped", value: mult, multiplicative: true, needsSim: true}
-	if !p.dry {
-		gated := p.character.NewEquipGatedSpeed(weaponRequirement(scope), scope.ProcMask, mult)
-		a.set = gated.SetLevel
 	}
 	return a
 }

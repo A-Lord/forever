@@ -209,28 +209,6 @@ func TestParseScopedRangedOnlyRating(t *testing.T) {
 	}
 }
 
-// A hit or crit rating with ranged weapons is a mod on the ranged attacks at the percent the rating is
-// worth, whichever of its melee, ranged and spell bits the mask names, and no stat.
-func TestParseRatingWithRangedWeaponsIsRangedMod(t *testing.T) {
-	for _, c := range []struct {
-		mask    int32
-		kind    bonus
-		percent float64
-	}{
-		{32 | 64 | 128, bonusHit, 20 / core.HitRatingPerHitPercent},
-		{32 | 64, bonusHit, 20 / core.HitRatingPerHitPercent},
-		{256 | 512 | 1024, bonusCrit, 20 / core.CritRatingPerCritPercent},
-	} {
-		e := casterAura(dbcenums.A_MOD_RATING, 20)
-		e.Misc = c.mask
-		row := &Spell{ID: 6105, Name: "Ranged Weapon Rating", EquipClass: 2, EquipSubclass: 262156, Effects: []Effect{e}}
-
-		r := parseScoped(t, row)
-		r.check(t, c.kind, 0, 0, c.percent, 0)
-		r.checkNoStats(t, stats.HitRating, stats.CritRating, stats.PhysicalHitPercent, stats.PhysicalCritPercent)
-	}
-}
-
 // 16255: A_MOD_CRIT_PCT with any melee weapon is physical and spell crit while one is equipped, on
 // every spell and attack, and no mod on the weapon's attacks.
 func TestParseCritPctWithAMeleeWeaponHoldsWhileEquipped(t *testing.T) {
@@ -325,7 +303,7 @@ func TestParseCritPctWithRangedWeaponsIsRangedMod(t *testing.T) {
 }
 
 // Each ranged bit alone: hit and crit become ranged mods at the rating's worth in percent, and haste,
-// a speed that needs an aura's Simulation to change, attaches nothing on the static path.
+// which no mod carries, attaches nothing.
 func TestParseStaticRangedOnlyRatingKinds(t *testing.T) {
 	withRows(t, parseRows())
 
@@ -351,99 +329,6 @@ func TestParseStaticRangedOnlyRatingKinds(t *testing.T) {
 			t.Errorf("mask %d attached %v, want %s worth %v", c.mask, parsed.Applied, c.kind, c.value)
 		}
 	}
-}
-
-type speedResult struct{ melee, ranged float64 }
-
-func (r *scopeResult) speeds() speedResult {
-	return speedResult{r.character.PseudoStats.MeleeSpeedMultiplier, r.character.PseudoStats.RangedSpeedMultiplier}
-}
-
-func (r *scopeResult) checkSpeeds(t *testing.T, when string, base speedResult, melee, ranged float64) {
-	t.Helper()
-	got := r.speeds()
-	if math.Abs(got.melee/base.melee-melee) > 1e-9 || math.Abs(got.ranged/base.ranged-ranged) > 1e-9 {
-		t.Errorf("%s: melee speed x%v and ranged speed x%v, want x%v and x%v", when, got.melee/base.melee, got.ranged/base.ranged, melee, ranged)
-	}
-}
-
-// A haste bit of the ranged bits alone is the ranged speed the rating is worth, while the aura is up,
-// and leaves the melee speed alone.
-func TestParseRangedOnlyHasteRatingIsRangedSpeed(t *testing.T) {
-	e := casterAura(dbcenums.A_MOD_RATING, 20)
-	e.Misc = dbcenums.RATING_MOD_HASTE_RANGED
-	row := &Spell{ID: 6101, Name: "Ranged Haste Rating", Effects: []Effect{e}}
-	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
-	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"ranged-speed"}) {
-		t.Errorf("attached %v, want the ranged speed", kinds)
-	}
-	base := r.speeds()
-	haste := 1 + 20/core.HasteRatingPerHastePercent/100
-
-	r.aura.Activate(r.sim)
-	r.checkSpeeds(t, "aura up", base, 1, haste)
-	r.aura.Deactivate(r.sim)
-	r.checkSpeeds(t, "aura down", base, 1, 1)
-}
-
-// Every ranged bit on an aura: the hit and crit mods and the ranged speed, as one attachment.
-func TestParseRangedOnlyRatingsOnAnAura(t *testing.T) {
-	e := casterAura(dbcenums.A_MOD_RATING, 20)
-	e.Misc = 64 | 512 | 262144
-	row := &Spell{ID: 6104, Name: "Ranged Ratings", Effects: []Effect{e}}
-	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
-	want := []string{"SpellMod_BonusHit_Percent+SpellMod_BonusCrit_Percent+ranged-speed"}
-	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, want) {
-		t.Errorf("attached %v, want %v", kinds, want)
-	}
-	base := r.speeds()
-
-	r.aura.Activate(r.sim)
-	r.check(t, bonusHit, 0, 0, 20/core.HitRatingPerHitPercent, 0)
-	r.check(t, bonusCrit, 0, 0, 20/core.CritRatingPerCritPercent, 0)
-	r.checkSpeeds(t, "aura up", base, 1, 1+20/core.HasteRatingPerHastePercent/100)
-}
-
-// Melee haste rating bound to melee weapons is melee speed while one is equipped: off with the bow
-// alone, on once the sword is swapped in, and off again after swapping back.
-func TestParseWeaponScopedHasteRatingFollowsTheMeleeWeapon(t *testing.T) {
-	e := casterAura(dbcenums.A_MOD_RATING, 20)
-	e.Misc = dbcenums.RATING_MOD_HASTE_MELEE
-	row := &Spell{ID: 6102, Name: "Melee Weapon Haste Rating", EquipClass: 2, EquipSubclass: 173555, Effects: []Effect{e}}
-	r := parseScopedWith(t, row, core.WeaponTestSlots(0, 0, core.WeaponTestBowID),
-		core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), true)
-	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"speed-while-equipped"}) {
-		t.Errorf("attached %v, want the speed while equipped", kinds)
-	}
-	base := r.speeds()
-	haste := 1 + 20/core.HasteRatingPerHastePercent/100
-
-	r.aura.Activate(r.sim)
-	r.checkSpeeds(t, "bow alone", base, 1, 1)
-
-	r.character.ItemSwap.SwapItems(r.sim, proto.APLActionItemSwap_Swap1, false)
-	r.checkSpeeds(t, "sword swapped in", base, haste, 1)
-
-	r.aura.Deactivate(r.sim)
-	r.checkSpeeds(t, "aura down", base, 1, 1)
-	r.aura.Activate(r.sim)
-	r.checkSpeeds(t, "aura up again", base, haste, 1)
-
-	r.character.ItemSwap.SwapItems(r.sim, proto.APLActionItemSwap_Main, false)
-	r.checkSpeeds(t, "bow alone again", base, 1, 1)
-}
-
-// Haste rating bound to bows, guns and crossbows is ranged speed while one is equipped, and no melee
-// speed.
-func TestParseWeaponScopedHasteRatingWithRangedWeapons(t *testing.T) {
-	e := casterAura(dbcenums.A_MOD_RATING, 20)
-	e.Misc = dbcenums.RATING_MOD_HASTE_MELEE | dbcenums.RATING_MOD_HASTE_RANGED
-	row := &Spell{ID: 6103, Name: "Ranged Weapon Haste Rating", EquipClass: 2, EquipSubclass: 262156, Effects: []Effect{e}}
-	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
-	base := r.speeds()
-
-	r.aura.Activate(r.sim)
-	r.checkSpeeds(t, "aura up", base, 1, 1+20/core.HasteRatingPerHastePercent/100)
 }
 
 // A row that names no weapon keeps its channel stat, and so does a row whose weapon is the one the

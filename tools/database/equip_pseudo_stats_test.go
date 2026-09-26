@@ -1,9 +1,11 @@
 package database
 
 import (
+	"maps"
 	"slices"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -130,6 +132,33 @@ func TestEquipSpellFolds(t *testing.T) {
 			t.Error("folds true, want false")
 		}
 	})
+}
+
+// A combat rating of ranged bits alone is the ranged percent it converts to; one naming any other bit
+// is a rating stat and grants none.
+func TestRangedRatingPercents(t *testing.T) {
+	type pseudo = proto.PseudoStat
+	for _, tc := range []struct {
+		name string
+		mask int
+		want map[pseudo]float64
+	}{
+		{"ranged hit", dbcenums.RATING_MOD_HIT_RANGED, map[pseudo]float64{proto.PseudoStat_PseudoStatRangedHitPercent: 20 / core.HitRatingPerHitPercent}},
+		{"ranged crit", dbcenums.RATING_MOD_CRIT_RANGED, map[pseudo]float64{proto.PseudoStat_PseudoStatRangedCritPercent: 20 / core.CritRatingPerCritPercent}},
+		{"ranged haste", dbcenums.RATING_MOD_HASTE_RANGED, map[pseudo]float64{proto.PseudoStat_PseudoStatRangedHastePercent: 20 / core.HasteRatingPerHastePercent}},
+		{"ranged hit and crit", dbcenums.RATING_MOD_HIT_RANGED | dbcenums.RATING_MOD_CRIT_RANGED, map[pseudo]float64{
+			proto.PseudoStat_PseudoStatRangedHitPercent:  20 / core.HitRatingPerHitPercent,
+			proto.PseudoStat_PseudoStatRangedCritPercent: 20 / core.CritRatingPerCritPercent,
+		}},
+		{"melee and ranged hit", dbcenums.RATING_MOD_HIT_MELEE | dbcenums.RATING_MOD_HIT_RANGED, nil},
+		{"no bits", 0, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := dbc.RangedRatingPercents(tc.mask, 20); !maps.Equal(got, tc.want) {
+				t.Errorf("percents %v, want %v", got, tc.want)
+			}
+		})
+	}
 }
 
 // 430391 Hit Weapon +2 with its melee weapons traded for the off hand's inventory type, a requirement
