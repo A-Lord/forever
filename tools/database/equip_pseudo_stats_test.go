@@ -103,8 +103,8 @@ func TestEnchantCarriesEquipSpellPseudoStats(t *testing.T) {
 	t.Fatal("enchant 2523 is not in the enchant inputs")
 }
 
-// An equip spell folds into the stats of what carries it when it names no weapon or only ranged ones.
-// Any other weapon requirement is left to run time, whole.
+// An equip spell folds into the stats of what carries it when it names no weapon, or only ranged ones
+// for a hit or crit aura. Any other weapon requirement is left to run time, whole.
 func TestEquipSpellFolds(t *testing.T) {
 	withDBCInputs(t)
 	dbc.GetDBC()
@@ -129,6 +129,12 @@ func TestEquipSpellFolds(t *testing.T) {
 
 	t.Run("430391 Hit Weapon +2 held to the off hand's slot", func(t *testing.T) {
 		if dbc.EquipSpellFolds(offHandHitWeapon(t)) {
+			t.Error("folds true, want false")
+		}
+	})
+
+	t.Run("22780 as a hit rating on every channel, bows, guns and crossbows", func(t *testing.T) {
+		if dbc.EquipSpellFolds(rangedWeaponHitRating(t)) {
 			t.Error("folds true, want false")
 		}
 	})
@@ -169,4 +175,15 @@ func offHandHitWeapon(t *testing.T) int {
 	row.EquipSubclass, row.EquipInvType = 0, dbcenums.INVTYPE_BIT_WEAPONOFFHAND
 	t.Cleanup(func() { row.EquipSubclass, row.EquipInvType = subclass, invType })
 	return 430391
+}
+
+// 22780 Biznicks 247x128 Accurascope with its hit chance traded for hit rating on the melee, ranged and
+// spell bits, under the same bows, guns and crossbows, a shape no equip spell the store carries states.
+func rangedWeaponHitRating(t *testing.T) int {
+	row := spelldata.Find(22780)
+	effect := &row.Effects[0]
+	aura, misc := effect.Aura, effect.Misc
+	effect.Aura, effect.Misc = dbcenums.A_MOD_RATING, dbcenums.RATING_MOD_HIT_MELEE|dbcenums.RATING_MOD_HIT_RANGED|dbcenums.RATING_MOD_HIT_SPELL
+	t.Cleanup(func() { effect.Aura, effect.Misc = aura, misc })
+	return 22780
 }

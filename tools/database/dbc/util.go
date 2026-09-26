@@ -227,13 +227,17 @@ const SkillLineDefense = 95
 
 // Whether an equip spell's auras fold into the stats of the item or enchant carrying it: they do
 // unless the parse binds a hit, crit or rating aura of the spell to a weapon, through
-// spelldata.WeaponScope, beyond the ranged attacks alone, which fill the ranged offset. A bound spell
-// is applied at run time, where the attack's own weapon decides. Every such spell on an item or
-// enchant is a single hit or crit aura, so the whole spell goes one way.
+// spelldata.WeaponScope. A hit or crit aura bound to ranged weapons alone still folds, into the ranged
+// offset, and so does a rating mask of ranged bits alone. A rating aura bound to any weapon does not,
+// as the fold would read its mask as a rating on every channel. A bound spell is applied at run time,
+// where the attack's own weapon decides. Every such spell on an item or enchant is a single hit or
+// crit aura, so the whole spell goes one way.
 func EquipSpellFolds(spellID int) bool {
 	s := spelldata.Find(int32(spellID))
 	for i := range s.Effects {
-		if rule, scope := spelldata.WeaponScope(s, &s.Effects[i]); rule != spelldata.WeaponRuleNone && scope.ProcMask != core.ProcMaskRanged {
+		switch rule, scope := spelldata.WeaponScope(s, &s.Effects[i]); {
+		case rule == spelldata.WeaponRuleNone, rule == spelldata.WeaponRuleRangedRatings:
+		case s.Effects[i].Aura == dbcenums.A_MOD_RATING, scope.ProcMask != core.ProcMaskRanged:
 			return false
 		}
 	}
@@ -243,7 +247,7 @@ func EquipSpellFolds(spellID int) bool {
 // The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points. A
 // mask with any other bit names a rating stat instead, and grants none of these.
 func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64 {
-	if mask == 0 || mask&^dbcenums.RATING_MOD_MASK_RANGED != 0 {
+	if !spelldata.RangedBitsOnly(int32(mask)) {
 		return nil
 	}
 
@@ -427,7 +431,7 @@ func ConvertModRatingFlagToRatingStat(flag int) proto.Stat {
 	if len(ratings) == 1 {
 		return proto.Stat(ratings[0])
 	}
-	if len(ratings) > 1 || flag&^dbcenums.RATING_MOD_MASK_RANGED != 0 {
+	if len(ratings) > 1 || (flag != 0 && !spelldata.RangedBitsOnly(int32(flag))) {
 		println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
 	}
 	return -1
