@@ -351,6 +351,9 @@ func (target *Target) GetMetricsProto() *proto.UnitMetrics {
 type DynamicDamageDoneByCaster func(sim *Simulation, spell *Spell, attackTable *AttackTable) float64
 type DynamicThreatDoneByCaster DynamicDamageDoneByCaster
 
+// The crit chance, in percentage points, a target-side aura adds to one of its caster's spells.
+type DynamicCritChanceByCaster func(spell *Spell, attackTable *AttackTable) float64
+
 // Holds cached values for outcome/damage calculations, for a specific attacker+defender pair.
 // These are updated dynamically when attacker or defender stats change.
 type AttackTable struct {
@@ -390,6 +393,11 @@ type AttackTable struct {
 	// When you need more then 1 active, default to using the above one
 	// Used with EnableDamageDoneByCaster/DisableDamageDoneByCaster
 	DamageDoneByCasterExtraMultiplier []DynamicDamageDoneByCaster
+
+	// The crit chance target-side auras add to this attacker's spells alone, indexed the way
+	// DamageDoneByCasterExtraMultiplier is.
+	// Used with EnableCritChanceByCaster/DisableCritChanceByCaster
+	CritChanceByCasterBonus []DynamicCritChanceByCaster
 }
 
 func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
@@ -441,4 +449,26 @@ func EnableDamageDoneByCaster(index int, maxIndex int, attackTable *AttackTable,
 
 func DisableDamageDoneByCaster(index int, attackTable *AttackTable) {
 	attackTable.DamageDoneByCasterExtraMultiplier[index] = nil
+}
+
+func EnableCritChanceByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicCritChanceByCaster) {
+	if attackTable.CritChanceByCasterBonus == nil {
+		attackTable.CritChanceByCasterBonus = make([]DynamicCritChanceByCaster, maxIndex)
+	}
+	attackTable.CritChanceByCasterBonus[index] = handler
+}
+
+func DisableCritChanceByCaster(index int, attackTable *AttackTable) {
+	attackTable.CritChanceByCasterBonus[index] = nil
+}
+
+// The percentage points of crit chance the handlers add to the spell.
+func (attackTable *AttackTable) critChanceByCaster(spell *Spell) float64 {
+	bonus := 0.0
+	for _, handler := range attackTable.CritChanceByCasterBonus {
+		if handler != nil {
+			bonus += handler(spell, attackTable)
+		}
+	}
+	return bonus
 }
