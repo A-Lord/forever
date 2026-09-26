@@ -144,6 +144,11 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 
 	if mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
 		unit.procChanceMods = append(unit.procChanceMods, mod)
+		if config.ShouldApplyToPets {
+			for _, pet := range unit.PetAgents {
+				pet.GetPet().procChanceMods = append(pet.GetPet().procChanceMods, mod)
+			}
+		}
 	}
 
 	unit.OnSpellRegistered(func(spell *Spell) {
@@ -1166,9 +1171,10 @@ func removeNothing(_ *SpellMod, _ *Spell) {}
 // multiplies the sum. A trigger that states no class flags of its own is named by no mod.
 func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
 	flat, pct := unit.procChanceBonus(flags)
-	if flat == 0 && pct == 0 {
-		return chance
-	}
+	return withProcChanceBonus(chance, flat, pct)
+}
+
+func withProcChanceBonus(chance float64, flat float64, pct float64) float64 {
 	return (chance + flat/100) * (1 + pct)
 }
 

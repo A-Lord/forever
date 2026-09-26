@@ -132,7 +132,8 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 
 	handler := config.Handler
 
-	// Where a manager rolls, the proc chance mods change its chance rather than the stated one.
+	// Where a manager rolls, the proc chance mods change its chance rather than the stated one. The
+	// cast and apply-effects listeners roll no manager, so they read ModifiedProcChance directly.
 	statedChance := func() float64 {
 		if dpm != nil {
 			return config.ProcChance
@@ -223,7 +224,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, nil) {
 				return
 			}
-			if chance := statedChance(); chance != 1 && sim.RandomFloat(config.Name) > chance {
+			if chance := unit.ModifiedProcChance(config.ProcClassFlags, config.ProcChance); chance != 1 && sim.RandomFloat(config.Name) > chance {
 				return
 			}
 
@@ -246,7 +247,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, emptyResult) {
 				return
 			}
-			if chance := statedChance(); chance != 1 && sim.RandomFloat(config.Name) > chance {
+			if chance := unit.ModifiedProcChance(config.ProcClassFlags, config.ProcChance); chance != 1 && sim.RandomFloat(config.Name) > chance {
 				return
 			}
 
