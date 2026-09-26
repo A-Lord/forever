@@ -262,6 +262,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_INCREASE_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.Health, v)
 	},
+	// Flat health, as the bear forms state it. Last Stand states a percentage on the same aura, which
+	// the warrior reads by hand rather than parsing.
+	dbcenums.A_MOD_MAX_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
+		return p.statBuff(stats.Health, v)
+	},
 	dbcenums.A_MOD_INCREASE_HEALTH_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statMultiplier([]stats.Stat{stats.Health}, percentMultiplier(v))
 	},

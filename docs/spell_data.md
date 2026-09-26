@@ -417,6 +417,10 @@ Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor fro
 its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat: Inspiration's 8 is 8% more
 armor, whatever it came from.
 
+`A_MOD_MAX_HEALTH` is flat health, which is how the bear forms state it: Dire Bear Form's passive is
+1240 health at 60. Last Stand 12976 states its 30% on the same aura and a script applies it as a
+percentage, so the warrior reads it by hand and does not parse the row.
+
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
 the same creature types.

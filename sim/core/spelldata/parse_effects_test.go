@@ -501,6 +501,7 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_STAT, -1, 10, "stat Strength+Agility+Stamina+Intellect+Spirit", 10, false},
 		{dbcenums.A_MOD_STAT, 2, 10, "stat Stamina", 10, false},
 		{dbcenums.A_MOD_INCREASE_HEALTH, 0, 200, "stat Health", 200, false},
+		{dbcenums.A_MOD_MAX_HEALTH, 0, 560, "stat Health", 560, false},
 		{dbcenums.A_MOD_INCREASE_HEALTH_PERCENT, 0, 10, "multiply-stat Health", 1.1, false},
 		{dbcenums.A_MOD_PARRY_PERCENT, 0, 5, "stat ParryPercent", 5, false},
 		{dbcenums.A_MOD_DODGE_PERCENT, 0, 5, "stat DodgePercent", 5, false},
