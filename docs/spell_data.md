@@ -415,10 +415,12 @@ A bonus against a creature type bids in a per-stat category under its stat and i
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
 the same creature types.
 
-Target resistance is armor for school 1 and `SpellPiercing` for a mask of every resistance. A narrower
-mask, such as the fire of the Baleflame imbue, is piercing for those schools alone: core adds
-`PseudoStats.SchoolSpellPiercing` of the spell's school to `SpellPiercing` when it reads the target's
-resistance. It bids under its mask, `SchoolSpellPiercing4` for fire.
+Target resistance by mask 1 is `ArmorPenetration`, by a mask of all five resistances `SpellPiercing`,
+and by a mask of some spell schools `SchoolSpellPiercing` for each of them; a mask of armor and a spell
+school is skipped (`core.SpellSchool.PiercingStat`). The per-school kind bids under its mask,
+`SchoolSpellPiercing4` for the Baleflame imbue's fire and `SchoolSpellPiercing16` for Balefrost's
+frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell has no
+resistance stat to pierce.
 
 A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
 effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks

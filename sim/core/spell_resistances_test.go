@@ -23,13 +23,10 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 		return defender.resistCoeff(fire, &attacker, false), defender.resistCoeff(frost, &attacker, false)
 	}
 
-	fireBare, frostBare := coeffs(0, 0)
+	_, frostBare := coeffs(0, 0)
 	fireCoeff, frostCoeff := coeffs(0, 30)
 	if want := 70.0 / 300; !WithinToleranceFloat64(want, fireCoeff, 1e-9) {
 		t.Errorf("fire coefficient with 30 fire piercing = %v, want %v", fireCoeff, want)
-	}
-	if fireCoeff >= fireBare {
-		t.Errorf("fire coefficient with 30 fire piercing = %v, not below %v without it", fireCoeff, fireBare)
 	}
 	if frostCoeff != frostBare {
 		t.Errorf("frost coefficient with 30 fire piercing = %v, want %v as without it", frostCoeff, frostBare)

@@ -70,11 +70,10 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool) float64
 		return 0
 	}
 
-	// Holy and school combinations have no resistance stat, which ResistanceStat answers as 0.
 	resistance := 0.0
-	if stat := spell.SpellSchool.ResistanceStat(); stat != 0 {
+	if stat, ok := spell.SpellSchool.ResistanceStat(); ok {
 		piercing := attacker.stats[stats.SpellPiercing] + attacker.PseudoStats.SchoolSpellPiercing[spell.SchoolIndex]
-		resistance = max(0, unit.GetStat(stat)-piercing)
+		resistance = unit.GetStat(stat) - piercing
 	}
 	if resistance <= 0 {
 		// Level-based resistance does not apply to binary spells.

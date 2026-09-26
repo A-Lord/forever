@@ -350,18 +350,12 @@ func ConvertResistanceFlagToResistanceStat(flag int) proto.Stat {
 	return -1
 }
 
-// The stat a target resistance mask pierces: armor for school 1 and SpellPiercing for a mask of every
-// resistance. A mask of some schools has no stat and returns -1; the spell data parser attaches it as
-// per-school piercing.
+// See core.SpellSchool.PiercingStat; a mask without a stat returns -1.
 func ConvertTargetResistanceFlagToPenetrationStat(flag int) proto.Stat {
-	switch {
-	case flag == 1:
-		return proto.Stat_StatArmorPenetration
-	case SpellSchool(flag)&SPELL_PENETRATION == SPELL_PENETRATION:
-		return proto.Stat_StatSpellPiercing
-	default:
-		return -1
+	if stat, ok := core.SpellSchool(flag).PiercingStat(); ok {
+		return proto.Stat(stat)
 	}
+	return -1
 }
 
 func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {

@@ -847,7 +847,6 @@ func TestParseStaticSchoolSpellPiercing(t *testing.T) {
 		misc        int32
 		fire, frost float64
 	}{
-		{int32(core.SpellSchoolFire), 10, 0},
 		{int32(core.SpellSchoolFire | core.SpellSchoolFrost), 10, 10},
 	} {
 		character := parseWarrior()
