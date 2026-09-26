@@ -461,6 +461,11 @@ const (
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
+
+	// Will add / subtract % amount from the GCD multiplier. -10% = -0.1
+	// The GCD minimum still floors the result.
+	// Uses: FloatValue
+	SpellMod_GlobalCooldown_Pct
 )
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
@@ -538,6 +543,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 	SpellMod_GlobalCooldown_Flat: {
 		Apply:  applyGlobalCooldownFlat,
 		Remove: removeGlobalCooldownFlat,
+	},
+
+	SpellMod_GlobalCooldown_Pct: {
+		Apply:  applyGlobalCooldownPercent,
+		Remove: removeGlobalCooldownPercent,
 	},
 	SpellMod_DotTickLength_Flat: {
 		Apply:  applyDotTickLengthFlat,
@@ -791,6 +801,14 @@ func applyGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
 
 func removeGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
 	spell.DefaultCast.GCD -= mod.timeValue
+}
+
+func applyGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier += mod.floatValue
+}
+
+func removeGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier -= mod.floatValue
 }
 
 func applyDotTickLengthFlat(mod *SpellMod, spell *Spell) {

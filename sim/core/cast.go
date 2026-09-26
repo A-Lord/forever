@@ -84,6 +84,10 @@ func (cast *Cast) GCDTime() time.Duration {
 	return gcd
 }
 
+func (spell *Spell) modifiedGCD(gcd time.Duration) time.Duration {
+	return time.Duration(float64(gcd) * spell.GCDMultiplier)
+}
+
 func (cast *Cast) EffectiveTime() time.Duration {
 	return max(cast.GCDTime(), cast.CastTime)
 }
@@ -153,6 +157,7 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 			return spell.castFailureHelper(sim, "not enough charges")
 		}
 
+		spell.CurCast.GCD = spell.modifiedGCD(spell.CurCast.GCD)
 		if !config.IgnoreHaste {
 			spell.CurCast.GCD = max(0, spell.Unit.ApplyCastSpeed(spell.CurCast.GCD)).Round(time.Millisecond)
 			spell.CurCast.CastTime = spell.Unit.ApplyCastSpeedForSpell(spell.CurCast.CastTime, spell).Round(time.Millisecond)
