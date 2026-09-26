@@ -170,16 +170,18 @@ func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, rank JudgementRank)
 	}), rank)
 }
 
-// Whoever lands a melee hit on the judged target has a chance to be healed for the rank's amount.
+// Whoever lands a damaging melee hit on the judged target has a chance to be healed for the rank's
+// amount.
 func AttachJudgementOfLightHeal(aura *core.Aura, rank JudgementRank) *core.Aura {
 	healthMetrics := aura.Unit.NewHealthMetrics(core.ActionID{SpellID: rank.SpellID})
 	heal := rank.Value
 
 	return aura.AttachProcTrigger(core.ProcTrigger{
-		Name:     aura.Label + " - Heal",
-		Callback: core.CallbackOnSpellHitTaken,
-		ProcMask: core.ProcMaskMelee,
-		Outcome:  core.OutcomeLanded,
+		Name:               aura.Label + " - Heal",
+		Callback:           core.CallbackOnSpellHitTaken,
+		ProcMask:           core.ProcMaskMelee,
+		Outcome:            core.OutcomeLanded,
+		RequireDamageDealt: true,
 		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			if sim.Proc(judgementProcChance, "Judgement of Light - Heal") {
 				spell.Unit.GainHealth(sim, heal, healthMetrics)
