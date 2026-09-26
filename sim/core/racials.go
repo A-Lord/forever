@@ -372,12 +372,17 @@ func applyEureka(character *Character) {
 		FloatValue: 0.1,
 	})
 
+	// One stack per cast, however many targets it lands on.
+	var lastSpent *Spell
+	var lastSpentAt time.Duration
+
 	aura := character.RegisterAura(Aura{
 		Label:     "Eureka!",
 		ActionID:  actionID,
 		Duration:  time.Second * 15,
 		MaxStacks: 3,
 		OnGain: func(aura *Aura, sim *Simulation) {
+			lastSpent = nil
 			aura.SetStacks(sim, 3)
 			costMod.Activate()
 			damageMod.Activate()
@@ -393,9 +398,6 @@ func applyEureka(character *Character) {
 		spendFlags.Mask[i] |= damageFlags.Mask[i]
 	}
 
-	// One stack per cast, however many targets it lands on.
-	var lastSpent *Spell
-	lastSpentAt := time.Duration(-1)
 	aura.AttachProcTrigger(ProcTrigger{
 		Name:       "Eureka! - Spend",
 		Callback:   spendCallback,
