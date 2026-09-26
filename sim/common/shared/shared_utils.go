@@ -22,6 +22,8 @@ type ProcStatBonusEffect struct {
 	Outcome            core.HitOutcome
 	RequireDamageDealt bool
 	ClassSpellsOnly    bool
+	// See core.ProcTrigger.
+	RequireDamageComponent bool
 	// The listener's Can Proc From Procs attribute. See core.ProcTrigger.
 	CanProcFromProcs bool
 	// A "Chance on hit" item effect or a combat enchant. See core.ProcTrigger. The generator
@@ -207,6 +209,8 @@ func factory_StatBonusEffect(config ProcStatBonusEffect, extraSpell func(agent c
 				DPM:                dpm,
 				ICD:                time.Millisecond * time.Duration(proc.IcdMs),
 				Handler:            procHandler(config, effect, procAura, windowAura, procSpell),
+
+				RequireDamageComponent: config.RequireDamageComponent,
 			})
 
 			attachStackTrigger(character, config, effect, procAura, windowAura)
@@ -1232,6 +1236,8 @@ type StackingStatBonusCD struct {
 	SpellFlags         core.SpellFlag
 	Outcome            core.HitOutcome
 	RequireDamageDealt bool
+	// See core.ProcTrigger.
+	RequireDamageComponent bool
 	// See core.ProcTrigger. The generator reads them off the stack proc's aura, which is always an
 	// Equip aura, so there is no weapon-proc counterpart here.
 	CanProcFromProcs  bool
@@ -1347,6 +1353,8 @@ func attachStackingCDTrigger(character *core.Character, config StackingStatBonus
 				statAura.AddStack(sim)
 			}
 		},
+
+		RequireDamageComponent: config.RequireDamageComponent,
 	})
 }
 

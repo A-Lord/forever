@@ -385,6 +385,13 @@ func (stats Stats) FloorGameStats() Stats {
 	return stats
 }
 
+// FloorGameStatsInPlace is FloorGameStats without copying the array.
+func (stats *Stats) FloorGameStatsInPlace() {
+	for _, k := range flooredGameStats {
+		stats[k] = math.Floor(stats[k])
+	}
+}
+
 func (stats Stats) Multiply(multiplier float64) Stats {
 	for k := range stats {
 		stats[k] *= multiplier
@@ -547,6 +554,7 @@ type PseudoStats struct {
 
 	DamageDealtMultiplier          float64            // All damage
 	SchoolDamageDealtMultiplier    [SchoolLen]float64 // For specific spell schools (arcane, fire, shadow, etc).
+	SchoolSpellPiercing            [SchoolLen]float64 // Target resistance ignored by spells of one school, on top of SpellPiercing.
 	DotDamageMultiplierAdditive    float64            // All periodic damage
 	HealingDealtMultiplier         float64            // All non-shield healing
 	PeriodicHealingDealtMultiplier float64            // All periodic healing (on top of HealingDealtMultiplier)

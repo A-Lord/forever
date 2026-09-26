@@ -2,6 +2,7 @@ package spelldata
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -134,11 +135,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
 		physical := func() *attachment {
 			return p.pseudoAdd("physical-damage-taken-flat", "BonusPhysicalDamageTaken",
-				&p.unit.PseudoStats.BonusPhysicalDamageTaken, v)
+				[]*float64{&p.unit.PseudoStats.BonusPhysicalDamageTaken}, v)
 		}
 		spell := func() *attachment {
 			return p.pseudoAdd("spell-damage-taken-flat", "BonusSpellDamageTaken",
-				&p.unit.PseudoStats.BonusSpellDamageTaken, v)
+				[]*float64{&p.unit.PseudoStats.BonusSpellDamageTaken}, v)
 		}
 		switch {
 		case e.Misc&miscAllSchools == miscAllSchools:
@@ -179,7 +180,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// Ranged attack power for whoever shoots the unit, which the sim keeps on the unit shot.
 	dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoAdd("ranged-attack-power-attacker-bonus", "BonusRangedAttackPower",
-			&p.unit.PseudoStats.BonusRangedAttackPower, v)
+			[]*float64{&p.unit.PseudoStats.BonusRangedAttackPower}, v)
 	},
 
 	// The ratings the misc value names as a mask of the client's combat ratings, by the combinations
@@ -239,13 +240,13 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			[]*float64{&p.unit.PseudoStats.HealingTakenMultiplier}, percentMultiplier(v))
 	},
 	dbcenums.A_MOD_HEALING: func(p *parser, e *Effect, v float64) *attachment {
-		return p.pseudoAdd("healing-taken-flat", "BonusHealingTaken", &p.unit.PseudoStats.BonusHealingTaken, v)
+		return p.pseudoAdd("healing-taken-flat", "BonusHealingTaken", []*float64{&p.unit.PseudoStats.BonusHealingTaken}, v)
 	},
 
 	// The chance a hit pushes a cast back, which the sim keeps as a chance that starts at 1: the
 	// client's 35% less pushback is -0.35 there.
 	dbcenums.A_REDUCE_PUSHBACK: func(p *parser, e *Effect, v float64) *attachment {
-		return p.pseudoAdd("pushback", "PushbackChance", &p.unit.PseudoStats.PushbackChance, -v/100)
+		return p.pseudoAdd("pushback", "PushbackChance", []*float64{&p.unit.PseudoStats.PushbackChance}, -v/100)
 	},
 
 	// Mana regen, which the client states per five seconds on the mana bar.
@@ -260,7 +261,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// aura's gain hands over.
 	dbcenums.A_MOD_MANA_REGEN_INTERRUPT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.refreshingManaRegen(p.pseudoAdd("spirit-regen-casting", "SpiritRegenRateCasting",
-			&p.unit.PseudoStats.SpiritRegenRateCasting, v/100))
+			[]*float64{&p.unit.PseudoStats.SpiritRegenRateCasting}, v/100))
 	},
 	dbcenums.A_MOD_POWER_REGEN_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		switch e.Misc {
@@ -336,7 +337,30 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// count the one field twice.
 	dbcenums.A_MOD_ATTACKER_MELEE_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoAdd("physical-hit-taken", "ReducedPhysicalHitTakenChance",
-			&p.unit.PseudoStats.ReducedPhysicalHitTakenChance, -v)
+			[]*float64{&p.unit.PseudoStats.ReducedPhysicalHitTakenChance}, -v)
+	},
+
+	// The target's resistance the unit's attacks ignore, by core.SpellSchool.PiercingStat, and a mask
+	// without a stat as the per-school piercing of each school it names. The sign differs between rows
+	// while the tooltip states the amount pierced either way, so the amount is its size.
+	dbcenums.A_MOD_TARGET_RESISTANCE: func(p *parser, e *Effect, v float64) *attachment {
+		v = math.Abs(v)
+		if stat, ok := core.SpellSchool(e.Misc).PiercingStat(); ok {
+			return p.statBuff(stat, v)
+		}
+		if e.Misc&miscArmor != 0 {
+			return nil
+		}
+
+		var fields []*float64
+		for _, index := range schoolIndexes(e.Misc) {
+			fields = append(fields, &p.unit.PseudoStats.SchoolSpellPiercing[index])
+		}
+		if len(fields) == 0 {
+			return nil
+		}
+		// Piercing for other schools does not compete with this one.
+		return p.pseudoAdd("school-spell-piercing", fmt.Sprintf("SchoolSpellPiercing%d", e.Misc), fields, v)
 	},
 
 	// Avoidance, in percentage points.
@@ -848,9 +872,11 @@ func (p *parser) pseudoMultiplier(kind string, key string, fields []*float64, mu
 }
 
 // A pseudo-stat the sim adds to, which follows the stacks the way a flat stat does.
-func (p *parser) pseudoAdd(kind string, key string, field *float64, v float64) *attachment {
+func (p *parser) pseudoAdd(kind string, key string, fields []*float64, v float64) *attachment {
 	a := additive(kind, v, func(_ *core.Simulation, delta float64) {
-		*field += delta
+		for _, field := range fields {
+			*field += delta
+		}
 	})
 	a.key = key
 	return a
@@ -986,7 +1012,7 @@ func resistanceStats(mask int32) []stats.Stat {
 		if mask&bit == 0 {
 			continue
 		}
-		if stat := core.SpellSchool(bit).ResistanceStat(); stat != 0 {
+		if stat, ok := core.SpellSchool(bit).ResistanceStat(); ok {
 			out = append(out, stat)
 		}
 	}
