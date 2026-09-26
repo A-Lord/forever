@@ -323,15 +323,11 @@ func (value *APLValueSpellGCDHastedDuration) Type() proto.APLValueType {
 
 func (value *APLValueSpellGCDHastedDuration) GetDuration(_ *Simulation) time.Duration {
 	defaultCast := value.spell.DefaultCast
-	gcd := value.spell.modifiedGCD(defaultCast.GCD)
 	if value.spell.IgnoreHaste {
-		cast := defaultCast
-		cast.GCD = gcd
-		return cast.GCDTime()
+		return defaultCast.GCDTime()
 	}
 	gcdMin := TernaryDuration(defaultCast.GCDMin != 0, defaultCast.GCDMin, GCDMin)
-	hastedDuration := value.spell.Unit.ApplyCastSpeed(gcd).Round(time.Millisecond)
-	return max(gcdMin, hastedDuration)
+	return max(gcdMin, value.spell.hastedGCD(defaultCast.GCD))
 }
 
 func (value *APLValueSpellGCDHastedDuration) GetFloat(sim *Simulation) float64 {

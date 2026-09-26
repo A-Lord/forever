@@ -415,16 +415,22 @@ what core reads back.
 
 A maximum power row raises the bar its misc value names, through `SetMaximumRage` or
 `SetMaximumEnergy`: a raised maximum grants nothing, and when an aura carrying one drops, the power
-above the old maximum is lost and counted against the aura's metrics. The rage maximum also clamps the
-starting rage the options asked for again. Mana is the Mana stat, which the sim keeps as the maximum,
-so misc 0 is a flat stat buff on any unit: the Flask of Distilled Wisdom's 17627 is 2000 Mana. The
-generator's `ParseStatEffect` reads the same misc 0 as Mana for the consumable and item stats it
-bakes. A unit without the rage or energy bar the row names skips it. Boundless Rage is parsed in
-`NewWarrior` straight after the rage bar is enabled rather than with the talents, because the gnome
-racial scales the maximum it leaves, and runs before them.
+above the old maximum is lost and counted against the aura's metrics. A reset starts the rage bar at
+the starting rage the options asked for, clamped to the maximum as it stands then. Mana is the Mana
+stat, which the sim keeps as the maximum, so misc 0 is a flat stat buff on any unit: the Flask of
+Distilled Wisdom's 17627 is 2000 Mana. The generator's `ParseStatEffect` reads the same misc 0 as Mana
+for the consumable and item stats it bakes. A unit without the rage or energy bar the row names skips
+it.
 
-A percentage GCD modifier multiplies the GCD before haste, and the GCD minimum still floors what is
-left: Nature's Grace's -10 takes a 1.5 second GCD to 1.35 seconds.
+Where a maximum is raised decides whether the gnome's Expansive Mind scales it. The racial multiplies
+the maximum rage and energy by 1.05 once, in `applyRaceEffects`, which runs after the class constructor
+and before `ApplyTalents`. So Boundless Rage is parsed in `NewWarrior` straight after `EnableRageBar`,
+and the rogue reads Vigor by hand into the `MaxEnergy` it enables the bar with; parsed with the
+talents, either would miss the racial.
+
+A percentage GCD modifier scales `DefaultCast.GCD` the moment it toggles, after the flat GCD mods, so
+every reader of the default cast sees the same GCD; haste applies at the cast, and the GCD minimum
+still floors what is left: Nature's Grace's -10 takes a 1.5 second GCD to 1.35 seconds.
 
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against

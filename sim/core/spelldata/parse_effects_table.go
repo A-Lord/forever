@@ -446,7 +446,7 @@ func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
 			return nil
 		}
 		metrics := p.powerMetrics(p.unit.NewRageMetrics)
-		return p.maxPower("max-rage", "MaxRage", v/10, func(sim *core.Simulation, delta float64) {
+		return maxPower("max-rage", "MaxRage", v/10, func(sim *core.Simulation, delta float64) {
 			p.unit.SetMaximumRage(sim, p.unit.MaximumRage()+delta, metrics)
 		})
 	case dbcenums.POWER_ENERGY:
@@ -454,7 +454,7 @@ func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
 			return nil
 		}
 		metrics := p.powerMetrics(p.unit.NewEnergyMetrics)
-		return p.maxPower("max-energy", "MaxEnergy", v, func(sim *core.Simulation, delta float64) {
+		return maxPower("max-energy", "MaxEnergy", v, func(sim *core.Simulation, delta float64) {
 			p.unit.SetMaximumEnergy(sim, p.unit.MaximumEnergy()+delta, metrics)
 		})
 	}
@@ -475,7 +475,7 @@ func (p *parser) powerMetrics(newMetrics func(core.ActionID) *core.ResourceMetri
 	return newMetrics(actionID)
 }
 
-func (p *parser) maxPower(kind string, key string, v float64, apply func(sim *core.Simulation, delta float64)) *attachment {
+func maxPower(kind string, key string, v float64, apply func(sim *core.Simulation, delta float64)) *attachment {
 	a := additive(kind, v, apply)
 	a.key = key
 	return a

@@ -796,19 +796,31 @@ func removeDotNumberOfTicks(mod *SpellMod, spell *Spell) {
 }
 
 func applyGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD += mod.timeValue
+	spell.unscaledGCD += mod.timeValue
+	spell.updateGCD()
 }
 
 func removeGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD -= mod.timeValue
+	spell.unscaledGCD -= mod.timeValue
+	spell.updateGCD()
 }
 
 func applyGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
 	spell.GCDMultiplier += mod.floatValue
+	spell.updateGCD()
 }
 
 func removeGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
 	spell.GCDMultiplier -= mod.floatValue
+	spell.updateGCD()
+}
+
+func (spell *Spell) updateGCD() {
+	if spell.GCDMultiplier == 1 {
+		spell.DefaultCast.GCD = spell.unscaledGCD
+		return
+	}
+	spell.DefaultCast.GCD = time.Duration(float64(spell.unscaledGCD) * spell.GCDMultiplier).Round(time.Millisecond)
 }
 
 func applyDotTickLengthFlat(mod *SpellMod, spell *Spell) {

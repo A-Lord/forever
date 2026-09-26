@@ -157,7 +157,8 @@ type Spell struct {
 	BonusExpertisePercent    float64
 	CastTimeMultiplier       float64
 	CdMultiplier             float64
-	GCDMultiplier            float64 // Multiplies the GCD before haste, and before the GCD minimum floors it; 1 = unmodified. Fed by SpellMod_GlobalCooldown_Pct.
+	GCDMultiplier            float64       // Scales DefaultCast.GCD, after the flat GCD mods and before haste and the GCD minimum; 1 = unmodified. Fed by SpellMod_GlobalCooldown_Pct.
+	unscaledGCD              time.Duration // DefaultCast.GCD is rewritten from this on every GCD mod, so a direct write there is lost.
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
 	// Added to DamageMultiplierAdditive on direct hits only. Unlike that bucket this one is 0
@@ -270,6 +271,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		CastTimeMultiplier:       1,
 		CdMultiplier:             1,
 		GCDMultiplier:            1,
+		unscaledGCD:              config.Cast.DefaultCast.GCD,
 		DamageMultiplier:         config.DamageMultiplier,
 		DamageMultiplierAdditive: config.DamageMultiplierAdditive,
 		CritMultiplierPct:        1,

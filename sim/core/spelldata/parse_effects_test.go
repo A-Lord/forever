@@ -860,7 +860,7 @@ func TestParseSkipsEquipScalingOnAPet(t *testing.T) {
 func enablePowerBar(character *core.Character, power dbcenums.PowerType) {
 	switch power {
 	case dbcenums.POWER_RAGE:
-		character.EnableRageBar(core.RageBarOptions{MaxRage: 100, StartingRage: 120, BaseRageMultiplier: 1})
+		character.EnableRageBar(core.RageBarOptions{MaxRage: 100, BaseRageMultiplier: 1})
 	case dbcenums.POWER_ENERGY:
 		character.EnableEnergyBar(core.EnergyBarOptions{MaxEnergy: 100, MaxComboPoints: 5, HasNoRegen: true})
 	}
