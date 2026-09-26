@@ -320,6 +320,11 @@ func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) pro
 		return proto.Stat_StatHealingPower
 	case dbcenums.A_MOD_INCREASE_HEALTH:
 		return proto.Stat_StatHealth
+	case dbcenums.A_MOD_INCREASE_ENERGY:
+		if effectMisc == POWER_TYPE_MANA {
+			return proto.Stat_StatMana
+		}
+		return -1
 	case dbcenums.A_MOD_TARGET_RESISTANCE:
 		return ConvertTargetResistanceFlagToPenetrationStat(effectMisc)
 	case dbcenums.A_MOD_RESISTANCE:
