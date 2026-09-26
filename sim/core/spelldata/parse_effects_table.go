@@ -12,7 +12,7 @@ import (
 const (
 	miscAllSchools  int32 = 127 // every school bit, which the sim states as one multiplier
 	miscMagicSchool int32 = 126 // every school but physical, which is what spell damage covers
-	miscArmor       int32 = 1   // A_MOD_RESISTANCE and A_MOD_BASE_RESISTANCE_PCT state armor as school 1
+	miscArmor       int32 = 1   // A_MOD_RESISTANCE and the two resistance percentages state armor as school 1
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
 )
 
@@ -274,6 +274,14 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			return nil
 		}
 		return p.equipScaling(stats.Armor, percentMultiplier(v))
+	},
+	// The resistance percentage multiplies the whole of the stat. Armor alone is taken: no row states
+	// it for a magic resistance.
+	dbcenums.A_MOD_RESISTANCE_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc != miscArmor {
+			return nil
+		}
+		return p.statMultiplier([]stats.Stat{stats.Armor}, percentMultiplier(v))
 	},
 
 	// Armor, spell damage and healing worth a share of a stat. The spell damage aura names its schools
