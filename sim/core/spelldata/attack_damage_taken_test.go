@@ -8,17 +8,6 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-func attackSpell(character *core.Character, id int32, procMask core.ProcMask) *core.Spell {
-	return character.RegisterSpell(core.SpellConfig{
-		ActionID:         core.ActionID{SpellID: id},
-		ProcMask:         procMask,
-		SpellSchool:      core.SpellSchoolPhysical,
-		DefenseType:      core.DefenseTypeMelee,
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-	})
-}
-
 func attackDamage(spell *core.Spell, target *core.Character) float64 {
 	return spell.CalcDamage(&core.Simulation{}, &target.Unit, 1000, spell.OutcomeAlwaysHitNoHitCounter).Damage
 }
@@ -31,8 +20,8 @@ func TestMeleeDamageTakenLeavesRangedAlone(t *testing.T) {
 		Effects: []Effect{{SpellID: 16592, Type: dbcenums.E_APPLY_AURA,
 			Aura: dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT, BasePoints: -20}}}
 
-	melee := attackSpell(attacker, 1, core.ProcMaskMeleeMHAuto)
-	ranged := attackSpell(attacker, 2, core.ProcMaskRangedAuto)
+	melee := parseSpell(attacker, 1, core.SpellSchoolPhysical, core.ProcMaskMeleeMHAuto, core.ClassFlags{})
+	ranged := parseSpell(attacker, 2, core.SpellSchoolPhysical, core.ProcMaskRangedAuto, core.ClassFlags{})
 	table := attacker.AttackTables[0]
 
 	aura := target.RegisterAura(AuraConfig(row))
@@ -60,8 +49,8 @@ func TestRangedDamageTakenLeavesMeleeAlone(t *testing.T) {
 		Effects: []Effect{{SpellID: 15108, Type: dbcenums.E_APPLY_AREA_AURA_PARTY,
 			Aura: dbcenums.A_MOD_RANGED_DAMAGE_TAKEN, BasePoints: -32, Misc: 1}}}
 
-	melee := attackSpell(attacker, 1, core.ProcMaskMeleeMHAuto)
-	ranged := attackSpell(attacker, 2, core.ProcMaskRangedAuto)
+	melee := parseSpell(attacker, 1, core.SpellSchoolPhysical, core.ProcMaskMeleeMHAuto, core.ClassFlags{})
+	ranged := parseSpell(attacker, 2, core.SpellSchoolPhysical, core.ProcMaskRangedAuto, core.ClassFlags{})
 	meleeBefore, rangedBefore := attackDamage(melee, target), attackDamage(ranged, target)
 
 	aura := target.RegisterAura(AuraConfig(row))

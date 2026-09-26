@@ -4,10 +4,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-// The slot a parse holds on its caster's attack table against the aura's unit, for the effects that
-// reach only the caster's attacks on that unit. Every damage effect the parse attaches multiplies
-// into one DamageDoneByCasterExtraMultiplier handler, and every crit effect adds into one
-// CritChanceByCasterBonus handler, each enabled while any of its effects is up.
+// The slot a parse holds on its caster's attack table against the aura's unit: see FromCaster.
 type casterSlot struct {
 	caster, target *core.Unit
 	index, total   int
@@ -16,40 +13,47 @@ type casterSlot struct {
 	damageOn, critOn bool
 }
 
-// One effect in the slot: the client's percentage per level, the level it is at and the spells it
+// One effect in the slot: whether it is up, what it is worth at its current level and the spells it
 // reaches.
 type casterPart struct {
-	value   float64
-	level   float64
+	up      bool
+	worth   float64
 	reaches func(*core.Spell) bool
 }
 
-// An effect of a target-side aura that reaches only its caster's attacks. A damage effect is a
-// percentage the client applies once per stack, so a level of 2 is worth 1 + 2*value/100; a crit
-// effect is percentage points, once per stack. The static path has no aura on a target, and without
-// FromCaster there is no caster, so both skip the row.
-func (p *parser) fromCaster(kind string, damage bool, v float64, reaches func(*core.Spell) bool) *attachment {
+// A damage effect that reaches only the caster's attacks: a percentage the client applies once per
+// stack, so a level of 2 is worth 1 + 2*value/100.
+func (p *parser) casterDamage(kind string, v float64, reaches func(*core.Spell) bool) *attachment {
+	a := &attachment{kind: kind, value: percentMultiplier(v), multiplicative: true}
+	return p.casterEffect(a, reaches, func(s *casterSlot) *[]*casterPart { return &s.damage },
+		func(level float64) float64 { return percentMultiplier(v * level) })
+}
+
+// A crit effect that reaches only the caster's attacks: percentage points, once per stack.
+func (p *parser) casterCrit(kind string, v float64, reaches func(*core.Spell) bool) *attachment {
+	a := &attachment{kind: kind, value: v}
+	return p.casterEffect(a, reaches, func(s *casterSlot) *[]*casterPart { return &s.crit },
+		func(level float64) float64 { return v * level })
+}
+
+// The effect as one of the slot's parts, in the handler parts picks, priced by worth at each level.
+// The static path has no aura on a target, and without FromCaster there is no caster, so both skip
+// the row.
+func (p *parser) casterEffect(a *attachment, reaches func(*core.Spell) bool,
+	parts func(*casterSlot) *[]*casterPart, worth func(level float64) float64) *attachment {
 	if p.casterSlot == nil || p.static {
 		return nil
-	}
-
-	a := &attachment{kind: kind, value: v}
-	if damage {
-		a.value, a.multiplicative = percentMultiplier(v), true
 	}
 	if p.dry {
 		return a
 	}
 
-	part := &casterPart{value: v, reaches: reaches}
 	slot := p.casterSlot
-	if damage {
-		slot.damage = append(slot.damage, part)
-	} else {
-		slot.crit = append(slot.crit, part)
-	}
+	part := &casterPart{reaches: reaches}
+	list := parts(slot)
+	*list = append(*list, part)
 	a.set = func(_ *core.Simulation, level float64) {
-		part.level = level
+		part.up, part.worth = level > 0, worth(level)
 		slot.update()
 	}
 	return a
@@ -82,18 +86,18 @@ func (s *casterSlot) update() {
 func (s *casterSlot) damageMultiplier(_ *core.Simulation, spell *core.Spell, _ *core.AttackTable) float64 {
 	mult := 1.0
 	for _, part := range s.damage {
-		if part.level > 0 && part.reaches(spell) {
-			mult *= percentMultiplier(part.value * part.level)
+		if part.up && part.reaches(spell) {
+			mult *= part.worth
 		}
 	}
 	return mult
 }
 
-func (s *casterSlot) critChance(spell *core.Spell, _ *core.AttackTable) float64 {
+func (s *casterSlot) critChance(spell *core.Spell) float64 {
 	bonus := 0.0
 	for _, part := range s.crit {
-		if part.level > 0 && part.reaches(spell) {
-			bonus += part.value * part.level
+		if part.up && part.reaches(spell) {
+			bonus += part.worth
 		}
 	}
 	return bonus
@@ -101,7 +105,7 @@ func (s *casterSlot) critChance(spell *core.Spell, _ *core.AttackTable) float64 
 
 func anyUp(parts []*casterPart) bool {
 	for _, part := range parts {
-		if part.level > 0 {
+		if part.up {
 			return true
 		}
 	}

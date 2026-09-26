@@ -69,10 +69,12 @@ func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string
 
 - `SpellOpt`: `Melee(mask)`, `Magic(mask)`, `Proc()`, `Flags(f)`, `Tag(n)`.
 - `AuraOpt`: `Label(name)`, `Permanent()`.
-- `ParseOpt`: `Effects(...)`, `SkipEffects(...)`, `Conditional(fn)`, `IgnoreStacks()`.
+- `ParseOpt`: `Effects(...)`, `SkipEffects(...)`, `Conditional(fn)`, `IgnoreStacks()`, `FromCaster(unit, i, total)`.
 - `ProcOpt`: `PPM(n)`, `Chance(f)`, `ChanceFrom(effect)`.
 
 Each fills what the row states and nothing else; the caller adds `ApplyEffects`, the proc mask, the conditions and any flag the client does not carry. `ParseEffects` must be called before the aura activates. `*Parsed` carries `Applied` and `Skipped` — `SPELLDATA_REPORT=1` prints the skipped effects, which are what the port still has to wire by hand.
+
+A debuff that raises only its caster's damage or crit against the target (Shadow Weaving, Winter's Chill, Stormstrike, Hemorrhage) is parsed onto each target's aura with `ParseEffects(nil, targetAura, row, FromCaster(&class.Unit, i, total))`. The parse holds slot `i` of `total` on the caster's attack table, numbered alongside the class's own `AttachDDBC` calls, one per parse; without `FromCaster`, and under `ParseStatic`, those rows are skipped. See "A debuff that reaches only its caster's attacks" in `docs/spell_data.md`.
 
 `Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ApplyEffects` by hand; Flurry tells it from the main-hand strike with `spellData.Whirlwind.Contains(spell)` and an off-hand proc mask. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
 

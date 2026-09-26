@@ -95,7 +95,7 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 	if config.ClassSpellMask > 0 && config.ClassSpellMask&spell.ClassSpellMask == 0 {
 		return false
 	}
-	if !config.ClassFlags.IsZero() && !spell.MatchesFlags(config.ClassFlags) {
+	if !config.ClassFlags.Reaches(spell) {
 		return false
 	}
 	if config.ClassSpellsOnly && spell.ClassSpellMask == 0 && spell.ClassFlags.IsZero() {

@@ -17,16 +17,6 @@ func casterScene() (caster, other, target *core.Character) {
 	return caster, other, target
 }
 
-func casterSpell(character *core.Character, id int32, school core.SpellSchool, flags core.ClassFlags) *core.Spell {
-	return character.RegisterSpell(core.SpellConfig{
-		ActionID:         core.ActionID{SpellID: id},
-		ClassFlags:       flags,
-		ProcMask:         core.ProcMaskSpellDamage,
-		SpellSchool:      school,
-		DamageMultiplier: 1,
-	})
-}
-
 func takenMultiplier(spell *core.Spell, target *core.Character) float64 {
 	return spell.TargetDamageMultiplier(&core.Simulation{}, spell.Unit.AttackTables[target.UnitIndex], false)
 }
@@ -40,9 +30,9 @@ func TestSchoolDamageFromCasterFollowsTheStacks(t *testing.T) {
 		Effects: []Effect{{SpellID: 15258, Type: dbcenums.E_APPLY_AURA,
 			Aura: dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, BasePoints: 2, Misc: 32}}}
 
-	shadow := casterSpell(caster, 1, core.SpellSchoolShadow, core.ClassFlags{})
-	fire := casterSpell(caster, 2, core.SpellSchoolFire, core.ClassFlags{})
-	otherShadow := casterSpell(other, 1, core.SpellSchoolShadow, core.ClassFlags{})
+	shadow := parseSpell(caster, 1, core.SpellSchoolShadow, core.ProcMaskSpellDamage, core.ClassFlags{})
+	fire := parseSpell(caster, 2, core.SpellSchoolFire, core.ProcMaskSpellDamage, core.ClassFlags{})
+	otherShadow := parseSpell(other, 1, core.SpellSchoolShadow, core.ProcMaskSpellDamage, core.ClassFlags{})
 
 	aura := target.RegisterAura(AuraConfig(row))
 	ParseEffects(nil, aura, row, FromCaster(&caster.Unit, 0, 1))
@@ -76,9 +66,11 @@ func TestSpellDamageFromCasterReachesTheNamedSpells(t *testing.T) {
 			Aura: dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER, BasePoints: 10,
 			ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 1026}}}}}
 
-	corruption := casterSpell(caster, 1, core.SpellSchoolShadow, core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2}})
-	wrack := casterSpell(caster, 2, core.SpellSchoolShadow, row.ClassFlags)
-	otherCorruption := casterSpell(other, 1, core.SpellSchoolShadow, core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2}})
+	corruption := parseSpell(caster, 1, core.SpellSchoolShadow, core.ProcMaskSpellDamage,
+		core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2}})
+	wrack := parseSpell(caster, 2, core.SpellSchoolShadow, core.ProcMaskSpellDamage, row.ClassFlags)
+	otherCorruption := parseSpell(other, 1, core.SpellSchoolShadow, core.ProcMaskSpellDamage,
+		core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2}})
 
 	aura := target.RegisterAura(AuraConfig(row))
 	ParseEffects(nil, aura, row, FromCaster(&caster.Unit, 0, 1))
@@ -106,9 +98,12 @@ func TestCritForCasterReachesTheNamedSpells(t *testing.T) {
 			Aura: dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, BasePoints: 2, Misc: 16,
 			ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x20020}}}}}
 
-	frostbolt := casterSpell(caster, 1, core.SpellSchoolFrost, core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x20}})
-	blizzard := casterSpell(caster, 2, core.SpellSchoolFrost, core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x80}})
-	otherFrostbolt := casterSpell(other, 1, core.SpellSchoolFrost, core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x20}})
+	frostbolt := parseSpell(caster, 1, core.SpellSchoolFrost, core.ProcMaskSpellDamage,
+		core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x20}})
+	blizzard := parseSpell(caster, 2, core.SpellSchoolFrost, core.ProcMaskSpellDamage,
+		core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x80}})
+	otherFrostbolt := parseSpell(other, 1, core.SpellSchoolFrost, core.ProcMaskSpellDamage,
+		core.ClassFlags{Family: 3, Mask: [4]uint32{0: 0x20}})
 
 	before := map[*core.Spell]float64{}
 	for _, spell := range []*core.Spell{frostbolt, blizzard, otherFrostbolt} {
@@ -156,7 +151,7 @@ func TestFromCasterEffectsShareTheParsesSlot(t *testing.T) {
 				Aura: dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, BasePoints: 5, ClassFlags: flags},
 		}}
 
-	frostbolt := casterSpell(caster, 1, core.SpellSchoolFrost, flags)
+	frostbolt := parseSpell(caster, 1, core.SpellSchoolFrost, core.ProcMaskSpellDamage, flags)
 	aura := target.RegisterAura(AuraConfig(row))
 	ParseEffects(nil, aura, row, FromCaster(&caster.Unit, 1, 2))
 	aura.Activate(sim)
@@ -177,7 +172,8 @@ func TestFromCasterEffectsShareTheParsesSlot(t *testing.T) {
 }
 
 // Without a caster the rows have no attacks to reach: a raid debuff whose caster the sim does not
-// model, and the dry run a generator reads.
+// model, and the dry run a generator reads. A dry run given a caster reads them for what they would
+// attach.
 func TestFromCasterRowsNeedACaster(t *testing.T) {
 	row := &Spell{ID: 22959, Name: "Fire Vulnerability", DurationMs: 30000, MaxStack: 5,
 		Effects: []Effect{{SpellID: 22959, Type: dbcenums.E_APPLY_AURA,
@@ -189,5 +185,9 @@ func TestFromCasterRowsNeedACaster(t *testing.T) {
 	}
 	if parsed := DryRun(row); len(parsed.Applied) != 0 {
 		t.Errorf("the dry run attached %v, want nothing", appliedKinds(parsed))
+	}
+	if parsed := DryRun(row, FromCaster(&target.Unit, 0, 1)); len(parsed.Applied) != 1 ||
+		parsed.Applied[0].Kind != "caster-damage-by-school" || math.Abs(parsed.Applied[0].Value-1.03) > 1e-9 {
+		t.Errorf("the dry run with a caster attached %v, want caster-damage-by-school at 1.03", parsed.Applied)
 	}
 }

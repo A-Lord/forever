@@ -384,7 +384,9 @@ into one `DamageDoneByCasterExtraMultiplier` handler and its crit effects add in
 `EnableCritChanceByCaster` switch on while an effect is up. The class numbers those slots the way it
 numbers its own `AttachDDBC` calls, and a slot is its parse's, so two debuffs a class parses take two
 indexes. Another caster's attacks on the same target are untouched, and so is every spell of a raid
-debuff's caster, which the sim does not model: without `FromCaster` the rows are skipped.
+debuff's caster, which the sim does not model: without `FromCaster` the rows are skipped. The
+character argument is nil, since the aura is the target's, and the parse reads the row at the caster's
+level.
 
 ```go
 spelldata.ParseEffects(nil, swAura, spellData.ShadowWeavingTriggered.Highest(),

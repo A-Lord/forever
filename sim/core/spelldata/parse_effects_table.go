@@ -314,21 +314,21 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 
 	// The damage the unit takes from the attacks of the aura's caster, and the caster's crit chance
-	// against it: see casterSlot.
+	// against it: see FromCaster.
 	dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc <= 0 {
 			return nil
 		}
 		school := core.SpellSchool(e.Misc)
-		return p.fromCaster("caster-damage-by-school", true, v, func(spell *core.Spell) bool {
+		return p.casterDamage("caster-damage-by-school", v, func(spell *core.Spell) bool {
 			return spell.SpellSchool.Matches(school)
 		})
 	},
 	dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER: func(p *parser, e *Effect, v float64) *attachment {
-		return p.fromCaster("caster-damage-by-spell", true, v, p.namesSpell(e))
+		return p.casterDamage("caster-damage-by-spell", v, p.namesSpell(e))
 	},
 	dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES: func(p *parser, e *Effect, v float64) *attachment {
-		return p.fromCaster("caster-crit-by-spell", false, v, p.namesSpell(e))
+		return p.casterCrit("caster-crit-by-spell", v, p.namesSpell(e))
 	},
 
 	// How long a crowd control effect lasts on the unit, by the mechanic the misc value names.
@@ -486,8 +486,11 @@ func (p *parser) classFlags(e *Effect) core.ClassFlags {
 // Whether a spell is one the effect names, the way a modifier's class flags reach it.
 func (p *parser) namesSpell(e *Effect) func(*core.Spell) bool {
 	flags := p.classFlags(e)
+	if flags.IsZero() {
+		return func(*core.Spell) bool { return true }
+	}
 	return func(spell *core.Spell) bool {
-		return flags.IsZero() || spell.MatchesFlags(flags)
+		return spell.MatchesFlags(flags)
 	}
 }
 

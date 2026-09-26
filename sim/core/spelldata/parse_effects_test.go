@@ -98,12 +98,13 @@ func parseWarrior() *core.Character {
 }
 
 // A spell for a mod to land on, carrying the multiplier a registered damage spell starts at.
-func parseSpell(character *core.Character, id int32, flags core.ClassFlags) *core.Spell {
+func parseSpell(character *core.Character, id int32, school core.SpellSchool, procMask core.ProcMask,
+	flags core.ClassFlags) *core.Spell {
 	return character.RegisterSpell(core.SpellConfig{
 		ActionID:         core.ActionID{SpellID: id},
 		ClassFlags:       flags,
-		ProcMask:         core.ProcMaskSpellDamage,
-		SpellSchool:      core.SpellSchoolPhysical,
+		ProcMask:         procMask,
+		SpellSchool:      school,
 		DamageMultiplier: 1,
 	})
 }
@@ -170,8 +171,8 @@ func TestParseStaticCarriesTheClassFlags(t *testing.T) {
 	character := parseWarrior()
 	character.EnableRageBar(core.RageBarOptions{})
 
-	named := parseSpell(character, 2100, parseTargetMask)
-	elsewhere := parseSpell(character, 2101, parseOtherMask)
+	named := parseSpell(character, 2100, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseTargetMask)
+	elsewhere := parseSpell(character, 2101, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseOtherMask)
 
 	ParseStatic(character, Find(1000))
 
@@ -188,8 +189,9 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 	withRows(t, parseRows())
 	character := parseWarrior()
 
-	family := parseSpell(character, 2200, parseOtherMask)
-	outsider := parseSpell(character, 2201, core.ClassFlags{Family: 9, Mask: [4]uint32{0: 0x80}})
+	family := parseSpell(character, 2200, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseOtherMask)
+	outsider := parseSpell(character, 2201, core.SpellSchoolPhysical, core.ProcMaskSpellDamage,
+		core.ClassFlags{Family: 9, Mask: [4]uint32{0: 0x80}})
 
 	row := *Find(1100)
 	row.Effects = []Effect{{SpellID: 1100, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
@@ -335,7 +337,7 @@ func TestParseEffectsFollowsTheAuraAndItsStacks(t *testing.T) {
 	sim := &core.Simulation{}
 	character := parseWarrior()
 
-	spell := parseSpell(character, 2300, parseTargetMask)
+	spell := parseSpell(character, 2300, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseTargetMask)
 	aura := character.RegisterAura(AuraConfig(Find(1200)))
 	parsed := ParseEffects(character, aura, Find(1200))
 
@@ -715,7 +717,7 @@ func TestParseEffectsCatchesUpAnActiveAura(t *testing.T) {
 	withRows(t, parseRows())
 	sim := &core.Simulation{}
 	character := parseWarrior()
-	spell := parseSpell(character, 2500, parseTargetMask)
+	spell := parseSpell(character, 2500, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseTargetMask)
 
 	row := *Find(1200)
 	row.MaxStack = 0

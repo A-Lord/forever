@@ -352,7 +352,7 @@ type DynamicDamageDoneByCaster func(sim *Simulation, spell *Spell, attackTable *
 type DynamicThreatDoneByCaster DynamicDamageDoneByCaster
 
 // The crit chance, in percentage points, a target-side aura adds to one of its caster's spells.
-type DynamicCritChanceByCaster func(spell *Spell, attackTable *AttackTable) float64
+type DynamicCritChanceByCaster func(spell *Spell) float64
 
 // Holds cached values for outcome/damage calculations, for a specific attacker+defender pair.
 // These are updated dynamically when attacker or defender stats change.
@@ -440,11 +440,17 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 	return table
 }
 
-func EnableDamageDoneByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicDamageDoneByCaster) {
-	if attackTable.DamageDoneByCasterExtraMultiplier == nil {
-		attackTable.DamageDoneByCasterExtraMultiplier = make([]DynamicDamageDoneByCaster, maxIndex)
+// Puts a handler in slot index of one of an attack table's caster slices, which is made maxIndex long
+// on first use.
+func setCasterSlot[T any](slots *[]T, index int, maxIndex int, handler T) {
+	if *slots == nil {
+		*slots = make([]T, maxIndex)
 	}
-	attackTable.DamageDoneByCasterExtraMultiplier[index] = handler
+	(*slots)[index] = handler
+}
+
+func EnableDamageDoneByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicDamageDoneByCaster) {
+	setCasterSlot(&attackTable.DamageDoneByCasterExtraMultiplier, index, maxIndex, handler)
 }
 
 func DisableDamageDoneByCaster(index int, attackTable *AttackTable) {
@@ -452,10 +458,7 @@ func DisableDamageDoneByCaster(index int, attackTable *AttackTable) {
 }
 
 func EnableCritChanceByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicCritChanceByCaster) {
-	if attackTable.CritChanceByCasterBonus == nil {
-		attackTable.CritChanceByCasterBonus = make([]DynamicCritChanceByCaster, maxIndex)
-	}
-	attackTable.CritChanceByCasterBonus[index] = handler
+	setCasterSlot(&attackTable.CritChanceByCasterBonus, index, maxIndex, handler)
 }
 
 func DisableCritChanceByCaster(index int, attackTable *AttackTable) {
@@ -467,7 +470,7 @@ func (attackTable *AttackTable) critChanceByCaster(spell *Spell) float64 {
 	bonus := 0.0
 	for _, handler := range attackTable.CritChanceByCasterBonus {
 		if handler != nil {
-			bonus += handler(spell, attackTable)
+			bonus += handler(spell)
 		}
 	}
 	return bonus
