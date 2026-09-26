@@ -141,12 +141,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}
 		switch {
 		case e.Misc&miscAllSchools == miscAllSchools:
-			a := &attachment{kind: "damage-taken-flat", value: v, parts: []*attachment{physical(), spell()}}
-			a.set = func(sim *core.Simulation, level float64) {
-				for _, part := range a.parts {
-					part.set(sim, level)
-				}
-			}
+			a := combined([]*attachment{physical(), spell()})
+			a.kind = "damage-taken-flat"
 			return a
 		case e.Misc&int32(core.SpellSchoolPhysical) != 0:
 			return physical()
@@ -522,7 +518,13 @@ func (p *parser) scopedRatings(mask int32, rule WeaponRule, scope core.SpellModC
 			parts = append(parts, part)
 		}
 	}
+	return combined(parts)
+}
 
+// One attachment for parts that apply together, its kind theirs joined by "+" and its value the first
+// part's. A part that reads the Simulation is left out while there is none, and the whole needs one
+// only where every part does. Nil for no parts, and the part itself for one.
+func combined(parts []*attachment) *attachment {
 	switch len(parts) {
 	case 0:
 		return nil
@@ -530,10 +532,12 @@ func (p *parser) scopedRatings(mask int32, rule WeaponRule, scope core.SpellModC
 		return parts[0]
 	}
 	kinds := make([]string, len(parts))
+	needsSim := true
 	for i, part := range parts {
 		kinds[i] = part.kind
+		needsSim = needsSim && part.needsSim
 	}
-	a := &attachment{kind: strings.Join(kinds, "+"), value: parts[0].value, parts: parts}
+	a := &attachment{kind: strings.Join(kinds, "+"), value: parts[0].value, parts: parts, needsSim: needsSim}
 	a.set = func(sim *core.Simulation, level float64) {
 		for _, part := range a.parts {
 			if sim == nil && part.needsSim {
@@ -545,9 +549,7 @@ func (p *parser) scopedRatings(mask int32, rule WeaponRule, scope core.SpellModC
 	return a
 }
 
-// Haste on the attacks a scoped rating reaches, as their attack speed. A mask of ranged bits alone is
-// ranged speed. A row bound to a weapon is the speed of the attacks its scope names while a matching
-// weapon makes them; the sim has no speed per hand, so a melee match speeds up both hands.
+// Haste on the attacks a scoped rating reaches, as their attack speed.
 func (p *parser) scopedSpeed(rule WeaponRule, scope core.SpellModConfig, percent float64) *attachment {
 	mult := speedMultiplier(percent)
 	if rule == WeaponRuleRangedRatings {
@@ -560,7 +562,7 @@ func (p *parser) scopedSpeed(rule WeaponRule, scope core.SpellModConfig, percent
 	a := &attachment{kind: "speed-while-equipped", value: mult, multiplicative: true, needsSim: true}
 	if !p.dry {
 		gated := p.character.NewEquipGatedSpeed(weaponRequirement(scope), scope.ProcMask, mult)
-		a.set = func(sim *core.Simulation, level float64) { gated.SetActive(sim, level > 0) }
+		a.set = gated.SetLevel
 	}
 	return a
 }

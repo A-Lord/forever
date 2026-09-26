@@ -545,7 +545,8 @@ export class Stats {
 			total += stat * epWeights.stats[idx];
 		});
 
-		const fallbackPercents = new Map<Stat, number>();
+		const ratingEP = (rating: Stat, percent: number) => UnitStat.fromStat(rating).convertPercentToRating(percent)! * epWeights.stats[rating];
+		let fallbackPercents: Map<Stat, number> | undefined;
 		const addPercent = (rating: Stat, pseudoStat: PseudoStat, value: number) => {
 			if (value === 0) {
 				return;
@@ -555,6 +556,7 @@ export class Stats {
 				total += value * weight;
 				return;
 			}
+			fallbackPercents ??= new Map<Stat, number>();
 			const counted = fallbackPercents.get(rating);
 			fallbackPercents.set(rating, counted === undefined ? value : Math.max(counted, value));
 		};
@@ -564,14 +566,16 @@ export class Stats {
 			const ranged = this.pseudoStats[channels.ranged];
 			const spell = this.pseudoStats[channels.spell];
 			const common = Math.max(0, Math.min(melee, ranged, spell));
-			total += UnitStat.fromStat(rating).convertPercentToRating(common)! * epWeights.stats[rating];
+			if (common !== 0) {
+				total += ratingEP(rating, common);
+			}
 			addPercent(rating, channels.melee, melee - common);
 			addPercent(rating, channels.ranged, channels.rangedTotal ? Math.max(0, ranged - melee) : ranged - common);
 			addPercent(rating, channels.spell, spell - common);
 		});
 
 		this.pseudoStats.forEach((value, idx) => {
-			if (CHANNEL_PSEUDO_STATS.has(idx)) {
+			if (value === 0 || CHANNEL_PSEUDO_STATS.has(idx)) {
 				return;
 			}
 			if (RATING_WEIGHTED_PERCENT_PSEUDO_STATS.has(idx)) {
@@ -581,8 +585,8 @@ export class Stats {
 			}
 		});
 
-		fallbackPercents.forEach((percent, rating) => {
-			total += UnitStat.fromStat(rating).convertPercentToRating(percent)! * epWeights.stats[rating];
+		fallbackPercents?.forEach((percent, rating) => {
+			total += ratingEP(rating, percent);
 		});
 		return total;
 	}

@@ -76,45 +76,41 @@ var (
 	rangedHitUnitStat = stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatRangedHitPercent)
 )
 
-// A spec weighing melee and ranged hit percent still simulates hit rating, and its weight is that sim's
-// answer rather than the sum of the percents, which would count the ranged attacks twice.
+// A spec weighing melee and ranged hit percent, or a hunter weighing ranged hit percent alone, still
+// simulates hit rating, and its weight is that sim's answer rather than the sum of the percents, which
+// would count the ranged attacks twice.
 func TestStatWeightsSimulateHitRatingBesideItsPercents(t *testing.T) {
-	requests, result := runSyntheticStatWeights(t,
-		[]proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
-		[]proto.PseudoStat{proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent},
-		map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 3, meleeHitUnitStat: 25, rangedHitUnitStat: 10})
-
-	if !simulatesStat(requests, hitRatingUnitStat) {
-		t.Fatal("no sub-sim for hit rating")
-	}
 	for _, c := range []struct {
-		name string
-		got  float64
-		want float64
+		name        string
+		percents    []proto.PseudoStat
+		dpsPerPoint map[stats.UnitStat]float64
+		want        map[string]float64
 	}{
-		{"hit rating weight", protoUnitStat(result.Dps.Weights, hitRatingUnitStat), 3},
-		{"hit rating EP", protoUnitStat(result.Dps.EpValues, hitRatingUnitStat), 3},
-		{"melee hit percent weight", protoUnitStat(result.Dps.Weights, meleeHitUnitStat), 25},
-		{"ranged hit percent weight", protoUnitStat(result.Dps.Weights, rangedHitUnitStat), 10},
+		{"melee and ranged hit", []proto.PseudoStat{proto.PseudoStat_PseudoStatMeleeHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent},
+			map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 3, meleeHitUnitStat: 25, rangedHitUnitStat: 10},
+			map[string]float64{"hit rating weight": 3, "hit rating EP": 3, "melee hit percent weight": 25, "ranged hit percent weight": 10}},
+		{"ranged hit alone", []proto.PseudoStat{proto.PseudoStat_PseudoStatRangedHitPercent},
+			map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 2, rangedHitUnitStat: 18},
+			map[string]float64{"hit rating weight": 2}},
 	} {
-		if math.Abs(c.got-c.want) > 1e-9 {
-			t.Errorf("%s = %v, want %v", c.name, c.got, c.want)
-		}
-	}
-}
+		t.Run(c.name, func(t *testing.T) {
+			requests, result := runSyntheticStatWeights(t, []proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating}, c.percents, c.dpsPerPoint)
 
-// A hunter weighs ranged hit percent alone and still gets a hit rating weight.
-func TestStatWeightsSimulateHitRatingBesideRangedHitPercent(t *testing.T) {
-	requests, result := runSyntheticStatWeights(t,
-		[]proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
-		[]proto.PseudoStat{proto.PseudoStat_PseudoStatRangedHitPercent},
-		map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 2, rangedHitUnitStat: 18})
-
-	if !simulatesStat(requests, hitRatingUnitStat) {
-		t.Fatal("no sub-sim for hit rating")
-	}
-	if got := protoUnitStat(result.Dps.Weights, hitRatingUnitStat); math.Abs(got-2) > 1e-9 {
-		t.Errorf("hit rating weight = %v, want 2", got)
+			if !simulatesStat(requests, hitRatingUnitStat) {
+				t.Fatal("no sub-sim for hit rating")
+			}
+			got := map[string]float64{
+				"hit rating weight":         protoUnitStat(result.Dps.Weights, hitRatingUnitStat),
+				"hit rating EP":             protoUnitStat(result.Dps.EpValues, hitRatingUnitStat),
+				"melee hit percent weight":  protoUnitStat(result.Dps.Weights, meleeHitUnitStat),
+				"ranged hit percent weight": protoUnitStat(result.Dps.Weights, rangedHitUnitStat),
+			}
+			for name, want := range c.want {
+				if math.Abs(got[name]-want) > 1e-9 {
+					t.Errorf("%s = %v, want %v", name, got[name], want)
+				}
+			}
+		})
 	}
 }
 

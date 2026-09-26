@@ -461,13 +461,11 @@ some attacks.
 `A_MOD_RATING` names its ratings as a mask of the client's combat ratings, which `spelldata.RatingStats`
 reads bit by bit: the melee, ranged and spell bits of one rating name the same stat, 8388608 is
 `ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row that names a weapon, and a
-mask of the ranged bits 64, 512 and 262144 alone, are read by `spelldata.ScopedRatingStats` instead: the
-hit and crit among them become the percent they are worth, as a mod on those attacks tagged
-`FromRating`, and the haste the attack speed it is worth. A mask of ranged bits alone raises ranged speed
-while the aura is up. A row bound to a weapon raises the speed of the attacks its scope names while a
-matching weapon is in their slot, through `core.EquipGatedSpeed`, and follows item swaps; the sim keeps
-one melee speed for both hands, so a match in either hand the scope names speeds up both. The static
-path attaches no speed, as it has no Simulation to hand one. The other ratings are not read.
+mask of the ranged bits 64, 512 and 262144 alone, are read by `spelldata.ScopedRatingStats` instead. A
+mask of ranged bits alone raises ranged speed while the aura is up. A row bound to a weapon raises the
+speed of the attacks its scope names while a matching weapon is in their slot, through
+`core.EquipGatedSpeed`, and follows item swaps. The static path attaches no speed, as it has no
+Simulation to hand one. The other ratings are not read.
 
 ### The rule per aura
 
@@ -497,13 +495,13 @@ tooltip disagree, the tooltip wins and the call site names the wording.
 
 ### Which API
 
-| the effect                                                              | write                                                                                                                                  |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| a per-weapon bonus the row states as 52, 54 or a ranged-only 290        | `ParseStatic` or `ParseEffects`; `Applied` names a `SpellMod_BonusHit_Percent` or `SpellMod_BonusCrit_Percent`                         |
-| a per-weapon bonus the row does not state, or states as a 290 exception | `AddStaticMod(core.SpellModConfig{...})` with the Equip fields                                                                         |
-| a per-weapon bonus that shows as an aura                                | `AttachSpellMod` on that aura, with the Equip fields                                                                                   |
-| stats on every spell and attack while a weapon is equipped              | `character.NewEquipGatedStats(req, bonus)`, which the parse's 290 path uses                                                            |
-| a temporary enchant's per-weapon effects                                | `spelldata.OnHand(...)`, which binds them to the hand carrying the enchant                                                             |
+| the effect                                                              | write                                                                                                          |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| a per-weapon bonus the row states as 52, 54 or a ranged-only 290        | `ParseStatic` or `ParseEffects`; `Applied` names a `SpellMod_BonusHit_Percent` or `SpellMod_BonusCrit_Percent` |
+| a per-weapon bonus the row does not state, or states as a 290 exception | `AddStaticMod(core.SpellModConfig{...})` with the Equip fields                                                 |
+| a per-weapon bonus that shows as an aura                                | `AttachSpellMod` on that aura, with the Equip fields                                                           |
+| stats on every spell and attack while a weapon is equipped              | `character.NewEquipGatedStats(req, bonus)`, which the parse's 290 path uses                                    |
+| a temporary enchant's per-weapon effects                                | `spelldata.OnHand(...)`, which binds them to the hand carrying the enchant                                     |
 
 Weaponmaster (`sim/warrior/talents_arms.go`) keeps its crit visible as an aura. `critOn` is whether
 either hand holds an axe or a polearm as the character is built:

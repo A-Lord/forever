@@ -1,7 +1,6 @@
 package dbc
 
 import (
-	"maps"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
@@ -38,8 +37,7 @@ func rangedWeaponRating(t *testing.T, mask int32) int {
 }
 
 // A rating bound to ranged weapons folds into an item and into an enchant as the ranged percent of each
-// hit, crit and haste rating its mask names, the one spelldata.RangedRatingPercents reads and the parse
-// applies, and as no rating stat.
+// hit, crit and haste rating its mask names, and as no rating stat.
 func TestRangedWeaponRatingFolds(t *testing.T) {
 	hit, crit, haste := 20/core.HitRatingPerHitPercent, 20/core.CritRatingPerCritPercent, 20/core.HasteRatingPerHastePercent
 	for _, c := range []struct {
@@ -58,15 +56,6 @@ func TestRangedWeaponRatingFolds(t *testing.T) {
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			id := rangedWeaponRating(t, c.mask)
-
-			row := spelldata.Find(int32(id))
-			parsed := map[proto.PseudoStat]float64{}
-			for _, rating := range spelldata.RangedRatingPercents(row, &row.Effects[0], 20) {
-				parsed[rangedPercentStats[rating.Stat]] = rating.Percent
-			}
-			if !maps.Equal(parsed, c.want) {
-				t.Errorf("the parse reads %v, want %v", parsed, c.want)
-			}
 
 			var equipStats stats.Stats
 			equipPseudoStats := make([]float64, stats.PseudoStatsLen)

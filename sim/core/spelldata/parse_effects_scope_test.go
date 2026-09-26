@@ -209,27 +209,24 @@ func TestParseScopedRangedOnlyRating(t *testing.T) {
 	}
 }
 
-// A hit or crit rating with ranged weapons is a mod on the ranged attacks at the percent
-// RangedRatingPercents reads, whichever of its melee, ranged and spell bits the mask names, and no stat.
+// A hit or crit rating with ranged weapons is a mod on the ranged attacks at the percent the rating is
+// worth, whichever of its melee, ranged and spell bits the mask names, and no stat.
 func TestParseRatingWithRangedWeaponsIsRangedMod(t *testing.T) {
 	for _, c := range []struct {
-		mask int32
-		kind bonus
+		mask    int32
+		kind    bonus
+		percent float64
 	}{
-		{32 | 64 | 128, bonusHit},
-		{32 | 64, bonusHit},
-		{256 | 512 | 1024, bonusCrit},
+		{32 | 64 | 128, bonusHit, 20 / core.HitRatingPerHitPercent},
+		{32 | 64, bonusHit, 20 / core.HitRatingPerHitPercent},
+		{256 | 512 | 1024, bonusCrit, 20 / core.CritRatingPerCritPercent},
 	} {
 		e := casterAura(dbcenums.A_MOD_RATING, 20)
 		e.Misc = c.mask
 		row := &Spell{ID: 6105, Name: "Ranged Weapon Rating", EquipClass: 2, EquipSubclass: 262156, Effects: []Effect{e}}
-		percents := RangedRatingPercents(row, &row.Effects[0], 20)
-		if len(percents) != 1 {
-			t.Fatalf("mask %d reads %v, want one rating", c.mask, percents)
-		}
 
 		r := parseScoped(t, row)
-		r.check(t, c.kind, 0, 0, percents[0].Percent, 0)
+		r.check(t, c.kind, 0, 0, c.percent, 0)
 		r.checkNoStats(t, stats.HitRating, stats.CritRating, stats.PhysicalHitPercent, stats.PhysicalCritPercent)
 	}
 }
@@ -373,9 +370,9 @@ func (r *scopeResult) checkSpeeds(t *testing.T, when string, base speedResult, m
 // A haste bit of the ranged bits alone is the ranged speed the rating is worth, while the aura is up,
 // and leaves the melee speed alone.
 func TestParseRangedOnlyHasteRatingIsRangedSpeed(t *testing.T) {
-	row := &Spell{ID: 6101, Name: "Ranged Haste Rating",
-		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RATING, Misc: dbcenums.RATING_MOD_HASTE_RANGED, BasePoints: 20,
-			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}
+	e := casterAura(dbcenums.A_MOD_RATING, 20)
+	e.Misc = dbcenums.RATING_MOD_HASTE_RANGED
+	row := &Spell{ID: 6101, Name: "Ranged Haste Rating", Effects: []Effect{e}}
 	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
 	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"ranged-speed"}) {
 		t.Errorf("attached %v, want the ranged speed", kinds)
@@ -391,9 +388,9 @@ func TestParseRangedOnlyHasteRatingIsRangedSpeed(t *testing.T) {
 
 // Every ranged bit on an aura: the hit and crit mods and the ranged speed, as one attachment.
 func TestParseRangedOnlyRatingsOnAnAura(t *testing.T) {
-	row := &Spell{ID: 6104, Name: "Ranged Ratings",
-		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RATING, Misc: 64 | 512 | 262144, BasePoints: 20,
-			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}
+	e := casterAura(dbcenums.A_MOD_RATING, 20)
+	e.Misc = 64 | 512 | 262144
+	row := &Spell{ID: 6104, Name: "Ranged Ratings", Effects: []Effect{e}}
 	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
 	want := []string{"SpellMod_BonusHit_Percent+SpellMod_BonusCrit_Percent+ranged-speed"}
 	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, want) {
@@ -410,9 +407,9 @@ func TestParseRangedOnlyRatingsOnAnAura(t *testing.T) {
 // Melee haste rating bound to melee weapons is melee speed while one is equipped: off with the bow
 // alone, on once the sword is swapped in, and off again after swapping back.
 func TestParseWeaponScopedHasteRatingFollowsTheMeleeWeapon(t *testing.T) {
-	row := &Spell{ID: 6102, Name: "Melee Weapon Haste Rating", EquipClass: 2, EquipSubclass: 173555,
-		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RATING, Misc: dbcenums.RATING_MOD_HASTE_MELEE, BasePoints: 20,
-			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}
+	e := casterAura(dbcenums.A_MOD_RATING, 20)
+	e.Misc = dbcenums.RATING_MOD_HASTE_MELEE
+	row := &Spell{ID: 6102, Name: "Melee Weapon Haste Rating", EquipClass: 2, EquipSubclass: 173555, Effects: []Effect{e}}
 	r := parseScopedWith(t, row, core.WeaponTestSlots(0, 0, core.WeaponTestBowID),
 		core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), true)
 	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"speed-while-equipped"}) {
@@ -439,9 +436,9 @@ func TestParseWeaponScopedHasteRatingFollowsTheMeleeWeapon(t *testing.T) {
 // Haste rating bound to bows, guns and crossbows is ranged speed while one is equipped, and no melee
 // speed.
 func TestParseWeaponScopedHasteRatingWithRangedWeapons(t *testing.T) {
-	row := &Spell{ID: 6103, Name: "Ranged Weapon Haste Rating", EquipClass: 2, EquipSubclass: 262156,
-		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RATING, Misc: dbcenums.RATING_MOD_HASTE_MELEE | dbcenums.RATING_MOD_HASTE_RANGED, BasePoints: 20,
-			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}
+	e := casterAura(dbcenums.A_MOD_RATING, 20)
+	e.Misc = dbcenums.RATING_MOD_HASTE_MELEE | dbcenums.RATING_MOD_HASTE_RANGED
+	row := &Spell{ID: 6103, Name: "Ranged Weapon Haste Rating", EquipClass: 2, EquipSubclass: 262156, Effects: []Effect{e}}
 	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
 	base := r.speeds()
 

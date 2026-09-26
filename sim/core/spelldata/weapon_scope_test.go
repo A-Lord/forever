@@ -80,35 +80,3 @@ func TestScopedRatingStatsReadsTheRangedBits(t *testing.T) {
 		t.Errorf("the unscoped read of a ranged bit alone gives %v, want nothing", got)
 	}
 }
-
-// A rating with ranged weapons, or of ranged bits alone, reads each hit, crit and haste rating its mask
-// names once, whichever of the melee, ranged and spell bits name it, and leaves the other ratings out.
-func TestRangedRatingPercents(t *testing.T) {
-	rangedWeapons := Spell{EquipClass: 2, EquipSubclass: 262156}
-	hit := RatingPercent{stats.HitRating, 20 / core.HitRatingPerHitPercent}
-	crit := RatingPercent{stats.CritRating, 20 / core.CritRatingPerCritPercent}
-	haste := RatingPercent{stats.HasteRating, 20 / core.HasteRatingPerHastePercent}
-
-	for _, c := range []struct {
-		name string
-		row  Spell
-		mask int32
-		want []RatingPercent
-	}{
-		{"hit on every channel with ranged weapons", rangedWeapons, 32 | 64 | 128, []RatingPercent{hit}},
-		{"melee and ranged hit with ranged weapons", rangedWeapons, 32 | 64, []RatingPercent{hit}},
-		{"crit on every channel with ranged weapons", rangedWeapons, 256 | 512 | 1024, []RatingPercent{crit}},
-		{"melee, ranged and cast haste with ranged weapons", rangedWeapons, 131072 | 262144 | 524288, []RatingPercent{haste}},
-		{"defense, melee hit and spell crit with ranged weapons", rangedWeapons, 2 | 32 | 1024, []RatingPercent{hit, crit}},
-		{"ranged crit", Spell{}, 512, []RatingPercent{crit}},
-		{"ranged hit and haste", Spell{}, 64 | 262144, []RatingPercent{hit, haste}},
-		{"hit on every channel", Spell{}, 32 | 64 | 128, nil},
-		{"hit on every channel with melee weapons", Spell{EquipClass: 2, EquipSubclass: 173555}, 32 | 64 | 128, nil},
-	} {
-		e := casterAura(dbcenums.A_MOD_RATING, 20)
-		e.Misc = c.mask
-		if got := RangedRatingPercents(&c.row, &e, 20); !slices.Equal(got, c.want) {
-			t.Errorf("%s: %v, want %v", c.name, got, c.want)
-		}
-	}
-}

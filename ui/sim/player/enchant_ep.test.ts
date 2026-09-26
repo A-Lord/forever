@@ -19,6 +19,9 @@ const computeEnchantEP = (enchant: Enchant, slot?: ItemSlot, weapon?: Item | nul
 	return Player.prototype.computeEnchantEP.call(player, enchant, weapon?.weaponSpeed ?? 0, epPerWeaponDps);
 };
 
+const enchantEP = (effectId: number, pseudoStats: Partial<Record<PseudoStat, number>>, epWeights: Stats) =>
+	computeEnchantEP(Enchant.create({ effectId, pseudoStats: Stats.fromMap({}, pseudoStats).toProto().pseudoStats }), undefined, undefined, epWeights);
+
 const striking = Enchant.create({ effectId: 1897, weaponDamage: 5 });
 const sword = Item.create({ id: 1, weaponSpeed: 2.5 });
 
@@ -41,25 +44,23 @@ describe('Player.computeEnchantEP', () => {
 
 describe('Player.computeEnchantEP on percent pseudo stats', () => {
 	const ratingWeights = Stats.fromMap({ [Stat.StatDodgeRating]: 2, [Stat.StatCritRating]: 3, [Stat.StatHitRating]: 5 }, {});
-	const enchantEP = (effectId: number, pseudoStats: Partial<Record<PseudoStat, number>>, epWeights = ratingWeights) =>
-		computeEnchantEP(Enchant.create({ effectId, pseudoStats: Stats.fromMap({}, pseudoStats).toProto().pseudoStats }), undefined, undefined, epWeights);
 
 	it('values 2622 Enchant Cloak - Dodge at the dodge rating weight', () => {
-		expect(enchantEP(2622, { [PseudoStat.PseudoStatDodgePercent]: 1 })).toBeCloseTo(Mechanics.DODGE_RATING_PER_DODGE_PERCENT * 2);
+		expect(enchantEP(2622, { [PseudoStat.PseudoStatDodgePercent]: 1 }, ratingWeights)).toBeCloseTo(Mechanics.DODGE_RATING_PER_DODGE_PERCENT * 2);
 	});
 
 	it("counts 2717 Might of the Scourge's crit once, though it states melee and the ranged total", () => {
-		expect(enchantEP(2717, { [PseudoStat.PseudoStatMeleeCritPercent]: 1, [PseudoStat.PseudoStatRangedCritPercent]: 1 })).toBeCloseTo(
+		expect(enchantEP(2717, { [PseudoStat.PseudoStatMeleeCritPercent]: 1, [PseudoStat.PseudoStatRangedCritPercent]: 1 }, ratingWeights)).toBeCloseTo(
 			Mechanics.CRIT_RATING_PER_CRIT_PERCENT * 3,
 		);
 	});
 
 	it('values the ranged-only 2523 Biznicks 247x128 Accurascope at the hit rating weight', () => {
-		expect(enchantEP(2523, { [PseudoStat.PseudoStatRangedHitPercent]: 3 })).toBeCloseTo(3 * Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
+		expect(enchantEP(2523, { [PseudoStat.PseudoStatRangedHitPercent]: 3 }, ratingWeights)).toBeCloseTo(3 * Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
 	});
 
 	it('values a melee-only hit percent at the hit rating weight, with no ranged total to take it back', () => {
-		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1 })).toBeCloseTo(Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1 }, ratingWeights)).toBeCloseTo(Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
 	});
 
 	it("uses a percent pseudo stat's own weight where it has one", () => {
@@ -131,7 +132,7 @@ describe('Player.computeEnchantEP on percent pseudo stats', () => {
 	});
 
 	it('counts melee and spell hit once, as the largest, since one hit rating raises both', () => {
-		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1, [PseudoStat.PseudoStatSpellHitPercent]: 2 })).toBeCloseTo(
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1, [PseudoStat.PseudoStatSpellHitPercent]: 2 }, ratingWeights)).toBeCloseTo(
 			2 * Mechanics.HIT_RATING_PER_HIT_PERCENT * 5,
 		);
 	});
@@ -139,61 +140,60 @@ describe('Player.computeEnchantEP on percent pseudo stats', () => {
 
 describe('Player.computeEnchantEP on haste pseudo stats', () => {
 	const hasteWeights = Stats.fromMap({ [Stat.StatHasteRating]: 2 }, {});
-	const enchantEP = (effectId: number, pseudoStats: Partial<Record<PseudoStat, number>>) =>
-		computeEnchantEP(Enchant.create({ effectId, pseudoStats: Stats.fromMap({}, pseudoStats).toProto().pseudoStats }), undefined, undefined, hasteWeights);
 
 	it('values 34 Weapon Counterweight at the haste rating weight', () => {
-		expect(enchantEP(34, { [PseudoStat.PseudoStatMeleeHastePercent]: 3 })).toBeCloseTo(3 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
+		expect(enchantEP(34, { [PseudoStat.PseudoStatMeleeHastePercent]: 3 }, hasteWeights)).toBeCloseTo(3 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 
 	it("counts 931 Enchant Gloves - Minor Haste's melee, ranged and cast speed once, as the one haste rating raises all three", () => {
 		expect(
-			enchantEP(931, {
-				[PseudoStat.PseudoStatMeleeHastePercent]: 1,
-				[PseudoStat.PseudoStatRangedHastePercent]: 1,
-				[PseudoStat.PseudoStatSpellHastePercent]: 1,
-			}),
+			enchantEP(
+				931,
+				{
+					[PseudoStat.PseudoStatMeleeHastePercent]: 1,
+					[PseudoStat.PseudoStatRangedHastePercent]: 1,
+					[PseudoStat.PseudoStatSpellHastePercent]: 1,
+				},
+				hasteWeights,
+			),
 		).toBeCloseTo(Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 
 	it('values ranged haste beyond the melee haste beside it', () => {
-		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 })).toBeCloseTo(2 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
+		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 }, hasteWeights)).toBeCloseTo(2 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 });
 
 describe('Player.computeEnchantEP on haste pseudo stats for a spec weighing ranged haste', () => {
 	const rangedHasteWeights = Stats.fromMap({ [Stat.StatHasteRating]: 2 }, { [PseudoStat.PseudoStatRangedHastePercent]: 7 });
-	const enchantEP = (effectId: number, pseudoStats: Partial<Record<PseudoStat, number>>) =>
-		computeEnchantEP(
-			Enchant.create({ effectId, pseudoStats: Stats.fromMap({}, pseudoStats).toProto().pseudoStats }),
-			undefined,
-			undefined,
-			rangedHasteWeights,
-		);
 
 	it('keeps 34 Weapon Counterweight at the haste rating weight, as its melee haste is no part of the ranged total', () => {
-		expect(enchantEP(34, { [PseudoStat.PseudoStatMeleeHastePercent]: 3, [PseudoStat.PseudoStatRangedHastePercent]: 0 })).toBeCloseTo(
+		expect(enchantEP(34, { [PseudoStat.PseudoStatMeleeHastePercent]: 3, [PseudoStat.PseudoStatRangedHastePercent]: 0 }, rangedHasteWeights)).toBeCloseTo(
 			3 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2,
 		);
 	});
 
 	it('values haste on every channel at the haste rating weight alone', () => {
 		expect(
-			enchantEP(931, {
-				[PseudoStat.PseudoStatMeleeHastePercent]: 1,
-				[PseudoStat.PseudoStatRangedHastePercent]: 1,
-				[PseudoStat.PseudoStatSpellHastePercent]: 1,
-			}),
+			enchantEP(
+				931,
+				{
+					[PseudoStat.PseudoStatMeleeHastePercent]: 1,
+					[PseudoStat.PseudoStatRangedHastePercent]: 1,
+					[PseudoStat.PseudoStatSpellHastePercent]: 1,
+				},
+				rangedHasteWeights,
+			),
 		).toBeCloseTo(1 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 
 	it('values melee and ranged haste with no cast speed, as Arcanum of Rapidity states them, as melee haste at the haste rating weight and ranged haste at its own', () => {
-		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHastePercent]: 1, [PseudoStat.PseudoStatRangedHastePercent]: 1 })).toBeCloseTo(
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHastePercent]: 1, [PseudoStat.PseudoStatRangedHastePercent]: 1 }, rangedHasteWeights)).toBeCloseTo(
 			Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2 + 7,
 		);
 	});
 
 	it('values ranged haste alone at the ranged haste weight', () => {
-		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 })).toBeCloseTo(2 * 7);
+		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 }, rangedHasteWeights)).toBeCloseTo(2 * 7);
 	});
 });

@@ -258,20 +258,26 @@ func spellDataEffect(spellID int, effect SpellEffect) (*spelldata.Spell, *spelld
 // Whether an equip spell's effect is a spelldata.RangedRating one, which folds as the ranged offset
 // percents rangedRatingPercents gives and never as a rating stat.
 func rangedRatingEffect(spellID int, effect SpellEffect) bool {
+	if effect.EffectAura != dbcenums.A_MOD_RATING {
+		return false
+	}
 	s, e := spellDataEffect(spellID, effect)
 	return e != nil && spelldata.RangedRating(s, e)
 }
 
-// The ranged offset percents an equip spell's effect grants from rating points, as
-// spelldata.RangedRatingPercents reads it.
+// The ranged offset percents a spelldata.RangedRating effect of an equip spell grants from rating
+// points: the percent each hit, crit and haste rating its mask names is worth, once however many of
+// the melee, ranged and spell bits name it. Nil for any other effect.
 func rangedRatingPercents(spellID int, effect SpellEffect, rating float64) map[proto.PseudoStat]float64 {
 	s, e := spellDataEffect(spellID, effect)
-	if e == nil {
+	if e == nil || !spelldata.RangedRating(s, e) {
 		return nil
 	}
 	percents := map[proto.PseudoStat]float64{}
-	for _, ranged := range spelldata.RangedRatingPercents(s, e, rating) {
-		percents[rangedPercentStats[ranged.Stat]] = ranged.Percent
+	for _, ranged := range spelldata.ScopedRatingPercents(e.Misc, rating) {
+		if pseudoStat, ok := rangedPercentStats[ranged.Stat]; ok {
+			percents[pseudoStat] = ranged.Percent
+		}
 	}
 	return percents
 }

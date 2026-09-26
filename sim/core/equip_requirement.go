@@ -190,8 +190,9 @@ func (character *Character) NewEquipGatedSpeed(req EquipRequirement, procMask Pr
 	return gated
 }
 
-func (gated *EquipGatedSpeed) SetActive(sim *Simulation, active bool) {
-	gated.active = active
+// On at any level above 0 and off at 0: the speed does not follow stacks.
+func (gated *EquipGatedSpeed) SetLevel(sim *Simulation, level float64) {
+	gated.active = level > 0
 	gated.refresh(sim)
 }
 
@@ -204,14 +205,16 @@ func (gated *EquipGatedSpeed) refresh(sim *Simulation) {
 		ranged = gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskRanged)
 	}
 
-	if melee != gated.melee {
-		gated.melee = melee
-		gated.character.MultiplyMeleeSpeed(sim, Ternary(melee, gated.multiplier, 1/gated.multiplier))
+	gated.flip(sim, &gated.melee, melee, (*Unit).MultiplyMeleeSpeed)
+	gated.flip(sim, &gated.ranged, ranged, (*Unit).MultiplyRangedSpeed)
+}
+
+func (gated *EquipGatedSpeed) flip(sim *Simulation, applied *bool, want bool, multiply func(*Unit, *Simulation, float64)) {
+	if want == *applied {
+		return
 	}
-	if ranged != gated.ranged {
-		gated.ranged = ranged
-		gated.character.MultiplyRangedSpeed(sim, Ternary(ranged, gated.multiplier, 1/gated.multiplier))
-	}
+	*applied = want
+	multiply(&gated.character.Unit, sim, Ternary(want, gated.multiplier, 1/gated.multiplier))
 }
 
 // The item's bit in a spell's weapon subclass mask, or 0 for an item that is not a weapon.
