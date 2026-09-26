@@ -1950,7 +1950,7 @@ var generatedSpells = []Spell{
 			{ID: 1231426, SpellID: 3025, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -100, BaseLevel: 6, PvpMult: 1, Misc: 14, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 1024}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 1231427, SpellID: 3025, Index: 3, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: 6000, BaseLevel: 6, PvpMult: 1, Misc: 11, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 1024}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 1231428, SpellID: 3025, Index: 4, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: -500, BaseLevel: 6, PvpMult: 1, Misc: 21, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 1024}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-			{ID: 1344279, SpellID: 3025, Index: 5, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_598, BasePoints: 100, BaseLevel: 6, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1344279, SpellID: 3025, Index: 5, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT, BasePoints: 100, BaseLevel: 6, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 3026, Name: "Use Soulstone", School: 1, Attr: [17]uint32{0: 0x800000, 1: 0x400, 2: 0x1, 15: 0x2000}, SpellLevel: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
@@ -24323,7 +24323,7 @@ var generatedSpells = []Spell{
 		}},
 	{ID: 415140, Name: "Mental Dexterity", School: 4, Attr: [17]uint32{0: 0x800000d0, 2: 0x100, 3: 0x4000000, 15: 0x2000}, ClassFlags: core.ClassFlags{Family: 11}, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 1084846, SpellID: 415140, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_598, BasePoints: 100, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1084846, SpellID: 415140, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT, BasePoints: 100, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 1295131, SpellID: 415140, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 20, PPL: 5, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 415231, Name: "Burn", School: 1, Attr: [17]uint32{0: 0x1c0, 2: 0x100, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 11}, Labels: []int16{3096, 3100},
@@ -30901,7 +30901,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 50}}},
 	{ID: 1221416, Name: "Enchanted Flare", School: 64, Attr: [17]uint32{0: 0x8010080, 1: 0x28400, 2: 0x400000, 10: 0x1, 14: 0x1000, 15: 0x2000}, SpellLevel: 32, DurationMs: 2000, MaxRange: 10, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 9, Mask: [4]uint32{1: 32768}},
 		Effects: []Effect{
-			{ID: 1208032, SpellID: 1221416, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_635, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1208032, SpellID: 1221416, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_IGNORE_FOG_OF_WAR, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 1222988, Name: "Earthbound", School: 1, Attr: [17]uint32{0: 0x40, 2: 0x100, 8: 0x1000, 9: 0x400000, 10: 0x8000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, ClassFlags: core.ClassFlags{Family: 3}, Labels: []int16{24}, RefIDs: []int32{1238289},
 		Effects: []Effect{
@@ -30978,8 +30978,8 @@ var generatedSpells = []Spell{
 		}},
 	{ID: 1223984, Name: "Careful Aim", School: 1, Attr: [17]uint32{0: 0x40, 2: 0x100, 8: 0x1000, 9: 0x400000, 10: 0x8000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, ClassFlags: core.ClassFlags{Family: 9}, Labels: []int16{23},
 		Effects: []Effect{
-			{ID: 1212378, SpellID: 1223984, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_580, BasePoints: 100, BaseLevel: 1, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-			{ID: 1323702, SpellID: 1223984, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_598, BasePoints: 100, BaseLevel: 1, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1212378, SpellID: 1223984, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT, BasePoints: 100, BaseLevel: 1, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1323702, SpellID: 1223984, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT, BasePoints: 100, BaseLevel: 1, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 1223987, Name: "Rapid Recuperation", School: 1, Attr: [17]uint32{0: 0x40, 2: 0x100, 8: 0x1000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x100}, ClassFlags: core.ClassFlags{Family: 9}, Labels: []int16{23}, RefIDs: []int32{1242512}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintNamedAbility,
 		Effects: []Effect{
