@@ -218,12 +218,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_MELEE_HASTE_3: func(p *parser, e *Effect, v float64) *attachment {
 		return p.speed("melee-speed", "MeleeSpeedMultiplier", (*core.Unit).MultiplyMeleeSpeed, speedMultiplier(v))
 	},
-	dbcenums.A_MOD_ATTACKSPEED: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
-	},
-	dbcenums.A_MOD_MELEE_RANGED_HASTE_2: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
-	},
+	dbcenums.A_MOD_ATTACKSPEED:          attackSpeedRow,
+	dbcenums.A_MOD_MELEE_RANGED_HASTE_2: attackSpeedRow,
 	dbcenums.A_MOD_RANGED_HASTE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, speedMultiplier(v))
 	},
@@ -282,9 +278,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			a.key = "SpiritRegenMultiplier"
 			return a
 		case e.Misc == int32(dbcenums.POWER_ENERGY) && p.unit.HasEnergyBar():
-			return p.speed("energy-regen", "EnergyRegenMultiplier", func(unit *core.Unit, sim *core.Simulation, factor float64) {
-				unit.MultiplyEnergyRegenSpeed(sim, factor)
-			}, mult)
+			return p.speed("energy-regen", "EnergyRegenMultiplier", (*core.Unit).MultiplyEnergyRegenSpeed, mult)
 		}
 		return nil
 	},
@@ -616,6 +610,10 @@ func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 		a.parts = append(a.parts, part)
 	}
 	return a
+}
+
+func attackSpeedRow(p *parser, _ *Effect, v float64) *attachment {
+	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
 }
 
 // A stat the unit has against the mob types a creature type mask names, which the sim keeps on the

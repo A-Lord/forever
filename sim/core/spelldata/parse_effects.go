@@ -197,8 +197,9 @@ type Parsed struct {
 // a debuff on an enemy - takes a nil character and has those rows skipped and reported.
 //
 // An aura that is already up when it is parsed is caught up the way core's Attach helpers catch one
-// up, except for the rows that need a Simulation to act: the haste multipliers stay off until the
-// aura is applied again. What a category holds waits for the aura's next application too.
+// up, except for the rows that need a Simulation to act: the haste and energy regen multipliers stay
+// off until the aura is applied again. What a category holds waits for the aura's next application
+// too.
 func ParseEffects(character *core.Character, aura *core.Aura, s *Spell, opts ...ParseOpt) *Parsed {
 	if aura == nil {
 		return &Parsed{}
