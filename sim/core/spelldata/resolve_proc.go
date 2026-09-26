@@ -39,6 +39,8 @@ func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, 
 		ClassFlags:         listenerClassFlags(character, s),
 		SelfClassFlags:     s.ClassFlags,
 		Handler:            handler,
+
+		RequireDamageComponent: decoded.RequireDamageComponent,
 	}
 
 	if s.IsWeaponProcAura() {
@@ -85,6 +87,7 @@ func WeaponProc() ProcOpt {
 		trigger.Callback = core.CallbackOnSpellHitDealt
 		trigger.ProcMask = core.ProcMaskUnknown
 		trigger.RequireDamageDealt = false
+		trigger.RequireDamageComponent = false
 		trigger.CanProcFromProcs = false
 		trigger.SpellFlagsExclude &^= core.SpellFlagSuppressWeaponProcs
 		trigger.IsWeaponProc = true

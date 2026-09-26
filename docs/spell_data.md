@@ -400,6 +400,8 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| ArmorPenetration, SpellPiercing                                     | flat points of the target's armor or resistance       | the value's size, whichever sign the row states it with                |
+| `PseudoStats.SchoolSpellPiercing`                                   | flat points of one school's resistance                | the value's size, for each school the misc value's mask names          |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
 | crit damage dealt against a creature type                           | `CritMultiplier` of each masked table                 | `1 + value/100`                                                        |
@@ -421,6 +423,13 @@ Two aura names read as something else. `A_MOD_CRIT_PERCENT_VERSUS` is crit damag
 types, not crit chance: Humanoid Slaying 19153 states it next to the same 3% of damage dealt.
 `A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT` is the share of the defender's armor ignored, not a rating:
 Serrated Blades 14171 ignores 9% at three ranks.
+
+Target resistance by mask 1 is `ArmorPenetration`, by a mask of all five resistances `SpellPiercing`,
+and by a mask of some spell schools `SchoolSpellPiercing` for each of them; a mask of armor and a spell
+school is skipped (`core.SpellSchool.PiercingStat`). The per-school kind bids under its mask,
+`SchoolSpellPiercing4` for the Baleflame imbue's fire and `SchoolSpellPiercing16` for Balefrost's
+frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell has no
+resistance stat to pierce.
 
 A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
 effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks

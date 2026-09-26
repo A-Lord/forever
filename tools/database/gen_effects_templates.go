@@ -38,6 +38,9 @@ func RegisterAllOnUseCds() {
 		ProcMask:              {{ .StackProcInfo.ProcMask | asCoreProcMask }},
 		Outcome:               {{ .StackProcInfo.Outcome | asCoreOutcome }},
 		RequireDamageDealt:    {{ .StackProcInfo.RequireDamageDealt }},
+		{{- if .StackProcInfo.RequireDamageComponent }}
+		RequireDamageComponent: true,
+		{{- end}}
 		{{- if .StackProcInfo.CanProcFromProcs }}
 		CanProcFromProcs:      true,
 		{{- end}}
@@ -128,6 +131,9 @@ func RegisterAllProcs() {
 				ProcMask:           {{ .ProcInfo.ProcMask | asCoreProcMask }},
 				Outcome:            {{ .ProcInfo.Outcome | asCoreOutcome }},
 				RequireDamageDealt: {{ .ProcInfo.RequireDamageDealt }},
+				{{- if .ProcInfo.RequireDamageComponent }}
+				RequireDamageComponent: true,
+				{{- end}}
 				{{- if .ProcInfo.ClassSpellsOnly }}
 				ClassSpellsOnly:    {{ .ProcInfo.ClassSpellsOnly }},
 				{{- end}}
@@ -156,6 +162,9 @@ func RegisterAllProcs() {
 				ProcMask:           {{ .ProcInfo.ProcMask | asCoreProcMask }},
 				Outcome:            {{ .ProcInfo.Outcome | asCoreOutcome }},
 				RequireDamageDealt: {{ .ProcInfo.RequireDamageDealt }},
+				{{- if .ProcInfo.RequireDamageComponent }}
+				RequireDamageComponent: true,
+				{{- end}}
 				{{- if .ProcInfo.ClassSpellsOnly }}
 				ClassSpellsOnly:    {{ .ProcInfo.ClassSpellsOnly }},
 				{{- end}}
@@ -303,6 +312,9 @@ func RegisterAllEnchants() {
 			ProcMask:           {{ .ProcInfo.ProcMask | asCoreProcMask }},
 			Outcome:            {{ .ProcInfo.Outcome | asCoreOutcome }},
 			RequireDamageDealt: {{ .ProcInfo.RequireDamageDealt }},
+			{{- if .ProcInfo.RequireDamageComponent }}
+			RequireDamageComponent: true,
+			{{- end}}
 			{{- if .ProcInfo.ClassSpellsOnly }}
 			ClassSpellsOnly:    {{ .ProcInfo.ClassSpellsOnly }},
 			{{- end}}

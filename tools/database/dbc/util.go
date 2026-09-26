@@ -350,13 +350,12 @@ func ConvertResistanceFlagToResistanceStat(flag int) proto.Stat {
 	return -1
 }
 
+// See core.SpellSchool.PiercingStat; a mask without a stat returns -1.
 func ConvertTargetResistanceFlagToPenetrationStat(flag int) proto.Stat {
-	switch flag {
-	case 1:
-		return proto.Stat_StatArmorPenetration
-	default:
-		return proto.Stat_StatSpellPiercing
+	if stat, ok := core.SpellSchool(flag).PiercingStat(); ok {
+		return proto.Stat(stat)
 	}
+	return -1
 }
 
 func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {

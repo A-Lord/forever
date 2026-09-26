@@ -85,6 +85,26 @@ func TestStatDependencies(t *testing.T) {
 	}
 }
 
+func TestFlooredStatDepInPlace(t *testing.T) {
+	sdm := NewStatDependencyManager()
+	sdm.AddFlooredStatDependency(DefenseRating, ReducedCritTakenPercent, 2.5, 0.1)
+	sdm.FinalizeStatDeps()
+
+	baseStat := Stats{DefenseRating: 9}
+	expectedResult := Stats{DefenseRating: 9, ReducedCritTakenPercent: 7.5 * 0.1}
+
+	result := sdm.ApplyStatDependencies(baseStat)
+	if !result.Equals(expectedResult) {
+		t.Fatalf("Stats do not match:\nActual: %s\nExpected: %s", result, expectedResult)
+	}
+
+	inPlace := baseStat
+	sdm.ApplyStatDependenciesInPlace(&inPlace)
+	if !inPlace.Equals(expectedResult) {
+		t.Fatalf("In-place stats do not match:\nActual: %s\nExpected: %s", inPlace, expectedResult)
+	}
+}
+
 func TestMultipleStatDep(t *testing.T) {
 	sdm := NewStatDependencyManager()
 
