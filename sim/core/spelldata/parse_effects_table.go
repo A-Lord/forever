@@ -2,6 +2,7 @@ package spelldata
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -12,6 +13,7 @@ import (
 const (
 	miscAllSchools  int32 = 127 // every school bit, which the sim states as one multiplier
 	miscMagicSchool int32 = 126 // every school but physical, which is what spell damage covers
+	miscResistances int32 = 124 // the five schools with a resistance, which is every magic school but holy
 	miscArmor       int32 = 1   // A_MOD_RESISTANCE and A_MOD_BASE_RESISTANCE_PCT state armor as school 1
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
 )
@@ -268,6 +270,23 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			return nil
 		}
 		return p.equipScaling(stats.Armor, percentMultiplier(v))
+	},
+
+	// The target's resistance the unit's attacks ignore: armor for school 1, SpellPiercing for a mask of
+	// every resistance, and the per-school piercing of each school a narrower mask names. The sign
+	// differs between rows while the tooltip states the amount pierced either way, so the amount is its
+	// size.
+	dbcenums.A_MOD_TARGET_RESISTANCE: func(p *parser, e *Effect, v float64) *attachment {
+		switch {
+		case e.Misc == miscArmor:
+			return p.statBuff(stats.ArmorPenetration, math.Abs(v))
+		case e.Misc&miscArmor != 0:
+			return nil
+		case e.Misc&miscResistances == miscResistances:
+			return p.statBuff(stats.SpellPiercing, math.Abs(v))
+		}
+		return p.schoolAdd("school-spell-piercing", "SchoolSpellPiercing", e.Misc, math.Abs(v),
+			&p.unit.PseudoStats.SchoolSpellPiercing)
 	},
 
 	// Avoidance, in percentage points.
@@ -790,6 +809,24 @@ func (p *parser) schoolMultiplier(kind string, key string, mask int32, mult floa
 		return nil
 	}
 	return p.pseudoMultiplier(kind+"-by-school", "School"+key, fields, mult)
+}
+
+// A per-school pseudo-stat the sim adds to, once for each school bit the mask names, which follows the
+// stacks the way a flat stat does.
+func (p *parser) schoolAdd(kind string, key string, mask int32, v float64, perSchool *[stats.SchoolLen]float64) *attachment {
+	indexes := schoolIndexes(mask)
+	if len(indexes) == 0 {
+		return nil
+	}
+
+	a := additive(kind, v, func(_ *core.Simulation, delta float64) {
+		for _, index := range indexes {
+			perSchool[index] += delta
+		}
+	})
+	// Piercing for other schools does not compete with this one.
+	a.key = fmt.Sprintf("%s%d", key, mask)
+	return a
 }
 
 // The client states a percentage as an integer, and its sign comes from the data: a -6 is 0.94.

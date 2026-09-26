@@ -400,6 +400,8 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| ArmorPenetration, SpellPiercing                                     | flat points of the target's armor or resistance       | the value's size, whichever sign the row states it with                |
+| `PseudoStats.SchoolSpellPiercing`                                   | flat points of one school's resistance                | the value's size, for each school the misc value's mask names          |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
@@ -412,6 +414,11 @@ what core reads back.
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
 the same creature types.
+
+Target resistance is armor for school 1 and `SpellPiercing` for a mask of every resistance. A narrower
+mask, such as the fire of the Baleflame imbue, is piercing for those schools alone: core adds
+`PseudoStats.SchoolSpellPiercing` of the spell's school to `SpellPiercing` when it reads the target's
+resistance. It bids under its mask, `SchoolSpellPiercing4` for fire.
 
 A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
 effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks
