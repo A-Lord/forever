@@ -325,8 +325,9 @@ func (priest *Priest) applyShadowWeaving() {
 	// }
 	//
 	// // The debuff 15258 is A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, so it raises
-	// // this priest's shadow damage alone and sim/core holds no aura for it; the
-	// // port has to build swAuras here.
+	// // this priest's shadow damage alone; the port builds swAuras by parsing
+	// // ShadowWeavingTriggered onto each target's aura with spelldata.ParseEffects
+	// // and FromCaster.
 	// swAuras := priest.NewEnemyAuraArray(...)
 	//
 	// priest.MakeProcTriggerAura(core.ProcTrigger{

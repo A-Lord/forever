@@ -50,6 +50,10 @@ type parser struct {
 
 	// DryRun: the rows are read for what they would attach, and nothing is registered on the unit.
 	dry bool
+
+	// The slot FromCaster names, which the rows that reach only the caster's attacks share. Nil
+	// without a caster.
+	casterSlot *casterSlot
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -151,6 +155,20 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			return spell()
 		}
 		return nil
+	},
+
+	// Melee and ranged attacks alone. The melee multiplier reaches a melee attack of any school; the
+	// flat ranged amount reaches physical ranged attacks, and a mask without physical has no field.
+	dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.pseudoMultiplier("melee-damage-taken", "MeleeDamageTakenMultiplier",
+			[]*float64{&p.unit.PseudoStats.MeleeDamageTakenMultiplier}, percentMultiplier(v))
+	},
+	dbcenums.A_MOD_RANGED_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc&int32(core.SpellSchoolPhysical) == 0 {
+			return nil
+		}
+		return p.pseudoAdd("ranged-damage-taken-flat", "BonusRangedDamageTaken",
+			[]*float64{&p.unit.PseudoStats.BonusRangedDamageTaken}, v)
 	},
 
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
@@ -320,6 +338,24 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// The client states expertise as the percent it takes off dodge and parry.
 	dbcenums.A_MOD_EXPERTISE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.ExpertisePercent, v)
+	},
+
+	// The damage the unit takes from the attacks of the aura's caster, and the caster's crit chance
+	// against it: see FromCaster.
+	dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc <= 0 {
+			return nil
+		}
+		school := core.SpellSchool(e.Misc)
+		return p.casterDamage("caster-damage-by-school", v, func(spell *core.Spell) bool {
+			return spell.SpellSchool.Matches(school)
+		})
+	},
+	dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER: func(p *parser, e *Effect, v float64) *attachment {
+		return p.casterDamage("caster-damage-by-spell", v, p.namesSpell(e))
+	},
+	dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES: func(p *parser, e *Effect, v float64) *attachment {
+		return p.casterCrit("caster-crit-by-spell", v, p.namesSpell(e))
 	},
 
 	// How long a crowd control effect lasts on the unit, by the mechanic the misc value names.
@@ -512,14 +548,28 @@ func percentStatRow(p *parser, e *Effect, v float64) *attachment {
 // The spells a modifier effect names. The client leaves the mask empty on an effect that means the
 // caster's whole family, and a spell with no family of its own leaves the mod unrestricted.
 func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfig {
-	cfg := core.SpellModConfig{Kind: kind, ClassFlags: e.ClassFlags}
+	return core.SpellModConfig{Kind: kind, ClassFlags: p.classFlags(e)}
+}
+
+func (p *parser) classFlags(e *Effect) core.ClassFlags {
 	if e.ClassFlags.IsZero() && p.spell.ClassFlags.Family != 0 {
-		cfg.ClassFlags = core.ClassFlags{
+		return core.ClassFlags{
 			Family: p.spell.ClassFlags.Family,
 			Mask:   [4]uint32{^uint32(0), ^uint32(0), ^uint32(0), ^uint32(0)},
 		}
 	}
-	return cfg
+	return e.ClassFlags
+}
+
+// Whether a spell is one the effect names, the way a modifier's class flags reach it.
+func (p *parser) namesSpell(e *Effect) func(*core.Spell) bool {
+	flags := p.classFlags(e)
+	if flags.IsZero() {
+		return func(*core.Spell) bool { return true }
+	}
+	return func(spell *core.Spell) bool {
+		return spell.MatchesFlags(flags)
+	}
 }
 
 // A spell mod the parse turns on and off. AddDynamicMod rather than AddStaticMod even on a passive:

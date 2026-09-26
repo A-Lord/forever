@@ -852,6 +852,12 @@ func (spell *Spell) MatchesFlags(f ClassFlags) bool {
 	return f.Matches(spell.ClassFlags)
 }
 
+// Whether a modifier or trigger restricted to these class flags reaches the spell: zero flags mean
+// every spell.
+func (f ClassFlags) Reaches(spell *Spell) bool {
+	return f.IsZero() || spell.MatchesFlags(f)
+}
+
 // Handles computing the cost of spells and checking whether the Unit
 // meets them.
 type ResourceCostImpl interface {
