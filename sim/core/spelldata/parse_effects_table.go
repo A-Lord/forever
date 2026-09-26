@@ -258,6 +258,36 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}
 		return p.statBuff(stats.MP5, v)
 	},
+	// The share of spirit regen that continues while casting, which core caps at all of it, and a
+	// multiplier on spirit regen. The energy bar's regen is a speed, which needs the Simulation an
+	// aura's gain hands over.
+	dbcenums.A_MOD_MANA_REGEN_INTERRUPT: func(p *parser, e *Effect, v float64) *attachment {
+		a := additive("spirit-regen-casting", v/100, func(_ *core.Simulation, delta float64) {
+			p.unit.PseudoStats.SpiritRegenRateCasting += delta
+			p.unit.UpdateManaRegenRates()
+		})
+		a.key = "SpiritRegenRateCasting"
+		return a
+	},
+	dbcenums.A_MOD_POWER_REGEN_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
+		mult := percentMultiplier(v)
+		switch {
+		case p.stacking || mult <= 0:
+			return nil
+		case e.Misc == int32(dbcenums.POWER_MANA):
+			a := multiplier("spirit-regen", mult, func(_ *core.Simulation, factor float64) {
+				p.unit.PseudoStats.SpiritRegenMultiplier *= factor
+				p.unit.UpdateManaRegenRates()
+			})
+			a.key = "SpiritRegenMultiplier"
+			return a
+		case e.Misc == int32(dbcenums.POWER_ENERGY) && p.unit.HasEnergyBar():
+			return p.speed("energy-regen", "EnergyRegenMultiplier", func(unit *core.Unit, sim *core.Simulation, factor float64) {
+				unit.MultiplyEnergyRegenSpeed(sim, factor)
+			}, mult)
+		}
+		return nil
+	},
 
 	dbcenums.A_MOD_INCREASE_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.Health, v)

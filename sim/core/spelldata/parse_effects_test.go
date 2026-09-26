@@ -517,6 +517,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, 127, -10, "damage-taken", 0.9, false},
 		{dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, 4, -10, "damage-taken-by-school", 0.9, false},
 		{dbcenums.A_MOD_POWER_REGEN, 0, 8, "stat MP5", 8, false},
+		{dbcenums.A_MOD_MANA_REGEN_INTERRUPT, 0, 50, "spirit-regen-casting", 0.5, false},
+		{dbcenums.A_MOD_POWER_REGEN_PERCENT, 0, 400, "spirit-regen", 5, false},
 		{dbcenums.A_MOD_ATTACK_POWER, 0, 50, "stat AttackPower", 50, false},
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER, 0, 50, "stat RangedAttackPower", 50, false},
 		{dbcenums.A_MOD_HEALING, 0, 20, "healing-taken-flat", 20, false},
@@ -891,5 +893,43 @@ func TestParseSkipsEquipScalingOnAPet(t *testing.T) {
 
 	if len(parsed.Applied) != 0 || len(parsed.Skipped) != 1 {
 		t.Errorf("the armor modifier on a pet attached %v, want it skipped", appliedKinds(parsed))
+	}
+}
+
+// A power regen percentage on the energy bar multiplies the energy regen while the aura is up. A unit
+// with no energy bar, the static path and a power type the sim keeps no regen multiplier for skip it.
+func TestParseEnergyRegenPercentage(t *testing.T) {
+	withRows(t, parseRows())
+	sim := &core.Simulation{}
+	energy := int32(dbcenums.POWER_ENERGY)
+
+	character := parseWarrior()
+	character.EnableEnergyBar(core.EnergyBarOptions{MaxEnergy: 100})
+	row := oneEffectRow(dbcenums.A_MOD_POWER_REGEN_PERCENT, energy, 100)
+	aura := character.RegisterAura(AuraConfig(row))
+	parsed := ParseEffects(character, aura, row)
+
+	if kinds := appliedKinds(parsed); len(kinds) != 1 || kinds[0] != "energy-regen" || parsed.Applied[0].Value != 2 {
+		t.Fatalf("attached %v, want energy-regen at 2", parsed.Applied)
+	}
+	aura.Activate(sim)
+	if got := character.CurrentEnergyRegenMultiplier(); got != 2 {
+		t.Errorf("the energy regen multiplier while the aura is up: %v, want 2", got)
+	}
+	aura.Deactivate(sim)
+	if got := character.CurrentEnergyRegenMultiplier(); got != 1 {
+		t.Errorf("the energy regen multiplier after the aura dropped: %v, want 1", got)
+	}
+
+	noBar := parseWarrior()
+	rage := oneEffectRow(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_RAGE), 100)
+	for name, parsed := range map[string]*Parsed{
+		"no energy bar": ParseEffects(noBar, noBar.RegisterAura(AuraConfig(row)), row),
+		"static":        ParseStatic(character, row),
+		"rage":          ParseEffects(character, character.RegisterAura(core.Aura{Label: "Rage Regen"}), rage),
+	} {
+		if len(parsed.Applied) != 0 || len(parsed.Skipped) != 1 {
+			t.Errorf("%s: attached %v, want the effect skipped", name, appliedKinds(parsed))
+		}
 	}
 }

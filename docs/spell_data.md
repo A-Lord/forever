@@ -360,7 +360,7 @@ what the client means by an unmasked class modifier.
 **Call `ParseEffects` before the aura activates.** It attaches through `ApplyOnGain` and
 `ApplyOnExpire`. An aura already up when the parse runs is caught up the way core's `Attach` helpers
 catch one up, with one exception: the rows that need a `Simulation` to act - the cast, melee, ranged and
-attack speed multipliers - stay off until the aura is applied again.
+attack speed multipliers and the energy regen multiplier - stay off until the aura is applied again.
 
 **An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
 names, because the mod is attached to the aura and not to each spell pointing at it.
@@ -403,6 +403,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
 | `PseudoStats.ReducedPhysicalHitTakenChance`                         | percentage points                                     | the value with its sign turned                                         |
+| `PseudoStats.SpiritRegenRateCasting`                                | a share of spirit regen while casting, capped at 1    | the value over 100                                                     |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
@@ -444,7 +445,7 @@ per unit cannot be applied once per stack, and the static path has no aura to fo
 |                                     | skips                                                                                                                     |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | a stacking aura (`MaxStack` > 0)    | the stat multipliers and shares, the equipment scaling, the pseudo-stat and speed multipliers and the cooldown multiplier |
-| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                              |
+| `ParseStatic`                       | the speed and energy regen multipliers, which need the `Simulation` an aura's gain hands over                             |
 | `ParseStatic` with `Conditional`    | the stat multipliers and shares and the equipment scaling as well                                                         |
 | an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                      |
 

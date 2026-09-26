@@ -739,8 +739,6 @@ func NewSpellDataGreaterBlessingOfLightAura(unit *core.Unit, isPlayer bool, tale
 }
 
 // Innervates
-// Left out: effect 1 A_MOD_MANA_REGEN_INTERRUPT(134) misc 0
-// Left out: effect 2 A_MOD_POWER_REGEN_PERCENT(110) misc 0
 var InnervatesCategory = "Innervate"
 var innervatesSpell = spelldata.MustFind(29166)
 var innervatesMeta = &Meta{
@@ -749,6 +747,9 @@ var innervatesMeta = &Meta{
 	Category: InnervatesCategory,
 }
 
+func InnervatesValue(talentPoints int32) float64 {
+	return innervatesMeta.Value(talentPoints)
+}
 func InnervatesDuration(talentPoints int32) time.Duration {
 	return innervatesMeta.Duration(talentPoints)
 }
