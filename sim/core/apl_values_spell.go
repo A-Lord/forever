@@ -325,7 +325,9 @@ func (value *APLValueSpellGCDHastedDuration) GetDuration(_ *Simulation) time.Dur
 	defaultCast := value.spell.DefaultCast
 	gcd := value.spell.modifiedGCD(defaultCast.GCD)
 	if value.spell.IgnoreHaste {
-		return gcd
+		cast := defaultCast
+		cast.GCD = gcd
+		return cast.GCDTime()
 	}
 	gcdMin := TernaryDuration(defaultCast.GCDMin != 0, defaultCast.GCDMin, GCDMin)
 	hastedDuration := value.spell.Unit.ApplyCastSpeed(gcd).Round(time.Millisecond)

@@ -85,7 +85,7 @@ func (cast *Cast) GCDTime() time.Duration {
 }
 
 func (spell *Spell) modifiedGCD(gcd time.Duration) time.Duration {
-	return time.Duration(float64(gcd) * spell.GCDMultiplier)
+	return time.Duration(float64(gcd) * spell.GCDMultiplier).Round(time.Millisecond)
 }
 
 func (cast *Cast) EffectiveTime() time.Duration {

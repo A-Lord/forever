@@ -896,7 +896,7 @@ func TestParseMaxRage(t *testing.T) {
 	}
 }
 
-// Mana is the Mana stat on any unit; rage and energy need the bar they raise.
+// Mana is the Mana stat on any unit; rage and energy need the bar they raise, except on a dry run.
 func TestParseMaxPowerByPowerType(t *testing.T) {
 	for _, aura := range []dbcenums.EffectAuraType{dbcenums.A_MOD_MAX_POWER, dbcenums.A_MOD_INCREASE_ENERGY} {
 		character := parseWarrior()
@@ -910,6 +910,9 @@ func TestParseMaxPowerByPowerType(t *testing.T) {
 			row := oneEffectRow(aura, int32(power), 10)
 			if parsed := ParseStatic(parseWarrior(), row); len(parsed.Applied) != 0 {
 				t.Errorf("%s misc %d on a unit without that bar attached %v", auraName(aura), power, appliedKinds(parsed))
+			}
+			if parsed := DryRun(row); len(parsed.Skipped) != 0 {
+				t.Errorf("%s misc %d on a dry run skipped %d effects, want none", auraName(aura), power, len(parsed.Skipped))
 			}
 		}
 	}

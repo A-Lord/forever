@@ -436,13 +436,13 @@ func skipRow(_ *parser, _ *Effect, _ float64) *attachment {
 // The most power the unit's bar holds, by the power type the misc value names. The client states
 // rage on a 0-1000 bar and energy as it is; mana is the Mana stat, which the sim keeps as the maximum.
 // A unit without the rage or energy bar the row names has no maximum to raise, so the row is skipped
-// there.
+// there. A dry run's unit has no bar at all, so it answers what a unit with the bar would attach.
 func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
 	switch dbcenums.PowerType(e.Misc) {
 	case dbcenums.POWER_MANA:
 		return p.statBuff(stats.Mana, v)
 	case dbcenums.POWER_RAGE:
-		if !p.unit.HasRageBar() {
+		if !p.dry && !p.unit.HasRageBar() {
 			return nil
 		}
 		metrics := p.powerMetrics(p.unit.NewRageMetrics)
@@ -450,7 +450,7 @@ func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
 			p.unit.SetMaximumRage(sim, p.unit.MaximumRage()+delta, metrics)
 		})
 	case dbcenums.POWER_ENERGY:
-		if !p.unit.HasEnergyBar() {
+		if !p.dry && !p.unit.HasEnergyBar() {
 			return nil
 		}
 		metrics := p.powerMetrics(p.unit.NewEnergyMetrics)

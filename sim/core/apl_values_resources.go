@@ -228,7 +228,7 @@ func (value *APLValueCurrentRage) String() string {
 
 type APLValueMaxRage struct {
 	DefaultAPLValueImpl
-	maxRage float64
+	unit *Unit
 }
 
 func (rot *APLRotation) newValueMaxRage(_ *proto.APLValueMaxRage, uuid *proto.UUID) APLValue {
@@ -238,17 +238,17 @@ func (rot *APLRotation) newValueMaxRage(_ *proto.APLValueMaxRage, uuid *proto.UU
 		return nil
 	}
 	return &APLValueMaxRage{
-		maxRage: unit.MaximumRage(),
+		unit: unit,
 	}
 }
 func (value *APLValueMaxRage) Type() proto.APLValueType {
 	return proto.APLValueType_ValueTypeFloat
 }
 func (value *APLValueMaxRage) GetFloat(sim *Simulation) float64 {
-	return value.maxRage
+	return value.unit.MaximumRage()
 }
 func (value *APLValueMaxRage) String() string {
-	return fmt.Sprintf("Max Rage(%f)", value.maxRage)
+	return "Max Rage"
 }
 
 type APLValueCurrentEnergy struct {
