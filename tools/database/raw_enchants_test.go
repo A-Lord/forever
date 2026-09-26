@@ -94,19 +94,20 @@ func TestRawEnchantsKeepOneRowPerEnchantAndName(t *testing.T) {
 	enchants := loadRawEnchantFixture(t)
 	byKey := rawEnchantsByKey(enchants)
 
-	for _, key := range []rawEnchantKey{
+	want := []rawEnchantKey{
 		{2717, "Might of the Scourge"},
 		{7884, "Might of the Scourge"},
 		{8203, "Enchant Bracer - Lesser Spirit"},
 		{8203, "Enchant Boots - Lesser Spirit"},
 		{1523, "Greater Arcane Amalgamation"},
-	} {
+	}
+	for _, key := range want {
 		if _, ok := byKey[key]; !ok {
 			t.Errorf("no row for enchant %d %q", key.id, key.name)
 		}
 	}
-	if len(enchants) != 5 {
-		t.Errorf("%d rows, want 5: %+v", len(enchants), enchants)
+	if len(enchants) != len(want) {
+		t.Errorf("%d rows, want %d: %+v", len(enchants), len(want), enchants)
 	}
 }
 
