@@ -396,6 +396,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | MP5                                                                 | mana per five seconds                                 | the value                                                              |
 | PhysicalHitPercent, SpellHitPercent                                 | percentage points                                     | the value                                                              |
 | PhysicalCritPercent, SpellCritPercent                               | percentage points                                     | the value                                                              |
+| crit chance on the spells a modifier names, flat or percentage      | `SpellMod_BonusCrit_Percent`, percentage points       | the value                                                              |
 | **BlockPercent**                                                    | **a fraction**                                        | **the value over 100**                                                 |
 | DodgeRating                                                         | rating                                                | value x `DodgeRatingPerDodgePercent`                                   |
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |

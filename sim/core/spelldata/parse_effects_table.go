@@ -87,12 +87,16 @@ type row func(p *parser, e *Effect, v float64) *attachment
 
 // The auras the parser knows, keyed the way the client files them. A_ADD_FLAT_MODIFIER and
 // A_ADD_PCT_MODIFIER name a spell property in their misc value and read the two tables below it;
-// the percentage table is handed its value as a fraction.
+// the percentage table is handed its value as a fraction. A percentage crit chance is the same
+// percentage points the flat one adds, so it reads the flat row with the client's own number.
 var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_ADD_FLAT_MODIFIER: func(p *parser, e *Effect, v float64) *attachment {
 		return lookup(flatModTable, dbcenums.SpellModOp(e.Misc))(p, e, v)
 	},
 	dbcenums.A_ADD_PCT_MODIFIER: func(p *parser, e *Effect, v float64) *attachment {
+		if op := dbcenums.SpellModOp(e.Misc); op == dbcenums.SPELLMOD_CRITICAL_CHANCE {
+			return lookup(flatModTable, op)(p, e, v)
+		}
 		return lookup(pctModTable, dbcenums.SpellModOp(e.Misc))(p, e, v/100)
 	},
 
