@@ -41,7 +41,6 @@ func (warrior *Warrior) registerThunderClap() {
 	// (0 of 799 landed hits from 6 prot warriors on fresh.warcraftlogs.com, 2026-09-14).
 	config := spelldata.SpellConfig(&warrior.Unit, thunderClapRank,
 		spelldata.Flags(core.SpellFlagAPL|core.SpellFlagBinary))
-	config.ClassSpellMask = SpellMaskThunderClap
 	config.ProcMask = core.ProcMaskRangedSpecial
 	config.DamageMultiplier = 1
 	// TODO: In-game verification needed for threat multiplier / flat threat.
