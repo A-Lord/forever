@@ -19,7 +19,7 @@ const (
 	// The stat on every spell and attack while a matching weapon is in a weapon slot.
 	WeaponRuleWhileEquipped
 	// A rating mask of ranged bits alone, on a row that names no weapon: the percent the rating is
-	// worth, on ranged attacks.
+	// worth, on ranged attacks, and ranged speed for haste.
 	WeaponRuleRangedRatings
 )
 
@@ -54,8 +54,8 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 }
 
 // The ratings a scoped A_MOD_RATING mask names, its ranged bits read as the rating they belong to. The
-// scoped row converts the hit and crit among them. Haste has no mod that reaches some attacks and not
-// others, so it is not read, and neither are the other ratings.
+// scoped row converts the hit and crit among them to a percent on those attacks and the haste to their
+// attack speed. The other ratings are not read.
 func ScopedRatingStats(mask int32) []stats.Stat {
 	return RatingStats(mask | (mask&dbcenums.RATING_MOD_MASK_RANGED)>>1)
 }

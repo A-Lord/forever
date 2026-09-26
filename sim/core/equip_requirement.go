@@ -170,6 +170,50 @@ func (gated *EquipGatedStats) refresh(sim *Simulation) {
 	}
 }
 
+// Attack speed the character holds while a weapon meeting the requirement is behind the attacks the
+// proc mask names: melee speed for its main-hand and off-hand bits, ranged speed for its ranged bits.
+// The sim keeps one melee speed for both hands, so a matching weapon in either hand the mask names
+// speeds up both. It follows the weapon slots through item swaps.
+type EquipGatedSpeed struct {
+	character  *Character
+	req        EquipRequirement
+	procMask   ProcMask
+	multiplier float64
+	active     bool
+	melee      bool
+	ranged     bool
+}
+
+func (character *Character) NewEquipGatedSpeed(req EquipRequirement, procMask ProcMask, multiplier float64) *EquipGatedSpeed {
+	gated := &EquipGatedSpeed{character: character, req: req, procMask: procMask, multiplier: multiplier}
+	character.RegisterWeaponChangeCallback(gated.refresh)
+	return gated
+}
+
+func (gated *EquipGatedSpeed) SetActive(sim *Simulation, active bool) {
+	gated.active = active
+	gated.refresh(sim)
+}
+
+func (gated *EquipGatedSpeed) refresh(sim *Simulation) {
+	var melee, ranged bool
+	if gated.active && gated.character.Type == PlayerUnit {
+		equipment := &gated.character.Equipment
+		melee = gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskMeleeMH) ||
+			gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskMeleeOH)
+		ranged = gated.req.matchesEquipment(equipment, gated.procMask&ProcMaskRanged)
+	}
+
+	if melee != gated.melee {
+		gated.melee = melee
+		gated.character.MultiplyMeleeSpeed(sim, Ternary(melee, gated.multiplier, 1/gated.multiplier))
+	}
+	if ranged != gated.ranged {
+		gated.ranged = ranged
+		gated.character.MultiplyRangedSpeed(sim, Ternary(ranged, gated.multiplier, 1/gated.multiplier))
+	}
+}
+
 // The item's bit in a spell's weapon subclass mask, or 0 for an item that is not a weapon.
 func (item *Item) WeaponSubclassBit() int32 {
 	switch item.RangedWeaponType {

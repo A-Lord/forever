@@ -393,6 +393,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | BlockPercent, DodgePercent, ParryPercent, ExpertisePercent          | percentage points                                     | the value                                                              |
 | HitRating, CritRating, HasteRating and the other ratings            | rating                                                | the value, for each rating the misc value's mask names                 |
 | a rating bound to a weapon, or a mask of ranged bits alone          | a hit or crit percent mod on those attacks            | value / `HitRatingPerHitPercent` or `CritRatingPerCritPercent`         |
+| haste rating bound to a weapon, or a ranged haste bit alone         | the melee or ranged speed multiplier of those attacks | `1 + value / HasteRatingPerHastePercent / 100`                         |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
@@ -456,8 +457,11 @@ reads bit by bit: the melee, ranged and spell bits of one rating name the same s
 `ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row that names a weapon, and a
 mask of the ranged bits 64, 512 and 262144 alone, are read by `spelldata.ScopedRatingStats` instead: the
 hit and crit among them become the percent they are worth, as a mod on those attacks tagged
-`FromRating`. Haste has no mod that reaches some attacks and not others, so its bits are not read there,
-and neither are the other ratings.
+`FromRating`, and the haste the attack speed it is worth. A mask of ranged bits alone raises ranged speed
+while the aura is up. A row bound to a weapon raises the speed of the attacks its scope names while a
+matching weapon is in their slot, through `core.EquipGatedSpeed`, and follows item swaps; the sim keeps
+one melee speed for both hands, so a match in either hand the scope names speeds up both. The static
+path attaches no speed, as it has no Simulation to hand one. The other ratings are not read.
 
 ### The rule per aura
 
@@ -469,7 +473,7 @@ and `go run ./tools/spelldata <id>` words it on each effect line.
 | 52 `A_MOD_WEAPON_CRIT_PERCENT`, 54 `A_MOD_HIT_CHANCE` | a weapon                                                          | per weapon: `SpellMod_BonusCrit_Percent` or `SpellMod_BonusHit_Percent` on the matching weapon's attacks        | Cruelty 12320, Conviction 20117, Dual Wield Specialization 23584 (the off hand, by its hand bit), Fist Weapon Specialization 13707, Lethal Shots 450403, Ranged Hit Bonus +3 22780 |
 | 290 `A_MOD_CRIT_PCT`                                  | a weapon not ranged alone, or one named by inventory type or hand | while equipped: physical and spell crit on every spell and attack while a matching weapon is in any weapon slot | Thundering Strikes 16255                                                                                                                                                           |
 | 290 `A_MOD_CRIT_PCT`                                  | bows, guns, crossbows, thrown or wands alone, by subclass         | per weapon: a crit mod on ranged attacks                                                                        | Ranged Crit Bonus +02 1310308                                                                                                                                                      |
-| 189 `A_MOD_RATING`                                    | a weapon, or no weapon and a mask of ranged bits alone            | per weapon, or on ranged attacks: the hit and crit it is worth, `FromRating`                                    |                                                                                                                                                                                    |
+| 189 `A_MOD_RATING`                                    | a weapon, or no weapon and a mask of ranged bits alone            | per weapon, or on ranged attacks: the hit and crit it is worth, `FromRating`, and the speed its haste is worth  |                                                                                                                                                                                    |
 | 52, 54, 290, 189                                      | a weapon, on an aura that reaches another unit                    | the stat, on that unit: the requirement only gates the cast                                                     | Scorpid Sting 3043                                                                                                                                                                 |
 | 52, 54, 290                                           | a shield (class 4)                                                | the stat: a shield row is never scoped                                                                          |                                                                                                                                                                                    |
 | 55, 57 and the haste auras                            | anything                                                          | the stat: spell hit, spell crit and haste are never scoped                                                      | Precision 13705's spell hit                                                                                                                                                        |

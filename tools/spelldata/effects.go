@@ -177,8 +177,8 @@ func castOnly(s *spelldata.Spell, e *spelldata.Effect) string {
 }
 
 // A_MOD_RATING by the ratings its mask names, read the way the parse reads them. A row bound to a
-// weapon, or a mask of ranged bits alone, is the percent its hit and crit are worth on those attacks,
-// and its other ratings are not read.
+// weapon, or a mask of ranged bits alone, is the percent its hit and crit are worth on those attacks
+// and the attack speed its haste is worth, and its other ratings are not read.
 func ratingPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	rule, scope := spelldata.WeaponScope(s, e)
 	if rule != spelldata.WeaponRulePerWeapon && rule != spelldata.WeaponRuleRangedRatings {
@@ -202,6 +202,8 @@ func ratingPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 			worth = append(worth, signed(rating.Percent)+"% hit")
 		case stats.CritRating:
 			worth = append(worth, signed(rating.Percent)+"% crit")
+		case stats.HasteRating:
+			worth = append(worth, signed(rating.Percent)+"% "+speedChannels(scope.ProcMask)+" speed")
 		default:
 			unread = append(unread, rating.Stat)
 		}
@@ -219,6 +221,18 @@ func ratingPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		phrase += "; the " + ratingNames(unread) + " is not read"
 	}
 	return phrase
+}
+
+// The attack speeds a scoped haste rating raises: melee for the melee bits of the scope, ranged for
+// its ranged bits.
+func speedChannels(procMask core.ProcMask) string {
+	switch {
+	case procMask.Matches(core.ProcMaskMelee) && procMask.Matches(core.ProcMaskRanged):
+		return "melee and ranged"
+	case procMask.Matches(core.ProcMaskMelee):
+		return "melee"
+	}
+	return "ranged"
 }
 
 // Ratings as one phrase: hit rating, or hit, crit and haste rating.
