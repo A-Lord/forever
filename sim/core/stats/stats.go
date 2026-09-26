@@ -281,19 +281,24 @@ type PercentPseudoStat struct {
 	MeleeShare *PercentPseudoStat
 }
 
+// The hit and crit percents core.RatingChannelTable names as a rating's melee, ranged and spell channels.
 var (
-	meleeHitPercent  = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
-	meleeCritPercent = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	MeleeHitPseudoStat   = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
+	RangedHitPseudoStat  = PercentPseudoStat{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &MeleeHitPseudoStat}
+	SpellHitPseudoStat   = PercentPseudoStat{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil}
+	MeleeCritPseudoStat  = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	RangedCritPseudoStat = PercentPseudoStat{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &MeleeCritPseudoStat}
+	SpellCritPseudoStat  = PercentPseudoStat{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil}
 )
 
 var PercentPseudoStats = []PercentPseudoStat{
-	meleeHitPercent,
-	{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil},
-	meleeCritPercent,
-	{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil},
+	MeleeHitPseudoStat,
+	SpellHitPseudoStat,
+	MeleeCritPseudoStat,
+	SpellCritPseudoStat,
 	{BlockPercent, proto.PseudoStat_PseudoStatBlockPercent, nil},
-	{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPercent},
-	{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPercent},
+	RangedHitPseudoStat,
+	RangedCritPseudoStat,
 	{DodgePercent, proto.PseudoStat_PseudoStatDodgePercent, nil},
 	{ParryPercent, proto.PseudoStat_PseudoStatParryPercent, nil},
 	{ExpertisePercent, proto.PseudoStat_PseudoStatExpertisePercent, nil},

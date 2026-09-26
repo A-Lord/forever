@@ -691,12 +691,57 @@ type RatingConversion struct {
 	Step             float64
 }
 
+// A percent one rating raises in one channel: the PseudoStat the character sheet shows and, for hit and
+// crit, its pair in stats.PercentPseudoStats. Haste has no back-end percent Stat, so its Percent is nil.
+type RatingChannel struct {
+	PseudoStat proto.PseudoStat
+	Percent    *stats.PercentPseudoStat
+}
+
+func percentChannel(percent *stats.PercentPseudoStat) RatingChannel {
+	return RatingChannel{percent.PseudoStat, percent}
+}
+
+// The melee, ranged and spell percents one rating raises together, at RatingPerPercent rating per percent
+// point. A ranged percent with a MeleeShare is a total over the melee percent.
+type RatingChannels struct {
+	Rating               stats.Stat
+	Melee, Ranged, Spell RatingChannel
+	RatingPerPercent     float64
+}
+
+func (channels RatingChannels) Channels() [3]RatingChannel {
+	return [3]RatingChannel{channels.Melee, channels.Ranged, channels.Spell}
+}
+
+// The channels of the hit, crit and haste ratings. RATING_CHANNELS in ui/sim/proto/stats.ts is the UI's
+// copy of the same channels; the two are kept in sync by hand.
+var RatingChannelTable = []RatingChannels{
+	{stats.HitRating, percentChannel(&stats.MeleeHitPseudoStat), percentChannel(&stats.RangedHitPseudoStat),
+		percentChannel(&stats.SpellHitPseudoStat), HitRatingPerHitPercent},
+	{stats.CritRating, percentChannel(&stats.MeleeCritPseudoStat), percentChannel(&stats.RangedCritPseudoStat),
+		percentChannel(&stats.SpellCritPseudoStat), CritRatingPerCritPercent},
+	{stats.HasteRating, RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatMeleeHastePercent},
+		RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatRangedHastePercent},
+		RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatSpellHastePercent}, HasteRatingPerHastePercent},
+}
+
+// The melee and spell percent of each channel table rating with back-end percent Stats. The ranged Stat
+// holds only what exceeds the melee percent, so no rating converts into it.
+func channelConversions() []RatingConversion {
+	var conversions []RatingConversion
+	for _, channels := range RatingChannelTable {
+		if channels.Melee.Percent != nil {
+			conversions = append(conversions,
+				RatingConversion{channels.Rating, channels.Melee.Percent.Stat, channels.RatingPerPercent, 0},
+				RatingConversion{channels.Rating, channels.Spell.Percent.Stat, channels.RatingPerPercent, 0})
+		}
+	}
+	return conversions
+}
+
 // The rating conversions every unit has, in the order the reforge optimizer tries a rating's percents.
-var RatingConversions = []RatingConversion{
-	{stats.HitRating, stats.PhysicalHitPercent, HitRatingPerHitPercent, 0},
-	{stats.HitRating, stats.SpellHitPercent, HitRatingPerHitPercent, 0},
-	{stats.CritRating, stats.PhysicalCritPercent, CritRatingPerCritPercent, 0},
-	{stats.CritRating, stats.SpellCritPercent, CritRatingPerCritPercent, 0},
+var RatingConversions = append(channelConversions(), []RatingConversion{
 	{stats.ExpertiseRating, stats.ExpertisePercent, ExpertiseRatingPerExpertisePercent, 0},
 	{stats.DodgeRating, stats.DodgePercent, DodgeRatingPerDodgePercent, 0},
 	{stats.ParryRating, stats.ParryPercent, ParryRatingPerParryPercent, 0},
@@ -705,7 +750,7 @@ var RatingConversions = []RatingConversion{
 	{stats.DefenseRating, stats.DodgePercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.ParryPercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.BlockPercent, DefenseRatingPerAvoidancePercent, 0},
-}
+}...)
 
 func AddRatingConversions(sdm *stats.StatDependencyManager) {
 	for _, conversion := range RatingConversions {
