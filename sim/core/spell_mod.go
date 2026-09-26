@@ -213,7 +213,7 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	if !mod.ClassFlags.IsZero() && !spell.MatchesFlags(mod.ClassFlags) {
+	if !mod.ClassFlags.Reaches(spell) {
 		return false
 	}
 
@@ -461,6 +461,11 @@ const (
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
+
+	// Will add / subtract % amount from the GCD multiplier. -10% = -0.1
+	// The GCD minimum still floors the result.
+	// Uses: FloatValue
+	SpellMod_GlobalCooldown_Pct
 )
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
@@ -538,6 +543,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 	SpellMod_GlobalCooldown_Flat: {
 		Apply:  applyGlobalCooldownFlat,
 		Remove: removeGlobalCooldownFlat,
+	},
+
+	SpellMod_GlobalCooldown_Pct: {
+		Apply:  applyGlobalCooldownPercent,
+		Remove: removeGlobalCooldownPercent,
 	},
 	SpellMod_DotTickLength_Flat: {
 		Apply:  applyDotTickLengthFlat,
@@ -786,11 +796,31 @@ func removeDotNumberOfTicks(mod *SpellMod, spell *Spell) {
 }
 
 func applyGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD += mod.timeValue
+	spell.unscaledGCD += mod.timeValue
+	spell.updateGCD()
 }
 
 func removeGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD -= mod.timeValue
+	spell.unscaledGCD -= mod.timeValue
+	spell.updateGCD()
+}
+
+func applyGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier += mod.floatValue
+	spell.updateGCD()
+}
+
+func removeGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier -= mod.floatValue
+	spell.updateGCD()
+}
+
+func (spell *Spell) updateGCD() {
+	if spell.GCDMultiplier == 1 {
+		spell.DefaultCast.GCD = spell.unscaledGCD
+		return
+	}
+	spell.DefaultCast.GCD = time.Duration(float64(spell.unscaledGCD) * spell.GCDMultiplier).Round(time.Millisecond)
 }
 
 func applyDotTickLengthFlat(mod *SpellMod, spell *Spell) {

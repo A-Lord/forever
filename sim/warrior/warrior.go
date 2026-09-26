@@ -151,10 +151,13 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 	core.FillTalentsProto(warrior.Talents.ProtoReflect(), talents, TalentTreeSizes)
 
 	warrior.EnableRageBar(core.RageBarOptions{
-		MaxRage:            100 + spellData.BoundlessRage.TenthsAt(warrior.Talents.BoundlessRage),
+		MaxRage:            100,
 		BaseRageMultiplier: 1,
 		StartingRage:       inputs.StartingRage,
 	})
+	// Here rather than with the talents: the racial that scales the maximum rage runs before them and
+	// scales Boundless Rage's share too.
+	spelldata.ParseStatic(&warrior.Character, spellData.BoundlessRage.Rank(warrior.Talents.BoundlessRage))
 
 	warrior.EnableAutoAttacks(warrior, core.AutoAttackOptions{
 		MainHand:       warrior.WeaponFromMainHand(),

@@ -21,6 +21,7 @@ func (mage *Mage) registerBlizzardSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: MageSpellBlizzard,
+	// 	ClassFlags:     blizzardRank.ClassFlags,
 	//
 	// 	DamageMultiplier: 1,
 	// 	BonusCoefficient: blizzardTick.Coeff(),
@@ -38,6 +39,7 @@ func (mage *Mage) registerBlizzardSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellBlizzard,
+	// 	ClassFlags:     blizzardRank.ClassFlags,
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(blizzardRank.Cost()),
 	// 	},

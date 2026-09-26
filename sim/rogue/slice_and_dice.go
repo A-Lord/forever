@@ -47,6 +47,7 @@ func (rogue *Rogue) registerSliceAndDice() {
 	// 	Flags:          SpellFlagFinisher | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellSliceAndDice,
+	// 	ClassFlags:     sliceAndDiceRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(sliceAndDiceRank.Cost()),

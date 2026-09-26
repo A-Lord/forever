@@ -14,6 +14,7 @@ func (warlock *Warlock) registerSoulfire() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellSoulFire,
+	// 	ClassFlags:     soulfireRank.ClassFlags,
 	// 	MissileSpeed:   float64(soulfireRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(soulfireRank.Cost())},

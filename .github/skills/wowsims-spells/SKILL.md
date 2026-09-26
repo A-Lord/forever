@@ -69,10 +69,12 @@ func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string
 
 - `SpellOpt`: `Melee(mask)`, `Magic(mask)`, `Proc()`, `Flags(f)`, `Tag(n)`.
 - `AuraOpt`: `Label(name)`, `Permanent()`.
-- `ParseOpt`: `Effects(...)`, `SkipEffects(...)`, `Conditional(fn)`, `IgnoreStacks()`.
+- `ParseOpt`: `Effects(...)`, `SkipEffects(...)`, `Conditional(fn)`, `IgnoreStacks()`, `FromCaster(unit, i, total)`.
 - `ProcOpt`: `PPM(n)`, `Chance(f)`, `ChanceFrom(effect)`.
 
 Each fills what the row states and nothing else; the caller adds `ApplyEffects`, the proc mask, the conditions and any flag the client does not carry. `ParseEffects` must be called before the aura activates. `*Parsed` carries `Applied` and `Skipped` — `SPELLDATA_REPORT=1` prints the skipped effects, which are what the port still has to wire by hand.
+
+A debuff that raises only its caster's damage or crit against the target (Shadow Weaving, Winter's Chill, Stormstrike, Hemorrhage) is parsed onto each target's aura with `ParseEffects(nil, targetAura, row, FromCaster(&class.Unit, i, total))`. The parse holds slot `i` of `total` on the caster's attack table, numbered alongside the class's own `AttachDDBC` calls, one per parse; without `FromCaster`, and under `ParseStatic`, those rows are skipped. See "A debuff that reaches only its caster's attacks" in `docs/spell_data.md`.
 
 `Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ApplyEffects` by hand; Flurry tells it from the main-hand strike with `spellData.Whirlwind.Contains(spell)` and an off-hand proc mask. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
 
@@ -92,7 +94,8 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 - **`Average` floors the whole amount, in float32.** The client resolves an amount to a whole number, so an effect with a fractional base and per-level gain answers something `BaseValue()` arithmetic in float64 does not.
 - **A proc chance of 100 is not a roll.** 100 and 101 are the client's "fires on its own condition" sentinel. Read `ProcChanceSource`, never the `ProcChance` column.
 - **`RequireDamageDealt` defaults true.** A listener that fires on a dodge, a parry, a miss or a block needs it false. The decoder has done that already where the tooltip named the outcome and the row carries `ProcHintOutcomeTaken`; hand-clear it only on a row whose wording yielded no hint (23547). The outcome itself is always the caller's — no `ProcTypeMask` has a bit for one.
-- **A sub-second GCD must be named twice.** `core.Cast.GCDMin` overrides the global one-second floor, so Hammer of Wrath and Shadowfury set both `GCD` and `GCDMin` or `GCDTime` clamps them back up.
+- **Raise a bar's maximum before the racials run.** Expansive Mind multiplies the maximum rage and energy once, in `applyRaceEffects`, between the class constructor and `ApplyTalents`. Boundless Rage is parsed in `NewWarrior` straight after `EnableRageBar`, and the rogue's Vigor goes into the `MaxEnergy` it enables the bar with; a maximum raised with the talents misses the racial. Later changes go through `SetMaximumRage` / `SetMaximumEnergy`.
+- **A sub-second GCD must be named twice.** `core.Cast.GCDMin` overrides the global one-second floor, so Hammer of Wrath and Shadowfury set both `GCD` and `GCDMin` or `GCDTime` clamps them back up. A percent GCD mod scales `DefaultCast.GCD` itself, after the flat ones, so the floor applies to it too.
 - **Never pick a talent's effect by which one matches the number.** Survival of the Fittest states +1/2/3% to all stats and -1/-2/-3% crit taken, and both ladders fit. What the call site does decides it, and the mod's `Kind` usually says so.
 - **A per-point literal is usually right, so migrating one buys provenance, not accuracy.** Of 125 percent talents, 122 scale linearly. The ones that do not are why the rows are worth reading: Improved Righteous Fury is 16/33/50, shaman Elemental Weapons 7/14/20.
 - **The `SPELLMOD_*` names are read off the talents that use them**, because the client ships no list. All 23 were confirmed against TrinityCore's `SpellModOp` and cmangos-tbc's; a value the cores name but these do not means the data changed, not that a name is missing.

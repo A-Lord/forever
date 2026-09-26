@@ -27,6 +27,7 @@ func (warlock *Warlock) registerHellfire() *core.Spell {
 	// 	Flags:            core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ProcMask:         core.ProcMaskSpellDamage,
 	// 	ClassSpellMask:   WarlockSpellHellfire,
+	// 	ClassFlags:       hellfireRank.ClassFlags,
 	// 	ThreatMultiplier: 1,
 	// 	DamageMultiplier: 1,
 	//

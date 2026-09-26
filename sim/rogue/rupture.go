@@ -30,6 +30,7 @@ func (rogue *Rogue) registerRupture() {
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagFinisher | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellRupture,
+	// 	ClassFlags:     ruptureRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(ruptureRank.Cost()),

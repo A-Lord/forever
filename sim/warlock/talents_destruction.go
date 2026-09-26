@@ -33,8 +33,10 @@ func (warlock *Warlock) registerDestructionTalents() {
 }
 
 // TODO: To be implemented. Improved Shadow Bolt (17793) is one dummy effect
-// with no trigger spell and its debuff 17800 has no SpellName row, so there is
-// nothing in the client to build the aura this talent applies from.
+// with no trigger spell; its tooltip names the debuff Shadow Vulnerability
+// (17794, ImprovedShadowBoltTriggered), A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER on
+// shadow, which the port puts on the target on a Shadow Bolt crit and parses
+// onto that target's aura with spelldata.ParseEffects and FromCaster.
 func (warlock *Warlock) applyImprovedShadowBolt() {
 	if warlock.Talents.ImprovedShadowBolt == 0 {
 		return

@@ -34,6 +34,8 @@ type parseOptions struct {
 	singleAura        bool
 	perStatCategory   string
 	schoolResistances bool
+
+	casterSlot *casterSlot
 }
 
 // Only these effects, counted from 1 by position the way EffectN counts.
@@ -154,6 +156,19 @@ func SchoolResistances() ParseOpt {
 	}
 }
 
+// The unit that put the aura on the unit it sits on, for the rows that reach only that caster's
+// attacks on it: Shadow Weaving's shadow damage, Hemorrhage's Rupture, Winter's Chill's crit. Those
+// rows share one slot, index out of total, in the caster's attack table against the aura's unit:
+// every damage row multiplies into its DamageDoneByCasterExtraMultiplier handler and every crit row
+// adds into its CritChanceByCasterBonus handler, each enabled while any of its rows is up. The class
+// numbers its slots the way it numbers its AttachDDBC calls, one per parse. Without a caster those
+// rows are skipped.
+func FromCaster(caster *core.Unit, index, total int) ParseOpt {
+	return func(o *parseOptions) {
+		o.casterSlot = &casterSlot{caster: caster, index: index, total: total}
+	}
+}
+
 // One attachment the parse made, for a log or a test: the effect it came from, the sim kind it
 // became and the value it carries in the sim's own units. A time value is stated in milliseconds,
 // and a multiplier as the factor itself.
@@ -245,15 +260,22 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		stacking:    stacking || o.count != 0,
 		dry:         dry,
 		aura:        aura,
+		casterSlot:  o.casterSlot,
+	}
+	if o.casterSlot != nil {
+		o.casterSlot.target = unit
 	}
 
 	folded := foldedDotEffects(s, o)
 
 	// The amount is the caster's, so a debuff on an enemy is still priced at the character's level
-	// and not at the level of the unit it sits on. Without a character there is only the unit.
+	// and not at the level of the unit it sits on. Without a character the FromCaster unit is the
+	// caster, and without either there is only the unit.
 	level := unit.Level
 	if character != nil {
 		level = character.Level
+	} else if o.casterSlot != nil {
+		level = o.casterSlot.caster.Level
 	}
 	if o.level != 0 {
 		level = o.level

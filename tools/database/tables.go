@@ -569,13 +569,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			COALESCE(sla.SkillLine, 0) as RequiredProfession,
 			COALESCE(sie.Name_lang, ""),
 			COALESCE(sie.Flags, 0) AS SpellItemEnchantmentFlags,
-			-- A grant is live when a profession teaches it or an item the client ships uses it.
+			-- A grant is live when a profession teaches it or an item the client ships uses it, a
+			-- placeholder ([PH]) item aside.
 			EXISTS (SELECT 1 FROM SkillLineAbility WHERE Spell = se.SpellID)
 				OR EXISTS (
 					SELECT 1 FROM ItemEffect lie
 						JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 						JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-					WHERE lie.SpellID = se.SpellID
+					WHERE lie.SpellID = se.SpellID AND ` + notPlaceholderItemName("lisp.Display_lang") + `
 				) AS IsLive
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
@@ -970,6 +971,11 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 	return consumable, nil
 }
 
+// The SQL condition that the item name in column is not a placeholder: [PH] anywhere in it.
+func notPlaceholderItemName(column string) string {
+	return column + ` NOT LIKE '%[PH]%'`
+}
+
 // The items the consumable catalogue is built from, over Item as i and ItemSparse as s. Every
 // Consumable-class item but the permanent enhancements of subclass 6, which the enchant table
 // carries; the Trade Goods explosives; and any item whose on-use shares the explosives' category or
@@ -984,13 +990,14 @@ func ConsumableItemFilter() string {
 			WHERE cx.ItemID = i.ID AND ce.TriggerType = %d AND ce.SpellID > 0 AND %s)`, dbc.ITEM_SPELLTRIGGER_ON_USE, condition)
 	}
 	return fmt.Sprintf(`s.Display_lang != '' AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%'
-		AND s.Display_lang NOT LIKE 'UNUSED%%' AND s.Display_lang NOT LIKE '[PH]%%' AND s.Display_lang NOT LIKE '%%[DEP]%%'
+		AND s.Display_lang NOT LIKE 'UNUSED%%' AND %s AND s.Display_lang NOT LIKE '%%[DEP]%%'
 		AND %s
 		AND NOT EXISTS (SELECT 1 FROM ItemXItemEffect lx JOIN ItemEffect le ON le.ID = lx.ItemEffectID
 			WHERE lx.ItemID = i.ID AND le.TriggerType = %d)
 		AND ((i.ClassID = 0 AND i.SubclassID != 6) OR (i.ClassID = 7 AND i.SubclassID = 2)
 			OR %s
 			OR %s)`,
+		notPlaceholderItemName("s.Display_lang"),
 		onUse("1"),
 		dbc.ITEM_SPELLTRIGGER_LEARN_SPELL_ID,
 		onUse(fmt.Sprintf("ce.SpellCategoryID = %d", dbc.EXPLOSIVES_SPELL_CATEGORY)),

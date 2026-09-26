@@ -19,10 +19,26 @@ var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4
 // Unleashing this Seal's energy will cause Holy damage to an enemy.
 //
 // The seal's second effect names its judgement (the row has no effect at the client's index 1).
-// The judgement's dummy, its second effect, is what the seal's tooltip renders each hit from: the
-// number and the coefficient the per-hit damage scales on. The hit itself is a function of weapon
-// speed: the value per hundred, times the swing speed, times 0.85 for a one-hander or 1.2 for a
-// two-hander, the formula the Classic sim settled on from testing.
+// The judgement's dummy, its second effect, carries the number the per-hit damage is built from:
+// the seal's tooltip renders that number over 87 and over 25, which is the flat "value per hundred
+// times swing speed" at speeds 1.15 and 4.0, and says nothing about hand type or spell power.
+//
+// The hit itself was measured on the 1.60.1 beta at level 20, ranks 1-3, eighteen weapons from
+// 1.7 to 3.7, with and without spell power and Judgement of the Crusader (2026-09-26):
+//
+//	proc = value/100 * speed * hand(speed) + coefficient * (spell power + Judgement of the Crusader)
+//	  two-hander:  hand = 1.2,                                  coefficient 0.22
+//	  one-hander:  hand = 0.85 - 0.2 * max(0, 2.0 - speed),     coefficient 0.20
+//
+// The two-hander line is exact from 2.6 to 3.7. One-handers sit on 0.85 from 2.0 up and lose a
+// little per tenth of a second below that: 0.83 at 1.9, 0.81 at 1.8, 0.79 at 1.7, which is as fast
+// as the test could reach; the straight line through those is one of two shapes the data allows
+// and they agree to a percent down to 1.5. The spell power part is flat: it does not scale with
+// speed, it does not take the fast-weapon penalty, and it is the same at every rank, so the
+// dummy's per-rank coefficient (0.058 to 0.2) is not what the game uses. 0.20 is the seal's own
+// 0.1 plus the proc spell's 0.1; the two-hander's 0.22 is either that times 1.1 or 0.1 + 0.1 * 1.2,
+// which the data cannot separate. Judgement of the Crusader counts as spell power at the same
+// coefficient, and a crit doubles the unrounded total.
 func (paladin *Paladin) registerSealOfRighteousness(_ int32, rank *spelldata.Spell) {
 	judgeRank := spellData.JudgementOfRighteousness.ByID(int32(rank.EffectN(2).BaseValue()))
 	judgeDamage := judgeRank.DamageEffect()
@@ -61,12 +77,12 @@ func (paladin *Paladin) registerSealOfRighteousness(_ int32, rank *spelldata.Spe
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
-		BonusCoefficient: perHit.Coeff(),
 
 		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 			mh := paladin.MainHand()
-			handMultiplier := core.TernaryFloat64(mh.HandType == proto.HandType_HandTypeTwoHand, 1.2, 0.85)
-			baseDamage := value / 100 * handMultiplier * mh.SwingSpeed
+			hand, coefficient := sealOfRighteousnessHand(mh)
+			spell.BonusCoefficient = coefficient
+			baseDamage := value / 100 * mh.SwingSpeed * hand
 			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialCritOnly)
 			dealAfterBatch(sim, spell, result)
 		},
@@ -95,4 +111,13 @@ func (paladin *Paladin) registerSealOfRighteousness(_ int32, rank *spelldata.Spe
 			procSpell.Cast(sim, target)
 		},
 	})
+}
+
+// The measured weapon multiplier and spell power coefficient of a Seal of Righteousness hit for the
+// weapon in the main hand: see registerSealOfRighteousness.
+func sealOfRighteousnessHand(mh *core.Item) (hand float64, coefficient float64) {
+	if mh.HandType == proto.HandType_HandTypeTwoHand {
+		return 1.2, 0.22
+	}
+	return 0.85 - 0.2*max(0, 2.0-mh.SwingSpeed), 0.20
 }

@@ -35,6 +35,7 @@ func (rogue *Rogue) registerStealthAura() {
 	// 	SpellSchool:    stealthRank.SpellSchool(),
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellStealth,
+	// 	ClassFlags:     stealthRank.ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{

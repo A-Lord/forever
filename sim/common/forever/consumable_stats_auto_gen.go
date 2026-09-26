@@ -126,6 +126,7 @@ func RegisterAllStatConsumables() {
 		13453,  // Elixir of Brute Force
 		13454,  // Greater Arcane Elixir
 		13510,  // Flask of the Titans
+		13511,  // Flask of Distilled Wisdom
 		13512,  // Flask of Supreme Power
 		13513,  // Flask of Chromatic Resistance
 		13810,  // Blessed Sunfruit

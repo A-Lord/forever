@@ -20,6 +20,7 @@ func (warlock *Warlock) registerLifeTap() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellLifeTap,
+	// 	ClassFlags:     spellData.LifeTap.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

@@ -17,6 +17,7 @@ func (mage *Mage) registerScorchSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellScorch,
+	// 	ClassFlags:     scorchRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(scorchRank.Cost()),
