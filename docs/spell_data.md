@@ -337,8 +337,9 @@ therefore never names an outcome itself.
 
 A talent, a passive and a buff are all the same thing to the client: an aura whose `E_APPLY_AURA`
 effects say what it does. The parse walks those effects and attaches each to the sim - a `SpellMod`
-for the two modifier auras, a stat buff, a stat multiplier, a pseudo-stat multiplier or one of the
-speed multipliers - so a port writes which row it is reading rather than what the row contains.
+for the two modifier auras, a stat buff, a stat multiplier, a share of one stat added to another, a
+pseudo-stat multiplier or one of the speed multipliers - so a port writes which row it is reading
+rather than what the row contains.
 
 ```go
 spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents.Cruelty))
@@ -358,8 +359,8 @@ what the client means by an unmasked class modifier.
 
 **Call `ParseEffects` before the aura activates.** It attaches through `ApplyOnGain` and
 `ApplyOnExpire`. An aura already up when the parse runs is caught up the way core's `Attach` helpers
-catch one up, with one exception: the rows that need a `Simulation` to act - the cast, melee and attack
-speed multipliers - stay off until the aura is applied again.
+catch one up, with one exception: the rows that need a `Simulation` to act - the cast, melee, ranged and
+attack speed multipliers and the energy regen multiplier - stay off until the aura is applied again.
 
 **An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
 names, because the mod is attached to the aura and not to each spell pointing at it.
@@ -417,11 +418,14 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | MP5                                                                 | mana per five seconds                                 | the value                                                              |
 | PhysicalHitPercent, SpellHitPercent                                 | percentage points                                     | the value                                                              |
 | PhysicalCritPercent, SpellCritPercent                               | percentage points                                     | the value                                                              |
+| crit chance on the spells a modifier names, flat or percentage      | `SpellMod_BonusCrit_Percent`, percentage points       | the value                                                              |
 | **BlockPercent**                                                    | **a fraction**                                        | **the value over 100**                                                 |
 | DodgeRating                                                         | rating                                                | value x `DodgeRatingPerDodgePercent`                                   |
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| `PseudoStats.ReducedPhysicalHitTakenChance`                         | percentage points                                     | the value with its sign turned                                         |
+| `PseudoStats.SpiritRegenRateCasting`                                | a share of spirit regen while casting, capped at 1    | the value over 100                                                     |
 | `PseudoStats.BonusRangedDamageTaken`                                | flat damage on each physical ranged attack            | the value, where the school mask names physical                        |
 | `PseudoStats.MeleeDamageTakenMultiplier`                            | a multiplier on each melee attack, of any school      | `1 + value/100`                                                        |
 | ArmorPenetration, SpellPiercing                                     | flat points of the target's armor or resistance       | the value's size, whichever sign the row states it with                |
@@ -431,6 +435,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | damage taken from the caster, by school or by class flags           | the caster's `DamageDoneByCasterExtraMultiplier` slot | `1 + stacks x value/100`                                               |
 | crit chance for the caster, by class flags                          | the caster's `CritChanceByCasterBonus` slot           | stacks x value, in percentage points                                   |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
+| armor, (ranged) attack power, spell damage or healing from a stat   | a stat dependency's ratio                             | the value over 100                                                     |
 | the rage bar's maximum (`A_MOD_MAX_POWER` misc 1)                   | rage                                                  | the value over 10                                                      |
 | the energy bar's maximum (misc 3, and `A_MOD_INCREASE_ENERGY`)      | energy                                                | the value                                                              |
 | the maximum mana (misc 0 of either)                                 | Mana, flat points                                     | the value                                                              |
@@ -440,6 +445,27 @@ Block is the one that reads differently from its name: core sums `stats.BlockPer
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
 is five hundred percent block. `TestParseStaticStatConventions` pins one row of each family against
 what core reads back.
+
+Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
+its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat: Inspiration's 8 is 8% more
+armor, whatever it came from.
+
+`A_MOD_MAX_HEALTH` is flat health, which is how the bear forms state it: Dire Bear Form's passive is
+1240 health at 60. Last Stand 12976 states its 30% on the same aura and a script applies it as a
+percentage, so the warrior reads it by hand and does not parse the row.
+
+`A_MOD_ATTACK_POWER_OF_STAT_PERCENT` (598) and `A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT` (580) add a
+share of the misc value's stat to attack power: Cat Form (Passive) 3025 states melee attack power as
+100% of Agility, Careful Aim 1223984 both as a share of Intellect. `dbcenums` names them after those
+rows, and 635 `A_IGNORE_FOG_OF_WAR` after Enchanted Flare 1221416, which has nothing to model.
+
+Innervate 29166 states both mana regen auras. `A_MOD_MANA_REGEN_INTERRUPT` adds its share to
+`SpiritRegenRateCasting`, and core stops the sum at all of the spirit regen, so Innervate's 100% on top
+of Reverence's 30% is the regen the character has while not casting. `A_MOD_POWER_REGEN_PERCENT`
+multiplies `SpiritRegenMultiplier` on the mana bar, Innervate's +400%, and the energy regen speed on an
+energy bar. Innervate's regen is the generated aura's: no flag forces full spirit regen, and its driver
+keeps only the timing and the metrics. The energy row asks the unit for its bar at parse time and is
+skipped on a unit without one, so a rogue enables the bar before it parses Adrenaline Rush 13750.
 
 A maximum power row raises the bar its misc value names, through `SetMaximumRage` or
 `SetMaximumEnergy`: a raised maximum grants nothing, and when an aura carrying one drops, the power
@@ -487,13 +513,13 @@ Rows the table does know are skipped by the shape of the parse. A value the sim 
 per unit cannot be applied once per stack, and the static path has no aura to follow and no
 `Simulation` to answer a later `Refresh` with:
 
-|                                     | skips                                                                                                                       |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier |
-| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
-| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
-| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
-| a parse without `FromCaster`        | the damage and crit a debuff adds to its caster's attacks alone, and `ParseStatic` those too                                |
+|                                     | skips                                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| a stacking aura (`MaxStack` > 0)    | the stat multipliers and shares, the equipment scaling, the pseudo-stat and speed multipliers and the cooldown multiplier |
+| `ParseStatic`                       | the speed and energy regen multipliers, which need the `Simulation` an aura's gain hands over                             |
+| `ParseStatic` with `Conditional`    | the stat multipliers and shares and the equipment scaling as well                                                         |
+| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                      |
+| a parse without `FromCaster`        | the damage and crit a debuff adds to its caster's attacks alone, and `ParseStatic` those too                              |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.
@@ -1128,6 +1154,13 @@ indistinguishable from the real rank 13s, so the generator cannot filter them. R
 `Highest()` on those families silently casts a spell that does not exist - it cost 1.2% DPS when it
 happened during the mage port. Use `ByID`.
 
+**A parsed row doubles the hand line that already states it.** When the paladin parses Shield
+Specialization, the `BlockValueMultiplier` line in `sim/paladin/talents_protection.go` goes, since
+`A_MOD_BLOCK_VALUE_PCT` is a row; Holy Power's crit mods in `talents_holy.go` likewise. The
+`agiApDep` the druid's Cat Form stub keeps commented out must not come back beside a parsed Cat Form
+(Passive) 3025, which states the same Agility share. Last Stand 12976 runs the other way: it stays hand-read, because
+its 30 is a percentage and the parse reads `A_MOD_MAX_HEALTH` as flat health.
+
 **A rank can carry nothing in a role.** Lay on Hands rank 1 restores no mana where ranks 2-4 do, so
 `EnergizeEffect()` answers `NilEffect` there, which every accessor reads as zero.
 
@@ -1393,7 +1426,7 @@ and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buff
 row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
 debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
 `party.TotemTwisting`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
-client does not state: a proc trigger, a cooldown, a delay, a regen. Declaring the function is what
+client does not state: a proc trigger, a cooldown, a delay, the metrics of a regen. Declaring the function is what
 makes the row compile.
 
 ### Regenerating

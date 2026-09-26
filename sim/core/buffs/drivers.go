@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -18,10 +19,6 @@ import (
 // debuffs and the raid. The driver reads its own field out of the message, and
 // any other field it needs: Grace of Air lasts 9 seconds while the party is
 // twisting totems.
-
-// Spell 29166 states 100% mana regen while casting (aura 134) and +400% of it
-// (aura 110); neither is a stat or a pseudo-stat, so the regen is the driver's.
-const innervateSpiritRegenMultiplier = 5.0
 
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat
@@ -41,8 +38,8 @@ func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
 }
 
 // A druid innervates a character who is nearly out of mana, so that every other
-// mana cooldown is spent first. The aura forces full spirit regen while it is
-// up and the metrics record what the character gains from it.
+// mana cooldown is spent first. The row's auras raise the spirit regen while it
+// is up, and the metrics record what the character gains from it.
 func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 	aura := NewSpellDataInnervatesAura(&char.Unit, false, 0)
 	manaMetrics := char.NewManaMetrics(aura.ActionID)
@@ -50,15 +47,15 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 	threshold, expectedMana := 0.0, 0.0
 	char.Env.RegisterPostFinalizeEffect(func() {
 		threshold = innervateManaThreshold(char)
-		expectedMana = char.SpiritManaRegenPerSecond() * innervateSpiritRegenMultiplier * aura.Duration.Seconds()
+		// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices the mana the
+		// metrics record.
+		expectedMana = char.SpiritManaRegenPerSecond() *
+			(1 + innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).Percent()) *
+			aura.Duration.Seconds()
 	})
 
 	const ticks = 10
 	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		char.PseudoStats.ForceFullSpiritRegen = true
-		char.PseudoStats.SpiritRegenMultiplier *= innervateSpiritRegenMultiplier
-		char.UpdateManaRegenRates()
-
 		perTick := expectedMana / ticks
 		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
 			Period:   aura.Duration / ticks,
@@ -67,10 +64,6 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 				manaMetrics.AddEvent(perTick, perTick)
 			},
 		})
-	}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-		char.PseudoStats.ForceFullSpiritRegen = false
-		char.PseudoStats.SpiritRegenMultiplier /= innervateSpiritRegenMultiplier
-		char.UpdateManaRegenRates()
 	})
 
 	core.NewGeneratedExternalCD(char, aura, core.GeneratedExternalCD{

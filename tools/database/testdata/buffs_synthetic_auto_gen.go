@@ -160,8 +160,6 @@ func NewSpellDataSynthFrostResistanceTotemAura(unit *core.Unit, isPlayer bool, t
 }
 
 // Innervates
-// Left out: effect 1 A_MOD_MANA_REGEN_INTERRUPT(134) misc 0
-// Left out: effect 2 A_MOD_POWER_REGEN_PERCENT(110) misc 0
 var SynthInnervatesCategory = "Innervate"
 var synthInnervatesSpell = spelldata.MustFind(29166)
 var synthInnervatesMeta = &Meta{
@@ -170,6 +168,9 @@ var synthInnervatesMeta = &Meta{
 	Category: SynthInnervatesCategory,
 }
 
+func SynthInnervatesValue(talentPoints int32) float64 {
+	return synthInnervatesMeta.Value(talentPoints)
+}
 func SynthInnervatesDuration(talentPoints int32) time.Duration {
 	return synthInnervatesMeta.Duration(talentPoints)
 }
