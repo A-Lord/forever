@@ -213,7 +213,7 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	if !mod.ClassFlags.IsZero() && !spell.MatchesFlags(mod.ClassFlags) {
+	if !mod.ClassFlags.Reaches(spell) {
 		return false
 	}
 

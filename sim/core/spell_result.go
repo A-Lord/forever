@@ -187,7 +187,9 @@ func (spell *Spell) PhysicalHitCheck(sim *Simulation, attackTable *AttackTable) 
 	return sim.Proc(1.0-spell.GetPhysicalMissChance(attackTable), "Physical Hit Roll")
 }
 func (spell *Spell) PhysicalCritChance(attackTable *AttackTable) float64 {
-	critPercent := spell.Unit.stats[stats.PhysicalCritPercent] + spell.BonusCritPercent - attackTable.Defender.PseudoStats.ReducedCritTakenPercent
+	critPercent := spell.Unit.stats[stats.PhysicalCritPercent] + spell.BonusCritPercent +
+		attackTable.critChanceByCaster(spell) -
+		attackTable.Defender.PseudoStats.ReducedCritTakenPercent
 
 	if spell.ProcMask.Matches(ProcMaskRanged) {
 		critPercent += spell.Unit.stats[stats.RangedCritPercent]
@@ -266,7 +268,8 @@ func (spell *Spell) SpellCritChance(target *Unit) float64 {
 	attackTable := spell.Unit.AttackTables[target.UnitIndex]
 	critPercent := spell.Unit.stats[stats.SpellCritPercent] +
 		spell.BonusCritPercent +
-		attackTable.BonusSpellCritPercent -
+		attackTable.BonusSpellCritPercent +
+		attackTable.critChanceByCaster(spell) -
 		target.PseudoStats.ReducedCritTakenPercent
 	return max(critPercent/100-attackTable.SpellCritSuppression, 0)
 }
@@ -781,6 +784,9 @@ func (result *SpellResult) applyTargetModifiers(sim *Simulation, spell *Spell, a
 
 	if spell.SpellSchool.Matches(SpellSchoolPhysical) {
 		result.Damage += attackTable.Defender.PseudoStats.BonusPhysicalDamageTaken
+		if spell.ProcMask.Matches(ProcMaskRanged) {
+			result.Damage += attackTable.Defender.PseudoStats.BonusRangedDamageTaken
+		}
 	} else if !spell.SpellSchool.Matches(SpellSchoolPhysical) && !spell.SpellSchool.Matches(SpellSchoolNone) {
 		result.Damage += attackTable.Defender.PseudoStats.BonusSpellDamageTaken
 	}
@@ -802,6 +808,10 @@ func (spell *Spell) TargetDamageMultiplier(sim *Simulation, attackTable *AttackT
 
 	if isPeriodic && spell.SpellSchool.Matches(SpellSchoolPhysical) {
 		multiplier *= attackTable.Defender.PseudoStats.PeriodicPhysicalDamageTakenMultiplier
+	}
+
+	if spell.ProcMask.Matches(ProcMaskMelee) {
+		multiplier *= attackTable.Defender.PseudoStats.MeleeDamageTakenMultiplier
 	}
 
 	if attackTable.DamageDoneByCasterMultiplier != nil {

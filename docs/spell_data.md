@@ -364,12 +364,34 @@ speed multipliers - stay off until the aura is applied again.
 **An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
 names, because the mod is attached to the aura and not to each spell pointing at it.
 
-|                   |                                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `Effects(1, 2)`   | only these effects, counted from 1 by position the way `EffectN` counts                                             |
-| `SkipEffects(3)`  | everything but these                                                                                                |
-| `Conditional(fn)` | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)`                 |
-| `IgnoreStacks()`  | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
+|                              |                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Effects(1, 2)`              | only these effects, counted from 1 by position the way `EffectN` counts                                             |
+| `SkipEffects(3)`             | everything but these                                                                                                |
+| `Conditional(fn)`            | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)`                 |
+| `IgnoreStacks()`             | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
+| `FromCaster(unit, i, total)` | the unit that cast a debuff, for the rows that reach only its attacks, in slot `i` of `total` on its attack table   |
+
+**A debuff that reaches only its caster's attacks** sits on the target and is parsed onto the target's
+aura with `FromCaster`: Shadow Weaving's shadow damage (`A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER`, by the
+school mask in its misc value), Hemorrhage's Rupture and Wrack's other shadow dots
+(`A_MOD_SPELL_DAMAGE_FROM_CASTER`) and Winter's Chill's crit on Frostbolt and Ice Lance
+(`A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES`), the last two by the effect's class flags the way a
+modifier's are. Each is a percentage applied once per stack, so Shadow Weaving at three stacks is 6%.
+The parse holds one slot on the caster's attack table against the target: its damage effects multiply
+into one `DamageDoneByCasterExtraMultiplier` handler and its crit effects add into one
+`CritChanceByCasterBonus` handler, which core's `EnableDamageDoneByCaster` and
+`EnableCritChanceByCaster` switch on while an effect is up. The class numbers those slots the way it
+numbers its own `AttachDDBC` calls, and a slot is its parse's, so two debuffs a class parses take two
+indexes. Another caster's attacks on the same target are untouched, and so is every spell of a raid
+debuff's caster, which the sim does not model: without `FromCaster` the rows are skipped. The
+character argument is nil, since the aura is the target's, and the parse reads the row at the caster's
+level.
+
+```go
+spelldata.ParseEffects(nil, swAura, spellData.ShadowWeavingTriggered.Highest(),
+	spelldata.FromCaster(&priest.Unit, DDBC_ShadowWeaving, DDBC_Total))
+```
 
 Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance passive is parsed onto
 the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its
@@ -400,10 +422,14 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| `PseudoStats.BonusRangedDamageTaken`                                | flat damage on each physical ranged attack            | the value, where the school mask names physical                        |
+| `PseudoStats.MeleeDamageTakenMultiplier`                            | a multiplier on each melee attack, of any school      | `1 + value/100`                                                        |
 | ArmorPenetration, SpellPiercing                                     | flat points of the target's armor or resistance       | the value's size, whichever sign the row states it with                |
 | `PseudoStats.SchoolSpellPiercing`                                   | flat points of one school's resistance                | the value's size, for each school the misc value's mask names          |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
+| damage taken from the caster, by school or by class flags           | the caster's `DamageDoneByCasterExtraMultiplier` slot | `1 + stacks x value/100`                                               |
+| crit chance for the caster, by class flags                          | the caster's `CritChanceByCasterBonus` slot           | stacks x value, in percentage points                                   |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
@@ -444,6 +470,7 @@ per unit cannot be applied once per stack, and the static path has no aura to fo
 | `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
 | `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
 | an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
+| a parse without `FromCaster`        | the damage and crit a debuff adds to its caster's attacks alone, and `ParseStatic` those too                                |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.
