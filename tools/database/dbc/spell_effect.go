@@ -395,15 +395,13 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 				effectStats[statMod] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 			}
 		}
-	case effect.EffectAura == dbcenums.A_MOD_INCREASE_ENERGY:
-		// MiscValue 0 is the power type. Only mana has a matching stat; rage, focus, energy
-		// and the rest are resources the sim tracks per spec, not stats, so treating every
-		// power type as mana just invents mana out of nothing.
-		if effect.EffectMiscValues[0] == POWER_TYPE_MANA {
-			effectStats[proto.Stat_StatMana] = float64(effect.EffectBasePoints + effect.EffectDieSides)
+	case effect.EffectAura == dbcenums.A_MOD_INCREASE_ENERGY,
+		effect.EffectAura == dbcenums.A_MOD_INCREASE_HEALTH,
+		effect.EffectAura == dbcenums.A_MOD_INCREASE_HEALTH_2,
+		effect.EffectAura == dbcenums.A_MOD_SHIELD_BLOCKVALUE:
+		if stat := ConvertEffectAuraToStatIndex(effect.EffectAura, effect.EffectMiscValues[0]); stat >= 0 {
+			effectStats[stat] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 		}
-	case effect.EffectAura == dbcenums.A_MOD_INCREASE_HEALTH_2:
-		effectStats[proto.Stat_StatHealth] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 	case effect.EffectAura == dbcenums.A_PERIODIC_TRIGGER_SPELL && effect.EffectAuraPeriod == 10000:
 		for _, sub := range dbcInstance.SpellEffectsInOrder(effect.EffectTriggerSpell) {
 			if subStats, ok := sub.ParseStatEffect(false, 0); ok {
@@ -414,10 +412,6 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 		if resist := ConvertTargetResistanceFlagToPenetrationStat(effect.EffectMiscValues[0]); resist >= 0 {
 			effectStats[resist] = math.Abs(float64(effect.EffectBasePoints + effect.EffectDieSides))
 		}
-	case effect.EffectAura == dbcenums.A_MOD_SHIELD_BLOCKVALUE:
-		effectStats[proto.Stat_StatBlockValue] = float64(effect.EffectBasePoints + effect.EffectDieSides)
-	case effect.EffectAura == dbcenums.A_MOD_INCREASE_HEALTH:
-		effectStats[proto.Stat_StatHealth] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 	case effect.EffectAura == dbcenums.A_MOD_POWER_REGEN && effect.EffectType == dbcenums.E_APPLY_AURA:
 		if effect.Coefficient != 0 && effect.ScalingType != 0 {
 			effectStats[proto.Stat_StatMP5] = effect.CalcCoefficientStatValue(core.TernaryInt(scalesWithIlvl, ilvl, 0))

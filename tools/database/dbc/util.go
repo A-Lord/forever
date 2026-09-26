@@ -318,8 +318,15 @@ func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) pro
 		return ConvertSpellDamageFlagToSchoolDamageStat(effectMisc)
 	case dbcenums.A_MOD_HEALING_DONE:
 		return proto.Stat_StatHealingPower
-	case dbcenums.A_MOD_INCREASE_HEALTH:
+	case dbcenums.A_MOD_INCREASE_HEALTH, dbcenums.A_MOD_INCREASE_HEALTH_2:
 		return proto.Stat_StatHealth
+	case dbcenums.A_MOD_INCREASE_ENERGY:
+		// MiscValue 0 is the power type. Only mana has a matching stat; rage, focus, energy
+		// and the rest are resources the sim tracks per spec, not stats.
+		if effectMisc == POWER_TYPE_MANA {
+			return proto.Stat_StatMana
+		}
+		return -1
 	case dbcenums.A_MOD_TARGET_RESISTANCE:
 		return ConvertTargetResistanceFlagToPenetrationStat(effectMisc)
 	case dbcenums.A_MOD_RESISTANCE:
