@@ -137,6 +137,9 @@ func (paladin *Paladin) applyVindication() {
 		ProcMask:   core.ProcMaskMelee,
 		Outcome:    core.OutcomeLanded,
 		ProcChance: vindicationProcChance,
+
+		RequireDamageComponent: true,
+
 		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
 			targetAuras.Get(result.Target).Activate(sim)
 			selfAura.Activate(sim)

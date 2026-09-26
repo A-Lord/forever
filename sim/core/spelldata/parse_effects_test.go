@@ -467,6 +467,7 @@ func TestEveryTableRow(t *testing.T) {
 		{flat, int32(dbcenums.SPELLMOD_COST), -30, "SpellMod_PowerCost_Flat", -30, false},
 		{flat, int32(dbcenums.SPELLMOD_RESIST_MISS_CHANCE), 3, "SpellMod_BonusHit_Percent", 3, false},
 		{flat, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -500, "SpellMod_GlobalCooldown_Flat", -500, false},
+		{flat, int32(dbcenums.SPELLMOD_ACTIVATION_TIME), -500, "SpellMod_DotTickLength_Flat", -500, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT1), 20, "effect1-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT2), 20, "effect2-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT3), 20, "effect3-assumed-damage SpellMod_BaseDamage_Flat", 20, false},

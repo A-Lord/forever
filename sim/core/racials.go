@@ -1,7 +1,6 @@
 package core
 
 import (
-	"math"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -301,46 +300,63 @@ func applyExpansiveMind(character *Character) {
 	}
 }
 
-// The client scopes Eureka! to each class's damaging abilities with a spell family mask. Core cannot
-// see those masks, so this takes every class ability that deals damage (or heals, for a priest).
+// Eureka! scopes its cost and damage mods to each class's damaging abilities by the client's class
+// masks: effect 1 of each row names the spells whose cost it lowers, effect 2 the ones it raises the
+// damage of. A stack goes on a landed ability either names that has a damage component.
 func applyEureka(character *Character) {
 	var spellID int32
 	var costReduction float64
 	var resourceType proto.ResourceType
+	var costFlags, damageFlags ClassFlags
 	procMask := ProcMaskSpecial
+	spendCallback := CallbackOnSpellHitDealt
 
 	switch character.Class {
 	case proto.Class_ClassRogue:
 		spellID, costReduction, resourceType = 1259812, 0.2, proto.ResourceType_ResourceTypeEnergy
+		costFlags = ClassFlags{Family: 8, Mask: [4]uint32{68290334, 2099464}}
+		damageFlags = ClassFlags{Family: 8, Mask: [4]uint32{68290334, 2318}}
 	case proto.Class_ClassWarrior:
 		spellID, costReduction, resourceType = 1259813, 0.4, proto.ResourceType_ResourceTypeRage
+		costFlags = ClassFlags{Family: 4, Mask: [4]uint32{710934758, 4}}
+		damageFlags = costFlags
 	case proto.Class_ClassMage:
 		spellID, costReduction, resourceType = 1259817, 0.5, proto.ResourceType_ResourceTypeMana
+		costFlags = ClassFlags{Family: 3, Mask: [4]uint32{545397431, 4096}}
+		damageFlags = costFlags
 	case proto.Class_ClassWarlock:
 		spellID, costReduction, resourceType = 1259821, 0.5, proto.ResourceType_ResourceTypeMana
+		costFlags = ClassFlags{Family: 5, Mask: [4]uint32{542127, 8388994}}
+		damageFlags = costFlags
 	case proto.Class_ClassPriest:
 		spellID, costReduction, resourceType = 1259823, 0.15, proto.ResourceType_ResourceTypeMana
+		costFlags = ClassFlags{Family: 6, Mask: [4]uint32{183811792, 8486916, 64}}
+		damageFlags = costFlags
 		procMask |= ProcMaskSpellHealing
+		spendCallback |= CallbackOnHealDealt
 	default:
 		return
 	}
 
 	actionID := ActionID{SpellID: spellID}
-	const anyClassSpell = math.MaxInt64
 
 	costMod := character.AddDynamicMod(SpellModConfig{
 		Kind:         SpellMod_PowerCost_Pct,
-		ClassMask:    anyClassSpell,
+		ClassFlags:   costFlags,
 		ProcMask:     procMask,
 		ResourceType: resourceType,
 		FloatValue:   -costReduction,
 	})
 	damageMod := character.AddDynamicMod(SpellModConfig{
 		Kind:       SpellMod_DamageDone_Pct,
-		ClassMask:  anyClassSpell,
+		ClassFlags: damageFlags,
 		ProcMask:   procMask,
 		FloatValue: 0.1,
 	})
+
+	// One stack per cast, however many targets it lands on.
+	var lastSpent *Spell
+	var lastSpentAt time.Duration
 
 	aura := character.RegisterAura(Aura{
 		Label:     "Eureka!",
@@ -348,6 +364,7 @@ func applyEureka(character *Character) {
 		Duration:  time.Second * 15,
 		MaxStacks: 3,
 		OnGain: func(aura *Aura, sim *Simulation) {
+			lastSpent = nil
 			aura.SetStacks(sim, 3)
 			costMod.Activate()
 			damageMod.Activate()
@@ -356,10 +373,31 @@ func applyEureka(character *Character) {
 			costMod.Deactivate()
 			damageMod.Deactivate()
 		},
-		OnCastComplete: func(aura *Aura, sim *Simulation, spell *Spell) {
-			if spell.Matches(anyClassSpell) && spell.ProcMask.Matches(procMask) {
-				aura.RemoveStack(sim)
+	})
+
+	spendFlags := costFlags
+	for i := range spendFlags.Mask {
+		spendFlags.Mask[i] |= damageFlags.Mask[i]
+	}
+
+	aura.AttachProcTrigger(ProcTrigger{
+		Name:       "Eureka! - Spend",
+		Callback:   spendCallback,
+		ClassFlags: spendFlags,
+		ProcMask:   procMask,
+		Outcome:    OutcomeLanded,
+
+		RequireDamageComponent: true,
+
+		ExtraCondition: func(sim *Simulation, spell *Spell, _ *SpellResult) bool {
+			if spell == lastSpent && sim.CurrentTime == lastSpentAt {
+				return false
 			}
+			lastSpent, lastSpentAt = spell, sim.CurrentTime
+			return true
+		},
+		Handler: func(sim *Simulation, _ *Spell, _ *SpellResult) {
+			aura.RemoveStack(sim)
 		},
 	})
 
@@ -421,6 +459,9 @@ func applyTouchOfTheGrave(character *Character) {
 		Outcome:    OutcomeLanded,
 		ProcChance: procChance,
 		ICD:        time.Second,
+
+		RequireDamageComponent: true,
+
 		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
 			drain.Cast(sim, result.Target)
 		},

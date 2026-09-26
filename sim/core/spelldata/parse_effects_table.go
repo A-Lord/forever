@@ -365,6 +365,9 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_GLOBAL_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modTime("SpellMod_GlobalCooldown_Flat", p.modConfig(e, core.SpellMod_GlobalCooldown_Flat), v)
 	},
+	dbcenums.SPELLMOD_ACTIVATION_TIME: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modTime("SpellMod_DotTickLength_Flat", p.modConfig(e, core.SpellMod_DotTickLength_Flat), v)
+	},
 	dbcenums.SPELLMOD_CRITICAL_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_BonusCrit_Percent", p.modConfig(e, core.SpellMod_BonusCrit_Percent), v)
 	},

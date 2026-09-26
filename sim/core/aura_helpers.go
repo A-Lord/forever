@@ -44,6 +44,12 @@ type ProcTrigger struct {
 	SpellFlagsExclude  SpellFlag
 	Outcome            HitOutcome
 	RequireDamageDealt bool
+
+	// The trigger must be a spell with a damage component: a hit that deals damage, or the landed
+	// cast of a spell with a DoT, whose application deals none. A DoT counts whether or not its
+	// ticks deal damage, and a hit absorbed to 0 from a spell without one does not count.
+	RequireDamageComponent bool
+
 	ProcChance         float64
 	DPM                *DynamicProcManager
 	ICD                time.Duration
@@ -160,6 +166,9 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			}
 		}
 		if config.RequireDamageDealt && result.Damage == 0 {
+			return
+		}
+		if config.RequireDamageComponent && result.Damage == 0 && !spell.hasDot(result.Target) {
 			return
 		}
 		if icd.Duration != 0 && !icd.IsReady(sim) {
