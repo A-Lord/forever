@@ -47,20 +47,6 @@ func (s *UnitStats) ToProto() *proto.UnitStats {
 	}
 }
 
-// Infer missing stat weight values for HitRating and CritRating from their melee, ranged and spell percent components if those were calculated, then call ToProto(). A point of rating raises all three
-// percents alike, so its weight is their sum. Kept as a separate method in case we want to use the UnitStats struct for other applications than just stat weights.
-func (s *UnitStats) ExportWeights() *proto.UnitStats {
-	if s.Stats[stats.HitRating] == 0 {
-		s.Stats[stats.HitRating] = (s.PseudoStats[proto.PseudoStat_PseudoStatMeleeHitPercent] + s.PseudoStats[proto.PseudoStat_PseudoStatRangedHitPercent] + s.PseudoStats[proto.PseudoStat_PseudoStatSpellHitPercent]) / HitRatingPerHitPercent
-	}
-
-	if s.Stats[stats.CritRating] == 0 {
-		s.Stats[stats.CritRating] = (s.PseudoStats[proto.PseudoStat_PseudoStatMeleeCritPercent] + s.PseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] + s.PseudoStats[proto.PseudoStat_PseudoStatSpellCritPercent]) / CritRatingPerCritPercent
-	}
-
-	return s.ToProto()
-}
-
 type StatWeightValues struct {
 	Weights       UnitStats
 	WeightsStdev  UnitStats
@@ -79,10 +65,10 @@ func NewStatWeightValues() StatWeightValues {
 
 func (swv *StatWeightValues) ToProto() *proto.StatWeightValues {
 	return &proto.StatWeightValues{
-		Weights:       swv.Weights.ExportWeights(),
-		WeightsStdev:  swv.WeightsStdev.ExportWeights(),
-		EpValues:      swv.EpValues.ExportWeights(),
-		EpValuesStdev: swv.EpValuesStdev.ExportWeights(),
+		Weights:       swv.Weights.ToProto(),
+		WeightsStdev:  swv.WeightsStdev.ToProto(),
+		EpValues:      swv.EpValues.ToProto(),
+		EpValuesStdev: swv.EpValuesStdev.ToProto(),
 	}
 }
 
@@ -208,24 +194,6 @@ func buildStatWeightRequests(swr *proto.StatWeightsRequest) *proto.StatWeightReq
 
 		statModsHigh[stat] = statMod
 		statModsLow[stat] = -statMod
-
-		// If a school-specific Hit/Crit percentage stat is being
-		// weighed, then remove the base Rating stat from the request to
-		// avoid unnecessary computations. The base Rating EP will be
-		// reconstructed from the PseudoStat EPs when writing the final
-		// results.
-		if strings.Contains(statName, "MeleeHit") ||
-			strings.Contains(statName, "RangedHit") ||
-			strings.Contains(statName, "SpellHit") {
-			statModsLow[stats.HitRating] = 0
-			statModsHigh[stats.HitRating] = 0
-		} else if strings.Contains(statName, "Expertise") {
-			statModsLow[stats.ExpertiseRating] = 0
-			statModsHigh[stats.ExpertiseRating] = 0
-		} else if strings.Contains(statName, "Crit") {
-			statModsLow[stats.CritRating] = 0
-			statModsHigh[stats.CritRating] = 0
-		}
 	}
 
 	for i := range statModsLow {
