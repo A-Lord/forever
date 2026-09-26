@@ -314,23 +314,6 @@ export class UnitStat {
 		}
 	}
 
-	// Inverse of the above
-	static getChildren(parentStat: Stat): PseudoStat[] {
-		const channels = RATING_CHANNELS.get(parentStat);
-		if (channels) {
-			const children = [channels.melee, channels.ranged, channels.spell];
-			return parentStat === Stat.StatHitRating ? [...children, ...SCHOOL_HIT_PERCENT_PSEUDO_STATS] : children;
-		}
-		switch (parentStat) {
-			case Stat.StatDefenseRating:
-				return [PseudoStat.PseudoStatReducedCritTakenPercent];
-			case Stat.StatExpertiseRating:
-				return [PseudoStat.PseudoStatExpertisePercent];
-			default:
-				return [];
-		}
-	}
-
 	static createDisplayStatArray(statList: Stat[], pseudoStatList: PseudoStat[]): UnitStat[] {
 		return displayStatOrder.filter(
 			displayStat =>
@@ -340,43 +323,44 @@ export class UnitStat {
 	}
 }
 
-const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Set(
-	(getEnumValues(PseudoStat) as PseudoStat[]).filter(pseudoStat => {
-		const unitStat = UnitStat.fromPseudoStat(pseudoStat);
-		return unitStat.hasRootStat() && unitStat.getRootStat() !== Stat.StatBlockValue;
+const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Map<PseudoStat, { root: Stat; perPercent: number }>(
+	(getEnumValues(PseudoStat) as PseudoStat[]).flatMap(pseudoStat => {
+		const root = UnitStat.getRootStat(pseudoStat);
+		if (root === null || root === Stat.StatBlockValue) {
+			return [];
+		}
+		return [[pseudoStat, { root, perPercent: UnitStat.fromStat(root).convertPercentToRating(1)! }]];
 	}),
 );
 
-// The melee, ranged and spell percents one hit, crit or haste rating raises together. Each percent's
-// weight measures its own channel alone: melee attacks, ranged attacks or spells. RatingChannelTable in
-// sim/core/unit.go is the back end's copy of the same channels; the two are kept in sync by hand.
-const RATING_CHANNELS = new Map<Stat, { melee: PseudoStat; ranged: PseudoStat; spell: PseudoStat }>([
+// The melee, ranged and spell percents one hit, crit or haste rating raises together, at perPercent rating
+// per percent point. Each percent's weight measures its own channel alone: melee attacks, ranged attacks or
+// spells. RatingChannelTable in sim/core/unit.go is the back end's copy of the same channels; the two are
+// kept in sync by hand.
+const RATING_CHANNELS = new Map<Stat, { channels: [PseudoStat, PseudoStat, PseudoStat]; perPercent: number }>([
 	[
 		Stat.StatHitRating,
 		{
-			melee: PseudoStat.PseudoStatMeleeHitPercent,
-			ranged: PseudoStat.PseudoStatRangedHitPercent,
-			spell: PseudoStat.PseudoStatSpellHitPercent,
+			channels: [PseudoStat.PseudoStatMeleeHitPercent, PseudoStat.PseudoStatRangedHitPercent, PseudoStat.PseudoStatSpellHitPercent],
+			perPercent: Mechanics.HIT_RATING_PER_HIT_PERCENT,
 		},
 	],
 	[
 		Stat.StatCritRating,
 		{
-			melee: PseudoStat.PseudoStatMeleeCritPercent,
-			ranged: PseudoStat.PseudoStatRangedCritPercent,
-			spell: PseudoStat.PseudoStatSpellCritPercent,
+			channels: [PseudoStat.PseudoStatMeleeCritPercent, PseudoStat.PseudoStatRangedCritPercent, PseudoStat.PseudoStatSpellCritPercent],
+			perPercent: Mechanics.CRIT_RATING_PER_CRIT_PERCENT,
 		},
 	],
 	[
 		Stat.StatHasteRating,
 		{
-			melee: PseudoStat.PseudoStatMeleeHastePercent,
-			ranged: PseudoStat.PseudoStatRangedHastePercent,
-			spell: PseudoStat.PseudoStatSpellHastePercent,
+			channels: [PseudoStat.PseudoStatMeleeHastePercent, PseudoStat.PseudoStatRangedHastePercent, PseudoStat.PseudoStatSpellHastePercent],
+			perPercent: Mechanics.HASTE_RATING_PER_HASTE_PERCENT,
 		},
 	],
 ]);
-const CHANNEL_PSEUDO_STATS = new Set([...RATING_CHANNELS.values()].flatMap(channels => [channels.melee, channels.ranged, channels.spell]));
+const CHANNEL_PSEUDO_STATS = new Set([...RATING_CHANNELS.values()].flatMap(({ channels }) => channels));
 
 export const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromStat(Stat.StatHealth),
@@ -537,7 +521,6 @@ export class Stats {
 			total += stat * epWeights.stats[idx];
 		});
 
-		const ratingPerPercentEP = (rating: Stat) => UnitStat.fromStat(rating).convertPercentToRating(1)! * epWeights.stats[rating];
 		let fallbacks: Map<Stat, number> | undefined;
 		const addPercent = (rating: Stat, pseudoStat: PseudoStat, value: number, fallbackPerPercent: number) => {
 			if (value === 0) {
@@ -554,27 +537,23 @@ export class Stats {
 			fallbacks.set(rating, counted === undefined ? ep : Math.max(counted, ep));
 		};
 
-		RATING_CHANNELS.forEach((channels, rating) => {
-			const melee = this.pseudoStats[channels.melee];
-			const ranged = this.pseudoStats[channels.ranged];
-			const spell = this.pseudoStats[channels.spell];
-			const perPercent = ratingPerPercentEP(rating);
-			const weighted = epWeights.pseudoStats[channels.melee] + epWeights.pseudoStats[channels.ranged] + epWeights.pseudoStats[channels.spell];
-			const common = Math.max(0, Math.min(melee, ranged, spell));
-			total += common * (epWeights.stats[rating] !== 0 ? perPercent : weighted);
+		RATING_CHANNELS.forEach(({ channels, perPercent: ratingPerPercent }, rating) => {
+			const values = channels.map(pseudoStat => this.pseudoStats[pseudoStat]);
+			const perPercent = ratingPerPercent * epWeights.stats[rating];
+			const weighted = channels.map(pseudoStat => epWeights.pseudoStats[pseudoStat]).reduce((sum, weight) => sum + weight);
+			const common = Math.max(0, Math.min(...values));
+			total += common * (perPercent || weighted);
 			const residual = Math.max(0, perPercent - weighted);
-			addPercent(rating, channels.melee, melee - common, residual);
-			addPercent(rating, channels.ranged, ranged - common, residual);
-			addPercent(rating, channels.spell, spell - common, residual);
+			channels.forEach((pseudoStat, i) => addPercent(rating, pseudoStat, values[i] - common, residual));
 		});
 
 		this.pseudoStats.forEach((value, idx) => {
 			if (value === 0 || CHANNEL_PSEUDO_STATS.has(idx)) {
 				return;
 			}
-			if (RATING_WEIGHTED_PERCENT_PSEUDO_STATS.has(idx)) {
-				const rating = UnitStat.fromPseudoStat(idx).getRootStat();
-				addPercent(rating, idx, value, ratingPerPercentEP(rating));
+			const rated = RATING_WEIGHTED_PERCENT_PSEUDO_STATS.get(idx);
+			if (rated) {
+				addPercent(rated.root, idx, value, rated.perPercent * epWeights.stats[rated.root]);
 			} else {
 				total += value * epWeights.pseudoStats[idx];
 			}
