@@ -403,11 +403,27 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
+| the rage bar's maximum (`A_MOD_MAX_POWER` misc 1)                   | rage                                                  | the value over 10                                                      |
+| the energy bar's maximum (misc 3, and `A_MOD_INCREASE_ENERGY`)      | energy                                                | the value                                                              |
+| a percentage GCD modifier (`SPELLMOD_GLOBAL_COOLDOWN`)              | `spell.GCDMultiplier`, summed from 1                  | the value over 100                                                     |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
 is five hundred percent block. `TestParseStaticStatConventions` pins one row of each family against
 what core reads back.
+
+A maximum power row raises the bar its misc value names, through `SetMaximumRage` or
+`SetMaximumEnergy`: a raised maximum grants nothing, and when an aura carrying one drops, the power
+above the old maximum is lost and counted against the aura's metrics. The rage maximum also clamps the
+starting rage the options asked for again. Mana is a stat rather than a bar, so the row refuses it on
+every unit, and `ParsedAura` reads that refusal: the Flask of Distilled Wisdom and the +mana leg
+enchants stay unsupported rather than routing as auras that attach nothing. A unit without the named
+bar skips the row too. Boundless Rage is parsed in `NewWarrior` straight after the rage bar is enabled
+rather than with the talents, because the gnome racial scales the maximum it leaves, and runs before
+them.
+
+A percentage GCD modifier multiplies the GCD before haste, and the GCD minimum still floors what is
+left: Nature's Grace's -10 takes a 1.5 second GCD to 1.35 seconds.
 
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
