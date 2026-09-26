@@ -483,6 +483,7 @@ func TestEveryTableRow(t *testing.T) {
 		{pct, int32(dbcenums.SPELLMOD_COST), -20, "SpellMod_PowerCost_Pct_Add", -0.2, false},
 		{pct, int32(dbcenums.SPELLMOD_CRIT_DAMAGE_BONUS), 20, "SpellMod_CritMultiplier_Flat", 0.2, false},
 		{pct, int32(dbcenums.SPELLMOD_DOT), 10, "SpellMod_DotDamageDone_Pct", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -10, "SpellMod_GlobalCooldown_Pct", -0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT1), 10, "effect1-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT2), 10, "effect2-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT3), 10, "effect3-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
@@ -546,6 +547,11 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},
 		{dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, 32, 58, "mob-type-stat SpellDamage", 58, true},
 		{dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1, "damage-dealt-versus", 1.01, false},
+		{dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_RAGE), 300, "max-rage", 30, false},
+		{dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_ENERGY), 10, "max-energy", 10, false},
+		{dbcenums.A_MOD_INCREASE_ENERGY, int32(dbcenums.POWER_ENERGY), 10, "max-energy", 10, false},
+		{dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_MANA), 2000, "stat Mana", 2000, false},
+		{dbcenums.A_MOD_INCREASE_ENERGY, int32(dbcenums.POWER_MANA), 150, "stat Mana", 150, false},
 		{dbcenums.A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, 32, 2, "caster-damage-by-school", 1.02, true},
 		{dbcenums.A_MOD_SPELL_DAMAGE_FROM_CASTER, 0, 15, "caster-damage-by-spell", 1.15, true},
 		{dbcenums.A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, 16, 2, "caster-crit-by-spell", 2, true},
@@ -586,6 +592,9 @@ func TestEveryTableRow(t *testing.T) {
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%s_misc%d", auraName(c.aura), c.misc), func(t *testing.T) {
 			character := parseWarrior()
+			if c.aura == dbcenums.A_MOD_MAX_POWER || c.aura == dbcenums.A_MOD_INCREASE_ENERGY {
+				enablePowerBar(character, dbcenums.PowerType(c.misc))
+			}
 			row := Spell{ID: 5000, Name: "Table Row", DurationMs: 10000, ClassFlags: parseFamily,
 				Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: c.aura, Misc: c.misc,
 					BasePoints: c.points, ClassFlags: parseTargetMask}}}
@@ -886,5 +895,66 @@ func TestParseSkipsEquipScalingOnAPet(t *testing.T) {
 
 	if len(parsed.Applied) != 0 || len(parsed.Skipped) != 1 {
 		t.Errorf("the armor modifier on a pet attached %v, want it skipped", appliedKinds(parsed))
+	}
+}
+
+func enablePowerBar(character *core.Character, power dbcenums.PowerType) {
+	switch power {
+	case dbcenums.POWER_RAGE:
+		character.EnableRageBar(core.RageBarOptions{MaxRage: 100, BaseRageMultiplier: 1})
+	case dbcenums.POWER_ENERGY:
+		character.EnableEnergyBar(core.EnergyBarOptions{MaxEnergy: 100, MaxComboPoints: 5, HasNoRegen: true})
+	}
+}
+
+// Boundless Rage's shape: the client's 300 is 30 rage on top of the bar's 100. An aura carrying it
+// keeps the rage held past the old maximum while it is up and clamps it back when it drops.
+func TestParseMaxRage(t *testing.T) {
+	row := oneEffectRow(dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_RAGE), 300)
+
+	talent := parseWarrior()
+	enablePowerBar(talent, dbcenums.POWER_RAGE)
+	ParseStatic(talent, row)
+	if got := talent.MaximumRage(); got != 130 {
+		t.Errorf("maximum rage with the talent: %v, want 130", got)
+	}
+
+	sim := &core.Simulation{Options: &proto.SimOptions{Interactive: true}}
+	character := parseWarrior()
+	enablePowerBar(character, dbcenums.POWER_RAGE)
+	aura := character.RegisterAura(AuraConfig(row))
+	ParseEffects(character, aura, row)
+
+	aura.Activate(sim)
+	character.AddRage(sim, 120, character.RageRefundMetrics)
+	if character.MaximumRage() != 130 || character.CurrentRage() != 120 {
+		t.Fatalf("with the aura up: %v of %v rage, want 120 of 130", character.CurrentRage(), character.MaximumRage())
+	}
+
+	aura.Deactivate(sim)
+	if character.MaximumRage() != 100 || character.CurrentRage() != 100 {
+		t.Errorf("after the aura dropped: %v of %v rage, want 100 of 100", character.CurrentRage(), character.MaximumRage())
+	}
+}
+
+// Mana is the Mana stat on any unit; rage and energy need the bar they raise, except on a dry run.
+func TestParseMaxPowerByPowerType(t *testing.T) {
+	for _, aura := range []dbcenums.EffectAuraType{dbcenums.A_MOD_MAX_POWER, dbcenums.A_MOD_INCREASE_ENERGY} {
+		character := parseWarrior()
+		before := character.GetStats()[stats.Mana]
+		ParseStatic(character, oneEffectRow(aura, int32(dbcenums.POWER_MANA), 2000))
+		if got := character.GetStats()[stats.Mana] - before; got != 2000 {
+			t.Errorf("%s misc mana added %v Mana, want 2000", auraName(aura), got)
+		}
+
+		for _, power := range []dbcenums.PowerType{dbcenums.POWER_RAGE, dbcenums.POWER_ENERGY} {
+			row := oneEffectRow(aura, int32(power), 10)
+			if parsed := ParseStatic(parseWarrior(), row); len(parsed.Applied) != 0 {
+				t.Errorf("%s misc %d on a unit without that bar attached %v", auraName(aura), power, appliedKinds(parsed))
+			}
+			if parsed := DryRun(row); len(parsed.Skipped) != 0 {
+				t.Errorf("%s misc %d on a dry run skipped %d effects, want none", auraName(aura), power, len(parsed.Skipped))
+			}
+		}
 	}
 }

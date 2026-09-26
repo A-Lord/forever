@@ -233,6 +233,7 @@ var statAuraTypes = map[EffectAuraType]bool{
 	dbcenums.A_MOD_TARGET_RESISTANCE:   true,
 	dbcenums.A_MOD_RESISTANCE:          true,
 	dbcenums.A_MOD_INCREASE_ENERGY:     true,
+	dbcenums.A_MOD_MAX_POWER:           true,
 	dbcenums.A_MOD_INCREASE_HEALTH_2:   true,
 	dbcenums.A_PERIODIC_TRIGGER_SPELL:  true,
 }
@@ -396,6 +397,7 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 			}
 		}
 	case effect.EffectAura == dbcenums.A_MOD_INCREASE_ENERGY,
+		effect.EffectAura == dbcenums.A_MOD_MAX_POWER,
 		effect.EffectAura == dbcenums.A_MOD_INCREASE_HEALTH,
 		effect.EffectAura == dbcenums.A_MOD_INCREASE_HEALTH_2,
 		effect.EffectAura == dbcenums.A_MOD_SHIELD_BLOCKVALUE:

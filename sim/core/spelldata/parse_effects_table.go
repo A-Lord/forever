@@ -268,6 +268,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.MP5, v)
 	},
 
+	dbcenums.A_MOD_MAX_POWER:       maxPowerRow,
+	dbcenums.A_MOD_INCREASE_ENERGY: maxPowerRow,
+
 	dbcenums.A_MOD_INCREASE_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.Health, v)
 	},
@@ -438,6 +441,9 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_DURATION: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_DotBaseDuration_Pct", p.modConfig(e, core.SpellMod_DotBaseDuration_Pct), v)
 	},
+	dbcenums.SPELLMOD_GLOBAL_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
+	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT3: pctEffectAmount,
@@ -485,6 +491,54 @@ func lookup(table map[dbcenums.SpellModOp]row, op dbcenums.SpellModOp) row {
 
 func skipRow(_ *parser, _ *Effect, _ float64) *attachment {
 	return nil
+}
+
+// The most power the unit's bar holds, by the power type the misc value names. The client states
+// rage on a 0-1000 bar and energy as it is; mana is the Mana stat, which the sim keeps as the maximum.
+// A unit without the rage or energy bar the row names has no maximum to raise, so the row is skipped
+// there. A dry run's unit has no bar at all, so it answers what a unit with the bar would attach.
+func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
+	switch dbcenums.PowerType(e.Misc) {
+	case dbcenums.POWER_MANA:
+		return p.statBuff(stats.Mana, v)
+	case dbcenums.POWER_RAGE:
+		if !p.dry && !p.unit.HasRageBar() {
+			return nil
+		}
+		metrics := p.powerMetrics(p.unit.NewRageMetrics)
+		return maxPower("max-rage", "MaxRage", v/10, func(sim *core.Simulation, delta float64) {
+			p.unit.SetMaximumRage(sim, p.unit.MaximumRage()+delta, metrics)
+		})
+	case dbcenums.POWER_ENERGY:
+		if !p.dry && !p.unit.HasEnergyBar() {
+			return nil
+		}
+		metrics := p.powerMetrics(p.unit.NewEnergyMetrics)
+		return maxPower("max-energy", "MaxEnergy", v, func(sim *core.Simulation, delta float64) {
+			p.unit.SetMaximumEnergy(sim, p.unit.MaximumEnergy()+delta, metrics)
+		})
+	}
+	return nil
+}
+
+// The metrics a lowered maximum counts the lost power against. Only a parse a Simulation reaches -
+// an aura's, or a conditional one's Refresh - can lose any, and metrics registered on a unit are
+// reported, so the static path leaves them out.
+func (p *parser) powerMetrics(newMetrics func(core.ActionID) *core.ResourceMetrics) *core.ResourceMetrics {
+	if p.dry || (p.static && !p.conditional) {
+		return nil
+	}
+	actionID := core.ActionID{SpellID: p.spell.ID}
+	if p.aura != nil {
+		actionID = p.aura.ActionID
+	}
+	return newMetrics(actionID)
+}
+
+func maxPower(kind string, key string, v float64, apply func(sim *core.Simulation, delta float64)) *attachment {
+	a := additive(kind, v, apply)
+	a.key = key
+	return a
 }
 
 func percentStatRow(p *parser, e *Effect, v float64) *attachment {
