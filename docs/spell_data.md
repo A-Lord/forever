@@ -460,10 +460,13 @@ some attacks.
 `A_MOD_RATING` names its ratings as a mask of the client's combat ratings, which `spelldata.RatingStats`
 reads bit by bit: the melee, ranged and spell bits of one rating name the same stat, 8388608 is
 `ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row that names a weapon, and a
-mask of the ranged bits 64, 512 and 262144 alone, are read by `spelldata.ScopedRatingStats` instead: the
-hit and crit among them become the percent they are worth, as a mod on those attacks tagged
-`FromRating`. Haste has no mod that reaches some attacks and not others, so its bits are not read there,
-and neither are the other ratings.
+mask of the ranged bits 64, 512 and 262144 alone (`spelldata.RangedBitsOnly`), are read by
+`spelldata.ScopedRatingStats` instead: the aura parse turns the hit and crit among them into the percent
+they are worth, as a mod on those attacks tagged `FromRating`. Haste has no mod that reaches some attacks
+and not others, so the aura parse leaves it unread, and the other ratings too. An item's equip spell
+with a mask of ranged bits alone folds in the generator instead, through `dbc.RangedRatingPercents`,
+which turns its hit, crit and haste into the ranged hit, crit and haste percents. An equip spell whose
+rating aura names a weapon does not fold, and is applied at run time.
 
 ### The rule per aura
 

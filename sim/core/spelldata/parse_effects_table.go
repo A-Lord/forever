@@ -2,6 +2,7 @@ package spelldata
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -140,13 +141,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}
 		switch {
 		case e.Misc&miscAllSchools == miscAllSchools:
-			a := &attachment{kind: "damage-taken-flat", value: v, parts: []*attachment{physical(), spell()}}
-			a.set = func(sim *core.Simulation, level float64) {
-				for _, part := range a.parts {
-					part.set(sim, level)
-				}
-			}
-			return a
+			return combined("damage-taken-flat", physical(), spell())
 		case e.Misc&int32(core.SpellSchoolPhysical) != 0:
 			return physical()
 		case e.Misc&miscMagicSchool == miscMagicSchool:
@@ -503,6 +498,9 @@ func (p *parser) scopedMod(kind string, modKind core.SpellModType, scope core.Sp
 	return p.modFloat(kind, scope, v)
 }
 
+// The hit and crit a weapon-bound or ranged-only rating mask names, as mods on the attacks the scope
+// reaches. Its haste has no mod that reaches some attacks and not others, so the parse leaves it
+// unread, and the other ratings too.
 func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64) *attachment {
 	scope.FromRating = true
 	var parts []*attachment
@@ -521,7 +519,16 @@ func (p *parser) scopedRatings(mask int32, scope core.SpellModConfig, v float64)
 	case 1:
 		return parts[0]
 	}
-	a := &attachment{kind: parts[0].kind + "+" + parts[1].kind, value: parts[0].value, parts: parts}
+	kinds := make([]string, len(parts))
+	for i, part := range parts {
+		kinds[i] = part.kind
+	}
+	return combined(strings.Join(kinds, "+"), parts...)
+}
+
+// One attachment for parts that apply together, its value the first part's.
+func combined(kind string, parts ...*attachment) *attachment {
+	a := &attachment{kind: kind, value: parts[0].value, parts: parts}
 	a.set = func(sim *core.Simulation, level float64) {
 		for _, part := range a.parts {
 			part.set(sim, level)

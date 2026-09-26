@@ -77,8 +77,8 @@ var (
 )
 
 // A spec weighing melee and ranged hit percent, or a hunter weighing ranged hit percent alone, still
-// simulates hit rating, and its weight is that sim's answer rather than the sum of the percents, which
-// would count the ranged attacks twice.
+// simulates hit rating, and its weight is that sim's answer. Each percent sub-sim measures its own
+// channel, so the rating is simulated directly to value all of its channels at once.
 func TestStatWeightsSimulateHitRatingBesideItsPercents(t *testing.T) {
 	for _, c := range []struct {
 		name        string

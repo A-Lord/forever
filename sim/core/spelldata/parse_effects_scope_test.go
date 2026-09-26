@@ -209,6 +209,28 @@ func TestParseScopedRangedOnlyRating(t *testing.T) {
 	}
 }
 
+// A hit or crit rating with ranged weapons is a mod on the ranged attacks at the percent the rating is
+// worth, whichever of its melee, ranged and spell bits the mask names, and no stat.
+func TestParseRatingWithRangedWeaponsIsRangedMod(t *testing.T) {
+	for _, c := range []struct {
+		mask    int32
+		kind    bonus
+		percent float64
+	}{
+		{32 | 64 | 128, bonusHit, 20 / core.HitRatingPerHitPercent},
+		{32 | 64, bonusHit, 20 / core.HitRatingPerHitPercent},
+		{256 | 512 | 1024, bonusCrit, 20 / core.CritRatingPerCritPercent},
+	} {
+		e := casterAura(dbcenums.A_MOD_RATING, 20)
+		e.Misc = c.mask
+		row := &Spell{ID: 6105, Name: "Ranged Weapon Rating", EquipClass: 2, EquipSubclass: 262156, Effects: []Effect{e}}
+
+		r := parseScoped(t, row)
+		r.check(t, c.kind, 0, 0, c.percent, 0)
+		r.checkNoStats(t, stats.HitRating, stats.CritRating, stats.PhysicalHitPercent, stats.PhysicalCritPercent)
+	}
+}
+
 // 16255: A_MOD_CRIT_PCT with any melee weapon is physical and spell crit while one is equipped, on
 // every spell and attack, and no mod on the weapon's attacks.
 func TestParseCritPctWithAMeleeWeaponHoldsWhileEquipped(t *testing.T) {

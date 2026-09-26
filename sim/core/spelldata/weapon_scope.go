@@ -47,15 +47,20 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 		return WeaponRuleWhileEquipped, scope
 	case scoped:
 		return WeaponRulePerWeapon, scope
-	case e.Aura == dbcenums.A_MOD_RATING && e.Misc&dbcenums.RATING_MOD_MASK_RANGED != 0 && e.Misc&^dbcenums.RATING_MOD_MASK_RANGED == 0:
+	case e.Aura == dbcenums.A_MOD_RATING && RangedBitsOnly(e.Misc):
 		return WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged}
 	}
 	return WeaponRuleNone, core.SpellModConfig{}
 }
 
+// Whether a combat rating mask holds ranged bits and no other.
+func RangedBitsOnly(mask int32) bool {
+	return mask&dbcenums.RATING_MOD_MASK_RANGED != 0 && mask&^dbcenums.RATING_MOD_MASK_RANGED == 0
+}
+
 // The ratings a scoped A_MOD_RATING mask names, its ranged bits read as the rating they belong to. The
-// scoped row converts the hit and crit among them. Haste has no mod that reaches some attacks and not
-// others, so it is not read, and neither are the other ratings.
+// aura parse turns the hit and crit among them into mods, and the item fold turns the hit, crit and
+// haste of a mask of ranged bits alone into the ranged percents.
 func ScopedRatingStats(mask int32) []stats.Stat {
 	return RatingStats(mask | (mask&dbcenums.RATING_MOD_MASK_RANGED)>>1)
 }
