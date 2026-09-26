@@ -274,20 +274,6 @@ func (sdm *StatDependencyManager) ApplyStatDependenciesInPlace(s *Stats) {
 		if dep.enabled {
 			if dep.src == dep.dst {
 				s[dep.dst] *= dep.amount
-			} else if isFlooredGameStat[dep.src] {
-				s[dep.dst] += math.Floor(s[dep.src]) * dep.amount
-			} else {
-				s[dep.dst] += s[dep.src] * dep.amount
-			}
-		}
-	}
-}
-
-func (sdm *StatDependencyManager) ApplyStatDependencies(s Stats) Stats {
-	for _, dep := range sdm.deps {
-		if dep.enabled {
-			if dep.src == dep.dst {
-				s[dep.dst] *= dep.amount
 			} else if dep.step != 0 {
 				s[dep.dst] += math.Floor(s[dep.src]/dep.step) * dep.step * dep.amount
 			} else if isFlooredGameStat[dep.src] {
@@ -300,6 +286,10 @@ func (sdm *StatDependencyManager) ApplyStatDependencies(s Stats) Stats {
 			}
 		}
 	}
+}
+
+func (sdm *StatDependencyManager) ApplyStatDependencies(s Stats) Stats {
+	sdm.ApplyStatDependenciesInPlace(&s)
 	return s
 }
 
