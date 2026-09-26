@@ -193,6 +193,7 @@ func formatProcHint(hint core.ProcHint) string {
 		{core.ProcHintOutcomeTaken, "core.ProcHintOutcomeTaken"},
 		{core.ProcHintAttackDodged, "core.ProcHintAttackDodged"},
 		{core.ProcHintAttackParried, "core.ProcHintAttackParried"},
+		{core.ProcHintDamage, "core.ProcHintDamage"},
 	}
 
 	var set []string

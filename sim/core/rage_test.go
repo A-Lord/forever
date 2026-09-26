@@ -37,6 +37,7 @@ func (fw *FakeRageWarrior) Initialize() {
 	fw.registerFakeThreatSpell()
 	fw.registerFakeGCDSpell()
 	fw.registerFakeCategorySpells()
+	fw.registerFakeRend()
 }
 func (fw *FakeRageWarrior) ApplyTalents()                  {}
 func (fw *FakeRageWarrior) Reset(_ *Simulation)            {}

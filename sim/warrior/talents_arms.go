@@ -262,6 +262,8 @@ func (warrior *Warrior) registerBloodthrill() {
 			warrior.OverpowerAura.UpdateExpires(sim.CurrentTime + bloodthrillProc.Duration())
 		})
 	trigger.Name = "Bloodthrill - Trigger"
+	trigger.RequireDamageDealt = false
+	trigger.RequireDamageComponent = true
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
 		return warrior.Rend.Dot(result.Target).IsActive()
 	}
