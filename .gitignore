@@ -61,3 +61,8 @@ tools/db2tool/cdncache/
 tools/database/*.db
 
 __pycache__/
+
+# Baselines the tests write on first run and compare against after, local to each checkout.
+sim/common/forever/registered_effects.txt
+tools/database/unsupported_procs.txt
+tools/database/unsupported_consumables.txt
