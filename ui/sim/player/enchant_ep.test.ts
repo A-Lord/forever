@@ -49,7 +49,7 @@ describe('Player.computeEnchantEP on percent pseudo stats', () => {
 		expect(enchantEP(2622, { [PseudoStat.PseudoStatDodgePercent]: 1 }, ratingWeights)).toBeCloseTo(Mechanics.DODGE_RATING_PER_DODGE_PERCENT * 2);
 	});
 
-	it("counts 2717 Might of the Scourge's crit once, though it states melee and the ranged total", () => {
+	it("counts 2717 Might of the Scourge's melee and ranged crit once, at the crit rating weight", () => {
 		expect(enchantEP(2717, { [PseudoStat.PseudoStatMeleeCritPercent]: 1, [PseudoStat.PseudoStatRangedCritPercent]: 1 }, ratingWeights)).toBeCloseTo(
 			Mechanics.CRIT_RATING_PER_CRIT_PERCENT * 3,
 		);
@@ -59,20 +59,50 @@ describe('Player.computeEnchantEP on percent pseudo stats', () => {
 		expect(enchantEP(2523, { [PseudoStat.PseudoStatRangedHitPercent]: 3 }, ratingWeights)).toBeCloseTo(3 * Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
 	});
 
-	it('values a melee-only hit percent at the hit rating weight, with no ranged total to take it back', () => {
+	it('values a melee-only hit percent at the hit rating weight', () => {
 		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1 }, ratingWeights)).toBeCloseTo(Mechanics.HIT_RATING_PER_HIT_PERCENT * 5);
 	});
 
 	it("uses a percent pseudo stat's own weight where it has one", () => {
 		const ownWeight = Stats.fromMap({ [Stat.StatCritRating]: 3 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 7 });
-		expect(enchantEP(2717, { [PseudoStat.PseudoStatMeleeCritPercent]: 1, [PseudoStat.PseudoStatRangedCritPercent]: 1 }, ownWeight)).toBeCloseTo(7);
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeCritPercent]: 1 }, ownWeight)).toBeCloseTo(7);
 	});
 
-	it("values 2586 Falcon's Call's hit as melee hit, which its ranged total holds, at the hit rating weight for a spec weighing ranged hit", () => {
+	it("values 2717 Might of the Scourge's ranged crit at what the crit rating is worth past the melee crit weight", () => {
+		const ownWeight = Stats.fromMap({ [Stat.StatCritRating]: 3 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 7 });
+		expect(enchantEP(2717, { [PseudoStat.PseudoStatMeleeCritPercent]: 1, [PseudoStat.PseudoStatRangedCritPercent]: 1 }, ownWeight)).toBeCloseTo(
+			7 + (Mechanics.CRIT_RATING_PER_CRIT_PERCENT * 3 - 7),
+		);
+	});
+
+	it("values 2586 Falcon's Call's ranged hit at the ranged hit weight and its melee hit at what the hit rating is worth past it", () => {
 		const hunterWeights = Stats.fromMap({ [Stat.StatHitRating]: 5 }, { [PseudoStat.PseudoStatRangedHitPercent]: 5 });
 		expect(enchantEP(2586, { [PseudoStat.PseudoStatMeleeHitPercent]: 1, [PseudoStat.PseudoStatRangedHitPercent]: 1 }, hunterWeights)).toBeCloseTo(
-			Mechanics.HIT_RATING_PER_HIT_PERCENT * 5,
+			5 + (Mechanics.HIT_RATING_PER_HIT_PERCENT * 5 - 5),
 		);
+	});
+
+	it('values melee and ranged hit with no spell hit at the melee and ranged hit weights', () => {
+		const hitWeights = Stats.fromMap(
+			{ [Stat.StatHitRating]: 5 },
+			{ [PseudoStat.PseudoStatMeleeHitPercent]: 40, [PseudoStat.PseudoStatRangedHitPercent]: 30 },
+		);
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHitPercent]: 1, [PseudoStat.PseudoStatRangedHitPercent]: 1 }, hitWeights)).toBeCloseTo(40 + 30);
+	});
+
+	it('values hit on every channel at the ranged hit weight for a spec that leaves hit rating unweighted', () => {
+		const rangedHitWeights = Stats.fromMap({}, { [PseudoStat.PseudoStatRangedHitPercent]: 30 });
+		expect(
+			enchantEP(
+				1,
+				{
+					[PseudoStat.PseudoStatMeleeHitPercent]: 1,
+					[PseudoStat.PseudoStatRangedHitPercent]: 1,
+					[PseudoStat.PseudoStatSpellHitPercent]: 1,
+				},
+				rangedHitWeights,
+			),
+		).toBeCloseTo(30);
 	});
 
 	it('values ranged hit alone at the ranged hit weight for a spec weighing it', () => {
@@ -159,7 +189,7 @@ describe('Player.computeEnchantEP on haste pseudo stats', () => {
 		).toBeCloseTo(Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 
-	it('values ranged haste beyond the melee haste beside it', () => {
+	it('values ranged haste alone at the haste rating weight', () => {
 		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 }, hasteWeights)).toBeCloseTo(2 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 });
@@ -167,9 +197,9 @@ describe('Player.computeEnchantEP on haste pseudo stats', () => {
 describe('Player.computeEnchantEP on haste pseudo stats for a spec weighing ranged haste', () => {
 	const rangedHasteWeights = Stats.fromMap({ [Stat.StatHasteRating]: 2 }, { [PseudoStat.PseudoStatRangedHastePercent]: 7 });
 
-	it('keeps 34 Weapon Counterweight at the haste rating weight, as its melee haste is no part of the ranged total', () => {
+	it('values 34 Weapon Counterweight at what the haste rating is worth past the ranged haste weight', () => {
 		expect(enchantEP(34, { [PseudoStat.PseudoStatMeleeHastePercent]: 3, [PseudoStat.PseudoStatRangedHastePercent]: 0 }, rangedHasteWeights)).toBeCloseTo(
-			3 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2,
+			3 * (Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2 - 7),
 		);
 	});
 
@@ -187,9 +217,9 @@ describe('Player.computeEnchantEP on haste pseudo stats for a spec weighing rang
 		).toBeCloseTo(1 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 
-	it('values melee and ranged haste with no cast speed, as Arcanum of Rapidity states them, as melee haste at the haste rating weight and ranged haste at its own', () => {
+	it('values melee and ranged haste with no cast speed, as Arcanum of Rapidity states them, at the haste rating weight: ranged haste at its own and melee haste at the rest', () => {
 		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHastePercent]: 1, [PseudoStat.PseudoStatRangedHastePercent]: 1 }, rangedHasteWeights)).toBeCloseTo(
-			Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2 + 7,
+			Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2 - 7 + 7,
 		);
 	});
 

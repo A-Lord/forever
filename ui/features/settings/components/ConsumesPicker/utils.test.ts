@@ -190,7 +190,7 @@ describe('consumeConfigs', () => {
 		expect(offered(hitFood, player)).toEqual([23327, 22237]);
 	});
 
-	it('offers Dark Desire to a Rogue and a Warrior, not to a Mage, who weighs hit rating for spell hit', () => {
+	it('offers Dark Desire to a spec that shows melee hit, not to one that weighs hit rating for spell hit alone', () => {
 		const specPlayer = (cls: Class, spec: Spec, specConfig: SpecConfigData<any>) => playerOf({ cls, spec, specConfig }).player;
 		const hitFoodOf = (player: Player<any>) => offered(consumeConfigs(player, db).groups[0], player);
 		const caster = {

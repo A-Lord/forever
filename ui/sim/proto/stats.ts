@@ -353,17 +353,15 @@ const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Set(
 	}),
 );
 
-// The melee, ranged and spell percents one hit, crit or haste rating raises together. A ranged hit or
-// crit percent is the total the character sheet shows, melee share included; ranged haste is a speed of
-// its own beside melee haste.
-const RATING_CHANNELS = new Map<Stat, { melee: PseudoStat; ranged: PseudoStat; spell: PseudoStat; rangedTotal: boolean }>([
+// The melee, ranged and spell percents one hit, crit or haste rating raises together. Each percent's
+// weight measures its own channel alone: melee attacks, ranged attacks or spells.
+const RATING_CHANNELS = new Map<Stat, { melee: PseudoStat; ranged: PseudoStat; spell: PseudoStat }>([
 	[
 		Stat.StatHitRating,
 		{
 			melee: PseudoStat.PseudoStatMeleeHitPercent,
 			ranged: PseudoStat.PseudoStatRangedHitPercent,
 			spell: PseudoStat.PseudoStatSpellHitPercent,
-			rangedTotal: true,
 		},
 	],
 	[
@@ -372,7 +370,6 @@ const RATING_CHANNELS = new Map<Stat, { melee: PseudoStat; ranged: PseudoStat; s
 			melee: PseudoStat.PseudoStatMeleeCritPercent,
 			ranged: PseudoStat.PseudoStatRangedCritPercent,
 			spell: PseudoStat.PseudoStatSpellCritPercent,
-			rangedTotal: true,
 		},
 	],
 	[
@@ -381,7 +378,6 @@ const RATING_CHANNELS = new Map<Stat, { melee: PseudoStat; ranged: PseudoStat; s
 			melee: PseudoStat.PseudoStatMeleeHastePercent,
 			ranged: PseudoStat.PseudoStatRangedHastePercent,
 			spell: PseudoStat.PseudoStatSpellHastePercent,
-			rangedTotal: false,
 		},
 	],
 ]);
@@ -535,19 +531,20 @@ export class Stats {
 	}
 
 	// The part of a rating's melee, ranged and spell percents every channel holds is worth the rating's
-	// weight. What a channel holds beyond it is worth that percent's own weight, a ranged hit or crit
-	// total counting only what it holds past the melee percent. A percent the weights leave at 0 falls
-	// back to its rating's weight, and the fallbacks of one rating count once, as the largest, since the
-	// one rating raises them all.
+	// weight, or, where the weights leave the rating at 0, the sum of the channel weights they give.
+	// What a channel holds beyond it is worth that percent's own weight. A channel the weights leave at
+	// 0 falls back to what the rating is worth past the channels they weigh, and any other percent to
+	// its rating's weight. The fallbacks of one rating count once, as the largest, since the one rating
+	// raises them all.
 	computeEP(epWeights: Stats): number {
 		let total = 0;
 		this.stats.forEach((stat, idx) => {
 			total += stat * epWeights.stats[idx];
 		});
 
-		const ratingEP = (rating: Stat, percent: number) => UnitStat.fromStat(rating).convertPercentToRating(percent)! * epWeights.stats[rating];
-		let fallbackPercents: Map<Stat, number> | undefined;
-		const addPercent = (rating: Stat, pseudoStat: PseudoStat, value: number) => {
+		const ratingPerPercentEP = (rating: Stat) => UnitStat.fromStat(rating).convertPercentToRating(1)! * epWeights.stats[rating];
+		let fallbacks: Map<Stat, number> | undefined;
+		const addPercent = (rating: Stat, pseudoStat: PseudoStat, value: number, fallbackPerPercent: number) => {
 			if (value === 0) {
 				return;
 			}
@@ -556,22 +553,24 @@ export class Stats {
 				total += value * weight;
 				return;
 			}
-			fallbackPercents ??= new Map<Stat, number>();
-			const counted = fallbackPercents.get(rating);
-			fallbackPercents.set(rating, counted === undefined ? value : Math.max(counted, value));
+			fallbacks ??= new Map<Stat, number>();
+			const ep = value * fallbackPerPercent;
+			const counted = fallbacks.get(rating);
+			fallbacks.set(rating, counted === undefined ? ep : Math.max(counted, ep));
 		};
 
 		RATING_CHANNELS.forEach((channels, rating) => {
 			const melee = this.pseudoStats[channels.melee];
 			const ranged = this.pseudoStats[channels.ranged];
 			const spell = this.pseudoStats[channels.spell];
+			const perPercent = ratingPerPercentEP(rating);
+			const weighted = epWeights.pseudoStats[channels.melee] + epWeights.pseudoStats[channels.ranged] + epWeights.pseudoStats[channels.spell];
 			const common = Math.max(0, Math.min(melee, ranged, spell));
-			if (common !== 0) {
-				total += ratingEP(rating, common);
-			}
-			addPercent(rating, channels.melee, melee - common);
-			addPercent(rating, channels.ranged, channels.rangedTotal ? Math.max(0, ranged - melee) : ranged - common);
-			addPercent(rating, channels.spell, spell - common);
+			total += common * (epWeights.stats[rating] !== 0 ? perPercent : weighted);
+			const residual = Math.max(0, perPercent - weighted);
+			addPercent(rating, channels.melee, melee - common, residual);
+			addPercent(rating, channels.ranged, ranged - common, residual);
+			addPercent(rating, channels.spell, spell - common, residual);
 		});
 
 		this.pseudoStats.forEach((value, idx) => {
@@ -579,14 +578,15 @@ export class Stats {
 				return;
 			}
 			if (RATING_WEIGHTED_PERCENT_PSEUDO_STATS.has(idx)) {
-				addPercent(UnitStat.fromPseudoStat(idx).getRootStat(), idx, value);
+				const rating = UnitStat.fromPseudoStat(idx).getRootStat();
+				addPercent(rating, idx, value, ratingPerPercentEP(rating));
 			} else {
 				total += value * epWeights.pseudoStats[idx];
 			}
 		});
 
-		fallbackPercents?.forEach((percent, rating) => {
-			total += ratingEP(rating, percent);
+		fallbacks?.forEach(ep => {
+			total += ep;
 		});
 		return total;
 	}
