@@ -576,7 +576,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 					SELECT 1 FROM ItemEffect lie
 						JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 						JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-					WHERE lie.SpellID = se.SpellID AND lisp.Display_lang NOT LIKE '[PH]%'
+					WHERE lie.SpellID = se.SpellID AND lisp.Display_lang NOT LIKE '%[PH]%'
 				) AS IsLive
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
