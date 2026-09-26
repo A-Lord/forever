@@ -422,6 +422,19 @@ armor, whatever it came from.
 1240 health at 60. Last Stand 12976 states its 30% on the same aura and a script applies it as a
 percentage, so the warrior reads it by hand and does not parse the row.
 
+`A_MOD_ATTACK_POWER_OF_STAT_PERCENT` (598) and `A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT` (580) add a
+share of the misc value's stat to attack power: Cat Form (Passive) 3025 states melee attack power as
+100% of Agility, Careful Aim 1223984 both as a share of Intellect. `dbcenums` names them after those
+rows, and 635 `A_IGNORE_FOG_OF_WAR` after Enchanted Flare 1221416, which has nothing to model.
+
+Innervate 29166 states both mana regen auras. `A_MOD_MANA_REGEN_INTERRUPT` adds its share to
+`SpiritRegenRateCasting`, and core stops the sum at all of the spirit regen, so Innervate's 100% on top
+of Reverence's 30% is the regen the character has while not casting. `A_MOD_POWER_REGEN_PERCENT`
+multiplies `SpiritRegenMultiplier` on the mana bar, Innervate's +400%, and the energy regen speed on an
+energy bar. Innervate's regen is the generated aura's: no flag forces full spirit regen, and its driver
+keeps only the timing and the metrics. The energy row asks the unit for its bar at parse time and is
+skipped on a unit without one, so a rogue enables the bar before it parses Adrenaline Rush 13750.
+
 A bonus against a creature type bids in a per-stat category under its stat and its mask,
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
 the same creature types.
@@ -1082,6 +1095,13 @@ indistinguishable from the real rank 13s, so the generator cannot filter them. R
 `Highest()` on those families silently casts a spell that does not exist - it cost 1.2% DPS when it
 happened during the mage port. Use `ByID`.
 
+**A parsed row doubles the hand line that already states it.** When the paladin parses Shield
+Specialization, the `BlockValueMultiplier` line in `sim/paladin/talents_protection.go` goes, since
+`A_MOD_BLOCK_VALUE_PCT` is a row; Holy Power's crit mods in `talents_holy.go` likewise. The
+`agiApDep` the druid's Cat Form stub keeps commented out must not come back beside a parsed Cat Form
+(Passive) 3025, which states the same Agility share. Last Stand 12976 runs the other way: it stays hand-read, because
+its 30 is a percentage and the parse reads `A_MOD_MAX_HEALTH` as flat health.
+
 **A rank can carry nothing in a role.** Lay on Hands rank 1 restores no mana where ranks 2-4 do, so
 `EnergizeEffect()` answers `NilEffect` there, which every accessor reads as zero.
 
@@ -1347,7 +1367,7 @@ and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buff
 row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
 debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
 `party.TotemTwisting`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
-client does not state: a proc trigger, a cooldown, a delay, a regen. Declaring the function is what
+client does not state: a proc trigger, a cooldown, a delay, the metrics of a regen. Declaring the function is what
 makes the row compile.
 
 ### Regenerating

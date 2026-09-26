@@ -20,11 +20,6 @@ import (
 // any other field it needs: Grace of Air lasts 9 seconds while the party is
 // twisting totems.
 
-// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices
-// the mana the metrics record.
-var innervateSpiritRegenMultiplier = 1 + innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT,
-	int32(dbcenums.POWER_MANA)).Percent()
-
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat
 // 30 to every effect of the Battle Shout family. The resolver reads no
@@ -52,7 +47,11 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 	threshold, expectedMana := 0.0, 0.0
 	char.Env.RegisterPostFinalizeEffect(func() {
 		threshold = innervateManaThreshold(char)
-		expectedMana = char.SpiritManaRegenPerSecond() * innervateSpiritRegenMultiplier * aura.Duration.Seconds()
+		// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices the mana the
+		// metrics record.
+		expectedMana = char.SpiritManaRegenPerSecond() *
+			(1 + innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).Percent()) *
+			aura.Duration.Seconds()
 	})
 
 	const ticks = 10

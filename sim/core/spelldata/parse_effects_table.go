@@ -94,10 +94,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return lookup(flatModTable, dbcenums.SpellModOp(e.Misc))(p, e, v)
 	},
 	dbcenums.A_ADD_PCT_MODIFIER: func(p *parser, e *Effect, v float64) *attachment {
-		if op := dbcenums.SpellModOp(e.Misc); op == dbcenums.SPELLMOD_CRITICAL_CHANCE {
+		op := dbcenums.SpellModOp(e.Misc)
+		if op == dbcenums.SPELLMOD_CRITICAL_CHANCE {
 			return lookup(flatModTable, op)(p, e, v)
 		}
-		return lookup(pctModTable, dbcenums.SpellModOp(e.Misc))(p, e, v/100)
+		return lookup(pctModTable, op)(p, e, v/100)
 	},
 
 	// The damage the unit deals and takes, by school mask.
@@ -258,39 +259,26 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// multiplier on spirit regen. The energy bar's regen is a speed, which needs the Simulation an
 	// aura's gain hands over.
 	dbcenums.A_MOD_MANA_REGEN_INTERRUPT: func(p *parser, e *Effect, v float64) *attachment {
-		a := additive("spirit-regen-casting", v/100, func(_ *core.Simulation, delta float64) {
-			p.unit.PseudoStats.SpiritRegenRateCasting += delta
-			p.unit.UpdateManaRegenRates()
-		})
-		a.key = "SpiritRegenRateCasting"
-		return a
+		return p.refreshingManaRegen(p.pseudoAdd("spirit-regen-casting", "SpiritRegenRateCasting",
+			&p.unit.PseudoStats.SpiritRegenRateCasting, v/100))
 	},
 	dbcenums.A_MOD_POWER_REGEN_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		mult := percentMultiplier(v)
-		switch {
-		case p.stacking || mult <= 0:
-			return nil
-		case e.Misc == int32(dbcenums.POWER_MANA):
-			a := multiplier("spirit-regen", mult, func(_ *core.Simulation, factor float64) {
-				p.unit.PseudoStats.SpiritRegenMultiplier *= factor
-				p.unit.UpdateManaRegenRates()
-			})
-			a.key = "SpiritRegenMultiplier"
-			return a
-		case e.Misc == int32(dbcenums.POWER_ENERGY) && p.unit.HasEnergyBar():
-			return p.speed("energy-regen", "EnergyRegenMultiplier", (*core.Unit).MultiplyEnergyRegenSpeed, mult)
+		switch e.Misc {
+		case int32(dbcenums.POWER_MANA):
+			return p.refreshingManaRegen(p.pseudoMultiplier("spirit-regen", "SpiritRegenMultiplier",
+				[]*float64{&p.unit.PseudoStats.SpiritRegenMultiplier}, percentMultiplier(v)))
+		case int32(dbcenums.POWER_ENERGY):
+			if !p.unit.HasEnergyBar() {
+				return nil
+			}
+			return p.speed("energy-regen", "EnergyRegenMultiplier", (*core.Unit).MultiplyEnergyRegenSpeed,
+				percentMultiplier(v))
 		}
 		return nil
 	},
 
-	dbcenums.A_MOD_INCREASE_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statBuff(stats.Health, v)
-	},
-	// Flat health, as the bear forms state it. Last Stand states a percentage on the same aura, which
-	// the warrior reads by hand rather than parsing.
-	dbcenums.A_MOD_MAX_HEALTH: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statBuff(stats.Health, v)
-	},
+	dbcenums.A_MOD_INCREASE_HEALTH: flatHealthRow,
+	dbcenums.A_MOD_MAX_HEALTH:      flatHealthRow,
 	dbcenums.A_MOD_INCREASE_HEALTH_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statMultiplier([]stats.Stat{stats.Health}, percentMultiplier(v))
 	},
@@ -320,24 +308,16 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// Armor, attack power, spell damage and healing worth a share of a stat. The spell damage aura names
 	// its schools in the first misc value and the stat in the second, and only the mask of every magic
 	// school has a stat to land on.
-	dbcenums.A_MOD_ARMOR_PCT_FROM_STAT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statShare(clientStatList(e.Misc), stats.Armor, v/100)
-	},
-	dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statShare(clientStatList(e.Misc), stats.AttackPower, v/100)
-	},
-	dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statShare(clientStatList(e.Misc), stats.RangedAttackPower, v/100)
-	},
+	dbcenums.A_MOD_ARMOR_PCT_FROM_STAT:                 statShareRow,
+	dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT:        statShareRow,
+	dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT: statShareRow,
 	dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc != miscMagicSchool {
 			return nil
 		}
 		return p.statShare(clientStatList(e.Misc2), stats.SpellDamage, v/100)
 	},
-	dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statShare(clientStatList(e.Misc), stats.HealingPower, v/100)
-	},
+	dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT: statShareRow,
 
 	dbcenums.A_MOD_MAX_POWER_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc != int32(dbcenums.POWER_MANA) {
@@ -616,6 +596,24 @@ func attackSpeedRow(p *parser, _ *Effect, v float64) *attachment {
 	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
 }
 
+// Flat health. The bear forms state it on A_MOD_MAX_HEALTH, where Last Stand states a percentage,
+// which the warrior reads by hand rather than parsing.
+func flatHealthRow(p *parser, _ *Effect, v float64) *attachment {
+	return p.statBuff(stats.Health, v)
+}
+
+// The stat each stat-share aura adds to, a share of the stat its misc value names.
+var statShareTargets = map[dbcenums.EffectAuraType]stats.Stat{
+	dbcenums.A_MOD_ARMOR_PCT_FROM_STAT:                 stats.Armor,
+	dbcenums.A_MOD_ATTACK_POWER_OF_STAT_PERCENT:        stats.AttackPower,
+	dbcenums.A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT: stats.RangedAttackPower,
+	dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT:       stats.HealingPower,
+}
+
+func statShareRow(p *parser, e *Effect, v float64) *attachment {
+	return p.statShare(clientStatList(e.Misc), statShareTargets[e.Aura], v/100)
+}
+
 // A stat the unit has against the mob types a creature type mask names, which the sim keeps on the
 // attack tables.
 func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
@@ -694,67 +692,58 @@ func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta flo
 	}
 }
 
-// A multiplier on a stat. The sim states it as a dependency, which cannot carry a per-stack value, so
-// a stacking row is skipped rather than attached at one stack. The static path has no aura to follow
-// and no Simulation to answer a later Refresh with, so a conditional row is skipped there too. The
-// unit's temporary stats listeners hear the stats the dependencies add or remove, measured at that
-// moment.
+// A multiplier on a stat, which the sim states as a dependency.
 func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
-	if len(sts) == 0 || p.stacking {
+	if len(sts) == 0 {
 		return nil
 	}
 
-	kind := "multiply-stat " + statNames(sts)
-
-	if p.static {
-		if p.conditional {
-			return nil
+	a := &attachment{kind: "multiply-stat " + statNames(sts), value: mult, multiplicative: true, stats: sts}
+	return p.dependencies(a, func() {
+		for _, stat := range sts {
+			p.unit.MultiplyStat(stat, mult)
 		}
-		applied := false
-		return &attachment{kind: kind, value: mult, multiplicative: true, stats: sts, set: func(_ *core.Simulation, level float64) {
-			if level <= 0 || applied {
-				return
-			}
-			applied = true
-			for _, stat := range sts {
-				p.unit.MultiplyStat(stat, mult)
-			}
-		}}
-	}
-
-	a := &attachment{kind: kind, value: mult, multiplicative: true, stats: sts}
-	for _, stat := range sts {
-		part := &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
-			key: stat.StatName(), stat: stat, statBid: true}
-		if !p.dry {
-			part.set = p.statDependency(p.unit.NewDynamicMultiplyStat(stat, mult))
+	}, func() (toggles []func(sim *core.Simulation, level float64)) {
+		for _, stat := range sts {
+			part := &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
+				key: stat.StatName(), stat: stat, statBid: true,
+				set: p.statDependency(p.unit.NewDynamicMultiplyStat(stat, mult))}
+			a.parts = append(a.parts, part)
+			toggles = append(toggles, part.set)
 		}
-		a.parts = append(a.parts, part)
-	}
-	active := false
-	a.set = func(sim *core.Simulation, level float64) {
-		if (level > 0) == active {
-			return
-		}
-		active = level > 0
-		p.announceStats(sim, func() {
-			for _, part := range a.parts {
-				part.set(sim, level)
-			}
-		})
-	}
-	return a
+		return toggles
+	})
 }
 
-// A share of each source stat added to another stat, which the sim states as a dependency and skips
-// the way it skips a multiplier: on a stacking row, and on the static path under a condition.
+// A share of each source stat added to another stat, which the sim states as a dependency.
 func (p *parser) statShare(sources []stats.Stat, stat stats.Stat, share float64) *attachment {
-	if len(sources) == 0 || p.stacking || (p.static && p.conditional) {
+	if len(sources) == 0 {
 		return nil
 	}
 
 	a := &attachment{kind: "stat-share " + statNames(sources) + ">" + stat.StatName(), value: share,
 		stats: []stats.Stat{stat}}
+	return p.dependencies(a, func() {
+		for _, source := range sources {
+			p.unit.AddStatDependency(source, stat, share)
+		}
+	}, func() (toggles []func(sim *core.Simulation, level float64)) {
+		for _, source := range sources {
+			toggles = append(toggles, p.statDependency(p.unit.NewDynamicStatDependency(source, stat, share)))
+		}
+		return toggles
+	})
+}
+
+// Turns an attachment on through stat dependencies. A dependency cannot carry a per-stack value, so a
+// stacking row is skipped rather than attached at one stack. The static path has no aura to follow and
+// no Simulation to answer a later Refresh with, so it applies once, and a conditional row is skipped
+// there. Off the static path the toggles are built unless the parse is dry, and the unit's temporary
+// stats listeners hear the stats they add or remove, measured at that moment.
+func (p *parser) dependencies(a *attachment, applyStatic func(), newToggles func() []func(sim *core.Simulation, level float64)) *attachment {
+	if p.stacking || (p.static && p.conditional) {
+		return nil
+	}
 
 	if p.static {
 		applied := false
@@ -763,19 +752,15 @@ func (p *parser) statShare(sources []stats.Stat, stat stats.Stat, share float64)
 				return
 			}
 			applied = true
-			for _, source := range sources {
-				p.unit.AddStatDependency(source, stat, share)
-			}
+			applyStatic()
 		}
 		return a
 	}
 
-	var deps []func(sim *core.Simulation, level float64)
-	if !p.dry {
-		for _, source := range sources {
-			deps = append(deps, p.statDependency(p.unit.NewDynamicStatDependency(source, stat, share)))
-		}
+	if p.dry {
+		return a
 	}
+	toggles := newToggles()
 	active := false
 	a.set = func(sim *core.Simulation, level float64) {
 		if (level > 0) == active {
@@ -783,8 +768,8 @@ func (p *parser) statShare(sources []stats.Stat, stat stats.Stat, share float64)
 		}
 		active = level > 0
 		p.announceStats(sim, func() {
-			for _, dep := range deps {
-				dep(sim, level)
+			for _, toggle := range toggles {
+				toggle(sim, level)
 			}
 		})
 	}
@@ -868,6 +853,19 @@ func (p *parser) pseudoAdd(kind string, key string, field *float64, v float64) *
 		*field += delta
 	})
 	a.key = key
+	return a
+}
+
+// A pseudo-stat the mana bar's regen reads, which the unit recomputes after every change.
+func (p *parser) refreshingManaRegen(a *attachment) *attachment {
+	if a == nil {
+		return nil
+	}
+	set := a.set
+	a.set = func(sim *core.Simulation, level float64) {
+		set(sim, level)
+		p.unit.UpdateManaRegenRates()
+	}
 	return a
 }
 
