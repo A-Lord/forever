@@ -2,19 +2,39 @@ package rogue
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Was the TBC rank-6 id 26867, which the level squish removed. Derived from the table so
-// it follows the data instead of naming a rank that may not exist.
-var RuptureSpellID = spellData.Rupture.Highest().ID
+var ruptureRank = spellData.Rupture.Highest()
+var lastCastApScaling = 0.0
 
-var ruptureRank = spellData.Rupture.ByID(RuptureSpellID)
-
-// TODO: To be implemented. Rupture already resolves against Forever data
-// (spellData.Rupture.ByID(RuptureSpellID)); the TBC body needs review before it's
-// uncommented.
 func (rogue *Rogue) registerRupture() {
-	panic("To be implemented")
+	tick := ruptureRank.PeriodicEffect()
+	config := spelldata.SpellConfig(&rogue.Unit, ruptureRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+
+	config.Dot = spelldata.DotConfig(ruptureRank, tick)
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*lastCastApScaling, ruptureRank.TickOutcome(dot))
+	}
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+		if result.Landed() {
+			cp := rogue.ComboPoints()
+			dot := spell.Dot(target)
+			dot.BaseTickCount = int32(ruptureRank.Duration()/tick.Period()) + cp
+			lastCastApScaling = []float64{0, 0.01, 0.02, 0.03, 0.03, 0.03}[rogue.ComboPoints()] // Estimated from in-game tests.
+			dot.Apply(sim)
+			rogue.ApplyFinisher(sim, spell)
+			spell.DealOutcome(sim, result)
+		} else {
+			spell.DealOutcome(sim, result)
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.Rupture = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// tick := ruptureRank.PeriodicEffect()
@@ -84,10 +104,4 @@ func (rogue *Rogue) registerRupture() {
 	//
 	// 	},
 	// })
-}
-
-func (rogue *Rogue) ruptureDamage(target *core.Unit, comboPoints int32, baseDamage float64, damagePerComboPoint float64) float64 {
-	return baseDamage +
-		damagePerComboPoint*float64(comboPoints) +
-		[]float64{0, 0.01, 0.02, 0.03, 0.03, 0.03}[comboPoints]*rogue.Rupture.MeleeAttackPower(target)
 }

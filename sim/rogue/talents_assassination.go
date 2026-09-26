@@ -2,67 +2,50 @@ package rogue
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func (rogue *Rogue) registerAssassinationTalents() {
 	// Tier 1
-	rogue.registerImprovedEviscerate()
-	// Remorseless Attacks not implemented
+	// Gouge NYI
+	// Remorseless Attacks NYI
 	rogue.registerMalice()
 
 	// Tier 2
-	// Ruthless implemented in ApplyFinisher
-	rogue.registerMurder()
-	rogue.registerPuncturingWounds()
+	// Ruthlessness modeled in rogue.go ApplyFinisher
+	rogue.registerMalice()
+	// Improved Slice modeled in Slice and Dice directly
 
 	// Tier 3
-	// Relentless Strikes implemented in ApplyFinisher
-	rogue.registerImprovedExposeArmor()
+	// Relentless Strikes modeled in rogue.go ApplyFinisher
+	// Improved Expose Armor modeled in Expose Armor directly
 	rogue.registerLethality()
 
 	// Tier 4
 	rogue.registerVilePoisons()
-	// Improved Poisons implemented in poisons.go
+	rogue.registerColdBlood()
+	rogue.registerImprovedPoisons()
 
 	// Tier 5
-	// Fleet Footed NYI
-	rogue.registerColdBlood()
-	// Improved Kidney NYI
-	// Quick Recovery implemented in individual finisher EnergyCostOptions
+	// Vigor modeled in rogue.go during initialization
+	rogue.registerMutilate()
+	// Kidney Shot NYI
 
 	// Tier 6
 	rogue.registerSealFate()
 
 	// Tier 7
-	// Vigor implemented in rogue.go
-	// Deadened Nerves NYI
-
-	// Tier 9
-	rogue.registerMutilate()
-
-	// Forever additions, not yet implemented.
-	rogue.registerImprovedKidneyShot()
-	rogue.registerRemorselessAttacks()
 	rogue.registerVenom()
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerImprovedEviscerate() {
 	if rogue.Talents.ImprovedEviscerate == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.ImprovedEviscerate == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  RogueSpellEviscerate,
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	FloatValue: spellData.ImprovedEviscerate.FractionAt(rogue.Talents.ImprovedEviscerate),
-	// })
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.ImprovedEviscerate.Rank(rogue.Talents.ImprovedEviscerate))
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -72,12 +55,8 @@ func (rogue *Rogue) registerMalice() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Malice == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStat(stats.PhysicalCritPercent, float64(rogue.Talents.Malice))
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.Malice.Rank(rogue.Talents.Malice))
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -87,64 +66,10 @@ func (rogue *Rogue) registerMurder() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Murder == 0 {
-	// 	return
-	// }
-	//
-	// var multiplier float64 = spellData.Murder.MultiplierAt(rogue.Talents.Murder)
-	// rogue.Env.RegisterPostFinalizeEffect(func() {
-	// 	rogue.MultiplyDamageVersus(multiplier, true, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeGiant,
-	// 		proto.MobType_MobTypeBeast, proto.MobType_MobTypeDragonkin)
-	// })
-}
-
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
-func (rogue *Rogue) registerPuncturingWounds() {
-	if rogue.Talents.PuncturingWounds == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.PuncturingWounds == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	ClassMask:  RogueSpellBackstab,
-	// 	FloatValue: 10.0 * float64(rogue.Talents.PuncturingWounds),
-	// })
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:      core.SpellMod_BonusCrit_Percent,
-	// 	ClassMask: RogueSpellMutilateHit,
-	// 	// The proc trigger sits between the two crit modifiers, at effect position 2; the
-	// 	// Mutilate crit bonus is the second of the two, at position 3, and they share an aura
-	// 	// and misc so have to be indexed rather than named.
-	// 	FloatValue: spellData.PuncturingWounds.EffectAt(3).ValueAt(rogue.Talents.PuncturingWounds),
-	// })
-}
-
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
-func (rogue *Rogue) registerImprovedExposeArmor() {
-	if rogue.Talents.ImprovedExposeArmor == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.ImprovedExposeArmor == 0 {
-	// 	return
-	// }
-	//
-	// // The bonus of Imp EA is handled inside of Expose Armor in debuffs.go
-	//
-	// // Create a dummy aura for APL handling
-	// core.MakePermanent(rogue.RegisterAura(core.Aura{
-	// 	Label:    "Improved Expose Armor",
-	// 	ActionID: core.ActionID{SpellID: 14168},
-	// }))
+	multiplier := spellData.Murder.MultiplierAt(rogue.Talents.Murder)
+	rogue.Env.RegisterPostFinalizeEffect(func() {
+		rogue.MultiplyDamageVersus(multiplier, true, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeDragonkin)
+	})
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -154,16 +79,8 @@ func (rogue *Rogue) registerLethality() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Lethality == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_CritMultiplier_Flat,
-	// 	ClassMask:  RogueSpellLethality,
-	// 	FloatValue: spellData.Lethality.FractionAt(rogue.Talents.Lethality),
-	// })
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.Lethality.Rank(rogue.Talents.Lethality))
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -173,24 +90,26 @@ func (rogue *Rogue) registerVilePoisons() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.VilePoisons == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ClassMask:  RogueSpellPoisons,
-	// 	FloatValue: spellData.VilePoisons.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(rogue.Talents.VilePoisons),
-	// })
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.VilePoisons.Rank(rogue.Talents.VilePoisons))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
+var coldBloodRank = spellData.ColdBlood.Highest()
+
 func (rogue *Rogue) registerColdBlood() {
 	if !rogue.Talents.ColdBlood {
 		return
 	}
+
+	coldBloodAura := rogue.RegisterAura(spelldata.AuraConfig(coldBloodRank))
+	spelldata.ParseEffects(&rogue.Character, coldBloodAura, coldBloodRank)
+	config := spelldata.SpellConfig(&rogue.Unit, coldBloodRank)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		coldBloodAura.Activate(sim)
+	}
+
+	rogue.ColdBlood = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.ColdBlood {
@@ -235,6 +154,15 @@ func (rogue *Rogue) registerColdBlood() {
 	// })
 }
 
+func (rogue *Rogue) registerImprovedPoisons() {
+	if rogue.Talents.ImprovedPoisons == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.ImprovedPoisons.Rank(rogue.Talents.ImprovedPoisons))
+}
+
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
 // brought back.
 func (rogue *Rogue) registerSealFate() {
@@ -242,12 +170,27 @@ func (rogue *Rogue) registerSealFate() {
 		return
 	}
 
+	sfRank := spellData.SealFate.Rank(rogue.Talents.SealFate)
+	sfMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: sfRank.ID})
+
+	trigger := spelldata.ProcTrigger(&rogue.Character, sfRank,
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			if result.Outcome.Matches(core.OutcomeCrit) {
+				rogue.AddComboPoints(sim, 1, sfMetrics)
+			}
+		})
+	trigger.Name = "Seal Fate - Trigger"
+	trigger.SpellFlags = SpellFlagBuilder
+	trigger.TriggerImmediately = true
+
+	rogue.MakeProcTriggerAura(trigger)
+
 	// The TBC implementation, kept for the port:
 	// if rogue.Talents.SealFate == 0 {
 	// 	return
 	// }
 	//
-	// sfMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: 14195})
+	//
 	//
 	// rogue.MakeProcTriggerAura(core.ProcTrigger{
 	// 	Name:     "Seal Fate Trigger",
@@ -264,11 +207,7 @@ func (rogue *Rogue) registerSealFate() {
 	// })
 }
 
-// Was 34413; Forever reworked Mutilate onto an entirely new set of spell ids, so this
-// follows the highest rank the client actually ships.
-var MutilateSpellID int32 = spellData.Mutilate.Highest().ID
-
-var mutilateRank = spellData.Mutilate.ByID(MutilateSpellID)
+var mutilateRank = spellData.Mutilate.Highest()
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
 // brought back.
@@ -369,30 +308,6 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 	})
 }
 
-// registerImprovedKidneyShot implements Improved Kidney Shot, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerImprovedKidneyShot() {
-	if rogue.Talents.ImprovedKidneyShot == 0 {
-		return
-	}
-}
-
-// registerRemorselessAttacks implements Remorseless Attacks, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerRemorselessAttacks() {
-	if rogue.Talents.RemorselessAttacks == 0 {
-		return
-	}
-}
-
-// registerVenom implements Venom, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (rogue *Rogue) registerVenom() {
 	if !rogue.Talents.Venom {
 		return

@@ -1,11 +1,35 @@
 package rogue
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var garroteRank = spellData.Garrote.Highest()
 
-// TODO: To be implemented. Garrote already resolves against Forever data
-// (spellData.Garrote.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerGarrote() {
-	panic("To be implemented")
+	tick := garroteRank.PeriodicEffect()
+	apScaling := 0.03 // Estimated from in-game tests.
+	comboPointGen := garroteRank.EnergizeEffect().Average(core.CharacterLevel)
+
+	config := spelldata.SpellConfig(&rogue.Unit, garroteRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+
+	config.Dot = spelldata.DotConfig(garroteRank, tick)
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcome(dot))
+	}
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+			rogue.AddComboPoints(sim, int32(comboPointGen), spell.ComboPointMetrics())
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.Garrote = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// tick := garroteRank.PeriodicEffect()

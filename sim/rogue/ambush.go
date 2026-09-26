@@ -1,11 +1,32 @@
 package rogue
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var ambushRank = spellData.Ambush.Highest()
 
-// TODO: To be implemented. Ambush already resolves against Forever data
-// (spellData.Ambush.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerAmbushSpell() {
-	panic("To be implemented")
+	ambushBaseDamage := ambushRank.DamageEffect().Average(core.CharacterLevel)
+	comboPointGen := ambushRank.EnergizeEffect().Average(core.CharacterLevel)
+	config := spelldata.SpellConfig(&rogue.Unit, ambushRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		baseDamage := ambushBaseDamage +
+			spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
+
+		if result.Landed() {
+			rogue.AddComboPoints(sim, int32(comboPointGen), spell.ComboPointMetrics())
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.Ambush = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// baseDamage := ambushRank.DamageEffect().Average(core.CharacterLevel)

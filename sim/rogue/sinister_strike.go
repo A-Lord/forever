@@ -1,14 +1,34 @@
 package rogue
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var sinisterStrikeRank = spellData.SinisterStrike.Highest()
 
-// TODO: To be implemented. Sinister Strike already resolves against Forever data
-// (spellData.SinisterStrike.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerSinisterStrikeSpell() {
-	panic("To be implemented")
+	sinisterStrikeBaseDamage := sinisterStrikeRank.DamageEffect().Average(core.CharacterLevel)
+	comboPointGen := int32(sinisterStrikeRank.EnergizeEffect().Average(core.CharacterLevel))
+	config := spelldata.SpellConfig(&rogue.Unit, sinisterStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
-	// The TBC implementation, kept for the port:
-	// baseDamage := sinisterStrikeRank.DamageEffect().Average(core.CharacterLevel)
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		baseDamage := sinisterStrikeBaseDamage +
+			spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+
+		if result.Landed() {
+			rogue.AddComboPoints(sim, comboPointGen, spell.ComboPointMetrics())
+			sinisterStrikeRank.ProcEnergizeEffect()
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.SinisterStrike = rogue.RegisterSpell(config)
+
 	//
 	// rogue.SinisterStrike = rogue.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: sinisterStrikeRank.ID},

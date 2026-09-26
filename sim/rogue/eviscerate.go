@@ -1,11 +1,37 @@
 package rogue
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var eviscerateRank = spellData.Eviscerate.Highest()
 
-// TODO: To be implemented. Eviscerate already resolves against Forever data
-// (spellData.Eviscerate.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerEviscerate() {
-	panic("To be implemented")
+	eviscerateBaseDamage := eviscerateRank.DamageEffect().Average(core.CharacterLevel)
+	eviscerateDamagePerPoint := float64(eviscerateRank.DamageEffect().PointsPerResource)
+	eviscerateApScalingPerPoint := 0.04 // Estimated from in-game tests.
+	config := spelldata.SpellConfig(&rogue.Unit, eviscerateRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		comboPoints := float64(rogue.ComboPoints())
+		flatBaseDamage := eviscerateBaseDamage + eviscerateDamagePerPoint*comboPoints
+
+		baseDamage := flatBaseDamage + eviscerateApScalingPerPoint*comboPoints*spell.MeleeAttackPower(target)
+
+		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+
+		if result.Landed() {
+			rogue.ApplyFinisher(sim, spell)
+		} else {
+			spell.IssueRefund(sim)
+		}
+
+		spell.DealDamage(sim, result)
+	}
+
+	rogue.Eviscerate = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// flatDamage := eviscerateRank.DamageEffect().Average(core.CharacterLevel)

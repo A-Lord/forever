@@ -1,11 +1,32 @@
 package rogue
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var backstabRank = spellData.Backstab.Highest()
 
-// TODO: To be implemented. Backstab already resolves against Forever data
-// (spellData.Backstab.Highest()); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerBackstabSpell() {
-	panic("To be implemented")
+	backstabBaseDamage := backstabRank.DamageEffect().Average(core.CharacterLevel)
+	comboPointGen := backstabRank.EnergizeEffect().Average(core.CharacterLevel)
+	config := spelldata.SpellConfig(&rogue.Unit, backstabRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		baseDamage := backstabBaseDamage +
+			spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
+
+		if result.Landed() {
+			rogue.AddComboPoints(sim, int32(comboPointGen), spell.ComboPointMetrics())
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.Backstab = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// baseDamage := backstabRank.DamageEffect().Average(core.CharacterLevel)

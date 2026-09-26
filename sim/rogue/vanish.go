@@ -1,11 +1,21 @@
 package rogue
 
-var vanishRank = spellData.Vanish.ByID(1856)
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-// TODO: To be implemented. Vanish already resolves against Forever data
-// (spellData.Vanish.ByID(1856)); the TBC body needs review before it's uncommented.
+var vanishRank = spellData.Vanish.Highest()
+
 func (rogue *Rogue) registerVanishSpell() {
-	panic("To be implemented")
+	config := spelldata.SpellConfig(&rogue.Unit, vanishRank)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.AutoAttacks.CancelAutoSwing(sim)
+		rogue.StealthAura.Activate(sim)
+	}
+
+	rogue.Vanish = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// rogue.Vanish = rogue.RegisterSpell(core.SpellConfig{

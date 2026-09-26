@@ -2,14 +2,28 @@ package rogue
 
 import (
 	"time"
+
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var sliceAndDiceRank = spellData.SliceAndDice.ByID(6774)
+var sliceAndDiceRank = spellData.SliceAndDice.Highest()
 
-// TODO: To be implemented. Slice and Dice already resolves against Forever data
-// (spellData.SliceAndDice.ByID(6774)); the TBC body needs review before it's uncommented.
 func (rogue *Rogue) registerSliceAndDice() {
-	panic("To be implemented")
+	config := spelldata.SpellConfig(&rogue.Unit, sliceAndDiceRank)
+	durModifier := 1.0 + 0.15*float32(rogue.Talents.ImprovedSliceAndDice)
+
+	sndAura := rogue.RegisterAura(spelldata.AuraConfig(sliceAndDiceRank)).
+		AttachMultiplyMeleeSpeed(sliceAndDiceRank.FirstAura(dbcenums.A_MOD_MELEE_HASTE_3).BasePoints)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.ApplyFinisher(sim, spell)
+		sndAura.Duration = (sliceAndDiceRank.Duration() + (time.Second * 3 * time.Duration(rogue.ComboPoints()))) * time.Duration(durModifier)
+		sndAura.Activate(sim)
+	}
+
+	rogue.SliceAndDice = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// actionID := core.ActionID{SpellID: sliceAndDiceRank.ID}
@@ -74,9 +88,4 @@ func (rogue *Rogue) registerSliceAndDice() {
 	//
 	// 	RelatedSelfBuff: rogue.SliceAndDiceAura,
 	// })
-}
-
-func (rogue *Rogue) getSliceDuration(comboPoints int32) time.Duration {
-	duration := rogue.sliceAndDiceDurations[comboPoints]
-	return time.Duration(float64(duration+rogue.SliceAndDiceBonusDuration) * spellData.ImprovedSliceAndDice.MultiplierAt(rogue.Talents.ImprovedSliceAndDice))
 }

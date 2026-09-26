@@ -27,10 +27,7 @@ type Rogue struct {
 	Options              *proto.RogueOptions
 	AssassinationOptions *proto.Rogue_Options
 
-	SliceAndDiceBonusFlat    float64 // The flat bonus Attack Speed bonus before Mastery is applied
 	AdditiveEnergyRegenBonus float64
-
-	sliceAndDiceDurations [6]time.Duration
 
 	Backstab       *core.Spell
 	BladeFlurry    *core.Spell

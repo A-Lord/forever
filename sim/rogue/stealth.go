@@ -1,11 +1,19 @@
 package rogue
 
-var stealthRank = spellData.Stealth.ByID(1784)
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-// TODO: To be implemented. Stealth already resolves against Forever data
-// (spellData.Stealth.ByID(1784)); the TBC body needs review before it's uncommented.
+var stealthRank = spellData.Stealth.Highest()
+
 func (rogue *Rogue) registerStealthAura() {
-	panic("To be implemented")
+	config := spelldata.SpellConfig(&rogue.Unit, stealthRank)
+	rogue.StealthAura = rogue.RegisterAura(spelldata.AuraConfig(stealthRank))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.StealthAura.Activate(sim)
+	}
 
 	// The TBC implementation, kept for the port:
 	// rogue.StealthAura = rogue.RegisterAura(core.Aura{
