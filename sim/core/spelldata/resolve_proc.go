@@ -36,8 +36,8 @@ func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, 
 		ICD:                s.ICD(),
 		CanProcFromProcs:   s.CanProcFromProcs(),
 		ClassSpellsOnly:    s.ClassSpellsOnly(),
-		ClassFlags:         procClassFlags(character, s),
-		ProcClassFlags:     s.ClassFlags,
+		ClassFlags:         listenerClassFlags(character, s),
+		SelfClassFlags:     s.ClassFlags,
 		Handler:            handler,
 	}
 
@@ -124,7 +124,7 @@ func ProcTriggerUnsupported(character *core.Character, s *Spell) []string {
 
 // The spells the listener fires on where the client names them, which is the EffectSpellClassMask of
 // the effect that carries the proc, read against the class wearing it.
-func procClassFlags(character *core.Character, s *Spell) core.ClassFlags {
+func listenerClassFlags(character *core.Character, s *Spell) core.ClassFlags {
 	flags := rowClassFlags(s)
 	if othersFamily(character, flags) {
 		return core.ClassFlags{}

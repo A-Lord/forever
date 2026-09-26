@@ -417,6 +417,11 @@ A bonus against a creature type bids in a per-stat category under its stat and i
 `AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
 the same creature types.
 
+Two aura names read as something else. `A_MOD_CRIT_PERCENT_VERSUS` is crit damage against the creature
+types, not crit chance: Humanoid Slaying 19153 states it next to the same 3% of damage dealt.
+`A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT` is the share of the defender's armor ignored, not a rating:
+Serrated Blades 14171 ignores 9% at three ranks.
+
 A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
 effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks
 and attaching both would double the bonus. The `Applied` entry says `folded-into`. A parse narrowed to
@@ -473,13 +478,16 @@ out of `ProcTypeMask`, the internal cooldown, `CanProcFromProcs` and `ClassSpell
 attributes, the class mask the proc effect names, and the rate the source above points at. A row that
 is a weapon proc aura also excludes the hits of spells flagged Suppress Weapon Procs.
 
-The row's own class flags go on the trigger as `ProcClassFlags`, which is what a
+The row's own class flags go on the trigger as `SelfClassFlags`, which is what a
 `SPELLMOD_CHANCE_OF_SUCCESS` names: the rows its class mask reaches are the proc auras and the poison
 spells themselves, not the spells that feed them. Improved Poisons 14113 names Instant Poison 8680, so
 the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. The trigger reads the unit's
 active `SpellMod_ProcChance_Flat` and `SpellMod_ProcChance_Pct` mods when it rolls, the flat points first
-and the percentage on the sum, on the chance it states and on a manager's alike. A trigger built by hand
-leaves `ProcClassFlags` empty and no mod reaches it.
+and the percentage on the sum: on the manager's chance where a hit rolls one, on the chance it states
+otherwise. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A trigger built by
+hand leaves `SelfClassFlags` empty and no talent reaches it, so a class porting its poisons builds them
+with `spelldata.ProcTrigger` and does not also add the talent's chance by hand, which would count it
+twice.
 
 |                 |                                                                                                                                                             |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

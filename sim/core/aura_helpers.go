@@ -53,10 +53,10 @@ type ProcTrigger struct {
 	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
 	// both this and ClassSpellMask fires only on the spells both name.
 	ClassFlags ClassFlags
-	// The client's SpellClassMask of the proc itself, which is what a proc chance mod names: the
-	// trigger rolls at the chance Unit.ModifiedProcChance makes of its own. Empty on a trigger no
-	// mod reaches.
-	ProcClassFlags  ClassFlags
+	// The client's SpellClassMask of the row the trigger is built from, which is what a proc chance
+	// mod names: the trigger rolls at the chance Unit.ModifiedProcChance makes of its own.
+	// spelldata.ProcTrigger sets it; a trigger built by hand leaves it empty and no mod reaches it.
+	SelfClassFlags  ClassFlags
 	ClassSpellsOnly bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
 	ExtraCondition  ProcExtraCondition
 
@@ -114,6 +114,26 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 	return true
 }
 
+// Whether the trigger's rolls let a hit of this proc mask through. The stated chance draws unless it
+// is exactly 1; a manager then rolls its own chance for the mask, and a mask none of its masks hears
+// fails without a draw. The unit's proc chance mods raise the manager's chance where there is one and
+// the stated chance otherwise. The cast and apply-effects listeners roll no manager.
+func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
+	stated := config.ProcChance
+	if dpm == nil {
+		stated = unit.ModifiedProcChance(config.SelfClassFlags, stated)
+	}
+	if stated != 1 && sim.RandomFloat(config.Name) > stated {
+		return false
+	}
+	if dpm == nil {
+		return true
+	}
+
+	chance, heard := dpm.chanceFor(procMask, sim)
+	return heard && sim.Proc(unit.ModifiedProcChance(config.SelfClassFlags, chance), config.Name)
+}
+
 func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) {
 	var icd Cooldown
 	if config.ICD != 0 {
@@ -131,15 +151,6 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	}
 
 	handler := config.Handler
-
-	// Where a manager rolls, the proc chance mods change its chance rather than the stated one. The
-	// cast and apply-effects listeners roll no manager, so they read ModifiedProcChance directly.
-	statedChance := func() float64 {
-		if dpm != nil {
-			return config.ProcChance
-		}
-		return unit.ModifiedProcChance(config.ProcClassFlags, config.ProcChance)
-	}
 
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
 		if config.TriggerImmediately {
@@ -181,9 +192,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, result) {
 			return
 		}
-		if chance := statedChance(); chance != 1 && sim.RandomFloat(config.Name) > chance {
-			return
-		} else if dpm != nil && !dpm.procFor(sim, spell.ProcMask, config.Name, unit, config.ProcClassFlags) {
+		if !config.rolls(sim, unit, dpm, spell.ProcMask) {
 			return
 		}
 
@@ -224,7 +233,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, nil) {
 				return
 			}
-			if chance := unit.ModifiedProcChance(config.ProcClassFlags, config.ProcChance); chance != 1 && sim.RandomFloat(config.Name) > chance {
+			if !config.rolls(sim, unit, nil, ProcMaskUnknown) {
 				return
 			}
 
@@ -247,7 +256,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, emptyResult) {
 				return
 			}
-			if chance := unit.ModifiedProcChance(config.ProcClassFlags, config.ProcChance); chance != 1 && sim.RandomFloat(config.Name) > chance {
+			if !config.rolls(sim, unit, nil, ProcMaskUnknown) {
 				return
 			}
 

@@ -32,31 +32,20 @@ func (dpm *DynamicProcManager) Proc(sim *Simulation, procMask ProcMask, label st
 	return false
 }
 
-// Proc, for a trigger with these class flags of its own: the unit's proc chance mods that name them
-// change the chance the manager states for the mask. With none active the manager rolls on its own.
-func (dpm *DynamicProcManager) procFor(sim *Simulation, procMask ProcMask, label string, unit *Unit, flags ClassFlags) bool {
-	flat, pct := unit.procChanceBonus(flags)
-	if flat == 0 && pct == 0 {
-		return dpm.Proc(sim, procMask, label)
-	}
-
-	for i, m := range dpm.procMasks {
-		if m.Matches(procMask) {
-			return sim.Proc(withProcChanceBonus(dpm.procChances[i].Chance(sim), flat, pct), label)
-		}
-	}
-
-	return false
+func (dpm *DynamicProcManager) Chance(procMask ProcMask, sim *Simulation) float64 {
+	chance, _ := dpm.chanceFor(procMask, sim)
+	return chance
 }
 
-func (dpm *DynamicProcManager) Chance(procMask ProcMask, sim *Simulation) float64 {
+// The chance the manager states for a hit of this proc mask, and whether any of its masks hears it.
+func (dpm *DynamicProcManager) chanceFor(procMask ProcMask, sim *Simulation) (float64, bool) {
 	for i, m := range dpm.procMasks {
 		if m.Matches(procMask) {
-			return dpm.procChances[i].Chance(sim)
+			return dpm.procChances[i].Chance(sim), true
 		}
 	}
 
-	return 0
+	return 0, false
 }
 
 // PPMManager for static ProcMasks

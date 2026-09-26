@@ -566,9 +566,7 @@ func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
 // A multiplier on the damage the unit deals to the mob types a creature type mask names, which the
 // sim keeps on the attack tables.
 func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
-	return p.versusMultiplier("damage-dealt-versus", "DamageDealtVersus", e, v, func(mult float64, mobTypes ...proto.MobType) {
-		p.unit.MultiplyDamageVersus(mult, false, mobTypes...)
-	})
+	return p.versusMultiplier("damage-dealt-versus", "DamageDealtVersus", e, v, p.unit.MultiplyDamageVersus)
 }
 
 // A multiplier on the crit damage the unit deals to the mob types a creature type mask names, on
@@ -586,22 +584,10 @@ func (p *parser) versusMultiplier(kind string, key string, e *Effect, v float64,
 		return nil
 	}
 
-	toggle := p.onAttackTables(func(_ *core.Simulation, level float64) {
-		if level > 0 {
-			multiply(mult, mobTypes...)
-		} else {
-			multiply(1/mult, mobTypes...)
-		}
-	})
-	active := false
-	a := &attachment{kind: kind, value: mult, multiplicative: true, key: fmt.Sprintf("%s%d", key, e.Misc)}
-	a.set = func(sim *core.Simulation, level float64) {
-		if (level > 0) == active {
-			return
-		}
-		active = level > 0
-		toggle(sim, level)
-	}
+	a := multiplier(kind, mult, p.onAttackTables(func(_ *core.Simulation, factor float64) {
+		multiply(factor, mobTypes...)
+	}))
+	a.key = fmt.Sprintf("%s%d", key, e.Misc)
 	return a
 }
 

@@ -97,7 +97,7 @@ func TestProcChanceModReachesTheTriggersItNames(t *testing.T) {
 	unit := &Unit{}
 	flat := unit.AddDynamicMod(SpellModConfig{Kind: SpellMod_ProcChance_Flat, ClassFlags: poison, FloatValue: 100})
 
-	if got := fires(unit, ProcTrigger{ProcChance: almostNever, ProcClassFlags: poison}); got != 0 {
+	if got := fires(unit, ProcTrigger{ProcChance: almostNever, SelfClassFlags: poison}); got != 0 {
 		t.Errorf("the mod turned off: fired %d times, want 0", got)
 	}
 
@@ -107,9 +107,9 @@ func TestProcChanceModReachesTheTriggersItNames(t *testing.T) {
 		config ProcTrigger
 		want   int
 	}{
-		{"a stated chance the mod names", ProcTrigger{ProcChance: almostNever, ProcClassFlags: poison}, 1000},
-		{"a manager's chance the mod names", ProcTrigger{DPM: manager(almostNever), ProcClassFlags: poison}, 1000},
-		{"a trigger of other class flags", ProcTrigger{ProcChance: almostNever, ProcClassFlags: other}, 0},
+		{"a stated chance the mod names", ProcTrigger{ProcChance: almostNever, SelfClassFlags: poison}, 1000},
+		{"a manager's chance the mod names", ProcTrigger{DPM: manager(almostNever), SelfClassFlags: poison}, 1000},
+		{"a trigger of other class flags", ProcTrigger{ProcChance: almostNever, SelfClassFlags: other}, 0},
 		{"a trigger stating no class flags", ProcTrigger{ProcChance: almostNever}, 0},
 	} {
 		if got := fires(unit, test.config); got != test.want {

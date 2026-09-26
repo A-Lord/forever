@@ -149,6 +149,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 				pet.GetPet().procChanceMods = append(pet.GetPet().procChanceMods, mod)
 			}
 		}
+		return mod
 	}
 
 	unit.OnSpellRegistered(func(spell *Spell) {
@@ -653,16 +654,10 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 		OnReset: onResetDirectDamageDoneAdd,
 	},
 
-	// A proc trigger reads these mods when it rolls, so there is nothing to write on a spell.
-	SpellMod_ProcChance_Flat: {
-		Apply:  applyNothing,
-		Remove: removeNothing,
-	},
-
-	SpellMod_ProcChance_Pct: {
-		Apply:  applyNothing,
-		Remove: removeNothing,
-	},
+	// buildMod hands these to the unit's proc triggers, which read them when they roll, and to no
+	// spell, so they carry no functions.
+	SpellMod_ProcChance_Flat: {},
+	SpellMod_ProcChance_Pct:  {},
 }
 
 func applyDamageDonePercent(mod *SpellMod, spell *Spell) {
@@ -1162,26 +1157,16 @@ func onResetDirectDamageDoneAdd(mod *SpellMod) {
 	}
 }
 
-func applyNothing(_ *SpellMod, _ *Spell) {}
-
-func removeNothing(_ *SpellMod, _ *Spell) {}
-
 // The chance a proc trigger with these class flags of its own rolls, once the unit's active proc
 // chance mods that name them are counted: the flat points are added first and the percentage
-// multiplies the sum. A trigger that states no class flags of its own is named by no mod.
+// multiplies the sum. A trigger that states no class flags of its own is named by no mod, and a
+// chance no mod names comes back unchanged.
 func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
-	flat, pct := unit.procChanceBonus(flags)
-	return withProcChanceBonus(chance, flat, pct)
-}
-
-func withProcChanceBonus(chance float64, flat float64, pct float64) float64 {
-	return (chance + flat/100) * (1 + pct)
-}
-
-func (unit *Unit) procChanceBonus(flags ClassFlags) (flat float64, pct float64) {
-	if flags.IsZero() {
-		return 0, 0
+	if len(unit.procChanceMods) == 0 || flags.IsZero() {
+		return chance
 	}
+
+	var flat, pct float64
 	for _, mod := range unit.procChanceMods {
 		if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
 			continue
@@ -1192,5 +1177,5 @@ func (unit *Unit) procChanceBonus(flags ClassFlags) (flat float64, pct float64) 
 			pct += mod.floatValue
 		}
 	}
-	return flat, pct
+	return (chance + flat/100) * (1 + pct)
 }
