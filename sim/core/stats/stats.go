@@ -549,6 +549,7 @@ type PseudoStats struct {
 
 	DamageDealtMultiplier          float64            // All damage
 	SchoolDamageDealtMultiplier    [SchoolLen]float64 // For specific spell schools (arcane, fire, shadow, etc).
+	SchoolSpellPiercing            [SchoolLen]float64 // Target resistance ignored by spells of one school, on top of SpellPiercing.
 	DotDamageMultiplierAdditive    float64            // All periodic damage
 	HealingDealtMultiplier         float64            // All non-shield healing
 	PeriodicHealingDealtMultiplier float64            // All periodic healing (on top of HealingDealtMultiplier)
