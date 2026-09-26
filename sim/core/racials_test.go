@@ -126,8 +126,45 @@ func TestElunesLight(t *testing.T) {
 	}
 }
 
+// A warrior ability as spelldata builds one: the client's family 4 flags and no ClassSpellMask.
+func fakeWarriorAbility(id int32, bit uint, damage float64) SpellConfig {
+	return SpellConfig{
+		ActionID:         ActionID{SpellID: id},
+		ClassFlags:       ClassFlags{Family: 4, Mask: [4]uint32{1 << bit}},
+		ProcMask:         ProcMaskMeleeMHSpecial,
+		SpellSchool:      SpellSchoolPhysical,
+		RageCost:         RageCostOptions{Cost: 30},
+		DamageMultiplier: 1,
+		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+			spell.CalcAndDealDamage(sim, target, damage, spell.OutcomeAlwaysHit)
+		},
+	}
+}
+
+var fakeRendActionID = ActionID{SpellID: 772}
+
+// A DoT's aura has to be registered before the environment is finalized.
+func (fw *FakeRageWarrior) registerFakeRend() {
+	config := fakeWarriorAbility(fakeRendActionID.SpellID, 5, 0)
+	config.Dot = DotConfig{
+		Aura:          Aura{Label: "Rend"},
+		NumberOfTicks: 5,
+		TickLength:    time.Second * 3,
+		OnTick: func(sim *Simulation, target *Unit, dot *Dot) {
+			dot.Spell.CalcAndDealPeriodicDamage(sim, target, 50, dot.OutcomeTick)
+		},
+	}
+	config.ApplyEffects = func(sim *Simulation, target *Unit, spell *Spell) {
+		if spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit).Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+	}
+	fw.RegisterSpell(config)
+}
+
 func TestGnomeWarrior(t *testing.T) {
 	sim, fw := setupRacialSim(proto.Race_RaceGnome)
+	fw.AutoAttacks.CancelAutoSwing(sim)
 
 	if fw.MaximumRage() != 105 {
 		t.Fatalf("Expansive Mind should raise maximum Rage to 105, got %0.1f", fw.MaximumRage())
@@ -139,36 +176,58 @@ func TestGnomeWarrior(t *testing.T) {
 		t.Fatalf("Eureka! should start at 3 charges, got %d", eureka.GetStacks())
 	}
 
-	ability := fw.RegisterSpell(SpellConfig{
-		ActionID:         ActionID{SpellID: 1},
-		ClassSpellMask:   1,
-		ProcMask:         ProcMaskMeleeMHSpecial,
-		SpellSchool:      SpellSchoolPhysical,
-		DamageMultiplier: 1,
-	})
+	mortalStrike := fw.RegisterSpell(fakeWarriorAbility(12294, 25, 100))
+	hamstring := fw.RegisterSpell(fakeWarriorAbility(1715, 1, 0))
+	sunderArmor := fw.RegisterSpell(fakeWarriorAbility(7386, 14, 0))
+	rend := fw.GetSpell(fakeRendActionID)
 	itemSpell := fw.RegisterSpell(SpellConfig{
 		ActionID:         ActionID{SpellID: 2},
 		Flags:            SpellFlagAPL,
 		ProcMask:         ProcMaskMeleeMHSpecial,
 		SpellSchool:      SpellSchoolPhysical,
 		DamageMultiplier: 1,
+		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+			spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeAlwaysHit)
+		},
 	})
-	itemSpell.Cast(sim, fw.CurrentTarget)
-	if itemSpell.DamageMultiplier != 1 || eureka.GetStacks() != 3 {
-		t.Fatalf("Eureka! should ignore spells that are not class abilities")
+
+	if !WithinToleranceFloat64(1.1, mortalStrike.DamageMultiplier, 0.0001) {
+		t.Fatalf("Eureka! should raise Mortal Strike's damage by 10%%, got x%0.2f", mortalStrike.DamageMultiplier)
 	}
-	if !WithinToleranceFloat64(1.1, ability.DamageMultiplier, 0.0001) {
-		t.Fatalf("Eureka! should raise ability damage by 10%%, got x%0.2f", ability.DamageMultiplier)
+	if !WithinToleranceFloat64(18, mortalStrike.Cost.GetCurrentCost(), 0.0001) {
+		t.Fatalf("Eureka! should cut Mortal Strike's 30 Rage by 40%%, got %0.1f", mortalStrike.Cost.GetCurrentCost())
+	}
+	if sunderArmor.DamageMultiplier != 1 || sunderArmor.Cost.GetCurrentCost() != 30 {
+		t.Fatalf("Eureka! should leave Sunder Armor alone, which its class mask does not name")
 	}
 
-	for range 3 {
-		ability.Cast(sim, fw.CurrentTarget)
+	// The spend lands one spell batch after the hit.
+	stacksAfter := func(spell *Spell) int32 {
+		spell.SkipCastAndApplyEffects(sim, fw.CurrentTarget)
+		for end := sim.CurrentTime + SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+		}
+		return eureka.GetStacks()
 	}
+
+	if stacksAfter(itemSpell) != 3 || itemSpell.DamageMultiplier != 1 {
+		t.Fatalf("Eureka! should ignore spells that are not class abilities")
+	}
+	if stacksAfter(sunderArmor) != 3 {
+		t.Fatalf("Sunder Armor should not spend a charge")
+	}
+	if stacksAfter(hamstring) != 3 {
+		t.Fatalf("an ability the mask names should not spend a charge when it deals no damage")
+	}
+	if stacksAfter(rend) != 2 {
+		t.Fatalf("Rend's landed application deals no damage but should spend a charge for its DoT")
+	}
+	stacksAfter(mortalStrike)
+	stacksAfter(mortalStrike)
 	if eureka.IsActive() {
-		t.Fatalf("Eureka! should end after 3 abilities")
+		t.Fatalf("Eureka! should end after 3 abilities, %d left at %v", eureka.GetStacks(), sim.CurrentTime)
 	}
-	if !WithinToleranceFloat64(1, ability.DamageMultiplier, 0.0001) {
-		t.Fatalf("Eureka! should drop its damage bonus when it ends, got x%0.2f", ability.DamageMultiplier)
+	if !WithinToleranceFloat64(1, mortalStrike.DamageMultiplier, 0.0001) {
+		t.Fatalf("Eureka! should drop its damage bonus when it ends, got x%0.2f", mortalStrike.DamageMultiplier)
 	}
 }
 
