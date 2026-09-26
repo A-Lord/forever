@@ -433,21 +433,14 @@ func skipRow(_ *parser, _ *Effect, _ float64) *attachment {
 	return nil
 }
 
-// The misc values a row takes, for the rows that refuse the others on every unit.
-var auraMiscTaken = map[dbcenums.EffectAuraType]func(misc int32) bool{
-	dbcenums.A_MOD_MAX_POWER:       takesMaxPower,
-	dbcenums.A_MOD_INCREASE_ENERGY: takesMaxPower,
-}
-
-func takesMaxPower(misc int32) bool {
-	return dbcenums.PowerType(misc) == dbcenums.POWER_RAGE || dbcenums.PowerType(misc) == dbcenums.POWER_ENERGY
-}
-
 // The most power the unit's bar holds, by the power type the misc value names. The client states
-// rage on a 0-1000 bar and energy as it is. Mana is a stat rather than a bar, and a unit without the
-// bar the row names has no maximum to raise, so both are skipped.
+// rage on a 0-1000 bar and energy as it is; mana is the Mana stat, which the sim keeps as the maximum.
+// A unit without the rage or energy bar the row names has no maximum to raise, so the row is skipped
+// there.
 func maxPowerRow(p *parser, e *Effect, v float64) *attachment {
 	switch dbcenums.PowerType(e.Misc) {
+	case dbcenums.POWER_MANA:
+		return p.statBuff(stats.Mana, v)
 	case dbcenums.POWER_RAGE:
 		if !p.unit.HasRageBar() {
 			return nil

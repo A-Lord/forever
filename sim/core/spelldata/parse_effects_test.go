@@ -546,6 +546,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_RAGE), 300, "max-rage", 30, false},
 		{dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_ENERGY), 10, "max-energy", 10, false},
 		{dbcenums.A_MOD_INCREASE_ENERGY, int32(dbcenums.POWER_ENERGY), 10, "max-energy", 10, false},
+		{dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_MANA), 2000, "stat Mana", 2000, false},
+		{dbcenums.A_MOD_INCREASE_ENERGY, int32(dbcenums.POWER_MANA), 150, "stat Mana", 150, false},
 	}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases
@@ -894,24 +896,21 @@ func TestParseMaxRage(t *testing.T) {
 	}
 }
 
-// The row takes the rage and energy bars only: mana is refused on every unit, which the routing reads
-// too, and a unit without the named bar has no maximum to raise.
-func TestParseMaxPowerSkips(t *testing.T) {
+// Mana is the Mana stat on any unit; rage and energy need the bar they raise.
+func TestParseMaxPowerByPowerType(t *testing.T) {
 	for _, aura := range []dbcenums.EffectAuraType{dbcenums.A_MOD_MAX_POWER, dbcenums.A_MOD_INCREASE_ENERGY} {
-		mana := oneEffectRow(aura, int32(dbcenums.POWER_MANA), 2000)
-		if mana.Effects[0].ParsedAura() {
-			t.Errorf("%s misc mana counts as parsed", auraName(aura))
-		}
-		if parsed := ParseStatic(parseWarrior(), mana); len(parsed.Applied) != 0 {
-			t.Errorf("%s misc mana attached %v", auraName(aura), appliedKinds(parsed))
+		character := parseWarrior()
+		before := character.GetStats()[stats.Mana]
+		ParseStatic(character, oneEffectRow(aura, int32(dbcenums.POWER_MANA), 2000))
+		if got := character.GetStats()[stats.Mana] - before; got != 2000 {
+			t.Errorf("%s misc mana added %v Mana, want 2000", auraName(aura), got)
 		}
 
-		energy := oneEffectRow(aura, int32(dbcenums.POWER_ENERGY), 10)
-		if !energy.Effects[0].ParsedAura() {
-			t.Errorf("%s misc energy does not count as parsed", auraName(aura))
-		}
-		if parsed := ParseStatic(parseWarrior(), energy); len(parsed.Applied) != 0 {
-			t.Errorf("%s misc energy on a unit with no energy bar attached %v", auraName(aura), appliedKinds(parsed))
+		for _, power := range []dbcenums.PowerType{dbcenums.POWER_RAGE, dbcenums.POWER_ENERGY} {
+			row := oneEffectRow(aura, int32(power), 10)
+			if parsed := ParseStatic(parseWarrior(), row); len(parsed.Applied) != 0 {
+				t.Errorf("%s misc %d on a unit without that bar attached %v", auraName(aura), power, appliedKinds(parsed))
+			}
 		}
 	}
 }

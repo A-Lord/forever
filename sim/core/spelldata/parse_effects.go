@@ -443,15 +443,10 @@ func AppliesAura(t dbcenums.SpellEffectType) bool {
 		t == dbcenums.E_APPLY_AREA_AURA_RAID
 }
 
-// Whether ParseEffects attaches something for the effect's aura. A row that refuses a misc value on
-// every unit says so in auraMiscTaken, which is read here; any other refusal only a parse against a
-// unit finds out.
+// Whether ParseEffects attaches something for the effect's aura. A row can still refuse one effect by
+// its misc value, which only a parse against a unit finds out.
 func (e *Effect) ParsedAura() bool {
-	if !AppliesAura(e.Type) || auraTable[e.Aura] == nil {
-		return false
-	}
-	taken := auraMiscTaken[e.Aura]
-	return taken == nil || taken(e.Misc)
+	return AppliesAura(e.Type) && auraTable[e.Aura] != nil
 }
 
 // The dot modifiers a spell states twice. A talent that raises a spell's damage states the same

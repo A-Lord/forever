@@ -218,6 +218,7 @@ export const GreaterShadowProtectionPotion = { id: 13459 };
 export const GreaterHolyProtectionPotion = { id: 13460 };
 export const GreaterArcaneProtectionPotion = { id: 13461 };
 export const FlaskOfTheTitans = { id: 13510 };
+export const FlaskOfDistilledWisdom = { id: 13511 };
 export const FlaskOfSupremePower = { id: 13512 };
 export const FlaskOfChromaticResistance = { id: 13513 };
 export const GreaterSpellstone = { id: 13602 };

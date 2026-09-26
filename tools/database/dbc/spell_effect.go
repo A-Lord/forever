@@ -233,6 +233,7 @@ var statAuraTypes = map[EffectAuraType]bool{
 	dbcenums.A_MOD_TARGET_RESISTANCE:   true,
 	dbcenums.A_MOD_RESISTANCE:          true,
 	dbcenums.A_MOD_INCREASE_ENERGY:     true,
+	dbcenums.A_MOD_MAX_POWER:           true,
 	dbcenums.A_MOD_INCREASE_HEALTH_2:   true,
 	dbcenums.A_PERIODIC_TRIGGER_SPELL:  true,
 }
@@ -395,7 +396,7 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 				effectStats[statMod] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 			}
 		}
-	case effect.EffectAura == dbcenums.A_MOD_INCREASE_ENERGY:
+	case effect.EffectAura == dbcenums.A_MOD_INCREASE_ENERGY, effect.EffectAura == dbcenums.A_MOD_MAX_POWER:
 		// MiscValue 0 is the power type. Only mana has a matching stat; rage, focus, energy
 		// and the rest are resources the sim tracks per spec, not stats, so treating every
 		// power type as mana just invents mana out of nothing.
