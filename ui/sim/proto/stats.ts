@@ -355,7 +355,9 @@ const RATING_WEIGHTED_PERCENT_PSEUDO_STATS = new Set(
 
 // A ranged percent is the total the character sheet shows, melee share included, and one haste rating
 // raises melee and ranged speed alike. Valued at a rating's weight, the share is counted once: by the
-// melee pseudo stat, unless the ranged total has a weight of its own and counts it there.
+// melee pseudo stat, unless the ranged total has a weight of its own and counts it there. A source that
+// raises melee alone, such as Weapon Counterweight's melee haste, puts nothing in the ranged total, so the
+// melee percent beyond the ranged one keeps its rating's worth.
 const RANGED_TOTAL_MELEE_SHARE = new Map<PseudoStat, PseudoStat>([
 	[PseudoStat.PseudoStatRangedHitPercent, PseudoStat.PseudoStatMeleeHitPercent],
 	[PseudoStat.PseudoStatRangedCritPercent, PseudoStat.PseudoStatMeleeCritPercent],
@@ -534,7 +536,10 @@ export class Stats {
 				value = Math.max(0, value - this.pseudoStats[meleeShare]);
 			}
 			const rangedTotal = MELEE_SHARE_RANGED_TOTAL.get(idx);
-			if (value === 0 || (rangedTotal !== undefined && epWeights.pseudoStats[rangedTotal] !== 0)) {
+			if (rangedTotal !== undefined && epWeights.pseudoStats[rangedTotal] !== 0) {
+				value = Math.max(0, value - this.pseudoStats[rangedTotal]);
+			}
+			if (value === 0) {
 				return;
 			}
 			const unitStat = UnitStat.fromPseudoStat(idx);

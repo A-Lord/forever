@@ -102,3 +102,28 @@ describe('Player.computeEnchantEP on haste pseudo stats', () => {
 		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 })).toBeCloseTo(2 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2);
 	});
 });
+
+describe('Player.computeEnchantEP on haste pseudo stats for a spec weighing ranged haste', () => {
+	const rangedHasteWeights = Stats.fromMap({ [Stat.StatHasteRating]: 2 }, { [PseudoStat.PseudoStatRangedHastePercent]: 7 });
+	const enchantEP = (effectId: number, pseudoStats: Partial<Record<PseudoStat, number>>) =>
+		computeEnchantEP(
+			Enchant.create({ effectId, pseudoStats: Stats.fromMap({}, pseudoStats).toProto().pseudoStats }),
+			undefined,
+			undefined,
+			rangedHasteWeights,
+		);
+
+	it('keeps 34 Weapon Counterweight at the haste rating weight, as its melee haste is no part of the ranged total', () => {
+		expect(enchantEP(34, { [PseudoStat.PseudoStatMeleeHastePercent]: 3, [PseudoStat.PseudoStatRangedHastePercent]: 0 })).toBeCloseTo(
+			3 * Mechanics.HASTE_RATING_PER_HASTE_PERCENT * 2,
+		);
+	});
+
+	it('counts melee and ranged haste together once, at the ranged haste weight', () => {
+		expect(enchantEP(1, { [PseudoStat.PseudoStatMeleeHastePercent]: 1, [PseudoStat.PseudoStatRangedHastePercent]: 1 })).toBeCloseTo(7);
+	});
+
+	it('values ranged haste alone at the ranged haste weight', () => {
+		expect(enchantEP(1, { [PseudoStat.PseudoStatRangedHastePercent]: 2 })).toBeCloseTo(2 * 7);
+	});
+});
