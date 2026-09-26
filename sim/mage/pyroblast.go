@@ -20,6 +20,7 @@ func (mage *Mage) registerPyroblastSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellPyroblast,
+	// 	ClassFlags:     pyroblastRank.ClassFlags,
 	// 	MissileSpeed:   float64(pyroblastRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{
@@ -55,6 +56,7 @@ func (mage *Mage) registerPyroblastSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: MageSpellPyroblastDot,
+	// 	ClassFlags:     pyroblastRank.ClassFlags,
 	// 	Flags:          core.SpellFlagNoOnCastComplete | core.SpellFlagPassiveSpell,
 	//
 	// 	DamageMultiplier: 1,

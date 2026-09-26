@@ -20,6 +20,7 @@ func (warlock *Warlock) registerSiphonLifeSpell() {
 	// 	SpellSchool:    core.SpellSchoolShadow,
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ClassSpellMask: WarlockSpellSiphonLife,
+	// 	ClassFlags:     siphonLifeRank.ClassFlags,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	BaseCost:       baseCost,

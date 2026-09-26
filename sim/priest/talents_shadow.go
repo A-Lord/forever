@@ -183,6 +183,7 @@ func (priest *Priest) registerMindFlaySpell(rank *spelldata.Spell) {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellMindFlay,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	// 	MaxRange:       float64(rank.MaxRange),
 	//
@@ -289,6 +290,7 @@ func (priest *Priest) applyVampiricEmbrace() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellVampiricEmbrace,
+	// 	ClassFlags:     spellData.VampiricEmbrace.Highest().ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		BaseCostPercent: 2,
@@ -434,6 +436,7 @@ func (priest *Priest) applyShadowform() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellShadowform,
+	// 	ClassFlags:     spellData.Shadowform.Highest().ClassFlags,
 	// 	ManaCost: core.ManaCostOptions{
 	// 		BaseCostPercent: 32,
 	// 	},

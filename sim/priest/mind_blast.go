@@ -21,6 +21,7 @@ func (priest *Priest) registerMindBlastSpell(rank *spelldata.Spell, cdTimer *cor
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellMindBlast,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	// 	MaxRange:       float64(rank.MaxRange),
 	// 	ManaCost: core.ManaCostOptions{

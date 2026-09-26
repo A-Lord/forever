@@ -24,6 +24,7 @@ func (priest *Priest) registerShadowfiendSpell() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellShadowFiend,
+	// 	ClassFlags:     shadowfiendRank.ClassFlags,
 	// 	Rank:           shadowfiendRank.RankNumber(),
 	//
 	// 	ManaCost: core.ManaCostOptions{
