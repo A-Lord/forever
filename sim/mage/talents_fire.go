@@ -1,6 +1,7 @@
 package mage
 
 import (
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -195,41 +196,66 @@ func (mage *Mage) registerImprovedFireWard() {
 }
 
 // registerHotStreak implements Hot Streak, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (mage *Mage) registerHotStreak() {
 	if !mage.Talents.HotStreak {
 		return
 	}
+
+	hotStreakBuff := spellData.HotStreakTriggered.Highest()
+
+	config := spelldata.AuraConfig(hotStreakBuff)
+
+	// UNVERIFIED: whether a Pyroblast consumes every stack or only one has not been checked in game.
+	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if spell.Matches(MageSpellPyroblast) {
+			aura.Deactivate(sim)
+		}
+	}
+
+	hotStreakAura := mage.RegisterAura(config)
+
+	spelldata.ParseEffects(&mage.Character, hotStreakAura, hotStreakBuff, spelldata.Effects(1))
+
+	trigger := spelldata.ProcTrigger(&mage.Character,
+		spellData.HotStreak.Rank(1),
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			hotStreakAura.Activate(sim)
+			hotStreakAura.AddStack(sim)
+		})
+	trigger.Name = "Hot Streak - Trigger"
+	trigger.ClassSpellMask = MageSpellFireball | MageSpellFrostfireBolt | MageSpellFireBlast | MageSpellScorch
+
+	mage.MakeProcTriggerAura(trigger)
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// registerMasterOfElements implements Master of Elements.
 func (mage *Mage) registerMasterOfElements() {
 	if mage.Talents.MasterOfElements == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.MasterOfElements == 0 {
-	// 	return
-	// }
-	//
-	// refundCoeff := spellData.MasterOfElements.FractionAt(mage.Talents.MasterOfElements)
-	// manaMetrics := mage.NewManaMetrics(core.ActionID{SpellID: 29076})
-	//
-	// mage.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:           "Master of Elements",
-	// 	Duration:       core.NeverExpires,
-	// 	ClassSpellMask: MageSpellFire | MageSpellFrost,
-	// 	Outcome:        core.OutcomeCrit,
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		if spell.CurCast.Cost == 0 {
-	// 			return
-	// 		}
-	// 		mage.AddMana(sim, spell.DefaultCast.Cost*refundCoeff, manaMetrics)
-	// 	},
-	// })
+	refundFraction := spellData.MasterOfElements.FractionAt(mage.Talents.MasterOfElements)
+	manaMetrics := mage.NewManaMetrics(core.ActionID{SpellID: 29077})
+
+	trigger := spelldata.ProcTrigger(&mage.Character,
+		spellData.MasterOfElements.Rank(mage.Talents.MasterOfElements),
+		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			mage.AddMana(sim, float64(spell.Cost.BaseCost)*refundFraction, manaMetrics)
+		})
+	trigger.Name = "Master of Elements - Trigger"
+
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		if !spell.SpellSchool.Matches(core.SpellSchoolFire | core.SpellSchoolFrost) {
+			return false
+		}
+		if spell.Cost == nil || spell.Cost.BaseCost == 0 {
+			return false
+		}
+
+		return spell.CurCast.Cost > 0
+	}
+
+	mage.MakeProcTriggerAura(trigger)
 }
 
 // TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
