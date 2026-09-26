@@ -439,6 +439,9 @@ func applyTouchOfTheGrave(character *Character) {
 		Outcome:    OutcomeLanded,
 		ProcChance: procChance,
 		ICD:        time.Second,
+
+		RequireDamageComponent: true,
+
 		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
 			drain.Cast(sim, result.Target)
 		},
