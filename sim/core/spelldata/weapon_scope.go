@@ -77,10 +77,8 @@ func ScopedRatingPercents(mask int32, v float64) []RatingPercent {
 	out := make([]RatingPercent, 0, len(ratings))
 	for _, stat := range ratings {
 		percent := 0.0
-		for _, channels := range core.RatingChannelTable {
-			if channels.Rating == stat {
-				percent = v / channels.RatingPerPercent
-			}
+		if channels, ok := core.RatingChannelsOf(stat); ok {
+			percent = v / channels.RatingPerPercent
 		}
 		out = append(out, RatingPercent{stat, percent})
 	}

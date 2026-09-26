@@ -127,16 +127,11 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 
 	// Haste% pseudo-stats: read speed multipliers from baseStats.PseudoStats, which
 	// GetPseudoStatsProto populates as MeleeSpeedMultiplier×AttackSpeedMultiplier etc.
-	for _, channels := range core.RatingChannelTable {
-		for _, channel := range channels.Channels() {
-			speedMultPS, ok := hasteSpeedMultipliers[channel.PseudoStat]
-			if !ok {
-				continue
-			}
-			if hasteRatingDelta := delta.Stats[channels.Rating]; hasteRatingDelta != 0 {
-				speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(speedMultPS))
-				delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(channel.PseudoStat), speedMult*hasteRatingDelta/channels.RatingPerPercent)
-			}
+	if hasteRatingDelta := delta.Stats[stats.HasteRating]; hasteRatingDelta != 0 {
+		haste, _ := core.RatingChannelsOf(stats.HasteRating)
+		for _, pseudoStat := range haste.Channels() {
+			speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(hasteSpeedMultipliers[pseudoStat]))
+			delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(pseudoStat), speedMult*hasteRatingDelta/haste.RatingPerPercent)
 		}
 	}
 
@@ -204,12 +199,8 @@ func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 			children = append(children, sheetPseudoStats(conversion.Percent)...)
 		}
 	}
-	for _, channels := range core.RatingChannelTable {
-		for _, channel := range channels.Channels() {
-			if channels.Rating == parent && channel.Percent == nil {
-				children = append(children, channel.PseudoStat)
-			}
-		}
+	if channels, ok := core.RatingChannelsOf(parent); ok && !channels.HasPercentStats {
+		children = append(children, channels.Channels()...)
 	}
 	return children
 }
@@ -220,12 +211,8 @@ func ratingPerPseudoStatPercent(pseudoStat proto.PseudoStat, parent stats.Stat) 
 			return conversion.RatingPerPercent
 		}
 	}
-	for _, channels := range core.RatingChannelTable {
-		for _, channel := range channels.Channels() {
-			if channels.Rating == parent && channel.PseudoStat == pseudoStat {
-				return channels.RatingPerPercent
-			}
-		}
+	if channels, ok := core.RatingChannelsOf(parent); ok && slices.Contains(channels.Channels(), pseudoStat) {
+		return channels.RatingPerPercent
 	}
 	return 1
 }

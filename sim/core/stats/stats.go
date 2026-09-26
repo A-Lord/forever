@@ -281,24 +281,24 @@ type PercentPseudoStat struct {
 	MeleeShare *PercentPseudoStat
 }
 
-// The hit and crit percents core.RatingChannelTable names as a rating's melee, ranged and spell channels.
+// The hit and crit percents, named so each ranged one can point at its melee share.
 var (
-	MeleeHitPseudoStat   = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
-	RangedHitPseudoStat  = PercentPseudoStat{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &MeleeHitPseudoStat}
-	SpellHitPseudoStat   = PercentPseudoStat{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil}
-	MeleeCritPseudoStat  = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
-	RangedCritPseudoStat = PercentPseudoStat{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &MeleeCritPseudoStat}
-	SpellCritPseudoStat  = PercentPseudoStat{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil}
+	meleeHitPseudoStat   = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
+	rangedHitPseudoStat  = PercentPseudoStat{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPseudoStat}
+	spellHitPseudoStat   = PercentPseudoStat{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil}
+	meleeCritPseudoStat  = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	rangedCritPseudoStat = PercentPseudoStat{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPseudoStat}
+	spellCritPseudoStat  = PercentPseudoStat{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil}
 )
 
 var PercentPseudoStats = []PercentPseudoStat{
-	MeleeHitPseudoStat,
-	SpellHitPseudoStat,
-	MeleeCritPseudoStat,
-	SpellCritPseudoStat,
+	meleeHitPseudoStat,
+	spellHitPseudoStat,
+	meleeCritPseudoStat,
+	spellCritPseudoStat,
 	{BlockPercent, proto.PseudoStat_PseudoStatBlockPercent, nil},
-	RangedHitPseudoStat,
-	RangedCritPseudoStat,
+	rangedHitPseudoStat,
+	rangedCritPseudoStat,
 	{DodgePercent, proto.PseudoStat_PseudoStatDodgePercent, nil},
 	{ParryPercent, proto.PseudoStat_PseudoStatParryPercent, nil},
 	{ExpertisePercent, proto.PseudoStat_PseudoStatExpertisePercent, nil},

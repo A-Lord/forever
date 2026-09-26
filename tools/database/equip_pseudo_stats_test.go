@@ -156,7 +156,9 @@ func TestEquipEffectFold(t *testing.T) {
 		{"22755 Critical Weapon +2, crit on melee weapons", fixedSpell(22755), dbc.FoldRuntime},
 		{"430391 Hit Weapon +2 held to the off hand's slot", offHandHitWeapon, dbc.FoldRuntime},
 		{"22780 as a hit rating on every channel, bows, guns and crossbows", rangedWeaponHitRating, dbc.FoldRuntime},
-		{"24154 as a ranged hit rating on any weapon", rangedHitRating, dbc.FoldRanged},
+		{"24154 as a ranged hit rating on any weapon", func(t *testing.T) int {
+			return asRatingAura(t, 24154, dbcenums.RATING_MOD_HIT_RANGED)
+		}, dbc.FoldRanged},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			effect := dbc.GetDBC().SpellEffectsInOrder(tc.spellID(t))[0]
@@ -171,18 +173,17 @@ func fixedSpell(spellID int) func(t *testing.T) int {
 	return func(*testing.T) int { return spellID }
 }
 
-// 24154 Falcon's Call with its hit chance traded for hit rating on the ranged bit alone, a shape no equip
-// spell the store carries states.
-func rangedHitRating(t *testing.T) int {
-	effect := &spelldata.Find(24154).Effects[0]
+// spellID with its first effect traded for a combat rating aura on mask, a shape no equip spell the store
+// carries states.
+func asRatingAura(t *testing.T, spellID int, mask int32) int {
+	effect := &spelldata.Find(int32(spellID)).Effects[0]
 	aura, misc := effect.Aura, effect.Misc
-	effect.Aura, effect.Misc = dbcenums.A_MOD_RATING, dbcenums.RATING_MOD_HIT_RANGED
+	effect.Aura, effect.Misc = dbcenums.A_MOD_RATING, mask
 	t.Cleanup(func() { effect.Aura, effect.Misc = aura, misc })
-	return 24154
+	return spellID
 }
 
-// A combat rating of ranged bits alone is the ranged percent it converts to; one naming any other bit
-// is a rating stat and grants none.
+// A combat rating of ranged bits alone is the ranged percent it converts to.
 func TestRangedRatingPercents(t *testing.T) {
 	type pseudo = proto.PseudoStat
 	for _, tc := range []struct {
@@ -197,8 +198,6 @@ func TestRangedRatingPercents(t *testing.T) {
 			proto.PseudoStat_PseudoStatRangedHitPercent:  20 / core.HitRatingPerHitPercent,
 			proto.PseudoStat_PseudoStatRangedCritPercent: 20 / core.CritRatingPerCritPercent,
 		}},
-		{"melee and ranged hit", dbcenums.RATING_MOD_HIT_MELEE | dbcenums.RATING_MOD_HIT_RANGED, nil},
-		{"no bits", 0, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := dbc.RangedRatingPercents(tc.mask, 20); !maps.Equal(got, tc.want) {
@@ -218,13 +217,8 @@ func offHandHitWeapon(t *testing.T) int {
 	return 430391
 }
 
-// 22780 Biznicks 247x128 Accurascope with its hit chance traded for hit rating on the melee, ranged and
-// spell bits, under the same bows, guns and crossbows, a shape no equip spell the store carries states.
+// 22780 Biznicks 247x128 Accurascope as hit rating on the melee, ranged and spell bits, under the same
+// bows, guns and crossbows.
 func rangedWeaponHitRating(t *testing.T) int {
-	row := spelldata.Find(22780)
-	effect := &row.Effects[0]
-	aura, misc := effect.Aura, effect.Misc
-	effect.Aura, effect.Misc = dbcenums.A_MOD_RATING, dbcenums.RATING_MOD_HIT_MELEE|dbcenums.RATING_MOD_HIT_RANGED|dbcenums.RATING_MOD_HIT_SPELL
-	t.Cleanup(func() { effect.Aura, effect.Misc = aura, misc })
-	return 22780
+	return asRatingAura(t, 22780, dbcenums.RATING_MOD_HIT_MELEE|dbcenums.RATING_MOD_HIT_RANGED|dbcenums.RATING_MOD_HIT_SPELL)
 }

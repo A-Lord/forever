@@ -705,39 +705,61 @@ type RatingConversion struct {
 	Step             float64
 }
 
-// A percent one rating raises in one channel: the PseudoStat the character sheet shows and, for hit and
-// crit, its pair in stats.PercentPseudoStats. Haste has no back-end percent Stat, so its Percent is nil.
-type RatingChannel struct {
-	PseudoStat proto.PseudoStat
-	Percent    *stats.PercentPseudoStat
-}
-
-func percentChannel(percent *stats.PercentPseudoStat) RatingChannel {
-	return RatingChannel{percent.PseudoStat, percent}
-}
-
-// The melee, ranged and spell percents one rating raises together, at RatingPerPercent rating per percent
-// point. A ranged percent with a MeleeShare is a total over the melee percent.
+// The melee, ranged and spell percents one rating raises together, as the PseudoStats the character sheet
+// shows, at RatingPerPercent rating per percent point. Where HasPercentStats is set the rating also
+// converts into the back-end PhysicalPercent and SpellPercent; haste has no back-end percent Stat.
 type RatingChannels struct {
-	Rating               stats.Stat
-	Melee, Ranged, Spell RatingChannel
-	RatingPerPercent     float64
+	Rating                        stats.Stat
+	Melee, Ranged, Spell          proto.PseudoStat
+	PhysicalPercent, SpellPercent stats.Stat
+	HasPercentStats               bool
+	RatingPerPercent              float64
 }
 
-func (channels RatingChannels) Channels() [3]RatingChannel {
-	return [3]RatingChannel{channels.Melee, channels.Ranged, channels.Spell}
+func (channels RatingChannels) Channels() []proto.PseudoStat {
+	return []proto.PseudoStat{channels.Melee, channels.Ranged, channels.Spell}
 }
 
 // The channels of the hit, crit and haste ratings. RATING_CHANNELS in ui/sim/proto/stats.ts is the UI's
 // copy of the same channels; the two are kept in sync by hand.
 var RatingChannelTable = []RatingChannels{
-	{stats.HitRating, percentChannel(&stats.MeleeHitPseudoStat), percentChannel(&stats.RangedHitPseudoStat),
-		percentChannel(&stats.SpellHitPseudoStat), HitRatingPerHitPercent},
-	{stats.CritRating, percentChannel(&stats.MeleeCritPseudoStat), percentChannel(&stats.RangedCritPseudoStat),
-		percentChannel(&stats.SpellCritPseudoStat), CritRatingPerCritPercent},
-	{stats.HasteRating, RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatMeleeHastePercent},
-		RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatRangedHastePercent},
-		RatingChannel{PseudoStat: proto.PseudoStat_PseudoStatSpellHastePercent}, HasteRatingPerHastePercent},
+	{
+		Rating:           stats.HitRating,
+		Melee:            proto.PseudoStat_PseudoStatMeleeHitPercent,
+		Ranged:           proto.PseudoStat_PseudoStatRangedHitPercent,
+		Spell:            proto.PseudoStat_PseudoStatSpellHitPercent,
+		PhysicalPercent:  stats.PhysicalHitPercent,
+		SpellPercent:     stats.SpellHitPercent,
+		HasPercentStats:  true,
+		RatingPerPercent: HitRatingPerHitPercent,
+	},
+	{
+		Rating:           stats.CritRating,
+		Melee:            proto.PseudoStat_PseudoStatMeleeCritPercent,
+		Ranged:           proto.PseudoStat_PseudoStatRangedCritPercent,
+		Spell:            proto.PseudoStat_PseudoStatSpellCritPercent,
+		PhysicalPercent:  stats.PhysicalCritPercent,
+		SpellPercent:     stats.SpellCritPercent,
+		HasPercentStats:  true,
+		RatingPerPercent: CritRatingPerCritPercent,
+	},
+	{
+		Rating:           stats.HasteRating,
+		Melee:            proto.PseudoStat_PseudoStatMeleeHastePercent,
+		Ranged:           proto.PseudoStat_PseudoStatRangedHastePercent,
+		Spell:            proto.PseudoStat_PseudoStatSpellHastePercent,
+		RatingPerPercent: HasteRatingPerHastePercent,
+	},
+}
+
+// The channels of a rating, and whether RatingChannelTable lists it.
+func RatingChannelsOf(rating stats.Stat) (RatingChannels, bool) {
+	for _, channels := range RatingChannelTable {
+		if channels.Rating == rating {
+			return channels, true
+		}
+	}
+	return RatingChannels{}, false
 }
 
 // The melee and spell percent of each channel table rating with back-end percent Stats. The ranged Stat
@@ -745,10 +767,10 @@ var RatingChannelTable = []RatingChannels{
 func channelConversions() []RatingConversion {
 	var conversions []RatingConversion
 	for _, channels := range RatingChannelTable {
-		if channels.Melee.Percent != nil {
+		if channels.HasPercentStats {
 			conversions = append(conversions,
-				RatingConversion{channels.Rating, channels.Melee.Percent.Stat, channels.RatingPerPercent, 0},
-				RatingConversion{channels.Rating, channels.Spell.Percent.Stat, channels.RatingPerPercent, 0})
+				RatingConversion{channels.Rating, channels.PhysicalPercent, channels.RatingPerPercent, 0},
+				RatingConversion{channels.Rating, channels.SpellPercent, channels.RatingPerPercent, 0})
 		}
 	}
 	return conversions

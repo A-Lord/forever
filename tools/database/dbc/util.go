@@ -170,30 +170,8 @@ func processEnchantmentEffects(
 				continue
 			}
 			AddEquipSpellStats(outStats, outPseudoStats, effectArgs[i])
-			spellEffects := dbcInstance.SpellEffects[effectArgs[i]]
-			for _, spellEffect := range spellEffects {
-				points := spellEffect.EffectBasePoints + spellEffect.EffectDieSides
-
-				if spellEffect.EffectMiscValues[0] == -1 &&
-					spellEffect.EffectType == dbcenums.E_APPLY_AURA &&
-					spellEffect.EffectAura == dbcenums.A_MOD_STAT {
-					// Apply bonus to all stats
-					outStats[proto.Stat_StatAgility] += float64(points)
-					outStats[proto.Stat_StatIntellect] += float64(points)
-					outStats[proto.Stat_StatSpirit] += float64(points)
-					outStats[proto.Stat_StatStamina] += float64(points)
-					outStats[proto.Stat_StatStrength] += float64(points)
-					continue
-				}
-				if spellEffect.EffectType == dbcenums.E_APPLY_AURA && spellEffect.EffectAura == dbcenums.A_MOD_STAT {
-					stat, ok := MapMainStatToStat(spellEffect.EffectMiscValues[0])
-					if !ok {
-						continue
-					}
-					outStats[stat] += float64(points)
-				} else {
-					addEquipAuraStat(outStats, spellEffect, float64(points))
-				}
+			for _, spellEffect := range dbcInstance.SpellEffects[effectArgs[i]] {
+				addEquipEffectStat(outStats, spellEffect, spellEffect.EffectBasePoints+spellEffect.EffectDieSides)
 			}
 		case ITEM_ENCHANTMENT_COMBAT_SPELL:
 			// Not processed (chance on hit, ignore for now)
@@ -201,6 +179,24 @@ func processEnchantmentEffects(
 			// Not processed
 		}
 	}
+}
+
+// Adds the stat one effect of an equip spell gives to out, value points of it: a main stat aura's
+// stat, or all five main stats for a misc value of -1, and otherwise the stat addEquipAuraStat adds.
+func addEquipEffectStat(out *stats.Stats, effect SpellEffect, value float64) {
+	if effect.EffectType == dbcenums.E_APPLY_AURA && effect.EffectAura == dbcenums.A_MOD_STAT {
+		if effect.EffectMiscValues[0] == -1 {
+			out[proto.Stat_StatAgility] += value
+			out[proto.Stat_StatIntellect] += value
+			out[proto.Stat_StatSpirit] += value
+			out[proto.Stat_StatStamina] += value
+			out[proto.Stat_StatStrength] += value
+		} else if stat, ok := MapMainStatToStat(effect.EffectMiscValues[0]); ok {
+			out[stat] += value
+		}
+		return
+	}
+	addEquipAuraStat(out, effect, value)
 }
 
 const SkillLineDefense = 95
@@ -288,19 +284,12 @@ func addEquipAuraStat(out *stats.Stats, effect SpellEffect, value float64) bool 
 	return true
 }
 
-// The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points. A
-// mask with any other bit names a rating stat instead, and grants none of these.
+// The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points.
 func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64 {
-	if !spelldata.RangedBitsOnly(int32(mask)) {
-		return nil
-	}
-
 	percents := map[proto.PseudoStat]float64{}
 	for _, scoped := range spelldata.ScopedRatingPercents(int32(mask), rating) {
-		for _, channels := range core.RatingChannelTable {
-			if channels.Rating == scoped.Stat {
-				percents[channels.Ranged.PseudoStat] = scoped.Percent
-			}
+		if channels, ok := core.RatingChannelsOf(scoped.Stat); ok {
+			percents[channels.Ranged] = scoped.Percent
 		}
 	}
 	return percents
@@ -311,14 +300,8 @@ func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64
 // A_MOD_SKILL 7 on the Defense skill line and A_MOD_BLOCK_VALUE_FLAT 15 - and to pseudoStats, indexed by
 // proto.PseudoStat and skipped where nil, the percents for hit, crit, block, dodge, parry and attack and
 // cast speed. Only auras on the wearer count: Atiesh's 28142 is a party aura and reaches the sim as a
-// raid buff. A spell EquipSpellFolds leaves to run time adds nothing.
-//
-// A FoldRanged hit or crit aura gives its hit and crit to ranged attacks alone, written as the total
-// the character sheet shows, melee share included, which stats.FromPseudoStatsProto takes back out. So
-// 22780 (Biznicks 247x128 Accurascope, hit restricted to bows, guns and crossbows) is ranged hit alone,
-// and 1310308 (SAF-T Ultra Precision Scope, the all-crit aura under the same restriction) is ranged
-// crit alone, with no spell crit. A FoldRanged combat rating is the ranged percent that rating
-// converts to.
+// raid buff. A spell EquipSpellFolds leaves to run time adds nothing. A FoldRanged effect adds to the
+// ranged percents alone, as the total the character sheet shows.
 func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID int) (addedStats bool, addedPseudoStats bool) {
 	if !EquipSpellFolds(spellID) {
 		return false, false
@@ -474,7 +457,7 @@ func ConvertModRatingFlagToRatingStat(flag int) proto.Stat {
 	if len(ratings) == 1 {
 		return proto.Stat(ratings[0])
 	}
-	if len(ratings) > 1 || (flag != 0 && !spelldata.RangedBitsOnly(int32(flag))) {
+	if flag != 0 && !spelldata.RangedBitsOnly(int32(flag)) {
 		println("UNHANDLED RATING FLAG: " + strconv.Itoa(flag))
 	}
 	return -1

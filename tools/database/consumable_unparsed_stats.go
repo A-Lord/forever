@@ -62,18 +62,18 @@ func AddUnparsedStats(db *WowDatabase) error {
 		// listed at the rating of the larger of the two, once. A consumable granting one of them is listed
 		// by that channel's pseudo stats: physical as melee and ranged, spell as spell.
 		for _, r := range core.RatingChannelTable {
-			if r.Melee.Percent == nil {
+			if !r.HasPercentStats {
 				continue
 			}
-			physical, spell := percents[r.Melee.Percent.Stat], percents[r.Spell.Percent.Stat]
+			physical, spell := percents[r.PhysicalPercent], percents[r.SpellPercent]
 			switch {
 			case physical > 0 && spell > 0:
 				granted[r.Rating] += max(physical, spell) * r.RatingPerPercent
 			case physical > 0:
-				pseudoStats[r.Melee.PseudoStat] += physical
-				pseudoStats[r.Ranged.PseudoStat] += physical
+				pseudoStats[r.Melee] += physical
+				pseudoStats[r.Ranged] += physical
 			case spell > 0:
-				pseudoStats[r.Spell.PseudoStat] += spell
+				pseudoStats[r.Spell] += spell
 			}
 		}
 		if allCrit != 0 {
