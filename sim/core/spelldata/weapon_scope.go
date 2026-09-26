@@ -85,6 +85,33 @@ func ScopedRatingPercents(mask int32, v float64) []RatingPercent {
 	return out
 }
 
+// Whether an A_MOD_RATING effect's ratings reach ranged attacks alone under WeaponScope: a row bound
+// to ranged weapons, or a mask of ranged bits alone.
+func RangedRating(s *Spell, e *Effect) bool {
+	if e.Aura != dbcenums.A_MOD_RATING {
+		return false
+	}
+	_, scope := WeaponScope(s, e)
+	return scope.ProcMask == core.ProcMaskRanged
+}
+
+// The hit, crit and haste percents a RangedRating effect gives ranged attacks, v points of each rating
+// its mask names. A melee or spell bit names the rating the ranged bit does, so each rating counts
+// once. Nil for any other effect.
+func RangedRatingPercents(s *Spell, e *Effect, v float64) []RatingPercent {
+	if !RangedRating(s, e) {
+		return nil
+	}
+	var out []RatingPercent
+	for _, rating := range ScopedRatingPercents(e.Misc, v) {
+		switch rating.Stat {
+		case stats.HitRating, stats.CritRating, stats.HasteRating:
+			out = append(out, rating)
+		}
+	}
+	return out
+}
+
 func weaponRequirement(scope core.SpellModConfig) core.EquipRequirement {
 	return core.EquipRequirement{SubclassMask: scope.EquipSubclass, InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand}
 }

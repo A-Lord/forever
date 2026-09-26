@@ -172,6 +172,9 @@ func processEnchantmentEffects(
 			AddEquipSpellStats(outStats, outPseudoStats, effectArgs[i])
 			spellEffects := dbcInstance.SpellEffects[effectArgs[i]]
 			for _, spellEffect := range spellEffects {
+				if rangedRatingEffect(effectArgs[i], spellEffect) {
+					continue
+				}
 				points := spellEffect.EffectBasePoints + spellEffect.EffectDieSides
 
 				if spellEffect.EffectMiscValues[0] == -1 &&
@@ -240,16 +243,35 @@ func EquipSpellFolds(spellID int) bool {
 	return true
 }
 
-// The ranged offset percents a combat rating mask of ranged bits alone grants, from rating points. A
-// mask with any other bit names a rating stat instead, and grants none of these.
-func RangedRatingPercents(mask int, rating float64) map[proto.PseudoStat]float64 {
-	if mask == 0 || mask&^dbcenums.RATING_MOD_MASK_RANGED != 0 {
+// The spelldata row of an equip spell and its effect with the client's EffectIndex, nil where the
+// store carries none.
+func spellDataEffect(spellID int, effect SpellEffect) (*spelldata.Spell, *spelldata.Effect) {
+	s := spelldata.Find(int32(spellID))
+	for i := range s.Effects {
+		if int(s.Effects[i].Index) == effect.EffectIndex {
+			return s, &s.Effects[i]
+		}
+	}
+	return s, nil
+}
+
+// Whether an equip spell's effect is a spelldata.RangedRating one, which folds as the ranged offset
+// percents rangedRatingPercents gives and never as a rating stat.
+func rangedRatingEffect(spellID int, effect SpellEffect) bool {
+	s, e := spellDataEffect(spellID, effect)
+	return e != nil && spelldata.RangedRating(s, e)
+}
+
+// The ranged offset percents an equip spell's effect grants from rating points, as
+// spelldata.RangedRatingPercents reads it.
+func rangedRatingPercents(spellID int, effect SpellEffect, rating float64) map[proto.PseudoStat]float64 {
+	s, e := spellDataEffect(spellID, effect)
+	if e == nil {
 		return nil
 	}
-
 	percents := map[proto.PseudoStat]float64{}
-	for _, scoped := range spelldata.ScopedRatingPercents(int32(mask), rating) {
-		percents[rangedPercentStats[scoped.Stat]] = scoped.Percent
+	for _, ranged := range spelldata.RangedRatingPercents(s, e, rating) {
+		percents[rangedPercentStats[ranged.Stat]] = ranged.Percent
 	}
 	return percents
 }
@@ -271,8 +293,9 @@ var rangedPercentStats = map[stats.Stat]proto.PseudoStat{
 // total the character sheet shows, melee share included, which stats.FromPseudoStatsProto takes back
 // out. So 22780 (Biznicks 247x128 Accurascope, hit restricted to bows, guns and crossbows) is ranged
 // hit alone, and 1310308 (SAF-T Ultra Precision Scope, the all-crit aura under the same restriction) is
-// ranged crit alone, with no spell crit. A combat rating of ranged bits alone is the ranged percent
-// that rating converts to.
+// ranged crit alone, with no spell crit. A combat rating that reaches ranged attacks alone, by a mask of
+// ranged bits alone or by a ranged weapon requirement, is the ranged percent each hit, crit or haste
+// rating it names converts to, and no rating stat.
 func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID int) (addedStats bool, addedPseudoStats bool) {
 	if !EquipSpellFolds(spellID) {
 		return false, false
@@ -334,7 +357,7 @@ func AddEquipSpellStats(outStats *stats.Stats, pseudoStats []float64, spellID in
 		case dbcenums.A_MOD_PARRY_PERCENT:
 			add(proto.PseudoStat_PseudoStatParryPercent, value)
 		case dbcenums.A_MOD_RATING:
-			for pseudoStat, percent := range RangedRatingPercents(effect.EffectMiscValues[0], value) {
+			for pseudoStat, percent := range rangedRatingPercents(spellID, effect, value) {
 				add(pseudoStat, percent)
 			}
 		}
