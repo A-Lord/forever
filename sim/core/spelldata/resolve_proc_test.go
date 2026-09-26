@@ -1,6 +1,7 @@
 package spelldata
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -343,5 +344,46 @@ func TestClassSpellFamilies(t *testing.T) {
 
 	if len(core.ClassSpellFamilies) != 9 {
 		t.Errorf("the table holds %d classes, and this client has 9", len(core.ClassSpellFamilies))
+	}
+}
+
+// A trigger carries its row's own class flags, which is what a SPELLMOD_CHANCE_OF_SUCCESS names:
+// Improved Poisons 14113 raises the 20% Instant Poison 8680 rolls by 10 points, and Moonkin Form
+// 24858 doubles the chance of Omen of Clarity 16864 while the form is up.
+func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
+	withGeneratedStore(t)
+
+	rogue := parseCharacter(&proto.Player{Class: proto.Class_ClassRogue, Spec: &proto.Player_Rogue{Rogue: &proto.Rogue{}}})
+	instantPoison := MustFind(8680)
+	trigger := ProcTrigger(rogue, instantPoison, noopHandler, WeaponProc())
+	if trigger.ProcClassFlags != instantPoison.ClassFlags {
+		t.Fatalf("the trigger's own class flags = %v, want the row's %v", trigger.ProcClassFlags, instantPoison.ClassFlags)
+	}
+	if got := rogue.ModifiedProcChance(trigger.ProcClassFlags, trigger.ProcChance); got != 0.2 {
+		t.Errorf("Instant Poison's chance before the talent: %v, want 0.2", got)
+	}
+
+	parsed := ParseStatic(rogue, MustFind(14113))
+	if kinds := appliedKinds(parsed); len(kinds) == 0 || kinds[0] != "SpellMod_ProcChance_Flat" {
+		t.Fatalf("Improved Poisons attached %v, want the proc chance mod first", kinds)
+	}
+	if got := rogue.ModifiedProcChance(trigger.ProcClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
+		t.Errorf("Instant Poison's chance with the talent: %v, want 0.3", got)
+	}
+
+	sim := &core.Simulation{}
+	druid := parseCharacter(&proto.Player{Class: proto.Class_ClassDruid, Spec: &proto.Player_BalanceDruid{BalanceDruid: &proto.BalanceDruid{}}})
+	moonkin := MustFind(24858)
+	form := druid.RegisterAura(AuraConfig(moonkin))
+	ParseEffects(druid, form, moonkin, Effects(5))
+	omen := MustFind(16864).ClassFlags
+
+	form.Activate(sim)
+	if got := druid.ModifiedProcChance(omen, 0.1); math.Abs(got-0.2) > 1e-9 {
+		t.Errorf("Omen of Clarity's chance in Moonkin Form: %v, want 0.2", got)
+	}
+	form.Deactivate(sim)
+	if got := druid.ModifiedProcChance(omen, 0.1); got != 0.1 {
+		t.Errorf("Omen of Clarity's chance out of the form: %v, want 0.1", got)
 	}
 }

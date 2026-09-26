@@ -468,6 +468,7 @@ func TestEveryTableRow(t *testing.T) {
 		{flat, int32(dbcenums.SPELLMOD_RESIST_MISS_CHANCE), 3, "SpellMod_BonusHit_Percent", 3, false},
 		{flat, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -500, "SpellMod_GlobalCooldown_Flat", -500, false},
 		{flat, int32(dbcenums.SPELLMOD_ACTIVATION_TIME), -500, "SpellMod_DotTickLength_Flat", -500, false},
+		{flat, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS), 10, "SpellMod_ProcChance_Flat", 10, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT1), 20, "effect1-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT2), 20, "effect2-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT3), 20, "effect3-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
@@ -481,6 +482,7 @@ func TestEveryTableRow(t *testing.T) {
 		{pct, int32(dbcenums.SPELLMOD_COST), -20, "SpellMod_PowerCost_Pct_Add", -0.2, false},
 		{pct, int32(dbcenums.SPELLMOD_CRIT_DAMAGE_BONUS), 20, "SpellMod_CritMultiplier_Flat", 0.2, false},
 		{pct, int32(dbcenums.SPELLMOD_DOT), 10, "SpellMod_DotDamageDone_Pct", 0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS), 100, "SpellMod_ProcChance_Pct", 1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT1), 10, "effect1-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT2), 10, "effect2-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT3), 10, "effect3-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
@@ -542,6 +544,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},
 		{dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, 32, 58, "mob-type-stat SpellDamage", 58, true},
 		{dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1, "damage-dealt-versus", 1.01, false},
+		{dbcenums.A_MOD_CRIT_PERCENT_VERSUS, 64, 3, "crit-damage-versus", 1.03, false},
+		{dbcenums.A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT, 0, 9, "armor-ignore", 0.09, false},
 	}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases

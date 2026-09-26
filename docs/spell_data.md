@@ -345,8 +345,8 @@ spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents
 ```
 
 `ParseStatic` applies now and never comes off, which is what a talent or a class passive is. A bonus
-against a creature type lives on the attack tables, which exist once the environment is finalized, so
-the static path puts it there from a post-finalize effect.
+against a creature type and the share of armor the unit ignores live on the attack tables, which exist
+once the environment is finalized, so the static path puts them there from a post-finalize effect.
 `ParseEffects(character, aura, row, opts...)` makes the same attachments follow an aura: they turn on
 when it is gained, off when it expires, and scale with its stacks where the row states
 `CumulativeAura`.
@@ -402,6 +402,10 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
+| crit damage dealt against a creature type                           | `CritMultiplier` of each masked table                 | `1 + value/100`                                                        |
+| the share of armor ignored                                          | `ArmorIgnoreFactor` of each attack table, a fraction  | the value over 100                                                     |
+| a flat proc chance modifier                                         | percentage points on the trigger's chance             | the value                                                              |
+| a percentage proc chance modifier                                   | a fraction: the chance times one plus it              | the value over 100                                                     |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
@@ -468,6 +472,14 @@ name and action id, the `Callback`, `ProcMask`, `Outcome` and `RequireDamageDeal
 out of `ProcTypeMask`, the internal cooldown, `CanProcFromProcs` and `ClassSpellsOnly` from the
 attributes, the class mask the proc effect names, and the rate the source above points at. A row that
 is a weapon proc aura also excludes the hits of spells flagged Suppress Weapon Procs.
+
+The row's own class flags go on the trigger as `ProcClassFlags`, which is what a
+`SPELLMOD_CHANCE_OF_SUCCESS` names: the rows its class mask reaches are the proc auras and the poison
+spells themselves, not the spells that feed them. Improved Poisons 14113 names Instant Poison 8680, so
+the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. The trigger reads the unit's
+active `SpellMod_ProcChance_Flat` and `SpellMod_ProcChance_Pct` mods when it rolls, the flat points first
+and the percentage on the sum, on the chance it states and on a manager's alike. A trigger built by hand
+leaves `ProcClassFlags` empty and no mod reaches it.
 
 |                 |                                                                                                                                                             |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

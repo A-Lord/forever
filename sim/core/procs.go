@@ -32,6 +32,22 @@ func (dpm *DynamicProcManager) Proc(sim *Simulation, procMask ProcMask, label st
 	return false
 }
 
+// Proc, for a trigger with these class flags of its own: the unit's proc chance mods that name them
+// change the chance the manager states for the mask. With none active the manager rolls on its own.
+func (dpm *DynamicProcManager) procFor(sim *Simulation, procMask ProcMask, label string, unit *Unit, flags ClassFlags) bool {
+	if flat, pct := unit.procChanceBonus(flags); flat == 0 && pct == 0 {
+		return dpm.Proc(sim, procMask, label)
+	}
+
+	for i, m := range dpm.procMasks {
+		if m.Matches(procMask) {
+			return sim.Proc(unit.ModifiedProcChance(flags, dpm.procChances[i].Chance(sim)), label)
+		}
+	}
+
+	return false
+}
+
 func (dpm *DynamicProcManager) Chance(procMask ProcMask, sim *Simulation) float64 {
 	for i, m := range dpm.procMasks {
 		if m.Matches(procMask) {

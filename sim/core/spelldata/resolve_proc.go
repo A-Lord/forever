@@ -15,7 +15,8 @@ type ProcOpt func(*core.Character, *core.ProcTrigger)
 // hears (ProcTypeMask through the decoder, with the row's tooltip hint), how often it fires, its
 // internal cooldown and the attribute-driven gates. The caller adds what the row does not carry -
 // the name and action the sim keys the effect by, the buff the handler applies - to the returned
-// value before handing it to MakeProcTriggerAura.
+// value before handing it to MakeProcTriggerAura. The row's own class flags go on the trigger too,
+// so a SPELLMOD_CHANCE_OF_SUCCESS that names the row reaches its roll.
 //
 // ProcCharges is not a property of the trigger: it is how many times the buff acts before it drops,
 // which AuraConfig reads as the aura's MaxStacks.
@@ -36,6 +37,7 @@ func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, 
 		CanProcFromProcs:   s.CanProcFromProcs(),
 		ClassSpellsOnly:    s.ClassSpellsOnly(),
 		ClassFlags:         procClassFlags(character, s),
+		ProcClassFlags:     s.ClassFlags,
 		Handler:            handler,
 	}
 

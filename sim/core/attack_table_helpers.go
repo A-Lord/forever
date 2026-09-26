@@ -32,6 +32,16 @@ func (unit *Unit) MultiplyDamageVersus(mult float64, crit bool, mobTypes ...prot
 	}
 }
 
+// Multiplies the crit damage the unit deals to every defender of the mob types on top of the damage
+// multiplier; 1/mult takes it back off.
+func (unit *Unit) MultiplyCritDamageVersus(mult float64, mobTypes ...proto.MobType) {
+	for _, at := range unit.AttackTables {
+		if slices.Contains(mobTypes, at.Defender.MobType) {
+			at.CritMultiplier *= mult
+		}
+	}
+}
+
 // Adds to the share of every defender's armor the unit's attacks ignore; a negative delta takes it away.
 func (unit *Unit) AddArmorIgnoreFactor(delta float64) {
 	for _, at := range unit.AttackTables {

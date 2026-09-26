@@ -5,6 +5,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -161,11 +162,13 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.AttackPower, v)
 	},
 
-	// A stat, or the damage dealt, against the creature types the misc value masks.
+	// A stat, the damage dealt or the crit damage dealt, against the creature types the misc value
+	// masks.
 	dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS:  mobTypeStatRow,
 	dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS: mobTypeStatRow,
 	dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS:   mobTypeStatRow,
 	dbcenums.A_MOD_DAMAGE_DONE_VERSUS:         damageVersusRow,
+	dbcenums.A_MOD_CRIT_PERCENT_VERSUS:        critDamageVersusRow,
 
 	dbcenums.A_MOD_RANGED_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.RangedAttackPower, v)
@@ -290,6 +293,16 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}, v/100)
 	},
 
+	// The share of every defender's armor the unit's attacks ignore, which the sim keeps on the attack
+	// tables as a fraction.
+	dbcenums.A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		a := additive("armor-ignore", v/100, p.onAttackTables(func(_ *core.Simulation, delta float64) {
+			p.unit.AddArmorIgnoreFactor(delta)
+		}))
+		a.key = "ArmorIgnoreFactor"
+		return a
+	},
+
 	// The client states expertise as the percent it takes off dodge and parry.
 	dbcenums.A_MOD_EXPERTISE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.ExpertisePercent, v)
@@ -346,6 +359,11 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_RANGE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_Range_Flat", p.modConfig(e, core.SpellMod_Range_Flat), v)
 	},
+	// The chance of the procs the class mask names, in percentage points: the rows the mask names are
+	// the proc auras themselves, and a trigger built from one rolls at the raised chance.
+	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_ProcChance_Flat", p.modConfig(e, core.SpellMod_ProcChance_Flat), v)
+	},
 	dbcenums.SPELLMOD_EFFECT1: flatEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: flatEffectAmount,
 	dbcenums.SPELLMOD_EFFECT3: flatEffectAmount,
@@ -377,6 +395,9 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	},
 	dbcenums.SPELLMOD_DURATION: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_DotBaseDuration_Pct", p.modConfig(e, core.SpellMod_DotBaseDuration_Pct), v)
+	},
+	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_ProcChance_Pct", p.modConfig(e, core.SpellMod_ProcChance_Pct), v)
 	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
@@ -543,9 +564,22 @@ func mobTypeStatRow(p *parser, e *Effect, v float64) *attachment {
 }
 
 // A multiplier on the damage the unit deals to the mob types a creature type mask names, which the
-// sim keeps on the attack tables. Whether a second stack multiplies again is not stated, so a
-// stacking row is skipped.
+// sim keeps on the attack tables.
 func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
+	return p.versusMultiplier("damage-dealt-versus", "DamageDealtVersus", e, v, func(mult float64, mobTypes ...proto.MobType) {
+		p.unit.MultiplyDamageVersus(mult, false, mobTypes...)
+	})
+}
+
+// A multiplier on the crit damage the unit deals to the mob types a creature type mask names, on
+// top of the damage multiplier: a crit against them deals that share more than it would.
+func critDamageVersusRow(p *parser, e *Effect, v float64) *attachment {
+	return p.versusMultiplier("crit-damage-versus", "CritDamageVersus", e, v, p.unit.MultiplyCritDamageVersus)
+}
+
+// A multiplier against the mob types a creature type mask names, on the attack tables. Whether a
+// second stack multiplies again is not stated, so a stacking row is skipped.
+func (p *parser) versusMultiplier(kind string, key string, e *Effect, v float64, multiply func(mult float64, mobTypes ...proto.MobType)) *attachment {
 	mobTypes := MobTypes(e.Misc)
 	mult := percentMultiplier(v)
 	if p.stacking || len(mobTypes) == 0 || mult <= 0 {
@@ -554,14 +588,13 @@ func damageVersusRow(p *parser, e *Effect, v float64) *attachment {
 
 	toggle := p.onAttackTables(func(_ *core.Simulation, level float64) {
 		if level > 0 {
-			p.unit.MultiplyDamageVersus(mult, false, mobTypes...)
+			multiply(mult, mobTypes...)
 		} else {
-			p.unit.MultiplyDamageVersus(1/mult, false, mobTypes...)
+			multiply(1/mult, mobTypes...)
 		}
 	})
 	active := false
-	a := &attachment{kind: "damage-dealt-versus", value: mult, multiplicative: true,
-		key: fmt.Sprintf("DamageDealtVersus%d", e.Misc)}
+	a := &attachment{kind: kind, value: mult, multiplicative: true, key: fmt.Sprintf("%s%d", key, e.Misc)}
 	a.set = func(sim *core.Simulation, level float64) {
 		if (level > 0) == active {
 			return

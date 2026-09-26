@@ -52,7 +52,11 @@ type ProcTrigger struct {
 	ClassSpellMask     int64
 	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
 	// both this and ClassSpellMask fires only on the spells both name.
-	ClassFlags      ClassFlags
+	ClassFlags ClassFlags
+	// The client's SpellClassMask of the proc itself, which is what a proc chance mod names: the
+	// trigger rolls at the chance Unit.ModifiedProcChance makes of its own. Empty on a trigger no
+	// mod reaches.
+	ProcClassFlags  ClassFlags
 	ClassSpellsOnly bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
 	ExtraCondition  ProcExtraCondition
 
@@ -128,6 +132,14 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 
 	handler := config.Handler
 
+	// Where a manager rolls, the proc chance mods change its chance rather than the stated one.
+	statedChance := func() float64 {
+		if dpm != nil {
+			return config.ProcChance
+		}
+		return unit.ModifiedProcChance(config.ProcClassFlags, config.ProcChance)
+	}
+
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
 		if config.TriggerImmediately {
 			handler(sim, spell, result)
@@ -168,9 +180,9 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, result) {
 			return
 		}
-		if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+		if chance := statedChance(); chance != 1 && sim.RandomFloat(config.Name) > chance {
 			return
-		} else if dpm != nil && !dpm.Proc(sim, spell.ProcMask, config.Name) {
+		} else if dpm != nil && !dpm.procFor(sim, spell.ProcMask, config.Name, unit, config.ProcClassFlags) {
 			return
 		}
 
@@ -211,7 +223,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, nil) {
 				return
 			}
-			if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+			if chance := statedChance(); chance != 1 && sim.RandomFloat(config.Name) > chance {
 				return
 			}
 
@@ -234,7 +246,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, emptyResult) {
 				return
 			}
-			if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+			if chance := statedChance(); chance != 1 && sim.RandomFloat(config.Name) > chance {
 				return
 			}
 

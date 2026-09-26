@@ -142,6 +142,10 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		OnReset:      resetFn,
 	}
 
+	if mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+		unit.procChanceMods = append(unit.procChanceMods, mod)
+	}
+
 	unit.OnSpellRegistered(func(spell *Spell) {
 		if shouldApply(spell, mod) {
 			mod.AffectedSpells = append(mod.AffectedSpells, spell)
@@ -461,6 +465,16 @@ const (
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
+
+	// Adds to the chance of the proc triggers whose own class flags the mod names, in percentage
+	// points: 10 raises a 20% chance to 30%. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcChance_Flat
+
+	// Multiplies the chance of the proc triggers whose own class flags the mod names, once the flat
+	// points are in: +100% = 1.0 doubles it. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcChance_Pct
 )
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
@@ -632,6 +646,17 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 		Apply:   applyDirectDamageDoneAdd,
 		Remove:  removeDirectDamageDoneAdd,
 		OnReset: onResetDirectDamageDoneAdd,
+	},
+
+	// A proc trigger reads these mods when it rolls, so there is nothing to write on a spell.
+	SpellMod_ProcChance_Flat: {
+		Apply:  applyNothing,
+		Remove: removeNothing,
+	},
+
+	SpellMod_ProcChance_Pct: {
+		Apply:  applyNothing,
+		Remove: removeNothing,
 	},
 }
 
@@ -1130,4 +1155,36 @@ func onResetDirectDamageDoneAdd(mod *SpellMod) {
 	for _, spell := range mod.AffectedSpells {
 		spell.DirectDamageMultiplierAdditive = math.Round(spell.DirectDamageMultiplierAdditive*10000) / 10000
 	}
+}
+
+func applyNothing(_ *SpellMod, _ *Spell) {}
+
+func removeNothing(_ *SpellMod, _ *Spell) {}
+
+// The chance a proc trigger with these class flags of its own rolls, once the unit's active proc
+// chance mods that name them are counted: the flat points are added first and the percentage
+// multiplies the sum. A trigger that states no class flags of its own is named by no mod.
+func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
+	flat, pct := unit.procChanceBonus(flags)
+	if flat == 0 && pct == 0 {
+		return chance
+	}
+	return (chance + flat/100) * (1 + pct)
+}
+
+func (unit *Unit) procChanceBonus(flags ClassFlags) (flat float64, pct float64) {
+	if flags.IsZero() {
+		return 0, 0
+	}
+	for _, mod := range unit.procChanceMods {
+		if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
+			continue
+		}
+		if mod.Kind == SpellMod_ProcChance_Flat {
+			flat += mod.floatValue
+		} else {
+			pct += mod.floatValue
+		}
+	}
+	return flat, pct
 }
