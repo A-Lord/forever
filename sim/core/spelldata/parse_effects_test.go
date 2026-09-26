@@ -542,7 +542,21 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, 32, 99, "mob-type-stat RangedAttackPower", 99, true},
 		{dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, 32, 58, "mob-type-stat SpellDamage", 58, true},
 		{dbcenums.A_MOD_DAMAGE_DONE_VERSUS, 32, 1, "damage-dealt-versus", 1.01, false},
+		{dbcenums.A_MOD_RANGED_HASTE, 0, 40, "ranged-speed", 1.4, true},
+		{dbcenums.A_MOD_MELEE_RANGED_HASTE_2, 0, 30, "attack-speed", 1.3, true},
+		{dbcenums.A_MOD_TARGET_RESISTANCE, 1, -200, "stat ArmorPenetration", 200, false},
+		{dbcenums.A_MOD_TARGET_RESISTANCE, 126, -15, "stat SpellPiercing", 15, false},
+		{dbcenums.A_MOD_TARGET_RESISTANCE, 124, 4, "stat SpellPiercing", 4, false},
+		{dbcenums.A_MOD_ARMOR_PCT_FROM_STAT, 3, 50, "stat-share Intellect>Armor", 0.5, false},
+		{dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, 126, 8, "stat-share Spirit>SpellDamage", 0.08, false},
+		{dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT, 4, 25, "stat-share Spirit>HealingPower", 0.25, false},
+		{dbcenums.A_MOD_MAX_POWER_PCT, 0, 15, "multiply-stat Mana", 1.15, false},
+		{dbcenums.A_MOD_BLOCK_VALUE_PCT, 0, 30, "block-value", 1.3, false},
+		{dbcenums.A_MOD_ATTACKER_MELEE_HIT_CHANCE, 0, -50, "physical-hit-taken", 50, false},
 	}
+
+	// The aura that names its stat in the second misc value, which its case reads as Spirit.
+	secondMisc := map[dbcenums.EffectAuraType]int32{dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT: 4}
 
 	// A row added to one of the three tables and to no case here would be invisible, so the cases
 	// are read back as the coverage they are.
@@ -577,7 +591,7 @@ func TestEveryTableRow(t *testing.T) {
 		t.Run(fmt.Sprintf("%s_misc%d", auraName(c.aura), c.misc), func(t *testing.T) {
 			character := parseWarrior()
 			row := Spell{ID: 5000, Name: "Table Row", DurationMs: 10000, ClassFlags: parseFamily,
-				Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: c.aura, Misc: c.misc,
+				Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: c.aura, Misc: c.misc, Misc2: secondMisc[c.aura],
 					BasePoints: c.points, ClassFlags: parseTargetMask}}}
 
 			var parsed *Parsed
@@ -665,6 +679,31 @@ func TestParseStaticScalesEquippedArmor(t *testing.T) {
 
 	if got := character.EquipStats()[stats.Armor]; got != 1100 {
 		t.Errorf("armor after the row: %v, want 1100", got)
+	}
+}
+
+// A share of a stat reaches the stat it names, read from whichever misc value the aura keeps its
+// stat in: the first for armor and healing, the second for spell damage, whose first is its schools.
+func TestParseStaticStatShare(t *testing.T) {
+	withRows(t, parseRows())
+
+	row := &Spell{ID: 6100, Name: "Stat Share", ClassFlags: parseFamily, Effects: []Effect{
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_PCT_FROM_STAT, Misc: 3, BasePoints: 50},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, Misc: 126, Misc2: 4,
+			BasePoints: 8},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT, Misc: 4, BasePoints: 25},
+	}}
+
+	base, parsed := parseWarrior(), parseWarrior()
+	ParseStatic(parsed, row)
+
+	source := stats.Stats{stats.Intellect: 100, stats.Spirit: 100}
+	gained := parsed.SortAndApplyStatDependencies(source).Subtract(base.SortAndApplyStatDependencies(source))
+
+	for stat, want := range map[stats.Stat]float64{stats.Armor: 50, stats.SpellDamage: 8, stats.HealingPower: 25} {
+		if got := gained[stat]; math.Abs(got-want) > 1e-9 {
+			t.Errorf("%s from 100 Intellect and 100 Spirit: %v, want %v", stat.StatName(), got, want)
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ package spelldata
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -12,6 +13,7 @@ import (
 const (
 	miscAllSchools  int32 = 127 // every school bit, which the sim states as one multiplier
 	miscMagicSchool int32 = 126 // every school but physical, which is what spell damage covers
+	miscResistances int32 = 124 // the five schools with a resistance, which is every magic school but holy
 	miscArmor       int32 = 1   // A_MOD_RESISTANCE and A_MOD_BASE_RESISTANCE_PCT state armor as school 1
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
 )
@@ -206,8 +208,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statsBuff([]stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}, v)
 	},
 
-	// The three haste auras. Each multiplies a speed the unit recomputes, so each needs the
-	// Simulation an aura's gain hands over.
+	// The haste auras. Each multiplies a speed the unit recomputes, so each needs the Simulation an
+	// aura's gain hands over. Melee and ranged speed together is the sim's attack speed.
 	dbcenums.A_MOD_CASTING_SPEED_NOT_STACK: func(p *parser, e *Effect, v float64) *attachment {
 		return p.speed("cast-speed", "CastSpeedMultiplier", (*core.Unit).MultiplyCastSpeed, speedMultiplier(v))
 	},
@@ -216,6 +218,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 	dbcenums.A_MOD_ATTACKSPEED: func(p *parser, e *Effect, v float64) *attachment {
 		return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
+	},
+	dbcenums.A_MOD_MELEE_RANGED_HASTE_2: func(p *parser, e *Effect, v float64) *attachment {
+		return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
+	},
+	dbcenums.A_MOD_RANGED_HASTE: func(p *parser, e *Effect, v float64) *attachment {
+		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, speedMultiplier(v))
 	},
 
 	// Healing. 135 is the flat bonus to healing done, 136 the multiplier on it, and 118 the
@@ -268,6 +276,55 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			return nil
 		}
 		return p.equipScaling(stats.Armor, percentMultiplier(v))
+	},
+
+	// The target's resistance the unit's attacks ignore. The sim keeps one stat for armor and one for
+	// every resistance together, so a mask of some schools and not others has none. The sign differs
+	// between rows while the tooltip states the amount pierced either way, so the amount is its size.
+	dbcenums.A_MOD_TARGET_RESISTANCE: func(p *parser, e *Effect, v float64) *attachment {
+		switch {
+		case e.Misc == miscArmor:
+			return p.statBuff(stats.ArmorPenetration, math.Abs(v))
+		case e.Misc&miscArmor == 0 && e.Misc&miscResistances == miscResistances:
+			return p.statBuff(stats.SpellPiercing, math.Abs(v))
+		}
+		return nil
+	},
+
+	// Armor, spell damage and healing worth a share of a stat. The spell damage aura names its schools
+	// in the first misc value and the stat in the second, and only the mask of every magic school has a
+	// stat to land on.
+	dbcenums.A_MOD_ARMOR_PCT_FROM_STAT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.statShare(clientStatList(e.Misc), stats.Armor, v/100)
+	},
+	dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc != miscMagicSchool {
+			return nil
+		}
+		return p.statShare(clientStatList(e.Misc2), stats.SpellDamage, v/100)
+	},
+	dbcenums.A_MOD_SPELL_HEALING_OF_STAT_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.statShare(clientStatList(e.Misc), stats.HealingPower, v/100)
+	},
+
+	dbcenums.A_MOD_MAX_POWER_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc != int32(dbcenums.POWER_MANA) {
+			return nil
+		}
+		return p.statMultiplier([]stats.Stat{stats.Mana}, percentMultiplier(v))
+	},
+
+	dbcenums.A_MOD_BLOCK_VALUE_PCT: func(p *parser, e *Effect, v float64) *attachment {
+		return p.pseudoMultiplier("block-value", "BlockValueMultiplier",
+			[]*float64{&p.unit.PseudoStats.BlockValueMultiplier}, percentMultiplier(v))
+	},
+
+	// The chance to be hit by melee, which the sim keeps in percentage points as a reduction that
+	// ranged attacks read too. The ranged aura has no field of its own, and a row stating both would
+	// count the one field twice.
+	dbcenums.A_MOD_ATTACKER_MELEE_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
+		return p.pseudoAdd("physical-hit-taken", "ReducedPhysicalHitTakenChance",
+			&p.unit.PseudoStats.ReducedPhysicalHitTakenChance, -v)
 	},
 
 	// Avoidance, in percentage points.
@@ -644,23 +701,74 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 			return
 		}
 		active = level > 0
-		if sim == nil || len(p.unit.OnTemporaryStatsChanges) == 0 {
+		p.announceStats(sim, func() {
 			for _, part := range a.parts {
 				part.set(sim, level)
 			}
-			return
-		}
-
-		before := p.unit.GetStats()
-		for _, part := range a.parts {
-			part.set(sim, level)
-		}
-		change := p.unit.GetStats().Subtract(before)
-		for _, onChange := range p.unit.OnTemporaryStatsChanges {
-			onChange(sim, p.aura, change)
-		}
+		})
 	}
 	return a
+}
+
+// A share of each source stat added to another stat, which the sim states as a dependency and skips
+// the way it skips a multiplier: on a stacking row, and on the static path under a condition.
+func (p *parser) statShare(sources []stats.Stat, stat stats.Stat, share float64) *attachment {
+	if len(sources) == 0 || p.stacking || (p.static && p.conditional) {
+		return nil
+	}
+
+	a := &attachment{kind: "stat-share " + statNames(sources) + ">" + stat.StatName(), value: share,
+		stats: []stats.Stat{stat}}
+
+	if p.static {
+		applied := false
+		a.set = func(_ *core.Simulation, level float64) {
+			if level <= 0 || applied {
+				return
+			}
+			applied = true
+			for _, source := range sources {
+				p.unit.AddStatDependency(source, stat, share)
+			}
+		}
+		return a
+	}
+
+	var deps []func(sim *core.Simulation, level float64)
+	if !p.dry {
+		for _, source := range sources {
+			deps = append(deps, p.statDependency(p.unit.NewDynamicStatDependency(source, stat, share)))
+		}
+	}
+	active := false
+	a.set = func(sim *core.Simulation, level float64) {
+		if (level > 0) == active {
+			return
+		}
+		active = level > 0
+		p.announceStats(sim, func() {
+			for _, dep := range deps {
+				dep(sim, level)
+			}
+		})
+	}
+	return a
+}
+
+// Runs a change to the unit's stats and hands the unit's temporary stats listeners the difference it
+// made, measured at that moment.
+func (p *parser) announceStats(sim *core.Simulation, change func()) {
+	if sim == nil || len(p.unit.OnTemporaryStatsChanges) == 0 {
+		change()
+		return
+	}
+
+	before := p.unit.GetStats()
+	change()
+	delta := p.unit.GetStats().Subtract(before)
+	for _, onChange := range p.unit.OnTemporaryStatsChanges {
+		onChange(sim, p.aura, delta)
+	}
 }
 
 func (p *parser) statDependency(dep *stats.StatDependency) func(sim *core.Simulation, level float64) {

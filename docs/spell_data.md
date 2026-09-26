@@ -337,8 +337,9 @@ therefore never names an outcome itself.
 
 A talent, a passive and a buff are all the same thing to the client: an aura whose `E_APPLY_AURA`
 effects say what it does. The parse walks those effects and attaches each to the sim - a `SpellMod`
-for the two modifier auras, a stat buff, a stat multiplier, a pseudo-stat multiplier or one of the
-speed multipliers - so a port writes which row it is reading rather than what the row contains.
+for the two modifier auras, a stat buff, a stat multiplier, a share of one stat added to another, a
+pseudo-stat multiplier or one of the speed multipliers - so a port writes which row it is reading
+rather than what the row contains.
 
 ```go
 spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents.Cruelty))
@@ -358,8 +359,8 @@ what the client means by an unmasked class modifier.
 
 **Call `ParseEffects` before the aura activates.** It attaches through `ApplyOnGain` and
 `ApplyOnExpire`. An aura already up when the parse runs is caught up the way core's `Attach` helpers
-catch one up, with one exception: the rows that need a `Simulation` to act - the cast, melee and attack
-speed multipliers - stay off until the aura is applied again.
+catch one up, with one exception: the rows that need a `Simulation` to act - the cast, melee, ranged and
+attack speed multipliers - stay off until the aura is applied again.
 
 **An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
 names, because the mod is attached to the aura and not to each spell pointing at it.
@@ -400,9 +401,12 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
 | ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
+| `PseudoStats.ReducedPhysicalHitTakenChance`                         | percentage points                                     | the value with its sign turned                                         |
+| ArmorPenetration, SpellPiercing                                     | flat points of the target's armor or resistance       | the value's size, whichever sign the row states it with                |
 | AttackPower, RangedAttackPower, SpellDamage against a creature type | flat power on each attack table's `MobTypeBonusStats` | the value, for each mob type the misc value's creature type mask names |
 | damage dealt against a creature type                                | `DamageDealtMultiplier` of each masked table          | `1 + value/100`                                                        |
 | every pseudo-stat multiplier and stat dependency                    | a multiplier near 1                                   | `1 + value/100`                                                        |
+| armor, spell damage or healing worth a share of a stat              | a stat dependency's ratio                             | the value over 100                                                     |
 
 Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
 share already divided by 100, so the client's integer 5 is 0.05 there and a row handed over unconverted
@@ -429,12 +433,12 @@ Rows the table does know are skipped by the shape of the parse. A value the sim 
 per unit cannot be applied once per stack, and the static path has no aura to follow and no
 `Simulation` to answer a later `Refresh` with:
 
-|                                     | skips                                                                                                                       |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| a stacking aura (`MaxStack` > 0)    | the stat multipliers, the equipment scaling, the pseudo-stat multipliers, the speed multipliers and the cooldown multiplier |
-| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                                |
-| `ParseStatic` with `Conditional`    | the stat multipliers and the equipment scaling as well                                                                      |
-| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                        |
+|                                     | skips                                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| a stacking aura (`MaxStack` > 0)    | the stat multipliers and shares, the equipment scaling, the pseudo-stat and speed multipliers and the cooldown multiplier |
+| `ParseStatic`                       | the speed multipliers, which need the `Simulation` an aura's gain hands over                                              |
+| `ParseStatic` with `Conditional`    | the stat multipliers and shares and the equipment scaling as well                                                         |
+| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                      |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.
