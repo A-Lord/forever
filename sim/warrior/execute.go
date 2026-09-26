@@ -19,7 +19,6 @@ func (warrior *Warrior) registerExecute() {
 	var rageMetrics *core.ResourceMetrics
 
 	config := spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.ClassSpellMask = SpellMaskExecute
 
 	// TODO: Manual review needed -- the client states no threat coefficient; 1 until measured in game.
 	config.ThreatMultiplier = 1
