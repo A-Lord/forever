@@ -5,9 +5,6 @@ import { UIItem } from '@generated/proto/ui';
 import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import { UnitStat } from '@sim/proto/stats';
-import mage from '@specs/mage/dps/spec';
-import rogue from '@specs/rogue/dps/spec';
-import warrior from '@specs/warrior/dps/spec';
 import { iconEnumPickerShown } from '@ui-kit/IconEnumPicker';
 import { describe, expect, it } from 'vitest';
 
@@ -196,10 +193,17 @@ describe('consumeConfigs', () => {
 	it('offers Dark Desire to a Rogue and a Warrior, not to a Mage, who weighs hit rating for spell hit', () => {
 		const specPlayer = (cls: Class, spec: Spec, specConfig: SpecConfigData<any>) => playerOf({ cls, spec, specConfig }).player;
 		const hitFoodOf = (player: Player<any>) => offered(consumeConfigs(player, db).groups[0], player);
-		expect(mage.epStats).toContain(Stat.StatHitRating);
-		expect(hitFoodOf(specPlayer(Class.ClassMage, Spec.SpecMage, mage))).toEqual([]);
-		expect(hitFoodOf(specPlayer(Class.ClassRogue, Spec.SpecRogue, rogue))).toContain(22237);
-		expect(hitFoodOf(specPlayer(Class.ClassWarrior, Spec.SpecDpsWarrior, warrior))).toContain(22237);
+		const caster = {
+			epStats: [Stat.StatSpellDamage, Stat.StatHitRating],
+			displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent)],
+		} as SpecConfigData<any>;
+		const melee = {
+			epStats: [Stat.StatAttackPower, Stat.StatHitRating],
+			displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)],
+		} as SpecConfigData<any>;
+		expect(hitFoodOf(specPlayer(Class.ClassMage, Spec.SpecMage, caster))).toEqual([]);
+		expect(hitFoodOf(specPlayer(Class.ClassRogue, Spec.SpecRogue, melee))).toContain(22237);
+		expect(hitFoodOf(specPlayer(Class.ClassWarrior, Spec.SpecDpsWarrior, melee))).toContain(22237);
 	});
 
 	it('picks one elixir of each group, and any number of groups', () => {

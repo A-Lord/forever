@@ -5,9 +5,9 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import {
+	consumablePseudoStatsOf,
 	ConsumableSlot,
 	consumableSlot,
-	consumablePseudoStatsOf,
 	consumableStatsOf,
 	explosiveUsedBeside,
 	handTakesImbue,

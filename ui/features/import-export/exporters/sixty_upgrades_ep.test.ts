@@ -16,7 +16,11 @@ describe('SIXTY_UPGRADES_EP_EXPORTER', () => {
 
 	it('scales rating weights to per-percent weights', () => {
 		const url = exportFor(
-			new Stats().withStat(Stat.StatHitRating, 2.5).withStat(Stat.StatCritRating, 1).withStat(Stat.StatHasteRating, 0.4).withStat(Stat.StatBlockRating, 0.2),
+			new Stats()
+				.withStat(Stat.StatHitRating, 2.5)
+				.withStat(Stat.StatCritRating, 1)
+				.withStat(Stat.StatHasteRating, 0.4)
+				.withStat(Stat.StatBlockRating, 0.2),
 		);
 		expect(url).toContain('&hit=25.000');
 		expect(url).toContain('&crit=14.000');

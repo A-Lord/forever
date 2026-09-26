@@ -292,7 +292,5 @@ export function relevantConsumableIds(
 	const pseudoStats = consumablePseudoStatsOf(user.getSpecConfig());
 	return highestRanks(
 		consumables.filter(consumable => consumableSlot(consumable) === slot && isConsumableRelevant(consumable, user, db, stats, pseudoStats)),
-	).map(
-		consumable => consumable.id,
-	);
+	).map(consumable => consumable.id);
 }
