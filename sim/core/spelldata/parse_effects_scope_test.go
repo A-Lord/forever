@@ -364,6 +364,24 @@ func TestParseRangedOnlyHasteRatingIsRangedSpeed(t *testing.T) {
 	r.checkSpeeds(t, "aura down", base, 1, 1)
 }
 
+// Every ranged bit on an aura: the hit and crit mods and the ranged speed, as one attachment.
+func TestParseRangedOnlyRatingsOnAnAura(t *testing.T) {
+	row := &Spell{ID: 6104, Name: "Ranged Ratings",
+		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RATING, Misc: 64 | 512 | 262144, BasePoints: 20,
+			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}
+	r := parseScopedWith(t, row, core.WeaponTestSlots(core.WeaponTestSwordID, core.WeaponTestDaggerID, core.WeaponTestBowID), nil, true)
+	want := []string{"SpellMod_BonusHit_Percent+SpellMod_BonusCrit_Percent+ranged-speed"}
+	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, want) {
+		t.Errorf("attached %v, want %v", kinds, want)
+	}
+	base := r.speeds()
+
+	r.aura.Activate(r.sim)
+	r.check(t, bonusHit, 0, 0, 20/core.HitRatingPerHitPercent, 0)
+	r.check(t, bonusCrit, 0, 0, 20/core.CritRatingPerCritPercent, 0)
+	r.checkSpeeds(t, "aura up", base, 1, 1+20/core.HasteRatingPerHastePercent/100)
+}
+
 // Melee haste rating bound to melee weapons is melee speed while one is equipped: off with the bow
 // alone, on once the sword is swapped in, and off again after swapping back.
 func TestParseWeaponScopedHasteRatingFollowsTheMeleeWeapon(t *testing.T) {
