@@ -443,7 +443,11 @@ func TestParseStaticDurationModOnASharedAura(t *testing.T) {
 // haste rows run through ParseEffects, since the speeds they multiply need the Simulation an aura's
 // gain hands over.
 func TestEveryTableRow(t *testing.T) {
-	withRows(t, parseRows())
+	// The caster's proc a proc chance row's class mask has to name.
+	withRows(t, append(parseRows(), Spell{ID: 1500, Name: "Caster Proc", ProcChance: 10,
+		ProcFlags: [2]uint32{0: 0x14}, ClassFlags: parseTargetMask,
+		Effects: []Effect{{SpellID: 1500, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY,
+			Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}}}}))
 
 	const (
 		flat = dbcenums.A_ADD_FLAT_MODIFIER

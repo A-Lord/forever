@@ -387,3 +387,43 @@ func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 		t.Errorf("Omen of Clarity's chance out of the form: %v, want 0.1", got)
 	}
 }
+
+// Frenzy 19621 names a pet proc no row of the store states and Improved Judgement of Light 23564 a
+// trigger on the target, so both are skipped with the reason; Improved Poisons 14113 still attaches.
+func TestAProcChanceModNamingNoRollOfTheCasterIsSkipped(t *testing.T) {
+	withGeneratedStore(t)
+
+	for _, row := range []struct {
+		id     int32
+		reason string
+	}{
+		{19621, "proc chance for a proc no row in the store states"},
+		{23564, "proc chance for a target-side trigger"},
+	} {
+		parsed := DryRun(MustFind(row.id))
+		if len(parsed.Applied) != 0 || len(parsed.Skipped) != 1 {
+			t.Errorf("%d attached %v and skipped %d, want the proc chance effect skipped",
+				row.id, appliedKinds(parsed), len(parsed.Skipped))
+			continue
+		}
+		if got := parsed.Skipped[0].Reason; got != row.reason {
+			t.Errorf("%d skipped for %q, want %q", row.id, got, row.reason)
+		}
+	}
+
+	paladin := parseCharacter(&proto.Player{Class: proto.Class_ClassPaladin, Spec: &proto.Player_RetributionPaladin{RetributionPaladin: &proto.RetributionPaladin{}}})
+	ParseStatic(paladin, MustFind(23564))
+	if got := paladin.ModifiedProcChance(MustFind(20185).ClassFlags, 0.5); got != 0.5 {
+		t.Errorf("Judgement of Light's chance with the skipped talent: %v, want 0.5", got)
+	}
+
+	if kinds := appliedKinds(DryRun(MustFind(14113))); len(kinds) == 0 || kinds[0] != "SpellMod_ProcChance_Flat" {
+		t.Fatalf("Improved Poisons attached %v, want the proc chance mod first", kinds)
+	}
+	rogue := parseCharacter(&proto.Player{Class: proto.Class_ClassRogue, Spec: &proto.Player_Rogue{Rogue: &proto.Rogue{}}})
+	trigger := ProcTrigger(rogue, MustFind(8680), noopHandler, WeaponProc())
+	ParseStatic(rogue, MustFind(14113))
+	if got := rogue.ModifiedProcChance(trigger.SelfClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
+		t.Errorf("Instant Poison's chance with Improved Poisons: %v, want 0.3", got)
+	}
+}

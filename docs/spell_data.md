@@ -487,7 +487,10 @@ and the percentage on the sum: on the manager's chance where a hit rolls one, on
 otherwise. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A trigger built by
 hand leaves `SelfClassFlags` empty and no talent reaches it, so a class porting its poisons builds them
 with `spelldata.ProcTrigger` and does not also add the talent's chance by hand, which would count it
-twice.
+twice. A proc chance row whose class mask names no store row that states a proc and keeps its auras on
+the caster is skipped with the reason in `Skipped`, since no trigger on the caster carries those flags:
+Improved Judgement of Light 23564 names a trigger on the target and Frenzy 19621 a proc the store does
+not carry.
 
 |                 |                                                                                                                                                             |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

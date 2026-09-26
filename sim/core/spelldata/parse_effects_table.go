@@ -80,10 +80,16 @@ type attachment struct {
 
 	// The stats the attachment adds to or multiplies.
 	stats []stats.Stat
+
+	skipReason string
+}
+
+func skipped(reason string) *attachment {
+	return &attachment{skipReason: reason}
 }
 
 // What the parser does with one effect, by the aura it applies. A row answers nil for an effect it
-// cannot take, which sends the effect to Skipped and to the report.
+// cannot take, or skipped with the reason, which sends the effect to Skipped and to the report.
 type row func(p *parser, e *Effect, v float64) *attachment
 
 // The auras the parser knows, keyed the way the client files them. A_ADD_FLAT_MODIFIER and
@@ -362,7 +368,7 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 	// The chance of the procs the class mask names, in percentage points: the rows the mask names are
 	// the proc auras themselves, and a trigger built from one rolls at the raised chance.
 	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_ProcChance_Flat", p.modConfig(e, core.SpellMod_ProcChance_Flat), v)
+		return p.procChanceMod("SpellMod_ProcChance_Flat", p.modConfig(e, core.SpellMod_ProcChance_Flat), v)
 	},
 	dbcenums.SPELLMOD_EFFECT1: flatEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: flatEffectAmount,
@@ -397,7 +403,7 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 		return p.modFloat("SpellMod_DotBaseDuration_Pct", p.modConfig(e, core.SpellMod_DotBaseDuration_Pct), v)
 	},
 	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_ProcChance_Pct", p.modConfig(e, core.SpellMod_ProcChance_Pct), v)
+		return p.procChanceMod("SpellMod_ProcChance_Pct", p.modConfig(e, core.SpellMod_ProcChance_Pct), v)
 	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
@@ -422,6 +428,36 @@ func flatEffectAmount(p *parser, e *Effect, v float64) *attachment {
 func pctEffectAmount(p *parser, e *Effect, v float64) *attachment {
 	return p.modFloat(effectAssumedKind(e.Misc, "SpellMod_DamageDone_Flat"),
 		p.modConfig(e, core.SpellMod_DamageDone_Flat), v)
+}
+
+// The mod reaches a roll only where its class mask names a row that states a proc - a proc mask, or
+// a chance below the client's 100 for "always" - and puts no aura on an enemy or a pet. A poison's
+// damage row states only its chance and applies no aura: the caster's weapon rolls it.
+func (p *parser) procChanceMod(kind string, cfg core.SpellModConfig, v float64) *attachment {
+	if cfg.ClassFlags.IsZero() {
+		return p.modFloat(kind, cfg, v)
+	}
+
+	onEnemy, onPet := false, false
+	for _, s := range All() {
+		if !cfg.ClassFlags.Matches(s.ClassFlags) ||
+			(s.ProcFlags == [2]uint32{} && (s.ProcChance == 0 || s.ProcChance >= 100)) {
+			continue
+		}
+		enemy, pet := len(EffectsOn(s, AuraOnEnemy)) > 0, len(EffectsOn(s, AuraOnPet)) > 0
+		if !enemy && !pet {
+			return p.modFloat(kind, cfg, v)
+		}
+		onEnemy, onPet = onEnemy || enemy, onPet || pet
+	}
+
+	switch {
+	case onEnemy:
+		return skipped("proc chance for a target-side trigger")
+	case onPet:
+		return skipped("proc chance for a pet proc")
+	}
+	return skipped("proc chance for a proc no row in the store states")
 }
 
 func effectAssumedKind(misc int32, kind string) string {

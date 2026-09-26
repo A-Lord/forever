@@ -164,10 +164,11 @@ type Applied struct {
 }
 
 // An aura effect the parse left out, and its position on the row, counted from 1 the way EffectN
-// counts.
+// counts. Reason says why, where the row that refused the effect states one.
 type SkippedEffect struct {
 	*Effect
 	Position int
+	Reason   string
 }
 
 // What one parse did. Skipped holds the aura effects the table does not know, which are the ones a
@@ -269,7 +270,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 
 		if e.PointsPerResource != 0 && value == 0 {
 			if !o.comboPoints {
-				parsed.skip(s, i, e)
+				parsed.skip(s, i, e, "")
 				continue
 			}
 			value = float64(e.PointsPerResource) * fullComboPoints
@@ -284,7 +285,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 
 		attached := o.row(e.Aura)
 		if attached == nil {
-			parsed.skip(s, i, e)
+			parsed.skip(s, i, e, "")
 			continue
 		}
 
@@ -296,7 +297,11 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		}
 		a := attached(p, e, value)
 		if a == nil {
-			parsed.skip(s, i, e)
+			parsed.skip(s, i, e, "")
+			continue
+		}
+		if a.skipReason != "" {
+			parsed.skip(s, i, e, a.skipReason)
 			continue
 		}
 		scale = nil
@@ -421,10 +426,10 @@ func (p *Parsed) attached() []*attachment {
 	return out
 }
 
-func (p *Parsed) skip(s *Spell, i int, e *Effect) {
-	p.Skipped = append(p.Skipped, SkippedEffect{Effect: e, Position: i + 1})
+func (p *Parsed) skip(s *Spell, i int, e *Effect, reason string) {
+	p.Skipped = append(p.Skipped, SkippedEffect{Effect: e, Position: i + 1, Reason: reason})
 	if !p.quiet {
-		report(s, i+1, e)
+		report(s, i+1, e, reason)
 	}
 }
 
@@ -480,11 +485,19 @@ func foldedDotEffects(s *Spell, o *parseOptions) []*Effect {
 }
 
 // What a port has to wire by hand, on the console when SPELLDATA_REPORT is set.
-func report(s *Spell, pos int, e *Effect) {
+func report(s *Spell, pos int, e *Effect, reason string) {
 	if os.Getenv("SPELLDATA_REPORT") == "" {
 		return
 	}
-	fmt.Printf("spelldata: unparsed %d %s %s value %v\n", s.ID, s.Name, effectNote(pos, e), e.BasePoints)
+	fmt.Printf("spelldata: unparsed %d %s %s value %v%s\n", s.ID, s.Name, effectNote(pos, e), e.BasePoints,
+		reasonNote(reason))
+}
+
+func reasonNote(reason string) string {
+	if reason == "" {
+		return ""
+	}
+	return ": " + reason
 }
 
 func effectNote(pos int, e *Effect) string {
