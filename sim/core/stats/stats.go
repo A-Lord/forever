@@ -536,8 +536,6 @@ type PseudoStats struct {
 	FiveSecondRuleRefreshTime time.Duration // last time a spell was cast
 	SpiritRegenRateCasting    float64       // percentage of spirit regen allowed during casting
 
-	// Both of these are currently only used for innervate.
-	ForceFullSpiritRegen  bool    // If set, automatically uses full spirit regen regardless of FSR refresh time.
 	SpiritRegenMultiplier float64 // Multiplier on spirit portion of mana regen.
 
 	// If true, allows block/parry.
