@@ -23,17 +23,16 @@ type Mage struct {
 	ClearCasting       *core.Aura
 	PresenceOfMindAura *core.Aura
 	ArcanePowerAura    *core.Aura
+	HotStreakAura      *core.Aura
+	FingersOfFrostAura *core.Aura
 
 	ImprovedScorchAuras core.AuraArray
 
-	ArcaneBlast     *core.Spell
-	Ignite          *core.Spell
-	FireBlast       *core.Spell
-	FlameOrbExplode *core.Spell
-	Flamestrike     []*core.Spell
-	FlamestrikeBW   *core.Spell
-	FrostfireOrb    *core.Spell
-	Pyroblast       *core.Spell
+	ArcaneBlast *core.Spell
+	Ignite      *core.Spell
+	FireBlast   *core.Spell
+	Flamestrike []*core.Spell
+	Pyroblast   *core.Spell
 }
 
 func (mage *Mage) GetCharacter() *core.Character {
@@ -69,10 +68,6 @@ func (mage *Mage) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 }
 
 func (mage *Mage) Initialize() {
-	// ImprovedScorchAuras is filled by the port of registerScorchSpell: the
-	// client's Fire Vulnerability (22959) is A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER,
-	// so it raises the fire damage this mage deals rather than the damage the
-	// target takes, and sim/core has no aura to build it from.
 	mage.registerPassives()
 	mage.registerSpells()
 }
@@ -89,18 +84,21 @@ func (mage *Mage) registerSpells() {
 	mage.registerBlizzardSpell()
 	mage.registerConeOfColdSpell()
 	mage.registerFrostboltSpell()
+	mage.registerFrostfireBolt()
 	mage.registerEvocation()
 	mage.registerFireballSpell()
 	mage.registerFireBlastSpell()
 	mage.registerFrostNovaSpell()
 	mage.registerManaGems()
 	mage.registerScorchSpell()
+	mage.registerDefensiveSpells()
 
 	FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
 
-	//TalentSpells
+	// Talent-gated actives; each guards on its own talent field.
 	mage.registerPresenceOfMindSpell()
 	mage.registerArcanePowerSpell()
+	mage.registerIceLanceSpell()
 
 	mage.registerBlastWaveSpell()
 	mage.registerPyroblastSpell()
@@ -172,20 +170,22 @@ const (
 	MageSpellScorch
 	MageSpellManaGem
 	MageSpellCombustion
-
-	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
 	MageSpellFrostfireBolt
+	MageSpellCounterspell
+	MageSpellFireWard
+	MageSpellFrostWard
+	MageSpellManaShield
 
 	MageSpellLast
 	MageSpellsAll  = MageSpellLast<<1 - 1
-	MageSpellFrost = MageSpellFrostbolt | MageSpellBlizzard | MageSpellFrostNova | MageSpellConeOfCold | MageSpellIceLance
+	MageSpellFrost = MageSpellFrostbolt | MageSpellBlizzard | MageSpellFrostNova | MageSpellConeOfCold | MageSpellIceLance | MageSpellFrostfireBolt
 	MageSpellFire  = MageSpellFireball | MageSpellCombustion |
-		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch
+		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch | MageSpellFrostfireBolt
 	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellBlizzard |
 		MageSpellFireBlast | MageSpellFireball | MageSpellFlamestrike | MageSpellFrostbolt |
-		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch
+		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch | MageSpellFrostfireBolt
 	MageSpellInstantCast = MageSpellArcaneMissilesCast | MageSpellArcaneMissilesTick | MageSpellFireBlast | MageSpellArcaneExplosion | MageSpellPyroblastDot |
 		MageSpellCombustion | MageSpellConeOfCold | MageSpellIceLance | MageSpellManaGems | MageSpellPresenceOfMind
 	MageSpellExtraResult = MageSpellArcaneMissilesTick | MageSpellBlizzard
-	FireSpellIgnitable   = MageSpellFireball | MageSpellScorch | MageSpellPyroblast
+	FireSpellIgnitable   = MageSpellFireball | MageSpellScorch | MageSpellPyroblast | MageSpellFrostfireBolt
 )

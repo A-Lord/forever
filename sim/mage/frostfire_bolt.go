@@ -1,14 +1,32 @@
 package mage
 
-// TODO: To be implemented. Frostfire Bolt is content Forever added; the sim has never
-// modelled it, so this is a stub rather than a port.
-//
-// Spell IDs: 401502, 1237312, 1237313
-// SpellData: spellData.FrostfireBolt (3 ranks)
-// SpellMask: MageSpellFrostfireBolt
-//
-// Not wired into Initialize() yet -- wiring an unimplemented ability would panic
-// on every character of this class. Wire it when it is implemented.
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
+// Frostfire Bolt is content Forever added; ranks 401502, 1237312, 1237313.
+var frostfireBoltRank = spellData.FrostfireBolt.Highest()
+var frostfireBoltDamage = frostfireBoltRank.DamageEffect()
+
 func (mage *Mage) registerFrostfireBolt() {
-	panic("To be implemented")
+	config := spelldata.SpellConfig(&mage.Unit, frostfireBoltRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = MageSpellFrostfireBolt
+
+	config.Dot = spelldata.DotConfig(frostfireBoltRank, frostfireBoltRank.PeriodicEffect(),
+		spelldata.Label("FrostfireBoltDoT"))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := frostfireBoltDamage.Roll(sim, core.CharacterLevel)
+		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
+
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			spell.DealDamage(sim, result)
+			if result.Landed() {
+				spell.Dot(target).Apply(sim)
+			}
+		})
+	}
+
+	mage.RegisterSpell(config)
 }

@@ -1,5 +1,11 @@
 package mage
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
 func (mage *Mage) registerArcaneTalents() {
 	// Tier 1
 	mage.registerWandSpecialization()
@@ -15,7 +21,8 @@ func (mage *Mage) registerArcaneTalents() {
 	// Tier 3
 	mage.registerArcaneGeometry()
 	mage.registerArcaneImpact()
-	mage.registerArcaneBlastTalent()
+	// Arcane Blast implemented in arcane_blast.go and arcane_charge.go, gated on the
+	// talent there.
 
 	// Tier 4
 	mage.registerArcaneShielding()
@@ -36,272 +43,204 @@ func (mage *Mage) registerArcaneTalents() {
 	// from registerSpells (its own Talents.ArcanePower guard is inside that file).
 }
 
-// registerWandSpecialization implements Wand Specialization, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Wand Specialization (6057) raises damage done with a wand equipped. The sim gives a mage
+// no wand attack to raise, so the talent does nothing here; parsing its
+// A_MOD_DAMAGE_PERCENT_DONE row statically would wrongly raise every spell school instead.
 func (mage *Mage) registerWandSpecialization() {
 	if mage.Talents.WandSpecialization == 0 {
 		return
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneFocus() {
 	if mage.Talents.ArcaneFocus == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneFocus == 0 {
-	// 	return
-	// }
-	//
-	// mage.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexArcane] += spellData.ArcaneFocus.ValueAt(mage.Talents.ArcaneFocus)
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneFocus.Rank(mage.Talents.ArcaneFocus))
 }
 
-// registerImprovedChanneling implements Improved Channeling, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Improved Channeling (11237) reduces pushback while channeling, which the sim does not model.
 func (mage *Mage) registerImprovedChanneling() {
 	if mage.Talents.ImprovedChanneling == 0 {
 		return
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneSubtlety() {
 	if mage.Talents.ArcaneSubtlety == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneSubtlety == 0 {
-	// 	return
-	// }
-	//
-	// //all spells resist 5 & arcance spells threat 20% per rank
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	School:     core.SpellSchoolArcane,
-	// 	FloatValue: -.20 * float64(mage.Talents.ArcaneSubtlety),
-	// 	Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	// })
+	rank := spellData.ArcaneSubtlety.Rank(mage.Talents.ArcaneSubtlety)
+
+	// Effect 2 is A_MOD_TARGET_RESISTANCE, spell penetration the parse table does not carry.
+	spelldata.ParseStatic(&mage.Character, rank, spelldata.SkipEffects(2))
+	mage.AddStat(stats.SpellPiercing, -rank.EffectN(2).BaseValue())
 }
 
-// registerMagicAbsorption implements Magic Absorption, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Magic Absorption's first effect is a dummy restoring mana on a full resist, which the sim's
+// targets never cause; only the resistances apply.
 func (mage *Mage) registerMagicAbsorption() {
 	if mage.Talents.MagicAbsorption == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&mage.Character, spellData.MagicAbsorption.Rank(mage.Talents.MagicAbsorption),
+		spelldata.SkipEffects(1))
 }
 
-// TODO: To be implemented. TBC body below already accounts for Forever dropping Arcane Potency (bonusCrit pinned to 0, per the TODO inside); kept commented until this class's port is reviewed.
+var clearcastingBuff = spellData.Clearcasting.Highest()
+
 func (mage *Mage) registerArcaneConcentration() {
 	if mage.Talents.ArcaneConcentration == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneConcentration == 0 {
-	// 	return
-	// }
-	//
-	// // TODO: Forever drops Arcane Potency; the Clearcasting crit bonus it fed is pinned to
-	// // 0 until we know whether the effect moved onto another talent.
-	// bonusCrit := 0.0
-	// var proccedAt time.Duration
-	// var proccedSpell *core.Spell
-	//
-	// mage.ClearCasting = mage.RegisterAura(core.Aura{
-	// 	Label:    "Clearcasting",
-	// 	ActionID: core.ActionID{SpellID: 12536},
-	// 	Duration: time.Second * 15,
-	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// 		mage.AddStatDynamic(sim, stats.SpellCritRating, bonusCrit)
-	// 		aura.Unit.PseudoStats.SpellCostPercentModifier -= 100
-	// 	},
-	// 	OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// 		mage.AddStatDynamic(sim, stats.SpellCritRating, -bonusCrit)
-	// 		aura.Unit.PseudoStats.SpellCostPercentModifier += 100
-	// 	},
-	// 	OnCastComplete: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-	// 		if spell.ClassSpellMask&MageSpellsAllDamaging == 0 {
-	// 			return
-	// 		}
-	//
-	// 		if spell.DefaultCast.Cost == 0 {
-	// 			return
-	// 		}
-	//
-	// 		if proccedAt == sim.CurrentTime && proccedSpell == spell {
-	// 			// Means this is another hit from the same cast that procced CC.
-	// 			return
-	// 		}
-	//
-	// 		aura.Deactivate(sim)
-	// 	},
-	// })
-	//
-	// mage.RegisterAura(core.Aura{
-	// 	Label:    "Arcane Concentration",
-	// 	Duration: core.NeverExpires,
-	// 	OnReset: func(aura *core.Aura, sim *core.Simulation) {
-	// 		aura.Activate(sim)
-	// 	},
-	// 	OnSpellHitDealt: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		if spell.ClassSpellMask&MageSpellsAllDamaging == 0 {
-	// 			return
-	// 		}
-	//
-	// 		if !result.Landed() {
-	// 			return
-	// 		}
-	//
-	// 		// Forever states a flat SpellAuraOptions.ProcChance of 100 on the talent spell and puts the
-	// 		// real per-rank chance on the effect, so ProcChanceAt would read 100% at every rank.
-	// 		procChance := spellData.ArcaneConcentration.FractionAt(mage.Talents.ArcaneConcentration)
-	// 		if sim.Proc(procChance, "Arcane Concentration") {
-	// 			proccedAt = sim.CurrentTime
-	// 			proccedSpell = spell
-	// 			mage.ClearCasting.Activate(sim)
-	// 		}
-	// 	},
-	// })
+	// Clearcasting (12536): the row's one charge and its -100% cost modifier, masked to
+	// the spells the client names.
+	mage.ClearCasting = mage.RegisterAura(spelldata.AuraConfig(clearcastingBuff))
+	spelldata.ParseEffects(&mage.Character, mage.ClearCasting, clearcastingBuff)
+
+	mage.ClearCasting.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if spell.ClassSpellMask&MageSpellsAllDamaging == 0 {
+			return
+		}
+		if spell.DefaultCast.Cost == 0 {
+			return
+		}
+		aura.Deactivate(sim)
+	}
+
+	trigger := spelldata.ProcTrigger(&mage.Character,
+		spellData.ArcaneConcentration.Rank(mage.Talents.ArcaneConcentration),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			mage.ClearCasting.Activate(sim)
+		})
+	trigger.Name = "Arcane Concentration"
+	// The row's proc flags hear every ability; the tooltip means damage spells.
+	trigger.ClassSpellMask = MageSpellsAllDamaging
+	mage.MakeProcTriggerAura(trigger)
 }
 
-// registerArcaneResilience implements Arcane Resilience, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Arcane Resilience (28574) is A_MOD_ARMOR_PCT_FROM_STAT: armor raised by a share of
+// intellect, which the parse table does not carry.
 func (mage *Mage) registerArcaneResilience() {
 	if mage.Talents.ArcaneResilience == 0 {
 		return
 	}
+
+	mage.AddStatDependency(stats.Intellect, stats.Armor,
+		spellData.ArcaneResilience.FractionAt(mage.Talents.ArcaneResilience))
 }
 
-// registerArcaneGeometry implements Arcane Geometry, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (mage *Mage) registerArcaneGeometry() {
 	if mage.Talents.ArcaneGeometry == 0 {
 		return
 	}
+
+	// A range modifier; the sim ignores range but the mod is the row's own.
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneGeometry.Rank(mage.Talents.ArcaneGeometry))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneImpact() {
 	if mage.Talents.ArcaneImpact == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneImpact == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellArcaneBlast | MageSpellArcaneExplosion,
-	// 	FloatValue: spellData.ArcaneImpact.ValueAt(mage.Talents.ArcaneImpact),
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneImpact.Rank(mage.Talents.ArcaneImpact))
 }
 
-// registerArcaneBlastTalent implements the Forever talent gate for Arcane Blast.
-//
-// TODO: Forever makes Arcane Blast a talent; the baseline registration in
-// arcane_blast.go (registerArcaneBlastSpell, called unconditionally from
-// registerSpells) is untouched and should be gated on this field.
-func (mage *Mage) registerArcaneBlastTalent() {
-	if !mage.Talents.ArcaneBlast {
-		return
-	}
-}
-
-// registerArcaneShielding implements Arcane Shielding, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (mage *Mage) registerArcaneShielding() {
 	if mage.Talents.ArcaneShielding == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneShielding.Rank(mage.Talents.ArcaneShielding))
 }
 
-// registerImprovedCounterspell implements Improved Counterspell, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Improved Counterspell (11255) is a dummy the client scripts (silence on interrupt), which
+// does nothing to a raid boss.
 func (mage *Mage) registerImprovedCounterspell() {
 	if mage.Talents.ImprovedCounterspell == 0 {
 		return
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneMeditation() {
 	if mage.Talents.ArcaneMeditation == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneMeditation == 0 {
-	// 	return
-	// }
-	//
-	// mage.PseudoStats.SpiritRegenRateCasting += float64(mage.Talents.ArcaneMeditation) * 0.1
-	// mage.UpdateManaRegenRates()
+	// A_MOD_MANA_REGEN_INTERRUPT, which the parse table does not carry.
+	mage.PseudoStats.SpiritRegenRateCasting += spellData.ArcaneMeditation.FractionAt(mage.Talents.ArcaneMeditation)
+	mage.UpdateManaRegenRates()
 }
 
-// registerMissileBarrage implements Missile Barrage, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+var missileBarrageRank = spellData.MissileBarrage.Highest()
+var missileBarrageBuff = spellData.MissileBarrageTriggered.Highest()
+
 func (mage *Mage) registerMissileBarrage() {
 	if !mage.Talents.MissileBarrage {
 		return
 	}
+
+	// 400589 halves the next Arcane Missiles: the tick period drops by its effect 2
+	// (-500ms, so the same five missiles fire twice as fast) and effect 3 empties the cost.
+	// Effect 1's -50% duration is what the shorter channel adds up to, so only the period
+	// and the cost are attached.
+	tickTimeMod := mage.AddDynamicMod(core.SpellModConfig{
+		ClassMask: MageSpellArcaneMissilesCast,
+		Kind:      core.SpellMod_DotTickLength_Flat,
+		TimeValue: missileBarrageBuff.EffectN(2).TimeValue(),
+	})
+	costMod := mage.AddDynamicMod(core.SpellModConfig{
+		ClassMask:  MageSpellArcaneMissilesCast,
+		Kind:       core.SpellMod_PowerCost_Pct_Add,
+		FloatValue: missileBarrageBuff.EffectN(3).Percent(),
+	})
+
+	aura := mage.RegisterAura(spelldata.AuraConfig(missileBarrageBuff))
+	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		tickTimeMod.Activate()
+		costMod.Activate()
+	})
+	aura.ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
+		tickTimeMod.Deactivate()
+		costMod.Deactivate()
+	})
+	aura.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if spell.ClassSpellMask == MageSpellArcaneMissilesCast {
+			aura.Deactivate(sim)
+		}
+	}
+
+	trigger := spelldata.ProcTrigger(&mage.Character, missileBarrageRank,
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			aura.Activate(sim)
+		})
+	trigger.Name = "Missile Barrage - Trigger"
+	// The row's proc hint names one ability; the tooltip names Arcane Blast.
+	trigger.ClassSpellMask = MageSpellArcaneBlast
+	mage.MakeProcTriggerAura(trigger)
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneMind() {
 	if mage.Talents.ArcaneMind == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneMind == 0 {
-	// 	return
-	// }
-	//
-	// mage.MultiplyStat(stats.Intellect, 1+(float64(mage.Talents.ArcaneMind)*.03))
+	// Effect 1 is +intellect% (A_MOD_TOTAL_STAT_PERCENTAGE, stat mask 8), effect 2 the
+	// crit damage bonus on the spells the mask names.
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneMind.Rank(mage.Talents.ArcaneMind))
 }
 
-// TODO: To be implemented. TBC body below only applies the damage-done half, per the TODO inside about Forever's restated crit aura; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneInstability() {
 	if mage.Talents.ArcaneInstability == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ArcaneInstability == 0 {
-	// 	return
-	// }
-	//
-	// // TODO: Forever restates the crit half as A_MOD_CRIT_PCT (+1% per rank) rather than the
-	// // school-crit aura, and whether that covers spells or every attack is unknown, so only
-	// // the damage-done portion below is applied.
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellsAll,
-	// 	FloatValue: spellData.ArcaneInstability.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(mage.Talents.ArcaneInstability),
-	// 	Kind:       core.SpellMod_DamageDone_Pct,
-	// })
-	//
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneInstability.Rank(mage.Talents.ArcaneInstability))
 }
 
 // ------ FIRE TALENTS ------
