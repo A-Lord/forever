@@ -45,6 +45,35 @@ func TestEnchantStats(t *testing.T) {
 	}
 }
 
+// Enchant 1483, applied to a head or legs item by Lesser Arcanum of Rumination (11622), ships: it is
+// live, no deny-list name matches it, and its equip spell 15345 states +150 mana.
+func TestLesserArcanumOfRuminationShips(t *testing.T) {
+	withDBCInputs(t)
+
+	for _, enchant := range dbc.GetDBC().Enchants {
+		if enchant.EffectId != 1483 {
+			continue
+		}
+		if !enchant.IsLive {
+			t.Errorf("%q reads not live", enchant.Name)
+		}
+		for _, pattern := range DenyListNameRegexes {
+			if pattern.MatchString(enchant.Name) {
+				t.Errorf("%q matches the deny-list name %s", enchant.Name, pattern)
+			}
+		}
+		parsed := enchant.ToProto()
+		if got, want := stats.FromProtoArray(parsed.Stats), (stats.Stats{stats.Mana: 150}); got != want {
+			t.Errorf("stats %v, want %v", got.FlatString(), want.FlatString())
+		}
+		if parsed.Type != proto.ItemType_ItemTypeHead || len(parsed.ExtraTypes) != 1 || parsed.ExtraTypes[0] != proto.ItemType_ItemTypeLegs {
+			t.Errorf("type %v, extra types %v; want head, legs", parsed.Type, parsed.ExtraTypes)
+		}
+		return
+	}
+	t.Fatal("enchant 1483 is not in the enchant inputs")
+}
+
 func TestEnchantWeaponDamage(t *testing.T) {
 	withDBCInputs(t)
 
