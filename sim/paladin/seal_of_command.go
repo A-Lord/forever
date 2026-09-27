@@ -17,11 +17,11 @@ import (
 // Unleashing this Seal's energy will judge an enemy, instantly causing Holy damage, double if the
 // target is stunned or incapacitated.
 //
-// The client states the stunned number and halves it otherwise. The judgement's damage sits on the
-// spell its own dummy names, which the family's triggered ladder carries one rank above the proc.
-// The proc spell 20424 has no rank subtext and heads that ladder: its 70% of weapon damage and the
-// 0.29 coefficient on that same effect are read from it, and 7 procs per minute is the number the
-// Classic sim carries.
+// The game files state the stunned number, and the game halves it otherwise. The judgement's damage
+// sits on the spell its own dummy names, which the family's triggered ladder carries one rank above
+// the proc. The proc spell 20424 has no rank subtext and heads that ladder: its 70% of weapon damage
+// and the 0.29 coefficient on that same effect are read from it, and 7 procs per minute is the
+// number the Classic sim carries.
 //
 // The coefficient sits on the weapon-percent effect, and the percent applies to the paladin's own
 // spell power as well as the weapon: at 27 spell power the Forever beta measured 5.5 of each proc

@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// The debuffs the raid puts on a target: the generated rows, then the one the client states in a
+// The debuffs the raid puts on a target: the generated rows, then the one the game files state in a
 // shape no manifest row can carry.
 func applyDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	applyGeneratedDebuffs(target, debuffs, raid)

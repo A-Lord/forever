@@ -12,8 +12,9 @@ const ReasonStatesNoRate = "states no rate"
 
 const ReasonPPMHearsNoWeaponHits = "a procs-per-minute rate hears no weapon hits in this mask"
 
-// What a proc the client hangs on an item, an enchant or a set bonus does not model, as one reason
-// per shape. An empty answer means the rows state enough to build the listener the client describes.
+// What a proc the game files hang on an item, an enchant or a set bonus does not model, as one reason
+// per shape. An empty answer means the rows state enough to build the listener the game files
+// describe.
 //
 // The one decision, for the generator that writes the registrations and for the sim that resolves
 // them: both read this row, so a proc the generator emits is one the sim can build, and a proc it
@@ -85,7 +86,7 @@ func itemProcUnsupported(trigger *Spell, isWeaponProc bool, isEnchant bool) []st
 	return unsupported
 }
 
-// The same for a weapon proc, where the client's 100 and 101 are no answer. Those mean "fires
+// The same for a weapon proc, where the game files' 100 and 101 are no answer. Those mean "fires
 // whenever its own condition is met", and a chance-on-hit effect has no condition: the game casts it
 // off the weapon's hit without consulting the row at all. Arcanite Champion, Annihilator and the
 // combat enchants all read 101, and every one of them is a rate the spell data does not carry.
@@ -99,7 +100,7 @@ func weaponProcRateStated(s *Spell) bool {
 
 // Whether the row states a rate the trigger can be built from at all: a roll of its own, or the
 // procs-per-minute an override wrote onto it. A row stating neither would fire on every hit, which
-// is never what the client means.
+// is never what the game files mean.
 func procRateStated(s *Spell) bool {
 	return s.RPPM > 0 || s.StatedChance() != 0
 }

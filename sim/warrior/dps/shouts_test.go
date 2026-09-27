@@ -93,7 +93,7 @@ func TestWarriorShoutsForTheTierTwoBonus(t *testing.T) {
 	bare, withSet := bidOf(false), bidOf(true)
 
 	if want := buffs.BattleShoutValue(0); bare != want {
-		t.Errorf("a warrior without the set bids %v, want the client's %v", bare, want)
+		t.Errorf("a warrior without the set bids %v, want the game files' %v", bare, want)
 	}
 	if want := bare + buffs.BattleShoutT2Bonus; withSet != want {
 		t.Errorf("a warrior wearing the set bids %v, want %v", withSet, want)

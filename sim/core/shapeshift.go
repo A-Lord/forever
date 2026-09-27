@@ -2,7 +2,7 @@ package core
 
 import "github.com/wowsims/forever/sim/core/dbcenums"
 
-// What the client requires of the caster's form and auras.
+// What the game files require of the caster's form and auras.
 type CastRequirement struct {
 	Forms, ExcludedForms          uint64 // SpellShapeshift masks, bit form-1
 	CasterForm                    bool   // castable with no form even though Forms names some

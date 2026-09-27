@@ -148,8 +148,8 @@ func goTool() string {
 }
 
 // Regenerates every spell data file, once the sim compiles against all of them - or without that
-// check when unchecked is set - and writes the client rows the store was built from beside them:
-// they are what lets the store be regenerated and checked without the client database, so they are
+// check when unchecked is set - and writes the game files rows the store was built from beside them:
+// they are what lets the store be regenerated and checked without the game files database, so they are
 // written from the same pass that wrote it and only once that pass has landed.
 func GenerateSpellDataFiles(helper *DBHelper, unchecked bool) error {
 	files, inputs, err := renderSpellDataFiles(helper)

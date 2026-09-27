@@ -15,7 +15,7 @@ import (
 // Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be
 // active at any one time.
 //
-// The seal's second effect names its judgement (the row has no effect at the client's index 1).
+// The seal's second effect names its judgement (the row has no effect at the game files' index 1).
 // Raid bosses are immune to the stun and never flee, so the seal is the aura and the judgement
 // is the debuff, nothing more. Twist of Light still names it, so replacing it leaves an Echo of
 // Justice with nothing to replay.

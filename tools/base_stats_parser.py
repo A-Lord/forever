@@ -5,9 +5,9 @@ import os
 import re
 import sqlite3
 
-# Generates sim/core/base_stats_auto_gen.go from the extracted client data.
+# Generates sim/core/base_stats_auto_gen.go from the data extracted from the game files.
 #
-# Two sources, both produced by `make db` from the Forever beta client:
+# Two sources, both produced by `make db` from the Forever beta game files:
 #
 #   tools/database/wowsims.db     PlayerExpectedStat -- base mana and the
 #                                 crit-per-agility / crit-per-intellect slopes
@@ -16,7 +16,7 @@ import sqlite3
 #
 # The per-level crit slope tables (chancetomeleecrit / chancetospellcrit) and
 # octbasempbyclass used to supply the first three quantities, but the beta
-# client does not ship those gametables -- PlayerExpectedStat replaced them,
+# game files do not ship those gametables -- PlayerExpectedStat replaced them,
 # and it disagrees: Forever retuned crit-per-agility for seven of the nine
 # classes (hunter 0.0189 where the old tables said 0.0301).
 
@@ -55,7 +55,7 @@ BASE_LEVEL = int(GoConstant("CharacterLevel"))
 BOSS_LEVEL_OFFSET = 3
 
 # ChrClasses.ID -> the proto.Class suffix. Hardcoded rather than read from the
-# client so the generated identifiers cannot silently follow a renumbering.
+# game files so the generated identifiers cannot silently follow a renumbering.
 CLASS_IDS = {
     1: "Warrior",
     2: "Paladin",
@@ -72,7 +72,7 @@ CLASSES = ["Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Shaman", "Mage", 
 
 
 # Returns {row key: {column name: value}}. Indexing by header name rather than
-# by position survives the column order changes the client makes between
+# by position survives the column order changes the game files make between
 # expansions -- the beta's SpellScaling grew Evoker/Adventurer/Traveler columns.
 def GenNameIndexedDb(file: str):
     db = {}
@@ -99,7 +99,7 @@ def GenExpectedStats(dbPath: str, level: int):
             continue
         stats[CLASS_IDS[classID]] = {
             "Mana": baseMana,
-            # The client stores these as a fraction per point (0.0005 = one
+            # The game files store these as a fraction per point (0.0005 = one
             # percent per 20 agility); the sim's stat dependencies are in
             # percent per point.
             "CritPerAgi": critPerAgi * 100,
@@ -175,7 +175,7 @@ proto.Class_ClassUnknown: {},'''
 
 
 # ui/sim/constants/mechanics.ts used to be a hand-kept copy of these numbers, and it drifted:
-# it was still converting spell hit at 8 and defense at 1.5 after the client moved both. It is
+# it was still converting spell hit at 8 and defense at 1.5 after the game files moved both. It is
 # generated from the same values as the Go file now, so the two cannot disagree.
 def GenMechanicsTsFile(cs: ClassStats):
     ratings = cs.CombatRatings[str(BASE_LEVEL)]

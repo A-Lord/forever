@@ -41,7 +41,7 @@ type sealEcho struct {
 	seal *sealConfig
 }
 
-// The seals' rows as the client states them. Seal of Command is a talent and registers from
+// The seals' rows as the game files state them. Seal of Command is a talent and registers from
 // registerTalentSpells.
 var (
 	SealOfRighteousnessRankMap = spellData.SealOfRighteousness
@@ -144,7 +144,7 @@ func (paladin *Paladin) newJudgementAuras(makeAura func(target *core.Unit) *core
 	return auras
 }
 
-// Refreshes every judgement debuff this paladin has on the target, which the client does on every
+// Refreshes every judgement debuff this paladin has on the target, which the game does on every
 // melee strike that lands.
 func (paladin *Paladin) refreshJudgements(sim *core.Simulation, target *core.Unit) {
 	for _, auras := range paladin.JudgementAuras {

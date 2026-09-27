@@ -1,7 +1,7 @@
-// Package overrides holds the numbers the spelldata store carries that the client database does
+// Package overrides holds the numbers the spelldata store carries that the game files do
 // not state. Each row names the spell, the field, the value and where the value comes from, and the
-// generator refuses to run when the client starts stating one itself - a value kept by hand after
-// the data grew a column for it is a wrong number nobody would notice.
+// generator refuses to run when the game files start stating one themselves - a value kept by hand
+// after the data grew a column for it is a wrong number nobody would notice.
 //
 // A leaf package on purpose: tools/database imports it, it imports nothing back, and the folder it
 // shares with the SQL overrides is read for *.sql alone.
@@ -23,18 +23,18 @@ const (
 	// E_THREAT_ALL effect.
 	FlatThreat
 
-	// The attack-power coefficient of the direct effect, onto Effect.APCoef. Fails when the client
-	// states a BonusCoefficientFromAP there.
+	// The attack-power coefficient of the direct effect, onto Effect.APCoef. Fails when the game files
+	// state a BonusCoefficientFromAP there.
 	APCoefDirect
 
 	// The same for the ticking effect.
 	APCoefPeriodic
 
 	// A proc chance in percent, onto Spell.ProcChance. Fails when the tooltip states a chance of
-	// its own through $h or $mN, because then the client already says where the roll is.
+	// its own through $h or $mN, because then the game files already say where the roll is.
 	ProcChancePct
 
-	// The aura's duration in milliseconds. Fails when the client states a SpellDuration.
+	// The aura's duration in milliseconds. Fails when the game files state a SpellDuration.
 	DurationMs
 
 	// The ProcHint bits the tooltip's wording did not yield, which Value carries as a bit set. It
@@ -90,7 +90,7 @@ var AreaBonuses = []AreaBonus{
 	{1293820, []int32{9326}, 2, 1, "Toy Soldier: 'This effect is doubled in Strongholds and Cities'; no companion row", "tooltip"},
 }
 
-// The item procs whose rate the client keeps outside the spell data. Their ProcChance column reads
+// The item procs whose rate the game files keep outside the spell data. Their ProcChance column reads
 // the 100 or 101 sentinel, which the store would otherwise take for "fires on every hit". Each rate is
 // a carry-over, as its Source says; none has been measured on this server.
 var Spells = []Override{

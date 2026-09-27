@@ -6,6 +6,8 @@ argument-hint: 'Describe the optimizer bug, fixture, or behavior to work on.'
 
 # WoWSims TBC Gear Optimizer Guide
 
+Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game files", not "client", no history in comments, no "golden".
+
 ## Scope
 
 - Core optimizer behavior in sim/core/reforge_optimizer (gem + socket-bonus choices; no reforging exists in TBC — the "reforge" naming is legacy from the MoP port).

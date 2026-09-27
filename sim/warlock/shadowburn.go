@@ -3,7 +3,7 @@ package warlock
 var shadowBurnRank = spellData.Shadowburn.Highest()
 var shadowBurnCoeff = shadowBurnRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Shadow Burn implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shadow Burn implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerShadowBurn() {
 	panic("To be implemented")
 

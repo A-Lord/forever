@@ -15,7 +15,7 @@ func (shaman *Shaman) registerShieldsSpells() {
 	shaman.registerShieldEffectTriggerSpell()
 }
 
-// TODO: To be implemented. Port the TBC Shield Effect Trigger Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shield Effect Trigger Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerShieldEffectTriggerSpell() {
 	panic("To be implemented")
 
@@ -93,7 +93,7 @@ func (shaman *Shaman) registerWaterShieldSpell() {
 
 var lightningShieldRank = spellData.LightningShield.Highest()
 
-// TODO: To be implemented. Port the TBC Lightning Shield Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Lightning Shield Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerLightningShieldSpell() {
 	panic("To be implemented")
 

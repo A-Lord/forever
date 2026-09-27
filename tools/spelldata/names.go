@@ -72,7 +72,7 @@ type implicitTarget struct {
 	place  bool
 }
 
-// The ImplicitTarget values the store's rows carry, under the client's own numbering. The ones this
+// The ImplicitTarget values the store's rows carry, under the game files' own numbering. The ones this
 // table leaves out read as "target N": naming a value the store carries only a handful of times, on
 // no evidence beyond its number, would put a guess where the literal already states the fact.
 var implicitTargets = map[dbcenums.ImplicitTarget]implicitTarget{
@@ -249,7 +249,7 @@ func armorRequirement(mask int32) string {
 const shieldSubclass = 6
 
 // A weapon mask, summarised where it names a whole family: the melee set and the shooting set are
-// what the client states on a stance ability and on a shot.
+// what the game files state on a stance ability and on a shot.
 func weaponRequirement(mask int32) string {
 	if covers(mask, rangedWeapons) && !overlaps(mask, meleeWeapons) {
 		return "bow, gun or crossbow"
@@ -374,7 +374,7 @@ func powerName(t dbcenums.PowerType) string {
 	return fmt.Sprintf("power %d", t)
 }
 
-// A_MOD_STAT states the stat in its misc value, and -1 is the client's "every stat".
+// A_MOD_STAT states the stat in its misc value, and -1 is the game files' "every stat".
 func statName(misc int32) string {
 	switch misc {
 	case -1:

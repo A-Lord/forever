@@ -112,7 +112,7 @@ const toggled = (toggles: ReadonlyArray<ConsumeToggle>, player: Player<any>) =>
 	toggles.filter(toggle => !toggle.showWhen || toggle.showWhen(player)).map(toggle => toggle.actionId.itemId);
 
 describe('consumeConfigs', () => {
-	it('offers the Mighty Rage Potion to a class the client allows it to', () => {
+	it('offers the Mighty Rage Potion to a class the game files allow it to', () => {
 		const warrior = playerOf().player;
 		expect(offered(consumeConfigs(warrior, db).potion, warrior)).toEqual([13442]);
 		const paladin = playerOf({ cls: Class.ClassPaladin, spec: Spec.SpecRetributionPaladin }).player;

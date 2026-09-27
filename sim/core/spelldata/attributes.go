@@ -2,7 +2,7 @@ package spelldata
 
 import "github.com/wowsims/forever/sim/core/dbcenums"
 
-// Whether the spell sets bit in Attributes[word]. A word outside the client's 17 reads as unset.
+// Whether the spell sets bit in Attributes[word]. A word outside the game files' 17 reads as unset.
 func (s *Spell) HasAttr(word int, bit uint32) bool {
 	if word < 0 || word >= len(s.Attr) {
 		return false
@@ -51,13 +51,13 @@ func (s *Spell) ClassSpellsOnly() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_12, dbcenums.ATTR_EX_12_ONLY_PROC_FROM_CLASS_ABILITIES)
 }
 
-// Whether the client bars the spell from critting, which picks the no-crit hit table.
+// Whether the game files bar the spell from critting, which picks the no-crit hit table.
 func (s *Spell) CannotCrit() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_2, dbcenums.ATTR_EX_2_CANT_CRIT)
 }
 
 // Whether the spell's hits count as a proc, which is what a listener that cannot proc from procs
-// skips. The client states the negative, so this answers it as the sim's SpellFlagProc reads.
+// skips. The game files state the negative, so this answers it as the sim's SpellFlagProc reads.
 func (s *Spell) IsAProc() bool {
 	return !s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_NOT_A_PROC)
 }
@@ -73,7 +73,7 @@ func (s *Spell) IsWeaponProcAura() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_6, dbcenums.ATTR_EX_6_AURA_IS_WEAPON_PROC)
 }
 
-// The share of the cost a miss refunds, for RageCostOptions.Refund: 80% where the client flags
+// The share of the cost a miss refunds, for RageCostOptions.Refund: 80% where the game files flag
 // Discount Power On Miss, nothing otherwise.
 func (s *Spell) MissRefund() float64 {
 	if s.RefundsOnMiss() {

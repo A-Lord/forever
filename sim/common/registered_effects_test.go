@@ -5,7 +5,7 @@
 // regeneration has to answer - what became live, and what stopped being live. A checkout without it
 // writes it on the first run.
 //
-// Needs the database: an effect registered for an item this client does not ship is skipped, so
+// Needs the database: an effect registered for an item the game files do not ship is skipped, so
 // without it the list would name items no sim can equip.
 package common_test
 

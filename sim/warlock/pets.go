@@ -159,7 +159,7 @@ func (warlock *Warlock) registerPets() {
 	warlock.Voidwalker = warlock.registerVoidWalker()
 }
 
-// TODO: To be implemented. Port the TBC Imp implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Imp implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerImp() *WarlockPet {
 	panic("To be implemented")
 
@@ -169,7 +169,7 @@ func (warlock *Warlock) registerImp() *WarlockPet {
 	// return warlock.registerImpWithName(name, enabledOnStart, false)
 }
 
-// TODO: To be implemented. Port the TBC Imp With Name implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Imp With Name implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerImpWithName(name string, enabledOnStart bool, isGuardian bool) *WarlockPet {
 	panic("To be implemented")
 
@@ -180,7 +180,7 @@ func (warlock *Warlock) registerImpWithName(name string, enabledOnStart bool, is
 	// return pet
 }
 
-// TODO: To be implemented. Port the TBC Fel Hunter implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Fel Hunter implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerFelHunter() *WarlockPet {
 	panic("To be implemented")
 
@@ -190,7 +190,7 @@ func (warlock *Warlock) registerFelHunter() *WarlockPet {
 	// return warlock.registerFelHunterWithName(name, enabledOnStart, false)
 }
 
-// TODO: To be implemented. Port the TBC Fel Hunter With Name implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Fel Hunter With Name implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerFelHunterWithName(name string, enabledOnStart bool, isGuardian bool) *WarlockPet {
 	panic("To be implemented")
 
@@ -201,7 +201,7 @@ func (warlock *Warlock) registerFelHunterWithName(name string, enabledOnStart bo
 	// return pet
 }
 
-// TODO: To be implemented. Port the TBC Void Walker implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Void Walker implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerVoidWalker() *WarlockPet {
 	panic("To be implemented")
 
@@ -211,7 +211,7 @@ func (warlock *Warlock) registerVoidWalker() *WarlockPet {
 	// return warlock.registerVoidWalkerWithName(name, enabledOnStart, false)
 }
 
-// TODO: To be implemented. Port the TBC Void Walker With Name implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Void Walker With Name implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerVoidWalkerWithName(name string, enabledOnStart bool, isGuardian bool) *WarlockPet {
 	panic("To be implemented")
 
@@ -222,7 +222,7 @@ func (warlock *Warlock) registerVoidWalkerWithName(name string, enabledOnStart b
 	// return pet
 }
 
-// TODO: To be implemented. Port the TBC Succubus implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Succubus implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerSuccubus() *WarlockPet {
 	panic("To be implemented")
 
@@ -232,7 +232,7 @@ func (warlock *Warlock) registerSuccubus() *WarlockPet {
 	// return warlock.registerSuccubusWithName(name, enabledOnStart, false)
 }
 
-// TODO: To be implemented. Port the TBC Succubus With Name implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Succubus With Name implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerSuccubusWithName(name string, enabledOnStart bool, isGuardian bool) *WarlockPet {
 	panic("To be implemented")
 
@@ -304,7 +304,7 @@ func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 var petActionFireBolt = core.ActionID{SpellID: 27267}
 
-// TODO: To be implemented. Port the TBC Firebolt Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Firebolt Spell implementation below; not yet verified against the Forever game files.
 func (pet *WarlockPet) registerFireboltSpell() {
 	panic("To be implemented")
 
@@ -343,7 +343,7 @@ func (pet *WarlockPet) registerFireboltSpell() {
 
 var petActionLashOfPain = core.ActionID{SpellID: 27274}
 
-// TODO: To be implemented. Port the TBC Lash Of Pain Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Lash Of Pain Spell implementation below; not yet verified against the Forever game files.
 func (pet *WarlockPet) registerLashOfPainSpell() {
 	panic("To be implemented")
 
@@ -382,7 +382,7 @@ func (pet *WarlockPet) registerLashOfPainSpell() {
 
 var petActionTorment = core.ActionID{SpellID: 27270}
 
-// TODO: To be implemented. Port the TBC Torment Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Torment Spell implementation below; not yet verified against the Forever game files.
 func (pet *WarlockPet) registerTormentSpell() {
 	panic("To be implemented")
 

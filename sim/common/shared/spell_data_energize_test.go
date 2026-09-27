@@ -10,7 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The client's on-use rows: ItemEffect's spell, cooldown and category.
+// The game files' on-use rows: ItemEffect's spell, cooldown and category.
 func renatakisOnUse() *proto.ItemEffect { return testOnUse(24532, 180000, 1141, 10000) } // Renataki's Charm of Trickery 19954
 func grileksOnUse() *proto.ItemEffect   { return testOnUse(24571, 180000, 1141, 10000) } // Gri'lek's Charm of Might 19951
 func robeOnUse() *proto.ItemEffect      { return testOnUse(18385, 300000, 0, 0) }        // Robe of the Archmage 14152
@@ -154,7 +154,7 @@ func TestOnUseEnergizeRestoresARoguesEnergy(t *testing.T) {
 	}
 }
 
-// Gri'lek's Charm of Might 19951 casts 24571, E_ENERGIZE 300 into rage (misc 1): the client states
+// Gri'lek's Charm of Might 19951 casts 24571, E_ENERGIZE 300 into rage (misc 1): the game files state
 // rage in tenths, and the tooltip reads 30.
 func TestOnUseEnergizeGivesAWarriorTheTooltipsRage(t *testing.T) {
 	const charmID int32 = 991303

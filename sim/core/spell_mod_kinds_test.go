@@ -99,7 +99,7 @@ func TestDurationFlatModOnSpellWithoutTargets(t *testing.T) {
 
 func TestBuffMaxStacksFlatMod(t *testing.T) {
 	spell := newDurationTargetSpell()
-	// An aura the client never gives stacks, which the mod has to leave non-stacking.
+	// An aura the game files never give stacks, which the mod has to leave non-stacking.
 	spell.RelatedAuraArrays["debuff"] = append(spell.RelatedAuraArrays["debuff"], &Aura{})
 
 	mod := newTestMod(SpellModConfig{Kind: SpellMod_BuffMaxStacks_Flat, IntValue: 2}, spell)

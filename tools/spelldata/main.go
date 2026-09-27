@@ -1,9 +1,9 @@
-// Command spelldata prints one client spell row the way the store carries it, so a bare id in
+// Command spelldata prints one game files spell row the way the store carries it, so a bare id in
 // hand-written code can be read without grepping the generated table.
 //
 // Run from the repository root:
 //
-//	go run ./tools/spelldata 11574           # the row, humanised and with the client's own literal
+//	go run ./tools/spelldata 11574           # the row, humanised, with the game files' own literal
 //	go run ./tools/spelldata Whirlwind       # every row with that name, then the highest rank
 //	go run ./tools/spelldata Rend -all       # every match in full
 //	go run ./tools/spelldata 11574 -json     # the same as JSON, for a script or an agent: see README.md
@@ -323,7 +323,7 @@ func writeExprText(out io.Writer, result *exprResult, expr, doc string) {
 	c.writeText(out)
 }
 
-// The rank a caller means out of several rows with one name: the highest one the client states, and
+// The rank a caller means out of several rows with one name: the highest one the game files state, and
 // the lowest id among rows that state no rank, which is the ability itself ahead of the item and set
 // rows that share its name.
 func highestRank(matches []*spelldata.Spell) *spelldata.Spell {

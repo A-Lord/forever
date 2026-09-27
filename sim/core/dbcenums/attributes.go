@@ -9,7 +9,7 @@ const (
 	// The spell cannot be cast while the caster is in any shapeshift form.
 	ATTR_NOT_SHAPESHIFTED uint32 = 0x10000
 
-	// The two bits the client marks a channel with. Arcane Missiles and Blizzard carry the first,
+	// The two bits the game files mark a channel with. Arcane Missiles and Blizzard carry the first,
 	// Evocation and Tranquility only the second, so a channel check has to read both.
 	ATTR_EX_1_IS_CHANNELLED      uint32 = 0x4
 	ATTR_EX_1_IS_SELF_CHANNELLED uint32 = 0x40
@@ -39,7 +39,7 @@ const (
 	ATTR_EX_6_AURA_IS_WEAPON_PROC uint32 = 0x80
 
 	// A periodic effect whose ticks roll a critical strike: Rend, Corruption, Rupture and the
-	// other bleeds and DoTs the client marks, 225 spells in this build.
+	// other bleeds and DoTs the game files mark, 225 spells in this build.
 	ATTR_EX_8_PERIODIC_CAN_CRIT uint32 = 0x200
 
 	ATTR_EX_11_SCALES_WITH_ITEM_LEVEL uint32 = 0x4

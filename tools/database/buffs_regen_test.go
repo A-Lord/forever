@@ -1,8 +1,9 @@
 package database
 
-// Re-renders the buff files from the client rows committed in assets/db_inputs/spell_store_inputs.json
-// and asserts the committed ones agree, plus the resolver invariants the rendered code cannot show.
-// No client database: the buffs render from the same capture the store does, so this runs in CI.
+// Re-renders the buff files from the game files rows committed in
+// assets/db_inputs/spell_store_inputs.json and asserts the committed ones agree, plus the resolver
+// invariants the rendered code cannot show. No game files database: the buffs render from the same
+// capture the store does, so this runs in CI.
 
 import (
 	"fmt"
@@ -70,10 +71,10 @@ func TestResolvedBuffInvariants(t *testing.T) {
 }
 
 // Every raid and individual row names the group it reaches, so each is checked two ways: that the
-// client agrees with the scope, and that it states a group at all. A party or debuff row the client
-// states nothing for is exempt, because its scope is then the sim's grouping rather than a game
-// fact: the buff Windfury's proc lands on its wielder, a debuff the client reaches by the area around
-// its caster.
+// game files agree with the scope, and that they state a group at all. A party or debuff row the
+// game files state nothing for is exempt, because its scope is then the sim's grouping rather than
+// a game fact: the buff Windfury's proc lands on its wielder, a debuff the game files reach by the
+// area around its caster.
 func TestScopeMatchesTheClientTargeting(t *testing.T) {
 	for _, row := range resolveCommittedBuffs(t) {
 		if row.SpellID == 0 {
@@ -93,14 +94,14 @@ func TestScopeMatchesTheClientTargeting(t *testing.T) {
 	}
 }
 
-// The rows whose spell the client targets somewhere else than the scope reaches,
+// The rows whose spell the game files target somewhere else than the scope reaches,
 // each with the reason the scope is still what the sim wants.
 var scopeExemptions = map[string]string{
 	"thorns": "the druid trains no raid-wide spell of the family, so the raid scope is the sim spreading the one cast 9910 states over every player",
 }
 
-// What the client says against the scope the manifest files the row under, and
-// "" when the two agree or the row is one the client may state nothing for.
+// What the game files say against the scope the manifest files the row under, and
+// "" when the two agree or the row is one the game files may state nothing for.
 func scopeComplaint(row ResolvedBuff) string {
 	scope, stated := clientScope(row)
 	switch {
@@ -115,8 +116,8 @@ func scopeComplaint(row ResolvedBuff) string {
 }
 
 // What the parse attaches for a row, by the kind it attaches as. The two auras
-// the client states as a bare A_MOD_CRIT_PCT carry no school: what they are
-// worth is the client's 3, and it lands on every kind of crit.
+// the game files state as a bare A_MOD_CRIT_PCT carry no school: what they are
+// worth is the game files' 3, and it lands on every kind of crit.
 //
 // Expose Armor states nothing on the effect itself: its -450 armor is per combo
 // point, and the raid config's debuff is the five-point finisher.

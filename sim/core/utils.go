@@ -17,7 +17,7 @@ func DurationFromSeconds(numSeconds float64) time.Duration {
 	return time.Duration(float64(time.Second) * numSeconds)
 }
 
-// A float is truncated to whole milliseconds, which is how the client's millisecond columns read.
+// A float is truncated to whole milliseconds, which is how the game files' millisecond columns read.
 func DurationFromMillis[T int32 | float64](ms T) time.Duration {
 	return time.Duration(ms) * time.Millisecond
 }

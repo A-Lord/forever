@@ -64,7 +64,7 @@ describe('consumableSlot', () => {
 });
 
 describe('isConsumableRelevant', () => {
-	it('keeps a consumable off a class, a profession or a race the client does not allow it', () => {
+	it('keeps a consumable off a class, a profession or a race the game files do not allow it', () => {
 		const mightyRage = consumable({ classAllowlist: [Class.ClassWarrior, Class.ClassDruid], stats: stats({ [Stat.StatStrength]: 60 }) });
 		expect(isConsumableRelevant(mightyRage, user(), db)).toBe(true);
 		expect(isConsumableRelevant(mightyRage, user({ cls: Class.ClassRogue }), db)).toBe(false);

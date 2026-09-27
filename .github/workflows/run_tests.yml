@@ -120,7 +120,7 @@ jobs:
               run: make sim/core/proto/api.pb.go binary_dist/dist.go
 
             # The buff manifest, the proto emitter and the buff generator's render and
-            # TS tests need no client database, and the database is not in the repo, so
+            # TS tests need no game files database, and the database is not in the repo, so
             # the tests that do need it skip. One shard runs them.
             - name: Test the buff generator
               if: matrix.shard == 0

@@ -32,7 +32,7 @@ func (shaman *Shaman) registerElementalTalents() {
 	shaman.applyLavaBurst()
 }
 
-// TODO: To be implemented. Port the TBC Call Of Flame implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Call Of Flame implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyCallOfFlame() {
 	if shaman.Talents.CallOfFlame == 0 {
 		return
@@ -49,7 +49,7 @@ func (shaman *Shaman) applyCallOfFlame() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Call Of Thunder implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Call Of Thunder implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyCallOfThunder() {
 	if !shaman.Talents.CallOfThunder {
 		return
@@ -69,7 +69,7 @@ func (shaman *Shaman) applyCallOfThunder() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Concussion implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Concussion implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyConcussion() {
 	if shaman.Talents.Concussion == 0 {
 		return
@@ -86,7 +86,7 @@ func (shaman *Shaman) applyConcussion() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Convection implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Convection implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyConvection() {
 	if shaman.Talents.Convection == 0 {
 		return
@@ -103,7 +103,7 @@ func (shaman *Shaman) applyConvection() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Elemental Devastation implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Elemental Devastation implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyElementalDevastation() {
 	if shaman.Talents.ElementalDevastation == 0 {
 		return
@@ -135,7 +135,7 @@ func (shaman *Shaman) applyElementalDevastation() {
 	//
 }
 
-// TODO: To be implemented. Port the TBC Elemental Focus implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Elemental Focus implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyElementalFocus() {
 	if !shaman.Talents.ElementalFocus {
 		return
@@ -191,7 +191,7 @@ func (shaman *Shaman) applyElementalFocus() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Elemental Fury implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Elemental Fury implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyElementalFury() {
 	if shaman.Talents.ElementalFury == 0 {
 		return
@@ -220,7 +220,7 @@ func (shaman *Shaman) applyLightningOverload() {
 	// In shaman.go -> GetOverloadChance()
 }
 
-// TODO: To be implemented. Port the TBC Reverberation implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Reverberation implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyReverberation() {
 	if shaman.Talents.Reverberation == 0 {
 		return
