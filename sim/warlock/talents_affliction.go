@@ -88,10 +88,13 @@ func (warlock *Warlock) registerAmplifyCurse() {
 	rankedSpell := spellData.AmplifyCurse.ByID(18288)
 	warlock.AmplifyCurseMultiplier = 1 + rankedSpell.EffectN(1).Percent()
 
+	// Effect 1 names the spells it amplifies, which are the ones that spend it.
+	amplified := rankedSpell.EffectN(1).ClassFlags
+
 	// TODO: Confirm that the amp is consumed on cast, regardless of hit.
 	auraConfig := spelldata.AuraConfig(rankedSpell)
 	auraConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(WarlockSpellBaneOfAgony | WarlockSpellCurseOfWeakness) {
+		if spell.MatchesFlags(amplified) {
 			aura.Deactivate(sim)
 		}
 	}
@@ -132,10 +135,12 @@ func (warlock *Warlock) applyNightfall() {
 	}
 
 	shadowTrance := spellData.NightfallTriggered.ByID(17941)
+	// Effect 1 names the spells it makes instant, which are the ones that spend it.
+	instant := shadowTrance.EffectN(1).ClassFlags
 
 	auraConfig := spelldata.AuraConfig(shadowTrance)
 	auraConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(WarlockSpellShadowBolt) && spell.CurCast.CastTime == 0 {
+		if spell.MatchesFlags(instant) && spell.CurCast.CastTime == 0 {
 			aura.Deactivate(sim)
 		}
 	}
@@ -148,7 +153,13 @@ func (warlock *Warlock) applyNightfall() {
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			warlock.NightfallProcAura.Activate(sim)
 		})
-	trigger.ClassSpellMask = WarlockSpellCorruption | WarlockSpellDrainSoul | WarlockSpellDrainLife | WarlockSpellWrack
+	// The talent row names no spells, so the triggering ones are gathered from their own rows.
+	trigger.ClassFlags = combineClassFlags(
+		spellData.Corruption.Highest().ClassFlags,
+		spellData.DrainSoul.Highest().ClassFlags,
+		spellData.DrainLife.Highest().ClassFlags,
+		spellData.Wrack.Highest().ClassFlags,
+	)
 
 	trigger.RequireDamageDealt = true
 	warlock.MakeProcTriggerAura(trigger)

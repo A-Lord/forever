@@ -31,6 +31,7 @@ type Warlock struct {
 	CurseOfElementsAuras     core.AuraArray
 	CurseOfRecklessness      *core.Spell
 	CurseOfRecklessnessAuras core.AuraArray
+	Curses                   []*core.Spell
 
 	// Banes
 	BaneOfAgony *core.Spell
@@ -66,8 +67,6 @@ type Warlock struct {
 
 	DemonicKnowledgeDep   *stats.StatDependency
 	DemonicKnowledgeBonus float64
-
-	currentActiveCurse *core.Spell
 
 	CorruptionTickBaseDamage float64
 	ImmolateTickBaseDamage   float64
@@ -180,21 +179,31 @@ func (warlock *Warlock) AfflictionCount(target *core.Unit) float64 {
 	return count
 }
 
-// Use to deactivate any other curse on the target when a new one is applied.
-// TODO: Similar logic required for Banes
-func (warlock *Warlock) DeactivateOtherCurses(sim *core.Simulation, newCurse *core.Spell, target *core.Unit) {
-	if warlock.currentActiveCurse != nil {
-		if warlock.currentActiveCurse.Dot(target) != nil {
-			warlock.currentActiveCurse.Dot(target).Deactivate(sim)
+// Only one Bane per Warlock can be active on any one target, so a Bane landing takes the others off it.
+func (warlock *Warlock) deactivateOtherBanes(sim *core.Simulation, bane *core.Spell, target *core.Unit) {
+	deactivateOthersOnTarget(sim, warlock.Banes, bane, target)
+}
+
+// Only one Curse per Warlock can be active on any one target, so a Curse landing takes the others off it.
+func (warlock *Warlock) deactivateOtherCurses(sim *core.Simulation, curse *core.Spell, target *core.Unit) {
+	deactivateOthersOnTarget(sim, warlock.Curses, curse, target)
+}
+
+// Takes every spell in the provided group off of the target, except the landing spell.
+func deactivateOthersOnTarget(sim *core.Simulation, group []*core.Spell, landing *core.Spell, target *core.Unit) {
+	for _, other := range group {
+		if other == landing {
+			continue
 		}
-		if warlock.currentActiveCurse.RelatedAuraArrays != nil {
-			for _, auraArray := range warlock.currentActiveCurse.RelatedAuraArrays {
-				auraArray.Get(target).Deactivate(sim)
+		if dot := other.Dot(target); dot != nil {
+			dot.Deactivate(sim)
+		}
+		for _, auras := range other.RelatedAuraArrays {
+			if aura := auras.Get(target); aura != nil {
+				aura.Deactivate(sim)
 			}
 		}
 	}
-
-	warlock.currentActiveCurse = newCurse
 }
 
 // Slots in a target's per-caster damage multipliers (core.EnableDamageDoneByCaster / AttachDDBC), one per
@@ -215,6 +224,22 @@ const (
 func scaleResult(sim *core.Simulation, spell *core.Spell, result *core.SpellResult, multiplier float64) {
 	result.Damage *= multiplier
 	result.Threat = spell.ThreatFromDamage(sim, result.Outcome, result.Damage, spell.Unit.AttackTables[result.Target.UnitIndex])
+}
+
+// Combines the class flags of several spells into one set, for filters the data doesn't name the spells for.
+// All of them must share a family, as a warlock's spells do.
+func combineClassFlags(flags ...core.ClassFlags) core.ClassFlags {
+	var combined core.ClassFlags
+	for _, f := range flags {
+		if combined.Family != 0 && f.Family != combined.Family {
+			panic("combineClassFlags: spells from different families")
+		}
+		combined.Family = f.Family
+		for i := range combined.Mask {
+			combined.Mask[i] |= f.Mask[i]
+		}
+	}
+	return combined
 }
 
 // Agent is a generic way to access underlying warlock on any of the agents.
