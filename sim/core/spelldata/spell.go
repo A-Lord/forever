@@ -13,8 +13,10 @@ import (
 // must not write through it.
 var nilPower = &Power{}
 
+// The client marks 51 instants - the hunter's shots and stings among them - with a negative cast
+// time, which is no cast at all.
 func (s *Spell) CastTime() time.Duration {
-	return core.DurationFromMillis(s.CastTimeMs)
+	return max(0, core.DurationFromMillis(s.CastTimeMs))
 }
 
 // SpellCooldowns.RecoveryTime. A spell gated by its category instead - Fire Blast and Cone of Cold

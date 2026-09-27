@@ -355,18 +355,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GrandMarshal'sAegis-18825"
  value: {
-  dps: 560.21183
-  tps: 863.18794
-  dtps: 3678.63174
-  hps: 16.4
- }
-}
-dps_results: {
- key: "TestProtectionWarrior-AllItems-GrandMarshal'sAegis-234588"
- value: {
-  dps: 553.16025
-  tps: 852.90392
-  dtps: 3665.59238
+  dps: 559.17056
+  tps: 861.76432
+  dtps: 3676.01852
   hps: 16.4
  }
 }
@@ -409,18 +400,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HighWarlord'sShieldWall-18826"
  value: {
-  dps: 559.26195
-  tps: 861.91055
-  dtps: 3691.8215
-  hps: 16.4
- }
-}
-dps_results: {
- key: "TestProtectionWarrior-AllItems-HighWarlord'sShieldWall-234562"
- value: {
-  dps: 553.85237
-  tps: 853.98031
-  dtps: 3648.97754
+  dps: 560.81452
+  tps: 864.11787
+  dtps: 3698.13162
   hps: 16.4
  }
 }
@@ -430,15 +412,6 @@ dps_results: {
   dps: 582.42417
   tps: 896.82035
   dtps: 3989.15847
-  hps: 16.4
- }
-}
-dps_results: {
- key: "TestProtectionWarrior-AllItems-InfernalLasso-219345"
- value: {
-  dps: 556.32985
-  tps: 857.66961
-  dtps: 3732.85191
   hps: 16.4
  }
 }

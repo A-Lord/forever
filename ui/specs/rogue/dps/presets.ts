@@ -17,7 +17,7 @@ export const DefaultOptions = RogueOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfGreaterFortitude.id],
-	foodId: Consumables.FiletOFlank.id,
+	foodId: Consumables.SwiftstrikeSteak.id,
 	potId: Consumables.MajorFrenzyPotion.id,
 	conjuredId: Consumables.ThistleTea.id,
 });

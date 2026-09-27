@@ -32,7 +32,6 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27225},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 22060, ItemName: "Beastmaster's Tunic"},
-	//	{ItemID: 226886, ItemName: "Beastmaster's Tunic"},
 	// })
 
 	// Increases damage dealt by your pet by 3%.
@@ -49,14 +48,6 @@ func RegisterAllProcs() {
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27518},
 		[]shared.ItemVariant{
 			{ItemID: 22191, ItemName: "Obsidian Mail Tunic"},
-		})
-
-	// Increases damage dealt by your pet by 3%.
-	// https://www.wowhead.com/forever/spell=27206
-	// equip: 27206 keeps 27205 up (A_MOD_DAMAGE_PERCENT_DONE)
-	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27206},
-		[]shared.ItemVariant{
-			{ItemID: 226881, ItemName: "Beastmaster's Treads"},
 		})
 
 	// Procs
@@ -604,7 +595,6 @@ func RegisterAllProcs() {
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16406, ItemName: "Knight-Lieutenant's Plate Gauntlets"},
 	//	{ItemID: 23286, ItemName: "Knight-Lieutenant's Plate Gauntlets"},
-	//	{ItemID: 227053, ItemName: "Knight-Lieutenant's Plate Gauntlets"},
 	// })
 
 	// TODO: Manual implementation required
@@ -621,7 +611,6 @@ func RegisterAllProcs() {
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16410, ItemName: "Knight-Lieutenant's Lamellar Gauntlets"},
 	//	{ItemID: 23274, ItemName: "Knight-Lieutenant's Lamellar Gauntlets"},
-	//	{ItemID: 227147, ItemName: "Knight-Lieutenant's Lamellar Gauntlets"},
 	// })
 
 	// TODO: Manual implementation required
@@ -652,7 +641,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16446, ItemName: "Marshal's Leather Footguards"},
-	//	{ItemID: 231546, ItemName: "Marshal's Leather Footguards"},
 	// })
 
 	// TODO: Manual implementation required
@@ -668,7 +656,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16471, ItemName: "Marshal's Lamellar Gloves"},
-	//	{ItemID: 231643, ItemName: "Marshal's Lamellar Gloves"},
 	// })
 
 	// TODO: Manual implementation required
@@ -684,7 +671,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16484, ItemName: "Marshal's Plate Gauntlets"},
-	//	{ItemID: 231541, ItemName: "Marshal's Plate Gauntlets"},
 	// })
 
 	// TODO: Manual implementation required
@@ -790,7 +776,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16548, ItemName: "General's Plate Gauntlets"},
-	//	{ItemID: 231532, ItemName: "General's Plate Gauntlets"},
 	// })
 
 	// TODO: Manual implementation required
@@ -806,7 +791,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16558, ItemName: "General's Leather Treads"},
-	//	{ItemID: 231552, ItemName: "General's Leather Treads"},
 	// })
 
 	// TODO: Manual implementation required
@@ -822,7 +806,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 16573, ItemName: "General's Mail Boots"},
-	//	{ItemID: 231667, ItemName: "General's Mail Boots"},
 	// })
 
 	// TODO: Manual implementation required
@@ -952,7 +935,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 17584, ItemName: "Marshal's Dreadweave Gloves"},
-	//	{ItemID: 231586, ItemName: "Marshal's Dreadweave Gloves"},
 	// })
 
 	// TODO: Manual implementation required
@@ -968,7 +950,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 17588, ItemName: "General's Dreadweave Gloves"},
-	//	{ItemID: 231589, ItemName: "General's Dreadweave Gloves"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1689,7 +1670,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22013, ItemName: "Beastmaster's Cap"},
-	//	{ItemID: 226887, ItemName: "Beastmaster's Cap"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1826,7 +1806,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22856, ItemName: "Blood Guard's Leather Walkers"},
-	//	{ItemID: 227062, ItemName: "Blood Guard's Leather Walkers"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1842,7 +1821,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22857, ItemName: "Blood Guard's Mail Greaves"},
-	//	{ItemID: 227158, ItemName: "Blood Guard's Mail Greaves"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1858,7 +1836,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22865, ItemName: "Blood Guard's Dreadweave Handwraps"},
-	//	{ItemID: 227099, ItemName: "Blood Guard's Dreadweave Handwraps"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1874,7 +1851,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22868, ItemName: "Blood Guard's Plate Gauntlets"},
-	//	{ItemID: 227050, ItemName: "Blood Guard's Plate Gauntlets"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1890,7 +1866,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22869, ItemName: "Blood Guard's Satin Handwraps"},
-	//	{ItemID: 227126, ItemName: "Blood Guard's Satin Handwraps"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1906,7 +1881,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 22870, ItemName: "Blood Guard's Silk Handwraps"},
-	//	{ItemID: 227111, ItemName: "Blood Guard's Silk Handwraps"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1952,7 +1926,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 23282, ItemName: "Knight-Lieutenant's Dreadweave Handwraps"},
-	//	{ItemID: 227100, ItemName: "Knight-Lieutenant's Dreadweave Handwraps"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1968,7 +1941,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 23285, ItemName: "Knight-Lieutenant's Leather Walkers"},
-	//	{ItemID: 227064, ItemName: "Knight-Lieutenant's Leather Walkers"},
 	// })
 
 	// TODO: Manual implementation required
@@ -1984,7 +1956,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 23288, ItemName: "Knight-Lieutenant's Satin Handwraps"},
-	//	{ItemID: 227128, ItemName: "Knight-Lieutenant's Satin Handwraps"},
 	// })
 
 	// TODO: Manual implementation required
@@ -2000,7 +1971,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 23290, ItemName: "Knight-Lieutenant's Silk Handwraps"},
-	//	{ItemID: 227113, ItemName: "Knight-Lieutenant's Silk Handwraps"},
 	// })
 
 	// TODO: Manual implementation required
@@ -2023,21 +1993,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// On landing a killing blow that grants experience or honor, your next attack will critically strike.
-	// https://www.wowhead.com/forever/spell=418509
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 208222, ItemName: "Old Guard Retaliator"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// https://www.wowhead.com/forever/spell=463001
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -2046,1736 +2001,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 208424, ItemName: "Sun Shades"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Blasts enemies in front of you with the power of wind, fire, all that kind of thing!
-	// https://www.wowhead.com/forever/spell=14537
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 211941, ItemName: "Windwalker's Yari"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the duration of Rip by 2 sec.
-	// https://www.wowhead.com/forever/spell=446212
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 220606, ItemName: "Idol of the Dream"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Minor increase to running and swimming speed. Does not stack with similar effects.
-	// https://www.wowhead.com/forever/spell=24090
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 220835, ItemName: "First Sergeant's Mail Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the speed of your Ghost Wolf ability by 15%.
-	// https://www.wowhead.com/forever/spell=22801
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 220840, ItemName: "First Sergeant's Inscribed Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the speed of your Ghost Wolf ability by 15%.
-	// https://www.wowhead.com/forever/spell=22801
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 220846, ItemName: "First Sergeant's Pulsing Greaves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// https://www.wowhead.com/forever/spell=408953
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 220915, ItemName: "Idol of the Raging Shambler"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Minor increase to running and swimming speed. Does not stack with similar effects.
-	// https://www.wowhead.com/forever/spell=24090
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 223077, ItemName: "Sergeant Major's Mail Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases your pet's critical strike chance by 2%.
-	// https://www.wowhead.com/forever/spell=27043
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 226883, ItemName: "Beastmaster's Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Multi-Shot by 4%.
-	// https://www.wowhead.com/forever/spell=459593
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227075, ItemName: "Blood Guard's Chain Vices"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Multi-Shot by 4%.
-	// https://www.wowhead.com/forever/spell=459593
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227077, ItemName: "Knight-Lieutenant's Chain Vices"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Raptor Strike by 4%.
-	// https://www.wowhead.com/forever/spell=459598
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227081, ItemName: "Blood Guard's Chain Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Raptor Strike by 4%.
-	// https://www.wowhead.com/forever/spell=459598
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227087, ItemName: "Knight-Lieutenant's Chain Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.
-	// https://www.wowhead.com/forever/spell=459600
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227114, ItemName: "Knight-Lieutenant's Silk Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.
-	// https://www.wowhead.com/forever/spell=459600
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227115, ItemName: "Blood Guard's Silk Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.
-	// https://www.wowhead.com/forever/spell=459604
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227133, ItemName: "Blood Guard's Satin Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.
-	// https://www.wowhead.com/forever/spell=459604
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227139, ItemName: "Knight-Lieutenant's Satin Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the critical strike chance of your Holy Shock by 2%.
-	// https://www.wowhead.com/forever/spell=459602
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227152, ItemName: "Knight-Lieutenant's Lamellar Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the speed of your Ghost Wolf ability by 15%.
-	// https://www.wowhead.com/forever/spell=459606
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227164, ItemName: "Blood Guard's Mail Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the speed of your Ghost Wolf ability by 15%.
-	// https://www.wowhead.com/forever/spell=459606
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227170, ItemName: "Blood Guard's Mail Boots"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the mana cost of your shapeshifts by 150.
-	// https://www.wowhead.com/forever/spell=459594
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227180, ItemName: "Blood Guard's Dragonhide Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the mana cost of your shapeshifts by 150.
-	// https://www.wowhead.com/forever/spell=459594
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227183, ItemName: "Knight-Lieutenant's Dragonhide Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.
-	// https://www.wowhead.com/forever/spell=459595
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227187, ItemName: "Blood Guard's Dragonhide Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.
-	// https://www.wowhead.com/forever/spell=459595
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227193, ItemName: "Knight-Lieutenant's Dragonhide Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the duration of your Barkskin by 3 sec.
-	// https://www.wowhead.com/forever/spell=459596
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227198, ItemName: "Knight-Lieutenant's Dragonhide Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the duration of your Barkskin by 3 sec.
-	// https://www.wowhead.com/forever/spell=459596
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227204, ItemName: "Blood Guard's Dragonhide Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// https://www.wowhead.com/forever/spell=408953
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 227444, ItemName: "Idol of the Huntress"},
-	//	{ItemID: 227444, ItemName: "Idol of the Huntress"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the critical strike chance of Lightning Bolt by 1%.
-	// https://www.wowhead.com/forever/spell=461295
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 228176, ItemName: "Totem of Thunder"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Raptor Strike by 4%.
-	// https://www.wowhead.com/forever/spell=459598
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231560, ItemName: "Marshal's Chain Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Raptor Strike by 4%.
-	// https://www.wowhead.com/forever/spell=459598
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231569, ItemName: "General's Chain Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Multi-Shot by 4%.
-	// https://www.wowhead.com/forever/spell=459593
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231575, ItemName: "General's Chain Vices"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage done by your Multi-Shot by 4%.
-	// https://www.wowhead.com/forever/spell=459593
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231578, ItemName: "Marshal's Chain Vices"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.
-	// https://www.wowhead.com/forever/spell=459600
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231599, ItemName: "General's Silk Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage absorbed by your Mana Shield by 285.
-	// https://www.wowhead.com/forever/spell=459599
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231600, ItemName: "General's Silk Handwraps"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.
-	// https://www.wowhead.com/forever/spell=459600
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231608, ItemName: "Marshal's Silk Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage absorbed by your Mana Shield by 285.
-	// https://www.wowhead.com/forever/spell=459599
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231609, ItemName: "Marshal's Silk Handwraps"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.
-	// https://www.wowhead.com/forever/spell=459604
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231613, ItemName: "General's Satin Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.
-	// https://www.wowhead.com/forever/spell=459604
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231617, ItemName: "Marshal's Satin Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the duration of your Weakened Soul by 2 sec.
-	// https://www.wowhead.com/forever/spell=459603
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231623, ItemName: "Marshal's Satin Handwraps"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the duration of your Weakened Soul by 2 sec.
-	// https://www.wowhead.com/forever/spell=459603
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231633, ItemName: "General's Satin Handwraps"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Your damaging Judgements deal 20 additional damage.
-	// https://www.wowhead.com/forever/spell=459601
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231650, ItemName: "Marshal's Lamellar Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the speed of your Ghost Wolf ability by 15%.
-	// https://www.wowhead.com/forever/spell=459606
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231656, ItemName: "General's Mail Greaves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the speed of your Ghost Wolf ability by 15%.
-	// https://www.wowhead.com/forever/spell=459606
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231661, ItemName: "General's Mail Sabatons"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the duration of your Barkskin by 3 sec.
-	// https://www.wowhead.com/forever/spell=459596
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231676, ItemName: "General's Dragonhide Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.
-	// https://www.wowhead.com/forever/spell=459595
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231677, ItemName: "General's Dragonhide Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the mana cost of your shapeshifts by 150.
-	// https://www.wowhead.com/forever/spell=459594
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231688, ItemName: "General's Dragonhide Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the mana cost of your shapeshifts by 150.
-	// https://www.wowhead.com/forever/spell=459594
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231694, ItemName: "Marshal's Dragonhide Grips"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.
-	// https://www.wowhead.com/forever/spell=459595
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231700, ItemName: "Marshal's Dragonhide Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the duration of your Barkskin by 3 sec.
-	// https://www.wowhead.com/forever/spell=459596
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 231706, ItemName: "Marshal's Dragonhide Gauntlets"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the casting speed of your spells by 2% per piece of Timeworn armor equipped.
-	// https://www.wowhead.com/forever/spell=1213398
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234016, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234017, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234017, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234018, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234019, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234020, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234021, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234021, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234022, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234023, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234024, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234025, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234026, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234026, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234027, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234028, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234029, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234030, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234030, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234031, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234032, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234033, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234034, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234034, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234035, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234198, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234198, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234199, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234199, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234200, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234200, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234201, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234201, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234202, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234202, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234436, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234437, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234438, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234439, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234440, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234964, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234965, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234966, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234967, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	//	{ItemID: 234968, ItemName: "Signet Ring of the Bronze Dragonflight"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234542, ItemName: "High Warlord's Greatsword"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234543, ItemName: "High Warlord's Battle Axe"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234545, ItemName: "High Warlord's Pulverizer"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234546, ItemName: "High Warlord's Destroyer"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234547, ItemName: "High Warlord's Pig Sticker"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234548, ItemName: "High Warlord's Pig Poker"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234549, ItemName: "High Warlord's War Staff"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234550, ItemName: "High Warlord's Spellblade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234551, ItemName: "High Warlord's Battle Mace"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234552, ItemName: "High Warlord's Blade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234553, ItemName: "High Warlord's Quickblade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234554, ItemName: "High Warlord's Cleaver"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234555, ItemName: "High Warlord's Bludgeon"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234556, ItemName: "High Warlord's Razor"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234557, ItemName: "High Warlord's Right Claw"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234558, ItemName: "High Warlord's Left Claw"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234559, ItemName: "High Warlord's Recurve"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234560, ItemName: "High Warlord's Crossbow"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234561, ItemName: "High Warlord's Street Sweeper"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234562, ItemName: "High Warlord's Shield Wall -  - "},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234563, ItemName: "High Warlord's Tome of Destruction"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234564, ItemName: "High Warlord's Tome of Mending"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234565, ItemName: "Grand Marshal's Claymore"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234566, ItemName: "Grand Marshal's Sunderer"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234567, ItemName: "Grand Marshal's Battle Hammer"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234568, ItemName: "Grand Marshal's Demolisher"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234569, ItemName: "Grand Marshal's Glaive"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234570, ItemName: "Grand Marshal's Polearm"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234571, ItemName: "Grand Marshal's Stave"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234574, ItemName: "Grand Marshal's Mageblade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234576, ItemName: "Grand Marshal's Warhammer"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234578, ItemName: "Grand Marshal's Longsword"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234579, ItemName: "Grand Marshal's Swiftblade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234580, ItemName: "Grand Marshal's Handaxe"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234581, ItemName: "Grand Marshal's Punisher"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234582, ItemName: "Grand Marshal's Dirk"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234583, ItemName: "Grand Marshal's Right Hand Blade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234584, ItemName: "Grand Marshal's Left Hand Blade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234585, ItemName: "Grand Marshal's Bullseye"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234586, ItemName: "Grand Marshal's Repeater"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234587, ItemName: "Grand Marshal's Hand Cannon"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234588, ItemName: "Grand Marshal's Aegis -  - "},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234589, ItemName: "Grand Marshal's Tome of Power"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 234590, ItemName: "Grand Marshal's Tome of Restoration"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235473, ItemName: "Grand Marshal's Barricade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235474, ItemName: "High Warlord's Barricade"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235476, ItemName: "High Warlord's Hacker"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235477, ItemName: "High Warlord's Bonecracker"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235478, ItemName: "High Warlord's Shiv"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235479, ItemName: "Grand Marshal's Shiv"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235480, ItemName: "Grand Marshal's Bonecracker"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
-	// sources.
-	// https://www.wowhead.com/forever/spell=1216997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 235481, ItemName: "Grand Marshal's Hacker"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239565, ItemName: "Garb of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239572, ItemName: "Boots of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239574, ItemName: "Hands of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239575, ItemName: "Crown of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239577, ItemName: "Pants of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 4%.
-	// https://www.wowhead.com/forever/spell=1222997
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239581, ItemName: "Mantle of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239582, ItemName: "Girdle of Revelation (Sanctified)"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases the damage dealt by your damage over time spells by 2%.
-	// https://www.wowhead.com/forever/spell=1222994
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 239583, ItemName: "Wrists of Revelation (Sanctified)"},
 	// })
 
 	// TODO: Manual implementation required
@@ -4921,7 +3146,7 @@ func RegisterAllProcs() {
 	// trigger 13959 (5%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 16782
 	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 13959, BuffSpellID: 16782},
 		[]shared.ItemVariant{
-			{ItemID: 18825, ItemName: "Grand Marshal's Aegis - "},
+			{ItemID: 18825, ItemName: "Grand Marshal's Aegis"},
 		})
 
 	// When struck in combat has a 5% chance of inflicting 50 Nature damage to the attacker.
@@ -4929,7 +3154,7 @@ func RegisterAllProcs() {
 	// trigger 13959 (5%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 16782
 	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 13959, BuffSpellID: 16782},
 		[]shared.ItemVariant{
-			{ItemID: 18826, ItemName: "High Warlord's Shield Wall - "},
+			{ItemID: 18826, ItemName: "High Warlord's Shield Wall"},
 		})
 
 	// 2% chance on successful spellcast to increase your Spirit by 150 for 15s.
@@ -4955,22 +3180,6 @@ func RegisterAllProcs() {
 	shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 25906, BuffSpellID: 25907},
 		[]shared.ItemVariant{
 			{ItemID: 21190, ItemName: "Wrath of Cenarius"},
-		})
-
-	// When struck in combat has a 20% chance of inflicting 50 Nature damage to the attacker.
-	// https://www.wowhead.com/forever/spell=16782
-	// trigger 1216968 (20%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 16782
-	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1216968, BuffSpellID: 16782},
-		[]shared.ItemVariant{
-			{ItemID: 234562, ItemName: "High Warlord's Shield Wall -  - "},
-		})
-
-	// When struck in combat has a 20% chance of inflicting 50 Nature damage to the attacker.
-	// https://www.wowhead.com/forever/spell=16782
-	// trigger 1216968 (20%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 16782
-	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1216968, BuffSpellID: 16782},
-		[]shared.ItemVariant{
-			{ItemID: 234588, ItemName: "Grand Marshal's Aegis -  - "},
 		})
 
 	// When struck in combat has a 5% chance of inflicting 50 Nature damage to the attacker.
@@ -5042,14 +3251,6 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=23217
 	// Not simulated: Knight-Lieutenant's Dragonhide Grips: "Stealth Detection 10" (23217) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=23217
-	// Not simulated: Sergeant Major's Leather Boots: "Stealth 06" (17746) - ignored aura type 154
-	// https://www.wowhead.com/forever/spell=17746
-	// Not simulated: First Sergeant's Leather Boots: "Stealth 06" (17746) - ignored aura type 154
-	// https://www.wowhead.com/forever/spell=17746
-	// Not simulated: Darkmantle Cap: "Stealth 08" (27037) - ignored aura type 154
-	// https://www.wowhead.com/forever/spell=27037
-	// Not simulated: Darkmantle Footpads: "Stealth 05" (1293068) - ignored aura type 154
-	// https://www.wowhead.com/forever/spell=1293068
 	// Not simulated: Premier Kodohide Gauntlets: "Stealth Detection 10" (23217) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=23217
 	// Not simulated: Premier Champion's Dragonhide Gloves: "Stealth Detection 10" (23217) - ignored aura type 17

@@ -1,5 +1,5 @@
-// Regenerates the spell store, sim/<class>/spell_data_auto_gen.go and the raid buffs from the game
-// files database.
+// Regenerates the spell store, sim/<class>/spell_data_auto_gen.go, the hunter's
+// pet_families_auto_gen.go and ammo_auto_gen.go, and the raid buffs from the game files database.
 //
 // Its own binary, not a mode of gen_db: gen_db imports every class package, so a class file that
 // does not compile stops it. This binary imports sim/core, sim/core/spelldata and sim/common - the

@@ -20,7 +20,7 @@ var ConsecrationRankMap = spellData.Consecration
 // for rank: the tick everyone takes on its first effect, and on its second the extra damage the
 // first few targets take, the only part of the spell the game files give a spell power coefficient.
 // The rank's own periodic dummy carries no damage: it times the ticks and states how many targets
-// take the bonus.
+// take the bonus. The ticks crit in game, though no row in the ladder states Periodic Can Crit.
 func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 	tickSpell := spellData.ConsecrationTriggered.Rank(n)
 	tick := tickSpell.EffectN(1)
@@ -42,7 +42,7 @@ func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 					paladin.consecratedGroundAuras.Get(target).Activate(sim)
 				}
 			}
-			dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, dot.OutcomeTickMagicHit)
+			dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, dot.Spell.OutcomeTickMagicHitAndCrit)
 		}
 	}
 

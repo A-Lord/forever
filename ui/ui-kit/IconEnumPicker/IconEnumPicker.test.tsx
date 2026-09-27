@@ -74,7 +74,7 @@ const open = (trigger: HTMLElement = button()) =>
 		fireEvent.mouseEnter(trigger);
 		fireEvent.mouseMove(trigger);
 	});
-const caption = () => within(root()).getByTestId('form-label') as HTMLLabelElement;
+const iconText = () => within(button()).queryByTestId('icon-picker-label');
 // happy-dom re-quotes the CSSOM value, so icons are compared by name rather than by literal.
 const iconOf = (element: HTMLElement) => element.style.backgroundImage.replace(/^url\(['"]?|['"]?\)$/g, '');
 
@@ -86,7 +86,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('IconEnumPicker', () => {
-	it('builds the root, the button and the caption in vanilla’s order, and mounts the options against the viewport when the menu opens', async () => {
+	it('builds the root and the button, and mounts the options against the viewport when the menu opens', async () => {
 		mount(new Options());
 
 		expect(root().classList.contains('relative')).toBe(true);
@@ -94,7 +94,6 @@ describe('IconEnumPicker', () => {
 
 		expect(Array.from(root().children).map(element => `${element.tagName.toLowerCase()}.${element.className}`)).toEqual([
 			'a.ui-icon-picker-swatch transition-none',
-			'label.ui-field-label',
 		]);
 
 		expect(screen.queryByTestId('icon-enum-picker-portal')).toBeNull();
@@ -179,16 +178,18 @@ describe('IconEnumPicker', () => {
 		expect(button().style.filter).toBe('');
 	});
 
-	it('shows the value’s text in the caption and hides the caption otherwise', () => {
+	it('writes the value’s text over the swatch and over its option, and nothing for a value without one', () => {
 		const options = new Options();
 		mount(options, configFor({ values: [{ value: 0 }, { actionId: frostId, value: 1, text: '3' }] }));
 
-		expect(caption().style.display).toBe('none');
-		expect(caption().textContent).toBe('');
+		expect(iconText()).toBeNull();
 
 		act(() => options.set(1));
-		expect(caption().style.display).toBe('block');
-		expect(caption().textContent).toBe('3');
+		expect(iconText()!.textContent).toBe('3');
+
+		open();
+		expect(within(optionAnchor(0)).queryByTestId('icon-picker-label')).toBeNull();
+		expect(within(optionAnchor(1)).getByTestId('icon-picker-label').textContent).toBe('3');
 	});
 
 	it('writes the value and closes the menu when an option is chosen', () => {

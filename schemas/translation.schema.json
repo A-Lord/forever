@@ -1871,19 +1871,6 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"pet_single_ability": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
 						"pet_type": {
 							"type": "object",
 							"properties": {
@@ -1902,30 +1889,83 @@
 								"bear": {
 									"type": "string"
 								},
+								"bird_of_prey": {
+									"type": "string"
+								},
+								"boar": {
+									"type": "string"
+								},
+								"carrion_bird": {
+									"type": "string"
+								},
 								"cat": {
+									"type": "string"
+								},
+								"core_hound": {
 									"type": "string"
 								},
 								"crab": {
 									"type": "string"
 								},
-								"owl": {
+								"crocolisk": {
+									"type": "string"
+								},
+								"fox": {
+									"type": "string"
+								},
+								"gorilla": {
+									"type": "string"
+								},
+								"hyena": {
 									"type": "string"
 								},
 								"raptor": {
 									"type": "string"
 								},
-								"ravager": {
+								"scorpid": {
+									"type": "string"
+								},
+								"spider": {
+									"type": "string"
+								},
+								"tallstrider": {
+									"type": "string"
+								},
+								"turtle": {
 									"type": "string"
 								},
 								"wind_serpent": {
 									"type": "string"
 								},
-								"dragonhawk": {
+								"wolf": {
 									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["label", "tooltip", "no_pet", "bat", "bear", "cat", "crab", "owl", "raptor", "ravager", "wind_serpent", "dragonhawk"]
+							"required": [
+								"label",
+								"tooltip",
+								"no_pet",
+								"bat",
+								"bear",
+								"bird_of_prey",
+								"boar",
+								"carrion_bird",
+								"cat",
+								"core_hound",
+								"crab",
+								"crocolisk",
+								"fox",
+								"gorilla",
+								"hyena",
+								"raptor",
+								"scorpid",
+								"spider",
+								"tallstrider",
+								"turtle",
+								"wind_serpent",
+								"wolf"
+							]
 						},
 						"ammo": {
 							"type": "object",
@@ -1938,38 +1978,10 @@
 								},
 								"no_ammo": {
 									"type": "string"
-								},
-								"timeless_arrow": {
-									"type": "string"
-								},
-								"mysterious_arrow": {
-									"type": "string"
-								},
-								"adamantite_stinger": {
-									"type": "string"
-								},
-								"halaani_razorshaft": {
-									"type": "string"
-								},
-								"blackflight_arrow": {
-									"type": "string"
-								},
-								"wardens_arrow": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"label",
-								"tooltip",
-								"no_ammo",
-								"timeless_arrow",
-								"mysterious_arrow",
-								"adamantite_stinger",
-								"halaani_razorshaft",
-								"blackflight_arrow",
-								"wardens_arrow"
-							]
+							"required": ["label", "tooltip", "no_ammo"]
 						},
 						"quiver": {
 							"type": "object",
@@ -1982,28 +1994,10 @@
 								},
 								"no_quiver": {
 									"type": "string"
-								},
-								"speed_15": {
-									"type": "string"
-								},
-								"speed_14": {
-									"type": "string"
-								},
-								"speed_13": {
-									"type": "string"
-								},
-								"speed_12": {
-									"type": "string"
-								},
-								"speed_11": {
-									"type": "string"
-								},
-								"speed_10": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["label", "tooltip", "no_quiver", "speed_15", "speed_14", "speed_13", "speed_12", "speed_11", "speed_10"]
+							"required": ["label", "tooltip", "no_quiver"]
 						},
 						"detonate_seed": {
 							"type": "object",
@@ -2283,6 +2277,83 @@
 							},
 							"additionalProperties": false,
 							"required": ["title", "description"]
+						},
+						"pet_attack_speed": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"faster_attack": {
+									"type": "string"
+								},
+								"slower_attack": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip", "none", "faster_attack", "slower_attack"]
+						},
+						"pet_training": {
+							"type": "object",
+							"properties": {
+								"cobra_reflexes": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										},
+										"untrained": {
+											"type": "string"
+										},
+										"trained": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip", "untrained", "trained"]
+								},
+								"pet_aggression": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										},
+										"untrained": {
+											"type": "string"
+										},
+										"rank": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip", "untrained", "rank"]
+								}
+							},
+							"additionalProperties": false,
+							"required": ["cobra_reflexes", "pet_aggression"]
+						},
+						"pet_section": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title"]
 						}
 					},
 					"additionalProperties": false,
@@ -2303,7 +2374,6 @@
 						"retribution_aura_spell_power",
 						"totem_twisting",
 						"pet_uptime",
-						"pet_single_ability",
 						"pet_type",
 						"ammo",
 						"quiver",
@@ -2326,7 +2396,10 @@
 						"item_swap",
 						"blessings",
 						"shaman_shield_procrate",
-						"warlock_assigned_curse"
+						"warlock_assigned_curse",
+						"pet_attack_speed",
+						"pet_training",
+						"pet_section"
 					]
 				},
 				"consumables": {
@@ -6793,35 +6866,6 @@
 						"hunter": {
 							"type": "object",
 							"properties": {
-								"sting": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										},
-										"values": {
-											"type": "object",
-											"properties": {
-												"none": {
-													"type": "string"
-												},
-												"serpent_sting": {
-													"type": "string"
-												},
-												"scorpid_sting": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["none", "serpent_sting", "scorpid_sting"]
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip", "values"]
-								},
 								"melee_weave": {
 									"type": "object",
 									"properties": {
@@ -6873,44 +6917,10 @@
 									},
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
-								},
-								"viper_start_mana_percent": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
-								"viper_stop_mana_percent": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"sting",
-								"melee_weave",
-								"time_to_weave",
-								"use_multi",
-								"use_arcane",
-								"viper_start_mana_percent",
-								"viper_stop_mana_percent"
-							]
+							"required": ["melee_weave", "time_to_weave", "use_multi", "use_arcane"]
 						},
 						"warrior": {
 							"type": "object",
