@@ -70,7 +70,8 @@ func (rogue *Rogue) registerMurder() {
 
 	multiplier := spellData.Murder.MultiplierAt(rogue.Talents.Murder)
 	rogue.Env.RegisterPostFinalizeEffect(func() {
-		rogue.MultiplyDamageVersus(multiplier, true, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeDragonkin)
+		rogue.MultiplyDamageVersus(multiplier, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeDragonkin)
+		rogue.MultiplyCritDamageVersus(multiplier, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeDragonkin)
 	})
 }
 
