@@ -272,15 +272,15 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// The haste auras. Each multiplies a speed the unit recomputes, so each needs the Simulation an
 	// aura's gain hands over. Melee and ranged speed together is the sim's attack speed.
 	dbcenums.A_MOD_CASTING_SPEED_NOT_STACK: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("cast-speed", "CastSpeedMultiplier", (*core.Unit).MultiplyCastSpeed, core.SpeedMultiplierFromPercent(v))
+		return p.speed("cast-speed", "CastSpeedMultiplier", (*core.Unit).MultiplyCastSpeed, core.SymmetricMultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_MELEE_HASTE_3: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("melee-speed", "MeleeSpeedMultiplier", (*core.Unit).MultiplyMeleeSpeed, core.SpeedMultiplierFromPercent(v))
+		return p.speed("melee-speed", "MeleeSpeedMultiplier", (*core.Unit).MultiplyMeleeSpeed, core.SymmetricMultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_ATTACKSPEED:          attackSpeedRow,
 	dbcenums.A_MOD_MELEE_RANGED_HASTE_2: attackSpeedRow,
 	dbcenums.A_MOD_RANGED_HASTE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, core.SpeedMultiplierFromPercent(v))
+		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, core.SymmetricMultiplierFromPercent(v))
 	},
 
 	// Healing. 135 is the flat bonus to healing done, 136 the multiplier on it, and 118 the
@@ -872,7 +872,7 @@ func (p *parser) statsWhileEquipped(sts []stats.Stat, v float64, req core.EquipR
 }
 
 func attackSpeedRow(p *parser, _ *Effect, v float64) *attachment {
-	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, core.SpeedMultiplierFromPercent(v))
+	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, core.SymmetricMultiplierFromPercent(v))
 }
 
 // Flat health. The bear forms state it on A_MOD_MAX_HEALTH, where Last Stand states a percentage,

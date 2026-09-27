@@ -35,10 +35,10 @@ func init() {
 			}
 			aura.AttachStatsBuff(bonus.Stats)
 			if bonus.AttackHastePercent != 0 {
-				aura.AttachMultiplyAttackSpeed(core.SpeedMultiplierFromPercent(bonus.AttackHastePercent))
+				aura.AttachMultiplyAttackSpeed(core.SymmetricMultiplierFromPercent(bonus.AttackHastePercent))
 			}
 			if bonus.CastHastePercent != 0 {
-				aura.AttachMultiplyCastSpeed(core.SpeedMultiplierFromPercent(bonus.CastHastePercent))
+				aura.AttachMultiplyCastSpeed(core.SymmetricMultiplierFromPercent(bonus.CastHastePercent))
 			}
 		})
 	}

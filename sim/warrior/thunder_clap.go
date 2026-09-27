@@ -13,7 +13,7 @@ var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
 
 // The melee speed factor the warrior's clap leaves on the target, the Conqueror's set included.
 func (warrior *Warrior) thunderClapSpeed() float64 {
-	return core.SpeedMultiplierFromPercent(thunderClapSlow * (1 + warrior.thunderClapEffectBonus))
+	return core.SymmetricMultiplierFromPercent(thunderClapSlow * (1 + warrior.thunderClapEffectBonus))
 }
 
 func (warrior *Warrior) registerThunderClap() {
