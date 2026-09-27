@@ -46,6 +46,7 @@ func (mage *Mage) registerArcanePowerSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	Flags:          core.SpellFlagNoOnCastComplete,
 	// 	ClassSpellMask: MageSpellArcanePower,
+	// 	ClassFlags:     spellData.ArcanePower.Highest().ClassFlags,
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
 	// 			NonEmpty: true,

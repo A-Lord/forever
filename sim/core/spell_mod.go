@@ -142,6 +142,16 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		OnReset:      resetFn,
 	}
 
+	if mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+		unit.procChanceMods = append(unit.procChanceMods, mod)
+		if config.ShouldApplyToPets {
+			for _, pet := range unit.PetAgents {
+				pet.GetPet().procChanceMods = append(pet.GetPet().procChanceMods, mod)
+			}
+		}
+		return mod
+	}
+
 	unit.OnSpellRegistered(func(spell *Spell) {
 		if shouldApply(spell, mod) {
 			mod.AffectedSpells = append(mod.AffectedSpells, spell)
@@ -213,7 +223,7 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	if !mod.ClassFlags.IsZero() && !spell.MatchesFlags(mod.ClassFlags) {
+	if !mod.ClassFlags.Reaches(spell) {
 		return false
 	}
 
@@ -461,6 +471,21 @@ const (
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
+
+	// Adds to the chance of the proc triggers whose own class flags the mod names, in percentage
+	// points: 10 raises a 20% chance to 30%. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcChance_Flat
+
+	// Multiplies the chance of the proc triggers whose own class flags the mod names, once the flat
+	// points are in: +100% = 1.0 doubles it. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcChance_Pct
+
+	// Will add / subtract % amount from the GCD multiplier. -10% = -0.1
+	// The GCD minimum still floors the result.
+	// Uses: FloatValue
+	SpellMod_GlobalCooldown_Pct
 )
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
@@ -538,6 +563,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 	SpellMod_GlobalCooldown_Flat: {
 		Apply:  applyGlobalCooldownFlat,
 		Remove: removeGlobalCooldownFlat,
+	},
+
+	SpellMod_GlobalCooldown_Pct: {
+		Apply:  applyGlobalCooldownPercent,
+		Remove: removeGlobalCooldownPercent,
 	},
 	SpellMod_DotTickLength_Flat: {
 		Apply:  applyDotTickLengthFlat,
@@ -633,6 +663,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 		Remove:  removeDirectDamageDoneAdd,
 		OnReset: onResetDirectDamageDoneAdd,
 	},
+
+	// buildMod hands these to the unit's proc triggers, which read them when they roll, and to no
+	// spell, so they carry no functions.
+	SpellMod_ProcChance_Flat: {},
+	SpellMod_ProcChance_Pct:  {},
 }
 
 func applyDamageDonePercent(mod *SpellMod, spell *Spell) {
@@ -786,11 +821,31 @@ func removeDotNumberOfTicks(mod *SpellMod, spell *Spell) {
 }
 
 func applyGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD += mod.timeValue
+	spell.unscaledGCD += mod.timeValue
+	spell.updateGCD()
 }
 
 func removeGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD -= mod.timeValue
+	spell.unscaledGCD -= mod.timeValue
+	spell.updateGCD()
+}
+
+func applyGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier += mod.floatValue
+	spell.updateGCD()
+}
+
+func removeGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier -= mod.floatValue
+	spell.updateGCD()
+}
+
+func (spell *Spell) updateGCD() {
+	if spell.GCDMultiplier == 1 {
+		spell.DefaultCast.GCD = spell.unscaledGCD
+		return
+	}
+	spell.DefaultCast.GCD = time.Duration(float64(spell.unscaledGCD) * spell.GCDMultiplier).Round(time.Millisecond)
 }
 
 func applyDotTickLengthFlat(mod *SpellMod, spell *Spell) {
@@ -1130,4 +1185,27 @@ func onResetDirectDamageDoneAdd(mod *SpellMod) {
 	for _, spell := range mod.AffectedSpells {
 		spell.DirectDamageMultiplierAdditive = math.Round(spell.DirectDamageMultiplierAdditive*10000) / 10000
 	}
+}
+
+// The chance a proc trigger with these class flags of its own rolls, once the unit's active proc
+// chance mods that name them are counted: the flat points are added first and the percentage
+// multiplies the sum. A trigger that states no class flags of its own is named by no mod, and a
+// chance no mod names comes back unchanged.
+func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
+	if len(unit.procChanceMods) == 0 || flags.IsZero() {
+		return chance
+	}
+
+	var flat, pct float64
+	for _, mod := range unit.procChanceMods {
+		if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
+			continue
+		}
+		if mod.Kind == SpellMod_ProcChance_Flat {
+			flat += mod.floatValue
+		} else {
+			pct += mod.floatValue
+		}
+	}
+	return (chance + flat/100) * (1 + pct)
 }

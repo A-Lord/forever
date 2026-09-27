@@ -136,6 +136,7 @@ func (rogue *Rogue) registerColdBlood() {
 	//
 	// rogue.ColdBlood = rogue.GetOrRegisterSpell(core.SpellConfig{
 	// 	ActionID: core.ActionID{SpellID: 14177},
+	// 	ClassFlags: spellData.ColdBlood.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{
@@ -247,6 +248,7 @@ func (rogue *Rogue) registerMutilate() {
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellMutilate,
+	// 	ClassFlags:     mutilateRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost:   int32(mutilateRank.Cost()),

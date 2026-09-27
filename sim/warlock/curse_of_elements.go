@@ -20,6 +20,7 @@ func (warlock *Warlock) registerCurseOfElements() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfElements,
+	// 	ClassFlags:     curseOfElementsRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(curseOfElementsRank.Cost()),

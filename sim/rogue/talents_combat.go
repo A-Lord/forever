@@ -364,6 +364,7 @@ func (rogue *Rogue) registerAdrenalineRush() {
 	// 	ActionID:       core.ActionID{SpellID: 13750},
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellAdrenalineRush,
+	// 	ClassFlags:     spellData.AdrenalineRush.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		IgnoreHaste: true,

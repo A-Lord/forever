@@ -318,8 +318,15 @@ func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) pro
 		return ConvertSpellDamageFlagToSchoolDamageStat(effectMisc)
 	case dbcenums.A_MOD_HEALING_DONE:
 		return proto.Stat_StatHealingPower
-	case dbcenums.A_MOD_INCREASE_HEALTH:
+	case dbcenums.A_MOD_INCREASE_HEALTH, dbcenums.A_MOD_INCREASE_HEALTH_2:
 		return proto.Stat_StatHealth
+	case dbcenums.A_MOD_INCREASE_ENERGY, dbcenums.A_MOD_MAX_POWER:
+		// MiscValue 0 is the power type. Only mana has a matching stat; rage, focus, energy
+		// and the rest are resources the sim tracks per spec, not stats.
+		if effectMisc == POWER_TYPE_MANA {
+			return proto.Stat_StatMana
+		}
+		return -1
 	case dbcenums.A_MOD_TARGET_RESISTANCE:
 		return ConvertTargetResistanceFlagToPenetrationStat(effectMisc)
 	case dbcenums.A_MOD_RESISTANCE:
@@ -350,13 +357,12 @@ func ConvertResistanceFlagToResistanceStat(flag int) proto.Stat {
 	return -1
 }
 
+// See core.SpellSchool.PiercingStat; a mask without a stat returns -1.
 func ConvertTargetResistanceFlagToPenetrationStat(flag int) proto.Stat {
-	switch flag {
-	case 1:
-		return proto.Stat_StatArmorPenetration
-	default:
-		return proto.Stat_StatSpellPiercing
+	if stat, ok := core.SpellSchool(flag).PiercingStat(); ok {
+		return proto.Stat(stat)
 	}
+	return -1
 }
 
 func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {

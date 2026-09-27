@@ -25,6 +25,7 @@ func (priest *Priest) registerStarshardsSpell(rank *spelldata.Spell, cdTimer *co
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellStarshards,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	// 	MaxRange:       float64(rank.MaxRange),
 	//

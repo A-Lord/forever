@@ -168,6 +168,16 @@ func (eb *energyBar) ResetEnergyTick(sim *Simulation) {
 	sim.RescheduleTask(eb.nextEnergyTick)
 }
 
+// Sets the most energy the bar holds. A raised maximum grants no energy; energy above a lowered one is
+// lost and counted against the metrics. Without a Simulation there is no energy yet to lose.
+func (eb *energyBar) SetMaximumEnergy(sim *Simulation, maxEnergy float64, metrics *ResourceMetrics) {
+	eb.maxEnergy = maxEnergy
+
+	if sim != nil && eb.currentEnergy > maxEnergy {
+		eb.SpendEnergy(sim, eb.currentEnergy-maxEnergy, metrics)
+	}
+}
+
 // Used for dynamic updates to maximum Energy, such as from the Druid Primal Madness talent
 func (eb *energyBar) UpdateMaxEnergy(sim *Simulation, bonusEnergy float64, metrics *ResourceMetrics) {
 	if !eb.IsReset(sim) {

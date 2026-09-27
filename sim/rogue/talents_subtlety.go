@@ -111,6 +111,7 @@ func (rogue *Rogue) registerGhostlyStrike() {
 	// rogue.GhostlyStrike = rogue.GetOrRegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: 14278},
 	// 	ClassSpellMask: RogueSpellGhostlyStrike,
+	// 	ClassFlags:     spellData.GhostlyStrike.Highest().ClassFlags,
 	// 	SpellSchool:    core.SpellSchoolPhysical,
 	// 	DefenseType:    core.DefenseTypeMelee,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagMeleeMetrics,
@@ -312,6 +313,7 @@ func (rogue *Rogue) registerHemorrhage() {
 	// rogue.Hemorrhage = rogue.GetOrRegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: hemorrhageRank.ID},
 	// 	ClassSpellMask: RogueSpellHemorrhage,
+	// 	ClassFlags:     hemorrhageRank.ClassFlags,
 	// 	SpellSchool:    hemorrhageRank.SpellSchool(),
 	// 	DefenseType:    hemorrhageRank.DefenseTypeCore(),
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagMeleeMetrics | SpellFlagBuilder,
@@ -391,6 +393,7 @@ func (rogue *Rogue) registerPremeditation() {
 	// 	ActionID:       core.ActionID{SpellID: 14183},
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagNoOnCastComplete,
 	// 	ClassSpellMask: RogueSpellPremeditation,
+	// 	ClassFlags:     spellData.Premeditation.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

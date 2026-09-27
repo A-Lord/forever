@@ -18,6 +18,7 @@ func (warlock *Warlock) registerCurseOfRecklessness() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfRecklessness,
+	// 	ClassFlags:     curseOfRecklessnessRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(curseOfRecklessnessRank.Cost()),

@@ -393,7 +393,6 @@ var Individual = []BuffSpec{
 			proto.Stat_StatHealingPower,
 		},
 	},
-	// Auras 134 and 110 are the spirit regen the driver applies.
 	{
 		Field:    "innervates",
 		SpellID:  29166,
