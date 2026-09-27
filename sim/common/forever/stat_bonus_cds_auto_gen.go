@@ -164,8 +164,6 @@ func RegisterAllOnUseCds() {
 	shared.NewSpellDataDamageOnUse(11905) // Linken's Boomerang - https://www.wowhead.com/forever/spell=15712
 	// on use: 26789 (E_SCHOOL_DAMAGE)
 	shared.NewSpellDataDamageOnUse(21891) // Shard of the Fallen Star - https://www.wowhead.com/forever/spell=26789
-	// on use: 443265 (A_PERIODIC_DAMAGE); not simulated: E_TRIGGER_SPELL
-	shared.NewSpellDataDamageOnUse(219345) // Infernal Lasso - https://www.wowhead.com/forever/spell=443265
 	// on use: 1295270 (E_SCHOOL_DAMAGE); not simulated: E_NONE, E_NONE
 	shared.NewSpellDataDamageOnUse(274759) // Everlook Pathcarver - https://www.wowhead.com/forever/spell=1295270
 
@@ -265,38 +263,6 @@ func RegisterAllOnUseCds() {
 	// https://www.wowhead.com/forever/spell=26066
 	// Not simulated: Vanquished Tentacle of C'Thun: "Tentacle Call" (26391) - ignored effect type 28
 	// https://www.wowhead.com/forever/spell=26391
-	// Not simulated: Insignia of the Alliance: "Immune Root/Snare/Stun" (5579) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=5579
-	// Not simulated: Insignia of the Alliance: "Immune Charm/Fear/Polymorph" (23273) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23273
-	// Not simulated: Insignia of the Alliance: "Immune Fear/Polymorph/Stun" (23276) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23276
-	// Not simulated: Insignia of the Alliance: "Immune Fear/Polymorph/Stun" (23276) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23276
-	// Not simulated: Insignia of the Alliance: "Immune Charm/Fear/Polymorph" (23273) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23273
-	// Not simulated: Insignia of the Alliance: "Immune Root/Snare/Stun" (5579) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=5579
-	// Not simulated: Insignia of the Alliance: "Immune Charm/Fear/Stun" (23277) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23277
-	// Not simulated: Insignia of the Alliance: "Immune Fear/Polymorph/Snare" (23274) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23274
-	// Not simulated: Insignia of the Horde: "Immune Root/Snare/Stun" (5579) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=5579
-	// Not simulated: Insignia of the Horde: "Immune Charm/Fear/Polymorph" (23273) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23273
-	// Not simulated: Insignia of the Horde: "Immune Fear/Polymorph/Stun" (23276) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23276
-	// Not simulated: Insignia of the Horde: "Immune Charm/Fear/Polymorph" (23273) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23273
-	// Not simulated: Insignia of the Horde: "Immune Fear/Polymorph/Snare" (23274) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23274
-	// Not simulated: Insignia of the Horde: "Immune Charm/Fear/Stun" (23277) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=23277
-	// Not simulated: Insignia of the Horde: "Immune Root/Snare/Stun" (5579) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=5579
-	// Not simulated: Insignia of the Horde: "Immune Root/Snare/Stun" (5579) - ignored aura type 77
-	// https://www.wowhead.com/forever/spell=5579
 	// Not simulated: SAF-T Emergency Ripper: Everlook: "Everlook Transporter" (23442) - ignored effect type 252
 	// https://www.wowhead.com/forever/spell=23442
 	// Not simulated: Defender of the Barkskin: "Defender of the Barkskin" (1294063) - ignored effect type 28

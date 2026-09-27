@@ -299,17 +299,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-GrandMarshal'sAegis-18825"
  value: {
-  dps: 231.66345
-  tps: 245.15311
+  dps: 232.69805
+  tps: 246.18795
   dtps: 5397.91709
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-GrandMarshal'sAegis-234588"
- value: {
-  dps: 233.13837
-  tps: 246.707
-  dtps: 5397.79828
  }
 }
 dps_results: {
@@ -347,17 +339,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-HighWarlord'sShieldWall-18826"
  value: {
-  dps: 231.72609
-  tps: 245.182
+  dps: 231.8727
+  tps: 245.3554
   dtps: 5397.91709
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-HighWarlord'sShieldWall-234562"
- value: {
-  dps: 233.62989
-  tps: 247.15377
-  dtps: 5397.79828
  }
 }
 dps_results: {
@@ -366,14 +350,6 @@ dps_results: {
   dps: 236.80907
   tps: 250.57082
   dtps: 5741.28374
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-InfernalLasso-219345"
- value: {
-  dps: 232.06865
-  tps: 245.77747
-  dtps: 5448.82011
  }
 }
 dps_results: {
@@ -426,14 +402,6 @@ dps_results: {
 }
 dps_results: {
  key: "TestProtection-AllItems-LibramofFervor-23203"
- value: {
-  dps: 227.64286
-  tps: 241.08054
-  dtps: 5401.95648
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-LibramofHolyAlacrity-228175"
  value: {
   dps: 227.64286
   tps: 241.08054
