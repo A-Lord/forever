@@ -1,14 +1,41 @@
 package mage
 
-// TODO: To be implemented. Frostfire Bolt is content Forever added; the sim has never
-// modelled it, so this is a stub rather than a port.
-//
-// Spell IDs: 401502, 1237312, 1237313
-// SpellData: spellData.FrostfireBolt (3 ranks)
-// SpellMask: MageSpellFrostfireBolt
-//
-// Not wired into Initialize() yet -- wiring an unimplemented ability would panic
-// on every character of this class. Wire it when it is implemented.
-func (mage *Mage) registerFrostfireBolt() {
-	panic("To be implemented")
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
+var frostfireBoltRank = spellData.FrostfireBolt.Highest()
+
+// The DoT (effect 3) is its own spell, like Fireball's, carrying the Arcane Charges the cast spent.
+// The slow (effect 1) does nothing to a boss.
+func (mage *Mage) registerFrostfireBoltSpell() {
+	chargeLock := arcaneChargesLock{}
+
+	dotConfig := spelldata.SpellConfig(&mage.Unit, frostfireBoltRank,
+		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc(), spelldata.Tag(1))
+	dotConfig.ClassSpellMask = MageSpellFrostfireBoltDot
+	dotConfig.Dot = spelldata.DotConfig(frostfireBoltRank, frostfireBoltRank.PeriodicEffect())
+	dotConfig.Dot.OnTick = chargeLock.onTick(dotConfig.Dot.OnTick)
+	dotConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.Dot(target).Apply(sim)
+	}
+	dotSpell := mage.RegisterSpell(dotConfig)
+
+	config := spelldata.SpellConfig(&mage.Unit, frostfireBoltRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = MageSpellFrostfireBolt
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcDamage(sim, target, frostfireBoltRank.DamageEffect().Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
+		chargeBonus := mage.arcaneChargesBonus()
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			spell.DealDamage(sim, result)
+			if result.Landed() {
+				chargeLock.set(target, chargeBonus)
+				dotSpell.Cast(sim, target)
+			}
+		})
+	}
+
+	mage.RegisterSpell(config).RelatedDotSpell = dotSpell
 }

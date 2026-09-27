@@ -877,9 +877,23 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 		Name: unit.Label,
 	}
 
+	// The rank rides on the id so the UI can group a spell's ranks; the client's tooltips do not
+	// always state one. An aura takes the rank of the spell sharing its id.
+	ranks := map[ActionID]int32{}
+	rankedID := func(actionID ActionID) *proto.ActionID {
+		id := actionID.ToProto()
+		id.Rank = ranks[actionID]
+		return id
+	}
+	for _, spell := range unit.Spellbook {
+		if spell.Rank > 0 {
+			ranks[spell.ActionID] = spell.Rank
+		}
+	}
+
 	metadata.Spells = MapSlice(unit.Spellbook, func(spell *Spell) *proto.SpellStats {
 		return &proto.SpellStats{
-			Id: spell.ActionID.ToProto(),
+			Id: rankedID(spell.ActionID),
 
 			IsCastable:      spell.Flags.Matches(SpellFlagAPL),
 			IsChanneled:     spell.Flags.Matches(SpellFlagChanneled),
@@ -903,7 +917,7 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 	})
 	metadata.Auras = MapSlice(aplAuras, func(aura *Aura) *proto.AuraStats {
 		return &proto.AuraStats{
-			Id:                 aura.ActionID.ToProto(),
+			Id:                 rankedID(aura.ActionID),
 			MaxStacks:          aura.MaxStacks,
 			HasIcd:             aura.Icd != nil,
 			HasExclusiveEffect: len(aura.ExclusiveEffects) > 0,

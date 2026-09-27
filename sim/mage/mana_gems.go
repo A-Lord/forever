@@ -1,66 +1,61 @@
 package mage
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-func (mage *Mage) registerManaGems() {
-	panic("To be implemented")
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-	// The TBC implementation, kept for the port:
-	//
-	// var manaGain float64
-	// actionID := core.ActionID{ItemID: 22044}
-	// manaMetrics := mage.NewManaMetrics(actionID)
-	//
-	// minManaGain := 2340.0
-	// maxManaGain := 2460.0
-	//
-	// manaGemAura := core.MakePermanent(mage.GetOrRegisterAura(core.Aura{
-	// 	Label:     "Mana Gem Charges",
-	// 	ActionID:  actionID,
-	// 	MaxStacks: 3,
-	// })).ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
-	// 	aura.SetStacks(sim, 3)
-	// })
-	//
-	// manaGem := mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	DefenseType:    core.DefenseTypeMagic, // Replenish Mana (27103), the spell behind this item's use effect
-	// 	ProcMask:       core.ProcMaskEmpty,
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
-	// 	ClassSpellMask: MageSpellManaGem,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			NonEmpty: true,
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    mage.GetConjuredCD(),
-	// 			Duration: time.Minute * 2,
-	// 		},
-	// 		SharedCD: core.Cooldown{
-	// 			Timer:    mage.GetCombatConsumableCD(),
-	// 			Duration: time.Minute * 2,
-	// 		},
-	// 	},
-	//
-	// 	// Don't use if we don't have any gems remaining!
-	// 	ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-	// 		return manaGemAura.GetStacks() > 0
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-	// 		manaGemAura.RemoveStack(sim)
-	// 		manaGain = sim.Roll(minManaGain, maxManaGain)
-	// 		mage.AddMana(sim, manaGain, manaMetrics)
-	// 	},
-	// })
-	//
-	// mage.AddMajorCooldown(core.MajorCooldown{
-	// 	Spell: manaGem,
-	// 	Type:  core.CooldownTypeMana,
-	// 	ShouldActivate: func(sim *core.Simulation, char *core.Character) bool {
-	// 		manaGain = sim.Roll(minManaGain, maxManaGain)
-	//
-	// 		return char.CurrentMana()+manaGain+char.SpiritManaRegenPerSecond() <= char.MaxMana()
-	// 	},
-	// })
+// One of each conjured gem, best first, one use each per fight. They share the gems' 60 sec
+// category cooldown. Each is shown as its item, which the spell data does not link to the spell
+// it uses; the pairs are Wowhead's.
+var manaGems = []struct {
+	itemID int32
+	name   string
+	rank   *spelldata.Spell
+}{
+	{8008, "Mana Ruby", spellData.ConjureManaRubyTriggered.Highest()},
+	{8007, "Mana Citrine", spellData.ConjureManaCitrineTriggered.Highest()},
+	{5513, "Mana Jade", spellData.ConjureManaJadeTriggered.Highest()},
+	{5514, "Mana Agate", spellData.ConjureManaAgateTriggered.Highest()},
+}
+
+func (mage *Mage) registerManaGems() {
+	for _, gem := range manaGems {
+		gemRank := gem.rank
+		actionID := core.ActionID{ItemID: gem.itemID}
+		manaMetrics := mage.NewManaMetrics(actionID)
+		manaEffect := gemRank.EnergizeEffect()
+
+		charge := core.MakePermanent(mage.GetOrRegisterAura(core.Aura{
+			Label:     gem.name,
+			ActionID:  actionID,
+			MaxStacks: 1,
+		})).ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
+			aura.SetStacks(sim, 1)
+		})
+
+		config := spelldata.SpellConfig(&mage.Unit, gemRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagHelpful))
+		config.ActionID = actionID
+		config.Rank = 0
+		config.ClassSpellMask = MageSpellManaGem
+		config.Cast.DefaultCast.NonEmpty = true
+		config.Cast.CD.Timer = mage.GetConjuredCD()
+
+		config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
+			return charge.GetStacks() > 0
+		}
+
+		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+			charge.RemoveStack(sim)
+			mage.AddMana(sim, manaEffect.Roll(sim, core.CharacterLevel), manaMetrics)
+		}
+
+		mage.AddMajorCooldown(core.MajorCooldown{
+			Spell: mage.RegisterSpell(config),
+			Type:  core.CooldownTypeMana,
+			ShouldActivate: func(_ *core.Simulation, character *core.Character) bool {
+				return character.CurrentMana()+manaEffect.Max(core.CharacterLevel) <= character.MaxMana()
+			},
+		})
+	}
 }

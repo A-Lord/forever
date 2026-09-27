@@ -5,6 +5,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -26,14 +27,11 @@ type Mage struct {
 
 	ImprovedScorchAuras core.AuraArray
 
-	ArcaneBlast     *core.Spell
-	Ignite          *core.Spell
-	FireBlast       *core.Spell
-	FlameOrbExplode *core.Spell
-	Flamestrike     []*core.Spell
-	FlamestrikeBW   *core.Spell
-	FrostfireOrb    *core.Spell
-	Pyroblast       *core.Spell
+	ArcaneBlast *core.Spell
+	Ignite      *core.Spell
+	FireBlast   *core.Spell
+	Flamestrike []*core.Spell
+	Pyroblast   *core.Spell
 }
 
 func (mage *Mage) GetCharacter() *core.Character {
@@ -78,20 +76,27 @@ func (mage *Mage) registerPassives() {
 }
 
 func (mage *Mage) registerSpells() {
-	// mage.registerArcaneExplosionSpell()
+	mage.registerArcaneExplosionSpell()
 	mage.registerArcaneMissilesSpell()
-	// mage.registerArmorSpells()
-	// mage.registerBlizzardSpell()
-	// mage.registerConeOfColdSpell()
+	mage.registerArmorSpells()
+	mage.registerBlizzardSpell()
+	mage.registerConeOfColdSpell()
 	mage.registerFrostboltSpell()
-	// mage.registerEvocation()
+	mage.registerEvocation()
 	mage.registerFireballSpell()
 	mage.registerFireBlastSpell()
+	mage.registerFlamestrikeSpells()
+	mage.registerFrostfireBoltSpell()
 	mage.registerFrostNovaSpell()
-	// mage.registerManaGems()
+	mage.registerManaGems()
 	mage.registerScorchSpell()
+}
 
-	//FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
+// One roll of a damage effect per target, for the AoE damage calls.
+func rollDamage(e *spelldata.Effect) core.BaseDamageCalculator {
+	return func(sim *core.Simulation, _ *core.Spell) float64 {
+		return e.Roll(sim, core.CharacterLevel)
+	}
 }
 
 func (mage *Mage) Reset(sim *core.Simulation) {
@@ -151,7 +156,6 @@ const (
 	MageSpellIgnite
 	MageSpellMageArmor
 	MageSpellManaGems
-	MageSpellMoltenArmor
 	MageSpellPresenceOfMind
 	MageSpellPyroblast
 	MageSpellPyroblastDot
@@ -159,8 +163,8 @@ const (
 	MageSpellManaGem
 	MageSpellCombustion
 
-	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
 	MageSpellFrostfireBolt
+	MageSpellFrostfireBoltDot
 
 	MageSpellLast
 	MageSpellsAll  = MageSpellLast<<1 - 1
@@ -169,10 +173,9 @@ const (
 		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch
 	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellBlizzard |
 		MageSpellBlastWave | MageSpellConeOfCold | MageSpellFireBlast | MageSpellFireball | MageSpellFireballDot |
-		MageSpellFlamestrike | MageSpellFlamestrikeDot | MageSpellFrostbolt | MageSpellFrostfireBolt | MageSpellFrostNova |
+		MageSpellFlamestrike | MageSpellFlamestrikeDot | MageSpellFrostbolt | MageSpellFrostfireBolt | MageSpellFrostfireBoltDot | MageSpellFrostNova |
 		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch
 	MageSpellInstantCast = MageSpellArcaneMissilesCast | MageSpellArcaneMissilesTick | MageSpellFireBlast | MageSpellArcaneExplosion | MageSpellPyroblastDot | MageSpellFireballDot |
 		MageSpellCombustion | MageSpellConeOfCold | MageSpellIceLance | MageSpellManaGems | MageSpellPresenceOfMind
 	MageSpellExtraResult = MageSpellArcaneMissilesTick | MageSpellBlizzard
-	FireSpellIgnitable   = MageSpellFireball | MageSpellScorch | MageSpellPyroblast
 )

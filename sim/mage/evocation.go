@@ -1,60 +1,43 @@
 package mage
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-func (mage *Mage) registerEvocation() {
-	panic("To be implemented")
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: 12051}
-	// manaMetrics := mage.NewManaMetrics(actionID)
-	// manaPerTick := 0.0
-	//
-	// evocation := mage.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	Flags:          core.SpellFlagHelpful | core.SpellFlagChanneled | core.SpellFlagAPL,
-	// 	ClassSpellMask: MageSpellEvocation,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: core.GCDDefault,
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    mage.NewTimer(),
-	// 			Duration: time.Minute * 8,
-	// 		},
-	// 	},
-	//
-	// 	Hot: core.DotConfig{
-	// 		SelfOnly: true,
-	// 		Aura: core.Aura{
-	// 			Label: "Evocation",
-	// 		},
-	// 		NumberOfTicks:        4,
-	// 		TickLength:           time.Second * 2,
-	// 		AffectedByCastSpeed:  true,
-	// 		HasteReducesDuration: true,
-	//
-	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			mage.AddMana(sim, manaPerTick, manaMetrics)
-	// 		},
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		manaPerTick = mage.MaxMana() * .15
-	// 		spell.SelfHot().Apply(sim)
-	// 	},
-	// })
-	//
-	// mage.AddMajorCooldown(core.MajorCooldown{
-	// 	Spell: evocation,
-	// 	Type:  core.CooldownTypeMana,
-	//
-	// 	ShouldActivate: func(sim *core.Simulation, character *core.Character) bool {
-	// 		if character.CurrentManaPercent() > .1 {
-	// 			return false
-	// 		}
-	//
-	// 		return true
-	// 	},
-	// })
+var evocationRank = spellData.Evocation.Highest()
+
+// While channeling, mana regen is increased by 1500% (effect 1) and all of it continues while
+// casting (effect 2).
+func (mage *Mage) registerEvocation() {
+	regenMultiplier := 1 + evocationRank.EffectN(1).Percent()
+	castingRegen := evocationRank.EffectN(2).Percent()
+
+	config := spelldata.SpellConfig(&mage.Unit, evocationRank, spelldata.Flags(core.SpellFlagAPL))
+	config.ClassSpellMask = MageSpellEvocation
+
+	config.Hot = spelldata.DotConfig(evocationRank, evocationRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0))
+	config.Hot.SelfOnly = true
+	config.Hot.OnTick = func(_ *core.Simulation, _ *core.Unit, _ *core.Dot) {}
+	config.Hot.Aura.OnGain = func(aura *core.Aura, sim *core.Simulation) {
+		mage.PseudoStats.SpiritRegenRateCasting += castingRegen
+		mage.MultiplyManaRegenSpeed(sim, regenMultiplier)
+	}
+	config.Hot.Aura.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
+		mage.PseudoStats.SpiritRegenRateCasting -= castingRegen
+		mage.MultiplyManaRegenSpeed(sim, 1/regenMultiplier)
+	}
+
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		spell.SelfHot().Apply(sim)
+	}
+
+	mage.AddMajorCooldown(core.MajorCooldown{
+		Spell: mage.RegisterSpell(config),
+		Type:  core.CooldownTypeMana,
+		ShouldActivate: func(_ *core.Simulation, character *core.Character) bool {
+			return character.CurrentManaPercent() < 0.1
+		},
+	})
 }

@@ -1,38 +1,19 @@
 package mage
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var arcaneExplosionRank = spellData.ArcaneExplosion.Highest()
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerArcaneExplosionSpell() {
-	panic("To be implemented")
+	config := spelldata.SpellConfig(&mage.Unit, arcaneExplosionRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = MageSpellArcaneExplosion
 
-	// The TBC implementation, kept for the port:
-	// arcaneExplosionCoefficient := 0.21400000155
-	//
-	// mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: arcaneExplosionRank.ID},
-	// 	SpellSchool:    arcaneExplosionRank.SpellSchool(),
-	// 	DefenseType:    arcaneExplosionRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	Flags:          core.SpellFlagAPL,
-	// 	ClassSpellMask: MageSpellArcaneExplosion,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: int32(arcaneExplosionRank.Cost()),
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: arcaneExplosionRank.GCD(),
-	// 		},
-	// 	},
-	//
-	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: arcaneExplosionCoefficient,
-	// 	ThreatMultiplier: 1,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := arcaneExplosionRank.DamageEffect().Average(core.CharacterLevel)
-	// 		spell.CalcAndDealAoeDamage(sim, baseDamage, spell.OutcomeMagicHitAndCrit)
-	// 	},
-	// })
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, rollDamage(arcaneExplosionRank.DamageEffect()))
+	}
+
+	mage.RegisterSpell(config)
 }

@@ -164,7 +164,7 @@ func (mage *Mage) registerBlastWaveTalent() {
 		return
 	}
 
-	// TODO: call mage.registerBlastWaveSpell() once it is implemented; it still panics.
+	mage.registerBlastWaveSpell()
 }
 
 // registerCombustionTalent implements the talent gate for Combustion (combustion.go).

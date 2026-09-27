@@ -19,7 +19,7 @@ const (
 	// Damage that lands after the cast that spent the charges. It carries the bonus that cast
 	// locked in (arcaneChargesLock) and never the live one, so charges gained meanwhile do not
 	// raise it.
-	arcaneChargesLocked = MageSpellFireballDot | MageSpellPyroblastDot | MageSpellFlamestrikeDot |
+	arcaneChargesLocked = MageSpellFireballDot | MageSpellPyroblastDot | MageSpellFlamestrikeDot | MageSpellFrostfireBoltDot |
 		MageSpellArcaneMissilesTick | MageSpellBlizzard
 
 	// The casts that spend the charges: any damage spell but Arcane Blast. A missile of the

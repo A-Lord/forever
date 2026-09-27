@@ -21,9 +21,7 @@ func (mage *Mage) registerFrostNovaSpell() {
 	config.ClassSpellMask = MageSpellFrostNova
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, func(sim *core.Simulation, _ *core.Spell) float64 {
-			return frostNovaDamage.Roll(sim, core.CharacterLevel)
-		})
+		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, rollDamage(frostNovaDamage))
 	}
 
 	mage.RegisterSpell(config)
