@@ -24085,10 +24085,6 @@ var generatedSpells = []Spell{
 			{ID: 1080407, SpellID: 412758, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 25, BaseLevel: 40, MaxLevel: 49, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 205}}},
-	{ID: 412783, Name: "Metamorphosis : Demon Charge", School: 1, Attr: [17]uint32{0: 0x80, 4: 0x8000, 9: 0x400000, 10: 0x8000, 15: 0x2000}, SpellLevel: 1,
-		Effects: []Effect{
-			{ID: 1080442, SpellID: 412783, Type: dbcenums.E_DUMMY, BasePoints: 100, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}},
 	{ID: 412788, Name: "Demon Charge", School: 1, Attr: [17]uint32{0: 0x30050010, 1: 0x400, 2: 0x100, 7: 0x40000, 15: 0x2000}, SpellLevel: 1, MinRange: 8, MaxRange: 25, CategoryCooldownMs: 15000, Category: 44, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{3: 2147483648}}, RefIDs: []int32{7922},
 		Effects: []Effect{
 			{ID: 1080449, SpellID: 412788, Type: dbcenums.E_CHARGE, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},

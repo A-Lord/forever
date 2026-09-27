@@ -1094,8 +1094,12 @@ classifies every item and enchant proc out of the store compiled into it.
 Nothing lists which spells to generate. The class files walk `dbc.Classes`, take each class's own skill
 lines and emit a family for every spell whose subtext reads `Rank N`; the store starts from what those
 families name, from the item, enchant and set-bonus tables, and from the talent trees, and closes over
-everything those reach. A family that could not be resolved is named in the `// Not generated:` comment
-at the head of the class file.
+everything those reach. A Season of Discovery rune ability is left out: a family every spell of which
+an `Engrave <slot> - <rune>` spell reaches, with no trainer or level row outside the rune lines and no
+talent reaching it, as Shadow Cleave is. So is the undescribed dummy a rune's action bar override
+replaces, whatever its rows, which is Metamorphosis : Demon Charge. A rune ability a trainer also
+teaches, such as Victory Rush or Incinerate, stays. A family that could not be resolved, or a rune's,
+is named in the `// Not generated:` comment at the head of the class file.
 
 `assets/db_inputs/spell_store_inputs.json` holds the game files rows the store was built from, committed
 beside it, and every `SpellShapeshiftForm` row whole alongside them, since a form names no spell for
