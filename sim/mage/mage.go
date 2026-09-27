@@ -69,10 +69,6 @@ func (mage *Mage) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 }
 
 func (mage *Mage) Initialize() {
-	// ImprovedScorchAuras is filled by the port of registerScorchSpell: the
-	// client's Fire Vulnerability (22959) is A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER,
-	// so it raises the fire damage this mage deals rather than the damage the
-	// target takes, and sim/core has no aura to build it from.
 	mage.registerPassives()
 	mage.registerSpells()
 }
