@@ -229,7 +229,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_PERCENT_STAT:          percentStatRow,
 	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: percentStatRow,
 
-	// Hit and crit, which the sim states in percentage points the way the client does. A row that
+	// Hit and crit, which the sim states in percentage points the way the game files do. A row that
 	// names the weapon it needs is a mod on the attacks made with that weapon, except an A_MOD_CRIT_PCT
 	// whose weapons are not ranged alone: that is crit on every spell and attack while one is equipped.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {

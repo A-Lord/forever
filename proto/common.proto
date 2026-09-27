@@ -188,7 +188,7 @@ enum Stat {
 	StatShadowDamage = 11;
 
 	// Caster Secondaries
-	// The client's name for spell penetration: "Rune of Perfection" states
+	// The game files' name for spell penetration: "Rune of Perfection" states
 	// "Spell Piercing increased".
 	StatSpellPiercing = 12;
 	StatSpirit = 13;

@@ -186,7 +186,7 @@ const STAT_TYPES = [
 ];
 
 // Whether the settings offer the consumable to this player: the class, race and profession the
-// client allows it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
+// game files allow it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
 // resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
 // (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
 // handTakesImbue.

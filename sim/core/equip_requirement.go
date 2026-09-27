@@ -6,7 +6,7 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// The client's SpellEquippedItems for a weapon: the weapon subclass and inventory-type masks, and the
+// The game files' SpellEquippedItems for a weapon: the weapon subclass and inventory-type masks, and the
 // hand an ATTR_EX_3 hand bit names. A zero field is no restriction.
 type EquipRequirement struct {
 	SubclassMask int32

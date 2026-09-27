@@ -229,7 +229,7 @@ func equipFold(s *spelldata.Spell, e *spelldata.Effect) EquipFold {
 	return FoldRanged
 }
 
-// The fold of a client effect, read off its row in the spell store. An effect of a spell the store
+// The fold of a game files effect, read off its row in the spell store. An effect of a spell the store
 // does not carry names no weapon.
 func EquipEffectFold(effect SpellEffect) EquipFold {
 	s := spelldata.Find(int32(effect.SpellID))
@@ -458,7 +458,7 @@ func ConvertSpellDamageFlagToSchoolDamageStat(flag int) proto.Stat {
 
 // The rating stat a combat rating mask names, read bit by bit through spelldata.RatingStats, so a
 // mask of only ranged bits names none. The callers read one stat per aura, so a mask naming two
-// different stats names none either; no client aura carries one.
+// different stats names none either; no game files aura carries one.
 func ConvertModRatingFlagToRatingStat(flag int) proto.Stat {
 	ratings := spelldata.RatingStats(int32(flag))
 	if len(ratings) == 1 {

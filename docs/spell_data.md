@@ -446,7 +446,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | a percentage GCD modifier (`SPELLMOD_GLOBAL_COOLDOWN`)              | `spell.GCDMultiplier`, summed from 1                  | the value over 100                                                     |
 
 Block, dodge and parry are percentage points like hit and crit: core divides them by 100 where it rolls
-them (`GetBlockFromRating`), so the client's 5 is stored as 5. `TestParseStaticStatConventions` pins
+them (`GetBlockFromRating`), so the game files' 5 is stored as 5. `TestParseStaticStatConventions` pins
 one row of each family against what core reads back. How a rating mask is read, and which hit and crit
 rows become mods on one weapon's attacks, is [Weapon requirements and the one rating](#weapon-requirements-and-the-one-rating).
 
@@ -535,7 +535,7 @@ than cumulative stacks.
 
 ## Weapon requirements and the one rating
 
-The client names the weapon a spell needs in `SpellEquippedItems`: an item class (2 for a weapon, 4 for
+The game files name the weapon a spell needs in `SpellEquippedItems`: an item class (2 for a weapon, 4 for
 armor and shields), a subclass mask and an inventory-type mask, which the store carries as `EquipClass`,
 `EquipSubclass` and `EquipInvType`, plus the hand `ATTR_EX_3_REQ_MAIN_HAND` or `ATTR_EX_3_REQ_OFF_HAND`
 names. On an ability that is what it takes to cast it. On a hit or crit aura it also decides which
@@ -543,7 +543,7 @@ attacks the bonus reaches, and there the same columns mean different things per 
 
 ### One rating
 
-Forever gear carries the client's generic hit, crit and haste rating, and the sim keeps one of each:
+Forever gear carries the game files' generic hit, crit and haste rating, and the sim keeps one of each:
 `stats.HitRating`, `stats.CritRating` and `stats.HasteRating`. Each feeds both the physical and the spell
 percent, and haste rating speeds melee, ranged and casting alike. The conversions are
 `core.HitRatingPerHitPercent` (10), `core.CritRatingPerCritPercent` (14) and
@@ -551,7 +551,7 @@ percent, and haste rating speeds melee, ranged and casting alike. The conversion
 reaches one channel is a percent (`stats.PhysicalHitPercent`, `stats.SpellCritPercent`) or a mod on
 some attacks.
 
-`A_MOD_RATING` names its ratings as a mask of the client's combat ratings, which `spelldata.RatingStats`
+`A_MOD_RATING` names its ratings as a mask of the game files' combat ratings, which `spelldata.RatingStats`
 reads bit by bit: the melee, ranged and spell bits of one rating name the same stat, 8388608 is
 `ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row that names a weapon, and a
 mask of the ranged bits 64, 512 and 262144 alone (`spelldata.RangedBitsOnly`), are read by
@@ -583,7 +583,7 @@ belongs to.
 **Read the row's tooltip before scoping; 290 is ambiguous.** "Improves your chance to get a critical
 strike with all spells and attacks" is crit on everything while the weapon is equipped, which is what
 the parse makes of a melee-weapon 290 (Thundering Strikes). "Increases your chance to get a critical
-strike with Axes and Polearms" is per weapon, though the client states it as a 290 too: its Weaponmaster
+strike with Axes and Polearms" is per weapon, though the game files state it as a 290 too: its Weaponmaster
 12700 and Hack and Slash 13706 rows. The live Weaponmaster 1290261 and Hack and Slash 13960 carry that
 crit as an `A_DUMMY` branch, so both are built by hand as a per-weapon mod. Where the parse and the
 tooltip disagree, the tooltip wins and the call site names the wording.
@@ -624,7 +624,7 @@ req := core.EquipRequirement{SubclassMask: core.WeaponSubclassMask(proto.WeaponT
 character.NewEquipGatedStats(req, stats.Stats{stats.PhysicalCritPercent: 1, stats.SpellCritPercent: 1}).SetLevel(nil, 1)
 ```
 
-The Equip fields are the client's own masks. `EquipSubclass` takes `dbcenums.ITEM_SUBCLASS_BIT_WEAPON_*`
+The Equip fields are the game files' own masks. `EquipSubclass` takes `dbcenums.ITEM_SUBCLASS_BIT_WEAPON_*`
 bits, and `core.WeaponSubclassMask(types...)` builds one from `proto.WeaponType`s, one- and two-handed
 alike. `EquipInvType` takes `dbcenums.INVTYPE_BIT_*` bits, and `EquipHand` the `ProcMaskMeleeMH` or
 `ProcMaskMeleeOH` a hand bit names. `core.EquipRequirement{SubclassMask, InvTypeMask, Hand}` holds the
