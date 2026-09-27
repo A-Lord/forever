@@ -25,7 +25,7 @@ func (paladin *Paladin) registerSealOfLight(_ int32, rank *spelldata.Spell) {
 	judgementID := int32(rank.EffectN(2).BaseValue())
 	healRank := spellData.SealOfLightTriggered.ByID(judgementOfLightHealIDs[rank.RankNumber()])
 	judgementAuras := paladin.newJudgementAuras(func(target *core.Unit) *core.Aura {
-		return buffs.NewSpellDataJudgementOfLightAuraRank(target, buffs.JudgementRank{
+		return buffs.NewSpellDataJudgementOfLightAuraRank(target, &paladin.Unit, buffs.JudgementRank{
 			SpellID: judgementID,
 			Rank:    rank.RankNumber(),
 			Value:   healRank.HealEffect().Average(core.CharacterLevel),

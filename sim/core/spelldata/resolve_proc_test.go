@@ -8,6 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // One row per shape the proc resolver has to answer for: the four chance sources, an override-baked
@@ -388,42 +389,29 @@ func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 	}
 }
 
-// Frenzy 19621 names a pet proc no row of the store states and Improved Judgement of Light 23564 a
-// trigger on the target, so both are skipped with the reason; Improved Poisons 14113 still attaches.
-func TestAProcChanceModNamingNoRollOfTheCasterIsSkipped(t *testing.T) {
+// Frenzy 19621 names the proc of Tamed Pet Passive 20784, a row the store does not hold, and
+// Improved Judgement of Light 23564 the Judgement of Light debuff 20185 on the target. Both attach to
+// the caster: a pet's trigger counts its owner's mods, and the debuff's trigger names the paladin.
+func TestAProcChanceModReachesThePetAndTheTargetSideTrigger(t *testing.T) {
 	withGeneratedStore(t)
 
-	for _, row := range []struct {
-		id     int32
-		reason string
-	}{
-		{19621, "proc chance for a proc no row in the store states"},
-		{23564, "proc chance for a target-side trigger"},
-	} {
-		parsed := DryRun(MustFind(row.id))
-		if len(parsed.Applied) != 0 || len(parsed.Skipped) != 1 {
-			t.Errorf("%d attached %v and skipped %d, want the proc chance effect skipped",
-				row.id, appliedKinds(parsed), len(parsed.Skipped))
-			continue
-		}
-		if got := parsed.Skipped[0].Reason; got != row.reason {
-			t.Errorf("%d skipped for %q, want %q", row.id, got, row.reason)
-		}
+	hunter := parseCharacter(&proto.Player{Class: proto.Class_ClassHunter, Spec: &proto.Player_Hunter{Hunter: &proto.Hunter{}}})
+	hunter.Party.Raid = &core.Raid{}
+	pet := core.NewPet(core.PetConfig{Name: "Test Pet", Owner: hunter,
+		StatInheritance: func(stats.Stats) stats.Stats { return stats.Stats{} }})
+	frenzy := MustFind(19621)
+	if kinds := appliedKinds(ParseStatic(hunter, frenzy)); len(kinds) != 1 || kinds[0] != "SpellMod_ProcChance_Flat" {
+		t.Fatalf("Frenzy attached %v, want the proc chance mod", kinds)
+	}
+	if got := pet.ModifiedProcChance(frenzy.EffectN(1).ClassFlags, 0); math.Abs(got-0.2) > 1e-9 {
+		t.Errorf("the pet's Frenzy chance with the talent: %v, want 0.2", got)
 	}
 
 	paladin := parseCharacter(&proto.Player{Class: proto.Class_ClassPaladin, Spec: &proto.Player_RetributionPaladin{RetributionPaladin: &proto.RetributionPaladin{}}})
-	ParseStatic(paladin, MustFind(23564))
-	if got := paladin.ModifiedProcChance(MustFind(20185).ClassFlags, 0.5); got != 0.5 {
-		t.Errorf("Judgement of Light's chance with the skipped talent: %v, want 0.5", got)
+	if kinds := appliedKinds(ParseStatic(paladin, MustFind(23564))); len(kinds) != 1 || kinds[0] != "SpellMod_ProcChance_Flat" {
+		t.Fatalf("Improved Judgement of Light attached %v, want the proc chance mod", kinds)
 	}
-
-	if kinds := appliedKinds(DryRun(MustFind(14113))); len(kinds) == 0 || kinds[0] != "SpellMod_ProcChance_Flat" {
-		t.Fatalf("Improved Poisons attached %v, want the proc chance mod first", kinds)
-	}
-	rogue := parseCharacter(&proto.Player{Class: proto.Class_ClassRogue, Spec: &proto.Player_Rogue{Rogue: &proto.Rogue{}}})
-	trigger := ProcTrigger(rogue, MustFind(8680), noopHandler, WeaponProc())
-	ParseStatic(rogue, MustFind(14113))
-	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
-		t.Errorf("Instant Poison's chance with Improved Poisons: %v, want 0.3", got)
+	if got := paladin.ModifiedProcChance(MustFind(20185).ClassFlags, 0.5); math.Abs(got-0.6) > 1e-9 {
+		t.Errorf("Judgement of Light's chance with the talent: %v, want 0.6", got)
 	}
 }
