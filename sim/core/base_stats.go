@@ -14,7 +14,7 @@ var BaseStats = map[BaseStatsKey]stats.Stats{}
 
 // ClassBaseStats holds the level 60 base attributes of each class: health,
 // the five primary attributes and the flat attack power before any stat
-// converts into it. The client carries no table for these.
+// converts into it. The game files carry no table for these.
 //
 // Health is the class base; the character adds 10 health per Stamina point
 // beyond the first 20.
