@@ -188,14 +188,13 @@ func (spell *Spell) PhysicalHitCheck(sim *Simulation, attackTable *AttackTable) 
 }
 func (spell *Spell) PhysicalCritChance(attackTable *AttackTable) float64 {
 	critPercent := spell.Unit.stats[stats.PhysicalCritPercent] + spell.BonusCritPercent +
-		attackTable.critChanceByCaster(spell) -
-		attackTable.Defender.PseudoStats.ReducedCritTakenPercent
+		attackTable.critChanceByCaster(spell)
 
 	if spell.ProcMask.Matches(ProcMaskRanged) {
 		critPercent += spell.Unit.stats[stats.RangedCritPercent]
 	}
 
-	return max(critPercent/100-attackTable.MeleeCritSuppression, 0)
+	return max(critPercent/100-attackTable.Defender.PseudoStats.ReducedCritTakenPercent-attackTable.MeleeCritSuppression, 0)
 }
 func (spell *Spell) PhysicalCritCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.RandomFloat("Physical Crit Roll") < spell.PhysicalCritChance(attackTable)
@@ -269,9 +268,8 @@ func (spell *Spell) SpellCritChance(target *Unit) float64 {
 	critPercent := spell.Unit.stats[stats.SpellCritPercent] +
 		spell.BonusCritPercent +
 		attackTable.BonusSpellCritPercent +
-		attackTable.critChanceByCaster(spell) -
-		target.PseudoStats.ReducedCritTakenPercent
-	return max(critPercent/100-attackTable.SpellCritSuppression, 0)
+		attackTable.critChanceByCaster(spell)
+	return max(critPercent/100-target.PseudoStats.ReducedCritTakenPercent-attackTable.SpellCritSuppression, 0)
 }
 func (spell *Spell) MagicCritCheck(sim *Simulation, target *Unit) bool {
 	critChance := spell.SpellCritChance(target)

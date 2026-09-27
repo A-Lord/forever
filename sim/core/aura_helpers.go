@@ -50,21 +50,16 @@ type ProcTrigger struct {
 	// ticks deal damage, and a hit absorbed to 0 from a spell without one does not count.
 	RequireDamageComponent bool
 
-	ProcChance         float64
-	DPM                *DynamicProcManager
-	ICD                time.Duration
-	Handler            ProcHandler
-	TriggerImmediately bool // If false (default), the handler will be called one spell batch window later for improved realism.
-	ClassSpellMask     int64
-	// The game files' EffectSpellClassMask: the spells this listener fires on. A trigger that sets
-	// both this and ClassSpellMask fires only on the spells both name.
-	ClassFlags ClassFlags
-	// The class flags of the spell that procs, e.g. Instant Poison for a poison trigger. A proc chance
-	// talent such as Improved Poisons raises this trigger's chance when its mask names these flags.
-	// spelldata.ProcTrigger fills it from the row; a trigger built by hand leaves it empty, so no
-	// proc chance talent reaches it.
-	ProcSpellClassFlags ClassFlags
-	ClassSpellsOnly     bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
+	ProcChance          float64
+	DPM                 *DynamicProcManager
+	ICD                 time.Duration
+	Handler             ProcHandler
+	TriggerImmediately  bool       // If false (default), the handler will be called one spell batch window later for improved realism.
+	ClassSpellMask      int64      // The sim's own custom spell masks, not from the game files.
+	ClassFlags          ClassFlags // The spells this trigger fires on (EffectSpellClassMask in the game files); with ClassSpellMask, both must match.
+	ProcSpellClassFlags ClassFlags // The proccing spell's class flags, which proc chance talents match (e.g. Improved Poisons on Instant Poison).
+	Caster              *Unit      // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
+	ClassSpellsOnly     bool       // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
 	ExtraCondition      ProcExtraCondition
 
 	// The Can Proc From Procs attribute (Attributes[3] 0x4000000): the listener also fires on hits
@@ -126,6 +121,10 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 // fails without a draw. The unit's proc chance mods raise the manager's chance where there is one and
 // the stated chance otherwise. The cast and apply-effects listeners roll no manager.
 func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
+	if config.Caster != nil {
+		unit = config.Caster
+	}
+
 	stated := config.ProcChance
 	if dpm == nil {
 		stated = unit.ModifiedProcChance(config.ProcSpellClassFlags, stated)
