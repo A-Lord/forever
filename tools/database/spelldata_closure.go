@@ -52,7 +52,7 @@ func storeRoots(db *sql.DB, t *spellTables, ladderIDs []int32) (roots []int32, g
 }
 
 // Set by gen_spelldata -everyClassSpell: roots the store at every spell of a class family as well,
-// for an export of the client's class spells rather than a store the sim is built against.
+// for an export of the game files' class spells rather than a store the sim is built against.
 var EveryClassSpell bool
 
 // Selects nothing unless EveryClassSpell is set.
@@ -98,7 +98,7 @@ func siblingSpells(db *sql.DB, ids []int32) ([]int32, error) {
 }
 
 // The hand-kept extra spells, added to the captured roots while the store is rendered rather than
-// while the client tables are read, so an entry added without a regeneration shows up as a row the
+// while the game files tables are read, so an entry added without a regeneration shows up as a row the
 // committed store lacks.
 func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 	extras := make([]int32, 0, len(overrides.ExtraSpells))
@@ -108,7 +108,7 @@ func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 		}
 		// Dropped like any other unnamed id, but said out loud: it was written down on purpose.
 		if _, named := t.Names[extra.SpellID]; !named {
-			fmt.Fprintf(progress, "spelldata: extra spell %d is no spell in this client, so the store does not carry it\n",
+			fmt.Fprintf(progress, "spelldata: extra spell %d is no spell in the game files, so the store does not carry it\n",
 				extra.SpellID)
 		}
 		extras = append(extras, extra.SpellID)
@@ -132,7 +132,7 @@ func buffManifestIDs() []int32 {
 }
 
 // The ids of every list that this build names as a spell, deduped and in search order. An id no
-// SpellName row carries is not a spell here: ItemEffect keeps rows for spells the client dropped,
+// SpellName row carries is not a spell here: ItemEffect keeps rows for spells the game files dropped,
 // and following one would put an empty row in the store.
 func namedIDs(t *spellTables, lists ...[]int32) []int32 {
 	set := map[int32]bool{}
@@ -237,7 +237,7 @@ func spellEdges(t *spellTables, id int32) []int32 {
 	return append(next, t.referencedIDs(id)...)
 }
 
-// The spells a server-side handler casts off this one, which no client row states.
+// The spells a server-side handler casts off this one, which no game files row states.
 func handTriggered(id int32) []int32 {
 	var ids []int32
 	for _, link := range overrides.HandTriggers {

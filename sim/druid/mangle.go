@@ -11,7 +11,7 @@ func (druid *Druid) registerMangleAuras() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port. buffs.MangleAura named below does not
-	// exist: the client's Mangle ranks deal damage and apply no aura.
+	// exist: the game files' Mangle ranks deal damage and apply no aura.
 	// if druid.MangleAuras != nil {
 	// 	return
 	// }

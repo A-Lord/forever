@@ -10,9 +10,9 @@ import (
 )
 
 // Writes the hand-supplied values onto the rows before they are rendered, so the sim reads one
-// number per field instead of a client number a call site patches. Every failure below stops the
-// whole generation: a row the client has since caught up with, or one that names a spell the store
-// does not carry, is a number that has stopped being true and has to be looked at rather than
+// number per field instead of a game files number a call site patches. Every failure below stops the
+// whole generation: a row the game files have since caught up with, or one that names a spell the
+// store does not carry, is a number that has stopped being true and has to be looked at rather than
 // written.
 func applyOverrides(rows []storeSpell, list []overrides.Override) error {
 	byID := map[int32]*storeSpell{}

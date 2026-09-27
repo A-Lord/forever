@@ -105,7 +105,7 @@ func JoinSharedCategory(aura *Aura, shared string, isPlayer bool) {
 	aura.NewExclusiveEffect(shared, true, ExclusiveEffect{})
 }
 
-// AddGeneratedFlatBonus raises a generated buff the client states as worth base
+// AddGeneratedFlatBonus raises a generated buff the game files state as worth base
 // to base+bonus, in both of the numbers a buff that does not stack keeps apart:
 // what it applies and what it bids for its category. Three pieces of the
 // warrior's tier 2 set are worth 30 more attack power on Battle Shout, and a

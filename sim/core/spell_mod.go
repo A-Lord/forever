@@ -16,7 +16,7 @@ SpellMod implementation.
 
 type SpellModConfig struct {
 	ClassMask int64
-	// The client's EffectSpellClassMask: the spells this mod names. A mod that sets both this and
+	// The game files' EffectSpellClassMask: the spells this mod names. A mod that sets both this and
 	// ClassMask applies only to the spells both name.
 	ClassFlags        ClassFlags
 	Kind              SpellModType
@@ -1117,7 +1117,8 @@ func removeDurationFlat(mod *SpellMod, spell *Spell) {
 	modDurationFlat(spell, -mod.timeValue, mod.releaseAura)
 }
 
-// An aura the client never gives stacks stays at MaxStacks 0, which is what SetStacks refuses to touch.
+// An aura the game files never give stacks stays at MaxStacks 0, which is what SetStacks refuses to
+// touch.
 func modBuffMaxStacksFlat(spell *Spell, value int32, claim func(*Aura) bool) {
 	if spell.RelatedSelfBuff != nil && spell.RelatedSelfBuff.MaxStacks > 0 && claim(spell.RelatedSelfBuff) {
 		spell.RelatedSelfBuff.MaxStacks = addBuffMaxStacks(spell.RelatedSelfBuff, value)
@@ -1152,8 +1153,8 @@ func removeBuffMaxStacksFlat(mod *SpellMod, spell *Spell) {
 }
 
 // MaxRange 0 is no range check at all, so there is nothing for the mod to move: writing to it would
-// hand the spell a range the client never gave it. A spell that does state one may not be shortened
-// past nothing.
+// hand the spell a range the game files never gave it. A spell that does state one may not be
+// shortened past nothing.
 func applyRangeFlat(mod *SpellMod, spell *Spell) {
 	if spell.MaxRange == 0 {
 		return

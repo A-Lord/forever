@@ -297,7 +297,7 @@ func TestProcTriggerDropsAClassMaskOfAnotherFamily(t *testing.T) {
 		t.Errorf("unsupported = %v, want none where the family is the character's", got)
 	}
 
-	// A class the client states no family for is no evidence that the mask is somebody else's.
+	// A class the game files state no family for is no evidence that the mask is somebody else's.
 	if got := ProcTrigger(testCharacter(), Find(2700), noopHandler).ClassFlags; got.IsZero() {
 		t.Error("class flags were dropped for a character whose class states no family")
 	}
@@ -343,7 +343,7 @@ func TestClassSpellFamilies(t *testing.T) {
 	}
 
 	if len(core.ClassSpellFamilies) != 9 {
-		t.Errorf("the table holds %d classes, and this client has 9", len(core.ClassSpellFamilies))
+		t.Errorf("the table holds %d classes, and the game files have 9", len(core.ClassSpellFamilies))
 	}
 }
 

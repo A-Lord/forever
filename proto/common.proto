@@ -463,7 +463,7 @@ enum MobType {
 	MobTypeUndead = 8;
 }
 
-// The client's terrain area groups (SpellCastingRequirements.RequiredAreasID).
+// The game files' terrain area groups (SpellCastingRequirements.RequiredAreasID).
 enum AreaType {
 	AreaTypeUnknown = 0;
 	AreaTypeForestGrassland = 1;
@@ -610,7 +610,7 @@ enum ConsumableType {
 	ConsumableTypeFood = 3;
 	ConsumableTypeScroll = 4;
 	ConsumableTypeExplosive = 5;
-	// The client states no Battle or Guardian split among its elixirs.
+	// The game files state no Battle or Guardian split among their elixirs.
 	reserved 6, 7;
 	reserved "ConsumableTypeBattleElixir", "ConsumableTypeGuardianElixir";
 	ConsumableTypeImbue = 8;

@@ -2,7 +2,7 @@
 
 A consumable reaches the sim in two halves: its entry in `assets/database/db.json`, which the UI offers
 and the sim looks the id up in, and an effect registered for its id, which the sim applies when the
-character's `ConsumesSpec` names it. The generator writes the first from the client, and writes the
+character's `ConsumesSpec` names it. The generator writes the first from the game files, and writes the
 second for every consumable a builder in `sim/common/shared` can run from its rows. Where the rows are
 not enough or not right, the effect is hand-written.
 
@@ -27,7 +27,7 @@ an on-use spell and is one of:
   carries;
 - a Trade Goods explosive;
 - an item whose on-use shares the explosives' spell category or casts a temporary enchant, whatever
-  class the client files it under: Crystal Charge 11566 is a Quest item.
+  class the game files put it under: Crystal Charge 11566 is a Quest item.
 
 An item that also teaches a spell is an Engrave rune and is left out, and so is a name containing
 `Test`, `[DEP]` or `[PH]` or starting with `QA` or `UNUSED` (UNUSED Flask of Merciless Pursuit
@@ -46,7 +46,7 @@ first effect of the spell, or of a spell it triggers on the user, that fits a sh
 | `heal`              | heals the user (Major Healing Potion 13446: 17534)                     |
 | `energize`          | restores a resource (Major Mana Potion 13444: 17531)                   |
 | `stat aura`         | applies an aura the parser attaches (Flask of the Titans 13510: 17626) |
-| `percent stat`      | multiplies a stat; none routes there in this client                    |
+| `percent stat`      | multiplies a stat; none routes there in the game files                 |
 | `temporary enchant` | enchants a weapon (Brilliant Wizard Oil 20749: enchant 2628)           |
 | `absorb`            | shields the user (Greater Fire Protection Potion 13457: 17543)         |
 
@@ -59,10 +59,10 @@ it, such as a stun on the drinker (Dreamless Sleep Potion 12190: 15822), an `E_D
 
 **What ships.** `ShipsConsumable` puts a catalogue consumable into db.json when it routes to a shape, or
 when `ConsumableAllowList` or `ConsumableOverrides` names it. `ConsumableOverrides` is merged next, field
-by field onto the client's entry, or as a new entry where the client has none. `KeepConsumable` then
+by field onto the game files' entry, or as a new entry where the game files have none. `KeepConsumable` then
 drops what `ConsumableDenyList` names and the test and QA names; the allow list wins over the deny list.
 `AddConsumableIcons` puts every shipped consumable into the item icon table, where the UI looks its icon
-up: the client's icon, or for an entry the client does not ship, the `Icon` its override states.
+up: the game files' icon, or for an entry the game files do not ship, the `Icon` its override states.
 
 **The unsupported list.** `tools/database/unsupported_consumables.txt` names every catalogue consumable
 that routes to no shape, as `<item id> <spell id> <name>: <reason>`, after the count routed to each
@@ -75,7 +75,7 @@ UPDATE_UNSUPPORTED_CONSUMABLES=1 go test ./tools/database/ -run TestEveryConsuma
 
 ## Regenerating
 
-`make db` extracts the client, then regenerates the spell store and then db.json. With
+`make db` extracts the game files, then regenerates the spell store and then db.json. With
 `tools/database/wowsims.db` already in place, the last two steps are:
 
 ```sh
@@ -143,7 +143,7 @@ names 28890, 58 spell damage against Undead (`A_MOD_FLAT_SPELL_DAMAGE_VERSUS`, m
 oil's equip spell is already the enchant's spell damage, and is not named.
 `consumables_gift_of_arthas.go` registers Gift of Arthas 9088.
 
-A pet takes no consumables of its own; the scrolls the client marks `ONLY_TARGET_PLAYERS` cannot be
+A pet takes no consumables of its own; the scrolls the game files mark `ONLY_TARGET_PLAYERS` cannot be
 used on one.
 
 ## Exclusive groups
@@ -151,7 +151,7 @@ used on one.
 A consumable belongs to at most one exclusive group. Of the consumables the spec names, only the first
 of each group applies, in the order core applies them (the potion, the flask, `elixir_ids`, the food,
 the conjured item, the explosive, the imbues, `extra_ids`); everything outside a shared group stacks.
-The client carries no stacking table, so the generator resolves each consumable's group once, and
+The game files carry no stacking table, so the generator resolves each consumable's group once, and
 `ShippedConsumable` writes it into db.json as `group_key` and `group_name`. The sim reads only the key
 (`selectedConsumableIDs` in `sim/core/consumes.go`), the settings the key and the name.
 
@@ -286,7 +286,7 @@ Aggression 56 melee and spell crit rating, Precision 50 expertise rating at
 
 The consumable needs a db.json entry and a hand-written effect.
 
-**The client has it.** Add the id to `ConsumableAllowList`, as with the Natural flasks above. Gift of
+**The game files have it.** Add the id to `ConsumableAllowList`, as with the Natural flasks above. Gift of
 Arthas 9088 routes to no shape (its 11371 applies `A_PROC_TRIGGER_SPELL`) and ships because the list
 names it:
 
@@ -298,9 +298,9 @@ var ConsumableAllowList = []int32{
 ```
 
 An item outside the catalogue joins it through the same list. A catalogue consumable that
-`ConsumableOverrides` names ships as well, with the override's fields merged onto the client's.
+`ConsumableOverrides` names ships as well, with the override's fields merged onto the game files'.
 
-**The client does not have it.** Add the whole entry to `ConsumableOverrides`, since nothing else fills
+**The game files do not have it.** Add the whole entry to `ConsumableOverrides`, since nothing else fills
 it. Name, type, icon and every number the sim and the UI read come from there:
 
 ```go
@@ -326,7 +326,7 @@ var ConsumableDenyList = []int32{
 
 ## Correcting a number
 
-A consumable's numbers are its spells' rows, so a number the client does not state goes in
+A consumable's numbers are its spells' rows, so a number the game files do not state goes in
 `tools/database/overrides/spell_overrides.go` like any other spell's; the fields and the rule that
 retires each are in [Spell Data: Overrides](spell_data.md#overrides). A row names the spell the
 consumable casts, not the item:
@@ -337,7 +337,7 @@ consumable casts, not the item:
 
 Permanent Lung Juice Cocktail 23715's 30164 is listed unsupported as `30164 states no duration for its
 aura`; a `DurationMs` override on it lifts that refusal once the store and db.json are regenerated. An
-override is refused when the client states the field itself. A number the client states but the sim
+override is refused when the game files state the field itself. A number the game files state but the sim
 should not take is a hand-written effect for the consumable.
 
 ## Tests
@@ -385,7 +385,7 @@ everything else takes its item subclass.
 
 `isConsumableRelevant` then decides whether the player sees it:
 
-- the class, profession and race the client allows it (`class_allowlist`, `required_profession`,
+- the class, profession and race the game files allow it (`class_allowlist`, `required_profession`,
   `race_allowlist`, the last read from `ItemSparse.AllowableRace` by the generator);
 - a stat the spec weighs (its `epStats` and `consumableStats`; Stamina brings health and the
   resistances, Attack Power flat physical damage), a resource it spends, or, for a consumable granting

@@ -37,7 +37,7 @@ type rankLadder struct {
 	Field string
 	Ranks map[int32]int32
 
-	// What each rank's effects are worth, keyed by rank and then by the client's EffectIndex. Set
+	// What each rank's effects are worth, keyed by rank and then by the game files' EffectIndex. Set
 	// only on a ladder the talent tree supplied, where every rank is the same spell and the numbers
 	// sit on the tree's curves rather than on a spell per rank. Nil means the rank's own spell states
 	// its numbers, which is what every "Rank N" family does.
@@ -45,7 +45,7 @@ type rankLadder struct {
 }
 
 // One talent as the tree states it: a single spell, the rank cap the game enforces, and the value
-// each rank gives. The rank spells the legacy Talent table still lists are gone from this client -
+// each rank gives. The rank spells the legacy Talent table still lists are gone from the game files -
 // Anticipation's 12750-12753 have no row in SpellName, SpellEffect or SpellMisc - so the tree is the
 // only place a talent's ranks are described.
 type traitLadder struct {
@@ -61,7 +61,7 @@ func classMaskOf(class dbc.DbcClass) int {
 }
 
 // The Go identifier a family is reached by: "Shadow Word: Pain" -> ShadowWordPain. A "(DND)" suffix is
-// the client's do-not-display marker, not part of the name.
+// the game files' do-not-display marker, not part of the name.
 func fieldNameOf(spellName string) string {
 	spellName = strings.TrimSuffix(spellName, " (DND)")
 	var b strings.Builder
@@ -335,7 +335,7 @@ var descriptionSpellRef = regexp.MustCompile(`\$(?:/\d+;)?(\d{4,7})[a-z]`)
 // The spells a rank triggers or reads its tooltip from: an EffectTriggerSpell edge (Intercept's
 // stun 20615, Intimidating Shout's fear 20511), a $<id> token (Enrage's buff 12880, Flurry's
 // 12966, Last Stand's 12976) or an overrides.HandTriggers entry. In id order, without the rank itself and
-// without ids the client has no spell for.
+// without ids the game files have no spell for.
 func triggeredSpells(db *sql.DB, spellID int32) ([]int32, error) {
 	seen := map[int32]bool{}
 	for _, id := range handTriggered(spellID) {
@@ -469,7 +469,7 @@ func treeSpellIDs(db *sql.DB, treeID int) (map[int32]bool, error) {
 	return out, rows.Err()
 }
 
-// The names the client's legacy Talent table still carries, tree or no tree.
+// The names the game files' legacy Talent table still carries, tree or no tree.
 func legacyTalentNames(db *sql.DB) (map[string]bool, error) {
 	rows, err := db.Query(`SELECT DISTINCT n.Name_lang FROM Talent t JOIN SpellName n ON n.ID = t.SpellRank_0`)
 	if err != nil {
@@ -543,7 +543,7 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 		if d.Name == "" || d.SpellID == 0 {
 			continue
 		}
-		// A node appears once per entry, and the client keeps retired twins around, so a second
+		// A node appears once per entry, and the game files keep retired twins around, so a second
 		// definition on the same spell is the same talent and a second one on another spell is two
 		// talents the generated file could only reach by one name.
 		if first, ok := spellOf[d.Name]; ok {
@@ -585,7 +585,7 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 			return nil, nil, nil, err
 		}
 		if len(effects) == 0 {
-			skipped[d.Name] = fmt.Sprintf("the client states no effects for spell %d", d.SpellID)
+			skipped[d.Name] = fmt.Sprintf("the game files state no effects for spell %d", d.SpellID)
 			continue
 		}
 
@@ -844,7 +844,7 @@ func resolveLadder(db *sql.DB, name string, byRank map[int32][]rankCandidate, ma
 		}
 
 		// Holy Shock is one name over three spells per rank: a dummy the player casts, plus a damage
-		// and a heal spell the client never exposes. Only the castable one carries a SpellPower row,
+		// and a heal spell never exposed in game. Only the castable one carries a SpellPower row,
 		// and it is the one the sim registers, so that is the tie-break.
 		castable, err := castableOf(db, ids)
 		if err != nil {
@@ -896,7 +896,7 @@ func resolveLadder(db *sql.DB, name string, byRank map[int32][]rankCandidate, ma
 }
 
 // The one spell among these whose first effect is a dummy, when exactly one other is a direct
-// damage effect. That pairing is the client's dispatcher shape: the dummy is the spell the game
+// damage effect. That pairing is the game files' dispatcher shape: the dummy is the spell the game
 // grants and triggers, the damage spell is never exposed. Anything else returns 0 rather than
 // guessing - two talent auras that merely differ somewhere are not a dispatcher.
 func dispatcherOf(db *sql.DB, ids map[int32]bool) (int32, error) {
@@ -1011,7 +1011,7 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 		pkg := strings.ToLower(dbc.ClassNameFromDBC(class))
 		tree, ok := trees[classMaskOf(class)]
 		if !ok {
-			return nil, nil, fmt.Errorf("%s: the client database holds no talent tree for this class", pkg)
+			return nil, nil, fmt.Errorf("%s: the game files hold no talent tree for this class", pkg)
 		}
 		ladders, skipped, partial, err := discoverLadders(helper.db, class, tree)
 		if err != nil {
@@ -1042,7 +1042,7 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 		}
 	}
 
-	// The client rows the store is built from are captured on the way through and handed back, so
+	// The game files rows the store is built from are captured on the way through and handed back, so
 	// the caller can write them next to the store and the regeneration can be checked without the
 	// database - see spelldata_inputs.go.
 	inputs, err := loadStoreInputs(helper.db, ladderIDs, trees)

@@ -18,7 +18,7 @@ var ConsecrationRankMap = spellData.Consecration
 //
 // The ticks sit on the spell the tooltip names, which the family's triggered ladder carries rank
 // for rank: the tick everyone takes on its first effect, and on its second the extra damage the
-// first few targets take, the only part of the spell the client gives a spell power coefficient.
+// first few targets take, the only part of the spell the game files give a spell power coefficient.
 // The rank's own periodic dummy carries no damage: it times the ticks and states how many targets
 // take the bonus.
 func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {

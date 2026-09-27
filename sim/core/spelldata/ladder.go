@@ -8,8 +8,8 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-// A spell's ranks in rank order, whether the client states them as one spell per rank or as one spell
-// with a curve. Rank 0 is untaken, so the readers below answer 0 there instead of panicking.
+// A spell's ranks in rank order, whether the game files state them as one spell per rank or as one
+// spell with a curve. Rank 0 is untaken, so the readers below answer 0 there instead of panicking.
 type Ladder struct {
 	ranks []*Spell
 }
@@ -98,12 +98,12 @@ func (l Ladder) Each(fn func(rank int32, s *Spell)) {
 	}
 }
 
-// The rank's only effect, in the client's units. Rank 0 is untaken and answers 0.
+// The rank's only effect, in the game files' units. Rank 0 is untaken and answers 0.
 func (l Ladder) ValueAt(rank int32) float64 {
 	return l.only().ValueAt(rank)
 }
 
-// The client states a percentage as an integer: 16, not 0.16.
+// The game files state a percentage as an integer: 16, not 0.16.
 func (l Ladder) FractionAt(rank int32) float64 {
 	return l.only().FractionAt(rank)
 }
@@ -113,7 +113,7 @@ func (l Ladder) MultiplierAt(rank int32) float64 {
 	return l.only().MultiplierAt(rank)
 }
 
-// The client states rage on a 0-1000 bar.
+// The game files state rage on a 0-1000 bar.
 func (l Ladder) TenthsAt(rank int32) float64 {
 	return l.only().TenthsAt(rank)
 }

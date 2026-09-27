@@ -9,7 +9,7 @@ const (
 	// Attributes[3]: the aura stays on the unit through death. Flasks and Well Fed carry it.
 	attrEx3DeathPersistent uint32 = 0x100000
 
-	// AuraInterruptFlags[0]: the aura drops when the unit stands up, which is how the client ends
+	// AuraInterruptFlags[0]: the aura drops when the unit stands up, which is how the game ends
 	// eating and drinking.
 	auraInterruptStanding uint32 = 0x40000
 )
@@ -25,8 +25,8 @@ func (s *Spell) WhileSeated() bool {
 }
 
 // The stats a flat stat or resistance aura adds its amount to, as the parser attaches them:
-// A_MOD_STAT by the client's stat index, A_MOD_RESISTANCE by its school mask, where armor is school 1.
-// Nil for any other effect.
+// A_MOD_STAT by the game files' stat index, A_MOD_RESISTANCE by its school mask, where armor is
+// school 1. Nil for any other effect.
 func (e *Effect) FlatStats() []stats.Stat {
 	if !AppliesAura(e.Type) {
 		return nil

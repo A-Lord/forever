@@ -26,7 +26,7 @@ func applyGeneratedTestDebuffs(target *core.Unit, debuffs *proto.Debuffs) *core.
 	return sim
 }
 
-// The six schools the client's mask 126 names: every school but physical.
+// The six schools the game files' mask 126 names: every school but physical.
 var magicSchools = []stats.SchoolIndex{
 	stats.SchoolIndexArcane, stats.SchoolIndexFire, stats.SchoolIndexFrost,
 	stats.SchoolIndexHoly, stats.SchoolIndexNature, stats.SchoolIndexShadow,
@@ -39,11 +39,11 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 
 	for _, school := range magicSchools {
 		if got := target.PseudoStats.SchoolDamageTakenMultiplier[school]; got != 1.1 {
-			t.Errorf("school %d takes %v times the damage, want the client's 1.1", school, got)
+			t.Errorf("school %d takes %v times the damage, want the game files' 1.1", school, got)
 		}
 	}
 	if got := target.PseudoStats.SchoolDamageTakenMultiplier[stats.SchoolIndexPhysical]; got != 1 {
-		t.Errorf("physical damage taken is %v, want the client's mask to have left it alone", got)
+		t.Errorf("physical damage taken is %v, want the game files' mask to have left it alone", got)
 	}
 
 	for _, stat := range []stats.Stat{
@@ -51,7 +51,7 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 		stats.NatureResistance, stats.ShadowResistance,
 	} {
 		if got := target.GetStats()[stat]; got != -75 {
-			t.Errorf("%s is %v, want the client's -75", stat.StatName(), got)
+			t.Errorf("%s is %v, want the game files' -75", stat.StatName(), got)
 		}
 	}
 
@@ -66,7 +66,7 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 		t.Errorf("the curse lasts %v, want the raid config's copy to be up all fight", aura.Duration)
 	}
 	if got := buffs.CurseOfElementsDuration(0); got != 5*time.Minute {
-		t.Errorf("the curse is %v long before it is made permanent, want the client's 5 minutes", got)
+		t.Errorf("the curse is %v long before it is made permanent, want the game files' 5 minutes", got)
 	}
 }
 
@@ -78,7 +78,7 @@ func TestGeneratedExposeArmorIsTheFivePointFinisher(t *testing.T) {
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ExposeArmor: true})
 
 	if got := target.GetStats()[stats.Armor]; got != -2250 {
-		t.Errorf("armor is %v, want five times the client's -450", got)
+		t.Errorf("armor is %v, want five times the game files' -450", got)
 	}
 
 	category := target.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.ExposeArmorCategory)
@@ -109,7 +109,7 @@ func TestGeneratedSunderArmorPricesEveryStack(t *testing.T) {
 	sunder.SetStacks(sim, 5)
 
 	if got := target.GetStats()[stats.Armor]; got != -2250 {
-		t.Errorf("armor is %v, want five stacks of the client's -450", got)
+		t.Errorf("armor is %v, want five stacks of the game files' -450", got)
 	}
 	category := target.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.SunderArmorCategory)
 	if len(category.Effects()) != 1 || category.Effects()[0].Priority != 2250 {
@@ -127,7 +127,7 @@ func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 	sunder := target.GetAura("Sunder Armor (External)")
 	sunder.SetStacks(sim, 1)
 	if got := target.GetStats()[stats.Armor]; got != -450 {
-		t.Fatalf("one stack of sunder reduced armor by %v, want the client's -450", got)
+		t.Fatalf("one stack of sunder reduced armor by %v, want the game files' -450", got)
 	}
 
 	expose := core.MakePermanent(buffs.NewSpellDataExposeArmorAura(target, false, 0))
@@ -165,10 +165,10 @@ func TestGeneratedThunderClapSlowsTheTarget(t *testing.T) {
 
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ThunderClap: true})
 
-	// The client's -20 is 20% more time between attacks, so the speed is divided by 1.2.
+	// The game files' -20 is 20% more time between attacks, so the speed is divided by 1.2.
 	want := 1 / core.SlowedTimeMultiplier(-20)
 	if got := buffs.ThunderClapValue(0); got != want {
-		t.Errorf("the clap is worth %v, want the client's -20%% as %v", got, want)
+		t.Errorf("the clap is worth %v, want the game files' -20%% as %v", got, want)
 	}
 	if got := target.PseudoStats.MeleeSpeedMultiplier; got != want {
 		t.Errorf("the melee speed multiplier is %v, want %v", got, want)
@@ -294,7 +294,7 @@ func TestGeneratedDemoralizingDebuffsApplyOnce(t *testing.T) {
 	}
 }
 
-// The two judgements are bare 40-second auras in the client; what they do to
+// The two judgements are bare 40-second auras in the game files; what they do to
 // whoever strikes the target is the driver's proc trigger.
 func TestGeneratedJudgementsCarryTheDriversProcTriggers(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
@@ -321,14 +321,14 @@ func TestGeneratedJudgementsCarryTheDriversProcTriggers(t *testing.T) {
 	}
 
 	if buffs.JudgementOfLightDuration(0) != time.Second*40 || buffs.JudgementOfWisdomDuration(0) != time.Second*40 {
-		t.Errorf("the judgements last %v and %v before they are made permanent, want the client's 40 seconds",
+		t.Errorf("the judgements last %v and %v before they are made permanent, want the game files' 40 seconds",
 			buffs.JudgementOfLightDuration(0), buffs.JudgementOfWisdomDuration(0))
 	}
 }
 
 // Every flat attack-power reduction bids in one category, so the target loses the strongest once.
 //
-// The client's numbers: Hex of Weakness 19285 states -204 with no per-level gain past its BaseLevel
+// The game files' numbers: Hex of Weakness 19285 states -204 with no per-level gain past its BaseLevel
 // 60. Demoralizing Screech 24579 states -198 with -1.6 per level past its BaseLevel 56, capped at
 // MaxLevel 60, so a level 60 target reads -198 + 4*-1.6 = -204.4, floored to -205 - the same -205
 // Demoralizing Shout already states.
@@ -338,10 +338,10 @@ func TestGeneratedAttackPowerReductionsApplyTheStrongestOnce(t *testing.T) {
 		DemoralizingShout: true, HexOfWeakness: true, DemoralizingScreech: true,
 	})
 	if got := buffs.HexOfWeaknessValue(0); got != -204 {
-		t.Errorf("Hex of Weakness is worth %v, want the client's -204", got)
+		t.Errorf("Hex of Weakness is worth %v, want the game files' -204", got)
 	}
 	if got := buffs.DemoralizingScreechValue(0); got != -205 {
-		t.Errorf("Demoralizing Screech is worth %v, want the client's -198 plus 4 levels of -1.6, floored to -205", got)
+		t.Errorf("Demoralizing Screech is worth %v, want the game files' -198 plus 4 levels of -1.6, floored to -205", got)
 	}
 	want := min(buffs.DemoralizingShoutValue(0), buffs.HexOfWeaknessValue(0), buffs.DemoralizingScreechValue(0))
 	if got := target.GetStats()[stats.AttackPower]; got != want {
@@ -375,11 +375,11 @@ func TestGeneratedCurseOfWeaknessStacksWithDemoralizingShout(t *testing.T) {
 		t.Errorf("attack power is %v, want the shout's %v alone", got, buffs.DemoralizingShoutValue(0))
 	}
 	if got := target.GetStats()[stats.PhysicalDamage]; got != -37 {
-		t.Errorf("physical damage is %v, want the client's -37", got)
+		t.Errorf("physical damage is %v, want the game files' -37", got)
 	}
 }
 
-// The client states Dust Cloud at one stack, which the store reads as a stacking row, so the raid's
+// The game files state Dust Cloud at one stack, which the store reads as a stacking row, so the raid's
 // copy takes its stack from a driver: without one, the amount would follow zero stacks and apply
 // nothing.
 func TestGeneratedDustCloudStacksWithFaerieFire(t *testing.T) {
@@ -387,7 +387,7 @@ func TestGeneratedDustCloudStacksWithFaerieFire(t *testing.T) {
 	base := target.GetStats()[stats.Armor]
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{FaerieFire: true, DustCloud: true})
 	if got := buffs.DustCloudValue(0); got != -505 {
-		t.Errorf("Dust Cloud is worth %v, want the client's -505", got)
+		t.Errorf("Dust Cloud is worth %v, want the game files' -505", got)
 	}
 	if got := target.GetStats()[stats.Armor] - base; got != -1010 {
 		t.Errorf("armor moved by %v, want both -505s", got)
@@ -408,7 +408,7 @@ func TestGeneratedArmorShatterHoldsThreeStacks(t *testing.T) {
 	base := target.GetStats()[stats.Armor]
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ArmorShatter: true})
 	if got := buffs.ArmorShatterValue(0); got != -165 {
-		t.Errorf("Armor Shatter is worth %v, want the client's -165", got)
+		t.Errorf("Armor Shatter is worth %v, want the game files' -165", got)
 	}
 	if got := target.GetStats()[stats.Armor] - base; got != -495 {
 		t.Errorf("armor moved by %v, want 3 x -165", got)

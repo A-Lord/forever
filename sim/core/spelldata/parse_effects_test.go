@@ -137,7 +137,7 @@ func TestParseStaticBuildsTheModTable(t *testing.T) {
 	if parsed.Applied[0].Value != 0.15 {
 		t.Errorf("a percentage modifier is worth %v, want 0.15", parsed.Applied[0].Value)
 	}
-	// The client states rage on a 0-1000 bar, so -30 is 3 rage off the cost.
+	// The game files state rage on a 0-1000 bar, so -30 is 3 rage off the cost.
 	if parsed.Applied[1].Value != -3 {
 		t.Errorf("a rage cost modifier is worth %v, want -3", parsed.Applied[1].Value)
 	}
@@ -150,7 +150,7 @@ func TestParseStaticBuildsTheModTable(t *testing.T) {
 	}
 }
 
-// The same cost modifier on a mana bar is the client's own number.
+// The same cost modifier on a mana bar is the game files' own number.
 func TestParseStaticCostOnAManaBar(t *testing.T) {
 	withRows(t, parseRows())
 	character := parseCharacter(&proto.Player{
@@ -207,7 +207,7 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 	}
 }
 
-// The client states the same bonus twice on a talent that raises a spell and its dot, and one
+// The game files state the same bonus twice on a talent that raises a spell and its dot, and one
 // SpellMod_DamageDone_Flat already reaches the ticks as well as the hit.
 func TestParseFoldsTheDotModifier(t *testing.T) {
 	withRows(t, parseRows())
@@ -656,7 +656,7 @@ func oneEffectRow(aura dbcenums.EffectAuraType, misc int32, points float64) *Spe
 }
 
 // Each stat the table writes is stored in the units core reads it in, and those units differ: a
-// rating, a percentage point and a fraction all come out of a client percentage.
+// rating, a percentage point and a fraction all come out of a game files percentage.
 func TestParseStaticStatConventions(t *testing.T) {
 	withRows(t, parseRows())
 
@@ -1001,7 +1001,7 @@ func enablePowerBar(character *core.Character, power dbcenums.PowerType) {
 	}
 }
 
-// Boundless Rage's shape: the client's 300 is 30 rage on top of the bar's 100. An aura carrying it
+// Boundless Rage's shape: the game files' 300 is 30 rage on top of the bar's 100. An aura carrying it
 // keeps the rage held past the old maximum while it is up and clamps it back when it drops.
 func TestParseMaxRage(t *testing.T) {
 	row := oneEffectRow(dbcenums.A_MOD_MAX_POWER, int32(dbcenums.POWER_RAGE), 300)

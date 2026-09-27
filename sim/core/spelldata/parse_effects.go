@@ -83,9 +83,9 @@ func Level(n int32) ParseOpt {
 	}
 }
 
-// An improving talent's modifier on the amount, truncated the way the client resolves one: a
+// An improving talent's modifier on the amount, truncated the way the game resolves one: a
 // percentage of it for A_ADD_PCT_MODIFIER, a flat addition otherwise. It prices the first effect the
-// table attaches, in the client's units before the row converts them. An untaken talent is
+// table attaches, in the game files' units before the row converts them. An untaken talent is
 // NilEffect, which changes nothing.
 func ScaledBy(mod *Effect) ParseOpt {
 	return func(o *parseOptions) {
@@ -96,7 +96,7 @@ func ScaledBy(mod *Effect) ParseOpt {
 }
 
 // The talent's ranks out of divisor, for a talent whose tooltip prices the buff as a fraction of the
-// spell's own amount. Every amount the parse attaches is scaled, in the client's units, and rounded
+// spell's own amount. Every amount the parse attaches is scaled, in the game files' units, and rounded
 // to the nearest whole amount the way the tooltip shows it. Rank 0 changes nothing: the full amount.
 func ScaledByRanks(ranks, divisor int32) ParseOpt {
 	return func(o *parseOptions) {
@@ -106,7 +106,7 @@ func ScaledByRanks(ranks, divisor int32) ParseOpt {
 	}
 }
 
-// The finisher at full combo points: an effect the client states per combo point spent is worth
+// The finisher at full combo points: an effect the game files state per combo point spent is worth
 // five of them. A parse without it skips an effect whose amount is its per-point value alone.
 func FullComboPoints() ParseOpt {
 	return func(o *parseOptions) {
@@ -224,7 +224,7 @@ func ParseEffects(character *core.Character, aura *core.Aura, s *Spell, opts ...
 }
 
 // Everything the row's aura effects say, applied to the character now: a talent or a passive, which
-// the client states as an aura the unit is never without.
+// the game files state as an aura the unit is never without.
 func ParseStatic(character *core.Character, s *Spell, opts ...ParseOpt) *Parsed {
 	if character == nil {
 		return &Parsed{}
@@ -527,7 +527,7 @@ func effectNote(pos int, e *Effect) string {
 	return fmt.Sprintf("effect %d %s(%d) misc %d", pos, auraName(e.Aura), e.Aura, e.Misc)
 }
 
-// The client's name for an aura the parser skipped, or its number where the client names none.
+// The game files' name for an aura the parser skipped, or its number where the game files name none.
 func auraName(a dbcenums.EffectAuraType) string {
 	if name, ok := dbcenums.Named(a); ok {
 		return name

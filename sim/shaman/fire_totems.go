@@ -10,7 +10,7 @@ func searingTickCount(offset float64) int32 {
 	return int32(math.Ceil(24*(1.0+offset))) - 1
 }
 
-// TODO: To be implemented. Port the TBC Searing Totem Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Searing Totem Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerSearingTotemSpell() {
 	panic("To be implemented")
 
@@ -78,7 +78,7 @@ func (shaman *Shaman) registerSearingTotemSpell() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Magma Totem Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Magma Totem Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerMagmaTotemSpell() {
 	panic("To be implemented")
 
@@ -127,7 +127,7 @@ func (shaman *Shaman) registerMagmaTotemSpell() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Fire Nova Totem Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Fire Nova Totem Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerFireNovaTotemSpell() {
 	panic("To be implemented")
 

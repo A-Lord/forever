@@ -56,7 +56,7 @@ type ProcTrigger struct {
 	Handler            ProcHandler
 	TriggerImmediately bool // If false (default), the handler will be called one spell batch window later for improved realism.
 	ClassSpellMask     int64
-	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
+	// The game files' EffectSpellClassMask: the spells this listener fires on. A trigger that sets
 	// both this and ClassSpellMask fires only on the spells both name.
 	ClassFlags ClassFlags
 	// The class flags of the spell that procs, e.g. Instant Poison for a poison trigger. A proc chance
@@ -425,7 +425,7 @@ type TemporaryStatBuffWithStacksConfig struct {
 	// Set when stacks come from an event rather than a timer. The window aura is still built and
 	// still bounds the stacking aura, but nothing ticks - the caller adds stacks from its own
 	// trigger. The stacking aura is then given no duration of its own and is dropped when the
-	// window ends, which is what a child aura with no duration in the client data does.
+	// window ends, which is what a child aura with no duration in the game files does.
 	StacksFromEvent bool
 }
 

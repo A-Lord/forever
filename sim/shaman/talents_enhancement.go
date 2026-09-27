@@ -34,7 +34,7 @@ func (shaman *Shaman) registerEnhancementTalents() {
 	shaman.applyRageOfTheFarseer()
 }
 
-// TODO: To be implemented. Port the TBC Ancestral Knowledge implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Ancestral Knowledge implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyAncestralKnowledge() {
 	if shaman.Talents.AncestralKnowledge == 0 {
 		return
@@ -47,7 +47,7 @@ func (shaman *Shaman) applyAncestralKnowledge() {
 	// shaman.MultiplyStat(stats.Mana, spellData.AncestralKnowledge.MultiplierAt(shaman.Talents.AncestralKnowledge))
 }
 
-// TODO: To be implemented. Port the TBC Elemental Weapons implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Elemental Weapons implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyElementalWeapons() {
 	if shaman.Talents.ElementalWeapons == 0 {
 		return
@@ -74,7 +74,7 @@ func (shaman *Shaman) applyElementalWeapons() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Flurry implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Flurry implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyFlurry() {
 	if shaman.Talents.Flurry == 0 {
 		return
@@ -122,7 +122,7 @@ func (shaman *Shaman) applyFlurry() {
 	//
 }
 
-// TODO: To be implemented. Port the TBC Improved Lightning Shield implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Improved Lightning Shield implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyImprovedLightningShield() {
 	if shaman.Talents.ImprovedLightningShield == 0 {
 		return
@@ -139,7 +139,7 @@ func (shaman *Shaman) applyImprovedLightningShield() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Mental Quickness implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Mental Quickness implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyMentalQuickness() {
 	if shaman.Talents.MentalQuickness == 0 {
 		return
@@ -161,7 +161,7 @@ func (shaman *Shaman) applyMentalQuickness() {
 	// // spell damage conversion below is not applied.
 }
 
-// TODO: To be implemented. Port the TBC Shamanistic Focus implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shamanistic Focus implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyShamanisticFocus() {
 	if !shaman.Talents.ShamanisticFocus {
 		return
@@ -216,7 +216,7 @@ func (shaman *Shaman) applyStormstrike() {
 	shaman.registerStormstrikeSpell()
 }
 
-// TODO: To be implemented. Port the TBC Thundering Strikes implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Thundering Strikes implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyThunderingStrikes() {
 	if shaman.Talents.ThunderingStrikes == 0 {
 		return
