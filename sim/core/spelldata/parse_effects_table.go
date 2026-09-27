@@ -119,11 +119,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 
 	// The damage the unit deals and takes, by school mask.
 	dbcenums.A_MOD_DAMAGE_PERCENT_DONE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.PercentMultiplier(v),
+		return p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.MultiplierFromPercent(v),
 			&p.unit.PseudoStats.DamageDealtMultiplier, &p.unit.PseudoStats.SchoolDamageDealtMultiplier)
 	},
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
-		return p.schoolMultiplier("damage-taken", "DamageTakenMultiplier", e.Misc, core.PercentMultiplier(v),
+		return p.schoolMultiplier("damage-taken", "DamageTakenMultiplier", e.Misc, core.MultiplierFromPercent(v),
 			&p.unit.PseudoStats.DamageTakenMultiplier, &p.unit.PseudoStats.SchoolDamageTakenMultiplier)
 	},
 
@@ -171,7 +171,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// flat ranged amount reaches physical ranged attacks, and a mask without physical has no field.
 	dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("melee-damage-taken", "MeleeDamageTakenMultiplier",
-			[]*float64{&p.unit.PseudoStats.MeleeDamageTakenMultiplier}, core.PercentMultiplier(v))
+			[]*float64{&p.unit.PseudoStats.MeleeDamageTakenMultiplier}, core.MultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_RANGED_DAMAGE_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc&int32(core.SpellSchoolPhysical) == 0 {
@@ -183,7 +183,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("threat", "ThreatMultiplier", []*float64{&p.unit.PseudoStats.ThreatMultiplier},
-			core.PercentMultiplier(v))
+			core.MultiplierFromPercent(v))
 	},
 
 	dbcenums.A_MOD_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
@@ -272,15 +272,15 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	// The haste auras. Each multiplies a speed the unit recomputes, so each needs the Simulation an
 	// aura's gain hands over. Melee and ranged speed together is the sim's attack speed.
 	dbcenums.A_MOD_CASTING_SPEED_NOT_STACK: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("cast-speed", "CastSpeedMultiplier", (*core.Unit).MultiplyCastSpeed, speedMultiplier(v))
+		return p.speed("cast-speed", "CastSpeedMultiplier", (*core.Unit).MultiplyCastSpeed, core.SpeedMultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_MELEE_HASTE_3: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("melee-speed", "MeleeSpeedMultiplier", (*core.Unit).MultiplyMeleeSpeed, speedMultiplier(v))
+		return p.speed("melee-speed", "MeleeSpeedMultiplier", (*core.Unit).MultiplyMeleeSpeed, core.SpeedMultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_ATTACKSPEED:          attackSpeedRow,
 	dbcenums.A_MOD_MELEE_RANGED_HASTE_2: attackSpeedRow,
 	dbcenums.A_MOD_RANGED_HASTE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, speedMultiplier(v))
+		return p.speed("ranged-speed", "RangedSpeedMultiplier", (*core.Unit).MultiplyRangedSpeed, core.SpeedMultiplierFromPercent(v))
 	},
 
 	// Healing. 135 is the flat bonus to healing done, 136 the multiplier on it, and 118 the
@@ -290,11 +290,11 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 	dbcenums.A_MOD_HEALING_DONE_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("healing-dealt", "HealingDealtMultiplier",
-			[]*float64{&p.unit.PseudoStats.HealingDealtMultiplier}, core.PercentMultiplier(v))
+			[]*float64{&p.unit.PseudoStats.HealingDealtMultiplier}, core.MultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_HEALING_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("healing-taken", "HealingTakenMultiplier",
-			[]*float64{&p.unit.PseudoStats.HealingTakenMultiplier}, core.PercentMultiplier(v))
+			[]*float64{&p.unit.PseudoStats.HealingTakenMultiplier}, core.MultiplierFromPercent(v))
 	},
 	dbcenums.A_MOD_HEALING: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoAdd("healing-taken-flat", "BonusHealingTaken", []*float64{&p.unit.PseudoStats.BonusHealingTaken}, v)
@@ -324,13 +324,13 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		switch e.Misc {
 		case int32(dbcenums.POWER_MANA):
 			return p.refreshingManaRegen(p.pseudoMultiplier("spirit-regen", "SpiritRegenMultiplier",
-				[]*float64{&p.unit.PseudoStats.SpiritRegenMultiplier}, core.PercentMultiplier(v)))
+				[]*float64{&p.unit.PseudoStats.SpiritRegenMultiplier}, core.MultiplierFromPercent(v)))
 		case int32(dbcenums.POWER_ENERGY):
 			if !p.unit.HasEnergyBar() {
 				return nil
 			}
 			return p.speed("energy-regen", "EnergyRegenMultiplier", (*core.Unit).MultiplyEnergyRegenSpeed,
-				core.PercentMultiplier(v))
+				core.MultiplierFromPercent(v))
 		}
 		return nil
 	},
@@ -341,7 +341,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_INCREASE_HEALTH: flatHealthRow,
 	dbcenums.A_MOD_MAX_HEALTH:      flatHealthRow,
 	dbcenums.A_MOD_INCREASE_HEALTH_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.statMultiplier([]stats.Stat{stats.Health}, core.PercentMultiplier(v))
+		return p.statMultiplier([]stats.Stat{stats.Health}, core.MultiplierFromPercent(v))
 	},
 
 	// Armor is school 1 of the resistance aura; the other bits are the five magic resistances.
@@ -355,7 +355,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		if e.Misc&miscArmor == 0 {
 			return nil
 		}
-		return p.equipScaling(stats.Armor, core.PercentMultiplier(v))
+		return p.equipScaling(stats.Armor, core.MultiplierFromPercent(v))
 	},
 	// The resistance percentage multiplies the whole of the stat. Armor alone is taken: no row states
 	// it for a magic resistance.
@@ -363,7 +363,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		if e.Misc != miscArmor {
 			return nil
 		}
-		return p.statMultiplier([]stats.Stat{stats.Armor}, core.PercentMultiplier(v))
+		return p.statMultiplier([]stats.Stat{stats.Armor}, core.MultiplierFromPercent(v))
 	},
 
 	// Armor, attack power, spell damage and healing worth a share of a stat. The spell damage aura names
@@ -384,12 +384,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		if e.Misc != int32(dbcenums.POWER_MANA) {
 			return nil
 		}
-		return p.statMultiplier([]stats.Stat{stats.Mana}, core.PercentMultiplier(v))
+		return p.statMultiplier([]stats.Stat{stats.Mana}, core.MultiplierFromPercent(v))
 	},
 
 	dbcenums.A_MOD_BLOCK_VALUE_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoMultiplier("block-value", "BlockValueMultiplier",
-			[]*float64{&p.unit.PseudoStats.BlockValueMultiplier}, core.PercentMultiplier(v))
+			[]*float64{&p.unit.PseudoStats.BlockValueMultiplier}, core.MultiplierFromPercent(v))
 	},
 
 	// The chance to be hit by melee, which the sim keeps in percentage points as a reduction that
@@ -481,10 +481,10 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		switch e.Misc {
 		case int32(dbcenums.MECHANIC_FEAR):
 			return p.pseudoMultiplier("fear-duration", "FearDurationMultiplier",
-				[]*float64{&p.unit.PseudoStats.FearDurationMultiplier}, core.PercentMultiplier(v))
+				[]*float64{&p.unit.PseudoStats.FearDurationMultiplier}, core.MultiplierFromPercent(v))
 		case int32(dbcenums.MECHANIC_STUN):
 			return p.pseudoMultiplier("stun-duration", "StunDurationMultiplier",
-				[]*float64{&p.unit.PseudoStats.StunDurationMultiplier}, core.PercentMultiplier(v))
+				[]*float64{&p.unit.PseudoStats.StunDurationMultiplier}, core.MultiplierFromPercent(v))
 		}
 		return nil
 	},
@@ -670,7 +670,7 @@ func maxPower(kind string, key string, v float64, apply func(sim *core.Simulatio
 }
 
 func percentStatRow(p *parser, e *Effect, v float64) *attachment {
-	return p.statMultiplier(clientStatList(e.Misc), core.PercentMultiplier(v))
+	return p.statMultiplier(clientStatList(e.Misc), core.MultiplierFromPercent(v))
 }
 
 // The spells a modifier effect names. The game files leave the mask empty on an effect that means the
@@ -872,7 +872,7 @@ func (p *parser) statsWhileEquipped(sts []stats.Stat, v float64, req core.EquipR
 }
 
 func attackSpeedRow(p *parser, _ *Effect, v float64) *attachment {
-	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, speedMultiplier(v))
+	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, core.SpeedMultiplierFromPercent(v))
 }
 
 // Flat health. The bear forms state it on A_MOD_MAX_HEALTH, where Last Stand states a percentage,
@@ -928,7 +928,7 @@ func critDamageVersusRow(p *parser, e *Effect, v float64) *attachment {
 // second stack multiplies again is not stated, so a stacking row is skipped.
 func (p *parser) versusMultiplier(kind string, key string, e *Effect, v float64, multiply func(mult float64, mobTypes ...proto.MobType)) *attachment {
 	mobTypes := MobTypes(e.Misc)
-	mult := core.PercentMultiplier(v)
+	mult := core.MultiplierFromPercent(v)
 	if p.stacking || len(mobTypes) == 0 || mult <= 0 {
 		return nil
 	}
@@ -1212,15 +1212,6 @@ func (p *parser) schoolMultiplier(kind string, key string, mask int32, mult floa
 		return nil
 	}
 	return p.pseudoMultiplier(kind+"-by-school", "School"+key, fields, mult)
-}
-
-// A speed the game files state as a percentage. A negative one is a slow, which makes the time between
-// attacks or the cast time that much longer rather than taking that share off the speed.
-func speedMultiplier(v float64) float64 {
-	if v < 0 {
-		return 1 / core.SlowedTimeMultiplier(v)
-	}
-	return core.PercentMultiplier(v)
 }
 
 // The stats a game files stat index names: -1 is all five, and 0 through 4 are one of them.

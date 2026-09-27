@@ -284,3 +284,23 @@ func GetCurrentProtoVersion() int32 {
 	optionValue := googleproto.GetExtension(options, proto.E_CurrentVersionNumber)
 	return optionValue.(int32)
 }
+
+// The game files state a percentage as an integer, and its sign comes from the data: a -6 is 0.94.
+func MultiplierFromPercent(percent float64) float64 {
+	return 1 + percent/100
+}
+
+// A slow the game files state as a negative speed percentage makes the time between attacks, or a cast
+// time, that much longer: -20 is 20% longer, which divides the speed by 1.2.
+func TimeMultiplierFromSlowPercent(speedPercent float64) float64 {
+	return 1 - speedPercent/100
+}
+
+// A speed the game files state as a percentage. A negative one is a slow, which makes the time between
+// attacks or the cast time that much longer rather than taking that share off the speed.
+func SpeedMultiplierFromPercent(percent float64) float64 {
+	if percent < 0 {
+		return 1 / TimeMultiplierFromSlowPercent(percent)
+	}
+	return MultiplierFromPercent(percent)
+}

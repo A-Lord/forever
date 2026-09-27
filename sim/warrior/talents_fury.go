@@ -83,7 +83,7 @@ func (warrior *Warrior) registerDualWieldSpecialization() {
 	spelldata.ParseStatic(&warrior.Character, rank)
 
 	// The off-hand rage the tooltip's $m2 states is the dummy at index 2, which the parse skips.
-	warrior.SetOffHandRageMultiplier(1 + rank.EffectN(2).Percent())
+	warrior.SetOffHandRageMultiplier(core.MultiplierFromPercent(rank.EffectN(2).BaseValue()))
 }
 
 func (warrior *Warrior) registerIronWill() {

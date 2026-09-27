@@ -74,7 +74,7 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	// Arrows add their damage per second to the ranged weapon, times its speed. A gun is taken to
 	// fire them too, so no bullets are kept beside them.
 	hunter.PseudoStats.BonusRangedDps += arrows[hunterOptions.Ammo.String()].DPS
-	hunter.PseudoStats.RangedSpeedMultiplier *= 1 + quivers[hunterOptions.QuiverBonus.String()].Haste/100
+	hunter.PseudoStats.RangedSpeedMultiplier *= core.SpeedMultiplierFromPercent(quivers[hunterOptions.QuiverBonus.String()].Haste)
 
 	hunter.EnableAutoAttacks(hunter, core.AutoAttackOptions{
 		Ranged:          hunter.WeaponFromRanged(),
