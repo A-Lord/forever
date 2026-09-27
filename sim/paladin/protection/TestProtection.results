@@ -411,7 +411,7 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-KissoftheSpider-22954"
  value: {
-  dps: 214.76887
+  dps: 214.76886
   tps: 228.17171
   dtps: 5299.43057
  }
@@ -652,7 +652,7 @@ dps_results: {
  key: "TestProtection-AllItems-TheRestrainedEssenceofSapphiron-23046"
  value: {
   dps: 217.26093
-  tps: 231.11562
+  tps: 231.11561
   dtps: 5276.97303
  }
 }
