@@ -382,10 +382,6 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 		}
 
 		for _, statMod := range spelldata.RatingStats(int32(effect.EffectMiscValues[0])) {
-			// Assigned rather than accumulated: several rating bits (melee and spell hit
-			// for example) map onto the same stat and must not stack. Masks that do span
-			// different stats need every one of them set, so no early exit - breaking after
-			// the first scaled stat silently dropped the rest of a multi-stat mask.
 			if scaled {
 				effectStats[statMod] = scaledValue
 			} else {

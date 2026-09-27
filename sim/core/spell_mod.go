@@ -297,7 +297,7 @@ func (unit *Unit) refilterEquipMods() {
 }
 
 // The sum of the active hit or crit mods that reach every attack with this proc mask: those naming
-// no spell class, school or flag, whose proc mask and weapon match the attack's.
+// no ClassMask, ClassFlags, school or spell flag, whose proc mask and weapon match the attack's.
 func (unit *Unit) ScopedBonusPercent(kind SpellModType, probe ProcMask) float64 {
 	scoped := unit.scopedPercents(probe)
 	return Ternary(kind == SpellMod_BonusHit_Percent, scoped.hit, scoped.crit)

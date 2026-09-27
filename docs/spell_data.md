@@ -552,9 +552,9 @@ reaches one channel is a percent (`stats.PhysicalHitPercent`, `stats.SpellCritPe
 some attacks.
 
 `A_MOD_RATING` names its ratings as a mask of the game files' combat ratings, which `spelldata.RatingStats`
-reads bit by bit: the melee, ranged and spell bits of one rating name the same stat, 8388608 is
-`ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row that names a weapon, and a
-mask of the ranged bits 64, 512 and 262144 alone (`spelldata.RangedBitsOnly`), are read by
+reads bit by bit: the melee and spell bits of one rating name the same stat, its ranged bit adds nothing
+beside them, 8388608 is `ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row
+that names a weapon, and a mask of the ranged bits 64, 512 and 262144 alone (`spelldata.RangedBitsOnly`), are read by
 `spelldata.ScopedRatingStats` instead: the aura parse turns the hit and crit among them into the percent
 they are worth, as a mod on those attacks tagged `FromRating`. Haste has no mod that reaches some attacks
 and not others, so the aura parse leaves it unread, and the other ratings too. An item's equip spell
@@ -585,7 +585,7 @@ strike with all spells and attacks" is crit on everything while the weapon is eq
 the parse makes of a melee-weapon 290 (Thundering Strikes). "Increases your chance to get a critical
 strike with Axes and Polearms" is per weapon, though the game files state it as a 290 too: its Weaponmaster
 12700 and Hack and Slash 13706 rows. The live Weaponmaster 1290261 and Hack and Slash 13960 carry that
-crit as an `A_DUMMY` branch, so both are built by hand as a per-weapon mod. Where the parse and the
+crit as an `A_DUMMY` branch, so each needs it built by hand as a per-weapon mod. Where the parse and the
 tooltip disagree, the tooltip wins and the call site names the wording.
 
 ### Which API
@@ -642,7 +642,8 @@ also counts as the main- or off-hand weapon of the hand holding it.
 - An item swap re-filters every weapon-bound mod.
 - The character sheet reads the mods through `ScopedBonusPercent(kind, probe)` for its main-hand, off-hand
   and ranged hit and crit rows, and through `ScopedRatingPercent` for the part tagged `FromRating`, which
-  it shows as rating. A mod counts there only when it names no spell class, school or flag.
+  it shows as rating. A mod counts there only when it names no `ClassMask`, `ClassFlags`, school or spell
+  flag.
 
 `-config` reads a `core.SpellModConfig` literal the same way: the weapons its Equip fields name and the
 rule they get, and a hover on `SpellModConfig` in a class file shows it.

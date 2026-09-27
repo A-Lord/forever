@@ -92,7 +92,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 
 ## Traps
 
-- **Read a hit or crit row's tooltip before scoping it; 290 is ambiguous.** "All spells and attacks" is crit on everything while the weapon is equipped, which the parse makes of a melee-weapon 290. "With Axes and Polearms" is per weapon although the game files state it as 290 too; Weaponmaster and Hack and Slash carry that crit as a dummy and are built by hand.
+- **Read a hit or crit row's tooltip before scoping it; 290 is ambiguous.** "All spells and attacks" is crit on everything while the weapon is equipped, which the parse makes of a melee-weapon 290. "With Axes and Polearms" is per weapon although the game files state it as 290 too; Weaponmaster and Hack and Slash carry that crit as a dummy, so each needs it built by hand.
 - **Class flags are not an ability's identity.** Mortal Strike shares a mask bit with Bloodthirst, and Retaliation's strike one with Whirlwind, so `MatchesFlags` or a trigger's `ClassFlags` hears both. Ask whether a spell is one ability with `spellData.X.Contains(spell)`; keep class flags for the talent and set filters the game files state.
 - **`--tags=with_db` is required** on any sim test run, or it panics with `No DB data for enchant with id: 2613`. That panic is the missing tag, not a broken fixture.
 - **The data carries ranks the game never grants.** Fireball 38692 and Frostbolt 38697 are rank 14 entries at level 70 the generator cannot tell from the real rank 13s. Name the rank by spell id — `ByID` on a ladder — rather than reaching for the top one.
