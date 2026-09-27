@@ -41,7 +41,7 @@ func amount(e *spelldata.Effect) string {
 	return number(e.Min(core.CharacterLevel)) + "–" + number(e.Max(core.CharacterLevel))
 }
 
-// A percentage the client states as an integer, which is what Percent() divides by 100.
+// A percentage the game files state as an integer, which is what Percent() divides by 100.
 func percent(e *spelldata.Effect) string {
 	return number(value(e)) + "%"
 }
@@ -50,7 +50,7 @@ func signedPercent(e *spelldata.Effect) string {
 	return signed(value(e)) + "%"
 }
 
-// Rage and energy sit on the client's 0-1000 bar, which is what Tenths() divides by 10.
+// Rage and energy sit on the game files' 0-1000 bar, which is what Tenths() divides by 10.
 func tenths(e *spelldata.Effect) float64 {
 	return value(e) / 10
 }
@@ -421,8 +421,8 @@ func flatModAmount(e *spelldata.Effect) string {
 	return signed(value(e))
 }
 
-// A dummy row is the client's "the server does this", so its number is stated and nothing is claimed
-// about what the number means: it is the one shape a port has to read the tooltip for.
+// A dummy row is the game files' "the server does this", so its number is stated and nothing is
+// claimed about what the number means: it is the one shape a port has to read the tooltip for.
 func dummyPhrase(kind string, e *spelldata.Effect) string {
 	if value(e) == 0 {
 		return "a dummy " + kind
@@ -440,7 +440,7 @@ func triggerOrMisc(e *spelldata.Effect) string {
 }
 
 // The spells a modifier effect reaches. An empty mask on a spell that has a family of its own is the
-// client's "every spell of my family", which is what modConfig() widens it to.
+// game files' "every spell of my family", which is what modConfig() widens it to.
 func modTargets(s *spelldata.Spell, e *spelldata.Effect) string {
 	if phrase := classFlagsPhrase(e.ClassFlags); phrase != "" {
 		return "on " + phrase
@@ -477,7 +477,7 @@ func bonus(e *spelldata.Effect) string {
 }
 
 // The level the amount is priced at, for a row whose per-level gain means the number is not the one
-// the client's own column states.
+// the game files' own column states.
 func scaling(e *spelldata.Effect) string {
 	if e.PPL == 0 {
 		return ""
@@ -489,7 +489,7 @@ func coefficients(e *spelldata.Effect) string {
 	return join(share(e.Coeff(), "spell power"), share(e.APCoeff(), "attack power"))
 }
 
-// A coefficient of exactly 1 is the client's filler - 2,112 of the store's effects carry it, weapon
+// A coefficient of exactly 1 is the game files' filler - 2,112 of the store's effects carry it, weapon
 // effects and shapeshifts among them - so it is left to the literal rather than stated as a share.
 func share(coeff float64, of string) string {
 	if coeff == 0 || coeff == 1 {
@@ -498,8 +498,8 @@ func share(coeff float64, of string) string {
 	return signed(coeff) + " " + of
 }
 
-// The effect as the client states it: the columns it fills, in the units the row keeps them in, so the
-// words above can be checked against them.
+// The effect as the game files state it: the columns it fills, in the units the row keeps them in,
+// so the words above can be checked against them.
 func literal(e *spelldata.Effect, pos int) string {
 	parts := []string{namedOr(e.Type, "E_%d")}
 	if e.Aura != 0 {
@@ -558,8 +558,9 @@ func literal(e *spelldata.Effect, pos int) string {
 			add("mask=%s", mask)
 		}
 	}
-	// EffectIndex is the client's own numbering and matches the position on all but 46 of the store's
-	// rows, so it is stated only where the two disagree and EffectN(pos) is not EffectIndex.
+	// EffectIndex is the game files' own numbering and matches the position on all but 46 of the
+	// store's rows, so it is stated only where the two disagree and EffectN(pos) is not
+	// EffectIndex.
 	if int(e.Index) != pos-1 {
 		add("index=%d", e.Index)
 	}
@@ -582,7 +583,7 @@ func ticks(s *spelldata.Spell, e *spelldata.Effect) string {
 	return fmt.Sprintf("%d ticks", s.DurationMs/e.PeriodMs)
 }
 
-// The unit or area the effect reaches. The client states two implicit targets, and a pair naming a
+// The unit or area the effect reaches. The game files state two implicit targets, and a pair naming a
 // place and then a unit - Whirlwind's [22,15] - is worded by the unit.
 func targetPhrase(e *spelldata.Effect) string {
 	first, second := implicitTargets[e.Target[0]], implicitTargets[e.Target[1]]
@@ -606,7 +607,7 @@ func targetWord(t dbcenums.ImplicitTarget, named implicitTarget) string {
 	return fmt.Sprintf("to target %d", t)
 }
 
-// EffectMiscValue_0 is the power type on an energize effect, and rage is on the client's 0-1000 bar
+// EffectMiscValue_0 is the power type on an energize effect, and rage is on the game files' 0-1000 bar
 // the way a cost is.
 func powerAmount(e *spelldata.Effect) string {
 	amount := value(e)

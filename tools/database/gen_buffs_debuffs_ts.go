@@ -20,7 +20,7 @@ import (
 const buffsDebuffsTSFile = "ui/features/settings/model/buffs_debuffs_auto_gen.ts"
 
 // The state count a multistate input counts up to. An int32 field counts casts
-// or mana, and how far it counts is a UI choice the client database does not
+// or mana, and how far it counts is a UI choice the game files do not
 // state; the four Atiesh inputs share one count.
 var buffInputNumStates = map[string]int{
 	"atiesh_mage":      5,
@@ -191,8 +191,8 @@ func checkBuffInputTables() error {
 }
 
 // Why a row renders no input: its hand-written input does something no manifest
-// row states, its kind or proto type has no icon input at all, or the client
-// describes no spell to hang an icon on.
+// row states, its kind or proto type has no icon input at all, or the game files
+// describe no spell to hang an icon on.
 func skipBuffInputReason(row ResolvedBuff) string {
 	if reason, ok := manualBuffInputs[row.Field]; ok {
 		return reason
@@ -204,13 +204,13 @@ func skipBuffInputReason(row ResolvedBuff) string {
 		if row.Reason != "" {
 			return row.Reason
 		}
-		return "the client database resolves no spell for it."
+		return "the game files resolve no spell for it."
 	}
 	return ""
 }
 
-// A row the settings UI never renders an icon for whatever the client says about
-// it: the client does not describe the buff at all, the field is a sim toggle or
+// A row the settings UI never renders an icon for whatever the game files say about
+// it: the game files do not describe the buff at all, the field is a sim toggle or
 // a swatch pick rather than a buff, or no icon factory takes its proto type.
 func uninputtableBuffReason(row ResolvedBuff) string {
 	var fixed string

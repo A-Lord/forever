@@ -1,8 +1,8 @@
 # WoWSims Spelldata hover
 
-Hover a spell id in Go, JSON or TypeScript and read the client's row: what the spell is, a table of
+Hover a spell id in Go, JSON or TypeScript and read the game files' row: what the spell is, a table of
 the header columns, and a table of the effects - each worded where the shape is known and always
-over the client's own literal.
+over the game files' own literal.
 
 The ids it recognises are the ones hand-written code states: `spelldata.MustFind(11574)`,
 `spelldata.Find(116)`, `spellData.Rend.ByID(11574)`, `core.ActionID{SpellID: 11574}`, an APL file's

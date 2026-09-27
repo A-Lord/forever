@@ -7,18 +7,18 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-// The client's own number, before any unit the aura gives it.
+// The game files' own number, before any unit the aura gives it.
 func (e *Effect) BaseValue() float64 {
 	return e.BasePoints
 }
 
-// The client states a percentage as an integer: Improved Righteous Fury reads 16, not 0.16.
+// The game files state a percentage as an integer: Improved Righteous Fury reads 16, not 0.16.
 func (e *Effect) Percent() float64 {
 	return e.BasePoints / 100
 }
 
-// The client states rage on a 0-1000 bar: a -30 cost modifier is 3 rage, Charge's energize of 150 is
-// 15.
+// The game files state rage on a 0-1000 bar: a -30 cost modifier is 3 rage, Charge's energize of
+// 150 is 15.
 func (e *Effect) Tenths() float64 {
 	return e.BasePoints / 10
 }
@@ -50,14 +50,14 @@ func (e *Effect) Trigger() *Spell {
 // stopping at the level the spell stops scaling at. Both levels are the owning spell's, stamped onto
 // the effect at generation, so an effect answers the same amount however the caller reached it.
 //
-// The base keeps the client's own EffectBasePointsF, which is fractional on about one effect in 55,
+// The base keeps the game files' own EffectBasePointsF, which is fractional on about one effect in 55,
 // and the per-level gain is added on top of the fraction before the whole is floored.
 //
 // float32 is load-bearing: EffectRealPointsPerLevel is a float32 widened into the DB
 // (3.79999995231628), and multiplying in float64 moves the result off the tooltip on six rows. The
-// client resolves the amount to a whole number, which is the floor below.
+// game resolves the amount to a whole number, which is the floor below.
 func (e *Effect) Average(level int32) float64 {
-	// MaxLevel 0 is the client's "no cap", which a spell with no SpellLevels row carries.
+	// MaxLevel 0 is the game files' "no cap", which a spell with no SpellLevels row carries.
 	lvl := level
 	if e.MaxLevel > 0 && int32(e.MaxLevel) < lvl {
 		lvl = int32(e.MaxLevel)
@@ -82,7 +82,7 @@ func (e *Effect) Max(level int32) float64 {
 	return e.Average(level) * (1 + e.Variance/2)
 }
 
-// The amount for one cast: rolled where the client states a spread, the average where it does not.
+// The amount for one cast: rolled where the game files state a spread, the average where they do not.
 func (e *Effect) Roll(sim *core.Simulation, level int32) float64 {
 	average := e.Average(level)
 	if e.Variance == 0 {

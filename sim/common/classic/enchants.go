@@ -36,8 +36,8 @@ func init() {
 	// PPM: 1, ICD: 0
 	// Permanently enchant a melee weapon so that often when attacking in melee
 	// it heals for 75 to 125 and increases Strength by 100 for 15 sec.
-	// TODO: Manual review needed -- the client states no rate: 20007 has no proc chance and 458112's
-	// ProcChance 100 is the sentinel beside "often"; 1 PPM until measured in game.
+	// TODO: Manual review needed -- the game files state no rate: 20007 has no proc chance and
+	// 458112's ProcChance 100 is the sentinel beside "often"; 1 PPM until measured in game.
 	core.NewEnchantEffect(1900, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		duration := time.Second * 15

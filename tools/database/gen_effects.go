@@ -82,7 +82,7 @@ type Entry struct {
 	// Set for effects an ignore list deliberately excludes. These emit a comment only, so that
 	// skipping them is visible in the generated file rather than silent.
 	Skipped bool
-	// Set when the proc is resolved from the client's own rows at run time, which is every proc
+	// Set when the proc is resolved from the game files' own rows at run time, which is every proc
 	// but the two shapes that need more than the rows state: a window that accumulates a second
 	// aura, and an effect a hand-written constructor already covers.
 	Proc *ProcRouting
@@ -179,8 +179,8 @@ func routeProc(triggerSpellID int, buffSpellID int, isWeaponProc bool) *ProcRout
 	return routing
 }
 
-// A proc that grants no stats: it casts or applies spellID, which the client hangs below the trigger
-// or states on it, and whose row says what the sim cannot model.
+// A proc that grants no stats: it casts or applies spellID, which the game files hang below the
+// trigger or state on it, and whose row says what the sim cannot model.
 func (r *ProcRouting) as(shape ProcShape, spellID int32) {
 	r.Shape = shape
 	r.BuffSpellID = int(spellID)
@@ -310,7 +310,7 @@ func absorbs(s *spelldata.Spell) bool {
 }
 
 // The buff the proc applies has to last for something: an aura of no duration is one the sim
-// refuses to activate, and the client states it on either row.
+// refuses to activate, and the game files state it on either row.
 func (r *ProcRouting) requireABuffDuration() {
 	trigger := spelldata.Find(int32(r.TriggerSpellID))
 	buff := trigger
@@ -428,7 +428,7 @@ func GenerateEffectsFile(groups []*Group, outFile string, templateString string)
 	}
 
 	hasStacking := false
-	// A registration resolved from the client's rows names no core constant, so a file whose live
+	// A registration resolved from the game files' rows names no core constant, so a file whose live
 	// entries are all of that shape must not import core: gen_db links the sim, and an unused import
 	// in a file it just wrote breaks the build the next run needs.
 	usesCore := false
@@ -971,7 +971,7 @@ func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, inst
 			// An effect that resolves no stats may still deal flat damage, heal or shield the wearer,
 			// debuff the enemy it lands on, or apply auras the stat path cannot state, each a shape of
 			// its own rather than a reason to refuse: there is no buff, so the proc casts the spell the
-			// client hangs below its trigger, read from that spell's own row.
+			// game files hang below its trigger, read from that spell's own row.
 			if !grantsStats {
 				shape, spellID := pickNoStatShape(int(itemEffect.BuffId), itemEffect.BuffId)
 				if shape == ShapeStats && appliesAnItemAura(spelldata.Find(itemEffect.BuffId)) {
@@ -1025,7 +1025,7 @@ func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, inst
 	return EffectParseResultInvalid
 }
 
-// The rows an item effect names: the client's ItemEffect row carries the spell with the proc on it,
+// The rows an item effect names: the game files' ItemEffect row carries the spell with the proc on it,
 // and the shipped entry carries the spell that applies the stats.
 func routeItemProc(parsed *proto.UIItem, itemEffect *proto.ItemEffect) *ProcRouting {
 	effect := dbc.GetItemEffectForBuffID(int(parsed.Id), int(itemEffect.BuffId))
@@ -1475,8 +1475,8 @@ func routeEnchantSlot(slot dbc.EnchantProcSlot, instance *dbc.DBC) *ProcRouting 
 	return routing
 }
 
-// The client's CreatureType ids, which TargetCreatureType names as 1 << (id - 1). The damage proc does
-// not read the restriction.
+// The game files' CreatureType ids, which TargetCreatureType names as 1 << (id - 1). The damage
+// proc does not read the restriction.
 var creatureTypes = []string{1: "beasts", 2: "dragonkin", 3: "demons", 4: "elementals", 5: "giants",
 	6: "undead", 7: "humanoids", 8: "critters", 9: "mechanicals"}
 
@@ -1583,7 +1583,7 @@ var hasGenericMatcher = regexp.MustCompile(`a spell`)
 // A trigger condition stated as an attack outcome. Deliberately matches the condition clause rather
 // than the words themselves: "increases your dodge rating" is a stat on hundreds of items, while
 // "when one of your spells is resisted" is a trigger. "After a block" is the third clause the
-// client uses, on the Battlegear of Wrath parry (23548); "after you dodge" is not in here because
+// game files use, on the Battlegear of Wrath parry (23548); "after you dodge" is not in here because
 // the only rows wording it that way are Counterattack's, where it gates the button rather than a
 // proc. A miss is not in here either: the one row naming one, 456394, means its own attack missing
 // rather than an attack on it.
@@ -1660,7 +1660,7 @@ var castTriggerMatcher = regexp.MustCompile(`(?i)you cast|on spell ?cast|spellca
 // "Your casts of Greater Heal", "Your Shadow Bolt has", "When you cast Flash of Light". The capital
 // is what carries the meaning - an unrestricted trigger reads "your spell critical strikes" or
 // "each time you cast a spell", with nothing capitalized to name.
-// The client writes a conditional list where the item shows one name - Eternal Power's "Your casts
+// The game files write a conditional list where the item shows one name - Eternal Power's "Your casts
 // of $?s2060[Greater Heal]..." - so the "casts of" clause reads the possessive alone and leaves what
 // follows to the tooltip renderer. The other two clauses need the capital: "when you cast a spell"
 // and "your melee attacks have" name no ability.
@@ -1807,7 +1807,7 @@ func buildSpellProcInfo(procSpell *dbc.Spell, tooltip string, itemType proto.Ite
 		return info, false
 	}
 
-	// An outcome the client does not record. ProcTypeMask has no dodge, parry, block or resist bit -
+	// An outcome the game files do not record. ProcTypeMask has no dodge, parry, block or resist bit -
 	// TrinityCore keeps those in a HitMask of its own - so a tooltip stating one as the trigger
 	// condition is the only evidence there is. Eye of Magtheridon fires on a resisted spell, and
 	// without this it generates as a 100%-per-cast buff. Crit is deliberately not in here: it is the

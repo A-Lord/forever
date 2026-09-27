@@ -185,7 +185,7 @@ func (item *Item) GetRandPropPoints(itemLevel int) int32 {
 func (item *Item) GetScaledStat(index int, itemLevel int) float64 {
 	//Todo check if overflow array
 
-	// This client ships no precomputed StatModifier_bonusAmount, so the allocation
+	// The game files ship no precomputed StatModifier_bonusAmount, so the allocation
 	// budget is the only source: 99.8% of stat slots carry a non-zero StatAlloc.
 	slotType := item.GetRandomSuffixType()
 	itemBudget := 0.0

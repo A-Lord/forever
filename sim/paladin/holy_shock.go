@@ -7,8 +7,8 @@ import (
 )
 
 // One rank of Holy Shock: the spell the paladin casts, and the damage and heal it triggers. The
-// client ships the damage and heal chains as two ladders under one name, which the generator
-// refuses, so the table is by hand from the client rows: the cast's cost, and each chain's number
+// game files ship the damage and heal chains as two ladders under one name, which the generator
+// refuses, so the table is by hand from the game files rows: the cast's cost, and each chain's number
 // with its 0.429 coefficient.
 type holyShockRank struct {
 	rank     int32
@@ -39,7 +39,7 @@ const (
 // Blasts the target with Holy energy, causing X Holy damage to an enemy, or Y healing to an ally.
 //
 // The damage and the heal are two spells that share the cast's cooldown: the damage carries the
-// cast's id so the rotation names it as the client does, the heal carries its own. Light's Vigil
+// cast's id so the rotation names it as the game files do, the heal carries its own. Light's Vigil
 // on the enemy turns the damage into the vigil's strike, refunds the vigil, and skips the cooldown.
 func (paladin *Paladin) registerHolyShock() {
 	for _, rank := range HolyShockRanks {

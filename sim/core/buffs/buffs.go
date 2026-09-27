@@ -1,5 +1,5 @@
 // Package buffs holds the raid buffs and debuffs: the constructors tools/database/gen_spelldata
-// generates from tools/database/buffmanifest, the drivers that add what the client does not state,
+// generates from tools/database/buffmanifest, the drivers that add what the game files do not state,
 // and the hand-written auras that share categories with them. They sit above sim/core so that they
 // can read the spell store, which imports sim/core, so core cannot call them: init registers them
 // as core's buff hooks, and sim/common imports the package so that every sim links it.

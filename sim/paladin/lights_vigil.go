@@ -10,7 +10,7 @@ import (
 var LightsVigilRankMap = spellData.LightsVigil
 
 // The vigil aura, party heal and enemy strike each rank triggers. They sit in LightsVigilTriggered
-// in the order the client lists them, not by rank, so the pairing is by hand.
+// in the order the game files list them, not by rank, so the pairing is by hand.
 var lightsVigilTriggered = map[int32]struct{ aura, heal, strike int32 }{
 	1: {aura: 1310909, heal: 1310912, strike: 1310914},
 	2: {aura: 1311593, heal: 1311591, strike: 1311592},

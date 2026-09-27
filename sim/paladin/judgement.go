@@ -29,7 +29,7 @@ func (paladin *Paladin) registerJudgement() {
 
 		ManaCost: manaCost(rank),
 		Cast: core.CastConfig{
-			// Off the global cooldown, as the client states.
+			// Off the global cooldown, as the game files state.
 			DefaultCast: core.Cast{
 				NonEmpty: true,
 			},

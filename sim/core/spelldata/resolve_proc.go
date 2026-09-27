@@ -7,11 +7,11 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-// An addition to the resolved trigger for what the client does not state, which on a proc is the
+// An addition to the resolved trigger for what the game files do not state, which on a proc is the
 // rate: a row that states none needs one of PPM, ChanceFrom or Chance.
 type ProcOpt func(*core.Character, *core.ProcTrigger)
 
-// What the client states about a proc, as the fields core registers a listener through: what it
+// What the game files state about a proc, as the fields core registers a listener through: what it
 // hears (ProcTypeMask through the decoder, with the row's tooltip hint), how often it fires, its
 // internal cooldown and the attribute-driven gates. The caller adds what the row does not carry -
 // the name and action the sim keys the effect by, the buff the handler applies - to the returned
@@ -105,13 +105,13 @@ func Chance(chance float64) ProcOpt {
 // What a trigger built from this row does not model: the proc flags the decoder names as
 // unsupported, the two tooltip shapes it reads past, and a class mask naming a family the wearer's
 // class does not use. A trigger is still built for all of them - a listener that hears fewer hits
-// than the client's is deliberately the narrower one - so this is the audit's way of seeing which
+// than the game files' is deliberately the narrower one - so this is the audit's way of seeing which
 // rows that applies to.
 func ProcTriggerUnsupported(character *core.Character, s *Spell) []string {
 	unsupported := core.DecodeProcTypeMask(s.ProcFlags, s.ProcHint).Unsupported
 
 	// No ProcTypeMask can state either: a trigger restricted to one named ability, and one
-	// restricted to an outcome the mask has no bit for, both listen to more than the client does.
+	// restricted to an outcome the mask has no bit for, both listen to more than the game files do.
 	if s.ProcHint.Matches(core.ProcHintNamedAbility) {
 		unsupported = append(unsupported, "NAMED_ABILITY")
 	}
@@ -125,8 +125,8 @@ func ProcTriggerUnsupported(character *core.Character, s *Spell) []string {
 	return unsupported
 }
 
-// The spells the listener fires on where the client names them, which is the EffectSpellClassMask of
-// the effect that carries the proc, read against the class wearing it.
+// The spells the listener fires on where the game files name them, which is the
+// EffectSpellClassMask of the effect that carries the proc, read against the class wearing it.
 func listenerClassFlags(character *core.Character, s *Spell) core.ClassFlags {
 	flags := rowClassFlags(s)
 	if othersFamily(character, flags) {
@@ -156,10 +156,10 @@ func rowClassFlags(s *Spell) core.ClassFlags {
 // Whether the mask names spells of a family this character's class never casts, which is how an
 // item shared by every class states the filter of the one class it was written for: Dreadnaught's
 // 8pc 28845 names family 5, the warlock's, and on a warrior that mask matches nothing and silences
-// the listener rather than narrowing it. A class the client states no family for - and the empty
+// the listener rather than narrowing it. A class the game files state no family for - and the empty
 // mask every non-class spell carries - is no evidence of anything, so both are left alone.
 //
-// Only another class's family counts. The client files the potions under family 13 and a good deal
+// Only another class's family counts. The game files put the potions under family 13 and a good deal
 // of generic content under 0 or 1, and a mask in one of those names spells every class can use, so
 // dropping it would silence a listener the wearer really does hear. With no character there is no
 // class to read the mask against, which ParseEffects answers the same way: the rows that need one
@@ -190,7 +190,7 @@ func isClassFamily(family int32) bool {
 func (s *Spell) StatedChance() float64 {
 	switch s.ProcChanceSource {
 	case ProcChanceColumn:
-		// 101 is the client's "fires on its own condition" sentinel next to a real 100.
+		// 101 is the game files' "fires on its own condition" sentinel next to a real 100.
 		return min(float64(s.ProcChance)/100, 1)
 	case ProcChanceEffectN:
 		// The position the roll is stated at can be past the effects the row carries.

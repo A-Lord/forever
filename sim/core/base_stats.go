@@ -19,7 +19,7 @@ var BaseStats = map[BaseStatsKey]stats.Stats{}
 // source. Until then every sim number that depends on base attributes is wrong,
 // and the .results files bake that in.
 //
-// The client is NOT that source, verified against build 1.60.1.69913 by extracting
+// The game files are NOT that source, verified against build 1.60.1.69913 by extracting
 // every candidate table: CharBaseInfo is race x class validity only; ChrClasses has
 // AttackPowerPerStrength/Agility but no attributes; ChrRaces has no stat columns;
 // RaceStat (new in 1.60.1) is one row per race and every value is 0; and

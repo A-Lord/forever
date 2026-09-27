@@ -20,7 +20,7 @@ var judgementOfWisdomManaIDs = map[int32]int32{1: 20268, 2: 20352, 3: 20353}
 // against the judged enemy a chance to restore mana to the attacker. Your melee strikes will
 // refresh the spell's duration. Only one Judgement per Paladin can be active at any one time.
 //
-// The seal's second effect names its judgement (the row has no effect at the client's index 1).
+// The seal's second effect names its judgement (the row has no effect at the game files' index 1).
 func (paladin *Paladin) registerSealOfWisdom(_ int32, rank *spelldata.Spell) {
 	judgementID := int32(rank.EffectN(2).BaseValue())
 	manaRank := spellData.SealOfWisdomTriggered.ByID(judgementOfWisdomManaIDs[rank.RankNumber()])

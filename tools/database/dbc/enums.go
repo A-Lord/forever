@@ -29,7 +29,7 @@ const (
 	ITEM_SPELLTRIGGER_LEARN_SPELL_ID  int = 6
 )
 
-// The client's spell enums live in sim/core/dbcenums, which the sim reads as well. The aliases
+// The game files' spell enums live in sim/core/dbcenums, which the sim reads as well. The aliases
 // keep the field types of this package's rows spelled as its own.
 type SpellEffectType = dbcenums.SpellEffectType
 type EffectAuraType = dbcenums.EffectAuraType
@@ -213,7 +213,7 @@ const (
 
 const (
 	TRADE_GOODS_EXPLOSIVES = 2
-	// The client's shared cooldown category for explosives, 60 s.
+	// The game files' shared cooldown category for explosives, 60 s.
 	EXPLOSIVES_SPELL_CATEGORY = 24
 	// The categories potions, food, drink and conjured items (healthstones, mana gems, runes, Thistle
 	// Tea) share their cooldown through.
@@ -288,10 +288,10 @@ const (
 	ITEM_MOD_BLOCK_VALUE              = 48
 	ITEM_MOD_MAX                      = 49
 
-	// Indices above ITEM_MOD_MAX that the Forever client actually puts on items.
+	// Indices above ITEM_MOD_MAX that the Forever game files actually put on items.
 	// 50-56 are standard (wowdev.wiki/Stat_Types); 50 is already handled below.
 	// 83+ has no upstream definition -- the canonical enum stops at 74 -- so these
-	// were identified from self-labelling test items and enchant rows in the client.
+	// were identified from self-labelling test items and enchant rows in the game files.
 	ITEM_MOD_EXTRA_ARMOR       = 50
 	ITEM_MOD_FIRE_RESISTANCE   = 51
 	ITEM_MOD_FROST_RESISTANCE  = 52

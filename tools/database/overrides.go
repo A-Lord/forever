@@ -60,17 +60,17 @@ var IgnoreMissingEffectBySpellID = map[int]string{
 	16372: "Seal of Ascension - no tooltip and no mechanic",
 }
 
-// Absorbs a server script restricts to spells the client does not list, keyed by spell ID with the
+// Absorbs a server script restricts to spells the game files do not list, keyed by spell ID with the
 // reason the generated file gives. 1287808, Onyxia Blood Talisman's, states 10000000000 beside the
 // A_DUMMY that names the Dragon Breath spells.
 var UnsupportedAbsorbBySpellID = map[int32]string{
-	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the client does not list",
+	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list",
 }
 
 var OtherItemIdsToFetch = []string{}
 var ConsumableOverrides = []*proto.Consumable{}
 
-// Empty: all 26 entries were TBC items absent from this client.
+// Empty: all 26 entries were TBC items absent from the game files.
 var ItemOverrides = []*proto.UIItem{}
 
 // Keep these sorted by item ID.
@@ -125,9 +125,9 @@ var ConsumableDenyList = []int32{
 	277493, // Scroll of Cat Familiar
 }
 
-// Exclusive groups the server keeps that the rows do not state: the client carries no stacking table,
-// and these items share no aura with their group and no category whose cooldown outlasts their buffs.
-// A consumable named here takes this group instead of the one its rows give it.
+// Exclusive groups the server keeps that the rows do not state: the game files carry no stacking
+// table, and these items share no aura with their group and no category whose cooldown outlasts
+// their buffs. A consumable named here takes this group instead of the one its rows give it.
 var ConsumableExclusiveGroups = []ConsumableGroup{
 	{Group: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
 		12451, // Juju Power
@@ -337,7 +337,7 @@ var EnchantAllowList = []int32{
 // match the generated enchant or the override is added as a separate entry.
 var EnchantOverrides = []*proto.UIEnchant{
 	// The head/leg resistance kits grant their stats through an equip spell that no
-	// longer exists in the client data, so they have to be filled in by hand.
+	// longer exists in the game files, so they have to be filled in by hand.
 	{EffectId: 2681, ItemId: 22635, SpellId: 28162, Name: "Savage Guard", Stats: stats.Stats{stats.NatureResistance: 10}.ToProtoArray()},
 	{EffectId: 2682, ItemId: 22636, SpellId: 28164, Name: "Ice Guard", Stats: stats.Stats{stats.FrostResistance: 10}.ToProtoArray()},
 	{EffectId: 2683, ItemId: 22638, SpellId: 28166, Name: "Shadow Guard", Stats: stats.Stats{stats.ShadowResistance: 10}.ToProtoArray()},

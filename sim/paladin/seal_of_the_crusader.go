@@ -19,7 +19,7 @@ import (
 // Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be
 // active at any one time.
 //
-// The seal's third effect names its judgement. The client states no number for the damage each
+// The seal's third effect names its judgement. The game files state no number for the damage each
 // attack loses; every sim before this one has divided the white damage by the same 1.4 the speed
 // gains, and that stays.
 func (paladin *Paladin) registerSealOfTheCrusader(_ int32, rank *spelldata.Spell) {
