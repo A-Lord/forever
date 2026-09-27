@@ -7,7 +7,7 @@ import (
 
 var arcaneMissilesRank = spellData.ArcaneMissiles.Highest()
 var triggered = spellData.ArcaneMissilesTriggered.Highest()
-var arcaneMissilesBaseDamage = triggered.DamageEffect().Average(core.CharacterLevel)
+var arcaneMissilesDamage = triggered.DamageEffect()
 
 func (mage *Mage) registerArcaneMissilesSpell() {
 	tickConfig := spelldata.SpellConfig(&mage.Unit, triggered, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.RemoveFlags(core.SpellFlagAPL))
@@ -16,7 +16,7 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	chargeLock := arcaneChargesLock{}
 	tickConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		chargeLock.deal(spell, target, func() {
-			spell.CalcAndDealDamage(sim, target, arcaneMissilesBaseDamage, spell.OutcomeTickMagicHitAndCrit)
+			spell.CalcAndDealDamage(sim, target, arcaneMissilesDamage.Roll(sim, core.CharacterLevel), spell.OutcomeTickMagicHitAndCrit)
 		})
 		spell.SpellMetrics[target.UnitIndex].Casts--
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 var arcaneBlastRank = spellData.ArcaneBlast.Highest()
-var arcaneBlastBaseDamage = arcaneBlastRank.DamageEffect().Average(core.CharacterLevel)
+var arcaneBlastDamage = arcaneBlastRank.DamageEffect()
 
 func (mage *Mage) registerArcaneBlastSpell() {
 
@@ -14,7 +14,7 @@ func (mage *Mage) registerArcaneBlastSpell() {
 	config.ClassSpellMask = MageSpellArcaneBlast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, arcaneBlastBaseDamage, spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, arcaneBlastDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
 			mage.ArcaneChargesAura.Activate(sim)
 			mage.ArcaneChargesAura.AddStack(sim)

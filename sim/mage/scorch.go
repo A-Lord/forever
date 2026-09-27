@@ -6,7 +6,7 @@ import (
 )
 
 var scorchRank = spellData.Scorch.Highest()
-var scorchBaseDamage = scorchRank.DamageEffect().Average(core.CharacterLevel)
+var scorchDamage = scorchRank.DamageEffect()
 
 func (mage *Mage) registerScorchSpell() {
 
@@ -16,7 +16,7 @@ func (mage *Mage) registerScorchSpell() {
 	config.ClassSpellMask = MageSpellScorch
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, scorchBaseDamage, spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, scorchDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() && sim.Proc(procChance, "Improved Scorch") {
 			aura := mage.ImprovedScorchAuras.Get(target)
 			aura.Activate(sim)

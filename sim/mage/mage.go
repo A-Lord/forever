@@ -22,6 +22,7 @@ type Mage struct {
 	ClearCasting       *core.Aura
 	PresenceOfMindAura *core.Aura
 	ArcanePowerAura    *core.Aura
+	FingersOfFrostAura *core.Aura
 
 	ImprovedScorchAuras core.AuraArray
 

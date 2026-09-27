@@ -6,7 +6,7 @@ import (
 )
 
 var frostNovaRank = spellData.FrostNova.Highest()
-var frostNovaBaseDamage = frostNovaRank.DamageEffect().Average(core.CharacterLevel)
+var frostNovaDamage = frostNovaRank.DamageEffect()
 
 // Frost Nova
 // https://www.wowhead.com/forever/spell=10230
@@ -21,7 +21,9 @@ func (mage *Mage) registerFrostNovaSpell() {
 	config.ClassSpellMask = MageSpellFrostNova
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealAoeDamage(sim, frostNovaBaseDamage, spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, func(sim *core.Simulation, _ *core.Spell) float64 {
+			return frostNovaDamage.Roll(sim, core.CharacterLevel)
+		})
 	}
 
 	mage.RegisterSpell(config)

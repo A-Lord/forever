@@ -11,14 +11,14 @@ import (
 // Forever, and the generator drops its stand-ins.
 
 var fireBlastRank = spellData.FireBlast.Highest()
-var fireBlastBaseDamage = fireBlastRank.DamageEffect().Average(core.CharacterLevel)
+var fireBlastDamage = fireBlastRank.DamageEffect()
 
 func (mage *Mage) registerFireBlastSpell() {
 	config := spelldata.SpellConfig(&mage.Unit, fireBlastRank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellFireBlast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, fireBlastBaseDamage, spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, fireBlastDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
 	}
 
 	mage.RegisterSpell(config)

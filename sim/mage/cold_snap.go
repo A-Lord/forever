@@ -1,33 +1,28 @@
 package mage
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
-func (mage *Mage) registerColdSnapSpell() {
-	panic("To be implemented")
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-	// The TBC implementation, kept for the port:
-	// if !mage.Talents.ColdSnap {
-	// 	return
-	// }
-	//
-	// mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 11958},
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	Flags:          core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
-	// 	ClassSpellMask: MageSpellColdSnap,
-	//
-	// 	Cast: core.CastConfig{
-	// 		CD: core.Cooldown{
-	// 			Timer:    mage.NewTimer(),
-	// 			Duration: time.Second * 480,
-	// 		},
-	// 	},
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-	// 		if mage.IcyVeins != nil {
-	// 			mage.IcyVeins.CD.Reset()
-	// 		}
-	// 		if mage.SummonWaterElemental != nil {
-	// 			mage.SummonWaterElemental.CD.Reset()
-	// 		}
-	// 	},
-	// })
+var coldSnapRank = spellData.ColdSnap.Highest()
+
+// Cold Snap
+// https://www.wowhead.com/forever/spell=12472
+//
+// "Finishes the remaining cooldown on all your other Frost spells." The row's effect is a dummy, so
+// "Frost spells" is read as the school: Frost Nova, Cone of Cold, Ice Block and Ice Barrier.
+func (mage *Mage) registerColdSnapSpell() {
+	config := spelldata.SpellConfig(&mage.Unit, coldSnapRank, spelldata.Flags(core.SpellFlagAPL))
+	config.ClassSpellMask = MageSpellColdSnap
+
+	config.ApplyEffects = func(_ *core.Simulation, _ *core.Unit, coldSnap *core.Spell) {
+		for _, spell := range mage.Spellbook {
+			if spell != coldSnap && spell.SpellSchool.Matches(core.SpellSchoolFrost) && spell.CD.Timer != nil {
+				spell.CD.Reset()
+			}
+		}
+	}
+
+	mage.RegisterSpell(config)
 }

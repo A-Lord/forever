@@ -6,7 +6,7 @@ import (
 )
 
 var fireballRank = spellData.Fireball.Highest()
-var fireballBaseDamage = fireballRank.DamageEffect().Average(core.CharacterLevel)
+var fireballDamage = fireballRank.DamageEffect()
 
 func (mage *Mage) registerFireballSpell() {
 	// The DoT is its own spell (MageSpellFireballDot): its ticks carry the Arcane Charges the cast
@@ -27,7 +27,7 @@ func (mage *Mage) registerFireballSpell() {
 	spellConfig.ClassSpellMask = MageSpellFireball
 
 	spellConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, fireballBaseDamage, spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, fireballDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
 		chargeBonus := mage.arcaneChargesBonus()
 		spell.WaitTravelTime(sim, func(s *core.Simulation) {
 			spell.DealDamage(sim, result)
