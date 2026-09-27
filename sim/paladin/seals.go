@@ -104,11 +104,17 @@ func (paladin *Paladin) registerSealSpell(cfg *sealConfig) *core.Spell {
 
 func (paladin *Paladin) applySeal(sim *core.Simulation, cfg *sealConfig) {
 	previous := paladin.currentSeal
-	if previous != nil && previous != cfg && previous.aura.IsActive() {
+	if previous != nil && previous != cfg && previous.echoID != cfg.echoID && previous.aura.IsActive() {
 		if echo := paladin.echoes[previous.echoID]; echo != nil {
 			echo.seal = previous
 			echo.aura.Activate(sim)
 		}
+	}
+
+	// A seal and its own Echo are never up together: putting the seal back up drops its Echo.
+	if echo := paladin.echoes[cfg.echoID]; echo != nil && echo.aura.IsActive() {
+		echo.seal = nil
+		echo.aura.Deactivate(sim)
 	}
 
 	paladin.currentSeal = cfg
