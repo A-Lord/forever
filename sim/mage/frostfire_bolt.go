@@ -22,7 +22,10 @@ func (mage *Mage) registerFrostfireBoltSpell() {
 	}
 	dotSpell := mage.RegisterSpell(dotConfig)
 
-	config := spelldata.SpellConfig(&mage.Unit, frostfireBoltRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	// Binary: a spell with a non-damage effect (the slow) is resisted whole or not at all, which the
+	// row does not state.
+	config := spelldata.SpellConfig(&mage.Unit, frostfireBoltRank,
+		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary))
 	config.ClassSpellMask = MageSpellFrostfireBolt
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

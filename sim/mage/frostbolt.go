@@ -9,7 +9,10 @@ var frostboltRank = spellData.Frostbolt.Highest()
 var frostboltDamage = frostboltRank.EffectN(2)
 
 func (mage *Mage) registerFrostboltSpell() {
-	config := spelldata.SpellConfig(&mage.Unit, frostboltRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	// Binary: a spell with a non-damage effect (the slow) is resisted whole or not at all, which the
+	// row does not state.
+	config := spelldata.SpellConfig(&mage.Unit, frostboltRank,
+		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary))
 	config.ClassSpellMask = MageSpellFrostbolt
 
 	config.ThreatMultiplier = 1

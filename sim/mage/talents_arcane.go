@@ -139,7 +139,11 @@ func (mage *Mage) registerArcaneConcentration() {
 			mage.ClearCasting.Activate(sim)
 		})
 	trigger.Name = "Arcane Concentration - Trigger"
-	trigger.ClassSpellMask = MageSpellsAllDamaging
+	trigger.ProcMask = core.ProcMaskSpellDamage
+	// The Arcane Missiles channel lands an outcome with no damage; its missiles are the hits.
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return !spellData.ArcaneMissiles.Contains(spell)
+	}
 
 	mage.MakeProcTriggerAura(trigger)
 }
@@ -237,23 +241,7 @@ func (mage *Mage) registerMissileBarrage() {
 	buffRank := spellData.MissileBarrageTriggered.Highest()
 	arcaneBlastChance := talentRank.EffectN(1).Percent()
 
-	// Missiles every 0.5 sec: SPELLMOD_ACTIVATION_TIME (effect 2), which the parse does not know.
-	// The sim counts a DoT's duration as its ticks times their length, so the halved tick alone
-	// halves the channel and keeps its 5 missiles: the row's -50% duration (effect 1) is already
-	// in it and is not applied again.
-	tickMod := mage.AddDynamicMod(core.SpellModConfig{
-		ClassMask: MageSpellArcaneMissilesCast,
-		TimeValue: buffRank.EffectN(2).TimeValue(),
-		Kind:      core.SpellMod_DotTickLength_Flat,
-	})
-
 	config := spelldata.AuraConfig(buffRank)
-	config.OnGain = func(aura *core.Aura, sim *core.Simulation) {
-		tickMod.Activate()
-	}
-	config.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-		tickMod.Deactivate()
-	}
 	// The channel took the tick length and the cost when it was applied, before this runs.
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
 		if spell.Matches(MageSpellArcaneMissilesCast) {
@@ -262,13 +250,16 @@ func (mage *Mage) registerMissileBarrage() {
 	}
 	buffAura := mage.RegisterAura(config)
 
-	// The mana cost (effect 3).
-	spelldata.ParseEffects(&mage.Character, buffAura, buffRank, spelldata.Effects(3))
+	// Missiles every 0.5 sec (effect 2) and the mana cost (effect 3). The sim counts a DoT's
+	// duration as its ticks times their length, so the halved tick alone halves the channel and
+	// keeps its 5 missiles: the row's -50% duration (effect 1) is already in it and is not applied
+	// again.
+	spelldata.ParseEffects(&mage.Character, buffAura, buffRank, spelldata.Effects(2, 3))
 
 	trigger := spelldata.ProcTrigger(&mage.Character, talentRank,
 		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			chance := arcaneBlastChance
-			if !spell.Matches(MageSpellArcaneBlast) {
+			if !spellData.ArcaneBlast.Contains(spell) {
 				chance /= 2
 			}
 			if sim.Proc(chance, "Missile Barrage") {
@@ -276,7 +267,10 @@ func (mage *Mage) registerMissileBarrage() {
 			}
 		}, spelldata.Chance(1))
 	trigger.Name = "Missile Barrage - Trigger"
-	trigger.ClassSpellMask = MageSpellArcaneBlast | MageSpellFireball | MageSpellFrostbolt | MageSpellFrostfireBolt
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.ArcaneBlast.Contains(spell) || spellData.Fireball.Contains(spell) ||
+			spellData.Frostbolt.Contains(spell) || spellData.FrostfireBolt.Contains(spell)
+	}
 
 	mage.MakeProcTriggerAura(trigger)
 }

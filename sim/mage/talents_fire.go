@@ -214,7 +214,10 @@ func (mage *Mage) registerHotStreak() {
 			hotStreakAura.AddStack(sim)
 		})
 	trigger.Name = "Hot Streak - Trigger"
-	trigger.ClassSpellMask = MageSpellFireball | MageSpellFrostfireBolt | MageSpellFireBlast | MageSpellScorch
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.Fireball.Contains(spell) || spellData.FrostfireBolt.Contains(spell) ||
+			spellData.FireBlast.Contains(spell) || spellData.Scorch.Contains(spell)
+	}
 
 	mage.MakeProcTriggerAura(trigger)
 }
