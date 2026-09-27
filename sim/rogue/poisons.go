@@ -26,6 +26,7 @@ func (rogue *Rogue) registerDeadlyPoisonSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamageProc,
 	// 	ClassSpellMask: RogueSpellDeadlyPoison,
+	// 	ClassFlags:     spellData.DeadlyPoison.Highest().ClassFlags,
 	// 	Flags:          core.SpellFlagPoison | core.SpellFlagPassiveSpell | core.SpellFlagProc,
 	//
 	// 	DamageMultiplier:         1,
@@ -95,6 +96,7 @@ func (rogue *Rogue) registerWoundPoisonSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamageProc,
 	// 	ClassSpellMask: RogueSpellWoundPoison,
+	// 	ClassFlags:     spellData.WoundPoison.Highest().ClassFlags,
 	// 	Flags:          core.SpellFlagPoison | core.SpellFlagPassiveSpell | core.SpellFlagProc,
 	//
 	// 	DamageMultiplier:         1,
@@ -132,6 +134,7 @@ func (rogue *Rogue) registerInstantPoisonSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamageProc,
 	// 	ClassSpellMask: RogueSpellInstantPoison,
+	// 	ClassFlags:     spellData.InstantPoison.Highest().ClassFlags,
 	// 	Flags:          core.SpellFlagPoison | core.SpellFlagPassiveSpell | core.SpellFlagProc,
 	//
 	// 	DamageMultiplier:         1,

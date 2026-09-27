@@ -22,7 +22,7 @@ func RegisterAllOnUseCds() {
 	// unsupported: the heal lands on implicit target 5, not the wearer
 	// shared.NewSpellDataHealOnUse(14153) // Robe of the Void - https://www.wowhead.com/forever/spell=18386
 	// on use: 1287808 (A_SCHOOL_ABSORB); not simulated: A_DUMMY
-	// unsupported: the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the client does not list
+	// unsupported: the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list
 	// shared.NewSpellDataAbsorbOnUse(18406) // Onyxia Blood Talisman - https://www.wowhead.com/forever/spell=1287808
 	// unsupported: 23131 deals no damage and heals no one (A_REFLECT_SPELLS_SCHOOL)
 	// shared.NewSimpleStatActive(18634) // Gyrofreeze Ice Reflector - https://www.wowhead.com/forever/spell=23131
@@ -33,8 +33,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(18638) // Hyper-Radiant Flame Reflector - https://www.wowhead.com/forever/spell=23097
 	// unsupported: 23132 deals no damage and heals no one (A_REFLECT_SPELLS_SCHOOL)
 	// shared.NewSimpleStatActive(18639) // Ultra-Flash Shadow Reflector - https://www.wowhead.com/forever/spell=23132
-	// unsupported: 23453 deals no damage and heals no one (E_DUMMY)
-	// shared.NewSimpleStatActive(18986) // Ultrasafe Transporter: Gadgetzan - https://www.wowhead.com/forever/spell=23453
 	// unsupported: 23595 deals no damage and heals no one (E_DISPEL_MECHANIC)
 	// shared.NewSimpleStatActive(19141) // Luffa - https://www.wowhead.com/forever/spell=23595
 	// unsupported: 23721 deals no damage and heals no one (A_PROC_TRIGGER_SPELL)
@@ -83,8 +81,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(260819) // EZ-Thro Field Transporter: Gadgetzan - https://www.wowhead.com/forever/spell=23453
 	// unsupported: 1269339 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(260821) // EZ and SAF Field Transporter: Mt. Hyjal - https://www.wowhead.com/forever/spell=1269339
-	// unsupported: 1269339 deals no damage and heals no one (E_DUMMY)
-	// shared.NewSimpleStatActive(260823) // Dimensional Transporter - Mt. Hyjal - https://www.wowhead.com/forever/spell=1269339
 	// unsupported: 1270941 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(260824) // Gnomish Poultryizer - https://www.wowhead.com/forever/spell=1270941
 	// unsupported: 1296664 deals no damage and heals no one (A_MOD_CHARM)
@@ -141,14 +137,15 @@ func RegisterAllOnUseCds() {
 	// ArmorPenetration
 	// Badge of the Swarmguard - https://www.wowhead.com/forever/spell=26480
 	shared.NewStackingStatBonusCD(shared.StackingStatBonusCD{
-		Name:                  "Badge of the Swarmguard",
-		ID:                    21670,
-		CD:                    time.Millisecond * 180000,
-		Callback:              core.CallbackOnSpellHitDealt,
-		ProcMask:              core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial,
-		Outcome:               core.OutcomeLanded,
-		RequireDamageDealt:    true,
-		TrinketLimitsDuration: true,
+		Name:                   "Badge of the Swarmguard",
+		ID:                     21670,
+		CD:                     time.Millisecond * 180000,
+		Callback:               core.CallbackOnSpellHitDealt,
+		ProcMask:               core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial,
+		Outcome:                core.OutcomeLanded,
+		RequireDamageDealt:     false,
+		RequireDamageComponent: true,
+		TrinketLimitsDuration:  true,
 	})
 
 	// AttackPower / RangedAttackPower
@@ -186,14 +183,15 @@ func RegisterAllOnUseCds() {
 	shared.NewSimpleStatActive(18820) // Talisman of Ephemeral Power - https://www.wowhead.com/forever/spell=23271
 	// Talisman of Ascendance - https://www.wowhead.com/forever/spell=28200
 	shared.NewStackingStatBonusCD(shared.StackingStatBonusCD{
-		Name:                  "Talisman of Ascendance",
-		ID:                    22678,
-		CD:                    time.Millisecond * 60000,
-		Callback:              core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt,
-		ProcMask:              core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
-		Outcome:               core.OutcomeLanded,
-		RequireDamageDealt:    false,
-		TrinketLimitsDuration: true,
+		Name:                   "Talisman of Ascendance",
+		ID:                     22678,
+		CD:                     time.Millisecond * 60000,
+		Callback:               core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt,
+		ProcMask:               core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
+		Outcome:                core.OutcomeLanded,
+		RequireDamageDealt:     false,
+		RequireDamageComponent: true,
+		TrinketLimitsDuration:  true,
 	})
 	shared.NewSimpleStatActive(23046) // The Restrained Essence of Sapphiron - https://www.wowhead.com/forever/spell=28779
 
@@ -263,8 +261,6 @@ func RegisterAllOnUseCds() {
 	// https://www.wowhead.com/forever/spell=23277
 	// Not simulated: Insignia of the Alliance: "Immune Fear/Polymorph/Stun" (23276) - ignored aura type 77
 	// https://www.wowhead.com/forever/spell=23276
-	// Not simulated: Dimensional Ripper - Everlook: "Everlook Transporter" (23442) - ignored effect type 252
-	// https://www.wowhead.com/forever/spell=23442
 	// Not simulated: Defender of the Timbermaw: "Defender of the Timbermaw" (26066) - ignored effect type 28
 	// https://www.wowhead.com/forever/spell=26066
 	// Not simulated: Vanquished Tentacle of C'Thun: "Tentacle Call" (26391) - ignored effect type 28

@@ -12,7 +12,7 @@ export interface BonusStatsPickerProps {
 }
 
 /**
- * TBC edits bonus stats on pseudo stats too — the speed multipliers have no root stat at all — so
+ * Bonus stats include pseudo stats — the speed multipliers have no root stat at all — so
  * the picker keys on the UnitStat rather than on a Stat.
  */
 export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPickerProps) => {

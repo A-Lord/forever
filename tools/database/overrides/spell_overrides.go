@@ -1,11 +1,13 @@
-// Package overrides holds the numbers the spelldata store carries that the client database does
+// Package overrides holds the numbers the spelldata store carries that the game files do
 // not state. Each row names the spell, the field, the value and where the value comes from, and the
-// generator refuses to run when the client starts stating one itself - a value kept by hand after
-// the data grew a column for it is a wrong number nobody would notice.
+// generator refuses to run when the game files start stating one themselves - a value kept by hand
+// after the data grew a column for it is a wrong number nobody would notice.
 //
 // A leaf package on purpose: tools/database imports it, it imports nothing back, and the folder it
 // shares with the SQL overrides is read for *.sql alone.
 package overrides
+
+import "github.com/wowsims/forever/sim/core"
 
 // Which field of the row the value belongs on. Every one of them names a rule the generator checks
 // before it writes the value, so an override outlives its reason no longer than the next
@@ -21,18 +23,18 @@ const (
 	// E_THREAT_ALL effect.
 	FlatThreat
 
-	// The attack-power coefficient of the direct effect, onto Effect.APCoef. Fails when the client
-	// states a BonusCoefficientFromAP there.
+	// The attack-power coefficient of the direct effect, onto Effect.APCoef. Fails when the game files
+	// state a BonusCoefficientFromAP there.
 	APCoefDirect
 
 	// The same for the ticking effect.
 	APCoefPeriodic
 
 	// A proc chance in percent, onto Spell.ProcChance. Fails when the tooltip states a chance of
-	// its own through $h or $mN, because then the client already says where the roll is.
+	// its own through $h or $mN, because then the game files already say where the roll is.
 	ProcChancePct
 
-	// The aura's duration in milliseconds. Fails when the client states a SpellDuration.
+	// The aura's duration in milliseconds. Fails when the game files state a SpellDuration.
 	DurationMs
 
 	// The ProcHint bits the tooltip's wording did not yield, which Value carries as a bit set. It
@@ -88,13 +90,21 @@ var AreaBonuses = []AreaBonus{
 	{1293820, []int32{9326}, 2, 1, "Toy Soldier: 'This effect is doubled in Strongholds and Cities'; no companion row", "tooltip"},
 }
 
-// The item procs whose rate the client keeps outside the spell data. Their ProcChance column reads
+// The item procs whose rate the game files keep outside the spell data. Their ProcChance column reads
 // the 100 or 101 sentinel, which the store would otherwise take for "fires on every hit". Each rate is
 // a carry-over, as its Source says; none has been measured on this server.
 var Spells = []Override{
 	{16928, PPM, 1, "Annihilator: ProcChance 101 sentinel; TBC 1 PPM, unverified on Forever", "tbc-carryover"},
 	{23686, PPM, 1, "Darkmoon Card: Maelstrom: column reads 100, tooltip says 'Chance to strike'", "tbc-carryover"},
 	{26480, PPM, 10, "Badge of the Swarmguard: stack accumulator inside the on-use window", "tbc-carryover"},
+
+	// Melee procs whose tooltips name no trigger condition, ruled to hear only hits with a damage
+	// component: a hit that deals damage, or the landed application of a DoT such as Rend's.
+	{7711, Hint, float64(core.ProcHintDamage), "Blazefury Medallion: fires on hits with a damage component", "owner decision, PR #99"},
+	{7721, Hint, float64(core.ProcHintDamage), "Fiery Plate Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
+	{16615, Hint, float64(core.ProcHintDamage), "Storm Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
+	{23686, Hint, float64(core.ProcHintDamage), "Darkmoon Card: Maelstrom: fires on hits with a damage component", "owner decision, PR #99"},
+	{26480, Hint, float64(core.ProcHintDamage), "Badge of the Swarmguard: stacks on hits with a damage component", "owner decision, PR #99"},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it

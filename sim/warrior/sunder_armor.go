@@ -7,13 +7,11 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// TODO: rank 1 reads a flat threat of 1, which looks like placeholder data next to the
-// rest of the ladder. Harmless while this pins the highest rank, but worth confirming.
 var sunderArmorRank = spellData.SunderArmor.Highest()
 
 func (warrior *Warrior) registerSunderArmor() {
 	warrior.SunderArmorAuras = warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return buffs.SunderArmorAura(target, true, 0)
+		return buffs.NewSpellDataSunderArmorAura(target, true, 0)
 	})
 
 	config := spelldata.SpellConfig(&warrior.Unit, sunderArmorRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))

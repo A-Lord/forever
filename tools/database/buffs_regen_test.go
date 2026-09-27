@@ -1,8 +1,9 @@
 package database
 
-// Re-renders the buff files from the client rows committed in assets/db_inputs/spell_store_inputs.json
-// and asserts the committed ones agree, plus the resolver invariants the rendered code cannot show.
-// No client database: the buffs render from the same capture the store does, so this runs in CI.
+// Re-renders the buff files from the game files rows committed in
+// assets/db_inputs/spell_store_inputs.json and asserts the committed ones agree, plus the resolver
+// invariants the rendered code cannot show. No game files database: the buffs render from the same
+// capture the store does, so this runs in CI.
 
 import (
 	"fmt"
@@ -37,12 +38,12 @@ func TestBuffFilesRegenerateFromTheCommittedInputs(t *testing.T) {
 
 func TestResolvedBuffInvariants(t *testing.T) {
 	rows := resolveCommittedBuffs(t)
-	if len(rows) != len(buffmanifest.Manifest) {
-		t.Fatalf("resolved %d rows for a manifest of %d", len(rows), len(buffmanifest.Manifest))
+	if len(rows) != len(buffmanifest.All()) {
+		t.Fatalf("resolved %d rows for a manifest of %d", len(rows), len(buffmanifest.All()))
 	}
 
 	for _, row := range rows {
-		if row.Kind == buffmanifest.KindAbsent || row.Kind == buffmanifest.KindFlag {
+		if row.Kind == buffmanifest.KindFlag {
 			if row.SpellID != 0 {
 				t.Errorf("%s: %s resolved to spell %d", row.Field, row.Kind, row.SpellID)
 			}
@@ -70,10 +71,10 @@ func TestResolvedBuffInvariants(t *testing.T) {
 }
 
 // Every raid and individual row names the group it reaches, so each is checked two ways: that the
-// client agrees with the scope, and that it states a group at all. A party or debuff row the client
-// states nothing for is exempt, because its scope is then the sim's grouping rather than a game
-// fact: the buff Windfury's proc lands on its wielder, a debuff the client reaches by the area around
-// its caster.
+// game files agree with the scope, and that they state a group at all. A party or debuff row the
+// game files state nothing for is exempt, because its scope is then the sim's grouping rather than
+// a game fact: the buff Windfury's proc lands on its wielder, a debuff the game files reach by the
+// area around its caster.
 func TestScopeMatchesTheClientTargeting(t *testing.T) {
 	for _, row := range resolveCommittedBuffs(t) {
 		if row.SpellID == 0 {
@@ -93,14 +94,14 @@ func TestScopeMatchesTheClientTargeting(t *testing.T) {
 	}
 }
 
-// The rows whose spell the client targets somewhere else than the scope reaches,
+// The rows whose spell the game files target somewhere else than the scope reaches,
 // each with the reason the scope is still what the sim wants.
 var scopeExemptions = map[string]string{
 	"thorns": "the druid trains no raid-wide spell of the family, so the raid scope is the sim spreading the one cast 9910 states over every player",
 }
 
-// What the client says against the scope the manifest files the row under, and
-// "" when the two agree or the row is one the client may state nothing for.
+// What the game files say against the scope the manifest files the row under, and
+// "" when the two agree or the row is one the game files may state nothing for.
 func scopeComplaint(row ResolvedBuff) string {
 	scope, stated := clientScope(row)
 	switch {
@@ -115,14 +116,14 @@ func scopeComplaint(row ResolvedBuff) string {
 }
 
 // What the parse attaches for a row, by the kind it attaches as. The two auras
-// the client states as a bare A_MOD_CRIT_PCT carry no school: what they are
-// worth is the client's 3, and it lands on every kind of crit.
+// the game files state as a bare A_MOD_CRIT_PCT carry no school: what they are
+// worth is the game files' 3, and it lands on every kind of crit.
 //
 // Expose Armor states nothing on the effect itself: its -450 armor is per combo
 // point, and the raid config's debuff is the five-point finisher.
 //
 // The paladin auras state a healing-taken row of 0 beside the aura, which the
-// manifest's SkipAuras leaves out.
+// parse leaves out.
 var pinnedAmounts = map[string]map[string]float64{
 	"leader_of_the_pack": {"stat PhysicalCritPercent+SpellCritPercent": 3},
 	"moonkin_aura":       {"stat PhysicalCritPercent+SpellCritPercent": 3},
@@ -132,16 +133,20 @@ var pinnedAmounts = map[string]map[string]float64{
 	"retribution_aura":   {},
 }
 
-// Mana Spring is the only buff an improving talent prices: Restorative Totems, five points.
+// The talents that price an improved state: Restorative Totems on Mana Spring, five points,
+// Guardian Totems on Stoneskin Totem, two points, and Vindication's talent on its debuff, three.
 var pinnedTalentRanks = map[string]int32{
 	"mana_spring_totem": 5,
+	"stoneskin_totem":   2,
+	"vindication":       3,
 }
 
-// What a resistance row competes under, as (stats, own aura). A source that has
-// no exclusivity beyond the school itself keeps no category of its own, which is
-// how every totem, Aspect of the Wild and Shadow Protection read; a paladin aura
-// also holds its own slot. Armor is not a school, so Devotion Aura has only the
-// slot.
+// What a pinned row competes under, as (stats, own aura). A resistance source
+// that has no exclusivity beyond the school itself keeps no category of its own,
+// which is how every totem, Aspect of the Wild and Shadow Protection read; a
+// paladin aura also holds its own slot. Armor is not a school, so Devotion Aura
+// has only the slot. Furious Howl holds a category of its own, and the attack
+// power reductions bid in Demoralizing Shout's.
 var pinnedCategories = map[string]string{
 	"frost_resistance_totem":      "",
 	"aspect_of_the_wild":          "",
@@ -149,4 +154,8 @@ var pinnedCategories = map[string]string{
 	"frost_resistance_aura":       "FrostResistanceAura",
 	"shadow_resistance_aura":      "ShadowResistanceAura",
 	"devotion_aura":               "DevotionAura",
+	"furious_howl":                "FuriousHowl",
+	"hex_of_weakness":             "Demoralizing",
+	"demoralizing_screech":        "Demoralizing",
+	"vindication":                 "Demoralizing",
 }

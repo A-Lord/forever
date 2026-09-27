@@ -26,7 +26,7 @@ const procFlagAnyDirectDealt = dbcenums.PROC_FLAG_DEAL_MELEE_SWING |
 // What the mask alone cannot say, read off the spell's tooltip by the caller. The mask states
 // which hits reach the listener; the wording around it states the trigger condition and, for the
 // helpful bits, whether they mean anything at all.
-type ProcHint uint8
+type ProcHint uint16
 
 const (
 	// The tooltip names the cast itself as the trigger: "each time you cast a spell", "chance on
@@ -50,6 +50,9 @@ const (
 	ProcHintAttackDodged
 	// The same for the wearer's own attack being parried.
 	ProcHintAttackParried
+	// The trigger clause restricts the proc to spells with a damage component: "your damaging
+	// spells", "your next 5 damage or healing spells".
+	ProcHintDamage
 )
 
 // The wearer's own attack landing on nothing, which the decoder turns into the outcome it names.
@@ -66,7 +69,9 @@ type ProcTypeInfo struct {
 	ProcMask           ProcMask
 	Outcome            HitOutcome
 	RequireDamageDealt bool
-	Unsupported        []string // named bits the decoder does not model, empty when supported
+	// The hit must deal damage or come from a spell with a DoT; see ProcTrigger.
+	RequireDamageComponent bool
+	Unsupported            []string // named bits the decoder does not model, empty when supported
 }
 
 // DecodeProcTypeMask reads SpellAuraOptions.ProcTypeMask (two 32-bit words).
@@ -129,7 +134,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 
 	// Damage of any kind, however it arrived, which is both of the taken callbacks. The bit names
 	// damage rather than a hit, so a landed hit dealing none does not count - the default this
-	// decode starts from, and no client mask pairs this bit with one that clears it.
+	// decode starts from, and no game files mask pairs this bit with one that clears it.
 	if word&dbcenums.PROC_FLAG_TAKE_ANY_DAMAGE != 0 {
 		info.Callback |= CallbackOnSpellHitTaken | CallbackOnPeriodicDamageTaken
 	}
@@ -170,7 +175,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 		info.Callback |= CallbackOnPeriodicDamageDealt
 	}
 
-	// The helpful-spell bit beside the harmful one is the client's "any spell", heals included,
+	// The helpful-spell bit beside the harmful one is the game files' "any spell", heals included,
 	// which the mask states on its own. A helpful bit without the harmful one needs the tooltip's
 	// evidence that it is a trigger at all.
 	helpfulSpells := word&dbcenums.PROC_FLAG_DEAL_HELPFUL_SPELL != 0 &&
@@ -211,12 +216,24 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 	case dbcenums.PROC_FLAG_OFF_HAND_WEAPON_SWING:
 		info.ProcMask &= ^ProcMaskMeleeMH
 	}
+	if mask[1]&dbcenums.PROC_FLAG_2_MAIN_HAND_ONLY != 0 {
+		info.ProcMask &= ^ProcMaskMeleeOH
+	}
 
 	// An avoidance outcome - a dodge, a parry, a miss, a full block or a resist - is a hit that
 	// landed on nothing, so a listener whose trigger is one hears a hit that dealt no damage.
 	// Which of them it is stays the caller's: no ProcTypeMask has a bit for any of them.
 	if hint.Matches(ProcHintOutcomeTaken | ProcHintAttackAvoided) {
 		info.RequireDamageDealt = false
+	}
+
+	// A trigger restricted to spells with a damage component hears a dealt hit that deals damage,
+	// and the landed application of a DoT, which deals none. A cast has no hit to read that from,
+	// and an avoided attack deals nothing by definition, so neither takes the rule.
+	if hint.Matches(ProcHintDamage) && info.Callback.Matches(CallbackOnSpellHitDealt) &&
+		!hint.Matches(ProcHintOutcomeTaken|ProcHintAttackAvoided) {
+		info.RequireDamageDealt = false
+		info.RequireDamageComponent = true
 	}
 
 	// An outcome the listener can be given. The crit hint names one, and so do the two naming the
@@ -265,8 +282,8 @@ var unsupportedProcFlagNames = map[uint32]string{
 // dealt, 0x800 taken) are left out on purpose: next to real bits they change nothing the decode
 // says, and on their own they leave the callback empty, which the caller refuses anyway.
 func unsupportedProcFlags(mask [2]uint32) []string {
-	// Everything from the death bit up is a state change rather than a hit, and word 1 names
-	// nothing the sim models.
+	// Everything from the death bit up is a state change rather than a hit, and of word 1 the sim
+	// models the main-hand restriction alone.
 	unsupported := mask[0] & (dbcenums.PROC_FLAG_HEARTBEAT | dbcenums.PROC_FLAG_KILL | dbcenums.PROC_FLAG_TAKE_HELPFUL_SPELL | ^(dbcenums.PROC_FLAG_DEATH - 1))
 
 	var names []string
@@ -282,8 +299,9 @@ func unsupportedProcFlags(mask [2]uint32) []string {
 		}
 	}
 
+	word1 := mask[1] &^ dbcenums.PROC_FLAG_2_MAIN_HAND_ONLY
 	for bit := 0; bit < 32; bit++ {
-		if mask[1]&(1<<bit) != 0 {
+		if word1&(1<<bit) != 0 {
 			names = append(names, fmt.Sprintf("bit %d", 32+bit))
 		}
 	}

@@ -28,8 +28,8 @@ export const ImprovedAnchor = ({ actionId, testId, active, corner }: ImprovedAnc
 			href={href || undefined}
 			rel={externalRel(href, undefined)}
 			style={iconUrl ? { backgroundImage: `url('${iconUrl}')` } : undefined}
-			// The glyph is a background image, so until it resolves the badge is a bare grey square. Master hid
-			// exactly that window with `.icon-input-improved:not([href])`, its href being set only after the fill.
+			// The glyph is a background image, so until it resolves the badge is a bare grey square; it stays
+			// hidden for exactly that window.
 			hidden={!iconUrl}
 		/>
 	);

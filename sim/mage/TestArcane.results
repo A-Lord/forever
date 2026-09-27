@@ -255,8 +255,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-InfernalLasso-219345"
  value: {
-  dps: 494.37941
-  tps: 261.98968
+  dps: 494.30793
+  tps: 262.09551
  }
 }
 dps_results: {
@@ -458,15 +458,15 @@ dps_results: {
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 379.89574
-  tps: 395.35362
+  dps: 371.09386
+  tps: 393.99967
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.89574
-  tps: 273.14003
+  dps: 371.09386
+  tps: 267.12666
  }
 }
 dps_results: {
@@ -500,15 +500,15 @@ dps_results: {
 dps_results: {
  key: "TestArcane-Settings-Troll-p1Arcane-Arcane-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 381.46132
-  tps: 399.10512
+  dps: 373.65648
+  tps: 399.3139
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Troll-p1Arcane-Arcane-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 381.46132
-  tps: 274.3911
+  dps: 373.65648
+  tps: 269.14216
  }
 }
 dps_results: {

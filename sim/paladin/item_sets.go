@@ -5,12 +5,13 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// The six slots of a Justice set. The client ships the sets' current pieces under encryption, so
-// the slots follow the older pieces the client has seen: shoulders, hands, legs and feet, with head
-// and chest for the two the ItemSet row still lists.
+// The six slots of a Justice set. The game files ship the sets' current pieces under encryption, so
+// the slots follow the older pieces the game files have seen: shoulders, hands, legs and feet, with
+// head and chest for the two the ItemSet row still lists.
 var justiceSetSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotHead,
 	proto.ItemSlot_ItemSlotShoulder,
@@ -37,23 +38,10 @@ var ItemSetJusticeBattlegear = core.NewItemSet(core.ItemSet{
 				ExposeToAPL(1300951)
 		},
 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-			// +36 Attack Power against Undead. The client's text says Demons; the effect's
+			// +36 Attack Power against Undead. The game files' text says Demons; the effect's
 			// creature-type mask is Undead.
-			character := agent.GetCharacter()
-			bonus := stats.Stats{stats.AttackPower: 36, stats.RangedAttackPower: 36}
-
-			setBonusAura.
-				ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-					for _, at := range character.AttackTables {
-						at.MobTypeBonusStats[proto.MobType_MobTypeUndead] = at.MobTypeBonusStats[proto.MobType_MobTypeUndead].Add(bonus)
-					}
-				}).
-				ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-					for _, at := range character.AttackTables {
-						at.MobTypeBonusStats[proto.MobType_MobTypeUndead] = at.MobTypeBonusStats[proto.MobType_MobTypeUndead].Subtract(bonus)
-					}
-				}).
-				ExposeToAPL(1301084)
+			spelldata.ParseEffects(agent.GetCharacter(), setBonusAura, spelldata.MustFind(1301084))
+			setBonusAura.ExposeToAPL(1301084)
 		},
 		5: func(_ core.Agent, setBonusAura *core.Aura) {
 			// Reduces the cooldown on your Judgement spell by 0.5 sec.

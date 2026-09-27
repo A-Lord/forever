@@ -183,6 +183,7 @@ func (priest *Priest) registerMindFlaySpell(rank *spelldata.Spell) {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellMindFlay,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	// 	MaxRange:       float64(rank.MaxRange),
 	//
@@ -289,6 +290,7 @@ func (priest *Priest) applyVampiricEmbrace() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellVampiricEmbrace,
+	// 	ClassFlags:     spellData.VampiricEmbrace.Highest().ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		BaseCostPercent: 2,
@@ -325,8 +327,9 @@ func (priest *Priest) applyShadowWeaving() {
 	// }
 	//
 	// // The debuff 15258 is A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, so it raises
-	// // this priest's shadow damage alone and sim/core holds no aura for it; the
-	// // port has to build swAuras here.
+	// // this priest's shadow damage alone; the port builds swAuras by parsing
+	// // ShadowWeavingTriggered onto each target's aura with spelldata.ParseEffects
+	// // and FromCaster.
 	// swAuras := priest.NewEnemyAuraArray(...)
 	//
 	// priest.MakeProcTriggerAura(core.ProcTrigger{
@@ -433,6 +436,7 @@ func (priest *Priest) applyShadowform() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellShadowform,
+	// 	ClassFlags:     spellData.Shadowform.Highest().ClassFlags,
 	// 	ManaCost: core.ManaCostOptions{
 	// 		BaseCostPercent: 32,
 	// 	},

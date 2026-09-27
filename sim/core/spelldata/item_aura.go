@@ -102,8 +102,8 @@ func ItemAuraUnsupported(s *Spell, equipped bool) []string {
 		}
 
 		for _, e := range scratchParse(s, target, equipped, positions).Skipped {
-			unsupported = append(unsupported, fmt.Sprintf("effect %d %s misc %d is not parsed on %s",
-				e.Index+1, auraName(e.Aura), e.Misc, auraTargetNames[target]))
+			unsupported = append(unsupported, fmt.Sprintf("effect %d %s misc %d is not parsed on %s%s",
+				e.Index+1, auraName(e.Aura), e.Misc, auraTargetNames[target], reasonNote(e.Reason)))
 		}
 	}
 

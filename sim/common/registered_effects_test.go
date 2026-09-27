@@ -5,7 +5,7 @@
 // regeneration has to answer - what became live, and what stopped being live. A checkout without it
 // writes it on the first run.
 //
-// Needs the database: an effect registered for an item this client does not ship is skipped, so
+// Needs the database: an effect registered for an item the game files do not ship is skipped, so
 // without it the list would name items no sim can equip.
 package common_test
 
@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/wowsims/forever/sim/common"
@@ -21,8 +22,10 @@ import (
 
 const registeredEffectsPath = "forever/registered_effects.txt"
 
+var registerAllEffects = sync.OnceFunc(common.RegisterAllEffects)
+
 func TestRegisteredEffects(t *testing.T) {
-	common.RegisterAllEffects()
+	registerAllEffects()
 
 	var out strings.Builder
 	out.WriteString("# The items and enchants sim/common registers an effect for, written by\n")

@@ -38,7 +38,7 @@ func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell, spellSchool cor
 	}
 }
 
-// TODO: To be implemented. Port the TBC Earth Shock Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Earth Shock Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerEarthShockSpell(shockTimer *core.Timer) {
 	panic("To be implemented")
 
@@ -54,7 +54,7 @@ func (shaman *Shaman) registerEarthShockSpell(shockTimer *core.Timer) {
 	// shaman.EarthShock = shaman.RegisterSpell(config)
 }
 
-// TODO: To be implemented. Port the TBC Flame Shock Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Flame Shock Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerFlameShockSpell(shockTimer *core.Timer) {
 	panic("To be implemented")
 
@@ -106,7 +106,7 @@ func (shaman *Shaman) registerFlameShockSpell(shockTimer *core.Timer) {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Frost Shock Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Frost Shock Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerFrostShockSpell(shockTimer *core.Timer) {
 	panic("To be implemented")
 
@@ -123,7 +123,7 @@ func (shaman *Shaman) registerFrostShockSpell(shockTimer *core.Timer) {
 	// shaman.FrostShock = shaman.RegisterSpell(config)
 }
 
-// TODO: To be implemented. Port the TBC Shocks implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shocks implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerShocks() {
 	panic("To be implemented")
 

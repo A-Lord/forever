@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -19,10 +20,6 @@ import (
 // any other field it needs: Grace of Air lasts 9 seconds while the party is
 // twisting totems.
 
-// Spell 29166 states 100% mana regen while casting (aura 134) and +400% of it
-// (aura 110); neither is a stat or a pseudo-stat, so the regen is the driver's.
-const innervateSpiritRegenMultiplier = 5.0
-
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat
 // 30 to every effect of the Battle Shout family. The resolver reads no
@@ -33,7 +30,7 @@ const BattleShoutT2Bonus = 30.0
 // the player's own shout rather than being up from the start. Its improved state
 // says that warrior shouted with the set on.
 func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
-	aura := BattleShoutAura(&char.Unit, false, 0)
+	aura := NewSpellDataBattleShoutAura(&char.Unit, false, 0)
 	if party.BattleShout == proto.TristateEffect_TristateEffectImproved {
 		core.AddGeneratedFlatBonus(aura, stats.AttackPower, BattleShoutValue(0), BattleShoutT2Bonus)
 	}
@@ -41,24 +38,24 @@ func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
 }
 
 // A druid innervates a character who is nearly out of mana, so that every other
-// mana cooldown is spent first. The aura forces full spirit regen while it is
-// up and the metrics record what the character gains from it.
+// mana cooldown is spent first. The row's auras raise the spirit regen while it
+// is up, and the metrics record what the character gains from it.
 func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
-	aura := InnervatesAura(&char.Unit, false, 0)
+	aura := NewSpellDataInnervatesAura(&char.Unit, false, 0)
 	manaMetrics := char.NewManaMetrics(aura.ActionID)
 
 	threshold, expectedMana := 0.0, 0.0
 	char.Env.RegisterPostFinalizeEffect(func() {
 		threshold = innervateManaThreshold(char)
-		expectedMana = char.SpiritManaRegenPerSecond() * innervateSpiritRegenMultiplier * aura.Duration.Seconds()
+		// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices the mana the
+		// metrics record.
+		expectedMana = char.SpiritManaRegenPerSecond() *
+			(1 + innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).Percent()) *
+			aura.Duration.Seconds()
 	})
 
 	const ticks = 10
 	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		char.PseudoStats.ForceFullSpiritRegen = true
-		char.PseudoStats.SpiritRegenMultiplier *= innervateSpiritRegenMultiplier
-		char.UpdateManaRegenRates()
-
 		perTick := expectedMana / ticks
 		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
 			Period:   aura.Duration / ticks,
@@ -67,10 +64,6 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 				manaMetrics.AddEvent(perTick, perTick)
 			},
 		})
-	}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-		char.PseudoStats.ForceFullSpiritRegen = false
-		char.PseudoStats.SpiritRegenMultiplier /= innervateSpiritRegenMultiplier
-		char.UpdateManaRegenRates()
 	})
 
 	core.NewGeneratedExternalCD(char, aura, core.GeneratedExternalCD{
@@ -94,7 +87,7 @@ func innervateManaThreshold(char *core.Character) float64 {
 
 // The priest has nothing to hold Power Infusion for, so it goes out on cooldown.
 func drivePowerInfusions(char *core.Character, individual *proto.IndividualBuffs) {
-	core.NewGeneratedExternalCD(char, PowerInfusionsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
+	core.NewGeneratedExternalCD(char, NewSpellDataPowerInfusionsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
 		NumSources: individual.PowerInfusions,
 		Cooldown:   PowerInfusionsCooldown(),
 		Type:       core.CooldownTypeDPS,
@@ -109,7 +102,7 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 		initialDelay = min(char.Env.BaseDuration/2, time.Second*40)
 	})
 
-	core.NewGeneratedExternalCD(char, ManaTideTotemsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
+	core.NewGeneratedExternalCD(char, NewSpellDataManaTideTotemsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
 		NumSources: party.ManaTideTotems,
 		Cooldown:   ManaTideTotemsCooldown(),
 		Type:       core.CooldownTypeMana,
@@ -125,7 +118,10 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 // The driver keeps the 1.5 second internal cooldown and the extra attack the
 // proc lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
-	procAura := WindfuryTotemAura(&char.Unit, false, 0)
+	if !char.TakesTotemEnchant() {
+		return
+	}
+	procAura := NewSpellDataWindfuryTotemAura(&char.Unit, false, 0)
 	// The attack power is only there for a moment after a proc, so it is not
 	// part of the stats the character sheet is measured with.
 	procAura.BuildPhase = core.CharacterBuildPhaseNone
@@ -168,17 +164,24 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	trigger.ProcMask = core.ProcMaskMeleeMH
 	procTrigger := char.MakeProcTriggerAura(trigger)
 
-	// The totem stands for 10 seconds and the shaman drops a new one every 5,
-	// so the aura that holds the category is simply refreshed.
 	totemAura := char.GetOrRegisterAura(core.Aura{
 		Label:    "Windfury Totem",
 		ActionID: core.ActionID{SpellID: 25587, Tag: -1},
-		Duration: time.Second * 10,
 	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
 		config := *char.AutoAttacks.MHConfig()
 		config.ActionID = config.ActionID.WithTag(25584)
 		windfurySpell = char.GetOrRegisterSpell(config)
-	}).ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
+	})
+	holdTotemEnchant(char, totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
+}
+
+// A weapon totem's enchant lasts 10 seconds and the shaman puts it back every
+// 5, so the aura that holds the category is simply refreshed and keeps the
+// proc trigger up; a weapon swapped into the main hand goes without it until
+// the next refresh.
+func holdTotemEnchant(char *core.Character, totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
+	totemAura.Duration = time.Second * 10
+	totemAura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
 		aura.Activate(sim)
 		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
 			Period:   time.Second * 5,
@@ -189,8 +192,8 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 		})
 	})
 
-	totemAura.NewExclusiveEffect(WindfuryTotemCategory, false, core.ExclusiveEffect{
-		Priority: WindfuryTotemValue(0),
+	totemAura.NewExclusiveEffect(category, false, core.ExclusiveEffect{
+		Priority: priority,
 		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
 			procTrigger.Activate(sim)
 		},
@@ -200,16 +203,70 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 		},
 	})
 
-	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, slot proto.ItemSlot) {
+	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, _ proto.ItemSlot) {
 		totemAura.Deactivate(sim)
 	})
+}
+
+// The totem's party aura names its proc in its base points rather than its
+// trigger column, so the proc is read by id.
+var flametongueTotemProc = spelldata.MustFind(16389)
+
+// The fire damage a main-hand hit adds for a weapon of this speed.
+func FlametongueTotemDamage(weaponSpeed float64) float64 {
+	return flametongueTotemProc.EffectN(1).BaseValue() * weaponSpeed / 100
+}
+
+// The totem hands its proc out as a combat enchant on the main hand
+// (SpellItemEnchantment 1683: 16389 at 100%), whose chance the store carries in
+// 16389's ProcChance column. Every main-hand hit that lands adds fire damage
+// priced by the weapon's speed. 16389 states no defense type, and a fire proc
+// with none rolls on the spell hit and crit tables.
+//
+// A main hand carries one totem enchant, so under both totems it carries
+// Windfury Totem's and Flametongue Totem does nothing.
+func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
+	if party.WindfuryTotem || !char.TakesTotemEnchant() {
+		return
+	}
+	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc(), spelldata.Tag(-1))
+	config.DefenseType = core.DefenseTypeMagic
+	config.ProcMask = core.ProcMaskSpellDamageProc
+	if flametongueTotemProc.IsAProc() {
+		config.Flags |= core.SpellFlagProc
+	}
+	config.DamageMultiplier = 1
+	config.ThreatMultiplier = 1
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		damage := FlametongueTotemDamage(char.AutoAttacks.MH().SwingSpeed)
+		spell.CalcAndDealDamage(sim, target, damage, spell.OutcomeMagicHitAndCrit)
+	}
+	strike := char.RegisterSpell(config)
+
+	trigger := core.ProcTrigger{
+		Name:               "Flametongue Totem Trigger",
+		ProcChance:         flametongueTotemProc.StatedChance(),
+		Duration:           core.NeverExpires,
+		Outcome:            core.OutcomeLanded,
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			strike.Cast(sim, result.Target)
+		},
+	}
+	spelldata.WeaponProc()(char, &trigger)
+	trigger.ProcMask = core.ProcMaskMeleeMH
+	procTrigger := char.MakeProcTriggerAura(trigger)
+
+	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
+	totemAura.BuildPhase = core.CharacterBuildPhaseNone
+	holdTotemEnchant(char, totemAura, FlametongueTotemCategory, flametongueTotemProc.EffectN(1).BaseValue(), procTrigger)
 }
 
 // A shaman twisting totems keeps Grace of Air up for 9 seconds out of every 10,
 // because the air slot is holding another totem the rest of the time; a shaman
 // who is not twisting leaves it standing.
 func driveGraceOfAirTotem(char *core.Character, party *proto.PartyBuffs) {
-	aura := GraceOfAirTotemAura(&char.Unit, false, 0)
+	aura := NewSpellDataGraceOfAirTotemAura(&char.Unit, false, 0)
 
 	if !party.TotemTwisting {
 		core.MakePermanent(aura)
@@ -233,51 +290,51 @@ func driveGraceOfAirTotem(char *core.Character, party *proto.PartyBuffs) {
 // The party's Retribution Aura is the top rank, and its damage carries the
 // providing paladin's Holy spell power, which the party states alongside it.
 func driveRetributionAura(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(RetributionAuraBuff(char, false, RetributionAuraMaxRank, party.RetributionAuraSpellPower))
+	core.MakePermanent(NewSpellDataRetributionAuraRank(char, false, RetributionAuraMaxRank, party.RetributionAuraSpellPower))
 }
 
 // The blessing does nothing on its own: the paladin's Holy Light and Flash of
 // Light read their bonus off their own rows when the target carries it.
 func driveGreaterBlessingOfLight(char *core.Character, _ *proto.IndividualBuffs) {
-	core.MakePermanent(GreaterBlessingOfLightAura(&char.Unit, false, 0))
+	core.MakePermanent(NewSpellDataGreaterBlessingOfLightAura(&char.Unit, false, 0))
 }
 
 // The staff's aura is worth its amounts once per Atiesh in the party.
 func driveAtieshDruid(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshDruidAura(&char.Unit, false, 0, float64(party.AtieshDruid)))
+	core.MakePermanent(NewSpellDataAtieshDruidAura(&char.Unit, false, 0, float64(party.AtieshDruid)))
 }
 
 func driveAtieshMage(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshMageAura(&char.Unit, false, 0, float64(party.AtieshMage)))
+	core.MakePermanent(NewSpellDataAtieshMageAura(&char.Unit, false, 0, float64(party.AtieshMage)))
 }
 
 func driveAtieshPriest(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshPriestAura(&char.Unit, false, 0, float64(party.AtieshPriest)))
+	core.MakePermanent(NewSpellDataAtieshPriestAura(&char.Unit, false, 0, float64(party.AtieshPriest)))
 }
 
 func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
-	core.MakePermanent(AtieshWarlockAura(&char.Unit, false, 0, float64(party.AtieshWarlock)))
+	core.MakePermanent(NewSpellDataAtieshWarlockAura(&char.Unit, false, 0, float64(party.AtieshWarlock)))
 }
 
 // The judgement the paladin leaves on the target heals whoever strikes it; the
-// client's trigger spell 5373 is a dummy, so how much and how often is the
+// game files' trigger spell 5373 is a dummy, so how much and how often is the
 // driver's. The raid's copy is the top rank the paladin's own judgement states.
 func driveJudgementOfLight(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	AttachJudgementOfLightHeal(core.MakePermanent(JudgementOfLightAura(target, false, 0)), JudgementOfLightMaxRank)
+	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), nil, JudgementOfLightMaxRank)
 }
 
 // Judgement of Wisdom returns mana to whoever strikes the target, on the same
 // terms: 1826 is a dummy, so the amount and the chance stay with the paladin's
 // top rank.
 func driveJudgementOfWisdom(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	AttachJudgementOfWisdomMana(core.MakePermanent(JudgementOfWisdomAura(target, false, 0)), JudgementOfWisdomMaxRank)
+	AttachJudgementOfWisdomMana(core.MakePermanent(NewSpellDataJudgementOfWisdomAura(target, false, 0)), JudgementOfWisdomMaxRank)
 }
 
 // A stack of Sunder Armor is worth nothing until it is on the target, so the
 // raid's copy is ramped to five over the first five global cooldowns, which is
 // how long a warrior takes to stack it.
 func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	aura := core.MakePermanent(SunderArmorAura(target, false, 0))
+	aura := core.MakePermanent(NewSpellDataSunderArmorAura(target, false, 0))
 
 	core.ScheduledAura(aura, core.PeriodicActionOptions{
 		Period:          core.GCDDefault,
@@ -291,4 +348,35 @@ func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 			}
 		},
 	})
+}
+
+// Annihilator procs often enough to keep all three stacks on the target.
+func driveArmorShatter(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
+	holdMaxStacks(core.MakePermanent(NewSpellDataArmorShatterAura(target, false, 0)))
+}
+
+// The game files state one stack, so the raid's copy takes it as soon as it lands.
+func driveDustCloud(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
+	holdMaxStacks(core.MakePermanent(NewSpellDataDustCloudAura(target, false, 0)))
+}
+
+func holdMaxStacks(aura *core.Aura) {
+	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		aura.SetStacks(sim, aura.MaxStacks)
+	})
+}
+
+var thunderfuryCycloneSpell = spelldata.MustFind(27648)
+
+// The resistance aura is the row's; the triggered slow is an aura of its own in the attack-speed
+// category, so the strongest slow on the target wins without touching the resistance.
+func driveThunderfury(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
+	core.MakePermanent(NewSpellDataThunderfuryAura(target, false, 0))
+
+	cyclone := core.MakePermanent(target.GetOrRegisterAura(core.Aura{
+		Label:    "Thunderfury Cyclone (External)",
+		ActionID: core.ActionID{SpellID: thunderfuryCycloneSpell.ID, Tag: -1},
+		Duration: core.NeverExpires,
+	}))
+	core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(thunderfuryCycloneSpell.EffectN(1).BaseValue()))
 }

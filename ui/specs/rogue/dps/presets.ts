@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec } from '@generated/proto/common';
 import { Rogue_Options as RogueOptions } from '@generated/proto/rogue';
 
@@ -15,7 +16,10 @@ export const DefaultOptions = RogueOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 7676,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfGreaterFortitude.id],
+	foodId: Consumables.FiletOFlank.id,
+	potId: Consumables.MajorFrenzyPotion.id,
+	conjuredId: Consumables.ThistleTea.id,
 });
 
 export const OtherDefaults = {

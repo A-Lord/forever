@@ -131,8 +131,8 @@ export interface DamageLog extends BaseLog {
 	readonly kind: 'damage';
 	readonly outcome: Outcome;
 	// null when the line carries no "for N <effect>" clause at all, which is what a miss, dodge or
-	// parry looks like. Master modelled that as the empty string and its isDamage() reported false
-	// for it, so absence has to stay distinguishable from damage.
+	// parry looks like. isDamage() is false for it, so absence has to stay distinguishable from
+	// damage.
 	readonly effect: DamageEffect | null;
 	readonly amount: number;
 	readonly resist: PartialResist;

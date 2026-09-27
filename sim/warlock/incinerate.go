@@ -3,7 +3,7 @@ package warlock
 var incinerateRank = spellData.Incinerate.Highest()
 var incinerateCoeff = incinerateRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Incinerate implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Incinerate implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerIncinerate() {
 	panic("To be implemented")
 
@@ -15,6 +15,7 @@ func (warlock *Warlock) registerIncinerate() {
 	// 	Flags:          core.SpellFlagAPL,
 	// 	MissileSpeed:   float64(incinerateRank.Speed),
 	// 	ClassSpellMask: WarlockSpellIncinerate,
+	// 	ClassFlags:     incinerateRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(incinerateRank.Cost())},
 	// 	Cast: core.CastConfig{

@@ -30,8 +30,8 @@ describe('ReforgeSettings.applyPreset', () => {
 		expect(settings.getMaxGemPhase()).toBe(Phase.Phase1);
 	});
 
-	// The regression: `fromProto` is full-replace, so a preset that only names a gem phase
-	// used to switch the spec's soft-cap breakpoints off.
+	// `fromProto` is full-replace, so a preset that only names a gem phase must not switch the
+	// spec's soft-cap breakpoints off.
 	it('leaves a field the preset omits at its spec default', () => {
 		const settings = withSoftCaps();
 		expect(settings.useSoftCapBreakpoints).toBe(true);

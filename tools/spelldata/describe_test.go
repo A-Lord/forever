@@ -59,14 +59,14 @@ func TestEffectLines(t *testing.T) {
 				"family=4 mask=0xee604cee,0x8140,0x1,0x10000400 target=[1,0]",
 		},
 		{
-			name:    "a flat cost modifier, which the client states on a 0-1000 bar",
+			name:    "a flat cost modifier, which the game files state on a 0-1000 bar",
 			id:      12282,
 			effect:  1,
 			human:   "SPELLMOD_COST -10 (-1 on a rage bar) on family 4 mask 0x40",
 			literal: "E_APPLY_AURA A_ADD_FLAT_MODIFIER base=-10 misc=14 family=4 mask=0x40 target=[1,0]",
 		},
 		{
-			name:    "a talent the client states nothing about",
+			name:    "a talent the game files state nothing about",
 			id:      12295,
 			effect:  1,
 			human:   "a dummy aura holding 15",
@@ -94,7 +94,7 @@ func TestEffectLines(t *testing.T) {
 			literal: "E_HEAL base=51 ppl=0.9 variance=0.19607843 sp=0.429 amplitude=1 target=[21,0]",
 		},
 		{
-			name:    "rage off the client's 0-1000 bar",
+			name:    "rage off the game files' 0-1000 bar",
 			id:      100,
 			effect:  2,
 			human:   "restores 9 rage to the caster",

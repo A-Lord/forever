@@ -1,4 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
 import {
 	FeralCatDruid_Options as FeralDruidOptions,
@@ -11,8 +12,12 @@ import DefaultApl from './apls/default.apl.json';
 export const DefaultOptions = FeralDruidOptions.create({});
 
 export const DefaultConsumables = ConsumesSpec.create({
-	conjuredId: 12662, // Demonic Rune
-	goblinSapper: true,
+	potId: Consumables.MajorFrenzyPotion.id,
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfTheSages.id],
+	foodId: Consumables.FiletOFlank.id,
+	mhImbueId: Consumables.DenseWeightstone.id,
+	conjuredId: Consumables.DemonicRune.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],
 });
 
 export const OtherDefaults = {

@@ -10,7 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/warrior"
 )
 
-// The golden suites are skipped while the class is stubbed, so this is what
+// The .results suites are skipped while the class is stubbed, so this is what
 // checks that registerShouts still runs and that the warrior's own Battle Shout
 // is the generated aura.
 func TestWarriorCastsTheGeneratedBattleShout(t *testing.T) {
@@ -93,7 +93,7 @@ func TestWarriorShoutsForTheTierTwoBonus(t *testing.T) {
 	bare, withSet := bidOf(false), bidOf(true)
 
 	if want := buffs.BattleShoutValue(0); bare != want {
-		t.Errorf("a warrior without the set bids %v, want the client's %v", bare, want)
+		t.Errorf("a warrior without the set bids %v, want the game files' %v", bare, want)
 	}
 	if want := bare + buffs.BattleShoutT2Bonus; withSet != want {
 		t.Errorf("a warrior wearing the set bids %v, want %v", withSet, want)

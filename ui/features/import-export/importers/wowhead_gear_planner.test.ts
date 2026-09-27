@@ -46,7 +46,7 @@ describe('parseWowheadGearLink', () => {
 		expect(parsed.items).toEqual([{ slotId: 16, itemId: 28773, enchantId: undefined, randomEnchantId: undefined, gemItemIds: [] }]);
 	});
 
-	// TBC has a ranged slot, which is slot id 18 and the last one the picker offers.
+	// The ranged slot is slot id 18, and the last one the picker offers.
 	it('round-trips a full seventeen-slot set, ranged included', () => {
 		const items = Array.from({ length: 17 }, (_, index) => ({ slotId: index + 1, itemId: 28000 + index * 37, gemItemIds: {} }));
 		const parsed = parseWowheadGearLink(link({ level: 70, talents: '05002001', items }));

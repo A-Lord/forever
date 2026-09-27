@@ -90,7 +90,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		11902, // Linken's Sword of Mastery
 		[
-			"Blasts a target for 60 Nature damage.", // 18089 - https://www.wowhead.com/forever/spell=18089
+			"Blasts a target for 98 Nature damage.", // 18089 - https://www.wowhead.com/forever/spell=18089
 		]
 	],
 	[
@@ -126,7 +126,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		12790, // Arcanite Champion
 		[
-			"Heal self for 360 and Increases Strength by 120 for 30s.", // 16916 - https://www.wowhead.com/forever/spell=16916
+			"Heal yourself for 360 and increase your Strength by 120 for 30s.", // 16916 - https://www.wowhead.com/forever/spell=16916
 		]
 	],
 	[
@@ -156,7 +156,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		12797, // Frostguard
 		[
-			"Target's movement slowed by 30% and increasing the time between attacks by 25% for 5s.", // 16927 - https://www.wowhead.com/forever/spell=16927
+			"Slows the target's movement speed by 30% and increases the time between their attacks by 25% for 5s.", // 16927 - https://www.wowhead.com/forever/spell=16927
 		]
 	],
 	[
@@ -500,12 +500,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		18951, // Evonice's Landin' Pilla
 		[
 			"While equipped, the wearer suffers less damage from falls.", // 23409 - https://www.wowhead.com/forever/spell=23409
-		]
-	],
-	[
-		18986, // Ultrasafe Transporter: Gadgetzan
-		[
-			"Safely transport yourself to Gadgetzan in Tanaris! Emphasis on Safe! Yup, nothing bad could ever happen while using this device!", // 23453 - https://www.wowhead.com/forever/spell=23453
 		]
 	],
 	[
@@ -2146,12 +2140,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		260823, // Dimensional Transporter - Mt. Hyjal
-		[
-			"Rips the dimensional walls asunder and transports you to Kaylaena's Workshop on Mount Hyjal. Technical problems have a high chance to occur with this mad combination of goblin and gnomish engineering.", // 1269339 - https://www.wowhead.com/forever/spell=1269339
-		]
-	],
-	[
 		260824, // Gnomish Poultryizer
 		[
 			"Turns the target into a chicken for 15s. Well, that is assuming the transmogrification polarity has not been reversed...", // 1270941 - https://www.wowhead.com/forever/spell=1270941
@@ -2630,7 +2618,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		285281, // Arcanite Blacksmith Hammer
 		[
-			"Thrown hammers have a low chance to stun the target for 1s.", // 1318178 - https://www.wowhead.com/forever/spell=1318178
+			"Stun the target for 1s.", // 1318178 - https://www.wowhead.com/forever/spell=1318178
 		]
 	],
 ])

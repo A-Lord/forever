@@ -436,24 +436,19 @@ enum TristateEffect {
 message ConsumesSpec {
 	int32 pot_id = 1;
 	int32 flask_id = 2;
-	int32 battle_elixir_id = 3;
-	int32 guardian_elixir_id = 4;
 	int32 food_id = 5;
 	int32 conjured_id = 6;
 	int32 explosive_id = 7;
-	bool goblinSapper = 8;
-	bool bogling_root = 9;
 	int32 mhImbue_id = 10;
 	int32 ohImbue_id = 11;
-	bool scroll_agi = 12;
-	bool scroll_str = 13;
-	bool scroll_int = 14;
-	bool scroll_spi = 15;
-	bool scroll_arm = 16;
 	// Contains all available potions
 	repeated int32 potions = 17;
 	// Contains all available conjured items
 	repeated int32 conjured_items = 18;
+	// Item ids of the consumables the character uses besides the one-per-kind fields above.
+	repeated int32 extra_ids = 19;
+	// Item ids of the elixirs the character uses, any number of them.
+	repeated int32 elixir_ids = 21;
 }
 
 enum MobType {
@@ -468,7 +463,7 @@ enum MobType {
 	MobTypeUndead = 8;
 }
 
-// The client's terrain area groups (SpellCastingRequirements.RequiredAreasID).
+// The game files' terrain area groups (SpellCastingRequirements.RequiredAreasID).
 enum AreaType {
 	AreaTypeUnknown = 0;
 	AreaTypeForestGrassland = 1;
@@ -615,11 +610,18 @@ enum ConsumableType {
 	ConsumableTypeFood = 3;
 	ConsumableTypeScroll = 4;
 	ConsumableTypeExplosive = 5;
-	ConsumableTypeBattleElixir = 6;
-	ConsumableTypeGuardianElixir = 7;
+	// The game files state no Battle or Guardian split among their elixirs.
+	reserved 6, 7;
+	reserved "ConsumableTypeBattleElixir", "ConsumableTypeGuardianElixir";
 	ConsumableTypeImbue = 8;
 	ConsumableTypeOther = 9;
 	ConsumableTypeHerb = 10;
+	ConsumableTypeBandage = 11;
+	ConsumableTypeDevice = 12;
+	// An Elixir-subclass item that shares no potion, conjured, food or drink category.
+	ConsumableTypeElixir = 13;
+	// A healthstone, mana gem, rune or tea: its on-use shares conjured category 1153.
+	ConsumableTypeConjured = 14;
 }
 
 

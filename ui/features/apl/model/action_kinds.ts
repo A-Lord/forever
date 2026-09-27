@@ -423,7 +423,7 @@ export const actionKinds: { [f in NonNullable<APLActionKind>]: ActionKindModel<A
 	}),
 
 	// Class/spec specific actions.
-	// TBC does not implement pickers for the optimal-rotation actions: they exist in the proto
+	// There are no pickers for the optimal-rotation actions: they exist in the proto
 	// for the simple-rotation generator only, and never surface in the APL editor.
 	bearOptimalRotationAction: {
 		label: '',

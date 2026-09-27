@@ -60,17 +60,17 @@ var IgnoreMissingEffectBySpellID = map[int]string{
 	16372: "Seal of Ascension - no tooltip and no mechanic",
 }
 
-// Absorbs a server script restricts to spells the client does not list, keyed by spell ID with the
+// Absorbs a server script restricts to spells the game files do not list, keyed by spell ID with the
 // reason the generated file gives. 1287808, Onyxia Blood Talisman's, states 10000000000 beside the
 // A_DUMMY that names the Dragon Breath spells.
 var UnsupportedAbsorbBySpellID = map[int32]string{
-	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the client does not list",
+	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list",
 }
 
 var OtherItemIdsToFetch = []string{}
 var ConsumableOverrides = []*proto.Consumable{}
 
-// Empty: all 26 entries were TBC items absent from this client.
+// Empty: all 26 entries were TBC items absent from the game files.
 var ItemOverrides = []*proto.UIItem{}
 
 // Keep these sorted by item ID.
@@ -97,59 +97,57 @@ var ItemDenyList = map[int32]struct{}{
 	24265: {},
 }
 
-// Item icons to include in the DB, so they don't need to be separately loaded in the UI.
-var ExtraItemIcons = []int32{
-	// Demonic Rune
-	12662,
-
-	// Flask IDs
-	13512,
-
-	// Elixer IDs
-	9224,
-	13452,
-	13454,
-
-	// Potions / In Battle Consumes
-	13442,
-	9421,
-
-	// Thistle Tea
-	7676,
-
-	// Scrolls
-	10305,
-	10306,
-	10308,
-	10309,
-	10310,
-
-	// Weapon Imbues
-	12404,
-	12643,
-	18262,
-	20750,
-	23123,
-
-	// Explosives
-	15993,
-	18641,
-}
-
 // Item Ids of consumables to allow
 var ConsumableAllowList = []int32{
 	7676,  // Thisle Tea
 	9088,  // Gift of Arthas
 	9155,  // Arcane Elixir
-	9224,  // Elixir of Demonslaying
 	9421,  // Major Healthstone
 	13442, // Migty Rage Potion
 	13452, // Elixir of the Mongoose
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
+	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
+	274273, // Flask of Natural Accuracy
+	274274, // Flask of Natural Aggression
+	274275, // Flask of Natural Precision
+	274276, // Flask of Natural Swiftness
 }
-var ConsumableDenyList = []int32{}
+var ConsumableDenyList = []int32{
+	// Not obtainable in the game
+	23794, // Permanent Sheen of Zanza
+	23795, // Permanent Spirit of Zanza
+	23796, // Permanent Swiftness of Zanza
+	// Mage familiar summons, which the settings leave out
+	275069, // Scroll of Rat Familiar
+	277483, // Scroll of Frog Familiar
+	277493, // Scroll of Cat Familiar
+}
+
+// Exclusive groups the server keeps that the rows do not state: the game files carry no stacking
+// table, and these items share no aura with their group and no category whose cooldown outlasts
+// their buffs. A consumable named here takes this group instead of the one its rows give it.
+var ConsumableExclusiveGroups = []ConsumableGroup{
+	{Group: ElixirGroup(dbcenums.A_MOD_STAT, 0), Items: []int32{
+		12451, // Juju Power
+	}},
+	{Group: ElixirGroup(dbcenums.A_MOD_ATTACK_POWER, 0), Items: []int32{
+		12460, // Juju Might
+	}},
+	{Group: ConsumableGroupKey{Key: "Zanza", Name: "Zanza"}, Items: []int32{
+		8410,  // R.O.I.D.S.
+		8411,  // Lung Juice Cocktail
+		8412,  // Ground Scorpok Assay
+		8423,  // Cerebral Cortex Compound
+		8424,  // Gizzard Gum
+		20079, // Spirit of Zanza
+	}},
+	{Group: ConsumableGroupKey{Key: "Hit food", Name: "Hit food"}, Items: []int32{
+		22237, // Dark Desire
+		23327, // Fire-toasted Bun
+	}},
+}
 
 // Raid buffs / debuffs
 var SharedSpellsIcons = []int32{
@@ -299,7 +297,6 @@ var DenyListNameRegexes = []*regexp.Regexp{
 	regexp.MustCompile(`TEST`),
 	regexp.MustCompile(`Test`),
 	regexp.MustCompile(`Enchant Template`),
-	regexp.MustCompile(`Arcane Amalgamation`),
 	regexp.MustCompile(`Deleted`),
 	regexp.MustCompile(`DELETED`),
 	regexp.MustCompile(`zOLD`),
@@ -340,7 +337,7 @@ var EnchantAllowList = []int32{
 // match the generated enchant or the override is added as a separate entry.
 var EnchantOverrides = []*proto.UIEnchant{
 	// The head/leg resistance kits grant their stats through an equip spell that no
-	// longer exists in the client data, so they have to be filled in by hand.
+	// longer exists in the game files, so they have to be filled in by hand.
 	{EffectId: 2681, ItemId: 22635, SpellId: 28162, Name: "Savage Guard", Stats: stats.Stats{stats.NatureResistance: 10}.ToProtoArray()},
 	{EffectId: 2682, ItemId: 22636, SpellId: 28164, Name: "Ice Guard", Stats: stats.Stats{stats.FrostResistance: 10}.ToProtoArray()},
 	{EffectId: 2683, ItemId: 22638, SpellId: 28166, Name: "Shadow Guard", Stats: stats.Stats{stats.ShadowResistance: 10}.ToProtoArray()},

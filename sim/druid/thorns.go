@@ -4,7 +4,7 @@ var thornsRank = spellData.Thorns.Highest()
 
 // TODO: To be implemented.
 // Self-cast Thorns. The druid's own copy of the generated shield deals the
-// client's 22 nature damage; the raid buff registers the external copy before
+// game files' 22 nature damage; the raid buff registers the external copy before
 // Initialize runs, and the two auras bid in ThornsCategory, which holds one of
 // them at a time.
 func (druid *Druid) registerThornsSpell() {
@@ -13,7 +13,7 @@ func (druid *Druid) registerThornsSpell() {
 	// The body the port needs:
 	// thornsAura := druid.GetAura("Thorns (Player)")
 	// if thornsAura == nil {
-	// 	thornsAura = buffs.ThornsAura(&druid.Unit, true, 0)
+	// 	thornsAura = buffs.NewSpellDataThornsAura(&druid.Unit, true, 0)
 	// }
 	//
 	// druid.RegisterSpell(core.SpellConfig{

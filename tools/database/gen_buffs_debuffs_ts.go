@@ -19,13 +19,14 @@ import (
 
 const buffsDebuffsTSFile = "ui/features/settings/model/buffs_debuffs_auto_gen.ts"
 
-// The state count a multistate input counts up to, copied from the hand-written
-// input for that field in ui/features/settings/model/buffs_debuffs.ts. An int32
-// field counts casts or mana, and how far it counts is a UI choice the client
-// database does not state.
+// The state count a multistate input counts up to. An int32 field counts casts
+// or mana, and how far it counts is a UI choice the game files do not
+// state; the four Atiesh inputs share one count.
 var buffInputNumStates = map[string]int{
 	"atiesh_mage":      5,
 	"atiesh_warlock":   5,
+	"atiesh_druid":     5,
+	"atiesh_priest":    5,
 	"mana_tide_totems": 5,
 	"innervates":       11,
 	"power_infusions":  11,
@@ -37,8 +38,6 @@ var manualBuffInputs = map[string]string{
 	"greater_blessing_of_salvation": "the hand-written input hides itself for tank and healing specs, a role gate no manifest row carries.",
 	"greater_blessing_of_light":     "the hand-written input shows itself for tank and healing specs only, a role gate no manifest row carries.",
 	"retribution_aura":              "the hand-written input shows itself for tank specs only, since a damage shield only matters on the unit being hit; a role gate no manifest row carries.",
-	"atiesh_druid":                  "no settings input over this field.",
-	"atiesh_priest":                 "no settings input over this field.",
 }
 
 type tsBuffInput struct {
@@ -175,7 +174,7 @@ func RenderBuffsDebuffsTS(rows []ResolvedBuff) ([]byte, error) {
 // tab, so the generator refuses to render.
 func checkBuffInputTables() error {
 	fields := map[string]bool{}
-	for _, spec := range buffmanifest.Manifest {
+	for _, spec := range buffmanifest.All() {
 		fields[spec.Field] = true
 	}
 	for field := range manualBuffInputs {
@@ -192,8 +191,8 @@ func checkBuffInputTables() error {
 }
 
 // Why a row renders no input: its hand-written input does something no manifest
-// row states, its kind or proto type has no icon input at all, or the client
-// describes no spell to hang an icon on.
+// row states, its kind or proto type has no icon input at all, or the game files
+// describe no spell to hang an icon on.
 func skipBuffInputReason(row ResolvedBuff) string {
 	if reason, ok := manualBuffInputs[row.Field]; ok {
 		return reason
@@ -205,18 +204,18 @@ func skipBuffInputReason(row ResolvedBuff) string {
 		if row.Reason != "" {
 			return row.Reason
 		}
-		return "the client database resolves no spell for it."
+		return "the game files resolve no spell for it."
 	}
 	return ""
 }
 
-// A row the settings UI never renders an icon for whatever the client says about
-// it: the client does not describe the buff at all, the field is a sim toggle or
+// A row the settings UI never renders an icon for whatever the game files say about
+// it: the game files do not describe the buff at all, the field is a sim toggle or
 // a swatch pick rather than a buff, or no icon factory takes its proto type.
 func uninputtableBuffReason(row ResolvedBuff) string {
 	var fixed string
 	switch {
-	case row.Kind == buffmanifest.KindAbsent, row.Kind == buffmanifest.KindFlag:
+	case row.Kind == buffmanifest.KindFlag:
 		fixed = fmt.Sprintf("%s renders no settings input.", row.Kind)
 	case row.Proto == buffmanifest.ProtoDouble:
 		fixed = fmt.Sprintf("%s has no settings factory.", row.Proto)
@@ -229,12 +228,21 @@ func uninputtableBuffReason(row ResolvedBuff) string {
 	return fixed
 }
 
+// The spell the settings input shows as its icon and tooltip: the row's TooltipID when it names one,
+// else the cast the manifest pins for it, else the aura itself.
+func buffInputActionID(row ResolvedBuff) int32 {
+	if row.TooltipID != 0 {
+		return row.TooltipID
+	}
+	return row.CastSpellID
+}
+
 func buffInput(row ResolvedBuff) (*tsBuffInput, error) {
 	input := &tsBuffInput{
 		Const:     row.Go,
-		SpellID:   row.SpellID,
+		SpellID:   buffInputActionID(row),
 		FieldName: row.TSField(),
-		Label:     tsString(buffInputLabel(row)),
+		Label:     tsString(buffLabel(row)),
 	}
 
 	scopes := map[buffmanifest.BuffScope]string{
@@ -291,13 +299,6 @@ func buffInputImpID(row ResolvedBuff) (string, error) {
 		return "", fmt.Errorf("a tristate row needs the talent that prices its improved state")
 	}
 	return fmt.Sprintf("ActionId.fromSpellId(%d)", row.TalentSpellID), nil
-}
-
-func buffInputLabel(row ResolvedBuff) string {
-	if row.Label != "" {
-		return row.Label
-	}
-	return row.DBName
 }
 
 func buffsDebuffsTSImports(factories map[string]bool) string {

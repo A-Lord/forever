@@ -1,8 +1,7 @@
 package druid
 
-// TODO: To be implemented. The spirit regen the raid config's innervate applies
-// lives in the driver next to the generated aura and has no exported entry
-// point, so the druid's own cast needs one before this body comes back.
+// TODO: To be implemented. The generated aura carries Innervate's spirit regen,
+// so the druid's own cast needs no more than the aura the body below activates.
 func (druid *Druid) registerInnervateCD() {
 	panic("To be implemented")
 
@@ -25,7 +24,7 @@ func (druid *Druid) registerInnervateCD() {
 	// 	amount = 0.2
 	// }
 	//
-	// var innervateAura = buffs.InnervatesAura(innervateTarget, true, 0)
+	// var innervateAura = buffs.NewSpellDataInnervatesAura(innervateTarget, true, 0)
 	//
 	// innervateSpell = druid.RegisterSpell(core.SpellConfig{
 	// 	ActionID:        actionID,

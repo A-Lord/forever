@@ -22,6 +22,8 @@ type ProcStatBonusEffect struct {
 	Outcome            core.HitOutcome
 	RequireDamageDealt bool
 	ClassSpellsOnly    bool
+	// See core.ProcTrigger.
+	RequireDamageComponent bool
 	// The listener's Can Proc From Procs attribute. See core.ProcTrigger.
 	CanProcFromProcs bool
 	// A "Chance on hit" item effect or a combat enchant. See core.ProcTrigger. The generator
@@ -54,7 +56,7 @@ type DamageEffect struct {
 	ProcMask         core.ProcMask
 	Outcome          OutcomeType
 	Flags            core.SpellFlag
-	// Set when the client bars the damage spell from critting, which the sim has no way to know:
+	// Set when the game files bar the damage spell from critting, which the sim has no way to know:
 	// it is a spell attribute, so only the database generator can see it.
 	CannotCrit bool
 }
@@ -88,7 +90,7 @@ func damageDefenseType(defenseType core.DefenseType, school core.SpellSchool, is
 }
 
 // The outcome a proc's damage rolls when the caller states none: the hit table of its DefenseType,
-// in the no-crit variant when the client bars the spell from critting.
+// in the no-crit variant when the game files bar the spell from critting.
 func damageOutcome(defenseType core.DefenseType, cannotCrit bool, outcome OutcomeType) OutcomeType {
 	if outcome != OutcomeDefault {
 		return outcome
@@ -207,6 +209,8 @@ func factory_StatBonusEffect(config ProcStatBonusEffect, extraSpell func(agent c
 				DPM:                dpm,
 				ICD:                time.Millisecond * time.Duration(proc.IcdMs),
 				Handler:            procHandler(config, effect, procAura, windowAura, procSpell),
+
+				RequireDamageComponent: config.RequireDamageComponent,
 			})
 
 			attachStackTrigger(character, config, effect, procAura, windowAura)
@@ -389,7 +393,7 @@ func NewProcStatBonusEffect(config ProcStatBonusEffect) {
 //							Procs read from the spell data
 ///////////////////////////////////////////////////////////////////////////
 
-// An item or enchant proc as the client's own rows state it. What the listener hears, how often it
+// An item or enchant proc as the game files' own rows state it. What the listener hears, how often it
 // fires and what its internal cooldown is come from the spell carrying the proc; how long the buff
 // lasts and how it stacks come from the spell it applies; only the stats come from the item's
 // effect entry, which is where the sim's item level scaling lives.
@@ -402,7 +406,7 @@ type SpellDataProc struct {
 
 	// The spell the item effect names: the one carrying the proc flags, the chance and the ICD.
 	TriggerSpellID int32
-	// The buff the proc applies, where the client makes it a spell of its own. Zero where the
+	// The buff the proc applies, where the game files make it a spell of its own. Zero where the
 	// trigger's own row is the buff.
 	BuffSpellID int32
 
@@ -417,7 +421,7 @@ func NewSpellDataProc(cfg SpellDataProc, variants []ItemVariant) {
 	forEachSpellDataVariant(cfg, variants, registerSpellDataProc)
 }
 
-// An item or enchant proc whose "buff" is a damage spell: the client applies no aura at all, it
+// An item or enchant proc whose "buff" is a damage spell: the game files apply no aura at all, it
 // casts a spell that deals damage. BuffSpellID names that spell.
 func NewSpellDataDamageProc(cfg SpellDataProc, variants []ItemVariant) {
 	forEachSpellDataVariant(cfg, variants, registerSpellDataDamageProc)
@@ -515,7 +519,7 @@ func weaponProcShape(cfg SpellDataProc) spelldata.ProcOpt {
 	return spelldata.WeaponProc()
 }
 
-// The rate for a proc the client states none for. Procs per minute are not in the client's spell
+// The rate for a proc the game files state none for. Procs per minute are not in the game files' spell
 // data - no row carries a SpellProcsPerMinuteID - so an item's reaches the sim through its effect
 // entry, and the store carries one only where an override put it there. Either way the manager is
 // built here rather than by the resolver, since only the effect knows which weapon or enchant slot
@@ -568,7 +572,7 @@ func spellDataProcHandler(buff *spelldata.Spell, procAura *core.StatBuffAura) co
 	}
 }
 
-// The buff the proc applies. Which shape it takes is the client's to say, and the two counts it
+// The buff the proc applies. Which shape it takes is the game files' to say, and the two counts it
 // keeps in one field are not the same thing: a CumulativeAura count is stacks that each add their
 // own stats, a ProcCharges count is one buff at full stats that the game spends by uses.
 func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *spelldata.Spell, buff *spelldata.Spell, effect *proto.ItemEffect) *core.StatBuffAura {
@@ -584,9 +588,9 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 
 	buffStats := stats.FromProtoMap(effect.GetScalingOptions()[int32(0)].GetStats())
 
-	// The client states the count on whichever of the two rows carries the aura, and the item effect
-	// entry takes the higher of them, so this does too: Idol of the Huntress keeps its 200 on the
-	// trigger while the buff it applies states none.
+	// The game files state the count on whichever of the two rows carries the aura, and the item
+	// effect entry takes the higher of them, so this does too: Idol of the Huntress keeps its 200
+	// on the trigger while the buff it applies states none.
 	if stacks := max(buff.MaxStack, trigger.MaxStack); stacks > 0 {
 		aura.MaxStacks = int32(stacks)
 		return core.MakeStackingAura(character, core.StackingStatAura{Aura: aura, BonusPerStack: buffStats})
@@ -602,10 +606,10 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	})
 }
 
-// How long the buff lasts. The client leaves it off the buff's own row on a fair few procs and states
-// it on the trigger instead, which is the fallback the item effect entry applies as well. An aura of
-// no duration is one core refuses to activate mid-fight, so a pair of rows that states none anywhere
-// is refused here, where the message can name what to look at.
+// How long the buff lasts. The game files leave it off the buff's own row on a fair few procs and
+// state it on the trigger instead, which is the fallback the item effect entry applies as well. An
+// aura of no duration is one core refuses to activate mid-fight, so a pair of rows that states none
+// anywhere is refused here, where the message can name what to look at.
 func procBuffDuration(cfg SpellDataProc, trigger *spelldata.Spell, buff *spelldata.Spell) time.Duration {
 	if buff.DurationMs != 0 {
 		return buff.Duration()
@@ -1206,13 +1210,14 @@ func onUseEffectsFor(itemID int32) []*proto.ItemEffect {
 
 // The item effect's own cooldown and the category cooldown it shares, whatever the spell's row states.
 func onUseCast(character *core.Character, itemEffect *proto.ItemEffect) core.CastConfig {
-	return core.CastConfig{
-		CD: core.Cooldown{
+	cast := core.CastConfig{SharedCD: sharedCooldown(character, itemEffect)}
+	if cooldownMs := itemEffect.GetOnUse().CooldownMs; cooldownMs > 0 {
+		cast.CD = core.Cooldown{
 			Timer:    character.NewTimer(),
-			Duration: time.Duration(itemEffect.GetOnUse().CooldownMs) * time.Millisecond,
-		},
-		SharedCD: sharedCooldown(character, itemEffect),
+			Duration: time.Duration(cooldownMs) * time.Millisecond,
+		}
 	}
+	return cast
 }
 
 // The on-use buff's stats and duration, scaled by its area bonus.
@@ -1231,6 +1236,8 @@ type StackingStatBonusCD struct {
 	SpellFlags         core.SpellFlag
 	Outcome            core.HitOutcome
 	RequireDamageDealt bool
+	// See core.ProcTrigger.
+	RequireDamageComponent bool
 	// See core.ProcTrigger. The generator reads them off the stack proc's aura, which is always an
 	// Equip aura, so there is no weapon-proc counterpart here.
 	CanProcFromProcs  bool
@@ -1346,6 +1353,8 @@ func attachStackingCDTrigger(character *core.Character, config StackingStatBonus
 				statAura.AddStack(sim)
 			}
 		},
+
+		RequireDamageComponent: config.RequireDamageComponent,
 	})
 }
 
@@ -1515,7 +1524,7 @@ type ProcDamageEffect struct {
 	IsMelee          bool
 	Flags            core.SpellFlag
 	Outcome          OutcomeType
-	// Set when the client bars the damage spell from critting, which the sim has no way to know:
+	// Set when the game files bar the damage spell from critting, which the sim has no way to know:
 	// it is a spell attribute, so only the database generator can see it.
 	CannotCrit bool
 }

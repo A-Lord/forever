@@ -11,7 +11,7 @@ const fakePlayer = (spec: { isTankSpec?: boolean; isMeleeDpsSpec?: boolean }) =>
 const kinds = (layout: ReturnType<typeof buildRows>, key: string) => layout.groups.find(group => group.key === key)?.rows.map(row => row.kind);
 
 describe('buildRows', () => {
-	it('keeps TBC group order and includes the Resistance group MoP has no counterpart for', () => {
+	it('keeps group order and includes the Resistance group', () => {
 		const statList = [
 			UnitStat.fromStat(Stat.StatHealth),
 			UnitStat.fromStat(Stat.StatAttackPower),
@@ -27,7 +27,7 @@ describe('buildRows', () => {
 		expect(layout.groups.map(group => group.key)).toEqual(['Primary']);
 	});
 
-	it('renders the split melee/ranged hit, crit and speed pseudo stats TBC keeps apart', () => {
+	it('renders the split melee/ranged hit, crit and speed pseudo stats apart', () => {
 		const split = [
 			PseudoStat.PseudoStatMeleeHitPercent,
 			PseudoStat.PseudoStatMeleeCritPercent,
@@ -65,7 +65,7 @@ describe('buildRows', () => {
 		expect(kinds(layout, 'Defense')).toEqual(['stat']);
 	});
 
-	// TBC puts the melee crit cap after the whole table, not next to the crit row.
+	// The melee crit cap goes after the whole table, not next to the crit row.
 	it('trails the melee crit cap as its own group for a melee dps spec', () => {
 		const layout = buildRows(fakePlayer({ isMeleeDpsSpec: true }), [UnitStat.fromStat(Stat.StatHealth)]);
 		expect(layout.groups.map(group => group.key)).toEqual(['Primary', 'MeleeCritCap']);

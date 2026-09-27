@@ -3,7 +3,7 @@ package warlock
 var curseOfElementsRank = spellData.CurseOfTheElements.Highest()
 
 // TODO: To be implemented. The body below builds the spell around the generated
-// aura and has not been checked against the client past the aura itself.
+// aura and has not been checked against the game files past the aura itself.
 func (warlock *Warlock) registerCurseOfElements() {
 	panic("To be implemented")
 
@@ -11,7 +11,7 @@ func (warlock *Warlock) registerCurseOfElements() {
 	// warlock.CurseOfElementsAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 	// 	// The warlock's own copy of the aura. Malediction's modifier masks do
 	// 	// not cover this curse, so there are no talent points to pass.
-	// 	return buffs.CurseOfElementsAura(target, true, 0)
+	// 	return buffs.NewSpellDataCurseOfElementsAura(target, true, 0)
 	// })
 	// warlock.CurseOfElements = warlock.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: curseOfElementsRank.ID},
@@ -20,6 +20,7 @@ func (warlock *Warlock) registerCurseOfElements() {
 	// 	ProcMask:       core.ProcMaskEmpty,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCurseOfElements,
+	// 	ClassFlags:     curseOfElementsRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(curseOfElementsRank.Cost()),

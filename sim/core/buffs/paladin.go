@@ -37,28 +37,28 @@ func paladinAuraMeta(base *Meta, rank PaladinAuraRank) *Meta {
 	return &m
 }
 
-func DevotionAuraBuff(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(devotionAuraMeta, rank), isPlayer, 0)
+func NewSpellDataDevotionAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(devotionAuraMeta, rank), true, 0)
 }
 
-func ConcentrationAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(concentrationAuraMeta, rank), isPlayer, 0)
+func NewSpellDataConcentrationAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(concentrationAuraMeta, rank), true, 0)
 }
 
-func FireResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(fireResistanceAuraMeta, rank), isPlayer, 0)
+func NewSpellDataFireResistanceAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(fireResistanceAuraMeta, rank), true, 0)
 }
 
-func FrostResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(frostResistanceAuraMeta, rank), isPlayer, 0)
+func NewSpellDataFrostResistanceAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(frostResistanceAuraMeta, rank), true, 0)
 }
 
-func ShadowResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraRank) *core.Aura {
-	return newBuff(&char.Unit, paladinAuraMeta(shadowResistanceAuraMeta, rank), isPlayer, 0)
+func NewSpellDataShadowResistanceAuraRank(char *core.Character, rank PaladinAuraRank) *core.Aura {
+	return newBuff(&char.Unit, paladinAuraMeta(shadowResistanceAuraMeta, rank), true, 0)
 }
 
 // Retribution Aura scales with the casting paladin's Holy spell power in Forever even though its
-// client row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
+// game files row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
 // and the damage still moves with spell power in game). The coefficient is the 1.5 s cast-time
 // floor over 3.5, the AoE divisor because the shield hits every attacker, and the 0.95 penalty for
 // the aura effect. Confirmed at level 20: with 80 spell power rank 1 (base 7) hits for 17 to 18,
@@ -66,11 +66,11 @@ func ShadowResistanceAura(char *core.Character, isPlayer bool, rank PaladinAuraR
 // shown mostly 17.
 const RetributionAuraSpellPowerCoefficient = 1.5 / 3.5 / 3 * 0.95
 
-// RetributionAuraBuff is the aura on the unit the shield protects. The self-cast variant reads
+// NewSpellDataRetributionAuraRank is the aura on the unit the shield protects. The self-cast variant reads
 // the paladin's own Holy spell power through the proc spell; the external (party-buff) variant
 // cannot see the providing paladin, so externalSpellPower stands in for it and the recipient's
 // own stats stay out of the damage.
-func RetributionAuraBuff(char *core.Character, isPlayer bool, rank PaladinAuraRank, externalSpellPower float64) *core.Aura {
+func NewSpellDataRetributionAuraRank(char *core.Character, isPlayer bool, rank PaladinAuraRank, externalSpellPower float64) *core.Aura {
 	m := paladinAuraMeta(retributionAuraMeta, rank)
 	label := m.label(isPlayer)
 	if char.HasAura(label) {
@@ -105,7 +105,7 @@ var (
 		Value: amount(spelldata.MustFind(judgementOfWisdomManaID).EnergizeEffect())}
 )
 
-// The raid's Judgement of the Crusader, which no generated row reads: the client states its bonus
+// The raid's Judgement of the Crusader, which no generated row reads: the game files state its bonus
 // for the holy school alone, which the manifest has no pseudo-stat for.
 var judgementOfTheCrusaderSpell = spelldata.MustFind(20303)
 
@@ -120,14 +120,14 @@ const (
 // Judgement effects on the target" can find them.
 const JudgementAuraTag = "JudgementAura"
 
-// The client says the judgements proc on a chance without stating it; the sim uses 50% until
+// The game files say the judgements proc on a chance without stating it; the sim uses 50% until
 // in-game testing says otherwise.
 const judgementProcChance = 0.5
 
 // Judgement of the Crusader raises the Holy damage the target takes by a flat amount. Every rank
 // and every paladin share one exclusive category, so the strongest active one is the one that
 // counts.
-func JudgementOfTheCrusaderAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfTheCrusaderAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
 	bonus := rank.Value
 	label := paladinRankName("Judgement of the Crusader", rank.Rank)
 	if target.HasAura(label) {
@@ -156,7 +156,7 @@ func JudgementOfTheCrusaderAura(target *core.Unit, rank JudgementRank) *core.Aur
 
 // The paladin's own Judgement of Light at one rank: the bare 40-second debuff, plus the heal it
 // grants whoever strikes the target.
-func JudgementOfLightRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, caster *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Light", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)
@@ -167,29 +167,33 @@ func JudgementOfLightRankAura(target *core.Unit, rank JudgementRank) *core.Aura 
 		ActionID: core.ActionID{SpellID: rank.SpellID},
 		Tag:      JudgementAuraTag,
 		Duration: JudgementOfLightDuration(0),
-	}), rank)
+	}), caster, rank)
 }
 
-// Whoever lands a melee hit on the judged target has a chance to be healed for the rank's amount.
-func AttachJudgementOfLightHeal(aura *core.Aura, rank JudgementRank) *core.Aura {
+// Whoever lands a damaging melee hit on the judged target has a chance to be healed for the rank's
+// amount. The caster's proc chance mods, e.g. Improved Judgement of Light, raise that chance; the
+// raid's copy has no caster.
+func AttachJudgementOfLightHeal(aura *core.Aura, caster *core.Unit, rank JudgementRank) *core.Aura {
 	healthMetrics := aura.Unit.NewHealthMetrics(core.ActionID{SpellID: rank.SpellID})
 	heal := rank.Value
 
 	return aura.AttachProcTrigger(core.ProcTrigger{
-		Name:     aura.Label + " - Heal",
-		Callback: core.CallbackOnSpellHitTaken,
-		ProcMask: core.ProcMaskMelee,
-		Outcome:  core.OutcomeLanded,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if sim.Proc(judgementProcChance, "Judgement of Light - Heal") {
-				spell.Unit.GainHealth(sim, heal, healthMetrics)
-			}
+		Name:                aura.Label + " - Heal",
+		Callback:            core.CallbackOnSpellHitTaken,
+		ProcMask:            core.ProcMaskMelee,
+		Outcome:             core.OutcomeLanded,
+		RequireDamageDealt:  true,
+		ProcChance:          judgementProcChance,
+		ProcSpellClassFlags: spelldata.MustFind(rank.SpellID).ClassFlags,
+		Caster:              caster,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			spell.Unit.GainHealth(sim, heal, healthMetrics)
 		},
 	})
 }
 
 // The paladin's own Judgement of Wisdom at one rank.
-func JudgementOfWisdomRankAura(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfWisdomAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Wisdom", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)

@@ -1,57 +1,106 @@
-import type { ConsumableStatOption } from '@features/settings/model/consumables';
-import * as ConsumablesInputs from '@features/settings/model/consumables';
-import { Class, ConsumableType, Spec, type Stat } from '@generated/proto/common';
+import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
+import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
+import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import type { TypedIconEnumPickerConfig } from '@ui-kit/input_helpers';
+import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, higherRanks, relevanceFor } from '@sim/settings/consumables';
+import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
+export type ConsumeToggle = TypedIconPickerConfig<Player<any>, boolean>;
 
 export interface ConsumeConfigs {
 	potion: ConsumeConfig;
 	conjured: ConsumeConfig;
 	flask: ConsumeConfig;
-	battleElixir: ConsumeConfig;
-	guardianElixir: ConsumeConfig;
+	// One pick per exclusive group, in the order of the groups' keys: those holding an elixir, those
+	// holding a scroll and no elixir, and the rest.
+	elixirs: Array<ConsumeConfig>;
+	scrolls: Array<ConsumeConfig>;
+	groups: Array<ConsumeConfig>;
 	food: ConsumeConfig;
 	explosive: ConsumeConfig;
+	explosiveExtras: Array<ConsumeToggle>;
 	mhImbue: ConsumeConfig;
 	ohImbue: ConsumeConfig;
+	miscellaneous: Array<ConsumeToggle>;
 }
 
-const potionsFor = (player: Player<any>, db: Database, stats: Array<Stat>) => {
-	const potions = db.getConsumablesByTypeAndStats(ConsumableType.ConsumableTypePotion, stats);
-	if (player.getClass() === Class.ClassWarrior || player.getSpec() === Spec.SpecFeralBearDruid) return potions;
-	return potions.filter(potion => potion.id !== 13442);
+type GroupRow = 'elixirs' | 'scrolls' | 'groups';
+
+// Feral druids cannot take Windfury or Flametongue Totem, so their main-hand imbue shows under them.
+const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
+const mainHandImbueShown = (player: Player<any>) => {
+	if (SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty()) return true;
+	const buffs = player.getParty()!.getBuffs();
+	return !buffs.windfuryTotem && !buffs.flametongueTotem;
 };
 
-export const consumeConfigs = (
-	player: Player<any>,
-	db: Database,
-	consumableStats: ReadonlyArray<Stat>,
-	conjuredOptions: ReadonlyArray<ConsumableStatOption<number>>,
-	explosiveOptions: ReadonlyArray<ConsumableStatOption<number>>,
-	imbueMHOptions: ReadonlyArray<ConsumableStatOption<number>>,
-	imbueOHOptions: ReadonlyArray<ConsumableStatOption<number>>,
-): ConsumeConfigs => {
-	const stats = [...consumableStats];
-	const byType = (type: ConsumableType) => db.getConsumablesByTypeAndStats(type, stats);
-	const potions = potionsFor(player, db, stats);
+export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
+	const all = db.getConsumables();
+	const relevance: ConsumableRelevance = {
+		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig())),
+		higherRanks: higherRanks(all),
+	};
+	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
+	const byGroup = new Map<string, Array<Consumable>>();
+	const add = <K>(map: Map<K, Array<Consumable>>, key: K, consumable: Consumable) => {
+		const list = map.get(key);
+		if (list) list.push(consumable);
+		else map.set(key, [consumable]);
+	};
+	for (const consumable of all) {
+		if (consumable.groupKey) add(byGroup, consumable.groupKey, consumable);
+		else add(bySlot, consumableSlot(consumable), consumable);
+	}
+	const inSlot = (slot: ConsumableSlot) => bySlot.get(slot) ?? [];
+	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[2], consumables = inSlot(slot)) =>
+		makeConsumableInput(consumables, relevance, options);
+
+	const groups = [...byGroup.keys()].sort((a, b) => a.localeCompare(b, 'en', { numeric: true })).map(key => byGroup.get(key)!);
+	const holds = (group: Array<Consumable>, type: ConsumableType) => group.some(consumable => consumable.type === type);
+	const rowOf = (group: Array<Consumable>): GroupRow =>
+		holds(group, ConsumableType.ConsumableTypeElixir) ? 'elixirs' : holds(group, ConsumableType.ConsumableTypeScroll) ? 'scrolls' : 'groups';
+	const groupInputs = (row: GroupRow) =>
+		groups.filter(group => rowOf(group) === row).map(group => makeConsumableGroupInput(group, relevance, group[0].groupName));
+	const explosives = inSlot(ConsumableSlot.Explosive);
+	const imbues = inSlot(ConsumableSlot.Imbue);
+	const handItem = (p: Player<any>, slot: ItemSlot) => p.getEquippedItem(slot)?.item;
 
 	return {
-		potion: ConsumablesInputs.makeConsumableInput(potions, { consumesFieldName: 'potId' }, i18n.t('settings_tab.consumables.potions.combat')),
-		conjured: ConsumablesInputs.makeConjuredInput([...conjuredOptions]),
-		flask: ConsumablesInputs.makeConsumableInput(byType(ConsumableType.ConsumableTypeFlask), { consumesFieldName: 'flaskId' }, ''),
-		battleElixir: ConsumablesInputs.makeConsumableInput(byType(ConsumableType.ConsumableTypeBattleElixir), { consumesFieldName: 'battleElixirId' }, ''),
-		guardianElixir: ConsumablesInputs.makeConsumableInput(
-			byType(ConsumableType.ConsumableTypeGuardianElixir),
-			{ consumesFieldName: 'guardianElixirId' },
-			'',
+		potion: input(ConsumableSlot.Potion, { consumesFieldName: 'potId', tooltip: i18n.t('settings_tab.consumables.potions.combat') }),
+		conjured: input(ConsumableSlot.Conjured, { consumesFieldName: 'conjuredId' }),
+		flask: input(ConsumableSlot.Flask, { consumesFieldName: 'flaskId' }),
+		elixirs: groupInputs('elixirs'),
+		scrolls: groupInputs('scrolls'),
+		groups: groupInputs('groups'),
+		food: input(ConsumableSlot.Food, { consumesFieldName: 'foodId' }),
+		explosive: input(
+			ConsumableSlot.Explosive,
+			{ consumesFieldName: 'explosiveId', tooltip: i18n.t('settings_tab.consumables.engineering.explosives') },
+			explosives.filter(consumable => !explosiveUsedBeside(consumable)),
 		),
-		food: ConsumablesInputs.makeConsumableInput(byType(ConsumableType.ConsumableTypeFood), { consumesFieldName: 'foodId' }, ''),
-		explosive: ConsumablesInputs.makeExplosivesInput([...explosiveOptions], i18n.t('settings_tab.consumables.engineering.explosives')),
-		mhImbue: ConsumablesInputs.makeMHImbueInput([...imbueMHOptions], i18n.t('settings_tab.consumables.imbue.mhImbue')),
-		ohImbue: ConsumablesInputs.makeOHImbueInput([...imbueOHOptions], i18n.t('settings_tab.consumables.imbue.ohImbue')),
+		explosiveExtras: explosives.filter(explosiveUsedBeside).map(consumable => makeIdListInput(consumable, relevance)),
+		mhImbue: input(
+			ConsumableSlot.Imbue,
+			{
+				consumesFieldName: 'mhImbueId',
+				tooltip: i18n.t('settings_tab.consumables.imbue.mhImbue'),
+				offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotMainHand)),
+				showWhen: mainHandImbueShown,
+			},
+			imbues,
+		),
+		ohImbue: input(
+			ConsumableSlot.Imbue,
+			{
+				consumesFieldName: 'ohImbueId',
+				tooltip: i18n.t('settings_tab.consumables.imbue.ohImbue'),
+				offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotOffHand)),
+			},
+			imbues,
+		),
+		miscellaneous: inSlot(ConsumableSlot.Extra).map(consumable => makeIdListInput(consumable, relevance)),
 	};
 };

@@ -2,7 +2,7 @@ package warlock
 
 var deathCoilRank = spellData.DeathCoil.Highest()
 
-// TODO: To be implemented. Port the TBC Death Coil implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Death Coil implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerDeathCoil() {
 	panic("To be implemented")
 
@@ -15,6 +15,7 @@ func (warlock *Warlock) registerDeathCoil() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellDeathCoil,
+	// 	ClassFlags:     deathCoilRank.ClassFlags,
 	// 	MissileSpeed:   float64(deathCoilRank.Speed),
 	// 	MaxRange:       float64(deathCoilRank.MaxRange),
 	//

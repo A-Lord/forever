@@ -1,6 +1,6 @@
 package database
 
-// Resolves tools/database/buffmanifest against the spell store's captured client
+// Resolves tools/database/buffmanifest against the spell store's captured game files
 // rows and renders sim/core/buffs/buffs_auto_gen.go and
 // sim/core/buffs/debuffs_auto_gen.go from the result, in the same pass that
 // renders the store.
@@ -21,7 +21,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -39,16 +41,29 @@ const debuffsGenFile = "sim/core/buffs/debuffs_auto_gen.go"
 type ResolvedBuff struct {
 	buffmanifest.BuffSpec
 
+	Scope buffmanifest.BuffScope
+	Go    string // identifier stem: "BattleShout"
+	Proto buffmanifest.BuffProtoType
+	// Kind is the manifest's, or a damage shield where the spell states one.
+	Kind buffmanifest.BuffKind
+
+	// Name is the game files' name for the spell the player learns, and AuraName the aura's where the
+	// manifest names a cast beside it. Both are "" for a spell no class family files, which is also
+	// when Owner is the manifest's rather than the family's.
+	Name     string
+	AuraName string
+	Owner    proto.Class
+
 	SpellID     int32 // the spell the aura's numbers are read from
 	CastSpellID int32 // the cast, where the manifest pins one; SpellID otherwise
 	DurationMs  int32 // -1 or 0 never expires
-	CooldownMs  int32 // 0 when the client states none; read from the cast
+	CooldownMs  int32 // 0 when the game files state none; read from the cast
 
 	// Spell is the row the store carries for SpellID, built from the same
-	// captured client rows the store is rendered from.
+	// captured game files rows the store is rendered from.
 	Spell *spelldata.Spell
 
-	// SkipAuraTypes is the manifest's SkipAuras read as auras.
+	// SkipAuraTypes are the auras the row states at 0 beside the buff, which the parse leaves out.
 	SkipAuraTypes []dbcenums.EffectAuraType
 	// FullComboPoints says a debuff's amount is stated per combo point, and the
 	// raid config's copy is the finisher at full combo points.
@@ -61,8 +76,8 @@ type ResolvedBuff struct {
 
 	// TalentRanks is how many points the improving talent takes, 0 for a row
 	// no talent prices.
-	TalentRanks   int32
-	TalentApplies buffmanifest.TalentApplies
+	TalentRanks          int32
+	TalentScalesDuration bool
 
 	// TalentSpellID is the spell of the trait node that prices the improvement,
 	// which is the icon the UI shows for the improved state. TalentPosition is
@@ -70,6 +85,10 @@ type ResolvedBuff struct {
 	// EffectN counts.
 	TalentSpellID  int32
 	TalentPosition int32
+	// TalentDivisor prices a row whose talent states its effect only in its tooltip, as
+	// ${$m1/-N*$<SpellID>m1}: rank m1 of N is worth m1/N of every amount the spell attaches. 0 for
+	// a talent priced by a spell modifier.
+	TalentDivisor int32
 
 	ScopeFromClient buffmanifest.BuffScope
 
@@ -89,11 +108,11 @@ func (r *ResolvedBuff) unsupported(format string, args ...any) {
 	r.Reason = fmt.Sprintf(format, args...)
 }
 
-// Every manifest row, read out of the client rows the store is built from.
+// Every manifest row, read out of the game files rows the store is built from.
 func resolveBuffManifest(in *storeInputs) ([]ResolvedBuff, error) {
 	t := in.tables()
-	rows := make([]ResolvedBuff, 0, len(buffmanifest.Manifest))
-	for _, spec := range buffmanifest.Manifest {
+	var rows []ResolvedBuff
+	for _, spec := range buffmanifest.All() {
 		row, err := resolveBuff(t, in.TraitNodes, spec)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", spec.Field, err)
@@ -103,41 +122,41 @@ func resolveBuffManifest(in *storeInputs) ([]ResolvedBuff, error) {
 	return rows, nil
 }
 
-func resolveBuff(t *spellTables, nodes []traitNode, spec buffmanifest.BuffSpec) (ResolvedBuff, error) {
-	row := ResolvedBuff{BuffSpec: spec, Supported: true, ScopeFromClient: spec.Scope}
+func resolveBuff(t *spellTables, nodes []traitNode, spec buffmanifest.Row) (ResolvedBuff, error) {
+	row := ResolvedBuff{
+		BuffSpec: spec.BuffSpec, Scope: spec.Scope, Go: spec.GoStem(), Proto: spec.ProtoType(), Kind: spec.Kind,
+		Supported: true, ScopeFromClient: spec.Scope,
+	}
 
-	compiled, err := compiledProtoType(spec)
+	compiled, err := compiledProtoType(row)
 	if err != nil {
 		return row, err
 	}
 
-	if spec.Kind == buffmanifest.KindAbsent || spec.Kind == buffmanifest.KindFlag {
-		row.unsupported("%s", spec.Notes)
+	if row.Kind == buffmanifest.KindFlag {
+		row.unsupported("%s", spec.Reason)
 		return row, nil
 	}
 
 	if err := loadBuffSpell(t, &row); err != nil {
 		return row, err
 	}
-	if err := resolveSkipAuras(&row); err != nil {
+	if err := nameBuff(t, &row); err != nil {
 		return row, err
+	}
+	if row.Kind == buffmanifest.KindPlain && row.hasDamageShield() {
+		row.Kind = buffmanifest.KindDamageShield
 	}
 	parseBuff(&row)
 	if err := resolveTalent(t, nodes, &row); err != nil {
 		return row, err
 	}
+	warnUnpricedTalents(t, nodes, &row)
 	validateScope(&row)
 
-	// The sim puts every resistance stat into its school's category by itself, so
-	// a row whose manifest category is that school says the same thing twice and
-	// has no exclusivity of its own beyond it.
-	if isSchoolResistanceCategory(row.Category) {
-		row.Category = ""
-	}
-
-	if compiled != buffProtoTypeNames[spec.Proto] && row.Supported {
+	if compiled != buffProtoTypeNames[row.Proto] && row.Supported {
 		row.unsupported("proto field not yet retyped: the sim compiled against %s, the manifest declares %s",
-			compiled, buffProtoTypeNames[spec.Proto])
+			compiled, buffProtoTypeNames[row.Proto])
 	}
 	return row, nil
 }
@@ -157,7 +176,7 @@ func loadBuffSpell(t *spellTables, row *ResolvedBuff) error {
 	}
 	for _, id := range []int32{row.SpellID, row.CastSpellID} {
 		if _, named := t.Names[id]; !named {
-			return fmt.Errorf("spell %d is no spell in this client", id)
+			return fmt.Errorf("spell %d is no spell in the game files", id)
 		}
 	}
 
@@ -213,25 +232,27 @@ func copyStoreFields(to reflect.Value, from reflect.Value) {
 	}
 }
 
-// The manifest's SkipAuras, read as the auras dbcenums names.
-func resolveSkipAuras(row *ResolvedBuff) error {
-	for _, name := range row.SkipAuras {
-		aura, ok := auraByName(name)
-		if !ok {
-			return fmt.Errorf("SkipAuras names %q, which is no aura", name)
+// The names the game files give the row's spells, and the class whose family files them. A spell no
+// class family files takes the manifest's owner, and one that a family files cannot.
+func nameBuff(t *spellTables, row *ResolvedBuff) error {
+	row.Owner = row.BuffSpec.Owner
+	family := row.Spell.ClassFlags.Family
+	if family == 0 {
+		return nil
+	}
+	if row.Owner != proto.Class_ClassUnknown {
+		return fmt.Errorf("names owner %s, but spell %d is filed under class family %d", row.Owner, row.SpellID, family)
+	}
+	for class, classFamily := range core.ClassSpellFamilies {
+		if classFamily == family {
+			row.Owner = class
 		}
-		row.SkipAuraTypes = append(row.SkipAuraTypes, aura)
+	}
+	row.Name = t.Names[row.CastSpellID]
+	if row.CastID != 0 {
+		row.AuraName = t.Names[row.SpellID]
 	}
 	return nil
-}
-
-func auraByName(name string) (dbcenums.EffectAuraType, bool) {
-	for aura := dbcenums.EffectAuraType(0); aura < 1024; aura++ {
-		if named, ok := dbcenums.Named(aura); ok && named == name {
-			return aura, true
-		}
-	}
-	return 0, false
 }
 
 // What the parse makes of the row with the options the generated Meta states:
@@ -243,10 +264,20 @@ func parseBuff(row *ResolvedBuff) {
 	// raid config is one debuff that is simply on the target, which is the
 	// finisher at full combo points; a caster spending fewer of them takes its
 	// own value through a driver.
-	if row.Kind == buffmanifest.KindDebuffStat {
+	if row.Scope == buffmanifest.ScopeDebuff {
 		row.FullComboPoints = slices.ContainsFunc(row.Spell.Effects, func(e spelldata.Effect) bool {
 			return e.PointsPerResource != 0 && e.Average(core.CharacterLevel) == 0
 		})
+	}
+
+	// An aura the row states at 0 beside the buff attaches nothing but an
+	// aura, so the parse leaves it out: the healing-taken row every paladin
+	// aura carries is one.
+	for _, applied := range spelldata.DryRun(row.Spell, row.parseOptions()...).Applied {
+		e := applied.Effect
+		if e.BasePoints == 0 && e.PointsPerResource == 0 && !slices.Contains(row.SkipAuraTypes, e.Aura) {
+			row.SkipAuraTypes = append(row.SkipAuraTypes, e.Aura)
+		}
 	}
 
 	// The constructors parse a buff with no character, as they do a debuff.
@@ -297,55 +328,102 @@ func (row *ResolvedBuff) hasDamageShield() bool {
 }
 
 // The improving talent the manifest pins, which the store keeps as a ladder of
-// its ranks. Its effect has to be a modifier whose class mask reaches the buff's
-// spell; one that modifies misc 1 scales the duration, anything else the value.
+// its ranks. The one spell modifier of it whose class mask reaches the buff's
+// spell is the improvement; one that modifies misc 1 scales the duration,
+// anything else the value. Where none reaches it, a tooltip term naming the
+// buff's spell prices the value by rank: see tooltipTalentDivisor.
 func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
-	if row.Talent == nil {
-		if row.Proto == buffmanifest.ProtoTristate && row.ImpAction == nil {
-			return fmt.Errorf("declared ProtoTristate but the manifest names neither a talent nor an ImpAction")
-		}
+	id := row.Talent
+	if id == 0 {
 		return nil
 	}
-	if row.Proto != buffmanifest.ProtoTristate {
-		return fmt.Errorf("names talent %q but is not ProtoTristate", row.Talent.Name)
-	}
-
-	id := row.Talent.SpellID
 	node := slices.IndexFunc(nodes, func(n traitNode) bool { return n.SpellID == id })
 	if node < 0 {
 		return fmt.Errorf("talent %d is no node of a class tree", id)
 	}
 	talent := t.row(id)
-	if talent.Name != row.Talent.Name {
-		return fmt.Errorf("talent %d is %q, the manifest says %q", id, talent.Name, row.Talent.Name)
+	position := -1
+	for i, e := range talent.Effects {
+		if !isSpellModifier(e) || !e.ClassFlags.Matches(row.Spell.ClassFlags) {
+			continue
+		}
+		if position >= 0 {
+			return fmt.Errorf("talent %d modifies spell %d with effects %d and %d", id, row.SpellID, position+1, i+1)
+		}
+		position = i
 	}
-	position := slices.IndexFunc(talent.Effects, func(e storeEffect) bool { return int32(e.Index) == row.Talent.Effect })
 	if position < 0 {
-		return fmt.Errorf("talent %d has no effect %d", id, row.Talent.Effect)
-	}
-	mod := talent.Effects[position]
-	if mod.Aura != dbcenums.A_ADD_FLAT_MODIFIER && mod.Aura != dbcenums.A_ADD_PCT_MODIFIER {
-		return fmt.Errorf("talent %d effect %d is aura %d, not a spell modifier", id, row.Talent.Effect, mod.Aura)
-	}
-	if !mod.ClassFlags.Matches(t.row(row.SpellID).ClassFlags) {
-		return fmt.Errorf("talent %d effect %d does not reach spell %d", id, row.Talent.Effect, row.SpellID)
+		divisor := tooltipTalentDivisor(t.Descriptions[id], row.SpellID)
+		if divisor == 0 {
+			return fmt.Errorf("talent %d has no spell modifier that reaches spell %d", id, row.SpellID)
+		}
+		row.TalentSpellID = id
+		row.TalentPosition = 1
+		row.TalentDivisor = divisor
+		row.TalentRanks = nodes[node].MaxRanks
+		return nil
 	}
 
 	row.TalentSpellID = id
 	row.TalentPosition = int32(position + 1)
-	row.TalentApplies = row.Talent.Applies
-	if mod.Misc == int32(dbcenums.SPELLMOD_DURATION) {
-		row.TalentApplies = buffmanifest.TalentScalesDuration
-	}
-	if row.TalentApplies != buffmanifest.TalentScalesDuration && len(row.Applied) == 0 && !row.hasDamageShield() {
-		row.warn("talent %q has nothing to scale: the parse attaches no amount of spell %d", row.Talent.Name, row.SpellID)
+	row.TalentScalesDuration = talent.Effects[position].Misc == int32(dbcenums.SPELLMOD_DURATION)
+	if !row.TalentScalesDuration && len(row.Applied) == 0 && !row.hasDamageShield() {
+		row.warn("talent %q has nothing to scale: the parse attaches no amount of spell %d", talent.Name, row.SpellID)
 		return nil
 	}
 	row.TalentRanks = nodes[node].MaxRanks
 	return nil
 }
 
-// Who the client says the aura reaches. The manifest wins - the sim's scopes are
+// A talent tooltip term that scales another spell by the talent's rank: ${$m1/-3*$440667m1} is
+// rank/3 of spell 440667's effect 1, and the fraction applies to every amount the spell attaches.
+// The sign only flips the tooltip's wording; the amount keeps the spell's own sign.
+var tooltipRankFraction = regexp.MustCompile(`\$\{\$m1/-?(\d+)\*\$(\d+)m1\}`)
+
+func tooltipTalentDivisor(description string, spellID int32) int32 {
+	for _, m := range tooltipRankFraction.FindAllStringSubmatch(description, -1) {
+		divisor, _ := strconv.Atoi(m[1])
+		id, _ := strconv.Atoi(m[2])
+		if int32(id) == spellID && divisor > 0 {
+			return int32(divisor)
+		}
+	}
+	return 0
+}
+
+// A passive talent that raises an effect's value on the buff's spell prices an
+// improved state, which a row naming no talent does not offer.
+func warnUnpricedTalents(t *spellTables, nodes []traitNode, row *ResolvedBuff) {
+	if row.Talent != 0 {
+		return
+	}
+	for _, node := range nodes {
+		talent := t.row(node.SpellID)
+		if talent.Attr[dbcenums.ATTR_INDEX_BASE]&dbcenums.ATTR_PASSIVE == 0 {
+			continue
+		}
+		for i, e := range talent.Effects {
+			if isSpellModifier(e) && raisesValue(e.Misc) && e.ClassFlags.Matches(row.Spell.ClassFlags) {
+				row.warn("talent %d %q effect %d raises spell %d (misc %d), and the manifest names no Talent",
+					node.SpellID, talent.Name, i+1, row.SpellID, e.Misc)
+			}
+		}
+	}
+}
+
+func isSpellModifier(e storeEffect) bool {
+	return e.Aura == dbcenums.A_ADD_FLAT_MODIFIER || e.Aura == dbcenums.A_ADD_PCT_MODIFIER
+}
+
+func raisesValue(misc int32) bool {
+	switch dbcenums.SpellModOp(misc) {
+	case dbcenums.SPELLMOD_EFFECT1, dbcenums.SPELLMOD_ALL_EFFECTS, dbcenums.SPELLMOD_EFFECT2, dbcenums.SPELLMOD_EFFECT3:
+		return true
+	}
+	return false
+}
+
+// Who the game files say the aura reaches. The manifest wins - the sim's scopes are
 // a UI grouping as much as a game fact - but a disagreement is worth printing.
 func validateScope(row *ResolvedBuff) {
 	scope, known := clientScope(*row)
@@ -358,8 +436,8 @@ func validateScope(row *ResolvedBuff) {
 	}
 }
 
-// The group the client states a buff reaches: an area aura names it in the
-// effect itself, and an aura the client applies over an area or on one ally
+// The group the game files state a buff reaches: an area aura names it in the
+// effect itself, and an aura the game files apply over an area or on one ally
 // names it in the effect's target.
 func clientScope(row ResolvedBuff) (buffmanifest.BuffScope, bool) {
 	if row.Spell == nil {
@@ -426,14 +504,14 @@ var buffProtoTypeNames = map[buffmanifest.BuffProtoType]string{
 
 // The Go type the compiled proto states for a field, spelled the way the manifest
 // spells it.
-func compiledProtoType(spec buffmanifest.BuffSpec) (string, error) {
-	message, ok := buffScopeMessages[spec.Scope]
+func compiledProtoType(row ResolvedBuff) (string, error) {
+	message, ok := buffScopeMessages[row.Scope]
 	if !ok {
-		return "", fmt.Errorf("unknown scope %s", spec.Scope)
+		return "", fmt.Errorf("unknown scope %s", row.Scope)
 	}
-	field, ok := message.FieldByName(spec.GoField())
+	field, ok := message.FieldByName(row.GoField())
 	if !ok {
-		return "", fmt.Errorf("%s has no field %s", message.Name(), spec.GoField())
+		return "", fmt.Errorf("%s has no field %s", message.Name(), row.GoField())
 	}
 	switch field.Type.Kind() {
 	case reflect.Bool:
@@ -449,20 +527,9 @@ func compiledProtoType(spec buffmanifest.BuffSpec) (string, error) {
 	return field.Type.String(), nil
 }
 
-// Whether a manifest category names a resistance school, which is the category
-// spelldata.SchoolResistances puts that school's stat into anyway.
-func isSchoolResistanceCategory(category string) bool {
-	switch category {
-	case core.ResistanceCategoryArcane, core.ResistanceCategoryFire, core.ResistanceCategoryFrost,
-		core.ResistanceCategoryNature, core.ResistanceCategoryShadow:
-		return true
-	}
-	return false
-}
-
 func isDriverKind(kind buffmanifest.BuffKind) bool {
 	switch kind {
-	case buffmanifest.KindExternalCD, buffmanifest.KindProc, buffmanifest.KindManual, buffmanifest.KindDebuffUptime:
+	case buffmanifest.KindExternalCD, buffmanifest.KindProc, buffmanifest.KindManual:
 		return true
 	}
 	return false
@@ -480,6 +547,7 @@ func lowerFirst(s string) string {
 // already spelled as Go source.
 type buffRow struct {
 	Go          string
+	Builder     string
 	Field       string
 	Label       string
 	SpellID     int32
@@ -522,7 +590,7 @@ func renderBuffOutputs(in *storeInputs) (map[string][]byte, error) {
 	if files[buffsDebuffsTSFile], err = RenderBuffsDebuffsTS(rows); err != nil {
 		return nil, err
 	}
-	files[buffsProtoFile] = buffmanifest.RenderProto(buffmanifest.Manifest)
+	files[buffsProtoFile] = buffmanifest.RenderProto()
 	return files, nil
 }
 
@@ -615,9 +683,12 @@ func buffScopeField(scope buffmanifest.BuffScope) string {
 
 func renderRow(row ResolvedBuff) buffRow {
 	out := buffRow{
-		Go: row.Go, Field: row.Field, Label: buffLabel(row),
-		SpellID: row.SpellID, Kind: row.Kind.String(), Reason: row.Reason, LeftOut: row.LeftOut,
+		Go: row.Go, Builder: buffBuilder(row.Go), Field: row.Field, Label: buffLabel(row),
+		SpellID: row.SpellID, Reason: row.Reason, LeftOut: row.LeftOut,
 		Supported: row.Supported, HasSpell: row.SpellID != 0,
+	}
+	if row.Kind != buffmanifest.KindPlain {
+		out.Kind = row.Kind.String()
 	}
 
 	// A row whose amounts are worth one item each takes the number of them, so
@@ -647,8 +718,17 @@ func renderRow(row ResolvedBuff) buffRow {
 	return out
 }
 
-// The UI label, which is the client's name for the spell unless the manifest
-// overrides it.
+// The constructor's name: the stem with the NewSpellData prefix, and Aura after it unless the stem
+// already ends in Aura.
+func buffBuilder(stem string) string {
+	if strings.HasSuffix(stem, "Aura") {
+		return "NewSpellData" + stem
+	}
+	return "NewSpellData" + stem + "Aura"
+}
+
+// The label the generated Meta and the settings input both show, which is the
+// game files' name for the spell unless the manifest overrides it.
 func buffLabel(row ResolvedBuff) string {
 	if row.Label != "" {
 		return row.Label
@@ -680,7 +760,10 @@ func buffMetaFields(row ResolvedBuff, rendered buffRow) string {
 	if row.TalentRanks > 0 {
 		fmt.Fprintf(&b, "Talent: spelldata.Talent(%d, %d),\n", row.TalentSpellID, row.TalentRanks)
 		fmt.Fprintf(&b, "TalentEffect: %d,\n", row.TalentPosition)
-		if row.TalentApplies == buffmanifest.TalentScalesDuration {
+		if row.TalentDivisor > 0 {
+			fmt.Fprintf(&b, "TalentDivisor: %d,\n", row.TalentDivisor)
+		}
+		if row.TalentScalesDuration {
 			b.WriteString("TalentScalesDuration: true,\n")
 		}
 	}
@@ -750,7 +833,7 @@ func buffApply(row ResolvedBuff) (string, string, bool) {
 		if row.Scope == buffmanifest.ScopeDebuff {
 			target = "target"
 		}
-		body = fmt.Sprintf("core.MakePermanent(%sAura(%s, false, %s))", row.Go, target, points)
+		body = fmt.Sprintf("core.MakePermanent(%s(%s, false, %s))", buffBuilder(row.Go), target, points)
 	}
 	return cond, body, true
 }

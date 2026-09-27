@@ -113,7 +113,7 @@ type Unit struct {
 
 	PseudoStats stats.PseudoStats
 
-	// The client form the unit is in; the class writes it.
+	// The form the unit is in, by the game files' numbering; the class writes it.
 	ShapeshiftForm dbcenums.ShapeshiftForm
 	// Leaves the current form, for a cast the form refuses but no form allows. Nil: none.
 	AutoUnshift func(sim *Simulation)
@@ -128,6 +128,11 @@ type Unit struct {
 	// All spells that can be cast by this unit.
 	Spellbook                 []*Spell
 	spellRegistrationHandlers []SpellRegisteredHandler
+
+	// The spell mods that raise the chance of the unit's proc triggers, which read them when they roll.
+	procChanceMods []*SpellMod
+	// A pet's owner, whose proc chance mods the pet's triggers count with the pet's own.
+	procChanceOwner *Unit
 
 	// Pets owned by this Unit.
 	PetAgents []PetAgent
@@ -223,7 +228,7 @@ func (unit *Unit) getSpellDamageValueImpl(spell *Spell, _ *Unit) float64 {
 }
 
 func (unit *Unit) getAttackPowerValueImpl(spell *Spell, target *Unit) float64 {
-	return unit.GetStat(stats.AttackPower) + target.PseudoStats.BonusAttackPower + spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.RangedAttackPower]
+	return unit.GetStat(stats.AttackPower) + target.PseudoStats.BonusAttackPower + spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.AttackPower]
 }
 
 // Units can be disabled for several reasons:
@@ -353,24 +358,32 @@ func (unit *Unit) AddOnTemporaryStatsChange(otsc OnTemporaryStatsChange) {
 }
 
 func (unit *Unit) AddStatsDynamic(sim *Simulation, bonus stats.Stats) {
+	unit.addStatsDynamic(sim, &bonus)
+}
+
+func (unit *Unit) addStatsDynamic(sim *Simulation, bonus *stats.Stats) {
 	if unit.Env == nil {
 		panic("Environment not constructed.")
 	} else if !unit.Env.IsFinalized() && !unit.Env.MeasuringStats {
 		panic("Not finalized, use AddStats instead!")
 	}
 
-	unit.statsWithoutDeps.AddInplace(&bonus)
+	unit.statsWithoutDeps.AddInplace(bonus)
 
 	if !unit.Env.MeasuringStats || unit.Env.State == Finalized {
 		// Recompute the full total rather than applying dependencies to the
 		// delta: floored stats are only path-independent as floor(newTotal) -
 		// floor(oldTotal), while flooring per-delta would drift on every
 		// aura gain/expire cycle.
-		newStats := unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
-		bonus = newStats.Subtract(unit.stats)
-		unit.stats = newStats
+		old := &unit.stats
+		*bonus = unit.statsWithoutDeps
+		unit.StatDependencyManager.ApplyStatDependenciesInPlace(bonus)
+		bonus.FloorGameStatsInPlace()
+		for k := range bonus {
+			bonus[k], old[k] = bonus[k]-old[k], bonus[k]
+		}
 	} else {
-		unit.stats.AddInplace(&bonus)
+		unit.stats.AddInplace(bonus)
 	}
 
 	if sim.Log != nil {
@@ -381,12 +394,12 @@ func (unit *Unit) AddStatsDynamic(sim *Simulation, bonus stats.Stats) {
 }
 
 func (unit *Unit) AddStatDynamic(sim *Simulation, stat stats.Stat, amount float64) {
-	bonus := stats.Stats{}
+	var bonus stats.Stats
 	bonus[stat] = amount
-	unit.AddStatsDynamic(sim, bonus)
+	unit.addStatsDynamic(sim, &bonus)
 }
 
-func (unit *Unit) processDynamicBonus(sim *Simulation, bonus stats.Stats) {
+func (unit *Unit) processDynamicBonus(sim *Simulation, bonus *stats.Stats) {
 	if bonus[stats.MP5] != 0 || bonus[stats.Intellect] != 0 || bonus[stats.Spirit] != 0 {
 		unit.UpdateManaRegenRates()
 	}
@@ -413,7 +426,7 @@ func (unit *Unit) processDynamicBonus(sim *Simulation, bonus stats.Stats) {
 			continue
 		}
 
-		pet.pendingStatInheritance.AddInplace(&bonus)
+		pet.pendingStatInheritance.AddInplace(bonus)
 
 		if pet.statInheritanceAction.consumed || (pet.statInheritanceAction.NextActionAt == 0) {
 			numHeartbeats := (sim.CurrentTime - unit.Env.heartbeatOffset) / PetUpdateInterval
@@ -427,7 +440,8 @@ func (unit *Unit) EnableDynamicStatDep(sim *Simulation, dep *stats.StatDependenc
 	if unit.StatDependencyManager.EnableDynamicStatDep(dep) {
 		oldStats := unit.stats
 		unit.stats = unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
-		unit.processDynamicBonus(sim, unit.stats.Subtract(oldStats))
+		d := unit.stats.Subtract(oldStats)
+		unit.processDynamicBonus(sim, &d)
 
 		if sim.Log != nil {
 			unit.Log(sim, "Dynamic dep enabled (%s): %s", dep.String(), unit.stats.Subtract(oldStats).FlatString())
@@ -438,7 +452,8 @@ func (unit *Unit) DisableDynamicStatDep(sim *Simulation, dep *stats.StatDependen
 	if unit.StatDependencyManager.DisableDynamicStatDep(dep) {
 		oldStats := unit.stats
 		unit.stats = unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
-		unit.processDynamicBonus(sim, unit.stats.Subtract(oldStats))
+		d := unit.stats.Subtract(oldStats)
+		unit.processDynamicBonus(sim, &d)
 
 		if sim.Log != nil {
 			unit.Log(sim, "Dynamic dep disabled (%s): %s", dep.String(), unit.stats.Subtract(oldStats).FlatString())
@@ -453,7 +468,7 @@ func (unit *Unit) UpdateDynamicStatDep(sim *Simulation, dep *stats.StatDependenc
 		oldStats := unit.stats
 		unit.stats = unit.ApplyStatDependencies(unit.statsWithoutDeps).FloorGameStats()
 		statsChange := unit.stats.Subtract(oldStats)
-		unit.processDynamicBonus(sim, statsChange)
+		unit.processDynamicBonus(sim, &statsChange)
 
 		if sim.Log != nil {
 			unit.Log(sim, "Dynamic dep updated (%s): %s", dep.String(), statsChange.FlatString())
@@ -591,9 +606,11 @@ func (unit *Unit) MultiplyMeleeSpeed(sim *Simulation, amount float64) {
 	unit.PseudoStats.MeleeSpeedMultiplier *= amount
 	unit.updateMeleeAttackSpeed()
 
-	unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
-		pet.dynamicMeleeSpeedInheritance(sim, amount)
-	})
+	if len(unit.DynamicMeleeSpeedPets) > 0 {
+		unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
+			pet.dynamicMeleeSpeedInheritance(sim, amount)
+		})
+	}
 
 	unit.AutoAttacks.UpdateSwingTimers(sim)
 }
@@ -655,9 +672,11 @@ func (unit *Unit) MultiplyAttackSpeed(sim *Simulation, amount float64) {
 	unit.updateAttackSpeed()
 	unit.updateMeleeAndRangedHaste()
 
-	unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
-		pet.dynamicMeleeSpeedInheritance(sim, amount)
-	})
+	if len(unit.DynamicMeleeSpeedPets) > 0 {
+		unit.Env.TriggerDelayedPetInheritance(sim, unit.DynamicMeleeSpeedPets, func(sim *Simulation, pet *Pet) {
+			pet.dynamicMeleeSpeedInheritance(sim, amount)
+		})
+	}
 
 	unit.AutoAttacks.UpdateSwingTimers(sim)
 }

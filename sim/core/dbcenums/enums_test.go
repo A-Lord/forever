@@ -2,7 +2,7 @@ package dbcenums
 
 import "testing"
 
-// The client's numbers, which the generated tables and the store's rows are written against: a
+// The game files' numbers, which the generated tables and the store's rows are written against: a
 // renumbering here would silently re-point every row that names the constant.
 func TestClientValues(t *testing.T) {
 	if E_SCHOOL_DAMAGE != 2 {

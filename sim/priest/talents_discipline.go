@@ -297,10 +297,11 @@ func (priest *Priest) applyPowerInfusion() {
 	// 	return
 	// }
 	//
-	// piAura := buffs.PowerInfusionsAura(&priest.Unit, true, 0)
+	// piAura := buffs.NewSpellDataPowerInfusionsAura(&priest.Unit, true, 0)
 	//
 	// piSpell := priest.RegisterSpell(core.SpellConfig{
 	// 	ActionID:    core.ActionID{SpellID: 10060},
+	// 	ClassFlags:  spellData.PowerInfusion.Highest().ClassFlags,
 	// 	SpellSchool: core.SpellSchoolHoly,
 	// 	Flags:       core.SpellFlagHelpful,
 	// 	ManaCost: core.ManaCostOptions{

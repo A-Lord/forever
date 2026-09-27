@@ -1,7 +1,7 @@
 package warlock
 
 // TODO: To be implemented. spellData.DrainLife holds the six trainer ranks, 689 to 11700.
-// The client also carries 403677 to 403689, the copies the Season of Discovery rune passive
+// The game files also carry 403677 to 403689, the copies the Season of Discovery rune passive
 // Master Channeler (403668) swaps onto the action bar. That is an Engrave grant with no place
 // in Forever, and the generator drops its stand-ins.
 //
@@ -27,7 +27,7 @@ func (warlock *Warlock) registerDrainLife() {
 	// // TODO: cappedDmgBonus/the == 2 check are TBC's 2-rank Soul Siphon (2%/4% per Affliction effect,
 	// // capped at 1.24/1.60 total). spellData.SoulSiphon now ships 3 ranks at 4/8/12% with no cap effect
 	// // in the table, so rank 3 currently falls through to the rank-2 cap of 1.60 rather than a sourced
-	// // rank-3 number - neither the client nor spellData states what the rank-3 cap should be.
+	// // rank-3 number - neither the game files nor spellData states what the rank-3 cap should be.
 	// cappedDmgBonus := 1.24
 	// if warlock.Talents.SoulSiphon == 2 {
 	// 	cappedDmgBonus = 1.60
@@ -43,6 +43,7 @@ func (warlock *Warlock) registerDrainLife() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellDrainLife,
+	// 	ClassFlags:     drainLifeRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(drainLifeRank.Cost())},
 	// 	Cast:     core.CastConfig{DefaultCast: core.Cast{GCD: drainLifeRank.GCD()}},

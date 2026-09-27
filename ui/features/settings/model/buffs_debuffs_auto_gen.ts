@@ -34,27 +34,27 @@ export const DevotionAura = makeBooleanPartyBuffInput({
 });
 
 export const LeaderOfThePack = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(24932),
+	actionId: ActionId.fromSpellId(17007),
 	fieldName: 'leaderOfThePack',
 	label: 'Leader of the Pack',
 });
 
 export const ManaSpringTotem = makeTristatePartyBuffInput({
-	actionId: ActionId.fromSpellId(10494),
+	actionId: ActionId.fromSpellId(10497),
 	impId: ActionId.fromSpellId(16187),
 	fieldName: 'manaSpringTotem',
-	label: 'Mana Spring',
+	label: 'Mana Spring Totem',
 });
 
 export const ManaTideTotems = makeMultistatePartyBuffInput({
-	actionId: ActionId.fromSpellId(17360),
+	actionId: ActionId.fromSpellId(17359),
 	numStates: 5,
 	fieldName: 'manaTideTotems',
 	label: 'Mana Tide Totem',
 });
 
 export const MoonkinAura = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(24907),
+	actionId: ActionId.fromSpellId(24858),
 	fieldName: 'moonkinAura',
 	label: 'Moonkin Aura',
 });
@@ -92,39 +92,62 @@ export const AtieshWarlock = makeMultistatePartyBuffInput({
 });
 
 export const StrengthOfEarthTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(25362),
+	actionId: ActionId.fromSpellId(25361),
 	fieldName: 'strengthOfEarthTotem',
-	label: 'Strength of Earth',
+	label: 'Strength of Earth Totem',
 });
 
 export const GraceOfAirTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(25360),
+	actionId: ActionId.fromSpellId(25359),
 	fieldName: 'graceOfAirTotem',
-	label: 'Grace of Air',
+	label: 'Grace of Air Totem',
 });
 
 export const WindfuryTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(10610),
+	actionId: ActionId.fromSpellId(10614),
 	fieldName: 'windfuryTotem',
 	label: 'Windfury Totem',
 });
 
-// atiesh_druid: no settings input over this field.
+export const AtieshDruid = makeMultistatePartyBuffInput({
+	actionId: ActionId.fromSpellId(28145),
+	numStates: 5,
+	fieldName: 'atieshDruid',
+	label: 'Atiesh - Druid',
+});
 
-// atiesh_priest: no settings input over this field.
+export const AtieshPriest = makeMultistatePartyBuffInput({
+	actionId: ActionId.fromSpellId(28144),
+	numStates: 5,
+	fieldName: 'atieshPriest',
+	label: 'Atiesh - Priest',
+});
 
 // totem_twisting: sim behaviour toggle with no spell source; rendered under Other Inputs.
+
+export const StoneskinTotem = makeTristatePartyBuffInput({
+	actionId: ActionId.fromSpellId(10408),
+	impId: ActionId.fromSpellId(16258),
+	fieldName: 'stoneskinTotem',
+	label: 'Stoneskin Totem',
+});
+
+export const FuriousHowl = makeBooleanPartyBuffInput({
+	actionId: ActionId.fromSpellId(24597),
+	fieldName: 'furiousHowl',
+	label: 'Furious Howl',
+});
+
+export const FlametongueTotem = makeBooleanPartyBuffInput({
+	actionId: ActionId.fromSpellId(16387),
+	fieldName: 'flametongueTotem',
+	label: 'Flametongue Totem',
+});
 
 export const ArcaneBrilliance = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(23028),
 	fieldName: 'arcaneBrilliance',
 	label: 'Arcane Brilliance',
-});
-
-export const GreaterBlessingOfKings = makeBooleanIndividualBuffInput({
-	actionId: ActionId.fromSpellId(25898),
-	fieldName: 'greaterBlessingOfKings',
-	label: 'Greater Blessing of Kings',
 });
 
 export const PrayerOfSpirit = makeBooleanRaidBuffInput({
@@ -151,22 +174,6 @@ export const PrayerOfFortitude = makeBooleanRaidBuffInput({
 	label: 'Prayer of Fortitude',
 });
 
-export const GreaterBlessingOfMight = makeBooleanIndividualBuffInput({
-	actionId: ActionId.fromSpellId(25916),
-	fieldName: 'greaterBlessingOfMight',
-	label: 'Greater Blessing of Might',
-});
-
-export const GreaterBlessingOfWisdom = makeBooleanIndividualBuffInput({
-	actionId: ActionId.fromSpellId(25918),
-	fieldName: 'greaterBlessingOfWisdom',
-	label: 'Greater Blessing of Wisdom',
-});
-
-// greater_blessing_of_salvation: the hand-written input hides itself for tank and healing specs, a role gate no manifest row carries.
-
-// greater_blessing_of_light: the hand-written input shows itself for tank and healing specs only, a role gate no manifest row carries.
-
 export const PrayerOfShadowProtection = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(27683),
 	fieldName: 'prayerOfShadowProtection',
@@ -192,21 +199,21 @@ export const ShadowResistanceAura = makeBooleanRaidBuffInput({
 });
 
 export const FireResistanceTotem = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(10535),
+	actionId: ActionId.fromSpellId(10538),
 	fieldName: 'fireResistanceTotem',
-	label: 'Fire Resistance',
+	label: 'Fire Resistance Totem',
 });
 
 export const FrostResistanceTotem = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(10477),
+	actionId: ActionId.fromSpellId(10479),
 	fieldName: 'frostResistanceTotem',
-	label: 'Frost Resistance',
+	label: 'Frost Resistance Totem',
 });
 
 export const NatureResistanceTotem = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(10599),
+	actionId: ActionId.fromSpellId(10601),
 	fieldName: 'natureResistanceTotem',
-	label: 'Nature Resistance',
+	label: 'Nature Resistance Totem',
 });
 
 export const AspectOfTheWild = makeBooleanRaidBuffInput({
@@ -214,6 +221,28 @@ export const AspectOfTheWild = makeBooleanRaidBuffInput({
 	fieldName: 'aspectOfTheWild',
 	label: 'Aspect of the Wild',
 });
+
+export const GreaterBlessingOfKings = makeBooleanIndividualBuffInput({
+	actionId: ActionId.fromSpellId(25898),
+	fieldName: 'greaterBlessingOfKings',
+	label: 'Greater Blessing of Kings',
+});
+
+export const GreaterBlessingOfMight = makeBooleanIndividualBuffInput({
+	actionId: ActionId.fromSpellId(25916),
+	fieldName: 'greaterBlessingOfMight',
+	label: 'Greater Blessing of Might',
+});
+
+export const GreaterBlessingOfWisdom = makeBooleanIndividualBuffInput({
+	actionId: ActionId.fromSpellId(25918),
+	fieldName: 'greaterBlessingOfWisdom',
+	label: 'Greater Blessing of Wisdom',
+});
+
+// greater_blessing_of_salvation: the hand-written input hides itself for tank and healing specs, a role gate no manifest row carries.
+
+// greater_blessing_of_light: the hand-written input shows itself for tank and healing specs only, a role gate no manifest row carries.
 
 export const Innervates = makeMultistateIndividualBuffInput({
 	actionId: ActionId.fromSpellId(29166),
@@ -236,27 +265,21 @@ export const HuntersMark = makeBooleanDebuffInput({
 });
 
 export const JudgementOfTheCrusader = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(20303),
+	actionId: ActionId.fromSpellId(20308),
 	fieldName: 'judgementOfTheCrusader',
 	label: 'Judgement of the Crusader',
 });
 
 export const JudgementOfLight = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(20346),
+	actionId: ActionId.fromSpellId(20349),
 	fieldName: 'judgementOfLight',
 	label: 'Judgement of Light',
 });
 
 export const JudgementOfWisdom = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(20355),
+	actionId: ActionId.fromSpellId(20357),
 	fieldName: 'judgementOfWisdom',
 	label: 'Judgement of Wisdom',
-});
-
-export const Mangle = makeBooleanDebuffInput({
-	actionId: ActionId.fromSpellId(1238073),
-	fieldName: 'mangle',
-	label: 'Mangle',
 });
 
 export const CurseOfElements = makeBooleanDebuffInput({
@@ -323,6 +346,48 @@ export const ScorpidSting = makeBooleanDebuffInput({
 	actionId: ActionId.fromSpellId(3043),
 	fieldName: 'scorpidSting',
 	label: 'Scorpid Sting',
+});
+
+export const HexOfWeakness = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(19285),
+	fieldName: 'hexOfWeakness',
+	label: 'Hex of Weakness',
+});
+
+export const DemoralizingScreech = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(24579),
+	fieldName: 'demoralizingScreech',
+	label: 'Demoralizing Screech',
+});
+
+export const CurseOfWeakness = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(11708),
+	fieldName: 'curseOfWeakness',
+	label: 'Curse of Weakness',
+});
+
+export const DustCloud = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(1265911),
+	fieldName: 'dustCloud',
+	label: 'Dust Cloud',
+});
+
+export const ArmorShatter = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(16928),
+	fieldName: 'armorShatter',
+	label: 'Armor Shatter',
+});
+
+export const Vindication = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(9452),
+	fieldName: 'vindication',
+	label: 'Vindication',
+});
+
+export const Thunderfury = makeBooleanDebuffInput({
+	actionId: ActionId.fromSpellId(21992),
+	fieldName: 'thunderfury',
+	label: 'Thunderfury',
 });
 
 export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
@@ -464,6 +529,31 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassShaman,
 	},
+	{
+		config: AtieshDruid,
+		stats: [Stat.StatMP5],
+		ownerClass: Class.ClassDruid,
+	},
+	{
+		config: AtieshPriest,
+		stats: [Stat.StatHealingPower],
+		ownerClass: Class.ClassPriest,
+	},
+	{
+		config: StoneskinTotem,
+		stats: [Stat.StatArmor, Stat.StatStamina],
+		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: FuriousHowl,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: FlametongueTotem,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassShaman,
+	},
 ];
 
 export const GENERATED_INDIVIDUAL_BUFFS_CONFIG: RenderableStatOptions[] = [
@@ -514,11 +604,6 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 		config: JudgementOfWisdom,
 		stats: [Stat.StatMP5],
 		ownerClass: Class.ClassPaladin,
-	},
-	{
-		config: Mangle,
-		stats: [],
-		ownerClass: Class.ClassDruid,
 	},
 	{
 		config: CurseOfElements,
@@ -573,5 +658,38 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 		config: ScorpidSting,
 		stats: [Stat.StatStamina, Stat.StatDefenseRating],
 		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: HexOfWeakness,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassPriest,
+	},
+	{
+		config: DemoralizingScreech,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: CurseOfWeakness,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassWarlock,
+	},
+	{
+		config: DustCloud,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: ArmorShatter,
+		stats: [Stat.StatAttackPower],
+	},
+	{
+		config: Vindication,
+		stats: [Stat.StatStamina, Stat.StatDefenseRating],
+		ownerClass: Class.ClassPaladin,
+	},
+	{
+		config: Thunderfury,
+		stats: [Stat.StatNatureDamage, Stat.StatStamina, Stat.StatDefenseRating],
 	},
 ];

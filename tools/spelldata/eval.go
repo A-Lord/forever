@@ -399,7 +399,7 @@ func arguments(n int) string {
 }
 
 // The value the last accessor answered, in the units the text form states elsewhere: a time as the
-// duration it is, a number read back as the float32 the client's columns are.
+// duration it is, a number read back as the float32 the game files' columns are.
 func formatValue(v reflect.Value) (string, error) {
 	switch value := v.Interface().(type) {
 	case time.Duration:

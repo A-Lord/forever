@@ -3,7 +3,7 @@ package warlock
 var soulfireRank = spellData.SoulFire.Highest()
 var soulfireCoeff = soulfireRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Soulfire implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Soulfire implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerSoulfire() {
 	panic("To be implemented")
 
@@ -14,6 +14,7 @@ func (warlock *Warlock) registerSoulfire() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellSoulFire,
+	// 	ClassFlags:     soulfireRank.ClassFlags,
 	// 	MissileSpeed:   float64(soulfireRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(soulfireRank.Cost())},

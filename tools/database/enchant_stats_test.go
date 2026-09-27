@@ -8,15 +8,21 @@ import (
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
-func enchantByName(t *testing.T, effectID int, name string) *proto.UIEnchant {
+func rawEnchantByName(t *testing.T, effectID int, name string) dbc.Enchant {
 	t.Helper()
 	for _, enchant := range dbc.GetDBC().Enchants {
 		if enchant.EffectId == effectID && enchant.Name == name {
-			return enchant.ToProto()
+			return enchant
 		}
 	}
 	t.Fatalf("enchant %d %q is not in the enchant inputs", effectID, name)
-	return nil
+	return dbc.Enchant{}
+}
+
+func enchantByName(t *testing.T, effectID int, name string) *proto.UIEnchant {
+	t.Helper()
+	enchant := rawEnchantByName(t, effectID, name)
+	return enchant.ToProto()
 }
 
 func TestEnchantStats(t *testing.T) {
@@ -35,6 +41,7 @@ func TestEnchantStats(t *testing.T) {
 		{7633, "Presence of Valor", stats.Stats{stats.Stamina: 20, stats.DefenseRating: 7, stats.BlockValue: 15}},
 		{8214, "Enchant Bracer - Superior Deflection", stats.Stats{stats.DefenseRating: 9}},
 		{8719, "Wild Leather Armor Kit", stats.Stats{stats.DefenseRating: 4, stats.Stamina: 10}},
+		{1483, "Lesser Arcane Amalgamation", stats.Stats{stats.Mana: 150}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := stats.FromProtoArray(enchantByName(t, tc.effectID, tc.name).Stats)
@@ -42,6 +49,24 @@ func TestEnchantStats(t *testing.T) {
 				t.Errorf("stats %v, want %v", got.FlatString(), tc.want.FlatString())
 			}
 		})
+	}
+}
+
+// Enchant 1483, applied to a head or legs item by Lesser Arcanum of Rumination (11622), ships: it is
+// live and the global filters keep it.
+func TestLesserArcanumOfRuminationShips(t *testing.T) {
+	withDBCInputs(t)
+
+	raw := rawEnchantByName(t, 1483, "Lesser Arcane Amalgamation")
+	if !raw.IsLive {
+		t.Error("reads not live")
+	}
+	enchant := raw.ToProto()
+	if !KeepEnchant(enchant) {
+		t.Error("the global filters drop it")
+	}
+	if enchant.Type != proto.ItemType_ItemTypeHead || len(enchant.ExtraTypes) != 1 || enchant.ExtraTypes[0] != proto.ItemType_ItemTypeLegs {
+		t.Errorf("type %v, extra types %v; want head, legs", enchant.Type, enchant.ExtraTypes)
 	}
 }
 

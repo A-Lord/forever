@@ -180,21 +180,28 @@ func main() {
 		}
 	}
 
+	consumableRoutes := map[int]*database.ConsumableRouting{}
 	for _, consumable := range consumables {
-		db.MergeConsumable(consumable.ToProto())
-		// The consumable proto has no icon field, so ship it in the icon table instead. Without
-		// this the UI fetches every consumable icon from nether.wowhead.com on each page load.
-		db.AddItemIcon(int32(consumable.Id), strings.ToLower(database.GetIconName(iconsMap, consumable.IconFileDataID)), consumable.Name)
+		routing := database.RouteConsumable(&consumable, instance)
+		consumableRoutes[consumable.Id] = routing
+		if !database.ShipsConsumable(routing) {
+			continue
+		}
+		db.MergeConsumable(database.ShippedConsumable(&consumable, routing, instance))
 	}
 
 	for _, consumable := range database.ConsumableOverrides {
 		db.MergeConsumable(consumable)
+	}
+	if err := database.AddUnparsedStats(db); err != nil {
+		log.Fatalf("failed to add the stats the parse leaves out: %v", err)
 	}
 
 	db.MergeItems(database.ItemOverrides)
 	db.MergeGems(database.GemOverrides)
 	db.MergeEnchants(database.EnchantOverrides)
 	ApplyGlobalFilters(db)
+	database.AddConsumableIcons(db, consumables, instance, iconsMap)
 	leftovers := db.Clone()
 	ApplyNonSimmableFilters(leftovers)
 	leftovers.WriteBinaryAndJson(fmt.Sprintf("%s/leftover_db.bin", dbDir), fmt.Sprintf("%s/leftover_db.json", dbDir))
@@ -202,6 +209,12 @@ func main() {
 
 	database.GenerateItemEffects(instance, db, dropSources)
 	database.GenerateEnchantEffects(instance, db)
+	if err := database.GenerateConsumableRegistrations(instance, db, consumableRoutes); err != nil {
+		log.Fatalf("failed to generate the consumable registrations: %v", err)
+	}
+	if err := database.GenerateConsumablesTSFile(db); err != nil {
+		log.Fatalf("failed to generate the consumables TS file: %v", err)
+	}
 	database.GenerateMissingEffectsFile()
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 
@@ -470,49 +483,12 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 	})
 
 	db.Enchants = core.FilterMap(db.Enchants, func(_ database.EnchantDBKey, enchant *proto.UIEnchant) bool {
-		for _, pattern := range database.DenyListNameRegexes {
-			if pattern.MatchString(enchant.Name) {
-				return false
-			}
-		}
-		if strings.Contains(enchant.Name, "Template") {
-			return false
-		}
-		return !strings.HasPrefix(enchant.Name, "QA") && !strings.HasPrefix(enchant.Name, "Test") && !strings.HasPrefix(enchant.Name, "TEST")
+		return database.KeepEnchant(enchant)
 	})
 
 	db.Consumables = core.FilterMap(db.Consumables, func(_ int32, consumable *proto.Consumable) bool {
-		if slices.Contains(database.ConsumableAllowList, consumable.Id) {
-			return true
-		}
-		if slices.Contains(database.ConsumableDenyList, consumable.Id) {
-			return false
-		}
-		if allZero(consumable.Stats) && consumable.Type != proto.ConsumableType_ConsumableTypePotion {
-			return false
-		}
-
-		for _, pattern := range database.DenyListNameRegexes {
-			if pattern.MatchString(consumable.Name) {
-				return false
-			}
-		}
-
-		if consumable.Type == proto.ConsumableType_ConsumableTypeUnknown || consumable.Type == proto.ConsumableType_ConsumableTypeScroll {
-			return false
-		}
-
-		return !strings.HasPrefix(consumable.Name, "QA") && !strings.HasPrefix(consumable.Name, "Test") && !strings.HasPrefix(consumable.Name, "TEST") && !strings.Contains(consumable.Name, "Flaskataur")
+		return database.KeepConsumable(consumable)
 	})
-}
-
-func allZero(stats []float64) bool {
-	for _, val := range stats {
-		if val != 0 {
-			return false
-		}
-	}
-	return true
 }
 
 // Filters out entities which shouldn't be included in the sim.
@@ -532,6 +508,11 @@ func ApplyNonSimmableFilters(db *database.WowDatabase) {
 	db.Enchants = core.FilterMap(db.Enchants, func(id database.EnchantDBKey, enchant *proto.UIEnchant) bool {
 		return !simmableEnchantFilter(id, enchant)
 	})
+	// db.json ships every consumable and its icon.
+	for id := range db.Consumables {
+		delete(db.ItemIcons, id)
+	}
+	db.Consumables = map[int32]*proto.Consumable{}
 }
 func simmableItemFilter(_ int32, item *proto.UIItem) bool {
 	if _, ok := database.ItemAllowList[item.Id]; ok {

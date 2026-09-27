@@ -16,7 +16,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 	// 	// The generated aura is the five-point finisher, which is what the raid
 	// 	// config applies; a cast that spends fewer combo points needs a driver
 	// 	// that prices the aura from rogue.ComboPoints, and there is none yet.
-	// 	return buffs.ExposeArmorAura(target, true, 0)
+	// 	return buffs.NewSpellDataExposeArmorAura(target, true, 0)
 	// })
 	//
 	// rogue.ExposeArmor = rogue.RegisterSpell(core.SpellConfig{
@@ -27,6 +27,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellExposeArmor,
+	// 	ClassFlags:     exposeArmorRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(exposeArmorRank.Cost()),

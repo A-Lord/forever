@@ -99,7 +99,7 @@
 							]
 						},
 						"consumables": {
-							"guardianElixirId": 9088,
+							"elixirIds": [9088],
 							"goblinSapper": true,
 							"potions": [13442]
 						},
@@ -262,7 +262,6 @@
 		},
 		"debuffs": {
 			"improvedSealOfTheCrusader": 2,
-			"mangle": true,
 			"exposeArmor": 2,
 			"faerieFire": 2,
 			"sunderArmor": true,

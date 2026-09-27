@@ -15,7 +15,7 @@ import { SimApp } from './SimApp';
 
 const modules = import.meta.glob<{ default: SpecDefinition<any> }>('../specs/*/*/spec.{ts,tsx}');
 
-// '/forever/warrior/dps/' -> '../specs/warrior/dps/spec' (then tried as .ts and .tsx — no TBC spec
+// '/forever/warrior/dps/' -> '../specs/warrior/dps/spec' (then tried as .ts and .tsx — no spec
 // carries real JSX today, but the glob accepts one that starts to).
 const specModuleKey = (pathname: string): string => {
 	const base = import.meta.env.BASE_URL || '/';
@@ -43,11 +43,8 @@ void (async () => {
 	sim.runs.setFlush(flushSync);
 	const playerSpec = PlayerSpecs.fromProto(def.spec);
 	const player = new Player(playerSpec, sim);
-	// Opt-in per spec, not inferred. Upstream derives this from isTankSpec ||
-	// isHealingSpec; in TBC exactly four specs enable it -- feralbear, holy and
-	// protection paladin, and protection warrior -- and notably neither restoration
-	// spec does, so the heuristic would hand them a computed healing model the
-	// pre-port UI never gave them.
+	// Opt-in per spec, not inferred from isTankSpec || isHealingSpec: neither restoration
+	// spec enables it, so that heuristic would hand them a computed healing model.
 	if (def.enableHealing) player.enableHealing();
 
 	sim.raid.setPlayer(0, player);

@@ -43,7 +43,7 @@ const expectedForeground = (color: [number, number, number]) => {
 };
 
 describe('theme.css class foregrounds', () => {
-	it('finds exactly nine class colour/foreground pairs, one per TBC class', () => {
+	it('finds exactly nine class colour/foreground pairs, one per class', () => {
 		expect(classColors.size).toBe(9);
 		expect(foregrounds.size).toBe(9);
 	});
