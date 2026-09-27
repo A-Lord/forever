@@ -11,6 +11,7 @@ import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
 import * as Presets from './presets';
+import { MainHandPoison, OffHandPoison } from './inputs';
 
 export default defineSpec<Spec.SpecRogue>({
 	spec: Spec.SpecRogue,
@@ -116,7 +117,10 @@ export default defineSpec<Spec.SpecRogue>({
 		inputs: [],
 	},
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [],
+	playerIconInputs: [
+		MainHandPoison(),
+		OffHandPoison()
+	],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatSpellHitRating],
 	excludeBuffDebuffInputs: [],

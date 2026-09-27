@@ -13,10 +13,11 @@ func (rogue *Rogue) registerGarrote() {
 	comboPointGen := garroteRank.EnergizeEffect().Average(core.CharacterLevel)
 
 	config := spelldata.SpellConfig(&rogue.Unit, garroteRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.Flags |= SpellFlagBuilder
 
 	config.Dot = spelldata.DotConfig(garroteRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcome(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcomeHitRolled(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

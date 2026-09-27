@@ -11,6 +11,7 @@ func (rogue *Rogue) registerBackstabSpell() {
 	backstabBaseDamage := backstabRank.DamageEffect().Average(core.CharacterLevel)
 	comboPointGen := backstabRank.EnergizeEffect().Average(core.CharacterLevel)
 	config := spelldata.SpellConfig(&rogue.Unit, backstabRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.Flags |= SpellFlagBuilder
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
@@ -21,6 +22,10 @@ func (rogue *Rogue) registerBackstabSpell() {
 
 		if result.Landed() {
 			rogue.AddComboPoints(sim, int32(comboPointGen), spell.ComboPointMetrics())
+			chanceForBonus := spellData.PuncturingWounds.EffectAt(2).FractionAt(rogue.Talents.PuncturingWounds)
+			if sim.Proc(chanceForBonus, "Puncturing Wounds") {
+				rogue.AddComboPoints(sim, 1, rogue.puncturingWoundsComboPointMetrics)
+			}
 		} else {
 			spell.IssueRefund(sim)
 		}

@@ -11,10 +11,11 @@ var lastCastApScaling = 0.0
 func (rogue *Rogue) registerRupture() {
 	tick := ruptureRank.PeriodicEffect()
 	config := spelldata.SpellConfig(&rogue.Unit, ruptureRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
 
 	config.Dot = spelldata.DotConfig(ruptureRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*lastCastApScaling, ruptureRank.TickOutcome(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*lastCastApScaling, ruptureRank.TickOutcomeHitRolled(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

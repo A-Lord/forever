@@ -55,9 +55,9 @@ type Rogue struct {
 	Rupture      *core.Spell
 	SliceAndDice *core.Spell
 
-	deadlyPoisonPPHM  *core.DynamicProcManager
-	woundPoisonPPHM   *core.DynamicProcManager
-	instantPoisonPPHM *core.DynamicProcManager
+	instantPoisonProcManager *core.DynamicProcManager
+	deadlyPoisonProcManager  *core.DynamicProcManager
+	additivePoisonChance     float64
 
 	AdrenalineRushAura   *core.Aura
 	BladeFlurryAura      *core.Aura
@@ -69,9 +69,10 @@ type Rogue struct {
 
 	WoundPoisonDebuffAuras core.AuraArray
 
-	ruthlessnessMetrics      *core.ResourceMetrics
-	ruthlessnessChance       float64
-	relentlessStrikesMetrics *core.ResourceMetrics
+	ruthlessnessMetrics               *core.ResourceMetrics
+	ruthlessnessChance                float64
+	relentlessStrikesMetrics          *core.ResourceMetrics
+	puncturingWoundsComboPointMetrics *core.ResourceMetrics
 
 	HasPvpEnergy              bool
 	DeathmantleBonus          float64
@@ -124,14 +125,16 @@ func (rogue *Rogue) Initialize() {
 	rogue.registerGarrote()
 	rogue.registerDeadlyPoisonSpell()
 	rogue.registerInstantPoisonSpell()
-	rogue.registerWoundPoisonSpell()
 	rogue.registerRupture()
 	rogue.registerSinisterStrikeSpell()
 	rogue.registerSliceAndDice()
 	rogue.registerVanishSpell()
 	rogue.registerStealthAura()
 
-	rogue.ruthlessnessMetrics = rogue.NewComboPointMetrics(core.ActionID{SpellID: 14161})
+	ruthRank := spellData.Ruthlessness.Rank(rogue.Talents.Ruthlessness)
+	if ruthRank != nil {
+		rogue.ruthlessnessMetrics = rogue.NewComboPointMetrics(core.ActionID{SpellID: ruthRank.ID})
+	}
 	// Forever states a flat SpellAuraOptions.ProcChance of 100 on the talent spell and puts the
 	// real per-rank chance on the effect, so ProcChanceAt would read 100% at every rank.
 	rogue.ruthlessnessChance = spellData.Ruthlessness.FractionAt(rogue.Talents.Ruthlessness)
@@ -175,7 +178,7 @@ func NewRogue(character *core.Character, options *proto.Player, talents string) 
 	// TODO: Forever expands Vigor from 1 rank to 2; the per-rank max-energy bonus is
 	// unconfirmed, so it is pinned to 0 until the Forever tooltip is known.
 	if rogue.Talents.Vigor > 0 {
-		maxEnergy += 0
+		maxEnergy += (5.0 * float64(rogue.Talents.Vigor))
 	}
 	if rogue.HasPvpEnergy {
 		maxEnergy += 10
@@ -198,7 +201,7 @@ func NewRogue(character *core.Character, options *proto.Player, talents string) 
 	rogue.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	rogue.AddStatDependency(stats.Agility, stats.AttackPower, 1)
 	rogue.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	rogue.AddStatDependency(stats.Agility, stats.DodgeRating, 1/20*core.DodgeRatingPerDodgePercent)
+	rogue.AddStatDependency(stats.Agility, stats.DodgeRating, 0.05*core.DodgeRatingPerDodgePercent)
 
 	return rogue
 }
@@ -233,6 +236,10 @@ func (rogue *Rogue) HasThrown() bool {
 // Check if the rogue is considered in "stealth" for the purpose of casting abilities
 func (rogue *Rogue) IsStealthed() bool {
 	return rogue.StealthAura.IsActive()
+}
+
+func (rogue *Rogue) FinisherExtraCastCondition(sim *core.Simulation, target *core.Unit) bool {
+	return rogue.ComboPoints() > 0
 }
 
 func RegisterRogue() {

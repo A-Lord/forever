@@ -17,6 +17,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 	})
 
 	config := spelldata.SpellConfig(&rogue.Unit, exposeArmorRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		if rogue.CanApplyExposeArmorAura(target) {
 			rogue.BreakStealth(sim)

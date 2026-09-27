@@ -67,8 +67,15 @@ message RogueTalents {
 
 // END GENERATED
 
-message RogueOptions {
+enum RoguePoison {
+	None = 0;
+	InstantPoison = 1;
+	DeadlyPoison = 2;
+}
 
+message RogueOptions {
+	RoguePoison main_hand_poison = 1;
+	RoguePoison off_hand_poison = 2;
 }
 
 message Rogue {

@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec } from '@generated/proto/common';
-import { Rogue_Options as RogueOptions } from '@generated/proto/rogue';
+import { Rogue_Options as RogueOptions, RoguePoison } from '@generated/proto/rogue';
 
 import SinisterAPL from './apls/default.apl.json';
 
@@ -12,7 +12,10 @@ import SinisterAPL from './apls/default.apl.json';
 export const SINSITER_APL = PresetUtils.makePresetAPLRotation('Default', SinisterAPL);
 
 export const DefaultOptions = RogueOptions.create({
-	classOptions: {},
+	classOptions: {
+		mainHandPoison: RoguePoison.InstantPoison,
+		offHandPoison: RoguePoison.DeadlyPoison
+	},
 });
 
 export const DefaultConsumables = ConsumesSpec.create({

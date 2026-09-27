@@ -103,8 +103,8 @@ export class ActionId {
 					name += ' (Off Hand)';
 				} else if (this.tag == 11815) {
 					name += ' (Hand of Justice)';
-				} else if (this.tag == 12281) {
-					name += ' (Sword Specialization)';
+				} else if (this.tag == 13960) {
+					name += ' (Hack and Slash)';
 				} else if (this.tag == 25584) {
 					name += ' (Windfury)';
 				} else if (this.tag == 20182) {
@@ -589,6 +589,15 @@ export class ActionId {
 							name += ` (${school})`;
 						}
 					});
+				}
+				break;
+			case 'Hack and Slash':
+				if (tag == 1) {
+					name += ' (Axe/Sword)';
+				} else if (tag == 2) {
+					name += ' (Fist/Dagger)';
+				} else if (tag == 3) {
+					name += ' (Mace)';
 				}
 				break;
 			default:

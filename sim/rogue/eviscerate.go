@@ -12,6 +12,7 @@ func (rogue *Rogue) registerEviscerate() {
 	eviscerateDamagePerPoint := float64(eviscerateRank.DamageEffect().PointsPerResource)
 	eviscerateApScalingPerPoint := 0.04 // Estimated from in-game tests.
 	config := spelldata.SpellConfig(&rogue.Unit, eviscerateRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)

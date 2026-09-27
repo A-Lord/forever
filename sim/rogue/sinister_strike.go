@@ -11,6 +11,7 @@ func (rogue *Rogue) registerSinisterStrikeSpell() {
 	sinisterStrikeBaseDamage := sinisterStrikeRank.DamageEffect().Average(core.CharacterLevel)
 	comboPointGen := int32(sinisterStrikeRank.EnergizeEffect().Average(core.CharacterLevel))
 	config := spelldata.SpellConfig(&rogue.Unit, sinisterStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.Flags |= SpellFlagBuilder
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)

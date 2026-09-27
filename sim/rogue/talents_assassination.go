@@ -1,6 +1,8 @@
 package rogue
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -14,7 +16,7 @@ func (rogue *Rogue) registerAssassinationTalents() {
 
 	// Tier 2
 	// Ruthlessness modeled in rogue.go ApplyFinisher
-	rogue.registerMalice()
+	rogue.registerMurder()
 	// Improved Slice modeled in Slice and Dice directly
 
 	// Tier 3
@@ -207,7 +209,7 @@ func (rogue *Rogue) registerSealFate() {
 	// })
 }
 
-var mutilateRank = spellData.Mutilate.Highest()
+var mutilateCastRank = spellData.Mutilate.Highest()
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
 // brought back.
@@ -216,13 +218,27 @@ func (rogue *Rogue) registerMutilate() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.Mutilate {
-	// 	return
-	// }
-	//
-	// rogue.MutilateMH = rogue.newMutilateHitSpell(true)
-	// rogue.MutilateOH = rogue.newMutilateHitSpell(false)
+	rogue.MutilateMH = rogue.newMutilateHitSpell(true)
+	rogue.MutilateOH = rogue.newMutilateHitSpell(false)
+
+	// TODO: Verify if Mutilate (Cast) can proc MH poisons itself (detected as a double MH poison proc)
+	config := spelldata.SpellConfig(&rogue.Unit, mutilateCastRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	pointGen := mutilateCastRank.EnergizeEffect().Average(core.CharacterLevel)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit) // Miss/Dodge/Parry/Hit
+		if result.Landed() {
+			rogue.AddComboPoints(sim, int32(pointGen), spell.ComboPointMetrics())
+			rogue.MutilateOH.Cast(sim, target)
+			rogue.MutilateMH.Cast(sim, target)
+		} else {
+			spell.IssueRefund(sim)
+		}
+		spell.DealOutcome(sim, result)
+	}
+
+	rogue.Mutilate = rogue.RegisterSpell(config)
 	//
 	// rogue.Mutilate = rogue.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: MutilateSpellID, Tag: 0},
@@ -266,50 +282,65 @@ func (rogue *Rogue) registerMutilate() {
 	// })
 }
 
+var mutilateHitRank = spellData.MutilateTriggered.Highest()
+
 func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
-	actionID := core.ActionID{SpellID: MutilateSpellID, Tag: 1}
-	procMask := core.ProcMaskMeleeMHSpecial
-	if !isMH {
-		actionID = core.ActionID{SpellID: MutilateSpellID, Tag: 2}
-		procMask = core.ProcMaskMeleeOHSpecial
+	mutilateHitBaseDamage := mutilateHitRank.DamageEffect().Average(core.CharacterLevel)
+	spellOpt := core.Ternary(isMH, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Melee(core.ProcMaskMeleeOHSpecial))
+	config := spelldata.SpellConfig(&rogue.Unit, mutilateHitRank, spellOpt, spelldata.Proc())
+	if isMH {
+		config.Tag = 1
+	} else {
+		config.Tag = 2
 	}
-	mutBaseDamage := 101.0
+	config.Flags |= SpellFlagBuilder
 
-	return rogue.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       procMask,
-		Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder,
-		ClassSpellMask: RogueSpellMutilateHit,
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := mutilateHitBaseDamage
+		if isMH {
+			baseDamage += rogue.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		} else {
+			baseDamage += rogue.OHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		}
 
-		DamageMultiplier:         1,
-		DamageMultiplierAdditive: 1,
-		ThreatMultiplier:         1,
+		oldMultiplier := spell.DamageMultiplier
+		// TODO: Detect any poison on the target, not just rogue poisons
+		if rogue.DeadlyPoison.Dot(target).IsActive() || rogue.WoundPoisonDebuffAuras.Get(target).IsActive() {
+			spell.DamageMultiplier *= 1.2
+		}
 
-		BonusCoefficient: 1,
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialBlockAndCrit)
+		spell.DamageMultiplier = oldMultiplier
+	}
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := mutBaseDamage
-			if isMH {
-				baseDamage += spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
-			} else {
-				baseDamage += spell.Unit.OHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
-			}
-
-			oldMultiplier := spell.DamageMultiplier
-			if rogue.DeadlyPoison.Dot(target).IsActive() || rogue.WoundPoisonDebuffAuras.Get(target).IsActive() {
-				spell.DamageMultiplier += 0.5
-			}
-
-			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialBlockAndCrit)
-			spell.DamageMultiplier = oldMultiplier
-		},
-	})
+	return rogue.RegisterSpell(config)
 }
+
+var venomRank = spellData.Venom.Highest()
 
 func (rogue *Rogue) registerVenom() {
 	if !rogue.Talents.Venom {
 		return
 	}
+
+	config := spelldata.SpellConfig(&rogue.Unit, venomRank, spelldata.Melee(core.ProcMaskEmpty))
+	venomAura := rogue.RegisterAura(spelldata.AuraConfig(venomRank))
+	spelldata.ParseEffects(&rogue.Character, venomAura, venomRank)
+	venomAura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		rogue.additivePoisonChance += 0.1
+		rogue.RefreshPoisonProcChance()
+	})
+	venomAura.ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
+		rogue.additivePoisonChance -= 0.1
+		rogue.RefreshPoisonProcChance()
+	})
+	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		venomAura.Duration = venomRank.Duration() + time.Second*3*time.Duration(rogue.ComboPoints())
+		rogue.ApplyFinisher(sim, spell)
+		venomAura.Activate(sim)
+	}
+
+	rogue.RegisterSpell(config)
 }

@@ -4,22 +4,25 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 var sliceAndDiceRank = spellData.SliceAndDice.Highest()
 
 func (rogue *Rogue) registerSliceAndDice() {
-	config := spelldata.SpellConfig(&rogue.Unit, sliceAndDiceRank)
-	durModifier := 1.0 + 0.15*float32(rogue.Talents.ImprovedSliceAndDice)
+	config := spelldata.SpellConfig(&rogue.Unit, sliceAndDiceRank, spelldata.Melee(core.ProcMaskEmpty))
+	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
+	talentModifier := spellData.ImprovedSliceAndDice.MultiplierAt(rogue.Talents.ImprovedSliceAndDice)
 
 	sndAura := rogue.RegisterAura(spelldata.AuraConfig(sliceAndDiceRank)).
-		AttachMultiplyMeleeSpeed(sliceAndDiceRank.FirstAura(dbcenums.A_MOD_MELEE_HASTE_3).BasePoints)
+		AttachMultiplyMeleeSpeed(1 + spellData.SliceAndDice.EffectAt(2).FractionAt(2))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDuration := sliceAndDiceRank.Duration().Seconds()
+		pointDuration := 3.0 * float64(rogue.ComboPoints())
+		fullDuration := (baseDuration + pointDuration) * talentModifier
+		sndAura.Duration = time.Duration(fullDuration*1000) * time.Millisecond
 		rogue.ApplyFinisher(sim, spell)
-		sndAura.Duration = (sliceAndDiceRank.Duration() + (time.Second * 3 * time.Duration(rogue.ComboPoints()))) * time.Duration(durModifier)
 		sndAura.Activate(sim)
 	}
 

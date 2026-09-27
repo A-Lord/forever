@@ -1,5 +1,7 @@
 package rogue
 
+import "github.com/wowsims/forever/sim/core/spelldata"
+
 // Package-level state the commented-out implementations used:
 // var hemorrhageRank = spellData.Hemorrhage.ByID(26864)
 
@@ -50,6 +52,9 @@ func (rogue *Rogue) registerOpportunity() {
 	if rogue.Talents.Opportunity == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.Opportunity.Rank(rogue.Talents.Opportunity))
 
 	// The TBC implementation, kept for the port:
 	// if rogue.Talents.Opportunity == 0 {
