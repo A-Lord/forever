@@ -297,7 +297,6 @@ var DenyListNameRegexes = []*regexp.Regexp{
 	regexp.MustCompile(`TEST`),
 	regexp.MustCompile(`Test`),
 	regexp.MustCompile(`Enchant Template`),
-	regexp.MustCompile(`Arcane Amalgamation`),
 	regexp.MustCompile(`Deleted`),
 	regexp.MustCompile(`DELETED`),
 	regexp.MustCompile(`zOLD`),

@@ -35,6 +35,7 @@ func (fw *FakeRageWarrior) GetCharacter() *Character { return &fw.Character }
 
 func (fw *FakeRageWarrior) Initialize() {
 	fw.registerFakeThreatSpell()
+	fw.registerFakeGCDSpell()
 	fw.registerFakeCategorySpells()
 	fw.registerFakeRend()
 }
@@ -226,5 +227,84 @@ func TestOffHandRageMultiplier(t *testing.T) {
 	mhRage := rageFromAutoAttack(sim, fw, fw.AutoAttacks.MHAuto(), OutcomeHit, swingDamage)
 	if !WithinToleranceFloat64(8.996, mhRage, 0.01) {
 		t.Fatalf("Incorrect Rage generated on MH hit: Expected: %0.3f, Actual: %0.3f", 8.996, mhRage)
+	}
+}
+
+func newPowerBarCharacter() *Character {
+	character := NewCharacter(&Party{}, 0, &proto.Player{
+		Name:      "Power Bar Tester",
+		Class:     proto.Class_ClassWarrior,
+		Race:      proto.Race_RaceHuman,
+		Spec:      &proto.Player_ProtectionWarrior{ProtectionWarrior: &proto.ProtectionWarrior{}},
+		Equipment: &proto.EquipmentSpec{},
+	})
+	return &character
+}
+
+func TestSetMaximumRage(t *testing.T) {
+	sim := SetupFakeRageSim()
+	fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+	metrics := fw.NewRageMetrics(ActionID{SpellID: 1310236})
+
+	fw.SetMaximumRage(sim, 130, metrics)
+	if fw.MaximumRage() != 130 || fw.CurrentRage() != 0 {
+		t.Fatalf("raised to 130: max %v with %v rage, want 130 with none granted", fw.MaximumRage(), fw.CurrentRage())
+	}
+
+	fw.AddRage(sim, 120, metrics)
+	if fw.CurrentRage() != 120 {
+		t.Fatalf("rage under the raised maximum: %v, want 120", fw.CurrentRage())
+	}
+
+	fw.SetMaximumRage(sim, 100, metrics)
+	if fw.MaximumRage() != 100 || fw.CurrentRage() != 100 {
+		t.Fatalf("lowered to 100: max %v with %v rage, want 100 with 100", fw.MaximumRage(), fw.CurrentRage())
+	}
+	if metrics.ActualGain != 100 || metrics.Events != 2 {
+		t.Errorf("metrics after gaining 120 and losing 20: actual gain %v over %d events, want 100 over 2",
+			metrics.ActualGain, metrics.Events)
+	}
+}
+
+func TestSetMaximumRageClampsTheStartingRage(t *testing.T) {
+	character := newPowerBarCharacter()
+	character.EnableRageBar(RageBarOptions{MaxRage: 100, StartingRage: 120, BaseRageMultiplier: 1})
+
+	steps := []struct {
+		maxRage float64
+		want    float64
+	}{
+		{100, 100},
+		{130, 120},
+		{110, 110},
+	}
+	for _, step := range steps {
+		character.SetMaximumRage(nil, step.maxRage, nil)
+		character.rageBar.reset(nil)
+		if got := character.CurrentRage(); got != step.want {
+			t.Errorf("starting rage 120 under a maximum of %v: %v, want %v", step.maxRage, got, step.want)
+		}
+	}
+}
+
+func TestSetMaximumEnergy(t *testing.T) {
+	character := newPowerBarCharacter()
+	character.EnableEnergyBar(EnergyBarOptions{MaxEnergy: 100, MaxComboPoints: 5, HasNoRegen: true})
+	metrics := character.NewEnergyMetrics(ActionID{SpellID: 14983})
+	sim := &Simulation{}
+
+	character.energyBar.currentEnergy = 100
+	character.SetMaximumEnergy(sim, 110, metrics)
+	if character.MaximumEnergy() != 110 || character.CurrentEnergy() != 100 {
+		t.Fatalf("raised to 110: max %v with %v energy, want 110 with 100", character.MaximumEnergy(), character.CurrentEnergy())
+	}
+
+	character.energyBar.currentEnergy = 110
+	character.SetMaximumEnergy(sim, 100, metrics)
+	if character.MaximumEnergy() != 100 || character.CurrentEnergy() != 100 {
+		t.Fatalf("lowered to 100: max %v with %v energy, want 100 with 100", character.MaximumEnergy(), character.CurrentEnergy())
+	}
+	if metrics.ActualGain != -10 || metrics.Events != 1 {
+		t.Errorf("metrics after losing 10: actual gain %v over %d events, want -10 over 1", metrics.ActualGain, metrics.Events)
 	}
 }

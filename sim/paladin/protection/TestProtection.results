@@ -72,7 +72,7 @@ dps_results: {
  key: "TestProtection-AllItems-Beastmaster'sBoots-22061"
  value: {
   dps: 231.90995
-  tps: 245.7467
+  tps: 245.74669
   dtps: 5285.73836
  }
 }
@@ -705,14 +705,14 @@ dps_results: {
  key: "TestProtection-Settings-Human-default-Protection-default-FullBuffs-5.0yards-LongMultiTarget"
  value: {
   dps: 974.36002
-  tps: 1151.74542
+  tps: 1151.74541
   dtps: 100417.46461
  }
 }
 dps_results: {
  key: "TestProtection-Settings-Human-default-Protection-default-FullBuffs-5.0yards-LongSingleTarget"
  value: {
-  dps: 257.73628
+  dps: 257.73627
   tps: 272.30169
   dtps: 5038.80547
  }
@@ -752,7 +752,7 @@ dps_results: {
 dps_results: {
  key: "TestProtection-Settings-Undead-default-Protection-default-FullBuffs-5.0yards-LongMultiTarget"
  value: {
-  dps: 1013.77077
+  dps: 1013.77076
   tps: 1190.68764
   dtps: 100599.86462
  }

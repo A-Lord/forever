@@ -132,6 +132,9 @@ type Unit struct {
 	spellMods []*SpellMod
 	equipMods []*SpellMod
 
+	// The spell mods that raise the chance of the unit's proc triggers, which read them when they roll.
+	procChanceMods []*SpellMod
+
 	// Pets owned by this Unit.
 	PetAgents []PetAgent
 

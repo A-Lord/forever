@@ -15,6 +15,7 @@ func (warlock *Warlock) registerIncinerate() {
 	// 	Flags:          core.SpellFlagAPL,
 	// 	MissileSpeed:   float64(incinerateRank.Speed),
 	// 	ClassSpellMask: WarlockSpellIncinerate,
+	// 	ClassFlags:     incinerateRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(incinerateRank.Cost())},
 	// 	Cast: core.CastConfig{

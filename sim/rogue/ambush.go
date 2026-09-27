@@ -18,6 +18,7 @@ func (rogue *Rogue) registerAmbushSpell() {
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellAmbush,
+	// 	ClassFlags:     ambushRank.ClassFlags,
 	// 	MaxRange:       core.MaxMeleeRange,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{

@@ -19,15 +19,22 @@ func (unit *Unit) AddMobTypeBonusStats(bonus stats.Stats, mobTypes ...proto.MobT
 	}
 }
 
-// Multiplies the damage the unit deals to every defender of the mob types, and the crit damage too
-// where crit is set; 1/mult takes the multiplier back off.
-func (unit *Unit) MultiplyDamageVersus(mult float64, crit bool, mobTypes ...proto.MobType) {
+// Multiplies the damage the unit deals to every defender of the mob types; 1/mult takes the
+// multiplier back off.
+func (unit *Unit) MultiplyDamageVersus(mult float64, mobTypes ...proto.MobType) {
 	for _, at := range unit.AttackTables {
 		if slices.Contains(mobTypes, at.Defender.MobType) {
 			at.DamageDealtMultiplier *= mult
-			if crit {
-				at.CritMultiplier *= mult
-			}
+		}
+	}
+}
+
+// Multiplies the crit damage the unit deals to every defender of the mob types on top of the damage
+// multiplier; 1/mult takes it back off.
+func (unit *Unit) MultiplyCritDamageVersus(mult float64, mobTypes ...proto.MobType) {
+	for _, at := range unit.AttackTables {
+		if slices.Contains(mobTypes, at.Defender.MobType) {
+			at.CritMultiplier *= mult
 		}
 	}
 }

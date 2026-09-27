@@ -24,6 +24,7 @@ func (warlock *Warlock) registerCorruption() *core.Spell {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCorruption,
+	// 	ClassFlags:     corruptionRank.ClassFlags,
 	//
 	// 	DamageMultiplier: 1,
 	// 	ManaCost:         core.ManaCostOptions{FlatCost: int32(corruptionRank.Cost())},

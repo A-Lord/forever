@@ -275,7 +275,8 @@ func applySkyborneSharedRacials(character *Character) {
 
 func applyCreatureTypeSlaying(character *Character, mobType proto.MobType) {
 	character.Env.RegisterPostFinalizeEffect(func() {
-		character.MultiplyDamageVersus(1.05, true, mobType)
+		character.MultiplyDamageVersus(1.05, mobType)
+		character.MultiplyCritDamageVersus(1.05, mobType)
 	})
 }
 

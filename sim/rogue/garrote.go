@@ -18,6 +18,7 @@ func (rogue *Rogue) registerGarrote() {
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellGarrote,
+	// 	ClassFlags:     garroteRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost:   int32(garroteRank.Cost()),

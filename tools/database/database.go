@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools"
@@ -27,6 +28,20 @@ func EnchantToDBKey(enchant *proto.UIEnchant) EnchantDBKey {
 		SpellID:    enchant.SpellId,
 		EffectName: enchant.Name,
 	}
+}
+
+// Whether an enchant in db.json survives the global filters: a deny-list, template, test or QA
+// name drops it.
+func KeepEnchant(enchant *proto.UIEnchant) bool {
+	for _, pattern := range DenyListNameRegexes {
+		if pattern.MatchString(enchant.Name) {
+			return false
+		}
+	}
+	if strings.Contains(enchant.Name, "Template") {
+		return false
+	}
+	return !strings.HasPrefix(enchant.Name, "QA") && !strings.HasPrefix(enchant.Name, "Test") && !strings.HasPrefix(enchant.Name, "TEST")
 }
 
 type WowDatabase struct {

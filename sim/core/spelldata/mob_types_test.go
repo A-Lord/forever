@@ -1,6 +1,7 @@
 package spelldata
 
 import (
+	"math"
 	"slices"
 	"testing"
 
@@ -175,5 +176,97 @@ func TestADamageVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
 	ParseStatic(static, row)
 	if got := table.DamageDealtMultiplier; got != 1.01 {
 		t.Errorf("damage against Undead from the static path: %v, want 1.01", got)
+	}
+}
+
+// A_MOD_CRIT_PERCENT_VERSUS multiplies the crit damage dealt to the masked mob types on top of the
+// damage, which effect 1 of Humanoid Slaying 19153 raises by the same 3%, while its aura is up.
+func TestACritDamageVersusRowMultipliesTheCritOnTheAttackTables(t *testing.T) {
+	withGeneratedStore(t)
+
+	static := parseWarrior()
+	static.Env = &core.Environment{State: core.Finalized}
+	humanoid := core.NewAttackTable(&static.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeHumanoid})
+	undead := core.NewAttackTable(&static.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
+	static.AttackTables = []*core.AttackTable{humanoid, undead}
+
+	parsed := ParseStatic(static, MustFind(19153))
+	if kinds := appliedKinds(parsed); !slices.Equal(kinds, []string{"damage-dealt-versus", "crit-damage-versus"}) {
+		t.Fatalf("Humanoid Slaying attached %v, want the damage and the crit damage against Humanoids", kinds)
+	}
+	if got := humanoid.DamageDealtMultiplier; math.Abs(got-1.03) > 1e-9 {
+		t.Errorf("damage against Humanoids: %v, want 1.03", got)
+	}
+	if got := humanoid.CritMultiplier; math.Abs(got-1.03) > 1e-9 {
+		t.Errorf("crit multiplier against Humanoids: %v, want 1.03", got)
+	}
+	if undead.DamageDealtMultiplier != 1 || undead.CritMultiplier != 1 {
+		t.Errorf("against Undead: damage %v, crit %v, want both untouched", undead.DamageDealtMultiplier, undead.CritMultiplier)
+	}
+
+	sim := &core.Simulation{}
+	character := parseWarrior()
+	table := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeHumanoid})
+	character.AttackTables = []*core.AttackTable{table}
+	row := oneEffectRow(dbcenums.A_MOD_CRIT_PERCENT_VERSUS, 64, 3)
+	aura := character.RegisterAura(AuraConfig(row))
+	ParseEffects(character, aura, row)
+
+	aura.Activate(sim)
+	if got := table.CritMultiplier; math.Abs(got-1.03) > 1e-9 {
+		t.Errorf("crit multiplier against Humanoids while up: %v, want 1.03", got)
+	}
+	if got := table.DamageDealtMultiplier; got != 1 {
+		t.Errorf("damage against Humanoids while up: %v, want 1", got)
+	}
+	aura.Deactivate(sim)
+	if got := table.CritMultiplier; math.Abs(got-1) > 1e-9 {
+		t.Errorf("crit multiplier against Humanoids after expiry: %v, want 1", got)
+	}
+}
+
+// A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT is the share of every defender's armor the unit's attacks
+// ignore: Serrated Blades 14171 at 3 of 3 ranks ignores 9%, once the attack tables exist.
+func TestAnArmorPenetrationRowIgnoresAShareOfTheArmor(t *testing.T) {
+	withGeneratedStore(t)
+	serratedBlades := Talent(14171, 3).Rank(3)
+	armoredTable := func(character *core.Character) *core.AttackTable {
+		table := core.NewAttackTable(&character.Unit, &core.Unit{Type: core.EnemyUnit})
+		character.AttackTables = []*core.AttackTable{table}
+		return table
+	}
+
+	building := parseWarrior()
+	building.Env = &core.Environment{}
+	table := armoredTable(building)
+	parsed := ParseStatic(building, serratedBlades, Effects(1))
+	if kinds := appliedKinds(parsed); !slices.Equal(kinds, []string{"armor-ignore"}) {
+		t.Fatalf("Serrated Blades attached %v, want the armor it ignores", kinds)
+	}
+	if got := table.ArmorIgnoreFactor; got != 0 {
+		t.Errorf("armor ignored before the environment is finalized: %v, want 0", got)
+	}
+
+	finalized := parseWarrior()
+	finalized.Env = &core.Environment{State: core.Finalized}
+	table = armoredTable(finalized)
+	ParseStatic(finalized, serratedBlades, Effects(1))
+	if got := table.ArmorIgnoreFactor; math.Abs(got-0.09) > 1e-9 {
+		t.Errorf("armor ignored once finalized: %v, want 0.09", got)
+	}
+
+	sim := &core.Simulation{}
+	character := parseWarrior()
+	table = armoredTable(character)
+	row := oneEffectRow(dbcenums.A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT, 0, 9)
+	aura := character.RegisterAura(AuraConfig(row))
+	ParseEffects(character, aura, row)
+	aura.Activate(sim)
+	if got := table.ArmorIgnoreFactor; math.Abs(got-0.09) > 1e-9 {
+		t.Errorf("armor ignored while up: %v, want 0.09", got)
+	}
+	aura.Deactivate(sim)
+	if got := table.ArmorIgnoreFactor; math.Abs(got) > 1e-9 {
+		t.Errorf("armor ignored after expiry: %v, want 0", got)
 	}
 }

@@ -20,6 +20,7 @@ func (mage *Mage) registerBlastWaveSpell() {
 	// 	DefenseType:    blastWaveRank.DefenseTypeCore(),
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: MageSpellBlastWave,
+	// 	ClassFlags:     blastWaveRank.ClassFlags,
 	//
 	// 	BonusCoefficient: blastWaveRank.DamageEffect().Coeff(),
 	// 	DamageMultiplier: 1,

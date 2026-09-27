@@ -14,6 +14,7 @@ func (mage *Mage) registerColdSnapSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	Flags:          core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellColdSnap,
+	// 	ClassFlags:     spellData.ColdSnap.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{

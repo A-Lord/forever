@@ -327,7 +327,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 	// 1290261 states no proc flags at all, so the row decodes to a listener that hears nothing:
 	// the shape, the mask and the rate's effect are all the caller's.
 	var extraAttack *core.Spell
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
+	swordAura := warrior.MakeProcTriggerAura(core.ProcTrigger{
 		Name:               "Weaponmaster (Sword)",
 		ActionID:           actionID.WithTag(3),
 		MetricsActionID:    actionID.WithTag(3),
@@ -336,6 +336,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		Outcome:            core.OutcomeLanded,
 		ProcChance:         spellData.Weaponmaster.EffectAt(3).FractionAt(rank),
 		TriggerImmediately: true,
+		Duration:           core.NeverExpires,
 		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 			return spell.ProcMask.Matches(swordMask) && spell != extraAttack
 		},
@@ -346,6 +347,13 @@ func (warrior *Warrior) registerWeaponmaster() {
 		config := *warrior.AutoAttacks.MHConfig()
 		config.ActionID = config.ActionID.WithTag(actionID.SpellID)
 		extraAttack = warrior.GetOrRegisterSpell(config)
+		aura.OnReset = func(aura *core.Aura, sim *core.Simulation) {
+			if swordMask == core.ProcMaskUnknown {
+				aura.Deactivate(sim)
+			} else {
+				aura.Activate(sim)
+			}
+		}
 	})
 
 	setActive := func(sim *core.Simulation, aura *core.Aura, on bool) {
@@ -359,6 +367,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		readWeapons()
 		setActive(sim, critAura, critOn)
 		setActive(sim, armorIgnoreAura, armorIgnoreOn)
+		setActive(sim, swordAura, swordMask != core.ProcMaskUnknown)
 	})
 }
 

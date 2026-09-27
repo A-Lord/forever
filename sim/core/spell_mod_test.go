@@ -2,11 +2,14 @@ package core
 
 import (
 	"testing"
+	"time"
 )
 
 const fakeThreatSpellClassMask int64 = 1 << 0
+const fakeGCDSpellClassMask int64 = 1 << 1
 
 var fakeThreatSpellActionID = ActionID{SpellID: 11597}
+var fakeGCDSpellActionID = ActionID{SpellID: 16886}
 
 func (fw *FakeRageWarrior) registerFakeThreatSpell() {
 	fw.RegisterSpell(SpellConfig{
@@ -14,6 +17,69 @@ func (fw *FakeRageWarrior) registerFakeThreatSpell() {
 		ClassSpellMask:  fakeThreatSpellClassMask,
 		FlatThreatBonus: 100,
 	})
+}
+
+func (fw *FakeRageWarrior) registerFakeGCDSpell() {
+	fw.RegisterSpell(SpellConfig{
+		ActionID:       fakeGCDSpellActionID,
+		ClassSpellMask: fakeGCDSpellClassMask,
+		Cast: CastConfig{
+			DefaultCast: Cast{GCD: GCDDefault},
+		},
+	})
+}
+
+// Casts the spell with the GCD free and answers the GCD the cast started, before and after the
+// GCD minimum.
+func castGCD(t *testing.T, sim *Simulation, fw *FakeRageWarrior, spell *Spell) (time.Duration, time.Duration) {
+	fw.GCD.Reset()
+	if !spell.Cast(sim, sim.Encounter.ActiveTargetUnits[0]) {
+		t.Fatal("the spell did not cast")
+	}
+	return spell.CurCast.GCD, spell.CurCast.GCDTime()
+}
+
+func TestGlobalCooldownPctMod(t *testing.T) {
+	sim := SetupFakeRageSim()
+	fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+	spell := fw.GetSpell(fakeGCDSpellActionID)
+
+	pct := fw.AddDynamicMod(SpellModConfig{
+		ClassMask:  fakeGCDSpellClassMask,
+		Kind:       SpellMod_GlobalCooldown_Pct,
+		FloatValue: -0.1,
+	})
+	flat := fw.AddDynamicMod(SpellModConfig{
+		ClassMask: fakeGCDSpellClassMask,
+		Kind:      SpellMod_GlobalCooldown_Flat,
+		TimeValue: -400 * time.Millisecond,
+	})
+
+	steps := []struct {
+		name    string
+		toggle  func()
+		gcd     time.Duration
+		gcdTime time.Duration
+	}{
+		{"without a mod", func() {}, 1500 * time.Millisecond, 1500 * time.Millisecond},
+		{"with the percent mod", pct.Activate, 1350 * time.Millisecond, 1350 * time.Millisecond},
+		// (1500 - 400) x 0.9 = 990, which the GCD minimum floors at a second.
+		{"with both mods", flat.Activate, 990 * time.Millisecond, time.Second},
+		{"with the flat mod alone", pct.Deactivate, 1100 * time.Millisecond, 1100 * time.Millisecond},
+		{"after both were removed", flat.Deactivate, 1500 * time.Millisecond, 1500 * time.Millisecond},
+	}
+
+	for _, step := range steps {
+		step.toggle()
+		gcd, gcdTime := castGCD(t, sim, fw, spell)
+		if gcd != step.gcd || gcdTime != step.gcdTime {
+			t.Errorf("%s: GCD %v floored to %v, want %v floored to %v", step.name, gcd, gcdTime, step.gcd, step.gcdTime)
+		}
+	}
+
+	if spell.GCDMultiplier != 1 {
+		t.Errorf("GCD multiplier after both mods were removed: %v, want 1", spell.GCDMultiplier)
+	}
 }
 
 func TestFlatThreatBonusPctMod(t *testing.T) {
