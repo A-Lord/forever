@@ -96,7 +96,7 @@ var DefaultArmsTalents = "30305213032115201-05052030004"
 var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:       250943, // Major Frenzy Potion
 	FlaskId:     274274, // Flask of Natural Aggression
-	FoodId:      238637, // Prowler Steak
+	FoodId:      20452,  // Smoked Desert Dumplings
 	ExplosiveId: 18588,
 	OhImbueId:   12404,
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV

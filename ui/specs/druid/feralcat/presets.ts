@@ -14,7 +14,7 @@ export const DefaultOptions = FeralDruidOptions.create({});
 export const DefaultConsumables = ConsumesSpec.create({
 	potId: Consumables.MajorFrenzyPotion.id,
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfTheSages.id],
-	foodId: Consumables.FiletOFlank.id,
+	foodId: Consumables.SwiftstrikeSteak.id,
 	mhImbueId: Consumables.DenseWeightstone.id,
 	conjuredId: Consumables.DemonicRune.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],

@@ -9,6 +9,12 @@
 		},
 		{
 			"action": {
+				"castSpell": { "spellId": { "spellId": 20423, "rank": 7 } }
+			},
+			"doAtValue": { "const": { "val": "-6s" } }
+		},
+		{
+			"action": {
 				"castSpell": { "spellId": { "spellId": 20920, "rank": 5 } }
 			},
 			"doAtValue": { "const": { "val": "-4.5s" } }
@@ -66,43 +72,17 @@
 		{
 			"action": {
 				"condition": {
-					"or": {
+					"and": {
 						"vals": [
 							{
-								"and": {
-									"vals": [
-										{
-											"auraIsInactive": {
-												"auraId": {
-													"spellId": 20920,
-													"rank": 5
-												}
-											}
-										},
-										{
-											"auraIsInactive": {
-												"auraId": { "spellId": 1311703 }
-											}
-										}
-									]
+								"auraIsInactive": {
+									"auraId": { "spellId": 1311703 },
+									"includeReactionTime": true
 								}
 							},
 							{
-								"cmp": {
-									"op": "OpLt",
-									"lhs": {
-										"auraRemainingTime": {
-											"auraId": {
-												"spellId": 20920,
-												"rank": 5
-											}
-										}
-									},
-									"rhs": {
-										"autoTimeToNext": {
-											"autoType": "MainHandAuto"
-										}
-									}
+								"auraIsInactive": {
+									"auraId": { "spellId": 20920, "rank": 5 }
 								}
 							}
 						]
@@ -117,53 +97,14 @@
 					"and": {
 						"vals": [
 							{
-								"auraIsActive": {
-									"auraId": { "spellId": 20920, "rank": 5 }
+								"auraIsInactive": {
+									"auraId": { "spellId": 1311704 },
+									"includeReactionTime": true
 								}
 							},
 							{
-								"cmp": {
-									"op": "OpLe",
-									"lhs": {
-										"autoTimeToNext": {
-											"autoType": "MainHandAuto"
-										}
-									},
-									"rhs": { "const": { "val": "1.5s" } }
-								}
-							},
-							{
-								"or": {
-									"vals": [
-										{
-											"not": {
-												"val": {
-													"auraIsActive": {
-														"auraId": {
-															"spellId": 1311704
-														}
-													}
-												}
-											}
-										},
-										{
-											"cmp": {
-												"op": "OpLt",
-												"lhs": {
-													"auraRemainingTime": {
-														"auraId": {
-															"spellId": 1311704
-														}
-													}
-												},
-												"rhs": {
-													"autoTimeToNext": {
-														"autoType": "MainHandAuto"
-													}
-												}
-											}
-										}
-									]
+								"auraIsInactive": {
+									"auraId": { "spellId": 20293, "rank": 8 }
 								}
 							}
 						]
@@ -174,38 +115,22 @@
 		},
 		{
 			"action": {
-				"condition": {
-					"and": {
-						"vals": [
-							{ "isExecutePhase": { "threshold": "E20" } },
-							{
-								"cmp": {
-									"op": "OpGt",
-									"lhs": {
-										"autoTimeToNext": {
-											"autoType": "MainHandAuto"
-										}
-									},
-									"rhs": { "const": { "val": "1.5s" } }
-								}
-							},
-							{
-								"cmp": {
-									"op": "OpGe",
-									"lhs": { "currentManaPercent": {} },
-									"rhs": { "const": { "val": "5%" } }
-								}
-							}
-						]
-					}
-				},
-				"castSpell": { "spellId": { "spellId": 24239, "rank": 3 } }
+				"condition": { "variableRef": { "name": "Use Consecration" } },
+				"groupReference": { "groupName": "Consecration" }
 			}
 		},
 		{
 			"action": {
-				"condition": { "variableRef": { "name": "Use Consecration" } },
-				"groupReference": { "groupName": "Consecration" }
+				"condition": {
+					"cmp": {
+						"op": "OpGt",
+						"lhs": {
+							"autoTimeToNext": { "autoType": "MainHandAuto" }
+						},
+						"rhs": { "const": { "val": "1.5s" } }
+					}
+				},
+				"castSpell": { "spellId": { "spellId": 24239, "rank": 3 } }
 			}
 		},
 		{
@@ -287,24 +212,6 @@
 						},
 						"castSpell": {
 							"spellId": { "spellId": 20924, "rank": 5 }
-						}
-					}
-				},
-				{
-					"action": {
-						"condition": {
-							"cmp": {
-								"op": "OpGt",
-								"lhs": {
-									"autoTimeToNext": {
-										"autoType": "MainHandAuto"
-									}
-								},
-								"rhs": { "const": { "val": "1.5s" } }
-							}
-						},
-						"castSpell": {
-							"spellId": { "spellId": 26573, "rank": 1 }
 						}
 					}
 				}

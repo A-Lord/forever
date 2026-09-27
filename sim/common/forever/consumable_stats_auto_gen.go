@@ -175,24 +175,6 @@ func RegisterAllStatConsumables() {
 		23211,  // Toasted Smorc
 		23326,  // Midsummer Sausage
 		23327,  // Fire-toasted Bun
-		206177, // Pine Nut Butter
-		210708, // Elixir of Coalesced Regret
-		211815, // Silverwing Battle Hymn
-		211816, // Warsong Battle Drum
-		211953, // Scroll of Arcane Recovery I
-		211954, // Scroll of Arcane Accuracy I
-		211955, // Scroll of Arcane Protection - Fire I
-		211956, // Scroll of Arcane Protection - Frost I
-		211957, // Scroll of Arcane Power I
-		217308, // Enchanted Sigil: Innovation
-		217398, // Lesser Arcane Elixir
-		227286, // Warmed Rumsey Rum with Cream
-		228978, // Enchanted Sigil: Flowing Waters
-		232436, // Darkclaw Bisque
-		232438, // Smoked Redgill
-		238637, // Prowler Steak
-		238638, // Filet o' Flank
-		238639, // Sunrise Omelette
 		246948, // Distilled Firewater
 		247754, // Minor Arcane Elixir
 		247755, // Elixir of Minor Force
