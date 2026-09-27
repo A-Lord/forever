@@ -69,6 +69,10 @@ type SpellMod struct {
 	// pointing at it. One aura is routinely shared by every rank of a family and a class mask names
 	// every rank, so the value would otherwise land on that aura once per rank.
 	touchedAuras []*Aura
+
+	// For a weapon-bound mod, the unit's spells that pass every check but the weapons', in spellbook
+	// order: the ones a weapon swap re-tests.
+	weaponCandidates []*Spell
 }
 
 // Whether the mod may write to this aura, which it may once until it gives the aura up again.
@@ -171,7 +175,13 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 
 	unit.OnSpellRegistered(func(spell *Spell) {
-		if shouldApply(spell, mod) {
+		if !passesSpellChecks(spell, mod) {
+			return
+		}
+		if !mod.Equip.IsZero() {
+			mod.weaponCandidates = append(mod.weaponCandidates, spell)
+		}
+		if passesWeaponChecks(spell, mod) {
 			mod.AffectedSpells = append(mod.AffectedSpells, spell)
 
 			if mod.IsActive {
@@ -217,6 +227,11 @@ func (unit *Unit) AddDynamicMod(config SpellModConfig) *SpellMod {
 }
 
 func shouldApply(spell *Spell, mod *SpellMod) bool {
+	return passesSpellChecks(spell, mod) && passesWeaponChecks(spell, mod)
+}
+
+// The checks of shouldApply that the unit's weapons do not change.
+func passesSpellChecks(spell *Spell, mod *SpellMod) bool {
 	if spell.Flags.Matches(SpellFlagNoSpellMods) {
 		return false
 	}
@@ -257,39 +272,58 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	// A modifier on the off-hand's hits alone is one on the off-hand weapon's, and an off-hand hit
-	// with no weapon behind it, such as a shield's, takes none of them.
-	if mod.ProcMask > 0 && mod.ProcMask&^ProcMaskMeleeOH == 0 && !spell.Unit.AutoAttacks.IsDualWielding {
-		return false
-	}
-
 	if mod.SpellFlag > 0 && !mod.SpellFlag.Matches(spell.Flags) {
 		return false
 	}
 
 	// A magic-defense spell rolls on the spell tables, which no weapon's bonus reaches.
-	if !mod.Equip.IsZero() && (spell.DefenseType == DefenseTypeMagic || spell.Unit.Type != PlayerUnit ||
-		!mod.Equip.matchesEquipment(mod.equipment, spell.ProcMask)) {
+	if !mod.Equip.IsZero() && (spell.DefenseType == DefenseTypeMagic || spell.Unit.Type != PlayerUnit) {
 		return false
 	}
 
 	return true
 }
 
+// The checks of shouldApply that read the unit's weapons, which a weapon swap changes.
+func passesWeaponChecks(spell *Spell, mod *SpellMod) bool {
+	// A modifier on the off-hand's hits alone is one on the off-hand weapon's, and an off-hand hit
+	// with no weapon behind it, such as a shield's, takes none of them.
+	if mod.ProcMask > 0 && mod.ProcMask&^ProcMaskMeleeOH == 0 && !spell.Unit.AutoAttacks.IsDualWielding {
+		return false
+	}
+
+	return mod.Equip.IsZero() || mod.Equip.matchesEquipment(mod.equipment, spell.ProcMask)
+}
+
+// Whether the weapons now reach other candidates than AffectedSpells holds. AffectedSpells is the
+// candidates the weapons reached, in the same order, so one walk over both compares them.
+func (mod *SpellMod) weaponReachChanged() bool {
+	i := 0
+	for _, spell := range mod.weaponCandidates {
+		if !passesWeaponChecks(spell, mod) {
+			continue
+		}
+		if i == len(mod.AffectedSpells) || mod.AffectedSpells[i] != spell {
+			return true
+		}
+		i++
+	}
+	return i != len(mod.AffectedSpells)
+}
+
 func (unit *Unit) refilterEquipMods() {
 	for _, mod := range unit.equipMods {
-		var affected []*Spell
-		for _, spell := range unit.Spellbook {
-			if shouldApply(spell, mod) {
-				affected = append(affected, spell)
-			}
-		}
-		if slices.Equal(affected, mod.AffectedSpells) {
+		if !mod.weaponReachChanged() {
 			continue
 		}
 		wasActive := mod.IsActive
 		mod.Deactivate()
-		mod.AffectedSpells = affected
+		mod.AffectedSpells = mod.AffectedSpells[:0]
+		for _, spell := range mod.weaponCandidates {
+			if passesWeaponChecks(spell, mod) {
+				mod.AffectedSpells = append(mod.AffectedSpells, spell)
+			}
+		}
 		if wasActive {
 			mod.Activate()
 		}

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"math"
 	"slices"
 	"testing"
 
@@ -136,6 +137,42 @@ func TestSubclassModFollowsAnItemSwap(t *testing.T) {
 	check("inactive mod across a swap", 0, 0)
 	swords.Activate()
 	check("mod turned on with the sword in the off hand", 0, 5)
+}
+
+func TestSwapThatKeepsAModsReachLeavesItAlone(t *testing.T) {
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead,
+		WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, 0),
+		WeaponTestSlots(WeaponTestDaggerID, WeaponTestSwordID, 0), nil)
+
+	applies, removes := 0, 0
+	anyWeapon := character.AddDynamicMod(SpellModConfig{
+		Kind:          SpellMod_Custom,
+		ApplyCustom:   func(_ *SpellMod, _ *Spell) { applies++ },
+		RemoveCustom:  func(_ *SpellMod, _ *Spell) { removes++ },
+		EquipSubclass: -1,
+	})
+	anyWeapon.Activate()
+	crit := character.AddDynamicMod(SpellModConfig{
+		Kind:          SpellMod_BonusCrit_Percent,
+		FloatValue:    0.1,
+		EquipSubclass: -1,
+	})
+	crit.Activate()
+	checkReaches(t, "sword and dagger", anyWeapon, autos(character), "main-hand auto", "off-hand auto")
+
+	mhAuto, ohAuto := character.AutoAttacks.MHAuto(), character.AutoAttacks.OHAuto()
+	mhCrit, ohCrit := math.Float64bits(mhAuto.BonusCritPercent), math.Float64bits(ohAuto.BonusCritPercent)
+	wantApplies, wantRemoves := applies, removes
+	for _, swap := range []proto.APLActionItemSwap_SwapSet{proto.APLActionItemSwap_Swap1, proto.APLActionItemSwap_Main} {
+		character.ItemSwap.SwapItems(sim, swap, false)
+		checkReaches(t, swap.String(), anyWeapon, autos(character), "main-hand auto", "off-hand auto")
+		if applies != wantApplies || removes != wantRemoves {
+			t.Errorf("%s: the mod was applied %d and removed %d times, want %d and %d", swap, applies, removes, wantApplies, wantRemoves)
+		}
+		if math.Float64bits(mhAuto.BonusCritPercent) != mhCrit || math.Float64bits(ohAuto.BonusCritPercent) != ohCrit {
+			t.Errorf("%s: crit moved to %v and %v", swap, mhAuto.BonusCritPercent, ohAuto.BonusCritPercent)
+		}
+	}
 }
 
 func TestWeaponChangeRunsOncePerSwapThatMovesAWeapon(t *testing.T) {
