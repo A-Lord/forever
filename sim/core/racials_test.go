@@ -359,10 +359,10 @@ func TestWeaponSpecializationFollowsAnItemSwapInCombat(t *testing.T) {
 	} {
 		t.Run(tc.race.String(), func(t *testing.T) {
 			withSword := WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID)
-			withAxe := WeaponTestSlots(WeaponTestAxeID, WeaponTestDaggerID, WeaponTestBowID)
+			withAxe := WeaponTestSlots(weaponTestAxeID, WeaponTestDaggerID, WeaponTestBowID)
 
 			finalStats := func(equipped, swapped []*proto.ItemSpec) stats.Stats {
-				result := ComputeStats(&proto.ComputeStatsRequest{Raid: WeaponTestRaid(tc.race, equipped, swapped), Encounter: WeaponTestEncounter()})
+				result := ComputeStats(&proto.ComputeStatsRequest{Raid: weaponTestRaid(tc.race, equipped, swapped), Encounter: weaponTestEncounter()})
 				return stats.FromUnitStatsProto(result.RaidStats.Parties[0].Players[0].FinalStats)
 			}
 			startSword, startAxe := finalStats(withSword, withAxe), finalStats(withAxe, withSword)

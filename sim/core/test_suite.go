@@ -38,9 +38,18 @@ func NewIndividualTestSuite(suiteName string) *IndividualTestSuite {
 func (testSuite *IndividualTestSuite) TestCharacterStats(testName string, csr *proto.ComputeStatsRequest) {
 	testSuite.testNames = append(testSuite.testNames, testName)
 
-	result := ComputeStats(csr)
-	finalStats := stats.FromUnitStatsProto(result.RaidStats.Parties[0].Players[0].FinalStats)
-	finalStats[stats.RangedHitPercent], finalStats[stats.RangedCritPercent] = sheetRangedOffsets(csr)
+	encounter := csr.Encounter
+	if encounter == nil {
+		encounter = &proto.Encounter{}
+	}
+	env, raidStats, _ := NewEnvironment(csr.Raid, encounter, false, csr.SkipRotation)
+	finalStats := stats.FromUnitStatsProto(raidStats.Parties[0].Players[0].FinalStats)
+
+	// The ranged offsets, read with every build-phase aura up the way the final stats are.
+	character := env.Raid.Parties[0].Players[0].GetCharacter()
+	character.applyBuildPhaseAuras(CharacterBuildPhaseAll)
+	finalStats[stats.RangedHitPercent], finalStats[stats.RangedCritPercent] = character.sheetRangedOffsets()
+	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 
 	testSuite.testResults.CharacterStatsResults[testName] = &proto.CharacterStatsTestResult{
 		FinalStats: toFixedStats(finalStats[:], storagePrecision),
@@ -344,18 +353,4 @@ func toFixedStats(s []float64, precision int) []float64 {
 		s[i] = toFixed(val, precision)
 	}
 	return s
-}
-
-// The ranged offsets of the character the request builds, read with every build-phase aura up the
-// way the final stats are.
-func sheetRangedOffsets(csr *proto.ComputeStatsRequest) (hit, crit float64) {
-	encounter := csr.Encounter
-	if encounter == nil {
-		encounter = &proto.Encounter{}
-	}
-	env, _, _ := NewEnvironment(csr.Raid, encounter, false, true)
-	character := env.Raid.Parties[0].Players[0].GetCharacter()
-	character.applyBuildPhaseAuras(CharacterBuildPhaseAll)
-	defer character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
-	return character.sheetRangedOffsets()
 }

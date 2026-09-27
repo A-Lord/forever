@@ -13,7 +13,7 @@ const (
 	WeaponTestDaggerID
 	WeaponTestShieldID
 	WeaponTestBowID
-	WeaponTestAxeID
+	weaponTestAxeID
 )
 
 // A rogue that swings every weapon it holds and has no talents beyond what NewWeaponTestSim hands it.
@@ -65,7 +65,7 @@ func ensureWeaponTester() {
 			{Id: WeaponTestDaggerID, Name: "Test Dagger", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeDagger, HandType: proto.HandType_HandTypeOneHand, WeaponSpeed: 1.8, ScalingOptions: damage},
 			{Id: WeaponTestShieldID, Name: "Test Shield", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeShield, HandType: proto.HandType_HandTypeOffHand, ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
 			{Id: WeaponTestBowID, Name: "Test Bow", Type: proto.ItemType_ItemTypeRanged, RangedWeaponType: proto.RangedWeaponType_RangedWeaponTypeBow, WeaponSpeed: 3.0, ScalingOptions: damage},
-			{Id: WeaponTestAxeID, Name: "Test Axe", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeAxe, HandType: proto.HandType_HandTypeOneHand, WeaponSpeed: 2.6, ScalingOptions: damage},
+			{Id: weaponTestAxeID, Name: "Test Axe", Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeAxe, HandType: proto.HandType_HandTypeOneHand, WeaponSpeed: 2.6, ScalingOptions: damage},
 		}})
 	})
 }
@@ -81,14 +81,14 @@ func WeaponTestSlots(mainHand, offHand, ranged int32) []*proto.ItemSpec {
 	return items
 }
 
-func WeaponTestEncounter() *proto.Encounter {
+func weaponTestEncounter() *proto.Encounter {
 	return &proto.Encounter{
 		Targets:  []*proto.Target{{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid}},
 		Duration: 180,
 	}
 }
 
-func WeaponTestRaid(race proto.Race, equipped, swapped []*proto.ItemSpec) *proto.Raid {
+func weaponTestRaid(race proto.Race, equipped, swapped []*proto.ItemSpec) *proto.Raid {
 	ensureWeaponTester()
 	player := &proto.Player{
 		Name:      "Weapon Tester",
@@ -114,8 +114,8 @@ func NewWeaponTestSim(t testing.TB, race proto.Race, equipped, swapped []*proto.
 
 	sim := NewSim(&proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
-		Raid:       WeaponTestRaid(race, equipped, swapped),
-		Encounter:  WeaponTestEncounter(),
+		Raid:       weaponTestRaid(race, equipped, swapped),
+		Encounter:  weaponTestEncounter(),
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()

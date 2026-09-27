@@ -212,23 +212,21 @@ const meleeWeapons = dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SU
 // What the spell states it needs equipped: the item class and subclass mask a weapon-specific
 // ability or proc names, the inventory slots an enchant names, and the hand an ATTR_EX_3 bit names.
 func equipRequirement(s *spelldata.Spell) string {
+	var item string
 	switch s.EquipClass {
 	case 0:
 		// Nothing stated, which is also what a row carrying only an inventory slot leaves here.
 		if s.EquipInvType == 0 {
 			return ""
 		}
-		return "needs an item in the " + maskNames(s.EquipInvType, inventoryTypes)
+		item = "an item"
 	case dbcenums.ITEM_CLASS_WEAPON:
 		return "needs " + weaponsPhrase(s.EquipSubclass, s.EquipInvType, spelldata.RequiredHand(s))
 	case 4:
-		item := armorRequirement(s.EquipSubclass)
-		if s.EquipInvType != 0 {
-			item += " in the " + maskNames(s.EquipInvType, inventoryTypes)
-		}
-		return "needs " + item
+		item = armorRequirement(s.EquipSubclass)
+	default:
+		item = fmt.Sprintf("an item of class %d", s.EquipClass)
 	}
-	item := fmt.Sprintf("an item of class %d", s.EquipClass)
 	if s.EquipInvType != 0 {
 		item += " in the " + maskNames(s.EquipInvType, inventoryTypes)
 	}

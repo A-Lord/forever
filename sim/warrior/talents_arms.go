@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -302,7 +303,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		Kind:          core.SpellMod_BonusCrit_Percent,
 		FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
 		ProcMask:      core.ProcMaskMelee,
-		EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm),
+		EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM,
 	})
 	if critOn {
 		core.MakePermanent(critAura)

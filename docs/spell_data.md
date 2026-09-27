@@ -611,7 +611,7 @@ critAura := warrior.RegisterAura(core.Aura{
 	Kind:          core.SpellMod_BonusCrit_Percent,
 	FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
 	ProcMask:      core.ProcMaskMelee,
-	EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm),
+	EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM,
 })
 ```
 
@@ -625,12 +625,14 @@ character.NewEquipGatedStats(req, stats.Stats{stats.PhysicalCritPercent: 1, stat
 ```
 
 The Equip fields are the game files' own masks. `EquipSubclass` takes `dbcenums.ITEM_SUBCLASS_BIT_WEAPON_*`
-bits, and `core.WeaponSubclassMask(types...)` builds one from `proto.WeaponType`s, one- and two-handed
-alike. `EquipInvType` takes `dbcenums.INVTYPE_BIT_*` bits, and `EquipHand` the `ProcMaskMeleeMH` or
-`ProcMaskMeleeOH` a hand bit names. `core.EquipRequirement{SubclassMask, InvTypeMask, Hand}` holds the
-same: `Matches(unit, procMask)` answers for one attack, `Equipped(character)` for any weapon slot. An
-item's own bits are `(*Item).WeaponSubclassBit()` and the slot's inventory-type bit, where a one-hander
-also counts as the main- or off-hand weapon of the hand holding it.
+bits, written out in a `SpellModConfig` literal so `-config` and the hover can read it;
+`core.WeaponSubclassMask(types...)` builds the same mask from `proto.WeaponType`s in running code, one-
+and two-handed alike. `EquipInvType` takes `dbcenums.INVTYPE_BIT_*` bits, and `EquipHand` the
+`ProcMaskMeleeMH` or `ProcMaskMeleeOH` a hand bit names.
+`core.EquipRequirement{SubclassMask, InvTypeMask, Hand}` holds the same, and `Equipped(character)` answers
+whether a weapon meeting it sits in any weapon slot. An item's own bits are `(*Item).WeaponSubclassBit()`
+and the slot's inventory-type bit, where a one-hander also counts as the main- or off-hand weapon of the
+hand holding it.
 
 ### What core does with the Equip fields
 
@@ -640,10 +642,9 @@ also counts as the main- or off-hand weapon of the hand holding it.
   Thunder Clap takes no Cruelty.
 - A pet never matches, and neither does a shield or a held item in the off hand.
 - An item swap re-filters every weapon-bound mod.
-- The character sheet reads the mods through `ScopedBonusPercent(kind, probe)` for its main-hand, off-hand
-  and ranged hit and crit rows, and through `ScopedRatingPercent` for the part tagged `FromRating`, which
-  it shows as rating. A mod counts there only when it names no `ClassMask`, `ClassFlags`, school or spell
-  flag.
+- The character sheet reads the mods through `ScopedPercents(probe)` for its main-hand, off-hand and ranged
+  hit and crit rows, and shows the part tagged `FromRating` (`HitFromRating`, `CritFromRating`) as rating. A
+  mod counts there only when it names no `ClassMask`, `ClassFlags`, school or spell flag.
 
 `-config` reads a `core.SpellModConfig` literal the same way: the weapons its Equip fields name and the
 rule they get, and a hover on `SpellModConfig` in a class file shows it.
@@ -653,7 +654,7 @@ rule they get, and a hover on `SpellModConfig` in a class file shows it.
 | talent                                  | what it is                                                                                                                                                     |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | rogue Precision 13705                   | effect 1, a 54 with melee weapons, is per weapon; effect 2, a 55, is spell hit on every spell. `ParseStatic` does both                                         |
-| rogue Hack and Slash 13960              | the dagger and fist crit is an `A_DUMMY`: a per-weapon crit mod by hand, `EquipSubclass: core.WeaponSubclassMask(Dagger, Fist)`                                |
+| rogue Hack and Slash 13960              | the dagger and fist crit is an `A_DUMMY`: a per-weapon crit mod by hand, `EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_DAGGERS                             | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST` |
 | rogue Fist Weapon Specialization 13707  | a 52 with fist weapons, per weapon. `ParseStatic`                                                                                                              |
 | Lethal Shots 450403                     | a 52 with ranged weapons, per weapon on ranged attacks. `ParseStatic`                                                                                          |
 | shaman Thundering Strikes 16255         | a 290 with melee weapons, while equipped. `ParseStatic`                                                                                                        |

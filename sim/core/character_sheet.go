@@ -20,12 +20,12 @@ func (character *Character) sheetAttackStats(probe ProcMask) sheetAttackStats {
 	if probe.Matches(ProcMaskRanged) {
 		channelHit, channelCrit = character.GetStat(stats.RangedHitPercent), character.GetStat(stats.RangedCritPercent)
 	}
-	scoped := character.scopedPercents(probe)
+	scoped := character.ScopedPercents(probe)
 	return sheetAttackStats{
-		HitPercent:  character.GetStat(stats.PhysicalHitPercent) + channelHit + scoped.hit,
-		CritPercent: character.GetStat(stats.PhysicalCritPercent) + channelCrit + scoped.crit,
-		HitRating:   character.GetStat(stats.HitRating) + (channelHit+scoped.hitFromRating)*HitRatingPerHitPercent,
-		CritRating:  character.GetStat(stats.CritRating) + (channelCrit+scoped.critFromRating)*CritRatingPerCritPercent,
+		HitPercent:  character.GetStat(stats.PhysicalHitPercent) + channelHit + scoped.Hit,
+		CritPercent: character.GetStat(stats.PhysicalCritPercent) + channelCrit + scoped.Crit,
+		HitRating:   character.GetStat(stats.HitRating) + (channelHit+scoped.HitFromRating)*HitRatingPerHitPercent,
+		CritRating:  character.GetStat(stats.CritRating) + (channelCrit+scoped.CritFromRating)*CritRatingPerCritPercent,
 	}
 }
 

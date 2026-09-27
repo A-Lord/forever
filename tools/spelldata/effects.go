@@ -164,9 +164,7 @@ func perWeapon(scope core.SpellModConfig) string {
 // A hit, crit or rating aura on a row whose weapon requirement binds nothing the effect gives, since
 // the aura reaches another unit.
 func castOnly(s *spelldata.Spell, e *spelldata.Effect) string {
-	switch e.Aura {
-	case dbcenums.A_MOD_HIT_CHANCE, dbcenums.A_MOD_WEAPON_CRIT_PERCENT, dbcenums.A_MOD_CRIT_PCT, dbcenums.A_MOD_RATING:
-	default:
+	if !spelldata.WeaponBindable(e.Aura) {
 		return ""
 	}
 	if rule, _ := spelldata.WeaponScope(s, e); rule != spelldata.WeaponRuleNone ||

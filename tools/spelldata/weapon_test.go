@@ -10,18 +10,17 @@ import (
 
 func TestWeaponAndRatingConstants(t *testing.T) {
 	for text, want := range map[string]string{
-		"stats.HitRating":                                           "17",
-		"stats.CritRating":                                          "18",
-		"stats.HasteRating":                                         "19",
-		"core.HitRatingPerHitPercent":                               "10",
-		"core.CritRatingPerCritPercent":                             "14",
-		"core.HasteRatingPerHastePercent":                           "10",
-		"core.SpellMod_BonusHit_Percent":                            "4096",
-		"dbcenums.ITEM_CLASS_WEAPON":                                "2",
-		"dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST":                    "8192",
-		"dbcenums.INVTYPE_BIT_WEAPONOFFHAND":                        "4194304",
-		"core.WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)": "384",
-		"core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm)": "67",
+		"stats.HitRating":                        "17",
+		"stats.CritRating":                       "18",
+		"stats.HasteRating":                      "19",
+		"core.HitRatingPerHitPercent":            "10",
+		"core.CritRatingPerCritPercent":          "14",
+		"core.HasteRatingPerHastePercent":        "10",
+		"core.SpellMod_BonusHit_Percent":         "4096",
+		"dbcenums.ITEM_CLASS_WEAPON":             "2",
+		"dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST": "8192",
+		"dbcenums.INVTYPE_BIT_WEAPONOFFHAND":     "4194304",
+		"dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM": "67",
 	} {
 		expr, err := parser.ParseExpr(text)
 		if err != nil {
@@ -35,11 +34,6 @@ func TestWeaponAndRatingConstants(t *testing.T) {
 		if got := constant.ToInt(value).String(); got != want {
 			t.Errorf("%s = %s, want %s", text, got, want)
 		}
-	}
-
-	expr, _ := parser.ParseExpr("core.WeaponSubclassMask(weaponType)")
-	if _, err := evalConst(expr); err == nil || !strings.Contains(err.Error(), "weaponType is not a proto.WeaponType") {
-		t.Errorf("a variable weapon type reads as %v", err)
 	}
 }
 
@@ -83,7 +77,7 @@ func TestExprWeaponRow(t *testing.T) {
 func TestConfigSpellModConfig(t *testing.T) {
 	var out bytes.Buffer
 	literal := "core.SpellModConfig{Kind: core.SpellMod_BonusHit_Percent, FloatValue: 2, ProcMask: core.ProcMaskMelee, " +
-		"EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeSword), EquipHand: core.ProcMaskMeleeOH, FromRating: true}"
+		"EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_2H, EquipHand: core.ProcMaskMeleeOH, FromRating: true}"
 	if err := run([]string{"-config", literal}, &out); err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +104,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		Kind:          core.SpellMod_BonusCrit_Percent,
 		FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
 		ProcMask:      core.ProcMaskMelee,
-		EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm),
+		EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM,
 	})
 	rangedOnly := core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskRanged, EquipSubclass: 262156}
 }
@@ -120,7 +114,7 @@ func TestHoverSpellModConfig(t *testing.T) {
 	wantHover(t, weaponmasterGo, "AttachSpellMod(core.SpellModConfig", 22,
 		"| **Kind** | `SpellMod_BonusCrit_Percent` | `core.SpellMod_BonusCrit_Percent` |",
 		"| **EquipSubclass** | `67 (one-handed axe, two-handed axe or polearm)` | "+
-			"`core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm)` |",
+			"`dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE \\| dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE \\| dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM` |",
 		"per weapon: only attacks made with a one-handed axe, two-handed axe or polearm.",
 		"unevaluated: `FloatValue: spellData.Weaponmaster.EffectAt(1).ValueAt(rank)` (rank is not a literal")
 	wantHover(t, weaponmasterGo, "SpellModConfig{Kind", 3,

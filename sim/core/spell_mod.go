@@ -146,7 +146,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		ProcMask:     config.ProcMask,
 		SpellFlag:    config.SpellFlag,
 		ResourceType: config.ResourceType,
-		Equip:        EquipRequirement{SubclassMask: config.EquipSubclass, InvTypeMask: config.EquipInvType, Hand: config.EquipHand},
+		Equip:        config.Equip(),
 		FromRating:   config.FromRating,
 		floatValue:   config.FloatValue,
 		intValue:     config.IntValue,
@@ -171,10 +171,12 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		if !passesSpellChecks(spell, mod) {
 			return
 		}
+		var equipment *Equipment
 		if !mod.Equip.IsZero() {
 			mod.weaponCandidates = append(mod.weaponCandidates, spell)
+			equipment = spell.Unit.playerEquipment()
 		}
-		if passesWeaponChecks(spell, mod) {
+		if passesWeaponChecks(spell, mod, equipment) {
 			mod.AffectedSpells = append(mod.AffectedSpells, spell)
 
 			if mod.IsActive {
@@ -220,7 +222,7 @@ func (unit *Unit) AddDynamicMod(config SpellModConfig) *SpellMod {
 }
 
 func shouldApply(spell *Spell, mod *SpellMod) bool {
-	return passesSpellChecks(spell, mod) && passesWeaponChecks(spell, mod)
+	return passesSpellChecks(spell, mod) && passesWeaponChecks(spell, mod, spell.Unit.playerEquipment())
 }
 
 // The checks of shouldApply that the unit's weapons do not change.
@@ -277,23 +279,24 @@ func passesSpellChecks(spell *Spell, mod *SpellMod) bool {
 	return true
 }
 
-// The checks of shouldApply that read the unit's weapons, which a weapon swap changes.
-func passesWeaponChecks(spell *Spell, mod *SpellMod) bool {
+// The checks of shouldApply that read the unit's weapons, which a weapon swap changes. The equipment
+// is the unit's playerEquipment, resolved once per pass.
+func passesWeaponChecks(spell *Spell, mod *SpellMod, equipment *Equipment) bool {
 	// A modifier on the off-hand's hits alone is one on the off-hand weapon's, and an off-hand hit
 	// with no weapon behind it, such as a shield's, takes none of them.
 	if mod.ProcMask > 0 && mod.ProcMask&^ProcMaskMeleeOH == 0 && !spell.Unit.AutoAttacks.IsDualWielding {
 		return false
 	}
 
-	return mod.Equip.IsZero() || mod.Equip.Matches(spell.Unit, spell.ProcMask)
+	return mod.Equip.IsZero() || mod.Equip.matchesEquipment(equipment, spell.ProcMask)
 }
 
 // Whether the weapons now reach other candidates than AffectedSpells holds. AffectedSpells is the
 // candidates the weapons reached, in the same order, so one walk over both compares them.
-func (mod *SpellMod) weaponReachChanged() bool {
+func (mod *SpellMod) weaponReachChanged(equipment *Equipment) bool {
 	i := 0
 	for _, spell := range mod.weaponCandidates {
-		if !passesWeaponChecks(spell, mod) {
+		if !passesWeaponChecks(spell, mod, equipment) {
 			continue
 		}
 		if i == len(mod.AffectedSpells) || mod.AffectedSpells[i] != spell {
@@ -305,15 +308,16 @@ func (mod *SpellMod) weaponReachChanged() bool {
 }
 
 func (unit *Unit) refilterEquipMods() {
+	equipment := unit.playerEquipment()
 	for _, mod := range unit.equipMods {
-		if !mod.weaponReachChanged() {
+		if !mod.weaponReachChanged(equipment) {
 			continue
 		}
 		wasActive := mod.IsActive
 		mod.Deactivate()
 		mod.AffectedSpells = mod.AffectedSpells[:0]
 		for _, spell := range mod.weaponCandidates {
-			if passesWeaponChecks(spell, mod) {
+			if passesWeaponChecks(spell, mod, equipment) {
 				mod.AffectedSpells = append(mod.AffectedSpells, spell)
 			}
 		}
@@ -323,24 +327,14 @@ func (unit *Unit) refilterEquipMods() {
 	}
 }
 
-// The sum of the active hit or crit mods that reach every attack with this proc mask: those naming
+// The sums of the active hit and crit mods that reach every attack with this proc mask: those naming
 // no ClassMask, ClassFlags, school or spell flag, whose proc mask and weapon match the attack's.
-func (unit *Unit) ScopedBonusPercent(kind SpellModType, probe ProcMask) float64 {
-	scoped := unit.scopedPercents(probe)
-	return Ternary(kind == SpellMod_BonusHit_Percent, scoped.hit, scoped.crit)
+// HitFromRating and CritFromRating are the part the mods converted from a rating give.
+type ScopedPercents struct {
+	Hit, Crit, HitFromRating, CritFromRating float64
 }
 
-// The part of ScopedBonusPercent that the mods converted from a rating give.
-func (unit *Unit) ScopedRatingPercent(kind SpellModType, probe ProcMask) float64 {
-	scoped := unit.scopedPercents(probe)
-	return Ternary(kind == SpellMod_BonusHit_Percent, scoped.hitFromRating, scoped.critFromRating)
-}
-
-type scopedPercents struct {
-	hit, crit, hitFromRating, critFromRating float64
-}
-
-func (unit *Unit) scopedPercents(probe ProcMask) scopedPercents {
+func (unit *Unit) ScopedPercents(probe ProcMask) ScopedPercents {
 	probeSpell := &Spell{Unit: unit, ProcMask: probe}
 	switch {
 	case probe.Matches(ProcMaskMelee):
@@ -348,15 +342,15 @@ func (unit *Unit) scopedPercents(probe ProcMask) scopedPercents {
 	case probe.Matches(ProcMaskRanged):
 		probeSpell.DefenseType = DefenseTypeRanged
 	}
-	var scoped scopedPercents
+	var scoped ScopedPercents
 	for _, mod := range unit.spellMods {
 		if !mod.IsActive || (mod.Kind != SpellMod_BonusHit_Percent && mod.Kind != SpellMod_BonusCrit_Percent) ||
 			!shouldApply(probeSpell, mod) {
 			continue
 		}
-		total, fromRating := &scoped.crit, &scoped.critFromRating
+		total, fromRating := &scoped.Crit, &scoped.CritFromRating
 		if mod.Kind == SpellMod_BonusHit_Percent {
-			total, fromRating = &scoped.hit, &scoped.hitFromRating
+			total, fromRating = &scoped.Hit, &scoped.HitFromRating
 		}
 		*total += mod.floatValue
 		if mod.FromRating {

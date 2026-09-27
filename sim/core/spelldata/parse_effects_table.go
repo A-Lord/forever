@@ -264,7 +264,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		case WeaponRulePerWeapon:
 			return p.scopedMod("SpellMod_BonusCrit_Percent", core.SpellMod_BonusCrit_Percent, scope, v)
 		case WeaponRuleWhileEquipped:
-			return p.statsWhileEquipped(crit, v, weaponRequirement(scope))
+			return p.statsWhileEquipped(crit, v, scope.Equip())
 		}
 		return p.statsBuff(crit, v)
 	},

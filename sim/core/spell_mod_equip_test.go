@@ -42,7 +42,7 @@ func TestSubclassModFollowsTheWeaponBehindTheAttack(t *testing.T) {
 	shooters := character.AddDynamicMod(SpellModConfig{
 		Kind:          SpellMod_BonusHit_Percent,
 		FloatValue:    3,
-		EquipSubclass: 262156,
+		EquipSubclass: dbcenums.ITEM_SUBCLASS_MASK_WEAPON_SHOOTING,
 	})
 	checkReaches(t, "bow, gun or crossbow", shooters, autos(character), "ranged auto")
 
@@ -68,15 +68,16 @@ func TestShieldIsNotAWeapon(t *testing.T) {
 
 	offHand := EquipRequirement{InvTypeMask: dbcenums.INVTYPE_BIT_SHIELD | dbcenums.INVTYPE_BIT_WEAPONOFFHAND | dbcenums.INVTYPE_BIT_HOLDABLE}
 	anyWeapon := EquipRequirement{SubclassMask: -1}
+	equipment := character.playerEquipment()
 	for _, procMask := range []ProcMask{ProcMaskMeleeOHAuto, ProcMaskMeleeOHSpecial} {
-		if offHand.Matches(&character.Unit, procMask) || anyWeapon.Matches(&character.Unit, procMask) {
+		if offHand.matchesEquipment(equipment, procMask) || anyWeapon.matchesEquipment(equipment, procMask) {
 			t.Errorf("a shield in the off hand matched a weapon requirement for proc mask %v", procMask)
 		}
 	}
-	if !anyWeapon.Matches(&character.Unit, ProcMaskMeleeMHSpecial) {
+	if !anyWeapon.matchesEquipment(equipment, ProcMaskMeleeMHSpecial) {
 		t.Error("the sword in the main hand should match any weapon")
 	}
-	if anyWeapon.Matches(&character.Unit, ProcMaskSpellDamage) {
+	if anyWeapon.matchesEquipment(equipment, ProcMaskSpellDamage) {
 		t.Error("an attack with no weapon bit should never match")
 	}
 }
@@ -84,14 +85,14 @@ func TestShieldIsNotAWeapon(t *testing.T) {
 func TestEquipRequirementNeverMatchesOtherUnits(t *testing.T) {
 	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
 	anyWeapon := EquipRequirement{SubclassMask: -1}
-	if !anyWeapon.Matches(&character.Unit, ProcMaskMeleeMHAuto) {
+	if !anyWeapon.matchesEquipment(character.playerEquipment(), ProcMaskMeleeMHAuto) {
 		t.Fatal("the player's own sword should match")
 	}
 
 	pet := &Unit{Type: PetUnit, Env: character.Env}
 	target := sim.Encounter.ActiveTargetUnits[0]
 	for name, unit := range map[string]*Unit{"pet": pet, "target": target} {
-		if anyWeapon.Matches(unit, ProcMaskMeleeMHAuto) {
+		if anyWeapon.matchesEquipment(unit.playerEquipment(), ProcMaskMeleeMHAuto) {
 			t.Errorf("a %s matched a weapon requirement", name)
 		}
 		mod := &SpellMod{Equip: anyWeapon}

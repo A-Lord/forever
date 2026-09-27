@@ -14,17 +14,19 @@ type EquipRequirement struct {
 	Hand         ProcMask
 }
 
+// The requirement the config's Equip fields name.
+func (config SpellModConfig) Equip() EquipRequirement {
+	return EquipRequirement{SubclassMask: config.EquipSubclass, InvTypeMask: config.EquipInvType, Hand: config.EquipHand}
+}
+
 func (req EquipRequirement) IsZero() bool {
 	return req.SubclassMask == 0 && req.InvTypeMask == 0 && req.Hand == 0
 }
 
 // Whether the weapon behind an attack with this proc mask meets the requirement. The weapon is the
 // main hand's for a main-hand bit, else the off hand's, else the ranged slot's. An attack with no
-// weapon bit, a unit that is not a player, and a shield or held item in the off hand never match.
-func (req EquipRequirement) Matches(unit *Unit, spellProcMask ProcMask) bool {
-	return req.matchesEquipment(unit.playerEquipment(), spellProcMask)
-}
-
+// weapon bit, nil equipment (a unit that is not a player), and a shield or held item in the off hand
+// never match.
 func (req EquipRequirement) matchesEquipment(equipment *Equipment, spellProcMask ProcMask) bool {
 	if equipment == nil {
 		return false

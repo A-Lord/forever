@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
@@ -71,10 +72,9 @@ func TestWeaponBoundModsSkipThunderClap(t *testing.T) {
 	}
 
 	clapHit, rangedHit, strikeCrit := clap.BonusHitPercent, rangedAuto.BonusHitPercent, strike.BonusCritPercent
-	probeHit := warrior.ScopedBonusPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto)
-	probeRating := warrior.ScopedRatingPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto)
+	probe := warrior.ScopedPercents(core.ProcMaskRangedAuto)
 	warrior.AddStaticMod(core.SpellModConfig{Kind: core.SpellMod_BonusHit_Percent, FloatValue: 3,
-		ProcMask: core.ProcMaskRanged, EquipSubclass: 262156, FromRating: true})
+		ProcMask: core.ProcMaskRanged, EquipSubclass: dbcenums.ITEM_SUBCLASS_MASK_WEAPON_SHOOTING, FromRating: true})
 	warrior.AddStaticMod(core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, FloatValue: 4,
 		ProcMask: core.ProcMaskMelee, EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe)})
 
@@ -85,8 +85,8 @@ func TestWeaponBoundModsSkipThunderClap(t *testing.T) {
 		{"Thunder Clap hit", clap.BonusHitPercent - clapHit, 0},
 		{"ranged attack hit", rangedAuto.BonusHitPercent - rangedHit, 3},
 		{"Heroic Strike crit", strike.BonusCritPercent - strikeCrit, 4},
-		{"probed ranged hit", warrior.ScopedBonusPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto) - probeHit, 3},
-		{"probed ranged hit from rating", warrior.ScopedRatingPercent(core.SpellMod_BonusHit_Percent, core.ProcMaskRangedAuto) - probeRating, 3},
+		{"probed ranged hit", warrior.ScopedPercents(core.ProcMaskRangedAuto).Hit - probe.Hit, 3},
+		{"probed ranged hit from rating", warrior.ScopedPercents(core.ProcMaskRangedAuto).HitFromRating - probe.HitFromRating, 3},
 	} {
 		if c.got != c.want {
 			t.Errorf("%s moved by %v, want %v", c.name, c.got, c.want)

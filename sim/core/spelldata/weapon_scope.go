@@ -35,9 +35,7 @@ const rangedInvTypes int32 = dbcenums.INVTYPE_BIT_RANGED | dbcenums.INVTYPE_BIT_
 // A_MOD_RATING is per weapon where the row names one, and on ranged attacks where its mask holds ranged
 // bits alone.
 func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
-	switch e.Aura {
-	case dbcenums.A_MOD_HIT_CHANCE, dbcenums.A_MOD_WEAPON_CRIT_PERCENT, dbcenums.A_MOD_CRIT_PCT, dbcenums.A_MOD_RATING:
-	default:
+	if !WeaponBindable(e.Aura) {
 		return WeaponRuleNone, core.SpellModConfig{}
 	}
 
@@ -52,6 +50,15 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 		return WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged, DefenseType: core.DefenseTypeRanged}
 	}
 	return WeaponRuleNone, core.SpellModConfig{}
+}
+
+// Whether the aura is a hit, crit or rating aura, the ones WeaponScope can bind to a weapon.
+func WeaponBindable(aura dbcenums.EffectAuraType) bool {
+	switch aura {
+	case dbcenums.A_MOD_HIT_CHANCE, dbcenums.A_MOD_WEAPON_CRIT_PERCENT, dbcenums.A_MOD_CRIT_PCT, dbcenums.A_MOD_RATING:
+		return true
+	}
+	return false
 }
 
 // Whether a combat rating mask holds ranged bits and no other.
@@ -86,10 +93,6 @@ func ScopedRatingPercents(mask int32, v float64) []RatingPercent {
 	return out
 }
 
-func weaponRequirement(scope core.SpellModConfig) core.EquipRequirement {
-	return core.EquipRequirement{SubclassMask: scope.EquipSubclass, InvTypeMask: scope.EquipInvType, Hand: scope.EquipHand}
-}
-
 // The hand ATTR_EX_3_REQ_MAIN_HAND and ATTR_EX_3_REQ_OFF_HAND name, as a melee proc mask.
 func RequiredHand(s *Spell) core.ProcMask {
 	var hand core.ProcMask
@@ -109,23 +112,16 @@ func weaponScope(s *Spell, e *Effect) (core.SpellModConfig, bool) {
 		return core.SpellModConfig{}, false
 	}
 
-	hand := RequiredHand(s)
-	if s.EquipSubclass == 0 && s.EquipInvType == 0 && hand == 0 {
+	scope := core.SpellModConfig{EquipSubclass: s.EquipSubclass, EquipInvType: s.EquipInvType, EquipHand: RequiredHand(s)}
+	if scope.Equip().IsZero() {
 		return core.SpellModConfig{}, false
 	}
 
-	var procMask core.ProcMask
-	if s.EquipSubclass&dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || s.EquipInvType&rangedInvTypes != 0 {
-		procMask |= core.ProcMaskRanged
+	if scope.EquipSubclass&dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || scope.EquipInvType&rangedInvTypes != 0 {
+		scope.ProcMask |= core.ProcMaskRanged
 	}
-	if s.EquipSubclass&^dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || s.EquipInvType&^rangedInvTypes != 0 || hand != 0 {
-		procMask |= core.ProcMaskMelee
+	if scope.EquipSubclass&^dbcenums.ITEM_SUBCLASS_MASK_WEAPON_RANGED != 0 || scope.EquipInvType&^rangedInvTypes != 0 || scope.EquipHand != 0 {
+		scope.ProcMask |= core.ProcMaskMelee
 	}
-
-	return core.SpellModConfig{
-		ProcMask:      procMask,
-		EquipSubclass: s.EquipSubclass,
-		EquipInvType:  s.EquipInvType,
-		EquipHand:     hand,
-	}, true
+	return scope, true
 }

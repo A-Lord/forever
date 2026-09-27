@@ -128,10 +128,9 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 	// Haste% pseudo-stats: read speed multipliers from baseStats.PseudoStats, which
 	// GetPseudoStatsProto populates as MeleeSpeedMultiplier×AttackSpeedMultiplier etc.
 	if hasteRatingDelta := delta.Stats[stats.HasteRating]; hasteRatingDelta != 0 {
-		haste, _ := core.RatingChannelsOf(stats.HasteRating)
-		for _, pseudoStat := range haste.Channels() {
-			speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(hasteSpeedMultipliers[pseudoStat]))
-			delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(pseudoStat), speedMult*hasteRatingDelta/haste.RatingPerPercent)
+		for hastePS, speedPS := range hasteSpeedMultipliers {
+			speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(speedPS))
+			delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(hastePS), speedMult*hasteRatingDelta/core.HasteRatingPerHastePercent)
 		}
 	}
 

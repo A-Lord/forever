@@ -10,7 +10,7 @@ go run ./tools/spelldata 11574 -json            # the same as JSON
 go run ./tools/spelldata -family warrior/Execute
 go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)' -package warrior
 go run ./tools/spelldata -config 'spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))' -package warrior
-go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe)}'
+go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE}'
 go run ./tools/spelldata -hover sim/warrior/execute.go 12:40   # the markdown an editor shows at line:column (1-based)
 go run ./tools/spelldata -lsp                   # a language server on stdio
 ```
@@ -25,8 +25,7 @@ match; an item swap re-filters it; `FromRating` counts on the sheet as rating.
 of the store (`Highest()`, `Rank(n)`, `EffectAt(1).TenthsAt(1)`, `Effect(dbcenums.A_X, misc)`, ...),
 with arguments that are literals or constants of `dbcenums`, of `stats` (`stats.HitRating`) or of
 `sim/core`'s `flags.go`, `constants.go`, `base_stats_auto_gen.go` (`core.HitRatingPerHitPercent`) and
-`spell_mod.go` (`core.SpellMod_BonusCrit_Percent`), or a `core.WeaponSubclassMask(proto.WeaponType_...)`
-call.
+`spell_mod.go` (`core.SpellMod_BonusCrit_Percent`).
 
 A hit, crit or rating effect names the rule `spelldata.WeaponScope` gives it, which is the one the parse
 attaches it by: `per weapon: only attacks made with <weapons>`, `ranged weapons only`,

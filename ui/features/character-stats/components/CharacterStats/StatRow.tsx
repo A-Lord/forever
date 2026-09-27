@@ -98,11 +98,14 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 	// A row with an off-hand half reads as "<main hand> / <off hand>" while dual wielding, and as the
 	// main-hand value alone otherwise.
 	const offHand = dualWielding ? offHandStat : undefined;
-	const hands = offHand ? [unitStat, offHand] : [unitStat];
-	const ids = offHand ? [mainHandId, offHandId] : [mainHandId];
-	const labels = offHand ? [i18n.t('slots.main_hand', { ns: 'character' }), i18n.t('slots.off_hand', { ns: 'character' })] : [undefined];
+	const handSlots: { stat: UnitStat; id: string; label?: string }[] = offHand
+		? [
+				{ stat: unitStat, id: mainHandId, label: i18n.t('slots.main_hand', { ns: 'character' }) },
+				{ stat: offHand, id: offHandId, label: i18n.t('slots.off_hand', { ns: 'character' }) },
+			]
+		: [{ stat: unitStat, id: mainHandId }];
 	// Each hand's final display string, computed once and shared by its button and its tooltip's Total row.
-	const finalDisplays = hands.map(hand => show(attribution.final, hand, true));
+	const hands = handSlots.map(hand => ({ ...hand, total: show(attribution.final, hand.stat, true) }));
 
 	return (
 		<tr data-testid="character-stats-table-row" className="ui-character-stats-row">
@@ -113,41 +116,31 @@ export const StatRow = ({ displayStat, bonusStats, attribution, show, rangedWeap
 				) : (
 					<>
 						<div className="ui-stat-value-link-container">
-							{offHand ? (
-								<span>
-									{hands.map((hand, i) => (
-										<Fragment key={hand.getKey()}>
-											<Button
-												variant="unstyled"
-												data-testid="stat-value-link"
-												className={contextualClass}
-												{...tooltipAnchorProps(ids[i])}>
-												{finalDisplays[i]}
-											</Button>
-											{i === 0 ? ' / ' : ' '}
-										</Fragment>
-									))}
-								</span>
-							) : (
-								<Button variant="unstyled" data-testid="stat-value-link" className={contextualClass} {...tooltipAnchorProps(mainHandId)}>
-									{`${finalDisplays[0]} `}
-								</Button>
-							)}
+							<span>
+								{hands.map((hand, i) => (
+									<Fragment key={hand.stat.getKey()}>
+										{i > 0 && ' / '}
+										<Button variant="unstyled" data-testid="stat-value-link" className={contextualClass} {...tooltipAnchorProps(hand.id)}>
+											{hand.total}
+										</Button>
+									</Fragment>
+								))}
+							</span>
 						</div>
 						{!notEditable && <BonusStatsLink unitStat={unitStat} />}
-						{hands.map((hand, i) => (
+						{hands.map(hand => (
 							<Tooltip
-								key={hand.getKey()}
-								id={ids[i]}
+								key={hand.stat.getKey()}
+								id={hand.id}
 								content={
 									<StatTooltipBody
-										hand={hand}
-										handLabel={labels[i]}
+										hand={hand.stat}
+										handLabel={hand.label}
 										attribution={attribution}
 										show={show}
 										bonusStats={bonusStats}
 										bonusStatValue={bonusStatValue}
-										total={finalDisplays[i]}
+										total={hand.total}
 										showEffectiveWeaponSpeed={showEffectiveWeaponSpeed}
 										rangedWeapon={rangedWeapon}
 									/>

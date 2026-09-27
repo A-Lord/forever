@@ -137,7 +137,9 @@ var modConfigFields = []modConfigField{
 	{"School", func(c *core.SpellModConfig) string { return nonZero(c.School, core.SpellSchool.String) }},
 	{"DefenseType", func(c *core.SpellModConfig) string { return nonZero(c.DefenseType, core.DefenseType.String) }},
 	{"ProcMask", func(c *core.SpellModConfig) string { return nonZero(c.ProcMask, procMaskNames) }},
-	{"SpellFlag", func(c *core.SpellModConfig) string { return strings.Join(setBits(uint64(c.SpellFlag), spellFlagBit), " | ") }},
+	{"SpellFlag", func(c *core.SpellModConfig) string {
+		return strings.Join(setBits(uint64(c.SpellFlag), spellFlagBit), " | ")
+	}},
 	{"ResourceType", func(c *core.SpellModConfig) string {
 		return nonZero(c.ResourceType, proto.ResourceType.String)
 	}},
@@ -159,7 +161,7 @@ var modConfigFields = []modConfigField{
 // What the Equip fields make of the mod in core's shouldApply: the weapon behind each attack is checked,
 // a magic-defense spell and a pet never match, and an item swap re-filters the spells it reaches.
 func modWeaponRule(c *core.SpellModConfig) string {
-	if c.EquipSubclass == 0 && c.EquipInvType == 0 && c.EquipHand == 0 {
+	if c.Equip().IsZero() {
 		return ""
 	}
 	rule := perWeapon(*c) + ". Magic-defense spells and pets never match; an item swap re-filters it."

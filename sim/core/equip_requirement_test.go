@@ -81,7 +81,7 @@ func TestInvTypeBit(t *testing.T) {
 			t.Errorf("%s: invTypeBit = %#x, want %#x", test.name, got, test.want)
 		}
 	}
-	if invTypeBit(oh, &oneHand)&(1<<22) == 0 || invTypeBit(mh, &oneHand)&(1<<22) != 0 {
+	if invTypeBit(oh, &oneHand)&dbcenums.INVTYPE_BIT_WEAPONOFFHAND == 0 || invTypeBit(mh, &oneHand)&dbcenums.INVTYPE_BIT_WEAPONOFFHAND != 0 {
 		t.Error("the off-hand inventory type 22 should name a one-hand weapon in the off hand and not in the main hand")
 	}
 }
@@ -173,7 +173,7 @@ func TestEquipRequirementEquipped(t *testing.T) {
 		{"two-handed sword", PlayerUnit, twoHandSword, Item{}, bow, EquipRequirement{SubclassMask: sword}, true},
 		{"sword in the off hand", PlayerUnit, dagger, oneHandSword, bow, EquipRequirement{SubclassMask: sword}, true},
 		{"no sword", PlayerUnit, dagger, dagger, bow, EquipRequirement{SubclassMask: sword}, false},
-		{"bow in the ranged slot", PlayerUnit, dagger, dagger, bow, EquipRequirement{SubclassMask: 262156}, true},
+		{"bow in the ranged slot", PlayerUnit, dagger, dagger, bow, EquipRequirement{SubclassMask: dbcenums.ITEM_SUBCLASS_MASK_WEAPON_SHOOTING}, true},
 		{"off hand named, sword in the main hand", PlayerUnit, oneHandSword, dagger, bow,
 			EquipRequirement{SubclassMask: sword, Hand: ProcMaskMeleeOH}, false},
 		{"pet", PetUnit, oneHandSword, dagger, bow, EquipRequirement{SubclassMask: sword}, false},

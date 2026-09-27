@@ -136,7 +136,7 @@ go run ./tools/spelldata -family warrior/Execute # the ladder: one line per rank
 go run ./tools/spelldata -expr 'spellData.Execute.Rank(3)' -package warrior   # the row a ladder call names, Highest(), Rank(n) or ByID(id)
 go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)' -package warrior   # a pick followed by the store's own accessors: the value it reads, that accessor's doc comment and the row with the effect it read marked
 go run ./tools/spelldata -config 'spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))' -package warrior   # the config the resolver builds, each field with the step that filled it
-go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeAxe)}'   # each field, the weapons it needs and the rule core applies
+go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE}'   # each field, the weapons it needs and the rule core applies
 go run ./tools/spelldata -hover sim/warrior/execute.go 12:40   # the markdown an editor hover shows at line:column (1-based); the trace on stderr
 go run ./tools/spelldata -lsp                    # the same hovers as a language server on stdio
 go run ./tools/database/gen_spelldata            # rewrite the store, the forms and every class file
