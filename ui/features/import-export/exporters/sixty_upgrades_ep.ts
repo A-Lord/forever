@@ -1,5 +1,4 @@
 import { PseudoStat, Stat } from '@generated/proto/common';
-import * as Mechanics from '@sim/constants/mechanics';
 import { UnitStat } from '@sim/proto/stats';
 
 import type { ExporterDefinition } from './types';
@@ -45,18 +44,6 @@ const STAT_NAMES: Record<Stat, string> = {
 	[Stat.StatShadowResistance]: 'shadowResist',
 };
 
-// Sixty Upgrades takes these as a percent chance, so a per-rating weight is scaled to per-percent.
-// Its Forever mode has one hit and one crit that cover melee, ranged and spells, as the rating does.
-const RATING_PER_PERCENT: Partial<Record<Stat, number>> = {
-	[Stat.StatHitRating]: Mechanics.HIT_RATING_PER_HIT_PERCENT,
-	[Stat.StatCritRating]: Mechanics.CRIT_RATING_PER_CRIT_PERCENT,
-	[Stat.StatHasteRating]: Mechanics.HASTE_RATING_PER_HASTE_PERCENT,
-	[Stat.StatExpertiseRating]: Mechanics.EXPERTISE_RATING_PER_EXPERTISE_PERCENT,
-	[Stat.StatDodgeRating]: Mechanics.DODGE_RATING_PER_DODGE_PERCENT,
-	[Stat.StatParryRating]: Mechanics.PARRY_RATING_PER_PARRY_PERCENT,
-	[Stat.StatBlockRating]: Mechanics.BLOCK_RATING_PER_BLOCK_PERCENT,
-};
-
 const PSEUDO_STAT_NAMES: Partial<Record<PseudoStat, string>> = {
 	[PseudoStat.PseudoStatMainHandDps]: 'dps',
 	[PseudoStat.PseudoStatRangedDps]: 'rangedDps',
@@ -64,7 +51,9 @@ const PSEUDO_STAT_NAMES: Partial<Record<PseudoStat, string>> = {
 
 const getName = (stat: UnitStat): string => (stat.isStat() ? STAT_NAMES[stat.getStat()] : (PSEUDO_STAT_NAMES[stat.getPseudoStat()] ?? ''));
 
-const getScale = (stat: UnitStat): number => (stat.isStat() ? (RATING_PER_PERCENT[stat.getStat()] ?? 1) : 1);
+// Sixty Upgrades takes the ratings as a percent chance, so a per-rating weight is scaled to per-percent.
+// Its Forever mode has one hit and one crit that cover melee, ranged and spells, as the rating does.
+const getScale = (stat: UnitStat): number => (stat.isStat() ? (stat.convertPercentToRating(1) ?? 1) : 1);
 
 export const SIXTY_UPGRADES_EP_EXPORTER: ExporterDefinition = {
 	title: 'Sixty Upgrades EP Export',

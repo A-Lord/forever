@@ -28,6 +28,20 @@ describe('SIXTY_UPGRADES_EP_EXPORTER', () => {
 		expect(url).toContain('&block=1.000');
 	});
 
+	it('scales the avoidance and expertise ratings, and sends defense per point', () => {
+		const url = exportFor(
+			new Stats()
+				.withStat(Stat.StatExpertiseRating, 0.5)
+				.withStat(Stat.StatDodgeRating, 0.5)
+				.withStat(Stat.StatParryRating, 0.2)
+				.withStat(Stat.StatDefenseRating, 0.3),
+		);
+		expect(url).toContain('&expertise=5.000');
+		expect(url).toContain('&dodge=6.000');
+		expect(url).toContain('&parry=3.000');
+		expect(url).toContain('&defense=0.300');
+	});
+
 	it('sends the one hit and crit rating as its hit and crit', () => {
 		const url = exportFor(new Stats().withStat(Stat.StatHitRating, 1.3).withStat(Stat.StatCritRating, 0.5).withStat(Stat.StatSpellDamage, 0.5));
 		expect(url).toContain('&hit=13.000');
