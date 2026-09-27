@@ -39,7 +39,7 @@ func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, 
 		ClassSpellsOnly:     s.ClassSpellsOnly(),
 		ClassFlags:          listenerClassFlags(character, s),
 		ProcSpellClassFlags: s.ClassFlags,
-		ProcChanceModsFrom:  &character.Unit,
+		Caster:              &character.Unit,
 		Handler:             handler,
 
 		RequireDamageComponent: decoded.RequireDamageComponent,

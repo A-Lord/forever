@@ -576,9 +576,8 @@ percentage on the sum. The mods reach no spell, only a trigger that states `Proc
 reaches it, so a class porting its poisons or another talented proc builds it with
 `spelldata.ProcTrigger` and does not also add the talent's chance by hand, which would count it twice.
 
-The mods counted are the caster's wherever the trigger sits. `spelldata.ProcTrigger` names the
-character it is built for in `ProcChanceModsFrom`, so a trigger on the target reads its caster's: the
-paladin's Judgement of Light passes the paladin, and Improved Judgement of Light 23564 raises the heal's
+The mods counted are the caster's wherever the trigger sits. `spelldata.ProcTrigger` sets `Caster`
+to the character it is built for, so a trigger on the target reads its caster's: the paladin's Judgement of Light passes the paladin, and Improved Judgement of Light 23564 raises the heal's
 50%. A pet's trigger counts its owner's mods with its own, so a hunter talent parsed onto the hunter
 reaches the pet. Frenzy 19621 names the proc of Tamed Pet Passive 20784, a row the store does not
 hold, so the pet's trigger sets `ProcSpellClassFlags` from the talent's effect mask. Every proc chance

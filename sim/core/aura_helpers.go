@@ -64,12 +64,9 @@ type ProcTrigger struct {
 	// spelldata.ProcTrigger fills it from the row; a trigger built by hand leaves it empty, so no
 	// proc chance talent reaches it.
 	ProcSpellClassFlags ClassFlags
-	// The unit whose proc chance mods reach this trigger's roll, for a trigger that sits on a unit
-	// other than its caster, e.g. Judgement of Light on the target. Nil reads the unit the trigger
-	// sits on; a pet's trigger reads its owner's mods as well.
-	ProcChanceModsFrom *Unit
-	ClassSpellsOnly    bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
-	ExtraCondition     ProcExtraCondition
+	Caster              *Unit // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
+	ClassSpellsOnly     bool  // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
+	ExtraCondition      ProcExtraCondition
 
 	// The Can Proc From Procs attribute (Attributes[3] 0x4000000): the listener also fires on hits
 	// from spells flagged SpellFlagProc. Without it a proc's hits are invisible to this listener,
@@ -130,8 +127,8 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 // fails without a draw. The unit's proc chance mods raise the manager's chance where there is one and
 // the stated chance otherwise. The cast and apply-effects listeners roll no manager.
 func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
-	if config.ProcChanceModsFrom != nil {
-		unit = config.ProcChanceModsFrom
+	if config.Caster != nil {
+		unit = config.Caster
 	}
 
 	stated := config.ProcChance

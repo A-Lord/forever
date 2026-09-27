@@ -185,7 +185,7 @@ func AttachJudgementOfLightHeal(aura *core.Aura, caster *core.Unit, rank Judgeme
 		RequireDamageDealt:  true,
 		ProcChance:          judgementProcChance,
 		ProcSpellClassFlags: spelldata.MustFind(rank.SpellID).ClassFlags,
-		ProcChanceModsFrom:  caster,
+		Caster:              caster,
 		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			spell.Unit.GainHealth(sim, heal, healthMetrics)
 		},

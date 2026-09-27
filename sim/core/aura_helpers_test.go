@@ -129,7 +129,7 @@ func TestProcChanceModReachesTheTriggersItNames(t *testing.T) {
 	}{
 		{"a pet's trigger", pet, ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison}, 1000},
 		{"a trigger on the target naming the caster", target,
-			ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison, ProcChanceModsFrom: unit}, 1000},
+			ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison, Caster: unit}, 1000},
 		{"a trigger on the target naming no one", target, ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison}, 0},
 	} {
 		if got := fires(test.unit, test.config); got != test.want {
