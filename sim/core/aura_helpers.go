@@ -50,15 +50,13 @@ type ProcTrigger struct {
 	// ticks deal damage, and a hit absorbed to 0 from a spell without one does not count.
 	RequireDamageComponent bool
 
-	ProcChance         float64
-	DPM                *DynamicProcManager
-	ICD                time.Duration
-	Handler            ProcHandler
-	TriggerImmediately bool // If false (default), the handler will be called one spell batch window later for improved realism.
-	ClassSpellMask     int64
-	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
-	// both this and ClassSpellMask fires only on the spells both name.
-	ClassFlags          ClassFlags
+	ProcChance          float64
+	DPM                 *DynamicProcManager
+	ICD                 time.Duration
+	Handler             ProcHandler
+	TriggerImmediately  bool // If false (default), the handler will be called one spell batch window later for improved realism.
+	ClassSpellMask      int64
+	ClassFlags          ClassFlags // The spells this trigger fires on (the client's EffectSpellClassMask); with ClassSpellMask, both must match.
 	ProcSpellClassFlags ClassFlags // The proccing spell's class flags, which proc chance talents match (e.g. Improved Poisons on Instant Poison).
 	Caster              *Unit      // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
 	ClassSpellsOnly     bool       // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
