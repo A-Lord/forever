@@ -25,22 +25,6 @@ var SoDItemDenyList = map[int32]struct{}{
 	208689: {}, // Ferocious Idol
 	208849: {}, // Libram of Blessings
 	208851: {}, // Libram of Justice
-	209611: {}, // Insignia of the Alliance
-	209612: {}, // Insignia of the Alliance
-	209613: {}, // Insignia of the Alliance
-	209614: {}, // Insignia of the Alliance
-	209615: {}, // Insignia of the Alliance
-	209616: {}, // Insignia of the Alliance
-	209617: {}, // Insignia of the Alliance
-	209618: {}, // Insignia of the Alliance
-	209619: {}, // Insignia of the Horde
-	209620: {}, // Insignia of the Horde
-	209621: {}, // Insignia of the Horde
-	209622: {}, // Insignia of the Horde
-	209623: {}, // Insignia of the Horde
-	209624: {}, // Insignia of the Horde
-	209625: {}, // Insignia of the Horde
-	209626: {}, // Insignia of the Horde
 	210195: {}, // Unbalanced Idol
 	210534: {}, // Idol of the Wild
 	210781: {}, // Phoenix Bindings
