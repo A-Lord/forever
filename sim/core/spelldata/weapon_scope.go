@@ -19,7 +19,8 @@ const (
 	// The stat on every spell and attack while a matching weapon is in a weapon slot.
 	WeaponRuleWhileEquipped
 	// A rating mask of ranged bits alone, on a row that names no weapon: the percent the rating is
-	// worth, on ranged attacks.
+	// worth, on ranged-defense attacks. A magic-defense spell on the ranged proc mask, such as Thunder
+	// Clap, rolls on the spell tables and takes none of it.
 	WeaponRuleRangedRatings
 )
 
@@ -48,7 +49,7 @@ func WeaponScope(s *Spell, e *Effect) (WeaponRule, core.SpellModConfig) {
 	case scoped:
 		return WeaponRulePerWeapon, scope
 	case e.Aura == dbcenums.A_MOD_RATING && RangedBitsOnly(e.Misc):
-		return WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged}
+		return WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged, DefenseType: core.DefenseTypeRanged}
 	}
 	return WeaponRuleNone, core.SpellModConfig{}
 }

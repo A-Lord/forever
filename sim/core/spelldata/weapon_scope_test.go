@@ -52,7 +52,8 @@ func TestWeaponScopeRules(t *testing.T) {
 		{"hit rating with melee weapons", Spell{EquipClass: 2, EquipSubclass: 173555},
 			rating(32 | 64 | 128), WeaponRulePerWeapon,
 			core.SpellModConfig{ProcMask: core.ProcMaskMelee, EquipSubclass: 173555}},
-		{"ranged hit rating", Spell{}, rating(64), WeaponRuleRangedRatings, core.SpellModConfig{ProcMask: core.ProcMaskRanged}},
+		{"ranged hit rating", Spell{}, rating(64), WeaponRuleRangedRatings,
+			core.SpellModConfig{ProcMask: core.ProcMaskRanged, DefenseType: core.DefenseTypeRanged}},
 		{"hit rating on every channel", Spell{}, rating(32 | 64 | 128), WeaponRuleNone, core.SpellModConfig{}},
 		{"expertise rating", Spell{}, rating(8388608), WeaponRuleNone, core.SpellModConfig{}},
 	}

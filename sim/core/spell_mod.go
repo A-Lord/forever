@@ -53,7 +53,6 @@ type SpellMod struct {
 	SpellFlag      SpellFlag
 	ResourceType   proto.ResourceType
 	Equip          EquipRequirement
-	equipment      *Equipment
 	FromRating     bool
 	floatValue     float64
 	intValue       int32
@@ -160,7 +159,6 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 	unit.spellMods = append(unit.spellMods, mod)
 	if !mod.Equip.IsZero() {
-		mod.equipment = unit.playerEquipment()
 		unit.equipMods = append(unit.equipMods, mod)
 	}
 
@@ -287,7 +285,7 @@ func passesWeaponChecks(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	return mod.Equip.IsZero() || mod.Equip.matchesEquipment(mod.equipment, spell.ProcMask)
+	return mod.Equip.IsZero() || mod.Equip.Matches(spell.Unit, spell.ProcMask)
 }
 
 // Whether the weapons now reach other candidates than AffectedSpells holds. AffectedSpells is the
