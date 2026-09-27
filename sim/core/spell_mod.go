@@ -144,11 +144,6 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 
 	if mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
 		unit.procChanceMods = append(unit.procChanceMods, mod)
-		if config.ShouldApplyToPets {
-			for _, pet := range unit.PetAgents {
-				pet.GetPet().procChanceMods = append(pet.GetPet().procChanceMods, mod)
-			}
-		}
 		return mod
 	}
 
@@ -1191,21 +1186,23 @@ func onResetDirectDamageDoneAdd(mod *SpellMod) {
 // The chance a proc trigger with these class flags of its own rolls, once the unit's active proc
 // chance mods that name them are counted: the flat points are added first and the percentage
 // multiplies the sum. A trigger that states no class flags of its own is named by no mod, and a
-// chance no mod names comes back unchanged.
+// chance no mod names comes back unchanged. A pet counts its owner's mods with its own.
 func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
-	if len(unit.procChanceMods) == 0 || flags.IsZero() {
+	if flags.IsZero() {
 		return chance
 	}
 
 	var flat, pct float64
-	for _, mod := range unit.procChanceMods {
-		if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
-			continue
-		}
-		if mod.Kind == SpellMod_ProcChance_Flat {
-			flat += mod.floatValue
-		} else {
-			pct += mod.floatValue
+	for ; unit != nil; unit = unit.procChanceOwner {
+		for _, mod := range unit.procChanceMods {
+			if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
+				continue
+			}
+			if mod.Kind == SpellMod_ProcChance_Flat {
+				flat += mod.floatValue
+			} else {
+				pct += mod.floatValue
+			}
 		}
 	}
 	return (chance + flat/100) * (1 + pct)

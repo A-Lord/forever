@@ -131,6 +131,8 @@ type Unit struct {
 
 	// The spell mods that raise the chance of the unit's proc triggers, which read them when they roll.
 	procChanceMods []*SpellMod
+	// A pet's owner, whose proc chance mods the pet's triggers count with the pet's own.
+	procChanceOwner *Unit
 
 	// Pets owned by this Unit.
 	PetAgents []PetAgent
