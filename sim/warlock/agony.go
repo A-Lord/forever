@@ -8,7 +8,7 @@ package warlock
 // TODO: To be implemented. Forever renamed this to **Bane of Agony**: spells 980, 1014, 6217, 11711 (and up)
 // on the Affliction line, a full rank chain. The registrar needs re-pointing at that name,
 // not implementing from nothing.
-func (warlock *Warlock) registerCurseOfAgony() {
+func (warlock *Warlock) registerBaneOfAgony() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:

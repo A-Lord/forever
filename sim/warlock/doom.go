@@ -7,7 +7,7 @@ package warlock
 
 // TODO: To be implemented. Forever renamed this to **Bane of Doom**: spell 603 on the Affliction line.
 // The registrar needs re-pointing at that name, not implementing from nothing.
-func (warlock *Warlock) registerCurseOfDoom() {
+func (warlock *Warlock) registerBaneOfDoom() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:

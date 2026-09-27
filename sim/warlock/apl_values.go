@@ -146,11 +146,6 @@ func (x *APLActionCastWarlockAssignedCurse) String() string {
 
 func (warlock *Warlock) GetAssignedCurse() *core.Spell {
 	switch warlock.Options.CurseOptions {
-	case proto.WarlockOptions_Agony:
-		return warlock.CurseOfAgony
-
-	case proto.WarlockOptions_Doom:
-		return warlock.CurseOfDoom
 
 	case proto.WarlockOptions_Elements:
 		return warlock.CurseOfElements

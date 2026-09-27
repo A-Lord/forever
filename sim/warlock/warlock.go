@@ -16,6 +16,7 @@ type Warlock struct {
 	// Base Spells
 	Corruption  *core.Spell
 	DrainLife   *core.Spell
+	DrainSoul   *core.Spell
 	Hellfire    *core.Spell
 	Immolate    *core.Spell
 	Incinerate  *core.Spell
@@ -26,23 +27,27 @@ type Warlock struct {
 	LifeTap *core.Spell
 
 	// Curses
-	CurseOfAgony             *core.Spell
-	CurseOfDoom              *core.Spell
 	CurseOfElements          *core.Spell
 	CurseOfElementsAuras     core.AuraArray
 	CurseOfRecklessness      *core.Spell
 	CurseOfRecklessnessAuras core.AuraArray
+
+	// Banes
+	BaneOfAgony *core.Spell
+	BaneOfDoom  *core.Spell
+	Banes       []*core.Spell
 
 	// Talent Tree Spells
 	AmplifyCurse *core.Spell
 	Conflagrate  *core.Spell
 	Shadowburn   *core.Spell
 	SiphonLife   *core.Spell
+	Wrack        *core.Spell
 
 	// Auras
 	AmplifyCurseAura       *core.Aura
+	AmplifyCurseMultiplier float64
 	NightfallProcAura      *core.Aura
-	ImpShadowboltAura      *core.Aura
 	ShadowEmbraceAura      *core.Aura
 	DemonicKnowledgeAura   *core.Aura
 	MasterDemonologistAura *core.Aura
@@ -98,20 +103,21 @@ func (warlock *Warlock) Initialize() {
 
 	// Curses
 	warlock.registerCurseOfElements()
-	warlock.registerCurseOfDoom()
-	warlock.registerCurseOfAgony()
+	warlock.registerBaneOfDoom()
+	warlock.registerBaneOfAgony()
 	warlock.registerCurseOfRecklessness()
 
 	warlock.registerCorruption()
 	warlock.registerDeathCoil()
 	warlock.registerDrainLife()
+	warlock.registerDrainSoul()
 	warlock.registerHellfire()
 	warlock.registerImmolate()
 	warlock.registerIncinerate()
 	warlock.registerLifeTap()
 	warlock.registerShadowBolt()
 	warlock.registerSearingPain()
-	warlock.registerSiphonLifeSpell()
+
 	warlock.registerSoulfire()
 
 	warlock.registerArmors()
@@ -154,7 +160,7 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	warlock.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	warlock.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
 
-	if !warlock.Options.SacrificeSummon {
+	if !(warlock.Options.SacrificeSummon && warlock.Talents.DemonicSacrifice) {
 		warlock.registerPets()
 	}
 
@@ -163,10 +169,19 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	return warlock
 }
 
+// Returns the number of active affliction effects on the target.
 func (warlock *Warlock) AfflictionCount(target *core.Unit) float64 {
-	return float64(len(target.GetAurasWithTag("Affliction")))
+	count := 0.0
+	for _, aura := range target.GetAurasWithTag("Affliction") {
+		if aura.IsActive() {
+			count++
+		}
+	}
+	return count
 }
 
+// Use to deactivate any other curse on the target when a new one is applied.
+// TODO: Similar logic required for Banes
 func (warlock *Warlock) DeactivateOtherCurses(sim *core.Simulation, newCurse *core.Spell, target *core.Unit) {
 	if warlock.currentActiveCurse != nil {
 		if warlock.currentActiveCurse.Dot(target) != nil {
@@ -180,6 +195,26 @@ func (warlock *Warlock) DeactivateOtherCurses(sim *core.Simulation, newCurse *co
 	}
 
 	warlock.currentActiveCurse = newCurse
+}
+
+// Slots in a target's per-caster damage multipliers (core.EnableDamageDoneByCaster / AttachDDBC), one per
+// warlock debuff that raises only this warlock's damage against the target. Each needs its own slot so one
+// debuff's expiry cannot clear another's, and every caller passes DDBC_Total so the slice is sized alike.
+const (
+	DDBC_ShadowVulnerability int = iota
+	DDBC_Wrack
+	DDBC_Total
+)
+
+// Scales a result already calculated - a ramp, a per-target bonus - and keeps its threat in step with
+// the damage, which the calculation set from the damage before the scaling.
+//
+// Landed warlock dots tick through spelldata's TickOutcomeHitRolled: they tested hit once, when applied,
+// so a tick rolls only the crit the row's Periodic Can Crit allows (the Forever beta log has no
+// SPELL_PERIODIC_MISSED). Area effects that tick, Hellfire and Rain of Fire, roll hit on every tick.
+func scaleResult(sim *core.Simulation, spell *core.Spell, result *core.SpellResult, multiplier float64) {
+	result.Damage *= multiplier
+	result.Threat = spell.ThreatFromDamage(sim, result.Outcome, result.Damage, spell.Unit.AttackTables[result.Target.UnitIndex])
 }
 
 // Agent is a generic way to access underlying warlock on any of the agents.
@@ -200,6 +235,8 @@ const (
 	WarlockSpellCorruption
 	WarlockSpellCurseOfAgony
 	WarlockSpellCurseOfElements
+	WarlockSpellBaneOfAgony
+	WarlockSpellBaneOfDoom
 	WarlockSpellDrainLife
 	WarlockSpellHellfire
 	WarlockSpellImmolationAura
@@ -215,10 +252,10 @@ const (
 	WarlockSpellVoidwalkerTorment
 	WarlockSpellSummonInfernal
 	WarlockSpellRainOfFire
-	WarlockSpellCurseOfDoom
 	WarlockSpellCurseOfRecklessness
 	WarlockSpellCurseOfWeakness
 	WarlockSpellSiphonLife
+	WarlockSpellWrack
 	WarlockSpellDrainSoul
 	WarlockSpellDeathCoil
 	WarlockSpellAll int64 = 1<<iota - 1
@@ -243,13 +280,15 @@ const (
 
 	WarlockShadowEmbraceSpells = WarlockSpellCorruption | WarlockSpellCurseOfAgony | WarlockSpellSiphonLife
 
-	WarlockCurses = WarlockSpellCurseOfAgony | WarlockSpellCurseOfDoom | WarlockSpellCurseOfElements | WarlockSpellCurseOfRecklessness
+	WarlockBanes = WarlockSpellBaneOfAgony | WarlockSpellBaneOfDoom
+
+	WarlockCurses = WarlockSpellCurseOfElements | WarlockSpellCurseOfRecklessness
 
 	WarlockSoulLeechSpells = WarlockSpellShadowBolt | WarlockSpellShadowBurn | WarlockSpellSoulFire |
 		WarlockSpellIncinerate | WarlockSpellSearingPain | WarlockSpellConflagrate
 
-	WarlockAfflictionSpells = WarlockSpellCorruption | WarlockSpellCurseOfAgony | WarlockSpellCurseOfDoom | WarlockSpellCurseOfRecklessness | WarlockSpellCurseOfElements |
-		WarlockSpellDrainLife | WarlockSpellDeathCoil
+	WarlockAfflictionSpells = WarlockSpellCorruption | WarlockSpellCurseOfAgony | WarlockSpellCurseOfRecklessness | WarlockSpellCurseOfElements |
+		WarlockSpellDrainLife | WarlockSpellDeathCoil | WarlockSpellSiphonLife | WarlockSpellWrack
 
 	WarlockDemonologySpells = WarlockAllSummons
 
