@@ -103,7 +103,7 @@ func (mage *Mage) registerSpells() {
 
 	// mage.registerBlastWaveSpell()
 	// mage.registerPyroblastSpell()
-	// mage.registerCombustionSpell()
+	mage.registerCombustionSpell()
 
 	// mage.registerColdSnapSpell()
 }
@@ -153,6 +153,7 @@ const (
 	MageSpellEvocation
 	MageSpellFireBlast
 	MageSpellFireball
+	MageSpellFireballDot
 	MageSpellFlamestrike
 	MageSpellFlamestrikeDot
 	MageSpellFrostArmor
@@ -182,8 +183,8 @@ const (
 		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch
 	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellBlizzard |
 		MageSpellFireBlast | MageSpellFireball | MageSpellFlamestrike | MageSpellFrostbolt |
-		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch
-	MageSpellInstantCast = MageSpellArcaneMissilesCast | MageSpellArcaneMissilesTick | MageSpellFireBlast | MageSpellArcaneExplosion | MageSpellPyroblastDot |
+		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch | MageSpellFireballDot
+	MageSpellInstantCast = MageSpellArcaneMissilesCast | MageSpellArcaneMissilesTick | MageSpellFireBlast | MageSpellArcaneExplosion | MageSpellPyroblastDot | MageSpellFireballDot |
 		MageSpellCombustion | MageSpellConeOfCold | MageSpellIceLance | MageSpellManaGems | MageSpellPresenceOfMind
 	MageSpellExtraResult = MageSpellArcaneMissilesTick | MageSpellBlizzard
 	FireSpellIgnitable   = MageSpellFireball | MageSpellScorch | MageSpellPyroblast
