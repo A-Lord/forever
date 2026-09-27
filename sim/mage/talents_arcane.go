@@ -24,16 +24,32 @@ func (mage *Mage) registerArcaneTalents() {
 	mage.registerMissileBarrage()
 
 	// Tier 5
-	// Presence of Mind implemented in presence_of_mind.go; registered unconditionally
-	// from registerSpells (its own Talents.PresenceOfMind guard is inside that file).
+	mage.registerPresenceOfMindTalent()
 	mage.registerArcaneMind()
 
 	// Tier 6
 	mage.registerArcaneInstability()
 
 	// Tier 7
-	// Arcane Power implemented in arcane_power.go; registered unconditionally
-	// from registerSpells (its own Talents.ArcanePower guard is inside that file).
+	mage.registerArcanePowerTalent()
+}
+
+// registerPresenceOfMindTalent implements the talent gate for Presence of Mind (presence_of_mind.go).
+func (mage *Mage) registerPresenceOfMindTalent() {
+	if !mage.Talents.PresenceOfMind {
+		return
+	}
+
+	// TODO: call mage.registerPresenceOfMindSpell() once it is implemented; it still panics.
+}
+
+// registerArcanePowerTalent implements the talent gate for Arcane Power (arcane_power.go).
+func (mage *Mage) registerArcanePowerTalent() {
+	if !mage.Talents.ArcanePower {
+		return
+	}
+
+	// TODO: call mage.registerArcanePowerSpell() once it is implemented; it still panics.
 }
 
 // registerWandSpecialization implements Wand Specialization, new in Forever.

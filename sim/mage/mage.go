@@ -96,16 +96,6 @@ func (mage *Mage) registerSpells() {
 	mage.registerScorchSpell()
 
 	//FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
-
-	//TalentSpells
-	// mage.registerPresenceOfMindSpell()
-	// mage.registerArcanePowerSpell()
-
-	// mage.registerBlastWaveSpell()
-	// mage.registerPyroblastSpell()
-	mage.registerCombustionSpell()
-
-	// mage.registerColdSnapSpell()
 }
 
 func (mage *Mage) Reset(sim *core.Simulation) {
@@ -182,8 +172,9 @@ const (
 	MageSpellFire  = MageSpellFireball | MageSpellCombustion |
 		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch
 	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellBlizzard |
-		MageSpellFireBlast | MageSpellFireball | MageSpellFlamestrike | MageSpellFrostbolt |
-		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch | MageSpellFireballDot
+		MageSpellBlastWave | MageSpellConeOfCold | MageSpellFireBlast | MageSpellFireball | MageSpellFireballDot |
+		MageSpellFlamestrike | MageSpellFlamestrikeDot | MageSpellFrostbolt | MageSpellFrostfireBolt | MageSpellFrostNova |
+		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch
 	MageSpellInstantCast = MageSpellArcaneMissilesCast | MageSpellArcaneMissilesTick | MageSpellFireBlast | MageSpellArcaneExplosion | MageSpellPyroblastDot | MageSpellFireballDot |
 		MageSpellCombustion | MageSpellConeOfCold | MageSpellIceLance | MageSpellManaGems | MageSpellPresenceOfMind
 	MageSpellExtraResult = MageSpellArcaneMissilesTick | MageSpellBlizzard

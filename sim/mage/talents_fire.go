@@ -31,15 +31,13 @@ func (mage *Mage) registerFireTalents() {
 
 	// Tier 5
 	mage.registerCriticalMass()
-	// Blast Wave implemented in blast_wave.go; registered unconditionally
-	// from registerSpells (its own Talents.BlastWave guard is inside that file).
+	mage.registerBlastWaveTalent()
 
 	// Tier 6
 	mage.registerFirePower()
 
 	// Tier 7
-	// Combustion implemented in combustion.go; registered unconditionally
-	// from registerSpells (its own Talents.Combustion guard is inside that file).
+	mage.registerCombustionTalent()
 }
 
 // registerWakeOfFire implements Wake of Fire, new in Forever.
@@ -158,6 +156,24 @@ func (mage *Mage) registerPyroblastTalent() {
 	}
 
 	mage.registerPyroblastSpell()
+}
+
+// registerBlastWaveTalent implements the talent gate for Blast Wave (blast_wave.go).
+func (mage *Mage) registerBlastWaveTalent() {
+	if !mage.Talents.BlastWave {
+		return
+	}
+
+	// TODO: call mage.registerBlastWaveSpell() once it is implemented; it still panics.
+}
+
+// registerCombustionTalent implements the talent gate for Combustion (combustion.go).
+func (mage *Mage) registerCombustionTalent() {
+	if !mage.Talents.Combustion {
+		return
+	}
+
+	mage.registerCombustionSpell()
 }
 
 // registerImprovedFireWard implements Improved Fire Ward, new in Forever.

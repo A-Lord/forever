@@ -25,8 +25,7 @@ func (mage *Mage) registerFrostTalents() {
 
 	// Tier 5
 	mage.registerImprovedConeOfCold()
-	// Cold Snap implemented in cold_snap.go; registered unconditionally
-	// from registerSpells (its own Talents.ColdSnap guard is inside that file).
+	mage.registerColdSnapTalent()
 	mage.registerFingersOfFrost()
 
 	// Tier 6
@@ -34,6 +33,15 @@ func (mage *Mage) registerFrostTalents() {
 
 	// Tier 7
 	mage.registerIceBarrier()
+}
+
+// registerColdSnapTalent implements the talent gate for Cold Snap (cold_snap.go).
+func (mage *Mage) registerColdSnapTalent() {
+	if !mage.Talents.ColdSnap {
+		return
+	}
+
+	// TODO: call mage.registerColdSnapSpell() once it is implemented; it still panics.
 }
 
 // registerFrostWarding implements Frost Warding, new in Forever.

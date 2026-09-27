@@ -18,10 +18,6 @@ var combustionBuffRank = spellData.CombustionTriggered.Highest()
 // Two auras: 11129 counts the crits left in its stacks (its ProcCharges), and 28682 carries the
 // crit, a SPELLMOD_CRITICAL_CHANCE per stack on its own class mask, up to 10 stacks.
 func (mage *Mage) registerCombustionSpell() {
-	if !mage.Talents.Combustion {
-		return
-	}
-
 	buffAura := mage.RegisterAura(spelldata.AuraConfig(combustionBuffRank, spelldata.Label("Combustion Crit")))
 	spelldata.ParseEffects(&mage.Character, buffAura, combustionBuffRank)
 

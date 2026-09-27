@@ -6,82 +6,89 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var arcaneBlastTriggered = spellData.ArcaneBlastTriggered.Highest()
-var damageModIncrease = arcaneBlastTriggered.Effect(dbcenums.A_ADD_PCT_MODIFIER, 0).Percent()  // SPELLMOD_DAMAGE
-var powerCostIncrease = arcaneBlastTriggered.Effect(dbcenums.A_ADD_PCT_MODIFIER, 14).Percent() // SPELLMOD_COST
-var dotModIncrease = arcaneBlastTriggered.Effect(dbcenums.A_ADD_PCT_MODIFIER, 22).Percent()    // SPELLMOD_DOT
+// Arcane Charges, the buff Arcane Blast stacks (400573): "the damage of all your other spells is
+// increased by 10% and the mana cost of Arcane Blast is increased by 175%. Effect stacks up to 4
+// times and lasts 8 sec or until any other damage spell is cast."
+var arcaneChargesRank = spellData.ArcaneBlastTriggered.Highest()
+
+// The damage bonus per charge. The row states it twice, SPELLMOD_DAMAGE (effect 1) and
+// SPELLMOD_DOT (effect 3), both 10%; the sim applies the one value to hits and DoTs alike.
+var arcaneChargeDamagePerStack = arcaneChargesRank.Effect(dbcenums.A_ADD_PCT_MODIFIER, 0).Percent()
+
+const (
+	// Damage that lands after the cast that spent the charges. It carries the bonus that cast
+	// locked in (arcaneChargesLock) and never the live one, so charges gained meanwhile do not
+	// raise it.
+	arcaneChargesLocked = MageSpellFireballDot | MageSpellPyroblastDot | MageSpellFlamestrikeDot |
+		MageSpellArcaneMissilesTick | MageSpellBlizzard
+
+	// The casts that spend the charges: any damage spell but Arcane Blast. A missile of the
+	// channel is not a cast of its own.
+	arcaneChargesConsumers = (MageSpellsAllDamaging | MageSpellArcaneMissilesCast) &^
+		(MageSpellArcaneBlast | MageSpellArcaneMissilesTick)
+)
 
 func (mage *Mage) registerArcaneCharges() {
-	//damage mod only affects non-AB spells, and only direct damage (SPELLMOD_DAMAGE). Nothing
-	//that lands after the cast takes it: charges gained meanwhile must not raise it. Those lock
-	//the bonus in at the cast instead (arcaneChargesDotBonuses): Fireball's DoT its SPELLMOD_DOT,
-	//the Arcane Missiles missiles their SPELLMOD_DAMAGE.
+	// The charges raise the damage of every damage spell except Arcane Blast itself.
+	// Verified in game on Arcane Missiles, Blizzard and Flamestrike, which the row's
+	// SPELLMOD_DAMAGE and SPELLMOD_DOT masks (effects 1 and 3) leave out, so this mod takes the
+	// sim's own mask instead of ParseEffects'.
 	damageMod := mage.AddDynamicMod(core.SpellModConfig{
-		ClassMask:  MageSpellsAll &^ (MageSpellArcaneBlast | MageSpellPyroblastDot | MageSpellFireballDot | MageSpellArcaneMissilesTick),
-		FloatValue: damageModIncrease,
-		Kind:       core.SpellMod_DamageDone_Pct,
+		ClassMask: MageSpellsAllDamaging &^ (MageSpellArcaneBlast | arcaneChargesLocked),
+		Kind:      core.SpellMod_DamageDone_Pct,
 	})
 
-	//AB manacost mod
-	abCostMod := mage.AddDynamicMod(core.SpellModConfig{
-		ClassMask:  MageSpellArcaneBlast,
-		FloatValue: powerCostIncrease,
-		Kind:       core.SpellMod_PowerCost_Pct_Add,
-	})
-
-	config := spelldata.AuraConfig(arcaneBlastTriggered)
+	config := spelldata.AuraConfig(arcaneChargesRank)
 
 	config.OnGain = func(aura *core.Aura, sim *core.Simulation) {
 		damageMod.Activate()
-		abCostMod.Activate()
 	}
 
 	config.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-		abCostMod.Deactivate()
 		damageMod.Deactivate()
 	}
 
 	config.OnStacksChange = func(aura *core.Aura, sim *core.Simulation, oldStacks, newStacks int32) {
-		stacks := float64(newStacks)
-		damageMod.UpdateFloatValue(damageModIncrease * stacks)
-		abCostMod.UpdateFloatValue(powerCostIncrease * stacks)
+		damageMod.UpdateFloatValue(arcaneChargeDamagePerStack * float64(newStacks))
 	}
 
-	//New in Forever - AB Stacks modifies damage of all spells excluding AB, consuming the stacks
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(MageSpellArcaneBlast) {
-			return
+		if spell.Matches(arcaneChargesConsumers) {
+			aura.Deactivate(sim)
 		}
-
-		aura.Deactivate(sim)
 	}
 
 	mage.ArcaneChargesAura = core.BlockPrepull(mage.RegisterAura(config))
+
+	// Arcane Blast's cost, per stack, on the row's own mask.
+	spelldata.ParseEffects(&mage.Character, mage.ArcaneChargesAura, arcaneChargesRank, spelldata.Effects(2))
 }
 
-// The charges' SPELLMOD_DAMAGE bonus as it stands, for a spell whose damage lands after the cast.
-// Read it in ApplyEffects, before OnCastComplete consumes the charges.
-func (mage *Mage) arcaneChargesDamageBonus() float64 {
-	return damageModIncrease * float64(mage.ArcaneChargesAura.GetStacks())
+// The charges' damage bonus as it stands. A spell whose damage lands later reads it in
+// ApplyEffects, before OnCastComplete spends the charges, and hands it to an arcaneChargesLock.
+func (mage *Mage) arcaneChargesBonus() float64 {
+	return arcaneChargeDamagePerStack * float64(mage.ArcaneChargesAura.GetStacks())
 }
 
-// The charges' SPELLMOD_DOT bonus as it stands. Read it in ApplyEffects: the charges are consumed
-// in OnCastComplete, before a travelling missile lands and applies its DoT.
-func (mage *Mage) arcaneChargesDotBonus() float64 {
-	return dotModIncrease * float64(mage.ArcaneChargesAura.GetStacks())
+// The Arcane Charges bonus a cast locked in, per target, for the damage it deals after the charges
+// are gone: a DoT's ticks, a channel's missiles. It holds until the next lock on that target.
+type arcaneChargesLock map[*core.Unit]float64
+
+func (lock arcaneChargesLock) set(target *core.Unit, bonus float64) {
+	lock[target] = bonus
 }
 
-// The Arcane Charge DoT bonus each DoT locked in when it was applied (SPELLMOD_DOT names only
-// Fireball and Frostfire Bolt). The ticks outlive the charges, so the bonus rides on the DoT's
-// own PeriodicDamageMultiplier rather than on a spell mod.
-//
-// UNVERIFIED: whether the game applies the charges to these ticks at all; the row says so, the
-// tooltip only says "the damage of all your other spells".
-type arcaneChargesDotBonuses map[*core.Dot]float64
+// deal runs a damage calculation of spell on target with the locked bonus applied.
+func (lock arcaneChargesLock) deal(spell *core.Spell, target *core.Unit, calc func()) {
+	multiplier := 1 + lock[target]
+	spell.DamageMultiplier *= multiplier
+	calc()
+	spell.DamageMultiplier /= multiplier
+}
 
-// lockIn sets the bonus a DoT carries until it is applied again: Fireball's DoT ticks read it
-// through PeriodicDamageMultiplier, the Arcane Missiles missiles off their channel's DoT.
-func (bonuses arcaneChargesDotBonuses) lockIn(dot *core.Dot, bonus float64) {
-	dot.PeriodicDamageMultiplier *= (1 + bonus) / (1 + bonuses[dot])
-	bonuses[dot] = bonus
+// onTick applies the locked bonus to each of a DoT's ticks.
+func (lock arcaneChargesLock) onTick(tick core.OnTick) core.OnTick {
+	return func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		lock.deal(dot.Spell, target, func() { tick(sim, target, dot) })
+	}
 }
