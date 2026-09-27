@@ -97,7 +97,7 @@ type ActionRef struct {
 	ItemID  int32
 }
 
-// BuffSpec is what the client cannot state about a proto field. Its scope is the slice it sits in,
+// BuffSpec is what the game files cannot state about a proto field. Its scope is the slice it sits in,
 // its number its position there, and its names, owner and left-out auras are read off its spell.
 type BuffSpec struct {
 	Field string // proto field name, snake_case

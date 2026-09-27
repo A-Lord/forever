@@ -28,7 +28,7 @@ func newSingleAuraStatBuff(char *Character, label string, stat stats.Stat, amoun
 	return aura
 }
 
-// A flat bonus the client's buff data does not state raises two numbers that a
+// A flat bonus the game files' buff data does not state raises two numbers that a
 // non-stacking buff keeps apart: what the aura applies and what it bids for its
 // category. A stacking buff prices the one off the other, so it refuses one.
 func TestAddGeneratedFlatBonusRaisesTheBidAndTheAmount(t *testing.T) {
@@ -41,14 +41,14 @@ func TestAddGeneratedFlatBonusRaisesTheBidAndTheAmount(t *testing.T) {
 	AddGeneratedFlatBonus(aura, stats.AttackPower, 139, 30)
 
 	if priority := aura.ExclusiveEffects[0].Priority; priority != 169 {
-		t.Errorf("the category effect bids %v, want the client's 139 plus the set's 30", priority)
+		t.Errorf("the category effect bids %v, want the game files' 139 plus the set's 30", priority)
 	}
 
 	MakePermanent(aura)
 	char.applyBuildPhaseAuras(CharacterBuildPhaseBuffs)
 
 	if got := char.stats[stats.AttackPower]; got != 169 {
-		t.Errorf("the aura applied %v attack power, want the client's 139 plus the set's 30", got)
+		t.Errorf("the aura applied %v attack power, want the game files' 139 plus the set's 30", got)
 	}
 }
 

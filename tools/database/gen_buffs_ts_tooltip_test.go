@@ -1,7 +1,7 @@
 package database
 
 // A settings input's icon is the spell the settings tab shows a user as its tooltip, so it must be
-// one the client states stats for. Skips without tools/database/wowsims.db.
+// one the game files state stats for. Skips without tools/database/wowsims.db.
 
 import (
 	"testing"

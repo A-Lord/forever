@@ -176,7 +176,7 @@ const STAT_TYPES = [
 ];
 
 // Whether the settings offer the consumable to this player: the class, race and profession the
-// client allows it to, and either a stat the spec weighs, a resource the spec spends, or, for a
+// game files allow it to, and either a stat the spec weighs, a resource the spec spends, or, for a
 // consumable that grants neither, an effect of another kind (damage, an absorb, a weapon enchant).
 // A temporary enchant is checked against a hand with handTakesImbue.
 export function isConsumableRelevant(

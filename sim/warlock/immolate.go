@@ -5,7 +5,7 @@ var immolateTick = immolateRank.PeriodicEffect()
 var immolateCoeff = immolateRank.DamageEffect().Coeff()
 var immolateDotCoeff = immolateTick.Coeff()
 
-// TODO: To be implemented. Port the TBC Immolate implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Immolate implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerImmolate() {
 	panic("To be implemented")
 

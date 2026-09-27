@@ -134,7 +134,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 
 	// Damage of any kind, however it arrived, which is both of the taken callbacks. The bit names
 	// damage rather than a hit, so a landed hit dealing none does not count - the default this
-	// decode starts from, and no client mask pairs this bit with one that clears it.
+	// decode starts from, and no game files mask pairs this bit with one that clears it.
 	if word&dbcenums.PROC_FLAG_TAKE_ANY_DAMAGE != 0 {
 		info.Callback |= CallbackOnSpellHitTaken | CallbackOnPeriodicDamageTaken
 	}
@@ -175,7 +175,7 @@ func DecodeProcTypeMask(mask [2]uint32, hint ProcHint) ProcTypeInfo {
 		info.Callback |= CallbackOnPeriodicDamageDealt
 	}
 
-	// The helpful-spell bit beside the harmful one is the client's "any spell", heals included,
+	// The helpful-spell bit beside the harmful one is the game files' "any spell", heals included,
 	// which the mask states on its own. A helpful bit without the harmful one needs the tooltip's
 	// evidence that it is a trigger at all.
 	helpfulSpells := word&dbcenums.PROC_FLAG_DEAL_HELPFUL_SPELL != 0 &&

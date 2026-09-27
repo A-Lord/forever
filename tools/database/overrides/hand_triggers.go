@@ -17,6 +17,6 @@ var HandTriggers = []HandTrigger{
 		Triggers: 20240,
 		Reason: "Retaliation's dummy aura (aura 4) casts the counterattack 20240: same name, class set and " +
 			"icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage",
-		Source: "client-rows",
+		Source: "game-files-rows",
 	},
 }

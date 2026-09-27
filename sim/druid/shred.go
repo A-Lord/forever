@@ -33,7 +33,7 @@ func (druid *Druid) registerShredSpell() {
 	//
 	// 	// Weapon damage * 2.25, boosted by 30% if Mangle is active.
 	// 	//
-	// 	// TODO: the client disagrees with this multiplier. Every rank of spellData.Shred
+	// 	// TODO: the game files disagree with this multiplier. Every rank of spellData.Shred
 	// 	// states E_WEAPON_PERCENT_DAMAGE 155, not 225, so Forever appears to have retuned
 	// 	// it. Left at the TBC value rather than changed on one reading of the data.
 	// 	DamageMultiplier: 2.25,

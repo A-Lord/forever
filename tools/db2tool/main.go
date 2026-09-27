@@ -1,13 +1,13 @@
-// db2tool extracts World of Warcraft client data into tools/database/wowsims.db.
+// db2tool extracts data from the World of Warcraft game files into tools/database/wowsims.db.
 //
 // The default mode reads the local install named by the settings' BaseDir:
 // .build.info picks the build, files come from local CASC
 // (root → encoding → .idx → data.NNN → BLTE), .dbd definitions and the
-// community listfile are fetched/cached over plain HTTPS. The client's
+// community listfile are fetched/cached over plain HTTPS. The game files'
 // DBCache.bin hotfixes for the extracted build are applied to the decoded
 // rows; --dbcache <file> pins specific cache files instead of the default
 // scan and --no-hotfixes disables the overlay. Encrypted sections are
-// decrypted with every TACT key the client ships, the server pushed into
+// decrypted with every TACT key the game files ship, the server pushed into
 // DBCache.bin, or the community list carries (--keys <file>, default
 // tools/db2tool/TACTKeys.txt, refreshed from wowdev/TACTKeys).
 //
@@ -245,7 +245,7 @@ func run(args []string) error {
 		}
 	}
 
-	// Hotfixes: overlay the client's DBCache.bin records on every decoded
+	// Hotfixes: overlay the game files' DBCache.bin records on every decoded
 	// table. Only a cache for this exact build applies; having none is not an
 	// error. --dbcache pins specific cache files (deterministic runs); with no
 	// override, local-CASC mode scans tools/db2tool/caches plus
@@ -312,7 +312,7 @@ func run(args []string) error {
 		return table, sqlite.TableDef{Name: tableName, Def: def, Version: version}, decoded, nil
 	}
 
-	// TACT keys: the client's own TactKey/TactKeyLookup tables (with any
+	// TACT keys: the game files' own TactKey/TactKeyLookup tables (with any
 	// pushed keys the hotfix overlay adds) plus the community list. Only the
 	// local-CASC and CDN modes can use them: offline .db2 files were already
 	// written with their encrypted chunks zero-filled.
@@ -334,7 +334,7 @@ func run(args []string) error {
 			return err
 		}
 		build.Keys = keys
-		fmt.Printf("TACT keys: %d loaded (%d from the client and its hotfixes, %d more from %s)\n", keys.Len(), fromClient, community, keyPath)
+		fmt.Printf("TACT keys: %d loaded (%d from the game files and their hotfixes, %d more from %s)\n", keys.Len(), fromClient, community, keyPath)
 	}
 
 	type loaded struct {

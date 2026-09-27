@@ -53,7 +53,7 @@ func flametongueStrikes(actions map[*proto.ActionID]*proto.TargetedActionMetrics
 
 // A warrior fighting under Flametongue Totem strikes the target with the
 // totem's fire on its main-hand hits, and an unresisted strike that does not
-// crit is the client's 1363 x the main hand's speed / 100.
+// crit is the game files' 1363 x the main hand's speed / 100.
 func TestFlametongueTotemStrikesOffAFightingWarriorsMainHand(t *testing.T) {
 	reaper := core.GetItemByID(arcaniteReaper)
 	if reaper == nil {

@@ -18,7 +18,7 @@ const (
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
 )
 
-// The five stats the client counts in its own order, which is what A_MOD_STAT, A_MOD_PERCENT_STAT
+// The five stats the game files count in their own order, which is what A_MOD_STAT, A_MOD_PERCENT_STAT
 // and A_MOD_TOTAL_STAT_PERCENTAGE index by.
 var clientStats = [5]stats.Stat{stats.Strength, stats.Agility, stats.Stamina, stats.Intellect, stats.Spirit}
 
@@ -97,10 +97,10 @@ func skipped(reason string) *attachment {
 // cannot take, or skipped with the reason, which sends the effect to Skipped and to the report.
 type row func(p *parser, e *Effect, v float64) *attachment
 
-// The auras the parser knows, keyed the way the client files them. A_ADD_FLAT_MODIFIER and
+// The auras the parser knows, keyed the way the game files store them. A_ADD_FLAT_MODIFIER and
 // A_ADD_PCT_MODIFIER name a spell property in their misc value and read the two tables below it;
 // the percentage table is handed its value as a fraction. A percentage crit chance is the same
-// percentage points the flat one adds, so it reads the flat row with the client's own number.
+// percentage points the flat one adds, so it reads the flat row with the game files' own number.
 var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_ADD_FLAT_MODIFIER: func(p *parser, e *Effect, v float64) *attachment {
 		return lookup(flatModTable, dbcenums.SpellModOp(e.Misc))(p, e, v)
@@ -210,8 +210,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			[]*float64{&p.unit.PseudoStats.BonusRangedAttackPower}, v)
 	},
 
-	// The ratings the misc value names as a mask of the client's combat ratings, by the combinations
-	// the sim keeps one stat for.
+	// The ratings the misc value names as a mask of the game files' combat ratings, by the
+	// combinations the sim keeps one stat for.
 	dbcenums.A_MOD_RATING: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statsBuff(ratingStats(e.Misc), v)
 	},
@@ -222,7 +222,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_PERCENT_STAT:          percentStatRow,
 	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: percentStatRow,
 
-	// Hit and crit, which the sim states in percentage points the way the client does.
+	// Hit and crit, which the sim states in percentage points the way the game files do.
 	dbcenums.A_MOD_HIT_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.PhysicalHitPercent, v)
 	},
@@ -271,12 +271,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 
 	// The chance a hit pushes a cast back, which the sim keeps as a chance that starts at 1: the
-	// client's 35% less pushback is -0.35 there.
+	// game files' 35% less pushback is -0.35 there.
 	dbcenums.A_REDUCE_PUSHBACK: func(p *parser, e *Effect, v float64) *attachment {
 		return p.pseudoAdd("pushback", "PushbackChance", []*float64{&p.unit.PseudoStats.PushbackChance}, -v/100)
 	},
 
-	// Mana regen, which the client states per five seconds on the mana bar.
+	// Mana regen, which the game files state per five seconds on the mana bar.
 	dbcenums.A_MOD_POWER_REGEN: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc != int32(dbcenums.POWER_MANA) {
 			return nil
@@ -319,7 +319,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statsBuff(resistanceStats(e.Misc), v)
 	},
 
-	// The client states the armor ladder twice, once on base armor and once on bonus armor, and the
+	// The game files state the armor ladder twice, once on base armor and once on bonus armor, and the
 	// tooltip states armor from items, which is the equipment share the sim scales.
 	dbcenums.A_MOD_BASE_RESISTANCE_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc&miscArmor == 0 {
@@ -423,7 +423,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return a
 	},
 
-	// The client states expertise as the percent it takes off dodge and parry.
+	// The game files state expertise as the percent it takes off dodge and parry.
 	dbcenums.A_MOD_EXPERTISE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.ExpertisePercent, v)
 	},
@@ -460,11 +460,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 }
 
-// A_ADD_FLAT_MODIFIER: the client's own amount, in the property's units.
+// A_ADD_FLAT_MODIFIER: the game files' own amount, in the property's units.
 var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_COST: func(p *parser, e *Effect, v float64) *attachment {
-		// The client states rage on a 0-1000 bar, so a -30 here is 3 rage. The caster's bar stands in
-		// for the power type of the spells the modifier reaches, which the effect does not state.
+		// The game files state rage on a 0-1000 bar, so a -30 here is 3 rage. The caster's bar
+		// stands in for the power type of the spells the modifier reaches, which the effect does
+		// not state.
 		if p.unit.HasRageBar() {
 			v /= 10
 		}
@@ -507,7 +508,7 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_EFFECT3: flatEffectAmount,
 }
 
-// A_ADD_PCT_MODIFIER: a percentage the client states as an integer, handed over as a fraction.
+// A_ADD_PCT_MODIFIER: a percentage the game files state as an integer, handed over as a fraction.
 var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_DAMAGE:      pctDamageDone,
 	dbcenums.SPELLMOD_ALL_EFFECTS: pctDamageDone,
@@ -566,7 +567,7 @@ func pctEffectAmount(p *parser, e *Effect, v float64) *attachment {
 }
 
 // The mod reaches a roll only where its class mask names a row that states a proc - a proc mask, or
-// a chance below the client's 100 for "always" - and puts no aura on an enemy or a pet. A poison's
+// a chance below the game files' 100 for "always" - and puts no aura on an enemy or a pet. A poison's
 // damage row states only its chance and applies no aura: the caster's weapon rolls it.
 func (p *parser) procChanceMod(kind string, cfg core.SpellModConfig, v float64) *attachment {
 	if cfg.ClassFlags.IsZero() {
@@ -619,7 +620,7 @@ func skipRow(_ *parser, _ *Effect, _ float64) *attachment {
 	return nil
 }
 
-// The most power the unit's bar holds, by the power type the misc value names. The client states
+// The most power the unit's bar holds, by the power type the misc value names. The game files state
 // rage on a 0-1000 bar and energy as it is; mana is the Mana stat, which the sim keeps as the maximum.
 // A unit without the rage or energy bar the row names has no maximum to raise, so the row is skipped
 // there. A dry run's unit has no bar at all, so it answers what a unit with the bar would attach.
@@ -671,7 +672,7 @@ func percentStatRow(p *parser, e *Effect, v float64) *attachment {
 	return p.statMultiplier(clientStatList(e.Misc), percentMultiplier(v))
 }
 
-// The spells a modifier effect names. The client leaves the mask empty on an effect that means the
+// The spells a modifier effect names. The game files leave the mask empty on an effect that means the
 // caster's whole family, and a spell with no family of its own leaves the mod unrestricted.
 func (p *parser) modConfig(e *Effect, kind core.SpellModType) core.SpellModConfig {
 	return core.SpellModConfig{Kind: kind, ClassFlags: p.classFlags(e)}
@@ -732,7 +733,7 @@ func (p *parser) modInt(kind string, cfg core.SpellModConfig, v float64) *attach
 	})
 }
 
-// The client states a time modifier in milliseconds, which is also what Value reports.
+// The game files state a time modifier in milliseconds, which is also what Value reports.
 func (p *parser) modTime(kind string, cfg core.SpellModConfig, ms float64) *attachment {
 	cfg.TimeValue = core.DurationFromMillis(ms)
 	return p.mod(kind, cfg, ms, func(mod *core.SpellMod, level float64) {
@@ -761,7 +762,7 @@ func (p *parser) statBuff(stat stats.Stat, v float64) *attachment {
 }
 
 // Flat stats, which follow the stacks: the attachment keeps what it has handed out and adds the
-// difference, so a level of 2 is worth twice the client's amount.
+// difference, so a level of 2 is worth twice the game files' amount.
 func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
 	if len(sts) == 0 {
 		return nil
@@ -990,9 +991,9 @@ func (p *parser) statDependency(dep *stats.StatDependency) func(sim *core.Simula
 	}
 }
 
-// A multiplier on the equipment share of a stat, which is what the client's base-resistance modifier
-// states. The character keeps one multiplier per stat, so the value cannot follow stacks, and the
-// static path has no Simulation for a later Refresh to hand over.
+// A multiplier on the equipment share of a stat, which is what the game files' base-resistance
+// modifier states. The character keeps one multiplier per stat, so the value cannot follow stacks,
+// and the static path has no Simulation for a later Refresh to hand over.
 //
 // Expiry undoes the multiplier by dividing by it, so a row that states -100% or worse has no way
 // back and is reported rather than applied. A pet wears no equipment, so there is no share to scale.
@@ -1102,8 +1103,9 @@ func multiplier(kind string, mult float64, apply func(sim *core.Simulation, fact
 	}}
 }
 
-// The damage multipliers the sim keeps once for everything and once per school: the client's mask of
-// every school is the first, and a narrower mask is the second, once per school bit it names.
+// The damage multipliers the sim keeps once for everything and once per school: the game files'
+// mask of every school is the first, and a narrower mask is the second, once per school bit it
+// names.
 func (p *parser) schoolMultiplier(kind string, key string, mask int32, mult float64, all *float64, perSchool *[stats.SchoolLen]float64) *attachment {
 	if mask == miscAllSchools {
 		return p.pseudoMultiplier(kind, key, []*float64{all}, mult)
@@ -1119,8 +1121,8 @@ func (p *parser) schoolMultiplier(kind string, key string, mask int32, mult floa
 	return p.pseudoMultiplier(kind+"-by-school", "School"+key, fields, mult)
 }
 
-// The client states a percentage as an integer, and its sign comes from the data: a -6 is 0.94.
-// A speed the client states as a percentage. A negative one is a slow, which makes the time between
+// The game files state a percentage as an integer, and its sign comes from the data: a -6 is 0.94.
+// A speed the game files state as a percentage. A negative one is a slow, which makes the time between
 // attacks or the cast time that much longer rather than taking that share off the speed.
 func speedMultiplier(v float64) float64 {
 	if v < 0 {
@@ -1133,7 +1135,7 @@ func percentMultiplier(v float64) float64 {
 	return 1 + v/100
 }
 
-// The stats a client stat index names: -1 is all five, and 0 through 4 are one of them.
+// The stats a game files stat index names: -1 is all five, and 0 through 4 are one of them.
 func clientStatList(misc int32) []stats.Stat {
 	if misc == miscAllStats {
 		return clientStats[:]

@@ -317,7 +317,7 @@ func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
 }
 
 // The judgement the paladin leaves on the target heals whoever strikes it; the
-// client's trigger spell 5373 is a dummy, so how much and how often is the
+// game files' trigger spell 5373 is a dummy, so how much and how often is the
 // driver's. The raid's copy is the top rank the paladin's own judgement states.
 func driveJudgementOfLight(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), JudgementOfLightMaxRank)
@@ -355,7 +355,7 @@ func driveArmorShatter(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	holdMaxStacks(core.MakePermanent(NewSpellDataArmorShatterAura(target, false, 0)))
 }
 
-// The client states one stack, so the raid's copy takes it as soon as it lands.
+// The game files state one stack, so the raid's copy takes it as soon as it lands.
 func driveDustCloud(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	holdMaxStacks(core.MakePermanent(NewSpellDataDustCloudAura(target, false, 0)))
 }

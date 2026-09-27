@@ -112,7 +112,7 @@ func TestFlatThreatBonusPctMod(t *testing.T) {
 	}
 }
 
-// A mod that names its spells by the client's class flags reaches exactly those spells: the
+// A mod that names its spells by the game files' class flags reaches exactly those spells: the
 // family has to agree and the masks have to overlap.
 func TestClassFlagsModMatching(t *testing.T) {
 	mod := &SpellMod{ClassFlags: ClassFlags{Family: 4, Mask: [4]uint32{0b0110}}}

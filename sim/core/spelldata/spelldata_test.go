@@ -11,7 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-// Rows in the shape the client states them, standing in for the generated store: a ranked
+// Rows in the shape the game files state them, standing in for the generated store: a ranked
 // direct-damage spell with a slow on it, a proc aura that fires a triggered spell, the spell it
 // fires, and two carrying the fractional EffectBasePointsF about one effect in 55 has. Ids ascend,
 // as the generated slice's do.
@@ -184,7 +184,7 @@ func TestTimes(t *testing.T) {
 		t.Errorf("cast time of 116 = %v, want 1.5s", got)
 	}
 
-	// The client's permanent aura.
+	// The game files' permanent aura.
 	permanent := &Spell{DurationMs: -1}
 	if got := permanent.Duration(); got != core.NeverExpires {
 		t.Errorf("duration of a permanent aura = %v, want NeverExpires", got)
@@ -196,7 +196,7 @@ func TestPowerCost(t *testing.T) {
 		t.Errorf("mana cost of 116 = %v, want 25", got)
 	}
 
-	// Rage is on the client's 0-1000 bar: 300 is 30 rage.
+	// Rage is on the game files' 0-1000 bar: 300 is 30 rage.
 	rager := &Spell{Powers: []Power{{Type: 1, Cost: 300}}}
 	if got := rager.PowerCost(1); got != 30 {
 		t.Errorf("rage cost = %v, want 30", got)
@@ -264,7 +264,7 @@ func TestRankedLadder(t *testing.T) {
 }
 
 // Each rank of a trait talent is a copy carrying the curve's value, so the store's own row keeps the
-// client's.
+// game files'.
 func TestTalentLadder(t *testing.T) {
 	curves[116] = [][]float64{{-40, -45, -50}, {19, 20, 21}}
 	defer delete(curves, 116)
@@ -277,7 +277,7 @@ func TestTalentLadder(t *testing.T) {
 		t.Errorf("rank 3 slow = %v, want -50", got)
 	}
 	if got := Find(116).EffectN(2).BaseValue(); got != 19 {
-		t.Errorf("the store's own row reads %v, want the client's 19", got)
+		t.Errorf("the store's own row reads %v, want the game files' 19", got)
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The librams the client ships unencrypted. Item effects apply before the spells register, so a
+// The librams the game files ship unencrypted. Item effects apply before the spells register, so a
 // libram that changes a number a spell reads at registration sets it on the paladin and the spell
 // picks it up; one that changes a spell's cost, cooldown or crit chance is a spell mod.
 //
@@ -109,7 +109,7 @@ func init() {
 	// Libram of Law
 	// https://www.wowhead.com/forever/item=272435/libram-of-law
 	//
-	// Increases the damage of your Judgement ability by 4%. The client's mask names Judgement of
+	// Increases the damage of your Judgement ability by 4%. The game files' mask names Judgement of
 	// Righteousness and Judgement of Fury, not Judgement of Command.
 	core.NewItemEffect(272435, func(agent core.Agent) {
 		agent.GetCharacter().AddStaticMod(core.SpellModConfig{

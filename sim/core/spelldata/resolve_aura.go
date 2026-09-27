@@ -6,12 +6,12 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-// An addition to the resolved aura for what the client does not state: the label the sim keys the
+// An addition to the resolved aura for what the game files do not state: the label the sim keys the
 // aura by and the callbacks it acts through.
 type AuraOpt func(*core.Aura)
 
-// What the client states about a spell's aura. The caller adds the callbacks and anything the client
-// does not carry to the returned value before registering it.
+// What the game files state about a spell's aura. The caller adds the callbacks and anything the
+// game files do not carry to the returned value before registering it.
 //
 // A row that states no duration resolves to one of 0, which core refuses to activate: such an aura
 // needs Permanent() or a duration of the caller's.
@@ -29,7 +29,7 @@ func AuraConfig(s *Spell, opts ...AuraOpt) core.Aura {
 	return aura
 }
 
-// The sim keeps charges and stacks in one field, and so does the client on all but a handful of
+// The sim keeps charges and stacks in one field, and so do the game files on all but a handful of
 // spells: CumulativeAura counts the stacks an aura builds up, ProcCharges counts the times it acts
 // before it drops, and a spell that states both is read as a stacking one.
 func maxStacks(s *Spell) int32 {
@@ -53,10 +53,10 @@ func Permanent() AuraOpt {
 	}
 }
 
-// What the client states about a periodic effect of a spell, as the dot core registers. The ticks are
-// the row's duration over the effect's period. The default OnTick deals the effect's own Average at
-// the caster's level, on the stats and multipliers in force at the tick; a caller replaces OnTick for
-// a heal or a value the client does not state. OnSnapshot is nil.
+// What the game files state about a periodic effect of a spell, as the dot core registers. The
+// ticks are the row's duration over the effect's period. The default OnTick deals the effect's own
+// Average at the caster's level, on the stats and multipliers in force at the tick; a caller
+// replaces OnTick for a heal or a value the game files do not state. OnSnapshot is nil.
 //
 // The aura's duration is the row's, which core recomputes from the ticks on every application.
 func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig {
@@ -64,7 +64,7 @@ func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig {
 		panic(fmt.Sprintf("spelldata: effect %d of spell %d (%s) states no tick period",
 			e.Index, s.ID, s.Name))
 	}
-	// DurationMs, not Duration(): the client's -1 is a permanent aura, which reads as a duration
+	// DurationMs, not Duration(): the game files' -1 is a permanent aura, which reads as a duration
 	// longer than any encounter and would resolve to an absurd number of ticks.
 	if s.DurationMs <= 0 {
 		panic(fmt.Sprintf("spelldata: spell %d (%s) states no duration to tick over", s.ID, s.Name))

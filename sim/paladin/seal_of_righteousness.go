@@ -18,7 +18,7 @@ var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4
 //
 // Unleashing this Seal's energy will cause Holy damage to an enemy.
 //
-// The seal's second effect names its judgement (the row has no effect at the client's index 1).
+// The seal's second effect names its judgement (the row has no effect at the game files' index 1).
 // The judgement's dummy, its second effect, carries the number the per-hit damage is built from:
 // the seal's tooltip renders that number over 87 and over 25, which is the flat "value per hundred
 // times swing speed" at speeds 1.15 and 4.0, and says nothing about hand type or spell power.

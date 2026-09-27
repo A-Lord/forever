@@ -126,7 +126,7 @@ func TestElunesLight(t *testing.T) {
 	}
 }
 
-// A warrior ability as spelldata builds one: the client's family 4 flags and no ClassSpellMask.
+// A warrior ability as spelldata builds one: the game files' family 4 flags and no ClassSpellMask.
 func fakeWarriorAbility(id int32, bit uint, damage float64) SpellConfig {
 	return SpellConfig{
 		ActionID:         ActionID{SpellID: id},

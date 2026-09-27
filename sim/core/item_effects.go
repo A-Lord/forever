@@ -56,8 +56,8 @@ func sortedKeys(effects map[int32]ApplyEffect) []int32 {
 
 // Registers an ApplyEffect function which will be called before the Sim
 // starts, for any Agent that is wearing the item.
-// missingItemEffects collects the items an effect was registered for that this client
-// does not ship, so the count can be reported rather than silently swallowed.
+// missingItemEffects collects the items an effect was registered for that the game files
+// do not ship, so the count can be reported rather than silently swallowed.
 var missingItemEffects []int32
 
 var missingEnchantEffects []int32
@@ -74,7 +74,7 @@ func NewItemEffect(id int32, itemEffect ApplyEffect) {
 		if GetItemByID(id) == nil {
 			if _, hasGem := GetGemByID(id); !hasGem {
 				// Forever's item set is a subset of TBC's -- 81 items these effects were
-				// written for are simply not in the client any more, and item 1168 is not
+				// written for are simply not in the game files any more, and item 1168 is not
 				// in the DBC at all. Skipping keeps the implementation around for the day
 				// an item comes back, where panicking would stop the sim from starting and
 				// deleting the code would lose work that is still correct.
@@ -97,7 +97,7 @@ func NewItemEffect(id int32, itemEffect ApplyEffect) {
 func NewEnchantEffect(id int32, enchantEffect ApplyEffect) {
 	if WITH_DB {
 		if GetEnchantByEffectID(id) == nil {
-			// Same as NewItemEffect: enchants this client does not ship are skipped rather
+			// Same as NewItemEffect: enchants the game files do not ship are skipped rather
 			// than aborting the process.
 			missingEnchantEffects = append(missingEnchantEffects, id)
 			return
