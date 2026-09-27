@@ -329,14 +329,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestRetribution-AllItems-InfernalLasso-219345"
- value: {
-  dps: 584.41094
-  tps: 428.3971
-  dtps: 10.17215
- }
-}
-dps_results: {
  key: "TestRetribution-AllItems-JomGabbar-23570"
  value: {
   dps: 588.6614
@@ -389,14 +381,6 @@ dps_results: {
  value: {
   dps: 591.07009
   tps: 432.98128
-  dtps: 10.98871
- }
-}
-dps_results: {
- key: "TestRetribution-AllItems-LibramofHolyAlacrity-228175"
- value: {
-  dps: 577.90137
-  tps: 423.76317
   dtps: 10.98871
  }
 }
