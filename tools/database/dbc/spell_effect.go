@@ -213,7 +213,7 @@ func (effect *SpellEffect) IsProcTrigger() bool {
 	return effect.EffectAura.IsProcTrigger()
 }
 
-// Reports whether the aura resolves to nothing on its own. Either the client applies it as a
+// Reports whether the aura resolves to nothing on its own. Either it applies in game as a
 // marker, or its real behaviour is server-scripted and not present in DBC at all.
 func (effect *SpellEffect) IsDummy() bool {
 	return effect.EffectAura == dbcenums.A_DUMMY || effect.EffectAura == dbcenums.A_PERIODIC_DUMMY

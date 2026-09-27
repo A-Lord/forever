@@ -20,7 +20,7 @@ var judgementOfLightHealIDs = map[int32]int32{1: 20267, 2: 20341, 3: 20342, 4: 2
 // against the judged enemy a chance of healing the attacker. Your melee strikes will refresh the
 // spell's duration. Only one Judgement per Paladin can be active at any one time.
 //
-// The seal's second effect names its judgement (the row has no effect at the client's index 1).
+// The seal's second effect names its judgement (the row has no effect at the game files' index 1).
 func (paladin *Paladin) registerSealOfLight(_ int32, rank *spelldata.Spell) {
 	judgementID := int32(rank.EffectN(2).BaseValue())
 	healRank := spellData.SealOfLightTriggered.ByID(judgementOfLightHealIDs[rank.RankNumber()])

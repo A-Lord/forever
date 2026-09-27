@@ -424,7 +424,7 @@ type TemporaryStatBuffWithStacksConfig struct {
 	// Set when stacks come from an event rather than a timer. The window aura is still built and
 	// still bounds the stacking aura, but nothing ticks - the caller adds stacks from its own
 	// trigger. The stacking aura is then given no duration of its own and is dropped when the
-	// window ends, which is what a child aura with no duration in the client data does.
+	// window ends, which is what a child aura with no duration in the game files does.
 	StacksFromEvent bool
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-// An addition to the resolved config for what the client does not state: the proc mask, the metrics
+// An addition to the resolved config for what the game files do not state: the proc mask, the metrics
 // the sim keeps and the flags a row cannot justify.
 type SpellOpt func(*core.SpellConfig, *Spell)
 
@@ -59,9 +59,9 @@ func (e *Effect) HitsAnArea() bool {
 	return slices.Contains(areaEnemyTargets, e.Target[0]) || slices.Contains(areaEnemyTargets, e.Target[1])
 }
 
-// What the client states about a spell, as the fields core registers it through. The caller adds the
-// proc mask, ApplyEffects and anything the client does not carry to the returned value before handing
-// it to RegisterSpell: the resolver fills the row's own fields and nothing else.
+// What the game files state about a spell, as the fields core registers it through. The caller adds
+// the proc mask, ApplyEffects and anything the game files do not carry to the returned value before
+// handing it to RegisterSpell: the resolver fills the row's own fields and nothing else.
 //
 // The unit is needed for the cooldown timers, so a config is built where the sim has a character,
 // not at package init. MaxTargets has no SpellConfig field; a caller that needs the row's cap reads
@@ -136,7 +136,7 @@ func Proc() SpellOpt {
 	}
 }
 
-// Flags the client does not state, such as the sim's own metrics and rotation flags.
+// Flags the game files do not state, such as the sim's own metrics and rotation flags.
 func Flags(flags core.SpellFlag) SpellOpt {
 	return func(config *core.SpellConfig, _ *Spell) {
 		config.Flags |= flags
@@ -169,7 +169,7 @@ func spellPowerCoeff(s *Spell) float64 {
 }
 
 // Spell.NameSubtext_lang, which is "Rank 4" on a ranked spell and a word like "Passive" or
-// "Shapeshift" on a handful of others. A spell the client shows no rank on answers 0, which is what
+// "Shapeshift" on a handful of others. A spell the game files show no rank on answers 0, which is what
 // the APL UI reads as "this spell has no ranks".
 func rankOf(s *Spell) int32 {
 	digits, ranked := strings.CutPrefix(s.Rank, "Rank ")
@@ -184,7 +184,7 @@ func rankOf(s *Spell) int32 {
 }
 
 // The flags the row's attributes and targets state. Everything else is the caller's: a flag the
-// client does not carry is not invented here.
+// game files do not carry is not invented here.
 func rowFlags(s *Spell) core.SpellFlag {
 	var flags core.SpellFlag
 	if s.IsPassive() {
@@ -211,8 +211,8 @@ func rowFlags(s *Spell) core.SpellFlag {
 // cooldowns: for a caller that runs the spell on cooldowns of its own.
 func Cast(s *Spell) core.CastConfig {
 	// Haste shortens a cast and the GCD it spends, which is the school's business rather than the hit
-	// table's: the shouts, Taunt, Piercing Howl and Thunder Clap are physical spells the client files
-	// under the magic defense type, and they ignore haste like every other ability.
+	// table's: the shouts, Taunt, Piercing Howl and Thunder Clap are physical spells the game files
+	// put under the magic defense type, and they ignore haste like every other ability.
 	cast := core.CastConfig{
 		DefaultCast: core.Cast{CastTime: s.CastTime()},
 		IgnoreHaste: s.SpellSchool() == core.SpellSchoolPhysical,
@@ -258,8 +258,8 @@ func categoryTimer(unit *core.Unit, s *Spell) *core.Timer {
 //
 // Only the first bar: 45 rows state a second one - 44 of them combo points beside energy - and the
 // sim has one cost per spell, so the caller spends the rest itself. A bar the sim does not model,
-// which is the client's -2 health on Bloodrage, resolves to no cost at all and leaves the cast as it
-// found it rather than declaring a cost the spell does not take.
+// which is the game files' -2 health on Bloodrage, resolves to no cost at all and leaves the cast
+// as it found it rather than declaring a cost the spell does not take.
 func applyCost(config *core.SpellConfig, s *Spell) {
 	if len(s.Powers) == 0 {
 		return

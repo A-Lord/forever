@@ -1,5 +1,5 @@
-// Regenerates the spell store, sim/<class>/spell_data_auto_gen.go and the raid buffs from the client
-// database.
+// Regenerates the spell store, sim/<class>/spell_data_auto_gen.go and the raid buffs from the game
+// files database.
 //
 // Its own binary, not a mode of gen_db: gen_db imports every class package, so a class file that
 // does not compile stops it. This binary imports sim/core, sim/core/spelldata and sim/common - the
@@ -27,7 +27,7 @@ import (
 
 var dbPath = flag.String("dbPath", "./tools/database/wowsims.db", "Location of the wowsims.db file produced by tools/db2tool")
 var check = flag.Bool("check", false, "Name the generated files that are not what this generator writes, and write nothing")
-var everyClassSpell = flag.Bool("everyClassSpell", false, "Root the store at every class spell the client has, not only what the sim reaches - for an export with tools/spelldata -dump, not to commit")
+var everyClassSpell = flag.Bool("everyClassSpell", false, "Root the store at every class spell the game files have, not only what the sim reaches - for an export with tools/spelldata -dump, not to commit")
 var unchecked = flag.Bool("unchecked", false, "Write the rendered files without type-checking them first, for a class file whose call sites cannot compile until they move onto what it will state")
 
 func main() {

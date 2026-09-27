@@ -43,7 +43,7 @@ func (warlock *Warlock) applyImprovedShadowBolt() {
 	}
 }
 
-// TODO: To be implemented. Port the TBC Cataclysm implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Cataclysm implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyCataclysm() {
 	if warlock.Talents.Cataclysm == 0 {
 		return
@@ -61,7 +61,7 @@ func (warlock *Warlock) applyCataclysm() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Bane implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Bane implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyBane() {
 	if warlock.Talents.Bane == 0 {
 		return
@@ -93,7 +93,7 @@ func (warlock *Warlock) applyShadowburn() {
 	warlock.registerShadowBurn()
 }
 
-// TODO: To be implemented. Port the TBC Destructive Reach implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Destructive Reach implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyDestructiveReach() {
 	if warlock.Talents.DestructiveReach == 0 {
 		return
@@ -112,7 +112,7 @@ func (warlock *Warlock) applyDestructiveReach() {
 	//
 }
 
-// TODO: To be implemented. Port the TBC Ruin implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Ruin implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyRuin() {
 	if warlock.Talents.Ruin == 0 {
 		return
@@ -140,7 +140,7 @@ func (warlock *Warlock) applyConflagrate() {
 	warlock.registerConflagrate()
 }
 
-// TODO: To be implemented. Port the TBC Shadow And Flame implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shadow And Flame implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyShadowAndFlame() {
 	if warlock.Talents.ShadowAndFlame == 0 {
 		return

@@ -11,9 +11,9 @@ func (druid *Druid) registerRavageSpell() {
 	panic("To be implemented")
 
 	// The TBC implementation, kept for the port:
-	// // 385% weapon damage, which the client states as E_WEAPON_PERCENT_DAMAGE = 384 on spell 27005 -
-	// // the same shape as Shred's 224 / 2.25. The flat addend is the rank's own value, scaled by that
-	// // multiplier the way the tooltip shows it.
+	// // 385% weapon damage, which the game files state as E_WEAPON_PERCENT_DAMAGE = 384 on spell
+	// // 27005 - the same shape as Shred's 224 / 2.25. The flat addend is the rank's own value,
+	// // scaled by that multiplier the way the tooltip shows it.
 	// const weaponMultiplier = 3.85
 	// const highHpCritPercentBonus = 50.0
 	//

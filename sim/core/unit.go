@@ -113,7 +113,7 @@ type Unit struct {
 
 	PseudoStats stats.PseudoStats
 
-	// The client form the unit is in; the class writes it.
+	// The form the unit is in, by the game files' numbering; the class writes it.
 	ShapeshiftForm dbcenums.ShapeshiftForm
 	// Leaves the current form, for a cast the form refuses but no form allows. Nil: none.
 	AutoUnshift func(sim *Simulation)

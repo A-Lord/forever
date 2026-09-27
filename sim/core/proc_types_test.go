@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Masks taken from the client rows named in each case.
+// Masks taken from the game files rows named in each case.
 func TestDecodeProcTypeMask(t *testing.T) {
 	cases := []struct {
 		name               string

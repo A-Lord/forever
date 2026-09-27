@@ -3,7 +3,7 @@ package warlock
 var incinerateRank = spellData.Incinerate.Highest()
 var incinerateCoeff = incinerateRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Incinerate implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Incinerate implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerIncinerate() {
 	panic("To be implemented")
 

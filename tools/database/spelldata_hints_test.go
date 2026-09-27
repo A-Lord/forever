@@ -1,6 +1,6 @@
 package database
 
-// The proc shapes docs/spell_data.md names, read off the client database the way the store's rows
+// The proc shapes docs/spell_data.md names, read off the game files database the way the store's rows
 // are. Which shape a spell has is a reading of its tooltip, and a reading is what silently changes
 // when a matcher is widened: Flurry states "$m1%" for its attack speed and Unbridled Wrath states
 // "$m1% chance" for its rage, and only the second is a roll.
@@ -27,7 +27,7 @@ func clientSpellTables(t *testing.T) *spellTables {
 	t.Helper()
 	DatabasePath = "wowsims.db"
 	if _, err := os.Stat(DatabasePath); err != nil {
-		t.Skipf("no client database at %s - run `make db` from a local WoW install to enable this gate", DatabasePath)
+		t.Skipf("no game files database at %s - run `make db` from a local WoW install to enable this gate", DatabasePath)
 	}
 
 	clientTables.once.Do(func() {
@@ -76,9 +76,9 @@ func TestProcShapeOfNamedSpells(t *testing.T) {
 			0, "no tooltip to read a hint off"},
 		{23548, "Battlegear of Wrath, the parry grant", procChanceColumn, 0, `the tooltip's "$h%" is the ProcChance column`,
 			core.ProcHintOutcomeTaken, `"after a block" is an outcome no ProcTypeMask has a bit for`},
-		{23547, "Battlegear of Wrath, the parry buff", procChanceAlways, 0, "the 100 in the column is the client's no-roll",
+		{23547, "Battlegear of Wrath, the parry buff", procChanceAlways, 0, "the 100 in the column is the game files' no-roll",
 			0, "the row ships no tooltip, so the parry it is spent on stays the caller's"},
-		{29626, "Shadowbolt Volley", procChancePPM, 0, `a column of 100 next to "Chance to strike" is a rate the client keeps elsewhere`,
+		{29626, "Shadowbolt Volley", procChancePPM, 0, `a column of 100 next to "Chance to strike" is a rate the game files keep elsewhere`,
 			0, "the wording states a rate, not a trigger the mask cannot carry"},
 		{22618, "Force Reactive Disk", procChanceAlways, 0, `the "chance of damaging the shield" is the shield's durability, in a sentence naming nothing the charge fires on; the charge itself fires on every block`,
 			core.ProcHintDamage, `"when the shield blocks" is the shield's own condition rather than an outcome of the wearer's, and "damaging the shield" is damage wording the taken mask ignores`},
@@ -91,21 +91,21 @@ func TestProcShapeOfNamedSpells(t *testing.T) {
 			core.ProcHintDamage, `"When Lightning Bolt or Chain Lightning deal damage" restricts the trigger to damage; the rest modifies another spell's chance`},
 		{440529, "Resourcefulness", procChancePPM, 0, `"your critical strikes have a $m3% chance" names effect 3, and the row carries two effects, so no chance resolves`,
 			core.ProcHintCrit | core.ProcHintNamedAbility, `"your critical strikes" names the trigger, "your Trap abilities" the ability`},
-		{23689, "Darkmoon Card: Heroism", procChancePPM, 0, `"Sometimes heals" beside the 100 is a rate the client keeps elsewhere`,
+		{23689, "Darkmoon Card: Heroism", procChancePPM, 0, `"Sometimes heals" beside the 100 is a rate the game files keep elsewhere`,
 			core.ProcHintHeals | core.ProcHintDamage, `"heals bearer" is heal wording, and "when damaging an enemy" restricts the trigger to damage`},
 		{1248761, "Recovery, an enchant's equip aura", procChanceAlways, 0, `the row ships no tooltip, and its grant 1248760's "Cannot occur more often than" is a cooldown, not a rate`,
 			core.ProcHintAttackDodged | core.ProcHintAttackParried, `the grant reads "when you are Parried or Dodged"`},
-		{1248806, "Revelation, an enchant's equip aura", procChancePPM, 0, `its grant 1248805's "a chance to trigger Revelation" beside the 100 is a rate the client keeps elsewhere`,
+		{1248806, "Revelation, an enchant's equip aura", procChancePPM, 0, `its grant 1248805's "a chance to trigger Revelation" beside the 100 is a rate the game files keep elsewhere`,
 			0, "the grant's crit wording names which hits feed the proc, which is the row's own mask to say"},
 		{1248758, "Insight, an enchant's equip aura", procChanceColumn, 0, "the column's 35 is the roll",
 			0, `the grant's "when you cast a spell" names which hits feed the proc, which is the row's own mask to say`},
-		{28200, "Talisman of Ascendance's stacking aura", procChanceAlways, 0, "the 100 in the column is the client's no-roll",
+		{28200, "Talisman of Ascendance's stacking aura", procChanceAlways, 0, "the 100 in the column is the game files' no-roll",
 			core.ProcHintHeals | core.ProcHintDamage, `"Your next 5 damage or healing spells" restricts the trigger to damage and names healing without being restricted to it`},
-		{9452, "Vindication", procChanceAlways, 0, "the 100 in the column is the client's no-roll",
+		{9452, "Vindication", procChanceAlways, 0, "the 100 in the column is the game files' no-roll",
 			core.ProcHintDamage, `"your damaging melee attacks" restricts the trigger to damage`},
 		{14076, "Improved Sap", procChanceEffectN, 1, `"$s1% chance" is effect 1's ladder`,
 			core.ProcHintNamedAbility, `"your Sap ability" names the ability and no damage`},
-		{7711, "Blazefury Medallion", procChanceAlways, 0, "the 100 in the column is the client's no-roll",
+		{7711, "Blazefury Medallion", procChanceAlways, 0, "the 100 in the column is the game files' no-roll",
 			core.ProcHintDamage, "an override rules the proc to hits with a damage component"},
 	} {
 		t.Run(want.name, func(t *testing.T) {
@@ -127,7 +127,7 @@ func TestProcShapeOfNamedSpells(t *testing.T) {
 			}
 
 			// An effect the chance sits on has to be one the sim can reach by that number, since
-			// EffectN counts positions and the client's EffectIndex has gaps.
+			// EffectN counts positions and the game files' EffectIndex has gaps.
 			if row.ProcChanceEffect != 0 {
 				position := int(row.ProcChanceEffect) - 1
 				if position >= len(row.Effects) {

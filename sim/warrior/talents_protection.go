@@ -67,7 +67,7 @@ func (warrior *Warrior) registerShieldSpecialization() {
 
 // A chance to gain rage when an incoming attack is blocked, dodged or parried. The rate is the
 // effect ladder the tooltip's $m names, and the 100 in the proc chance column is noise; the
-// energize the triggered spell states is on the client's 0-1000 rage bar.
+// energize the triggered spell states is on the game files' 0-1000 rage bar.
 //
 // No proc mask states an outcome, so which of the three it is stays the caller's; that the hit
 // carries no damage is the row's, off its outcome hint.
@@ -91,7 +91,7 @@ func (warrior *Warrior) registerToughness() {
 		return
 	}
 
-	// The client states the ladder twice, once on base armor and once on bonus armor; the parse
+	// The game files state the ladder twice, once on base armor and once on bonus armor; the parse
 	// takes the base armor effect, which the tooltip words as armor from items, onto the equipment
 	// share of the sim's single Armor stat, and skips the bonus armor one.
 	spelldata.ParseStatic(&warrior.Character, spellData.Toughness.Rank(warrior.Talents.Toughness))

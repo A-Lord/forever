@@ -31,7 +31,7 @@ func (s *Spell) GCD() time.Duration {
 	return core.DurationFromMillis(s.GCDMs)
 }
 
-// The client states a permanent aura as -1, which is core.NeverExpires here.
+// The game files state a permanent aura as -1, which is core.NeverExpires here.
 func (s *Spell) Duration() time.Duration {
 	if s.DurationMs == -1 {
 		return core.NeverExpires
@@ -52,7 +52,7 @@ func (s *Spell) DefenseTypeCore() core.DefenseType {
 	return s.DefenseType
 }
 
-// The i-th effect the row carries, counted from 1 by position rather than by the client's
+// The i-th effect the row carries, counted from 1 by position rather than by the game files'
 // EffectIndex, which has gaps. Out of range answers NilEffect.
 func (s *Spell) EffectN(i int) *Effect {
 	if i < 1 || i > len(s.Effects) {
@@ -86,7 +86,7 @@ func (s *Spell) Effect(aura dbcenums.EffectAuraType, misc int32) *Effect {
 }
 
 // The first effect matching all three, or NilEffect. Zero matches anything it is given as: an aura of
-// 0 on a direct effect is what the client states there.
+// 0 on a direct effect is what the game files state there.
 func (s *Spell) FindEffect(typ dbcenums.SpellEffectType, aura dbcenums.EffectAuraType, misc int32) *Effect {
 	for i := range s.Effects {
 		e := &s.Effects[i]
@@ -193,7 +193,8 @@ func (s *Spell) Power(t dbcenums.PowerType) *Power {
 	return nilPower
 }
 
-// The cost in the units the sim spends: rage off the client's 0-1000 bar, everything else as stated.
+// The cost in the units the sim spends: rage off the game files' 0-1000 bar, everything else as
+// stated.
 func (s *Spell) PowerCost(t dbcenums.PowerType) float64 {
 	cost := float64(s.Power(t).Cost)
 	if t.InTenths() {
@@ -211,7 +212,7 @@ func (s *Spell) Cost() float64 {
 	return s.PowerCost(s.Powers[0].Type)
 }
 
-// Spell.NameSubtext_lang's "Rank N" as a number; 0 for a spell the client shows no rank on, whose
+// Spell.NameSubtext_lang's "Rank N" as a number; 0 for a spell the game files show no rank on, whose
 // subtext is "Passive" or empty.
 func (s *Spell) RankNumber() int32 {
 	return rankOf(s)
@@ -261,8 +262,8 @@ func (s *Spell) Triggered() []*Spell {
 	return resolve(ids)
 }
 
-// The outcome a periodic tick rolls: a tick that can crit where the client marks Periodic Can Crit, a
-// plain tick otherwise, on the hit table the row's defense type names.
+// The outcome a periodic tick rolls: a tick that can crit where the game files mark Periodic Can
+// Crit, a plain tick otherwise, on the hit table the row's defense type names.
 func (s *Spell) TickOutcome(dot *core.Dot) core.OutcomeApplier {
 	switch tickOutcomeKind(s.PeriodicCanCrit(), s.DefenseTypeCore() == core.DefenseTypeMagic) {
 	case tickOutcomeMagicCrit:

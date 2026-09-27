@@ -119,7 +119,7 @@ func TestHoverFamily(t *testing.T) {
 }
 
 // The card a rank pick hovers as: a heading, the ladder call, the row's columns under its name, and the
-// effects below a rule with each wording over its client row.
+// effects below a rule with each wording over its game files row.
 const executeCard = "### 20662 Execute · Rank 5\n" +
 	"`warrior spellData.Execute.Highest()`  \n" +
 	"\n" +

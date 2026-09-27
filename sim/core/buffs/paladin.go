@@ -58,7 +58,7 @@ func NewSpellDataShadowResistanceAuraRank(char *core.Character, rank PaladinAura
 }
 
 // Retribution Aura scales with the casting paladin's Holy spell power in Forever even though its
-// client row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
+// game files row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
 // and the damage still moves with spell power in game). The coefficient is the 1.5 s cast-time
 // floor over 3.5, the AoE divisor because the shield hits every attacker, and the 0.95 penalty for
 // the aura effect. Confirmed at level 20: with 80 spell power rank 1 (base 7) hits for 17 to 18,
@@ -105,7 +105,7 @@ var (
 		Value: amount(spelldata.MustFind(judgementOfWisdomManaID).EnergizeEffect())}
 )
 
-// The raid's Judgement of the Crusader, which no generated row reads: the client states its bonus
+// The raid's Judgement of the Crusader, which no generated row reads: the game files state its bonus
 // for the holy school alone, which the manifest has no pseudo-stat for.
 var judgementOfTheCrusaderSpell = spelldata.MustFind(20303)
 
@@ -120,7 +120,7 @@ const (
 // Judgement effects on the target" can find them.
 const JudgementAuraTag = "JudgementAura"
 
-// The client says the judgements proc on a chance without stating it; the sim uses 50% until
+// The game files say the judgements proc on a chance without stating it; the sim uses 50% until
 // in-game testing says otherwise.
 const judgementProcChance = 0.5
 

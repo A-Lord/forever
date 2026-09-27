@@ -14,7 +14,7 @@ var battleStanceRank = spellData.BattleStance.Highest()
 var defensiveStanceRank = spellData.DefensiveStance.Highest()
 var berserkerStanceRank = spellData.BerserkerStance.Highest()
 
-// The passive each stance carries, which is where the client states what standing in it is worth.
+// The passive each stance carries, which is where the game files state what standing in it is worth.
 var battleStancePassive = spellData.BattleStancePassive.Highest()
 var defensiveStancePassive = spellData.DefensiveStancePassive.Highest()
 var berserkerStancePassive = spellData.BerserkerStancePassive.Highest()

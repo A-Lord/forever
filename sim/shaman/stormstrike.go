@@ -105,7 +105,7 @@ func (shaman *Shaman) newStormstrikeSpellConfig(spellID int32, ssDebuffAuras *co
 	return stormstrikeSpellConfig
 }
 
-// TODO: To be implemented. Port the TBC Stormstrike Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Stormstrike Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerStormstrikeSpell() {
 	panic("To be implemented")
 

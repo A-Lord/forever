@@ -21,7 +21,7 @@ type casterPart struct {
 	reaches func(*core.Spell) bool
 }
 
-// A damage effect that reaches only the caster's attacks: a percentage the client applies once per
+// A damage effect that reaches only the caster's attacks: a percentage the game applies once per
 // stack, so a level of 2 is worth 1 + 2*value/100.
 func (p *parser) casterDamage(kind string, v float64, reaches func(*core.Spell) bool) *attachment {
 	a := &attachment{kind: kind, value: percentMultiplier(v), multiplicative: true}

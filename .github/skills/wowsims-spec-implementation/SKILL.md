@@ -1,10 +1,12 @@
 ---
 name: wowsims-spec-implementation
-description: 'Use when picking up a [Spec] tracking issue for Forever: turning the datamined talent and ability checklist into a working spec, generating the class spell data, deciding what client content is actually live, and verifying work the expected results cannot see.'
+description: 'Use when picking up a [Spec] tracking issue for Forever: turning the datamined talent and ability checklist into a working spec, generating the class spell data, deciding what game files content is actually live, and verifying work the expected results cannot see.'
 argument-hint: 'Name the spec and the issue number to work from.'
 ---
 
 # Implementing a spec for Forever
+
+Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game files", not "client", no history in comments, no "golden".
 
 ## Scope
 
@@ -18,7 +20,7 @@ Not in scope: the spell data pipeline itself, which `wowsims-spells` covers, and
 The checklists are datamined, not hand-written. The extract lives outside this repo - it is working
 tooling, not something the sim reads - so ask for its location rather than assuming a path. It
 produces one JSON per class holding `abilities`, `families`, `talents` and a `meta` block naming the
-client build and trait tree.
+game build and trait tree.
 
 A `family` is an ability and all its ranks, keyed by its lowest rank's spell id. A checklist is one
 box per family, not per rank: Heroic Strike has nine ranks and one box.
@@ -27,7 +29,7 @@ box per family, not per rank: Heroic Strike has nine ranks and one box.
 
 **The Forever build carries Season of Discovery content that is not live.** This is the single
 biggest source of wrong entries, and it is not obvious from the extract alone - the spells are in the
-client database, correctly extracted, and simply not part of the game being simulated.
+game files database, correctly extracted, and simply not part of the game being simulated.
 
 The comparison against the SoD build is what settles it, per class: spell ids in both builds, ids in
 SoD only, and ids in Forever only. Exclude the SoD-only ones. For warrior that removed an entire
@@ -41,22 +43,22 @@ every one of them was SoD-only.
 
 - **A new low rank shifts every rank above it.** Forever's Slam gains a rank 1 (`1240193`), so every
   older Slam id is one rank lower than it was while keeping its id. Match on spell id, never on rank.
-- **Descriptions carry client colour codes.** Strip `|CFFFFFFFF` and `|R` and collapse whitespace, or
+- **Descriptions carry in-game colour codes.** Strip `|CFFFFFFFF` and `|R` and collapse whitespace, or
   the issue body renders as noise.
 - **Comparing by name and comparing by id answer different questions.** A talent absent from another
   build's spell ids may still exist there under a different id. If the claim is "this is new", check
   the other build's data directly rather than inferring it from what the sim happens to register.
-- **Counts in an issue body go stale.** They are a starting point to verify against the client. Say
+- **Counts in an issue body go stale.** They are a starting point to verify against the game files. Say
   what was filtered and why, so a re-run producing different numbers is explainable rather than
   alarming.
 
 ## Implementing
 
 Read the class's generated spell data first - `sim/<class>/spell_data_auto_gen.go` - and take every
-number the client states from it rather than writing a literal. `docs/spell_data.md` has the shapes,
+number the game files state from it rather than writing a literal. `docs/spell_data.md` has the shapes,
 the readers and the worked examples; `wowsims-spells` has the pipeline.
 
-Where the sim and the client disagree, decide rather than assume, and record the decision at the call
+Where the sim and the game files disagree, decide rather than assume, and record the decision at the call
 site. A literal that survives needs the reason on its line.
 
 ## Verifying

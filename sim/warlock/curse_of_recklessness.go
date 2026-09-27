@@ -3,7 +3,7 @@ package warlock
 var curseOfRecklessnessRank = spellData.CurseOfRecklessness.Highest()
 
 // TODO: To be implemented. The body below builds the spell around the generated
-// aura and has not been checked against the client past the aura itself.
+// aura and has not been checked against the game files past the aura itself.
 func (warlock *Warlock) registerCurseOfRecklessness() {
 	panic("To be implemented")
 

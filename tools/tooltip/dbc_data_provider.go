@@ -302,7 +302,7 @@ func (d DBCTooltipDataProvider) GetDescriptionVariableString(spellId int64) stri
 }
 
 // effectRange returns the bottom and top of the value an effect rolls. TBC
-// carries the spread as die sides rather than a variance: the client rolls
+// carries the spread as die sides rather than a variance: in game it rolls
 // basePoints + 1 .. basePoints + dieSides, so no sides at all collapses the
 // range onto basePoints, and negative sides roll the other way.
 func (d DBCTooltipDataProvider) effectRange(spellId int64, effectIdx int64) (float64, float64) {

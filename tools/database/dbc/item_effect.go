@@ -113,7 +113,7 @@ func assignTrigger(e *ItemEffect, statsSpellID int, pe *proto.ItemEffect) {
 		proc := &proto.ProcEffect{
 			IcdMs: procIcdMs(spTop, statsSP),
 		}
-		// The column is the roll only where it is one: 0 means the client states no rate at all and
+		// The column is the roll only where it is one: 0 means the game files state no rate at all and
 		// anything above 100 is its "the rate lives elsewhere" sentinel. A proc whose rate is not in
 		// the spell data reaches the sim through the spell store, where an override answers it.
 		if spTop.ProcChance > 0 && spTop.ProcChance <= 100 {
@@ -218,10 +218,10 @@ func resolveTriggerType(topType, spellID int) int {
 		return topType
 	}
 
-	// Carrying A_PROC_TRIGGER_SPELL is not on its own a proc. The client also uses that aura to hang
-	// a permanent sub-aura off an equip effect: Leggings of Beast Mastery and Void Star Talisman
-	// grant pet stats that way, with no proc mask, no chance and no duration, and promoting them
-	// emitted a proc with no rate at all. Something has to say when it would fire.
+	// Carrying A_PROC_TRIGGER_SPELL is not on its own a proc. The game files also use that aura to
+	// hang a permanent sub-aura off an equip effect: Leggings of Beast Mastery and Void Star
+	// Talisman grant pet stats that way, with no proc mask, no chance and no duration, and
+	// promoting them emitted a proc with no rate at all. Something has to say when it would fire.
 	//
 	// The chance-on-hit weapons are unaffected: the database types those CHANCE_ON_HIT itself, so
 	// they return above without being promoted here.

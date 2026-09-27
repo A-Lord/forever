@@ -2,7 +2,7 @@ package spelldata
 
 // The generated store as the package loads it, rather than the fixture the rest of the tests run
 // against: the shape every accessor depends on (ids in search order, effects in position order) and
-// a handful of rows read out of the client database by hand, so that a regeneration which moves a
+// a handful of rows read out of the game files by hand, so that a regeneration which moves a
 // number says so here instead of in a sim result.
 
 import (
@@ -48,7 +48,7 @@ func TestGeneratedStoreShape(t *testing.T) {
 				t.Errorf("spell %d effect %d says it belongs to spell %d", s.ID, position, e.SpellID)
 			}
 			if position > 0 && e.Index <= s.Effects[position-1].Index {
-				t.Errorf("spell %d has effect index %d after %d - the effects are out of client order",
+				t.Errorf("spell %d has effect index %d after %d - the effects are out of game files order",
 					s.ID, e.Index, s.Effects[position-1].Index)
 			}
 			if int(e.Index) != position {
@@ -64,8 +64,8 @@ func TestGeneratedStoreShape(t *testing.T) {
 		t.Errorf("the store holds %d effects, which is outside the [6000, 16000] a whole store has",
 			effects)
 	}
-	// The client's EffectIndex has gaps, which is why EffectN counts by position and the store keeps
-	// the client's own number alongside.
+	// The game files' EffectIndex has gaps, which is why EffectN counts by position and the store
+	// keeps the game files' own number alongside.
 	if gapped == 0 {
 		t.Errorf("no row states an EffectIndex that is not its position - EffectN's by-position count " +
 			"no longer has a gap to step over")
@@ -171,7 +171,7 @@ func TestGeneratedRequiredAreas(t *testing.T) {
 	}
 }
 
-// Area bonuses come from the override table, not the client.
+// Area bonuses come from the override table, not the game files.
 func TestGeneratedAreaBonus(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -192,7 +192,7 @@ func TestGeneratedTriggerResolves(t *testing.T) {
 	}
 }
 
-// Retaliation's counterattack is a link the client does not state and overrides.HandTriggers
+// Retaliation's counterattack is a link the game files do not state and overrides.HandTriggers
 // supplies, so it has to come back out of Triggered() and Drivers().
 func TestGeneratedHandLink(t *testing.T) {
 	withGeneratedStore(t)
@@ -232,7 +232,7 @@ func TestGeneratedTalentCurve(t *testing.T) {
 	}
 }
 
-// Armor Shatter's rate is not in the client at all: its ProcChance is the 101 sentinel and an
+// Armor Shatter's rate is not in the game files at all: its ProcChance is the 101 sentinel and an
 // override supplies the PPM.
 func TestGeneratedOverrideRow(t *testing.T) {
 	withGeneratedStore(t)

@@ -2,7 +2,7 @@ package core
 
 import "testing"
 
-// A proc trigger that names its spells by the client's class flags fires on exactly those spells.
+// A proc trigger that names its spells by the game files' class flags fires on exactly those spells.
 func TestProcTriggerClassFlags(t *testing.T) {
 	config := ProcTrigger{ClassFlags: ClassFlags{Family: 8, Mask: [4]uint32{0b0011}}}
 
@@ -59,7 +59,7 @@ func TestProcTriggerClassSpellsOnly(t *testing.T) {
 		want  bool
 	}{
 		{"tagged by the sim", &Spell{ClassSpellMask: 1 << 5}, true},
-		{"named by the client's class flags", &Spell{ClassFlags: ClassFlags{Family: 8, Mask: [4]uint32{1}}}, true},
+		{"named by the game files' class flags", &Spell{ClassFlags: ClassFlags{Family: 8, Mask: [4]uint32{1}}}, true},
 		{"neither", &Spell{}, false},
 	}
 

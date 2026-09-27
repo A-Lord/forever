@@ -594,7 +594,7 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatDefenseRating,
 		},
 	},
-	// The client states one stack, and a stacking row's amount follows its stacks, so the raid's
+	// The game files state one stack, and a stacking row's amount follows its stacks, so the raid's
 	// copy takes it from a driver rather than sitting at zero.
 	{
 		Field:      "dust_cloud",

@@ -12,7 +12,7 @@ func (warrior *Warrior) registerDemoralizingShout() {
 	warrior.DemoralizingShoutAuras = warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		// Nothing in the warrior tree prices this shout: Forever has no Improved
 		// Demoralizing Shout, and Booming Voice widens the radius only, so the
-		// aura is the client's attack power reduction for 45 seconds.
+		// aura is the game files' attack power reduction for 45 seconds.
 		return buffs.NewSpellDataDemoralizingShoutAura(target, true, 0)
 	})
 

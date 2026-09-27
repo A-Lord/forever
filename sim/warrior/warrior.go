@@ -20,8 +20,8 @@ type WarriorInputs struct {
 	HasBsT2        bool
 }
 
-// The client's SpellClassOptions for the registrations that do not resolve a row of their own: the
-// stance spells, and the sim-only sub-spells that take their parent's flags, the client having no
+// The game files' SpellClassOptions for the registrations that do not resolve a row of their own: the
+// stance spells, and the sim-only sub-spells that take their parent's flags, the game files having no
 // row for a Whirlwind off-hand strike or a Sweeping Strikes copy.
 var (
 	SpellFlagsBattleStance    = spellData.BattleStance.Highest().ClassFlags
@@ -199,7 +199,7 @@ type WarriorAgent interface {
 
 // The recovery the ability waits out. A warrior ability states it on a shared category - Bloodthirst
 // and Mortal Strike both run off category 971 - and leaves its own column at zero, so the cooldown
-// is whichever of the two the client filled in.
+// is whichever of the two the game files filled in.
 //
 // The category is a timer as well as a number, and spelldata.SpellConfig puts every spell naming one
 // on the unit's timer for it: Revenge and Overpower share category 65, Shield Bash and Pummel share
