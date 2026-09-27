@@ -17,7 +17,7 @@ on:
                 type: string
 jobs:
     build-ui:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         timeout-minutes: 20
         steps:
             - name: Checkout 🛎️
@@ -80,7 +80,7 @@ jobs:
                   make dist/forever/.dirstamp
 
     test:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         timeout-minutes: 30
         strategy:
             fail-fast: false
