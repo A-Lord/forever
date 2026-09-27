@@ -25,6 +25,10 @@ func (mage *Mage) registerArmorSpells() {
 
 	mageArmorRank := spellData.MageArmor.Highest()
 	resist := mageArmorRank.EffectN(1).BaseValue()
+	// Arcane Shielding's effect 2 raises Mage Armor's resistances.
+	if mage.Talents.ArcaneShielding > 0 {
+		resist *= 1 + spellData.ArcaneShielding.Rank(mage.Talents.ArcaneShielding).EffectN(2).Percent()
+	}
 	castingRegen := mageArmorRank.EffectN(2).Percent()
 	mageArmor := mage.registerArmor(mageArmorRank, MageSpellMageArmor, stats.Stats{
 		stats.ArcaneResistance: resist,
@@ -44,10 +48,11 @@ func (mage *Mage) registerArmorSpells() {
 		return
 	}
 
-	// Forever has no Molten Armor.
+	// Forever has no Molten Armor; a saved setting that still names it gets Mage Armor.
 	defaultArmor := map[proto.MageArmor]*core.Aura{
-		proto.MageArmor_MageArmorFrostArmor: iceArmor,
-		proto.MageArmor_MageArmorMageArmor:  mageArmor,
+		proto.MageArmor_MageArmorFrostArmor:  iceArmor,
+		proto.MageArmor_MageArmorMageArmor:   mageArmor,
+		proto.MageArmor_MageArmorMoltenArmor: mageArmor,
 	}[mage.Options.DefaultMageArmor]
 	if defaultArmor != nil {
 		core.MakePermanent(defaultArmor)

@@ -53,8 +53,8 @@ func (mage *Mage) registerColdSnapTalent() {
 // spells by 30%. In addition, gives your Frost Ward a 20% chance to reflect Frost spells and effects
 // while active."
 //
-// Not modelled: neither armor (armors.go is unported) nor Frost Ward is registered, and the reflect
-// needs an enemy casting Frost at the mage.
+// The armor half is applied in armors.go. The reflect needs an enemy casting Frost at the mage, so
+// it is not modelled.
 func (mage *Mage) registerFrostWarding() {
 	if mage.Talents.FrostWarding == 0 {
 		return

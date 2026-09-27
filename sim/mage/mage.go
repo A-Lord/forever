@@ -90,6 +90,7 @@ func (mage *Mage) registerSpells() {
 	mage.registerFrostNovaSpell()
 	mage.registerManaGems()
 	mage.registerScorchSpell()
+	mage.registerDefensiveSpells()
 }
 
 // One roll of a damage effect per target, for the AoE damage calls.

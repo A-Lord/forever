@@ -21,5 +21,5 @@ func (mage *Mage) registerArcaneBlastSpell() {
 		}
 	}
 
-	mage.RegisterSpell(config)
+	mage.ArcaneBlast = mage.RegisterSpell(config)
 }

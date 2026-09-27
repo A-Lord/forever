@@ -176,10 +176,9 @@ func (mage *Mage) registerCombustionTalent() {
 	mage.registerCombustionSpell()
 }
 
-// registerImprovedFireWard implements Improved Fire Ward, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// registerImprovedFireWard: a chance for Fire Ward to reflect Fire spells (effect 1, a flat modifier
+// on Fire Ward's effect 2). The reflect needs an enemy casting Fire at the mage, so it is not
+// modelled.
 func (mage *Mage) registerImprovedFireWard() {
 	if mage.Talents.ImprovedFireWard == 0 {
 		return

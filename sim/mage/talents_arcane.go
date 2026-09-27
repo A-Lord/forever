@@ -204,7 +204,7 @@ func (mage *Mage) registerArcanePowerTalent() {
 }
 
 // registerArcaneShielding: Mana Shield drains less mana and Mage Armor grants more resistance.
-// Both are defensive, and neither spell is in the sim.
+// Both are applied where the spells are registered, in defensives.go and armors.go.
 func (mage *Mage) registerArcaneShielding() {
 	if mage.Talents.ArcaneShielding == 0 {
 		return

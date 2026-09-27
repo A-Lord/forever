@@ -21,5 +21,5 @@ func (mage *Mage) registerFireBlastSpell() {
 		spell.CalcAndDealDamage(sim, target, fireBlastDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
 	}
 
-	mage.RegisterSpell(config)
+	mage.FireBlast = mage.RegisterSpell(config)
 }
