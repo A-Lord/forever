@@ -81,7 +81,6 @@ func (mage *Mage) registerPassives() {
 }
 
 func (mage *Mage) registerSpells() {
-	mage.registerArcaneBlastSpell()
 	// mage.registerArcaneExplosionSpell()
 	mage.registerArcaneMissilesSpell()
 	// mage.registerArmorSpells()
