@@ -58,10 +58,10 @@ type ProcTrigger struct {
 	ClassSpellMask     int64
 	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
 	// both this and ClassSpellMask fires only on the spells both name.
-	ClassFlags ClassFlags
+	ClassFlags          ClassFlags
 	ProcSpellClassFlags ClassFlags // The proccing spell's class flags, which proc chance talents match (e.g. Improved Poisons on Instant Poison).
-	Caster             *Unit // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
-	ClassSpellsOnly     bool  // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
+	Caster              *Unit      // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
+	ClassSpellsOnly     bool       // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
 	ExtraCondition      ProcExtraCondition
 
 	// The Can Proc From Procs attribute (Attributes[3] 0x4000000): the listener also fires on hits
