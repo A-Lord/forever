@@ -320,7 +320,7 @@ func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
 // game files' trigger spell 5373 is a dummy, so how much and how often is the
 // driver's. The raid's copy is the top rank the paladin's own judgement states.
 func driveJudgementOfLight(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), JudgementOfLightMaxRank)
+	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), nil, JudgementOfLightMaxRank)
 }
 
 // Judgement of Wisdom returns mana to whoever strikes the target, on the same

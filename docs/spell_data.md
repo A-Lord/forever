@@ -571,13 +571,19 @@ the temporary enchant's trigger built from 8680 rolls 20% plus 10 points. A trig
 the hit's proc mask, and a mask the manager does not hear fails without a draw; one without rolls the
 chance it states, and a stated 1 draws nothing. The unit's active `SpellMod_ProcChance_Flat` and
 `SpellMod_ProcChance_Pct` mods go on whichever chance that is, the flat points first and the
-percentage on the sum. The mods reach no spell, only the triggers `spelldata.ProcTrigger` builds. A
-trigger built by hand leaves `ProcSpellClassFlags` empty and no talent reaches it, so a class porting
-its poisons or another talented proc builds it with `spelldata.ProcTrigger` and does not also add the
-talent's chance by hand, which would count it twice. A proc chance row whose class mask names no store
-row that states a proc and keeps its auras on the caster is skipped with the reason in `Skipped`, since
-no trigger on the caster carries those flags: a trigger on the target (Improved Judgement of Light
-23564), a pet's proc, or a proc the store does not carry (Frenzy 19621).
+percentage on the sum. The mods reach no spell, only a trigger that states `ProcSpellClassFlags`, which
+`spelldata.ProcTrigger` fills from the row. A trigger built by hand reaches no talent unless it sets
+them itself, as Judgement of Light does from its row. A class porting its poisons or another talented
+proc builds it with `spelldata.ProcTrigger` and does not also add the talent's chance by hand, which
+would count it twice.
+
+The mods counted are the caster's wherever the trigger sits. `spelldata.ProcTrigger` sets `Caster`
+to the character it is built for, and a trigger on the target names its caster: the paladin's
+Judgement of Light passes the paladin, and Improved Judgement of Light 23564 raises the heal's
+50%. A pet's trigger counts its owner's mods with its own, so a hunter talent parsed onto the hunter
+reaches the pet. Frenzy 19621 names the proc of Tamed Pet Passive 20784, a row the store does not
+hold, so the pet's trigger sets `ProcSpellClassFlags` from the talent's effect mask. Every proc chance
+row attaches.
 
 |                 |                                                                                                                                                               |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |

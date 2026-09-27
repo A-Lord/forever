@@ -117,6 +117,26 @@ func TestProcChanceModReachesTheTriggersItNames(t *testing.T) {
 		}
 	}
 
+	// A pet's trigger reads its owner's mods, and a trigger on the target reads the ones of the unit
+	// it names.
+	pet := &Unit{procChanceOwner: unit}
+	target := &Unit{}
+	for _, test := range []struct {
+		name   string
+		unit   *Unit
+		config ProcTrigger
+		want   int
+	}{
+		{"a pet's trigger", pet, ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison}, 1000},
+		{"a trigger on the target naming the caster", target,
+			ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison, Caster: unit}, 1000},
+		{"a trigger on the target naming no one", target, ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison}, 0},
+	} {
+		if got := fires(test.unit, test.config); got != test.want {
+			t.Errorf("%s: fired %d times, want %d", test.name, got, test.want)
+		}
+	}
+
 	// The percentage multiplies the chance once the flat points are in.
 	flat.UpdateFloatValue(10)
 	pct := unit.AddDynamicMod(SpellModConfig{Kind: SpellMod_ProcChance_Pct, ClassFlags: poison, FloatValue: 1})

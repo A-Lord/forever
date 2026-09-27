@@ -156,7 +156,7 @@ func NewSpellDataJudgementOfTheCrusaderAuraRank(target *core.Unit, rank Judgemen
 
 // The paladin's own Judgement of Light at one rank: the bare 40-second debuff, plus the heal it
 // grants whoever strikes the target.
-func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, caster *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Light", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)
@@ -167,25 +167,27 @@ func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, rank JudgementRank)
 		ActionID: core.ActionID{SpellID: rank.SpellID},
 		Tag:      JudgementAuraTag,
 		Duration: JudgementOfLightDuration(0),
-	}), rank)
+	}), caster, rank)
 }
 
 // Whoever lands a damaging melee hit on the judged target has a chance to be healed for the rank's
-// amount.
-func AttachJudgementOfLightHeal(aura *core.Aura, rank JudgementRank) *core.Aura {
+// amount. The caster's proc chance mods, e.g. Improved Judgement of Light, raise that chance; the
+// raid's copy has no caster.
+func AttachJudgementOfLightHeal(aura *core.Aura, caster *core.Unit, rank JudgementRank) *core.Aura {
 	healthMetrics := aura.Unit.NewHealthMetrics(core.ActionID{SpellID: rank.SpellID})
 	heal := rank.Value
 
 	return aura.AttachProcTrigger(core.ProcTrigger{
-		Name:               aura.Label + " - Heal",
-		Callback:           core.CallbackOnSpellHitTaken,
-		ProcMask:           core.ProcMaskMelee,
-		Outcome:            core.OutcomeLanded,
-		RequireDamageDealt: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if sim.Proc(judgementProcChance, "Judgement of Light - Heal") {
-				spell.Unit.GainHealth(sim, heal, healthMetrics)
-			}
+		Name:                aura.Label + " - Heal",
+		Callback:            core.CallbackOnSpellHitTaken,
+		ProcMask:            core.ProcMaskMelee,
+		Outcome:             core.OutcomeLanded,
+		RequireDamageDealt:  true,
+		ProcChance:          judgementProcChance,
+		ProcSpellClassFlags: spelldata.MustFind(rank.SpellID).ClassFlags,
+		Caster:              caster,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			spell.Unit.GainHealth(sim, heal, healthMetrics)
 		},
 	})
 }

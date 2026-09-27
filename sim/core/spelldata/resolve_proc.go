@@ -16,7 +16,8 @@ type ProcOpt func(*core.Character, *core.ProcTrigger)
 // internal cooldown and the attribute-driven gates. The caller adds what the row does not carry -
 // the name and action the sim keys the effect by, the buff the handler applies - to the returned
 // value before handing it to MakeProcTriggerAura. The row's own class flags go on the trigger too,
-// so a SPELLMOD_CHANCE_OF_SUCCESS that names the row reaches its roll.
+// so a SPELLMOD_CHANCE_OF_SUCCESS that names the row reaches its roll, and the character's mods are
+// the ones counted wherever the trigger sits.
 //
 // ProcCharges is not a property of the trigger: it is how many times the buff acts before it drops,
 // which AuraConfig reads as the aura's MaxStacks.
@@ -38,6 +39,7 @@ func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, 
 		ClassSpellsOnly:     s.ClassSpellsOnly(),
 		ClassFlags:          listenerClassFlags(character, s),
 		ProcSpellClassFlags: s.ClassFlags,
+		Caster:              &character.Unit,
 		Handler:             handler,
 
 		RequireDamageComponent: decoded.RequireDamageComponent,
