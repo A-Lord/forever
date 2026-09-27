@@ -374,9 +374,6 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 		if _, ok := database.ItemDenyList[item.Id]; ok {
 			return false
 		}
-		if _, ok := database.SoDItemDenyList[item.Id]; ok {
-			return false
-		}
 		if len(item.ScalingOptions) <= 0 {
 			return false
 		}
