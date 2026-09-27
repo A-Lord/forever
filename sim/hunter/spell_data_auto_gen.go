@@ -8,7 +8,6 @@ import (
 
 // Not generated:
 //   Monster Slaying: missing rank 1 of 3
-//   Natural Armor: ambiguous rank 1 between spells 24545, 24547; rank 2 between spells 24549, 24556; rank 3 between spells 24550, 24557; rank 4 between spells 24551, 24558; rank 5 between spells 24552, 24559; rank 6 between spells 24553, 24560; rank 7 between spells 24554, 24561; rank 8 between spells 24555, 24562
 
 // Generated with an effect held at its base points, the talent tree stating no rank value for it:
 //   Barrage: effect 1 of spell 19461 has no rank curve and is held at its base points
@@ -163,6 +162,8 @@ type generatedSpellData struct {
 	MongooseBite                    spelldata.Ladder
 	MortalShots                     spelldata.Ladder
 	MultiShot                       spelldata.Ladder
+	NaturalArmor                    spelldata.Ladder
+	NaturalArmorTriggered           spelldata.Ladder
 	NatureResistance                spelldata.Ladder
 	NatureResistanceTriggered       spelldata.Ladder
 	Pathfinding                     spelldata.Ladder
@@ -384,6 +385,8 @@ var spellData = generatedSpellData{
 	MongooseBite:                    spelldata.Ranked(1495, 14269, 14270, 14271),
 	MortalShots:                     spelldata.Talent(19485, 5),
 	MultiShot:                       spelldata.Ranked(2643),
+	NaturalArmor:                    spelldata.Ranked(24547, 24556, 24557, 24558, 24559, 24560, 24561, 24562, 24631, 24632),
+	NaturalArmorTriggered:           spelldata.Ranked(24545, 24549, 24550, 24551, 24552, 24553, 24554, 24555, 24629, 24630),
 	NatureResistance:                spelldata.Ranked(24494, 24511, 24512, 24513),
 	NatureResistanceTriggered:       spelldata.Ranked(24492, 24502, 24503, 24504),
 	Pathfinding:                     spelldata.Talent(19559, 2),

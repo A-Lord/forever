@@ -2,9 +2,9 @@
 
 The sim reads the game files' numbers instead of hand-transcribed literals, out of one store:
 `sim/core/spelldata`, a generated file holding every spell the sim can reach, and resolvers that turn
-a row into a spell config, an aura, a dot, a talent's modifiers or a proc listener. The warrior reads
-it through the resolvers; the other eight classes read its rows by hand instead, one value at a time,
-with no resolver in between.
+a row into a spell config, an aura, a dot, a talent's modifiers or a proc listener. The warrior and the
+hunter read it through the resolvers; the other seven classes read its rows by hand instead, one value
+at a time, with no resolver in between.
 
 - [The store](#the-store)
 - [Building an ability](#building-an-ability)
@@ -912,10 +912,10 @@ than shipping a store that does not match its source.
 
 ## Reading a row by hand
 
-Rogue, warlock, mage, druid, priest, shaman, hunter and paladin read the store by hand: a class file
-names the ladder it needs, picks a rank, and reads every field the registration wants straight into a
-plain expression, with no resolver in between. **A row is a source of numbers only** in these eight
-classes' files - no `spelldata.SpellConfig`, `AuraConfig`,
+Rogue, warlock, mage, druid, priest, shaman and paladin read the store by hand: a class file names the
+ladder it needs, picks a rank, and reads every field the registration wants straight into a plain
+expression, with no resolver in between. **A row is a source of numbers only** in these seven classes'
+files - no `spelldata.SpellConfig`, `AuraConfig`,
 `DotConfig`, `ProcTrigger`, `ParseEffects` or `ParseStatic`. `core.SpellConfig` and `core.DotConfig`
 are built by hand, field by field, the same shapes [Building an ability](#building-an-ability) and
 [Auras and dots](#auras-and-dots) describe for the resolvers, just filled without one.
@@ -1257,8 +1257,8 @@ was meant to be mechanical and moves a .results number is a wrong port, not a ne
 
 ## Porting a class onto the resolvers
 
-1. **Start from the ladders.** Every class file is already one ladder per family, and the eight
-   classes other than the warrior read them by hand, the way [Reading a row by hand](#reading-a-row-by-hand)
+1. **Start from the ladders.** Every class file is already one ladder per family, and the seven
+   classes other than the warrior and the hunter read them by hand, the way [Reading a row by hand](#reading-a-row-by-hand)
    describes. From hand reads onto the resolvers - `SpellConfig`, `AuraConfig`, `DotConfig`,
    `ParseEffects`, `ProcTrigger` - is the warrior's move, and this checklist is written for it.
 2. **Dump the rows before touching a call site**, three ways: the effects at the rank taken, which

@@ -5,7 +5,7 @@ import { PickerShell } from '@ui-kit/PickerShell';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useEffect, useId, useRef } from 'react';
 
-import { IconEnumOption } from './IconEnumOption';
+import { IconEnumOption, IconText } from './IconEnumOption';
 import { type IconEnumPickerConfig, IconEnumPickerDirection, type IconEnumValueConfig } from './types';
 import { actionIconStyle, iconEnumPickerShown, iconStyleOf } from './utils';
 
@@ -73,6 +73,9 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 			leading={
 				<Menu
 					surface="none"
+					// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
+					// shared by every rank, the text is what tells the ranks apart.
+					trigger={selected?.text !== undefined && !selectedHidden ? <IconText text={selected.text} /> : undefined}
 					// No href when nothing is selected: React refuses javascript:void(0), and nativeButton={false} keeps the anchor focusable.
 					triggerRender={<a href={selectedHidden ? undefined : href || undefined} {...disabledAttribute} />}
 					triggerProps={{
@@ -116,13 +119,6 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 					))}
 				</Menu>
 			}>
-			<label
-				className="ui-field-label"
-				data-testid="form-label"
-				title={selected?.text}
-				style={{ display: selected?.text === undefined ? 'none' : 'block' }}>
-				{selected?.text}
-			</label>
 			{tooltips && <Tooltip id={tooltipId} />}
 		</PickerShell>
 	);

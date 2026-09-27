@@ -32,7 +32,7 @@ export const OtherDefaults = {
 export const DefaultConsumables = ConsumesSpec.create({
 	potId: Consumables.MajorFrenzyPotion.id,
 	flaskId: Consumables.FlaskOfNaturalAggression.id,
-	foodId: Consumables.ProwlerSteak.id,
+	foodId: Consumables.SmokedDesertDumplings.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });

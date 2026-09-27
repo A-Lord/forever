@@ -78,6 +78,16 @@ describe('useActionId', () => {
 		expect(anchor(container).dataset.icon).toBe('');
 	});
 
+	it('tells two placeholder ids apart by name and icon, since neither carries an id', () => {
+		deferFill();
+		const { container, rerender } = render(<Probe actionId={ActionId.fromPetName('Cat')} />);
+		expect(anchor(container).dataset.icon).toContain('ability_hunter_pet_cat');
+
+		rerender(<Probe actionId={ActionId.fromPetName('Wolf')} />);
+
+		expect(anchor(container).dataset.icon).toContain('ability_hunter_pet_wolf');
+	});
+
 	// ActionId.fromItemId is (itemId, tag?, randomSuffixId?), and the random suffix is its
 	// url-bearing field: the href is derived before any fill, and re-derived when the id changes.
 	it('knows the href without filling, and re-derives it when the random suffix changes', () => {

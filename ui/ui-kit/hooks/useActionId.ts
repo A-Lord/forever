@@ -11,8 +11,11 @@ export interface ActionIdState {
 }
 
 // Rank and trait definition steer the wowhead request but are not part of ActionId identity,
-// so they are keyed here rather than in equalityKey(), which equals() must keep matching.
-const keyOf = (actionId: ActionId | undefined) => (actionId ? `${actionId.equalityKey()}|${actionId.rank}|${actionId.definitionId}` : '');
+// so they are keyed here rather than in equalityKey(), which equals() must keep matching. An id
+// carrying no item, spell or other id is a placeholder whose identity is its name and icon - a
+// pet family's, say - and every such id has the same equalityKey.
+const keyOf = (actionId: ActionId | undefined) =>
+	actionId ? `${actionId.equalityKey()}|${actionId.rank}|${actionId.definitionId}` + (actionId.anyId() ? '' : `|${actionId.name}|${actionId.iconUrl}`) : '';
 
 const hrefOf = (actionId: ActionId) => {
 	if (actionId.itemId) return ActionId.makeItemUrl(actionId.itemId, actionId.randomSuffixId);

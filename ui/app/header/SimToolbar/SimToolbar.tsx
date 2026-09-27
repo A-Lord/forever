@@ -1,5 +1,5 @@
 import i18n from '@i18n/config';
-import { REPO_CHOOSE_NEW_ISSUE_URL, REPO_RELEASES_URL, SOCIALS } from '@sim/constants/other';
+import { ISSUES_REPO, REPO_CHOOSE_NEW_ISSUE_URL, REPO_RELEASES_URL, SOCIALS } from '@sim/constants/other';
 import { useOutdatedNativeSim } from '@sim/hooks/useOutdatedNativeSim';
 import type { Sim } from '@sim/sim';
 import { SocialLink } from '@ui-kit/SocialLink';
@@ -35,7 +35,7 @@ export const SimToolbar = ({ sim, knownIssues, onOpenSettings }: SimToolbarProps
 				{i18n.t('info.known_issues')}
 			</ToolbarItem>
 
-			<ToolbarItem href={REPO_CHOOSE_NEW_ISSUE_URL} icon="bug" tooltip={i18n.t('info.bug_report')} />
+			{ISSUES_REPO && <ToolbarItem href={REPO_CHOOSE_NEW_ISSUE_URL} icon="bug" tooltip={i18n.t('info.bug_report')} />}
 
 			{!isNative() && <ToolbarItem href={REPO_RELEASES_URL} icon="gauge-high" tooltip="Download simulator for faster simulating" />}
 

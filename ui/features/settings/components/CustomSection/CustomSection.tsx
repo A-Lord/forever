@@ -5,6 +5,7 @@ import type { Player } from '@sim/player/player';
 import type { CustomSection as CustomSectionConfig } from '@sim/spec_config';
 import { type StoreSubscribe, subscribePlayerChange } from '@sim/state/subscriptions';
 import { ContentBlock } from '@ui-kit/ContentBlock';
+import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { IconPicker } from '@ui-kit/IconPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 
@@ -32,11 +33,13 @@ export const CustomSection = ({ section }: CustomSectionProps) => {
 			headerChildren={section.description ? <p className="text-sm">{section.description}</p> : undefined}>
 			{!!section.iconInputs?.length && (
 				<PickerGroup variant="icons" className={section.iconGroupClassName}>
-					{section.iconInputs.map((config, index) => {
-						if (config.type !== 'icon')
-							throw new Error(`custom section ${section.id}: ${config.type} inputs need a React picker that does not exist yet`);
-						return <IconPicker key={index} modObject={player} config={{ ...config, layout: 'inline' }} />;
-					})}
+					{section.iconInputs.map((config, index) =>
+						config.type === 'icon' ? (
+							<IconPicker key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
+						) : (
+							<IconEnumPicker key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
+						),
+					)}
 				</PickerGroup>
 			)}
 			{section.inputs?.map(config => (
