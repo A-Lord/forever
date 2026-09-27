@@ -154,7 +154,7 @@ func (mage *Mage) registerArcaneResilience() {
 	mage.AddStatDependency(stats.Intellect, stats.Armor, spellData.ArcaneResilience.FractionAt(mage.Talents.ArcaneResilience))
 }
 
-// registerArcaneGeometry: "Increases the range of your Arcane spells by 6 yards."
+// registerArcaneGeometry: "Increases the range of your Arcane spells by 3/6 yards."
 func (mage *Mage) registerArcaneGeometry() {
 	if mage.Talents.ArcaneGeometry == 0 {
 		return

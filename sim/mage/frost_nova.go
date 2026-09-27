@@ -1,44 +1,28 @@
 package mage
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var frostNovaRank = spellData.FrostNova.Highest()
+var frostNovaBaseDamage = frostNovaRank.DamageEffect().Average(core.CharacterLevel)
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// Frost Nova
+// https://www.wowhead.com/forever/spell=10230
+//
+// Frost damage to every enemy around the caster, and a root. The root does nothing to a boss the
+// sim fights and nothing reads a frozen target yet, so only the damage is modelled.
 func (mage *Mage) registerFrostNovaSpell() {
-	panic("To be implemented")
+	// Binary: a spell with a non-damage effect (the root) is resisted whole or not at all, which the
+	// row does not state.
+	config := spelldata.SpellConfig(&mage.Unit, frostNovaRank,
+		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary))
+	config.ClassSpellMask = MageSpellFrostNova
 
-	// The TBC implementation, kept for the port:
-	//
-	// frostNovaCoefficient := 0.18799999356 // Per https://wago.tools/db2/SpellEffect?build=2.5.5.65295&filter%5BSpellID%5D=exact%253A122 Field "EffetBonusCoefficient"
-	//
-	// mage.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: frostNovaRank.ID},
-	// 	SpellSchool:    frostNovaRank.SpellSchool(),
-	// 	DefenseType:    frostNovaRank.DefenseTypeCore(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
-	// 	ClassSpellMask: MageSpellFrostNova,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: int32(frostNovaRank.Cost()),
-	// 	},
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: frostNovaRank.GCD(),
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    mage.NewTimer(),
-	// 			Duration: max(frostNovaRank.Cooldown(), frostNovaRank.CategoryCooldown()),
-	// 		},
-	// 	},
-	//
-	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: frostNovaCoefficient,
-	// 	ThreatMultiplier: 1,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		baseDamage := frostNovaRank.DamageEffect().Average(core.CharacterLevel)
-	// 		spell.CalcAndDealAoeDamage(sim, baseDamage, spell.OutcomeMagicHitAndCrit)
-	// 	},
-	// })
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealAoeDamage(sim, frostNovaBaseDamage, spell.OutcomeMagicHitAndCrit)
+	}
+
+	mage.RegisterSpell(config)
 }

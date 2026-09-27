@@ -1,5 +1,10 @@
 package mage
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 func (mage *Mage) registerFrostTalents() {
 	// Tier 1
 	mage.registerFrostWarding()
@@ -54,63 +59,31 @@ func (mage *Mage) registerFrostWarding() {
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// registerImprovedFrostbolt: Frostbolt's casting time is reduced by 0.1 sec per point.
 func (mage *Mage) registerImprovedFrostbolt() {
 	if mage.Talents.ImprovedFrostbolt == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ImprovedFrostbolt == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask: MageSpellFrostbolt,
-	// 	TimeValue: time.Millisecond * time.Duration(spellData.ImprovedFrostbolt.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_CASTING_TIME)).ValueAt(mage.Talents.ImprovedFrostbolt)),
-	// 	Kind:      core.SpellMod_CastTime_Flat,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFrostbolt.Rank(mage.Talents.ImprovedFrostbolt))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// registerElementalPrecision: "Improves your chance to hit with Frost and Fire spells by 5%." The
+// row's mask names the Fire and Frost spells, Frostfire Bolt included.
 func (mage *Mage) registerElementalPrecision() {
 	if mage.Talents.ElementalPrecision == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ElementalPrecision == 0 {
-	// 	return
-	// }
-	// percent := spellData.ElementalPrecision.Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_RESIST_MISS_CHANCE)).ValueAt(mage.Talents.ElementalPrecision)
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	School:     core.SpellSchoolFrostfire,
-	// 	FloatValue: -percent / 100,
-	// 	Kind:       core.SpellMod_PowerCost_Pct,
-	// })
-	//
-	// // Bug: Gives 2% hit per point instead of 1% to frost spells.
-	// // https://www.warcraftlogs.com/reports/kwd3V8MA9FgrRYhf/?boss=-3&difficulty=0&type=damage-done&source=1&target=2
-	// mage.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFrost] += (percent * 2)
-	// mage.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFire] += percent
+	spelldata.ParseStatic(&mage.Character, spellData.ElementalPrecision.Rank(mage.Talents.ElementalPrecision))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerIceShards() {
 	if mage.Talents.IceShards == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.IceShards == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	School:     core.SpellSchoolFrost,
-	// 	FloatValue: spellData.IceShards.FractionAt(mage.Talents.IceShards),
-	// 	Kind:       core.SpellMod_CritMultiplier_Flat,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.IceShards.Rank(mage.Talents.IceShards))
 }
 
 // registerPermafrost implements Permafrost, new in Forever.
@@ -123,22 +96,12 @@ func (mage *Mage) registerPermafrost() {
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerImprovedFrostNova() {
 	if mage.Talents.ImprovedFrostNova == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ImprovedFrostNova == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask: MageSpellFrostNova,
-	// 	TimeValue: time.Second * time.Duration(-2*mage.Talents.ImprovedFrostNova),
-	// 	Kind:      core.SpellMod_CastTime_Flat,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFrostNova.Rank(mage.Talents.ImprovedFrostNova))
 }
 
 // registerFrostbite implements Frostbite, new in Forever.
@@ -151,47 +114,34 @@ func (mage *Mage) registerFrostbite() {
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerPiercingIce() {
 	if mage.Talents.PiercingIce == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.PiercingIce == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellFrost,
-	// 	FloatValue: spellData.PiercingIce.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(mage.Talents.PiercingIce),
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.PiercingIce.Rank(mage.Talents.PiercingIce))
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// registerFrostChanneling: "Reduces the mana cost of your Frost spells by 15% and reduces the
+// threat caused by your Frost spells by 30%."
 func (mage *Mage) registerFrostChanneling() {
 	if mage.Talents.FrostChanneling == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.FrostChanneling == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellFrost,
-	// 	FloatValue: -.05 * float64(mage.Talents.FrostChanneling),
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// })
-	//
-	// threatMod := []float64{.04, .07, .1}
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	School:     core.SpellSchoolFrost,
-	// 	FloatValue: -threatMod[mage.Talents.FrostChanneling-1],
-	// 	Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	// })
+	rank := spellData.FrostChanneling.Rank(mage.Talents.FrostChanneling)
+
+	// The mana cost, on the row's mask of Frost spells.
+	spelldata.ParseStatic(&mage.Character, rank, spelldata.Effects(1))
+
+	// The threat, by hand: the parse reads A_MOD_THREAT as the unit's whole threat multiplier and
+	// drops its misc 16, the Frost school. The talent curve also states the ranks as 10/20/30 where
+	// the row itself states -30, so the amount is the curve's and the sign the row's and tooltip's.
+	mage.AddStaticMod(core.SpellModConfig{
+		School:     core.SpellSchoolFrost,
+		FloatValue: -rank.EffectN(2).Percent(),
+		Kind:       core.SpellMod_ThreatMultiplier_Pct,
+	})
 }
 
 // registerIceLance implements Ice Lance, new in Forever.
@@ -214,14 +164,19 @@ func (mage *Mage) registerImprovedBlizzard() {
 	}
 }
 
-// registerArcticReach implements Arctic Reach, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// registerArcticReach: "Increases the range of your Frostbolt and Blizzard spells and the radius of
+// your Frost Nova and Cone of Cold spells by 20%."
 func (mage *Mage) registerArcticReach() {
 	if mage.Talents.ArcticReach == 0 {
 		return
 	}
+
+	//Percentage is not handled in SpellMod so we can't use ParseStatic
+	mage.AddStaticMod(core.SpellModConfig{
+		ClassMask:  MageSpellFrostbolt | MageSpellBlizzard,
+		FloatValue: 3 * float64(mage.Talents.ArcticReach),
+		Kind:       core.SpellMod_Range_Flat,
+	})
 }
 
 // registerIceBlock implements Ice Block, new in Forever.
@@ -244,22 +199,12 @@ func (mage *Mage) registerShatter() {
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
 func (mage *Mage) registerImprovedConeOfCold() {
 	if mage.Talents.ImprovedConeOfCold == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.ImprovedConeOfCold == 0 {
-	// 	return
-	// }
-	//
-	// mage.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  MageSpellConeOfCold,
-	// 	FloatValue: .15 + (.10 * (float64(mage.Talents.ImprovedConeOfCold) - 1)),
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// })
+	spelldata.ParseStatic(&mage.Character, spellData.ImprovedConeOfCold.Rank(mage.Talents.ImprovedConeOfCold))
 }
 
 // registerFingersOfFrost implements Fingers of Frost, new in Forever.
@@ -272,45 +217,64 @@ func (mage *Mage) registerFingersOfFrost() {
 	}
 }
 
-// TODO: To be implemented. TBC body below needs no porting; kept commented until this class's port is reviewed.
+// registerWinterChill implements Winter's Chill: a Frost spell that lands has a 20% chance per point
+// to put a stack of Winter's Chill (12579) on the target, 2% extra crit per stack for 15 sec, up to 5.
+//
+// The talent (11180) hears every harmful spell and names no class mask, so the Frost school is
+// checked here; its chance is effect 2, which the resolver reads. Effect 1's base (1-5 by rank) is
+// ignored: every proc adds one stack. The debuff is A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES: it
+// raises only this mage's crit, and only for the spells its class mask names (Frostbolt and Ice
+// Lance), so it is applied by those spells rather than through the target's pseudo stats.
 func (mage *Mage) registerWinterChill() {
 	if mage.Talents.WintersChill == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if mage.Talents.WintersChill == 0 {
-	// 	return
-	// }
-	//
-	// // Forever states a flat SpellAuraOptions.ProcChance of 100 on the talent spell and puts the
-	// // real per-rank chance on the effect, so ProcChanceAt would read 100% at every rank.
-	// // Effect 1 is the stack count (1..5); effect 2 is the chance (20..100).
-	// procChance := spellData.WintersChill.EffectAt(2).FractionAt(mage.Talents.WintersChill)
-	//
-	// // The debuff 12579 is A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES, so it
-	// // raises this mage's frost crit alone and sim/core holds no aura for it;
-	// // the port has to build wcAuras here.
-	// wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura { ... })
-	//
-	// mage.Env.RegisterPreFinalizeEffect(func() {
-	// 	for _, spell := range mage.GetSpellsMatchingSchool(core.SpellSchoolFrost) {
-	// 		spell.RelatedAuraArrays.Append(wcAuras)
-	// 	}
-	// })
-	//
-	// mage.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:           "Winters Chill Talent",
-	// 	Callback:       core.CallbackOnSpellHitDealt,
-	// 	Outcome:        core.OutcomeLanded,
-	// 	ClassSpellMask: MageSpellFrost,
-	// 	ProcChance:     procChance,
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		aura := wcAuras.Get(result.Target)
-	// 		aura.Activate(sim)
-	// 		aura.AddStack(sim)
-	// 	},
-	// })
+	debuff := spellData.WintersChillTriggered.Highest()
+	critEffect := debuff.EffectN(1)
+	critPerStack := critEffect.BaseValue()
+
+	config := spelldata.AuraConfig(debuff)
+	wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return target.RegisterAura(config)
+	})
+
+	// core has no per-target crit bonus scoped to a set of spells, so each affected spell adds the
+	// target's stacks to its own crit for the duration of its effects.
+	mage.Env.RegisterPreFinalizeEffect(func() {
+		for _, spell := range mage.Spellbook {
+			if !spell.MatchesFlags(critEffect.ClassFlags) {
+				continue
+			}
+
+			spell.RelatedAuraArrays = wcAuras.ToMap()
+
+			applyEffects := spell.ApplyEffects
+			spell.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+				bonus := critPerStack * float64(wcAuras.Get(target).GetStacks())
+				spell.BonusCritPercent += bonus
+				applyEffects(sim, target, spell)
+				spell.BonusCritPercent -= bonus
+			}
+		}
+	})
+
+	trigger := spelldata.ProcTrigger(&mage.Character, spellData.WintersChill.Rank(mage.Talents.WintersChill),
+		func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			aura := wcAuras.Get(result.Target)
+			aura.Activate(sim)
+			aura.AddStack(sim)
+		})
+	trigger.Name = "Winter's Chill - Trigger"
+	// PROC_FLAG_DEAL_HARMFUL_SPELL decodes to the cast, which names no target; the debuff goes on
+	// the one a Frost spell landed on.
+	trigger.Callback = core.CallbackOnSpellHitDealt
+	trigger.Outcome = core.OutcomeLanded
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spell.SpellSchool.Matches(core.SpellSchoolFrost)
+	}
+
+	mage.MakeProcTriggerAura(trigger)
 }
 
 // registerIceBarrier implements Ice Barrier, new in Forever.

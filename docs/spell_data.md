@@ -1678,6 +1678,32 @@ so an effect whose `EffectBasePointsF` is fractional - about one in 55 - contrib
 and the per-level gain is added on top in float32. Reading `BaseValue()` and doing the arithmetic in
 float64 gives a different answer on those rows.
 
+**A talent's curve can disagree with its own row.** A `Talent` rank takes its base points from the
+curve, and on a handful of talents the curve states the opposite sign to the row, or another number
+entirely. Mage Frost Channeling's threat effect reads +10/+20/+30 off the ladder where the row states
+-30 and the tooltip says "reduces"; `registerFrostChanneling` takes the curve's amount and the row's
+sign and says so at the call site. Compare `Highest()` against `MustFind(id)` before trusting a ladder
+on any of these, still unported when this was written:
+
+| Class   | Talent (effect)           | Row | Top rank |
+| ------- | ------------------------- | --- | -------- |
+| Warlock | Decimation (1)            | 40  | -40      |
+| Warlock | Master Demonologist (2,4) | 10  | -10      |
+| Priest  | Improved Mind Flay (3)    | -30 | 30       |
+| Shaman  | Maelstrom Weapon (1)      | 20  | -20      |
+| Hunter  | Improved Mend Pet (2)     | -20 | 20       |
+| Druid   | Eclipse (2)               | 30  | -500     |
+| Hunter  | Resourcefulness (2)       | 100 | -40      |
+
+The last two differ in size as well as sign, which suggests a curve row attached to the wrong effect
+rather than a lost minus. The cause is in how the generator reads the talent table's curves and has not
+been looked into.
+
+**`A_MOD_THREAT` parses as the unit's whole threat multiplier.** Its misc value is a school mask, which
+the parse drops, so a talent that lowers the threat of one school's spells lowers - or, with the sign
+above, raises - all of it. Wire a school-limited one by hand as `SpellMod_ThreatMultiplier_Pct` with
+`School` set, as Frost Channeling does.
+
 **A row with more than one effect has to name the one it means.** `Ladder.ValueAt` panics rather than
 read the first of several, and `Effect(aura, misc)` panics when two effects match. Both are the same
 rule: `EffectAt(n)` or `EffectN(n)` is how a caller says which.
