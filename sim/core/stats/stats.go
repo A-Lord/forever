@@ -536,8 +536,6 @@ type PseudoStats struct {
 	FiveSecondRuleRefreshTime time.Duration // last time a spell was cast
 	SpiritRegenRateCasting    float64       // percentage of spirit regen allowed during casting
 
-	// Both of these are currently only used for innervate.
-	ForceFullSpiritRegen  bool    // If set, automatically uses full spirit regen regardless of FSR refresh time.
 	SpiritRegenMultiplier float64 // Multiplier on spirit portion of mana regen.
 
 	// If true, allows block/parry.
@@ -626,6 +624,7 @@ type PseudoStats struct {
 	BonusSpellCritPercentTaken float64 // Imp Shadow Bolt / Imp Scorch / Winter's Chill debuff
 	BonusPhysicalDamageTaken   float64 // Hemo, Gift of Arthas, etc
 	BonusSpellDamageTaken      float64 // Amp Magic
+	BonusRangedDamageTaken     float64 // Physical ranged attacks only: Windwall
 
 	DamageTakenMultiplier       float64            // All damage
 	SchoolDamageTakenMultiplier [SchoolLen]float64 // For specific spell schools (arcane, fire, shadow, etc.)
@@ -634,6 +633,7 @@ type PseudoStats struct {
 
 	DiseaseDamageTakenMultiplier          float64
 	PeriodicPhysicalDamageTakenMultiplier float64
+	MeleeDamageTakenMultiplier            float64 // Melee attacks of any school
 
 	ArmorMultiplier float64 // Major/minor/special multiplicative armor modifiers
 
@@ -683,6 +683,7 @@ func NewPseudoStats() PseudoStats {
 
 		DiseaseDamageTakenMultiplier:          1,
 		PeriodicPhysicalDamageTakenMultiplier: 1,
+		MeleeDamageTakenMultiplier:            1,
 
 		ArmorMultiplier: 1,
 

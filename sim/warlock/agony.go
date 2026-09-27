@@ -26,6 +26,7 @@ func (warlock *Warlock) registerCurseOfAgony() {
 	// 	SpellSchool:    agonyRank.SpellSchool(),
 	// 	DefenseType:    agonyRank.DefenseTypeCore(),
 	// 	ClassSpellMask: WarlockSpellCurseOfAgony,
+	// 	ClassFlags:     agonyRank.ClassFlags,
 	//
 	// 	ThreatMultiplier: 1,
 	// 	DamageMultiplier: 1,

@@ -129,6 +129,9 @@ type Unit struct {
 	Spellbook                 []*Spell
 	spellRegistrationHandlers []SpellRegisteredHandler
 
+	// The spell mods that raise the chance of the unit's proc triggers, which read them when they roll.
+	procChanceMods []*SpellMod
+
 	// Pets owned by this Unit.
 	PetAgents []PetAgent
 

@@ -36,23 +36,26 @@ CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQuali
 // Scourge shoulder enchant 2717 (grant 29467, a profession ability) and its re-issue 7884 (grant
 // 1219512, on an item without an ItemSparse row) share a name. Enchant 8203 is granted by a bracer
 // and a boots recipe under two names; each is taught by two items, and the boots' lower item has no
-// ItemSparse row.
+// ItemSparse row. Enchant 1523 (grant 15427) is used only by a placeholder ([PH]) item.
 const rawEnchantFixture = `
 INSERT INTO SpellItemEnchantment (ID, Name_lang, Flags, RequiredSkillID, RequiredSkillRank, Effect, EffectPointsMin, EffectArg) VALUES
 	(2717, 'Attack Power +26', 0, 0, 0, '[5,0,0]', '[26,0,0]', '[38,0,0]'),
 	(7884, 'Attack Power +26', 0, 0, 0, '[5,0,0]', '[26,0,0]', '[38,0,0]'),
-	(8203, 'Spirit +$k1', 0, 0, 0, '[5,0,0]', '[3,0,0]', '[6,0,0]');
-INSERT INTO Spell (ID, NameSubtext_lang) VALUES (29467, ''), (1219512, ''), (1248001, ''), (1248002, '');
+	(8203, 'Spirit +$k1', 0, 0, 0, '[5,0,0]', '[3,0,0]', '[6,0,0]'),
+	(1523, 'MANA/FR +85/14', 0, 0, 0, '[3,0,0]', '[0,0,0]', '[15408,0,0]');
+INSERT INTO Spell (ID, NameSubtext_lang) VALUES (29467, ''), (1219512, ''), (1248001, ''), (1248002, ''), (15427, '');
 INSERT INTO SpellName (ID, Name_lang) VALUES
 	(29467, 'Might of the Scourge'), (1219512, 'Might of the Scourge'),
-	(1248001, 'Enchant Bracer - Lesser Spirit'), (1248002, 'Enchant Boots - Lesser Spirit');
+	(1248001, 'Enchant Bracer - Lesser Spirit'), (1248002, 'Enchant Boots - Lesser Spirit'),
+	(15427, 'Greater Arcane Amalgamation');
 INSERT INTO SpellEffect (SpellID, Effect, EffectMiscValue_0) VALUES
-	(29467, 53, 2717), (1219512, 53, 7884), (1248001, 53, 8203), (1248002, 53, 8203);
+	(29467, 53, 2717), (1219512, 53, 7884), (1248001, 53, 8203), (1248002, 53, 8203), (15427, 53, 1523);
 INSERT INTO SkillLineAbility (Spell, ClassMask, SkillLine) VALUES (29467, 0, 0);
-INSERT INTO ItemEffect (ID, SpellID) VALUES (1, 1219512), (2, 1248001), (3, 1248001), (4, 1248002), (5, 1248002);
-INSERT INTO ItemXItemEffect (ItemID, ItemEffectID) VALUES (236326, 1), (273601, 2), (249500, 3), (249501, 4), (249499, 5);
-INSERT INTO Item (ID, IconFileDataID) VALUES (236326, 10), (273601, 463531), (249500, 134327), (249501, 134327), (249499, 134327);
-INSERT INTO ItemSparse (ID, Display_lang, OverallQualityID) VALUES (273601, 'Enchant Bracer - Lesser Spirit', 1), (249500, 'Formula', 2), (249501, 'Formula', 2);
+INSERT INTO ItemEffect (ID, SpellID) VALUES (1, 1219512), (2, 1248001), (3, 1248001), (4, 1248002), (5, 1248002), (6, 15427);
+INSERT INTO ItemXItemEffect (ItemID, ItemEffectID) VALUES (236326, 1), (273601, 2), (249500, 3), (249501, 4), (249499, 5), (11663, 6);
+INSERT INTO Item (ID, IconFileDataID) VALUES (236326, 10), (273601, 463531), (249500, 134327), (249501, 134327), (249499, 134327), (11663, 134094);
+INSERT INTO ItemSparse (ID, Display_lang, OverallQualityID) VALUES (273601, 'Enchant Bracer - Lesser Spirit', 1), (249500, 'Formula', 2), (249501, 'Formula', 2),
+	(11663, '[PH] Greater Arcane Amalgamation (MANA/FR)', 3);
 `
 
 func loadRawEnchantFixture(t *testing.T) []dbc.Enchant {
@@ -91,18 +94,20 @@ func TestRawEnchantsKeepOneRowPerEnchantAndName(t *testing.T) {
 	enchants := loadRawEnchantFixture(t)
 	byKey := rawEnchantsByKey(enchants)
 
-	for _, key := range []rawEnchantKey{
+	want := []rawEnchantKey{
 		{2717, "Might of the Scourge"},
 		{7884, "Might of the Scourge"},
 		{8203, "Enchant Bracer - Lesser Spirit"},
 		{8203, "Enchant Boots - Lesser Spirit"},
-	} {
+		{1523, "Greater Arcane Amalgamation"},
+	}
+	for _, key := range want {
 		if _, ok := byKey[key]; !ok {
 			t.Errorf("no row for enchant %d %q", key.id, key.name)
 		}
 	}
-	if len(enchants) != 4 {
-		t.Errorf("%d rows, want 4: %+v", len(enchants), enchants)
+	if len(enchants) != len(want) {
+		t.Errorf("%d rows, want %d: %+v", len(enchants), len(want), enchants)
 	}
 }
 
@@ -124,7 +129,8 @@ func TestRawEnchantNamesItsLowestItem(t *testing.T) {
 	}
 }
 
-// A grant is live when a profession teaches it or any item using it has an ItemSparse row.
+// A grant is live when a profession teaches it or any item using it has an ItemSparse row that does
+// not name a placeholder ([PH]) item.
 func TestRawEnchantIsLiveWhenTaughtOrOnAShippedItem(t *testing.T) {
 	byKey := rawEnchantsByKey(loadRawEnchantFixture(t))
 
@@ -133,6 +139,7 @@ func TestRawEnchantIsLiveWhenTaughtOrOnAShippedItem(t *testing.T) {
 		{7884, "Might of the Scourge"}:           false,
 		{8203, "Enchant Bracer - Lesser Spirit"}: true,
 		{8203, "Enchant Boots - Lesser Spirit"}:  true,
+		{1523, "Greater Arcane Amalgamation"}:    false,
 	} {
 		if got := byKey[key].IsLive; got != want {
 			t.Errorf("enchant %d %q reads live %v, want %v", key.id, key.name, got, want)

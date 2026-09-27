@@ -64,6 +64,7 @@ func (mage *Mage) registerArmorSpells() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
 	// 	ClassSpellMask: MageSpellMageArmor,
+	// 	ClassFlags:     spellData.MageArmor.Highest().ClassFlags,
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: 575,
 	// 	},
@@ -98,6 +99,7 @@ func (mage *Mage) registerArmorSpells() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
 	// 	ClassSpellMask: MageSpellFrostArmor,
+	// 	ClassFlags:     spellData.IceArmor.Highest().ClassFlags,
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: 630,
 	// 	},

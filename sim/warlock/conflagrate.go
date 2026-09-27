@@ -19,6 +19,7 @@ func (warlock *Warlock) registerConflagrate() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellConflagrate,
+	// 	ClassFlags:     conflagrateRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(conflagrateRank.Cost())},
 	// 	Cast: core.CastConfig{

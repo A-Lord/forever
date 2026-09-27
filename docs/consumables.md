@@ -30,7 +30,7 @@ an on-use spell and is one of:
   class the client files it under: Crystal Charge 11566 is a Quest item.
 
 An item that also teaches a spell is an Engrave rune and is left out, and so is a name containing
-`Test` or `[DEP]` or starting with `QA`, `UNUSED` or `[PH]` (UNUSED Flask of Merciless Pursuit
+`Test`, `[DEP]` or `[PH]` or starting with `QA` or `UNUSED` (UNUSED Flask of Merciless Pursuit
 215126). The ids in `ConsumableAllowList` and `ConsumableExclusiveGroups`
 (`tools/database/overrides.go`) join the catalogue by id, whatever the filter says
 (`catalogueConsumableIDs`). The catalogue's spells, and everything they trigger, are carried in the

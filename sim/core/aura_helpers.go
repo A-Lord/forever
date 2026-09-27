@@ -58,9 +58,14 @@ type ProcTrigger struct {
 	ClassSpellMask     int64
 	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
 	// both this and ClassSpellMask fires only on the spells both name.
-	ClassFlags      ClassFlags
-	ClassSpellsOnly bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
-	ExtraCondition  ProcExtraCondition
+	ClassFlags ClassFlags
+	// The class flags of the spell that procs, e.g. Instant Poison for a poison trigger. A proc chance
+	// talent such as Improved Poisons raises this trigger's chance when its mask names these flags.
+	// spelldata.ProcTrigger fills it from the row; a trigger built by hand leaves it empty, so no
+	// proc chance talent reaches it.
+	ProcSpellClassFlags ClassFlags
+	ClassSpellsOnly     bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
+	ExtraCondition      ProcExtraCondition
 
 	// The Can Proc From Procs attribute (Attributes[3] 0x4000000): the listener also fires on hits
 	// from spells flagged SpellFlagProc. Without it a proc's hits are invisible to this listener,
@@ -101,7 +106,7 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 	if config.ClassSpellMask > 0 && config.ClassSpellMask&spell.ClassSpellMask == 0 {
 		return false
 	}
-	if !config.ClassFlags.IsZero() && !spell.MatchesFlags(config.ClassFlags) {
+	if !config.ClassFlags.Reaches(spell) {
 		return false
 	}
 	if config.ClassSpellsOnly && spell.ClassSpellMask == 0 && spell.ClassFlags.IsZero() {
@@ -114,6 +119,26 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 		return false
 	}
 	return true
+}
+
+// Whether the trigger's rolls let a hit of this proc mask through. The stated chance draws unless it
+// is exactly 1; a manager then rolls its own chance for the mask, and a mask none of its masks hears
+// fails without a draw. The unit's proc chance mods raise the manager's chance where there is one and
+// the stated chance otherwise. The cast and apply-effects listeners roll no manager.
+func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
+	stated := config.ProcChance
+	if dpm == nil {
+		stated = unit.ModifiedProcChance(config.ProcSpellClassFlags, stated)
+	}
+	if stated != 1 && sim.RandomFloat(config.Name) > stated {
+		return false
+	}
+	if dpm == nil {
+		return true
+	}
+
+	chance, heard := dpm.chanceFor(procMask, sim)
+	return heard && sim.Proc(unit.ModifiedProcChance(config.ProcSpellClassFlags, chance), config.Name)
 }
 
 type deferredProc struct {
@@ -205,9 +230,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, result) {
 			return
 		}
-		if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
-			return
-		} else if dpm != nil && !dpm.Proc(sim, spell.ProcMask, config.Name) {
+		if !config.rolls(sim, unit, dpm, spell.ProcMask) {
 			return
 		}
 
@@ -248,7 +271,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, nil) {
 				return
 			}
-			if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+			if !config.rolls(sim, unit, nil, ProcMaskUnknown) {
 				return
 			}
 
@@ -271,7 +294,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, emptyResult) {
 				return
 			}
-			if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+			if !config.rolls(sim, unit, nil, ProcMaskUnknown) {
 				return
 			}
 

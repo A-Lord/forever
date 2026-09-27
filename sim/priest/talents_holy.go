@@ -123,6 +123,7 @@ func (priest *Priest) registerHolyNovaSpell(rank *spelldata.Spell) {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellHolyNova,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	//
 	// 	ManaCost: core.ManaCostOptions{

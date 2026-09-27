@@ -15,7 +15,8 @@ type ProcOpt func(*core.Character, *core.ProcTrigger)
 // hears (ProcTypeMask through the decoder, with the row's tooltip hint), how often it fires, its
 // internal cooldown and the attribute-driven gates. The caller adds what the row does not carry -
 // the name and action the sim keys the effect by, the buff the handler applies - to the returned
-// value before handing it to MakeProcTriggerAura.
+// value before handing it to MakeProcTriggerAura. The row's own class flags go on the trigger too,
+// so a SPELLMOD_CHANCE_OF_SUCCESS that names the row reaches its roll.
 //
 // ProcCharges is not a property of the trigger: it is how many times the buff acts before it drops,
 // which AuraConfig reads as the aura's MaxStacks.
@@ -26,17 +27,18 @@ func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, 
 	decoded := core.DecodeProcTypeMask(s.ProcFlags, s.ProcHint)
 
 	trigger := core.ProcTrigger{
-		Name:               s.Name,
-		ActionID:           core.ActionID{SpellID: s.ID},
-		Callback:           decoded.Callback,
-		ProcMask:           decoded.ProcMask,
-		Outcome:            decoded.Outcome,
-		RequireDamageDealt: decoded.RequireDamageDealt,
-		ICD:                s.ICD(),
-		CanProcFromProcs:   s.CanProcFromProcs(),
-		ClassSpellsOnly:    s.ClassSpellsOnly(),
-		ClassFlags:         procClassFlags(character, s),
-		Handler:            handler,
+		Name:                s.Name,
+		ActionID:            core.ActionID{SpellID: s.ID},
+		Callback:            decoded.Callback,
+		ProcMask:            decoded.ProcMask,
+		Outcome:             decoded.Outcome,
+		RequireDamageDealt:  decoded.RequireDamageDealt,
+		ICD:                 s.ICD(),
+		CanProcFromProcs:    s.CanProcFromProcs(),
+		ClassSpellsOnly:     s.ClassSpellsOnly(),
+		ClassFlags:          listenerClassFlags(character, s),
+		ProcSpellClassFlags: s.ClassFlags,
+		Handler:             handler,
 
 		RequireDamageComponent: decoded.RequireDamageComponent,
 	}
@@ -125,7 +127,7 @@ func ProcTriggerUnsupported(character *core.Character, s *Spell) []string {
 
 // The spells the listener fires on where the client names them, which is the EffectSpellClassMask of
 // the effect that carries the proc, read against the class wearing it.
-func procClassFlags(character *core.Character, s *Spell) core.ClassFlags {
+func listenerClassFlags(character *core.Character, s *Spell) core.ClassFlags {
 	flags := rowClassFlags(s)
 	if othersFamily(character, flags) {
 		return core.ClassFlags{}

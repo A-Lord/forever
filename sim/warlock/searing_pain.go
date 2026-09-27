@@ -15,6 +15,7 @@ func (warlock *Warlock) registerSearingPain() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellSearingPain,
+	// 	ClassFlags:     searingPainRank.ClassFlags,
 	// 	MaxRange:       float64(searingPainRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(searingPainRank.Cost())},

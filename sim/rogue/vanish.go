@@ -13,6 +13,7 @@ func (rogue *Rogue) registerVanishSpell() {
 	// 	SpellSchool:    vanishRank.SpellSchool(),
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellVanish,
+	// 	ClassFlags:     vanishRank.ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

@@ -173,13 +173,8 @@ func NewRogue(character *core.Character, options *proto.Player, talents string) 
 	rogue.PseudoStats.ThreatMultiplier *= 0.71
 	rogue.PseudoStats.CanParry = true
 
-	maxEnergy := 100.0
+	maxEnergy := 100.0 + spellData.Vigor.ValueAt(rogue.Talents.Vigor)
 
-	// TODO: Forever expands Vigor from 1 rank to 2; the per-rank max-energy bonus is
-	// unconfirmed, so it is pinned to 0 until the Forever tooltip is known.
-	if rogue.Talents.Vigor > 0 {
-		maxEnergy += 0
-	}
 	if rogue.HasPvpEnergy {
 		maxEnergy += 10
 	}

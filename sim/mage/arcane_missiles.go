@@ -17,6 +17,7 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic, // Arcane Missile (7268), the real damage spell behind this tick's ActionID (38699)
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: MageSpellArcaneMissilesTick,
+	// 	ClassFlags:     arcaneMissilesRank.ClassFlags,
 	// 	// The channel itself carries no speed - the missile spell does, and it is not a ranked row.
 	// 	MissileSpeed: 20,
 	//
@@ -38,6 +39,7 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	// 	ProcMask:         core.ProcMaskSpellDamage,
 	// 	Flags:            core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask:   MageSpellArcaneMissilesCast,
+	// 	ClassFlags:       arcaneMissilesRank.ClassFlags,
 	// 	DamageMultiplier: 0,
 	//
 	// 	ManaCost: core.ManaCostOptions{

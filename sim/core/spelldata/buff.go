@@ -55,7 +55,7 @@ func (p *Parsed) SkippedNotes(s *Spell) []string {
 			notes = append(notes, fmt.Sprintf("effect %d is worth %v per combo point", e.Position, e.PointsPerResource))
 			continue
 		}
-		notes = append(notes, effectNote(e.Position, e.Effect))
+		notes = append(notes, effectNote(e.Position, e.Effect)+reasonNote(e.Reason))
 	}
 	return notes
 }
