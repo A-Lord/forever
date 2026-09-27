@@ -26,7 +26,10 @@ export const CURRENT_API_VERSION: number = readMessageOption(ProtoVersion, 'prot
 export const REPO_NAME = 'forever';
 export const REPO_URL = `https://github.com/wowsims/${REPO_NAME}`;
 export const REPO_RELEASES_URL = `${REPO_URL}/releases`;
-export const REPO_NEW_ISSUE_URL = `${REPO_URL}/issues/new`;
+// The repository whose CI built this page (see vite.config.mts). Empty for a build made outside
+// GitHub Actions, which then offers no issue links at all.
+export const ISSUES_REPO: string = import.meta.env.VITE_GITHUB_REPOSITORY;
+export const REPO_NEW_ISSUE_URL = `https://github.com/${ISSUES_REPO}/issues/new`;
 export const REPO_CHOOSE_NEW_ISSUE_URL = `${REPO_NEW_ISSUE_URL}/choose`;
 
 export const SOCIALS = [
