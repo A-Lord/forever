@@ -63,7 +63,7 @@ var DefaultTalents = "00532012502-023305200005015002321151"
 
 var DefaultConsumables = &proto.ConsumesSpec{
 	FlaskId:    274274, // Flask of Natural Aggression
-	FoodId:     238638, // Filet o' Flank
+	FoodId:     250072, // Swiftstrike Steak
 	PotId:      250943, // Major Frenzy Potion
 	ConjuredId: 7676,
 }

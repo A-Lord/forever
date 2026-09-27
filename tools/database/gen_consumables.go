@@ -85,12 +85,15 @@ func IsExplosive(c *dbc.Consumable, routing *ConsumableRouting) bool {
 }
 
 // Whether a consumable in db.json survives the global filters. ConsumableAllowList keeps it,
-// ConsumableDenyList drops it, and so does a test or QA name.
+// ConsumableDenyList and SoDConsumableDenyList drop it, and so does a test or QA name.
 func KeepConsumable(consumable *proto.Consumable) bool {
 	if slices.Contains(ConsumableAllowList, consumable.Id) {
 		return true
 	}
 	if slices.Contains(ConsumableDenyList, consumable.Id) {
+		return false
+	}
+	if _, ok := SoDConsumableDenyList[consumable.Id]; ok {
 		return false
 	}
 	for _, pattern := range DenyListNameRegexes {

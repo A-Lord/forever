@@ -959,3 +959,33 @@ var SoDItemDenyList = map[int32]struct{}{
 	241089: {}, // Scarlet Dagger
 	241090: {}, // Scarlet Great Axe
 }
+
+// Consumables Season of Discovery added that the game files still carry. ConsumableAllowList brings one
+// back. Keep these sorted by item ID.
+var SoDConsumableDenyList = map[int32]struct{}{
+	206177: {}, // Pine Nut Butter
+	210708: {}, // Elixir of Coalesced Regret
+	211815: {}, // Silverwing Battle Hymn
+	211816: {}, // Warsong Battle Drum
+	211953: {}, // Scroll of Arcane Recovery I
+	211954: {}, // Scroll of Arcane Accuracy I
+	211955: {}, // Scroll of Arcane Protection - Fire I
+	211956: {}, // Scroll of Arcane Protection - Frost I
+	211957: {}, // Scroll of Arcane Power I
+	213564: {}, // Scroll of Minor Evocation
+	215127: {}, // High-Yield Radiation Bomb
+	217308: {}, // Enchanted Sigil: Innovation
+	217398: {}, // Lesser Arcane Elixir
+	217495: {}, // Scroll of Cryoblast
+	223913: {}, // Major Healing Potion
+	223914: {}, // Greater Healing Potion
+	227286: {}, // Warmed Rumsey Rum with Cream
+	228978: {}, // Enchanted Sigil: Flowing Waters
+	228980: {}, // Conductive Shield Coating
+	232436: {}, // Darkclaw Bisque
+	232438: {}, // Smoked Redgill
+	232611: {}, // Magnificent Trollshine
+	238637: {}, // Prowler Steak
+	238638: {}, // Filet o' Flank
+	238639: {}, // Sunrise Omelette
+}

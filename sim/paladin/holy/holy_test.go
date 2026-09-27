@@ -50,7 +50,7 @@ var StandardTalents = "55320030025131051-503050002"
 
 var FullConsumes = &proto.ConsumesSpec{
 	FlaskId: 13512,  // Flask of Supreme Power
-	FoodId:  238639, // Sunrise Omelette
+	FoodId:  250066, // Soaring Pamplona
 	PotId:   250949, // Major Mender's Potion
 }
 
