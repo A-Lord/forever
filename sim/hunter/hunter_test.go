@@ -148,7 +148,7 @@ var DefaultSVTalents = "-00505505-500250030050220151"
 
 var DefaultConsumables = &proto.ConsumesSpec{
 	ElixirIds:   []int32{13452, 250341}, // Elixir of the Mongoose, Greater Mageblood Elixir
-	FoodId:      238638,                 // Filet o' Flank
+	FoodId:      250072,                 // Swiftstrike Steak
 	PotId:       250943,                 // Major Frenzy Potion
 	ConjuredId:  12662,                  // Demonic Rune
 	ExplosiveId: 18588,                  // Ez-Thro Dynamite II

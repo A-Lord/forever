@@ -45,8 +45,6 @@ func RegisterAllTemporaryEnchantConsumables() {
 		{itemID: 20750}, // Wizard Oil
 		{itemID: 23122, equipSpellIDs: []int32{28893}}, // Consecrated Sharpening Stone
 		{itemID: 23123, equipSpellIDs: []int32{28890}}, // Blessed Wizard Oil
-		{itemID: 228980}, // Conductive Shield Coating
-		{itemID: 232611}, // Magnificent Trollshine
 		{itemID: 274947}, // Scroll of Imbue Lesser Flame
 		{itemID: 277485}, // Scroll of Imbue Frost
 		{itemID: 277487, equipSpellIDs: []int32{1306572}}, // Scroll of Imbue Baleflame
