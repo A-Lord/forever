@@ -65,6 +65,11 @@ func SlowedTimeMultiplier(speedPercent float64) float64 {
 	return 1 - speedPercent/100
 }
 
+// The game files state a percentage as an integer, and its sign comes from the data: a -6 is 0.94.
+func PercentMultiplier(percent float64) float64 {
+	return 1 + percent/100
+}
+
 func AtkSpeedReductionEffect(aura *Aura, speedMultiplier float64) *ExclusiveEffect {
 	return aura.NewExclusiveEffect("AtkSpdReduction", false, ExclusiveEffect{
 		// How far from 1 the applied factor is, which is the scale every member

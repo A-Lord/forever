@@ -523,8 +523,12 @@ func (unit *Unit) SpellGCD() time.Duration {
 	return max(GCDMin, unit.ApplyCastSpeed(GCDDefault))
 }
 
+func (unit *Unit) hasteRatingMultiplier() float64 {
+	return 1 + unit.stats[stats.HasteRating]/(HasteRatingPerHastePercent*100)
+}
+
 func (unit *Unit) TotalSpellHasteMultiplier() float64 {
-	return unit.PseudoStats.CastSpeedMultiplier * (1 + unit.stats[stats.HasteRating]/(HasteRatingPerHastePercent*100))
+	return unit.PseudoStats.CastSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) updateCastSpeed() {
@@ -566,17 +570,17 @@ func (unit *Unit) ApplyRealRangedHaste(dur time.Duration) time.Duration {
 	return time.Duration(float64(dur) / unit.TotalRealRangedHasteMultiplier())
 }
 func (unit *Unit) TotalMeleeHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.MeleeSpeedMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.MeleeSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 // Returns the melee haste multiplier only including equip haste and real haste modifiers like lust
 // Same value for ranged and melee
 func (unit *Unit) TotalRealHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) TotalRealRangedHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedHasteMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedHasteMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) Armor() float64 {
@@ -588,7 +592,7 @@ func (unit *Unit) BlockDamageReduction() float64 {
 }
 
 func (unit *Unit) TotalRangedHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedSpeedMultiplier * (1 + (unit.stats[stats.HasteRating] / (HasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) updateMeleeAttackSpeed() {
@@ -763,6 +767,17 @@ func RatingChannelsOf(rating stats.Stat) (RatingChannels, bool) {
 		}
 	}
 	return RatingChannels{}, false
+}
+
+// The pseudo stat each magic school's hit percent travels as. None and Physical have none and hold
+// the zero value, PseudoStatMainHandDps, so read from SchoolIndexArcane on.
+var SchoolHitPseudoStats = [stats.SchoolLen]proto.PseudoStat{
+	stats.SchoolIndexArcane: proto.PseudoStat_PseudoStatSchoolHitPercentArcane,
+	stats.SchoolIndexFire:   proto.PseudoStat_PseudoStatSchoolHitPercentFire,
+	stats.SchoolIndexFrost:  proto.PseudoStat_PseudoStatSchoolHitPercentFrost,
+	stats.SchoolIndexHoly:   proto.PseudoStat_PseudoStatSchoolHitPercentHoly,
+	stats.SchoolIndexNature: proto.PseudoStat_PseudoStatSchoolHitPercentNature,
+	stats.SchoolIndexShadow: proto.PseudoStat_PseudoStatSchoolHitPercentShadow,
 }
 
 // The melee and spell percent of each channel table rating with back-end percent Stats. The ranged Stat

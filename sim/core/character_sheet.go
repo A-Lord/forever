@@ -76,15 +76,9 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		// that stat dependencies will work correctly, but are stored as PseudoStats in proto
 		// messages. This is done so that the stats arrays embedded in database files and saved
 		// Encounter settings can omit these extraneous fields.
-		proto.PseudoStat_PseudoStatSpellHitPercent:        character.GetStat(stats.SpellHitPercent),
-		proto.PseudoStat_PseudoStatSchoolHitPercentArcane: character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexArcane],
-		proto.PseudoStat_PseudoStatSchoolHitPercentFire:   character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFire],
-		proto.PseudoStat_PseudoStatSchoolHitPercentFrost:  character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFrost],
-		proto.PseudoStat_PseudoStatSchoolHitPercentHoly:   character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexHoly],
-		proto.PseudoStat_PseudoStatSchoolHitPercentNature: character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexNature],
-		proto.PseudoStat_PseudoStatSchoolHitPercentShadow: character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexShadow],
-		proto.PseudoStat_PseudoStatSpellCritPercent:       character.GetStat(stats.SpellCritPercent),
-		proto.PseudoStat_PseudoStatExpertisePercent:       character.GetStat(stats.ExpertisePercent),
+		proto.PseudoStat_PseudoStatSpellHitPercent:  character.GetStat(stats.SpellHitPercent),
+		proto.PseudoStat_PseudoStatSpellCritPercent: character.GetStat(stats.SpellCritPercent),
+		proto.PseudoStat_PseudoStatExpertisePercent: character.GetStat(stats.ExpertisePercent),
 
 		proto.PseudoStat_PseudoStatMeleeHitPercent:    mainHand.HitPercent,
 		proto.PseudoStat_PseudoStatMeleeCritPercent:   mainHand.CritPercent,
@@ -98,6 +92,9 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatRangedCritPercent:  ranged.CritPercent,
 		proto.PseudoStat_PseudoStatRangedHitRating:    ranged.HitRating,
 		proto.PseudoStat_PseudoStatRangedCritRating:   ranged.CritRating,
+	}
+	for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
+		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school]
 	}
 	character.sheetAvoidance().Gate(pseudoStats)
 	return pseudoStats

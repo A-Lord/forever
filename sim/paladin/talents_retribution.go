@@ -124,7 +124,7 @@ func (paladin *Paladin) applyVindication() {
 		return buffs.NewSpellDataVindicationAura(target, true, paladin.Talents.Vindication)
 	})
 
-	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)
+	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, core.PercentMultiplier(points))
 	selfAura := paladin.RegisterAura(core.Aura{
 		Label:    "Vindication" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID}.WithTag(1),

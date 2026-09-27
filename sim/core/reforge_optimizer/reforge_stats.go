@@ -152,14 +152,7 @@ func eachUnitStat(vec core.UnitStats, fn func(unitStat stats.UnitStat, value flo
 	}
 }
 
-var schoolHitPercents = []proto.PseudoStat{
-	proto.PseudoStat_PseudoStatSchoolHitPercentArcane,
-	proto.PseudoStat_PseudoStatSchoolHitPercentFire,
-	proto.PseudoStat_PseudoStatSchoolHitPercentFrost,
-	proto.PseudoStat_PseudoStatSchoolHitPercentHoly,
-	proto.PseudoStat_PseudoStatSchoolHitPercentNature,
-	proto.PseudoStat_PseudoStatSchoolHitPercentShadow,
-}
+var schoolHitPercents = core.SchoolHitPseudoStats[stats.SchoolIndexArcane:]
 
 // The off hand's percent moves with the physical percent. The per-attack ratings on the sheet are left
 // out: a rating's children are counted in percent.

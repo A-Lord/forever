@@ -225,7 +225,7 @@ func (hunter *Hunter) RegisterRangedSpell(config core.SpellConfig) *core.Spell {
 
 		if config.Cast.CastTime == nil {
 			config.Cast.CastTime = func(spell *core.Spell) time.Duration {
-				return time.Duration(float64(spell.DefaultCast.CastTime) / hunter.TotalRangedHasteMultiplier())
+				return hunter.ApplyRangedSpeed(spell.DefaultCast.CastTime)
 			}
 		}
 	}
@@ -262,7 +262,7 @@ func (hunter *Hunter) AddStatDependencies() {
 	hunter.AddStatDependency(stats.Agility, stats.AttackPower, 1)
 	hunter.AddStatDependency(stats.Agility, stats.RangedAttackPower, 1)
 	hunter.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[hunter.Class])
-	hunter.AddStatDependency(stats.Agility, stats.DodgeRating, 1.0/25*core.DodgeRatingPerDodgePercent)
+	hunter.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[hunter.Class])
 }
 
 func (hunter *Hunter) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {

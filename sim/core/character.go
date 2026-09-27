@@ -150,12 +150,9 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 			character.bonusOHDps = ps[proto.PseudoStat_PseudoStatOffHandDps]
 			character.bonusRangedDps = ps[proto.PseudoStat_PseudoStatRangedDps]
 			character.PseudoStats.BaseReducedCritTakenPercent = ps[proto.PseudoStat_PseudoStatReducedCritTakenPercent] / 100
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexArcane] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentArcane]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFire] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentFire]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFrost] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentFrost]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexHoly] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentHoly]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexNature] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentNature]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexShadow] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentShadow]
+			for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
+				character.PseudoStats.SchoolBonusHitChance[school] = ps[SchoolHitPseudoStats[school]]
+			}
 			character.PseudoStats.BonusMHDps += character.bonusMHDps
 			character.PseudoStats.BonusOHDps += character.bonusOHDps
 			character.PseudoStats.BonusRangedDps += character.bonusRangedDps
