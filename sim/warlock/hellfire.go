@@ -11,7 +11,7 @@ var hellfireRank = spellData.Hellfire.Highest()
 var hellfireTick = hellfireRank.EffectN(2)
 var hellFireCoeff = hellfireTick.Coeff()
 
-// TODO: To be implemented. Port the TBC Hellfire implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Hellfire implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerHellfire() *core.Spell {
 	panic("To be implemented")
 
@@ -27,6 +27,7 @@ func (warlock *Warlock) registerHellfire() *core.Spell {
 	// 	Flags:            core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ProcMask:         core.ProcMaskSpellDamage,
 	// 	ClassSpellMask:   WarlockSpellHellfire,
+	// 	ClassFlags:       hellfireRank.ClassFlags,
 	// 	ThreatMultiplier: 1,
 	// 	DamageMultiplier: 1,
 	//

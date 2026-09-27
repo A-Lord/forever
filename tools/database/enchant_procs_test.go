@@ -13,13 +13,13 @@ import (
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
-// Moves to the repository root and skips without the client DBC inputs, which are not in the repo.
+// Moves to the repository root and skips without the game files DBC inputs, which are not in the repo.
 func withDBCInputs(t *testing.T) {
 	t.Helper()
 
 	inRepositoryRoot(t)
 	if _, err := os.Stat("./assets/db_inputs/dbc/spells.json"); err != nil {
-		t.Skip("no client DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable this test")
+		t.Skip("no game files DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable this test")
 	}
 }
 
@@ -43,7 +43,7 @@ func TestEnchantProcRouting(t *testing.T) {
 	}{
 		{36, "Fiery Blaze: Effect 1 states 15, the tooltip's 15% chance", []want{{6297, true, 15, ""}}},
 		{803, "Fiery Weapon: Effect 1 states 0", []want{{13897, true, 0, spelldata.ReasonStatesNoRate}}},
-		{1899, "Unholy Weapon: 'often' is a rate the client does not carry", []want{{20006, false, 0, spelldata.ReasonStatesNoRate}}},
+		{1899, "Unholy Weapon: 'often' is a rate the game files do not carry", []want{{20006, false, 0, spelldata.ReasonStatesNoRate}}},
 		{1900, "Crusader: the combat spell only, the aura 458112 applies the same Holy Strength", []want{{20007, false, 0, spelldata.ReasonStatesNoRate}}},
 		{7940, "Grand Crusader: the same shape as Crusader", []want{{1231124, false, 0, spelldata.ReasonStatesNoRate}}},
 		{7210, "Dismantle: two auras, 100 beside 'sometimes' and 30%, both hitting mechanicals only", []want{
@@ -157,7 +157,7 @@ func TestEnchantPercentStatBuffIsTheAppliedSpell(t *testing.T) {
 
 	buff := spelldata.Find(1299796)
 	if e := buff.FirstAura(dbcenums.A_MOD_PERCENT_STAT); e == spelldata.NilEffect || e.Misc != 4 || e.BasePoints != 100 {
-		t.Errorf("1299796 states %+v, want A_MOD_PERCENT_STAT on client stat 4 (Spirit) at 100%%", e)
+		t.Errorf("1299796 states %+v, want A_MOD_PERCENT_STAT on game files stat 4 (Spirit) at 100%%", e)
 	}
 }
 

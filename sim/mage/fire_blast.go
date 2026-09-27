@@ -1,7 +1,7 @@
 package mage
 
 // TODO: To be implemented. spellData.FireBlast holds the seven trainer ranks, 2136 to 10199.
-// The client also carries 400616 to 400623, the copies the Season of Discovery rune passive
+// The game files also carry 400616 to 400623, the copies the Season of Discovery rune passive
 // Overheat (400615) swaps onto the action bar. Overheat is an Engrave grant with no place in
 // Forever, and the generator drops its stand-ins.
 func (mage *Mage) registerFireBlastSpell() {
@@ -15,6 +15,7 @@ func (mage *Mage) registerFireBlastSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellFireBlast,
+	// 	ClassFlags:     fireBlastRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(fireBlastRank.Cost()),

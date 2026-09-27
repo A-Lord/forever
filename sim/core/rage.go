@@ -113,7 +113,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	unit.rageBar = rageBar{
 		unit:                      unit,
 		maxRage:                   maxRage,
-		startingRage:              max(0, min(options.StartingRage, maxRage)),
+		startingRage:              max(0, options.StartingRage),
 		offHandRageMultiplier:     1,
 		damageTakenRageMultiplier: 1,
 		RageRefundMetrics:         unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionRefund}),
@@ -133,6 +133,16 @@ func (rb *rageBar) MaximumRage() float64 {
 	return rb.maxRage
 }
 
+// Sets the most rage the bar holds. A raised maximum grants no rage; rage above a lowered one is lost
+// and counted against the metrics. Without a Simulation there is no rage yet to lose.
+func (rb *rageBar) SetMaximumRage(sim *Simulation, maxRage float64, metrics *ResourceMetrics) {
+	rb.maxRage = maxRage
+
+	if sim != nil && rb.currentRage > maxRage {
+		rb.SpendRage(sim, rb.currentRage-maxRage, metrics)
+	}
+}
+
 func (rb *rageBar) SetOffHandRageMultiplier(multiplier float64) {
 	rb.offHandRageMultiplier = multiplier
 }
@@ -150,7 +160,7 @@ func (rb *rageBar) AddRage(sim *Simulation, amount float64, metrics *ResourceMet
 	metrics.AddEvent(amount, newRage-rb.currentRage)
 
 	if sim.Log != nil {
-		rb.unit.Log(sim, "Gained %0.3f rage from %s (%0.3f --> %0.3f) of %0.0f total.", amount, metrics.ActionID, rb.currentRage, newRage, 100.0)
+		rb.unit.Log(sim, "Gained %0.3f rage from %s (%0.3f --> %0.3f) of %0.0f total.", amount, metrics.ActionID, rb.currentRage, newRage, rb.maxRage)
 	}
 
 	rb.currentRage = newRage
@@ -168,7 +178,7 @@ func (rb *rageBar) SpendRage(sim *Simulation, amount float64, metrics *ResourceM
 	metrics.AddEvent(-amount, -amount)
 
 	if sim.Log != nil {
-		rb.unit.Log(sim, "Spent %0.3f rage from %s (%0.3f --> %0.3f) of %0.0f total.", amount, metrics.ActionID, rb.currentRage, newRage, 100.0)
+		rb.unit.Log(sim, "Spent %0.3f rage from %s (%0.3f --> %0.3f) of %0.0f total.", amount, metrics.ActionID, rb.currentRage, newRage, rb.maxRage)
 	}
 
 	rb.currentRage = newRage
@@ -187,7 +197,7 @@ func (rb *rageBar) reset(_ *Simulation) {
 		return
 	}
 
-	rb.currentRage = rb.startingRage
+	rb.currentRage = min(rb.startingRage, rb.maxRage)
 	rb.damageTakenRageMultiplier = 1
 }
 

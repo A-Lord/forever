@@ -29,7 +29,7 @@ func (paladin *Paladin) registerHammerOfWrath(_ int32, rank *spelldata.Spell) {
 		ManaCost: manaCost(rank),
 		Cast: core.CastConfig{
 			DefaultCast: core.Cast{
-				// The client's 1s GCD sits at core's floor, so it is named as the floor too or
+				// The game files' 1s GCD sits at core's floor, so it is named as the floor too or
 				// GCDTime clamps it.
 				GCDMin:   rank.GCD(),
 				GCD:      rank.GCD(),

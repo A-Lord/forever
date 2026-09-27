@@ -14,6 +14,7 @@ func (mage *Mage) frostBoltConfig(config core.SpellConfig) core.SpellConfig {
 		ProcMask:       core.ProcMaskSpellDamage,
 		Flags:          config.Flags,
 		ClassSpellMask: MageSpellFrostbolt,
+		ClassFlags:     frostboltRank.ClassFlags,
 		MissileSpeed:   float64(frostboltRank.Speed),
 
 		ManaCost: config.ManaCost,

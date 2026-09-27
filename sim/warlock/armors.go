@@ -1,6 +1,6 @@
 package warlock
 
-// TODO: To be implemented. Port the TBC Armors implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Armors implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerArmors() {
 	panic("To be implemented")
 

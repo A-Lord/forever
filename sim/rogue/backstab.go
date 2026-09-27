@@ -18,6 +18,7 @@ func (rogue *Rogue) registerBackstabSpell() {
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellBackstab,
+	// 	ClassFlags:     backstabRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost:   int32(backstabRank.Cost()),

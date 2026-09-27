@@ -234,8 +234,8 @@ func equipSpellUnsupported(enchantID int, s *spelldata.Spell, spellID int32) []s
 }
 
 // Puts every consumable db.json ships into the item icon table, which is where the UI looks a
-// consumable's icon up: the client's icon for an item the catalogue or the item table carries, and
-// the icon an override states for one the client does not ship.
+// consumable's icon up: the game files' icon for an item the catalogue or the item table carries, and
+// the icon an override states for one the game files do not ship.
 func AddConsumableIcons(db *WowDatabase, catalogue []dbc.Consumable, instance *dbc.DBC, artPaths map[int]string) {
 	fileDataIDs := map[int32]int{}
 	for _, consumable := range catalogue {

@@ -8,7 +8,7 @@ var corruptionRank = spellData.Corruption.Highest()
 var corruptionTick = corruptionRank.PeriodicEffect()
 var corruptionCoeff = corruptionTick.Coeff()
 
-// TODO: To be implemented. Port the TBC Corruption implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Corruption implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerCorruption() *core.Spell {
 	panic("To be implemented")
 
@@ -24,6 +24,7 @@ func (warlock *Warlock) registerCorruption() *core.Spell {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellCorruption,
+	// 	ClassFlags:     corruptionRank.ClassFlags,
 	//
 	// 	DamageMultiplier: 1,
 	// 	ManaCost:         core.ManaCostOptions{FlatCost: int32(corruptionRank.Cost())},

@@ -11,7 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
-// Rows in the shape the client states them, standing in for the generated store: a ranked
+// Rows in the shape the game files state them, standing in for the generated store: a ranked
 // direct-damage spell with a slow on it, a proc aura that fires a triggered spell, the spell it
 // fires, and two carrying the fractional EffectBasePointsF about one effect in 55 has. Ids ascend,
 // as the generated slice's do.
@@ -30,7 +30,7 @@ func fixture() []Spell {
 			Effects: []Effect{
 				{SpellID: 116, Index: 0, Type: dbcenums.E_APPLY_AURA, Aura: 33, BasePoints: -40},
 				{SpellID: 116, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 19, PPL: 0.5,
-					SpellLevel: 4, MaxLevel: 8, Variance: 0.105263, SPCoef: 0.407},
+					BaseLevel: 4, MaxLevel: 8, Variance: 0.105263, SPCoef: 0.407},
 			},
 			Powers: []Power{{Type: 0, Cost: 25}},
 		},
@@ -62,7 +62,7 @@ func fixture() []Spell {
 			MaxLevel:   7,
 			Effects: []Effect{
 				{SpellID: 800, Index: 0, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 19.7, PPL: 0.5,
-					SpellLevel: 4, MaxLevel: 7},
+					BaseLevel: 4, MaxLevel: 7},
 			},
 		},
 		{
@@ -184,7 +184,7 @@ func TestTimes(t *testing.T) {
 		t.Errorf("cast time of 116 = %v, want 1.5s", got)
 	}
 
-	// The client's permanent aura.
+	// The game files' permanent aura.
 	permanent := &Spell{DurationMs: -1}
 	if got := permanent.Duration(); got != core.NeverExpires {
 		t.Errorf("duration of a permanent aura = %v, want NeverExpires", got)
@@ -196,7 +196,7 @@ func TestPowerCost(t *testing.T) {
 		t.Errorf("mana cost of 116 = %v, want 25", got)
 	}
 
-	// Rage is on the client's 0-1000 bar: 300 is 30 rage.
+	// Rage is on the game files' 0-1000 bar: 300 is 30 rage.
 	rager := &Spell{Powers: []Power{{Type: 1, Cost: 300}}}
 	if got := rager.PowerCost(1); got != 30 {
 		t.Errorf("rage cost = %v, want 30", got)
@@ -264,7 +264,7 @@ func TestRankedLadder(t *testing.T) {
 }
 
 // Each rank of a trait talent is a copy carrying the curve's value, so the store's own row keeps the
-// client's.
+// game files'.
 func TestTalentLadder(t *testing.T) {
 	curves[116] = [][]float64{{-40, -45, -50}, {19, 20, 21}}
 	defer delete(curves, 116)
@@ -277,7 +277,7 @@ func TestTalentLadder(t *testing.T) {
 		t.Errorf("rank 3 slow = %v, want -50", got)
 	}
 	if got := Find(116).EffectN(2).BaseValue(); got != 19 {
-		t.Errorf("the store's own row reads %v, want the client's 19", got)
+		t.Errorf("the store's own row reads %v, want the game files' 19", got)
 	}
 }
 
@@ -295,6 +295,18 @@ func TestTalentCurveLengthPanics(t *testing.T) {
 	defer delete(curves, 116)
 
 	requirePanic(t, "spelldata: spell 116 curve row 1 has 2 ranks, want 3", func() { Talent(116, 3) })
+}
+
+func TestLadderContains(t *testing.T) {
+	withRows(t, []Spell{{ID: 116}, {ID: 205}, {ID: 837}})
+
+	ladder := Ranked(116, 205)
+	if !ladder.Contains(&core.Spell{ActionID: core.ActionID{SpellID: 205}}) {
+		t.Error("rank 2 is not contained")
+	}
+	if ladder.Contains(&core.Spell{ActionID: core.ActionID{SpellID: 837}}) {
+		t.Error("a spell outside the ladder is contained")
+	}
 }
 
 // Find binary searches, so the store refuses rows it could not search.

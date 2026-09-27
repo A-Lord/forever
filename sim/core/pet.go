@@ -102,7 +102,8 @@ func NewPet(config PetConfig) Pet {
 
 				StatDependencyManager: stats.NewStatDependencyManager(),
 
-				ReactionTime: config.Owner.ReactionTime,
+				ReactionTime:    config.Owner.ReactionTime,
+				procChanceOwner: &config.Owner.Unit,
 
 				StartDistanceFromTarget: distanceFromTarget,
 				DistanceFromTarget:      distanceFromTarget,

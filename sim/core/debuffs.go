@@ -59,7 +59,7 @@ func ScreechAura(target *Unit) *Aura {
 	return statsDebuff(target, 0, "Screech", 27051, stats.Stats{stats.AttackPower: -210}, time.Second*4)
 }
 
-// A slow the client states as a negative speed percentage makes the time between attacks, or a cast
+// A slow the game files state as a negative speed percentage makes the time between attacks, or a cast
 // time, that much longer: -20 is 20% longer, which divides the speed by 1.2.
 func SlowedTimeMultiplier(speedPercent float64) float64 {
 	return 1 - speedPercent/100

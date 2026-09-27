@@ -72,6 +72,7 @@ interface PlayerState {
 	professions: Array<Profession>;
 	epStats: Array<Stat>;
 	windfury: boolean;
+	flametongue: boolean;
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	consumes: ConsumesSpec;
@@ -84,6 +85,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		professions: [],
 		epStats: [Stat.StatStrength, Stat.StatAttackPower],
 		windfury: false,
+		flametongue: false,
 		consumes: ConsumesSpec.create(),
 		...state,
 	};
@@ -97,7 +99,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 			return item ? { item } : null;
 		},
 		getSpecConfig: () => ({ epStats: full.epStats }),
-		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury }) }),
+		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury, flametongueTotem: full.flametongue }) }),
 		getConsumes: () => ConsumesSpec.clone(full.consumes),
 		setConsumes: (consumes: ConsumesSpec) => (full.consumes = ConsumesSpec.clone(consumes)),
 	} as unknown as Player<any>;
@@ -110,7 +112,7 @@ const toggled = (toggles: ReadonlyArray<ConsumeToggle>, player: Player<any>) =>
 	toggles.filter(toggle => !toggle.showWhen || toggle.showWhen(player)).map(toggle => toggle.actionId.itemId);
 
 describe('consumeConfigs', () => {
-	it('offers the Mighty Rage Potion to a class the client allows it to', () => {
+	it('offers the Mighty Rage Potion to a class the game files allow it to', () => {
 		const warrior = playerOf().player;
 		expect(offered(consumeConfigs(warrior, db).potion, warrior)).toEqual([13442]);
 		const paladin = playerOf({ cls: Class.ClassPaladin, spec: Spec.SpecRetributionPaladin }).player;
@@ -149,6 +151,13 @@ describe('consumeConfigs', () => {
 		const { player } = playerOf({ windfury: true });
 		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
 		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, windfury: true }).player;
+		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
+	});
+
+	it('hides the main-hand imbue under Flametongue Totem', () => {
+		const { player } = playerOf({ flametongue: true });
+		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
+		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, flametongue: true }).player;
 		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
 	});
 

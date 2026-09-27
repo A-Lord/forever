@@ -22,7 +22,7 @@ func RegisterAllOnUseCds() {
 	// unsupported: the heal lands on implicit target 5, not the wearer
 	// shared.NewSpellDataHealOnUse(14153) // Robe of the Void - https://www.wowhead.com/forever/spell=18386
 	// on use: 1287808 (A_SCHOOL_ABSORB); not simulated: A_DUMMY
-	// unsupported: the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the client does not list
+	// unsupported: the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list
 	// shared.NewSpellDataAbsorbOnUse(18406) // Onyxia Blood Talisman - https://www.wowhead.com/forever/spell=1287808
 	// unsupported: 23131 deals no damage and heals no one (A_REFLECT_SPELLS_SCHOOL)
 	// shared.NewSimpleStatActive(18634) // Gyrofreeze Ice Reflector - https://www.wowhead.com/forever/spell=23131
@@ -137,14 +137,15 @@ func RegisterAllOnUseCds() {
 	// ArmorPenetration
 	// Badge of the Swarmguard - https://www.wowhead.com/forever/spell=26480
 	shared.NewStackingStatBonusCD(shared.StackingStatBonusCD{
-		Name:                  "Badge of the Swarmguard",
-		ID:                    21670,
-		CD:                    time.Millisecond * 180000,
-		Callback:              core.CallbackOnSpellHitDealt,
-		ProcMask:              core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial,
-		Outcome:               core.OutcomeLanded,
-		RequireDamageDealt:    true,
-		TrinketLimitsDuration: true,
+		Name:                   "Badge of the Swarmguard",
+		ID:                     21670,
+		CD:                     time.Millisecond * 180000,
+		Callback:               core.CallbackOnSpellHitDealt,
+		ProcMask:               core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial,
+		Outcome:                core.OutcomeLanded,
+		RequireDamageDealt:     false,
+		RequireDamageComponent: true,
+		TrinketLimitsDuration:  true,
 	})
 
 	// AttackPower / RangedAttackPower
@@ -182,14 +183,15 @@ func RegisterAllOnUseCds() {
 	shared.NewSimpleStatActive(18820) // Talisman of Ephemeral Power - https://www.wowhead.com/forever/spell=23271
 	// Talisman of Ascendance - https://www.wowhead.com/forever/spell=28200
 	shared.NewStackingStatBonusCD(shared.StackingStatBonusCD{
-		Name:                  "Talisman of Ascendance",
-		ID:                    22678,
-		CD:                    time.Millisecond * 60000,
-		Callback:              core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt,
-		ProcMask:              core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
-		Outcome:               core.OutcomeLanded,
-		RequireDamageDealt:    false,
-		TrinketLimitsDuration: true,
+		Name:                   "Talisman of Ascendance",
+		ID:                     22678,
+		CD:                     time.Millisecond * 60000,
+		Callback:               core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt,
+		ProcMask:               core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial | core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
+		Outcome:                core.OutcomeLanded,
+		RequireDamageDealt:     false,
+		RequireDamageComponent: true,
+		TrinketLimitsDuration:  true,
 	})
 	shared.NewSimpleStatActive(23046) // The Restrained Essence of Sapphiron - https://www.wowhead.com/forever/spell=28779
 

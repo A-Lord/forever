@@ -33,15 +33,17 @@ func (warlock *Warlock) registerDestructionTalents() {
 }
 
 // TODO: To be implemented. Improved Shadow Bolt (17793) is one dummy effect
-// with no trigger spell and its debuff 17800 has no SpellName row, so there is
-// nothing in the client to build the aura this talent applies from.
+// with no trigger spell; its tooltip names the debuff Shadow Vulnerability
+// (17794, ImprovedShadowBoltTriggered), A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER on
+// shadow, which the port puts on the target on a Shadow Bolt crit and parses
+// onto that target's aura with spelldata.ParseEffects and FromCaster.
 func (warlock *Warlock) applyImprovedShadowBolt() {
 	if warlock.Talents.ImprovedShadowBolt == 0 {
 		return
 	}
 }
 
-// TODO: To be implemented. Port the TBC Cataclysm implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Cataclysm implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyCataclysm() {
 	if warlock.Talents.Cataclysm == 0 {
 		return
@@ -59,7 +61,7 @@ func (warlock *Warlock) applyCataclysm() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Bane implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Bane implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyBane() {
 	if warlock.Talents.Bane == 0 {
 		return
@@ -91,7 +93,7 @@ func (warlock *Warlock) applyShadowburn() {
 	warlock.registerShadowBurn()
 }
 
-// TODO: To be implemented. Port the TBC Destructive Reach implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Destructive Reach implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyDestructiveReach() {
 	if warlock.Talents.DestructiveReach == 0 {
 		return
@@ -110,7 +112,7 @@ func (warlock *Warlock) applyDestructiveReach() {
 	//
 }
 
-// TODO: To be implemented. Port the TBC Ruin implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Ruin implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyRuin() {
 	if warlock.Talents.Ruin == 0 {
 		return
@@ -138,7 +140,7 @@ func (warlock *Warlock) applyConflagrate() {
 	warlock.registerConflagrate()
 }
 
-// TODO: To be implemented. Port the TBC Shadow And Flame implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shadow And Flame implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyShadowAndFlame() {
 	if warlock.Talents.ShadowAndFlame == 0 {
 		return

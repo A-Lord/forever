@@ -94,8 +94,10 @@ func (rogue *Rogue) registerMurder() {
 	//
 	// var multiplier float64 = spellData.Murder.MultiplierAt(rogue.Talents.Murder)
 	// rogue.Env.RegisterPostFinalizeEffect(func() {
-	// 	rogue.MultiplyDamageVersus(multiplier, true, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeGiant,
-	// 		proto.MobType_MobTypeBeast, proto.MobType_MobTypeDragonkin)
+	// 	mobTypes := []proto.MobType{proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeGiant,
+	// 		proto.MobType_MobTypeBeast, proto.MobType_MobTypeDragonkin}
+	// 	rogue.MultiplyDamageVersus(multiplier, mobTypes...)
+	// 	rogue.MultiplyCritDamageVersus(multiplier, mobTypes...)
 	// })
 }
 
@@ -215,6 +217,7 @@ func (rogue *Rogue) registerColdBlood() {
 	//
 	// rogue.ColdBlood = rogue.GetOrRegisterSpell(core.SpellConfig{
 	// 	ActionID: core.ActionID{SpellID: 14177},
+	// 	ClassFlags: spellData.ColdBlood.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		CD: core.Cooldown{
@@ -265,7 +268,7 @@ func (rogue *Rogue) registerSealFate() {
 }
 
 // Was 34413; Forever reworked Mutilate onto an entirely new set of spell ids, so this
-// follows the highest rank the client actually ships.
+// follows the highest rank the game files actually ship.
 var MutilateSpellID int32 = spellData.Mutilate.Highest().ID
 
 var mutilateRank = spellData.Mutilate.ByID(MutilateSpellID)
@@ -292,6 +295,7 @@ func (rogue *Rogue) registerMutilate() {
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellMutilate,
+	// 	ClassFlags:     mutilateRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost:   int32(mutilateRank.Cost()),
@@ -343,6 +347,7 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 		ProcMask:       procMask,
 		Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder,
 		ClassSpellMask: RogueSpellMutilateHit,
+		ClassFlags:     spellData.MutilateTriggered.Highest().ClassFlags,
 
 		DamageMultiplier:         1,
 		DamageMultiplierAdditive: 1,

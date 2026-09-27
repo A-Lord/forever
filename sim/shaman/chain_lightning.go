@@ -9,7 +9,7 @@ import (
 
 var ChainLightningRankMap = spellData.ChainLightning
 
-// TODO: To be implemented. Port the TBC Chain Lightning Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Chain Lightning Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerChainLightningSpell() {
 	panic("To be implemented")
 

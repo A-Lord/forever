@@ -91,7 +91,7 @@ func resolverRows() []Spell {
 			MaxStack:              5,
 			Effects: []Effect{
 				{SpellID: 800, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE,
-					BasePoints: 70, PPL: 1, SpellLevel: 50, PeriodMs: 3000, SPCoef: 0.1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+					BasePoints: 70, PPL: 1, BaseLevel: 50, PeriodMs: 3000, SPCoef: 0.1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			},
 			Powers: []Power{{Type: 1, Cost: 100}},
 		},
@@ -151,7 +151,7 @@ func TestSpellConfigFromARow(t *testing.T) {
 	}
 }
 
-// A rank the client does not state answers 0, which is what the APL UI reads as "no ranks".
+// A rank the game files do not state answers 0, which is what the APL UI reads as "no ranks".
 func TestSpellConfigRank(t *testing.T) {
 	withRows(t, resolverRows())
 
@@ -171,7 +171,7 @@ func TestSpellConfigBleedMultipliers(t *testing.T) {
 
 	config := SpellConfig(testUnit(), Find(800))
 	if config.DamageMultiplier != 1 || config.ThreatMultiplier != 1 {
-		t.Errorf("multipliers = %v damage, %v threat, want 1 and 1 off the client's bleed mechanic",
+		t.Errorf("multipliers = %v damage, %v threat, want 1 and 1 off the game files' bleed mechanic",
 			config.DamageMultiplier, config.ThreatMultiplier)
 	}
 	if config := SpellConfig(testUnit(), Find(100)); config.DamageMultiplier != 0 {
@@ -184,14 +184,14 @@ func TestSpellConfigRageCostAndRefund(t *testing.T) {
 
 	rage := SpellConfig(testUnit(), Find(100)).RageCost
 	if rage.Cost != 30 {
-		t.Errorf("rage cost = %d, want 30 off the client's 0-1000 bar", rage.Cost)
+		t.Errorf("rage cost = %d, want 30 off the game files' 0-1000 bar", rage.Cost)
 	}
 	if rage.Refund != 0.8 {
 		t.Errorf("rage refund = %v, want 0.8", rage.Refund)
 	}
 
 	if refund := SpellConfig(testUnit(), Find(200)).RageCost.Refund; refund != 0 {
-		t.Errorf("rage refund without the client's flag = %v, want 0", refund)
+		t.Errorf("rage refund without the game files' flag = %v, want 0", refund)
 	}
 }
 
@@ -293,7 +293,7 @@ func TestSpellConfigBothCooldowns(t *testing.T) {
 	}
 }
 
-// Only the client's global cooldown category spends the GCD.
+// Only the game files' global cooldown category spends the GCD.
 func TestSpellConfigGCDGate(t *testing.T) {
 	withRows(t, resolverRows())
 
@@ -322,7 +322,7 @@ func TestSpellConfigMarksACostedOffGCDCastNonEmpty(t *testing.T) {
 }
 
 // Haste shortens a cast and its GCD by school, not by the hit table the row files the spell under:
-// the client's shouts are physical spells with the magic defense type.
+// the game files' shouts are physical spells with the magic defense type.
 func TestSpellConfigIgnoreHasteFollowsTheSchool(t *testing.T) {
 	withRows(t, resolverRows())
 

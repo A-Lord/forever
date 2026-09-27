@@ -28,7 +28,7 @@ func (druid *Druid) registerHurricaneSpell() {
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(hurricaneRank.Cost()),
 	// 	},
-	// 	// TODO: Forever states no cooldown on Hurricane (the client rows carry none), so the
+	// 	// TODO: Forever states no cooldown on Hurricane (the game files rows carry none), so the
 	// 	// spell is registered without one rather than with an invented duration.
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{
@@ -59,7 +59,7 @@ func (druid *Druid) registerHurricaneSpell() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: DruidSpellHurricane,
-	// 	// The tick is its own client row that the channel triggers, a proc rather than a cast.
+	// 	// The tick is its own game files row that the channel triggers, a proc rather than a cast.
 	// 	Flags: core.SpellFlagProc,
 	//
 	// 	DamageMultiplier: 1,

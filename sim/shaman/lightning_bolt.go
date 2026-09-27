@@ -9,7 +9,7 @@ import (
 
 var LightningBoltRankMap = spellData.LightningBolt
 
-// TODO: To be implemented. Port the TBC Lightning Bolt Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Lightning Bolt Spell implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) registerLightningBoltSpell() {
 	panic("To be implemented")
 

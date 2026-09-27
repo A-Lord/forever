@@ -1,6 +1,6 @@
 package warlock
 
-// TODO: To be implemented. Port the TBC Life Tap implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Life Tap implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerLifeTap() {
 	panic("To be implemented")
 
@@ -20,6 +20,7 @@ func (warlock *Warlock) registerLifeTap() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellLifeTap,
+	// 	ClassFlags:     spellData.LifeTap.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

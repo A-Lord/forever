@@ -5,7 +5,7 @@ var immolateTick = immolateRank.PeriodicEffect()
 var immolateCoeff = immolateRank.DamageEffect().Coeff()
 var immolateDotCoeff = immolateTick.Coeff()
 
-// TODO: To be implemented. Port the TBC Immolate implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Immolate implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerImmolate() {
 	panic("To be implemented")
 
@@ -21,6 +21,7 @@ func (warlock *Warlock) registerImmolate() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellImmolate,
+	// 	ClassFlags:     immolateRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(immolateRank.Cost()),
@@ -53,6 +54,7 @@ func (warlock *Warlock) registerImmolate() {
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	ClassSpellMask: WarlockSpellImmolateDot,
+	// 	ClassFlags:     immolateRank.ClassFlags,
 	// 	Flags:          core.SpellFlagPassiveSpell,
 	//
 	// 	DamageMultiplier: 1,

@@ -1,6 +1,6 @@
 package database
 
-// Resolves tools/database/buffmanifest against the spell store's captured client
+// Resolves tools/database/buffmanifest against the spell store's captured game files
 // rows and renders sim/core/buffs/buffs_auto_gen.go and
 // sim/core/buffs/debuffs_auto_gen.go from the result, in the same pass that
 // renders the store.
@@ -21,7 +21,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -45,7 +47,7 @@ type ResolvedBuff struct {
 	// Kind is the manifest's, or a damage shield where the spell states one.
 	Kind buffmanifest.BuffKind
 
-	// Name is the client's name for the spell the player learns, and AuraName the aura's where the
+	// Name is the game files' name for the spell the player learns, and AuraName the aura's where the
 	// manifest names a cast beside it. Both are "" for a spell no class family files, which is also
 	// when Owner is the manifest's rather than the family's.
 	Name     string
@@ -55,10 +57,10 @@ type ResolvedBuff struct {
 	SpellID     int32 // the spell the aura's numbers are read from
 	CastSpellID int32 // the cast, where the manifest pins one; SpellID otherwise
 	DurationMs  int32 // -1 or 0 never expires
-	CooldownMs  int32 // 0 when the client states none; read from the cast
+	CooldownMs  int32 // 0 when the game files state none; read from the cast
 
 	// Spell is the row the store carries for SpellID, built from the same
-	// captured client rows the store is rendered from.
+	// captured game files rows the store is rendered from.
 	Spell *spelldata.Spell
 
 	// SkipAuraTypes are the auras the row states at 0 beside the buff, which the parse leaves out.
@@ -83,6 +85,10 @@ type ResolvedBuff struct {
 	// EffectN counts.
 	TalentSpellID  int32
 	TalentPosition int32
+	// TalentDivisor prices a row whose talent states its effect only in its tooltip, as
+	// ${$m1/-N*$<SpellID>m1}: rank m1 of N is worth m1/N of every amount the spell attaches. 0 for
+	// a talent priced by a spell modifier.
+	TalentDivisor int32
 
 	ScopeFromClient buffmanifest.BuffScope
 
@@ -102,7 +108,7 @@ func (r *ResolvedBuff) unsupported(format string, args ...any) {
 	r.Reason = fmt.Sprintf(format, args...)
 }
 
-// Every manifest row, read out of the client rows the store is built from.
+// Every manifest row, read out of the game files rows the store is built from.
 func resolveBuffManifest(in *storeInputs) ([]ResolvedBuff, error) {
 	t := in.tables()
 	var rows []ResolvedBuff
@@ -170,7 +176,7 @@ func loadBuffSpell(t *spellTables, row *ResolvedBuff) error {
 	}
 	for _, id := range []int32{row.SpellID, row.CastSpellID} {
 		if _, named := t.Names[id]; !named {
-			return fmt.Errorf("spell %d is no spell in this client", id)
+			return fmt.Errorf("spell %d is no spell in the game files", id)
 		}
 	}
 
@@ -226,7 +232,7 @@ func copyStoreFields(to reflect.Value, from reflect.Value) {
 	}
 }
 
-// The names the client gives the row's spells, and the class whose family files them. A spell no
+// The names the game files give the row's spells, and the class whose family files them. A spell no
 // class family files takes the manifest's owner, and one that a family files cannot.
 func nameBuff(t *spellTables, row *ResolvedBuff) error {
 	row.Owner = row.BuffSpec.Owner
@@ -324,7 +330,8 @@ func (row *ResolvedBuff) hasDamageShield() bool {
 // The improving talent the manifest pins, which the store keeps as a ladder of
 // its ranks. The one spell modifier of it whose class mask reaches the buff's
 // spell is the improvement; one that modifies misc 1 scales the duration,
-// anything else the value.
+// anything else the value. Where none reaches it, a tooltip term naming the
+// buff's spell prices the value by rank: see tooltipTalentDivisor.
 func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 	id := row.Talent
 	if id == 0 {
@@ -346,7 +353,15 @@ func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 		position = i
 	}
 	if position < 0 {
-		return fmt.Errorf("talent %d has no spell modifier that reaches spell %d", id, row.SpellID)
+		divisor := tooltipTalentDivisor(t.Descriptions[id], row.SpellID)
+		if divisor == 0 {
+			return fmt.Errorf("talent %d has no spell modifier that reaches spell %d", id, row.SpellID)
+		}
+		row.TalentSpellID = id
+		row.TalentPosition = 1
+		row.TalentDivisor = divisor
+		row.TalentRanks = nodes[node].MaxRanks
+		return nil
 	}
 
 	row.TalentSpellID = id
@@ -358,6 +373,22 @@ func resolveTalent(t *spellTables, nodes []traitNode, row *ResolvedBuff) error {
 	}
 	row.TalentRanks = nodes[node].MaxRanks
 	return nil
+}
+
+// A talent tooltip term that scales another spell by the talent's rank: ${$m1/-3*$440667m1} is
+// rank/3 of spell 440667's effect 1, and the fraction applies to every amount the spell attaches.
+// The sign only flips the tooltip's wording; the amount keeps the spell's own sign.
+var tooltipRankFraction = regexp.MustCompile(`\$\{\$m1/-?(\d+)\*\$(\d+)m1\}`)
+
+func tooltipTalentDivisor(description string, spellID int32) int32 {
+	for _, m := range tooltipRankFraction.FindAllStringSubmatch(description, -1) {
+		divisor, _ := strconv.Atoi(m[1])
+		id, _ := strconv.Atoi(m[2])
+		if int32(id) == spellID && divisor > 0 {
+			return int32(divisor)
+		}
+	}
+	return 0
 }
 
 // A passive talent that raises an effect's value on the buff's spell prices an
@@ -392,7 +423,7 @@ func raisesValue(misc int32) bool {
 	return false
 }
 
-// Who the client says the aura reaches. The manifest wins - the sim's scopes are
+// Who the game files say the aura reaches. The manifest wins - the sim's scopes are
 // a UI grouping as much as a game fact - but a disagreement is worth printing.
 func validateScope(row *ResolvedBuff) {
 	scope, known := clientScope(*row)
@@ -405,8 +436,8 @@ func validateScope(row *ResolvedBuff) {
 	}
 }
 
-// The group the client states a buff reaches: an area aura names it in the
-// effect itself, and an aura the client applies over an area or on one ally
+// The group the game files state a buff reaches: an area aura names it in the
+// effect itself, and an aura the game files apply over an area or on one ally
 // names it in the effect's target.
 func clientScope(row ResolvedBuff) (buffmanifest.BuffScope, bool) {
 	if row.Spell == nil {
@@ -697,7 +728,7 @@ func buffBuilder(stem string) string {
 }
 
 // The label the generated Meta and the settings input both show, which is the
-// client's name for the spell unless the manifest overrides it.
+// game files' name for the spell unless the manifest overrides it.
 func buffLabel(row ResolvedBuff) string {
 	if row.Label != "" {
 		return row.Label
@@ -729,6 +760,9 @@ func buffMetaFields(row ResolvedBuff, rendered buffRow) string {
 	if row.TalentRanks > 0 {
 		fmt.Fprintf(&b, "Talent: spelldata.Talent(%d, %d),\n", row.TalentSpellID, row.TalentRanks)
 		fmt.Fprintf(&b, "TalentEffect: %d,\n", row.TalentPosition)
+		if row.TalentDivisor > 0 {
+			fmt.Fprintf(&b, "TalentDivisor: %d,\n", row.TalentDivisor)
+		}
 		if row.TalentScalesDuration {
 			b.WriteString("TalentScalesDuration: true,\n")
 		}

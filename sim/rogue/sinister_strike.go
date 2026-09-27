@@ -17,6 +17,7 @@ func (rogue *Rogue) registerSinisterStrikeSpell() {
 	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
 	// 	Flags:          core.SpellFlagMeleeMetrics | SpellFlagBuilder | core.SpellFlagAPL,
 	// 	ClassSpellMask: RogueSpellSinisterStrike,
+	// 	ClassFlags:     sinisterStrikeRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost:   int32(sinisterStrikeRank.Cost()),

@@ -101,9 +101,8 @@ func (hunter *Hunter) registerResourcefulness() {
 	rank := spellData.Resourcefulness.Rank(hunter.Talents.Resourcefulness)
 	spelldata.ParseStatic(&hunter.Character, rank, spelldata.Effects(1))
 
-	// A_MOD_MANA_REGEN_INTERRUPT has no row in the parse table, so it is attached by hand.
-	buff := hunter.RegisterAura(spelldata.AuraConfig(resourcefulnessBuff)).
-		AttachAdditivePseudoStatBuff(&hunter.PseudoStats.SpiritRegenRateCasting, resourcefulnessBuff.EffectN(1).Percent())
+	buff := hunter.RegisterAura(spelldata.AuraConfig(resourcefulnessBuff))
+	spelldata.ParseEffects(&hunter.Character, buff, resourcefulnessBuff)
 
 	// The tooltip's chance is $m3, an effect the row does not carry. In game it is 30/60% by rank,
 	// the cost discount's own ladder.

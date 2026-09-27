@@ -102,10 +102,10 @@ func (paladin *Paladin) applyConviction() {
 }
 
 // Vindication - Gives your damaging melee attacks a chance to reduce the target's Attack Power by
-// 67/134/201, and increase your Attack Power by 1/2/3% for 30 sec.
+// 68/136/204, and increase your Attack Power by 1/2/3% for 30 sec.
 //
-// The Classic, TBC and Forever clients all state the chance as 100%, which the tooltip's "a chance"
-// and the players who used it say it never was; the WotLK client says 50%, the only number Blizzard
+// The Classic, TBC and Forever game files all state the chance as 100%, which the tooltip's "a chance"
+// and the players who used it say it never was; the WotLK game files say 50%, the only number Blizzard
 // ever shipped below 100, and that is what rolls here.
 const vindicationProcChance = 0.5
 
@@ -116,15 +116,11 @@ func (paladin *Paladin) applyVindication() {
 
 	rank := spellData.VindicationTriggered.Highest()
 	points := spellData.Vindication.EffectAt(1).ValueAt(paladin.Talents.Vindication)
-	// The tooltip's ${$m1/-3*$440667m1}: the trigger's -201 scaled by the points over three.
-	targetAttackPower := rank.Effect(dbcenums.A_MOD_ATTACK_POWER, 0).Average(core.CharacterLevel) * points / 3
 
+	// The raid's Vindication row, priced at the paladin's ranks, so it bids against the raid's
+	// attack power reductions rather than stacking with them.
 	targetAuras := paladin.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.GetOrRegisterAura(core.Aura{
-			Label:    "Vindication" + paladin.Label,
-			ActionID: core.ActionID{SpellID: rank.ID},
-			Duration: rank.Duration(),
-		}).AttachStatBuff(stats.AttackPower, targetAttackPower)
+		return buffs.NewSpellDataVindicationAura(target, true, paladin.Talents.Vindication)
 	})
 
 	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)
@@ -140,6 +136,9 @@ func (paladin *Paladin) applyVindication() {
 		ProcMask:   core.ProcMaskMelee,
 		Outcome:    core.OutcomeLanded,
 		ProcChance: vindicationProcChance,
+
+		RequireDamageComponent: true,
+
 		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
 			targetAuras.Get(result.Target).Activate(sim)
 			selfAura.Activate(sim)
@@ -255,7 +254,7 @@ func (paladin *Paladin) applySacredArbiter() {
 }
 
 // Two-Handed Weapon Specialization - Increases the damage you deal with two-handed melee weapons
-// by 2/4/6%. The client puts it on the Physical school alone.
+// by 2/4/6%. The game files put it on the Physical school alone.
 func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
 	if paladin.Talents.TwoHandedWeaponSpecialization == 0 {
 		return
@@ -338,7 +337,7 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 		TimeValue: time.Duration(spellData.InstrumentOfLaw.EffectAt(1).ValueAt(paladin.Talents.InstrumentOfLaw)) * time.Millisecond,
 	})
 
-	// The client states the threat reduction as a positive number Righteous Fury zeroes.
+	// The game files state the threat reduction as a positive number Righteous Fury zeroes.
 	threat := core.MakePermanent(paladin.RegisterAura(core.Aura{
 		Label:    "Instrument of Law" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID},

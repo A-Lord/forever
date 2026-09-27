@@ -134,12 +134,11 @@ func (hunter *Hunter) registerRapidRecuperation() {
 		return
 	}
 
-	// 1242512 supplies the duration. The regeneration share is the talent's own ladder - 25/50 by
-	// rank, where the buff row states a flat 50 - and A_MOD_MANA_REGEN_INTERRUPT has no row in the
-	// parse table, so it is attached by hand.
-	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidRecuperationBuff)).
-		AttachAdditivePseudoStatBuff(&hunter.PseudoStats.SpiritRegenRateCasting,
-			spellData.RapidRecuperation.EffectAt(1).FractionAt(hunter.Talents.RapidRecuperation))
+	// The regeneration share is the talent's own ladder - 25/50 by rank - where the buff row states a
+	// flat 50, so the row is scaled by the ranks taken.
+	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidRecuperationBuff))
+	spelldata.ParseEffects(&hunter.Character, buff, rapidRecuperationBuff,
+		spelldata.ScaledByRanks(hunter.Talents.RapidRecuperation, 2))
 
 	// The proc shape with no roll: 1223987 fires on a ranged ability and names Serpent Sting only
 	// in its tooltip, so the listener is narrowed to it by hand. The sting's application carries no

@@ -262,6 +262,8 @@ func (warrior *Warrior) registerBloodthrill() {
 			warrior.OverpowerAura.UpdateExpires(sim.CurrentTime + bloodthrillProc.Duration())
 		})
 	trigger.Name = "Bloodthrill - Trigger"
+	trigger.RequireDamageDealt = false
+	trigger.RequireDamageComponent = true
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
 		return warrior.Rend.Dot(result.Target).IsActive()
 	}
@@ -318,7 +320,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 	// 1290261 states no proc flags at all, so the row decodes to a listener that hears nothing:
 	// the shape, the mask and the rate's effect are all the caller's.
 	var extraAttack *core.Spell
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
+	swordAura := warrior.MakeProcTriggerAura(core.ProcTrigger{
 		Name:               "Weaponmaster (Sword)",
 		ActionID:           actionID.WithTag(3),
 		MetricsActionID:    actionID.WithTag(3),
@@ -327,6 +329,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		Outcome:            core.OutcomeLanded,
 		ProcChance:         spellData.Weaponmaster.EffectAt(3).FractionAt(rank),
 		TriggerImmediately: true,
+		Duration:           core.NeverExpires,
 		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 			return spell.ProcMask.Matches(swordMask) && spell != extraAttack
 		},
@@ -337,6 +340,13 @@ func (warrior *Warrior) registerWeaponmaster() {
 		config := *warrior.AutoAttacks.MHConfig()
 		config.ActionID = config.ActionID.WithTag(actionID.SpellID)
 		extraAttack = warrior.GetOrRegisterSpell(config)
+		aura.OnReset = func(aura *core.Aura, sim *core.Simulation) {
+			if swordMask == core.ProcMaskUnknown {
+				aura.Deactivate(sim)
+			} else {
+				aura.Activate(sim)
+			}
+		}
 	})
 
 	setActive := func(sim *core.Simulation, aura *core.Aura, on bool) {
@@ -350,6 +360,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		readWeapons()
 		setActive(sim, critAura, critOn)
 		setActive(sim, armorIgnoreAura, armorIgnoreOn)
+		setActive(sim, swordAura, swordMask != core.ProcMaskUnknown)
 	})
 }
 
@@ -376,7 +387,9 @@ func (warrior *Warrior) registerImprovedHamstring() {
 			immobilizeAuras.Get(result.Target).Activate(sim)
 		})
 	trigger.Name = "Improved Hamstring - Trigger"
-	trigger.ClassSpellMask = SpellMaskHamstring
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.Hamstring.Contains(spell)
+	}
 
 	warrior.MakeProcTriggerAura(trigger)
 }
@@ -402,12 +415,11 @@ func (warrior *Warrior) registerSweepingStrikes() {
 
 	var copyDamage float64
 	hitSpell := warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		ClassSpellMask: SpellMaskSweepingStrikesHit,
-		ClassFlags:     SpellFlagsSweepingStrikes,
-		SpellSchool:    core.SpellSchoolPhysical,
-		ProcMask:       core.ProcMaskMeleeSpecial,
-		Flags:          core.SpellFlagIgnoreModifiers | core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
+		ActionID:    actionID,
+		ClassFlags:  SpellFlagsSweepingStrikes,
+		SpellSchool: core.SpellSchoolPhysical,
+		ProcMask:    core.ProcMaskMeleeSpecial,
+		Flags:       core.SpellFlagIgnoreModifiers | core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
@@ -418,13 +430,12 @@ func (warrior *Warrior) registerSweepingStrikes() {
 	})
 
 	warrior.SweepingStrikesNormalizedAttack = warrior.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID.WithTag(1), // Real SpellID: 26654
-		ClassSpellMask: SpellMaskSweepingStrikesNormalizedHit,
-		ClassFlags:     SpellFlagsSweepingStrikes,
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskMeleeSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
+		ActionID:    actionID.WithTag(1), // Real SpellID: 26654
+		ClassFlags:  SpellFlagsSweepingStrikes,
+		SpellSchool: core.SpellSchoolPhysical,
+		DefenseType: core.DefenseTypeMelee,
+		ProcMask:    core.ProcMaskMeleeSpecial,
+		Flags:       core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
@@ -444,12 +455,12 @@ func (warrior *Warrior) registerSweepingStrikes() {
 				return
 			}
 
-			if spell.Matches(SpellMaskSweepingStrikesHit | SpellMaskSweepingStrikesNormalizedHit | SpellMaskThunderClap | SpellMaskWhirlwind | SpellMaskWhirlwindOh) {
+			if spell == hitSpell || spell == warrior.SweepingStrikesNormalizedAttack || spellData.ThunderClap.Contains(spell) || spellData.Whirlwind.Contains(spell) {
 				return
 			}
 
 			nextTarget := warrior.Env.NextActiveTargetUnit(result.Target)
-			if spell.Matches(SpellMaskExecute) && sim.IsExecutePhase20() {
+			if spellData.Execute.Contains(spell) && sim.IsExecutePhase20() {
 				warrior.SweepingStrikesNormalizedAttack.Cast(sim, nextTarget)
 			} else {
 				copyDamage = result.Damage / result.ArmorAndResistanceMultiplier

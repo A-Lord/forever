@@ -8,7 +8,7 @@ import (
 )
 
 // The two table hashes ApplyHotfixes special-cases are known constants, so they
-// pin the SStrHash port without needing any client data. A DBCache record is
+// pin the SStrHash port without needing any game files data. A DBCache record is
 // matched to a table by comparing this hash against the WDC5 header's
 // TableHash, so a wrong hash silently drops every hotfix for a table.
 func TestSStrHashKnownTableHashes(t *testing.T) {

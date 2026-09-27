@@ -3,7 +3,7 @@ package warlock
 var shadowBoltRank = spellData.ShadowBolt.Highest()
 var shadowBoltCoeff = shadowBoltRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Shadow Bolt implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shadow Bolt implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerShadowBolt() {
 	panic("To be implemented")
 
@@ -15,6 +15,7 @@ func (warlock *Warlock) registerShadowBolt() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellShadowBolt,
+	// 	ClassFlags:     shadowBoltRank.ClassFlags,
 	// 	MissileSpeed:   float64(shadowBoltRank.Speed),
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(shadowBoltRank.Cost())},

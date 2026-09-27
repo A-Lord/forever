@@ -2,7 +2,6 @@ package hunter
 
 import (
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -50,10 +49,8 @@ func (hunter *Hunter) registerDeadlyAspects() {
 		return
 	}
 
-	// A_MOD_RANGED_HASTE has no row in the parse table, so Quick Shots' haste is attached by hand;
-	// Quick Strikes' melee haste parses.
-	quickShotsAura := hunter.RegisterAura(spelldata.AuraConfig(quickShots)).
-		AttachMultiplyRangedHaste(1 + quickShots.Effect(dbcenums.A_MOD_RANGED_HASTE, 0).Percent())
+	quickShotsAura := hunter.RegisterAura(spelldata.AuraConfig(quickShots))
+	spelldata.ParseEffects(&hunter.Character, quickShotsAura, quickShots)
 	quickStrikesAura := hunter.RegisterAura(spelldata.AuraConfig(quickStrikes))
 	spelldata.ParseEffects(&hunter.Character, quickStrikesAura, quickStrikes)
 

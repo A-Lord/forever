@@ -27,6 +27,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
 	// 	MetricSplits:   6,
 	// 	ClassSpellMask: RogueSpellExposeArmor,
+	// 	ClassFlags:     exposeArmorRank.ClassFlags,
 	//
 	// 	EnergyCost: core.EnergyCostOptions{
 	// 		Cost: int32(exposeArmorRank.Cost()),

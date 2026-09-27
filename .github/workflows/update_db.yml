@@ -1,8 +1,8 @@
 name: Update DB
 
-# Regenerates everything derived from the client data without a WoW install:
+# Regenerates everything derived from the game files without a WoW install:
 # db2tool reads the current wow_classic_beta build off Blizzard's CDN, overlays
-# the latest hotfix cache (raidbots' mirror of the client's DBCache.bin), and
+# the latest hotfix cache (raidbots' mirror of the game files' DBCache.bin), and
 # every generator runs as it would after a local `make db` — the database
 # assets, the .proto talent enums, the auto-generated Go and TypeScript, the
 # spell data tables and the base stats. Whatever changed lands in a pull
@@ -91,7 +91,7 @@ jobs:
             # db2tool warns (and carries on) when the hotfix cache is for another
             # build than the CDN serves, which happens around a build push; the
             # pull request says which it was.
-            - name: Extract client data and regenerate the database 🔧
+            - name: Extract game files data and regenerate the database 🔧
               id: db
               run: |
                   set -o pipefail
@@ -133,7 +133,7 @@ jobs:
                   commit-message: '[DB] Update to ${{ steps.build.outputs.version }} with hotfixes as of ${{ steps.date.outputs.date }}'
                   title: '[DB] Update to ${{ steps.build.outputs.version }} with hotfixes as of ${{ steps.date.outputs.date }}'
                   body: |
-                      Client data and everything generated from it, regenerated from the `${{ env.PRODUCT }}` build on Blizzard's CDN.
+                      Game files data and everything generated from it, regenerated from the `${{ env.PRODUCT }}` build on Blizzard's CDN.
 
                       - Build: ${{ steps.build.outputs.version }}
                       - Hotfixes: ${{ steps.db.outputs.hotfixes }} (from ${{ env.DBCACHE_URL }})

@@ -350,6 +350,64 @@ func NewSpellDataAtieshPriestAura(unit *core.Unit, isPlayer bool, talentPoints i
 
 // func NewSpellDataTotemTwistingAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura // totem_twisting, KindFlag: sim behaviour toggle with no spell source; rendered under Other Inputs.
 
+// Stoneskin Totem
+var StoneskinTotemCategory = "StoneskinTotem"
+var stoneskinTotemSpell = spelldata.MustFind(10405)
+var stoneskinTotemMeta = &Meta{
+	Label:        "Stoneskin Totem",
+	Spell:        stoneskinTotemSpell,
+	Category:     StoneskinTotemCategory,
+	Talent:       spelldata.Talent(16258, 2),
+	TalentEffect: 1,
+	SkipAuras:    []dbcenums.EffectAuraType{dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN},
+}
+
+func StoneskinTotemValue(talentPoints int32) float64 {
+	return stoneskinTotemMeta.Value(talentPoints)
+}
+func StoneskinTotemDuration(talentPoints int32) time.Duration {
+	return stoneskinTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataStoneskinTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, stoneskinTotemMeta, isPlayer, talentPoints)
+}
+
+// Furious Howl
+var FuriousHowlCategory = "FuriousHowl"
+var furiousHowlSpell = spelldata.MustFind(24597)
+var furiousHowlMeta = &Meta{
+	Label:    "Furious Howl",
+	Spell:    furiousHowlSpell,
+	Category: FuriousHowlCategory,
+}
+
+func FuriousHowlValue(talentPoints int32) float64 {
+	return furiousHowlMeta.Value(talentPoints)
+}
+func FuriousHowlDuration(talentPoints int32) time.Duration {
+	return furiousHowlMeta.Duration(talentPoints)
+}
+func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
+}
+
+// Flametongue Totem
+// Left out: effect 1 A_PROC_TRIGGER_SPELL(42) misc 0
+var FlametongueTotemCategory = "FlametongueTotem"
+var flametongueTotemSpell = spelldata.MustFind(15036)
+var flametongueTotemMeta = &Meta{
+	Label:    "Flametongue Totem",
+	Spell:    flametongueTotemSpell,
+	Category: FlametongueTotemCategory,
+}
+
+func FlametongueTotemDuration(talentPoints int32) time.Duration {
+	return flametongueTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
+}
+
 // Arcane Brilliance
 var ArcaneBrillianceCategory = "StatBuff"
 var arcaneBrillianceSpell = spelldata.MustFind(23028)
@@ -681,8 +739,6 @@ func NewSpellDataGreaterBlessingOfLightAura(unit *core.Unit, isPlayer bool, tale
 }
 
 // Innervates
-// Left out: effect 1 A_MOD_MANA_REGEN_INTERRUPT(134) misc 0
-// Left out: effect 2 A_MOD_POWER_REGEN_PERCENT(110) misc 0
 var InnervatesCategory = "Innervate"
 var innervatesSpell = spelldata.MustFind(29166)
 var innervatesMeta = &Meta{
@@ -691,6 +747,9 @@ var innervatesMeta = &Meta{
 	Category: InnervatesCategory,
 }
 
+func InnervatesValue(talentPoints int32) float64 {
+	return innervatesMeta.Value(talentPoints)
+}
 func InnervatesDuration(talentPoints int32) time.Duration {
 	return innervatesMeta.Duration(talentPoints)
 }
@@ -774,6 +833,15 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.AtieshPriest > 0 {
 		driveAtieshPriest(char, party)
+	}
+	if party.StoneskinTotem != proto.TristateEffect_TristateEffectMissing {
+		core.MakePermanent(NewSpellDataStoneskinTotemAura(&char.Unit, false, core.GetTristateValueInt32(party.StoneskinTotem, 0, 2)))
+	}
+	if party.FuriousHowl {
+		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
+	}
+	if party.FlametongueTotem {
+		driveFlametongueTotem(char, party)
 	}
 	if raid.ArcaneBrilliance {
 		core.MakePermanent(NewSpellDataArcaneBrillianceAura(&char.Unit, false, 0))

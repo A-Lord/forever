@@ -483,15 +483,7 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 	})
 
 	db.Enchants = core.FilterMap(db.Enchants, func(_ database.EnchantDBKey, enchant *proto.UIEnchant) bool {
-		for _, pattern := range database.DenyListNameRegexes {
-			if pattern.MatchString(enchant.Name) {
-				return false
-			}
-		}
-		if strings.Contains(enchant.Name, "Template") {
-			return false
-		}
-		return !strings.HasPrefix(enchant.Name, "QA") && !strings.HasPrefix(enchant.Name, "Test") && !strings.HasPrefix(enchant.Name, "TEST")
+		return database.KeepEnchant(enchant)
 	})
 
 	db.Consumables = core.FilterMap(db.Consumables, func(_ int32, consumable *proto.Consumable) bool {

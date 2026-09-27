@@ -4,7 +4,7 @@ var siphonLifeRank = spellData.SiphonLife.Highest()
 var siphonLifeTick = siphonLifeRank.PeriodicEffect()
 var siphonLifeCoeff = siphonLifeTick.Coeff()
 
-// TODO: To be implemented. Port the TBC Siphon Life Spell implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Siphon Life Spell implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerSiphonLifeSpell() {
 	panic("To be implemented")
 
@@ -20,6 +20,7 @@ func (warlock *Warlock) registerSiphonLifeSpell() {
 	// 	SpellSchool:    core.SpellSchoolShadow,
 	// 	DefenseType:    core.DefenseTypeMagic,
 	// 	ClassSpellMask: WarlockSpellSiphonLife,
+	// 	ClassFlags:     siphonLifeRank.ClassFlags,
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	BaseCost:       baseCost,

@@ -3,7 +3,7 @@ package warlock
 var conflagrateRank = spellData.Conflagrate.Highest()
 var conflagrateCoeff = conflagrateRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Conflagrate implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Conflagrate implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerConflagrate() {
 	panic("To be implemented")
 
@@ -19,6 +19,7 @@ func (warlock *Warlock) registerConflagrate() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellConflagrate,
+	// 	ClassFlags:     conflagrateRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(conflagrateRank.Cost())},
 	// 	Cast: core.CastConfig{

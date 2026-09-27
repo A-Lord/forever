@@ -97,7 +97,7 @@ type ActionRef struct {
 	ItemID  int32
 }
 
-// BuffSpec is what the client cannot state about a proto field. Its scope is the slice it sits in,
+// BuffSpec is what the game files cannot state about a proto field. Its scope is the slice it sits in,
 // its number its position there, and its names, owner and left-out auras are read off its spell.
 type BuffSpec struct {
 	Field string // proto field name, snake_case
@@ -107,6 +107,10 @@ type BuffSpec struct {
 	// roots of the spell store.
 	SpellID int32
 	CastID  int32
+	// TooltipID is the spell the settings input shows as its icon and tooltip, for a row whose aura
+	// states no text and whose CastID is not that spell either. 0 defers to CastID, then SpellID; it
+	// never changes the numbers the row reads.
+	TooltipID int32
 	// Talent is the spell of the trait node that prices the improved state, 0 when none does.
 	Talent         int32
 	Category       string // exclusive-effect category value, "" = none
