@@ -159,6 +159,14 @@ func (pet *Pet) inheritOwnerStats(sim *Simulation) {
 	pet.AddStatsDynamic(sim, pet.inheritedStats)
 }
 
+// Snapshots the owner's stats again, for a pet that inherits them on its own schedule rather than
+// on every change to its owner's.
+func (pet *Pet) RefreshInheritedStats(sim *Simulation) {
+	inheritedStats := pet.statInheritance(pet.Owner.GetStats())
+	pet.AddStatsDynamic(sim, inheritedStats.Subtract(pet.inheritedStats))
+	pet.inheritedStats = inheritedStats
+}
+
 func (pet *Pet) enableDynamicStats(sim *Simulation) {
 	if !pet.isDynamic {
 		return

@@ -1,41 +1,28 @@
 package hunter
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
 var arcaneShotRank = spellData.ArcaneShot.Highest()
+var arcaneShotBaseDamage = arcaneShotRank.DamageEffect().Average(core.CharacterLevel)
 
-// TODO: To be implemented.
-func (hunter *Hunter) registerArcaneShotSpell() {
-	panic("To be implemented")
+// TODO: In-game testing required. The row states no attack power share; the Forever notes say the
+// shot scales with 10% of ranged attack power.
+const arcaneShotAPShare = 0.1
 
-	// The TBC implementation, kept for the port:
-	// hunter.ArcaneShot = hunter.RegisterRangedSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: arcaneShotRank.ID},
-	// 	SpellSchool:    arcaneShotRank.SpellSchool(),
-	// 	DefenseType:    arcaneShotRank.DefenseTypeCore(),
-	// 	ClassSpellMask: HunterSpellArcaneShot,
-	// 	ProcMask:       core.ProcMaskRangedSpecial,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: int32(arcaneShotRank.Cost()),
-	// 	},
-	//
-	// 	Cast: core.CastConfig{
-	// 		CD: core.Cooldown{
-	// 			Timer:    hunter.NewTimer(),
-	// 			Duration: max(arcaneShotRank.Cooldown(), arcaneShotRank.CategoryCooldown()),
-	// 		},
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := spell.RangedAttackPower(target)*0.15 +
-	// 			hunter.talonOfAlarBonus() +
-	// 			arcaneShotRank.DamageEffect().Average(core.CharacterLevel)
-	//
-	// 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
-	//
-	// 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-	// 			spell.DealDamage(sim, result)
-	// 		})
-	// 	},
-	// })
+func (hunter *Hunter) registerArcaneShot() {
+	config := spelldata.SpellConfig(&hunter.Unit, arcaneShotRank, spelldata.Melee(core.ProcMaskRangedSpecial))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := arcaneShotBaseDamage + arcaneShotAPShare*spell.RangedAttackPower(target)
+		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
+
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			spell.DealDamage(sim, result)
+		})
+	}
+
+	hunter.RegisterSpell(config)
 }

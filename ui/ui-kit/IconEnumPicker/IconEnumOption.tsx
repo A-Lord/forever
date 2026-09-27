@@ -13,6 +13,15 @@ export interface IconEnumOptionProps<ModObject, T> {
 	onSelect: () => void;
 }
 
+/** A value's text over the bottom of its swatch, which is `relative`. */
+export const IconText = ({ text }: { text: string }) => (
+	<span
+		className="pointer-events-none absolute inset-x-0 bottom-0 bg-scrim text-center text-2xs font-bold whitespace-nowrap text-success"
+		data-testid="icon-picker-label">
+		{text}
+	</span>
+);
+
 export const IconEnumOption = <ModObject, T>({ valueConfig, hidden, tooltipId, onSelect }: IconEnumOptionProps<ModObject, T>) => {
 	const { iconUrl, href } = useActionId(hidden ? undefined : valueConfig.actionId);
 
@@ -31,8 +40,9 @@ export const IconEnumOption = <ModObject, T>({ valueConfig, hidden, tooltipId, o
 				{...wowheadAnchorProps()}
 				href={href || undefined}
 				style={iconStyleOf(valueConfig, iconUrl)}
-				{...tooltipAnchorProps(valueConfig.tooltip ? tooltipId : undefined, valueConfig.tooltip)}
-			/>
+				{...tooltipAnchorProps(valueConfig.tooltip ? tooltipId : undefined, valueConfig.tooltip)}>
+				{valueConfig.text !== undefined && <IconText text={valueConfig.text} />}
+			</Menu.LinkItem>
 		</li>
 	);
 };

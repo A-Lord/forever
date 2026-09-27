@@ -28,6 +28,7 @@ func (unit *Unit) initMovement() {
 
 		OnGain: func(aura *Aura, sim *Simulation) {
 			unit.Moving = true
+			unit.AutoAttacks.cancelRangedWindup(sim)
 		},
 		OnExpire: func(aura *Aura, sim *Simulation) {
 			unit.Moving = false

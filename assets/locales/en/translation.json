@@ -529,45 +529,46 @@
 				"label": "Pet Uptime (%)",
 				"tooltip": "Percent of the fight duration for which your pet will be alive."
 			},
-			"pet_single_ability": {
-				"label": "Single Pet Ability",
-				"tooltip": "Pet will only use it's primary ability (Gore, Screech etc.)"
-			},
 			"pet_type": {
-				"label": "Pet Type",
-				"tooltip": "Pet type",
+				"label": "Family",
+				"tooltip": "The family of the tamed creature: its own damage, armor and health, and the abilities it learns.",
 				"no_pet": "No Pet",
 				"bat": "Bat",
 				"bear": "Bear",
+				"bird_of_prey": "Bird of Prey",
+				"boar": "Boar",
+				"carrion_bird": "Carrion Bird",
 				"cat": "Cat",
+				"core_hound": "Core Hound",
 				"crab": "Crab",
-				"owl": "Owl",
+				"crocolisk": "Crocolisk",
+				"fox": "Fox",
+				"gorilla": "Gorilla",
+				"hyena": "Hyena",
 				"raptor": "Raptor",
-				"ravager": "Ravager",
+				"scorpid": "Scorpid",
+				"spider": "Spider",
+				"tallstrider": "Tallstrider",
+				"turtle": "Turtle",
 				"wind_serpent": "Wind Serpent",
-				"dragonhawk": "Dragonhawk"
+				"wolf": "Wolf"
+			},
+			"pet_attack_speed": {
+				"label": "Attack Speed",
+				"tooltip": "The Faster Attack or Slower Attack passive the tamed creature carries on top of the 2 s swing every pet has.",
+				"none": "No Faster or Slower Attack (2.0 s swing)",
+				"faster_attack": "Faster Attack {{rank}}: {{percent}} attack speed",
+				"slower_attack": "Slower Attack {{rank}}: {{percent}} attack speed"
 			},
 			"ammo": {
 				"label": "Ammo",
 				"tooltip": "Ammo type",
-				"no_ammo": "No Ammo",
-				"timeless_arrow": "Timeless Arrow",
-				"mysterious_arrow": "Mysterious Arrow",
-				"adamantite_stinger": "Adamantite Stinger",
-				"halaani_razorshaft": "Halaani Razorshaft",
-				"blackflight_arrow": "Blackflight Arrow",
-				"wardens_arrow": "Warden's Arrow"
+				"no_ammo": "No Ammo"
 			},
 			"quiver": {
 				"label": "Quiver",
 				"tooltip": "Quiver type",
-				"no_quiver": "No Quiver",
-				"speed_15": "15%",
-				"speed_14": "14%",
-				"speed_13": "13%",
-				"speed_12": "12%",
-				"speed_11": "11%",
-				"speed_10": "10%"
+				"no_quiver": "No Quiver"
 			},
 			"detonate_seed": {
 				"label": "Detonate Seed on Cast",
@@ -654,6 +655,23 @@
 			"warlock_assigned_curse": {
 				"title": "Assigned Curse",
 				"description": "The selected curse will prevent the selected external debuff from being cast."
+			},
+			"pet_training": {
+				"cobra_reflexes": {
+					"label": "Cobra Reflexes",
+					"tooltip": "Beast Training: the pet attacks 30% faster but each attack does less damage.",
+					"untrained": "Cobra Reflexes untrained",
+					"trained": "Cobra Reflexes trained"
+				},
+				"pet_aggression": {
+					"label": "Pet Aggression",
+					"tooltip": "Beast Training: flat damage added to each of the pet's attacks, by rank.",
+					"untrained": "Pet Aggression untrained",
+					"rank": "Pet Aggression rank {{rank}}"
+				}
+			},
+			"pet_section": {
+				"title": "Pet"
 			}
 		},
 		"consumables": {
@@ -1926,22 +1944,13 @@
 				}
 			},
 			"hunter": {
-				"sting": {
-					"label": "Sting",
-					"tooltip": "Maintains the selected Sting on the primary target",
-					"values": {
-						"none": "None",
-						"serpent_sting": "Serpent Sting",
-						"scorpid_sting": "Scorpid Sting"
-					}
-				},
 				"melee_weave": {
 					"label": "Melee Weaving",
 					"tooltip": "Uses melee weaving in the rotation."
 				},
 				"time_to_weave": {
 					"label": "Time to weave (ms)",
-					"tooltip": "Amount of time, in milliseconds, between when you start moving towards the boss and when you re-engage your ranged autos. Capped at 100ms."
+					"tooltip": "Amount of time, in milliseconds, between when you start moving towards the boss and when you re-engage your ranged autos."
 				},
 				"use_multi": {
 					"label": "Use Multi-Shot",
@@ -1950,14 +1959,6 @@
 				"use_arcane": {
 					"label": "Use Arcane Shot",
 					"tooltip": "Include Arcane Shot as a filler in the rotation."
-				},
-				"viper_start_mana_percent": {
-					"label": "Viper start mana %",
-					"tooltip": "Switch to Aspect of the Viper when mana goes below this amount."
-				},
-				"viper_stop_mana_percent": {
-					"label": "Viper stop mana %",
-					"tooltip": "Switch back to Aspect of the Hawk when mana goes above this amount."
 				}
 			},
 			"warrior": {
