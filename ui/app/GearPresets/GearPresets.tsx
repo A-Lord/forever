@@ -1,9 +1,8 @@
 import { SavedGear } from '@features/gear/components/SavedGear';
-import { gearSetData, serializeGearSet } from '@features/gear/components/SavedGear/utils';
+import { gearSetData, loadGearSet, serializeGearSet } from '@features/gear/components/SavedGear/utils';
 import { useSavedGear } from '@features/gear/hooks/useSavedGear';
 import { useSavedPanel } from '@features/hooks/useSavedPanel';
 import { applyBuild } from '@features/settings/model/apply_build';
-import { EquipmentSpec, UnitStats } from '@generated/proto/common';
 import { SavedGearSet } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
@@ -20,8 +19,8 @@ import { SavedDataPanel } from '@ui-kit/SavedDataPanel';
 import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId, useMemo } from 'react';
 
-import { buildCategories, isBuildActive } from '../preset_build_state';
-import type { PresetBuild } from '../preset_utils';
+import { isBuildActive } from '../preset_build_state';
+import { PresetBuildTooltip } from '../PresetBuildTooltip';
 import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
 import { PresetGroupPicker, usePresetFilterPhase } from '../PresetGroupPicker';
 
@@ -82,11 +81,7 @@ const GroupedGearPresets = () => {
 		storage: useSavedGear(),
 		current,
 		serialize: serializeGearSet,
-		load: entry =>
-			batch(() => {
-				player.setGear(sim.db.lookupEquipmentSpec(entry.data.gear || EquipmentSpec.create()));
-				player.setBonusStats(Stats.fromProto(entry.data.bonusStatsStats || UnitStats.create()));
-			}),
+		load: loadGearSet,
 	});
 
 	const loadGearPreset = (preset: PresetGear) => {
@@ -156,7 +151,6 @@ const GroupedGearPresets = () => {
 								className="mt-4"
 								nameLabel={i18n.t('gear_tab.gear_sets.gear_set_name')}
 								saveButtonText={i18n.t('gear_tab.gear_sets.save_gear_set')}
-								presets={[]}
 								{...savedPanel}
 							/>
 						),
@@ -184,14 +178,3 @@ const GroupedGearPresets = () => {
 		</div>
 	);
 };
-
-const PresetBuildTooltip = ({ build }: { build: PresetBuild }) => (
-	<>
-		<p className="mb-1">{i18n.t('common.preset.description')}</p>
-		<ul className="mb-0">
-			{buildCategories(build).map(category => (
-				<li key={category}>{category}</li>
-			))}
-		</ul>
-	</>
-);

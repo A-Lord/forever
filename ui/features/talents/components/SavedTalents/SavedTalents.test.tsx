@@ -1,9 +1,9 @@
 import { SavedTalents as SavedTalentsProto } from '@generated/proto/ui';
-import { SimHostProvider } from '@sim/context/SimHostContext';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithHost } from '../../../../testing/react';
 import { SavedTalents } from './SavedTalents';
 
 const KEY = 6;
@@ -82,11 +82,7 @@ const setup = () => {
 };
 
 const renderPanel = async () => {
-	const result = render(
-		<SimHostProvider host={host}>
-			<SavedTalents />
-		</SimHostProvider>,
-	);
+	const result = renderWithHost(<SavedTalents />, host);
 	await act(async () => {});
 	return result;
 };
@@ -165,11 +161,7 @@ describe('SavedTalents', () => {
 			let resolveInit = () => {};
 			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
 
-			render(
-				<SimHostProvider host={host}>
-					<SavedTalents />
-				</SimHostProvider>,
-			);
+			renderWithHost(<SavedTalents />, host);
 
 			expect(chips('presets')).toHaveLength(0);
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Raiding']);

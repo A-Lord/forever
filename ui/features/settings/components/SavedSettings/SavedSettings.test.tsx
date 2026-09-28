@@ -1,9 +1,9 @@
 import { ItemSwap, Race } from '@generated/proto/common';
 import { SavedSettings as SavedSettingsProto } from '@generated/proto/ui';
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithHost } from '../../../../testing/react';
 import { SavedSettings } from './SavedSettings';
 
 const source = vi.hoisted(() => {
@@ -79,11 +79,7 @@ const setup = () => {
 };
 
 const renderPanel = async () => {
-	const result = render(
-		<SimHostProvider host={host}>
-			<SavedSettings />
-		</SimHostProvider>,
-	);
+	const result = renderWithHost(<SavedSettings />, host);
 	await act(async () => {});
 	return result;
 };
@@ -166,11 +162,7 @@ describe('SavedSettings', () => {
 			let resolveInit = () => {};
 			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
 
-			render(
-				<SimHostProvider host={host}>
-					<SavedSettings />
-				</SimHostProvider>,
-			);
+			renderWithHost(<SavedSettings />, host);
 
 			expect(chips('presets')).toHaveLength(0);
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Mine']);
