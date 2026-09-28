@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -68,11 +67,8 @@ func (rogue *Rogue) registerMurder() {
 		return
 	}
 
-	multiplier := spellData.Murder.MultiplierAt(rogue.Talents.Murder)
-	rogue.Env.RegisterPostFinalizeEffect(func() {
-		rogue.MultiplyDamageVersus(multiplier, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeDragonkin)
-		rogue.MultiplyCritDamageVersus(multiplier, proto.MobType_MobTypeHumanoid, proto.MobType_MobTypeDragonkin)
-	})
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.Murder.Rank(rogue.Talents.Murder))
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -300,19 +296,18 @@ func (rogue *Rogue) registerMutilate() {
 	// })
 }
 
-var mutilateHitRank = spellData.MutilateTriggered.Highest()
-
 func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
-	mutilateHitBaseDamage := mutilateHitRank.DamageEffect().Average(core.CharacterLevel)
-	spellOpt := core.Ternary(isMH, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Melee(core.ProcMaskMeleeOHSpecial))
-	config := spelldata.SpellConfig(&rogue.Unit, mutilateHitRank, spellOpt)
-	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
+	hitRank := mutilateCastRank.EffectN(3).Trigger() // 1241590, off hand
+	spellOpt := spelldata.Melee(core.ProcMaskMeleeOHSpecial)
 	if isMH {
-		config.Tag = 1
-	} else {
-		config.Tag = 2
+		hitRank = mutilateCastRank.EffectN(2).Trigger() // 1241586, main hand
+		spellOpt = spelldata.Melee(core.ProcMaskMeleeMHSpecial)
 	}
-	config.DamageMultiplier = mutilateHitRank.EffectN(2).Percent()
+	mutilateHitBaseDamage := hitRank.DamageEffect().Average(core.CharacterLevel)
+	config := spelldata.SpellConfig(&rogue.Unit, hitRank, spellOpt)
+	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
+	config.Tag = core.TernaryInt32(isMH, 1, 2)
+	config.DamageMultiplier = hitRank.EffectN(2).Percent()
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := mutilateHitBaseDamage
@@ -345,17 +340,10 @@ func (rogue *Rogue) registerVenom() {
 	config := spelldata.SpellConfig(&rogue.Unit, venomRank, spelldata.Melee(core.ProcMaskEmpty))
 	venomAura := rogue.RegisterAura(spelldata.AuraConfig(venomRank))
 	spelldata.ParseEffects(&rogue.Character, venomAura, venomRank)
-	venomAura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		rogue.additivePoisonChance += 0.1
-		rogue.RefreshPoisonProcChance()
-	})
-	venomAura.ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-		rogue.additivePoisonChance -= 0.1
-		rogue.RefreshPoisonProcChance()
-	})
 	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim) // As this finisher deals no damage, it may or may not break stealth. To be tested.
 		venomAura.Duration = venomRank.Duration() + time.Second*3*time.Duration(rogue.ComboPoints())
 		rogue.ApplyFinisher(sim, spell)
 		venomAura.Activate(sim)

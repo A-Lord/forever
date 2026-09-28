@@ -62,10 +62,6 @@ type Rogue struct {
 	Rupture      *core.Spell
 	SliceAndDice *core.Spell
 
-	instantPoisonProcManager *core.DynamicProcManager
-	deadlyPoisonProcManager  *core.DynamicProcManager
-	additivePoisonChance     float64
-
 	AdrenalineRushAura   *core.Aura
 	BladeFlurryAura      *core.Aura
 	ExposeArmorAuras     core.AuraArray
@@ -183,11 +179,6 @@ func NewRogue(character *core.Character, options *proto.Player, talents string) 
 
 	maxEnergy := 100.0 + spellData.Vigor.ValueAt(rogue.Talents.Vigor)
 
-	// TODO: Forever expands Vigor from 1 rank to 2; the per-rank max-energy bonus is
-	// unconfirmed, so it is pinned to 0 until the Forever tooltip is known.
-	if rogue.Talents.Vigor > 0 {
-		maxEnergy += (5.0 * float64(rogue.Talents.Vigor))
-	}
 	if rogue.HasPvpEnergy {
 		maxEnergy += 10
 	}

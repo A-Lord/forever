@@ -326,6 +326,7 @@ func (rogue *Rogue) registerHemorrhage() {
 	})
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
 		baseDamage := rogue.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 		if result.Landed() {
@@ -519,12 +520,13 @@ func (rogue *Rogue) registerCutthroat() {
 	}
 
 	cutthroatTrigger := spellData.CutthroatTriggered.Highest()
-
-	rogue.CutthroatAura = rogue.RegisterAura(core.Aura{
-		Label:    "Cutthroat",
-		ActionID: core.ActionID{SpellID: cutthroatTrigger.ID},
-		Duration: cutthroatTrigger.Duration(),
-	})
+	rogue.CutthroatAura = rogue.RegisterAura(spelldata.AuraConfig(cutthroatTrigger)).
+		ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+			rogue.Ambush.CastRequirement.CasterForm = true
+		}).
+		ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
+			rogue.Ambush.CastRequirement.CasterForm = false
+		})
 
 	cutthroatRank := spellData.Cutthroat.Rank(rogue.Talents.Cutthroat)
 	trigger := spelldata.ProcTrigger(&rogue.Character, cutthroatRank, func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
@@ -535,51 +537,51 @@ func (rogue *Rogue) registerCutthroat() {
 	// trigger.RequireDamageDealt = true - Unknown
 	trigger.ClassSpellMask = RogueSpellBackstab
 	rogue.MakeProcTriggerAura(trigger)
+
+	rogue.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Cutthroat - Cast Watcher",
+		ActionID:           core.ActionID{SpellID: cutthroatRank.ID},
+		Callback:           core.CallbackOnCastComplete,
+		ClassSpellMask:     RogueSpellAmbush,
+		TriggerImmediately: true,
+		ProcChance:         1,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			rogue.CutthroatAura.Deactivate(sim)
+		},
+	})
 }
 
-// registerThousandCuts implements Thousand Cuts, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+var thousandCutsRank = spellData.ThousandCuts.Highest()
+var thousandCutsTriggered = spellData.ThousandCutsTriggered.Highest()
+
 func (rogue *Rogue) registerThousandCuts() {
 	if !rogue.Talents.ThousandCuts {
 		return
 	}
 
-	aura := rogue.RegisterAura(spelldata.AuraConfig(spellData.ThousandCutsTriggered.Highest()))
+	aura := rogue.RegisterAura(spelldata.AuraConfig(thousandCutsTriggered))
+	spelldata.ParseEffects(&rogue.Character, aura, thousandCutsTriggered)
 
-	costMod := rogue.AddDynamicMod(core.SpellModConfig{
-		Kind:      core.SpellMod_PowerCost_Flat,
-		IntValue:  0, // Set dynamically based on aura stacks.
-		ClassMask: RogueSpellHemorrhage | RogueSpellBackstab,
-	})
-
-	rogue.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Thousand Cuts - Trigger",
-		ActionID:           core.ActionID{SpellID: spellData.ThousandCuts.Highest().ID},
-		Callback:           core.CallbackOnPeriodicDamageDealt,
-		ClassSpellMask:     RogueSpellRupture,
-		TriggerImmediately: true,
-		ProcChance:         1,
-		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+	trigger := spelldata.ProcTrigger(&rogue.Character, thousandCutsRank,
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			aura.Activate(sim)
 			aura.AddStack(sim)
-			costMod.Activate()
-			costMod.UpdateIntValue(aura.GetStacks() * -3)
-		},
-	}).ExposeToAPL(spellData.ThousandCuts.Highest().ID)
+		})
+	trigger.Name = "Thousand Cuts - Trigger"
+	trigger.ProcMask = core.ProcMaskUnknown
+	trigger.ClassSpellMask = RogueSpellRupture
+	trigger.TriggerImmediately = true
+	rogue.MakeProcTriggerAura(trigger).ExposeToAPL(thousandCutsRank.ID)
 
 	rogue.MakeProcTriggerAura(core.ProcTrigger{
 		Name:               "Thousand Cuts - Cast Watcher",
-		ActionID:           core.ActionID{SpellID: spellData.ThousandCuts.Highest().ID},
+		ActionID:           core.ActionID{SpellID: thousandCutsRank.ID},
 		Callback:           core.CallbackOnCastComplete,
 		ClassSpellMask:     RogueSpellHemorrhage | RogueSpellBackstab,
 		TriggerImmediately: true,
 		ProcChance:         1,
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			aura.SetStacks(sim, 0)
 			aura.Deactivate(sim)
-			costMod.Deactivate()
 		},
 	})
 }

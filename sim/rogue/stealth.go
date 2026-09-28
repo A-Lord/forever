@@ -12,8 +12,15 @@ func (rogue *Rogue) registerStealthAura() {
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.StealthAura.Activate(sim)
-		rogue.ShapeshiftForm = stealthRank.ShapeshiftForm()
 	}
+
+	rogue.StealthAura = rogue.RegisterAura(spelldata.AuraConfig(stealthRank)).
+		ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+			rogue.ShapeshiftForm = stealthRank.ShapeshiftForm()
+		}).
+		ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
+			rogue.ShapeshiftForm = 0
+		})
 
 	rogue.StealthAura = rogue.RegisterAura(spelldata.AuraConfig(stealthRank))
 	spelldata.ParseEffects(&rogue.Character, rogue.StealthAura, stealthRank)

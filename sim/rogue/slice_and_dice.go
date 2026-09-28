@@ -14,10 +14,11 @@ func (rogue *Rogue) registerSliceAndDice() {
 	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
 	talentModifier := spellData.ImprovedSliceAndDice.MultiplierAt(rogue.Talents.ImprovedSliceAndDice)
 
-	sndAura := rogue.RegisterAura(spelldata.AuraConfig(sliceAndDiceRank)).
-		AttachMultiplyMeleeSpeed(1 + spellData.SliceAndDice.EffectAt(2).FractionAt(2))
+	sndAura := rogue.RegisterAura(spelldata.AuraConfig(sliceAndDiceRank))
+	spelldata.ParseEffects(&rogue.Character, sndAura, sliceAndDiceRank)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim) // This was true in Vanilla, but needs to be tested as future expansions may change this behavior.
 		baseDuration := sliceAndDiceRank.Duration().Seconds()
 		pointDuration := 3.0 * float64(rogue.ComboPoints())
 		fullDuration := (baseDuration + pointDuration) * talentModifier

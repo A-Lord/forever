@@ -6,35 +6,38 @@ import (
 )
 
 var ruptureRank = spellData.Rupture.Highest()
-var lastCastApScaling = 0.0
+var ruptureApScaling = [6]float64{0, 0.01, 0.02, 0.03, 0.03, 0.03}
 
 func (rogue *Rogue) registerRupture() {
 	tick := ruptureRank.PeriodicEffect()
+	tickBase := tick.Average(core.CharacterLevel)
+	tickPerPoint := float64(tick.PointsPerResource)
+	baseTicks := int32(ruptureRank.Duration() / tick.Period())
+	var comboPoints int32
+
 	config := spelldata.SpellConfig(&rogue.Unit, ruptureRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
 	config.ClassSpellMask = RogueSpellRupture
-	config.ClassFlags = ruptureRank.ClassFlags
 
 	config.Dot = spelldata.DotConfig(ruptureRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*lastCastApScaling, ruptureRank.TickOutcomeHitRolled(dot))
+		damage := tickBase + tickPerPoint*float64(comboPoints) + dot.Spell.MeleeAttackPower(target)*ruptureApScaling[comboPoints]
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, ruptureRank.TickOutcomeHitRolled(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
 		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {
-			cp := rogue.ComboPoints()
+			comboPoints = rogue.ComboPoints()
 			dot := spell.Dot(target)
-			dot.BaseTickCount = int32(ruptureRank.Duration()/tick.Period()) + cp
-			lastCastApScaling = []float64{0, 0.01, 0.02, 0.03, 0.03, 0.03}[rogue.ComboPoints()] // Estimated from in-game tests.
+			dot.BaseTickCount = baseTicks + comboPoints
 			dot.Apply(sim)
 			rogue.ApplyFinisher(sim, spell)
-			spell.DealOutcome(sim, result)
 		} else {
-			spell.DealOutcome(sim, result)
 			spell.IssueRefund(sim)
 		}
+		spell.DealOutcome(sim, result)
 	}
 
 	rogue.Rupture = rogue.RegisterSpell(config)

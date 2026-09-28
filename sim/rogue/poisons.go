@@ -2,13 +2,11 @@ package rogue
 
 import (
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func (rogue *Rogue) applyPoisons() {
-	rogue.RefreshPoisonProcChance()
 	rogue.applyDeadlyPoison()
 	rogue.applyInstantPoison()
 }
@@ -160,14 +158,14 @@ func (rogue *Rogue) applyDeadlyPoison() {
 	}
 
 	rogue.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Deadly Poison",
-		Outcome:            core.OutcomeLanded,
-		Callback:           core.CallbackOnSpellHitDealt,
-		TriggerImmediately: true,
-		ProcMask:           procMask,
-		IsWeaponProc:       true,
-		DPM:                rogue.deadlyPoisonProcManager,
-
+		Name:                "Deadly Poison",
+		Outcome:             core.OutcomeLanded,
+		Callback:            core.CallbackOnSpellHitDealt,
+		TriggerImmediately:  true,
+		ProcMask:            procMask,
+		IsWeaponProc:        true,
+		ProcSpellClassFlags: deadlyPoisonRank.ClassFlags,
+		DPM:                 rogue.NewFixedProcChanceManager(0.3, procMask),
 		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			rogue.DeadlyPoison.Cast(sim, result.Target)
 		},
@@ -181,40 +179,16 @@ func (rogue *Rogue) applyInstantPoison() {
 	}
 
 	rogue.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Instant Poison",
-		Outcome:            core.OutcomeLanded,
-		Callback:           core.CallbackOnSpellHitDealt,
-		TriggerImmediately: true,
-		ProcMask:           procMask,
-		IsWeaponProc:       true,
-		DPM:                rogue.instantPoisonProcManager,
-
+		Name:                "Instant Poison",
+		Outcome:             core.OutcomeLanded,
+		Callback:            core.CallbackOnSpellHitDealt,
+		TriggerImmediately:  true,
+		ProcMask:            procMask,
+		IsWeaponProc:        true,
+		ProcSpellClassFlags: instantPoisonRank.ClassFlags,
+		DPM:                 rogue.NewFixedProcChanceManager(0.3, procMask),
 		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			rogue.InstantPoison.Cast(sim, result.Target)
 		},
 	})
-}
-
-func (rogue *Rogue) RefreshPoisonProcChance() {
-	chanceOfSuccess := int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS)
-	improvedPoisonsBonus := spellData.ImprovedPoisons.
-		Effect(dbcenums.A_ADD_FLAT_MODIFIER, chanceOfSuccess).
-		FractionAt(rogue.Talents.ImprovedPoisons)
-
-	dpChance := func() float64 {
-		total := 0.3 + improvedPoisonsBonus + rogue.additivePoisonChance
-		return total
-	}
-	ipChance := func() float64 {
-		total := 0.2 + improvedPoisonsBonus + rogue.additivePoisonChance
-		return total
-	}
-
-	if rogue.deadlyPoisonProcManager != nil {
-		*rogue.deadlyPoisonProcManager = *rogue.NewFixedProcChanceManager(dpChance(), rogue.getPoisonProcMask(proto.RoguePoison_DeadlyPoison))
-		*rogue.instantPoisonProcManager = *rogue.NewFixedProcChanceManager(ipChance(), rogue.getPoisonProcMask(proto.RoguePoison_InstantPoison))
-	} else {
-		rogue.deadlyPoisonProcManager = rogue.NewFixedProcChanceManager(dpChance(), rogue.getPoisonProcMask(proto.RoguePoison_DeadlyPoison))
-		rogue.instantPoisonProcManager = rogue.NewFixedProcChanceManager(ipChance(), rogue.getPoisonProcMask(proto.RoguePoison_InstantPoison))
-	}
 }

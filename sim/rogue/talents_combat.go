@@ -321,7 +321,7 @@ func (rogue *Rogue) registerAdrenalineRush() {
 
 	config := spelldata.SpellConfig(&rogue.Unit, adrenalineRushRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
 	adrenalineRushAura := rogue.RegisterAura(spelldata.AuraConfig(adrenalineRushRank))
-	spelldata.ParseEffects(&rogue.Character, adrenalineRushAura, adrenalineRushRank) // Not sure this does anything, but kept for completeness
+	spelldata.ParseEffects(&rogue.Character, adrenalineRushAura, adrenalineRushRank)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		adrenalineRushAura.Activate(sim)
