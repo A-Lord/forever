@@ -31,17 +31,14 @@ const (
 	HolyDamage
 	NatureDamage
 	ShadowDamage
-	SpellHitRating
-	SpellCritRating
-	SpellHasteRating
 	SpellPiercing
 	Spirit
 	AttackPower
 	RangedAttackPower
 	FeralAttackPower
-	MeleeHitRating
-	MeleeCritRating
-	MeleeHasteRating
+	HitRating
+	CritRating
+	HasteRating
 	ArmorPenetration
 	ExpertiseRating
 	DefenseRating
@@ -141,20 +138,14 @@ func (s Stat) StatName() string {
 		return "Intellect"
 	case Spirit:
 		return "Spirit"
-	case SpellHitRating:
-		return "SpellHitRating"
-	case SpellCritRating:
-		return "SpellCritRating"
-	case SpellHasteRating:
-		return "SpellHasteRating"
 	case SpellPiercing:
 		return "SpellPiercing"
-	case MeleeHitRating:
-		return "MeleeHitRating"
-	case MeleeCritRating:
-		return "MeleeCritRating"
-	case MeleeHasteRating:
-		return "MeleeHasteRating"
+	case HitRating:
+		return "HitRating"
+	case CritRating:
+		return "CritRating"
+	case HasteRating:
+		return "HasteRating"
 	case ExpertiseRating:
 		return "ExpertiseRating"
 	case ArmorPenetration:
@@ -290,19 +281,24 @@ type PercentPseudoStat struct {
 	MeleeShare *PercentPseudoStat
 }
 
+// The hit and crit percents, named so each ranged one can point at its melee share.
 var (
-	meleeHitPercent  = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
-	meleeCritPercent = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	meleeHitPseudoStat   = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
+	rangedHitPseudoStat  = PercentPseudoStat{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPseudoStat}
+	spellHitPseudoStat   = PercentPseudoStat{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil}
+	meleeCritPseudoStat  = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	rangedCritPseudoStat = PercentPseudoStat{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPseudoStat}
+	spellCritPseudoStat  = PercentPseudoStat{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil}
 )
 
 var PercentPseudoStats = []PercentPseudoStat{
-	meleeHitPercent,
-	{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil},
-	meleeCritPercent,
-	{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil},
+	meleeHitPseudoStat,
+	spellHitPseudoStat,
+	meleeCritPseudoStat,
+	spellCritPseudoStat,
 	{BlockPercent, proto.PseudoStat_PseudoStatBlockPercent, nil},
-	{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPercent},
-	{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPercent},
+	rangedHitPseudoStat,
+	rangedCritPseudoStat,
 	{DodgePercent, proto.PseudoStat_PseudoStatDodgePercent, nil},
 	{ParryPercent, proto.PseudoStat_PseudoStatParryPercent, nil},
 	{ExpertisePercent, proto.PseudoStat_PseudoStatExpertisePercent, nil},

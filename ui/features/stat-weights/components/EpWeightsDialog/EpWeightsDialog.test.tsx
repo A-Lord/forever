@@ -77,7 +77,7 @@ vi.mock('@sim/state/subscriptions', () => {
 const STAT_NAMES: Partial<Record<Stat, string>> = {
 	[Stat.StatStrength]: 'Strength',
 	[Stat.StatAgility]: 'Agility',
-	[Stat.StatMeleeCritRating]: 'Crit Rating',
+	[Stat.StatCritRating]: 'Crit Rating',
 };
 vi.mock('@i18n/localization', () => ({
 	translateStat: (stat: Stat) => STAT_NAMES[stat] ?? `Stat ${stat}`,
@@ -225,7 +225,7 @@ const setup = () => {
 			signalManager: { abortType },
 		},
 		individualConfig: {
-			epStats: [Stat.StatStrength, Stat.StatAgility, Stat.StatMeleeCritRating],
+			epStats: [Stat.StatStrength, Stat.StatAgility, Stat.StatCritRating],
 			epPseudoStats: [PseudoStat.PseudoStatSpellHitPercent],
 			epReferenceStat: Stat.StatStrength,
 			defaults: { epWeights: new Stats().withStat(Stat.StatAgility, 7) },
@@ -446,11 +446,7 @@ describe('EpWeightsDialog', () => {
 	it('carries the stat enum on each reference option, writes it, and follows it in the column tooltip', () => {
 		renderDialog();
 		const select = popup().querySelector<HTMLSelectElement>('#ep-ref-stat-damage')!;
-		expect([...select.options].map(option => option.value)).toEqual([
-			String(Stat.StatStrength),
-			String(Stat.StatAgility),
-			String(Stat.StatMeleeCritRating),
-		]);
+		expect([...select.options].map(option => option.value)).toEqual([String(Stat.StatStrength), String(Stat.StatAgility), String(Stat.StatCritRating)]);
 		expect(select.value).toBe(String(Stat.StatStrength));
 
 		const dpsEpLabel = () => table().querySelectorAll('thead tr:first-child th')[3].querySelector('span')!;
@@ -543,7 +539,7 @@ describe('EpWeightsDialog', () => {
 			});
 			expect(trackEvent).toHaveBeenCalledWith({ action: 'sim', category: 'stat_weights', label: 'calculate' });
 			expect(player.computeStatWeights).toHaveBeenCalledWith(
-				[Stat.StatStrength, Stat.StatAgility, Stat.StatMeleeCritRating],
+				[Stat.StatStrength, Stat.StatAgility, Stat.StatCritRating],
 				[PseudoStat.PseudoStatSpellHitPercent],
 				Stat.StatStrength,
 				expect.any(Function),
@@ -621,7 +617,7 @@ describe('EpWeightsDialog', () => {
 			await act(async () => {
 				fireEvent.click(calculate());
 			});
-			expect(player.computeStatWeights.mock.calls[0][0]).toEqual([Stat.StatStrength, Stat.StatMeleeCritRating]);
+			expect(player.computeStatWeights.mock.calls[0][0]).toEqual([Stat.StatStrength, Stat.StatCritRating]);
 			expect(rowFor('Agility').querySelector('[data-column-type="ep"] [data-notapplicable]')).not.toBeNull();
 		});
 

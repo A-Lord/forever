@@ -10,6 +10,7 @@ at a time, with no resolver in between.
 - [Building an ability](#building-an-ability)
 - [Auras and dots](#auras-and-dots)
 - [Talents and auras: ParseStatic and ParseEffects](#talents-and-auras-parsestatic-and-parseeffects)
+- [Weapon requirements and the one rating](#weapon-requirements-and-the-one-rating)
 - [Procs](#procs)
 - [Overrides](#overrides)
 - [Reading a row by hand](#reading-a-row-by-hand)
@@ -419,10 +420,9 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | PhysicalHitPercent, SpellHitPercent                                 | percentage points                                     | the value                                                              |
 | PhysicalCritPercent, SpellCritPercent                               | percentage points                                     | the value                                                              |
 | crit chance on the spells a modifier names, flat or percentage      | `SpellMod_BonusCrit_Percent`, percentage points       | the value                                                              |
-| **BlockPercent**                                                    | **a fraction**                                        | **the value over 100**                                                 |
-| DodgeRating                                                         | rating                                                | value x `DodgeRatingPerDodgePercent`                                   |
-| ParryRating                                                         | rating                                                | value x `ParryRatingPerParryPercent`                                   |
-| ExpertiseRating                                                     | rating                                                | value x `ExpertisePerQuarterPercentReduction`                          |
+| BlockPercent, DodgePercent, ParryPercent, ExpertisePercent          | percentage points                                     | the value                                                              |
+| HitRating, CritRating, HasteRating and the other ratings            | rating                                                | the value, for each rating the misc value's mask names                 |
+| a rating bound to a weapon, or a mask of ranged bits alone          | a hit or crit percent mod on those attacks            | value / `HitRatingPerHitPercent` or `CritRatingPerCritPercent`         |
 | `PseudoStats.BonusHealingTaken`                                     | flat healing                                          | the value                                                              |
 | `PseudoStats.ReducedPhysicalHitTakenChance`                         | percentage points                                     | the value with its sign turned                                         |
 | `PseudoStats.SpiritRegenRateCasting`                                | a share of spirit regen while casting, capped at 1    | the value over 100                                                     |
@@ -445,10 +445,10 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | the maximum mana (misc 0 of either)                                 | Mana, flat points                                     | the value                                                              |
 | a percentage GCD modifier (`SPELLMOD_GLOBAL_COOLDOWN`)              | `spell.GCDMultiplier`, summed from 1                  | the value over 100                                                     |
 
-Block is the one that reads differently from its name: core sums `stats.BlockPercent` with the rating
-share already divided by 100, so the game files' integer 5 is 0.05 there and a row handed over unconverted
-is five hundred percent block. `TestParseStaticStatConventions` pins one row of each family against
-what core reads back.
+Block, dodge and parry are percentage points like hit and crit: core divides them by 100 where it rolls
+them (`GetBlockFromRating`), so the game files' 5 is stored as 5. `TestParseStaticStatConventions` pins
+one row of each family against what core reads back. How a rating mask is read, and which hit and crit
+rows become mods on one weapon's attacks, is [Weapon requirements and the one rating](#weapon-requirements-and-the-one-rating).
 
 Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
 its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat: Inspiration's 8 is 8% more
@@ -506,10 +506,10 @@ school is skipped (`core.SpellSchool.PiercingStat`). The per-school kind bids un
 frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell has no
 resistance stat to pierce.
 
-A talent that states the same percentage twice - once for the hit and once for the dot - has its dot
-effect folded into the hit one, because a single `SpellMod_DamageDone_Flat` already reaches the ticks
-and attaching both would double the bonus. The `Applied` entry says `folded-into`. A parse narrowed to
-the dot effect alone attaches it as a dot mod instead.
+A percentage `SPELLMOD_DAMAGE` raises direct hits and direct heals alone (`SpellMod_DirectDamageDone_Flat`)
+and `SPELLMOD_DOT` the ticks alone (`SpellMod_DotDamageDone_Pct`), so a talent that raises a spell and its
+dot states the percentage twice and each effect attaches its own mod (Improved Serpent Sting 19464,
+Improved Moonfire 16821). `SPELLMOD_ALL_EFFECTS` raises both (`SpellMod_DamageDone_Flat`).
 
 ### What the table does not take
 
@@ -527,11 +527,141 @@ per unit cannot be applied once per stack, and the static path has no aura to fo
 | a stacking aura (`MaxStack` > 0)    | the stat multipliers and shares, the equipment scaling, the pseudo-stat and speed multipliers and the cooldown multiplier |
 | `ParseStatic`                       | the speed and energy regen multipliers, which need the `Simulation` an aura's gain hands over                             |
 | `ParseStatic` with `Conditional`    | the stat multipliers and shares and the equipment scaling as well                                                         |
-| an aura on a unit with no character | the equipment scaling, whose helper is a character's                                                                      |
+| an aura on a unit with no character | the equipment scaling and the stats held while a weapon is equipped, whose helpers are a character's                      |
 | a parse without `FromCaster`        | the damage and crit a debuff adds to its caster's attacks alone, and `ParseStatic` those too                              |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
 than cumulative stacks.
+
+## Weapon requirements and the one rating
+
+The game files name the weapon a spell needs in `SpellEquippedItems`: an item class (2 for a weapon, 4 for
+armor and shields), a subclass mask and an inventory-type mask, which the store carries as `EquipClass`,
+`EquipSubclass` and `EquipInvType`, plus the hand `ATTR_EX_3_REQ_MAIN_HAND` or `ATTR_EX_3_REQ_OFF_HAND`
+names. On an ability that is what it takes to cast it. On a hit or crit aura it also decides which
+attacks the bonus reaches, and there the same columns mean different things per aura.
+
+### One rating
+
+Forever gear carries the game files' generic hit, crit and haste rating, and the sim keeps one of each:
+`stats.HitRating`, `stats.CritRating` and `stats.HasteRating`. Each feeds both the physical and the spell
+percent, and haste rating speeds melee, ranged and casting alike. The conversions are
+`core.HitRatingPerHitPercent` (10), `core.CritRatingPerCritPercent` (14) and
+`core.HasteRatingPerHastePercent` (10). No rating stat is melee-, ranged- or spell-only: a bonus that
+reaches one channel is a percent (`stats.PhysicalHitPercent`, `stats.SpellCritPercent`) or a mod on
+some attacks.
+
+`A_MOD_RATING` names its ratings as a mask of the game files' combat ratings, which `spelldata.RatingStats`
+reads bit by bit: the melee and spell bits of one rating name the same stat, its ranged bit adds nothing
+beside them, 8388608 is `ExpertiseRating`, and defense, dodge, parry and block have a bit each. A row
+that names a weapon, and a mask of the ranged bits 64, 512 and 262144 alone (`spelldata.RangedBitsOnly`), are read by
+`spelldata.ScopedRatingStats` instead: the aura parse turns the hit and crit among them into the percent
+they are worth, as a mod on those attacks tagged `FromRating`. Haste has no mod that reaches some attacks
+and not others, so the aura parse leaves it unread, and the other ratings too. An item's equip spell
+with a mask of ranged bits alone folds in the generator instead, through `dbc.RangedRatingPercents`,
+which turns its hit, crit and haste into the ranged hit, crit and haste percents. An equip spell whose
+rating aura names a weapon does not fold, and is applied at run time.
+
+### The rule per aura
+
+`spelldata.WeaponScope(row, effect)` answers the rule the parse applies to a hit, crit or rating effect,
+and `go run ./tools/spelldata <id>` words it on each effect line.
+
+| aura                                                  | the row requires                                                  | the parse attaches                                                                                              | rows                                                                                                                                                                               |
+| ----------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 52 `A_MOD_WEAPON_CRIT_PERCENT`, 54 `A_MOD_HIT_CHANCE` | a weapon                                                          | per weapon: `SpellMod_BonusCrit_Percent` or `SpellMod_BonusHit_Percent` on the matching weapon's attacks        | Cruelty 12320, Conviction 20117, Dual Wield Specialization 23584 (the off hand, by its hand bit), Fist Weapon Specialization 13707, Lethal Shots 450403, Ranged Hit Bonus +3 22780 |
+| 290 `A_MOD_CRIT_PCT`                                  | a weapon not ranged alone, or one named by inventory type or hand | while equipped: physical and spell crit on every spell and attack while a matching weapon is in any weapon slot | Thundering Strikes 16255                                                                                                                                                           |
+| 290 `A_MOD_CRIT_PCT`                                  | bows, guns, crossbows, thrown or wands alone, by subclass         | per weapon: a crit mod on ranged attacks                                                                        | Ranged Crit Bonus +02 1310308                                                                                                                                                      |
+| 189 `A_MOD_RATING`                                    | a weapon, or no weapon and a mask of ranged bits alone            | per weapon, or on ranged attacks: the hit and crit it is worth, `FromRating`                                    |                                                                                                                                                                                    |
+| 52, 54, 290, 189                                      | a weapon, on an aura that reaches another unit                    | the stat, on that unit: the requirement only gates the cast                                                     | Scorpid Sting 3043                                                                                                                                                                 |
+| 52, 54, 290                                           | a shield (class 4)                                                | the stat: a shield row is never scoped                                                                          |                                                                                                                                                                                    |
+| 55, 57 and the haste auras                            | anything                                                          | the stat: spell hit, spell crit and haste are never scoped                                                      | Precision 13705's spell hit                                                                                                                                                        |
+
+A per-weapon mod carries no class flags, so it reaches the auto attacks whatever family the talent
+belongs to.
+
+**Read the row's tooltip before scoping; 290 is ambiguous.** "Improves your chance to get a critical
+strike with all spells and attacks" is crit on everything while the weapon is equipped, which is what
+the parse makes of a melee-weapon 290 (Thundering Strikes). "Increases your chance to get a critical
+strike with Axes and Polearms" is per weapon, though the game files state it as a 290 too: its Weaponmaster
+12700 and Hack and Slash 13706 rows. The live Weaponmaster 1290261 and Hack and Slash 13960 carry that
+crit as an `A_DUMMY` branch, so each needs it built by hand as a per-weapon mod. Where the parse and the
+tooltip disagree, the tooltip wins and the call site names the wording.
+
+### Which API
+
+| the effect                                                              | write                                                                                                          |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| a per-weapon bonus the row states as 52, 54 or a ranged-only 290        | `ParseStatic` or `ParseEffects`; `Applied` names a `SpellMod_BonusHit_Percent` or `SpellMod_BonusCrit_Percent` |
+| a per-weapon bonus the row does not state, or states as a 290 exception | `AddStaticMod(core.SpellModConfig{...})` with the Equip fields                                                 |
+| a per-weapon bonus that shows as an aura                                | `AttachSpellMod` on that aura, with the Equip fields                                                           |
+| stats on every spell and attack while a weapon is equipped              | `character.NewEquipGatedStats(req, bonus)`, which the parse's 290 path uses                                    |
+| a temporary enchant's per-weapon effects                                | `spelldata.OnHand(...)`, which binds them to the hand carrying the enchant                                     |
+
+Weaponmaster (`sim/warrior/talents_arms.go`) keeps its crit visible as an aura. `critOn` is whether
+either hand holds an axe or a polearm as the character is built:
+
+```go
+critAura := warrior.RegisterAura(core.Aura{
+	Label:      "Weaponmaster (Axe/Polearm)",
+	ActionID:   actionID.WithTag(1),
+	Duration:   core.NeverExpires,
+	BuildPhase: core.Ternary(critOn, core.CharacterBuildPhaseTalents, core.CharacterBuildPhaseNone),
+}).AttachSpellMod(core.SpellModConfig{
+	Kind:          core.SpellMod_BonusCrit_Percent,
+	FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
+	ProcMask:      core.ProcMaskMelee,
+	EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM,
+})
+```
+
+Stats held while a weapon is equipped, the shape the parse's 290 path builds
+(`sim/core/spelldata/parse_effects_table.go`), follow the weapon slots through item swaps;
+`SetLevel(nil, 1)` adds them as the character is built, and 0 takes them off:
+
+```go
+req := core.EquipRequirement{SubclassMask: core.WeaponSubclassMask(proto.WeaponType_WeaponTypeMace)}
+character.NewEquipGatedStats(req, stats.Stats{stats.PhysicalCritPercent: 1, stats.SpellCritPercent: 1}).SetLevel(nil, 1)
+```
+
+The Equip fields are the game files' own masks. `EquipSubclass` takes `dbcenums.ITEM_SUBCLASS_BIT_WEAPON_*`
+bits, written out in a `SpellModConfig` literal so `-config` and the hover can read it;
+`core.WeaponSubclassMask(types...)` builds the same mask from `proto.WeaponType`s in running code, one-
+and two-handed alike. `EquipInvType` takes `dbcenums.INVTYPE_BIT_*` bits, and `EquipHand` the
+`ProcMaskMeleeMH` or `ProcMaskMeleeOH` a hand bit names.
+`core.EquipRequirement{SubclassMask, InvTypeMask, Hand}` holds the same, and `Equipped(character)` answers
+whether a weapon meeting it sits in any weapon slot. An item's own bits are `(*Item).WeaponSubclassBit()`
+and the slot's inventory-type bit, where a one-hander also counts as the main- or off-hand weapon of the
+hand holding it.
+
+### What core does with the Equip fields
+
+- `shouldApply` checks the weapon behind the spell's proc mask: the main hand's for a main-hand bit, else
+  the off hand's, else the ranged slot's. A spell with no weapon bit never matches.
+- A magic-defense spell never matches, since it rolls on the spell tables no weapon's bonus reaches:
+  Thunder Clap takes no Cruelty.
+- A pet never matches, and neither does a shield or a held item in the off hand.
+- An item swap re-filters every weapon-bound mod.
+- The character sheet reads the mods through `ScopedPercents(probe)` for its main-hand, off-hand and ranged
+  hit and crit rows, and shows the part tagged `FromRating` (`HitFromRating`, `CritFromRating`) as rating. A
+  mod counts there only when it names no `ClassMask`, `ClassFlags`, school or spell flag.
+
+`-config` reads a `core.SpellModConfig` literal the same way: the weapons its Equip fields name and the
+rule they get, and a hover on `SpellModConfig` in a class file shows it.
+
+### The weapon-bound talents of the classes still to port
+
+| talent                                  | what it is                                                                                                                                                     |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| rogue Precision 13705                   | effect 1, a 54 with melee weapons, is per weapon; effect 2, a 55, is spell hit on every spell. `ParseStatic` does both                                         |
+| rogue Hack and Slash 13960              | the dagger and fist crit is an `A_DUMMY`: a per-weapon crit mod by hand, `EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_DAGGERS                             | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST` |
+| rogue Fist Weapon Specialization 13707  | a 52 with fist weapons, per weapon. `ParseStatic`                                                                                                              |
+| Lethal Shots 450403                     | a 52 with ranged weapons, per weapon on ranged attacks. `ParseStatic`                                                                                          |
+| shaman Thundering Strikes 16255         | a 290 with melee weapons, while equipped. `ParseStatic`                                                                                                        |
+| shaman Dual Wield Specialization 408496 | the rune's hit is an `A_DUMMY` and the row names no weapon: spell and melee hit gated on dual wielding, `NewEquipGatedStats` with `Hand: core.ProcMaskMeleeOH` |
+
+A requirement of `Hand: core.ProcMaskMeleeOH` alone is met while the off hand holds a weapon, which is
+what dual wielding is.
 
 ## Procs
 

@@ -35,7 +35,7 @@ func TestTemporaryEnchantTakesTheWeaponsItsMasksName(t *testing.T) {
 		{"coating on a sword", shieldCoating, sword, false},
 		{"stone on an empty hand", sharpeningStone, Item{}, false},
 	} {
-		if got := tc.consumable.TakesItem(tc.item); got != tc.want {
+		if got := tc.consumable.TakesItem(proto.ItemSlot_ItemSlotMainHand, tc.item); got != tc.want {
 			t.Errorf("%s: takes = %v, want %v", tc.name, got, tc.want)
 		}
 	}

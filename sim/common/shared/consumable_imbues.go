@@ -11,40 +11,42 @@ import (
 // once per hand and each combat spell cast off that hand's hits at the chance its row states. Its flat
 // weapon damage is core's, on every weapon built from that hand's item. The equip spells named are
 // the enchant's that grant no stat of the enchant's own, such as Consecrated Sharpening Stone's 28893:
-// their auras are parsed onto one permanent aura counted once per hand, since each weapon carries its
-// own copy of the equip aura.
+// their auras are parsed onto one permanent aura once per hand, since each weapon carries its own copy
+// of the equip aura, and an aura bound to a matching weapon reaches that hand's attacks alone.
 func NewSpellDataTemporaryEnchant(itemID int32, equipSpellIDs ...int32) {
 	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		hands := applyTemporaryEnchant(character, core.GetConsumableByID(itemID))
-		if hands == 0 {
+		if len(hands) == 0 {
 			return
 		}
 		for _, spellID := range equipSpellIDs {
 			row := spelldata.MustFind(spellID)
 			aura := character.GetOrRegisterAura(spelldata.AuraConfig(row, spelldata.Permanent()))
-			spelldata.ParseEffects(character, aura, row, spelldata.Count(float64(hands)))
+			for _, hand := range hands {
+				spelldata.ParseEffects(character, aura, row, spelldata.OnHand(hand), spelldata.Count(1))
+			}
 		}
 	})
 }
 
-// Returns the number of hands carrying the enchant.
-func applyTemporaryEnchant(character *core.Character, consumable core.Consumable) int {
+// Returns the melee hands carrying the enchant, as proc masks.
+func applyTemporaryEnchant(character *core.Character, consumable core.Consumable) []core.ProcMask {
 	enchant := consumable.TemporaryEnchant
 	if enchant == nil {
-		return 0
+		return nil
 	}
 
-	hands := 0
+	var hands []core.ProcMask
 	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
 		if character.Equipment[slot].TempEnchant != enchant.EffectID {
 			continue
 		}
-		hands++
+		hands = append(hands, character.GetProcMaskForWeaponSlot(slot))
 		character.AddStats(enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats)))
 	}
-	if hands == 0 {
-		return 0
+	if len(hands) == 0 {
+		return nil
 	}
 
 	for _, effect := range enchant.EnchantEffects {

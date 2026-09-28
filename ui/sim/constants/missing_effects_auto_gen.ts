@@ -935,12 +935,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22015, // Beastmaster's Gloves
-		[
-			"Increases your pet's critical strike chance by 2%.", // 27043 - https://www.wowhead.com/forever/spell=27043
-		]
-	],
-	[
 		22060, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225

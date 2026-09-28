@@ -84,7 +84,7 @@ func TestFeralBear(t *testing.T) {
 				proto.Stat_StatBonusArmor,
 				proto.Stat_StatDodgeRating,
 				proto.Stat_StatDefenseRating,
-				proto.Stat_StatMeleeHitRating,
+				proto.Stat_StatHitRating,
 				proto.Stat_StatExpertiseRating,
 			},
 		},

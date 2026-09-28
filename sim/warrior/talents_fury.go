@@ -78,19 +78,12 @@ func (warrior *Warrior) registerDualWieldSpecialization() {
 
 	rank := spellData.DualWieldSpecialization.Rank(warrior.Talents.DualWieldSpecialization)
 
-	// Effect 3 states A_MOD_HIT_CHANCE with nothing narrowing it, which the parse reads as hit on
-	// every attack; the tooltip states the chance to hit with off-hand attacks, so it stays a mod
-	// on the off-hand's own hits.
-	spelldata.ParseStatic(&warrior.Character, rank, spelldata.SkipEffects(3))
-
-	warrior.AddStaticMod(core.SpellModConfig{
-		ProcMask:   core.ProcMaskMeleeOH,
-		Kind:       core.SpellMod_BonusHit_Percent,
-		FloatValue: rank.EffectN(3).BaseValue(),
-	})
+	// The row requires a one-handed weapon in the off hand, so effect 3's hit is a mod on the attacks
+	// the off-hand weapon makes.
+	spelldata.ParseStatic(&warrior.Character, rank)
 
 	// The off-hand rage the tooltip's $m2 states is the dummy at index 2, which the parse skips.
-	warrior.SetOffHandRageMultiplier(1 + rank.EffectN(2).Percent())
+	warrior.SetOffHandRageMultiplier(core.MultiplierFromPercent(rank.EffectN(2).BaseValue()))
 }
 
 func (warrior *Warrior) registerIronWill() {

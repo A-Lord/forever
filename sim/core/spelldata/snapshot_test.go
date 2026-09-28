@@ -291,6 +291,22 @@ func TestGeneratedStanceAndAuraRestriction(t *testing.T) {
 	}
 }
 
+// Justice Battleplate's 4-piece bonus 1301076 is a 189 row masked to 8388608.
+func TestGeneratedRatingRowParsesExpertise(t *testing.T) {
+	withGeneratedStore(t)
+
+	parsed := ParseStatic(parseWarrior(), MustFind(1301076))
+	if len(parsed.Applied) != 1 {
+		t.Fatalf("attached %v, want one attachment", appliedKinds(parsed))
+	}
+	if got := parsed.Applied[0].Kind; got != "stat ExpertiseRating" {
+		t.Errorf("kind = %q, want %q", got, "stat ExpertiseRating")
+	}
+	if got := parsed.Applied[0].Value; got != 12 {
+		t.Errorf("value = %v, want 12", got)
+	}
+}
+
 func TestGeneratedStoreMisses(t *testing.T) {
 	withGeneratedStore(t)
 

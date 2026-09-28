@@ -61,6 +61,15 @@ the readers and the worked examples; `wowsims-spells` has the pipeline.
 Where the sim and the game files disagree, decide rather than assume, and record the decision at the call
 site. A literal that survives needs the reason on its line.
 
+### Hit, crit and haste, and the weapon they need
+
+Gear and auras give one `stats.HitRating`, `stats.CritRating` and `stats.HasteRating`, each reaching
+physical and spell alike; there is no melee- or spell-only rating to write. "Weapon requirements and the
+one rating" in `docs/spell_data.md` has the rule for a talent naming a weapon, the APIs and the
+weapon-bound talents already audited for the classes still to port: rogue Precision, Hack and Slash and
+Fist Weapon Specialization, Lethal Shots, shaman Thundering Strikes and the shaman Dual Wield
+Specialization rune.
+
 ## Verifying
 
 ```

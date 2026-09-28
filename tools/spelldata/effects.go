@@ -7,6 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // What the printer says about an effect whose type or aura no branch below words. The literal beside
@@ -131,7 +132,103 @@ func humaniseAura(s *spelldata.Spell, e *spelldata.Effect) string {
 	if phrase == "" {
 		return ""
 	}
-	return sentence(join(phrase, auraTarget(e)), ticks(s, e), scaling(e), auraCoefficients(e))
+	return sentence(join(phrase, auraTarget(e)), ticks(s, e), scaling(e), auraCoefficients(e), castOnly(s, e))
+}
+
+// A hit or crit aura under the rule spelldata.WeaponScope names for its row, which is the one the parse
+// attaches it by. A per-weapon mod is physical crit or hit on the matching weapon's attacks.
+func weaponBound(s *spelldata.Spell, e *spelldata.Effect, stat string) string {
+	rule, scope := spelldata.WeaponScope(s, e)
+	switch rule {
+	case spelldata.WeaponRulePerWeapon:
+		physical := "physical crit"
+		if e.Aura == dbcenums.A_MOD_HIT_CHANCE {
+			physical = "physical hit"
+		}
+		return join(signedPercent(e), physical+",", perWeapon(scope))
+	case spelldata.WeaponRuleWhileEquipped:
+		return join(signedPercent(e), stat+",", "while", weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand),
+			"is equipped: every spell and attack")
+	}
+	return join(signedPercent(e), stat)
+}
+
+func perWeapon(scope core.SpellModConfig) string {
+	weapons := weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand)
+	if scope.ProcMask == core.ProcMaskRanged {
+		return "ranged weapons only: attacks made with " + weapons
+	}
+	return "per weapon: only attacks made with " + weapons
+}
+
+// A hit, crit or rating aura on a row whose weapon requirement binds nothing the effect gives, since
+// the aura reaches another unit.
+func castOnly(s *spelldata.Spell, e *spelldata.Effect) string {
+	if !spelldata.WeaponBindable(e.Aura) {
+		return ""
+	}
+	if rule, _ := spelldata.WeaponScope(s, e); rule != spelldata.WeaponRuleNone ||
+		s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] == dbcenums.TARGET_UNIT_CASTER {
+		return ""
+	}
+	return "the weapon requirement only gates casting"
+}
+
+// A_MOD_RATING by the ratings its mask names, read the way the parse reads them. A row bound to a
+// weapon, or a mask of ranged bits alone, is the percent its hit and crit are worth on those attacks,
+// and its other ratings are not read.
+func ratingPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
+	rule, scope := spelldata.WeaponScope(s, e)
+	if rule != spelldata.WeaponRulePerWeapon && rule != spelldata.WeaponRuleRangedRatings {
+		ratings := spelldata.RatingStats(e.Misc)
+		if len(ratings) == 0 {
+			return ""
+		}
+		return join(signed(value(e)), ratingNames(ratings))
+	}
+
+	scoped := spelldata.ScopedRatingPercents(e.Misc, value(e))
+	if len(scoped) == 0 {
+		return ""
+	}
+	var ratings, unread []stats.Stat
+	var worth []string
+	for _, rating := range scoped {
+		ratings = append(ratings, rating.Stat)
+		switch rating.Stat {
+		case stats.HitRating:
+			worth = append(worth, signed(rating.Percent)+"% hit")
+		case stats.CritRating:
+			worth = append(worth, signed(rating.Percent)+"% crit")
+		default:
+			unread = append(unread, rating.Stat)
+		}
+	}
+
+	clause := "ranged attacks only"
+	if rule == spelldata.WeaponRulePerWeapon {
+		clause = perWeapon(scope)
+	}
+	phrase := join(signed(value(e)), ratingNames(ratings)+",", clause)
+	if len(worth) > 0 {
+		phrase += ", worth " + strings.Join(worth, " and ")
+	}
+	if len(unread) > 0 {
+		phrase += "; the " + ratingNames(unread) + " is not read"
+	}
+	return phrase
+}
+
+// Ratings as one phrase: hit rating, or hit, crit and haste rating.
+func ratingNames(ratings []stats.Stat) string {
+	names := make([]string, 0, len(ratings))
+	for _, stat := range ratings {
+		names = append(names, strings.ToLower(strings.TrimSuffix(stat.StatName(), "Rating")))
+	}
+	if len(names) == 1 {
+		return names[0] + " rating"
+	}
+	return strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1] + " rating"
 }
 
 // An aura on the caster is the ordinary case and says nothing worth a clause, so only an aura
@@ -250,15 +347,17 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		return join(signed(value(e)), "extra", powerName(dbcenums.PowerType(e.Misc)), "per cast")
 
 	case dbcenums.A_MOD_HIT_CHANCE:
-		return join(signedPercent(e), "physical hit")
+		return weaponBound(s, e, "physical hit")
 	case dbcenums.A_MOD_SPELL_HIT_CHANCE:
 		return join(signedPercent(e), "spell hit")
 	case dbcenums.A_MOD_WEAPON_CRIT_PERCENT:
-		return join(signedPercent(e), "physical crit")
+		return weaponBound(s, e, "physical crit")
 	case dbcenums.A_MOD_SPELL_CRIT_CHANCE:
 		return join(signedPercent(e), "spell crit")
 	case dbcenums.A_MOD_CRIT_PCT:
-		return join(signedPercent(e), "physical and spell crit")
+		return weaponBound(s, e, "physical and spell crit")
+	case dbcenums.A_MOD_RATING:
+		return ratingPhrase(s, e)
 	case dbcenums.A_MOD_CRIT_DAMAGE_BONUS:
 		return join(signedPercent(e), "crit damage")
 

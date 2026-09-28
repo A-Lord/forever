@@ -221,11 +221,6 @@ func init() {
 		ranged.BaseDamageMax += 12
 	})
 
-	core.NewEnchantEffect(2724, func(agent core.Agent) {
-		character := agent.GetCharacter()
-		character.AddStat(stats.RangedCritPercent, 28.0/core.PhysicalCritRatingPerCritPercent)
-	})
-
 	movementSpeedEnchants := []int32{
 		2939, // Enchant Boots - Cat's Swiftness
 		2940, // Enchant Boots - Boar's Speed

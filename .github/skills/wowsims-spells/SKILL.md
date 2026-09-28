@@ -82,12 +82,17 @@ A debuff that raises only its caster's damage or crit against the target (Shadow
 
 Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions and the shapeshift attribute bits, and core enforces it. Never write a stance or form check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
 
+## Weapon requirements and the one rating
+
+"Weapon requirements and the one rating" in `docs/spell_data.md` has the one rating, `spelldata.WeaponScope`, the rule table, the API table and the weapon-bound talents of the classes still to port.
+
 ## Porting a class
 
 `docs/spell_data.md` has the checklist under "Porting a class onto the resolvers". The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move .results files only for a cause you isolated by reverting one change.
 
 ## Traps
 
+- **Read a hit or crit row's tooltip before scoping it; 290 is ambiguous.** "All spells and attacks" is crit on everything while the weapon is equipped, which the parse makes of a melee-weapon 290. "With Axes and Polearms" is per weapon although the game files state it as 290 too; Weaponmaster and Hack and Slash carry that crit as a dummy, so each needs it built by hand.
 - **Class flags are not an ability's identity.** Mortal Strike shares a mask bit with Bloodthirst, and Retaliation's strike one with Whirlwind, so `MatchesFlags` or a trigger's `ClassFlags` hears both. Ask whether a spell is one ability with `spellData.X.Contains(spell)`; keep class flags for the talent and set filters the game files state.
 - **`--tags=with_db` is required** on any sim test run, or it panics with `No DB data for enchant with id: 2613`. That panic is the missing tag, not a broken fixture.
 - **The data carries ranks the game never grants.** Fireball 38692 and Frostbolt 38697 are rank 14 entries at level 70 the generator cannot tell from the real rank 13s. Name the rank by spell id — `ByID` on a ladder — rather than reaching for the top one.
@@ -131,6 +136,7 @@ go run ./tools/spelldata -family warrior/Execute # the ladder: one line per rank
 go run ./tools/spelldata -expr 'spellData.Execute.Rank(3)' -package warrior   # the row a ladder call names, Highest(), Rank(n) or ByID(id)
 go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)' -package warrior   # a pick followed by the store's own accessors: the value it reads, that accessor's doc comment and the row with the effect it read marked
 go run ./tools/spelldata -config 'spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))' -package warrior   # the config the resolver builds, each field with the step that filled it
+go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE}'   # each field, the weapons it needs and the rule core applies
 go run ./tools/spelldata -hover sim/warrior/execute.go 12:40   # the markdown an editor hover shows at line:column (1-based); the trace on stderr
 go run ./tools/spelldata -lsp                    # the same hovers as a language server on stdio
 go run ./tools/database/gen_spelldata            # rewrite the store, the forms and every class file
@@ -141,6 +147,6 @@ go test --tags=with_db ./sim/<class>/ -count=1   # a class
 git status --porcelain -- '*.results'            # empty unless a number was meant to move
 ```
 
-`-lsp` answers hovers over the ids Go, APL JSON and TS state, and in Go over a ladder family, over a name bound to one of its ranks or to a value read off one — on the declaration of such a name each accessor in the chain hovers for itself — and over `spelldata.SpellConfig`, which shows the resolved config; each hover logs its trace as a `window/logMessage`. `.vscode/extensions/wowsims-spelldata` is its VS Code client, which VS Code offers to install as a workspace extension; it is built from `tools/vscode-spelldata` by `make vscode-spelldata`, never edited. `tools/zed-spelldata` is the Zed extension, and `tools/spelldata/README.md` has the Neovim and Helix snippets.
+`-lsp` answers hovers over the ids Go, APL JSON and TS state, and in Go over a ladder family, over a name bound to one of its ranks or to a value read off one — on the declaration of such a name each accessor in the chain hovers for itself — over `spelldata.SpellConfig`, which shows the resolved config, and over the type name of a `core.SpellModConfig` literal, which shows its fields and the weapon rule; each hover logs its trace as a `window/logMessage`. `.vscode/extensions/wowsims-spelldata` is its VS Code client, which VS Code offers to install as a workspace extension; it is built from `tools/vscode-spelldata` by `make vscode-spelldata`, never edited. `tools/zed-spelldata` is the Zed extension, and `tools/spelldata/README.md` has the Neovim and Helix snippets.
 
 Regenerating needs `tools/database/wowsims.db`, which is gitignored and built by `make db` from the local WoW game files. The checks that do not need it — the store's tests, the regeneration from `assets/db_inputs/spell_store_inputs.json` — are the ones CI runs.

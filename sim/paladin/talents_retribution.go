@@ -8,6 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -98,7 +99,7 @@ func (paladin *Paladin) applyConviction() {
 		return
 	}
 
-	paladin.AddStat(stats.PhysicalCritPercent, spellData.Conviction.ValueAt(paladin.Talents.Conviction))
+	spelldata.ParseStatic(&paladin.Character, spellData.Conviction.Rank(paladin.Talents.Conviction))
 }
 
 // Vindication - Gives your damaging melee attacks a chance to reduce the target's Attack Power by
@@ -123,7 +124,7 @@ func (paladin *Paladin) applyVindication() {
 		return buffs.NewSpellDataVindicationAura(target, true, paladin.Talents.Vindication)
 	})
 
-	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)
+	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, core.MultiplierFromPercent(points))
 	selfAura := paladin.RegisterAura(core.Aura{
 		Label:    "Vindication" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID}.WithTag(1),
