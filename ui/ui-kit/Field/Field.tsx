@@ -26,6 +26,8 @@ export const Field = ({
 	children,
 	after,
 	ref,
+	role,
+	'aria-labelledby': labelledBy,
 }: FieldProps) => {
 	const renderable = typeof tooltip === 'string' || isNode(tooltip) || isValidElement(tooltip);
 	if (tooltip !== undefined && !renderable) {
@@ -50,6 +52,8 @@ export const Field = ({
 	return (
 		<BaseField.Root
 			ref={ref}
+			role={role}
+			aria-labelledby={labelledBy}
 			disabled={disabled}
 			data-disabled={disabled ? '' : undefined}
 			data-layout={layout}

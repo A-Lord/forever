@@ -43,6 +43,17 @@ describe('Field', () => {
 		expect(root().hasAttribute('data-layout')).toBe(false);
 		expect(root().hasAttribute('data-disabled')).toBe(false);
 		expect(root().hasAttribute('data-input-root')).toBe(true);
+		expect(root().hasAttribute('role')).toBe(false);
+		expect(root().hasAttribute('aria-labelledby')).toBe(false);
+	});
+
+	it('forwards role and aria-labelledby onto the root, leaving its own attributes alone', () => {
+		field({ role: 'group', 'aria-labelledby': 'buffs-label', layout: 'inline' });
+		expect(root().getAttribute('role')).toBe('group');
+		expect(root().getAttribute('aria-labelledby')).toBe('buffs-label');
+		expect(root().getAttribute('class')).toBe('ui-field number-picker-root');
+		expect(root().getAttribute('data-layout')).toBe('inline');
+		expect(root().hasAttribute('data-input-root')).toBe(true);
 	});
 
 	it('takes its test id from testId', () => {

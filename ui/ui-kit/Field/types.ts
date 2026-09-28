@@ -1,5 +1,5 @@
 import type { ClassValue } from 'clsx';
-import type { ReactElement, ReactNode, Ref } from 'react';
+import type { AriaRole, ReactElement, ReactNode, Ref } from 'react';
 
 export type FieldLayout = 'inline' | 'split';
 
@@ -47,4 +47,7 @@ export interface FieldProps extends FieldChromeProps {
 	children?: ReactNode;
 	after?: ReactNode;
 	ref?: Ref<HTMLDivElement>;
+	/** For a field that names a group of controls rather than one input. */
+	role?: AriaRole;
+	'aria-labelledby'?: string;
 }

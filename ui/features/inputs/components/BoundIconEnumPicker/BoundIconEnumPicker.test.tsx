@@ -131,6 +131,32 @@ describe('BoundIconEnumPicker', () => {
 		expect(options.armor).toBe(0);
 	});
 
+	it('zeroes once when the picker and the option holding the selection hide in the same notification', () => {
+		const options = new Options();
+		options.armor = 2;
+		const setValue = vi.fn((obj: Options, next: number) => obj.set(next));
+		mount(
+			options,
+			configFor({
+				showWhen: (obj: Options) => obj.visible,
+				setValue,
+				values: [{ value: 0 }, { actionId: frostId, value: 1 }, { actionId: moltenId, value: 2, showWhen: (obj: Options) => obj.engineer }],
+			}),
+		);
+
+		act(() => {
+			options.visible = false;
+			options.engineer = false;
+			options.notify();
+		});
+		expect(setValue.mock.calls.map(([, next]) => next)).toEqual([0]);
+
+		// Back in view with the option still hidden: the put-aside value comes back and is zeroed in the same pass.
+		act(() => options.setVisible(true));
+		expect(options.armor).toBe(0);
+		expect(setValue.mock.calls.map(([, next]) => next)).toEqual([0, 2, 0]);
+	});
+
 	it('renders no picker at all unless some option carries an actionId and is shown', () => {
 		// A list of colour-only values names nothing to show.
 		mount(new Options(), configFor({ values: [{ value: 0, color: 'grey' }] }));

@@ -5,6 +5,7 @@ import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import type { MouseEvent } from 'react';
 
+import { resolvedIconStyle } from '../utils/icons';
 import { wowheadAnchorProps } from '../utils/wowhead';
 import { ImprovedAnchor } from './ImprovedAnchor';
 
@@ -77,7 +78,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 				target="_blank"
 				href={href || undefined}
 				rel={externalRel(href, undefined)}
-				style={icon ? { backgroundImage: `url('${icon.iconUrl}')` } : undefined}
+				style={resolvedIconStyle(icon)}
 				{...disabledAttribute}
 				{...stateEvents}
 			/>

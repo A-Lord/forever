@@ -54,17 +54,21 @@ describe('MultiIconPicker', () => {
 		expect(screen.getByTestId('multi-icon-picker-positioner').style.position).toBe('fixed');
 	});
 
-	it('renders the label only when given one, as a span that also names the trigger', () => {
+	it('renders the label only when given one, and names the group and the trigger with it', () => {
 		const withLabel = mount();
 		// A <span>, not a <label>: it names the icon group, which is not a form control.
 		const caption = within(root()).queryByTestId('multi-icon-picker-label');
 		expect(caption?.tagName).toBe('SPAN');
 		expect(caption?.textContent).toBe('Stats');
+		expect(root().getAttribute('role')).toBe('group');
+		expect(root().getAttribute('aria-labelledby')).toBe(caption!.id);
 		expect(trigger().getAttribute('aria-label')).toBe('Stats');
 		withLabel.unmount();
 
 		mount({ label: undefined });
 		expect(within(root()).queryByTestId('multi-icon-picker-label')).toBeNull();
+		expect(root().hasAttribute('role')).toBe(false);
+		expect(root().hasAttribute('aria-labelledby')).toBe(false);
 		expect(trigger().hasAttribute('aria-label')).toBe(false);
 	});
 

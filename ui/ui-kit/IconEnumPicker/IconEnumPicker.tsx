@@ -4,9 +4,10 @@ import { Menu } from '@ui-kit/Menu';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId } from 'react';
 
+import { resolvedIconStyle } from '../utils/icons';
 import { IconEnumOptionItem, IconText } from './IconEnumOption';
 import { type IconEnumOption, IconEnumPickerDirection } from './types';
-import { actionIconStyle, iconStyleOf } from './utils';
+import { iconStyleOf } from './utils';
 
 export interface IconEnumPickerProps<T> extends FieldChromeProps, ControlledProps<T> {
 	options: Array<IconEnumOption<T>>;
@@ -72,7 +73,7 @@ export const IconEnumPicker = <T,>({
 						className: 'ui-icon-picker-swatch transition-none',
 						'data-testid': 'icon-enum-picker-button',
 						'data-active': active ? '' : undefined,
-						style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : actionIconStyle(backupIcon),
+						style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),
 						'data-whtticon': 'false',
 						'data-disable-wowhead-touch-tooltip': 'true',
 						...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip),
