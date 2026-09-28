@@ -3,11 +3,11 @@ import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { AplProvider } from '@features/apl/context/AplContext';
 import { useRenamedCopy } from '@features/apl/hooks/useRenamedCopy';
 import { rotationSource } from '@features/apl/utils';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import { APLGroup } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 import { GroupEditor } from './GroupEditor';
 
@@ -63,7 +63,7 @@ export const GroupList = () => {
 	return (
 		<AplProvider isGroup>
 			<div>
-				<ListPicker<Player<any>, APLGroup>
+				<BoundListPicker<Player<any>, APLGroup>
 					modObject={player}
 					config={config}
 					renderItem={(index, itemConfig) => <GroupEditor player={player} config={itemConfig} groupIndex={index} />}

@@ -3,11 +3,11 @@ import { AplValidations } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import type { InputConfig } from '@features/inputs/input';
 import { APLValue } from '@generated/proto/apl';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 export interface ValueListFieldProps {
 	player: Player<any>;
@@ -52,7 +52,7 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 
 	return (
 		<>
-			<ListPicker<Player<any>, APLValue | undefined>
+			<BoundListPicker<Player<any>, APLValue | undefined>
 				modObject={player}
 				config={listConfig}
 				renderItem={(_index, itemConfig) => <ValuePicker player={player} config={itemConfig} />}

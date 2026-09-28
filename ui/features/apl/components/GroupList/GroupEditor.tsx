@@ -6,12 +6,12 @@ import { NameDisplay } from '@features/apl/components/NameDisplay';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
 import { rotationSource } from '@features/apl/utils';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import type { InputConfig } from '@features/inputs/input';
 import { APLGroup, APLListItem } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { renameAPLReference } from '@sim/proto/apl_utils';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useState } from 'react';
 
@@ -72,7 +72,7 @@ export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) =>
 			<div className="ui-apl-editor-row">
 				<NameDisplay name={group?.name || ''} onRename={() => setRenaming(true)} />
 				<div>
-					<ListPicker<Player<any>, APLListItem>
+					<BoundListPicker<Player<any>, APLListItem>
 						modObject={player}
 						config={actionsConfig}
 						renderItem={(_index, itemConfig) => <AplListItem player={player} config={itemConfig} actionFullWidth />}

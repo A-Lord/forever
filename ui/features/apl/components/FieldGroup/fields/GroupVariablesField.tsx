@@ -1,10 +1,10 @@
 import { placeholderNames } from '@features/apl/model/placeholders';
 import { rotationSource } from '@features/apl/utils';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import type { InputConfig } from '@features/inputs/input';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useCallback, useRef } from 'react';
 
@@ -100,7 +100,7 @@ export const GroupVariablesField = ({ player, config, groupNameField, getParentV
 			testId="group-reference-variables-container"
 			hidden={false}
 			disabled={false}>
-			<ListPicker<Player<any>, any>
+			<BoundListPicker<Player<any>, any>
 				modObject={player}
 				config={listConfig}
 				renderItem={(index, itemConfig) => <GroupVariableRow player={player} config={itemConfig} name={itemConfig.getValue(player)?.name ?? ''} />}

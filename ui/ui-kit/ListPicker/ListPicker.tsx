@@ -1,8 +1,7 @@
 import i18n from '@i18n/config';
 import { translateItemLabel } from '@i18n/localization';
 import { Button } from '@ui-kit/Button';
-import { useInput } from '@ui-kit/hooks/useInput';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { TooltipButton } from '@ui-kit/TooltipButton';
 import { useCallback, useId, useRef } from 'react';
@@ -10,181 +9,176 @@ import { useCallback, useId, useRef } from 'react';
 import type { ListDrag } from './drag_state';
 import { ListItemAction } from './ListItemAction';
 import { ListPickerItem } from './ListPickerItem';
-import type { ListItemPickerConfig, ListPickerProps } from './types';
-import { actionEnabled, canDeleteAt, carryId, hasId, keyFor, moveItem } from './utils';
+import type { ListPickerProps } from './types';
+import { actionEnabled, canDeleteAt, carryId, keyFor, moveItem, reconcileIds } from './utils';
 
 /**
  * A reorderable list of pickers: add, remove, copy, and drag to reorder or to move between two
  * lists of the same kind.
  *
  * It parameterises the item body (`renderItem`) and the item's header extras (`renderItemHeader`);
- * it fixes the container/header/body markup, the action buttons and the drag rules. With React
- * children the list reconciles nothing itself.
+ * it fixes the container/header/body markup, the action buttons and the drag rules. Every write
+ * hands `onChange` a fresh array and leaves `items` alone; the caller's re-render with the new list
+ * is what updates the rows.
  *
  * The drag state is module-scoped in `drag_state.ts` and is **this stack's alone**; see the note
  * there for why two lists on two stacks cannot collide.
  */
-export const ListPicker = <ModObject, ItemType>({ modObject, config, renderItem, renderItemHeader, testId }: ListPickerProps<ModObject, ItemType>) => {
-	const configRef = useRef(config);
-	configRef.current = config;
+export const ListPicker = <ItemType,>({
+	items,
+	onChange,
+	disabled,
+	renderItem,
+	renderItemHeader,
+	id,
+	className,
+	testId,
+	itemLabel,
+	newItem,
+	copyItem,
+	onCopyItem,
+	actions,
+	title,
+	titleTooltip,
+	inlineMenuBar: inlineMenuBarOption,
+	hideUi,
+	horizontalLayout,
+	isCompact,
+	minimumItems,
+	allowedActions,
+	dragGroup,
+	sameGroupOnly,
+	extraActions,
+	...chrome
+}: ListPickerProps<ItemType>) => {
+	// Handlers and a drag's `take()` outlive the render that made them, so they read the latest list
+	// and writer through refs.
+	const itemsRef = useRef(items);
+	itemsRef.current = items;
+	const onChangeRef = useRef(onChange);
+	onChangeRef.current = onChange;
+
+	const prevItemsRef = useRef<ReadonlyArray<ItemType> | null>(null);
+	reconcileIds(prevItemsRef.current, items);
+	prevItemsRef.current = items;
 
 	const listId = useId();
 	const tooltipId = `${listId}-tooltip`;
 
-	const { value, hidden, disabled } = useInput(modObject, config);
+	const horizontal = !!horizontalLayout;
+	const inlineMenuBar = horizontal || !!inlineMenuBarOption;
+	const canCreate = actionEnabled(allowedActions, 'create');
+	const canDelete = actionEnabled(allowedActions, 'delete');
+	const canCopy = actionEnabled(allowedActions, 'copy');
+	const canMove = actionEnabled(allowedActions, 'move');
 
-	const prevValueRef = useRef<Array<ItemType> | null>(null);
-	const reconcileIds = useCallback((list: Array<ItemType>) => {
-		if (prevValueRef.current !== null && prevValueRef.current !== list) {
-			const prevValue = prevValueRef.current;
-			const stillPresent = new Set(list);
-			for (let index = 0; index < list.length; index++) {
-				const item = list[index];
-				if (hasId(item)) continue;
-				const old = prevValue[index];
-				if (old !== undefined && !stillPresent.has(old)) carryId(old, item);
-			}
-		}
-		prevValueRef.current = list;
-		return list;
-	}, []);
-	reconcileIds(value);
-
-	// Read through the config, not through the snapshot: every write below is a splice against the
-	// live array, and the store notification is what re-renders.
-	const source = useCallback(() => reconcileIds(configRef.current.getValue(modObject)), [modObject, reconcileIds]);
-	const commit = useCallback((next: Array<ItemType>) => configRef.current.setValue(modObject, next), [modObject]);
-
-	const horizontal = !!config.horizontalLayout;
-	const inlineMenuBar = horizontal || !!config.inlineMenuBar;
-	const canCreate = actionEnabled(config.allowedActions, 'create');
-	const canDelete = actionEnabled(config.allowedActions, 'delete');
-	const canCopy = actionEnabled(config.allowedActions, 'copy');
-	const canMove = actionEnabled(config.allowedActions, 'move');
+	const replaceByKey = (key: number, next: ItemType) => {
+		const list = itemsRef.current.slice();
+		const index = list.findIndex((candidate, i) => keyFor(candidate, i) === key);
+		if (index === -1) return;
+		carryId(list[index], next);
+		list[index] = next;
+		onChangeRef.current(list);
+	};
 
 	const onCreate = () => {
-		commit(source().concat([configRef.current.newItem()]));
+		onChangeRef.current(itemsRef.current.concat([newItem()]));
 	};
 
 	const onDelete = (index: number) => {
-		const next = source();
-		next.splice(index, 1);
-		commit(next);
+		const list = itemsRef.current.slice();
+		list.splice(index, 1);
+		onChangeRef.current(list);
 	};
 
 	const onCopy = (index: number) => {
-		const current = configRef.current;
-		if (current.onCopyItem) {
-			current.onCopyItem(index);
+		if (onCopyItem) {
+			onCopyItem(index);
 			return;
 		}
-		if (!current.copyItem) return;
-		const next = source().slice();
-		next.splice(index, 0, current.copyItem(next[index]));
-		commit(next);
+		if (!copyItem) return;
+		const list = itemsRef.current.slice();
+		list.splice(index, 0, copyItem(list[index]));
+		onChangeRef.current(list);
 	};
 
 	const makeDrag = useCallback(
 		(index: number, elem: HTMLElement): ListDrag => ({
 			listId,
-			itemLabel: configRef.current.itemLabel,
-			dragGroup: configRef.current.dragGroup,
+			itemLabel,
+			dragGroup,
 			index,
 			elem,
 			take: () => {
-				const list = source();
+				const list = itemsRef.current.slice();
 				const [item] = list.splice(index, 1);
-				commit(list);
+				onChangeRef.current(list);
 				return item;
 			},
 		}),
-		[listId, source, commit],
+		[listId, itemLabel, dragGroup],
 	);
 
 	const onDrop = useCallback(
 		(drag: ListDrag, dstIndex: number) => {
-			// Read before the source removal — this matters: `take()` calls the other list's setValue
-			// and that may notify.
-			const next = source();
+			// Read before the source removal: `take()` calls the other list's `onChange`, and that may
+			// notify.
+			const list = itemsRef.current.slice();
 			if (drag.listId !== listId) {
-				const item = drag.take() as ItemType;
-				next.splice(dstIndex, 0, item);
-				commit(next);
+				list.splice(dstIndex, 0, drag.take() as ItemType);
+				onChangeRef.current(list);
 				return;
 			}
 			if (dstIndex === drag.index || dstIndex === drag.index + 1) return;
-			commit(moveItem(next, drag.index, dstIndex));
+			onChangeRef.current(moveItem(list, drag.index, dstIndex));
 		},
-		[listId, source, commit],
+		[listId],
 	);
 
-	const itemConfig = (key: number): ListItemPickerConfig<ModObject, ItemType> => {
-		const indexOf = (list: Array<ItemType>) => list.findIndex((candidate, i) => keyFor(candidate, i) === key);
-		return {
-			storeSubscribe: config.storeSubscribe,
-			getValue: () => {
-				const list = source();
-				return list[indexOf(list)];
-			},
-			setValue: (_: ModObject, newValue: ItemType) => {
-				const next = source();
-				const idx = indexOf(next);
-				if (idx === -1) return;
-				carryId(next[idx], newValue);
-				next[idx] = newValue;
-				commit(next);
-			},
-		};
-	};
-
-	const deleteTooltip = i18n.t('common.list_picker.delete_item', { itemLabel: translateItemLabel(config.itemLabel) });
-	const copyTooltip = i18n.t('common.list_picker.copy_to_new', { itemLabel: translateItemLabel(config.itemLabel) });
-	const newLabel = i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: config.itemLabel });
-
-	// The two layout flags and the compact modifier were pushed into `extraClassNames` (compact) or
-	// added to the root afterwards (the other two); the shell owns the root's whole class list, so
-	// they arrive here instead. SERIALIZE sorts class lists, so only the set has to match.
-	const extraClassNames = [
-		...(config.extraClassNames || []),
-		...(config.isCompact ? ['ui-list-picker-compact'] : []),
-		...(config.isCompact && value.length === 0 ? ['hidden'] : []),
-		...(config.hideUi ? ['hidden'] : []),
-		...(horizontal ? ['ui-list-picker-horizontal'] : []),
-	];
+	const deleteTooltip = i18n.t('common.list_picker.delete_item', { itemLabel: translateItemLabel(itemLabel) });
+	const copyTooltip = i18n.t('common.list_picker.copy_to_new', { itemLabel: translateItemLabel(itemLabel) });
+	const newLabel = i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: itemLabel });
 
 	return (
-		<PickerShell
-			config={{ ...config, extraClassNames, id: config.id ?? listId }}
-			className="ui-list-picker-root"
+		<Field
+			{...chrome}
+			id={id ?? listId}
+			className={[
+				'ui-list-picker-root',
+				className,
+				isCompact && 'ui-list-picker-compact',
+				isCompact && items.length === 0 && 'hidden',
+				hideUi && 'hidden',
+				horizontal && 'ui-list-picker-horizontal',
+			]}
 			testId={testId ?? 'list-picker-root'}
-			hidden={hidden}
 			disabled={disabled}>
-			{config.title !== undefined && (
+			{title !== undefined && (
 				// A `<label>` naming no control is not a label — the standing rule for this tree.
 				<span className="ui-list-picker-title mb-3 flex w-full text-base" data-testid="list-picker-title">
-					{config.title}
-					{config.titleTooltip && <TooltipButton tooltip={config.titleTooltip} className="ml-2" />}
+					{title}
+					{titleTooltip && <TooltipButton tooltip={titleTooltip} className="ml-2" />}
 				</span>
 			)}
-			{value.length > 0 && (
+			{items.length > 0 && (
 				<div className="ui-list-picker-items flex flex-col" data-testid="list-picker-items">
-					{value.map((item, index) => {
+					{items.map((item, index) => {
 						const key = keyFor(item, index);
-						const cfg = itemConfig(key);
+						const onItemChange = (next: ItemType) => replaceByKey(key, next);
 						return (
 							<ListPickerItem
 								key={key}
 								index={index}
 								listId={listId}
-								itemLabel={config.itemLabel}
+								itemLabel={itemLabel}
 								inlineMenuBar={inlineMenuBar}
-								title={!inlineMenuBar && config.itemLabel ? `${config.itemLabel} ${index + 1}` : undefined}
-								dragGroup={config.dragGroup}
-								sameGroupOnly={config.sameGroupOnly}
-								canDelete={canDelete && canDeleteAt(index, config.minimumItems)}
+								title={!inlineMenuBar && itemLabel ? `${itemLabel} ${index + 1}` : undefined}
+								dragGroup={dragGroup}
+								sameGroupOnly={sameGroupOnly}
+								canDelete={canDelete && canDeleteAt(index, minimumItems)}
 								canCopy={canCopy}
 								canMove={canMove}
-								extraActions={config.extraActions}
+								extraActions={extraActions}
 								deleteTooltip={deleteTooltip}
 								copyTooltip={copyTooltip}
 								tooltipId={tooltipId}
@@ -192,15 +186,15 @@ export const ListPicker = <ModObject, ItemType>({ modObject, config, renderItem,
 								onCopy={onCopy}
 								makeDrag={makeDrag}
 								onDrop={onDrop}
-								header={renderItemHeader?.(index, cfg)}>
-								{renderItem(index, cfg)}
+								header={renderItemHeader?.(item, index, onItemChange)}>
+								{renderItem(item, index, onItemChange)}
 							</ListPickerItem>
 						);
 					})}
 				</div>
 			)}
 			{canCreate &&
-				(config.actions?.create?.useIcon ? (
+				(actions?.create?.useIcon ? (
 					<ListItemAction
 						icon="fa-plus"
 						className={['text-success', 'ui-list-picker-new-button']}
@@ -216,6 +210,6 @@ export const ListPicker = <ModObject, ItemType>({ modObject, config, renderItem,
 					</Button>
 				))}
 			<Tooltip id={tooltipId} />
-		</PickerShell>
+		</Field>
 	);
 };

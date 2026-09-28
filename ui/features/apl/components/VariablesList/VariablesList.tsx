@@ -4,11 +4,11 @@ import { AplValidations } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { useRenamedCopy } from '@features/apl/hooks/useRenamedCopy';
 import { rotationSource } from '@features/apl/utils';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import { APLValueVariable } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 import { VariableItem } from './VariableItem';
 
@@ -49,7 +49,7 @@ export const VariablesList = () => {
 
 	return (
 		<div>
-			<ListPicker<Player<any>, APLValueVariable>
+			<BoundListPicker<Player<any>, APLValueVariable>
 				modObject={player}
 				config={config}
 				renderItem={(_index, itemConfig) => <VariableItem player={player} config={itemConfig} />}

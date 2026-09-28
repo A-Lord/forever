@@ -5,11 +5,11 @@ import { ListItemHeader } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
 import { rotationSource } from '@features/apl/utils';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import { APLListItem } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 const itemLabel = () => i18n.t('rotation_tab.apl.priorityList.name');
 
@@ -49,7 +49,7 @@ export const PriorityList = () => {
 
 	return (
 		<div data-testid="apl-priority-list-picker-root">
-			<ListPicker<Player<any>, APLListItem>
+			<BoundListPicker<Player<any>, APLListItem>
 				modObject={player}
 				config={config}
 				renderItem={(_index, itemConfig) => <AplListItem player={player} config={itemConfig} />}
