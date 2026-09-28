@@ -13,10 +13,12 @@ func (warlock *Warlock) registerAfflictionTalents() {
 
 	// Tier 2
 	warlock.applyMalediction()
+	warlock.applySoulHarvesting()
 	warlock.applyImprovedDrains()
 
 	// Tier 3
 	warlock.applyImprovedBaneOfAgony()
+	warlock.applyFelConcentration()
 	warlock.registerAmplifyCurse()
 	warlock.applyPandemic()
 
@@ -63,6 +65,17 @@ func (warlock *Warlock) applyMalediction() {
 	spelldata.ParseStatic(&warlock.Character, spellData.Malediction.Rank(warlock.Talents.Malediction))
 }
 
+// TODO: Not implemented due to lack of a kill event. Currently adds "leave" the encounter
+//
+//	on a set timer, rather than "dying" to trigger the effect.
+//
+// Requires a drain soul kill to trigger.
+func (warlock *Warlock) applySoulHarvesting() {
+	if warlock.Talents.SoulHarvesting == 0 {
+		return
+	}
+}
+
 func (warlock *Warlock) applyImprovedDrains() {
 	if warlock.Talents.ImprovedDrains == 0 {
 		return
@@ -78,6 +91,15 @@ func (warlock *Warlock) applyImprovedBaneOfAgony() {
 	}
 
 	spelldata.ParseStatic(&warlock.Character, spellData.ImprovedBaneOfAgony.Rank(warlock.Talents.ImprovedBaneOfAgony))
+}
+
+// TODO: Not implemented, as it does not affect sims for now.
+// The row is SPELLMOD_NOT_LOSE_CASTING_TIME (pushback protection) on the drains and Wrack,
+// which the parse skips; it matters only once the sim models pushback from damage taken.
+func (warlock *Warlock) applyFelConcentration() {
+	if warlock.Talents.FelConcentration == 0 {
+		return
+	}
 }
 
 func (warlock *Warlock) registerAmplifyCurse() {
@@ -167,6 +189,7 @@ func (warlock *Warlock) applyNightfall() {
 	warlock.MakeProcTriggerAura(trigger)
 }
 
+// TODO: Not implemented, as it does not affect DPS: the curse only slows the target's movement.
 func (warlock *Warlock) registerCurseOfExhaustion() {
 	if !warlock.Talents.CurseOfExhaustion {
 		return
