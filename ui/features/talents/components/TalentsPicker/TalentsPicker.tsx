@@ -7,10 +7,10 @@ import type { TalentsConfig } from '@sim/talents/config';
 import type { TalentPoints } from '@sim/talents/talents_string';
 import { parseTalentsString, serializeTalentsString, totalPointsSpent } from '@sim/talents/talents_string';
 import { Button } from '@ui-kit/Button';
+import { Field } from '@ui-kit/Field';
 import { useCopyToClipboard } from '@ui-kit/hooks/useCopyToClipboard';
 import { useWowheadTooltipRefresh } from '@ui-kit/hooks/useWowheadTooltipRefresh';
 import { Icon } from '@ui-kit/Icon';
-import { PickerShell } from '@ui-kit/PickerShell';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 
@@ -53,11 +53,16 @@ export const TalentsPicker = <TalentsProto,>({ config }: TalentsPickerProps<Tale
 
 	useWowheadTooltipRefresh(value);
 
+	if (hidden) return null;
+
 	return (
-		<PickerShell
-			config={{ ...config, id: config.id ?? fallbackId }}
-			className="col-span-full flex w-fit flex-row gap-section max-fhd:flex-col max-xl:m-auto max-md:w-full"
-			hidden={hidden}
+		<Field
+			id={config.id ?? fallbackId}
+			label={config.label}
+			labelTooltip={config.labelTooltip}
+			description={config.description}
+			layout={config.layout}
+			className={['col-span-full flex w-fit flex-row gap-section max-fhd:flex-col max-xl:m-auto max-md:w-full', config.extraClassNames]}
 			disabled={disabled}>
 			<div className="flex flex-col max-lg:w-full">
 				<div className="mb-1 flex w-full items-center">
@@ -87,6 +92,6 @@ export const TalentsPicker = <TalentsProto,>({ config }: TalentsPickerProps<Tale
 					</div>
 				</div>
 			</div>
-		</PickerShell>
+		</Field>
 	);
 };
