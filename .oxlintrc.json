@@ -203,6 +203,38 @@
 			}
 		},
 		{
+			"files": ["ui/design-system/**"],
+			"rules": {
+				"no-restricted-imports": [
+					"error",
+					{
+						"patterns": [
+							{
+								"group": ["@features", "@features/**", "@app", "@app/**", "@specs", "@specs/**"],
+								"message": "ui/design-system must not depend on features/app/specs (see ui/README.md dependency direction)."
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"files": ["ui/testing/**"],
+			"rules": {
+				"no-restricted-imports": [
+					"error",
+					{
+						"patterns": [
+							{
+								"group": ["@app", "@app/**", "@specs", "@specs/**"],
+								"message": "ui/testing must not depend on app/specs (see ui/README.md dependency direction)."
+							}
+						]
+					}
+				]
+			}
+		},
+		{
 			"files": ["ui/app/**"],
 			"rules": {
 				"no-restricted-imports": [

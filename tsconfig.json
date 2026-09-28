@@ -25,6 +25,15 @@
 			"@i18n/*": ["./ui/i18n/*"]
 		}
 	},
-	"include": ["."],
-	"exclude": ["node_modules", "dist", "binary_dist", ".history", "ui/generated/proto/*", ".vscode/extensions/wowsims-spelldata", "tools/vscode-spelldata"]
+	"include": [".", ".storybook"],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"binary_dist",
+		"storybook-static",
+		".history",
+		"ui/generated/proto/*",
+		".vscode/extensions/wowsims-spelldata",
+		"tools/vscode-spelldata"
+	]
 }

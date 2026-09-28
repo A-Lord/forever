@@ -72,6 +72,9 @@
 
 @source '../../assets/locales/**/*.json';
 
+@source not '../**/*.stories.tsx';
+@source not '../testing/storybook';
+
 @utility text-fluid-xl {
 	font-size: calc(1.275rem + 0.3vw);
 
