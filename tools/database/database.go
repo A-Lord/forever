@@ -200,6 +200,10 @@ func (db *WowDatabase) MergeConsumable(src *proto.Consumable) {
 			dst.Stats = src.Stats
 			src.Stats = nil
 		}
+		if src.PseudoStats != nil {
+			dst.PseudoStats = src.PseudoStats
+			src.PseudoStats = nil
+		}
 		googleProto.Merge(dst, src)
 	} else {
 		db.Consumables[src.Id] = src

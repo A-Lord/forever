@@ -19,7 +19,7 @@ env:
 
 jobs:
     update-db:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         timeout-minutes: 30
         permissions:
             contents: write

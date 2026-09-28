@@ -74,7 +74,7 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	// Arrows add their damage per second to the ranged weapon, times its speed. A gun is taken to
 	// fire them too, so no bullets are kept beside them.
 	hunter.PseudoStats.BonusRangedDps += arrows[hunterOptions.Ammo.String()].DPS
-	hunter.PseudoStats.RangedSpeedMultiplier *= 1 + quivers[hunterOptions.QuiverBonus.String()].Haste/100
+	hunter.PseudoStats.RangedSpeedMultiplier *= core.SymmetricMultiplierFromPercent(quivers[hunterOptions.QuiverBonus.String()].Haste)
 
 	hunter.EnableAutoAttacks(hunter, core.AutoAttackOptions{
 		Ranged:          hunter.WeaponFromRanged(),
@@ -96,7 +96,7 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	hunter.AddStatDependency(stats.Agility, stats.AttackPower, 1)
 	hunter.AddStatDependency(stats.Agility, stats.RangedAttackPower, 2)
 	hunter.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[hunter.Class])
-	hunter.AddStatDependency(stats.Agility, stats.DodgeRating, 1.0/25*core.DodgeRatingPerDodgePercent)
+	hunter.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[hunter.Class])
 
 	hunter.Pet = hunter.NewHunterPet()
 
@@ -121,7 +121,7 @@ func (hunter *Hunter) Initialize() {
 // school's IgnoreHaste turns off, so the ranged multiplier is read here instead.
 func (hunter *Hunter) hasteRangedCast(config *core.SpellConfig) {
 	config.Cast.CastTime = func(spell *core.Spell) time.Duration {
-		return time.Duration(float64(spell.DefaultCast.CastTime) / hunter.TotalRangedHasteMultiplier())
+		return hunter.ApplyRangedSpeed(spell.DefaultCast.CastTime)
 	}
 	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
 		cast.CastTime = spell.CastTime()

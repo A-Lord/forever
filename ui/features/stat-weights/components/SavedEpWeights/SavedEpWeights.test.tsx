@@ -40,7 +40,7 @@ const STORAGE_KEY = 'tbc-warrior-savedEPWeights';
 
 const weights = (agility: number) => new Stats().withStat(Stat.StatAgility, agility);
 const storedJson = (agility: number) => SavedEPWeights.toJson(SavedEPWeights.create({ epWeights: weights(agility).toProto() }));
-const MIXED = new Stats().withStat(Stat.StatAgility, 4).withStat(Stat.StatMeleeCritRating, 1.75).withStat(Stat.StatStrength, 2);
+const MIXED = new Stats().withStat(Stat.StatAgility, 4).withStat(Stat.StatCritRating, 1.75).withStat(Stat.StatStrength, 2);
 const MIXED_JSON = SavedEPWeights.toJson(SavedEPWeights.create({ epWeights: MIXED.toProto() }));
 
 class FakePlayer {

@@ -29,9 +29,9 @@ export default defineSpec<Spec.SpecRogue>({
 		Stat.StatStamina,
 		Stat.StatAgility,
 		Stat.StatStrength,
-		Stat.StatMeleeCritRating,
-		Stat.StatMeleeHasteRating,
-		Stat.StatMeleeHitRating,
+		Stat.StatCritRating,
+		Stat.StatHasteRating,
+		Stat.StatHitRating,
 		Stat.StatArmorPenetration,
 		Stat.StatExpertiseRating,
 		Stat.StatAttackPower,
@@ -58,6 +58,10 @@ export default defineSpec<Spec.SpecRogue>({
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,
 			PseudoStat.PseudoStatMeleeCritPercent,
+			PseudoStat.PseudoStatOffHandHitPercent,
+			PseudoStat.PseudoStatOffHandCritPercent,
+			PseudoStat.PseudoStatRangedHitPercent,
+			PseudoStat.PseudoStatRangedCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatExpertisePercent,
 		],
@@ -76,7 +80,7 @@ export default defineSpec<Spec.SpecRogue>({
 			const meleeHitSoftCapConfig = StatCap.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, {
 				breakpoints: [9, 28],
 				capType: StatCapType.TypeSoftCap,
-				postCapEPs: [3.06 * Mechanics.PHYSICAL_HIT_RATING_PER_HIT_PERCENT, 0],
+				postCapEPs: [3.06 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 0],
 			});
 
 			return [meleeHitSoftCapConfig];
@@ -122,7 +126,7 @@ export default defineSpec<Spec.SpecRogue>({
 		OffHandPoison()
 	],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
-	includeBuffDebuffInputs: [Stat.StatSpellHitRating],
+	includeBuffDebuffInputs: [Stat.StatHitRating],
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {

@@ -1,7 +1,7 @@
 // Which consumables the settings offer a spec, and in which picker, from the fields db.json carries
 // for each. `Player.getConsumes(true)` sends the potions and conjured items this finds, so it sits
 // below the view layer; the pickers in the settings feature read the same functions.
-import { Class, ConsumableType, HandType, ItemSlot, Profession, Race, Stat, WeaponType } from '@generated/proto/common';
+import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIItem as Item } from '@generated/proto/ui';
@@ -26,7 +26,7 @@ export interface ConsumableUser {
 	getRace(): Race;
 	hasProfession(profession: Profession): boolean;
 	getEquippedItem(slot: ItemSlot): EquippedItem | null;
-	getSpecConfig(): Pick<SpecConfigData<any>, 'epStats' | 'consumableStats'>;
+	getSpecConfig(): Pick<SpecConfigData<any>, 'epStats' | 'consumableStats' | 'epPseudoStats' | 'displayStats'>;
 }
 
 export interface SpellEffectSource {
@@ -130,9 +130,18 @@ export function consumableStatsOf(specConfig: Pick<SpecConfigData<any>, 'epStats
 	return stats;
 }
 
+// The percents a spec shows or weighs. A consumable lists a hit or crit that reaches one channel
+// alone by that channel's percents, so a spec that shows spell hit and not melee hit is not offered
+// melee hit, though both come from the one hit rating the spec weighs.
+export function consumablePseudoStatsOf(specConfig: Pick<SpecConfigData<any>, 'epPseudoStats' | 'displayStats'>): Set<PseudoStat> {
+	const shown = (specConfig.displayStats ?? []).filter(unitStat => unitStat.isPseudoStat()).map(unitStat => unitStat.getPseudoStat());
+	return new Set([...shown, ...(specConfig.epPseudoStats ?? [])]);
+}
+
 interface ConsumableFacts {
 	db: SpellEffectSource;
 	grantedStats: Array<Stat>;
+	grantedPseudoStats: Array<PseudoStat>;
 	restores: Array<ResourceType>;
 }
 
@@ -144,6 +153,7 @@ const factsOf = (consumable: Consumable, db: SpellEffectSource): ConsumableFacts
 	const facts = {
 		db,
 		grantedStats: consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
+		grantedPseudoStats: consumable.pseudoStats.flatMap((value, pseudoStat) => (value > 0 ? [pseudoStat as PseudoStat] : [])),
 		restores: consumable.effectIds.flatMap(effectId => {
 			const miscValue = db.getSpellEffect(effectId)?.miscValue0;
 			return miscValue?.oneofKind === 'resourceType' ? [miscValue.resourceType] : [];
@@ -176,22 +186,30 @@ const STAT_TYPES = [
 ];
 
 // Whether the settings offer the consumable to this player: the class, race and profession the
-// game files allow it to, and either a stat the spec weighs, a resource the spec spends, or, for a
-// consumable that grants neither, an effect of another kind (damage, an absorb, a weapon enchant).
-// A temporary enchant is checked against a hand with handTakesImbue.
+// game files allow it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
+// resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
+// (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
+// handTakesImbue.
 export function isConsumableRelevant(
 	consumable: Consumable,
 	user: ConsumableUser,
 	db: SpellEffectSource,
 	stats = consumableStatsOf(user.getSpecConfig()),
+	pseudoStats = consumablePseudoStatsOf(user.getSpecConfig()),
 ): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
 	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession)) return false;
 	if (consumable.raceAllowlist.length && !consumable.raceAllowlist.includes(user.getRace())) return false;
 
-	const { grantedStats, restores } = factsOf(consumable, db);
-	if (consumable.buffsMainStat || grantedStats.some(stat => stats.has(stat)) || restores.some(resource => restoresForSpec(resource, stats))) return true;
-	return !grantedStats.length && !restores.length && !STAT_TYPES.includes(consumable.type);
+	const { grantedStats, grantedPseudoStats, restores } = factsOf(consumable, db);
+	if (
+		consumable.buffsMainStat ||
+		grantedStats.some(stat => stats.has(stat)) ||
+		grantedPseudoStats.some(pseudoStat => pseudoStats.has(pseudoStat)) ||
+		restores.some(resource => restoresForSpec(resource, stats))
+	)
+		return true;
+	return !grantedStats.length && !grantedPseudoStats.length && !restores.length && !STAT_TYPES.includes(consumable.type);
 }
 
 // Roman-numeral ranks of one consumable share a name up to the numeral; the settings offer the
@@ -234,12 +252,13 @@ export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Cons
 	return consumables.filter(consumable => kept.has(consumable));
 }
 
-// isConsumableRelevant for one spec's stats, remembered for as long as the class, race and the
-// professions any of the consumables requires stay the same.
+// isConsumableRelevant for one spec's stats and percents, remembered for as long as the class, race
+// and the professions any of the consumables requires stay the same.
 export function relevanceFor(
 	consumables: ReadonlyArray<Consumable>,
 	db: SpellEffectSource,
 	stats: Set<Stat>,
+	pseudoStats: Set<PseudoStat>,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
 	const professions = [...new Set(consumables.map(consumable => consumable.requiredProfession))].filter(
 		profession => profession !== Profession.ProfessionUnknown,
@@ -254,7 +273,7 @@ export function relevanceFor(
 		}
 		let result = relevant.get(consumable);
 		if (result === undefined) {
-			result = isConsumableRelevant(consumable, user, db, stats);
+			result = isConsumableRelevant(consumable, user, db, stats, pseudoStats);
 			relevant.set(consumable, result);
 		}
 		return result;
@@ -270,7 +289,8 @@ export function relevantConsumableIds(
 	db: SpellEffectSource,
 ): Array<number> {
 	const stats = consumableStatsOf(user.getSpecConfig());
-	return highestRanks(consumables.filter(consumable => consumableSlot(consumable) === slot && isConsumableRelevant(consumable, user, db, stats))).map(
-		consumable => consumable.id,
-	);
+	const pseudoStats = consumablePseudoStatsOf(user.getSpecConfig());
+	return highestRanks(
+		consumables.filter(consumable => consumableSlot(consumable) === slot && isConsumableRelevant(consumable, user, db, stats, pseudoStats)),
+	).map(consumable => consumable.id);
 }

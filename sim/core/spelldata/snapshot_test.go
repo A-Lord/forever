@@ -232,17 +232,17 @@ func TestGeneratedTalentCurve(t *testing.T) {
 	}
 }
 
-// Armor Shatter's rate is not in the game files at all: its ProcChance is the 101 sentinel and an
-// override supplies the PPM.
+// Lightning Strike's rate is not in the game files at all: Darkmoon Card: Maelstrom's column reads
+// 100 beside a tooltip that says "chance", and an override supplies the PPM.
 func TestGeneratedOverrideRow(t *testing.T) {
 	withGeneratedStore(t)
 
-	s := MustFind(16928)
+	s := MustFind(23686)
 	if s.RPPM != 1 {
-		t.Errorf("Armor Shatter's RPPM is %v, want the override's 1", s.RPPM)
+		t.Errorf("Lightning Strike's RPPM is %v, want the override's 1", s.RPPM)
 	}
 	if s.ProcChanceSource != ProcChancePPM {
-		t.Errorf("Armor Shatter's proc chance source is %d, want ProcChancePPM", s.ProcChanceSource)
+		t.Errorf("Lightning Strike's proc chance source is %d, want ProcChancePPM", s.ProcChanceSource)
 	}
 }
 
@@ -288,6 +288,22 @@ func TestGeneratedStanceAndAuraRestriction(t *testing.T) {
 		if got := MustFind(id).ShapeshiftForm(); got != want {
 			t.Errorf("spell %d puts the caster in form %d, want %d", id, got, want)
 		}
+	}
+}
+
+// Justice Battleplate's 4-piece bonus 1301076 is a 189 row masked to 8388608.
+func TestGeneratedRatingRowParsesExpertise(t *testing.T) {
+	withGeneratedStore(t)
+
+	parsed := ParseStatic(parseWarrior(), MustFind(1301076))
+	if len(parsed.Applied) != 1 {
+		t.Fatalf("attached %v, want one attachment", appliedKinds(parsed))
+	}
+	if got := parsed.Applied[0].Kind; got != "stat ExpertiseRating" {
+		t.Errorf("kind = %q, want %q", got, "stat ExpertiseRating")
+	}
+	if got := parsed.Applied[0].Value; got != 12 {
+		t.Errorf("value = %v, want 12", got)
 	}
 }
 

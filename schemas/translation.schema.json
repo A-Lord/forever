@@ -709,6 +709,30 @@
 						"ranged_haste": {
 							"type": "string"
 						},
+						"off_hand_hit": {
+							"type": "string"
+						},
+						"off_hand_crit": {
+							"type": "string"
+						},
+						"main_hand_hit_rating": {
+							"type": "string"
+						},
+						"main_hand_crit_rating": {
+							"type": "string"
+						},
+						"off_hand_hit_rating": {
+							"type": "string"
+						},
+						"off_hand_crit_rating": {
+							"type": "string"
+						},
+						"ranged_hit_rating": {
+							"type": "string"
+						},
+						"ranged_crit_rating": {
+							"type": "string"
+						},
 						"healing_power": {
 							"type": "string"
 						},
@@ -733,28 +757,10 @@
 						"shadow_damage": {
 							"type": "string"
 						},
-						"spell_hit_rating": {
-							"type": "string"
-						},
-						"spell_crit_rating": {
-							"type": "string"
-						},
-						"spell_haste_rating": {
-							"type": "string"
-						},
 						"spell_penetration": {
 							"type": "string"
 						},
 						"feral_attack_power": {
-							"type": "string"
-						},
-						"melee_hit_rating": {
-							"type": "string"
-						},
-						"melee_crit_rating": {
-							"type": "string"
-						},
-						"melee_haste_rating": {
 							"type": "string"
 						},
 						"expertise_rating": {
@@ -763,13 +769,13 @@
 						"armor_penetration": {
 							"type": "string"
 						},
-						"all_hit_rating": {
+						"hit_rating": {
 							"type": "string"
 						},
-						"all_crit_rating": {
+						"crit_rating": {
 							"type": "string"
 						},
-						"all_haste_rating": {
+						"haste_rating": {
 							"type": "string"
 						},
 						"defense_rating": {
@@ -844,6 +850,14 @@
 						"ranged_hit",
 						"ranged_crit",
 						"ranged_haste",
+						"off_hand_hit",
+						"off_hand_crit",
+						"main_hand_hit_rating",
+						"main_hand_crit_rating",
+						"off_hand_hit_rating",
+						"off_hand_crit_rating",
+						"ranged_hit_rating",
+						"ranged_crit_rating",
 						"healing_power",
 						"spell_damage",
 						"arcane_damage",
@@ -852,19 +866,13 @@
 						"holy_damage",
 						"nature_damage",
 						"shadow_damage",
-						"spell_hit_rating",
-						"spell_crit_rating",
-						"spell_haste_rating",
 						"spell_penetration",
 						"feral_attack_power",
-						"melee_hit_rating",
-						"melee_crit_rating",
-						"melee_haste_rating",
 						"expertise_rating",
 						"armor_penetration",
-						"all_hit_rating",
-						"all_crit_rating",
-						"all_haste_rating",
+						"hit_rating",
+						"crit_rating",
+						"haste_rating",
 						"defense_rating",
 						"block_rating",
 						"block_value",

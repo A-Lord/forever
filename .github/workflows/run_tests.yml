@@ -17,7 +17,7 @@ on:
                 type: string
 jobs:
     build-ui:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         timeout-minutes: 20
         steps:
             - name: Checkout 🛎️
@@ -80,12 +80,16 @@ jobs:
                   make dist/forever/.dirstamp
 
     test:
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
+        runs-on: self-hosted
+        # One shard while there is a single self-hosted runner: four would only queue behind each
+        # other, each repeating the setup. Restore the commented lines once there are more runners.
+        # timeout-minutes: 30
+        timeout-minutes: 60
         strategy:
             fail-fast: false
             matrix:
-                shard: [0, 1, 2, 3]
+                # shard: [0, 1, 2, 3]
+                shard: [0]
         steps:
             - name: Checkout 🛎️
               uses: actions/checkout@v5
@@ -134,4 +138,5 @@ jobs:
                   # workflow passes the pre-push commit instead; pull requests keep the master default.
                   PROTO_BASELINE_REF: ${{ inputs.proto_baseline }}
               run: |
-                  go list ./sim/... | awk 'NR % 4 == ${{ matrix.shard }}' | xargs -r go test --tags=with_db
+                  # go list ./sim/... | awk 'NR % 4 == ${{ matrix.shard }}' | xargs -r go test --tags=with_db
+                  go list ./sim/... | awk 'NR % 1 == ${{ matrix.shard }}' | xargs -r go test --tags=with_db

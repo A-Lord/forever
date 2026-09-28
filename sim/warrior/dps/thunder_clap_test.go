@@ -14,8 +14,8 @@ import (
 // of 1/1.3. The raid's plain 20% clap loses to it, a slow bidding past it keeps
 // the category, and the target never carries two slows at once.
 func TestThunderClapBidsItsWholeSlowInTheAttackSpeedCategory(t *testing.T) {
-	raidSpeed := 1 / core.SlowedTimeMultiplier(-20)
-	setSpeed := 1 / core.SlowedTimeMultiplier(-30)
+	raidSpeed := core.SymmetricMultiplierFromPercent(-20)
+	setSpeed := core.SymmetricMultiplierFromPercent(-30)
 
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Spell, *core.Aura, *core.Aura) {
 		t.Helper()

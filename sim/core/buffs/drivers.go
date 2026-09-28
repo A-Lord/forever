@@ -50,7 +50,7 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 		// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices the mana the
 		// metrics record.
 		expectedMana = char.SpiritManaRegenPerSecond() *
-			(1 + innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).Percent()) *
+			core.MultiplierFromPercent(innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).BaseValue()) *
 			aura.Duration.Seconds()
 	})
 
@@ -141,36 +141,30 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	// included. A main-hand auto that procs it has spent the first charge
 	// itself, so the extra attack is the only one buffed; a special hands both
 	// charges to the extra attack and the auto after it.
-	var windfurySpell *core.Spell
 	trigger := core.ProcTrigger{
-		Name:               "Windfury Totem Trigger",
-		MetricsActionID:    core.ActionID{SpellID: 25580, Tag: -1},
-		ProcChance:         windfuryTotemSpell.StatedChance(),
-		Duration:           core.NeverExpires,
-		Outcome:            core.OutcomeLanded,
-		ICD:                time.Millisecond * 1500,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		Name:            "Windfury Totem Trigger",
+		MetricsActionID: core.ActionID{SpellID: 25580, Tag: -1},
+		ProcChance:      windfuryTotemSpell.StatedChance(),
+		Duration:        core.NeverExpires,
+		Outcome:         core.OutcomeLanded,
+		ICD:             time.Millisecond * 1500,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			procAura.Activate(sim)
 			charges := procAura.MaxStacks
 			if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
 				charges--
 			}
 			procAura.SetStacks(sim, charges)
-			char.AutoAttacks.MaybeReplaceMHSwing(sim, windfurySpell).Cast(sim, result.Target)
 		},
 	}
 	spelldata.WeaponProc()(char, &trigger)
 	trigger.ProcMask = core.ProcMaskMeleeMH
-	procTrigger := char.MakeProcTriggerAura(trigger)
+	onInit := char.ExtraAttackProc(&trigger, 25584, 1)
+	procTrigger := char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 
 	totemAura := char.GetOrRegisterAura(core.Aura{
 		Label:    "Windfury Totem",
 		ActionID: core.ActionID{SpellID: 25587, Tag: -1},
-	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-		config := *char.AutoAttacks.MHConfig()
-		config.ActionID = config.ActionID.WithTag(25584)
-		windfurySpell = char.GetOrRegisterSpell(config)
 	})
 	holdTotemEnchant(char, totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
 }
@@ -378,5 +372,5 @@ func driveThunderfury(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		ActionID: core.ActionID{SpellID: thunderfuryCycloneSpell.ID, Tag: -1},
 		Duration: core.NeverExpires,
 	}))
-	core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(thunderfuryCycloneSpell.EffectN(1).BaseValue()))
+	core.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(-thunderfuryCycloneSpell.EffectN(1).BaseValue()))
 }

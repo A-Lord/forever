@@ -20,15 +20,7 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	warnings: [],
 
 	// All stats for which EP should be calculated.
-	epStats: [
-		Stat.StatIntellect,
-		Stat.StatSpellDamage,
-		Stat.StatNatureDamage,
-		Stat.StatSpellHitRating,
-		Stat.StatSpellCritRating,
-		Stat.StatSpellHasteRating,
-		Stat.StatMP5,
-	],
+	epStats: [Stat.StatIntellect, Stat.StatSpellDamage, Stat.StatNatureDamage, Stat.StatHitRating, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5],
 	epPseudoStats: [PseudoStat.PseudoStatSchoolHitPercentNature],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatSpellDamage,
