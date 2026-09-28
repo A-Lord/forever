@@ -19,7 +19,8 @@ var (
 	parseOtherMask  = core.ClassFlags{Family: 4, Mask: [4]uint32{0: 0x80}}
 )
 
-// One row per shape the table has to answer for: the two modifier auras, a hit and dot modifier pair, a stacking buff, a charge buff and the passive a stance looks like.
+// One row per shape the table has to answer for: the two modifier auras, a hit and dot modifier
+// pair, a stacking buff, a charge buff and the passive a stance looks like.
 func parseRows() []Spell {
 	return []Spell{
 		{

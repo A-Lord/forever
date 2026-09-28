@@ -340,7 +340,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 	}
 
 	if aura == nil {
-		parsed.live = parsed.attached()
+		parsed.live = parsed.attachments
 		parsed.set(nil, parsed.level())
 		return parsed
 	}
@@ -370,9 +370,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 func (p *Parsed) Stats() []stats.Stat {
 	var sts []stats.Stat
 	for _, a := range p.attachments {
-		if a != nil {
-			sts = append(sts, a.stats...)
-		}
+		sts = append(sts, a.stats...)
 	}
 	return sts
 }
@@ -428,16 +426,6 @@ func (p *Parsed) catchUp(level float64) {
 			a.set(nil, level)
 		}
 	}
-}
-
-func (p *Parsed) attached() []*attachment {
-	var out []*attachment
-	for _, a := range p.attachments {
-		if a != nil {
-			out = append(out, a)
-		}
-	}
-	return out
 }
 
 func (p *Parsed) skip(s *Spell, i int, e *Effect, reason string) {

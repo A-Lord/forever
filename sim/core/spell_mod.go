@@ -463,7 +463,7 @@ const (
 	// Uses: FloatValue
 	SpellMod_Range_Flat
 
-	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits read.
+	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits and direct heals read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
 
