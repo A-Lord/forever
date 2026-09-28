@@ -19,5 +19,12 @@ describe('UnitIcon', () => {
 		const icon = screen.getByTestId('unit-picker-item-icon');
 		expect(icon.tagName).toBe('I');
 		expect([...icon.classList]).toEqual(['fa', 'fa-paw', 'ui-unit-icon']);
+		expect(icon.getAttribute('aria-hidden')).toBe('true');
+	});
+
+	it('passes a glyph name outside the kit icon list through unchanged', () => {
+		render(<UnitIcon iconUrl="fa-users" />);
+
+		expect([...screen.getByTestId('unit-picker-item-icon').classList]).toEqual(['fa', 'fa-users', 'ui-unit-icon']);
 	});
 });
