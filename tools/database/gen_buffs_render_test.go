@@ -300,7 +300,7 @@ func TestRenderedBuffFilesCompile(t *testing.T) {
 		" core.GeneratedExternalCD{NumSources: individual.Innervates,"+
 		" Cooldown: SynthInnervatesCooldown(), Type: core.CooldownTypeMana})\n}\n\n"+
 		"func driveSynthBattleShout(char *core.Character, _ *proto.PartyBuffs) {\n"+
-		"\tcore.ApplyFixedShoutAura(char, NewSpellDataSynthBattleShoutAura(&char.Unit, false, 0),"+
+		"\tapplyFixedShoutAura(char, NewSpellDataSynthBattleShoutAura(&char.Unit, false, 0),"+
 		" SynthBattleShoutCategory)\n}\n\n"+
 		"func driveSynthSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {\n"+
 		"\tcore.MakePermanent(NewSpellDataSynthSunderArmorAura(target, false, 0))\n}\n\n"+

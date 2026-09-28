@@ -34,7 +34,43 @@ func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
 	if party.BattleShout == proto.TristateEffect_TristateEffectImproved {
 		core.AddGeneratedFlatBonus(aura, stats.AttackPower, BattleShoutValue(0), BattleShoutT2Bonus)
 	}
-	core.ApplyFixedShoutAura(char, aura, BattleShoutCategory)
+	applyFixedShoutAura(char, aura, BattleShoutCategory)
+}
+
+func applyFixedShoutAura(char *core.Character, aura *core.Aura, category string) {
+	aura.ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
+		auras := char.GetAurasWithTag(category)
+		var playerAura *core.Aura
+		for _, bsAura := range auras {
+			if bsAura.ActionID.Tag == 0 {
+				playerAura = bsAura
+				break
+			}
+		}
+
+		if playerAura == nil {
+			return
+		}
+
+		playerAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+			pa := sim.GetConsumedPendingActionFromPool()
+			pa.NextActionAt = playerAura.ExpiresAt() + char.ReactionTime
+			pa.OnAction = func(sim *core.Simulation) {
+				aura.Activate(sim)
+
+				core.StartPeriodicAction(sim, core.PeriodicActionOptions{
+					Period:   aura.Duration + 1,
+					NumTicks: 1,
+					OnAction: func(sim *core.Simulation) {
+						aura.Activate(sim)
+					},
+				})
+			}
+			sim.AddPendingAction(pa)
+		})
+	})
+
+	core.ApplyFixedUptimeAura(aura, 1, aura.Duration+1, -1)
 }
 
 // A druid innervates a character who is nearly out of mana, so that every other

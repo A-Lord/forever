@@ -152,3 +152,85 @@ func AddGeneratedFlatBonus(aura *Aura, stat stats.Stat, base float64, bonus floa
 
 	panic("a flat bonus needs a buff that bids for its whole category: " + aura.Label)
 }
+
+// Used for approximating cooldowns applied by other players to you, such as
+// innervate, power infusion, etc. This is specifically for buffs
+// which can be consecutively applied multiple times to a single player.
+type externalConsecutiveCDApproximation struct {
+	ActionID         ActionID
+	AuraTag          string
+	CooldownPriority int32
+	Type             CooldownType
+	AuraDuration     time.Duration
+	AuraCD           time.Duration
+
+	// Callback for extra activation conditions.
+	ShouldActivate CooldownActivationCondition
+
+	// Applies the buff.
+	AddAura           CooldownActivation
+	RelatedSelfBuff   *Aura             // Used to attach the aura to the generic spell
+	RelatedAuraArrays LabeledAuraArrays // Used to attach the aura to the generic spell
+}
+
+// numSources is the number of other players assigned to apply the buff to this player.
+// E.g. the number of other druids in the group casting innervate.
+func registerExternalConsecutiveCDApproximation(char *Character, config externalConsecutiveCDApproximation, numSources int32) {
+	if numSources == 0 {
+		panic("Need at least 1 source!")
+	}
+
+	var nextExternalIndex int
+
+	externalTimers := make([]*Timer, numSources)
+	for i := 0; i < int(numSources); i++ {
+		externalTimers[i] = char.NewTimer()
+	}
+	sharedTimer := char.NewTimer()
+
+	spell := char.RegisterSpell(SpellConfig{
+		ActionID: config.ActionID,
+		Flags:    SpellFlagNoOnCastComplete | SpellFlagNoMetrics | SpellFlagNoLogs,
+
+		Cast: CastConfig{
+			CD: Cooldown{
+				Timer:    sharedTimer,
+				Duration: config.AuraDuration, // Assumes that multiple buffs are different sources.
+			},
+		},
+		ExtraCastCondition: func(sim *Simulation, target *Unit) bool {
+			if !externalTimers[nextExternalIndex].IsReady(sim) {
+				return false
+			}
+
+			if char.HasActiveAuraWithTag(config.AuraTag) {
+				return false
+			}
+
+			return true
+		},
+
+		ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+			config.AddAura(sim, char)
+			externalTimers[nextExternalIndex].Set(sim.CurrentTime + config.AuraCD)
+
+			nextExternalIndex = (nextExternalIndex + 1) % len(externalTimers)
+
+			if externalTimers[nextExternalIndex].IsReady(sim) {
+				sharedTimer.Set(sim.CurrentTime + config.AuraDuration)
+			} else {
+				sharedTimer.Set(sim.CurrentTime + externalTimers[nextExternalIndex].TimeToReady(sim))
+			}
+		},
+		RelatedSelfBuff:   config.RelatedSelfBuff,
+		RelatedAuraArrays: config.RelatedAuraArrays,
+	})
+
+	char.AddMajorCooldown(MajorCooldown{
+		Spell:    spell,
+		Priority: config.CooldownPriority,
+		Type:     config.Type,
+
+		ShouldActivate: config.ShouldActivate,
+	})
+}
