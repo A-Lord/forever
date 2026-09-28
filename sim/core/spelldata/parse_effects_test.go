@@ -19,15 +19,14 @@ var (
 	parseOtherMask  = core.ClassFlags{Family: 4, Mask: [4]uint32{0: 0x80}}
 )
 
-// One row per shape the table has to answer for: the two modifier auras, the pair a dot modifier is
-// folded out of, a stacking buff, a charge buff and the passive a stance looks like.
+// One row per shape the table has to answer for: the two modifier auras, a hit and dot modifier pair, a stacking buff, a charge buff and the passive a stance looks like.
 func parseRows() []Spell {
 	return []Spell{
 		{
 			ID: 1000, Name: "Mod Talent", ClassFlags: parseFamily,
 			Effects: []Effect{
 				{SpellID: 1000, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-					Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 15, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_ALL_EFFECTS), BasePoints: 15, ClassFlags: parseTargetMask},
 				{SpellID: 1000, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER,
 					Misc: int32(dbcenums.SPELLMOD_COST), BasePoints: -30, ClassFlags: parseTargetMask},
 				{SpellID: 1000, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER,
@@ -49,7 +48,7 @@ func parseRows() []Spell {
 			ID: 1200, Name: "Stacking Buff", DurationMs: 12000, MaxStack: 3, ClassFlags: parseFamily,
 			Effects: []Effect{
 				{SpellID: 1200, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-					Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 5, ClassFlags: parseTargetMask},
+					Misc: int32(dbcenums.SPELLMOD_ALL_EFFECTS), BasePoints: 5, ClassFlags: parseTargetMask},
 				{SpellID: 1200, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_THREAT,
 					Misc: 127, BasePoints: 30},
 			},
@@ -195,7 +194,7 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 
 	row := *Find(1100)
 	row.Effects = []Effect{{SpellID: 1100, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-		Misc: int32(dbcenums.SPELLMOD_DAMAGE), BasePoints: 10}}
+		Misc: int32(dbcenums.SPELLMOD_ALL_EFFECTS), BasePoints: 10}}
 
 	ParseStatic(character, &row)
 
@@ -207,36 +206,27 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 	}
 }
 
-// The game files state the same bonus twice on a talent that raises a spell and its dot, and one
-// SpellMod_DamageDone_Flat already reaches the ticks as well as the hit.
-func TestParseFoldsTheDotModifier(t *testing.T) {
+// A talent that raises a spell and its dot states the bonus twice: SPELLMOD_DAMAGE reaches the hit
+// alone and SPELLMOD_DOT the ticks, so each attaches its own mod.
+func TestParseKeepsTheHitAndDotModifiersApart(t *testing.T) {
 	withRows(t, parseRows())
 	character := parseWarrior()
+	spell := parseSpell(character, 2150, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseTargetMask)
 
 	parsed := ParseStatic(character, Find(1100))
 
 	kinds := appliedKinds(parsed)
-	if len(kinds) != 2 || kinds[0] != "SpellMod_DamageDone_Flat" ||
-		kinds[1] != "folded-into SpellMod_DamageDone_Flat" {
-		t.Errorf("the pair became %v, want one mod and one folded effect", kinds)
+	if len(kinds) != 2 || kinds[0] != "SpellMod_DirectDamageDone_Flat" || kinds[1] != "SpellMod_DotDamageDone_Pct" {
+		t.Errorf("the pair became %v, want a direct damage mod and a dot damage mod", kinds)
 	}
 	if len(parsed.Skipped) != 0 {
 		t.Errorf("skipped %d effects, want none", len(parsed.Skipped))
 	}
-}
-
-// A dot modifier the spell states no matching hit modifier for stands on its own.
-func TestParseKeepsAnUnpairedDotModifier(t *testing.T) {
-	withRows(t, parseRows())
-	character := parseWarrior()
-
-	row := *Find(1100)
-	row.Effects = []Effect{row.Effects[1]}
-
-	parsed := ParseStatic(character, &row)
-
-	if kinds := appliedKinds(parsed); len(kinds) != 1 || kinds[0] != "SpellMod_DotDamageDone_Pct" {
-		t.Errorf("the lone dot modifier became %v, want SpellMod_DotDamageDone_Pct", kinds)
+	if got := spell.DirectDamageMultiplierAdditive; got != 0.1 {
+		t.Errorf("the hit modifier: %v, want 0.1", got)
+	}
+	if got := spell.DamageMultiplierAdditive; got != 1 {
+		t.Errorf("the multiplier the ticks read: %v, want 1", got)
 	}
 }
 
@@ -479,7 +469,7 @@ func TestEveryTableRow(t *testing.T) {
 		{flat, int32(dbcenums.SPELLMOD_EFFECT2), 20, "effect2-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 		{flat, int32(dbcenums.SPELLMOD_EFFECT3), 20, "effect3-assumed-damage SpellMod_BaseDamage_Flat", 20, false},
 
-		{pct, int32(dbcenums.SPELLMOD_DAMAGE), 15, "SpellMod_DamageDone_Flat", 0.15, false},
+		{pct, int32(dbcenums.SPELLMOD_DAMAGE), 15, "SpellMod_DirectDamageDone_Flat", 0.15, false},
 		{pct, int32(dbcenums.SPELLMOD_ALL_EFFECTS), 15, "SpellMod_DamageDone_Flat", 0.15, false},
 		{pct, int32(dbcenums.SPELLMOD_DURATION), 20, "SpellMod_DotBaseDuration_Pct", 0.2, false},
 		{pct, int32(dbcenums.SPELLMOD_THREAT), -20, "SpellMod_ThreatMultiplier_Pct", -0.2, false},
