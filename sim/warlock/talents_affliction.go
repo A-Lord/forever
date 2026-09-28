@@ -222,6 +222,47 @@ func (warlock *Warlock) soulSiphonMultiplier(target *core.Unit, multiplierPerEff
 	return 1 + multiplierPerEffect*min(warlock.AfflictionCount(target), soulSiphonMaxEffects)
 }
 
+// Builds a Soul Siphon channel: Drain Life, Drain Soul and Wrack share the tick, hit roll and expected
+// damage, and differ in the tick effect and what each adds on top. afterTick, when given, runs on each
+// tick's result once it is dealt (Drain Life's heal).
+func (warlock *Warlock) soulSiphonChannelConfig(rankedSpell *spelldata.Spell, tick *spelldata.Effect,
+	afterTick func(sim *core.Simulation, result *core.SpellResult)) core.SpellConfig {
+	soulSiphonMult := warlock.soulSiphonPerEffect()
+
+	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
+
+	// TODO: Confirm no snapshot from Soul Siphon.
+	// TODO: Confirm in-game whether spell haste shortens the ticks. The TBC config set AffectedByCastSpeed and
+	// HasteReducesDuration; left off, as the rows carry no haste attribute.
+	config.Dot = spelldata.DotConfig(rankedSpell, tick)
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		result := dot.Spell.CalcPeriodicDamage(sim, target, tick.Average(dot.Spell.Unit.Level), rankedSpell.TickOutcomeHitRolled(dot))
+		scaleResult(sim, dot.Spell, result, warlock.soulSiphonMultiplier(target, soulSiphonMult))
+		dot.Spell.DealPeriodicDamage(sim, result)
+		if afterTick != nil {
+			afterTick(sim, result)
+		}
+	}
+
+	// Roll to hit and apply as dot
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+		spell.DealOutcome(sim, result)
+	}
+
+	// Calculate expected damage, scaled by Soul Siphon multiplier.
+	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		result := spell.CalcPeriodicDamage(sim, target, tick.Average(spell.Unit.Level), spell.OutcomeExpectedMagicAlwaysHit)
+		result.Damage *= warlock.soulSiphonMultiplier(target, soulSiphonMult)
+		return result
+	}
+
+	return config
+}
+
 // --- Tier 6 ---
 func (warlock *Warlock) applyShadowMastery() {
 	if warlock.Talents.ShadowMastery == 0 {
