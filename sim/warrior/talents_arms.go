@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
-	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func (warrior *Warrior) registerArmsTalents() {
@@ -78,6 +78,11 @@ func (warrior *Warrior) registerImprovedOverpower() {
 
 	spelldata.ParseStatic(&warrior.Character,
 		spellData.ImprovedOverpower.Rank(warrior.Talents.ImprovedOverpower))
+
+	core.MakePermanent(warrior.RegisterAura(core.Aura{
+		Label:    "Improved Overpower",
+		ActionID: core.ActionID{SpellID: spellData.ImprovedOverpower.Highest().ID}.WithTag(warrior.Talents.ImprovedOverpower),
+	}))
 }
 
 var angerManagementRank = spellData.AngerManagement.Highest()
@@ -172,17 +177,8 @@ func (warrior *Warrior) registerTwoHandedWeaponSpecialization() {
 		return
 	}
 
-	// The row raises the physical school, auto attacks included, and states no weapon of its own:
-	// the tooltip's two-handed requirement is the caller's condition, re-read on a weapon swap.
-	parsed := spelldata.ParseStatic(&warrior.Character,
-		spellData.TwoHandedWeaponSpecialization.Rank(warrior.Talents.TwoHandedWeaponSpecialization),
-		spelldata.Conditional(func() bool {
-			return warrior.GetMainHandType() == proto.HandType_HandTypeTwoHand
-		}))
-
-	warrior.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, slot proto.ItemSlot) {
-		parsed.Refresh(sim)
-	})
+	spelldata.ParseStatic(&warrior.Character,
+		spellData.TwoHandedWeaponSpecialization.Rank(warrior.Talents.TwoHandedWeaponSpecialization))
 }
 
 func (warrior *Warrior) registerImpale() {
@@ -286,17 +282,25 @@ func (warrior *Warrior) registerWeaponmaster() {
 	var critOn, armorIgnoreOn bool
 	var swordMask core.ProcMask
 	readWeapons := func() {
-		critOn = mainHandIs(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm)
+		critOn = warrior.GetProcMaskForTypes(proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypePolearm).Matches(core.ProcMaskMelee)
 		armorIgnoreOn = mainHandIs(proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff)
 		swordMask = warrior.GetProcMaskForTypes(proto.WeaponType_WeaponTypeSword)
 	}
 	readWeapons()
 
+	// The aura is up while either hand holds an axe or a polearm, and its crit reaches the attacks
+	// made with one.
 	critAura := warrior.RegisterAura(core.Aura{
-		Label:    "Weaponmaster (Axe/Polearm)",
-		ActionID: actionID.WithTag(1),
-		Duration: core.NeverExpires,
-	}).AttachStatBuff(stats.PhysicalCritPercent, spellData.Weaponmaster.EffectAt(1).ValueAt(rank))
+		Label:      "Weaponmaster (Axe/Polearm)",
+		ActionID:   actionID.WithTag(1),
+		Duration:   core.NeverExpires,
+		BuildPhase: core.Ternary(critOn, core.CharacterBuildPhaseTalents, core.CharacterBuildPhaseNone),
+	}).AttachSpellMod(core.SpellModConfig{
+		Kind:          core.SpellMod_BonusCrit_Percent,
+		FloatValue:    spellData.Weaponmaster.EffectAt(1).ValueAt(rank),
+		ProcMask:      core.ProcMaskMelee,
+		EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_POLEARM,
+	})
 	if critOn {
 		core.MakePermanent(critAura)
 	}
@@ -319,26 +323,28 @@ func (warrior *Warrior) registerWeaponmaster() {
 
 	// 1290261 states no proc flags at all, so the row decodes to a listener that hears nothing:
 	// the shape, the mask and the rate's effect are all the caller's.
-	var extraAttack *core.Spell
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Weaponmaster (Sword)",
-		ActionID:           actionID.WithTag(3),
-		MetricsActionID:    actionID.WithTag(3),
-		Callback:           core.CallbackOnSpellHitDealt,
-		ProcMask:           core.ProcMaskMelee,
-		Outcome:            core.OutcomeLanded,
-		ProcChance:         spellData.Weaponmaster.EffectAt(3).FractionAt(rank),
-		TriggerImmediately: true,
-		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-			return spell.ProcMask.Matches(swordMask) && spell != extraAttack
+	swordTrigger := core.ProcTrigger{
+		Name:            "Weaponmaster (Sword)",
+		ActionID:        actionID.WithTag(3),
+		MetricsActionID: actionID.WithTag(3),
+		Callback:        core.CallbackOnSpellHitDealt,
+		ProcMask:        core.ProcMaskMelee,
+		Outcome:         core.OutcomeLanded,
+		ProcChance:      spellData.Weaponmaster.EffectAt(3).FractionAt(rank),
+		Duration:        core.NeverExpires,
+		ExtraCondition: func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+			return spell.ProcMask.Matches(swordMask)
 		},
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			warrior.AutoAttacks.MaybeReplaceMHSwing(sim, extraAttack).Cast(sim, result.Target)
-		},
-	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-		config := *warrior.AutoAttacks.MHConfig()
-		config.ActionID = config.ActionID.WithTag(actionID.SpellID)
-		extraAttack = warrior.GetOrRegisterSpell(config)
+	}
+	onInit := warrior.ExtraAttackProc(&swordTrigger, actionID.SpellID, 1)
+	swordAura := warrior.MakeProcTriggerAura(swordTrigger).ApplyOnInit(onInit).ApplyOnInit(func(aura *core.Aura, _ *core.Simulation) {
+		aura.OnReset = func(aura *core.Aura, sim *core.Simulation) {
+			if swordMask == core.ProcMaskUnknown {
+				aura.Deactivate(sim)
+			} else {
+				aura.Activate(sim)
+			}
+		}
 	})
 
 	setActive := func(sim *core.Simulation, aura *core.Aura, on bool) {
@@ -352,6 +358,7 @@ func (warrior *Warrior) registerWeaponmaster() {
 		readWeapons()
 		setActive(sim, critAura, critOn)
 		setActive(sim, armorIgnoreAura, armorIgnoreOn)
+		setActive(sim, swordAura, swordMask != core.ProcMaskUnknown)
 	})
 }
 

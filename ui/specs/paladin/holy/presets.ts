@@ -16,7 +16,7 @@ export const DefaultOptions = HolyPaladinOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	foodId: Consumables.SunriseOmelette.id,
+	foodId: Consumables.SoaringPamplona.id,
 	potId: Consumables.MajorManaPotion.id,
 });
 

@@ -17,7 +17,7 @@ func DurationFromSeconds(numSeconds float64) time.Duration {
 	return time.Duration(float64(time.Second) * numSeconds)
 }
 
-// A float is truncated to whole milliseconds, which is how the client's millisecond columns read.
+// A float is truncated to whole milliseconds, which is how the game files' millisecond columns read.
 func DurationFromMillis[T int32 | float64](ms T) time.Duration {
 	return time.Duration(ms) * time.Millisecond
 }
@@ -283,4 +283,18 @@ func GetCurrentProtoVersion() int32 {
 	options := versionMessage.ProtoReflect().Descriptor().Options()
 	optionValue := googleproto.GetExtension(options, proto.E_CurrentVersionNumber)
 	return optionValue.(int32)
+}
+
+// A percentage as a multiplier: 20 is 1.2 and -6 is 0.94.
+func MultiplierFromPercent(percent float64) float64 {
+	return 1 + percent/100
+}
+
+// A percentage as a multiplier whose negative divides by the factor its positive multiplies by: 20 is
+// 1.2 and -20 is 1/1.2.
+func SymmetricMultiplierFromPercent(percent float64) float64 {
+	if percent < 0 {
+		return 1 / MultiplierFromPercent(-percent)
+	}
+	return MultiplierFromPercent(percent)
 }

@@ -35,7 +35,7 @@ var ItemSetOblivionRaiment = core.NewItemSet(core.ItemSet{
 				})
 
 		},
-		// 4pc (37376) buffs Seed of Corruption, which the client does not ship, so there is
+		// 4pc (37376) buffs Seed of Corruption, which the game files do not ship, so there is
 		// nothing to model.
 	},
 })

@@ -351,6 +351,9 @@ func (target *Target) GetMetricsProto() *proto.UnitMetrics {
 type DynamicDamageDoneByCaster func(sim *Simulation, spell *Spell, attackTable *AttackTable) float64
 type DynamicThreatDoneByCaster DynamicDamageDoneByCaster
 
+// The crit chance, in percentage points, a target-side aura adds to one of its caster's spells.
+type DynamicCritChanceByCaster func(spell *Spell) float64
+
 // Holds cached values for outcome/damage calculations, for a specific attacker+defender pair.
 // These are updated dynamically when attacker or defender stats change.
 type AttackTable struct {
@@ -390,6 +393,11 @@ type AttackTable struct {
 	// When you need more then 1 active, default to using the above one
 	// Used with EnableDamageDoneByCaster/DisableDamageDoneByCaster
 	DamageDoneByCasterExtraMultiplier []DynamicDamageDoneByCaster
+
+	// The crit chance target-side auras add to this attacker's spells alone, indexed the way
+	// DamageDoneByCasterExtraMultiplier is.
+	// Used with EnableCritChanceByCaster/DisableCritChanceByCaster
+	CritChanceByCasterBonus []DynamicCritChanceByCaster
 }
 
 func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
@@ -432,13 +440,38 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 	return table
 }
 
-func EnableDamageDoneByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicDamageDoneByCaster) {
-	if attackTable.DamageDoneByCasterExtraMultiplier == nil {
-		attackTable.DamageDoneByCasterExtraMultiplier = make([]DynamicDamageDoneByCaster, maxIndex)
+// Puts a handler in slot index of one of an attack table's caster slices, which is made maxIndex long
+// on first use.
+func setCasterSlot[T any](slots *[]T, index int, maxIndex int, handler T) {
+	if *slots == nil {
+		*slots = make([]T, maxIndex)
 	}
-	attackTable.DamageDoneByCasterExtraMultiplier[index] = handler
+	(*slots)[index] = handler
+}
+
+func EnableDamageDoneByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicDamageDoneByCaster) {
+	setCasterSlot(&attackTable.DamageDoneByCasterExtraMultiplier, index, maxIndex, handler)
 }
 
 func DisableDamageDoneByCaster(index int, attackTable *AttackTable) {
 	attackTable.DamageDoneByCasterExtraMultiplier[index] = nil
+}
+
+func EnableCritChanceByCaster(index int, maxIndex int, attackTable *AttackTable, handler DynamicCritChanceByCaster) {
+	setCasterSlot(&attackTable.CritChanceByCasterBonus, index, maxIndex, handler)
+}
+
+func DisableCritChanceByCaster(index int, attackTable *AttackTable) {
+	attackTable.CritChanceByCasterBonus[index] = nil
+}
+
+// The percentage points of crit chance the handlers add to the spell.
+func (attackTable *AttackTable) critChanceByCaster(spell *Spell) float64 {
+	bonus := 0.0
+	for _, handler := range attackTable.CritChanceByCasterBonus {
+		if handler != nil {
+			bonus += handler(spell)
+		}
+	}
+	return bonus
 }

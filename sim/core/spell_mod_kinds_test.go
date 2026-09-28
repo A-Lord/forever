@@ -99,7 +99,7 @@ func TestDurationFlatModOnSpellWithoutTargets(t *testing.T) {
 
 func TestBuffMaxStacksFlatMod(t *testing.T) {
 	spell := newDurationTargetSpell()
-	// An aura the client never gives stacks, which the mod has to leave non-stacking.
+	// An aura the game files never give stacks, which the mod has to leave non-stacking.
 	spell.RelatedAuraArrays["debuff"] = append(spell.RelatedAuraArrays["debuff"], &Aura{})
 
 	mod := newTestMod(SpellModConfig{Kind: SpellMod_BuffMaxStacks_Flat, IntValue: 2}, spell)
@@ -173,6 +173,22 @@ func TestDirectDamageDoneFlatMod(t *testing.T) {
 	mod.Deactivate()
 	if got := fa.Spell.AttackerDamageMultiplier(attackTable, false); !WithinToleranceFloat64(1.5, got, 0.001) {
 		t.Errorf("direct multiplier after removing the mod: %0.3f, want 1.500", got)
+	}
+}
+
+// SPELLMOD_DAMAGE raises healing done as well, so a direct heal reads the bucket and a hot does not.
+func TestDirectDamageDoneFlatModReachesDirectHeals(t *testing.T) {
+	sim := SetupFakeSim()
+	fa := sim.Raid.Parties[0].Players[0].(*FakeAgent)
+
+	mod := newTestMod(SpellModConfig{Kind: SpellMod_DirectDamageDone_Flat, FloatValue: 0.2}, fa.Spell)
+	mod.Activate()
+
+	if got := fa.Spell.CasterHealingMultiplier(); !WithinToleranceFloat64(1.8, got, 0.001) {
+		t.Errorf("direct heal multiplier with the mod active: %0.3f, want 1.800", got)
+	}
+	if got := fa.Spell.casterHealingMultiplier(true); !WithinToleranceFloat64(1.5, got, 0.001) {
+		t.Errorf("hot multiplier with the mod active: %0.3f, want 1.500", got)
 	}
 }
 

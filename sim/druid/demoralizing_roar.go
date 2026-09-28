@@ -48,7 +48,7 @@ func (druid *Druid) registerDemoralizingRoarAura() {
 
 	// The TBC implementation, kept for the port:
 	// druid.DemoralizingRoarAuras = druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	// The druid's own copy of the aura; the client has no Feral Aggression
+	// 	// The druid's own copy of the aura; the game files have no Feral Aggression
 	// 	// node, so there are no talent points to pass.
 	// 	return buffs.NewSpellDataDemoralizingRoarAura(target, true, 0)
 	// })

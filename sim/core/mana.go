@@ -163,14 +163,8 @@ func (unit *Unit) SpiritManaRegenPerSecond() float64 {
 func (unit *Unit) ManaRegenPerSecondWhileCasting() float64 {
 	regenRate := unit.MP5ManaRegenPerSecond()
 
-	spiritRegenRate := 0.0
-	if unit.PseudoStats.SpiritRegenRateCasting != 0 || unit.PseudoStats.ForceFullSpiritRegen {
-		spiritRegenRate = unit.SpiritManaRegenPerSecond() * unit.PseudoStats.SpiritRegenMultiplier
-		if !unit.PseudoStats.ForceFullSpiritRegen {
-			spiritRegenRate *= unit.PseudoStats.SpiritRegenRateCasting
-		}
-	}
-	regenRate += spiritRegenRate
+	// The shares of spirit regen that continue while casting add up to at most all of it.
+	regenRate += unit.SpiritManaRegenPerSecond() * unit.PseudoStats.SpiritRegenMultiplier * min(unit.PseudoStats.SpiritRegenRateCasting, 1)
 
 	regenRate *= unit.manaRegenMultiplier
 

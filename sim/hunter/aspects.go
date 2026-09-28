@@ -1,122 +1,74 @@
 package hunter
 
 import (
-	"math"
-
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 var aspectOfTheHawkRank = spellData.AspectOfTheHawk.Highest()
+var aspectOfTheBeastRank = spellData.AspectOfTheBeast.Highest()
 
-// TODO: To be implemented.
-func (hunter *Hunter) registerAspectOfTheHawkSpell() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: aspectOfTheHawkRank.ID}
-	//
-	// hunter.AspectOfTheHawkAura = hunter.applySharedAspectConfig(hunter.RegisterAura(core.Aura{
-	// 	Label:      "Aspect of the Hawk",
-	// 	ActionID:   actionID,
-	// 	BuildPhase: core.CharacterBuildPhaseBase,
-	// }).AttachStatBuff(stats.RangedAttackPower, aspectOfTheHawkRank.EffectN(1).Average(core.CharacterLevel)))
-	//
-	// hunter.AspectOfTheHawk = hunter.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	SpellSchool:    core.SpellSchoolNature,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ClassSpellMask: HunterSpellAspectOfTheHawk,
-	// 	Flags:          core.SpellFlagAPL,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: int32(aspectOfTheHawkRank.Cost()),
-	// 	},
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: aspectOfTheHawkRank.GCD(),
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		spell.RelatedSelfBuff.Activate(sim)
-	// 	},
-	//
-	// 	RelatedSelfBuff: hunter.AspectOfTheHawkAura,
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerAspectOfTheViper() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: 34074}
-	//
-	// hunter.AspectOfTheViperAura = hunter.applySharedAspectConfig(hunter.RegisterAura(core.Aura{
-	// 	Label:    "Aspect of the Viper",
-	// 	ActionID: actionID,
-	// }))
-	//
-	// hunter.AspectOfTheViper = hunter.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	SpellSchool:    core.SpellSchoolNature,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ClassSpellMask: HunterSpellAspectOfTheViper,
-	// 	Flags:          core.SpellFlagAPL,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: 40,
-	// 	},
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			// Aspect of the Viper has no generated row - it carries no "Rank N" subtext, so the
-	// 			// ladder discovery never sees it. See the not-generated list at the head of
-	// 			// spell_data_auto_gen.go.
-	// 			GCD: core.GCDDefault,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		spell.RelatedSelfBuff.Activate(sim)
-	// 	},
-	//
-	// 	RelatedSelfBuff: hunter.AspectOfTheViperAura,
-	// })
-}
+// The hastes the aspects proc: Quick Shots off Hawk, Quick Strikes off Beast.
+var quickShots = spellData.AspectOfTheHawkTriggered.Highest()
+var quickStrikes = spellData.AspectOfTheBeastTriggered.Highest()
 
 func (hunter *Hunter) registerAspects() {
-	hunter.registerAspectOfTheHawkSpell()
-	hunter.registerAspectOfTheViper()
+	hunter.AspectOfTheHawkAura = hunter.registerAspect(aspectOfTheHawkRank)
+	hunter.AspectOfTheBeastAura = hunter.registerAspect(aspectOfTheBeastRank)
+
+	hunter.registerDeadlyAspects()
 }
 
-// TODO: To be implemented.
-func (hunter *Hunter) applySharedAspectConfig(aura *core.Aura) *core.Aura {
-	panic("To be implemented")
+// One aspect at a time: a permanent self-buff the row's effects parse onto, and the spell that swaps
+// to it.
+func (hunter *Hunter) registerAspect(row *spelldata.Spell) *core.Aura {
+	aura := hunter.RegisterAura(spelldata.AuraConfig(row))
+	spelldata.ParseEffects(&hunter.Character, aura, row)
+	aura.NewExclusiveEffect("Aspect", true, core.ExclusiveEffect{})
 
-	// The TBC implementation, kept for the port:
-	// aura.Duration = core.NeverExpires
-	// aura.NewExclusiveEffect("Aspect", true, core.ExclusiveEffect{})
-	// return aura
-}
+	config := spelldata.SpellConfig(&hunter.Unit, row, spelldata.Flags(core.SpellFlagAPL))
 
-func (hunter *Hunter) OnManaTick(sim *core.Simulation) {
-	// https://wowpedia.fandom.com/wiki/Aspect_of_the_Viper?oldid=1458832
-	if hunter.AspectOfTheViperAura.IsActive() {
-		currentMana := hunter.CurrentManaPercent()
-		if currentMana >= 100 {
-			return
-		}
-
-		percentMana := math.Max(0.2, math.Min(0.9, currentMana))
-		scaling := 22.0/35.0*(0.9-percentMana) + 0.11
-
-		bonusPer5Seconds := hunter.GetStat(stats.Intellect)*scaling + 0.35*70
-		manaGain := bonusPer5Seconds * 2 / 5
-		hunter.AddMana(sim, manaGain, hunter.AspectOfTheViper.Cost.ResourceCostImpl.(*core.ManaCost).ResourceMetrics)
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		aura.Activate(sim)
 	}
+
+	config.RelatedSelfBuff = aura
+
+	hunter.RegisterSpell(config)
+
+	return aura
+}
+
+// Deadly Aspects is the chance the aspects' own procs fire with: the Hawk and Beast rows state the
+// trigger and no rate, and the talent adds SPELLMOD_CHANCE_OF_SUCCESS to each - 2% a rank - which
+// the parse has no row for. The tooltip names Auto Shot and melee auto attacks where the rows hear
+// every ranged and melee hit, so each mask is narrowed to the white hits by hand.
+func (hunter *Hunter) registerDeadlyAspects() {
+	rank := hunter.Talents.DeadlyAspects
+	if rank == 0 {
+		return
+	}
+
+	quickShotsAura := hunter.RegisterAura(spelldata.AuraConfig(quickShots))
+	spelldata.ParseEffects(&hunter.Character, quickShotsAura, quickShots)
+	quickStrikesAura := hunter.RegisterAura(spelldata.AuraConfig(quickStrikes))
+	spelldata.ParseEffects(&hunter.Character, quickStrikesAura, quickStrikes)
+
+	hawk := spelldata.ProcTrigger(&hunter.Character, aspectOfTheHawkRank,
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			quickShotsAura.Activate(sim)
+		},
+		spelldata.Chance(spellData.DeadlyAspects.EffectAt(1).FractionAt(rank)))
+	hawk.Name = "Deadly Aspects - Quick Shots"
+	hawk.ProcMask = core.ProcMaskRangedAuto
+	hunter.AspectOfTheHawkAura.AttachProcTrigger(hawk)
+
+	beast := spelldata.ProcTrigger(&hunter.Character, aspectOfTheBeastRank,
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			quickStrikesAura.Activate(sim)
+		},
+		spelldata.Chance(spellData.DeadlyAspects.EffectAt(2).FractionAt(rank)))
+	beast.Name = "Deadly Aspects - Quick Strikes"
+	beast.ProcMask = core.ProcMaskMeleeWhiteHit
+	hunter.AspectOfTheBeastAura.AttachProcTrigger(beast)
 }

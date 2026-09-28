@@ -244,6 +244,24 @@ func TestAFlaskStacksWithAnElixir(t *testing.T) {
 	}
 }
 
+// Flask of Distilled Wisdom 13511 (17627) states its 2000 as A_MOD_MAX_POWER on mana, which is the
+// Mana stat, and nothing else.
+func TestDistilledWisdomAddsTwoThousandMana(t *testing.T) {
+	const distilledWisdom int32 = 13511
+	registerStatConsumable(t, distilledWisdom)
+
+	gain := statGain(&proto.ConsumesSpec{FlaskId: distilledWisdom}, &proto.RaidBuffs{})
+	if want := (stats.Stats{stats.Mana: 2000}); gain != want {
+		t.Errorf("Flask of Distilled Wisdom adds %v, want 2000 Mana alone", gain)
+	}
+
+	_, without := newConsumablesSim(&proto.ConsumesSpec{}, &proto.RaidBuffs{})
+	_, with := newConsumablesSim(&proto.ConsumesSpec{FlaskId: distilledWisdom}, &proto.RaidBuffs{})
+	if got := with.MaxMana() - without.MaxMana(); got != 2000 {
+		t.Errorf("Flask of Distilled Wisdom raises maximum mana by %v, want 2000", got)
+	}
+}
+
 // Fire-toasted Bun 23327 (29332) and Dark Desire 22237 (27723) each grant 2% hit, one Hit food group:
 // only the first applies.
 func TestOnlyOneHitFoodApplies(t *testing.T) {

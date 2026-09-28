@@ -84,6 +84,10 @@ func (cast *Cast) GCDTime() time.Duration {
 	return gcd
 }
 
+func (spell *Spell) hastedGCD(gcd time.Duration) time.Duration {
+	return max(0, spell.Unit.ApplyCastSpeed(gcd)).Round(time.Millisecond)
+}
+
 func (cast *Cast) EffectiveTime() time.Duration {
 	return max(cast.GCDTime(), cast.CastTime)
 }
@@ -154,7 +158,7 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 		}
 
 		if !config.IgnoreHaste {
-			spell.CurCast.GCD = max(0, spell.Unit.ApplyCastSpeed(spell.CurCast.GCD)).Round(time.Millisecond)
+			spell.CurCast.GCD = spell.hastedGCD(spell.CurCast.GCD)
 			spell.CurCast.CastTime = spell.Unit.ApplyCastSpeedForSpell(spell.CurCast.CastTime, spell).Round(time.Millisecond)
 		}
 
@@ -385,8 +389,11 @@ func (spell *Spell) makeCastFuncSimple() CastSuccessFunc {
 func (spell *Spell) makeCastFuncAutosOrProcs() CastSuccessFunc {
 	return func(sim *Simulation, target *Unit) bool {
 		if sim.Log != nil && !spell.Flags.Matches(SpellFlagNoLogs) {
-			spell.Unit.Log(sim, "Casting %s (Cost = %0.03f, Cast Time = %s, GCD = %s, Effective Time = %s)",
-				spell.ActionID, 0.0, "0s", "0s", "0s")
+			// The ranged auto's windup already logged its cast start.
+			if spell != spell.Unit.AutoAttacks.ranged.spell {
+				spell.Unit.Log(sim, "Casting %s (Cost = %0.03f, Cast Time = %s, GCD = %s, Effective Time = %s)",
+					spell.ActionID, 0.0, "0s", "0s", "0s")
+			}
 			spell.Unit.Log(sim, "Completed cast %s", spell.ActionID)
 		}
 

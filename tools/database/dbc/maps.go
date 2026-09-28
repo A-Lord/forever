@@ -74,18 +74,12 @@ func MapBonusStatIndexToStat(index int) (proto.Stat, bool) {
 		return proto.Stat_StatBlockRating, true
 
 	// Secondary ratings
-	case ITEM_MOD_HIT_MELEE_RATING, ITEM_MOD_HIT_RANGED_RATING, ITEM_MOD_HIT_RATING:
-		return proto.Stat_StatMeleeHitRating, true
-	case ITEM_MOD_HIT_SPELL_RATING:
-		return proto.Stat_StatSpellHitRating, true
-	case ITEM_MOD_CRIT_MELEE_RATING, ITEM_MOD_CRIT_RANGED_RATING, ITEM_MOD_CRIT_RATING:
-		return proto.Stat_StatMeleeCritRating, true
-	case ITEM_MOD_CRIT_SPELL_RATING:
-		return proto.Stat_StatSpellCritRating, true
-	case ITEM_MOD_HASTE_MELEE_RATING, ITEM_MOD_HASTE_RANGED_RATING, ITEM_MOD_HASTE_RATING:
-		return proto.Stat_StatMeleeHasteRating, true
-	case ITEM_MOD_HASTE_SPELL_RATING:
-		return proto.Stat_StatSpellHasteRating, true
+	case ITEM_MOD_HIT_MELEE_RATING, ITEM_MOD_HIT_RANGED_RATING, ITEM_MOD_HIT_SPELL_RATING, ITEM_MOD_HIT_RATING:
+		return proto.Stat_StatHitRating, true
+	case ITEM_MOD_CRIT_MELEE_RATING, ITEM_MOD_CRIT_RANGED_RATING, ITEM_MOD_CRIT_SPELL_RATING, ITEM_MOD_CRIT_RATING:
+		return proto.Stat_StatCritRating, true
+	case ITEM_MOD_HASTE_MELEE_RATING, ITEM_MOD_HASTE_RANGED_RATING, ITEM_MOD_HASTE_SPELL_RATING, ITEM_MOD_HASTE_RATING:
+		return proto.Stat_StatHasteRating, true
 	case ITEM_MOD_EXPERTISE_RATING:
 		return proto.Stat_StatExpertiseRating, true
 	case ITEM_MOD_ARMOR_PENETRATION_RATING:
@@ -387,72 +381,6 @@ func ClassNameFromDBC(dbc DbcClass) string {
 	default:
 		return "Unknown"
 	}
-}
-func getMatchingRatingMods(value int) []RatingModType {
-	allMods := []RatingModType{
-		RATING_MOD_DEFENSE,
-		RATING_MOD_DODGE,
-		RATING_MOD_PARRY,
-		RATING_MOD_BLOCK,
-		RATING_MOD_HIT_MELEE,
-		RATING_MOD_HIT_RANGED,
-		RATING_MOD_HIT_SPELL,
-		RATING_MOD_CRIT_MELEE,
-		RATING_MOD_CRIT_RANGED,
-		RATING_MOD_CRIT_SPELL,
-		RATING_MOD_MULTISTRIKE,
-		RATING_MOD_READINESS,
-		RATING_MOD_SPEED,
-		RATING_MOD_RESILIENCE,
-		RATING_MOD_LEECH,
-		RATING_MOD_HASTE_MELEE,
-		RATING_MOD_HASTE_RANGED,
-		RATING_MOD_HASTE_SPELL,
-		RATING_MOD_AVOIDANCE,
-		RATING_MOD_EXPERTISE,
-		RATING_MOD_MASTERY,
-		RATING_MOD_PVP_POWER,
-		RATING_MOD_VERS_DAMAGE,
-		RATING_MOD_VERS_HEAL,
-		RATING_MOD_VERS_MITIG,
-	}
-
-	var result []RatingModType
-	for _, mod := range allMods {
-		if value&int(mod) != 0 {
-			result = append(result, mod)
-		}
-	}
-	return result
-}
-
-var RatingModToStat = map[RatingModType]proto.Stat{
-	RATING_MOD_DEFENSE:      proto.Stat_StatDefenseRating,
-	RATING_MOD_DODGE:        proto.Stat_StatDodgeRating,
-	RATING_MOD_PARRY:        proto.Stat_StatParryRating,
-	RATING_MOD_BLOCK:        proto.Stat_StatBlockRating,
-	RATING_MOD_HIT_MELEE:    proto.Stat_StatMeleeHitRating,
-	RATING_MOD_HIT_RANGED:   proto.Stat_StatMeleeHitRating,
-	RATING_MOD_HIT_SPELL:    proto.Stat_StatSpellHitRating,
-	RATING_MOD_CRIT_MELEE:   proto.Stat_StatMeleeCritRating,
-	RATING_MOD_CRIT_RANGED:  proto.Stat_StatMeleeCritRating,
-	RATING_MOD_CRIT_SPELL:   proto.Stat_StatSpellCritRating,
-	RATING_MOD_MULTISTRIKE:  -1,
-	RATING_MOD_READINESS:    -1,
-	RATING_MOD_SPEED:        -1,
-	RATING_MOD_RESILIENCE:   -1,
-	RATING_MOD_LEECH:        -1,
-	RATING_MOD_HASTE_MELEE:  proto.Stat_StatMeleeHasteRating,
-	RATING_MOD_HASTE_RANGED: proto.Stat_StatMeleeHasteRating,
-	RATING_MOD_HASTE_SPELL:  proto.Stat_StatSpellHasteRating,
-	RATING_MOD_AVOIDANCE:    -1,
-	RATING_MOD_EXPERTISE:    proto.Stat_StatExpertiseRating,
-	RATING_MOD_MASTERY:      -1,
-	RATING_MOD_PVP_POWER:    -1,
-
-	RATING_MOD_VERS_DAMAGE: -1,
-	RATING_MOD_VERS_HEAL:   -1,
-	RATING_MOD_VERS_MITIG:  -1,
 }
 
 type DbcClass struct {

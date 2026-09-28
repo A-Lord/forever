@@ -20,6 +20,10 @@ const SpellPushbackDuration = time.Millisecond * 500
 
 // How often a ranged auto that came due while moving checks whether it can fire.
 const RangedAutoRetryInterval = time.Millisecond * 500
+
+// A ranged auto winds up for this long before it fires. Haste doesn't shorten it, only the rest of the swing.
+const RangedSwingWindup = time.Millisecond * 500
+
 const MaxMeleeRange = 5.0  // in yards
 const MinRangedRange = 8.0 // in yards; bows, guns and crossbows cannot fire inside this, leaving a deadzone above melee range
 
@@ -28,6 +32,16 @@ const DefaultAttackPowerPerDPS = 14.0
 const ArmorPenPerPercentArmor = 5.92
 const MissDodgeParryBlockCritChancePerDefense = 0.04
 const DefenseRatingPerAvoidancePercent = DefenseRatingPerDefenseLevel / MissDodgeParryBlockCritChancePerDefense
+
+// The dodge rating a point of Agility gives, from the Agility each class needs for 1% dodge.
+var DodgeRatingPerAgility = map[proto.Class]float64{
+	proto.Class_ClassDruid:   DodgeRatingPerDodgePercent / 14.7059,
+	proto.Class_ClassRogue:   DodgeRatingPerDodgePercent / 20,
+	proto.Class_ClassWarrior: DodgeRatingPerDodgePercent / 30,
+	proto.Class_ClassPaladin: DodgeRatingPerDodgePercent / 25,
+	proto.Class_ClassHunter:  DodgeRatingPerDodgePercent / 25,
+	proto.Class_ClassShaman:  DodgeRatingPerDodgePercent / 25,
+}
 
 const EnemyAutoAttackAPCoefficient = 0.00052
 
@@ -58,7 +72,7 @@ func AllMeleeWeaponSlots() []proto.ItemSlot {
 //go:generate stringer -type=DefenseType
 
 // Which hit table a spell rolls on and which crit multiplier it takes. Values match the
-// DefenseType column of the client's SpellCategories table, so a spell's value is looked up
+// DefenseType column of the game files' SpellCategories table, so a spell's value is looked up
 // there rather than inferred from its school: Thunder Clap is Physical but rolls as Magic,
 // Seal of Command procs are Holy but roll as Melee.
 type DefenseType byte

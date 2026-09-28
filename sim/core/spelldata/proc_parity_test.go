@@ -1,9 +1,10 @@
 // What the item procs the sim registered before it read them off the rows resolve to. The table is
 // the sixteen registrations sim/common/forever/stat_bonus_procs_auto_gen.go carried at 60266be6f7,
 // transcribed by hand, and every field is what that generated call stated. Two of them state a
-// number the client contradicts, one a mask that leaves out the heals the client's mask names, three
-// are no longer registered at all, one required damage where a weapon proc needs only a landed
-// hit, and three required damage where their rows now take any damage component; each says so here.
+// number the game files contradict, one a mask that leaves out the heals the game files' mask
+// names, three are no longer registered at all, one required damage where a weapon proc needs only
+// a landed hit, and three required damage where their rows now take any damage component; each says
+// so here.
 //
 // A pin rather than a comparison: the generated file carries spell ids now, so there are no literals
 // left to compare against, and what this guards is that resolving those ids still produces the
@@ -39,7 +40,7 @@ type liveProc struct {
 	ppm    float64
 	icdMs  int32
 
-	// What the generated call stated for the chance where the client contradicts it, and why. The
+	// What the generated call stated for the chance where the game files contradict it, and why. The
 	// table carries the resolved value, so every field is asserted either way; the note is what a
 	// reader of this row needs, not a licence for the other fields to drift.
 	statedChance float64
@@ -68,7 +69,7 @@ func liveProcs() []liveProc {
 	}
 
 	const reissue = "the reissued shields carry trigger 1216968, whose Electrostatic Charge is a 20% roll, " +
-		"while the generated call stated the 5% of the 13959 the six older shields share. The client says " +
+		"while the generated call stated the 5% of the 13959 the six older shields share. The game files say " +
 		"20% too, so the literal is what was out of date."
 
 	procs := []liveProc{
@@ -149,7 +150,7 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 			continue
 		}
 
-		unsupported := ItemProcUnsupported(row, live.isWeaponProc)
+		unsupported := ItemProcUnsupportedWithRate(row, live.isWeaponProc, live.ppm)
 		if live.unsupported != "" {
 			if len(unsupported) != 1 || unsupported[0] != live.unsupported {
 				t.Errorf("%s (%d): unsupported = %v, want only %q, which is why it registers nothing now",
@@ -167,7 +168,7 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 		if live.isWeaponProc {
 			opts = append(opts, WeaponProc())
 		}
-		trigger := ProcTrigger(character, row, nil, append(opts, procRateForTest(row))...)
+		trigger := ProcTrigger(character, row, nil, append(opts, procRateForTest(live.ppm))...)
 
 		report := func(field string, got any, want any) {
 			t.Helper()
@@ -204,31 +205,26 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 			report("ICD", trigger.ICD, time.Millisecond*time.Duration(live.icdMs))
 		}
 
-		// A rate stated as procs per minute is a manager and no roll at all, so both halves are
+		// A rate stated as procs per minute is a manager and no roll at all, so the manager is
 		// asserted: a chance left beside a manager would gate the rate and the manager would never be
 		// consulted.
-		if live.ppm > 0 {
-			if trigger.DPM == nil {
-				report("DPM", "no proc manager", live.ppm)
-			}
-			if float64(row.RPPM) != live.ppm {
-				report("RPPM", row.RPPM, live.ppm)
-			}
+		if live.ppm > 0 && trigger.DPM == nil {
+			report("DPM", "no proc manager", live.ppm)
 		}
 	}
 }
 
 // The rate option sim/common/shared gives the resolver, copied rather than called: shared imports
-// this package, so a test inside it cannot import shared back. A weapon's rate is measured on the
-// weapon carrying it, so the manager is the dynamic one and the item is named to it - Annihilator is
-// the only row here that has one.
-func procRateForTest(row *Spell) ProcOpt {
+// this package, so a test inside it cannot import shared back. A weapon's rate is its item effect's,
+// measured on the weapon carrying it, so the manager is the dynamic one and the item is named to it
+// - Annihilator is the only row here that has one.
+func procRateForTest(ppm float64) ProcOpt {
 	return func(character *core.Character, trigger *core.ProcTrigger) {
-		if row.RPPM <= 0 {
+		if ppm <= 0 {
 			return
 		}
 
 		trigger.ProcChance = 0
-		trigger.DPM = character.NewDynamicLegacyProcForWeapon(12798, float64(row.RPPM), 0)
+		trigger.DPM = character.NewDynamicLegacyProcForWeapon(12798, ppm, 0)
 	}
 }

@@ -3,7 +3,7 @@ package warlock
 var searingPainRank = spellData.SearingPain.Highest()
 var searingPainCoeff = searingPainRank.DamageEffect().Coeff()
 
-// TODO: To be implemented. Port the TBC Searing Pain implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Searing Pain implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerSearingPain() {
 	panic("To be implemented")
 
@@ -15,6 +15,7 @@ func (warlock *Warlock) registerSearingPain() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: WarlockSpellSearingPain,
+	// 	ClassFlags:     searingPainRank.ClassFlags,
 	// 	MaxRange:       float64(searingPainRank.MaxRange),
 	//
 	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(searingPainRank.Cost())},

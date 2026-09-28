@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// TODO: Ingame test needed -- the client states no amount for the extra rage a hit taken
+// TODO: Ingame test needed -- the game files state no amount for the extra rage a hit taken
 // generates while Berserker Rage is up; doubled.
 const berserkerRageDamageTakenRageMultiplier = 2.0
 
@@ -14,6 +14,14 @@ var berserkerRageRank = spellData.BerserkerRage.Highest()
 func (warrior *Warrior) registerBerserkerRage() {
 	rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: berserkerRageRank.ID})
 	rageGain := spellData.ImprovedBerserkerRage.EffectAt(1).TenthsAt(warrior.Talents.ImprovedBerserkerRage)
+
+	// Marks the talent for the APL's auraIsKnown, tagged with its points; the rage it adds is rageGain.
+	if warrior.Talents.ImprovedBerserkerRage > 0 {
+		core.MakePermanent(warrior.RegisterAura(core.Aura{
+			Label:    "Improved Berserker Rage",
+			ActionID: core.ActionID{SpellID: spellData.ImprovedBerserkerRage.Highest().ID}.WithTag(warrior.Talents.ImprovedBerserkerRage),
+		}))
+	}
 
 	auraConfig := spelldata.AuraConfig(berserkerRageRank)
 	auraConfig.OnGain = func(aura *core.Aura, sim *core.Simulation) {

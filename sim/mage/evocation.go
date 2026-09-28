@@ -13,6 +13,7 @@ func (mage *Mage) registerEvocation() {
 	// 	ActionID:       actionID,
 	// 	Flags:          core.SpellFlagHelpful | core.SpellFlagChanneled | core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellEvocation,
+	// 	ClassFlags:     spellData.Evocation.Highest().ClassFlags,
 	//
 	// 	Cast: core.CastConfig{
 	// 		DefaultCast: core.Cast{

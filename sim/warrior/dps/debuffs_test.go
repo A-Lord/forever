@@ -9,7 +9,7 @@ import (
 )
 
 // The warrior's own Demoralizing Shout on the enemy is the generated aura:
-// the client's id and duration, the bid its value makes, and the one the
+// the game files' id and duration, the bid its value makes, and the one the
 // spell's aura array holds.
 func TestWarriorAppliesTheGeneratedDemoralizingShout(t *testing.T) {
 	player := &proto.Player{
@@ -36,7 +36,7 @@ func TestWarriorAppliesTheGeneratedDemoralizingShout(t *testing.T) {
 		t.Errorf("the warrior's own copy is %v, want %v", aura.ActionID, want)
 	}
 	if aura.Duration != buffs.DemoralizingShoutDuration(0) {
-		t.Errorf("the warrior's own copy lasts %v, want the client's 45 seconds", aura.Duration)
+		t.Errorf("the warrior's own copy lasts %v, want the game files' 45 seconds", aura.Duration)
 	}
 	if got := aura.ExclusiveEffects[0].Priority; got != -buffs.DemoralizingShoutValue(0) {
 		t.Errorf("the warrior's own copy bids %v, want the magnitude of %v",

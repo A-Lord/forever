@@ -7,6 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // What the printer says about an effect whose type or aura no branch below words. The literal beside
@@ -40,7 +41,7 @@ func amount(e *spelldata.Effect) string {
 	return number(e.Min(core.CharacterLevel)) + "–" + number(e.Max(core.CharacterLevel))
 }
 
-// A percentage the client states as an integer, which is what Percent() divides by 100.
+// A percentage the game files state as an integer, which is what Percent() divides by 100.
 func percent(e *spelldata.Effect) string {
 	return number(value(e)) + "%"
 }
@@ -49,7 +50,7 @@ func signedPercent(e *spelldata.Effect) string {
 	return signed(value(e)) + "%"
 }
 
-// Rage and energy sit on the client's 0-1000 bar, which is what Tenths() divides by 10.
+// Rage and energy sit on the game files' 0-1000 bar, which is what Tenths() divides by 10.
 func tenths(e *spelldata.Effect) float64 {
 	return value(e) / 10
 }
@@ -131,7 +132,120 @@ func humaniseAura(s *spelldata.Spell, e *spelldata.Effect) string {
 	if phrase == "" {
 		return ""
 	}
-	return sentence(join(phrase, auraTarget(e)), ticks(s, e), scaling(e), auraCoefficients(e))
+	return sentence(join(phrase, auraTarget(e)), ticks(s, e), scaling(e), auraCoefficients(e), castOnly(s, e))
+}
+
+// A hit or crit aura under the rule spelldata.WeaponScope names for its row, which is the one the parse
+// attaches it by. A per-weapon mod is physical crit or hit on the matching weapon's attacks.
+func weaponBound(s *spelldata.Spell, e *spelldata.Effect, stat string) string {
+	rule, scope := spelldata.WeaponScope(s, e)
+	switch rule {
+	case spelldata.WeaponRulePerWeapon:
+		physical := "physical crit"
+		if e.Aura == dbcenums.A_MOD_HIT_CHANCE {
+			physical = "physical hit"
+		}
+		return join(signedPercent(e), physical+",", perWeapon(scope))
+	case spelldata.WeaponRuleWhileEquipped:
+		return join(signedPercent(e), stat+",", "while", weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand),
+			"is equipped: every spell and attack")
+	}
+	return join(signedPercent(e), stat)
+}
+
+// A damage done aura under the rule spelldata.WeaponScope names for its row. While equipped, a melee
+// weapon also carries it to the melee-defense spells of the schools the mask leaves out.
+func damageDonePhrase(s *spelldata.Spell, e *spelldata.Effect) string {
+	phrase := join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage done")
+	rule, scope := spelldata.WeaponScope(s, e)
+	switch rule {
+	case spelldata.WeaponRulePerWeapon:
+		return join(phrase+",", perWeapon(scope))
+	case spelldata.WeaponRuleWhileEquipped:
+		if scope.ProcMask.Matches(core.ProcMaskMelee) && core.SpellSchool(e.Misc) != allSchools {
+			phrase += " and on the melee-defense spells of the other schools"
+		}
+		return join(phrase+",", "while", weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand), "is equipped")
+	}
+	return phrase
+}
+
+func perWeapon(scope core.SpellModConfig) string {
+	weapons := weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand)
+	if scope.ProcMask == core.ProcMaskRanged {
+		return "ranged weapons only: attacks made with " + weapons
+	}
+	return "per weapon: only attacks made with " + weapons
+}
+
+// A hit, crit or rating aura on a row whose weapon requirement binds nothing the effect gives, since
+// the aura reaches another unit.
+func castOnly(s *spelldata.Spell, e *spelldata.Effect) string {
+	if !spelldata.WeaponBindable(e.Aura) {
+		return ""
+	}
+	if rule, _ := spelldata.WeaponScope(s, e); rule != spelldata.WeaponRuleNone ||
+		s.EquipClass != dbcenums.ITEM_CLASS_WEAPON || e.Target[0] == dbcenums.TARGET_UNIT_CASTER {
+		return ""
+	}
+	return "the weapon requirement only gates casting"
+}
+
+// A_MOD_RATING by the ratings its mask names, read the way the parse reads them. A row bound to a
+// weapon, or a mask of ranged bits alone, is the percent its hit and crit are worth on those attacks,
+// and its other ratings are not read.
+func ratingPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
+	rule, scope := spelldata.WeaponScope(s, e)
+	if rule != spelldata.WeaponRulePerWeapon && rule != spelldata.WeaponRuleRangedRatings {
+		ratings := spelldata.RatingStats(e.Misc)
+		if len(ratings) == 0 {
+			return ""
+		}
+		return join(signed(value(e)), ratingNames(ratings))
+	}
+
+	scoped := spelldata.ScopedRatingPercents(e.Misc, value(e))
+	if len(scoped) == 0 {
+		return ""
+	}
+	var ratings, unread []stats.Stat
+	var worth []string
+	for _, rating := range scoped {
+		ratings = append(ratings, rating.Stat)
+		switch rating.Stat {
+		case stats.HitRating:
+			worth = append(worth, signed(rating.Percent)+"% hit")
+		case stats.CritRating:
+			worth = append(worth, signed(rating.Percent)+"% crit")
+		default:
+			unread = append(unread, rating.Stat)
+		}
+	}
+
+	clause := "ranged attacks only"
+	if rule == spelldata.WeaponRulePerWeapon {
+		clause = perWeapon(scope)
+	}
+	phrase := join(signed(value(e)), ratingNames(ratings)+",", clause)
+	if len(worth) > 0 {
+		phrase += ", worth " + strings.Join(worth, " and ")
+	}
+	if len(unread) > 0 {
+		phrase += "; the " + ratingNames(unread) + " is not read"
+	}
+	return phrase
+}
+
+// Ratings as one phrase: hit rating, or hit, crit and haste rating.
+func ratingNames(ratings []stats.Stat) string {
+	names := make([]string, 0, len(ratings))
+	for _, stat := range ratings {
+		names = append(names, strings.ToLower(strings.TrimSuffix(stat.StatName(), "Rating")))
+	}
+	if len(names) == 1 {
+		return names[0] + " rating"
+	}
+	return strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1] + " rating"
 }
 
 // An aura on the caster is the ordinary case and says nothing worth a clause, so only an aura
@@ -236,7 +350,7 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	case dbcenums.A_MOD_DAMAGE_DONE:
 		return join(signed(value(e)), schoolName(core.SpellSchool(e.Misc)), "damage done")
 	case dbcenums.A_MOD_DAMAGE_PERCENT_DONE:
-		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage done")
+		return damageDonePhrase(s, e)
 	case dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN:
 		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage taken")
 	case dbcenums.A_MOD_DAMAGE_TAKEN:
@@ -250,15 +364,17 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		return join(signed(value(e)), "extra", powerName(dbcenums.PowerType(e.Misc)), "per cast")
 
 	case dbcenums.A_MOD_HIT_CHANCE:
-		return join(signedPercent(e), "physical hit")
+		return weaponBound(s, e, "physical hit")
 	case dbcenums.A_MOD_SPELL_HIT_CHANCE:
 		return join(signedPercent(e), "spell hit")
 	case dbcenums.A_MOD_WEAPON_CRIT_PERCENT:
-		return join(signedPercent(e), "physical crit")
+		return weaponBound(s, e, "physical crit")
 	case dbcenums.A_MOD_SPELL_CRIT_CHANCE:
 		return join(signedPercent(e), "spell crit")
 	case dbcenums.A_MOD_CRIT_PCT:
-		return join(signedPercent(e), "physical and spell crit")
+		return weaponBound(s, e, "physical and spell crit")
+	case dbcenums.A_MOD_RATING:
+		return ratingPhrase(s, e)
 	case dbcenums.A_MOD_CRIT_DAMAGE_BONUS:
 		return join(signedPercent(e), "crit damage")
 
@@ -320,8 +436,8 @@ func flatModAmount(e *spelldata.Effect) string {
 	return signed(value(e))
 }
 
-// A dummy row is the client's "the server does this", so its number is stated and nothing is claimed
-// about what the number means: it is the one shape a port has to read the tooltip for.
+// A dummy row is the game files' "the server does this", so its number is stated and nothing is
+// claimed about what the number means: it is the one shape a port has to read the tooltip for.
 func dummyPhrase(kind string, e *spelldata.Effect) string {
 	if value(e) == 0 {
 		return "a dummy " + kind
@@ -339,7 +455,7 @@ func triggerOrMisc(e *spelldata.Effect) string {
 }
 
 // The spells a modifier effect reaches. An empty mask on a spell that has a family of its own is the
-// client's "every spell of my family", which is what modConfig() widens it to.
+// game files' "every spell of my family", which is what modConfig() widens it to.
 func modTargets(s *spelldata.Spell, e *spelldata.Effect) string {
 	if phrase := classFlagsPhrase(e.ClassFlags); phrase != "" {
 		return "on " + phrase
@@ -376,7 +492,7 @@ func bonus(e *spelldata.Effect) string {
 }
 
 // The level the amount is priced at, for a row whose per-level gain means the number is not the one
-// the client's own column states.
+// the game files' own column states.
 func scaling(e *spelldata.Effect) string {
 	if e.PPL == 0 {
 		return ""
@@ -388,7 +504,7 @@ func coefficients(e *spelldata.Effect) string {
 	return join(share(e.Coeff(), "spell power"), share(e.APCoeff(), "attack power"))
 }
 
-// A coefficient of exactly 1 is the client's filler - 2,112 of the store's effects carry it, weapon
+// A coefficient of exactly 1 is the game files' filler - 2,112 of the store's effects carry it, weapon
 // effects and shapeshifts among them - so it is left to the literal rather than stated as a share.
 func share(coeff float64, of string) string {
 	if coeff == 0 || coeff == 1 {
@@ -397,8 +513,8 @@ func share(coeff float64, of string) string {
 	return signed(coeff) + " " + of
 }
 
-// The effect as the client states it: the columns it fills, in the units the row keeps them in, so the
-// words above can be checked against them.
+// The effect as the game files state it: the columns it fills, in the units the row keeps them in,
+// so the words above can be checked against them.
 func literal(e *spelldata.Effect, pos int) string {
 	parts := []string{namedOr(e.Type, "E_%d")}
 	if e.Aura != 0 {
@@ -457,8 +573,9 @@ func literal(e *spelldata.Effect, pos int) string {
 			add("mask=%s", mask)
 		}
 	}
-	// EffectIndex is the client's own numbering and matches the position on all but 46 of the store's
-	// rows, so it is stated only where the two disagree and EffectN(pos) is not EffectIndex.
+	// EffectIndex is the game files' own numbering and matches the position on all but 46 of the
+	// store's rows, so it is stated only where the two disagree and EffectN(pos) is not
+	// EffectIndex.
 	if int(e.Index) != pos-1 {
 		add("index=%d", e.Index)
 	}
@@ -481,7 +598,7 @@ func ticks(s *spelldata.Spell, e *spelldata.Effect) string {
 	return fmt.Sprintf("%d ticks", s.DurationMs/e.PeriodMs)
 }
 
-// The unit or area the effect reaches. The client states two implicit targets, and a pair naming a
+// The unit or area the effect reaches. The game files state two implicit targets, and a pair naming a
 // place and then a unit - Whirlwind's [22,15] - is worded by the unit.
 func targetPhrase(e *spelldata.Effect) string {
 	first, second := implicitTargets[e.Target[0]], implicitTargets[e.Target[1]]
@@ -505,7 +622,7 @@ func targetWord(t dbcenums.ImplicitTarget, named implicitTarget) string {
 	return fmt.Sprintf("to target %d", t)
 }
 
-// EffectMiscValue_0 is the power type on an energize effect, and rage is on the client's 0-1000 bar
+// EffectMiscValue_0 is the power type on an energize effect, and rage is on the game files' 0-1000 bar
 // the way a cost is.
 func powerAmount(e *spelldata.Effect) string {
 	amount := value(e)

@@ -1,7 +1,7 @@
 {
 	"name": "wowsims-spelldata",
 	"displayName": "WoWSims Spelldata",
-	"description": "Hover a spell id or a ladder chain in Go, JSON or TypeScript to read the client's row out of sim/core/spelldata.",
+	"description": "Hover a spell id or a ladder chain in Go, JSON or TypeScript to read the game files' row out of sim/core/spelldata.",
 	"version": "0.2.0",
 	"private": true,
 	"publisher": "wowsims",

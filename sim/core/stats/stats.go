@@ -31,17 +31,14 @@ const (
 	HolyDamage
 	NatureDamage
 	ShadowDamage
-	SpellHitRating
-	SpellCritRating
-	SpellHasteRating
 	SpellPiercing
 	Spirit
 	AttackPower
 	RangedAttackPower
 	FeralAttackPower
-	MeleeHitRating
-	MeleeCritRating
-	MeleeHasteRating
+	HitRating
+	CritRating
+	HasteRating
 	ArmorPenetration
 	ExpertiseRating
 	DefenseRating
@@ -141,20 +138,14 @@ func (s Stat) StatName() string {
 		return "Intellect"
 	case Spirit:
 		return "Spirit"
-	case SpellHitRating:
-		return "SpellHitRating"
-	case SpellCritRating:
-		return "SpellCritRating"
-	case SpellHasteRating:
-		return "SpellHasteRating"
 	case SpellPiercing:
 		return "SpellPiercing"
-	case MeleeHitRating:
-		return "MeleeHitRating"
-	case MeleeCritRating:
-		return "MeleeCritRating"
-	case MeleeHasteRating:
-		return "MeleeHasteRating"
+	case HitRating:
+		return "HitRating"
+	case CritRating:
+		return "CritRating"
+	case HasteRating:
+		return "HasteRating"
 	case ExpertiseRating:
 		return "ExpertiseRating"
 	case ArmorPenetration:
@@ -290,19 +281,24 @@ type PercentPseudoStat struct {
 	MeleeShare *PercentPseudoStat
 }
 
+// The hit and crit percents, named so each ranged one can point at its melee share.
 var (
-	meleeHitPercent  = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
-	meleeCritPercent = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	meleeHitPseudoStat   = PercentPseudoStat{PhysicalHitPercent, proto.PseudoStat_PseudoStatMeleeHitPercent, nil}
+	rangedHitPseudoStat  = PercentPseudoStat{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPseudoStat}
+	spellHitPseudoStat   = PercentPseudoStat{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil}
+	meleeCritPseudoStat  = PercentPseudoStat{PhysicalCritPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, nil}
+	rangedCritPseudoStat = PercentPseudoStat{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPseudoStat}
+	spellCritPseudoStat  = PercentPseudoStat{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil}
 )
 
 var PercentPseudoStats = []PercentPseudoStat{
-	meleeHitPercent,
-	{SpellHitPercent, proto.PseudoStat_PseudoStatSpellHitPercent, nil},
-	meleeCritPercent,
-	{SpellCritPercent, proto.PseudoStat_PseudoStatSpellCritPercent, nil},
+	meleeHitPseudoStat,
+	spellHitPseudoStat,
+	meleeCritPseudoStat,
+	spellCritPseudoStat,
 	{BlockPercent, proto.PseudoStat_PseudoStatBlockPercent, nil},
-	{RangedHitPercent, proto.PseudoStat_PseudoStatRangedHitPercent, &meleeHitPercent},
-	{RangedCritPercent, proto.PseudoStat_PseudoStatRangedCritPercent, &meleeCritPercent},
+	rangedHitPseudoStat,
+	rangedCritPseudoStat,
 	{DodgePercent, proto.PseudoStat_PseudoStatDodgePercent, nil},
 	{ParryPercent, proto.PseudoStat_PseudoStatParryPercent, nil},
 	{ExpertisePercent, proto.PseudoStat_PseudoStatExpertisePercent, nil},
@@ -383,6 +379,13 @@ func (stats Stats) FloorGameStats() Stats {
 		stats[k] = math.Floor(stats[k])
 	}
 	return stats
+}
+
+// FloorGameStatsInPlace is FloorGameStats without copying the array.
+func (stats *Stats) FloorGameStatsInPlace() {
+	for _, k := range flooredGameStats {
+		stats[k] = math.Floor(stats[k])
+	}
 }
 
 func (stats Stats) Multiply(multiplier float64) Stats {
@@ -529,8 +532,6 @@ type PseudoStats struct {
 	FiveSecondRuleRefreshTime time.Duration // last time a spell was cast
 	SpiritRegenRateCasting    float64       // percentage of spirit regen allowed during casting
 
-	// Both of these are currently only used for innervate.
-	ForceFullSpiritRegen  bool    // If set, automatically uses full spirit regen regardless of FSR refresh time.
 	SpiritRegenMultiplier float64 // Multiplier on spirit portion of mana regen.
 
 	// If true, allows block/parry.
@@ -549,6 +550,7 @@ type PseudoStats struct {
 
 	DamageDealtMultiplier          float64            // All damage
 	SchoolDamageDealtMultiplier    [SchoolLen]float64 // For specific spell schools (arcane, fire, shadow, etc).
+	SchoolSpellPiercing            [SchoolLen]float64 // Target resistance ignored by spells of one school, on top of SpellPiercing.
 	DotDamageMultiplierAdditive    float64            // All periodic damage
 	HealingDealtMultiplier         float64            // All non-shield healing
 	PeriodicHealingDealtMultiplier float64            // All periodic healing (on top of HealingDealtMultiplier)
@@ -599,6 +601,7 @@ type PseudoStats struct {
 	BonusSpellCritPercentTaken float64 // Imp Shadow Bolt / Imp Scorch / Winter's Chill debuff
 	BonusPhysicalDamageTaken   float64 // Hemo, Gift of Arthas, etc
 	BonusSpellDamageTaken      float64 // Amp Magic
+	BonusRangedDamageTaken     float64 // Physical ranged attacks only: Windwall
 
 	DamageTakenMultiplier       float64            // All damage
 	SchoolDamageTakenMultiplier [SchoolLen]float64 // For specific spell schools (arcane, fire, shadow, etc.)
@@ -607,6 +610,7 @@ type PseudoStats struct {
 
 	DiseaseDamageTakenMultiplier          float64
 	PeriodicPhysicalDamageTakenMultiplier float64
+	MeleeDamageTakenMultiplier            float64 // Melee attacks of any school
 
 	ArmorMultiplier float64 // Major/minor/special multiplicative armor modifiers
 
@@ -656,6 +660,7 @@ func NewPseudoStats() PseudoStats {
 
 		DiseaseDamageTakenMultiplier:          1,
 		PeriodicPhysicalDamageTakenMultiplier: 1,
+		MeleeDamageTakenMultiplier:            1,
 
 		ArmorMultiplier: 1,
 

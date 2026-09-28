@@ -4,9 +4,135 @@
 
 export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
-		810, // Hammer of the Northern Wind
+		744, // Thunderbrew's Boot Flask
 		[
-			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
+			"Deals 75 Fire damage every 1 sec for 5s to all enemies in front of you. Deals 2 times as much damage to Plants. Gets you quite drunk too!", // 12257 - https://www.wowhead.com/forever/spell=12257
+		]
+	],
+	[
+		880, // Staff of Horrors
+		[
+			"Damage caused by the target is reduced by 5 for 2min.", // 8552 - https://www.wowhead.com/forever/spell=8552
+		]
+	],
+	[
+		899, // Venom Web Fang
+		[
+			"Poisons target for 3 Nature damage every 3.0 sec for 15s.", // 18077 - https://www.wowhead.com/forever/spell=18077
+		]
+	],
+	[
+		934, // Stalvan's Reaper
+		[
+			"Lowers the Attack Power of the target by 40 for 1min.", // 13524 - https://www.wowhead.com/forever/spell=13524
+		]
+	],
+	[
+		937, // Black Duskwood Staff
+		[
+			"Sends a shadowy bolt at the enemy causing 125 Shadow damage.", // 18138 - https://www.wowhead.com/forever/spell=18138
+		]
+	],
+	[
+		1131, // Totem of Infliction
+		[
+			"When struck in combat has a 1% chance of inflicting 100 Shadow damage to the attacker.", // 16783 - https://www.wowhead.com/forever/spell=16783
+		]
+	],
+	[
+		1265, // Scorpion Sting
+		[
+			"Poisons target for 13 Nature damage every 5.0 sec for 25s.", // 18208 - https://www.wowhead.com/forever/spell=18208
+		]
+	],
+	[
+		1318, // Night Reaver
+		[
+			"Sends a shadowy bolt at the enemy causing 84 Shadow damage.", // 13480 - https://www.wowhead.com/forever/spell=13480
+		]
+	],
+	[
+		1387, // Ghoulfang
+		[
+			"Sends a shadowy bolt at the enemy causing 100 Shadow damage.", // 1312438 - https://www.wowhead.com/forever/spell=1312438
+		]
+	],
+	[
+		1404, // Tidal Charm
+		[
+			"Stuns target for 3s. Naga are Stunned for 5s and refund 80% of the cooldown.", // 835 - https://www.wowhead.com/forever/spell=835
+		]
+	],
+	[
+		1481, // Grimclaw
+		[
+			"Sends a shadowy bolt at the enemy causing 42 Shadow damage.", // 1292158 - https://www.wowhead.com/forever/spell=1292158
+		]
+	],
+	[
+		1482, // Shadowfang
+		[
+			"Sends a shadowy bolt at the enemy causing 42 Shadow damage.", // 1292158 - https://www.wowhead.com/forever/spell=1292158
+		]
+	],
+	[
+		1489, // Gloomshroud Armor
+		[
+			"When struck in combat inflicts 2 Shadow damage to the attacker.", // 1292160 - https://www.wowhead.com/forever/spell=1292160
+		]
+	],
+	[
+		1713, // Ankh of Life
+		[
+			"Heal your target for 720.", // 1317424 - https://www.wowhead.com/forever/spell=1317424
+		]
+	],
+	[
+		1726, // Poison-tipped Bone Spear
+		[
+			"Poisons target for 30 Nature damage every 6.0 sec for 30s.", // 16401 - https://www.wowhead.com/forever/spell=16401
+		]
+	],
+	[
+		2000, // Archeus
+		[
+			"Blasts a target for 85 Arcane damage.", // 18091 - https://www.wowhead.com/forever/spell=18091
+		]
+	],
+	[
+		2042, // Staff of Westfall
+		[
+			"Movement speed Increased by 2% in Elwynn Forest, Westfall, Redridge Mountains, and the Deadmines.", // 1292011 - https://www.wowhead.com/forever/spell=1292011
+		]
+	],
+	[
+		2205, // Duskbringer
+		[
+			"Sends a shadowy bolt at the enemy causing 98 Shadow damage.", // 18217 - https://www.wowhead.com/forever/spell=18217
+		]
+	],
+	[
+		2256, // Skeletal Club
+		[
+			"Sends a shadowy bolt at the enemy causing 30 Shadow damage.", // 13440 - https://www.wowhead.com/forever/spell=13440
+		]
+	],
+	[
+		2263, // Phytoblade
+		[
+			"Blasts a target for 35 Nature damage.", // 14119 - https://www.wowhead.com/forever/spell=14119
+		]
+	],
+	[
+		2280, // Kam's Walking Stick
+		[
+			"Reduces the duration of all movement impairing effects on you by 10%.", // 1292546 - https://www.wowhead.com/forever/spell=1292546
+		]
+	],
+	[
+		2299, // Burning War Axe
+		[
+			"Hurls a fiery ball that causes 98 Fire damage and an additional 18 damage over 6s.", // 18199 - https://www.wowhead.com/forever/spell=18199
 		]
 	],
 	[
@@ -16,27 +142,345 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		2912, // Claw of the Shadowmancer
+		[
+			"Sends a shadowy bolt at the enemy causing 35 Shadow damage.", // 16409 - https://www.wowhead.com/forever/spell=16409
+		]
+	],
+	[
+		2942, // Iron Knuckles
+		[
+			"Pummel the target for 25 damage and interrupt the spell being cast for 5s.", // 13491 - https://www.wowhead.com/forever/spell=13491
+		]
+	],
+	[
+		3078, // Naga Heartpiercer
+		[
+			"Wounds the target for 42 damage. Naga are Stunned for 2s.", // 1292647 - https://www.wowhead.com/forever/spell=1292647
+		]
+	],
+	[
+		3194, // Black Malice
+		[
+			"Sends a shadowy bolt at the enemy causing 70 Shadow damage.", // 1292155 - https://www.wowhead.com/forever/spell=1292155
+		]
+	],
+	[
+		3336, // Flesh Piercer
+		[
+			"Wounds the target causing them to bleed for 30 damage over 30s.", // 18078 - https://www.wowhead.com/forever/spell=18078
+		]
+	],
+	[
+		3416, // Martyr's Chain
+		[
+			"Dying inflicts 420 Holy damage to all enemies within 15 yards.", // 1292746 - https://www.wowhead.com/forever/spell=1292746
+		]
+	],
+	[
+		3748, // Feline Mantle
+		[
+			"Reduces damage from falling.", // 1292150 - https://www.wowhead.com/forever/spell=1292150
+		]
+	],
+	[
+		3822, // Runic Darkblade
+		[
+			"Sends a shadowy bolt at the enemy causing 35 Shadow damage.", // 16409 - https://www.wowhead.com/forever/spell=16409
+		]
+	],
+	[
+		3854, // Frost Tiger Blade
+		[
+			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
+		]
+	],
+	[
 		4130, // Smotts' Compass
 		[
 			"Finds the nearest treasure chest, if one is nearby. Only outdoors.", // 1317740 - https://www.wowhead.com/forever/spell=1317740
 		]
 	],
 	[
-		6622, // Sword of Zeal
+		4248, // Dark Leather Gloves
 		[
-			"A burst of energy fills the caster, increasing his damage by 10 and armor by 150 for 15s.", // 8191 - https://www.wowhead.com/forever/spell=8191
+			"Increases your lockpicking skill slightly.", // 9133 - https://www.wowhead.com/forever/spell=9133
 		]
 	],
 	[
-		6660, // Julie's Dagger
+		4262, // Gem-studded Leather Belt
 		[
-			"Heals wielder of 78 damage over 12s.", // 8348 - https://www.wowhead.com/forever/spell=8348
+			"Heal yourself for 300.", // 9163 - https://www.wowhead.com/forever/spell=9163
+		]
+	],
+	[
+		4381, // Minor Recombobulator
+		[
+			"Dispels Polymorph effects on a friendly target. Also restores 270 Health and 128 Mana.", // 18805 - https://www.wowhead.com/forever/spell=18805
+		]
+	],
+	[
+		4444, // Black Husk Shield
+		[
+			"Attempts to cure 1 poison effect on the target, and 1 more poison effect every 2.0 seconds for 8s.", // 14253 - https://www.wowhead.com/forever/spell=14253
+		]
+	],
+	[
+		4446, // Blackvenom Blade
+		[
+			"Poisons target for 5 Nature damage every 3.0 sec for 15s.", // 13518 - https://www.wowhead.com/forever/spell=13518
+		]
+	],
+	[
+		4449, // Naraxis' Fang
+		[
+			"Poisons target for 6 Nature damage every 3.0 sec for 15s.", // 16400 - https://www.wowhead.com/forever/spell=16400
+		]
+	],
+	[
+		4984, // Skull of Impending Doom
+		[
+			"Increase your run speed by 60% for 10s, but deals 300 damage and drains 300 mana every 2 seconds.", // 5024 - https://www.wowhead.com/forever/spell=5024
+		]
+	],
+	[
+		5079, // Cold Basilisk Eye
+		[
+			"Increases time between target's attacks by 20% and reduces their movement speed by 40% for 15s.", // 1139 - https://www.wowhead.com/forever/spell=1139
+		]
+	],
+	[
+		5182, // Shiver Blade
+		[
+			"Blasts a target for 50 Frost damage.", // 18092 - https://www.wowhead.com/forever/spell=18092
+		]
+	],
+	[
+		5192, // Thief's Blade
+		[
+			"Increases the chance your Pick Pocket and Distract abilities are successful by 1%", // 1291987 - https://www.wowhead.com/forever/spell=1291987
+		]
+	],
+	[
+		5197, // Cookie's Tenderizer
+		[
+			"Tenderize the target, increasing physical damage taken by 1 for 1min.", // 1292008 - https://www.wowhead.com/forever/spell=1292008
+		]
+	],
+	[
+		5199, // Smelting Pants
+		[
+			"Reduces the crafting time of Smelt Copper, Smelt Tin, Smelt Bronze, and Smelt Silver by 25%.", // 1291915 - https://www.wowhead.com/forever/spell=1291915
+		]
+	],
+	[
+		5243, // Firebelcher
+		[
+			"Chance on hit to blast the target for 28 Fire damage.", // 1291662 - https://www.wowhead.com/forever/spell=1291662
+		]
+	],
+	[
+		5323, // Everglow Lantern
+		[
+			"Heal your target for 150.", // 14053 - https://www.wowhead.com/forever/spell=14053
+		]
+	],
+	[
+		5426, // Serpent's Kiss
+		[
+			"Poisons target for 9 Nature damage every 3.0 sec for 15s.", // 18197 - https://www.wowhead.com/forever/spell=18197
+		]
+	],
+	[
+		5443, // Gold-plated Buckler
+		[
+			"After entering combat, reduce the next instance of physical damage taken within 20s by 15.", // 1291908 - https://www.wowhead.com/forever/spell=1291908
+		]
+	],
+	[
+		5613, // Staff of the Purifier
+		[
+			"Purifies the friendly target, removing 1 disease effect and 1 poison effect.", // 14134 - https://www.wowhead.com/forever/spell=14134
+		]
+	],
+	[
+		5752, // Wyvern Tailspike
+		[
+			"Poisons target for 6 Nature damage every 3.0 sec for 15s.", // 16400 - https://www.wowhead.com/forever/spell=16400
+		]
+	],
+	[
+		5815, // Glacial Stone
+		[
+			"Blasts a target for 75 Frost damage.", // 20869 - https://www.wowhead.com/forever/spell=20869
+		]
+	],
+	[
+		6220, // Meteor Shard
+		[
+			"Blasts a target for 42 Fire damage.", // 1292152 - https://www.wowhead.com/forever/spell=1292152
+		]
+	],
+	[
+		6321, // Silverlaine's Family Seal
+		[
+			"Movement speed Increased by 2% in Tirisfal Glades, Silverpine Forest, and Shadowfang Keep.", // 1292121 - https://www.wowhead.com/forever/spell=1292121
+		]
+	],
+	[
+		6323, // Baron's Scepter
+		[
+			"Cause party members within 30 yards to regenerate 4 health every 5 sec.", // 1292142 - https://www.wowhead.com/forever/spell=1292142
+		]
+	],
+	[
+		6469, // Venomstrike
+		[
+			"Venom Shot the target for 28 Nature damage.", // 29653 - https://www.wowhead.com/forever/spell=29653
+		]
+	],
+	[
+		6472, // Stinging Viper
+		[
+			"Poisons target for 7 Nature damage every 3.0 sec for 12s.", // 1291663 - https://www.wowhead.com/forever/spell=1291663
+		]
+	],
+	[
+		6629, // Sporid Cape
+		[
+			"When struck in combat inflicts 1 Nature damage to the attacker.", // 1291698 - https://www.wowhead.com/forever/spell=1291698
+		]
+	],
+	[
+		6681, // Thornspike
+		[
+			"Hurl spikes at the target, dealing 45 Physical damage and jumping to 1 additional nearby enemy. Each jump reduces the damage by 50%.", // 1293183 - https://www.wowhead.com/forever/spell=1293183
+		]
+	],
+	[
+		6738, // Bleeding Crescent
+		[
+			"Wounds the target causing them to bleed for 85 damage over 30s.", // 16403 - https://www.wowhead.com/forever/spell=16403
+		]
+	],
+	[
+		6898, // Orb of Soran'ruk
+		[
+			"Restores 48 health every 3.0 sec for 30s.", // 18956 - https://www.wowhead.com/forever/spell=18956
+		]
+	],
+	[
+		6904, // Bite of Serra'kis
+		[
+			"Poisons target for 14 Nature damage every 3.0 sec for 9s.", // 8313 - https://www.wowhead.com/forever/spell=8313
+		]
+	],
+	[
+		6907, // Tortoise Armor
+		[
+			"Spell Damage received is reduced by 5.", // 1292692 - https://www.wowhead.com/forever/spell=1292692
+		]
+	],
+	[
+		6909, // Strike of the Hydra
+		[
+			"Deal 42 Fire and 14 Frost damage, slow the target by 50% for 5s, reduce armor by 50, and deal 7 Nature damage every 3.0 sec for 12s.", // 1292657 - https://www.wowhead.com/forever/spell=1292657
+		]
+	],
+	[
+		6972, // Fire Hardened Hauberk
+		[
+			"Increase Rage by 30.", // 9174 - https://www.wowhead.com/forever/spell=9174
+		]
+	],
+	[
+		7052, // Azure Silk Belt
+		[
+			"Increases swim speed by 15%.", // 8747 - https://www.wowhead.com/forever/spell=8747
+		]
+	],
+	[
+		7133, // Brutal Hauberk
+		[
+			"Increase Rage by 30.", // 9174 - https://www.wowhead.com/forever/spell=9174
+		]
+	],
+	[
+		7189, // Goblin Rocket Boots
+		[
+			"These dangerous looking boots significantly increase your run speed for 20s. They are prone to explode however, so use with caution.", // 8892 - https://www.wowhead.com/forever/spell=8892
+		]
+	],
+	[
+		7284, // Red Whelp Gloves
+		[
+			"5% chance of dealing 40 Fire damage on a successful melee attack.", // 9057 - https://www.wowhead.com/forever/spell=9057
+		]
+	],
+	[
+		7344, // Torch of Holy Flame
+		[
+			"Decrease the armor of target by 50 for 1min.", // 9176 - https://www.wowhead.com/forever/spell=9176
+		]
+	],
+	[
+		7375, // Green Whelp Armor
+		[
+			"When struck by a melee attacker, that attacker has a 5% chance of being put to sleep for 10s. Only affects enemies level 50 and below.", // 9159 - https://www.wowhead.com/forever/spell=9159
+		]
+	],
+	[
+		7391, // Swift Boots
+		[
+			"Increases run speed by 40% for 15s.", // 9175 - https://www.wowhead.com/forever/spell=9175
+		]
+	],
+	[
+		7506, // Gnomish Universal Remote
+		[
+			"Allows control of a mechanical target for a short time. It may not always work and may just root the machine or make it very very angry. Gnomish engineering at its finest.", // 8344 - https://www.wowhead.com/forever/spell=8344
+		]
+	],
+	[
+		7507, // Arcane Orb
+		[
+			"Restores 160 mana.", // 9252 - https://www.wowhead.com/forever/spell=9252
+		]
+	],
+	[
+		7508, // Ley Orb
+		[
+			"Restores 160 mana.", // 9252 - https://www.wowhead.com/forever/spell=9252
+		]
+	],
+	[
+		7682, // Torturing Poker
+		[
+			"Melee attacks with this weapon torture the target, dealing 1 Fire damage and increasing your damage dealt to that target with this effect by 1, stacking up to 10 times.", // 1293433 - https://www.wowhead.com/forever/spell=1293433
+		]
+	],
+	[
+		7726, // Aegis of the Scarlet Commander
+		[
+			"Deals 14 Holy damage every time you block.", // 1293539 - https://www.wowhead.com/forever/spell=1293539
+		]
+	],
+	[
+		7730, // Cobalt Crusher
+		[
+			"Blasts a target for 133 Frost damage.", // 18204 - https://www.wowhead.com/forever/spell=18204
 		]
 	],
 	[
 		7734, // Six Demon Bag
 		[
 			"Blasts enemies in front of you with the power of wind, fire, all that kind of thing!", // 14537 - https://www.wowhead.com/forever/spell=14537
+		]
+	],
+	[
+		7954, // The Shatterer
+		[
+			"Disarm target's weapon for 10s.", // 13534 - https://www.wowhead.com/forever/spell=13534
 		]
 	],
 	[
@@ -52,9 +496,15 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		8190, // Hanzo Sword
+		8006, // The Ziggler
 		[
-			"Wounds the target for 75 damage.", // 16405 - https://www.wowhead.com/forever/spell=16405
+			"Blasts a target for 15 Nature damage.", // 13482 - https://www.wowhead.com/forever/spell=13482
+		]
+	],
+	[
+		8346, // Gauntlets of the Sea
+		[
+			"Heal friendly target for 400.", // 10577 - https://www.wowhead.com/forever/spell=10577
 		]
 	],
 	[
@@ -70,9 +520,81 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		9446, // Electrocutioner Leg
+		[
+			"Blasts a target for 28 Nature damage. Mechanical targets take 2 x damage.", // 1292851 - https://www.wowhead.com/forever/spell=1292851
+		]
+	],
+	[
+		9449, // Manual Crowd Pummeler
+		[
+			"Increases your attack speed by 50% for 30s.", // 13494 - https://www.wowhead.com/forever/spell=13494
+		]
+	],
+	[
+		9452, // Hydrocane
+		[
+			"Underwater Breath lasts 50% longer than normal.", // 11789 - https://www.wowhead.com/forever/spell=11789
+		]
+	],
+	[
+		9453, // Toxic Revenger
+		[
+			"Deals 14 Nature damage every 3.0 sec to any enemy in an 8 yard radius around the caster for 12s.", // 11790 - https://www.wowhead.com/forever/spell=11790
+		]
+	],
+	[
+		9608, // Shoni's Disarming Tool
+		[
+			"Disarm target's weapon for 5s.", // 11879 - https://www.wowhead.com/forever/spell=11879
+		]
+	],
+	[
 		9651, // Gryphon Rider's Stormhammer
 		[
 			"Blasts a target for 91 Nature damage.", // 18081 - https://www.wowhead.com/forever/spell=18081
+		]
+	],
+	[
+		10030, // Admiral's Hat
+		[
+			"Gives 10 additional stamina to party members within 30 yards.", // 12022 - https://www.wowhead.com/forever/spell=12022
+		]
+	],
+	[
+		10506, // Deepdive Helmet
+		[
+			"Underwater breath lasts 100% longer than normal.", // 1320643 - https://www.wowhead.com/forever/spell=1320643
+		]
+	],
+	[
+		10518, // Parachute Cloak
+		[
+			"Reduces your fall speed for 10s.", // 12438 - https://www.wowhead.com/forever/spell=12438
+		]
+	],
+	[
+		10588, // Goblin Rocket Helmet
+		[
+			"Charge an enemy, knocking it silly for 30 seconds. Also knocks you down, stunning you for a short period of time. Any damage caused will revive the target.", // 22641 - https://www.wowhead.com/forever/spell=22641
+		]
+	],
+	[
+		10724, // Gnomish Rocket Boots
+		[
+			"These boots significantly increase your run speed for 20s. WARNING: Their power supply and gyros do not always function as intended.", // 13141 - https://www.wowhead.com/forever/spell=13141
+		]
+	],
+	[
+		10726, // Gnomish Mind Control Cap
+		[
+			"Engage in mental combat with a humanoid target to try and control their mind. If all works well, you will control the mind of the target for 20s.....", // 13180 - https://www.wowhead.com/forever/spell=13180
+		]
+	],
+	[
+		11121, // Darkwater Talwar
+		[
+			"Sends a shadowy bolt at the enemy causing 28 Shadow damage.", // 16408 - https://www.wowhead.com/forever/spell=16408
 		]
 	],
 	[
@@ -88,9 +610,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		11902, // Linken's Sword of Mastery
+		12250, // Midnight Axe
 		[
-			"Blasts a target for 98 Nature damage.", // 18089 - https://www.wowhead.com/forever/spell=18089
+			"Sends a shadowy bolt at the enemy causing 30 Shadow damage.", // 13440 - https://www.wowhead.com/forever/spell=13440
 		]
 	],
 	[
@@ -136,12 +658,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		12794, // Masterwork Stormhammer
-		[
-			"Blasts up to 3 targets for 125 Nature damage.", // 16921 - https://www.wowhead.com/forever/spell=16921
-		]
-	],
-	[
 		12795, // Blood Talon
 		[
 			"Wounds the target causing them to bleed for 100 damage over 30s.", // 13318 - https://www.wowhead.com/forever/spell=13318
@@ -166,21 +682,45 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		12974, // The Black Knight
+		[
+			"Sends a shadowy bolt at the enemy causing 40 Shadow damage.", // 14106 - https://www.wowhead.com/forever/spell=14106
+		]
+	],
+	[
+		12992, // Searing Blade
+		[
+			"Hurls a fiery ball that causes 80 Fire damage and an additional 18 damage over 6s.", // 1299850 - https://www.wowhead.com/forever/spell=1299850
+		]
+	],
+	[
+		13016, // Killmaim
+		[
+			"Wounds the target causing them to bleed for 100 damage over 30s.", // 13318 - https://www.wowhead.com/forever/spell=13318
+		]
+	],
+	[
+		13032, // Sword of Corruption
+		[
+			"Corrupts the target, causing 30 damage over 3s.", // 17510 - https://www.wowhead.com/forever/spell=17510
+		]
+	],
+	[
+		13035, // Serpent Slicer
+		[
+			"Poisons target for 8 Nature damage every 2.0 sec for 20s.", // 17511 - https://www.wowhead.com/forever/spell=17511
+		]
+	],
+	[
 		13040, // Heartseeking Crossbow
 		[
 			"Chance to strike your ranged target with a Shadowbolt for 16 Shadow damage.", // 29640 - https://www.wowhead.com/forever/spell=29640
 		]
 	],
 	[
-		13053, // Doombringer
+		13057, // Bloodpike
 		[
-			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
-		]
-	],
-	[
-		13060, // The Needler
-		[
-			"Wounds the target for 75 damage.", // 16405 - https://www.wowhead.com/forever/spell=16405
+			"Wounds the target causing them to bleed for 98 damage over 14s.", // 18202 - https://www.wowhead.com/forever/spell=18202
 		]
 	],
 	[
@@ -208,6 +748,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		14145, // Cursed Felblade
+		[
+			"Reduces target enemy's attack power by 24 for 30s.", // 18381 - https://www.wowhead.com/forever/spell=18381
+		]
+	],
+	[
 		14153, // Robe of the Void
 		[
 			"Heal your pet for 600.", // 18386 - https://www.wowhead.com/forever/spell=18386
@@ -229,6 +775,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		15814, // Hameya's Slayer
 		[
 			"Wounds the target causing them to bleed for 80 damage over 30s.", // 16406 - https://www.wowhead.com/forever/spell=16406
+		]
+	],
+	[
+		15866, // Veildust Medicine Bag
+		[
+			"Restores 50 mana every 3.0 sec for 15s.", // 19634 - https://www.wowhead.com/forever/spell=19634
 		]
 	],
 	[
@@ -366,7 +918,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		17182, // Sulfuras, Hand of Ragnaros
 		[
-			"Hurls a fiery ball that causes 303 Fire damage and an additional 75 damage over 10s.", // 21162 - https://www.wowhead.com/forever/spell=21162
 			"Deals 5 Fire damage to anyone who strikes you with a melee attack.", // 21142 - https://www.wowhead.com/forever/spell=21142
 		]
 	],
@@ -431,9 +982,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		17705, // Thrash Blade
+		17704, // Edge of Winter
 		[
-			"Grants an extra attack on your next swing.", // 21919 - https://www.wowhead.com/forever/spell=21919
+			"Blasts a target for 30 Frost damage.", // 16407 - https://www.wowhead.com/forever/spell=16407
 		]
 	],
 	[
@@ -491,6 +1042,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		18706, // Arena Master
+		[
+			"Reduces your damage taken by 5% in the Battle Ring and The Maul.", // 1317285 - https://www.wowhead.com/forever/spell=1317285
+		]
+	],
+	[
 		18815, // Essence of the Pure Flame
 		[
 			"When struck in combat inflicts 13 Fire damage to the attacker.", // 23266 - https://www.wowhead.com/forever/spell=23266
@@ -506,12 +1063,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19024, // Arena Grand Master
 		[
 			"Reduces your damage taken by 6% in the Battle Ring and The Maul.", // 1318318 - https://www.wowhead.com/forever/spell=1318318
-		]
-	],
-	[
-		19099, // Glacial Blade
-		[
-			"Blasts a target for 45 Frost damage.", // 18398 - https://www.wowhead.com/forever/spell=18398
 		]
 	],
 	[
@@ -533,18 +1084,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19169, // Nightfall
-		[
-			"Spell damage taken by target increased by 15% for 5s.", // 23605 - https://www.wowhead.com/forever/spell=23605
-		]
-	],
-	[
-		19170, // Ebon Hand
-		[
-			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
-		]
-	],
-	[
 		19287, // Darkmoon Card: Heroism
 		[
 			"Sometimes heals bearer of 150 damage when damaging an enemy in melee.", // 23682 - https://www.wowhead.com/forever/spell=23682
@@ -560,12 +1099,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19323, // The Unstoppable Force
 		[
 			"Stuns target for 1s.", // 23454 - https://www.wowhead.com/forever/spell=23454
-		]
-	],
-	[
-		19324, // The Lobotomizer
-		[
-			"Wounds the target for 250 damage and increases the casting time of all spells by 25% for 30s.", // 1290950 - https://www.wowhead.com/forever/spell=1290950
 		]
 	],
 	[
@@ -761,7 +1294,31 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20092, // Highlander's Chain Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20093, // Highlander's Chain Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20094, // Highlander's Cloth Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20095, // Highlander's Cloth Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20096, // Highlander's Cloth Boots
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
 		]
@@ -773,7 +1330,31 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20101, // Highlander's Lizardhide Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20102, // Highlander's Lizardhide Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20109, // Highlander's Lamellar Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20110, // Highlander's Lamellar Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20111, // Highlander's Lamellar Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
 		]
@@ -785,13 +1366,49 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20113, // Highlander's Leather Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20114, // Highlander's Leather Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20121, // Highlander's Mail Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
 		]
 	],
 	[
+		20122, // Highlander's Mail Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20123, // Highlander's Mail Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20127, // Highlander's Plate Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20128, // Highlander's Plate Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20129, // Highlander's Plate Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
 		]
@@ -809,6 +1426,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20156, // Defiler's Chain Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20157, // Defiler's Chain Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20159, // Defiler's Cloth Boots
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
@@ -821,7 +1450,31 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20161, // Defiler's Cloth Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20162, // Defiler's Cloth Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20167, // Defiler's Lizardhide Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20168, // Defiler's Lizardhide Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20169, // Defiler's Lizardhide Boots
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
 		]
@@ -839,6 +1492,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20182, // Defiler's Lamellar Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20183, // Defiler's Lamellar Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20185, // Defiler's Lamellar Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
@@ -846,6 +1511,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	],
 	[
 		20186, // Defiler's Leather Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20187, // Defiler's Leather Boots
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20188, // Defiler's Leather Boots
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
 		]
@@ -863,6 +1540,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20200, // Defiler's Mail Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20201, // Defiler's Mail Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20202, // Defiler's Mail Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
@@ -875,9 +1564,33 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		20209, // Defiler's Plate Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		20210, // Defiler's Plate Greaves
+		[
+			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
 		20211, // Defiler's Plate Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
+		]
+	],
+	[
+		21119, // Talisman of Arathor
+		[
+			"Absorbs 308 physical damage. Lasts 15s.", // 25750 - https://www.wowhead.com/forever/spell=25750
+		]
+	],
+	[
+		21120, // Defiler's Talisman
+		[
+			"Absorbs 308 physical damage. Lasts 15s.", // 25750 - https://www.wowhead.com/forever/spell=25750
 		]
 	],
 	[
@@ -929,18 +1642,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22013, // Beastmaster's Cap
-		[
-			"Increases your pet's maximum health by 3%.", // 27038 - https://www.wowhead.com/forever/spell=27038
-		]
-	],
-	[
-		22015, // Beastmaster's Gloves
-		[
-			"Increases your pet's critical strike chance by 2%.", // 27043 - https://www.wowhead.com/forever/spell=27043
-		]
-	],
-	[
 		22060, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
@@ -962,6 +1663,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		22198, // Jagged Obsidian Shield
 		[
 			"When struck by a harmful spell, the caster of that spell has a 5% chance to be silenced for 3s.", // 27559 - https://www.wowhead.com/forever/spell=27559
+		]
+	],
+	[
+		22206, // Bouquet of Red Roses
+		[
+			"Shower a nearby target with a cascade of rose petals!", // 27571 - https://www.wowhead.com/forever/spell=27571
 		]
 	],
 	[
@@ -1091,51 +1798,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		208222, // Old Guard Retaliator
-		[
-			"On landing a killing blow that grants experience or honor, your next attack will critically strike.", // 418509 - https://www.wowhead.com/forever/spell=418509
-		]
-	],
-	[
 		208424, // Sun Shades
 		[
 			"", // 463001 - https://www.wowhead.com/forever/spell=463001
-		]
-	],
-	[
-		211941, // Windwalker's Yari
-		[
-			"Blasts enemies in front of you with the power of wind, fire, all that kind of thing!", // 14537 - https://www.wowhead.com/forever/spell=14537
-		]
-	],
-	[
-		220606, // Idol of the Dream
-		[
-			"Increases the duration of Rip by 2 sec.", // 446212 - https://www.wowhead.com/forever/spell=446212
-		]
-	],
-	[
-		220835, // First Sergeant's Mail Sabatons
-		[
-			"Minor increase to running and swimming speed. Does not stack with similar effects.", // 24090 - https://www.wowhead.com/forever/spell=24090
-		]
-	],
-	[
-		220840, // First Sergeant's Inscribed Sabatons
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 22801 - https://www.wowhead.com/forever/spell=22801
-		]
-	],
-	[
-		220846, // First Sergeant's Pulsing Greaves
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 22801 - https://www.wowhead.com/forever/spell=22801
-		]
-	],
-	[
-		220915, // Idol of the Raging Shambler
-		[
-			"", // 408953 - https://www.wowhead.com/forever/spell=408953
 		]
 	],
 	[
@@ -1145,974 +1810,51 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		223077, // Sergeant Major's Mail Sabatons
+		231877, // Tyler's Balanced Bobble
 		[
-			"Minor increase to running and swimming speed. Does not stack with similar effects.", // 24090 - https://www.wowhead.com/forever/spell=24090
+			"", // 469141 - https://www.wowhead.com/forever/spell=469141
 		]
 	],
 	[
-		226883, // Beastmaster's Gauntlets
+		249396, // Mystic Mushroom
 		[
-			"Increases your pet's critical strike chance by 2%.", // 27043 - https://www.wowhead.com/forever/spell=27043
+			"Increases Spirit by 5%.", // 1248751 - https://www.wowhead.com/forever/spell=1248751
 		]
 	],
 	[
-		226886, // Beastmaster's Tunic
+		249398, // Polished Driftwood Icon
 		[
-			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
+			"Allows 8% of your Mana regeneration to continue while casting.", // 1248756 - https://www.wowhead.com/forever/spell=1248756
 		]
 	],
 	[
-		226887, // Beastmaster's Cap
+		249441, // Talons of Wrath
 		[
-			"Increases your pet's maximum health by 3%.", // 27038 - https://www.wowhead.com/forever/spell=27038
+			"Causes Wrath to have a 50% chance to restore 35 Mana.", // 1302521 - https://www.wowhead.com/forever/spell=1302521
 		]
 	],
 	[
-		227050, // Blood Guard's Plate Gauntlets
+		249443, // Totem of Ancestral Protection
 		[
-			"Hamstring Rage cost reduced by -3.0.", // 459608 - https://www.wowhead.com/forever/spell=459608
-		]
-	],
-	[
-		227053, // Knight-Lieutenant's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 459608 - https://www.wowhead.com/forever/spell=459608
-		]
-	],
-	[
-		227062, // Blood Guard's Leather Walkers
-		[
-			"Increases the duration of your Sprint ability by 3.0 sec.", // 459605 - https://www.wowhead.com/forever/spell=459605
-		]
-	],
-	[
-		227064, // Knight-Lieutenant's Leather Walkers
-		[
-			"Increases the duration of your Sprint ability by 3.0 sec.", // 459605 - https://www.wowhead.com/forever/spell=459605
-		]
-	],
-	[
-		227075, // Blood Guard's Chain Vices
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 459593 - https://www.wowhead.com/forever/spell=459593
-		]
-	],
-	[
-		227077, // Knight-Lieutenant's Chain Vices
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 459593 - https://www.wowhead.com/forever/spell=459593
-		]
-	],
-	[
-		227081, // Blood Guard's Chain Grips
-		[
-			"Increases the damage done by your Raptor Strike by 4%.", // 459598 - https://www.wowhead.com/forever/spell=459598
-		]
-	],
-	[
-		227087, // Knight-Lieutenant's Chain Grips
-		[
-			"Increases the damage done by your Raptor Strike by 4%.", // 459598 - https://www.wowhead.com/forever/spell=459598
-		]
-	],
-	[
-		227099, // Blood Guard's Dreadweave Handwraps
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 459607 - https://www.wowhead.com/forever/spell=459607
-		]
-	],
-	[
-		227100, // Knight-Lieutenant's Dreadweave Handwraps
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 459607 - https://www.wowhead.com/forever/spell=459607
-		]
-	],
-	[
-		227111, // Blood Guard's Silk Handwraps
-		[
-			"Increases the damage absorbed by your Mana Shield by 285.", // 459599 - https://www.wowhead.com/forever/spell=459599
-		]
-	],
-	[
-		227113, // Knight-Lieutenant's Silk Handwraps
-		[
-			"Increases the damage absorbed by your Mana Shield by 285.", // 459599 - https://www.wowhead.com/forever/spell=459599
-		]
-	],
-	[
-		227114, // Knight-Lieutenant's Silk Gauntlets
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.", // 459600 - https://www.wowhead.com/forever/spell=459600
-		]
-	],
-	[
-		227115, // Blood Guard's Silk Gauntlets
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.", // 459600 - https://www.wowhead.com/forever/spell=459600
-		]
-	],
-	[
-		227126, // Blood Guard's Satin Handwraps
-		[
-			"Reduces the duration of your Weakened Soul by 2 sec.", // 459603 - https://www.wowhead.com/forever/spell=459603
-		]
-	],
-	[
-		227128, // Knight-Lieutenant's Satin Handwraps
-		[
-			"Reduces the duration of your Weakened Soul by 2 sec.", // 459603 - https://www.wowhead.com/forever/spell=459603
-		]
-	],
-	[
-		227133, // Blood Guard's Satin Grips
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 459604 - https://www.wowhead.com/forever/spell=459604
-		]
-	],
-	[
-		227139, // Knight-Lieutenant's Satin Grips
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 459604 - https://www.wowhead.com/forever/spell=459604
-		]
-	],
-	[
-		227147, // Knight-Lieutenant's Lamellar Gauntlets
-		[
-			"Your damaging Judgements deal 20 additional damage.", // 459601 - https://www.wowhead.com/forever/spell=459601
-		]
-	],
-	[
-		227152, // Knight-Lieutenant's Lamellar Gloves
-		[
-			"Increases the critical strike chance of your Holy Shock by 2%.", // 459602 - https://www.wowhead.com/forever/spell=459602
-		]
-	],
-	[
-		227158, // Blood Guard's Mail Greaves
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 459606 - https://www.wowhead.com/forever/spell=459606
-		]
-	],
-	[
-		227164, // Blood Guard's Mail Sabatons
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 459606 - https://www.wowhead.com/forever/spell=459606
-		]
-	],
-	[
-		227170, // Blood Guard's Mail Boots
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 459606 - https://www.wowhead.com/forever/spell=459606
-		]
-	],
-	[
-		227180, // Blood Guard's Dragonhide Grips
-		[
-			"Reduces the mana cost of your shapeshifts by 150.", // 459594 - https://www.wowhead.com/forever/spell=459594
-		]
-	],
-	[
-		227183, // Knight-Lieutenant's Dragonhide Grips
-		[
-			"Reduces the mana cost of your shapeshifts by 150.", // 459594 - https://www.wowhead.com/forever/spell=459594
-		]
-	],
-	[
-		227187, // Blood Guard's Dragonhide Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.", // 459595 - https://www.wowhead.com/forever/spell=459595
-		]
-	],
-	[
-		227193, // Knight-Lieutenant's Dragonhide Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.", // 459595 - https://www.wowhead.com/forever/spell=459595
-		]
-	],
-	[
-		227198, // Knight-Lieutenant's Dragonhide Gauntlets
-		[
-			"Increases the duration of your Barkskin by 3 sec.", // 459596 - https://www.wowhead.com/forever/spell=459596
-		]
-	],
-	[
-		227204, // Blood Guard's Dragonhide Gauntlets
-		[
-			"Increases the duration of your Barkskin by 3 sec.", // 459596 - https://www.wowhead.com/forever/spell=459596
-		]
-	],
-	[
-		227444, // Idol of the Huntress
-		[
-			"", // 408953 - https://www.wowhead.com/forever/spell=408953
-			"", // 461643 - https://www.wowhead.com/forever/spell=461643
-		]
-	],
-	[
-		228176, // Totem of Thunder
-		[
-			"Increases the critical strike chance of Lightning Bolt by 1%.", // 461295 - https://www.wowhead.com/forever/spell=461295
-		]
-	],
-	[
-		231532, // General's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 459608 - https://www.wowhead.com/forever/spell=459608
-		]
-	],
-	[
-		231541, // Marshal's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 459608 - https://www.wowhead.com/forever/spell=459608
-		]
-	],
-	[
-		231546, // Marshal's Leather Footguards
-		[
-			"Increases the duration of your Sprint ability by 3.0 sec.", // 459605 - https://www.wowhead.com/forever/spell=459605
-		]
-	],
-	[
-		231552, // General's Leather Treads
-		[
-			"Increases the duration of your Sprint ability by 3.0 sec.", // 459605 - https://www.wowhead.com/forever/spell=459605
-		]
-	],
-	[
-		231560, // Marshal's Chain Grips
-		[
-			"Increases the damage done by your Raptor Strike by 4%.", // 459598 - https://www.wowhead.com/forever/spell=459598
-		]
-	],
-	[
-		231569, // General's Chain Grips
-		[
-			"Increases the damage done by your Raptor Strike by 4%.", // 459598 - https://www.wowhead.com/forever/spell=459598
-		]
-	],
-	[
-		231575, // General's Chain Vices
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 459593 - https://www.wowhead.com/forever/spell=459593
-		]
-	],
-	[
-		231578, // Marshal's Chain Vices
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 459593 - https://www.wowhead.com/forever/spell=459593
-		]
-	],
-	[
-		231586, // Marshal's Dreadweave Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 459607 - https://www.wowhead.com/forever/spell=459607
-		]
-	],
-	[
-		231589, // General's Dreadweave Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 459607 - https://www.wowhead.com/forever/spell=459607
-		]
-	],
-	[
-		231599, // General's Silk Gauntlets
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.", // 459600 - https://www.wowhead.com/forever/spell=459600
-		]
-	],
-	[
-		231600, // General's Silk Handwraps
-		[
-			"Increases the damage absorbed by your Mana Shield by 285.", // 459599 - https://www.wowhead.com/forever/spell=459599
-		]
-	],
-	[
-		231608, // Marshal's Silk Gauntlets
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Arcane Blast.", // 459600 - https://www.wowhead.com/forever/spell=459600
-		]
-	],
-	[
-		231609, // Marshal's Silk Handwraps
-		[
-			"Increases the damage absorbed by your Mana Shield by 285.", // 459599 - https://www.wowhead.com/forever/spell=459599
-		]
-	],
-	[
-		231613, // General's Satin Grips
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 459604 - https://www.wowhead.com/forever/spell=459604
-		]
-	],
-	[
-		231617, // Marshal's Satin Grips
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 459604 - https://www.wowhead.com/forever/spell=459604
-		]
-	],
-	[
-		231623, // Marshal's Satin Handwraps
-		[
-			"Reduces the duration of your Weakened Soul by 2 sec.", // 459603 - https://www.wowhead.com/forever/spell=459603
-		]
-	],
-	[
-		231633, // General's Satin Handwraps
-		[
-			"Reduces the duration of your Weakened Soul by 2 sec.", // 459603 - https://www.wowhead.com/forever/spell=459603
-		]
-	],
-	[
-		231643, // Marshal's Lamellar Gloves
-		[
-			"Increases the critical strike chance of your Holy Shock by 2%.", // 459602 - https://www.wowhead.com/forever/spell=459602
-		]
-	],
-	[
-		231650, // Marshal's Lamellar Gauntlets
-		[
-			"Your damaging Judgements deal 20 additional damage.", // 459601 - https://www.wowhead.com/forever/spell=459601
-		]
-	],
-	[
-		231656, // General's Mail Greaves
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 459606 - https://www.wowhead.com/forever/spell=459606
-		]
-	],
-	[
-		231661, // General's Mail Sabatons
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 459606 - https://www.wowhead.com/forever/spell=459606
-		]
-	],
-	[
-		231667, // General's Mail Boots
-		[
-			"Increases the speed of your Ghost Wolf ability by 15%.", // 459606 - https://www.wowhead.com/forever/spell=459606
-		]
-	],
-	[
-		231676, // General's Dragonhide Gauntlets
-		[
-			"Increases the duration of your Barkskin by 3 sec.", // 459596 - https://www.wowhead.com/forever/spell=459596
-		]
-	],
-	[
-		231677, // General's Dragonhide Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.", // 459595 - https://www.wowhead.com/forever/spell=459595
-		]
-	],
-	[
-		231688, // General's Dragonhide Grips
-		[
-			"Reduces the mana cost of your shapeshifts by 150.", // 459594 - https://www.wowhead.com/forever/spell=459594
-		]
-	],
-	[
-		231694, // Marshal's Dragonhide Grips
-		[
-			"Reduces the mana cost of your shapeshifts by 150.", // 459594 - https://www.wowhead.com/forever/spell=459594
-		]
-	],
-	[
-		231700, // Marshal's Dragonhide Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Wrath.", // 459595 - https://www.wowhead.com/forever/spell=459595
-		]
-	],
-	[
-		231706, // Marshal's Dragonhide Gauntlets
-		[
-			"Increases the duration of your Barkskin by 3 sec.", // 459596 - https://www.wowhead.com/forever/spell=459596
-		]
-	],
-	[
-		234016, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the casting speed of your spells by 2% per piece of Timeworn armor equipped.", // 1213398 - https://www.wowhead.com/forever/spell=1213398
-		]
-	],
-	[
-		234017, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234018, // Signet Ring of the Bronze Dragonflight
-		[
-			"Reduces the chance for your attacks to be dodged or parried by 1% per piece of Timeworn armor equipped.", // 1213407 - https://www.wowhead.com/forever/spell=1213407
-		]
-	],
-	[
-		234019, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the effectiveness of your healing and shielding spells by 2% per piece of Timeworn armor equipped.", // 1213405 - https://www.wowhead.com/forever/spell=1213405
-		]
-	],
-	[
-		234020, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the casting speed of your spells by 2% per piece of Timeworn armor equipped.", // 1213398 - https://www.wowhead.com/forever/spell=1213398
-		]
-	],
-	[
-		234021, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234022, // Signet Ring of the Bronze Dragonflight
-		[
-			"Reduces the chance for your attacks to be dodged or parried by 1% per piece of Timeworn armor equipped.", // 1213407 - https://www.wowhead.com/forever/spell=1213407
-		]
-	],
-	[
-		234023, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the effectiveness of your healing and shielding spells by 2% per piece of Timeworn armor equipped.", // 1213405 - https://www.wowhead.com/forever/spell=1213405
-		]
-	],
-	[
-		234024, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the casting speed of your spells by 2% per piece of Timeworn armor equipped.", // 1213398 - https://www.wowhead.com/forever/spell=1213398
-		]
-	],
-	[
-		234025, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the effectiveness of your healing and shielding spells by 2% per piece of Timeworn armor equipped.", // 1213405 - https://www.wowhead.com/forever/spell=1213405
-		]
-	],
-	[
-		234026, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234027, // Signet Ring of the Bronze Dragonflight
-		[
-			"Reduces the chance for your attacks to be dodged or parried by 1% per piece of Timeworn armor equipped.", // 1213407 - https://www.wowhead.com/forever/spell=1213407
-		]
-	],
-	[
-		234028, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the casting speed of your spells by 2% per piece of Timeworn armor equipped.", // 1213398 - https://www.wowhead.com/forever/spell=1213398
-		]
-	],
-	[
-		234029, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the effectiveness of your healing and shielding spells by 2% per piece of Timeworn armor equipped.", // 1213405 - https://www.wowhead.com/forever/spell=1213405
-		]
-	],
-	[
-		234030, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234031, // Signet Ring of the Bronze Dragonflight
-		[
-			"Reduces the chance for your attacks to be dodged or parried by 1% per piece of Timeworn armor equipped.", // 1213407 - https://www.wowhead.com/forever/spell=1213407
-		]
-	],
-	[
-		234032, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the casting speed of your spells by 2% per piece of Timeworn armor equipped.", // 1213398 - https://www.wowhead.com/forever/spell=1213398
-		]
-	],
-	[
-		234033, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the effectiveness of your healing and shielding spells by 2% per piece of Timeworn armor equipped.", // 1213405 - https://www.wowhead.com/forever/spell=1213405
-		]
-	],
-	[
-		234034, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234035, // Signet Ring of the Bronze Dragonflight
-		[
-			"Reduces the chance for your attacks to be dodged or parried by 1% per piece of Timeworn armor equipped.", // 1213407 - https://www.wowhead.com/forever/spell=1213407
-		]
-	],
-	[
-		234198, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234199, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234200, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234201, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234202, // Signet Ring of the Bronze Dragonflight
-		[
-			"Gives you 1% chance per piece of Timeworn armor equipped to get an extra attack on melee or ranged hit.", // 1213381 - https://www.wowhead.com/forever/spell=1213381
-			"", // 1213393 - https://www.wowhead.com/forever/spell=1213393
-		]
-	],
-	[
-		234436, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the damage dealt by all of your damage over time spells by 3% per piece of Timeworn armor equipped.", // 1214155 - https://www.wowhead.com/forever/spell=1214155
-		]
-	],
-	[
-		234437, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the damage dealt by all of your damage over time spells by 3% per piece of Timeworn armor equipped.", // 1214155 - https://www.wowhead.com/forever/spell=1214155
-		]
-	],
-	[
-		234438, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the damage dealt by all of your damage over time spells by 3% per piece of Timeworn armor equipped.", // 1214155 - https://www.wowhead.com/forever/spell=1214155
-		]
-	],
-	[
-		234439, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the damage dealt by all of your damage over time spells by 3% per piece of Timeworn armor equipped.", // 1214155 - https://www.wowhead.com/forever/spell=1214155
-		]
-	],
-	[
-		234440, // Signet Ring of the Bronze Dragonflight
-		[
-			"Increases the damage dealt by all of your damage over time spells by 3% per piece of Timeworn armor equipped.", // 1214155 - https://www.wowhead.com/forever/spell=1214155
-		]
-	],
-	[
-		234542, // High Warlord's Greatsword
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234543, // High Warlord's Battle Axe
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234545, // High Warlord's Pulverizer
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234546, // High Warlord's Destroyer
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234547, // High Warlord's Pig Sticker
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234548, // High Warlord's Pig Poker
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234549, // High Warlord's War Staff
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234550, // High Warlord's Spellblade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234551, // High Warlord's Battle Mace
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234552, // High Warlord's Blade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234553, // High Warlord's Quickblade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234554, // High Warlord's Cleaver
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234555, // High Warlord's Bludgeon
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234556, // High Warlord's Razor
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234557, // High Warlord's Right Claw
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234558, // High Warlord's Left Claw
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234559, // High Warlord's Recurve
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234560, // High Warlord's Crossbow
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234561, // High Warlord's Street Sweeper
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234562, // High Warlord's Shield Wall
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234563, // High Warlord's Tome of Destruction
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234564, // High Warlord's Tome of Mending
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234565, // Grand Marshal's Claymore
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234566, // Grand Marshal's Sunderer
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234567, // Grand Marshal's Battle Hammer
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234568, // Grand Marshal's Demolisher
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234569, // Grand Marshal's Glaive
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234570, // Grand Marshal's Polearm
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234571, // Grand Marshal's Stave
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234574, // Grand Marshal's Mageblade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234576, // Grand Marshal's Warhammer
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234578, // Grand Marshal's Longsword
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234579, // Grand Marshal's Swiftblade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234580, // Grand Marshal's Handaxe
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234581, // Grand Marshal's Punisher
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234582, // Grand Marshal's Dirk
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234583, // Grand Marshal's Right Hand Blade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234584, // Grand Marshal's Left Hand Blade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234585, // Grand Marshal's Bullseye
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234586, // Grand Marshal's Repeater
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234587, // Grand Marshal's Hand Cannon
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234588, // Grand Marshal's Aegis
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234589, // Grand Marshal's Tome of Power
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234590, // Grand Marshal's Tome of Restoration
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234964, // Signet Ring of the Bronze Dragonflight
-		[
-			"While Metamorphosis or Way of Earth is active, increases the effectiveness of your Fire damage spells by 3% per piece of Timeworn armor equipped.", // 1215404 - https://www.wowhead.com/forever/spell=1215404
-		]
-	],
-	[
-		234965, // Signet Ring of the Bronze Dragonflight
-		[
-			"While Metamorphosis or Way of Earth is active, increases the effectiveness of your Fire damage spells by 3% per piece of Timeworn armor equipped.", // 1215404 - https://www.wowhead.com/forever/spell=1215404
-		]
-	],
-	[
-		234966, // Signet Ring of the Bronze Dragonflight
-		[
-			"While Metamorphosis or Way of Earth is active, increases the effectiveness of your Fire damage spells by 3% per piece of Timeworn armor equipped.", // 1215404 - https://www.wowhead.com/forever/spell=1215404
-		]
-	],
-	[
-		234967, // Signet Ring of the Bronze Dragonflight
-		[
-			"While Metamorphosis or Way of Earth is active, increases the effectiveness of your Fire damage spells by 3% per piece of Timeworn armor equipped.", // 1215404 - https://www.wowhead.com/forever/spell=1215404
-		]
-	],
-	[
-		234968, // Signet Ring of the Bronze Dragonflight
-		[
-			"While Metamorphosis or Way of Earth is active, increases the effectiveness of your Fire damage spells by 3% per piece of Timeworn armor equipped.", // 1215404 - https://www.wowhead.com/forever/spell=1215404
-		]
-	],
-	[
-		235473, // Grand Marshal's Barricade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235474, // High Warlord's Barricade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235476, // High Warlord's Hacker
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235477, // High Warlord's Bonecracker
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235478, // High Warlord's Shiv
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235479, // Grand Marshal's Shiv
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235480, // Grand Marshal's Bonecracker
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		235481, // Grand Marshal's Hacker
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		239565, // Garb of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
-		]
-	],
-	[
-		239572, // Boots of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
-		]
-	],
-	[
-		239574, // Hands of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
-		]
-	],
-	[
-		239575, // Crown of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
-		]
-	],
-	[
-		239577, // Pants of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
-		]
-	],
-	[
-		239581, // Mantle of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 4%.", // 1222997 - https://www.wowhead.com/forever/spell=1222997
-		]
-	],
-	[
-		239582, // Girdle of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
-		]
-	],
-	[
-		239583, // Wrists of Revelation
-		[
-			"Increases the damage dealt by your damage over time spells by 2%.", // 1222994 - https://www.wowhead.com/forever/spell=1222994
+			"Reduces the cooldown of Grounding Totem by 1 sec.", // 1249011 - https://www.wowhead.com/forever/spell=1249011
 		]
 	],
 	[
 		249473, // Dormant Heart of the Mountain
 		[
 			"Your casts of Greater Heal in combat grant up to 40 increased healing and up to 13 increased damage for 15s.", // 1249119 - https://www.wowhead.com/forever/spell=1249119
+		]
+	],
+	[
+		251533, // Forsaken Greataxe
+		[
+			"Movement speed increased by 2% in Silverpine Forest and Hillsbrad Foothills.", // 1309369 - https://www.wowhead.com/forever/spell=1309369
+		]
+	],
+	[
+		251534, // Gnarled Necromancer's Staff
+		[
+			"Movement speed increased by 2% in Silverpine Forest and Hillsbrad Foothills.", // 1309369 - https://www.wowhead.com/forever/spell=1309369
 		]
 	],
 	[
@@ -2143,6 +1885,30 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		260824, // Gnomish Poultryizer
 		[
 			"Turns the target into a chicken for 15s. Well, that is assuming the transmogrification polarity has not been reversed...", // 1270941 - https://www.wowhead.com/forever/spell=1270941
+		]
+	],
+	[
+		263435, // Mark of Urs'endris
+		[
+			"Increases your Armor contribution from items by 4%.", // 1270490 - https://www.wowhead.com/forever/spell=1270490
+		]
+	],
+	[
+		263436, // Firestorm Totem
+		[
+			"Reduces the mana cost of your totems by 5%.", // 1270492 - https://www.wowhead.com/forever/spell=1270492
+		]
+	],
+	[
+		267369, // Wolfsbane
+		[
+			"Sear the target with a vortex of blazing wind, dealing 49 Holystorm damage. Deals 3 times as much damage to Wolves and Worgen. ", // 1282503 - https://www.wowhead.com/forever/spell=1282503
+		]
+	],
+	[
+		268484, // Moonsilver Blade
+		[
+			"Sear certain enchanted targets with blazing light causing it to take additional damage from holy attacks and spells", // 1282482 - https://www.wowhead.com/forever/spell=1282482
 		]
 	],
 	[
@@ -2399,6 +2165,42 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		272999, // Barbaric Crossbow
+		[
+			"Wounds the target for 14 Physical damage.", // 1291551 - https://www.wowhead.com/forever/spell=1291551
+		]
+	],
+	[
+		273003, // Searing Dagger
+		[
+			"Harmful spell casts sear the target for 3 Fire damage.", // 1291570 - https://www.wowhead.com/forever/spell=1291570
+		]
+	],
+	[
+		273084, // Cloak of Hermitic Bliss
+		[
+			"Swim speed increased by 33%.", // 1291749 - https://www.wowhead.com/forever/spell=1291749
+		]
+	],
+	[
+		273089, // Slither Cord
+		[
+			"Escape all immobilizing effects.", // 1291758 - https://www.wowhead.com/forever/spell=1291758
+		]
+	],
+	[
+		273137, // Skum's Bucket
+		[
+			"Restores 0 mana over 24s. Must remain seated while drinking.", // 1291782 - https://www.wowhead.com/forever/spell=1291782
+		]
+	],
+	[
+		273293, // Bandsaw Wristbands
+		[
+			"Deals 6 Physical damage every time you block.", // 1292039 - https://www.wowhead.com/forever/spell=1292039
+		]
+	],
+	[
 		273329, // Premier Lieutenant Commander's Luminous Gloves
 		[
 			"Increases the critical strike chance of your Flash of Light by 2%. ", // 1293544 - https://www.wowhead.com/forever/spell=1293544
@@ -2444,6 +2246,72 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		273445, // Premier Mooncloth Gloves
 		[
 			"Gives you a 50% chance to avoid interruption caused by damage while casting Flash Heal.", // 1293542 - https://www.wowhead.com/forever/spell=1293542
+		]
+	],
+	[
+		273643, // Worgenbane Talisman
+		[
+			"Stuns target Worgen for 4s.", // 1292252 - https://www.wowhead.com/forever/spell=1292252
+		]
+	],
+	[
+		273819, // Boneslicer
+		[
+			"Wounds the target for 70 Physical damage.", // 1292573 - https://www.wowhead.com/forever/spell=1292573
+		]
+	],
+	[
+		273820, // Nightskulker Ring
+		[
+			"Movement speed increased by 2% in Duskwood.", // 1292575 - https://www.wowhead.com/forever/spell=1292575
+		]
+	],
+	[
+		273824, // Defias Jailbreakers
+		[
+			"Lockpicking +4.", // 1292581 - https://www.wowhead.com/forever/spell=1292581
+		]
+	],
+	[
+		273827, // Debt Collector
+		[
+			"Grants 6 health and 2 mana every 5 sec for 15s when one of your spells is resisted.", // 1292598 - https://www.wowhead.com/forever/spell=1292598
+		]
+	],
+	[
+		273839, // Spiked Shell Band
+		[
+			"When struck in combat inflicts 2 Nature damage to the attacker.", // 1292670 - https://www.wowhead.com/forever/spell=1292670
+		]
+	],
+	[
+		273840, // Cursed Murloc Eye
+		[
+			"Spells and attacks against Murlocs deal 8 Shadow damage.", // 1292675 - https://www.wowhead.com/forever/spell=1292675
+		]
+	],
+	[
+		273841, // Twilight Maul
+		[
+			"Blasts a target for 70 Nature damage.", // 1292679 - https://www.wowhead.com/forever/spell=1292679
+		]
+	],
+	[
+		273842, // Treacherous Treads
+		[
+			"Increases all threat generated by 1%.", // 1292683 - https://www.wowhead.com/forever/spell=1292683
+		]
+	],
+	[
+		274152, // Roogug's Severed Head
+		[
+			"Raise the severed head of Roogug, Horrifying and Silencing all Swine within 15 yards for 5s.", // 1293306 - https://www.wowhead.com/forever/spell=1293306
+		]
+	],
+	[
+		274159, // Thorncursed Grips
+		[
+			"Your melee weapon attacks deal 2 Nature damage to both you and your target. ", // 1293333 - https://www.wowhead.com/forever/spell=1293333
 		]
 	],
 	[
@@ -2513,6 +2381,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		274747, // Soggy Boots
+		[
+			"", // 1295267 - https://www.wowhead.com/forever/spell=1295267
+		]
+	],
+	[
 		274760, // Everlook Delivery Bot
 		[
 			"Marks a target for delivery. After landing 6 to 8 spells or attacks, deal 467 Fire damage. Number of spells or attacks is halved in Snowy areas.", // 1295271 - https://www.wowhead.com/forever/spell=1295271
@@ -2523,6 +2397,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		[
 			"Page Everlook Emergency Services for a Parachute-Priest that will assist in healing allies for 15s.", // 1295272 - https://www.wowhead.com/forever/spell=1295272
 			"", // 1318317 - https://www.wowhead.com/forever/spell=1318317
+		]
+	],
+	[
+		274963, // Rot-Covered Harpoon
+		[
+			"Disease target for 25 Nature damage every 1.0 sec for 7s. Deals 2 times as much damage to Aquatic enemies.", // 1295744 - https://www.wowhead.com/forever/spell=1295744
 		]
 	],
 	[
@@ -2586,6 +2466,36 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		276631, // Coldflame Saber
+		[
+			"Melee attacks deal 98 Fire additional damage against Frozen targets.", // 1300130 - https://www.wowhead.com/forever/spell=1300130
+		]
+	],
+	[
+		276895, // Transformative Cocoon
+		[
+			"", // 1316049 - https://www.wowhead.com/forever/spell=1316049
+		]
+	],
+	[
+		277844, // Mirage Mirror
+		[
+			"Increases run speed by 25% for 10s. While out of combat in Desert areas, gain an additional 25% run speed and become invisible.", // 1302833 - https://www.wowhead.com/forever/spell=1302833
+		]
+	],
+	[
+		277910, // Mysticbloom Seed
+		[
+			"", // 1317283 - https://www.wowhead.com/forever/spell=1317283
+		]
+	],
+	[
+		277950, // Wastewanderer Rations
+		[
+			"Your Well Fed buffs metabolize 50% slower. This effect is increased by an additional 50% in Wasteland areas.", // 1302968 - https://www.wowhead.com/forever/spell=1302968
+		]
+	],
+	[
 		279249, // Totem of Urgency
 		[
 			"Increases the critical strike chance of your Lessing Healing Wave spell by 4%.", // 1306448 - https://www.wowhead.com/forever/spell=1306448
@@ -2604,9 +2514,57 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		279876, // Plaguefang
+		[
+			"Poisons target for 4 Nature damage every 1.0 sec for 10s.", // 1309315 - https://www.wowhead.com/forever/spell=1309315
+		]
+	],
+	[
+		280604, // Rage of the Storm
+		[
+			"Increases the damage dealt by your Stormstrike ability by 10%.", // 1309422 - https://www.wowhead.com/forever/spell=1309422
+		]
+	],
+	[
+		280605, // Tidebringer's Claw
+		[
+			"Increases the critical strike chance of your Healing Wave and Lesser Healing Wave spells by 2%.", // 1309539 - https://www.wowhead.com/forever/spell=1309539
+		]
+	],
+	[
+		280607, // Lightning's Grasp
+		[
+			"Increases the critical strike chance of your Lightning Bolt spell by 1%.", // 1309442 - https://www.wowhead.com/forever/spell=1309442
+		]
+	],
+	[
+		281665, // Twilight Forgehammer
+		[
+			"Blast the target with the fires of a forge, inflicting 51 Fire damage.", // 1312176 - https://www.wowhead.com/forever/spell=1312176
+		]
+	],
+	[
 		282080, // Flame Seared Signet
 		[
 			"When struck in combat inflicts 2 Fire damage to the attacker.", // 1312955 - https://www.wowhead.com/forever/spell=1312955
+		]
+	],
+	[
+		282551, // Golem Fist
+		[
+			"Smash the target for 85 damage.", // 1314011 - https://www.wowhead.com/forever/spell=1314011
+		]
+	],
+	[
+		282561, // Siegebreaker's Blaster
+		[
+			"Strike the target with a Flaming Shell, inflicting 7 Fire damage every 3 sec for 9 sec.", // 1314040 - https://www.wowhead.com/forever/spell=1314040
+		]
+	],
+	[
+		284193, // Moongazer's Wand
+		[
+			"Increases intellect by 5 at night.", // 1315339 - https://www.wowhead.com/forever/spell=1315339
 		]
 	],
 	[
@@ -2616,9 +2574,45 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		284386, // Whipfang's Skinsearer
+		[
+			"Sear your target's flesh dealing 84 Fire damage.", // 1316039 - https://www.wowhead.com/forever/spell=1316039
+		]
+	],
+	[
+		285275, // Satchel of Copper Bombs
+		[
+			"Thrown attacks explode on impact, causing 6 Fire damage to nearby enemies.", // 1318031 - https://www.wowhead.com/forever/spell=1318031
+		]
+	],
+	[
+		285276, // Satchel of Bronze Bombs
+		[
+			"Thrown attacks explode on impact, causing 11 Fire damage to nearby enemies.", // 1318061 - https://www.wowhead.com/forever/spell=1318061
+		]
+	],
+	[
 		285281, // Arcanite Blacksmith Hammer
 		[
 			"Stun the target for 1s.", // 1318178 - https://www.wowhead.com/forever/spell=1318178
+		]
+	],
+	[
+		285332, // Puncturing Spear
+		[
+			"Puncture the target, inflicting 90 Physical damage.", // 1318250 - https://www.wowhead.com/forever/spell=1318250
+		]
+	],
+	[
+		286537, // Thunderstomp's Horn
+		[
+			"Thunderstomp nearby enemies, inflicting 23 Nature damage.", // 1320498 - https://www.wowhead.com/forever/spell=1320498
+		]
+	],
+	[
+		286541, // Bael'dun Tankard
+		[
+			"Restores 0 mana over 27s. Must remain seated while drinking.", // 1133 - https://www.wowhead.com/forever/spell=1133
 		]
 	],
 ])

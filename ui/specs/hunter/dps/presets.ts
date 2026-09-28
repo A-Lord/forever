@@ -6,41 +6,51 @@ import {
 	Hunter_Options as HunterOptions,
 	Hunter_Rotation,
 	HunterOptions_Ammo,
+	HunterOptions_PetAttackSpeed,
 	HunterOptions_PetType as PetType,
 	HunterOptions_QuiverBonus,
 } from '@generated/proto/hunter';
+import { SavedTalents } from '@generated/proto/ui';
 
 import DefaultAPL from './apls/default.apl.json';
+import P1GearJson from './gear_sets/p1.gear.json';
+
+export const P1Gear = PresetUtils.makePresetGear('P1', P1GearJson);
 
 export const DefaultRotation = PresetUtils.makePresetAPLRotation('APL', DefaultAPL);
 
 export const TurretRotation = Hunter_Rotation.create({
-	viperStartManaPercent: 0.05,
-	viperStopManaPercent: 0.25,
 	meleeWeave: false,
 	timeToWeave: 400,
-	useMulti: true,
+	useMulti: false,
 	useArcane: true,
 });
 export const TurretSimple = PresetUtils.makePresetSimpleRotation('Turret', Spec.SpecHunter, TurretRotation);
 
 export const WeaveRotation = Hunter_Rotation.create({
-	viperStartManaPercent: 0.05,
-	viperStopManaPercent: 0.25,
 	meleeWeave: true,
 	timeToWeave: 400,
-	useMulti: true,
+	useMulti: false,
 	useArcane: true,
 });
 export const WeaveSimple = PresetUtils.makePresetSimpleRotation('Weave', Spec.SpecHunter, WeaveRotation);
 
+export const BeastMasteryTalents = {
+	name: 'Beast Mastery',
+	data: SavedTalents.create({
+		talentsString: '5320001505101251-005355000101-',
+	}),
+};
+
 export const DefaultOptions = HunterOptions.create({
 	classOptions: {
-		ammo: HunterOptions_Ammo.WardensArrow,
-		quiverBonus: HunterOptions_QuiverBonus.Speed15,
-		petType: PetType.Ravager,
+		ammo: HunterOptions_Ammo.ThoriumHeadedArrow,
+		quiverBonus: HunterOptions_QuiverBonus.AncientSinewWrappedLamina,
+		petType: PetType.Raptor,
 		petUptime: 1,
-		petSingleAbility: false,
+		petAttackSpeed: HunterOptions_PetAttackSpeed.FasterAttackII,
+		cobraReflexes: true,
+		petAggression: 5,
 	},
 });
 
@@ -73,7 +83,6 @@ export const DefaultDebuffs = Debuffs.create({
 	exposeArmor: true,
 	faerieFire: true,
 	giftOfArthas: true,
-	huntersMark: true,
 	insectSwarm: true,
 	judgementOfLight: true,
 	judgementOfWisdom: true,
@@ -82,7 +91,7 @@ export const DefaultDebuffs = Debuffs.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GreaterMagebloodElixir.id],
-	foodId: Consumables.FiletOFlank.id,
+	foodId: Consumables.SwiftstrikeSteak.id,
 	potId: Consumables.MajorFrenzyPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,

@@ -164,8 +164,7 @@ var Party = []BuffSpec{
 		Category:   "DruidCritAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
-			proto.Stat_StatMeleeCritRating,
-			proto.Stat_StatSpellCritRating,
+			proto.Stat_StatCritRating,
 		},
 	},
 	{
@@ -198,8 +197,7 @@ var Party = []BuffSpec{
 		Category:   "DruidCritAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
-			proto.Stat_StatMeleeCritRating,
-			proto.Stat_StatSpellCritRating,
+			proto.Stat_StatCritRating,
 		},
 	},
 	// Driven because the damage scales with the providing paladin's Holy spell power.
@@ -393,7 +391,6 @@ var Individual = []BuffSpec{
 			proto.Stat_StatHealingPower,
 		},
 	},
-	// Auras 134 and 110 are the spirit regen the driver applies.
 	{
 		Field:    "innervates",
 		SpellID:  29166,
@@ -410,7 +407,7 @@ var Individual = []BuffSpec{
 		Kind:     KindExternalCD,
 		Category: "PowerInfusion",
 		Stats: []proto.Stat{
-			proto.Stat_StatSpellHasteRating,
+			proto.Stat_StatHasteRating,
 		},
 		Label: "Power Infusions",
 	},
@@ -483,7 +480,7 @@ var Debuffs = []BuffSpec{
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
-			proto.Stat_StatMeleeHitRating,
+			proto.Stat_StatHitRating,
 		},
 	},
 	// The -450 armor is per combo point, so the raid config's debuff is the five-point finisher. A
@@ -595,7 +592,7 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatDefenseRating,
 		},
 	},
-	// The client states one stack, and a stacking row's amount follows its stacks, so the raid's
+	// The game files state one stack, and a stacking row's amount follows its stacks, so the raid's
 	// copy takes it from a driver rather than sitting at zero.
 	{
 		Field:      "dust_cloud",

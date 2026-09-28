@@ -85,7 +85,7 @@ func NewItemSet(set ItemSet) *ItemSet {
 	return &set
 }
 
-// missingItemSets collects sets whose items this client does not ship, so the count can
+// missingItemSets collects sets whose items the game files do not ship, so the count can
 // be reported rather than silently swallowed.
 var missingItemSets []string
 

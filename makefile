@@ -250,11 +250,11 @@ DB2TOOL_FLAGS ?=
 
 # The spell store is regenerated before the item database, and the order is load-bearing: gen_db
 # classifies every item and enchant proc from the store compiled into it, so running it against a
-# refreshed client and a stale store writes item files from last week's rows. gen_spelldata reads the
+# refreshed game files and a stale store writes item files from last week's rows. gen_spelldata reads the
 # store too, and writes nothing the sim does not compile against, so it is what may rewrite it.
 .PHONY: db
 db:
-	@echo "Extracting client data"
+	@echo "Extracting game files data"
 	go run ./tools/db2tool -s $(CLIENTDATA_SETTINGS) --output $(CLIENTDATA_OUTPUT) $(DB2TOOL_FLAGS)
 	@echo "Regenerating the spell store"
 	go run ./tools/database/gen_spelldata
@@ -277,7 +277,7 @@ basestats:
 # Same order as `db` above, and for the same reason.
 .PHONY: ptrdb
 ptrdb:
-	@echo "Extracting client data"
+	@echo "Extracting game files data"
 	go run ./tools/db2tool -s $(CLIENTDATAPTR_SETTINGS) --output $(CLIENTDATA_OUTPUT) $(DB2TOOL_FLAGS)
 	@echo "Regenerating the spell store"
 	go run ./tools/database/gen_spelldata
@@ -317,7 +317,7 @@ update-tests:
 
 # Names the generated spell data files that are not what tools/database/gen_spelldata writes
 # today, and writes nothing. Exits 1 with the paths when the committed files have drifted, which a
-# client update or a hand edit both do. Needs tools/database/wowsims.db.
+# game files update or a hand edit both do. Needs tools/database/wowsims.db.
 .PHONY: spelldata-check
 spelldata-check:
 	go run ./tools/database/gen_spelldata -check

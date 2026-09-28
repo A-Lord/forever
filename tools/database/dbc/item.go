@@ -185,7 +185,7 @@ func (item *Item) GetRandPropPoints(itemLevel int) int32 {
 func (item *Item) GetScaledStat(index int, itemLevel int) float64 {
 	//Todo check if overflow array
 
-	// This client ships no precomputed StatModifier_bonusAmount, so the allocation
+	// The game files ship no precomputed StatModifier_bonusAmount, so the allocation
 	// budget is the only source: 99.8% of stat slots carry a non-zero StatAlloc.
 	slotType := item.GetRandomSuffixType()
 	itemBudget := 0.0
@@ -242,12 +242,8 @@ func (item *Item) GetGemBonus() stats.Stats {
 		} else {
 			// This socket bonus in an Aura, need to loop over the raw SpellEffect data
 			// effectStat is the SpellID
-			effectAuras := GetDBC().SpellEffects[effectStat]
-			for _, effectAura := range effectAuras {
-				stat := ConvertEffectAuraToStatIndex(effectAura.EffectAura, effectAura.EffectMiscValues[0])
-				if stat > 0 {
-					stats[stat] = float64(effectAura.EffectBasePoints)
-				}
+			for _, effectAura := range GetDBC().SpellEffects[effectStat] {
+				addEquipEffectStat(&stats, effectAura, effectAura.EffectBasePoints)
 			}
 		}
 	}

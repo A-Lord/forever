@@ -104,16 +104,6 @@ func (paladin *Paladin) Reset(_ *core.Simulation) {
 func (paladin *Paladin) OnEncounterStart(_ *core.Simulation) {
 }
 
-func (paladin *Paladin) GetMainHandType() proto.HandType {
-	mh := paladin.GetMHWeapon()
-
-	if mh != nil && (mh.HandType == proto.HandType_HandTypeTwoHand) {
-		return proto.HandType_HandTypeTwoHand
-	}
-
-	return proto.HandType_HandTypeOneHand
-}
-
 func (paladin *Paladin) sharedTimer(timer **core.Timer) *core.Timer {
 	if *timer == nil {
 		*timer = paladin.NewTimer()
@@ -121,7 +111,7 @@ func (paladin *Paladin) sharedTimer(timer **core.Timer) *core.Timer {
 	return *timer
 }
 
-// The cost a row states: a flat number, or a share of base mana for the spells the client prices
+// The cost a row states: a flat number, or a share of base mana for the spells the game files price
 // that way (Judgement, Righteous Fury, Seal of Justice).
 func manaCost(rank *spelldata.Spell) core.ManaCostOptions {
 	if len(rank.Powers) > 0 && rank.Powers[0].CostPct > 0 {
@@ -130,7 +120,7 @@ func manaCost(rank *spelldata.Spell) core.ManaCostOptions {
 	return core.ManaCostOptions{FlatCost: int32(rank.Cost())}
 }
 
-// A rank's own cooldown, or the one it shares with its category: the client keeps every paladin
+// A rank's own cooldown, or the one it shares with its category: the game files keep every paladin
 // ability cooldown but Judgement's and the talent cooldowns on the category.
 func cooldown(rank *spelldata.Spell) time.Duration {
 	return max(rank.Cooldown(), rank.CategoryCooldown())
@@ -160,7 +150,7 @@ func NewPaladin(character *core.Character, talentsStr string, _ *proto.PaladinOp
 
 	paladin.AddStatDependency(stats.Strength, stats.AttackPower, 2)
 	paladin.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	paladin.AddStatDependency(stats.Agility, stats.DodgeRating, 1/25.0*core.DodgeRatingPerDodgePercent)
+	paladin.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[character.Class])
 	paladin.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 
 	return paladin

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -18,10 +19,6 @@ import (
 // debuffs and the raid. The driver reads its own field out of the message, and
 // any other field it needs: Grace of Air lasts 9 seconds while the party is
 // twisting totems.
-
-// Spell 29166 states 100% mana regen while casting (aura 134) and +400% of it
-// (aura 110); neither is a stat or a pseudo-stat, so the regen is the driver's.
-const innervateSpiritRegenMultiplier = 5.0
 
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat
@@ -41,8 +38,8 @@ func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
 }
 
 // A druid innervates a character who is nearly out of mana, so that every other
-// mana cooldown is spent first. The aura forces full spirit regen while it is
-// up and the metrics record what the character gains from it.
+// mana cooldown is spent first. The row's auras raise the spirit regen while it
+// is up, and the metrics record what the character gains from it.
 func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 	aura := NewSpellDataInnervatesAura(&char.Unit, false, 0)
 	manaMetrics := char.NewManaMetrics(aura.ActionID)
@@ -50,15 +47,15 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 	threshold, expectedMana := 0.0, 0.0
 	char.Env.RegisterPostFinalizeEffect(func() {
 		threshold = innervateManaThreshold(char)
-		expectedMana = char.SpiritManaRegenPerSecond() * innervateSpiritRegenMultiplier * aura.Duration.Seconds()
+		// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices the mana the
+		// metrics record.
+		expectedMana = char.SpiritManaRegenPerSecond() *
+			core.MultiplierFromPercent(innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).BaseValue()) *
+			aura.Duration.Seconds()
 	})
 
 	const ticks = 10
 	aura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		char.PseudoStats.ForceFullSpiritRegen = true
-		char.PseudoStats.SpiritRegenMultiplier *= innervateSpiritRegenMultiplier
-		char.UpdateManaRegenRates()
-
 		perTick := expectedMana / ticks
 		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
 			Period:   aura.Duration / ticks,
@@ -67,10 +64,6 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 				manaMetrics.AddEvent(perTick, perTick)
 			},
 		})
-	}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-		char.PseudoStats.ForceFullSpiritRegen = false
-		char.PseudoStats.SpiritRegenMultiplier /= innervateSpiritRegenMultiplier
-		char.UpdateManaRegenRates()
 	})
 
 	core.NewGeneratedExternalCD(char, aura, core.GeneratedExternalCD{
@@ -148,36 +141,30 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	// included. A main-hand auto that procs it has spent the first charge
 	// itself, so the extra attack is the only one buffed; a special hands both
 	// charges to the extra attack and the auto after it.
-	var windfurySpell *core.Spell
 	trigger := core.ProcTrigger{
-		Name:               "Windfury Totem Trigger",
-		MetricsActionID:    core.ActionID{SpellID: 25580, Tag: -1},
-		ProcChance:         windfuryTotemSpell.StatedChance(),
-		Duration:           core.NeverExpires,
-		Outcome:            core.OutcomeLanded,
-		ICD:                time.Millisecond * 1500,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		Name:            "Windfury Totem Trigger",
+		MetricsActionID: core.ActionID{SpellID: 25580, Tag: -1},
+		ProcChance:      windfuryTotemSpell.StatedChance(),
+		Duration:        core.NeverExpires,
+		Outcome:         core.OutcomeLanded,
+		ICD:             time.Millisecond * 1500,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			procAura.Activate(sim)
 			charges := procAura.MaxStacks
 			if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
 				charges--
 			}
 			procAura.SetStacks(sim, charges)
-			char.AutoAttacks.MaybeReplaceMHSwing(sim, windfurySpell).Cast(sim, result.Target)
 		},
 	}
 	spelldata.WeaponProc()(char, &trigger)
 	trigger.ProcMask = core.ProcMaskMeleeMH
-	procTrigger := char.MakeProcTriggerAura(trigger)
+	onInit := char.ExtraAttackProc(&trigger, 25584, 1)
+	procTrigger := char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 
 	totemAura := char.GetOrRegisterAura(core.Aura{
 		Label:    "Windfury Totem",
 		ActionID: core.ActionID{SpellID: 25587, Tag: -1},
-	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-		config := *char.AutoAttacks.MHConfig()
-		config.ActionID = config.ActionID.WithTag(25584)
-		windfurySpell = char.GetOrRegisterSpell(config)
 	})
 	holdTotemEnchant(char, totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
 }
@@ -324,10 +311,10 @@ func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
 }
 
 // The judgement the paladin leaves on the target heals whoever strikes it; the
-// client's trigger spell 5373 is a dummy, so how much and how often is the
+// game files' trigger spell 5373 is a dummy, so how much and how often is the
 // driver's. The raid's copy is the top rank the paladin's own judgement states.
 func driveJudgementOfLight(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), JudgementOfLightMaxRank)
+	AttachJudgementOfLightHeal(core.MakePermanent(NewSpellDataJudgementOfLightAura(target, false, 0)), nil, JudgementOfLightMaxRank)
 }
 
 // Judgement of Wisdom returns mana to whoever strikes the target, on the same
@@ -362,7 +349,7 @@ func driveArmorShatter(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	holdMaxStacks(core.MakePermanent(NewSpellDataArmorShatterAura(target, false, 0)))
 }
 
-// The client states one stack, so the raid's copy takes it as soon as it lands.
+// The game files state one stack, so the raid's copy takes it as soon as it lands.
 func driveDustCloud(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	holdMaxStacks(core.MakePermanent(NewSpellDataDustCloudAura(target, false, 0)))
 }
@@ -385,5 +372,5 @@ func driveThunderfury(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		ActionID: core.ActionID{SpellID: thunderfuryCycloneSpell.ID, Tag: -1},
 		Duration: core.NeverExpires,
 	}))
-	core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(thunderfuryCycloneSpell.EffectN(1).BaseValue()))
+	core.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(-thunderfuryCycloneSpell.EffectN(1).BaseValue()))
 }

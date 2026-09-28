@@ -1,8 +1,8 @@
 package database
 
 // The override table is hand-kept data with a rule per field: the generator has to refuse a value
-// the client has started stating itself, and a table nobody can regenerate is a table nobody
-// trusts. These run the merge on synthetic rows, so they need no client database.
+// the game files have started stating themselves, and a table nobody can regenerate is a table nobody
+// trusts. These run the merge on synthetic rows, so they need no game files database.
 
 import (
 	"strings"
@@ -95,19 +95,19 @@ func TestOverridesRefuseWhatTheClientNowStates(t *testing.T) {
 			wants: "two PPM overrides",
 		},
 		{
-			name:  "a client procs-per-minute row",
+			name:  "a game files procs-per-minute row",
 			rows:  []storeSpell{{ID: 10, procsPerMinuteID: 7}},
 			list:  []overrides.Override{{SpellID: 10, Field: overrides.PPM, Value: 1, Reason: "measured"}},
 			wants: "now states SpellProcsPerMinuteID 7",
 		},
 		{
-			name:  "a client threat effect",
+			name:  "a game files threat effect",
 			rows:  []storeSpell{{ID: 10, Effects: []storeEffect{{Index: 1, Type: dbcenums.E_THREAT}}}},
 			list:  []overrides.Override{{SpellID: 10, Field: overrides.FlatThreat, Value: 200, Reason: "measured"}},
 			wants: "now states threat on effect 1",
 		},
 		{
-			name: "a client attack-power coefficient",
+			name: "a game files attack-power coefficient",
 			rows: []storeSpell{{ID: 10, Effects: []storeEffect{
 				{Index: 0, Type: dbcenums.E_SCHOOL_DAMAGE, APCoef: 0.5},
 			}}},
@@ -133,7 +133,7 @@ func TestOverridesRefuseWhatTheClientNowStates(t *testing.T) {
 			wants: "no whole percentage",
 		},
 		{
-			name:  "a client duration",
+			name:  "a game files duration",
 			rows:  []storeSpell{{ID: 10, DurationMs: 8000}},
 			list:  []overrides.Override{{SpellID: 10, Field: overrides.DurationMs, Value: 15000, Reason: "measured"}},
 			wants: "now states a duration of 8000 ms",
@@ -178,6 +178,12 @@ func TestShippedOverridesAreWellFormed(t *testing.T) {
 		if link.Reason == "" || link.Source == "" {
 			t.Errorf("the hand trigger %d -> %d states reason %q and source %q",
 				link.Spell, link.Triggers, link.Reason, link.Source)
+		}
+	}
+
+	for _, proc := range overrides.WeaponProcs {
+		if proc.Reason == "" || proc.Source == "" {
+			t.Errorf("item %d's rate on %d states reason %q and source %q", proc.ItemID, proc.SpellID, proc.Reason, proc.Source)
 		}
 	}
 }

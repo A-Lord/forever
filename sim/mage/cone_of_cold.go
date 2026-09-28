@@ -17,6 +17,7 @@ func (mage *Mage) registerConeOfColdSpell() {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
 	// 	ClassSpellMask: MageSpellConeOfCold,
+	// 	ClassFlags:     coneOfColdRank.ClassFlags,
 	//
 	// 	ManaCost: core.ManaCostOptions{
 	// 		FlatCost: int32(coneOfColdRank.Cost()),

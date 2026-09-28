@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/dbcenums"
-	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -98,14 +98,14 @@ func (paladin *Paladin) applyConviction() {
 		return
 	}
 
-	paladin.AddStat(stats.PhysicalCritPercent, spellData.Conviction.ValueAt(paladin.Talents.Conviction))
+	spelldata.ParseStatic(&paladin.Character, spellData.Conviction.Rank(paladin.Talents.Conviction))
 }
 
 // Vindication - Gives your damaging melee attacks a chance to reduce the target's Attack Power by
 // 68/136/204, and increase your Attack Power by 1/2/3% for 30 sec.
 //
-// The Classic, TBC and Forever clients all state the chance as 100%, which the tooltip's "a chance"
-// and the players who used it say it never was; the WotLK client says 50%, the only number Blizzard
+// The Classic, TBC and Forever game files all state the chance as 100%, which the tooltip's "a chance"
+// and the players who used it say it never was; the WotLK game files say 50%, the only number Blizzard
 // ever shipped below 100, and that is what rolls here.
 const vindicationProcChance = 0.5
 
@@ -123,7 +123,7 @@ func (paladin *Paladin) applyVindication() {
 		return buffs.NewSpellDataVindicationAura(target, true, paladin.Talents.Vindication)
 	})
 
-	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, 1+points/100)
+	attackPowerDep := paladin.NewDynamicMultiplyStat(stats.AttackPower, core.MultiplierFromPercent(points))
 	selfAura := paladin.RegisterAura(core.Aura{
 		Label:    "Vindication" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID}.WithTag(1),
@@ -254,16 +254,14 @@ func (paladin *Paladin) applySacredArbiter() {
 }
 
 // Two-Handed Weapon Specialization - Increases the damage you deal with two-handed melee weapons
-// by 2/4/6%. The client puts it on the Physical school alone.
+// by 2/4/6%.
 func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
 	if paladin.Talents.TwoHandedWeaponSpecialization == 0 {
 		return
 	}
 
-	paladin.applyWeaponSpecialization(
-		spellData.TwoHandedWeaponSpecialization.FractionAt(paladin.Talents.TwoHandedWeaponSpecialization),
-		proto.HandType_HandTypeTwoHand,
-	)
+	spelldata.ParseStatic(&paladin.Character,
+		spellData.TwoHandedWeaponSpecialization.Rank(paladin.Talents.TwoHandedWeaponSpecialization))
 }
 
 // Vengeance - Increases your Physical and Holy damage dealt by 1/2/3% for 30 sec after landing a
@@ -337,7 +335,7 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 		TimeValue: time.Duration(spellData.InstrumentOfLaw.EffectAt(1).ValueAt(paladin.Talents.InstrumentOfLaw)) * time.Millisecond,
 	})
 
-	// The client states the threat reduction as a positive number Righteous Fury zeroes.
+	// The game files state the threat reduction as a positive number Righteous Fury zeroes.
 	threat := core.MakePermanent(paladin.RegisterAura(core.Aura{
 		Label:    "Instrument of Law" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID},

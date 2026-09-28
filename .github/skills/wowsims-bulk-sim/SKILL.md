@@ -6,6 +6,8 @@ argument-hint: 'Describe the TBC Bulk Sim candidate flow, staging/finalist behav
 
 # WoWSims TBC Bulk Sim Guide
 
+Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game files", not "client", no history in comments, no "golden".
+
 ## Scope
 
 - Bulk candidate generation and staged simulation flow (low/medium/high + finalist).

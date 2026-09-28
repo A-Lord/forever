@@ -41,7 +41,7 @@ type sealEcho struct {
 	seal *sealConfig
 }
 
-// The seals' rows as the client states them. Seal of Command is a talent and registers from
+// The seals' rows as the game files state them. Seal of Command is a talent and registers from
 // registerTalentSpells.
 var (
 	SealOfRighteousnessRankMap = spellData.SealOfRighteousness
@@ -104,11 +104,17 @@ func (paladin *Paladin) registerSealSpell(cfg *sealConfig) *core.Spell {
 
 func (paladin *Paladin) applySeal(sim *core.Simulation, cfg *sealConfig) {
 	previous := paladin.currentSeal
-	if previous != nil && previous != cfg && previous.aura.IsActive() {
+	if previous != nil && previous != cfg && previous.echoID != cfg.echoID && previous.aura.IsActive() {
 		if echo := paladin.echoes[previous.echoID]; echo != nil {
 			echo.seal = previous
 			echo.aura.Activate(sim)
 		}
+	}
+
+	// A seal and its own Echo are never up together: putting the seal back up drops its Echo.
+	if echo := paladin.echoes[cfg.echoID]; echo != nil && echo.aura.IsActive() {
+		echo.seal = nil
+		echo.aura.Deactivate(sim)
 	}
 
 	paladin.currentSeal = cfg
@@ -144,7 +150,7 @@ func (paladin *Paladin) newJudgementAuras(makeAura func(target *core.Unit) *core
 	return auras
 }
 
-// Refreshes every judgement debuff this paladin has on the target, which the client does on every
+// Refreshes every judgement debuff this paladin has on the target, which the game does on every
 // melee strike that lands.
 func (paladin *Paladin) refreshJudgements(sim *core.Simulation, target *core.Unit) {
 	for _, auras := range paladin.JudgementAuras {

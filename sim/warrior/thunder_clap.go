@@ -13,14 +13,14 @@ var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
 
 // The melee speed factor the warrior's clap leaves on the target, the Conqueror's set included.
 func (warrior *Warrior) thunderClapSpeed() float64 {
-	return 1 / core.SlowedTimeMultiplier(thunderClapSlow*(1+warrior.thunderClapEffectBonus))
+	return core.SymmetricMultiplierFromPercent(thunderClapSlow * (1 + warrior.thunderClapEffectBonus))
 }
 
 func (warrior *Warrior) registerThunderClap() {
 	auras := warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		// The clap bids its whole slow in the attack-speed category, so the strongest single slow
 		// on the target is the only one applied. The generated aura holds the category at the
-		// client's amount; the clap sets its bid before it lands, and the effect applies what the
+		// game files' amount; the clap sets its bid before it lands, and the effect applies what the
 		// bid is worth.
 		aura := buffs.NewSpellDataThunderClapAura(target, true, 0)
 		speed := 1.0

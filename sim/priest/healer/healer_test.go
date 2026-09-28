@@ -50,7 +50,7 @@ func TestHealerPriest(t *testing.T) {
 var StandardTalents = "50023011305-235050032002150520051"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FoodId: 238639, // Sunrise Omelette
+	FoodId: 250066, // Soaring Pamplona
 	PotId:  13444,  // Major Mana Potion
 }
 

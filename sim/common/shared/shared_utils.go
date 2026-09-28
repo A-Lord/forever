@@ -56,7 +56,7 @@ type DamageEffect struct {
 	ProcMask         core.ProcMask
 	Outcome          OutcomeType
 	Flags            core.SpellFlag
-	// Set when the client bars the damage spell from critting, which the sim has no way to know:
+	// Set when the game files bar the damage spell from critting, which the sim has no way to know:
 	// it is a spell attribute, so only the database generator can see it.
 	CannotCrit bool
 }
@@ -90,7 +90,7 @@ func damageDefenseType(defenseType core.DefenseType, school core.SpellSchool, is
 }
 
 // The outcome a proc's damage rolls when the caller states none: the hit table of its DefenseType,
-// in the no-crit variant when the client bars the spell from critting.
+// in the no-crit variant when the game files bar the spell from critting.
 func damageOutcome(defenseType core.DefenseType, cannotCrit bool, outcome OutcomeType) OutcomeType {
 	if outcome != OutcomeDefault {
 		return outcome
@@ -393,7 +393,7 @@ func NewProcStatBonusEffect(config ProcStatBonusEffect) {
 //							Procs read from the spell data
 ///////////////////////////////////////////////////////////////////////////
 
-// An item or enchant proc as the client's own rows state it. What the listener hears, how often it
+// An item or enchant proc as the game files' own rows state it. What the listener hears, how often it
 // fires and what its internal cooldown is come from the spell carrying the proc; how long the buff
 // lasts and how it stacks come from the spell it applies; only the stats come from the item's
 // effect entry, which is where the sim's item level scaling lives.
@@ -406,7 +406,7 @@ type SpellDataProc struct {
 
 	// The spell the item effect names: the one carrying the proc flags, the chance and the ICD.
 	TriggerSpellID int32
-	// The buff the proc applies, where the client makes it a spell of its own. Zero where the
+	// The buff the proc applies, where the game files make it a spell of its own. Zero where the
 	// trigger's own row is the buff.
 	BuffSpellID int32
 
@@ -421,7 +421,7 @@ func NewSpellDataProc(cfg SpellDataProc, variants []ItemVariant) {
 	forEachSpellDataVariant(cfg, variants, registerSpellDataProc)
 }
 
-// An item or enchant proc whose "buff" is a damage spell: the client applies no aura at all, it
+// An item or enchant proc whose "buff" is a damage spell: the game files apply no aura at all, it
 // casts a spell that deals damage. BuffSpellID names that spell.
 func NewSpellDataDamageProc(cfg SpellDataProc, variants []ItemVariant) {
 	forEachSpellDataVariant(cfg, variants, registerSpellDataDamageProc)
@@ -468,14 +468,14 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 	character := agent.GetCharacter()
 	eligibleSlots := source.eligibleSlots(character)
 
-	effect := source.procEffects()[buff.ID]
+	effect := source.procEntry(cfg, trigger)
 	if effect == nil {
 		panic(fmt.Sprintf("Error getting proc effects for item/enchant %v", source.id))
 	}
 
 	procAura := spellDataProcAura(character, cfg, trigger, buff, effect)
 
-	listener := spellDataProcListener(character, cfg, source, trigger, effect.GetProc())
+	listener := spellDataProcListener(character, cfg, source, trigger)
 	listener.Handler = spellDataProcHandler(buff, procAura)
 
 	// The same fallback the database layer applies: Bulwark of Azzinoth's armor buff sits in a
@@ -501,10 +501,11 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 
 // The listener the trigger's row describes, without the handler, plus what the row cannot state: the
 // item's own name and action, which are what the sim keys the rolls and the metrics by, and the rate
-// the effect entry states.
-func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell, proc *proto.ProcEffect) core.ProcTrigger {
+// the item's effect entry states.
+func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell) core.ProcTrigger {
 	config := spelldata.ProcTrigger(character, trigger, nil, spelldata.ItemProcChance(trigger),
-		weaponProcShape(cfg), spellDataProcRate(source, trigger, proc), statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
+		weaponProcShape(cfg), spellDataProcRate(source, trigger, source.procEntry(cfg, trigger).GetProc()),
+		statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
 	config.Name = cfg.Name
 	config.ActionID = source.actionID()
 
@@ -519,7 +520,7 @@ func weaponProcShape(cfg SpellDataProc) spelldata.ProcOpt {
 	return spelldata.WeaponProc()
 }
 
-// The rate for a proc the client states none for. Procs per minute are not in the client's spell
+// The rate for a proc the game files state none for. Procs per minute are not in the game files' spell
 // data - no row carries a SpellProcsPerMinuteID - so an item's reaches the sim through its effect
 // entry, and the store carries one only where an override put it there. Either way the manager is
 // built here rather than by the resolver, since only the effect knows which weapon or enchant slot
@@ -572,7 +573,7 @@ func spellDataProcHandler(buff *spelldata.Spell, procAura *core.StatBuffAura) co
 	}
 }
 
-// The buff the proc applies. Which shape it takes is the client's to say, and the two counts it
+// The buff the proc applies. Which shape it takes is the game files' to say, and the two counts it
 // keeps in one field are not the same thing: a CumulativeAura count is stacks that each add their
 // own stats, a ProcCharges count is one buff at full stats that the game spends by uses.
 func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *spelldata.Spell, buff *spelldata.Spell, effect *proto.ItemEffect) *core.StatBuffAura {
@@ -588,9 +589,9 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 
 	buffStats := stats.FromProtoMap(effect.GetScalingOptions()[int32(0)].GetStats())
 
-	// The client states the count on whichever of the two rows carries the aura, and the item effect
-	// entry takes the higher of them, so this does too: Idol of the Huntress keeps its 200 on the
-	// trigger while the buff it applies states none.
+	// The game files state the count on whichever of the two rows carries the aura, and the item
+	// effect entry takes the higher of them, so this does too: Idol of the Huntress keeps its 200
+	// on the trigger while the buff it applies states none.
 	if stacks := max(buff.MaxStack, trigger.MaxStack); stacks > 0 {
 		aura.MaxStacks = int32(stacks)
 		return core.MakeStackingAura(character, core.StackingStatAura{Aura: aura, BonusPerStack: buffStats})
@@ -606,10 +607,10 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	})
 }
 
-// How long the buff lasts. The client leaves it off the buff's own row on a fair few procs and states
-// it on the trigger instead, which is the fallback the item effect entry applies as well. An aura of
-// no duration is one core refuses to activate mid-fight, so a pair of rows that states none anywhere
-// is refused here, where the message can name what to look at.
+// How long the buff lasts. The game files leave it off the buff's own row on a fair few procs and
+// state it on the trigger instead, which is the fallback the item effect entry applies as well. An
+// aura of no duration is one core refuses to activate mid-fight, so a pair of rows that states none
+// anywhere is refused here, where the message can name what to look at.
 func procBuffDuration(cfg SpellDataProc, trigger *spelldata.Spell, buff *spelldata.Spell) time.Duration {
 	if buff.DurationMs != 0 {
 		return buff.Duration()
@@ -673,7 +674,7 @@ func applySpellDataDamageProc(agent core.Agent, cfg SpellDataProc, source effect
 
 	// The handler is attached after the options, since which unit the damage lands on depends on the
 	// callback the trigger ends up with and a weapon proc's shape rewrites it.
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	config.Handler = procDamageHandler(character, damageSpell, config.Callback)
 
 	// The proc's damage lands on the hit that caused it rather than on the next one, which is what
@@ -943,7 +944,7 @@ func applySpellDataSelfProc(agent core.Agent, cfg SpellDataProc, source effectSo
 	character := agent.GetCharacter()
 	selfSpell := character.RegisterSpell(spellConfig)
 
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	config.Handler = func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		selfSpell.Cast(sim, &character.Unit)
 	}
@@ -1524,7 +1525,7 @@ type ProcDamageEffect struct {
 	IsMelee          bool
 	Flags            core.SpellFlag
 	Outcome          OutcomeType
-	// Set when the client bars the damage spell from critting, which the sim has no way to know:
+	// Set when the game files bar the damage spell from critting, which the sim has no way to know:
 	// it is a spell attribute, so only the database generator can see it.
 	CannotCrit bool
 }
@@ -1676,6 +1677,42 @@ func (s effectSource) eligibleSlots(character *core.Character) []proto.ItemSlot 
 	}
 
 	return character.ItemSwap.EligibleSlotsForItem(s.id)
+}
+
+func (s effectSource) isEquipped(character *core.Character, slots []proto.ItemSlot) bool {
+	if s.isEnchant {
+		return character.HasEnchantEquipped(s.id, slots)
+	}
+
+	return character.HasItemEquipped(s.id, slots)
+}
+
+// The melee hands an enchant sits on, as proc masks, or 0 for an item and for an enchant in any other
+// slot.
+func (s effectSource) weaponHands(character *core.Character, slots []proto.ItemSlot) core.ProcMask {
+	if !s.isEnchant {
+		return 0
+	}
+	var hands core.ProcMask
+	for _, slot := range slots {
+		switch slot {
+		case proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand:
+			hands |= character.GetProcMaskForWeaponSlot(slot)
+		default:
+			return 0
+		}
+	}
+	return hands
+}
+
+// The proc-carrying effect this item or enchant declares for the proc: the one keyed by the buff it
+// applies, or by the trigger where that is the buff. Nil where it declares none.
+func (s effectSource) procEntry(cfg SpellDataProc, trigger *spelldata.Spell) *proto.ItemEffect {
+	effects := s.procEffects()
+	if effect := effects[cfg.BuffSpellID]; effect != nil {
+		return effect
+	}
+	return effects[trigger.ID]
 }
 
 // The proc-carrying effects this item or enchant declares, keyed by the aura each one applies.

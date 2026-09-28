@@ -134,8 +134,8 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 			s.ItemLevel,
 			s.StatPercentEditor as StatValue,
 			s.StatModifier_bonusStat as bonusStat,
-			'[0,0,0,0,0,0,0,0,0,0]' as StatPercentEditor, -- socket penalty array: dropped by the client
-			0 as ArmorValue, -- Item.Resistances_*: dropped by the client; armor and the
+			'[0,0,0,0,0,0,0,0,0,0]' as StatPercentEditor, -- socket penalty array: dropped from the game files
+			0 as ArmorValue, -- Item.Resistances_*: dropped from the game files; armor and the
 			0 as FireResistance, -- five resistances arrive as stat-array entries instead
 			0 as NatureResistance,
 			0 as FrostResistance,
@@ -152,11 +152,9 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 			s.AllowableClass as ClassMask,
 			s.AllowableRace_0 as RaceMask,
 			s.QualityModifier,
-			-- ItemRandomSuffixGroupID was dropped by the client, so this used to select
-			-- group_concat(-ench) from item_enchantment_template WHERE entry = 0. No row in
-			-- that table has entry 0 -- the lowest is 61 -- so the subquery matched nothing
-			-- and every item came back with a NULL here. ParseRandomSuffixOptions already
-			-- takes a NullString, so this is the same value without the dead 464KB table.
+			-- ItemRandomSuffixGroupID is absent from the game files, so no item names a
+			-- random suffix group and every item reads NULL here. ParseRandomSuffixOptions
+			-- takes a NullString and reads NULL as no suffix options.
 			NULL AS RandomSuffixOptions,
 			 s.StatPercentageOfSocket,
 			 '[0,0,0,0,0,0,0,0,0,0]', -- StatModifier_bonusAmount: dropped; derived from StatAlloc
@@ -446,9 +444,9 @@ func LoadAndWriteRawGems(dbHelper *DBHelper, inputsDir string) ([]dbc.Gem, error
 		s.Display_lang as Name,
 		i.IconFileDataID as FDID,
 		gp.'Type' as GemType,
-		sie.EffectPointsMin as StatList, -- EffectPointsMax: dropped by the client
+		sie.EffectPointsMin as StatList, -- EffectPointsMax: dropped from the game files
 		sie.EffectArg as StatBonus,
-		0 MinItemLevel, -- GemProperties.Min_item_level: dropped by the client
+		0 MinItemLevel, -- GemProperties.Min_item_level: dropped from the game files
 		s.OverallQualityId Quality,
 		sie.Effect,
 		CASE
@@ -550,7 +548,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				WHEN sie.Effect_2 IN (1, 3) THEN sie.EffectArg_2
 				ELSE se.SpellID
 			END AS spellId,
-			-- The lowest item the client ships (it has an ItemSparse row), else the lowest item. This is the
+			-- The lowest item the game files ship (it has an ItemSparse row), else the lowest item. This is the
 			-- query's only aggregate, so the bare columns (icon and quality among them) come from its row.
 			COALESCE(MIN(CASE WHEN isp.ID IS NULL THEN ixie.ItemID + 1000000000 ELSE ixie.ItemID END) % 1000000000, 0) as ItemId,
 			sie.RequiredSkillID as professionId,
@@ -569,13 +567,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			COALESCE(sla.SkillLine, 0) as RequiredProfession,
 			COALESCE(sie.Name_lang, ""),
 			COALESCE(sie.Flags, 0) AS SpellItemEnchantmentFlags,
-			-- A grant is live when a profession teaches it or an item the client ships uses it.
+			-- A grant is live when a profession teaches it or an item the game files ship uses it, a
+			-- placeholder ([PH]) item aside.
 			EXISTS (SELECT 1 FROM SkillLineAbility WHERE Spell = se.SpellID)
 				OR EXISTS (
 					SELECT 1 FROM ItemEffect lie
 						JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 						JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-					WHERE lie.SpellID = se.SpellID
+					WHERE lie.SpellID = se.SpellID AND ` + notPlaceholderItemName("lisp.Display_lang") + `
 				) AS IsLive
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
@@ -749,7 +748,7 @@ func LoadAndWriteRawSpellEffects(dbHelper *DBHelper, inputsDir string) (map[int]
 		se.EffectBonusCoefficient,
 		se.EffectChainAmplitude,
 		se.EffectChainTargets,
-		0, -- EffectDieSides: dropped by the client; Variance carries the spread now
+		0, -- EffectDieSides: dropped from the game files; Variance carries the spread
 		se.EffectItemType,
 		se.EffectMechanic,
 		se.EffectPointsPerResource,
@@ -766,7 +765,7 @@ func LoadAndWriteRawSpellEffects(dbHelper *DBHelper, inputsDir string) (map[int]
 		se.EffectSpellClassMask,
 		se.ImplicitTarget,
 		se.SpellID,
-		0, -- SpellScaling.Class: dropped by the client
+		0, -- SpellScaling.Class: dropped from the game files
 		COALESCE(sr1.RadiusMin, 0),
 		COALESCE(sr1.RadiusMax, 0),
 		COALESCE(sr2.RadiusMin, 0),
@@ -861,7 +860,7 @@ var RawRandomSuffixes []dbc.RandomSuffix
 var RawRandomSuffixesById map[int]dbc.RandomSuffix
 
 func LoadAndWriteRawRandomSuffixes(dbHelper *DBHelper, inputsDir string) ([]dbc.RandomSuffix, error) {
-	// ItemRandomSuffix is not shipped by every client. The Forever beta drops it
+	// ItemRandomSuffix is not shipped in every game build. The Forever beta drops it
 	// outright -- the file is in the listfile but absent from the build's root --
 	// so there are no random suffixes to load. Write the empty file the rest of
 	// the pipeline expects rather than failing the whole run.
@@ -970,27 +969,33 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 	return consumable, nil
 }
 
+// The SQL condition that the item name in column is not a placeholder: [PH] anywhere in it.
+func notPlaceholderItemName(column string) string {
+	return column + ` NOT LIKE '%[PH]%'`
+}
+
 // The items the consumable catalogue is built from, over Item as i and ItemSparse as s. Every
 // Consumable-class item but the permanent enhancements of subclass 6, which the enchant table
 // carries; the Trade Goods explosives; and any item whose on-use shares the explosives' category or
 // casts a temporary enchant (Effect 54, or the imbue Effect 360, as IsTemporaryEnchantEffect reads
-// it), whatever class the client files it under: Crystal Charge 11566 is a Quest item and Lesser Mana
-// Oil 20747 an Enchanting trade good. The item has to state an on-use spell, and one that also teaches
-// a spell is an Engrave rune rather than a consumable. Test, QA, UNUSED, placeholder ([PH]) and
-// deprecated ([DEP]) names are left out: UNUSED Flask of Merciless Pursuit 215126.
+// it), whatever class the game files put it under: Crystal Charge 11566 is a Quest item and Lesser
+// Mana Oil 20747 an Enchanting trade good. The item has to state an on-use spell, and one that also
+// teaches a spell is an Engrave rune rather than a consumable. Test, QA, UNUSED, placeholder ([PH])
+// and deprecated ([DEP]) names are left out: UNUSED Flask of Merciless Pursuit 215126.
 func ConsumableItemFilter() string {
 	onUse := func(condition string) string {
 		return fmt.Sprintf(`EXISTS (SELECT 1 FROM ItemXItemEffect cx JOIN ItemEffect ce ON ce.ID = cx.ItemEffectID
 			WHERE cx.ItemID = i.ID AND ce.TriggerType = %d AND ce.SpellID > 0 AND %s)`, dbc.ITEM_SPELLTRIGGER_ON_USE, condition)
 	}
 	return fmt.Sprintf(`s.Display_lang != '' AND s.Display_lang NOT LIKE '%%Test%%' AND s.Display_lang NOT LIKE 'QA%%'
-		AND s.Display_lang NOT LIKE 'UNUSED%%' AND s.Display_lang NOT LIKE '[PH]%%' AND s.Display_lang NOT LIKE '%%[DEP]%%'
+		AND s.Display_lang NOT LIKE 'UNUSED%%' AND %s AND s.Display_lang NOT LIKE '%%[DEP]%%'
 		AND %s
 		AND NOT EXISTS (SELECT 1 FROM ItemXItemEffect lx JOIN ItemEffect le ON le.ID = lx.ItemEffectID
 			WHERE lx.ItemID = i.ID AND le.TriggerType = %d)
 		AND ((i.ClassID = 0 AND i.SubclassID != 6) OR (i.ClassID = 7 AND i.SubclassID = 2)
 			OR %s
 			OR %s)`,
+		notPlaceholderItemName("s.Display_lang"),
 		onUse("1"),
 		dbc.ITEM_SPELLTRIGGER_LEARN_SPELL_ID,
 		onUse(fmt.Sprintf("ce.SpellCategoryID = %d", dbc.EXPLOSIVES_SPELL_CATEGORY)),
@@ -1203,7 +1208,7 @@ ORDER BY tb.Name_lang;
 
 // Trait-driven talent loading.
 //
-// The Forever client authors its talent trees in the Trait* tables instead of
+// The Forever game files keep the talent trees in the Trait* tables instead of
 // the legacy Talent/TalentTab pair. A tree is per class and holds all three
 // specs side by side on a pixel lattice, so the generator has to recover the
 // class, the tab and the grid coordinates that the picker and the protos still
@@ -1321,7 +1326,7 @@ func filterTraitCandidates(candidates []traitPlacedNode, key func(traitPlacedNod
 // selectTraitTrees picks one tree per class. The class comes from the class
 // mask on the SkillLineAbility rows of the tree's spells (the mask is 0 for
 // spells shared across classes, so the non-zero majority wins). Several trees
-// can carry the same class - the client keeps stale drafts around - so the tree
+// can carry the same class - the game files keep stale drafts around - so the tree
 // with the most nodes is taken as the live one.
 func selectTraitTrees(dbHelper *DBHelper) (map[int]int, error) {
 	votes, err := LoadRows(dbHelper.db, `
@@ -1373,7 +1378,7 @@ ORDER BY tn.TraitTreeID, sla.ClassMask
 	return live, nil
 }
 
-// repairTraitCoord undoes the 10x transcription typos the client data carries
+// repairTraitCoord undoes the 10x transcription typos the game files carry
 // on a handful of nodes (a PosY of 39300 where every other node in the tree
 // sits between 2130 and 5730). A coordinate is only rewritten when it is off
 // the tree's lattice while a tenth of it lands back on it.
@@ -1480,7 +1485,7 @@ ORDER BY x.TraitNodeID, sl.DisplayName_lang
 		nodeSkills[s.NodeID] = append(nodeSkills[s.NodeID], s.Name)
 	}
 
-	// TraitEdge.Type is the client's gating kind: 2 makes the left node sufficient for the right,
+	// TraitEdge.Type is the game files' gating kind: 2 makes the left node sufficient for the right,
 	// 3 makes it required, and 0 only draws a line. Reading every row as a prerequisite turned
 	// those drawn-only links into hard gates -- six node pairs carry one in each direction, and two
 	// nodes cannot each gate the other.
@@ -1515,7 +1520,7 @@ ORDER BY x.TraitNodeID, sl.DisplayName_lang
 	}
 
 	// One node can point at several entries (a choice node). Keep the lowest
-	// Index, which is the entry the client shows first.
+	// Index, which is the entry shown first in game.
 	choiceDiscards := 0
 	byNode := map[int]traitNodeRow{}
 	nodeOrder := map[int][]int{}
@@ -1931,7 +1936,7 @@ func LoadAndWriteSpells(dbHelper *DBHelper, inputsDir string) ([]dbc.Spell, erro
 	COALESCE(sm.MinDuration, 0),
 	COALESCE(ss.MaxScalingLevel, 0),
 	COALESCE(ss.MinScalingLevel, 0),
-	0, -- SpellScaling.ScalesFromItemLevel: dropped by the client
+	0, -- SpellScaling.ScalesFromItemLevel: dropped from the game files
 	COALESCE(sl.SpellLevel, 0),
 	COALESCE(sl.BaseLevel, 0),
 	COALESCE(sl.MaxLevel, 0),
@@ -1956,7 +1961,7 @@ func LoadAndWriteSpells(dbHelper *DBHelper, inputsDir string) ([]dbc.Spell, erro
 	COALESCE(sei.EquippedItemClass, 0),
 	COALESCE(sei.EquippedItemInvTypes, 0),
 	COALESCE(sei.EquippedItemSubclass, 0),
-	0, -- SpellScaling.CastTimeMin: dropped by the client
+	0, -- SpellScaling.CastTimeMin: dropped from the game files
 	COALESCE(sco.SpellClassMask, ""),
 	COALESCE(sco.SpellClassSet, 0),
 	COALESCE(si.AuraInterruptFlags, ""),

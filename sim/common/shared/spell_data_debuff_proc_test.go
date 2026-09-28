@@ -21,14 +21,18 @@ const (
 	brainDamageDuration             = 30 * time.Second
 )
 
-// Neither row states a rate for its chance on hit, so both stay unregistered; the tests below give
-// each a 100% chance of their own.
+// Neither row states a rate for its chance on hit: Frostguard stays unregistered, and The Lobotomizer
+// registers on the 0.4 PPM its item effect carries. The tests below give each a 100% chance of their
+// own.
 func TestSlowProcRowsStateNoRate(t *testing.T) {
 	for _, id := range []int32{frostguardChilled, lobotomizerBrainDamage} {
 		got := spelldata.ItemProcUnsupported(spelldata.MustFind(id), true)
 		if !slices.Equal(got, []string{spelldata.ReasonStatesNoRate}) {
 			t.Errorf("%d: unsupported = %v, want only the missing rate", id, got)
 		}
+	}
+	if got := spelldata.ItemProcUnsupportedWithRate(spelldata.MustFind(lobotomizerBrainDamage), true, 0.4); len(got) != 0 {
+		t.Errorf("%d with its item's rate: unsupported = %v, want none", lobotomizerBrainDamage, got)
 	}
 }
 

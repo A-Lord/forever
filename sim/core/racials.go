@@ -12,7 +12,7 @@ func applyRaceEffects(agent Agent) {
 
 	switch character.Race {
 	case proto.Race_RaceDwarf:
-		applyWeaponSpecialization(character, "Mace Specialization", 1259719, 1, proto.WeaponType_WeaponTypeMace)
+		applyWeaponSpecialization(character, 1, proto.WeaponType_WeaponTypeMace) // Mace Specialization 1259719
 		applyCreatureTypeSlaying(character, proto.MobType_MobTypeBeast)
 
 		actionID := ActionID{SpellID: 20594}
@@ -51,7 +51,7 @@ func applyRaceEffects(agent Agent) {
 		applyEureka(character)
 	case proto.Race_RaceHuman:
 		character.MultiplyStat(stats.Spirit, 1.05)
-		applyWeaponSpecialization(character, "Sword Specialization", 20597, 2, proto.WeaponType_WeaponTypeSword)
+		applyWeaponSpecialization(character, 2, proto.WeaponType_WeaponTypeSword) // Sword Specialization 20597
 	case proto.Race_RaceNightElf:
 		character.PseudoStats.BaseDodgeChance += 0.01
 		character.PseudoStats.MovementSpeedMultiplier *= 1.02
@@ -73,7 +73,7 @@ func applyRaceEffects(agent Agent) {
 				},
 			})
 	case proto.Race_RaceOrc:
-		applyWeaponSpecialization(character, "Axe Specialization", 20574, 1, proto.WeaponType_WeaponTypeAxe)
+		applyWeaponSpecialization(character, 1, proto.WeaponType_WeaponTypeAxe) // Axe Specialization 20574
 
 		bloodFuryID := ActionID{SpellID: 20572}
 
@@ -275,36 +275,19 @@ func applySkyborneSharedRacials(character *Character) {
 
 func applyCreatureTypeSlaying(character *Character, mobType proto.MobType) {
 	character.Env.RegisterPostFinalizeEffect(func() {
-		character.MultiplyDamageVersus(1.05, true, mobType)
+		character.MultiplyDamageVersus(1.05, mobType)
+		character.MultiplyCritDamageVersus(1.05, mobType)
 	})
 }
 
-func applyWeaponSpecialization(character *Character, label string, spellID int32, critPercent float64, weaponType proto.WeaponType) {
-	hasWeaponEquipped := func() bool {
-		mh, oh := character.MainHand(), character.OffHand()
-		return (mh != nil && mh.WeaponType == weaponType) || (oh != nil && oh.WeaponType == weaponType)
-	}
-
-	aura := character.RegisterAura(Aura{
-		Label:      label,
-		ActionID:   ActionID{SpellID: spellID},
-		Duration:   NeverExpires,
-		BuildPhase: Ternary(hasWeaponEquipped(), CharacterBuildPhaseBase, CharacterBuildPhaseNone),
-	}).
-		AttachStatBuff(stats.PhysicalCritPercent, critPercent).
-		AttachStatBuff(stats.SpellCritPercent, critPercent)
-
-	if hasWeaponEquipped() {
-		MakePermanent(aura)
-	}
-
-	character.RegisterItemSwapCallback(AllWeaponSlots(), func(sim *Simulation, _ proto.ItemSlot) {
-		if hasWeaponEquipped() {
-			aura.Activate(sim)
-		} else {
-			aura.Deactivate(sim)
-		}
-	})
+// The crit holds while any weapon slot holds a weapon of this type, one- or two-handed, follows item
+// swaps, and reaches every spell and attack. The sheet counts it in the base stage.
+func applyWeaponSpecialization(character *Character, critPercent float64, weaponType proto.WeaponType) {
+	req := EquipRequirement{SubclassMask: WeaponSubclassMask(weaponType)}
+	character.NewEquipGatedStats(req, stats.Stats{
+		stats.PhysicalCritPercent: critPercent,
+		stats.SpellCritPercent:    critPercent,
+	}).SetLevel(nil, 1)
 }
 
 func applyExpansiveMind(character *Character) {
@@ -318,7 +301,7 @@ func applyExpansiveMind(character *Character) {
 	}
 }
 
-// Eureka! scopes its cost and damage mods to each class's damaging abilities by the client's class
+// Eureka! scopes its cost and damage mods to each class's damaging abilities by the game files' class
 // masks: effect 1 of each row names the spells whose cost it lowers, effect 2 the ones it raises the
 // damage of. A stack goes on a landed ability either names that has a damage component.
 func applyEureka(character *Character) {

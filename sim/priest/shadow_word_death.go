@@ -20,6 +20,7 @@ func (priest *Priest) registerShadowWordDeathSpell(rank *spelldata.Spell, cdTime
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellShadowWordDeath,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	// 	MaxRange:       float64(rank.MaxRange),
 	//

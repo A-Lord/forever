@@ -16,12 +16,13 @@ SpellMod implementation.
 
 type SpellModConfig struct {
 	ClassMask int64
-	// The client's EffectSpellClassMask: the spells this mod names. A mod that sets both this and
+	// The game files' EffectSpellClassMask: the spells this mod names. A mod that sets both this and
 	// ClassMask applies only to the spells both name.
 	ClassFlags        ClassFlags
 	Kind              SpellModType
 	School            SpellSchool
 	DefenseType       DefenseType // Only apply to spells with a matching DefenseType
+	MultiplierSchool  SpellSchool // Only apply to spells whose SchoolIndex reads one of these schools
 	ProcMask          ProcMask
 	SpellFlag         SpellFlag
 	ResourceType      proto.ResourceType
@@ -33,31 +34,46 @@ type SpellModConfig struct {
 	RemoveCustom      SpellModRemove
 	ResetCustom       SpellModOnReset
 	ShouldApplyToPets bool
+
+	// The weapon the attack has to be made with, as SpellEquippedItems states it. 0 is no restriction.
+	EquipSubclass int32
+	EquipInvType  int32
+	EquipHand     ProcMask
+
+	// A hit or crit percent mod that is a rating's worth on the attacks it reaches.
+	FromRating bool
 }
 
 type SpellMod struct {
-	ClassMask      int64
-	ClassFlags     ClassFlags
-	Kind           SpellModType
-	School         SpellSchool
-	DefenseType    DefenseType
-	ProcMask       ProcMask
-	SpellFlag      SpellFlag
-	ResourceType   proto.ResourceType
-	floatValue     float64
-	intValue       int32
-	timeValue      time.Duration
-	keyValue       string
-	Apply          SpellModApply
-	Remove         SpellModRemove
-	IsActive       bool
-	AffectedSpells []*Spell
-	OnReset        SpellModOnReset
+	ClassMask        int64
+	ClassFlags       ClassFlags
+	Kind             SpellModType
+	School           SpellSchool
+	DefenseType      DefenseType
+	MultiplierSchool SpellSchool
+	ProcMask         ProcMask
+	SpellFlag        SpellFlag
+	ResourceType     proto.ResourceType
+	Equip            EquipRequirement
+	FromRating       bool
+	floatValue       float64
+	intValue         int32
+	timeValue        time.Duration
+	keyValue         string
+	Apply            SpellModApply
+	Remove           SpellModRemove
+	IsActive         bool
+	AffectedSpells   []*Spell
+	OnReset          SpellModOnReset
 
 	// The auras this mod has written to, for the kinds that change an aura rather than the spell
 	// pointing at it. One aura is routinely shared by every rank of a family and a class mask names
 	// every rank, so the value would otherwise land on that aura once per rank.
 	touchedAuras []*Aura
+
+	// For a weapon-bound mod, the unit's spells that pass every check but the weapons', in spellbook
+	// order: the ones a weapon swap re-tests.
+	weaponCandidates []*Spell
 }
 
 // Whether the mod may write to this aura, which it may once until it gives the aura up again.
@@ -124,26 +140,46 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 
 	mod := &SpellMod{
-		ClassMask:    config.ClassMask,
-		ClassFlags:   config.ClassFlags,
-		Kind:         config.Kind,
-		School:       config.School,
-		DefenseType:  config.DefenseType,
-		ProcMask:     config.ProcMask,
-		SpellFlag:    config.SpellFlag,
-		ResourceType: config.ResourceType,
-		floatValue:   config.FloatValue,
-		intValue:     config.IntValue,
-		timeValue:    config.TimeValue,
-		keyValue:     config.KeyValue,
-		Apply:        applyFn,
-		Remove:       removeFn,
-		IsActive:     false,
-		OnReset:      resetFn,
+		ClassMask:        config.ClassMask,
+		ClassFlags:       config.ClassFlags,
+		Kind:             config.Kind,
+		School:           config.School,
+		DefenseType:      config.DefenseType,
+		MultiplierSchool: config.MultiplierSchool,
+		ProcMask:         config.ProcMask,
+		SpellFlag:        config.SpellFlag,
+		ResourceType:     config.ResourceType,
+		Equip:            config.Equip(),
+		FromRating:       config.FromRating,
+		floatValue:       config.FloatValue,
+		intValue:         config.IntValue,
+		timeValue:        config.TimeValue,
+		keyValue:         config.KeyValue,
+		Apply:            applyFn,
+		Remove:           removeFn,
+		IsActive:         false,
+		OnReset:          resetFn,
+	}
+	unit.spellMods = append(unit.spellMods, mod)
+	if !mod.Equip.IsZero() {
+		unit.equipMods = append(unit.equipMods, mod)
+	}
+
+	if mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+		unit.procChanceMods = append(unit.procChanceMods, mod)
+		return mod
 	}
 
 	unit.OnSpellRegistered(func(spell *Spell) {
-		if shouldApply(spell, mod) {
+		if !passesSpellChecks(spell, mod) {
+			return
+		}
+		var equipment *Equipment
+		if !mod.Equip.IsZero() {
+			mod.weaponCandidates = append(mod.weaponCandidates, spell)
+			equipment = spell.Unit.playerEquipment()
+		}
+		if passesWeaponChecks(spell, mod, equipment) {
 			mod.AffectedSpells = append(mod.AffectedSpells, spell)
 
 			if mod.IsActive {
@@ -189,6 +225,11 @@ func (unit *Unit) AddDynamicMod(config SpellModConfig) *SpellMod {
 }
 
 func shouldApply(spell *Spell, mod *SpellMod) bool {
+	return passesSpellChecks(spell, mod) && passesWeaponChecks(spell, mod, spell.Unit.playerEquipment())
+}
+
+// The checks of shouldApply that the unit's weapons do not change.
+func passesSpellChecks(spell *Spell, mod *SpellMod) bool {
 	if spell.Flags.Matches(SpellFlagNoSpellMods) {
 		return false
 	}
@@ -213,7 +254,7 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	if !mod.ClassFlags.IsZero() && !spell.MatchesFlags(mod.ClassFlags) {
+	if !mod.ClassFlags.Reaches(spell) {
 		return false
 	}
 
@@ -225,13 +266,11 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
-	if mod.ProcMask > 0 && !mod.ProcMask.Matches(spell.ProcMask) {
+	if mod.MultiplierSchool > 0 && !mod.MultiplierSchool.Matches(spell.SpellSchool.MultiplierSchool()) {
 		return false
 	}
 
-	// A modifier on the off-hand's hits alone is one on the off-hand weapon's, and an off-hand hit
-	// with no weapon behind it, such as a shield's, takes none of them.
-	if mod.ProcMask > 0 && mod.ProcMask&^ProcMaskMeleeOH == 0 && !spell.Unit.AutoAttacks.IsDualWielding {
+	if mod.ProcMask > 0 && !mod.ProcMask.Matches(spell.ProcMask) {
 		return false
 	}
 
@@ -239,10 +278,99 @@ func shouldApply(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
+	// A magic-defense spell rolls on the spell tables, which no weapon's bonus reaches.
+	if !mod.Equip.IsZero() && (spell.DefenseType == DefenseTypeMagic || spell.Unit.Type != PlayerUnit) {
+		return false
+	}
+
 	return true
 }
 
+// The checks of shouldApply that read the unit's weapons, which a weapon swap changes. The equipment
+// is the unit's playerEquipment, resolved once per pass.
+func passesWeaponChecks(spell *Spell, mod *SpellMod, equipment *Equipment) bool {
+	// A modifier on the off-hand's hits alone is one on the off-hand weapon's, and an off-hand hit
+	// with no weapon behind it, such as a shield's, takes none of them.
+	if mod.ProcMask > 0 && mod.ProcMask&^ProcMaskMeleeOH == 0 && !spell.Unit.AutoAttacks.IsDualWielding {
+		return false
+	}
+
+	return mod.Equip.IsZero() || mod.Equip.matchesEquipment(equipment, spell.ProcMask)
+}
+
+// Whether the weapons now reach other candidates than AffectedSpells holds. AffectedSpells is the
+// candidates the weapons reached, in the same order, so one walk over both compares them.
+func (mod *SpellMod) weaponReachChanged(equipment *Equipment) bool {
+	i := 0
+	for _, spell := range mod.weaponCandidates {
+		if !passesWeaponChecks(spell, mod, equipment) {
+			continue
+		}
+		if i == len(mod.AffectedSpells) || mod.AffectedSpells[i] != spell {
+			return true
+		}
+		i++
+	}
+	return i != len(mod.AffectedSpells)
+}
+
+func (unit *Unit) refilterEquipMods() {
+	equipment := unit.playerEquipment()
+	for _, mod := range unit.equipMods {
+		if !mod.weaponReachChanged(equipment) {
+			continue
+		}
+		wasActive := mod.IsActive
+		mod.Deactivate()
+		mod.AffectedSpells = mod.AffectedSpells[:0]
+		for _, spell := range mod.weaponCandidates {
+			if passesWeaponChecks(spell, mod, equipment) {
+				mod.AffectedSpells = append(mod.AffectedSpells, spell)
+			}
+		}
+		if wasActive {
+			mod.Activate()
+		}
+	}
+}
+
+// The sums of the active hit and crit mods that reach every attack with this proc mask: those naming
+// no ClassMask, ClassFlags, school or spell flag, whose proc mask and weapon match the attack's.
+// HitFromRating and CritFromRating are the part the mods converted from a rating give.
+type ScopedPercents struct {
+	Hit, Crit, HitFromRating, CritFromRating float64
+}
+
+func (unit *Unit) ScopedPercents(probe ProcMask) ScopedPercents {
+	probeSpell := &Spell{Unit: unit, ProcMask: probe}
+	switch {
+	case probe.Matches(ProcMaskMelee):
+		probeSpell.DefenseType = DefenseTypeMelee
+	case probe.Matches(ProcMaskRanged):
+		probeSpell.DefenseType = DefenseTypeRanged
+	}
+	var scoped ScopedPercents
+	for _, mod := range unit.spellMods {
+		if !mod.IsActive || (mod.Kind != SpellMod_BonusHit_Percent && mod.Kind != SpellMod_BonusCrit_Percent) ||
+			!shouldApply(probeSpell, mod) {
+			continue
+		}
+		total, fromRating := &scoped.Crit, &scoped.CritFromRating
+		if mod.Kind == SpellMod_BonusHit_Percent {
+			total, fromRating = &scoped.Hit, &scoped.HitFromRating
+		}
+		*total += mod.floatValue
+		if mod.FromRating {
+			*fromRating += mod.floatValue
+		}
+	}
+	return scoped
+}
+
 func (mod *SpellMod) UpdateIntValue(value int32) {
+	if value == mod.intValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.intValue = value
@@ -253,6 +381,9 @@ func (mod *SpellMod) UpdateIntValue(value int32) {
 }
 
 func (mod *SpellMod) UpdateTimeValue(value time.Duration) {
+	if value == mod.timeValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.timeValue = value
@@ -263,6 +394,9 @@ func (mod *SpellMod) UpdateTimeValue(value time.Duration) {
 }
 
 func (mod *SpellMod) UpdateFloatValue(value float64) {
+	if value == mod.floatValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.floatValue = value
@@ -458,9 +592,24 @@ const (
 	// Uses: FloatValue
 	SpellMod_Range_Flat
 
-	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits read.
+	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits and direct heals read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
+
+	// Adds to the chance of the proc triggers whose own class flags the mod names, in percentage
+	// points: 10 raises a 20% chance to 30%. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcChance_Flat
+
+	// Multiplies the chance of the proc triggers whose own class flags the mod names, once the flat
+	// points are in: +100% = 1.0 doubles it. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcChance_Pct
+
+	// Will add / subtract % amount from the GCD multiplier. -10% = -0.1
+	// The GCD minimum still floors the result.
+	// Uses: FloatValue
+	SpellMod_GlobalCooldown_Pct
 )
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
@@ -538,6 +687,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 	SpellMod_GlobalCooldown_Flat: {
 		Apply:  applyGlobalCooldownFlat,
 		Remove: removeGlobalCooldownFlat,
+	},
+
+	SpellMod_GlobalCooldown_Pct: {
+		Apply:  applyGlobalCooldownPercent,
+		Remove: removeGlobalCooldownPercent,
 	},
 	SpellMod_DotTickLength_Flat: {
 		Apply:  applyDotTickLengthFlat,
@@ -633,6 +787,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 		Remove:  removeDirectDamageDoneAdd,
 		OnReset: onResetDirectDamageDoneAdd,
 	},
+
+	// buildMod hands these to the unit's proc triggers, which read them when they roll, and to no
+	// spell, so they carry no functions.
+	SpellMod_ProcChance_Flat: {},
+	SpellMod_ProcChance_Pct:  {},
 }
 
 func applyDamageDonePercent(mod *SpellMod, spell *Spell) {
@@ -786,11 +945,31 @@ func removeDotNumberOfTicks(mod *SpellMod, spell *Spell) {
 }
 
 func applyGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD += mod.timeValue
+	spell.unscaledGCD += mod.timeValue
+	spell.updateGCD()
 }
 
 func removeGlobalCooldownFlat(mod *SpellMod, spell *Spell) {
-	spell.DefaultCast.GCD -= mod.timeValue
+	spell.unscaledGCD -= mod.timeValue
+	spell.updateGCD()
+}
+
+func applyGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier += mod.floatValue
+	spell.updateGCD()
+}
+
+func removeGlobalCooldownPercent(mod *SpellMod, spell *Spell) {
+	spell.GCDMultiplier -= mod.floatValue
+	spell.updateGCD()
+}
+
+func (spell *Spell) updateGCD() {
+	if spell.GCDMultiplier == 1 {
+		spell.DefaultCast.GCD = spell.unscaledGCD
+		return
+	}
+	spell.DefaultCast.GCD = time.Duration(float64(spell.unscaledGCD) * spell.GCDMultiplier).Round(time.Millisecond)
 }
 
 func applyDotTickLengthFlat(mod *SpellMod, spell *Spell) {
@@ -1062,7 +1241,8 @@ func removeDurationFlat(mod *SpellMod, spell *Spell) {
 	modDurationFlat(spell, -mod.timeValue, mod.releaseAura)
 }
 
-// An aura the client never gives stacks stays at MaxStacks 0, which is what SetStacks refuses to touch.
+// An aura the game files never give stacks stays at MaxStacks 0, which is what SetStacks refuses to
+// touch.
 func modBuffMaxStacksFlat(spell *Spell, value int32, claim func(*Aura) bool) {
 	if spell.RelatedSelfBuff != nil && spell.RelatedSelfBuff.MaxStacks > 0 && claim(spell.RelatedSelfBuff) {
 		spell.RelatedSelfBuff.MaxStacks = addBuffMaxStacks(spell.RelatedSelfBuff, value)
@@ -1097,8 +1277,8 @@ func removeBuffMaxStacksFlat(mod *SpellMod, spell *Spell) {
 }
 
 // MaxRange 0 is no range check at all, so there is nothing for the mod to move: writing to it would
-// hand the spell a range the client never gave it. A spell that does state one may not be shortened
-// past nothing.
+// hand the spell a range the game files never gave it. A spell that does state one may not be
+// shortened past nothing.
 func applyRangeFlat(mod *SpellMod, spell *Spell) {
 	if spell.MaxRange == 0 {
 		return
@@ -1130,4 +1310,29 @@ func onResetDirectDamageDoneAdd(mod *SpellMod) {
 	for _, spell := range mod.AffectedSpells {
 		spell.DirectDamageMultiplierAdditive = math.Round(spell.DirectDamageMultiplierAdditive*10000) / 10000
 	}
+}
+
+// The chance a proc trigger with these class flags of its own rolls, once the unit's active proc
+// chance mods that name them are counted: the flat points are added first and the percentage
+// multiplies the sum. A trigger that states no class flags of its own is named by no mod, and a
+// chance no mod names comes back unchanged. A pet counts its owner's mods with its own.
+func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
+	if flags.IsZero() {
+		return chance
+	}
+
+	var flat, pct float64
+	for ; unit != nil; unit = unit.procChanceOwner {
+		for _, mod := range unit.procChanceMods {
+			if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
+				continue
+			}
+			if mod.Kind == SpellMod_ProcChance_Flat {
+				flat += mod.floatValue
+			} else {
+				pct += mod.floatValue
+			}
+		}
+	}
+	return (chance + flat/100) * (1 + pct)
 }

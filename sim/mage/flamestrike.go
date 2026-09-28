@@ -33,6 +33,7 @@ func (mage *Mage) registerFlamestrike(rankConfig *spelldata.Spell) {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: MageSpellFlamestrike,
+	// 	ClassFlags:     rankConfig.ClassFlags,
 	// 	Rank:           rankConfig.RankNumber(),
 	//
 	// 	ManaCost: core.ManaCostOptions{

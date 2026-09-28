@@ -26,12 +26,9 @@ var safeDepsOrder = []Stat{
 	Health,
 	Mana,
 	MP5,
-	MeleeHasteRating,
-	MeleeCritRating,
-	MeleeHitRating,
-	SpellHitRating,
-	SpellCritRating,
-	SpellHasteRating,
+	HasteRating,
+	CritRating,
+	HitRating,
 	DefenseRating,
 	BlockRating,
 	BlockPercent,
@@ -268,7 +265,8 @@ func (sdm *StatDependencyManager) IsFinalized() bool {
 	return sdm.finalized
 }
 
-func (sdm *StatDependencyManager) ApplyStatDependencies(s Stats) Stats {
+// ApplyStatDependenciesInPlace is ApplyStatDependencies without copying the array.
+func (sdm *StatDependencyManager) ApplyStatDependenciesInPlace(s *Stats) {
 	for _, dep := range sdm.deps {
 		if dep.enabled {
 			if dep.src == dep.dst {
@@ -285,6 +283,10 @@ func (sdm *StatDependencyManager) ApplyStatDependencies(s Stats) Stats {
 			}
 		}
 	}
+}
+
+func (sdm *StatDependencyManager) ApplyStatDependencies(s Stats) Stats {
+	sdm.ApplyStatDependenciesInPlace(&s)
 	return s
 }
 

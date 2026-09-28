@@ -50,17 +50,17 @@ type ProcTrigger struct {
 	// ticks deal damage, and a hit absorbed to 0 from a spell without one does not count.
 	RequireDamageComponent bool
 
-	ProcChance         float64
-	DPM                *DynamicProcManager
-	ICD                time.Duration
-	Handler            ProcHandler
-	TriggerImmediately bool // If false (default), the handler will be called one spell batch window later for improved realism.
-	ClassSpellMask     int64
-	// The client's EffectSpellClassMask: the spells this listener fires on. A trigger that sets
-	// both this and ClassSpellMask fires only on the spells both name.
-	ClassFlags      ClassFlags
-	ClassSpellsOnly bool // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
-	ExtraCondition  ProcExtraCondition
+	ProcChance          float64
+	DPM                 *DynamicProcManager
+	ICD                 time.Duration
+	Handler             ProcHandler
+	TriggerImmediately  bool       // If false (default), the handler will be called one spell batch window later for improved realism.
+	ClassSpellMask      int64      // The sim's own custom spell masks, not from the game files.
+	ClassFlags          ClassFlags // The spells this trigger fires on (EffectSpellClassMask in the game files); with ClassSpellMask, both must match.
+	ProcSpellClassFlags ClassFlags // The proccing spell's class flags, which proc chance talents match (e.g. Improved Poisons on Instant Poison).
+	Caster              *Unit      // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
+	ClassSpellsOnly     bool       // Corresponds to the Only Proc From Class Abilities flag, e.g. https://www.wowhead.com/forever/spell=32106/lesser-spell-blasting
+	ExtraCondition      ProcExtraCondition
 
 	// The Can Proc From Procs attribute (Attributes[3] 0x4000000): the listener also fires on hits
 	// from spells flagged SpellFlagProc. Without it a proc's hits are invisible to this listener,
@@ -101,7 +101,7 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 	if config.ClassSpellMask > 0 && config.ClassSpellMask&spell.ClassSpellMask == 0 {
 		return false
 	}
-	if !config.ClassFlags.IsZero() && !spell.MatchesFlags(config.ClassFlags) {
+	if !config.ClassFlags.Reaches(spell) {
 		return false
 	}
 	if config.ClassSpellsOnly && spell.ClassSpellMask == 0 && spell.ClassFlags.IsZero() {
@@ -114,6 +114,38 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 		return false
 	}
 	return true
+}
+
+// Whether the trigger's rolls let a hit of this proc mask through. The stated chance draws unless it
+// is exactly 1; a manager then rolls its own chance for the mask, and a mask none of its masks hears
+// fails without a draw. The unit's proc chance mods raise the manager's chance where there is one and
+// the stated chance otherwise. The cast and apply-effects listeners roll no manager.
+func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
+	if config.Caster != nil {
+		unit = config.Caster
+	}
+
+	stated := config.ProcChance
+	if dpm == nil {
+		stated = unit.ModifiedProcChance(config.ProcSpellClassFlags, stated)
+	}
+	if stated != 1 && sim.RandomFloat(config.Name) > stated {
+		return false
+	}
+	if dpm == nil {
+		return true
+	}
+
+	chance, heard := dpm.chanceFor(procMask, sim)
+	return heard && sim.Proc(unit.ModifiedProcChance(config.ProcSpellClassFlags, chance), config.Name)
+}
+
+type deferredProc struct {
+	pa        PendingAction
+	spell     *Spell
+	result    SpellResult
+	hasResult bool
+	cleanUp   func(*Simulation)
 }
 
 func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) {
@@ -133,6 +165,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	}
 
 	handler := config.Handler
+	var freeDeferred []*deferredProc
 
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
 		if config.TriggerImmediately {
@@ -140,20 +173,39 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			return
 		}
 
-		pa := sim.GetConsumedPendingActionFromPool()
-		pa.NextActionAt = sim.CurrentTime + SpellBatchWindow
-		pa.Priority = ActionPriorityDOT
-
-		// Due to the result struct possibly being disposed of after this handler is triggered
-		// we need to clone the result to make sure the values don't get overwritten
-		newResult := spell.CloneResult(result)
-
-		pa.OnAction = func(sim *Simulation) {
-			handler(sim, spell, newResult)
-			spell.DisposeResult(newResult)
+		// Deferred-proc records (PendingAction + result snapshot) come from a
+		// per-trigger free list and return to it when they fire or are cleaned up.
+		var dp *deferredProc
+		if n := len(freeDeferred); n > 0 {
+			dp = freeDeferred[n-1]
+			freeDeferred = freeDeferred[:n-1]
+		} else {
+			dp = &deferredProc{}
+			release := func() {
+				dp.spell = nil
+				freeDeferred = append(freeDeferred, dp)
+			}
+			dp.pa.OnAction = func(sim *Simulation) {
+				res := &dp.result
+				if !dp.hasResult {
+					res = nil
+				}
+				handler(sim, dp.spell, res)
+				release()
+			}
+			dp.cleanUp = func(sim *Simulation) { release() }
 		}
-
-		sim.AddPendingAction(pa)
+		dp.spell = spell
+		dp.hasResult = result != nil
+		if result != nil {
+			// Snapshot the result: the original may be reused before the handler runs.
+			dp.result = *result
+			dp.result.inUse = true
+		}
+		dp.pa.NextActionAt = sim.CurrentTime + SpellBatchWindow
+		dp.pa.Priority = ActionPriorityDOT
+		dp.pa.CleanUp = dp.cleanUp
+		sim.AddPendingAction(&dp.pa)
 	}
 
 	callback := func(aura *Aura, sim *Simulation, spell *Spell, result *SpellResult) {
@@ -177,9 +229,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, result) {
 			return
 		}
-		if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
-			return
-		} else if dpm != nil && !dpm.Proc(sim, spell.ProcMask, config.Name) {
+		if !config.rolls(sim, unit, dpm, spell.ProcMask) {
 			return
 		}
 
@@ -220,7 +270,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, nil) {
 				return
 			}
-			if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+			if !config.rolls(sim, unit, nil, ProcMaskUnknown) {
 				return
 			}
 
@@ -243,7 +293,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			if config.ExtraCondition != nil && !config.ExtraCondition(sim, spell, emptyResult) {
 				return
 			}
-			if config.ProcChance != 1 && sim.RandomFloat(config.Name) > config.ProcChance {
+			if !config.rolls(sim, unit, nil, ProcMaskUnknown) {
 				return
 			}
 
@@ -374,7 +424,7 @@ type TemporaryStatBuffWithStacksConfig struct {
 	// Set when stacks come from an event rather than a timer. The window aura is still built and
 	// still bounds the stacking aura, but nothing ticks - the caller adds stacks from its own
 	// trigger. The stacking aura is then given no duration of its own and is dropped when the
-	// window ends, which is what a child aura with no duration in the client data does.
+	// window ends, which is what a child aura with no duration in the game files does.
 	StacksFromEvent bool
 }
 

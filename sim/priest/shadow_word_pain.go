@@ -22,6 +22,7 @@ func (priest *Priest) registerShadowWordPainSpell(rank *spelldata.Spell) {
 	// 	ProcMask:       core.ProcMaskSpellDamage,
 	// 	Flags:          core.SpellFlagAPL,
 	// 	ClassSpellMask: PriestSpellShadowWordPain,
+	// 	ClassFlags:     rank.ClassFlags,
 	// 	Rank:           rank.RankNumber(),
 	// 	MaxRange:       float64(rank.MaxRange),
 	//

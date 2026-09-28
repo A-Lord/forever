@@ -32,7 +32,7 @@ func (shaman *Shaman) registerRestorationTalents() {
 	shaman.applyRiptide()
 }
 
-// TODO: To be implemented. Port the TBC Natures Swiftness implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Natures Swiftness implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyNaturesSwiftness() {
 	if !shaman.Talents.NaturesSwiftness {
 		return
@@ -81,7 +81,7 @@ func (shaman *Shaman) applyRestorativeTotems() {
 	// In totems.go
 }
 
-// TODO: To be implemented. Port the TBC Tidal Mastery implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Tidal Mastery implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyTidalMastery() {
 	if shaman.Talents.TidalMastery == 0 {
 		return
@@ -98,7 +98,7 @@ func (shaman *Shaman) applyTidalMastery() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Totemic Focus implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Totemic Focus implementation below; not yet verified against the Forever game files.
 func (shaman *Shaman) applyTotemicFocus() {
 	if shaman.Talents.TotemicFocus == 0 {
 		return
