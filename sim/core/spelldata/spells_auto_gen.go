@@ -13693,10 +13693,10 @@ var generatedSpells = []Spell{
 			{ID: 693873, SpellID: 16927, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_MELEE_HASTE_3, BasePoints: -25, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 693874, SpellID: 16927, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -30, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16928, Name: "Armor Shatter", School: 32, Attr: [17]uint32{1: 0x88, 15: 0x2000}, DurationMs: 45000, MaxRange: 30, DefenseType: 1, MaxStack: 3, ProcChance: 101, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 16928, Name: "Armor Shatter", School: 32, Attr: [17]uint32{1: 0x88, 15: 0x2000}, DurationMs: 45000, MaxRange: 30, DefenseType: 1, MaxStack: 3, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 693875, SpellID: 16928, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -165, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Annihilator: ProcChance 101 sentinel; TBC 1 PPM, unverified on Forever
+		}},
 	{ID: 16929, Name: "Thick Hide", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 7}, Labels: []int16{21},
 		Effects: []Effect{
 			{ID: 694235, SpellID: 16929, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 100, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

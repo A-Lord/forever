@@ -23,7 +23,7 @@ import (
 )
 
 // Sets the minimum itemlevel that should be considered for this expansions
-const MIN_EFFECT_ILVL = 50
+const MIN_EFFECT_ILVL = 40
 
 // Enchantment IDs at or below this are not generated.
 const MIN_ENCHANT_EFFECT_ID = 0
@@ -107,7 +107,9 @@ type ProcRouting struct {
 	// A "Chance on hit" item effect or a combat enchant, cast by the game off every eligible weapon
 	// hit whatever the row's proc flags say.
 	IsWeaponProc bool
-	Shape        ProcShape
+	// A weapon's own procs-per-minute rate, stated on its item effect; zero where the rows state one.
+	ItemPPM float64
+	Shape   ProcShape
 	// Empty when the rows state enough to build the listener.
 	Unsupported []string
 	// What the rows resolve to, for the reader of the generated file.
@@ -135,6 +137,8 @@ const (
 	ShapeAura
 	// An equip spell's auras, kept up for as long as the item is worn rather than applied by a proc.
 	ShapeEquip
+	// Grants the wearer extra attacks: main-hand swings under the granting spell's name.
+	ShapeExtraAttack
 )
 
 var procShapes = [...]struct {
@@ -144,15 +148,16 @@ var procShapes = [...]struct {
 	unsupported      func(*spelldata.Spell) []string
 	alwaysNamesBuff  bool
 }{
-	ShapeStats:    {"NewSpellDataProc", "NewSimpleStatActive", "", nil, false},
-	ShapeDamage:   {"NewSpellDataDamageProc", "NewSpellDataDamageOnUse", "Damage", damageUnsupported, true},
-	ShapeHeal:     {"NewSpellDataHealProc", "NewSpellDataHealOnUse", "Heals", healUnsupported, true},
-	ShapeAbsorb:   {"NewSpellDataAbsorbProc", "NewSpellDataAbsorbOnUse", "Absorbs", absorbUnsupported, true},
-	ShapeSpeed:    {"NewSpellDataProc", "NewSpellDataSpeedOnUse", "Speed", nil, false},
-	ShapeEnergize: {"NewSpellDataProc", "NewSpellDataEnergizeOnUse", "Resources", nil, false},
-	ShapeDebuff:   {"NewSpellDataDebuffProc", "NewSimpleStatActive", "", debuffUnsupported, false},
-	ShapeAura:     {"NewSpellDataAuraProc", "NewSpellDataAuraOnUse", "Auras", procAuraUnsupported, false},
-	ShapeEquip:    {"NewSpellDataEquipAura", "NewSimpleStatActive", "", nil, false},
+	ShapeStats:       {"NewSpellDataProc", "NewSimpleStatActive", "", nil, false},
+	ShapeDamage:      {"NewSpellDataDamageProc", "NewSpellDataDamageOnUse", "Damage", damageUnsupported, true},
+	ShapeHeal:        {"NewSpellDataHealProc", "NewSpellDataHealOnUse", "Heals", healUnsupported, true},
+	ShapeAbsorb:      {"NewSpellDataAbsorbProc", "NewSpellDataAbsorbOnUse", "Absorbs", absorbUnsupported, true},
+	ShapeSpeed:       {"NewSpellDataProc", "NewSpellDataSpeedOnUse", "Speed", nil, false},
+	ShapeEnergize:    {"NewSpellDataProc", "NewSpellDataEnergizeOnUse", "Resources", nil, false},
+	ShapeDebuff:      {"NewSpellDataDebuffProc", "NewSimpleStatActive", "", debuffUnsupported, false},
+	ShapeAura:        {"NewSpellDataAuraProc", "NewSpellDataAuraOnUse", "Auras", procAuraUnsupported, false},
+	ShapeEquip:       {"NewSpellDataEquipAura", "NewSimpleStatActive", "", nil, false},
+	ShapeExtraAttack: {"NewSpellDataExtraAttackProc", "NewSimpleStatActive", "", extraAttackUnsupported, false},
 }
 
 func (r *ProcRouting) Supported() bool {
@@ -165,18 +170,23 @@ func (r *ProcRouting) Reason() string {
 }
 
 // The rows behind an item effect, by the two ids the sim will look up: the spell carrying the proc
-// and the spell it applies.
-func routeProc(triggerSpellID int, buffSpellID int, isWeaponProc bool) *ProcRouting {
-	routing := &ProcRouting{TriggerSpellID: triggerSpellID, IsWeaponProc: isWeaponProc}
+// and the spell it applies. A weapon's own procs-per-minute rate, stated on its item effect, answers
+// a trigger whose row states none.
+func routeProc(triggerSpellID int, buffSpellID int, isWeaponProc bool, itemPPM float64) *ProcRouting {
+	routing := &ProcRouting{TriggerSpellID: triggerSpellID, IsWeaponProc: isWeaponProc, ItemPPM: itemPPM}
 	if buffSpellID != triggerSpellID {
 		routing.BuffSpellID = buffSpellID
 	}
 
 	trigger := spelldata.Find(int32(triggerSpellID))
-	routing.Unsupported = spelldata.ItemProcUnsupported(trigger, isWeaponProc)
-	routing.Summary = procSummary(triggerSpellID, trigger, buffSpellID)
+	routing.Unsupported = spelldata.ItemProcUnsupportedWithRate(trigger, isWeaponProc, itemPPM)
+	routing.Summary = routing.summarize(buffSpellID)
 
 	return routing
+}
+
+func (r *ProcRouting) summarize(buffSpellID int) string {
+	return procSummary(r.TriggerSpellID, spelldata.Find(int32(r.TriggerSpellID)), buffSpellID, r.ItemPPM)
 }
 
 // A proc that grants no stats: it casts or applies spellID, which the game files hang below the
@@ -188,7 +198,7 @@ func (r *ProcRouting) as(shape ProcShape, spellID int32) {
 		r.BuffSpellID = 0
 	}
 	r.Unsupported = append(r.Unsupported, procShapes[shape].unsupported(spelldata.Find(spellID))...)
-	r.Summary = procSummary(r.TriggerSpellID, spelldata.Find(int32(r.TriggerSpellID)), int(spellID))
+	r.Summary = r.summarize(int(spellID))
 }
 
 func pickNoStatShape(spellID int, debuffID int32) (ProcShape, int32) {
@@ -201,10 +211,25 @@ func pickNoStatShape(spellID int, debuffID int32) (ProcShape, int32) {
 	if absorb := dbc.ResolveTriggered(spellID, absorbs); absorb != 0 {
 		return ShapeAbsorb, absorb
 	}
+	if spelldata.Find(int32(spellID)).ExtraAttacksEffect() != spelldata.NilEffect {
+		return ShapeExtraAttack, int32(spellID)
+	}
 	if spelldata.Find(debuffID).DebuffsTheTarget() {
 		return ShapeDebuff, debuffID
 	}
 	return ShapeStats, 0
+}
+
+func extraAttackUnsupported(row *spelldata.Spell) []string {
+	var unsupported []string
+	effect := row.ExtraAttacksEffect()
+	if effect.Target[0] != dbcenums.TARGET_UNIT_CASTER {
+		unsupported = append(unsupported, "the extra attacks are not the wearer's")
+	}
+	if effect.BasePoints < 1 {
+		unsupported = append(unsupported, "states no attack count")
+	}
+	return unsupported
 }
 
 func damageUnsupported(damage *spelldata.Spell) []string {
@@ -330,14 +355,18 @@ func (r *ProcRouting) requireABuffDuration() {
 
 // What the rows resolve to, as the sim's own constants, so the generated file states the reading
 // rather than leaving it to be looked up.
-func procSummary(triggerSpellID int, trigger *spelldata.Spell, buffSpellID int) string {
+func procSummary(triggerSpellID int, trigger *spelldata.Spell, buffSpellID int, itemPPM float64) string {
 	if trigger == spelldata.Nil {
 		return fmt.Sprintf("trigger %d is not in the store", triggerSpellID)
 	}
 
+	rate := procRateSummary(trigger)
+	if itemPPM > 0 {
+		rate = fmt.Sprintf("%v ppm on the item", itemPPM)
+	}
 	decoded := core.DecodeProcTypeMask(trigger.ProcFlags, trigger.ProcHint)
 	summary := fmt.Sprintf("trigger %d (%s, %s, %s)", trigger.ID,
-		procRateSummary(trigger), asCoreCallback(decoded.Callback), asCoreProcMask(decoded.ProcMask))
+		rate, asCoreCallback(decoded.Callback), asCoreProcMask(decoded.ProcMask))
 
 	if int(trigger.ID) != buffSpellID {
 		summary += fmt.Sprintf(" -> buff %d", buffSpellID)
@@ -1033,7 +1062,8 @@ func routeItemProc(parsed *proto.UIItem, itemEffect *proto.ItemEffect) *ProcRout
 		return nil
 	}
 
-	return routeProc(effect.SpellID, int(itemEffect.BuffId), effect.TriggerType == dbc.ITEM_SPELLTRIGGER_CHANCE_ON_HIT)
+	return routeProc(effect.SpellID, int(itemEffect.BuffId), effect.TriggerType == dbc.ITEM_SPELLTRIGGER_CHANCE_ON_HIT,
+		itemEffect.GetProc().GetPpm())
 }
 
 // An equip spell with no stats that applies an aura the stat path cannot state, read from the row it
@@ -1441,7 +1471,7 @@ func routeEnchantSlot(slot dbc.EnchantProcSlot, instance *dbc.DBC) *ProcRouting 
 		buffSpellID = int(effect.BuffId)
 	}
 
-	routing := routeProc(slot.SpellID, buffSpellID, slot.IsCombatSpell)
+	routing := routeProc(slot.SpellID, buffSpellID, slot.IsCombatSpell, 0)
 	trigger := spelldata.Find(int32(slot.SpellID))
 	if !slot.IsCombatSpell {
 		routing.Unsupported = spelldata.EnchantAuraUnsupported(trigger)
@@ -1517,53 +1547,54 @@ var rateWordMatcher = regexp.MustCompile(`(?i)\b(often|sometimes|occasionally)\b
 var cooldownWordingMatcher = regexp.MustCompile(`(?i)more often than`)
 
 func ParseTooltipForMissingEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMap map[string]Group, groupMapName string) {
+	// Effect was already manually implemented
+	if core.HasItemEffect(parsed.Id) {
+		return
+	}
+
+	renderedTooltip, rendered := renderItemEffectTooltip(parsed, itemEffect, instance)
+	if !rendered {
+		return
+	}
+
+	// An item below the floor takes no entry in the generated file: the variant grouping merges
+	// entries by item name, and a Supported: false entry can comment out a live registration
+	// of the same name above the floor. It is still reported as missing its effect, since the
+	// gear picker has no floor.
 	if parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
-		// Effect was already manually implemented
-		if core.HasItemEffect(parsed.Id) {
-			return
-		}
-
-		renderedTooltip, rendered := renderItemEffectTooltip(parsed, itemEffect, instance)
-
 		grp, exists := groupMap[groupMapName]
 		if !exists {
 			grp = Group{Name: groupMapName}
 		}
 
-		if rendered {
-			entry := Entry{
-				Tooltip:   strings.Split(renderedTooltip, "\n"),
-				Supported: false,
-				Variants: []*Variant{
-					{
-						ID:      int(parsed.Id),
-						Name:    parsed.Name,
-						SpellID: int(itemEffect.BuffId),
-					},
-				},
-			}
-
-			grp.Entries = append(grp.Entries, &entry)
-			groupMap[groupMapName] = grp
-
-			// Flavour auras carry no mechanic worth implementing and only add noise to the
-			// report. Suppressing the report only, never the group entry: those
-			// Supported: false entries take part in the variant grouping that decides whether
-			// a whole variant set is emitted live or commented, so dropping one can flip a
-			// real registration.
-			if _, ignored := IgnoreMissingEffectBySpellID[int(itemEffect.BuffId)]; ignored {
-				return
-			}
-
-			if len(dbc.EffectStats(itemEffect)) == 0 || !entry.Supported {
-				StoreMissingEffect("ItemEffects", parsed.Name, Variant{
+		grp.Entries = append(grp.Entries, &Entry{
+			Tooltip:   strings.Split(renderedTooltip, "\n"),
+			Supported: false,
+			Variants: []*Variant{
+				{
 					ID:      int(parsed.Id),
-					Name:    renderedTooltip,
+					Name:    parsed.Name,
 					SpellID: int(itemEffect.BuffId),
-				})
-			}
-		}
+				},
+			},
+		})
+		groupMap[groupMapName] = grp
 	}
+
+	// Flavour auras carry no mechanic worth implementing and only add noise to the
+	// report. Suppressing the report only, never the group entry: those
+	// Supported: false entries take part in the variant grouping that decides whether
+	// a whole variant set is emitted live or commented, so dropping one can flip a
+	// real registration.
+	if _, ignored := IgnoreMissingEffectBySpellID[int(itemEffect.BuffId)]; ignored {
+		return
+	}
+
+	StoreMissingEffect("ItemEffects", parsed.Name, Variant{
+		ID:      int(parsed.Id),
+		Name:    renderedTooltip,
+		SpellID: int(itemEffect.BuffId),
+	})
 }
 
 // A critical strike named as the trigger. The first clause reads the wording that puts something

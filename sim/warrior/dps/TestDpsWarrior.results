@@ -80,12 +80,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-BarbaricBelt-4264"
+ value: {
+  dps: 299.32288
+  tps: 172.42359
+  dtps: 2.90588
+  hps: 20.04181
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 304.87974
   tps: 175.56321
   dtps: 2.8407
   hps: 20.22968
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.8407
+  hps: 20.18987
  }
 }
 dps_results: {
@@ -125,6 +143,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Defiler'sTalisman-21116"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.38187
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Doombringer-13053"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-EarthenSigil-20525"
  value: {
   dps: 300.53192
@@ -135,6 +171,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Earthstrike-21180"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-EbonHand-19170"
  value: {
   dps: 300.53192
   tps: 173.11871
@@ -269,12 +314,48 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-FieryWarAxe-870"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-FlurryAxe-871"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 307.47002
   tps: 176.99293
   dtps: 2.90588
   hps: 19.85687
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-GnomishHarmPreventionBelt-10721"
+ value: {
+  dps: 296.06232
+  tps: 170.59768
+  dtps: 2.90588
+  hps: 20.17037
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-GoblinConstructionHelmet-10543"
+ value: {
+  dps: 296.97332
+  tps: 171.1259
+  dtps: 2.8407
+  hps: 19.59253
  }
 }
 dps_results: {
@@ -297,6 +378,24 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Gri'lek'sCharmofMight-19951"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-HammeroftheNorthernWind-810"
+ value: {
+  dps: 301.72573
+  tps: 173.73447
+  dtps: 2.90588
+  hps: 19.69914
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-HanzoSword-8190"
  value: {
   dps: 300.53192
   tps: 173.11871
@@ -359,6 +458,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Linken'sSwordofMastery-11902"
+ value: {
+  dps: 294.26423
+  tps: 169.77963
+  dtps: 2.90588
+  hps: 19.64656
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Loatheb'sReflection-23042"
  value: {
   dps: 300.53192
@@ -395,10 +503,55 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-MarkoftheRedFlight-282778"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-MasterworkStormhammer-12794"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 302.655
   tps: 174.30763
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Nightfall-19169"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-OrbofFire-12805"
+ value: {
+  dps: 301.13292
+  tps: 173.45527
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-PhantomBlade-7961"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
   dtps: 2.90588
   hps: 20.18987
  }
@@ -413,6 +566,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-SatchelofIronBombs-285277"
+ value: {
+  dps: 299.13469
+  tps: 172.32931
+  dtps: 2.90588
+  hps: 20.21497
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-SerenityField-272439"
  value: {
   dps: 300.53192
@@ -423,6 +585,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-ShardoftheFallenStar-21891"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-ShortswordofVengeance-754"
  value: {
   dps: 300.53192
   tps: 173.11871
@@ -449,6 +620,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Sulfuras,HandofRagnaros-17182"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-SwordofZeal-6622"
+ value: {
+  dps: 314.92037
+  tps: 180.75263
+  dtps: 2.90588
+  hps: 20.01461
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-TalismanofArathor-20071"
  value: {
   dps: 300.53192
@@ -464,6 +653,15 @@ dps_results: {
   tps: 173.11871
   dtps: 2.90588
   hps: 20.42453
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-TalismanofArathor-21118"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.38187
  }
 }
 dps_results: {
@@ -503,6 +701,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-ThrashBlade-17705"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
   dps: 300.53192
@@ -522,6 +729,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-WarmthofForgiveness-23027"
+ value: {
+  dps: 300.53192
+  tps: 173.11871
+  dtps: 2.90588
+  hps: 20.18987
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Witchfury-13051"
  value: {
   dps: 300.53192
   tps: 173.11871
