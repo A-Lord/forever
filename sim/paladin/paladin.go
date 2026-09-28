@@ -104,16 +104,6 @@ func (paladin *Paladin) Reset(_ *core.Simulation) {
 func (paladin *Paladin) OnEncounterStart(_ *core.Simulation) {
 }
 
-func (paladin *Paladin) GetMainHandType() proto.HandType {
-	mh := paladin.GetMHWeapon()
-
-	if mh != nil && (mh.HandType == proto.HandType_HandTypeTwoHand) {
-		return proto.HandType_HandTypeTwoHand
-	}
-
-	return proto.HandType_HandTypeOneHand
-}
-
 func (paladin *Paladin) sharedTimer(timer **core.Timer) *core.Timer {
 	if *timer == nil {
 		*timer = paladin.NewTimer()

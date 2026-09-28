@@ -25,16 +25,22 @@ const ReasonPPMHearsNoWeaponHits = "a procs-per-minute rate hears no weapon hits
 // class, so a class mask on its trigger is the filter of the one class it was written for and names
 // nothing the sim can reproduce. An item proc therefore has no character to weigh the mask against.
 func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string {
-	return itemProcUnsupported(trigger, isWeaponProc, false)
+	return itemProcUnsupported(trigger, isWeaponProc, false, 0)
+}
+
+// The same for a weapon whose item effect states its own procs-per-minute rate, which answers a
+// trigger whose row states none.
+func ItemProcUnsupportedWithRate(trigger *Spell, isWeaponProc bool, itemPPM float64) []string {
+	return itemProcUnsupported(trigger, isWeaponProc, false, itemPPM)
 }
 
 // The same for an enchant's equip aura, whose procs-per-minute rate rolls on weapon hits only: the
 // sim never procs one from a spell or a heal.
 func EnchantAuraUnsupported(trigger *Spell) []string {
-	return itemProcUnsupported(trigger, false, true)
+	return itemProcUnsupported(trigger, false, true, 0)
 }
 
-func itemProcUnsupported(trigger *Spell, isWeaponProc bool, isEnchant bool) []string {
+func itemProcUnsupported(trigger *Spell, isWeaponProc bool, isEnchant bool, itemPPM float64) []string {
 	var unsupported []string
 
 	if trigger == Nil || trigger.ID == 0 {
@@ -62,7 +68,7 @@ func itemProcUnsupported(trigger *Spell, isWeaponProc bool, isEnchant bool) []st
 	// A weapon proc hears the hits of whatever carries it, which is the one shape the row states no
 	// listener for: the game casts a chance-on-hit effect and a combat enchant off the hit itself.
 	if isWeaponProc {
-		if !weaponProcRateStated(trigger) {
+		if itemPPM == 0 && !weaponProcRateStated(trigger) {
 			unsupported = append(unsupported, ReasonStatesNoRate)
 		}
 		return unsupported

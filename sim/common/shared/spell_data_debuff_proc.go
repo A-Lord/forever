@@ -26,7 +26,7 @@ func applySpellDataDebuffProc(agent core.Agent, cfg SpellDataProc, source effect
 	character := agent.GetCharacter()
 	debuffs := enemyDebuffAuras(character, debuff, debuff.Duration(), debuff.DebuffEffects())
 
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	callback := config.Callback
 	config.Handler = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 		applyDebuff(sim, debuffs.Get(procDamageTarget(character, callback, spell, result)))

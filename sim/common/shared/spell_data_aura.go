@@ -74,7 +74,7 @@ func registerSpellDataAuraProc(cfg SpellDataProc) {
 		config.Duration = procBuffDuration(cfg, trigger, buff)
 		auras := newSpellDataAuras(character, buff, config)
 
-		proc := spellDataProcListener(character, cfg, source, trigger, nil)
+		proc := spellDataProcListener(character, cfg, source, trigger)
 		if proc.ICD == 0 && buff.ID != trigger.ID {
 			proc.ICD = buff.CategoryCooldown()
 		}

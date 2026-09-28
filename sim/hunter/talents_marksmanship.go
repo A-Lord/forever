@@ -166,20 +166,13 @@ func (hunter *Hunter) registerBarrage() {
 	spelldata.ParseStatic(&hunter.Character, spellData.Barrage.Rank(hunter.Talents.Barrage), spelldata.Effects(1))
 }
 
-// The row raises every school's damage done and requires a ranged weapon: an equipment-gated
-// multiplier the game applies to the attacks made with that weapon, which is the tooltip's damage
-// dealt with ranged weapons. The parse has no equipment gate, so the mod stays on the ranged hits
-// by hand.
 func (hunter *Hunter) registerRangedWeaponSpecialization() {
 	if hunter.Talents.RangedWeaponSpecialization == 0 {
 		return
 	}
 
-	hunter.AddStaticMod(core.SpellModConfig{
-		Kind:       core.SpellMod_DamageDone_Pct,
-		ProcMask:   core.ProcMaskRanged,
-		FloatValue: spellData.RangedWeaponSpecialization.FractionAt(hunter.Talents.RangedWeaponSpecialization),
-	})
+	spelldata.ParseStatic(&hunter.Character,
+		spellData.RangedWeaponSpecialization.Rank(hunter.Talents.RangedWeaponSpecialization))
 }
 
 var sniperShotRank = spellData.SniperShot.Highest()

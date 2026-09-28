@@ -211,8 +211,8 @@ const (
 	// ranged bits alone, as the ranged percents.
 	FoldRanged
 	// Applied at run time, where the attack's own weapon decides: any other hit or crit aura the parse
-	// binds to a weapon, and a rating aura bound to any weapon, whose mask the fold would read as a
-	// rating on every channel.
+	// binds to a weapon, a rating aura bound to any weapon, whose mask the fold would read as a rating
+	// on every channel, and a damage done aura bound to any weapon.
 	FoldRuntime
 )
 
@@ -223,7 +223,7 @@ func equipFold(s *spelldata.Spell, e *spelldata.Effect) EquipFold {
 		return FoldStats
 	case rule == spelldata.WeaponRuleRangedRatings:
 		return FoldRanged
-	case e.Aura == dbcenums.A_MOD_RATING, scope.ProcMask != core.ProcMaskRanged:
+	case e.Aura == dbcenums.A_MOD_RATING, e.Aura == dbcenums.A_MOD_DAMAGE_PERCENT_DONE, scope.ProcMask != core.ProcMaskRanged:
 		return FoldRuntime
 	}
 	return FoldRanged

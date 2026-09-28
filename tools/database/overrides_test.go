@@ -180,6 +180,12 @@ func TestShippedOverridesAreWellFormed(t *testing.T) {
 				link.Spell, link.Triggers, link.Reason, link.Source)
 		}
 	}
+
+	for _, proc := range overrides.WeaponProcs {
+		if proc.Reason == "" || proc.Source == "" {
+			t.Errorf("item %d's rate on %d states reason %q and source %q", proc.ItemID, proc.SpellID, proc.Reason, proc.Source)
+		}
+	}
 }
 
 func TestAreaBonusesBakeOntoTheRow(t *testing.T) {

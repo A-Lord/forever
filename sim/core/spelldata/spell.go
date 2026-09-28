@@ -108,6 +108,11 @@ func (s *Spell) DamageEffect() *Effect {
 		dbcenums.E_WEAPON_DAMAGE_NOSCHOOL)
 }
 
+// The effect granting the caster extra attacks, whose BasePoints is how many.
+func (s *Spell) ExtraAttacksEffect() *Effect {
+	return s.firstOfType(dbcenums.E_ADD_EXTRA_ATTACKS)
+}
+
 func (s *Spell) HealEffect() *Effect {
 	return s.firstOfType(dbcenums.E_HEAL)
 }

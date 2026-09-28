@@ -22,6 +22,7 @@ type SpellModConfig struct {
 	Kind              SpellModType
 	School            SpellSchool
 	DefenseType       DefenseType // Only apply to spells with a matching DefenseType
+	MultiplierSchool  SpellSchool // Only apply to spells whose SchoolIndex reads one of these schools
 	ProcMask          ProcMask
 	SpellFlag         SpellFlag
 	ResourceType      proto.ResourceType
@@ -44,25 +45,26 @@ type SpellModConfig struct {
 }
 
 type SpellMod struct {
-	ClassMask      int64
-	ClassFlags     ClassFlags
-	Kind           SpellModType
-	School         SpellSchool
-	DefenseType    DefenseType
-	ProcMask       ProcMask
-	SpellFlag      SpellFlag
-	ResourceType   proto.ResourceType
-	Equip          EquipRequirement
-	FromRating     bool
-	floatValue     float64
-	intValue       int32
-	timeValue      time.Duration
-	keyValue       string
-	Apply          SpellModApply
-	Remove         SpellModRemove
-	IsActive       bool
-	AffectedSpells []*Spell
-	OnReset        SpellModOnReset
+	ClassMask        int64
+	ClassFlags       ClassFlags
+	Kind             SpellModType
+	School           SpellSchool
+	DefenseType      DefenseType
+	MultiplierSchool SpellSchool
+	ProcMask         ProcMask
+	SpellFlag        SpellFlag
+	ResourceType     proto.ResourceType
+	Equip            EquipRequirement
+	FromRating       bool
+	floatValue       float64
+	intValue         int32
+	timeValue        time.Duration
+	keyValue         string
+	Apply            SpellModApply
+	Remove           SpellModRemove
+	IsActive         bool
+	AffectedSpells   []*Spell
+	OnReset          SpellModOnReset
 
 	// The auras this mod has written to, for the kinds that change an aura rather than the spell
 	// pointing at it. One aura is routinely shared by every rank of a family and a class mask names
@@ -138,24 +140,25 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 
 	mod := &SpellMod{
-		ClassMask:    config.ClassMask,
-		ClassFlags:   config.ClassFlags,
-		Kind:         config.Kind,
-		School:       config.School,
-		DefenseType:  config.DefenseType,
-		ProcMask:     config.ProcMask,
-		SpellFlag:    config.SpellFlag,
-		ResourceType: config.ResourceType,
-		Equip:        config.Equip(),
-		FromRating:   config.FromRating,
-		floatValue:   config.FloatValue,
-		intValue:     config.IntValue,
-		timeValue:    config.TimeValue,
-		keyValue:     config.KeyValue,
-		Apply:        applyFn,
-		Remove:       removeFn,
-		IsActive:     false,
-		OnReset:      resetFn,
+		ClassMask:        config.ClassMask,
+		ClassFlags:       config.ClassFlags,
+		Kind:             config.Kind,
+		School:           config.School,
+		DefenseType:      config.DefenseType,
+		MultiplierSchool: config.MultiplierSchool,
+		ProcMask:         config.ProcMask,
+		SpellFlag:        config.SpellFlag,
+		ResourceType:     config.ResourceType,
+		Equip:            config.Equip(),
+		FromRating:       config.FromRating,
+		floatValue:       config.FloatValue,
+		intValue:         config.IntValue,
+		timeValue:        config.TimeValue,
+		keyValue:         config.KeyValue,
+		Apply:            applyFn,
+		Remove:           removeFn,
+		IsActive:         false,
+		OnReset:          resetFn,
 	}
 	unit.spellMods = append(unit.spellMods, mod)
 	if !mod.Equip.IsZero() {
@@ -263,6 +266,10 @@ func passesSpellChecks(spell *Spell, mod *SpellMod) bool {
 		return false
 	}
 
+	if mod.MultiplierSchool > 0 && !mod.MultiplierSchool.Matches(spell.SpellSchool.MultiplierSchool()) {
+		return false
+	}
+
 	if mod.ProcMask > 0 && !mod.ProcMask.Matches(spell.ProcMask) {
 		return false
 	}
@@ -361,6 +368,9 @@ func (unit *Unit) ScopedPercents(probe ProcMask) ScopedPercents {
 }
 
 func (mod *SpellMod) UpdateIntValue(value int32) {
+	if value == mod.intValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.intValue = value
@@ -371,6 +381,9 @@ func (mod *SpellMod) UpdateIntValue(value int32) {
 }
 
 func (mod *SpellMod) UpdateTimeValue(value time.Duration) {
+	if value == mod.timeValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.timeValue = value
@@ -381,6 +394,9 @@ func (mod *SpellMod) UpdateTimeValue(value time.Duration) {
 }
 
 func (mod *SpellMod) UpdateFloatValue(value float64) {
+	if value == mod.floatValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.floatValue = value

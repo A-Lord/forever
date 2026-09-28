@@ -100,11 +100,43 @@ func (req EquipRequirement) Equipped(character *Character) bool {
 	return false
 }
 
+// A level that holds only while a weapon meeting the requirement is equipped: set hears the level while
+// one is and 0 while none is, again on every weapon change.
+type EquipGate struct {
+	character *Character
+	req       EquipRequirement
+	level     float64
+	set       func(sim *Simulation, level float64)
+}
+
+func (character *Character) NewEquipGate(req EquipRequirement, set func(sim *Simulation, level float64)) *EquipGate {
+	gate := &EquipGate{character: character, req: req, set: set}
+	character.RegisterWeaponChangeCallback(gate.refresh)
+	return gate
+}
+
+func (gate *EquipGate) SetLevel(sim *Simulation, level float64) {
+	gate.level = level
+	gate.refresh(sim)
+}
+
+func (gate *EquipGate) Equipped() bool {
+	return gate.req.Equipped(gate.character)
+}
+
+func (gate *EquipGate) refresh(sim *Simulation) {
+	if gate.Equipped() {
+		gate.set(sim, gate.level)
+	} else {
+		gate.set(sim, 0)
+	}
+}
+
 // Stats the character holds while a weapon meeting the requirement is equipped, each counted at its
 // own level. They follow the weapon slots through item swaps.
 type EquipGatedStats struct {
 	character *Character
-	req       EquipRequirement
+	gate      *EquipGate
 	stats     []gatedStat
 }
 
@@ -116,13 +148,13 @@ type gatedStat struct {
 }
 
 func (character *Character) NewEquipGatedStats(req EquipRequirement, bonus stats.Stats) *EquipGatedStats {
-	gated := &EquipGatedStats{character: character, req: req}
+	gated := &EquipGatedStats{character: character}
 	for stat, value := range bonus {
 		if value != 0 {
 			gated.stats = append(gated.stats, gatedStat{stat: stats.Stat(stat), value: value})
 		}
 	}
-	character.RegisterWeaponChangeCallback(gated.refresh)
+	gated.gate = character.NewEquipGate(req, func(sim *Simulation, _ float64) { gated.refresh(sim) })
 	return gated
 }
 
@@ -146,7 +178,7 @@ func (gated *EquipGatedStats) SetStatLevel(sim *Simulation, stat stats.Stat, lev
 }
 
 func (gated *EquipGatedStats) refresh(sim *Simulation) {
-	equipped := gated.req.Equipped(gated.character)
+	equipped := gated.gate.Equipped()
 	var delta stats.Stats
 	changed := false
 	for i := range gated.stats {

@@ -136,6 +136,7 @@ var modConfigFields = []modConfigField{
 	}},
 	{"School", func(c *core.SpellModConfig) string { return nonZero(c.School, core.SpellSchool.String) }},
 	{"DefenseType", func(c *core.SpellModConfig) string { return nonZero(c.DefenseType, core.DefenseType.String) }},
+	{"MultiplierSchool", func(c *core.SpellModConfig) string { return nonZero(c.MultiplierSchool, core.SpellSchool.String) }},
 	{"ProcMask", func(c *core.SpellModConfig) string { return nonZero(c.ProcMask, procMaskNames) }},
 	{"SpellFlag", func(c *core.SpellModConfig) string {
 		return strings.Join(setBits(uint64(c.SpellFlag), spellFlagBit), " | ")

@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/tools/database/overrides"
 )
 
 // Kept apart from the item's stats so the sim can apply them per encounter.
@@ -112,9 +113,16 @@ func assignTrigger(e *ItemEffect, statsSpellID int, pe *proto.ItemEffect) {
 			IcdMs: procIcdMs(spTop, statsSP),
 		}
 		// The column is the roll only where it is one: 0 means the game files state no rate at all and
-		// anything above 100 is its "the rate lives elsewhere" sentinel. A proc whose rate is not in
-		// the spell data reaches the sim through the spell store, where an override answers it.
-		if spTop.ProcChance > 0 && spTop.ProcChance <= 100 {
+		// anything above 100 is its "the rate lives elsewhere" sentinel. A weapon's rate then comes from
+		// the hand-kept WeaponProcs table, onto the effect; a row for a column that has become a roll is
+		// stale, and refused so the number does not outlive its reason.
+		if ppm := overrides.WeaponProcPPM(int32(e.ParentItemID), int32(e.SpellID)); ppm > 0 {
+			if spTop.ProcChance > 0 && spTop.ProcChance < 100 {
+				panic(fmt.Sprintf("item %d's spell %d now states ProcChance %v, so its hand-supplied PPM is stale",
+					e.ParentItemID, e.SpellID, spTop.ProcChance))
+			}
+			proc.ProcRate = &proto.ProcEffect_Ppm{Ppm: ppm}
+		} else if spTop.ProcChance > 0 && spTop.ProcChance <= 100 {
 			proc.ProcRate = &proto.ProcEffect_ProcChance{
 				ProcChance: float64(spTop.ProcChance) / 100,
 			}

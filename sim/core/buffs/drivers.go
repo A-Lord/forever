@@ -141,36 +141,30 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	// included. A main-hand auto that procs it has spent the first charge
 	// itself, so the extra attack is the only one buffed; a special hands both
 	// charges to the extra attack and the auto after it.
-	var windfurySpell *core.Spell
 	trigger := core.ProcTrigger{
-		Name:               "Windfury Totem Trigger",
-		MetricsActionID:    core.ActionID{SpellID: 25580, Tag: -1},
-		ProcChance:         windfuryTotemSpell.StatedChance(),
-		Duration:           core.NeverExpires,
-		Outcome:            core.OutcomeLanded,
-		ICD:                time.Millisecond * 1500,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		Name:            "Windfury Totem Trigger",
+		MetricsActionID: core.ActionID{SpellID: 25580, Tag: -1},
+		ProcChance:      windfuryTotemSpell.StatedChance(),
+		Duration:        core.NeverExpires,
+		Outcome:         core.OutcomeLanded,
+		ICD:             time.Millisecond * 1500,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			procAura.Activate(sim)
 			charges := procAura.MaxStacks
 			if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
 				charges--
 			}
 			procAura.SetStacks(sim, charges)
-			char.AutoAttacks.MaybeReplaceMHSwing(sim, windfurySpell).Cast(sim, result.Target)
 		},
 	}
 	spelldata.WeaponProc()(char, &trigger)
 	trigger.ProcMask = core.ProcMaskMeleeMH
-	procTrigger := char.MakeProcTriggerAura(trigger)
+	onInit := char.ExtraAttackProc(&trigger, 25584, 1)
+	procTrigger := char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 
 	totemAura := char.GetOrRegisterAura(core.Aura{
 		Label:    "Windfury Totem",
 		ActionID: core.ActionID{SpellID: 25587, Tag: -1},
-	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-		config := *char.AutoAttacks.MHConfig()
-		config.ActionID = config.ActionID.WithTag(25584)
-		windfurySpell = char.GetOrRegisterSpell(config)
 	})
 	holdTotemEnchant(char, totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
 }
