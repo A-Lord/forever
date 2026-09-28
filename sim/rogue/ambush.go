@@ -11,9 +11,9 @@ func (rogue *Rogue) registerAmbushSpell() {
 	ambushBaseDamage := ambushRank.DamageEffect().Average(core.CharacterLevel)
 	comboPointGen := ambushRank.EnergizeEffect().Average(core.CharacterLevel)
 	config := spelldata.SpellConfig(&rogue.Unit, ambushRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.Flags |= SpellFlagBuilder
+	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
 	config.ClassSpellMask = RogueSpellAmbush
-	config.DamageMultiplier = 2.5
+	config.DamageMultiplier = ambushRank.EffectN(2).Percent()
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
 		return !rogue.PseudoStats.InFrontOfTarget && (rogue.OpenerExtraCastCondition(sim, target) || rogue.CutthroatAura.IsActive())
 	}

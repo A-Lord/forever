@@ -323,14 +323,6 @@ func (rogue *Rogue) registerAdrenalineRush() {
 	adrenalineRushAura := rogue.RegisterAura(spelldata.AuraConfig(adrenalineRushRank))
 	spelldata.ParseEffects(&rogue.Character, adrenalineRushAura, adrenalineRushRank) // Not sure this does anything, but kept for completeness
 
-	adrenalineRushAura.Duration = time.Second * 15
-	adrenalineRushAura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-		rogue.MultiplyEnergyRegenSpeed(sim, 2)
-	})
-	adrenalineRushAura.ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-		rogue.MultiplyEnergyRegenSpeed(sim, 0.5)
-	})
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		adrenalineRushAura.Activate(sim)
 	}

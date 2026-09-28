@@ -10,7 +10,7 @@ var sinisterStrikeRank = spellData.SinisterStrike.Highest()
 func (rogue *Rogue) registerSinisterStrikeSpell() {
 	sinisterStrikeBaseDamage := sinisterStrikeRank.DamageEffect().Average(core.CharacterLevel)
 	config := spelldata.SpellConfig(&rogue.Unit, sinisterStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.Flags |= SpellFlagBuilder
+	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
 	config.ClassSpellMask = RogueSpellSinisterStrike
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

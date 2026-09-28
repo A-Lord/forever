@@ -2,6 +2,7 @@ package rogue
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -87,6 +88,7 @@ func (rogue *Rogue) registerGhostlyStrike() {
 	config := spelldata.SpellConfig(&rogue.Unit, ghostlyStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
 	config.ClassSpellMask = RogueSpellGhostlyStrike
+	config.DamageMultiplier = core.TernaryFloat64(rogue.HasDagger(core.MainHand), ghostlyStrikeRank.EffectN(4).Percent(), ghostlyStrikeRank.EffectN(1).Percent())
 
 	// Dodge aura not implemented; maybe if rogue tanking comes back
 
@@ -104,6 +106,10 @@ func (rogue *Rogue) registerGhostlyStrike() {
 	}
 
 	rogue.GhostlyStrike = rogue.RegisterSpell(config)
+
+	rogue.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(s *core.Simulation, slot proto.ItemSlot) {
+		rogue.GhostlyStrike.DamageMultiplier = core.TernaryFloat64(rogue.HasDagger(core.MainHand), ghostlyStrikeRank.EffectN(4).Percent(), ghostlyStrikeRank.EffectN(1).Percent())
+	})
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.GhostlyStrike {
@@ -310,16 +316,20 @@ func (rogue *Rogue) registerHemorrhage() {
 	config := spelldata.SpellConfig(&rogue.Unit, hemorrhageRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
 	config.ClassSpellMask = RogueSpellHemorrhage
+	config.DamageMultiplier = core.TernaryFloat64(rogue.HasDagger(core.MainHand), hemorrhageRank.EffectN(5).Percent(), hemorrhageRank.EffectN(4).Percent())
 
-	hemoAura := rogue.RegisterAura(spelldata.AuraConfig(hemorrhageRank))
-	spelldata.ParseEffects(nil, hemoAura, spellData.Hemorrhage.Highest(),
-		spelldata.FromCaster(&rogue.Unit, DDBC_Hemorrhage, DDBC_Total))
+	hemoAuras := rogue.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		hemoAura := target.GetOrRegisterAura(spelldata.AuraConfig(hemorrhageRank))
+		spelldata.ParseEffects(nil, hemoAura, spellData.Hemorrhage.Highest(),
+			spelldata.FromCaster(&rogue.Unit, DDBC_Hemorrhage, DDBC_Total))
+		return hemoAura
+	})
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := rogue.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 		if result.Landed() {
-			hemoAura.Activate(sim)
+			hemoAuras.Get(target).Activate(sim)
 			rogue.AddComboPoints(sim, int32(hemorrhageRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
 		} else {
 			spell.IssueRefund(sim)
@@ -327,6 +337,10 @@ func (rogue *Rogue) registerHemorrhage() {
 	}
 
 	rogue.Hemorrhage = rogue.GetOrRegisterSpell(config)
+
+	rogue.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(s *core.Simulation, slot proto.ItemSlot) {
+		rogue.Hemorrhage.DamageMultiplier = core.TernaryFloat64(rogue.HasDagger(core.MainHand), hemorrhageRank.EffectN(5).Percent(), hemorrhageRank.EffectN(4).Percent())
+	})
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.Hemorrhage {

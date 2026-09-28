@@ -105,6 +105,13 @@ func (rogue *Rogue) registerColdBlood() {
 	}
 
 	coldBloodAura := rogue.RegisterAura(spelldata.AuraConfig(coldBloodRank))
+
+	coldBloodAura.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if spell.Flags.Matches(SpellFlagColdBlooded) && spell.ProcMask.Matches(core.ProcMaskMeleeMH) {
+			aura.Deactivate(sim)
+		}
+	}
+
 	spelldata.ParseEffects(&rogue.Character, coldBloodAura, coldBloodRank)
 	config := spelldata.SpellConfig(&rogue.Unit, coldBloodRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
 
@@ -295,13 +302,14 @@ var mutilateHitRank = spellData.MutilateTriggered.Highest()
 func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 	mutilateHitBaseDamage := mutilateHitRank.DamageEffect().Average(core.CharacterLevel)
 	spellOpt := core.Ternary(isMH, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Melee(core.ProcMaskMeleeOHSpecial))
-	config := spelldata.SpellConfig(&rogue.Unit, mutilateHitRank, spellOpt, spelldata.Proc())
+	config := spelldata.SpellConfig(&rogue.Unit, mutilateHitRank, spellOpt)
+	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
 	if isMH {
 		config.Tag = 1
 	} else {
 		config.Tag = 2
 	}
-	config.Flags |= SpellFlagBuilder
+	config.DamageMultiplier = mutilateHitRank.EffectN(2).Percent()
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := mutilateHitBaseDamage
