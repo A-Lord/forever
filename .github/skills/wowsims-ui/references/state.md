@@ -99,8 +99,9 @@ the one that matches what you want: a value, or a notification. The hook reads i
 `usePlayer()`, and there is exactly one — there is no raid sim UI, so "which player" is never a
 question a component has to answer.
 
-**A named store field on an `InputConfig`.** `InputConfig` (`ui/ui-kit/input.ts`) takes
-`storeField`, resolved by `ui/sim/hooks/useStoreField.ts` against the host from context. A
+**A named store field on an `InputConfig`.** `InputConfig` (`ui/features/inputs/input.ts`, imported
+as `@features/inputs/input`) takes `storeField`, resolved by `useStoreField`
+(`ui/sim/hooks/useStoreField.ts`) against the host from context. A
 `StoreField` is either a bare player field or a scoped one — `sim:` `ui:` `encounter:` `raid:`
 `reforge:` `bulk:` `statWeights:` — and an array of them folds into one `subscribeAll`, so several
 fields still notify once. The `StoreBinding` type requires one of `storeField` / `storeSubscribe`,
@@ -138,22 +139,26 @@ fields), `useTalents()` (`ui/features/talents/hooks/useTalents.ts`), and `useApl
 the rotation is the one player field with no value in the store, so that hook keys a `useMemo` on the
 `rotation` counter and reads `player.aplRotation` through it.
 
-### `revision`, and why the pickers need it
+### `revision`, and who needs it
 
-`ui/ui-kit/hooks/useInput.ts` returns `{ value, setValue, hidden, disabled, revision }`. `revision`
-increments on **every** notification, including ones that leave the value unchanged. It is not a
-change counter, and deleting it looks safe right up to the point an input stops re-syncing.
+`useInput` (`ui/features/inputs/hooks/useInput.ts`) returns
+`{ value, setValue, hidden, disabled, revision }`. `revision` increments on **every** notification,
+including ones that leave the value unchanged. It is not a change counter. The kit pickers never see
+it: they take `value` and `onChange` and hold no store state.
 
-Four pickers own an **uncontrolled** DOM node and write it from a `useLayoutEffect` keyed
-`[value, revision]`: `NumberPicker`, `AdaptiveStringPicker`, `NumberListPicker` and `EnumPicker`.
-Without `revision`, a store write that lands back on the value already displayed runs no effect and
-the node keeps whatever the user last typed. `IconPicker` and `IconEnumPicker` use it the other way
-round, as a `lastRevision` guard that tells a real notification apart from construction.
+Its reader is `useHideZeroRestore` (`ui/features/inputs/hooks/useHideZeroRestore.ts`), which keys a
+`lastRevision` guard on it to tell a real notification apart from construction and a StrictMode
+replay before it zeroes a hidden input or restores a shown one. `BoundIconPicker` uses the hook;
+`BoundIconEnumPicker` runs the same guard inline, because its hidden-option rule has to see the value
+the hide/restore step just wrote.
 
-The three text pickers commit through `useCommitChange` (`ui/ui-kit/hooks/useCommitChange.ts`),
-which listens for the **native `change` event** — blur-after-edit and Enter — not React's `onChange`,
-which fires per keystroke. Typing into one of them writes nothing to the store until the edit is
-committed; `EnumPicker`'s `<select>` is the exception and commits on selection.
+The three text pickers — `NumberPicker`, `AdaptiveStringPicker`, `NumberListPicker` — hold an
+uncommitted edit in `useDraft` (`ui/ui-kit/hooks/useDraft.ts`), keyed on the formatted display
+string, so a new value from the parent drops the draft. They commit through `useCommitChange`
+(`ui/ui-kit/hooks/useCommitChange.ts`), which listens for the **native `change` event** —
+blur-after-edit and Enter — not React's `onChange`, which fires per keystroke. Typing into one of
+them writes nothing to the store until the edit is committed; `EnumPicker`'s `<select>` is the
+exception and commits on selection.
 
 Omit both `storeField` and `storeSubscribe` for an input re-synced by its parent — the nested APL
 pickers — and for UI-local toggles; `useInput` then rings its own notification after `setValue`, and

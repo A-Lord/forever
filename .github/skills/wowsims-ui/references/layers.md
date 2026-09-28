@@ -14,15 +14,21 @@ can drift from the build silently.
 
 ## The bans, as configured
 
-| Scope                       | May not import                                                                 | Notes                                                |
-| --------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| `ui/sim/**`                 | `@ui-kit` `@features` `@app` `@specs`                                          | **`allowTypeImports: true`** — see below             |
-| `ui/i18n/**/*.{ts,tsx}`     | `@app` `@features` `@ui-kit` `@specs/**`                                       | `@sim` is allowed; no type-import escape hatch       |
-| `ui/ui-kit/**`              | `@features` `@app` `@specs`, plus `react-dom/client`                           | only the shell may create a React root               |
-| `ui/features/**`            | `@app` `@specs`, plus `react-dom/client`                                       |                                                      |
-| `ui/features/*/model/**`    | `@app` `@specs`, plus `react` and `react-dom`                                  | a model layer is framework-free, not merely DOM-free |
-| `ui/features/**/*.{ts,tsx}` | `patchSlice` `patchKeyed` `seedKeyed` `deleteKeyed` from `**/state/sim_store*` | write through a facade instead                       |
-| `ui/app/**`                 | `@specs`                                                                       | specs import app, never the reverse                  |
+| Scope                       | May not import                                                                           | Notes                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `ui/sim/**`                 | `@ui-kit` `@features` `@app` `@specs`                                                    | **`allowTypeImports: true`** — see below                          |
+| `ui/i18n/**/*.{ts,tsx}`     | `@app` `@features` `@ui-kit` `@specs/**`                                                 | `@sim` is allowed; no type-import escape hatch                    |
+| `ui/ui-kit/**`              | `@features` `@app` `@specs`, `react-dom/client`, `@sim` except `utils/**` `constants/**` | only the shell may create a React root; the `@sim` group is below |
+| `ui/features/**`            | `@app` `@specs`, plus `react-dom/client`                                                 |                                                                   |
+| `ui/features/*/model/**`    | `@app` `@specs`, plus `react` and `react-dom`                                            | a model layer is framework-free, not merely DOM-free              |
+| `ui/features/**/*.{ts,tsx}` | `patchSlice` `patchKeyed` `seedKeyed` `deleteKeyed` from `**/state/sim_store*`           | write through a facade instead                                    |
+| `ui/app/**`                 | `@specs`                                                                                 | specs import app, never the reverse                               |
+
+The kit's `@sim` group is a positive list, because a negated glob inside a group is unproven here:
+`hooks` `context` `state` `player` `raid` `proto` `settings` `presets` `talents` `bulk` `cache`
+`wasm` `workers`, and the top-level `sim` `sim_host` `sim_runs` `sim_signal_manager` `spec_config`
+`testing` modules. A new top-level entry under `ui/sim` has to join it. It covers the kit's tests
+and stories too, with no type-import escape hatch; a store binding belongs in `ui/features/inputs`.
 
 Global bans (`no-restricted-globals`, error): `window` `document` `localStorage` `location`
 `navigator` in `ui/sim/**` and in `ui/features/*/model/**`. Anything that needs one takes an

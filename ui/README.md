@@ -18,8 +18,8 @@ ui/
                      wasm/, constants/, presets/, hooks/, context/. alias @sim
   ui-kit/            sim-agnostic React widgets, one folder per component (about 45 of them:
                      NumberPicker/, Dialog/, Tooltip/, VirtualList/, …), plus hooks/,
-                     utils/ (css, dom, wowhead), and the flat helper modules the configs use:
-                     input.ts, child_props.ts. alias @ui-kit
+                     utils/ (css, dom, wowhead), and the flat helper module child_props.ts.
+                     No @sim import except @sim/utils/** and @sim/constants/**. alias @ui-kit
   features/<name>/   one folder per capability: model/ (DOM-free, lint-enforced) +
                      components/ (React, one folder per component) + hooks/ + utils/ (feature
                      helpers that are neither a component nor DOM-free). The twelve are
@@ -66,15 +66,15 @@ Shared React components get a folder of their own, `ui-kit/<Name>/{<Name>.tsx, t
 plus a co-located `<Name>.css` only when the component needs `ui-*` composition classes (see
 `STYLING.md`) — most style with Tailwind utilities inline and have no `.css` file at all. Hooks live one per file named after
 the hook: the store's React binding and everything built on it in `ui/sim/hooks/`
-(`useStoreSubscribe.ts`, `useSimRun.ts`, `useActionId.ts`), the sim-agnostic ones in `ui-kit/hooks/` (`useInput.ts`,
-`useCopyToClipboard.ts`). There is no `ui-kit/react/`: every component here is React, so the qualifier
+(`useStoreSubscribe.ts`, `useSimRun.ts`, `useActionId.ts`), the sim-agnostic ones in `ui-kit/hooks/` (`useDraft.ts`,
+`useCopyToClipboard.ts`), and the store-bound `useInput.ts` in `features/inputs/hooks/`. There is no `ui-kit/react/`: every component here is React, so the qualifier
 distinguished nothing. There is no separate component-registry document — components and their
 co-located CSS are covered here and in `STYLING.md`.
 
 ## Placement rules
 
 - `sim/`: if it needs `window`/`document`, it doesn't belong here — inject an `Env` adapter instead.
-- `ui-kit/`: reusable widgets with zero knowledge of sims (no `Player`/`Sim` types except through generic params).
+- `ui-kit/`: reusable widgets with zero knowledge of sims: no `@sim` import except `@sim/utils/**` and `@sim/constants/**` (lint-enforced). A picker takes `value`/`onChange`; `features/inputs/` binds it to the store.
 - `features/<x>/model/`: DOM-free logic of one capability, and framework-free — no React, not even as a type. `features/<x>/components/`: its React components, and beside them the imperative helpers that
   touch the DOM without being components — the timeline's chart builders, zoom controllers and
   ruler sit in `results/components/Timeline/{chart,rotation}/`. The two may share a name:

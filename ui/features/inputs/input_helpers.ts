@@ -9,7 +9,6 @@ import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { formatToNumber } from '@sim/utils/format';
 import { randomUUID } from '@sim/utils/misc';
 import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
-import type { InputChrome, StoreBinding } from '@ui-kit/input';
 
 import type {
 	BooleanPickerConfig,
@@ -20,6 +19,7 @@ import type {
 	MultiIconPickerConfig,
 	NumberPickerConfig,
 } from './configs';
+import type { InputChrome, StoreBinding } from './input';
 
 const storeBinding = <ModObject>(
 	storeSubscribe: ((obj: ModObject) => StoreSubscribe) | undefined,

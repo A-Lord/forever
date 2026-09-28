@@ -1,6 +1,6 @@
 import { UnitReference } from '@generated/proto/common';
-import { textClassName } from '@sim/proto/utils';
 import type { DropdownOption } from '@ui-kit/DropdownPicker';
+import { CLASS_TEXT } from '@ui-kit/utils/colors';
 
 import type { UnitValue } from './types';
 import { UnitIcon } from './UnitIcon';
@@ -19,6 +19,6 @@ export const unitOption = (unit: UnitValue, submenu?: Array<string | UnitValue>)
 	value: unit,
 	label: unit.text,
 	icon: unit.iconUrl ? <UnitIcon iconUrl={unit.iconUrl} /> : undefined,
-	className: unit.color && textClassName(unit.color),
+	className: unit.color && CLASS_TEXT[unit.color],
 	submenu,
 });

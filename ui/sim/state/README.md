@@ -70,10 +70,11 @@ drops `currentStats`, `simSettingsKey` drops the rng seed / metadata counters.
 Including them would make stat recomputation re-trigger itself.
 
 Pickers bind through `InputConfig.storeSubscribe: obj => StoreSubscribe`
-(e.g. `player => subscribePlayerField(player, 'gear')`); the `input_helpers.ts`
-factories supply it. Omit it for inputs re-synced by their parent (nested APL
-pickers) or UI-local toggles. Pickers that hand a list to `ListPicker` must
-return a COPY from `getValue` (`.slice()`).
+(`ui/features/inputs/input.ts`; e.g. `player => subscribePlayerField(player, 'gear')`);
+the `input_helpers.ts` factories supply it. Omit it for inputs re-synced by their
+parent (nested APL pickers) or UI-local toggles. `ListPicker` never mutates the
+list it is given and hands `onChange` a fresh array, so a `getValue` may return
+the live store array.
 
 ## Events vs state
 

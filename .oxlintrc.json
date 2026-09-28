@@ -110,6 +110,36 @@
 							{
 								"group": ["react-dom/client"],
 								"message": "Only the shell creates React roots (see ui/README.md dependency direction). A feature or ui-kit component that needs one is the createRoot-per-leaf model this migration rejected."
+							},
+							{
+								"group": [
+									"@sim/hooks",
+									"@sim/hooks/**",
+									"@sim/context",
+									"@sim/context/**",
+									"@sim/state",
+									"@sim/state/**",
+									"@sim/player",
+									"@sim/player/**",
+									"@sim/raid",
+									"@sim/raid/**",
+									"@sim/proto",
+									"@sim/proto/**",
+									"@sim/settings/**",
+									"@sim/presets/**",
+									"@sim/talents/**",
+									"@sim/bulk/**",
+									"@sim/cache/**",
+									"@sim/wasm/**",
+									"@sim/workers/**",
+									"@sim/sim",
+									"@sim/sim_host",
+									"@sim/sim_runs",
+									"@sim/sim_signal_manager",
+									"@sim/spec_config",
+									"@sim/testing"
+								],
+								"message": "ui/ui-kit is sim-agnostic: only @sim/utils/** and @sim/constants/** may be imported. Bind through ui/features/inputs."
 							}
 						]
 					}

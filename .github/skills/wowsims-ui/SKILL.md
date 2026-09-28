@@ -47,7 +47,7 @@ generated → worker → {sim, i18n} → ui-kit → features → app → specs �
 | `ui/worker/`               | `@worker`    | the three worker entries (`local_worker`, `net_worker`, `sim_worker`) plus the Go package that `go:embed`s `highs.wasm`                                                                                                 |
 | `ui/sim/`                  | `@sim`       | node-runnable model: the facades, `state/` (Zustand), `player/`, `raid/`, `settings/`, `talents/`, `presets/`, plus the React bindings in `context/` and `hooks/`. DOM-free and browser-global-free, **not** React-free |
 | `ui/i18n/`                 | `@i18n`      | LEAF: i18next config, entity/label tables, `localization.ts`                                                                                                                                                            |
-| `ui/ui-kit/`               | `@ui-kit`    | sim-agnostic React widgets, one folder per component (`NumberPicker/`, `Dialog/`, `Tooltip/`, …), plus `hooks/` and `utils/` — no `Player`/`Sim` types except through generic params                                    |
+| `ui/ui-kit/`               | `@ui-kit`    | sim-agnostic React widgets, one folder per component (`NumberPicker/`, `Dialog/`, `Tooltip/`, …), plus `hooks/` and `utils/` — no `@sim` except `utils/**`, `constants/**`                                              |
 | `ui/features/<x>/`         | `@features`  | twelve capabilities; `model/` is DOM-free _and_ React-free, `components/` + `hooks/` are React                                                                                                                          |
 | `ui/app/`                  | `@app`       | composition root: `SimHostObject` (`individual_sim_ui.tsx`), `SimApp`/`SimShell`/`SimTabs`, `header/`, `tabs/`, `landing/`, `spec_entry.tsx`, `browser_env.ts`                                                          |
 | `ui/specs/<class>/<spec>/` | `@specs`     | spec data — one `spec.ts` per spec, may import everything                                                                                                                                                               |
@@ -116,16 +116,16 @@ change, the way you would a stale comment.
 
 **Route by kind of change, so nobody has to re-read everything:**
 
-| You changed…                                                                                               | Update                                         |
-| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `.oxlintrc.json`, `tsconfig.json` `paths`, or a top-level `ui/` directory                                  | `references/layers.md` and the layer map above |
-| `ui/sim/state/sim_store.ts`, `subscriptions.ts`, `batch.ts`, `events.ts`                                   | `references/state.md`                          |
-| `ui/sim/hooks/*`, `ui/sim/context/SimHostContext.tsx`, `ui/ui-kit/hooks/useInput.ts`, `ui/ui-kit/input.ts` | `references/state.md`                          |
-| `ui/sim/state/persistence.ts`, `serialization.ts`, `sim_links.ts`                                          | `references/persistence.md`                    |
-| a `package.json` script or `.github/workflows/run_tests.yml`                                               | `references/verification.md`                   |
-| `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets      | `references/running-locally.md`                |
-| `.oxfmtrc.json`, `ui/specs/**` authoring, or a decision recorded as settled                                | `references/conventions.md`                    |
-| `ui/styles/*.css`, a `ui-*` class, a class-hook gate, or how elements are located in tests/tools           | `ui/STYLING.md`                                |
+| You changed…                                                                                                                 | Update                                         |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `.oxlintrc.json`, `tsconfig.json` `paths`, or a top-level `ui/` directory                                                    | `references/layers.md` and the layer map above |
+| `ui/sim/state/sim_store.ts`, `subscriptions.ts`, `batch.ts`, `events.ts`                                                     | `references/state.md`                          |
+| `ui/sim/hooks/*`, `ui/sim/context/SimHostContext.tsx`, `ui/features/inputs/hooks/useInput.ts`, `ui/features/inputs/input.ts` | `references/state.md`                          |
+| `ui/sim/state/persistence.ts`, `serialization.ts`, `sim_links.ts`                                                            | `references/persistence.md`                    |
+| a `package.json` script or `.github/workflows/run_tests.yml`                                                                 | `references/verification.md`                   |
+| `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets                        | `references/running-locally.md`                |
+| `.oxfmtrc.json`, `ui/specs/**` authoring, or a decision recorded as settled                                                  | `references/conventions.md`                    |
+| `ui/styles/*.css`, a `ui-*` class, a class-hook gate, or how elements are located in tests/tools                             | `ui/STYLING.md`                                |
 
 Then run the path check, which fails on any file this skill names that no longer exists:
 
