@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -69,9 +70,9 @@ func enemyDebuffAuras(character *core.Character, row *spelldata.Spell, duration 
 			effect := row.EffectN(int(i))
 			slowedTime := core.MultiplierFromPercent(-effect.Average(character.Level))
 			if effect.ChangesCastSpeed() {
-				core.CastSpeedReductionEffect(aura, slowedTime)
+				buffs.CastSpeedReductionEffect(aura, slowedTime)
 			} else {
-				core.AtkSpeedReductionEffect(aura, slowedTime)
+				buffs.AtkSpeedReductionEffect(aura, slowedTime)
 			}
 		}
 		if len(parsed) > 0 {

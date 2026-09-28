@@ -45,8 +45,9 @@ type Aura struct {
 	// For easily grouping auras.
 	Tag string
 
-	ActionID        ActionID // If set, metrics will be tracked for this aura.
-	ActionIDForProc ActionID // If set, indicates that this aura is a trigger aura for the specified proc.
+	ActionID        ActionID     // If set, metrics will be tracked for this aura.
+	ActionIDForProc ActionID     // If set, indicates that this aura is a trigger aura for the specified proc.
+	Source          ActionSource // Left unset, registration fills in the phase it runs in.
 
 	Icd *Cooldown           // The internal cooldown if any
 	Dpm *DynamicProcManager // Dynamic Proc manager for proc trigger auras if any
@@ -505,6 +506,9 @@ func (at *auraTracker) registerAura(unit *Unit, aura Aura) *Aura {
 	*newAura = aura
 	newAura.Unit = unit
 	newAura.Icd = aura.Icd
+	if newAura.Source == SourceUnset {
+		newAura.Source = unit.currentSource()
+	}
 	newAura.metrics.ID = aura.ActionID
 	newAura.activeIndex = Inactive
 	newAura.onApplyEffectsIndex = Inactive

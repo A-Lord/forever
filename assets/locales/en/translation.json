@@ -37,11 +37,11 @@
 		"melee": "Melee",
 		"any": "Any",
 		"phases": {
-			"1": "Phase 1 (2.0 - T4)",
-			"2": "Phase 2 (2.1 - T5)",
-			"3": "Phase 3 (2.2 - T6)",
-			"4": "Phase 4 (2.3 - ZA)",
-			"5": "Phase 5 (2.4 - SWP)"
+			"1": "Phase 1",
+			"2": "Phase 2",
+			"3": "Phase 3",
+			"4": "Phase 4",
+			"5": "Phase 5"
 		},
 		"phase_names": {
 			"1": "Phase 1",
@@ -1759,7 +1759,15 @@
 				"cooldowns": "Cooldowns",
 				"potions": "Potions",
 				"conjured_items": "Conjured Items",
-				"placeholders": "Placeholders"
+				"placeholders": "Placeholders",
+				"consumables": "Consumables",
+				"items": "Items",
+				"talents": "Talents",
+				"racials": "Racials",
+				"professions": "Professions",
+				"external_buffs": "External Buffs",
+				"external_cooldowns": "External Cooldowns",
+				"external_debuffs": "External Debuffs"
 			},
 			"item_swap_sets": {
 				"main": "Main",
