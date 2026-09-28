@@ -1297,10 +1297,10 @@ func (r *ProcRouting) ProcConstructor() string {
 	return procShapes[r.Shape].procConstructor
 }
 
-// The auras the item aura shape is emitted for: the damage, healing, cost, armor and stat multipliers,
-// the flat damage taken, and the hit and crit percents, none of which an item states as a stat. The
-// percents reach the item stats only through an equip spell that folds; an on-use or a weapon-scoped
-// equip spell applies them as an aura.
+// The auras the item aura shape is emitted for: the damage, healing, cost, armor, health and stat
+// multipliers, the flat damage taken, and the hit and crit percents, none of which an item states as
+// a stat. The percents reach the item stats only through an equip spell that folds; an on-use or a
+// weapon-scoped equip spell applies them as an aura.
 var itemAuraKinds = []dbcenums.EffectAuraType{
 	dbcenums.A_MOD_DAMAGE_PERCENT_DONE,
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN,
@@ -1308,6 +1308,7 @@ var itemAuraKinds = []dbcenums.EffectAuraType{
 	dbcenums.A_MOD_POWER_COST_SCHOOL_PCT,
 	dbcenums.A_MOD_DAMAGE_TAKEN,
 	dbcenums.A_MOD_BASE_RESISTANCE_PCT,
+	dbcenums.A_MOD_INCREASE_HEALTH_PERCENT,
 	dbcenums.A_MOD_PERCENT_STAT,
 	dbcenums.A_MOD_HIT_CHANCE,
 	dbcenums.A_MOD_WEAPON_CRIT_PERCENT,

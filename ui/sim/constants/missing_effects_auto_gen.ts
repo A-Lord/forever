@@ -929,12 +929,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22013, // Beastmaster's Cap
-		[
-			"Increases your pet's maximum health by 3%.", // 27038 - https://www.wowhead.com/forever/spell=27038
-		]
-	],
-	[
 		22060, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
