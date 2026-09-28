@@ -3,7 +3,7 @@ import { AdaptiveStringPicker } from '@ui-kit/AdaptiveStringPicker';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Input } from '@ui-kit/FormControl';
 import { NumberPicker } from '@ui-kit/NumberPicker';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { expect, fireEvent, fn, within } from 'storybook/test';
 
 import { ListPicker } from './ListPicker';
@@ -87,6 +87,7 @@ interface Spell {
 }
 
 const DensityRows = ({ density }: { density?: 'compact' }) => {
+	const rowsId = useId();
 	const [items, setItems] = useState<Array<Spell>>([
 		{ name: 'Fireball', delay: 0.5, enabled: true },
 		{ name: 'Frostbolt', delay: 1, enabled: false },
@@ -103,14 +104,14 @@ const DensityRows = ({ density }: { density?: 'compact' }) => {
 			renderItem={(item, index, onItemChange) => (
 				<div className="flex flex-row flex-wrap items-center gap-2">
 					<AdaptiveStringPicker
-						id={`spell-name-${index}`}
+						id={`${rowsId}-name-${index}`}
 						label="Name"
 						layout="inline"
 						value={item.name}
 						onChange={name => onItemChange({ ...item, name })}
 					/>
 					<NumberPicker
-						id={`spell-delay-${index}`}
+						id={`${rowsId}-delay-${index}`}
 						label="Delay"
 						layout="inline"
 						float
@@ -118,7 +119,7 @@ const DensityRows = ({ density }: { density?: 'compact' }) => {
 						onChange={delay => onItemChange({ ...item, delay })}
 					/>
 					<BooleanPicker
-						id={`spell-enabled-${index}`}
+						id={`${rowsId}-enabled-${index}`}
 						label="Enabled"
 						value={item.enabled}
 						onChange={enabled => onItemChange({ ...item, enabled })}
