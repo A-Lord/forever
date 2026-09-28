@@ -3,6 +3,7 @@ import i18n from '@i18n/config';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { computeStatAttribution, type Stats, type UnitStat } from '@sim/proto/stats';
+import { Table } from '@ui-kit/Table';
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
 
@@ -83,7 +84,7 @@ export const CharacterStats = () => {
 			<h3 data-testid="character-stats-label" className="m-0 mb-2 inline-block text-base leading-tight font-bold">
 				{i18n.t('sidebar.character_stats.title')}
 			</h3>
-			<table className="w-full p-2.5" aria-busy={pending || undefined}>
+			<Table className="p-2.5" aria-busy={pending || undefined}>
 				{groups.map(group => (
 					<tbody key={group.key}>
 						{group.rows.map(row => {
@@ -124,7 +125,7 @@ export const CharacterStats = () => {
 						})}
 					</tbody>
 				))}
-			</table>
+			</Table>
 		</div>
 	);
 };

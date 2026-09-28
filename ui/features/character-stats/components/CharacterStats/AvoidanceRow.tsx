@@ -2,6 +2,7 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { Button } from '@ui-kit/Button';
 import { Skeleton } from '@ui-kit/Skeleton';
+import { TableCell, TableRow } from '@ui-kit/Table';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId } from 'react';
 
@@ -30,9 +31,9 @@ export const AvoidanceRow = ({ info, withHolyShield, hasParry, hasBlock, pending
 	const shearString = `${info.shear.toFixed(2)}%${suffix}`;
 
 	return (
-		<tr data-testid="character-stats-table-row" className="ui-character-stats-row">
-			<td className="ui-character-stats-label">{i18n.t('sidebar.character_stats.tank_caps.avoidance_label')}</td>
-			<td className="ui-character-stats-value">
+		<TableRow testId="character-stats-table-row" className="ui-character-stats-row">
+			<TableCell className="ui-character-stats-label">{i18n.t('sidebar.character_stats.tank_caps.avoidance_label')}</TableCell>
+			<TableCell className="ui-character-stats-value">
 				{pending ? (
 					<Skeleton />
 				) : (
@@ -65,7 +66,7 @@ export const AvoidanceRow = ({ info, withHolyShield, hasParry, hasBlock, pending
 						/>
 					</>
 				)}
-			</td>
-		</tr>
+			</TableCell>
+		</TableRow>
 	);
 };
