@@ -65,7 +65,7 @@ describe('Field', () => {
 	it('links the label to the input and titles it', () => {
 		field();
 		const label = within(root()).getByTestId('form-label');
-		expect(label.className).toBe('ui-picker-label');
+		expect(label.className).toBe('ui-field-label');
 		expect(label.getAttribute('for')).toBe('cast-delay');
 		expect(label.getAttribute('title')).toBe('Cast Delay');
 	});

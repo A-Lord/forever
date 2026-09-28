@@ -71,7 +71,7 @@ export const Field = ({
 			{leading}
 			{label && (
 				// `htmlFor` explicitly rather than letting Base UI derive it.
-				<BaseField.Label htmlFor={id} className="ui-picker-label" title={label} data-testid="form-label" {...tooltipAnchorProps(tooltipId)}>
+				<BaseField.Label htmlFor={id} className="ui-field-label" title={label} data-testid="form-label" {...tooltipAnchorProps(tooltipId)}>
 					{label}
 				</BaseField.Label>
 			)}

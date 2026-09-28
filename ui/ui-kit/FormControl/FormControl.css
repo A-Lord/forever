@@ -27,8 +27,7 @@
 		}
 	}
 
-	.ui-field-label,
-	.ui-picker-label {
+	.ui-field-label {
 		@apply mb-1 inline-block text-ui font-normal wrap-break-word;
 	}
 
