@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Menu } from './Menu';
 import { MenuItem } from './MenuItem';
+import { MenuLinkItem } from './MenuLinkItem';
 
 describe('Menu', () => {
 	it('renders the menu surface classes when open', () => {
@@ -14,6 +15,7 @@ describe('Menu', () => {
 		fireEvent.click(getByTestId('trigger'));
 		const popup = getByTestId('popup');
 		expect(popup.className).toContain('ui-menu');
+		expect(popup.classList.contains('ui-popup-surface')).toBe(true);
 		expect(getByText('Item')).toBeTruthy();
 	});
 
@@ -26,6 +28,7 @@ describe('Menu', () => {
 		fireEvent.click(getByTestId('trigger'));
 		const popup = getByTestId('popup');
 		expect(popup.className).toContain('ui-menu-plain');
+		expect(popup.classList.contains('ui-popup-surface')).toBe(false);
 	});
 
 	it('forwards a testid onto the positioner', () => {
@@ -58,6 +61,36 @@ describe('MenuItem', () => {
 		);
 		fireEvent.click(getByText('Open'));
 		expect(getByText('Block item').className).toContain('ui-menu-item');
+	});
+});
+
+describe('MenuLinkItem', () => {
+	const mountLink = () =>
+		render(
+			<Menu trigger="Open" surface="menu" open>
+				<MenuLinkItem layout="row" href="/warrior/dps/" className="ui-link-probe" data-testid="sim-link">
+					Warrior
+				</MenuLinkItem>
+			</Menu>,
+		);
+
+	it('renders a menu row that is a link to its href', () => {
+		const { getByRole } = mountLink();
+
+		const link = getByRole('menuitem', { name: 'Warrior' });
+		expect(link.tagName).toBe('A');
+		expect(link.getAttribute('href')).toBe('/warrior/dps/');
+		expect(link.getAttribute('data-testid')).toBe('sim-link');
+		expect(link.parentElement?.tagName).toBe('LI');
+		expect(link.parentElement?.getAttribute('role')).toBe('none');
+	});
+
+	it('takes the item classes of its layout and the caller class', () => {
+		const { getByRole } = mountLink();
+
+		expect(Array.from(getByRole('menuitem', { name: 'Warrior' }).classList)).toEqual(
+			expect.arrayContaining(['ui-menu-item', 'ui-menu-item-row', 'ui-link-probe']),
+		);
 	});
 });
 

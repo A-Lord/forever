@@ -76,7 +76,7 @@ export const Popover = ({
 					align={align}
 					sideOffset={sideOffset}>
 					<BasePopover.Popup
-						className={clsx(maxWidth ?? 'max-w-(--available-width)', 'ui-popover', className)}
+						className={clsx(maxWidth ?? 'max-w-(--available-width)', 'ui-popup-surface ui-popover', className)}
 						data-testid={testId ?? 'sim-popover-popup'}
 						initialFocus={initialFocus}>
 						{children}

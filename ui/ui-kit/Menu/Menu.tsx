@@ -10,7 +10,7 @@ const POSITIONER_Z_CLASSES = {
 } as const;
 
 const SURFACE_CLASSES = {
-	menu: 'ui-menu',
+	menu: 'ui-popup-surface ui-menu',
 	plain: 'ui-menu-plain',
 	none: '',
 } as const;
