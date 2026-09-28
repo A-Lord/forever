@@ -132,7 +132,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			School:      core.SpellSchool(miscAllSchools &^ e.Misc),
 			DefenseType: core.DefenseTypeMelee,
 		}, v/100)
-		if schoolSet, meleeSet := a.set, melee.set; schoolSet != nil && meleeSet != nil {
+		if schoolSet, meleeSet := a.set, melee.set; meleeSet != nil {
 			a.set = func(sim *core.Simulation, level float64) {
 				schoolSet(sim, level)
 				meleeSet(sim, level)
@@ -1219,9 +1219,6 @@ func multiplier(kind string, mult float64, apply func(sim *core.Simulation, fact
 
 // Whether the row needs a melee weapon in SpellEquippedItems and sits on the caster.
 func (p *parser) meleeWeaponRow(e *Effect) bool {
-	if p.spell == nil {
-		return false
-	}
 	scope, scoped := weaponScope(p.spell, e)
 	return scoped && scope.ProcMask.Matches(core.ProcMaskMelee)
 }

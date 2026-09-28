@@ -212,7 +212,7 @@ func (paladin *Paladin) applyOneHandedWeaponSpecialization() {
 // The one- and two-handed specializations follow the weapon in the main hand, item swaps included.
 func (paladin *Paladin) applyWeaponSpecialization(rank *spelldata.Spell, handType proto.HandType) {
 	parsed := spelldata.ParseStatic(&paladin.Character, rank, spelldata.Conditional(func() bool {
-		return paladin.GetMainHandType() == handType
+		return paladin.HasMHWeapon() && paladin.GetMainHandType() == handType
 	}))
 
 	paladin.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, _ proto.ItemSlot) {

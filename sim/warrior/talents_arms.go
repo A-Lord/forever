@@ -172,8 +172,9 @@ func (warrior *Warrior) registerTwoHandedWeaponSpecialization() {
 		return
 	}
 
-	// The row raises the physical school, auto attacks included, and states no weapon of its own:
-	// the tooltip's two-handed requirement is the caller's condition, re-read on a weapon swap.
+	// The row raises the physical school, auto attacks included, and the melee-defense spells of the
+	// other schools. The parse does not gate it on the two-handed weapons the row names, so that
+	// requirement is the caller's condition, re-read on a weapon swap.
 	parsed := spelldata.ParseStatic(&warrior.Character,
 		spellData.TwoHandedWeaponSpecialization.Rank(warrior.Talents.TwoHandedWeaponSpecialization),
 		spelldata.Conditional(func() bool {
