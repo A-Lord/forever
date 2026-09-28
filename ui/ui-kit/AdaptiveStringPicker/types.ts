@@ -1,8 +1,3 @@
-import type { InputConfig } from '@ui-kit/input';
+import type { ControlledProps, FieldChromeProps } from '@ui-kit/Field';
 
-/**
- * Data for creating a string picker.
- */
-export interface StringPickerConfig<ModObject> extends InputConfig<ModObject, string> {
-	id: string;
-}
+export interface AdaptiveStringPickerProps extends FieldChromeProps, ControlledProps<string> {}

@@ -12,9 +12,8 @@ export const sameUnit = (a: UnitValue | undefined, b: UnitValue | undefined) =>
 /**
  * A `UnitValue`'s icon, class colour and text as the option props the shared dropdown takes.
  *
- * Shared with the APL unit field, which binds the same options through `DropdownField` instead of
- * the unbound `UnitPicker` — a bound picker's root has to be the shell, not a wrapper around one.
- * `submenu` is the caller's: only the APL sets it, filing a pet under its owner.
+ * Shared with the APL unit field, which binds the same options to the store instead of going
+ * through the unbound `UnitPicker`. `submenu` is the caller's: only the APL sets it, filing a pet under its owner.
  */
 export const unitOption = (unit: UnitValue, submenu?: Array<string | UnitValue>): DropdownOption<UnitValue> => ({
 	value: unit,

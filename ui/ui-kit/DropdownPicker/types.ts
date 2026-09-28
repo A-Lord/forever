@@ -1,4 +1,5 @@
 import type { Menu } from '@base-ui/react/menu';
+import type { FieldChromeProps } from '@ui-kit/Field';
 import type { ClassValue } from 'clsx';
 import type { ReactNode } from 'react';
 
@@ -26,8 +27,8 @@ export interface DropdownOption<V> {
 	tooltip?: string;
 }
 
-export interface DropdownPickerProps<V> {
-	/** On the trigger. */
+export interface DropdownPickerProps<V> extends FieldChromeProps {
+	/** On the trigger, which the label points at. */
 	id?: string;
 	options: Array<DropdownOption<V>>;
 	value: V | undefined;
@@ -49,9 +50,7 @@ export interface DropdownPickerProps<V> {
 	 * `contain` — any of those becomes the containing block and the clip comes back.
 	 */
 	positionMethod?: Menu.Positioner.Props['positionMethod'];
-	/** On the root. */
-	className?: ClassValue;
-	testId?: string;
+	disabled?: boolean;
 	triggerClassName?: string;
 }
 

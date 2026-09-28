@@ -1,9 +1,9 @@
 import { rotationSource } from '@features/apl/utils';
+import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
-import { DropdownField } from '@ui-kit/DropdownPicker';
 import { useMemo } from 'react';
 
 export type RotationNameSource = 'variables' | 'groups';
@@ -38,7 +38,7 @@ export const RotationNameField = ({ player, config, source }: RotationNameFieldP
 	);
 
 	return (
-		<DropdownField<Player<any>, string>
+		<BoundDropdown<Player<any>, string>
 			modObject={player}
 			config={config}
 			options={options}

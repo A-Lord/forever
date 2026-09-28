@@ -1,10 +1,10 @@
+import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { DropdownOption } from '@ui-kit/DropdownPicker';
-import { DropdownField } from '@ui-kit/DropdownPicker';
 import { useMemo } from 'react';
 
 /** Auto / Simple / APL. Simple is offered only by a spec that ships a rotation generator. */
@@ -37,5 +37,5 @@ export const RotationTypePicker = () => {
 		[],
 	);
 
-	return <DropdownField<Player<any>, APLRotationType> modObject={player} config={config} options={options} defaultLabel="" triggerClassName="px-0 py-4" />;
+	return <BoundDropdown<Player<any>, APLRotationType> modObject={player} config={config} options={options} defaultLabel="" triggerClassName="px-0 py-4" />;
 };

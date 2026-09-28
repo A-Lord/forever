@@ -27,14 +27,7 @@ export interface DropdownMenuProps<V> {
 	triggerClassName?: string;
 }
 
-/**
- * Everything inside a dropdown's root: the trigger, the menu and the one tooltip its options share.
- *
- * It is its own component because the root element differs by caller and nothing else does —
- * `DropdownPicker` owns a plain `div`, while a bound picker's root is `PickerShell`'s `Field.Root`
- * so that binding a dropdown adds no element. Forking the menu instead would have put a wrapper
- * div inside every bound picker.
- */
+/** Everything inside a dropdown's `Field` root: the trigger, the menu and the one tooltip its options share. */
 export const DropdownMenu = <V,>({
 	id,
 	options,

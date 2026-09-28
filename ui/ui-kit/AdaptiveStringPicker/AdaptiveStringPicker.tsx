@@ -1,38 +1,33 @@
+import { Field } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
 import { useCommitChange } from '@ui-kit/hooks/useCommitChange';
-import { useInput } from '@ui-kit/hooks/useInput';
-import { PickerShell } from '@ui-kit/PickerShell';
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useDraft } from '@ui-kit/hooks/useDraft';
+import { useCallback, useState } from 'react';
 
-import type { StringPickerConfig } from './types';
+import type { AdaptiveStringPickerProps } from './types';
 
-export interface AdaptiveStringPickerProps<ModObject> {
-	modObject: ModObject;
-	config: StringPickerConfig<ModObject>;
-}
-
-const updateSize = (input: HTMLInputElement | null) => {
-	if (!input) return;
-	const size = Math.max(3, input.value.length);
-	if (input.size !== size) input.size = size;
-};
-
-export const AdaptiveStringPicker = <ModObject,>({ modObject, config }: AdaptiveStringPickerProps<ModObject>) => {
-	const { value, setValue, hidden, disabled, revision } = useInput(modObject, config);
+/** A text field that grows with its text, reporting the raw text on commit (blur after an edit, or Enter). */
+export const AdaptiveStringPicker = ({ value, onChange, disabled, className, testId, ...chrome }: AdaptiveStringPickerProps) => {
 	const [input, setInput] = useState<HTMLInputElement | null>(null);
 	const attachInput = useCallback((element: HTMLElement | null) => setInput(element instanceof HTMLInputElement ? element : null), []);
+	const { text, setDraft, clear } = useDraft(value);
 
-	useLayoutEffect(() => {
-		if (!input) return;
-		input.value = value;
-		updateSize(input);
-	}, [value, revision, input]);
-
-	useCommitChange(input, committed => setValue(committed.value));
+	useCommitChange(input, committed => {
+		onChange(committed.value);
+		clear();
+	});
 
 	return (
-		<PickerShell config={config} className="ui-adaptive-string-picker-root" testId="adaptive-string-picker-root" hidden={hidden} disabled={disabled}>
-			<Input type="text" ref={attachInput} id={config.id} disabled={disabled} onInput={() => updateSize(input)} />
-		</PickerShell>
+		<Field {...chrome} className={['ui-adaptive-string-picker-root', className]} testId={testId ?? 'adaptive-string-picker-root'} disabled={disabled}>
+			<Input
+				type="text"
+				ref={attachInput}
+				id={chrome.id}
+				disabled={disabled}
+				value={text}
+				onChange={event => setDraft(event.target.value)}
+				size={Math.max(3, text.length)}
+			/>
+		</Field>
 	);
 };

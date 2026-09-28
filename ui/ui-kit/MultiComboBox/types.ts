@@ -1,8 +1,7 @@
 import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
-import type { InputConfig } from '@ui-kit/input';
+import type { ControlledProps, FieldChromeProps } from '@ui-kit/Field';
 
-export interface MultiComboBoxConfig<ModObject> extends InputConfig<ModObject, Array<number>> {
-	id: string;
+export interface MultiComboBoxProps extends FieldChromeProps, ControlledProps<Array<number>> {
 	values: Array<EnumValueConfig>;
 	placeholder?: string;
 	emptyText?: string;

@@ -1,10 +1,10 @@
 import { rotationSource } from '@features/apl/utils';
+import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import { DropdownField } from '@ui-kit/DropdownPicker';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useId, useMemo } from 'react';
 
@@ -54,7 +54,7 @@ export const GroupVariableRow = ({ player, config, name }: GroupVariableRowProps
 			<label className="block text-sm font-bold" htmlFor={valueId}>
 				{name}:
 			</label>
-			<DropdownField<Player<any>, string>
+			<BoundDropdown<Player<any>, string>
 				modObject={player}
 				config={valueConfig}
 				options={options}

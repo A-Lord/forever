@@ -1,9 +1,5 @@
-import type { InputConfig } from '@ui-kit/input';
+import type { ControlledProps, FieldChromeProps } from '@ui-kit/Field';
 
-/**
- * Data for creating a number list picker.
- */
-export interface NumberListPickerConfig<ModObject> extends InputConfig<ModObject, Array<number>> {
-	id: string;
+export interface NumberListPickerProps extends FieldChromeProps, ControlledProps<Array<number>> {
 	placeholder?: string;
 }
