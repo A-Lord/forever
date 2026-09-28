@@ -198,7 +198,7 @@ export const ListPickerItem = ({
 		<ListItemPopover open={menuOpen} onOpenChange={setMenuOpen}>
 			{canDelete && (
 				<ListItemAction
-					icon="fa-times"
+					icon="times"
 					className={['text-link-danger']}
 					testId="list-picker-item-delete"
 					tooltip={deleteTooltip}
@@ -226,7 +226,7 @@ export const ListPickerItem = ({
 				))}
 			{canCopy && (
 				<ListItemAction
-					icon="fa-copy"
+					icon="copy"
 					testId="list-picker-item-copy"
 					tooltip={copyTooltip}
 					tooltipId={tooltipId}

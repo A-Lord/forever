@@ -1,4 +1,5 @@
 import type { FieldChromeProps } from '@ui-kit/Field';
+import type { IconAlias, IconName } from '@ui-kit/Icon';
 import type { ReactNode } from 'react';
 
 /** Which of the four per-item actions a list offers. `ListItemAction` is the button component, so this type carries the longer name. */
@@ -13,7 +14,7 @@ export interface ListPickerActionsConfig {
 
 export interface ListPickerExtraAction {
 	className: string;
-	icon: string;
+	icon: IconName | IconAlias;
 	tooltip: string;
 	onClick: (index: number) => void;
 	shouldShow?: (index: number) => boolean;

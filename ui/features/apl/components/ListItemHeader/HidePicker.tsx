@@ -21,7 +21,7 @@ export const HidePicker = ({ player, config }: HidePickerProps) => {
 	if (hidden) return null;
 	return (
 		<Field {...chrome} className={['m-0 w-auto', chrome.className]} testId="hide-picker-root" disabled={disabled}>
-			<ListItemAction icon={value ? 'fa-eye-slash' : 'fa-eye'} testId="hide-picker-button" onClick={() => setValue(!value)} />
+			<ListItemAction icon={value ? 'eye-slash' : 'eye'} testId="hide-picker-button" onClick={() => setValue(!value)} />
 		</Field>
 	);
 };

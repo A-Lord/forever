@@ -1,10 +1,10 @@
 import { Button } from '@ui-kit/Button';
+import { Icon, type IconAlias, type IconName } from '@ui-kit/Icon';
 import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx, { type ClassValue } from 'clsx';
 
 export interface ListItemActionProps {
-	/** The Font Awesome glyph, e.g. `fa-times`. */
-	icon: string;
+	icon: IconName | IconAlias;
 	className?: ClassValue;
 	testId?: string;
 	/** Text for the list's one shared tooltip; the anchor carries it. */
@@ -32,6 +32,6 @@ export const ListItemAction = ({ icon, className, testId, tooltip, tooltipId, hi
 		style={hidden === undefined ? undefined : { display: hidden ? 'none' : undefined }}
 		onClick={onClick}
 		{...tooltipAnchorProps(tooltipId, tooltip)}>
-		<i className={clsx('fa', 'fa-xl', icon)} />
+		<Icon name={icon} style="base" size="xl" />
 	</Button>
 );

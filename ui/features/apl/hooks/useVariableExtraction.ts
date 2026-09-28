@@ -45,7 +45,7 @@ export const useVariableExtraction = (
 	return {
 		extraAction: {
 			className: '',
-			icon: 'fa-arrow-right-from-bracket',
+			icon: 'arrow-right-from-bracket',
 			tooltip: i18n.t('rotation_tab.apl.variables.extractToVariable'),
 			shouldShow: isExtractable,
 			onClick: (at: number) => {
