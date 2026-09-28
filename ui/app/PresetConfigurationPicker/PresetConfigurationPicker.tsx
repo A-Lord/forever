@@ -38,6 +38,8 @@ export const PresetConfigurationPicker = ({ categories }: PresetConfigurationPic
 			key={build.name}
 			as="button"
 			nameAs="span"
+			testId="saved-data-set-chip"
+			nameTestId="saved-data-set-name"
 			label={build.name}
 			active={active?.[index]}
 			onSelect={() => {

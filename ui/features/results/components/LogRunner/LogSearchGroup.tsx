@@ -92,6 +92,8 @@ export const LogSearchGroup = ({ group, suggestions, onChange, onRemove }: LogSe
 					<Chip
 						key={value}
 						testId="log-search-chip"
+						nameTestId="saved-data-set-name"
+						deleteTestId="saved-data-set-delete"
 						nameAs="span"
 						label={labelOf(group.field, value)}
 						confirmDelete={false}
