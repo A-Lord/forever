@@ -1,0 +1,13 @@
+@layer components {
+	.ui-button-group {
+		@apply inline-flex align-middle;
+
+		& > .ui-button ~ .ui-button {
+			@apply -ml-px;
+		}
+
+		&[data-size='sm'] > .ui-button {
+			@apply px-2 py-1;
+		}
+	}
+}
