@@ -394,12 +394,18 @@ func (rogue *Rogue) registerPremeditation() {
 	}
 
 	config := spelldata.SpellConfig(&rogue.Unit, premeditationRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
+	premedMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: premeditationRank.ID})
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		rogue.AddComboPoints(sim, int32(premeditationRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+		rogue.AddComboPoints(sim, int32(premeditationRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), premedMetrics)
 	}
 
 	rogue.Premeditation = rogue.GetOrRegisterSpell(config)
+
+	rogue.AddMajorCooldown(core.MajorCooldown{
+		Spell: rogue.Premeditation,
+		Type:  core.CooldownTypeDPS,
+	})
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.Premeditation {
