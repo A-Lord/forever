@@ -40,7 +40,7 @@ func (warlock *Warlock) registerDemonologyTalents() {
 	warlock.applyDemonicPact()
 }
 
-// TODO: To be implemented. Port the TBC Improved Imp implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Improved Imp implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyImprovedImp() {
 	if warlock.Talents.ImprovedImp == 0 || warlock.Options.SacrificeSummon {
 		return
@@ -60,7 +60,7 @@ func (warlock *Warlock) applyImprovedImp() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Demonic Embrace implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Demonic Embrace implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyDemonicEmbrace() {
 	if warlock.Talents.DemonicEmbrace == 0 {
 		return
@@ -75,7 +75,7 @@ func (warlock *Warlock) applyDemonicEmbrace() {
 	// warlock.MultiplyStat(stats.Spirit, 1.0-(0.01)*float64(warlock.Talents.DemonicEmbrace))
 }
 
-// TODO: To be implemented. Port the TBC Improved Sayaad implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Improved Sayaad implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyImprovedSayaad() {
 	if warlock.Talents.ImprovedSayaad == 0 || warlock.Options.SacrificeSummon {
 		return
@@ -94,7 +94,7 @@ func (warlock *Warlock) applyImprovedSayaad() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Unholy Power implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Unholy Power implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyUnholyPower() {
 	if warlock.Talents.UnholyPower == 0 || warlock.Options.SacrificeSummon {
 		return
@@ -118,7 +118,7 @@ func (warlock *Warlock) applyUnholyPower() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Demonic Sacrifice implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Demonic Sacrifice implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyDemonicSacrifice() {
 	if !warlock.Talents.DemonicSacrifice || warlock.Options.SacrificeSummon == false {
 		return
@@ -139,7 +139,7 @@ func (warlock *Warlock) applyDemonicSacrifice() {
 	// }
 }
 
-// TODO: To be implemented. Port the TBC Demonic Sacrifice Mana Regen implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Demonic Sacrifice Mana Regen implementation below; not yet verified against the Forever game files.
 // Demonic Sacrifice restores a percentage of maximum mana every 4 seconds, which is
 // independent of the sim's regular 2 second mana ticks.
 func (warlock *Warlock) applyDemonicSacrificeManaRegen(actionID core.ActionID, manaPercent float64) {
@@ -158,7 +158,7 @@ func (warlock *Warlock) applyDemonicSacrificeManaRegen(actionID core.ActionID, m
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Master Demonologist implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Master Demonologist implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyMasterDemonologist() {
 	if warlock.Talents.MasterDemonologist == 0 || warlock.Options.SacrificeSummon == true {
 		return
@@ -222,7 +222,7 @@ func (warlock *Warlock) applyMasterDemonologist() {
 	//
 }
 
-// TODO: To be implemented. Port the TBC Soul Link implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Soul Link implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applySoulLink() {
 	if !warlock.Talents.SoulLink {
 		return
@@ -242,7 +242,7 @@ func (warlock *Warlock) applySoulLink() {
 	// }
 }
 
-// TODO: To be implemented. Port the TBC Demonic Knowledge implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Demonic Knowledge implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyDemonicKnowledge() {
 	if warlock.Talents.DemonicKnowledge == 0 {
 		return

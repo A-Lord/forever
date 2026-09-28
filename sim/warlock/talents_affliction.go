@@ -35,7 +35,7 @@ func (warlock *Warlock) registerAfflictionTalents() {
 	warlock.applyWrack()
 }
 
-// TODO: To be implemented. Port the TBC Suppression implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Suppression implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applySuppression() {
 	if warlock.Talents.Suppression == 0 {
 		return
@@ -53,7 +53,7 @@ func (warlock *Warlock) applySuppression() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Improved Corruption implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Improved Corruption implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyImprovedCorruption() {
 	if warlock.Talents.ImprovedCorruption == 0 {
 		return
@@ -71,7 +71,7 @@ func (warlock *Warlock) applyImprovedCorruption() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Empowered Corruption implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Empowered Corruption implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyEmpoweredCorruption() {
 	if warlock.Talents.ImprovedCorruption == 0 {
 		return
@@ -94,7 +94,7 @@ func (warlock *Warlock) applyEmpoweredCorruption() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Nightfall implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Nightfall implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyNightfall() {
 	if warlock.Talents.Nightfall == 0 {
 		return
@@ -134,7 +134,7 @@ func (warlock *Warlock) applyNightfall() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Shadow Mastery implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Shadow Mastery implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) applyShadowMastery() {
 	if warlock.Talents.ShadowMastery == 0 {
 		return
@@ -152,7 +152,7 @@ func (warlock *Warlock) applyShadowMastery() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Amplify Curse implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Amplify Curse implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerAmplifyCurse() {
 	if !warlock.Talents.AmplifyCurse {
 		return

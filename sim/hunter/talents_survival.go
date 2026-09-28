@@ -1,30 +1,36 @@
 package hunter
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
 func (hunter *Hunter) registerSurvivalTalents() {
 	// Tier 1
 	hunter.registerImprovedTracking()
 	hunter.registerDeflection()
 
 	// Tier 2
-	hunter.registerEntrapment()
+	// Entrapment (19184) roots on a trap the sim does not place.
 	hunter.registerSavageStrikes()
 	hunter.registerSurvivalist()
-	hunter.registerImprovedWingClip()
+	// Improved Wing Clip (19228) is a root chance on a snare the sim does not cast.
 
 	// Tier 3
-	hunter.registerCleverTraps()
+	// Clever Traps (19239): the sim places no traps.
 	hunter.registerSurefooted()
-	hunter.registerDeterrence()
+	// Deterrence (19263) is parry and dodge the sim's targets do not test.
 
 	// Tier 4
-	hunter.registerSurvivalTactics()
+	// Survival Tactics (19376) is hit with traps and Feign Death, neither of which the sim casts.
 	hunter.registerPredatorsEdge()
-	hunter.registerCounterattack()
+	// Counterattack (19306) needs a parry, which takes a target attacking the hunter.
 
 	// Tier 5
 	hunter.registerResourcefulness()
-	hunter.registerExposePrey()
-	hunter.registerSurvivalistsDiscipline()
+	// Expose Prey: mongoose_bite.go
+	// Survivalist's Discipline (1310496) shortens the trap and Deterrence cooldowns, none registered.
 	hunter.registerStriderKick()
 
 	// Tier 6
@@ -34,210 +40,155 @@ func (hunter *Hunter) registerSurvivalTalents() {
 	hunter.registerLaceratingStrikes()
 }
 
-// TODO: To be implemented.
+// The talent raises effect 2 of the Track spells, A_MOD_DAMAGE_DONE_VERSUS the tracked creature
+// type, by 1% a rank. The sim does not track; a hunter is taken to track the target's type, so the
+// bonus is on every damage done.
+func (hunter *Hunter) registerImprovedTracking() {
+	if hunter.Talents.ImprovedTracking == 0 {
+		return
+	}
+
+	hunter.PseudoStats.DamageDealtMultiplier *= spellData.ImprovedTracking.MultiplierAt(hunter.Talents.ImprovedTracking)
+}
+
+func (hunter *Hunter) registerDeflection() {
+	if hunter.Talents.Deflection == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.Deflection.Rank(hunter.Talents.Deflection))
+}
+
 func (hunter *Hunter) registerSavageStrikes() {
 	if hunter.Talents.SavageStrikes == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.SavageStrikes == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	ClassMask:  HunterSpellRaptorStrike,
-	// 	FloatValue: spellData.SavageStrikes.ValueAt(hunter.Talents.SavageStrikes),
-	// })
+	spelldata.ParseStatic(&hunter.Character, spellData.SavageStrikes.Rank(hunter.Talents.SavageStrikes))
 }
 
-// TODO: To be implemented.
 func (hunter *Hunter) registerSurvivalist() {
 	if hunter.Talents.Survivalist == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.Survivalist == 0 {
-	// 	return
-	// }
-	//
-	// hunter.MultiplyStat(stats.Health, spellData.Survivalist.MultiplierAt(hunter.Talents.Survivalist))
+	spelldata.ParseStatic(&hunter.Character, spellData.Survivalist.Rank(hunter.Talents.Survivalist))
 }
 
-// TODO: To be implemented.
 func (hunter *Hunter) registerSurefooted() {
 	if hunter.Talents.Surefooted == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.Surefooted == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStat(stats.PhysicalHitPercent, float64(hunter.Talents.Surefooted))
+	spelldata.ParseStatic(&hunter.Character, spellData.Surefooted.Rank(hunter.Talents.Surefooted))
 }
 
-// TODO: To be implemented.
+func (hunter *Hunter) registerPredatorsEdge() {
+	if hunter.Talents.PredatorsEdge == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.PredatorsEdge.Rank(hunter.Talents.PredatorsEdge))
+}
+
+var resourcefulnessBuff = spellData.ResourcefulnessTriggered.Highest()
+
 func (hunter *Hunter) registerResourcefulness() {
 	if hunter.Talents.Resourcefulness == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.Resourcefulness == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// 	ClassMask:  HunterSpellRaptorStrike,
-	// 	FloatValue: -0.2 * float64(hunter.Talents.Resourcefulness),
-	// })
+	rank := spellData.Resourcefulness.Rank(hunter.Talents.Resourcefulness)
+	spelldata.ParseStatic(&hunter.Character, rank, spelldata.Effects(1))
+
+	buff := hunter.RegisterAura(spelldata.AuraConfig(resourcefulnessBuff))
+	spelldata.ParseEffects(&hunter.Character, buff, resourcefulnessBuff)
+
+	// The tooltip's chance is $m3, an effect the row does not carry. In game it is 30/60% by rank,
+	// the cost discount's own ladder.
+	chance := -spellData.Resourcefulness.EffectAt(1).FractionAt(hunter.Talents.Resourcefulness)
+	trigger := spelldata.ProcTrigger(&hunter.Character, rank,
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			buff.Activate(sim)
+		}, spelldata.Chance(chance))
+	trigger.Name = "Resourcefulness - Trigger"
+
+	hunter.MakeProcTriggerAura(trigger)
 }
 
-// TODO: To be implemented.
+var striderKickRank = spellData.StriderKick.Highest()
+
+// Effect 1 is normalised weapon damage with no bonus; effect 2 is the share of it, 100%.
+var striderKickWeaponShare = striderKickRank.EffectN(2).Percent()
+
+func (hunter *Hunter) registerStriderKick() {
+	if !hunter.Talents.StriderKick {
+		return
+	}
+
+	config := spelldata.SpellConfig(&hunter.Unit, striderKickRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := striderKickWeaponShare * hunter.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+	}
+
+	hunter.RegisterSpell(config)
+}
+
+// The row's A_MOD_TOTAL_STAT_PERCENTAGE names stat 0, strength, where the tooltip says agility;
+// the tooltip wins.
 func (hunter *Hunter) registerLightningReflexes() {
 	if hunter.Talents.LightningReflexes == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.LightningReflexes == 0 {
-	// 	return
-	// }
-	//
-	// hunter.MultiplyStat(stats.Agility, spellData.LightningReflexes.MultiplierAt(hunter.Talents.LightningReflexes))
+	hunter.MultiplyStat(stats.Agility, spellData.LightningReflexes.MultiplierAt(hunter.Talents.LightningReflexes))
 }
 
-// registerImprovedTracking implements Improved Tracking, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerImprovedTracking() {
-	if hunter.Talents.ImprovedTracking == 0 {
-		return
-	}
-}
+var laceratingStrikesBleed = spellData.LaceratingStrikesTriggered.Highest()
 
-// registerDeflection implements Deflection, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerDeflection() {
-	if hunter.Talents.Deflection == 0 {
-		return
-	}
-}
-
-// registerEntrapment implements Entrapment, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerEntrapment() {
-	if hunter.Talents.Entrapment == 0 {
-		return
-	}
-}
-
-// registerImprovedWingClip implements Improved Wing Clip, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerImprovedWingClip() {
-	if hunter.Talents.ImprovedWingClip == 0 {
-		return
-	}
-}
-
-// registerCleverTraps implements Clever Traps, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerCleverTraps() {
-	if hunter.Talents.CleverTraps == 0 {
-		return
-	}
-}
-
-// registerDeterrence implements Deterrence, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerDeterrence() {
-	if !hunter.Talents.Deterrence {
-		return
-	}
-}
-
-// registerSurvivalTactics implements Survival Tactics, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerSurvivalTactics() {
-	if hunter.Talents.SurvivalTactics == 0 {
-		return
-	}
-}
-
-// registerPredatorsEdge implements Predator's Edge, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerPredatorsEdge() {
-	if hunter.Talents.PredatorsEdge == 0 {
-		return
-	}
-}
-
-// registerCounterattack implements Counterattack, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerCounterattack() {
-	if !hunter.Talents.Counterattack {
-		return
-	}
-}
-
-// registerExposePrey implements Expose Prey, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerExposePrey() {
-	if hunter.Talents.ExposePrey == 0 {
-		return
-	}
-}
-
-// registerSurvivalistsDiscipline implements Survivalist's Discipline, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerSurvivalistsDiscipline() {
-	if hunter.Talents.SurvivalistsDiscipline == 0 {
-		return
-	}
-}
-
-// registerStriderKick implements Strider Kick, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerStriderKick() {
-	if !hunter.Talents.StriderKick {
-		return
-	}
-}
-
-// registerLaceratingStrikes implements Lacerating Strikes, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (hunter *Hunter) registerLaceratingStrikes() {
 	if !hunter.Talents.LaceratingStrikes {
 		return
 	}
+
+	// TODO: In-game testing required. The talent's dummy holds 40, read as the share of the bite's
+	// damage the bleed deals over its duration.
+	share := spellData.LaceratingStrikes.FractionAt(1)
+	tick := laceratingStrikesBleed.PeriodicEffect()
+
+	config := spelldata.SpellConfig(&hunter.Unit, laceratingStrikesBleed, spelldata.Proc())
+	config.ProcMask = core.ProcMaskEmpty
+	// A share of the damage the bite dealt, which has every modifier on it already.
+	config.Flags |= core.SpellFlagIgnoreModifiers
+
+	// The tick is a share of the bite that landed, not the row's amount: 1310536's periodic effect
+	// states one base point, so the amount is snapshot from the bite and the resolver's tick replaced.
+	var bleedDamage float64
+	config.Dot = spelldata.DotConfig(laceratingStrikesBleed, tick)
+	config.Dot.OnSnapshot = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		dot.SnapshotBaseDamage = bleedDamage / float64(dot.ExpectedTickCount())
+	}
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, dot.SnapshotBaseDamage, laceratingStrikesBleed.TickOutcome(dot))
+	}
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.Dot(target).Apply(sim)
+	}
+
+	bleed := hunter.RegisterSpell(config)
+
+	// The proc shape with no roll: 1310533 fires on a melee ability and names Mongoose Bite only in
+	// its tooltip, so the listener is narrowed to it by hand.
+	trigger := spelldata.ProcTrigger(&hunter.Character, spellData.LaceratingStrikes.Rank(1),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			bleedDamage = result.Damage * share
+			bleed.Cast(sim, result.Target)
+		})
+	trigger.Name = "Lacerating Strikes - Trigger"
+	trigger.ClassFlags = mongooseBiteRank.ClassFlags
+
+	hunter.MakeProcTriggerAura(trigger)
 }

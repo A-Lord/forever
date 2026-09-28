@@ -216,11 +216,11 @@ const (
 
 type SpellSchool byte
 
-// The bit values are the client's. SpellMisc.SchoolMask uses exactly this order, so a generated spell
-// row carries the number the DBC states rather than a translation of it, and the only school that used
-// to agree on its bit was Frost. Nothing outside this file depends on the numbers: the conversions to
-// stats.SchoolIndex, the resistance stat and the school damage stat are all switches over these names,
-// stats.SchoolIndex is its own enum for array positions, and proto.SpellSchool is separate again.
+// The bit values are the game files'. SpellMisc.SchoolMask uses exactly this order, so a generated
+// spell row carries the number the DBC states rather than a translation of it. Nothing outside this
+// file depends on the numbers: the conversions to stats.SchoolIndex, the resistance stat and the
+// school damage stat are all switches over these names, stats.SchoolIndex is its own enum for array
+// positions, and proto.SpellSchool is separate again.
 const (
 	SpellSchoolNone     SpellSchool = 0
 	SpellSchoolPhysical SpellSchool = 1

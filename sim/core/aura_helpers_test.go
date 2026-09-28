@@ -2,7 +2,7 @@ package core
 
 import "testing"
 
-// A proc trigger that names its spells by the client's class flags fires on exactly those spells.
+// A proc trigger that names its spells by the game files' class flags fires on exactly those spells.
 func TestProcTriggerClassFlags(t *testing.T) {
 	config := ProcTrigger{ClassFlags: ClassFlags{Family: 8, Mask: [4]uint32{0b0011}}}
 
@@ -59,7 +59,7 @@ func TestProcTriggerClassSpellsOnly(t *testing.T) {
 		want  bool
 	}{
 		{"tagged by the sim", &Spell{ClassSpellMask: 1 << 5}, true},
-		{"named by the client's class flags", &Spell{ClassFlags: ClassFlags{Family: 8, Mask: [4]uint32{1}}}, true},
+		{"named by the game files' class flags", &Spell{ClassFlags: ClassFlags{Family: 8, Mask: [4]uint32{1}}}, true},
 		{"neither", &Spell{}, false},
 	}
 
@@ -113,6 +113,26 @@ func TestProcChanceModReachesTheTriggersItNames(t *testing.T) {
 		{"a trigger stating no class flags", ProcTrigger{ProcChance: almostNever}, 0},
 	} {
 		if got := fires(unit, test.config); got != test.want {
+			t.Errorf("%s: fired %d times, want %d", test.name, got, test.want)
+		}
+	}
+
+	// A pet's trigger reads its owner's mods, and a trigger on the target reads the ones of the unit
+	// it names.
+	pet := &Unit{procChanceOwner: unit}
+	target := &Unit{}
+	for _, test := range []struct {
+		name   string
+		unit   *Unit
+		config ProcTrigger
+		want   int
+	}{
+		{"a pet's trigger", pet, ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison}, 1000},
+		{"a trigger on the target naming the caster", target,
+			ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison, Caster: unit}, 1000},
+		{"a trigger on the target naming no one", target, ProcTrigger{ProcChance: almostNever, ProcSpellClassFlags: poison}, 0},
+	} {
+		if got := fires(test.unit, test.config); got != test.want {
 			t.Errorf("%s: fired %d times, want %d", test.name, got, test.want)
 		}
 	}

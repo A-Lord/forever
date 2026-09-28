@@ -1,9 +1,15 @@
 package hunter
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+)
+
 func (hunter *Hunter) registerMarksmanshipTalents() {
 	// Tier 1
 	hunter.registerHawkEye()
-	hunter.registerImprovedConcussiveShot()
+	// Improved Concussive Shot (19407) is a stun chance on a slow the sim does not cast.
 	hunter.registerLethalAttacks()
 
 	// Tier 2
@@ -17,14 +23,14 @@ func (hunter *Hunter) registerMarksmanshipTalents() {
 	hunter.registerLoneWolf()
 
 	// Tier 4
-	// Trueshot Aura handled as a group buff in hunter.go
+	// Trueshot Aura: a party buff, hunter.go
 	hunter.registerMortalShots()
 	hunter.registerImprovedSerpentSting()
 
 	// Tier 5
 	hunter.registerRapidRecuperation()
 	hunter.registerBarrage()
-	hunter.registerScatterShot()
+	// Scatter Shot (19503) is a disorient the sim does not cast.
 
 	// Tier 6
 	hunter.registerRangedWeaponSpecialization()
@@ -33,246 +39,168 @@ func (hunter *Hunter) registerMarksmanshipTalents() {
 	hunter.registerSniperShot()
 }
 
-// TODO: To be implemented.
-func (hunter *Hunter) registerEfficiency() {
-	if hunter.Talents.Efficiency == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.Efficiency == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// 	ClassMask:  HunterSpellsShotsAndStings,
-	// 	FloatValue: -0.02 * float64(hunter.Talents.Efficiency),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerImprovedArcaneShot() {
-	if hunter.Talents.ImprovedArcaneShot == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.ImprovedArcaneShot == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:      core.SpellMod_Cooldown_Flat,
-	// 	ClassMask: HunterSpellArcaneShot,
-	// 	TimeValue: -core.DurationFromSeconds(0.2 * float64(hunter.Talents.ImprovedArcaneShot)),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerRapidKilling() {
-	if hunter.Talents.RapidKilling == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.RapidKilling == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:      core.SpellMod_Cooldown_Flat,
-	// 	ClassMask: HunterSpellRapidFire,
-	// 	TimeValue: -core.DurationFromSeconds(60 * float64(hunter.Talents.RapidKilling)),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerImprovedStings() {
-	if hunter.Talents.ImprovedStings == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.ImprovedStings == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ClassMask:  HunterSpellSerpentSting,
-	// 	FloatValue: spellData.ImprovedStings.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DOT)).FractionAt(hunter.Talents.ImprovedStings),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerMortalShots() {
-	if hunter.Talents.MortalShots == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.MortalShots == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_CritMultiplier_Flat,
-	// 	ProcMask:   core.ProcMaskRanged,
-	// 	FloatValue: spellData.MortalShots.FractionAt(hunter.Talents.MortalShots),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerBarrage() {
-	if hunter.Talents.Barrage == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.Barrage == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ClassMask:  HunterSpellMultiShot | HunterSpellVolley,
-	// 	FloatValue: spellData.Barrage.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(hunter.Talents.Barrage),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerRangedWeaponSpecialization() {
-	if hunter.Talents.RangedWeaponSpecialization == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.RangedWeaponSpecialization == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Pct,
-	// 	ProcMask:   core.ProcMaskRanged,
-	// 	FloatValue: spellData.RangedWeaponSpecialization.FractionAt(hunter.Talents.RangedWeaponSpecialization),
-	// })
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) registerCarefulAim() {
-	if hunter.Talents.CarefulAim == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.CarefulAim == 0 {
-	// 	return
-	// }
-	//
-	// hunter.AddStatDependency(stats.Intellect, stats.RangedAttackPower, 0.15*float64(hunter.Talents.CarefulAim))
-}
-
-// TODO: To be implemented.
 func (hunter *Hunter) registerHawkEye() {
 	if hunter.Talents.HawkEye == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if hunter.Talents.HawkEye == 0 {
-	// 	return
-	// }
-	//
-	// bonusRange := float64(hunter.Talents.HawkEye) * 2
-	// ranged := hunter.AutoAttacks.Ranged()
-	//
-	// if ranged != nil {
-	// 	ranged.MaxRange += bonusRange
-	// }
-	//
-	// hunter.AddStaticMod(core.SpellModConfig{
-	// 	Kind:     core.SpellMod_Custom,
-	// 	ProcMask: core.ProcMaskRanged,
-	// 	ApplyCustom: func(mod *core.SpellMod, spell *core.Spell) {
-	// 		if spell.MaxRange > 0 {
-	// 			spell.MaxRange += bonusRange
-	// 		}
-	// 	},
-	// 	RemoveCustom: func(mod *core.SpellMod, spell *core.Spell) {
-	// 		if spell.MaxRange > 0 {
-	// 			spell.MaxRange -= bonusRange
-	// 		}
-	// 	},
-	// })
+	spelldata.ParseStatic(&hunter.Character, spellData.HawkEye.Rank(hunter.Talents.HawkEye))
 }
 
-// registerImprovedConcussiveShot implements Improved Concussive Shot, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerImprovedConcussiveShot() {
-	if hunter.Talents.ImprovedConcussiveShot == 0 {
-		return
-	}
-}
-
-// registerLethalAttacks implements Lethal Attacks, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (hunter *Hunter) registerLethalAttacks() {
 	if hunter.Talents.LethalAttacks == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.LethalAttacks.Rank(hunter.Talents.LethalAttacks))
 }
 
-// registerLoneWolf implements Lone Wolf, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerLoneWolf() {
-	if !hunter.Talents.LoneWolf {
+func (hunter *Hunter) registerImprovedStings() {
+	if hunter.Talents.ImprovedStings == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.ImprovedStings.Rank(hunter.Talents.ImprovedStings))
 }
 
-// registerImprovedSerpentSting implements Improved Serpent Sting, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+func (hunter *Hunter) registerEfficiency() {
+	if hunter.Talents.Efficiency == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.Efficiency.Rank(hunter.Talents.Efficiency))
+}
+
+// The two effects are auras the parse table has no row for, each stating a share of Intellect - 20%
+// a rank - as attack power and as ranged attack power.
+func (hunter *Hunter) registerCarefulAim() {
+	if hunter.Talents.CarefulAim == 0 {
+		return
+	}
+
+	rank := spellData.CarefulAim.Rank(hunter.Talents.CarefulAim)
+	hunter.AddStatDependency(stats.Intellect, stats.AttackPower, rank.EffectN(1).Percent())
+	hunter.AddStatDependency(stats.Intellect, stats.RangedAttackPower, rank.EffectN(2).Percent())
+}
+
+// Effect 2 is the damage bonus the next shot takes after a kill, which the sim does not model.
+func (hunter *Hunter) registerRapidKilling() {
+	if hunter.Talents.RapidKilling == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.RapidKilling.Rank(hunter.Talents.RapidKilling),
+		spelldata.Effects(1))
+}
+
+func (hunter *Hunter) registerImprovedArcaneShot() {
+	if hunter.Talents.ImprovedArcaneShot == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.ImprovedArcaneShot.Rank(hunter.Talents.ImprovedArcaneShot))
+}
+
+// Effect 2 is a dummy restating the bonus. The row states a stack of one, which would keep the
+// parse off a pseudo-stat multiplier.
+func (hunter *Hunter) registerLoneWolf() {
+	if !hunter.Talents.LoneWolf || hunter.Pet != nil {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.LoneWolf.Rank(1), spelldata.Effects(1), spelldata.IgnoreStacks())
+}
+
+func (hunter *Hunter) registerMortalShots() {
+	if hunter.Talents.MortalShots == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.MortalShots.Rank(hunter.Talents.MortalShots))
+}
+
 func (hunter *Hunter) registerImprovedSerpentSting() {
 	if hunter.Talents.ImprovedSerpentSting == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.ImprovedSerpentSting.Rank(hunter.Talents.ImprovedSerpentSting))
 }
 
-// registerRapidRecuperation implements Rapid Recuperation, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+var rapidRecuperationBuff = spellData.RapidRecuperationTriggered.Highest()
+
 func (hunter *Hunter) registerRapidRecuperation() {
 	if hunter.Talents.RapidRecuperation == 0 {
 		return
 	}
+
+	// The regeneration share is the talent's own ladder - 25/50 by rank - where the buff row states a
+	// flat 50, so the row is scaled by the ranks taken.
+	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidRecuperationBuff))
+	spelldata.ParseEffects(&hunter.Character, buff, rapidRecuperationBuff,
+		spelldata.ScaledByRanks(hunter.Talents.RapidRecuperation, 2))
+
+	// The proc shape with no roll: 1223987 fires on a ranged ability and names Serpent Sting only
+	// in its tooltip, so the listener is narrowed to it by hand. The sting's application carries no
+	// proc mask and deals no damage of its own, which the listener has to accept. The Rapid Killing
+	// consumption the tooltip also names is not modelled.
+	trigger := spelldata.ProcTrigger(&hunter.Character, spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			buff.Activate(sim)
+		})
+	trigger.Name = "Rapid Recuperation - Trigger"
+	trigger.ProcMask = core.ProcMaskEmpty
+	trigger.ClassFlags = serpentStingRank.ClassFlags
+	trigger.RequireDamageDealt = false
+
+	hunter.MakeProcTriggerAura(trigger)
 }
 
-// registerScatterShot implements Scatter Shot, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (hunter *Hunter) registerScatterShot() {
-	if !hunter.Talents.ScatterShot {
+// Effect 2 states the same bonus on the ticks of every hunter spell, with no mask. The tooltip
+// names Multi-Shot, Volley and Aimed Shot, which effect 1 masks, so effect 2 is left out.
+func (hunter *Hunter) registerBarrage() {
+	if hunter.Talents.Barrage == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&hunter.Character, spellData.Barrage.Rank(hunter.Talents.Barrage), spelldata.Effects(1))
 }
 
-// registerSniperShot implements Sniper Shot, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// The row raises every school's damage done and requires a ranged weapon: an equipment-gated
+// multiplier the game applies to the attacks made with that weapon, which is the tooltip's damage
+// dealt with ranged weapons. The parse has no equipment gate, so the mod stays on the ranged hits
+// by hand.
+func (hunter *Hunter) registerRangedWeaponSpecialization() {
+	if hunter.Talents.RangedWeaponSpecialization == 0 {
+		return
+	}
+
+	hunter.AddStaticMod(core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Pct,
+		ProcMask:   core.ProcMaskRanged,
+		FloatValue: spellData.RangedWeaponSpecialization.FractionAt(hunter.Talents.RangedWeaponSpecialization),
+	})
+}
+
+var sniperShotRank = spellData.SniperShot.Highest()
+var sniperShotBonusDamage = sniperShotRank.DamageEffect().Average(core.CharacterLevel)
+
 func (hunter *Hunter) registerSniperShot() {
 	if !hunter.Talents.SniperShot {
 		return
 	}
+
+	config := spelldata.SpellConfig(&hunter.Unit, sniperShotRank, spelldata.Melee(core.ProcMaskRangedSpecial))
+	hunter.hasteRangedCast(&config)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := sniperShotBonusDamage + hunter.RangedNormalizedWeaponDamage(sim, spell.RangedAttackPower(target))
+		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
+
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			spell.DealDamage(sim, result)
+		})
+	}
+
+	hunter.RegisterSpell(config)
 }

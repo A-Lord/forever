@@ -21,7 +21,7 @@ const (
 	healProcBuff    int32 = 1249119
 )
 
-// core skips an effect whose item this client does not ship, which every id below is: the test's own
+// core skips an effect whose item the game files do not ship, which every id below is: the test's own
 // ids are chosen to be absent from the shipped database so that registering them cannot collide with
 // a real effect. Putting them in the database first is what lets the registration run under the
 // with_db build tag as it does without it.
@@ -159,7 +159,7 @@ func TestSpellDataProcStatesATrigger(t *testing.T) {
 	}
 }
 
-// The client leaves the duration off the buff on a fair few procs and states it on the trigger, and
+// The game files leave the duration off the buff on a fair few procs and state it on the trigger, and
 // an aura of no duration is one core refuses to activate.
 func TestProcBuffDurationFallsBackToTheTrigger(t *testing.T) {
 	trigger, buff := chargeRows()
@@ -286,7 +286,7 @@ func TestSpellDataProcAppliesToACharacter(t *testing.T) {
 }
 
 // A damage proc has no buff at all: the row it names is a spell that deals damage, and what the
-// client states about that spell is its school, its hit table and the amount it rolls. What it does
+// game files state about that spell is its school, its hit table and the amount it rolls. What it does
 // not state is that the game casts it off a hit, which is the GCD, the cost and the cast time this
 // has to strip.
 func TestSpellDataDamageProcAppliesToACharacter(t *testing.T) {

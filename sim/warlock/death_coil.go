@@ -2,7 +2,7 @@ package warlock
 
 var deathCoilRank = spellData.DeathCoil.Highest()
 
-// TODO: To be implemented. Port the TBC Death Coil implementation below; not yet verified against the Forever client.
+// TODO: To be implemented. Port the TBC Death Coil implementation below; not yet verified against the Forever game files.
 func (warlock *Warlock) registerDeathCoil() {
 	panic("To be implemented")
 

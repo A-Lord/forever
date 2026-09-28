@@ -1,7 +1,7 @@
 package database
 
-// Runs the raw enchant query on a client-shaped fixture holding only the columns it reads, so it
-// needs no client database.
+// Runs the raw enchant query on a fixture shaped like the game files, holding only the columns it
+// reads, so it needs no game files database.
 
 import (
 	"database/sql"
@@ -111,7 +111,7 @@ func TestRawEnchantsKeepOneRowPerEnchantAndName(t *testing.T) {
 	}
 }
 
-// A grant taught by several items names the lowest item id the client ships, or the lowest item id
+// A grant taught by several items names the lowest item id the game files ship, or the lowest item id
 // where it ships none, and the icon and quality are that item's.
 func TestRawEnchantNamesItsLowestItem(t *testing.T) {
 	byKey := rawEnchantsByKey(loadRawEnchantFixture(t))

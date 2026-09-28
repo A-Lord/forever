@@ -5,7 +5,7 @@ package database
 // sim/core/buffs so that a generated Meta or constructor call that no longer
 // compiles against sim/core/buffs/meta.go is noticed here.
 //
-// Needs no client database. Set UPDATE_BUFF_FIXTURES=1 to rewrite the fixtures
+// Needs no game files database. Set UPDATE_BUFF_FIXTURES=1 to rewrite the fixtures
 // after a deliberate change.
 
 import (
@@ -151,7 +151,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			},
 			Scope: buffmanifest.ScopeParty, Proto: buffmanifest.ProtoBool, Kind: buffmanifest.KindFlag,
 			Go:     "SynthAbsent",
-			Reason: "the client has no row for it",
+			Reason: "the game files have no row for it",
 		},
 		{
 			BuffSpec: buffmanifest.BuffSpec{

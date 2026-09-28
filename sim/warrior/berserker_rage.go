@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// TODO: Ingame test needed -- the client states no amount for the extra rage a hit taken
+// TODO: Ingame test needed -- the game files state no amount for the extra rage a hit taken
 // generates while Berserker Rage is up; doubled.
 const berserkerRageDamageTakenRageMultiplier = 2.0
 

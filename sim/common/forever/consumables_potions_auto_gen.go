@@ -51,8 +51,6 @@ func RegisterPotionsAndConjured() {
 		18841,  // Combat Mana Potion
 		23578,  // Diet McWeaksauce
 		23579,  // The McWeaksauce Classic
-		223913, // Major Healing Potion
-		223914, // Greater Healing Potion
 		250932, // Minor Spellblasting Potion
 		250933, // Lesser Spellblasting Potion
 		250934, // Spellblasting Potion
@@ -111,9 +109,8 @@ func RegisterPotionsAndConjured() {
 		19013, // Major Healthstone
 
 		// Other on-use consumables
-		4376,   // Flame Deflector
-		4386,   // Ice Deflector
-		213564, // Scroll of Minor Evocation
+		4376, // Flame Deflector
+		4386, // Ice Deflector
 	} {
 		shared.NewSpellDataOnUseConsumable(itemID)
 	}

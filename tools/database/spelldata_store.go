@@ -13,7 +13,7 @@ import (
 
 // The store's rows as the generator builds them: the fields sim/core/spelldata.Spell, .Effect and
 // .Power carry, mirrored here rather than imported from that package, with the generator's own
-// bookkeeping alongside them and the JSON shape the captured client rows are read back in.
+// bookkeeping alongside them and the JSON shape the captured game files rows are read back in.
 //
 // The mirror is not what keeps a generated file that does not compile from stopping the generator
 // that rewrites it: this package imports the store for the item-proc routing in gen_effects.go, so
@@ -21,9 +21,9 @@ import (
 // the overlay gate in spelldata_write.go, which writes nothing until the sim compiles against the
 // rendered files.
 //
-// Every value is the client's own column, in the client's units - the conversions live in the
+// Every value is the game files' own column, in the game files' units - the conversions live in the
 // store's accessors - and the float fields are kept as the DB states them so the emitted number is
-// the one the client resolves its tooltip from.
+// the one the tooltip resolves from in game.
 type storeSpell struct {
 	ID   int32
 	Name string
@@ -50,10 +50,10 @@ type storeSpell struct {
 	ProcFlags   [2]uint32
 	ICDMs       int32
 
-	// Procs per minute, which no client row states: it is here only when an override supplies it.
+	// Procs per minute, which no game files row states: it is here only when an override supplies it.
 	RPPM float64
 
-	// A flat threat bonus for a spell the client states no E_THREAT effect on, from an override.
+	// A flat threat bonus for a spell the game files state no E_THREAT effect on, from an override.
 	FlatThreat float64
 
 	// An area bonus, from an override.
@@ -149,10 +149,10 @@ type storePower struct {
 	PerSecond          int32
 }
 
-// Every table the store reads, loaded once for the whole client database rather than per spell: the
-// closure walks the effects and descriptions of spells it has not selected yet, so the rows have to
-// be there before the set of wanted ids is known. Exported because storeInputs embeds it, which is
-// what writes the captured rows under these names.
+// Every table the store reads, loaded once for the whole game files database rather than per spell:
+// the closure walks the effects and descriptions of spells it has not selected yet, so the rows
+// have to be there before the set of wanted ids is known. Exported because storeInputs embeds it,
+// which is what writes the captured rows under these names.
 type spellTables struct {
 	Names        map[int32]string
 	Subtexts     map[int32]string
@@ -294,8 +294,8 @@ func (t *spellTables) row(id int32) storeSpell {
 	s.CastTimeMs, s.DurationMs = m.CastTimeMs, m.DurationMs
 	s.MinRange, s.MaxRange = m.MinRange, m.MaxRange
 
-	// No SpellLevels row is the client's "no level scaling", which is the spell's own and base level
-	// at the cap and no maximum.
+	// No SpellLevels row is the game files' "no level scaling", which is the spell's own and base
+	// level at the cap and no maximum.
 	if l, ok := t.Levels[id]; ok {
 		s.SpellLevel, s.BaseLevel, s.MaxLevel = l.SpellLevel, l.BaseLevel, l.MaxLevel
 	} else {
@@ -419,8 +419,8 @@ func (t *spellTables) loadMisc(db *sql.DB) error {
 	})
 }
 
-// A table the client states once per spell. A second row is an error rather than a silent overwrite:
-// the store would carry whichever came last.
+// A table the game files state once per spell. A second row is an error rather than a silent
+// overwrite: the store would carry whichever came last.
 func putOnce[V any](into map[int32]V, id int32, v V, rows string) error {
 	if _, dup := into[id]; dup {
 		return fmt.Errorf("spell %d has two %s", id, rows)
@@ -550,9 +550,9 @@ func (t *spellTables) loadShapeshift(db *sql.DB) error {
 	})
 }
 
-// The aura a spell needs on its caster to be cast, and the one that bars it, where the client states
-// neither as a form: Tiger's Fury names Cat Form here rather than in SpellShapeshift, whose row for
-// it is empty.
+// The aura a spell needs on its caster to be cast, and the one that bars it, where the game files
+// state neither as a form: Tiger's Fury names Cat Form here rather than in SpellShapeshift, whose
+// row for it is empty.
 func (t *spellTables) loadAuraRestrictions(db *sql.DB) error {
 	return eachRow(db, `
 		SELECT SpellID, COALESCE(CasterAuraSpell, 0), COALESCE(ExcludeCasterAuraSpell, 0)
@@ -631,7 +631,7 @@ func (t *spellTables) loadLabels(db *sql.DB) error {
 	})
 }
 
-// Every bar the spell costs from, in the client's order, so Power(t) finds the one it asks for.
+// Every bar the spell costs from, in the game files' order, so Power(t) finds the one it asks for.
 func (t *spellTables) loadPowers(db *sql.DB) error {
 	return eachRow(db, `
 		SELECT SpellID, COALESCE(PowerType, 0), COALESCE(ManaCost, 0), COALESCE(ManaCostPerLevel, 0),
@@ -652,7 +652,7 @@ func (t *spellTables) loadPowers(db *sql.DB) error {
 // EffectMiscValue_0/_1, EffectSpellClassMask_0..3, EffectRadiusIndex_0 and ImplicitTarget_0/_1 are
 // generated columns over the JSON arrays, so each is named rather than reached through SELECT *.
 // RadiusMin and RadiusMax are SpellRadius' own columns: two radius rows state a Radius with no
-// maximum, and those read as zero here rather than as a radius the client does not state there.
+// maximum, and those read as zero here rather than as a radius the game files do not state there.
 func (t *spellTables) loadEffects(db *sql.DB) error {
 	return eachRow(db, `
 		SELECT e.SpellID, e.ID, e.EffectIndex, e.Effect, e.EffectAura,

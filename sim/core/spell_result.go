@@ -188,14 +188,13 @@ func (spell *Spell) PhysicalHitCheck(sim *Simulation, attackTable *AttackTable) 
 }
 func (spell *Spell) PhysicalCritChance(attackTable *AttackTable) float64 {
 	critPercent := spell.Unit.stats[stats.PhysicalCritPercent] + spell.BonusCritPercent +
-		attackTable.critChanceByCaster(spell) -
-		attackTable.Defender.PseudoStats.ReducedCritTakenPercent
+		attackTable.critChanceByCaster(spell)
 
 	if spell.ProcMask.Matches(ProcMaskRanged) {
 		critPercent += spell.Unit.stats[stats.RangedCritPercent]
 	}
 
-	return max(critPercent/100-attackTable.MeleeCritSuppression, 0)
+	return max(critPercent/100-attackTable.Defender.PseudoStats.ReducedCritTakenPercent-attackTable.MeleeCritSuppression, 0)
 }
 func (spell *Spell) PhysicalCritCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.RandomFloat("Physical Crit Roll") < spell.PhysicalCritChance(attackTable)
@@ -241,7 +240,7 @@ func (spell *Spell) SpellDamage(target *Unit) float64 {
 func (spell *Spell) SpellHitChance(target *Unit) float64 {
 	hitPercent := spell.Unit.stats[stats.SpellHitPercent] + spell.BonusHitPercent
 	// All talents that modify spell school specific hit name their spells by class mask, so this
-	// hit only reaches spells that carry one, either the sim's tag or the client's class flags.
+	// hit only reaches spells that carry one, either the sim's tag or the game files' class flags.
 	if spell.ClassSpellMask != 0 || !spell.ClassFlags.IsZero() {
 		hitPercent += spell.Unit.PseudoStats.SchoolBonusHitChance[spell.SpellSchool.SchoolIndex()]
 	}
@@ -269,9 +268,8 @@ func (spell *Spell) SpellCritChance(target *Unit) float64 {
 	critPercent := spell.Unit.stats[stats.SpellCritPercent] +
 		spell.BonusCritPercent +
 		attackTable.BonusSpellCritPercent +
-		attackTable.critChanceByCaster(spell) -
-		target.PseudoStats.ReducedCritTakenPercent
-	return max(critPercent/100-attackTable.SpellCritSuppression, 0)
+		attackTable.critChanceByCaster(spell)
+	return max(critPercent/100-target.PseudoStats.ReducedCritTakenPercent-attackTable.SpellCritSuppression, 0)
 }
 func (spell *Spell) MagicCritCheck(sim *Simulation, target *Unit) bool {
 	critChance := spell.SpellCritChance(target)

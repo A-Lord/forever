@@ -55,7 +55,7 @@ func (druid *Druid) applyThickHide() {
 }
 
 // Predatory Instincts: +2% melee critical strike damage per rank while in Cat or Bear form.
-// The client aura (33859 and its ranks) is school-masked to Physical, so it covers every
+// The aura in the game files (33859 and its ranks) is school-masked to Physical, so it covers every
 // physical attack in form (abilities and auto attacks, Ravage included) and nothing else.
 //
 // TODO: To be implemented. Forever's regenerated aura enum no longer carries the crit damage

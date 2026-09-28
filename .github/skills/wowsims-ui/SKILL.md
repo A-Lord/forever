@@ -5,6 +5,8 @@ description: 'Work on the wowsims Forever frontend, ui/ (React 19 + TypeScript).
 
 # wowsims-ui
 
+Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game files", not "client", no history in comments, no "golden".
+
 `ui/` is the frontend: TypeScript, built by vite, no server-side rendering. The sim engine is
 Go compiled to WASM behind `ui/worker/*`; the UI only ever speaks protobuf to it, so nothing in
 `ui/` models combat.

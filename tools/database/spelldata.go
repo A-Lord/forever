@@ -16,7 +16,7 @@ func IsWeaponDamageEffect(effect dbc.SpellEffectType) bool {
 		effect == dbcenums.E_NORMALIZED_WEAPON_DMG
 }
 
-// The client states a flat threat amount on the abilities whose point is threat: Feint and Cower
+// The game files state a flat threat amount on the abilities whose point is threat: Feint and Cower
 // shed it, Distracting Shot adds it. 22 ranked spells across four families carry one.
 func IsThreatEffect(effect dbc.SpellEffectType) bool {
 	return effect == dbcenums.E_THREAT || effect == dbcenums.E_THREAT_ALL
@@ -30,7 +30,7 @@ func RequireSpellCastTimes(helper *DBHelper) error {
 	if helper.tableExists("SpellCastTimes") {
 		return nil
 	}
-	return errors.New("the client database has no SpellCastTimes table, so every generated cast time would " +
+	return errors.New("the game files database has no SpellCastTimes table, so every generated cast time would " +
 		"be zero - add \"SpellCastTimes\" to tools/database/generator-settings.json and re-run `make db`")
 }
 

@@ -6,6 +6,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Not generated:
+//   Metamorphosis : Demon Charge: Season of Discovery rune ability
+//   Shadow Cleave: Season of Discovery rune ability
+
 // Generated with an effect held at its base points, the talent tree stating no rank value for it:
 //   Decimation: effect 2 of spell 440870 has no rank curve and is held at its base points
 //   Demonic Embrace: effect 1 of spell 18697 has no rank curve and is held at its base points
@@ -100,7 +104,6 @@ type generatedSpellData struct {
 	Malevolence                 spelldata.Ladder
 	MasterDemonologist          spelldata.Ladder
 	MasterSummoner              spelldata.Ladder
-	MetamorphosisDemonCharge    spelldata.Ladder
 	MoltenSkin                  spelldata.Ladder
 	Nightfall                   spelldata.Ladder
 	NightfallTriggered          spelldata.Ladder
@@ -116,8 +119,6 @@ type generatedSpellData struct {
 	SearingPain                 spelldata.Ladder
 	SenseDemons                 spelldata.Ladder
 	ShadowBolt                  spelldata.Ladder
-	ShadowCleave                spelldata.Ladder
-	ShadowCleaveTriggered       spelldata.Ladder
 	ShadowMastery               spelldata.Ladder
 	ShadowWard                  spelldata.Ladder
 	ShadowAndFlame              spelldata.Ladder
@@ -224,7 +225,6 @@ var spellData = generatedSpellData{
 	Malevolence:                 spelldata.Talent(1310949, 5),
 	MasterDemonologist:          spelldata.Talent(23785, 5),
 	MasterSummoner:              spelldata.Talent(18709, 2),
-	MetamorphosisDemonCharge:    spelldata.Ranked(412783),
 	MoltenSkin:                  spelldata.Talent(1225220, 5),
 	Nightfall:                   spelldata.Talent(18094, 2),
 	NightfallTriggered:          spelldata.Ranked(17941),
@@ -240,8 +240,6 @@ var spellData = generatedSpellData{
 	SearingPain:                 spelldata.Ranked(5676, 17919, 17920, 17921, 17922, 17923),
 	SenseDemons:                 spelldata.Ranked(5500),
 	ShadowBolt:                  spelldata.Ranked(686, 695, 705, 1088, 1106, 7641, 11659, 11660, 11661, 25307),
-	ShadowCleave:                spelldata.Ranked(403835, 403839, 403840, 403841, 403842, 403843, 403844, 403848, 403851, 403852),
-	ShadowCleaveTriggered:       spelldata.Ranked(460171, 460200),
 	ShadowMastery:               spelldata.Talent(18271, 5),
 	ShadowWard:                  spelldata.Ranked(6229, 11739, 11740, 28610),
 	ShadowAndFlame:              spelldata.Talent(426316, 5),

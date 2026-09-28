@@ -10,14 +10,14 @@ import (
 
 var db *dbc.DBC
 
-// The client inputs load from paths relative to the repository root.
+// The game files inputs load from paths relative to the repository root.
 func TestMain(m *testing.M) {
 	if err := os.Chdir("../.."); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	if _, err := os.Stat("./assets/db_inputs/dbc/spells.json"); err != nil {
-		fmt.Println("no client DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable these tests")
+		fmt.Println("no game files DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable these tests")
 		os.Exit(0)
 	}
 	db = dbc.GetDBC()

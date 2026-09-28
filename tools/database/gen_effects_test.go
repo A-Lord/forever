@@ -181,8 +181,9 @@ func TestOnUseStatBuffListsTheProcItCarries(t *testing.T) {
 }
 
 // A trigger restricted to one named ability is a shape no ProcTypeMask states, so the wording is the
-// only evidence there is. The rows below are the client's own, raw and rendered: the store reads the
-// raw description and the item generator the rendered tooltip, and both go through this matcher.
+// only evidence there is. The rows below are the game files' own, raw and rendered: the store reads
+// the raw description and the item generator the rendered tooltip, and both go through this
+// matcher.
 func TestNamedAbilityWording(t *testing.T) {
 	for _, tc := range []struct {
 		named bool
@@ -190,7 +191,7 @@ func TestNamedAbilityWording(t *testing.T) {
 		why   string
 	}{
 		{true, "Your casts of $?s2060[Greater Heal]?s5185[Healing Touch][Greater Heal, Healing Touch] in combat grant up to $1249119s1 increased healing.",
-			"Eternal Power 1249118, as the client writes it"},
+			"Eternal Power 1249118, as the game files write it"},
 		{true, "Your casts of Greater Heal in combat grant up to 40 increased healing and up to 13 increased damage for 15s.",
 			"the same tooltip, rendered"},
 		{true, "Your Backstab has a $m1% chance to cause your next Ambush to not require Stealth.",

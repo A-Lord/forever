@@ -11,7 +11,7 @@ var hamstringBaseDamage = hamstringRank.DamageEffect().Average(core.CharacterLev
 func (warrior *Warrior) registerHamstring() {
 	config := spelldata.SpellConfig(&warrior.Unit, hamstringRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
-	// TODO: Manual review needed -- the client states no threat coefficient; 1 until measured in game.
+	// TODO: Manual review needed -- the game files state no threat coefficient; 1 until measured in game.
 	config.ThreatMultiplier = 1
 	// TODO: Ingame research needed if this adds flat threat
 	config.FlatThreatBonus = 0

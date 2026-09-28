@@ -52,7 +52,7 @@ object:
 - `header` holds the columns the row states, in the order the text form prints them. It is a list
   because a key can repeat (`cost`, `cooldown`); `proc` and `refs` are keys like the rest.
 - `effects[].human` is `unrecognised shape` where no wording applies, and `literal` is always the
-  client's own columns. `read: true` marks the effect an `-expr` chain read.
+  game files' own columns. `read: true` marks the effect an `-expr` chain read.
 
 By mode:
 

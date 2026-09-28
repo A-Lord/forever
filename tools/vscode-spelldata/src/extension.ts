@@ -60,8 +60,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		initializationOptions: { trace: settings.get<string>('trace', 'on') },
 		outputChannel,
 		middleware: {
-			// The effects table breaks each wording from its client row with <br>, which VS Code renders
-			// only where the markdown allows HTML.
+			// The effects table breaks each wording from its game files row with <br>, which VS
+			// Code renders only where the markdown allows HTML.
 			provideHover: async (document, position, token, next) => {
 				const hover = await next(document, position, token);
 				for (const content of hover?.contents ?? []) {

@@ -58,7 +58,7 @@ func NewSpellDataShadowResistanceAuraRank(char *core.Character, rank PaladinAura
 }
 
 // Retribution Aura scales with the casting paladin's Holy spell power in Forever even though its
-// client row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
+// game files row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
 // and the damage still moves with spell power in game). The coefficient is the 1.5 s cast-time
 // floor over 3.5, the AoE divisor because the shield hits every attacker, and the 0.95 penalty for
 // the aura effect. Confirmed at level 20: with 80 spell power rank 1 (base 7) hits for 17 to 18,
@@ -105,7 +105,7 @@ var (
 		Value: amount(spelldata.MustFind(judgementOfWisdomManaID).EnergizeEffect())}
 )
 
-// The raid's Judgement of the Crusader, which no generated row reads: the client states its bonus
+// The raid's Judgement of the Crusader, which no generated row reads: the game files state its bonus
 // for the holy school alone, which the manifest has no pseudo-stat for.
 var judgementOfTheCrusaderSpell = spelldata.MustFind(20303)
 
@@ -120,7 +120,7 @@ const (
 // Judgement effects on the target" can find them.
 const JudgementAuraTag = "JudgementAura"
 
-// The client says the judgements proc on a chance without stating it; the sim uses 50% until
+// The game files say the judgements proc on a chance without stating it; the sim uses 50% until
 // in-game testing says otherwise.
 const judgementProcChance = 0.5
 
@@ -156,7 +156,7 @@ func NewSpellDataJudgementOfTheCrusaderAuraRank(target *core.Unit, rank Judgemen
 
 // The paladin's own Judgement of Light at one rank: the bare 40-second debuff, plus the heal it
 // grants whoever strikes the target.
-func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, rank JudgementRank) *core.Aura {
+func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, caster *core.Unit, rank JudgementRank) *core.Aura {
 	label := paladinRankName("Judgement of Light", rank.Rank)
 	if target.HasAura(label) {
 		return target.GetAura(label)
@@ -167,25 +167,27 @@ func NewSpellDataJudgementOfLightAuraRank(target *core.Unit, rank JudgementRank)
 		ActionID: core.ActionID{SpellID: rank.SpellID},
 		Tag:      JudgementAuraTag,
 		Duration: JudgementOfLightDuration(0),
-	}), rank)
+	}), caster, rank)
 }
 
 // Whoever lands a damaging melee hit on the judged target has a chance to be healed for the rank's
-// amount.
-func AttachJudgementOfLightHeal(aura *core.Aura, rank JudgementRank) *core.Aura {
+// amount. The caster's proc chance mods, e.g. Improved Judgement of Light, raise that chance; the
+// raid's copy has no caster.
+func AttachJudgementOfLightHeal(aura *core.Aura, caster *core.Unit, rank JudgementRank) *core.Aura {
 	healthMetrics := aura.Unit.NewHealthMetrics(core.ActionID{SpellID: rank.SpellID})
 	heal := rank.Value
 
 	return aura.AttachProcTrigger(core.ProcTrigger{
-		Name:               aura.Label + " - Heal",
-		Callback:           core.CallbackOnSpellHitTaken,
-		ProcMask:           core.ProcMaskMelee,
-		Outcome:            core.OutcomeLanded,
-		RequireDamageDealt: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if sim.Proc(judgementProcChance, "Judgement of Light - Heal") {
-				spell.Unit.GainHealth(sim, heal, healthMetrics)
-			}
+		Name:                aura.Label + " - Heal",
+		Callback:            core.CallbackOnSpellHitTaken,
+		ProcMask:            core.ProcMaskMelee,
+		Outcome:             core.OutcomeLanded,
+		RequireDamageDealt:  true,
+		ProcChance:          judgementProcChance,
+		ProcSpellClassFlags: spelldata.MustFind(rank.SpellID).ClassFlags,
+		Caster:              caster,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			spell.Unit.GainHealth(sim, heal, healthMetrics)
 		},
 	})
 }

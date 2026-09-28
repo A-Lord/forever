@@ -67,8 +67,8 @@ func renderStoreFile(rows []storeSpell, curves map[int32][][]float64, hand map[i
 	return out, nil
 }
 
-// One row per line, with its effects and powers under it: a field the client leaves at zero is left
-// out, so what the row states is what the client states. The fields are the mirror's, in the order
+// One row per line, with its effects and powers under it: a field the game files leave at zero is left
+// out, so what the row states is what the game files state. The fields are the mirror's, in the order
 // it declares them; spelldata_mirror_test.go holds their names to the store's own.
 func formatStoreRow(s storeSpell, namer *rankEnumNamer) string {
 	var b strings.Builder
@@ -161,7 +161,7 @@ func storeValue(v reflect.Value, store reflect.Type, namer *rankEnumNamer) strin
 }
 
 // The family is the namespace the mask words are read in, so a mask alone is never emitted without
-// one; the client states the mask in decimal, which is how the sim's talent code names it.
+// one; the game files state the mask in decimal, which is how the sim's talent code names it.
 func formatClassFlags(f core.ClassFlags) string {
 	var words []string
 	for i, word := range f.Mask {
@@ -176,7 +176,7 @@ func formatClassFlags(f core.ClassFlags) string {
 }
 
 // A bit field is written as the words that carry bits, by index: most of the 17 attribute words are
-// empty on any one spell, and hex is how the client's flag names read.
+// empty on any one spell, and hex is how the game files' flag names read.
 func hexWords(words reflect.Value) string {
 	var set []string
 	for i := 0; i < words.Len(); i++ {
@@ -209,7 +209,7 @@ func loadStoreInputs(db *sql.DB, ladderIDs []int32, trees map[int]int) (*storeIn
 	// The extra spells are captured as rows but not as roots: the rendering adds them again from
 	// overrides.ExtraSpells, so what is captured has to be everything that rendering will reach - or an extra
 	// id would render as a row with a name and nothing else, whether or not the store was
-	// regenerated - while the roots stay what the client alone says they are.
+	// regenerated - while the roots stay what the game files alone say they are.
 	withExtras, err := withExtraIDs(tables, roots)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func loadStoreInputs(db *sql.DB, ladderIDs []int32, trees map[int]int) (*storeIn
 	return in, nil
 }
 
-// The store's data, from the client rows it is built from rather than from the database: the same
+// The store's data, from the game files rows it is built from rather than from the database: the same
 // path the regeneration check runs, so what it checks is what the generator writes.
 func renderStore(in *storeInputs, namer *rankEnumNamer) ([]byte, error) {
 	tables := in.tables()
@@ -291,7 +291,7 @@ func renderStore(in *storeInputs, namer *rankEnumNamer) ([]byte, error) {
 	return renderStoreFile(rows, curves, hand, namer)
 }
 
-// The trigger edges the client's server-side handlers make and the data does not state, by the spell
+// The trigger edges the server-side handlers make and the data does not state, by the spell
 // that casts them, where the store carries both ends. The store merges them into Drivers() and
 // Triggered() beside the edges its effects state; an entry without a reason is refused, the way an
 // extra spell is.
@@ -309,7 +309,7 @@ func storeHandTriggers(inStore map[int32]bool) (map[int32][]overrides.HandTrigge
 }
 
 // A trait talent is one spell whose per-rank numbers sit on the tree's curves. The store indexes
-// them by the position EffectN counts by rather than by the client's EffectIndex, which has gaps,
+// them by the position EffectN counts by rather than by the game files' EffectIndex, which has gaps,
 // and a position the tree prices no curve for repeats the spell's own base value: Ladder.Talent
 // wants one value per rank on every position up to the last one the tree prices.
 //
@@ -335,8 +335,8 @@ func storeCurves(t *spellTables, nodes []traitNode, points map[int32]map[int32]m
 		// The class generator takes the tree's numbers only where the tree states more ranks than the
 		// skill line's own ladder does, so a one-rank node whose spell a skill line teaches is
 		// described by its own rows and not by the tree: Ice Block, Last Stand and Relentless Strikes
-		// are priced by a node and state the client's base all the same. A node no skill line teaches
-		// - a talent Forever added, like Thousand Cuts - has nothing else describing it.
+		// are priced by a node and state the game files' base all the same. A node no skill line
+		// teaches - a talent Forever added, like Thousand Cuts - has nothing else describing it.
 		if node.MaxRanks == 1 && node.TaughtBySkillLine {
 			continue
 		}
@@ -353,7 +353,7 @@ func storeCurves(t *spellTables, nodes []traitNode, points map[int32]map[int32]m
 			continue
 		}
 
-		// The client keeps retired talent nodes around, and a retired twin prices the same
+		// The game files keep retired talent nodes around, and a retired twin prices the same
 		// spell as the node the game uses: hunter Lightning Reflexes 19168 is 3/6/9/12/15 on
 		// definition 134447 and 2/4/6/8/10 on 142605. The lowest definition id within the
 		// first tree by id is the one kept, which is what the class tables generate from, and a
@@ -446,7 +446,7 @@ func traitNodes(db *sql.DB, treeID int) ([]traitNode, error) {
 	return nodes, err
 }
 
-// The rank values by effect position, from the curves the tree prices by the client's EffectIndex.
+// The rank values by effect position, from the curves the tree prices by the game files' EffectIndex.
 func curveRows(effects []storeEffect, priced map[int32]map[int32]float64, maxRanks int32) [][]float64 {
 	last := -1
 	for position, e := range effects {

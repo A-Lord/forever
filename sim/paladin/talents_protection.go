@@ -112,7 +112,7 @@ func (paladin *Paladin) applyAnticipation() {
 
 // Improved Seal of Fury - When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased
 // by 15% per level the attacker is above you, up to 45%. The level is the current target's. The
-// client states the mana as one point per caster level, so it is read folded.
+// game files state the mana as one point per caster level, so it is read folded.
 func (paladin *Paladin) applyImprovedSealOfFury(shield *core.DamageAbsorptionAura) {
 	if !paladin.Talents.ImprovedSealOfFury {
 		return
@@ -139,7 +139,7 @@ func (paladin *Paladin) applyImprovedRighteousFury() {
 		return
 	}
 
-	// The client states this as a negative percentage per rank: -2 / -4 / -6, so MultiplierAt
+	// The game files state this as a negative percentage per rank: -2 / -4 / -6, so MultiplierAt
 	// gives 0.98 / 0.96 / 0.94 and the minus is never written here.
 	multiplier := spellData.ImprovedRighteousFury.
 		Effect(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_EFFECT2)).
@@ -196,7 +196,7 @@ func (paladin *Paladin) applySacredDuty() {
 }
 
 // One-Handed Weapon Specialization - Increases the damage you deal with one-handed melee weapons
-// by 3/7/10%. The client puts it on the Physical school alone.
+// by 3/7/10%. The game files put it on the Physical school alone.
 func (paladin *Paladin) applyOneHandedWeaponSpecialization() {
 	if paladin.Talents.OneHandedWeaponSpecialization == 0 {
 		return

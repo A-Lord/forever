@@ -319,7 +319,7 @@ func applyExpansiveMind(character *Character) {
 	}
 }
 
-// Eureka! scopes its cost and damage mods to each class's damaging abilities by the client's class
+// Eureka! scopes its cost and damage mods to each class's damaging abilities by the game files' class
 // masks: effect 1 of each row names the spells whose cost it lowers, effect 2 the ones it raises the
 // damage of. A stack goes on a landed ability either names that has a damage component.
 func applyEureka(character *Character) {

@@ -6,7 +6,7 @@ import { makeBooleanIndividualBuffInput, makeBooleanPartyBuffInput } from '@ui-k
 import * as Generated from './buffs_debuffs_auto_gen';
 import { IconPickerStatOption, inDisplayOrder } from './stat_options';
 
-// Every buff the client database resolves to a spell has its input generated from the manifest;
+// Every buff the game files resolve to a spell has its input generated from the manifest;
 // the rows below are the ones it cannot produce, and the registries at the end of this file
 // interleave the two.
 export * from './buffs_debuffs_auto_gen';
