@@ -5,7 +5,8 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var backstabRank = spellData.Backstab.Highest()
+// Rank 8 is the highest trainable. Rank 9 exists from a AQ book; acquisition TBD
+var backstabRank = spellData.Backstab.Rank(8)
 
 func (rogue *Rogue) registerBackstabSpell() {
 	backstabBaseDamage := backstabRank.DamageEffect().Average(core.CharacterLevel)
