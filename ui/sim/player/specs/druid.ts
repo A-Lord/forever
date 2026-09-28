@@ -18,7 +18,7 @@ export class BalanceDruid extends PlayerSpec<Spec.SpecBalanceDruid> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -61,7 +61,7 @@ export class FeralCatDruid extends PlayerSpec<Spec.SpecFeralCatDruid> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -105,7 +105,7 @@ export class FeralBearDruid extends PlayerSpec<Spec.SpecFeralBearDruid> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -148,7 +148,7 @@ export class RestorationDruid extends PlayerSpec<Spec.SpecRestorationDruid> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.GearPlanner,
 	};
 

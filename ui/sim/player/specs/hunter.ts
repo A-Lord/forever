@@ -19,7 +19,7 @@ export class Hunter extends PlayerSpec<Spec.SpecHunter> {
 	static canDualWield = true;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 

@@ -18,7 +18,7 @@ export class ElementalShaman extends PlayerSpec<Spec.SpecElementalShaman> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -60,7 +60,7 @@ export class EnhancementShaman extends PlayerSpec<Spec.SpecEnhancementShaman> {
 	static canDualWield = true;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -103,7 +103,7 @@ export class RestorationShaman extends PlayerSpec<Spec.SpecRestorationShaman> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.GearPlanner,
 	};
 

@@ -18,7 +18,7 @@ export class Rogue extends PlayerSpec<Spec.SpecRogue> {
 	static canDualWield = true;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 

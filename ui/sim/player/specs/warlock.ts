@@ -19,7 +19,7 @@ export class Warlock extends PlayerSpec<Spec.SpecWarlock> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 

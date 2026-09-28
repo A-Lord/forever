@@ -19,7 +19,7 @@ export class HolyPaladin extends PlayerSpec<Spec.SpecHolyPaladin> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.GearPlanner,
 	};
 
@@ -62,7 +62,7 @@ export class ProtectionPaladin extends PlayerSpec<Spec.SpecProtectionPaladin> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -104,7 +104,7 @@ export class RetributionPaladin extends PlayerSpec<Spec.SpecRetributionPaladin> 
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 

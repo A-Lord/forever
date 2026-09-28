@@ -18,7 +18,7 @@ export class DpsPriest extends PlayerSpec<Spec.SpecDpsPriest> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -60,7 +60,7 @@ export class HealerPriest extends PlayerSpec<Spec.SpecHealerPriest> {
 	static canDualWield = false;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: Phase.Phase1,
 		status: LaunchStatus.GearPlanner,
 	};
 
