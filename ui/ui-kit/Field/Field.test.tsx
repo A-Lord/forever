@@ -65,7 +65,7 @@ describe('Field', () => {
 	it('links the label to the input and titles it', () => {
 		field();
 		const label = within(root()).getByTestId('form-label');
-		expect(label.className).toBe('ui-picker-label');
+		expect(label.className).toBe('ui-field-label');
 		expect(label.getAttribute('for')).toBe('cast-delay');
 		expect(label.getAttribute('title')).toBe('Cast Delay');
 	});
@@ -98,6 +98,15 @@ describe('Field', () => {
 	it('shows a string labelTooltip on hover, anchored to the label', async () => {
 		field({ labelTooltip: 'Seconds of human reaction time' });
 		fireEvent.mouseEnter(screen.getByText('Cast Delay'));
+		expect(await screen.findByText('Seconds of human reaction time')).toBeTruthy();
+	});
+
+	it('anchors a labelTooltip to the label when the field has no id', async () => {
+		render(<Field label="Cast Delay" labelTooltip="Seconds of human reaction time" />);
+		const label = screen.getByTestId('form-label');
+		expect(label.getAttribute('data-tooltip-id')).toBeTruthy();
+
+		fireEvent.mouseEnter(label);
 		expect(await screen.findByText('Seconds of human reaction time')).toBeTruthy();
 	});
 

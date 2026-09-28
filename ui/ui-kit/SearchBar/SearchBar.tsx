@@ -1,6 +1,5 @@
-import { Input } from '@base-ui/react/input';
-import { FieldShell } from '@ui-kit/FieldShell';
-import clsx from 'clsx';
+import { Field } from '@ui-kit/Field';
+import { Input } from '@ui-kit/FormControl';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useDebounce } from 'react-use';
 
@@ -63,28 +62,30 @@ export const SearchBar = ({
 	};
 
 	return (
-		<FieldShell
+		<Field
 			label={label}
 			id={id}
 			grow={grow}
-			rootTestId="search-bar-root"
-			showClear={clearable && draft.length > 0}
-			clearLabel={clearLabel}
-			clearClassName={clearClassName}
-			clearTestId="search-bar-clear-btn"
-			onClear={handleClear}
+			testId="search-bar-root"
+			clear={{
+				show: clearable && draft.length > 0,
+				label: clearLabel,
+				className: clearClassName,
+				testId: 'search-bar-clear-btn',
+				onClear: handleClear,
+			}}
 			after={children}>
 			<Input
 				id={id}
 				type="text"
 				data-testid={inputTestId}
-				className={clsx('ui-input', className)}
+				className={className}
 				placeholder={placeholder}
 				autoFocus={autoFocus}
 				autoComplete={autoComplete}
 				value={draft}
 				onChange={event => handleInput(event.target.value)}
 			/>
-		</FieldShell>
+		</Field>
 	);
 };

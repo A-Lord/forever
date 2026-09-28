@@ -3,7 +3,7 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
-import { isValidElement, type ReactNode, useMemo } from 'react';
+import { isValidElement, type ReactNode, useId, useMemo } from 'react';
 
 import { adoptNode, isNode } from '../utils/dom';
 import type { FieldProps } from './types';
@@ -33,7 +33,8 @@ export const Field = ({
 	if (tooltip !== undefined && !renderable) {
 		console.warn(`${clsx(className)} ${id}: labelTooltip is neither a string, a node nor an element, so it is not rendered.`, tooltip);
 	}
-	const tooltipId = renderable && id ? `${id}-tooltip` : undefined;
+	const generatedId = useId();
+	const tooltipId = renderable ? `${id ?? generatedId}-tooltip` : undefined;
 	// A string goes through LocaleHtml, as ContentBlock's header tooltip already does: several spec
 	// tooltips carry <b> to mark the option they are talking about, and passed raw those render as
 	// literal tags.
@@ -71,7 +72,7 @@ export const Field = ({
 			{leading}
 			{label && (
 				// `htmlFor` explicitly rather than letting Base UI derive it.
-				<BaseField.Label htmlFor={id} className="ui-picker-label" title={label} data-testid="form-label" {...tooltipAnchorProps(tooltipId)}>
+				<BaseField.Label htmlFor={id} className="ui-field-label" title={label} data-testid="form-label" {...tooltipAnchorProps(tooltipId)}>
 					{label}
 				</BaseField.Label>
 			)}

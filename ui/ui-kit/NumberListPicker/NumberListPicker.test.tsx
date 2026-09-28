@@ -69,7 +69,7 @@ describe('NumberListPicker', () => {
 		expect(root.hasAttribute('data-input-root')).toBe(true);
 		expect(root.classList.contains('extra-root-class')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
-		expect(root.querySelector('label')!.className).toBe('ui-picker-label');
+		expect(root.querySelector('label')!.className).toBe('ui-field-label');
 		expect(root.querySelector('label')!.getAttribute('for')).toBe('thresholds');
 		expect(input().id).toBe('thresholds');
 		expect(input().className.split(' ')).toEqual(expect.arrayContaining(['ui-input']));

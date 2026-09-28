@@ -78,7 +78,7 @@ describe('BooleanPicker', () => {
 		expect(root.hasAttribute('data-input-root')).toBe(true);
 		expect(root.classList.contains('ui-boolean-picker')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['SPAN', 'INPUT', 'LABEL', 'DIV']);
-		expect(root.querySelector('label')!.className).toBe('ui-picker-label');
+		expect(root.querySelector('label')!.className).toBe('ui-field-label');
 		expect(root.querySelector('[data-testid="boolean-picker-input"]')).toBe(checkbox());
 	});
 

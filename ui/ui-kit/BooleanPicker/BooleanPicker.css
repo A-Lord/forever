@@ -2,7 +2,7 @@
 	.ui-boolean-picker.ui-field {
 		@apply min-h-6 justify-start pl-8 max-xl:flex-row;
 
-		> .ui-picker-label {
+		> .ui-field-label {
 			@apply mb-0 ml-2;
 		}
 	}
@@ -10,7 +10,7 @@
 	.ui-boolean-picker-reverse.ui-field {
 		@apply min-h-6 justify-between pr-8 pl-0 text-right max-xl:flex-row;
 
-		> .ui-picker-label {
+		> .ui-field-label {
 			@apply mb-0 ml-0 text-left;
 		}
 

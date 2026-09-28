@@ -98,7 +98,7 @@
 	}
 
 	.ui-apl-list-item-picker-root {
-		& .ui-picker-label {
+		& .ui-field-label {
 			font-size: var(--btn-font-size);
 			line-height: 1.5;
 		}

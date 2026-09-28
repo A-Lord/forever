@@ -9,21 +9,18 @@ import {
 	makeBooleanIconInput,
 	makeClassOptionsBooleanIconInput,
 	makeClassOptionsEnumIconInput,
-	makeQuadstateIconInput,
-	makeRotationEnumIconInput,
-	makeSpecOptionsBooleanIconInput,
 	makeSpecOptionsEnumIconInput,
+	makeTristateIconInput,
 } from './input_helpers';
 
 // The factories are generic over the message they write into, so a synthetic one keeps these tests
-// off the live buff protos: a numeric level plus the boolean a quadstate input keeps its fourth
-// state in.
+// off the live buff protos: a numeric level plus a boolean flag.
 type Message = { level: number; flag: boolean };
 
 const stub: StoreSubscribe = () => () => {};
 
-const quadstate = (extra: { showWhen?: (modObj: Message) => boolean } = {}) =>
-	makeQuadstateIconInput<any, Message, Message>(
+const tristate = (extra: { showWhen?: (modObj: Message) => boolean } = {}) =>
+	makeTristateIconInput<any, Message, Message>(
 		{
 			getModObject: (modObj: any) => modObj as Message,
 			getValue: (modObj: Message) => modObj,
@@ -33,42 +30,20 @@ const quadstate = (extra: { showWhen?: (modObj: Message) => boolean } = {}) =>
 		},
 		ActionId.fromSpellId(1),
 		ActionId.fromSpellId(2),
-		ActionId.fromItemId(3),
 		'level',
-		'flag',
 	);
 
-describe('makeQuadstateIconInput', () => {
-	it('spreads its four states across the level field and the second improved flag', () => {
-		const message: Message = { level: 0, flag: false };
-		const input = quadstate();
-		const player = message as unknown as Player<any>;
-
-		expect(input.states).toBe(4);
-
-		const roundTrip = [0, 1, 2, 3].map(value => {
-			input.setValue(player, value);
-			return [message.level, message.flag, input.getValue(player)];
-		});
-
-		expect(roundTrip).toEqual([
-			[0, false, 0],
-			[1, false, 1],
-			[2, false, 2],
-			[2, true, 3],
-		]);
-	});
-
-	// Every tristate, quadstate and multistate buff factory routes through makeNumberIconInput, so a
-	// predicate it drops takes the faction gate on all of them with it.
+describe('makeTristateIconInput', () => {
+	// Every tristate and multistate buff factory routes through makeNumberIconInput, so a predicate it
+	// drops takes the faction gate on all of them with it.
 	it('keeps showWhen, which the picker hides on', () => {
 		const player = { level: 0, flag: false } as unknown as Player<any>;
 		const seen: Message[] = [];
 
-		expect(quadstate({ showWhen: modObj => (seen.push(modObj), false) }).showWhen!(player)).toBe(false);
+		expect(tristate({ showWhen: modObj => (seen.push(modObj), false) }).showWhen!(player)).toBe(false);
 		expect(seen).toEqual([player]);
-		expect(quadstate({ showWhen: () => true }).showWhen!(player)).toBe(true);
-		expect(quadstate().showWhen!(player)).toBe(true);
+		expect(tristate({ showWhen: () => true }).showWhen!(player)).toBe(true);
+		expect(tristate().showWhen!(player)).toBe(true);
 	});
 });
 
@@ -118,10 +93,8 @@ describe('icon input factories', () => {
 	const factories: Record<string, () => { label?: string; labelTooltip?: unknown }> = {
 		makeClassOptionsBooleanIconInput: () =>
 			makeClassOptionsBooleanIconInput<any>({ ...chrome, fieldName: 'primary' as never, id: ActionId.fromSpellId(1) }),
-		makeSpecOptionsBooleanIconInput: () => makeSpecOptionsBooleanIconInput<any>({ ...chrome, fieldName: 'primary' as never, id: ActionId.fromSpellId(1) }),
 		makeClassOptionsEnumIconInput: () => makeClassOptionsEnumIconInput<any, number>({ ...chrome, fieldName: 'primary' as never, values: [] }),
 		makeSpecOptionsEnumIconInput: () => makeSpecOptionsEnumIconInput<any, number>({ ...chrome, fieldName: 'primary' as never, values: [] }),
-		makeRotationEnumIconInput: () => makeRotationEnumIconInput<any, number>({ ...chrome, fieldName: 'primary' as never, values: [] }),
 	};
 
 	// react-tooltip resolves anchors document-wide by id, so two pickers sharing one leaves every
@@ -135,7 +108,7 @@ describe('icon input factories', () => {
 		});
 		render(
 			<>
-				{fieldFor(factories.makeRotationEnumIconInput())}
+				{fieldFor(factories.makeSpecOptionsEnumIconInput())}
 				{fieldFor(other)}
 			</>,
 		);
