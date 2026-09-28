@@ -1,0 +1,41 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { ResponsiveSpacing, SpacingRuler } from './components/SpacingRuler';
+import { TokenTable } from './components/TokenTable';
+
+<Meta title="Design System/Spacing" />
+
+# Spacing
+
+Tokens from `ui/styles/theme/spacing.css`. The spacing scale itself is dynamic: any multiple of `0.25` is a step, so `p-1.25` is exactly 5px and `w-4.5` is 18px. Convert a px value to its exact step rather than writing `[Npx]`.
+
+## Plain lengths
+
+Every `--spacing-*`, `--size-*` and `--container-*` token whose value is a plain `px` or `rem` length, drawn at that width.
+
+<SpacingRuler />
+
+## Responsive overrides
+
+`ui/styles/theme/breakpoints.css` re-declares these on `:root` per breakpoint, so `p-page`, `gap-section` and the header offset change with the viewport.
+
+<ResponsiveSpacing />
+
+## Spacing
+
+<TokenTable prefix="spacing" />
+
+<TokenTable prefix="size" />
+
+## Containers
+
+<TokenTable prefix="container" />
+
+## Grid templates
+
+<TokenTable prefix="grid-template" />
+
+## Runtime variables
+
+`ui/styles/theme/vars.css` declares plain `:root` variables, not `@theme` tokens: no utility is generated for them. A component reads one with the paren shorthand (`w-(--x)`) or from a `ui-*` class.
+
+<TokenTable file="vars.css" />

@@ -1,0 +1,14 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { ColorGroups } from './components/ColorGroups';
+
+<Meta title="Design System/Colors" />
+
+# Colors
+
+Every `--color-*` token in `ui/styles/theme/colors.css`, read from the file at build time. A swatch is painted with `var(--token)`, so it shows what the compiled stylesheet resolves; the text under it is the source expression, which for `color-mix()` and `--alpha()` is not a value.
+
+Tokens marked _inline_ come from the `@theme static inline` block: their utilities carry the expression itself, so it resolves against the variables of the element that uses it. The others are referenced as `var(--token)`. `.sim-ui` and the spec classes in `specs.css` re-declare `--color-primary` and `--color-primary-foreground`; this page is not inside a spec frame, so it shows the `:root` defaults. Spec Themes shows each spec's values. `--color-sim-backdrop` reads `--theme-background-color`, which only `.sim-ui` sets, so its swatch is empty here.
+
+A class colour carries its `-foreground` pair as the text on its swatch.
+
+<ColorGroups />

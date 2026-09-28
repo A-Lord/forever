@@ -1,58 +1,61 @@
 /** Canonical FontAwesome 6 names the app uses. */
-export type IconName =
-	| 'arrow-left'
-	| 'arrow-right'
-	| 'arrow-right-arrow-left'
-	| 'arrow-right-from-bracket'
-	| 'arrow-rotate-left'
-	| 'arrow-up'
-	| 'arrows-rotate'
-	| 'ban'
-	| 'bars'
-	| 'bug'
-	| 'bullseye'
-	| 'calculator'
-	| 'caret-down'
-	| 'caret-right'
-	| 'check'
-	| 'check-circle'
-	| 'chevron-down'
-	| 'chevron-left'
-	| 'chevron-right'
-	| 'circle-exclamation'
-	| 'circle-question'
-	| 'cog'
-	| 'copy'
-	| 'discord'
-	| 'download'
-	| 'ellipsis'
-	| 'expand'
-	| 'eye'
-	| 'eye-slash'
-	| 'file-arrow-up'
-	| 'filter'
-	| 'gauge-high'
-	| 'github'
-	| 'globe'
-	| 'info-circle'
-	| 'magnifying-glass-minus'
-	| 'magnifying-glass-plus'
-	| 'map-pin'
-	| 'patreon'
-	| 'pause'
-	| 'paw'
-	| 'pencil-alt'
-	| 'play'
-	| 'plus'
-	| 'plus-minus'
-	| 'right-from-bracket'
-	| 'rotate-left'
-	| 'screwdriver-wrench'
-	| 'spinner'
-	| 'star'
-	| 'times'
-	| 'triangle-exclamation'
-	| 'user';
+export const ICON_NAMES = [
+	'arrow-left',
+	'arrow-right',
+	'arrow-right-arrow-left',
+	'arrow-right-from-bracket',
+	'arrow-rotate-left',
+	'arrow-up',
+	'arrows-rotate',
+	'ban',
+	'bars',
+	'bug',
+	'bullseye',
+	'calculator',
+	'caret-down',
+	'caret-right',
+	'check',
+	'check-circle',
+	'chevron-down',
+	'chevron-left',
+	'chevron-right',
+	'circle-exclamation',
+	'circle-question',
+	'cog',
+	'copy',
+	'discord',
+	'download',
+	'ellipsis',
+	'expand',
+	'eye',
+	'eye-slash',
+	'file-arrow-up',
+	'filter',
+	'gauge-high',
+	'github',
+	'globe',
+	'info-circle',
+	'magnifying-glass-minus',
+	'magnifying-glass-plus',
+	'map-pin',
+	'patreon',
+	'pause',
+	'paw',
+	'pencil-alt',
+	'play',
+	'plus',
+	'plus-minus',
+	'right-from-bracket',
+	'rotate-left',
+	'screwdriver-wrench',
+	'spinner',
+	'star',
+	'times',
+	'triangle-exclamation',
+	'user',
+] as const;
+
+export type IconName = (typeof ICON_NAMES)[number];
 
 /** FA5 spellings mapped to FA6. rotate-left and arrow-right-from-bracket are deliberately absent: different glyphs, not aliases. */
 export const ICON_ALIASES = {

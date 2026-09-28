@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { Icon } from './Icon';
+import { ICON_NAMES } from './types';
 
 const el = (c: HTMLElement) => c.querySelector('i')!;
 
@@ -32,6 +33,10 @@ describe('Icon', () => {
 		const classes = el(render(<Icon name="times" size="xl" spin />).container).className.split(' ');
 		const glyphs = classes.filter(c => c.startsWith('fa-') && !['fa-xl', 'fa-spin'].includes(c));
 		expect(glyphs).toEqual(['fa-times']);
+	});
+
+	it.each(ICON_NAMES)('renders %s as its fa- class', name => {
+		expect(el(render(<Icon name={name} />).container).classList).toContain(`fa-${name}`);
 	});
 
 	it('adds size and spin as classes', () => {

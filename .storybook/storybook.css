@@ -1,4 +1,5 @@
-@import '../ui/styles/style.css';
+@import '../ui/styles/main.css';
 
 @source '../ui/**/*.stories.tsx';
 @source '../ui/testing/storybook';
+@source '../ui/design-system';
