@@ -1,9 +1,9 @@
 import { placeholderNames } from '@features/apl/model/placeholders';
 import { rotationSource } from '@features/apl/utils';
+import type { InputConfig } from '@features/inputs/input';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import type { InputConfig } from '@ui-kit/input';
 import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useCallback, useRef } from 'react';

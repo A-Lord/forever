@@ -1,7 +1,7 @@
 import type { EnumTable } from '@features/apl/model/field_specs';
+import type { InputConfig } from '@features/inputs/input';
 import type { Player } from '@sim/player/player';
 import { DropdownField } from '@ui-kit/DropdownPicker';
-import type { InputConfig } from '@ui-kit/input';
 
 export interface EnumFieldProps {
 	player: Player<any>;

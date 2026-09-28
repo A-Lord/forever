@@ -1,3 +1,4 @@
+import { SidebarRegistry } from '@app/sidebar_registry';
 import { initBulk } from '@features/bulk/model/init';
 import { watchTargetDummies } from '@features/encounter/model/target_dummies';
 import { repairTargetInputs } from '@features/encounter/model/target_inputs';
@@ -44,7 +45,6 @@ import { subscribeAll, subscribeReforgeChange, subscribeSimChange } from '@sim/s
 import { getEnumValues } from '@sim/utils/collections';
 import { isDevMode } from '@sim/utils/env';
 import { WorkerProgressCallback } from '@sim/workers/worker_pool';
-import { SidebarRegistry } from '@ui-kit/sidebar_registry';
 import { toastManager } from '@ui-kit/Toast';
 import { createElement } from 'react';
 

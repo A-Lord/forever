@@ -2,9 +2,9 @@ import { ActionPicker } from '@features/apl/components/ActionPicker';
 import { AplProvider, useApl } from '@features/apl/context/AplContext';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { rowSource } from '@features/apl/model/row_source';
+import type { InputConfig } from '@features/inputs/input';
 import type { APLAction } from '@generated/proto/apl';
 import type { Player } from '@sim/player/player';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { type ReactNode, useMemo, useRef } from 'react';
 

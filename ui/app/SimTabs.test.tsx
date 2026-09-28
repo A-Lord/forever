@@ -1,5 +1,5 @@
+import { useActivateTab } from '@app/tab_activation';
 import { act, render } from '@testing-library/react';
-import { useActivateTab } from '@ui-kit/tab_activation';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

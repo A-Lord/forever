@@ -1,11 +1,11 @@
 import type { UNIT_SET } from '@features/apl/model/unit_sets';
 import { unitSets } from '@features/apl/model/unit_sets';
 import { refToValue, unitOptionModels } from '@features/apl/model/unit_values';
+import type { InputConfig } from '@features/inputs/input';
 import type { UnitReference } from '@generated/proto/common';
 import { useUnitMetadataVersion } from '@sim/hooks/useUnitMetadataVersion';
 import type { Player } from '@sim/player/player';
 import { DropdownField } from '@ui-kit/DropdownPicker';
-import type { InputConfig } from '@ui-kit/input';
 import { sameUnit, unitOption } from '@ui-kit/UnitPicker';
 import type { UnitValue } from '@ui-kit/UnitPicker/types';
 

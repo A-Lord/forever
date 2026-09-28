@@ -1,3 +1,4 @@
+import { useActivateTab } from '@app/tab_activation';
 import { Tabs } from '@base-ui/react/tabs';
 import { BulkItemSearch } from '@features/bulk/components/BulkItemSearch';
 import { BulkPickerGroups } from '@features/bulk/components/BulkPickerGroups';
@@ -31,6 +32,7 @@ type BulkPaneId = (typeof PANES)[number]['id'];
 export const BulkTabBody = () => {
 	const host = useSimHost();
 	const ready = useSimReady();
+	const activateTab = useActivateTab();
 	const results = useBulkState(slice => slice.results);
 	const isRunning = useBulkState(slice => slice.isRunning);
 
@@ -83,7 +85,7 @@ export const BulkTabBody = () => {
 							<BulkPickerGroups />
 						</TabPanel>
 						<TabPanel value="bulkResultsTab">
-							<BulkResults />
+							<BulkResults onActivateTab={activateTab} />
 						</TabPanel>
 					</TabPanels>
 				</Tabs.Root>

@@ -1,6 +1,6 @@
 import { useAplInput } from '@features/apl/hooks/useAplInput';
+import type { InputConfig } from '@features/inputs/input';
 import type { Player } from '@sim/player/player';
-import type { InputConfig } from '@ui-kit/input';
 import { ListItemAction } from '@ui-kit/ListPicker';
 import { PickerShell } from '@ui-kit/PickerShell';
 

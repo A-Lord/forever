@@ -12,7 +12,7 @@ const constructions: Array<{ root: HTMLElement; sidebarActions: HTMLElement }> =
 // child of a shell this test does not build.
 const paneContainers: Array<HTMLElement> = [];
 vi.mock('./individual_sim_ui', async () => {
-	const { SidebarRegistry } = await import('@ui-kit/sidebar_registry');
+	const { SidebarRegistry } = await import('@app/sidebar_registry');
 	const { CrashReportOpener } = await import('./crash_report_opener');
 	return {
 		SimHostObject: class {

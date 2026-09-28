@@ -1,3 +1,5 @@
+import { useInput } from '@features/inputs/hooks/useInput';
+import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
@@ -6,10 +8,8 @@ import type { TalentPoints } from '@sim/talents/talents_string';
 import { parseTalentsString, serializeTalentsString, totalPointsSpent } from '@sim/talents/talents_string';
 import { Button } from '@ui-kit/Button';
 import { useCopyToClipboard } from '@ui-kit/hooks/useCopyToClipboard';
-import { useInput } from '@ui-kit/hooks/useInput';
 import { useWowheadTooltipRefresh } from '@ui-kit/hooks/useWowheadTooltipRefresh';
 import { Icon } from '@ui-kit/Icon';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';

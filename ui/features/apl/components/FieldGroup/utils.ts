@@ -1,7 +1,7 @@
 import type { AplFieldSpec } from '@features/apl/model/field_specs';
+import type { InputConfig } from '@features/inputs/input';
 import type { Player } from '@sim/player/player';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
-import type { InputConfig } from '@ui-kit/input';
 
 const INLINE_KINDS: ReadonlySet<AplFieldSpec['kind']> = new Set(['boolean', 'number', 'string']);
 

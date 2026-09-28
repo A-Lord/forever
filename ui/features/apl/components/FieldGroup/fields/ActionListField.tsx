@@ -1,7 +1,7 @@
 import { ActionPicker } from '@features/apl/components/ActionPicker';
+import type { InputConfig } from '@features/inputs/input';
 import { APLAction } from '@generated/proto/apl';
 import type { Player } from '@sim/player/player';
-import type { InputConfig } from '@ui-kit/input';
 import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 export interface ActionListFieldProps {

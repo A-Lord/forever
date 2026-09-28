@@ -1,6 +1,6 @@
+import { TabActivationContext } from '@app/tab_activation';
 import { Tabs } from '@base-ui/react/tabs';
 import { childProps } from '@ui-kit/child_props';
-import { TabActivationContext } from '@ui-kit/tab_activation';
 import { TabNav } from '@ui-kit/TabNav';
 import { type ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';

@@ -1,6 +1,7 @@
 import { useApl } from '@features/apl/context/AplContext';
 import { type ACTION_ID_SET, actionIdSets } from '@features/apl/model/action_id_sets';
 import type { DEFAULT_UNIT_REF } from '@features/apl/model/field_descriptors';
+import type { InputConfig } from '@features/inputs/input';
 import { ActionID, UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { useUnitMetadataVersion } from '@sim/hooks/useUnitMetadataVersion';
@@ -9,7 +10,6 @@ import { ActionId } from '@sim/proto/action_id';
 import { subscribeAll, subscribeUnitMetadata } from '@sim/state/subscriptions';
 import { DropdownField, type DropdownOption } from '@ui-kit/DropdownPicker';
 import { useActionId } from '@ui-kit/hooks/useActionId';
-import type { InputConfig } from '@ui-kit/input';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ActionIdIcon } from './ActionIdIcon';

@@ -1,7 +1,7 @@
 import type { APLFieldDescriptor } from '@features/apl/model/field_descriptors';
 import { resolveField } from '@features/apl/model/field_specs';
+import type { InputConfig } from '@features/inputs/input';
 import type { Player } from '@sim/player/player';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useId, useMemo } from 'react';
 

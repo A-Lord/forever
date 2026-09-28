@@ -19,8 +19,7 @@ ui/
   ui-kit/            sim-agnostic React widgets, one folder per component (about 45 of them:
                      NumberPicker/, Dialog/, Tooltip/, VirtualList/, …), plus hooks/,
                      utils/ (css, dom, wowhead), and the flat helper modules the configs use:
-                     input.ts, input_helpers.ts, icon_inputs.ts, child_props.ts,
-                     sidebar_registry.ts, tab_activation.ts. alias @ui-kit
+                     input.ts, child_props.ts. alias @ui-kit
   features/<name>/   one folder per capability: model/ (DOM-free, lint-enforced) +
                      components/ (React, one folder per component) + hooks/ + utils/ (feature
                      helpers that are neither a component nor DOM-free). The twelve are
@@ -28,13 +27,16 @@ ui/
                      reforge, results, settings, stat-weights, talents. alias @features
   features/hooks/    React hooks several features share and none owns (useSavedPanel), one
                      per file, beside the twelve capability folders
+  features/inputs/   the binding layer between features and ui-kit's sim-agnostic pickers:
+                     input.ts, hooks/useInput.ts, input_helpers.ts, icon_inputs.ts
   app/               shells + chrome that compose features, and the only place allowed to
                      import react-dom/client (spec_entry.tsx). SimApp/SimShell/SimTabs,
                      tabs/ (a React <X>TabBody per tab), header/, SettingsDialog/,
                      PresetConfigurationPicker/, the sidebar and import/export pieces,
-                     shell_classes, browser_env, known_issues, preset_utils, and
-                     individual_sim_ui.tsx — the host object the React tree reaches through
-                     useSimHost(). types/ holds app-level type modules. alias @app
+                     shell_classes, browser_env, known_issues, preset_utils,
+                     sidebar_registry.ts, tab_activation.ts, and individual_sim_ui.tsx — the
+                     host object the React tree reaches through useSimHost(). types/ holds
+                     app-level type modules. alias @app
   i18n/              LEAF: framework-agnostic i18next config + localization tables
                      (config.ts, entity_mapping.ts, locale_service.ts, localization.ts), at
                      the top level rather than under app/. alias @i18n

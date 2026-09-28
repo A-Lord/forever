@@ -1,10 +1,10 @@
+import type * as IconInputs from '@features/inputs/icon_inputs';
+import type * as InputHelpers from '@features/inputs/input_helpers';
 import type { ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, EquipmentSpec, HealingModel, ItemSlot, ItemSwap, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
-import type * as IconInputs from '@ui-kit/icon_inputs';
-import type * as InputHelpers from '@ui-kit/input_helpers';
 import type { SavedDataConfig } from '@ui-kit/SavedDataPanel/types';
 import type { ReactNode } from 'react';
 

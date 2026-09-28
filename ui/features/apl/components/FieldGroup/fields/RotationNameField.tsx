@@ -1,9 +1,9 @@
 import { rotationSource } from '@features/apl/utils';
+import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { DropdownField } from '@ui-kit/DropdownPicker';
-import type { InputConfig } from '@ui-kit/input';
 import { useMemo } from 'react';
 
 export type RotationNameSource = 'variables' | 'groups';

@@ -1,10 +1,10 @@
+import type { SidebarRegistry } from '@app/sidebar_registry';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import type { ResultChannel } from '@features/results/model/result_channel';
 import type { ResultsPanelHandle } from '@features/results/model/results_panel_handle';
 import type { ErrorOutcome, RaidSimRequest, RaidSimResult } from '@generated/proto/api';
 import type { Spec } from '@generated/proto/common';
 import type { IndividualSimSettings } from '@generated/proto/ui';
-import type { SidebarRegistry } from '@ui-kit/sidebar_registry';
 
 import type { SimSettingCategories } from './constants/sim_settings';
 import type { Player } from './player/player';

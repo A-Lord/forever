@@ -10,7 +10,7 @@ import {
 	makeMultistateIndividualBuffInput,
 	makeMultistatePartyBuffInput,
 	makeTristatePartyBuffInput,
-} from '@ui-kit/icon_inputs';
+} from '@features/inputs/icon_inputs';
 
 import type { RenderableStatOptions } from './stat_options';
 

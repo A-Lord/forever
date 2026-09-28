@@ -1,7 +1,7 @@
 import { useApl } from '@features/apl/context/AplContext';
+import { type InputState, useInput } from '@features/inputs/hooks/useInput';
+import type { InputConfig } from '@features/inputs/input';
 import type { Player } from '@sim/player/player';
-import { type InputState, useInput } from '@ui-kit/hooks/useInput';
-import type { InputConfig } from '@ui-kit/input';
 import { useId } from 'react';
 
 export interface AplInput<T> extends InputState<T> {

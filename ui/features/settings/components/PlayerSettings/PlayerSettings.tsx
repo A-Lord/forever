@@ -1,8 +1,8 @@
+import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { InputConfig } from '@sim/spec_config';
 import { EnumPicker } from '@ui-kit/EnumPicker';
-import type { IconInputConfig } from '@ui-kit/icon_inputs';
 import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { IconPicker } from '@ui-kit/IconPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';

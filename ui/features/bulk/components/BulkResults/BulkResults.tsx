@@ -3,7 +3,11 @@ import i18n from '@i18n/config';
 import { useBulkState } from '../../hooks/useBulkState';
 import { BulkResultRow } from './BulkResultRow';
 
-export const BulkResults = () => {
+export interface BulkResultsProps {
+	onActivateTab: (id: string) => void;
+}
+
+export const BulkResults = ({ onActivateTab }: BulkResultsProps) => {
 	const results = useBulkState(slice => slice.results);
 	const started = useBulkState(slice => slice.started);
 
@@ -23,11 +27,23 @@ export const BulkResults = () => {
 						data-testid="bulk-results-tie-group">
 						<span className="mb-6">{i18n.t('bulk_tab.results.tied_group')}</span>
 						{chain.map((result, idx) => (
-							<BulkResultRow key={idx} result={result} baseResult={results.originalGearResults} iterations={iterations} />
+							<BulkResultRow
+								key={idx}
+								result={result}
+								baseResult={results.originalGearResults}
+								iterations={iterations}
+								onActivateTab={onActivateTab}
+							/>
 						))}
 					</div>
 				) : (
-					<BulkResultRow key={chainIdx} result={chain[0]} baseResult={results.originalGearResults} iterations={iterations} />
+					<BulkResultRow
+						key={chainIdx}
+						result={chain[0]}
+						baseResult={results.originalGearResults}
+						iterations={iterations}
+						onActivateTab={onActivateTab}
+					/>
 				),
 			)}
 		</>

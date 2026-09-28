@@ -1,10 +1,10 @@
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { NameDisplay } from '@features/apl/components/NameDisplay';
 import { clearPlaceholder, findContainingGroup, placeholderNames, renamePlaceholder } from '@features/apl/model/placeholders';
+import { useInput } from '@features/inputs/hooks/useInput';
+import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
-import { useInput } from '@ui-kit/hooks/useInput';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useState } from 'react';
 

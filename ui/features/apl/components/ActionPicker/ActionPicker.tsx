@@ -4,11 +4,11 @@ import { actionKinds, type APLActionKind } from '@features/apl/model/action_kind
 import { newKindImpl } from '@features/apl/model/field_specs';
 import { actionKindOptions } from '@features/apl/model/kind_options';
 import { swapActionKind } from '@features/apl/model/kind_swap';
+import type { InputConfig } from '@features/inputs/input';
 import { APLAction, type APLValue } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { DropdownField } from '@ui-kit/DropdownPicker';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import clsx from 'clsx';
 import { memo, useId, useMemo } from 'react';

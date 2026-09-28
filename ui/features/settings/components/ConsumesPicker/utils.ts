@@ -1,3 +1,4 @@
+import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
 import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
@@ -14,7 +15,6 @@ import {
 	higherRanks,
 	relevanceFor,
 } from '@sim/settings/consumables';
-import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
 export type ConsumeToggle = TypedIconPickerConfig<Player<any>, boolean>;

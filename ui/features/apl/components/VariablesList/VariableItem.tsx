@@ -4,11 +4,11 @@ import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { AplProvider, useApl } from '@features/apl/context/AplContext';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { rowSource } from '@features/apl/model/row_source';
+import type { InputConfig } from '@features/inputs/input';
 import type { APLValue, APLValueVariable } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { renameAPLReference } from '@sim/proto/apl_utils';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { useMemo, useRef, useState } from 'react';
 

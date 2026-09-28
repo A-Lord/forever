@@ -9,7 +9,6 @@ import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { formatDeltaText, formatSignificance, formatToNumber } from '@sim/utils/format';
 import { stDevToConf95, zTest } from '@sim/utils/math';
 import { Button } from '@ui-kit/Button';
-import { useActivateTab } from '@ui-kit/tab_activation';
 import { toastManager } from '@ui-kit/Toast';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { toneTextClass } from '@ui-kit/utils/css';
@@ -20,6 +19,7 @@ export interface BulkResultRowProps {
 	result: TopGearResult;
 	baseResult: TopGearResult;
 	iterations: number;
+	onActivateTab: (id: string) => void;
 }
 
 const getSwappableItemSlotPair = (slot: number, canDualWield: boolean): [ItemSlot, ItemSlot] | undefined =>
@@ -29,10 +29,9 @@ const itemSpecPairsEqualUnordered = (resultItems: ItemSpec[], originalItems: Ite
 	(ItemSpec.equals(resultItems[slot1], originalItems[slot1]) && ItemSpec.equals(resultItems[slot2], originalItems[slot2])) ||
 	(ItemSpec.equals(resultItems[slot1], originalItems[slot2]) && ItemSpec.equals(resultItems[slot2], originalItems[slot1]));
 
-export const BulkResultRow = ({ result, baseResult, iterations }: BulkResultRowProps) => {
+export const BulkResultRow = ({ result, baseResult, iterations, onActivateTab }: BulkResultRowProps) => {
 	const host = useSimHost();
 	const { damage: showDamage } = useDisplayMetrics(host.sim);
-	const activateTab = useActivateTab();
 	const marginTooltipId = useId();
 	const deltaTooltipId = useId();
 
@@ -127,7 +126,7 @@ export const BulkResultRow = ({ result, baseResult, iterations }: BulkResultRowP
 					data-testid="bulk-equip-btn"
 					onClick={() => {
 						host.player.setGear(result.gear);
-						activateTab('gear-tab');
+						onActivateTab('gear-tab');
 						toastManager.add({ variant: 'success', body: i18n.t('bulk_tab.results.gear_equipped') });
 					}}>
 					{i18n.t('bulk_tab.results.equip_button')}

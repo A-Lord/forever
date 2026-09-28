@@ -3,10 +3,10 @@ import { AplValidations } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
+import type { InputConfig } from '@features/inputs/input';
 import { APLValue } from '@generated/proto/apl';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import type { InputConfig } from '@ui-kit/input';
 import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 export interface ValueListFieldProps {

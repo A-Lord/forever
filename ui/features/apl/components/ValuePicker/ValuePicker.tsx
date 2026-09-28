@@ -4,13 +4,13 @@ import { newKindImpl } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
 import { type APLValueKind, type ValidAPLValueKind, valueKinds } from '@features/apl/model/value_kinds';
+import type { InputConfig } from '@features/inputs/input';
 import type { APLValue } from '@generated/proto/apl';
 import { UUID } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
 import { DropdownField, type DropdownOption } from '@ui-kit/DropdownPicker';
-import type { InputConfig } from '@ui-kit/input';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { memo, useEffect, useId, useMemo } from 'react';
 
