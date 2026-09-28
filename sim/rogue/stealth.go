@@ -22,7 +22,6 @@ func (rogue *Rogue) registerStealthAura() {
 			rogue.ShapeshiftForm = 0
 		})
 
-	rogue.StealthAura = rogue.RegisterAura(spelldata.AuraConfig(stealthRank))
 	spelldata.ParseEffects(&rogue.Character, rogue.StealthAura, stealthRank)
 
 	rogue.RegisterSpell(config)
