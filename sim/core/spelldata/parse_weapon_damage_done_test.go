@@ -72,3 +72,34 @@ func TestOtherDamageDoneRowsStayOnTheirSchools(t *testing.T) {
 		}
 	}
 }
+
+// One-Handed Weapon Specialization 20196 at 3/3 gives 10% and Two-Handed Weapon Specialization 20111
+// at 3/3 gives 6%, on Physical and on the melee-defense Holy spells such as the Seal of Righteousness
+// hit, and nothing on a magic-defense Holy spell such as Consecration.
+func TestWeaponSpecializationsReachMeleeDefenseHolySpells(t *testing.T) {
+	defer generatedStore()()
+
+	for _, tc := range []struct {
+		row  *Spell
+		want float64
+	}{
+		{Talent(20196, 3).Rank(3), 1.10},
+		{Talent(20111, 3).Rank(3), 1.06},
+	} {
+		character := parseWarrior()
+		holyMelee := defenseSpell(character, 1, core.SpellSchoolHoly, core.DefenseTypeMelee)
+		holyMagic := defenseSpell(character, 2, core.SpellSchoolHoly, core.DefenseTypeMagic)
+
+		ParseStatic(character, tc.row)
+
+		if got := holyMelee.DamageMultiplier; math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("%s: a melee-defense holy spell: %v, want %v", tc.row.Name, got, tc.want)
+		}
+		if got := holyMagic.DamageMultiplier; got != 1 {
+			t.Errorf("%s: a magic-defense holy spell: %v, want 1", tc.row.Name, got)
+		}
+		if got := character.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical]; math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("%s: the physical school multiplier: %v, want %v", tc.row.Name, got, tc.want)
+		}
+	}
+}
