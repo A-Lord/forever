@@ -1,45 +1,39 @@
 package hunter
 
-// TODO: To be implemented.
-func (hunter *Hunter) registerScorpidStingSpell() {
-	panic("To be implemented")
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-	// The TBC implementation, kept for the port:
-	// auraArray := hunter.NewEnemyAuraArray(func(unit *core.Unit) *core.Aura {
-	// 	aura := buffs.NewSpellDataScorpidStingAura(unit, true, 0)
-	// 	aura.Tag = "Sting"
-	// 	return aura
-	// })
-	//
-	// hunter.ScorpidSting = hunter.RegisterRangedSpell(core.SpellConfig{
-	// 	ActionID:    core.ActionID{SpellID: 3043},
-	// 	SpellSchool: core.SpellSchoolNature,
-	// 	DefenseType: core.DefenseTypeRanged,
-	// 	// A cast, not a proc, but one that must not read as a ranged hit to on-hit listeners; what
-	// 	// the sting's application should count as is a separate question. Matches only listeners
-	// 	// that state no mask.
-	// 	ProcMask:       core.ProcMaskEmpty,
-	// 	ClassSpellMask: HunterSpellScorpidSting,
-	// 	Flags:          core.SpellFlagAPL,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		BaseCostPercent: 9,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeRangedHit)
-	//
-	// 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-	// 			if result.Landed() {
-	// 				aura := auraArray.Get(target)
-	// 				activeSting := target.GetActiveAuraWithTag("Sting")
-	// 				if activeSting != nil && activeSting != aura {
-	// 					activeSting.Deactivate(sim)
-	// 				}
-	// 				aura.Activate(sim)
-	// 			}
-	// 			spell.DealOutcome(sim, result)
-	// 		})
-	// 	},
-	// })
+var scorpidStingRank = spellData.ScorpidSting.Highest()
+
+func (hunter *Hunter) registerScorpidSting() {
+	auras := hunter.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		aura := target.RegisterAura(spelldata.AuraConfig(scorpidStingRank,
+			spelldata.Label("Scorpid Sting-"+hunter.Label)))
+		aura.Tag = "Sting"
+		spelldata.ParseEffects(&hunter.Character, aura, scorpidStingRank)
+		return aura
+	})
+
+	config := spelldata.SpellConfig(&hunter.Unit, scorpidStingRank, spelldata.Flags(core.SpellFlagAPL))
+	// See Serpent Sting for the mask.
+	config.ProcMask = core.ProcMaskEmpty
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcOutcome(sim, target, spell.OutcomeRangedHit)
+
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			if result.Landed() {
+				aura := auras.Get(target)
+				dropOtherSting(sim, aura)
+				aura.Activate(sim)
+			}
+			spell.DealOutcome(sim, result)
+		})
+	}
+
+	config.RelatedAuraArrays = auras.ToMap()
+
+	hunter.RegisterSpell(config)
 }

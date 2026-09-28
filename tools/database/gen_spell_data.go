@@ -989,6 +989,17 @@ func resolveLadder(db *sql.DB, name string, byRank map[int32][]rankCandidate, ma
 				return nil, err
 			}
 		}
+		if castable == 0 {
+			// Natural Armor is one name over two full ladders of the hunter's, both on class skill
+			// lines: the rank the trainer teaches the hunter, which is an E_LEARN_SPELL aimed at
+			// the pet, and the passive the pet then has. The teaching rank is the one the ladder
+			// wants, and the passive is its triggered spell, as every other Beast Training row
+			// already reads; the passive is only ever reachable through its teacher.
+			castable, err = teacherOf(db, ids)
+			if err != nil {
+				return nil, err
+			}
+		}
 		if pinned, ok := ladderPins[name][rank]; ok && ids[pinned] {
 			ladder[rank] = pinned
 			continue
@@ -1059,6 +1070,36 @@ func dispatcherOf(db *sql.DB, ids map[int32]bool) (int32, error) {
 		return 0, nil
 	}
 	return dummy, nil
+}
+
+// The one spell among these whose trigger edges reach every other, or 0 when none does.
+func teacherOf(db *sql.DB, ids map[int32]bool) (int32, error) {
+	var found int32
+	for id := range ids {
+		taught, err := triggeredSpells(db, id)
+		if err != nil {
+			return 0, err
+		}
+		reaches := map[int32]bool{}
+		for _, t := range taught {
+			reaches[t] = true
+		}
+		all := true
+		for other := range ids {
+			if other != id && !reaches[other] {
+				all = false
+				break
+			}
+		}
+		if !all {
+			continue
+		}
+		if found != 0 {
+			return 0, nil
+		}
+		found = id
+	}
+	return found, nil
 }
 
 // The one spell among these that has a mana cost, or 0 when that does not single one out.
@@ -1132,6 +1173,7 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 	}
 
 	rendered := map[string][]byte{}
+	extra := map[string][]byte{}
 
 	// The store carries every spell the class files are built from, so the discovery runs here and
 	// both consumers read the one result rather than each rediscovering the ladders.
@@ -1150,11 +1192,44 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 		if err != nil {
 			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
 		}
-		out, err := renderClassFile(helper.db, pkg, ladders, skipped, partial)
+		triggered, err := triggeredByField(helper.db, ladders)
+		if err != nil {
+			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
+		}
+		out, err := renderClassFile(pkg, ladders, triggered, skipped, partial)
 		if err != nil {
 			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
 		}
 		rendered[pkg] = out
+
+		// The hunter's pet families read the class's ladders, so they are discovered here, and their
+		// passives are roots the ladders do not reach.
+		if pkg == "hunter" {
+			families, familiesSkipped, err := discoverPetFamilies(helper.db, ladders, triggered)
+			if err != nil {
+				return nil, nil, fmt.Errorf("%s pet families: %w", pkg, err)
+			}
+			petFile, err := renderPetFamiliesFile(families, familiesSkipped)
+			if err != nil {
+				return nil, nil, fmt.Errorf("%s pet families: %w", pkg, err)
+			}
+			extra[fmt.Sprintf("sim/%s/pet_families_auto_gen.go", pkg)] = petFile
+			ladderIDs = append(ladderIDs, petFamilyRoots(families)...)
+
+			arrows, arrowsSkipped, err := discoverArrows(helper.db)
+			if err != nil {
+				return nil, nil, fmt.Errorf("%s arrows: %w", pkg, err)
+			}
+			quivers, quiversSkipped, err := discoverQuivers(helper.db)
+			if err != nil {
+				return nil, nil, fmt.Errorf("%s quivers: %w", pkg, err)
+			}
+			ammoFile, err := renderAmmoFile(arrows, quivers, append(arrowsSkipped, quiversSkipped...))
+			if err != nil {
+				return nil, nil, fmt.Errorf("%s ammo: %w", pkg, err)
+			}
+			extra[fmt.Sprintf("sim/%s/ammo_auto_gen.go", pkg)] = ammoFile
+		}
 
 		for _, l := range ladders {
 			for _, id := range l.Ranks {
@@ -1203,10 +1278,28 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 	for pkg, out := range rendered {
 		files[fmt.Sprintf("sim/%s/spell_data_auto_gen.go", pkg)] = out
 	}
+	for path, out := range extra {
+		files[path] = out
+	}
 	return files, inputs, nil
 }
 
-func renderClassFile(db *sql.DB, pkg string, ladders []rankLadder, skipped, partial []string) ([]byte, error) {
+// The triggered table of every family that has one, by the family's field.
+func triggeredByField(db *sql.DB, ladders []rankLadder) (map[string][]triggeredRow, error) {
+	triggered := map[string][]triggeredRow{}
+	for _, l := range ladders {
+		rows, err := triggeredRows(db, l)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", l.Name, err)
+		}
+		if len(rows) > 0 {
+			triggered[l.Field] = rows
+		}
+	}
+	return triggered, nil
+}
+
+func renderClassFile(pkg string, ladders []rankLadder, triggered map[string][]triggeredRow, skipped, partial []string) ([]byte, error) {
 	// Named rather than dropped silently, so a family the resolver could not make sense of is visible
 	// here instead of merely absent.
 	var notGenerated strings.Builder
@@ -1225,17 +1318,6 @@ func renderClassFile(db *sql.DB, pkg string, ladders []rankLadder, skipped, part
 			fmt.Fprintf(&notGenerated, "//   %s\n", s)
 		}
 		notGenerated.WriteString("\n")
-	}
-
-	triggered := map[string][]triggeredRow{}
-	for _, l := range ladders {
-		rows, err := triggeredRows(db, l)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", l.Name, err)
-		}
-		if len(rows) > 0 {
-			triggered[l.Field] = rows
-		}
 	}
 
 	return renderLadderClassFile(pkg, ladders, triggered, notGenerated.String())

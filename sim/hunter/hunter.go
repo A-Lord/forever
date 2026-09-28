@@ -8,47 +8,24 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-const (
-	HunterBaseMaxRange         = 35
-	ThoridalTheStarsFuryItemID = 34334
-	QuiverHasteCategory        = "QuiverHaste"
-)
-
 var TalentTreeSizes = [3]int{16, 17, 18}
+
+var autoShotRank = spellData.AutoShot.Highest()
 
 type Hunter struct {
 	core.Character
 
-	ClassSpellScaling float64
-
 	Talents *proto.HunterTalents
 	Options *proto.HunterOptions
 
-	windFuryEnabled bool
-
 	Pet *HunterPet
 
-	AmmoDPS         float64
-	AmmoDamageBonus float64
-
-	AimedShot        *core.Spell
-	ArcaneShot       *core.Spell
-	AspectOfTheHawk  *core.Spell
-	AspectOfTheViper *core.Spell
-	BestialWrath     *core.Spell
-	MultiShot        *core.Spell
-	RapidFire        *core.Spell
-	RaptorStrike     *core.Spell
-	Readiness        *core.Spell
-	ScorpidSting     *core.Spell
-	SerpentSting     *core.Spell
-	// HuntersMarkSpell *core.Spell
+	RapidFire    *core.Spell
+	RaptorStrike *core.Spell
 
 	AspectOfTheHawkAura  *core.Aura
-	AspectOfTheViperAura *core.Aura
-	TalonOfAlarAura      *core.Aura
-	TheBeastWithinAura   *core.Aura
-	quiverBonusAura      *core.Aura
+	AspectOfTheBeastAura *core.Aura
+	MongooseBiteAura     *core.Aura
 }
 
 func (hunter *Hunter) GetCharacter() *core.Character {
@@ -76,7 +53,7 @@ func RegisterHunter() {
 	)
 }
 
-func NewHunter(character *core.Character, options *proto.Player, hunterOptions *proto.HunterOptions, _ *proto.Raid) *Hunter {
+func NewHunter(character *core.Character, options *proto.Player, hunterOptions *proto.HunterOptions, raid *proto.Raid) *Hunter {
 	hunter := &Hunter{
 		Character: *character,
 		Talents:   &proto.HunterTalents{},
@@ -85,24 +62,22 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 
 	core.FillTalentsProto(hunter.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
 
+	// The hunter casts its own mark, which the raid's permanent one would keep from ever landing.
+	if raid.Debuffs != nil {
+		raid.Debuffs.HuntersMark = false
+	}
+
 	hunter.PseudoStats.CanParry = true
 
 	hunter.EnableManaBar()
 
-	rangedSlot := hunter.GetRangedWeapon()
-	hunter.applyAmmoDPS()
-	hunter.applyQuiverBonus(rangedSlot)
-
-	rangedWeapon := hunter.WeaponFromRanged()
-
-	if rangedSlot == nil || rangedSlot.ID != ThoridalTheStarsFuryItemID {
-		hunter.AmmoDamageBonus = hunter.AmmoDPS * rangedWeapon.SwingSpeed
-		rangedWeapon.BaseDamageMin += hunter.AmmoDamageBonus
-		rangedWeapon.BaseDamageMax += hunter.AmmoDamageBonus
-	}
+	// Arrows add their damage per second to the ranged weapon, times its speed. A gun is taken to
+	// fire them too, so no bullets are kept beside them.
+	hunter.PseudoStats.BonusRangedDps += arrows[hunterOptions.Ammo.String()].DPS
+	hunter.PseudoStats.RangedSpeedMultiplier *= 1 + quivers[hunterOptions.QuiverBonus.String()].Haste/100
 
 	hunter.EnableAutoAttacks(hunter, core.AutoAttackOptions{
-		Ranged:          rangedWeapon,
+		Ranged:          hunter.WeaponFromRanged(),
 		MainHand:        hunter.WeaponFromMainHand(),
 		OffHand:         hunter.WeaponFromOffHand(),
 		ReplaceMHSwing:  hunter.TryRaptorStrike,
@@ -110,159 +85,54 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 		AutoSwingMelee:  true,
 	})
 
-	mhConfig := hunter.AutoAttacks.MHConfig()
-	applyEffects := mhConfig.ApplyEffects
-	mhConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		// Emit an "auto delayed" log line whenever the mh auto fired
-		// later than it would have in an uncontested rotation. Below 1ms
-		// is treated as rounding noise so the common case stays silent.
-		delay := hunter.AutoAttacks.MainHandPendingSwingDelay()
-		if sim.Log != nil && spell.ActionID.Tag == 1 && delay > time.Millisecond {
-			hunter.Log(sim, "%s delayed by %s, was ready at %s", spell.ActionID, delay, sim.CurrentTime-delay)
-		}
-
-		applyEffects(sim, target, spell)
-	}
-
+	// Auto Shot is the client's row 75: its range, and the class flags that put the auto inside the
+	// talents naming it - Hawk Eye, Mortal Shots, Deadly Aspects.
 	rangedConfig := hunter.AutoAttacks.RangedConfig()
-	rangedConfig.MaxRange = HunterBaseMaxRange
+	rangedConfig.MinRange = float64(autoShotRank.MinRange)
+	rangedConfig.MaxRange = float64(autoShotRank.MaxRange)
+	rangedConfig.ClassFlags = autoShotRank.ClassFlags
 
-	hunter.AddStatDependencies()
+	hunter.AddStatDependency(stats.Strength, stats.AttackPower, 1)
+	hunter.AddStatDependency(stats.Agility, stats.AttackPower, 1)
+	hunter.AddStatDependency(stats.Agility, stats.RangedAttackPower, 2)
+	hunter.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[hunter.Class])
+	hunter.AddStatDependency(stats.Agility, stats.DodgeRating, 1.0/25*core.DodgeRatingPerDodgePercent)
 
 	hunter.Pet = hunter.NewHunterPet()
 
 	return hunter
 }
 
-var quiverHasteMultipliers = map[proto.HunterOptions_QuiverBonus]float64{
-	proto.HunterOptions_Speed10: 1.1,
-	proto.HunterOptions_Speed11: 1.11,
-	proto.HunterOptions_Speed12: 1.12,
-	proto.HunterOptions_Speed13: 1.13,
-	proto.HunterOptions_Speed14: 1.14,
-	proto.HunterOptions_Speed15: 1.15,
-}
-
-var quiverHasteSpellIDs = map[proto.HunterOptions_QuiverBonus]int32{
-	proto.HunterOptions_Speed10: 29418,
-	proto.HunterOptions_Speed11: 29417,
-	proto.HunterOptions_Speed12: 29416,
-	proto.HunterOptions_Speed13: 29413,
-	proto.HunterOptions_Speed14: 29415,
-	proto.HunterOptions_Speed15: 29414,
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) applyQuiverBonus(weapon *core.Item) {
-	if hunter.Options.QuiverBonus == proto.HunterOptions_QuiverNone {
-		return
-	}
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// if hunter.Options.QuiverBonus == proto.HunterOptions_QuiverNone {
-	// 	return
-	// }
-	//
-	// isThoridalEquipped := weapon != nil && weapon.ID == ThoridalTheStarsFuryItemID
-	// buildPhase := core.Ternary(
-	// 	isThoridalEquipped,
-	// 	core.CharacterBuildPhaseNone,
-	// 	core.CharacterBuildPhaseGear)
-	//
-	// hunter.quiverBonusAura = hunter.RegisterAura(core.Aura{
-	// 	Label:      "Haste",
-	// 	ActionID:   core.ActionID{SpellID: quiverHasteSpellIDs[hunter.Options.QuiverBonus]},
-	// 	Duration:   core.NeverExpires,
-	// 	BuildPhase: buildPhase,
-	// }).AttachMultiplicativePseudoStatBuff(
-	// 	&hunter.PseudoStats.RangedSpeedMultiplier,
-	// 	quiverHasteMultipliers[hunter.Options.QuiverBonus],
-	// )
-	//
-	// if !isThoridalEquipped {
-	// 	core.MakePermanent(hunter.quiverBonusAura)
-	// }
-}
-
-// TODO: To be implemented.
-func (hunter *Hunter) applyAmmoDPS() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// switch hunter.Options.Ammo {
-	// case proto.HunterOptions_TimelessArrow:
-	// 	hunter.AmmoDPS = 53
-	// case proto.HunterOptions_MysteriousArrow:
-	// 	hunter.AmmoDPS = 46.5
-	// case proto.HunterOptions_AdamantiteStinger:
-	// 	hunter.AmmoDPS = 43
-	// case proto.HunterOptions_WardensArrow:
-	// 	hunter.AmmoDPS = 37
-	// case proto.HunterOptions_HalaaniRazorshaft:
-	// 	hunter.AmmoDPS = 34
-	// case proto.HunterOptions_BlackflightArrow:
-	// 	hunter.AmmoDPS = 32
-	// }
-}
-
-func (hunter *Hunter) RegisterRangedSpell(config core.SpellConfig) *core.Spell {
-	if config.MissileSpeed == 0 {
-		config.MissileSpeed = 40
-	}
-
-	config.MinRange = core.MinRangedRange
-	config.MaxRange = HunterBaseMaxRange
-	config.Cast.DefaultCast.GCD = core.GCDDefault
-	config.Cast.IgnoreHaste = true
-
-	if config.Cast.DefaultCast.CastTime > 0 {
-		if config.Cast.ModifyCast == nil {
-			config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-				cast.CastTime = spell.CastTime()
-			}
-		}
-
-		if config.Cast.CastTime == nil {
-			config.Cast.CastTime = func(spell *core.Spell) time.Duration {
-				return time.Duration(float64(spell.DefaultCast.CastTime) / hunter.TotalRangedHasteMultiplier())
-			}
-		}
-	}
-
-	if config.DamageMultiplier == 0 && config.DamageMultiplierAdditive == 0 {
-		config.DamageMultiplier = 1
-
-		if config.ThreatMultiplier == 0 {
-			config.ThreatMultiplier = 1
-		}
-	}
-
-	return hunter.RegisterSpell(config)
-}
-
 func (hunter *Hunter) Initialize() {
-	hunter.RegisterSpells()
+	hunter.registerAimedShot()
+	hunter.registerArcaneShot()
+	hunter.registerMultiShot()
+	hunter.registerSerpentSting()
+	hunter.registerScorpidSting()
+	hunter.registerRaptorStrike()
+	hunter.registerMongooseBite()
+	hunter.registerRapidFire()
+	hunter.registerAspects()
+	hunter.registerHuntersMark()
 	hunter.addPvpGloves()
 }
 
-func (hunter *Hunter) RegisterSpells() {
-	hunter.registerArcaneShotSpell()
-	hunter.registerAspects()
-	hunter.registerMultiShotSpell()
-	hunter.registerRaptorStrikeSpell()
-	hunter.registerRapidFireCD()
-	hunter.registerScorpidStingSpell()
-	hunter.registerSerpentStingSpell()
-	// hunter.registerHuntersMarkSpell()
+// A ranged cast shortens with ranged haste. Core's cast path applies spell haste, which the physical
+// school's IgnoreHaste turns off, so the ranged multiplier is read here instead.
+func (hunter *Hunter) hasteRangedCast(config *core.SpellConfig) {
+	config.Cast.CastTime = func(spell *core.Spell) time.Duration {
+		return time.Duration(float64(spell.DefaultCast.CastTime) / hunter.TotalRangedHasteMultiplier())
+	}
+	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
+		cast.CastTime = spell.CastTime()
+	}
 }
 
-func (hunter *Hunter) AddStatDependencies() {
-	hunter.AddStatDependency(stats.Strength, stats.AttackPower, 1)
-	hunter.AddStatDependency(stats.Agility, stats.AttackPower, 1)
-	hunter.AddStatDependency(stats.Agility, stats.RangedAttackPower, 1)
-	hunter.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[hunter.Class])
-	hunter.AddStatDependency(stats.Agility, stats.DodgeRating, 1.0/25*core.DodgeRatingPerDodgePercent)
+// One sting per target: applying either sting drops the other.
+func dropOtherSting(sim *core.Simulation, sting *core.Aura) {
+	if active := sting.Unit.GetActiveAuraWithTag("Sting"); active != nil && active != sting {
+		active.Deactivate(sim)
+	}
 }
 
 func (hunter *Hunter) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
@@ -272,10 +142,6 @@ func (hunter *Hunter) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 	if hunter.Talents.TrueshotAura {
 		partyBuffs.TrueshotAura = true
 	}
-
-	if partyBuffs.WindfuryTotem {
-		hunter.windFuryEnabled = true
-	}
 }
 
 func (hunter *Hunter) Reset(_ *core.Simulation) {
@@ -283,50 +149,6 @@ func (hunter *Hunter) Reset(_ *core.Simulation) {
 
 func (hunter *Hunter) OnEncounterStart(sim *core.Simulation) {
 }
-
-const (
-	HunterSpellFlagsNone int64 = 0
-	SpellMaskSpellRanged int64 = 1 << iota
-	HunterSpellAutoShot
-	HunterSpellAimedShot
-	HunterSpellArcaneShot
-	HunterSpellAspectOfTheHawk
-	HunterSpellAspectOfTheViper
-	HunterSpellBestialWrath
-	HunterSpellMultiShot
-	HunterSpellRapidFire
-	HunterSpellRaptorStrike
-	HunterSpellRaptorStrikeQueue
-	HunterSpellReadiness
-	HunterSpellScorpidSting
-	HunterSpellSerpentSting
-	// No spell sets this bit; kept because the Ashtongue Talisman of Swiftness proc filters on it.
-	HunterSpellSteadyShot
-	HunterSpellVolley
-	HunterPetDamage
-
-	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
-	HunterSpellDismember
-	HunterSpellDustCloud
-	HunterSpellEnchantedFlare
-	HunterSpellMine
-	HunterSpellPinch
-	HunterSpellSavageRend
-	HunterSpellSwipe
-	HunterSpellTendonRip
-	HunterSpellWeb
-
-	HunterSpellsAll = HunterSpellAimedShot |
-		HunterSpellArcaneShot | HunterSpellBestialWrath |
-		HunterSpellMultiShot |
-		HunterSpellRapidFire | HunterSpellRaptorStrike |
-		HunterSpellScorpidSting | HunterSpellSerpentSting |
-		HunterSpellVolley
-	HunterSpellsShotsAndStings = HunterSpellAimedShot |
-		HunterSpellArcaneShot | HunterSpellMultiShot |
-		HunterSpellScorpidSting | HunterSpellSerpentSting |
-		HunterSpellVolley
-)
 
 // Agent is a generic way to access underlying hunter on any of the agents.
 type HunterAgent interface {

@@ -1,8 +1,7 @@
 import * as other_inputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLListItem, APLRotation, APLRotation_Type, APLValueVariable } from '@generated/proto/apl';
-import { Cooldowns, EquipmentSpec, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { Cooldowns, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import * as AplUtils from '@sim/proto/apl_utils';
@@ -73,7 +72,7 @@ export default defineSpec<Spec.SpecHunter>({
 	itemSwapSlots: [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotRanged, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2],
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.P1Gear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		softCapBreakpoints: [
@@ -84,12 +83,12 @@ export default defineSpec<Spec.SpecHunter>({
 			}),
 		],
 		rotationType: APLRotation_Type.TypeSimple,
-		simpleRotation: Presets.WeaveRotation,
+		simpleRotation: Presets.TurretRotation,
 		other: Presets.OtherDefaults,
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.BeastMasteryTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -100,21 +99,15 @@ export default defineSpec<Spec.SpecHunter>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [HunterInputs.PetTypeInput(), HunterInputs.QuiverInput(), HunterInputs.AmmoInput()],
+	playerIconInputs: [HunterInputs.QuiverInput(), HunterInputs.AmmoInput()],
+	sections: [HunterInputs.PetSection],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatSpirit, Stat.StatSpellCritRating, Stat.StatSpellDamage],
 	excludeBuffDebuffInputs: [],
 	rotationInputs: HunterInputs.RotationInputs,
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
-		inputs: [
-			other_inputs.TotemTwisting,
-			HunterInputs.PetUptime(),
-			HunterInputs.PetSingleAbility(),
-			other_inputs.InputDelay,
-			other_inputs.DistanceFromTarget,
-			other_inputs.TankAssignment,
-		],
+		inputs: [other_inputs.TotemTwisting, other_inputs.InputDelay, other_inputs.DistanceFromTarget, other_inputs.TankAssignment],
 	},
 	encounterPicker: {
 		// Whether to include 'Execute Duration (%)' in the 'Encounter' section of the settings tab.
@@ -124,11 +117,11 @@ export default defineSpec<Spec.SpecHunter>({
 	presets: {
 		epWeights: [],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.BeastMasteryTalents],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.WeaveSimple, Presets.TurretSimple, Presets.DefaultRotation],
+		rotations: [Presets.TurretSimple, Presets.WeaveSimple, Presets.DefaultRotation],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.P1Gear],
 	},
 
 	autoRotation: (player: Player<Spec.SpecHunter>): APLRotation => {
@@ -136,10 +129,8 @@ export default defineSpec<Spec.SpecHunter>({
 		const gear = player.getGear();
 		const mainHandType = gear.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType;
 		if (mainHandType !== HandType.HandTypeTwoHand) {
-			rotation.valueVariables[2] = APLValueVariable.fromJson({
-				name: 'Melee weave',
-				value: { const: { val: 'false' } },
-			});
+			const meleeWeave = APLValueVariable.fromJson({ name: 'Melee weave', value: { const: { val: 'false' } } });
+			rotation.valueVariables = rotation.valueVariables.map(v => (v.name === meleeWeave.name ? meleeWeave : v));
 		}
 		return rotation;
 	},
@@ -149,23 +140,11 @@ export default defineSpec<Spec.SpecHunter>({
 		const rotation = APLRotation.clone(Presets.DefaultRotation.rotation.rotation!);
 
 		const {
-			viperStartManaPercent = 0.05,
-			viperStopManaPercent = 0.25,
 			meleeWeave = player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeTwoHand,
 			useMulti = true,
 			useArcane = true,
 			timeToWeave = 400,
 		} = simple;
-
-		const viperStartManaPercentValue = APLValueVariable.fromJson({
-			name: 'Viper start',
-			value: { const: { val: `${viperStartManaPercent * 100}%` } },
-		});
-
-		const viperStopManaPercentValue = APLValueVariable.fromJson({
-			name: 'Viper stop',
-			value: { const: { val: `${viperStopManaPercent * 100}%` } },
-		});
 
 		const meleeWeaveValue = APLValueVariable.fromJson({
 			name: 'Melee weave',
@@ -188,8 +167,6 @@ export default defineSpec<Spec.SpecHunter>({
 		});
 
 		const overrides: Record<string, APLValueVariable> = {
-			'Viper start': viperStartManaPercentValue,
-			'Viper stop': viperStopManaPercentValue,
 			'Melee weave': meleeWeaveValue,
 			'Time to weave': timeToWeaveValue,
 			'Use Multi-Shot': useMultiValue,

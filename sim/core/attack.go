@@ -317,6 +317,9 @@ type WeaponAttack struct {
 	// auto ApplyEffects to log how late the shot fired.
 	pendingSwingDelay time.Duration
 
+	// When the running ranged windup completes, 0 when none is running.
+	windupEnd time.Duration
+
 	curSwingSpeed    float64
 	curSwingDuration time.Duration
 	enabled          bool
@@ -351,6 +354,19 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 		return wa.swingAt
 	}
 
+	// A ready ranged auto first winds up, which runs through casts. Moving
+	// cancels it (see initMovement).
+	if isRanged && wa.windupEnd == 0 {
+		wa.windupEnd = sim.CurrentTime + RangedSwingWindup
+		wa.naturalReadyAt += RangedSwingWindup
+		wa.swingAt = wa.windupEnd
+		if sim.Log != nil {
+			wa.unit.Log(sim, "Casting %s (Cost = 0.000, Cast Time = %s, GCD = 0s, Effective Time = %s)", attackSpell.ActionID, RangedSwingWindup, RangedSwingWindup)
+		}
+		return wa.swingAt
+	}
+	wa.windupEnd = 0
+
 	if wa.replaceSwing != nil {
 		// Need to check APL here to allow last-moment HS queue casts.
 		wa.unit.ReactToEvent(sim, false, false)
@@ -366,6 +382,10 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	// if the attack causes APL evaluations (e.g. from rage gain).
 	wa.previousSwing = wa.swingAt
 	wa.swingAt = sim.CurrentTime + wa.curSwingDuration
+	if isRanged {
+		// The windup is part of the swing, so the next one starts early.
+		wa.swingAt -= RangedSwingWindup
+	}
 
 	// Capture how late this swing is vs. when it would have been ready in an
 	// uncontested rotation, then advance naturalReadyAt for the next cycle.
@@ -374,9 +394,10 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	wa.pendingSwingDelay = max(0, sim.CurrentTime-wa.naturalReadyAt)
 	wa.naturalReadyAt = wa.swingAt
 
-	// A melee swing resets the ranged auto timer, as if the shot had just fired.
+	// A melee swing resets the ranged auto timer. It only starts over once
+	// back in ranged range (EnableRangedSwing), which melee range never is.
 	if !isRanged && wa.unit.AutoAttacks.AutoSwingRanged {
-		wa.unit.AutoAttacks.StopRangedUntil(sim, sim.CurrentTime)
+		wa.unit.AutoAttacks.ranged.swingAt = NeverExpires
 	}
 
 	attackSpell.Cast(sim, wa.unit.CurrentTarget)
@@ -531,7 +552,7 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 			// later than it would have in an uncontested rotation. Below 1ms
 			// is treated as rounding noise so the common case stays silent.
 			delay := unit.AutoAttacks.RangedPendingSwingDelay()
-			readyAt := sim.CurrentTime - delay
+			readyAt := sim.CurrentTime - RangedSwingWindup - delay // when the windup could have started
 			if sim.Log != nil && delay > time.Millisecond && readyAt > 0 {
 				spell.Unit.Log(sim, "%s delayed by %s, was ready at %s", spell.ActionID, delay, readyAt)
 			}
@@ -630,6 +651,7 @@ func (aa *AutoAttacks) reset(sim *Simulation) {
 		aa.ranged.previousSwing = -aa.RangedSwingSpeed()
 		aa.ranged.swingAt = 0
 		aa.ranged.naturalReadyAt = 0
+		aa.ranged.windupEnd = 0
 	}
 }
 
@@ -681,7 +703,7 @@ func (aa *AutoAttacks) startPull(sim *Simulation) {
 }
 
 func (wa *WeaponAttack) IsInRange() bool {
-	return (wa.MinRange == 0. || wa.MinRange < wa.unit.DistanceFromTarget) && (wa.MaxRange == 0. || wa.MaxRange >= wa.unit.DistanceFromTarget)
+	return (wa.MinRange == 0. || wa.MinRange <= wa.unit.DistanceFromTarget) && (wa.MaxRange == 0. || wa.MaxRange >= wa.unit.DistanceFromTarget)
 }
 
 // Stops the auto swing action for the rest of the iteration. Used for pets
@@ -741,6 +763,9 @@ func (aa *AutoAttacks) EnableRangedSwing(sim *Simulation) {
 		return
 	}
 
+	if aa.ranged.swingAt == NeverExpires { // reset by a melee swing
+		aa.ranged.swingAt = sim.CurrentTime + aa.ranged.curSwingDuration - RangedSwingWindup
+	}
 	aa.ranged.swingAt = max(aa.ranged.swingAt, sim.CurrentTime, 0)
 	aa.ranged.naturalReadyAt = aa.ranged.swingAt
 	if aa.ranged.IsInRange() {
@@ -771,7 +796,23 @@ func (aa *AutoAttacks) CancelRangedSwing(sim *Simulation) {
 	}
 
 	aa.ranged.enabled = false
+	aa.ranged.windupEnd = 0
 	sim.removeWeaponAttack(&aa.ranged)
+}
+
+// cancelRangedWindup stops a running ranged windup, which then sits on the
+// hidden retry timer like any other shot that came due while moving.
+func (aa *AutoAttacks) cancelRangedWindup(sim *Simulation) {
+	if aa.ranged.windupEnd == 0 {
+		return
+	}
+	if sim.Log != nil {
+		aa.ranged.unit.Log(sim, "Cancelled %s after %s", aa.ranged.spell.ActionID, RangedSwingWindup-(aa.ranged.windupEnd-sim.CurrentTime))
+	}
+	aa.ranged.windupEnd = 0
+	aa.ranged.naturalReadyAt -= RangedSwingWindup // the next windup adds it again
+	aa.ranged.swingAt = sim.CurrentTime + RangedAutoRetryInterval
+	sim.rescheduleWeaponAttack(aa.ranged.swingAt)
 }
 
 // scheduleMeleeWeaveWakeup wakes the rotation when the out-of-range MH swing comes
@@ -911,6 +952,7 @@ func (aa *AutoAttacks) StopRangedUntil(sim *Simulation, readyAt time.Duration) {
 		return
 	}
 
+	aa.ranged.windupEnd = 0
 	aa.ranged.swingAt = readyAt + aa.ranged.curSwingDuration
 	sim.rescheduleWeaponAttack(aa.ranged.swingAt)
 }

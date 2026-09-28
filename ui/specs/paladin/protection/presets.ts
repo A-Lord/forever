@@ -23,7 +23,7 @@ export const DefaultOptions = ProtectionPaladinOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: Consumables.FlaskOfSupremePower.id,
-	foodId: Consumables.SunriseOmelette.id,
+	foodId: Consumables.NightfinSoup.id,
 	potId: Consumables.GreaterStoneshieldPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,

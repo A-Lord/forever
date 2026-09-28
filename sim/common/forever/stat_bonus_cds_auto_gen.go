@@ -164,8 +164,6 @@ func RegisterAllOnUseCds() {
 	shared.NewSpellDataDamageOnUse(11905) // Linken's Boomerang - https://www.wowhead.com/forever/spell=15712
 	// on use: 26789 (E_SCHOOL_DAMAGE)
 	shared.NewSpellDataDamageOnUse(21891) // Shard of the Fallen Star - https://www.wowhead.com/forever/spell=26789
-	// on use: 443265 (A_PERIODIC_DAMAGE); not simulated: E_TRIGGER_SPELL
-	shared.NewSpellDataDamageOnUse(219345) // Infernal Lasso - https://www.wowhead.com/forever/spell=443265
 	// on use: 1295270 (E_SCHOOL_DAMAGE); not simulated: E_NONE, E_NONE
 	shared.NewSpellDataDamageOnUse(274759) // Everlook Pathcarver - https://www.wowhead.com/forever/spell=1295270
 

@@ -164,6 +164,11 @@ export default defineConfig(({ command, mode }) => {
 				enableBuild: false,
 			}),
 		],
+		// GitHub Actions sets GITHUB_REPOSITORY in every job, so the issue links point at whichever
+		// repository built this page. A fork's build files its issues on the fork.
+		define: {
+			'import.meta.env.VITE_GITHUB_REPOSITORY': JSON.stringify(process.env.GITHUB_REPOSITORY ?? ''),
+		},
 		oxc: {
 			jsx: {
 				runtime: 'automatic',

@@ -1,267 +1,71 @@
 package hunter
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
+
+// The rows ItemSetSpell names for the set's thresholds. None of them is a hunter class spell, so the
+// generated table carries no reference to them.
+var (
+	cryptstalkerRapidFire      = spelldata.MustFind(28755) // 2pc: Rapid Fire lasts 4 s longer
+	cryptstalkerAdrenalineProc = spelldata.MustFind(28752) // 6pc: Adrenaline Rush, the proc
+	cryptstalkerAdrenalineMana = spelldata.MustFind(28753) // 6pc: Adrenaline Rush, the mana it grants
+	cryptstalkerShotCost       = spelldata.MustFind(28751) // 8pc: Multi-Shot and Aimed Shot cost 20 less
 )
 
 var ItemSetCryptstalkerArmor = core.NewItemSet(core.ItemSet{
 	Name: "Cryptstalker Armor",
 	ID:   530,
 	Bonuses: map[int32]core.ApplySetBonus{
-		// (2) Set: Increases the duration of your Rapid Fire by 4 secs.
 		2: func(agent core.Agent, setBonusAura *core.Aura) {
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				Kind:      core.SpellMod_BuffDuration_Flat,
-				ClassMask: HunterSpellRapidFire,
-				TimeValue: time.Second * 4,
-			}).ExposeToAPL(28755)
+			hunter := agent.(HunterAgent).GetHunter()
+			spelldata.ParseEffects(&hunter.Character, setBonusAura, cryptstalkerRapidFire)
 		},
 		// (4) Set: While your pet is active, increases Attack Power by 50 for both you and your pet.
-		4: func(agent core.Agent, setBonusAura *core.Aura) {
-			hunter := agent.(HunterAgent).GetHunter()
-			if hunter.Pet == nil {
-				return
-			}
-
-			apBuff := stats.Stats{
-				stats.AttackPower:       50,
-				stats.RangedAttackPower: 50,
-			}
-			ownerAura := hunter.RegisterAura(core.Aura{
-				Label:      "Stalker's Ally",
-				ActionID:   core.ActionID{SpellID: 28757},
-				Duration:   core.NeverExpires,
-				BuildPhase: setBonusAura.BuildPhase,
-			}).AttachStatsBuff(
-				apBuff,
-			)
-
-			petAura := hunter.Pet.RegisterAura(core.Aura{
-				Label:      "Stalker's Ally",
-				ActionID:   core.ActionID{SpellID: 28758},
-				Duration:   core.NeverExpires,
-				BuildPhase: setBonusAura.BuildPhase,
-			}).AttachStatsBuff(
-				apBuff,
-			)
-
-			if setBonusAura.BuildPhase == core.CharacterBuildPhaseGear {
-				core.MakePermanent(ownerAura)
-				core.MakePermanent(petAura)
-			} else {
-				setBonusAura.AttachDependentAura(ownerAura).AttachDependentAura(petAura)
-			}
-
-			setBonusAura.ExposeToAPL(28756)
-		},
-		// (6) Set: Your ranged critical hits cause an Adrenaline Rush, granting you 50 mana.
+		// The pet is not modelled.
 		6: func(agent core.Agent, setBonusAura *core.Aura) {
 			hunter := agent.(HunterAgent).GetHunter()
-			manaMetrics := hunter.NewManaMetrics(core.ActionID{SpellID: 28753})
+			manaMetrics := hunter.NewManaMetrics(core.ActionID{SpellID: cryptstalkerAdrenalineMana.ID})
+			mana := cryptstalkerAdrenalineMana.EnergizeEffect().Average(core.CharacterLevel)
 
-			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-				Name:            "Adrenaline Rush",
-				MetricsActionID: core.ActionID{SpellID: 28752},
-				Callback:        core.CallbackOnSpellHitDealt,
-				Outcome:         core.OutcomeCrit,
-				ProcMask:        core.ProcMaskRanged,
+			// 28752 states "always" on ranged hits and its proc effect names Multi-Shot alone; the
+			// tooltip says your ranged critical hits, and the tooltip wins: the crit is the outcome
+			// and the mask comes off.
+			trigger := spelldata.ProcTrigger(&hunter.Character, cryptstalkerAdrenalineProc,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+					hunter.AddMana(sim, mana, manaMetrics)
+				})
+			trigger.Name = "Cryptstalker Armor - 6PC"
+			trigger.Outcome = core.OutcomeCrit
+			trigger.ClassFlags = core.ClassFlags{}
 
-				Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-					hunter.AddMana(sim, 50, manaMetrics)
-				},
-			}).ExposeToAPL(28752)
+			setBonusAura.AttachProcTrigger(trigger)
 		},
-		// (8) Set: Reduces the mana cost of your Multi-Shot and Aimed Shot by 20.
 		8: func(agent core.Agent, setBonusAura *core.Aura) {
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				Kind:      core.SpellMod_PowerCost_Flat,
-				ClassMask: HunterSpellMultiShot | HunterSpellAimedShot,
-				IntValue:  -20,
-			}).ExposeToAPL(28751)
+			hunter := agent.(HunterAgent).GetHunter()
+			spelldata.ParseEffects(&hunter.Character, setBonusAura, cryptstalkerShotCost)
 		},
 	},
 })
 
-// The bows and the mail shoulders below can be equipped by other classes, whose agents are not
-// HunterAgents. Their hunter-specific effects simply do not apply to them.
-func hunterFromAgent(agent core.Agent) (*Hunter, bool) {
-	hunterAgent, ok := agent.(HunterAgent)
-	if !ok {
-		return nil, false
-	}
-	return hunterAgent.GetHunter(), true
-}
+var pvpGloveItemIDs = []int32{23279, 22862, 16463, 16571}
+
+// The gloves' equip spell: Multi-Shot deals 4% more.
+var pvpGloveMultiShot = spelldata.MustFind(28539)
 
 func init() {
-	// Thori'dal, the Star's Fury
-	core.NewItemEffect(ThoridalTheStarsFuryItemID, func(agent core.Agent) {
-		hunter, ok := hunterFromAgent(agent)
-		if !ok {
-			return
-		}
-
-		isEquipped := hunter.HasItemEquipped(ThoridalTheStarsFuryItemID, []proto.ItemSlot{proto.ItemSlot_ItemSlotRanged})
-		buildPhase := core.Ternary(isEquipped, core.CharacterBuildPhaseGear, core.CharacterBuildPhaseNone)
-
-		hasteAura := hunter.RegisterAura(core.Aura{
-			Label:      "Legendary Bow Haste",
-			ActionID:   core.ActionID{SpellID: 44972},
-			Duration:   core.NeverExpires,
-			BuildPhase: buildPhase,
-
-			// Tried to do this with ExclusiveEffects but damn that was wonky and didn't work right...
-			OnGain: func(aura *core.Aura, sim *core.Simulation) {
-				if hunter.quiverBonusAura != nil {
-					hunter.quiverBonusAura.Deactivate(sim)
-				}
-			},
-			OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-				if hunter.quiverBonusAura != nil && sim.CurrentTime > 0 {
-					hunter.quiverBonusAura.Activate(sim)
-				}
-			},
-		}).AttachMultiplicativePseudoStatBuff(
-			&hunter.PseudoStats.RangedSpeedMultiplier,
-			quiverHasteMultipliers[proto.HunterOptions_Speed15],
-		)
-
-		ammoAura := hunter.RegisterAura(core.Aura{
-			Label:    "Requires No Ammo",
-			ActionID: core.ActionID{SpellID: 46699},
-			Duration: core.NeverExpires,
-
-			OnGain: func(aura *core.Aura, sim *core.Simulation) {
-				hunter.AmmoDamageBonus = 0
-			},
-		})
-
-		if isEquipped {
-			core.MakePermanent(hasteAura)
-			core.MakePermanent(ammoAura)
-		}
-
-		hunter.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotRanged}, func(sim *core.Simulation, _ proto.ItemSlot) {
-			if ranged := hunter.AutoAttacks.Ranged(); ranged != nil &&
-				!hunter.HasItemEquipped(ThoridalTheStarsFuryItemID, []proto.ItemSlot{proto.ItemSlot_ItemSlotRanged}) {
-				hunter.AmmoDamageBonus = hunter.AmmoDPS * ranged.SwingSpeed
-				ranged.BaseDamageMin += hunter.AmmoDamageBonus
-				ranged.BaseDamageMax += hunter.AmmoDamageBonus
-			}
-		})
-
-		hunter.ItemSwap.RegisterProc(ThoridalTheStarsFuryItemID, hasteAura)
-		hunter.ItemSwap.RegisterProc(ThoridalTheStarsFuryItemID, ammoAura)
-	})
-
-	// Black Bow of the Betrayer
-	const BlackBowOfTheBetrayerItemID = 32336
-	core.NewItemEffect(BlackBowOfTheBetrayerItemID, func(agent core.Agent) {
-		hunter, ok := hunterFromAgent(agent)
-		if !ok {
-			return
-		}
-
-		manaMetrics := hunter.NewManaMetrics(core.ActionID{SpellID: 29471})
-
-		procAura := hunter.MakeProcTriggerAura(core.ProcTrigger{
-			Name:              "Black Bow of the Betrayer",
-			MetricsActionID:   core.ActionID{ItemID: 46939},
-			SpellFlagsExclude: core.SpellFlagSuppressWeaponProcs,
-			Callback:          core.CallbackOnSpellHitDealt,
-			Outcome:           core.OutcomeLanded,
-			ProcMask:          core.ProcMaskRanged,
-
-			Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-				hunter.AddMana(sim, 8, manaMetrics)
-			},
-		})
-
-		hunter.ItemSwap.RegisterProc(BlackBowOfTheBetrayerItemID, procAura)
-	})
-
-	// Ashtongue Talisman of Swiftness
-	const AshtongueTalismanOfSwiftnessItemID = 32487
-	core.NewItemEffect(AshtongueTalismanOfSwiftnessItemID, func(agent core.Agent) {
-		hunter := agent.(HunterAgent).GetHunter()
-		eligibleSlots := hunter.ItemSwap.EligibleSlotsForItem(AshtongueTalismanOfSwiftnessItemID)
-
-		statsAura := hunter.NewTemporaryStatsAura(
-			"Deadly Aim",
-			core.ActionID{SpellID: 40487},
-			stats.Stats{
-				stats.AttackPower:       275,
-				stats.RangedAttackPower: 275,
-			},
-			time.Second*8,
-		)
-
-		procAura := hunter.MakeProcTriggerAura(core.ProcTrigger{
-			Name:            "Ashtongue Talisman of Swiftness",
-			MetricsActionID: core.ActionID{SpellID: 40485},
-			Callback:        core.CallbackOnSpellHitDealt,
-			ClassSpellMask:  HunterSpellSteadyShot,
-			Outcome:         core.OutcomeLanded,
-			ProcChance:      0.15,
-
-			Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-				statsAura.Activate(sim)
-			},
-		})
-
-		hunter.AddStatProcBuff(AshtongueTalismanOfSwiftnessItemID, statsAura, false, eligibleSlots)
-		hunter.ItemSwap.RegisterProcWithSlots(AshtongueTalismanOfSwiftnessItemID, procAura, eligibleSlots)
-	})
-
-	// Talon of Al'ar
-	const TalonOfAlarItemID = 30448
-	core.NewItemEffect(TalonOfAlarItemID, func(agent core.Agent) {
-		hunter := agent.(HunterAgent).GetHunter()
-
-		hunter.TalonOfAlarAura = hunter.RegisterAura(core.Aura{
-			Label:    "Shot Power",
-			ActionID: core.ActionID{SpellID: 37508},
-			Duration: time.Second*6 + 1,
-		})
-
-		procAura := hunter.MakeProcTriggerAura(core.ProcTrigger{
-			Name:            "Improved Shots",
-			MetricsActionID: core.ActionID{SpellID: 37507},
-			Callback:        core.CallbackOnSpellHitDealt,
-			ClassSpellMask:  HunterSpellArcaneShot,
-			Outcome:         core.OutcomeLanded,
-
-			Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-				hunter.TalonOfAlarAura.Activate(sim)
-			},
-		})
-
-		hunter.ItemSwap.RegisterProc(TalonOfAlarItemID, procAura)
-	})
-
 	for _, itemID := range pvpGloveItemIDs {
 		core.NewItemEffect(itemID, func(_ core.Agent) {})
 	}
 }
-
-func (hunter *Hunter) talonOfAlarBonus() float64 {
-	if hunter.TalonOfAlarAura.IsActive() {
-		return 40
-	}
-	return 0
-}
-
-var pvpGloveItemIDs = []int32{23279, 22862, 16463, 16571}
 
 func (hunter *Hunter) addPvpGloves() {
 	hunter.RegisterPvPGloveMod(
 		pvpGloveItemIDs,
 		core.SpellModConfig{
 			Kind:       core.SpellMod_DamageDone_Flat,
-			ClassMask:  HunterSpellMultiShot,
-			FloatValue: 0.05,
+			ClassFlags: multiShotRank.ClassFlags,
+			FloatValue: pvpGloveMultiShot.EffectN(1).Percent(),
 		})
 }

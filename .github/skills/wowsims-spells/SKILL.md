@@ -10,7 +10,7 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 
 ## Scope
 
-- The spell store, `sim/core/spelldata`: one generated row per spell id, and the resolvers that turn a row into a spell config, an aura, a dot, a talent's modifiers or a proc listener. The warrior reads it through the resolvers; the other eight classes read its rows by hand instead, with no resolver in between.
+- The spell store, `sim/core/spelldata`: one generated row per spell id, and the resolvers that turn a row into a spell config, an aura, a dot, a talent's modifiers or a proc listener. The warrior and the hunter read it through the resolvers; the other seven classes read its rows by hand instead, with no resolver in between.
 - Regenerating it: `tools/database/gen_spelldata`, `tools/database/gen_spell_data.go`, `tools/database/gen_spell_store.go`, `tools/database/spelldata.go`.
 - Reconciling a sim number that disagrees with the game files.
 
