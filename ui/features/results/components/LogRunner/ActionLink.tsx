@@ -1,7 +1,7 @@
+import { useActionId } from '@sim/hooks/useActionId';
+import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
 import type { ActionId } from '@sim/proto/action_id';
 import { externalRel } from '@sim/utils/links';
-import { useActionId } from '@ui-kit/hooks/useActionId';
-import { useActionIdWowheadDataset } from '@ui-kit/hooks/useActionIdWowheadDataset';
 
 export interface ActionLinkProps {
 	actionId: ActionId;

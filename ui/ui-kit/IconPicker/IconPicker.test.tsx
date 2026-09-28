@@ -8,7 +8,7 @@ import { IconPicker } from './IconPicker';
 import type { IconPickerConfig } from './types';
 
 // A filled ActionId as fill() returns one, so useActionId renders synchronously and no test
-// touches the network — see ui/ui-kit/hooks/useActionId.test.tsx for the same pattern.
+// touches the network — see ui/sim/hooks/useActionId.test.tsx for the same pattern.
 const filled = (actionId: ActionId, name: string, iconUrl: string) => Object.assign(Object.create(ActionId.prototype), actionId, { name, iconUrl }) as ActionId;
 
 const buffId = filled(ActionId.fromSpellId(1), 'Buff', 'buff.jpg');

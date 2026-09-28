@@ -1,13 +1,13 @@
 import { GemSocket, ItemCellAnchor } from '@features/gear/components/ItemCell';
+import { useEquippedItemWowheadDataset } from '@features/gear/hooks/useEquippedItemWowheadDataset';
 import { useOpenSelectorModal } from '@features/gear/hooks/useSelectorModal';
 import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import { SelectorModalTabs } from '@features/gear/types';
 import type { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import { useSimHost } from '@sim/context/SimHostContext';
+import { useActionId } from '@sim/hooks/useActionId';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
-import { useActionId } from '@ui-kit/hooks/useActionId';
-import { useEquippedItemWowheadDataset } from '@ui-kit/hooks/useEquippedItemWowheadDataset';
 import clsx from 'clsx';
 import { useMemo } from 'react';
 

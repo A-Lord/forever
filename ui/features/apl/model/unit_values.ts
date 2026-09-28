@@ -2,14 +2,26 @@ import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { type ActionId, defaultTargetIcon, getPetIconFromName } from '@sim/proto/action_id';
+import type { ResolvedIcon } from '@ui-kit/Field/types';
 import type { UnitValue } from '@ui-kit/UnitPicker/types';
 
 import { type UNIT_SET, unitSets } from './unit_sets';
 
 const label = (key: string) => i18n.t(`rotation_tab.apl.helpers.unit_labels.${key}`);
 
+/** A `UnitValue` whose icon may still be an `ActionId` to resolve (a pet's). */
+export interface UnitModel extends Omit<UnitValue, 'iconUrl'> {
+	iconUrl?: string | ActionId;
+}
+
+/** The `UnitValue` a unit picker takes: an `ActionId` icon becomes the url it resolved to, or none yet. */
+export const withIconUrl = (unit: UnitModel, resolved?: ResolvedIcon): UnitValue => ({
+	...unit,
+	iconUrl: typeof unit.iconUrl === 'string' ? unit.iconUrl : resolved?.iconUrl,
+});
+
 /** The icon, text and reference one unit shows as. */
-export const refToValue = (ref: UnitReference | undefined, player: Player<any>, targetUI: boolean | undefined): UnitValue => {
+export const refToValue = (ref: UnitReference | undefined, player: Player<any>, targetUI: boolean | undefined): UnitModel => {
 	if (!ref || ref.type == UnitType.Unknown) {
 		return { value: ref, iconUrl: targetUI ? 'fa-bullseye' : 'fa-user', text: targetUI ? label('current_target') : label('self') };
 	}
@@ -47,9 +59,9 @@ export const refToValue = (ref: UnitReference | undefined, player: Player<any>, 
 };
 
 export interface UnitOptionModel {
-	unit: UnitValue;
+	unit: UnitModel;
 	/** A pet is filed under its owner (or under the default unit, off the target UI). */
-	submenu?: Array<UnitValue>;
+	submenu?: Array<UnitModel>;
 }
 
 /** The unit set's options, each already resolved to what it displays as. */

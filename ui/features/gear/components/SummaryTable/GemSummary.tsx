@@ -1,10 +1,10 @@
 import type { UIGem as Gem } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
+import { useActionId } from '@sim/hooks/useActionId';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { ActionId } from '@sim/proto/action_id';
 import { externalRel } from '@sim/utils/links';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { SummaryTableRow } from '@ui-kit/SummaryTableRow';
 import { itemQualityClassName } from '@ui-kit/utils/css';
 import clsx from 'clsx';

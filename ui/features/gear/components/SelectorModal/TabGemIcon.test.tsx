@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 const useActionId = vi.hoisted(() => vi.fn(() => ({ iconUrl: 'gem-icon.jpg', name: '', href: '', ready: true })));
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({ useActionId }));
+vi.mock('@sim/hooks/useActionId', () => ({ useActionId }));
 
 const { TabGemIcon } = await import('./TabGemIcon');
 

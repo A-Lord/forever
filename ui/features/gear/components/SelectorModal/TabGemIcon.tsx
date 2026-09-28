@@ -1,8 +1,8 @@
 import type { GemColor } from '@generated/proto/common';
 import type { UIGem as Gem } from '@generated/proto/ui';
+import { useActionId } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { cssVars } from '@ui-kit/utils/css';
 
 export interface TabGemIconProps {

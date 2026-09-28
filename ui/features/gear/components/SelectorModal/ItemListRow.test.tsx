@@ -31,7 +31,7 @@ const store = vi.hoisted(() => {
 	};
 });
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: () => ({ iconUrl: 'icon-url.png', name: 'item-name', href: 'https://example.com/item', ready: true }),
 }));
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(store.subscribe));

@@ -1,4 +1,4 @@
-import { useActionId } from '@ui-kit/hooks/useActionId';
+import { useActionId } from '@sim/hooks/useActionId';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 import { memo } from 'react';
 

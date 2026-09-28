@@ -1,9 +1,9 @@
 import { makePlayer } from '@features/apl/testing';
 import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
-import { defaultTargetIcon, getPetIconFromName } from '@sim/proto/action_id';
+import { ActionId, defaultTargetIcon, getPetIconFromName } from '@sim/proto/action_id';
 import { describe, expect, it, vi } from 'vitest';
 
-import { refToValue, unitOptionModels } from './unit_values';
+import { refToValue, unitOptionModels, withIconUrl } from './unit_values';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
@@ -79,6 +79,17 @@ describe('refToValue', () => {
 
 		const ref = UnitReference.create({ type: UnitType.Pet, index: 2 });
 		expect(refToValue(ref, player, false)).toEqual({ value: ref, iconUrl: 'fa-paw', text: `${label('pet')} 3` });
+	});
+});
+
+describe('withIconUrl', () => {
+	it('keeps a url or glyph icon, and swaps an ActionId icon for the url it resolved to', () => {
+		const ref = UnitReference.create({ type: UnitType.Pet, index: 0 });
+		const pet = { value: ref, text: 'Stampede', iconUrl: ActionId.fromSpellId(121818) };
+
+		expect(withIconUrl({ value: ref, iconUrl: 'fa-paw' })).toEqual({ value: ref, iconUrl: 'fa-paw' });
+		expect(withIconUrl(pet, { iconUrl: 'stampede.jpg', name: 'Stampede' })).toEqual({ value: ref, text: 'Stampede', iconUrl: 'stampede.jpg' });
+		expect(withIconUrl(pet)).toEqual({ value: ref, text: 'Stampede', iconUrl: undefined });
 	});
 });
 

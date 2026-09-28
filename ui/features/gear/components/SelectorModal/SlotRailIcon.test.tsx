@@ -11,8 +11,8 @@ import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 const useActionId = vi.hoisted(() => vi.fn(() => ({ iconUrl: 'item-icon.jpg', name: '', href: 'https://wowhead.com/item=1', ready: true })));
 const useWowheadDataset = vi.hoisted(() => vi.fn());
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({ useActionId }));
-vi.mock('@ui-kit/hooks/useWowheadDataset', () => ({ useWowheadDataset }));
+vi.mock('@sim/hooks/useActionId', () => ({ useActionId }));
+vi.mock('@sim/hooks/useWowheadDataset', () => ({ useWowheadDataset }));
 vi.mock('@sim/proto/action_id/tooltip_data', () => ({
 	equippedItemWowheadTooltipData: () => Promise.resolve(''),
 }));

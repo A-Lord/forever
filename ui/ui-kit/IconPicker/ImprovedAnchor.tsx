@@ -1,6 +1,6 @@
+import { useActionId } from '@sim/hooks/useActionId';
 import type { ActionId } from '@sim/proto/action_id';
 import { externalRel } from '@sim/utils/links';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import clsx from 'clsx';
 
 import { wowheadAnchorProps } from '../utils/wowhead';

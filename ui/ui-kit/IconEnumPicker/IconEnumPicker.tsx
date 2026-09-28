@@ -1,4 +1,4 @@
-import { useActionId } from '@ui-kit/hooks/useActionId';
+import { useActionId } from '@sim/hooks/useActionId';
 import { useInput } from '@ui-kit/hooks/useInput';
 import { Menu } from '@ui-kit/Menu';
 import { PickerShell } from '@ui-kit/PickerShell';

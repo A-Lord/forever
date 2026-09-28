@@ -1,10 +1,10 @@
 import type { ActionID as ActionIdProto } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
+import { useActionId } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { Button } from '@ui-kit/Button';
 import { FieldLabel } from '@ui-kit/FormControl';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { Icon } from '@ui-kit/Icon';
 import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { NumberListPicker } from '@ui-kit/NumberListPicker';

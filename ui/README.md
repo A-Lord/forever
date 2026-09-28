@@ -66,8 +66,8 @@ Shared React components get a folder of their own, `ui-kit/<Name>/{<Name>.tsx, t
 plus a co-located `<Name>.css` only when the component needs `ui-*` composition classes (see
 `STYLING.md`) — most style with Tailwind utilities inline and have no `.css` file at all. Hooks live one per file named after
 the hook: the store's React binding and everything built on it in `ui/sim/hooks/`
-(`useStoreSubscribe.ts`, `useSimRun.ts`), the sim-agnostic ones in `ui-kit/hooks/` (`useInput.ts`,
-`useActionId.ts`). There is no `ui-kit/react/`: every component here is React, so the qualifier
+(`useStoreSubscribe.ts`, `useSimRun.ts`, `useActionId.ts`), the sim-agnostic ones in `ui-kit/hooks/` (`useInput.ts`,
+`useCopyToClipboard.ts`). There is no `ui-kit/react/`: every component here is React, so the qualifier
 distinguished nothing. There is no separate component-registry document — components and their
 co-located CSS are covered here and in `STYLING.md`.
 

@@ -1,8 +1,9 @@
 import type { UNIT_SET } from '@features/apl/model/unit_sets';
 import { unitSets } from '@features/apl/model/unit_sets';
-import { refToValue, unitOptionModels } from '@features/apl/model/unit_values';
+import { refToValue, unitOptionModels, withIconUrl } from '@features/apl/model/unit_values';
 import type { InputConfig } from '@features/inputs/input';
 import type { UnitReference } from '@generated/proto/common';
+import { useActionIds } from '@sim/hooks/useActionIds';
 import { useUnitMetadataVersion } from '@sim/hooks/useUnitMetadataVersion';
 import type { Player } from '@sim/player/player';
 import { DropdownField } from '@ui-kit/DropdownPicker';
@@ -28,12 +29,19 @@ export interface UnitFieldProps {
 export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 	const targetUI = unitSets[unitSet].targetUI;
 	useUnitMetadataVersion(player.sim);
-	const options = unitOptionModels(unitSet, player).map(model => unitOption(model.unit, model.submenu));
+	const models = unitOptionModels(unitSet, player);
+	const icons = useActionIds(models.map(({ unit }) => (typeof unit.iconUrl === 'string' ? undefined : unit.iconUrl)));
+	const options = models.map((model, index) =>
+		unitOption(
+			withIconUrl(model.unit, icons[index]),
+			model.submenu?.map(unit => withIconUrl(unit)),
+		),
+	);
 
 	const boundConfig = {
 		...config,
 		extraClassNames: ['my-auto mr-2 ml-0', ...(config.extraClassNames || [])],
-		sourceToValue: (source: UnitReference | undefined) => refToValue(source, player, targetUI),
+		sourceToValue: (source: UnitReference | undefined) => withIconUrl(refToValue(source, player, targetUI)),
 		valueToSource: (unit: UnitValue) => unit.value,
 	};
 
