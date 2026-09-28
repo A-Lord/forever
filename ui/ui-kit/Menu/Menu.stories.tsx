@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Menu } from './Menu';
 import { MenuItem } from './MenuItem';
@@ -27,7 +27,6 @@ const meta = {
 		triggerProps: { className: 'border border-primary px-4 py-2 text-white' },
 		surface: 'menu',
 		align: 'start',
-		onOpenChange: fn(),
 		children: ITEMS,
 	},
 	argTypes: {
@@ -69,13 +68,14 @@ export const SurfaceNone: Story = {
 };
 
 export const Opens: Story = {
-	play: async ({ args, canvasElement }) => {
+	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		await userEvent.click(canvas.getByRole('button', { name: 'Open menu' }));
+		const trigger = canvas.getByRole('button', { name: 'Open menu' });
+		await userEvent.click(trigger);
 		const menu = await canvas.findByRole('menu');
 		await expect(canvasElement.querySelector('[data-testid="storybook-portal"]')?.contains(menu)).toBe(true);
-		await expect(args.onOpenChange).toHaveBeenCalledWith(true, expect.anything());
+		await expect(trigger.hasAttribute('data-popup-open')).toBe(true);
 		await userEvent.click(within(menu).getByRole('menuitem', { name: 'Export' }));
-		await expect(args.onOpenChange).toHaveBeenLastCalledWith(false, expect.anything());
+		await waitFor(() => expect(trigger.hasAttribute('data-popup-open')).toBe(false));
 	},
 };
