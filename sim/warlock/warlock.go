@@ -42,6 +42,9 @@ type Warlock struct {
 	BaneOfDoom  *core.Spell
 	Banes       []*core.Spell
 
+	BaneOfHavoc      *core.Spell
+	BaneOfHavocAuras core.AuraArray
+
 	// Talent Tree Spells
 	AmplifyCurse *core.Spell
 	Conflagrate  *core.Spell
@@ -53,11 +56,13 @@ type Warlock struct {
 	AmplifyCurseAura       *core.Aura
 	AmplifyCurseMultiplier float64
 
-	DemonicBrandAuras      core.AuraArray
-	NightfallProcAura      *core.Aura
-	ShadowEmbraceAura      *core.Aura
-	DemonicKnowledgeAura   *core.Aura
-	MasterDemonologistAura *core.Aura
+	ShadowVulnerabilityAuras core.AuraArray
+	DemonicBrandAuras        core.AuraArray
+	conflagrateKeepsImmolate float64 // Shadow and Flame's chance that Conflagrate leaves Immolate burning
+	NightfallProcAura        *core.Aura
+	ShadowEmbraceAura        *core.Aura
+	DemonicKnowledgeAura     *core.Aura
+	MasterDemonologistAura   *core.Aura
 
 	// Pets
 	ActivePet  *WarlockPet
@@ -118,7 +123,6 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerDrainSoul()
 	warlock.registerHellfire()
 	warlock.registerImmolate()
-	warlock.registerIncinerate()
 	warlock.registerLifeTap()
 	warlock.registerShadowBolt()
 	warlock.registerSearingPain()

@@ -1,42 +1,23 @@
 package warlock
 
-var shadowBurnRank = spellData.Shadowburn.Highest()
-var shadowBurnCoeff = shadowBurnRank.DamageEffect().Coeff()
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-// TODO: To be implemented. Port the TBC Shadow Burn implementation below; not yet verified against the Forever game files.
+// Granted by the Shadowburn talent. The 15 sec cooldown is the row's category cooldown. Soul Shards are
+// not modelled: neither the shard it costs nor the one a kill returns.
 func (warlock *Warlock) registerShadowBurn() {
-	panic("To be implemented")
+	rankedSpell := spellData.Shadowburn.ByID(18871)
+	shadowburnHit := rankedSpell.DamageEffect()
 
-	// The TBC implementation, kept for the port:
-	//
-	// warlock.Shadowburn = warlock.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: shadowBurnRank.ID},
-	// 	SpellSchool:    shadowBurnRank.SpellSchool(),
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagBinary,
-	// 	ClassSpellMask: WarlockSpellShadowBurn,
-	// 	ClassFlags:     shadowBurnRank.ClassFlags,
-	//
-	// 	ManaCost: core.ManaCostOptions{FlatCost: int32(shadowBurnRank.Cost())},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: shadowBurnRank.GCD(),
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    warlock.NewTimer(),
-	// 			Duration: max(shadowBurnRank.Cooldown(), shadowBurnRank.CategoryCooldown()),
-	// 		},
-	// 	},
-	//
-	// 	DamageMultiplier: 1,
-	// 	DefenseType:      shadowBurnRank.DefenseTypeCore(),
-	// 	ThreatMultiplier: 1,
-	// 	BonusCoefficient: shadowBurnCoeff,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		dmgRoll := shadowBurnRank.DamageEffect().Average(core.CharacterLevel)
-	// 		spell.CalcAndDealDamage(sim, target, dmgRoll, spell.OutcomeMagicHitAndCrit)
-	//
-	// 	},
-	// })
+	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = WarlockSpellShadowBurn
+
+	// Roll the damage and to hit
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, shadowburnHit.Roll(sim, spell.Unit.Level), spell.OutcomeMagicHitAndCrit)
+	}
+
+	warlock.Shadowburn = warlock.RegisterSpell(config)
 }
