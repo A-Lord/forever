@@ -1,3 +1,4 @@
+import { WOWHEAD_GEAR_PLANNER_URL } from '@sim/proto/wowhead';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
@@ -10,7 +11,7 @@ const listCategories = (_host: unknown, categories: ExportCategories) => JSON.st
 
 const JsonExporterDialog = exporterDialog({ ...JSON_EXPORTER, getData: listCategories });
 const LinkExporterDialog = exporterDialog({ ...LINK_EXPORTER, getData: listCategories });
-const WowheadExporterDialog = exporterDialog({ ...WOWHEAD_GEAR_PLANNER_EXPORTER, getData: () => 'https://www.wowhead.com/classic/gear-planner/warrior/human' });
+const WowheadExporterDialog = exporterDialog({ ...WOWHEAD_GEAR_PLANNER_EXPORTER, getData: () => `${WOWHEAD_GEAR_PLANNER_URL}/warrior/human` });
 
 const meta = {
 	title: 'Features/ImportExport/ExporterDialog',
