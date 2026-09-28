@@ -1,26 +1,20 @@
 import { Checkbox } from '@base-ui/react/checkbox';
-import { useInput } from '@ui-kit/hooks/useInput';
+import { type ControlledProps, Field, type FieldChromeProps } from '@ui-kit/Field';
 import { Icon } from '@ui-kit/Icon';
-import { PickerShell } from '@ui-kit/PickerShell';
 
-import type { AnyBooleanPickerConfig } from './types';
+import type { BooleanPickerOptions } from './types';
 
-export interface BooleanPickerProps<ModObject> {
-	modObject: ModObject;
-	config: AnyBooleanPickerConfig<ModObject>;
-}
+export type BooleanPickerProps = FieldChromeProps & ControlledProps<boolean> & BooleanPickerOptions;
 
-export const BooleanPicker = <ModObject,>({ modObject, config }: BooleanPickerProps<ModObject>) => {
-	const { value, setValue, hidden, disabled } = useInput(modObject, config);
-
+export const BooleanPicker = ({ value, onChange, disabled, reverse, className, testId, ...chrome }: BooleanPickerProps) => {
 	const input = (
 		<Checkbox.Root
-			id={config.id}
+			id={chrome.id}
 			className="ui-boolean-picker-input inline-flex items-center justify-center p-0"
 			data-testid="boolean-picker-input"
 			checked={value}
 			disabled={disabled}
-			onCheckedChange={checked => setValue(checked)}>
+			onCheckedChange={checked => onChange(checked)}>
 			<Checkbox.Indicator>
 				<Icon name="check" className="text-primary-foreground" />
 			</Checkbox.Indicator>
@@ -28,14 +22,13 @@ export const BooleanPicker = <ModObject,>({ modObject, config }: BooleanPickerPr
 	);
 
 	return (
-		<PickerShell
-			config={config}
-			className={config.reverse ? 'ui-boolean-picker ui-boolean-picker-reverse' : 'ui-boolean-picker'}
-			testId="boolean-picker-root"
-			hidden={hidden}
+		<Field
+			{...chrome}
+			className={['ui-boolean-picker', reverse && 'ui-boolean-picker-reverse', className]}
+			testId={testId ?? 'boolean-picker-root'}
 			disabled={disabled}
-			leading={config.reverse ? undefined : input}>
-			{config.reverse ? input : undefined}
-		</PickerShell>
+			leading={reverse ? undefined : input}>
+			{reverse ? input : undefined}
+		</Field>
 	);
 };

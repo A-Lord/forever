@@ -1,9 +1,9 @@
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo, useState } from 'react';
 
@@ -35,21 +35,21 @@ export const EncounterPicker = ({ showExecuteProportion }: EncounterPickerProps)
 		<div className="flex flex-wrap gap-3 [&_.ui-list-picker-compact_.ui-field]:mb-0" data-testid="encounter-picker-root">
 			<PickerGroup>
 				{duration.map(config => (
-					<NumberPicker key={config.id} modObject={encounter} config={config} />
+					<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 				))}
 			</PickerGroup>
 			{showExecuteProportion && (
 				<PickerGroup className="w-full flex-col flex-nowrap">
 					{execute.map(config => (
-						<NumberPicker key={config.id} modObject={encounter} config={config} />
+						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}
 				</PickerGroup>
 			)}
-			<EnumPicker modObject={encounter} config={zone} />
+			<BoundEnumPicker modObject={encounter} config={zone} />
 			<AreaTypesPicker encounter={encounter} />
-			{showDamage && <EnumPicker modObject={encounter} config={preset} />}
-			{player.canEnableTargetDummies() && <NumberPicker modObject={host.sim.raid} config={allies} />}
-			{player.getPlayerSpec().isTankSpec && <NumberPicker modObject={encounter} config={minBaseDamage} />}
+			{showDamage && <BoundEnumPicker modObject={encounter} config={preset} />}
+			{player.canEnableTargetDummies() && <BoundNumberPicker modObject={host.sim.raid} config={allies} />}
+			{player.getPlayerSpec().isTankSpec && <BoundNumberPicker modObject={encounter} config={minBaseDamage} />}
 			<TargetInputsPicker encounter={encounter} targetIndex={0} />
 			<Button className="min-w-[calc(50%-0.5rem)] max-xxl:w-full" data-testid="advanced-button" onClick={() => setAdvancedOpen(true)}>
 				{i18n.t('settings_tab.encounter.advanced')}

@@ -3,7 +3,6 @@ import i18n from '@i18n/config';
 import type { CombatLog } from '@sim/proto/combat_log';
 import { isCastCompleted } from '@sim/proto/combat_log';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import type { BooleanPickerConfig } from '@ui-kit/BooleanPicker/types';
 import { SearchBar } from '@ui-kit/SearchBar';
 import { ToolbarButton } from '@ui-kit/Toolbar';
 import { findScrollParent } from '@ui-kit/utils/dom';
@@ -126,25 +125,6 @@ export const LogRunner = ({ active }: LogRunnerProps) => {
 		if (seen) scrollListToTop();
 	}, [seen, scrollListToTop]);
 
-	const showDebugHolder = useRef(false);
-	const showDebugConfig = useMemo<BooleanPickerConfig<{ current: boolean }>>(
-		() => ({
-			id: 'log-runner-show-debug',
-			extraClassNames: ['w-auto', 'mb-0'],
-			label: i18n.t('results_tab.details.logs.show_debug'),
-			layout: 'inline',
-			reverse: true,
-			// No `storeSubscribe`: this is `InputConfig`'s UI-local toggle, re-read after its own write.
-			getValue: holder => holder.current,
-			setValue: (holder, next) => {
-				holder.current = next;
-				setShowDebug(next);
-				scrollListToTop();
-			},
-		}),
-		[scrollListToTop],
-	);
-
 	return (
 		<div data-testid="log-runner-root" className="flex min-h-log-body-min-h flex-col">
 			{active &&
@@ -210,7 +190,18 @@ export const LogRunner = ({ active }: LogRunnerProps) => {
 				<ToolbarButton className="whitespace-nowrap" onClick={scrollListToTop}>
 					{i18n.t('results_tab.details.logs.top_button')}
 				</ToolbarButton>
-				<BooleanPicker modObject={showDebugHolder} config={showDebugConfig} />
+				<BooleanPicker
+					id="log-runner-show-debug"
+					className={['w-auto', 'mb-0']}
+					label={i18n.t('results_tab.details.logs.show_debug')}
+					layout="inline"
+					reverse
+					value={showDebug}
+					onChange={next => {
+						setShowDebug(next);
+						scrollListToTop();
+					}}
+				/>
 			</LogToolbar>
 			<Exporter
 				open={exportOpen}

@@ -5,47 +5,35 @@ import { EnumPicker } from '@ui-kit/EnumPicker';
 import { StatsType } from './types';
 
 export interface EpWeightsOptionsProps {
-	options: { statsType: number; showAllStats: boolean };
+	statsType: StatsType;
+	showAllStats: boolean;
 	onStatsTypeChange: (statsType: StatsType) => void;
 	onShowAllStatsChange: (showAllStats: boolean) => void;
 }
 
 const STATS_TYPES: StatsType[] = [StatsType.Ep, StatsType.Weight];
 
-/** Both values are UI-local and read back off `options`, which the dialog owns because this body unmounts on close: `useInput` re-reads its source synchronously on its own write, which is before a `useState` has committed. */
-export const EpWeightsOptions = ({ options, onStatsTypeChange, onShowAllStatsChange }: EpWeightsOptionsProps) => (
+export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, onShowAllStatsChange }: EpWeightsOptionsProps) => (
 	<div className="-mx-3 mb-3 flex flex-wrap">
 		<div className="w-full px-3 sm:w-1/4">
 			<EnumPicker
-				modObject={options}
+				id="ep-type-select"
 				ariaLabel={i18n.t('sidebar.buttons.stat_weights.modal.stats_type')}
-				config={{
-					id: 'ep-type-select',
-					values: [
-						{ name: i18n.t('sidebar.buttons.stat_weights.modal.ep'), value: 0 },
-						{ name: i18n.t('sidebar.buttons.stat_weights.modal.weights'), value: 1 },
-					],
-					getValue: subject => subject.statsType,
-					setValue: (subject, newValue) => {
-						subject.statsType = newValue;
-						onStatsTypeChange(STATS_TYPES[newValue]);
-					},
-				}}
+				values={[
+					{ name: i18n.t('sidebar.buttons.stat_weights.modal.ep'), value: 0 },
+					{ name: i18n.t('sidebar.buttons.stat_weights.modal.weights'), value: 1 },
+				]}
+				value={STATS_TYPES.indexOf(statsType)}
+				onChange={next => onStatsTypeChange(STATS_TYPES[next])}
 			/>
 		</div>
 		<div className="w-full px-3 sm:w-1/4">
 			<BooleanPicker
-				modObject={options}
-				config={{
-					id: 'ep-show-all-stats',
-					label: i18n.t('sidebar.buttons.stat_weights.modal.show_all_stats'),
-					layout: 'inline',
-					getValue: subject => subject.showAllStats,
-					setValue: (subject, newValue) => {
-						subject.showAllStats = newValue;
-						onShowAllStatsChange(newValue);
-					},
-				}}
+				id="ep-show-all-stats"
+				label={i18n.t('sidebar.buttons.stat_weights.modal.show_all_stats')}
+				layout="inline"
+				value={showAllStats}
+				onChange={onShowAllStatsChange}
 			/>
 		</div>
 	</div>

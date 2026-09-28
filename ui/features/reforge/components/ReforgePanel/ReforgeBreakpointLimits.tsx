@@ -1,3 +1,4 @@
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { breakpointValueToDisplayPercentage } from '@features/reforge/model/utils';
 import { StatCapType } from '@generated/proto/api';
 import i18n from '@i18n/config';
@@ -5,7 +6,6 @@ import type { Player } from '@sim/player/player';
 import type { StatCap } from '@sim/proto/stats';
 import type { ReforgeSettings } from '@sim/settings/reforge_settings';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { Icon } from '@ui-kit/Icon';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId } from 'react';
@@ -56,7 +56,7 @@ export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useS
 									<div className="whitespace-nowrap">{statName}</div>
 								</td>
 								<td colSpan={2} className="ui-reforge-cap-value-cell">
-									<EnumPicker
+									<BoundEnumPicker
 										modObject={player}
 										config={{
 											id: `${idPrefix}-${statName}-breakpoint-limit`,

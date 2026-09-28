@@ -1,17 +1,16 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import type { BooleanPickerConfig, EnumPickerConfig, NumberPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { setLang, supportedLanguages } from '@i18n/locale_service';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Sim } from '@sim/sim';
 import { subscribeSimField, subscribeUiField } from '@sim/state/subscriptions';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import type { BooleanPickerConfig } from '@ui-kit/BooleanPicker/types';
 import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
-import { EnumPicker } from '@ui-kit/EnumPicker';
-import type { EnumPickerConfig, EnumValueConfig } from '@ui-kit/EnumPicker/types';
+import type { EnumValueConfig } from '@ui-kit/EnumPicker';
 import { HelpText } from '@ui-kit/FormControl';
-import { NumberPicker } from '@ui-kit/NumberPicker';
-import type { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { toastManager } from '@ui-kit/Toast';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
@@ -196,7 +195,7 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 				<PickerGroup data-testid="picker-group">
 					<div data-testid="fixed-rng-seed-container">
 						<div data-testid="fixed-rng-seed">
-							<NumberPicker modObject={sim} config={fixedRngSeedConfig} />
+							<BoundNumberPicker modObject={sim} config={fixedRngSeedConfig} />
 						</div>
 						<HelpText as="div">
 							<span>{i18n.t('info.options.fixed_rng_seed.last_used')}</span>&nbsp;
@@ -204,21 +203,21 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 						</HelpText>
 					</div>
 					<div data-testid="language-picker">
-						<EnumPicker modObject={sim} config={languageConfig} />
+						<BoundEnumPicker modObject={sim} config={languageConfig} />
 					</div>
 				</PickerGroup>
 				<div className="w-1/2 pr-2" data-testid="show-threat-metrics-picker">
-					<BooleanPicker modObject={sim} config={showThreatMetricsConfig} />
+					<BoundBooleanPicker modObject={sim} config={showThreatMetricsConfig} />
 				</div>
 				<div className="w-1/2 pr-2" data-testid="show-experimental-picker">
-					<BooleanPicker modObject={sim} config={showExperimentalConfig} />
+					<BoundBooleanPicker modObject={sim} config={showExperimentalConfig} />
 				</div>
 				<div className="w-1/2 pr-2" data-testid="show-quick-swap-picker">
-					<BooleanPicker modObject={sim} config={showQuickSwapConfig} />
+					<BoundBooleanPicker modObject={sim} config={showQuickSwapConfig} />
 				</div>
 				<div className="w-1/2 pr-2" data-testid="use-concurrency-container" hidden={!isWasm}>
 					<div data-testid="use-concurrent-workers-picker">
-						<EnumPicker modObject={sim} config={concurrencyConfig} />
+						<BoundEnumPicker modObject={sim} config={concurrencyConfig} />
 					</div>
 					<HelpText as="div" hidden={!firefox}>
 						{firefox ? FIREFOX_WORKER_NOTE : ''}

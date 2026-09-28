@@ -28,8 +28,8 @@ vi.mock('@features/inputs/components/BoundIconInput', () => ({
 		<div className="icon-picker-root" data-testid="icon-picker-root" data-layout={config.layout} />
 	),
 }));
-vi.mock('../InputPicker', () => ({
-	InputPicker: ({ config }: { config: { id: string; layout?: string } }) => (
+vi.mock('@features/inputs/components/BoundInput', () => ({
+	BoundInput: ({ config }: { config: { id: string; layout?: string } }) => (
 		<div data-testid="input-picker-stub" data-id={config.id} data-layout={config.layout} />
 	),
 }));

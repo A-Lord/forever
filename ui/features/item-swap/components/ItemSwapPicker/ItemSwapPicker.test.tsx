@@ -10,7 +10,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
 vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
-vi.mock('@ui-kit/BooleanPicker', () => ({ BooleanPicker: () => <div className="boolean-picker-root" /> }));
+vi.mock('@features/inputs/components/BoundBooleanPicker', () => ({ BoundBooleanPicker: () => <div className="boolean-picker-root" /> }));
 
 const { ItemSwapPicker } = await import('./ItemSwapPicker');
 

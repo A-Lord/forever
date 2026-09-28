@@ -1,3 +1,5 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { Class, ItemSlot } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIGem as Gem, UIItem as Item } from '@generated/proto/ui';
 import i18n from '@i18n/config';
@@ -8,9 +10,7 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { useUiStore } from '@sim/hooks/useUiStore';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { subscribeSimField } from '@sim/state/subscriptions';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { Icon } from '@ui-kit/Icon';
 import { SearchBar } from '@ui-kit/SearchBar';
 import { Tooltip } from '@ui-kit/Tooltip';
@@ -123,7 +123,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 					</>
 				)}
 				<div className="min-w-28" data-testid="selector-modal-phase-selector">
-					<EnumPicker
+					<BoundEnumPicker
 						modObject={sim}
 						config={{
 							id: phaseId,
@@ -143,7 +143,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 				</div>
 				{showWeaponOptions && (
 					<div data-testid="selector-modal-show-1h-weapons">
-						<BooleanPicker
+						<BoundBooleanPicker
 							modObject={sim}
 							config={{
 								id: 'show-1h-weapons-selector',
@@ -163,7 +163,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 				)}
 				{showWeaponOptions && (
 					<div data-testid="selector-modal-show-2h-weapons">
-						<BooleanPicker
+						<BoundBooleanPicker
 							modObject={sim}
 							config={{
 								id: 'show-2h-weapons-selector',
@@ -183,7 +183,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 				)}
 				{label.startsWith('Gem') && (
 					<div data-testid="selector-modal-show-matching-gems">
-						<BooleanPicker
+						<BoundBooleanPicker
 							modObject={sim}
 							config={{
 								id: 'show-matching-gems-selector',
@@ -203,7 +203,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 				)}
 				{showEPOptions && (
 					<div data-testid="selector-modal-show-ep-values">
-						<BooleanPicker
+						<BoundBooleanPicker
 							modObject={sim}
 							config={{
 								id: 'show-ep-values-selector',

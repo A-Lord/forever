@@ -1,10 +1,10 @@
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import type { EnumPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import type { Encounter } from '@sim/raid/encounter';
 import { Dialog } from '@ui-kit/Dialog';
-import { EnumPicker } from '@ui-kit/EnumPicker';
-import type { EnumPickerConfig } from '@ui-kit/EnumPicker/types';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
@@ -49,16 +49,16 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 			testId="advanced-encounter-picker-modal"
 			bodyClassName="overflow-auto"
 			bodyGap="gap-3"
-			headerChildren={<EnumPicker modObject={encounter} config={presetConfig} />}>
+			headerChildren={<BoundEnumPicker modObject={encounter} config={presetConfig} />}>
 			<div className="flex flex-col gap-3" data-testid="encounter-header">
 				<PickerGroup>
 					{duration.map(config => (
-						<NumberPicker key={config.id} modObject={encounter} config={config} />
+						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}
 				</PickerGroup>
 				<PickerGroup className="flex-row">
 					{execute.map(config => (
-						<NumberPicker key={config.id} modObject={encounter} config={config} />
+						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}
 				</PickerGroup>
 			</div>

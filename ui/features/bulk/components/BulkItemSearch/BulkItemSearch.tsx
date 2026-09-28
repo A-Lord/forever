@@ -1,12 +1,10 @@
 import { ItemSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
-import type { Player } from '@sim/player/player';
 import { canEquipItem } from '@sim/proto/items';
 import { ComboBox } from '@ui-kit/ComboBox';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { NumberPicker } from '@ui-kit/NumberPicker';
-import type { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { addBulkItem } from '../../model/items';
@@ -23,9 +21,6 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 	const [query, setQuery] = useState('');
 	const [minIlvl, setMinIlvl] = useState(0);
 	const [maxIlvl, setMaxIlvl] = useState(0);
-	// The configs are built once and read the current filter through a ref, so a picker's
-	// `getValue` cannot close over a stale render.
-	const filters = useRef({ minIlvl: 0, maxIlvl: 0 });
 	const panelRef = useRef<HTMLDivElement>(null);
 
 	const allItems = useMemo(
@@ -48,23 +43,6 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 	useEffect(() => {
 		if (matches) setShown(matches);
 	}, [matches]);
-
-	const ilvlConfigs = useMemo(() => {
-		const make = (id: string, label: string, key: 'minIlvl' | 'maxIlvl', commit: (value: number) => void): NumberPickerConfig<Player<any>> => ({
-			id,
-			label,
-			showZeroes: false,
-			getValue: () => filters.current[key],
-			setValue: (_modObj, newValue: number) => {
-				filters.current[key] = newValue;
-				commit(newValue);
-			},
-		});
-		return {
-			min: make('bulkGearSearchMinIlvl', i18n.t('bulk_tab.search.min_ilvl'), 'minIlvl', setMinIlvl),
-			max: make('bulkGearSearchMaxIlvl', i18n.t('bulk_tab.search.max_ilvl'), 'maxIlvl', setMaxIlvl),
-		};
-	}, []);
 
 	return (
 		<ContentBlock config={{ header: { title: i18n.t('bulk_tab.search.title'), className: 'pb-0 border-b-0' } }} flush>
@@ -106,9 +84,21 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 					}
 				/>
 				<div className="flex items-center [&_.ui-number-picker-root]:mb-0">
-					<NumberPicker modObject={player} config={ilvlConfigs.min} />
+					<NumberPicker
+						id="bulkGearSearchMinIlvl"
+						label={i18n.t('bulk_tab.search.min_ilvl')}
+						showZeroes={false}
+						value={minIlvl}
+						onChange={setMinIlvl}
+					/>
 					<span className="mx-3 mt-3">-</span>
-					<NumberPicker modObject={player} config={ilvlConfigs.max} />
+					<NumberPicker
+						id="bulkGearSearchMaxIlvl"
+						label={i18n.t('bulk_tab.search.max_ilvl')}
+						showZeroes={false}
+						value={maxIlvl}
+						onChange={setMaxIlvl}
+					/>
 				</div>
 			</div>
 		</ContentBlock>

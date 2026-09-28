@@ -1,3 +1,6 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import { ItemSlot } from '@generated/proto/common';
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
 import i18n from '@i18n/config';
@@ -8,10 +11,7 @@ import { Player } from '@sim/player/player';
 import { Sim } from '@sim/sim';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { kebabCase } from '@sim/utils/format';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Dialog } from '@ui-kit/Dialog';
-import { EnumPicker } from '@ui-kit/EnumPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import clsx, { type ClassValue } from 'clsx';
 import type { ReactNode } from 'react';
 
@@ -89,7 +89,7 @@ const SourceSection = ({ sim }: { sim: Sim }) => (
 		{SOURCES.map(source => {
 			const label = translateSourceFilter(source);
 			if (!label) return null;
-			return <BooleanPicker<Sim> key={source} modObject={sim} config={listFilterConfig('sources', source, `filters-source-${source}`, label)} />;
+			return <BoundBooleanPicker<Sim> key={source} modObject={sim} config={listFilterConfig('sources', source, `filters-source-${source}`, label)} />;
 		})}
 	</MenuSection>
 );
@@ -101,7 +101,7 @@ const ArmorTypeSection = ({ player }: { player: Player<any> }) => {
 	return (
 		<MenuSection name={i18n.t('gear_tab.gear_picker.armor_type')} className="ui-filters-menu-section-bool-list">
 			{armorTypes.map(armorType => (
-				<BooleanPicker<Sim>
+				<BoundBooleanPicker<Sim>
 					key={armorType}
 					modObject={player.sim}
 					config={listFilterConfig('armorTypes', armorType, `filters-armor-type-${armorType}`, translateArmorType(armorType))}
@@ -119,7 +119,7 @@ const WeaponSections = ({ player }: { player: Player<any> }) => {
 		<>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.weapon_type')} className="ui-filters-menu-section-bool-list">
 				{weaponTypes.map(weaponType => (
-					<BooleanPicker<Sim>
+					<BoundBooleanPicker<Sim>
 						key={weaponType}
 						modObject={player.sim}
 						config={listFilterConfig('weaponTypes', weaponType, `filters-weapon-type-${weaponType}`, translateWeaponType(weaponType))}
@@ -127,17 +127,17 @@ const WeaponSections = ({ player }: { player: Player<any> }) => {
 				))}
 			</MenuSection>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.weapon_speed')} className="ui-filters-menu-section-number-list">
-				<NumberPicker<Sim>
+				<BoundNumberPicker<Sim>
 					modObject={player.sim}
 					config={numberFilterConfig('minMhWeaponSpeed', 'filters-min-weapon-speed', i18n.t('gear_tab.gear_picker.min_mh_speed'), SPEED_OPTIONS)}
 				/>
-				<NumberPicker<Sim>
+				<BoundNumberPicker<Sim>
 					modObject={player.sim}
 					config={numberFilterConfig('maxMhWeaponSpeed', 'filters-max-weapon-speed', i18n.t('gear_tab.gear_picker.max_mh_speed'), SPEED_OPTIONS)}
 				/>
 				{player.getPlayerSpec().canDualWield && (
 					<>
-						<NumberPicker<Sim>
+						<BoundNumberPicker<Sim>
 							modObject={player.sim}
 							config={numberFilterConfig(
 								'minOhWeaponSpeed',
@@ -146,7 +146,7 @@ const WeaponSections = ({ player }: { player: Player<any> }) => {
 								SPEED_OPTIONS,
 							)}
 						/>
-						<NumberPicker<Sim>
+						<BoundNumberPicker<Sim>
 							modObject={player.sim}
 							config={numberFilterConfig(
 								'maxOhWeaponSpeed',
@@ -170,7 +170,7 @@ const RangedWeaponSections = ({ player }: { player: Player<any> }) => {
 		<>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.ranged_weapon_type')} className="ui-filters-menu-section-bool-list">
 				{rangedWeaponTypes.map(rangedWeaponType => (
-					<BooleanPicker<Sim>
+					<BoundBooleanPicker<Sim>
 						key={rangedWeaponType}
 						modObject={player.sim}
 						config={listFilterConfig(
@@ -183,7 +183,7 @@ const RangedWeaponSections = ({ player }: { player: Player<any> }) => {
 				))}
 			</MenuSection>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.ranged_weapon_speed')} className="ui-filters-menu-section-number-list">
-				<NumberPicker<Sim>
+				<BoundNumberPicker<Sim>
 					modObject={player.sim}
 					config={numberFilterConfig(
 						'minRangedWeaponSpeed',
@@ -192,7 +192,7 @@ const RangedWeaponSections = ({ player }: { player: Player<any> }) => {
 						SPEED_OPTIONS,
 					)}
 				/>
-				<NumberPicker<Sim>
+				<BoundNumberPicker<Sim>
 					modObject={player.sim}
 					config={numberFilterConfig(
 						'maxRangedWeaponSpeed',
@@ -222,17 +222,17 @@ export const FiltersMenu = ({ slot, open, onOpenChange }: FiltersMenuProps) => {
 			title={i18n.t('gear_tab.gear_picker.filters.title')}>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.filters.general')}>
 				<div className="grid grid-cols-split gap-x-(--modal-padding)">
-					<NumberPicker<Sim>
+					<BoundNumberPicker<Sim>
 						modObject={sim}
 						config={numberFilterConfig('minIlvl', 'filters-min-ilvl', i18n.t('gear_tab.gear_picker.filters.min_ilvl'), { showZeroes: false })}
 					/>
 					<span className="flex justify-center self-end py-1.5">-</span>
-					<NumberPicker<Sim>
+					<BoundNumberPicker<Sim>
 						modObject={sim}
 						config={numberFilterConfig('maxIlvl', 'filters-max-ilvl', i18n.t('gear_tab.gear_picker.filters.max_ilvl'), { showZeroes: false })}
 					/>
 				</div>
-				<EnumPicker<Sim>
+				<BoundEnumPicker<Sim>
 					modObject={sim}
 					config={{
 						id: 'filters-faction-restriction',
@@ -253,7 +253,7 @@ export const FiltersMenu = ({ slot, open, onOpenChange }: FiltersMenuProps) => {
 			<SourceSection sim={sim} />
 			<MenuSection name={i18n.t('gear_tab.gear_picker.filters.raids')} className="ui-filters-menu-section-bool-list">
 				{Sim.ALL_RAIDS.map(raid => (
-					<BooleanPicker<Sim>
+					<BoundBooleanPicker<Sim>
 						key={raid}
 						modObject={sim}
 						config={listFilterConfig('raids', raid, `filters-raid-${raid}`, translateRaidFilter(raid))}

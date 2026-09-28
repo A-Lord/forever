@@ -1,19 +1,14 @@
 import { formatToNumber } from '@sim/utils/format';
+import { type ControlledProps, Field, type FieldChromeProps } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
 import { useCommitChange } from '@ui-kit/hooks/useCommitChange';
-import { useInput } from '@ui-kit/hooks/useInput';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { useDraft } from '@ui-kit/hooks/useDraft';
 import clsx from 'clsx';
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-import type { NumberPickerConfig } from './types';
+import type { NumberPickerOptions } from './types';
 
-export interface NumberPickerProps<ModObject> {
-	modObject: ModObject;
-	config: NumberPickerConfig<ModObject>;
-	inputClassName?: string;
-	testId?: string;
-}
+export type NumberPickerProps = FieldChromeProps & ControlledProps<number> & NumberPickerOptions;
 
 const formatSourceValue = (value: number, float: boolean, showZeroes: boolean, maxDecimalDigits: number): string => {
 	if (value === 0 && !showZeroes) return '';
@@ -30,53 +25,46 @@ const parseValue = (text: string, float: boolean): number => {
 	return float ? Number(text || '') || 0 : parseInt(text || '') || 0;
 };
 
-const updateSize = (input: HTMLInputElement | null) => {
-	if (!input) return;
-	const size = Math.max(3, input.value.length);
-	if (input.size !== size) input.size = size;
-};
-
-export const NumberPicker = <ModObject,>({ modObject, config, inputClassName, testId }: NumberPickerProps<ModObject>) => {
-	const { value, setValue, hidden, disabled, revision } = useInput(modObject, config);
+export const NumberPicker = ({
+	value,
+	onChange,
+	disabled,
+	float = false,
+	positive = false,
+	showZeroes = true,
+	maxDecimalDigits = 2,
+	inputClassName,
+	className,
+	testId,
+	...chrome
+}: NumberPickerProps) => {
 	const [input, setInput] = useState<HTMLInputElement | null>(null);
 	const attachInput = useCallback((element: HTMLElement | null) => setInput(element instanceof HTMLInputElement ? element : null), []);
 
-	const float = config.float ?? false;
-	const positive = config.positive ?? false;
-	const showZeroes = config.showZeroes ?? true;
-	const maxDecimalDigits = config.maxDecimalDigits ?? 2;
-
-	const display = formatSourceValue(value, float, showZeroes, maxDecimalDigits);
-
-	useLayoutEffect(() => {
-		if (!input) return;
-		input.value = display;
-	}, [display, revision, input]);
-
-	useLayoutEffect(() => {
-		updateSize(input);
-	}, [input]);
+	const { text, setDraft, clear } = useDraft(formatSourceValue(value, float, showZeroes, maxDecimalDigits));
 
 	useCommitChange(input, committed => {
-		if (positive) committed.value = applyPositive(committed.value, float, maxDecimalDigits);
-		const parsed = parseValue(committed.value, float);
-		// A source that has nothing new to report never rings, and the effect above is all that
-		// rewrites the field — so the text the user committed has to be normalised here.
-		committed.value = formatSourceValue(parsed, float, showZeroes, maxDecimalDigits);
-		setValue(parsed);
+		const entered = positive ? applyPositive(committed.value, float, maxDecimalDigits) : committed.value;
+		onChange(parseValue(entered, float));
+		clear();
 	});
 
 	return (
-		<PickerShell config={config} className="ui-number-picker-root" testId={testId ?? 'number-picker-root'} hidden={hidden} disabled={disabled}>
+		<Field {...chrome} className={['ui-number-picker-root', className]} testId={testId ?? 'number-picker-root'} disabled={disabled}>
 			<Input
 				type="text"
 				ref={attachInput}
-				id={config.id}
-				className={clsx('ui-number-picker-input', config.inputClassName, inputClassName)}
+				id={chrome.id}
+				className={clsx('ui-number-picker-input', inputClassName)}
 				data-testid="number-picker-input"
 				disabled={disabled}
-				onInput={() => updateSize(input)}
+				value={text}
+				size={Math.max(3, text.length)}
+				onChange={event => {
+					// React also reports the native `change` event here, which is the commit above; only a keystroke is a draft.
+					if (event.nativeEvent.type === 'input') setDraft(event.currentTarget.value);
+				}}
 			/>
-		</PickerShell>
+		</Field>
 	);
 };

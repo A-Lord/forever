@@ -1,14 +1,14 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import type { ReforgeOptimizerModel } from '@features/reforge/model/reforge_optimizer';
 import { toDefaultUnitStatValue, toVisualUnitStatPercentage } from '@features/reforge/model/utils';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { UnitStat } from '@sim/proto/stats';
 import { subscribeReforgeChange } from '@sim/state/subscriptions';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { Icon } from '@ui-kit/Icon';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { type ReactNode, useId, useMemo } from 'react';
 
@@ -64,7 +64,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 					</div>
 				</td>
 				<td colSpan={3} className="w-18.75 pr-0.5 pb-1 pl-0.5">
-					<NumberPicker
+					<BoundNumberPicker
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-percentage`,
@@ -82,7 +82,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 					/>
 				</td>
 				<td colSpan={1} className="w-15 pb-1 pl-0.5 text-right">
-					<BooleanPicker
+					<BoundBooleanPicker
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-undershoot`,
@@ -100,7 +100,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 				<tr>
 					<td className="pr-2 pb-1" />
 					<td colSpan={3} className="ui-reforge-cap-value-cell">
-						<EnumPicker
+						<BoundEnumPicker
 							modObject={player}
 							config={{
 								id: `${idPrefix}-${statName}-presets`,

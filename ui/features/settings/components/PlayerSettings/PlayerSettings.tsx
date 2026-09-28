@@ -1,13 +1,13 @@
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
+import { BoundInput } from '@features/inputs/components/BoundInput';
 import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { InputConfig } from '@sim/spec_config';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
-import { InputPicker } from '../InputPicker';
 import { professionInput, raceInput } from './utils';
 
 export interface PlayerSettingsProps {
@@ -29,13 +29,13 @@ export const PlayerSettings = ({ iconInputs, inputs }: PlayerSettingsProps) => {
 					))}
 				</PickerGroup>
 			)}
-			<EnumPicker modObject={player} config={race} />
+			<BoundEnumPicker modObject={player} config={race} />
 			{inputs.map(config => (
-				<InputPicker key={config.id} config={config} />
+				<BoundInput key={config.id} config={config} />
 			))}
 			<PickerGroup>
 				{professions.map(config => (
-					<EnumPicker key={config.id} modObject={player} config={config} />
+					<BoundEnumPicker key={config.id} modObject={player} config={config} />
 				))}
 			</PickerGroup>
 		</>

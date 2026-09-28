@@ -1,9 +1,9 @@
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { DisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Player } from '@sim/player/player';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { useMemo } from 'react';
 
 import { statName } from './utils';
@@ -58,7 +58,7 @@ export const EpReferenceOptions = ({ epStats, epReferenceStat, displayMetrics }:
 		<div data-testid="ep-reference-options" className="-mx-3 mb-3 flex flex-wrap [&_.ui-field-label]:font-bold">
 			{references.map(reference => (
 				<div key={reference.id} className="w-full px-3 sm:w-1/3">
-					<EnumPicker
+					<BoundEnumPicker
 						modObject={player}
 						config={{
 							id: reference.id,

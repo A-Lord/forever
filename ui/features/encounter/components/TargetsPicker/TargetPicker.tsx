@@ -1,9 +1,9 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Encounter } from '@sim/raid/encounter';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import { EnumPicker } from '@ui-kit/EnumPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
@@ -59,27 +59,27 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 			className="ui-field grid grid-cols-1 gap-3 xl:grid-cols-3 [&_[data-input-root]:is(:last-child)]:mb-0 [&_[data-input-root]:is(:only-child)]:mb-0"
 			data-testid="target-picker-root">
 			<PickerGroup data-testid="target-picker-section">
-				<EnumPicker modObject={null} config={npc} />
-				<EnumPicker modObject={null} config={ai} />
-				<EnumPicker modObject={null} config={level} />
-				<EnumPicker modObject={null} config={mobType} />
-				{showThreatMetrics && <EnumPicker modObject={null} config={tankIndex} />}
+				<BoundEnumPicker modObject={null} config={npc} />
+				<BoundEnumPicker modObject={null} config={ai} />
+				<BoundEnumPicker modObject={null} config={level} />
+				<BoundEnumPicker modObject={null} config={mobType} />
+				{showThreatMetrics && <BoundEnumPicker modObject={null} config={tankIndex} />}
 				<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
 			</PickerGroup>
 			<PickerGroup data-testid="target-picker-section">
 				{stats.map(config => (
-					<NumberPicker key={config.id} modObject={null} config={config} />
+					<BoundNumberPicker key={config.id} modObject={null} config={config} />
 				))}
 			</PickerGroup>
 			{showThreatMetrics ? (
 				<PickerGroup data-testid="target-picker-section">
 					{numbers.map(config => (
-						<NumberPicker key={config.id} modObject={null} config={config} />
+						<BoundNumberPicker key={config.id} modObject={null} config={config} />
 					))}
 					{booleans.map(config => (
-						<BooleanPicker key={config.id} modObject={null} config={config} />
+						<BoundBooleanPicker key={config.id} modObject={null} config={config} />
 					))}
-					<EnumPicker modObject={null} config={spellSchool} />
+					<BoundEnumPicker modObject={null} config={spellSchool} />
 				</PickerGroup>
 			) : (
 				<div className="hidden xl:block" data-testid="target-picker-section-placeholder" aria-hidden="true" />

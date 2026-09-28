@@ -1,4 +1,5 @@
 import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
+import { BoundInput } from '@features/inputs/components/BoundInput';
 import type { Spec } from '@generated/proto/common';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -7,8 +8,6 @@ import type { CustomSection as CustomSectionConfig } from '@sim/spec_config';
 import { type StoreSubscribe, subscribePlayerChange } from '@sim/state/subscriptions';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { PickerGroup } from '@ui-kit/PickerGroup';
-
-import { InputPicker } from '../InputPicker';
 
 export interface CustomSectionProps {
 	section: CustomSectionConfig<any>;
@@ -38,7 +37,7 @@ export const CustomSection = ({ section }: CustomSectionProps) => {
 				</PickerGroup>
 			)}
 			{section.inputs?.map(config => (
-				<InputPicker key={config.id} config={{ ...config, layout: 'inline' }} />
+				<BoundInput key={config.id} config={{ ...config, layout: 'inline' }} />
 			))}
 		</ContentBlock>
 	);
