@@ -1,3 +1,4 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import type { ReforgeOptimizerModel } from '@features/reforge/model/reforge_optimizer';
 import { toDefaultUnitStatValue, toVisualUnitStatPercentage } from '@features/reforge/model/utils';
@@ -5,7 +6,6 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { UnitStat } from '@sim/proto/stats';
 import { subscribeReforgeChange } from '@sim/state/subscriptions';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { EnumPicker } from '@ui-kit/EnumPicker';
 import { Icon } from '@ui-kit/Icon';
@@ -82,7 +82,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 					/>
 				</td>
 				<td colSpan={1} className="w-15 pb-1 pl-0.5 text-right">
-					<BooleanPicker
+					<BoundBooleanPicker
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-undershoot`,

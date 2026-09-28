@@ -1,8 +1,8 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { InputConfig } from '@sim/spec_config';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { EnumPicker } from '@ui-kit/EnumPicker';
 
 export interface InputPickerProps {
@@ -22,7 +22,7 @@ export const InputPicker = ({ config, inline }: InputPickerProps) => {
 		case 'number':
 			return <BoundNumberPicker modObject={player} config={shared} />;
 		case 'boolean':
-			return <BooleanPicker modObject={player} config={{ ...shared, reverse: true }} />;
+			return <BoundBooleanPicker modObject={player} config={{ ...shared, reverse: true }} />;
 		case 'enum':
 			return <EnumPicker modObject={player} config={shared} />;
 	}

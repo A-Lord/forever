@@ -1,8 +1,8 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import type { ReforgeSettings } from '@sim/settings/reforge_settings';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import clsx from 'clsx';
 import { useMemo } from 'react';
 
@@ -31,7 +31,7 @@ export const ReforgeFrozenSlots = ({ settings, player, freezeItemSlots }: Reforg
 					<tr key={rowIdx}>
 						{slots.map(slot => (
 							<td key={slot}>
-								<BooleanPicker
+								<BoundBooleanPicker
 									modObject={player}
 									config={{
 										id: `${idPrefix}-freeze-${ItemSlot[slot]}`,

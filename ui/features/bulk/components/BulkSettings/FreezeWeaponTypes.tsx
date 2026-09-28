@@ -33,17 +33,14 @@ export const FreezeWeaponTypes = ({ slot }: FreezeWeaponTypesProps) => {
 						{weaponTypes.map(weaponType => (
 							<BooleanPicker
 								key={weaponType}
-								modObject={player}
-								config={{
-									id: `bulk-${slot}-weapon-type-${weaponType}`,
-									label: translateWeaponType(weaponType),
-									layout: 'inline',
-									value: weaponTypeFilters.get(slot)!.includes(weaponType),
-									onChange: (newValue: boolean) => {
-										const filter = weaponTypeFilters.get(slot)!;
-										setBulkWeaponTypeFilter(player, slot, newValue ? [...filter, weaponType] : filter.filter(type => type !== weaponType));
-										trackEvent({ action: 'settings', category: 'batch_sim', label: `freeze_${slot}_weapon_type`, value: newValue });
-									},
+								id={`bulk-${slot}-weapon-type-${weaponType}`}
+								label={translateWeaponType(weaponType)}
+								layout="inline"
+								value={weaponTypeFilters.get(slot)!.includes(weaponType)}
+								onChange={newValue => {
+									const filter = weaponTypeFilters.get(slot)!;
+									setBulkWeaponTypeFilter(player, slot, newValue ? [...filter, weaponType] : filter.filter(type => type !== weaponType));
+									trackEvent({ action: 'settings', category: 'batch_sim', label: `freeze_${slot}_weapon_type`, value: newValue });
 								}}
 							/>
 						))}

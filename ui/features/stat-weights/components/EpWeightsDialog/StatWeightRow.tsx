@@ -1,3 +1,4 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import type { StatWeightsResult, StatWeightValues } from '@generated/proto/api';
 import type { Stat } from '@generated/proto/common';
@@ -6,7 +7,6 @@ import type { Player } from '@sim/player/player';
 import { scaledEpValue, type Stats, type UnitStat } from '@sim/proto/stats';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { sanitizeId } from '@sim/utils/format';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import clsx from 'clsx';
 
 import { StatWeightCells } from './StatWeightCells';
@@ -60,7 +60,7 @@ export const StatWeightRow = ({
 			{showUpdateColumn && (
 				<td data-testid="swcalc-include-toggle" className={cellClassName}>
 					{includable && (
-						<BooleanPicker
+						<BoundBooleanPicker
 							modObject={settings}
 							config={{
 								id: `sw-stat-toggle-${sanitizeId(fullName)}`,

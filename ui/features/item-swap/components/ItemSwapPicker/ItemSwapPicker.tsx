@@ -1,10 +1,10 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import type { BooleanPickerConfig } from '@features/inputs/configs';
 import type { ItemSlot, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import type { Player } from '@sim/player/player';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import type { BooleanPickerConfig } from '@ui-kit/BooleanPicker/types';
 import { Button } from '@ui-kit/Button';
 import { FieldLabel, HelpText } from '@ui-kit/FormControl';
 import { Icon } from '@ui-kit/Icon';
@@ -45,7 +45,7 @@ export const ItemSwapPicker = <SpecType extends Spec>({ itemSlots, note }: ItemS
 
 	return (
 		<div className="grid gap-3" data-testid="item-swap-picker-root">
-			<BooleanPicker modObject={player} config={enableConfig} />
+			<BoundBooleanPicker modObject={player} config={enableConfig} />
 			{enabled && (
 				<div className="ui-field flex-wrap gap-3" data-testid="input-item-swap-container" data-input-root="" data-layout="split">
 					<FieldLabel as="span" id={labelId}>

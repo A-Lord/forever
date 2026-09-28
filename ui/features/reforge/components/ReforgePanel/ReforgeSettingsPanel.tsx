@@ -1,3 +1,4 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { gemPhaseValues } from '@features/reforge/model/utils';
 import { SavedEpWeights } from '@features/stat-weights/components/SavedEpWeights';
@@ -6,7 +7,6 @@ import { ItemQuality } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { translateItemQuality } from '@i18n/localization';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { EnumPicker } from '@ui-kit/EnumPicker';
 import { useMemo } from 'react';
@@ -57,7 +57,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 
 	return (
 		<ReforgeIdPrefixContext.Provider value={idPrefix}>
-			<BooleanPicker
+			<BoundBooleanPicker
 				modObject={player}
 				config={{
 					extraClassNames: ['mb-2'],
@@ -87,7 +87,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 				useCustomEPValues={useCustomEPValues}
 			/>
 			{hasSoftCaps && (
-				<BooleanPicker
+				<BoundBooleanPicker
 					modObject={player}
 					config={{
 						extraClassNames: ['mb-2'],
@@ -106,7 +106,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 			{model.enableBreakpointLimits && hasSoftCaps && (
 				<ReforgeBreakpointLimits settings={settings} softCapsConfig={softCapsConfig} player={player} useSoftCapBreakpoints={useSoftCapBreakpoints} />
 			)}
-			<BooleanPicker
+			<BoundBooleanPicker
 				modObject={player}
 				config={{
 					extraClassNames: ['mb-2'],
@@ -153,7 +153,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 					},
 				}}
 			/>
-			<BooleanPicker
+			<BoundBooleanPicker
 				modObject={player}
 				config={{
 					extraClassNames: ['mb-2'],

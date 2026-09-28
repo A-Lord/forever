@@ -1,12 +1,11 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
-import type { NumberPickerConfig } from '@features/inputs/configs';
+import type { BooleanPickerConfig, NumberPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { setLang, supportedLanguages } from '@i18n/locale_service';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Sim } from '@sim/sim';
 import { subscribeSimField, subscribeUiField } from '@sim/state/subscriptions';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import type { BooleanPickerConfig } from '@ui-kit/BooleanPicker/types';
 import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { EnumPicker } from '@ui-kit/EnumPicker';
@@ -208,13 +207,13 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 					</div>
 				</PickerGroup>
 				<div className="w-1/2 pr-2" data-testid="show-threat-metrics-picker">
-					<BooleanPicker modObject={sim} config={showThreatMetricsConfig} />
+					<BoundBooleanPicker modObject={sim} config={showThreatMetricsConfig} />
 				</div>
 				<div className="w-1/2 pr-2" data-testid="show-experimental-picker">
-					<BooleanPicker modObject={sim} config={showExperimentalConfig} />
+					<BoundBooleanPicker modObject={sim} config={showExperimentalConfig} />
 				</div>
 				<div className="w-1/2 pr-2" data-testid="show-quick-swap-picker">
-					<BooleanPicker modObject={sim} config={showQuickSwapConfig} />
+					<BoundBooleanPicker modObject={sim} config={showQuickSwapConfig} />
 				</div>
 				<div className="w-1/2 pr-2" data-testid="use-concurrency-container" hidden={!isWasm}>
 					<div data-testid="use-concurrent-workers-picker">

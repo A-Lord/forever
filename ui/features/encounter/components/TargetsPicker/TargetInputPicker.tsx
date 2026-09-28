@@ -1,7 +1,7 @@
+import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import type { TargetInput } from '@generated/proto/common';
 import type { Encounter } from '@sim/raid/encounter';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { EnumPicker } from '@ui-kit/EnumPicker';
 import { useMemo } from 'react';
 
@@ -23,7 +23,7 @@ export const TargetInputPicker = ({ encounter, targetIndex, inputIndex, input }:
 	return (
 		<div className="ui-field" data-testid="target-input-picker-root">
 			{picker.kind === 'number' && <BoundNumberPicker modObject={null} config={picker.config} />}
-			{picker.kind === 'boolean' && <BooleanPicker modObject={null} config={picker.config} />}
+			{picker.kind === 'boolean' && <BoundBooleanPicker modObject={null} config={picker.config} />}
 			{picker.kind === 'enum' && <EnumPicker modObject={null} config={picker.config} />}
 		</div>
 	);

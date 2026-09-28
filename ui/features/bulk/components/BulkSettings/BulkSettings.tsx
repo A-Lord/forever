@@ -95,17 +95,14 @@ export const BulkSettings = () => {
 							testId="bulk-settings-group-options">
 							<div>
 								<BooleanPicker
-									modObject={player}
-									config={{
-										id: 'use-legacy-bulk-sim',
-										label: i18n.t('bulk_tab.settings.use_legacy_bulk_sim.label'),
-										labelTooltip: i18n.t('bulk_tab.settings.use_legacy_bulk_sim.tooltip'),
-										layout: 'inline',
-										value: useLegacyBulkSim,
-										onChange: (newValue: boolean) => {
-											setBulkUseLegacyBulkSim(player, newValue);
-											trackEvent({ action: 'settings', category: 'batch_sim', label: 'use_legacy_bulk_sim', value: newValue });
-										},
+									id="use-legacy-bulk-sim"
+									label={i18n.t('bulk_tab.settings.use_legacy_bulk_sim.label')}
+									labelTooltip={i18n.t('bulk_tab.settings.use_legacy_bulk_sim.tooltip')}
+									layout="inline"
+									value={useLegacyBulkSim}
+									onChange={newValue => {
+										setBulkUseLegacyBulkSim(player, newValue);
+										trackEvent({ action: 'settings', category: 'batch_sim', label: 'use_legacy_bulk_sim', value: newValue });
 									}}
 								/>
 							</div>

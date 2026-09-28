@@ -75,15 +75,12 @@ export const Timeline = ({ active }: TimelineProps) => {
 				</div>
 				<div className="ml-auto flex shrink-0 items-center gap-3 self-start">
 					<BooleanPicker
-						modObject={null}
-						config={{
-							id: 'timeline-show-gcd',
-							label: i18n.t('results_tab.details.timeline.show_gcd'),
-							layout: 'inline',
-							extraClassNames: ['w-auto', 'whitespace-nowrap'],
-							value: showGcd,
-							onChange: setShowGcd,
-						}}
+						id="timeline-show-gcd"
+						label={i18n.t('results_tab.details.timeline.show_gcd')}
+						layout="inline"
+						className={['w-auto', 'whitespace-nowrap']}
+						value={showGcd}
+						onChange={setShowGcd}
 					/>
 					<ChartViewPicker value={view} onChange={setView} className="w-auto shrink-0" />
 				</div>
