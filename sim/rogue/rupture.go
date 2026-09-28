@@ -12,6 +12,8 @@ func (rogue *Rogue) registerRupture() {
 	tick := ruptureRank.PeriodicEffect()
 	config := spelldata.SpellConfig(&rogue.Unit, ruptureRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ExtraCastCondition = rogue.FinisherExtraCastCondition
+	config.ClassSpellMask = RogueSpellRupture
+	config.ClassFlags = ruptureRank.ClassFlags
 
 	config.Dot = spelldata.DotConfig(ruptureRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {

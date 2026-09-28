@@ -8,7 +8,7 @@ import (
 var vanishRank = spellData.Vanish.Highest()
 
 func (rogue *Rogue) registerVanishSpell() {
-	config := spelldata.SpellConfig(&rogue.Unit, vanishRank)
+	config := spelldata.SpellConfig(&rogue.Unit, vanishRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.AutoAttacks.CancelAutoSwing(sim)
@@ -16,6 +16,11 @@ func (rogue *Rogue) registerVanishSpell() {
 	}
 
 	rogue.Vanish = rogue.RegisterSpell(config)
+
+	rogue.AddMajorCooldown(core.MajorCooldown{
+		Spell: rogue.Vanish,
+		Type:  core.CooldownTypeDPS,
+	})
 
 	// The TBC implementation, kept for the port:
 	// rogue.Vanish = rogue.RegisterSpell(core.SpellConfig{

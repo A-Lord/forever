@@ -106,13 +106,18 @@ func (rogue *Rogue) registerColdBlood() {
 
 	coldBloodAura := rogue.RegisterAura(spelldata.AuraConfig(coldBloodRank))
 	spelldata.ParseEffects(&rogue.Character, coldBloodAura, coldBloodRank)
-	config := spelldata.SpellConfig(&rogue.Unit, coldBloodRank)
+	config := spelldata.SpellConfig(&rogue.Unit, coldBloodRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		coldBloodAura.Activate(sim)
 	}
 
 	rogue.ColdBlood = rogue.RegisterSpell(config)
+
+	rogue.AddMajorCooldown(core.MajorCooldown{
+		Spell: rogue.ColdBlood,
+		Type:  core.CooldownTypeDPS,
+	})
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.ColdBlood {

@@ -13,6 +13,10 @@ func (rogue *Rogue) registerAmbushSpell() {
 	config := spelldata.SpellConfig(&rogue.Unit, ambushRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
 	config.ClassSpellMask = RogueSpellAmbush
+	config.DamageMultiplier = 2.5
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return !rogue.PseudoStats.InFrontOfTarget && (rogue.OpenerExtraCastCondition(sim, target) || rogue.CutthroatAura.IsActive())
+	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)

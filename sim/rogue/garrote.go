@@ -15,6 +15,7 @@ func (rogue *Rogue) registerGarrote() {
 	config := spelldata.SpellConfig(&rogue.Unit, garroteRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
 	config.ClassSpellMask = RogueSpellGarrote
+	config.ExtraCastCondition = rogue.OpenerExtraCastCondition
 
 	config.Dot = spelldata.DotConfig(garroteRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
@@ -22,6 +23,7 @@ func (rogue *Rogue) registerGarrote() {
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)

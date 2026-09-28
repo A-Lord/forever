@@ -250,6 +250,10 @@ func (rogue *Rogue) FinisherExtraCastCondition(sim *core.Simulation, target *cor
 	return rogue.ComboPoints() > 0
 }
 
+func (rogue *Rogue) OpenerExtraCastCondition(sim *core.Simulation, target *core.Unit) bool {
+	return rogue.IsStealthed()
+}
+
 func RegisterRogue() {
 	core.RegisterAgentFactory(
 		proto.Player_Rogue{},

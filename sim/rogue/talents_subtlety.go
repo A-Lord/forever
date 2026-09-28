@@ -64,13 +64,17 @@ func (rogue *Rogue) registerInitiative() {
 	initiativeRank := spellData.Initiative.Rank(rogue.Talents.Initiative)
 	initMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: initiativeRank.ID})
 
-	trigger := spelldata.ProcTrigger(&rogue.Character, initiativeRank, func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-		rogue.AddComboPoints(sim, 1, initMetrics)
+	rogue.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Initiative - Trigger",
+		ActionID:           core.ActionID{SpellID: initiativeRank.ID},
+		Callback:           core.CallbackOnCastComplete,
+		ClassSpellMask:     RogueSpellGarrote | RogueSpellAmbush,
+		Outcome:            core.OutcomeLanded,
+		TriggerImmediately: true,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			rogue.AddComboPoints(sim, 1, initMetrics)
+		},
 	})
-	trigger.Name = "Initiative Trigger"
-	trigger.TriggerImmediately = true
-	trigger.ClassSpellMask = RogueSpellGarrote | RogueSpellAmbush
-	rogue.MakeProcTriggerAura(trigger)
 }
 
 var ghostlyStrikeRank = spellData.GhostlyStrike.Highest()
@@ -246,6 +250,8 @@ func (rogue *Rogue) registerPreparation() {
 			rogue.AdrenalineRush.CD.Set(0)
 		}
 	}
+
+	rogue.Preparation = rogue.RegisterSpell(config)
 
 	rogue.AddMajorCooldown(core.MajorCooldown{
 		Spell: rogue.Preparation,
@@ -520,18 +526,40 @@ func (rogue *Rogue) registerThousandCuts() {
 		return
 	}
 
-	aura := spelldata.AuraConfig(spellData.ThousandCutsTriggered.Highest())
-	spelldata.ParseEffects(&rogue.Character, &aura, spellData.ThousandCuts.Highest())
+	aura := rogue.RegisterAura(spelldata.AuraConfig(spellData.ThousandCutsTriggered.Highest()))
 
-	trigger := spelldata.ProcTrigger(&rogue.Character,
-		spellData.ThousandCuts.Highest(),
-		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	costMod := rogue.AddDynamicMod(core.SpellModConfig{
+		Kind:      core.SpellMod_PowerCost_Flat,
+		IntValue:  0, // Set dynamically based on aura stacks.
+		ClassMask: RogueSpellHemorrhage | RogueSpellBackstab,
+	})
+
+	rogue.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Thousand Cuts - Trigger",
+		ActionID:           core.ActionID{SpellID: spellData.ThousandCuts.Highest().ID},
+		Callback:           core.CallbackOnPeriodicDamageDealt,
+		ClassSpellMask:     RogueSpellRupture,
+		TriggerImmediately: true,
+		ProcChance:         1,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			aura.Activate(sim)
 			aura.AddStack(sim)
-		})
-	trigger.Name = "Thousand Cuts Trigger"
-	trigger.TriggerImmediately = true
-	trigger.RequireDamageDealt = true
-	trigger.ClassSpellMask = RogueSpellRupture
-	rogue.MakeProcTriggerAura(trigger)
+			costMod.Activate()
+			costMod.UpdateIntValue(aura.GetStacks() * -3)
+		},
+	})
+
+	rogue.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Thousand Cuts - Cast Watcher",
+		ActionID:           core.ActionID{SpellID: spellData.ThousandCuts.Highest().ID},
+		Callback:           core.CallbackOnCastComplete,
+		ClassSpellMask:     RogueSpellHemorrhage | RogueSpellBackstab,
+		TriggerImmediately: true,
+		ProcChance:         1,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			aura.SetStacks(sim, 0)
+			aura.Deactivate(sim)
+			costMod.Deactivate()
+		},
+	})
 }

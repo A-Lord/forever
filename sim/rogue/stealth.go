@@ -8,12 +8,17 @@ import (
 var stealthRank = spellData.Stealth.Highest()
 
 func (rogue *Rogue) registerStealthAura() {
-	config := spelldata.SpellConfig(&rogue.Unit, stealthRank)
-	rogue.StealthAura = rogue.RegisterAura(spelldata.AuraConfig(stealthRank))
+	config := spelldata.SpellConfig(&rogue.Unit, stealthRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagPrepullOnly))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.StealthAura.Activate(sim)
+		rogue.ShapeshiftForm = stealthRank.ShapeshiftForm()
 	}
+
+	rogue.StealthAura = rogue.RegisterAura(spelldata.AuraConfig(stealthRank))
+	spelldata.ParseEffects(&rogue.Character, rogue.StealthAura, stealthRank)
+
+	rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// rogue.StealthAura = rogue.RegisterAura(core.Aura{

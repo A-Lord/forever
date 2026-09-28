@@ -12,6 +12,8 @@ func (rogue *Rogue) registerBackstabSpell() {
 	comboPointGen := backstabRank.EnergizeEffect().Average(core.CharacterLevel)
 	config := spelldata.SpellConfig(&rogue.Unit, backstabRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
+	config.ClassSpellMask = RogueSpellBackstab
+	config.DamageMultiplier = 1.5
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
