@@ -570,7 +570,7 @@ message ComputeStatsRequest {
 }
 // The submenu an aura or spell is filed under in the APL pickers.
 enum ActionCategory {
-	ActionCategoryUnknown = 0; // The class's own; not filed under a submenu.
+	ActionCategoryUnknown = 0; // The class's own; no category submenu.
 	ActionCategoryConsumable = 1;
 	ActionCategoryCooldown = 2;
 	ActionCategoryItem = 3;

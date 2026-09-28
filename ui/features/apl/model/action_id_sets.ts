@@ -50,16 +50,21 @@ const CATEGORY_SUBMENUS: Array<[ActionCategory, string]> = [
  * The categories are emitted in a fixed order because the menu places a submenu where its first
  * option appears, and the metadata arrives sorted by name.
  */
-const categorise = <T extends AuraStats | SpellStats>(entries: Array<T>, toOption: (entry: T, submenu: Array<string>) => ActionIdOption) => ({
+const categorise = <T extends AuraStats | SpellStats>(
+	entries: Array<T>,
+	toOption: (entry: T, submenu: Array<string>) => ActionIdOption,
+	allEntries: Array<T> = entries,
+) => ({
 	categorised: CATEGORY_SUBMENUS.flatMap(([category, key]) =>
-		entries.filter(entry => entry.data.category === category).map(entry => toOption(entry, createSpellSubmenu(entry.id, entries, [key]))),
+		entries.filter(entry => entry.data.category === category).map(entry => toOption(entry, createSpellSubmenu(entry.id, allEntries, [key]))),
 	),
 	uncategorised: entries.filter(entry => !CATEGORY_SUBMENUS.some(([category]) => entry.data.category === category)),
 });
 
-const auraOptions = (auras: Array<AuraStats>): Array<ActionIdOption> => {
-	const { categorised, uncategorised } = categorise(auras, (aura, submenu) => ({ value: aura.id, submenu }));
-	return [...categorised, ...uncategorised.map(aura => ({ value: aura.id, submenu: createSpellSubmenu(aura.id, auras) }))];
+/** `allAuras` is the unfiltered list, which decides whether an aura has ranks. */
+const auraOptions = (auras: Array<AuraStats>, allAuras: Array<AuraStats> = auras): Array<ActionIdOption> => {
+	const { categorised, uncategorised } = categorise(auras, (aura, submenu) => ({ value: aura.id, submenu }), allAuras);
+	return [...categorised, ...uncategorised.map(aura => ({ value: aura.id, submenu: createSpellSubmenu(aura.id, allAuras) }))];
 };
 
 /** The one list a spell may be cast from, for the spells the sim only accepts in one of them. */
@@ -90,15 +95,27 @@ export const actionIdSets: Record<
 	},
 	stackable_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.stackable_auras'),
-		getActionIDs: async metadata => auraOptions(metadata.getAuras().filter(aura => aura.data.maxStacks > 0)),
+		getActionIDs: async metadata =>
+			auraOptions(
+				metadata.getAuras().filter(aura => aura.data.maxStacks > 0),
+				metadata.getAuras(),
+			),
 	},
 	icd_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.icd_auras'),
-		getActionIDs: async metadata => auraOptions(metadata.getAuras().filter(aura => aura.data.hasIcd)),
+		getActionIDs: async metadata =>
+			auraOptions(
+				metadata.getAuras().filter(aura => aura.data.hasIcd),
+				metadata.getAuras(),
+			),
 	},
 	exclusive_effect_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.exclusive_effect_auras'),
-		getActionIDs: async metadata => auraOptions(metadata.getAuras().filter(aura => aura.data.hasExclusiveEffect)),
+		getActionIDs: async metadata =>
+			auraOptions(
+				metadata.getAuras().filter(aura => aura.data.hasExclusiveEffect),
+				metadata.getAuras(),
+			),
 	},
 	// Used for non categorized lists
 	spells: {

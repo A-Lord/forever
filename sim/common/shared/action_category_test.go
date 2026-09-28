@@ -9,12 +9,13 @@ import (
 )
 
 const (
-	categoryTrinketID    int32 = 999101
-	categoryProcAuraID   int32 = 999102
-	categoryOnUseID      int32 = 999103
-	categoryOnUseAuraID  int32 = 999104
-	categoryTalentAuraID int32 = 999105
-	categoryOwnAuraID    int32 = 999106
+	categoryTrinketID     int32 = 999101
+	categoryProcAuraID    int32 = 999102
+	categoryOnUseID       int32 = 999103
+	categoryOnUseAuraID   int32 = 999104
+	categoryTalentAuraID  int32 = 999105
+	categoryOwnAuraID     int32 = 999106
+	categoryTalentSpellID int32 = 999107
 )
 
 func registerCategoryTrinket() {
@@ -35,11 +36,13 @@ func registerCategoryTrinket() {
 
 		character.RegisterAura(core.Aura{Label: "Category Talent", ActionID: core.ActionID{SpellID: categoryTalentAuraID}, Source: core.SourceTalent})
 		character.RegisterAura(core.Aura{Label: "Category Own", ActionID: core.ActionID{SpellID: categoryOwnAuraID}, Source: core.SourceNone})
+		character.RegisterSpell(core.SpellConfig{ActionID: core.ActionID{SpellID: categoryTalentSpellID}, Flags: core.SpellFlagAPL, Source: core.SourceTalent})
 	})
 }
 
 // Each aura and spell is filed by the phase that registered it, unless it names its own source, and a
-// major cooldown's buff is filed with the cooldown whatever registered it.
+// major cooldown's buff is filed with the cooldown whatever registered it. A spell a talent grants
+// stays with the class's own spells.
 func TestActionCategories(t *testing.T) {
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotTrinket1+1)
 	for i := range items {
@@ -67,7 +70,7 @@ func TestActionCategories(t *testing.T) {
 			t.Fatalf("aura %d missing from the metadata", id)
 		}
 	}
-	for _, id := range []int32{categoryTrinketID, testBoltID, 20554} {
+	for _, id := range []int32{categoryTrinketID, testBoltID, 20554, categoryTalentSpellID} {
 		if _, ok := spells[id]; !ok {
 			t.Fatalf("spell %d missing from the metadata", id)
 		}
@@ -84,6 +87,7 @@ func TestActionCategories(t *testing.T) {
 		{"aura tagged Talent", auras[categoryTalentAuraID], proto.ActionCategory_ActionCategoryTalent},
 		{"aura tagged None", auras[categoryOwnAuraID], proto.ActionCategory_ActionCategoryUnknown},
 		{"the caster's own spell", spells[testBoltID], proto.ActionCategory_ActionCategoryUnknown},
+		{"a spell a talent grants", spells[categoryTalentSpellID], proto.ActionCategory_ActionCategoryUnknown},
 		{"Berserking, a racial major cooldown", spells[20554], proto.ActionCategory_ActionCategoryCooldown},
 	} {
 		if c.got != c.want {

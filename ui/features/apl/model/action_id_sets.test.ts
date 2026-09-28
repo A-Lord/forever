@@ -57,7 +57,7 @@ describe('aura sets', () => {
 
 describe('castable_spells', () => {
 	const spells = [
-		spell(named(10, 'Bloodthirst'), ActionCategory.ActionCategoryTalent),
+		spell(named(10, 'Bloodthirst')),
 		spell(named(11, 'Heroic Strike')),
 		spell(named(12, 'Mighty Rage Potion'), ActionCategory.ActionCategoryConsumable, { encounterOnly: true }),
 		spell(named(13, 'Recklessness'), ActionCategory.ActionCategoryCooldown),
@@ -66,10 +66,10 @@ describe('castable_spells', () => {
 	it('keeps the class spells under Spell, then the categories, then the placeholders', async () => {
 		const options = await actionIdSets.castable_spells.getActionIDs(metadata([], spells));
 		expect(menu(options).slice(0, 4)).toEqual([
+			'Bloodthirst > spell',
 			'Heroic Strike > spell',
 			'Recklessness > cooldowns',
 			'Mighty Rage Potion > consumables',
-			'Bloodthirst > talents',
 		]);
 		expect(options.at(-1)?.submenu).toEqual(['placeholders']);
 		expect(options.find(option => option.value.name === 'Mighty Rage Potion')?.listScope).toBe('priority');

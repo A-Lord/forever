@@ -62,8 +62,14 @@ func actionCategory(source ActionSource, isConsumable bool, isMajorCooldown bool
 	return sourceCategories[source]
 }
 
+// A spell a talent grants is listed with the class's own spells; only talent auras get their own
+// submenu.
 func (spell *Spell) category() proto.ActionCategory {
-	return actionCategory(spell.Source, spell.Flags.Matches(SpellFlagPotion|SpellFlagConjured), spell.Flags.Matches(SpellFlagMCD))
+	source := spell.Source
+	if source == SourceTalent {
+		source = SourceNone
+	}
+	return actionCategory(source, spell.Flags.Matches(SpellFlagPotion|SpellFlagConjured), spell.Flags.Matches(SpellFlagMCD))
 }
 
 // An aura is a major cooldown's when a major cooldown casts it: the spell names it as its buff or
