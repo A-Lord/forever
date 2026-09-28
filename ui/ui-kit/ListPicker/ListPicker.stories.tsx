@@ -1,5 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { AdaptiveStringPicker } from '@ui-kit/AdaptiveStringPicker';
+import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Input } from '@ui-kit/FormControl';
+import { NumberPicker } from '@ui-kit/NumberPicker';
 import { useState } from 'react';
 import { expect, fireEvent, fn, within } from 'storybook/test';
 
@@ -76,6 +79,65 @@ export const Horizontal: Story = { args: { horizontalLayout: true, actions: { cr
 export const InlineMenuBar: Story = { args: { inlineMenuBar: true, minimumItems: 1 } };
 
 export const WithHeader: Story = { args: { withHeader: true } };
+
+interface Spell {
+	name: string;
+	delay: number;
+	enabled: boolean;
+}
+
+const DensityRows = ({ density }: { density?: 'compact' }) => {
+	const [items, setItems] = useState<Array<Spell>>([
+		{ name: 'Fireball', delay: 0.5, enabled: true },
+		{ name: 'Frostbolt', delay: 1, enabled: false },
+	]);
+	return (
+		<ListPicker<Spell>
+			items={items}
+			onChange={setItems}
+			density={density}
+			itemLabel="Spell"
+			inlineMenuBar
+			actions={{ create: { useIcon: true } }}
+			newItem={() => ({ name: 'Arcane Blast', delay: 0, enabled: true })}
+			renderItem={(item, index, onItemChange) => (
+				<div className="flex flex-row flex-wrap items-center gap-2">
+					<AdaptiveStringPicker
+						id={`spell-name-${index}`}
+						label="Name"
+						layout="inline"
+						value={item.name}
+						onChange={name => onItemChange({ ...item, name })}
+					/>
+					<NumberPicker
+						id={`spell-delay-${index}`}
+						label="Delay"
+						layout="inline"
+						float
+						value={item.delay}
+						onChange={delay => onItemChange({ ...item, delay })}
+					/>
+					<BooleanPicker
+						id={`spell-enabled-${index}`}
+						label="Enabled"
+						value={item.enabled}
+						onChange={enabled => onItemChange({ ...item, enabled })}
+					/>
+				</div>
+			)}
+		/>
+	);
+};
+
+/** The same rows at the default density and at `density="compact"`, the layout the rotation editor uses. */
+export const Density: Story = {
+	render: () => (
+		<div className="flex flex-col gap-6">
+			<DensityRows />
+			<DensityRows density="compact" />
+		</div>
+	),
+};
 
 // A synthetic drag brings no data transfer of its own; the list only ever reads these three members.
 const dataTransfer = () => ({ setDragImage: () => {}, dropEffect: '', effectAllowed: '' });

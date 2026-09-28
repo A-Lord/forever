@@ -82,6 +82,15 @@ describe('PriorityList', () => {
 		expect(body.querySelector('[data-testid="apl-action-picker-root"]')).not.toBeNull();
 	});
 
+	it('renders each row compact and leaves the header outside it', () => {
+		setup([APLListItem.create({ action: {} })]);
+		mount();
+
+		const row = rowContainers()[0];
+		expect(row.querySelector('[data-testid="apl-list-item-picker-root"]')!.classList.contains('ui-field-compact')).toBe(true);
+		expect(row.querySelector('[data-testid="hide-picker-root"]')!.closest('.ui-field-compact')).toBeNull();
+	});
+
 	it('appends an APLListItem to priorityList through the floating action bar’s new button', () => {
 		setup([]);
 		const { container } = mount();

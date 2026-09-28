@@ -1,0 +1,5 @@
+@layer components {
+	.ui-field-compact .ui-adaptive-string-picker-root {
+		@apply justify-start;
+	}
+}

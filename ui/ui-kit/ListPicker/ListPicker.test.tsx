@@ -186,6 +186,15 @@ describe('ListPicker', () => {
 			expect(custom.hasAttribute('data-input-root')).toBe(true);
 			expect(within(custom).getByTestId('form-label').getAttribute('for')).toBe('targets');
 		});
+
+		it('passes a compact density from the chrome to its field, and none by default', () => {
+			const { unmount } = mount(sourceOf('a'));
+			expect(root().classList.contains('ui-field-compact')).toBe(false);
+			unmount();
+
+			mount(sourceOf('a'), { density: 'compact' });
+			expect(root().classList.contains('ui-field-compact')).toBe(true);
+		});
 	});
 
 	describe('actions', () => {
