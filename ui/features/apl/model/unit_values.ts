@@ -64,7 +64,7 @@ export interface UnitOptionModel {
 	submenu?: Array<UnitModel>;
 }
 
-/** The unit set's options, each already resolved to what it displays as. */
+/** The unit set's options, each with the text, icon and colour it displays with; a pet's icon may still be an `ActionId` to resolve. */
 export const unitOptionModels = (unitSet: UNIT_SET, player: Player<any>): Array<UnitOptionModel> => {
 	const set = unitSets[unitSet];
 	return set.getUnits(player).map(ref => {

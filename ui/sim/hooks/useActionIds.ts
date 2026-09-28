@@ -10,8 +10,8 @@ const iconOf = (actionId: ActionId | undefined): ResolvedIcon | undefined =>
 	actionId?.iconUrl ? { iconUrl: actionId.iconUrl, name: actionId.name, href: actionIdHref(actionId) || undefined } : undefined;
 
 /**
- * A list of `ActionId`s as the icons a kit component takes, index for index; an id with no icon
- * resolves to `undefined`. The ids are compared by content, so a fresh array of the same ids per
+ * A list of `ActionId`s as the icons a kit component takes, index for index; an id with no icon,
+ * or whose fill fails, resolves to `undefined` without holding back the others. The ids are compared by content, so a fresh array of the same ids per
  * render neither refetches nor changes the returned array.
  */
 export const useActionIds = (actionIds: ReadonlyArray<ActionId | undefined>): Icons => {
@@ -28,13 +28,14 @@ export const useActionIds = (actionIds: ReadonlyArray<ActionId | undefined>): Ic
 		if (ids.every(id => !id || isFilled(id))) return;
 
 		const controller = new AbortController();
-		Promise.all(ids.map(id => (id && !isFilled(id) ? id.fill() : id)))
-			.then(filled => {
-				if (!controller.signal.aborted) setState({ key, icons: filled.map(iconOf) });
-			})
-			.catch((error: unknown) => {
-				if (!controller.signal.aborted) throw error;
+		const fillOne = (id: ActionId) =>
+			id.fill().catch((error: unknown) => {
+				if (!controller.signal.aborted) console.error(error);
+				return undefined;
 			});
+		void Promise.all(ids.map(id => (id && !isFilled(id) ? fillOne(id) : id))).then(filled => {
+			if (!controller.signal.aborted) setState({ key, icons: filled.map(iconOf) });
+		});
 		return () => controller.abort();
 	}, [key]);
 
