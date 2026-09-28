@@ -94,8 +94,8 @@ func (env *Environment) construct(raidProto *proto.Raid, encounterProto *proto.E
 	// Apply extra debuffs from raid.
 	if raidProto.Debuffs != nil && len(env.Encounter.AllTargetUnits) > 0 {
 		env.withSource(SourceExternalDebuff, func() {
-			for targetIdx, targetUnit := range env.Encounter.AllTargetUnits {
-				applyDebuffEffects(targetUnit, targetIdx, raidProto.Debuffs, raidProto)
+			for _, targetUnit := range env.Encounter.AllTargetUnits {
+				registeredBuffs().ApplyDebuffs(targetUnit, raidProto.Debuffs, raidProto)
 			}
 		})
 	}
