@@ -50,7 +50,7 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 		// Spell 29166 states +400% spirit regen on the mana bar (aura 110), which prices the mana the
 		// metrics record.
 		expectedMana = char.SpiritManaRegenPerSecond() *
-			(1 + innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).Percent()) *
+			core.MultiplierFromPercent(innervatesSpell.Effect(dbcenums.A_MOD_POWER_REGEN_PERCENT, int32(dbcenums.POWER_MANA)).BaseValue()) *
 			aura.Duration.Seconds()
 	})
 
@@ -378,5 +378,5 @@ func driveThunderfury(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		ActionID: core.ActionID{SpellID: thunderfuryCycloneSpell.ID, Tag: -1},
 		Duration: core.NeverExpires,
 	}))
-	core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(thunderfuryCycloneSpell.EffectN(1).BaseValue()))
+	core.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(-thunderfuryCycloneSpell.EffectN(1).BaseValue()))
 }

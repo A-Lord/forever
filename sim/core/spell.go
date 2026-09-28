@@ -161,8 +161,8 @@ type Spell struct {
 	unscaledGCD              time.Duration // DefaultCast.GCD is rewritten from this on every GCD mod, so a direct write there is lost.
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
-	// Added to DamageMultiplierAdditive on direct hits only. Unlike that bucket this one is 0
-	// when nothing feeds it.
+	// Added to DamageMultiplierAdditive on direct hits and direct heals only. Unlike that bucket
+	// this one is 0 when nothing feeds it.
 	DirectDamageMultiplierAdditive float64
 	CritMultiplierPct              float64 // Multiplies the base crit multiplier, 1 = unmodified. Fed by SpellMod_CritMultiplier_Pct.
 	CritMultiplierAdditive         float64 // Additive critical damage bonus

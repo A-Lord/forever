@@ -1,10 +1,11 @@
-import { Class, ConsumableType, HandType, ItemSlot, Profession, Race, Stat, WeaponType } from '@generated/proto/common';
+import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect, ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIItem } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
 import type { EquippedItem } from '../proto/equipped_item';
+import { UnitStat } from '../proto/stats';
 import {
 	ConsumableSlot,
 	consumableSlot,
@@ -24,6 +25,12 @@ const stats = (granted: Partial<Record<Stat, number>>) => {
 	return out;
 };
 
+const pseudoStats = (granted: Partial<Record<PseudoStat, number>>) => {
+	const out = new Array<number>(36).fill(0);
+	for (const [pseudoStat, value] of Object.entries(granted)) out[Number(pseudoStat)] = value!;
+	return out;
+};
+
 const onUse = (categoryId: number, cooldownMs = 0) =>
 	ItemEffect.create({ effect: { oneofKind: 'onUse', onUse: { categoryId, cooldownMs, categoryCooldownMs: 0 } } });
 
@@ -37,7 +44,16 @@ const effects = new Map<number, SpellEffect>([
 const db = { getSpellEffect: (id: number) => effects.get(id) };
 
 const user = (
-	fields: Partial<{ cls: Class; race: Race; professions: Profession[]; epStats: Stat[]; mainHand: UIItem; offHand: UIItem }> = {},
+	fields: Partial<{
+		cls: Class;
+		race: Race;
+		professions: Profession[];
+		epStats: Stat[];
+		epPseudoStats: PseudoStat[];
+		displayPseudoStats: PseudoStat[];
+		mainHand: UIItem;
+		offHand: UIItem;
+	}> = {},
 ): ConsumableUser => ({
 	getClass: () => fields.cls ?? Class.ClassWarrior,
 	getRace: () => fields.race ?? Race.RaceOrc,
@@ -46,7 +62,11 @@ const user = (
 		const item = slot === ItemSlot.ItemSlotMainHand ? fields.mainHand : slot === ItemSlot.ItemSlotOffHand ? fields.offHand : undefined;
 		return item ? ({ item } as EquippedItem) : null;
 	},
-	getSpecConfig: () => ({ epStats: fields.epStats ?? [Stat.StatStrength, Stat.StatAttackPower] }),
+	getSpecConfig: () => ({
+		epStats: fields.epStats ?? [Stat.StatStrength, Stat.StatAttackPower],
+		epPseudoStats: fields.epPseudoStats,
+		displayStats: (fields.displayPseudoStats ?? []).map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
+	}),
 });
 
 describe('consumableSlot', () => {
@@ -91,6 +111,34 @@ describe('isConsumableRelevant', () => {
 		const frenzy = consumable({ type: ConsumableType.ConsumableTypePotion, stats: stats({ [Stat.StatPhysicalDamage]: 40 }) });
 		expect(isConsumableRelevant(frenzy, user({ epStats: [Stat.StatAttackPower] }), db)).toBe(true);
 		expect(isConsumableRelevant(frenzy, user({ epStats: [Stat.StatIntellect] }), db)).toBe(false);
+	});
+
+	it('offers a one-channel percent to a spec that shows or weighs it, not by the rating the spec weighs', () => {
+		// Dark Desire 22237: A_MOD_HIT_CHANCE 2, melee and ranged hit alone.
+		const darkDesire = consumable({
+			type: ConsumableType.ConsumableTypeOther,
+			pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeHitPercent]: 2, [PseudoStat.PseudoStatRangedHitPercent]: 2 }),
+		});
+		const caster = { epStats: [Stat.StatSpellDamage, Stat.StatHitRating], displayPseudoStats: [PseudoStat.PseudoStatSpellHitPercent] };
+		expect(isConsumableRelevant(darkDesire, user(caster), db)).toBe(false);
+		expect(isConsumableRelevant(darkDesire, user({ ...caster, displayPseudoStats: [PseudoStat.PseudoStatMeleeHitPercent] }), db)).toBe(true);
+		expect(isConsumableRelevant(darkDesire, user({ ...caster, epPseudoStats: [PseudoStat.PseudoStatRangedHitPercent] }), db)).toBe(true);
+	});
+
+	it('offers an all-channel crit percent to a melee spec and to a caster that shows spell crit', () => {
+		// Elixir of the Mongoose 13452: A_MOD_CRIT_PCT 2, melee, ranged and spell crit alike.
+		const mongoose = consumable({
+			type: ConsumableType.ConsumableTypeElixir,
+			pseudoStats: pseudoStats({
+				[PseudoStat.PseudoStatMeleeCritPercent]: 2,
+				[PseudoStat.PseudoStatRangedCritPercent]: 2,
+				[PseudoStat.PseudoStatSpellCritPercent]: 2,
+			}),
+		});
+		const rogue = user({ cls: Class.ClassRogue, epStats: [Stat.StatAgility], displayPseudoStats: [PseudoStat.PseudoStatMeleeCritPercent] });
+		const mage = user({ cls: Class.ClassMage, epStats: [Stat.StatIntellect], displayPseudoStats: [PseudoStat.PseudoStatSpellCritPercent] });
+		expect(isConsumableRelevant(mongoose, rogue, db)).toBe(true);
+		expect(isConsumableRelevant(mongoose, mage, db)).toBe(true);
 	});
 
 	it('offers a restore by the resource the spec spends', () => {
@@ -150,7 +198,7 @@ describe('relevanceFor', () => {
 	it('answers as isConsumableRelevant does, and again once the class, race or a required profession changes', () => {
 		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering });
 		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
-		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]));
+		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]), new Set());
 		expect(relevant(sapper, user())).toBe(false);
 		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
 		expect(relevant(orcOnly, user({ professions: [Profession.Engineering] }))).toBe(true);

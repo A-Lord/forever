@@ -150,12 +150,9 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 			character.bonusOHDps = ps[proto.PseudoStat_PseudoStatOffHandDps]
 			character.bonusRangedDps = ps[proto.PseudoStat_PseudoStatRangedDps]
 			character.PseudoStats.BaseReducedCritTakenPercent = ps[proto.PseudoStat_PseudoStatReducedCritTakenPercent] / 100
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexArcane] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentArcane]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFire] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentFire]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFrost] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentFrost]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexHoly] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentHoly]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexNature] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentNature]
-			character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexShadow] = ps[proto.PseudoStat_PseudoStatSchoolHitPercentShadow]
+			for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
+				character.PseudoStats.SchoolBonusHitChance[school] = ps[SchoolHitPseudoStats[school]]
+			}
 			character.PseudoStats.BonusMHDps += character.bonusMHDps
 			character.PseudoStats.BonusOHDps += character.bonusOHDps
 			character.PseudoStats.BonusRangedDps += character.bonusRangedDps
@@ -366,6 +363,9 @@ func (character *Character) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 func (character *Character) initialize(agent Agent) {
 	character.majorCooldownManager.initialize(character)
 	character.ItemSwap.initialize(character)
+	character.RegisterWeaponChangeCallback(func(_ *Simulation) {
+		character.refilterEquipMods()
+	})
 
 	character.rotationAction = &PendingAction{
 		Priority: ActionPriorityGCD,
@@ -688,66 +688,6 @@ func (character *Character) doneIteration(sim *Simulation) {
 	}
 
 	character.Unit.doneIteration(sim)
-}
-
-// Which of block and parry the character sheet shows: a character that cannot block or parry shows
-// no Block% or Parry%, and no change in its stats moves either.
-type SheetAvoidance struct{ CanBlock, CanParry bool }
-
-func (sheet SheetAvoidance) Gate(pseudoStats []float64) {
-	if !sheet.CanBlock {
-		pseudoStats[proto.PseudoStat_PseudoStatBlockPercent] = 0
-	}
-	if !sheet.CanParry {
-		pseudoStats[proto.PseudoStat_PseudoStatParryPercent] = 0
-	}
-}
-
-func (character *Character) sheetAvoidance() SheetAvoidance {
-	return SheetAvoidance{CanBlock: character.PseudoStats.CanBlock, CanParry: character.PseudoStats.CanParry}
-}
-
-func (character *Character) GetPseudoStatsProto() []float64 {
-	pseudoStats := []float64{
-		proto.PseudoStat_PseudoStatMainHandDps: character.AutoAttacks.MH().DPS(),
-		proto.PseudoStat_PseudoStatOffHandDps:  character.AutoAttacks.OH().DPS(),
-		proto.PseudoStat_PseudoStatRangedDps:   character.AutoAttacks.Ranged().DPS(),
-
-		// Base values are modified by Enemy attackTables, but we display for LVL 70 enemy as paperdoll default
-		proto.PseudoStat_PseudoStatDodgePercent:            (character.PseudoStats.BaseDodgeChance + character.GetDodgeFromRating()) * 100,
-		proto.PseudoStat_PseudoStatParryPercent:            (character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
-		proto.PseudoStat_PseudoStatBlockPercent:            (character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
-		proto.PseudoStat_PseudoStatBlockValueMultiplier:    character.PseudoStats.BlockValueMultiplier,
-		proto.PseudoStat_PseudoStatReducedCritTakenPercent: character.PseudoStats.ReducedCritTakenPercent * 100,
-
-		// Used by UI to incorporate multiplicative Haste buffs into final character stats display.
-		proto.PseudoStat_PseudoStatRangedSpeedMultiplier: character.PseudoStats.RangedSpeedMultiplier * character.PseudoStats.AttackSpeedMultiplier,
-		proto.PseudoStat_PseudoStatMeleeSpeedMultiplier:  character.PseudoStats.MeleeSpeedMultiplier * character.PseudoStats.AttackSpeedMultiplier,
-		proto.PseudoStat_PseudoStatCastSpeedMultiplier:   character.PseudoStats.CastSpeedMultiplier,
-		proto.PseudoStat_PseudoStatMeleeHastePercent:     (character.TotalMeleeHasteMultiplier() - 1) * 100,
-		proto.PseudoStat_PseudoStatRangedHastePercent:    (character.TotalRangedHasteMultiplier() - 1) * 100,
-		proto.PseudoStat_PseudoStatSpellHastePercent:     (character.TotalSpellHasteMultiplier() - 1) * 100,
-
-		// School-specific fully buffed Hit/Crit are represented as proper Stats in the back-end so
-		// that stat dependencies will work correctly, but are stored as PseudoStats in proto
-		// messages. This is done so that the stats arrays embedded in database files and saved
-		// Encounter settings can omit these extraneous fields.
-		proto.PseudoStat_PseudoStatMeleeHitPercent:        character.GetStat(stats.PhysicalHitPercent),
-		proto.PseudoStat_PseudoStatSpellHitPercent:        character.GetStat(stats.SpellHitPercent),
-		proto.PseudoStat_PseudoStatSchoolHitPercentArcane: character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexArcane],
-		proto.PseudoStat_PseudoStatSchoolHitPercentFire:   character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFire],
-		proto.PseudoStat_PseudoStatSchoolHitPercentFrost:  character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexFrost],
-		proto.PseudoStat_PseudoStatSchoolHitPercentHoly:   character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexHoly],
-		proto.PseudoStat_PseudoStatSchoolHitPercentNature: character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexNature],
-		proto.PseudoStat_PseudoStatSchoolHitPercentShadow: character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[stats.SchoolIndexShadow],
-		proto.PseudoStat_PseudoStatRangedHitPercent:       character.GetStat(stats.RangedHitPercent) + character.GetStat(stats.PhysicalHitPercent),
-		proto.PseudoStat_PseudoStatMeleeCritPercent:       character.GetStat(stats.PhysicalCritPercent),
-		proto.PseudoStat_PseudoStatSpellCritPercent:       character.GetStat(stats.SpellCritPercent),
-		proto.PseudoStat_PseudoStatRangedCritPercent:      character.GetStat(stats.RangedCritPercent) + character.GetStat(stats.PhysicalCritPercent),
-		proto.PseudoStat_PseudoStatExpertisePercent:       character.GetStat(stats.ExpertisePercent),
-	}
-	character.sheetAvoidance().Gate(pseudoStats)
-	return pseudoStats
 }
 
 func (character *Character) GetMetricsProto() *proto.UnitMetrics {

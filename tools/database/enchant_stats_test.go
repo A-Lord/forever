@@ -3,6 +3,7 @@ package database
 import (
 	"testing"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/tools/database/dbc"
@@ -175,9 +176,9 @@ func TestWeaponEnchantSubclassType(t *testing.T) {
 		subClassMask int
 		want         proto.EnchantType
 	}{
-		{"staff alone", dbc.ITEM_SUBCLASS_BIT_WEAPON_STAFF, proto.EnchantType_EnchantTypeStaff},
+		{"staff alone", dbcenums.ITEM_SUBCLASS_BIT_WEAPON_STAFF, proto.EnchantType_EnchantTypeStaff},
 		{"two-hand axe, mace, polearm and sword", 354, proto.EnchantType_EnchantTypeTwoHand},
-		{"two-hand sword and one-hand sword", dbc.ITEM_SUBCLASS_BIT_WEAPON_SWORD_2H | dbc.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H, proto.EnchantType_EnchantTypeNormal},
+		{"two-hand sword and one-hand sword", dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_2H | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H, proto.EnchantType_EnchantTypeNormal},
 		{"any weapon", 0, proto.EnchantType_EnchantTypeNormal},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

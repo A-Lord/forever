@@ -35,7 +35,7 @@ func RegisterAllTemporaryEnchantConsumables() {
 		{itemID: 13699}, // Firestone
 		{itemID: 13700}, // Greater Firestone
 		{itemID: 13701}, // Major Firestone
-		{itemID: 18262}, // Elemental Sharpening Stone
+		{itemID: 18262, equipSpellIDs: []int32{22755}}, // Elemental Sharpening Stone
 		{itemID: 20744}, // Minor Wizard Oil
 		{itemID: 20745}, // Minor Mana Oil
 		{itemID: 20746}, // Lesser Wizard Oil

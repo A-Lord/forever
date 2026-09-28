@@ -176,6 +176,22 @@ func TestDirectDamageDoneFlatMod(t *testing.T) {
 	}
 }
 
+// SPELLMOD_DAMAGE raises healing done as well, so a direct heal reads the bucket and a hot does not.
+func TestDirectDamageDoneFlatModReachesDirectHeals(t *testing.T) {
+	sim := SetupFakeSim()
+	fa := sim.Raid.Parties[0].Players[0].(*FakeAgent)
+
+	mod := newTestMod(SpellModConfig{Kind: SpellMod_DirectDamageDone_Flat, FloatValue: 0.2}, fa.Spell)
+	mod.Activate()
+
+	if got := fa.Spell.CasterHealingMultiplier(); !WithinToleranceFloat64(1.8, got, 0.001) {
+		t.Errorf("direct heal multiplier with the mod active: %0.3f, want 1.800", got)
+	}
+	if got := fa.Spell.casterHealingMultiplier(true); !WithinToleranceFloat64(1.5, got, 0.001) {
+		t.Errorf("hot multiplier with the mod active: %0.3f, want 1.500", got)
+	}
+}
+
 // Stacks the mod took to 0 could not come back: the aura would be skipped as one that never stacked.
 func TestBuffMaxStacksFlatModRefusesToEmptyTheStacks(t *testing.T) {
 	defer func() {

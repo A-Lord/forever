@@ -131,7 +131,7 @@ const executeCard = "### 20662 Execute · Rank 5\n" +
 	"| **cost** | 15 rage |\n" +
 	"| **range** | 5 yd |\n" +
 	"| **stance** | Battle, Berserker |\n" +
-	"| **equip** | needs a melee weapon |\n" +
+	"| **equip** | needs a melee weapon in the main hand |\n" +
 	"| **attrs** | refund on miss |\n" +
 	"| **labels** | 25 |\n" +
 	"\n" +
@@ -175,11 +175,11 @@ func TestHoverTalentRank(t *testing.T) {
 	wantHover(t, crueltyGo, "crueltyRank :=", 4,
 		"### 12320 Cruelty · rank 3 of 5\n",
 		"| | Cruelty (rank 3 of 5) |",
-		"| 1 | +3% physical crit<br>`E_APPLY_AURA A_MOD_WEAPON_CRIT_PERCENT base=3 target=[1,0]` |")
+		"| 1 | +3% physical crit, per weapon: only attacks made with a melee weapon<br>`E_APPLY_AURA A_MOD_WEAPON_CRIT_PERCENT base=3 target=[1,0]` |")
 	wantHover(t, crueltyGo, "crueltyCrit :=", 4,
 		"`crueltyCrit` = **3**\n\n`spellData.Cruelty.Rank(3).EffectN(1).BaseValue()`",
 		"### 12320 Cruelty · rank 3 of 5\n",
-		"| 1 ▶ | +3% physical crit<br>")
+		"| 1 ▶ | +3% physical crit, per weapon: only attacks made with a melee weapon<br>")
 	wantHover(t, crueltyGo, "Cruelty.Rank", 3,
 		"### warrior/Cruelty\n",
 		"| 12320 | Cruelty | rank 3 of 5 | `Rank(3)` | effect 1 = 3 |",

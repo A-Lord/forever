@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
+	"maps"
 	"math"
 	"regexp"
 	"sort"
@@ -223,6 +224,13 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int, runeOnly map[in
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	scaling := petScalingSpells[dbc.ClassNameFromDBC(class)]
+	petLines, err := petSkillLines(db, scaling)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	owned := maps.Clone(exclusive)
+	maps.Copy(owned, petLines)
 
 	// The Defense skill line carries the one-class passives that open a counterattack window - Offensive
 	// State (DND) fires the 5 s Overpower aura 1282733 on a melee hit, Defensive State (DND) the Revenge
@@ -240,11 +248,12 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int, runeOnly map[in
 			FROM SkillLineAbility sla2
 			JOIN SkillLine sl2 ON sl2.ID = sla2.SkillLine AND sl2.CategoryID = 7
 			WHERE (sla2.ClassMask & ?) != 0
-		) OR (sla.SkillLine = ? AND sla.ClassMask = ? AND sla.AcquireMethod = ?))
+		) OR (sla.SkillLine = ? AND sla.ClassMask = ? AND sla.AcquireMethod = ?)
+		OR sla.SkillLine IN (`+petSkillLinesQuery+`))
 		AND (s.NameSubtext_lang LIKE 'Rank %' OR s.NameSubtext_lang IN ('', 'Shapeshift'))
 		AND sla.SkillLine NOT IN (2851, 2853)
 		AND NOT EXISTS (SELECT 1 FROM SpellEffect se WHERE se.SpellID = sla.Spell AND se.EffectAura = ?)
-		ORDER BY n.Name_lang, sla.Spell`, dbcenums.ATTR_PASSIVE, mask, dbc.SkillLineDefense, mask, acquireOnLevel, dbcenums.A_MOUNTED)
+		ORDER BY n.Name_lang, sla.Spell`, dbcenums.ATTR_PASSIVE, mask, dbc.SkillLineDefense, mask, acquireOnLevel, scaling, dbcenums.A_MOUNTED)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -365,7 +374,7 @@ func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int, runeOnly map[in
 		var ladder map[int32]int32
 		var points map[int32]map[int32]float64
 		var resolveErr error
-		if claimedByClass(byName[name], mask, exclusive) {
+		if claimedByClass(byName[name], mask, owned) {
 			ladder, resolveErr = resolveLadder(db, name, byName[name], mask)
 		}
 
@@ -825,6 +834,42 @@ func curveRanks(curve map[int32]float64, maxRanks int32) (map[int32]float64, boo
 		values[rank] = value
 	}
 	return values, true
+}
+
+// The pet scaling spell that marks a class's own pet skill lines. The warlock's demons learn their
+// abilities on those lines alone, with no class bit and no teacher row on a class line. The hunter's
+// pet abilities are taught on Beast Training and the families are read by discoverPetFamilies, so
+// the hunter has no entry. A line with no trained ability belongs to a pet no trainer or grimoire
+// teaches: the Infernal and Doomguard carry only passives, and the Felguard is a Season of Discovery
+// rune whose one leveled passive, Avoidance 427743, would otherwise reach the class file.
+var petScalingSpells = map[string]string{"Warlock": "Warlock Pet Scaling"}
+
+const petSkillLinesQuery = `
+	SELECT h.SkillLine FROM SkillLineAbility h
+	JOIN SpellName hn ON hn.ID = h.Spell
+	JOIN SkillLine hl ON hl.ID = h.SkillLine AND hl.CategoryID = 7 AND hl.DisplayName_lang LIKE 'Pet - %'
+	WHERE hn.Name_lang = ?
+	AND EXISTS (SELECT 1 FROM SkillLineAbility t WHERE t.SkillLine = h.SkillLine AND t.AcquireMethod = 0)`
+
+// The pet skill lines that carry the scaling spell; none for an empty name.
+func petSkillLines(db *sql.DB, scaling string) (map[int32]bool, error) {
+	lines := map[int32]bool{}
+	if scaling == "" {
+		return lines, nil
+	}
+	rows, err := db.Query(petSkillLinesQuery, scaling)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var line int32
+		if err := rows.Scan(&line); err != nil {
+			return nil, err
+		}
+		lines[line] = true
+	}
+	return lines, rows.Err()
 }
 
 // The skill lines only this class appears in. 11 are shared: "Holy" carries both the paladin and the

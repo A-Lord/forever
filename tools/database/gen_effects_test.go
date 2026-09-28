@@ -157,6 +157,54 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 	}
 }
 
+// An on-use whose spell applies a hit or crit percent, which no item stat holds, registers as an
+// aura: Gri'lek's Charm of Valor's 24498 is spell crit alone. Weakness Analyzer's 1291101 drops at the
+// first crit, a charge the aura does not spend, and is refused.
+func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID  int
+		spellID int32
+		summary string
+		reasons []string
+	}{
+		{19952, 24498, "on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)", nil}, // Gri'lek's Charm of Valor
+		{272438, 1291101, "on use: 1291101 (A_MOD_CRIT_PCT)", // Weakness Analyzer
+			[]string{"the buff drops after ProcCharges 1, which the aura does not spend"}},
+	} {
+		item := instance.Items[tc.itemID]
+		parsed := item.ToUIItem()
+		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+		i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == tc.spellID && e.GetOnUse() != nil })
+		if i < 0 {
+			t.Fatalf("item %d carries no on-use effect on %d", tc.itemID, tc.spellID)
+		}
+
+		want, group := EffectParseResultSuccess, "Auras"
+		if tc.reasons != nil {
+			want, group = EffectParseResultRefused, ""
+		}
+		groups := map[string]Group{}
+		if got := TryParseOnUseEffect(parsed, parsed.ItemEffects[i], instance, groups); got != want {
+			t.Errorf("item %d parsed as %v, want %v", tc.itemID, got, want)
+			continue
+		}
+
+		entries := groups[group].Entries
+		if len(entries) != 1 {
+			t.Fatalf("item %d: %d entries in the %q group, want 1", tc.itemID, len(entries), group)
+		}
+		r := entries[0].Proc
+		if r.Shape != ShapeAura || r.TriggerSpellID != int(tc.spellID) || r.OnUseConstructor() != "NewSpellDataAuraOnUse" ||
+			r.Summary != tc.summary || !slices.Equal(r.Unsupported, tc.reasons) {
+			t.Errorf("item %d: routing %+v; want %d through NewSpellDataAuraOnUse with %q, refused for %q",
+				tc.itemID, r, tc.spellID, tc.summary, tc.reasons)
+		}
+	}
+}
+
 // Aegis of Preservation 19345 registers its 500 armor and lists the heal on every hit taken, 23781,
 // that its buff 23780 procs.
 func TestOnUseStatBuffListsTheProcItCarries(t *testing.T) {
@@ -246,5 +294,47 @@ func TestAttackAvoidedWording(t *testing.T) {
 		if got := procTooltipHints(tc.text) & avoided; got != tc.want {
 			t.Errorf("hint = %q, want %q for %s:\n  %s", formatProcHint(got), formatProcHint(tc.want), tc.why, tc.text)
 		}
+	}
+}
+
+// An enchant whose equip spell names a melee weapon subset registers the spell as an equip aura, kept
+// up while the enchant is worn. 430391 (Hit Weapon +2) states A_MOD_HIT_CHANCE on the melee weapons
+// but not spears, which no enchant stat can hold; its row is freed of its area group for the test. An
+// enchant that already registers a proc lists it.
+func TestWeaponScopedEnchantRegistersAnEquipAura(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	const effectID, spellID = 990991, 430391
+	row := spelldata.MustFind(spellID)
+	areas := row.RequiredAreas
+	row.RequiredAreas = 0
+	t.Cleanup(func() { row.RequiredAreas = areas })
+	enchant := dbc.Enchant{EffectId: effectID, Name: "Test Hit Enchant",
+		Effects: []int{dbc.ITEM_ENCHANTMENT_EQUIP_SPELL}, EffectArgs: []int{spellID}}
+	parsed := &proto.UIEnchant{EffectId: effectID, Name: enchant.Name}
+	grants := map[int]*dbc.SpellEffect{effectID: {SpellID: spellID}}
+	if dbc.EquipSpellFolds(spellID) {
+		t.Fatalf("%d folds into the enchant stats; the test needs one left to run time", spellID)
+	}
+
+	groups := map[string]Group{}
+	storeWeaponScopedEnchant(instance, enchant, parsed, grants, groups)
+	entries := groups["Enchants"].Entries
+	if len(entries) != 1 {
+		t.Fatalf("%d entries in the Enchants group, want 1", len(entries))
+	}
+	r := entries[0].Proc
+	if r.Shape != ShapeEquip || r.TriggerSpellID != spellID || r.ProcConstructor() != "NewSpellDataEquipAura" ||
+		entries[0].Variants[0].ID != effectID || !entries[0].Supported {
+		t.Errorf("routing %+v for enchant %d, supported %v; want %d registered through NewSpellDataEquipAura",
+			r, entries[0].Variants[0].ID, entries[0].Supported, spellID)
+	}
+
+	registered := map[string]Group{"Enchants": {Name: "Enchants", Entries: []*Entry{{
+		Variants: []*Variant{{ID: effectID}}, Proc: &ProcRouting{}, Supported: true}}}}
+	storeWeaponScopedEnchant(instance, enchant, parsed, grants, registered)
+	if second := registered["Enchants"].Entries; len(second) != 2 || second[1].Supported {
+		t.Errorf("an enchant that already registers should list the equip aura, got %d entries", len(second))
 	}
 }

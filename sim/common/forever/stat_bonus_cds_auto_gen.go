@@ -88,8 +88,9 @@ func RegisterAllOnUseCds() {
 	// on use: 1291097 (A_SCHOOL_ABSORB)
 	// unsupported: the damage of 1291099 (Sigmoid Revenge) the absorb's row names is not simulated
 	// shared.NewSpellDataAbsorbOnUse(272437) // Adaptive Combat Assistant - https://www.wowhead.com/forever/spell=1291097
-	// unsupported: 1291101 deals no damage and heals no one (A_MOD_CRIT_PCT)
-	// shared.NewSimpleStatActive(272438) // Weakness Analyzer - https://www.wowhead.com/forever/spell=1291101
+	// on use: 1291101 (A_MOD_CRIT_PCT)
+	// unsupported: the buff drops after ProcCharges 1, which the aura does not spend
+	// shared.NewSpellDataAuraOnUse(272438) // Weakness Analyzer - https://www.wowhead.com/forever/spell=1291101
 	// unsupported: 1291105 deals no damage and heals no one (A_MOD_BLOCK_PERCENT)
 	// shared.NewSimpleStatActive(272440) // Defender's Grip Stabilizer - https://www.wowhead.com/forever/spell=1291105
 	// unsupported: 1293820 deals no damage and heals no one (A_MOD_DODGE_PERCENT)
@@ -156,6 +157,8 @@ func RegisterAllOnUseCds() {
 	// Auras
 	// on use: 23734 (A_MOD_DAMAGE_PERCENT_DONE, A_MOD_HEALING_DONE_PERCENT, A_MOD_POWER_COST_SCHOOL_PCT)
 	shared.NewSpellDataAuraOnUse(19344) // Natural Alignment Crystal - https://www.wowhead.com/forever/spell=23734
+	// on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)
+	shared.NewSpellDataAuraOnUse(19952) // Gri'lek's Charm of Valor - https://www.wowhead.com/forever/spell=24498
 
 	// Damage
 	// on use: 10578 (E_SCHOOL_DAMAGE, A_PERIODIC_DAMAGE)
@@ -315,9 +318,6 @@ func RegisterAllOnUseCds() {
 	shared.NewSpellDataSpeedOnUse(19343) // Scrolls of Blinding Light - https://www.wowhead.com/forever/spell=23733
 	// on use: 28866 (A_MOD_MELEE_HASTE_3, A_MOD_RANGED_HASTE)
 	shared.NewSpellDataSpeedOnUse(22954) // Kiss of the Spider - https://www.wowhead.com/forever/spell=28866
-
-	// SpellCritRating
-	shared.NewSimpleStatActive(19952) // Gri'lek's Charm of Valor - https://www.wowhead.com/forever/spell=24498
 
 	// SpellDamage / SpellPiercing
 	shared.NewSimpleStatActive(21473) // Eye of Moam - https://www.wowhead.com/forever/spell=26166

@@ -29,9 +29,9 @@ export default defineSpec<Spec.SpecHunter>({
 		Stat.StatAttackPower,
 		Stat.StatRangedAttackPower,
 		Stat.StatArmorPenetration,
-		Stat.StatMeleeHitRating,
-		Stat.StatMeleeHasteRating,
-		Stat.StatMeleeCritRating,
+		Stat.StatHitRating,
+		Stat.StatHasteRating,
+		Stat.StatCritRating,
 		Stat.StatExpertiseRating,
 		Stat.StatPhysicalDamage,
 	],
@@ -102,7 +102,7 @@ export default defineSpec<Spec.SpecHunter>({
 	playerIconInputs: [HunterInputs.QuiverInput(), HunterInputs.AmmoInput()],
 	sections: [HunterInputs.PetSection],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
-	includeBuffDebuffInputs: [Stat.StatSpirit, Stat.StatSpellCritRating, Stat.StatSpellDamage],
+	includeBuffDebuffInputs: [Stat.StatSpirit, Stat.StatCritRating, Stat.StatSpellDamage],
 	excludeBuffDebuffInputs: [],
 	rotationInputs: HunterInputs.RotationInputs,
 	// Inputs to include in the 'Other' section on the settings tab.
