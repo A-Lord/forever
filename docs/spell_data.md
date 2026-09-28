@@ -527,7 +527,7 @@ per unit cannot be applied once per stack, and the static path has no aura to fo
 | a stacking aura (`MaxStack` > 0)    | the stat multipliers and shares, the equipment scaling, the pseudo-stat and speed multipliers and the cooldown multiplier |
 | `ParseStatic`                       | the speed and energy regen multipliers, which need the `Simulation` an aura's gain hands over                             |
 | `ParseStatic` with `Conditional`    | the stat multipliers and shares and the equipment scaling as well                                                         |
-| an aura on a unit with no character | the equipment scaling and the stats held while a weapon is equipped, whose helpers are a character's                      |
+| an aura on a unit with no character | the equipment scaling and the stats and damage held while a weapon is equipped, whose helpers are a character's           |
 | a parse without `FromCaster`        | the damage and crit a debuff adds to its caster's attacks alone, and `ParseStatic` those too                              |
 
 `IgnoreStacks()` clears the first row of that table for a spell whose column counts charges rather
@@ -564,8 +564,8 @@ rating aura names a weapon does not fold, and is applied at run time.
 
 ### The rule per aura
 
-`spelldata.WeaponScope(row, effect)` answers the rule the parse applies to a hit, crit or rating effect,
-and `go run ./tools/spelldata <id>` words it on each effect line.
+`spelldata.WeaponScope(row, effect)` answers the rule the parse applies to a hit, crit, rating or damage
+done effect, and `go run ./tools/spelldata <id>` words it on each effect line.
 
 | aura                                                  | the row requires                                                  | the parse attaches                                                                                                                                        | rows                                                                                                                                                                               |
 | ----------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -573,17 +573,18 @@ and `go run ./tools/spelldata <id>` words it on each effect line.
 | 290 `A_MOD_CRIT_PCT`                                  | a weapon not ranged alone, or one named by inventory type or hand | while equipped: physical and spell crit on every spell and attack while a matching weapon is in any weapon slot                                           | Thundering Strikes 16255                                                                                                                                                           |
 | 290 `A_MOD_CRIT_PCT`                                  | bows, guns, crossbows, thrown or wands alone, by subclass         | per weapon: a crit mod on ranged attacks                                                                                                                  | Ranged Crit Bonus +02 1310308                                                                                                                                                      |
 | 189 `A_MOD_RATING`                                    | a weapon, or no weapon and a mask of ranged bits alone            | per weapon, or on ranged attacks: the hit and crit it is worth, `FromRating`                                                                              |                                                                                                                                                                                    |
-| 52, 54, 290, 189                                      | a weapon, on an aura that reaches another unit                    | the stat, on that unit: the requirement only gates the cast                                                                                               | Scorpid Sting 3043                                                                                                                                                                 |
+| 52, 54, 290, 189, 79                                  | a weapon, on an aura that reaches another unit                    | the stat, on that unit: the requirement only gates the cast                                                                                               | Scorpid Sting 3043                                                                                                                                                                 |
 | 52, 54, 290                                           | a shield (class 4)                                                | the stat: a shield row is never scoped                                                                                                                    |                                                                                                                                                                                    |
 | 55, 57 and the haste auras                            | anything                                                          | the stat: spell hit, spell crit and haste are never scoped                                                                                                | Precision 13705's spell hit                                                                                                                                                        |
-| 79 `A_MOD_DAMAGE_PERCENT_DONE`                        | a weapon                                                          | while equipped: the school multiplier, and with a melee weapon a `SpellMod_DamageDone_Pct` on the melee-defense spells of the schools the mask leaves out | One-Handed Weapon Specialization 20196 (Seal of Righteousness, Holy Strike), Two-Handed Weapon Specialization 20111 and 12163                                                      |
+| 79 `A_MOD_DAMAGE_PERCENT_DONE`                        | a weapon not ranged alone, or one named by inventory type or hand | while equipped: the school multiplier, and with a melee weapon a `SpellMod_DamageDone_Pct` on the melee-defense spells of the schools the mask leaves out | One-Handed Weapon Specialization 20196 (Seal of Righteousness, Holy Strike), Two-Handed Weapon Specialization 20111 and 12163                                                      |
+| 79 `A_MOD_DAMAGE_PERCENT_DONE`                        | bows, guns, crossbows, thrown or wands alone, by subclass         | per weapon: a `SpellMod_DamageDone_Pct` of the mask's schools on ranged attacks                                                                           | Ranged Weapon Specialization 19507, Wand Specialization 6057                                                                                                                       |
 
 A per-weapon mod carries no class flags, so it reaches the auto attacks whatever family the talent
 belongs to.
 
-`spelldata.DamageDoneWeapon(row, effect)` answers the damage-done rule. The parse gates the row on the
-weapon itself and follows weapon swaps, so the talent needs no `Conditional` of its own, and `Applied`
-names the melee-defense part as `damage-dealt-melee` beside the school multiplier.
+A damage done row held while equipped follows weapon swaps, so the talent needs no `Conditional` of
+its own, and `Applied` names the melee-defense part as `damage-dealt-melee` beside the school
+multiplier.
 
 **Read the row's tooltip before scoping; 290 is ambiguous.** "Improves your chance to get a critical
 strike with all spells and attacks" is crit on everything while the weapon is equipped, which is what

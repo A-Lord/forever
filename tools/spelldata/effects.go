@@ -153,18 +153,21 @@ func weaponBound(s *spelldata.Spell, e *spelldata.Effect, stat string) string {
 	return join(signedPercent(e), stat)
 }
 
-// A damage-done aura under the weapon spelldata.DamageDoneWeapon names for its row: on while that
-// weapon is equipped, and on the melee-defense spells of the other schools where it is a melee one.
+// A damage done aura under the rule spelldata.WeaponScope names for its row. While equipped, a melee
+// weapon also carries it to the melee-defense spells of the schools the mask leaves out.
 func damageDonePhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	phrase := join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage done")
-	req, melee, ok := spelldata.DamageDoneWeapon(s, e)
-	if !ok {
-		return phrase
+	rule, scope := spelldata.WeaponScope(s, e)
+	switch rule {
+	case spelldata.WeaponRulePerWeapon:
+		return join(phrase+",", perWeapon(scope))
+	case spelldata.WeaponRuleWhileEquipped:
+		if scope.ProcMask.Matches(core.ProcMaskMelee) && core.SpellSchool(e.Misc) != allSchools {
+			phrase += " and on the melee-defense spells of the other schools"
+		}
+		return join(phrase+",", "while", weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand), "is equipped")
 	}
-	if melee {
-		phrase += " and on the melee-defense spells of the other schools"
-	}
-	return phrase + ", while " + weaponsPhrase(req.SubclassMask, req.InvTypeMask, req.Hand) + " is equipped"
+	return phrase
 }
 
 func perWeapon(scope core.SpellModConfig) string {

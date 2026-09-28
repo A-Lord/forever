@@ -87,7 +87,7 @@ type attachment struct {
 	stat    stats.Stat
 	statBid bool
 
-	// Attachments the row makes beside this one, which its set drives and Applied names after it.
+	// Attachments that hold beside this one, which whileEquipped drives and Applied names after it.
 	also []*attachment
 
 	// The stats the attachment adds to or multiplies.
@@ -120,28 +120,32 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return lookup(pctModTable, op)(p, e, v/100)
 	},
 
-	// The damage the unit deals and takes, by school mask.
+	// The damage the unit deals and takes, by school mask. A row that names ranged weapons alone is a
+	// mod on the attacks made with them; one that names a melee weapon holds while it is equipped, and
+	// also reaches the melee-defense spells of the schools its mask leaves out.
 	dbcenums.A_MOD_DAMAGE_PERCENT_DONE: func(p *parser, e *Effect, v float64) *attachment {
-		req, melee, scoped := DamageDoneWeapon(p.spell, e)
-		if scoped && p.character == nil && !p.dry {
+		rule, scope, ok := p.weaponScope(e)
+		switch {
+		case !ok, rule == WeaponRuleWhileEquipped && p.character == nil && !p.dry:
 			return nil
+		case rule == WeaponRulePerWeapon:
+			scope.School = core.SpellSchool(e.Misc)
+			return p.scopedMod("SpellMod_DamageDone_Pct", core.SpellMod_DamageDone_Pct, scope, v/100)
 		}
 
 		a := p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.MultiplierFromPercent(v),
 			&p.unit.PseudoStats.DamageDealtMultiplier, &p.unit.PseudoStats.SchoolDamageDealtMultiplier)
-		if a == nil || a.skipReason != "" || !scoped {
+		if a == nil || rule != WeaponRuleWhileEquipped {
 			return a
 		}
-		if melee {
-			m := p.modFloat("damage-dealt-melee", core.SpellModConfig{
-				Kind:        core.SpellMod_DamageDone_Pct,
-				School:      core.SpellSchool(miscAllSchools &^ e.Misc),
-				DefenseType: core.DefenseTypeMelee,
-			}, v/100)
-			m.value, m.multiplicative = core.MultiplierFromPercent(v), true
-			a.also = append(a.also, m)
+		if !scope.ProcMask.Matches(core.ProcMaskMelee) || e.Misc&miscAllSchools == miscAllSchools {
+			return p.whileEquipped(scope.Equip(), a)
 		}
-		return p.whileEquipped(a, req)
+		return p.whileEquipped(scope.Equip(), a, p.modFloat("damage-dealt-melee", core.SpellModConfig{
+			Kind:        core.SpellMod_DamageDone_Pct,
+			School:      core.SpellSchool(miscAllSchools &^ e.Misc),
+			DefenseType: core.DefenseTypeMelee,
+		}, v/100))
 	},
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.schoolMultiplier("damage-taken", "DamageTakenMultiplier", e.Misc, core.MultiplierFromPercent(v),
@@ -1228,27 +1232,21 @@ func multiplier(kind string, mult float64, apply func(sim *core.Simulation, fact
 // The attachment and the ones beside it hold only while a weapon meeting the requirement is equipped,
 // as well as while the parse is on, and follow item swaps. The row's caller checks that there is a
 // character to wear the weapon.
-func (p *parser) whileEquipped(a *attachment, req core.EquipRequirement) *attachment {
+func (p *parser) whileEquipped(req core.EquipRequirement, a *attachment, beside ...*attachment) *attachment {
+	a.also = beside
 	if p.dry {
 		return a
 	}
 
-	sets := []func(*core.Simulation, float64){a.set}
-	for _, beside := range a.also {
-		sets = append(sets, beside.set)
-	}
-	level, applied := 0.0, 0.0
+	set, level := a.set, 0.0
 	refresh := func(sim *core.Simulation) {
 		want := 0.0
 		if req.Equipped(p.character) {
 			want = level
 		}
-		if want == applied {
-			return
-		}
-		applied = want
-		for _, set := range sets {
-			set(sim, want)
+		set(sim, want)
+		for _, b := range beside {
+			b.set(sim, want)
 		}
 	}
 	a.set = func(sim *core.Simulation, l float64) {
