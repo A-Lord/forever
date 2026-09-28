@@ -281,7 +281,6 @@ const (
 	WarlockSpellShadowBurn
 	WarlockSpellLifeTap
 	WarlockSpellCorruption
-	WarlockSpellCurseOfAgony
 	WarlockSpellCurseOfElements
 	WarlockSpellBaneOfAgony
 	WarlockSpellBaneOfDoom
@@ -307,41 +306,6 @@ const (
 	WarlockSpellDrainSoul
 	WarlockSpellDeathCoil
 	WarlockSpellAll int64 = 1<<iota - 1
-
-	WarlockShadowDamage = WarlockSpellCorruption | WarlockSpellDrainLife | WarlockSpellCurseOfAgony |
-		WarlockSpellShadowBolt | WarlockSpellShadowBurn | WarlockSpellSiphonLife | WarlockSpellDeathCoil
-
-	WarlockPeriodicShadowDamage = WarlockSpellCorruption |
-		WarlockSpellDrainLife | WarlockSpellCurseOfAgony
-
-	WarlockFireDamage = WarlockSpellConflagrate | WarlockSpellImmolate | WarlockSpellIncinerate | WarlockSpellSoulFire |
-		WarlockSpellSearingPain | WarlockSpellImmolateDot | WarlockSpellShadowBurn
-
-	WarlockDoT = WarlockSpellCorruption |
-		WarlockSpellDrainLife | WarlockSpellCurseOfAgony | WarlockSpellImmolateDot
-
-	WarlockSummonSpells = WarlockSpellSummonImp | WarlockSpellSummonSuccubus | WarlockSpellSummonFelhunter
-
-	WarlockAllSummons = WarlockSummonSpells | WarlockSpellSummonInfernal | WarlockSpellSummonDoomguard
-
-	WarlockContagionSpells = WarlockSpellCurseOfAgony | WarlockSpellCorruption
-
-	WarlockShadowEmbraceSpells = WarlockSpellCorruption | WarlockSpellCurseOfAgony | WarlockSpellSiphonLife
-
-	WarlockBanes = WarlockSpellBaneOfAgony | WarlockSpellBaneOfDoom
-
-	WarlockCurses = WarlockSpellCurseOfElements | WarlockSpellCurseOfRecklessness
-
-	WarlockSoulLeechSpells = WarlockSpellShadowBolt | WarlockSpellShadowBurn | WarlockSpellSoulFire |
-		WarlockSpellIncinerate | WarlockSpellSearingPain | WarlockSpellConflagrate
-
-	WarlockAfflictionSpells = WarlockSpellCorruption | WarlockSpellCurseOfAgony | WarlockSpellCurseOfRecklessness | WarlockSpellCurseOfElements |
-		WarlockSpellDrainLife | WarlockSpellDeathCoil | WarlockSpellSiphonLife | WarlockSpellWrack
-
-	WarlockDemonologySpells = WarlockAllSummons
-
-	WarlockDestructionSpells = WarlockSpellHellfire | WarlockSpellImmolate | WarlockSpellIncinerate | WarlockSpellRainOfFire | WarlockSpellSearingPain |
-		WarlockSpellShadowBolt | WarlockSpellSoulFire | WarlockSpellConflagrate | WarlockSpellShadowBurn
 )
 
 // Called to handle custom resources
