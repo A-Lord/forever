@@ -1,15 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useEffect, useRef } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { ProgressTrackerDialog, type ProgressTrackerDialogProps } from './ProgressTrackerDialog';
-import type { ProgressTrackerHandle } from './types';
+import { ProgressTrackerDialog } from './ProgressTrackerDialog';
+import type { ProgressTrackerHandle, ProgressTrackerProgress } from './types';
 
-const WithProgressStory = (props: ProgressTrackerDialogProps) => {
-	const handle = useRef<ProgressTrackerHandle>(null);
-	useEffect(() => handle.current?.setProgress({ title: '3 / 12 simulations complete', current: 30, total: 120 }), []);
-	return <ProgressTrackerDialog {...props} ref={handle} />;
-};
+const SAMPLE: ProgressTrackerProgress = { title: '3 / 12 simulations complete', current: 30, total: 120 };
+
+const pushSample = (handle: ProgressTrackerHandle | null) => handle?.setProgress(SAMPLE);
 
 const meta = {
 	title: 'Kit/ProgressTrackerDialog',
@@ -35,8 +32,7 @@ export const Running: Story = {
 };
 
 export const WithProgress: Story = {
-	args: { hasProgressBar: true },
-	render: args => <WithProgressStory {...args} />,
+	args: { hasProgressBar: true, ref: pushSample },
 };
 
 export const WithWarning: Story = {
@@ -48,6 +44,7 @@ export const WithWarning: Story = {
 
 export const Cancelable: Story = {
 	args: { onCancel: fn() },
+	render: ({ onCancel, ...args }) => <ProgressTrackerDialog {...args} onCancel={() => onCancel?.()} />,
 	play: async ({ args, canvasElement }) => {
 		const dialog = await within(canvasElement).findByRole('dialog', { name: 'Calculate Stat Weights' });
 		await expect(canvasElement.querySelector('[data-testid="storybook-portal"]')?.contains(dialog)).toBe(true);

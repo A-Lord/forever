@@ -106,6 +106,14 @@ describe('ProgressTrackerDialog', () => {
 		expect(bar().hasAttribute('data-complete')).toBe(true);
 	});
 
+	it('keeps what is pushed the moment the handle attaches', () => {
+		const pushOnAttach = (value: ProgressTrackerHandle | null) => value?.setProgress({ current: 2, total: 8 });
+		render(<ProgressTrackerDialog ref={pushOnAttach} open title="Bulk Sim" state={{ stage: 'running' }} hasProgressBar />);
+
+		expect(barText()!.textContent).toBe('2/8');
+		expect(barFill().style.width).toBe('25%');
+	});
+
 	// A consumer that keeps the dialog mounted between runs would otherwise open the next one showing
 	// the last one's numbers.
 	it('clears the bar when the next run opens it', () => {

@@ -1,4 +1,4 @@
-import { type Ref, useEffect, useImperativeHandle, useState } from 'react';
+import { type Ref, useImperativeHandle, useState } from 'react';
 
 import { ProgressTrackerBar } from './ProgressTrackerBar';
 import type { ProgressTrackerHandle, ProgressTrackerProgress } from './types';
@@ -14,12 +14,13 @@ const UNMEASURED: ProgressTrackerProgress = {};
 /** `setProgress` is called from a worker progress callback, so it stays out of the store: a tick renders this leaf, never the dialog. */
 export const HandleProgressBar = ({ running, ref }: HandleProgressBarProps) => {
 	const [{ title, current, total }, setProgress] = useState<ProgressTrackerProgress>(UNMEASURED);
+	const [wasRunning, setWasRunning] = useState(running);
+	if (running !== wasRunning) {
+		setWasRunning(running);
+		if (running) setProgress(UNMEASURED);
+	}
 
 	useImperativeHandle(ref, () => ({ setProgress }), [setProgress]);
-
-	useEffect(() => {
-		if (running) setProgress(UNMEASURED);
-	}, [running, setProgress]);
 
 	const measured = current !== undefined && total !== undefined;
 	const rounded = measured ? Math.ceil(current) : 0;
