@@ -259,8 +259,8 @@ func (rogue *Rogue) registerHackAndSlash() {
 		Callback:           core.CallbackOnSpellHitDealt,
 		ProcMask:           core.ProcMaskMelee,
 		Outcome:            core.OutcomeLanded,
-		ProcChance:         spellData.HackAndSlash.EffectAt(1).FractionAt(rank),
-		ICD:                time.Millisecond * 500,
+		ProcChance:         spellData.HackAndSlash.EffectAt(3).FractionAt(rank),
+		ICD:                spellData.HackAndSlash.Rank(rank).ICD(),
 		TriggerImmediately: true,
 		Duration:           core.NeverExpires,
 		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
