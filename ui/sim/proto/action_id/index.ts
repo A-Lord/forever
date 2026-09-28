@@ -95,22 +95,14 @@ export class ActionId {
 				iconUrl = resourceTypeToIcon[ResourceType.ResourceTypeRage];
 				break;
 			case OtherAction.OtherActionAttack:
-				name = 'Attack';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_sword_04.jpg';
+				// A name handed in is a filled one: an extra attack's, from the spell that tagged it.
+				if (name) break;
+				name = 'Attack';
 				if (this.tag == 1) {
 					name += ' (Main Hand)';
 				} else if (this.tag == 2) {
 					name += ' (Off Hand)';
-				} else if (this.tag == 11815) {
-					name += ' (Hand of Justice)';
-				} else if (this.tag == 12281) {
-					name += ' (Sword Specialization)';
-				} else if (this.tag == 25584) {
-					name += ' (Windfury)';
-				} else if (this.tag == 20182) {
-					name += ' (Reckoning)';
-				} else if (this.tag == 31332) {
-					name += ' (Blinkstrike)';
 				} else if (this.tag == 17257) {
 					name += ' (Magtheridon)';
 				} else if (this.tag == 21213) {
@@ -239,7 +231,21 @@ export class ActionId {
 
 	// Returns an ActionId with the name and iconUrl fields filled.
 	// playerIndex is the optional index of the player to whom this ID corresponds.
+	// An extra attack is a main-hand swing tagged with the spell that granted it, so its name comes
+	// from that spell rather than from a list kept by hand. A tag no spell answers keeps the bare name.
+	private async fillExtraAttack(): Promise<ActionId> {
+		const spellName = await Database.getSpellIconData(this.tag).then(
+			data => data.name,
+			() => '',
+		);
+		const name = spellName ? `Attack (${spellName})` : this.name;
+		return new ActionId({ otherId: this.otherId, tag: this.tag, name, iconUrl: this.iconUrl });
+	}
+
 	async fill(playerIndex?: number): Promise<ActionId> {
+		if (this.otherId == OtherAction.OtherActionAttack && this.name == 'Attack' && this.tag > 2) {
+			return this.fillExtraAttack();
+		}
 		if (this.name || this.iconUrl) {
 			return this;
 		}
