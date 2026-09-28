@@ -1,9 +1,9 @@
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo, useState } from 'react';
 
@@ -45,9 +45,9 @@ export const EncounterPicker = ({ showExecuteProportion }: EncounterPickerProps)
 					))}
 				</PickerGroup>
 			)}
-			<EnumPicker modObject={encounter} config={zone} />
+			<BoundEnumPicker modObject={encounter} config={zone} />
 			<AreaTypesPicker encounter={encounter} />
-			{showDamage && <EnumPicker modObject={encounter} config={preset} />}
+			{showDamage && <BoundEnumPicker modObject={encounter} config={preset} />}
 			{player.canEnableTargetDummies() && <BoundNumberPicker modObject={host.sim.raid} config={allies} />}
 			{player.getPlayerSpec().isTankSpec && <BoundNumberPicker modObject={encounter} config={minBaseDamage} />}
 			<TargetInputsPicker encounter={encounter} targetIndex={0} />

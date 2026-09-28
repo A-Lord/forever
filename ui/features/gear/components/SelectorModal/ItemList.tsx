@@ -1,4 +1,5 @@
 import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { Class, ItemSlot } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIGem as Gem, UIItem as Item } from '@generated/proto/ui';
 import i18n from '@i18n/config';
@@ -10,7 +11,6 @@ import { useUiStore } from '@sim/hooks/useUiStore';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { Icon } from '@ui-kit/Icon';
 import { SearchBar } from '@ui-kit/SearchBar';
 import { Tooltip } from '@ui-kit/Tooltip';
@@ -123,7 +123,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 					</>
 				)}
 				<div className="min-w-28" data-testid="selector-modal-phase-selector">
-					<EnumPicker
+					<BoundEnumPicker
 						modObject={sim}
 						config={{
 							id: phaseId,

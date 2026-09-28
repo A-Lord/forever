@@ -1,4 +1,5 @@
 import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import { ItemSlot } from '@generated/proto/common';
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
@@ -11,7 +12,6 @@ import { Sim } from '@sim/sim';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { kebabCase } from '@sim/utils/format';
 import { Dialog } from '@ui-kit/Dialog';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import clsx, { type ClassValue } from 'clsx';
 import type { ReactNode } from 'react';
 
@@ -232,7 +232,7 @@ export const FiltersMenu = ({ slot, open, onOpenChange }: FiltersMenuProps) => {
 						config={numberFilterConfig('maxIlvl', 'filters-max-ilvl', i18n.t('gear_tab.gear_picker.filters.max_ilvl'), { showZeroes: false })}
 					/>
 				</div>
-				<EnumPicker<Sim>
+				<BoundEnumPicker<Sim>
 					modObject={sim}
 					config={{
 						id: 'filters-faction-restriction',

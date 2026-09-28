@@ -1,4 +1,5 @@
 import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { gemPhaseValues } from '@features/reforge/model/utils';
 import { SavedEpWeights } from '@features/stat-weights/components/SavedEpWeights';
@@ -8,7 +9,6 @@ import i18n from '@i18n/config';
 import { translateItemQuality } from '@i18n/localization';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { useMemo } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
@@ -121,7 +121,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 					},
 				}}
 			/>
-			<EnumPicker
+			<BoundEnumPicker
 				modObject={player}
 				config={{
 					extraClassNames: ['mb-2'],
@@ -137,7 +137,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 					},
 				}}
 			/>
-			<EnumPicker
+			<BoundEnumPicker
 				modObject={player}
 				config={{
 					extraClassNames: ['mb-2'],

@@ -7,7 +7,7 @@ import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
+import { EnumPicker, type EnumPickerProps } from '@ui-kit/EnumPicker';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import { useEffect } from 'react';
 
@@ -66,7 +66,7 @@ export const BulkSettings = () => {
 		}
 	}, [player, gear, frozenItems]);
 
-	const freezeItemConfig = (pair: FrozenPair) => ({
+	const freezeItemProps = (pair: FrozenPair): EnumPickerProps => ({
 		id: pair.id,
 		label: i18n.t(`${pair.labelKey}.label`),
 		labelTooltip: i18n.t(`${pair.labelKey}.tooltip`),
@@ -123,26 +123,23 @@ export const BulkSettings = () => {
 							testId="bulk-settings-group-freezes">
 							{FROZEN_PAIRS.map(pair => (
 								<div key={pair.id}>
-									<EnumPicker modObject={player} config={freezeItemConfig(pair)} />
+									<EnumPicker {...freezeItemProps(pair)} />
 								</div>
 							))}
 							{getBulkPlayerCanDualWield(player) && (
 								<>
 									<div>
 										<EnumPicker
-											modObject={player}
-											config={{
-												id: 'freeze-weapon',
-												label: i18n.t('bulk_tab.settings.freeze_weapon.label'),
-												labelTooltip: i18n.t('bulk_tab.settings.freeze_weapon.tooltip'),
-												values: [
-													{ name: i18n.t('common.none'), value: -1 },
-													{ name: i18n.t('slots.main_hand', { ns: 'character' }), value: ItemSlot.ItemSlotMainHand },
-													{ name: i18n.t('slots.off_hand', { ns: 'character' }), value: ItemSlot.ItemSlotOffHand },
-												],
-												value: frozenWeaponSlot ?? -1,
-												onChange: (newValue: number) => setBulkFrozenWeaponSlot(player, newValue === -1 ? null : newValue),
-											}}
+											id="freeze-weapon"
+											label={i18n.t('bulk_tab.settings.freeze_weapon.label')}
+											labelTooltip={i18n.t('bulk_tab.settings.freeze_weapon.tooltip')}
+											values={[
+												{ name: i18n.t('common.none'), value: -1 },
+												{ name: i18n.t('slots.main_hand', { ns: 'character' }), value: ItemSlot.ItemSlotMainHand },
+												{ name: i18n.t('slots.off_hand', { ns: 'character' }), value: ItemSlot.ItemSlotOffHand },
+											]}
+											value={frozenWeaponSlot ?? -1}
+											onChange={newValue => setBulkFrozenWeaponSlot(player, newValue === -1 ? null : newValue)}
 										/>
 									</div>
 									<FreezeWeaponTypes slot={ItemSlot.ItemSlotMainHand} />

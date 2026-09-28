@@ -1,9 +1,9 @@
+import type { EnumPickerConfig } from '@features/inputs/configs';
 import { Profession } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { translateProfession, translateRace } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import { getEnumValues } from '@sim/utils/collections';
-import type { EnumPickerConfig } from '@ui-kit/EnumPicker/types';
 
 export const raceInput = (player: Player<any>): EnumPickerConfig<Player<any>> => ({
 	id: 'simui-race',

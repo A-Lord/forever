@@ -1,28 +1,8 @@
-import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { useState } from 'react';
-import { describe, expect, it } from 'vitest';
+import { type Ref, useImperativeHandle, useState } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { EnumPicker } from './EnumPicker';
-import type { EnumPickerConfig } from './types';
-
-// Stands in for a domain facade: a value plus the (onChange) => unsubscribe contract every
-// storeSubscribe helper in state/subscriptions.ts returns.
-class Settings {
-	private listeners = new Set<() => void>();
-	constructor(public mode = 0) {}
-	set(next: number) {
-		this.mode = next;
-		this.listeners.forEach(listener => listener());
-	}
-	readonly subscribe: StoreSubscribe = listener => {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	};
-	get listenerCount() {
-		return this.listeners.size;
-	}
-}
+import { EnumPicker, type EnumPickerProps } from './EnumPicker';
 
 const values = [
 	{ name: 'Passive', value: 0, tooltip: 'Do nothing' },
@@ -30,22 +10,52 @@ const values = [
 	{ name: 'Defensive', value: 2, tooltip: 'Attack when attacked' },
 ];
 
-const configFor = (extra: Partial<EnumPickerConfig<Settings>> = {}): EnumPickerConfig<Settings> => ({
-	id: 'pet-mode',
-	label: 'Pet Mode',
-	values,
-	storeSubscribe: settings => settings.subscribe,
-	getValue: settings => settings.mode,
-	setValue: (settings, value) => settings.set(value),
-	...extra,
-});
+interface HarnessHandle {
+	set: (next: number) => void;
+}
+
+type HarnessProps = Omit<EnumPickerProps, 'value' | 'onChange' | 'values'> & {
+	initial?: number;
+	accept?: (next: number, current: number) => number;
+	handle?: Ref<HarnessHandle>;
+};
+
+const picks = vi.fn<(next: number) => void>();
+
+// The parent owns the value; `handle.set` is a change landing from outside the picker.
+const Harness = ({ initial = 0, accept = next => next, handle, ...props }: HarnessProps) => {
+	const [value, setValue] = useState(initial);
+	useImperativeHandle(handle, () => ({ set: setValue }), []);
+	return (
+		<EnumPicker
+			id="pet-mode"
+			label="Pet Mode"
+			values={values}
+			{...props}
+			value={value}
+			onChange={next => {
+				picks(next);
+				setValue(accept(next, value));
+			}}
+		/>
+	);
+};
 
 const select = () => screen.getByRole('combobox') as HTMLSelectElement;
 
+const pick = (next: string) =>
+	act(() => {
+		select().value = next;
+		fireEvent.change(select());
+	});
+
+beforeEach(() => {
+	picks.mockClear();
+});
+
 describe('EnumPicker', () => {
 	it('renders one option per value, in order, with their titles', () => {
-		const settings = new Settings();
-		render(<EnumPicker modObject={settings} config={configFor()} />);
+		render(<Harness />);
 		const options = select().querySelectorAll('option');
 		expect(options).toHaveLength(3);
 		expect([...options].map(o => o.value)).toEqual(['0', '1', '2']);
@@ -53,98 +63,56 @@ describe('EnumPicker', () => {
 		expect([...options].map(o => o.title)).toEqual(['Do nothing', 'Attack everything', 'Attack when attacked']);
 	});
 
-	it('shows the source value and writes back through setValue', () => {
-		const settings = new Settings(1);
-		render(<EnumPicker modObject={settings} config={configFor()} />);
+	it('shows the value and reports a pick as a number', () => {
+		render(<Harness initial={1} />);
 		expect(select().value).toBe('1');
 
-		fireEvent.change(select(), { target: { value: '2' } });
-		expect(settings.mode).toBe(2);
+		pick('2');
+		expect(picks).toHaveBeenLastCalledWith(2);
 		expect(select().value).toBe('2');
 	});
 
-	it('writes back a number, not a string', () => {
-		const settings = new Settings(0);
-		render(<EnumPicker modObject={settings} config={configFor()} />);
-		fireEvent.change(select(), { target: { value: '1' } });
-		expect(settings.mode).toBe(1);
-		expect(typeof settings.mode).toBe('number');
-	});
-
-	it('re-renders when the source changes underneath it', () => {
-		const settings = new Settings(0);
-		render(<EnumPicker modObject={settings} config={configFor()} />);
-		act(() => settings.set(2));
+	it('shows a value the parent changes underneath it', () => {
+		const handle = { current: null as HarnessHandle | null };
+		render(<Harness handle={handle} />);
+		act(() => handle.current!.set(2));
 		expect(select().value).toBe('2');
 	});
 
-	// Assigning select.value with no matching option deselects everything. A React-controlled select
-	// would keep the first option.
-	it('selects nothing when the model value is not in the list, as the vanilla picker does', () => {
-		const settings = new Settings(99);
-		render(<EnumPicker modObject={settings} config={configFor()} />);
-		expect(select().selectedIndex).toBe(-1);
-		expect(select().value).toBe('');
+	it('snaps back to the parent value when a pick leaves it where it was', () => {
+		render(<Harness accept={(next, current) => (next === 2 ? current : next)} />);
+
+		pick('2');
+		expect(picks).toHaveBeenLastCalledWith(2);
+		expect(select().value).toBe('0');
+
+		pick('1');
+		expect(select().value).toBe('1');
 	});
 
-	it('links the label to the select, and carries inline and extra classes', () => {
-		const settings = new Settings();
-		const { container } = render(<EnumPicker modObject={settings} config={configFor({ layout: 'inline', extraClassNames: ['encounter-picker-field'] })} />);
+	it('links the label to the select, and carries the layout and field classes', () => {
+		const { container } = render(<Harness layout="inline" className={['encounter-picker-field']} selectClassName="w-full" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-layout')).toBe('inline');
 		expect(root.classList.contains('encounter-picker-field')).toBe(true);
 		expect(root.querySelector('label')!.getAttribute('for')).toBe(select().id);
+		expect(select().id).toBe('pet-mode');
+		expect(select().classList.contains('w-full')).toBe(true);
 	});
 
-	// config is an object literal in the caller's render, so a values-keyed effect would re-assign
-	// select.value on every render — which closes the dropdown under a user who has it open.
-	it('does not re-assign the selection when the parent re-renders with a fresh config', () => {
-		const settings = new Settings(1);
-		// Callers write `values: [...]` inline, so the array is rebuilt on every parent render.
-		const freshConfig = () => configFor({ values: values.map(entry => ({ ...entry })) });
-		const { rerender } = render(<EnumPicker modObject={settings} config={freshConfig()} />);
-
-		select().value = '';
-		rerender(<EnumPicker modObject={settings} config={freshConfig()} />);
-		expect(select().value).toBe('');
-
-		act(() => settings.set(1));
-		expect(select().value).toBe('1');
+	it('names an unlabelled select through ariaLabel', () => {
+		render(<Harness label={undefined} ariaLabel="Stats type" />);
+		expect(screen.getByRole('combobox', { name: 'Stats type' })).toBe(select());
 	});
 
-	it('subscribes once and unsubscribes on unmount', () => {
-		const settings = new Settings();
-		const { unmount } = render(<EnumPicker modObject={settings} config={configFor()} />);
-		expect(settings.listenerCount).toBe(1);
-		unmount();
-		expect(settings.listenerCount).toBe(0);
-	});
-
-	it('renders nothing when showWhen is false', () => {
-		const settings = new Settings();
-		const { container } = render(<EnumPicker modObject={settings} config={configFor({ showWhen: () => false })} />);
-		expect(container.querySelector('[data-testid="enum-picker-root"]')).toBeNull();
-	});
-
-	it('disables the input and marks the root when enableWhen is false', () => {
-		const settings = new Settings();
-		render(<EnumPicker modObject={settings} config={configFor({ enableWhen: () => false })} />);
+	it('disables the select and marks the root when disabled', () => {
+		render(<Harness disabled />);
 		expect(select().disabled).toBe(true);
 		expect(select().closest('[data-testid="enum-picker-root"]')!.hasAttribute('data-disabled')).toBe(true);
 	});
 
-	it('seeds from defaultValue, then hands over to the source on its first change', () => {
-		const settings = new Settings(0);
-		render(<EnumPicker modObject={settings} config={configFor({ defaultValue: 2 })} />);
-		expect(select().value).toBe('2');
-
-		act(() => settings.set(1));
-		expect(select().value).toBe('1');
-	});
-
 	it('renders the same shape as the vanilla picker', () => {
-		const settings = new Settings();
-		const { container } = render(<EnumPicker modObject={settings} config={configFor({ description: 'Controls pet behaviour' })} />);
+		const { container } = render(<Harness description="Controls pet behaviour" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('enum-picker-root');
 		expect(root.hasAttribute('data-input-root')).toBe(true);
@@ -153,49 +121,25 @@ describe('EnumPicker', () => {
 		expect(root.querySelector('select')!.getAttribute('data-testid')).toBe('enum-picker-selector');
 	});
 
-	// InputConfig types both of these as string | Element. The reforge panel was the last caller to
-	// pass an Element and it is React now, so nothing does today — but the type still allows it, and
-	// stringifying one renders "[object HTMLDivElement]" with nothing to notice it.
+	it('takes a root testId', () => {
+		const { container } = render(<Harness testId="language-picker-root" />);
+		expect(container.firstElementChild!.getAttribute('data-testid')).toBe('language-picker-root');
+	});
+
+	// FieldChromeProps types both of these as string | Element. The reforge panel was the last caller
+	// to pass an Element and it is React now, so nothing does today — but the type still allows it,
+	// and stringifying one renders "[object HTMLDivElement]" with nothing to notice it.
 	it('renders an Element description and tooltip rather than stringifying them', async () => {
-		const settings = new Settings();
 		const description = document.createElement('div');
 		description.textContent = 'Built elsewhere';
 		const tooltip = document.createElement('span');
 		tooltip.textContent = 'Node tooltip';
 
-		render(<EnumPicker modObject={settings} config={configFor({ description, labelTooltip: tooltip })} />);
+		render(<Harness description={description} labelTooltip={tooltip} />);
 		expect(screen.getByText('Built elsewhere')).toBeTruthy();
 		expect(document.body.textContent).not.toContain('[object');
 
 		fireEvent.mouseEnter(screen.getByText('Pet Mode'));
 		expect(await screen.findByText('Node tooltip')).toBeTruthy();
-	});
-});
-
-describe('EnumPicker controlled', () => {
-	// The select is uncontrolled DOM, so a pick the parent does not accept has to be undone here.
-	it('snaps back to the parent value when a pick leaves it where it was', () => {
-		const Host = () => {
-			const [mode, setMode] = useState(0);
-			return (
-				<EnumPicker
-					modObject={{}}
-					config={{ id: 'pet-mode', label: 'Pet Mode', values, value: mode, onChange: next => setMode(next === 2 ? mode : next) }}
-				/>
-			);
-		};
-		render(<Host />);
-
-		act(() => {
-			select().value = '2';
-			fireEvent.change(select());
-		});
-		expect(select().value).toBe('0');
-
-		act(() => {
-			select().value = '1';
-			fireEvent.change(select());
-		});
-		expect(select().value).toBe('1');
 	});
 });

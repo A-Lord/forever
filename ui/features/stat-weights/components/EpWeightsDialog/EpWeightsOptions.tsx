@@ -17,17 +17,14 @@ export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, o
 	<div className="-mx-3 mb-3 flex flex-wrap">
 		<div className="w-full px-3 sm:w-1/4">
 			<EnumPicker
-				modObject={null}
+				id="ep-type-select"
 				ariaLabel={i18n.t('sidebar.buttons.stat_weights.modal.stats_type')}
-				config={{
-					id: 'ep-type-select',
-					values: [
-						{ name: i18n.t('sidebar.buttons.stat_weights.modal.ep'), value: 0 },
-						{ name: i18n.t('sidebar.buttons.stat_weights.modal.weights'), value: 1 },
-					],
-					value: STATS_TYPES.indexOf(statsType),
-					onChange: next => onStatsTypeChange(STATS_TYPES[next]),
-				}}
+				values={[
+					{ name: i18n.t('sidebar.buttons.stat_weights.modal.ep'), value: 0 },
+					{ name: i18n.t('sidebar.buttons.stat_weights.modal.weights'), value: 1 },
+				]}
+				value={STATS_TYPES.indexOf(statsType)}
+				onChange={next => onStatsTypeChange(STATS_TYPES[next])}
 			/>
 		</div>
 		<div className="w-full px-3 sm:w-1/4">
