@@ -100,4 +100,19 @@ describe('useActionIds', () => {
 
 		expect(spy).toHaveBeenCalledTimes(2);
 	});
+
+	it('settles each id on its own: a rejected fill leaves its slot undefined and logs, the others still resolve', async () => {
+		const failure = new Error('no tooltip data');
+		vi.spyOn(ActionId.prototype, 'fill').mockImplementation(async function (this: ActionId) {
+			if (this.spellId === 1) throw failure;
+			return filled(this, 'Second', 'second.jpg');
+		});
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		render(<Probe actionIds={[ActionId.fromSpellId(1), ActionId.fromSpellId(2)]} />);
+		await act(async () => {});
+
+		expect(seen.at(-1)).toEqual([undefined, { iconUrl: 'second.jpg', name: 'Second', href: ActionId.makeSpellUrl(2) }]);
+		expect(log).toHaveBeenCalledExactlyOnceWith(failure);
+	});
 });
