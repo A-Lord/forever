@@ -38,6 +38,29 @@ func TestHunterAgility(t *testing.T) {
 	}
 }
 
+func TestWarriorAgility(t *testing.T) {
+	gained := statsFromHundredAgility(t, proto.Class_ClassWarrior, proto.Race_RaceHuman)
+	if got := gained[stats.DodgePercent]; math.Abs(got-5) > 1e-9 {
+		t.Errorf("100 agility gives %v%% dodge, want 5%%", got)
+	}
+	if got := gained[stats.PhysicalCritPercent]; math.Abs(got-5) > 1e-9 {
+		t.Errorf("100 agility gives %v%% crit, want 5%%: warriors dodge and crit at the same rate", got)
+	}
+}
+
+func TestDefenseRaisesDodgeParryAndBlock(t *testing.T) {
+	character, _ := nakedSheet(t, proto.Class_ClassWarrior, proto.Race_RaceHuman)
+	base := character.GetStats()
+	more := base
+	more[stats.DefenseRating] += 25 * core.DefenseRatingPerDefenseLevel
+	gained := character.ApplyStatDependencies(more).Subtract(character.ApplyStatDependencies(base))
+	for _, stat := range []stats.Stat{stats.DodgePercent, stats.ParryPercent, stats.BlockPercent, stats.ReducedCritTakenPercent} {
+		if got := gained[stat]; math.Abs(got-1) > 1e-9 {
+			t.Errorf("25 defense gives %v%% %s, want 1%%", got, stat.StatName())
+		}
+	}
+}
+
 func TestEveryClassDodgesFromAgility(t *testing.T) {
 	for class, perAgi := range core.DodgePerAgiMaxLevel {
 		if class != proto.Class_ClassUnknown && perAgi <= 0 {
