@@ -511,7 +511,10 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 
 // A_ADD_PCT_MODIFIER: a percentage the game files state as an integer, handed over as a fraction.
 var pctModTable = map[dbcenums.SpellModOp]row{
-	dbcenums.SPELLMOD_DAMAGE:      pctDamageDone,
+	dbcenums.SPELLMOD_DAMAGE: func(p *parser, e *Effect, v float64) *attachment {
+		// Direct hits only: ticks take SPELLMOD_DOT, which a talent states beside it when it raises both.
+		return p.modFloat("SpellMod_DirectDamageDone_Flat", p.modConfig(e, core.SpellMod_DirectDamageDone_Flat), v)
+	},
 	dbcenums.SPELLMOD_ALL_EFFECTS: pctDamageDone,
 	dbcenums.SPELLMOD_DOT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_DotDamageDone_Pct", p.modConfig(e, core.SpellMod_DotDamageDone_Pct), v)
@@ -547,8 +550,8 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_EFFECT3: pctEffectAmount,
 }
 
-// SPELLMOD_DAMAGE and SPELLMOD_ALL_EFFECTS both raise every hit the spell deals, which the sim
-// sums into spell.DamageMultiplierAdditive.
+// SPELLMOD_ALL_EFFECTS raises every hit the spell deals, direct and periodic, which the sim sums into
+// spell.DamageMultiplierAdditive.
 func pctDamageDone(p *parser, e *Effect, v float64) *attachment {
 	return p.modFloat("SpellMod_DamageDone_Flat", p.modConfig(e, core.SpellMod_DamageDone_Flat), v)
 }

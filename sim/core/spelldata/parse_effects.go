@@ -267,8 +267,6 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		o.casterSlot.target = unit
 	}
 
-	folded := foldedDotEffects(s, o)
-
 	// The amount is the caster's, so a debuff on an enemy is still priced at the character's level
 	// and not at the level of the unit it sits on. Without a character the FromCaster unit is the
 	// caster, and without either there is only the unit.
@@ -297,13 +295,6 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 				continue
 			}
 			value = float64(e.PointsPerResource) * fullComboPoints
-		}
-
-		if slices.Contains(folded, e) {
-			parsed.Applied = append(parsed.Applied, Applied{Effect: e,
-				Kind: "folded-into SpellMod_DamageDone_Flat", Value: value / 100})
-			parsed.attachments = append(parsed.attachments, nil)
-			continue
 		}
 
 		attached := o.row(e.Aura)
@@ -475,36 +466,6 @@ func AppliesAura(t dbcenums.SpellEffectType) bool {
 // its misc value, which only a parse against a unit finds out.
 func (e *Effect) ParsedAura() bool {
 	return AppliesAura(e.Type) && auraTable[e.Aura] != nil
-}
-
-// The dot modifiers a spell states twice. A talent that raises a spell's damage states the same
-// number once for the hit and once for the dot, and one SpellMod_DamageDone_Flat already reaches the
-// ticks as well as the hit, so the second effect would double the bonus on the dot. Only a hit
-// modifier this parse reads folds the dot one into itself; a parse narrowed to the dot effect alone
-// attaches it.
-func foldedDotEffects(s *Spell, o *parseOptions) []*Effect {
-	var folded []*Effect
-	for i := range s.Effects {
-		dot := &s.Effects[i]
-		if dot.Aura != dbcenums.A_ADD_PCT_MODIFIER || dbcenums.SpellModOp(dot.Misc) != dbcenums.SPELLMOD_DOT {
-			continue
-		}
-
-		for j := range s.Effects {
-			hit := &s.Effects[j]
-			if hit.Aura != dbcenums.A_ADD_PCT_MODIFIER || !AppliesAura(hit.Type) ||
-				!o.reads(int32(j+1)) ||
-				(dbcenums.SpellModOp(hit.Misc) != dbcenums.SPELLMOD_DAMAGE &&
-					dbcenums.SpellModOp(hit.Misc) != dbcenums.SPELLMOD_ALL_EFFECTS) {
-				continue
-			}
-			if hit.ClassFlags == dot.ClassFlags && hit.BasePoints == dot.BasePoints {
-				folded = append(folded, dot)
-				break
-			}
-		}
-	}
-	return folded
 }
 
 // What a port has to wire by hand, on the console when SPELLDATA_REPORT is set.
