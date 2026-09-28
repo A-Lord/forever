@@ -10,13 +10,21 @@ export interface TooltipButtonProps {
 	iconStyle?: IconProps['style'];
 	place?: TooltipPlace;
 	className?: string;
+	testId?: string;
 }
 
-export const TooltipButton = ({ tooltip, icon = 'question-circle', iconStyle = 'regular', place, className }: TooltipButtonProps) => {
+export const TooltipButton = ({
+	tooltip,
+	icon = 'question-circle',
+	iconStyle = 'regular',
+	place,
+	className,
+	testId = 'tooltip-button',
+}: TooltipButtonProps) => {
 	const id = useId();
 	return (
 		<>
-			<Button variant="link" className={clsx('flex items-center justify-center', className)} data-testid="tooltip-button" {...tooltipAnchorProps(id)}>
+			<Button variant="link" iconOnly className={clsx('flex items-center justify-center', className)} data-testid={testId} {...tooltipAnchorProps(id)}>
 				<Icon name={icon} style={iconStyle} />
 			</Button>
 			<Tooltip id={id} content={tooltip} place={place} />
