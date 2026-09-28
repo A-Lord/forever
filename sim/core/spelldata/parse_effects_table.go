@@ -800,12 +800,7 @@ func (p *parser) mod(kind string, cfg core.SpellModConfig, value float64, scale 
 	}
 
 	mod := p.unit.AddDynamicMod(cfg)
-	applied := 0.0
 	a.set = func(_ *core.Simulation, level float64) {
-		if level == applied {
-			return
-		}
-		applied = level
 		if level <= 0 {
 			mod.Deactivate()
 			return

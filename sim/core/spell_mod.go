@@ -368,6 +368,9 @@ func (unit *Unit) ScopedPercents(probe ProcMask) ScopedPercents {
 }
 
 func (mod *SpellMod) UpdateIntValue(value int32) {
+	if value == mod.intValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.intValue = value
@@ -378,6 +381,9 @@ func (mod *SpellMod) UpdateIntValue(value int32) {
 }
 
 func (mod *SpellMod) UpdateTimeValue(value time.Duration) {
+	if value == mod.timeValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.timeValue = value
@@ -388,6 +394,9 @@ func (mod *SpellMod) UpdateTimeValue(value time.Duration) {
 }
 
 func (mod *SpellMod) UpdateFloatValue(value float64) {
+	if value == mod.floatValue {
+		return
+	}
 	if mod.IsActive {
 		mod.Deactivate()
 		mod.floatValue = value
