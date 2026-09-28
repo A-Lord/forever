@@ -85,33 +85,6 @@ func ApplyFixedShoutAura(char *Character, aura *Aura, category string) {
 	ApplyFixedUptimeAura(aura, 1, aura.Duration+1, -1)
 }
 
-////////////////////////////
-//  Cooldowns
-////////////////////////////
-
-func InspirationAura(unit *Unit, points int32) *Aura {
-	multiplier := 1 + []float64{0, .08, .16, .25}[points]
-
-	armorDep := unit.NewDynamicMultiplyStat(stats.Armor, multiplier)
-
-	return unit.GetOrRegisterAura(Aura{
-		Label:    "Inspiration",
-		ActionID: ActionID{SpellID: 15363},
-		Duration: time.Second * 15,
-	}).AttachStatDependency(armorDep)
-}
-
-func ApplyInspiration(character *Character, uptime float64) {
-	if uptime <= 0 {
-		return
-	}
-	uptime = min(1, uptime)
-
-	inspirationAura := InspirationAura(&character.Unit, 3)
-
-	ApplyFixedUptimeAura(inspirationAura, uptime, time.Millisecond*2500, 1)
-}
-
 // Used for approximating cooldowns applied by other players to you, such as
 // innervate, power infusion, etc. This is specifically for buffs
 // which can be consecutively applied multiple times to a single player.
