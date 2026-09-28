@@ -23,7 +23,7 @@ import (
 )
 
 // Sets the minimum itemlevel that should be considered for this expansions
-const MIN_EFFECT_ILVL = 50
+const MIN_EFFECT_ILVL = 40
 
 // Enchantment IDs at or below this are not generated.
 const MIN_ENCHANT_EFFECT_ID = 0

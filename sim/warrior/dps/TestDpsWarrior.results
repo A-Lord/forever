@@ -80,12 +80,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-BarbaricBelt-4264"
+ value: {
+  dps: 297.85619
+  tps: 171.53141
+  dtps: 2.90588
+  hps: 19.00248
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 300.99786
   tps: 173.34491
   dtps: 2.8407
   hps: 19.59475
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.8407
+  hps: 19.24347
  }
 }
 dps_results: {
@@ -122,6 +140,15 @@ dps_results: {
   tps: 172.02895
   dtps: 2.90588
   hps: 19.46713
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Defiler'sTalisman-21116"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.42647
  }
 }
 dps_results: {
@@ -278,6 +305,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-GnomishHarmPreventionBelt-10721"
+ value: {
+  dps: 294.63592
+  tps: 169.72806
+  dtps: 2.90588
+  hps: 19.12437
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-GoblinConstructionHelmet-10543"
+ value: {
+  dps: 295.18104
+  tps: 170.06249
+  dtps: 2.8407
+  hps: 18.67413
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-GoldenBanana-270226"
  value: {
   dps: 298.69256
@@ -395,10 +440,28 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-MarkoftheRedFlight-282778"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 300.81805
   tps: 173.21922
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-OrbofFire-12805"
+ value: {
+  dps: 299.31687
+  tps: 172.37856
   dtps: 2.90588
   hps: 19.24347
  }
@@ -410,6 +473,15 @@ dps_results: {
   tps: 171.6368
   dtps: 2.90588
   hps: 19.3072
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-SatchelofIronBombs-285277"
+ value: {
+  dps: 298.06422
+  tps: 171.6368
+  dtps: 2.90588
+  hps: 19.26657
  }
 }
 dps_results: {
@@ -464,6 +536,15 @@ dps_results: {
   tps: 172.02895
   dtps: 2.90588
   hps: 19.46713
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-TalismanofArathor-21118"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.42647
  }
 }
 dps_results: {

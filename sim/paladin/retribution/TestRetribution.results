@@ -69,6 +69,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-BarbaricBelt-4264"
+ value: {
+  dps: 580.93004
+  tps: 425.95119
+  dtps: 11.07276
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-Beastmaster'sBoots-22061"
  value: {
   dps: 586.15713
@@ -98,6 +106,14 @@ dps_results: {
   dps: 577.79341
   tps: 423.65807
   dtps: 10.5349
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 10.89173
  }
 }
 dps_results: {
@@ -138,6 +154,14 @@ dps_results: {
   dps: 582.47796
   tps: 426.97884
   dtps: 11.1245
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-Defiler'sTalisman-21116"
+ value: {
+  dps: 582.43992
+  tps: 426.95221
+  dtps: 11.12429
  }
 }
 dps_results: {
@@ -283,6 +307,30 @@ dps_results: {
   dps: 580.11246
   tps: 425.41124
   dtps: 10.26117
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-GirdleofReprisal-11861"
+ value: {
+  dps: 581.43228
+  tps: 426.30275
+  dtps: 11.07276
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-GnomishHarmPreventionBelt-10721"
+ value: {
+  dps: 577.66911
+  tps: 423.66853
+  dtps: 8.1368
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-GoblinConstructionHelmet-10543"
+ value: {
+  dps: 567.91735
+  tps: 416.78001
+  dtps: 8.77703
  }
 }
 dps_results: {
@@ -462,6 +510,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-MarkoftheRedFlight-282778"
+ value: {
+  dps: 571.01459
+  tps: 415.21715
+  dtps: 4.26633
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 585.472
@@ -475,6 +531,14 @@ dps_results: {
   dps: 579.59972
   tps: 424.85897
   dtps: 10.81893
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-OrbofFire-12805"
+ value: {
+  dps: 585.67121
+  tps: 429.19878
+  dtps: 10.87462
  }
 }
 dps_results: {
@@ -550,6 +614,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-TalismanofArathor-21118"
+ value: {
+  dps: 582.43992
+  tps: 426.95221
+  dtps: 11.12429
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-TalismanofAscendance-22678"
  value: {
   dps: 596.55951
@@ -587,6 +659,14 @@ dps_results: {
   dps: 610.73281
   tps: 446.81313
   dtps: 11.31383
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-TruesilverBreastplate-7939"
+ value: {
+  dps: 566.41235
+  tps: 415.62782
+  dtps: 10.86369
  }
 }
 dps_results: {

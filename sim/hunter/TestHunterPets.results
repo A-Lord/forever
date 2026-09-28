@@ -76,6 +76,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-BarbaricBelt-4264"
+ value: {
+  dps: 467.8203
+  tps: 254.76042
+  dtps: 2.49108
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-Beastmaster'sBoots-22061"
  value: {
   dps: 484.11396
@@ -105,6 +113,14 @@ dps_results: {
   dps: 484.86072
   tps: 264.75151
   dtps: 2.44114
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 483.30944
+  tps: 263.70823
+  dtps: 2.11814
  }
 }
 dps_results: {
@@ -149,6 +165,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestHunterPets-AllItems-Defiler'sTalisman-21115"
+ value: {
+  dps: 483.09381
+  tps: 263.58562
+  dtps: 2.5188
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-Defiler'sTalisman-21116"
  value: {
   dps: 483.09381
   tps: 263.58562
@@ -325,6 +349,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-GirdleofReprisal-11861"
+ value: {
+  dps: 467.8203
+  tps: 254.76042
+  dtps: 2.49108
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-GnomishHarmPreventionBelt-10721"
+ value: {
+  dps: 467.8203
+  tps: 254.76042
+  dtps: 0.11853
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-GoblinConstructionHelmet-10543"
+ value: {
+  dps: 467.77761
+  tps: 254.81815
+  dtps: 0.32931
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-GoldenBanana-270226"
  value: {
   dps: 483.93338
@@ -453,6 +501,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-MarkoftheRedFlight-282778"
+ value: {
+  dps: 483.30944
+  tps: 263.70823
+  dtps: 0.04655
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 485.60323
@@ -466,6 +522,14 @@ dps_results: {
   dps: 464.28201
   tps: 252.28143
   dtps: 2.43796
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-OrbofFire-12805"
+ value: {
+  dps: 483.30944
+  tps: 263.70823
+  dtps: 2.49108
  }
 }
 dps_results: {
@@ -489,6 +553,14 @@ dps_results: {
  value: {
   dps: 469.14814
   tps: 255.64681
+  dtps: 2.74461
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-SatchelofIronBombs-285277"
+ value: {
+  dps: 465.4253
+  tps: 253.04083
   dtps: 2.74461
  }
 }
@@ -541,6 +613,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-TalismanofArathor-21118"
+ value: {
+  dps: 483.09381
+  tps: 263.58562
+  dtps: 2.5188
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-TalismanofAscendance-22678"
  value: {
   dps: 483.30944
@@ -561,6 +641,14 @@ dps_results: {
  value: {
   dps: 483.30944
   tps: 263.70823
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-TheGreenTower-1204"
+ value: {
+  dps: 483.30944
+  tps: 263.6676
+  dtps: 2.49108
  }
 }
 dps_results: {

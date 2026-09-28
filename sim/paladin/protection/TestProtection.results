@@ -69,6 +69,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-BarbaricBelt-4264"
+ value: {
+  dps: 228.1901
+  tps: 241.87615
+  dtps: 5420.13728
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-Beastmaster'sBoots-22061"
  value: {
   dps: 231.90995
@@ -98,6 +106,14 @@ dps_results: {
   dps: 231.84947
   tps: 245.6486
   dtps: 5344.11254
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 231.12498
+  tps: 244.75953
+  dtps: 5448.82011
  }
 }
 dps_results: {
@@ -137,6 +153,14 @@ dps_results: {
  value: {
   dps: 231.28814
   tps: 244.9227
+  dtps: 5448.82011
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-Defiler'sTalisman-21116"
+ value: {
+  dps: 231.24735
+  tps: 244.88191
   dtps: 5448.82011
  }
 }
@@ -299,6 +323,30 @@ dps_results: {
   dps: 234.10886
   tps: 247.75231
   dtps: 5454.80956
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-GirdleofReprisal-11861"
+ value: {
+  dps: 228.76692
+  tps: 242.45258
+  dtps: 5420.13728
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-GnomishHarmPreventionBelt-10721"
+ value: {
+  dps: 226.79645
+  tps: 240.4376
+  dtps: 5420.13728
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-GoblinConstructionHelmet-10543"
+ value: {
+  dps: 228.72703
+  tps: 242.39297
+  dtps: 5448.2838
  }
 }
 dps_results: {
@@ -486,6 +534,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-MarkoftheRedFlight-282778"
+ value: {
+  dps: 231.12498
+  tps: 244.75953
+  dtps: 5448.82011
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 231.67933
@@ -499,6 +555,14 @@ dps_results: {
   dps: 235.42287
   tps: 249.28066
   dtps: 5448.2838
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-OrbofFire-12805"
+ value: {
+  dps: 231.4543
+  tps: 245.11609
+  dtps: 5448.82011
  }
 }
 dps_results: {
@@ -598,6 +662,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-TalismanofArathor-21118"
+ value: {
+  dps: 231.24735
+  tps: 244.88191
+  dtps: 5448.82011
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-TalismanofAscendance-22678"
  value: {
   dps: 231.12498
@@ -630,6 +702,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-TheGreenTower-1204"
+ value: {
+  dps: 229.52781
+  tps: 242.96071
+  dtps: 5403.02573
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-TheRestrainedEssenceofSapphiron-23046"
  value: {
   dps: 239.26513
@@ -643,6 +723,15 @@ dps_results: {
   dps: 229.55325
   tps: 242.99093
   dtps: 5401.95648
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-TruesilverBreastplate-7939"
+ value: {
+  dps: 228.86193
+  tps: 242.52071
+  dtps: 5448.2838
+  hps: 0.64624
  }
 }
 dps_results: {

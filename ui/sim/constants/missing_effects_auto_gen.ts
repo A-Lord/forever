@@ -64,12 +64,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		1204, // The Green Tower
-		[
-			"When struck in combat has a 1% chance of raising a thorny shield that inflicts 3 Nature damage to attackers when hit and increases Nature resistance by 50 for 30s. ", // 17154 - https://www.wowhead.com/forever/spell=17154
-		]
-	],
-	[
 		1265, // Scorpion Sting
 		[
 			"Poisons target for 13 Nature damage every 5.0 sec for 25s.", // 18208 - https://www.wowhead.com/forever/spell=18208
@@ -166,12 +160,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		2802, // Blazing Emblem
-		[
-			"Increases Fire resistance by 33 and absorbs 465 Fire damage. Lasts 15s.", // 13744 - https://www.wowhead.com/forever/spell=13744
-		]
-	],
-	[
 		2820, // Nifty Stopwatch
 		[
 			"Increases run speed by 40% for 10s.", // 14530 - https://www.wowhead.com/forever/spell=14530
@@ -247,12 +235,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		4262, // Gem-studded Leather Belt
 		[
 			"Heal yourself for 300.", // 9163 - https://www.wowhead.com/forever/spell=9163
-		]
-	],
-	[
-		4264, // Barbaric Belt
-		[
-			"Increase Rage by 30.", // 9174 - https://www.wowhead.com/forever/spell=9174
 		]
 	],
 	[
@@ -508,12 +490,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		7515, // Celestial Orb
-		[
-			"Restores 800 mana.", // 9253 - https://www.wowhead.com/forever/spell=9253
-		]
-	],
-	[
 		7682, // Torturing Poker
 		[
 			"Melee attacks with this weapon torture the target, dealing 1 Fire damage and increasing your damage dealt to that target with this effect by 1, stacking up to 10 times.", // 1293433 - https://www.wowhead.com/forever/spell=1293433
@@ -535,12 +511,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		7734, // Six Demon Bag
 		[
 			"Blasts enemies in front of you with the power of wind, fire, all that kind of thing!", // 14537 - https://www.wowhead.com/forever/spell=14537
-		]
-	],
-	[
-		7939, // Truesilver Breastplate
-		[
-			"When struck in combat has a 3% chance to heal you for 80.", // 9777 - https://www.wowhead.com/forever/spell=9777
 		]
 	],
 	[
@@ -652,21 +622,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		10543, // Goblin Construction Helmet
-		[
-			"Absorbs 400 Fire damage. Lasts 1min.", // 12561 - https://www.wowhead.com/forever/spell=12561
-		]
-	],
-	[
 		10588, // Goblin Rocket Helmet
 		[
 			"Charge an enemy, knocking it silly for 30 seconds. Also knocks you down, stunning you for a short period of time. Any damage caused will revive the target.", // 22641 - https://www.wowhead.com/forever/spell=22641
-		]
-	],
-	[
-		10721, // Gnomish Harm Prevention Belt
-		[
-			"A shield of force protects you from the next 500 damage done over the next 10min. WARNING: Force Field may overload when struck temporarily removing the wearer from this dimension.", // 13234 - https://www.wowhead.com/forever/spell=13234
 		]
 	],
 	[
@@ -697,12 +655,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		11608, // Dark Iron Pulverizer
 		[
 			"Stuns target for 8s.", // 15283 - https://www.wowhead.com/forever/spell=15283
-		]
-	],
-	[
-		11861, // Girdle of Reprisal
-		[
-			"When struck in combat has a 1% chance of inflicting 100 Shadow damage to the attacker.", // 16783 - https://www.wowhead.com/forever/spell=16783
 		]
 	],
 	[
@@ -787,12 +739,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		12802, // Darkspear
 		[
 			"Chance on hit to grant nearby party members 4% increased critical strike chance.", // 16939 - https://www.wowhead.com/forever/spell=16939
-		]
-	],
-	[
-		12805, // Orb of Fire
-		[
-			"Grants a chance on striking the enemy for 60 Fire damage.", // 13441 - https://www.wowhead.com/forever/spell=13441
 		]
 	],
 	[
@@ -901,18 +847,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		14154, // Truefaith Vestments
 		[
 			"Reduces the cooldown of your Fade ability by -2.0 sec.", // 18388 - https://www.wowhead.com/forever/spell=18388
-		]
-	],
-	[
-		15107, // Orb of Noh'Orahil
-		[
-			"Restores 40 health every 3.0 sec for 30s.", // 18957 - https://www.wowhead.com/forever/spell=18957
-		]
-	],
-	[
-		15108, // Orb of Dar'Orahil
-		[
-			"Restores 40 health every 3.0 sec for 30s.", // 18957 - https://www.wowhead.com/forever/spell=18957
 		]
 	],
 	[
@@ -1760,18 +1694,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		20211, // Defiler's Plate Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
-		]
-	],
-	[
-		21116, // Defiler's Talisman
-		[
-			"Absorbs 392 physical damage. Lasts 15s.", // 25747 - https://www.wowhead.com/forever/spell=25747
-		]
-	],
-	[
-		21118, // Talisman of Arathor
-		[
-			"Absorbs 392 physical damage. Lasts 15s.", // 25747 - https://www.wowhead.com/forever/spell=25747
 		]
 	],
 	[
@@ -2755,12 +2677,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		282778, // Mark of the Red Flight
-		[
-			"Absorbs 570 Fire damage for 10s. Damage absorbed heals you for the same amount.", // 1314412 - https://www.wowhead.com/forever/spell=1314412
-		]
-	],
-	[
 		284193, // Moongazer's Wand
 		[
 			"Increases intellect by 5 at night.", // 1315339 - https://www.wowhead.com/forever/spell=1315339
@@ -2788,12 +2704,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		285276, // Satchel of Bronze Bombs
 		[
 			"Thrown attacks explode on impact, causing 11 Fire damage to nearby enemies.", // 1318061 - https://www.wowhead.com/forever/spell=1318061
-		]
-	],
-	[
-		285277, // Satchel of Iron Bombs
-		[
-			"Thrown attacks explode on impact, causing 17 Fire damage to nearby enemies.", // 1318068 - https://www.wowhead.com/forever/spell=1318068
 		]
 	],
 	[

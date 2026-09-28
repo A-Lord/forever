@@ -76,6 +76,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-BarbaricBelt-4264"
+ value: {
+  dps: 476.81356
+  tps: 342.66948
+  dtps: 3.15134
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-Beastmaster'sBoots-22061"
  value: {
   dps: 494.13112
@@ -105,6 +113,14 @@ dps_results: {
   dps: 499.35066
   tps: 358.47405
   dtps: 3.12184
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 496.9842
+  tps: 356.73648
+  dtps: 2.77053
  }
 }
 dps_results: {
@@ -149,6 +165,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestHunter-AllItems-Defiler'sTalisman-21115"
+ value: {
+  dps: 497.39993
+  tps: 357.02749
+  dtps: 2.87991
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Defiler'sTalisman-21116"
  value: {
   dps: 497.39993
   tps: 357.02749
@@ -308,6 +332,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-GirdleofReprisal-11861"
+ value: {
+  dps: 476.81356
+  tps: 342.66948
+  dtps: 3.15134
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-GnomishHarmPreventionBelt-10721"
+ value: {
+  dps: 476.81356
+  tps: 342.66948
+  dtps: 0.60289
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-GoblinConstructionHelmet-10543"
+ value: {
+  dps: 479.83952
+  tps: 344.77666
+  dtps: 0.767
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-GoldenBanana-270226"
  value: {
   dps: 497.62868
@@ -404,6 +452,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-MarkoftheRedFlight-282778"
+ value: {
+  dps: 496.9842
+  tps: 356.73648
+  dtps: 0.40573
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 498.48776
@@ -417,6 +473,14 @@ dps_results: {
   dps: 473.17292
   tps: 340.12848
   dtps: 3.09821
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-OrbofFire-12805"
+ value: {
+  dps: 496.9842
+  tps: 356.73648
+  dtps: 3.15134
  }
 }
 dps_results: {
@@ -461,6 +525,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestHunter-AllItems-TalismanofArathor-21117"
+ value: {
+  dps: 497.39993
+  tps: 357.02749
+  dtps: 2.87991
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-TalismanofArathor-21118"
  value: {
   dps: 497.39993
   tps: 357.02749
