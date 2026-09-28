@@ -1,166 +1,168 @@
-import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { type Ref, useImperativeHandle, useState } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AdaptiveStringPicker } from './AdaptiveStringPicker';
-import type { StringPickerConfig } from './types';
+import type { AdaptiveStringPickerProps } from './types';
 
-// Stands in for a domain facade: a value plus the (onChange) => unsubscribe contract every
-// storeSubscribe helper in state/subscriptions.ts returns.
-class Settings {
-	private listeners = new Set<() => void>();
-	/** Counts writes through the config, so "committed nothing" is testable. */
-	writes = 0;
-	constructor(public value = '') {}
-	set(next: string) {
-		this.value = next;
-		this.listeners.forEach(listener => listener());
-	}
-	readonly subscribe: StoreSubscribe = listener => {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	};
-	get listenerCount() {
-		return this.listeners.size;
-	}
+interface HarnessHandle {
+	set: (next: string) => void;
 }
 
-const configFor = (extra: Partial<StringPickerConfig<Settings>> = {}): StringPickerConfig<Settings> => ({
-	id: 'custom-name',
-	label: 'Custom Name',
-	storeSubscribe: settings => settings.subscribe,
-	getValue: settings => settings.value,
-	setValue: (settings, value) => {
-		settings.writes++;
-		settings.set(value);
-	},
-	...extra,
-});
+type HarnessProps = Partial<Omit<AdaptiveStringPickerProps, 'value' | 'onChange'>> & {
+	initial?: string;
+	onChange?: (next: string) => void;
+	handle?: Ref<HarnessHandle>;
+};
+
+const Harness = ({ initial = '', onChange = () => {}, handle, ...props }: HarnessProps) => {
+	const [value, setValue] = useState(initial);
+	useImperativeHandle(handle, () => ({ set: setValue }));
+	return (
+		<AdaptiveStringPicker
+			id="custom-name"
+			label="Custom Name"
+			{...props}
+			value={value}
+			onChange={next => {
+				onChange(next);
+				setValue(next);
+			}}
+		/>
+	);
+};
 
 const input = () => screen.getByRole('textbox') as HTMLInputElement;
+const handleRef = () => ({ current: null as HarnessHandle | null });
 
 describe('AdaptiveStringPicker', () => {
-	it('shows the source value and writes back through setValue on commit', () => {
-		const settings = new Settings('abc');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+	it('shows the value and reports the committed text through onChange', () => {
+		const onChange = vi.fn();
+		render(<Harness initial="abc" onChange={onChange} />);
 		expect(input().value).toBe('abc');
 
 		fireEvent.change(input(), { target: { value: 'xyz' } });
-		expect(settings.value).toBe('xyz');
+		expect(onChange).toHaveBeenCalledExactlyOnceWith('xyz');
+		expect(input().value).toBe('xyz');
+	});
+
+	it('re-renders when the value changes underneath it', () => {
+		const handle = handleRef();
+		render(<Harness initial="abc" handle={handle} />);
+		act(() => handle.current!.set('xyz'));
 		expect(input().value).toBe('xyz');
 	});
 
 	// Commits on the native `change` event — blur *after an edit*, and Enter — so a plain focus/blur
-	// writes nothing. Committing on blur instead would write on any touch.
-	it('writes nothing when the field is blurred without an edit', () => {
-		const settings = new Settings('abc');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+	// reports nothing. Committing on blur instead would report on any touch.
+	it('reports nothing when the field is blurred without an edit', () => {
+		const onChange = vi.fn();
+		render(<Harness initial="abc" onChange={onChange} />);
 
 		fireEvent.focus(input());
 		fireEvent.blur(input());
-		expect(settings.writes).toBe(0);
-		expect(settings.value).toBe('abc');
-	});
-
-	it('re-syncs the field on any notification, even one that does not change the value', () => {
-		const settings = new Settings('abc');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
-		fireEvent.input(input(), { target: { value: 'typed-but-uncommitted' } });
-
-		act(() => settings.set('abc'));
+		expect(onChange).not.toHaveBeenCalled();
 		expect(input().value).toBe('abc');
 	});
 
 	// React's onChange is the input event, not the native change event. A handler wired as
-	// `onChange={e => setValue(e.currentTarget.value)}` writes per keystroke and would still pass a
+	// `onChange={e => onChange(e.currentTarget.value)}` reports per keystroke and would still pass a
 	// `fireEvent.change`-only test, since that helper dispatches change (which React's onChange also
 	// listens for). This pins the native-change contract directly against `input`.
 	it('commits on the native change event, not on every input event', () => {
-		const settings = new Settings('');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+		const onChange = vi.fn();
+		render(<Harness onChange={onChange} />);
 		fireEvent.input(input(), { target: { value: 'typed' } });
-		expect(settings.writes).toBe(0);
+		expect(onChange).not.toHaveBeenCalled();
+		expect(input().value).toBe('typed');
 
 		fireEvent.change(input());
-		expect(settings.value).toBe('typed');
+		expect(onChange).toHaveBeenCalledExactlyOnceWith('typed');
 	});
 
-	it('subscribes once and unsubscribes on unmount', () => {
-		const settings = new Settings();
-		const { unmount } = render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
-		expect(settings.listenerCount).toBe(1);
-		unmount();
-		expect(settings.listenerCount).toBe(0);
+	it('shows the value after a commit the caller does not take', () => {
+		const onChange = vi.fn();
+		render(<AdaptiveStringPicker id="custom-name" value="kept" onChange={onChange} />);
+		fireEvent.input(input(), { target: { value: 'dropped' } });
+		fireEvent.change(input());
+
+		expect(onChange).toHaveBeenCalledExactlyOnceWith('dropped');
+		expect(input().value).toBe('kept');
 	});
 
-	it('seeds from defaultValue, sizing to it, then hands over to the source on its first change', () => {
-		const settings = new Settings('abc');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor({ defaultValue: 'seeded-value' })} />);
-		expect(input().value).toBe('seeded-value');
-		expect(input().size).toBe('seeded-value'.length);
+	it('keeps an uncommitted edit across a re-render with the same value', () => {
+		const handle = handleRef();
+		render(<Harness initial="abc" handle={handle} />);
+		fireEvent.input(input(), { target: { value: 'typed-but-uncommitted' } });
 
-		act(() => settings.set('xyz'));
+		act(() => handle.current!.set('abc'));
+		expect(input().value).toBe('typed-but-uncommitted');
+	});
+
+	it('drops an uncommitted edit when the value changes underneath it', () => {
+		const handle = handleRef();
+		render(<Harness initial="abc" handle={handle} />);
+		fireEvent.input(input(), { target: { value: 'typed-but-uncommitted' } });
+
+		act(() => handle.current!.set('xyz'));
 		expect(input().value).toBe('xyz');
 	});
 
-	it('sets the input id from config.id', () => {
-		const settings = new Settings('abc');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+	it('sets the input id from id, and labels the input with it', () => {
+		render(<Harness initial="abc" />);
 		expect(input().id).toBe('custom-name');
+		expect(screen.getByText('Custom Name').closest('label')!.getAttribute('for')).toBe('custom-name');
 	});
 
-	it('renders nothing when showWhen is false', () => {
-		const settings = new Settings();
-		const { container } = render(<AdaptiveStringPicker modObject={settings} config={configFor({ showWhen: () => false })} />);
-		expect(container.querySelector('[data-testid="adaptive-string-picker-root"]')).toBeNull();
-	});
-
-	it('disables the input and marks the root when enableWhen is false', () => {
-		const settings = new Settings();
-		render(<AdaptiveStringPicker modObject={settings} config={configFor({ enableWhen: () => false })} />);
+	it('disables the input and marks the root when disabled', () => {
+		render(<Harness disabled />);
 		expect(input().disabled).toBe(true);
 		expect(input().closest('[data-testid="adaptive-string-picker-root"]')!.hasAttribute('data-disabled')).toBe(true);
 	});
 
-	it('reads the value back raw, with no parsing', () => {
-		const settings = new Settings('');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+	it('reports the text raw, with no parsing', () => {
+		const onChange = vi.fn();
+		render(<Harness onChange={onChange} />);
 		fireEvent.change(input(), { target: { value: '  raw 123 text  ' } });
-		expect(settings.value).toBe('  raw 123 text  ');
+		expect(onChange).toHaveBeenCalledExactlyOnceWith('  raw 123 text  ');
 	});
 
 	it('renders the same shape as the vanilla picker: label, description, then a bare input', () => {
-		const settings = new Settings();
-		const { container } = render(<AdaptiveStringPicker modObject={settings} config={configFor({ description: 'A custom name' })} />);
+		const { container } = render(<Harness description="A custom name" className="extra-root-class" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('adaptive-string-picker-root');
 		expect(root.hasAttribute('data-input-root')).toBe(true);
+		expect(root.classList.contains('ui-adaptive-string-picker-root')).toBe(true);
+		expect(root.classList.contains('extra-root-class')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
 		expect(root.querySelector('label')!.className).toBe('ui-picker-label');
 		expect(input().className.split(' ')).toEqual(expect.arrayContaining(['ui-input']));
 		expect(input().type).toBe('text');
 	});
 
-	// A source-driven change moves size too here, not only typing.
-	it('sizes to the value length with a minimum of 3, and updates size on a source-driven change too', () => {
-		const settings = new Settings('');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+	it('takes its root test id from testId', () => {
+		render(<Harness testId="custom-root" />);
+		expect(input().closest('[data-testid="custom-root"]')).not.toBeNull();
+	});
+
+	it('sizes to the text length with a minimum of 3, and resizes on a value change too', () => {
+		const handle = handleRef();
+		render(<Harness handle={handle} />);
 		expect(input().size).toBe(3);
 
 		fireEvent.input(input(), { target: { value: '123456' } });
 		expect(input().size).toBe(6);
 
-		act(() => settings.set('ab'));
+		act(() => handle.current!.set('ab'));
 		expect(input().value).toBe('ab');
 		expect(input().size).toBe(3);
 
-		act(() => settings.set('a much longer value'));
+		act(() => handle.current!.set('a much longer value'));
 		expect(input().size).toBe('a much longer value'.length);
 	});
 
-	it('sizes to the initial value length in the constructor, before any typing', () => {
-		const settings = new Settings('initial-value');
-		render(<AdaptiveStringPicker modObject={settings} config={configFor()} />);
+	it('sizes to the initial value length before any typing', () => {
+		render(<Harness initial="initial-value" />);
 		expect(input().size).toBe('initial-value'.length);
 	});
 });

@@ -1,1 +1,3 @@
-export type { StringPickerConfig } from '@ui-kit/AdaptiveStringPicker/types';
+import type { InputConfig } from '../../input';
+
+export type StringPickerConfig<M> = InputConfig<M, string> & { id: string };

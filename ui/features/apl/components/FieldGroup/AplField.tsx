@@ -2,8 +2,8 @@ import { ActionPicker } from '@features/apl/components/ActionPicker';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { useApl } from '@features/apl/context/AplContext';
 import type { AplFieldSpec } from '@features/apl/model/field_specs';
+import { BoundStringPicker } from '@features/inputs/components/BoundStringPicker';
 import type { Player } from '@sim/player/player';
-import { AdaptiveStringPicker } from '@ui-kit/AdaptiveStringPicker';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { NumberPicker } from '@ui-kit/NumberPicker';
 import { useId } from 'react';
@@ -49,7 +49,7 @@ export const AplField = ({ player, spec, getParentValue }: AplFieldProps) => {
 		case 'number':
 			return <NumberPicker modObject={player} config={{ ...config, float: spec.float }} />;
 		case 'string':
-			return <AdaptiveStringPicker modObject={player} config={config} />;
+			return <BoundStringPicker modObject={player} config={config} />;
 		case 'enum':
 			return <EnumField player={player} config={config} table={spec.table} />;
 		case 'actionId':
