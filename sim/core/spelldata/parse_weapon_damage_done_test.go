@@ -172,3 +172,24 @@ func TestWeaponDamageDoneRowReportsItsMeleeDefensePart(t *testing.T) {
 		}
 	}
 }
+
+// A melee-defense spell of several schools counts the bonus once. Physical and Holy reads the
+// Physical multiplier, which already carries it; Holy and Shadow reads neither school the row names,
+// so the melee-defense part carries it.
+func TestWeaponDamageDoneRowCountsOnceOnSeveralSchools(t *testing.T) {
+	character := swordWarrior(proto.HandType_HandTypeOneHand)
+	physicalHoly := defenseSpell(character, 1, core.SpellSchoolPhysical|core.SpellSchoolHoly, core.DefenseTypeMelee)
+	holyShadow := defenseSpell(character, 2, core.SpellSchoolHoly|core.SpellSchoolShadow, core.DefenseTypeMelee)
+
+	ParseStatic(character, weaponDamageDoneRow(1, dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H))
+
+	if got := physicalHoly.DamageMultiplier; got != 1 {
+		t.Errorf("a physical and holy spell's own multiplier: %v, want 1, the physical multiplier carries it", got)
+	}
+	if got := physicalMultiplier(character); math.Abs(got-1.1) > 1e-9 {
+		t.Errorf("the physical school multiplier: %v, want 1.1", got)
+	}
+	if got := holyShadow.DamageMultiplier; math.Abs(got-1.1) > 1e-9 {
+		t.Errorf("a holy and shadow spell: %v, want 1.1", got)
+	}
+}

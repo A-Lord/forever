@@ -41,6 +41,10 @@ type SpellModConfig struct {
 
 	// A hit or crit percent mod that is a rating's worth on the attacks it reaches.
 	FromRating bool
+
+	// Skips a spell whose SchoolIndex names one of these schools: that spell already takes the
+	// school's own multiplier, so a mod that carries the same bonus to other schools counts once.
+	SkipMultiplierSchool SpellSchool
 }
 
 type SpellMod struct {
@@ -72,6 +76,8 @@ type SpellMod struct {
 	// For a weapon-bound mod, the unit's spells that pass every check but the weapons', in spellbook
 	// order: the ones a weapon swap re-tests.
 	weaponCandidates []*Spell
+
+	SkipMultiplierSchool SpellSchool
 }
 
 // Whether the mod may write to this aura, which it may once until it gives the aura up again.
@@ -157,6 +163,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		IsActive:     false,
 		OnReset:      resetFn,
 	}
+	mod.SkipMultiplierSchool = config.SkipMultiplierSchool
 	unit.spellMods = append(unit.spellMods, mod)
 	if !mod.Equip.IsZero() {
 		unit.equipMods = append(unit.equipMods, mod)
@@ -260,6 +267,10 @@ func passesSpellChecks(spell *Spell, mod *SpellMod) bool {
 	}
 
 	if mod.DefenseType > 0 && spell.DefenseType != mod.DefenseType {
+		return false
+	}
+
+	if mod.SkipMultiplierSchool > 0 && mod.SkipMultiplierSchool.Matches(spell.SpellSchool.MultiplierSchool()) {
 		return false
 	}
 

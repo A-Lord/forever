@@ -300,6 +300,18 @@ func (ss SpellSchool) SchoolDamage() stats.Stat {
 	}
 }
 
+// The one school a spell's per-school multipliers read, which is what Spell.SchoolIndex names: the
+// first of its schools in the order physical, arcane, fire, frost, holy, nature, shadow.
+func (ss SpellSchool) MultiplierSchool() SpellSchool {
+	for _, school := range []SpellSchool{SpellSchoolPhysical, SpellSchoolArcane, SpellSchoolFire, SpellSchoolFrost,
+		SpellSchoolHoly, SpellSchoolNature, SpellSchoolShadow} {
+		if ss.Matches(school) {
+			return school
+		}
+	}
+	return SpellSchoolNone
+}
+
 func (ss SpellSchool) SchoolIndex() stats.SchoolIndex {
 	switch ss {
 	case SpellSchoolNone:
