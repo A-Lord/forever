@@ -1,12 +1,6 @@
-import { Field } from '@base-ui/react/field';
+import { Field } from '@ui-kit/Field';
 import type { AnyInputConfig, PickerLayout } from '@ui-kit/input';
-import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import clsx from 'clsx';
-import { isValidElement, type ReactNode, type Ref, useMemo } from 'react';
-
-import { adoptNode, isNode } from '../utils/dom';
-
-const dedupe = (classes: string) => Array.from(new Set(classes.split(' '))).join(' ');
+import type { ReactNode, Ref } from 'react';
 
 export interface PickerShellProps<ModObject, T, V> {
 	config: AnyInputConfig<ModObject, T, V> & { id: string };
@@ -30,69 +24,22 @@ export const PickerShell = <ModObject, T, V>({
 	children,
 	ref,
 	testId,
-	layout: layoutProp,
-	iconField: iconFieldProp,
-}: PickerShellProps<ModObject, T, V>) => {
-	const tooltip = config.labelTooltip;
-	const renderable = typeof tooltip === 'string' || isNode(tooltip) || isValidElement(tooltip);
-	if (tooltip !== undefined && !renderable) {
-		console.warn(`${className} ${config.id}: labelTooltip is neither a string, a node nor an element, so it is not rendered.`, tooltip);
-	}
-	const tooltipId = renderable ? `${config.id}-tooltip` : undefined;
-	// A string goes through LocaleHtml, as ContentBlock's header tooltip already does: several spec
-	// tooltips carry <b> to mark the option they are talking about, and passed raw those render as
-	// literal tags.
-	const tooltipNode = useMemo(() => {
-		if (!tooltipId) return null;
-		const content = isNode(tooltip) ? (
-			<span ref={adoptNode(tooltip)} />
-		) : typeof tooltip === 'string' ? (
-			<LocaleHtml html={tooltip} />
-		) : (
-			(tooltip as ReactNode)
-		);
-		return <Tooltip id={tooltipId} content={content} />;
-	}, [tooltipId, tooltip]);
-
-	if (hidden) return null;
-
-	const layout = layoutProp ?? config.layout;
-	const iconField = iconFieldProp ?? !!className?.includes('ui-icon-field');
-
-	return (
-		<Field.Root
+	layout,
+	iconField,
+}: PickerShellProps<ModObject, T, V>) =>
+	hidden ? null : (
+		<Field
 			ref={ref}
+			id={config.id}
+			label={config.label}
+			labelTooltip={config.labelTooltip}
+			description={config.description}
+			layout={layout ?? config.layout}
+			className={[className, config.extraClassNames]}
+			testId={testId}
 			disabled={disabled}
-			data-disabled={disabled ? '' : undefined}
-			data-layout={layout}
-			data-testid={testId ?? 'input-root'}
-			data-input-root=""
-			className={dedupe(
-				clsx(
-					config.description && 'flex-wrap',
-					'ui-field',
-					!layout && !iconField && 'max-md:flex-col max-md:items-start',
-					className,
-					config.extraClassNames,
-				),
-			)}>
-			{leading}
-			{config.label && (
-				// `htmlFor` explicitly rather than letting Field derive it.
-				<Field.Label htmlFor={config.id} className="ui-picker-label" title={config.label} data-testid="form-label" {...tooltipAnchorProps(tooltipId)}>
-					{config.label}
-				</Field.Label>
-			)}
-			{tooltipNode}
-			{config.description &&
-				(isNode(config.description) ? (
-					<Field.Description render={<div />} className="ui-field-description" data-testid="input-description" ref={adoptNode(config.description)} />
-				) : (
-					<Field.Description render={<div />} className="ui-field-description" data-testid="input-description">
-						{config.description}
-					</Field.Description>
-				))}
+			iconField={iconField ?? !!className?.includes('ui-icon-field')}
+			leading={leading}>
 			{children}
-		</Field.Root>
+		</Field>
 	);
-};
