@@ -1517,53 +1517,54 @@ var rateWordMatcher = regexp.MustCompile(`(?i)\b(often|sometimes|occasionally)\b
 var cooldownWordingMatcher = regexp.MustCompile(`(?i)more often than`)
 
 func ParseTooltipForMissingEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMap map[string]Group, groupMapName string) {
+	// Effect was already manually implemented
+	if core.HasItemEffect(parsed.Id) {
+		return
+	}
+
+	renderedTooltip, rendered := renderItemEffectTooltip(parsed, itemEffect, instance)
+	if !rendered {
+		return
+	}
+
+	// An item below the floor takes no entry in the generated file: the variant grouping merges
+	// entries by item name, and a Supported: false entry can comment out a live registration
+	// of the same name above the floor. It is still reported as missing its effect, since the
+	// gear picker has no floor.
 	if parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
-		// Effect was already manually implemented
-		if core.HasItemEffect(parsed.Id) {
-			return
-		}
-
-		renderedTooltip, rendered := renderItemEffectTooltip(parsed, itemEffect, instance)
-
 		grp, exists := groupMap[groupMapName]
 		if !exists {
 			grp = Group{Name: groupMapName}
 		}
 
-		if rendered {
-			entry := Entry{
-				Tooltip:   strings.Split(renderedTooltip, "\n"),
-				Supported: false,
-				Variants: []*Variant{
-					{
-						ID:      int(parsed.Id),
-						Name:    parsed.Name,
-						SpellID: int(itemEffect.BuffId),
-					},
-				},
-			}
-
-			grp.Entries = append(grp.Entries, &entry)
-			groupMap[groupMapName] = grp
-
-			// Flavour auras carry no mechanic worth implementing and only add noise to the
-			// report. Suppressing the report only, never the group entry: those
-			// Supported: false entries take part in the variant grouping that decides whether
-			// a whole variant set is emitted live or commented, so dropping one can flip a
-			// real registration.
-			if _, ignored := IgnoreMissingEffectBySpellID[int(itemEffect.BuffId)]; ignored {
-				return
-			}
-
-			if len(dbc.EffectStats(itemEffect)) == 0 || !entry.Supported {
-				StoreMissingEffect("ItemEffects", parsed.Name, Variant{
+		grp.Entries = append(grp.Entries, &Entry{
+			Tooltip:   strings.Split(renderedTooltip, "\n"),
+			Supported: false,
+			Variants: []*Variant{
+				{
 					ID:      int(parsed.Id),
-					Name:    renderedTooltip,
+					Name:    parsed.Name,
 					SpellID: int(itemEffect.BuffId),
-				})
-			}
-		}
+				},
+			},
+		})
+		groupMap[groupMapName] = grp
 	}
+
+	// Flavour auras carry no mechanic worth implementing and only add noise to the
+	// report. Suppressing the report only, never the group entry: those
+	// Supported: false entries take part in the variant grouping that decides whether
+	// a whole variant set is emitted live or commented, so dropping one can flip a
+	// real registration.
+	if _, ignored := IgnoreMissingEffectBySpellID[int(itemEffect.BuffId)]; ignored {
+		return
+	}
+
+	StoreMissingEffect("ItemEffects", parsed.Name, Variant{
+		ID:      int(parsed.Id),
+		Name:    renderedTooltip,
+		SpellID: int(itemEffect.BuffId),
+	})
 }
 
 // A critical strike named as the trigger. The first clause reads the wording that puts something
