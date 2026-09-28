@@ -1,7 +1,7 @@
 import type { UIEnchant as Enchant } from '@generated/proto/ui';
+import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
 import { ActionId } from '@sim/proto/action_id';
 import { getEnchantDescription } from '@sim/proto/enchants';
-import { useActionIdWowheadDataset } from '@ui-kit/hooks/useActionIdWowheadDataset';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ItemCellAnchor } from '../ItemCell';

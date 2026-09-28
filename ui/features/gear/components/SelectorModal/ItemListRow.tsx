@@ -2,10 +2,10 @@ import { addBulkItem, hasBulkItem, removeBulkItem } from '@features/bulk/model/i
 import { ItemSlot, ItemSpec } from '@generated/proto/common';
 import { UIItem as Item } from '@generated/proto/ui';
 import { useSimHost } from '@sim/context/SimHostContext';
+import { useActionId } from '@sim/hooks/useActionId';
 import { isIndividualSimHost } from '@sim/sim_host';
 import { formatDeltaText } from '@sim/utils/format';
 import { Button } from '@ui-kit/Button';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { Icon } from '@ui-kit/Icon';
 import { itemQualityClassName, toneTextClass } from '@ui-kit/utils/css';
 import clsx from 'clsx';

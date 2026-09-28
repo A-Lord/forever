@@ -1,10 +1,11 @@
 import { makePlayer } from '@features/apl/testing';
 import { APLRotation } from '@generated/proto/apl';
-import type { UnitReference } from '@generated/proto/common';
+import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
+import { ActionId } from '@sim/proto/action_id';
 import { patchSlice } from '@sim/state/sim_store';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UnitField } from './UnitField';
@@ -16,7 +17,7 @@ const config = { id: 'unit-field', getValue: () => undefined as UnitReference | 
 let player: ReturnType<typeof makePlayer>;
 let targets: Array<unknown>;
 
-const tree = (unitSet: 'targets' | 'players') => (
+const tree = (unitSet: 'targets' | 'players' | 'aura_sources') => (
 	<SimHostProvider host={{ player, rootElem: document.body } as never}>
 		<UnitField player={player as unknown as Player<any>} config={config} unitSet={unitSet} />
 	</SimHostProvider>
@@ -56,5 +57,27 @@ describe('UnitField', () => {
 		});
 
 		expect(items()).toHaveLength(4);
+	});
+
+	it('shows a pet whose icon is an ActionId with the url it resolves to', async () => {
+		const pet = UnitReference.create({ type: UnitType.Pet, index: 0, owner: UnitReference.create({ type: UnitType.Self }) });
+		const fill = vi.spyOn(ActionId.prototype, 'fill').mockImplementation(async function (this: ActionId) {
+			return Object.assign(Object.create(ActionId.prototype), this, { name: 'Stampede', iconUrl: 'stampede.jpg' }) as ActionId;
+		});
+		player.getPetMetadatas = () => ({ asList: () => [{}] });
+		player.sim.raid.getActivePlayers = () => [];
+		player.sim.getUnitMetadata = () => ({ getName: () => 'Player 1 - Stampede' });
+
+		render(
+			<SimHostProvider host={{ player, rootElem: document.body } as never}>
+				<UnitField player={player as unknown as Player<any>} config={{ ...config, getValue: () => pet }} unitSet="aura_sources" />
+			</SimHostProvider>,
+		);
+		await act(async () => {});
+
+		const icon = within(screen.getByTestId('dropdown-picker-button')).getByTestId('unit-picker-item-icon');
+		expect(icon.getAttribute('src')).toBe('stampede.jpg');
+		expect(fill).toHaveBeenCalledTimes(1);
+		fill.mockRestore();
 	});
 });

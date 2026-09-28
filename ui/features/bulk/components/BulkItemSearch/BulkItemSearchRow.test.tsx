@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 const { HREF } = vi.hoisted(() => ({ HREF: 'https://www.wowhead.com/mop-classic/item=1' }));
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: () => ({ iconUrl: 'icon.jpg', name: 'Item', href: HREF, ready: true }),
 }));
 

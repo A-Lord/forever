@@ -8,7 +8,7 @@ import { warriorTalentsConfig } from '@sim/talents/warrior';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }),
 }));
 

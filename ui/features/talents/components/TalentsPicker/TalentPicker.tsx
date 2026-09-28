@@ -1,7 +1,7 @@
+import { useActionId } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import type { TalentConfig } from '@sim/talents/config';
 import { externalRel } from '@sim/utils/links';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { isRightClick } from '@ui-kit/utils/dom';
 import { useEffect, useRef } from 'react';
 

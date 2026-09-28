@@ -1,13 +1,13 @@
 import type { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import { useSimHost } from '@sim/context/SimHostContext';
+import { useActionId } from '@sim/hooks/useActionId';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
-import { useActionId } from '@ui-kit/hooks/useActionId';
-import { useEquippedItemWowheadDataset } from '@ui-kit/hooks/useEquippedItemWowheadDataset';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId, useMemo } from 'react';
 
+import { useEquippedItemWowheadDataset } from '../../hooks/useEquippedItemWowheadDataset';
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { gearChangeSockets } from './utils';
 

@@ -11,7 +11,7 @@ import { TalentTreePicker } from './TalentTreePicker';
 // icon cases see what was asked for, and recording the ranks shows what the lookup was keyed on.
 const { lookedUpRanks } = vi.hoisted(() => ({ lookedUpRanks: [] as Array<number | undefined> }));
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: (actionId: { spellId?: number; rank?: number }) => {
 		lookedUpRanks.push(actionId.rank);
 		return { iconUrl: `icon-${actionId.spellId}`, name: '', href: '', ready: true };

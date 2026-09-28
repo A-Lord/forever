@@ -21,7 +21,7 @@ const trackReleases = (store: SimStore) => {
 	return releases;
 };
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: (actionId?: { itemId: number }) =>
 		actionId
 			? { iconUrl: `icon-${actionId.itemId}.jpg`, name: `Item ${actionId.itemId}`, href: `https://wowhead.test/item=${actionId.itemId}`, ready: true }

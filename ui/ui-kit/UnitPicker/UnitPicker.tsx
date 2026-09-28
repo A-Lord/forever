@@ -21,8 +21,8 @@ export interface UnitPickerProps {
 }
 
 /**
- * A `DropdownPicker` over units. All it adds is the mapping — a `UnitValue`'s icon (an `ActionId`,
- * a Font Awesome glyph or an image url), its class colour and its text — onto the option props the
+ * A `DropdownPicker` over units. All it adds is the mapping — a `UnitValue`'s icon (a Font Awesome
+ * glyph or an image url), its class colour and its text — onto the option props the
  * shared picker already takes, plus reference equality. The mapping itself is in `utils.tsx`,
  * because the APL's bound unit field needs the same options through `DropdownField`.
  */

@@ -1,6 +1,6 @@
+import type { ActionIdState } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { ActionIdState } from '@ui-kit/hooks/useActionId';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MetricsActionCell } from './MetricsActionCell';
@@ -8,7 +8,7 @@ import { MetricsActionCell } from './MetricsActionCell';
 const resolved = vi.hoisted(() => ({ state: { iconUrl: '', name: '', href: '', ready: true } as ActionIdState }));
 const wowhead = vi.hoisted(() => ({ calls: [] as Array<unknown> }));
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({ useActionId: () => resolved.state }));
+vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => resolved.state }));
 vi.mock('@sim/proto/action_id/tooltip_data', () => ({
 	actionIdWowheadTooltipData: (...args: Array<unknown>) => {
 		wowhead.calls.push(args);

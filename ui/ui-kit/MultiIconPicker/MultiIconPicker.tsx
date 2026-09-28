@@ -1,8 +1,8 @@
+import { useActionId } from '@sim/hooks/useActionId';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import type { ActionId } from '@sim/proto/action_id';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { IconPicker } from '@ui-kit/IconPicker';
 import { Menu } from '@ui-kit/Menu';
 import { isRightClick } from '@ui-kit/utils/dom';

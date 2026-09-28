@@ -1,7 +1,7 @@
 import type { UIEnchant as Enchant, UIGem as Gem } from '@generated/proto/ui';
+import { useActionId } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { Button } from '@ui-kit/Button';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { cssVars, itemQualityClassName } from '@ui-kit/utils/css';
 import clsx from 'clsx';
 

@@ -1,5 +1,5 @@
+import { useActionId } from '@sim/hooks/useActionId';
 import { externalRel } from '@sim/utils/links';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { useInput } from '@ui-kit/hooks/useInput';
 import { PickerShell } from '@ui-kit/PickerShell';
 import { isRightClick } from '@ui-kit/utils/dom';

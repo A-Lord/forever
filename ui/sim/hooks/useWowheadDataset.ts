@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
-export interface WowheadDatasetProps {
+export type WowheadDatasetProps = {
 	'data-wowhead'?: string;
-}
+};
 
 /** Resolves one Wowhead tooltip query and returns it as props to spread onto the anchor it describes. `null` is a subject with nothing to show, and `resolve`'s identity is what says the subject changed. */
 export const useWowheadDataset = (resolve: (() => Promise<string>) | null): WowheadDatasetProps => {

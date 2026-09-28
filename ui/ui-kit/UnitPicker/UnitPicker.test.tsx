@@ -1,14 +1,9 @@
 import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
-import { ActionId } from '@sim/proto/action_id';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { UnitValue } from './types';
 import { UnitPicker } from './UnitPicker';
-
-// A filled ActionId as fill() returns one, so useActionId renders synchronously and no test touches
-// the network — the same pattern MultiIconPicker.test.tsx uses.
-const filled = (actionId: ActionId, iconUrl: string) => Object.assign(Object.create(ActionId.prototype), actionId, { name: '', iconUrl }) as ActionId;
 
 const allTargets = UnitReference.create({ type: UnitType.AllTargets });
 const targetRef = (index: number) => UnitReference.create({ type: UnitType.Target, index });
@@ -17,7 +12,6 @@ const options: Array<UnitValue> = [
 	{ value: allTargets, text: 'All Targets', iconUrl: '' },
 	{ value: targetRef(0), text: 'Target 1', iconUrl: 'boss.jpg', color: 'warrior' },
 	{ value: targetRef(1), text: 'Target 2', iconUrl: 'fa-users' },
-	{ value: targetRef(2), text: 'Target 3', iconUrl: filled(ActionId.fromSpellId(1), 'spell.jpg') },
 ];
 
 const mount = (value: UnitReference | undefined, onChange = vi.fn(), values = options) =>
@@ -27,12 +21,6 @@ const root = () => screen.getByTestId('unit-picker-root');
 const trigger = () => within(root()).getByTestId('dropdown-picker-button') as HTMLButtonElement;
 const items = () => screen.queryAllByTestId('dropdown-picker-item');
 const open = () => act(() => void fireEvent.click(trigger()));
-
-beforeEach(() => {
-	vi.spyOn(ActionId.prototype, 'fill').mockImplementation(async function (this: ActionId) {
-		return this;
-	});
-});
 
 describe('UnitPicker', () => {
 	it('keeps the class names the unit-picker stylesheet selects on', () => {
@@ -66,7 +54,6 @@ describe('UnitPicker', () => {
 		expect(glyph.classList.contains('fa')).toBe(true);
 		expect(glyph.classList.contains('fa-users')).toBe(true);
 		expect(glyph.classList.contains('ui-unit-icon')).toBe(true);
-		expect(within(items()[3]).getByTestId('unit-picker-item-icon').getAttribute('src')).toBe('spell.jpg');
 	});
 
 	it('puts a unit colour on the option and on the trigger that shows it', async () => {

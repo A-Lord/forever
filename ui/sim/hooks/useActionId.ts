@@ -14,14 +14,17 @@ export interface ActionIdState {
 // so they are keyed here rather than in equalityKey(), which equals() must keep matching. An id
 // carrying no item, spell or other id is a placeholder whose identity is its name and icon - a
 // pet family's, say - and every such id has the same equalityKey.
-const keyOf = (actionId: ActionId | undefined) =>
+export const actionIdKey = (actionId: ActionId | undefined) =>
 	actionId ? `${actionId.equalityKey()}|${actionId.rank}|${actionId.definitionId}` + (actionId.anyId() ? '' : `|${actionId.name}|${actionId.iconUrl}`) : '';
 
-const hrefOf = (actionId: ActionId) => {
+export const actionIdHref = (actionId: ActionId) => {
 	if (actionId.itemId) return ActionId.makeItemUrl(actionId.itemId, actionId.randomSuffixId);
 	if (actionId.spellId) return ActionId.makeSpellUrl(actionId.spellIdTooltipOverride || actionId.spellId, actionId.rank, actionId.definitionId);
 	return '';
 };
+
+/** Already carries its name or icon, or has no id to fill from. */
+export const isFilled = (actionId: ActionId) => !!(actionId.name || actionId.iconUrl) || !actionId.anyId();
 
 const EMPTY: ActionIdState = { iconUrl: '', name: '', href: '', ready: true };
 
@@ -30,14 +33,14 @@ const stateOf = (actionId: ActionId | undefined): ActionIdState =>
 		? {
 				iconUrl: actionId.iconUrl,
 				name: actionId.name,
-				href: hrefOf(actionId),
-				ready: !!(actionId.name || actionId.iconUrl) || !actionId.anyId(),
+				href: actionIdHref(actionId),
+				ready: isFilled(actionId),
 			}
 		: EMPTY;
 
 /** Resolves an `ActionId` to the fields a component renders: icon, name and wowhead href. */
 export const useActionId = (actionId: ActionId | undefined): ActionIdState => {
-	const key = keyOf(actionId);
+	const key = actionIdKey(actionId);
 	const idRef = useRef(actionId);
 	idRef.current = actionId;
 
@@ -56,7 +59,7 @@ export const useActionId = (actionId: ActionId | undefined): ActionIdState => {
 		const controller = new AbortController();
 		id.fill()
 			.then(filled => {
-				if (!controller.signal.aborted) setState({ iconUrl: filled.iconUrl, name: filled.name, href: hrefOf(filled), ready: true });
+				if (!controller.signal.aborted) setState({ iconUrl: filled.iconUrl, name: filled.name, href: actionIdHref(filled), ready: true });
 			})
 			.catch((error: unknown) => {
 				if (!controller.signal.aborted) throw error;

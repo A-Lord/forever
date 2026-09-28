@@ -1,15 +1,15 @@
 import type { ItemSlot } from '@generated/proto/common';
 import { translateProtoStatName, translateSlotName } from '@i18n/localization';
 import { usePlayer } from '@sim/context/SimHostContext';
+import { useActionId } from '@sim/hooks/useActionId';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { useActionId } from '@ui-kit/hooks/useActionId';
-import { useEquippedItemWowheadDataset } from '@ui-kit/hooks/useEquippedItemWowheadDataset';
 import { ItemCell } from '@ui-kit/ItemCell';
 import { itemQualityClassName } from '@ui-kit/utils/css';
 import type { ClassValue } from 'clsx';
 import clsx from 'clsx';
 import { type ReactNode, useMemo } from 'react';
 
+import { useEquippedItemWowheadDataset } from '../../hooks/useEquippedItemWowheadDataset';
 import { MISSING_RANDOM_SUFFIX_WARNING } from '../../item_notices';
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { SelectorModalTabs } from '../../types';
