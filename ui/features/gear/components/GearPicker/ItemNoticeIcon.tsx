@@ -1,7 +1,7 @@
 import { Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
-import { noticeIconClass, type NoticeLevel } from '@ui-kit/NoticeLevel';
+import { noticeIconClass, type NoticeLevel } from '@ui-kit/Notice';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { type ReactNode, useId } from 'react';
