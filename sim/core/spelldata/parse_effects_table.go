@@ -87,9 +87,6 @@ type attachment struct {
 	stat    stats.Stat
 	statBid bool
 
-	// Attachments that hold beside this one, which whileEquipped drives and Applied names after it.
-	also []*attachment
-
 	// The stats the attachment adds to or multiplies.
 	stats []stats.Stat
 
@@ -141,11 +138,12 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		if !scope.ProcMask.Matches(core.ProcMaskMelee) || e.Misc&miscAllSchools == miscAllSchools {
 			return p.whileEquipped(scope.Equip(), a)
 		}
-		return p.whileEquipped(scope.Equip(), a, p.modFloat("damage-dealt-melee", core.SpellModConfig{
+		melee := p.modFloat("damage-dealt-melee", core.SpellModConfig{
 			Kind:             core.SpellMod_DamageDone_Pct,
 			DefenseType:      core.DefenseTypeMelee,
 			MultiplierSchool: core.SpellSchool(miscAllSchools &^ e.Misc),
-		}, v/100))
+		}, v/100)
+		return p.whileEquipped(scope.Equip(), combined(a.kind+"+"+melee.kind, a, melee))
 	},
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.schoolMultiplier("damage-taken", "DamageTakenMultiplier", e.Misc, core.MultiplierFromPercent(v),
@@ -1004,16 +1002,17 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 	}
 
 	a := &attachment{kind: "multiply-stat " + statNames(sts), value: mult, multiplicative: true, stats: sts}
+	for _, stat := range sts {
+		a.parts = append(a.parts, &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
+			key: stat.StatName(), stat: stat, statBid: true})
+	}
 	return p.dependencies(a, func() {
 		for _, stat := range sts {
 			p.unit.MultiplyStat(stat, mult)
 		}
 	}, func() (toggles []func(sim *core.Simulation, level float64)) {
-		for _, stat := range sts {
-			part := &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
-				key: stat.StatName(), stat: stat, statBid: true,
-				set: p.statDependency(p.unit.NewDynamicMultiplyStat(stat, mult))}
-			a.parts = append(a.parts, part)
+		for _, part := range a.parts {
+			part.set = p.statDependency(p.unit.NewDynamicMultiplyStat(part.stat, mult))
 			toggles = append(toggles, part.set)
 		}
 		return toggles
@@ -1224,22 +1223,21 @@ func multiplier(kind string, mult float64, apply func(sim *core.Simulation, fact
 	}}
 }
 
-// The attachment and the ones beside it hold only while a weapon meeting the requirement is equipped,
-// as well as while the parse is on, and follow item swaps. The row's caller checks that there is a
+// The attachment, or each of its parts, holds only while a weapon meeting the requirement is equipped,
+// as well as while the parse is on, and follows item swaps. The row's caller checks that there is a
 // character to wear the weapon.
-func (p *parser) whileEquipped(req core.EquipRequirement, a *attachment, beside ...*attachment) *attachment {
-	a.also = beside
+func (p *parser) whileEquipped(req core.EquipRequirement, a *attachment) *attachment {
 	if p.dry {
 		return a
 	}
 
-	set := a.set
-	a.set = p.character.NewEquipGate(req, func(sim *core.Simulation, level float64) {
-		set(sim, level)
-		for _, b := range beside {
-			b.set(sim, level)
-		}
-	}).SetLevel
+	gated := a.parts
+	if len(gated) == 0 {
+		gated = []*attachment{a}
+	}
+	for _, g := range gated {
+		g.set = p.character.NewEquipGate(req, g.set).SetLevel
+	}
 	return a
 }
 

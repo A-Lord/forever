@@ -238,7 +238,7 @@ func TestParseCritPctWithAMeleeWeaponHoldsWhileEquipped(t *testing.T) {
 		Effects: []Effect{casterAura(dbcenums.A_MOD_CRIT_PCT, 1)}}
 	r := parseScoped(t, row)
 
-	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"stat-while-equipped PhysicalCritPercent+SpellCritPercent"}) {
+	if kinds := appliedKinds(r.parsed); !slices.Equal(kinds, []string{"stat-while-equipped PhysicalCritPercent", "stat-while-equipped SpellCritPercent"}) {
 		t.Errorf("attached %v, want the crit stats while equipped", kinds)
 	}
 	r.check(t, bonusCrit, 0, 0, 0, 0)
@@ -329,26 +329,26 @@ func TestParseCritPctWithRangedWeaponsIsRangedMod(t *testing.T) {
 func TestParseStaticRangedOnlyRatingKinds(t *testing.T) {
 	withRows(t, parseRows())
 
+	hit := Applied{Kind: "SpellMod_BonusHit_Percent", Value: 10 / core.HitRatingPerHitPercent}
+	crit := Applied{Kind: "SpellMod_BonusCrit_Percent", Value: 10 / core.CritRatingPerCritPercent}
 	for _, c := range []struct {
-		mask  int32
-		kind  string
-		value float64
+		mask int32
+		want []Applied
 	}{
-		{64, "SpellMod_BonusHit_Percent", 10 / core.HitRatingPerHitPercent},
-		{512, "SpellMod_BonusCrit_Percent", 10 / core.CritRatingPerCritPercent},
-		{262144, "", 0},
-		{64 | 512 | 262144, "SpellMod_BonusHit_Percent+SpellMod_BonusCrit_Percent", 10 / core.HitRatingPerHitPercent},
+		{64, []Applied{hit}},
+		{512, []Applied{crit}},
+		{262144, nil},
+		{64 | 512 | 262144, []Applied{hit, crit}},
 	} {
 		parsed := ParseStatic(parseWarrior(), oneEffectRow(dbcenums.A_MOD_RATING, c.mask, 10))
-		if c.kind == "" {
-			if len(parsed.Applied) != 0 {
-				t.Errorf("mask %d attached %v, want nothing", c.mask, appliedKinds(parsed))
-			}
+		if len(parsed.Applied) != len(c.want) {
+			t.Errorf("mask %d attached %v, want %v", c.mask, appliedKinds(parsed), c.want)
 			continue
 		}
-		if len(parsed.Applied) != 1 || parsed.Applied[0].Kind != c.kind ||
-			math.Abs(parsed.Applied[0].Value-c.value) > 1e-9 {
-			t.Errorf("mask %d attached %v, want %s worth %v", c.mask, parsed.Applied, c.kind, c.value)
+		for i, want := range c.want {
+			if got := parsed.Applied[i]; got.Kind != want.Kind || math.Abs(got.Value-want.Value) > 1e-9 {
+				t.Errorf("mask %d attached %s worth %v, want %s worth %v", c.mask, got.Kind, got.Value, want.Kind, want.Value)
+			}
 		}
 	}
 }

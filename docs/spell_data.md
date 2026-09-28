@@ -399,8 +399,9 @@ Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance p
 the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its
 tooltip asks for and the row states nowhere, re-read through `Refresh` on an off-hand swap.
 
-The call answers a `*Parsed`. `Applied` names each attachment - the effect, the sim kind it became and
-the value in the sim's own units - and `Skipped` holds the aura effects the table has no row for, which
+The call answers a `*Parsed`. `Applied` names each attachment, or each part of one that has parts (the
+stats of a multi-stat row, the melee-defense part beside a weapon damage done row) - the effect, the sim
+kind it became and the value in the sim's own units - and `Skipped` holds the aura effects the table has no row for, which
 are exactly what the port still has to wire by hand. `SPELLDATA_REPORT=1` prints each of those on the
 console with its position, the game files' name for its aura, its misc value and its amount. Improved Slam
 (`sim/warrior/talents_arms.go`) is the ordinary case: the cast time and global cooldown mods attach,
