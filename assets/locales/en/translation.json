@@ -1702,8 +1702,6 @@
 				"water": "Water"
 			},
 			"curse_types": {
-				"agony": "Curse of Agony",
-				"doom": "Curse of Doom",
 				"elements": "Curse of Elements",
 				"recklessness": "Curse of Recklessness"
 			},

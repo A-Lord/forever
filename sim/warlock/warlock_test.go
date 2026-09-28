@@ -68,7 +68,7 @@ func TestDestruction(t *testing.T) {
 							Summon:          proto.WarlockOptions_Succubus,
 							SacrificeSummon: true,
 							Armor:           proto.WarlockOptions_FelArmor,
-							CurseOptions:    proto.WarlockOptions_Agony,
+							CurseOptions:    proto.WarlockOptions_Elements,
 						},
 					},
 				},

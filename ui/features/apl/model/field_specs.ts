@@ -92,8 +92,6 @@ const HOTW_STRATEGIES: EnumTable = {
 const CURSE_TYPES: EnumTable = {
 	defaultLabel: none(),
 	options: [
-		{ value: CurseOptions.Agony, label: i18n.t('rotation_tab.apl.curse_types.agony') },
-		{ value: CurseOptions.Doom, label: i18n.t('rotation_tab.apl.curse_types.doom') },
 		{ value: CurseOptions.Elements, label: i18n.t('rotation_tab.apl.curse_types.elements') },
 		{ value: CurseOptions.Recklessness, label: i18n.t('rotation_tab.apl.curse_types.recklessness') },
 	],
@@ -228,7 +226,7 @@ export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
 		case 'hotwStrategy':
 			return asEnum(descriptor.field, HOTW_STRATEGIES, () => HotwStrategy.Caster, i18n.t('rotation_tab.apl.helpers.field_configs.strategy'));
 		case 'curseType':
-			return asEnum(descriptor.field, CURSE_TYPES, () => CurseOptions.Agony);
+			return asEnum(descriptor.field, CURSE_TYPES, () => CurseOptions.Elements);
 		case 'autoType':
 			return asEnum(descriptor.field, AUTO_TYPES, () => APLValueAutoAttackType.AnyAuto);
 		case 'autoSwingType':

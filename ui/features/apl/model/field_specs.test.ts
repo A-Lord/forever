@@ -134,7 +134,7 @@ describe('resolveField newValue defaults', () => {
 
 	it('defaults the remaining enum kinds to their documented member', () => {
 		expect(resolveField(hotwStrategyFieldConfig('f')).newValue()).toBe(HotwStrategy.Caster);
-		expect(resolveField(curseTypeFieldConfig('f')).newValue()).toBe(CurseOptions.Agony);
+		expect(resolveField(curseTypeFieldConfig('f')).newValue()).toBe(CurseOptions.Elements);
 		expect(resolveField(autoTypeFieldConfig('f')).newValue()).toBe(APLValueAutoAttackType.AnyAuto);
 		expect(resolveField(autoSwingTypeFieldConfig('f')).newValue()).toBe(AutoSwingType.MainHand);
 		expect(resolveField(statTypeFieldConfig('f')).newValue()).toBe(0);

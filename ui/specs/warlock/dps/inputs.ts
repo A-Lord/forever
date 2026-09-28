@@ -73,9 +73,8 @@ export const CursesSection: CustomSection<Spec.SpecWarlock> = {
 	title: i18n.t('settings_tab.other.warlock_assigned_curse.title'),
 	description: i18n.t('settings_tab.other.warlock_assigned_curse.description'),
 	iconGroupClassName: 'curses-toggle-container',
+	// Agony and Doom are Banes now, cast directly rather than as the assigned curse.
 	iconInputs: [
-		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Agony, 27218),
-		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Doom, 603),
 		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Elements, 1490),
 		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Recklessness, 704),
 	],

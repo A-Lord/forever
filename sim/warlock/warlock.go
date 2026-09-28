@@ -151,11 +151,11 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	core.FillTalentsProto(warlock.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
 
 	if raid.Debuffs != nil {
-		switch warlock.Options.CurseOptions {
-		case proto.WarlockOptions_Elements:
-			raid.Debuffs.CurseOfElements = false
-		case proto.WarlockOptions_Recklessness:
+		// Matches GetAssignedCurse: anything but Recklessness is Elements.
+		if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
 			raid.Debuffs.CurseOfRecklessness = false
+		} else {
+			raid.Debuffs.CurseOfElements = false
 		}
 	}
 

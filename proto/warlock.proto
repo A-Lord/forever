@@ -85,11 +85,12 @@ message WarlockOptions {
 		MeleeOnly = 1;
 	}
 
+	// Agony and Doom are Banes in Forever, cast directly rather than as the assigned curse.
 	enum CurseOptions {
-		Agony = 0;
-		Doom = 1;
-		Elements = 2;
+		Elements = 0;
 		Recklessness = 3;
+		reserved 1, 2;
+		reserved "Agony", "Doom";
 	}
 
 	Summon summon = 1;

@@ -5975,12 +5975,6 @@
 						"curse_types": {
 							"type": "object",
 							"properties": {
-								"agony": {
-									"type": "string"
-								},
-								"doom": {
-									"type": "string"
-								},
 								"elements": {
 									"type": "string"
 								},
@@ -5989,7 +5983,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["agony", "doom", "elements", "recklessness"]
+							"required": ["elements", "recklessness"]
 						},
 						"submenus": {
 							"type": "object",
