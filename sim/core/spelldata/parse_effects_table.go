@@ -117,10 +117,33 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return lookup(pctModTable, op)(p, e, v/100)
 	},
 
-	// The damage the unit deals and takes, by school mask.
+	// The damage the unit deals and takes, by school mask. A row that names ranged weapons alone is a
+	// mod on the attacks made with them; one that names a melee weapon holds while it is equipped, and
+	// also reaches the melee-defense spells of the schools its mask leaves out.
 	dbcenums.A_MOD_DAMAGE_PERCENT_DONE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.MultiplierFromPercent(v),
+		rule, scope, ok := p.weaponScope(e)
+		switch {
+		case !ok, rule == WeaponRuleWhileEquipped && p.character == nil && !p.dry:
+			return nil
+		case rule == WeaponRulePerWeapon:
+			scope.School = core.SpellSchool(e.Misc)
+			return p.scopedMod("SpellMod_DamageDone_Pct", core.SpellMod_DamageDone_Pct, scope, v/100)
+		}
+
+		a := p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.MultiplierFromPercent(v),
 			&p.unit.PseudoStats.DamageDealtMultiplier, &p.unit.PseudoStats.SchoolDamageDealtMultiplier)
+		if a == nil || rule != WeaponRuleWhileEquipped {
+			return a
+		}
+		if !scope.ProcMask.Matches(core.ProcMaskMelee) || e.Misc&miscAllSchools == miscAllSchools {
+			return p.whileEquipped(scope.Equip(), a)
+		}
+		melee := p.modFloat("damage-dealt-melee", core.SpellModConfig{
+			Kind:             core.SpellMod_DamageDone_Pct,
+			DefenseType:      core.DefenseTypeMelee,
+			MultiplierSchool: core.SpellSchool(miscAllSchools &^ e.Misc),
+		}, v/100)
+		return p.whileEquipped(scope.Equip(), combined(a.kind+"+"+melee.kind, a, melee))
 	},
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.schoolMultiplier("damage-taken", "DamageTakenMultiplier", e.Misc, core.MultiplierFromPercent(v),
@@ -979,16 +1002,17 @@ func (p *parser) statMultiplier(sts []stats.Stat, mult float64) *attachment {
 	}
 
 	a := &attachment{kind: "multiply-stat " + statNames(sts), value: mult, multiplicative: true, stats: sts}
+	for _, stat := range sts {
+		a.parts = append(a.parts, &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
+			key: stat.StatName(), stat: stat, statBid: true})
+	}
 	return p.dependencies(a, func() {
 		for _, stat := range sts {
 			p.unit.MultiplyStat(stat, mult)
 		}
 	}, func() (toggles []func(sim *core.Simulation, level float64)) {
-		for _, stat := range sts {
-			part := &attachment{kind: "multiply-stat " + stat.StatName(), value: mult, multiplicative: true,
-				key: stat.StatName(), stat: stat, statBid: true,
-				set: p.statDependency(p.unit.NewDynamicMultiplyStat(stat, mult))}
-			a.parts = append(a.parts, part)
+		for _, part := range a.parts {
+			part.set = p.statDependency(p.unit.NewDynamicMultiplyStat(part.stat, mult))
 			toggles = append(toggles, part.set)
 		}
 		return toggles
@@ -1197,6 +1221,24 @@ func multiplier(kind string, mult float64, apply func(sim *core.Simulation, fact
 		}
 		apply(sim, factor)
 	}}
+}
+
+// The attachment, or each of its parts, holds only while a weapon meeting the requirement is equipped,
+// as well as while the parse is on, and follows item swaps. The row's caller checks that there is a
+// character to wear the weapon.
+func (p *parser) whileEquipped(req core.EquipRequirement, a *attachment) *attachment {
+	if p.dry {
+		return a
+	}
+
+	gated := a.parts
+	if len(gated) == 0 {
+		gated = []*attachment{a}
+	}
+	for _, g := range gated {
+		g.set = p.character.NewEquipGate(req, g.set).SetLevel
+	}
+	return a
 }
 
 // The damage multipliers the sim keeps once for everything and once per school: the game files'

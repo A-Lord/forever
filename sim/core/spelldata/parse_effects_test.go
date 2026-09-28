@@ -3,6 +3,7 @@ package spelldata
 import (
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -500,15 +501,15 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_THREAT, 127, 30, "threat", 1.3, false},
 		{dbcenums.A_MOD_DAMAGE_DONE, 1, 20, "stat PhysicalDamage", 20, false},
 		{dbcenums.A_MOD_DAMAGE_DONE, 126, 20, "stat SpellDamage", 20, false},
-		{dbcenums.A_MOD_DAMAGE_DONE, 127, 20, "stat PhysicalDamage+SpellDamage", 20, false},
+		{dbcenums.A_MOD_DAMAGE_DONE, 127, 20, "stat PhysicalDamage, stat SpellDamage", 20, false},
 		{dbcenums.A_MOD_DAMAGE_DONE, 4, 20, "stat FireDamage", 20, false},
 		{dbcenums.A_MOD_RESISTANCE, 1, 100, "stat Armor", 100, false},
 		{dbcenums.A_MOD_BASE_RESISTANCE_PCT, 1, 10, "equip-scaling Armor", 1.1, false},
 		{dbcenums.A_MOD_RESISTANCE_PCT, 1, 8, "multiply-stat Armor", 1.08, false},
 		{dbcenums.A_MOD_RESISTANCE, 16, 30, "stat FrostResistance", 30, false},
 		{dbcenums.A_MOD_RESISTANCE, 127, 30,
-			"stat Armor+FireResistance+NatureResistance+FrostResistance+ShadowResistance+ArcaneResistance", 30, false},
-		{dbcenums.A_MOD_STAT, -1, 10, "stat Strength+Agility+Stamina+Intellect+Spirit", 10, false},
+			"stat Armor, stat FireResistance, stat NatureResistance, stat FrostResistance, stat ShadowResistance, stat ArcaneResistance", 30, false},
+		{dbcenums.A_MOD_STAT, -1, 10, "stat Strength, stat Agility, stat Stamina, stat Intellect, stat Spirit", 10, false},
 		{dbcenums.A_MOD_STAT, 2, 10, "stat Stamina", 10, false},
 		{dbcenums.A_MOD_INCREASE_HEALTH, 0, 200, "stat Health", 200, false},
 		{dbcenums.A_MOD_MAX_HEALTH, 0, 560, "stat Health", 560, false},
@@ -520,7 +521,7 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_HIT_CHANCE, 0, 3, "stat PhysicalHitPercent", 3, false},
 		{dbcenums.A_MOD_SPELL_HIT_CHANCE, 0, 3, "stat SpellHitPercent", 3, false},
 		{dbcenums.A_MOD_SPELL_CRIT_CHANCE, 0, 3, "stat SpellCritPercent", 3, false},
-		{dbcenums.A_MOD_CRIT_PCT, 0, 2, "stat PhysicalCritPercent+SpellCritPercent", 2, false},
+		{dbcenums.A_MOD_CRIT_PCT, 0, 2, "stat PhysicalCritPercent, stat SpellCritPercent", 2, false},
 		{dbcenums.A_MOD_CASTING_SPEED_NOT_STACK, 0, 20, "cast-speed", 1.2, true},
 		{dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 127, -10, "damage-dealt", 0.9, false},
 		{dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 1, 10, "damage-dealt-by-school", 1.1, false},
@@ -537,7 +538,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_HEALING_DONE_PERCENT, 0, 10, "healing-dealt", 1.1, false},
 		{dbcenums.A_MOD_OFFHAND_DAMAGE_PCT, 0, 25, "SpellMod_DamageDone_Pct", 0.25, false},
 		{dbcenums.A_MOD_PERCENT_STAT, 4, 100, "multiply-stat Spirit", 2, false},
-		{dbcenums.A_MOD_PERCENT_STAT, -1, 5, "multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.05, false},
+		{dbcenums.A_MOD_PERCENT_STAT, -1, 5,
+			"multiply-stat Strength, multiply-stat Agility, multiply-stat Stamina, multiply-stat Intellect, multiply-stat Spirit", 1.05, false},
 		{dbcenums.A_MOD_DAMAGE_TAKEN, 1, 8, "physical-damage-taken-flat", 8, false},
 		{dbcenums.A_MOD_DAMAGE_TAKEN, 126, 8, "spell-damage-taken-flat", 8, false},
 		{dbcenums.A_RANGED_ATTACK_POWER_ATTACKER_BONUS, 0, 71, "ranged-attack-power-attacker-bonus", 71, false},
@@ -549,14 +551,14 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RATING, 1792, 21, "stat CritRating", 21, false},
 		{dbcenums.A_MOD_RATING, 393216, 10, "stat HasteRating", 10, false},
 		{dbcenums.A_MOD_RATING, 524288, 10, "stat HasteRating", 10, false},
-		{dbcenums.A_MOD_RATING, 32 | 256, 10, "stat HitRating+CritRating", 10, false},
+		{dbcenums.A_MOD_RATING, 32 | 256, 10, "stat HitRating, stat CritRating", 10, false},
 		{dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, -1, 10,
-			"multiply-stat Strength+Agility+Stamina+Intellect+Spirit", 1.1, false},
+			"multiply-stat Strength, multiply-stat Agility, multiply-stat Stamina, multiply-stat Intellect, multiply-stat Spirit", 1.1, false},
 		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_FEAR), -20, "fear-duration", 0.8, false},
 		{dbcenums.A_MECHANIC_DURATION_MOD, int32(dbcenums.MECHANIC_STUN), -20, "stun-duration", 0.8, false},
 		{dbcenums.A_MOD_EXPERTISE, 0, 5, "stat ExpertisePercent", 5, false},
 		{dbcenums.A_MOD_MELEE_HASTE_3, 0, 25, "melee-speed", 1.25, true},
-		{dbcenums.A_MOD_DAMAGE_TAKEN, 127, -10, "damage-taken-flat", -10, false},
+		{dbcenums.A_MOD_DAMAGE_TAKEN, 127, -10, "physical-damage-taken-flat, spell-damage-taken-flat", -10, false},
 		{dbcenums.A_MOD_MELEE_DAMAGE_TAKEN_PCT, 0, -20, "melee-damage-taken", 0.8, false},
 		{dbcenums.A_MOD_RANGED_DAMAGE_TAKEN, 1, -32, "ranged-damage-taken-flat", -32, false},
 		{dbcenums.A_MOD_POWER_COST_SCHOOL_PCT, 126, 20, "SpellMod_PowerCost_Pct", 0.2, false},
@@ -641,11 +643,11 @@ func TestEveryTableRow(t *testing.T) {
 				parsed = ParseStatic(character, &row)
 			}
 
-			if len(parsed.Applied) != 1 {
-				t.Fatalf("attached %v and skipped %d, want one attachment", appliedKinds(parsed), len(parsed.Skipped))
+			if len(parsed.Applied) == 0 {
+				t.Fatalf("attached nothing and skipped %d, want an attachment", len(parsed.Skipped))
 			}
-			if got := parsed.Applied[0].Kind; got != c.kind {
-				t.Errorf("kind = %q, want %q", got, c.kind)
+			if got := strings.Join(appliedKinds(parsed), ", "); got != c.kind {
+				t.Errorf("kinds = %q, want %q", got, c.kind)
 			}
 			if got := parsed.Applied[0].Value; math.Abs(got-c.value) > 1e-9 {
 				t.Errorf("value = %v, want %v", got, c.value)

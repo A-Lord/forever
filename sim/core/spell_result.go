@@ -241,8 +241,13 @@ func (spell *Spell) SpellHitChance(target *Unit) float64 {
 	hitPercent := spell.Unit.stats[stats.SpellHitPercent] + spell.BonusHitPercent
 	// All talents that modify spell school specific hit name their spells by class mask, so this
 	// hit only reaches spells that carry one, either the sim's tag or the game files' class flags.
+	// A spell of several schools takes the hit of each, such as Frostfire Bolt's Fire and Frost.
 	if spell.ClassSpellMask != 0 || !spell.ClassFlags.IsZero() {
-		hitPercent += spell.Unit.PseudoStats.SchoolBonusHitChance[spell.SpellSchool.SchoolIndex()]
+		for _, school := range singleSchools {
+			if spell.SpellSchool.Matches(school) {
+				hitPercent += spell.Unit.PseudoStats.SchoolBonusHitChance[school.SchoolIndex()]
+			}
+		}
 	}
 	return hitPercent / 100
 }

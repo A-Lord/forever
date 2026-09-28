@@ -44,6 +44,7 @@ var thunderingStrikes = spelldata.MustFind(16255)
 var rangedScope = spelldata.MustFind(1310308)
 var dualWield = spelldata.MustFind(23584)
 var scorpidSting = spelldata.MustFind(3043)
+var oneHandedSpec = spelldata.MustFind(20196)
 `
 
 func TestHoverWeaponRules(t *testing.T) {
@@ -53,6 +54,7 @@ func TestHoverWeaponRules(t *testing.T) {
 		"MustFind(1310308)": "| 1 | +2% physical crit, ranged weapons only: attacks made with a bow, gun or crossbow<br>",
 		"MustFind(23584)":   "| 3 | +10% physical hit, per weapon: only attacks made with a one-handed axe, one-handed mace, one-handed sword, fist weapon or dagger in the off hand<br>",
 		"MustFind(3043)":    "| 1 | -2% physical hit to the enemy (the weapon requirement only gates casting)<br>",
+		"MustFind(20196)":   "| 1 | +2% physical damage done and on the melee-defense spells of the other schools, while a one-handed axe, one-handed mace, one-handed sword, exotic, fist weapon or dagger is equipped<br>",
 	} {
 		wantHover(t, weaponRowsGo, needle, 9, want)
 	}

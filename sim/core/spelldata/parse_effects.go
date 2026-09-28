@@ -179,9 +179,9 @@ func FromCaster(caster *core.Unit, index, total int) ParseOpt {
 	}
 }
 
-// One attachment the parse made, for a log or a test: the effect it came from, the sim kind it
-// became and the value it carries in the sim's own units. A time value is stated in milliseconds,
-// and a multiplier as the factor itself.
+// One attachment the parse made, or one part of an attachment that has parts, for a log or a test: the
+// effect it came from, the sim kind it became and the value it carries in the sim's own units. A time
+// value is stated in milliseconds, and a multiplier as the factor itself.
 type Applied struct {
 	Effect *Effect
 	Kind   string
@@ -334,7 +334,12 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		if a.key == "" {
 			a.key = a.kind
 		}
-		parsed.Applied = append(parsed.Applied, Applied{Effect: e, Kind: a.kind, Value: a.value})
+		if len(a.parts) == 0 {
+			parsed.Applied = append(parsed.Applied, Applied{Effect: e, Kind: a.kind, Value: a.value})
+		}
+		for _, part := range a.parts {
+			parsed.Applied = append(parsed.Applied, Applied{Effect: e, Kind: part.kind, Value: part.value})
+		}
 		parsed.attachments = append(parsed.attachments, a)
 	}
 
