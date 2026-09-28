@@ -2,6 +2,7 @@ import { externalRel } from '@sim/utils/links';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import clsx from 'clsx';
 
+import { resolvedIconStyle } from '../utils/icons';
 import { wowheadAnchorProps } from '../utils/wowhead';
 
 export interface ImprovedAnchorProps {
@@ -24,6 +25,6 @@ export const ImprovedAnchor = ({ icon, testId, active, corner }: ImprovedAnchorP
 		{...wowheadAnchorProps()}
 		href={icon.href || undefined}
 		rel={externalRel(icon.href, undefined)}
-		style={{ backgroundImage: `url('${icon.iconUrl}')` }}
+		style={resolvedIconStyle(icon)}
 	/>
 );

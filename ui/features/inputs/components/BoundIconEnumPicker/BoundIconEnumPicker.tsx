@@ -4,7 +4,6 @@ import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { useEffect, useRef } from 'react';
 
 import { useBoundField } from '../../hooks/useBoundField';
-import { useHideZeroRestore } from '../../hooks/useHideZeroRestore';
 import type { IconEnumPickerConfig, IconEnumValueConfig } from './types';
 import { iconEnumPickerShown } from './utils';
 
@@ -20,15 +19,32 @@ export const BoundIconEnumPicker = <ModObject, T>({ modObject, config, testId }:
 
 	// Keyed on which values carry an actionId, not on which icons have resolved: a notification landing before the icons arrive must not read as hidden and zero the source.
 	const hidden = !iconEnumPickerShown(config, modObject);
-	const { clearStored } = useHideZeroRestore({ value, setValue, hidden, revision }, config.zeroValue, current => config.equals(current, config.zeroValue));
-
+	// One effect, not `useHideZeroRestore` plus a second one: the hidden-option rule has to see the value the hide/restore step just wrote.
+	const stored = useRef<T | undefined>(undefined);
 	const lastRevision = useRef<number | null>(null);
 	useEffect(() => {
 		if (lastRevision.current === revision) return;
 		const construction = lastRevision.current === null;
 		lastRevision.current = revision;
 		if (construction) return;
-		if (config.values.some(valueConfig => !shows(valueConfig) && valueConfig.value === value)) setValue(config.zeroValue);
+
+		let current = value;
+		if (hidden) {
+			if (stored.current === undefined) {
+				stored.current = value;
+				current = config.zeroValue;
+				setValue(current);
+			}
+		} else if (stored.current !== undefined) {
+			const restored = stored.current;
+			stored.current = undefined;
+			if (config.equals(value, config.zeroValue)) {
+				current = restored;
+				setValue(current);
+			}
+		}
+
+		if (config.values.some(valueConfig => !shows(valueConfig) && valueConfig.value === current)) setValue(config.zeroValue);
 	});
 
 	const icons = useActionIds(config.values.map(valueConfig => valueConfig.actionId));
@@ -58,7 +74,7 @@ export const BoundIconEnumPicker = <ModObject, T>({ modObject, config, testId }:
 			numColumns={typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns}
 			value={value}
 			onChange={next => {
-				clearStored();
+				stored.current = undefined;
 				setValue(next);
 			}}
 			disabled={disabled}
