@@ -16,7 +16,36 @@ const (
 	categoryTalentAuraID  int32 = 999105
 	categoryOwnAuraID     int32 = 999106
 	categoryTalentSpellID int32 = 999107
+	categoryPetTrinketID  int32 = 999108
+	categoryPetBuffID     int32 = 999109
 )
+
+// A pet's aura that its owner's major cooldown casts is filed with the cooldowns, where the owner's
+// spell is, not by the phase that registered it.
+func TestPetAuraOfAnOwnerCooldown(t *testing.T) {
+	withAuraItem(categoryPetTrinketID, proto.ItemType_ItemTypeTrinket)
+	core.NewItemEffect(categoryPetTrinketID, func(agent core.Agent) {
+		owner := agent.GetCharacter()
+		buff := owner.Pets[0].RegisterAura(core.Aura{Label: "Category Pet Buff", ActionID: core.ActionID{SpellID: categoryPetBuffID}, Duration: time.Second})
+		owner.AddMajorCooldown(core.MajorCooldown{Type: core.CooldownTypeDPS, Spell: owner.RegisterSpell(core.SpellConfig{
+			ActionID:     core.ActionID{SpellID: categoryPetBuffID},
+			Flags:        core.SpellFlagNoOnCastComplete,
+			Cast:         core.CastConfig{CD: core.Cooldown{Timer: owner.NewTimer(), Duration: time.Minute}},
+			ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) { buff.Activate(sim) },
+		})})
+	})
+
+	sim := newAuraSim(hunter("Hunter", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: categoryPetTrinketID}))
+	for _, aura := range auraTesterAt(sim, 0).pet.GetMetadata().Auras {
+		if aura.Id.GetSpellId() == categoryPetBuffID {
+			if aura.Category != proto.ActionCategory_ActionCategoryCooldown {
+				t.Errorf("the pet's buff: got %v, want %v", aura.Category, proto.ActionCategory_ActionCategoryCooldown)
+			}
+			return
+		}
+	}
+	t.Fatalf("aura %d missing from the pet's metadata", categoryPetBuffID)
+}
 
 func registerCategoryTrinket() {
 	core.NewItemEffect(categoryTrinketID, func(agent core.Agent) {

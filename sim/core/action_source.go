@@ -73,15 +73,21 @@ func (spell *Spell) category() proto.ActionCategory {
 }
 
 // An aura is a major cooldown's when a major cooldown casts it: the spell names it as its buff or
-// shares its id.
-func (unit *Unit) auraCategory(aura *Aura) proto.ActionCategory {
+// shares its id. The spell can be another unit's, such as an owner's cooldown that buffs its pet.
+func auraCategory(aura *Aura, casters []*Unit) proto.ActionCategory {
 	isConsumable, isMajorCooldown := false, false
-	for _, spell := range unit.Spellbook {
-		if spell.RelatedSelfBuff != aura && spell.ActionID != aura.ActionID {
-			continue
+	for _, caster := range casters {
+		for _, spell := range caster.Spellbook {
+			if spell.RelatedSelfBuff != aura && spell.ActionID != aura.ActionID {
+				continue
+			}
+			isConsumable = isConsumable || spell.Flags.Matches(SpellFlagPotion|SpellFlagConjured)
+			isMajorCooldown = isMajorCooldown || spell.Flags.Matches(SpellFlagMCD)
 		}
-		isConsumable = isConsumable || spell.Flags.Matches(SpellFlagPotion|SpellFlagConjured)
-		isMajorCooldown = isMajorCooldown || spell.Flags.Matches(SpellFlagMCD)
 	}
 	return actionCategory(aura.Source, isConsumable, isMajorCooldown)
+}
+
+func (pet *Pet) GetMetadata() *proto.UnitMetadata {
+	return pet.metadata(&pet.Unit, &pet.Owner.Unit)
 }
