@@ -42,8 +42,7 @@ type SpellModConfig struct {
 	// A hit or crit percent mod that is a rating's worth on the attacks it reaches.
 	FromRating bool
 
-	// Skips a spell whose SchoolIndex names one of these schools: that spell already takes the
-	// school's own multiplier, so a mod that carries the same bonus to other schools counts once.
+	// Skips a spell whose SchoolIndex reads one of these schools, whose multiplier it already takes.
 	SkipMultiplierSchool SpellSchool
 }
 
