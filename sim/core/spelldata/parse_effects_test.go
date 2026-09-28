@@ -211,7 +211,14 @@ func TestParseStaticFallsBackToTheWholeFamily(t *testing.T) {
 func TestParseKeepsTheHitAndDotModifiersApart(t *testing.T) {
 	withRows(t, parseRows())
 	character := parseWarrior()
-	spell := parseSpell(character, 2150, core.SpellSchoolPhysical, core.ProcMaskSpellDamage, parseTargetMask)
+	spell := character.RegisterSpell(core.SpellConfig{
+		ActionID:         core.ActionID{SpellID: 2150},
+		ClassFlags:       parseTargetMask,
+		ProcMask:         core.ProcMaskSpellDamage,
+		SpellSchool:      core.SpellSchoolPhysical,
+		DamageMultiplier: 1,
+		Dot:              core.DotConfig{Aura: core.Aura{Label: "Parse Dot"}, IsAOE: true, NumberOfTicks: 1, TickLength: time.Second},
+	})
 
 	parsed := ParseStatic(character, Find(1100))
 
@@ -226,7 +233,10 @@ func TestParseKeepsTheHitAndDotModifiersApart(t *testing.T) {
 		t.Errorf("the hit modifier: %v, want 0.1", got)
 	}
 	if got := spell.DamageMultiplierAdditive; got != 1 {
-		t.Errorf("the multiplier the ticks read: %v, want 1", got)
+		t.Errorf("the multiplier the ticks share with the hit: %v, want 1", got)
+	}
+	if got := spell.AOEDot().PeriodicDamageMultiplier; math.Abs(got-1.1) > 1e-9 {
+		t.Errorf("the dot modifier: %v, want 1.1", got)
 	}
 }
 
