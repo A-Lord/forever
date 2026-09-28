@@ -300,6 +300,19 @@ func (ss SpellSchool) SchoolDamage() stats.Stat {
 	}
 }
 
+var singleSchools = [...]SpellSchool{SpellSchoolPhysical, SpellSchoolArcane, SpellSchoolFire, SpellSchoolFrost,
+	SpellSchoolHoly, SpellSchoolNature, SpellSchoolShadow}
+
+// The school Spell.SchoolIndex reads: the first of physical, arcane, fire, frost, holy, nature, shadow.
+func (ss SpellSchool) MultiplierSchool() SpellSchool {
+	for _, school := range singleSchools {
+		if ss.Matches(school) {
+			return school
+		}
+	}
+	return SpellSchoolNone
+}
+
 func (ss SpellSchool) SchoolIndex() stats.SchoolIndex {
 	switch ss {
 	case SpellSchoolNone:

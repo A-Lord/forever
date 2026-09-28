@@ -10784,7 +10784,6 @@
 {"id":20168,"name":"Seal of Wisdom","icon":"spell_holy_righteousnessaura","rank":1},
 {"id":20174,"name":"Guardian's Favor","icon":"spell_holy_sealofprotection"},
 {"id":20177,"name":"Reckoning","icon":"spell_holy_blessingofstrength"},
-{"id":20178,"name":"Reckoning","icon":"spell_holy_blessingofstrength"},
 {"id":20183,"name":"Judgement of Fury","icon":"spell_holy_retributionaura","rank":3},
 {"id":20184,"name":"Judgement of Justice","icon":"spell_holy_sealofwrath","rank":1,"hasBuff":true},
 {"id":20185,"name":"Judgement of Light","icon":"spell_holy_healingaura","rank":1,"hasBuff":true},
