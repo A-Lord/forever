@@ -1,15 +1,13 @@
+import type { ResolvedIcon } from '@ui-kit/Field/types';
 import type { CSSProperties } from 'react';
 
-import type { IconEnumPickerConfig, IconEnumValueConfig } from './types';
+import type { IconEnumOption } from './types';
 
-export const iconEnumPickerShown = <ModObject, T>(config: IconEnumPickerConfig<ModObject, T>, modObject: ModObject): boolean =>
-	(!config.showWhen || config.showWhen(modObject)) &&
-	config.values.some(valueConfig => !!valueConfig.actionId && (!valueConfig.showWhen || valueConfig.showWhen(modObject)));
+export const actionIconStyle = (icon: ResolvedIcon | undefined): CSSProperties | undefined =>
+	icon ? { backgroundImage: `url('${icon.iconUrl}')` } : undefined;
 
-export const actionIconStyle = (iconUrl: string): CSSProperties | undefined => (iconUrl ? { backgroundImage: `url('${iconUrl}')` } : undefined);
-
-export const iconStyleOf = <ModObject, T>(valueConfig: IconEnumValueConfig<ModObject, T>, filledIconUrl: string): CSSProperties | undefined => {
-	if (valueConfig.actionId) return actionIconStyle(filledIconUrl);
-	if (valueConfig.iconUrl) return { backgroundImage: `url(${valueConfig.iconUrl})`, filter: 'grayscale(1)' };
-	return { backgroundColor: valueConfig.color };
+export const iconStyleOf = <T>(option: IconEnumOption<T>): CSSProperties | undefined => {
+	if (option.icon) return actionIconStyle(option.icon);
+	if (option.iconUrl) return { backgroundImage: `url(${option.iconUrl})`, filter: 'grayscale(1)' };
+	return { backgroundColor: option.color };
 };

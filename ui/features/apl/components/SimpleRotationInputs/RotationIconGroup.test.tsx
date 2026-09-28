@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { RotationIconGroup } from './RotationIconGroup';
 
 vi.mock('@sim/context/SimHostContext', () => ({ usePlayer: () => ({}) }));
-vi.mock('@ui-kit/IconPicker', () => ({ IconPicker: () => <div data-testid="icon-picker-root" /> }));
-vi.mock('@ui-kit/IconEnumPicker', () => ({ IconEnumPicker: () => <div data-testid="icon-enum-picker-root" /> }));
+vi.mock('@features/inputs/components/BoundIconPicker', () => ({ BoundIconPicker: () => <div data-testid="icon-picker-root" /> }));
+vi.mock('@features/inputs/components/BoundIconEnumPicker', () => ({ BoundIconEnumPicker: () => <div data-testid="icon-enum-picker-root" /> }));
 
 const icon = (type: 'icon' | 'iconEnum') => ({ type }) as never;
 

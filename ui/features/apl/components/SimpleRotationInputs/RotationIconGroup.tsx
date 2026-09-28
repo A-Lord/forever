@@ -1,8 +1,7 @@
+import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
 import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
-import { IconPicker } from '@ui-kit/IconPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 
 export interface RotationIconGroupProps {
@@ -21,13 +20,9 @@ export const RotationIconGroup = ({ inputs }: RotationIconGroupProps) => {
 
 	return (
 		<PickerGroup variant="icons" data-testid="rotation-icon-group">
-			{inputs.map((config, index) =>
-				config.type === 'icon' ? (
-					<IconPicker key={index} modObject={player} config={config} />
-				) : (
-					<IconEnumPicker key={index} modObject={player} config={config} />
-				),
-			)}
+			{inputs.map((config, index) => (
+				<BoundIconInput key={index} modObject={player} config={config} />
+			))}
 		</PickerGroup>
 	);
 };

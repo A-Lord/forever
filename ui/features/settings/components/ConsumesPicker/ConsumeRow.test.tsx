@@ -1,7 +1,7 @@
+import type { IconEnumPickerConfig } from '@features/inputs/configs';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, render } from '@testing-library/react';
-import type { IconEnumPickerConfig } from '@ui-kit/IconEnumPicker/types';
 import { describe, expect, it } from 'vitest';
 
 import { ConsumeRow } from './ConsumeRow';

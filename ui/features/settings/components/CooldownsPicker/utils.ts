@@ -1,9 +1,8 @@
-import type { NumberListPickerConfig } from '@features/inputs/configs';
+import type { IconEnumPickerConfig, IconEnumValueConfig, NumberListPickerConfig } from '@features/inputs/configs';
 import { ActionID as ActionIdProto, Cooldown } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import type { IconEnumPickerConfig, IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
 
 export const availableCooldowns = (player: Player<any>): Array<ActionId> =>
 	player

@@ -1,74 +1,61 @@
-import { useActionId } from '@sim/hooks/useActionId';
-import { useInput } from '@ui-kit/hooks/useInput';
+import { Field } from '@ui-kit/Field';
+import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { Menu } from '@ui-kit/Menu';
-import { PickerShell } from '@ui-kit/PickerShell';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import { useEffect, useId, useRef } from 'react';
+import { useId } from 'react';
 
-import { IconEnumOption, IconText } from './IconEnumOption';
-import { type IconEnumPickerConfig, IconEnumPickerDirection, type IconEnumValueConfig } from './types';
-import { actionIconStyle, iconEnumPickerShown, iconStyleOf } from './utils';
+import { IconEnumOptionItem, IconText } from './IconEnumOption';
+import { type IconEnumOption, IconEnumPickerDirection } from './types';
+import { actionIconStyle, iconStyleOf } from './utils';
 
-export interface IconEnumPickerProps<ModObject, T> {
-	modObject: ModObject;
-	config: IconEnumPickerConfig<ModObject, T>;
+export interface IconEnumPickerProps<T> extends FieldChromeProps, ControlledProps<T> {
+	options: Array<IconEnumOption<T>>;
+	equals: (a: T, b: T) => boolean;
+	/** The value that reads as inactive. */
+	zeroValue: T;
+	/** The icon for a value no option carries. */
+	backupIcon?: ResolvedIcon;
+	/** Shown when hovering the button. */
+	tooltip?: string;
+	/** The side the menu opens on. */
+	direction?: IconEnumPickerDirection;
+	numColumns?: number;
 }
 
-export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPickerProps<ModObject, T>) => {
-	const { value, setValue, disabled, revision } = useInput(modObject, config);
+export const IconEnumPicker = <T,>({
+	options,
+	equals,
+	zeroValue,
+	backupIcon,
+	tooltip,
+	direction,
+	numColumns,
+	value,
+	onChange,
+	disabled,
+	className,
+	testId,
+	...chrome
+}: IconEnumPickerProps<T>) => {
 	const tooltipId = useId();
 
-	const shows = (valueConfig: IconEnumValueConfig<ModObject, T>) => !valueConfig.showWhen || valueConfig.showWhen(modObject);
+	const selected = options.find(option => equals(option.value, value));
+	const selectedHidden = !!selected?.hidden;
+	const href = selectedHidden ? undefined : selected ? selected.icon?.href : backupIcon?.href;
 
-	const hidden = !iconEnumPickerShown(config, modObject);
-
-	const selected = config.values.find(valueConfig => config.equals(valueConfig.value, value));
-	const selectedHidden = !!selected && !shows(selected);
-	const backupId = selected ? undefined : config.backupIconUrl?.(value);
-	const { iconUrl, href } = useActionId(selectedHidden ? undefined : (selected?.actionId ?? backupId));
-
-	const active = !disabled && !config.equals(value, config.zeroValue);
-
-	const storedValue = useRef<T | undefined>(undefined);
-	const lastRevision = useRef<number | null>(null);
-	useEffect(() => {
-		if (lastRevision.current === revision) return;
-		const construction = lastRevision.current === null;
-		lastRevision.current = revision;
-		if (construction) return;
-
-		let current = value;
-		if (hidden) {
-			if (storedValue.current === undefined) {
-				storedValue.current = value;
-				current = config.zeroValue;
-				setValue(current);
-			}
-		} else if (storedValue.current !== undefined) {
-			const restored = storedValue.current;
-			storedValue.current = undefined;
-			if (config.equals(value, config.zeroValue)) {
-				current = restored;
-				setValue(current);
-			}
-		}
-
-		if (config.values.some(valueConfig => !shows(valueConfig) && valueConfig.value === current)) setValue(config.zeroValue);
-	});
+	const active = !disabled && !equals(value, zeroValue);
 
 	const disabledAttribute = (disabled ? { disabled: true } : {}) as Record<string, boolean>;
 
-	const horizontal = config.direction === IconEnumPickerDirection.Horizontal;
-	const numColumns = typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns;
-	const tooltips = !!config.tooltip || config.values.some(valueConfig => !!valueConfig.tooltip);
+	const horizontal = direction === IconEnumPickerDirection.Horizontal;
+	const tooltips = !!tooltip || options.some(option => !!option.tooltip);
 
 	return (
-		<PickerShell
-			config={config as typeof config & { id: string }}
-			className="ui-icon-field relative"
-			testId="icon-enum-picker-root"
+		<Field
+			{...chrome}
+			className={['ui-icon-field relative', className]}
+			testId={testId ?? 'icon-enum-picker-root'}
 			iconField
-			hidden={hidden}
 			disabled={disabled}
 			leading={
 				<Menu
@@ -77,7 +64,7 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 					// shared by every rank, the text is what tells the ranks apart.
 					trigger={selected?.text !== undefined && !selectedHidden ? <IconText text={selected.text} /> : undefined}
 					// No href when nothing is selected: React refuses javascript:void(0), and nativeButton={false} keeps the anchor focusable.
-					triggerRender={<a href={selectedHidden ? undefined : href || undefined} {...disabledAttribute} />}
+					triggerRender={<a href={href || undefined} {...disabledAttribute} />}
 					triggerProps={{
 						nativeButton: false,
 						openOnHover: true,
@@ -85,10 +72,10 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 						className: 'ui-icon-picker-swatch transition-none',
 						'data-testid': 'icon-enum-picker-button',
 						'data-active': active ? '' : undefined,
-						style: selectedHidden ? undefined : selected ? iconStyleOf(selected, iconUrl) : backupId ? actionIconStyle(iconUrl) : undefined,
+						style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : actionIconStyle(backupIcon),
 						'data-whtticon': 'false',
 						'data-disable-wowhead-touch-tooltip': 'true',
-						...tooltipAnchorProps(config.tooltip ? tooltipId : undefined, config.tooltip),
+						...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip),
 					}}
 					side={horizontal ? 'right' : 'bottom'}
 					align="start"
@@ -105,21 +92,12 @@ export const IconEnumPicker = <ModObject, T>({ modObject, config }: IconEnumPick
 							gridAutoFlow: horizontal ? 'column' : undefined,
 						},
 					}}>
-					{config.values.map((valueConfig, index) => (
-						<IconEnumOption
-							key={index}
-							valueConfig={valueConfig}
-							hidden={!shows(valueConfig)}
-							tooltipId={tooltipId}
-							onSelect={() => {
-								storedValue.current = undefined;
-								setValue(valueConfig.value);
-							}}
-						/>
+					{options.map((option, index) => (
+						<IconEnumOptionItem key={index} option={option} tooltipId={tooltipId} onSelect={() => onChange(option.value)} />
 					))}
 				</Menu>
 			}>
 			{tooltips && <Tooltip id={tooltipId} />}
-		</PickerShell>
+		</Field>
 	);
 };

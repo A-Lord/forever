@@ -1,77 +1,52 @@
-import { useActionId } from '@sim/hooks/useActionId';
 import { externalRel } from '@sim/utils/links';
-import { useInput } from '@ui-kit/hooks/useInput';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
+import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
-import { type MouseEvent, useEffect, useRef } from 'react';
+import type { MouseEvent } from 'react';
 
 import { wowheadAnchorProps } from '../utils/wowhead';
 import { ImprovedAnchor } from './ImprovedAnchor';
-import type { IconPickerConfig } from './types';
 
-export interface IconPickerProps<ModObject, ValueType> {
-	modObject: ModObject;
-	config: IconPickerConfig<ModObject, ValueType>;
+export interface IconPickerProps extends FieldChromeProps, ControlledProps<number> {
+	/** The number of states the icon cycles through: 2 is on/off, 0 is unlimited. */
+	states: number;
+	icon?: ResolvedIcon;
+	/** Shown from states 3 up. */
+	improvedIcon?: ResolvedIcon;
+	/** Shown from states 4 up. */
+	improvedIcon2?: ResolvedIcon;
 }
 
-export const IconPicker = <ModObject, ValueType>({ modObject, config }: IconPickerProps<ModObject, ValueType>) => {
-	const { value, setValue, hidden: showWhenHidden, disabled, revision } = useInput(modObject, config);
-	const currentValue = Number(value);
-
-	const toSourceValue = (n: number): ValueType => (config.states === 2 ? Boolean(n) : n) as unknown as ValueType;
-
-	const hidden = config.actionId == null || showWhenHidden;
-
-	const storedValue = useRef<ValueType | undefined>(undefined);
-	const lastRevision = useRef<number | null>(null);
-	useEffect(() => {
-		if (lastRevision.current === revision) return;
-		const construction = lastRevision.current === null;
-		lastRevision.current = revision;
-		if (construction) return;
-
-		if (hidden) {
-			if (storedValue.current === undefined) {
-				storedValue.current = value;
-				setValue(toSourceValue(0));
-			}
-		} else if (storedValue.current !== undefined) {
-			const restored = storedValue.current;
-			storedValue.current = undefined;
-			setValue(toSourceValue(Number(restored)));
-		}
-	});
-
-	const { iconUrl, href, name } = useActionId(config.actionId);
-
-	const useImprovedIcons = Boolean(config.improvedId);
-	const fillImproved1 = config.states >= 3 && !!config.improvedId;
-	const fillImproved2 = config.states >= 4 && !!config.improvedId2;
-	const showCounterText = !config.improvedId && (config.states > 3 || config.states === 0);
+export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...chrome }: IconPickerProps) => {
+	const useImprovedIcons = !!improvedIcon;
+	const fillImproved1 = states >= 3 && !!improvedIcon;
+	const fillImproved2 = states >= 4 && !!improvedIcon2;
+	const showCounterText = !improvedIcon && (states > 3 || states === 0);
+	const href = icon?.href;
 
 	const handleLeftClick = () => {
 		// `disabled` only reaches an <a>, where HTML ignores it, so the state change has to be stopped here.
 		if (disabled) return;
 
-		if (config.states === 0 || currentValue + 1 < config.states) {
-			setValue(toSourceValue(currentValue + 1));
-		} else if (currentValue > 0) {
-			setValue(toSourceValue(0));
+		if (states === 0 || value + 1 < states) {
+			onChange(value + 1);
+		} else if (value > 0) {
+			onChange(0);
 		}
 	};
 
 	const handleRightClick = () => {
 		if (disabled) return;
 
-		if (currentValue > 0) {
-			setValue(toSourceValue(currentValue - 1));
+		if (value > 0) {
+			onChange(value - 1);
 		} else {
-			setValue(toSourceValue(config.states === 0 ? 1 : config.states - 1));
+			onChange(states === 0 ? 1 : states - 1);
 		}
 	};
 
-	// `Input.update()` writes `disabled` on the input element as well as the class on the root, and `disabled` is not in React's anchor prop types because HTML has no such attribute on <a>.
+	// `disabled` is not in React's anchor prop types because HTML has no such attribute on <a>.
 	const disabledAttribute = (disabled ? { disabled: true } : {}) as Record<string, boolean>;
 
 	// The level container overlays the anchor rather than sitting inside it, so a click on the improved icons reaches these only by carrying them on both.
@@ -92,54 +67,39 @@ export const IconPicker = <ModObject, ValueType>({ modObject, config }: IconPick
 	const main = (
 		<div className="relative size-10 shrink-0">
 			<a
-				className={clsx('ui-icon-picker-swatch', currentValue > 0 ? 'filter-none' : 'grayscale')}
+				className={clsx('ui-icon-picker-swatch', value > 0 ? 'filter-none' : 'grayscale')}
 				data-testid="icon-picker-button"
-				data-active={currentValue > 0 ? '' : undefined}
-				data-use-counter={!useImprovedIcons && config.states > 2 ? '' : undefined}
+				data-active={value > 0 ? '' : undefined}
+				data-use-counter={!useImprovedIcons && states > 2 ? '' : undefined}
 				{...wowheadAnchorProps()}
-				// The glyph is a background image and the counter is a sibling now, so without this the
-				// anchor announces nothing; `name` is empty until `useActionId` resolves.
-				aria-label={name || undefined}
+				// The glyph is a background image and the counter is a sibling, so without this the anchor announces nothing.
+				aria-label={icon?.name || undefined}
 				target="_blank"
 				href={href || undefined}
 				rel={externalRel(href, undefined)}
-				style={iconUrl ? { backgroundImage: `url('${iconUrl}')` } : undefined}
+				style={icon ? { backgroundImage: `url('${icon.iconUrl}')` } : undefined}
 				{...disabledAttribute}
 				{...stateEvents}
 			/>
-			{config.states > 2 && (
+			{states > 2 && (
 				<div
-					className={clsx('pointer-events-none absolute top-0.5 left-0.5 size-9.5', currentValue > 0 ? 'filter-none' : 'grayscale')}
+					className={clsx('pointer-events-none absolute top-0.5 left-0.5 size-9.5', value > 0 ? 'filter-none' : 'grayscale')}
 					data-testid="icon-input-level-container"
 					{...stateEvents}>
 					{/* Both badges stay visible in opposite corners: at a state below its own, a quadstate
 					    icon's grey second badge is the only affordance that a fourth state exists. */}
-					{fillImproved1 && config.improvedId && (
-						<ImprovedAnchor actionId={config.improvedId} testId="icon-input-improved1" active={currentValue > 1} corner="right" />
-					)}
-					{fillImproved2 && config.improvedId2 && (
-						<ImprovedAnchor actionId={config.improvedId2} testId="icon-input-improved2" active={currentValue > 2} corner="left" />
-					)}
+					{fillImproved1 && improvedIcon && <ImprovedAnchor icon={improvedIcon} testId="icon-input-improved1" active={value > 1} corner="right" />}
+					{fillImproved2 && improvedIcon2 && <ImprovedAnchor icon={improvedIcon2} testId="icon-input-improved2" active={value > 2} corner="left" />}
 					<span
 						className="absolute inset-x-0 bottom-0 bg-scrim text-center text-2xs font-bold whitespace-nowrap text-success"
 						data-testid="icon-picker-label"
-						data-active={currentValue > 0 ? '' : undefined}>
-						{showCounterText ? String(currentValue) : null}
+						data-active={value > 0 ? '' : undefined}>
+						{showCounterText ? String(value) : null}
 					</span>
 				</div>
 			)}
 		</div>
 	);
 
-	return (
-		<PickerShell
-			config={config as typeof config & { id: string }}
-			className="ui-icon-field"
-			testId="icon-picker-root"
-			iconField
-			hidden={hidden}
-			disabled={disabled}
-			leading={main}
-		/>
-	);
+	return <Field {...chrome} className={['ui-icon-field', className]} testId={testId ?? 'icon-picker-root'} iconField disabled={disabled} leading={main} />;
 };
