@@ -1,6 +1,6 @@
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost, type FakeHostParts } from '@sim/testing';
-import { render, type RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { type ReactElement, type ReactNode, useState } from 'react';
 
@@ -18,5 +18,5 @@ const HostFrame = ({ parts, children }: { parts: FakeHostParts; children: ReactN
 };
 
 /** `render` inside `<SimHostProvider host={fakeHost(parts)}>` and a portal container. */
-export const renderWithHost = (ui: ReactElement, parts: FakeHostParts = {}, options?: Omit<RenderOptions, 'wrapper'>) =>
-	render(ui, { ...options, wrapper: ({ children }) => <HostFrame parts={parts}>{children}</HostFrame> });
+export const renderWithHost = (ui: ReactElement, parts: FakeHostParts = {}) =>
+	render(ui, { wrapper: ({ children }) => <HostFrame parts={parts}>{children}</HostFrame> });
