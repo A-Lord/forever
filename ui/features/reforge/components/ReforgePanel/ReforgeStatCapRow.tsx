@@ -7,12 +7,10 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { UnitStat } from '@sim/proto/stats';
 import { subscribeReforgeChange } from '@sim/state/subscriptions';
-import { Button } from '@ui-kit/Button';
-import { Icon } from '@ui-kit/Icon';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import { type ReactNode, useId, useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
 import { useReforgeIdPrefix } from './ReforgeIdPrefixContext';
+import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
 
 export interface ReforgeStatCapRowProps {
 	model: ReforgeOptimizerModel;
@@ -28,7 +26,6 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 	const settings = model.settings;
 	const idPrefix = useReforgeIdPrefix();
 	const statName = unitStat.getShortName(player.getClass());
-	const tooltipId = useId();
 
 	const getValue = () => toVisualUnitStatPercentage(settings.statCaps.getUnitStat(unitStat), unitStat);
 	const setValue = (_player: Player<any>, newValue: number) =>
@@ -48,75 +45,59 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 	);
 
 	return (
-		<>
-			<tr>
-				<td className="ui-reforge-cap-label-cell">
-					<div className="whitespace-nowrap">
-						{statName}{' '}
-						{!!tooltip && (
-							<>
-								<Button variant="unstyled" className="inline" {...tooltipAnchorProps(tooltipId)}>
-									<Icon name="circle-question" style="regular" />
-								</Button>
-								<Tooltip id={tooltipId} content={tooltip} />
-							</>
-						)}
-					</div>
-				</td>
-				<td colSpan={3} className="w-18.75 pr-0.5 pb-1 pl-0.5">
-					<BoundNumberPicker
+		<ReforgeStatCapRowView
+			statName={statName}
+			tooltip={tooltip}
+			percentage={
+				<BoundNumberPicker
+					modObject={player}
+					config={{
+						id: `${idPrefix}-${statName}-percentage`,
+						float: true,
+						maxDecimalDigits: 5,
+						showZeroes: false,
+						positive: true,
+						extraClassNames: ['mb-0'],
+						enableWhen,
+						storeField: CAP_FIELDS,
+						getValue,
+						setValue,
+					}}
+					inputClassName="pr-2 pl-2 text-right"
+				/>
+			}
+			undershoot={
+				<BoundBooleanPicker
+					modObject={player}
+					config={{
+						id: `${idPrefix}-${statName}-undershoot`,
+						label: '',
+						storeSubscribe: () => subscribeReforgeChange(settings),
+						getValue: () => settings.undershootCaps.getUnitStat(unitStat) > 0,
+						setValue: (_player, newValue) => {
+							settings.undershootCaps = settings.undershootCaps.withUnitStat(unitStat, newValue ? 1 : 0);
+						},
+					}}
+				/>
+			}
+			presets={
+				presetValues && (
+					<BoundEnumPicker
 						modObject={player}
 						config={{
-							id: `${idPrefix}-${statName}-percentage`,
-							float: true,
-							maxDecimalDigits: 5,
-							showZeroes: false,
-							positive: true,
+							id: `${idPrefix}-${statName}-presets`,
 							extraClassNames: ['mb-0'],
+							label: '',
+							values: presetValues,
 							enableWhen,
 							storeField: CAP_FIELDS,
 							getValue,
 							setValue,
 						}}
-						inputClassName="pr-2 pl-2 text-right"
+						selectClassName="w-full"
 					/>
-				</td>
-				<td colSpan={1} className="w-15 pb-1 pl-0.5 text-right">
-					<BoundBooleanPicker
-						modObject={player}
-						config={{
-							id: `${idPrefix}-${statName}-undershoot`,
-							label: '',
-							storeSubscribe: () => subscribeReforgeChange(settings),
-							getValue: () => settings.undershootCaps.getUnitStat(unitStat) > 0,
-							setValue: (_player, newValue) => {
-								settings.undershootCaps = settings.undershootCaps.withUnitStat(unitStat, newValue ? 1 : 0);
-							},
-						}}
-					/>
-				</td>
-			</tr>
-			{presetValues && (
-				<tr>
-					<td className="pr-2 pb-1" />
-					<td colSpan={3} className="ui-reforge-cap-value-cell">
-						<BoundEnumPicker
-							modObject={player}
-							config={{
-								id: `${idPrefix}-${statName}-presets`,
-								extraClassNames: ['mb-0'],
-								label: '',
-								values: presetValues,
-								enableWhen,
-								storeField: CAP_FIELDS,
-								getValue,
-								setValue,
-							}}
-							selectClassName="w-full"
-						/>
-					</td>
-				</tr>
-			)}
-		</>
+				)
+			}
+		/>
 	);
 };

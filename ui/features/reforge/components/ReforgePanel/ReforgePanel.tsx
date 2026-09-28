@@ -160,12 +160,10 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				data-testid="suggest-reforges-action-button"
 				data-sidebar-action=""
 				disabled={isRunning}
+				loading={isRunning}
 				onClick={onOptimize}
 				{...tooltipAnchorProps(softCapsTooltipId)}>
 				{i18n.t('sidebar.buttons.suggest_reforges.title')}
-				<span data-testid="suggest-reforges-action-button-loading-icon">
-					<Icon name="spinner" spin />
-				</span>
 			</Button>
 			<Popover
 				open={open}
@@ -199,14 +197,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				]}
 				triggerTestId="suggest-reforges-button-settings"
 				triggerProps={settingsTriggerProps}
-				trigger={
-					<>
-						<Icon name="cog" />
-						<span data-testid="suggest-reforges-button-settings-loading-icon">
-							<Icon name="spinner" spin />
-						</span>
-					</>
-				}>
+				trigger={<Icon name="cog" />}>
 				<ReforgeSettingsPanel model={model} options={options} onClose={() => setOpen(false)} />
 			</Popover>
 			<Tooltip ref={settingsTooltipRef} id={settingsTooltipId} place="bottom" content={i18n.t('sidebar.buttons.suggest_reforges.tooltip')} />
@@ -222,7 +213,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 					if (!softCaps?.length) return null;
 					return (
 						<ReforgeSoftCapsTooltip
-							player={player}
+							playerClass={player.getClass()}
 							softCaps={softCaps}
 							additionalInformation={options?.additionalSoftCapTooltipInformation ?? {}}
 						/>
