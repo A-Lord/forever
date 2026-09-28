@@ -4,10 +4,15 @@ import { UnitStat } from '@sim/proto/stats';
 
 import { shouldShowCritImmunity, shouldShowMeleeCritCap } from './stat_display';
 
-/** A row's stat plus its per-row display flags. `notEditable` suppresses the bonus-stat picker. */
+/**
+ * A row's stat plus its per-row display flags. `notEditable` suppresses the bonus-stat picker, and
+ * `offHandStat` pairs an off-hand pseudo stat with a main-hand one so a single row can show both
+ * while dual wielding.
+ */
 export type DisplayStat = {
 	stat: UnitStat;
 	notEditable?: boolean;
+	offHandStat?: UnitStat;
 };
 
 export type Row =
@@ -40,8 +45,14 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 			{ stat: UnitStat.fromStat(Stat.StatAttackPower) },
 			{ stat: UnitStat.fromStat(Stat.StatFeralAttackPower) },
 			{ stat: UnitStat.fromStat(Stat.StatRangedAttackPower) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent) },
+			{
+				stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
+				offHandStat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent),
+			},
+			{
+				stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
+				offHandStat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent),
+			},
 			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHastePercent) },
 			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent) },
 			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedCritPercent) },
@@ -108,6 +119,7 @@ export interface RowLayout {
 
 export const buildRows = (player: Player<any>, statList: Array<UnitStat>): RowLayout => {
 	const showCritImmunity = shouldShowCritImmunity(player);
+	const showMeleeCritCap = shouldShowMeleeCritCap(player);
 	const groups: RowGroup[] = [];
 	const shownStats: UnitStat[] = [];
 
@@ -121,6 +133,14 @@ export const buildRows = (player: Player<any>, statList: Array<UnitStat>): RowLa
 			rows.push({ kind: 'stat', id: `${key}-${displayStat.stat.getKey()}`, displayStat });
 		});
 
+		// The melee crit cap sits directly under the Melee Crit row, in the Physical block.
+		if (key === 'Physical' && showMeleeCritCap) {
+			const meleeCritRow = filtered.findIndex(displayStat => displayStat.stat.equalsPseudoStat(PseudoStat.PseudoStatMeleeCritPercent));
+			if (meleeCritRow !== -1) {
+				rows.splice(meleeCritRow + 1, 0, { kind: 'melee-crit-cap', id: `${key}-melee-crit-cap` });
+			}
+		}
+
 		// The tank readouts hang off the defensive block, in the order the sheet has always shown them.
 		if (key === 'Defense' && showCritImmunity) {
 			rows.push(
@@ -132,11 +152,6 @@ export const buildRows = (player: Player<any>, statList: Array<UnitStat>): RowLa
 
 		groups.push({ key, rows });
 	});
-
-	// The melee crit cap is not part of any stat group: it trails the whole table.
-	if (shouldShowMeleeCritCap(player)) {
-		groups.push({ key: 'MeleeCritCap', rows: [{ kind: 'melee-crit-cap', id: 'melee-crit-cap' }] });
-	}
 
 	return { groups, shownStats };
 };

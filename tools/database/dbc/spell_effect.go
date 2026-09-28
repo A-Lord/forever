@@ -381,15 +381,7 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 			scaledValue = effect.CalcCoefficientStatValue(ilvl)
 		}
 
-		for _, rating := range getMatchingRatingMods(effect.EffectMiscValues[0]) {
-			statMod := RatingModToStat[rating]
-			if statMod == -1 {
-				continue
-			}
-			// Assigned rather than accumulated: several rating bits (melee/ranged/spell hit
-			// for example) map onto the same stat and must not stack. Masks that do span
-			// different stats need every one of them set, so no early exit - breaking after
-			// the first scaled stat silently dropped the rest of a multi-stat mask.
+		for _, statMod := range spelldata.RatingStats(int32(effect.EffectMiscValues[0])) {
 			if scaled {
 				effectStats[statMod] = scaledValue
 			} else {
@@ -420,8 +412,6 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 			break
 		}
 		effectStats[proto.Stat_StatMP5] = float64(effect.EffectBasePoints + effect.EffectDieSides)
-	case effect.EffectAura == dbcenums.A_MOD_SPELL_CRIT_CHANCE:
-		effectStats[proto.Stat_StatSpellCritRating] = float64(effect.EffectBasePoints+effect.EffectDieSides) * core.SpellCritRatingPerCritPercent
 	}
 
 	return effectStats, effectStats != stats.Stats{}

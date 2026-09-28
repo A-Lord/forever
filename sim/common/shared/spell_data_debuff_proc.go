@@ -67,7 +67,7 @@ func enemyDebuffAuras(character *core.Character, row *spelldata.Spell, duration 
 				continue
 			}
 			effect := row.EffectN(int(i))
-			slowedTime := core.SlowedTimeMultiplier(effect.Average(character.Level))
+			slowedTime := core.MultiplierFromPercent(-effect.Average(character.Level))
 			if effect.ChangesCastSpeed() {
 				core.CastSpeedReductionEffect(aura, slowedTime)
 			} else {

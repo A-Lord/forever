@@ -234,12 +234,13 @@ func RegisterAllEnchants() {
 	// to critically strike. Revelation grants 100% increased critical strike chance to the next spell cast.
 	// Revelation's chance to trigger is diminished as your critical strike chance increases.
 	// https://www.wowhead.com/forever/spell=1248805
-	// unsupported: states no rate; the enchant's effect entry resolves no stats from 1248808 (A_MOD_CRIT_PCT)
-	// trigger 1248806 (no stated rate, core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt, core.ProcMaskSpellDamage | core.ProcMaskSpellHealing)
-	// shared.NewSpellDataProc(shared.SpellDataProc{
+	// unsupported: states no rate
+	// trigger 1248806 (no stated rate, core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt, core.ProcMaskSpellDamage | core.ProcMaskSpellHealing) -> buff 1248808
+	// shared.NewSpellDataAuraProc(shared.SpellDataProc{
 	//	Name:           "Enchant Weapon - Revelation",
 	//	EnchantID:      8217,
 	//	TriggerSpellID: 1248806,
+	//	BuffSpellID:    1248808,
 	// }, nil)
 
 	// TODO: Manual implementation required

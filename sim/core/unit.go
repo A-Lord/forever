@@ -129,6 +129,9 @@ type Unit struct {
 	Spellbook                 []*Spell
 	spellRegistrationHandlers []SpellRegisteredHandler
 
+	spellMods []*SpellMod
+	equipMods []*SpellMod
+
 	// The spell mods that raise the chance of the unit's proc triggers, which read them when they roll.
 	procChanceMods []*SpellMod
 	// A pet's owner, whose proc chance mods the pet's triggers count with the pet's own.
@@ -408,12 +411,10 @@ func (unit *Unit) processDynamicBonus(sim *Simulation, bonus *stats.Stats) {
 			unit.currentMana = unit.MaxMana()
 		}
 	}
-	if bonus[stats.MeleeHasteRating] != 0 {
+	if bonus[stats.HasteRating] != 0 {
 		unit.updateAttackSpeed()
 		unit.updateMeleeAndRangedHaste()
 		unit.AutoAttacks.UpdateSwingTimers(sim)
-	}
-	if bonus[stats.SpellHasteRating] != 0 {
 		unit.updateCastSpeed()
 	}
 	if bonus[stats.ReducedCritTakenPercent] != 0 {
@@ -524,8 +525,12 @@ func (unit *Unit) SpellGCD() time.Duration {
 	return max(GCDMin, unit.ApplyCastSpeed(GCDDefault))
 }
 
+func (unit *Unit) hasteRatingMultiplier() float64 {
+	return 1 + unit.stats[stats.HasteRating]/(HasteRatingPerHastePercent*100)
+}
+
 func (unit *Unit) TotalSpellHasteMultiplier() float64 {
-	return unit.PseudoStats.CastSpeedMultiplier * (1 + unit.stats[stats.SpellHasteRating]/(SpellHasteRatingPerHastePercent*100))
+	return unit.PseudoStats.CastSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) updateCastSpeed() {
@@ -567,17 +572,17 @@ func (unit *Unit) ApplyRealRangedHaste(dur time.Duration) time.Duration {
 	return time.Duration(float64(dur) / unit.TotalRealRangedHasteMultiplier())
 }
 func (unit *Unit) TotalMeleeHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.MeleeSpeedMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.MeleeSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 // Returns the melee haste multiplier only including equip haste and real haste modifiers like lust
 // Same value for ranged and melee
 func (unit *Unit) TotalRealHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) TotalRealRangedHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedHasteMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedHasteMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) Armor() float64 {
@@ -589,7 +594,7 @@ func (unit *Unit) BlockDamageReduction() float64 {
 }
 
 func (unit *Unit) TotalRangedHasteMultiplier() float64 {
-	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedSpeedMultiplier * (1 + (unit.stats[stats.MeleeHasteRating] / (PhysicalHasteRatingPerHastePercent * 100)))
+	return unit.PseudoStats.AttackSpeedMultiplier * unit.PseudoStats.RangedSpeedMultiplier * unit.hasteRatingMultiplier()
 }
 
 func (unit *Unit) updateMeleeAttackSpeed() {
@@ -709,12 +714,90 @@ type RatingConversion struct {
 	Step             float64
 }
 
+// The melee, ranged and spell percents one rating raises together, as the PseudoStats the character sheet
+// shows, at RatingPerPercent rating per percent point. Where HasPercentStats is set the rating also
+// converts into the back-end PhysicalPercent and SpellPercent; haste has no back-end percent Stat.
+type RatingChannels struct {
+	Rating                        stats.Stat
+	Melee, Ranged, Spell          proto.PseudoStat
+	PhysicalPercent, SpellPercent stats.Stat
+	HasPercentStats               bool
+	RatingPerPercent              float64
+}
+
+func (channels RatingChannels) Channels() []proto.PseudoStat {
+	return []proto.PseudoStat{channels.Melee, channels.Ranged, channels.Spell}
+}
+
+// The channels of the hit, crit and haste ratings. RATING_CHANNELS in ui/sim/proto/stats.ts is the UI's
+// copy of the same channels; the two are kept in sync by hand.
+var RatingChannelTable = []RatingChannels{
+	{
+		Rating:           stats.HitRating,
+		Melee:            proto.PseudoStat_PseudoStatMeleeHitPercent,
+		Ranged:           proto.PseudoStat_PseudoStatRangedHitPercent,
+		Spell:            proto.PseudoStat_PseudoStatSpellHitPercent,
+		PhysicalPercent:  stats.PhysicalHitPercent,
+		SpellPercent:     stats.SpellHitPercent,
+		HasPercentStats:  true,
+		RatingPerPercent: HitRatingPerHitPercent,
+	},
+	{
+		Rating:           stats.CritRating,
+		Melee:            proto.PseudoStat_PseudoStatMeleeCritPercent,
+		Ranged:           proto.PseudoStat_PseudoStatRangedCritPercent,
+		Spell:            proto.PseudoStat_PseudoStatSpellCritPercent,
+		PhysicalPercent:  stats.PhysicalCritPercent,
+		SpellPercent:     stats.SpellCritPercent,
+		HasPercentStats:  true,
+		RatingPerPercent: CritRatingPerCritPercent,
+	},
+	{
+		Rating:           stats.HasteRating,
+		Melee:            proto.PseudoStat_PseudoStatMeleeHastePercent,
+		Ranged:           proto.PseudoStat_PseudoStatRangedHastePercent,
+		Spell:            proto.PseudoStat_PseudoStatSpellHastePercent,
+		RatingPerPercent: HasteRatingPerHastePercent,
+	},
+}
+
+// The channels of a rating, and whether RatingChannelTable lists it.
+func RatingChannelsOf(rating stats.Stat) (RatingChannels, bool) {
+	for _, channels := range RatingChannelTable {
+		if channels.Rating == rating {
+			return channels, true
+		}
+	}
+	return RatingChannels{}, false
+}
+
+// The pseudo stat each magic school's hit percent travels as. None and Physical have none and hold
+// the zero value, PseudoStatMainHandDps, so read from SchoolIndexArcane on.
+var SchoolHitPseudoStats = [stats.SchoolLen]proto.PseudoStat{
+	stats.SchoolIndexArcane: proto.PseudoStat_PseudoStatSchoolHitPercentArcane,
+	stats.SchoolIndexFire:   proto.PseudoStat_PseudoStatSchoolHitPercentFire,
+	stats.SchoolIndexFrost:  proto.PseudoStat_PseudoStatSchoolHitPercentFrost,
+	stats.SchoolIndexHoly:   proto.PseudoStat_PseudoStatSchoolHitPercentHoly,
+	stats.SchoolIndexNature: proto.PseudoStat_PseudoStatSchoolHitPercentNature,
+	stats.SchoolIndexShadow: proto.PseudoStat_PseudoStatSchoolHitPercentShadow,
+}
+
+// The melee and spell percent of each channel table rating with back-end percent Stats. The ranged Stat
+// holds only what exceeds the melee percent, so no rating converts into it.
+func channelConversions() []RatingConversion {
+	var conversions []RatingConversion
+	for _, channels := range RatingChannelTable {
+		if channels.HasPercentStats {
+			conversions = append(conversions,
+				RatingConversion{channels.Rating, channels.PhysicalPercent, channels.RatingPerPercent, 0},
+				RatingConversion{channels.Rating, channels.SpellPercent, channels.RatingPerPercent, 0})
+		}
+	}
+	return conversions
+}
+
 // The rating conversions every unit has, in the order the reforge optimizer tries a rating's percents.
-var RatingConversions = []RatingConversion{
-	{stats.MeleeHitRating, stats.PhysicalHitPercent, PhysicalHitRatingPerHitPercent, 0},
-	{stats.SpellHitRating, stats.SpellHitPercent, SpellHitRatingPerHitPercent, 0},
-	{stats.MeleeCritRating, stats.PhysicalCritPercent, PhysicalCritRatingPerCritPercent, 0},
-	{stats.SpellCritRating, stats.SpellCritPercent, SpellCritRatingPerCritPercent, 0},
+var RatingConversions = append(channelConversions(), []RatingConversion{
 	{stats.ExpertiseRating, stats.ExpertisePercent, ExpertiseRatingPerExpertisePercent, 0},
 	{stats.DodgeRating, stats.DodgePercent, DodgeRatingPerDodgePercent, 0},
 	{stats.ParryRating, stats.ParryPercent, ParryRatingPerParryPercent, 0},
@@ -723,7 +806,7 @@ var RatingConversions = []RatingConversion{
 	{stats.DefenseRating, stats.DodgePercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.ParryPercent, DefenseRatingPerAvoidancePercent, 0},
 	{stats.DefenseRating, stats.BlockPercent, DefenseRatingPerAvoidancePercent, 0},
-}
+}...)
 
 func AddRatingConversions(sdm *stats.StatDependencyManager) {
 	for _, conversion := range RatingConversions {

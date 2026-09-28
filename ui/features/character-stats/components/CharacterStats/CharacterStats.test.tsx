@@ -1,15 +1,16 @@
-// The loading state of the sheet. The crit-cap row trails the table in a tbody of its own, so it
-// is the last row either way; what is pinned here is that it skeletons with its siblings instead of
-// reading as settled while the stats are still in flight.
+// The loading state of the sheet. The crit-cap row is the last row of the Physical group for this
+// display-stat list, so it is the last row either way; what is pinned here is that it skeletons
+// with its siblings instead of reading as settled while the stats are still in flight.
 import { Class, PseudoStat, Race, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { CharacterStats } from './CharacterStats';
+import { statDisplayString } from './utils/stat_display';
 
 const KEY = 7;
 
@@ -55,6 +56,7 @@ const renderStats = (settled: boolean) => {
 		getCurrentStats: () => currentStats,
 		getDebuffStats: () => new Stats(),
 		getEquippedItem: () => null,
+		isDualWielding: () => false,
 		getMeleeCritCap: () => CRIT_CAP_DELTA,
 		getMeleeCritCapInfo: () => CRIT_CAP_INFO,
 	};
@@ -102,6 +104,7 @@ const renderTankStats = (settled: boolean) => {
 		getCurrentStats: () => currentStats,
 		getDebuffStats: () => new Stats(),
 		getEquippedItem: () => null,
+		isDualWielding: () => false,
 		isSpec: () => false,
 		getMissChanceInfo: () => MISS_INFO,
 		getAvoidanceInfo: () => AVOIDANCE_INFO,
@@ -179,5 +182,97 @@ describe('CharacterStats tank rows', () => {
 		}
 		expect(trio[0].querySelector('[data-testid="stat-value-link"]')!.textContent).toContain('7.00%');
 		expect(trio[1].querySelector('[data-testid="stat-value-link"]')!.textContent).toContain('64.00%');
+	});
+});
+
+const MELEE_HIT_DISPLAY_STATS = [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent), UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent)];
+
+const MELEE_HIT_STATS = new Stats()
+	.withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 3)
+	.withPseudoStat(PseudoStat.PseudoStatMainHandHitRating, 30)
+	.withPseudoStat(PseudoStat.PseudoStatOffHandHitPercent, 2)
+	.withPseudoStat(PseudoStat.PseudoStatOffHandHitRating, 20);
+
+// i18next is stubbed empty under vitest, so `statDisplayString` is used to compute these rather than hardcoding its output.
+const MAIN_HAND_VALUE = statDisplayString({} as never, MELEE_HIT_STATS, UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent), true);
+const OFF_HAND_VALUE = statDisplayString({} as never, MELEE_HIT_STATS, UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent), true);
+
+const renderMeleeHitRow = (dualWielding: boolean) => {
+	const store = createSimStore();
+	const finalStats = MELEE_HIT_STATS.toProto();
+	seedKeyed(store, 'players', KEY, {
+		name: 'P',
+		race: Race.RaceOrc,
+		gear: { id: 'gear' },
+		bonusStats: new Stats(),
+		inFrontOfTarget: false,
+		currentStats: { finalStats },
+		v: zeroVersions(PLAYER_FIELDS),
+	} as unknown as PlayerSlice);
+
+	const player = {
+		sim: { store },
+		storeKey: KEY,
+		getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: false }),
+		getClass: () => Class.ClassWarrior,
+		getRace: () => Race.RaceOrc,
+		getCurrentStats: () => ({ finalStats }),
+		getDebuffStats: () => new Stats(),
+		getEquippedItem: () => null,
+		isDualWielding: () => dualWielding,
+	};
+
+	const host = { player, sim: { store }, individualConfig: { displayStats: MELEE_HIT_DISPLAY_STATS } } as never;
+	const view = render(
+		<SimHostProvider host={host}>
+			<CharacterStats />
+		</SimHostProvider>,
+	);
+	const meleeHitRow = view.container.querySelectorAll('[data-testid="character-stats-table-row"]')[0];
+	return { meleeHitRow };
+};
+
+const MAIN_HAND_LABEL = i18n.t('slots.main_hand', { ns: 'character' });
+const OFF_HAND_LABEL = i18n.t('slots.off_hand', { ns: 'character' });
+
+describe('CharacterStats combined melee hand rows', () => {
+	it('shows only the main-hand value, with no off-hand tooltip anchor, while single wielding', async () => {
+		const { meleeHitRow } = renderMeleeHitRow(false);
+		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
+
+		expect(links.length).toBe(1);
+		expect(links[0].textContent?.trim()).toBe(MAIN_HAND_VALUE);
+
+		fireEvent.mouseEnter(links[0]);
+		expect((await screen.findAllByText(MAIN_HAND_VALUE)).length).toBeGreaterThan(1);
+		expect(screen.queryByTestId('character-stats-tooltip-hand')).toBeNull();
+	});
+
+	it('shows both hands, joined by " / ", while dual wielding', () => {
+		const { meleeHitRow } = renderMeleeHitRow(true);
+		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
+
+		expect(links.length).toBe(2);
+		expect(links[0].textContent).toBe(MAIN_HAND_VALUE);
+		expect(links[1].textContent).toBe(OFF_HAND_VALUE);
+		expect(meleeHitRow.textContent).toContain(' / ');
+	});
+
+	it('opens the main hand\'s own breakdown, headed "Main Hand", when its half is hovered', async () => {
+		const { meleeHitRow } = renderMeleeHitRow(true);
+		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
+
+		fireEvent.mouseEnter(links[0]);
+		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(MAIN_HAND_LABEL);
+		expect((await screen.findAllByText(MAIN_HAND_VALUE)).length).toBeGreaterThan(1);
+	});
+
+	it('opens the off hand\'s own breakdown, headed "Off Hand", when its half is hovered', async () => {
+		const { meleeHitRow } = renderMeleeHitRow(true);
+		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
+
+		fireEvent.mouseEnter(links[1]);
+		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(OFF_HAND_LABEL);
+		expect((await screen.findAllByText(OFF_HAND_VALUE)).length).toBeGreaterThan(1);
 	});
 });

@@ -4,7 +4,16 @@ import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import { ConsumableSlot, consumableSlot, consumableStatsOf, explosiveUsedBeside, handTakesImbue, higherRanks, relevanceFor } from '@sim/settings/consumables';
+import {
+	consumablePseudoStatsOf,
+	ConsumableSlot,
+	consumableSlot,
+	consumableStatsOf,
+	explosiveUsedBeside,
+	handTakesImbue,
+	higherRanks,
+	relevanceFor,
+} from '@sim/settings/consumables';
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
@@ -40,7 +49,7 @@ const mainHandImbueShown = (player: Player<any>) => {
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
-		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig())),
+		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig()), consumablePseudoStatsOf(player.getSpecConfig())),
 		higherRanks: higherRanks(all),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();

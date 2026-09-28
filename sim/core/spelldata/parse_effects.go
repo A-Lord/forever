@@ -28,6 +28,7 @@ type parseOptions struct {
 	comboPoints  bool
 	count        float64
 	buffAuras    bool
+	hand         core.ProcMask
 
 	exclusive         bool
 	category          string
@@ -119,6 +120,15 @@ func FullComboPoints() ParseOpt {
 func Count(n float64) ParseOpt {
 	return func(o *parseOptions) {
 		o.count = n
+	}
+}
+
+// The row sits on the weapon in this hand, so a hit, crit or rating aura bound to a matching weapon
+// reaches that hand's attacks alone and holds while that hand holds one. An aura this hand cannot
+// carry is skipped.
+func OnHand(hand core.ProcMask) ParseOpt {
+	return func(o *parseOptions) {
+		o.hand = hand
 	}
 }
 
@@ -261,6 +271,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		stacking:    stacking || o.count != 0,
 		dry:         dry,
 		aura:        aura,
+		hand:        o.hand,
 		casterSlot:  o.casterSlot,
 	}
 	if o.casterSlot != nil {
