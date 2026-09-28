@@ -142,9 +142,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			return p.whileEquipped(scope.Equip(), a)
 		}
 		return p.whileEquipped(scope.Equip(), a, p.modFloat("damage-dealt-melee", core.SpellModConfig{
-			Kind:        core.SpellMod_DamageDone_Pct,
-			School:      core.SpellSchool(miscAllSchools &^ e.Misc),
-			DefenseType: core.DefenseTypeMelee,
+			Kind:             core.SpellMod_DamageDone_Pct,
+			DefenseType:      core.DefenseTypeMelee,
+			MultiplierSchool: core.SpellSchool(miscAllSchools &^ e.Misc),
 		}, v/100))
 	},
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN: func(p *parser, e *Effect, v float64) *attachment {

@@ -172,3 +172,27 @@ func TestWeaponDamageDoneRowReportsItsMeleeDefensePart(t *testing.T) {
 		}
 	}
 }
+
+// A melee-defense spell of several schools takes the part by the school its SchoolIndex reads. Under a
+// Physical row, Physical and Holy, such as Infernal Strike 412790, reads Physical and takes none, its
+// multiplier carrying the bonus; Holy and Shadow reads Holy and takes it, under a Shadow row as well.
+func TestWeaponDamageDoneRowCountsOnceOnSeveralSchools(t *testing.T) {
+	for _, tc := range []struct {
+		row    core.SpellSchool
+		school core.SpellSchool
+		want   float64
+	}{
+		{core.SpellSchoolPhysical, core.SpellSchoolPhysical | core.SpellSchoolHoly, 1},
+		{core.SpellSchoolPhysical, core.SpellSchoolHoly | core.SpellSchoolShadow, 1.1},
+		{core.SpellSchoolShadow, core.SpellSchoolHoly | core.SpellSchoolShadow, 1.1},
+	} {
+		character := swordWarrior(proto.HandType_HandTypeOneHand)
+		spell := defenseSpell(character, 1, tc.school, core.DefenseTypeMelee)
+
+		ParseStatic(character, weaponDamageDoneRow(int32(tc.row), dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H))
+
+		if got := spell.DamageMultiplier; math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("a %s spell under a %s row: %v, want %v", tc.school, tc.row, got, tc.want)
+		}
+	}
+}
