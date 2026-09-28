@@ -1,13 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
-import type {
-	makeMultistatePartyBuffInput,
-	makeQuadstateDebuffInput,
-	makeQuadstatePartyBuffInput,
-	makeTristateDebuffInput,
-	makeTristatePartyBuffInput,
-	makeTristateRaidBuffInput,
-} from './icon_inputs';
+import type { makeMultistatePartyBuffInput, makeTristateDebuffInput, makeTristatePartyBuffInput, makeTristateRaidBuffInput } from './icon_inputs';
 
 type ConfigOf<F extends (...args: any) => any> = Parameters<F>[0];
 
@@ -19,8 +12,6 @@ describe('icon input configs', () => {
 
 		expectTypeOf<ConfigOf<typeof makeTristatePartyBuffInput>>().not.toHaveProperty('faction');
 		expectTypeOf<ConfigOf<typeof makeTristateDebuffInput>>().not.toHaveProperty('faction');
-		expectTypeOf<ConfigOf<typeof makeQuadstatePartyBuffInput>>().not.toHaveProperty('faction');
-		expectTypeOf<ConfigOf<typeof makeQuadstateDebuffInput>>().not.toHaveProperty('faction');
 		expectTypeOf<ConfigOf<typeof makeMultistatePartyBuffInput>>().not.toHaveProperty('faction');
 	});
 

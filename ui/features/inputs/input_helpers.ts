@@ -1,25 +1,15 @@
-import { PartyBuffs } from '@generated/proto/buffs';
-import { Spec, TristateEffect } from '@generated/proto/common';
+import { Spec } from '@generated/proto/common';
 import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import type { ClassOptions, SpecOptions, SpecRotation } from '@sim/proto/spec_types';
-import { Party } from '@sim/raid/party';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { formatToNumber } from '@sim/utils/format';
 import { randomUUID } from '@sim/utils/misc';
 import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
 import type { InputChrome, StoreBinding } from '@ui-kit/input';
 
-import type {
-	BooleanPickerConfig,
-	EnumPickerConfig,
-	IconEnumPickerConfig,
-	IconEnumValueConfig,
-	IconPickerConfig,
-	MultiIconPickerConfig,
-	NumberPickerConfig,
-} from './configs';
+import type { BooleanPickerConfig, EnumPickerConfig, IconEnumPickerConfig, IconEnumValueConfig, IconPickerConfig, NumberPickerConfig } from './configs';
 
 const storeBinding = <ModObject>(
 	storeSubscribe: ((obj: ModObject) => StoreSubscribe) | undefined,
@@ -30,19 +20,6 @@ const mapStoreBinding = <From, To>(binding: StoreBinding<From>, getModObject: (o
 	if (binding.storeSubscribe === undefined) return { storeField: binding.storeField };
 	const source = binding.storeSubscribe;
 	return { storeSubscribe: (obj: To) => source(getModObject(obj)) };
-};
-
-export const makeMultiIconInput = <ModObject>(
-	inputs: Array<IconPickerConfig<ModObject, any>>,
-	label: string,
-	categoryId?: ActionId,
-): MultiIconPickerConfig<ModObject> => {
-	return {
-		inputs: inputs,
-		label: label,
-		categoryId: categoryId,
-		showWhen: p => inputs.filter(i => !i.showWhen || i.showWhen(p as ModObject)).length > 0,
-	};
 };
 
 // Extend this to add player callbacks as optional config fields.
@@ -65,7 +42,7 @@ export interface TypedBooleanPickerConfig<ModObject> extends BooleanPickerConfig
 interface WrappedBooleanInputConfig<SpecType extends Spec, ModObject> extends BooleanPickerConfig<ModObject> {
 	getModObject: (player: Player<SpecType>) => ModObject;
 }
-export const makeWrappedBooleanInput = <SpecType extends Spec, ModObject>(
+const makeWrappedBooleanInput = <SpecType extends Spec, ModObject>(
 	config: WrappedBooleanInputConfig<SpecType, ModObject>,
 ): TypedBooleanPickerConfig<Player<SpecType>> => {
 	const getModObject = config.getModObject;
@@ -212,10 +189,10 @@ export interface PlayerNumberInputConfig<SpecType extends Spec, Message>
 	storeSubscribe?: (player: Player<SpecType>) => StoreSubscribe;
 }
 
-export const numberInputValueToPercentage = (value: number, config: PlayerNumberInputConfig<any, any>) =>
+const numberInputValueToPercentage = (value: number, config: PlayerNumberInputConfig<any, any>) =>
 	Number(formatToNumber(value / 100, { maximumFractionDigits: config.maxDecimalDigits, useGrouping: false }));
 
-export const numberInputPercentToValue = (value: number, config: PlayerNumberInputConfig<any, any>) =>
+const numberInputPercentToValue = (value: number, config: PlayerNumberInputConfig<any, any>) =>
 	Number(formatToNumber(value * 100, { maximumFractionDigits: config.maxDecimalDigits, useGrouping: false }));
 
 export const makeClassOptionsNumberInput = <SpecType extends Spec>(
@@ -375,30 +352,6 @@ export interface PlayerEnumInputConfig<SpecType extends Spec, Message> {
 	storeField?: StoreField | ReadonlyArray<StoreField>;
 }
 // T is unused, but kept to have the same interface as the icon enum inputs.
-export const makeClassOptionsEnumInput = <SpecType extends Spec, _T>(
-	config: PlayerEnumInputConfig<SpecType, ClassOptions<SpecType>>,
-): TypedEnumPickerConfig<Player<SpecType>> => {
-	return makeWrappedEnumInput<SpecType, Player<SpecType>>({
-		id: `${String(config.fieldName) || randomUUID()}`,
-		label: config.label,
-		labelTooltip: config.labelTooltip,
-		description: config.description,
-		values: config.values,
-		getModObject: (player: Player<SpecType>) => player,
-		getValue: config.getValue || ((player: Player<SpecType>) => player.getClassOptions()[config.fieldName] as unknown as number),
-		setValue:
-			config.setValue ||
-			((player: Player<SpecType>, newVal: number) => {
-				const newMessage = player.getClassOptions();
-				(newMessage[config.fieldName] as unknown as number) = newVal;
-				player.setClassOptions(newMessage);
-			}),
-		...storeBinding(config.storeSubscribe, config.storeField ?? 'specOptions'),
-		enableWhen: config.enableWhen,
-		showWhen: config.showWhen,
-	});
-};
-// T is unused, but kept to have the same interface as the icon enum inputs.
 export const makeSpecOptionsEnumInput = <SpecType extends Spec, _T>(
 	config: PlayerEnumInputConfig<SpecType, SpecOptions<SpecType>>,
 ): TypedEnumPickerConfig<Player<SpecType>> => {
@@ -530,26 +483,6 @@ export const makeBooleanIconInput = <SpecType extends Spec, Message, ModObject>(
 	});
 };
 
-/** A party-buff icon whose "on" state is a specific enum value stored in a shared field, rather than a boolean flag. */
-export const makePartyBuffEnumIconInput = <SpecType extends Spec>(
-	actionId: ActionId,
-	fieldName: keyof PartyBuffs,
-	enumValue: number,
-): TypedIconPickerConfig<Player<SpecType>, boolean> => {
-	return makeWrappedIconInput<SpecType, Party, boolean>({
-		getModObject: (player: Player<SpecType>) => player.getParty()!,
-		actionId,
-		states: 2,
-		storeField: 'raid:partyBuffs',
-		getValue: (party: Party) => (party.getBuffs()[fieldName] as unknown as number) == enumValue,
-		setValue: (party: Party, newValue: boolean) => {
-			const newBuffs = party.getBuffs();
-			(newBuffs[fieldName] as unknown as number) = newValue ? enumValue : 0;
-			party.setBuffs(newBuffs);
-		},
-	});
-};
-
 export interface PlayerBooleanIconInputConfig<SpecType extends Spec, Message, T>
 	extends BasePlayerConfig<SpecType, T>, Pick<InputChrome<Player<SpecType>>, 'label' | 'labelTooltip'> {
 	fieldName: keyof Message;
@@ -578,38 +511,14 @@ export const makeClassOptionsBooleanIconInput = <SpecType extends Spec>(
 		config.labelTooltip,
 	);
 };
-export const makeSpecOptionsBooleanIconInput = <SpecType extends Spec>(
-	config: PlayerBooleanIconInputConfig<SpecType, SpecOptions<SpecType>, boolean>,
-): TypedIconPickerConfig<Player<SpecType>, boolean> => {
-	return makeBooleanIconInput<SpecType, SpecOptions<SpecType>, Player<SpecType>>(
-		{
-			id: `${String(config.fieldName) || randomUUID()}`,
-			getModObject: (player: Player<SpecType>) => player,
-			getValue: (player: Player<SpecType>) => player.getSpecOptions(),
-			setValue: (player: Player<SpecType>, newVal: SpecOptions<SpecType>) => player.setSpecOptions(newVal),
-			...storeBinding(config.storeSubscribe, config.storeField ?? 'specOptions'),
-			extraClassNames: config.extraClassNames,
-			getFieldValue: config.getValue,
-			setFieldValue: config.setValue,
-			showWhen: config.showWhen,
-		},
-		config.id,
-		config.fieldName,
-		config.value,
-		config.label,
-		config.labelTooltip,
-	);
-};
-
 const makeNumberIconInput = <SpecType extends Spec, Message, ModObject>(
 	config: WrappedTypedInputConfig<Message, ModObject, number>,
 	actionId: ActionId,
 	fieldName: keyof Message,
-	fieldNameImp2?: keyof Message,
 	multiplier?: number,
 	label?: string,
-): TypedIconPickerConfig<Player<SpecType>, number> => {
-	const input = makeWrappedIconInput<SpecType, ModObject, number>({
+): TypedIconPickerConfig<Player<SpecType>, number> =>
+	makeWrappedIconInput<SpecType, ModObject, number>({
 		getModObject: config.getModObject,
 		actionId,
 		label,
@@ -617,38 +526,20 @@ const makeNumberIconInput = <SpecType extends Spec, Message, ModObject>(
 		...mapStoreBinding(config, (modObj: ModObject) => modObj),
 		showWhen: config.showWhen,
 		enableWhen: config.enableWhen,
-		getValue: (modObj: ModObject) => {
-			const value = config.getValue(modObj);
-			const fieldValue = value[fieldName] as unknown as number;
-			// A quadstate input keeps its fourth state in a second, boolean field, so it reads as improved + 1.
-			if (fieldNameImp2 && fieldValue === TristateEffect.TristateEffectImproved) {
-				return fieldValue + Number(value[fieldNameImp2]);
-			}
-			return fieldValue;
-		},
+		getValue: (modObj: ModObject) => config.getValue(modObj)[fieldName] as unknown as number,
 		setValue: (modObj: ModObject, newValue: number) => {
 			const newMessage = config.getValue(modObj);
-			if (fieldNameImp2 && input.states >= 4) {
-				if (newValue < 0) {
-					newValue = 0;
-				}
-				(newMessage[fieldName] as unknown as number) = Math.min(TristateEffect.TristateEffectImproved, newValue);
-				(newMessage[fieldNameImp2] as unknown as boolean) = newValue === 3;
-			} else {
-				if (multiplier) {
-					const sign = newValue - (newMessage[fieldName] as unknown as number);
-					newValue += (multiplier - 1) * sign;
-				}
-				if (newValue < 0) {
-					newValue = 0;
-				}
-				(newMessage[fieldName] as unknown as number) = newValue;
+			if (multiplier) {
+				const sign = newValue - (newMessage[fieldName] as unknown as number);
+				newValue += (multiplier - 1) * sign;
 			}
+			if (newValue < 0) {
+				newValue = 0;
+			}
+			(newMessage[fieldName] as unknown as number) = newValue;
 			config.setValue(modObj, newMessage);
 		},
 	});
-	return input;
-};
 export const makeTristateIconInput = <SpecType extends Spec, Message, ModObject>(
 	config: WrappedTypedInputConfig<Message, ModObject, number>,
 	id: ActionId,
@@ -656,24 +547,9 @@ export const makeTristateIconInput = <SpecType extends Spec, Message, ModObject>
 	fieldName: keyof Message,
 	label?: string,
 ): TypedIconPickerConfig<Player<SpecType>, number> => {
-	const input = makeNumberIconInput<SpecType, Message, ModObject>(config, id, fieldName, undefined, undefined, label);
+	const input = makeNumberIconInput<SpecType, Message, ModObject>(config, id, fieldName, undefined, label);
 	input.states = 3;
 	input.improvedId = impId;
-	return input;
-};
-export const makeQuadstateIconInput = <SpecType extends Spec, Message, ModObject>(
-	config: WrappedTypedInputConfig<Message, ModObject, number>,
-	id: ActionId,
-	impId: ActionId,
-	impId2: ActionId,
-	fieldName: keyof Message,
-	fieldNameImp2: keyof Message,
-	label?: string,
-): TypedIconPickerConfig<Player<SpecType>, number> => {
-	const input = makeNumberIconInput<SpecType, Message, ModObject>(config, id, fieldName, fieldNameImp2, undefined, label);
-	input.states = 4;
-	input.improvedId = impId;
-	input.improvedId2 = impId2;
 	return input;
 };
 export const makeMultistateIconInput = <SpecType extends Spec, Message, ModObject>(
@@ -684,7 +560,7 @@ export const makeMultistateIconInput = <SpecType extends Spec, Message, ModObjec
 	multiplier?: number,
 	label?: string,
 ): TypedIconPickerConfig<Player<SpecType>, number> => {
-	const input = makeNumberIconInput<SpecType, Message, ModObject>(config, id, fieldName, undefined, multiplier, label);
+	const input = makeNumberIconInput<SpecType, Message, ModObject>(config, id, fieldName, multiplier, label);
 	input.states = numStates;
 	return input;
 };
@@ -775,31 +651,6 @@ export const makeSpecOptionsEnumIconInput = <SpecType extends Spec, T>(
 				player.setSpecOptions(newMessage);
 			}),
 		...storeBinding(config.storeSubscribe, config.storeField ?? 'specOptions'),
-		extraClassNames: config.extraClassNames,
-	});
-};
-export const makeRotationEnumIconInput = <SpecType extends Spec, T>(
-	config: PlayerEnumIconInputConfig<SpecType, SpecRotation<SpecType>, T>,
-): TypedIconEnumPickerConfig<Player<SpecType>, T> => {
-	return makeWrappedEnumIconInput<SpecType, Player<SpecType>, T>({
-		id: `${String(config.fieldName) || randomUUID()}`,
-		label: config.label,
-		labelTooltip: config.labelTooltip,
-		numColumns: config.numColumns || 1,
-		values: config.values,
-		equals: (a: T, b: T) => a == b,
-		showWhen: config.showWhen,
-		zeroValue: 0 as unknown as T,
-		getModObject: (player: Player<SpecType>) => player,
-		getValue: config.getValue || ((player: Player<SpecType>) => player.getSimpleRotation()[config.fieldName] as unknown as T),
-		setValue:
-			config.setValue ||
-			((player: Player<SpecType>, newVal: T) => {
-				const newMessage = player.getSimpleRotation();
-				(newMessage[config.fieldName] as unknown as T) = newVal;
-				player.setSimpleRotation(newMessage);
-			}),
-		...storeBinding(config.storeSubscribe, config.storeField ?? 'rotation'),
 		extraClassNames: config.extraClassNames,
 	});
 };
