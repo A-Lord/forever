@@ -15,6 +15,11 @@ on:
                 description: 'Commit that TestProtoVersioning diffs the protos against (defaults to remote master)'
                 required: false
                 type: string
+# Runs called from master (deploy, release) have no pull request number; the
+# run id keeps each in a group of its own so none is cancelled or queued.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+    cancel-in-progress: true
 jobs:
     build-ui:
         runs-on: self-hosted
