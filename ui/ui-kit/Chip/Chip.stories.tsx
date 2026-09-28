@@ -37,7 +37,7 @@ export const Default: Story = {};
 export const Active: Story = { args: { active: true } };
 export const Disabled: Story = {
 	args: { disabled: true },
-	parameters: { docs: { description: { story: 'A disabled chip is not rendered at all, so the canvas is empty.' } } },
+	parameters: { docs: { description: { story: 'A disabled chip is hidden, so the canvas looks empty.' } } },
 };
 export const Deletable: Story = {
 	args: { onDelete: fn(), confirmDelete: false, deleteLabel: 'Delete' },
