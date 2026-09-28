@@ -58,6 +58,7 @@ export const Debounced: Story = {
 	play: async ({ args, canvasElement }) => {
 		await userEvent.type(within(canvasElement).getByRole('textbox'), 'Ashkandi');
 		await expect(args.onChange).not.toHaveBeenCalled();
-		await waitFor(() => expect(args.onChange).toHaveBeenCalledExactlyOnceWith('Ashkandi'));
+		await waitFor(() => expect(args.onChange).toHaveBeenCalledWith('Ashkandi'));
+		await expect(args.onChange).toHaveBeenCalledOnce();
 	},
 };
