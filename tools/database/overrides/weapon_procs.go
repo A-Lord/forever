@@ -4,7 +4,7 @@ package overrides
 // spell's ProcChance column reads the 100 or 101 sentinel, or the spell has no proc row at all. The
 // rate is the weapon's rather than the spell's, since two weapons can share a trigger spell at
 // different rates, so it goes onto the item effect. Reason and Source weigh the same as an
-// Override's, and the item database refuses a row without a reason.
+// Override's; the database tests refuse a row without them, or one naming no effect of its item.
 type WeaponProc struct {
 	ItemID  int32
 	SpellID int32

@@ -20,7 +20,7 @@ import (
 // damage shape, whose spell carries the debuff. Its rate is the override's 0.4 PPM, so it registers;
 // none of the others states a rate for its chance on hit, so they stay commented out. Mug O' Hurt
 // 4090's Dazed 13496 slows movement alone and stays skipped.
-func TestChanceOnHitDebuffsRouteAndStateNoRate(t *testing.T) {
+func TestChanceOnHitDebuffsRoute(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
 

@@ -104,7 +104,7 @@ export class ActionId {
 				} else if (this.tag == 2) {
 					name += ' (Off Hand)';
 				} else if (this.tag == 25584) {
-					// Windfury Totem's swings, whose tag is no spell the game files or Wowhead carry.
+					// Windfury Totem's swings, whose tag is no spell the game files carry.
 					name += ' (Windfury)';
 				} else if (this.tag == 17257) {
 					name += ' (Magtheridon)';
@@ -232,8 +232,6 @@ export class ActionId {
 		return wowheadEntityUrl('zone', id);
 	}
 
-	// Returns an ActionId with the name and iconUrl fields filled.
-	// playerIndex is the optional index of the player to whom this ID corresponds.
 	// An extra attack is a main-hand swing tagged with the spell that granted it, so its name comes
 	// from that spell rather than from a list kept by hand. A tag no spell answers keeps the bare name.
 	private async fillExtraAttack(): Promise<ActionId> {
@@ -245,6 +243,8 @@ export class ActionId {
 		return new ActionId({ otherId: this.otherId, tag: this.tag, name, iconUrl: this.iconUrl });
 	}
 
+	// Returns an ActionId with the name and iconUrl fields filled.
+	// playerIndex is the optional index of the player to whom this ID corresponds.
 	async fill(playerIndex?: number): Promise<ActionId> {
 		if (this.otherId == OtherAction.OtherActionAttack && this.name == 'Attack' && this.tag > 2) {
 			return this.fillExtraAttack();

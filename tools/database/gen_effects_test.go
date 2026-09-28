@@ -12,6 +12,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
+	"github.com/wowsims/forever/tools/database/overrides"
 )
 
 // A chance-on-hit item whose spell is a heal over time on the wearer routes to the heal shape. Neither
@@ -130,6 +131,33 @@ func TestWeaponsSharingATriggerKeepTheirOwnRate(t *testing.T) {
 		r := groups["Procs"].Entries[0].Proc
 		if r.ItemPPM != tc.ppm || len(r.Unsupported) != 0 || !strings.Contains(r.Summary, fmt.Sprintf("%v ppm on the item", tc.ppm)) {
 			t.Errorf("item %d routed with %v PPM, unsupported %q, summary %q", tc.itemID, r.ItemPPM, r.Unsupported, r.Summary)
+		}
+	}
+}
+
+// Every hand-kept weapon rate names an effect the game files hang on that item for that spell, and
+// the database writes the rate onto the item: a mistyped id would otherwise leave the weapon refused
+// as stating no rate, with the rate sitting unread. Reason and Source are required, as an Override's.
+func TestWeaponProcRowsNameAnItemEffect(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, row := range overrides.WeaponProcs {
+		if row.Reason == "" || row.Source == "" {
+			t.Errorf("item %d spell %d states no reason or source", row.ItemID, row.SpellID)
+		}
+		if !slices.ContainsFunc(instance.ItemEffectsByParentID[int(row.ItemID)], func(e dbc.ItemEffect) bool {
+			return e.SpellID == int(row.SpellID)
+		}) {
+			t.Errorf("item %d carries no effect casting %d", row.ItemID, row.SpellID)
+			continue
+		}
+
+		item := instance.Items[int(row.ItemID)]
+		parsed := item.ToUIItem()
+		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+		if !slices.ContainsFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.GetProc().GetPpm() == row.PPM }) {
+			t.Errorf("item %d's effects state no %v PPM", row.ItemID, row.PPM)
 		}
 	}
 }

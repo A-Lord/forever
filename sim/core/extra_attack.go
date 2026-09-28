@@ -2,10 +2,11 @@ package core
 
 // Adds an extra attack to a proc's handler: a copy of the main-hand swing tagged with the granting
 // spell, cast count times after whatever the handler already does, on the hit's target - or on the
-// attacker, for a proc that hears the hits the unit takes. The returned OnInit registers the copy, so
-// it goes on the proc's aura: the main-hand swing is configured after procs register, and a unit that
-// never swings has none to copy, in which case the proc casts nothing. The swing it grants is not a
-// hit the proc hears, or one proc would swing forever.
+// attacker, for a proc whose callback, as set when this is called, hears the hits the unit takes.
+// The returned OnInit registers the copy, so it goes on the proc's aura: the main-hand swing is
+// configured after procs register, and a unit that never swings has none to copy, in which case the
+// proc casts nothing. The swing it grants is not a hit the proc hears, or one proc would swing
+// forever.
 func (unit *Unit) ExtraAttackProc(trigger *ProcTrigger, tagSpellID int32, count int) OnInit {
 	var extraAttack *Spell
 	condition := trigger.ExtraCondition
