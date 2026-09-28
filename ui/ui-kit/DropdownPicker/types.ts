@@ -59,7 +59,6 @@ export interface DropdownPickerProps<V> {
 export interface DropdownValueConfig<V> {
 	value: V;
 	submenu?: (string | V)[];
-	headerText?: string;
 	tooltip?: string;
 	extraClassNames?: string[];
 }

@@ -61,10 +61,11 @@ const categorise = <T extends AuraStats | SpellStats>(
 	uncategorised: entries.filter(entry => !CATEGORY_SUBMENUS.some(([category]) => entry.data.category === category)),
 });
 
-/** `allAuras` is the unfiltered list, which decides whether an aura has ranks. */
-const auraOptions = (auras: Array<AuraStats>, allAuras: Array<AuraStats> = auras): Array<ActionIdOption> => {
-	const { categorised, uncategorised } = categorise(auras, (aura, submenu) => ({ value: aura.id, submenu }), allAuras);
-	return [...categorised, ...uncategorised.map(aura => ({ value: aura.id, submenu: createSpellSubmenu(aura.id, allAuras) }))];
+/** The auras `keep` passes; `allAuras`, the unfiltered list, decides whether an aura has ranks. */
+const auraOptions = (allAuras: Array<AuraStats>, keep: (aura: AuraStats) => boolean = () => true): Array<ActionIdOption> => {
+	const toOption = (aura: AuraStats, submenu: Array<string>) => ({ value: aura.id, submenu });
+	const { categorised, uncategorised } = categorise(allAuras.filter(keep), toOption, allAuras);
+	return [...categorised, ...uncategorised.map(aura => toOption(aura, createSpellSubmenu(aura.id, allAuras)))];
 };
 
 /** The one list a spell may be cast from, for the spells the sim only accepts in one of them. */
@@ -95,27 +96,15 @@ export const actionIdSets: Record<
 	},
 	stackable_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.stackable_auras'),
-		getActionIDs: async metadata =>
-			auraOptions(
-				metadata.getAuras().filter(aura => aura.data.maxStacks > 0),
-				metadata.getAuras(),
-			),
+		getActionIDs: async metadata => auraOptions(metadata.getAuras(), aura => aura.data.maxStacks > 0),
 	},
 	icd_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.icd_auras'),
-		getActionIDs: async metadata =>
-			auraOptions(
-				metadata.getAuras().filter(aura => aura.data.hasIcd),
-				metadata.getAuras(),
-			),
+		getActionIDs: async metadata => auraOptions(metadata.getAuras(), aura => aura.data.hasIcd),
 	},
 	exclusive_effect_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.exclusive_effect_auras'),
-		getActionIDs: async metadata =>
-			auraOptions(
-				metadata.getAuras().filter(aura => aura.data.hasExclusiveEffect),
-				metadata.getAuras(),
-			),
+		getActionIDs: async metadata => auraOptions(metadata.getAuras(), aura => aura.data.hasExclusiveEffect),
 	},
 	// Used for non categorized lists
 	spells: {
@@ -134,20 +123,13 @@ export const actionIdSets: Record<
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.castable_spells'),
 		getActionIDs: async metadata => {
 			const castableSpells = metadata.getSpells().filter(spell => spell.data.isCastable);
-			const { categorised, uncategorised } = categorise(castableSpells, (spell, submenu) => ({
-				value: spell.id,
-				submenu,
-				listScope: listScopeOf(spell),
-			}));
+			const toOption = (spell: SpellStats, submenu: Array<string>) => ({ value: spell.id, submenu, listScope: listScopeOf(spell) });
+			const { categorised, uncategorised } = categorise(castableSpells, toOption);
 
 			const placeholders: Array<ActionId> = [ActionId.fromOtherId(OtherAction.OtherActionPotion)];
 
 			return [
-				uncategorised.map(spell => ({
-					value: spell.id,
-					submenu: createSpellSubmenu(spell.id, castableSpells, ['spell']),
-					listScope: listScopeOf(spell),
-				})),
+				uncategorised.map(spell => toOption(spell, createSpellSubmenu(spell.id, castableSpells, ['spell']))),
 				categorised,
 				placeholders.map(actionId => {
 					return {

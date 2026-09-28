@@ -20,8 +20,8 @@ const (
 func (env *Environment) withSource(source ActionSource, register func()) {
 	previous := env.actionSource
 	env.actionSource = source
+	defer func() { env.actionSource = previous }()
 	register()
-	env.actionSource = previous
 }
 
 // Registers the auras and spells in register with this source, unless they set their own.
