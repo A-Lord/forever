@@ -103,6 +103,9 @@ export class ActionId {
 					name += ' (Main Hand)';
 				} else if (this.tag == 2) {
 					name += ' (Off Hand)';
+				} else if (this.tag == 25584) {
+					// Windfury Totem's swings, whose tag is no spell the game files or Wowhead carry.
+					name += ' (Windfury)';
 				} else if (this.tag == 17257) {
 					name += ' (Magtheridon)';
 				} else if (this.tag == 21213) {

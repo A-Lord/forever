@@ -29,6 +29,9 @@ func applySpellDataExtraAttackProc(agent core.Agent, cfg SpellDataProc, source e
 		return spell != extraAttack
 	}
 	config.Handler = func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		if extraAttack == nil {
+			return
+		}
 		for range count {
 			character.AutoAttacks.MaybeReplaceMHSwing(sim, extraAttack).Cast(sim, result.Target)
 		}
@@ -36,7 +39,11 @@ func applySpellDataExtraAttackProc(agent core.Agent, cfg SpellDataProc, source e
 	config.TriggerImmediately = true
 
 	// The main-hand swing is configured after the item effects register, so the copy waits for init.
+	// A character that never swings has none to copy.
 	source.registerTrigger(character, config).ApplyOnInit(func(_ *core.Aura, _ *core.Simulation) {
+		if character.AutoAttacks.MHAuto() == nil {
+			return
+		}
 		swing := *character.AutoAttacks.MHConfig()
 		swing.ActionID = swing.ActionID.WithTag(row.ID)
 		extraAttack = character.GetOrRegisterSpell(swing)
