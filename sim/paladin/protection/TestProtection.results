@@ -79,8 +79,8 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-Beastmaster'sCap-22013"
  value: {
-  dps: 235.64914
-  tps: 249.48665
+  dps: 246.55716
+  tps: 261.11806
   dtps: 5360.64844
  }
 }

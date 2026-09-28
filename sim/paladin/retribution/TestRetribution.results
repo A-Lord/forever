@@ -79,8 +79,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-Beastmaster'sCap-22013"
  value: {
-  dps: 587.82069
-  tps: 430.78829
+  dps: 607.69001
+  tps: 444.69682
   dtps: 11.18168
  }
 }
