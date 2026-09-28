@@ -269,19 +269,9 @@ func (warlock *Warlock) applyShadowMastery() {
 		return
 	}
 
-	rank := spellData.ShadowMastery.Rank(warlock.Talents.ShadowMastery)
-
-	// Effect 1 applies to direct damage dealt.
-	// Spell flags include corruption, but should not affect sims as it has no direct damage component.
-	hit := rank.EffectN(1)
-	warlock.AddStaticMod(core.SpellModConfig{
-		Kind:       core.SpellMod_DirectDamageDone_Flat,
-		ClassFlags: hit.ClassFlags,
-		FloatValue: hit.Percent(),
-	})
-
-	// Effect 2 modifies periodic damage dealt.
-	spelldata.ParseStatic(&warlock.Character, rank, spelldata.Effects(2))
+	// Effect 1 raises direct damage and effect 2 periodic damage.
+	// Effect 1's class flags include Corruption, which has no direct damage.
+	spelldata.ParseStatic(&warlock.Character, spellData.ShadowMastery.Rank(warlock.Talents.ShadowMastery))
 }
 
 // --- Tier 7 ---
