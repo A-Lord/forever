@@ -1,3 +1,4 @@
+import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
@@ -11,7 +12,7 @@ const overlapTrigger = ({ anchor }: { anchor: { width: number } }) => -(anchor.w
 
 export const ListItemPopover = ({ open, onOpenChange, children }: ListItemPopoverProps) => (
 	<Popover
-		trigger={<i className="fa fa-xl fa-ellipsis" />}
+		trigger={<Icon name="ellipsis" style="base" size="xl" />}
 		triggerClassName="ui-list-picker-item-action"
 		triggerProps={{ 'data-testid': 'list-picker-item-actions' } as ComponentPropsWithoutRef<'button'>}
 		openOnHover

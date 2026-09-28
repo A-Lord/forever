@@ -169,7 +169,7 @@ describe('ListPicker', () => {
 		});
 
 		it('renders header extras between the title and the actions button', () => {
-			mount(sourceOf('a'), { renderItemHeader: (_item, index) => <i data-testid="hide-picker" data-index={index} /> });
+			mount(sourceOf('a'), { renderItemHeader: (_item, index) => <span data-testid="hide-picker" data-index={index} /> });
 
 			const header = within(root()).getByTestId('list-picker-item-header');
 			expect([...header.children].map(child => child.getAttribute('data-testid'))).toEqual([
@@ -237,6 +237,14 @@ describe('ListPicker', () => {
 				['fa', 'fa-arrow-right-from-bracket', 'fa-xl'],
 				['fa', 'fa-copy', 'fa-xl'],
 			]);
+		});
+
+		it('draws the actions trigger icon as a hidden-from-readers ellipsis in the base style at xl', () => {
+			mount(sourceOf('a'));
+
+			const icon = actionsButton(0).querySelector('.fa-ellipsis')!;
+			expect(icon.className.split(' ').sort()).toEqual(['fa', 'fa-ellipsis', 'fa-xl']);
+			expect(icon.getAttribute('aria-hidden')).toBe('true');
 		});
 
 		it('deletes the item at its index', () => {
