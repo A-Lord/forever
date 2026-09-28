@@ -1,3 +1,5 @@
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import type { NumberPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { setLang, supportedLanguages } from '@i18n/locale_service';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -10,8 +12,6 @@ import { Dialog } from '@ui-kit/Dialog';
 import { EnumPicker } from '@ui-kit/EnumPicker';
 import type { EnumPickerConfig, EnumValueConfig } from '@ui-kit/EnumPicker/types';
 import { HelpText } from '@ui-kit/FormControl';
-import { NumberPicker } from '@ui-kit/NumberPicker';
-import type { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { toastManager } from '@ui-kit/Toast';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
@@ -196,7 +196,7 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 				<PickerGroup data-testid="picker-group">
 					<div data-testid="fixed-rng-seed-container">
 						<div data-testid="fixed-rng-seed">
-							<NumberPicker modObject={sim} config={fixedRngSeedConfig} />
+							<BoundNumberPicker modObject={sim} config={fixedRngSeedConfig} />
 						</div>
 						<HelpText as="div">
 							<span>{i18n.t('info.options.fixed_rng_seed.last_used')}</span>&nbsp;

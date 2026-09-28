@@ -1,8 +1,8 @@
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import type { NumberPickerConfig } from '@features/inputs/configs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { UnitStat } from '@sim/proto/stats';
-import { NumberPicker } from '@ui-kit/NumberPicker';
-import type { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
 import { useMemo } from 'react';
 
 export interface BonusStatsPickerProps {
@@ -43,5 +43,5 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 		[unitStat, label, onCommit],
 	);
 
-	return <NumberPicker modObject={player} config={config} />;
+	return <BoundNumberPicker modObject={player} config={config} />;
 };

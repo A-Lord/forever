@@ -1,9 +1,8 @@
+import type { EnumPickerConfig, NumberPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Encounter } from '@sim/raid/encounter';
 import type { Raid } from '@sim/raid/raid';
-import type { EnumPickerConfig } from '@ui-kit/EnumPicker/types';
-import type { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
 
 import { trackEvent } from '../../../../../tracking/utils';
 

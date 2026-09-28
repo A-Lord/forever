@@ -1,7 +1,7 @@
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import i18n from '@i18n/config';
 import type { Sim } from '@sim/sim';
 import { subscribeSimField } from '@sim/state/subscriptions';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 
 import { trackEvent } from '../tracking/utils';
 
@@ -10,7 +10,7 @@ export interface IterationsPickerProps {
 }
 
 export const IterationsPicker = ({ sim }: IterationsPickerProps) => (
-	<NumberPicker
+	<BoundNumberPicker
 		modObject={sim}
 		testId="iterations-picker"
 		inputClassName="m-0 w-full"

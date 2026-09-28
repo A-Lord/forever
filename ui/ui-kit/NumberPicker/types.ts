@@ -1,10 +1,4 @@
-import type { InputConfig } from '@ui-kit/input';
-
-/**
- * Data for creating a number picker.
- */
-export interface NumberPickerConfig<ModObject> extends InputConfig<ModObject, number> {
-	id: string;
+export interface NumberPickerOptions {
 	// Whether the picker represents a float value. Default `false`
 	float?: boolean;
 	maxDecimalDigits?: number;

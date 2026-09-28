@@ -8,13 +8,13 @@ import { Party } from '@sim/raid/party';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { formatToNumber } from '@sim/utils/format';
 import { randomUUID } from '@sim/utils/misc';
-import { BooleanPickerConfig } from '@ui-kit/BooleanPicker/types';
-import { EnumPickerConfig, EnumValueConfig } from '@ui-kit/EnumPicker/types';
+import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
 import { IconEnumPickerConfig, IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
 import { IconPickerConfig } from '@ui-kit/IconPicker/types';
 import type { InputChrome, StoreBinding } from '@ui-kit/input';
 import { MultiIconPickerConfig } from '@ui-kit/MultiIconPicker/types';
-import { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
+
+import type { BooleanPickerConfig, EnumPickerConfig, NumberPickerConfig } from './configs';
 
 const storeBinding = <ModObject>(
 	storeSubscribe: ((obj: ModObject) => StoreSubscribe) | undefined,

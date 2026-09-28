@@ -1,3 +1,4 @@
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import type { StatWeightsResult, StatWeightValues } from '@generated/proto/api';
 import type { Stat } from '@generated/proto/common';
 import type { DisplayMetrics } from '@sim/hooks/useDisplayMetrics';
@@ -6,7 +7,6 @@ import { scaledEpValue, type Stats, type UnitStat } from '@sim/proto/stats';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { sanitizeId } from '@sim/utils/format';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import clsx from 'clsx';
 
 import { StatWeightCells } from './StatWeightCells';
@@ -86,7 +86,7 @@ export const StatWeightRow = ({
 				/>
 			))}
 			<td data-testid="current-ep" className={cellClassName}>
-				<NumberPicker
+				<BoundNumberPicker
 					modObject={player}
 					config={{
 						id: `ep-weight-stat-${sanitizeId(stat.getShortName(player.playerClass.classID))}`,

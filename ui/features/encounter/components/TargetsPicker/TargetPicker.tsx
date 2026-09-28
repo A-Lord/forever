@@ -1,9 +1,9 @@
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Encounter } from '@sim/raid/encounter';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { EnumPicker } from '@ui-kit/EnumPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
@@ -68,13 +68,13 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 			</PickerGroup>
 			<PickerGroup data-testid="target-picker-section">
 				{stats.map(config => (
-					<NumberPicker key={config.id} modObject={null} config={config} />
+					<BoundNumberPicker key={config.id} modObject={null} config={config} />
 				))}
 			</PickerGroup>
 			{showThreatMetrics ? (
 				<PickerGroup data-testid="target-picker-section">
 					{numbers.map(config => (
-						<NumberPicker key={config.id} modObject={null} config={config} />
+						<BoundNumberPicker key={config.id} modObject={null} config={config} />
 					))}
 					{booleans.map(config => (
 						<BooleanPicker key={config.id} modObject={null} config={config} />

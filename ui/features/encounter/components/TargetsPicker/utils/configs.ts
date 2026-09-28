@@ -1,3 +1,4 @@
+import type { BooleanPickerConfig, EnumPickerConfig, NumberPickerConfig } from '@features/inputs/configs';
 import { InputType, MobType, SpellSchool, Stat, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { translateMobType, translateSpellSchool, translateStat, translateTargetInputLabel, translateTargetInputTooltip } from '@i18n/localization';
@@ -5,9 +6,6 @@ import type { Encounter } from '@sim/raid/encounter';
 import { subscribeEncounterField } from '@sim/state/subscriptions';
 import { distinct } from '@sim/utils/collections';
 import { randomUUID } from '@sim/utils/misc';
-import type { BooleanPickerConfig } from '@ui-kit/BooleanPicker/types';
-import type { EnumPickerConfig } from '@ui-kit/EnumPicker/types';
-import type { NumberPickerConfig } from '@ui-kit/NumberPicker/types';
 
 import { trackEvent, type TrackEventProps } from '../../../../../tracking/utils';
 

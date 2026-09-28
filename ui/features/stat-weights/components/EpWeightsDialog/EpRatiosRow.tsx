@@ -1,8 +1,8 @@
+import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 
@@ -34,7 +34,7 @@ export const EpRatiosRow = ({ columns, player, onComputeEp, showThreatMetrics }:
 							'text-right',
 							column.type === 'weight' ? 'in-data-[stats-type=ep]:hidden' : 'in-data-[stats-type=weight]:hidden',
 						)}>
-						<NumberPicker
+						<BoundNumberPicker
 							modObject={player}
 							config={{
 								id: `ep-ratio-${column.type}-${column.ratioIndex}`,
