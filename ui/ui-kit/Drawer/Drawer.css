@@ -1,0 +1,9 @@
+@layer components {
+	.ui-drawer {
+		@apply fixed fade-in-out outline-none motion-reduce:transition-none;
+	}
+
+	.ui-drawer-header {
+		@apply mb-4 flex shrink-0 items-center gap-2 border-b border-border pb-4;
+	}
+}

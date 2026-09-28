@@ -28,9 +28,30 @@ const DialogStory = ({ trigger = 'Open dialog', open: initialOpen, onOpenChange,
 	);
 };
 
+const PreventCloseStory = ({ open: initialOpen, onOpenChange, ...props }: DialogProps) => {
+	const [open, setOpen] = useState(initialOpen);
+	return (
+		<>
+			<Button onClick={() => setOpen(true)}>Open dialog</Button>
+			<Dialog
+				{...props}
+				open={open}
+				onOpenChange={onOpenChange}
+				preventClose
+				footer={
+					<Button variant="cancel" onClick={() => setOpen(false)}>
+						Stop
+					</Button>
+				}
+			/>
+		</>
+	);
+};
+
 const meta = {
 	title: 'Kit/Dialog',
 	component: Dialog,
+	tags: ['autodocs'],
 	args: {
 		open: false,
 		onOpenChange: fn(),
@@ -75,6 +96,33 @@ export const Elevated: Story = {
 	args: {
 		children: <DialogStory open={false} onOpenChange={fn()} elevated title="Elevated" trigger="Open elevated dialog" />,
 	},
+};
+
+export const VerticalAlignTop: Story = {
+	args: { verticalAlign: 'top' },
+};
+
+export const VerticalAlignCenter: Story = {
+	args: { verticalAlign: 'center' },
+};
+
+export const ScrollContents: Story = {
+	args: {
+		scrollContents: true,
+		title: 'Long list',
+		children: (
+			<ol className="m-0">
+				{Array.from({ length: 60 }, (_, index) => (
+					<li key={index}>Row {index + 1}</li>
+				))}
+			</ol>
+		),
+	},
+};
+
+export const PreventClose: Story = {
+	render: args => <PreventCloseStory {...args} />,
+	args: { title: 'Simulating', children: <p>No close button, no Escape, no backdrop press: only the footer ends it.</p> },
 };
 
 export const Opens: Story = {

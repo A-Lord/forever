@@ -99,6 +99,11 @@ describe('Popover', () => {
 		expect(trigger.classList.contains('suggest-reforges-button-settings')).toBe(true);
 	});
 
+	it('paints its popup with the surface it shares with Menu', () => {
+		openPopover();
+		expect(screen.getByRole('dialog').classList.contains('ui-popup-surface')).toBe(true);
+	});
+
 	it('opens on hover when openOnHover is set', () => {
 		const onOpenChange = vi.fn();
 		renderPopover({ openOnHover: true, delay: 0, onOpenChange });
