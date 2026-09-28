@@ -5,8 +5,9 @@ import { usePlayer } from '@sim/context/SimHostContext';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { subscribePlayerChange } from '@sim/state/subscriptions';
-import { FieldLabel } from '@ui-kit/FormControl';
-import { type ReactNode, useId } from 'react';
+import type { ReactNode } from 'react';
+
+import { ConsumeRowView } from './ConsumeRowView';
 
 export type ConsumeRowConfig = IconEnumPickerConfig<Player<any>, any> | IconPickerConfig<Player<any>, any>;
 
@@ -23,7 +24,6 @@ export interface ConsumeRowProps {
 
 export const ConsumeRow = ({ name, configs, hidden = false, children }: ConsumeRowProps) => {
 	const player = usePlayer();
-	const labelId = useId();
 	const shown = useStoreSubscribe(subscribePlayerChange(player), () => !configs || configs.some(config => rowConfigShown(config, player)));
 
 	// Hide, never unmount. Vanilla's updateRow only toggled a `hide` class, which kept every
@@ -31,18 +31,8 @@ export const ConsumeRow = ({ name, configs, hidden = false, children }: ConsumeR
 	// when the player can no longer use it, and restores the value if they can again. Returning
 	// null here skips that effect entirely, so a stale selection survives in the proto.
 	return (
-		<div
-			className="ui-field"
-			data-testid="consumes-row"
-			data-input-root=""
-			data-layout="inline"
-			role="group"
-			aria-labelledby={labelId}
-			hidden={hidden || !shown}>
-			<FieldLabel as="span" id={labelId}>
-				{i18n.t(`settings_tab.consumables.${name}.title`)}
-			</FieldLabel>
+		<ConsumeRowView label={i18n.t(`settings_tab.consumables.${name}.title`)} hidden={hidden || !shown}>
 			{children}
-		</div>
+		</ConsumeRowView>
 	);
 };
