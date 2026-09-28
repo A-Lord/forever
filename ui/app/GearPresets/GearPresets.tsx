@@ -19,8 +19,8 @@ import { SavedDataPanel } from '@ui-kit/SavedDataPanel';
 import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId, useMemo } from 'react';
 
-import { buildCategories, isBuildActive } from '../preset_build_state';
-import type { PresetBuild } from '../preset_utils';
+import { isBuildActive } from '../preset_build_state';
+import { PresetBuildTooltip } from '../PresetBuildTooltip';
 import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
 import { PresetGroupPicker, usePresetFilterPhase } from '../PresetGroupPicker';
 
@@ -178,14 +178,3 @@ const GroupedGearPresets = () => {
 		</div>
 	);
 };
-
-const PresetBuildTooltip = ({ build }: { build: PresetBuild }) => (
-	<>
-		<p className="mb-1">{i18n.t('common.preset.description')}</p>
-		<ul className="mb-0">
-			{buildCategories(build).map(category => (
-				<li key={category}>{category}</li>
-			))}
-		</ul>
-	</>
-);
