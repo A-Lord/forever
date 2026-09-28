@@ -101,6 +101,15 @@ describe('Field', () => {
 		expect(await screen.findByText('Seconds of human reaction time')).toBeTruthy();
 	});
 
+	it('anchors a labelTooltip to the label when the field has no id', async () => {
+		render(<Field label="Cast Delay" labelTooltip="Seconds of human reaction time" />);
+		const label = screen.getByTestId('form-label');
+		expect(label.getAttribute('data-tooltip-id')).toBeTruthy();
+
+		fireEvent.mouseEnter(label);
+		expect(await screen.findByText('Seconds of human reaction time')).toBeTruthy();
+	});
+
 	it('shows an Element labelTooltip on hover', async () => {
 		const tooltip = document.createElement('span');
 		tooltip.textContent = 'Built elsewhere';
