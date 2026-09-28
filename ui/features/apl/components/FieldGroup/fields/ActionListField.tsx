@@ -1,8 +1,8 @@
 import { ActionPicker } from '@features/apl/components/ActionPicker';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import type { InputConfig } from '@features/inputs/input';
 import { APLAction } from '@generated/proto/apl';
 import type { Player } from '@sim/player/player';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 export interface ActionListFieldProps {
 	player: Player<any>;
@@ -28,7 +28,7 @@ export const ActionListField = ({ player, config }: ActionListFieldProps) => {
 	};
 
 	return (
-		<ListPicker<Player<any>, APLAction>
+		<BoundListPicker<Player<any>, APLAction>
 			modObject={player}
 			config={listConfig}
 			renderItem={(_index, itemConfig) => <ActionPicker player={player} config={itemConfig} />}

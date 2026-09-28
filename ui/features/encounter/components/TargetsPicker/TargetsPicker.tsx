@@ -1,9 +1,8 @@
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import { Target as TargetProto } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { Encounter } from '@sim/raid/encounter';
 import { subscribeEncounterField } from '@sim/state/subscriptions';
-import type { ListPickerConfig } from '@ui-kit/ListPicker';
-import { ListPicker } from '@ui-kit/ListPicker';
 import { useMemo } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
@@ -36,7 +35,7 @@ export const TargetsPicker = ({ encounter }: TargetsPickerProps) => {
 	);
 
 	return (
-		<ListPicker<Encounter, TargetProto>
+		<BoundListPicker<Encounter, TargetProto>
 			modObject={encounter}
 			config={config}
 			renderItem={targetIndex => <TargetPicker encounter={encounter} targetIndex={targetIndex} />}

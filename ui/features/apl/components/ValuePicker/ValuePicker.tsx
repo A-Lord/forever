@@ -12,7 +12,7 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
 import type { DropdownOption } from '@ui-kit/DropdownPicker';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import { memo, useEffect, useId, useMemo } from 'react';
 
 import { FieldGroup } from '../FieldGroup';
@@ -37,7 +37,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	const kindId = useId();
 	const { isPrepull, isGroup, changeSource } = useApl();
 
-	const { value, hidden, disabled, shellConfig } = useAplInput(player, config);
+	const { value, hidden, disabled, chrome } = useAplInput(player, config);
 	const kind = value?.value.oneofKind;
 
 	// A value loaded from a preset or an import may carry no uuid, and the sim keys its per-value
@@ -82,12 +82,12 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 		},
 	});
 
+	if (hidden) return null;
 	return (
-		<PickerShell
-			config={shellConfig}
-			className="ui-apl-value-picker-root m-0 flex-row gap-2"
+		<Field
+			{...chrome}
+			className={['ui-apl-value-picker-root m-0 flex-row gap-2', chrome.className]}
 			testId={testId ?? 'apl-value-picker-root'}
-			hidden={hidden}
 			disabled={disabled}>
 			<BoundDropdown<Player<any>, APLValueKind>
 				modObject={player}
@@ -97,6 +97,6 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 				triggerClassName="p-0"
 			/>
 			{kind && <FieldGroup key={kind} player={player} config={implConfig(kind)} fields={valueKinds[kind].fields} />}
-		</PickerShell>
+		</Field>
 	);
 });

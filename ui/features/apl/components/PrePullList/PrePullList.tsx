@@ -3,12 +3,12 @@ import { ListItemHeader } from '@features/apl/components/ListItemHeader';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { AplProvider } from '@features/apl/context/AplContext';
 import { rotationSource } from '@features/apl/utils';
+import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
 import { APLPrepullAction, APLValue } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import { ListPicker, type ListPickerConfig } from '@ui-kit/ListPicker';
 
 const AT_PULL = () => APLValue.create({ value: { oneofKind: 'const', const: { val: '-1s' } }, uuid: { value: randomUUID() } });
 
@@ -36,7 +36,7 @@ export const PrePullList = () => {
 	return (
 		<AplProvider isPrepull>
 			<div>
-				<ListPicker<Player<any>, APLPrepullAction>
+				<BoundListPicker<Player<any>, APLPrepullAction>
 					modObject={player}
 					config={config}
 					renderItem={(_index, itemConfig) => (

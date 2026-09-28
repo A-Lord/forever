@@ -214,9 +214,14 @@ mutate in place and call `touchRotation` themselves — either form is fine, but
 replace-on-write, so re-reading state inside the closure hands you a stale object and your edit
 disappears.
 
-**Lists.** A picker that hands a list to `ListPicker` must return a COPY from `getValue`
-(`.slice()`), never the live store array. `ListPicker.tsx` splices the array `getValue` returns, in
-place, and relies on the store notification to re-render, deliberately. Confirm with `/usr/bin/grep -n splice ui/ui-kit/ListPicker/ListPicker.tsx`.
+**Lists.** The list hands `onChange` a copy; the source's notification re-renders. `ListPicker`
+never mutates the `items` it is given: create, delete, copy, a move, a drag in or out and an item
+write each build a fresh array. `BoundListPicker`
+(`ui/features/inputs/components/BoundListPicker/`) passes that copy to `config.setValue`, so a
+config's `getValue` may return the live store array and its `setValue` assigns the new one
+(`rotation.priorityList = next`, `setTargets(next)`) and notifies. Each row's binding re-reads
+`config.getValue` and finds its item by key, so a row keeps its item through a reorder and through a
+source that hands back clones. Confirm with `/usr/bin/grep -n "slice()" ui/ui-kit/ListPicker/ListPicker.tsx`.
 
 ## Adding a field
 

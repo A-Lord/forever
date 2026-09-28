@@ -2,7 +2,7 @@ import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -105,12 +105,15 @@ describe('makeBooleanIconInput', () => {
 	});
 });
 
-// A spec-level icon input's label and its tooltip are rendered only by PickerShell, so a factory that
+// A spec-level icon input's label and its tooltip are rendered only by its Field, so a factory that
 // drops either leaves no type error behind — the picker simply comes out unlabelled.
 describe('icon input factories', () => {
 	const label = 'Primary option';
 	const labelTooltip = 'What the primary option controls.';
 	const chrome = { label, labelTooltip };
+	const fieldFor = (config: any, id: string = config.id) => (
+		<Field id={id} label={config.label} labelTooltip={config.labelTooltip} className="ui-icon-field" iconField />
+	);
 
 	const factories: Record<string, () => { label?: string; labelTooltip?: unknown }> = {
 		makeClassOptionsBooleanIconInput: () =>
@@ -132,8 +135,8 @@ describe('icon input factories', () => {
 		});
 		render(
 			<>
-				<PickerShell config={factories.makeRotationEnumIconInput() as any} className="ui-icon-field" hidden={false} disabled={false} />
-				<PickerShell config={other as any} className="ui-icon-field" hidden={false} disabled={false} />
+				{fieldFor(factories.makeRotationEnumIconInput())}
+				{fieldFor(other)}
 			</>,
 		);
 
@@ -142,9 +145,8 @@ describe('icon input factories', () => {
 		expect(screen.queryByText('What the secondary option controls.')).toBeNull();
 	});
 
-	it.each(Object.keys(factories))('carries a label and its tooltip through %s into the shell', async name => {
-		const config = factories[name]();
-		render(<PickerShell config={{ ...config, id: 'icon-input' } as any} className="ui-icon-field" hidden={false} disabled={false} />);
+	it.each(Object.keys(factories))('carries a label and its tooltip through %s into its Field', async name => {
+		render(fieldFor(factories[name](), 'icon-input'));
 
 		expect(screen.getByTestId('form-label').textContent).toBe(label);
 		fireEvent.mouseEnter(screen.getByText(label));

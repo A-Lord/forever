@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { actionEnabled, canDeleteAt, carryId, dropIndex, isInteractiveTarget, keyFor, listItemClassName, moveItem } from './utils';
+import { actionEnabled, canDeleteAt, carryId, dropIndex, isInteractiveTarget, keyFor, listItemClassName, moveItem, reconcileIds } from './utils';
 
 describe('listItemClassName', () => {
 	it('kebab-cases the label, agreeing with the vanilla list on every label a caller passes', () => {
@@ -130,6 +130,52 @@ describe('carryId', () => {
 	it('does nothing for a nullish old or new item', () => {
 		expect(() => carryId(undefined, { name: 'a' })).not.toThrow();
 		expect(() => carryId({ name: 'a' }, undefined)).not.toThrow();
+	});
+});
+
+describe('reconcileIds', () => {
+	it('carries each id onto the clone at the same index', () => {
+		const prev = [{ name: 'a' }, { name: 'b' }];
+		const ids = prev.map(keyFor);
+		const clones = prev.map(item => ({ ...item }));
+
+		reconcileIds(prev, clones);
+
+		expect(clones.map(keyFor)).toEqual(ids);
+	});
+
+	it('leaves an object that is still in the list with its own id', () => {
+		const a = { name: 'a' };
+		const b = { name: 'b' };
+		const idA = keyFor(a, 0);
+		const idB = keyFor(b, 1);
+
+		reconcileIds([a, b], [b, a]);
+
+		expect([keyFor(b, 0), keyFor(a, 1)]).toEqual([idB, idA]);
+	});
+
+	it('mints a fresh id for an item past the end of the previous list', () => {
+		const prev = [{ name: 'a' }];
+		const idA = keyFor(prev[0], 0);
+		const next = [{ name: 'a' }, { name: 'b' }];
+
+		reconcileIds(prev, next);
+
+		expect(keyFor(next[0], 0)).toBe(idA);
+		expect(keyFor(next[1], 1)).not.toBe(idA);
+	});
+
+	it('does nothing without a previous list, and gives the same answer when run twice', () => {
+		const prev = [{ name: 'a' }];
+		const idA = keyFor(prev[0], 0);
+		const clone = [{ name: 'a' }];
+
+		reconcileIds(null, clone);
+		reconcileIds(prev, clone);
+		reconcileIds(prev, clone);
+
+		expect(keyFor(clone[0], 0)).toBe(idA);
 	});
 });
 
