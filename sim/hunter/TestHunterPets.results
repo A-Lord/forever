@@ -86,8 +86,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Beastmaster'sCap-22013"
  value: {
-  dps: 480.17396
-  tps: 262.79067
+  dps: 450.88786
+  tps: 248.99757
   dtps: 2.49108
  }
 }
