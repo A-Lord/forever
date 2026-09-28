@@ -75,6 +75,23 @@ export interface SpellStats {
 	id: ActionId;
 }
 
+/**
+ * Drops the rank from every id no other entry shares at another rank, so only a spell the sim
+ * registers at several ranks reads "(Rank N)" and gets a rank submenu. Entries are the same spell
+ * when they share `nameOf` and the tag.
+ */
+export const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>, nameOf: (id: ActionId) => string = id => id.baseName): Array<T> => {
+	const keyOf = (id: ActionId) => `${nameOf(id)}|${id.tag}`;
+	const ranks = new Map<string, Set<number>>();
+	for (const { id } of entries) {
+		if (!id.hasRank) continue;
+		const key = keyOf(id);
+		if (!ranks.has(key)) ranks.set(key, new Set());
+		ranks.get(key)!.add(id.rank);
+	}
+	return entries.map(entry => (entry.id.hasRank && ranks.get(keyOf(entry.id))!.size < 2 ? { ...entry, id: entry.id.withoutRank() } : entry));
+};
+
 export class UnitMetadata {
 	private name: string;
 	private auras: Array<AuraStats>;
@@ -115,8 +132,8 @@ export class UnitMetadata {
 
 		await Promise.all([...newSpells, ...newAuras].map(newSpell => newSpell.id.fill().then(newId => (newSpell.id = newId))));
 
-		newSpells = newSpells.sort((a, b) => stringComparator(a.id.name, b.id.name));
-		newAuras = newAuras.sort((a, b) => stringComparator(a.id.name, b.id.name));
+		newSpells = dropLoneRanks(newSpells).sort((a, b) => stringComparator(a.id.name, b.id.name));
+		newAuras = dropLoneRanks(newAuras).sort((a, b) => stringComparator(a.id.name, b.id.name));
 
 		let anyUpdates = false;
 		if (metadata.name != this.name) {

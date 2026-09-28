@@ -160,7 +160,7 @@ func (mage *Mage) registerIceLance() {
 // target's movement speed by 40% for 1.5 sec."
 //
 // The slow (12484) does nothing to a boss; what the talent changes is that Blizzard becomes a Chill
-// effect, which isChill reads for Fingers of Frost. Blizzard itself is not registered yet.
+// effect, which isChill reads for Fingers of Frost.
 func (mage *Mage) registerImprovedBlizzard() {
 	if mage.Talents.ImprovedBlizzard == 0 {
 		return

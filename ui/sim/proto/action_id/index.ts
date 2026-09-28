@@ -682,6 +682,20 @@ export class ActionId {
 		});
 	}
 
+	withoutRank(): ActionId {
+		return new ActionId({
+			itemId: this.itemId,
+			spellId: this.spellId,
+			otherId: this.otherId,
+			tag: this.tag,
+			baseName: this.baseName,
+			name: this.nameWithoutRank,
+			iconUrl: this.iconUrl,
+			randomSuffixId: this.randomSuffixId,
+			definitionId: this.definitionId,
+		});
+	}
+
 	static fromEmpty(): ActionId {
 		return new ActionId();
 	}
