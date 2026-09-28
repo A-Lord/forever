@@ -9,4 +9,7 @@ type Extra struct {
 }
 
 // The spells the generator adds to the store's roots by hand.
-var ExtraSpells = []Extra{}
+var ExtraSpells = []Extra{
+	{SpellID: 1293697, Reason: "Demonic Brand's Shadow damage when a demon consumes the brand; nothing links it to the talent", Source: "Spell 1293697 description"},
+	{SpellID: 1293698, Reason: "Demonic Brand's Fire damage when a demon consumes the brand; nothing links it to the talent", Source: "Spell 1293698 description"},
+}

@@ -52,6 +52,8 @@ type Warlock struct {
 	// Auras
 	AmplifyCurseAura       *core.Aura
 	AmplifyCurseMultiplier float64
+
+	DemonicBrandAuras      core.AuraArray
 	NightfallProcAura      *core.Aura
 	ShadowEmbraceAura      *core.Aura
 	DemonicKnowledgeAura   *core.Aura
@@ -69,8 +71,8 @@ type Warlock struct {
 
 	serviceTimer *core.Timer
 
-	DemonicKnowledgeDep   *stats.StatDependency
-	DemonicKnowledgeBonus float64
+	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
+	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
 
 	CorruptionTickBaseDamage float64
 	ImmolateTickBaseDamage   float64
@@ -150,11 +152,7 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 
 	core.FillTalentsProto(warlock.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
 
-	// Sacrificing needs Demonic Sacrifice: without it, clear the option once here so every check of it
-	// (pet registration, the pet talents, Demonic Sacrifice itself) agrees the pet stays.
-	if !warlock.Talents.DemonicSacrifice {
-		warlock.Options.SacrificeSummon = false
-	}
+	warlock.resolveSacrifice()
 
 	if raid.Debuffs != nil {
 		// Matches GetAssignedCurse: anything but Recklessness is Elements.
@@ -169,13 +167,34 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	warlock.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	warlock.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
 
-	if !warlock.Options.SacrificeSummon {
-		warlock.registerPets()
-	}
+	warlock.registerPets()
 
 	warlock.T5_4PC_Multiplier = make(map[int32]map[*core.Spell]float64)
 
 	return warlock
+}
+
+// Settles which demon is sacrificed and which is out, once, so everything after reads them as settled:
+//   - Older settings name no sacrificed demon but set sacrifice_summon: the summoned demon is sacrificed.
+//   - Without Demonic Sacrifice, nothing is sacrificed.
+//   - Without Demonic Pact, summoning any demon cancels the effect, so no demon is out.
+//   - With it, the demon out may be another; resummoning the sacrificed one still cancels the effect.
+func (warlock *Warlock) resolveSacrifice() {
+	options := warlock.Options
+	if options.SacrificedDemon == proto.WarlockOptions_NoSummon && options.SacrificeSummon {
+		options.SacrificedDemon, options.Summon = options.Summon, proto.WarlockOptions_NoSummon
+	}
+	options.SacrificeSummon = false
+
+	switch {
+	case !warlock.Talents.DemonicSacrifice:
+		options.SacrificedDemon = proto.WarlockOptions_NoSummon
+	case options.SacrificedDemon == proto.WarlockOptions_NoSummon:
+	case !warlock.Talents.DemonicPact:
+		options.Summon = proto.WarlockOptions_NoSummon
+	case options.Summon == options.SacrificedDemon:
+		options.SacrificedDemon = proto.WarlockOptions_NoSummon
+	}
 }
 
 // Returns the number of this warlock's affliction effects active on the target, for Soul Siphon.

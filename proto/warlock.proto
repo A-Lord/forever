@@ -93,13 +93,17 @@ message WarlockOptions {
 		reserved "Agony", "Doom";
 	}
 
+	// The demon out. With a sacrifice and no Demonic Pact, none is: summoning any demon cancels the effect.
 	Summon summon = 1;
 	bool detonate_seed = 2;
 	bool use_item_swap_bonus_stats = 3 [deprecated = true];
-	bool sacrifice_summon = 5;
+	// Replaced by sacrificed_demon; still read for older settings, as the summoned demon sacrificed.
+	bool sacrifice_summon = 5 [deprecated = true];
 	Armor armor = 4;
 	PetOptions pet_options = 6;
 	CurseOptions curse_options = 7;
+	// The demon Demonic Sacrifice sacrifices, NoSummon for none.
+	Summon sacrificed_demon = 8;
 }
 
 message Warlock {

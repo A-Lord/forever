@@ -35060,6 +35060,14 @@ var generatedSpells = []Spell{
 			{ID: 1314598, SpellID: 1293696, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BaseLevel: 26, MaxLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1314616, SpellID: 1293696, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 1, BaseLevel: 26, MaxLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
+	{ID: 1293697, Name: "Demonic Brand", School: 32, Attr: [17]uint32{3: 0x40000, 15: 0x2000}, SpellLevel: 26, BaseLevel: 26, MaxLevel: 60, MaxRange: 100, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 5}, Labels: []int16{19},
+		Effects: []Effect{
+			{ID: 1314600, SpellID: 1293697, Type: dbcenums.E_SCHOOL_DAMAGE, BaseLevel: 26, MaxLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
+	{ID: 1293698, Name: "Demonic Brand", School: 4, Attr: [17]uint32{3: 0x40000, 15: 0x2000}, SpellLevel: 26, BaseLevel: 26, MaxLevel: 60, MaxRange: 100, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 5}, Labels: []int16{19},
+		Effects: []Effect{
+			{ID: 1314601, SpellID: 1293698, Type: dbcenums.E_SCHOOL_DAMAGE, BaseLevel: 26, MaxLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 1293733, Name: "Scarlet Guardian", School: 2, Attr: [17]uint32{0: 0x40000, 8: 0x1000, 15: 0x2000}, DurationMs: 10000, MaxRange: 100, DefenseType: 1, DispelType: 1,
 		Effects: []Effect{
 			{ID: 1314684, SpellID: 1293733, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_SCHOOL_ABSORB, BasePoints: 480, PvpMult: 1, Misc: 127, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

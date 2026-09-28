@@ -183,28 +183,36 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 		})
 	}
 
-	// The talents that follow the demon that is out, once their auras are registered
+	// The warlock's effects that last while a demon is out
 	pet.OnPetEnable = func(sim *core.Simulation) {
-		if warlock.DemonicKnowledgeAura != nil {
-			warlock.DemonicKnowledgeAura.Activate(sim)
-			warlock.updateDemonicKnowledge(sim)
-		}
-		if warlock.MasterDemonologistAura != nil {
-			if warlock.MasterDemonologistAura.IsActive() {
-				warlock.MasterDemonologistAura.Deactivate(sim)
-			}
-			warlock.MasterDemonologistAura.Activate(sim)
+		for _, aura := range warlock.petActiveAuras {
+			aura.Activate(sim)
 		}
 	}
 	pet.OnPetDisable = func(sim *core.Simulation) {
-		if warlock.DemonicKnowledgeAura != nil {
-			warlock.updateDemonicKnowledge(sim)
-			warlock.DemonicKnowledgeAura.Deactivate(sim)
+		for _, aura := range warlock.petActiveAuras {
+			aura.Deactivate(sim)
 		}
 	}
 
 	warlock.AddPet(pet)
 	return pet
+}
+
+// The demons registered, which is none when the warlock sacrifices its demon.
+func (warlock *Warlock) demons() []*WarlockPet {
+	demons := []*WarlockPet{}
+	for _, pet := range []*WarlockPet{warlock.Imp, warlock.Voidwalker, warlock.Succubus, warlock.Felhunter} {
+		if pet != nil {
+			demons = append(demons, pet)
+		}
+	}
+	return demons
+}
+
+// An effect of the warlock's that lasts while a demon is out, gained and lost with it.
+func (warlock *Warlock) addPetActiveAura(aura *core.Aura) {
+	warlock.petActiveAuras = append(warlock.petActiveAuras, aura)
 }
 
 func (pet *WarlockPet) GetPet() *core.Pet {
@@ -221,6 +229,10 @@ func (pet *WarlockPet) Initialize() {
 		pet.registerFirebolt()
 	case proto.WarlockOptions_Succubus:
 		pet.registerLashOfPain()
+	}
+
+	if pet.owner.DemonicBrandAuras != nil {
+		pet.registerDemonicBrand()
 	}
 }
 
@@ -299,4 +311,44 @@ func (pet *WarlockPet) registerLashOfPain() {
 	}
 
 	pet.AutoCastAbilities = append(pet.AutoCastAbilities, pet.RegisterSpell(config))
+}
+
+// --- Demonic Brand ---
+
+// Each of the demon's hits on a target the warlock branded consumes a charge and deals the brand's damage:
+// Fire from the Imp (1293698), Shadow from the others (1293697). The rows state no amount; 1293695's
+// description variables do: ((level - 26) * 1.5 + 14 to 17 + 0.078 * the warlock's better of Shadow and
+// Fire spell power), times Master Demonologist's and Unholy Power's bonuses, which the demon's own damage
+// multipliers already apply.
+// TODO: Imp as Fire and the others as Shadow, every hit as an attack, and the hit and crit roll are assumed;
+// the 1 Physical damage row (1293699), a threat marker, is left out.
+func (pet *WarlockPet) registerDemonicBrand() {
+	warlock := pet.owner
+
+	brandRow := spelldata.MustFind(1293697)
+	if pet.summon == proto.WarlockOptions_Imp {
+		brandRow = spelldata.MustFind(1293698)
+	}
+	brandHit := pet.RegisterSpell(spelldata.SpellConfig(&pet.Unit, brandRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc()))
+
+	core.MakePermanent(pet.RegisterAura(core.Aura{
+		Label: "Demonic Brand - Consume",
+		OnSpellHitDealt: func(_ *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			if spell == brandHit || !result.Landed() {
+				return
+			}
+			brand := warlock.DemonicBrandAuras.Get(result.Target)
+			if !brand.IsActive() {
+				return
+			}
+			brand.RemoveStack(sim)
+			if brand.GetStacks() == 0 {
+				brand.Deactivate(sim)
+			}
+
+			spellPower := warlock.GetStat(stats.SpellDamage) + max(warlock.GetStat(stats.ShadowDamage), warlock.GetStat(stats.FireDamage))
+			base := float64(warlock.Level-int32(brandRow.BaseLevel))*1.5 + 0.078*spellPower
+			brandHit.CalcAndDealDamage(sim, result.Target, sim.Roll(base+14, base+17), brandHit.OutcomeMagicHitAndCrit)
+		},
+	}))
 }
