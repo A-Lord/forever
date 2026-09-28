@@ -1,234 +1,183 @@
-import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { type Ref, useImperativeHandle, useState } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { NumberListPicker } from './NumberListPicker';
-import type { NumberListPickerConfig } from './types';
+import type { NumberListPickerProps } from './types';
 
-// Stands in for a domain facade: a value plus the (onChange) => unsubscribe contract every
-// storeSubscribe helper in state/subscriptions.ts returns.
-class Settings {
-	private listeners = new Set<() => void>();
-	/** Counts writes through the config, so "committed nothing" is testable. */
-	writes = 0;
-	constructor(public value: Array<number> = []) {}
-	set(next: Array<number>) {
-		this.value = next;
-		this.notify();
-	}
-	/** Fires a notification without touching the value — what a batch() on a sibling slice looks like. */
-	notify() {
-		this.listeners.forEach(listener => listener());
-	}
-	readonly subscribe: StoreSubscribe = listener => {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	};
-	get listenerCount() {
-		return this.listeners.size;
-	}
+interface HarnessHandle {
+	set: (next: Array<number>) => void;
 }
 
-const configFor = (extra: Partial<NumberListPickerConfig<Settings>> = {}): NumberListPickerConfig<Settings> => ({
-	id: 'thresholds',
-	label: 'Thresholds',
-	storeSubscribe: settings => settings.subscribe,
-	getValue: settings => settings.value,
-	setValue: (settings, value) => {
-		settings.writes++;
-		settings.set(value);
-	},
-	...extra,
-});
+type HarnessProps = Partial<Omit<NumberListPickerProps, 'value' | 'onChange'>> & {
+	initial?: Array<number>;
+	onChange?: (next: Array<number>) => void;
+	/** What the caller keeps of a reported value; `null` keeps nothing. */
+	keep?: (next: Array<number>) => Array<number> | null;
+	handle?: Ref<HarnessHandle>;
+};
+
+const Harness = ({ initial = [], onChange = () => {}, keep = next => next, handle, ...props }: HarnessProps) => {
+	const [value, setValue] = useState(initial);
+	useImperativeHandle(handle, () => ({ set: setValue }));
+	return (
+		<NumberListPicker
+			id="thresholds"
+			label="Thresholds"
+			{...props}
+			value={value}
+			onChange={next => {
+				onChange(next);
+				const kept = keep(next);
+				if (kept) setValue(kept);
+			}}
+		/>
+	);
+};
 
 const input = () => screen.getByRole('textbox') as HTMLInputElement;
+const handleRef = () => ({ current: null as HarnessHandle | null });
 
 describe('NumberListPicker', () => {
-	it('shows the source value and writes back through setValue on commit', () => {
-		const settings = new Settings([1, 2, 3]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+	it('shows the value and reports the committed list through onChange', () => {
+		const onChange = vi.fn();
+		render(<Harness initial={[1, 2, 3]} onChange={onChange} />);
 		expect(input().value).toBe('1,2,3');
 
 		fireEvent.change(input(), { target: { value: '4,5' } });
-		expect(settings.value).toEqual([4, 5]);
+		expect(onChange).toHaveBeenCalledExactlyOnceWith([4, 5]);
 		expect(input().value).toBe('4,5');
 	});
 
-	it('re-renders when the source changes underneath it', () => {
-		const settings = new Settings([1]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
-		act(() => settings.set([9, 10]));
+	it('re-renders when the value changes underneath it', () => {
+		const handle = handleRef();
+		render(<Harness initial={[1]} handle={handle} />);
+		act(() => handle.current!.set([9, 10]));
 		expect(input().value).toBe('9,10');
 	});
 
-	it('subscribes once and unsubscribes on unmount', () => {
-		const settings = new Settings();
-		const { unmount } = render(<NumberListPicker modObject={settings} config={configFor()} />);
-		expect(settings.listenerCount).toBe(1);
-		unmount();
-		expect(settings.listenerCount).toBe(0);
-	});
-
-	it('renders nothing when showWhen is false', () => {
-		const settings = new Settings();
-		const { container } = render(<NumberListPicker modObject={settings} config={configFor({ showWhen: () => false })} />);
-		expect(container.querySelector('[data-testid="number-list-picker-root"]')).toBeNull();
-		expect(screen.queryByRole('textbox')).toBeNull();
-	});
-
-	it('disables the input and marks the root when enableWhen is false', () => {
-		const settings = new Settings();
-		render(<NumberListPicker modObject={settings} config={configFor({ enableWhen: () => false })} />);
+	it('disables the input and marks the root when disabled', () => {
+		render(<Harness disabled />);
 		expect(input().disabled).toBe(true);
 		expect(input().closest('[data-testid="number-list-picker-root"]')!.hasAttribute('data-disabled')).toBe(true);
 	});
 
 	it('renders the same shape as the vanilla picker: label, description, then the input', () => {
-		const settings = new Settings();
-		const { container } = render(<NumberListPicker modObject={settings} config={configFor({ description: 'Comma separated' })} />);
+		const { container } = render(<Harness description="Comma separated" className="extra-root-class" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('number-list-picker-root');
 		expect(root.hasAttribute('data-input-root')).toBe(true);
+		expect(root.classList.contains('extra-root-class')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
 		expect(root.querySelector('label')!.className).toBe('ui-picker-label');
+		expect(root.querySelector('label')!.getAttribute('for')).toBe('thresholds');
+		expect(input().id).toBe('thresholds');
 		expect(input().className.split(' ')).toEqual(expect.arrayContaining(['ui-input']));
 		expect(input().getAttribute('data-testid')).toBe('number-list-picker-input');
 		expect(input().type).toBe('text');
 	});
 
-	it('assigns an empty placeholder attribute when config.placeholder is absent', () => {
-		const settings = new Settings();
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
-		// The attribute must be present (not simply undefined) even with no configured placeholder.
+	it('takes its root test id from testId', () => {
+		render(<Harness testId="custom-root" />);
+		expect(input().closest('[data-testid="custom-root"]')).not.toBeNull();
+	});
+
+	it('assigns an empty placeholder attribute when placeholder is absent', () => {
+		render(<Harness />);
+		// The attribute must be present (not simply undefined) even with no placeholder given.
 		expect(input().getAttribute('placeholder')).toBe('');
 	});
 
-	it('uses config.placeholder as the placeholder text when given', () => {
-		const settings = new Settings();
-		render(<NumberListPicker modObject={settings} config={configFor({ placeholder: 'e.g. 1,2,3' })} />);
+	it('uses placeholder as the placeholder text when given', () => {
+		render(<Harness placeholder="e.g. 1,2,3" />);
 		expect(input().getAttribute('placeholder')).toBe('e.g. 1,2,3');
 	});
 
 	it('reads back an empty string as an empty array', () => {
-		const settings = new Settings([1, 2]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+		const onChange = vi.fn();
+		render(<Harness initial={[1, 2]} onChange={onChange} />);
 		fireEvent.change(input(), { target: { value: '' } });
-		expect(settings.value).toEqual([]);
+		expect(onChange).toHaveBeenCalledExactlyOnceWith([]);
 	});
 
 	it('parses a comma-separated list with parseFloat, dropping entries that parse to NaN', () => {
-		const settings = new Settings([]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+		const onChange = vi.fn();
+		render(<Harness onChange={onChange} />);
 		fireEvent.change(input(), { target: { value: '1,2,x,3' } });
-		expect(settings.value).toEqual([1, 2, 3]);
+		expect(onChange).toHaveBeenCalledExactlyOnceWith([1, 2, 3]);
 	});
 
 	it('parses floats, not just integers', () => {
-		const settings = new Settings([]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+		const onChange = vi.fn();
+		render(<Harness onChange={onChange} />);
 		fireEvent.change(input(), { target: { value: '1.5,2.25' } });
-		expect(settings.value).toEqual([1.5, 2.25]);
+		expect(onChange).toHaveBeenCalledExactlyOnceWith([1.5, 2.25]);
 	});
 
 	// Commits on the native `change` event — blur *after an edit*, and Enter — so a plain focus/blur
-	// writes nothing, and typing alone (the `input` event) does not commit either.
-	it('writes nothing when the field is blurred without an edit', () => {
-		const settings = new Settings([1, 2]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+	// reports nothing, and typing alone (the `input` event) does not commit either.
+	it('reports nothing when the field is blurred without an edit', () => {
+		const onChange = vi.fn();
+		render(<Harness initial={[1, 2]} onChange={onChange} />);
 		fireEvent.focus(input());
 		fireEvent.blur(input());
-		expect(settings.writes).toBe(0);
-		expect(settings.value).toEqual([1, 2]);
+		expect(onChange).not.toHaveBeenCalled();
+		expect(input().value).toBe('1,2');
 	});
 
 	it('does not commit on the input event alone, only on change', () => {
-		const settings = new Settings([1]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+		const onChange = vi.fn();
+		render(<Harness initial={[1]} onChange={onChange} />);
 		fireEvent.input(input(), { target: { value: '5,6' } });
-		expect(settings.writes).toBe(0);
+		expect(onChange).not.toHaveBeenCalled();
 
 		fireEvent.change(input());
-		expect(settings.value).toEqual([5, 6]);
+		expect(onChange).toHaveBeenCalledExactlyOnceWith([5, 6]);
 	});
 
-	// This is the arrayEquals guard from setInputValue: without it, every notification (even one
-	// that leaves the value equal) would stomp the field the user is mid-edit on, e.g. typing the
-	// trailing comma in '1,2,'.
+	// Without the draft, a re-render that leaves the value equal would stomp the field the user is
+	// mid-edit on, e.g. typing the trailing comma in '1,2,'.
 	it('does not rewrite the field while typing an edit that still parses to the current value', () => {
-		const settings = new Settings([1, 2]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+		const handle = handleRef();
+		render(<Harness initial={[1, 2]} handle={handle} />);
 
 		fireEvent.input(input(), { target: { value: '1,2,' } });
-		act(() => settings.set([1, 2]));
+		act(() => handle.current!.set([1, 2]));
 		expect(input().value).toBe('1,2,');
 	});
 
 	it.each([
 		['1,', [1], '1'],
 		['1, 2,', [1, 2], '1,2'],
-	])('normalises %j to the committed value on commit, with one write', (typed, parsed, shown) => {
-		const settings = new Settings([5]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
+	])('normalises %j to the committed value on commit, with one report', (typed, parsed, shown) => {
+		const onChange = vi.fn();
+		render(<Harness initial={[5]} onChange={onChange} />);
 
 		fireEvent.input(input(), { target: { value: typed } });
 		expect(input().value).toBe(typed);
 
 		fireEvent.change(input());
-		expect(settings.value).toEqual(parsed);
-		expect(settings.writes).toBe(1);
+		expect(onChange).toHaveBeenCalledExactlyOnceWith(parsed);
 		expect(input().value).toBe(shown);
 	});
 
-	it('normalises on commit even when the store ignores a write that leaves the value unchanged', () => {
-		const settings = new Settings([1]);
-		const config = configFor({
-			setValue: (target, value) => {
-				target.writes++;
-				if (value.join() !== target.value.join()) target.set(value);
-			},
-		});
-		render(<NumberListPicker modObject={settings} config={config} />);
+	it('normalises on commit even when the caller keeps nothing because the value is unchanged', () => {
+		const onChange = vi.fn();
+		render(<Harness initial={[1]} onChange={onChange} keep={() => null} />);
 
 		fireEvent.input(input(), { target: { value: '1,' } });
 		fireEvent.change(input());
-		expect(settings.writes).toBe(1);
+		expect(onChange).toHaveBeenCalledOnce();
 		expect(input().value).toBe('1');
 	});
 
-	it('shows what the store kept when it rewrites the committed value', () => {
-		const settings = new Settings([]);
-		const config = configFor({
-			setValue: (target, value) => {
-				target.writes++;
-				target.set([...value].sort((a, b) => a - b));
-			},
-		});
-		render(<NumberListPicker modObject={settings} config={config} />);
+	it('shows what the caller kept when it rewrites the committed value', () => {
+		const onChange = vi.fn();
+		render(<Harness onChange={onChange} keep={next => [...next].sort((a, b) => a - b)} />);
 
 		fireEvent.input(input(), { target: { value: '3, 1,' } });
 		fireEvent.change(input());
-		expect(settings.writes).toBe(1);
+		expect(onChange).toHaveBeenCalledOnce();
 		expect(input().value).toBe('1,3');
 	});
-
-	it('re-syncs the field on any notification, even one that does not change the value', () => {
-		const settings = new Settings([7]);
-		render(<NumberListPicker modObject={settings} config={configFor()} />);
-		fireEvent.input(input(), { target: { value: '12,x' } });
-
-		act(() => settings.set([7]));
-		expect(input().value).toBe('7');
-	});
-});
-
-// The value here is an array, so `settings.set([7])` changes the snapshot identity and would re-sync
-// even without `revision`. Only a notification that leaves the value alone tells the two apart.
-it('re-syncs on a notification that does not change the value at all', () => {
-	const settings = new Settings([1, 2]);
-	render(<NumberListPicker modObject={settings} config={configFor()} />);
-	const field = input();
-	field.value = '9,9,9';
-
-	act(() => settings.notify());
-	expect(field.value).toBe('1,2');
 });

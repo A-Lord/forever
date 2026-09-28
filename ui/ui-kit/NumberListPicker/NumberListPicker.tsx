@@ -1,16 +1,10 @@
-import { arrayEquals } from '@sim/utils/collections';
+import { Field } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
 import { useCommitChange } from '@ui-kit/hooks/useCommitChange';
-import { useInput } from '@ui-kit/hooks/useInput';
-import { PickerShell } from '@ui-kit/PickerShell';
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useDraft } from '@ui-kit/hooks/useDraft';
+import { useCallback, useState } from 'react';
 
-import type { NumberListPickerConfig } from './types';
-
-export interface NumberListPickerProps<ModObject> {
-	modObject: ModObject;
-	config: NumberListPickerConfig<ModObject>;
-}
+import type { NumberListPickerProps } from './types';
 
 const parseInputValue = (text: string): Array<number> => {
 	if (!text) return [];
@@ -22,34 +16,29 @@ const parseInputValue = (text: string): Array<number> => {
 
 const formatValue = (value: Array<number>): string => value.map(v => String(v)).join(',');
 
-export const NumberListPicker = <ModObject,>({ modObject, config }: NumberListPickerProps<ModObject>) => {
-	const { value, setValue, hidden, disabled, revision } = useInput(modObject, config);
+export const NumberListPicker = ({ value, onChange, disabled, placeholder, testId, ...chrome }: NumberListPickerProps) => {
 	const [input, setInput] = useState<HTMLInputElement | null>(null);
 	const attachInput = useCallback((element: HTMLElement | null) => setInput(element instanceof HTMLInputElement ? element : null), []);
-
-	useLayoutEffect(() => {
-		if (!input) return;
-		if (arrayEquals(parseInputValue(input.value), value)) return;
-		input.value = formatValue(value);
-	}, [value, revision, input]);
+	const { text, setDraft, clear } = useDraft(formatValue(value));
 
 	useCommitChange(input, committed => {
-		const next = parseInputValue(committed.value);
-		committed.value = formatValue(next);
-		setValue(next);
+		onChange(parseInputValue(committed.value));
+		clear();
 	});
 
 	return (
-		<PickerShell config={config} testId="number-list-picker-root" hidden={hidden} disabled={disabled}>
+		<Field {...chrome} testId={testId ?? 'number-list-picker-root'} disabled={disabled}>
 			<Input
 				type="text"
 				ref={attachInput}
-				id={config.id}
+				id={chrome.id}
 				className="w-full"
 				data-testid="number-list-picker-input"
-				placeholder={config.placeholder || ''}
+				placeholder={placeholder || ''}
 				disabled={disabled}
+				value={text}
+				onChange={event => setDraft(event.target.value)}
 			/>
-		</PickerShell>
+		</Field>
 	);
 };
