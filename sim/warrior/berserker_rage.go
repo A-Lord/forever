@@ -20,6 +20,7 @@ func (warrior *Warrior) registerBerserkerRage() {
 		core.MakePermanent(warrior.RegisterAura(core.Aura{
 			Label:    "Improved Berserker Rage",
 			ActionID: core.ActionID{SpellID: spellData.ImprovedBerserkerRage.Highest().ID}.WithTag(warrior.Talents.ImprovedBerserkerRage),
+			Source:   core.SourceTalent,
 		}))
 	}
 

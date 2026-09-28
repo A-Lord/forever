@@ -71,6 +71,8 @@ type SpellConfig struct {
 	RelatedAuraArrays LabeledAuraArrays
 	RelatedDotSpell   *Spell
 	RelatedSelfBuff   *Aura
+
+	Source ActionSource // Left unset, registration fills in the phase it runs in.
 }
 
 type Spell struct {
@@ -189,6 +191,8 @@ type Spell struct {
 	RelatedAuraArrays LabeledAuraArrays
 	RelatedDotSpell   *Spell
 	RelatedSelfBuff   *Aura
+
+	Source ActionSource
 }
 
 func (unit *Unit) OnSpellRegistered(handler SpellRegisteredHandler) {
@@ -235,6 +239,10 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		config.Cast.CastTime = func(spell *Spell) time.Duration {
 			return spell.Unit.ApplyCastSpeedForSpell(spell.DefaultCast.CastTime, spell)
 		}
+	}
+
+	if config.Source == SourceUnset {
+		config.Source = unit.currentSource()
 	}
 
 	spell := &Spell{
@@ -288,6 +296,8 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		RelatedAuraArrays: config.RelatedAuraArrays,
 		RelatedDotSpell:   config.RelatedDotSpell,
 		RelatedSelfBuff:   config.RelatedSelfBuff,
+
+		Source: config.Source,
 
 		charges:      config.Charges,
 		MaxCharges:   config.Charges,

@@ -73,9 +73,6 @@ export const ActionIdField = ({ player, config, actionIdSet, unitRefField, defau
 			if (!live) return;
 			setAvailable(
 				values
-					// The four `headerText` entries in `action_id_sets.ts` are list padding: they name no
-					// action and have never rendered.
-					.filter(value => !value.headerText)
 					// An entry the sim only accepts in the other list is not offered at all, so no user
 					// action can build a rotation out of one; see `ActionIdOption.listScope`.
 					.filter(value => !value.listScope || value.listScope === (isPrepull ? 'prepull' : 'priority'))

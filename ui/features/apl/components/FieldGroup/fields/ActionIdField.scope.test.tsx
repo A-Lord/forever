@@ -61,7 +61,7 @@ const mount = (isPrepull: boolean) =>
 		</SimHostProvider>,
 	);
 
-/** The spell bucket's own submenu, which is where `castable_spells` files every non-cooldown. */
+/** The Spell submenu, which is where `castable_spells` files every spell the sim gives no category. */
 const openSpellSubmenu = async () => {
 	await act(async () => {
 		fireEvent.click(screen.getByTestId('dropdown-picker-button'));
