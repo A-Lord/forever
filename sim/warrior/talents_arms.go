@@ -331,8 +331,8 @@ func (warrior *Warrior) registerWeaponmaster() {
 			return spell.ProcMask.Matches(swordMask)
 		},
 	}
-	extraAttack := warrior.ExtraAttackProc(&swordTrigger, actionID.SpellID, 1)
-	swordAura := warrior.MakeProcTriggerAura(swordTrigger).ApplyOnInit(extraAttack).ApplyOnInit(func(aura *core.Aura, _ *core.Simulation) {
+	onInit := warrior.ExtraAttackProc(&swordTrigger, actionID.SpellID, 1)
+	swordAura := warrior.MakeProcTriggerAura(swordTrigger).ApplyOnInit(onInit).ApplyOnInit(func(aura *core.Aura, _ *core.Simulation) {
 		aura.OnReset = func(aura *core.Aura, sim *core.Simulation) {
 			if swordMask == core.ProcMaskUnknown {
 				aura.Deactivate(sim)

@@ -20,7 +20,7 @@ func registerSpellDataExtraAttackProc(cfg SpellDataProc) {
 
 func applySpellDataExtraAttackProc(agent core.Agent, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell, row *spelldata.Spell) {
 	character := agent.GetCharacter()
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	onInit := character.ExtraAttackProc(&config, row.ID, int(row.ExtraAttacksEffect().BasePoints))
 	source.registerTrigger(character, config).ApplyOnInit(onInit)
 }

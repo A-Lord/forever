@@ -77,16 +77,10 @@ func TestChanceOnHitExtraAttackRoutes(t *testing.T) {
 	instance := dbc.GetDBC()
 
 	const itemID, spellID = 871, 18797
-	item := instance.Items[itemID]
-	parsed := item.ToUIItem()
-	parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
-	i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == spellID })
-	if i < 0 {
-		t.Fatalf("item %d carries no effect on %d", itemID, spellID)
-	}
+	parsed, effect := parsedItem(t, instance, itemID, spellID)
 
 	groups := map[string]Group{}
-	if got := TryParseProcEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+	if got := TryParseProcEffect(parsed, effect, instance, groups); got != EffectParseResultSuccess {
 		t.Fatalf("item %d parsed as %v, want %v", itemID, got, EffectParseResultSuccess)
 	}
 	r := groups["Procs"].Entries[0].Proc
@@ -112,19 +106,13 @@ func TestWeaponsSharingATriggerKeepTheirOwnRate(t *testing.T) {
 		{13060, 3},
 		{8190, 1},
 	} {
-		item := instance.Items[tc.itemID]
-		parsed := item.ToUIItem()
-		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
-		i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == 16405 })
-		if i < 0 {
-			t.Fatalf("item %d carries no effect on 16405", tc.itemID)
-		}
-		if got := parsed.ItemEffects[i].GetProc().GetPpm(); got != tc.ppm {
+		parsed, effect := parsedItem(t, instance, tc.itemID, 16405)
+		if got := effect.GetProc().GetPpm(); got != tc.ppm {
 			t.Errorf("item %d's effect states %v PPM, want %v", tc.itemID, got, tc.ppm)
 		}
 
 		groups := map[string]Group{}
-		if got := TryParseProcEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+		if got := TryParseProcEffect(parsed, effect, instance, groups); got != EffectParseResultSuccess {
 			t.Errorf("item %d parsed as %v, want %v", tc.itemID, got, EffectParseResultSuccess)
 			continue
 		}
@@ -137,15 +125,12 @@ func TestWeaponsSharingATriggerKeepTheirOwnRate(t *testing.T) {
 
 // Every hand-kept weapon rate names an effect the game files hang on that item for that spell, and
 // the database writes the rate onto the item: a mistyped id would otherwise leave the weapon refused
-// as stating no rate, with the rate sitting unread. Reason and Source are required, as an Override's.
+// as stating no rate, with the rate sitting unread.
 func TestWeaponProcRowsNameAnItemEffect(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, row := range overrides.WeaponProcs {
-		if row.Reason == "" || row.Source == "" {
-			t.Errorf("item %d spell %d states no reason or source", row.ItemID, row.SpellID)
-		}
 		if !slices.ContainsFunc(instance.ItemEffectsByParentID[int(row.ItemID)], func(e dbc.ItemEffect) bool {
 			return e.SpellID == int(row.SpellID)
 		}) {

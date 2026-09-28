@@ -10,11 +10,18 @@ type WeaponProc struct {
 	SpellID int32
 	PPM     float64
 	Reason  string
-	Source  string
+	Source  string // "tbc-carryover", "vanilla-carryover", "wcl:<report>/<fight>", "issue #N"
 }
 
 // Each rate is a carry-over, as its Source says; none has been measured on this server.
 var WeaponProcs = []WeaponProc{
+	{
+		ItemID:  12798,
+		SpellID: 16928,
+		PPM:     1,
+		Reason:  "Annihilator: column reads 101; TBC 1 PPM, unverified on Forever",
+		Source:  "tbc-carryover",
+	},
 	{
 		ItemID:  754,
 		SpellID: 13519,

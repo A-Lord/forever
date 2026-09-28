@@ -179,15 +179,14 @@ func routeProc(triggerSpellID int, buffSpellID int, isWeaponProc bool, itemPPM f
 	}
 
 	trigger := spelldata.Find(int32(triggerSpellID))
-	routing.Unsupported = spelldata.ItemProcUnsupported(trigger, isWeaponProc)
-	if itemPPM > 0 {
-		routing.Unsupported = slices.DeleteFunc(routing.Unsupported, func(reason string) bool {
-			return reason == spelldata.ReasonStatesNoRate
-		})
-	}
-	routing.Summary = procSummary(triggerSpellID, trigger, buffSpellID, itemPPM)
+	routing.Unsupported = spelldata.ItemProcUnsupportedWithRate(trigger, isWeaponProc, itemPPM)
+	routing.Summary = routing.summarize(buffSpellID)
 
 	return routing
+}
+
+func (r *ProcRouting) summarize(buffSpellID int) string {
+	return procSummary(r.TriggerSpellID, spelldata.Find(int32(r.TriggerSpellID)), buffSpellID, r.ItemPPM)
 }
 
 // A proc that grants no stats: it casts or applies spellID, which the game files hang below the
@@ -199,7 +198,7 @@ func (r *ProcRouting) as(shape ProcShape, spellID int32) {
 		r.BuffSpellID = 0
 	}
 	r.Unsupported = append(r.Unsupported, procShapes[shape].unsupported(spelldata.Find(spellID))...)
-	r.Summary = procSummary(r.TriggerSpellID, spelldata.Find(int32(r.TriggerSpellID)), int(spellID), r.ItemPPM)
+	r.Summary = r.summarize(int(spellID))
 }
 
 func pickNoStatShape(spellID int, debuffID int32) (ProcShape, int32) {

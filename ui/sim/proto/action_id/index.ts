@@ -233,14 +233,21 @@ export class ActionId {
 	}
 
 	// An extra attack is a main-hand swing tagged with the spell that granted it, so its name comes
-	// from that spell rather than from a list kept by hand. A tag no spell answers keeps the bare name.
+	// from that spell rather than from a list kept by hand. A tag no spell answers keeps the bare name,
+	// and is remembered so it is not asked for again on every fill.
+	private static readonly extraAttackNames = new Map<number, Promise<string>>();
 	private async fillExtraAttack(): Promise<ActionId> {
-		const spellName = await Database.getSpellIconData(this.tag).then(
-			data => data.name,
-			() => '',
-		);
-		const name = spellName ? `Attack (${spellName})` : this.name;
-		return new ActionId({ otherId: this.otherId, tag: this.tag, name, iconUrl: this.iconUrl });
+		let spellName = ActionId.extraAttackNames.get(this.tag);
+		if (!spellName) {
+			spellName = Database.getSpellIconData(this.tag).then(
+				data => data.name,
+				() => '',
+			);
+			ActionId.extraAttackNames.set(this.tag, spellName);
+		}
+		const name = await spellName;
+		if (!name) return this;
+		return new ActionId({ otherId: this.otherId, tag: this.tag, name: `Attack (${name})`, iconUrl: this.iconUrl });
 	}
 
 	// Returns an ActionId with the name and iconUrl fields filled.

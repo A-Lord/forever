@@ -8,8 +8,8 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// Flurry Axe 871's chance on hit, 18797, grants one extra attack. The row states 1.9 PPM through its
-// override; the tests roll it at 100% instead.
+// Flurry Axe 871's chance on hit, 18797, grants one extra attack. Its item effect states 1.9 PPM; the
+// tests roll it at 100% instead.
 const flurryAxe int32 = 18797
 
 func withExtraAttackWeapon(t *testing.T, itemID int32) {

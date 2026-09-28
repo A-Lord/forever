@@ -3281,7 +3281,7 @@ func RegisterAllProcs() {
 
 	// Reduces an enemy's armor by 165. Stacks up to 3 times.
 	// https://www.wowhead.com/forever/spell=16928
-	// trigger 16928 (1 ppm, core.CallbackEmpty, core.ProcMaskUnknown)
+	// trigger 16928 (1 ppm on the item, core.CallbackEmpty, core.ProcMaskUnknown)
 	shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 16928, IsWeaponProc: true},
 		[]shared.ItemVariant{
 			{ItemID: 12798, ItemName: "Annihilator"},

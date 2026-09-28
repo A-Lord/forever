@@ -22,7 +22,8 @@ const (
 )
 
 // Neither row states a rate for its chance on hit: Frostguard stays unregistered, and The Lobotomizer
-// registers on the rate its item effect carries. The tests below give each a 100% chance of their own.
+// registers on the 0.4 PPM its item effect carries. The tests below give each a 100% chance of their
+// own.
 func TestSlowProcRowsStateNoRate(t *testing.T) {
 	for _, id := range []int32{frostguardChilled, lobotomizerBrainDamage} {
 		got := spelldata.ItemProcUnsupported(spelldata.MustFind(id), true)
@@ -30,12 +31,14 @@ func TestSlowProcRowsStateNoRate(t *testing.T) {
 			t.Errorf("%d: unsupported = %v, want only the missing rate", id, got)
 		}
 	}
+	if got := spelldata.ItemProcUnsupportedWithRate(spelldata.MustFind(lobotomizerBrainDamage), true, 0.4); len(got) != 0 {
+		t.Errorf("%d with its item's rate: unsupported = %v, want none", lobotomizerBrainDamage, got)
+	}
 }
 
 func alwaysProcs(s *spelldata.Spell) {
 	s.ProcChance = 100
 	s.ProcChanceSource = spelldata.ProcChanceColumn
-	s.RPPM = 0
 }
 
 func permanentSlowNeck(neckID int32, slow func(*core.Unit) *core.Aura) *proto.ItemSpec {

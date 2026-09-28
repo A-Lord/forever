@@ -21,10 +21,8 @@ func TestWeaponProcRateComesFromTheItemEffect(t *testing.T) {
 		{992601, 3},
 		{992602, 1},
 	} {
-		item := testOneHander(tc.itemID)
-		item.ItemEffects = []*proto.ItemEffect{{BuffId: trigger,
-			Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{ProcRate: &proto.ProcEffect_Ppm{Ppm: tc.ppm}}}}}
-		core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{item}})
+		withAuraItem(tc.itemID, proto.ItemType_ItemTypeWeapon, &proto.ItemEffect{BuffId: trigger,
+			Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{ProcRate: &proto.ProcEffect_Ppm{Ppm: tc.ppm}}}})
 
 		agent := newTestAgent()
 		character := agent.character
@@ -35,11 +33,11 @@ func TestWeaponProcRateComesFromTheItemEffect(t *testing.T) {
 		})
 
 		cfg := SpellDataProc{Name: "Test Wound Weapon", ItemID: tc.itemID, TriggerSpellID: trigger, BuffSpellID: trigger, IsWeaponProc: true}
-		config := spellDataProcListener(character, cfg, cfg.effectSource(), spelldata.MustFind(trigger), nil)
+		config := spellDataProcListener(character, cfg, cfg.effectSource(), spelldata.MustFind(trigger))
 		if config.ProcChance != 0 || config.DPM == nil {
 			t.Fatalf("item %d: chance %v, manager %v; want a manager and no flat chance", tc.itemID, config.ProcChance, config.DPM)
 		}
-		want := item.WeaponSpeed * tc.ppm / 60
+		want := testOneHander(tc.itemID).WeaponSpeed * tc.ppm / 60
 		if got := config.DPM.Chance(core.ProcMaskMeleeMHAuto, nil); math.Abs(got-want) > 1e-9 {
 			t.Errorf("item %d at %v PPM rolls %v per main-hand swing, want %v", tc.itemID, tc.ppm, got, want)
 		}

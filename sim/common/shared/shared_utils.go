@@ -468,14 +468,14 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 	character := agent.GetCharacter()
 	eligibleSlots := source.eligibleSlots(character)
 
-	effect := source.procEffects()[buff.ID]
+	effect := source.procEntry(cfg, trigger)
 	if effect == nil {
 		panic(fmt.Sprintf("Error getting proc effects for item/enchant %v", source.id))
 	}
 
 	procAura := spellDataProcAura(character, cfg, trigger, buff, effect)
 
-	listener := spellDataProcListener(character, cfg, source, trigger, effect.GetProc())
+	listener := spellDataProcListener(character, cfg, source, trigger)
 	listener.Handler = spellDataProcHandler(buff, procAura)
 
 	// The same fallback the database layer applies: Bulwark of Azzinoth's armor buff sits in a
@@ -501,19 +501,11 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 
 // The listener the trigger's row describes, without the handler, plus what the row cannot state: the
 // item's own name and action, which are what the sim keys the rolls and the metrics by, and the rate
-// the effect entry states. A caller that passes no entry gets the one the item declares for the buff,
-// or for the trigger where that is the buff: a weapon's procs-per-minute rate lives there.
-func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell, proc *proto.ProcEffect) core.ProcTrigger {
-	if proc == nil {
-		effects := source.procEffects()
-		if effect := effects[cfg.BuffSpellID]; effect != nil {
-			proc = effect.GetProc()
-		} else if effect := effects[trigger.ID]; effect != nil {
-			proc = effect.GetProc()
-		}
-	}
+// the item's effect entry states.
+func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell) core.ProcTrigger {
 	config := spelldata.ProcTrigger(character, trigger, nil, spelldata.ItemProcChance(trigger),
-		weaponProcShape(cfg), spellDataProcRate(source, trigger, proc), statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
+		weaponProcShape(cfg), spellDataProcRate(source, trigger, source.procEntry(cfg, trigger).GetProc()),
+		statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
 	config.Name = cfg.Name
 	config.ActionID = source.actionID()
 
@@ -682,7 +674,7 @@ func applySpellDataDamageProc(agent core.Agent, cfg SpellDataProc, source effect
 
 	// The handler is attached after the options, since which unit the damage lands on depends on the
 	// callback the trigger ends up with and a weapon proc's shape rewrites it.
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	config.Handler = procDamageHandler(character, damageSpell, config.Callback)
 
 	// The proc's damage lands on the hit that caused it rather than on the next one, which is what
@@ -952,7 +944,7 @@ func applySpellDataSelfProc(agent core.Agent, cfg SpellDataProc, source effectSo
 	character := agent.GetCharacter()
 	selfSpell := character.RegisterSpell(spellConfig)
 
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	config.Handler = func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		selfSpell.Cast(sim, &character.Unit)
 	}
@@ -1711,6 +1703,16 @@ func (s effectSource) weaponHands(character *core.Character, slots []proto.ItemS
 		}
 	}
 	return hands
+}
+
+// The proc-carrying effect this item or enchant declares for the proc: the one keyed by the buff it
+// applies, or by the trigger where that is the buff. Nil where it declares none.
+func (s effectSource) procEntry(cfg SpellDataProc, trigger *spelldata.Spell) *proto.ItemEffect {
+	effects := s.procEffects()
+	if effect := effects[cfg.BuffSpellID]; effect != nil {
+		return effect
+	}
+	return effects[trigger.ID]
 }
 
 // The proc-carrying effects this item or enchant declares, keyed by the aura each one applies.

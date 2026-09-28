@@ -69,7 +69,7 @@ type Override struct {
 	Field   Field
 	Value   float64
 	Reason  string
-	Source  string // "tbc-carryover", "vanilla-carryover", "tooltip", "wcl:<report>/<fight>", "issue #N"
+	Source  string // "tbc-carryover", "tooltip", "wcl:<report>/<fight>", "issue #N"
 }
 
 // Tooltip-only area bonuses ("doubled in X areas"). Groups are AreaGroup ids; any counts.
@@ -130,13 +130,6 @@ var AreaBonuses = []AreaBonus{
 // ProcChance column reads the 100 or 101 sentinel, which the store would otherwise take for "fires
 // on every hit". Each rate is a carry-over, as its Source says; none has been measured on this server.
 var Spells = []Override{
-	{
-		SpellID: 16928,
-		Field:   PPM,
-		Value:   1,
-		Reason:  "Annihilator: ProcChance 101 sentinel; TBC 1 PPM, unverified on Forever",
-		Source:  "tbc-carryover",
-	},
 	{
 		SpellID: 23686,
 		Field:   PPM,
