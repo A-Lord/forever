@@ -152,7 +152,7 @@ func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
 
 			player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
 			if row.playerBonus != 0 {
-				core.AddGeneratedFlatBonus(player, stats.AttackPower, buffs.BattleShoutValue(0), row.playerBonus)
+				buffs.AddGeneratedFlatBonus(player, stats.AttackPower, buffs.BattleShoutValue(0), row.playerBonus)
 			}
 			player.BuildPhase = core.CharacterBuildPhaseBuffs
 

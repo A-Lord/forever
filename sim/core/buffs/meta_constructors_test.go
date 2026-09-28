@@ -295,7 +295,7 @@ func TestMetaBuffTakesAFlatBonus(t *testing.T) {
 	before := character.GetStat(stats.AttackPower)
 
 	aura := newBuff(&character.Unit, meta, false, 0)
-	core.AddGeneratedFlatBonus(aura, stats.AttackPower, meta.Value(0), BattleShoutT2Bonus)
+	AddGeneratedFlatBonus(aura, stats.AttackPower, meta.Value(0), BattleShoutT2Bonus)
 	aura.Activate(sim)
 
 	if got, want := character.GetStat(stats.AttackPower)-before, meta.Value(0)+BattleShoutT2Bonus; got != want {
@@ -317,4 +317,109 @@ func TestInspirationReadsTheStore(t *testing.T) {
 			t.Errorf("Inspiration at %d points adds %v armor to %v, want %v", points, got, baseArmor, want)
 		}
 	}
+}
+
+var singleAuraStatBuffs int32
+
+// A buff that bids its whole amount under a category that holds one aura at a
+// time, the shape AddGeneratedFlatBonus raises.
+func newSingleAuraStatBuff(char *core.Character, label string, stat stats.Stat, amount float64) *core.Aura {
+	singleAuraStatBuffs++
+	aura := char.GetOrRegisterAura(core.Aura{
+		Label:      label,
+		Tag:        label,
+		ActionID:   core.ActionID{SpellID: 100000 + singleAuraStatBuffs}.WithTag(-1),
+		Duration:   core.NeverExpires,
+		BuildPhase: core.CharacterBuildPhaseBuffs,
+	})
+	aura.NewExclusiveEffect(label, true, core.ExclusiveEffect{
+		Priority: amount,
+		OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
+			ee.Aura.Unit.AddStatDynamic(sim, stat, amount)
+		},
+		OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
+			ee.Aura.Unit.AddStatDynamic(sim, stat, -amount)
+		},
+	})
+	return aura
+}
+
+// A flat bonus the game files' buff data does not state raises two numbers that a
+// non-stacking buff keeps apart: what the aura applies and what it bids for its
+// category. A stacking buff prices the one off the other, so it refuses one.
+func TestAddGeneratedFlatBonusRaisesTheBidAndTheAmount(t *testing.T) {
+	character := shapeCharacter()
+	sim := &core.Simulation{}
+	before := character.GetStat(stats.AttackPower)
+
+	aura := newSingleAuraStatBuff(character, "Generated Battle Shout", stats.AttackPower, 139)
+
+	AddGeneratedFlatBonus(aura, stats.AttackPower, 139, 30)
+	// A second party member wearing the same set asks for the same total.
+	AddGeneratedFlatBonus(aura, stats.AttackPower, 139, 30)
+
+	if priority := aura.ExclusiveEffects[0].Priority; priority != 169 {
+		t.Errorf("the category effect bids %v, want the game files' 139 plus the set's 30", priority)
+	}
+
+	aura.Activate(sim)
+
+	if got := character.GetStat(stats.AttackPower) - before; got != 169 {
+		t.Errorf("the aura applied %v attack power, want the game files' 139 plus the set's 30", got)
+	}
+}
+
+func TestAddGeneratedFlatBonusRefusesAnAuraThatCannotCarryOne(t *testing.T) {
+	char := shapeCharacter()
+
+	stacking := char.GetOrRegisterAura(core.Aura{
+		Label:     "Generated Sunder Armor",
+		Tag:       "GeneratedArmorReduction",
+		ActionID:  core.ActionID{SpellID: 25225},
+		Duration:  core.NeverExpires,
+		MaxStacks: 5,
+	})
+	stacking.NewExclusiveEffect("GeneratedArmorReduction", true, core.ExclusiveEffect{})
+	assertPanics(t, "a stacking aura", func() {
+		AddGeneratedFlatBonus(stacking, stats.Armor, -2600, -30)
+	})
+
+	uncontested := char.GetOrRegisterAura(core.Aura{
+		Label:    "Generated Blood Pact",
+		ActionID: core.ActionID{SpellID: 11767}.WithTag(-1),
+		Duration: core.NeverExpires,
+	})
+	assertPanics(t, "an aura with no category", func() {
+		AddGeneratedFlatBonus(uncontested, stats.Stamina, 54, 30)
+	})
+
+	contested := newSingleAuraStatBuff(char, "Generated Devotion Aura", stats.Armor, 735)
+	assertPanics(t, "a base that is not what the buff bids", func() {
+		AddGeneratedFlatBonus(contested, stats.Armor, 620, 30)
+	})
+
+	// A category that holds several auras at once never deactivates the one it
+	// outbids, so an amount attached to the aura would apply while the effect
+	// holding it did not. No generated row has that shape; the guard is for a
+	// hand-written one that does.
+	shared := char.GetOrRegisterAura(core.Aura{
+		Label:    "Hand-Written Shout",
+		Tag:      "GeneratedSharedCategory",
+		ActionID: core.ActionID{SpellID: 25289}.WithTag(-2),
+		Duration: core.NeverExpires,
+	})
+	shared.NewExclusiveEffect("GeneratedSharedCategory", false, core.ExclusiveEffect{Priority: 139})
+	assertPanics(t, "a category that holds more than one aura", func() {
+		AddGeneratedFlatBonus(shared, stats.AttackPower, 139, 30)
+	})
+}
+
+func assertPanics(t *testing.T, what string, call func()) {
+	t.Helper()
+	defer func() {
+		if recover() == nil {
+			t.Errorf("%s took a flat bonus, which it cannot carry", what)
+		}
+	}()
+	call()
 }

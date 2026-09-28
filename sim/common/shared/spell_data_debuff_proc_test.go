@@ -151,7 +151,7 @@ func TestLobotomizerDamagesAndSlowsTheTargetsCasts(t *testing.T) {
 // Slow keeps casting at 1/1.5× when Brain Damage lands.
 func TestLobotomizersSlowSharesSlowsSlot(t *testing.T) {
 	editRow(t, lobotomizerBrainDamage, alwaysProcs)
-	neck := permanentSlowNeck(991404, core.SlowAura)
+	neck := permanentSlowNeck(991404, buffs.SlowAura)
 	sim, caster, target := newSlowProcSim(t, 991405, registerSpellDataDamageProc, lobotomizerBrainDamage, neck)
 	expectSpeeds(t, "under Slow", target, 1, 1/1.5)
 

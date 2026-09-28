@@ -1,4 +1,4 @@
-package core
+package buffs
 
 // What sim/core/buffs builds a generated buff with where the spell parse does not
 // reach: the damage a shield deals back, the external cooldown a driven buff is
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -15,34 +16,34 @@ import (
 // also scales with the wearer's spell power by bonusCoefficient; the generated
 // shields state none. category is the aura's own, which decides whether a
 // second copy of the shield can sit next to it.
-func NewDamageShield(unit *Unit, label string, actionID ActionID, duration time.Duration, category string, singleAura bool,
-	school SpellSchool, damage float64, bonusCoefficient float64) *Aura {
-	procSpell := unit.RegisterSpell(SpellConfig{
+func NewDamageShield(unit *core.Unit, label string, actionID core.ActionID, duration time.Duration, category string, singleAura bool,
+	school core.SpellSchool, damage float64, bonusCoefficient float64) *core.Aura {
+	procSpell := unit.RegisterSpell(core.SpellConfig{
 		ActionID:    actionID.WithTag(actionID.Tag + 2),
 		SpellSchool: school,
-		ProcMask:    ProcMaskEmpty,
-		Flags:       SpellFlagBinary | SpellFlagPassiveSpell,
+		ProcMask:    core.ProcMaskEmpty,
+		Flags:       core.SpellFlagBinary | core.SpellFlagPassiveSpell,
 
 		DamageMultiplier: 1,
 		ThreatMultiplier: 1,
 		BonusCoefficient: bonusCoefficient,
 
-		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 			spell.CalcAndDealDamage(sim, target, damage, spell.OutcomeMagicHit)
 		},
 	})
 
-	aura := unit.GetOrRegisterAura(Aura{
+	aura := unit.GetOrRegisterAura(core.Aura{
 		Label:      label,
 		ActionID:   actionID,
-		Duration:   TernaryDuration(duration > 0, duration, NeverExpires),
-		BuildPhase: Ternary(actionID.Tag == -1, CharacterBuildPhaseBuffs, CharacterBuildPhaseNone),
-	}).AttachProcTrigger(ProcTrigger{
+		Duration:   core.TernaryDuration(duration > 0, duration, core.NeverExpires),
+		BuildPhase: core.Ternary(actionID.Tag == -1, core.CharacterBuildPhaseBuffs, core.CharacterBuildPhaseNone),
+	}).AttachProcTrigger(core.ProcTrigger{
 		Name:     label + " Damage",
-		Callback: CallbackOnSpellHitTaken,
-		Outcome:  OutcomeLanded,
-		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
-			if spell.SpellSchool.Matches(SpellSchoolPhysical) {
+		Callback: core.CallbackOnSpellHitTaken,
+		Outcome:  core.OutcomeLanded,
+		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			if spell.SpellSchool.Matches(core.SpellSchoolPhysical) {
 				procSpell.Cast(sim, spell.Unit)
 			}
 		},
@@ -51,7 +52,7 @@ func NewDamageShield(unit *Unit, label string, actionID ActionID, duration time.
 	// The shield has no stat to apply or remove: what the category decides is
 	// which aura keeps its proc trigger, so the damage is the whole bid.
 	if category != "" {
-		aura.NewExclusiveEffect(category, singleAura, ExclusiveEffect{Priority: damage})
+		aura.NewExclusiveEffect(category, singleAura, core.ExclusiveEffect{Priority: damage})
 	}
 	return aura
 }
@@ -63,15 +64,15 @@ func NewDamageShield(unit *Unit, label string, actionID ActionID, duration time.
 type GeneratedExternalCD struct {
 	NumSources     int32
 	Cooldown       time.Duration
-	Type           CooldownType
-	ShouldActivate CooldownActivationCondition
+	Type           core.CooldownType
+	ShouldActivate core.CooldownActivationCondition
 }
 
 // The external cooldown around a generated aura, approximated by NumSources
 // casters taking turns. The aura carries the buff's own label, duration and
 // effects; its tag is what tells the sim the buff is already up, so a row whose
 // cooldown is driven states a category for the generator to tag it with.
-func NewGeneratedExternalCD(char *Character, aura *Aura, config GeneratedExternalCD) {
+func NewGeneratedExternalCD(char *core.Character, aura *core.Aura, config GeneratedExternalCD) {
 	if config.NumSources == 0 {
 		return
 	}
@@ -79,17 +80,17 @@ func NewGeneratedExternalCD(char *Character, aura *Aura, config GeneratedExterna
 	// The external caster's copy of a permanent buff is up while the character
 	// sheet is measured; a cooldown is not, so it keeps its effects out of the
 	// stats the build phase collects.
-	aura.BuildPhase = CharacterBuildPhaseNone
+	aura.BuildPhase = core.CharacterBuildPhaseNone
 
 	registerExternalConsecutiveCDApproximation(char, externalConsecutiveCDApproximation{
 		ActionID:         aura.ActionID,
 		AuraTag:          aura.Tag,
-		CooldownPriority: CooldownPriorityDefault,
+		CooldownPriority: core.CooldownPriorityDefault,
 		Type:             config.Type,
 		AuraDuration:     aura.Duration,
 		AuraCD:           config.Cooldown,
 		ShouldActivate:   config.ShouldActivate,
-		AddAura:          func(sim *Simulation, _ *Character) { aura.Activate(sim) },
+		AddAura:          func(sim *core.Simulation, _ *core.Character) { aura.Activate(sim) },
 		RelatedSelfBuff:  aura,
 	}, config.NumSources)
 }
@@ -98,11 +99,11 @@ func NewGeneratedExternalCD(char *Character, aura *Aura, config GeneratedExterna
 // the paladin auras exclude each other across schools. Only the player's own
 // copy joins it: the external copy has to be able to sit next to the one the
 // player casts.
-func JoinSharedCategory(aura *Aura, shared string, isPlayer bool) {
+func JoinSharedCategory(aura *core.Aura, shared string, isPlayer bool) {
 	if shared == "" || !isPlayer {
 		return
 	}
-	aura.NewExclusiveEffect(shared, true, ExclusiveEffect{})
+	aura.NewExclusiveEffect(shared, true, core.ExclusiveEffect{})
 }
 
 // AddGeneratedFlatBonus raises a generated buff the game files state as worth base
@@ -126,7 +127,7 @@ func JoinSharedCategory(aura *Aura, shared string, isPlayer bool) {
 // It writes Priority directly, which is only safe before the fight: an effect
 // that is already active has to go through SetPriority to re-apply what it
 // holds. Every caller runs while the character is being built.
-func AddGeneratedFlatBonus(aura *Aura, stat stats.Stat, base float64, bonus float64) {
+func AddGeneratedFlatBonus(aura *core.Aura, stat stats.Stat, base float64, bonus float64) {
 	if aura.MaxStacks > 0 {
 		panic("a stacking aura re-prices its category effect on every stack, which would drop the bonus: " + aura.Label)
 	}
@@ -157,48 +158,48 @@ func AddGeneratedFlatBonus(aura *Aura, stat stats.Stat, base float64, bonus floa
 // innervate, power infusion, etc. This is specifically for buffs
 // which can be consecutively applied multiple times to a single player.
 type externalConsecutiveCDApproximation struct {
-	ActionID         ActionID
+	ActionID         core.ActionID
 	AuraTag          string
 	CooldownPriority int32
-	Type             CooldownType
+	Type             core.CooldownType
 	AuraDuration     time.Duration
 	AuraCD           time.Duration
 
 	// Callback for extra activation conditions.
-	ShouldActivate CooldownActivationCondition
+	ShouldActivate core.CooldownActivationCondition
 
 	// Applies the buff.
-	AddAura           CooldownActivation
-	RelatedSelfBuff   *Aura             // Used to attach the aura to the generic spell
-	RelatedAuraArrays LabeledAuraArrays // Used to attach the aura to the generic spell
+	AddAura           core.CooldownActivation
+	RelatedSelfBuff   *core.Aura             // Used to attach the aura to the generic spell
+	RelatedAuraArrays core.LabeledAuraArrays // Used to attach the aura to the generic spell
 }
 
 // numSources is the number of other players assigned to apply the buff to this player.
 // E.g. the number of other druids in the group casting innervate.
-func registerExternalConsecutiveCDApproximation(char *Character, config externalConsecutiveCDApproximation, numSources int32) {
+func registerExternalConsecutiveCDApproximation(char *core.Character, config externalConsecutiveCDApproximation, numSources int32) {
 	if numSources == 0 {
 		panic("Need at least 1 source!")
 	}
 
 	var nextExternalIndex int
 
-	externalTimers := make([]*Timer, numSources)
+	externalTimers := make([]*core.Timer, numSources)
 	for i := 0; i < int(numSources); i++ {
 		externalTimers[i] = char.NewTimer()
 	}
 	sharedTimer := char.NewTimer()
 
-	spell := char.RegisterSpell(SpellConfig{
+	spell := char.RegisterSpell(core.SpellConfig{
 		ActionID: config.ActionID,
-		Flags:    SpellFlagNoOnCastComplete | SpellFlagNoMetrics | SpellFlagNoLogs,
+		Flags:    core.SpellFlagNoOnCastComplete | core.SpellFlagNoMetrics | core.SpellFlagNoLogs,
 
-		Cast: CastConfig{
-			CD: Cooldown{
+		Cast: core.CastConfig{
+			CD: core.Cooldown{
 				Timer:    sharedTimer,
 				Duration: config.AuraDuration, // Assumes that multiple buffs are different sources.
 			},
 		},
-		ExtraCastCondition: func(sim *Simulation, target *Unit) bool {
+		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
 			if !externalTimers[nextExternalIndex].IsReady(sim) {
 				return false
 			}
@@ -210,7 +211,7 @@ func registerExternalConsecutiveCDApproximation(char *Character, config external
 			return true
 		},
 
-		ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 			config.AddAura(sim, char)
 			externalTimers[nextExternalIndex].Set(sim.CurrentTime + config.AuraCD)
 
@@ -226,7 +227,7 @@ func registerExternalConsecutiveCDApproximation(char *Character, config external
 		RelatedAuraArrays: config.RelatedAuraArrays,
 	})
 
-	char.AddMajorCooldown(MajorCooldown{
+	char.AddMajorCooldown(core.MajorCooldown{
 		Spell:    spell,
 		Priority: config.CooldownPriority,
 		Type:     config.Type,

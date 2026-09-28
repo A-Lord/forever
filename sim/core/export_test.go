@@ -39,7 +39,7 @@ func ApplyBuffEffects(agent Agent, raid *proto.RaidBuffs, party *proto.PartyBuff
 }
 
 func ApplyDebuffEffects(target *Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
-	applyDebuffEffects(target, 0, debuffs, raid)
+	registeredBuffs().ApplyDebuffs(target, debuffs, raid)
 }
 
 func (character *Character) ApplyBuildPhaseAuras(phase CharacterBuildPhase) {

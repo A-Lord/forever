@@ -29,5 +29,5 @@ func ApplyInspiration(character *core.Character, uptime float64) {
 
 	inspirationAura := InspirationAura(&character.Unit, 3)
 
-	core.ApplyFixedUptimeAura(inspirationAura, uptime, time.Millisecond*2500, 1)
+	ApplyFixedUptimeAura(inspirationAura, uptime, time.Millisecond*2500, 1)
 }

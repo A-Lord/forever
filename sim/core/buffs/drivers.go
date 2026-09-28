@@ -32,45 +32,9 @@ const BattleShoutT2Bonus = 30.0
 func driveBattleShout(char *core.Character, party *proto.PartyBuffs) {
 	aura := NewSpellDataBattleShoutAura(&char.Unit, false, 0)
 	if party.BattleShout == proto.TristateEffect_TristateEffectImproved {
-		core.AddGeneratedFlatBonus(aura, stats.AttackPower, BattleShoutValue(0), BattleShoutT2Bonus)
+		AddGeneratedFlatBonus(aura, stats.AttackPower, BattleShoutValue(0), BattleShoutT2Bonus)
 	}
 	applyFixedShoutAura(char, aura, BattleShoutCategory)
-}
-
-func applyFixedShoutAura(char *core.Character, aura *core.Aura, category string) {
-	aura.ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-		auras := char.GetAurasWithTag(category)
-		var playerAura *core.Aura
-		for _, bsAura := range auras {
-			if bsAura.ActionID.Tag == 0 {
-				playerAura = bsAura
-				break
-			}
-		}
-
-		if playerAura == nil {
-			return
-		}
-
-		playerAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-			pa := sim.GetConsumedPendingActionFromPool()
-			pa.NextActionAt = playerAura.ExpiresAt() + char.ReactionTime
-			pa.OnAction = func(sim *core.Simulation) {
-				aura.Activate(sim)
-
-				core.StartPeriodicAction(sim, core.PeriodicActionOptions{
-					Period:   aura.Duration + 1,
-					NumTicks: 1,
-					OnAction: func(sim *core.Simulation) {
-						aura.Activate(sim)
-					},
-				})
-			}
-			sim.AddPendingAction(pa)
-		})
-	})
-
-	core.ApplyFixedUptimeAura(aura, 1, aura.Duration+1, -1)
 }
 
 // A druid innervates a character who is nearly out of mana, so that every other
@@ -102,7 +66,7 @@ func driveInnervates(char *core.Character, individual *proto.IndividualBuffs) {
 		})
 	})
 
-	core.NewGeneratedExternalCD(char, aura, core.GeneratedExternalCD{
+	NewGeneratedExternalCD(char, aura, GeneratedExternalCD{
 		NumSources: individual.Innervates,
 		Cooldown:   InnervatesCooldown(),
 		Type:       core.CooldownTypeMana,
@@ -123,7 +87,7 @@ func innervateManaThreshold(char *core.Character) float64 {
 
 // The priest has nothing to hold Power Infusion for, so it goes out on cooldown.
 func drivePowerInfusions(char *core.Character, individual *proto.IndividualBuffs) {
-	core.NewGeneratedExternalCD(char, NewSpellDataPowerInfusionsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
+	NewGeneratedExternalCD(char, NewSpellDataPowerInfusionsAura(&char.Unit, false, 0), GeneratedExternalCD{
 		NumSources: individual.PowerInfusions,
 		Cooldown:   PowerInfusionsCooldown(),
 		Type:       core.CooldownTypeDPS,
@@ -138,7 +102,7 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 		initialDelay = min(char.Env.BaseDuration/2, time.Second*40)
 	})
 
-	core.NewGeneratedExternalCD(char, NewSpellDataManaTideTotemsAura(&char.Unit, false, 0), core.GeneratedExternalCD{
+	NewGeneratedExternalCD(char, NewSpellDataManaTideTotemsAura(&char.Unit, false, 0), GeneratedExternalCD{
 		NumSources: party.ManaTideTotems,
 		Cooldown:   ManaTideTotemsCooldown(),
 		Type:       core.CooldownTypeMana,
@@ -366,7 +330,7 @@ func driveJudgementOfWisdom(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) 
 func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	aura := core.MakePermanent(NewSpellDataSunderArmorAura(target, false, 0))
 
-	core.ScheduledAura(aura, core.PeriodicActionOptions{
+	ScheduledAura(aura, core.PeriodicActionOptions{
 		Period:          core.GCDDefault,
 		NumTicks:        5,
 		TickImmediately: true,
@@ -408,5 +372,5 @@ func driveThunderfury(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		ActionID: core.ActionID{SpellID: thunderfuryCycloneSpell.ID, Tag: -1},
 		Duration: core.NeverExpires,
 	}))
-	core.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(-thunderfuryCycloneSpell.EffectN(1).BaseValue()))
+	AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(-thunderfuryCycloneSpell.EffectN(1).BaseValue()))
 }

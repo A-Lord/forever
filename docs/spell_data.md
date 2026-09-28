@@ -1451,7 +1451,7 @@ the first thing `spelldata.DryRun` attaches for those options. `Duration` reads 
 spell states no duration of its own; `Cooldown` reads `Cast` where the `Meta` carries one - an
 external cooldown whose `CastID` is not its `SpellID` - else the spell itself; both go through the helpers in `sim/core/buffs/amounts.go`, and a talent that scales the
 duration truncates it the way `talentScaled` truncates an amount everywhere else. A row whose aura is
-a damage shield skips the parse outright: `newDamageShield` calls `core.NewDamageShield` with the
+a damage shield skips the parse outright: `newDamageShield` calls `NewDamageShield` with the
 spell's school and `Value`.
 
 `sim/core/spelldata/buff.go` holds a second table, read only when a parse states `BuffAuras()`:
