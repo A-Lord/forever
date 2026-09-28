@@ -83,7 +83,7 @@ func NewSpellDataRetributionAuraRank(char *core.Character, isPlayer bool, rank P
 	}
 	aura := NewDamageShield(&char.Unit, label, m.actionID(isPlayer), core.NeverExpires, m.Category, m.SingleAura,
 		core.SpellSchoolHoly, damage, coefficient)
-	JoinSharedCategory(aura, m.SharedCategory, isPlayer)
+	joinSharedCategory(aura, m.SharedCategory, isPlayer)
 	return aura
 }
 

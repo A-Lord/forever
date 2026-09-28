@@ -61,7 +61,7 @@ func NewDamageShield(unit *core.Unit, label string, actionID core.ActionID, dura
 // of them take turns, how long each waits before casting again, whether the
 // cooldown is worth a mana, a damage or a survival slot, and when the sim
 // should spend it.
-type GeneratedExternalCD struct {
+type generatedExternalCD struct {
 	NumSources     int32
 	Cooldown       time.Duration
 	Type           core.CooldownType
@@ -72,7 +72,7 @@ type GeneratedExternalCD struct {
 // casters taking turns. The aura carries the buff's own label, duration and
 // effects; its tag is what tells the sim the buff is already up, so a row whose
 // cooldown is driven states a category for the generator to tag it with.
-func NewGeneratedExternalCD(char *core.Character, aura *core.Aura, config GeneratedExternalCD) {
+func newGeneratedExternalCD(char *core.Character, aura *core.Aura, config generatedExternalCD) {
 	if config.NumSources == 0 {
 		return
 	}
@@ -99,7 +99,7 @@ func NewGeneratedExternalCD(char *core.Character, aura *core.Aura, config Genera
 // the paladin auras exclude each other across schools. Only the player's own
 // copy joins it: the external copy has to be able to sit next to the one the
 // player casts.
-func JoinSharedCategory(aura *core.Aura, shared string, isPlayer bool) {
+func joinSharedCategory(aura *core.Aura, shared string, isPlayer bool) {
 	if shared == "" || !isPlayer {
 		return
 	}

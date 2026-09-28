@@ -34,8 +34,8 @@ func NewGeneratedDebuffTestTarget() *Unit {
 	return target
 }
 
-func ApplyBuffEffects(agent Agent, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
-	registeredBuffs().ApplyBuffs(agent.GetCharacter(), raid, party, individual)
+func ApplyBuffEffects(char *Character, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
+	registeredBuffs().ApplyBuffs(char, raid, party, individual)
 }
 
 func ApplyDebuffEffects(target *Unit, debuffs *proto.Debuffs, raid *proto.Raid) {

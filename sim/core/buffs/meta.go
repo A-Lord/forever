@@ -157,7 +157,7 @@ func (m *Meta) parsedAura(unit *core.Unit, isPlayer bool, talentPoints int32, bu
 
 	// No row a raid buff states acts through a character rather than its unit.
 	spelldata.ParseEffects(nil, aura, m.Spell, opts...)
-	JoinSharedCategory(aura, m.SharedCategory, isPlayer)
+	joinSharedCategory(aura, m.SharedCategory, isPlayer)
 	return aura
 }
 
@@ -166,6 +166,6 @@ func (m *Meta) parsedAura(unit *core.Unit, isPlayer bool, talentPoints int32, bu
 func newDamageShield(unit *core.Unit, m *Meta, isPlayer bool, talentPoints int32) *core.Aura {
 	aura := NewDamageShield(unit, m.label(isPlayer), m.actionID(isPlayer), m.Duration(talentPoints),
 		m.Category, m.SingleAura, m.Spell.School, m.Value(talentPoints), 0)
-	JoinSharedCategory(aura, m.SharedCategory, isPlayer)
+	joinSharedCategory(aura, m.SharedCategory, isPlayer)
 	return aura
 }

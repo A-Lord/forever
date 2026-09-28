@@ -308,7 +308,7 @@ func TestInspirationReadsTheStore(t *testing.T) {
 	baseArmor := unit.SortAndApplyStatDependencies(unit.GetStats())[stats.Armor]
 
 	for points, share := range map[int32]float64{1: 0.08, 2: 0.17, 3: 0.25} {
-		shape := shapeOf(t, false, func(u *core.Unit) *core.Aura { return InspirationAura(u, points) })
+		shape := shapeOf(t, false, func(u *core.Unit) *core.Aura { return inspirationAura(u, points) })
 
 		if shape.ActionID.SpellID != 14893 || shape.Duration != 15*time.Second {
 			t.Errorf("Inspiration at %d points is %v for %v, want 14893 for 15s", points, shape.ActionID, shape.Duration)
@@ -319,52 +319,28 @@ func TestInspirationReadsTheStore(t *testing.T) {
 	}
 }
 
-var singleAuraStatBuffs int32
-
-// A buff that bids its whole amount under a category that holds one aura at a
-// time, the shape AddGeneratedFlatBonus raises.
-func newSingleAuraStatBuff(char *core.Character, label string, stat stats.Stat, amount float64) *core.Aura {
-	singleAuraStatBuffs++
-	aura := char.GetOrRegisterAura(core.Aura{
-		Label:      label,
-		Tag:        label,
-		ActionID:   core.ActionID{SpellID: 100000 + singleAuraStatBuffs}.WithTag(-1),
-		Duration:   core.NeverExpires,
-		BuildPhase: core.CharacterBuildPhaseBuffs,
-	})
-	aura.NewExclusiveEffect(label, true, core.ExclusiveEffect{
-		Priority: amount,
-		OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-			ee.Aura.Unit.AddStatDynamic(sim, stat, amount)
-		},
-		OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-			ee.Aura.Unit.AddStatDynamic(sim, stat, -amount)
-		},
-	})
-	return aura
-}
-
 // A flat bonus the game files' buff data does not state raises two numbers that a
 // non-stacking buff keeps apart: what the aura applies and what it bids for its
 // category. A stacking buff prices the one off the other, so it refuses one.
 func TestAddGeneratedFlatBonusRaisesTheBidAndTheAmount(t *testing.T) {
+	meta := &Meta{Label: "Battle Shout", Spell: spelldata.MustFind(25289), Category: "BattleShout", SingleAura: true}
 	character := shapeCharacter()
 	sim := &core.Simulation{}
 	before := character.GetStat(stats.AttackPower)
 
-	aura := newSingleAuraStatBuff(character, "Generated Battle Shout", stats.AttackPower, 139)
+	aura := newBuff(&character.Unit, meta, false, 0)
 
-	AddGeneratedFlatBonus(aura, stats.AttackPower, 139, 30)
+	AddGeneratedFlatBonus(aura, stats.AttackPower, meta.Value(0), 30)
 	// A second party member wearing the same set asks for the same total.
-	AddGeneratedFlatBonus(aura, stats.AttackPower, 139, 30)
+	AddGeneratedFlatBonus(aura, stats.AttackPower, meta.Value(0), 30)
 
-	if priority := aura.ExclusiveEffects[0].Priority; priority != 169 {
+	if priority, want := aura.ExclusiveEffects[0].Priority, meta.Value(0)+30; priority != want {
 		t.Errorf("the category effect bids %v, want the game files' 139 plus the set's 30", priority)
 	}
 
 	aura.Activate(sim)
 
-	if got := character.GetStat(stats.AttackPower) - before; got != 169 {
+	if got, want := character.GetStat(stats.AttackPower)-before, meta.Value(0)+30; got != want {
 		t.Errorf("the aura applied %v attack power, want the game files' 139 plus the set's 30", got)
 	}
 }
@@ -393,9 +369,9 @@ func TestAddGeneratedFlatBonusRefusesAnAuraThatCannotCarryOne(t *testing.T) {
 		AddGeneratedFlatBonus(uncontested, stats.Stamina, 54, 30)
 	})
 
-	contested := newSingleAuraStatBuff(char, "Generated Devotion Aura", stats.Armor, 735)
+	contested := newBuff(&char.Unit, &Meta{Label: "Battle Shout", Spell: spelldata.MustFind(25289), Category: "BattleShout", SingleAura: true}, false, 0)
 	assertPanics(t, "a base that is not what the buff bids", func() {
-		AddGeneratedFlatBonus(contested, stats.Armor, 620, 30)
+		AddGeneratedFlatBonus(contested, stats.AttackPower, 620, 30)
 	})
 
 	// A category that holds several auras at once never deactivates the one it

@@ -13,8 +13,8 @@ import (
 var inspirationTalent = spelldata.Talent(14892, 3)
 var inspirationBuff = spelldata.MustFind(14893)
 
-func InspirationAura(unit *core.Unit, points int32) *core.Aura {
-	multiplier := 1 + inspirationTalent.Rank(points).EffectN(1).Percent()
+func inspirationAura(unit *core.Unit, points int32) *core.Aura {
+	multiplier := inspirationTalent.MultiplierAt(points)
 
 	armorDep := unit.NewDynamicMultiplyStat(stats.Armor, multiplier)
 
@@ -27,7 +27,7 @@ func ApplyInspiration(character *core.Character, uptime float64) {
 	}
 	uptime = min(1, uptime)
 
-	inspirationAura := InspirationAura(&character.Unit, 3)
+	aura := inspirationAura(&character.Unit, inspirationTalent.Len())
 
-	ApplyFixedUptimeAura(inspirationAura, uptime, time.Millisecond*2500, 1)
+	applyFixedUptimeAura(aura, uptime, time.Millisecond*2500, 1)
 }
