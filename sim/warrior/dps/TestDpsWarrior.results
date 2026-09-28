@@ -323,6 +323,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-FlurryAxe-871"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-FrostTigerBlade-3854"
  value: {
   dps: 298.69256
@@ -693,6 +702,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-TheRestrainedEssenceofSapphiron-23046"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-ThrashBlade-17705"
  value: {
   dps: 298.69256
   tps: 172.02895

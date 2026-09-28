@@ -318,6 +318,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-FlurryAxe-871"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-ForceReactiveDisk-18168"
  value: {
   dps: 233.26905
@@ -779,6 +787,14 @@ dps_results: {
   dps: 239.26513
   tps: 253.27098
   dtps: 5448.82011
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-ThrashBlade-17705"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
  }
 }
 dps_results: {

@@ -67,6 +67,35 @@ func TestChanceOnHitHotRoutesAsAHeal(t *testing.T) {
 	}
 }
 
+// A chance-on-hit spell that grants extra attacks routes to the extra-attack shape: Flurry Axe 871's
+// 18797 grants the wearer one, at the override's 1.9 PPM, so it registers.
+func TestChanceOnHitExtraAttackRoutes(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	const itemID, spellID = 871, 18797
+	item := instance.Items[itemID]
+	parsed := item.ToUIItem()
+	parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+	i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == spellID })
+	if i < 0 {
+		t.Fatalf("item %d carries no effect on %d", itemID, spellID)
+	}
+
+	groups := map[string]Group{}
+	if got := TryParseProcEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+		t.Fatalf("item %d parsed as %v, want %v", itemID, got, EffectParseResultSuccess)
+	}
+	r := groups["Procs"].Entries[0].Proc
+	if r.Shape != ShapeExtraAttack || !r.IsWeaponProc || r.TriggerSpellID != spellID || r.BuffSpellID != 0 || len(r.Unsupported) != 0 {
+		t.Errorf("item %d: shape %v, weapon proc %v, trigger %d, buff %d, unsupported %q; want a weapon proc granting extra attacks through %d",
+			itemID, r.Shape, r.IsWeaponProc, r.TriggerSpellID, r.BuffSpellID, r.Unsupported, spellID)
+	}
+	if got := spelldata.Find(spellID).ExtraAttacksEffect().BasePoints; got != 1 {
+		t.Errorf("%d grants %v extra attacks, want 1", spellID, got)
+	}
+}
+
 // An on-use with no stats routes from the spell it casts: damage on the enemy it is used on or a heal
 // on the wearer registers, a heal on anyone else or a spell that does neither is refused with the
 // reason and listed.

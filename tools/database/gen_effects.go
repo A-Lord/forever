@@ -135,6 +135,8 @@ const (
 	ShapeAura
 	// An equip spell's auras, kept up for as long as the item is worn rather than applied by a proc.
 	ShapeEquip
+	// Grants the wearer extra attacks: main-hand swings under the granting spell's name.
+	ShapeExtraAttack
 )
 
 var procShapes = [...]struct {
@@ -144,15 +146,16 @@ var procShapes = [...]struct {
 	unsupported      func(*spelldata.Spell) []string
 	alwaysNamesBuff  bool
 }{
-	ShapeStats:    {"NewSpellDataProc", "NewSimpleStatActive", "", nil, false},
-	ShapeDamage:   {"NewSpellDataDamageProc", "NewSpellDataDamageOnUse", "Damage", damageUnsupported, true},
-	ShapeHeal:     {"NewSpellDataHealProc", "NewSpellDataHealOnUse", "Heals", healUnsupported, true},
-	ShapeAbsorb:   {"NewSpellDataAbsorbProc", "NewSpellDataAbsorbOnUse", "Absorbs", absorbUnsupported, true},
-	ShapeSpeed:    {"NewSpellDataProc", "NewSpellDataSpeedOnUse", "Speed", nil, false},
-	ShapeEnergize: {"NewSpellDataProc", "NewSpellDataEnergizeOnUse", "Resources", nil, false},
-	ShapeDebuff:   {"NewSpellDataDebuffProc", "NewSimpleStatActive", "", debuffUnsupported, false},
-	ShapeAura:     {"NewSpellDataAuraProc", "NewSpellDataAuraOnUse", "Auras", procAuraUnsupported, false},
-	ShapeEquip:    {"NewSpellDataEquipAura", "NewSimpleStatActive", "", nil, false},
+	ShapeStats:       {"NewSpellDataProc", "NewSimpleStatActive", "", nil, false},
+	ShapeDamage:      {"NewSpellDataDamageProc", "NewSpellDataDamageOnUse", "Damage", damageUnsupported, true},
+	ShapeHeal:        {"NewSpellDataHealProc", "NewSpellDataHealOnUse", "Heals", healUnsupported, true},
+	ShapeAbsorb:      {"NewSpellDataAbsorbProc", "NewSpellDataAbsorbOnUse", "Absorbs", absorbUnsupported, true},
+	ShapeSpeed:       {"NewSpellDataProc", "NewSpellDataSpeedOnUse", "Speed", nil, false},
+	ShapeEnergize:    {"NewSpellDataProc", "NewSpellDataEnergizeOnUse", "Resources", nil, false},
+	ShapeDebuff:      {"NewSpellDataDebuffProc", "NewSimpleStatActive", "", debuffUnsupported, false},
+	ShapeAura:        {"NewSpellDataAuraProc", "NewSpellDataAuraOnUse", "Auras", procAuraUnsupported, false},
+	ShapeEquip:       {"NewSpellDataEquipAura", "NewSimpleStatActive", "", nil, false},
+	ShapeExtraAttack: {"NewSpellDataExtraAttackProc", "NewSimpleStatActive", "", extraAttackUnsupported, false},
 }
 
 func (r *ProcRouting) Supported() bool {
@@ -201,10 +204,25 @@ func pickNoStatShape(spellID int, debuffID int32) (ProcShape, int32) {
 	if absorb := dbc.ResolveTriggered(spellID, absorbs); absorb != 0 {
 		return ShapeAbsorb, absorb
 	}
+	if spelldata.Find(int32(spellID)).ExtraAttacksEffect() != spelldata.NilEffect {
+		return ShapeExtraAttack, int32(spellID)
+	}
 	if spelldata.Find(debuffID).DebuffsTheTarget() {
 		return ShapeDebuff, debuffID
 	}
 	return ShapeStats, 0
+}
+
+func extraAttackUnsupported(row *spelldata.Spell) []string {
+	var unsupported []string
+	effect := row.ExtraAttacksEffect()
+	if effect.Target[0] != dbcenums.TARGET_UNIT_CASTER {
+		unsupported = append(unsupported, "the extra attacks are not the wearer's")
+	}
+	if effect.BasePoints < 1 {
+		unsupported = append(unsupported, "states no attack count")
+	}
+	return unsupported
 }
 
 func damageUnsupported(damage *spelldata.Spell) []string {

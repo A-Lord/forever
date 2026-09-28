@@ -340,6 +340,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-FlurryAxe-871"
+ value: {
+  dps: 486.66403
+  tps: 265.22883
+  dtps: 2.49108
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-ForceReactiveDisk-18168"
  value: {
   dps: 483.30944
@@ -789,6 +797,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestHunterPets-AllItems-TheNeedler-13060"
+ value: {
+  dps: 483.30944
+  tps: 263.70823
+  dtps: 2.49108
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-ThrashBlade-17705"
  value: {
   dps: 483.30944
   tps: 263.70823

@@ -10,12 +10,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		871, // Flurry Axe
-		[
-			"Grants 1 extra attack on your next swing.", // 18797 - https://www.wowhead.com/forever/spell=18797
-		]
-	],
-	[
 		880, // Staff of Horrors
 		[
 			"Damage caused by the target is reduced by 5 for 2min.", // 8552 - https://www.wowhead.com/forever/spell=8552
@@ -985,12 +979,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		17704, // Edge of Winter
 		[
 			"Blasts a target for 30 Frost damage.", // 16407 - https://www.wowhead.com/forever/spell=16407
-		]
-	],
-	[
-		17705, // Thrash Blade
-		[
-			"Grants an extra attack on your next swing.", // 21919 - https://www.wowhead.com/forever/spell=21919
 		]
 	],
 	[

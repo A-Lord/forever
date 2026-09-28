@@ -98,21 +98,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Grants 1 extra attack on your next swing.
-	// https://www.wowhead.com/forever/spell=18797
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 871, ItemName: "Flurry Axe"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Deals 14 Holy damage every time you block.
 	// https://www.wowhead.com/forever/spell=1293539
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
@@ -995,21 +980,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 17620, ItemName: "General's Satin Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Grants an extra attack on your next swing.
-	// https://www.wowhead.com/forever/spell=21919
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 17705, ItemName: "Thrash Blade"},
 	// })
 
 	// TODO: Manual implementation required
@@ -3189,6 +3159,14 @@ func RegisterAllProcs() {
 			{ItemID: 870, ItemName: "Fiery War Axe"},
 		})
 
+	// Grants 1 extra attack on your next swing.
+	// https://www.wowhead.com/forever/spell=18797
+	// trigger 18797 (1.9 ppm, core.CallbackEmpty, core.ProcMaskUnknown)
+	shared.NewSpellDataExtraAttackProc(shared.SpellDataProc{TriggerSpellID: 18797, IsWeaponProc: true},
+		[]shared.ItemVariant{
+			{ItemID: 871, ItemName: "Flurry Axe"},
+		})
+
 	// When struck in combat has a 1% chance of raising a thorny shield that inflicts 3 Nature damage to attackers
 	// when hit and increases Nature resistance by 50 for 30s.
 	//
@@ -3358,6 +3336,14 @@ func RegisterAllProcs() {
 	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 21162, BuffSpellID: 21162, IsWeaponProc: true},
 		[]shared.ItemVariant{
 			{ItemID: 17182, ItemName: "Sulfuras, Hand of Ragnaros -  - "},
+		})
+
+	// Grants an extra attack on your next swing.
+	// https://www.wowhead.com/forever/spell=21919
+	// trigger 21919 (1 ppm, core.CallbackEmpty, core.ProcMaskUnknown)
+	shared.NewSpellDataExtraAttackProc(shared.SpellDataProc{TriggerSpellID: 21919, IsWeaponProc: true},
+		[]shared.ItemVariant{
+			{ItemID: 17705, ItemName: "Thrash Blade"},
 		})
 
 	// When struck in combat has a 5% chance of inflicting 50 Nature damage to the attacker.
