@@ -1,11 +1,11 @@
 import { EquipmentSpec, ItemSpec } from '@generated/proto/common';
 import { SavedGearSet } from '@generated/proto/ui';
-import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats } from '@sim/proto/stats';
 import { subscribeGated } from '@sim/state/batch';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithHost } from '../../../../testing/react';
 import { SavedGear } from './SavedGear';
 
 const source = vi.hoisted(() => {
@@ -101,11 +101,7 @@ const setup = () => {
 };
 
 const renderPanel = async () => {
-	const result = render(
-		<SimHostProvider host={host}>
-			<SavedGear />
-		</SimHostProvider>,
-	);
+	const result = renderWithHost(<SavedGear />, host);
 	await act(async () => {});
 	return result;
 };
@@ -162,7 +158,7 @@ describe('SavedGear', () => {
 
 		// This is the one thing a JSON-string diff of the two writes can't see: whether they land as
 		// one store notification or two. Deleting `batch()` around setGear/setBonusStats in
-		// SavedGear.tsx makes this fail with `notified` = 2, because setGear's own write fires the
+		// `loadGearSet` (utils.ts) makes this fail with `notified` = 2, because setGear's own write fires the
 		// gated listener before setBonusStats runs.
 		it('fires the store subscriber once for the combined gear+bonusStats write, not twice', async () => {
 			window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ Raiding: storedJson(4) }));
@@ -209,11 +205,7 @@ describe('SavedGear', () => {
 			let resolveInit = () => {};
 			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
 
-			render(
-				<SimHostProvider host={host}>
-					<SavedGear />
-				</SimHostProvider>,
-			);
+			renderWithHost(<SavedGear />, host);
 
 			expect(chips('presets')).toHaveLength(0);
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Raiding']);

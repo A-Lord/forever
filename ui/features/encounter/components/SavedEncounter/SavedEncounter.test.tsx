@@ -1,9 +1,9 @@
 import { Encounter as EncounterProto } from '@generated/proto/common';
 import { SavedEncounter as SavedEncounterProto } from '@generated/proto/ui';
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithHost } from '../../../../testing/react';
 import { SavedEncounter } from './SavedEncounter';
 
 const source = vi.hoisted(() => {
@@ -73,11 +73,7 @@ const setup = () => {
 };
 
 const renderPanel = async () => {
-	const result = render(
-		<SimHostProvider host={host}>
-			<SavedEncounter />
-		</SimHostProvider>,
-	);
+	const result = renderWithHost(<SavedEncounter />, host);
 	await act(async () => {});
 	return result;
 };
@@ -143,11 +139,7 @@ describe('SavedEncounter', () => {
 			let resolveInit = () => {};
 			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
 
-			render(
-				<SimHostProvider host={host}>
-					<SavedEncounter />
-				</SimHostProvider>,
-			);
+			renderWithHost(<SavedEncounter />, host);
 
 			expect(chips('presets')).toHaveLength(0);
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Mine']);

@@ -1,9 +1,8 @@
 import { SavedGear } from '@features/gear/components/SavedGear';
-import { gearSetData, serializeGearSet } from '@features/gear/components/SavedGear/utils';
+import { gearSetData, loadGearSet, serializeGearSet } from '@features/gear/components/SavedGear/utils';
 import { useSavedGear } from '@features/gear/hooks/useSavedGear';
 import { useSavedPanel } from '@features/hooks/useSavedPanel';
 import { applyBuild } from '@features/settings/model/apply_build';
-import { EquipmentSpec, UnitStats } from '@generated/proto/common';
 import { SavedGearSet } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
@@ -82,11 +81,7 @@ const GroupedGearPresets = () => {
 		storage: useSavedGear(),
 		current,
 		serialize: serializeGearSet,
-		load: entry =>
-			batch(() => {
-				player.setGear(sim.db.lookupEquipmentSpec(entry.data.gear || EquipmentSpec.create()));
-				player.setBonusStats(Stats.fromProto(entry.data.bonusStatsStats || UnitStats.create()));
-			}),
+		load: loadGearSet,
 	});
 
 	const loadGearPreset = (preset: PresetGear) => {
@@ -156,7 +151,6 @@ const GroupedGearPresets = () => {
 								className="mt-4"
 								nameLabel={i18n.t('gear_tab.gear_sets.gear_set_name')}
 								saveButtonText={i18n.t('gear_tab.gear_sets.save_gear_set')}
-								presets={[]}
 								{...savedPanel}
 							/>
 						),

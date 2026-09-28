@@ -1,11 +1,11 @@
 import { Stat } from '@generated/proto/common';
 import { SavedEPWeights } from '@generated/proto/ui';
-import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats } from '@sim/proto/stats';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithHost } from '../../../../testing/react';
 import { SavedEpWeights } from './SavedEpWeights';
 
 const source = vi.hoisted(() => {
@@ -91,11 +91,7 @@ const setup = () => {
 // The presets and the stored sets both land on `waitForInit`, so every assertion about a chip has to
 // come after that microtask.
 const renderManager = async () => {
-	const result = render(
-		<SimHostProvider host={host}>
-			<SavedEpWeights />
-		</SimHostProvider>,
-	);
+	const result = renderWithHost(<SavedEpWeights />, host);
 	await act(async () => {});
 	return result;
 };
@@ -311,11 +307,7 @@ describe('SavedEpWeights', () => {
 			let resolveInit = () => {};
 			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
 
-			render(
-				<SimHostProvider host={host}>
-					<SavedEpWeights />
-				</SimHostProvider>,
-			);
+			renderWithHost(<SavedEpWeights />, host);
 
 			expect(chips('presets')).toHaveLength(0);
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Raiding']);
