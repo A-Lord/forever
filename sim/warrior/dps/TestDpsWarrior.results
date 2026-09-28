@@ -332,15 +332,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-FrostTigerBlade-3854"
- value: {
-  dps: 298.69256
-  tps: 172.02895
-  dtps: 2.90588
-  hps: 19.24347
- }
-}
-dps_results: {
  key: "TestDpsWarrior-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 297.5567

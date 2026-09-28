@@ -5058,11 +5058,11 @@ var generatedSpells = []Spell{
 			{ID: 686615, SpellID: 8190, Type: dbcenums.E_SUMMON, BasePoints: 5, BaseLevel: 26, PvpMult: 1, Misc: 5929, Misc2: 63, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{44, 0}},
 		},
 		Powers: []Power{{Cost: 230}}},
-	{ID: 8191, Name: "Zeal", Rank: "Rank 1", School: 2, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 60, DurationMs: 15000, DefenseType: 1, DispelType: 1, RPPM: 1.8, ProcChanceSource: ProcChancePPM,
+	{ID: 8191, Name: "Zeal", Rank: "Rank 1", School: 2, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 60, DurationMs: 15000, DefenseType: 1, DispelType: 1,
 		Effects: []Effect{
 			{ID: 687095, SpellID: 8191, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DAMAGE_DONE, BasePoints: 10, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 687096, SpellID: 8191, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: 150, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: PPM 1.8 -- Sword of Zeal: chance-on-hit weapon, no proc row
+		}},
 	{ID: 8192, Name: "Mind Soothe", Rank: "Rank 2", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x220000, 2: 0x80000, 3: 0x30000, 4: 0x800000, 13: 0x80, 15: 0x2000}, SpellLevel: 36, BaseLevel: 36, DurationMs: 15000, MaxRange: 40, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 6, Mask: [4]uint32{0: 2214592512}}, InterruptFlags: 8, StanceMask: 0x8000000, TargetCreatureType: 64, Labels: []int16{18},
 		Effects: []Effect{
 			{ID: 686626, SpellID: 8192, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DETECT_RANGE, BasePoints: -10, BaseLevel: 36, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -5172,10 +5172,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 686762, SpellID: 8312, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ROOT, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 8313, Name: "Poison", School: 8, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 25, DurationMs: 9000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 8313, Name: "Poison", School: 8, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 25, DurationMs: 9000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 686664, SpellID: 8313, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 14, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Bite of Serra'kis: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 8315, Name: "Perm. Illusion Succubus", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 686722, SpellID: 8315, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_TRANSFORM, BaseLevel: 60, PvpMult: 1, Misc: 1863, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -5206,11 +5206,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 687248, SpellID: 8344, Type: dbcenums.E_DUMMY, BaseLevel: 60, PvpMult: 1, RadiusMax: 100, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 8348, Name: "Julie's Blessing", Rank: "Rank 1", School: 2, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 50, CastTimeMs: 2000, DurationMs: 12000, DefenseType: 1, DispelType: 1, ProcChance: 100, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 8348, Name: "Julie's Blessing", Rank: "Rank 1", School: 2, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 50, CastTimeMs: 2000, DurationMs: 12000, DefenseType: 1, DispelType: 1, ProcChance: 100, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 687250, SpellID: 8348, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_HEAL, BasePoints: 13, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		},
-		Powers: []Power{{Cost: 30}}}, // override: PPM 1 -- Julie's Dagger: chance-on-hit weapon, column reads 100
+		Powers: []Power{{Cost: 30}}},
 	{ID: 8349, Name: "Fire Nova", Rank: "Rank 1", School: 4, Attr: [17]uint32{0: 0x10000, 1: 0x88, 2: 0x40000000, 3: 0x40, 15: 0x2000}, SpellLevel: 12, BaseLevel: 12, MaxLevel: 17, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1073741824}}, Labels: []int16{24},
 		Effects: []Effect{
 			{ID: 685884, SpellID: 8349, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 52, PPL: 1.100000023841858, Variance: 0.1538461595773697, BaseLevel: 12, MaxLevel: 17, SPCoef: 0.10000000149011612, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 15}},
@@ -5434,11 +5434,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 686088, SpellID: 8532, Type: dbcenums.E_ENCHANT_ITEM_TEMPORARY, BaseLevel: 60, PvpMult: 1, Misc: 264, ChainAmp: 1},
 		}},
-	{ID: 8552, Name: "Curse of Weakness", School: 32, Attr: [17]uint32{15: 0x2000}, SpellLevel: 14, CastTimeMs: 1000, DurationMs: 120000, MaxRange: 30, DefenseType: 1, DispelType: 1, RPPM: 1.4, InterruptFlags: 15, ProcChanceSource: ProcChancePPM,
+	{ID: 8552, Name: "Curse of Weakness", School: 32, Attr: [17]uint32{15: 0x2000}, SpellLevel: 14, CastTimeMs: 1000, DurationMs: 120000, MaxRange: 30, DefenseType: 1, DispelType: 1, InterruptFlags: 15,
 		Effects: []Effect{
 			{ID: 685125, SpellID: 8552, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DAMAGE_DONE, BasePoints: -5, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 70}}}, // override: PPM 1.4 -- Staff of Horrors: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 70}}},
 	{ID: 8621, Name: "Sinister Strike", Rank: "Rank 6", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0xc000200, 3: 0x400, 15: 0x2000}, SpellLevel: 38, BaseLevel: 38, MaxRange: 5, GCDMs: 1000, Category: 40, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 8, Mask: [4]uint32{0: 8388610}}, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{20},
 		Effects: []Effect{
 			{ID: 687434, SpellID: 8621, Type: dbcenums.E_NORMALIZED_WEAPON_DMG, BasePoints: 33, BaseLevel: 38, SPCoef: 1, PvpMult: 1, ChainTargets: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -6499,12 +6499,12 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 687217, SpellID: 9800, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_SCHOOL_ABSORB, BasePoints: 175, PvpMult: 1, Misc: 127, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 9806, Name: "Phantom Strike", School: 8, Attr: [17]uint32{1: 0x18000, 15: 0x2000}, SpellLevel: 42, DurationMs: 20000, MaxRange: 30, GCDMs: 1500, DefenseType: 1, DispelType: 1, ProcChance: 101, RPPM: 1, InterruptFlags: 15, ProcChanceSource: ProcChancePPM,
+	{ID: 9806, Name: "Phantom Strike", School: 8, Attr: [17]uint32{1: 0x18000, 15: 0x2000}, SpellLevel: 42, DurationMs: 20000, MaxRange: 30, GCDMs: 1500, DefenseType: 1, DispelType: 1, ProcChance: 101, InterruptFlags: 15, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 687081, SpellID: 9806, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -100, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 687082, SpellID: 9806, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DISPEL_IMMUNITY, PvpMult: 1, Misc: 6, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 687083, SpellID: 9806, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DISPEL_IMMUNITY, PvpMult: 1, Misc: 5, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Phantom Blade: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 9821, Name: "Dash", Rank: "Rank 2", School: 1, Attr: [17]uint32{0: 0x40010, 1: 0x20, 15: 0x2000}, SpellLevel: 46, DurationMs: 15000, CategoryCooldownMs: 300000, Category: 44, ProcChance: 101, StanceMask: 0x1, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 687239, SpellID: 9821, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_INCREASE_SPEED, BasePoints: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -8904,10 +8904,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 689453, SpellID: 11789, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_WATER_BREATHING, BasePoints: 50, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 11790, Name: "Poison Cloud", School: 8, Attr: [17]uint32{1: 0x88, 8: 0x200, 15: 0x2000}, SpellLevel: 30, DurationMs: 12000, DefenseType: 1, DispelType: 4, ProcChance: 101, RPPM: 0.8, MaxTargets: 3, ProcChanceSource: ProcChancePPM,
+	{ID: 11790, Name: "Poison Cloud", School: 8, Attr: [17]uint32{1: 0x88, 8: 0x200, 15: 0x2000}, SpellLevel: 30, DurationMs: 12000, DefenseType: 1, DispelType: 4, ProcChance: 101, MaxTargets: 3, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690492, SpellID: 11790, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 14, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 15}},
-		}}, // override: PPM 0.8 -- Toxic Revenger: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 11879, Name: "Disarm", School: 1, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, DurationMs: 5000, MaxRange: 5, Mechanic: 3,
 		Effects: []Effect{
 			{ID: 689100, SpellID: 11879, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DISARM, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -9593,10 +9593,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 690487, SpellID: 13280, Type: dbcenums.E_DUMMY, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 13318, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 50, DurationMs: 30000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, RPPM: 0.85, ProcChanceSource: ProcChancePPM,
+	{ID: 13318, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 50, DurationMs: 30000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690785, SpellID: 13318, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 10, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 0.85 -- Killmaim: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 13327, Name: "Reckless Charge", School: 1, Speed: 30, Attr: [17]uint32{0: 0x140810, 15: 0x2000}, SpellLevel: 1, MaxLevel: 60, DurationMs: 30000, MaxRange: 30, Category: 44, StartRecoveryCategory: 133, DispelType: 1, Mechanic: 14, ProcChance: 100, AuraInterrupt: [2]uint32{0: 0x2}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690889, SpellID: 13327, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STUN, BasePoints: 1, MaxLevel: 60, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -9683,15 +9683,15 @@ var generatedSpells = []Spell{
 			{ID: 690468, SpellID: 13438, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 51, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 690469, SpellID: 13438, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 4, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 13439, Name: "Frostbolt", School: 16, Speed: 28, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, DurationMs: 5000, MaxRange: 100, DefenseType: 1, DispelType: 1, ProcChance: 101, RPPM: 3.5, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+	{ID: 13439, Name: "Frostbolt", School: 16, Speed: 28, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, DurationMs: 5000, MaxRange: 100, DefenseType: 1, DispelType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 691597, SpellID: 13439, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -50, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 691598, SpellID: 13439, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 50, Variance: 0.4000000059604645, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 3.5 -- Hammer of the Northern Wind: chance-on-hit weapon, column reads 101; shared trigger with Frost Tiger Blade
-	{ID: 13440, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+		}},
+	{ID: 13440, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 690996, SpellID: 13440, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 30, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Skeletal Club: chance-on-hit weapon, no proc row
+		}},
 	{ID: 13441, Name: "Firebolt", School: 4, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690997, SpellID: 13441, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 60, Variance: 0.3333333432674408, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -9714,28 +9714,28 @@ var generatedSpells = []Spell{
 			{ID: 690422, SpellID: 13482, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 15, Variance: 0.6666666865348816, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 20}}},
-	{ID: 13491, Name: "Pummel", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 15: 0x2000}, SpellLevel: 6, DurationMs: 5000, MaxRange: 100, DefenseType: 2, RPPM: 2, ProcChanceSource: ProcChancePPM,
+	{ID: 13491, Name: "Pummel", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 15: 0x2000}, SpellLevel: 6, DurationMs: 5000, MaxRange: 100, DefenseType: 2,
 		Effects: []Effect{
 			{ID: 687729, SpellID: 13491, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 25, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 687730, SpellID: 13491, Index: 1, Type: dbcenums.E_INTERRUPT_CAST, PvpMult: 1, ChainAmp: 1, Mechanic: 26, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 2 -- Iron Knuckles: chance-on-hit weapon, no proc row
+		}},
 	{ID: 13494, Name: "Haste", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 35, DurationMs: 30000, DefenseType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690236, SpellID: 13494, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_MELEE_HASTE_3, BasePoints: 50, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 13496, Name: "Dazed", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 10000, MaxRange: 5, ProcChance: 101, RPPM: 2, ProcChanceSource: ProcChancePPM,
+	{ID: 13496, Name: "Dazed", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 10000, MaxRange: 5, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690238, SpellID: 13496, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -50, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 2 -- Mug O' Hurt: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 13518, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 15000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 691572, SpellID: 13518, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 5, MaxLevel: 10, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 13519, Name: "Holy Smite", School: 2, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 6, MaxLevel: 11, CastTimeMs: 2000, MaxRange: 30, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 13519, Name: "Holy Smite", School: 2, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 6, MaxLevel: 11, CastTimeMs: 2000, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 691283, SpellID: 13519, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 30, MaxLevel: 11, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 35}}}, // override: PPM 1 -- Shortsword of Vengeance: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 35}}},
 	{ID: 13523, Name: "Lesser Resistance - Shadow", School: 1, Attr: [17]uint32{0: 0xc0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1,
 		Effects: []Effect{
 			{ID: 690396, SpellID: 13523, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: 10, BaseLevel: 60, PvpMult: 1, Misc: 32, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -10245,11 +10245,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 691359, SpellID: 14095, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 90, BaseLevel: 60, SPCoef: 1, PvpMult: 1, TriggerID: 14093, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 14106, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1, RPPM: 0.65, ProcChanceSource: ProcChancePPM,
+	{ID: 14106, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 691287, SpellID: 14106, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 40, Variance: 0.25, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 40}}}, // override: PPM 0.65 -- The Black Knight: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 40}}},
 	{ID: 14113, Name: "Improved Poisons", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 8}, Labels: []int16{20}, ProcChanceSource: ProcChanceEffectN, ProcChanceEffect: 2,
 		Effects: []Effect{
 			{ID: 690985, SpellID: 14113, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: 10, BaseLevel: 60, PvpMult: 1, Misc: 18, ClassFlags: core.ClassFlags{Family: 8, Mask: [4]uint32{0: 268558336}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -10260,10 +10260,10 @@ var generatedSpells = []Spell{
 			{ID: 691228, SpellID: 14119, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 35, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 20}}},
-	{ID: 14126, Name: "Wound", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 40, MaxRange: 5, DefenseType: 2, ProcChance: 101, RPPM: 0.87, ProcChanceSource: ProcChancePPM,
+	{ID: 14126, Name: "Wound", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 40, MaxRange: 5, DefenseType: 2, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 691945, SpellID: 14126, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 130, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 0.87 -- Grim Reaper: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 14127, Name: "Increase Spell Dam 28", School: 8, Attr: [17]uint32{0: 0xc0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, ProcChance: 101, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintHeals,
 		Effects: []Effect{
 			{ID: 691990, SpellID: 14127, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DAMAGE_DONE, BasePoints: 28, BaseLevel: 60, PvpMult: 1, Misc: 126, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -13326,36 +13326,36 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 693658, SpellID: 16400, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 6, MaxLevel: 10, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16401, Name: "Poison", School: 8, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 35, DurationMs: 30000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 16401, Name: "Poison", School: 8, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 35, DurationMs: 30000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 694820, SpellID: 16401, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 30, PvpMult: 1, PeriodMs: 6000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Poison-Tipped Bone Spear: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 16403, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 30, DurationMs: 30000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 694467, SpellID: 16403, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 17, PvpMult: 1, PeriodMs: 6000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16405, Name: "Wound", School: 1, Attr: [17]uint32{0: 0x10, 15: 0x2000}, SpellLevel: 50, MaxRange: 5, DefenseType: 2, ProcChance: 101, RPPM: 3, ProcChanceSource: ProcChancePPM,
+	{ID: 16405, Name: "Wound", School: 1, Attr: [17]uint32{0: 0x10, 15: 0x2000}, SpellLevel: 50, MaxRange: 5, DefenseType: 2, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 693188, SpellID: 16405, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 75, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 3 -- The Needler: chance-on-hit weapon, column reads 101; shared trigger, Hanzo Sword lists 1
+		}},
 	{ID: 16406, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 45, DurationMs: 30000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 693207, SpellID: 16406, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 8, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16407, Name: "Frost Blast", School: 16, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, RPPM: 1.2, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+	{ID: 16407, Name: "Frost Blast", School: 16, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 693208, SpellID: 16407, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 30, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 80}}}, // override: PPM 1.2 -- Edge of Winter: chance-on-hit weapon, column reads 101
+		Powers: []Power{{Cost: 80}}},
 	{ID: 16408, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 693694, SpellID: 16408, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 28, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16409, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 16409, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 694088, SpellID: 16409, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 35, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 40}}}, // override: PPM 1 -- Claw of the Shadowmancer: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 40}}},
 	{ID: 16462, Name: "Deflection", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, Labels: []int16{25},
 		Effects: []Effect{
 			{ID: 694284, SpellID: 16462, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_PARRY_PERCENT, BasePoints: 1, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -13680,10 +13680,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 694533, SpellID: 16918, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 75, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 22, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 512}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 16921, Name: "Chain Lightning", School: 8, Speed: 20, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 63, MaxRange: 30, GCDMs: 1500, DefenseType: 1, ProcChance: 101, RPPM: 0.5, ProcChanceSource: ProcChancePPM,
+	{ID: 16921, Name: "Chain Lightning", School: 8, Speed: 20, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 63, MaxRange: 30, GCDMs: 1500, DefenseType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695407, SpellID: 16921, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 125, Variance: 0.3199999928474426, PvpMult: 1, ChainTargets: 3, ChainAmp: 0.7, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 0.5 -- Masterwork Stormhammer: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 16922, Name: "Starfire Stun", School: 1, Attr: [17]uint32{13: 0x80, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 3000, DefenseType: 1, Mechanic: 12,
 		Effects: []Effect{
 			{ID: 694353, SpellID: 16922, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STUN, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -14156,10 +14156,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 695198, SpellID: 17498, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_INCREASE_SPEED, BasePoints: 5, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 17510, Name: "Corruption", School: 32, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2000, DurationMs: 3000, MaxRange: 30, DefenseType: 1, DispelType: 1, ProcChance: 100, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 17510, Name: "Corruption", School: 32, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2000, DurationMs: 3000, MaxRange: 30, DefenseType: 1, DispelType: 1, ProcChance: 100, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 694919, SpellID: 17510, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 10, PvpMult: 1, PeriodMs: 1000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Sword of Corruption: chance-on-hit weapon, column reads 100
+		}},
 	{ID: 17511, Name: "Poison", School: 8, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 50, DurationMs: 20000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 694920, SpellID: 17511, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 8, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -15035,14 +15035,14 @@ var generatedSpells = []Spell{
 			{ID: 696408, SpellID: 18074, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, BasePoints: 30, BaseLevel: 60, PvpMult: 1, Misc: 32, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 696409, SpellID: 18074, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, BasePoints: 30, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 32, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 18077, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 15000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, RPPM: 2, ProcChanceSource: ProcChancePPM,
+	{ID: 18077, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 15000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695237, SpellID: 18077, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 3, MaxLevel: 10, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 2 -- Venom Web Fang: chance-on-hit weapon, column reads 101
-	{ID: 18078, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 30, DurationMs: 30000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, RPPM: 1, ProcChanceSource: ProcChancePPM,
+		}},
+	{ID: 18078, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 30, DurationMs: 30000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695306, SpellID: 18078, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 6, PvpMult: 1, PeriodMs: 6000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Flesh Piercer: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 18081, Name: "Lightning Bolt", School: 8, Speed: 30, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 28, MaxRange: 100, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 694895, SpellID: 18081, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 91, Variance: 0.31481480598449707, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -15053,20 +15053,20 @@ var generatedSpells = []Spell{
 			{ID: 694897, SpellID: 18082, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 12, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 45}}},
-	{ID: 18089, Name: "Lightning Bolt", School: 8, Speed: 15, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 30, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 18089, Name: "Lightning Bolt", School: 8, Speed: 15, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 695940, SpellID: 18089, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 98, Variance: 0.5, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Linken's Sword of Mastery: chance-on-hit weapon, no proc row
-	{ID: 18091, Name: "Arcane Blast", School: 64, Attr: [17]uint32{15: 0x2000}, SpellLevel: 35, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, RPPM: 1, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+		}},
+	{ID: 18091, Name: "Arcane Blast", School: 64, Attr: [17]uint32{15: 0x2000}, SpellLevel: 35, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 694853, SpellID: 18091, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 85, PPL: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 80}}}, // override: PPM 1 -- Archeus: chance-on-hit weapon, column reads 101
-	{ID: 18092, Name: "Frost Blast", School: 16, Attr: [17]uint32{15: 0x2000}, MaxRange: 30, DefenseType: 1, RPPM: 0.5, ProcChanceSource: ProcChancePPM,
+		Powers: []Power{{Cost: 80}}},
+	{ID: 18092, Name: "Frost Blast", School: 16, Attr: [17]uint32{15: 0x2000}, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 695258, SpellID: 18092, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 50, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 80}}}, // override: PPM 0.5 -- Shiver Blade: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 80}}},
 	{ID: 18093, Name: "Pyroclasm", School: 4, Attr: [17]uint32{1: 0x88, 2: 0x4, 13: 0x80, 15: 0x2000}, SpellLevel: 35, DurationMs: 3000, MaxRange: 50000, DefenseType: 1, Mechanic: 12, PreventionType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695259, SpellID: 18093, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STUN, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -15127,11 +15127,11 @@ var generatedSpells = []Spell{
 			{ID: 694868, SpellID: 18137, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 20, BaseLevel: 20, SPCoef: 0.2669999897480011, PvpMult: 1, TriggerID: 28376, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		},
 		Powers: []Power{{Cost: 50}}},
-	{ID: 18138, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 18138, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 695344, SpellID: 18138, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 125, Variance: 0.23999999463558197, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 40}}}, // override: PPM 1 -- Black Duskwood Staff: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 40}}},
 	{ID: 18140, Name: "Blessed Sunfruit Juice", School: 1, Attr: [17]uint32{0: 0x18000100, 15: 0x2000}, SpellLevel: 65, DurationMs: 30000, CategoryCooldownMs: 1000, Category: 59, ProcChance: 101, InterruptFlags: 1, AuraInterrupt: [2]uint32{0: 0x40080}, Labels: []int16{5360}, RefIDs: []int32{18141}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695159, SpellID: 18140, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_POWER_REGEN, BasePoints: 735, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -15189,24 +15189,24 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 695162, SpellID: 18202, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 14, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 18204, Name: "Frost Blast", School: 16, Speed: 40, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 18204, Name: "Frost Blast", School: 16, Speed: 40, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 695016, SpellID: 18204, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 133, Variance: 0.08695652335882187, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Cobalt Crusher: chance-on-hit weapon, no proc row
+		}},
 	{ID: 18208, Name: "Poison", School: 8, Attr: [17]uint32{8: 0x200, 15: 0x2000}, SpellLevel: 25, DurationMs: 25000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 696065, SpellID: 18208, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 13, PvpMult: 1, PeriodMs: 5000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 18211, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1, RPPM: 0.4, ProcChanceSource: ProcChancePPM,
+	{ID: 18211, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 694767, SpellID: 18211, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 200, Variance: 0.75, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 40}}}, // override: PPM 0.4 -- Ebon Hand: chance-on-hit weapon, no proc row; shared trigger, Doombringer lists 0.75
-	{ID: 18214, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1, RPPM: 1.25, ProcChanceSource: ProcChancePPM,
+		Powers: []Power{{Cost: 40}}},
+	{ID: 18214, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, CastTimeMs: 2200, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 693032, SpellID: 18214, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 150, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 40}}}, // override: PPM 1.25 -- Witchfury: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 40}}},
 	{ID: 18217, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 694862, SpellID: 18217, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 98, Variance: 0.5, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -15297,11 +15297,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 695654, SpellID: 18388, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: -2000, BaseLevel: 60, PvpMult: 1, Misc: 11, ClassFlags: core.ClassFlags{Family: 6, Mask: [4]uint32{0: 16384}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 18398, Name: "Frost Blast", School: 16, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, RPPM: 1.4, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+	{ID: 18398, Name: "Frost Blast", School: 16, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 30, CategoryCooldownMs: 8000, GCDMs: 1500, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695516, SpellID: 18398, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 45, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 80}}}, // override: PPM 1.4 -- Glacial Blade: chance-on-hit weapon, column reads 101
+		Powers: []Power{{Cost: 80}}},
 	{ID: 18425, Name: "Silenced - Kick", School: 1, Attr: [17]uint32{13: 0x80, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 2000, MaxRange: 50000, DispelType: 1, Mechanic: 9, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 8}, StanceMask: 0x8000000, Labels: []int16{20}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695774, SpellID: 18425, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SILENCE, BasePoints: 1, BaseLevel: 60, PvpMult: 1, Misc: 126, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -15524,16 +15524,16 @@ var generatedSpells = []Spell{
 			{ID: 696274, SpellID: 18792, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_OBS_MOD_POWER, BasePoints: 2, BaseLevel: 60, PvpMult: 1, PeriodMs: 4000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 696275, SpellID: 18792, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_OVERRIDE_CLASS_SCRIPTS, BasePoints: 1, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 2228, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 536870912}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 18796, Name: "Fireball", School: 4, Attr: [17]uint32{0: 0x10000, 8: 0x200, 15: 0x2000}, SpellLevel: 45, CastTimeMs: 2000, DurationMs: 6000, MaxRange: 35, DefenseType: 1, ProcChance: 101, RPPM: 1, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+	{ID: 18796, Name: "Fireball", School: 4, Attr: [17]uint32{0: 0x10000, 8: 0x200, 15: 0x2000}, SpellLevel: 45, CastTimeMs: 2000, DurationMs: 6000, MaxRange: 35, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 696782, SpellID: 18796, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 176, Variance: 0.23863635957241058, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 696783, SpellID: 18796, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 8, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 45}}}, // override: PPM 1 -- Fiery War Axe: chance-on-hit weapon, column reads 101
-	{ID: 18797, Name: "Flurry Axe", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, ProcChance: 101, RPPM: 1.9, ProcChanceSource: ProcChancePPM,
+		Powers: []Power{{Cost: 45}}},
+	{ID: 18797, Name: "Flurry Axe", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 696784, SpellID: 18797, Type: dbcenums.E_ADD_EXTRA_ATTACKS, BasePoints: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: PPM 1.9 -- Flurry Axe: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 18805, Name: "Recombobulate", School: 64, Attr: [17]uint32{15: 0x2000}, MaxLevel: 30, MaxRange: 30,
 		Effects: []Effect{
 			{ID: 693268, SpellID: 18805, Type: dbcenums.E_DISPEL_MECHANIC, BasePoints: 1, MaxLevel: 30, PvpMult: 1, Misc: 17, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
@@ -17705,10 +17705,10 @@ var generatedSpells = []Spell{
 			{ID: 698376, SpellID: 21149, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_TRIGGER_SPELL, BasePoints: 1, PvpMult: 1, PeriodMs: 10000, TriggerID: 19705, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 698377, SpellID: 21149, Index: 2, Type: dbcenums.E_INEBRIATE, BasePoints: 10, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 21152, Name: "Earthshaker", School: 1, Attr: [17]uint32{0: 0x40000, 1: 0x88, 15: 0x2000}, SpellLevel: 60, DurationMs: 3000, MaxRange: 5, Category: 32, DefenseType: 1, Mechanic: 12, ProcChance: 101, RPPM: 2.1, ProcChanceSource: ProcChancePPM,
+	{ID: 21152, Name: "Earthshaker", School: 1, Attr: [17]uint32{0: 0x40000, 1: 0x88, 15: 0x2000}, SpellLevel: 60, DurationMs: 3000, MaxRange: 5, Category: 32, DefenseType: 1, Mechanic: 12, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 697724, SpellID: 21152, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STUN, BasePoints: 1, PvpMult: 1, Amplitude: 1, RadiusMax: 5, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{16, 0}},
-		}}, // override: PPM 2.1 -- Earthshaker: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 21156, Name: "Battle Stance Passive", School: 1, Attr: [17]uint32{0: 0x500d0, 15: 0x2000}, SpellLevel: 1, DurationMs: -1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 697815, SpellID: 21156, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_THREAT, BasePoints: -20, PvpMult: 1, Misc: 127, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -17718,12 +17718,12 @@ var generatedSpells = []Spell{
 			{ID: 697701, SpellID: 21159, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 92, Variance: 0.19565217196941376, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 697702, SpellID: 21159, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 4, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 21162, Name: "Fireball", School: 4, Attr: [17]uint32{0: 0x10000, 8: 0x200, 15: 0x2000}, SpellLevel: 63, CastTimeMs: 2000, DurationMs: 10000, MaxRange: 35, DefenseType: 1, ProcChance: 101, RPPM: 0.7, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+	{ID: 21162, Name: "Fireball", School: 4, Attr: [17]uint32{0: 0x10000, 8: 0x200, 15: 0x2000}, SpellLevel: 63, CastTimeMs: 2000, DurationMs: 10000, MaxRange: 35, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 699690, SpellID: 21162, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 303, Variance: 0.19801980257034302, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 699691, SpellID: 21162, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 15, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 45}}}, // override: PPM 0.7 -- Sulfuras, Hand of Ragnaros: chance-on-hit weapon, column reads 101
+		Powers: []Power{{Cost: 45}}},
 	{ID: 21169, Name: "Reincarnation", School: 8, Attr: [17]uint32{0: 0x800000, 15: 0x2000}, SpellLevel: 30, BaseLevel: 30, CategoryCooldownMs: 3600000, Category: 1161, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 512}}, Labels: []int16{24},
 		Effects: []Effect{
 			{ID: 697838, SpellID: 21169, Type: dbcenums.E_SELF_RESURRECT, BasePoints: 20, BaseLevel: 30, PvpMult: 1, Misc: 20, ChainAmp: 1},
@@ -18556,10 +18556,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 699871, SpellID: 21899, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 30, BaseLevel: 60, PvpMult: 1, Misc: 20, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 256}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 21919, Name: "Thrash", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 50, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 21919, Name: "Thrash", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 50,
 		Effects: []Effect{
 			{ID: 698774, SpellID: 21919, Type: dbcenums.E_ADD_EXTRA_ATTACKS, BasePoints: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: PPM 1 -- Thrash Blade: chance-on-hit weapon, no proc row
+		}},
 	{ID: 21920, Name: "Frost Power", School: 16, Attr: [17]uint32{0: 0x28000000, 15: 0x2000}, DurationMs: 1800000, CategoryCooldownMs: 1000, Category: 99, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 13},
 		Effects: []Effect{
 			{ID: 699668, SpellID: 21920, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DAMAGE_DONE, BasePoints: 15, PvpMult: 1, Misc: 16, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -18599,10 +18599,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 697771, SpellID: 21935, Type: dbcenums.E_CREATE_ITEM, MaxLevel: 38, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 21951, Name: "Fist of Stone", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 53, MaxRange: 5, DefenseType: 2, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 21951, Name: "Fist of Stone", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 53, MaxRange: 5, DefenseType: 2,
 		Effects: []Effect{
 			{ID: 699703, SpellID: 21951, Type: dbcenums.E_ENERGIZE, BasePoints: 32, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: PPM 1 -- Fist of Stone: chance-on-hit weapon, no proc row
+		}},
 	{ID: 21955, Name: "Razorlash Root", School: 8, Attr: [17]uint32{15: 0x2000}, DurationMs: 10000, ProcChance: 101, AuraInterrupt: [2]uint32{0: 0x2}, ChannelInterrupt: [2]uint32{0: 0x3c0e}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintHeals,
 		Effects: []Effect{
 			{ID: 699301, SpellID: 21955, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_HEAL, BasePoints: 60, PvpMult: 1, PeriodMs: 1000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -18638,12 +18638,12 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 699832, SpellID: 21991, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DAMAGE_SHIELD, BasePoints: 4, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 21992, Name: "Thunderfury", School: 8, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 63, DurationMs: 12000, MaxRange: 5, DefenseType: 1, DispelType: 1, ProcChance: 101, RPPM: 6, RefIDs: []int32{27648}, ProcChanceSource: ProcChancePPM,
+	{ID: 21992, Name: "Thunderfury", School: 8, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 63, DurationMs: 12000, MaxRange: 5, DefenseType: 1, DispelType: 1, ProcChance: 101, RefIDs: []int32{27648}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 699880, SpellID: 21992, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -25, PvpMult: 1, Misc: 8, ChainTargets: 5, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 699881, SpellID: 21992, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 300, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 699882, SpellID: 21992, Index: 2, Type: dbcenums.E_TRIGGER_SPELL, PvpMult: 1, TriggerID: 27648, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 6 -- Thunderfury, Blessed Blade of the Windseeker: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 22007, Name: "Netherwind Focus", School: 1, Attr: [17]uint32{0: 0x40, 3: 0x80000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, CooldownMs: 10000, ProcChance: 10, ProcFlags: [2]uint32{0: 0x10000}, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceEffectN, ProcChanceEffect: 1,
 		Effects: []Effect{
 			{ID: 698814, SpellID: 22007, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 10, BaseLevel: 60, SPCoef: 1, PvpMult: 1, TriggerID: 22008, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -19160,10 +19160,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 699450, SpellID: 23453, Type: dbcenums.E_DUMMY, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 23454, Name: "Stun", School: 1, Attr: [17]uint32{0: 0x40000, 15: 0x2000}, SpellLevel: 50, DurationMs: 1000, MaxRange: 5, Category: 32, Mechanic: 12, ProcChance: 101, RPPM: 0.5, ProcChanceSource: ProcChancePPM,
+	{ID: 23454, Name: "Stun", School: 1, Attr: [17]uint32{0: 0x40000, 15: 0x2000}, SpellLevel: 50, DurationMs: 1000, MaxRange: 5, Category: 32, Mechanic: 12, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 699451, SpellID: 23454, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STUN, BasePoints: 1, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 0.5 -- The Unstoppable Force: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 23455, Name: "Holy Nova", Rank: "Rank 1", School: 2, Attr: [17]uint32{0: 0x10000, 3: 0x200, 15: 0x2000, 16: 0x10}, SpellLevel: 20, BaseLevel: 20, MaxLevel: 26, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 6, Mask: [4]uint32{0: 134217728}}, StanceExclude: 0x8000000, Labels: []int16{18},
 		Effects: []Effect{
 			{ID: 700227, SpellID: 23455, Type: dbcenums.E_HEAL, BasePoints: 51, PPL: 0.4000000059604645, Variance: 0.1428571492433548, BaseLevel: 20, MaxLevel: 26, SPCoef: 0.10700000077486038, PvpMult: 1, RadiusMax: 10, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{20, 0}},
@@ -19443,11 +19443,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 701876, SpellID: 23604, Type: dbcenums.E_THREAT, BasePoints: -540, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 23605, Name: "Spell Vulnerability", School: 1, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 60, MaxLevel: 60, DurationMs: 5000, MaxRange: 5, RPPM: 2, ClassFlags: core.ClassFlags{Family: 4}, ProcChanceSource: ProcChancePPM,
+	{ID: 23605, Name: "Spell Vulnerability", School: 1, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 60, MaxLevel: 60, DurationMs: 5000, MaxRange: 5, ClassFlags: core.ClassFlags{Family: 4},
 		Effects: []Effect{
 			{ID: 701234, SpellID: 23605, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN, BasePoints: 15, MaxLevel: 60, PvpMult: 1, Misc: 126, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 3}}}, // override: PPM 2 -- Nightfall: chance-on-hit weapon, no proc row
+		Powers: []Power{{Type: 3}}},
 	{ID: 23645, Name: "Hourglass Sand", School: 64, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 700134, SpellID: 23645, Type: dbcenums.E_DUMMY, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -21147,10 +21147,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 700087, SpellID: 26107, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BaseLevel: 60, PvpMult: 1, TriggerID: 26976, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 26108, Name: "Glimpse of Madness", School: 32, Attr: [17]uint32{0: 0x10, 15: 0x2000}, SpellLevel: 1, DurationMs: 3000, MaxRange: 10, DefenseType: 1, DispelType: 1, Mechanic: 2, PreventionType: 2, ProcChance: 101, RPPM: 0.4, ClassFlags: core.ClassFlags{Family: 8, Mask: [4]uint32{0: 16777216}}, ProcChanceSource: ProcChancePPM,
+	{ID: 26108, Name: "Glimpse of Madness", School: 32, Attr: [17]uint32{0: 0x10, 15: 0x2000}, SpellLevel: 1, DurationMs: 3000, MaxRange: 10, DefenseType: 1, DispelType: 1, Mechanic: 2, PreventionType: 2, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 8, Mask: [4]uint32{0: 16777216}}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 701717, SpellID: 26108, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_CONFUSE, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 0.4 -- Dark Edge of Insanity: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 26109, Name: "Conqueror Shout Bonus", School: 1, Attr: [17]uint32{0: 0xc0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 4}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 702387, SpellID: 26109, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -35, BaseLevel: 60, PvpMult: 1, Misc: 14, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 983040}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -34631,11 +34631,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1309987, SpellID: 1290867, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_HEAL, BasePoints: 80, MaxLevel: 43, PvpMult: 1, PeriodMs: 1000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
 		}},
-	{ID: 1290950, Name: "Brain Damage", School: 32, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, DurationMs: 30000, MaxRange: 5, DefenseType: 1, DispelType: 2, ProcChance: 101, RPPM: 0.4, ClassFlags: core.ClassFlags{Family: 0, Mask: [4]uint32{0: 2147483648, 2: 512}}, ProcChanceSource: ProcChancePPM,
+	{ID: 1290950, Name: "Brain Damage", School: 32, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, DurationMs: 30000, MaxRange: 5, DefenseType: 1, DispelType: 2, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 0, Mask: [4]uint32{0: 2147483648, 2: 512}}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1310094, SpellID: 1290950, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 250, Variance: 0.4000000059604645, BaseLevel: 40, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1310095, SpellID: 1290950, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_CASTING_SPEED_NOT_STACK, BasePoints: -25, BaseLevel: 40, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 0.4 -- The Lobotomizer: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 1291059, Name: "Tiger's Fury Cooldown Reduction", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 7}, Labels: []int16{21}, ProcHint: core.ProcHintNamedAbility,
 		Effects: []Effect{
 			{ID: 1310233, SpellID: 1291059, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: -3000, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 11, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{2: 2048}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -34712,10 +34712,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1311155, SpellID: 1291662, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 28, Variance: 0.20000000298023224, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 1291663, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 12000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 1291663, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 12000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1311159, SpellID: 1291663, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 7, MaxLevel: 10, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Stinging Viper: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 1291686, Name: "Firebelch", School: 1, Attr: [17]uint32{0: 0x1c0, 15: 0x2000}, SpellLevel: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x40}, ICDMs: 10, RefIDs: []int32{1291662}, ProcChanceSource: ProcChancePPM,
 		Effects: []Effect{
 			{ID: 1311224, SpellID: 1291686, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, PvpMult: 1, TriggerID: 1291662, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -34819,19 +34819,19 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1312005, SpellID: 1292150, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_SAFE_FALL, BasePoints: 5, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 1292152, Name: "Firebolt", School: 4, Speed: 19, Attr: [17]uint32{15: 0x2000}, MaxRange: 100, DefenseType: 1, RPPM: 1, ProcChanceSource: ProcChancePPM,
+	{ID: 1292152, Name: "Firebolt", School: 4, Speed: 19, Attr: [17]uint32{15: 0x2000}, MaxRange: 100, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 1312009, SpellID: 1292152, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 42, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Cost: 18}}}, // override: PPM 1 -- Meteor Shard: chance-on-hit weapon, no proc row
+		Powers: []Power{{Cost: 18}}},
 	{ID: 1292155, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 1312021, SpellID: 1292155, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 70, Variance: 0.4285714328289032, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 1292158, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1, RPPM: 1.25, ProcChanceSource: ProcChancePPM,
+	{ID: 1292158, Name: "Shadow Bolt", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 1312024, SpellID: 1292158, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 42, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1.25 -- Grimclaw: chance-on-hit weapon, no proc row
+		}},
 	{ID: 1292160, Name: "Gloomshroud", School: 32, Attr: [17]uint32{0: 0x40, 1: 0x10000000, 15: 0x2000}, SpellLevel: 24,
 		Effects: []Effect{
 			{ID: 1312026, SpellID: 1292160, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DAMAGE_SHIELD, BasePoints: 2, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -35460,11 +35460,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1324199, SpellID: 1299796, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_PERCENT_STAT, BasePoints: 100, BaseLevel: 60, PvpMult: 1, Misc: 4, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 1299850, Name: "Fireball", School: 4, Speed: 30, Attr: [17]uint32{0: 0x10000, 8: 0x200, 15: 0x2000}, SpellLevel: 55, DurationMs: 6000, MaxRange: 100, DefenseType: 1, ProcChance: 101, RPPM: 1, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChancePPM,
+	{ID: 1299850, Name: "Fireball", School: 4, Speed: 30, Attr: [17]uint32{0: 0x10000, 8: 0x200, 15: 0x2000}, SpellLevel: 55, DurationMs: 6000, MaxRange: 100, DefenseType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1324239, SpellID: 1299850, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 80, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1324240, SpellID: 1299850, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 6, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}}, // override: PPM 1 -- Searing Blade: chance-on-hit weapon, column reads 101
+		}},
 	{ID: 1300128, Name: "Frostburn", School: 1, Attr: [17]uint32{0: 0x1c0, 1: 0x10000000, 15: 0x2000}, SpellLevel: 21, ProcChance: 100, ProcFlags: [2]uint32{0: 0x4}, RefIDs: []int32{1300130}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1324644, SpellID: 1300128, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 1, PvpMult: 1, TriggerID: 1300130, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

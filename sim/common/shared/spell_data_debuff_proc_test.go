@@ -21,15 +21,14 @@ const (
 	brainDamageDuration             = 30 * time.Second
 )
 
-// Chilled's row states no rate for its chance on hit, so Frostguard stays unregistered; Brain
-// Damage's carries the 0.4 PPM the override supplies. The tests below give each a 100% chance of
-// their own.
-func TestSlowProcRowsRates(t *testing.T) {
-	if got := spelldata.ItemProcUnsupported(spelldata.MustFind(frostguardChilled), true); !slices.Equal(got, []string{spelldata.ReasonStatesNoRate}) {
-		t.Errorf("%d: unsupported = %v, want only the missing rate", frostguardChilled, got)
-	}
-	if got := spelldata.ItemProcUnsupported(spelldata.MustFind(lobotomizerBrainDamage), true); len(got) != 0 {
-		t.Errorf("%d: unsupported = %v, want none", lobotomizerBrainDamage, got)
+// Neither row states a rate for its chance on hit: Frostguard stays unregistered, and The Lobotomizer
+// registers on the rate its item effect carries. The tests below give each a 100% chance of their own.
+func TestSlowProcRowsStateNoRate(t *testing.T) {
+	for _, id := range []int32{frostguardChilled, lobotomizerBrainDamage} {
+		got := spelldata.ItemProcUnsupported(spelldata.MustFind(id), true)
+		if !slices.Equal(got, []string{spelldata.ReasonStatesNoRate}) {
+			t.Errorf("%d: unsupported = %v, want only the missing rate", id, got)
+		}
 	}
 }
 

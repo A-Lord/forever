@@ -501,8 +501,17 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 
 // The listener the trigger's row describes, without the handler, plus what the row cannot state: the
 // item's own name and action, which are what the sim keys the rolls and the metrics by, and the rate
-// the effect entry states.
+// the effect entry states. A caller that passes no entry gets the one the item declares for the buff,
+// or for the trigger where that is the buff: a weapon's procs-per-minute rate lives there.
 func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell, proc *proto.ProcEffect) core.ProcTrigger {
+	if proc == nil {
+		effects := source.procEffects()
+		if effect := effects[cfg.BuffSpellID]; effect != nil {
+			proc = effect.GetProc()
+		} else if effect := effects[trigger.ID]; effect != nil {
+			proc = effect.GetProc()
+		}
+	}
 	config := spelldata.ProcTrigger(character, trigger, nil, spelldata.ItemProcChance(trigger),
 		weaponProcShape(cfg), spellDataProcRate(source, trigger, proc), statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
 	config.Name = cfg.Name

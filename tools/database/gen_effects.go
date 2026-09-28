@@ -107,7 +107,9 @@ type ProcRouting struct {
 	// A "Chance on hit" item effect or a combat enchant, cast by the game off every eligible weapon
 	// hit whatever the row's proc flags say.
 	IsWeaponProc bool
-	Shape        ProcShape
+	// A weapon's own procs-per-minute rate, stated on its item effect; zero where the rows state one.
+	ItemPPM float64
+	Shape   ProcShape
 	// Empty when the rows state enough to build the listener.
 	Unsupported []string
 	// What the rows resolve to, for the reader of the generated file.
@@ -168,16 +170,22 @@ func (r *ProcRouting) Reason() string {
 }
 
 // The rows behind an item effect, by the two ids the sim will look up: the spell carrying the proc
-// and the spell it applies.
-func routeProc(triggerSpellID int, buffSpellID int, isWeaponProc bool) *ProcRouting {
-	routing := &ProcRouting{TriggerSpellID: triggerSpellID, IsWeaponProc: isWeaponProc}
+// and the spell it applies. A weapon's own procs-per-minute rate, stated on its item effect, answers
+// a trigger whose row states none.
+func routeProc(triggerSpellID int, buffSpellID int, isWeaponProc bool, itemPPM float64) *ProcRouting {
+	routing := &ProcRouting{TriggerSpellID: triggerSpellID, IsWeaponProc: isWeaponProc, ItemPPM: itemPPM}
 	if buffSpellID != triggerSpellID {
 		routing.BuffSpellID = buffSpellID
 	}
 
 	trigger := spelldata.Find(int32(triggerSpellID))
 	routing.Unsupported = spelldata.ItemProcUnsupported(trigger, isWeaponProc)
-	routing.Summary = procSummary(triggerSpellID, trigger, buffSpellID)
+	if itemPPM > 0 {
+		routing.Unsupported = slices.DeleteFunc(routing.Unsupported, func(reason string) bool {
+			return reason == spelldata.ReasonStatesNoRate
+		})
+	}
+	routing.Summary = procSummary(triggerSpellID, trigger, buffSpellID, itemPPM)
 
 	return routing
 }
@@ -191,7 +199,7 @@ func (r *ProcRouting) as(shape ProcShape, spellID int32) {
 		r.BuffSpellID = 0
 	}
 	r.Unsupported = append(r.Unsupported, procShapes[shape].unsupported(spelldata.Find(spellID))...)
-	r.Summary = procSummary(r.TriggerSpellID, spelldata.Find(int32(r.TriggerSpellID)), int(spellID))
+	r.Summary = procSummary(r.TriggerSpellID, spelldata.Find(int32(r.TriggerSpellID)), int(spellID), r.ItemPPM)
 }
 
 func pickNoStatShape(spellID int, debuffID int32) (ProcShape, int32) {
@@ -348,14 +356,18 @@ func (r *ProcRouting) requireABuffDuration() {
 
 // What the rows resolve to, as the sim's own constants, so the generated file states the reading
 // rather than leaving it to be looked up.
-func procSummary(triggerSpellID int, trigger *spelldata.Spell, buffSpellID int) string {
+func procSummary(triggerSpellID int, trigger *spelldata.Spell, buffSpellID int, itemPPM float64) string {
 	if trigger == spelldata.Nil {
 		return fmt.Sprintf("trigger %d is not in the store", triggerSpellID)
 	}
 
+	rate := procRateSummary(trigger)
+	if itemPPM > 0 {
+		rate = fmt.Sprintf("%v ppm on the item", itemPPM)
+	}
 	decoded := core.DecodeProcTypeMask(trigger.ProcFlags, trigger.ProcHint)
 	summary := fmt.Sprintf("trigger %d (%s, %s, %s)", trigger.ID,
-		procRateSummary(trigger), asCoreCallback(decoded.Callback), asCoreProcMask(decoded.ProcMask))
+		rate, asCoreCallback(decoded.Callback), asCoreProcMask(decoded.ProcMask))
 
 	if int(trigger.ID) != buffSpellID {
 		summary += fmt.Sprintf(" -> buff %d", buffSpellID)
@@ -1051,7 +1063,8 @@ func routeItemProc(parsed *proto.UIItem, itemEffect *proto.ItemEffect) *ProcRout
 		return nil
 	}
 
-	return routeProc(effect.SpellID, int(itemEffect.BuffId), effect.TriggerType == dbc.ITEM_SPELLTRIGGER_CHANCE_ON_HIT)
+	return routeProc(effect.SpellID, int(itemEffect.BuffId), effect.TriggerType == dbc.ITEM_SPELLTRIGGER_CHANCE_ON_HIT,
+		itemEffect.GetProc().GetPpm())
 }
 
 // An equip spell with no stats that applies an aura the stat path cannot state, read from the row it
@@ -1459,7 +1472,7 @@ func routeEnchantSlot(slot dbc.EnchantProcSlot, instance *dbc.DBC) *ProcRouting 
 		buffSpellID = int(effect.BuffId)
 	}
 
-	routing := routeProc(slot.SpellID, buffSpellID, slot.IsCombatSpell)
+	routing := routeProc(slot.SpellID, buffSpellID, slot.IsCombatSpell, 0)
 	trigger := spelldata.Find(int32(slot.SpellID))
 	if !slot.IsCombatSpell {
 		routing.Unsupported = spelldata.EnchantAuraUnsupported(trigger)

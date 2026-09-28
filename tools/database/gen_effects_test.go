@@ -1,7 +1,9 @@
 package database
 
 import (
+	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -93,6 +95,42 @@ func TestChanceOnHitExtraAttackRoutes(t *testing.T) {
 	}
 	if got := spelldata.Find(spellID).ExtraAttacksEffect().BasePoints; got != 1 {
 		t.Errorf("%d grants %v extra attacks, want 1", spellID, got)
+	}
+}
+
+// Two weapons sharing a trigger spell each carry their own rate on their item effect: The Needler and
+// Hanzo Sword both cast Wound 16405, at 3 and 1 PPM, and each registers on its own.
+func TestWeaponsSharingATriggerKeepTheirOwnRate(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID int
+		ppm    float64
+	}{
+		{13060, 3},
+		{8190, 1},
+	} {
+		item := instance.Items[tc.itemID]
+		parsed := item.ToUIItem()
+		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+		i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == 16405 })
+		if i < 0 {
+			t.Fatalf("item %d carries no effect on 16405", tc.itemID)
+		}
+		if got := parsed.ItemEffects[i].GetProc().GetPpm(); got != tc.ppm {
+			t.Errorf("item %d's effect states %v PPM, want %v", tc.itemID, got, tc.ppm)
+		}
+
+		groups := map[string]Group{}
+		if got := TryParseProcEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+			t.Errorf("item %d parsed as %v, want %v", tc.itemID, got, EffectParseResultSuccess)
+			continue
+		}
+		r := groups["Procs"].Entries[0].Proc
+		if r.ItemPPM != tc.ppm || len(r.Unsupported) != 0 || !strings.Contains(r.Summary, fmt.Sprintf("%v ppm on the item", tc.ppm)) {
+			t.Errorf("item %d routed with %v PPM, unsupported %q, summary %q", tc.itemID, r.ItemPPM, r.Unsupported, r.Summary)
+		}
 	}
 }
 

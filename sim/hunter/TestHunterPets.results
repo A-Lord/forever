@@ -356,14 +356,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunterPets-AllItems-FrostTigerBlade-3854"
- value: {
-  dps: 486.66403
-  tps: 265.22883
-  dtps: 2.49108
- }
-}
-dps_results: {
  key: "TestHunterPets-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 486.78199

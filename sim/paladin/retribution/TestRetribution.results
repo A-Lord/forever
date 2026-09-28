@@ -326,14 +326,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestRetribution-AllItems-FrostTigerBlade-3854"
- value: {
-  dps: 588.08588
-  tps: 430.96027
-  dtps: 11.12655
- }
-}
-dps_results: {
  key: "TestRetribution-AllItems-GirdleofReprisal-11861"
  value: {
   dps: 581.43228

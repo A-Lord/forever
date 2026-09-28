@@ -190,6 +190,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		3854, // Frost Tiger Blade
+		[
+			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
+		]
+	],
+	[
 		4130, // Smotts' Compass
 		[
 			"Finds the nearest treasure chest, if one is nearby. Only outdoors.", // 1317740 - https://www.wowhead.com/forever/spell=1317740
