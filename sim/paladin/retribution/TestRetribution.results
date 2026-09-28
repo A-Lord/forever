@@ -77,6 +77,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Beastmaster'sCap-22013"
+ value: {
+  dps: 587.82069
+  tps: 430.78829
+  dtps: 11.18168
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-Beastmaster'sGloves-22015"
  value: {
   dps: 585.49084

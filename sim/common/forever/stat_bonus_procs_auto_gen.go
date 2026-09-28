@@ -47,6 +47,14 @@ func RegisterAllProcs() {
 	//	{ItemID: 22060, ItemName: "Beastmaster's Tunic"},
 	// })
 
+	// Increases your pet's maximum health by 3%.
+	// https://www.wowhead.com/forever/spell=27038
+	// equip: 27038 keeps 27039 up (A_MOD_INCREASE_HEALTH_PERCENT)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27038},
+		[]shared.ItemVariant{
+			{ItemID: 22013, ItemName: "Beastmaster's Cap"},
+		})
+
 	// Increases your pet's critical strike chance by 2%.
 	// https://www.wowhead.com/forever/spell=27043
 	// equip: 27043 keeps 27042 up (A_MOD_WEAPON_CRIT_PERCENT)
@@ -1661,21 +1669,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 21526, ItemName: "Band of Icy Depths"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Increases your pet's maximum health by 3%.
-	// https://www.wowhead.com/forever/spell=27038
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 22013, ItemName: "Beastmaster's Cap"},
 	// })
 
 	// TODO: Manual implementation required

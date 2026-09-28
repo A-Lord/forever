@@ -89,6 +89,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-Beastmaster'sCap-22013"
+ value: {
+  dps: 447.0391
+  tps: 693.71016
+  dtps: 3715.60538
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Beastmaster'sGloves-22015"
  value: {
   dps: 447.32676
