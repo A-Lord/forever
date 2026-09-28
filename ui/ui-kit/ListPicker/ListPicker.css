@@ -106,4 +106,8 @@
 		border-bottom: var(--border-default);
 		font-weight: bold;
 	}
+
+	.ui-field-compact .ui-list-picker-new-button {
+		@apply m-0 w-auto text-ui leading-6;
+	}
 }

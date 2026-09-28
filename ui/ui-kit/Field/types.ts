@@ -10,6 +10,8 @@ export interface FieldChromeProps {
 	labelTooltip?: string | Element | ReactElement;
 	description?: string | Element;
 	layout?: FieldLayout;
+	/** `compact` tightens this field and every field nested inside it. */
+	density?: 'compact';
 	className?: ClassValue;
 	testId?: string;
 }

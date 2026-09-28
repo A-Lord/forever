@@ -17,6 +17,8 @@
 @import '../ui-kit/MultiComboBox/MultiComboBox.css';
 @import '../ui-kit/FormControl/FormControl.css';
 @import '../ui-kit/Field/Field.css';
+@import '../ui-kit/AdaptiveStringPicker/AdaptiveStringPicker.css';
+@import '../ui-kit/NumberPicker/NumberPicker.css';
 @import '../ui-kit/IconPicker/IconPicker.css';
 @import '../ui-kit/ListPicker/ListPicker.css';
 @import '../ui-kit/BooleanPicker/BooleanPicker.css';
@@ -35,6 +37,7 @@
 @import '../ui-kit/TabPanelColumns/TabPanelColumns.css';
 @import '../ui-kit/Spinner/Spinner.css';
 @import '../ui-kit/Skeleton/Skeleton.css';
+@import '../ui-kit/Table/Table.css';
 @import '../ui-kit/UnitPicker/UnitIcon.css';
 @import '../ui-kit/hooks/useStickyToolbar.css';
 @import '../ui-kit/SimLinkContent/SimLinkContent.css';

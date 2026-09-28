@@ -1,0 +1,34 @@
+@layer components {
+	.ui-table {
+		@apply w-full;
+
+		> thead > .ui-table-row {
+			@apply border-b-2 border-solid border-b-white/80;
+		}
+
+		> tbody > .ui-table-row {
+			@apply border-b border-solid border-b-white/20;
+		}
+
+		&[data-striped] > tbody > .ui-table-row:nth-child(even) {
+			@apply bg-white/5;
+		}
+
+		&[data-hover] > tbody > .ui-table-row:hover {
+			@apply bg-scrim;
+		}
+
+		&[data-dense] > * > .ui-table-row > :is(.ui-table-cell, .ui-table-header-cell) {
+			@apply px-1 py-0.5;
+		}
+	}
+
+	.ui-table-header-cell,
+	.ui-table-cell {
+		@apply border-x border-solid border-x-white/20 px-2 py-1 first:border-l-0 last:border-r-0;
+	}
+
+	.ui-table-header-cell {
+		@apply text-center whitespace-nowrap;
+	}
+}

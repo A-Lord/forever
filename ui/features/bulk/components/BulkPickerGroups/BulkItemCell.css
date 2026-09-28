@@ -8,10 +8,6 @@
 			min-height: 3.5rem;
 		}
 
-		& .ui-item-picker-name-row {
-			width: 100%;
-		}
-
 		& .ui-item-picker-labels-container {
 			width: 100%;
 			padding-top: 0;

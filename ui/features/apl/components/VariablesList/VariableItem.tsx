@@ -49,6 +49,7 @@ export const VariableItem = ({ player, config }: VariableItemProps) => {
 	return (
 		<Field
 			{...chrome}
+			density="compact"
 			className={[chrome.className, 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2']}
 			testId="apl-list-item-picker-root"
 			disabled={disabled}>

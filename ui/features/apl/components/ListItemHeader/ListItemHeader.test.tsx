@@ -119,7 +119,7 @@ describe('ListItemHeader', () => {
 			expect(button.classList.contains('apl-validation-error')).toBe(true);
 			expect(button.classList.contains('apl-validation-warning')).toBe(false);
 			expect(button.classList.contains('apl-validation-information')).toBe(false);
-			expect(button.querySelector('i')?.classList.contains('fa-exclamation-triangle')).toBe(true);
+			expect(button.querySelector('i')?.classList.contains('fa-triangle-exclamation')).toBe(true);
 		});
 
 		it('uses the warning class and icon when the highest level is a warning', async () => {
@@ -133,7 +133,7 @@ describe('ListItemHeader', () => {
 
 			const button = container.querySelector('[data-testid="apl-validations"]') as HTMLElement;
 			expect(button.classList.contains('apl-validation-warning')).toBe(true);
-			expect(button.querySelector('i')?.classList.contains('fa-exclamation-triangle')).toBe(true);
+			expect(button.querySelector('i')?.classList.contains('fa-triangle-exclamation')).toBe(true);
 		});
 
 		it('keeps its formatted list when a notification leaves the validations unchanged', async () => {

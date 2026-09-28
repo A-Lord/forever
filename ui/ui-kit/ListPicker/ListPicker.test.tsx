@@ -186,6 +186,15 @@ describe('ListPicker', () => {
 			expect(custom.hasAttribute('data-input-root')).toBe(true);
 			expect(within(custom).getByTestId('form-label').getAttribute('for')).toBe('targets');
 		});
+
+		it('passes a compact density from the chrome to its field, and none by default', () => {
+			const { unmount } = mount(sourceOf('a'));
+			expect(root().classList.contains('ui-field-compact')).toBe(false);
+			unmount();
+
+			mount(sourceOf('a'), { density: 'compact' });
+			expect(root().classList.contains('ui-field-compact')).toBe(true);
+		});
 	});
 
 	describe('actions', () => {
@@ -202,7 +211,32 @@ describe('ListPicker', () => {
 			mount(sourceOf('a'), { actions: { create: { useIcon: true } } });
 
 			expect(newButton()!.className.split(' ').sort()).toEqual(['text-success', 'ui-list-picker-item-action', 'ui-list-picker-new-button']);
-			expect(newButton()!.querySelector('i')!.className).toBe('fa fa-xl fa-plus');
+			expect(newButton()!.querySelector('i')!.className.split(' ').sort()).toEqual(['fa', 'fa-plus', 'fa-xl']);
+		});
+
+		it('renders the create button with a plus icon before its label', () => {
+			mount(sourceOf('a'));
+
+			const icon = newButton()!.firstElementChild!;
+			expect(icon.tagName).toBe('I');
+			expect(icon.className.split(' ').sort()).toEqual(['fa', 'fa-plus', 'mr-2']);
+			expect(icon.getAttribute('aria-hidden')).toBe('true');
+		});
+
+		it('renders every item action icon in the base Font Awesome style at xl', () => {
+			mount(sourceOf('a'), {
+				extraActions: [{ className: 'list-picker-item-extract-variable', icon: 'arrow-right-from-bracket', tooltip: 'Extract', onClick: vi.fn() }],
+			});
+			openMenu(0);
+
+			const icons = within(popoverOf(0))
+				.queryAllByTestId(/^list-picker-item-/)
+				.map(button => button.querySelector('i')!.className.split(' ').sort());
+			expect(icons).toEqual([
+				['fa', 'fa-times', 'fa-xl'],
+				['fa', 'fa-arrow-right-from-bracket', 'fa-xl'],
+				['fa', 'fa-copy', 'fa-xl'],
+			]);
 		});
 
 		it('deletes the item at its index', () => {
@@ -276,7 +310,7 @@ describe('ListPicker', () => {
 		it('renders extra actions in the menu, between delete and copy', () => {
 			const onClick = vi.fn();
 			mount(sourceOf('a'), {
-				extraActions: [{ className: 'list-picker-item-extract-variable', icon: 'fa-arrow-right-from-bracket', tooltip: 'Extract', onClick }],
+				extraActions: [{ className: 'list-picker-item-extract-variable', icon: 'arrow-right-from-bracket', tooltip: 'Extract', onClick }],
 			});
 
 			expect(popoverButtons(0)).toEqual(['list-picker-item-delete', 'list-picker-item-extract-variable', 'list-picker-item-copy']);
@@ -287,7 +321,7 @@ describe('ListPicker', () => {
 		it('leaves out an extra action whose shouldShow refuses the item', () => {
 			mount(sourceOf('a', 'b'), {
 				extraActions: [
-					{ className: 'list-picker-item-extract-variable', icon: 'fa-x', tooltip: 'Extract', onClick: vi.fn(), shouldShow: index => index === 1 },
+					{ className: 'list-picker-item-extract-variable', icon: 'times', tooltip: 'Extract', onClick: vi.fn(), shouldShow: index => index === 1 },
 				],
 			});
 

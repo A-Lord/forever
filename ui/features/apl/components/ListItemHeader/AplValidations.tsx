@@ -6,8 +6,9 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import { subscribePlayerField } from '@sim/state/subscriptions';
+import type { IconName } from '@ui-kit/Icon';
 import { ListItemAction } from '@ui-kit/ListPicker';
-import { NOTICE_COLOR, NOTICE_ICON, type NoticeLevel } from '@ui-kit/Notice';
+import { NOTICE_COLOR, type NoticeLevel } from '@ui-kit/Notice';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { Fragment, useEffect, useId, useRef, useState } from 'react';
 
@@ -21,6 +22,12 @@ const LEVEL = new Map<LogLevel, NoticeLevel>([
 	[LogLevel.Warning, 'warning'],
 	[LogLevel.Error, 'error'],
 ]);
+
+const LEVEL_ICON: Record<NoticeLevel, IconName> = {
+	info: 'info-circle',
+	warning: 'triangle-exclamation',
+	error: 'triangle-exclamation',
+};
 
 const HEADER = new Map<LogLevel, string>([
 	[LogLevel.Information, i18n.t('common.list_picker.additional_information')],
@@ -100,12 +107,12 @@ export const AplValidations = ({ getValidations }: AplValidationsProps) => {
 	}, [validations]);
 
 	const level = formatted ? LEVEL.get(formatted.maxLogLevel) : undefined;
-	const icon = level ? NOTICE_ICON[level] : NOTICE_ICON.warning;
+	const icon = LEVEL_ICON[level ?? 'warning'];
 
 	return (
 		<>
 			<ListItemAction
-				icon={icon ?? ''}
+				icon={icon}
 				className={formatted ? LEVEL_CLASS.get(formatted.maxLogLevel) : undefined}
 				testId="apl-validations"
 				hidden={!formatted}

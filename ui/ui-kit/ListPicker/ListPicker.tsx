@@ -2,6 +2,7 @@ import i18n from '@i18n/config';
 import { translateItemLabel } from '@i18n/localization';
 import { Button } from '@ui-kit/Button';
 import { Field } from '@ui-kit/Field';
+import { Icon } from '@ui-kit/Icon';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { TooltipButton } from '@ui-kit/TooltipButton';
 import { useCallback, useId, useRef } from 'react';
@@ -196,7 +197,7 @@ export const ListPicker = <ItemType,>({
 			{canCreate &&
 				(actions?.create?.useIcon ? (
 					<ListItemAction
-						icon="fa-plus"
+						icon="plus"
 						className={['text-success', 'ui-list-picker-new-button']}
 						testId="list-picker-new-button"
 						tooltip={newLabel}
@@ -205,7 +206,7 @@ export const ListPicker = <ItemType,>({
 					/>
 				) : (
 					<Button variant="primary" className="ui-list-picker-new-button" data-testid="list-picker-new-button" onClick={onCreate}>
-						<i className="fa fa-plus mr-2" />
+						<Icon name="plus" style="base" className="mr-2" />
 						{newLabel}
 					</Button>
 				))}

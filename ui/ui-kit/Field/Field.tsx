@@ -16,6 +16,7 @@ export const Field = ({
 	labelTooltip: tooltip,
 	description,
 	layout,
+	density,
 	className,
 	testId,
 	disabled,
@@ -64,6 +65,7 @@ export const Field = ({
 				clsx(
 					description && 'flex-wrap',
 					'ui-field',
+					density === 'compact' && 'ui-field-compact',
 					grow === false && 'flex-none',
 					!layout && !iconField && 'max-md:flex-col max-md:items-start',
 					className,

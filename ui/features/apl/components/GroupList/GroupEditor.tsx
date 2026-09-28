@@ -63,6 +63,7 @@ export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) =>
 	return (
 		<Field
 			{...chrome}
+			density="compact"
 			className={['ui-apl-group-editor-root', chrome.className, 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2']}
 			testId="apl-list-item-picker-root"
 			disabled={disabled}>
