@@ -4,10 +4,10 @@ import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Encounter } from '@sim/raid/encounter';
-import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
 import { TargetInputsPicker } from './TargetInputsPicker';
+import { TargetPickerView } from './TargetPickerView';
 import {
 	aiConfig,
 	ALL_TARGET_STATS,
@@ -55,35 +55,33 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 	const spellSchool = useMemo(() => spellSchoolConfig(context), [context]);
 
 	return (
-		<div
-			className="ui-field grid grid-cols-1 gap-3 xl:grid-cols-3 [&_[data-input-root]:is(:last-child)]:mb-0 [&_[data-input-root]:is(:only-child)]:mb-0"
-			data-testid="target-picker-root">
-			<PickerGroup data-testid="target-picker-section">
-				<BoundEnumPicker modObject={null} config={npc} />
-				<BoundEnumPicker modObject={null} config={ai} />
-				<BoundEnumPicker modObject={null} config={level} />
-				<BoundEnumPicker modObject={null} config={mobType} />
-				{showThreatMetrics && <BoundEnumPicker modObject={null} config={tankIndex} />}
-				<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
-			</PickerGroup>
-			<PickerGroup data-testid="target-picker-section">
-				{stats.map(config => (
-					<BoundNumberPicker key={config.id} modObject={null} config={config} />
-				))}
-			</PickerGroup>
-			{showThreatMetrics ? (
-				<PickerGroup data-testid="target-picker-section">
-					{numbers.map(config => (
-						<BoundNumberPicker key={config.id} modObject={null} config={config} />
-					))}
-					{booleans.map(config => (
-						<BoundBooleanPicker key={config.id} modObject={null} config={config} />
-					))}
-					<BoundEnumPicker modObject={null} config={spellSchool} />
-				</PickerGroup>
-			) : (
-				<div className="hidden xl:block" data-testid="target-picker-section-placeholder" aria-hidden="true" />
-			)}
-		</div>
+		<TargetPickerView
+			identity={
+				<>
+					<BoundEnumPicker modObject={null} config={npc} />
+					<BoundEnumPicker modObject={null} config={ai} />
+					<BoundEnumPicker modObject={null} config={level} />
+					<BoundEnumPicker modObject={null} config={mobType} />
+					{showThreatMetrics && <BoundEnumPicker modObject={null} config={tankIndex} />}
+					<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
+				</>
+			}
+			stats={stats.map(config => (
+				<BoundNumberPicker key={config.id} modObject={null} config={config} />
+			))}
+			threat={
+				showThreatMetrics && (
+					<>
+						{numbers.map(config => (
+							<BoundNumberPicker key={config.id} modObject={null} config={config} />
+						))}
+						{booleans.map(config => (
+							<BoundBooleanPicker key={config.id} modObject={null} config={config} />
+						))}
+						<BoundEnumPicker modObject={null} config={spellSchool} />
+					</>
+				)
+			}
+		/>
 	);
 };
