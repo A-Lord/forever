@@ -10,8 +10,8 @@ import { Player } from '@sim/player/player';
 import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
-import * as Presets from './presets';
 import { MainHandPoison, OffHandPoison } from './inputs';
+import * as Presets from './presets';
 
 export default defineSpec<Spec.SpecRogue>({
 	spec: Spec.SpecRogue,
@@ -49,6 +49,7 @@ export default defineSpec<Spec.SpecRogue>({
 			Stat.StatStrength,
 			Stat.StatAttackPower,
 			Stat.StatArmorPenetration,
+			Stat.StatSpellPiercing,
 			Stat.StatArcaneResistance,
 			Stat.StatFireResistance,
 			Stat.StatFrostResistance,
@@ -60,8 +61,6 @@ export default defineSpec<Spec.SpecRogue>({
 			PseudoStat.PseudoStatMeleeCritPercent,
 			PseudoStat.PseudoStatOffHandHitPercent,
 			PseudoStat.PseudoStatOffHandCritPercent,
-			PseudoStat.PseudoStatRangedHitPercent,
-			PseudoStat.PseudoStatRangedCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatExpertisePercent,
 		],
@@ -114,6 +113,7 @@ export default defineSpec<Spec.SpecRogue>({
 			faerieFire: true,
 			giftOfArthas: true,
 			sunderArmor: true,
+			curseOfElements: true,
 		}),
 	},
 
@@ -121,12 +121,9 @@ export default defineSpec<Spec.SpecRogue>({
 		inputs: [],
 	},
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [
-		MainHandPoison(),
-		OffHandPoison()
-	],
+	playerIconInputs: [MainHandPoison(), OffHandPoison()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
-	includeBuffDebuffInputs: [Stat.StatHitRating],
+	includeBuffDebuffInputs: [Stat.StatHitRating, Stat.StatSpellDamage, Stat.StatSpellPiercing],
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {

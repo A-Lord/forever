@@ -561,7 +561,7 @@ func (rogue *Rogue) registerThousandCuts() {
 			costMod.Activate()
 			costMod.UpdateIntValue(aura.GetStacks() * -3)
 		},
-	})
+	}).ExposeToAPL(spellData.ThousandCuts.Highest().ID)
 
 	rogue.MakeProcTriggerAura(core.ProcTrigger{
 		Name:               "Thousand Cuts - Cast Watcher",
