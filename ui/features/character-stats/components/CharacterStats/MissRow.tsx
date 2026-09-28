@@ -2,6 +2,7 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { Button } from '@ui-kit/Button';
 import { Skeleton } from '@ui-kit/Skeleton';
+import { TableCell, TableRow } from '@ui-kit/Table';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId } from 'react';
 
@@ -13,9 +14,9 @@ export type MissInfo = ReturnType<Player<any>['getMissChanceInfo']>;
 export const MissRow = ({ info, pending }: { info: MissInfo; pending?: boolean }) => {
 	const id = useId();
 	return (
-		<tr data-testid="character-stats-table-row" className="ui-character-stats-row">
-			<td className="ui-character-stats-label">{i18n.t('sidebar.character_stats.tank_caps.miss_label')}</td>
-			<td className="ui-character-stats-value">
+		<TableRow testId="character-stats-table-row" className="ui-character-stats-row">
+			<TableCell className="ui-character-stats-label">{i18n.t('sidebar.character_stats.tank_caps.miss_label')}</TableCell>
+			<TableCell className="ui-character-stats-value">
 				{pending ? (
 					<Skeleton />
 				) : (
@@ -38,7 +39,7 @@ export const MissRow = ({ info, pending }: { info: MissInfo; pending?: boolean }
 						/>
 					</>
 				)}
-			</td>
-		</tr>
+			</TableCell>
+		</TableRow>
 	);
 };

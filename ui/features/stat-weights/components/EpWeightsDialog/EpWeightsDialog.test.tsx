@@ -384,7 +384,7 @@ describe('EpWeightsDialog', () => {
 
 		const tableClasses = table().className.split(' ');
 		expect(tableClasses).toHaveLength(2);
-		expect(tableClasses).toEqual(expect.arrayContaining(['w-full', 'stats-type-weight']));
+		expect(tableClasses).toEqual(expect.arrayContaining(['ui-table', 'stats-type-weight']));
 		expect(select().value).toBe('1');
 		expect(showAll().checked).toBe(true);
 	});

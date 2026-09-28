@@ -1,0 +1,25 @@
+import { Field } from '@ui-kit/Field';
+import { PickerGroup } from '@ui-kit/PickerGroup';
+import type { ReactNode } from 'react';
+
+export interface TargetPickerViewProps {
+	/** Who the target is: NPC preset, AI, level, mob type, tank and the target's own inputs. */
+	identity: ReactNode;
+	stats: ReactNode;
+	/** The fields only a threat sim reads; without them an empty column keeps the three-column grid. */
+	threat?: ReactNode;
+}
+
+export const TargetPickerView = ({ identity, stats, threat }: TargetPickerViewProps) => (
+	<Field
+		testId="target-picker-root"
+		className="grid grid-cols-1 gap-3 xl:grid-cols-3 [&_[data-input-root]:is(:last-child)]:mb-0 [&_[data-input-root]:is(:only-child)]:mb-0">
+		<PickerGroup data-testid="target-picker-section">{identity}</PickerGroup>
+		<PickerGroup data-testid="target-picker-section">{stats}</PickerGroup>
+		{threat ? (
+			<PickerGroup data-testid="target-picker-section">{threat}</PickerGroup>
+		) : (
+			<div className="hidden xl:block" data-testid="target-picker-section-placeholder" aria-hidden="true" />
+		)}
+	</Field>
+);

@@ -1,15 +1,13 @@
 import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
 import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
-import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
-import { Button } from '@ui-kit/Button';
-import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo, useState } from 'react';
 
 import { AdvancedEncounterModal } from '../AdvancedEncounterModal';
 import { TargetInputsPicker } from '../TargetsPicker';
 import { AreaTypesPicker } from './AreaTypesPicker';
+import { EncounterPickerView } from './EncounterPickerView';
 import { durationConfigs, executeConfigs, minBaseDamageConfig, numAlliesConfig, presetEncounterConfig, zoneConfig } from './utils/configs';
 
 export interface EncounterPickerProps {
@@ -32,29 +30,21 @@ export const EncounterPicker = ({ showExecuteProportion }: EncounterPickerProps)
 	const [advancedOpen, setAdvancedOpen] = useState(false);
 
 	return (
-		<div className="flex flex-wrap gap-3 [&_.ui-list-picker-compact_.ui-field]:mb-0" data-testid="encounter-picker-root">
-			<PickerGroup>
-				{duration.map(config => (
+		<>
+			<EncounterPickerView
+				duration={duration.map(config => (
 					<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 				))}
-			</PickerGroup>
-			{showExecuteProportion && (
-				<PickerGroup className="w-full flex-col flex-nowrap">
-					{execute.map(config => (
-						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
-					))}
-				</PickerGroup>
-			)}
-			<BoundEnumPicker modObject={encounter} config={zone} />
-			<AreaTypesPicker encounter={encounter} />
-			{showDamage && <BoundEnumPicker modObject={encounter} config={preset} />}
-			{player.canEnableTargetDummies() && <BoundNumberPicker modObject={host.sim.raid} config={allies} />}
-			{player.getPlayerSpec().isTankSpec && <BoundNumberPicker modObject={encounter} config={minBaseDamage} />}
-			<TargetInputsPicker encounter={encounter} targetIndex={0} />
-			<Button className="min-w-[calc(50%-0.5rem)] max-xxl:w-full" data-testid="advanced-button" onClick={() => setAdvancedOpen(true)}>
-				{i18n.t('settings_tab.encounter.advanced')}
-			</Button>
+				execute={showExecuteProportion && execute.map(config => <BoundNumberPicker key={config.id} modObject={encounter} config={config} />)}
+				zone={<BoundEnumPicker modObject={encounter} config={zone} />}
+				areaTypes={<AreaTypesPicker encounter={encounter} />}
+				preset={showDamage && <BoundEnumPicker modObject={encounter} config={preset} />}
+				allies={player.canEnableTargetDummies() && <BoundNumberPicker modObject={host.sim.raid} config={allies} />}
+				minBaseDamage={player.getPlayerSpec().isTankSpec && <BoundNumberPicker modObject={encounter} config={minBaseDamage} />}
+				targetInputs={<TargetInputsPicker encounter={encounter} targetIndex={0} />}
+				onAdvancedClick={() => setAdvancedOpen(true)}
+			/>
 			<AdvancedEncounterModal open={advancedOpen} onOpenChange={setAdvancedOpen} />
-		</div>
+		</>
 	);
 };
