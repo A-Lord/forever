@@ -1,5 +1,5 @@
 // What this pins is the split the dialog is built on: the stage is dialog state and everything that
-// moves with a worker message is state local to the bar, so a tick renders that leaf and not the
+// moves with a worker message is state local to `HandleProgressBar`, so a tick renders that leaf and not the
 // `keepMounted` dialog that outlives every run. The measured rate is ~10 progress callbacks a second
 // on wasm (sim/core/sim.go:336 throttles each sim to one report per 100 ms, and
 // ui/sim/wasm/sim.ts:118 decimates by worker count) and ~2/s on the native host, which is why the
