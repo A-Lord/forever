@@ -1,4 +1,5 @@
 import { act, fireEvent, render } from '@testing-library/react';
+import { toastManager } from '@ui-kit/Toast';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CopyButton } from './CopyButton';
@@ -24,6 +25,7 @@ beforeEach(() => {
 afterEach(() => {
 	vi.useRealTimers();
 	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
 });
 
 const button = (container: HTMLElement) => container.querySelector('button')!;
@@ -61,28 +63,30 @@ describe('CopyButton', () => {
 		expect(copied).toEqual(['after', 'after']);
 	});
 
-	it('alerts the payload when there is no clipboard, and never enters the copied window', () => {
-		const alert = vi.fn();
+	it('shows the payload in a sticky error toast when there is no clipboard, and never enters the copied window', () => {
+		const add = vi.spyOn(toastManager, 'add').mockReturnValue('toast');
 		vi.stubGlobal('navigator', {});
-		vi.stubGlobal('alert', alert);
 		const { container } = render(<CopyButton getContent={() => 'payload'} text="Copy me" />);
 
 		act(() => void fireEvent.click(button(container)));
 		act(() => void fireEvent.click(button(container)));
 
-		expect(alert).toHaveBeenCalledTimes(2);
-		expect(alert).toHaveBeenCalledWith('payload');
+		expect(add).toHaveBeenCalledTimes(2);
+		const options = add.mock.calls[0][0];
+		expect(options).toMatchObject({ variant: 'error', autohide: false });
+		expect(render(<>{options.body}</>).container.textContent).toBe('payload');
 		expect(button(container).textContent).toContain('Copy me');
+		expect(button(container).querySelector('i')?.classList.contains('fa-copy')).toBe(true);
 	});
 
 	it('fires onCopied on both branches', () => {
+		vi.spyOn(toastManager, 'add').mockReturnValue('toast');
 		const onCopied = vi.fn();
 		const { container } = render(<CopyButton getContent={() => 'x'} onCopied={onCopied} />);
 		act(() => void fireEvent.click(button(container)));
 		expect(onCopied).toHaveBeenCalledTimes(1);
 
 		vi.stubGlobal('navigator', {});
-		vi.stubGlobal('alert', vi.fn());
 		const withoutClipboard = render(<CopyButton getContent={() => 'x'} onCopied={onCopied} />);
 		act(() => void fireEvent.click(button(withoutClipboard.container)));
 		expect(onCopied).toHaveBeenCalledTimes(2);

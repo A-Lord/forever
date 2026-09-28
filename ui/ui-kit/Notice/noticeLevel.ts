@@ -1,11 +1,18 @@
+import type { IconAlias, IconName } from '@ui-kit/Icon';
 import clsx from 'clsx';
 
 export type NoticeLevel = 'info' | 'warning' | 'error';
 
+export const NOTICE_ICON_NAME = {
+	info: 'info-circle',
+	warning: 'exclamation-triangle',
+	error: 'exclamation-triangle',
+} as const satisfies Record<NoticeLevel, IconName | IconAlias>;
+
 export const NOTICE_ICON: Record<NoticeLevel, string> = {
-	info: 'fa-info-circle',
-	warning: 'fa-exclamation-triangle',
-	error: 'fa-exclamation-triangle',
+	info: `fa-${NOTICE_ICON_NAME.info}`,
+	warning: `fa-${NOTICE_ICON_NAME.warning}`,
+	error: `fa-${NOTICE_ICON_NAME.error}`,
 };
 
 export const NOTICE_COLOR: Record<NoticeLevel, string> = {

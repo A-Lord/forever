@@ -1,7 +1,7 @@
 import i18n from '@i18n/config';
 import type { UnitMetrics } from '@sim/proto/sim_result';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import { noticeIconClass } from '@ui-kit/NoticeLevel';
+import { noticeIconClass } from '@ui-kit/Notice';
 import clsx from 'clsx';
 import { useEffect, useMemo, useState } from 'react';
 

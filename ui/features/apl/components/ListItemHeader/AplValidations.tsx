@@ -7,7 +7,7 @@ import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import { subscribePlayerField } from '@sim/state/subscriptions';
 import { ListItemAction } from '@ui-kit/ListPicker';
-import { NOTICE_COLOR, NOTICE_ICON, type NoticeLevel } from '@ui-kit/NoticeLevel';
+import { NOTICE_COLOR, NOTICE_ICON, type NoticeLevel } from '@ui-kit/Notice';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { Fragment, useEffect, useId, useRef, useState } from 'react';
 
