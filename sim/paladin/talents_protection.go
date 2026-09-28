@@ -5,7 +5,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -203,21 +202,8 @@ func (paladin *Paladin) applyOneHandedWeaponSpecialization() {
 		return
 	}
 
-	paladin.applyWeaponSpecialization(
-		spellData.OneHandedWeaponSpecialization.Rank(paladin.Talents.OneHandedWeaponSpecialization),
-		proto.HandType_HandTypeOneHand,
-	)
-}
-
-// The one- and two-handed specializations follow the weapon in the main hand, item swaps included.
-func (paladin *Paladin) applyWeaponSpecialization(rank *spelldata.Spell, handType proto.HandType) {
-	parsed := spelldata.ParseStatic(&paladin.Character, rank, spelldata.Conditional(func() bool {
-		return paladin.HasMHWeapon() && paladin.GetMainHandType() == handType
-	}))
-
-	paladin.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, _ proto.ItemSlot) {
-		parsed.Refresh(sim)
-	})
+	spelldata.ParseStatic(&paladin.Character,
+		spellData.OneHandedWeaponSpecialization.Rank(paladin.Talents.OneHandedWeaponSpecialization))
 }
 
 // Reckoning - Gives you a 8/16/24/32/40% chance to gain an extra attack after Blocking a melee

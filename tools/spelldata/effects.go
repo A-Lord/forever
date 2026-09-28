@@ -153,6 +153,20 @@ func weaponBound(s *spelldata.Spell, e *spelldata.Effect, stat string) string {
 	return join(signedPercent(e), stat)
 }
 
+// A damage-done aura under the weapon spelldata.DamageDoneWeapon names for its row: on while that
+// weapon is equipped, and on the melee-defense spells of the other schools where it is a melee one.
+func damageDonePhrase(s *spelldata.Spell, e *spelldata.Effect) string {
+	phrase := join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage done")
+	req, melee, ok := spelldata.DamageDoneWeapon(s, e)
+	if !ok {
+		return phrase
+	}
+	if melee {
+		phrase += " and on the melee-defense spells of the other schools"
+	}
+	return phrase + ", while " + weaponsPhrase(req.SubclassMask, req.InvTypeMask, req.Hand) + " is equipped"
+}
+
 func perWeapon(scope core.SpellModConfig) string {
 	weapons := weaponsPhrase(scope.EquipSubclass, scope.EquipInvType, scope.EquipHand)
 	if scope.ProcMask == core.ProcMaskRanged {
@@ -333,7 +347,7 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	case dbcenums.A_MOD_DAMAGE_DONE:
 		return join(signed(value(e)), schoolName(core.SpellSchool(e.Misc)), "damage done")
 	case dbcenums.A_MOD_DAMAGE_PERCENT_DONE:
-		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage done")
+		return damageDonePhrase(s, e)
 	case dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN:
 		return join(signedPercent(e), schoolName(core.SpellSchool(e.Misc)), "damage taken")
 	case dbcenums.A_MOD_DAMAGE_TAKEN:

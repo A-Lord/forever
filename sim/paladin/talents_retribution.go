@@ -7,7 +7,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/dbcenums"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -261,10 +260,8 @@ func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
 		return
 	}
 
-	paladin.applyWeaponSpecialization(
-		spellData.TwoHandedWeaponSpecialization.Rank(paladin.Talents.TwoHandedWeaponSpecialization),
-		proto.HandType_HandTypeTwoHand,
-	)
+	spelldata.ParseStatic(&paladin.Character,
+		spellData.TwoHandedWeaponSpecialization.Rank(paladin.Talents.TwoHandedWeaponSpecialization))
 }
 
 // Vengeance - Increases your Physical and Holy damage dealt by 1/2/3% for 30 sec after landing a

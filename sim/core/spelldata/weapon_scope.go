@@ -125,3 +125,18 @@ func weaponScope(s *Spell, e *Effect) (core.SpellModConfig, bool) {
 	}
 	return scope, true
 }
+
+// The weapon an A_MOD_DAMAGE_PERCENT_DONE row holds for: its bonus is on while a matching weapon is in
+// a weapon slot. A melee weapon also carries the bonus to the melee-defense spells of the schools the
+// row's mask leaves out, the way One-Handed Weapon Specialization reaches Seal of Righteousness. ok is
+// false for a row that names no weapon or reaches another unit.
+func DamageDoneWeapon(s *Spell, e *Effect) (req core.EquipRequirement, melee bool, ok bool) {
+	if e.Aura != dbcenums.A_MOD_DAMAGE_PERCENT_DONE {
+		return core.EquipRequirement{}, false, false
+	}
+	scope, scoped := weaponScope(s, e)
+	if !scoped {
+		return core.EquipRequirement{}, false, false
+	}
+	return scope.Equip(), scope.ProcMask.Matches(core.ProcMaskMelee) && e.Misc&miscAllSchools != miscAllSchools, true
+}

@@ -335,6 +335,9 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 			a.key = a.kind
 		}
 		parsed.Applied = append(parsed.Applied, Applied{Effect: e, Kind: a.kind, Value: a.value})
+		for _, beside := range a.also {
+			parsed.Applied = append(parsed.Applied, Applied{Effect: e, Kind: beside.kind, Value: beside.value})
+		}
 		parsed.attachments = append(parsed.attachments, a)
 	}
 
