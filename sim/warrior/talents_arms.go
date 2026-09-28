@@ -78,6 +78,12 @@ func (warrior *Warrior) registerImprovedOverpower() {
 
 	spelldata.ParseStatic(&warrior.Character,
 		spellData.ImprovedOverpower.Rank(warrior.Talents.ImprovedOverpower))
+
+	// Marks the talent for the APL's auraIsKnown, tagged with its points.
+	core.MakePermanent(warrior.RegisterAura(core.Aura{
+		Label:    "Improved Overpower",
+		ActionID: core.ActionID{SpellID: spellData.ImprovedOverpower.Highest().ID}.WithTag(warrior.Talents.ImprovedOverpower),
+	}))
 }
 
 var angerManagementRank = spellData.AngerManagement.Highest()
