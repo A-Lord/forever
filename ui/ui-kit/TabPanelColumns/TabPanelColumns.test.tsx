@@ -48,4 +48,22 @@ describe('TabPanelColumns', () => {
 		const { container: colContainer } = render(<TabPanelColumns.Col className="settings-left-col-1" />);
 		expect(colContainer.firstElementChild!.classList.contains('settings-left-col-1')).toBe(true);
 	});
+
+	it('keeps each part addressable by its default testId and takes another', () => {
+		const { getByTestId } = render(
+			<TabPanelColumns.Root testId="columns">
+				<TabPanelColumns.Left>
+					<TabPanelColumns.Col />
+					<TabPanelColumns.Col testId="second-col" />
+				</TabPanelColumns.Left>
+				<TabPanelColumns.Right testId="presets" />
+			</TabPanelColumns.Root>,
+		);
+
+		expect(getByTestId('columns').classList.contains('ui-columns')).toBe(true);
+		expect(getByTestId('tab-panel-left').parentElement).toBe(getByTestId('columns'));
+		expect(getByTestId('tab-panel-col').parentElement).toBe(getByTestId('tab-panel-left'));
+		expect(getByTestId('second-col').classList.contains('ui-columns-col')).toBe(true);
+		expect(getByTestId('presets').classList.contains('ui-columns-right')).toBe(true);
+	});
 });

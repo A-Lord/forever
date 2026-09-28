@@ -10,4 +10,4 @@ export type {
 	ListPickerOptions,
 	ListPickerProps,
 } from './types';
-export { carryId, keyFor, reconcileIds } from './utils';
+export { keyFor, reconcileIds } from './utils';

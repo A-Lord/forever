@@ -43,4 +43,10 @@ describe('Accordion', () => {
 
 		expect(container.querySelector('[data-testid="first-body"]')).toBeNull();
 	});
+
+	it('marks its root with the default testId', () => {
+		const { container } = render(<Harness />);
+
+		expect(container.querySelector('[data-testid="accordion"]')!.classList.contains('ui-accordion')).toBe(true);
+	});
 });
