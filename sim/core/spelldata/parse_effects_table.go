@@ -1233,22 +1233,13 @@ func (p *parser) whileEquipped(req core.EquipRequirement, a *attachment, beside 
 		return a
 	}
 
-	set, level := a.set, 0.0
-	refresh := func(sim *core.Simulation) {
-		want := 0.0
-		if req.Equipped(p.character) {
-			want = level
-		}
-		set(sim, want)
+	set := a.set
+	a.set = p.character.NewEquipGate(req, func(sim *core.Simulation, level float64) {
+		set(sim, level)
 		for _, b := range beside {
-			b.set(sim, want)
+			b.set(sim, level)
 		}
-	}
-	a.set = func(sim *core.Simulation, l float64) {
-		level = l
-		refresh(sim)
-	}
-	p.character.RegisterWeaponChangeCallback(refresh)
+	}).SetLevel
 	return a
 }
 
