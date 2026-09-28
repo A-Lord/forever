@@ -1,0 +1,67 @@
+import { ItemDetailCell } from '@features/gear/components/ItemCell';
+import type { SelectorModalTabs } from '@features/gear/types';
+import type { ItemSlot } from '@generated/proto/common';
+import i18n from '@i18n/config';
+import type { EquippedItem } from '@sim/proto/equipped_item';
+import { Button } from '@ui-kit/Button';
+import { Icon } from '@ui-kit/Icon';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import clsx from 'clsx';
+import { useId } from 'react';
+
+export type BulkItemPickerState = 'frozen' | 'equipped' | 'editable';
+
+export interface BulkItemPickerViewProps {
+	slot: ItemSlot;
+	item: EquippedItem;
+	state: BulkItemPickerState;
+	onOpen: (tab: SelectorModalTabs) => void;
+	/** Omitted for an item that cannot be removed from the batch. */
+	onRemove?: () => void;
+}
+
+const FRAME: Record<BulkItemPickerState, string> = {
+	frozen: 'border-3 border-frozen',
+	equipped: 'border border-brand',
+	editable: 'border border-border',
+};
+
+const ROOT_ATTRIBUTES: Record<BulkItemPickerState, Record<string, string>> = {
+	frozen: { 'data-frozen': '' },
+	equipped: { 'data-equipped': '' },
+	editable: {},
+};
+
+export const BulkItemPickerView = ({ slot, item, state, onOpen, onRemove }: BulkItemPickerViewProps) => {
+	const tooltipId = useId();
+	return (
+		<ItemDetailCell
+			slot={slot}
+			item={item}
+			nameDescriptionFlush
+			testId="bulk-item-picker"
+			rootDataAttributes={ROOT_ATTRIBUTES[state]}
+			className={clsx('ui-bulk-item-cell mb-0 p-2', FRAME[state])}
+			onOpen={onOpen}
+			action={
+				<div className="ml-2 grid grid-flow-col [align-items:start] gap-1">
+					{onRemove && (
+						<>
+							<Button
+								iconOnly
+								aria-label={i18n.t('bulk_tab.picker.remove_tooltip')}
+								variant="link-danger"
+								className="leading-none"
+								data-testid="item-picker-actions-btn"
+								onClick={onRemove}
+								{...tooltipAnchorProps(tooltipId)}>
+								<Icon name="times" />
+							</Button>
+							<Tooltip id={tooltipId} content={i18n.t('bulk_tab.picker.remove_tooltip')} />
+						</>
+					)}
+				</div>
+			}
+		/>
+	);
+};
