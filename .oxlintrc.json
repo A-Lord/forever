@@ -130,6 +130,7 @@
 									"@sim/talents/**",
 									"@sim/bulk/**",
 									"@sim/cache/**",
+									"@sim/wasm",
 									"@sim/wasm/**",
 									"@sim/workers/**",
 									"@sim/sim",
