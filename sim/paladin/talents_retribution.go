@@ -255,14 +255,14 @@ func (paladin *Paladin) applySacredArbiter() {
 }
 
 // Two-Handed Weapon Specialization - Increases the damage you deal with two-handed melee weapons
-// by 2/4/6%. The game files put it on the Physical school alone.
+// by 2/4/6%.
 func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
 	if paladin.Talents.TwoHandedWeaponSpecialization == 0 {
 		return
 	}
 
 	paladin.applyWeaponSpecialization(
-		spellData.TwoHandedWeaponSpecialization.FractionAt(paladin.Talents.TwoHandedWeaponSpecialization),
+		spellData.TwoHandedWeaponSpecialization.Rank(paladin.Talents.TwoHandedWeaponSpecialization),
 		proto.HandType_HandTypeTwoHand,
 	)
 }

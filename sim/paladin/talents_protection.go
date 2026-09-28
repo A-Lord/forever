@@ -6,6 +6,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -196,37 +197,26 @@ func (paladin *Paladin) applySacredDuty() {
 }
 
 // One-Handed Weapon Specialization - Increases the damage you deal with one-handed melee weapons
-// by 3/7/10%. The game files put it on the Physical school alone.
+// by 3/7/10%.
 func (paladin *Paladin) applyOneHandedWeaponSpecialization() {
 	if paladin.Talents.OneHandedWeaponSpecialization == 0 {
 		return
 	}
 
 	paladin.applyWeaponSpecialization(
-		spellData.OneHandedWeaponSpecialization.FractionAt(paladin.Talents.OneHandedWeaponSpecialization),
+		spellData.OneHandedWeaponSpecialization.Rank(paladin.Talents.OneHandedWeaponSpecialization),
 		proto.HandType_HandTypeOneHand,
 	)
 }
 
-// The one- and two-handed specializations: a physical damage bonus that follows the weapon in the
-// main hand, item swaps included.
-func (paladin *Paladin) applyWeaponSpecialization(bonus float64, handType proto.HandType) {
-	weaponMod := paladin.AddDynamicMod(core.SpellModConfig{
-		School:     core.SpellSchoolPhysical,
-		Kind:       core.SpellMod_DamageDone_Pct,
-		FloatValue: bonus,
-	})
+// The one- and two-handed specializations follow the weapon in the main hand, item swaps included.
+func (paladin *Paladin) applyWeaponSpecialization(rank *spelldata.Spell, handType proto.HandType) {
+	parsed := spelldata.ParseStatic(&paladin.Character, rank, spelldata.Conditional(func() bool {
+		return paladin.GetMainHandType() == handType
+	}))
 
-	if paladin.GetMainHandType() == handType {
-		weaponMod.Activate()
-	}
-
-	paladin.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(_ *core.Simulation, _ proto.ItemSlot) {
-		if paladin.GetMainHandType() == handType {
-			weaponMod.Activate()
-		} else {
-			weaponMod.Deactivate()
-		}
+	paladin.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, _ proto.ItemSlot) {
+		parsed.Refresh(sim)
 	})
 }
 

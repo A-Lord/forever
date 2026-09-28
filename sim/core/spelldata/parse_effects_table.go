@@ -119,8 +119,26 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 
 	// The damage the unit deals and takes, by school mask.
 	dbcenums.A_MOD_DAMAGE_PERCENT_DONE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.MultiplierFromPercent(v),
+		a := p.schoolMultiplier("damage-dealt", "DamageDealtMultiplier", e.Misc, core.MultiplierFromPercent(v),
 			&p.unit.PseudoStats.DamageDealtMultiplier, &p.unit.PseudoStats.SchoolDamageDealtMultiplier)
+		if a == nil || a.skipReason != "" || !p.meleeWeaponRow(e) || e.Misc&miscAllSchools == miscAllSchools {
+			return a
+		}
+
+		// A row that needs a melee weapon also reaches the melee-defense spells of the schools its
+		// mask leaves out, such as Seal of Righteousness under One-Handed Weapon Specialization.
+		melee := p.modFloat("damage-dealt-melee", core.SpellModConfig{
+			Kind:        core.SpellMod_DamageDone_Pct,
+			School:      core.SpellSchool(miscAllSchools &^ e.Misc),
+			DefenseType: core.DefenseTypeMelee,
+		}, v/100)
+		if schoolSet, meleeSet := a.set, melee.set; schoolSet != nil && meleeSet != nil {
+			a.set = func(sim *core.Simulation, level float64) {
+				schoolSet(sim, level)
+				meleeSet(sim, level)
+			}
+		}
+		return a
 	},
 	dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.schoolMultiplier("damage-taken", "DamageTakenMultiplier", e.Misc, core.MultiplierFromPercent(v),
@@ -1197,6 +1215,15 @@ func multiplier(kind string, mult float64, apply func(sim *core.Simulation, fact
 		}
 		apply(sim, factor)
 	}}
+}
+
+// Whether the row needs a melee weapon in SpellEquippedItems and sits on the caster.
+func (p *parser) meleeWeaponRow(e *Effect) bool {
+	if p.spell == nil {
+		return false
+	}
+	scope, scoped := weaponScope(p.spell, e)
+	return scoped && scope.ProcMask.Matches(core.ProcMaskMelee)
 }
 
 // The damage multipliers the sim keeps once for everything and once per school: the game files'
