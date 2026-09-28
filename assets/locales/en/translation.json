@@ -1759,7 +1759,15 @@
 				"cooldowns": "Cooldowns",
 				"potions": "Potions",
 				"conjured_items": "Conjured Items",
-				"placeholders": "Placeholders"
+				"placeholders": "Placeholders",
+				"consumables": "Consumables",
+				"items": "Items",
+				"talents": "Talents",
+				"racials": "Racials",
+				"professions": "Professions",
+				"external_buffs": "External Buffs",
+				"external_cooldowns": "External Cooldowns",
+				"external_debuffs": "External Debuffs"
 			},
 			"item_swap_sets": {
 				"main": "Main",

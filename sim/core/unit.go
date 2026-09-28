@@ -997,6 +997,7 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 			HasExpectedTick: spell.expectedTickDamageInternal != nil,
 			HasMissileSpeed: spell.MissileSpeed > 0.0,
 			HasRanks:        spell.Rank > 0,
+			Category:        spell.category(),
 		}
 	})
 
@@ -1009,6 +1010,7 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 			MaxStacks:          aura.MaxStacks,
 			HasIcd:             aura.Icd != nil,
 			HasExclusiveEffect: len(aura.ExclusiveEffects) > 0,
+			Category:           unit.auraCategory(aura),
 		}
 	})
 
