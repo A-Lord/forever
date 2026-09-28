@@ -153,12 +153,13 @@ describe('PresetConfigurationPicker, grouped by phase', () => {
 		expect(JSON.parse(window.localStorage.getItem('spec__presetFilters__')!)).toEqual({ phase: 3 });
 	});
 
-	// Applying a build from another phase jumps the bar to it, so the chip that was just clicked
-	// stays on screen.
+	// Applying a build writes its phase to the bar, so the chip that was just clicked stays on
+	// screen; no tab is clicked first, so the write is the build's alone.
 	it('follows the applied build to its phase', () => {
 		const { container } = setup(phased);
 
-		fireEvent.click(phaseTabs(container)[0]);
+		expect(window.localStorage.getItem('spec__presetFilters__')).toBeNull();
+
 		fireEvent.click(chips(container)[0].querySelector('[data-testid="saved-data-set-name"]')!);
 
 		expect(applyBuild).toHaveBeenCalledTimes(1);

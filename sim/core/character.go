@@ -299,7 +299,7 @@ func (character *Character) applyAllEffects(agent Agent, raidBuffs *proto.RaidBu
 	playerStats.TalentsStats = measureStats()
 
 	character.WithSource(SourceExternalBuff, func() {
-		registeredBuffs().ApplyBuffs(agent.GetCharacter(), raidBuffs, partyBuffs, individualBuffs)
+		registeredBuffs().ApplyBuffs(character, raidBuffs, partyBuffs, individualBuffs)
 	})
 	character.applyBuildPhaseAuras(CharacterBuildPhaseBuffs)
 	playerStats.BuffsStats = measureStats()
