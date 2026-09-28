@@ -1,8 +1,9 @@
 package core
 
-// Fills a proc's handler with an extra attack: a copy of the main-hand swing tagged with the
-// granting spell, cast count times on the hit's target. The returned OnInit registers the copy, so it
-// goes on the proc's aura: the main-hand swing is configured after procs register, and a unit that
+// Adds an extra attack to a proc's handler: a copy of the main-hand swing tagged with the granting
+// spell, cast count times after whatever the handler already does, on the hit's target - or on the
+// attacker, for a proc that hears the hits the unit takes. The returned OnInit registers the copy, so
+// it goes on the proc's aura: the main-hand swing is configured after procs register, and a unit that
 // never swings has none to copy, in which case the proc casts nothing. The swing it grants is not a
 // hit the proc hears, or one proc would swing forever.
 func (unit *Unit) ExtraAttackProc(trigger *ProcTrigger, tagSpellID int32, count int) OnInit {
@@ -11,12 +12,21 @@ func (unit *Unit) ExtraAttackProc(trigger *ProcTrigger, tagSpellID int32, count 
 	trigger.ExtraCondition = func(sim *Simulation, spell *Spell, result *SpellResult) bool {
 		return spell != extraAttack && (condition == nil || condition(sim, spell, result))
 	}
-	trigger.Handler = func(sim *Simulation, _ *Spell, result *SpellResult) {
+	handler := trigger.Handler
+	onHitTaken := trigger.Callback.Matches(CallbackOnSpellHitTaken)
+	trigger.Handler = func(sim *Simulation, spell *Spell, result *SpellResult) {
+		if handler != nil {
+			handler(sim, spell, result)
+		}
 		if extraAttack == nil {
 			return
 		}
+		target := result.Target
+		if onHitTaken {
+			target = spell.Unit
+		}
 		for range count {
-			unit.AutoAttacks.MaybeReplaceMHSwing(sim, extraAttack).Cast(sim, result.Target)
+			unit.AutoAttacks.MaybeReplaceMHSwing(sim, extraAttack).Cast(sim, target)
 		}
 	}
 	trigger.TriggerImmediately = true
