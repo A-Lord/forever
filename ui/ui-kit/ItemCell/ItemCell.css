@@ -21,6 +21,10 @@
 		@apply flex flex-1 flex-col items-start p-2 pb-0;
 	}
 
+	.ui-item-picker-name-row {
+		@apply w-full;
+	}
+
 	.ui-item-picker-name-container {
 		@apply text-(length:--h6-font-size) text-white in-[.ui-gear-picker]:focus-visible:outline in-[.ui-gear-picker]:focus-visible:outline-1 in-[.ui-gear-picker]:focus-visible:outline-offset-1 in-[.ui-gear-picker]:focus-visible:outline-link;
 	}
