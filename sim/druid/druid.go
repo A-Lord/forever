@@ -105,9 +105,13 @@ type Druid struct {
 
 const (
 	// Feral abilities are identified with spellData ladders, not these masks. The masks that remain
-	// are the ones a balance item effect still names.
+	// are the ones a balance item effect or a balance spell mod still names.
 	DruidSpellMoonfireInitial int64 = 1 << iota
 	DruidSpellMoonfireDoT
+	DruidSpellHurricane
+	DruidSpellInsectSwarm
+	DruidSpellStarfire
+	DruidSpellWrath
 
 	DruidSpellMoonfire = DruidSpellMoonfireInitial | DruidSpellMoonfireDoT
 )
