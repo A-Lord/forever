@@ -523,7 +523,7 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-PremierGrandMarshal'sAegis-272838"
  value: {
-  dps: 231.49848
+  dps: 231.49847
   tps: 244.96534
   dtps: 5399.69917
  }
