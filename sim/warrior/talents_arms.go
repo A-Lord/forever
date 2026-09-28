@@ -327,27 +327,21 @@ func (warrior *Warrior) registerWeaponmaster() {
 
 	// 1290261 states no proc flags at all, so the row decodes to a listener that hears nothing:
 	// the shape, the mask and the rate's effect are all the caller's.
-	var extraAttack *core.Spell
-	swordAura := warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Weaponmaster (Sword)",
-		ActionID:           actionID.WithTag(3),
-		MetricsActionID:    actionID.WithTag(3),
-		Callback:           core.CallbackOnSpellHitDealt,
-		ProcMask:           core.ProcMaskMelee,
-		Outcome:            core.OutcomeLanded,
-		ProcChance:         spellData.Weaponmaster.EffectAt(3).FractionAt(rank),
-		TriggerImmediately: true,
-		Duration:           core.NeverExpires,
-		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-			return spell.ProcMask.Matches(swordMask) && spell != extraAttack
+	swordTrigger := core.ProcTrigger{
+		Name:            "Weaponmaster (Sword)",
+		ActionID:        actionID.WithTag(3),
+		MetricsActionID: actionID.WithTag(3),
+		Callback:        core.CallbackOnSpellHitDealt,
+		ProcMask:        core.ProcMaskMelee,
+		Outcome:         core.OutcomeLanded,
+		ProcChance:      spellData.Weaponmaster.EffectAt(3).FractionAt(rank),
+		Duration:        core.NeverExpires,
+		ExtraCondition: func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+			return spell.ProcMask.Matches(swordMask)
 		},
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			warrior.AutoAttacks.MaybeReplaceMHSwing(sim, extraAttack).Cast(sim, result.Target)
-		},
-	}).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-		config := *warrior.AutoAttacks.MHConfig()
-		config.ActionID = config.ActionID.WithTag(actionID.SpellID)
-		extraAttack = warrior.GetOrRegisterSpell(config)
+	}
+	extraAttack := warrior.ExtraAttackProc(&swordTrigger, actionID.SpellID, 1)
+	swordAura := warrior.MakeProcTriggerAura(swordTrigger).ApplyOnInit(extraAttack).ApplyOnInit(func(aura *core.Aura, _ *core.Simulation) {
 		aura.OnReset = func(aura *core.Aura, sim *core.Simulation) {
 			if swordMask == core.ProcMaskUnknown {
 				aura.Deactivate(sim)
