@@ -1,6 +1,9 @@
 package warlock
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -169,12 +172,25 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	return warlock
 }
 
-// Returns the number of active affliction effects on the target.
+// Returns the number of this warlock's affliction effects active on the target, for Soul Siphon.
+// Dots are tagged "Affliction"; the tag is shared by every caster, but core labels each caster's dot aura
+// "<label>-<caster unit index>", so the suffix picks out this warlock's own.
+// Curses are the exception: their debuff's Tag is its exclusive category, so they cannot carry the tag,
+// and are read through the Curses list instead.
+// TODO: Confirm in-game that curses count toward Soul Siphon.
 func (warlock *Warlock) AfflictionCount(target *core.Unit) float64 {
+	own := "-" + strconv.Itoa(int(warlock.UnitIndex))
 	count := 0.0
 	for _, aura := range target.GetAurasWithTag("Affliction") {
-		if aura.IsActive() {
+		if aura.IsActive() && strings.HasSuffix(aura.Label, own) {
 			count++
+		}
+	}
+	for _, curse := range warlock.Curses {
+		for _, auras := range curse.RelatedAuraArrays {
+			if aura := auras.Get(target); aura != nil && aura.IsActive() {
+				count++
+			}
 		}
 	}
 	return count
