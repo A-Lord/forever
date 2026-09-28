@@ -46,7 +46,7 @@ point of the current tree, and `lint:js` is the only thing enforcing them anywhe
 - **`build-ui`**: `npm ci` and `test:locales`, then `fmt`, `lint:js`, `lint:css`, a
   `make ui/generated/proto/api.ts go-to-ts` generate step, `type-check`, `test:unit`, and finally
   `make dist/forever/.dirstamp`.
-- **`test`**: four shards of `go test --tags=with_db ./sim/...` — the Go sim, not the UI.
+- **`test`**: `go test --tags=with_db ./sim/...` in one job (four shards when there is more than one runner) — the Go sim, not the UI.
 
 So every script in the list above runs in CI, cheapest first, which is why a formatting slip reports
 in about a minute instead of behind the wasm build. The generate step has to come before `type-check`
