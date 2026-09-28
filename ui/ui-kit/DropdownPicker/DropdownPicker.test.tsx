@@ -48,6 +48,34 @@ describe('DropdownPicker', () => {
 		expect(trigger().getAttribute('type')).toBe('button');
 	});
 
+	it('renders the field chrome: a label pointing at the trigger, a description and the layout', () => {
+		render(
+			<DropdownPicker
+				id="target-filter"
+				label="Target"
+				description="Which unit the table shows"
+				layout="inline"
+				options={units}
+				value={undefined}
+				onChange={vi.fn()}
+				equals={sameId}
+				defaultLabel="Unit"
+			/>,
+		);
+
+		expect(root().hasAttribute('data-input-root')).toBe(true);
+		expect(root().getAttribute('data-layout')).toBe('inline');
+		expect(within(root()).getByTestId('form-label').getAttribute('for')).toBe('target-filter');
+		expect(within(root()).getByTestId('form-label').textContent).toBe('Target');
+		expect(within(root()).getByTestId('input-description').textContent).toBe('Which unit the table shows');
+	});
+
+	it('marks the root when disabled', () => {
+		render(<DropdownPicker options={units} value={undefined} onChange={vi.fn()} equals={sameId} defaultLabel="Unit" disabled />);
+
+		expect(root().hasAttribute('data-disabled')).toBe(true);
+	});
+
 	it('shows the default label while no option matches the value', () => {
 		mount({ id: 9, name: 'Missing' });
 

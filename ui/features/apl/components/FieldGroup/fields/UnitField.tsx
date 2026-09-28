@@ -1,12 +1,12 @@
 import type { UNIT_SET } from '@features/apl/model/unit_sets';
 import { unitSets } from '@features/apl/model/unit_sets';
 import { refToValue, unitOptionModels, withIconUrl } from '@features/apl/model/unit_values';
+import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import type { UnitReference } from '@generated/proto/common';
 import { useActionIds } from '@sim/hooks/useActionIds';
 import { useUnitMetadataVersion } from '@sim/hooks/useUnitMetadataVersion';
 import type { Player } from '@sim/player/player';
-import { DropdownField } from '@ui-kit/DropdownPicker';
 import { sameUnit, unitOption } from '@ui-kit/UnitPicker';
 import type { UnitValue } from '@ui-kit/UnitPicker/types';
 
@@ -19,9 +19,8 @@ export interface UnitFieldProps {
 /**
  * The unit a field points at.
  *
- * It binds through `DropdownField` rather than the unbound `UnitPicker`, because a bound picker's
- * root has to *be* the shell: `UnitPicker` renders a plain `div`, and nesting that inside one would
- * add an extra element. The `UnitValue` → option mapping is shared with it.
+ * It binds through `BoundDropdown` rather than the unbound `UnitPicker`, which takes a value and
+ * no `InputConfig`. The `UnitValue` → option mapping is shared with it.
  *
  * The option list follows unit metadata, which is where pets and targets come from; the selected
  * label is re-resolved on every render, so a pet that gains a name updates without a store write.
@@ -46,7 +45,7 @@ export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 	};
 
 	return (
-		<DropdownField<Player<any>, UnitReference | undefined, UnitValue>
+		<BoundDropdown<Player<any>, UnitReference | undefined, UnitValue>
 			modObject={player}
 			config={boundConfig}
 			options={options}
