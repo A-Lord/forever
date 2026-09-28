@@ -302,3 +302,19 @@ func TestMetaBuffTakesAFlatBonus(t *testing.T) {
 		t.Errorf("improved Battle Shout grants %v attack power, want %v", got, want)
 	}
 }
+
+func TestInspirationReadsTheStore(t *testing.T) {
+	unit := &shapeCharacter().Unit
+	baseArmor := unit.SortAndApplyStatDependencies(unit.GetStats())[stats.Armor]
+
+	for points, share := range map[int32]float64{1: 0.08, 2: 0.17, 3: 0.25} {
+		shape := shapeOf(t, false, func(u *core.Unit) *core.Aura { return InspirationAura(u, points) })
+
+		if shape.ActionID.SpellID != 14893 || shape.Duration != 15*time.Second {
+			t.Errorf("Inspiration at %d points is %v for %v, want 14893 for 15s", points, shape.ActionID, shape.Duration)
+		}
+		if got, want := round6(shape.Stacks[0].Stats["Armor"]), round6(baseArmor*share); got != want {
+			t.Errorf("Inspiration at %d points adds %v armor to %v, want %v", points, got, baseArmor, want)
+		}
+	}
+}
