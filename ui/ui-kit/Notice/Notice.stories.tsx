@@ -23,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Info: Story = { args: { level: 'info', children: 'Set bonuses count every equipped piece.' } };
 export const Warning: Story = {};
-export const Error: Story = { args: { level: 'error', children: 'The rotation has an invalid action.' } };
+export const ErrorLevel: Story = { name: 'Error', args: { level: 'error', children: 'The rotation has an invalid action.' } };
 
 export const Levels: Story = {
 	render: args => (
