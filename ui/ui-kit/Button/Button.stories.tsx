@@ -36,6 +36,7 @@ const meta = {
 		variant: { control: 'select', options: [...VARIANTS, null] },
 		size: { control: 'select', options: [undefined, 'sm', 'inline', 'none'] },
 		iconOnly: { control: 'boolean' },
+		loading: { control: 'boolean' },
 		disabled: { control: 'boolean' },
 		className: { control: 'text' },
 		children: { control: false },
@@ -61,7 +62,11 @@ export const Unstyled: Story = { args: { variant: 'unstyled' } };
 export const Small: Story = { args: { size: 'sm' } };
 export const Inline: Story = { args: { size: 'inline' } };
 export const Disabled: Story = { args: { disabled: true } };
+export const Loading: Story = { args: { loading: true, children: 'Stat Weights' } };
 export const IconOnly: Story = { args: { iconOnly: true, 'aria-label': 'Settings', children: <Icon name="cog" size="lg" /> } };
+export const IconOnlyLink: Story = {
+	args: { iconOnly: true, variant: 'link', 'aria-label': 'Help', children: <Icon name="circle-question" style="regular" /> },
+};
 export const AsAnchor: Story = { args: { as: 'a', href: 'https://www.wowhead.com/forever', children: 'Wowhead' } };
 export const AsLabel: Story = {
 	args: { as: 'label', htmlFor: 'button-story-file', children: 'Choose a file' },

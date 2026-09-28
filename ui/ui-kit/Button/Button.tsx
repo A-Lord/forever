@@ -1,5 +1,6 @@
 import { Button as BaseButton } from '@base-ui/react/button';
 import { externalRel } from '@sim/utils/links';
+import { Spinner } from '@ui-kit/Spinner';
 import clsx from 'clsx';
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, ReactNode, Ref } from 'react';
 
@@ -29,6 +30,8 @@ interface ButtonBaseProps {
 	size?: 'sm' | 'inline' | 'none';
 	/** Chromeless: no padding, border or background of its own — an icon-sized hit target. */
 	iconOnly?: boolean;
+	/** Renders a small spinner before the children and sets `aria-busy`; it does not disable the button. */
+	loading?: boolean;
 	className?: string;
 	children?: ReactNode;
 }
@@ -51,35 +54,73 @@ export const Button = (props: ButtonProps) => {
 			? props.className
 			: clsx(
 					base,
-					variant && variant !== 'link' && `ui-button-${variant}`,
+					// `ui-button-link` is the link colour; an iconOnly link keeps it on top of the chromeless base.
+					variant && (variant !== 'link' || props.iconOnly) && `ui-button-${variant}`,
 					!isLink && !props.iconOnly && SIZE_CLASS[props.size ?? 'default'],
 					props.className,
 				);
+	const busy = props.loading || undefined;
+	const content = props.loading ? (
+		<>
+			<Spinner size="sm" className="ui-button-spinner" />
+			{props.children}
+		</>
+	) : (
+		props.children
+	);
 
 	if (props.as === 'label') {
-		const { as: _as, variant: _variant, size: _size, iconOnly: _iconOnly, className: _className, children, ...labelProps } = props;
+		const {
+			as: _as,
+			variant: _variant,
+			size: _size,
+			iconOnly: _iconOnly,
+			loading: _loading,
+			className: _className,
+			children: _children,
+			...labelProps
+		} = props;
 		return (
-			<label className={classes} {...labelProps}>
-				{children}
+			<label className={classes} aria-busy={busy} {...labelProps}>
+				{content}
 			</label>
 		);
 	}
 
 	// A plain anchor, deliberately not `Base.Button`.
 	if (props.as === 'a') {
-		const { as: _as, variant: _variant, size: _size, iconOnly: _iconOnly, className: _className, children, ...anchorProps } = props;
+		const {
+			as: _as,
+			variant: _variant,
+			size: _size,
+			iconOnly: _iconOnly,
+			loading: _loading,
+			className: _className,
+			children: _children,
+			...anchorProps
+		} = props;
 		return (
-			<a className={classes} {...anchorProps} rel={externalRel(anchorProps.href, anchorProps.rel)}>
-				{children}
+			<a className={classes} aria-busy={busy} {...anchorProps} rel={externalRel(anchorProps.href, anchorProps.rel)}>
+				{content}
 			</a>
 		);
 	}
 
 	// `type` is defaulted here rather than by Base UI, which does not do it: a <button> inside a form submits it otherwise, and several in this tree are inside forms.
-	const { as: _as, variant: _variant, size: _size, iconOnly: _iconOnly, className: _className, children, type = 'button', ...buttonProps } = props;
+	const {
+		as: _as,
+		variant: _variant,
+		size: _size,
+		iconOnly: _iconOnly,
+		loading: _loading,
+		className: _className,
+		children: _children,
+		type = 'button',
+		...buttonProps
+	} = props;
 	return (
-		<BaseButton className={classes} type={type} {...buttonProps}>
-			{children}
+		<BaseButton className={classes} type={type} aria-busy={busy} {...buttonProps}>
+			{content}
 		</BaseButton>
 	);
 };

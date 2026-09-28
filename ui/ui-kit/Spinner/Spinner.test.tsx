@@ -22,4 +22,9 @@ describe('Spinner', () => {
 		const { container } = render(<Spinner className="extra" />);
 		expect((container.firstElementChild as HTMLElement).className).toContain('extra');
 	});
+
+	it('carries the testId it is given in place of the loader default', () => {
+		const { container } = render(<Spinner testId="bulk-spinner" />);
+		expect((container.firstElementChild as HTMLElement).getAttribute('data-testid')).toBe('bulk-spinner');
+	});
 });

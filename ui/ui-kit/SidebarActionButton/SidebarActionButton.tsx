@@ -1,5 +1,4 @@
 import { Button } from '@ui-kit/Button';
-import { Icon } from '@ui-kit/Icon';
 import clsx from 'clsx';
 import { type MouseEvent, type ReactNode, useContext } from 'react';
 
@@ -23,14 +22,10 @@ export const SidebarActionButton = ({ children, className, onClick, disabled, lo
 			className={clsx('w-full', className)}
 			data-testid={testId}
 			data-sidebar-action=""
-			data-loading={loading ? '' : undefined}
+			loading={loading}
 			onClick={onClick}
-			disabled={disabled || sidebarDisabled}
-			aria-busy={loading || undefined}>
+			disabled={disabled || sidebarDisabled}>
 			{children}
-			<span data-sidebar-action-loading-icon="">
-				<Icon name="spinner" spin />
-			</span>
 		</Button>
 	);
 };

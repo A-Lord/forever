@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { Button } from './Button';
@@ -144,5 +144,34 @@ describe('Button', () => {
 			</Button>,
 		);
 		expect(screen.getByRole('button', { name: 'Delete' }).className).toBe('ui-button-icon ui-button-link-danger');
+	});
+
+	it('keeps the link colour on an iconOnly link button', () => {
+		render(
+			<Button iconOnly variant="link" aria-label="Help">
+				?
+			</Button>,
+		);
+		expect(screen.getByRole('button', { name: 'Help' }).className).toBe('ui-button-icon ui-button-link');
+	});
+
+	it('renders a small spinner before the children and marks itself busy while loading', () => {
+		render(
+			<Button loading disabled>
+				Stat Weights
+			</Button>,
+		);
+		const button = screen.getByRole('button', { name: 'Stat Weights' });
+		expect(button.getAttribute('aria-busy')).toBe('true');
+		const spinner = within(button).getByTestId('loader');
+		expect(button.firstElementChild).toBe(spinner);
+		expect(spinner.className).toContain('ui-spinner-sm');
+	});
+
+	it('renders no spinner and no aria-busy when not loading', () => {
+		render(<Button>Simulate</Button>);
+		const button = screen.getByRole('button', { name: 'Simulate' });
+		expect(button.hasAttribute('aria-busy')).toBe(false);
+		expect(within(button).queryByTestId('loader')).toBeNull();
 	});
 });
