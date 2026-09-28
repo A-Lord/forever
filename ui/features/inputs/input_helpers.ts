@@ -476,7 +476,7 @@ const makeWrappedIconInput = <SpecType extends Spec, ModObject, T>(
 };
 
 type WrappedTypedInputConfig<Message, ModObject, T> = StoreBinding<ModObject> & {
-	// The picker's own id, which PickerShell keys the label and its tooltip on. Not the ActionId.
+	// The picker's own id, which Field keys the label and its tooltip on. Not the ActionId.
 	id?: string;
 	getModObject: (player: Player<any>) => ModObject;
 	getValue: (modObj: ModObject) => Message;

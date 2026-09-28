@@ -12,7 +12,7 @@ import { APLGroup, APLListItem } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { renameAPLReference } from '@sim/proto/apl_utils';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import { useState } from 'react';
 
 export interface GroupEditorProps {
@@ -24,7 +24,7 @@ export interface GroupEditorProps {
 
 /** One action group: its name, and the priority list it holds. */
 export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) => {
-	const { value: group, hidden, disabled, shellConfig } = useAplInput(player, config);
+	const { value: group, hidden, disabled, chrome } = useAplInput(player, config);
 	const [renaming, setRenaming] = useState(false);
 
 	const actions = () => config.getValue(player)?.actions || [];
@@ -59,15 +59,12 @@ export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) =>
 		extraActions: [extraction.extraAction],
 	};
 
+	if (hidden) return null;
 	return (
-		<PickerShell
-			config={{
-				...shellConfig,
-				extraClassNames: [...(config.extraClassNames || []), 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2'],
-			}}
-			className="ui-apl-group-editor-root"
+		<Field
+			{...chrome}
+			className={['ui-apl-group-editor-root', chrome.className, 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2']}
 			testId="apl-list-item-picker-root"
-			hidden={hidden}
 			disabled={disabled}>
 			<div className="ui-apl-editor-row">
 				<NameDisplay name={group?.name || ''} onRename={() => setRenaming(true)} />
@@ -106,6 +103,6 @@ export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) =>
 				onClose={() => setRenaming(false)}
 			/>
 			<AplNameDialog {...extraction.dialog} />
-		</PickerShell>
+		</Field>
 	);
 };

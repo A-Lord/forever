@@ -5,7 +5,7 @@ import type { InputConfig } from '@features/inputs/input';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import { useCallback, useRef } from 'react';
 
 import { GroupVariableRow } from './GroupVariableRow';
@@ -88,23 +88,18 @@ export const GroupVariablesField = ({ player, config, groupNameField, getParentV
 	};
 
 	return (
-		<PickerShell
-			// The list renders the title, so the field's own label would be a second one.
-			config={{
-				...config,
-				label: undefined,
-				labelTooltip: undefined,
-				extraClassNames: [...(config.extraClassNames || []), ...(variables.length ? [] : ['hidden'])],
-			}}
-			className="ui-apl-group-variables-container"
-			testId="group-reference-variables-container"
-			hidden={false}
-			disabled={false}>
+		// The list renders the title, so the field's own label would be a second one.
+		<Field
+			id={config.id}
+			description={config.description}
+			layout={config.layout}
+			className={['ui-apl-group-variables-container', config.extraClassNames, !variables.length && 'hidden']}
+			testId="group-reference-variables-container">
 			<BoundListPicker<Player<any>, any>
 				modObject={player}
 				config={listConfig}
 				renderItem={(index, itemConfig) => <GroupVariableRow player={player} config={itemConfig} name={itemConfig.getValue(player)?.name ?? ''} />}
 			/>
-		</PickerShell>
+		</Field>
 	);
 };

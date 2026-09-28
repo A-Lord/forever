@@ -9,7 +9,7 @@ import type { InputConfig } from '@features/inputs/input';
 import { APLAction, type APLValue } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import clsx from 'clsx';
 import { memo, useId, useMemo } from 'react';
 
@@ -41,7 +41,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	const kindId = useId();
 	const { isPrepull, changeSource } = useApl();
 
-	const { value, hidden, disabled, shellConfig } = useAplInput(player, config);
+	const { value, hidden, disabled, chrome } = useAplInput(player, config);
 	const kind = value?.action.oneofKind;
 
 	const options = useMemo(() => actionKindOptions(player, isPrepull), [player, isPrepull]);
@@ -85,12 +85,12 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 		},
 	});
 
+	if (hidden) return null;
 	return (
-		<PickerShell
-			config={shellConfig}
-			className={clsx('ui-apl-action-picker-root', 'm-0 gap-2', stacked ? 'flex-col' : 'flex-row', fullWidth && 'w-full')}
+		<Field
+			{...chrome}
+			className={[clsx('ui-apl-action-picker-root', 'm-0 gap-2', stacked ? 'flex-col' : 'flex-row', fullWidth && 'w-full'), chrome.className]}
 			testId="apl-action-picker-root"
-			hidden={hidden}
 			disabled={disabled}>
 			<ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />
 			<div className="flex flex-row gap-2 max-md:flex-wrap" data-kind={kind}>
@@ -103,6 +103,6 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 				/>
 				{kind && <FieldGroup key={kind} player={player} config={implConfig(kind)} fields={actionKinds[kind].fields} />}
 			</div>
-		</PickerShell>
+		</Field>
 	);
 });

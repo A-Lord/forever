@@ -9,7 +9,7 @@ import type { APLValue, APLValueVariable } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { renameAPLReference } from '@sim/proto/apl_utils';
-import { PickerShell } from '@ui-kit/PickerShell';
+import { Field } from '@ui-kit/Field';
 import { useMemo, useRef, useState } from 'react';
 
 export interface VariableItemProps {
@@ -20,7 +20,7 @@ export interface VariableItemProps {
 /** One named value variable: its name, and the value it stands for. */
 export const VariableItem = ({ player, config }: VariableItemProps) => {
 	const { changeSource } = useApl();
-	const { value: variable, hidden, disabled, shellConfig } = useAplInput(player, config);
+	const { value: variable, hidden, disabled, chrome } = useAplInput(player, config);
 	const [renaming, setRenaming] = useState(false);
 
 	const latest = useRef(config);
@@ -45,14 +45,12 @@ export const VariableItem = ({ player, config }: VariableItemProps) => {
 		return { changeSource: () => source, value };
 	}, [player, changeSource, label, labelTooltip]);
 
+	if (hidden) return null;
 	return (
-		<PickerShell
-			config={{
-				...shellConfig,
-				extraClassNames: [...(config.extraClassNames || []), 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2'],
-			}}
+		<Field
+			{...chrome}
+			className={[chrome.className, 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2']}
 			testId="apl-list-item-picker-root"
-			hidden={hidden}
 			disabled={disabled}>
 			<div className="ui-apl-editor-row">
 				<NameDisplay name={variable?.name || ''} onRename={() => setRenaming(true)} />
@@ -76,6 +74,6 @@ export const VariableItem = ({ player, config }: VariableItemProps) => {
 				}
 				onClose={() => setRenaming(false)}
 			/>
-		</PickerShell>
+		</Field>
 	);
 };
