@@ -239,13 +239,17 @@ describe('ListPicker', () => {
 			const handed = Object.freeze(source.value.slice());
 			source.value = handed;
 			mount(source);
+			const freezeWhatWasKept = () => Object.freeze(source.value);
 
 			fireEvent.click(newButton()!);
 			expect(namesOf(source)).toEqual(['a', 'b', 'c', 'new']);
+			freezeWhatWasKept();
 			openMenu(3);
 			fireEvent.click(within(popoverOf(3)).getByTestId('list-picker-item-delete'));
+			freezeWhatWasKept();
 			openMenu(0);
 			fireEvent.click(within(popoverOf(0)).getByTestId('list-picker-item-copy'));
+			freezeWhatWasKept();
 			startDrag(3);
 			dropOn(0);
 
