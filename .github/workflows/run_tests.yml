@@ -81,14 +81,15 @@ jobs:
 
     test:
         runs-on: self-hosted
-        # One job runs every package while there is a single self-hosted runner: the shards would only
-        # queue behind each other, each repeating the setup. Restore the matrix, the shard condition
-        # and the awk filter below once there are more runners.
+        # One shard while there is a single self-hosted runner: four would only queue behind each
+        # other, each repeating the setup. Restore the commented lines once there are more runners.
+        # timeout-minutes: 30
         timeout-minutes: 60
-        # strategy:
-        #     fail-fast: false
-        #     matrix:
-        #         shard: [0, 1, 2, 3]
+        strategy:
+            fail-fast: false
+            matrix:
+                # shard: [0, 1, 2, 3]
+                shard: [0]
         steps:
             - name: Checkout 🛎️
               uses: actions/checkout@v5
@@ -126,10 +127,10 @@ jobs:
             # TS tests need no game files database, and the database is not in the repo, so
             # the tests that do need it skip. One shard runs them.
             - name: Test the buff generator
-              # if: matrix.shard == 0
+              if: matrix.shard == 0
               run: go test ./tools/database/... ./tools/gen_buffs_proto/...
 
-            - name: Test
+            - name: Test (shard ${{ matrix.shard }})
               env:
                   GOARCH: amd64
                   # On a master push, master already contains the change under test, so diffing the
@@ -138,4 +139,4 @@ jobs:
                   PROTO_BASELINE_REF: ${{ inputs.proto_baseline }}
               run: |
                   # go list ./sim/... | awk 'NR % 4 == ${{ matrix.shard }}' | xargs -r go test --tags=with_db
-                  go test --tags=with_db ./sim/...
+                  go list ./sim/... | awk 'NR % 1 == ${{ matrix.shard }}' | xargs -r go test --tags=with_db
