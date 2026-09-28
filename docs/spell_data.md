@@ -506,8 +506,8 @@ school is skipped (`core.SpellSchool.PiercingStat`). The per-school kind bids un
 frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell has no
 resistance stat to pierce.
 
-A percentage `SPELLMOD_DAMAGE` raises direct hits alone (`SpellMod_DirectDamageDone_Flat`) and
-`SPELLMOD_DOT` the ticks alone (`SpellMod_DotDamageDone_Pct`), so a talent that raises a spell and its
+A percentage `SPELLMOD_DAMAGE` raises direct hits and direct heals alone (`SpellMod_DirectDamageDone_Flat`)
+and `SPELLMOD_DOT` the ticks alone (`SpellMod_DotDamageDone_Pct`), so a talent that raises a spell and its
 dot states the percentage twice and each effect attaches its own mod (Improved Serpent Sting 19464,
 Improved Moonfire 16821). `SPELLMOD_ALL_EFFECTS` raises both (`SpellMod_DamageDone_Flat`).
 
