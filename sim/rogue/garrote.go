@@ -15,7 +15,9 @@ func (rogue *Rogue) registerGarrote() {
 	config := spelldata.SpellConfig(&rogue.Unit, garroteRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
 	config.ClassSpellMask = RogueSpellGarrote
-	config.ExtraCastCondition = rogue.OpenerExtraCastCondition
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return (!rogue.PseudoStats.InFrontOfTarget || rogue.Talents.DirtyDeeds > 0) && rogue.IsStealthed()
+	}
 
 	config.Dot = spelldata.DotConfig(garroteRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {

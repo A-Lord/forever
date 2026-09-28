@@ -14,6 +14,9 @@ func (rogue *Rogue) registerBackstabSpell() {
 	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
 	config.ClassSpellMask = RogueSpellBackstab
 	config.DamageMultiplier = backstabRank.EffectN(2).Percent()
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return !rogue.PseudoStats.InFrontOfTarget && rogue.HasDagger(core.MainHand)
+	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)

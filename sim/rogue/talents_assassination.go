@@ -238,6 +238,9 @@ func (rogue *Rogue) registerMutilate() {
 	// TODO: Verify if Mutilate (Cast) can proc MH poisons itself (detected as a double MH poison proc)
 	config := spelldata.SpellConfig(&rogue.Unit, mutilateCastRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	pointGen := mutilateCastRank.EnergizeEffect().Average(core.CharacterLevel)
+	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
+		return rogue.HasDagger(core.MainHand) && rogue.HasDagger(core.OffHand)
+	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
