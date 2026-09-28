@@ -6,6 +6,8 @@ export const useHideZeroRestore = <V>(
 	state: Pick<InputState<any, V>, 'value' | 'setValue' | 'hidden' | 'revision'>,
 	zero: V,
 	restoreWhen: (current: V) => boolean = () => true,
+	/** Runs after every notification the hook acts on, with the value it left the source holding. */
+	onSettled?: (current: V) => void,
 ) => {
 	const stored = useRef<V | undefined>(undefined);
 	const lastRevision = useRef<number | null>(null);
@@ -14,16 +16,22 @@ export const useHideZeroRestore = <V>(
 		const construction = lastRevision.current === null;
 		lastRevision.current = state.revision;
 		if (construction) return;
+		let current = state.value;
 		if (state.hidden) {
 			if (stored.current === undefined) {
 				stored.current = state.value;
-				state.setValue(zero);
+				current = zero;
+				state.setValue(current);
 			}
 		} else if (stored.current !== undefined) {
 			const restored = stored.current;
 			stored.current = undefined;
-			if (restoreWhen(state.value)) state.setValue(restored);
+			if (restoreWhen(state.value)) {
+				current = restored;
+				state.setValue(current);
+			}
 		}
+		onSettled?.(current);
 	});
 	return {
 		clearStored: () => {
