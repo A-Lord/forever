@@ -47,18 +47,24 @@ describe('ReforgePanel', () => {
 		expect(settings.getAttribute('data-testid')).toBe('suggest-reforges-button-settings');
 		expect(settings.hasAttribute('data-sidebar-action')).toBe(true);
 		expect(settings.querySelector('.fa-cog')).not.toBeNull();
-		expect(
-			container.querySelectorAll(
-				'[data-testid="suggest-reforges-action-button-loading-icon"], [data-testid="suggest-reforges-button-settings-loading-icon"]',
-			),
-		).toHaveLength(2);
 	});
 
-	it('disables the run button while a gem optimization run is in flight', () => {
+	it('shows no spinner on the run button at rest', () => {
+		const { container } = renderPanel();
+		const run = container.querySelector('button')!;
+
+		expect(run.hasAttribute('aria-busy')).toBe(false);
+		expect(container.querySelector('[data-testid="loader"]')).toBeNull();
+	});
+
+	it('disables the run button and shows its spinner while a gem optimization run is in flight', () => {
 		runState.isRunning = true;
 		const { container } = renderPanel();
+		const run = container.querySelector('button')!;
 
-		expect(container.querySelector('button')?.disabled).toBe(true);
+		expect(run.disabled).toBe(true);
+		expect(run.getAttribute('aria-busy')).toBe('true');
+		expect(run.querySelector('[data-testid="loader"]')).not.toBeNull();
 	});
 
 	it('builds no popover body and tracks no page view until the trigger is used', () => {

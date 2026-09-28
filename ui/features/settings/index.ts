@@ -1,3 +1,4 @@
+export { type BuffSection, BuffSectionView, type BuffSectionViewProps } from './components/BuffSection';
 export { ConsumesPicker } from './components/ConsumesPicker';
 export { CooldownsPicker } from './components/CooldownsPicker';
 export type { ConsumesPickerProps } from './components/ConsumesPicker';

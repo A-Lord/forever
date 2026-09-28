@@ -2,8 +2,4 @@
 	.ui-reforge-sidebar-actions button {
 		position: relative;
 	}
-
-	.ui-reforge-sidebar-actions button > span {
-		display: none;
-	}
 }

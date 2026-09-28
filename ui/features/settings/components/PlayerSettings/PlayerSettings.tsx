@@ -5,9 +5,9 @@ import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { InputConfig } from '@sim/spec_config';
-import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
+import { PlayerSettingsView } from './PlayerSettingsView';
 import { professionInput, raceInput } from './utils';
 
 export interface PlayerSettingsProps {
@@ -21,23 +21,17 @@ export const PlayerSettings = ({ iconInputs, inputs }: PlayerSettingsProps) => {
 	const professions = useMemo(() => [professionInput(1), professionInput(2)] as const, []);
 
 	return (
-		<>
-			{iconInputs.length > 0 && (
-				<PickerGroup variant="icons" className="ui-player-icon-group" data-testid="player-icon-group">
-					{iconInputs.map((config, index) => (
-						<BoundIconInput key={index} modObject={player} config={config} />
-					))}
-				</PickerGroup>
-			)}
-			<BoundEnumPicker modObject={player} config={race} />
-			{inputs.map(config => (
+		<PlayerSettingsView
+			iconPickers={iconInputs.map((config, index) => (
+				<BoundIconInput key={index} modObject={player} config={config} />
+			))}
+			race={<BoundEnumPicker modObject={player} config={race} />}
+			inputs={inputs.map(config => (
 				<BoundInput key={config.id} config={config} />
 			))}
-			<PickerGroup>
-				{professions.map(config => (
-					<BoundEnumPicker key={config.id} modObject={player} config={config} />
-				))}
-			</PickerGroup>
-		</>
+			professions={professions.map(config => (
+				<BoundEnumPicker key={config.id} modObject={player} config={config} />
+			))}
+		/>
 	);
 };
