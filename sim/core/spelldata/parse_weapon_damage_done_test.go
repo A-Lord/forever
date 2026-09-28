@@ -173,38 +173,26 @@ func TestWeaponDamageDoneRowReportsItsMeleeDefensePart(t *testing.T) {
 	}
 }
 
-// A melee-defense spell of Physical and Holy, such as Infernal Strike 412790, takes a Physical row's
-// bonus once, through the Physical multiplier; a Holy and Shadow one takes it through the part.
+// A melee-defense spell of several schools takes the part by the school its SchoolIndex reads. Under a
+// Physical row, Physical and Holy, such as Infernal Strike 412790, reads Physical and takes none, its
+// multiplier carrying the bonus; Holy and Shadow reads Holy and takes it, under a Shadow row as well.
 func TestWeaponDamageDoneRowCountsOnceOnSeveralSchools(t *testing.T) {
-	character := swordWarrior(proto.HandType_HandTypeOneHand)
-	physicalHoly := defenseSpell(character, 1, core.SpellSchoolPhysical|core.SpellSchoolHoly, core.DefenseTypeMelee)
-	holyShadow := defenseSpell(character, 2, core.SpellSchoolHoly|core.SpellSchoolShadow, core.DefenseTypeMelee)
+	for _, tc := range []struct {
+		row    core.SpellSchool
+		school core.SpellSchool
+		want   float64
+	}{
+		{core.SpellSchoolPhysical, core.SpellSchoolPhysical | core.SpellSchoolHoly, 1},
+		{core.SpellSchoolPhysical, core.SpellSchoolHoly | core.SpellSchoolShadow, 1.1},
+		{core.SpellSchoolShadow, core.SpellSchoolHoly | core.SpellSchoolShadow, 1.1},
+	} {
+		character := swordWarrior(proto.HandType_HandTypeOneHand)
+		spell := defenseSpell(character, 1, tc.school, core.DefenseTypeMelee)
 
-	ParseStatic(character, weaponDamageDoneRow(1, dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H))
+		ParseStatic(character, weaponDamageDoneRow(int32(tc.row), dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H))
 
-	if got := physicalHoly.DamageMultiplier; got != 1 {
-		t.Errorf("a physical and holy spell's own multiplier: %v, want 1, the physical multiplier carries it", got)
-	}
-	if got := physicalMultiplier(character); math.Abs(got-1.1) > 1e-9 {
-		t.Errorf("the physical school multiplier: %v, want 1.1", got)
-	}
-	if got := holyShadow.DamageMultiplier; math.Abs(got-1.1) > 1e-9 {
-		t.Errorf("a holy and shadow spell: %v, want 1.1", got)
-	}
-}
-
-// The part skips by the school SchoolIndex reads, not by every school a spell carries: under a Shadow
-// row, a Holy and Shadow spell reads Holy and takes the part.
-func TestWeaponDamageDoneRowSkipsByTheMultiplierSchool(t *testing.T) {
-	character := swordWarrior(proto.HandType_HandTypeOneHand)
-	holyShadow := defenseSpell(character, 1, core.SpellSchoolHoly|core.SpellSchoolShadow, core.DefenseTypeMelee)
-
-	ParseStatic(character, weaponDamageDoneRow(int32(core.SpellSchoolShadow), dbcenums.ITEM_SUBCLASS_BIT_WEAPON_SWORD_1H))
-
-	if got := character.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexShadow]; math.Abs(got-1.1) > 1e-9 {
-		t.Errorf("the shadow school multiplier: %v, want 1.1", got)
-	}
-	if got := holyShadow.DamageMultiplier; math.Abs(got-1.1) > 1e-9 {
-		t.Errorf("a holy and shadow spell under a shadow row: %v, want 1.1, it reads the holy multiplier", got)
+		if got := spell.DamageMultiplier; math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("a %s spell under a %s row: %v, want %v", tc.school, tc.row, got, tc.want)
+		}
 	}
 }

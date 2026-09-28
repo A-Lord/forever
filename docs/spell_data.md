@@ -584,8 +584,8 @@ belongs to.
 
 A damage done row held while equipped follows weapon swaps, so the talent needs no `Conditional` of
 its own, and `Applied` names the melee-defense part as `damage-dealt-melee` beside the school
-multiplier. The part skips a spell whose `SchoolIndex` reads one of the row's schools
-(`SkipMultiplierSchool`), so a melee-defense spell of several schools takes the bonus once.
+multiplier. The part reaches a spell whose `SchoolIndex` reads a school the row leaves out
+(`MultiplierSchool`), so a melee-defense spell of several schools takes the bonus once.
 
 **Read the row's tooltip before scoping; 290 is ambiguous.** "Improves your chance to get a critical
 strike with all spells and attacks" is crit on everything while the weapon is equipped, which is what

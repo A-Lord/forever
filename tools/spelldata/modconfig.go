@@ -136,6 +136,7 @@ var modConfigFields = []modConfigField{
 	}},
 	{"School", func(c *core.SpellModConfig) string { return nonZero(c.School, core.SpellSchool.String) }},
 	{"DefenseType", func(c *core.SpellModConfig) string { return nonZero(c.DefenseType, core.DefenseType.String) }},
+	{"MultiplierSchool", func(c *core.SpellModConfig) string { return nonZero(c.MultiplierSchool, core.SpellSchool.String) }},
 	{"ProcMask", func(c *core.SpellModConfig) string { return nonZero(c.ProcMask, procMaskNames) }},
 	{"SpellFlag", func(c *core.SpellModConfig) string {
 		return strings.Join(setBits(uint64(c.SpellFlag), spellFlagBit), " | ")
@@ -156,9 +157,6 @@ var modConfigFields = []modConfigField{
 	}},
 	{"EquipHand", func(c *core.SpellModConfig) string { return nonZero(c.EquipHand, procMaskNames) }},
 	{"FromRating", func(c *core.SpellModConfig) string { return nonZero(c.FromRating, boolText) }},
-	{"SkipMultiplierSchool", func(c *core.SpellModConfig) string {
-		return nonZero(c.SkipMultiplierSchool, core.SpellSchool.String)
-	}},
 }
 
 // What the Equip fields make of the mod in core's shouldApply: the weapon behind each attack is checked,
