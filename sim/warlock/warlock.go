@@ -150,6 +150,12 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 
 	core.FillTalentsProto(warlock.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
 
+	// Sacrificing needs Demonic Sacrifice: without it, clear the option once here so every check of it
+	// (pet registration, the pet talents, Demonic Sacrifice itself) agrees the pet stays.
+	if !warlock.Talents.DemonicSacrifice {
+		warlock.Options.SacrificeSummon = false
+	}
+
 	if raid.Debuffs != nil {
 		// Matches GetAssignedCurse: anything but Recklessness is Elements.
 		if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
@@ -163,7 +169,7 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	warlock.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	warlock.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
 
-	if !(warlock.Options.SacrificeSummon && warlock.Talents.DemonicSacrifice) {
+	if !warlock.Options.SacrificeSummon {
 		warlock.registerPets()
 	}
 

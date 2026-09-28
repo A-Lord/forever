@@ -65,11 +65,8 @@ func (warlock *Warlock) applyMalediction() {
 	spelldata.ParseStatic(&warlock.Character, spellData.Malediction.Rank(warlock.Talents.Malediction))
 }
 
-// TODO: Not implemented due to lack of a kill event. Currently adds "leave" the encounter
-//
-//	on a set timer, rather than "dying" to trigger the effect.
-//
-// Requires a drain soul kill to trigger.
+// TODO: Not implemented due to lack of a kill event: adds "leave" the encounter on a set timer rather
+// than dying. Requires a Drain Soul kill to trigger.
 func (warlock *Warlock) applySoulHarvesting() {
 	if warlock.Talents.SoulHarvesting == 0 {
 		return
