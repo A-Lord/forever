@@ -13,6 +13,16 @@ const AREAS = [
 	{ name: 'Haunted', value: 7 },
 ];
 
+const MORE_AREAS = [
+	...AREAS,
+	{ name: 'Swamp', value: 8 },
+	{ name: 'Jungle', value: 9 },
+	{ name: 'Volcanic', value: 10 },
+	{ name: 'Underground', value: 11 },
+	{ name: 'Coastal', value: 12 },
+	{ name: 'Barrens', value: 13 },
+];
+
 const MultiComboBoxStory = ({ value: initialValue, onChange, ...props }: MultiComboBoxProps) => {
 	const [value, setValue] = useState(initialValue);
 	return (
@@ -65,4 +75,5 @@ export const WithPicks: Story = {
 		await expect(canvas.getAllByTestId('multi-combo-box-chip').map(chip => chip.textContent)).toEqual(['Haunted']);
 	},
 };
+export const ManyPicks: Story = { args: { values: MORE_AREAS, value: MORE_AREAS.map(area => area.value) } };
 export const Disabled: Story = { args: { value: [3], disabled: true } };
