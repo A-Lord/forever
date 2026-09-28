@@ -9,9 +9,9 @@ var sinisterStrikeRank = spellData.SinisterStrike.Highest()
 
 func (rogue *Rogue) registerSinisterStrikeSpell() {
 	sinisterStrikeBaseDamage := sinisterStrikeRank.DamageEffect().Average(core.CharacterLevel)
-	comboPointGen := int32(sinisterStrikeRank.EnergizeEffect().Average(core.CharacterLevel))
 	config := spelldata.SpellConfig(&rogue.Unit, sinisterStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
+	config.ClassSpellMask = RogueSpellSinisterStrike
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
@@ -21,8 +21,8 @@ func (rogue *Rogue) registerSinisterStrikeSpell() {
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 
 		if result.Landed() {
-			rogue.AddComboPoints(sim, comboPointGen, spell.ComboPointMetrics())
-			sinisterStrikeRank.ProcEnergizeEffect()
+			rogue.AddComboPoints(sim, int32(sinisterStrikeRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+
 		} else {
 			spell.IssueRefund(sim)
 		}

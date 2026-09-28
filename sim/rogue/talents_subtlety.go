@@ -1,48 +1,45 @@
 package rogue
 
-import "github.com/wowsims/forever/sim/core/spelldata"
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
 // Package-level state the commented-out implementations used:
 // var hemorrhageRank = spellData.Hemorrhage.ByID(26864)
 
 func (rogue *Rogue) registerSubtletyTalents() {
 	// Tier 1
+	// Camouflage NYI
 	// Master of Deception NYI
 	rogue.registerOpportunity()
 
 	// Tier 2
-	// None in this tier implemented
+	// Setup NYI
+	rogue.registerElusiveness()
+	// Dirty Tricks NYI
+	rogue.registerImprovedAmbush()
 
 	// Tier 3
 	rogue.registerInitiative()
 	rogue.registerGhostlyStrike()
-	rogue.registerImprovedAmbush()
+	// Improved Distract NYI
 
 	// Tier 4
-	// Setup NYI
-	rogue.registerElusiveness()
+	// Heightened Senses NYI
+	rogue.registerPremeditation()
 	rogue.registerSerratedBlades()
 
 	// Tier 5
-	// Heightened Senses NYI
-	rogue.registerPreparation()
 	rogue.registerDirtyDeeds()
+	rogue.registerPreparation()
 	rogue.registerHemorrhage()
 
-	// Tier 7
-	// Enveloping Shadows NYI
-	rogue.registerPremeditation()
-	// Cheat Death NYI
-
-	// Forever additions, not yet implemented.
-	rogue.registerCamouflage()
-	rogue.registerCutthroat()
-	rogue.registerDirtyTricks()
-	rogue.registerHeightenedSenses()
-	rogue.registerImprovedDistract()
-	rogue.registerMasterOfDeception()
+	// Tier 6
 	rogue.registerQuietus()
-	rogue.registerSetup()
+	rogue.registerCutthroat()
+
+	// Tier 7
 	rogue.registerThousandCuts()
 }
 
@@ -55,17 +52,6 @@ func (rogue *Rogue) registerOpportunity() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.Opportunity.Rank(rogue.Talents.Opportunity))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Opportunity == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ClassMask:  RogueSpellBackstab | RogueSpellMutilate | RogueSpellAmbush,
-	// 	FloatValue: spellData.Opportunity.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DAMAGE)).FractionAt(rogue.Talents.Opportunity),
-	// })
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -75,32 +61,45 @@ func (rogue *Rogue) registerInitiative() {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Initiative == 0 {
-	// 	return
-	// }
-	//
-	// initMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: 13980})
-	//
-	// rogue.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:           "Initiative Trigger",
-	// 	ActionID:       core.ActionID{SpellID: 13980},
-	// 	ProcChance:     0.25 * float64(rogue.Talents.Initiative),
-	// 	Callback:       core.CallbackOnSpellHitDealt,
-	// 	Outcome:        core.OutcomeLanded,
-	// 	ClassSpellMask: RogueSpellGarrote | RogueSpellAmbush,
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		rogue.AddComboPoints(sim, 1, initMetrics)
-	// 	},
-	// })
+	initiativeRank := spellData.Initiative.Rank(rogue.Talents.Initiative)
+	initMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: initiativeRank.ID})
+
+	trigger := spelldata.ProcTrigger(&rogue.Character, initiativeRank, func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		rogue.AddComboPoints(sim, 1, initMetrics)
+	})
+	trigger.Name = "Initiative Trigger"
+	trigger.TriggerImmediately = true
+	trigger.ClassSpellMask = RogueSpellGarrote | RogueSpellAmbush
+	rogue.MakeProcTriggerAura(trigger)
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
+var ghostlyStrikeRank = spellData.GhostlyStrike.Highest()
+
 func (rogue *Rogue) registerGhostlyStrike() {
 	if !rogue.Talents.GhostlyStrike {
 		return
 	}
+
+	config := spelldata.SpellConfig(&rogue.Unit, ghostlyStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.Flags |= SpellFlagBuilder
+	config.ClassSpellMask = RogueSpellGhostlyStrike
+
+	// Dodge aura not implemented; maybe if rogue tanking comes back
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BreakStealth(sim)
+		baseDamage := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target)) // Data suggests un-normalized
+
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+
+		if result.Landed() {
+			rogue.AddComboPoints(sim, int32(ghostlyStrikeRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.GhostlyStrike = rogue.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.GhostlyStrike {
@@ -159,6 +158,9 @@ func (rogue *Rogue) registerImprovedAmbush() {
 		return
 	}
 
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.ImprovedAmbush.Rank(rogue.Talents.ImprovedAmbush))
+
 	// The TBC implementation, kept for the port:
 	// if rogue.Talents.ImprovedAmbush == 0 {
 	// 	return
@@ -177,6 +179,9 @@ func (rogue *Rogue) registerElusiveness() {
 	if rogue.Talents.Elusiveness == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.Elusiveness.Rank(rogue.Talents.Elusiveness))
 
 	// The TBC implementation, kept for the port:
 	// if rogue.Talents.Elusiveness == 0 {
@@ -197,6 +202,9 @@ func (rogue *Rogue) registerSerratedBlades() {
 		return
 	}
 
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.SerratedBlades.Rank(rogue.Talents.SerratedBlades))
+
 	// The TBC implementation, kept for the port:
 	// if rogue.Talents.SerratedBlades == 0 {
 	// 	return
@@ -210,53 +218,39 @@ func (rogue *Rogue) registerSerratedBlades() {
 	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerPreparation() {
 	if !rogue.Talents.Preparation {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.Preparation {
-	// 	return
-	// }
-	//
-	// rogue.Preparation = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 14185},
-	// 	ClassSpellMask: RogueSpellPreparation,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: time.Second,
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: time.Minute * 10,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		if rogue.ColdBlood != nil {
-	// 			rogue.ColdBlood.CD.Set(0)
-	// 		}
-	// 		if rogue.Shadowstep != nil {
-	// 			rogue.Shadowstep.CD.Set(0)
-	// 		}
-	// 		if rogue.Premeditation != nil {
-	// 			rogue.Premeditation.CD.Set(0)
-	// 		}
-	// 		if rogue.Vanish != nil {
-	// 			rogue.Vanish.CD.Set(0)
-	// 		}
-	// 	},
-	// })
-	//
-	// rogue.AddMajorCooldown(core.MajorCooldown{
-	// 	Spell: rogue.Preparation,
-	// 	Type:  core.CooldownTypeDPS,
-	// })
+	// Prep purely runs a server-side script, so no client data to reference.
+
+	config := spelldata.SpellConfig(&rogue.Unit, spellData.Preparation.Highest(), spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		if rogue.ColdBlood != nil {
+			rogue.ColdBlood.CD.Set(0)
+		}
+		if rogue.Premeditation != nil {
+			rogue.Premeditation.CD.Set(0)
+		}
+		if rogue.Vanish != nil {
+			rogue.Vanish.CD.Set(0)
+		}
+		if rogue.GhostlyStrike != nil {
+			rogue.GhostlyStrike.CD.Set(0)
+		}
+		if rogue.BladeFlurry != nil {
+			rogue.BladeFlurry.CD.Set(0)
+		}
+		if rogue.AdrenalineRush != nil {
+			rogue.AdrenalineRush.CD.Set(0)
+		}
+	}
+
+	rogue.AddMajorCooldown(core.MajorCooldown{
+		Spell: rogue.Preparation,
+		Type:  core.CooldownTypeDPS,
+	})
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -265,6 +259,9 @@ func (rogue *Rogue) registerDirtyDeeds() {
 	if rogue.Talents.DirtyDeeds == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.DirtyDeeds.Rank(rogue.Talents.DirtyDeeds))
 
 	// The TBC implementation, kept for the port:
 	// if rogue.Talents.DirtyDeeds == 0 {
@@ -297,12 +294,33 @@ func (rogue *Rogue) registerDirtyDeeds() {
 	// })
 }
 
-// TODO: To be implemented. The ability exists: spell 16511 on the Subtlety line. No rank subtext, so no
-// generated table -- pin the id directly.
+var hemorrhageRank = spellData.Hemorrhage.Highest()
+
 func (rogue *Rogue) registerHemorrhage() {
 	if !rogue.Talents.Hemorrhage {
 		return
 	}
+
+	config := spelldata.SpellConfig(&rogue.Unit, hemorrhageRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.Flags |= SpellFlagBuilder
+	config.ClassSpellMask = RogueSpellHemorrhage
+
+	hemoAura := rogue.RegisterAura(spelldata.AuraConfig(hemorrhageRank))
+	spelldata.ParseEffects(nil, hemoAura, spellData.Hemorrhage.Highest(),
+		spelldata.FromCaster(&rogue.Unit, DDBC_Hemorrhage, DDBC_Total))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := rogue.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+		if result.Landed() {
+			hemoAura.Activate(sim)
+			rogue.AddComboPoints(sim, int32(hemorrhageRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+		} else {
+			spell.IssueRefund(sim)
+		}
+	}
+
+	rogue.Hemorrhage = rogue.GetOrRegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.Hemorrhage {
@@ -348,12 +366,20 @@ func (rogue *Rogue) registerHemorrhage() {
 	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
+var premeditationRank = spellData.Premeditation.Highest()
+
 func (rogue *Rogue) registerPremeditation() {
 	if !rogue.Talents.Premeditation {
 		return
 	}
+
+	config := spelldata.SpellConfig(&rogue.Unit, premeditationRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.AddComboPoints(sim, int32(premeditationRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+	}
+
+	rogue.Premeditation = rogue.GetOrRegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// if !rogue.Talents.Premeditation {
@@ -424,14 +450,37 @@ func (rogue *Rogue) registerPremeditation() {
 	// })
 }
 
-// registerCamouflage implements Camouflage, new in Forever.
+// registerQuietus implements Quietus, new in Forever.
 //
 // TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
 // the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerCamouflage() {
-	if rogue.Talents.Camouflage == 0 {
+func (rogue *Rogue) registerQuietus() {
+	if rogue.Talents.Quietus == 0 {
 		return
 	}
+
+	// Talent data is just dummy auras. Need to implement the effects by ClassMask
+
+	rank := spellData.Quietus.Rank(rogue.Talents.Quietus)
+
+	executeBonus := rogue.RegisterAura(core.Aura{
+		Label:    "Quietus Damage Bonus",
+		ActionID: core.ActionID{SpellID: rank.ID}, // Use the talent's spell ID.
+		Duration: core.NeverExpires,
+	}).AttachSpellMod(core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Flat,
+		ClassMask:  RogueSpellQuietus, // Set to the spells the bonus should affect.
+		FloatValue: 0.1,
+	})
+
+	rogue.RegisterResetEffect(func(sim *core.Simulation) {
+		executeBonus.Deactivate(sim)
+		sim.RegisterExecutePhaseCallback(func(sim *core.Simulation, isExecute int32) {
+			if isExecute == 35 { // Change to the desired threshold.
+				executeBonus.Activate(sim)
+			}
+		})
+	})
 }
 
 // registerCutthroat implements Cutthroat, new in Forever.
@@ -442,66 +491,24 @@ func (rogue *Rogue) registerCutthroat() {
 	if rogue.Talents.Cutthroat == 0 {
 		return
 	}
-}
 
-// registerDirtyTricks implements Dirty Tricks, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerDirtyTricks() {
-	if rogue.Talents.DirtyTricks == 0 {
-		return
-	}
-}
+	cutthroatTrigger := spellData.CutthroatTriggered.Highest()
 
-// registerHeightenedSenses implements Heightened Senses, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerHeightenedSenses() {
-	if rogue.Talents.HeightenedSenses == 0 {
-		return
-	}
-}
+	rogue.CutthroatAura = rogue.RegisterAura(core.Aura{
+		Label:    "Cutthroat",
+		ActionID: core.ActionID{SpellID: cutthroatTrigger.ID},
+		Duration: cutthroatTrigger.Duration(),
+	})
 
-// registerImprovedDistract implements Improved Distract, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerImprovedDistract() {
-	if rogue.Talents.ImprovedDistract == 0 {
-		return
-	}
-}
-
-// registerMasterOfDeception implements Master of Deception, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerMasterOfDeception() {
-	if rogue.Talents.MasterOfDeception == 0 {
-		return
-	}
-}
-
-// registerQuietus implements Quietus, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerQuietus() {
-	if rogue.Talents.Quietus == 0 {
-		return
-	}
-}
-
-// registerSetup implements Setup, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (rogue *Rogue) registerSetup() {
-	if rogue.Talents.Setup == 0 {
-		return
-	}
+	cutthroatRank := spellData.Cutthroat.Rank(rogue.Talents.Cutthroat)
+	trigger := spelldata.ProcTrigger(&rogue.Character, cutthroatRank, func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		rogue.CutthroatAura.Activate(sim)
+	})
+	trigger.Name = "Cutthroat Trigger"
+	trigger.TriggerImmediately = true
+	// trigger.RequireDamageDealt = true - Unknown
+	trigger.ClassSpellMask = RogueSpellBackstab
+	rogue.MakeProcTriggerAura(trigger)
 }
 
 // registerThousandCuts implements Thousand Cuts, new in Forever.
@@ -512,4 +519,19 @@ func (rogue *Rogue) registerThousandCuts() {
 	if !rogue.Talents.ThousandCuts {
 		return
 	}
+
+	aura := spelldata.AuraConfig(spellData.ThousandCutsTriggered.Highest())
+	spelldata.ParseEffects(&rogue.Character, &aura, spellData.ThousandCuts.Highest())
+
+	trigger := spelldata.ProcTrigger(&rogue.Character,
+		spellData.ThousandCuts.Highest(),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			aura.Activate(sim)
+			aura.AddStack(sim)
+		})
+	trigger.Name = "Thousand Cuts Trigger"
+	trigger.TriggerImmediately = true
+	trigger.RequireDamageDealt = true
+	trigger.ClassSpellMask = RogueSpellRupture
+	rogue.MakeProcTriggerAura(trigger)
 }

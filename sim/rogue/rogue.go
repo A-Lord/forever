@@ -14,6 +14,13 @@ const (
 	SpellFlagSealFate = core.SpellFlagAgentReserved4
 )
 
+// Damage Done By Caster setup
+const (
+	DDBC_Hemorrhage = iota
+
+	DDBC_Total
+)
+
 var TalentTreeSizes = [3]int{17, 17, 19}
 
 const RogueBleedTag = "RogueBleed"
@@ -66,6 +73,7 @@ type Rogue struct {
 	MasterOfSubtletyAura *core.Aura
 	ShadowstepAura       *core.Aura
 	StealthAura          *core.Aura
+	CutthroatAura        *core.Aura
 
 	WoundPoisonDebuffAuras core.AuraArray
 
@@ -300,4 +308,5 @@ const (
 	RogueSpellLethality      = RogueSpellSinisterStrike | RogueSpellGouge | RogueSpellBackstab | RogueSpellGhostlyStrike | RogueSpellMutilateHit | RogueSpellHemorrhage
 	RogueSpellDirectFinisher = RogueSpellEviscerate
 	RogueSpellFinisher       = RogueSpellDirectFinisher | RogueSpellSliceAndDice | RogueSpellRupture | RogueSpellExposeArmor
+	RogueSpellQuietus        = RogueSpellSinisterStrike | RogueSpellHemorrhage | RogueSpellGhostlyStrike
 )

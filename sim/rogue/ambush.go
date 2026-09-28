@@ -12,6 +12,7 @@ func (rogue *Rogue) registerAmbushSpell() {
 	comboPointGen := ambushRank.EnergizeEffect().Average(core.CharacterLevel)
 	config := spelldata.SpellConfig(&rogue.Unit, ambushRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
+	config.ClassSpellMask = RogueSpellAmbush
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
