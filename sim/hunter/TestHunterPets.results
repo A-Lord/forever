@@ -78,8 +78,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-BarbaricBelt-4264"
  value: {
-  dps: 467.8203
-  tps: 254.76042
+  dps: 439.82894
+  tps: 241.44201
   dtps: 2.49108
  }
 }
@@ -118,8 +118,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-BlazingEmblem-2802"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.11814
  }
 }
@@ -174,16 +174,16 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 483.09381
-  tps: 263.58562
+  dps: 453.97533
+  tps: 249.84717
   dtps: 2.5188
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-Doombringer-13053"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -214,8 +214,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-EbonHand-19170"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -334,16 +334,16 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-FieryWarAxe-870"
  value: {
-  dps: 486.66403
-  tps: 265.22883
+  dps: 457.251
+  tps: 251.41545
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-FlurryAxe-871"
  value: {
-  dps: 486.66403
-  tps: 265.22883
+  dps: 457.251
+  tps: 251.41545
   dtps: 2.49108
  }
 }
@@ -383,32 +383,32 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-GirdleofReprisal-11861"
  value: {
-  dps: 467.8203
-  tps: 254.76042
+  dps: 439.82894
+  tps: 241.44201
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-GlacialBlade-19099"
  value: {
-  dps: 485.98041
-  tps: 265.27032
+  dps: 457.14007
+  tps: 251.80147
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-GnomishHarmPreventionBelt-10721"
  value: {
-  dps: 467.8203
-  tps: 254.76042
+  dps: 439.82894
+  tps: 241.44201
   dtps: 0.11853
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 467.77761
-  tps: 254.81815
+  dps: 439.81411
+  tps: 241.39786
   dtps: 0.32931
  }
 }
@@ -439,24 +439,24 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-GrimReaper-13054"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-HammeroftheNorthernWind-810"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-HanzoSword-8190"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -503,8 +503,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Julie'sDagger-6660"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -543,8 +543,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -583,16 +583,16 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-MarkoftheRedFlight-282778"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 0.04655
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-MasterworkStormhammer-12794"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -607,8 +607,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Nightfall-19169"
  value: {
-  dps: 486.66403
-  tps: 265.22883
+  dps: 457.251
+  tps: 251.41545
   dtps: 2.49108
  }
 }
@@ -623,16 +623,16 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-OrbofFire-12805"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-PhantomBlade-7961"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -663,9 +663,9 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-SatchelofIronBombs-285277"
  value: {
-  dps: 465.4253
-  tps: 253.04083
-  dtps: 2.74461
+  dps: 438.07835
+  tps: 241.15799
+  dtps: 2.74039
  }
 }
 dps_results: {
@@ -687,8 +687,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-ShortswordofVengeance-754"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -711,16 +711,16 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Sulfuras,HandofRagnaros-17182"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-SwordofZeal-6622"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -743,8 +743,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 483.09381
-  tps: 263.58562
+  dps: 453.97533
+  tps: 249.84717
   dtps: 2.5188
  }
 }
@@ -774,32 +774,32 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-TheGreenTower-1204"
  value: {
-  dps: 483.30944
-  tps: 263.6676
+  dps: 454.18177
+  tps: 249.95475
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-TheLobotomizer-19324"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-TheNeedler-13060"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-ThrashBlade-17705"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }
@@ -830,8 +830,8 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-Witchfury-13051"
  value: {
-  dps: 483.30944
-  tps: 263.70823
+  dps: 454.18177
+  tps: 249.98393
   dtps: 2.49108
  }
 }

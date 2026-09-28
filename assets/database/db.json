@@ -10333,6 +10333,7 @@
 {"id":12905,"name":"Gnomish Rocket Boots","icon":"temp"},
 {"id":12907,"name":"Gnomish Mind Control Cap","icon":"temp"},
 {"id":12962,"name":"Iron Will","icon":"spell_magic_magearmor"},
+{"id":12963,"name":"Improved Overpower","icon":"inv_sword_05","rank":2},
 {"id":12966,"name":"Flurry","icon":"ability_ghoulfrenzy","hasBuff":true},
 {"id":12975,"name":"Last Stand","icon":"spell_holy_ashestoashes"},
 {"id":13339,"name":"Fire Blast","icon":"spell_fire_fireball"},
