@@ -1,3 +1,4 @@
+import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
 import type { Spec } from '@generated/proto/common';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -5,8 +6,6 @@ import type { Player } from '@sim/player/player';
 import type { CustomSection as CustomSectionConfig } from '@sim/spec_config';
 import { type StoreSubscribe, subscribePlayerChange } from '@sim/state/subscriptions';
 import { ContentBlock } from '@ui-kit/ContentBlock';
-import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
-import { IconPicker } from '@ui-kit/IconPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 
 import { InputPicker } from '../InputPicker';
@@ -33,13 +32,9 @@ export const CustomSection = ({ section }: CustomSectionProps) => {
 			headerChildren={section.description ? <p className="text-sm">{section.description}</p> : undefined}>
 			{!!section.iconInputs?.length && (
 				<PickerGroup variant="icons" className={section.iconGroupClassName}>
-					{section.iconInputs.map((config, index) =>
-						config.type === 'icon' ? (
-							<IconPicker key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
-						) : (
-							<IconEnumPicker key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
-						),
-					)}
+					{section.iconInputs.map((config, index) => (
+						<BoundIconInput key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
+					))}
 				</PickerGroup>
 			)}
 			{section.inputs?.map(config => (

@@ -1,3 +1,4 @@
+import { BoundIconEnumPicker } from '@features/inputs/components/BoundIconEnumPicker';
 import type { ActionID as ActionIdProto } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
@@ -6,7 +7,6 @@ import { ActionId } from '@sim/proto/action_id';
 import { Button } from '@ui-kit/Button';
 import { FieldLabel } from '@ui-kit/FormControl';
 import { Icon } from '@ui-kit/Icon';
-import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { NumberListPicker } from '@ui-kit/NumberListPicker';
 import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
@@ -32,7 +32,7 @@ export const CooldownRow = ({ index, id, available, isAdd, deleteTooltipId }: Co
 
 	return (
 		<div className="mb-3 flex items-center justify-between [&>*:not(:last-child)]:mr-2" data-testid="cooldown-picker" data-add={isAdd ? '' : undefined}>
-			<IconEnumPicker modObject={player} config={actionConfig} />
+			<BoundIconEnumPicker modObject={player} config={actionConfig} />
 			<FieldLabel as="span" className="min-w-[30%] overflow-hidden text-ellipsis" testId="cooldown-picker-label">
 				{name}
 			</FieldLabel>

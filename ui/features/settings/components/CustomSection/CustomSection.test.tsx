@@ -23,8 +23,8 @@ vi.mock('@sim/state/subscriptions', async () => {
 });
 
 // Both take a live player and are covered by their own suites.
-vi.mock('@ui-kit/IconPicker', () => ({
-	IconPicker: ({ config }: { config: { layout?: string } }) => (
+vi.mock('@features/inputs/components/BoundIconInput', () => ({
+	BoundIconInput: ({ config }: { config: { layout?: string } }) => (
 		<div className="icon-picker-root" data-testid="icon-picker-root" data-layout={config.layout} />
 	),
 }));

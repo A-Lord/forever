@@ -1,10 +1,9 @@
+import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
 import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { InputConfig } from '@sim/spec_config';
 import { EnumPicker } from '@ui-kit/EnumPicker';
-import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
-import { IconPicker } from '@ui-kit/IconPicker';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 import { useMemo } from 'react';
 
@@ -25,13 +24,9 @@ export const PlayerSettings = ({ iconInputs, inputs }: PlayerSettingsProps) => {
 		<>
 			{iconInputs.length > 0 && (
 				<PickerGroup variant="icons" className="ui-player-icon-group" data-testid="player-icon-group">
-					{iconInputs.map((config, index) =>
-						config.type === 'icon' ? (
-							<IconPicker key={index} modObject={player} config={config} />
-						) : (
-							<IconEnumPicker key={index} modObject={player} config={config} />
-						),
-					)}
+					{iconInputs.map((config, index) => (
+						<BoundIconInput key={index} modObject={player} config={config} />
+					))}
 				</PickerGroup>
 			)}
 			<EnumPicker modObject={player} config={race} />
