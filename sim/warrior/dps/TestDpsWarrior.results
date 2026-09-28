@@ -152,6 +152,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Doombringer-13053"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-EarthenSigil-20525"
  value: {
   dps: 298.69256
@@ -162,6 +171,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Earthstrike-21180"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-EbonHand-19170"
  value: {
   dps: 298.69256
   tps: 172.02895
@@ -296,6 +314,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-FieryWarAxe-870"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-FrostTigerBlade-3854"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 297.5567
@@ -342,6 +378,24 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Gri'lek'sCharmofMight-19951"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-HammeroftheNorthernWind-810"
+ value: {
+  dps: 304.42557
+  tps: 175.19638
+  dtps: 2.90588
+  hps: 19.43625
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-HanzoSword-8190"
  value: {
   dps: 298.69256
   tps: 172.02895
@@ -404,6 +458,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Linken'sSwordofMastery-11902"
+ value: {
+  dps: 290.67546
+  tps: 167.74353
+  dtps: 2.90588
+  hps: 19.43625
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Loatheb'sReflection-23042"
  value: {
   dps: 298.69256
@@ -449,6 +512,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-MasterworkStormhammer-12794"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 300.81805
@@ -458,10 +530,28 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Nightfall-19169"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-OrbofFire-12805"
  value: {
   dps: 299.31687
   tps: 172.37856
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-PhantomBlade-7961"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
   dtps: 2.90588
   hps: 19.24347
  }
@@ -503,6 +593,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-ShortswordofVengeance-754"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Slayer'sCrest-23041"
  value: {
   dps: 316.26147
@@ -518,6 +617,24 @@ dps_results: {
   tps: 172.02895
   dtps: 2.90588
   hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Sulfuras,HandofRagnaros-17182"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-SwordofZeal-6622"
+ value: {
+  dps: 314.1826
+  tps: 180.38531
+  dtps: 2.90588
+  hps: 19.76924
  }
 }
 dps_results: {
@@ -603,6 +720,15 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-WarmthofForgiveness-23027"
+ value: {
+  dps: 298.69256
+  tps: 172.02895
+  dtps: 2.90588
+  hps: 19.24347
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Witchfury-13051"
  value: {
   dps: 298.69256
   tps: 172.02895

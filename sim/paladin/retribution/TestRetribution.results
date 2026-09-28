@@ -165,6 +165,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Doombringer-13053"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-DragonscaleBreastplate-8367"
  value: {
   dps: 566.39937
@@ -310,6 +318,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-FieryWarAxe-870"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-FrostTigerBlade-3854"
+ value: {
+  dps: 588.08588
+  tps: 430.96027
+  dtps: 11.12655
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-GirdleofReprisal-11861"
  value: {
   dps: 581.43228
@@ -355,6 +379,14 @@ dps_results: {
   dps: 584.75197
   tps: 428.62653
   dtps: 11.41082
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-GrimReaper-13054"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
  }
 }
 dps_results: {
@@ -526,6 +558,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Nightfall-19169"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-ObsidianMailTunic-22191"
  value: {
   dps: 579.59972
@@ -598,6 +638,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Sulfuras,HandofRagnaros-17182"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-TalismanofArathor-20071"
  value: {
   dps: 582.516
@@ -654,6 +702,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-TheNeedler-13060"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-TheRestrainedEssenceofSapphiron-23046"
  value: {
   dps: 610.73281
@@ -683,6 +739,14 @@ dps_results: {
   dps: 580.72754
   tps: 424.04556
   dtps: 7.56553
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-Witchfury-13051"
+ value: {
+  dps: 584.38478
+  tps: 428.3695
+  dtps: 11.0738
  }
 }
 dps_results: {

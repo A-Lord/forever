@@ -10,24 +10,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		754, // Shortsword of Vengeance
-		[
-			"Smites an enemy for 30 Holy damage.", // 13519 - https://www.wowhead.com/forever/spell=13519
-		]
-	],
-	[
-		810, // Hammer of the Northern Wind
-		[
-			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
-		]
-	],
-	[
-		870, // Fiery War Axe
-		[
-			"Hurls a fiery ball that causes 176 Fire damage and an additional 24 damage over 6s.", // 18796 - https://www.wowhead.com/forever/spell=18796
-		]
-	],
-	[
 		871, // Flurry Axe
 		[
 			"Grants 1 extra attack on your next swing.", // 18797 - https://www.wowhead.com/forever/spell=18797
@@ -214,12 +196,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		3854, // Frost Tiger Blade
-		[
-			"Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.", // 13439 - https://www.wowhead.com/forever/spell=13439
-		]
-	],
-	[
 		4130, // Smotts' Compass
 		[
 			"Finds the nearest treasure chest, if one is nearby. Only outdoors.", // 1317740 - https://www.wowhead.com/forever/spell=1317740
@@ -370,21 +346,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		6622, // Sword of Zeal
-		[
-			"A burst of energy fills the caster, increasing his damage by 10 and armor by 150 for 15s.", // 8191 - https://www.wowhead.com/forever/spell=8191
-		]
-	],
-	[
 		6629, // Sporid Cape
 		[
 			"When struck in combat inflicts 1 Nature damage to the attacker.", // 1291698 - https://www.wowhead.com/forever/spell=1291698
-		]
-	],
-	[
-		6660, // Julie's Dagger
-		[
-			"Heals wielder of 78 damage over 12s.", // 8348 - https://www.wowhead.com/forever/spell=8348
 		]
 	],
 	[
@@ -532,21 +496,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		7961, // Phantom Blade
-		[
-			"Decrease the armor of the target by 100 for 20s. While affected, the target cannot stealth or turn invisible.", // 9806 - https://www.wowhead.com/forever/spell=9806
-		]
-	],
-	[
 		8006, // The Ziggler
 		[
 			"Blasts a target for 15 Nature damage.", // 13482 - https://www.wowhead.com/forever/spell=13482
-		]
-	],
-	[
-		8190, // Hanzo Sword
-		[
-			"Wounds the target for 75 damage.", // 16405 - https://www.wowhead.com/forever/spell=16405
 		]
 	],
 	[
@@ -658,12 +610,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		11902, // Linken's Sword of Mastery
-		[
-			"Blasts a target for 98 Nature damage.", // 18089 - https://www.wowhead.com/forever/spell=18089
-		]
-	],
-	[
 		12250, // Midnight Axe
 		[
 			"Sends a shadowy bolt at the enemy causing 30 Shadow damage.", // 13440 - https://www.wowhead.com/forever/spell=13440
@@ -709,12 +655,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		12792, // Volcanic Hammer
 		[
 			"Hurls a fiery ball that causes 228 Fire damage and an additional 36 damage over 6s.", // 18082 - https://www.wowhead.com/forever/spell=18082
-		]
-	],
-	[
-		12794, // Masterwork Stormhammer
-		[
-			"Blasts up to 3 targets for 125 Nature damage.", // 16921 - https://www.wowhead.com/forever/spell=16921
 		]
 	],
 	[
@@ -778,33 +718,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		13051, // Witchfury
-		[
-			"Sends a shadowy bolt at the enemy causing 150 Shadow damage.", // 18214 - https://www.wowhead.com/forever/spell=18214
-		]
-	],
-	[
-		13053, // Doombringer
-		[
-			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
-		]
-	],
-	[
-		13054, // Grim Reaper
-		[
-			"Wounds the target for 130 damage.", // 14126 - https://www.wowhead.com/forever/spell=14126
-		]
-	],
-	[
 		13057, // Bloodpike
 		[
 			"Wounds the target causing them to bleed for 98 damage over 14s.", // 18202 - https://www.wowhead.com/forever/spell=18202
-		]
-	],
-	[
-		13060, // The Needler
-		[
-			"Wounds the target for 75 damage.", // 16405 - https://www.wowhead.com/forever/spell=16405
 		]
 	],
 	[
@@ -1002,7 +918,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		17182, // Sulfuras, Hand of Ragnaros
 		[
-			"Hurls a fiery ball that causes 303 Fire damage and an additional 75 damage over 10s.", // 21162 - https://www.wowhead.com/forever/spell=21162
 			"Deals 5 Fire damage to anyone who strikes you with a melee attack.", // 21142 - https://www.wowhead.com/forever/spell=21142
 		]
 	],
@@ -1157,12 +1072,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19099, // Glacial Blade
-		[
-			"Blasts a target for 45 Frost damage.", // 18398 - https://www.wowhead.com/forever/spell=18398
-		]
-	],
-	[
 		19100, // Electrified Dagger
 		[
 			"Blasts a target for 45 Nature damage.", // 23592 - https://www.wowhead.com/forever/spell=23592
@@ -1181,18 +1090,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19169, // Nightfall
-		[
-			"Spell damage taken by target increased by 15% for 5s.", // 23605 - https://www.wowhead.com/forever/spell=23605
-		]
-	],
-	[
-		19170, // Ebon Hand
-		[
-			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
-		]
-	],
-	[
 		19287, // Darkmoon Card: Heroism
 		[
 			"Sometimes heals bearer of 150 damage when damaging an enemy in melee.", // 23682 - https://www.wowhead.com/forever/spell=23682
@@ -1208,12 +1105,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19323, // The Unstoppable Force
 		[
 			"Stuns target for 1s.", // 23454 - https://www.wowhead.com/forever/spell=23454
-		]
-	],
-	[
-		19324, // The Lobotomizer
-		[
-			"Wounds the target for 250 damage and increases the casting time of all spells by 25% for 30s.", // 1290950 - https://www.wowhead.com/forever/spell=1290950
 		]
 	],
 	[

@@ -69,7 +69,7 @@ type Override struct {
 	Field   Field
 	Value   float64
 	Reason  string
-	Source  string // "tbc-carryover", "tooltip", "wcl:<report>/<fight>", "issue #N"
+	Source  string // "tbc-carryover", "vanilla-carryover", "tooltip", "wcl:<report>/<fight>", "issue #N"
 }
 
 // Tooltip-only area bonuses ("doubled in X areas"). Groups are AreaGroup ids; any counts.
@@ -83,28 +83,429 @@ type AreaBonus struct {
 }
 
 var AreaBonuses = []AreaBonus{
-	{1249113, []int32{9203}, 2, 1, "Molten Fury: 'This effect is doubled in Volcanic areas'; no companion row, and 9203 is the Blackrock group no spell requires", "tooltip"},
-	{1249110, []int32{9164}, 2, 1, "Chthonic Power: 'This effect is doubled in Snowy areas'; no companion row", "tooltip"},
-	{1287571, []int32{9161}, 2, 2, "Monkey Business: 'Effect and duration are doubled in Forest and Grassland areas'; no companion row", "tooltip"},
-	{1291105, []int32{9326}, 2, 1, "Stabilized: 'This effect is doubled in Strongholds and Cities'; no companion row", "tooltip"},
-	{1293820, []int32{9326}, 2, 1, "Toy Soldier: 'This effect is doubled in Strongholds and Cities'; no companion row", "tooltip"},
+	{
+		SpellID:            1249113,
+		Groups:             []int32{9203},
+		Multiplier:         2,
+		DurationMultiplier: 1,
+		Reason:             "Molten Fury: 'This effect is doubled in Volcanic areas'; no companion row, and 9203 is the Blackrock group no spell requires",
+		Source:             "tooltip",
+	},
+	{
+		SpellID:            1249110,
+		Groups:             []int32{9164},
+		Multiplier:         2,
+		DurationMultiplier: 1,
+		Reason:             "Chthonic Power: 'This effect is doubled in Snowy areas'; no companion row",
+		Source:             "tooltip",
+	},
+	{
+		SpellID:            1287571,
+		Groups:             []int32{9161},
+		Multiplier:         2,
+		DurationMultiplier: 2,
+		Reason:             "Monkey Business: 'Effect and duration are doubled in Forest and Grassland areas'; no companion row",
+		Source:             "tooltip",
+	},
+	{
+		SpellID:            1291105,
+		Groups:             []int32{9326},
+		Multiplier:         2,
+		DurationMultiplier: 1,
+		Reason:             "Stabilized: 'This effect is doubled in Strongholds and Cities'; no companion row",
+		Source:             "tooltip",
+	},
+	{
+		SpellID:            1293820,
+		Groups:             []int32{9326},
+		Multiplier:         2,
+		DurationMultiplier: 1,
+		Reason:             "Toy Soldier: 'This effect is doubled in Strongholds and Cities'; no companion row",
+		Source:             "tooltip",
+	},
 }
 
 // The item procs whose rate the game files keep outside the spell data. Their ProcChance column reads
-// the 100 or 101 sentinel, which the store would otherwise take for "fires on every hit". Each rate is
-// a carry-over, as its Source says; none has been measured on this server.
+// the 100 or 101 sentinel, which the store would otherwise take for "fires on every hit", or the
+// spell has no proc row at all. Each rate is a carry-over, as its Source says; none has been measured
+// on this server.
 var Spells = []Override{
-	{16928, PPM, 1, "Annihilator: ProcChance 101 sentinel; TBC 1 PPM, unverified on Forever", "tbc-carryover"},
-	{23686, PPM, 1, "Darkmoon Card: Maelstrom: column reads 100, tooltip says 'Chance to strike'", "tbc-carryover"},
-	{26480, PPM, 10, "Badge of the Swarmguard: stack accumulator inside the on-use window", "tbc-carryover"},
+	{
+		SpellID: 16928,
+		Field:   PPM,
+		Value:   1,
+		Reason:  "Annihilator: ProcChance 101 sentinel; TBC 1 PPM, unverified on Forever",
+		Source:  "tbc-carryover",
+	},
+	{
+		SpellID: 23686,
+		Field:   PPM,
+		Value:   1,
+		Reason:  "Darkmoon Card: Maelstrom: column reads 100, tooltip says 'Chance to strike'",
+		Source:  "tbc-carryover",
+	},
+	{
+		SpellID: 26480,
+		Field:   PPM,
+		Value:   10,
+		Reason:  "Badge of the Swarmguard: stack accumulator inside the on-use window",
+		Source:  "tbc-carryover",
+	},
+
+	// Chance-on-hit weapons. Two items can share a trigger spell and carry one rate between them here.
+	{
+		SpellID: 8191,
+		Field:   PPM,
+		Value:   1.8, // TODO: Vanilla value - verify in-game
+		Reason:  "Sword of Zeal: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 8313,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Bite of Serra'kis: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 8348,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Julie's Dagger: chance-on-hit weapon, column reads 100",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 8552,
+		Field:   PPM,
+		Value:   1.4, // TODO: Vanilla value - verify in-game
+		Reason:  "Staff of Horrors: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 9806,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Phantom Blade: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 11790,
+		Field:   PPM,
+		Value:   0.8, // TODO: Vanilla value - verify in-game
+		Reason:  "Toxic Revenger: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 13318,
+		Field:   PPM,
+		Value:   0.85, // TODO: Vanilla value - verify in-game
+		Reason:  "Killmaim: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 13439,
+		Field:   PPM,
+		Value:   3.5, // TODO: Vanilla value - verify in-game
+		Reason:  "Hammer of the Northern Wind: chance-on-hit weapon, column reads 101; shared trigger with Frost Tiger Blade",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 13440,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Skeletal Club: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 13491,
+		Field:   PPM,
+		Value:   2, // TODO: Vanilla value - verify in-game
+		Reason:  "Iron Knuckles: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 13496,
+		Field:   PPM,
+		Value:   2, // TODO: Vanilla value - verify in-game
+		Reason:  "Mug O' Hurt: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 13519,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Shortsword of Vengeance: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 14106,
+		Field:   PPM,
+		Value:   0.65, // TODO: Vanilla value - verify in-game
+		Reason:  "The Black Knight: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 14126,
+		Field:   PPM,
+		Value:   0.87, // TODO: Vanilla value - verify in-game
+		Reason:  "Grim Reaper: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 16401,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Poison-Tipped Bone Spear: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 16405,
+		Field:   PPM,
+		Value:   3, // TODO: Vanilla value - verify in-game
+		Reason:  "The Needler: chance-on-hit weapon, column reads 101; shared trigger, Hanzo Sword lists 1",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 16407,
+		Field:   PPM,
+		Value:   1.2, // TODO: Vanilla value - verify in-game
+		Reason:  "Edge of Winter: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 16409,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Claw of the Shadowmancer: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 16921,
+		Field:   PPM,
+		Value:   0.5, // TODO: Vanilla value - verify in-game
+		Reason:  "Masterwork Stormhammer: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 17510,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Sword of Corruption: chance-on-hit weapon, column reads 100",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18077,
+		Field:   PPM,
+		Value:   2, // TODO: Vanilla value - verify in-game
+		Reason:  "Venom Web Fang: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18078,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Flesh Piercer: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18089,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Linken's Sword of Mastery: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18091,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Archeus: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18092,
+		Field:   PPM,
+		Value:   0.5, // TODO: Vanilla value - verify in-game
+		Reason:  "Shiver Blade: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18138,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Black Duskwood Staff: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18204,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Cobalt Crusher: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18211,
+		Field:   PPM,
+		Value:   0.4, // TODO: Vanilla value - verify in-game
+		Reason:  "Ebon Hand: chance-on-hit weapon, no proc row; shared trigger, Doombringer lists 0.75",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18214,
+		Field:   PPM,
+		Value:   1.25, // TODO: Vanilla value - verify in-game
+		Reason:  "Witchfury: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18398,
+		Field:   PPM,
+		Value:   1.4, // TODO: Vanilla value - verify in-game
+		Reason:  "Glacial Blade: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18796,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Fiery War Axe: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 18797,
+		Field:   PPM,
+		Value:   1.9, // TODO: Vanilla value - verify in-game
+		Reason:  "Flurry Axe: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 21152,
+		Field:   PPM,
+		Value:   2.1, // TODO: Vanilla value - verify in-game
+		Reason:  "Earthshaker: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 21162,
+		Field:   PPM,
+		Value:   0.7, // TODO: Vanilla value - verify in-game
+		Reason:  "Sulfuras, Hand of Ragnaros: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 21919,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Thrash Blade: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 21951,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Fist of Stone: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 21992,
+		Field:   PPM,
+		Value:   6, // TODO: Vanilla value - verify in-game
+		Reason:  "Thunderfury, Blessed Blade of the Windseeker: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 23454,
+		Field:   PPM,
+		Value:   0.5, // TODO: Vanilla value - verify in-game
+		Reason:  "The Unstoppable Force: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 23605,
+		Field:   PPM,
+		Value:   2, // TODO: Vanilla value - verify in-game
+		Reason:  "Nightfall: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 26108,
+		Field:   PPM,
+		Value:   0.4, // TODO: Vanilla value - verify in-game
+		Reason:  "Dark Edge of Insanity: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 1290950,
+		Field:   PPM,
+		Value:   0.4, // TODO: Vanilla value - verify in-game
+		Reason:  "The Lobotomizer: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 1291663,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Stinging Viper: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 1292152,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Meteor Shard: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 1292158,
+		Field:   PPM,
+		Value:   1.25, // TODO: Vanilla value - verify in-game
+		Reason:  "Grimclaw: chance-on-hit weapon, no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		SpellID: 1299850,
+		Field:   PPM,
+		Value:   1, // TODO: Vanilla value - verify in-game
+		Reason:  "Searing Blade: chance-on-hit weapon, column reads 101",
+		Source:  "vanilla-carryover",
+	},
 
 	// Melee procs whose tooltips name no trigger condition, ruled to hear only hits with a damage
 	// component: a hit that deals damage, or the landed application of a DoT such as Rend's.
-	{7711, Hint, float64(core.ProcHintDamage), "Blazefury Medallion: fires on hits with a damage component", "owner decision, PR #99"},
-	{7721, Hint, float64(core.ProcHintDamage), "Fiery Plate Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
-	{16615, Hint, float64(core.ProcHintDamage), "Storm Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
-	{23686, Hint, float64(core.ProcHintDamage), "Darkmoon Card: Maelstrom: fires on hits with a damage component", "owner decision, PR #99"},
-	{26480, Hint, float64(core.ProcHintDamage), "Badge of the Swarmguard: stacks on hits with a damage component", "owner decision, PR #99"},
+	{
+		SpellID: 7711,
+		Field:   Hint,
+		Value:   float64(core.ProcHintDamage),
+		Reason:  "Blazefury Medallion: fires on hits with a damage component",
+		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 7721,
+		Field:   Hint,
+		Value:   float64(core.ProcHintDamage),
+		Reason:  "Fiery Plate Gauntlets: fires on hits with a damage component",
+		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 16615,
+		Field:   Hint,
+		Value:   float64(core.ProcHintDamage),
+		Reason:  "Storm Gauntlets: fires on hits with a damage component",
+		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 23686,
+		Field:   Hint,
+		Value:   float64(core.ProcHintDamage),
+		Reason:  "Darkmoon Card: Maelstrom: fires on hits with a damage component",
+		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 26480,
+		Field:   Hint,
+		Value:   float64(core.ProcHintDamage),
+		Reason:  "Badge of the Swarmguard: stacks on hits with a damage component",
+		Source:  "owner decision, PR #99",
+	},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it

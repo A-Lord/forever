@@ -233,6 +233,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-EbonHand-19170"
+ value: {
+  dps: 449.13613
+  tps: 696.97345
+  dtps: 3810.84692
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Enchant2HWeapon-GrandArcanist-7941"
  value: {
   dps: 449.13613
@@ -440,6 +449,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-HammeroftheNorthernWind-810"
+ value: {
+  dps: 448.03001
+  tps: 695.1809
+  dtps: 3767.88655
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-HanzoSword-8190"
+ value: {
+  dps: 449.13613
+  tps: 696.97345
+  dtps: 3810.84692
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-HeartoftheScale-13164"
  value: {
   dps: 448.35225
@@ -512,6 +539,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-Linken'sSwordofMastery-11902"
+ value: {
+  dps: 417.07969
+  tps: 648.94061
+  dtps: 3799.07438
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Loatheb'sReflection-23042"
  value: {
   dps: 448.35225
@@ -557,6 +593,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-MasterworkStormhammer-12794"
+ value: {
+  dps: 449.13613
+  tps: 696.97345
+  dtps: 3810.84692
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 450.72695
@@ -580,6 +625,15 @@ dps_results: {
   dps: 446.31944
   tps: 692.60972
   dtps: 3800.57804
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-PhantomBlade-7961"
+ value: {
+  dps: 449.13613
+  tps: 696.97345
+  dtps: 3810.84692
   hps: 16.4
  }
 }
@@ -638,6 +692,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-ShortswordofVengeance-754"
+ value: {
+  dps: 449.13613
+  tps: 696.97345
+  dtps: 3810.84692
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Slayer'sCrest-23041"
  value: {
   dps: 465.48517
@@ -661,6 +724,15 @@ dps_results: {
   dps: 447.3011
   tps: 694.04156
   dtps: 3785.39519
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-SwordofZeal-6622"
+ value: {
+  dps: 520.1601
+  tps: 802.8669
+  dtps: 3733.88084
   hps: 16.4
  }
 }

@@ -149,10 +149,10 @@ func editRow(t *testing.T, id int32, edit func(*spelldata.Spell)) {
 	t.Cleanup(func() { *row = original })
 }
 
-// A trigger whose row states no rate, rolled at 100% for the test.
+// A trigger rolled at 100% for the test, with no procs-per-minute rate beside the roll.
 func everyHit(t *testing.T, id int32) {
 	editRow(t, id, func(s *spelldata.Spell) {
-		s.ProcChance, s.ProcChanceSource, s.ProcChanceEffect = 100, spelldata.ProcChanceColumn, 0
+		s.ProcChance, s.ProcChanceSource, s.ProcChanceEffect, s.RPPM = 100, spelldata.ProcChanceColumn, 0, 0
 	})
 }
 

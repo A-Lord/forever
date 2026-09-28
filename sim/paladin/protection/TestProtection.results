@@ -189,6 +189,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-EbonHand-19170"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-Enchant2HWeapon-GrandArcanist-7941"
  value: {
   dps: 229.55325
@@ -374,6 +382,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-HammeroftheNorthernWind-810"
+ value: {
+  dps: 236.58895
+  tps: 250.03369
+  dtps: 5457.1468
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-HanzoSword-8190"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-HeartoftheScale-13164"
  value: {
   dps: 231.12498
@@ -502,6 +526,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-Linken'sSwordofMastery-11902"
+ value: {
+  dps: 236.0547
+  tps: 249.80268
+  dtps: 5477.78162
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-Loatheb'sReflection-23042"
  value: {
   dps: 231.12498
@@ -542,6 +574,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-MasterworkStormhammer-12794"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-MoltenHeartoftheMountain-249470"
  value: {
   dps: 231.67933
@@ -563,6 +603,14 @@ dps_results: {
   dps: 231.4543
   tps: 245.11609
   dtps: 5448.82011
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-PhantomBlade-7961"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
  }
 }
 dps_results: {
@@ -614,6 +662,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-ShortswordofVengeance-754"
+ value: {
+  dps: 229.55325
+  tps: 242.99093
+  dtps: 5401.95648
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-Slayer'sCrest-23041"
  value: {
   dps: 235.14764
@@ -643,6 +699,14 @@ dps_results: {
   dps: 239.68542
   tps: 253.48279
   dtps: 5445.45469
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-SwordofZeal-6622"
+ value: {
+  dps: 230.42035
+  tps: 243.83355
+  dtps: 5341.6102
  }
 }
 dps_results: {

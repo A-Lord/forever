@@ -13,20 +13,22 @@ import (
 )
 
 // A chance-on-hit item whose spell is a heal over time on the wearer routes to the heal shape. Neither
-// states a rate: 8348's ProcChance is the 100 that means no roll, 1297357 carries no aura options at
-// all, and "Chance on hit" beside neither names a percentage, so both stay commented out.
-func TestChanceOnHitHotRoutesAsAHealAndStatesNoRate(t *testing.T) {
+// row states a rate: 8348's ProcChance is the 100 that means no roll, 1297357 carries no aura options
+// at all, and "Chance on hit" beside neither names a percentage. Julie's Dagger registers on the
+// override's 1 PPM; Reforged Spear stays commented out.
+func TestChanceOnHitHotRoutesAsAHeal(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
 	for _, tc := range []struct {
 		itemID   int
 		spellID  int32
+		rated    bool
 		perTick  float64
 		duration time.Duration
 	}{
-		{6660, 8348, 13, 12 * time.Second},      // Julie's Dagger: Julie's Blessing
-		{275645, 1297357, 26, 14 * time.Second}, // Reforged Spear
+		{6660, 8348, true, 13, 12 * time.Second},       // Julie's Dagger: Julie's Blessing
+		{275645, 1297357, false, 26, 14 * time.Second}, // Reforged Spear
 	} {
 		item := instance.Items[tc.itemID]
 		parsed := item.ToUIItem()
@@ -37,8 +39,12 @@ func TestChanceOnHitHotRoutesAsAHealAndStatesNoRate(t *testing.T) {
 		}
 
 		groups := map[string]Group{}
-		if got := TryParseProcEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultRefused {
-			t.Errorf("item %d parsed as %v, want refused with a reason", tc.itemID, got)
+		wantResult, wantUnsupported := EffectParseResultRefused, []string{spelldata.ReasonStatesNoRate}
+		if tc.rated {
+			wantResult, wantUnsupported = EffectParseResultSuccess, nil
+		}
+		if got := TryParseProcEffect(parsed, parsed.ItemEffects[i], instance, groups); got != wantResult {
+			t.Errorf("item %d parsed as %v, want %v", tc.itemID, got, wantResult)
 			continue
 		}
 		entry := groups["Procs"].Entries[0]
@@ -47,8 +53,8 @@ func TestChanceOnHitHotRoutesAsAHealAndStatesNoRate(t *testing.T) {
 			t.Errorf("item %d: shape %v, weapon proc %v, trigger %d, buff %d; want a weapon proc healing through %d",
 				tc.itemID, r.Shape, r.IsWeaponProc, r.TriggerSpellID, r.BuffSpellID, tc.spellID)
 		}
-		if want := []string{spelldata.ReasonStatesNoRate}; !slices.Equal(r.Unsupported, want) {
-			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, want)
+		if !slices.Equal(r.Unsupported, wantUnsupported) {
+			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, wantUnsupported)
 		}
 
 		heal := spelldata.Find(tc.spellID)
