@@ -2,7 +2,6 @@
 package core
 
 import (
-	"math"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/stats"
@@ -954,40 +953,4 @@ func (caster *Unit) NewAllyDamageAbsorptionAuraArray(makeAura func(*Unit) *Damag
 		}
 	}
 	return auras
-}
-
-func ApplyFixedUptimeAura(aura *Aura, uptime float64, tickLength time.Duration, startTime time.Duration) {
-	auraDuration := aura.Duration
-	ticksPerAura := float64(auraDuration) / float64(tickLength)
-	chancePerTick := TernaryFloat64(uptime == 1, 1, 1.0-math.Pow(1-uptime, 1/ticksPerAura))
-
-	aura.Unit.RegisterResetEffect(func(sim *Simulation) {
-		StartPeriodicAction(sim, PeriodicActionOptions{
-			Period: tickLength,
-			OnAction: func(sim *Simulation) {
-				if sim.RandomFloat("FixedAura") < chancePerTick {
-					aura.Activate(sim)
-					if aura.MaxStacks > 0 {
-						aura.AddStack(sim)
-					}
-				}
-			},
-		})
-
-		// Also try once at the start.
-		StartPeriodicAction(sim, PeriodicActionOptions{
-			Period:   startTime,
-			NumTicks: 1,
-			OnAction: func(sim *Simulation) {
-				if sim.RandomFloat("FixedAura") < uptime {
-					// Use random duration to compensate for increased chance collapsed into single tick.
-					randomDur := tickLength + time.Duration(float64(auraDuration-tickLength)*sim.RandomFloat("FixedAuraDur"))
-
-					aura.Duration = randomDur
-					aura.Activate(sim)
-					aura.Duration = auraDuration
-				}
-			},
-		})
-	})
 }
