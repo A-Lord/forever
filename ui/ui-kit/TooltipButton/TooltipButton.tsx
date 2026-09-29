@@ -15,7 +15,7 @@ export interface TooltipButtonProps {
 
 export const TooltipButton = ({
 	tooltip,
-	icon = 'question-circle',
+	icon = 'circle-question',
 	iconStyle = 'regular',
 	place,
 	className,

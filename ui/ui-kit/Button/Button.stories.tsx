@@ -28,7 +28,7 @@ const meta = {
 	args: {
 		children: (
 			<>
-				<Icon name="cog" /> Settings
+				<Icon name="gear" /> Settings
 			</>
 		),
 	},
@@ -63,9 +63,9 @@ export const Small: Story = { args: { size: 'sm' } };
 export const Inline: Story = { args: { size: 'inline' } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Loading: Story = { args: { loading: true, children: 'Stat Weights' } };
-export const IconOnly: Story = { args: { iconOnly: true, 'aria-label': 'Settings', children: <Icon name="cog" size="lg" /> } };
+export const IconOnly: Story = { args: { iconOnly: true, 'aria-label': 'Settings', children: <Icon name="gear" size="lg" /> } };
 export const IconOnlyLoading: Story = {
-	args: { iconOnly: true, loading: true, 'aria-label': 'Settings', children: <Icon name="cog" size="lg" /> },
+	args: { iconOnly: true, loading: true, 'aria-label': 'Settings', children: <Icon name="gear" size="lg" /> },
 	render: args => (
 		<span className="inline-flex items-center gap-2 border border-surface-border p-1">
 			<Button {...args} />

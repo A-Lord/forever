@@ -46,7 +46,7 @@ describe('ReforgePanel', () => {
 		expect([...settings.classList]).toEqual(expect.arrayContaining(['ui-button', 'ui-button-primary']));
 		expect(settings.getAttribute('data-testid')).toBe('suggest-reforges-button-settings');
 		expect(settings.hasAttribute('data-sidebar-action')).toBe(true);
-		expect(settings.querySelector('.fa-cog')).not.toBeNull();
+		expect(settings.querySelector('.fa-gear')).not.toBeNull();
 	});
 
 	it('shows no spinner on the run button at rest', () => {

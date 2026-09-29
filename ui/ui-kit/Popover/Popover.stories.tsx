@@ -81,7 +81,7 @@ export const ButtonTrigger: Story = {
 		triggerClassName: undefined,
 		triggerRender: <Button variant="primary" />,
 		triggerProps: { 'aria-label': 'Reforge settings' },
-		trigger: <Icon name="cog" />,
+		trigger: <Icon name="gear" />,
 	},
 	play: async ({ canvasElement }) => {
 		const trigger = within(canvasElement).getByRole('button', { name: 'Reforge settings' });

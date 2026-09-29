@@ -13,7 +13,7 @@ export const LandingHeader = () => {
 	const [open, setOpen] = useState(false);
 	const toggleLabel = i18n.t('landing.navigation.toggle');
 
-	const toggler = (icon: 'bars' | 'times') => (
+	const toggler = (icon: 'bars' | 'xmark') => (
 		<Button
 			variant="unstyled"
 			className="border-0 px-3 py-1 text-lg leading-none text-white max-md:absolute max-md:top-0 max-md:right-0 md:hidden"
@@ -51,7 +51,7 @@ export const LandingHeader = () => {
 							!open && 'hidden',
 						)}>
 						<div className="flex flex-col max-md:relative max-md:items-start md:flex-row" data-testid="navbar-nav">
-							{toggler('times')}
+							{toggler('xmark')}
 							<a
 								href="https://discord.gg/p3DgvmnDCS"
 								target="_blank"

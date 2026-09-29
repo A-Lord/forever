@@ -30,7 +30,7 @@ export const BulkTabActionsView = ({ showNativeDownload, onImportBags, onImportF
 				<Icon name="download" style="base" className="mr-1" /> {i18n.t('bulk_tab.actions.import_favorites')}
 			</Button>
 			<Button variant="danger" className="ml-auto" onClick={onClear}>
-				<Icon name="times" className="mr-1" />
+				<Icon name="xmark" className="mr-1" />
 				{i18n.t('bulk_tab.actions.clear_items')}
 			</Button>
 		</div>

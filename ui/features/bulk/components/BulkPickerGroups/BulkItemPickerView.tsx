@@ -68,7 +68,7 @@ export const BulkItemPickerView = ({ slot, item, state, onOpen, onRemove }: Bulk
 								data-testid="item-picker-actions-btn"
 								onClick={onRemove}
 								{...tooltipAnchorProps(tooltipId)}>
-								<Icon name="times" />
+								<Icon name="xmark" />
 							</Button>
 							<Tooltip id={tooltipId} content={i18n.t('bulk_tab.picker.remove_tooltip')} />
 						</>

@@ -64,9 +64,10 @@ import {
 	faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
-import type { IconName, IconStyle } from './types';
+import type { IconStyle } from './types';
 
-const DEFINITIONS: Record<IconName, IconDefinition> = {
+/** The kit's curated icon set, keyed by canonical FontAwesome 7 name: add an icon by importing its definition and adding it here. */
+export const DEFINITIONS = {
 	'arrow-left': faArrowLeft,
 	'arrow-right': faArrowRight,
 	'arrow-right-arrow-left': faArrowRightArrowLeft,
@@ -82,13 +83,13 @@ const DEFINITIONS: Record<IconName, IconDefinition> = {
 	'caret-down': faCaretDown,
 	'caret-right': faCaretRight,
 	check: faCheck,
-	'check-circle': faCircleCheck,
 	'chevron-down': faChevronDown,
 	'chevron-left': faChevronLeft,
 	'chevron-right': faChevronRight,
+	'circle-check': faCircleCheck,
 	'circle-exclamation': faCircleExclamation,
+	'circle-info': faCircleInfo,
 	'circle-question': faCircleQuestion,
-	cog: faGear,
 	copy: faCopy,
 	discord: faDiscord,
 	download: faDownload,
@@ -99,10 +100,10 @@ const DEFINITIONS: Record<IconName, IconDefinition> = {
 	'file-arrow-up': faFileArrowUp,
 	filter: faFilter,
 	'gauge-high': faGaugeHigh,
+	gear: faGear,
 	github: faGithub,
 	globe: faGlobe,
 	'grip-lines': faGripLines,
-	'info-circle': faCircleInfo,
 	lock: faLock,
 	'magnifying-glass-minus': faMagnifyingGlassMinus,
 	'magnifying-glass-plus': faMagnifyingGlassPlus,
@@ -110,7 +111,7 @@ const DEFINITIONS: Record<IconName, IconDefinition> = {
 	patreon: faPatreon,
 	pause: faPause,
 	paw: faPaw,
-	'pencil-alt': faPencil,
+	pencil: faPencil,
 	play: faPlay,
 	plus: faPlus,
 	'plus-minus': faPlusMinus,
@@ -119,13 +120,22 @@ const DEFINITIONS: Record<IconName, IconDefinition> = {
 	'screwdriver-wrench': faScrewdriverWrench,
 	spinner: faSpinner,
 	star: faStar,
-	times: faXmark,
 	'triangle-exclamation': faTriangleExclamation,
 	user: faUser,
-};
+	xmark: faXmark,
+} as const satisfies Record<string, IconDefinition>;
 
-const REGULAR_DEFINITIONS: Partial<Record<IconName, IconDefinition>> = {
-	'check-circle': faCircleCheckRegular,
+/** FA5 spellings kept until their last caller renames to the canonical name on the left. */
+export const ICON_ALIASES = {
+	times: 'xmark',
+	'info-circle': 'circle-info',
+	'pencil-alt': 'pencil',
+} as const satisfies Record<string, keyof typeof DEFINITIONS>;
+
+export type IconAlias = keyof typeof ICON_ALIASES;
+
+const REGULAR_DEFINITIONS: Partial<Record<keyof typeof DEFINITIONS, IconDefinition>> = {
+	'circle-check': faCircleCheckRegular,
 	'circle-question': faCircleQuestionRegular,
 	copy: faCopyRegular,
 	eye: faEyeRegular,
@@ -134,7 +144,8 @@ const REGULAR_DEFINITIONS: Partial<Record<IconName, IconDefinition>> = {
 	user: faUserRegular,
 };
 
-export const hasRegularDefinition = (name: IconName): boolean => name in REGULAR_DEFINITIONS;
+export const hasRegularDefinition = (name: keyof typeof DEFINITIONS): boolean => name in REGULAR_DEFINITIONS;
 
 /** A name FontAwesome Free does not ship in regular renders solid; brands and base read the solid map, which holds the brand glyphs. */
-export const iconDefinition = (name: IconName, style: IconStyle): IconDefinition => (style === 'regular' && REGULAR_DEFINITIONS[name]) || DEFINITIONS[name];
+export const iconDefinition = (name: keyof typeof DEFINITIONS, style: IconStyle): IconDefinition =>
+	(style === 'regular' && REGULAR_DEFINITIONS[name]) || DEFINITIONS[name];

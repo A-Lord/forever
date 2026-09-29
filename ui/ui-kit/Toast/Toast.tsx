@@ -7,8 +7,8 @@ import clsx from 'clsx';
 import type { ToastData, ToastVariant } from './types';
 
 const VARIANT_ICON = {
-	info: 'info-circle',
-	success: 'check-circle',
+	info: 'circle-info',
+	success: 'circle-check',
 	error: 'circle-exclamation',
 	warning: 'triangle-exclamation',
 } as const satisfies Record<ToastVariant, IconName>;
@@ -40,7 +40,7 @@ export const Toast = ({ toast, inline = false }: ToastProps) => {
 						data-testid="sim-toast-close"
 						aria-label="Close"
 						aria-hidden={false}>
-						<Icon name="times" size="lg" />
+						<Icon name="xmark" size="lg" />
 					</BaseToast.Close>
 				)}
 			</div>

@@ -58,7 +58,7 @@ export const SimResultSummaryView = ({
 						data-testid="results-sim-reference-delete"
 						onClick={onClearReference}
 						{...tooltipAnchorProps(tooltipId, i18n.t('sidebar.results.reference.remove_reference'))}>
-						<Icon name="times" style="base" size="lg" className="mr-1" />
+						<Icon name="xmark" style="base" size="lg" className="mr-1" />
 						{i18n.t('sidebar.results.reference.cancel')}
 					</Button>
 				</div>

@@ -109,7 +109,7 @@ export const Dialog = ({
 										render={<Button iconOnly className={clsx('ui-dialog-close', closeClassName)} />}
 										data-testid="sim-dialog-close"
 										aria-label="Close">
-										<Icon name="times" size="2xl" />
+										<Icon name="xmark" size="2xl" />
 									</BaseDialog.Close>
 								)}
 							</div>

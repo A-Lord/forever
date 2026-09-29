@@ -75,7 +75,7 @@ export const TargetsPicker = ({ encounter }: TargetsPickerProps) => {
 									{canRemove(targetIndex) && (
 										<Tree.Item.Action
 											label={i18n.t('common.list_picker.delete_item', { itemLabel })}
-											icon="times"
+											icon="xmark"
 											tone="danger"
 											testId="targets-picker-delete"
 											onClick={() => remove(targetIndex)}

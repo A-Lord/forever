@@ -162,7 +162,7 @@ describe('CooldownsPicker', () => {
 		expect(buttonClasses).toContain('text-link-danger');
 
 		const iconClasses = Array.from(deleteButton(0).querySelector('svg')!.classList);
-		expect(iconClasses).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon', 'fa-xl', 'fa-width-auto']);
+		expect(iconClasses).toEqual(['svg-inline--fa', 'fa-xmark', 'ui-icon', 'fa-xl', 'fa-width-auto']);
 	});
 
 	it('anchors every delete button to one shared tooltip', () => {

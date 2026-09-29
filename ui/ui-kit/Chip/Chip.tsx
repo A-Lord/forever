@@ -75,14 +75,14 @@ export const Chip = ({
 					aria-label={deleteLabel}
 					{...tooltipAnchorProps(deleteTooltipId)}
 					onClick={onDelete}>
-					<Icon name="times" style="base" size="lg" />
+					<Icon name="xmark" style="base" size="lg" />
 				</button>
 			)}
 			{onDelete && confirmDelete && (
 				<ConfirmPopover
 					open={confirming}
 					onOpenChange={setConfirming}
-					trigger={<Icon name="times" style="base" size="lg" />}
+					trigger={<Icon name="xmark" style="base" size="lg" />}
 					triggerClassName="ui-chip-delete"
 					triggerProps={
 						{

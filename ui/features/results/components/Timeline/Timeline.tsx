@@ -66,7 +66,7 @@ export const Timeline = ({ active }: TimelineProps) => {
 			<div className="flex flex-wrap items-start gap-2">
 				<div className="flex flex-col max-lg:shrink max-lg:grow max-lg:basis-full">
 					<p>
-						<Icon name="exclamation-triangle" style="base" size="xl" className={`${NOTICE_COLOR.warning} mr-2`} />
+						<Icon name="triangle-exclamation" style="base" size="xl" className={`${NOTICE_COLOR.warning} mr-2`} />
 						{i18n.t('results_tab.details.timeline.disclaimer')}
 					</p>
 					<p>{i18n.t('results_tab.details.timeline.note')}</p>

@@ -57,6 +57,6 @@ describe('Notice', () => {
 describe('NOTICE_ICON_NAME', () => {
 	it('is the icon name Notice draws per level, exported from the barrel', () => {
 		expect(EXPORTED_ICON_NAME).toBe(NOTICE_ICON_NAME);
-		expect(NOTICE_ICON_NAME).toEqual({ info: 'info-circle', warning: 'exclamation-triangle', error: 'exclamation-triangle' });
+		expect(NOTICE_ICON_NAME).toEqual({ info: 'info-circle', warning: 'triangle-exclamation', error: 'triangle-exclamation' });
 	});
 });

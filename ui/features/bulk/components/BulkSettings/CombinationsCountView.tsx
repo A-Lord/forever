@@ -42,7 +42,7 @@ export const CombinationsCountView = ({ pending, combinations, iterations, itera
 						className="text-link-warning xl:max-xxl:-order-1"
 						data-testid="warning"
 						{...tooltipAnchorProps(tooltipId)}>
-						<Icon name="exclamation-triangle" size="2x" />
+						<Icon name="triangle-exclamation" size="2x" />
 					</Button>
 					<Tooltip id={tooltipId} place="left" content={warningText} />
 				</>

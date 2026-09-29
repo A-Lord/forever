@@ -32,7 +32,7 @@ export const SimToolbarView = ({ knownIssues, outdatedNativeSim, onOpenSettings 
 
 		{!isNative() && <ToolbarItem href={REPO_RELEASES_URL} icon="gauge-high" tooltip="Download simulator for faster simulating" />}
 
-		<ToolbarItem testId="sim-options" icon="cog" tooltip={i18n.t('info.sim_options')} onClick={onOpenSettings} />
+		<ToolbarItem testId="sim-options" icon="gear" tooltip={i18n.t('info.sim_options')} onClick={onOpenSettings} />
 
 		<div className="mt-2 mb-2 ml-4 flex border-l border-l-border [&_a]:my-2 [&_button]:my-2" data-testid="sim-toolbar-socials">
 			{SOCIALS.map(social => (

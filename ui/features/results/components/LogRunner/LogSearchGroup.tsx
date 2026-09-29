@@ -17,7 +17,7 @@ const DROPUP = { side: 'top', positionMethod: 'fixed' } as const;
 
 const DeleteButton = ({ label, onClick, className }: { label: string; onClick: () => void; className?: string }) => (
 	<Button variant="unstyled" className={className} data-testid="log-search-group-remove" aria-label={label} onClick={onClick}>
-		<Icon name="times" style="base" size="lg" />
+		<Icon name="xmark" style="base" size="lg" />
 	</Button>
 );
 
