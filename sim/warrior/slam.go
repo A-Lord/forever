@@ -6,9 +6,6 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Attributes[2]: the cast does not reset the auto attack timers.
-const attrEx2DoNotResetCombatTimers uint32 = 0x20000
-
 var slamRank = spellData.Slam.Highest()
 
 var improvedSlamRank = slamRank.OverriddenBy(spellData.ImprovedSlam.Highest())
@@ -16,7 +13,7 @@ var improvedSlamRank = slamRank.OverriddenBy(spellData.ImprovedSlam.Highest())
 func (warrior *Warrior) registerSlam() {
 	rank := core.Ternary(warrior.Talents.ImprovedSlam > 0, improvedSlamRank, slamRank)
 	slamBaseDamage := rank.DamageEffect().Average(core.CharacterLevel)
-	stopsSwing := !rank.HasAttr(dbcenums.ATTR_INDEX_EX_2, attrEx2DoNotResetCombatTimers)
+	stopsSwing := !rank.HasAttr(dbcenums.ATTR_INDEX_EX_2, dbcenums.ATTR_EX_2_DO_NOT_RESET_COMBAT_TIMERS)
 
 	config := spelldata.SpellConfig(&warrior.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	// The APL names Slam by the spell the talent replaces.
