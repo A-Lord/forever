@@ -242,6 +242,17 @@ describe('IconEnumPicker', () => {
 		expect(event.defaultPrevented).toBe(true);
 	});
 
+	it('cancels the trigger’s navigation on a click, so a tap opens the menu instead of the link', () => {
+		mount({ initial: 1 });
+		expect(button().getAttribute('href')).toBe(frostIcon.href);
+		const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+		act(() => {
+			button().dispatchEvent(event);
+		});
+		expect(event.defaultPrevented).toBe(true);
+		expect(menu()).not.toBeNull();
+	});
+
 	it('gives each option its own icon and wowhead link, and none of them the active class', () => {
 		mount({ initial: 1 });
 		open();

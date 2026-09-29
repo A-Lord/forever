@@ -20,7 +20,8 @@ export const IconMenu = ({ trigger, side, onOpenChange, className, portalProps, 
 		surface="none"
 		triggerRender={trigger}
 		// No href on the swatch leaves an anchor that is not focusable; `nativeButton: false` gives it the button role and a tab stop.
-		triggerProps={{ nativeButton: false, openOnHover: true, delay: 0 }}
+		// A swatch with a wowhead href is still a link: the click is cancelled so a tap, which never hovers, toggles the menu instead of following it.
+		triggerProps={{ nativeButton: false, openOnHover: true, delay: 0, onClick: (event: MouseEvent) => event.preventDefault() }}
 		side={side}
 		align="start"
 		sideOffset={-1}
