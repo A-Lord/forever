@@ -1,8 +1,8 @@
 import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeEquippedItem, SOCKETED_ITEM, wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { makeEquippedItem, SOCKETED_ITEM, wowheadIconUrl } from '../../../../testing/storybook/fixtures/gear';
 import { ItemSwapIconView } from './ItemSwapIconView';
 
 const meta = {

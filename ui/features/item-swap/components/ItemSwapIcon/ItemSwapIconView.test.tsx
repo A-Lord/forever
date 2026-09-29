@@ -1,10 +1,10 @@
 import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
+import { makeEquippedItem, SOCKETED_ITEM } from '@testing/storybook/fixtures/gear';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { makeEquippedItem, SOCKETED_ITEM } from '../../../../testing/storybook/fixtures/gear';
 import { ItemSwapIconView, type ItemSwapIconViewProps } from './ItemSwapIconView';
 
 const renderIcon = (props: Partial<ItemSwapIconViewProps> = {}) => {
