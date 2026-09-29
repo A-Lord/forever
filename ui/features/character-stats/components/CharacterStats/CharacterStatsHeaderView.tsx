@@ -22,7 +22,7 @@ export const CharacterStatsHeaderView = ({ mode, onModeChange, labels }: Charact
 			{labels.title}
 		</h3>
 		<ToggleGroup
-			size="sm"
+			size="xs"
 			className="shrink-0 whitespace-nowrap"
 			aria-label={labels.modeAriaLabel}
 			value={mode}

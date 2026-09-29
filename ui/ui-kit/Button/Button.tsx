@@ -7,6 +7,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
 const SIZE_CLASS = {
 	default: 'ui-button-md',
 	sm: 'ui-button-sm',
+	xs: 'ui-button-xs',
 	inline: 'ui-button-inline',
 	none: undefined,
 } as const;
@@ -27,7 +28,7 @@ export type ButtonVariant =
 interface ButtonBaseProps {
 	/** `null` emits the bare base bundle — no colour of its own. */
 	variant?: ButtonVariant | null;
-	size?: 'sm' | 'inline' | 'none';
+	size?: 'sm' | 'xs' | 'inline' | 'none';
 	/** Chromeless: no padding, border or background of its own — an icon-sized hit target. */
 	iconOnly?: boolean;
 	/** Renders a small spinner before the children, or over them for `iconOnly`, and sets `aria-busy`; it does not disable the button. */

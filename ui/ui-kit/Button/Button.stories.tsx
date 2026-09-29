@@ -19,7 +19,7 @@ const VARIANTS: Array<ButtonVariant> = [
 	'unstyled',
 ];
 
-const SIZES = ['default', 'sm', 'inline', 'none'] as const;
+const SIZES = ['default', 'sm', 'xs', 'inline', 'none'] as const;
 
 const meta = {
 	title: 'Kit/Button',
@@ -34,7 +34,7 @@ const meta = {
 	},
 	argTypes: {
 		variant: { control: 'select', options: [...VARIANTS, null] },
-		size: { control: 'select', options: [undefined, 'sm', 'inline', 'none'] },
+		size: { control: 'select', options: [undefined, 'sm', 'xs', 'inline', 'none'] },
 		iconOnly: { control: 'boolean' },
 		loading: { control: 'boolean' },
 		disabled: { control: 'boolean' },

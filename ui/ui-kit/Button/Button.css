@@ -199,6 +199,10 @@
 		@apply px-2 py-1;
 	}
 
+	.ui-button-xs {
+		@apply px-1.5 py-0.5 text-ui;
+	}
+
 	.ui-button-inline {
 		@apply px-2 py-0;
 	}

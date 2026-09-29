@@ -13,7 +13,7 @@ export interface ToggleGroupProps<T extends string> {
 	/** Called with the clicked option; a click on the option already pressed reports nothing. */
 	onChange: (next: T) => void;
 	'aria-label'?: string;
-	size?: 'sm';
+	size?: 'sm' | 'xs';
 	className?: string;
 	testId?: string;
 }

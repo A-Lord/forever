@@ -2,8 +2,8 @@ import clsx from 'clsx';
 import { type ComponentPropsWithoutRef, forwardRef } from 'react';
 
 export interface ButtonGroupProps extends ComponentPropsWithoutRef<'div'> {
-	/** Pads every direct `Button` child as `size="sm"`. */
-	size?: 'sm';
+	/** Pads every direct `Button` child as that `size`. */
+	size?: 'sm' | 'xs';
 	testId?: string;
 }
 

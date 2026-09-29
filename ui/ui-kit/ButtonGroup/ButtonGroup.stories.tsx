@@ -8,7 +8,7 @@ const meta = {
 	component: ButtonGroup,
 	tags: ['autodocs'],
 	argTypes: {
-		size: { control: 'select', options: [undefined, 'sm'] },
+		size: { control: 'select', options: [undefined, 'sm', 'xs'] },
 		className: { control: 'text' },
 	},
 	render: args => (

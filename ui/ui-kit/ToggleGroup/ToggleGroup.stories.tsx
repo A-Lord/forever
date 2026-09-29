@@ -34,7 +34,7 @@ const meta = {
 	argTypes: {
 		options: { control: false },
 		value: { control: 'select', options: OPTIONS.map(option => option.value) },
-		size: { control: 'select', options: [undefined, 'sm'] },
+		size: { control: 'select', options: [undefined, 'sm', 'xs'] },
 	},
 	render: args => <StatefulToggleGroup {...args} />,
 } satisfies Meta<typeof ToggleGroup<View>>;

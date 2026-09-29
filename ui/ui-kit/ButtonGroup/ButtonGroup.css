@@ -9,5 +9,9 @@
 		&[data-size='sm'] > .ui-button {
 			@apply px-2 py-1;
 		}
+
+		&[data-size='xs'] > .ui-button {
+			@apply px-1.5 py-0.5 text-ui;
+		}
 	}
 }
