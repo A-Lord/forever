@@ -38,6 +38,37 @@ async function testFindClassHooks() {
 	fs.rmSync(dir, { recursive: true, force: true });
 }
 
+async function testFindClassHooksLastArrayElement() {
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'class-hooks-last-elem-fixture-'));
+	fs.mkdirSync(path.join(dir, 'ui/styles'), { recursive: true });
+
+	fs.writeFileSync(path.join(dir, 'ui/class_hook_allowlist.json'), JSON.stringify([]));
+	fs.writeFileSync(path.join(dir, 'ui/configs.ts'), "export const ENTRY = { stat: 1, extraClassNames: ['retired-hook'] };\n");
+
+	const hooks = await findClassHooks(dir, { css: CSS_PATH });
+	const tokens = hooks.map(h => h.token);
+
+	assert.ok(tokens.includes('retired-hook'), 'the sole/last element of a class array must be flagged, not skipped as an index literal');
+
+	fs.rmSync(dir, { recursive: true, force: true });
+}
+
+async function testFindClassHooksSpecsFile() {
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'class-hooks-specs-fixture-'));
+	fs.mkdirSync(path.join(dir, 'ui/styles'), { recursive: true });
+	fs.mkdirSync(path.join(dir, 'ui/specs/warrior'), { recursive: true });
+
+	fs.writeFileSync(path.join(dir, 'ui/class_hook_allowlist.json'), JSON.stringify([]));
+	fs.writeFileSync(path.join(dir, 'ui/specs/warrior/inputs.ts'), "export const Input = { iconGroupClassName: 'retired-spec-hook' };\n");
+
+	const hooks = await findClassHooks(dir, { css: CSS_PATH });
+	const tokens = hooks.map(h => h.token);
+
+	assert.ok(tokens.includes('retired-spec-hook'), 'a non-ui-* class in ui/specs/** must be flagged, not skipped as a specs file');
+
+	fs.rmSync(dir, { recursive: true, force: true });
+}
+
 function testFindTestidStyling() {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'class-hooks-testid-fixture-'));
 	fs.mkdirSync(path.join(dir, 'ui'), { recursive: true });
@@ -55,6 +86,8 @@ function testFindTestidStyling() {
 
 async function main() {
 	await testFindClassHooks();
+	await testFindClassHooksLastArrayElement();
+	await testFindClassHooksSpecsFile();
 	testFindTestidStyling();
 	console.log('class-hooks.test.mjs: all tests passed');
 }

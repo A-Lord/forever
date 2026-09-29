@@ -194,7 +194,13 @@ function collectFromScript(text, relPath, classAttrs) {
 		}
 
 		collectFromClassDecls(text, found);
+	}
 
+	// Unlike clsx(...)/*Class(es) above, this is object-literal config data (`extraClassNames:
+	// [...]`, `iconGroupClassName: '...'`), the only shape `ui/specs/**` input configs use to
+	// carry a class -- it must run there too, or a retired token flowing through a spec's
+	// config is never seen.
+	if (!isGeneratedFile(relPath)) {
 		const propPattern = /\b(className|\w+ClassName|extraClassNames)\s*:\s*(\[[^\]]*\]|["'`][^"'`]*["'`])/g;
 		while ((m = propPattern.exec(text))) {
 			const raw = m[2];
@@ -211,6 +217,33 @@ function collectFromScript(text, relPath, classAttrs) {
 	return found.map(({ token, index }) => ({ token, line: lineAt(text, index) }));
 }
 
+// A string immediately followed by `]` is either the last element of an array literal
+// (`['a', 'b']`, `['threat-metrics']`) or a computed member/index key (`obj['key']`,
+// `SIZE_CLASS[props.size ?? 'default']`) -- both look identical from the closing bracket
+// alone. The two shapes differ in what sits right before the *enclosing* `[`, found by
+// walking left from the string and balancing any nested `()`/`[]`/`{}` in between (so an
+// expression like `?? 'default'` inside the brackets doesn't hide the enclosing bracket): an
+// array literal's `[` follows `=`, `(`, `,`, another `[`, or the start of the snippet, while a
+// computed-member `[` follows the identifier (or `]`/`)` for chained access) it indexes into.
+function isComputedMemberKey(before) {
+	let depth = 0;
+	for (let i = before.length - 1; i >= 0; i--) {
+		const ch = before[i];
+		if (ch === ')' || ch === ']' || ch === '}') depth++;
+		else if (ch === '(' || ch === '[' || ch === '{') {
+			if (depth > 0) {
+				depth--;
+				continue;
+			}
+			if (ch !== '[') return false;
+			const beforeBracket = before.slice(0, i).trimEnd();
+			const charBeforeBracket = beforeBracket[beforeBracket.length - 1];
+			return !!charBeforeBracket && /[\w$\])]/.test(charBeforeBracket);
+		}
+	}
+	return false;
+}
+
 // Pulls plain string-literal and static template-literal tokens out of an arbitrary JS
 // expression snippet (used for clsx(...) args and array literals). Skips identifiers,
 // numbers and any template literal containing an interpolation as a whole class list --
@@ -225,7 +258,7 @@ function collectStringLiteralsFrom(snippet, offset, found) {
 		const after = snippet.slice(m.index + full.length);
 		if (/(===|!==|==|!=)\s*$/.test(before)) continue; // comparison operand, not a rendered class
 		if (/^\s*(===|!==|==|!=)/.test(after)) continue; // comparison operand, not a rendered class
-		if (/^\s*\]/.test(after)) continue; // computed member/index literal, not a rendered class
+		if (/^\s*\]/.test(after) && isComputedMemberKey(before)) continue; // obj['key'] / arr[i]['key'], not a rendered class
 		if (quote === '`') {
 			for (const part of staticPartsOfTemplate(body)) {
 				for (const token of splitClassString(part)) found.push({ token, index });

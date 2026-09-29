@@ -72,7 +72,6 @@ export const CursesSection: CustomSection<Spec.SpecWarlock> = {
 	id: 'assigned-curse-settings',
 	title: i18n.t('settings_tab.other.warlock_assigned_curse.title'),
 	description: i18n.t('settings_tab.other.warlock_assigned_curse.description'),
-	iconGroupClassName: 'curses-toggle-container',
 	iconInputs: [
 		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Agony, 27218),
 		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Doom, 603),

@@ -44,10 +44,7 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 	const mobType = useMemo(() => mobTypeConfig(context), [context]);
 	const tankIndex = useMemo(() => tankIndexConfig(context), [context]);
 	const stats = useMemo(
-		() =>
-			ALL_TARGET_STATS.filter(entry => showThreatMetrics || !entry.extraClassNames.includes('threat-metrics')).map(entry =>
-				statConfig(context, entry.stat, entry.tooltip, entry.extraClassNames),
-			),
+		() => ALL_TARGET_STATS.filter(entry => showThreatMetrics || !entry.threatMetrics).map(entry => statConfig(context, entry.stat, entry.tooltip)),
 		[context, showThreatMetrics],
 	);
 	const numbers = useMemo(() => numberConfigs(context), [context]);
