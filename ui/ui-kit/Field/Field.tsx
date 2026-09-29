@@ -43,7 +43,7 @@ const FieldSugar = ({
 			className={[!layout && !iconField && 'max-md:flex-col max-md:items-start', className]}>
 			{leading}
 			{label && (
-				<Label id={groupLabelId} tooltip={labelTooltip}>
+				<Label as={role === 'group' ? 'span' : 'label'} id={groupLabelId} tooltip={labelTooltip}>
 					{label}
 				</Label>
 			)}

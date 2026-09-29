@@ -187,6 +187,20 @@ describe('IconEnumPicker', () => {
 		expect(button().getAttribute('aria-expanded')).toBe('false');
 	});
 
+	it('reports the menu opening and closing through onOpenChange', () => {
+		const onOpenChange = vi.fn();
+		mount({ onOpenChange });
+		expect(onOpenChange).not.toHaveBeenCalled();
+
+		open();
+		expect(onOpenChange.mock.lastCall?.[0]).toBe(true);
+
+		act(() => {
+			fireEvent.click(optionAnchor(1));
+		});
+		expect(onOpenChange.mock.lastCall?.[0]).toBe(false);
+	});
+
 	it('cancels the anchor’s navigation when an option is chosen', () => {
 		mount();
 		open();

@@ -97,6 +97,35 @@ describe('BoundIconEnumPicker', () => {
 		expect(optionAnchor(1).getAttribute('href')).toBe(ActionId.makeSpellUrl(7302));
 	});
 
+	it('fills the selected option at mount, the others once the menu first opens, and a hidden one never', async () => {
+		const fill = vi.spyOn(ActionId.prototype, 'fill').mockImplementation(async function (this: ActionId) {
+			return filled(this, `Spell ${this.spellId}`, `${this.spellId}.jpg`);
+		});
+		const filledSpells = () => new Set(fill.mock.contexts.map(actionId => (actionId as ActionId).spellId));
+		const options = new Options();
+		options.armor = 2;
+		mount(
+			options,
+			configFor({
+				values: [
+					{ actionId: ActionId.fromSpellId(101), value: 1 },
+					{ actionId: ActionId.fromSpellId(102), value: 2 },
+					{ actionId: ActionId.fromSpellId(103), value: 3 },
+					{ actionId: ActionId.fromSpellId(104), value: 4, showWhen: () => false },
+				],
+			}),
+		);
+		await act(async () => {});
+		expect(filledSpells()).toEqual(new Set([102]));
+		expect(iconOf(button())).toBe('102.jpg');
+
+		open();
+		await act(async () => {});
+		expect(filledSpells()).toEqual(new Set([101, 102, 103]));
+		expect(items().map((_item, index) => iconOf(optionAnchor(index)))).toEqual(['101.jpg', '102.jpg', '103.jpg']);
+		expect(iconOf(button())).toBe('102.jpg');
+	});
+
 	it('writes the chosen value to the source', () => {
 		const options = new Options();
 		mount(options);

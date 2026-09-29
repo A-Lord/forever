@@ -18,6 +18,18 @@ describe('Field parts', () => {
 		expect(label.className).toBe('ui-field-label');
 	});
 
+	it('renders a span caption that points at nothing when asked for one', () => {
+		render(
+			<Field.Root id="elixirs" role="group">
+				<Field.Label as="span">Elixirs</Field.Label>
+			</Field.Root>,
+		);
+		const caption = screen.getByTestId('form-label');
+		expect(caption.tagName).toBe('SPAN');
+		expect(caption.hasAttribute('for')).toBe(false);
+		expect(caption.getAttribute('title')).toBe('Elixirs');
+	});
+
 	it('gives a native control the root id, so the label names it', () => {
 		render(
 			<Field.Root id="cast-delay">

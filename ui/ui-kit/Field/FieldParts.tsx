@@ -64,7 +64,7 @@ export const Root = ({
 	);
 };
 
-export const Label = ({ id, tooltip, className, testId, children }: FieldLabelProps) => {
+export const Label = ({ as, id, tooltip, className, testId, children }: FieldLabelProps) => {
 	const field = useField();
 	const renderable = typeof tooltip === 'string' || isNode(tooltip) || isValidElement(tooltip);
 	if (tooltip !== undefined && !renderable) {
@@ -87,18 +87,24 @@ export const Label = ({ id, tooltip, className, testId, children }: FieldLabelPr
 		return <Tooltip id={tooltipId} content={content} />;
 	}, [tooltipId, tooltip]);
 
+	const props = {
+		id,
+		className: clsx('ui-field-label', className),
+		title: children,
+		'data-testid': testId ?? 'form-label',
+		...tooltipAnchorProps(tooltipId),
+	};
+
 	return (
 		<>
-			{/* `htmlFor` explicitly rather than letting Base UI derive it. */}
-			<BaseField.Label
-				id={id}
-				htmlFor={field.id}
-				className={clsx('ui-field-label', className)}
-				title={children}
-				data-testid={testId ?? 'form-label'}
-				{...tooltipAnchorProps(tooltipId)}>
-				{children}
-			</BaseField.Label>
+			{as === 'span' ? (
+				<span {...props}>{children}</span>
+			) : (
+				// `htmlFor` explicitly rather than letting Base UI derive it.
+				<BaseField.Label {...props} htmlFor={field.id}>
+					{children}
+				</BaseField.Label>
+			)}
 			{tooltipNode}
 		</>
 	);

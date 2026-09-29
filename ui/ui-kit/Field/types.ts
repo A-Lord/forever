@@ -76,6 +76,8 @@ export interface FieldRootProps {
 }
 
 export interface FieldLabelProps {
+	/** `span` for a caption that names a group of controls, which a `<label>` cannot. */
+	as?: 'label' | 'span';
 	id?: string;
 	tooltip?: FieldTooltip;
 	className?: ClassValue;

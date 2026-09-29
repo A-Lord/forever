@@ -68,6 +68,23 @@ describe('Field', () => {
 		expect(group.getAttribute('aria-labelledby')).toBe(within(group).getByTestId('form-label').id);
 	});
 
+	it('captions a group with a span rather than a label, and names the group by it', () => {
+		render(
+			<Field label="Elixirs" role="group" labelTooltip="Battle and guardian elixirs">
+				<button type="button">Flask</button>
+			</Field>,
+		);
+
+		const group = screen.getByRole('group', { name: 'Elixirs' });
+		const caption = within(group).getByTestId('form-label');
+		expect(group.getElementsByTagName('label')).toHaveLength(0);
+		expect(caption.tagName).toBe('SPAN');
+		expect(caption.className).toBe('ui-field-label');
+		expect(caption.id).toBeTruthy();
+		expect(group.getAttribute('aria-labelledby')).toBe(caption.id);
+		expect(caption.getAttribute('data-tooltip-id')).toBeTruthy();
+	});
+
 	it('keeps an explicit aria-labelledby on a group, and gives a field that is not a group no label reference', () => {
 		const { unmount } = field({ role: 'group', 'aria-labelledby': 'buffs-label' });
 		expect(root().getAttribute('aria-labelledby')).toBe('buffs-label');
