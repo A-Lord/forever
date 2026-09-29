@@ -10,12 +10,6 @@
 			@apply max-w-full overflow-hidden text-ellipsis whitespace-nowrap;
 		}
 
-		&:where(:not([data-layout])):where(:not(.ui-icon-field)) {
-			@variant max-md {
-				@apply gap-2;
-			}
-		}
-
 		&[data-layout='inline'],
 		&[data-layout='split'] {
 			@apply flex-row items-center justify-between;
@@ -75,11 +69,17 @@
 		.ui-boolean-picker-input {
 			@apply size-6 cursor-pointer;
 		}
+	}
 
-		&,
-		.ui-field {
-			&:not([data-layout='inline']):not(.ui-icon-field) {
-				@variant max-md {
+	@container (max-width: 28rem) {
+		.ui-field:where(:not([data-layout])):where(:not(.ui-icon-field)) {
+			@apply gap-2;
+		}
+
+		.ui-field-compact {
+			&,
+			.ui-field {
+				&:not([data-layout='inline']):not(.ui-icon-field) {
 					@apply grow items-stretch!;
 				}
 			}
