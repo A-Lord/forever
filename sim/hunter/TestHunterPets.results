@@ -655,17 +655,17 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-SatchelofDarkIronBombs-285278"
  value: {
-  dps: 469.14814
-  tps: 255.64681
-  dtps: 2.74461
+  dps: 269.40445
+  tps: 110.40978
+  dtps: 2.41529
  }
 }
 dps_results: {
  key: "TestHunterPets-AllItems-SatchelofIronBombs-285277"
  value: {
-  dps: 465.4253
-  tps: 253.04083
-  dtps: 2.74461
+  dps: 269.40445
+  tps: 110.40978
+  dtps: 2.41529
  }
 }
 dps_results: {

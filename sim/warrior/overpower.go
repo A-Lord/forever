@@ -12,26 +12,18 @@ var overpowerBaseDamage = overpowerRank.DamageEffect().Average(core.CharacterLev
 var overpowerWindow = spellData.OffensiveStateTriggered.Highest()
 
 func (warrior *Warrior) registerOverpower() {
-	warrior.OverpowerAura = warrior.RegisterAura(core.Aura{
-		ActionID: core.ActionID{SpellID: overpowerWindow.ID},
-		Label:    "Overpower Aura",
-		Duration: overpowerWindow.Duration(),
-	})
+	warrior.OverpowerAura = warrior.RegisterAura(spelldata.AuraConfig(overpowerWindow, spelldata.Label("Overpower Aura")))
 
-	warrior.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Overpower - Trigger",
-		TriggerImmediately: true,
-		Outcome:            core.OutcomeDodge,
-		Callback:           core.CallbackOnSpellHitDealt,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	trigger := spelldata.ProcTrigger(&warrior.Character, spellData.OffensiveState.Highest(),
+		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			warrior.OverpowerAura.Activate(sim)
-		},
-	})
+		})
+	trigger.Outcome = core.OutcomeDodge
+	trigger.RequireDamageDealt = false
+	trigger.TriggerImmediately = true
+	warrior.MakeProcTriggerAura(trigger)
 
 	config := spelldata.SpellConfig(&warrior.Unit, overpowerRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-
-	// TODO: Ingame validation needed
-	config.ThreatMultiplier = 1
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
 		return warrior.OverpowerAura.IsActive()

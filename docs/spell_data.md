@@ -220,8 +220,9 @@ What the row fills: the `ActionID`, `Rank` (from "Rank 4", which is what flips `
 UI), `SpellSchool`, `DefenseType`, `ClassFlags`, `MissileSpeed`, `MinRange`/`MaxRange`, the cast - cast
 time, the GCD where the row sits in the global cooldown category, its own cooldown and the category one
 it shares - and the cost out of the first bar it states, with rage divided off the 0-1000 bar and the
-refund the Discount Power On Miss attribute states. `CastRequirement` gets the forms and caster auras
-the game files require (see below), which is why Pummel needs no Berserker Stance condition. `Flags` gets
+refund the Discount Power On Miss attribute states. `CastRequirement` gets the forms, caster auras,
+weapon, shield and out-of-combat state the game files require (see below), which is why Pummel needs no
+Berserker Stance condition and Shield Bash no shield check. `Flags` gets
 what the attributes and targets say:
 `SpellFlagPassiveSpell`, `SpellFlagChanneled`, `SpellFlagSuppressWeaponProcs` and `SpellFlagHelpful`.
 
@@ -249,18 +250,30 @@ put there.
 
 ### Where a spell can be cast
 
-`core.CastRequirement` is what the game files require of the caster's form and auras, and core refuses a
-cast, `CanCast` and `CanQueue` that break it ("wrong form", "missing caster aura", "excluded caster
-aura"). It reads four game files sources: `SpellShapeshift`'s mask and exclude mask (`StanceMask`,
-`StanceExclude`), `SpellAuraRestrictions` (`CasterAura`, `ExcludeCasterAura` - Tiger's Fury states its
-Cat Form requirement there, not in a mask), the not-shapeshifted and castable-in-caster-form attribute
-bits, and `SpellShapeshiftForm`'s stance flag (`dbcenums.ShapeshiftForm.IsStance`, generated into
-`sim/core/dbcenums/forms_auto_gen.go`).
+`core.CastRequirement` is what the game files require of the caster's form, auras and equipment, and
+core refuses a cast, `CanCast` and `CanQueue` that break it ("wrong form", "missing caster aura",
+"excluded caster aura", "missing equipped item", "in combat"). It reads six game files sources:
+`SpellShapeshift`'s mask and exclude mask (`StanceMask`, `StanceExclude`), `SpellAuraRestrictions`
+(`CasterAura`, `ExcludeCasterAura` - Tiger's Fury states its Cat Form requirement there, not in a mask),
+the not-shapeshifted and castable-in-caster-form attribute bits, `SpellShapeshiftForm`'s stance flag
+(`dbcenums.ShapeshiftForm.IsStance`, generated into `sim/core/dbcenums/forms_auto_gen.go`),
+`SpellEquippedItems` with the `ATTR_EX_3_REQ_MAIN_HAND` and `ATTR_EX_3_REQ_OFF_HAND` hand bits, and the
+not-in-combat attribute bit (`ATTR_NOT_IN_COMBAT`, Charge's).
 
 For the caster's form `f`: an excluded form refuses; a form in the mask allows; in a shapeshift that is
 not a stance (Cat, Bear) a spell with a mask or the not-shapeshifted bit is refused; with no form or in
 a stance (the warrior's, Moonkin, Tree) a spell with a mask is refused unless it is castable in caster
 form. A required caster aura must then be active on the caster, matched by `ActionID.SpellID`.
+
+The equipment is read as the spell is cast, so it follows item swaps. A weapon row (item class 2) is
+`CastRequirement.Weapon`, a `core.EquipRequirement`: each hand a hand bit names must hold a weapon its
+subclass and inventory-type masks match (Spearing Strike 1310222 a two-hander in the main hand, Mutilate
+a dagger in both), and a row with no hand bit is met by any weapon slot (Aimed Shot's bow, gun or
+crossbow in the ranged slot). An armor row (item class 4) naming the shield subclass is
+`CastRequirement.Shield`, met by a shield in the off hand; a shield is the only armor a castable spell
+asks for. A unit that is not a player meets neither; a player with no weapon meets no weapon requirement. A spell
+with the not-in-combat bit is refused from the start of the encounter on, so Charge is a prepull
+action.
 
 The class reports its form in `Unit.ShapeshiftForm` - the warrior's `setStance`, the druid's `setForm` -
 and nothing else. A unit that sets `Unit.AutoUnshift` (the druid, to `ClearForm`) casts a spell its form
@@ -396,8 +409,8 @@ spelldata.ParseEffects(nil, swAura, spellData.ShadowWeavingTriggered.Highest(),
 ```
 
 Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance passive is parsed onto
-the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its
-tooltip asks for and the row states nowhere, re-read through `Refresh` on an off-hand swap.
+the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its row
+states and the parse does not scope to, re-read through `Refresh` on an off-hand swap.
 
 The call answers a `*Parsed`. `Applied` names each attachment, or each part of one that has parts (the
 stats of a multi-stat row, the melee-defense part beside a weapon damage done row) - the effect, the sim

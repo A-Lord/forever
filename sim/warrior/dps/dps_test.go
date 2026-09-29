@@ -37,14 +37,6 @@ func dpsWarriorSuite() core.CharacterSuiteConfig {
 		GearSet:    core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p1_fury"),
 		OtherGearSets: []core.GearSetCombo{
 			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p1_arms"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p2_fury"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p2_arms"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p3_fury"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p3_arms"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p4_fury"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p4_arms"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p5_fury"),
-			core.GetGearSet("../../../ui/specs/warrior/dps/gear_sets", "p5_arms"),
 		},
 		Talents: DefaultFuryTalents,
 		OtherTalentSets: []core.TalentsCombo{
