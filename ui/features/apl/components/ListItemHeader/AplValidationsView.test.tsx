@@ -31,7 +31,7 @@ describe('AplValidationsView', () => {
 
 		expect(button(container).style.display).not.toBe('none');
 		expect(button(container).classList.contains('apl-validation-information')).toBe(true);
-		expect(button(container).querySelector('i')?.classList.contains('fa-info-circle')).toBe(true);
+		expect(button(container).querySelector('svg')?.classList.contains('fa-info-circle')).toBe(true);
 	});
 
 	it('takes its class and icon from the highest level present', () => {
@@ -43,7 +43,7 @@ describe('AplValidationsView', () => {
 
 		expect(button(container).classList.contains('apl-validation-error')).toBe(true);
 		expect(button(container).classList.contains('apl-validation-warning')).toBe(false);
-		expect(button(container).querySelector('i')?.classList.contains('fa-triangle-exclamation')).toBe(true);
+		expect(button(container).querySelector('svg')?.classList.contains('fa-triangle-exclamation')).toBe(true);
 	});
 
 	it('groups the messages under one header per level, in the order the levels first appear', async () => {

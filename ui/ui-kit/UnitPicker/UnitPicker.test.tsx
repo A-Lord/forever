@@ -11,7 +11,7 @@ const targetRef = (index: number) => UnitReference.create({ type: UnitType.Targe
 const options: Array<UnitValue> = [
 	{ value: allTargets, text: 'All Targets', iconUrl: '' },
 	{ value: targetRef(0), text: 'Target 1', iconUrl: 'boss.jpg', color: 'warrior' },
-	{ value: targetRef(1), text: 'Target 2', iconUrl: 'fa-users' },
+	{ value: targetRef(1), text: 'Target 2', iconUrl: 'fa-bullseye' },
 ];
 
 const mount = (value: UnitReference | undefined, onChange = vi.fn(), values = options) =>
@@ -50,9 +50,8 @@ describe('UnitPicker', () => {
 		expect(within(items()[0]).queryByTestId('unit-picker-item-icon')).toBeNull();
 		expect(within(items()[1]).getByTestId('unit-picker-item-icon').getAttribute('src')).toBe('boss.jpg');
 		const glyph = within(items()[2]).getByTestId('unit-picker-item-icon');
-		expect(glyph.tagName).not.toBe('IMG');
-		expect(glyph.classList.contains('fa')).toBe(true);
-		expect(glyph.classList.contains('fa-users')).toBe(true);
+		expect(glyph.tagName).toBe('svg');
+		expect(glyph.classList.contains('fa-bullseye')).toBe(true);
 		expect(glyph.classList.contains('ui-unit-icon')).toBe(true);
 	});
 

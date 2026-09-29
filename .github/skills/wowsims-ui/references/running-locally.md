@@ -95,4 +95,4 @@ Tailwind and the i18next loader. Fonts and spec backgrounds are root-absolute un
 `/forever/assets`, so `staticDirs` serves `assets/` there. `.storybook/preview.tsx` imports
 `.storybook/storybook.css` (the Storybook stylesheet entry, see `ui/STYLING.md`), the i18n config
 and `ui/shared/page_boot.ts`, stubs `gtag`, and adds the spec toolbar and the `withSimUi` frame;
-`.storybook/preview-head.html` loads FontAwesome and the Wowhead tooltip script the spec page loads.
+`.storybook/preview-head.html` loads the Wowhead tooltip script the spec page loads.

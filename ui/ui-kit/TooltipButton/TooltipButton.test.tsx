@@ -13,7 +13,9 @@ describe('TooltipButton', () => {
 		expect(button.getAttribute('data-testid')).toBe('tooltip-button');
 		expect(button.getAttribute('type')).toBe('button');
 		// `Icon` normalises the FA5 spelling `question-circle` into its FA6 name.
-		expect(button.querySelector('i')!.className).toContain('far fa-circle-question');
+		const icon = button.querySelector('svg')!;
+		expect(icon.classList).toContain('fa-circle-question');
+		expect(icon.getAttribute('data-prefix')).toBe('far');
 	});
 
 	it('carries the testId it is given in place of the tooltip-button default', () => {
@@ -23,7 +25,9 @@ describe('TooltipButton', () => {
 
 	it('takes another glyph, which the vanilla component hardcodes', () => {
 		render(<TooltipButton tooltip="Warning" icon="triangle-exclamation" iconStyle="solid" />);
-		expect(screen.getByRole('button').querySelector('i')!.className).toContain('fas fa-triangle-exclamation');
+		const icon = screen.getByRole('button').querySelector('svg')!;
+		expect(icon.classList).toContain('fa-triangle-exclamation');
+		expect(icon.getAttribute('data-prefix')).toBe('fas');
 	});
 
 	it('shows its tooltip on hover and nothing before', () => {

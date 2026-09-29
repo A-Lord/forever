@@ -129,10 +129,10 @@ describe('Toast', () => {
 			toastManager.add({ variant: 'error', body: 'boom' });
 		});
 
-		const icon = screen.getByRole('button', { name: 'Close' }).querySelector('i')!;
-		expect(Array.from(icon.classList)).toEqual(['fas', 'fa-times', 'fa-lg']);
+		const icon = screen.getByRole('button', { name: 'Close' }).querySelector('svg')!;
+		expect(Array.from(icon.classList)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon', 'fa-lg', 'fa-width-auto']);
 		const icon2xl = within(standardViewport()).getByTestId('sim-toast-icon');
-		expect(icon2xl.classList.contains('fas')).toBe(true);
+		expect(icon2xl.getAttribute('data-prefix')).toBe('fas');
 		expect(icon2xl.classList.contains('fa-circle-exclamation')).toBe(true);
 		expect(icon2xl.classList.contains('fa-2xl')).toBe(true);
 	});

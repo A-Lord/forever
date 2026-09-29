@@ -61,11 +61,11 @@ describe('SimResultSummaryView', () => {
 	it('draws the pin in the class accent and every glyph through Icon', () => {
 		mount();
 
-		const pin = screen.getByTestId('results-sim-set-reference').querySelector('i')!;
+		const pin = screen.getByTestId('results-sim-set-reference').querySelector('svg')!;
 		expect(pin.classList.contains('fa-map-pin')).toBe(true);
 		expect(pin.classList.contains('text-class-warrior')).toBe(true);
-		expect(screen.getByTestId('results-sim-reference-swap').querySelector('i')!.classList.contains('fa-arrows-rotate')).toBe(true);
-		expect(screen.getByTestId('results-sim-reference-delete').querySelector('i')!.classList.contains('fa-times')).toBe(true);
-		expect([...strip(document.body).querySelectorAll('i')].every(icon => icon.getAttribute('aria-hidden') === 'true')).toBe(true);
+		expect(screen.getByTestId('results-sim-reference-swap').querySelector('svg')!.classList.contains('fa-arrows-rotate')).toBe(true);
+		expect(screen.getByTestId('results-sim-reference-delete').querySelector('svg')!.classList.contains('fa-times')).toBe(true);
+		expect([...strip(document.body).querySelectorAll('svg')].every(icon => icon.getAttribute('aria-hidden') === 'true')).toBe(true);
 	});
 });

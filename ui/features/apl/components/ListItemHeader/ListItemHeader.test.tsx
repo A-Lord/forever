@@ -56,8 +56,8 @@ describe('ListItemHeader', () => {
 			const notHidden = mount({ hide: false }, () => []);
 			const hidden = mount({ hide: true }, () => []);
 
-			const notHiddenIcon = notHidden.container.querySelector('[data-testid="hide-picker-button"] i')!;
-			const hiddenIcon = hidden.container.querySelector('[data-testid="hide-picker-button"] i')!;
+			const notHiddenIcon = notHidden.container.querySelector('[data-testid="hide-picker-button"] svg')!;
+			const hiddenIcon = hidden.container.querySelector('[data-testid="hide-picker-button"] svg')!;
 
 			expect(notHiddenIcon.classList.contains('fa-eye')).toBe(true);
 			expect(notHiddenIcon.classList.contains('fa-eye-slash')).toBe(false);
@@ -103,7 +103,7 @@ describe('ListItemHeader', () => {
 			const button = container.querySelector('[data-testid="apl-validations"]') as HTMLElement;
 			expect(button.style.display).not.toBe('none');
 			expect(button.classList.contains('apl-validation-information')).toBe(true);
-			expect(button.querySelector('i')?.classList.contains('fa-info-circle')).toBe(true);
+			expect(button.querySelector('svg')?.classList.contains('fa-info-circle')).toBe(true);
 		});
 
 		it('uses the highest level in a mixed set of validations', async () => {
@@ -119,7 +119,7 @@ describe('ListItemHeader', () => {
 			expect(button.classList.contains('apl-validation-error')).toBe(true);
 			expect(button.classList.contains('apl-validation-warning')).toBe(false);
 			expect(button.classList.contains('apl-validation-information')).toBe(false);
-			expect(button.querySelector('i')?.classList.contains('fa-triangle-exclamation')).toBe(true);
+			expect(button.querySelector('svg')?.classList.contains('fa-triangle-exclamation')).toBe(true);
 		});
 
 		it('uses the warning class and icon when the highest level is a warning', async () => {
@@ -133,7 +133,7 @@ describe('ListItemHeader', () => {
 
 			const button = container.querySelector('[data-testid="apl-validations"]') as HTMLElement;
 			expect(button.classList.contains('apl-validation-warning')).toBe(true);
-			expect(button.querySelector('i')?.classList.contains('fa-triangle-exclamation')).toBe(true);
+			expect(button.querySelector('svg')?.classList.contains('fa-triangle-exclamation')).toBe(true);
 		});
 
 		it('keeps its formatted list when a notification leaves the validations unchanged', async () => {

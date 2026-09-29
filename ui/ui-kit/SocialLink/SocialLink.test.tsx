@@ -15,7 +15,9 @@ describe('SocialLink', () => {
 		expect(link.getAttribute('target')).toBe('_blank');
 		expect(link.getAttribute('rel')).toBe('noopener noreferrer');
 		expect(link.getAttribute('data-testid')).toBe('social-discord');
-		expect(link.querySelector('i')!.className).toContain('fab fa-discord');
+		const icon = link.querySelector('svg')!;
+		expect(icon.classList).toContain('fa-discord');
+		expect(icon.getAttribute('data-prefix')).toBe('fab');
 	});
 
 	it('renders the label beside the icon only for a social that has one', () => {

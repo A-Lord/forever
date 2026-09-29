@@ -238,12 +238,12 @@ describe('ItemListRow', () => {
 		const favouritedButton = favouritedRow.container.querySelector('[data-testid="selector-modal-list-item-favorite"]')!;
 		expect(favouritedButton.getAttribute('data-favourited')).toBe('true');
 		expect(favouritedButton.getAttribute('data-tooltip-id')).toBe('fav-42');
-		expect(favouritedButton.querySelector('i')?.classList.contains('fas')).toBe(true);
+		expect(favouritedButton.querySelector('svg')?.getAttribute('data-prefix')).toBe('fas');
 
 		const unfavouritedRow = renderRow({ favourited: false });
 		const unfavouritedButton = unfavouritedRow.container.querySelector('[data-testid="selector-modal-list-item-favorite"]')!;
 		expect(unfavouritedButton.getAttribute('data-favourited')).toBe('false');
-		expect(unfavouritedButton.querySelector('i')?.classList.contains('far')).toBe(true);
+		expect(unfavouritedButton.querySelector('svg')?.getAttribute('data-prefix')).toBe('far');
 	});
 
 	it('reflects whether the item is already in the bulk batch', () => {

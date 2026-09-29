@@ -15,13 +15,13 @@ describe('TalentsHeaderView', () => {
 	it('offers the copy action until the string is copied', () => {
 		render(<TalentsHeaderView pointsRemaining={0} copied={false} onCopy={() => {}} />);
 		expect(copyButton().textContent).toBe(i18n.t('talents_tab.copy_button.label'));
-		expect(copyButton().querySelector('i')!.className).toContain('fa-copy');
+		expect(copyButton().querySelector('svg')!.classList).toContain('fa-copy');
 	});
 
 	it('confirms the copy in the label and the icon', () => {
 		render(<TalentsHeaderView pointsRemaining={0} copied onCopy={() => {}} />);
 		expect(copyButton().textContent).toBe(i18n.t('common.copy_button.copied'));
-		expect(copyButton().querySelector('i')!.className).toContain('fa-check');
+		expect(copyButton().querySelector('svg')!.classList).toContain('fa-check');
 	});
 
 	it('hands the click to onCopy', () => {

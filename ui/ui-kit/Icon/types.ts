@@ -68,15 +68,8 @@ export const ICON_ALIASES = {
 
 export type IconAlias = keyof typeof ICON_ALIASES;
 
-/** base is the bare fa prefix, which FontAwesome resolves to the default style. */
+/** base is the default style, solid. */
 export type IconStyle = 'solid' | 'regular' | 'brands' | 'base';
 
 /** Sizes FontAwesome defines. `fa-1xl`, used by the toast close button, is not one of them. */
 export type IconSize = '2xs' | 'xs' | 'sm' | 'lg' | 'xl' | '2xl' | '1x' | '2x' | '3x' | '4x' | '5x';
-
-export const ICON_STYLE_CLASS: Record<IconStyle, string> = {
-	solid: 'fas',
-	regular: 'far',
-	brands: 'fab',
-	base: 'fa',
-};

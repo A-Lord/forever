@@ -17,7 +17,7 @@ describe('NoticeIcon', () => {
 		);
 		const button = screen.getByRole('button', { name: 'Notices' });
 		expect(button.getAttribute('data-level')).toBe(level);
-		const icon = button.querySelector('i')!;
+		const icon = button.querySelector('svg')!;
 		expect(icon.classList.contains(glyph)).toBe(true);
 		for (const token of NOTICE_COLOR[level].split(' ')) expect(icon.classList.contains(token)).toBe(true);
 	});

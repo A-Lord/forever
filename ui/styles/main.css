@@ -3,6 +3,7 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'react-tooltip/dist/react-tooltip.css' layer(base);
+@import '@fortawesome/fontawesome-svg-core/styles.css' layer(base);
 @import './base.css' layer(base);
 @import './vendor.css';
 @import 'tailwindcss/utilities.css' layer(utilities);
@@ -10,6 +11,7 @@
 @import './theme/index.css';
 
 @import '../ui-kit/Accordion/Accordion.css';
+@import '../ui-kit/Icon/Icon.css';
 @import '../ui-kit/ItemCell/ItemCell.css';
 @import '../ui-kit/Button/Button.css';
 @import '../ui-kit/ButtonGroup/ButtonGroup.css';

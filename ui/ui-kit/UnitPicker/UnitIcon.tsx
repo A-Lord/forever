@@ -1,16 +1,17 @@
-import { Icon, type IconName } from '@ui-kit/Icon';
+import { Icon, ICON_NAMES, type IconName } from '@ui-kit/Icon';
 
 export interface UnitIconProps {
-	/** A `UnitValue.iconUrl`: a Font Awesome glyph name or an image url. */
+	/** A `UnitValue.iconUrl`: `fa-<IconName>` or an image url. */
 	iconUrl: string;
 }
 
-/** The two shapes a `UnitValue` icon takes, as one element. */
+const isIconName = (name: string): name is IconName => (ICON_NAMES as readonly string[]).includes(name);
+
+/** The two shapes a `UnitValue` icon takes, as one element. A `fa-` name outside `IconName` has no glyph and renders nothing. */
 export const UnitIcon = ({ iconUrl }: UnitIconProps) => {
 	if (iconUrl.startsWith('fa-')) {
-		// `iconUrl` is a free string, so a glyph outside `IconName` (e.g. `users`) reaches `Icon` as is.
-		const name = iconUrl.slice('fa-'.length) as IconName;
-		return <Icon name={name} style="base" className="ui-unit-icon" data-testid="unit-picker-item-icon" />;
+		const name = iconUrl.slice('fa-'.length);
+		return isIconName(name) ? <Icon name={name} style="base" className="ui-unit-icon" data-testid="unit-picker-item-icon" /> : null;
 	}
 	return <img className="ui-unit-icon" data-testid="unit-picker-item-icon" src={iconUrl} alt="" />;
 };

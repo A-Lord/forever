@@ -9,7 +9,7 @@ export const NOTICE_ICON_NAME = {
 } as const satisfies Record<NoticeLevel, IconName | IconAlias>;
 
 export const NOTICE_COLOR: Record<NoticeLevel, string> = {
-	info: 'text-off-white text-shadow-glow-link',
-	warning: 'text-link-warning text-shadow-glow-danger',
-	error: 'text-danger text-shadow-glow-offwhite',
+	info: 'text-off-white drop-shadow-glow-link',
+	warning: 'text-link-warning drop-shadow-glow-danger',
+	error: 'text-danger drop-shadow-glow-offwhite',
 };

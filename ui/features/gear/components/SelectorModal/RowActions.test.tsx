@@ -23,14 +23,14 @@ describe('RowActions', () => {
 		const button = screen.getByTestId('selector-modal-list-item-favorite');
 		expect(button.getAttribute('data-favourited')).toBe('true');
 		expect(button.getAttribute('data-tooltip-id')).toBe('favourite-7');
-		expect(button.querySelector('i')!.classList).toContain('fas');
+		expect(button.querySelector('svg')!.getAttribute('data-prefix')).toBe('fas');
 	});
 
 	it('outlines the star of a row that is not a favourite', () => {
 		render(<RowActions favourited={false} favouriteTooltipId="favourite" onToggleFavourite={vi.fn()} />);
 		const button = screen.getByTestId('selector-modal-list-item-favorite');
 		expect(button.getAttribute('data-favourited')).toBe('false');
-		expect(button.querySelector('i')!.classList).toContain('far');
+		expect(button.querySelector('svg')!.getAttribute('data-prefix')).toBe('far');
 	});
 
 	it('leaves the batch toggle out unless it is given', () => {

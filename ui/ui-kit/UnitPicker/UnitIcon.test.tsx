@@ -17,14 +17,14 @@ describe('UnitIcon', () => {
 		render(<UnitIcon iconUrl="fa-paw" />);
 
 		const icon = screen.getByTestId('unit-picker-item-icon');
-		expect(icon.tagName).toBe('I');
-		expect([...icon.classList]).toEqual(['fa', 'fa-paw', 'ui-unit-icon']);
+		expect(icon.tagName).toBe('svg');
+		expect([...icon.classList]).toEqual(['svg-inline--fa', 'fa-paw', 'ui-icon', 'ui-unit-icon', 'fa-width-auto']);
 		expect(icon.getAttribute('aria-hidden')).toBe('true');
 	});
 
-	it('passes a glyph name outside the kit icon list through unchanged', () => {
-		render(<UnitIcon iconUrl="fa-users" />);
+	it('renders nothing for a glyph name outside the kit icon list', () => {
+		const { container } = render(<UnitIcon iconUrl="fa-users" />);
 
-		expect([...screen.getByTestId('unit-picker-item-icon').classList]).toEqual(['fa', 'fa-users', 'ui-unit-icon']);
+		expect(container.childElementCount).toBe(0);
 	});
 });
