@@ -1,7 +1,7 @@
 import { ItemSlot } from '@generated/proto/common';
 import { Gear } from '@sim/proto/gear';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, fn, within } from 'storybook/test';
 
 import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { SlotRail } from './SlotRail';
@@ -27,8 +27,8 @@ type Story = StoryObj<typeof meta>;
 
 export const EmptyGear: Story = {
 	play: async ({ args, canvasElement }) => {
-		const icons = within(canvasElement).getAllByTestId('item-picker-icon');
-		await userEvent.click(icons[2]);
+		// A click without the hover: the rail's tooltip opening on hover would land after the story ends.
+		fireEvent.click(within(canvasElement).getAllByTestId('item-picker-icon')[2]);
 		await expect(args.onOpen).toHaveBeenCalledWith(ItemSlot.ItemSlotShoulder);
 	},
 };
