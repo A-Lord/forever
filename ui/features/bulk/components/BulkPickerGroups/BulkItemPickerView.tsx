@@ -34,6 +34,7 @@ const ROOT_ATTRIBUTES: Record<BulkItemPickerState, Record<string, string>> = {
 
 export const BulkItemPickerView = ({ slot, item, state, onOpen, onRemove }: BulkItemPickerViewProps) => {
 	const tooltipId = useId();
+	const frozenTooltipId = useId();
 	return (
 		<ItemDetailCell
 			slot={slot}
@@ -46,7 +47,16 @@ export const BulkItemPickerView = ({ slot, item, state, onOpen, onRemove }: Bulk
 			action={
 				<div className="ml-2 grid grid-flow-col [align-items:start] gap-1">
 					{state === 'frozen' && (
-						<Icon name="lock" className="text-xs text-frozen" title={i18n.t('bulk_tab.picker.frozen_tooltip')} testId="item-picker-frozen" />
+						<>
+							<Icon
+								name="lock"
+								className="text-xs text-frozen"
+								title={i18n.t('bulk_tab.picker.frozen_tooltip')}
+								testId="item-picker-frozen"
+								{...tooltipAnchorProps(frozenTooltipId)}
+							/>
+							<Tooltip id={frozenTooltipId} content={i18n.t('bulk_tab.picker.frozen_tooltip')} />
+						</>
 					)}
 					{onRemove && (
 						<>
