@@ -12,9 +12,9 @@ import { useMemo } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
 import { useReforgeField } from '../../hooks/useReforgeField';
+import { DEFAULT_REFORGE_ID_PREFIX, ReforgeIdPrefixContext } from './context/ReforgeIdPrefixContext';
 import { ReforgeBreakpointLimits } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlots } from './ReforgeFrozenSlots';
-import { DEFAULT_REFORGE_ID_PREFIX, ReforgeIdPrefixContext } from './ReforgeIdPrefixContext';
 import { ReforgeSettingsPanelView } from './ReforgeSettingsPanelView';
 import { ReforgeStatCaps } from './ReforgeStatCaps';
 import { buildStatTooltips } from './utils';

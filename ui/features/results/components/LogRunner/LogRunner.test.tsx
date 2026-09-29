@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SimResultData } from '../../model/result_data';
-import { DrStickySlotContext } from '../DetailedResults/DrStickySlotContext';
+import { DrStickySlotContext } from '../DetailedResults/context/DrStickySlotContext';
 import { LogRunner } from './LogRunner';
 
 let result: SimResultData | null = null;

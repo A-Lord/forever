@@ -9,7 +9,7 @@ import type { UnitStat } from '@sim/proto/stats';
 import { subscribeReforgeChange } from '@sim/state/subscriptions';
 import { type ReactNode, useMemo } from 'react';
 
-import { useReforgeIdPrefix } from './ReforgeIdPrefixContext';
+import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
 import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
 
 export interface ReforgeStatCapRowProps {

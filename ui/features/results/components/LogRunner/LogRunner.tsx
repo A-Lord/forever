@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom';
 import { useSimResult } from '../../hooks/useSimResult';
 import { EMPTY_SUGGESTIONS, LogIndex } from '../../model/log/search/indexes';
 import type { SimResultData } from '../../model/result_data';
-import { useDrStickySlot } from '../DetailedResults/DrStickySlotContext';
+import { useDrStickySlot } from '../DetailedResults/context/DrStickySlotContext';
 import { LogRow } from './LogRow';
 import { LogRunnerHeaderView, LogRunnerNoMatches } from './LogRunnerHeaderView';
 import { LogToolbar } from './LogToolbar';

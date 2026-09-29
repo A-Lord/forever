@@ -110,7 +110,9 @@ plus a co-located `<Name>.css` only when the component needs `ui-*` composition 
 the hook: the store's React binding and everything built on it in `ui/sim/hooks/`
 (`useStoreSubscribe.ts`, `useSimRun.ts`, `useActionId.ts`), the sim-agnostic ones in `ui-kit/hooks/` (`useDraft.ts`,
 `useCopyToClipboard.ts`), and the store-bound `useInput.ts` in `features/inputs/hooks/`. There is no `ui-kit/react/`: every component here is React, so the qualifier
-would distinguish nothing. Storybook is the component registry (above); this file and `STYLING.md`
+would distinguish nothing. A hook that belongs to one component or feature lives in a `hooks/` folder beside it
+(`ui-kit/VirtualList/hooks/useScrollMargin.ts`); a context object and its provider live the same way in a `context/`
+folder beside the component or feature (`ui-kit/Field/context/FieldContext.ts`). Storybook is the component registry (above); this file and `STYLING.md`
 cover placement and co-located CSS.
 
 ## Placement rules

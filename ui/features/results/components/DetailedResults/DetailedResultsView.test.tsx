@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { TabPanel } from '@ui-kit/TabNav';
 import { describe, expect, it, vi } from 'vitest';
 
+import { useDrStickySlot } from './context/DrStickySlotContext';
 import { DetailedResultsView, type DetailedResultsViewProps } from './DetailedResultsView';
-import { useDrStickySlot } from './DrStickySlotContext';
 import type { DetailedResultsTabConfig } from './utils';
 
 const TABS: Array<DetailedResultsTabConfig> = [

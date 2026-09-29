@@ -1,6 +1,6 @@
-import { type AriaRole, createContext, useContext } from 'react';
+import { type AriaRole, createContext } from 'react';
 
-import type { FieldDensity, FieldLayout } from './types';
+import type { FieldDensity, FieldLayout } from '../types';
 
 export interface FieldContextValue {
 	id: string | undefined;
@@ -15,9 +15,3 @@ export interface FieldContextValue {
 }
 
 export const FieldContext = createContext<FieldContextValue | null>(null);
-
-export const useField = () => {
-	const value = useContext(FieldContext);
-	if (value === null) throw new Error('A Field part must be rendered inside a Field.Root.');
-	return value;
-};
