@@ -6,7 +6,7 @@ import { FieldGrid } from './FieldGrid';
 
 describe('FieldGrid', () => {
 	// A layout primitive has no role or state to assert on; its class is the only observable
-	// contract (STYLING §5's exception, as Task 0 made for `iconGroupClassName`).
+	// contract (STYLING §5's exception for layout primitives).
 	it('renders the grid class, with the caller classes after its own', () => {
 		render(<FieldGrid testId="group" className={['justify-end', { hidden: false }]} />);
 		const group = screen.getByTestId('group');
