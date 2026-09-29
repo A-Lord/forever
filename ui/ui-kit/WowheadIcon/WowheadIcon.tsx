@@ -1,8 +1,9 @@
-import { externalRel } from '@sim/utils/links';
+import { WowheadAnchor, type WowheadAnchorProps } from '@ui-kit/WowheadAnchor';
 import clsx from 'clsx';
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
-export interface WowheadIconProps extends ComponentPropsWithoutRef<'a'> {
+export interface WowheadIconProps extends WowheadAnchorProps {
+	/** A `div` takes the look, the label and the dataset, and none of the anchor's props. */
 	as?: 'a' | 'div';
 	iconUrl?: string;
 	href?: string;
@@ -14,20 +15,24 @@ export interface WowheadIconProps extends ComponentPropsWithoutRef<'a'> {
 	children?: ReactNode;
 }
 
-export const WowheadIcon = ({ as = 'a', iconUrl, href, wowhead, label, className, testId, children, ...rest }: WowheadIconProps) => {
-	const Tag = as as 'a';
-	const anchorProps = as === 'a' ? { href, rel: externalRel(href, undefined) } : {};
+export const WowheadIcon = ({ as = 'a', iconUrl, wowhead, label, className, testId, children, ...rest }: WowheadIconProps) => {
+	const look = {
+		className: clsx('relative inline-block bg-cover bg-center bg-no-repeat', className),
+		'aria-label': label,
+		style: iconUrl ? { backgroundImage: `url('${iconUrl}')` } : undefined,
+		...wowhead,
+	};
+
+	if (as === 'div')
+		return (
+			<div data-testid={testId} {...look}>
+				{children}
+			</div>
+		);
 
 	return (
-		<Tag
-			className={clsx('relative inline-block bg-cover bg-center bg-no-repeat', className)}
-			{...anchorProps}
-			data-testid={testId}
-			aria-label={label}
-			style={iconUrl ? { backgroundImage: `url('${iconUrl}')` } : undefined}
-			{...wowhead}
-			{...rest}>
+		<WowheadAnchor testId={testId} {...look} {...rest}>
 			{children}
-		</Tag>
+		</WowheadAnchor>
 	);
 };

@@ -95,12 +95,12 @@ describe('IconSwatch', () => {
 });
 
 describe('IconMenu', () => {
-	const mount = (onOpenChange = vi.fn()) => {
+	const mount = (onOpenChange = vi.fn(), href?: string) => {
 		render(
 			<IconMenu
 				side="bottom"
 				onOpenChange={onOpenChange}
-				trigger={<IconSwatch icon={kings} testId="trigger" />}
+				trigger={<IconSwatch icon={kings} href={href} testId="trigger" />}
 				positionerProps={{ 'data-testid': 'positioner' }}
 				popupProps={{ 'data-testid': 'popup' }}>
 				<li data-testid="entry" />
@@ -130,5 +130,43 @@ describe('IconMenu', () => {
 		expect(screen.getByTestId('entry')).toBeTruthy();
 		expect(screen.getByTestId('positioner').style.position).toBe('fixed');
 		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+	});
+
+	it('opens on a click of a linked swatch without following the link, and closes on the next', () => {
+		const { trigger, onOpenChange } = mount(vi.fn(), kings.href);
+		expect(trigger.getAttribute('href')).toBe(kings.href);
+
+		const first = new MouseEvent('click', { bubbles: true, cancelable: true });
+		act(() => {
+			trigger.dispatchEvent(first);
+		});
+		expect(first.defaultPrevented).toBe(true);
+		expect(onOpenChange.mock.calls.map(([open]) => open)).toEqual([true]);
+		expect(screen.getByTestId('entry')).toBeTruthy();
+
+		const second = new MouseEvent('click', { bubbles: true, cancelable: true });
+		act(() => {
+			trigger.dispatchEvent(second);
+		});
+		expect(second.defaultPrevented).toBe(true);
+		expect(onOpenChange.mock.calls.map(([open]) => open)).toEqual([true, false]);
+	});
+
+	it('opens once on Enter and once on Space from an unlinked swatch, never twice', () => {
+		const { trigger, onOpenChange } = mount();
+		const press = (key: string) => {
+			act(() => {
+				fireEvent.keyDown(trigger, { key });
+			});
+			act(() => {
+				fireEvent.keyUp(trigger, { key });
+			});
+		};
+
+		press('Enter');
+		expect(onOpenChange.mock.calls.map(([open]) => open)).toEqual([true]);
+
+		press(' ');
+		expect(onOpenChange.mock.calls.map(([open]) => open)).toEqual([true, false]);
 	});
 });

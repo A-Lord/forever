@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { IconPicker } from '@ui-kit/IconPicker';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useWowheadTooltipRefresh } from './useWowheadTooltipRefresh';
@@ -92,6 +93,25 @@ describe('useWowheadTooltipRefresh', () => {
 		expect(swatch.getAttribute('href')).toBe(icon.href);
 		expect(swatch.dataset.whtticon).toBe('false');
 		expect(triggerTooltip).toHaveBeenLastCalledWith(swatch);
+	});
+
+	it('re-opens the tooltip of a wowhead anchor that acts, from the text inside it', () => {
+		const { triggerTooltip } = withWowhead();
+		const Cell = ({ name }: { name: string }) => {
+			useWowheadTooltipRefresh(name);
+			return (
+				<WowheadAnchor href="https://www.wowhead.com/item=19019" testId="cell" onActivate={() => {}}>
+					<span data-testid="cell-name">{name}</span>
+				</WowheadAnchor>
+			);
+		};
+		const { rerender } = render(<Cell name="Thunderfury" />);
+		vi.spyOn(document, 'elementFromPoint').mockReturnValue(screen.getByTestId('cell-name'));
+
+		document.dispatchEvent(new MouseEvent('mousemove', { clientX: 7, clientY: 8 }));
+		rerender(<Cell name="Sulfuras" />);
+
+		expect(triggerTooltip).toHaveBeenLastCalledWith(screen.getByTestId('cell'));
 	});
 
 	it('does not trigger a tooltip when nothing is hovered', () => {

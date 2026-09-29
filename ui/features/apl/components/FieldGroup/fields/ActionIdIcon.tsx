@@ -14,5 +14,5 @@ export const ActionIdIcon = ({ actionId, useBuffAura }: ActionIdIconProps) => {
 	const { iconUrl, href } = useActionId(actionId);
 	const wowheadProps = useActionIdWowheadDataset(actionId, useBuffAura);
 
-	return <WowheadIcon className="mr-1 size-4" data-whtticon="false" href={href || undefined} iconUrl={iconUrl || undefined} {...wowheadProps} />;
+	return <WowheadIcon className="mr-1 size-4" href={href || undefined} iconUrl={iconUrl || undefined} {...wowheadProps} />;
 };

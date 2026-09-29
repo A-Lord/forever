@@ -1,9 +1,10 @@
 import type { ItemQuality } from '@generated/proto/common';
 import { itemQualityClassName } from '@ui-kit/utils/css';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
-import { ItemCellAnchor, NameDescriptionLabel } from '../ItemCell';
+import { NameDescriptionLabel } from '../ItemCell';
 import { EpCell, type EpCellProps } from './EpCell';
 import { RowActions, type RowActionsProps } from './RowActions';
 
@@ -45,18 +46,13 @@ export const ItemListRowView = ({
 			</div>
 		)}
 		<div className="flex flex-1 items-center gap-1" data-testid="selector-modal-list-label-cell" data-active={active ? '' : undefined}>
-			<ItemCellAnchor
-				className="ui-selector-modal-list-item-link"
-				data-testid="selector-modal-list-item-link"
-				href={href || undefined}
-				data-whtticon="false"
-				onActivate={onEquip}>
+			<WowheadAnchor className="ui-selector-modal-list-item-link" testId="selector-modal-list-item-link" href={href || undefined} onActivate={onEquip}>
 				<img className="ui-selector-modal-list-item-icon" data-testid="selector-modal-list-item-icon" src={iconUrl || undefined} alt="" />
 				<span className={clsx('ui-selector-modal-list-item-name', itemQualityClassName(quality))} data-testid="selector-modal-list-item-name">
 					{name}
 					{!!nameDescription && <NameDescriptionLabel nameDescription={nameDescription} />}
 				</span>
-			</ItemCellAnchor>
+			</WowheadAnchor>
 			{notice}
 		</div>
 		{source !== undefined && (

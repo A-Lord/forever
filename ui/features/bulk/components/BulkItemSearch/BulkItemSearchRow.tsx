@@ -5,9 +5,9 @@ import { ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT } from '@sim/bulk/utils';
 import { useActionId } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { getEligibleItemSlots } from '@sim/proto/items';
-import { externalRel } from '@sim/utils/links';
 import { FACTION_TEXT } from '@ui-kit/utils/colors';
 import { itemQualityClassName } from '@ui-kit/utils/css';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 
 import { baseIlvl } from '../../model/search';
@@ -21,14 +21,13 @@ export const BulkItemSearchRow = ({ item }: BulkItemSearchRowProps) => {
 	const { iconUrl, href } = useActionId(actionId);
 
 	return (
-		<a
+		<WowheadAnchor
 			className="ui-bulk-item-search-item clear-both w-full rounded-none bg-transparent text-left font-normal text-white no-underline"
 			data-item-id={item.id}
 			href={href || undefined}
-			target="_blank"
 			tabIndex={-1}
-			rel={externalRel(href || undefined, undefined)}
-			onClick={event => event.preventDefault()}>
+			// The combo box option around the row selects the item on the same click.
+			onActivate={() => {}}>
 			<div className="relative size-10 shrink-0 border border-border">
 				<span className="ui-item-picker-ilvl" data-testid="item-picker-ilvl">
 					{baseIlvl(item)}
@@ -48,6 +47,6 @@ export const BulkItemSearchRow = ({ item }: BulkItemSearchRowProps) => {
 				</div>
 				<small>{translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(getEligibleItemSlots(item)[0])!)}</small>
 			</div>
-		</a>
+		</WowheadAnchor>
 	);
 };
