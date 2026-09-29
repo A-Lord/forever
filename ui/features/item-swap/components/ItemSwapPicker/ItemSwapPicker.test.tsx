@@ -48,6 +48,6 @@ describe('ItemSwapPicker', () => {
 		const { container } = setup(false);
 
 		expect(container.querySelector('[data-testid="input-item-swap-container"]')).toBeNull();
-		expect(container.querySelector('.picker-group.ui-picker-group-icons')).toBeNull();
+		expect(container.querySelector('[data-testid="item-swap-icon-grid"]')).toBeNull();
 	});
 });
