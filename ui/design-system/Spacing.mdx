@@ -1,5 +1,5 @@
 import { Meta } from '@storybook/addon-docs/blocks';
-import { ResponsiveSpacing, SpacingRuler } from './components/SpacingRuler';
+import { BaseSpacingScale, ResponsiveSpacing, SpacingScale } from './components/SpacingScale';
 import { TokenTable } from './components/TokenTable';
 
 <Meta title="Design System/Spacing" />
@@ -8,11 +8,23 @@ import { TokenTable } from './components/TokenTable';
 
 Tokens from `ui/styles/theme/spacing.css`. The spacing scale itself is dynamic: any multiple of `0.25` is a step, and one step is 3.5px at this repo's 14px root, so `p-1.25` is exactly 4.375px and `w-4.5` is 15.75px. Convert a px value to its exact step rather than writing `[Npx]`.
 
-## Plain lengths
+## Base scale
 
-Every `--spacing-*`, `--size-*` and `--container-*` token whose value is a plain `px` or `rem` length or a `--spacing(n)` step, drawn at that width.
+The steps a component token should alias. Each square is `--spacing(n)` wide and tall.
 
-<SpacingRuler />
+<BaseSpacingScale />
+
+## Named lengths
+
+Every `--spacing-*` and `--size-*` token whose value is a plain `px` or `rem` length or a `--spacing(n)` step, drawn as a square of that size.
+
+<SpacingScale prefixes={['spacing', 'size']} />
+
+## Containers
+
+`--container-*` tokens with a plain length, drawn as a bar of that width.
+
+<SpacingScale prefixes={['container']} bar />
 
 ## Responsive overrides
 
