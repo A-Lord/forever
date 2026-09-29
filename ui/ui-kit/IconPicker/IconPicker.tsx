@@ -82,7 +82,6 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.
 			aria-label={icon?.name || undefined}
-			target="_blank"
 			{...stateEvents}
 		/>
 	);
