@@ -30,6 +30,11 @@
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.7.0",
+		"@fortawesome/fontawesome-svg-core": "6.7.2",
+		"@fortawesome/free-brands-svg-icons": "6.7.2",
+		"@fortawesome/free-regular-svg-icons": "6.7.2",
+		"@fortawesome/free-solid-svg-icons": "6.7.2",
+		"@fortawesome/react-fontawesome": "3.5.0",
 		"@tanstack/react-table": "9.2.4",
 		"@tanstack/react-virtual": "3.14.10",
 		"@types/golang-wasm-exec": "^1.15.2",
