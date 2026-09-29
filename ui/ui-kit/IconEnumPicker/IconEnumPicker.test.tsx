@@ -232,14 +232,47 @@ describe('IconEnumPicker', () => {
 		expect(onOpenChange.mock.lastCall?.[0]).toBe(false);
 	});
 
-	it('cancels the anchor’s navigation when an option is chosen', () => {
-		mount();
+	it('cancels the anchor’s navigation when an option is chosen, selects it once and closes the menu', () => {
+		const { onChange } = mount();
 		open();
+		expect(optionAnchor(1).getAttribute('href')).toBe(frostIcon.href);
 		const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 		act(() => {
 			optionAnchor(1).dispatchEvent(event);
 		});
 		expect(event.defaultPrevented).toBe(true);
+		expect(onChange.mock.calls).toEqual([[1]]);
+		expect(button().getAttribute('aria-expanded')).toBe('false');
+	});
+
+	it('selects an option with no link once on Enter and once on Space', () => {
+		const { onChange, set } = mount();
+		const press = (key: string) => {
+			act(() => {
+				fireEvent.keyDown(optionAnchor(0), { key });
+			});
+			if (menu())
+				act(() => {
+					fireEvent.keyUp(optionAnchor(0), { key });
+				});
+		};
+
+		set(1);
+		open();
+		expect(optionAnchor(0).hasAttribute('href')).toBe(false);
+		press('Enter');
+		expect(onChange.mock.calls).toEqual([[0]]);
+
+		set(1);
+		open();
+		press(' ');
+		expect(onChange.mock.calls).toEqual([[0], [0]]);
+	});
+
+	it('opts every option out of the touch tooltip, since a tap selects', () => {
+		mount();
+		open();
+		expect(items().map((_item, index) => optionAnchor(index).dataset.disableWowheadTouchTooltip)).toEqual(['true', 'true', 'true']);
 	});
 
 	it('cancels the trigger’s navigation on a click, so a tap opens the menu instead of the link', () => {

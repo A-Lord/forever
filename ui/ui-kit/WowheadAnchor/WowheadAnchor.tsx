@@ -29,7 +29,7 @@ export const WowheadAnchor = ({
 		<a
 			ref={ref}
 			data-testid={testId}
-			{...wowheadAnchorProps({ icon: icon && !!href })}
+			{...wowheadAnchorProps({ icon: icon && !!href, acts: !!onActivate })}
 			{...rest}
 			href={href || undefined}
 			rel={externalRel(href || undefined, rel)}
