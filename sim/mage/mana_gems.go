@@ -20,6 +20,8 @@ var manaGems = []struct {
 }
 
 func (mage *Mage) registerManaGems() {
+	// The charges of the gems already registered, which are the better ones.
+	var betterCharges []*core.Aura
 	for _, gem := range manaGems {
 		gemRank := gem.rank
 		actionID := core.ActionID{ItemID: gem.itemID}
@@ -50,10 +52,19 @@ func (mage *Mage) registerManaGems() {
 			mage.AddMana(sim, manaEffect.Roll(sim, core.CharacterLevel), manaMetrics)
 		}
 
+		// Hold this gem until every better one has been used.
+		higherGems := betterCharges
+		betterCharges = append(betterCharges, charge)
+
 		mage.AddMajorCooldown(core.MajorCooldown{
 			Spell: mage.RegisterSpell(config),
 			Type:  core.CooldownTypeMana,
 			ShouldActivate: func(_ *core.Simulation, character *core.Character) bool {
+				for _, higher := range higherGems {
+					if higher.GetStacks() > 0 {
+						return false
+					}
+				}
 				return character.CurrentMana()+manaEffect.Max(core.CharacterLevel) <= character.MaxMana()
 			},
 		})
