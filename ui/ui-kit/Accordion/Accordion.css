@@ -31,8 +31,28 @@
 		}
 	}
 
+	.ui-accordion-header-row {
+		@apply m-0 flex items-center gap-2;
+	}
+
+	.ui-accordion-header-trigger {
+		@apply flex shrink-0 interactive items-center justify-center p-1 text-foreground;
+
+		&:hover {
+			@apply text-link-hover;
+		}
+
+		&[data-panel-open] .ui-accordion-chevron {
+			@apply rotate-0;
+		}
+	}
+
 	.ui-accordion-chevron {
 		@apply -rotate-90 transition-transform duration-150;
+	}
+
+	.ui-accordion-item[data-panel-first] .ui-accordion-header-trigger:not([data-panel-open]) .ui-accordion-chevron {
+		@apply rotate-180;
 	}
 
 	.ui-accordion-panel-body {

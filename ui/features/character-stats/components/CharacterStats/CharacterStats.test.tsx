@@ -7,7 +7,7 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CharacterStats } from './CharacterStats';
 import { buildRows } from './utils/rows';
@@ -170,6 +170,57 @@ describe('CharacterStats Key/All toggle', () => {
 
 		fireEvent.click(modeButton('key'));
 		expect(rowLabels(view)).toEqual(keyLabels);
+	});
+});
+
+describe('CharacterStats open state', () => {
+	const OPEN_KEY = '__forever_character-stats-open.v1';
+	const trigger = () => screen.getByRole('button', { name: i18n.t('sidebar.character_stats.title') });
+	const atWidth = (wide: boolean) =>
+		vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: wide && query === '(min-width: 992px)', media: query }) as MediaQueryList);
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+		window.localStorage.clear();
+	});
+
+	it('opens by default from lg up', () => {
+		atWidth(true);
+		const { rows } = renderStats(true);
+
+		expect(trigger().getAttribute('aria-expanded')).toBe('true');
+		expect(rows.length).toBe(DISPLAY_STATS.length + 1);
+	});
+
+	it('starts closed below lg, showing only the header', () => {
+		atWidth(false);
+		const { rows } = renderStats(true);
+
+		expect(trigger().getAttribute('aria-expanded')).toBe('false');
+		expect(rows.length).toBe(0);
+		expect(screen.getByTestId('character-stats-label')).toBeTruthy();
+	});
+
+	it('keeps the choice in local storage, and a stored choice wins over the breakpoint', () => {
+		atWidth(true);
+		const { view } = renderStats(true);
+
+		fireEvent.click(trigger());
+		expect(trigger().getAttribute('aria-expanded')).toBe('false');
+		expect(window.localStorage.getItem(OPEN_KEY)).toBe('false');
+
+		view.unmount();
+		renderStats(true);
+		expect(trigger().getAttribute('aria-expanded')).toBe('false');
+	});
+
+	it('does not toggle the panel from the Key/All group', () => {
+		atWidth(true);
+		renderStats(true);
+
+		fireEvent.click(screen.getByRole('button', { name: i18n.t('sidebar.character_stats.mode.all') }));
+		expect(trigger().getAttribute('aria-expanded')).toBe('true');
+		expect(window.localStorage.getItem(OPEN_KEY)).toBeNull();
 	});
 });
 
