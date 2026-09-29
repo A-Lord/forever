@@ -192,7 +192,7 @@
 	}
 
 	.ui-button-md {
-		@apply px-2 py-2;
+		@apply p-2;
 	}
 
 	.ui-button-sm {

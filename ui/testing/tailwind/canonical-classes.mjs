@@ -111,9 +111,11 @@ function isGeneratedFile(relPath) {
 // destructured prop defaults are written without spaces around `=`; a plain `const x = …`
 // assignment has spaces and so is not matched), plus className itself.
 // Tooltip/Popover pass a bare Tailwind class string through `width`/`maxWidth` props
-// (see ui/ui-kit/Tooltip/Tooltip.tsx, ui/ui-kit/Popover/Popover.tsx); those names don't
-// follow the `*ClassName(s)` convention CLASS_ATTR_RE derives, so they're listed explicitly.
-const KNOWN_CLASS_PROPS = ['width', 'maxWidth'];
+// (see ui/ui-kit/Tooltip/Tooltip.tsx, ui/ui-kit/Popover/Popover.tsx), and Dialog forwards
+// `bodyGap` straight into its body's `clsx(...)` (ui/ui-kit/Dialog/Dialog.tsx); those names
+// don't follow the `*ClassName(s)` convention CLASS_ATTR_RE derives, so they're listed
+// explicitly.
+const KNOWN_CLASS_PROPS = ['width', 'maxWidth', 'bodyGap'];
 
 export function deriveClassAttrs(root) {
 	const skipDirs = new Set([path.join(root, 'ui/generated'), path.join(root, 'node_modules')]);
@@ -175,6 +177,12 @@ function collectFromScript(text, relPath, classAttrs) {
 			} else {
 				for (const token of splitClassString(body)) found.push({ token, index });
 			}
+		} else {
+			// An array literal (`className={['a', cond && 'b']}`) or a ternary
+			// (`className={cond ? 'a' : 'b'}`) isn't a bare string or a clsx() call, but still carries
+			// its class tokens as ordinary string/template literals; a bare identifier reference (a
+			// `Record` class map, a variable) has none, so this is a no-op for it.
+			collectStringLiteralsFrom(inner, index, found);
 		}
 	}
 
@@ -389,8 +397,8 @@ export function findVarInClass(root) {
 	return results;
 }
 
-// The spacing scale here runs even steps plus 1: 1, 2, 4, 6, 8, 10, 12, 16, ... (a fixed
-// px hairline stands in for 1 where the old scale had a sub-1 step). A spacing-scale
+// The spacing scale here runs even steps plus 1: 1, 2, 4, 6, 8, 10, 12, 16, ... (sub-step
+// hairlines are written `px`). A spacing-scale
 // utility resolves through designSystem.candidatesToCss() to `calc(var(--spacing) * n)`
 // (bare `var(--spacing)` for n === 1, no calc at all for n === 0) regardless of which
 // property it lands on, so reading that shape back out -- rather than a hand-maintained

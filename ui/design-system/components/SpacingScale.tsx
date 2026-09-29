@@ -8,7 +8,7 @@ import { parseRootVars, THEME_TOKENS } from '../tokens/theme_tokens';
 
 const PLAIN_LENGTH = /^([\d.]+(px|rem)|--spacing\([\d.]+\))$/;
 const ROOT_FONT_SIZE = Number(baseCss.match(/--font-size-root:\s*([\d.]+)px/)?.[1]);
-const BASE_STEPS = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12, 16];
+const BASE_STEPS = [1, 2, 4, 6, 8, 10, 12, 16, 20, 24];
 
 const formatPx = (px: number) => `${Math.round(px * 100) / 100}px`;
 

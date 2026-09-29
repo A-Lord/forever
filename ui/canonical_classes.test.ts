@@ -25,7 +25,7 @@ function formatVarOffenders(rows: Array<{ file: string; line: number; token: str
 }
 
 function formatSpacingOffenders(rows: Awaited<ReturnType<typeof findUnevenSpacing>>): string {
-	return rows.map(r => `${r.file}:${r.line} ${r.token} -- spacing steps are 1 or an even integer`).join('\n');
+	return rows.map(r => `${r.file}:${r.line} ${r.token} -- snap to the nearest even step (ties round up), or \`px\` for a hairline`).join('\n');
 }
 
 let offenders: Awaited<ReturnType<typeof findNonCanonical>>;

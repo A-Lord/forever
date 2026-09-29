@@ -52,37 +52,37 @@ async function testFixtureTree() {
 	fs.writeFileSync(
 		path.join(dir, 'ui/Widget.tsx'),
 		[
-			'const a = <div className="p-[5px] flex ui-widget-root" />;',
-			"const b = <div triggerClassName={'w-[18px]'} />;",
-			'const cond = clsx("mt-[3px]", isOpen && "data-[stuck]:bg-background", extra);',
+			'const a = <div className="p-[7px] flex ui-widget-root" />;',
+			"const b = <div triggerClassName={'w-[14px]'} />;",
+			'const cond = clsx("mt-[3.5px]", isOpen && "data-[stuck]:bg-background", extra);',
 			'const dyn = <div className={`ease-[cubic-bezier(0.4,0,0.2,1)] ${size}`} />;',
 			'const obj = { iconClassName: "flex-[2]", extraClassNames: ["border-[3px]"] };',
 		].join('\n'),
 	);
-	fs.writeFileSync(path.join(dir, 'ui/Widget.css'), '.ui-widget {\n  @apply p-[5px] flex;\n}\n');
+	fs.writeFileSync(path.join(dir, 'ui/Widget.css'), '.ui-widget {\n  @apply p-[7px] flex;\n}\n');
 	fs.writeFileSync(
 		path.join(dir, 'ui/specs/Widget.spec.tsx'),
-		['const s = <div className="p-[5px]" data-testid={clsx("mt-[3px]")} />;', 'const c = <div className={clsx("w-[18px]")} />;'].join('\n'),
+		['const s = <div className="p-[7px]" data-testid={clsx("mt-[3.5px]")} />;', 'const c = <div className={clsx("w-[14px]")} />;'].join('\n'),
 	);
-	fs.writeFileSync(path.join(dir, 'ui/generated/gen.ts'), 'const g = <div className="p-[5px]" />;');
+	fs.writeFileSync(path.join(dir, 'ui/generated/gen.ts'), 'const g = <div className="p-[7px]" />;');
 
 	const results = await findNonCanonical(dir, { css: CSS_PATH });
 	const byFrom = Object.fromEntries(results.map(r => [`${r.file}:${r.from}`, r.to]));
 
-	assert.equal(byFrom['ui/Widget.tsx:p-[5px]'], 'p-1.25');
-	assert.equal(byFrom['ui/Widget.tsx:w-[18px]'], 'w-4.5');
-	assert.equal(byFrom['ui/Widget.tsx:mt-[3px]'], 'mt-0.75');
+	assert.equal(byFrom['ui/Widget.tsx:p-[7px]'], 'p-2');
+	assert.equal(byFrom['ui/Widget.tsx:w-[14px]'], 'w-4');
+	assert.equal(byFrom['ui/Widget.tsx:mt-[3.5px]'], 'mt-1');
 	assert.equal(byFrom['ui/Widget.tsx:data-[stuck]:bg-background'], 'data-stuck:bg-background');
 	assert.equal(byFrom['ui/Widget.tsx:ease-[cubic-bezier(0.4,0,0.2,1)]'], 'ease-in-out');
 	assert.equal(byFrom['ui/Widget.tsx:flex-[2]'], 'flex-2');
 	assert.equal(byFrom['ui/Widget.tsx:border-[3px]'], undefined);
-	assert.equal(byFrom['ui/Widget.css:p-[5px]'], 'p-1.25');
+	assert.equal(byFrom['ui/Widget.css:p-[7px]'], 'p-2');
 
-	assert.equal(byFrom['ui/specs/Widget.spec.tsx:p-[5px]'], 'p-1.25');
-	assert.equal(byFrom['ui/specs/Widget.spec.tsx:mt-[3px]'], undefined, 'non-className clsx call in ui/specs must be skipped');
-	assert.equal(byFrom['ui/specs/Widget.spec.tsx:w-[18px]'], 'w-4.5', 'a className={clsx(...)} site in ui/specs must still be reported');
+	assert.equal(byFrom['ui/specs/Widget.spec.tsx:p-[7px]'], 'p-2');
+	assert.equal(byFrom['ui/specs/Widget.spec.tsx:mt-[3.5px]'], undefined, 'non-className clsx call in ui/specs must be skipped');
+	assert.equal(byFrom['ui/specs/Widget.spec.tsx:w-[14px]'], 'w-4', 'a className={clsx(...)} site in ui/specs must still be reported');
 
-	assert.equal(byFrom['ui/generated/gen.ts:p-[5px]'], undefined, 'generated files must be skipped');
+	assert.equal(byFrom['ui/generated/gen.ts:p-[7px]'], undefined, 'generated files must be skipped');
 
 	const found = results.some(r => r.file === 'ui/Widget.tsx' && r.from === 'ui-widget-root');
 	assert.equal(found, false, 'ui-* classes are not Tailwind and must not be reported');
