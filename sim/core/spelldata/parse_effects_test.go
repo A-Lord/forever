@@ -657,6 +657,29 @@ func TestEveryTableRow(t *testing.T) {
 	}
 }
 
+func TestTotalStatPercentageReadsTheStatMask(t *testing.T) {
+	allFive := "multiply-stat Strength, multiply-stat Agility, multiply-stat Stamina, multiply-stat Intellect, multiply-stat Spirit"
+	cases := []struct {
+		misc, misc2 int32
+		kind        string
+	}{
+		{0, 8, "multiply-stat Intellect"},
+		{2, 5, "multiply-stat Strength, multiply-stat Stamina"},
+		{-1, 31, allFive},
+		{-1, 0, allFive},
+		{3, 0, "multiply-stat Intellect"},
+	}
+	for _, c := range cases {
+		row := Spell{ID: 5000, Name: "Table Row", ClassFlags: parseFamily,
+			Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE,
+				Misc: c.misc, Misc2: c.misc2, BasePoints: 10}}}
+		parsed := ParseStatic(parseWarrior(), &row)
+		if got := strings.Join(appliedKinds(parsed), ", "); got != c.kind {
+			t.Errorf("misc %d and %d: kinds = %q, want %q", c.misc, c.misc2, got, c.kind)
+		}
+	}
+}
+
 // A row of one aura effect, in the shape the table reads.
 func oneEffectRow(aura dbcenums.EffectAuraType, misc int32, points float64) *Spell {
 	return &Spell{ID: 6000, Name: "One Effect", DurationMs: 10000, ClassFlags: parseFamily,
