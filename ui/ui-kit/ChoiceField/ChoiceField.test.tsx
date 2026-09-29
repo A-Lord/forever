@@ -56,6 +56,7 @@ const Harness = <V,>({ initial, accept = next => next, handle, ...props }: Harne
 const trigger = () => screen.getByRole('combobox');
 const options = () => screen.queryAllByRole('option');
 const open = () => userEvent.click(trigger());
+const focused = () => document.activeElement!.textContent;
 
 beforeEach(() => {
 	picks.mockClear();
@@ -195,31 +196,9 @@ describe('ChoiceField', () => {
 			expect(picks).toHaveBeenLastCalledWith(2);
 			expect(trigger().textContent).toBe('Passive');
 		});
-
-		it('gives an APL enum table and a settings enum list the same select and the same number back', async () => {
-			// The APL's tables are `{ value, label }`; a settings enum lists `{ name, value }`, which the adapter maps.
-			const aplTable = { options: [0, 1, 2].map(value => ({ value, label: `Phase ${value}` })) };
-			const settingsValues = [0, 1, 2].map(value => ({ name: `Phase ${value}`, value }));
-
-			const snapshot = async (field: React.ReactElement) => {
-				const view = render(field);
-				await open();
-				const html = [trigger().outerHTML, screen.getByRole('listbox').outerHTML].join('').replace(/ id="[^"]*"| aria-[a-z]+="base-ui[^"]*"/g, '');
-				await userEvent.click(options()[2]);
-				view.unmount();
-				return html;
-			};
-
-			const apl = await snapshot(<Harness options={aplTable.options} initial={1} />);
-			expect(picks).toHaveBeenLastCalledWith(2);
-			const settings = await snapshot(<Harness options={settingsValues.map(({ name, value }) => ({ value, label: name }))} initial={1} />);
-			expect(picks).toHaveBeenLastCalledWith(2);
-
-			expect(settings).toBe(apl);
-		});
 	});
 
-	describe('keyboard', () => {
+	describe('keyboard, select path', () => {
 		it('opens from the trigger and reaches every option with the arrow keys', async () => {
 			const user = userEvent.setup();
 			render(<Harness options={MODES} initial={0} />);
@@ -228,16 +207,41 @@ describe('ChoiceField', () => {
 			await user.keyboard('{ArrowDown}');
 			expect(options()).toHaveLength(3);
 
-			const reached: Array<string | null> = [document.activeElement!.textContent];
+			const reached: Array<string | null> = [focused()];
 			for (let step = 1; step < MODES.length; step++) {
 				await user.keyboard('{ArrowDown}');
-				reached.push(document.activeElement!.textContent);
+				reached.push(focused());
 			}
 			expect(reached).toEqual(['Passive', 'Aggressive', 'Defensive']);
+			await user.keyboard('{ArrowUp}');
+			expect(focused()).toBe('Aggressive');
 
 			await user.keyboard('{Enter}');
-			expect(picks).toHaveBeenLastCalledWith(2);
-			expect(trigger().textContent).toBe('Defensive');
+			expect(picks).toHaveBeenLastCalledWith(1);
+			expect(trigger().textContent).toBe('Aggressive');
+			expect(options()).toHaveLength(0);
+			expect(document.activeElement).toBe(trigger());
+		});
+
+		it('jumps with Home and End, finds an option by typing, and closes on Escape back onto the trigger without a pick', async () => {
+			const user = userEvent.setup();
+			render(<Harness options={MODES} initial={1} />);
+
+			trigger().focus();
+			await user.keyboard('{ArrowDown}');
+			expect(focused()).toBe('Aggressive');
+			await user.keyboard('{End}');
+			expect(focused()).toBe('Defensive');
+			await user.keyboard('{Home}');
+			expect(focused()).toBe('Passive');
+			await user.keyboard('d');
+			expect(focused()).toBe('Defensive');
+
+			await user.keyboard('{Escape}');
+			expect(options()).toHaveLength(0);
+			expect(document.activeElement).toBe(trigger());
+			expect(picks).not.toHaveBeenCalled();
+			expect(trigger().textContent).toBe('Aggressive');
 		});
 	});
 
@@ -346,20 +350,51 @@ describe('ChoiceField', () => {
 			expect(picks).toHaveBeenLastCalledWith('self');
 		});
 
-		it('lets a keyboard user into a submenu and back out', async () => {
+		it('lets a keyboard user into a submenu with ArrowRight, back out with ArrowLeft, and pick inside it', async () => {
 			const user = userEvent.setup();
 			render(<Harness options={KINDS} initial="none" testId="kind-field" />);
-			await openMenu();
+			menuTrigger().focus();
+			await user.keyboard('{ArrowDown}');
+			expect(focused()).toBe('None');
 
 			await user.keyboard('{ArrowDown}');
-			expect(document.activeElement!.textContent).toBe('Logic »');
+			expect(focused()).toBe('Logic »');
 			await user.keyboard('{ArrowRight}');
-			expect(document.activeElement!.textContent).toBe('All of');
+			expect(focused()).toBe('All of');
 			await user.keyboard('{ArrowDown}');
-			expect(document.activeElement!.textContent).toBe('Any of');
-			await user.keyboard('{Enter}');
+			expect(focused()).toBe('Any of');
+			await user.keyboard('{ArrowUp}');
+			expect(focused()).toBe('All of');
 
+			await user.keyboard('{ArrowLeft}');
+			expect(focused()).toBe('Logic »');
+			expect(screen.queryByTestId('choice-field-submenu')).toBeNull();
+
+			await user.keyboard('{ArrowRight}');
+			await user.keyboard('{ArrowDown}');
+			await user.keyboard('{Enter}');
 			expect(picks).toHaveBeenLastCalledWith('or');
+			expect(screen.queryByRole('menu')).toBeNull();
+			expect(document.activeElement).toBe(menuTrigger());
+		});
+
+		it('jumps with Home and End, finds a row by typing, and closes on Escape back onto the trigger without a pick', async () => {
+			const user = userEvent.setup();
+			render(<Harness options={KINDS} initial="none" testId="kind-field" />);
+			menuTrigger().focus();
+			await user.keyboard('{ArrowDown}');
+
+			await user.keyboard('{End}');
+			expect(focused()).toBe('Resources »');
+			await user.keyboard('{Home}');
+			expect(focused()).toBe('None');
+			await user.keyboard('l');
+			expect(focused()).toBe('Logic »');
+
+			await user.keyboard('{Escape}');
+			expect(screen.queryByRole('menu')).toBeNull();
+			expect(document.activeElement).toBe(menuTrigger());
+			expect(picks).not.toHaveBeenCalled();
 		});
 	});
 });

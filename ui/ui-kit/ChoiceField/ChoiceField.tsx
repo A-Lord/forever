@@ -78,7 +78,7 @@ export const ChoiceField = <V,>({
 			disabled={disabled}
 			modal={false}>
 			<Select.Trigger {...triggerProps}>
-				<Select.Value className="flex min-w-0 items-center">{trigger}</Select.Value>
+				<Select.Value className="flex min-w-0 items-center overflow-hidden">{trigger}</Select.Value>
 			</Select.Trigger>
 			<Select.Portal container={portalContainer ?? undefined}>
 				<Select.Positioner
@@ -129,7 +129,7 @@ export const ChoiceField = <V,>({
 		);
 
 	return (
-		<Field {...chrome} className={['ui-choice-field', className]} testId={testId} disabled={disabled}>
+		<Field {...chrome} className={className} testId={testId} disabled={disabled}>
 			{control}
 			{tooltip}
 		</Field>
