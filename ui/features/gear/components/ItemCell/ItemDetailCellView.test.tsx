@@ -58,16 +58,11 @@ describe('ItemDetailCellView', () => {
 
 	it('sits the name and labels at the start by default', () => {
 		renderCell();
-		const root = screen.getByTestId('item-picker-root');
-		expect(root.dataset.align).toBe('start');
-		expect(root.className).not.toContain('justify-end');
+		expect(screen.getByTestId('item-picker-labels-container').dataset.align).toBe('start');
 	});
 
 	it('sits the name and labels against the icon at the end for the right column', () => {
 		renderCell({ align: 'end' });
-		const root = screen.getByTestId('item-picker-root');
-		expect(root.dataset.align).toBe('end');
-		expect(root.classList).toContain('md:[&_.ui-item-picker-name-row]:justify-end');
-		expect(root.classList).toContain('md:[&_.ui-item-picker-labels-container]:items-end');
+		expect(screen.getByTestId('item-picker-labels-container').dataset.align).toBe('end');
 	});
 });

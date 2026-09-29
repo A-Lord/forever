@@ -15,10 +15,6 @@ import { GemSocket } from './GemSocket';
 import { ItemCellAnchor } from './ItemCellAnchor';
 import { NameDescriptionLabel } from './NameDescriptionLabel';
 
-// From md up; below it the gear picker stacks its columns and every cell reads from the start.
-const ALIGN_END_CLASS =
-	'md:[&_.ui-item-picker-labels-container]:items-end md:[&_.ui-item-picker-labels-container]:text-right md:[&_.ui-item-picker-name-row]:justify-end';
-
 export interface ItemDetailCellViewProps {
 	/** Drives the empty-state icon and the empty-state name. */
 	slot: ItemSlot;
@@ -69,9 +65,10 @@ export const ItemDetailCellView = ({
 	rootDataAttributes,
 }: ItemDetailCellViewProps) => (
 	<ItemCell
-		className={clsx(align === 'end' && ALIGN_END_CLASS, className)}
+		align={align}
+		className={className}
 		testId={testId}
-		rootDataAttributes={{ ...rootDataAttributes, 'data-align': align }}
+		rootDataAttributes={rootDataAttributes}
 		ilvl={item ? item.ilvl.toString() : null}
 		icon={
 			<ItemCellAnchor
