@@ -1,9 +1,9 @@
 # Styling, state and locating elements
 
 Source of truth: `ui/styles/main.css` (the stylesheet body: layer order, `@import`s, `@utility`,
-`@source`), the two entries that import it — `ui/styles/style.css` (production, which adds three
+`@source`), the two entries that import it — `ui/styles/style.css` (production, which adds four
 `@source not` lines) and `.storybook/storybook.css` (Storybook, which adds the matching `@source`
-lines) — `ui/styles/theme/` (tokens, split by type — `colors.css`, `spacing.css`, `breakpoints.css`,
+lines for three of them) — `ui/styles/theme/` (tokens, split by type — `colors.css`, `spacing.css`, `breakpoints.css`,
 `typography.css`, `effects.css`, `z-index.css`, `vars.css`, `specs.css`, imported via `index.css`),
 `ui/styles/base.css` (element defaults), `ui/styles/vendor.css` (the handful of selectors with no
 JSX element to carry them), `ui/testing/tailwind/canonical-classes.mjs` /
@@ -238,9 +238,10 @@ Two tree-wide tests in `npm run test:unit` run the checkers, both under `// @vit
   constraint, never a shortcut past a real conversion.
 - **Stories and the design system stay out of production CSS.** Tailwind's automatic source
   detection is on, so a class string in any file under `ui/` lands in the production bundle unless
-  `ui/styles/style.css` excludes it; its three `@source not` lines exclude `**/*.stories.tsx`,
-  `ui/testing/storybook` and `ui/design-system`, and `.storybook/storybook.css` adds the same three
-  back for Storybook. A new class-bearing file under `ui/testing/` outside `storybook/` needs its own
+  `ui/styles/style.css` excludes it; its four `@source not` lines exclude `**/*.stories.tsx`,
+  `ui/testing/storybook`, `ui/design-system` and `**/*.md` (so a code example in a doc like this one
+  never generates a utility), and `.storybook/storybook.css` adds the first three back for Storybook.
+  A new class-bearing file under `ui/testing/` outside `storybook/` needs its own
   `@source not`. For a kit or styling change, build with `npx vite build` and diff the sorted
   `dist/forever/bundle/*.style.css` against the parent commit's build: an unintended selector there
   is a leak.

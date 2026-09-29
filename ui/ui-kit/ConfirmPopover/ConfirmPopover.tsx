@@ -44,7 +44,7 @@ export const ConfirmPopover = ({
 		triggerProps={triggerProps}
 		side={side}
 		testId={testId ?? 'sim-confirm-popover'}
-		maxWidth="max-w-55">
+		maxWidth="max-w-tile">
 		<p className="mb-3" data-testid="sim-confirm-popover-message">
 			{children}
 		</p>
