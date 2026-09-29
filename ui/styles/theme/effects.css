@@ -40,9 +40,8 @@
 }
 
 @theme static inline {
-	--drop-shadow-glow-danger: 0 0 0.5rem var(--color-danger), 0 0 0.5rem var(--color-danger), 0 0 0.5rem var(--color-danger);
+	--drop-shadow-glow-danger: 0 0 0.5rem var(--color-danger), 0 0 0.5rem var(--color-danger);
 	--drop-shadow-glow-link: 0 0 0.5rem var(--color-link);
-	--drop-shadow-glow-offwhite: 0 0 0.5rem var(--color-off-white);
 	--shadow-focus-theme: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 50%, transparent);
 	--shadow-glow-8: 0 0 8px;
 	--shadow-glow-10: 0 0 10px;

@@ -11,5 +11,5 @@ export const NOTICE_ICON_NAME = {
 export const NOTICE_COLOR: Record<NoticeLevel, string> = {
 	info: 'text-off-white drop-shadow-glow-link',
 	warning: 'text-link-warning drop-shadow-glow-danger',
-	error: 'text-danger drop-shadow-glow-offwhite',
+	error: 'text-danger drop-shadow-glow-danger',
 };
