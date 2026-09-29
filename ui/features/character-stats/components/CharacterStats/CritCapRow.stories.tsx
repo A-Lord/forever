@@ -24,7 +24,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const UnderTheCap: Story = {};
-export const OverTheCap: Story = { args: { info: { ...CRIT_CAP_INFO, playerCritCapDelta: 2.1 }, text: '2.10% over' } };
-export const WithSpecOffset: Story = { args: { info: { ...CRIT_CAP_INFO, specSpecificOffset: 1.5 } } };
-export const Pending: Story = { args: { pending: true } };
+export const Default: Story = { args: { info: { ...CRIT_CAP_INFO, specSpecificOffset: 1.5 }, pending: false } };
