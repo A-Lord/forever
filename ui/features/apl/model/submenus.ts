@@ -52,8 +52,8 @@ export const choiceTree = <V>(options: ReadonlyArray<PathOption<V>>, equals: (a:
 		return submenu;
 	};
 
-	const opensSubmenu = (option: PathOption<V>) =>
-		options.some(other => other.submenu?.some(segment => typeof segment !== 'string' && equals(segment as V, option.value)));
+	const owners = options.flatMap(option => (option.submenu ?? []).filter((segment): segment is V => typeof segment !== 'string'));
+	const opensSubmenu = (option: PathOption<V>) => owners.some(owner => equals(owner, option.value));
 
 	options.forEach(({ submenu: path = [], ...option }) => {
 		const parent = path.reduce((entries, segment) => open(entries, segment).entries, root);

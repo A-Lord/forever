@@ -6,6 +6,7 @@
 	.ui-choice-field-trigger {
 		&[data-variant='select'] {
 			@apply block w-full max-w-full appearance-none overflow-hidden rounded-none border border-surface-border bg-surface bg-select-chevron bg-size-[16px_12px] bg-position-[right_.75rem_center] bg-no-repeat px-3 py-1.5 pr-9 text-left text-ui leading-normal whitespace-nowrap text-foreground transition-colors duration-150 ease-in-out;
+			contain: inline-size;
 
 			&:focus {
 				@apply border-input-focus-border shadow-focus-input outline-none;
@@ -43,6 +44,7 @@
 
 	.ui-field[data-layout='inline'] > .ui-choice-field-trigger {
 		@apply w-auto;
+		contain: none;
 	}
 
 	.ui-choice-field-list {
