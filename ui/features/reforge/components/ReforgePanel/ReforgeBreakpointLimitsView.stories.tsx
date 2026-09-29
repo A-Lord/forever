@@ -17,7 +17,7 @@ const limit = (statName: string, breakpoints: Array<number>) => ({
 });
 
 const meta = {
-	title: 'Features/Reforge/ReforgeBreakpointLimitsView',
+	title: 'Features/Reforge/ReforgePanel/ReforgeBreakpointLimitsView',
 	component: ReforgeBreakpointLimitsView,
 	tags: ['autodocs'],
 	args: { rows: [limit('Hit', [5, 9]), limit('Spell Hit', [16])] },

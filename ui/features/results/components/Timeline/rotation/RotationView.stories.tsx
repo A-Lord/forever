@@ -17,7 +17,7 @@ const StickySlot = ({ children }: { children: ReactNode }) => {
 };
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationView',
+	title: 'Features/Results/Timeline/Components/RotationView',
 	component: RotationView,
 	tags: ['autodocs'],
 	args: { model: warriorRotationModel(), active: true },

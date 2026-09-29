@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { SixtyUpgradesImporterDialog } from './SixtyUpgradesImporterDialog';
 
 const meta = {
-	title: 'Features/ImportExport/SixtyUpgradesImporterDialog',
+	title: 'Features/ImportExport/Importer/Components/SixtyUpgradesImporterDialog',
 	component: SixtyUpgradesImporterDialog,
 	tags: ['autodocs'],
 	args: { open: false, onOpenChange: fn() },

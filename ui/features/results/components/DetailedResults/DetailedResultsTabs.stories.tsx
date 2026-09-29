@@ -5,7 +5,7 @@ import { DetailedResultsTabs } from './DetailedResultsTabs';
 import { DETAILED_RESULTS_TABS } from './utils';
 
 const meta = {
-	title: 'Features/Results/DetailedResults/DetailedResultsTabs',
+	title: 'Features/Results/DetailedResults/Components/DetailedResultsTabs',
 	component: DetailedResultsTabs,
 	tags: ['autodocs'],
 	args: { tabs: DETAILED_RESULTS_TABS },

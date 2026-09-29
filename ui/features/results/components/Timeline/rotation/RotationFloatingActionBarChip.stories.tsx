@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { RotationFloatingActionBarChip } from './RotationFloatingActionBarChip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationFloatingActionBarChip',
+	title: 'Features/Results/Timeline/Components/RotationFloatingActionBarChip',
 	component: RotationFloatingActionBarChip,
 	tags: ['autodocs'],
 	args: { label: 'Mortal Strike', shown: true, focused: true, onToggle: fn(), onFocus: fn() },

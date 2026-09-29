@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MenuSection } from './MenuSection';
 
 const meta = {
-	title: 'Features/Gear/MenuSection',
+	title: 'Features/Gear/FiltersMenu/Components/MenuSection',
 	component: MenuSection,
 	tags: ['autodocs'],
 	args: {

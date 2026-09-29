@@ -13,7 +13,7 @@ import {
 import { RowItemTooltip } from './RowItemTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RowItemTooltip',
+	title: 'Features/Results/Timeline/Components/RowItemTooltip',
 	component: RowItemTooltip,
 	tags: ['autodocs'],
 	args: { item: castRowItem(12) },

@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { JsonImporterDialog } from './JsonImporterDialog';
 
 const meta = {
-	title: 'Features/ImportExport/JsonImporterDialog',
+	title: 'Features/ImportExport/Importer/Components/JsonImporterDialog',
 	component: JsonImporterDialog,
 	tags: ['autodocs'],
 	args: { open: false, onOpenChange: fn() },

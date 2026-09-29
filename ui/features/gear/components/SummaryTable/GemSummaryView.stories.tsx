@@ -7,7 +7,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { GemSummaryView } from './GemSummaryView';
 
 const meta = {
-	title: 'Features/Gear/GemSummaryView',
+	title: 'Features/Gear/SummaryTable/Components/GemSummaryView',
 	component: GemSummaryView,
 	tags: ['autodocs'],
 	args: {

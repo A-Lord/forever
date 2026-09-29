@@ -13,7 +13,7 @@ const PARTIAL_GEAR = new Gear({
 });
 
 const meta = {
-	title: 'Features/Gear/SlotRail',
+	title: 'Features/Gear/SelectorModal/Components/SlotRail',
 	component: SlotRail,
 	tags: ['autodocs'],
 	args: { gear: PARTIAL_GEAR, currentSlot: ItemSlot.ItemSlotMainHand, onOpen: fn() },

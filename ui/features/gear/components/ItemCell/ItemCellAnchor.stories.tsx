@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { ItemCellAnchor } from './ItemCellAnchor';
 
 const meta = {
-	title: 'Features/Gear/ItemCellAnchor',
+	title: 'Features/Gear/ItemCell/Components/ItemCellAnchor',
 	component: ItemCellAnchor,
 	tags: ['autodocs'],
 	args: { children: 'Thunderfury, Blessed Blade of the Windseeker', className: 'text-quality-legendary', role: 'button', onActivate: fn() },

@@ -28,7 +28,7 @@ const StatefulToolbar = ({ hidden: initial, onToggle, onShowAll, ...props }: Rot
 };
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationRowsToolbar',
+	title: 'Features/Results/Timeline/Components/RotationRowsToolbar',
 	component: RotationRowsToolbar,
 	tags: ['autodocs'],
 	args: { model: warriorRotationModel(), hidden: new Set(), onToggle: fn(), onShowAll: fn() },

@@ -24,7 +24,7 @@ const StatefulTree = ({ points: initial, onChange, ...props }: TalentTreePickerP
 };
 
 const meta = {
-	title: 'Features/Talents/TalentTreePicker',
+	title: 'Features/Talents/TalentsPicker/Components/TalentTreePicker',
 	component: TalentTreePicker<MageTalents>,
 	tags: ['autodocs'],
 	args: { config: mageTalentsConfig, graph, points: parseTalentsString(mageTalentsConfig, ''), treeIdx: 0, onChange: fn() },

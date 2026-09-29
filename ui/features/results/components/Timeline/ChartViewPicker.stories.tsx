@@ -19,7 +19,7 @@ const StatefulPicker = ({ value: initial, onChange, ...props }: ChartViewPickerP
 };
 
 const meta = {
-	title: 'Features/Results/Timeline/ChartViewPicker',
+	title: 'Features/Results/Timeline/Components/ChartViewPicker',
 	component: ChartViewPicker,
 	tags: ['autodocs'],
 	args: { value: 'rotation', onChange: fn() },

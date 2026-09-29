@@ -4,7 +4,7 @@ import { withTooltipSurface } from '@testing/storybook/decorators';
 import { TooltipRow } from './TooltipRow';
 
 const meta = {
-	title: 'Features/CharacterStats/TooltipRow',
+	title: 'Features/CharacterStats/CharacterStats/Components/TooltipRow',
 	component: TooltipRow,
 	tags: ['autodocs'],
 	args: { label: 'Gear', value: '+180' },

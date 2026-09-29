@@ -89,7 +89,7 @@ const EnchantsPane = () => (
 );
 
 const meta = {
-	title: 'Features/Gear/SelectorModalView',
+	title: 'Features/Gear/SelectorModal/SelectorModalView',
 	component: SelectorModalView,
 	tags: ['autodocs'],
 	args: {

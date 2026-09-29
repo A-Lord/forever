@@ -4,7 +4,7 @@ import { damageLog, resourceLog } from '@testing/storybook/fixtures/results-view
 import { LogRow } from './LogRow';
 
 const meta = {
-	title: 'Features/Results/LogRunner/LogRow',
+	title: 'Features/Results/LogRunner/Components/LogRow',
 	component: LogRow,
 	tags: ['autodocs'],
 	args: { log: damageLog(65.25, 1420.5) },

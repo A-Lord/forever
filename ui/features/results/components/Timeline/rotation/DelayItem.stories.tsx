@@ -4,7 +4,7 @@ import { castRotationRow, delayRowItem, HEROIC_STRIKE, rotationTrackStyle } from
 import { DelayItem } from './DelayItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/DelayItem',
+	title: 'Features/Results/Timeline/Components/DelayItem',
 	component: DelayItem,
 	tags: ['autodocs'],
 	args: { item: delayRowItem(1, 1.35), index: 0 },

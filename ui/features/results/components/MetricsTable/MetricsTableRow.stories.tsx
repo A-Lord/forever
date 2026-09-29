@@ -30,7 +30,7 @@ const Rows = ({ rows, rowThreatOnly }: RowsProps) => {
 };
 
 const meta = {
-	title: 'Features/Results/MetricsTable/MetricsTableRow',
+	title: 'Features/Results/MetricsTable/Components/MetricsTableRow',
 	component: Rows,
 	tags: ['autodocs'],
 	args: { rows: [] },

@@ -5,7 +5,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { MetricsActionCell } from './MetricsActionCell';
 
 const meta = {
-	title: 'Features/Results/MetricsTable/MetricsActionCell',
+	title: 'Features/Results/MetricsTable/Components/MetricsActionCell',
 	component: MetricsActionCell,
 	tags: ['autodocs'],
 	args: { name: MORTAL_STRIKE.name, actionId: MORTAL_STRIKE, expandable: false, expanded: false, onToggle: fn() },

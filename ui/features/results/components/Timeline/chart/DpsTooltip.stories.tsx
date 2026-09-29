@@ -4,7 +4,7 @@ import { damageLog, DEEP_WOUNDS, dpsLog, HEROIC_STRIKE } from '@testing/storyboo
 import { DpsTooltip } from './DpsTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Chart/DpsTooltip',
+	title: 'Features/Results/Timeline/Components/DpsTooltip',
 	component: DpsTooltip,
 	tags: ['autodocs'],
 	args: {

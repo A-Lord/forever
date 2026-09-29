@@ -25,7 +25,7 @@ const arrowBetween = (parent: TalentLocation, child: TalentLocation): TalentArro
 };
 
 const meta = {
-	title: 'Features/Talents/TalentReqArrow',
+	title: 'Features/Talents/TalentsPicker/Components/TalentReqArrow',
 	component: TalentReqArrow,
 	tags: ['autodocs'],
 	args: { arrow: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 1, colIdx: 1 }), fulfilled: false },

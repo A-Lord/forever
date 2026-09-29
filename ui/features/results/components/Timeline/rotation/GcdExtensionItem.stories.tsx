@@ -5,7 +5,7 @@ import { CastItem } from './CastItem';
 import { GcdExtensionItem } from './GcdExtensionItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/GcdExtensionItem',
+	title: 'Features/Results/Timeline/Components/GcdExtensionItem',
 	component: GcdExtensionItem,
 	tags: ['autodocs'],
 	args: { item: { kind: 'gcdExtension', start: 1.5, end: 3 } },

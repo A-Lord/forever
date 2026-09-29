@@ -15,7 +15,7 @@ const METRICS = new Map<string, Metric>([
 ]);
 
 const meta = {
-	title: 'Features/Results/MetricsTable/MetricTooltip',
+	title: 'Features/Results/MetricsTable/Components/MetricTooltip',
 	component: MetricTooltip<Metric>,
 	tags: ['autodocs'],
 	args: {

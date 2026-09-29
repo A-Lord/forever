@@ -7,7 +7,7 @@ import { ResourceTooltip } from './ResourceTooltip';
 const RAGE = resourceGroupLog(12, [resourceLog(12, 60, 30), resourceLog(12.5, 30, 45)]);
 
 const meta = {
-	title: 'Features/Results/Timeline/Tooltips/ResourceTooltip',
+	title: 'Features/Results/Timeline/Components/ResourceTooltip',
 	component: ResourceTooltip,
 	tags: ['autodocs'],
 	args: { log: RAGE, maxValue: 100, includeAuras: false },

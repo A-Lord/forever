@@ -5,7 +5,7 @@ import { castLog, resultsHostParts } from '@testing/storybook/fixtures/results-v
 import { CastTooltip } from './CastTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/CastTooltip',
+	title: 'Features/Results/Timeline/Components/CastTooltip',
 	component: CastTooltip,
 	tags: ['autodocs'],
 	args: { log: castLog(12) },

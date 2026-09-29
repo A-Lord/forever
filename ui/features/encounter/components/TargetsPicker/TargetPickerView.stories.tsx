@@ -40,7 +40,7 @@ const THREAT = (
 );
 
 const meta = {
-	title: 'Features/Encounter/TargetPickerView',
+	title: 'Features/Encounter/TargetsPicker/Components/TargetPickerView',
 	component: TargetPickerView,
 	tags: ['autodocs'],
 	args: { identity: IDENTITY, stats: STATS, threat: THREAT },

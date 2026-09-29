@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { FiltersMenuView } from './FiltersMenuView';
 
 const meta = {
-	title: 'Features/Gear/FiltersMenuView',
+	title: 'Features/Gear/FiltersMenu/FiltersMenuView',
 	component: FiltersMenuView,
 	tags: ['autodocs'],
 	args: {

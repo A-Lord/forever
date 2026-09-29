@@ -14,7 +14,7 @@ const LinkExporterDialog = exporterDialog({ ...LINK_EXPORTER, getData: listCateg
 const WowheadExporterDialog = exporterDialog({ ...WOWHEAD_GEAR_PLANNER_EXPORTER, getData: () => `${WOWHEAD_GEAR_PLANNER_URL}/warrior/human` });
 
 const meta = {
-	title: 'Features/ImportExport/ExporterDialog',
+	title: 'Features/ImportExport/Exporter/Components/ExporterDialog',
 	component: JsonExporterDialog,
 	tags: ['autodocs'],
 	args: { open: false, onOpenChange: fn() },

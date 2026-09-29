@@ -4,7 +4,7 @@ import { castRotationRow, DEEP_WOUNDS, rotationTrackStyle, tickRowItem } from '@
 import { TickItem } from './TickItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/TickItem',
+	title: 'Features/Results/Timeline/Components/TickItem',
 	component: TickItem,
 	tags: ['autodocs'],
 	args: { item: tickRowItem(2), index: 0 },

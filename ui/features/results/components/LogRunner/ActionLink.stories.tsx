@@ -4,7 +4,7 @@ import { HEROIC_STRIKE, MORTAL_STRIKE } from '@testing/storybook/fixtures/result
 import { ActionLink } from './ActionLink';
 
 const meta = {
-	title: 'Features/Results/LogRunner/ActionLink',
+	title: 'Features/Results/LogRunner/Components/ActionLink',
 	component: ActionLink,
 	tags: ['autodocs'],
 	args: { actionId: MORTAL_STRIKE },

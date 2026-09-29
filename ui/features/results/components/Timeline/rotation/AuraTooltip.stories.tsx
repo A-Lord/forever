@@ -4,7 +4,7 @@ import { auraUptimeLog, BATTLE_SHOUT } from '@testing/storybook/fixtures/results
 import { AuraTooltip } from './AuraTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/AuraTooltip',
+	title: 'Features/Results/Timeline/Components/AuraTooltip',
 	component: AuraTooltip,
 	tags: ['autodocs'],
 	args: { log: auraUptimeLog(4.25, 16.25) },

@@ -48,7 +48,7 @@ const rows = (result: StatWeightsResult | null, displayMetrics: DisplayMetrics, 
 	));
 
 const meta = {
-	title: 'Features/StatWeights/EpWeightsTableView',
+	title: 'Features/StatWeights/EpWeightsDialog/Components/EpWeightsTableView',
 	component: EpWeightsTableView,
 	tags: ['autodocs'],
 	args: {

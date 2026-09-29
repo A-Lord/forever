@@ -7,7 +7,7 @@ import { StatWeightCells } from './StatWeightCells';
 const RESULT = makeStatWeightsResult();
 
 const meta = {
-	title: 'Features/StatWeights/StatWeightCells',
+	title: 'Features/StatWeights/EpWeightsDialog/Components/StatWeightCells',
 	component: StatWeightCells,
 	tags: ['autodocs'],
 	args: {

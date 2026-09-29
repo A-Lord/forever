@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { EpCell } from './EpCell';
 
 const meta = {
-	title: 'Features/Gear/EpCell',
+	title: 'Features/Gear/SelectorModal/Components/EpCell',
 	component: EpCell,
 	tags: ['autodocs'],
 	args: { ep: 42.4, equippedEP: 38 },

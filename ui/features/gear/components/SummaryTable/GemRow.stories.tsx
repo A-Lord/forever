@@ -5,7 +5,7 @@ import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { GemRow } from './GemRow';
 
 const meta = {
-	title: 'Features/Gear/GemRow',
+	title: 'Features/Gear/SummaryTable/Components/GemRow',
 	component: GemRow,
 	tags: ['autodocs'],
 	args: { gem: makeUIGem(), count: 3, iconUrl: wowheadIconUrl('inv_misc_gem_ruby_01') },

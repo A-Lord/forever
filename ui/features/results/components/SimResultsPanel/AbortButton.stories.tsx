@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { AbortButton } from './AbortButton';
 
 const meta = {
-	title: 'Features/Results/SimResultsPanel/AbortButton',
+	title: 'Features/Results/SimResultsPanel/Components/AbortButton',
 	component: AbortButton,
 	tags: ['autodocs'],
 	args: { onAbort: fn() },

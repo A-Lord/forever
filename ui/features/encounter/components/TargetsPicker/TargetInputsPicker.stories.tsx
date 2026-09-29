@@ -13,7 +13,7 @@ const target = TargetProto.create({
 });
 
 const meta = {
-	title: 'Features/Encounter/TargetInputsPicker',
+	title: 'Features/Encounter/TargetsPicker/Components/TargetInputsPicker',
 	component: TargetInputsPicker,
 	tags: ['autodocs'],
 	args: { encounter: makeStoryEncounter([target]), targetIndex: 0 },

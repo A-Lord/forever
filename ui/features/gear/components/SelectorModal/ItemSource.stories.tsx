@@ -14,7 +14,7 @@ const sim = { db: { getZone: () => MOLTEN_CORE, getNpc: () => RAGNAROS } } as un
 const withSource = (source: UIItemSource['source']) => makeUIItem({ sources: [UIItemSource.create({ source })] });
 
 const meta = {
-	title: 'Features/Gear/ItemSource',
+	title: 'Features/Gear/SelectorModal/Components/ItemSource',
 	component: ItemSource,
 	tags: ['autodocs'],
 	args: {

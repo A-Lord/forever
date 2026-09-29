@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { BulkItemPickerGroup } from './BulkItemPickerGroup';
 
 const meta = {
-	title: 'Features/Bulk/BulkItemPickerGroup',
+	title: 'Features/Bulk/BulkPickerGroups/Components/BulkItemPickerGroup',
 	component: BulkItemPickerGroup,
 	tags: ['autodocs'],
 	args: { bulkSlot: BulkSimItemSlot.ItemSlotFinger, entries: [] },

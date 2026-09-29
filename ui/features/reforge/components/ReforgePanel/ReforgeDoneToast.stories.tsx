@@ -8,7 +8,7 @@ import { ReforgeDoneToast } from './ReforgeDoneToast';
 const ITEM_SLOTS = [ItemSlot.ItemSlotHead, ItemSlot.ItemSlotNeck, ItemSlot.ItemSlotShoulder, ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand];
 
 const meta = {
-	title: 'Features/Reforge/ReforgeDoneToast',
+	title: 'Features/Reforge/ReforgePanel/Components/ReforgeDoneToast',
 	component: ReforgeDoneToast,
 	tags: ['autodocs'],
 	decorators: [withSimHost()],

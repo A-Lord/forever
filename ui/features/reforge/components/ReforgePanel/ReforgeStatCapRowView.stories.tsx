@@ -9,7 +9,7 @@ const percentage = (initial: number) => (
 );
 
 const meta = {
-	title: 'Features/Reforge/ReforgeStatCapRowView',
+	title: 'Features/Reforge/ReforgePanel/Components/ReforgeStatCapRowView',
 	component: ReforgeStatCapRowView,
 	tags: ['autodocs'],
 	args: {

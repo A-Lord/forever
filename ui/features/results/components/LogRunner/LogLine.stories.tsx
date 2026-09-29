@@ -8,7 +8,7 @@ import { LogLine } from './LogLine';
 const base = damageLog(12.5, 0);
 
 const meta = {
-	title: 'Features/Results/LogRunner/LogLine',
+	title: 'Features/Results/LogRunner/Components/LogLine',
 	component: LogLine,
 	tags: ['autodocs'],
 	args: { log: damageLog(12.5, 1420.5) },
