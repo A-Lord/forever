@@ -16,11 +16,12 @@ import { batch } from '@sim/state/batch';
 import { subscribePlayerChange, subscribeSimChange } from '@sim/state/subscriptions';
 import { Chip } from '@ui-kit/Chip';
 import { SavedDataPanel } from '@ui-kit/SavedDataPanel';
-import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { LocaleHtml, Tooltip } from '@ui-kit/Tooltip';
 import { useId, useMemo } from 'react';
 
 import { isBuildActive } from '../preset_build_state';
-import { PresetBuildTooltip } from '../PresetBuildTooltip';
+import type { PresetBuild } from '../preset_utils';
+import { PresetBuildChip, PresetBuildChipTooltip } from '../PresetBuildChip';
 import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
 import { PresetGroupPicker, usePresetFilterPhase } from '../PresetGroupPicker';
 
@@ -84,6 +85,11 @@ const GroupedGearPresets = () => {
 		load: loadGearSet,
 	});
 
+	const applyPresetBuild = (build: PresetBuild) => {
+		applyBuild(build, host);
+		filter.selectPhase(build.phase);
+	};
+
 	const loadGearPreset = (preset: PresetGear) => {
 		batch(() => {
 			player.setGear(sim.db.lookupEquipmentSpec(preset.gear));
@@ -104,18 +110,7 @@ const GroupedGearPresets = () => {
 									phase: build.phase,
 									group: build.group,
 									node: (
-										<Chip
-											as="button"
-											nameAs="span"
-											label={build.name}
-											active={buildsActive?.[index]}
-											onSelect={() => {
-												applyBuild(build, host);
-												filter.selectPhase(build.phase);
-											}}
-											nameProps={{ role: 'button' }}
-											rootProps={{ type: 'button', ...tooltipAnchorProps(buildTooltipId, build.name) }}
-										/>
+										<PresetBuildChip build={build} active={buildsActive?.[index]} tooltipId={buildTooltipId} onApply={applyPresetBuild} />
 									),
 								}))
 							: [],
@@ -162,13 +157,7 @@ const GroupedGearPresets = () => {
 	return (
 		<div data-testid="preset-configuration-picker-root" data-saved-data-manager="">
 			<PresetGroupPicker sections={sections} phases={filter.phases} phase={filter.phase} onSelectPhase={filter.selectPhase} />
-			<Tooltip
-				id={buildTooltipId}
-				render={({ activeAnchor }) => {
-					const build = builds.find(candidate => candidate.name === activeAnchor?.getAttribute('data-tooltip-content'));
-					return build ? <PresetBuildTooltip build={build} /> : null;
-				}}
-			/>
+			<PresetBuildChipTooltip id={buildTooltipId} builds={builds} />
 			{/* The default preset-gear tooltip is the BIS disclaimer, which is two `<p>`s of markup. */}
 			<Tooltip
 				id={gearTooltipId}

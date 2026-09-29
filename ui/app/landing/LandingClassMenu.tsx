@@ -1,11 +1,10 @@
-import { Menu as BaseMenu } from '@base-ui/react/menu';
 import { Class } from '@generated/proto/common';
 import { translatePlayerClass, translatePlayerSpec, translateStatus } from '@i18n/localization';
 import { PlayerClasses } from '@sim/player/classes/index';
 import type { PlayerClass } from '@sim/player/player_class';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import { textClassNameForClass, textClassNameForSpec } from '@sim/proto/utils';
-import { Menu } from '@ui-kit/Menu';
+import { Menu, MenuLinkItem } from '@ui-kit/Menu';
 import { SimLinkContent } from '@ui-kit/SimLinkContent';
 import { CLASS_BORDER } from '@ui-kit/utils/colors';
 import clsx from 'clsx';
@@ -74,17 +73,21 @@ export const LandingClassMenu = ({ playerClass }: LandingClassMenuProps) => {
 				// `keepMounted`: the 18 spec links are the landing page's only content for a crawler, and an unmounted popup has none of them in the document.
 				keepMounted
 				className="ui-landing-sim-link-popup">
+				{/* `p-0`: the link content pads itself, so the menu item's own padding would double it. */}
 				{specs.map(spec => (
-					<li key={spec.simLink} role="none">
-						<BaseMenu.LinkItem href={spec.simLink} className={clsx('ui-landing-sim-link-cell', textClassNameForSpec(spec))} data-testid="sim-link">
-							<SimLinkContent
-								iconPath={spec.getIcon('large')}
-								label={className}
-								title={translatePlayerSpec(spec)}
-								status={translateStatus(spec.launch.status)}
-							/>
-						</BaseMenu.LinkItem>
-					</li>
+					<MenuLinkItem
+						key={spec.simLink}
+						layout="block"
+						href={spec.simLink}
+						className={clsx('ui-landing-sim-link-cell p-0', textClassNameForSpec(spec))}
+						data-testid="sim-link">
+						<SimLinkContent
+							iconPath={spec.getIcon('large')}
+							label={className}
+							title={translatePlayerSpec(spec)}
+							status={translateStatus(spec.launch.status)}
+						/>
+					</MenuLinkItem>
 				))}
 			</Menu>
 		</div>

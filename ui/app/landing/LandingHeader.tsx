@@ -1,5 +1,6 @@
 import i18n from '@i18n/config';
 import { REPO_URL } from '@sim/constants/other';
+import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import clsx from 'clsx';
 import { useState } from 'react';
@@ -13,16 +14,16 @@ export const LandingHeader = () => {
 	const toggleLabel = i18n.t('landing.navigation.toggle');
 
 	const toggler = (icon: 'bars' | 'times') => (
-		<button
+		<Button
+			variant="unstyled"
 			className="border-0 px-3 py-1 text-lg leading-none text-white max-md:absolute max-md:top-0 max-md:right-0 md:hidden"
-			type="button"
 			aria-controls={COLLAPSE_ID}
 			aria-expanded={open}
 			aria-label={toggleLabel}
 			data-testid="navbar-toggler"
 			onClick={() => setOpen(current => !current)}>
 			<Icon name={icon} size="2x" />
-		</button>
+		</Button>
 	);
 
 	return (

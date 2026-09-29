@@ -1,8 +1,7 @@
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
-import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { renderWithHost } from '../../testing/react';
 
 // Everything the simple pane mounts besides the Cooldowns block; none of it is under test here.
 vi.mock('@features/apl/components/AplNavbar', () => ({ AplNavbar: () => null }));
@@ -23,17 +22,11 @@ vi.mock('@features/settings', () => ({
 let available: Array<unknown> = [];
 const { RotationTabBody } = await import('./RotationTabBody');
 
-const setup = (hideSimpleCooldowns?: boolean) => {
-	const host = fakeHost({
+const setup = (hideSimpleCooldowns?: boolean) =>
+	renderWithHost(<RotationTabBody rotationType={APLRotationType.TypeSimple} />, {
 		player: { hasSimpleRotationGenerator: () => true },
 		individualConfig: { rotationInputs: { inputs: [] }, hideSimpleCooldowns },
 	});
-	return render(
-		<SimHostProvider host={host}>
-			<RotationTabBody rotationType={APLRotationType.TypeSimple} />
-		</SimHostProvider>,
-	);
-};
 
 const cooldownBlock = (container: HTMLElement) => container.querySelector('[data-testid="cooldown-settings"]');
 

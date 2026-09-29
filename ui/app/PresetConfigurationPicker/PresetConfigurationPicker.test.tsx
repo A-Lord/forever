@@ -1,7 +1,7 @@
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { renderWithHost } from '../../testing/react';
 
 const applyBuild = vi.fn();
 const activeNames = new Set<string>();
@@ -18,14 +18,11 @@ vi.mock('@sim/hooks/useSimReady', () => ({ useSimReady: () => ready }));
 let ready = true;
 const { PresetConfigurationPicker } = await import('./PresetConfigurationPicker');
 
-const setup = (builds: Array<Record<string, unknown>>, categories = ['gear']) => {
-	const host = fakeHost({ individualConfig: { presets: { builds } }, getStorageKey: (part: string) => `spec${part}` });
-	return render(
-		<SimHostProvider host={host}>
-			<PresetConfigurationPicker categories={categories as never} />
-		</SimHostProvider>,
-	);
-};
+const setup = (builds: Array<Record<string, unknown>>, categories = ['gear']) =>
+	renderWithHost(<PresetConfigurationPicker categories={categories as never} />, {
+		individualConfig: { presets: { builds } },
+		getStorageKey: (part: string) => `spec${part}`,
+	});
 
 const chips = (container: HTMLElement) => [...container.querySelectorAll<HTMLElement>('[data-testid="saved-data-set-chip"]')];
 

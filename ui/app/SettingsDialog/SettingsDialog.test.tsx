@@ -1,8 +1,8 @@
-import type { Sim } from '@sim/sim';
 import { createSimStore } from '@sim/state/sim_store';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithHost } from '../../testing/react';
 import { SettingsDialog } from './SettingsDialog';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
@@ -28,22 +28,13 @@ class FakeSim {
 	isWasm() {
 		return this.wasm;
 	}
-	getFixedRngSeed() {
-		return this.store.getState().sim.fixedRngSeed;
-	}
 	setFixedRngSeed(value: number) {
 		this.store.setState(state => ({ sim: { ...state.sim, fixedRngSeed: value } }));
-	}
-	getLastUsedRngSeed() {
-		return this.store.getState().sim.lastUsedRngSeed;
 	}
 	recordLastUsedRngSeed(value: number) {
 		this.store.setState(state => ({
 			sim: { ...state.sim, lastUsedRngSeed: value, lastUsedRngSeedVersion: state.sim.lastUsedRngSeedVersion + 1 },
 		}));
-	}
-	getLanguage() {
-		return this.store.getState().ui.language;
 	}
 	setLanguage(value: string) {
 		this.store.setState(state => ({ ui: { ...state.ui, language: value } }));
@@ -54,20 +45,11 @@ class FakeSim {
 	setShowThreatMetrics(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showThreatMetrics: value } }));
 	}
-	getShowExperimental() {
-		return this.store.getState().ui.showExperimental;
-	}
 	setShowExperimental(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showExperimental: value } }));
 	}
-	getShowQuickSwap() {
-		return this.store.getState().ui.showQuickSwap;
-	}
 	setShowQuickSwap(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showQuickSwap: value } }));
-	}
-	getWasmConcurrency() {
-		return this.store.getState().ui.wasmConcurrency;
 	}
 	setWasmConcurrency(value: number) {
 		this.store.setState(state => ({ ui: { ...state.ui, wasmConcurrency: value } }));
@@ -75,8 +57,8 @@ class FakeSim {
 }
 
 const mount = (sim: FakeSim, applyDefaults = vi.fn()) => {
-	const host = { rootElem: document.body, sim: sim as unknown as Sim, applyDefaults } as never;
-	const rendered = render(<SettingsDialog open onOpenChange={() => {}} host={host} />);
+	const host = { applyDefaults } as never;
+	const rendered = renderWithHost(<SettingsDialog open onOpenChange={() => {}} host={host} />, { sim });
 	return { ...rendered, applyDefaults };
 };
 

@@ -1,4 +1,3 @@
-import { Menu as BaseMenu } from '@base-ui/react/menu';
 import type { Class } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { translatePlayerClass, translatePlayerSpec, translateStatus } from '@i18n/localization';
@@ -7,7 +6,7 @@ import type { PlayerClass } from '@sim/player/player_class';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import { PlayerSpecs } from '@sim/player/specs/index';
 import { textClassNameForClass, textClassNameForSpec } from '@sim/proto/utils';
-import { Menu } from '@ui-kit/Menu';
+import { Menu, MenuLinkItem } from '@ui-kit/Menu';
 import { SimLinkContent } from '@ui-kit/SimLinkContent';
 import clsx from 'clsx';
 
@@ -34,20 +33,21 @@ const ClassSubmenu = ({ playerClass }: { playerClass: PlayerClass<Class> }) => (
 		className="ui-sim-title-popup w-auto min-w-popup-min-w"
 		positionerProps={{ 'data-testid': 'sim-title-positioner' }}
 		popupProps={{ 'data-testid': 'sim-title-popup' }}>
+		{/* `p-0`: the link content pads itself, so the menu item's own padding would double it. */}
 		{Object.values(playerClass.specs).map(spec => (
-			<li key={spec.simLink} role="none">
-				<BaseMenu.LinkItem
-					href={new URL(spec.simLink, window.location.href).toString()}
-					className={clsx(SIM_LINK_CLASSES, textClassNameForSpec(spec))}
-					data-testid="sim-link">
-					<SimLinkContent
-						iconPath={spec.getIcon('large')}
-						label={translatePlayerClass(PlayerSpecs.getPlayerClass(spec))}
-						title={translatePlayerSpec(spec)}
-						status={launchLabel(spec.launch)}
-					/>
-				</BaseMenu.LinkItem>
-			</li>
+			<MenuLinkItem
+				key={spec.simLink}
+				layout="block"
+				href={new URL(spec.simLink, window.location.href).toString()}
+				className={clsx(SIM_LINK_CLASSES, 'p-0', textClassNameForSpec(spec))}
+				data-testid="sim-link">
+				<SimLinkContent
+					iconPath={spec.getIcon('large')}
+					label={translatePlayerClass(PlayerSpecs.getPlayerClass(spec))}
+					title={translatePlayerSpec(spec)}
+					status={launchLabel(spec.launch)}
+				/>
+			</MenuLinkItem>
 		))}
 	</Menu>
 );

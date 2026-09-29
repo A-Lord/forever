@@ -1,7 +1,6 @@
-import { Menu as BaseMenu } from '@base-ui/react/menu';
 import { getLang, setLang, supportedLanguages } from '@i18n/locale_service';
 import { Icon } from '@ui-kit/Icon';
-import { Menu } from '@ui-kit/Menu';
+import { Menu, MenuItem } from '@ui-kit/Menu';
 
 export const LandingLanguageMenu = () => {
 	const currentLang = getLang();
@@ -26,18 +25,16 @@ export const LandingLanguageMenu = () => {
 				keepMounted
 				className="ui-landing-language-popup">
 				{Object.entries(supportedLanguages).map(([code, name]) => (
-					<li key={code} role="none">
-						<BaseMenu.Item
-							render={<button type="button" />}
-							nativeButton
-							className="clear-both block w-full rounded-none border-0 bg-transparent text-start font-normal whitespace-nowrap text-white no-underline"
-							data-active={code === currentLang ? '' : undefined}
-							data-lang={code}
-							data-testid="dropdown-item"
-							onClick={() => selectLang(code)}>
-							{name}
-						</BaseMenu.Item>
-					</li>
+					<MenuItem
+						key={code}
+						layout="block"
+						className="clear-both rounded-none no-underline"
+						data-active={code === currentLang ? '' : undefined}
+						data-lang={code}
+						data-testid="dropdown-item"
+						onClick={() => selectLang(code)}>
+						{name}
+					</MenuItem>
 				))}
 			</Menu>
 		</div>
