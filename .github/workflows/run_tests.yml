@@ -112,9 +112,8 @@ jobs:
                   echo "url=$(grep -o 'https://[a-z0-9]*\.wowsims-forever\.pages\.dev' "$RUNNER_TEMP/wrangler-deploy.log" | head -1)" >> "$GITHUB_OUTPUT"
 
             # One comment per pull request, found again by its marker and edited on every push, so
-            # the link stays in one place instead of repeating. A script action rather than `gh`:
-            # the self-hosted runner's service PATH does not carry it. The body is the layout
-            # Cloudflare's own GitHub integration posts, with the workflow run as the log link.
+            # the link stays in one place instead of repeating. The body is the layout Cloudflare's
+            # own GitHub integration posts, with the workflow run as the log link.
             - name: Comment preview link 🔗
               if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
               uses: actions/github-script@v8
