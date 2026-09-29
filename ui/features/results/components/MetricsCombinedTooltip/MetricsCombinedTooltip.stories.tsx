@@ -1,5 +1,6 @@
 import { SpellSchool } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withTooltipSurface } from '@testing/storybook/decorators';
 
 import { MetricsCombinedTooltip } from './MetricsCombinedTooltip';
 
@@ -34,6 +35,7 @@ const meta = {
 				<Story />
 			</div>
 		),
+		withTooltipSurface,
 	],
 } satisfies Meta<typeof MetricsCombinedTooltip>;
 

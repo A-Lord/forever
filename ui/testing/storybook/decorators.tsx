@@ -35,6 +35,13 @@ export const withSimUi: Decorator = (Story, { globals, parameters }) => (
 	</SimUiFrame>
 );
 
+/** Renders a tooltip body on the real tooltip surface, so its font matches what `Tooltip` shows it at. */
+export const withTooltipSurface: Decorator = Story => (
+	<div className="ui-tooltip inline-block p-2">
+		<Story />
+	</div>
+);
+
 /** Stories share one origin; clear and seed localStorage per story. */
 export const withStorage =
 	(seed: Record<string, string> = {}): Decorator =>
