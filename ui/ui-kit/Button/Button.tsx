@@ -2,7 +2,8 @@ import { Button as BaseButton } from '@base-ui/react/button';
 import { externalRel } from '@sim/utils/links';
 import { Spinner } from '@ui-kit/Spinner';
 import clsx from 'clsx';
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, ReactNode, Ref } from 'react';
+
+import type { ButtonProps, ButtonWithHref } from './types';
 
 const SIZE_CLASS = {
 	default: 'ui-button-md',
@@ -12,43 +13,11 @@ const SIZE_CLASS = {
 	none: undefined,
 } as const;
 
-export type ButtonVariant =
-	| 'primary'
-	| 'secondary'
-	| 'danger'
-	| 'cancel'
-	| 'link'
-	| 'link-danger'
-	| 'outline-primary'
-	| 'outline-light'
-	| 'outline-cancel'
-	| 'warning'
-	| 'unstyled';
-
-interface ButtonBaseProps {
-	/** `null` emits the bare base bundle — no colour of its own. */
-	variant?: ButtonVariant | null;
-	size?: 'sm' | 'xs' | 'inline' | 'none';
-	/** Chromeless: no padding, border or background of its own — an icon-sized hit target. */
-	iconOnly?: boolean;
-	/** Renders a small spinner before the children, or over them for `iconOnly`, and sets `aria-busy`; it does not disable the button. */
-	loading?: boolean;
-	className?: string;
-	children?: ReactNode;
-}
-
-type ButtonAsButton = ButtonBaseProps &
-	Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'> & { as?: 'button'; ref?: Ref<HTMLButtonElement> };
-
-type ButtonAsAnchor = ButtonBaseProps & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'className' | 'children'> & { as: 'a'; href: string };
-
-type ButtonAsLabel = ButtonBaseProps & Omit<LabelHTMLAttributes<HTMLLabelElement>, 'className' | 'children'> & { as: 'label'; htmlFor: string };
-
-export type ButtonProps = ButtonAsButton | ButtonAsAnchor | ButtonAsLabel;
+const hasHref = (props: ButtonProps): props is ButtonWithHref => props.href !== undefined;
 
 export const Button = (props: ButtonProps) => {
 	const variant = props.variant === undefined ? (props.iconOnly ? null : 'primary') : props.variant;
-	const isLink = variant === 'link' || variant === 'link-danger' || variant === 'warning';
+	const isLink = variant === 'link' || variant === 'link-danger';
 	const base = props.iconOnly ? 'ui-button-icon' : isLink ? 'ui-button-link' : 'ui-button';
 	const classes =
 		variant === 'unstyled'
@@ -94,7 +63,7 @@ export const Button = (props: ButtonProps) => {
 	}
 
 	// A plain anchor, deliberately not `Base.Button`.
-	if (props.as === 'a') {
+	if (hasHref(props)) {
 		const {
 			as: _as,
 			variant: _variant,

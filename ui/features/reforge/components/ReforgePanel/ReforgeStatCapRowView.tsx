@@ -1,7 +1,7 @@
-import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { Tooltip } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { type ReactNode, useId } from 'react';
 
 export interface ReforgeStatCapRowViewProps {
@@ -22,9 +22,9 @@ export const ReforgeStatCapRowView = ({ statName, tooltip, percentage, undershoo
 					{statName}{' '}
 					{!!tooltip && (
 						<>
-							<Button variant="unstyled" className="inline" {...tooltipAnchorProps(tooltipId)}>
+							<TooltipAnchor tooltipId={tooltipId} testId="reforge-stat-cap-help">
 								<Icon name="circle-question" style="regular" />
-							</Button>
+							</TooltipAnchor>
 							<Tooltip id={tooltipId} content={tooltip} />
 						</>
 					)}

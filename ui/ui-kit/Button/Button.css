@@ -175,22 +175,6 @@
 		}
 	}
 
-	.ui-button-warning {
-		@apply text-link-warning;
-
-		&:hover {
-			@apply text-link-warning;
-		}
-
-		&:focus-visible {
-			@apply text-link-warning shadow-none;
-		}
-
-		&:disabled {
-			@apply text-link-warning;
-		}
-	}
-
 	.ui-button-md {
 		@apply p-2;
 	}

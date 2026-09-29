@@ -6,7 +6,6 @@ import type { TalentsConfig } from '@sim/talents/config';
 import type { TalentPoints } from '@sim/talents/talents_string';
 import { parseTalentsString, serializeTalentsString, totalPointsSpent } from '@sim/talents/talents_string';
 import { Field } from '@ui-kit/Field';
-import { useCopyToClipboard } from '@ui-kit/hooks/useCopyToClipboard';
 import { useWowheadTooltipRefresh } from '@ui-kit/hooks/useWowheadTooltipRefresh';
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 
@@ -31,8 +30,6 @@ export const TalentsPicker = <TalentsProto,>({ config }: TalentsPickerProps<Tale
 	const player = usePlayer();
 	const fallbackId = useId();
 	const { value, setValue, hidden, disabled } = useInput(player, config);
-
-	const { copy, copied } = useCopyToClipboard(() => player.getTalentsString());
 
 	const treesRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +58,7 @@ export const TalentsPicker = <TalentsProto,>({ config }: TalentsPickerProps<Tale
 			className={['col-span-full flex w-fit flex-row gap-section max-fhd:flex-col max-xl:m-auto max-md:w-full', config.extraClassNames]}
 			disabled={disabled}>
 			<div className="flex flex-col max-lg:w-full">
-				<TalentsHeaderView pointsRemaining={MAX_POINTS_PLAYER - totalPointsSpent(points)} copied={copied} onCopy={copy} />
+				<TalentsHeaderView pointsRemaining={MAX_POINTS_PLAYER - totalPointsSpent(points)} getTalentsString={() => player.getTalentsString()} />
 				<div className="flex-1 max-lg:-mx-page">
 					<div className="ui-talents-picker-trees" data-testid="talents-picker-trees" ref={treesRef}>
 						{config.trees.map((_, treeIdx) => (

@@ -7,7 +7,7 @@ const meta = {
 	title: 'Features/Talents/TalentsPicker/Components/TalentsHeaderView',
 	component: TalentsHeaderView,
 	tags: ['autodocs'],
-	args: { pointsRemaining: 51, copied: false, onCopy: fn() },
+	args: { pointsRemaining: 51, getTalentsString: fn(() => '-0505') },
 	decorators: [
 		Story => (
 			<div className="w-96">
@@ -23,12 +23,10 @@ type Story = StoryObj<typeof meta>;
 export const Unspent: Story = {
 	play: async ({ args, canvasElement }) => {
 		await userEvent.click(within(canvasElement).getByTestId('copy-button'));
-		await expect(args.onCopy).toHaveBeenCalledOnce();
+		await expect(args.getTalentsString).toHaveBeenCalledOnce();
 	},
 };
 
 export const PartlySpent: Story = { args: { pointsRemaining: 15 } };
 
 export const AllSpent: Story = { args: { pointsRemaining: 0 } };
-
-export const Copied: Story = { args: { pointsRemaining: 0, copied: true } };

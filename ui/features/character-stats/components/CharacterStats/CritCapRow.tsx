@@ -1,9 +1,9 @@
 import i18n from '@i18n/config';
 import type { MeleeCritCapInfo } from '@sim/player/player';
-import { Button } from '@ui-kit/Button';
 import { Skeleton } from '@ui-kit/Skeleton';
 import { TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { Tooltip } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { useId } from 'react';
 
 import { TooltipRow } from './TooltipRow';
@@ -26,13 +26,9 @@ export const CritCapRow = ({ info, text, pending }: CritCapRowProps) => {
 				) : (
 					<>
 						<div className="ui-stat-value-link-container">
-							<Button
-								variant="unstyled"
-								data-testid="stat-value-link"
-								className={critCapClass(info.playerCritCapDelta)}
-								{...tooltipAnchorProps(id)}>
+							<TooltipAnchor tooltipId={id} testId="stat-value-link" className={critCapClass(info.playerCritCapDelta)}>
 								{`${text} `}
-							</Button>
+							</TooltipAnchor>
 						</div>
 						<Tooltip
 							id={id}
