@@ -16,6 +16,9 @@ on:
 jobs:
     tests:
         uses: ./.github/workflows/run_tests.yml
+        permissions:
+            contents: read
+            pull-requests: write
         with:
             ref: ${{ github.event.inputs.ref }}
 

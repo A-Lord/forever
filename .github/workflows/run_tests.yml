@@ -24,6 +24,11 @@ jobs:
     build-ui:
         runs-on: self-hosted
         timeout-minutes: 20
+        # The preview link comment needs to write to the pull request; every caller of
+        # this workflow grants the same.
+        permissions:
+            contents: read
+            pull-requests: write
         steps:
             - name: Checkout 🛎️
               uses: actions/checkout@v5
@@ -83,6 +88,36 @@ jobs:
             - name: Build 🔧
               run: |
                   make dist/forever/.dirstamp
+
+            # Each pull request from this repository gets its build hosted at
+            # https://pr-<number>.wowsims-forever.pages.dev/forever/ as a Cloudflare Pages
+            # preview; fork pull requests carry no secrets, so they get none. The whole `dist`
+            # folder is uploaded because the bundle is built for the `/forever/` base path,
+            # and `_redirects` sends the bare host there.
+            - name: Deploy preview ☁️
+              if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+              run: |
+                  echo "/ /forever/ 302" > dist/_redirects
+                  npx --yes wrangler@4 pages deploy dist \
+                    --project-name=wowsims-forever \
+                    --branch=pr-${{ github.event.pull_request.number }} \
+                    --commit-hash=${{ github.event.pull_request.head.sha }} \
+                    --commit-dirty=true
+
+            # One comment per pull request, edited on every push so the link stays on top of
+            # the conversation instead of repeating.
+            - name: Comment preview link 🔗
+              if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+              run: |
+                  body="Preview: https://pr-${PR_NUMBER}.wowsims-forever.pages.dev/forever/ (built from ${HEAD_SHA})"
+                  gh pr comment "$PR_NUMBER" --edit-last --body "$body" || gh pr comment "$PR_NUMBER" --body "$body"
 
     test:
         runs-on: self-hosted

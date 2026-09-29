@@ -6,6 +6,9 @@ on:
 jobs:
     tests:
         uses: ./.github/workflows/run_tests.yml
+        permissions:
+            contents: read
+            pull-requests: write
         with:
             # The master tip before this push: what is deployed, and what the protos must stay
             # compatible with unless the version is bumped.
