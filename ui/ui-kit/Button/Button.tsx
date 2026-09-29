@@ -65,11 +65,11 @@ export const Button = (props: ButtonProps) => {
 	) : props.iconOnly ? (
 		<>
 			<span className="invisible">{props.children}</span>
-			<Spinner size="sm" className="ui-button-icon-spinner" />
+			<Spinner size="xs" className="ui-button-icon-spinner" />
 		</>
 	) : (
 		<>
-			<Spinner size="sm" className="ui-button-spinner" />
+			<Spinner size="xs" className="ui-button-spinner" />
 			{props.children}
 		</>
 	);

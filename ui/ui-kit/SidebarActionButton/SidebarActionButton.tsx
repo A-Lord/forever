@@ -28,7 +28,7 @@ export const SidebarActionButton = ({ children, className, onClick, disabled, lo
 			disabled={disabled || sidebarDisabled || loading}
 			aria-busy={loading || undefined}>
 			{children}
-			{loading && <Spinner size="sm" className="ui-sidebar-action-spinner" />}
+			{loading && <Spinner size="xs" className="ui-sidebar-action-spinner" />}
 		</Button>
 	);
 };

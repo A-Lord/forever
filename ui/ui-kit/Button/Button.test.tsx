@@ -166,7 +166,7 @@ describe('Button', () => {
 		expect(button.getAttribute('aria-busy')).toBe('true');
 		const spinner = within(button).getByTestId('loader');
 		expect(button.firstElementChild).toBe(spinner);
-		expect(spinner.className).toContain('ui-spinner-sm');
+		expect(spinner.getAttribute('data-size')).toBe('xs');
 	});
 
 	it('lays the spinner over an iconOnly button, keeping the icon in place but invisible, and marks itself busy', () => {
