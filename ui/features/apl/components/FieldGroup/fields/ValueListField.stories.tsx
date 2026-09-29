@@ -15,7 +15,6 @@ const operandsOf = (initial: Array<APLValue>) => {
 	let vals = initial;
 	const config = {
 		id: 'story-vals',
-		extraClassNames: ['ui-apl-picker-builder-multi'],
 		storeSubscribe: rotationSource,
 		getValue: () => vals,
 		setValue: (_subject: unknown, next: Array<APLValue | undefined>) => {

@@ -1,4 +1,6 @@
 import { ActionPicker } from '@features/apl/components/ActionPicker';
+import { useApl } from '@features/apl/context/AplContext';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { type ListItemsConfig, useListItems } from '@features/inputs/hooks/useListItems';
 import type { InputConfig } from '@features/inputs/input';
 import { keyFor } from '@features/inputs/list_ids';
@@ -18,26 +20,36 @@ export interface ActionListFieldProps {
 /**
  * The action list of a sequence or strict sequence — the action tree's own recursion edge.
  *
- * Its rows sit in the `apl-actions` group, which is not the priority list's, so a sequence's rows
- * never mix with a priority list's. A row's id is its list key: an `APLAction` carries no uuid.
+ * Its rows sit in the group the enclosing `ActionPicker` names after its sequence (`actionListGroup`),
+ * which is not the priority list's, so a sequence's rows never mix with a priority list's. A row's
+ * id is its list key: an `APLAction` carries no uuid.
  */
 export const ActionListField = ({ player, config }: ActionListFieldProps) => {
 	const listConfig: ListItemsConfig<Player<any>, APLAction> = {
 		...config,
 		newItem: APLAction.create,
 		// Called through, not passed: `clone` reads `this`, so the bare method copies nothing.
-		copyItem: (oldItem: APLAction) => APLAction.clone(oldItem),
+		copyItem: (oldItem: APLAction) => freshUuids(APLAction.clone(oldItem)),
 	};
+	const group = useApl().listGroup ?? 'apl-actions';
 	const { items, itemConfig, create, remove, copy, move, hidden, disabled } = useListItems(player, listConfig);
-	const moveRef = useRef(move);
-	moveRef.current = move;
-	const sortable = useMemo((): TreeSortable => ({ onMove: ({ from, to }) => moveRef.current(from.index, to.index) }), []);
+	const latest = useRef({ move, group });
+	latest.current = { move, group };
+	// Outside an `AplList` root this list owns the drag, and the lists nested in its rows report to it too.
+	const sortable = useMemo(
+		(): TreeSortable => ({
+			onMove: ({ from, to }) => {
+				if (from.group === latest.current.group && to.group === latest.current.group) latest.current.move(from.index, to.index);
+			},
+		}),
+		[],
+	);
 	if (hidden) return null;
 
 	const itemLabel = translateItemLabel('action');
 	return (
 		<Tree.Root
-			group="apl-actions"
+			group={group}
 			layout="inline"
 			density="compact"
 			sortable={sortable}

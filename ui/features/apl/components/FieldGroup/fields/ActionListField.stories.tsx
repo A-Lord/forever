@@ -14,7 +14,6 @@ const actionsOf = (initial: Array<APLAction>) => {
 	let actions = initial;
 	const config = {
 		id: 'story-actions',
-		extraClassNames: ['ui-apl-picker-builder-multi'],
 		storeSubscribe: rotationSource,
 		getValue: () => actions,
 		setValue: (_subject: unknown, next: Array<APLAction>) => {

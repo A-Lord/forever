@@ -86,10 +86,7 @@ export const GroupVariablesField = ({ player, config, groupNameField, getParentV
 
 	const itemLabel = translateItemLabel('Variable');
 	return (
-		<Field.Root
-			layout={config.layout}
-			className={['ui-apl-group-variables-container', config.extraClassNames, !items.length && 'hidden']}
-			testId="group-reference-variables-container">
+		<Field.Root layout={config.layout} className={[config.extraClassNames, !items.length && 'hidden']} testId="group-reference-variables-container">
 			<Field.Label as="span" tooltip="Variables to pass to the group. These will override the group's internal variables.">
 				Group Variables
 			</Field.Label>

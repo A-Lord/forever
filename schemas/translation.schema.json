@@ -946,9 +946,6 @@
 						"action_has_errors": {
 							"type": "string"
 						},
-						"item_actions": {
-							"type": "string"
-						},
 						"toggle_item": {
 							"type": "string"
 						}
@@ -964,7 +961,6 @@
 						"additional_information",
 						"action_has_warnings",
 						"action_has_errors",
-						"item_actions",
 						"toggle_item"
 					]
 				},

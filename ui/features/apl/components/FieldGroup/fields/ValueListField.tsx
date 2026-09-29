@@ -2,7 +2,9 @@ import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { AplValidations } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
+import { useApl } from '@features/apl/context/AplContext';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { type ListItemsConfig, useListItems } from '@features/inputs/hooks/useListItems';
 import type { InputConfig } from '@features/inputs/input';
 import { keyFor } from '@features/inputs/list_ids';
@@ -49,12 +51,21 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 				next.map(value => value || newValue()),
 			),
 		newItem: newValue,
-		copyItem: (oldValue: APLValue | undefined) => (oldValue ? APLValue.clone(oldValue) : oldValue),
+		copyItem: (oldValue: APLValue | undefined) => (oldValue ? freshUuids(APLValue.clone(oldValue)) : oldValue),
 	};
+	const group = useApl().listGroup ?? 'apl-values';
 	const { items, itemConfig, create, remove, copy, move, hidden, disabled } = useListItems(player, listConfig);
-	const moveRef = useRef(move);
-	moveRef.current = move;
-	const sortable = useMemo((): TreeSortable => ({ onMove: ({ from, to }) => moveRef.current(from.index, to.index) }), []);
+	const latest = useRef({ move, group });
+	latest.current = { move, group };
+	// Outside an `AplList` root this list owns the drag, and the lists nested in its rows report to it too.
+	const sortable = useMemo(
+		(): TreeSortable => ({
+			onMove: ({ from, to }) => {
+				if (from.group === latest.current.group && to.group === latest.current.group) latest.current.move(from.index, to.index);
+			},
+		}),
+		[],
+	);
 	if (hidden) return null;
 
 	const itemLabel = translateItemLabel('Value');
@@ -62,7 +73,7 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 	return (
 		<>
 			<Tree.Root
-				group="apl-values"
+				group={group}
 				layout="inline"
 				density="compact"
 				sortable={sortable}

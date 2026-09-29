@@ -315,6 +315,26 @@ describe('AplList drag and drop', () => {
 		expect(notifications).toBe(0);
 	});
 
+	it('moves a value from one row’s operand list into another row’s, keeping its uuid', () => {
+		const constant = (uuid: string) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'const', const: { val: uuid } } });
+		const and = (uuid: string, vals: Array<APLValue>) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'and', and: { vals } } });
+		const withCondition = (condition: APLValue) => APLListItem.create({ action: { condition, action: reset('x').action } });
+		setup({ priorityList: [withCondition(and('first', [constant('v1'), constant('v2')])), withCondition(and('second', [constant('v3')]))] });
+		mount();
+		const operands = () => Array.from(document.querySelectorAll<HTMLElement>('[data-testid="apl-value-list-item"]'));
+		place(operands());
+
+		fireEvent.mouseDown(within(operands()[0]).getAllByTestId('apl-value-list-handle')[0]);
+		fireEvent.dragStart(operands()[0], { dataTransfer: new DataTransfer() });
+		drop(operands()[2], 2 * 20 + 5);
+
+		const vals = (index: number) =>
+			(player.aplRotation.priorityList[index].action!.condition!.value as any).and.vals.map((value: APLValue) => value.uuid!.value);
+		expect(vals(0)).toEqual(['v2']);
+		expect(vals(1)).toEqual(['v1', 'v3']);
+		expect(notifications).toBe(1);
+	});
+
 	it('refuses a row dropped beside a section, outside every list', () => {
 		setup({ prepullActions: [prepull('p')], priorityList: [row('a')] });
 		mount();

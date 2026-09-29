@@ -7,6 +7,7 @@ import { NameDisplay } from '@features/apl/components/NameDisplay';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
 import { aplItemId } from '@features/apl/model/apply_move';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { rotationSource } from '@features/apl/utils';
 import { useListItems } from '@features/inputs/hooks/useListItems';
 import type { InputConfig } from '@features/inputs/input';
@@ -43,7 +44,7 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 			subject.touchRotation();
 		},
 		newItem: () => APLListItem.create({ action: {} }),
-		copyItem: item => APLListItem.clone(item),
+		copyItem: item => freshUuids(APLListItem.clone(item)),
 	});
 	const extraction = useVariableExtraction(
 		player,
@@ -64,7 +65,7 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 			testId="apl-group-editor-root">
 			<Tree.Item.Children>
 				{actions.items.length > 0 && (
-					<Tree.Items>
+					<AplList.Rows>
 						{actions.items.map((item, index) => {
 							const itemConfig = actions.itemConfig(item, index);
 							const itemId = aplItemId(item, index);
@@ -98,7 +99,7 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 								</AplList.Item>
 							);
 						})}
-					</Tree.Items>
+					</AplList.Rows>
 				)}
 				<Tree.AddButton label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })} icon="plus" onClick={() => actions.create()} />
 			</Tree.Item.Children>

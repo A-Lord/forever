@@ -4,6 +4,7 @@ import { ListItemHeader } from '@features/apl/components/ListItemHeader';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { AplProvider } from '@features/apl/context/AplContext';
 import { aplItemId, PREPULL } from '@features/apl/model/apply_move';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { rotationSource } from '@features/apl/utils';
 import { useListItems } from '@features/inputs/hooks/useListItems';
 import { APLPrepullAction, APLValue } from '@generated/proto/apl';
@@ -26,7 +27,7 @@ export const PrePullList = () => {
 				rotation.prepullActions = next;
 			}),
 		newItem: () => APLPrepullAction.create({ action: {}, doAtValue: { value: { oneofKind: 'const', const: { val: '-1s' } } } }),
-		copyItem: item => APLPrepullAction.clone(item),
+		copyItem: item => freshUuids(APLPrepullAction.clone(item)),
 	});
 	const header = i18n.t('rotation_tab.apl.prePullActions.header');
 	const label = i18n.t('rotation_tab.apl.prePullActions.name');
@@ -42,7 +43,7 @@ export const PrePullList = () => {
 				testId="apl-prepull-list-root">
 				<Tree.Item.Children>
 					{rows.items.length > 0 && (
-						<Tree.Items>
+						<AplList.Rows>
 							{rows.items.map((item, index) => {
 								const config = rows.itemConfig(item, index);
 								const id = aplItemId(item, index);
@@ -86,7 +87,7 @@ export const PrePullList = () => {
 									</AplList.Item>
 								);
 							})}
-						</Tree.Items>
+						</AplList.Rows>
 					)}
 					<Tree.AddButton label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })} onClick={() => rows.create()} />
 				</Tree.Item.Children>

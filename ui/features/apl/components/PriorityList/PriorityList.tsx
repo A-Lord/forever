@@ -6,6 +6,7 @@ import { ListItemHeader } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
 import { aplItemId, PRIORITY } from '@features/apl/model/apply_move';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { rotationSource } from '@features/apl/utils';
 import { useListItems } from '@features/inputs/hooks/useListItems';
 import { APLListItem } from '@generated/proto/apl';
@@ -27,7 +28,7 @@ export const PriorityList = () => {
 				rotation.priorityList = next;
 			}),
 		newItem: newRow,
-		copyItem: item => APLListItem.clone(item),
+		copyItem: item => freshUuids(APLListItem.clone(item)),
 	});
 	const extraction = useVariableExtraction(
 		player,
@@ -49,7 +50,7 @@ export const PriorityList = () => {
 			testId="apl-priority-list-picker-root">
 			<Tree.Item.Children>
 				{rows.items.length > 0 && (
-					<Tree.Items>
+					<AplList.Rows>
 						{rows.items.map((item, index) => {
 							const config = rows.itemConfig(item, index);
 							const id = aplItemId(item, index);
@@ -83,7 +84,7 @@ export const PriorityList = () => {
 								</AplList.Item>
 							);
 						})}
-					</Tree.Items>
+					</AplList.Rows>
 				)}
 				<AplListToolbar itemName={label} onCreate={() => rows.create()} />
 				<AplNameDialog {...extraction.dialog} />

@@ -4,7 +4,7 @@ import { applyMove, canApplyMove, type OffersKind } from '@features/apl/model/ap
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { TooltipButton } from '@ui-kit/TooltipButton';
-import { Tree, type TreeSortable } from '@ui-kit/Tree';
+import { Tree, type TreeLayout, type TreeSortable } from '@ui-kit/Tree';
 import { type ReactNode, useMemo } from 'react';
 
 export interface AplListRootProps {
@@ -12,6 +12,8 @@ export interface AplListRootProps {
 	group: string;
 	/** Inside the action groups pane, the only place a variable placeholder may be used. */
 	isGroup?: boolean;
+	/** `inline` for a pane whose items are rows, as `Rows` lays out the rows under a section. */
+	layout?: TreeLayout;
 	testId?: string;
 	children: ReactNode;
 }
@@ -20,7 +22,7 @@ export interface AplListRootProps {
  * One APL pane's tree. Its items are the pane's top-level entries; a drop anywhere under it, the
  * nested lists included, goes through `applyMove` as one rotation write.
  */
-const Root = ({ group, isGroup, testId, children }: AplListRootProps) => {
+const Root = ({ group, isGroup, layout, testId, children }: AplListRootProps) => {
 	const player = usePlayer();
 	const sortable = useMemo<TreeSortable>(() => {
 		const offersKind: OffersKind = (kind, isPrepull) => actionKinds[kind as NonNullable<APLActionKind>]?.includeIf?.(player, isPrepull) ?? true;
@@ -32,12 +34,23 @@ const Root = ({ group, isGroup, testId, children }: AplListRootProps) => {
 
 	return (
 		<AplProvider isGroup={isGroup}>
-			<Tree.Root group={group} sortable={sortable} density="compact" testId={testId}>
+			<Tree.Root group={group} sortable={sortable} density="compact" layout={layout} testId={testId}>
 				<Tree.Items>{children}</Tree.Items>
 			</Tree.Root>
 		</AplProvider>
 	);
 };
+
+/**
+ * The rows under a section or a group, inside its `Tree.Item.Children`: each row's body sits on its
+ * header line, and the rows stack once the tree is narrow. The root inherits the enclosing group,
+ * and its items take the enclosing item as their parent, as the children list's own would.
+ */
+const Rows = ({ children }: { children: ReactNode }) => (
+	<Tree.Root layout="inline">
+		<Tree.Items>{children}</Tree.Items>
+	</Tree.Root>
+);
 
 export interface AplListEntryProps {
 	/** `aplItemId(item, index)`, or a section's fixed id. */
@@ -112,4 +125,4 @@ export const AplSectionTitle = ({ text, tooltip }: { text: string; tooltip: stri
 	</>
 );
 
-export const AplList = { Root, Item };
+export const AplList = { Root, Rows, Item };

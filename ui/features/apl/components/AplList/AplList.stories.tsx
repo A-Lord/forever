@@ -4,7 +4,7 @@ import { VariablesList } from '@features/apl/components/VariablesList';
 import { APLAction, APLGroup, APLListItem, APLPrepullAction, APLRotation, APLValue, APLValueCompare_ComparisonOperator as Op } from '@generated/proto/apl';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { withAplHost } from '@testing/storybook/fixtures/apl';
-import { expect, fireEvent, within } from 'storybook/test';
+import { expect, fireEvent, waitFor, within } from 'storybook/test';
 
 const constant = (val: string) => APLValue.create({ value: { oneofKind: 'const', const: { val } } });
 const afterTime = (val: string) =>
@@ -58,9 +58,9 @@ export const PriorityPaneTree: Story = {
 		await expect(rows.length).toBeGreaterThanOrEqual(3);
 		const toggle = rows[0].querySelector<HTMLButtonElement>('button[aria-expanded]')!;
 		fireEvent.click(toggle);
-		await expect(rows[0].hasAttribute('data-open')).toBe(false);
+		await waitFor(() => expect(rows[0].hasAttribute('data-open')).toBe(false));
 		fireEvent.click(toggle);
-		await expect(rows[0].hasAttribute('data-open')).toBe(true);
+		await waitFor(() => expect(rows[0].hasAttribute('data-open')).toBe(true));
 	},
 };
 

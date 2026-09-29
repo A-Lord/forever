@@ -87,14 +87,17 @@ describe('ValueListField', () => {
 		expect(items().map(item => item.querySelector('[data-testid="apl-value-picker-root"]'))).not.toContain(null);
 	});
 
-	it('copies a row to a clone beside it', () => {
+	it('copies a row to a clone beside it, with a uuid of its own', () => {
 		mount([constant('a', '1'), constant('b', '2')]);
 
 		clickItemAction(0, 'apl-value-list-copy');
 
-		expect(uuids()).toEqual(['a', 'a', 'b']);
-		expect(values[1]).not.toBe(values[0]);
-		expect(values[1]).toEqual(values[0]);
+		const [copied, ...rest] = uuids();
+		expect(rest).toEqual(['a', 'b']);
+		expect(copied).toBeTruthy();
+		expect(copied).not.toBe('a');
+		expect(values[0]).not.toBe(values[1]);
+		expect(values[0]!.value).toEqual(values[1]!.value);
 		expect(items()).toHaveLength(3);
 	});
 

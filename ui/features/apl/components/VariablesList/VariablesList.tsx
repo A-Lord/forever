@@ -3,6 +3,7 @@ import { AplListToolbar } from '@features/apl/components/AplListToolbar';
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { useRenamedCopy } from '@features/apl/hooks/useRenamedCopy';
 import { APL_VARIABLES, aplItemId } from '@features/apl/model/apply_move';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { rotationSource } from '@features/apl/utils';
 import { useListItems } from '@features/inputs/hooks/useListItems';
 import { APLValueVariable } from '@generated/proto/apl';
@@ -35,7 +36,7 @@ export const VariablesList = () => {
 		},
 		nameOf: variable => variable.name,
 		// `create` re-creates nested messages recursively, so the copy's value shares nothing with the original's.
-		copy: (variable, name) => APLValueVariable.create({ name, value: variable.value }),
+		copy: (variable, name) => freshUuids(APLValueVariable.create({ name, value: variable.value })),
 	});
 
 	return (
@@ -43,7 +44,7 @@ export const VariablesList = () => {
 			<span className="mb-3 flex w-full items-center gap-2 text-base">
 				<AplSectionTitle text={i18n.t('rotation_tab.apl.variables.header')} tooltip={i18n.t('rotation_tab.apl.variables.tooltips.overview')} />
 			</span>
-			<AplList.Root group={APL_VARIABLES} testId="apl-variables-tree">
+			<AplList.Root group={APL_VARIABLES} layout="inline" testId="apl-variables-tree">
 				{variables.items.map((variable, index) => {
 					const id = aplItemId(variable, index);
 					return (

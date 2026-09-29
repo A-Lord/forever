@@ -3,6 +3,7 @@ import { AplListToolbar } from '@features/apl/components/AplListToolbar';
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { useRenamedCopy } from '@features/apl/hooks/useRenamedCopy';
 import { APL_GROUPS, aplItemId } from '@features/apl/model/apply_move';
+import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { rotationSource } from '@features/apl/utils';
 import { useListItems } from '@features/inputs/hooks/useListItems';
 import { APLGroup } from '@generated/proto/apl';
@@ -41,7 +42,7 @@ export const GroupList = () => {
 		},
 		nameOf: group => group.name,
 		copy: (group, name) => {
-			const clone = APLGroup.clone(group);
+			const clone = freshUuids(APLGroup.clone(group));
 			clone.name = name;
 			return clone;
 		},
