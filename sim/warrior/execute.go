@@ -18,10 +18,8 @@ func (warrior *Warrior) registerExecute() {
 
 	var rageMetrics *core.ResourceMetrics
 
-	config := spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-
 	// TODO: Manual review needed -- the game files state no threat coefficient; 1 until measured in game.
-	config.ThreatMultiplier = 1
+	config := spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
 		return sim.IsExecutePhase20()
