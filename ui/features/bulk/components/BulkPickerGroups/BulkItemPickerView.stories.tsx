@@ -1,21 +1,17 @@
 import { ItemSlot } from '@generated/proto/common';
-import { EquippedItem } from '@sim/proto/equipped_item';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { withSimHost } from '@testing/storybook/fixtures/models';
-import { makeUIItem } from '@testing/storybook/fixtures/protos';
 import { fn } from 'storybook/test';
 
 import { BulkItemPickerView } from './BulkItemPickerView';
-
-const NEEDS_DATABASE = { smoke: false, smokeReason: 'ActionId.fill() needs the item database for the item’s icon and name.' };
 
 const meta = {
 	title: 'Features/Bulk/BulkItemPickerView',
 	component: BulkItemPickerView,
 	tags: ['autodocs'],
-	decorators: [withSimHost()],
-	parameters: NEEDS_DATABASE,
-	args: { slot: ItemSlot.ItemSlotMainHand, item: new EquippedItem({ item: makeUIItem() }), state: 'editable', onOpen: fn(), onRemove: fn() },
+	decorators: [withSimHost({ player: { getSpec: () => 0 } })],
+	args: { slot: ItemSlot.ItemSlotMainHand, item: makeEquippedItem(), state: 'editable', onOpen: fn(), onRemove: fn() },
 	argTypes: { item: { control: false }, state: { control: 'select', options: ['frozen', 'equipped', 'editable'] } },
 } satisfies Meta<typeof BulkItemPickerView>;
 

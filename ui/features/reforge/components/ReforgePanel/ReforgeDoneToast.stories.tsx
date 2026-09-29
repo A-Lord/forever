@@ -1,8 +1,7 @@
 import { ItemSlot } from '@generated/proto/common';
-import { EquippedItem } from '@sim/proto/equipped_item';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { withSimHost } from '@testing/storybook/fixtures/models';
-import { makeUIItem } from '@testing/storybook/fixtures/protos';
 
 import { ReforgeDoneToast } from './ReforgeDoneToast';
 
@@ -24,6 +23,5 @@ type Story = StoryObj<typeof meta>;
 export const NoSlotChanged: Story = {};
 
 export const MainHandChanged: Story = {
-	args: { changedSlots: new Map([[ItemSlot.ItemSlotMainHand, new EquippedItem({ item: makeUIItem() })]]) },
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database for the changed item’s icon.' },
+	args: { changedSlots: new Map([[ItemSlot.ItemSlotMainHand, makeEquippedItem()]]) },
 };

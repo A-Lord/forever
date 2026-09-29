@@ -46,17 +46,18 @@ const defaultPlayerSlice = (): PlayerSlice => ({
 /**
  * A host that answers the reads every stateful container makes on mount: `useSimReady` (a resolved
  * `waitForInit`), the store hooks (one `sim.store`, reached from the player as `player.sim`, with the
- * player's slice seeded under `player.storeKey` from the defaults and `playerSlice`) and
- * `useSpecPresets` (the four preset lists a spec always declares, empty). The `player` and `sim`
- * parts are spread over those defaults, so they must be plain objects; any other part replaces its
- * default whole.
+ * player's slice seeded under `player.storeKey` from the defaults and `playerSlice`, which
+ * `player.getGear()` reads back for an item's tooltip) and `useSpecPresets` (the four preset lists a
+ * spec always declares, empty). The `player` and `sim` parts are spread over those defaults, so they
+ * must be plain objects; any other part replaces its default whole.
  */
 export const makeStubHost = ({ player, sim, playerSlice, ...parts }: StubHostParts = {}): IndividualSimHost<any> => {
 	const store = createSimStore();
 	seedKeyed(store, 'players', STUB_PLAYER_KEY, { ...defaultPlayerSlice(), ...playerSlice });
 	const stubSim = { store, waitForInit: () => Promise.resolve(), ...(sim as object) };
+	const getGear = () => store.getState().players[STUB_PLAYER_KEY].gear;
 	return fakeHost({
-		player: { storeKey: STUB_PLAYER_KEY, sim: stubSim, ...(player as object) },
+		player: { storeKey: STUB_PLAYER_KEY, sim: stubSim, getGear, ...(player as object) },
 		sim: stubSim,
 		individualConfig: { presets: { epWeights: [], gear: [], talents: [], rotations: [] } },
 		...parts,

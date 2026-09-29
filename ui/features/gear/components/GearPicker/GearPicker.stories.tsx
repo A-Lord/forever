@@ -39,5 +39,4 @@ export const Equipped: Story = {
 			},
 		}),
 	],
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };
