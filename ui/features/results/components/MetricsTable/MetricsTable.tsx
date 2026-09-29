@@ -1,7 +1,7 @@
 import type { SortDirection } from '@tanstack/react-table';
 import { Button } from '@ui-kit/Button';
+import { Table, TableHeaderCell, TableRow } from '@ui-kit/Table';
 import { tooltipAnchorProps } from '@ui-kit/Tooltip';
-import clsx from 'clsx';
 
 import { type MetricsColumnDef, useMetricsTable } from '../../hooks/useMetricsTable';
 import type { MetricRow } from '../../model/grouping';
@@ -27,20 +27,20 @@ export const MetricsTable = <T,>({ rootTestId, columns, rows, sortColumnId, hasR
 
 	return (
 		<div data-testid={rootTestId}>
-			<table data-testid="metrics-table" className="ui-metrics-table">
+			<Table striped hover className="ui-metrics-table" testId="metrics-table">
 				<thead data-testid="metrics-table-header">
 					{table.getHeaderGroups().map(headerGroup => (
-						<tr data-testid="metrics-table-header-row" className="ui-metrics-header-row" key={headerGroup.id}>
+						<TableRow testId="metrics-table-header-row" key={headerGroup.id}>
 							{headerGroup.headers.map(header => (
-								<th
+								<TableHeaderCell
 									key={header.id}
-									data-testid="metrics-table-header-cell"
+									testId="metrics-table-header-cell"
 									data-primary-metric={header.column.columnDef.meta?.primaryColumn ? '' : undefined}
-									className={clsx(
+									className={[
 										'ui-metrics-header-cell',
 										header.column.columnDef.meta?.columnClass,
 										header.column.columnDef.meta?.headerCellClass,
-									)}
+									]}
 									aria-sort={ariaSort(header.column.getIsSorted())}
 									onClick={header.column.getToggleSortingHandler()}
 									{...tooltipAnchorProps(header.column.columnDef.meta?.headerTooltipId, header.column.columnDef.meta?.headerTooltip)}>
@@ -52,9 +52,9 @@ export const MetricsTable = <T,>({ rootTestId, columns, rows, sortColumnId, hasR
 											<table.FlexRender header={header} />
 										</span>
 									</Button>
-								</th>
+								</TableHeaderCell>
 							))}
-						</tr>
+						</TableRow>
 					))}
 				</thead>
 				<tbody data-testid="metrics-table-body">
@@ -62,7 +62,7 @@ export const MetricsTable = <T,>({ rootTestId, columns, rows, sortColumnId, hasR
 						<MetricsTableRow key={row.id} row={row} rowThreatOnly={rowThreatOnly} />
 					))}
 				</tbody>
-			</table>
+			</Table>
 		</div>
 	);
 };

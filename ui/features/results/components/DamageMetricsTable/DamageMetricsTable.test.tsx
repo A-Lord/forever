@@ -123,7 +123,7 @@ describe('DamageMetricsTable', () => {
 		expect(container.querySelector('[data-testid="damage-metrics-root"]')).toBeTruthy();
 		const headers = [...container.querySelectorAll('thead th')];
 		expect(headers).toHaveLength(10);
-		expect(headers.every(th => th.classList.contains('ui-metrics-header-cell'))).toBe(true);
+		expect(headers.every(th => th.getAttribute('data-testid') === 'metrics-table-header-cell')).toBe(true);
 		expect(headers.filter(th => th.classList.contains('w-100'))).toEqual([headers[1]]);
 		expect(headers.filter(th => th.classList.contains('text-center'))).toEqual([headers[1]]);
 		expect(rows(container)).toHaveLength(0);
