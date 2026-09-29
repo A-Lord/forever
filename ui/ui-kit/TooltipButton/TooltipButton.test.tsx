@@ -17,6 +17,17 @@ describe('TooltipButton', () => {
 		expect(icon.getAttribute('data-prefix')).toBe('far');
 	});
 
+	it('takes its accessible name from a string tooltip, or from the label a rich tooltip comes with', () => {
+		render(
+			<>
+				<TooltipButton tooltip="What this does" />
+				<TooltipButton tooltip={<b>Rich</b>} label="Help" />
+			</>,
+		);
+		expect(screen.getByRole('button', { name: 'What this does' })).toBeTruthy();
+		expect(screen.getByRole('button', { name: 'Help' })).toBeTruthy();
+	});
+
 	it('carries the testId it is given in place of the tooltip-button default', () => {
 		render(<TooltipButton tooltip="What this does" testId="consumes-help" />);
 		expect(screen.getByRole('button').getAttribute('data-testid')).toBe('consumes-help');

@@ -1,4 +1,5 @@
 import { LogLevel } from '@generated/proto/common';
+import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { ActionId } from '@sim/proto/action_id';
 import { act, fireEvent, render } from '@testing-library/react';
@@ -52,6 +53,13 @@ describe('ListItemHeader', () => {
 	});
 
 	describe('hide picker', () => {
+		it('names the eye Enable/Disable', () => {
+			const { getByRole } = mount({ hide: false }, () => []);
+			expect(getByRole('button', { name: i18n.t('rotation_tab.apl.helpers.buttons.enable_disable') }).getAttribute('data-testid')).toBe(
+				'hide-picker-button',
+			);
+		});
+
 		it('shows fa-eye when hide is false and fa-eye-slash when hide is true', () => {
 			const notHidden = mount({ hide: false }, () => []);
 			const hidden = mount({ hide: true }, () => []);

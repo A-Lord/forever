@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { UI_CLASS_FILES } from '../tokens/ui_classes';
 import { UTILITIES } from '../tokens/utilities';
 
-const BUTTON_SIZES = new Set(['ui-button-md', 'ui-button-sm', 'ui-button-inline', 'ui-button-icon']);
+const BUTTON_SIZES = new Set(['ui-button-md', 'ui-button-sm', 'ui-button-icon']);
 
 const uiClassSample = (name: string): ReactNode => {
 	if (name === 'ui-button' || name.startsWith('ui-button-'))

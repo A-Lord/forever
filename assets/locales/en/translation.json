@@ -29,6 +29,7 @@
 		"confirm": "Confirm",
 		"delete": "Delete",
 		"clear": "Clear",
+		"help": "Help",
 		"saved_data": {
 			"delete_title": "Delete saved {{label}}",
 			"delete_confirm": "Delete saved {{label}} '{{name}}'?",
