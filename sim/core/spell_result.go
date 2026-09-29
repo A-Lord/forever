@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/stats"
@@ -257,7 +256,10 @@ func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
 		baseHitChance *= attackTable.GetBinaryHitChance(spell)
 	}
 	hitChance := baseHitChance + spell.SpellHitChance(attackTable.Defender)
-	return math.Max(0.01, 1-hitChance)
+
+	//WoW:Forever - removed the 1% miss chance
+	//return math.Max(0.01, 1-hitChance)
+	return 1 - hitChance
 }
 func (spell *Spell) MagicHitCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.Proc(1.0-spell.SpellChanceToMiss(attackTable), "Magical Hit Roll")
