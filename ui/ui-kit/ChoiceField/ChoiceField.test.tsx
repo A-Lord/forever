@@ -110,14 +110,14 @@ describe('ChoiceField', () => {
 		});
 
 		it('disables the trigger, and marks the root when there is one', () => {
-			const { container, unmount } = render(<Harness options={MODES} initial={0} disabled />);
+			const bare = render(<Harness options={MODES} initial={0} disabled />);
 			expect((trigger() as HTMLButtonElement).disabled).toBe(true);
-			unmount();
+			expect(bare.container.firstElementChild).toBe(trigger());
+			bare.unmount();
 
 			const labelled = render(<Harness options={MODES} initial={0} disabled label="Mode" />);
 			expect((trigger() as HTMLButtonElement).disabled).toBe(true);
 			expect(labelled.container.firstElementChild!.hasAttribute('data-disabled')).toBe(true);
-			expect(container.childElementCount).toBe(0);
 		});
 	});
 
