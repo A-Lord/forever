@@ -1,5 +1,5 @@
 import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import type { ReforgeOptimizerModel } from '@features/reforge/model/reforge_optimizer';
 import { toDefaultUnitStatValue, toVisualUnitStatPercentage } from '@features/reforge/model/utils';
@@ -81,7 +81,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 			}
 			presets={
 				presetValues && (
-					<ConnectedEnumPicker
+					<ConnectedChoiceField
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-presets`,
@@ -92,7 +92,6 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 							getValue,
 							setValue,
 						}}
-						selectClassName="w-full"
 					/>
 				)
 			}

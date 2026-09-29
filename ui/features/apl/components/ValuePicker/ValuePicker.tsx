@@ -4,15 +4,15 @@ import { valueListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl, resolveField } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
+import { choiceTree } from '@features/apl/model/submenus';
 import { type APLValueKind, type ValidAPLValueKind, valueKinds } from '@features/apl/model/value_kinds';
-import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
 import type { APLValue } from '@generated/proto/apl';
 import { UUID } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import type { DropdownOption } from '@ui-kit/DropdownPicker';
 import { Field } from '@ui-kit/Field';
 import { memo, useId, useMemo } from 'react';
 
@@ -50,8 +50,12 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	// An operand list takes the whole line, so its rows lay out by the row's width, not their own.
 	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => resolveField(field).kind === 'valueList'), [kind]);
 
-	const options = useMemo<Array<DropdownOption<APLValueKind>>>(
-		() => [{ value: undefined, label: i18n.t('rotation_tab.apl.values.none') }, ...valueKindOptions(player, isPrepull, isGroup)],
+	const options = useMemo(
+		() =>
+			choiceTree<APLValueKind>(
+				[{ value: undefined, label: i18n.t('rotation_tab.apl.values.none') }, ...valueKindOptions(player, isPrepull, isGroup)],
+				Object.is,
+			),
 		[player, isPrepull, isGroup],
 	);
 
@@ -92,12 +96,12 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 			className={['m-0 flex-row items-baseline gap-2', ownsList && 'w-full', chrome.className]}
 			testId={testId ?? 'apl-value-picker-root'}
 			disabled={disabled}>
-			<ConnectedDropdown<Player<any>, APLValueKind>
+			<ConnectedChoiceField<Player<any>, APLValueKind>
 				modObject={player}
 				config={kindConfig}
 				options={options}
-				defaultLabel={i18n.t('rotation_tab.apl.values.no_condition')}
-				triggerClassName="p-0"
+				variant="link"
+				placeholder={i18n.t('rotation_tab.apl.values.no_condition')}
 			/>
 			{kind && value && (
 				<AplProvider listGroup={valueListGroup(value)}>

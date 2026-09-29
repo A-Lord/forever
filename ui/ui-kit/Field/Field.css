@@ -22,8 +22,7 @@
 				@apply mr-2 mb-0 overflow-visible text-clip;
 			}
 
-			input,
-			select {
+			input {
 				@apply w-20;
 			}
 		}
@@ -35,7 +34,7 @@
 			}
 
 			input,
-			select,
+			.ui-choice-field-trigger,
 			.ui-icon-row {
 				@apply min-w-2/5;
 			}

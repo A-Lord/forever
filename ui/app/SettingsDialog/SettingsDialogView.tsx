@@ -2,8 +2,8 @@ import i18n from '@i18n/config';
 import { supportedLanguages } from '@i18n/locale_service';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
+import { ChoiceField, type ChoiceOption } from '@ui-kit/ChoiceField';
 import { Dialog } from '@ui-kit/Dialog';
-import { EnumPicker, type EnumValueConfig } from '@ui-kit/EnumPicker';
 import { FieldGrid } from '@ui-kit/FieldGrid';
 import { HelpText } from '@ui-kit/FormControl';
 import { NumberField } from '@ui-kit/TextField';
@@ -35,9 +35,7 @@ export interface SettingsDialogViewProps {
 	onApplyDefaults: () => void;
 }
 
-const LANGUAGES = Object.keys(supportedLanguages);
-const LANGUAGE_VALUES: Array<EnumValueConfig> = LANGUAGES.map((lang, index) => ({ name: supportedLanguages[lang], value: index }));
-const ENGLISH = LANGUAGES.indexOf('en');
+const LANGUAGE_OPTIONS: Array<ChoiceOption<string>> = Object.entries(supportedLanguages).map(([language, name]) => ({ value: language, label: name }));
 
 const FIREFOX_WORKER_NOTE = `Too many workers can cause significant memory usage! If sim doesn't finish due to RAM running out use a lower number.`;
 
@@ -76,14 +74,13 @@ export const SettingsDialogView = ({
 	onApplyDefaults,
 }: SettingsDialogViewProps) => {
 	const restoreTooltipId = useId();
-	const languageIndex = LANGUAGES.indexOf(language);
 
-	const workerValues = useMemo(() => {
-		const values: Array<EnumValueConfig> = [{ value: 0, name: 'Off' }];
+	const workerOptions = useMemo(() => {
+		const options: Array<ChoiceOption<number>> = [{ value: 0, label: 'Off' }];
 		for (let workers = 2; workers <= maxWorkers; workers++) {
-			values.push({ value: workers, name: workers.toString() });
+			options.push({ value: workers, label: workers.toString() });
 		}
-		return values;
+		return options;
 	}, [maxWorkers]);
 
 	return (
@@ -114,13 +111,13 @@ export const SettingsDialogView = ({
 						<LastUsedRngSeed seed={lastUsedRngSeed} />
 					</div>
 					<div data-testid="language-picker">
-						<EnumPicker
+						<ChoiceField
 							id="simui-language-picker"
 							label={i18n.t('info.options.language.label')}
 							labelTooltip={i18n.t('info.options.language.tooltip')}
-							values={LANGUAGE_VALUES}
-							value={languageIndex === -1 ? ENGLISH : languageIndex}
-							onChange={index => onLanguageChange(LANGUAGES[index] || 'en')}
+							options={LANGUAGE_OPTIONS}
+							value={LANGUAGE_OPTIONS.some(option => option.value === language) ? language : 'en'}
+							onChange={onLanguageChange}
 						/>
 					</div>
 				</FieldGrid>
@@ -156,11 +153,11 @@ export const SettingsDialogView = ({
 				</div>
 				<div className="w-1/2 pr-2" data-testid="use-concurrency-container" hidden={!showConcurrency}>
 					<div data-testid="use-concurrent-workers-picker">
-						<EnumPicker
+						<ChoiceField
 							id="simui-concurrent-workers-picker"
 							label={i18n.t('info.options.use_multiple_cpu_cores.label')}
 							labelTooltip="Use web workers to spread sim workload over multiple CPU cores."
-							values={workerValues}
+							options={workerOptions}
 							value={wasmConcurrency}
 							onChange={onWasmConcurrencyChange}
 						/>

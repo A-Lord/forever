@@ -7,12 +7,7 @@ const limit = (statName: string, breakpoints: Array<number>) => ({
 	key: statName,
 	statName,
 	picker: (
-		<StoryEnum
-			label=""
-			className="mb-0"
-			selectClassName="w-full"
-			values={[{ name: 'No limit set', value: 0 }, ...breakpoints.map(breakpoint => ({ name: `${breakpoint}%`, value: breakpoint }))]}
-		/>
+		<StoryEnum label="" values={[{ name: 'No limit set', value: 0 }, ...breakpoints.map(breakpoint => ({ name: `${breakpoint}%`, value: breakpoint }))]} />
 	),
 });
 

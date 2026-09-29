@@ -5,7 +5,7 @@ export interface UnitIconProps {
 	iconUrl?: string;
 }
 
-/** The two shapes a `UnitValue` icon takes, as one element. */
+/** The two shapes an option icon takes, a kit glyph or an image url, as one element. */
 export const UnitIcon = ({ icon, iconUrl }: UnitIconProps) =>
 	icon ? (
 		<Icon name={icon} style="base" className="ui-unit-icon" data-testid="unit-picker-item-icon" />

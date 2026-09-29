@@ -1,4 +1,4 @@
-import type { BooleanPickerConfig, EnumPickerConfig, NumberFieldConfig } from '@features/inputs/configs';
+import type { BooleanPickerConfig, ChoiceFieldConfig, NumberFieldConfig } from '@features/inputs/configs';
 import { InputType, MobType, SpellSchool, Stat, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { translateMobType, translateSpellSchool, translateStat, translateTargetInputLabel, translateTargetInputTooltip } from '@i18n/localization';
@@ -61,7 +61,7 @@ export interface TargetFieldContext {
 
 const onTargets = (encounter: Encounter) => () => subscribeEncounterField(encounter, 'targets');
 
-export const npcConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => {
+export const npcConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => {
 	const presetTargets = encounter.sim.db.getAllPresetTargets();
 	return {
 		id: targetId(targetIndex, 'npc'),
@@ -79,7 +79,7 @@ export const npcConfig = ({ encounter, targetIndex, getTarget }: TargetFieldCont
 	};
 };
 
-export const aiConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => {
+export const aiConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => {
 	const presetTargets = encounter.sim.db.getAllPresetTargets();
 	const byNpcId = distinct(presetTargets, (a, b) => a.target?.id === b.target?.id);
 	return {
@@ -101,7 +101,7 @@ export const aiConfig = ({ encounter, targetIndex, getTarget }: TargetFieldConte
 	};
 };
 
-export const levelConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => ({
+export const levelConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => ({
 	id: targetId(targetIndex, 'level'),
 	label: i18n.t('settings_tab.encounter.level'),
 	values: [73, 72, 71, 70, 68].map(value => ({ name: String(value), value })),
@@ -115,7 +115,7 @@ export const levelConfig = ({ encounter, targetIndex, getTarget }: TargetFieldCo
 	},
 });
 
-export const mobTypeConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => ({
+export const mobTypeConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => ({
 	id: targetId(targetIndex, 'mob-type'),
 	label: i18n.t('settings_tab.encounter.mob_type'),
 	values: mobTypeEnumValues,
@@ -129,7 +129,7 @@ export const mobTypeConfig = ({ encounter, targetIndex, getTarget }: TargetField
 	},
 });
 
-export const tankIndexConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => ({
+export const tankIndexConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => ({
 	id: targetId(targetIndex, 'tanked-by'),
 	label: i18n.t('settings_tab.encounter.tanked_by.label'),
 	labelTooltip: i18n.t('settings_tab.encounter.tanked_by.tooltip'),
@@ -284,7 +284,7 @@ export const booleanConfigs = ({ encounter, targetIndex, getTarget }: TargetFiel
 		...(field.enabledWhen ? { enableWhen: () => field.enabledWhen!(getTarget()) } : {}),
 	}));
 
-export const spellSchoolConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): EnumPickerConfig<null> => ({
+export const spellSchoolConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => ({
 	id: targetId(targetIndex, 'spell-school'),
 	label: i18n.t('settings_tab.encounter.spell_school.label'),
 	labelTooltip: i18n.t('settings_tab.encounter.spell_school.tooltip'),
@@ -355,7 +355,7 @@ export const targetInputConfig = (encounter: Encounter, targetIndex: number, inp
 				setValue: write<number>((draft, value) => {
 					draft.enumValue = value;
 				}),
-			} satisfies EnumPickerConfig<null>,
+			} satisfies ChoiceFieldConfig<null>,
 		};
 	}
 	return { kind: 'none' as const };

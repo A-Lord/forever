@@ -1,5 +1,6 @@
 import { supportedLanguages } from '@i18n/locale_service';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { SettingsDialogView, type SettingsDialogViewProps } from './SettingsDialogView';
@@ -30,6 +31,10 @@ const props = (overrides: Partial<SettingsDialogViewProps> = {}): SettingsDialog
 });
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
+const pick = async (id: string, option: string) => {
+	await userEvent.click(byId(id));
+	await userEvent.click(screen.getByRole('option', { name: option }));
+};
 const checked = (testId: string) => within(screen.getByTestId(testId)).getByRole('checkbox').getAttribute('aria-checked');
 const concurrencyRow = () => screen.getByTestId('use-concurrency-container');
 const workerNote = () => concurrencyRow().querySelector('.ui-help-text') as HTMLElement;
@@ -40,21 +45,21 @@ describe('SettingsDialogView', () => {
 
 		expect((byId('simui-fixed-rng-seed') as HTMLInputElement).value).toBe('42');
 		expect(screen.getByTestId('last-used-rng-seed').textContent).toBe('1234');
-		expect((byId('simui-language-picker') as HTMLSelectElement).value).toBe(String(Object.keys(supportedLanguages).indexOf('en')));
+		expect(byId('simui-language-picker').textContent).toBe(supportedLanguages.en);
 		expect(checked('show-threat-metrics-picker')).toBe('true');
 		expect(checked('show-experimental-picker')).toBe('false');
 		expect(checked('show-quick-swap-picker')).toBe('true');
-		expect((byId('simui-concurrent-workers-picker') as HTMLSelectElement).value).toBe('3');
+		expect(byId('simui-concurrent-workers-picker').textContent).toBe('3');
 	});
 
-	it('offers Off and two up to the maximum worker count', () => {
+	it('offers Off and two up to the maximum worker count', async () => {
 		render(<SettingsDialogView {...props({ maxWorkers: 4 })} />);
 
-		const options = [...(byId('simui-concurrent-workers-picker') as HTMLSelectElement).options].map(option => option.textContent);
-		expect(options).toEqual(['Off', '2', '3', '4']);
+		await userEvent.click(byId('simui-concurrent-workers-picker'));
+		expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Off', '2', '3', '4']);
 	});
 
-	it('reports each change through its handler', () => {
+	it('reports each change through its handler', async () => {
 		const handlers = props();
 		render(<SettingsDialogView {...handlers} />);
 
@@ -62,8 +67,8 @@ describe('SettingsDialogView', () => {
 			fireEvent.click(byId('simui-show-threat-metrics'));
 			fireEvent.click(byId('simui-show-experimental'));
 			fireEvent.click(byId('simui-show-quick-swap'));
-			fireEvent.change(byId('simui-concurrent-workers-picker'), { target: { value: '2' } });
 		});
+		await pick('simui-concurrent-workers-picker', '2');
 
 		expect(handlers.onShowThreatMetricsChange).toHaveBeenCalledWith(true);
 		expect(handlers.onShowExperimentalChange).toHaveBeenCalledWith(true);
@@ -82,22 +87,20 @@ describe('SettingsDialogView', () => {
 		expect(handlers.onFixedRngSeedChange).toHaveBeenCalledWith(99);
 	});
 
-	it('reports the chosen language by its code', () => {
+	it('reports the chosen language by its code', async () => {
 		const handlers = props();
 		render(<SettingsDialogView {...handlers} />);
-		const codes = Object.keys(supportedLanguages);
+		const [code, name] = Object.entries(supportedLanguages).at(-1)!;
 
-		act(() => {
-			fireEvent.change(byId('simui-language-picker'), { target: { value: String(codes.length - 1) } });
-		});
+		await pick('simui-language-picker', name);
 
-		expect(handlers.onLanguageChange).toHaveBeenCalledWith(codes[codes.length - 1]);
+		expect(handlers.onLanguageChange).toHaveBeenCalledWith(code);
 	});
 
 	it('selects English for a language it does not know', () => {
 		render(<SettingsDialogView {...props({ language: '' })} />);
 
-		expect((byId('simui-language-picker') as HTMLSelectElement).value).toBe(String(Object.keys(supportedLanguages).indexOf('en')));
+		expect(byId('simui-language-picker').textContent).toBe(supportedLanguages.en);
 	});
 
 	it('keeps the concurrency row mounted and hidden when it is not shown', () => {

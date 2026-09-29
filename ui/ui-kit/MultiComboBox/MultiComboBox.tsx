@@ -1,12 +1,11 @@
 import { Combobox } from '@base-ui/react/combobox';
 import { Chip } from '@ui-kit/Chip';
-import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
 import { Field } from '@ui-kit/Field';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import { Icon } from '@ui-kit/Icon';
 import { useMemo, useRef } from 'react';
 
-import type { MultiComboBoxProps } from './types';
+import type { EnumValueConfig, MultiComboBoxProps } from './types';
 
 // base-ui's multi-select combobox, with the picks as chips below the field.
 export const MultiComboBox = ({ value, onChange, disabled, values, placeholder, emptyText, removeLabel, openLabel, testId, ...chrome }: MultiComboBoxProps) => {

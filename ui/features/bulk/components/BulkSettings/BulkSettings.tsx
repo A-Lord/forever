@@ -4,7 +4,7 @@ import i18n from '@i18n/config';
 import { BulkSimItemSlot, getBulkPlayerCanDualWield } from '@sim/bulk/utils';
 import { usePlayer, useSimHost } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
-import type { EnumPickerProps } from '@ui-kit/EnumPicker';
+import type { ChoiceFieldProps } from '@ui-kit/ChoiceField';
 import { useEffect } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
@@ -63,14 +63,14 @@ export const BulkSettings = () => {
 		}
 	}, [player, gear, frozenItems]);
 
-	const freezeItemProps = (pair: FrozenPair): EnumPickerProps => ({
+	const freezeItemProps = (pair: FrozenPair): ChoiceFieldProps<number> => ({
 		id: pair.id,
 		label: i18n.t(`${pair.labelKey}.label`),
 		labelTooltip: i18n.t(`${pair.labelKey}.tooltip`),
-		values: [
-			{ name: i18n.t('common.none'), value: -1 },
-			{ name: i18n.t(pair.slotKeys[0], { ns: 'character' }), value: pair.slots[0] },
-			{ name: i18n.t(pair.slotKeys[1], { ns: 'character' }), value: pair.slots[1] },
+		options: [
+			{ value: -1, label: i18n.t('common.none') },
+			{ value: pair.slots[0], label: i18n.t(pair.slotKeys[0], { ns: 'character' }) },
+			{ value: pair.slots[1], label: i18n.t(pair.slotKeys[1], { ns: 'character' }) },
 		],
 		value: frozenItemSlot(gear, pair.slots, frozenItems.get(pair.bulkSlot)) ?? -1,
 		onChange: (newValue: number) => setBulkFrozenItem(player, pair.bulkSlot, newValue === -1 ? null : player.getGear().getEquippedItem(newValue)),

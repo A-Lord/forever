@@ -2,7 +2,8 @@ import { ArmorType, ItemSlot, RangedWeaponType, WeaponType } from '@generated/pr
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost } from '@sim/testing';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -152,7 +153,7 @@ describe('FiltersMenu', () => {
 		expect(rootElem.querySelector<HTMLInputElement>('#filters-max-ilvl')!.value).toBe('528');
 	});
 
-	it('portals into the sim root for the spec theme, writes a source toggle and a faction pick back through the sim, and closes on its own close button', () => {
+	it('portals into the sim root for the spec theme, writes a source toggle and a faction pick back through the sim, and closes on its own close button', async () => {
 		const source = SourceFilterOption.SourceCrafting;
 		const { onOpenChange } = setup();
 
@@ -172,16 +173,11 @@ describe('FiltersMenu', () => {
 		fireEvent.click(rootElem.querySelector<HTMLInputElement>(`#filters-source-${source}`)!);
 		expect(setFilters.mock.calls[1][0].sources).not.toContain(source);
 
-		const select = rootElem.querySelector<HTMLSelectElement>('#filters-faction-restriction')!;
+		// The options run unspecified, alliance only, horde only.
+		await userEvent.click(rootElem.querySelector<HTMLElement>('#filters-faction-restriction')!);
+		expect(screen.getAllByRole('option')).toHaveLength(3);
 
-		expect(Array.from(select.options).map(option => Number(option.value))).toEqual([
-			UIItem_FactionRestriction.UNSPECIFIED,
-			UIItem_FactionRestriction.ALLIANCE_ONLY,
-			UIItem_FactionRestriction.HORDE_ONLY,
-		]);
-
-		select.value = String(UIItem_FactionRestriction.HORDE_ONLY);
-		fireEvent.change(select);
+		await userEvent.click(screen.getAllByRole('option')[2]);
 		expect(setFilters.mock.lastCall![0].factionRestriction).toBe(UIItem_FactionRestriction.HORDE_ONLY);
 
 		fireEvent.click(rootElem.querySelector<HTMLButtonElement>('[data-testid="filters-menu"] [data-testid="sim-dialog-close"]')!);

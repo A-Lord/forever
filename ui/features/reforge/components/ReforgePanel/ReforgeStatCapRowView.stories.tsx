@@ -42,8 +42,6 @@ export const WithPresets: Story = {
 		presets: (
 			<StoryEnum
 				label=""
-				selectClassName="w-full"
-				className="mb-0"
 				values={[
 					{ name: 'Select preset', value: 0 },
 					{ name: 'Dodge cap - 6.50%', value: 6.5 },

@@ -1,5 +1,5 @@
 import { rotationSource } from '@features/apl/utils';
-import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -50,12 +50,12 @@ export const GroupVariableRow = ({ player, config, name }: GroupVariableRowProps
 			<label className="block text-sm font-bold" htmlFor={valueId}>
 				{name}:
 			</label>
-			<ConnectedDropdown<Player<any>, string>
+			<ConnectedChoiceField<Player<any>, string>
 				modObject={player}
 				config={valueConfig}
 				options={options}
-				defaultLabel={i18n.t('rotation_tab.apl.helpers.select_variable')}
-				triggerClassName="p-0"
+				variant="link"
+				placeholder={i18n.t('rotation_tab.apl.helpers.select_variable')}
 			/>
 		</Field>
 	);

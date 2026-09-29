@@ -6,8 +6,8 @@ import { translateArmorType, translateRaidFilter, translateRangedWeaponType, tra
 import { Player } from '@sim/player/player';
 import { Sim } from '@sim/sim';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
+import { ChoiceField } from '@ui-kit/ChoiceField';
 import { Dialog } from '@ui-kit/Dialog';
-import { EnumPicker } from '@ui-kit/EnumPicker';
 import { NumberField } from '@ui-kit/TextField';
 
 import { MenuSection } from './MenuSection';
@@ -97,11 +97,11 @@ export const FiltersMenuView = ({
 					<span className="flex justify-center self-end py-1.5">-</span>
 					{numberInput('maxIlvl', 'filters-max-ilvl', i18n.t('gear_tab.gear_picker.filters.max_ilvl'), { showZeroes: false })}
 				</div>
-				<EnumPicker
+				<ChoiceField
 					id="filters-faction-restriction"
 					label={i18n.t('gear_tab.gear_picker.filters.faction_restrictions')}
-					values={[UIItem_FactionRestriction.UNSPECIFIED, UIItem_FactionRestriction.ALLIANCE_ONLY, UIItem_FactionRestriction.HORDE_ONLY].map(
-						restriction => ({ name: factionRestrictionsToLabels[restriction], value: restriction }),
+					options={[UIItem_FactionRestriction.UNSPECIFIED, UIItem_FactionRestriction.ALLIANCE_ONLY, UIItem_FactionRestriction.HORDE_ONLY].map(
+						restriction => ({ value: restriction, label: factionRestrictionsToLabels[restriction] }),
 					)}
 					value={filters.factionRestriction}
 					onChange={value =>

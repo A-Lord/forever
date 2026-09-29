@@ -3,7 +3,6 @@ import { OtherAction } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { AuraStats, SpellStats, UnitMetadata } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import type { DropdownValueConfig } from '@ui-kit/DropdownPicker/types';
 
 export type ACTION_ID_SET =
 	| 'auras'
@@ -71,7 +70,11 @@ const auraOptions = (allAuras: Array<AuraStats>, keep: (aura: AuraStats) => bool
 /** The one list a spell may be cast from, for the spells the sim only accepts in one of them. */
 export type LIST_SCOPE = 'prepull' | 'priority';
 
-export interface ActionIdOption extends DropdownValueConfig<ActionId> {
+export interface ActionIdOption {
+	value: ActionId;
+	/** The category and rank submenus the spell or aura is filed under. */
+	submenu?: Array<string>;
+	tooltip?: string;
 	/**
 	 * Read by the field, which drops the entries the list it is in cannot use.
 	 *

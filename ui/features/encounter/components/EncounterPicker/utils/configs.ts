@@ -1,4 +1,4 @@
-import type { EnumPickerConfig, NumberFieldConfig } from '@features/inputs/configs';
+import type { ChoiceFieldConfig, NumberFieldConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Encounter } from '@sim/raid/encounter';
@@ -114,11 +114,12 @@ export const minBaseDamageConfig = (): NumberFieldConfig<Encounter> => ({
 		}),
 });
 
-export const presetEncounterConfig = (encounter: Encounter): EnumPickerConfig<Encounter> => {
+export const presetEncounterConfig = (encounter: Encounter): ChoiceFieldConfig<Encounter> => {
 	const presets = encounter.sim.db.getAllPresetEncounters();
 	return {
 		id: 'encounter-preset-encouter',
 		label: i18n.t('settings_tab.encounter.encounter_preset.label'),
+		extraClassNames: ['w-full'],
 		values: [{ name: i18n.t('common.custom'), value: -1 }, ...presets.map((preset, index) => ({ name: preset.path, value: index }))],
 		storeField: 'encounter:*',
 		getValue: (subject: Encounter) => presets.findIndex(preset => subject.matchesPreset(preset)),
@@ -128,7 +129,7 @@ export const presetEncounterConfig = (encounter: Encounter): EnumPickerConfig<En
 	};
 };
 
-export const zoneConfig = (encounter: Encounter): EnumPickerConfig<Encounter> => {
+export const zoneConfig = (encounter: Encounter): ChoiceFieldConfig<Encounter> => {
 	const zones = encounter.sim.db
 		.getAllZones()
 		.filter(zone => zone.areaTypes.length > 0)
@@ -137,6 +138,7 @@ export const zoneConfig = (encounter: Encounter): EnumPickerConfig<Encounter> =>
 		id: 'encounter-zone',
 		label: i18n.t('settings_tab.encounter.zone.label'),
 		labelTooltip: i18n.t('settings_tab.encounter.zone.tooltip'),
+		extraClassNames: ['w-full'],
 		values: [{ name: i18n.t('common.custom'), value: 0 }, ...zones.map(zone => ({ name: zone.name, value: zone.id }))],
 		storeField: 'encounter:*',
 		getValue: (subject: Encounter) => subject.getZoneId(),

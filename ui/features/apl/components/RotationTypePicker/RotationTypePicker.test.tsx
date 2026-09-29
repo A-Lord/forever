@@ -1,5 +1,6 @@
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RotationTypePicker } from './RotationTypePicker';
@@ -57,18 +58,17 @@ const mount = (player: FakePlayer) => {
 	return render(<RotationTypePicker />);
 };
 
-const root = () => document.querySelector('[data-testid="dropdown-picker-root"]') as HTMLElement;
-const trigger = () => root().querySelector('[data-testid="dropdown-picker-button"]') as HTMLButtonElement;
-const items = () => [...document.querySelectorAll<HTMLElement>('[data-testid="dropdown-picker-item"]')];
-const open = () => act(() => void fireEvent.click(trigger()));
+const trigger = () => screen.getByRole('combobox');
+const items = () => screen.queryAllByRole('option');
+const open = () => userEvent.click(trigger());
 
 beforeEach(() => source.listeners.clear());
 
 describe('RotationTypePicker', () => {
-	it('is one element: the shell is the dropdown root, not a wrapper around it', () => {
+	it('is the bare trigger, with no wrapper around it', () => {
 		const { container } = mount(new FakePlayer(true));
 
-		expect(container.firstElementChild).toBe(root());
+		expect(container.firstElementChild).toBe(trigger());
 		expect(trigger().id).toBe('rotation-tab-rotation-type');
 	});
 
@@ -95,7 +95,7 @@ describe('RotationTypePicker', () => {
 		mount(player);
 		await open();
 
-		await act(() => void fireEvent.click(items()[2]));
+		await userEvent.click(items()[2]);
 
 		expect(player.type).toBe(APLRotationType.TypeAPL);
 		expect(trigger().textContent).toBe('APL');

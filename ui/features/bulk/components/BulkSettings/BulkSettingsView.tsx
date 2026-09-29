@@ -3,7 +3,7 @@ import i18n from '@i18n/config';
 import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker, type EnumPickerProps } from '@ui-kit/EnumPicker';
+import { ChoiceField, type ChoiceFieldProps } from '@ui-kit/ChoiceField';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import type { ReactNode } from 'react';
 
@@ -25,7 +25,7 @@ export interface BulkSettingsViewProps {
 	onUseLegacyBulkSimChange: (value: boolean) => void;
 	/** Null for a spec without a reforge optimizer. */
 	reforgeSettings: ReactNode;
-	frozenItems: ReadonlyArray<EnumPickerProps>;
+	frozenItems: ReadonlyArray<ChoiceFieldProps<number>>;
 	/** Null for a player who cannot dual wield. */
 	weaponFreeze: BulkWeaponFreeze | null;
 	onFrozenWeaponSlotChange: (slot: number) => void;
@@ -84,20 +84,20 @@ export const BulkSettingsView = ({
 						testId="bulk-settings-group-freezes">
 						{frozenItems.map(props => (
 							<div key={props.id}>
-								<EnumPicker {...props} />
+								<ChoiceField {...props} />
 							</div>
 						))}
 						{weaponFreeze && (
 							<>
 								<div>
-									<EnumPicker
+									<ChoiceField
 										id="freeze-weapon"
 										label={i18n.t('bulk_tab.settings.freeze_weapon.label')}
 										labelTooltip={i18n.t('bulk_tab.settings.freeze_weapon.tooltip')}
-										values={[
-											{ name: i18n.t('common.none'), value: -1 },
-											{ name: i18n.t('slots.main_hand', { ns: 'character' }), value: ItemSlot.ItemSlotMainHand },
-											{ name: i18n.t('slots.off_hand', { ns: 'character' }), value: ItemSlot.ItemSlotOffHand },
+										options={[
+											{ value: -1, label: i18n.t('common.none') },
+											{ value: ItemSlot.ItemSlotMainHand, label: i18n.t('slots.main_hand', { ns: 'character' }) },
+											{ value: ItemSlot.ItemSlotOffHand, label: i18n.t('slots.off_hand', { ns: 'character' }) },
 										]}
 										value={weaponFreeze.value}
 										onChange={onFrozenWeaponSlotChange}

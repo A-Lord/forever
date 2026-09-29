@@ -1,6 +1,7 @@
 import { makePlayer } from '@features/apl/testing';
 import { APLRotation } from '@generated/proto/apl';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GroupVariablesField } from './GroupVariablesField';
@@ -150,31 +151,26 @@ describe('GroupVariablesField', () => {
 		expect(container().querySelector('[data-testid="apl-group-variables"]')!.getAttribute('data-layout')).toBe('inline');
 	});
 
-	it('writes a variableRef and touches the rotation when a row picks a variable', () => {
+	it('writes a variableRef and touches the rotation when a row picks a variable', async () => {
 		setup({ groupName: 'g1', placeholders: ['a'], variableNames: ['x', 'y'] });
 		const touched = vi.spyOn(player, 'touchRotation');
 		mount();
 
-		const trigger = rows()[0].querySelector('[data-testid="dropdown-picker-button"]') as HTMLButtonElement;
-		act(() => {
-			fireEvent.click(trigger);
-		});
-		const items = Array.from(document.querySelectorAll('[data-testid="dropdown-picker-item"]'));
+		await userEvent.click(within(rows()[0] as HTMLElement).getByRole('combobox'));
+		const items = screen.getAllByRole('option');
 		expect(items.map(el => el.textContent)).toEqual(['x', 'y']);
-		act(() => {
-			fireEvent.click(items[1]);
-		});
+		await userEvent.click(items[1]);
 
 		expect(parentValue.variables[0].value).toEqual({ uuid: expect.anything(), value: { oneofKind: 'variableRef', variableRef: { name: 'y' } } });
 		expect(touched).toHaveBeenCalled();
 	});
 
-	it('gives the row label an htmlFor naming the dropdown trigger', () => {
+	it('gives the row label an htmlFor naming the choice trigger', () => {
 		setup({ groupName: 'g1', placeholders: ['a'] });
 		mount();
 
 		const label = rows()[0].querySelector('label') as HTMLLabelElement;
-		const trigger = rows()[0].querySelector('[data-testid="dropdown-picker-button"]') as HTMLButtonElement;
+		const trigger = within(rows()[0] as HTMLElement).getByRole('combobox');
 		expect(label.getAttribute('for')).toBe(trigger.id);
 		expect(label.getAttribute('for')).toBeTruthy();
 	});

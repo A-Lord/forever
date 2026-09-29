@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { EnumPicker } from '@ui-kit/EnumPicker';
+import { ChoiceField } from '@ui-kit/ChoiceField';
 import { MultiComboBox } from '@ui-kit/MultiComboBox';
 import { NumberField } from '@ui-kit/TextField';
 import { fn } from 'storybook/test';
@@ -28,12 +28,12 @@ const meta = {
 			</>
 		),
 		zone: (
-			<EnumPicker
+			<ChoiceField
 				id="story-zone"
 				label="Zone"
-				values={[
-					{ name: 'Custom', value: 0 },
-					{ name: 'Molten Core', value: 2717 },
+				options={[
+					{ value: 0, label: 'Custom' },
+					{ value: 2717, label: 'Molten Core' },
 				]}
 				value={2717}
 				onChange={fn()}
@@ -53,12 +53,12 @@ const meta = {
 			/>
 		),
 		preset: (
-			<EnumPicker
+			<ChoiceField
 				id="story-preset"
 				label="Encounter Preset"
-				values={[
-					{ name: 'Custom', value: -1 },
-					{ name: 'Molten Core/Ragnaros', value: 0 },
+				options={[
+					{ value: -1, label: 'Custom' },
+					{ value: 0, label: 'Molten Core/Ragnaros' },
 				]}
 				value={0}
 				onChange={fn()}

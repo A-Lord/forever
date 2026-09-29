@@ -1,5 +1,10 @@
-import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
 import type { ControlledProps, FieldChromeProps } from '@ui-kit/Field';
+
+export interface EnumValueConfig {
+	name: string;
+	value: number;
+	tooltip?: string;
+}
 
 export interface MultiComboBoxProps extends FieldChromeProps, ControlledProps<Array<number>> {
 	values: Array<EnumValueConfig>;

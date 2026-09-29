@@ -165,13 +165,13 @@ replay before it zeroes a hidden input or restores a shown one. Both icon adapte
 uncommitted edit in `useDraft` (`ui/ui-kit/hooks/useDraft.ts`), keyed on the formatted display
 string: a new value from the parent drops the draft, a commit clears it, and a notification that
 leaves the display string unchanged (a same-value write, a `revision` bump) keeps a mid-edit draft.
-With the default `commit="blur"`, which every `Connected*Field` uses, they commit through `useCommitChange`
+With the default `commit="blur"`, which every connected text field uses, they commit through `useCommitChange`
 (`ui/ui-kit/hooks/useCommitChange.ts`), which listens for the **native `change` event** —
 blur-after-edit and Enter — not React's `onChange`, which fires per keystroke. Typing into one of
 them writes nothing to the store until the edit is committed. The exceptions are `SearchField`, which
-commits per keystroke or once typing pauses, and `EnumPicker`'s `<select>`, which commits on
-selection. `EnumPicker` is a controlled native `<select>`, so a `value`
-missing from its `values` shows the first option without writing it back.
+commits per keystroke or once typing pauses, and `ChoiceField` (`ui/ui-kit/ChoiceField/ChoiceField.tsx`),
+which commits on selection. A `value` that matches none of its options shows the placeholder, or on
+the bordered `select` look without one the first option, without writing anything back.
 
 Omit both `storeField` and `storeSubscribe` for an input re-synced by its parent — the nested APL
 pickers — and for UI-local toggles; `useInput` then rings its own notification after `setValue`, and

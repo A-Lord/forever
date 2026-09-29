@@ -1,16 +1,16 @@
 import i18n from '@i18n/config';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
-import { EnumPicker } from '@ui-kit/EnumPicker';
+import { ChoiceField } from '@ui-kit/ChoiceField';
 import { SearchField } from '@ui-kit/TextField';
 import { type ReactNode, useId } from 'react';
 
-const phaseValues = () => [
-	{ name: i18n.t('common.phases.1'), value: 1 },
-	{ name: i18n.t('common.phases.2'), value: 2 },
-	{ name: i18n.t('common.phases.3'), value: 3 },
-	{ name: i18n.t('common.phases.4'), value: 4 },
-	{ name: i18n.t('common.phases.5'), value: 5 },
+const phaseOptions = () => [
+	{ value: 1, label: i18n.t('common.phases.1') },
+	{ value: 2, label: i18n.t('common.phases.2') },
+	{ value: 3, label: i18n.t('common.phases.3') },
+	{ value: 4, label: i18n.t('common.phases.4') },
+	{ value: 5, label: i18n.t('common.phases.5') },
 ];
 
 export interface ItemListToggle {
@@ -67,7 +67,7 @@ export const ItemListToolbarView = ({
 				</>
 			)}
 			<div className="min-w-28" data-testid="selector-modal-phase-selector">
-				<EnumPicker id={phaseId} values={phaseValues()} value={phase} onChange={onPhaseChange} />
+				<ChoiceField id={phaseId} options={phaseOptions()} value={phase} onChange={onPhaseChange} />
 			</div>
 			{toggles.map(toggle => (
 				<div key={toggle.id} data-testid={toggle.testId}>

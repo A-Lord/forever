@@ -70,10 +70,10 @@ describe('ConnectedInput', () => {
 		expect(player.active).toBe(true);
 	});
 
-	it('renders an enum input as a select bound to the player', () => {
+	it('renders an enum input as a choice field bound to the player', () => {
 		const root = mount(configs.enum);
-		expect(root.getAttribute('data-testid')).toBe('enum-picker-root');
-		expect(screen.getByRole<HTMLSelectElement>('combobox').value).toBe('1');
+		expect(root.contains(screen.getByRole('combobox', { name: 'Stance' }))).toBe(true);
+		expect(screen.getByRole('combobox').textContent).toBe('Defensive');
 	});
 
 	it('lays the field out inline when asked, and keeps the config layout otherwise', () => {

@@ -63,14 +63,15 @@ const mount = (isPrepull: boolean) =>
 
 /** The Spell submenu, which is where `castable_spells` files every spell the sim gives no category. */
 const openSpellSubmenu = async () => {
+	await act(async () => {});
 	await act(async () => {
-		fireEvent.click(screen.getByTestId('dropdown-picker-button'));
+		fireEvent.click(document.getElementById('spell')!);
 	});
 	await act(async () => {
-		fireEvent.click(screen.getAllByTestId('dropdown-item')[0]);
+		fireEvent.click(screen.getAllByRole('menuitem')[0]);
 	});
-	return within(screen.getByTestId('dropdown-submenu'))
-		.queryAllByTestId('dropdown-picker-item')
+	return within(screen.getByTestId('choice-field-submenu'))
+		.queryAllByRole('menuitemradio')
 		.map(item => item.textContent);
 };
 

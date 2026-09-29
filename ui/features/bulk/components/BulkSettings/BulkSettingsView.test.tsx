@@ -1,5 +1,6 @@
 import { ItemSlot } from '@generated/proto/common';
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettingsView';
@@ -7,9 +8,9 @@ import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettingsView
 const RING = {
 	id: 'freeze-ring',
 	label: 'Freeze ring',
-	values: [
-		{ name: 'None', value: -1 },
-		{ name: 'Finger 1', value: ItemSlot.ItemSlotFinger1 },
+	options: [
+		{ value: -1, label: 'None' },
+		{ value: ItemSlot.ItemSlotFinger1, label: 'Finger 1' },
 	],
 	value: -1,
 	onChange: () => {},
@@ -63,12 +64,13 @@ describe('BulkSettingsView', () => {
 		expect(container.querySelector('#freeze-weapon')).toBeNull();
 	});
 
-	it('offers the weapon freeze and its weapon type filters to a dual wielder', () => {
+	it('offers the weapon freeze and its weapon type filters to a dual wielder', async () => {
 		const { container, onFrozenWeaponSlotChange } = renderSettings({
 			weaponFreeze: { value: -1, weaponTypes: <span data-testid="weapon-types" /> },
 		});
 
-		fireEvent.change(container.querySelector('#freeze-weapon')!, { target: { value: String(ItemSlot.ItemSlotMainHand) } });
+		await userEvent.click(container.querySelector<HTMLElement>('#freeze-weapon')!);
+		await userEvent.click(screen.getAllByRole('option')[1]);
 
 		expect(onFrozenWeaponSlotChange).toHaveBeenCalledWith(ItemSlot.ItemSlotMainHand);
 		expect(screen.getByTestId('weapon-types')).toBeTruthy();

@@ -1,5 +1,5 @@
 import { rotationSource } from '@features/apl/utils';
-import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -38,12 +38,12 @@ export const RotationNameField = ({ player, config, source }: RotationNameFieldP
 	);
 
 	return (
-		<ConnectedDropdown<Player<any>, string>
+		<ConnectedChoiceField<Player<any>, string>
 			modObject={player}
 			config={config}
 			options={options}
-			defaultLabel={i18n.t(LABELS[source].defaultLabel)}
-			triggerClassName="p-0"
+			variant="link"
+			placeholder={i18n.t(LABELS[source].defaultLabel)}
 		/>
 	);
 };

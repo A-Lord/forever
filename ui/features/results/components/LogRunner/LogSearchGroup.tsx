@@ -1,7 +1,7 @@
 import i18n from '@i18n/config';
 import { Button } from '@ui-kit/Button';
 import { Chip } from '@ui-kit/Chip';
-import { DropdownPicker } from '@ui-kit/DropdownPicker';
+import { ChoiceField } from '@ui-kit/ChoiceField';
 import { Input } from '@ui-kit/FormControl';
 import { Icon } from '@ui-kit/Icon';
 import { ToggleGroup } from '@ui-kit/ToggleGroup';
@@ -36,10 +36,14 @@ export const LogSearchGroup = ({ group, suggestions, onChange, onRemove }: LogSe
 		() =>
 			valueCandidates(group.field, suggestions).map(value => ({
 				value,
-				label: labelOf(group.field, value),
-				icon: suggestions.spellIcons.get(value) ? (
-					<img data-testid="log-search-suggestion-icon" className="mr-1 icon-sm" src={suggestions.spellIcons.get(value)} alt="" />
-				) : undefined,
+				label: (
+					<>
+						{suggestions.spellIcons.get(value) && (
+							<img data-testid="log-search-suggestion-icon" className="mr-1 icon-sm" src={suggestions.spellIcons.get(value)} alt="" />
+						)}
+						{labelOf(group.field, value)}
+					</>
+				),
 			})),
 		[group.field, suggestions],
 	);
@@ -118,14 +122,13 @@ export const LogSearchGroup = ({ group, suggestions, onChange, onRemove }: LogSe
 							</Button>
 						</>
 					) : (
-						<DropdownPicker
+						<ChoiceField<string | undefined>
 							id={`log-search-group-${group.id}`}
 							options={options}
 							value={undefined}
-							onChange={addValue}
-							equals={(a, b) => a === b}
-							defaultLabel={i18n.t('results_tab.details.logs.search_add_value')}
-							triggerClassName="border-0 p-0"
+							onChange={value => value !== undefined && addValue(value)}
+							variant="link"
+							placeholder={i18n.t('results_tab.details.logs.search_add_value')}
 							{...DROPUP}
 						/>
 					)}

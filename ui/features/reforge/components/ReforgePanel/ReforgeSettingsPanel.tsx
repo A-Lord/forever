@@ -1,5 +1,5 @@
 import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { gemPhaseValues } from '@features/reforge/model/utils';
 import { SavedEpWeights } from '@features/stat-weights/components/SavedEpWeights';
@@ -131,7 +131,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 								},
 							}}
 						/>
-						<ConnectedEnumPicker
+						<ConnectedChoiceField
 							modObject={player}
 							config={{
 								extraClassNames: ['mb-2'],
@@ -147,7 +147,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 								},
 							}}
 						/>
-						<ConnectedEnumPicker
+						<ConnectedChoiceField
 							modObject={player}
 							config={{
 								extraClassNames: ['mb-2'],

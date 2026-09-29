@@ -1,6 +1,6 @@
 import i18n from '@i18n/config';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import { EnumPicker } from '@ui-kit/EnumPicker';
+import { ChoiceField } from '@ui-kit/ChoiceField';
 
 import { StatsType } from './types';
 
@@ -11,20 +11,18 @@ export interface EpWeightsOptionsProps {
 	onShowAllStatsChange: (showAllStats: boolean) => void;
 }
 
-const STATS_TYPES: StatsType[] = [StatsType.Ep, StatsType.Weight];
-
 export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, onShowAllStatsChange }: EpWeightsOptionsProps) => (
 	<div className="-mx-3 mb-3 flex flex-wrap">
 		<div className="w-full px-3 sm:w-1/4">
-			<EnumPicker
+			<ChoiceField
 				id="ep-type-select"
 				ariaLabel={i18n.t('sidebar.buttons.stat_weights.modal.stats_type')}
-				values={[
-					{ name: i18n.t('sidebar.buttons.stat_weights.modal.ep'), value: 0 },
-					{ name: i18n.t('sidebar.buttons.stat_weights.modal.weights'), value: 1 },
+				options={[
+					{ value: StatsType.Ep, label: i18n.t('sidebar.buttons.stat_weights.modal.ep') },
+					{ value: StatsType.Weight, label: i18n.t('sidebar.buttons.stat_weights.modal.weights') },
 				]}
-				value={STATS_TYPES.indexOf(statsType)}
-				onChange={next => onStatsTypeChange(STATS_TYPES[next])}
+				value={statsType}
+				onChange={onStatsTypeChange}
 			/>
 		</div>
 		<div className="w-full px-3 sm:w-1/4">

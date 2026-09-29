@@ -1,5 +1,5 @@
 import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import type { TargetInput } from '@generated/proto/common';
 import type { Encounter } from '@sim/raid/encounter';
@@ -25,7 +25,7 @@ export const TargetInputPicker = ({ encounter, targetIndex, inputIndex, input }:
 		<Field testId="target-input-picker-root">
 			{picker.kind === 'number' && <ConnectedNumberField modObject={null} config={picker.config} />}
 			{picker.kind === 'boolean' && <ConnectedBooleanPicker modObject={null} config={picker.config} />}
-			{picker.kind === 'enum' && <ConnectedEnumPicker modObject={null} config={picker.config} />}
+			{picker.kind === 'enum' && <ConnectedChoiceField modObject={null} config={picker.config} />}
 		</Field>
 	);
 };
