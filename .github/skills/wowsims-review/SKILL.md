@@ -119,8 +119,15 @@ already states, then hygiene.
 - `file:line`, and the defect in one bold sentence.
 - The failure: concrete input and wrong output, with the numbers ("a 5-point Rupture ticks for 35 instead of
   58.65 before attack power").
-- The fix, as code that reads the row through the store's accessors and resolvers.
+- The fix, as code that reads the row through the store's accessors and resolvers: a fenced ` ```go ` block
+  that drops in (the whole function or the changed block), not a description of one.
 - What was checked, and how.
+
+Every identifier, expression, path and tooltip formula goes in backticks: a bare `weapon*1.55+80, weapon*3.5`
+renders as italics and loses both asterisks. A comment posted from the shell takes its body from a file
+(`gh api ... -F body=@file`), since backticks inside a quoted argument are command substitution; read the
+posted comment back as HTML (`-H "Accept: application/vnd.github.html+json" --jq .body_html`) and check the
+fences closed and no `<em>` stands where an asterisk was meant.
 
 After the findings, two lists: **checked, not findings** (what was examined and holds), and **hand numbers
 that stay**, each with its reason. On a self-review, fix the findings, rerun the gates, and put both lists in
