@@ -1,4 +1,4 @@
-import type { IconEnumPickerConfig, IconEnumValueConfig, NumberListPickerConfig } from '@features/inputs/configs';
+import type { IconEnumPickerConfig, IconEnumValueConfig, NumberListFieldConfig } from '@features/inputs/configs';
 import { ActionID as ActionIdProto, Cooldown } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
@@ -35,7 +35,7 @@ export const actionPickerConfig = (available: ReadonlyArray<ActionId>, index: nu
 	},
 });
 
-export const timingsPickerConfig = (index: number, isAdd = false): NumberListPickerConfig<Player<any>> => ({
+export const timingsPickerConfig = (index: number, isAdd = false): NumberListFieldConfig<Player<any>> => ({
 	id: `cooldown-timings-${index}`,
 	extraClassNames: ['ml-auto', 'min-w-2/5', 'w-2/5', ...(isAdd ? ['invisible'] : [])],
 	placeholder: i18n.t('rotation_tab.cooldowns.timings_placeholder'),

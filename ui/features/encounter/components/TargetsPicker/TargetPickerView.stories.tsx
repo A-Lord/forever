@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { EnumPicker } from '@ui-kit/EnumPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
+import { NumberField } from '@ui-kit/TextField';
 import { fn } from 'storybook/test';
 
 import { TargetPickerView } from './TargetPickerView';
@@ -10,7 +10,7 @@ const select = (id: string, label: string, names: string[]) => (
 	<EnumPicker id={id} label={label} values={names.map((name, value) => ({ name, value }))} value={0} onChange={fn()} />
 );
 
-const number = (id: string, label: string, value: number, float = false) => <NumberPicker id={id} label={label} value={value} float={float} onChange={fn()} />;
+const number = (id: string, label: string, value: number, float = false) => <NumberField id={id} label={label} value={value} float={float} onChange={fn()} />;
 
 const IDENTITY = (
 	<>

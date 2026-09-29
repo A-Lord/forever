@@ -3,8 +3,7 @@ import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { useApl } from '@features/apl/context/AplContext';
 import type { AplFieldSpec } from '@features/apl/model/field_specs';
 import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
-import { BoundStringPicker } from '@features/inputs/components/BoundStringPicker';
+import { BoundNumberField, BoundStringField } from '@features/inputs/components/BoundTextField';
 import type { Player } from '@sim/player/player';
 import { useId } from 'react';
 
@@ -47,9 +46,9 @@ export const AplField = ({ player, spec, getParentValue }: AplFieldProps) => {
 		case 'boolean':
 			return <BoundBooleanPicker modObject={player} config={config} />;
 		case 'number':
-			return <BoundNumberPicker modObject={player} config={{ ...config, float: spec.float }} />;
+			return <BoundNumberField modObject={player} config={{ ...config, float: spec.float }} />;
 		case 'string':
-			return <BoundStringPicker modObject={player} config={config} />;
+			return <BoundStringField modObject={player} config={config} />;
 		case 'enum':
 			return <EnumField player={player} config={config} table={spec.table} />;
 		case 'actionId':

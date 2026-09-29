@@ -4,7 +4,7 @@ import { usePlayer } from '@sim/context/SimHostContext';
 import { canEquipItem } from '@sim/proto/items';
 import { ComboBox } from '@ui-kit/ComboBox';
 import { ContentBlock } from '@ui-kit/ContentBlock';
-import { NumberPicker } from '@ui-kit/NumberPicker';
+import { NumberField } from '@ui-kit/TextField';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { addBulkItem } from '../../model/items';
@@ -84,7 +84,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 					}
 				/>
 				<div className="flex items-center">
-					<NumberPicker
+					<NumberField
 						id="bulkGearSearchMinIlvl"
 						label={i18n.t('bulk_tab.search.min_ilvl')}
 						showZeroes={false}
@@ -92,7 +92,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 						onChange={setMinIlvl}
 					/>
 					<span className="mx-3 mt-3">-</span>
-					<NumberPicker
+					<NumberField
 						id="bulkGearSearchMaxIlvl"
 						label={i18n.t('bulk_tab.search.max_ilvl')}
 						showZeroes={false}

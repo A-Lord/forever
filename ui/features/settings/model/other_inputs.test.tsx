@@ -1,4 +1,4 @@
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import { BoundNumberField } from '@features/inputs/components/BoundTextField';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost } from '@sim/testing';
 import { act, render, screen } from '@testing-library/react';
@@ -33,7 +33,7 @@ const mount = () => {
 	} as any;
 	render(
 		<SimHostProvider host={fakeHost({ player })}>
-			<BoundNumberPicker modObject={player} config={DistanceFromTarget} />
+			<BoundNumberField modObject={player} config={DistanceFromTarget} />
 		</SimHostProvider>,
 	);
 };

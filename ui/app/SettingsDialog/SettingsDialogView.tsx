@@ -6,7 +6,7 @@ import { Dialog } from '@ui-kit/Dialog';
 import { EnumPicker, type EnumValueConfig } from '@ui-kit/EnumPicker';
 import { FieldGrid } from '@ui-kit/FieldGrid';
 import { HelpText } from '@ui-kit/FormControl';
-import { NumberPicker } from '@ui-kit/NumberPicker';
+import { NumberField } from '@ui-kit/TextField';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId, useMemo } from 'react';
 
@@ -103,11 +103,10 @@ export const SettingsDialogView = ({
 				<FieldGrid>
 					<div data-testid="fixed-rng-seed-container">
 						<div data-testid="fixed-rng-seed">
-							<NumberPicker
+							<NumberField
 								id="simui-fixed-rng-seed"
 								label={i18n.t('info.options.fixed_rng_seed.label')}
 								labelTooltip={i18n.t('info.options.fixed_rng_seed.tooltip')}
-								className="mb-0"
 								value={fixedRngSeed}
 								onChange={onFixedRngSeedChange}
 							/>

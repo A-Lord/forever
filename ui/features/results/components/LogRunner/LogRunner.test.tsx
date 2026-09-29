@@ -109,7 +109,7 @@ describe('LogRunner', () => {
 		const { container } = mount();
 
 		expect(container.querySelector('[data-testid="log-runner-root"]')).not.toBeNull();
-		expect(container.querySelector('[data-testid="log-runner-sticky"] > [data-testid="log-search"] > [data-testid="search-bar-root"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="log-runner-sticky"] > [data-testid="log-search"] > [data-testid="log-search-input"]')).not.toBeNull();
 		expect([...container.querySelectorAll('[data-testid="log-runner-header"] > div')].map(cell => cell.textContent)).toEqual([
 			'results_tab.details.logs.time_column',
 			'results_tab.details.logs.event_column',
@@ -148,7 +148,7 @@ describe('LogRunner', () => {
 		result = resultWith(LOGS);
 		const { container } = mount();
 
-		fireEvent.change(searchInput(container), { target: { value: 'Cleave' } });
+		fireEvent.input(searchInput(container), { target: { value: 'Cleave' } });
 		await act(async () => void vi.advanceTimersByTime(200));
 
 		expect(rows(container)).toEqual(['[2.00] Warrior casts Cleave']);
@@ -164,7 +164,7 @@ describe('LogRunner', () => {
 
 		result = resultWith(LOGS);
 		rerender(<LogRunner active />);
-		fireEvent.change(searchInput(container), { target: { value: 'no such line' } });
+		fireEvent.input(searchInput(container), { target: { value: 'no such line' } });
 		await act(async () => void vi.advanceTimersByTime(200));
 
 		expect(rows(container)).toEqual([]);
@@ -178,7 +178,7 @@ describe('LogRunner', () => {
 		result = resultWith(LOGS);
 		const { container } = mount();
 
-		fireEvent.change(searchInput(container), { target: { value: '"casts Mortal"' } });
+		fireEvent.input(searchInput(container), { target: { value: '"casts Mortal"' } });
 		await act(async () => void vi.advanceTimersByTime(200));
 
 		expect(rows(container)).toEqual(['[1.00] Warrior casts Mortal Strike']);
@@ -269,7 +269,7 @@ describe('LogRunner', () => {
 			hidePane(container);
 			rootScrollIntoView.mockClear();
 
-			fireEvent.change(searchInput(container), { target: { value: 'Cleave' } });
+			fireEvent.input(searchInput(container), { target: { value: 'Cleave' } });
 			await act(async () => void vi.advanceTimersByTime(200));
 			backToTop(container);
 

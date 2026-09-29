@@ -8,7 +8,7 @@ import { Sim } from '@sim/sim';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Dialog } from '@ui-kit/Dialog';
 import { EnumPicker } from '@ui-kit/EnumPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
+import { NumberField } from '@ui-kit/TextField';
 
 import { MenuSection } from './MenuSection';
 
@@ -69,7 +69,7 @@ export const FiltersMenuView = ({
 	);
 
 	const numberInput = (field: FilterNumberField, id: string, label: string, options: { float?: boolean; positive?: boolean; showZeroes?: boolean }) => (
-		<NumberPicker
+		<NumberField
 			id={id}
 			label={label}
 			{...options}

@@ -30,12 +30,13 @@ const root = () => screen.getByTestId('combo-box-root');
 const list = () => screen.getByRole('listbox');
 
 describe('ComboBox', () => {
-	it('renders the shared field shell as its root', () => {
-		mount();
+	it('renders the input straight inside the field root, with a clear slot between them only when clearable', () => {
+		const { rerender } = mount();
+		expect(input().parentElement).toBe(root());
 
-		expect(root().classList.contains('ui-field')).toBe(true);
-		expect(root().contains(input())).toBe(true);
-		expect(input().classList.contains('ui-input')).toBe(true);
+		rerender(<ComboBox {...propsFor({ clearable: true, clearLabel: 'Clear search' })} />);
+		expect(input().parentElement).not.toBe(root());
+		expect(input().parentElement!.parentElement).toBe(root());
 	});
 
 	it('renders a label only when one is given, wired to the input by id', () => {
@@ -48,11 +49,11 @@ describe('ComboBox', () => {
 	});
 
 	it('fills its column by default and stops growing when grow is false', () => {
-		const { rerender } = mount();
+		const { rerender } = mount({ clearable: true });
 		expect(root().classList.contains('flex-none')).toBe(false);
 		expect(input().parentElement!.classList.contains('w-full')).toBe(true);
 
-		rerender(<ComboBox {...propsFor({ grow: false })} />);
+		rerender(<ComboBox {...propsFor({ clearable: true, grow: false })} />);
 		expect(root().classList.contains('flex-none')).toBe(true);
 		expect(input().parentElement!.classList.contains('flex-none')).toBe(true);
 		expect(input().parentElement!.classList.contains('w-full')).toBe(false);
