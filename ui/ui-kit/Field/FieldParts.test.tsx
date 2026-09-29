@@ -264,6 +264,6 @@ describe('Field renders exactly these attributes', () => {
 		);
 		const root = screen.getByTestId('input-root');
 		expect(attributeNames(root)).toEqual(['class', 'data-input-root', 'data-testid']);
-		expect(root.getAttribute('class')).toBe('ui-field max-md:flex-col max-md:items-start');
+		expect(root.getAttribute('class')).toBe('ui-field');
 	});
 });

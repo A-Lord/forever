@@ -44,7 +44,10 @@ interface TreePartProps {
 }
 
 export interface TreeRootProps extends TreePartProps {
-	/** Nested roots inherit it; a top-level root without one gets a group of its own. */
+	/**
+	 * Nested roots inherit it; a top-level root without one gets a group of its own. A root in a body
+	 * needs a group of its own: inheriting one makes it the same list as its item's `Children`.
+	 */
 	group?: string;
 	/** Defaults to the parent root's depth + 1, and 0 at the top. */
 	depth?: number;
@@ -107,7 +110,7 @@ export interface TreeItemActionProps extends TreePartProps {
 	onClick?: () => void;
 }
 
-/** Status and toggles on the header row, between the body and the trigger. */
+/** Status and toggles on the header row, just before the trigger. */
 export interface TreeItemAsideProps extends TreePartProps {
 	children: ReactNode;
 }
@@ -125,7 +128,7 @@ export interface TreeAddButtonProps extends TreePartProps {
 	/** The button text after a plus, or with `icon` its accessible name and tooltip. */
 	label: string;
 	icon?: IconName | IconAlias;
-	/** `success` colours an icon button the way a create action reads elsewhere. */
+	/** `success` colours the button's text the way a create action reads elsewhere; meant for the icon form. */
 	tone?: 'default' | 'success';
 	disabled?: boolean;
 	onClick: () => void;

@@ -41,7 +41,7 @@ export interface FieldClearProps {
 
 export interface FieldProps extends FieldChromeProps {
 	disabled?: boolean;
-	/** Icon fields skip the stacking classes. */
+	/** Renders nothing different: the narrow container rules skip an icon field by its `ui-icon-field` class. */
 	iconField?: boolean;
 	/** `false` renders the root `flex-none` (SearchBar, ComboBox). */
 	grow?: boolean;

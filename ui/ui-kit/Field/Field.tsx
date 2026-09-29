@@ -13,7 +13,6 @@ const FieldSugar = ({
 	className,
 	testId,
 	disabled,
-	iconField,
 	grow,
 	clear,
 	leading,
@@ -39,8 +38,7 @@ const FieldSugar = ({
 			aria-labelledby={labelledBy ?? groupLabelId}
 			hidden={hidden}
 			testId={testId}
-			// Only the sugar stacks below `md` by the viewport; the pickers rendered through it depend on these classes.
-			className={[!layout && !iconField && 'max-md:flex-col max-md:items-start', className]}>
+			className={className}>
 			{leading}
 			{label && (
 				<Label id={groupLabelId} tooltip={labelTooltip}>

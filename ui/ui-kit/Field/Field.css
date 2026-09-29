@@ -88,7 +88,7 @@
 		.ui-field {
 			&:not([data-layout='inline']):not(.ui-icon-field) {
 				@variant @max-md {
-					@apply grow items-stretch!;
+					@apply items-stretch!;
 				}
 			}
 		}

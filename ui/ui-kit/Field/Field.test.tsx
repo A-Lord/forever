@@ -28,9 +28,9 @@ describe('Field', () => {
 		expect(root().getAttribute('class')).toBe('ui-field number-picker-root apl-picker');
 	});
 
-	it('stacks a field with no layout below md, unless it is an icon field', () => {
+	it('carries no viewport classes: the narrow container rules in the stylesheet do the stacking', () => {
 		const { rerender } = field();
-		expect(root().getAttribute('class')).toBe('ui-field max-md:flex-col max-md:items-start number-picker-root');
+		expect(root().getAttribute('class')).toBe('ui-field number-picker-root');
 
 		rerender(<Field id="cast-delay" label="Cast Delay" iconField />);
 		expect(root().getAttribute('class')).toBe('ui-field');
