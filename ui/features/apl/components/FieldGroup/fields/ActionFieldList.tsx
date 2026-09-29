@@ -12,7 +12,7 @@ import type { Player } from '@sim/player/player';
 import { Tree } from '@ui-kit/Tree';
 import clsx from 'clsx';
 
-export interface ActionListFieldProps {
+export interface ActionFieldListProps {
 	player: Player<any>;
 	config: InputConfig<Player<any>, Array<APLAction>> & { id: string };
 }
@@ -24,7 +24,7 @@ export interface ActionListFieldProps {
  * which is not the priority list's, so a sequence's rows never mix with a priority list's. A row's
  * id is its list key: an `APLAction` carries no uuid.
  */
-export const ActionListField = ({ player, config }: ActionListFieldProps) => {
+export const ActionFieldList = ({ player, config }: ActionFieldListProps) => {
 	const listConfig: ListItemsConfig<Player<any>, APLAction> = {
 		...config,
 		newItem: APLAction.create,

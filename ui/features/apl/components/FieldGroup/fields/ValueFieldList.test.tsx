@@ -4,7 +4,7 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import { act, createEvent, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ValueListField } from './ValueListField';
+import { ValueFieldList } from './ValueFieldList';
 
 const source = vi.hoisted(() => {
 	const listeners = new Set<() => void>();
@@ -43,7 +43,7 @@ const mount = (initial: Array<APLValue | undefined>, config = fieldConfig()) => 
 	player = makePlayer(APLRotation.create(), () => source.notify());
 	return render(
 		<SimHostProvider host={{ player, rootElem: document.body } as never}>
-			<ValueListField player={player as never} config={config as never} />
+			<ValueFieldList player={player as never} config={config as never} />
 		</SimHostProvider>,
 	);
 };
@@ -77,7 +77,7 @@ beforeEach(() => {
 	document.body.innerHTML = '';
 });
 
-describe('ValueListField', () => {
+describe('ValueFieldList', () => {
 	it('renders one inline value row per operand and carries the field classes on the list', () => {
 		mount([constant('a', '1'), constant('b', '2')]);
 

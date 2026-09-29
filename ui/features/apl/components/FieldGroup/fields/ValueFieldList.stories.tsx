@@ -5,7 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeAplStoryPlayer } from '@testing/storybook/fixtures/apl';
 import { expect, userEvent, within } from 'storybook/test';
 
-import { ValueListField } from './ValueListField';
+import { ValueFieldList } from './ValueFieldList';
 
 const constant = (uuid: string, val: string) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'const', const: { val } } });
 
@@ -26,8 +26,8 @@ const operandsOf = (initial: Array<APLValue>) => {
 };
 
 const meta = {
-	title: 'Features/Apl/ValueListField',
-	component: ValueListField,
+	title: 'Features/Apl/ValueFieldList',
+	component: ValueFieldList,
 	tags: ['autodocs'],
 	args: operandsOf([constant('a', '1'), constant('b', '10s')]),
 	argTypes: { player: { control: false }, config: { control: false } },
@@ -38,7 +38,7 @@ const meta = {
 			</SimHostProvider>
 		),
 	],
-} satisfies Meta<typeof ValueListField>;
+} satisfies Meta<typeof ValueFieldList>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

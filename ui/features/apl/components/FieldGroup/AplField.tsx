@@ -8,14 +8,14 @@ import { BoundStringPicker } from '@features/inputs/components/BoundStringPicker
 import type { Player } from '@sim/player/player';
 import { useId } from 'react';
 
+import { ActionFieldList } from './fields/ActionFieldList';
 import { ActionIdField } from './fields/ActionIdField';
-import { ActionListField } from './fields/ActionListField';
 import { EnumField } from './fields/EnumField';
 import { GroupVariablesField } from './fields/GroupVariablesField';
 import { PlaceholderNameField } from './fields/PlaceholderNameField';
 import { RotationNameField } from './fields/RotationNameField';
 import { UnitField } from './fields/UnitField';
-import { ValueListField } from './fields/ValueListField';
+import { ValueFieldList } from './fields/ValueFieldList';
 import { fieldInputConfig } from './utils';
 
 export interface AplFieldProps {
@@ -74,10 +74,10 @@ export const AplField = ({ player, spec, getParentValue }: AplFieldProps) => {
 		case 'value':
 			return <ValuePicker player={player} config={config} />;
 		case 'valueList':
-			return <ValueListField player={player} config={config} />;
+			return <ValueFieldList player={player} config={config} />;
 		case 'action':
 			return <ActionPicker player={player} config={config} />;
 		case 'actionList':
-			return <ActionListField player={player} config={config} />;
+			return <ActionFieldList player={player} config={config} />;
 	}
 };
