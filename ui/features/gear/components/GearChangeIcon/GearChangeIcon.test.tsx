@@ -71,9 +71,9 @@ describe('GearChangeIcon', () => {
 		const sockets = [...container.querySelectorAll('[data-testid="gem-socket-container"]')];
 		expect(sockets).toHaveLength(2);
 		expect(sockets[0].hasAttribute('data-interactive')).toBe(false);
-		expect(sockets[0].querySelector('.fa-exclamation-circle')).toBeNull();
+		expect(sockets[0].querySelector('[data-testid="gear-change-icon-gem-marker"]')).toBeNull();
 		expect(sockets[1].hasAttribute('data-interactive')).toBe(true);
-		expect(sockets[1].querySelector('.fa-exclamation-circle')).not.toBeNull();
+		expect(sockets[1].querySelector('[data-testid="gear-change-icon-gem-marker"]')).not.toBeNull();
 		expect(sockets[1].getAttribute('data-tooltip-id')).toBeTruthy();
 	});
 });
