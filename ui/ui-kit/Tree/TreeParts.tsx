@@ -5,12 +5,13 @@ import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { useCallback, useContext, useId, useState } from 'react';
 
-import { TreeActionsContext, useTreeItem, useTreeRoot } from './context';
+import { TreeActionsContext, TreeBodyContext, useTreeItem, useTreeRoot } from './context';
 import { Root } from './Tree';
 import type {
 	TreeAddButtonProps,
 	TreeItemActionProps,
 	TreeItemActionsProps,
+	TreeItemAsideProps,
 	TreeItemBodyProps,
 	TreeItemChildrenProps,
 	TreeItemHandleProps,
@@ -105,11 +106,20 @@ export const Action = ({ label, icon, tone = 'default', disabled, onClick, class
 	);
 };
 
+export const Aside = ({ className, testId, children }: TreeItemAsideProps) => {
+	useTreeItem();
+	return (
+		<span className={clsx('ui-tree-item-aside', className)} data-testid={testId}>
+			{children}
+		</span>
+	);
+};
+
 export const Body = ({ className, testId, children }: TreeItemBodyProps) => {
 	const { open, bodyId } = useTreeItem();
 	return (
 		<div id={bodyId} className={clsx('ui-tree-item-body', className)} hidden={!open} data-testid={testId}>
-			{children}
+			<TreeBodyContext.Provider value>{children}</TreeBodyContext.Provider>
 		</div>
 	);
 };
@@ -126,16 +136,23 @@ export const Children = ({ className, testId, children }: TreeItemChildrenProps)
 	);
 };
 
-export const AddButton = ({ label, icon, disabled, onClick, className, testId }: TreeAddButtonProps) => {
+export const AddButton = ({ label, icon, tone = 'default', disabled, onClick, className, testId }: TreeAddButtonProps) => {
 	const root = useTreeRoot();
 	const tooltipId = useId();
 	const shared = {
-		className,
+		className: clsx('ui-tree-add', className),
 		disabled: root.disabled || disabled,
+		'data-tone': tone === 'success' ? 'success' : undefined,
 		'data-testid': testId ?? 'tree-add',
 		onClick,
 	};
-	if (!icon) return <Button {...shared}>{label}</Button>;
+	if (!icon)
+		return (
+			<Button {...shared}>
+				<Icon name="plus" className="mr-2" />
+				{label}
+			</Button>
+		);
 	return (
 		<>
 			<Button iconOnly aria-label={label} {...shared} {...tooltipAnchorProps(tooltipId, label)}>

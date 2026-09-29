@@ -107,6 +107,12 @@ export interface TreeItemActionProps extends TreePartProps {
 	onClick?: () => void;
 }
 
+/** Status and toggles on the header row, between the body and the trigger. */
+export interface TreeItemAsideProps extends TreePartProps {
+	children: ReactNode;
+}
+
+/** A `Tree.Root` inside a body is a list of its own: it indents like `Children` and takes an `into` drop when empty. */
 export interface TreeItemBodyProps extends TreePartProps {
 	children: ReactNode;
 }
@@ -116,9 +122,11 @@ export interface TreeItemChildrenProps extends TreePartProps {
 }
 
 export interface TreeAddButtonProps extends TreePartProps {
-	/** The button text, or with `icon` its accessible name and tooltip. */
+	/** The button text after a plus, or with `icon` its accessible name and tooltip. */
 	label: string;
 	icon?: IconName | IconAlias;
+	/** `success` colours an icon button the way a create action reads elsewhere. */
+	tone?: 'default' | 'success';
 	disabled?: boolean;
 	onClick: () => void;
 }

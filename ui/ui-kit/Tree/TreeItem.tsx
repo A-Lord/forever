@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { TreeItemContext, type TreeItemContextValue, useTreeItems, useTreeRoot } from './context';
+import { TreeBodyContext, TreeItemContext, type TreeItemContextValue, useTreeItems, useTreeRoot } from './context';
 import { useItemSortable } from './sortable';
 import type { TreeItemProps } from './types';
 
@@ -68,7 +68,7 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 				data-testid={testId ?? 'tree-item'}
 				draggable={armed || undefined}
 				{...itemProps}>
-				{children}
+				<TreeBodyContext.Provider value={false}>{children}</TreeBodyContext.Provider>
 			</li>
 		</TreeItemContext.Provider>
 	);

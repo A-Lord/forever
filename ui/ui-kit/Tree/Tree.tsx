@@ -1,8 +1,16 @@
-import { useSortable } from '@ui-kit/hooks/useSortable';
+import { useSortable, useSortableStatus } from '@ui-kit/hooks/useSortable';
 import clsx from 'clsx';
 import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { TreeItemContext, TreeItemsContext, type TreeItemsContextValue, TreeRootContext, type TreeRootContextValue, useTreeRoot } from './context';
+import {
+	TreeBodyContext,
+	TreeItemContext,
+	TreeItemsContext,
+	type TreeItemsContextValue,
+	TreeRootContext,
+	type TreeRootContextValue,
+	useTreeRoot,
+} from './context';
 import { SortableContext } from './sortable';
 import type { TreeItemsProps, TreeRootProps } from './types';
 
@@ -24,6 +32,10 @@ export const Root = ({
 	const ownGroup = useId();
 	const parentSortable = useContext(SortableContext);
 	const ownSortable = useSortable(parentSortable ? undefined : sortable);
+	const inBody = useContext(TreeBodyContext);
+	const listKey = useId();
+	const element = useRef<HTMLDivElement>(null);
+	const listSortable = inBody ? parentSortable : null;
 	const value = useMemo<TreeRootContextValue>(
 		() => ({
 			group: group ?? parent?.group ?? ownGroup,
@@ -37,16 +49,32 @@ export const Root = ({
 		}),
 		[group, depth, density, layout, orientation, disabled, handle, parent, ownGroup, parentId],
 	);
+
+	// A root in a body is a list of its own, not an item's children, so its area takes an `into` drop.
+	useLayoutEffect(() => {
+		listSortable?.registerList(listKey, { group: value.group, parentId, element: element.current! });
+	});
+	useLayoutEffect(() => {
+		if (!listSortable) return;
+		return () => listSortable.unregisterList(listKey);
+	}, [listSortable, listKey]);
+	const { drop } = useSortableStatus(listSortable, listKey);
+	const listProps = useMemo(() => listSortable?.listProps(listKey), [listSortable, listKey]);
+
 	return (
 		<SortableContext.Provider value={parentSortable ?? ownSortable}>
 			<TreeRootContext.Provider value={value}>
 				<div
+					ref={element}
 					className={clsx('ui-tree', className)}
 					data-depth={value.depth}
 					data-density={value.density}
 					data-layout={layout}
 					data-orientation={orientation}
-					data-testid={testId ?? 'tree'}>
+					data-in-body={inBody ? '' : undefined}
+					data-drop={drop ?? undefined}
+					data-testid={testId ?? 'tree'}
+					{...listProps}>
 					{children}
 				</div>
 			</TreeRootContext.Provider>

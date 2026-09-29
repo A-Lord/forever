@@ -70,17 +70,65 @@ const InlineTree = ({ onDelete }: { onDelete?: () => void }) => (
 				<Tree.Item key={title} id={title}>
 					<Tree.Item.Header>
 						<Tree.Item.Handle label={`Move ${title}`} />
+						<Tree.Item.Aside>ON</Tree.Item.Aside>
 						<Tree.Item.Actions label={`${title} actions`}>
 							<Tree.Item.Action icon="times" label="Delete" tone="danger" onClick={onDelete} />
 						</Tree.Item.Actions>
 					</Tree.Item.Header>
-					<Tree.Item.Body>The body of {title}, on the header row.</Tree.Item.Body>
+					<Tree.Item.Body>
+						The body of {title}, on the header row. The handle, the aside and the menu stay on its first line when it wraps.
+					</Tree.Item.Body>
 				</Tree.Item>
 			))}
 		</Tree.Items>
-		<Tree.AddButton label="New row" icon="plus" onClick={() => {}} />
+		<Tree.AddButton label="New row" icon="plus" tone="success" onClick={() => {}} />
 	</Tree.Root>
 );
+
+const isValues = (group: string) => group.startsWith('values-');
+
+const BodyListTree = ({ onMove }: { onMove?: (move: TreeMove) => void }) => {
+	const [lists, setLists] = useState<Record<string, Array<string>>>({ Opener: ['Potion', 'Charge'], Burst: [] });
+	const move = (next: TreeMove) => {
+		onMove?.(next);
+		setLists(current => {
+			const from = next.from.parentId!;
+			const to = next.to.parentId!;
+			const moved = current[from][next.from.index];
+			const source = current[from].filter((_, index) => index !== next.from.index);
+			const at = from === to && next.to.index > next.from.index ? next.to.index - 1 : next.to.index;
+			return { ...current, [from]: source, [to]: insertAt(from === to ? source : current[to], moved, at) };
+		});
+	};
+	return (
+		<Tree.Root group="rows" sortable={{ onMove: move, canDrop: (from, to) => isValues(from.group) === isValues(to.group) }}>
+			<Tree.Items>
+				{Object.entries(lists).map(([id, values]) => (
+					<Tree.Item key={id} id={id} testId={`row-${id}`}>
+						<Tree.Item.Header>
+							<Tree.Item.Title>{id}</Tree.Item.Title>
+						</Tree.Item.Header>
+						<Tree.Item.Body>
+							<Tree.Root group={`values-${id}`} layout="inline" density="compact" testId={`list-${id}`}>
+								<Tree.Items>
+									{values.map(value => (
+										<Tree.Item key={value} id={value} testId={`value-${value}`}>
+											<Tree.Item.Header>
+												<Tree.Item.Handle label={`Move ${value}`} />
+											</Tree.Item.Header>
+											<Tree.Item.Body>{value}</Tree.Item.Body>
+										</Tree.Item>
+									))}
+								</Tree.Items>
+								<Tree.AddButton label={`New value in ${id}`} icon="plus" tone="success" onClick={() => {}} />
+							</Tree.Root>
+						</Tree.Item.Body>
+					</Tree.Item>
+				))}
+			</Tree.Items>
+		</Tree.Root>
+	);
+};
 
 interface Group {
 	id: string;
@@ -222,6 +270,24 @@ export const Sortable: Story = {
 			to: { group: 'rotation', parentId: 'Burst', index: 0 },
 		});
 		await expect(within(canvas.getByTestId('row-Burst')).getByTestId('row-Potion')).toBeInTheDocument();
+	},
+};
+
+/** A list in each row's body, of its own group: it indents like children, and an empty one still takes a drop. */
+export const BodyList: Story = {
+	render: ({ onMove }) => <BodyListTree onMove={onMove} />,
+	play: async ({ args, canvasElement }) => {
+		const canvas = within(canvasElement);
+		await expect(canvas.getByTestId('list-Burst').hasAttribute('data-in-body')).toBe(true);
+		await fireEvent.mouseDown(canvas.getByRole('button', { name: 'Move Potion' }));
+		await fireEvent.dragStart(canvas.getByTestId('value-Potion'), { dataTransfer: new DataTransfer() });
+		await fireEvent.drop(canvas.getByTestId('list-Burst'), { dataTransfer: new DataTransfer(), clientY: 0 });
+
+		await expect(args.onMove).toHaveBeenCalledWith({
+			from: { group: 'values-Opener', id: 'Potion', index: 0, parentId: 'Opener' },
+			to: { group: 'values-Burst', parentId: 'Burst', index: 0 },
+		});
+		await expect(within(canvas.getByTestId('list-Burst')).getByTestId('value-Potion')).toBeInTheDocument();
 	},
 };
 

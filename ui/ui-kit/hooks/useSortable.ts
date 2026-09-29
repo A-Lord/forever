@@ -40,7 +40,20 @@ export interface SortableController {
 	itemProps: (key: string) => SortableItemProps;
 	/** The `into` drop target handlers for the area that holds the item's children. */
 	childrenProps: (key: string) => SortableChildrenProps;
+	registerList: (key: string, list: SortableList) => void;
+	unregisterList: (key: string) => void;
+	/** Drop target handlers for a list's own area, so a list with no items, or the space below its last item, takes a drop. */
+	listProps: (key: string) => SortableChildrenProps;
 }
+
+/** A list that is not an item's children: a root in an item's body. */
+export interface SortableList {
+	group: string;
+	parentId: string | null;
+	element: HTMLElement;
+}
+
+type TargetMode = 'item' | 'into' | 'list';
 
 const TRANSFER_TYPE = 'application/x-ui-tree';
 
@@ -64,6 +77,7 @@ const refOf = ({ group, id, index, parentId }: SortableEntry): TreeRef => ({ gro
 
 const createSortable = (options: RefObject<TreeSortable | undefined>): SortableController => {
 	const entries = new Map<string, SortableEntry>();
+	const lists = new Map<string, SortableList>();
 	const listeners = new Set<() => void>();
 	let state: SortableState = { armed: null, from: null, over: null };
 	let releaseMouseUp: (() => void) | null = null;
@@ -97,38 +111,50 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 	// its own subtree would detach it), or leave it where it is. The target still owns the event, so
 	// hovering the dragged item never reads as a drop around its parent. `pass`: the group rule or
 	// `canDrop` turns this target down, and the enclosing item or children area decides instead.
-	const verdict = (from: SortableEntry, over: SortableEntry, to: TreeDropRef) => {
-		if (from.element.contains(over.element)) return 'refuse';
+	const verdict = (from: SortableEntry, target: HTMLElement, to: TreeDropRef) => {
+		if (from.element.contains(target)) return 'refuse';
 		if (to.group === from.group && to.parentId === from.parentId && (to.index === from.index || to.index === from.index + 1)) return 'refuse';
 		return (options.current?.canDrop ?? sameGroup)(refOf(from), to) ? 'accept' : 'pass';
 	};
 
-	const resolve = (key: string, event: DragEvent, into: boolean) => {
+	const countPast = (event: DragEvent, group: string, parentId: string | null) => {
+		let index = 0;
+		for (const entry of entries.values()) {
+			if (entry.parentId === parentId && entry.group === group && pastMidpoint(event, entry)) index++;
+		}
+		return index;
+	};
+
+	const resolve = (key: string, event: DragEvent, mode: TargetMode) => {
 		const from = state.from === null ? undefined : entries.get(state.from);
+		if (!from) return 'pass';
+		if (mode === 'list') {
+			const list = lists.get(key);
+			if (!list) return 'pass';
+			const to = { group: list.group, parentId: list.parentId, index: countPast(event, list.group, list.parentId) };
+			const result = verdict(from, list.element, to);
+			return result === 'accept' ? { from, drop: 'into' as const, to } : result;
+		}
 		const over = entries.get(key);
-		if (!from || !over) return 'pass';
+		if (!over) return 'pass';
 		let drop: SortableDrop;
 		let to: TreeDropRef;
-		if (into) {
+		if (mode === 'into') {
 			drop = 'into';
-			let index = 0;
-			for (const entry of entries.values()) {
-				if (entry.parentId === over.id && entry.group === over.group && pastMidpoint(event, entry)) index++;
-			}
-			to = { group: over.group, parentId: over.id, index };
+			to = { group: over.group, parentId: over.id, index: countPast(event, over.group, over.id) };
 		} else {
 			const after = pastMidpoint(event, over);
 			drop = after ? 'after' : 'before';
 			to = { group: over.group, parentId: over.parentId, index: after ? over.index + 1 : over.index };
 		}
-		const result = verdict(from, over, to);
+		const result = verdict(from, over.element, to);
 		return result === 'accept' ? { from, drop, to } : result;
 	};
 
 	// The innermost target that accepts or refuses stops the event; a passing one lets it bubble.
-	const onDragOver = (key: string, into: boolean) => (event: DragEvent<HTMLElement>) => {
+	const onDragOver = (key: string, mode: TargetMode) => (event: DragEvent<HTMLElement>) => {
 		if (state.from === null) return;
-		const target = resolve(key, event, into);
+		const target = resolve(key, event, mode);
 		if (target === 'pass' || target === 'refuse') set({ over: null });
 		if (target === 'pass') return;
 		event.stopPropagation();
@@ -146,9 +172,9 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 
 	// The drop ends the drag here: a move to another list unmounts the source item, and a
 	// detached element's dragend never reaches React.
-	const onDrop = (key: string, into: boolean) => (event: DragEvent<HTMLElement>) => {
+	const onDrop = (key: string, mode: TargetMode) => (event: DragEvent<HTMLElement>) => {
 		if (state.from === null) return;
-		const target = resolve(key, event, into);
+		const target = resolve(key, event, mode);
 		if (target === 'pass') return;
 		event.stopPropagation();
 		event.preventDefault();
@@ -186,14 +212,25 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 				set({ from: key, over: null });
 			},
 			onDragEnd: end,
-			onDragOver: onDragOver(key, false),
+			onDragOver: onDragOver(key, 'item'),
 			onDragLeave: onDragLeave(key),
-			onDrop: onDrop(key, false),
+			onDrop: onDrop(key, 'item'),
 		}),
 		childrenProps: key => ({
-			onDragOver: onDragOver(key, true),
+			onDragOver: onDragOver(key, 'into'),
 			onDragLeave: onDragLeave(key),
-			onDrop: onDrop(key, true),
+			onDrop: onDrop(key, 'into'),
+		}),
+		registerList: (key, list) => {
+			lists.set(key, list);
+		},
+		unregisterList: key => {
+			lists.delete(key);
+		},
+		listProps: key => ({
+			onDragOver: onDragOver(key, 'list'),
+			onDragLeave: onDragLeave(key),
+			onDrop: onDrop(key, 'list'),
 		}),
 	};
 };

@@ -24,7 +24,7 @@ const RowItem = ({ row }: { row: Row }) => (
 		</Tree.Item.Header>
 		{row.values && (
 			<Tree.Item.Body>
-				<Tree.Root group="values">
+				<Tree.Root group="values" testId={`values-${row.id}`}>
 					<Tree.Items>
 						{row.values.map(value => (
 							<RowItem key={value.id} row={value} />
@@ -251,6 +251,60 @@ describe('Tree sortable', () => {
 			from: { group: 'values', id: 'v1', index: 0, parentId: 'a' },
 			to: { group: 'values', parentId: 'a', index: 2 },
 		});
+	});
+
+	it('drops into an empty list in another item’s body, marking the list', () => {
+		const { onMove, sortable } = setup();
+		mount(
+			[
+				{ id: 'a', values: flat('v1') },
+				{ id: 'b', values: [] },
+			],
+			{ sortable },
+		);
+		place('v1', 1);
+
+		grab('v1');
+		expect(accepts(screen.getByTestId('values-b'), 0)).toBe(true);
+		expect(screen.getByTestId('values-b').getAttribute('data-drop')).toBe('into');
+		dropOn(screen.getByTestId('values-b'), 0);
+		expect(onMove).toHaveBeenCalledTimes(1);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'values', id: 'v1', index: 0, parentId: 'a' },
+			to: { group: 'values', parentId: 'b', index: 0 },
+		});
+		expect(screen.getByTestId('values-b').hasAttribute('data-drop')).toBe(false);
+	});
+
+	it('drops below the last item of a body list at the end of that list', () => {
+		const { onMove, sortable } = setup();
+		mount(
+			[
+				{ id: 'a', values: flat('v1', 'v2') },
+				{ id: 'b', values: flat('w1') },
+			],
+			{ sortable },
+		);
+		place('v1', 0);
+		place('v2', 1);
+		place('w1', 2);
+
+		grab('v1');
+		dropOn(screen.getByTestId('values-b'), 100);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'values', id: 'v1', index: 0, parentId: 'a' },
+			to: { group: 'values', parentId: 'b', index: 1 },
+		});
+	});
+
+	it('refuses an item dropped into the list in its own body', () => {
+		const { onMove, sortable } = setup();
+		mount([{ id: 'a', values: [] }], { sortable: { ...sortable, canDrop: () => true } });
+
+		grab('a');
+		expect(accepts(screen.getByTestId('values-a'), 0)).toBe(false);
+		dropOn(screen.getByTestId('values-a'), 0);
+		expect(onMove).not.toHaveBeenCalled();
 	});
 
 	it('lets canDrop replace the group rule, but never allows a drop into a descendant', () => {

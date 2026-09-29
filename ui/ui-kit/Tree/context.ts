@@ -44,6 +44,8 @@ export const TreeItemsContext = createContext<TreeItemsContextValue | null>(null
 export const TreeItemContext = createContext<TreeItemContextValue | null>(null);
 /** Closes the actions menu an action sits in; `null` for an action outside a menu. */
 export const TreeActionsContext = createContext<(() => void) | null>(null);
+/** Whether a root sits in an item's body rather than in its children; every item resets it. */
+export const TreeBodyContext = createContext(false);
 
 const required = <T>(value: T | null, message: string): T => {
 	if (value === null) throw new Error(message);

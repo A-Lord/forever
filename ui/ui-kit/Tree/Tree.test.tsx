@@ -362,6 +362,9 @@ describe('Tree', () => {
 							<Tree.Item.Title testId="t-title" className="x-title" as="h6">
 								Title
 							</Tree.Item.Title>
+							<Tree.Item.Aside testId="t-aside" className="x-aside">
+								Badge
+							</Tree.Item.Aside>
 							<Tree.Item.Trigger label="Toggle" testId="t-trigger" className="x-trigger" />
 							<Tree.Item.Actions label="Actions" testId="t-actions" className="x-actions">
 								<Tree.Item.Action label="Delete" testId="t-action" className="x-action" />
@@ -379,7 +382,7 @@ describe('Tree', () => {
 			</Tree.Root>,
 		);
 		fireEvent.click(screen.getByTestId('t-actions'));
-		const parts = ['root', 'items', 'item', 'header', 'handle', 'title', 'trigger', 'actions', 'action', 'body', 'children', 'add'];
+		const parts = ['root', 'items', 'item', 'header', 'handle', 'title', 'aside', 'trigger', 'actions', 'action', 'body', 'children', 'add'];
 		for (const part of parts) {
 			expect(screen.getByTestId(`t-${part}`).classList.contains(`x-${part}`), part).toBe(true);
 		}
@@ -428,6 +431,48 @@ describe('Tree', () => {
 		const header = screen.getByTestId('tree-item-header');
 		expect(Array.from(header.children)).toEqual([screen.getByText('Title'), screen.getByRole('button', { name: 'Toggle' })]);
 		expect(screen.getByRole('listitem').children[0]).toBe(header);
+	});
+
+	it('marks a root in a body as a list of its own, and not a root in children or one nested in its items', () => {
+		render(
+			<Tree.Root>
+				<Tree.Items>
+					<Tree.Item id="a">
+						<Tree.Item.Body>
+							<Tree.Root group="values" testId="body-list">
+								<Tree.Items>
+									<Tree.Item id="v">
+										<Tree.Item.Children testId="value-children">
+											<Tree.Items>{null}</Tree.Items>
+										</Tree.Item.Children>
+									</Tree.Item>
+								</Tree.Items>
+							</Tree.Root>
+						</Tree.Item.Body>
+						<Tree.Item.Children testId="a-children">
+							<Tree.Items>{null}</Tree.Items>
+						</Tree.Item.Children>
+					</Tree.Item>
+				</Tree.Items>
+			</Tree.Root>,
+		);
+		expect(screen.getByTestId('body-list').hasAttribute('data-in-body')).toBe(true);
+		expect(within(screen.getByTestId('a-children')).getByTestId('tree').hasAttribute('data-in-body')).toBe(false);
+		expect(within(screen.getByTestId('value-children')).getByTestId('tree').hasAttribute('data-in-body')).toBe(false);
+		expect(screen.getAllByTestId('tree')[0].hasAttribute('data-in-body')).toBe(false);
+	});
+
+	it('puts a plus before a text add button and marks the success tone', () => {
+		render(
+			<Tree.Root>
+				<Tree.AddButton label="New row" onClick={() => {}} />
+				<Tree.AddButton label="New value" icon="plus" tone="success" testId="icon-add" onClick={() => {}} />
+			</Tree.Root>,
+		);
+		const text = screen.getByRole('button', { name: 'New row' });
+		expect(text.querySelector('i')?.classList.contains('fa-plus')).toBe(true);
+		expect(text.hasAttribute('data-tone')).toBe(false);
+		expect(screen.getByTestId('icon-add').getAttribute('data-tone')).toBe('success');
 	});
 
 	it('throws when a part is rendered outside its root or item', () => {
