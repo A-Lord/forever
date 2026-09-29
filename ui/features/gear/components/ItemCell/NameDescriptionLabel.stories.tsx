@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { NameDescriptionLabel } from './NameDescriptionLabel';
 
 const meta = {
-	title: 'Features/Gear/NameDescriptionLabel',
+	title: 'Features/Gear/ItemCell/Components/NameDescriptionLabel',
 	component: NameDescriptionLabel,
 	tags: ['autodocs'],
 	args: { nameDescription: 'Heroic' },
