@@ -3,6 +3,7 @@
 
 	--animate-shimmer: loading-shimmer 6s linear infinite;
 	--animate-skeleton: character-stats-skeleton-shimmer 1.2s ease-in-out infinite;
+	--animate-spin: spin 0.75s var(--ease-in-out) infinite;
 
 	--shadow-focus-primary: 0 0 0 0.25rem rgb(49 132 253 / 0.5);
 	--shadow-focus-secondary: 0 0 0 0.25rem rgb(130 138 144 / 0.5);
