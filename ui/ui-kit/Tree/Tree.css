@@ -59,7 +59,7 @@
 		grid-auto-columns: var(--tree-track);
 		gap: var(--tree-gap);
 
-		@variant @max-md/tree {
+		@variant @max-lg/tree {
 			--tree-title-track: minmax(0, 1fr);
 			--tree-title-fallback: minmax(0, 1fr);
 			--tree-body-col: initial;
