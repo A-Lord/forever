@@ -58,7 +58,6 @@ export const IconEnumPicker = <T,>({
 			{...chrome}
 			className={['ui-icon-field relative', className]}
 			testId={testId ?? 'icon-enum-picker-root'}
-			iconField
 			disabled={disabled}
 			leading={
 				<Menu

@@ -75,7 +75,6 @@ describe('BooleanPicker', () => {
 		const { container } = render(<Harness description="Swaps mid-fight" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('boolean-picker-root');
-		expect(root.hasAttribute('data-input-root')).toBe(true);
 		expect(root.classList.contains('ui-boolean-picker')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['SPAN', 'INPUT', 'LABEL', 'DIV']);
 		expect(root.querySelector('label')!.className).toBe('ui-field-label');
@@ -102,22 +101,5 @@ describe('BooleanPicker', () => {
 		render(<Harness />);
 		fireEvent.click(screen.getByText('Enable Item Swap'));
 		expect(changes).toHaveBeenLastCalledWith(true);
-	});
-
-	// FieldChromeProps types both of these as string | Element. The reforge panel was the last caller
-	// to pass an Element and it is React now, so nothing does today — but the type still allows it,
-	// and stringifying one renders "[object HTMLDivElement]" with nothing to notice it.
-	it('renders an Element description and tooltip rather than stringifying them', async () => {
-		const description = document.createElement('div');
-		description.textContent = 'Built elsewhere';
-		const tooltip = document.createElement('span');
-		tooltip.textContent = 'Node tooltip';
-
-		render(<Harness description={description} labelTooltip={tooltip} />);
-		expect(screen.getByText('Built elsewhere')).toBeTruthy();
-		expect(document.body.textContent).not.toContain('[object');
-
-		fireEvent.mouseEnter(screen.getByText('Enable Item Swap'));
-		expect(await screen.findByText('Node tooltip')).toBeTruthy();
 	});
 });

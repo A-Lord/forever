@@ -34,7 +34,6 @@ describe('ComboBox', () => {
 		mount();
 
 		expect(root().classList.contains('ui-field')).toBe(true);
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(root().contains(input())).toBe(true);
 		expect(input().classList.contains('ui-input')).toBe(true);
 	});

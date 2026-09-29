@@ -68,11 +68,11 @@ export const ItemListToolbarView = ({
 				</>
 			)}
 			<div className="min-w-28" data-testid="selector-modal-phase-selector">
-				<EnumPicker id={phaseId} className="mb-0" values={phaseValues()} value={phase} onChange={onPhaseChange} />
+				<EnumPicker id={phaseId} values={phaseValues()} value={phase} onChange={onPhaseChange} />
 			</div>
 			{toggles.map(toggle => (
 				<div key={toggle.id} data-testid={toggle.testId}>
-					<BooleanPicker id={toggle.id} className="mb-0" label={toggle.label} layout="inline" value={toggle.value} onChange={toggle.onChange} />
+					<BooleanPicker id={toggle.id} label={toggle.label} layout="inline" value={toggle.value} onChange={toggle.onChange} />
 				</div>
 			))}
 			<Button variant="danger" className="-mt-2 mr-4 -mb-2 ml-auto" data-testid="selector-modal-remove-button" onClick={onRemove}>

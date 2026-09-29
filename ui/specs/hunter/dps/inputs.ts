@@ -28,7 +28,6 @@ export const AmmoInput = <SpecType extends HunterSpecs>() =>
 // enum the way AmmoInput lists the arrows.
 export const QuiverInput = <SpecType extends HunterSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, HunterOptions_QuiverBonus>({
-		extraClassNames: ['quiver-picker'],
 		fieldName: 'quiverBonus',
 		label: i18n.t('settings_tab.other.quiver.label'),
 		labelTooltip: i18n.t('settings_tab.other.quiver.tooltip'),

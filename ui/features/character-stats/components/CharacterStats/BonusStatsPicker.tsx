@@ -22,7 +22,7 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 		(): NumberPickerConfig<Player<any>> => ({
 			id: `character-bonus-stat-${unitStat.getKey()}`,
 			label,
-			extraClassNames: ['mb-0'],
+			inputClassName: 'm-0 w-32 flex-1',
 			storeField: 'bonusStats',
 			getValue: subject => {
 				const bonusStats = subject.getBonusStats();

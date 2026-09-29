@@ -131,7 +131,6 @@ describe('AdaptiveStringPicker', () => {
 		const { container } = render(<Harness description="A custom name" className="extra-root-class" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('adaptive-string-picker-root');
-		expect(root.hasAttribute('data-input-root')).toBe(true);
 		expect(root.classList.contains('ui-adaptive-string-picker-root')).toBe(true);
 		expect(root.classList.contains('extra-root-class')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);

@@ -11,9 +11,7 @@ export interface TargetPickerViewProps {
 }
 
 export const TargetPickerView = ({ identity, stats, threat }: TargetPickerViewProps) => (
-	<Field
-		testId="target-picker-root"
-		className="grid grid-cols-1 gap-3 xl:grid-cols-3 [&_[data-input-root]:is(:last-child)]:mb-0 [&_[data-input-root]:is(:only-child)]:mb-0">
+	<Field testId="target-picker-root" className="grid grid-cols-1 gap-3 xl:grid-cols-3">
 		<PickerGroup data-testid="target-picker-section">{identity}</PickerGroup>
 		<PickerGroup data-testid="target-picker-section">{stats}</PickerGroup>
 		{threat ? (

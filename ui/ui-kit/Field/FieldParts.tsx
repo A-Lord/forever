@@ -5,7 +5,6 @@ import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { isValidElement, type ReactNode, useCallback, useId, useLayoutEffect, useMemo, useState } from 'react';
 
-import { adoptNode, isNode } from '../utils/dom';
 import { FieldContext } from './context/FieldContext';
 import { useField } from './hooks/useField';
 import type { FieldClearPartProps, FieldControlProps, FieldDescriptionProps, FieldLabelProps, FieldRootProps, FieldSlotProps } from './types';
@@ -56,7 +55,6 @@ export const Root = ({
 				data-layout={layout}
 				data-density={density}
 				data-testid={testId ?? 'input-root'}
-				data-input-root=""
 				className={dedupe(
 					clsx(describedBy && 'flex-wrap', 'ui-field', density === 'compact' && 'ui-field-compact', grow === false && 'flex-none', className),
 				)}>
@@ -68,9 +66,9 @@ export const Root = ({
 
 export const Label = ({ as, id, tooltip, className, testId, children }: FieldLabelProps) => {
 	const field = useField();
-	const renderable = typeof tooltip === 'string' || isNode(tooltip) || isValidElement(tooltip);
+	const renderable = typeof tooltip === 'string' || isValidElement(tooltip);
 	if (tooltip !== undefined && !renderable) {
-		console.warn(`Field "${field.id ?? children}": tooltip is neither a string, a node nor an element, so it is not rendered.`, tooltip);
+		console.warn(`Field "${field.id ?? children}": tooltip is neither a string nor an element, so it is not rendered.`, tooltip);
 	}
 	const generatedId = useId();
 	const tooltipId = renderable ? `${field.id ?? generatedId}-tooltip` : undefined;
@@ -79,13 +77,7 @@ export const Label = ({ as, id, tooltip, className, testId, children }: FieldLab
 	// literal tags.
 	const tooltipNode = useMemo(() => {
 		if (!tooltipId) return null;
-		const content = isNode(tooltip) ? (
-			<span ref={adoptNode(tooltip)} />
-		) : typeof tooltip === 'string' ? (
-			<LocaleHtml html={tooltip} />
-		) : (
-			(tooltip as ReactNode)
-		);
+		const content = typeof tooltip === 'string' ? <LocaleHtml html={tooltip} /> : (tooltip as ReactNode);
 		return <Tooltip id={tooltipId} content={content} />;
 	}, [tooltipId, tooltip]);
 
@@ -125,11 +117,7 @@ export const Description = ({ id, className, testId, children }: FieldDescriptio
 		'data-testid': testId ?? 'input-description',
 	};
 
-	return isNode(children) ? (
-		<BaseField.Description {...props} ref={adoptNode(children)} />
-	) : (
-		<BaseField.Description {...props}>{children}</BaseField.Description>
-	);
+	return <BaseField.Description {...props}>{children}</BaseField.Description>;
 };
 
 /**

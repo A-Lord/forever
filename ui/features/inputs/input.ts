@@ -12,8 +12,8 @@ export type StoreBinding<ModObject> =
 /** What an input renders around its value. */
 export interface InputChrome<ModObject> {
 	label?: string;
-	labelTooltip?: string | Element | ReactElement;
-	description?: string | Element;
+	labelTooltip?: string | ReactElement;
+	description?: string;
 	layout?: PickerLayout;
 	id?: string;
 	extraClassNames?: Array<string>;

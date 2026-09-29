@@ -52,7 +52,6 @@ describe('FieldGroup', () => {
 		setup({ text: 'a', flag: true, count: 3 });
 		mount([stringFieldConfig('text'), booleanFieldConfig('flag', 'Flag'), numberFieldConfig('count', false)]);
 
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(
 			[...root().children].map(
 				(child, index) => child.getAttribute('data-testid') === ['adaptive-string-picker-root', 'boolean-picker-root', 'number-picker-root'][index],

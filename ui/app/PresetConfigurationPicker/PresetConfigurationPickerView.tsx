@@ -31,7 +31,7 @@ export const PresetConfigurationPickerView = ({ builds, active, ready, phases, p
 	));
 
 	return (
-		<div data-testid="preset-configuration-picker-root" data-saved-data-manager="">
+		<>
 			{grouped ? (
 				<PresetGroupPicker
 					phases={phases}
@@ -59,6 +59,6 @@ export const PresetConfigurationPickerView = ({ builds, active, ready, phases, p
 				</ContentBlock>
 			)}
 			<PresetBuildChipTooltip id={tooltipId} builds={builds} />
-		</div>
+		</>
 	);
 };

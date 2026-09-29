@@ -17,7 +17,6 @@ describe('Field', () => {
 	it('builds the root class list as ui-field followed by className in order', () => {
 		field({ layout: 'inline', className: ['number-picker-root', 'apl-picker'], disabled: true });
 		expect(root().getAttribute('class')).toBe('ui-field number-picker-root apl-picker');
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(root().getAttribute('data-layout')).toBe('inline');
 		expect(root().hasAttribute('data-disabled')).toBe(true);
 	});
@@ -32,7 +31,7 @@ describe('Field', () => {
 		const { rerender } = field();
 		expect(root().getAttribute('class')).toBe('ui-field number-picker-root');
 
-		rerender(<Field id="cast-delay" label="Cast Delay" iconField />);
+		rerender(<Field id="cast-delay" label="Cast Delay" />);
 		expect(root().getAttribute('class')).toBe('ui-field');
 	});
 
@@ -42,7 +41,6 @@ describe('Field', () => {
 		expect(root().classList.contains('number-picker-root')).toBe(true);
 		expect(root().hasAttribute('data-layout')).toBe(false);
 		expect(root().hasAttribute('data-disabled')).toBe(false);
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(root().hasAttribute('role')).toBe(false);
 		expect(root().hasAttribute('aria-labelledby')).toBe(false);
 	});
@@ -53,7 +51,6 @@ describe('Field', () => {
 		expect(root().getAttribute('aria-labelledby')).toBe('buffs-label');
 		expect(root().getAttribute('class')).toBe('ui-field number-picker-root');
 		expect(root().getAttribute('data-layout')).toBe('inline');
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 	});
 
 	it('names a group by its own label when no aria-labelledby is given', () => {
@@ -109,7 +106,7 @@ describe('Field', () => {
 
 	it('takes its test id from testId', () => {
 		field({ testId: 'number-picker-root' });
-		expect(screen.getByTestId('number-picker-root').hasAttribute('data-input-root')).toBe(true);
+		expect(screen.getByTestId('number-picker-root')).toBeTruthy();
 		expect(screen.queryByTestId('input-root')).toBeNull();
 	});
 
@@ -133,14 +130,6 @@ describe('Field', () => {
 		expect(root().classList.contains('flex-wrap')).toBe(true);
 	});
 
-	it('renders an Element description rather than stringifying it', () => {
-		const description = document.createElement('span');
-		description.textContent = 'Built elsewhere';
-		field({ description });
-		expect(within(root()).getByTestId('input-description').firstElementChild).toBe(description);
-		expect(document.body.textContent).not.toContain('[object');
-	});
-
 	it('renders leading before the label', () => {
 		field({ leading: <span data-testid="leading" /> });
 		expect(root().firstElementChild).toBe(screen.getByTestId('leading'));
@@ -161,15 +150,7 @@ describe('Field', () => {
 		expect(await screen.findByText('Seconds of human reaction time')).toBeTruthy();
 	});
 
-	it('shows an Element labelTooltip on hover', async () => {
-		const tooltip = document.createElement('span');
-		tooltip.textContent = 'Built elsewhere';
-		field({ labelTooltip: tooltip });
-		fireEvent.mouseEnter(screen.getByText('Cast Delay'));
-		expect(await screen.findByText('Built elsewhere')).toBe(tooltip);
-	});
-
-	// `labelTooltip` is typed `string | Element | ReactElement`, so the guard is only reachable from
+	// `labelTooltip` is typed `string | ReactElement`, so the guard is only reachable from
 	// an untyped caller — which is what the cast stands in for.
 	it('warns instead of silently dropping a tooltip it cannot render', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});

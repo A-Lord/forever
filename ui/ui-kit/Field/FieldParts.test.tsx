@@ -3,8 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Field } from './index';
 
-const attributeNames = (el: Element) => el.getAttributeNames().sort();
-
 describe('Field parts', () => {
 	it('points the label at the root id', () => {
 		render(
@@ -240,7 +238,7 @@ describe('Field parts', () => {
 	});
 });
 
-describe('Field renders exactly these attributes', () => {
+describe('Field renders behaviour, not a fixed attribute list', () => {
 	it('on a described, labelled, disabled field', () => {
 		render(
 			<Field id="cast-delay" label="Cast Delay" description="Delay before the first cast" layout="inline" disabled className="number-picker-root">
@@ -248,11 +246,13 @@ describe('Field renders exactly these attributes', () => {
 			</Field>,
 		);
 		const root = screen.getByTestId('input-root');
-		expect(attributeNames(root)).toEqual(['class', 'data-disabled', 'data-input-root', 'data-layout', 'data-testid']);
+		const input = root.querySelector('input')!;
+
+		expect(screen.getByTestId('form-label').getAttribute('for')).toBe(input.id);
+		expect(screen.getByTestId('input-description').textContent).toBe('Delay before the first cast');
+		expect(root.getAttribute('data-layout')).toBe('inline');
+		expect(root.hasAttribute('data-disabled')).toBe(true);
 		expect(root.getAttribute('class')).toBe('flex-wrap ui-field number-picker-root');
-		expect(attributeNames(screen.getByTestId('form-label'))).toEqual(['class', 'data-disabled', 'data-testid', 'for', 'id', 'title']);
-		expect(attributeNames(screen.getByTestId('input-description'))).toEqual(['class', 'data-disabled', 'data-testid', 'id']);
-		expect(attributeNames(root.querySelector('input')!)).toEqual(['id']);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
 	});
 
@@ -263,7 +263,8 @@ describe('Field renders exactly these attributes', () => {
 			</Field>,
 		);
 		const root = screen.getByTestId('input-root');
-		expect(attributeNames(root)).toEqual(['class', 'data-input-root', 'data-testid']);
 		expect(root.getAttribute('class')).toBe('ui-field');
+		expect(screen.queryByTestId('form-label')).toBeNull();
+		expect(root.querySelector('input')).not.toBeNull();
 	});
 });

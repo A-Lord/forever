@@ -9,16 +9,16 @@ import { randomUUID } from '@sim/utils/misc';
 
 import { trackEvent, type TrackEventProps } from '../../../../../tracking/utils';
 
-export const ALL_TARGET_STATS: Array<{ stat: Stat; tooltip: string; extraClassNames: Array<string> }> = [
-	{ stat: Stat.StatHealth, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatArmor, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatArcaneResistance, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatFireResistance, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatFrostResistance, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatNatureResistance, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatShadowResistance, tooltip: '', extraClassNames: [] },
-	{ stat: Stat.StatAttackPower, tooltip: '', extraClassNames: ['threat-metrics'] },
-	{ stat: Stat.StatBlockValue, tooltip: '', extraClassNames: ['threat-metrics'] },
+export const ALL_TARGET_STATS: Array<{ stat: Stat; tooltip: string; threatMetrics?: boolean }> = [
+	{ stat: Stat.StatHealth, tooltip: '' },
+	{ stat: Stat.StatArmor, tooltip: '' },
+	{ stat: Stat.StatArcaneResistance, tooltip: '' },
+	{ stat: Stat.StatFireResistance, tooltip: '' },
+	{ stat: Stat.StatFrostResistance, tooltip: '' },
+	{ stat: Stat.StatNatureResistance, tooltip: '' },
+	{ stat: Stat.StatShadowResistance, tooltip: '' },
+	{ stat: Stat.StatAttackPower, tooltip: '', threatMetrics: true },
+	{ stat: Stat.StatBlockValue, tooltip: '', threatMetrics: true },
 ];
 
 const mobTypeEnumValues = [
@@ -150,10 +150,9 @@ export const tankIndexConfig = ({ encounter, targetIndex, getTarget }: TargetFie
 	},
 });
 
-export const statConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext, stat: Stat, tooltip: string, extraClassNames: Array<string>) =>
+export const statConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext, stat: Stat, tooltip: string) =>
 	({
 		id: `target-${targetIndex}-picker-stats-${stat}`,
-		extraClassNames,
 		label: translateStat(stat),
 		labelTooltip: tooltip,
 		storeSubscribe: onTargets(encounter),

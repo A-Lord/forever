@@ -65,7 +65,7 @@ export interface PlayerBooleanInputConfig<SpecType extends Spec, Message> extend
 	fieldName: keyof Message;
 	label: string;
 	labelTooltip?: string;
-	description?: string | Element;
+	description?: string;
 	enableWhen?: (player: Player<SpecType>) => boolean;
 	showWhen?: (player: Player<SpecType>) => boolean;
 }
@@ -342,7 +342,7 @@ export interface PlayerEnumInputConfig<SpecType extends Spec, Message> {
 	fieldName: keyof Message;
 	label: string;
 	labelTooltip?: string;
-	description?: string | Element;
+	description?: string;
 	values: Array<EnumValueConfig>;
 	getValue?: (player: Player<SpecType>) => number;
 	setValue?: (player: Player<SpecType>, newValue: number) => void;

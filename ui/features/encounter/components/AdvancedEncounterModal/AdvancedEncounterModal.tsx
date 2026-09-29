@@ -26,7 +26,7 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 		return {
 			id: 'aem-encounter-picker',
 			label: i18n.t('settings_tab.encounter.encounter_preset.label'),
-			extraClassNames: ['mb-0', 'pr-2', 'order-first', 'w-1/3', 'max-sm:w-1/2'],
+			extraClassNames: ['pr-2', 'order-first', 'w-1/3', 'max-sm:w-1/2'],
 			values: [{ name: 'Custom', value: -1 }, ...presets.map((preset, index) => ({ name: preset.path, value: index }))],
 			storeField: 'encounter:*',
 			getValue: (subject: Encounter) => presets.findIndex(preset => subject.matchesPreset(preset)),
@@ -56,7 +56,7 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}
 				</PickerGroup>
-				<PickerGroup className="flex-row">
+				<PickerGroup>
 					{execute.map(config => (
 						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}

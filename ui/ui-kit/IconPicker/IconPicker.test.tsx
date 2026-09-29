@@ -92,11 +92,11 @@ describe('IconPicker', () => {
 		expect(improved.style.backgroundImage).toContain('improved.jpg');
 	});
 
-	// use-counter is added for states > 2 without an improved icon, but the counter TEXT only renders
-	// above states 3 (or at states 0): at states 3 the class is present and the text is empty.
-	it('shows the use-counter class but no text at states 3 without an improved icon', () => {
+	// The level container mounts for every states > 2, but the counter TEXT only renders above
+	// states 3 (or at states 0): at states 3 the container is there and the text is empty.
+	it('mounts the level container but shows no text at states 3 without an improved icon', () => {
 		mount({ states: 3, initial: 2 });
-		expect(mainAnchor().hasAttribute('data-use-counter')).toBe(true);
+		expect(screen.getByTestId('icon-input-level-container')).toBeTruthy();
 		expect(screen.queryByText('2')).toBeNull();
 	});
 

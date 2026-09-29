@@ -83,10 +83,9 @@ export const DropdownMenu = <V,>({
 				side={side}
 				positionMethod={positionMethod}
 				sideOffset={BOOTSTRAP_DROPDOWN_OFFSET}
-				portalProps={{ className: 'contents', 'data-testid': 'dropdown-picker-portal' }}
+				portalProps={{ className: 'contents' }}
 				positionerProps={{ 'data-testid': 'dropdown-picker-positioner' }}
-				popupRender={<div />}
-				popupProps={{ 'data-testid': 'dropdown-picker-menu' }}>
+				popupRender={<div />}>
 				<BaseMenu.RadioGroup
 					render={<ul />}
 					className="m-0 list-none p-0"

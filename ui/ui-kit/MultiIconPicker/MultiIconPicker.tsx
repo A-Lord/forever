@@ -28,7 +28,6 @@ export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, chil
 		<Field
 			className="ui-icon-field"
 			testId={testId ?? 'multi-icon-picker-root'}
-			iconField
 			role={label ? 'group' : undefined}
 			aria-labelledby={label ? labelId : undefined}
 			leading={
@@ -56,7 +55,6 @@ export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, chil
 						align="start"
 						sideOffset={-1}
 						positionMethod="fixed"
-						portalProps={{ 'data-testid': 'multi-icon-picker-portal' }}
 						positionerProps={{ 'data-testid': 'multi-icon-picker-positioner' }}
 						className="grid grid-flow-col border-0 bg-grey"
 						// `role="group"`, not the `menu` Base UI would give it. A menu's children must be menuitems, and these are icon toggles — `Menu.Item` would close the popup on every click, and toggling several buffs in one visit is the whole point of this control.

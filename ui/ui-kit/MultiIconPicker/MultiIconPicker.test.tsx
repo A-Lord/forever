@@ -32,7 +32,6 @@ describe('MultiIconPicker', () => {
 		mount();
 
 		expect(root().classList.contains('ui-icon-field')).toBe(true);
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(root().children[0].className).toBe('relative');
 		expect(trigger()).toBeTruthy();
 		expect(menu()).toBeNull();

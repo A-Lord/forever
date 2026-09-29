@@ -117,7 +117,6 @@ describe('BoundDropdown', () => {
 			/>,
 		);
 
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(root().classList.contains('relative')).toBe(true);
 		expect(root().classList.contains('apl-extra')).toBe(true);
 		expect(trigger().parentElement).toBe(root());

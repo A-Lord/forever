@@ -66,7 +66,6 @@ describe('NumberListPicker', () => {
 		const { container } = render(<Harness description="Comma separated" className="extra-root-class" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('number-list-picker-root');
-		expect(root.hasAttribute('data-input-root')).toBe(true);
 		expect(root.classList.contains('extra-root-class')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
 		expect(root.querySelector('label')!.className).toBe('ui-field-label');

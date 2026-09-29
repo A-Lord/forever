@@ -73,7 +73,6 @@ describe('IconEnumPicker', () => {
 		mount();
 
 		expect(root().classList.contains('relative')).toBe(true);
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 
 		expect(Array.from(root().children).map(element => `${element.tagName.toLowerCase()}.${element.className}`)).toEqual([
 			'a.ui-icon-picker-swatch transition-none',

@@ -102,7 +102,6 @@ describe('MultiComboBox', () => {
 	it('takes the root test id and class from testId and className', () => {
 		render(<Harness testId="custom-root" className="w-full" />);
 		const root = screen.getByTestId('custom-root');
-		expect(root.hasAttribute('data-input-root')).toBe(true);
 		expect(root.classList.contains('w-full')).toBe(true);
 	});
 
