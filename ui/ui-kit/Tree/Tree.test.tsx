@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { type ReactNode, useSyncExternalStore } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { useTreeItem, useTreeRoot } from './context';
+import { useTreeItem } from './hooks/useTreeItem';
+import { useTreeRoot } from './hooks/useTreeRoot';
 import { Tree } from './index';
 
 const ItemProbe = () => {

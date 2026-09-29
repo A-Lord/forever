@@ -1,7 +1,7 @@
-import { useSortable, useSortableStatus } from '@ui-kit/hooks/useSortable';
 import clsx from 'clsx';
 import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
+import { SortableContext } from './context/SortableContext';
 import {
 	TreeBodyContext,
 	TreeItemContext,
@@ -9,9 +9,9 @@ import {
 	type TreeItemsContextValue,
 	TreeRootContext,
 	type TreeRootContextValue,
-	useTreeRoot,
-} from './context';
-import { SortableContext } from './sortable';
+} from './context/TreeContext';
+import { useSortable, useSortableStatus } from './hooks/useSortable';
+import { useTreeRoot } from './hooks/useTreeRoot';
 import type { TreeItemsProps, TreeRootProps } from './types';
 
 export const Root = ({
