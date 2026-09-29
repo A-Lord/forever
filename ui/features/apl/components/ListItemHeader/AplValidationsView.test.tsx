@@ -31,7 +31,7 @@ describe('AplValidationsView', () => {
 
 		expect(button(container).style.display).not.toBe('none');
 		expect(button(container).classList.contains('apl-validation-information')).toBe(true);
-		expect(button(container).querySelector('svg')?.classList.contains('fa-info-circle')).toBe(true);
+		expect(button(container).querySelector('svg')?.classList.contains('fa-circle-info')).toBe(true);
 	});
 
 	it('takes its class and icon from the highest level present', () => {

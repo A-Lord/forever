@@ -1,10 +1,8 @@
-import { type SortableController, useSortableStatus } from '@ui-kit/hooks/useSortable';
-import { createContext, type RefObject, useContext, useLayoutEffect, useMemo } from 'react';
+import { type RefObject, useContext, useLayoutEffect, useMemo } from 'react';
 
-import type { TreeOrientation, TreeRef } from './types';
-
-/** The drag controller of the topmost sortable root; the roots nested under it share it. */
-export const SortableContext = createContext<SortableController | null>(null);
+import { SortableContext } from '../context/SortableContext';
+import type { TreeOrientation, TreeRef } from '../types';
+import { useSortableStatus } from './useSortable';
 
 interface ItemSortableOptions {
 	key: string;

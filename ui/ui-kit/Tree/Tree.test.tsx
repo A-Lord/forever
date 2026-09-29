@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { type ReactNode, useSyncExternalStore } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { useTreeItem, useTreeRoot } from './context';
+import { useTreeItem } from './hooks/useTreeItem';
+import { useTreeRoot } from './hooks/useTreeRoot';
 import { Tree } from './index';
 
 const ItemProbe = () => {
@@ -249,7 +250,7 @@ describe('Tree', () => {
 							<Tree.Item.Title>Row A</Tree.Item.Title>
 							<Tree.Item.Actions label="Row A actions">
 								<Tree.Item.Action icon="copy" label="Copy" />
-								<Tree.Item.Action icon="times" label="Delete" tone="danger" onClick={onDelete} testId="delete-a" />
+								<Tree.Item.Action icon="xmark" label="Delete" tone="danger" onClick={onDelete} testId="delete-a" />
 							</Tree.Item.Actions>
 						</Tree.Item.Header>
 					</Tree.Item>

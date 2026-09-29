@@ -5,7 +5,9 @@ import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { useCallback, useContext, useId, useLayoutEffect, useState } from 'react';
 
-import { TreeActionsContext, TreeBodyContext, useTreeItem, useTreeRoot } from './context';
+import { TreeActionsContext, TreeBodyContext } from './context/TreeContext';
+import { useTreeItem } from './hooks/useTreeItem';
+import { useTreeRoot } from './hooks/useTreeRoot';
 import { Root } from './Tree';
 import type {
 	TreeAddButtonProps,

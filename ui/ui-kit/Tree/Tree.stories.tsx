@@ -44,7 +44,7 @@ const Row = ({
 			<Tree.Item.Trigger label={`Toggle ${title}`} />
 			<Tree.Item.Actions label={`${title} actions`}>
 				<Tree.Item.Action icon="copy" label="Copy" />
-				<Tree.Item.Action icon="times" label="Delete" tone="danger" onClick={onDelete} />
+				<Tree.Item.Action icon="xmark" label="Delete" tone="danger" onClick={onDelete} />
 			</Tree.Item.Actions>
 		</Tree.Item.Header>
 		<Tree.Item.Body>The body of {title}.</Tree.Item.Body>
@@ -72,7 +72,7 @@ const InlineTree = ({ onDelete }: { onDelete?: () => void }) => (
 						<Tree.Item.Handle label={`Move ${title}`} />
 						<Tree.Item.Aside>ON</Tree.Item.Aside>
 						<Tree.Item.Actions label={`${title} actions`}>
-							<Tree.Item.Action icon="times" label="Delete" tone="danger" onClick={onDelete} />
+							<Tree.Item.Action icon="xmark" label="Delete" tone="danger" onClick={onDelete} />
 						</Tree.Item.Actions>
 					</Tree.Item.Header>
 					<Tree.Item.Body>

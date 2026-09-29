@@ -2,7 +2,8 @@ import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { type ReactNode, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { useTreeItem, useTreeRoot } from './context';
+import { useTreeItem } from './hooks/useTreeItem';
+import { useTreeRoot } from './hooks/useTreeRoot';
 import { Tree } from './index';
 import type { TreeOrientation, TreeSortable } from './types';
 

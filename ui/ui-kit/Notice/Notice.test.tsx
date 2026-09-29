@@ -9,7 +9,7 @@ const icon = (el: HTMLElement) => el.querySelector('svg')!;
 
 describe('Notice', () => {
 	it.each([
-		['info', 'fa-info-circle'],
+		['info', 'fa-circle-info'],
 		['warning', 'fa-triangle-exclamation'],
 		['error', 'fa-triangle-exclamation'],
 	] as const)('renders the %s icon in its colour before the children', (level, glyph) => {
@@ -57,6 +57,6 @@ describe('Notice', () => {
 describe('NOTICE_ICON_NAME', () => {
 	it('is the icon name Notice draws per level, exported from the barrel', () => {
 		expect(EXPORTED_ICON_NAME).toBe(NOTICE_ICON_NAME);
-		expect(NOTICE_ICON_NAME).toEqual({ info: 'info-circle', warning: 'triangle-exclamation', error: 'triangle-exclamation' });
+		expect(NOTICE_ICON_NAME).toEqual({ info: 'circle-info', warning: 'triangle-exclamation', error: 'triangle-exclamation' });
 	});
 });

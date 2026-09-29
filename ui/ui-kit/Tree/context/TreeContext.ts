@@ -1,7 +1,7 @@
-import type { SortableArmProps, SortableChildrenProps } from '@ui-kit/hooks/useSortable';
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 
-import type { TreeDensity, TreeHandle, TreeLayout, TreeOrientation } from './types';
+import type { SortableArmProps, SortableChildrenProps } from '../hooks/useSortable';
+import type { TreeDensity, TreeHandle, TreeLayout, TreeOrientation } from '../types';
 
 export interface TreeRootContextValue {
 	group: string;
@@ -51,12 +51,3 @@ export const TreeItemContext = createContext<TreeItemContextValue | null>(null);
 export const TreeActionsContext = createContext<(() => void) | null>(null);
 /** Whether a root sits in an item's body rather than in its children; every item resets it. */
 export const TreeBodyContext = createContext(false);
-
-const required = <T>(value: T | null, message: string): T => {
-	if (value === null) throw new Error(message);
-	return value;
-};
-
-export const useTreeRoot = () => required(useContext(TreeRootContext), 'A Tree part must be rendered inside a Tree.Root.');
-export const useTreeItems = () => required(useContext(TreeItemsContext), 'A Tree.Item must be rendered inside a Tree.Items.');
-export const useTreeItem = () => required(useContext(TreeItemContext), 'A Tree.Item part must be rendered inside a Tree.Item.');

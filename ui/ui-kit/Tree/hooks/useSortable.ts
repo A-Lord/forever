@@ -1,5 +1,6 @@
-import type { TreeDropRef, TreeOrientation, TreeRef, TreeSortable } from '@ui-kit/Tree/types';
 import { type DragEvent, type MouseEvent, type RefObject, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+
+import type { TreeDropRef, TreeOrientation, TreeRef, TreeSortable } from '../types';
 
 export type SortableDrop = 'before' | 'after' | 'into';
 

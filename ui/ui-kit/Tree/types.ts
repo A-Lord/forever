@@ -1,4 +1,4 @@
-import type { IconAlias, IconName } from '@ui-kit/Icon';
+import type { IconName } from '@ui-kit/Icon';
 import type { ReactNode } from 'react';
 
 export type TreeDensity = 'default' | 'compact';
@@ -106,7 +106,7 @@ export interface TreeItemActionsProps extends TreePartProps {
 
 export interface TreeItemActionProps extends TreePartProps {
 	label: string;
-	icon?: IconName | IconAlias;
+	icon?: IconName;
 	tone?: 'default' | 'danger';
 	disabled?: boolean;
 	onClick?: () => void;
@@ -129,7 +129,7 @@ export interface TreeItemChildrenProps extends TreePartProps {
 export interface TreeAddButtonProps extends TreePartProps {
 	/** The button text after a plus, or with `icon` its accessible name and tooltip. */
 	label: string;
-	icon?: IconName | IconAlias;
+	icon?: IconName;
 	/** `success` colours the button's text the way a create action reads elsewhere; meant for the icon form. */
 	tone?: 'default' | 'success';
 	disabled?: boolean;

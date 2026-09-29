@@ -13,7 +13,7 @@ export const NameDisplay = ({ name, onRename, compact }: NameDisplayProps) => (
 	<div className="flex items-center gap-2">
 		<span className={clsx('font-bold', compact && 'text-sm')}>{name}</span>
 		<Button variant="link" className="leading-none" onClick={onRename}>
-			<Icon name="pencil-alt" />
+			<Icon name="pencil" />
 		</Button>
 	</div>
 );

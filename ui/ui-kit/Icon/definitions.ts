@@ -125,15 +125,6 @@ export const DEFINITIONS = {
 	xmark: faXmark,
 } as const satisfies Record<string, IconDefinition>;
 
-/** FA5 spellings kept until their last caller renames to the canonical name on the left. */
-export const ICON_ALIASES = {
-	times: 'xmark',
-	'info-circle': 'circle-info',
-	'pencil-alt': 'pencil',
-} as const satisfies Record<string, keyof typeof DEFINITIONS>;
-
-export type IconAlias = keyof typeof ICON_ALIASES;
-
 const REGULAR_DEFINITIONS: Partial<Record<keyof typeof DEFINITIONS, IconDefinition>> = {
 	'circle-check': faCircleCheckRegular,
 	'circle-question': faCircleQuestionRegular,

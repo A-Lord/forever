@@ -1,8 +1,10 @@
 import clsx from 'clsx';
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { TreeBodyContext, TreeItemContext, type TreeItemContextValue, useTreeItems, useTreeRoot } from './context';
-import { useItemSortable } from './sortable';
+import { TreeBodyContext, TreeItemContext, type TreeItemContextValue } from './context/TreeContext';
+import { useItemSortable } from './hooks/useItemSortable';
+import { useTreeItems } from './hooks/useTreeItems';
+import { useTreeRoot } from './hooks/useTreeRoot';
 import type { TreeItemProps } from './types';
 
 export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, disabled, muted, className, testId, children }: TreeItemProps) => {
