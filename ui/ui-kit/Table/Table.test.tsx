@@ -49,15 +49,17 @@ describe('Table', () => {
 		expect(table.hasAttribute('data-striped')).toBe(false);
 		expect(table.hasAttribute('data-hover')).toBe(false);
 		expect(table.hasAttribute('data-dense')).toBe(false);
+		expect(table.hasAttribute('data-flush')).toBe(false);
 	});
 
 	it('marks each variant it is given as a data attribute', () => {
-		mount({ striped: true, hover: true, dense: true, testId: 'dps-table' });
+		mount({ striped: true, hover: true, dense: true, flush: true, testId: 'dps-table' });
 
 		const table = screen.getByTestId('dps-table');
 		expect(table.getAttribute('data-striped')).toBe('');
 		expect(table.getAttribute('data-hover')).toBe('');
 		expect(table.getAttribute('data-dense')).toBe('');
+		expect(table.getAttribute('data-flush')).toBe('');
 	});
 
 	it('adds the caller class to its own and passes other attributes through', () => {
