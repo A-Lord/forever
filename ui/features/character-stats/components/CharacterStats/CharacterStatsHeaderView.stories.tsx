@@ -20,10 +20,11 @@ const StatefulHeader = ({ mode: initial, onModeChange, ...props }: CharacterStat
 
 const meta = {
 	title: 'Features/CharacterStats/Components/CharacterStatsHeaderView',
-	component: StatefulHeader,
+	component: CharacterStatsHeaderView,
 	tags: ['autodocs'],
 	args: { mode: 'key', onModeChange: fn(), labels: { title: 'Stats', modeAriaLabel: 'Stats shown', key: 'Key', all: 'All' } },
 	argTypes: { mode: { control: 'inline-radio', options: ['key', 'all'] } },
+	render: args => <StatefulHeader {...args} />,
 	decorators: [
 		Story => (
 			<div className="w-63">
@@ -31,7 +32,7 @@ const meta = {
 			</div>
 		),
 	],
-} satisfies Meta<typeof StatefulHeader>;
+} satisfies Meta<typeof CharacterStatsHeaderView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

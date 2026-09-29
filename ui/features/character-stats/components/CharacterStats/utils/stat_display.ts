@@ -22,7 +22,9 @@ const SCHOOL_DAMAGE_STATS = [
 	Stat.StatShadowDamage,
 ];
 
-/** `includeBase` says the delta covers the base stage, which is where the base defense skill belongs. */
+const SPEED_MULTIPLIERS = [PseudoStat.PseudoStatMeleeSpeedMultiplier, PseudoStat.PseudoStatRangedSpeedMultiplier];
+
+/** `includeBase` says the delta covers the base stage, which is where the base defense skill and the speed multipliers' 1 belong. */
 export const statDisplayString = (player: Player<any>, deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean): string => {
 	const rootStat = unitStat.hasRootStat() ? unitStat.getRootStat() : null;
 	const perAttackRating = unitStat.isPseudoStat() ? PER_ATTACK_RATING.get(unitStat.getPseudoStat()) : undefined;
@@ -58,6 +60,11 @@ export const statDisplayString = (player: Player<any>, deltaStats: Stats, unitSt
 			derivedPercentOrPointsValue = rootRatingValue;
 			rootRatingValue += deltaStats.getStat(Stat.StatSpellDamage);
 		}
+	} else if (unitStat.isPseudoStat() && SPEED_MULTIPLIERS.includes(unitStat.getPseudoStat())) {
+		// A speed multiplier reads as a signed percentage over 1, like the haste rows; a stage delta
+		// without the base stage is already the change.
+		derivedPercentOrPointsValue = (deltaStats.getPseudoStat(unitStat.getPseudoStat()) - (includeBase ? 1 : 0)) * 100;
+		if (derivedPercentOrPointsValue >= 0) displayPrefix = '+';
 	}
 
 	const hideRootRating =

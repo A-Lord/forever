@@ -28,7 +28,7 @@ const StatefulToggleGroup = ({ value: initial, onChange, ...props }: ToggleGroup
 
 const meta = {
 	title: 'Kit/ToggleGroup',
-	component: StatefulToggleGroup,
+	component: ToggleGroup<View>,
 	tags: ['autodocs'],
 	args: { options: OPTIONS, value: 'rotation', onChange: fn(), 'aria-label': 'View' },
 	argTypes: {
@@ -36,7 +36,8 @@ const meta = {
 		value: { control: 'select', options: OPTIONS.map(option => option.value) },
 		size: { control: 'select', options: [undefined, 'sm'] },
 	},
-} satisfies Meta<typeof StatefulToggleGroup>;
+	render: args => <StatefulToggleGroup {...args} />,
+} satisfies Meta<typeof ToggleGroup<View>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

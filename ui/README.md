@@ -18,7 +18,7 @@ ui/
                      wasm/, constants/, presets/, hooks/, context/, and fake_host.ts (the
                      vitest-free fakeHost that testing.ts re-exports and the story fixtures
                      import). alias @sim
-  ui-kit/            sim-agnostic, controlled React widgets, one folder per component (50 of
+  ui-kit/            sim-agnostic, controlled React widgets, one folder per component (51 of
                      them: NumberPicker/, Dialog/, Field/, Table/, Notice/, …, each with a
                      story and a test), plus hooks/, utils/ (css, dom, icons, colors, wowhead),
                      and the flat helper module child_props.ts. No @sim import except
