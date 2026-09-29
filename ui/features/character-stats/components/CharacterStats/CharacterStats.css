@@ -8,7 +8,7 @@
 	}
 
 	.ui-character-stats-header {
-		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-transparent bg-background px-(--sidebar-inline-padding) pt-2 pb-2 transition-colors duration-150 lg:pb-6;
+		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-border-muted bg-background px-(--sidebar-inline-padding) pt-2 pb-2 transition-colors duration-150 lg:pb-6;
 
 		&[data-stuck] {
 			@apply border-border;
