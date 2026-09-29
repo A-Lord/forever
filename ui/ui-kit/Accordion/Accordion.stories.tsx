@@ -88,6 +88,13 @@ export const Opens: Story = {
 
 export const HeaderRow: Story = {
 	args: { initial: [] },
+	parameters: {
+		docs: {
+			description: {
+				story: 'The trigger spans the whole header row: a click on the title or anywhere else in the row toggles the panel, while Key and All take their own clicks. Tab reaches the trigger first, then the toggle group.',
+			},
+		},
+	},
 	render: args => <HeaderRowStory {...args} />,
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);

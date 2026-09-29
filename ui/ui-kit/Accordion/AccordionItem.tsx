@@ -10,7 +10,7 @@ export interface AccordionItemProps {
 	value: string;
 	/** The trigger's label. With `header`, the trigger shows only the chevron and this is its accessible name. */
 	title: ReactNode;
-	/** A row set in the header before the trigger, for controls that must not toggle the item: a heading, a toggle group. */
+	/** A row laid over the trigger, which spans the whole header: a click on the row toggles the item, except on its own controls (a toggle group). The chevron sits at the row's end, the trigger first in tab order. */
 	header?: ReactNode;
 	/** Sets the panel above the header, so the item opens upward. */
 	panelFirst?: boolean;
@@ -45,11 +45,11 @@ export const AccordionItem = ({
 			</BaseAccordion.Header>
 		) : (
 			<BaseAccordion.Header {...headerProps} className={clsx('ui-accordion-header-row', headerClassName)} render={<div />}>
-				{header}
 				<BaseAccordion.Trigger className="ui-accordion-header-trigger" data-testid={triggerTestId}>
 					<span className="sr-only">{title}</span>
 					<Icon name="chevron-down" className="ui-accordion-chevron" />
 				</BaseAccordion.Trigger>
+				{header}
 			</BaseAccordion.Header>
 		);
 	const panel = (

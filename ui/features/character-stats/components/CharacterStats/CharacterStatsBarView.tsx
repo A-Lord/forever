@@ -13,7 +13,6 @@ export interface CharacterStatsBarViewProps extends CharacterStatsHeaderViewProp
 
 export const CharacterStatsBarView = ({ open, onOpenChange, mode, onModeChange, labels, children }: CharacterStatsBarViewProps) => (
 	<div className="ui-character-stats-bar" data-testid="character-stats-bar">
-		<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={labels} />
 		<CharacterStatsSheetView
 			open={open}
 			onOpenChange={onOpenChange}
@@ -21,11 +20,12 @@ export const CharacterStatsBarView = ({ open, onOpenChange, mode, onModeChange, 
 			onModeChange={onModeChange}
 			labels={labels}
 			trigger={
-				<Button iconOnly className="p-1" aria-label={labels.title}>
+				<Button iconOnly className="ui-character-stats-bar-trigger" aria-label={labels.title}>
 					<Icon name="chevron-down" className="rotate-180" />
 				</Button>
 			}>
 			{children}
 		</CharacterStatsSheetView>
+		<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={labels} />
 	</div>
 );

@@ -69,12 +69,12 @@ const HeaderRowHarness = ({ initial = [] as string[] }) => {
 };
 
 describe('Accordion header row', () => {
-	it('sets the row beside a chevron-only trigger that the title names', () => {
+	it('sets a chevron-only trigger that the title names ahead of the row, first in tab order', () => {
 		render(<HeaderRowHarness />);
 
 		const trigger = screen.getByRole('button', { name: 'Stats' });
 		expect(trigger.getAttribute('aria-expanded')).toBe('false');
-		expect(screen.getByRole('button', { name: 'Mode' }).nextElementSibling).toBe(trigger);
+		expect(trigger.nextElementSibling).toBe(screen.getByRole('button', { name: 'Mode' }));
 	});
 
 	it('opens from the trigger, not from the controls in the row', () => {
@@ -93,6 +93,7 @@ describe('Accordion header row', () => {
 
 		const header = screen.getByRole('button', { name: 'Stats' }).parentElement!;
 		expect(header.hasAttribute('data-stuck')).toBe(true);
+		expect(header.firstElementChild).toBe(screen.getByRole('button', { name: 'Stats' }));
 		expect(header.previousElementSibling!.contains(screen.getByTestId('stats-body'))).toBe(true);
 	});
 });

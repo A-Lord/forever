@@ -28,10 +28,12 @@ describe('CharacterStatsBarView', () => {
 		expect(screen.queryByTestId('stats-table')).toBeNull();
 	});
 
-	it('reports opening from the chevron', () => {
+	it('reports opening from the chevron, which comes first in tab order', () => {
 		const { onOpenChange, bar } = mount(false);
 
-		fireEvent.click(within(bar).getByRole('button', { name: 'Stats' }));
+		const trigger = within(bar).getByRole('button', { name: 'Stats' });
+		expect(bar.firstElementChild).toBe(trigger);
+		fireEvent.click(trigger);
 		expect(onOpenChange).toHaveBeenCalledWith(true);
 	});
 

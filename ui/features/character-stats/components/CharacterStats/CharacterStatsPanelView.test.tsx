@@ -44,10 +44,11 @@ describe('CharacterStatsPanelView', () => {
 		expect(onToggle).not.toHaveBeenCalled();
 	});
 
-	it('sets the Key/All group right before the trigger', () => {
+	it('sets the trigger ahead of the title and the Key/All group, so Tab reaches it first', () => {
 		const { trigger } = mount(false);
 
 		const group = screen.getByRole('group', { name: 'Stats shown' });
-		expect(group.parentElement!.nextElementSibling).toBe(trigger);
+		expect(trigger.nextElementSibling).toBe(group.parentElement);
+		expect(trigger.nextElementSibling!.contains(screen.getByTestId('character-stats-label'))).toBe(true);
 	});
 });

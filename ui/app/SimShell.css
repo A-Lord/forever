@@ -1,4 +1,16 @@
 @layer components {
+	.ui-sim-sidebar-content {
+		--sidebar-inline-padding: --spacing(6);
+
+		@variant max-xxl {
+			--sidebar-inline-padding: --spacing(4);
+		}
+
+		@variant max-lg {
+			--sidebar-inline-padding: --spacing(2);
+		}
+	}
+
 	.ui-sim-content {
 		@variant max-lg {
 			--viewport-bottom-inset: var(--spacing-character-stats-bar);
