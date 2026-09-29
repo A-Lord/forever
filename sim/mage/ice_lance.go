@@ -16,13 +16,12 @@ var iceLanceFrozenMultiplier = 1 + iceLanceRank.EffectN(2).Percent()
 //
 // "Deals 146 Frost damage to an enemy target. Deals 300% increased damage to Frozen targets."
 //
-// Effects 3 (20) and 4 (5) are server-side scripts the tooltip does not name, and are not modelled.
+// The damage effect states no spell power coefficient; the store carries one as an override
+// (tools/database/overrides). Effects 3 (20) and 4 (5) are server-side scripts the tooltip does not
+// name, and are not modelled.
 func (mage *Mage) registerIceLanceSpell() {
 	config := spelldata.SpellConfig(&mage.Unit, iceLanceRank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellIceLance
-	// TODO: Manual review needed -- the game files state no spell power coefficient, but the spell
-	// scales in game; 1/7 until measured.
-	config.BonusCoefficient = 1.0 / 7
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		frozenMultiplier := 1.0

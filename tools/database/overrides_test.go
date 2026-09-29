@@ -26,6 +26,7 @@ func TestOverridesBakeOntoTheRow(t *testing.T) {
 		{SpellID: 10, Field: overrides.FlatThreat, Value: 200, Reason: "measured"},
 		{SpellID: 10, Field: overrides.APCoefDirect, Value: 0.2, Reason: "measured"},
 		{SpellID: 10, Field: overrides.APCoefPeriodic, Value: 0.1, Reason: "measured"},
+		{SpellID: 10, Field: overrides.SPCoefDirect, Value: 0.3, Reason: "measured"},
 		{SpellID: 10, Field: overrides.DurationMs, Value: 15000, Reason: "measured"},
 		{SpellID: 10, Field: overrides.Hint, Value: float64(core.ProcHintCrit), Reason: "measured"},
 	}
@@ -40,6 +41,10 @@ func TestOverridesBakeOntoTheRow(t *testing.T) {
 	if row.Effects[0].APCoef != 0.2 || row.Effects[1].APCoef != 0.1 {
 		t.Errorf("the effects read %v direct and %v periodic attack power",
 			row.Effects[0].APCoef, row.Effects[1].APCoef)
+	}
+	if row.Effects[0].SPCoef != 0.3 || row.Effects[1].SPCoef != 0 {
+		t.Errorf("the effects read %v direct and %v periodic spell power",
+			row.Effects[0].SPCoef, row.Effects[1].SPCoef)
 	}
 	if row.ProcChanceSource != procChancePPM {
 		t.Errorf("a PPM override leaves the chance source at %s", row.ProcChanceSource)
@@ -113,6 +118,20 @@ func TestOverridesRefuseWhatTheClientNowStates(t *testing.T) {
 			}}},
 			list:  []overrides.Override{{SpellID: 10, Field: overrides.APCoefDirect, Value: 0.2, Reason: "measured"}},
 			wants: "now states 0.5 attack power on its direct effect",
+		},
+		{
+			name: "a game files spell-power coefficient",
+			rows: []storeSpell{{ID: 10, Effects: []storeEffect{
+				{Index: 0, Type: dbcenums.E_SCHOOL_DAMAGE, SPCoef: 0.5},
+			}}},
+			list:  []overrides.Override{{SpellID: 10, Field: overrides.SPCoefDirect, Value: 0.2, Reason: "measured"}},
+			wants: "now states 0.5 spell power on its direct effect",
+		},
+		{
+			name:  "no direct effect to carry a spell-power coefficient",
+			rows:  []storeSpell{{ID: 10}},
+			list:  []overrides.Override{{SpellID: 10, Field: overrides.SPCoefDirect, Value: 0.2, Reason: "measured"}},
+			wants: "no direct effect to carry a spell-power coefficient",
 		},
 		{
 			name:  "no effect to carry the coefficient",

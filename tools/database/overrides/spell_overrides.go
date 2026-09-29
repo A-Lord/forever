@@ -30,6 +30,10 @@ const (
 	// The same for the ticking effect.
 	APCoefPeriodic
 
+	// The spell-power coefficient of the direct effect, onto Effect.SPCoef. Fails when the game files
+	// state an EffectBonusCoefficient there.
+	SPCoefDirect
+
 	// A proc chance in percent, onto Spell.ProcChance. Fails when the tooltip states a chance of
 	// its own through $h or $mN, because then the game files already say where the roll is.
 	ProcChancePct
@@ -52,6 +56,8 @@ func (f Field) String() string {
 		return "APCoefDirect"
 	case APCoefPeriodic:
 		return "APCoefPeriodic"
+	case SPCoefDirect:
+		return "SPCoefDirect"
 	case ProcChancePct:
 		return "ProcChancePct"
 	case DurationMs:
@@ -105,6 +111,9 @@ var Spells = []Override{
 	{16615, Hint, float64(core.ProcHintDamage), "Storm Gauntlets: fires on hits with a damage component", "owner decision, PR #99"},
 	{23686, Hint, float64(core.ProcHintDamage), "Darkmoon Card: Maelstrom: fires on hits with a damage component", "owner decision, PR #99"},
 	{26480, Hint, float64(core.ProcHintDamage), "Badge of the Swarmguard: stacks on hits with a damage component", "owner decision, PR #99"},
+
+	// A spell-power coefficient the damage effect does not state.
+	{1240047, SPCoefDirect, 1.0 / 7, "Ice Lance: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured", "tbc-carryover"},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it
