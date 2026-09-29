@@ -30,7 +30,7 @@ interface ButtonBaseProps {
 	size?: 'sm' | 'inline' | 'none';
 	/** Chromeless: no padding, border or background of its own — an icon-sized hit target. */
 	iconOnly?: boolean;
-	/** Renders a small spinner before the children and sets `aria-busy`; it does not disable the button. */
+	/** Renders a small spinner before the children, or over them for `iconOnly`, and sets `aria-busy`; it does not disable the button. */
 	loading?: boolean;
 	className?: string;
 	children?: ReactNode;
@@ -60,13 +60,18 @@ export const Button = (props: ButtonProps) => {
 					props.className,
 				);
 	const busy = props.loading || undefined;
-	const content = props.loading ? (
+	const content = !props.loading ? (
+		props.children
+	) : props.iconOnly ? (
+		<>
+			<span className="invisible">{props.children}</span>
+			<Spinner size="sm" className="ui-button-icon-spinner" />
+		</>
+	) : (
 		<>
 			<Spinner size="sm" className="ui-button-spinner" />
 			{props.children}
 		</>
-	) : (
-		props.children
 	);
 
 	if (props.as === 'label') {
