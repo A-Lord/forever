@@ -4,7 +4,7 @@ import { valueListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl, resolveField } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
-import { choiceTree } from '@features/apl/model/submenus';
+import { pathChoices } from '@features/apl/model/submenus';
 import { type APLValueKind, type ValidAPLValueKind, valueKinds } from '@features/apl/model/value_kinds';
 import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
@@ -50,9 +50,9 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	// An operand list takes the whole line, so its rows lay out by the row's width, not their own.
 	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => resolveField(field).kind === 'valueList'), [kind]);
 
-	const options = useMemo(
+	const choices = useMemo(
 		() =>
-			choiceTree<APLValueKind>(
+			pathChoices<APLValueKind>(
 				[{ value: undefined, label: i18n.t('rotation_tab.apl.values.none') }, ...valueKindOptions(player, isPrepull, isGroup)],
 				Object.is,
 			),
@@ -99,7 +99,8 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 			<ConnectedChoiceField<Player<any>, APLValueKind>
 				modObject={player}
 				config={kindConfig}
-				options={options}
+				options={choices.options}
+				optionTree={choices.optionTree}
 				variant="link"
 				placeholder={i18n.t('rotation_tab.apl.values.no_condition')}
 			/>

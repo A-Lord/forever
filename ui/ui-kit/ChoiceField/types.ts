@@ -34,6 +34,12 @@ export type ChoiceVariant = 'select' | 'link';
  */
 export interface ChoiceFieldProps<V> extends FieldChromeProps, ControlledProps<V> {
 	options: ReadonlyArray<ChoiceEntry<V>>;
+	/**
+	 * Builds the nested menu, called only while it is open and once per opening, so a large tree costs
+	 * nothing until it is needed. `options` stay the flat list the trigger finds the selection in, and
+	 * the field opens a menu, not a select. Keep its identity stable, or an open menu rebuilds on every render.
+	 */
+	optionTree?: () => ReadonlyArray<ChoiceEntry<V>>;
 	/** Two values are the same selection. Defaults to `Object.is`; a caller whose values are messages passes its own. */
 	equals?(a: V, b: V): boolean;
 	variant?: ChoiceVariant;

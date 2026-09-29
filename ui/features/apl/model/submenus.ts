@@ -68,3 +68,13 @@ export const choiceTree = <V>(options: ReadonlyArray<PathOption<V>>, equals: (a:
 
 	return root;
 };
+
+/**
+ * A choice field's `options` and `optionTree` for a path-filed list: the options without their paths,
+ * which the trigger reads, and a `choiceTree` builder the field runs only while its menu is open. A
+ * list with no path gets no builder and stays a select.
+ */
+export const pathChoices = <V>(options: ReadonlyArray<PathOption<V>>, equals: (a: V, b: V) => boolean) => ({
+	options: options.map(({ submenu: _path, ...option }): ChoiceOption<V> => option),
+	optionTree: options.some(option => option.submenu?.length) ? () => choiceTree(options, equals) : undefined,
+});

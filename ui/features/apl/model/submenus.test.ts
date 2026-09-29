@@ -1,7 +1,7 @@
 import type { ChoiceEntry, ChoiceOption } from '@ui-kit/ChoiceField';
 import { describe, expect, it, vi } from 'vitest';
 
-import { choiceTree, type PathOption, submenuLabel } from './submenus';
+import { choiceTree, pathChoices, type PathOption, submenuLabel } from './submenus';
 
 // Only `resources` is translated here, so the untranslated branch is exercised too.
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => (key === 'rotation_tab.apl.submenus.resources' ? 'Resources' : key) } }));
@@ -97,5 +97,29 @@ describe('choiceTree', () => {
 
 		expect(tree).toHaveLength(1);
 		expect((tree[0] as ChoiceOption<Ref>).label).toBe('Self');
+	});
+});
+
+describe('pathChoices', () => {
+	const options: Array<PathOption<string>> = [
+		{ value: 'a', label: 'A', tooltip: 'first' },
+		{ value: 'b', label: 'B', submenu: ['logic'] },
+	];
+
+	it('hands the trigger the options in order, without their paths', () => {
+		expect(pathChoices(options, sameId).options).toEqual([
+			{ value: 'a', label: 'A', tooltip: 'first' },
+			{ value: 'b', label: 'B' },
+		]);
+	});
+
+	it('builds the tree only when the builder is called', () => {
+		const { optionTree } = pathChoices(options, sameId);
+
+		expect(shape(optionTree!())).toBe('a,logic »(b)');
+	});
+
+	it('gives a list with no path no builder, so it stays a select', () => {
+		expect(pathChoices([options[0], { value: 'c', label: 'C', submenu: [] }], sameId).optionTree).toBeUndefined();
 	});
 });

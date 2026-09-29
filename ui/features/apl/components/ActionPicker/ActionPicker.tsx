@@ -5,7 +5,7 @@ import { actionListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl } from '@features/apl/model/field_specs';
 import { actionKindOptions } from '@features/apl/model/kind_options';
 import { swapActionKind } from '@features/apl/model/kind_swap';
-import { choiceTree } from '@features/apl/model/submenus';
+import { pathChoices } from '@features/apl/model/submenus';
 import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
 import { APLAction, type APLValue } from '@generated/proto/apl';
@@ -49,7 +49,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	const { value, hidden, disabled, chrome } = useAplInput(player, config);
 	const kind = value?.action.oneofKind;
 
-	const options = useMemo(() => choiceTree(actionKindOptions(player, isPrepull), Object.is), [player, isPrepull]);
+	const choices = useMemo(() => pathChoices(actionKindOptions(player, isPrepull), Object.is), [player, isPrepull]);
 
 	const conditionConfig: InputConfig<Player<any>, APLValue | undefined> = {
 		label: i18n.t('rotation_tab.apl.priority_list.if_label'),
@@ -100,7 +100,8 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 				<ConnectedChoiceField<Player<any>, ValidAPLActionKind>
 					modObject={player}
 					config={kindConfig}
-					options={options}
+					options={choices.options}
+					optionTree={choices.optionTree}
 					variant="link"
 					placeholder={i18n.t('rotation_tab.apl.priority_list.item_label')}
 				/>

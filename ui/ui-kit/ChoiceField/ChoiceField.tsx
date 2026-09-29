@@ -19,6 +19,7 @@ import { flattenChoices, hasSubmenus } from './utils';
  */
 export const ChoiceField = <V,>({
 	options,
+	optionTree,
 	value,
 	onChange,
 	disabled,
@@ -55,57 +56,58 @@ export const ChoiceField = <V,>({
 		disabled,
 	};
 
-	const control = hasSubmenus(options) ? (
-		<ChoiceMenu
-			entries={options}
-			flat={flat}
-			selectedIndex={selectedIndex}
-			onSelect={select}
-			open={open}
-			onOpenChange={setOpen}
-			trigger={trigger}
-			triggerProps={triggerProps}
-			tooltipId={tooltipId}
-			side={side}
-			positionMethod={positionMethod}
-		/>
-	) : (
-		<Select.Root<number>
-			value={selectedIndex === -1 ? null : selectedIndex}
-			onValueChange={index => index !== null && select(index)}
-			open={open}
-			onOpenChange={setOpen}
-			disabled={disabled}
-			modal={false}>
-			<Select.Trigger {...triggerProps}>
-				<Select.Value className="flex min-w-0 items-center overflow-hidden">{trigger}</Select.Value>
-			</Select.Trigger>
-			<Select.Portal container={portalContainer ?? undefined}>
-				<Select.Positioner
-					alignItemWithTrigger={false}
-					align="start"
-					side={side}
-					positionMethod={positionMethod}
-					sideOffset={2}
-					className="ui-menu-positioner"
-					data-testid="choice-field-positioner">
-					<Select.Popup className="ui-popup-surface ui-menu">
-						<Select.List className="ui-choice-field-list">
-							{flat.map((option, index) => (
-								<Select.Item
-									key={index}
-									value={index}
-									className={clsx('ui-menu-item', 'ui-menu-item-row', 'ui-choice-field-option', option.className)}
-									{...tooltipAnchorProps(option.tooltip === undefined ? undefined : tooltipId, option.tooltip)}>
-									<OptionContent option={option} />
-								</Select.Item>
-							))}
-						</Select.List>
-					</Select.Popup>
-				</Select.Positioner>
-			</Select.Portal>
-		</Select.Root>
-	);
+	const control =
+		optionTree || hasSubmenus(options) ? (
+			<ChoiceMenu
+				entries={optionTree ?? options}
+				value={value}
+				equals={equals}
+				onSelect={onChange}
+				open={open}
+				onOpenChange={setOpen}
+				trigger={trigger}
+				triggerProps={triggerProps}
+				tooltipId={tooltipId}
+				side={side}
+				positionMethod={positionMethod}
+			/>
+		) : (
+			<Select.Root<number>
+				value={selectedIndex === -1 ? null : selectedIndex}
+				onValueChange={index => index !== null && select(index)}
+				open={open}
+				onOpenChange={setOpen}
+				disabled={disabled}
+				modal={false}>
+				<Select.Trigger {...triggerProps}>
+					<Select.Value className="flex min-w-0 items-center overflow-hidden">{trigger}</Select.Value>
+				</Select.Trigger>
+				<Select.Portal container={portalContainer ?? undefined}>
+					<Select.Positioner
+						alignItemWithTrigger={false}
+						align="start"
+						side={side}
+						positionMethod={positionMethod}
+						sideOffset={2}
+						className="ui-menu-positioner"
+						data-testid="choice-field-positioner">
+						<Select.Popup className="ui-popup-surface ui-menu">
+							<Select.List className="ui-choice-field-list">
+								{flat.map((option, index) => (
+									<Select.Item
+										key={index}
+										value={index}
+										className={clsx('ui-menu-item', 'ui-menu-item-row', 'ui-choice-field-option', option.className)}
+										{...tooltipAnchorProps(option.tooltip === undefined ? undefined : tooltipId, option.tooltip)}>
+										<OptionContent option={option} />
+									</Select.Item>
+								))}
+							</Select.List>
+						</Select.Popup>
+					</Select.Positioner>
+				</Select.Portal>
+			</Select.Root>
+		);
 
 	// The options exist only while the list is open, and so does the one tooltip they share.
 	const tooltip = open && flat.some(option => option.tooltip !== undefined) && (

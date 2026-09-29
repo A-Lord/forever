@@ -1,4 +1,4 @@
-import { choiceTree, type PathOption } from '@features/apl/model/submenus';
+import { pathChoices, type PathOption } from '@features/apl/model/submenus';
 import type { UNIT_SET } from '@features/apl/model/unit_sets';
 import { unitSets } from '@features/apl/model/unit_sets';
 import { refToValue, unitOptionModels, type UnitValue, withIconUrl } from '@features/apl/model/unit_values';
@@ -50,9 +50,9 @@ export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 	// eslint-disable-next-line react-hooks/exhaustive-deps -- the metadata version is what moves when the units do.
 	const models = useMemo(() => unitOptionModels(unitSet, player), [unitSet, player, metadataVersion]);
 	const icons = useActionIds(models.map(({ unit }) => (typeof unit.iconUrl === 'string' ? undefined : unit.iconUrl)));
-	const options = useMemo(
+	const choices = useMemo(
 		() =>
-			choiceTree(
+			pathChoices(
 				models.map((model, index) =>
 					unitOption(
 						withIconUrl(model.unit, icons[index]),
@@ -75,7 +75,8 @@ export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 		<ConnectedChoiceField<Player<any>, UnitReference | undefined, UnitValue>
 			modObject={player}
 			config={boundConfig}
-			options={options}
+			options={choices.options}
+			optionTree={choices.optionTree}
 			equals={sameUnit}
 			variant="link"
 			placeholder="Unit"

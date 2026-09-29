@@ -66,6 +66,7 @@ const meta = {
 		placeholder: { control: 'text' },
 		className: { control: 'text' },
 		options: { control: false },
+		optionTree: { control: false },
 		value: { control: false },
 		equals: { control: false },
 		renderValue: { control: false },
@@ -87,3 +88,12 @@ export const Default: Story = {
 export const Link: Story = { args: { variant: 'link', label: undefined, placeholder: 'Mob type' } };
 export const WithIcons: Story = { args: { variant: 'link', label: undefined, options: UNITS, value: 2, placeholder: 'Unit' } };
 export const WithSubmenu: Story = { args: { variant: 'link', label: undefined, options: VALUE_KINDS, value: 3, placeholder: 'No condition' } };
+export const InAStartAlignedColumn: Story = {
+	decorators: [
+		Story => (
+			<div className="flex flex-col items-start">
+				<Story />
+			</div>
+		),
+	],
+};

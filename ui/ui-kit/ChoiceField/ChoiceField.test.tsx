@@ -397,4 +397,64 @@ describe('ChoiceField', () => {
 			expect(picks).not.toHaveBeenCalled();
 		});
 	});
+
+	describe('option tree', () => {
+		const FLAT: Array<ChoiceOption<string>> = [
+			{ value: 'none', label: 'None' },
+			{ value: 'and', label: 'All of' },
+			{ value: 'or', label: 'Any of' },
+		];
+		const tree = (): Array<ChoiceEntry<string>> => [
+			{ value: 'none', label: 'None' },
+			{
+				label: 'Logic »',
+				submenu: [
+					{ value: 'and', label: 'All of' },
+					{ value: 'or', label: 'Any of' },
+				],
+			},
+		];
+
+		const menuTrigger = () => screen.getByTestId('kind-field');
+		const toggleMenu = () => act(() => void fireEvent.click(menuTrigger()));
+		const rows = () => [...screen.getByRole('menu').querySelectorAll(':scope > ul > li')] as Array<HTMLElement>;
+
+		it('shows the selection from the flat options and builds no tree until the menu opens', () => {
+			const optionTree = vi.fn(tree);
+			render(<Harness options={FLAT} optionTree={optionTree} initial="or" variant="link" testId="kind-field" />);
+
+			expect(menuTrigger().textContent).toBe('Any of');
+			expect(menuTrigger().getAttribute('aria-haspopup')).toBe('menu');
+			expect(optionTree).not.toHaveBeenCalled();
+		});
+
+		it('builds the tree once per opening, not again while it stays open', async () => {
+			const optionTree = vi.fn(tree);
+			const handle = { current: null as HarnessHandle<string> | null };
+			render(<Harness options={FLAT} optionTree={optionTree} initial="none" handle={handle} testId="kind-field" />);
+
+			await toggleMenu();
+			expect(rows().map(row => row.textContent)).toEqual(['None', 'Logic »']);
+			expect(optionTree).toHaveBeenCalledOnce();
+
+			act(() => handle.current!.set('and'));
+			expect(optionTree).toHaveBeenCalledOnce();
+
+			await toggleMenu();
+			expect(screen.queryByRole('menu')).toBeNull();
+			await toggleMenu();
+			expect(optionTree).toHaveBeenCalledTimes(2);
+		});
+
+		it('reports the option picked inside the built tree', async () => {
+			render(<Harness options={FLAT} optionTree={tree} initial="none" testId="kind-field" />);
+			await toggleMenu();
+			await act(() => void fireEvent.click(within(rows()[1]).getByRole('menuitem')));
+
+			await act(() => void fireEvent.click(within(screen.getByTestId('choice-field-submenu')).getByText('Any of')));
+
+			expect(picks).toHaveBeenLastCalledWith('or');
+			expect(menuTrigger().textContent).toBe('Any of');
+		});
+	});
 });

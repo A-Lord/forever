@@ -1,7 +1,7 @@
 import { useApl } from '@features/apl/context/AplContext';
 import { type ACTION_ID_SET, actionIdSets } from '@features/apl/model/action_id_sets';
 import type { DEFAULT_UNIT_REF } from '@features/apl/model/field_descriptors';
-import { choiceTree, type PathOption } from '@features/apl/model/submenus';
+import { pathChoices, type PathOption } from '@features/apl/model/submenus';
 import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
 import { ActionID, UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
@@ -99,9 +99,9 @@ export const ActionIdField = ({ player, config, actionIdSet, unitRefField, defau
 	const isMissing = selected.anyId() != 0 && !available.some(option => sameActionId(option.value, selected));
 	const { name: missingName } = useActionId(isMissing ? selected : undefined);
 
-	const options = useMemo(
+	const choices = useMemo(
 		() =>
-			choiceTree(
+			pathChoices(
 				isMissing
 					? [
 							...available,
@@ -134,7 +134,8 @@ export const ActionIdField = ({ player, config, actionIdSet, unitRefField, defau
 		<ConnectedChoiceField<Player<any>, ActionID, ActionId>
 			modObject={player}
 			config={boundConfig}
-			options={options}
+			options={choices.options}
+			optionTree={choices.optionTree}
 			equals={sameActionId}
 			variant="link"
 			placeholder={set.defaultLabel}

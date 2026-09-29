@@ -8,7 +8,7 @@ export type ChoiceFieldConfig<ModObject> = InputConfig<ModObject, number> & { id
 
 export interface ConnectedChoiceFieldProps<M, T, V = T> extends Pick<
 	ChoiceFieldProps<V>,
-	'equals' | 'variant' | 'placeholder' | 'renderValue' | 'ariaLabel' | 'className' | 'testId'
+	'optionTree' | 'equals' | 'variant' | 'placeholder' | 'renderValue' | 'ariaLabel' | 'className' | 'testId'
 > {
 	modObject: M;
 	/**
