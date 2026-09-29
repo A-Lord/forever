@@ -47,10 +47,10 @@ reads the row. The cases name the row and the numbers, so each one can be checke
 - **Furor 17056:** the tooltip prices the energy with `$m2`, effect 2; the code read effect 1, the rage
   chance, whose curve happens to match.
 - **Heart of the Wild 17003:** the tooltip's `$s1` is Intellect and `$s3` cat Strength, and the code read
-  each from the other's effect; both hold 10, so nothing moved. Its `A_MOD_TOTAL_STAT_PERCENTAGE` effects,
-  like those of Heart of the Wild Cat Effect 24900 and Arcane Mind 11232, name the stat in the second misc
-  value, a bitmask (8 Intellect, 4 Stamina, 1 Strength), with 0 in the first. The parse and
-  `go run ./tools/spelldata` read only the first, so they answer Strength for these rows.
+  each from the other's effect; both hold 2/4/6/8/10, so nothing moved. An `A_MOD_TOTAL_STAT_PERCENTAGE`
+  effect names its stats in the second misc value where it sets one, a bitmask (8 Intellect, 4 Stamina, 1
+  Strength), and the first value then does not count: 17003 states 0 and 8. `Effect.TotalStatPercentStats()`
+  reads it, as the parse and `go run ./tools/spelldata` do; a hand read of `Misc` gets the wrong stat.
 - **Initiative 13976:** 33/67/100% from effect 1 and a hit listener. A hand trigger with no chance fired at
   every rank, and on `CallbackOnCastComplete`, which has no result, so a dodged Garrote still awarded the
   point. `spelldata.ProcTrigger` on the rank decodes both.
