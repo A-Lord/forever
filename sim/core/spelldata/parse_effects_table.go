@@ -598,6 +598,9 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_GLOBAL_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
 	},
+	dbcenums.SPELLMOD_RANGE: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_Range_Pct", p.modConfig(e, core.SpellMod_Range_Pct), v)
+	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT3: pctEffectAmount,

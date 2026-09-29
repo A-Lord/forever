@@ -445,6 +445,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | the energy bar's maximum (misc 3, and `A_MOD_INCREASE_ENERGY`)      | energy                                                | the value                                                              |
 | the maximum mana (misc 0 of either)                                 | Mana, flat points                                     | the value                                                              |
 | a percentage GCD modifier (`SPELLMOD_GLOBAL_COOLDOWN`)              | `spell.GCDMultiplier`, summed from 1                  | the value over 100                                                     |
+| a percentage range modifier (`SPELLMOD_RANGE`)                      | `spell.RangeMultiplier`, summed from 1                | the value over 100                                                     |
 
 Block, dodge and parry are percentage points like hit and crit: core divides them by 100 where it rolls
 them (`GetBlockFromRating`), so the game files' 5 is stored as 5. `TestParseStaticStatConventions` pins
