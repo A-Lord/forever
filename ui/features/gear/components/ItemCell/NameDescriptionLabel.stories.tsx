@@ -9,7 +9,7 @@ const meta = {
 	args: { nameDescription: 'Heroic' },
 	decorators: [
 		Story => (
-			<span className="text-quality-epic">
+			<span className="ui-item-picker-name-container text-quality-epic">
 				Band of Accuria
 				<Story />
 			</span>
@@ -21,5 +21,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-
-export const Flush: Story = { args: { flush: true } };

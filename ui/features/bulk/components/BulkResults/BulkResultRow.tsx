@@ -86,7 +86,6 @@ export const BulkResultRow = ({ result, baseResult, iterations, onActivateTab }:
 							className="ui-bulk-result-item ui-bulk-item-cell mb-0 p-0 [&_.ui-item-picker-labels-container]:hidden"
 							slot={idx}
 							item={itemChanged && spec.id !== 0 ? host.sim.db.lookupItemSpec(spec) : null}
-							nameDescriptionFlush
 						/>
 					);
 				})}

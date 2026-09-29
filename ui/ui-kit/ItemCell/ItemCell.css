@@ -25,6 +25,10 @@
 
 			> .ui-item-picker-name-row {
 				@apply md:justify-end;
+
+				& .ui-item-picker-name-container {
+					@apply md:justify-end;
+				}
 			}
 		}
 	}
@@ -34,7 +38,7 @@
 	}
 
 	.ui-item-picker-name-container {
-		@apply text-(length:--h6-font-size) text-white in-[.ui-gear-picker]:focus-visible:outline in-[.ui-gear-picker]:focus-visible:outline-1 in-[.ui-gear-picker]:focus-visible:outline-offset-1 in-[.ui-gear-picker]:focus-visible:outline-link;
+		@apply flex flex-wrap items-baseline gap-x-1 text-(length:--h6-font-size) text-white in-[.ui-gear-picker]:focus-visible:outline in-[.ui-gear-picker]:focus-visible:outline-1 in-[.ui-gear-picker]:focus-visible:outline-offset-1 in-[.ui-gear-picker]:focus-visible:outline-link;
 	}
 
 	.ui-item-picker-label-muted {

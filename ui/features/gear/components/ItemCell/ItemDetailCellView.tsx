@@ -37,7 +37,6 @@ export interface ItemDetailCellViewProps {
 	socketTooltipId?: (gemIdx: number) => string;
 	/** Rendered after the enchant label. */
 	extraLabels?: ReactNode;
-	nameDescriptionFlush?: boolean;
 	testId?: string;
 	rootDataAttributes?: Record<string, string>;
 }
@@ -60,7 +59,6 @@ export const ItemDetailCellView = ({
 	enchantTooltipId,
 	socketTooltipId,
 	extraLabels,
-	nameDescriptionFlush,
 	testId,
 	rootDataAttributes,
 }: ItemDetailCellViewProps) => (
@@ -111,9 +109,7 @@ export const ItemDetailCellView = ({
 								{item.item.name}
 								{!!item.randomSuffix && ` ${translateProtoStatName(item.randomSuffix.name)}`}
 							</span>
-							{!!item.item.nameDescription && (
-								<NameDescriptionLabel nameDescription={item.item.nameDescription} className="tracking-normal" flush={nameDescriptionFlush} />
-							)}
+							{!!item.item.nameDescription && <NameDescriptionLabel nameDescription={item.item.nameDescription} className="tracking-normal" />}
 						</>
 					) : (
 						translateSlotName(slot)
