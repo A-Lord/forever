@@ -750,6 +750,7 @@
 	"ui-apl-priority-list-only",
 	"ui-apl-value-picker-root",
 	"ui-boolean-picker-reverse",
+	"ui-icon-field",
 	"ui-list-picker-compact",
 	"ui-list-picker-horizontal",
 	"ui-list-picker-item",

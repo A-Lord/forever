@@ -1,6 +1,7 @@
 import i18n from '@i18n/config';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
+import { useEffect } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MultiIconPicker, type MultiIconPickerProps } from './MultiIconPicker';
@@ -14,8 +15,7 @@ const mount = (props: Partial<MultiIconPickerProps> = {}) =>
 		</MultiIconPicker>,
 	);
 
-const root = () => screen.getByTestId('multi-icon-picker-root');
-const trigger = () => within(root()).getByTestId('multi-icon-picker-button') as HTMLAnchorElement;
+const trigger = () => screen.getByTestId('multi-icon-picker-root') as HTMLAnchorElement;
 const menu = () => screen.queryByTestId('multi-icon-picker-menu') as HTMLUListElement;
 const clearOption = () => screen.getByTestId('icon-picker-clear') as HTMLAnchorElement;
 // The menu mounts when it opens, so every test that reads an option has to open it first.
@@ -28,24 +28,54 @@ const open = () =>
 const backgroundIcon = () => trigger().style.backgroundImage.replace(/^url\(['"]?|['"]?\)$/g, '');
 
 describe('MultiIconPicker', () => {
-	it('builds the root and the option list', () => {
-		mount();
+	it('lays the trigger and its caption out in an icon field, with no box around the trigger', () => {
+		const { container } = mount();
+		const field = container.firstElementChild as HTMLElement;
 
-		expect(root().classList.contains('ui-icon-field')).toBe(true);
-		expect(root().children[0].className).toBe('relative');
-		expect(trigger()).toBeTruthy();
+		expect(field.getAttribute('data-layout')).toBe('icon');
+		expect(field.firstElementChild).toBe(trigger());
+		expect(trigger().tagName).toBe('A');
+		expect(field.querySelectorAll('div')).toHaveLength(0);
 		expect(menu()).toBeNull();
+	});
 
-		// The clear option first, then one option per child.
+	it('renders the bare trigger without a label', () => {
+		const { container } = mount({ label: undefined });
+		expect(Array.from(container.children)).toEqual([trigger()]);
+	});
+
+	it('builds the option list: the clear option first, then one option per child', () => {
+		mount();
 		open();
 		const options = Array.from(menu().children);
 		expect(options).toHaveLength(4);
-		const swatch = options[0].querySelector('a')!;
-		expect(swatch.classList.contains('ui-icon-picker-swatch')).toBe(true);
-		for (const token of ['p-0', 'filter-[opacity(0.7)]', 'hover:filter-none']) expect(swatch.classList.contains(token)).toBe(true);
-		expect(swatch.getAttribute('data-testid')).toBe('icon-picker-clear');
-		expect(options.slice(1).every(option => option.className === 'opacity-70 hover:opacity-100')).toBe(true);
-		expect(options.slice(1).every(option => within(option as HTMLElement).queryByTestId('child'))).toBe(true);
+		expect(options[0].querySelector('a')).toBe(clearOption());
+		expect(options.slice(1).every(option => option.querySelector('[data-testid="child"]'))).toBe(true);
+	});
+
+	it('mounts its children only while the menu is open', async () => {
+		const mounts = vi.fn();
+		const unmounts = vi.fn();
+		const Probe = () => {
+			useEffect(() => {
+				mounts();
+				return unmounts;
+			}, []);
+			return <span data-testid="child" />;
+		};
+		mount({ children: <Probe /> });
+		expect(mounts).not.toHaveBeenCalled();
+
+		open();
+		expect(mounts).toHaveBeenCalledTimes(1);
+
+		act(() => {
+			fireEvent.keyDown(menu(), { key: 'Escape' });
+		});
+		await act(async () => {});
+		expect(trigger().getAttribute('aria-expanded')).toBe('false');
+		expect(screen.queryByTestId('child')).toBeNull();
+		expect(unmounts).toHaveBeenCalledTimes(1);
 	});
 
 	it('positions the menu against the viewport', async () => {
@@ -54,28 +84,22 @@ describe('MultiIconPicker', () => {
 		expect(screen.getByTestId('multi-icon-picker-positioner').style.position).toBe('fixed');
 	});
 
-	it('renders the label only when given one, and names the group and the trigger with it', () => {
+	it('names the group and the trigger with its label, and renders neither name without one', () => {
 		const withLabel = mount();
 		// A <span>, not a <label>: it names the icon group, which is not a form control.
-		const caption = within(root()).queryByTestId('multi-icon-picker-label');
-		expect(caption?.tagName).toBe('SPAN');
-		expect(caption?.textContent).toBe('Stats');
-		expect(root().getAttribute('role')).toBe('group');
-		expect(root().getAttribute('aria-labelledby')).toBe(caption!.id);
+		const group = screen.getByRole('group', { name: 'Stats' });
+		expect(group.querySelector('label')).toBeNull();
 		expect(trigger().getAttribute('aria-label')).toBe('Stats');
 		withLabel.unmount();
 
 		mount({ label: undefined });
-		expect(within(root()).queryByTestId('multi-icon-picker-label')).toBeNull();
-		expect(root().hasAttribute('role')).toBe(false);
-		expect(root().hasAttribute('aria-labelledby')).toBe(false);
+		expect(screen.queryByRole('group')).toBeNull();
 		expect(trigger().hasAttribute('aria-label')).toBe(false);
 	});
 
 	it('paints the icon it is given and marks the trigger active', () => {
 		const { rerender } = mount();
 		expect(trigger().hasAttribute('data-active')).toBe(false);
-		expect(trigger().classList.contains('grayscale')).toBe(true);
 		expect(backgroundIcon()).toBe('');
 
 		rerender(
@@ -84,7 +108,6 @@ describe('MultiIconPicker', () => {
 			</MultiIconPicker>,
 		);
 		expect(trigger().hasAttribute('data-active')).toBe(true);
-		expect(trigger().classList.contains('filter-none')).toBe(true);
 		expect(backgroundIcon()).toBe('kings.jpg');
 	});
 
@@ -93,9 +116,9 @@ describe('MultiIconPicker', () => {
 		expect(trigger().hasAttribute('href')).toBe(false);
 	});
 
-	it('takes a testId for its root', () => {
+	it('takes a testId for its trigger', () => {
 		mount({ testId: 'misc-buffs' });
-		expect(screen.getByTestId('misc-buffs')).toBeTruthy();
+		expect(screen.getByTestId('misc-buffs').tagName).toBe('A');
 	});
 
 	it('clears from a right-click on the button and from the clear option, and not from a left-click', () => {

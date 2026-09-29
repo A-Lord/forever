@@ -75,3 +75,4 @@ export const Horizontal: Story = { args: { direction: IconEnumPickerDirection.Ho
 export const Columns: Story = { args: { numColumns: 2 } };
 export const WithColorOptions: Story = { args: { options: CURSES, value: 1, tooltip: 'Curse' } };
 export const WithHiddenOption: Story = { args: { options: FLASKS.map(option => (option.value === 2 ? { ...option, hidden: true } : option)) } };
+export const Labelled: Story = { args: { label: 'Flask' } };
