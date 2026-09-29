@@ -13,7 +13,7 @@ export interface CharacterStatsPanelViewProps extends CharacterStatsHeaderViewPr
 const PANEL = 'character-stats';
 
 export const CharacterStatsPanelView = ({ open, onToggle, mode, onModeChange, labels, children }: CharacterStatsPanelViewProps) => {
-	const { markerRef, stuck } = useStickyBottomMarker<HTMLDivElement>();
+	const { markerRef, markerClassName, stuck } = useStickyBottomMarker<HTMLDivElement>();
 
 	return (
 		<>
@@ -31,7 +31,7 @@ export const CharacterStatsPanelView = ({ open, onToggle, mode, onModeChange, la
 					{children}
 				</AccordionItem>
 			</Accordion>
-			<div ref={markerRef} aria-hidden />
+			<div ref={markerRef} className={markerClassName} aria-hidden />
 		</>
 	);
 };

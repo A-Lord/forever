@@ -23,5 +23,6 @@ export const useStickyBottomMarker = <T extends HTMLElement>() => {
 		return () => observer.disconnect();
 	}, []);
 
-	return { markerRef, stuck };
+	// A scroll container's end can land a fraction of a pixel short of its content, which leaves a flush marker just outside the view, so the marker sits a pixel up.
+	return { markerRef, markerClassName: 'relative -top-px', stuck };
 };
