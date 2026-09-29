@@ -1,5 +1,5 @@
-import { BoundIconEnumPicker } from '@features/inputs/components/BoundIconEnumPicker';
-import { BoundIconPicker } from '@features/inputs/components/BoundIconPicker';
+import { ConnectedIconEnumPicker } from '@features/inputs/components/ConnectedIconEnumPicker';
+import { ConnectedIconPicker } from '@features/inputs/components/ConnectedIconPicker';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { Database } from '@sim/proto/database';
@@ -16,10 +16,10 @@ export interface ConsumesPickerProps {
 }
 
 const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) =>
-	toggles.map(config => <BoundIconPicker key={config.actionId.itemId} modObject={player} config={config} />);
+	toggles.map(config => <ConnectedIconPicker key={config.actionId.itemId} modObject={player} config={config} />);
 
 const Pickers = ({ player, configs }: { player: Player<any>; configs: ReadonlyArray<ConsumeConfig> }) =>
-	configs.map((config, i) => <BoundIconEnumPicker key={i} modObject={player} config={config} />);
+	configs.map((config, i) => <ConnectedIconEnumPicker key={i} modObject={player} config={config} />);
 
 export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps) => {
 	const player = usePlayer() as Player<any>;
@@ -30,15 +30,15 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 			{encounterConsumes && (
 				<ConsumeRow name="potions" configs={[configs.potion, configs.conjured]}>
 					<IconRow className="justify-end" data-testid="consumes-potions">
-						<BoundIconEnumPicker modObject={player} config={configs.potion} />
-						<BoundIconEnumPicker modObject={player} config={configs.conjured} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.potion} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.conjured} />
 					</IconRow>
 				</ConsumeRow>
 			)}
 			<ConsumeRow name="elixirs" configs={[configs.flask, ...configs.elixirs]}>
 				<IconRow className="justify-end">
 					<div data-testid="consumes-flasks">
-						<BoundIconEnumPicker modObject={player} config={configs.flask} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.flask} />
 					</div>
 					<Pickers player={player} configs={configs.elixirs} />
 				</IconRow>
@@ -50,22 +50,22 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 			</ConsumeRow>
 			<ConsumeRow name="food" configs={[configs.food, ...configs.groups]}>
 				<IconRow className="justify-end" data-testid="consumes-food">
-					<BoundIconEnumPicker modObject={player} config={configs.food} />
+					<ConnectedIconEnumPicker modObject={player} config={configs.food} />
 					<Pickers player={player} configs={configs.groups} />
 				</IconRow>
 			</ConsumeRow>
 			{encounterConsumes && (
 				<ConsumeRow name="engineering" configs={[configs.explosive, ...configs.explosiveExtras]}>
 					<IconRow className="justify-end" data-testid="consumes-engi">
-						<BoundIconEnumPicker modObject={player} config={configs.explosive} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.explosive} />
 						<Toggles player={player} toggles={configs.explosiveExtras} />
 					</IconRow>
 				</ConsumeRow>
 			)}
 			<ConsumeRow name="imbue" configs={[configs.mhImbue, configs.ohImbue]}>
 				<IconRow className="justify-end" data-testid="consumes-imbue">
-					<BoundIconEnumPicker modObject={player} config={configs.mhImbue} />
-					<BoundIconEnumPicker modObject={player} config={configs.ohImbue} />
+					<ConnectedIconEnumPicker modObject={player} config={configs.mhImbue} />
+					<ConnectedIconEnumPicker modObject={player} config={configs.ohImbue} />
 				</IconRow>
 			</ConsumeRow>
 			{encounterConsumes && (

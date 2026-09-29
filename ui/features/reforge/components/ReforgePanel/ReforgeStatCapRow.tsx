@@ -1,6 +1,6 @@
-import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
-import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
+import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import type { ReforgeOptimizerModel } from '@features/reforge/model/reforge_optimizer';
 import { toDefaultUnitStatValue, toVisualUnitStatPercentage } from '@features/reforge/model/utils';
 import i18n from '@i18n/config';
@@ -49,7 +49,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 			statName={statName}
 			tooltip={tooltip}
 			percentage={
-				<BoundNumberField
+				<ConnectedNumberField
 					modObject={player}
 					config={{
 						id: `${idPrefix}-${statName}-percentage`,
@@ -66,7 +66,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 				/>
 			}
 			undershoot={
-				<BoundBooleanPicker
+				<ConnectedBooleanPicker
 					modObject={player}
 					config={{
 						id: `${idPrefix}-${statName}-undershoot`,
@@ -81,7 +81,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 			}
 			presets={
 				presetValues && (
-					<BoundEnumPicker
+					<ConnectedEnumPicker
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-presets`,

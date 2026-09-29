@@ -1,5 +1,5 @@
-import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
-import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
+import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { gemPhaseValues } from '@features/reforge/model/utils';
 import { SavedEpWeights } from '@features/stat-weights/components/SavedEpWeights';
@@ -59,7 +59,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 		<ReforgeIdPrefixContext.Provider value={idPrefix}>
 			<ReforgeSettingsPanelView
 				customEpToggle={
-					<BoundBooleanPicker
+					<ConnectedBooleanPicker
 						modObject={player}
 						config={{
 							extraClassNames: ['mb-2'],
@@ -88,7 +88,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 				softCaps={
 					hasSoftCaps && (
 						<>
-							<BoundBooleanPicker
+							<ConnectedBooleanPicker
 								modObject={player}
 								config={{
 									extraClassNames: ['mb-2'],
@@ -116,7 +116,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 				}
 				gemOptions={
 					<>
-						<BoundBooleanPicker
+						<ConnectedBooleanPicker
 							modObject={player}
 							config={{
 								extraClassNames: ['mb-2'],
@@ -131,7 +131,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 								},
 							}}
 						/>
-						<BoundEnumPicker
+						<ConnectedEnumPicker
 							modObject={player}
 							config={{
 								extraClassNames: ['mb-2'],
@@ -147,7 +147,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 								},
 							}}
 						/>
-						<BoundEnumPicker
+						<ConnectedEnumPicker
 							modObject={player}
 							config={{
 								extraClassNames: ['mb-2'],
@@ -167,7 +167,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 				}
 				freezeSlots={
 					<>
-						<BoundBooleanPicker
+						<ConnectedBooleanPicker
 							modObject={player}
 							config={{
 								extraClassNames: ['mb-2'],

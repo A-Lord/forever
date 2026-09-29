@@ -1,5 +1,5 @@
-import { BoundIconEnumPicker } from '@features/inputs/components/BoundIconEnumPicker';
-import { BoundNumberListField } from '@features/inputs/components/BoundTextField';
+import { ConnectedIconEnumPicker } from '@features/inputs/components/ConnectedIconEnumPicker';
+import { ConnectedNumberListField } from '@features/inputs/components/ConnectedTextField';
 import type { ActionID as ActionIdProto } from '@generated/proto/common';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
@@ -31,8 +31,8 @@ export const CooldownRow = ({ index, id, available, isAdd, deleteTooltipId }: Co
 			isAdd={isAdd}
 			deleteTooltipId={deleteTooltipId}
 			onDelete={() => deleteCooldown(player, index)}
-			actionPicker={<BoundIconEnumPicker modObject={player} config={actionConfig} />}
-			timingsPicker={<BoundNumberListField modObject={player} config={timingsConfig} />}
+			actionPicker={<ConnectedIconEnumPicker modObject={player} config={actionConfig} />}
+			timingsPicker={<ConnectedNumberListField modObject={player} config={timingsConfig} />}
 		/>
 	);
 };

@@ -2,8 +2,8 @@ import { ActionPicker } from '@features/apl/components/ActionPicker';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { useApl } from '@features/apl/context/AplContext';
 import type { AplFieldSpec } from '@features/apl/model/field_specs';
-import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
-import { BoundNumberField, BoundStringField } from '@features/inputs/components/BoundTextField';
+import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
+import { ConnectedNumberField, ConnectedStringField } from '@features/inputs/components/ConnectedTextField';
 import type { Player } from '@sim/player/player';
 import { useId } from 'react';
 
@@ -44,11 +44,11 @@ export const AplField = ({ player, spec, getParentValue }: AplFieldProps) => {
 
 	switch (spec.kind) {
 		case 'boolean':
-			return <BoundBooleanPicker modObject={player} config={config} />;
+			return <ConnectedBooleanPicker modObject={player} config={config} />;
 		case 'number':
-			return <BoundNumberField modObject={player} config={{ ...config, float: spec.float }} />;
+			return <ConnectedNumberField modObject={player} config={{ ...config, float: spec.float }} />;
 		case 'string':
-			return <BoundStringField modObject={player} config={config} />;
+			return <ConnectedStringField modObject={player} config={config} />;
 		case 'enum':
 			return <EnumField player={player} config={config} table={spec.table} />;
 		case 'actionId':

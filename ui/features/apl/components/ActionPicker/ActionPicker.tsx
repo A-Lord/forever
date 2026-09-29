@@ -5,7 +5,7 @@ import { actionListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl } from '@features/apl/model/field_specs';
 import { actionKindOptions } from '@features/apl/model/kind_options';
 import { swapActionKind } from '@features/apl/model/kind_swap';
-import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
+import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import { APLAction, type APLValue } from '@generated/proto/apl';
 import i18n from '@i18n/config';
@@ -96,7 +96,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 			disabled={disabled}>
 			{!isPrepull && !inSequence && <ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />}
 			<div className="flex w-full flex-row flex-wrap items-baseline gap-2" data-kind={kind}>
-				<BoundDropdown<Player<any>, ValidAPLActionKind>
+				<ConnectedDropdown<Player<any>, ValidAPLActionKind>
 					modObject={player}
 					config={kindConfig}
 					options={options}

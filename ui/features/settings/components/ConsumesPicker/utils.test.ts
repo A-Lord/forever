@@ -1,4 +1,4 @@
-import { iconEnumPickerShown } from '@features/inputs/components/BoundIconEnumPicker';
+import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';

@@ -1,7 +1,7 @@
 import { useApl } from '@features/apl/context/AplContext';
 import { type ACTION_ID_SET, actionIdSets } from '@features/apl/model/action_id_sets';
 import type { DEFAULT_UNIT_REF } from '@features/apl/model/field_descriptors';
-import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
+import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import { ActionID, UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
 import { useActionId } from '@sim/hooks/useActionId';
@@ -113,7 +113,7 @@ export const ActionIdField = ({ player, config, actionIdSet, unitRefField, defau
 	};
 
 	return (
-		<BoundDropdown<Player<any>, ActionID, ActionId>
+		<ConnectedDropdown<Player<any>, ActionID, ActionId>
 			modObject={player}
 			config={boundConfig}
 			options={options}

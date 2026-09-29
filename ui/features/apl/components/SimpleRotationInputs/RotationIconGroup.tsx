@@ -1,4 +1,4 @@
-import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
+import { ConnectedIconInput } from '@features/inputs/components/ConnectedIconInput';
 import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
@@ -21,7 +21,7 @@ export const RotationIconGroup = ({ inputs }: RotationIconGroupProps) => {
 	return (
 		<IconRow data-testid="rotation-icon-group">
 			{inputs.map((config, index) => (
-				<BoundIconInput key={index} modObject={player} config={config} />
+				<ConnectedIconInput key={index} modObject={player} config={config} />
 			))}
 		</IconRow>
 	);

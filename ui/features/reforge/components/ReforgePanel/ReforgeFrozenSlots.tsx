@@ -1,4 +1,4 @@
-import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
 import { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
@@ -23,7 +23,7 @@ export const ReforgeFrozenSlots = ({ settings, player, freezeItemSlots }: Reforg
 		<ReforgeFrozenSlotsView
 			hidden={!freezeItemSlots}
 			pickers={slots.map(slot => (
-				<BoundBooleanPicker
+				<ConnectedBooleanPicker
 					key={slot}
 					modObject={player}
 					config={{

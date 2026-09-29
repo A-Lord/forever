@@ -1,5 +1,5 @@
-import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import type { EnumPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -49,16 +49,16 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 			testId="advanced-encounter-picker-modal"
 			bodyClassName="overflow-auto"
 			bodyGap="gap-3"
-			headerChildren={<BoundEnumPicker modObject={encounter} config={presetConfig} />}>
+			headerChildren={<ConnectedEnumPicker modObject={encounter} config={presetConfig} />}>
 			<div className="flex flex-col gap-3" data-testid="encounter-header">
 				<FieldGrid>
 					{duration.map(config => (
-						<BoundNumberField key={config.id} modObject={encounter} config={config} />
+						<ConnectedNumberField key={config.id} modObject={encounter} config={config} />
 					))}
 				</FieldGrid>
 				<FieldGrid>
 					{execute.map(config => (
-						<BoundNumberField key={config.id} modObject={encounter} config={config} />
+						<ConnectedNumberField key={config.id} modObject={encounter} config={config} />
 					))}
 				</FieldGrid>
 			</div>

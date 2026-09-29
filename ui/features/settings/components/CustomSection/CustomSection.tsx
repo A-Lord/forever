@@ -1,5 +1,5 @@
-import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
-import { BoundInput } from '@features/inputs/components/BoundInput';
+import { ConnectedIconInput } from '@features/inputs/components/ConnectedIconInput';
+import { ConnectedInput } from '@features/inputs/components/ConnectedInput';
 import type { Spec } from '@generated/proto/common';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -32,12 +32,12 @@ export const CustomSection = ({ section }: CustomSectionProps) => {
 			{!!section.iconInputs?.length && (
 				<IconRow className={section.iconGroupClassName}>
 					{section.iconInputs.map((config, index) => (
-						<BoundIconInput key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
+						<ConnectedIconInput key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
 					))}
 				</IconRow>
 			)}
 			{section.inputs?.map(config => (
-				<BoundInput key={config.id} config={{ ...config, layout: 'inline' }} />
+				<ConnectedInput key={config.id} config={{ ...config, layout: 'inline' }} />
 			))}
 		</ContentBlock>
 	);

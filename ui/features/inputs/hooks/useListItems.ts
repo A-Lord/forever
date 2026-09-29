@@ -2,7 +2,7 @@ import { useRef } from 'react';
 
 import type { InputConfig } from '../input';
 import { canDeleteAt, carryId, keyFor, moveItem, reconcileIds } from '../list_ids';
-import { useBoundField } from './useBoundField';
+import { useConnectedField } from './useConnectedField';
 
 export interface ListItemsConfig<M, T> extends InputConfig<M, Array<T>> {
 	newItem: () => T;
@@ -24,7 +24,7 @@ export const useListItems = <M, T>(modObject: M, config: ListItemsConfig<M, T>) 
 	configRef.current = config;
 	const lastSeenRef = useRef<ReadonlyArray<T> | null>(null);
 
-	const { value, setValue, hidden, disabled, chrome } = useBoundField(modObject, config);
+	const { value, setValue, hidden, disabled, chrome } = useConnectedField(modObject, config);
 	reconcileIds(lastSeenRef.current, value);
 	lastSeenRef.current = value;
 

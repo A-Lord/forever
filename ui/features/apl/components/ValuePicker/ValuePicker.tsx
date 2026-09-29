@@ -5,7 +5,7 @@ import { newKindImpl, resolveField } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
 import { type APLValueKind, type ValidAPLValueKind, valueKinds } from '@features/apl/model/value_kinds';
-import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
+import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import type { APLValue } from '@generated/proto/apl';
 import { UUID } from '@generated/proto/common';
@@ -92,7 +92,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 			className={['m-0 flex-row items-baseline gap-2', ownsList && 'w-full', chrome.className]}
 			testId={testId ?? 'apl-value-picker-root'}
 			disabled={disabled}>
-			<BoundDropdown<Player<any>, APLValueKind>
+			<ConnectedDropdown<Player<any>, APLValueKind>
 				modObject={player}
 				config={kindConfig}
 				options={options}

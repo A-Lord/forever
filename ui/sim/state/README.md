@@ -73,7 +73,7 @@ drops `currentStats`, `simSettingsKey` drops the rng seed / metadata counters.
 Including them would make stat recomputation re-trigger itself.
 
 Pickers bind through `InputConfig` (`ui/features/inputs/input.ts`), read by
-`useInput` (`ui/features/inputs/hooks/useInput.ts`) under the `Bound*` adapters:
+`useInput` (`ui/features/inputs/hooks/useInput.ts`) under the `Connected*` adapters:
 `storeField` names the store field(s) the input reads (`'gear'`, `'sim:phase'`), or
 `storeSubscribe: obj => StoreSubscribe` supplies a source by hand (e.g.
 `player => subscribePlayerField(player, 'gear')`); the `input_helpers.ts` factories
