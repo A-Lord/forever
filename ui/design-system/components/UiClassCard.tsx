@@ -51,7 +51,7 @@ interface UiClassCardProps {
 }
 
 const UiClassCard = ({ name, rules, sample }: UiClassCardProps) => (
-	<div className="flex flex-col gap-2 border border-border-muted p-3">
+	<div className="flex flex-col gap-2 border border-border-muted p-2">
 		<code className="font-bold">{name}</code>
 		{rules.map((rule, i) => (
 			<pre key={i} className="overflow-x-auto bg-surface p-2 text-ui whitespace-pre text-link">

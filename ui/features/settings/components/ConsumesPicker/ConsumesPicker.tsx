@@ -26,7 +26,7 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 	const configs = useMemo(() => consumeConfigs(player, Database.getSync()), [player]);
 
 	return (
-		<div className="grid gap-3 max-lg:grid-cols-3 max-md:grid-cols-1">
+		<div className="grid gap-2 max-lg:grid-cols-3 max-md:grid-cols-1">
 			{encounterConsumes && (
 				<ConsumeRow name="potions" configs={[configs.potion, configs.conjured]}>
 					<IconRow className="justify-end" data-testid="consumes-potions">

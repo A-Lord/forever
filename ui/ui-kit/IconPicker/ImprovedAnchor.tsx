@@ -15,7 +15,7 @@ export interface ImprovedAnchorProps {
 	onMouseDown: MouseEventHandler;
 }
 
-// The badges share a 38px square set in the swatch's bottom-right corner, hence 2px in on the left and none on the right.
+// The badges share a 38px square set in the swatch's bottom-right corner, hence 1px in on the left and none on the right.
 export const ImprovedAnchor = ({ icon, testId, active, disabled, corner, ...events }: ImprovedAnchorProps) => (
 	<IconSwatch
 		icon={icon}
@@ -23,7 +23,7 @@ export const ImprovedAnchor = ({ icon, testId, active, disabled, corner, ...even
 		active={active}
 		disabled={disabled}
 		testId={testId}
-		className={clsx('absolute bottom-0 size-5 min-w-5', corner === 'left' ? 'left-0.5' : 'right-0', !active && 'border-gray-600 grayscale')}
+		className={clsx('absolute bottom-0 size-4 min-w-4', corner === 'left' ? 'left-px' : 'right-0', !active && 'border-gray-600 grayscale')}
 		{...events}
 	/>
 );

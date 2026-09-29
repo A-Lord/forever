@@ -6,7 +6,7 @@
 
 		inline-size: var(--spinner-size);
 		block-size: var(--spinner-size);
-		border-width: max(--spacing(0.5), calc(var(--spinner-size) / 12));
+		border-width: max(1px, calc(var(--spinner-size) / 12));
 
 		&[data-size='xs'] {
 			--spinner-size: 1em;

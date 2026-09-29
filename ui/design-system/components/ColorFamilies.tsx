@@ -55,7 +55,7 @@ const FamilyCard = ({ name, tokens }: { name: string; tokens: ThemeVar[] }) => {
 	const lead = byName.get(`--color-${name.toLowerCase()}`);
 	return (
 		<section className="overflow-hidden rounded-md border border-border-muted">
-			<Painted background={lead ? `var(${lead.name})` : 'var(--color-surface-raised)'} className="px-4 py-3 font-bold">
+			<Painted background={lead ? `var(${lead.name})` : 'var(--color-surface-raised)'} className="px-4 py-2 font-bold">
 				{name}
 			</Painted>
 			{tokens.map(token => {

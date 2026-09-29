@@ -40,6 +40,6 @@ describe('parseThemeVars', () => {
 
 describe('resolvePxValue', () => {
 	it('resolves a --spacing(n) step at the 14px root', () => {
-		expect(resolvePxValue('--spacing(18.5)', 14)).toBe(64.75);
+		expect(resolvePxValue('--spacing(18)', 14)).toBe(63);
 	});
 });

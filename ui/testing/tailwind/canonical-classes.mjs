@@ -389,6 +389,62 @@ export function findVarInClass(root) {
 	return results;
 }
 
+// The spacing scale here runs even steps plus 1: 1, 2, 4, 6, 8, 10, 12, 16, ... (a fixed
+// px hairline stands in for 1 where the old scale had a sub-1 step). A spacing-scale
+// utility resolves through designSystem.candidatesToCss() to `calc(var(--spacing) * n)`
+// (bare `var(--spacing)` for n === 1, no calc at all for n === 0) regardless of which
+// property it lands on, so reading that shape back out -- rather than a hand-maintained
+// list of `p`/`w`/`inset`/... prefixes -- is what tells a spacing step apart from
+// `grid-cols-3`, `z-10`, `text-3xl` or a fraction/`-px`/`-full`/`-(--var)` token, none of
+// which ever render that shape. The same rule applies to a bare `--spacing(n)` theme-token
+// or arbitrary-property value, which candidatesToCss() never sees because it isn't a class
+// token, so that shape is matched directly off the file text instead.
+const SPACING_CALC_RE = /calc\(var\(--spacing\)\s*\*\s*(-?[\d.]+)\)/;
+const SPACING_FN_RE = /--spacing\((-?[\d.]+)\)/g;
+
+function isUnevenSpacingStep(raw) {
+	const n = parseFloat(raw);
+	if (Math.abs(n) === 1) return false;
+	return !(Number.isInteger(n) && n % 2 === 0);
+}
+
+export async function findUnevenSpacing(root, opts = {}) {
+	const cssPath = opts.css || findDefaultCss(root);
+	const designSystem = await loadDesignSystemCached(cssPath);
+
+	const occurrences = collectTokens(root);
+	const uniqueTokens = [...new Set(occurrences.map(occ => occ.token))];
+	const stepByToken = new Map();
+	for (const token of uniqueTokens) {
+		const [css] = designSystem.candidatesToCss([token]);
+		if (!css) continue;
+		const m = SPACING_CALC_RE.exec(css);
+		if (m) stepByToken.set(token, m[1]);
+	}
+
+	const results = [];
+	for (const occ of occurrences) {
+		const step = stepByToken.get(occ.token);
+		if (step !== undefined && isUnevenSpacingStep(step)) results.push({ file: occ.file, line: occ.line, token: occ.token });
+	}
+
+	const skipDirs = new Set([path.join(root, 'ui/generated'), path.join(root, 'node_modules')]);
+	const files = [...walk(path.join(root, 'ui'), ['.css'], skipDirs), ...walk(path.join(root, 'ui'), ['.ts', '.tsx'], skipDirs)];
+	for (const file of files) {
+		const relPath = path.relative(root, file);
+		if (isGeneratedFile(relPath)) continue;
+		const text = fs.readFileSync(file, 'utf8');
+		SPACING_FN_RE.lastIndex = 0;
+		let m;
+		while ((m = SPACING_FN_RE.exec(text))) {
+			if (isUnevenSpacingStep(m[1])) results.push({ file: relPath, line: lineAt(text, m.index), token: `--spacing(${m[1]})` });
+		}
+	}
+
+	results.sort((a, b) => (a.file === b.file ? a.line - b.line : a.file < b.file ? -1 : 1));
+	return results;
+}
+
 // Edits are applied against the whole file text with a forward-only cursor, not per-line:
 // a wrapped @apply/className spanning multiple lines can repeat the same "from" token more
 // than once, and a line-scoped indexOf only ever finds the first occurrence.

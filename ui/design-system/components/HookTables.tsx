@@ -35,7 +35,7 @@ export const ClassHookAllowlist = () => (
 export const RetiredClassNames = () => (
 	<Unstyled>
 		<p className="mb-2">{retired.length} names.</p>
-		<div className="mb-6 flex flex-wrap gap-x-3 gap-y-1 font-mono text-ui">
+		<div className="mb-6 flex flex-wrap gap-x-2 gap-y-1 font-mono text-ui">
 			{retired.map(name => (
 				<span key={name}>{name}</span>
 			))}

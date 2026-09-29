@@ -43,7 +43,7 @@ export const BuffSectionView = ({ section, empty, children }: BuffSectionViewPro
 			config={{
 				header: { title, tooltip, className: 'flex-col' },
 				withoutBody: empty,
-				bodyClassName: 'grid grid-cols-1 xl:grid-cols-2 gap-3 fhd:grid-cols-3',
+				bodyClassName: 'grid grid-cols-1 xl:grid-cols-2 gap-2 fhd:grid-cols-3',
 			}}
 			headerChildren={description ? <p className="text-sm">{description}</p> : undefined}>
 			{children}

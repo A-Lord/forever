@@ -16,7 +16,7 @@ export const LandingHeader = () => {
 	const toggler = (icon: 'bars' | 'xmark') => (
 		<Button
 			variant="unstyled"
-			className="border-0 px-3 py-1 text-lg leading-none text-white max-md:absolute max-md:top-0 max-md:right-0 md:hidden"
+			className="border-0 px-2 py-1 text-lg leading-none text-white max-md:absolute max-md:top-0 max-md:right-0 md:hidden"
 			aria-controls={COLLAPSE_ID}
 			aria-expanded={open}
 			aria-label={toggleLabel}
@@ -28,7 +28,7 @@ export const LandingHeader = () => {
 
 	return (
 		<header>
-			<div className="flex h-full w-full max-w-full px-3 pt-section max-md:pb-4 lg:mx-auto lg:max-w-landing-lg xl:max-w-modal-xl xxl:max-w-landing-xxl">
+			<div className="flex h-full w-full max-w-full px-2 pt-section max-md:pb-4 lg:mx-auto lg:max-w-landing-lg xl:max-w-modal-xl xxl:max-w-landing-xxl">
 				<nav className="relative flex w-full flex-wrap items-end justify-between py-2 md:justify-start">
 					<div className="order-0 flex max-md:w-full max-md:items-end max-md:justify-between">
 						<a href="#" className="m-0 flex items-center p-0 text-lg whitespace-nowrap text-white">

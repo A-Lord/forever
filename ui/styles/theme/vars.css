@@ -1,6 +1,6 @@
 :root {
 	/* Gem */
-	--gem-width: --spacing(5);
+	--gem-width: --spacing(4);
 
 	/* Base */
 	--border-default: 1px solid var(--color-border);
@@ -12,16 +12,16 @@
 	--btn-font-size: var(--text-sm);
 
 	/* Input */
-	--input-padding-y: --spacing(1.5);
-	--input-padding-x: --spacing(3);
+	--input-padding-y: --spacing(2);
+	--input-padding-x: --spacing(2);
 
 	/* Modal */
-	--modal-margin: --spacing(7);
+	--modal-margin: --spacing(8);
 	--modal-width-xl: var(--container-modal-xl);
 	--modal-border-width: 1px;
 	--modal-border-color: var(--color-surface-border);
-	--modal-padding: --spacing(5);
-	--modal-fade-transform: translate(0, --spacing(-14.25));
+	--modal-padding: --spacing(4);
+	--modal-fade-transform: translate(0, --spacing(-14));
 
 	/* Tooltip */
 	--tooltip-bg: color-mix(in srgb, var(--color-background), var(--color-white) 5%);

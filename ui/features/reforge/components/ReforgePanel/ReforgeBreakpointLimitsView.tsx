@@ -31,7 +31,7 @@ export const ReforgeBreakpointLimitsView = ({ rows }: ReforgeBreakpointLimitsVie
 					{rows.map(row => (
 						<TableRow key={row.key}>
 							<TableCell className="w-0 whitespace-nowrap">{row.statName}</TableCell>
-							<TableCell className="w-18.75">{row.picker}</TableCell>
+							<TableCell className="w-18">{row.picker}</TableCell>
 						</TableRow>
 					))}
 				</tbody>

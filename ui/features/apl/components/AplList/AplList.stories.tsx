@@ -74,7 +74,7 @@ export const Variables: Story = { render: () => <VariablesList /> };
 export const Narrow: Story = {
 	decorators: [
 		Story => (
-			<div className="w-105">
+			<div className="w-106">
 				<Story />
 			</div>
 		),

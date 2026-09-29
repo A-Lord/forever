@@ -96,7 +96,7 @@ export const SettingsDialogView = ({
 					<Tooltip id={restoreTooltipId} content={i18n.t('info.options.restore_defaults.tooltip')} />
 				</>
 			}>
-			<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-2">
 				<FieldGrid>
 					<div data-testid="fixed-rng-seed-container">
 						<div data-testid="fixed-rng-seed">

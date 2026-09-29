@@ -23,7 +23,7 @@ const meta = {
 	argTypes: { children: { control: false } },
 	decorators: [
 		Story => (
-			<div className="grid w-96 gap-3">
+			<div className="grid w-96 gap-2">
 				<Story />
 			</div>
 		),

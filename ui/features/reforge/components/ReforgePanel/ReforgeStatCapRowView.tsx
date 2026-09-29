@@ -29,13 +29,13 @@ export const ReforgeStatCapRowView = ({ statName, tooltip, percentage, undershoo
 						</>
 					)}
 				</TableCell>
-				<TableCell className="w-18.75">{percentage}</TableCell>
-				<TableCell className="w-15 text-right">{undershoot}</TableCell>
+				<TableCell className="w-18">{percentage}</TableCell>
+				<TableCell className="w-16 text-right">{undershoot}</TableCell>
 			</TableRow>
 			{presets && (
 				<TableRow>
 					<TableCell />
-					<TableCell className="w-18.75">{presets}</TableCell>
+					<TableCell className="w-18">{presets}</TableCell>
 					<TableCell />
 				</TableRow>
 			)}

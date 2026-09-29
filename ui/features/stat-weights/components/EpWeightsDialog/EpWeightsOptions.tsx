@@ -12,8 +12,8 @@ export interface EpWeightsOptionsProps {
 }
 
 export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, onShowAllStatsChange }: EpWeightsOptionsProps) => (
-	<div className="-mx-3 mb-3 flex flex-wrap">
-		<div className="w-full px-3 sm:w-1/4">
+	<div className="-mx-2 mb-2 flex flex-wrap">
+		<div className="w-full px-2 sm:w-1/4">
 			<ChoiceField
 				id="ep-type-select"
 				ariaLabel={i18n.t('sidebar.buttons.stat_weights.modal.stats_type')}
@@ -25,7 +25,7 @@ export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, o
 				onChange={onStatsTypeChange}
 			/>
 		</div>
-		<div className="w-full px-3 sm:w-1/4">
+		<div className="w-full px-2 sm:w-1/4">
 			<BooleanPicker
 				id="ep-show-all-stats"
 				label={i18n.t('sidebar.buttons.stat_weights.modal.show_all_stats')}

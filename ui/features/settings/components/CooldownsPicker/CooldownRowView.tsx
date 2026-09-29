@@ -17,7 +17,7 @@ export interface CooldownRowViewProps {
 }
 
 export const CooldownRowView = ({ name, isAdd, deleteTooltipId, onDelete, actionPicker, timingsPicker }: CooldownRowViewProps) => (
-	<div className="mb-3 flex items-center justify-between [&>*:not(:last-child)]:mr-2" data-testid="cooldown-picker" data-add={isAdd ? '' : undefined}>
+	<div className="mb-2 flex items-center justify-between [&>*:not(:last-child)]:mr-2" data-testid="cooldown-picker" data-add={isAdd ? '' : undefined}>
 		{actionPicker}
 		<FieldLabel as="span" className="min-w-[30%] overflow-hidden text-ellipsis" testId="cooldown-picker-label">
 			{name}

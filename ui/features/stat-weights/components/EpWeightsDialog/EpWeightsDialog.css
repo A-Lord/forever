@@ -20,7 +20,7 @@
 	}
 
 	.ui-ep-weights-compact-input {
-		@apply max-lg:pr-0.75 max-lg:pl-0 max-lg:text-center;
+		@apply max-lg:pr-1 max-lg:pl-0 max-lg:text-center;
 	}
 
 	.ui-ep-weights-table-cell {

@@ -214,7 +214,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 						showUpdateColumn={!editOnly}
 					/>
 				</div>
-				<div className="ui-ep-weights-sidebar order-0 min-w-42.5 lg:sticky lg:top-0 lg:z-sticky lg:order-1">
+				<div className="ui-ep-weights-sidebar order-0 min-w-42 lg:sticky lg:top-0 lg:z-sticky lg:order-1">
 					<SavedEpWeights />
 				</div>
 			</div>

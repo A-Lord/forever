@@ -9,7 +9,7 @@ export interface ReforgeSidebarGroupProps {
 
 export const ReforgeSidebarGroup = ({ model, options }: ReforgeSidebarGroupProps) => (
 	<div
-		className="ui-reforge-sidebar-actions order-20 grid w-full grid-cols-reforge [--settings-button-width:--spacing(10.25)]"
+		className="ui-reforge-sidebar-actions order-20 grid w-full grid-cols-reforge [--settings-button-width:--spacing(10)]"
 		data-testid="suggest-reforges-settings-group">
 		<ReforgePanel model={model} options={options} />
 	</div>

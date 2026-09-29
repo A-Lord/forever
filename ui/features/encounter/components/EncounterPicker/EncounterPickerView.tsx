@@ -26,7 +26,7 @@ export const EncounterPickerView = ({
 	targetInputs,
 	onAdvancedClick,
 }: EncounterPickerViewProps) => (
-	<div className="flex flex-wrap gap-3" data-testid="encounter-picker-root">
+	<div className="flex flex-wrap gap-2" data-testid="encounter-picker-root">
 		<FieldGrid>{duration}</FieldGrid>
 		{execute && <FieldGrid className="w-full">{execute}</FieldGrid>}
 		{zone}

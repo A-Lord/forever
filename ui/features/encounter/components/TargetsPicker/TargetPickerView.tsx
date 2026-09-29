@@ -11,7 +11,7 @@ export interface TargetPickerViewProps {
 }
 
 export const TargetPickerView = ({ identity, stats, threat }: TargetPickerViewProps) => (
-	<Field testId="target-picker-root" className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+	<Field testId="target-picker-root" className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 		<FieldGrid data-testid="target-picker-section">{identity}</FieldGrid>
 		<FieldGrid data-testid="target-picker-section">{stats}</FieldGrid>
 		{threat ? (

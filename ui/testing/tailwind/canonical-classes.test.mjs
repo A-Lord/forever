@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { __unstable__loadDesignSystem } from '@tailwindcss/node';
 
-import { deriveClassAttrs, findNonCanonical } from './canonical-classes.mjs';
+import { deriveClassAttrs, findNonCanonical, findUnevenSpacing } from './canonical-classes.mjs';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 const CSS_PATH = path.join(REPO_ROOT, 'ui/styles/style.css');
@@ -115,10 +115,58 @@ function testDeriveClassAttrs() {
 	fs.rmSync(dir, { recursive: true, force: true });
 }
 
+async function testUnevenSpacing() {
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'canon-spacing-fixture-'));
+	fs.mkdirSync(path.join(dir, 'ui/styles'), { recursive: true });
+	fs.mkdirSync(path.join(dir, 'ui/generated'), { recursive: true });
+
+	fs.writeFileSync(
+		path.join(dir, 'ui/Widget.tsx'),
+		[
+			'const a = <div className="p-1.5 p-1 p-2 h-px grid-cols-3 -mx-3 w-1/2 w-(--x)" />;',
+			'const b = <div style={{}} className="[--settings-button-width:--spacing(10.25)]" />;',
+		].join('\n'),
+	);
+	fs.writeFileSync(path.join(dir, 'ui/Widget.css'), ':root {\n  --spacing-tree-indent: --spacing(1.5);\n  --spacing-page: --spacing(2);\n}\n');
+	fs.writeFileSync(path.join(dir, 'ui/generated/gen.ts'), 'const g = <div className="p-1.5" />;');
+
+	const results = await findUnevenSpacing(dir, { css: CSS_PATH });
+	const byFrom = Object.fromEntries(results.map(r => [`${r.file}:${r.token}`, r]));
+
+	assert.ok(byFrom['ui/Widget.tsx:p-1.5'], 'p-1.5 must be flagged');
+	assert.ok(byFrom['ui/Widget.tsx:-mx-3'], '-mx-3 must be flagged');
+	assert.ok(byFrom['ui/Widget.tsx:[--settings-button-width:--spacing(10.25)]'], 'an arbitrary property carrying --spacing(10.25) must be flagged');
+	assert.equal(byFrom['ui/Widget.tsx:p-1'], undefined, 'p-1 is allowed');
+	assert.equal(byFrom['ui/Widget.tsx:p-2'], undefined, 'p-2 is allowed');
+	assert.equal(byFrom['ui/Widget.tsx:h-px'], undefined, 'h-px is allowed');
+	assert.equal(byFrom['ui/Widget.tsx:grid-cols-3'], undefined, 'grid-cols-3 is not a spacing utility');
+	assert.equal(byFrom['ui/Widget.tsx:w-1/2'], undefined, 'a fraction is not a spacing step');
+	assert.equal(byFrom['ui/Widget.tsx:w-(--x)'], undefined, 'a var paren shorthand is not a spacing step');
+
+	assert.ok(
+		results.some(r => r.file === 'ui/Widget.css' && r.token === '--spacing(1.5)'),
+		'--spacing(1.5) must be flagged',
+	);
+	assert.equal(
+		results.some(r => r.file === 'ui/Widget.css' && r.token === '--spacing(2)'),
+		false,
+		'--spacing(2) is allowed',
+	);
+
+	assert.equal(
+		results.some(r => r.file === 'ui/generated/gen.ts'),
+		false,
+		'generated files must be skipped',
+	);
+
+	fs.rmSync(dir, { recursive: true, force: true });
+}
+
 async function main() {
 	await testDesignSystemCases();
 	await testFixtureTree();
 	testDeriveClassAttrs();
+	await testUnevenSpacing();
 	console.log('canonical-classes.test.mjs: all tests passed');
 }
 

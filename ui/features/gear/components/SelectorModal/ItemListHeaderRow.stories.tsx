@@ -12,7 +12,7 @@ const meta = {
 	args: { label: SelectorModalTabs.Items, showEPValues: true, epTooltipId: 'ep-tooltip', onSort: fn() },
 	decorators: [
 		Story => (
-			<div className="w-225">
+			<div className="w-226">
 				<Story />
 			</div>
 		),

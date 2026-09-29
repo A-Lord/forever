@@ -10,7 +10,7 @@ const classOf = (theme: SpecTheme) => theme.key.slice(theme.key.lastIndexOf('-')
 const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
 
 const SpecThemeCard = ({ theme }: { theme: SpecTheme }) => (
-	<div className={clsx('sim-ui', theme.className, 'flex min-h-56 flex-col gap-2 bg-sim bg-cover bg-center p-3 text-foreground')}>
+	<div className={clsx('sim-ui', theme.className, 'flex min-h-56 flex-col gap-2 bg-sim bg-cover bg-center p-2 text-foreground')}>
 		<strong>{theme.name}</strong>
 		<code className="text-ui">.{theme.className}</code>
 		<span className="mt-auto self-start bg-primary px-2 py-1 text-primary-foreground">bg-primary text-primary-foreground</span>
@@ -33,9 +33,9 @@ export const SpecThemeCards = () => (
 	<Unstyled>
 		<div className="flex flex-col gap-6">
 			{byClass().map(([name, themes]) => (
-				<section key={name} className="flex flex-col gap-3">
+				<section key={name} className="flex flex-col gap-2">
 					<h3 className={clsx('font-bold', CLASS_TEXT[name])}>{titleCase(name)}</h3>
-					<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+					<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 						{themes.map(theme => (
 							<SpecThemeCard key={theme.key} theme={theme} />
 						))}
