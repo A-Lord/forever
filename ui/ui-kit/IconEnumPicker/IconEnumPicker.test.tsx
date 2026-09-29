@@ -126,12 +126,19 @@ describe('IconEnumPicker', () => {
 			fireEvent.keyDown(highlighted(), { key: 'ArrowDown' });
 		});
 		expect(highlighted()).toBe(optionAnchor(2));
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'ArrowUp' });
+		});
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'ArrowUp' });
+		});
+		expect(highlighted()).toBe(optionAnchor(0));
 
 		act(() => {
 			fireEvent.keyDown(highlighted(), { key: 'Enter' });
-			fireEvent.click(highlighted());
 		});
-		expect(onChange).toHaveBeenLastCalledWith(2);
+		expect(onChange).toHaveBeenCalledTimes(1);
+		expect(onChange).toHaveBeenCalledWith(0);
 	});
 
 	it('takes the button’s icon, href and active class from the selected value', () => {
