@@ -5,13 +5,14 @@ export interface ElapsedTimeProps {
 	running: boolean;
 	/** `Date.now()` when the run began. */
 	startedAt: number;
+	testId?: string;
 }
 
 const TICK_MS = 100;
 const ZERO = formatDurationSeconds(0);
 
 /** `textContent` rather than state: the dialog is `keepMounted`, so a ticking `setState` would render it ten times a second for as long as the page lives. */
-export const ElapsedTime = ({ running, startedAt }: ElapsedTimeProps) => {
+export const ElapsedTime = ({ running, startedAt, testId = 'time-elapsed' }: ElapsedTimeProps) => {
 	const elapsed = useRef<HTMLSpanElement>(null);
 
 	useEffect(() => {
@@ -25,7 +26,7 @@ export const ElapsedTime = ({ running, startedAt }: ElapsedTimeProps) => {
 	}, [running, startedAt]);
 
 	return (
-		<span ref={elapsed} data-testid="time-elapsed">
+		<span ref={elapsed} data-testid={testId}>
 			{ZERO}
 		</span>
 	);

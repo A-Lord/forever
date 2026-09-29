@@ -7,10 +7,11 @@ export interface ProgressTrackerBarProps {
 	progress?: number;
 	title?: string;
 	readout?: string;
+	testId?: string;
 }
 
-export const ProgressTrackerBar = ({ running, progress, title, readout }: ProgressTrackerBarProps) => (
-	<div className="ui-progress">
+export const ProgressTrackerBar = ({ running, progress, title, readout, testId = 'progress-tracker-bar' }: ProgressTrackerBarProps) => (
+	<div className="ui-progress" data-testid={testId}>
 		{running && title && (
 			<div className="mb-2" data-testid="progress-tracker-modal-progress-title">
 				{title}
