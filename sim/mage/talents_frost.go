@@ -174,15 +174,7 @@ func (mage *Mage) registerArcticReach() {
 		return
 	}
 
-	// Effect 1 is SPELLMOD_RANGE as a percentage, which core has no mod for: it is worked out
-	// against Frostbolt's range, which Blizzard shares. The radius (effect 2) does nothing to a
-	// single boss.
-	effect := spellData.ArcticReach.Rank(mage.Talents.ArcticReach).EffectN(1)
-	mage.AddStaticMod(core.SpellModConfig{
-		ClassFlags: effect.ClassFlags,
-		FloatValue: effect.Percent() * float64(frostboltRank.MaxRange),
-		Kind:       core.SpellMod_Range_Flat,
-	})
+	spelldata.ParseStatic(&mage.Character, spellData.ArcticReach.Rank(mage.Talents.ArcticReach))
 }
 
 // registerIceBlock implements the talent gate for Ice Block (ice_block.go).
