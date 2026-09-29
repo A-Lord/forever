@@ -531,7 +531,7 @@ describe('Tree', () => {
 			</Tree.Root>,
 		);
 		const text = screen.getByRole('button', { name: 'New row' });
-		expect(text.querySelector('i')?.classList.contains('fa-plus')).toBe(true);
+		expect(text.querySelector('svg')?.classList.contains('fa-plus')).toBe(true);
 		expect(text.hasAttribute('data-tone')).toBe(false);
 		expect(screen.getByTestId('icon-add').getAttribute('data-tone')).toBe('success');
 	});

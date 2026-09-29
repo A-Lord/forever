@@ -5,7 +5,7 @@ import { NOTICE_ICON_NAME as EXPORTED_ICON_NAME } from '.';
 import { Notice } from './Notice';
 import { NOTICE_COLOR, NOTICE_ICON_NAME } from './noticeLevel';
 
-const icon = (el: HTMLElement) => el.querySelector('i')!;
+const icon = (el: HTMLElement) => el.querySelector('svg')!;
 
 describe('Notice', () => {
 	it.each([

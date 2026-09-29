@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { Icon } from '@ui-kit/Icon';
 import { describe, expect, it } from 'vitest';
 
 import { Button } from './Button';
@@ -171,7 +172,7 @@ describe('Button', () => {
 	it('lays the spinner over an iconOnly button, keeping the icon in place but invisible, and marks itself busy', () => {
 		render(
 			<Button iconOnly loading aria-label="Settings">
-				<i data-testid="cog" className="fas fa-cog" />
+				<Icon name="cog" testId="cog" />
 			</Button>,
 		);
 		const button = screen.getByRole('button', { name: 'Settings' });

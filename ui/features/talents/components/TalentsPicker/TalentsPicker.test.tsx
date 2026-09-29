@@ -159,10 +159,10 @@ describe('TalentsPicker copy button', () => {
 	it('reports the copy in the label, and reverts', () => {
 		mount();
 		fireEvent.click(copyButton());
-		expect(copyButton().querySelector('i')!.className).toContain('fa-check');
+		expect(copyButton().querySelector('svg')!.classList).toContain('fa-check');
 
 		act(() => void vi.advanceTimersByTime(1500));
-		expect(copyButton().querySelector('i')!.className).toContain('fa-copy');
+		expect(copyButton().querySelector('svg')!.classList).toContain('fa-copy');
 	});
 });
 

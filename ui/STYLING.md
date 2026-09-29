@@ -11,10 +11,11 @@ JSX element to carry them), `ui/testing/tailwind/canonical-classes.mjs` /
 and `ui/no_class_hooks.test.ts`.
 
 There is no SCSS and no Bootstrap anywhere in `ui/` (`find ui -name '*.scss'` is empty; neither
-HTML entry links anything but `style.css` and the FontAwesome CDN sheet). Every class in `ui/`
+HTML entry links anything but `style.css`; icons are inline SVG from `@fortawesome/react-fontawesome`,
+whose stylesheet it injects itself). Every class in `ui/`
 markup is a Tailwind utility, a `ui-*` composition class, an entry of the fixed allowlist
 `ui/class_hook_allowlist.json` (`sim-ui`, `<spec>-sim-ui`, `group`/`peer` and their named forms,
-FontAwesome's `fa`/`fas`/`far`/`fab`/`fa-*`, and the react-tooltip class-as-theme names), or a
+and the react-tooltip class-as-theme names), or a
 `data-testid`/`data-*` used only by tests and tools. `npm run test:unit` enforces it — see "The
 gates" below for what each check covers.
 
@@ -229,7 +230,7 @@ Two tree-wide tests in `npm run test:unit` run the checkers, both under `// @vit
   a component. The checkers read `.ts`, `.tsx` and `.css`, so the `.mdx` pages are not scanned.
 - **The allowlist, `ui/class_hook_allowlist.json`,** is `sim-ui` and the `<spec>-sim-ui` pattern
   that `ui/styles/theme/specs.css` selects, `group`/`group/*`, `peer`/`peer/*`,
-  `sim-tooltip`/`sim-tooltip--unpadded`, `fa`/`fas`/`far`/`fab`/`fa-*`, and the three
+  `sim-tooltip`/`sim-tooltip--unpadded`, and the three
   third-party-required names `tooltip-quick-swap`, `suggest-reforges-softcaps`,
   `bonus-stats-popover` — react-tooltip forwards a component's `className` as its own `data-theme`
   attribute and forwards no `data-testid` equivalent, so those three cannot become pure testids. An

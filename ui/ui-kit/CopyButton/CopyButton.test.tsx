@@ -44,20 +44,20 @@ describe('CopyButton', () => {
 		const { container } = render(<CopyButton getContent={() => payload} text="Copy me" />);
 
 		expect(button(container).textContent).toContain('Copy me');
-		expect(container.querySelector('i')?.classList.contains('fa-copy')).toBe(true);
+		expect(container.querySelector('svg')?.classList.contains('fa-copy')).toBe(true);
 
 		payload = 'after';
 		act(() => void fireEvent.click(button(container)));
 
 		expect(copied).toEqual(['after']);
-		expect(container.querySelector('i')?.classList.contains('fa-check')).toBe(true);
+		expect(container.querySelector('svg')?.classList.contains('fa-check')).toBe(true);
 		expect(button(container).textContent).not.toContain('Copy me');
 
 		act(() => void fireEvent.click(button(container)));
 		expect(copied).toEqual(['after']);
 
 		act(() => void vi.advanceTimersByTime(1500));
-		expect(container.querySelector('i')?.classList.contains('fa-copy')).toBe(true);
+		expect(container.querySelector('svg')?.classList.contains('fa-copy')).toBe(true);
 
 		act(() => void fireEvent.click(button(container)));
 		expect(copied).toEqual(['after', 'after']);
@@ -76,7 +76,7 @@ describe('CopyButton', () => {
 		expect(options).toMatchObject({ variant: 'error', autohide: false });
 		expect(render(<>{options.body}</>).container.textContent).toBe('payload');
 		expect(button(container).textContent).toContain('Copy me');
-		expect(button(container).querySelector('i')?.classList.contains('fa-copy')).toBe(true);
+		expect(button(container).querySelector('svg')?.classList.contains('fa-copy')).toBe(true);
 	});
 
 	it('fires onCopied on both branches', () => {

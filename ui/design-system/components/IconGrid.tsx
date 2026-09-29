@@ -1,5 +1,5 @@
 import { Unstyled } from '@storybook/addon-docs/blocks';
-import { Icon, ICON_ALIASES, ICON_NAMES, type IconAlias, type IconName, type IconSize } from '@ui-kit/Icon';
+import { hasRegularDefinition, Icon, ICON_ALIASES, ICON_NAMES, type IconAlias, type IconName, type IconSize } from '@ui-kit/Icon';
 
 const BRANDS = new Set<IconName>(['discord', 'github', 'patreon']);
 
@@ -37,9 +37,7 @@ export const IconGrid = () => (
 						<td className="p-2 text-center text-lg">
 							<Icon name={name} />
 						</td>
-						<td className="p-2 text-center text-lg">
-							<Icon name={name} style="regular" />
-						</td>
+						<td className="p-2 text-center text-lg">{hasRegularDefinition(name) && <Icon name={name} style="regular" />}</td>
 						<td className="p-2 text-center text-lg">{BRANDS.has(name) && <Icon name={name} style="brands" />}</td>
 					</tr>
 				))}

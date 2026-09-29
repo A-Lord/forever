@@ -1,7 +1,9 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import clsx from 'clsx';
-import type { HTMLAttributes } from 'react';
+import { type HTMLAttributes, useId } from 'react';
 
-import { ICON_ALIASES, ICON_STYLE_CLASS, type IconAlias, type IconName, type IconSize, type IconStyle } from './types';
+import { iconDefinition } from './definitions';
+import { ICON_ALIASES, type IconAlias, type IconName, type IconSize, type IconStyle } from './types';
 
 // `style` is the FontAwesome style here, not a CSS object, so it shadows the DOM prop.
 export interface IconProps extends Omit<HTMLAttributes<HTMLElement>, 'style'> {
@@ -20,13 +22,22 @@ const resolve = (name: IconName | IconAlias): IconName => (name in ICON_ALIASES 
 
 // The rest props matter: an icon is an anchor for its own tooltip at several sites, and a dropped `data-tooltip-id` fails silently.
 export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className, title, testId, ...rest }: IconProps) => {
+	const titleId = useId();
+	const resolved = resolve(name);
+	const definition = iconDefinition(resolved, style);
+	// FontAwesome names the svg `fa-<canonical name>`; a name spelled differently in `IconName` also carries its own.
+	const nameClass = definition.iconName !== resolved && `fa-${resolved}`;
 	return (
-		<i
+		<FontAwesomeIcon
 			data-testid={testId}
-			{...rest}
-			className={clsx(ICON_STYLE_CLASS[style], `fa-${resolve(name)}`, size && `fa-${size}`, spin && 'fa-spin', fixedWidth && 'fa-fw', className)}
+			{...(rest as Omit<HTMLAttributes<SVGSVGElement>, 'style'>)}
+			icon={definition}
+			className={clsx(nameClass, className)}
+			size={size}
+			spin={spin}
+			fixedWidth={fixedWidth}
 			title={title}
-			aria-hidden={title ? undefined : true}
+			titleId={title ? titleId : undefined}
 		/>
 	);
 };
