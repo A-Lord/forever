@@ -45,7 +45,10 @@ point of the current tree, and `lint:js` is the only thing enforcing them anywhe
 
 - **`build-ui`**: `npm ci` and `test:locales`, then `fmt`, `lint:js`, `lint:css`, a
   `make ui/generated/proto/api.ts go-to-ts` generate step, `type-check`, `test:unit`, and finally
-  `make dist/forever/.dirstamp`.
+  `make dist/forever/.dirstamp`. On a pull request from this repository two more steps upload
+  `dist` to Cloudflare Pages and keep one comment on the pull request pointing at
+  `https://pr-<number>.wowsims-forever.pages.dev/forever/`, the built UI with real sims. Fork pull
+  requests carry no secrets and skip both.
 - **`test`**: `go test --tags=with_db ./sim/...` in one job (four shards when there is more than one runner) — the Go sim, not the UI.
 
 So every script in the list above runs in CI, cheapest first, which is why a formatting slip reports
