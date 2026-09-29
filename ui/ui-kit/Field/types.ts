@@ -2,16 +2,18 @@ import type { ClassValue } from 'clsx';
 import type { AriaRole, ReactElement, ReactNode, Ref } from 'react';
 
 export type FieldLayout = 'inline' | 'split';
+export type FieldDensity = 'compact';
+export type FieldTooltip = string | Element | ReactElement;
 
 /** What every field renders around its control. */
 export interface FieldChromeProps {
 	id?: string;
 	label?: string;
-	labelTooltip?: string | Element | ReactElement;
+	labelTooltip?: FieldTooltip;
 	description?: string | Element;
 	layout?: FieldLayout;
 	/** `compact` tightens this field and every field nested inside it. */
-	density?: 'compact';
+	density?: FieldDensity;
 	className?: ClassValue;
 	testId?: string;
 }
@@ -54,4 +56,54 @@ export interface FieldProps extends FieldChromeProps {
 	'aria-labelledby'?: string;
 	/** Hides the field and keeps its children mounted. */
 	hidden?: boolean;
+}
+
+export interface FieldRootProps {
+	/** The control's id: `Field.Label` points at it and `Field.Control` hands it to a native control. */
+	id?: string;
+	layout?: FieldLayout;
+	density?: FieldDensity;
+	disabled?: boolean;
+	/** `false` renders the root and a `Field.Clear` inside it `flex-none`. */
+	grow?: boolean;
+	className?: ClassValue;
+	testId?: string;
+	ref?: Ref<HTMLDivElement>;
+	role?: AriaRole;
+	'aria-labelledby'?: string;
+	hidden?: boolean;
+	children?: ReactNode;
+}
+
+export interface FieldLabelProps {
+	/** `span` for a caption that names a group of controls, which a `<label>` cannot. */
+	as?: 'label' | 'span';
+	id?: string;
+	tooltip?: FieldTooltip;
+	className?: ClassValue;
+	testId?: string;
+	children: string;
+}
+
+export interface FieldDescriptionProps {
+	id?: string;
+	className?: ClassValue;
+	testId?: string;
+	children: ReactNode | Element;
+}
+
+export interface FieldControlProps {
+	className?: ClassValue;
+	testId?: string;
+	children: ReactElement;
+}
+
+export interface FieldSlotProps {
+	className?: ClassValue;
+	testId?: string;
+	children?: ReactNode;
+}
+
+export interface FieldClearPartProps extends FieldClearProps {
+	children?: ReactNode;
 }

@@ -236,6 +236,10 @@ config's `getValue` may return the live store array and its `setValue` assigns t
 (`rotation.priorityList = next`, `setTargets(next)`) and notifies. Each row's binding re-reads
 `config.getValue` and finds its item by key, so a row keeps its item through a reorder and through a
 source that hands back clones. Confirm with `/usr/bin/grep -n "slice()" ui/ui-kit/ListPicker/ListPicker.tsx`.
+`useListItems` (`ui/features/inputs/hooks/useListItems.ts`) is the same binding without the markup:
+`create`, `remove`, `copy`, `move` and each row's `itemConfig` write one fresh array through
+`config.setValue`, and `remove` refuses a row `minimumItems` keeps; the keys come from
+`ui/features/inputs/list_ids.ts`.
 
 ## Adding a field
 

@@ -21,6 +21,7 @@ export interface IconEnumPickerProps<T> extends FieldChromeProps, ControlledProp
 	/** The side the menu opens on. */
 	direction?: IconEnumPickerDirection;
 	numColumns?: number;
+	onOpenChange?: (open: boolean) => void;
 }
 
 export const IconEnumPicker = <T,>({
@@ -31,6 +32,7 @@ export const IconEnumPicker = <T,>({
 	tooltip,
 	direction,
 	numColumns,
+	onOpenChange,
 	value,
 	onChange,
 	disabled,
@@ -60,6 +62,7 @@ export const IconEnumPicker = <T,>({
 			disabled={disabled}
 			leading={
 				<Menu
+					onOpenChange={onOpenChange}
 					surface="none"
 					// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
 					// shared by every rank, the text is what tells the ranks apart.

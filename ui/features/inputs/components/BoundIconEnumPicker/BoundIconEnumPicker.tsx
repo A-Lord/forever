@@ -1,6 +1,7 @@
 import { useActionIds } from '@sim/hooks/useActionIds';
 import { useResolvedIcon } from '@sim/hooks/useResolvedIcon';
 import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
+import { useState } from 'react';
 
 import { useBoundField } from '../../hooks/useBoundField';
 import { useHideZeroRestore } from '../../hooks/useHideZeroRestore';
@@ -28,8 +29,13 @@ export const BoundIconEnumPicker = <ModObject, T>({ modObject, config, testId }:
 		},
 	);
 
-	const icons = useActionIds(config.values.map(valueConfig => valueConfig.actionId));
+	// Only the selection shows until the menu first opens, so the other options fill then, and a hidden
+	// option never does. The selection keeps its own icon, so the swatch does not blank while the
+	// options fill.
+	const [opened, setOpened] = useState(false);
 	const selected = config.values.find(valueConfig => config.equals(valueConfig.value, value));
+	const [selectedIcon] = useActionIds([selected && shows(selected) ? selected.actionId : undefined]);
+	const icons = useActionIds(config.values.map(valueConfig => (opened && shows(valueConfig) ? valueConfig.actionId : undefined)));
 	const backupIcon = useResolvedIcon(selected ? undefined : config.backupIconUrl?.(value));
 
 	if (hidden) return null;
@@ -40,7 +46,7 @@ export const BoundIconEnumPicker = <ModObject, T>({ modObject, config, testId }:
 			testId={testId}
 			options={config.values.map((valueConfig, index) => ({
 				value: valueConfig.value,
-				icon: icons[index],
+				icon: icons[index] ?? (valueConfig === selected ? selectedIcon : undefined),
 				color: valueConfig.color,
 				iconUrl: valueConfig.iconUrl,
 				text: valueConfig.text,
@@ -53,6 +59,9 @@ export const BoundIconEnumPicker = <ModObject, T>({ modObject, config, testId }:
 			tooltip={config.tooltip}
 			direction={config.direction}
 			numColumns={typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns}
+			onOpenChange={open => {
+				if (open) setOpened(true);
+			}}
 			value={value}
 			onChange={next => {
 				clearStored();
