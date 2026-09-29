@@ -114,7 +114,7 @@ export const CharacterStats = () => {
 	};
 
 	const table = (
-		<Table variant="plain" flush className="p-2.5" aria-busy={pending || undefined}>
+		<Table variant="plain" flush className="ui-character-stats-table p-2.5" aria-busy={pending || undefined}>
 			{groups.map(group => (
 				<tbody key={group.key}>
 					{group.rows.map(row => {

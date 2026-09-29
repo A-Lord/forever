@@ -12,7 +12,7 @@
 	}
 
 	.ui-character-stats-panel {
-		@apply -mx-(--sidebar-inline-padding) border-t border-border-muted px-(--sidebar-inline-padding);
+		@apply -mx-(--sidebar-inline-padding) border-t border-border-muted px-(--sidebar-inline-padding) pt-2;
 	}
 
 	.ui-character-stats-header {
@@ -45,6 +45,10 @@
 
 	.ui-character-stats-row:first-child {
 		@apply border-t border-solid border-t-border;
+	}
+
+	.ui-character-stats-table > tbody:first-child > .ui-character-stats-row:first-child {
+		@apply border-t-0;
 	}
 
 	.ui-character-stats-row:last-child .ui-character-stats-label,
