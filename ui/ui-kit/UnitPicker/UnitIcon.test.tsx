@@ -18,7 +18,7 @@ describe('UnitIcon', () => {
 
 		const icon = screen.getByTestId('unit-picker-item-icon');
 		expect(icon.tagName).toBe('svg');
-		expect([...icon.classList]).toEqual(['svg-inline--fa', 'fa-paw', 'ui-icon', 'ui-unit-icon']);
+		expect([...icon.classList]).toEqual(['svg-inline--fa', 'fa-paw', 'ui-icon', 'ui-unit-icon', 'fa-width-auto']);
 		expect(icon.getAttribute('aria-hidden')).toBe('true');
 	});
 

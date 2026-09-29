@@ -12,7 +12,7 @@ describe('Icon', () => {
 	it('renders an svg carrying its glyph class', () => {
 		const { container } = render(<Icon name="circle-question" />);
 		expect(el(container).tagName.toLowerCase()).toBe('svg');
-		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-circle-question', 'ui-icon']);
+		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-circle-question', 'ui-icon', 'fa-width-auto']);
 	});
 
 	it('draws the glyph of the style it is given', () => {
@@ -39,7 +39,7 @@ describe('Icon', () => {
 	});
 
 	it('keeps its own name as a class when FontAwesome names the glyph differently', () => {
-		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon']);
+		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon', 'fa-width-auto']);
 	});
 
 	it.each(ICON_NAMES)('renders %s from a definition, as its fa- class', name => {
@@ -49,14 +49,18 @@ describe('Icon', () => {
 
 	it('adds size and spin as classes, and the size as data-size', () => {
 		const { container } = render(<Icon name="spinner" size="2xl" spin />);
-		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-spinner', 'ui-icon', 'fa-spin', 'fa-2xl']);
+		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-spinner', 'ui-icon', 'fa-spin', 'fa-2xl', 'fa-width-auto']);
 		expect(el(container).dataset.size).toBe('2xl');
 		expect(el(render(<Icon name="spinner" />).container).hasAttribute('data-size')).toBe(false);
 	});
 
-	it('adds fa-fw for a fixed-width icon, and nothing without it', () => {
-		expect(classes(render(<Icon name="circle-question" size="xl" fixedWidth />).container)).toContain('fa-fw');
-		expect(classes(render(<Icon name="circle-question" />).container)).not.toContain('fa-fw');
+	it('is as wide as its glyph unless it is fixed width', () => {
+		const fixed = classes(render(<Icon name="circle-question" size="xl" fixedWidth />).container);
+		expect(fixed).toContain('fa-fw');
+		expect(fixed).not.toContain('fa-width-auto');
+		const auto = classes(render(<Icon name="circle-question" />).container);
+		expect(auto).not.toContain('fa-fw');
+		expect(auto).toContain('fa-width-auto');
 	});
 
 	it('takes its test id from testId', () => {
@@ -72,10 +76,8 @@ describe('Icon', () => {
 	it('is hidden from assistive tech unless it carries a title', () => {
 		expect(el(render(<Icon name="times" />).container).getAttribute('aria-hidden')).toBe('true');
 		const titled = el(render(<Icon name="times" title="Close" />).container);
-		expect(titled.getAttribute('aria-hidden')).toBeNull();
-		const title = titled.querySelector('title')!;
-		expect(title.textContent).toBe('Close');
-		expect(titled.getAttribute('aria-labelledby')).toBe(title.id);
+		expect(titled.getAttribute('aria-hidden')).toBe('false');
+		expect(titled.getAttribute('aria-label')).toBe('Close');
 	});
 
 	// character_stats.tsx anchors a tooltip on the icon itself; a dropped attribute fails silently.
