@@ -12,9 +12,6 @@
 	}
 
 	.ui-sidebar-action-spinner {
-		--loader-width: 1em;
-		--loader-height: 1em;
-
 		@apply absolute inset-0 m-auto;
 	}
 }

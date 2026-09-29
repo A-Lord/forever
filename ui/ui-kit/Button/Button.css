@@ -204,16 +204,10 @@
 	}
 
 	.ui-button-spinner {
-		--loader-width: 1em;
-		--loader-height: 1em;
-
 		@apply mr-2 inline-block align-[-0.125em];
 	}
 
 	.ui-button-icon-spinner {
-		--loader-width: 1em;
-		--loader-height: 1em;
-
 		@apply absolute inset-0 m-auto;
 	}
 }

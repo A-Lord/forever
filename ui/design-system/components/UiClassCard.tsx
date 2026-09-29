@@ -1,4 +1,5 @@
 import { Unstyled } from '@storybook/addon-docs/blocks';
+import { Spinner } from '@ui-kit/Spinner';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
@@ -20,7 +21,7 @@ const uiClassSample = (name: string): ReactNode => {
 				<span className="p-2">Chip</span>
 			</div>
 		);
-	if (name === 'ui-spinner' || name === 'ui-spinner-sm') return <div className={clsx('ui-spinner rounded-full', name)} />;
+	if (name === 'ui-spinner') return <Spinner />;
 	if (name === 'ui-skeleton') return <span className="ui-skeleton" />;
 	return undefined;
 };

@@ -116,7 +116,7 @@
 
 	--color-input-disabled: color-mix(in srgb, var(--color-background), var(--color-white) 20%);
 	--color-scrim: --alpha(var(--color-black) / 50%);
-	--color-spinner: #3498db;
+	--color-spinner: var(--color-white);
 
 	--color-cr-scene-glow: color-mix(in srgb, var(--color-background) 65%, var(--color-warning) 35%);
 	--color-cr-dmg-num: color-mix(in srgb, var(--color-warning) 80%, var(--color-white));
@@ -130,7 +130,7 @@
 	--color-off-white: var(--color-zinc-100);
 	--color-table-even: var(--color-zinc-900);
 	--color-table-odd: var(--color-zinc-800);
-	--color-spinner-track: var(--color-zinc-100);
+	--color-spinner-track: var(--color-surface-border);
 	--color-primary-hover: color-mix(in srgb, var(--color-primary) 70%, var(--color-black));
 	--color-primary-active: color-mix(in srgb, var(--color-primary) 80%, var(--color-black));
 	--color-primary-dampened: color-mix(in srgb, var(--color-primary) 25%, var(--color-black));

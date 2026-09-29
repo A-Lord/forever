@@ -32,7 +32,7 @@ export const SimResultsPanel = ({ panel, warnings, results }: SimResultsPanelPro
 				className="[&_.ui-spinner]:m-auto"
 				data-testid="results-pending"
 				hidden={stage !== ResultsPanelStage.Pending && stage !== ResultsPanelStage.Running}>
-				{stage === ResultsPanelStage.Running ? <SimProgress panel={panel} /> : <Spinner />}
+				{stage === ResultsPanelStage.Running ? <SimProgress panel={panel} /> : <Spinner size="lg" />}
 			</div>
 			<div data-testid="results-content" hidden={stage !== ResultsPanelStage.Result}>
 				{results && <SimResultSummary results={results} />}
