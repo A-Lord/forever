@@ -41,7 +41,7 @@ const configFor = (shown: (options: Options) => boolean): IconEnumPickerConfig<O
 		setValue: () => {},
 	}) as IconEnumPickerConfig<Options, number>;
 
-const row = (options: Options, configs?: Array<IconEnumPickerConfig<Options, number>>, hidden?: boolean) => {
+const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>, hidden?: boolean) => {
 	render(
 		<SimHostProvider host={{ player: options } as never}>
 			<ConsumeRow name="engineering" configs={configs as never} hidden={hidden}>
@@ -89,13 +89,9 @@ describe('ConsumeRow', () => {
 		expect(isHidden(element)).toBe(false);
 	});
 
-	it('never hides a row that names no pickers', () => {
-		const options = new Options();
-		const element = row(options);
-		expect(isHidden(element)).toBe(false);
-
-		act(() => options.changeProfession(1));
-		expect(isHidden(element)).toBe(false);
+	it('hides a row that names no pickers', () => {
+		const element = row(new Options(), []);
+		expect(isHidden(element)).toBe(true);
 	});
 
 	// A gear planner has no encounter, so it hides the miscellaneous row outright; the pickers inside
