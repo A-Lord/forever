@@ -43,12 +43,19 @@ async function testFindClassHooksLastArrayElement() {
 	fs.mkdirSync(path.join(dir, 'ui/styles'), { recursive: true });
 
 	fs.writeFileSync(path.join(dir, 'ui/class_hook_allowlist.json'), JSON.stringify([]));
-	fs.writeFileSync(path.join(dir, 'ui/configs.ts'), "export const ENTRY = { stat: 1, extraClassNames: ['retired-hook'] };\n");
+	fs.writeFileSync(
+		path.join(dir, 'ui/configs.ts'),
+		[
+			"export const ENTRY = { stat: 1, extraClassNames: ['retired-hook'] };",
+			"const widget = <div className={clsx(SIZE_CLASS[props.size ?? 'default'], 'p-2')} />;",
+		].join('\n'),
+	);
 
 	const hooks = await findClassHooks(dir, { css: CSS_PATH });
 	const tokens = hooks.map(h => h.token);
 
 	assert.ok(tokens.includes('retired-hook'), 'the sole/last element of a class array must be flagged, not skipped as an index literal');
+	assert.ok(!tokens.includes('default'), "a genuine computed-member key (obj[expr ?? 'key']) must not be flagged as a class");
 
 	fs.rmSync(dir, { recursive: true, force: true });
 }
