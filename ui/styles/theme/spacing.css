@@ -2,6 +2,7 @@
 	--spacing-page: --spacing(2);
 	--spacing-section: --spacing(8);
 	--spacing-floating-action-bar: calc(--spacing(11) + (var(--spacing) * 2 * 2) + 2px);
+	--spacing-character-stats-bar: --spacing(12);
 	--spacing-popup-min-w: var(--container-popup);
 	--size-scrollbar: --spacing(0.75);
 

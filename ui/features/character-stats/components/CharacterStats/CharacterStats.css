@@ -8,11 +8,27 @@
 	}
 
 	.ui-character-stats-header {
-		@apply sticky bottom-0 z-toolbar border-t border-transparent bg-background pt-2 pb-2 transition-colors duration-150 lg:pb-6;
+		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-transparent bg-background px-(--sidebar-inline-padding) pt-2 pb-2 transition-colors duration-150 lg:pb-6;
 
 		&[data-stuck] {
 			@apply border-border;
 		}
+	}
+
+	.ui-character-stats-bar {
+		@apply fixed inset-x-0 bottom-0 z-toolbar flex h-character-stats-bar items-center gap-2 border-t border-border bg-background px-(--sidebar-inline-padding);
+
+		& > :not(.ui-character-stats-bar-trigger) {
+			@apply pointer-events-none relative z-1;
+
+			& :is(button, a, input, select, [role='button']) {
+				@apply pointer-events-auto;
+			}
+		}
+	}
+
+	.ui-character-stats-bar-trigger {
+		@apply order-last p-1 after:absolute after:inset-0;
 	}
 
 	.ui-character-stats-row {

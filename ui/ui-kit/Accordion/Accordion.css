@@ -32,11 +32,19 @@
 	}
 
 	.ui-accordion-header-row {
-		@apply m-0 flex items-center gap-2;
+		@apply relative m-0 flex items-center gap-2;
+
+		& > :not(.ui-accordion-header-trigger) {
+			@apply pointer-events-none relative z-1;
+
+			& :is(button, a, input, select, [role='button']) {
+				@apply pointer-events-auto;
+			}
+		}
 	}
 
 	.ui-accordion-header-trigger {
-		@apply flex shrink-0 interactive items-center justify-center p-1 text-foreground;
+		@apply order-last flex shrink-0 interactive items-center justify-center p-1 text-foreground after:absolute after:inset-0;
 
 		&:hover {
 			@apply text-link-hover;

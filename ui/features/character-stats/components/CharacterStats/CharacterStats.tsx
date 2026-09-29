@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
+import { CharacterStatsBarView } from './CharacterStatsBarView';
 import type { CharacterStatsMode } from './CharacterStatsHeaderView';
 import { CharacterStatsPanelView } from './CharacterStatsPanelView';
 import { CritCapRow } from './CritCapRow';
@@ -30,7 +31,8 @@ const ALL_STATS = UnitStat.getAll();
 
 const OPEN_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_character-stats-open.v1`;
 
-// `--breakpoint-lg` in breakpoints.css: from there up the sidebar is a column of its own, below it the stats sit above the settings.
+// `--breakpoint-lg` in breakpoints.css: from there up the sidebar is a column of its own and the stats a panel at its foot; below it the
+// sidebar scrolls away with the page, so the stats are a bar on the viewport's bottom edge that opens a sheet.
 const WIDE = '(min-width: 992px)';
 
 const parseOpen = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
@@ -41,8 +43,10 @@ export const CharacterStats = () => {
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
 	const [mode, setMode] = useState<CharacterStatsMode>('key');
 	const [storedOpen, setStoredOpen] = useTypedLocalStorage<boolean>(OPEN_STORAGE_KEY, parseOpen);
+	const [wide] = useState(() => window.matchMedia(WIDE).matches);
 	// React state over the stored value: with storage blocked nothing is written, and the panel still has to open.
-	const [open, setOpen] = useState(() => storedOpen ?? window.matchMedia(WIDE).matches);
+	// The sheet covers the page, so it starts closed whatever was stored.
+	const [open, setOpen] = useState(() => wide && (storedOpen ?? true));
 	const toggle = (next: boolean) => {
 		setOpen(next);
 		setStoredOpen(next);
@@ -102,60 +106,65 @@ export const CharacterStats = () => {
 	const hasParry = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatParryPercent));
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));
 
-	return (
-		<CharacterStatsPanelView
-			open={open}
-			onToggle={toggle}
-			mode={mode}
-			onModeChange={setMode}
-			labels={{
-				title: i18n.t('sidebar.character_stats.title'),
-				modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
-				key: i18n.t('sidebar.character_stats.mode.key'),
-				all: i18n.t('sidebar.character_stats.mode.all'),
-			}}>
-			<Table variant="plain" flush className="p-2.5" aria-busy={pending || undefined}>
-				{groups.map(group => (
-					<tbody key={group.key}>
-						{group.rows.map(row => {
-							switch (row.kind) {
-								case 'stat':
-									return (
-										<StatRow
+	const labels = {
+		title: i18n.t('sidebar.character_stats.title'),
+		modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
+		key: i18n.t('sidebar.character_stats.mode.key'),
+		all: i18n.t('sidebar.character_stats.mode.all'),
+	};
+
+	const table = (
+		<Table variant="plain" flush className="p-2.5" aria-busy={pending || undefined}>
+			{groups.map(group => (
+				<tbody key={group.key}>
+					{group.rows.map(row => {
+						switch (row.kind) {
+							case 'stat':
+								return (
+									<StatRow
+										key={row.id}
+										displayStat={row.displayStat}
+										bonusStats={bonusStats}
+										attribution={attribution}
+										show={show}
+										rangedWeapon={rangedWeapon}
+										dualWielding={dualWielding}
+										pending={pending}
+									/>
+								);
+							case 'miss':
+								return miss && <MissRow key={row.id} info={miss} pending={pending} />;
+							case 'avoidance':
+								return (
+									avoidance && (
+										<AvoidanceRow
 											key={row.id}
-											displayStat={row.displayStat}
-											bonusStats={bonusStats}
-											attribution={attribution}
-											show={show}
-											rangedWeapon={rangedWeapon}
-											dualWielding={dualWielding}
+											info={avoidance}
+											withHolyShield={player.isSpec(Spec.SpecProtectionPaladin)}
+											hasParry={hasParry}
+											hasBlock={hasBlock}
 											pending={pending}
 										/>
-									);
-								case 'miss':
-									return miss && <MissRow key={row.id} info={miss} pending={pending} />;
-								case 'avoidance':
-									return (
-										avoidance && (
-											<AvoidanceRow
-												key={row.id}
-												info={avoidance}
-												withHolyShield={player.isSpec(Spec.SpecProtectionPaladin)}
-												hasParry={hasParry}
-												hasBlock={hasBlock}
-												pending={pending}
-											/>
-										)
-									);
-								case 'crit-immunity':
-									return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
-								case 'melee-crit-cap':
-									return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
-							}
-						})}
-					</tbody>
-				))}
-			</Table>
+									)
+								);
+							case 'crit-immunity':
+								return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
+							case 'melee-crit-cap':
+								return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
+						}
+					})}
+				</tbody>
+			))}
+		</Table>
+	);
+
+	return wide ? (
+		<CharacterStatsPanelView open={open} onToggle={toggle} mode={mode} onModeChange={setMode} labels={labels}>
+			{table}
 		</CharacterStatsPanelView>
+	) : (
+		<CharacterStatsBarView open={open} onOpenChange={toggle} mode={mode} onModeChange={setMode} labels={labels}>
+			{table}
+		</CharacterStatsBarView>
 	);
 };
