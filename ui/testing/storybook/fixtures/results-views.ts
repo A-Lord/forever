@@ -101,6 +101,7 @@ export const loadAttackRows = async (): Promise<AttackRowsFixture> => {
 		target.threat /= 2;
 	}
 	player.actions.push(offHand);
+	for (const dps of new Set([result.raidMetrics!.dps!, result.raidMetrics!.parties[0].dps!, player.dps!])) dps.avg *= 1.5;
 
 	const [mainHandMetrics, offHandMetrics] = (await SimResult.makeNew(request, result)).getFirstPlayer()!.getDamageActions();
 	const parent = ActionMetrics.merge([mainHandMetrics, offHandMetrics], { removeTag: true });

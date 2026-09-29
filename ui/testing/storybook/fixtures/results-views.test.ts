@@ -21,6 +21,7 @@ describe('results view fixtures', () => {
 			6,
 		);
 		expect(maxDamage).toBe(rows[0].metric.damage);
+		expect(rows[0].metric.totalDamagePercent).toBeCloseTo(100, 6);
 	});
 
 	it('carries two rage sources and nothing else', async () => {

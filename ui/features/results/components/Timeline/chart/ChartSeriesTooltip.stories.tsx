@@ -13,7 +13,7 @@ const meta = {
 	argTypes: { spec: { control: false }, log: { control: false } },
 	decorators: [
 		Story => (
-			<div className="ui-timeline-hover-tooltip relative">
+			<div className="ui-timeline-hover-tooltip relative w-fit">
 				<Story />
 			</div>
 		),
