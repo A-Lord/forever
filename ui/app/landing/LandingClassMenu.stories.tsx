@@ -5,7 +5,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { LandingClassMenu } from './LandingClassMenu';
 
 const meta = {
-	title: 'App/Landing/LandingClassMenu',
+	title: 'App/Landing/Components/LandingClassMenu',
 	component: LandingClassMenu,
 	tags: ['autodocs'],
 	parameters: { spec: 'none' },

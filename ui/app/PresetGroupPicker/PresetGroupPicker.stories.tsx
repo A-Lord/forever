@@ -9,7 +9,7 @@ import type { PresetGroupItem } from './types';
 const chip = (key: string, phase?: 1 | 2, group?: string): PresetGroupItem => ({ key, phase, group, node: <Chip label={key} onSelect={() => {}} /> });
 
 const meta = {
-	title: 'App/Presets/PresetGroupPicker',
+	title: 'App/Presets/Components/PresetGroupPicker',
 	component: PresetGroupPicker,
 	tags: ['autodocs'],
 	args: {

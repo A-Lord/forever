@@ -8,7 +8,7 @@ const TOOLTIP_ID = 'preset-build-chip-story';
 const build = makePresetBuild('Phase 1');
 
 const meta = {
-	title: 'App/Presets/PresetBuildChip',
+	title: 'App/Presets/Components/PresetBuildChip',
 	component: PresetBuildChip,
 	tags: ['autodocs'],
 	args: { build, tooltipId: TOOLTIP_ID, onApply: fn() },

@@ -16,7 +16,7 @@ const stubDialog = (title: string) => {
 };
 
 const meta = {
-	title: 'App/Header/ImportExportMenu',
+	title: 'App/Header/Components/ImportExportMenu',
 	component: ImportExportMenu,
 	tags: ['autodocs'],
 	args: {

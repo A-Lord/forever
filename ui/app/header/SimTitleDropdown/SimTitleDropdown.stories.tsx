@@ -6,7 +6,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { SimTitleDropdown } from './SimTitleDropdown';
 
 const meta = {
-	title: 'App/Header/SimTitleDropdown',
+	title: 'App/Header/Components/SimTitleDropdown',
 	component: SimTitleDropdown,
 	tags: ['autodocs'],
 	args: { currentSpec: PlayerSpecs.fromProto(Spec.SpecDpsWarrior) },

@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { BulkTabActionsView } from './BulkTabActionsView';
 
 const meta = {
-	title: 'App/Tabs/BulkTabActionsView',
+	title: 'App/Tabs/Components/BulkTabActionsView',
 	component: BulkTabActionsView,
 	tags: ['autodocs'],
 	args: {

@@ -5,7 +5,7 @@ import { makePresetBuild } from '@testing/storybook/fixtures/app';
 import { PresetBuildTooltip } from './PresetBuildTooltip';
 
 const meta = {
-	title: 'App/Presets/PresetBuildTooltip',
+	title: 'App/Presets/Components/PresetBuildTooltip',
 	component: PresetBuildTooltip,
 	tags: ['autodocs'],
 	args: { build: makePresetBuild('Phase 1') },

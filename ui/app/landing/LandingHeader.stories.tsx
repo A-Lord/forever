@@ -4,7 +4,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { LandingHeader } from './LandingHeader';
 
 const meta = {
-	title: 'App/Landing/LandingHeader',
+	title: 'App/Landing/Components/LandingHeader',
 	component: LandingHeader,
 	tags: ['autodocs'],
 	parameters: { spec: 'none' },

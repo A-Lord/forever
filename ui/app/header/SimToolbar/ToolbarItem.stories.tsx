@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { ToolbarItem } from './ToolbarItem';
 
 const meta = {
-	title: 'App/Header/ToolbarItem',
+	title: 'App/Header/Components/ToolbarItem',
 	component: ToolbarItem,
 	tags: ['autodocs'],
 	args: { icon: 'cog', tooltip: 'Sim options', testId: 'toolbar-item', onClick: fn() },
