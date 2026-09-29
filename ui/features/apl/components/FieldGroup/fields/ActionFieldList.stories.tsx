@@ -25,7 +25,7 @@ const actionsOf = (initial: Array<APLAction>) => {
 };
 
 const meta = {
-	title: 'Features/Apl/ActionFieldList',
+	title: 'Features/Apl/FieldGroup/Components/ActionFieldList',
 	component: ActionFieldList,
 	tags: ['autodocs'],
 	args: actionsOf([wait('1s'), wait('1.5s')]),

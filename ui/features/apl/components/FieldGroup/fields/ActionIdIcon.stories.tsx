@@ -5,7 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ActionIdIcon } from './ActionIdIcon';
 
 const meta = {
-	title: 'Features/Apl/ActionIdIcon',
+	title: 'Features/Apl/FieldGroup/Components/ActionIdIcon',
 	component: ActionIdIcon,
 	tags: ['autodocs'],
 	args: { useBuffAura: false },

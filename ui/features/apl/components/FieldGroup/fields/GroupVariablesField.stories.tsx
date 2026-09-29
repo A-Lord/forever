@@ -27,7 +27,7 @@ const referenceTo = (names: Array<string>) => {
 };
 
 const meta = {
-	title: 'Features/Apl/GroupVariablesField',
+	title: 'Features/Apl/FieldGroup/Components/GroupVariablesField',
 	component: GroupVariablesField,
 	tags: ['autodocs'],
 	args: referenceTo(['target', 'focus']),

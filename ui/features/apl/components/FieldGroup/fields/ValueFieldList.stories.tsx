@@ -26,7 +26,7 @@ const operandsOf = (initial: Array<APLValue>) => {
 };
 
 const meta = {
-	title: 'Features/Apl/ValueFieldList',
+	title: 'Features/Apl/FieldGroup/Components/ValueFieldList',
 	component: ValueFieldList,
 	tags: ['autodocs'],
 	args: operandsOf([constant('a', '1'), constant('b', '10s')]),
