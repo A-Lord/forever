@@ -38,7 +38,7 @@ export const ItemListHeaderRow = ({ label, showEPValues, epTooltipId, onSort }: 
 				<span>EP</span>
 				<Icon name="plus-minus" size="2xs" />
 				<Button iconOnly aria-label={i18n.t('gear_tab.gear_picker.ep_tooltip')} className="ml-1" data-tooltip-id={epTooltipId}>
-					<Icon name="question-circle" style="regular" size="lg" />
+					<Icon name="circle-question" style="regular" size="lg" />
 				</Button>
 			</h6>
 			<h6 className="w-8" data-testid="favorite-label" />

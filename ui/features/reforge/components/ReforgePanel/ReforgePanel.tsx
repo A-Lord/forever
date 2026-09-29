@@ -187,7 +187,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				}
 				triggerTestId="suggest-reforges-button-settings"
 				triggerProps={settingsTriggerProps}
-				trigger={<Icon name="cog" />}>
+				trigger={<Icon name="gear" />}>
 				<ReforgeSettingsPanel model={model} options={options} onClose={() => setOpen(false)} />
 			</Popover>
 			<Tooltip ref={settingsTooltipRef} id={settingsTooltipId} place="bottom" content={i18n.t('sidebar.buttons.suggest_reforges.tooltip')} />

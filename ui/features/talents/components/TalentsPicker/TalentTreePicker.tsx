@@ -61,7 +61,7 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 					data-testid="talent-tree-reset"
 					{...tooltipAnchorProps(resetTooltipId)}
 					onClick={() => onChange(withTreeCleared(points, treeIdx))}>
-					<Icon name="times" style="base" />
+					<Icon name="xmark" style="base" />
 				</Button>
 				<Tooltip id={resetTooltipId} content={i18n.t('talents_tab.reset_button.tooltip')} />
 			</div>

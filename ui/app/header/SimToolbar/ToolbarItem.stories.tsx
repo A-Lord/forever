@@ -7,7 +7,7 @@ const meta = {
 	title: 'App/Header/Components/ToolbarItem',
 	component: ToolbarItem,
 	tags: ['autodocs'],
-	args: { icon: 'cog', tooltip: 'Sim options', testId: 'toolbar-item', onClick: fn() },
+	args: { icon: 'gear', tooltip: 'Sim options', testId: 'toolbar-item', onClick: fn() },
 	decorators: [
 		Story => (
 			<div className="flex items-end font-bold">

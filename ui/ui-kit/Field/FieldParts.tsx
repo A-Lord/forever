@@ -181,7 +181,7 @@ export const Clear = ({ show, label, className, testId, onClear, children }: Fie
 					data-testid={testId}
 					aria-label={label}
 					onClick={onClear}>
-					<Icon name="times" />
+					<Icon name="xmark" />
 				</Button>
 			)}
 		</div>

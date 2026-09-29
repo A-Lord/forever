@@ -29,21 +29,19 @@ describe('Icon', () => {
 		expect(iconDefinition('star', 'regular')).not.toBe(iconDefinition('star', 'solid'));
 	});
 
-	it('resolves FontAwesome 5 aliases to the canonical name', () => {
-		expect(classes(render(<Icon name="exclamation-triangle" />).container)).toContain('fa-triangle-exclamation');
-		expect(classes(render(<Icon name="triangle-exclamation" />).container)).toContain('fa-triangle-exclamation');
-		expect(classes(render(<Icon name="question-circle" />).container)).toContain('fa-circle-question');
+	it('resolves an alias to its canonical name, keeping the alias as an extra class for a caller still keyed to it', () => {
+		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon', 'fa-width-auto']);
+		expect(classes(render(<Icon name="info-circle" />).container)).toContain('fa-circle-info');
+		expect(classes(render(<Icon name="pencil-alt" />).container)).toContain('fa-pencil');
 		// `rotate-left` is its own glyph (\f2ea), not a spelling of `arrow-rotate-left` (\f0e2).
 		expect(iconDefinition('rotate-left', 'solid').icon[3]).toBe('f2ea');
 		expect(iconDefinition('arrow-rotate-left', 'solid').icon[3]).toBe('f0e2');
 	});
 
-	it('keeps its own name as a class when FontAwesome names the glyph differently', () => {
-		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon', 'fa-width-auto']);
-	});
-
-	it.each(ICON_NAMES)('renders %s from a definition, as its fa- class', name => {
-		expect(iconDefinition(name, 'solid')).toBeDefined();
+	it.each(ICON_NAMES)('renders %s from a definition, canonically named, as its fa- class', name => {
+		const definition = iconDefinition(name, 'solid');
+		expect(definition).toBeDefined();
+		expect(definition.iconName).toBe(name);
 		expect(classes(render(<Icon name={name} />).container)).toContain(`fa-${name}`);
 	});
 
@@ -64,18 +62,18 @@ describe('Icon', () => {
 	});
 
 	it('takes its test id from testId', () => {
-		const { getByTestId } = render(<Icon name="cog" testId="settings-icon" />);
+		const { getByTestId } = render(<Icon name="gear" testId="settings-icon" />);
 		expect(getByTestId('settings-icon').tagName.toLowerCase()).toBe('svg');
 	});
 
 	it('keeps a data-testid passed as an attribute when it has no testId', () => {
-		const { getByTestId } = render(<Icon name="cog" data-testid="gem-marker" />);
+		const { getByTestId } = render(<Icon name="gear" data-testid="gem-marker" />);
 		expect(getByTestId('gem-marker').tagName.toLowerCase()).toBe('svg');
 	});
 
 	it('is hidden from assistive tech unless it carries a title', () => {
-		expect(el(render(<Icon name="times" />).container).getAttribute('aria-hidden')).toBe('true');
-		const titled = el(render(<Icon name="times" title="Close" />).container);
+		expect(el(render(<Icon name="xmark" />).container).getAttribute('aria-hidden')).toBe('true');
+		const titled = el(render(<Icon name="xmark" title="Close" />).container);
 		expect(titled.getAttribute('aria-hidden')).toBe('false');
 		expect(titled.getAttribute('aria-label')).toBe('Close');
 	});

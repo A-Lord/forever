@@ -29,8 +29,8 @@ const resolve = (name: IconName | IconAlias): IconName => (name in ICON_ALIASES 
 export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className, title, testId, ...rest }: IconProps) => {
 	const resolved = resolve(name);
 	const definition = iconDefinition(resolved, style);
-	// FontAwesome names the svg `fa-<canonical name>`; a name spelled differently in `IconName` also carries its own.
-	const nameClass = definition.iconName !== resolved && `fa-${resolved}`;
+	// FontAwesome names the svg `fa-<canonical name>`; an alias also carries its own name, for a caller still keyed to it.
+	const nameClass = definition.iconName !== name && `fa-${name}`;
 	return (
 		<FontAwesomeIcon
 			data-testid={testId}

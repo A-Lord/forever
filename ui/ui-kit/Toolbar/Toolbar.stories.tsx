@@ -25,7 +25,7 @@ const meta = {
 				Copy
 			</ToolbarButton>
 			<ToolbarButton variant="link-danger" size="sm" testId="toolbar-story-reset">
-				<Icon name="times" className="mr-1" />
+				<Icon name="xmark" className="mr-1" />
 				Reset
 			</ToolbarButton>
 		</Toolbar>

@@ -10,8 +10,8 @@ const ICONS = 'https://wow.zamimg.com/images/wow/icons';
 const target = (index: number) => UnitReference.create({ type: UnitType.Target, index });
 
 const OPTIONS: Array<UnitValue> = [
-	{ value: undefined, text: 'Self', iconUrl: 'fa-user' },
-	{ value: UnitReference.create({ type: UnitType.CurrentTarget }), text: 'Current Target', iconUrl: 'fa-bullseye' },
+	{ value: undefined, text: 'Self', icon: 'user' },
+	{ value: UnitReference.create({ type: UnitType.CurrentTarget }), text: 'Current Target', icon: 'bullseye' },
 	{ value: target(0), text: 'Target 1', iconUrl: `${ICONS}/large/spell_shadow_metamorphosis.jpg`, color: 'warrior' },
 	{ value: target(1), text: 'Target 2', iconUrl: `${ICONS}/large/spell_shadow_metamorphosis.jpg` },
 	{ value: UnitReference.create({ type: UnitType.Pet, index: 0 }), text: 'Wolf', iconUrl: `${ICONS}/medium/ability_hunter_pet_wolf.jpg` },

@@ -30,7 +30,7 @@ export const CooldownRowView = ({ name, isAdd, deleteTooltipId, onDelete, action
 			data-testid="delete-cooldown"
 			onClick={onDelete}
 			{...tooltipAnchorProps(deleteTooltipId)}>
-			<Icon name="times" style="base" size="xl" />
+			<Icon name="xmark" style="base" size="xl" />
 		</Button>
 	</div>
 );

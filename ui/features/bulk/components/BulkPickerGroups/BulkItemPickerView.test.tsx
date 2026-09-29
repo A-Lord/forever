@@ -71,7 +71,7 @@ describe('BulkItemPickerView', () => {
 		fireEvent.click(screen.getByTestId('item-picker-actions-btn'));
 
 		expect(onRemove).toHaveBeenCalledOnce();
-		expect(screen.getByTestId('item-picker-actions-btn').querySelector('.fa-times, .fa-xmark')).not.toBeNull();
+		expect(screen.getByTestId('item-picker-actions-btn').querySelector('.fa-xmark')).not.toBeNull();
 	});
 
 	it('offers no remove button for an item that cannot be removed', () => {

@@ -17,7 +17,7 @@ describe('SimToolbarView', () => {
 		expect(screen.getByTestId('known-issues').textContent).toBe('info.known_issues');
 	});
 
-	it('opens the settings from the cog', () => {
+	it('opens the settings from the gear', () => {
 		const onOpenSettings = vi.fn();
 		render(<SimToolbarView knownIssues={[]} outdatedNativeSim={false} onOpenSettings={onOpenSettings} />);
 

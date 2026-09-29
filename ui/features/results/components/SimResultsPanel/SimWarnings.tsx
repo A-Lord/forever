@@ -29,7 +29,7 @@ export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
 						data-testid="warning-trigger"
 						aria-label={i18n.t('sidebar.warnings.label')}
 						{...tooltipAnchorProps(id)}>
-						<Icon name="exclamation-triangle" size="3x" />
+						<Icon name="triangle-exclamation" size="3x" />
 					</Button>
 					<Tooltip
 						id={id}

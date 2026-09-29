@@ -172,14 +172,14 @@ describe('Button', () => {
 	it('lays the spinner over an iconOnly button, keeping the icon in place but invisible, and marks itself busy', () => {
 		render(
 			<Button iconOnly loading aria-label="Settings">
-				<Icon name="cog" testId="cog" />
+				<Icon name="gear" testId="gear" />
 			</Button>,
 		);
 		const button = screen.getByRole('button', { name: 'Settings' });
 		expect(button.getAttribute('aria-busy')).toBe('true');
 		expect(button.className).toBe('ui-button-icon');
 
-		const icon = within(button).getByTestId('cog');
+		const icon = within(button).getByTestId('gear');
 		expect(icon.parentElement!.parentElement).toBe(button);
 		expect(icon.parentElement!.className).toBe('invisible');
 

@@ -18,7 +18,7 @@ export const sameUnit = (a: UnitValue | undefined, b: UnitValue | undefined) =>
 export const unitOption = (unit: UnitValue, submenu?: Array<string | UnitValue>): DropdownOption<UnitValue> => ({
 	value: unit,
 	label: unit.text,
-	icon: unit.iconUrl ? <UnitIcon iconUrl={unit.iconUrl} /> : undefined,
+	icon: unit.icon || unit.iconUrl ? <UnitIcon icon={unit.icon} iconUrl={unit.iconUrl} /> : undefined,
 	className: unit.color && CLASS_TEXT[unit.color],
 	submenu,
 });

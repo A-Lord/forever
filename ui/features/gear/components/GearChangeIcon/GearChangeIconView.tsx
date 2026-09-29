@@ -52,7 +52,7 @@ export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, soc
 							style={{ backgroundImage: `url(${getEmptyGemSocketIconUrl(socketColor)})` }}
 							{...(changed && gemName ? tooltipAnchorProps(`${tooltipId}-socket-${gemIdx}`) : {})}>
 							{changed && (
-								<Icon name="exclamation-circle" className="ui-gear-change-icon-gem-marker block" data-testid="gear-change-icon-gem-marker" />
+								<Icon name="circle-exclamation" className="ui-gear-change-icon-gem-marker block" data-testid="gear-change-icon-gem-marker" />
 							)}
 						</div>
 					))}

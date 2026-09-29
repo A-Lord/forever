@@ -4,8 +4,8 @@ export type NoticeLevel = 'info' | 'warning' | 'error';
 
 export const NOTICE_ICON_NAME = {
 	info: 'info-circle',
-	warning: 'exclamation-triangle',
-	error: 'exclamation-triangle',
+	warning: 'triangle-exclamation',
+	error: 'triangle-exclamation',
 } as const satisfies Record<NoticeLevel, IconName | IconAlias>;
 
 export const NOTICE_COLOR: Record<NoticeLevel, string> = {

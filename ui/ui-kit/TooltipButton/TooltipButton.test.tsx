@@ -12,7 +12,6 @@ describe('TooltipButton', () => {
 		for (const token of ['flex', 'items-center', 'justify-center']) expect(button.classList.contains(token)).toBe(true);
 		expect(button.getAttribute('data-testid')).toBe('tooltip-button');
 		expect(button.getAttribute('type')).toBe('button');
-		// `Icon` normalises the FA5 spelling `question-circle` into its FA6 name.
 		const icon = button.querySelector('svg')!;
 		expect(icon.classList).toContain('fa-circle-question');
 		expect(icon.getAttribute('data-prefix')).toBe('far');

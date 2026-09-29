@@ -23,17 +23,17 @@ export const withIconUrl = (unit: UnitModel, resolved?: ResolvedIcon): UnitValue
 /** The icon, text and reference one unit shows as. */
 export const refToValue = (ref: UnitReference | undefined, player: Player<any>, targetUI: boolean | undefined): UnitModel => {
 	if (!ref || ref.type == UnitType.Unknown) {
-		return { value: ref, iconUrl: targetUI ? 'fa-bullseye' : 'fa-user', text: targetUI ? label('current_target') : label('self') };
+		return { value: ref, icon: targetUI ? 'bullseye' : 'user', text: targetUI ? label('current_target') : label('self') };
 	}
 	switch (ref.type) {
 		case UnitType.Self:
-			return { value: ref, iconUrl: 'fa-user', text: label('self') };
+			return { value: ref, icon: 'user', text: label('self') };
 		case UnitType.CurrentTarget:
-			return { value: ref, iconUrl: 'fa-bullseye', text: label('current_target') };
+			return { value: ref, icon: 'bullseye', text: label('current_target') };
 		case UnitType.PreviousTarget:
-			return { value: ref, iconUrl: 'fa-arrow-left', text: label('previous_target') };
+			return { value: ref, icon: 'arrow-left', text: label('previous_target') };
 		case UnitType.NextTarget:
-			return { value: ref, iconUrl: 'fa-arrow-right', text: label('next_target') };
+			return { value: ref, icon: 'arrow-right', text: label('next_target') };
 		case UnitType.Player: {
 			const other = player.sim.raid.getPlayer(ref.index);
 			return other ? { value: ref, iconUrl: other.getSpecIcon(), text: `${label('player')} ${ref.index + 1}` } : { value: ref };
@@ -45,13 +45,13 @@ export const refToValue = (ref: UnitReference | undefined, player: Player<any>, 
 		case UnitType.Pet: {
 			const petMetadata = player.sim.getUnitMetadata(ref, player, UnitReference.create({ type: UnitType.Self }));
 			let text = `${label('pet')} ${ref.index + 1}`;
-			let iconUrl: string | ActionId = 'fa-paw';
+			let iconUrl: string | ActionId | undefined;
 			const petName = petMetadata?.getName();
 			if (petName) {
 				text = petName.substring(petName.indexOf(' - ') + ' - '.length);
-				iconUrl = getPetIconFromName(text) || iconUrl;
+				iconUrl = getPetIconFromName(text);
 			}
-			return { value: ref, iconUrl, text };
+			return { value: ref, icon: iconUrl ? undefined : 'paw', iconUrl, text };
 		}
 		default:
 			return { value: ref };
