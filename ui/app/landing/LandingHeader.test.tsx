@@ -17,4 +17,12 @@ describe('LandingHeader', () => {
 		fireEvent.click(close);
 		expect(collapse.classList.contains('hidden')).toBe(true);
 	});
+
+	it('opens every external nav link in a new tab with no opener', () => {
+		render(<LandingHeader />);
+		const links = screen.getAllByRole('link').filter(link => link.getAttribute('target') === '_blank');
+
+		expect(links).toHaveLength(3);
+		links.forEach(link => expect(link.getAttribute('rel')).toBe('noopener noreferrer'));
+	});
 });

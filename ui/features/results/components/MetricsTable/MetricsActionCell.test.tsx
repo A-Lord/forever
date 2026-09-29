@@ -1,6 +1,7 @@
 import type { ActionIdState } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MetricsActionCell } from './MetricsActionCell';
@@ -74,6 +75,17 @@ describe('MetricsActionCell', () => {
 		expect(toggle.querySelectorAll('.fa-caret-right')).toHaveLength(0);
 		toggle.focus();
 		expect(document.activeElement).toBe(toggle);
+	});
+
+	it('toggles from the keyboard, on Enter and on Space', async () => {
+		const user = userEvent.setup();
+		const onToggle = vi.fn();
+		await cell({ expandable: true, expanded: false, onToggle });
+
+		screen.getByRole('button', { name: 'Kill Command' }).focus();
+		await user.keyboard('{Enter}');
+		await user.keyboard(' ');
+		expect(onToggle).toHaveBeenCalledTimes(2);
 	});
 
 	it('toggles once when the button is clicked, not twice through the row', async () => {

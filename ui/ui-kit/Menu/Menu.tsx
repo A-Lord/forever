@@ -1,4 +1,5 @@
 import { Menu as BaseMenu } from '@base-ui/react/menu';
+import { Button } from '@ui-kit/Button';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import clsx from 'clsx';
 import type { ReactElement, ReactNode } from 'react';
@@ -107,7 +108,10 @@ export const Menu = ({
 		return (
 			<BaseMenu.SubmenuRoot>
 				<li role="none">
-					<BaseMenu.SubmenuTrigger render={triggerRender} nativeButton={triggerRender.type === 'button'} {...triggerProps}>
+					<BaseMenu.SubmenuTrigger
+						render={triggerRender}
+						nativeButton={triggerRender.type === 'button' || triggerRender.type === Button}
+						{...triggerProps}>
 						{trigger}
 					</BaseMenu.SubmenuTrigger>
 					{popup}
@@ -117,7 +121,10 @@ export const Menu = ({
 
 	return (
 		<BaseMenu.Root open={open} onOpenChange={onOpenChange} modal={modal}>
-			<BaseMenu.Trigger render={triggerRender} nativeButton={triggerRender === undefined || triggerRender.type === 'button'} {...triggerProps}>
+			<BaseMenu.Trigger
+				render={triggerRender}
+				nativeButton={triggerRender === undefined || triggerRender.type === 'button' || triggerRender.type === Button}
+				{...triggerProps}>
 				{trigger}
 			</BaseMenu.Trigger>
 			{popup}

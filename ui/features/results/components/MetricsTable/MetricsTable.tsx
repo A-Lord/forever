@@ -42,12 +42,12 @@ export const MetricsTable = <T,>({ rootTestId, columns, rows, sortColumnId, hasR
 										header.column.columnDef.meta?.headerCellClass,
 									]}
 									aria-sort={ariaSort(header.column.getIsSorted())}
-									onClick={header.column.getToggleSortingHandler()}
 									{...tooltipAnchorProps(header.column.columnDef.meta?.headerTooltipId, header.column.columnDef.meta?.headerTooltip)}>
 									<Button
 										data-testid="metrics-table-sort"
 										variant="unstyled"
-										className="text-inherit [font:inherit] focus-visible:focus-ring">
+										className="text-inherit [font:inherit] focus-visible:focus-ring"
+										onClick={header.column.getToggleSortingHandler()}>
 										<span>
 											<table.FlexRender header={header} />
 										</span>

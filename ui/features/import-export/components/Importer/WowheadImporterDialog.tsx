@@ -1,5 +1,6 @@
 import i18n from '@i18n/config';
 import { WOWHEAD_GEAR_PLANNER_URL } from '@sim/proto/wowhead';
+import { Button } from '@ui-kit/Button';
 
 import { WOWHEAD_GEAR_PLANNER_IMPORTER } from '../../importers';
 import { Importer } from './Importer';
@@ -10,9 +11,9 @@ export const WowheadImporterDialog = ({ open, onOpenChange }: ImporterDialogProp
 		<div>
 			<p>
 				{i18n.t('import.wowhead.description')}{' '}
-				<a href={WOWHEAD_GEAR_PLANNER_URL} target="_blank" rel="noopener noreferrer">
+				<Button href={WOWHEAD_GEAR_PLANNER_URL} target="_blank" variant="link">
 					{i18n.t('import.wowhead.gear_planner_link')}
-				</a>
+				</Button>
 				.
 			</p>
 			<p>{i18n.t('import.wowhead.feature_description')}</p>

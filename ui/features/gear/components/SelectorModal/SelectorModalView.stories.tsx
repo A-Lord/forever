@@ -1,8 +1,10 @@
 import { ItemQuality } from '@generated/proto/common';
+import { SortDirection } from '@sim/constants/other';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
+import { ItemListSortBy } from '../../model/item_sort';
 import { SelectorModalTabs } from '../../types';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
 import { ItemListRowView } from './ItemListRowView';
@@ -26,7 +28,14 @@ const ItemsPane = () => (
 			removeLabel="Unequip Item"
 			onRemove={fn()}
 		/>
-		<ItemListHeaderRow label={SelectorModalTabs.Items} showEPValues epTooltipId="ep-tooltip" onSort={fn()} />
+		<ItemListHeaderRow
+			label={SelectorModalTabs.Items}
+			showEPValues
+			epTooltipId="ep-tooltip"
+			sortBy={ItemListSortBy.EP}
+			sortDirection={SortDirection.DESC}
+			onSort={fn()}
+		/>
 		{ROWS.map((row, index) => (
 			<div key={row.name} className="relative flex items-center gap-4 bg-gray-900 p-2">
 				<ItemListRowView
@@ -67,7 +76,14 @@ const EnchantsPane = () => (
 			removeLabel="Remove Enchant"
 			onRemove={fn()}
 		/>
-		<ItemListHeaderRow label={SelectorModalTabs.Enchants} showEPValues epTooltipId="ep-tooltip" onSort={fn()} />
+		<ItemListHeaderRow
+			label={SelectorModalTabs.Enchants}
+			showEPValues
+			epTooltipId="ep-tooltip"
+			sortBy={ItemListSortBy.EP}
+			sortDirection={SortDirection.DESC}
+			onSort={fn()}
+		/>
 		{ENCHANTS.map((row, index) => (
 			<div key={row.name} className="relative flex items-center gap-4 bg-gray-900 p-2">
 				<ItemListRowView
