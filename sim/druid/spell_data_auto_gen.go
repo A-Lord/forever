@@ -10,6 +10,7 @@ import (
 //   Improved Shred: missing rank 1 of 2
 
 // Generated with an effect held at its base points, the talent tree stating no rank value for it:
+//   Berserk: effect 0, 1, 2, 3 of spell 417141 has no rank curve and is held at its base points
 //   Eclipse: effect 2, 3 of spell 408248 has no rank curve and is held at its base points
 //   Gift of the Earthmother: effect 0 of spell 414673 has no rank curve and is held at its base points
 //   Natural Reaction: effect 2, 3 of spell 417051 has no rank curve and is held at its base points
@@ -26,6 +27,7 @@ type generatedSpellData struct {
 	Bash                      spelldata.Ladder
 	BearForm                  spelldata.Ladder
 	BearFormTriggered         spelldata.Ladder
+	Berserk                   spelldata.Ladder
 	BloodFrenzy               spelldata.Ladder
 	BloodFrenzyTriggered      spelldata.Ladder
 	BrutalImpact              spelldata.Ladder
@@ -81,6 +83,8 @@ type generatedSpellData struct {
 	ImprovedWrath             spelldata.Ladder
 	Innervate                 spelldata.Ladder
 	InsectSwarm               spelldata.Ladder
+	KingOfTheJungle           spelldata.Ladder
+	KingOfTheJungleTriggered  spelldata.Ladder
 	Lacerate                  spelldata.Ladder
 	LeaderOfThePack           spelldata.Ladder
 	LeaderOfThePackTriggered  spelldata.Ladder
@@ -158,6 +162,7 @@ var spellData = generatedSpellData{
 	Bash:                      spelldata.Ranked(5211, 6798, 8983),
 	BearForm:                  spelldata.Ranked(5487),
 	BearFormTriggered:         spelldata.Ranked(1178),
+	Berserk:                   spelldata.Talent(417141, 1),
 	BloodFrenzy:               spelldata.Talent(16958, 2),
 	BloodFrenzyTriggered:      spelldata.Ranked(16959),
 	BrutalImpact:              spelldata.Talent(16940, 2),
@@ -213,6 +218,8 @@ var spellData = generatedSpellData{
 	ImprovedWrath:             spelldata.Talent(16814, 5),
 	Innervate:                 spelldata.Ranked(29166),
 	InsectSwarm:               spelldata.Ranked(5570, 24974, 24975, 24976, 24977),
+	KingOfTheJungle:           spelldata.Talent(417046, 3),
+	KingOfTheJungleTriggered:  spelldata.Ranked(417045),
 	Lacerate:                  spelldata.Ranked(414644, 1235826, 1235827),
 	LeaderOfThePack:           spelldata.Ranked(17007),
 	LeaderOfThePackTriggered:  spelldata.Ranked(24932),

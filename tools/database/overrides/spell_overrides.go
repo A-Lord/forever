@@ -298,6 +298,13 @@ var Spells = []Override{
 		Reason:  "Thunder Clap Rank 6: Rank 1's measured share",
 		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
 	},
+	{
+		SpellID: 16864,
+		Field:   PPM,
+		Value:   2,
+		Reason:  "Placeholder: Omen of Clarity rate; the game files state none",
+		Source:  "classic-carryover",
+	},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it

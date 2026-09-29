@@ -26,4 +26,10 @@ var HandTriggers = []HandTrigger{
 			"set and icon, 3 charges heard on melee attacks, and its aura 231 casts the heal 1323968",
 		Source: "game-files-rows",
 	},
+	{
+		Spell:    417046,
+		Triggers: 417045,
+		Reason:   "King of the Jungle's dummy is the energy the triggered spell 417045 restores; 417045 is not named by an effect edge or a description token",
+		Source:   "game-files-rows",
+	},
 }
