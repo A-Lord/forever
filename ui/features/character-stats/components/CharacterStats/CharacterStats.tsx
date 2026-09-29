@@ -10,7 +10,6 @@ import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
-import { CharacterStatsBarView } from './CharacterStatsBarView';
 import type { CharacterStatsMode } from './CharacterStatsHeaderView';
 import { CharacterStatsPanelView } from './CharacterStatsPanelView';
 import { CritCapRow } from './CritCapRow';
@@ -31,10 +30,6 @@ const ALL_STATS = UnitStat.getAll();
 
 const OPEN_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_character-stats-open.v1`;
 
-// `--breakpoint-lg` in breakpoints.css: from there up the sidebar is a column of its own and the stats a panel at its foot; below it the
-// sidebar scrolls away with the page, so the stats are a bar on the viewport's bottom edge that opens a sheet.
-const WIDE = '(min-width: 992px)';
-
 const parseOpen = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
 
 export const CharacterStats = () => {
@@ -43,10 +38,8 @@ export const CharacterStats = () => {
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
 	const [mode, setMode] = useState<CharacterStatsMode>('key');
 	const [storedOpen, setStoredOpen] = useTypedLocalStorage<boolean>(OPEN_STORAGE_KEY, parseOpen);
-	const [wide] = useState(() => window.matchMedia(WIDE).matches);
 	// React state over the stored value: with storage blocked nothing is written, and the panel still has to open.
-	// The sheet covers the page, so it starts closed whatever was stored.
-	const [open, setOpen] = useState(() => wide && (storedOpen ?? true));
+	const [open, setOpen] = useState(() => storedOpen ?? true);
 	const toggle = (next: boolean) => {
 		setOpen(next);
 		setStoredOpen(next);
@@ -158,13 +151,9 @@ export const CharacterStats = () => {
 		</Table>
 	);
 
-	return wide ? (
+	return (
 		<CharacterStatsPanelView open={open} onToggle={toggle} mode={mode} onModeChange={setMode} labels={labels}>
 			{table}
 		</CharacterStatsPanelView>
-	) : (
-		<CharacterStatsBarView open={open} onOpenChange={toggle} mode={mode} onModeChange={setMode} labels={labels}>
-			{table}
-		</CharacterStatsBarView>
 	);
 };

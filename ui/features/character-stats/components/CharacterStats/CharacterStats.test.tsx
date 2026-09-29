@@ -6,8 +6,8 @@ import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { CharacterStats } from './CharacterStats';
 import { buildRows } from './utils/rows';
@@ -176,71 +176,20 @@ describe('CharacterStats Key/All toggle', () => {
 describe('CharacterStats open state', () => {
 	const OPEN_KEY = '__forever_character-stats-open.v1';
 	const trigger = () => screen.getByRole('button', { name: i18n.t('sidebar.character_stats.title') });
-	const atWidth = (wide: boolean) =>
-		vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: wide && query === '(min-width: 992px)', media: query }) as MediaQueryList);
 
 	afterEach(() => {
-		vi.restoreAllMocks();
 		window.localStorage.clear();
 	});
 
-	const sheetRows = () => screen.queryAllByTestId('character-stats-table-row');
-
-	it('opens by default from lg up, as the sidebar panel and not the bar', () => {
-		atWidth(true);
+	it('opens by default, as the sidebar panel', () => {
 		const { rows } = renderStats(true);
 
 		expect(trigger().getAttribute('aria-expanded')).toBe('true');
 		expect(rows.length).toBe(DISPLAY_STATS.length + 1);
 		expect(screen.getByTestId('character-stats-root')).toBeTruthy();
-		expect(screen.queryByTestId('character-stats-bar')).toBeNull();
 	});
 
-	it('is a closed bar below lg, with no panel and no sheet', () => {
-		atWidth(false);
-		renderStats(true);
-
-		expect(screen.getByTestId('character-stats-bar')).toBeTruthy();
-		expect(screen.queryByTestId('character-stats-root')).toBeNull();
-		expect(trigger().getAttribute('aria-expanded')).toBe('false');
-		expect(screen.queryByRole('dialog')).toBeNull();
-		expect(sheetRows().length).toBe(0);
-	});
-
-	it('opens the sheet from the bar below lg, closes it on Escape, and keeps each choice in local storage', async () => {
-		atWidth(false);
-		renderStats(true);
-
-		fireEvent.click(trigger());
-		const sheet = screen.getByRole('dialog', { name: i18n.t('sidebar.character_stats.title') });
-		expect(sheetRows().length).toBe(DISPLAY_STATS.length + 1);
-		expect(window.localStorage.getItem(OPEN_KEY)).toBe('true');
-
-		fireEvent.keyDown(sheet, { key: 'Escape' });
-		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-		expect(window.localStorage.getItem(OPEN_KEY)).toBe('false');
-	});
-
-	it('starts the sheet closed below lg even when open was stored', () => {
-		window.localStorage.setItem(OPEN_KEY, 'true');
-		atWidth(false);
-		renderStats(true);
-
-		expect(trigger().getAttribute('aria-expanded')).toBe('false');
-		expect(screen.queryByRole('dialog')).toBeNull();
-	});
-
-	it('does not open the sheet from the bar Key/All group', () => {
-		atWidth(false);
-		renderStats(true);
-
-		fireEvent.click(screen.getByRole('button', { name: i18n.t('sidebar.character_stats.mode.all') }));
-		expect(screen.queryByRole('dialog')).toBeNull();
-		expect(window.localStorage.getItem(OPEN_KEY)).toBeNull();
-	});
-
-	it('keeps the choice in local storage, and a stored choice wins over the breakpoint', () => {
-		atWidth(true);
+	it('keeps the choice in local storage, and a remount reads it back', () => {
 		const { view } = renderStats(true);
 
 		fireEvent.click(trigger());
@@ -253,7 +202,6 @@ describe('CharacterStats open state', () => {
 	});
 
 	it('does not toggle the panel from the Key/All group', () => {
-		atWidth(true);
 		renderStats(true);
 
 		fireEvent.click(screen.getByRole('button', { name: i18n.t('sidebar.character_stats.mode.all') }));

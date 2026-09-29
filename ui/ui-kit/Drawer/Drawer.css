@@ -1,23 +1,6 @@
 @layer components {
 	.ui-drawer {
 		@apply fixed fade-in-out outline-none motion-reduce:transition-none;
-
-		&[data-side='bottom'] {
-			@apply inset-x-0 bottom-0 z-modal flex max-h-4/5 flex-col border-t border-border bg-background p-4 transition-transform duration-200 ease-out motion-reduce:transition-none;
-
-			&[data-starting-style],
-			&[data-ending-style] {
-				@apply translate-y-full opacity-100;
-			}
-		}
-	}
-
-	.ui-drawer-backdrop {
-		@apply fixed inset-0 z-modal-backdrop bg-black fade-in-out opacity-50 motion-reduce:transition-none;
-	}
-
-	.ui-drawer-body {
-		@apply min-h-0 overflow-y-auto overscroll-contain;
 	}
 
 	.ui-drawer-header {

@@ -99,7 +99,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 							</div>
 						</aside>
 						<div
-							className="ui-sim-content z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto max-lg:pb-character-stats-bar"
+							className="z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto"
 							data-testid="sim-content">
 							<header
 								ref={header}
