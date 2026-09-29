@@ -74,10 +74,10 @@ export const Actions = ({ label, className, testId, children }: TreeItemActionsP
 	return (
 		<Popover
 			trigger={<Icon name="ellipsis" fixedWidth />}
-			triggerRender={<Button iconOnly />}
+			triggerRender={<Button iconOnly aria-label={label} />}
 			triggerClassName={clsx('ui-tree-item-actions', className)}
 			triggerTestId={triggerTestId}
-			triggerProps={{ 'aria-label': label, disabled }}
+			triggerProps={{ disabled }}
 			open={open}
 			onOpenChange={setOpen}
 			side="bottom"

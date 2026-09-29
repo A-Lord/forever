@@ -106,9 +106,8 @@ export const Dialog = ({
 								{headerChildren}
 								{!preventClose && (
 									<BaseDialog.Close
-										render={<Button iconOnly className={clsx('ui-dialog-close', closeClassName)} />}
-										data-testid="sim-dialog-close"
-										aria-label="Close">
+										render={<Button iconOnly aria-label="Close" className={clsx('ui-dialog-close', closeClassName)} />}
+										data-testid="sim-dialog-close">
 										<Icon name="xmark" size="2xl" />
 									</BaseDialog.Close>
 								)}

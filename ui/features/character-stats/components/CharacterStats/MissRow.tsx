@@ -1,9 +1,9 @@
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
-import { Button } from '@ui-kit/Button';
 import { Skeleton } from '@ui-kit/Skeleton';
 import { TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { Tooltip } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { useId } from 'react';
 
 import { TooltipRow } from './TooltipRow';
@@ -22,9 +22,9 @@ export const MissRow = ({ info, pending }: { info: MissInfo; pending?: boolean }
 				) : (
 					<>
 						<div className="ui-stat-value-link-container">
-							<Button variant="unstyled" data-testid="stat-value-link" className="text-white" {...tooltipAnchorProps(id)}>
+							<TooltipAnchor tooltipId={id} testId="stat-value-link" className="text-white">
 								{`${info.total.toFixed(2)}%`}
-							</Button>
+							</TooltipAnchor>
 						</div>
 						<Tooltip
 							id={id}

@@ -13,7 +13,8 @@ describe('ReforgeBreakpointLimitsView', () => {
 		render(<ReforgeBreakpointLimitsView rows={ROWS} />);
 
 		expect(screen.getByRole('heading').textContent).toBe('sidebar.buttons.suggest_reforges.breakpoint_limit');
-		expect(screen.getByRole('button').hasAttribute('data-tooltip-id')).toBe(true);
+		expect(screen.getByTestId('reforge-breakpoint-limit-help').hasAttribute('data-tooltip-id')).toBe(true);
+		expect(screen.queryByRole('button')).toBeNull();
 	});
 
 	it('lists one stat per row beside its limit select', () => {

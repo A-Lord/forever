@@ -750,6 +750,7 @@
 	"ui-apl-priority-list-only",
 	"ui-apl-value-picker-root",
 	"ui-boolean-picker-reverse",
+	"ui-button-warning",
 	"ui-dropdown-trigger",
 	"ui-icon-field",
 	"ui-list-picker-compact",

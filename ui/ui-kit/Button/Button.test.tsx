@@ -13,16 +13,42 @@ describe('Button', () => {
 		expect(button.className).toBe('ui-button ui-button-primary ui-button-md');
 	});
 
-	it('renders an anchor when asked, keeping the button classes', () => {
+	it('renders an anchor for an href, keeping the button classes', () => {
 		render(
-			<Button as="a" href="https://wowhead.com/forever/item=1" variant="link">
+			<Button href="https://wowhead.com/forever/item=1" variant="link">
 				Item
 			</Button>,
 		);
 		const link = screen.getByRole('link', { name: 'Item' });
+		expect(link.tagName).toBe('A');
 		expect(link.getAttribute('href')).toBe('https://wowhead.com/forever/item=1');
 		expect(link.className).toBe('ui-button-link');
 		expect(link.getAttribute('type')).toBeNull();
+		expect(screen.queryByRole('button')).toBeNull();
+	});
+
+	it('keeps the variant and size classes on an anchor', () => {
+		render(
+			<Button href="https://github.com/wowsims/forever/releases" variant="outline-light" target="_blank">
+				Download
+			</Button>,
+		);
+		const link = screen.getByRole('link', { name: 'Download' });
+		expect(link.className).toBe('ui-button ui-button-outline-light ui-button-md');
+		expect(link.getAttribute('target')).toBe('_blank');
+	});
+
+	it('accepts an anchor only through href, and an icon-only button only with an aria-label', () => {
+		// @ts-expect-error `as="a"` is not a Button prop: `href` renders the anchor.
+		const byAs = <Button as="a">Item</Button>;
+		// @ts-expect-error An icon-only button has no text to announce, so `aria-label` is required.
+		const unnamed = <Button iconOnly>×</Button>;
+		const named = (
+			<Button iconOnly aria-label="Close">
+				×
+			</Button>
+		);
+		expect([byAs, unnamed, named]).toHaveLength(3);
 	});
 
 	it('renders a label when asked, for a peer-checked radio', () => {
@@ -57,16 +83,19 @@ describe('Button', () => {
 
 	it('adds rel to a cross-origin link without being asked', () => {
 		render(
-			<Button as="a" href="https://www.wowhead.com/forever/item=1" target="_blank">
-				Item
-			</Button>,
+			<>
+				<Button href="https://www.wowhead.com/forever/item=1" target="_blank">
+					Item
+				</Button>
+				<Button href="//discord.gg/p3DgvmnDCS">Discord</Button>
+			</>,
 		);
-		expect(screen.getByRole('link').getAttribute('rel')).toBe('noopener noreferrer');
+		screen.getAllByRole('link').forEach(link => expect(link.getAttribute('rel')).toBe('noopener noreferrer'));
 	});
 
 	it('merges an explicit rel rather than replacing it, and does not duplicate', () => {
 		render(
-			<Button as="a" href="https://www.wowhead.com/forever/item=1" rel="nofollow noopener">
+			<Button href="https://www.wowhead.com/forever/item=1" rel="nofollow noopener">
 				Item
 			</Button>,
 		);
@@ -77,18 +106,10 @@ describe('Button', () => {
 	it('leaves relative and non-http hrefs alone', () => {
 		render(
 			<>
-				<Button as="a" href="/forever/warrior/arms/">
-					Arms
-				</Button>
-				<Button as="a" href="#gear-tab">
-					Gear
-				</Button>
-				<Button as="a" href="mailto:someone@example.com">
-					Mail
-				</Button>
-				<Button as="a" href="javascript:void(0)">
-					Inert
-				</Button>
+				<Button href="/forever/warrior/arms/">Arms</Button>
+				<Button href="#gear-tab">Gear</Button>
+				<Button href="mailto:someone@example.com">Mail</Button>
+				<Button href="javascript:void(0)">Inert</Button>
 			</>,
 		);
 		screen.getAllByRole('link').forEach(link => expect(link.getAttribute('rel')).toBeNull());

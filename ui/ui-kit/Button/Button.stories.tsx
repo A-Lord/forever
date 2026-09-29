@@ -3,7 +3,8 @@ import { Icon } from '@ui-kit/Icon';
 import { Fragment } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { Button, type ButtonVariant } from './Button';
+import { Button } from './Button';
+import type { ButtonVariant } from './types';
 
 const VARIANTS: Array<ButtonVariant> = [
 	'primary',
@@ -15,7 +16,6 @@ const VARIANTS: Array<ButtonVariant> = [
 	'outline-primary',
 	'outline-light',
 	'outline-cancel',
-	'warning',
 	'unstyled',
 ];
 
@@ -39,6 +39,7 @@ const meta = {
 		loading: { control: 'boolean' },
 		disabled: { control: 'boolean' },
 		className: { control: 'text' },
+		href: { control: 'text' },
 		children: { control: false },
 		as: { control: false },
 	},
@@ -56,7 +57,6 @@ export const LinkDanger: Story = { args: { variant: 'link-danger' } };
 export const OutlinePrimary: Story = { args: { variant: 'outline-primary' } };
 export const OutlineLight: Story = { args: { variant: 'outline-light' } };
 export const OutlineCancel: Story = { args: { variant: 'outline-cancel' } };
-export const Warning: Story = { args: { variant: 'warning' } };
 export const Unstyled: Story = { args: { variant: 'unstyled' } };
 
 export const Small: Story = { args: { size: 'sm' } };
@@ -76,7 +76,7 @@ export const IconOnlyLoading: Story = {
 export const IconOnlyLink: Story = {
 	args: { iconOnly: true, variant: 'link', 'aria-label': 'Help', children: <Icon name="circle-question" style="regular" /> },
 };
-export const AsAnchor: Story = { args: { as: 'a', href: 'https://www.wowhead.com/forever', children: 'Wowhead' } };
+export const WithHref: Story = { args: { href: 'https://www.wowhead.com/forever', target: '_blank', children: 'Wowhead' } };
 export const AsLabel: Story = {
 	args: { as: 'label', htmlFor: 'button-story-file', children: 'Choose a file' },
 	render: args => (

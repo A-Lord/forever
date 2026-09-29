@@ -3,6 +3,7 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Table, TableHeaderCell, TableRow } from '@ui-kit/Table';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { type ReactNode, useId } from 'react';
 
 export interface ReforgeStatCapsViewProps {
@@ -20,9 +21,9 @@ export const ReforgeStatCapsView = ({ onReset, children }: ReforgeStatCapsViewPr
 		<>
 			<div className="flex pb-4">
 				<h6 className="mr-1 mb-0">{i18n.t('sidebar.buttons.suggest_reforges.edit_stat_caps')}</h6>
-				<Button variant="unstyled" className="inline" {...tooltipAnchorProps(capsTooltipId)}>
+				<TooltipAnchor tooltipId={capsTooltipId} testId="reforge-stat-caps-help">
 					<Icon name="circle-question" style="regular" />
-				</Button>
+				</TooltipAnchor>
 				<Button
 					variant="unstyled"
 					className="ml-auto inline"

@@ -2,10 +2,10 @@ import { Class, PseudoStat, RangedWeaponType } from '@generated/proto/common';
 import type { UIItem } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import type { StatAttribution, Stats, UnitStat } from '@sim/proto/stats';
-import { Button } from '@ui-kit/Button';
 import { Skeleton } from '@ui-kit/Skeleton';
 import { TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { Tooltip } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { Fragment, type ReactNode, useId } from 'react';
 
 import { type ShowStat, StatTooltipBody } from './StatTooltipBody';
@@ -64,7 +64,7 @@ export const StatRowView = ({
 				{ stat: offHand, id: offHandId, label: i18n.t('slots.off_hand', { ns: 'character' }) },
 			]
 		: [{ stat: unitStat, id: mainHandId }];
-	// Each hand's final display string, computed once and shared by its button and its tooltip's Total row.
+	// Each hand's final display string, computed once and shared by its anchor and its tooltip's Total row.
 	const hands = handSlots.map(hand => ({ ...hand, total: show(attribution.final, hand.stat, true) }));
 
 	return (
@@ -80,9 +80,9 @@ export const StatRowView = ({
 								{hands.map((hand, i) => (
 									<Fragment key={hand.stat.getKey()}>
 										{i > 0 && ' / '}
-										<Button variant="unstyled" data-testid="stat-value-link" className={contextualClass} {...tooltipAnchorProps(hand.id)}>
+										<TooltipAnchor tooltipId={hand.id} testId="stat-value-link" className={contextualClass}>
 											{hand.total}
-										</Button>
+										</TooltipAnchor>
 									</Fragment>
 								))}
 							</span>
