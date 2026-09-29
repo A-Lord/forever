@@ -16,9 +16,9 @@ import { labelOf, sentenceCase, TYPED_FIELDS, valueCandidates } from './utils';
 const DROPUP = { side: 'top', positionMethod: 'fixed' } as const;
 
 const DeleteButton = ({ label, onClick, className }: { label: string; onClick: () => void; className?: string }) => (
-	<button type="button" className={className} data-testid="log-search-group-remove" aria-label={label} onClick={onClick}>
+	<Button variant="unstyled" className={className} data-testid="log-search-group-remove" aria-label={label} onClick={onClick}>
 		<Icon name="times" style="base" size="lg" />
-	</button>
+	</Button>
 );
 
 export interface LogSearchGroupProps {

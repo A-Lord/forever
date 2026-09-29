@@ -3,7 +3,6 @@ import i18n from '@i18n/config';
 import type { CombatLog } from '@sim/proto/combat_log';
 import { isCastCompleted } from '@sim/proto/combat_log';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import { SearchBar } from '@ui-kit/SearchBar';
 import { ToolbarButton } from '@ui-kit/Toolbar';
 import { findScrollParent } from '@ui-kit/utils/dom';
 import { useScrollMargin, VirtualList } from '@ui-kit/VirtualList';
@@ -15,11 +14,10 @@ import { EMPTY_SUGGESTIONS, LogIndex } from '../../model/log/search/indexes';
 import type { SimResultData } from '../../model/result_data';
 import { useDrStickySlot } from '../DetailedResults/DrStickySlotContext';
 import { LogRow } from './LogRow';
+import { LogRunnerHeaderView, LogRunnerNoMatches } from './LogRunnerHeaderView';
 import { LogToolbar } from './LogToolbar';
 import type { IdentifiedSearchGroup } from './utils';
 import { combinedLogText, DEBUG_MARKER, keywordsOf, selectedTargetNumber } from './utils';
-
-const SEARCH_DEBOUNCE_MS = 150;
 
 /** Until a real row has been measured. The sticky chrome is covered by the list's own overscan. */
 const ESTIMATED_ROW_HEIGHT = 32;
@@ -130,25 +128,13 @@ export const LogRunner = ({ active }: LogRunnerProps) => {
 			{active &&
 				stickySlot &&
 				createPortal(
-					<div data-testid="log-runner-sticky" className="flex flex-col gap-2 pt-2">
-						<div data-testid="log-search" className="w-full lg:max-w-[50%]">
-							<SearchBar
-								value={searchText}
-								onChange={next => {
-									setSearchText(next);
-									scrollListToTop();
-								}}
-								placeholder={i18n.t('results_tab.details.logs.search_placeholder')}
-								debounceMs={SEARCH_DEBOUNCE_MS}
-								autoComplete="off"
-								inputTestId="log-search-input"
-							/>
-						</div>
-						<div data-testid="log-runner-header" className="ui-log-row border-b-0 font-bold">
-							<div className="p-2 text-right">{i18n.t('results_tab.details.logs.time_column')}</div>
-							<div className="p-2">{i18n.t('results_tab.details.logs.event_column')}</div>
-						</div>
-					</div>,
+					<LogRunnerHeaderView
+						searchText={searchText}
+						onSearchChange={next => {
+							setSearchText(next);
+							scrollListToTop();
+						}}
+					/>,
 					stickySlot,
 				)}
 			<div data-testid="log-runner-scroll" className="relative shrink-0 grow basis-auto overflow-x-auto overflow-y-hidden">
@@ -171,11 +157,7 @@ export const LogRunner = ({ active }: LogRunnerProps) => {
 						</div>
 					)}
 				</div>
-				{logs.length > 0 && visibleIndexes.length === 0 && (
-					<div data-testid="log-runner-empty" className="px-2 py-6 text-muted">
-						{i18n.t('results_tab.details.logs.no_matches')}
-					</div>
-				)}
+				{logs.length > 0 && visibleIndexes.length === 0 && <LogRunnerNoMatches />}
 			</div>
 			<LogToolbar
 				groups={groups}

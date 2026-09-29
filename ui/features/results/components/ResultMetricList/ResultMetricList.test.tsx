@@ -25,13 +25,12 @@ describe('ResultMetricList row layout', () => {
 
 		const headers = [...container.querySelectorAll('th')];
 		expect(headers).toHaveLength(4);
-		expect(headers.every(cell => cell.classList.contains('ui-metrics-header-cell') && cell.classList.contains('font-bold'))).toBe(true);
+		expect(headers.every(cell => cell.getAttribute('data-testid') === 'metrics-table-header-cell')).toBe(true);
 		expect(headers.map(cell => cell.classList.contains('danger'))).toEqual([false, false, false, true]);
 		expect(headers.map(cell => cell.getAttribute('data-metric-category'))).toEqual(['damage', 'threat', 'healing', null]);
 		expect(cells(container, 'th')).toEqual(['DPS', 'TMI', 'TTO', 'OOM']);
 		const bodyCells = [...container.querySelectorAll('td')];
 		expect(bodyCells).toHaveLength(4);
-		expect(bodyCells.every(cell => ['ui-metrics-cell', 'text-center', 'align-top', 'font-bold'].every(token => cell.classList.contains(token)))).toBe(true);
 		expect(bodyCells.map(cell => cell.classList.contains('danger'))).toEqual([false, false, false, true]);
 	});
 

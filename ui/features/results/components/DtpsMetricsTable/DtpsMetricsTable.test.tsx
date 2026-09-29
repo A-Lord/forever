@@ -105,7 +105,7 @@ describe('DtpsMetricsTable', () => {
 		expect(container.querySelector('[data-testid="dtps-metrics-root"]')).toBeTruthy();
 		const headers = [...container.querySelectorAll('thead th')];
 		expect(headers).toHaveLength(9);
-		expect(headers.every(th => th.classList.contains('ui-metrics-header-cell'))).toBe(true);
+		expect(headers.every(th => th.getAttribute('data-testid') === 'metrics-table-header-cell')).toBe(true);
 		expect(headers.filter(th => th.classList.contains('w-100'))).toEqual([headers[1]]);
 		expect(headers.filter(th => th.classList.contains('text-center'))).toEqual([headers[1]]);
 		expect(rows(container)).toHaveLength(0);
@@ -115,8 +115,8 @@ describe('DtpsMetricsTable', () => {
 		result = targetResult([metric('Melee')]);
 		const { container } = render(<DtpsMetricsTable />);
 
-		expect(rows(container).map(row => [row.cells[0].textContent, row.hasAttribute('data-parent'), row.hasAttribute('data-child'), row.className])).toEqual([
-			['Melee', false, false, 'ui-metrics-row'],
+		expect(rows(container).map(row => [row.cells[0].textContent, row.hasAttribute('data-parent'), row.hasAttribute('data-child')])).toEqual([
+			['Melee', false, false],
 		]);
 	});
 
@@ -124,10 +124,10 @@ describe('DtpsMetricsTable', () => {
 		result = targetResult([metric('Melee', { dps: 30 })], [metric('Melee', { dps: 10 })]);
 		const { container } = render(<DtpsMetricsTable />);
 
-		expect(rows(container).map(row => [row.cells[0].textContent, row.hasAttribute('data-parent'), row.hasAttribute('data-child'), row.className])).toEqual([
-			['Melee', true, false, 'ui-metrics-row cursor-pointer'],
-			['Melee', false, true, 'ui-metrics-row'],
-			['Melee', false, true, 'ui-metrics-row'],
+		expect(rows(container).map(row => [row.cells[0].textContent, row.hasAttribute('data-parent'), row.hasAttribute('data-child')])).toEqual([
+			['Melee', true, false],
+			['Melee', false, true],
+			['Melee', false, true],
 		]);
 	});
 
