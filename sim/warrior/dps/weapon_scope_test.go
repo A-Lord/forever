@@ -11,6 +11,12 @@ import (
 
 func orcWarrior(t *testing.T, gearSet string, talents string) *DpsWarrior {
 	t.Helper()
+	_, warrior := orcWarriorSim(t, gearSet, talents)
+	return warrior
+}
+
+func orcWarriorSim(t *testing.T, gearSet string, talents string) (*core.Simulation, *DpsWarrior) {
+	t.Helper()
 	player := &proto.Player{
 		Name:          "Weapon Scope",
 		Race:          proto.Race_RaceOrc,
@@ -26,7 +32,49 @@ func orcWarrior(t *testing.T, gearSet string, talents string) *DpsWarrior {
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
 	}, simsignals.CreateSignals())
 	sim.Reset()
-	return sim.Raid.Parties[0].Players[0].(*DpsWarrior)
+	return sim, sim.Raid.Parties[0].Players[0].(*DpsWarrior)
+}
+
+// A Retaliation counterattack is a main-hand special, so it spends no Flurry charge: a crit sets
+// the charges to three, and anything else leaves the two the buff holds.
+func TestRetaliationCounterattackSpendsNoFlurryCharge(t *testing.T) {
+	sim, warrior := orcWarriorSim(t, "p1_fury", DefaultFuryTalents)
+	counterattack := warrior.GetSpell(core.ActionID{SpellID: 20240})
+	flurry := warrior.GetAura("Flurry")
+	if counterattack == nil || flurry == nil {
+		t.Fatalf("counterattack %v, Flurry %v; want both registered", counterattack, flurry)
+	}
+	warrior.AddRage(sim, 100, warrior.NewRageMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionRageGain}))
+
+	for range 20 {
+		flurry.Activate(sim)
+		flurry.SetStacks(sim, 2)
+		if !counterattack.Cast(sim, warrior.CurrentTarget) {
+			t.Fatal("the counterattack was not cast")
+		}
+		if got := flurry.GetStacks(); got == 1 {
+			t.Fatalf("a counterattack left Flurry at %d charges, want 2, or 3 on a crit", got)
+		}
+	}
+}
+
+// Death Wish takes the global cooldown its row states and does not hold the rotation beyond it, so
+// an off-GCD ability can follow it at once.
+func TestDeathWishLeavesTheRotationFree(t *testing.T) {
+	sim, warrior := orcWarriorSim(t, "p1_fury", DefaultFuryTalents)
+	deathWish := warrior.GetSpell(core.ActionID{SpellID: 12328})
+	if deathWish == nil {
+		t.Fatal("the warrior has no Death Wish")
+	}
+	if deathWish.DefaultCast.GCD != core.GCDDefault {
+		t.Errorf("Death Wish takes a %v global cooldown, want %v", deathWish.DefaultCast.GCD, core.GCDDefault)
+	}
+
+	before := warrior.NextRotationActionAt()
+	deathWish.SkipCastAndApplyEffects(sim, &warrior.Unit)
+	if got := warrior.NextRotationActionAt(); got != before {
+		t.Errorf("the rotation is held until %v after Death Wish, want %v", got, before)
+	}
 }
 
 // Dual Wield Specialization 5/5 gives the off-hand axe's attacks 10% hit and the main hand's none.
