@@ -8,6 +8,10 @@
 
 		&:not([data-open]) > .ui-character-stats-header {
 			@apply border-border-muted;
+
+			&[data-stuck] {
+				@apply border-border;
+			}
 		}
 	}
 
@@ -17,10 +21,6 @@
 
 	.ui-character-stats-header {
 		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-transparent bg-background px-(--sidebar-inline-padding) py-2;
-
-		&[data-stuck] {
-			@apply border-border;
-		}
 	}
 
 	.ui-character-stats-bar {
