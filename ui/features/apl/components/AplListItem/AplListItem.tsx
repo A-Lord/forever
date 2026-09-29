@@ -53,7 +53,7 @@ export const AplListItem = <T extends HideableAction>({ player, config, leading,
 				<Field
 					{...chrome}
 					density="compact"
-					className={['m-0 flex flex-row items-center gap-2', chrome.className]}
+					className={['m-0 flex flex-row items-baseline gap-2', chrome.className]}
 					testId="apl-list-item-picker-root"
 					disabled={disabled}>
 					{leading}
