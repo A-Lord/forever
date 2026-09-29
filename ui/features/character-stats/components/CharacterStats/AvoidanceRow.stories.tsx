@@ -24,8 +24,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
-export const WithHolyShield: Story = { args: { withHolyShield: true } };
-export const BelowTheCaps: Story = { args: { info: { ...AVOIDANCE_INFO, block: 20.1, total: 80.8, shear: 60.7 } } };
-export const NoParryOrBlock: Story = { args: { hasParry: false, hasBlock: false } };
-export const Pending: Story = { args: { pending: true } };
+export const Default: Story = { args: { withHolyShield: true, pending: false } };

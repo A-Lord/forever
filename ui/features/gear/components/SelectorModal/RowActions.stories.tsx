@@ -33,5 +33,3 @@ export const Default: Story = {
 };
 
 export const FavouriteInBatch: Story = { args: { favourited: true, compare: { inBatch: true, tooltipId: 'compare-tooltip', onToggle: fn() } } };
-
-export const FavouriteOnly: Story = { args: { compare: undefined } };

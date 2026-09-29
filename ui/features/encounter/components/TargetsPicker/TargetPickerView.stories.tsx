@@ -54,7 +54,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const ThreatMetrics: Story = {};
-
 /** Without threat metrics the third column stays empty so the first two keep their width. */
-export const DamageOnly: Story = { args: { threat: undefined } };
+export const Default: Story = { args: { threat: undefined } };
+
+export const ThreatMetrics: Story = {};

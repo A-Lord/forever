@@ -17,5 +17,3 @@ export const Upgrade: Story = {};
 export const Downgrade: Story = { args: { ep: 31, equippedEP: 38 } };
 
 export const Equipped: Story = { args: { ep: 38, equippedEP: 38 } };
-
-export const NothingEquipped: Story = { args: { ep: 7.25, equippedEP: null } };

@@ -24,6 +24,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Immune: Story = {};
-export const ShortOfImmunity: Story = { args: { info: { total: 4.2, delta: -1.4, defense: 4.2, talents: 0 }, text: '1.40% short' } };
-export const Pending: Story = { args: { pending: true } };
+export const Default: Story = { args: { pending: false } };
