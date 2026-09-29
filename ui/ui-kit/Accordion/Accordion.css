@@ -44,7 +44,7 @@
 	}
 
 	.ui-accordion-header-trigger {
-		@apply order-last flex shrink-0 interactive items-center justify-center p-1 text-foreground after:absolute after:inset-0;
+		@apply order-last -mr-1 flex shrink-0 interactive items-center justify-center p-1 text-foreground after:absolute after:inset-0;
 
 		&:hover {
 			@apply text-link-hover;

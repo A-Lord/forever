@@ -36,7 +36,7 @@
 	}
 
 	.ui-character-stats-bar-trigger {
-		@apply order-last p-1 after:absolute after:inset-0;
+		@apply order-last -mr-1 p-1 after:absolute after:inset-0;
 	}
 
 	.ui-character-stats-row {
