@@ -12,17 +12,17 @@ func (warrior *Warrior) registerShieldBlock() {
 	aura := warrior.RegisterAura(spelldata.AuraConfig(shieldBlockRank))
 	spelldata.ParseEffects(&warrior.Character, aura, shieldBlockRank)
 
-	// The block that spends a charge is an outcome no proc mask states, so the listener is the
-	// caller's; the row states the two charges the aura starts with.
-	aura.AttachProcTrigger(core.ProcTrigger{
-		Name:               "Shield Block - Consume",
-		TriggerImmediately: true,
-		Outcome:            core.OutcomeBlock,
-		Callback:           core.CallbackOnSpellHitTaken,
-		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+	// The row states the melee and ranged hits the listener hears and the two charges the aura
+	// starts with. The block that spends a charge is an outcome no proc mask states, and a full
+	// block deals no damage, so both of those are the caller's.
+	trigger := spelldata.ProcTrigger(&warrior.Character, shieldBlockRank,
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			aura.RemoveStack(sim)
-		},
-	})
+		})
+	trigger.Outcome = core.OutcomeBlock
+	trigger.RequireDamageDealt = false
+	trigger.TriggerImmediately = true
+	aura.AttachProcTrigger(trigger)
 
 	config := spelldata.SpellConfig(&warrior.Unit, shieldBlockRank, spelldata.Flags(core.SpellFlagAPL))
 
