@@ -79,9 +79,9 @@ Pickers bind through `InputConfig` (`ui/features/inputs/input.ts`), read by
 `player => subscribePlayerField(player, 'gear')`); the `input_helpers.ts` factories
 supply one. Omit both for inputs re-synced by their parent (nested APL pickers) or
 UI-local toggles. The list hands `onChange` a copy and the source's notification
-re-renders: `ListPicker` never mutates the list it is given, and `BoundListPicker`
-passes the fresh array to `config.setValue`, so a `getValue` may return the live
-store array.
+re-renders: `useListItems` (`ui/features/inputs/hooks/useListItems.ts`) never mutates
+the list it is given, and passes the fresh array to `config.setValue`, so a `getValue`
+may return the live store array.
 
 ## Events vs state
 
