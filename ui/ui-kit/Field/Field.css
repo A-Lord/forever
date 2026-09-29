@@ -64,7 +64,7 @@
 		.ui-field {
 			> label,
 			> .ui-field-label {
-				@apply text-(length:--btn-font-size) leading-normal;
+				@apply mb-0 text-(length:--btn-font-size) leading-normal;
 			}
 		}
 
@@ -88,7 +88,7 @@
 		.ui-field {
 			&:not([data-layout='inline']):not(.ui-icon-field) {
 				@variant @max-md {
-					@apply items-stretch!;
+					@apply items-stretch;
 				}
 			}
 		}

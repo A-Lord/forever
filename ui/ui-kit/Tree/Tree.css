@@ -29,7 +29,7 @@
 		&[data-layout='inline'] {
 			--tree-areas: 'handle title body aside trigger actions' 'children children children children children children';
 			--tree-columns: auto auto minmax(0, 1fr) auto auto auto;
-			--tree-align: start;
+			--tree-align: baseline;
 			--tree-title-end: var(--tree-gap);
 			--tree-body-offset: 0;
 		}
