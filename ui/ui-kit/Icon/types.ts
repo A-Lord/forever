@@ -34,7 +34,7 @@ export const ICON_NAMES = [
 	'gauge-high',
 	'github',
 	'globe',
-	'grip-vertical',
+	'grip-lines',
 	'info-circle',
 	'magnifying-glass-minus',
 	'magnifying-glass-plus',
