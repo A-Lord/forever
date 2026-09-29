@@ -1,14 +1,17 @@
 import { ItemSlot, PseudoStat, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
+import { LOCAL_STORAGE_PREFIX } from '@sim/constants/other';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { computeStatAttribution, type Stats, UnitStat } from '@sim/proto/stats';
+import { useTypedLocalStorage } from '@ui-kit/hooks/useTypedLocalStorage';
 import { Table } from '@ui-kit/Table';
 import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
-import { CharacterStatsHeaderView, type CharacterStatsMode } from './CharacterStatsHeaderView';
+import type { CharacterStatsMode } from './CharacterStatsHeaderView';
+import { CharacterStatsPanelView } from './CharacterStatsPanelView';
 import { CritCapRow } from './CritCapRow';
 import { CritImmunityRow } from './CritImmunityRow';
 import { MissRow } from './MissRow';
@@ -25,11 +28,25 @@ import {
 // buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
 const ALL_STATS = UnitStat.getAll();
 
+const OPEN_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_character-stats-open.v1`;
+
+// `--breakpoint-lg` in breakpoints.css: from there up the sidebar is a column of its own, below it the stats sit above the settings.
+const WIDE = '(min-width: 992px)';
+
+const parseOpen = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
+
 export const CharacterStats = () => {
 	const host = useSimHost();
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
 	const [mode, setMode] = useState<CharacterStatsMode>('key');
+	const [storedOpen, setStoredOpen] = useTypedLocalStorage<boolean>(OPEN_STORAGE_KEY, parseOpen);
+	// React state over the stored value: with storage blocked nothing is written, and the panel still has to open.
+	const [open, setOpen] = useState(() => storedOpen ?? window.matchMedia(WIDE).matches);
+	const toggle = (next: boolean) => {
+		setOpen(next);
+		setStoredOpen(next);
+	};
 	const currentStats = usePlayerStore('currentStats');
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
@@ -86,17 +103,17 @@ export const CharacterStats = () => {
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));
 
 	return (
-		<div data-testid="character-stats-root" className="w-full">
-			<CharacterStatsHeaderView
-				mode={mode}
-				onModeChange={setMode}
-				labels={{
-					title: i18n.t('sidebar.character_stats.title'),
-					modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
-					key: i18n.t('sidebar.character_stats.mode.key'),
-					all: i18n.t('sidebar.character_stats.mode.all'),
-				}}
-			/>
+		<CharacterStatsPanelView
+			open={open}
+			onToggle={toggle}
+			mode={mode}
+			onModeChange={setMode}
+			labels={{
+				title: i18n.t('sidebar.character_stats.title'),
+				modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
+				key: i18n.t('sidebar.character_stats.mode.key'),
+				all: i18n.t('sidebar.character_stats.mode.all'),
+			}}>
 			<Table variant="plain" flush className="p-2.5" aria-busy={pending || undefined}>
 				{groups.map(group => (
 					<tbody key={group.key}>
@@ -139,6 +156,6 @@ export const CharacterStats = () => {
 					</tbody>
 				))}
 			</Table>
-		</div>
+		</CharacterStatsPanelView>
 	);
 };

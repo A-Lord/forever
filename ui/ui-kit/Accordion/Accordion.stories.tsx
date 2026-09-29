@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { ToggleGroup } from '@ui-kit/ToggleGroup';
 import { useState } from 'react';
 import { expect, fireEvent, within } from 'storybook/test';
 
@@ -26,6 +27,39 @@ const AccordionStory = ({ initial }: AccordionStoryProps) => {
 	);
 };
 
+const HeaderRowStory = ({ initial }: AccordionStoryProps) => {
+	const [open, setOpen] = useState(initial);
+	const [mode, setMode] = useState<'key' | 'all'>('key');
+	return (
+		<div className="w-63">
+			<Accordion value={open} onValueChange={setOpen}>
+				<AccordionItem
+					value="stats"
+					title="Stats"
+					panelFirst
+					testId="story-stats"
+					header={
+						<div className="flex flex-1 items-center justify-between gap-2">
+							<span className="font-bold">Stats</span>
+							<ToggleGroup
+								size="xs"
+								aria-label="Stats shown"
+								value={mode}
+								onChange={setMode}
+								options={[
+									{ value: 'key', label: 'Key' },
+									{ value: 'all', label: 'All' },
+								]}
+							/>
+						</div>
+					}>
+					<p>Strength 320, Agility 180, Stamina 410</p>
+				</AccordionItem>
+			</Accordion>
+		</div>
+	);
+};
+
 const meta = {
 	title: 'Kit/Accordion',
 	component: AccordionStory,
@@ -49,5 +83,19 @@ export const Opens: Story = {
 		await fireEvent.click(canvas.getByTestId('story-debuffs-trigger'));
 
 		await expect(canvas.getByText(/Curse of Elements/)).toBeTruthy();
+	},
+};
+
+export const HeaderRow: Story = {
+	args: { initial: [] },
+	render: args => <HeaderRowStory {...args} />,
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await fireEvent.click(canvas.getByRole('button', { name: 'All' }));
+		await expect(canvas.queryByText(/Strength 320/)).toBeNull();
+
+		await fireEvent.click(canvas.getByTestId('story-stats-trigger'));
+
+		await expect(canvas.getByText(/Strength 320/)).toBeTruthy();
 	},
 };

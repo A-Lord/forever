@@ -1,4 +1,20 @@
 @layer components {
+	.ui-character-stats-item {
+		@apply contents;
+
+		& > :first-child {
+			@apply lg:mt-auto;
+		}
+	}
+
+	.ui-character-stats-header {
+		@apply sticky bottom-0 z-toolbar border-t border-transparent bg-background pt-2 pb-2 transition-colors duration-150 lg:pb-6;
+
+		&[data-stuck] {
+			@apply border-border;
+		}
+	}
+
 	.ui-character-stats-row {
 		@apply text-ui;
 	}

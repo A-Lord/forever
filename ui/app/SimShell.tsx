@@ -78,7 +78,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								<SimTitleDropdown currentSpec={spec} />
 							</div>
 							<div
-								className="@container flex flex-1 flex-col overflow-y-auto p-6 max-xxl:px-4 max-lg:min-h-0 max-lg:px-2 max-lg:py-4 [&>*:not(:last-child)]:mb-6"
+								className="@container flex flex-1 flex-col overflow-y-auto p-6 max-xxl:px-4 max-lg:min-h-0 max-lg:overflow-visible max-lg:px-2 max-lg:py-4 lg:pb-0 [&>*:not(:last-child)]:mb-6"
 								data-testid="sim-sidebar-content">
 								{/* The picker is the shell's own and has to stay ahead of every action the registry adds. */}
 								<div
@@ -92,7 +92,8 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								<div className="flex items-center justify-center" data-testid="sim-sidebar-results">
 									{host && <SimResultsPanel panel={host.resultsPanel} warnings={host.warnings} results={host.raidSimResultsManager} />}
 								</div>
-								<div className="mt-auto max-lg:mt-0" data-testid="sim-sidebar-stats">
+								{/* A box here would fence in the stats header's `position: sticky`, so the panel's own parts are the sidebar's flex items. */}
+								<div className="contents" data-testid="sim-sidebar-stats">
 									{host && <CharacterStats />}
 								</div>
 							</div>
