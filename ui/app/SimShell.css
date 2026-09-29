@@ -1,0 +1,7 @@
+@layer components {
+	.ui-sim-content {
+		@variant max-lg {
+			--viewport-bottom-inset: var(--spacing-character-stats-bar);
+		}
+	}
+}
