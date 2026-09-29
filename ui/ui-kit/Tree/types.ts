@@ -16,6 +16,7 @@ export interface TreeRef {
 export interface TreeDropRef {
 	group: string;
 	parentId: string | null;
+	/** The insertion index, read against the list as it is before the dragged item leaves it. */
 	index: number;
 }
 
@@ -25,9 +26,17 @@ export interface TreeMove {
 }
 
 export interface TreeSortable {
+	/** Called once per accepted drop. */
 	onMove: (move: TreeMove) => void;
+	/**
+	 * Defaults to `from.group === to.group`. A drop onto the dragged item, into its own subtree, or
+	 * back where it already is stays refused whatever this returns.
+	 */
 	canDrop?: (from: TreeRef, to: TreeDropRef) => boolean;
 }
+
+/** `handle`: a press on `Tree.Item.Handle` starts a drag; `header`: a press anywhere on the header outside a text field. */
+export type TreeHandle = 'handle' | 'header';
 
 interface TreePartProps {
 	className?: string;
@@ -43,7 +52,10 @@ export interface TreeRootProps extends TreePartProps {
 	density?: TreeDensity;
 	layout?: TreeLayout;
 	orientation?: TreeOrientation;
+	/** Makes the items draggable. The topmost sortable root owns the drag; the roots nested under it share it and ignore their own. */
 	sortable?: TreeSortable;
+	/** Nested roots inherit it. */
+	handle?: TreeHandle;
 	/** Nested roots inherit it. */
 	disabled?: boolean;
 	children: ReactNode;

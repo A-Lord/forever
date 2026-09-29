@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
-import { expect, fn, screen, userEvent, within } from 'storybook/test';
+import { type ReactNode, useState } from 'react';
+import { expect, fireEvent, fn, screen, userEvent, within } from 'storybook/test';
 
 import { Tree } from './index';
-import type { TreeDensity, TreeLayout, TreeOrientation } from './types';
+import type { TreeDensity, TreeDropRef, TreeLayout, TreeMove, TreeOrientation, TreeRef } from './types';
 
 const DENSITIES: Array<TreeDensity> = ['default', 'compact'];
 const LAYOUTS: Array<TreeLayout> = ['default', 'inline'];
@@ -17,6 +17,7 @@ interface TreeStoryProps {
 	defaultOpen?: boolean;
 	onAdd?: () => void;
 	onDelete?: () => void;
+	onMove?: (move: TreeMove) => void;
 }
 
 const ROWS = ['Opener', 'Main priority', 'Cooldowns'];
@@ -26,15 +27,17 @@ const Row = ({
 	title,
 	defaultOpen,
 	onDelete,
+	testId,
 	children,
 }: {
 	id: string;
 	title: string;
 	defaultOpen?: boolean;
 	onDelete?: () => void;
+	testId?: string;
 	children?: ReactNode;
 }) => (
-	<Tree.Item id={id} defaultOpen={defaultOpen}>
+	<Tree.Item id={id} defaultOpen={defaultOpen} testId={testId}>
 		<Tree.Item.Header>
 			<Tree.Item.Handle label={`Move ${title}`} />
 			<Tree.Item.Title>{title}</Tree.Item.Title>
@@ -79,11 +82,68 @@ const InlineTree = ({ onDelete }: { onDelete?: () => void }) => (
 	</Tree.Root>
 );
 
+interface Group {
+	id: string;
+	rows: Array<string>;
+}
+
+const GROUPS: Array<Group> = [
+	{ id: 'Opener', rows: ['Potion', 'Charge'] },
+	{ id: 'Burst', rows: ['Recklessness', 'Execute'] },
+];
+
+const insertAt = <T,>(list: Array<T>, item: T, index: number) => [...list.slice(0, index), item, ...list.slice(index)];
+
+const applyMove = (groups: Array<Group>, { from, to }: TreeMove): Array<Group> => {
+	const shift = from.parentId === to.parentId && to.index > from.index ? 1 : 0;
+	if (from.parentId === null) {
+		return insertAt(
+			groups.filter(group => group.id !== from.id),
+			groups[from.index],
+			to.index - shift,
+		);
+	}
+	return groups
+		.map(group => (group.id === from.parentId ? { ...group, rows: group.rows.filter(row => row !== from.id) } : group))
+		.map(group => (group.id === to.parentId ? { ...group, rows: insertAt(group.rows, from.id, to.index - shift) } : group));
+};
+
+const sameLevel = (from: TreeRef, to: TreeDropRef) => (from.parentId === null) === (to.parentId === null);
+
+const SortableTree = ({ onMove }: { onMove?: (move: TreeMove) => void }) => {
+	const [groups, setGroups] = useState(GROUPS);
+	return (
+		<Tree.Root
+			group="rotation"
+			sortable={{
+				onMove: move => {
+					onMove?.(move);
+					setGroups(current => applyMove(current, move));
+				},
+				canDrop: sameLevel,
+			}}>
+			<Tree.Items>
+				{groups.map(group => (
+					<Row key={group.id} id={group.id} title={group.id} testId={`row-${group.id}`}>
+						<Tree.Item.Children>
+							<Tree.Items>
+								{group.rows.map(row => (
+									<Row key={row} id={row} title={row} testId={`row-${row}`} />
+								))}
+							</Tree.Items>
+						</Tree.Item.Children>
+					</Row>
+				))}
+			</Tree.Items>
+		</Tree.Root>
+	);
+};
+
 const meta = {
 	title: 'Kit/Tree',
 	component: TreeStory,
 	tags: ['autodocs'],
-	args: { onAdd: fn(), onDelete: fn() },
+	args: { onAdd: fn(), onDelete: fn(), onMove: fn() },
 	argTypes: {
 		density: { control: 'select', options: DENSITIES },
 		layout: { control: 'select', options: LAYOUTS },
@@ -145,6 +205,23 @@ export const WithActions: Story = {
 		await userEvent.click(within(canvasElement).getByRole('button', { name: 'Opener actions' }));
 		await userEvent.click(await screen.findByRole('button', { name: 'Delete' }));
 		await expect(args.onDelete).toHaveBeenCalledTimes(1);
+	},
+};
+
+export const Sortable: Story = {
+	render: ({ onMove }) => <SortableTree onMove={onMove} />,
+	play: async ({ args, canvasElement }) => {
+		const canvas = within(canvasElement);
+		await fireEvent.mouseDown(canvas.getByRole('button', { name: 'Move Potion' }));
+		await fireEvent.dragStart(canvas.getByTestId('row-Potion'), { dataTransfer: new DataTransfer() });
+		await fireEvent.drop(canvas.getByTestId('row-Recklessness'), { dataTransfer: new DataTransfer(), clientY: 0 });
+
+		await expect(args.onMove).toHaveBeenCalledTimes(1);
+		await expect(args.onMove).toHaveBeenCalledWith({
+			from: { group: 'rotation', id: 'Potion', index: 0, parentId: 'Opener' },
+			to: { group: 'rotation', parentId: 'Burst', index: 0 },
+		});
+		await expect(within(canvas.getByTestId('row-Burst')).getByTestId('row-Potion')).toBeInTheDocument();
 	},
 };
 

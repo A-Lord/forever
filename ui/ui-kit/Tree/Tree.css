@@ -10,6 +10,8 @@
 		--tree-body-offset: var(--tree-gap);
 		--tree-flow: row;
 		--tree-track: minmax(0, 1fr);
+		--tree-drop-before: 0 calc(var(--spacing-tree-drop-line) * -1);
+		--tree-drop-after: 0 var(--spacing-tree-drop-line);
 
 		container: tree / inline-size;
 		gap: var(--tree-gap);
@@ -30,6 +32,8 @@
 		&[data-orientation='horizontal'] {
 			--tree-flow: column;
 			--tree-track: max-content;
+			--tree-drop-before: calc(var(--spacing-tree-drop-line) * -1) 0;
+			--tree-drop-after: var(--spacing-tree-drop-line) 0;
 		}
 	}
 
@@ -57,6 +61,22 @@
 
 		&[data-disabled] {
 			@apply filter-[opacity(0.5)];
+		}
+
+		&[data-drag='from'] {
+			@apply opacity-50;
+		}
+
+		&[data-drop='before'] {
+			box-shadow: var(--tree-drop-before) 0 0 var(--color-primary);
+		}
+
+		&[data-drop='after'] {
+			box-shadow: var(--tree-drop-after) 0 0 var(--color-primary);
+		}
+
+		&[data-drop='into'] > .ui-tree-item-children {
+			@apply border-s-primary;
 		}
 
 		&:has(> .ui-tree-item-header) > .ui-tree-item-body {

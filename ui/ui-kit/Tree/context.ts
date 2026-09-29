@@ -1,6 +1,7 @@
+import type { SortableArmProps, SortableChildrenProps } from '@ui-kit/hooks/useSortable';
 import { createContext, useContext } from 'react';
 
-import type { TreeDensity, TreeLayout, TreeOrientation, TreeSortable } from './types';
+import type { TreeDensity, TreeHandle, TreeLayout, TreeOrientation } from './types';
 
 export interface TreeRootContextValue {
 	group: string;
@@ -9,7 +10,7 @@ export interface TreeRootContextValue {
 	layout: TreeLayout;
 	orientation: TreeOrientation;
 	disabled: boolean;
-	sortable: TreeSortable | undefined;
+	handle: TreeHandle;
 	/** The id of the item this root is nested in, `null` at the top. */
 	parentId: string | null;
 }
@@ -23,6 +24,10 @@ export interface TreeItemContextValue {
 	drag: 'from' | 'to' | null;
 	disabled: boolean;
 	bodyId: string;
+	/** Set on the part the root's `handle` names, `undefined` without sortable. */
+	handleProps: SortableArmProps | undefined;
+	headerProps: SortableArmProps | undefined;
+	childrenProps: SortableChildrenProps | undefined;
 }
 
 export interface TreeItemsContextValue {

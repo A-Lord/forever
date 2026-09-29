@@ -38,6 +38,7 @@
 	--spacing-tree-gap-compact: 0.5rem;
 	--spacing-tree-row-py: 1rem;
 	--spacing-tree-row-px: 1rem;
+	--spacing-tree-drop-line: 2px;
 }
 
 @theme static inline {

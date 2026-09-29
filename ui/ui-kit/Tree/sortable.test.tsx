@@ -1,0 +1,427 @@
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import { type ReactNode, useState } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+
+import { useTreeItem, useTreeRoot } from './context';
+import { Tree } from './index';
+import type { TreeOrientation, TreeSortable } from './types';
+
+interface Row {
+	id: string;
+	children?: Array<Row>;
+	/** Rows of another group, rendered in the row's body. */
+	values?: Array<Row>;
+}
+
+const RowItem = ({ row }: { row: Row }) => (
+	<Tree.Item id={row.id} testId={`item-${row.id}`}>
+		<Tree.Item.Header>
+			<Tree.Item.Handle label={`Move ${row.id}`} testId={`handle-${row.id}`} />
+			<Tree.Item.Title testId={`title-${row.id}`}>
+				{row.id}
+				<input aria-label={`Name of ${row.id}`} data-testid={`input-${row.id}`} />
+			</Tree.Item.Title>
+		</Tree.Item.Header>
+		{row.values && (
+			<Tree.Item.Body>
+				<Tree.Root group="values">
+					<Tree.Items>
+						{row.values.map(value => (
+							<RowItem key={value.id} row={value} />
+						))}
+					</Tree.Items>
+				</Tree.Root>
+			</Tree.Item.Body>
+		)}
+		{row.children && (
+			<Tree.Item.Children testId={`children-${row.id}`}>
+				<Tree.Items>
+					{row.children.map(child => (
+						<RowItem key={child.id} row={child} />
+					))}
+				</Tree.Items>
+			</Tree.Item.Children>
+		)}
+	</Tree.Item>
+);
+
+const mount = (
+	rows: Array<Row>,
+	{ sortable, handle, orientation }: { sortable?: TreeSortable; handle?: 'handle' | 'header'; orientation?: TreeOrientation } = {},
+) =>
+	render(
+		<Tree.Root group="rows" sortable={sortable} handle={handle} orientation={orientation}>
+			<Tree.Items>
+				{rows.map(row => (
+					<RowItem key={row.id} row={row} />
+				))}
+			</Tree.Items>
+		</Tree.Root>,
+	);
+
+const flat = (...ids: Array<string>): Array<Row> => ids.map(id => ({ id }));
+
+const item = (id: string) => screen.getByTestId(`item-${id}`);
+
+// happy-dom lays nothing out, so each row is given a box: `index` rows of 20px from the top.
+const place = (id: string, index: number) => vi.spyOn(item(id), 'getBoundingClientRect').mockReturnValue(new DOMRect(index * 20, index * 20, 20, 20));
+
+const grab = (id: string) => {
+	fireEvent.mouseDown(screen.getByTestId(`handle-${id}`));
+	fireEvent.dragStart(item(id), { dataTransfer: new DataTransfer() });
+};
+
+// happy-dom's DragEvent is a plain Event, which drops `clientX`/`clientY` from its init.
+const dragEvent = (type: 'dragOver' | 'drop', target: HTMLElement, at: { x?: number; y?: number }) => {
+	const event = createEvent[type](target, { dataTransfer: new DataTransfer() });
+	Object.defineProperty(event, 'clientX', { value: at.x ?? 0 });
+	Object.defineProperty(event, 'clientY', { value: at.y ?? 0 });
+	return fireEvent(target, event);
+};
+const dropOn = (target: HTMLElement, y = 0) => dragEvent('drop', target, { y });
+/** Whether the target accepts the drag, i.e. cancelled the dragover. */
+const accepts = (target: HTMLElement, y = 0) => !dragEvent('dragOver', target, { y });
+
+const setup = () => {
+	const onMove = vi.fn();
+	return { onMove, sortable: { onMove } };
+};
+
+describe('Tree sortable', () => {
+	it('moves an item before a row when dropped above its midpoint', () => {
+		const { onMove, sortable } = setup();
+		mount(flat('a', 'b', 'c'), { sortable });
+		['a', 'b', 'c'].forEach(place);
+
+		grab('c');
+		dropOn(item('a'), 5);
+		expect(onMove).toHaveBeenCalledTimes(1);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'rows', id: 'c', index: 2, parentId: null },
+			to: { group: 'rows', parentId: null, index: 0 },
+		});
+	});
+
+	it('moves an item after a row when dropped below its midpoint, with the index read before the item is removed', () => {
+		const { onMove, sortable } = setup();
+		mount(flat('a', 'b', 'c'), { sortable });
+		['a', 'b', 'c'].forEach(place);
+
+		grab('a');
+		dropOn(item('b'), 35);
+		expect(onMove).toHaveBeenCalledTimes(1);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'rows', id: 'a', index: 0, parentId: null },
+			to: { group: 'rows', parentId: null, index: 2 },
+		});
+	});
+
+	it('reads the midpoint across the row in a horizontal list', () => {
+		const { onMove, sortable } = setup();
+		mount(flat('a', 'b'), { sortable, orientation: 'horizontal' });
+		['a', 'b'].forEach(place);
+
+		grab('a');
+		dragEvent('drop', item('b'), { x: 35, y: 0 });
+		expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ to: { group: 'rows', parentId: null, index: 2 } }));
+	});
+
+	it('refuses a drop on the item itself or next to it, where nothing would move', () => {
+		const { onMove, sortable } = setup();
+		mount(flat('a', 'b', 'c'), { sortable });
+		['a', 'b', 'c'].forEach(place);
+
+		grab('b');
+		expect(accepts(item('b'), 25)).toBe(false);
+		expect(accepts(item('a'), 15)).toBe(false);
+		expect(accepts(item('c'), 45)).toBe(false);
+		for (const [id, y] of [
+			['b', 25],
+			['a', 15],
+			['c', 45],
+		] as const) {
+			grab('b');
+			dropOn(item(id), y);
+		}
+		expect(onMove).not.toHaveBeenCalled();
+	});
+
+	it("moves an item from one item's children into another's and calls onMove once", () => {
+		const { onMove, sortable } = setup();
+		mount(
+			[
+				{ id: 'A', children: flat('a1', 'a2') },
+				{ id: 'B', children: flat('b1') },
+			],
+			{ sortable },
+		);
+		['A', 'a1', 'a2', 'B', 'b1'].forEach(place);
+
+		grab('a1');
+		expect(accepts(item('b1'), 95)).toBe(true);
+		dropOn(item('b1'), 95);
+		expect(onMove).toHaveBeenCalledTimes(1);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'rows', id: 'a1', index: 0, parentId: 'A' },
+			to: { group: 'rows', parentId: 'B', index: 1 },
+		});
+	});
+
+	it("drops into an open item's children area, at the position among its children", () => {
+		const { onMove, sortable } = setup();
+		mount([{ id: 'A', children: flat('a1', 'a2') }, { id: 'B' }], { sortable });
+		['A', 'a1', 'a2', 'B'].forEach(place);
+
+		grab('B');
+		dropOn(screen.getByTestId('children-A'), 35);
+		expect(onMove).toHaveBeenCalledTimes(1);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'rows', id: 'B', index: 1, parentId: null },
+			to: { group: 'rows', parentId: 'A', index: 1 },
+		});
+	});
+
+	it('refuses a drop into a descendant of the dragged item', () => {
+		const { onMove, sortable } = setup();
+		mount([{ id: 'A', children: [{ id: 'a1', children: flat('a11') }] }, { id: 'B' }], { sortable });
+
+		const targets = [item('a1'), item('a11'), screen.getByTestId('children-A'), screen.getByTestId('children-a1')];
+		grab('A');
+		for (const target of targets) expect(accepts(target)).toBe(false);
+		for (const target of targets) {
+			grab('A');
+			dropOn(target);
+		}
+		expect(onMove).not.toHaveBeenCalled();
+	});
+
+	it('refuses a drop into a list of another group, both ways', () => {
+		const { onMove, sortable } = setup();
+		mount([{ id: 'a', values: flat('v1', 'v2') }, { id: 'b' }], { sortable });
+
+		grab('v1');
+		expect(accepts(item('b'))).toBe(false);
+		dropOn(item('b'));
+		grab('b');
+		expect(accepts(item('v2'))).toBe(false);
+		dropOn(item('v2'));
+		expect(onMove).not.toHaveBeenCalled();
+	});
+
+	it('moves within a nested list of another group', () => {
+		const { onMove, sortable } = setup();
+		mount([{ id: 'a', values: flat('v1', 'v2') }], { sortable });
+		['a', 'v1', 'v2'].forEach(place);
+
+		grab('v1');
+		dropOn(item('v2'), 55);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'values', id: 'v1', index: 0, parentId: 'a' },
+			to: { group: 'values', parentId: 'a', index: 2 },
+		});
+	});
+
+	it('lets canDrop replace the group rule, but never allows a drop into a descendant', () => {
+		const onMove = vi.fn();
+		const canDrop = vi.fn(() => true);
+		mount(
+			[
+				{ id: 'a', values: flat('v1') },
+				{ id: 'B', children: flat('b1') },
+			],
+			{ sortable: { onMove, canDrop } },
+		);
+		['a', 'v1', 'B', 'b1'].forEach(place);
+
+		grab('v1');
+		dropOn(item('a'), 5);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'values', id: 'v1', index: 0, parentId: 'a' },
+			to: { group: 'rows', parentId: null, index: 0 },
+		});
+		expect(canDrop).toHaveBeenCalledWith({ group: 'values', id: 'v1', index: 0, parentId: 'a' }, { group: 'rows', parentId: null, index: 0 });
+
+		onMove.mockClear();
+		grab('B');
+		dropOn(item('b1'), 65);
+		expect(onMove).not.toHaveBeenCalled();
+	});
+
+	it('refuses a same-group drop that canDrop turns down', () => {
+		const onMove = vi.fn();
+		mount(flat('a', 'b', 'c'), { sortable: { onMove, canDrop: (_from, to) => to.index !== 0 } });
+		['a', 'b', 'c'].forEach(place);
+
+		grab('c');
+		expect(accepts(item('a'), 5)).toBe(false);
+		dropOn(item('a'), 5);
+		expect(onMove).not.toHaveBeenCalled();
+		grab('c');
+		dropOn(item('a'), 15);
+		expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ to: { group: 'rows', parentId: null, index: 1 } }));
+	});
+
+	it('marks the dragged item from and the hovered one to, with the drop position, and clears both on dragend', () => {
+		const { sortable } = setup();
+		mount([{ id: 'a' }, { id: 'b' }, { id: 'C', children: [] }], { sortable });
+		['a', 'b', 'C'].forEach(place);
+
+		grab('a');
+		expect(item('a').getAttribute('data-drag')).toBe('from');
+		dragEvent('dragOver', item('b'), { y: 35 });
+		expect(item('b').getAttribute('data-drag')).toBe('to');
+		expect(item('b').getAttribute('data-drop')).toBe('after');
+		dragEvent('dragOver', screen.getByTestId('children-C'), { y: 0 });
+		expect(item('b').hasAttribute('data-drag')).toBe(false);
+		expect(item('C').getAttribute('data-drag')).toBe('to');
+		expect(item('C').getAttribute('data-drop')).toBe('into');
+
+		fireEvent.dragEnd(item('a'), { dataTransfer: new DataTransfer() });
+		for (const id of ['a', 'b', 'C']) {
+			expect(item(id).hasAttribute('data-drag')).toBe(false);
+			expect(item(id).hasAttribute('data-drop')).toBe(false);
+		}
+	});
+
+	it('clears the drag marks after a drop', () => {
+		const { sortable } = setup();
+		mount(flat('a', 'b'), { sortable });
+		['a', 'b'].forEach(place);
+
+		grab('a');
+		dragEvent('dragOver', item('b'), { y: 35 });
+		dropOn(item('b'), 35);
+		expect(item('a').hasAttribute('data-drag')).toBe(false);
+		expect(item('b').hasAttribute('data-drag')).toBe(false);
+	});
+
+	it('clears the hover mark when the pointer leaves the hovered item', () => {
+		const { sortable } = setup();
+		mount(flat('a', 'b'), { sortable });
+		['a', 'b'].forEach(place);
+
+		grab('a');
+		dragEvent('dragOver', item('b'), { y: 35 });
+		fireEvent.dragLeave(item('b'), { dataTransfer: new DataTransfer(), relatedTarget: document.body });
+		expect(item('b').hasAttribute('data-drag')).toBe(false);
+		expect(item('a').getAttribute('data-drag')).toBe('from');
+	});
+
+	it('turns an item draggable while its handle is pressed', () => {
+		const { sortable } = setup();
+		mount(flat('a', 'b'), { sortable });
+
+		expect(item('a').hasAttribute('draggable')).toBe(false);
+		fireEvent.mouseDown(screen.getByTestId('handle-a'));
+		expect(item('a').getAttribute('draggable')).toBe('true');
+		expect(item('b').hasAttribute('draggable')).toBe(false);
+		fireEvent.mouseUp(document);
+		expect(item('a').hasAttribute('draggable')).toBe(false);
+	});
+
+	it('does not arm an item on a press elsewhere in the header by default', () => {
+		const { sortable } = setup();
+		mount(flat('a'), { sortable });
+
+		fireEvent.mouseDown(screen.getByTestId('title-a'));
+		expect(item('a').hasAttribute('draggable')).toBe(false);
+	});
+
+	it('with handle="header" arms the item on a press anywhere in its header except a text field', () => {
+		const { sortable } = setup();
+		mount([{ id: 'A', children: flat('a1') }], { sortable, handle: 'header' });
+
+		fireEvent.mouseDown(screen.getByTestId('input-A'));
+		expect(item('A').hasAttribute('draggable')).toBe(false);
+		fireEvent.mouseDown(screen.getByTestId('title-a1'));
+		expect(item('a1').getAttribute('draggable')).toBe('true');
+		expect(item('A').hasAttribute('draggable')).toBe(false);
+		fireEvent.mouseUp(document);
+		fireEvent.mouseDown(screen.getByTestId('title-A'));
+		expect(item('A').getAttribute('draggable')).toBe('true');
+	});
+
+	it('ignores a dragstart that bubbles up from a nested item', () => {
+		const { onMove, sortable } = setup();
+		mount([{ id: 'A', children: flat('a1', 'a2') }, { id: 'B' }], { sortable });
+		['A', 'a1', 'a2', 'B'].forEach(place);
+
+		grab('a2');
+		expect(item('a2').getAttribute('data-drag')).toBe('from');
+		expect(item('A').hasAttribute('data-drag')).toBe(false);
+		dropOn(item('a1'), 25);
+		expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ from: { group: 'rows', id: 'a2', index: 1, parentId: 'A' } }));
+	});
+
+	it('does nothing without sortable', () => {
+		mount([{ id: 'A', children: flat('a1') }, { id: 'B' }]);
+
+		fireEvent.mouseDown(screen.getByTestId('handle-B'));
+		expect(item('B').hasAttribute('draggable')).toBe(false);
+		fireEvent.dragStart(item('B'), { dataTransfer: new DataTransfer() });
+		expect(item('B').hasAttribute('data-drag')).toBe(false);
+		expect(accepts(item('A'))).toBe(false);
+		expect(accepts(screen.getByTestId('children-A'))).toBe(false);
+	});
+
+	it('does not re-render the root context consumers when the sortable object is recreated on each render', () => {
+		const renders = vi.fn();
+		const Probe = () => {
+			renders(useTreeRoot().group, useTreeItem().id);
+			return null;
+		};
+		const Host = ({ children }: { children: ReactNode }) => {
+			const [count, setCount] = useState(0);
+			return (
+				<>
+					<button type="button" data-testid="rerender" onClick={() => setCount(count + 1)} />
+					<Tree.Root group="rows" sortable={{ onMove: () => {} }}>
+						{children}
+					</Tree.Root>
+				</>
+			);
+		};
+		render(
+			<Host>
+				<Tree.Items>
+					<Tree.Item id="a">
+						<Probe />
+					</Tree.Item>
+				</Tree.Items>
+			</Host>,
+		);
+		renders.mockClear();
+
+		fireEvent.click(screen.getByTestId('rerender'));
+		expect(renders).not.toHaveBeenCalled();
+	});
+
+	it('hands onMove the handler of the latest render', () => {
+		const first = vi.fn();
+		const second = vi.fn();
+		const { rerender } = render(
+			<Tree.Root group="rows" sortable={{ onMove: first }}>
+				<Tree.Items>
+					{flat('a', 'b').map(row => (
+						<RowItem key={row.id} row={row} />
+					))}
+				</Tree.Items>
+			</Tree.Root>,
+		);
+		rerender(
+			<Tree.Root group="rows" sortable={{ onMove: second }}>
+				<Tree.Items>
+					{flat('a', 'b').map(row => (
+						<RowItem key={row.id} row={row} />
+					))}
+				</Tree.Items>
+			</Tree.Root>,
+		);
+		['a', 'b'].forEach(place);
+
+		grab('a');
+		dropOn(item('b'), 35);
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledTimes(1);
+	});
+});
