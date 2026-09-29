@@ -83,8 +83,6 @@ type generatedSpellData struct {
 	ImprovedWrath             spelldata.Ladder
 	Innervate                 spelldata.Ladder
 	InsectSwarm               spelldata.Ladder
-	KingOfTheJungle           spelldata.Ladder
-	KingOfTheJungleTriggered  spelldata.Ladder
 	Lacerate                  spelldata.Ladder
 	LeaderOfThePack           spelldata.Ladder
 	LeaderOfThePackTriggered  spelldata.Ladder
@@ -218,8 +216,6 @@ var spellData = generatedSpellData{
 	ImprovedWrath:             spelldata.Talent(16814, 5),
 	Innervate:                 spelldata.Ranked(29166),
 	InsectSwarm:               spelldata.Ranked(5570, 24974, 24975, 24976, 24977),
-	KingOfTheJungle:           spelldata.Talent(417046, 3),
-	KingOfTheJungleTriggered:  spelldata.Ranked(417045),
 	Lacerate:                  spelldata.Ranked(414644, 1235826, 1235827),
 	LeaderOfThePack:           spelldata.Ranked(17007),
 	LeaderOfThePackTriggered:  spelldata.Ranked(24932),

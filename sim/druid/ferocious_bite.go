@@ -1,70 +1,32 @@
 package druid
 
-var ferociousBiteRank = spellData.FerociousBite.Highest()
-var ferociousBiteBase = ferociousBiteRank.DamageEffect().Average()
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-// TODO: To be implemented.
 func (druid *Druid) registerFerociousBiteSpell() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// var energyMetrics *core.ResourceMetrics
-	//
-	// druid.FerociousBite = druid.RegisterSpell(core.SpellConfig{
-	// 	ActionID:        core.ActionID{SpellID: ferociousBiteRank.ID},
-	// 	CastRequirement: ferociousBiteRank.CastRequirement(),
-	// 	SpellSchool:     ferociousBiteRank.SpellSchool(),
-	// 	DefenseType:     ferociousBiteRank.DefenseTypeCore(),
-	// 	ProcMask:        core.ProcMaskMeleeMHSpecial,
-	// 	ClassSpellMask:  DruidSpellFerociousBite,
-	// 	Flags:           core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-	//
-	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost: int32(ferociousBiteRank.Cost()),
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: ferociousBiteRank.GCD(),
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	// 	ExtraCastCondition: func(_ *core.Simulation, _ *core.Unit) bool {
-	// 		return druid.ComboPoints() > 0
-	// 	},
-	//
-	// 	DamageMultiplier: 1,
-	// 	ThreatMultiplier: 1,
-	// 	MaxRange:         core.MaxMeleeRange,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		cp := float64(druid.ComboPoints())
-	// 		ap := spell.MeleeAttackPower(target)
-	// 		excessEnergy := druid.CurrentEnergy()
-	// 		if excessEnergy > 0 {
-	// 			druid.SpendEnergy(sim, excessEnergy, energyMetrics)
-	// 			energyMetrics.Events--
-	// 		}
-	//
-	// 		dmgPerCP := 169.0
-	// 		baseDamage := ferociousBiteBase + dmgPerCP*cp + 4.1*excessEnergy + 0.05*cp*ap
-	//
-	// 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
-	//
-	// 		if result.Landed() {
-	// 			druid.SpendComboPoints(sim, spell.ComboPointMetrics())
-	// 		}
-	// 	},
-	//
-	// 	ExpectedInitialDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-	// 		cp := float64(druid.ComboPoints())
-	// 		ap := spell.MeleeAttackPower(target)
-	// 		dmgPerCP := 169.0
-	// 		baseDamage := ferociousBiteBase + dmgPerCP*cp + 0.05*cp*ap
-	// 		return spell.CalcDamage(sim, target, baseDamage, spell.OutcomeExpectedMeleeWeaponSpecialHitAndCrit)
-	// 	},
-	// })
-	//
-	// energyMetrics = druid.FerociousBite.Cost.ResourceCostImpl.(*core.EnergyCost).ResourceMetrics
+	// The trainer list stops at rank 4. Rank 5 (31018) is in the store.
+	// TODO: Ingame research needed -- whether rank 5 spell 31018 can be learned.
+	rank := spellData.FerociousBite.ByID(22829)
+	perEnergy := rank.EffectN(2).BaseValue() / 100
+	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ExtraCastCondition = druid.requiresComboPoints(rank)
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		druid.breakProwl(sim)
+		cp := druid.spendComboPoints(sim, spell)
+		extra := druid.CurrentEnergy()
+		if extra > 0 {
+			druid.SpendEnergy(sim, extra, spell.EnergyMetrics())
+		}
+		damage := rank.DamageEffect().RollAt(sim, druid.level()) + float64(rank.DamageEffect().PointsPerResource)*float64(cp)
+		damage += extra * perEnergy
+		damage += classicAPPerComboPointBite * float64(cp) * spell.MeleeAttackPower(target)
+		damage *= druid.rendAndTearMultiplier(target)
+		result := spell.CalcAndDealDamage(sim, target, damage, spell.OutcomeMeleeSpecialHitAndCrit)
+		druid.refundOnMiss(sim, spell, result, rank)
+	}
+	druid.FerociousBite = druid.RegisterSpell(config)
 }
 
 func (druid *Druid) CurrentFerociousBiteCost() float64 {

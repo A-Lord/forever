@@ -14,8 +14,8 @@ func init() {
 }
 
 func TestFeralBear(t *testing.T) {
-	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the expected .results numbers cannot be meaningful until then")
+	t.Skip("gear sets and APL presets are not part of the feral foundation; " +
+		"TestFeralBearCoverage casts the abilities with the rotation written in the test")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassDruid,

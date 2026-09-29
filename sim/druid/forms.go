@@ -3,6 +3,7 @@ package druid
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 type DruidForm uint8
@@ -13,50 +14,62 @@ const (
 	Cat
 	Moonkin
 	Tree
+	DireBear
 )
-
-// Converts from 0.009327 to 0.0085
-const AnimalSpiritRegenSuppression = 0.911337
-
-// Thick Hide contribution handled separately in talents code for cleanliness
-// and UI stats display.
-const BaseBearArmorMulti = 5.0
 
 func (form DruidForm) Matches(other DruidForm) bool {
 	return (form & other) != 0
 }
 
-// func (druid *Druid) GetForm() DruidForm {
-// 	return druid.form
-// }
-
-var formShapeshifts = map[DruidForm]dbcenums.ShapeshiftForm{
-	Bear:    dbcenums.FORM_DIRE_BEAR_FORM,
-	Cat:     dbcenums.FORM_CAT_FORM,
-	Moonkin: dbcenums.FORM_MOONKIN_FORM,
-	Tree:    dbcenums.FORM_TREE_FORM,
+func (druid *Druid) setForm(form DruidForm) {
+	switch {
+	case form.Matches(DireBear):
+		// Dire Bear keeps the bear bit so a bear-only cast and InForm(Bear) both match.
+		druid.form = Bear | DireBear
+		druid.ShapeshiftForm = shapeshiftOf(spellData.DireBearForm.Highest())
+	case form.Matches(Bear):
+		druid.form = Bear
+		druid.ShapeshiftForm = shapeshiftOf(spellData.BearForm.Highest())
+	case form.Matches(Cat):
+		druid.form = Cat
+		druid.ShapeshiftForm = shapeshiftOf(spellData.CatForm.Highest())
+	case form.Matches(Moonkin):
+		druid.form = Moonkin
+		druid.ShapeshiftForm = shapeshiftOf(spellData.MoonkinForm.Highest())
+	default:
+		druid.form = Humanoid
+		druid.ShapeshiftForm = 0
+	}
 }
 
-func (druid *Druid) setForm(form DruidForm) {
-	druid.form = form
-	druid.ShapeshiftForm = formShapeshifts[form]
+// The shapeshift aura's misc value is the game files' form id.
+func shapeshiftOf(rank *spelldata.Spell) dbcenums.ShapeshiftForm {
+	return dbcenums.ShapeshiftForm(rank.EffectN(1).Misc)
 }
 
 func (druid *Druid) InForm(form DruidForm) bool {
 	return druid.form.Matches(form)
 }
 
-func (druid *Druid) ClearForm(sim *core.Simulation) {
-	if druid.InForm(Cat) {
+func (druid *Druid) leaveForm(sim *core.Simulation) {
+	switch {
+	case druid.CatFormAura != nil && druid.CatFormAura.IsActive():
 		druid.CatFormAura.Deactivate(sim)
-	} else if druid.InForm(Bear) {
+	case druid.DireBearFormAura != nil && druid.DireBearFormAura.IsActive():
+		druid.DireBearFormAura.Deactivate(sim)
+	case druid.BearFormAura != nil && druid.BearFormAura.IsActive():
 		druid.BearFormAura.Deactivate(sim)
-	} else if druid.InForm(Moonkin) {
+	case druid.MoonkinFormAura != nil && druid.MoonkinFormAura.IsActive():
 		druid.MoonkinFormAura.Deactivate(sim)
 	}
+}
 
+func (druid *Druid) ClearForm(sim *core.Simulation) {
+	druid.leaveForm(sim)
 	druid.setForm(Humanoid)
-	druid.SetCurrentPowerBar(core.ManaBar)
+	if druid.HasManaBar() {
+		druid.SetCurrentPowerBar(core.ManaBar)
+	}
 }
 
 func (druid *Druid) GetCatWeapon() core.Weapon {
@@ -83,341 +96,183 @@ func (druid *Druid) GetBearWeapon() core.Weapon {
 	}
 }
 
-// TODO: To be implemented. Not verified against Forever.
 func (druid *Druid) RegisterCatFormAura() {
-	panic("To be implemented")
+	form := spellData.CatForm.Highest()
+	druid.CatFormAura = druid.registerFormAura(form, druid.StartingForm.Matches(Cat))
+	spelldata.ParseEffects(&druid.Character, druid.CatFormAura, spellData.CatFormTriggered.Highest())
 
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: 768}
-	// energyMetrics := druid.NewEnergyMetrics(actionID)
-	//
-	// // In Cat Form each point of Agility gives 1 AP.
-	// agiApDep := druid.NewDynamicStatDependency(stats.Agility, stats.AttackPower, 1)
-	// // In Cat Form each point of Strength gives 2 AP (vs 1 AP in humanoid form).
-	// // The static dep in druid.go provides 1 AP/Str always; this dynamic dep adds the extra 1 AP/Str.
-	// strApDep := druid.NewDynamicStatDependency(stats.Strength, stats.AttackPower, 1)
-	// // Feral Attack Power (weapon/item feral-specific AP) converts 1:1 to AP in Cat Form.
-	// feralApDep := druid.NewDynamicStatDependency(stats.FeralAttackPower, stats.AttackPower, 1)
-	//
-	// // Talent: Heart of the Wild — +2% AP per rank while in Cat form.
-	// var hotWCatApDep *stats.StatDependency
-	// if druid.Talents.HeartOfTheWild > 0 {
-	// hotWCatApDep = druid.NewDynamicMultiplyStat(stats.AttackPower, 1+0.02*float64(druid.Talents.HeartOfTheWild))
-	// }
-	//
-	// clawWeapon := druid.GetCatWeapon()
-	//
-	// statBonus := stats.Stats{
-	// stats.AttackPower: 2 * float64(core.CharacterLevel),
-	// }
-	//
-	// druid.CatFormAura = druid.RegisterAura(core.Aura{
-	// Label:      "Cat Form",
-	// ActionID:   actionID,
-	// Duration:   core.NeverExpires,
-	// BuildPhase: core.Ternary(druid.StartingForm.Matches(Cat), core.CharacterBuildPhaseBase, core.CharacterBuildPhaseNone),
-	// OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// if !druid.Env.MeasuringStats && druid.form != Humanoid {
-	// druid.ClearForm(sim)
-	// }
-	// druid.setForm(Cat)
-	// druid.SetCurrentPowerBar(core.EnergyBar)
-	//
-	// druid.PseudoStats.ThreatMultiplier *= 0.71
-	// druid.PseudoStats.SpiritRegenMultiplier *= AnimalSpiritRegenSuppression
-	//
-	// druid.AddStatsDynamic(sim, statBonus)
-	// druid.EnableBuildPhaseStatDep(sim, agiApDep)
-	// druid.EnableBuildPhaseStatDep(sim, strApDep)
-	// druid.EnableBuildPhaseStatDep(sim, feralApDep)
-	// if hotWCatApDep != nil {
-	// druid.EnableBuildPhaseStatDep(sim, hotWCatApDep)
-	// }
-	//
-	// if !druid.Env.MeasuringStats {
-	// druid.AutoAttacks.SetMH(clawWeapon)
-	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
-	//
-	// if sim.CurrentTime > 0 {
-	// if cur := druid.CurrentEnergy(); cur > 0 {
-	// //Resets energy to 0 when entering cat form
-	// druid.SpendEnergy(sim, cur, energyMetrics)
-	// }
-	// // Wolfshead Helm: +20 energy on shift into Cat.
-	// energyGain := druid.WolfsheadEnergyBonus
-	// // Furor: 20% chance per rank (rank 5 = 100%) to gain 40 energy on shift.
-	// if druid.FurorProcChance == 1 || (druid.FurorProcChance > 0 && sim.RandomFloat("Furor") < druid.FurorProcChance) {
-	// energyGain += 40.0
-	// }
-	// if energyGain > 0 {
-	// druid.AddEnergy(sim, energyGain, energyMetrics)
-	// }
-	// }
-	// }
-	// },
-	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// druid.setForm(Humanoid)
-	//
-	// druid.PseudoStats.ThreatMultiplier /= 0.71
-	// druid.PseudoStats.SpiritRegenMultiplier /= AnimalSpiritRegenSuppression
-	//
-	// druid.AddStatsDynamic(sim, statBonus.Invert())
-	// druid.DisableBuildPhaseStatDep(sim, agiApDep)
-	// druid.DisableBuildPhaseStatDep(sim, strApDep)
-	// druid.DisableBuildPhaseStatDep(sim, feralApDep)
-	// if hotWCatApDep != nil {
-	// druid.DisableBuildPhaseStatDep(sim, hotWCatApDep)
-	// }
-	//
-	// if !druid.Env.MeasuringStats {
-	// druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
-	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
-	// }
-	// },
-	// })
-	//
-	// druid.CatFormAura.NewPassiveMovementSpeedEffect(0.25)
+	druid.CatFormAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+		druid.setForm(Cat)
+		druid.SetCurrentPowerBar(core.EnergyBar)
+		if !druid.Env.MeasuringStats {
+			druid.AutoAttacks.SetMH(druid.GetCatWeapon())
+		}
+		druid.restoreCatEnergy(sim)
+	})
+	druid.CatFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+		druid.rememberCatEnergy(sim)
+		druid.breakProwl(sim)
+		druid.restoreHumanoidBody(sim)
+	})
+	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
+		druid.furorStoredEnergy = 0
+		druid.furorLeftCatAt = 0
+	})
 }
 
-// TODO: To be implemented.
-func (druid *Druid) registerCatFormSpell() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// druid.CatForm = druid.RegisterSpell(core.SpellConfig{
-	// 	ActionID:        core.ActionID{SpellID: 768},
-	// 	CastRequirement: spellData.CatForm.Highest().CastRequirement(),
-	// 	ClassSpellMask:  DruidSpellCatForm,
-	// 	Flags:           core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		BaseCostPercent: 35,
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: core.GCDDefault,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-	// 		if druid.CatFormAura.IsActive() {
-	// 			druid.CatFormAura.Deactivate(sim)
-	// 		}
-	// 		druid.CatFormAura.Activate(sim)
-	// 	},
-	// })
-}
-
-// TODO: To be implemented. Not verified against Forever.
 func (druid *Druid) RegisterBearFormAura() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: 9634} // Dire Bear Form
-	// healthMetrics := druid.NewHealthMetrics(actionID)
-	//
-	// statBonus := stats.Stats{
-	// stats.AttackPower: 3 * float64(core.CharacterLevel),
-	// }
-	//
-	// strApDep := druid.NewDynamicStatDependency(stats.Strength, stats.AttackPower, 1)
-	// feralApDep := druid.NewDynamicStatDependency(stats.FeralAttackPower, stats.AttackPower, 1)
-	// stamDep := druid.NewDynamicMultiplyStat(stats.Stamina, 1.25)
-	// // Talent: Heart of the Wild — +4% Stamina per rank while in Bear form.
-	// // Stays a literal: the talent states no Stamina effect. Its two effects are +4%/rank Intellect
-	// // (A_MOD_TOTAL_STAT_PERCENTAGE misc 3) and an E_DUMMY worth 2/rank for the Cat attack power, so
-	// // reading either here would be picking the effect by which number matches.
-	// var hotWBearStamDep *stats.StatDependency
-	// if druid.Talents.HeartOfTheWild > 0 {
-	// hotWBearStamDep = druid.NewDynamicMultiplyStat(stats.Stamina, 1+0.04*float64(druid.Talents.HeartOfTheWild))
-	// }
-	//
-	// clawWeapon := druid.GetBearWeapon()
-	//
-	// druid.BearFormAura = druid.RegisterAura(core.Aura{
-	// Label:      "Bear Form",
-	// ActionID:   actionID,
-	// Duration:   core.NeverExpires,
-	// BuildPhase: core.Ternary(druid.StartingForm.Matches(Bear), core.CharacterBuildPhaseBase, core.CharacterBuildPhaseNone),
-	// OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// if !druid.Env.MeasuringStats && druid.form != Humanoid {
-	// druid.ClearForm(sim)
-	// }
-	// druid.setForm(Bear)
-	// druid.SetCurrentPowerBar(core.RageBar)
-	//
-	// druid.PseudoStats.ThreatMultiplier *= 1.3
-	// druid.PseudoStats.SpiritRegenMultiplier *= AnimalSpiritRegenSuppression
-	//
-	// druid.AddStatsDynamic(sim, statBonus)
-	// druid.ApplyDynamicEquipScaling(sim, stats.Armor, BaseBearArmorMulti)
-	// druid.ApplyDynamicEquipScaling(sim, stats.BonusArmor, BaseBearArmorMulti)
-	// druid.EnableBuildPhaseStatDep(sim, strApDep)
-	// druid.EnableBuildPhaseStatDep(sim, feralApDep)
-	//
-	// // Preserve fraction of max health when shifting
-	// healthFrac := druid.CurrentHealth() / druid.MaxHealth()
-	// druid.EnableBuildPhaseStatDep(sim, stamDep)
-	// if hotWBearStamDep != nil {
-	// druid.EnableBuildPhaseStatDep(sim, hotWBearStamDep)
-	// }
-	//
-	// if !druid.Env.MeasuringStats {
-	// druid.GainHealth(sim, healthFrac*druid.MaxHealth()-druid.CurrentHealth(), healthMetrics)
-	// druid.AutoAttacks.SetMH(clawWeapon)
-	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
-	// }
-	// },
-	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// druid.setForm(Humanoid)
-	//
-	// druid.PseudoStats.ThreatMultiplier /= 1.3
-	// druid.PseudoStats.SpiritRegenMultiplier /= AnimalSpiritRegenSuppression
-	//
-	// druid.AddStatsDynamic(sim, statBonus.Invert())
-	// druid.RemoveDynamicEquipScaling(sim, stats.Armor, BaseBearArmorMulti)
-	// druid.RemoveDynamicEquipScaling(sim, stats.BonusArmor, BaseBearArmorMulti)
-	// druid.DisableBuildPhaseStatDep(sim, strApDep)
-	// druid.DisableBuildPhaseStatDep(sim, feralApDep)
-	//
-	// healthFrac := druid.CurrentHealth() / druid.MaxHealth()
-	// druid.DisableBuildPhaseStatDep(sim, stamDep)
-	// if hotWBearStamDep != nil {
-	// druid.DisableBuildPhaseStatDep(sim, hotWBearStamDep)
-	// }
-	//
-	// if !druid.Env.MeasuringStats {
-	// druid.RemoveHealth(sim, druid.CurrentHealth()-healthFrac*druid.MaxHealth())
-	// druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
-	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
-	// }
-	// },
-	// })
+	druid.BearFormAura = druid.registerBearAura(spellData.BearForm.Highest(), spellData.BearFormTriggered.Highest(), Bear, druid.StartingForm == Bear)
+	druid.DireBearFormAura = druid.registerBearAura(spellData.DireBearForm.Highest(), spellData.DireBearFormTriggered.Highest(), DireBear, druid.StartingForm.Matches(DireBear))
 }
 
-// TODO: To be implemented.
-// TODO: A bear's auto attack takes the two-hander rage factor (11.25 rage a swing at a normalized speed of 2.5 in a
-// combat log), which the rage bar grants only at a normalized speed of 3.3; check whether the equipped weapon decides it.
+func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.Spell, kind DruidForm, starting bool) *core.Aura {
+	aura := druid.registerFormAura(form, starting)
+	// A_MOD_BONUS_ARMOR_PCT is not parsed. Armor from items, health, attack power and the Faerie
+	// Fire spell mods are.
+	spelldata.ParseEffects(&druid.Character, aura, passive)
+	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+		druid.setForm(kind)
+		druid.SetCurrentPowerBar(core.RageBar)
+		if !druid.Env.MeasuringStats {
+			druid.AutoAttacks.SetMH(druid.GetBearWeapon())
+		}
+		druid.furorRageOnEnterBear(sim)
+	})
+	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+		druid.restoreHumanoidBody(sim)
+	})
+	return aura
+}
+
+func (druid *Druid) registerFormAura(form *spelldata.Spell, starting bool) *core.Aura {
+	return druid.RegisterAura(spelldata.AuraConfig(form, func(aura *core.Aura) {
+		if starting {
+			aura.BuildPhase = core.CharacterBuildPhaseBase
+		}
+	}))
+}
+
+func (druid *Druid) restoreHumanoidBody(sim *core.Simulation) {
+	if druid.Env != nil && !druid.Env.MeasuringStats && druid.AutoAttacks.MH() != nil {
+		druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
+	}
+	if druid.HasManaBar() {
+		druid.SetCurrentPowerBar(core.ManaBar)
+	}
+	druid.setForm(Humanoid)
+	_ = sim
+}
+
+func (druid *Druid) registerCatFormSpell() {
+	druid.CatForm = druid.registerShapeshiftSpell(spellData.CatForm.Highest(), druid.CatFormAura)
+}
+
 func (druid *Druid) registerBearFormSpell() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: 9634} // Dire Bear Form
-	// rageMetrics := druid.NewRageMetrics(actionID)
-	//
-	// druid.BearForm = druid.RegisterSpell(core.SpellConfig{
-	// 	ActionID:        actionID,
-	// 	CastRequirement: spellData.DireBearForm.Highest().CastRequirement(),
-	// 	ClassSpellMask:  DruidSpellBearForm,
-	// 	Flags:           core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		BaseCostPercent: 35,
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: core.GCDDefault,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-	// 		if cur := druid.CurrentRage(); cur > 0 {
-	// 			// Resets rage to 0 when entering bear form
-	// 			druid.SpendRage(sim, cur, rageMetrics)
-	// 		}
-	// 		// Wolfshead Helm: +5 rage on shift into Bear.
-	// 		rageGain := druid.WolfsheadRageBonus
-	// 		// Furor: 20% chance per rank (rank 5 = 100%) to gain 10 rage on shift.
-	// 		if druid.FurorProcChance == 1 || (druid.FurorProcChance > 0 && sim.RandomFloat("Furor") < druid.FurorProcChance) {
-	// 			rageGain += 10.0
-	// 		}
-	// 		if rageGain > 0 {
-	// 			druid.AddRage(sim, rageGain, rageMetrics)
-	// 		}
-	// 		druid.BearFormAura.Activate(sim)
-	// 	},
-	// })
+	druid.BearForm = druid.registerShapeshiftSpell(spellData.BearForm.Highest(), druid.BearFormAura)
+	druid.DireBearForm = druid.registerShapeshiftSpell(spellData.DireBearForm.Highest(), druid.DireBearFormAura)
 }
 
-// TODO: To be implemented. Not verified against Forever.
+func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Aura) *DruidSpell {
+	config := spelldata.SpellConfig(&druid.Unit, rank)
+	config.Flags |= core.SpellFlagAPL
+	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
+		return aura != nil && !aura.IsActive()
+	}
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		druid.leaveForm(sim)
+		aura.Activate(sim)
+	}
+	return druid.RegisterSpell(config)
+}
+
+// furorFraction is the talent curve, 0.2 at 1/5 through 1 at 5/5.
+func (druid *Druid) furorFraction() float64 {
+	if druid.Talents.Furor == 0 {
+		return 0
+	}
+	return spellData.Furor.Rank(druid.Talents.Furor).EffectN(1).Percent()
+}
+
+func (druid *Druid) rememberCatEnergy(sim *core.Simulation) {
+	if !druid.HasEnergyBar() {
+		return
+	}
+	druid.furorStoredEnergy = druid.CurrentEnergy()
+	druid.furorLeftCatAt = sim.CurrentTime
+}
+
+func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
+	if !druid.HasEnergyBar() || druid.furorFraction() == 0 || druid.Env.MeasuringStats {
+		return
+	}
+	// The first shift of an iteration has nothing stored. A later shift restores what was left
+	// plus 10 energy per second away, both scaled by the talent curve, and caps at the energy bar.
+	// TODO: Ingame research needed -- whether both the stored energy and the 10 per second scale by
+	// the rank curve, and what death, a reset, or cancelling the form does to the stored energy.
+	if druid.furorLeftCatAt == 0 && druid.furorStoredEnergy == 0 {
+		return
+	}
+	seconds := (sim.CurrentTime - druid.furorLeftCatAt).Seconds()
+	if seconds < 0 {
+		seconds = 0
+	}
+	gained := druid.furorFraction() * (druid.furorStoredEnergy + 10*seconds)
+	if gained > druid.MaximumEnergy() {
+		gained = druid.MaximumEnergy()
+	}
+	delta := gained - druid.CurrentEnergy()
+	if delta > 0 {
+		druid.AddEnergy(sim, delta, druid.furorEnergyMetrics())
+	} else if delta < 0 {
+		druid.SpendEnergy(sim, -delta, druid.furorEnergyMetrics())
+	}
+}
+
+func (druid *Druid) furorRageOnEnterBear(sim *core.Simulation) {
+	chance := druid.furorFraction()
+	if chance == 0 || !druid.HasRageBar() || druid.Env.MeasuringStats {
+		return
+	}
+	if !sim.Proc(chance, "Furor") {
+		return
+	}
+	rage := spellData.FurorTriggered.Highest().EnergizeEffect().Tenths()
+	druid.AddRage(sim, rage, druid.furorRageMetrics())
+}
+
+func (druid *Druid) furorEnergyMetrics() *core.ResourceMetrics {
+	if druid.furorEnergyMetric == nil {
+		druid.furorEnergyMetric = druid.NewEnergyMetrics(core.ActionID{SpellID: spellData.Furor.Highest().ID})
+	}
+	return druid.furorEnergyMetric
+}
+
+func (druid *Druid) furorRageMetrics() *core.ResourceMetrics {
+	if druid.furorRageMetric == nil {
+		druid.furorRageMetric = druid.NewRageMetrics(core.ActionID{SpellID: spellData.FurorTriggered.Highest().ID})
+	}
+	return druid.furorRageMetric
+}
+
 func (druid *Druid) RegisterMoonkinFormAura() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// if !druid.Talents.MoonkinForm {
-	// return
-	// }
-	//
-	// druid.MoonkinFormAura = druid.RegisterAura(core.Aura{
-	// Label:      "Moonkin Form",
-	// ActionID:   core.ActionID{SpellID: 24858},
-	// Duration:   core.NeverExpires,
-	// BuildPhase: core.Ternary(druid.StartingForm.Matches(Moonkin), core.CharacterBuildPhaseBase, core.CharacterBuildPhaseNone),
-	// OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// if !druid.Env.MeasuringStats && druid.form != Moonkin {
-	// druid.ClearForm(sim)
-	// }
-	//
-	// druid.ApplyDynamicEquipScaling(sim, stats.Armor, 4)
-	//
-	// druid.setForm(Moonkin)
-	// druid.SetCurrentPowerBar(core.ManaBar)
-	// },
-	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// druid.RemoveDynamicEquipScaling(sim, stats.Armor, 4)
-	// druid.setForm(Humanoid)
-	// },
-	// })
-	//
-	// manaMetrics := druid.NewManaMetrics(core.ActionID{SpellID: 33926 /* Elune's Touch */})
-	//
-	// // Elune's Touch is assumed to have a PPM of 15.
-	// // Mana gained is 30% of melee attack power.
-	//
-	// druid.MakeProcTriggerAura(core.ProcTrigger{
-	// Name:               "Elune's Touch",
-	// DPM:                druid.NewStaticLegacyPPMManager(15, core.ProcMaskMeleeWhiteHit),
-	// RequireDamageDealt: true,
-	// Outcome:            core.OutcomeLanded,
-	// Callback:           core.CallbackOnSpellHitDealt,
-	// Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// druid.AddMana(sim, float64(stats.AttackPower)*0.3, manaMetrics)
-	// },
-	// })
+	if !druid.Talents.MoonkinForm {
+		return
+	}
+	// Moonkin's passives are not part of the feral forms. The aura exists so ClearForm can drop it.
+	row := spellData.MoonkinForm.Highest()
+	druid.MoonkinFormAura = druid.RegisterAura(spelldata.AuraConfig(row))
+	druid.MoonkinFormAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+		druid.setForm(Moonkin)
+		druid.SetCurrentPowerBar(core.ManaBar)
+	})
+	druid.MoonkinFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+		druid.restoreHumanoidBody(sim)
+	})
 }
 
-// TODO: To be implemented. Not verified against Forever.
 func (druid *Druid) RegisterMoonkinFormSpell() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// if !druid.Talents.MoonkinForm {
-	// return
-	// }
-	//
-	// druid.MoonkinForm = druid.RegisterSpell(core.SpellConfig{
-	// ActionID:        core.ActionID{SpellID: 24858},
-	// CastRequirement: spellData.MoonkinForm.Highest().CastRequirement(),
-	// Flags:           core.SpellFlagNoOnCastComplete | core.SpellFlagAPL,
-	//
-	// ManaCost: core.ManaCostOptions{
-	// BaseCostPercent: 9.3,
-	// },
-	// Cast: core.CastConfig{
-	// DefaultCast: core.Cast{
-	// GCD: core.GCDDefault,
-	// },
-	// IgnoreHaste: true,
-	// },
-	//
-	// ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-	// druid.MoonkinFormAura.Activate(sim)
-	// },
-	// })
+	if druid.MoonkinFormAura == nil {
+		return
+	}
+	druid.MoonkinForm = druid.registerShapeshiftSpell(spellData.MoonkinForm.Highest(), druid.MoonkinFormAura)
 }

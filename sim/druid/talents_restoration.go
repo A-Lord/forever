@@ -34,6 +34,7 @@ func (druid *Druid) registerRestorationTalents() {
 
 // TODO: To be implemented.
 func (druid *Druid) applyNaturalShapeshifter() {
+	druid.parseTalent(druid.Talents.NaturalShapeshifter, spellData.NaturalShapeshifter)
 	if druid.Talents.NaturalShapeshifter == 0 {
 		return
 	}
@@ -52,6 +53,7 @@ func (druid *Druid) applyNaturalShapeshifter() {
 
 // TODO: To be implemented.
 func (druid *Druid) applyNaturalist() {
+	druid.parseTalent(druid.Talents.Naturalist, spellData.Naturalist)
 	if druid.Talents.Naturalist == 0 {
 		return
 	}
@@ -112,6 +114,7 @@ func (druid *Druid) applyNaturesFocus() {
 
 // TODO: To be implemented.
 func (druid *Druid) applyFuror() {
+	// Entering cat or bear reads the rank. There is no aura to attach.
 	if druid.Talents.Furor == 0 {
 		return
 	}

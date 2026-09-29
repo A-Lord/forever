@@ -70,9 +70,7 @@ func (cat *FeralDruid) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 
 // AddPartyBuffs auto-applies Leader of the Pack from the druid's own talent.
 func (cat *FeralDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-	if cat.Talents.LeaderOfThePack {
-		partyBuffs.LeaderOfThePack = true
-	}
+	cat.Druid.AddPartyBuffs(partyBuffs)
 }
 
 func (cat *FeralDruid) Initialize() {

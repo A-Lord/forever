@@ -37978,7 +37978,6 @@ var generatedCurves = map[int32][][]float64{
 var generatedHandTriggers = map[int32][]int32{
 	20230:   {20240},   // Retaliation's dummy aura (aura 4) casts the counterattack 20240: same name, class set and icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage
 	1323967: {1323969}, // Gore Drinker's talent aura (two dummies) applies the buff its tooltip describes: same name, class set and icon, 3 charges heard on melee attacks, and its aura 231 casts the heal 1323968
-	417046:  {417045},  // King of the Jungle's dummy is the energy the triggered spell 417045 restores; 417045 is not named by an effect edge or a description token
 }
 
 func init() { install(generatedSpells, generatedCurves, generatedHandTriggers) }

@@ -145,6 +145,7 @@ func (druid *Druid) applyVengeance() {
 }
 
 func (druid *Druid) applyNaturesReach() {
+	druid.parseTalent(druid.Talents.NaturesReach, spellData.NaturesReach)
 	if druid.Talents.NaturesReach == 0 {
 		return
 	}
@@ -205,9 +206,7 @@ func (druid *Druid) applyImprovedWrath() {
 // TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
 // the effect can be modelled; there is no TBC equivalent to port.
 func (druid *Druid) applyGenesis() {
-	if druid.Talents.Genesis == 0 {
-		return
-	}
+	druid.parseTalent(druid.Talents.Genesis, spellData.Genesis)
 }
 
 // applyNaturesMajesty implements Nature's Majesty, new in Forever.
@@ -215,9 +214,7 @@ func (druid *Druid) applyGenesis() {
 // TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
 // the effect can be modelled; there is no TBC equivalent to port.
 func (druid *Druid) applyNaturesMajesty() {
-	if druid.Talents.NaturesMajesty == 0 {
-		return
-	}
+	druid.parseTalent(druid.Talents.NaturesMajesty, spellData.NaturesMajesty)
 }
 
 // applyImprovedEntanglingRoots implements Improved Entangling Roots, new in Forever.
