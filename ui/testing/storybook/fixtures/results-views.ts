@@ -1,20 +1,22 @@
 import { ALL_UNITS, simResultFilter } from '@features/results/components/ResultsFilter/utils';
+import type { MetricRow } from '@features/results/model/grouping';
 import type { SuggestionSource } from '@features/results/model/log/search/indexes';
 import type { ReferenceDiffs } from '@features/results/model/reference_diffs';
 import { referenceDiffs } from '@features/results/model/reference_diffs';
 import { ResultChannel } from '@features/results/model/result_channel';
 import type { ResultMetric } from '@features/results/model/topline_metrics';
 import { toplineResultMetrics } from '@features/results/model/topline_metrics';
-import { SpellSchool } from '@generated/proto/common';
+import { ActionMetrics as ActionMetricsProto } from '@generated/proto/api';
+import { ActionID, OtherAction, SpellSchool } from '@generated/proto/common';
 import { ResourceType } from '@generated/proto/spell';
 import type { ActionId } from '@sim/proto/action_id';
 import type { AuraUptimeLog, CastLog, DamageLog, DpsLog, ResourceGroupLog, ResourceLog, ThreatLogGroup } from '@sim/proto/combat_log';
 import { Entity } from '@sim/proto/combat_log';
-import type { SimResult } from '@sim/proto/sim_result';
+import { ActionMetrics, SimResult } from '@sim/proto/sim_result';
 import { wowheadIconUrl } from '@sim/proto/wowhead';
 
 import type { StubHostParts } from './models';
-import { makeSimResult } from './results';
+import { makeSimResult, makeSimRun } from './results';
 
 export interface ResultFixture {
 	result: SimResult;
@@ -53,6 +55,33 @@ export const loadTopline = async (): Promise<ToplineFixture> => {
 	const current = await makeSimResult();
 	const reference = await makeSimResult({ dpsScale: 0.95 });
 	return { metrics: toplineResultMetrics(current), referenceDiffs: referenceDiffs(current, reference) };
+};
+
+export interface AttackRowsFixture {
+	rows: Array<MetricRow<ActionMetrics>>;
+	maxDamage: number;
+}
+
+/**
+ * `makeSimRun()`'s warrior dual-wielding, the off hand dealing half the main hand's damage, as one
+ * "Attack" parent row over a main-hand and an off-hand child.
+ */
+export const loadAttackRows = async (): Promise<AttackRowsFixture> => {
+	const { request, result } = makeSimRun();
+	const player = result.raidMetrics!.parties[0].players[0];
+	const offHand = ActionMetricsProto.clone(player.actions[0]);
+	offHand.id = ActionID.create({ rawId: { oneofKind: 'otherId', otherId: OtherAction.OtherActionAttack }, tag: 2 });
+	for (const target of offHand.targets) {
+		target.damage /= 2;
+		target.critDamage /= 2;
+		target.glanceDamage /= 2;
+		target.threat /= 2;
+	}
+	player.actions.push(offHand);
+
+	const [mainHandMetrics, offHandMetrics] = (await SimResult.makeNew(request, result)).getFirstPlayer()!.getDamageActions();
+	const parent = ActionMetrics.merge([mainHandMetrics, offHandMetrics], { removeTag: true });
+	return { rows: [{ metric: parent, subRows: [{ metric: mainHandMetrics }, { metric: offHandMetrics }] }], maxDamage: parent.damage };
 };
 
 /**
