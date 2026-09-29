@@ -14,12 +14,9 @@ const DefenseRatingPerDefenseLevel = 1.000000
 const DodgeRatingPerDodgePercent = 12.000000
 const ParryRatingPerParryPercent = 15.000000
 const BlockRatingPerBlockPercent = 5.000000
-const PhysicalHitRatingPerHitPercent = 10.000000
-const SpellHitRatingPerHitPercent = 10.000000
-const PhysicalCritRatingPerCritPercent = 14.000000
-const SpellCritRatingPerCritPercent = 14.000000
-const PhysicalHasteRatingPerHastePercent = 10.000000
-const SpellHasteRatingPerHastePercent = 10.000000
+const HitRatingPerHitPercent = 10.000000
+const CritRatingPerCritPercent = 14.000000
+const HasteRatingPerHastePercent = 10.000000
 
 var CritPerAgiMaxLevel = map[proto.Class]float64{
 	proto.Class_ClassUnknown: 0.0,

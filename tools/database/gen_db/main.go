@@ -271,10 +271,8 @@ func main() {
 			}
 		}
 
-		if item.Phase < 2 {
-			item.Phase = database.InferPhase(item)
-		}
-
+		// Forever's content phases are not known yet, so every item is phase 1.
+		item.Phase = 1
 	}
 	addSpellIcons(db, craftedSpellIds, icons, iconsMap)
 
@@ -435,30 +433,7 @@ func ApplyGlobalFilters(db *database.WowDatabase) {
 			return false
 		}
 
-		prefix, uncut, _ := strings.Cut(gem.Name, " ")
-		if slices.Contains([]string{
-			"Forceful",
-			"Quick",
-			"Reckless",
-			"Purified Shadowsong",
-		}, prefix) {
-			gem.Phase = 5
-		} else if slices.Contains([]string{
-			"Crimson Spinel",
-			"Empyrean Sapphire",
-			"Lionseye",
-			"Shadowsong Amethyst",
-			"Pyrestone",
-			"Seaspray Emerald",
-		}, uncut) {
-			gem.Phase = 3
-		} else if gem.Name == "Charmed Amani Jewel" {
-			gem.Phase = 3
-		} else if strings.Contains(prefix, "Unstable") {
-			gem.Phase = 2
-		} else {
-			gem.Phase = 1
-		}
+		gem.Phase = 1
 
 		for _, pattern := range database.DenyListNameRegexes {
 			if pattern.MatchString(gem.Name) {

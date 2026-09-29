@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -26,7 +27,7 @@ func applySpellDataDebuffProc(agent core.Agent, cfg SpellDataProc, source effect
 	character := agent.GetCharacter()
 	debuffs := enemyDebuffAuras(character, debuff, debuff.Duration(), debuff.DebuffEffects())
 
-	config := spellDataProcListener(character, cfg, source, trigger, nil)
+	config := spellDataProcListener(character, cfg, source, trigger)
 	callback := config.Callback
 	config.Handler = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 		applyDebuff(sim, debuffs.Get(procDamageTarget(character, callback, spell, result)))
@@ -67,11 +68,11 @@ func enemyDebuffAuras(character *core.Character, row *spelldata.Spell, duration 
 				continue
 			}
 			effect := row.EffectN(int(i))
-			slowedTime := core.SlowedTimeMultiplier(effect.Average(character.Level))
+			slowedTime := core.MultiplierFromPercent(-effect.Average(character.Level))
 			if effect.ChangesCastSpeed() {
-				core.CastSpeedReductionEffect(aura, slowedTime)
+				buffs.CastSpeedReductionEffect(aura, slowedTime)
 			} else {
-				core.AtkSpeedReductionEffect(aura, slowedTime)
+				buffs.AtkSpeedReductionEffect(aura, slowedTime)
 			}
 		}
 		if len(parsed) > 0 {

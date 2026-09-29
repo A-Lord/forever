@@ -23,7 +23,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	warnings: [],
 
 	// Extra stats shown in consumables picker (beyond epStats).
-	consumableStats: [Stat.StatMeleeHasteRating, Stat.StatMana, Stat.StatSpirit, Stat.StatMP5],
+	consumableStats: [Stat.StatHasteRating, Stat.StatMana, Stat.StatSpirit, Stat.StatMP5],
 
 	// All stats for which EP should be calculated.
 	epStats: [
@@ -32,10 +32,10 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		Stat.StatAttackPower,
 		Stat.StatFeralAttackPower,
 		Stat.StatPhysicalDamage,
-		Stat.StatMeleeHitRating,
+		Stat.StatHitRating,
 		Stat.StatExpertiseRating,
-		Stat.StatMeleeCritRating,
-		Stat.StatMeleeHasteRating,
+		Stat.StatCritRating,
+		Stat.StatHasteRating,
 		Stat.StatArmorPenetration,
 	],
 	gemStats: [Stat.StatAgility, Stat.StatStrength],

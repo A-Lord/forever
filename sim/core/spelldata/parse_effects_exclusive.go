@@ -21,10 +21,6 @@ var schoolResistanceCategories = map[stats.Stat]string{
 func (p *Parsed) bid(aura *core.Aura, o *parseOptions) []*attachment {
 	var live, whole []*attachment
 	for _, a := range p.attachments {
-		if a == nil {
-			continue
-		}
-
 		rest := p.bidSchoolResistances(aura, a, o)
 		switch {
 		case o.exclusive:
@@ -96,11 +92,8 @@ func (p *Parsed) bidAlone(aura *core.Aura, category string, priority float64, a 
 // single-aura category needs to shut the other copy off.
 func (p *Parsed) bidWhole(aura *core.Aura, o *parseOptions, whole []*attachment) {
 	perStack := 0.0
-	for _, a := range p.attachments {
-		if a != nil {
-			perStack = magnitude(a)
-			break
-		}
+	if len(p.attachments) > 0 {
+		perStack = magnitude(p.attachments[0])
 	}
 
 	priority := perStack

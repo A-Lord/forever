@@ -568,11 +568,25 @@ message ComputeStatsRequest {
 	Encounter encounter = 2;
 	bool skip_rotation = 3; // Skip APL rotation init and attack-table setup. Faster; suitable for stat-only reads.
 }
+// The submenu an aura or spell is filed under in the APL pickers.
+enum ActionCategory {
+	ActionCategoryUnknown = 0; // The class's own; no category submenu.
+	ActionCategoryConsumable = 1;
+	ActionCategoryCooldown = 2;
+	ActionCategoryItem = 3;
+	ActionCategoryTalent = 4;
+	ActionCategoryRacial = 5;
+	ActionCategoryProfession = 6;
+	ActionCategoryExternalBuff = 7; // Switched on in the buff settings.
+	ActionCategoryExternalCooldown = 8; // A major cooldown switched on in the buff settings.
+	ActionCategoryExternalDebuff = 9; // Switched on in the debuff settings.
+}
 message AuraStats {
 	ActionID id = 1;
 	int32 max_stacks = 2;
 	bool has_icd = 3;
 	bool has_exclusive_effect = 4;
+	ActionCategory category = 5;
 }
 message SpellStats {
 	ActionID id = 1;
@@ -591,6 +605,7 @@ message SpellStats {
 	bool has_ranks = 13; // Whether this spell has a rank
 	bool is_potion = 14; // Whether this spell is a potion
 	bool is_conjured = 15; // Whether this spell is a conjured item
+	ActionCategory category = 16;
 }
 message APLValidation {
 	LogLevel log_level = 1;

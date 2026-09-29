@@ -34,12 +34,12 @@ func NewGeneratedDebuffTestTarget() *Unit {
 	return target
 }
 
-func ApplyBuffEffects(agent Agent, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
-	applyBuffEffects(agent, raid, party, individual)
+func ApplyBuffEffects(char *Character, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
+	registeredBuffs().ApplyBuffs(char, raid, party, individual)
 }
 
 func ApplyDebuffEffects(target *Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
-	applyDebuffEffects(target, 0, debuffs, raid)
+	registeredBuffs().ApplyDebuffs(target, debuffs, raid)
 }
 
 func (character *Character) ApplyBuildPhaseAuras(phase CharacterBuildPhase) {

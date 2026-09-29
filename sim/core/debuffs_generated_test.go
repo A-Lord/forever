@@ -166,7 +166,7 @@ func TestGeneratedThunderClapSlowsTheTarget(t *testing.T) {
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ThunderClap: true})
 
 	// The game files' -20 is 20% more time between attacks, so the speed is divided by 1.2.
-	want := 1 / core.SlowedTimeMultiplier(-20)
+	want := core.SymmetricMultiplierFromPercent(-20)
 	if got := buffs.ThunderClapValue(0); got != want {
 		t.Errorf("the clap is worth %v, want the game files' -20%% as %v", got, want)
 	}
@@ -196,7 +196,7 @@ func TestGeneratedThunderClapBidsAgainstTheHandWrittenSlows(t *testing.T) {
 	// Through a variable, so that the test does the same float64 arithmetic the
 	// helper does rather than Go's exact constant arithmetic.
 	divisor := 1.5
-	stronger := core.AtkSpeedReductionEffect(slower, divisor)
+	stronger := buffs.AtkSpeedReductionEffect(slower, divisor)
 	if want := 1 - 1/divisor; stronger.Priority != want {
 		t.Errorf("a slow that divides by %v bids %v, want the magnitude %v", divisor, stronger.Priority, want)
 	}
@@ -227,14 +227,14 @@ func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 		ActionID: core.ActionID{SpellID: 27648},
 		Duration: time.Second * 12,
 	})
-	tied := core.AtkSpeedReductionEffect(cyclone, core.SlowedTimeMultiplier(-20))
+	tied := buffs.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(20))
 	if clapBid := clap.ExclusiveEffects[0].Priority; tied.Priority != clapBid {
 		t.Fatalf("the proc bids %v against the clap's %v, want the same -20%% slow to tie", tied.Priority, clapBid)
 	}
 
 	cyclone.Activate(sim)
 
-	want := 1 / core.SlowedTimeMultiplier(-20)
+	want := core.SymmetricMultiplierFromPercent(-20)
 	if got := target.PseudoStats.MeleeSpeedMultiplier; got != want {
 		t.Errorf("the melee speed multiplier is %v, want the clap's %v to have stayed", got, want)
 	}
@@ -254,7 +254,7 @@ func TestGeneratedThunderfuryLowersNatureResistanceAndSlows(t *testing.T) {
 	if got := target.GetStats()[stats.NatureResistance] - base; got != -25 {
 		t.Errorf("nature resistance moved by %v, want -25", got)
 	}
-	if got, want := target.TotalMeleeHasteMultiplier(), 1/core.SlowedTimeMultiplier(-20); got != want {
+	if got, want := target.TotalMeleeHasteMultiplier(), core.SymmetricMultiplierFromPercent(-20); got != want {
 		t.Errorf("the target swings at %v, want the -20%% slow's %v", got, want)
 	}
 }
@@ -267,7 +267,7 @@ func TestGeneratedThunderfuryKeepsItsResistanceBesideThunderClap(t *testing.T) {
 	if got := target.GetStats()[stats.NatureResistance] - base; got != -25 {
 		t.Errorf("nature resistance moved by %v, want -25 whatever the slow tie decides", got)
 	}
-	if got, want := target.TotalMeleeHasteMultiplier(), 1/core.SlowedTimeMultiplier(-20); got != want {
+	if got, want := target.TotalMeleeHasteMultiplier(), core.SymmetricMultiplierFromPercent(-20); got != want {
 		t.Errorf("the target swings at %v, want one -20%% slow, %v", got, want)
 	}
 }

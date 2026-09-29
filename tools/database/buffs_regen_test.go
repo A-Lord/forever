@@ -125,8 +125,8 @@ func scopeComplaint(row ResolvedBuff) string {
 // The paladin auras state a healing-taken row of 0 beside the aura, which the
 // parse leaves out.
 var pinnedAmounts = map[string]map[string]float64{
-	"leader_of_the_pack": {"stat PhysicalCritPercent+SpellCritPercent": 3},
-	"moonkin_aura":       {"stat PhysicalCritPercent+SpellCritPercent": 3},
+	"leader_of_the_pack": {"stat PhysicalCritPercent": 3, "stat SpellCritPercent": 3},
+	"moonkin_aura":       {"stat PhysicalCritPercent": 3, "stat SpellCritPercent": 3},
 	"expose_armor":       {"stat Armor": -2250},
 	"devotion_aura":      {"stat Armor": 735},
 	"concentration_aura": {"pushback": -0.35},

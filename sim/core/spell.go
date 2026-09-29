@@ -71,6 +71,8 @@ type SpellConfig struct {
 	RelatedAuraArrays LabeledAuraArrays
 	RelatedDotSpell   *Spell
 	RelatedSelfBuff   *Aura
+
+	Source ActionSource // Left unset, registration fills in the phase it runs in.
 }
 
 type Spell struct {
@@ -159,10 +161,11 @@ type Spell struct {
 	CdMultiplier             float64
 	GCDMultiplier            float64       // Scales DefaultCast.GCD, after the flat GCD mods and before haste and the GCD minimum; 1 = unmodified. Fed by SpellMod_GlobalCooldown_Pct.
 	unscaledGCD              time.Duration // DefaultCast.GCD is rewritten from this on every GCD mod, so a direct write there is lost.
+	RangeMultiplier          float64       // Scales MaxRange, after the flat range mods; 1 = unmodified. Fed by SpellMod_Range_Pct.
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
-	// Added to DamageMultiplierAdditive on direct hits only. Unlike that bucket this one is 0
-	// when nothing feeds it.
+	// Added to DamageMultiplierAdditive on direct hits and direct heals only. Unlike that bucket
+	// this one is 0 when nothing feeds it.
 	DirectDamageMultiplierAdditive float64
 	CritMultiplierPct              float64 // Multiplies the base crit multiplier, 1 = unmodified. Fed by SpellMod_CritMultiplier_Pct.
 	CritMultiplierAdditive         float64 // Additive critical damage bonus
@@ -189,6 +192,8 @@ type Spell struct {
 	RelatedAuraArrays LabeledAuraArrays
 	RelatedDotSpell   *Spell
 	RelatedSelfBuff   *Aura
+
+	Source ActionSource
 }
 
 func (unit *Unit) OnSpellRegistered(handler SpellRegisteredHandler) {
@@ -237,6 +242,10 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		}
 	}
 
+	if config.Source == SourceUnset {
+		config.Source = unit.currentSource()
+	}
+
 	spell := &Spell{
 		ActionID:       config.ActionID,
 		Rank:           config.Rank,
@@ -271,6 +280,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		CastTimeMultiplier:       1,
 		CdMultiplier:             1,
 		GCDMultiplier:            1,
+		RangeMultiplier:          1,
 		unscaledGCD:              config.Cast.DefaultCast.GCD,
 		DamageMultiplier:         config.DamageMultiplier,
 		DamageMultiplierAdditive: config.DamageMultiplierAdditive,
@@ -289,6 +299,8 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		RelatedDotSpell:   config.RelatedDotSpell,
 		RelatedSelfBuff:   config.RelatedSelfBuff,
 
+		Source: config.Source,
+
 		charges:      config.Charges,
 		MaxCharges:   config.Charges,
 		RechargeTime: config.RechargeTime,
@@ -297,22 +309,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		resultSlice: make(SpellResultSlice, 0, 1),
 	}
 
-	switch {
-	case spell.SpellSchool.Matches(SpellSchoolPhysical):
-		spell.SchoolIndex = stats.SchoolIndexPhysical
-	case spell.SpellSchool.Matches(SpellSchoolArcane):
-		spell.SchoolIndex = stats.SchoolIndexArcane
-	case spell.SpellSchool.Matches(SpellSchoolFire):
-		spell.SchoolIndex = stats.SchoolIndexFire
-	case spell.SpellSchool.Matches(SpellSchoolFrost):
-		spell.SchoolIndex = stats.SchoolIndexFrost
-	case spell.SpellSchool.Matches(SpellSchoolHoly):
-		spell.SchoolIndex = stats.SchoolIndexHoly
-	case spell.SpellSchool.Matches(SpellSchoolNature):
-		spell.SchoolIndex = stats.SchoolIndexNature
-	case spell.SpellSchool.Matches(SpellSchoolShadow):
-		spell.SchoolIndex = stats.SchoolIndexShadow
-	}
+	spell.SchoolIndex = spell.SpellSchool.MultiplierSchool().SchoolIndex()
 
 	if config.ManaCost.BaseCostPercent != 0 || config.ManaCost.FlatCost != 0 {
 		spell.Cost = newManaCost(spell, config.ManaCost)
@@ -369,7 +366,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		spell.MaxRange = config.MaxRange
 		oldExtraCastCondition := spell.ExtraCastCondition
 		spell.ExtraCastCondition = func(sim *Simulation, target *Unit) bool {
-			if ((spell.MinRange != 0) && (spell.Unit.DistanceFromTarget < spell.MinRange)) || ((spell.MaxRange != 0) && (spell.Unit.DistanceFromTarget > spell.MaxRange)) {
+			if ((spell.MinRange != 0) && (spell.Unit.DistanceFromTarget < spell.MinRange)) || ((spell.MaxRange != 0) && (spell.Unit.DistanceFromTarget > spell.MaxRange*spell.RangeMultiplier)) {
 				/*if sim.Log != nil {
 					sim.Log("Cannot cast spell %s, out of range!", spell.ActionID)
 				}*/

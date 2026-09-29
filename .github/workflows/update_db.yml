@@ -19,7 +19,7 @@ env:
 
 jobs:
     update-db:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         timeout-minutes: 30
         permissions:
             contents: write
@@ -34,6 +34,7 @@ jobs:
               uses: actions/setup-go@v6
               with:
                   go-version: 1.25.x
+                  cache: false
 
             - name: Install Protoc
               uses: arduino/setup-protoc@v3
@@ -48,7 +49,6 @@ jobs:
               uses: actions/setup-node@v5
               with:
                   node-version: 22
-                  cache: npm
 
             - name: Install npm dependencies
               run: npm ci

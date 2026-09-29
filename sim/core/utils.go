@@ -284,3 +284,17 @@ func GetCurrentProtoVersion() int32 {
 	optionValue := googleproto.GetExtension(options, proto.E_CurrentVersionNumber)
 	return optionValue.(int32)
 }
+
+// A percentage as a multiplier: 20 is 1.2 and -6 is 0.94.
+func MultiplierFromPercent(percent float64) float64 {
+	return 1 + percent/100
+}
+
+// A percentage as a multiplier whose negative divides by the factor its positive multiplies by: 20 is
+// 1.2 and -20 is 1/1.2.
+func SymmetricMultiplierFromPercent(percent float64) float64 {
+	if percent < 0 {
+		return 1 / MultiplierFromPercent(-percent)
+	}
+	return MultiplierFromPercent(percent)
+}

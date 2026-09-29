@@ -1,9 +1,10 @@
-import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
+import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
 import { UIItem } from '@generated/proto/ui';
-import type { Player } from '@sim/player/player';
+import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
+import { UnitStat } from '@sim/proto/stats';
 import { iconEnumPickerShown } from '@ui-kit/IconEnumPicker';
 import { describe, expect, it } from 'vitest';
 
@@ -18,6 +19,11 @@ const grouped = (type: ConsumableType) => (id: number, name: string, stats: Arra
 const elixir = grouped(ConsumableType.ConsumableTypeElixir);
 const scroll = grouped(ConsumableType.ConsumableTypeScroll);
 const other = grouped(ConsumableType.ConsumableTypeOther);
+const meleeHit = (food: Consumable) =>
+	Consumable.create({
+		...food,
+		pseudoStats: Object.assign(new Array<number>(36).fill(0), { [PseudoStat.PseudoStatMeleeHitPercent]: 2, [PseudoStat.PseudoStatRangedHitPercent]: 2 }),
+	});
 
 const CONSUMABLES = [
 	Consumable.create({
@@ -60,7 +66,8 @@ const CONSUMABLES = [
 	scroll(1180, 'Scroll of Stamina', statArray(Stat.StatStamina, 4), '29/2', 'Stamina'),
 	other(8410, 'R.O.I.D.S.', strength(25), 'Zanza', 'Zanza'),
 	other(20079, 'Spirit of Zanza', statArray(Stat.StatSpirit, 50), 'Zanza', 'Zanza'),
-	other(23327, 'Fire-toasted Bun', statArray(Stat.StatMeleeHitRating, 2), 'Hit food', 'Hit food'),
+	meleeHit(other(23327, 'Fire-toasted Bun', [], 'Hit food', 'Hit food')),
+	meleeHit(other(22237, 'Dark Desire', [], 'Hit food', 'Hit food')),
 	Consumable.create({ id: 4376, name: 'Flame Deflector', type: ConsumableType.ConsumableTypeDevice }),
 ];
 
@@ -71,6 +78,8 @@ interface PlayerState {
 	spec: Spec;
 	professions: Array<Profession>;
 	epStats: Array<Stat>;
+	displayStats: Array<UnitStat>;
+	specConfig?: SpecConfigData<any>;
 	windfury: boolean;
 	flametongue: boolean;
 	mainHand?: UIItem;
@@ -84,6 +93,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		spec: Spec.SpecDpsWarrior,
 		professions: [],
 		epStats: [Stat.StatStrength, Stat.StatAttackPower],
+		displayStats: [],
 		windfury: false,
 		flametongue: false,
 		consumes: ConsumesSpec.create(),
@@ -98,7 +108,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 			const item = slot === ItemSlot.ItemSlotMainHand ? full.mainHand : slot === ItemSlot.ItemSlotOffHand ? full.offHand : undefined;
 			return item ? { item } : null;
 		},
-		getSpecConfig: () => ({ epStats: full.epStats }),
+		getSpecConfig: () => full.specConfig ?? { epStats: full.epStats, displayStats: full.displayStats },
 		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury, flametongueTotem: full.flametongue }) }),
 		getConsumes: () => ConsumesSpec.clone(full.consumes),
 		setConsumes: (consumes: ConsumesSpec) => (full.consumes = ConsumesSpec.clone(consumes)),
@@ -172,12 +182,28 @@ describe('consumeConfigs', () => {
 		expect(groups.map(config => iconEnumPickerShown(config, player))).toEqual([false, true]);
 	});
 
-	it('shows the Hit food to a spec that weighs melee hit', () => {
-		const { player } = playerOf({ epStats: [Stat.StatStrength, Stat.StatMeleeHitRating] });
+	it('shows the Hit food to a spec that shows melee hit', () => {
+		const { player } = playerOf({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)] });
 		const [hitFood] = consumeConfigs(player, db).groups;
 		expect(hitFood.tooltip).toBe('Hit food');
 		expect(iconEnumPickerShown(hitFood, player)).toBe(true);
-		expect(offered(hitFood, player)).toEqual([23327]);
+		expect(offered(hitFood, player)).toEqual([23327, 22237]);
+	});
+
+	it('offers Dark Desire to a spec that shows melee hit, not to one that weighs hit rating for spell hit alone', () => {
+		const specPlayer = (cls: Class, spec: Spec, specConfig: SpecConfigData<any>) => playerOf({ cls, spec, specConfig }).player;
+		const hitFoodOf = (player: Player<any>) => offered(consumeConfigs(player, db).groups[0], player);
+		const caster = {
+			epStats: [Stat.StatSpellDamage, Stat.StatHitRating],
+			displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent)],
+		} as SpecConfigData<any>;
+		const melee = {
+			epStats: [Stat.StatAttackPower, Stat.StatHitRating],
+			displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)],
+		} as SpecConfigData<any>;
+		expect(hitFoodOf(specPlayer(Class.ClassMage, Spec.SpecMage, caster))).toEqual([]);
+		expect(hitFoodOf(specPlayer(Class.ClassRogue, Spec.SpecRogue, melee))).toContain(22237);
+		expect(hitFoodOf(specPlayer(Class.ClassWarrior, Spec.SpecDpsWarrior, melee))).toContain(22237);
 	});
 
 	it('picks one elixir of each group, and any number of groups', () => {

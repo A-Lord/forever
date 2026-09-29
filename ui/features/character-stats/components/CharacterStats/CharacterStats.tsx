@@ -24,11 +24,11 @@ export const CharacterStats = () => {
 	const host = useSimHost();
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
-	const { groups, shownStats } = useMemo(() => buildRows(player, displayStats), [player, displayStats]);
-
 	const currentStats = usePlayerStore('currentStats');
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
+	const dualWielding = player.isDualWielding();
+	const { groups, shownStats } = useMemo(() => buildRows(player, displayStats), [player, displayStats]);
 	const race = usePlayerStore('race');
 	const consumables = usePlayerStore('consumables');
 	const talentsString = usePlayerStore('talentsString');
@@ -73,8 +73,7 @@ export const CharacterStats = () => {
 	]);
 
 	const { pending, attribution, rangedWeapon, critCap, miss, avoidance, critImmunity } = snapshot;
-	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean, includeGear?: boolean) =>
-		statDisplayString(player, deltaStats, unitStat, includeBase, includeGear);
+	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean) => statDisplayString(player, deltaStats, unitStat, includeBase);
 
 	const hasParry = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatParryPercent));
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));
@@ -98,6 +97,7 @@ export const CharacterStats = () => {
 											attribution={attribution}
 											show={show}
 											rangedWeapon={rangedWeapon}
+											dualWielding={dualWielding}
 											pending={pending}
 										/>
 									);
