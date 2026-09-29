@@ -76,7 +76,7 @@ export interface FieldRootProps {
 }
 
 export interface FieldLabelProps {
-	/** `span` for a caption that names a group of controls, which a `<label>` cannot. */
+	/** `span` for a caption that names a group of controls, which a `<label>` cannot; the default inside a `role="group"` root. */
 	as?: 'label' | 'span';
 	id?: string;
 	tooltip?: FieldTooltip;

@@ -15,7 +15,8 @@ const NATIVE_CONTROLS = new Set(['input', 'select', 'textarea']);
 
 /**
  * Below a `28rem` wide container the field tightens: `Field.css` queries the nearest ancestor
- * container (a `Tree.Root`, say), since a container query cannot style the container itself.
+ * container (a tab pane, a dialog body, the sidebar or a `Tree.Root`), since a container query
+ * cannot style the container itself.
  */
 export const Root = ({
 	id,
@@ -38,8 +39,8 @@ export const Root = ({
 	}, []);
 	const describedBy = descriptionIds.length > 0 ? descriptionIds.join(' ') : undefined;
 	const context = useMemo(
-		() => ({ id, layout, density, disabled: !!disabled, grow: grow !== false, describedBy, registerDescription }),
-		[id, layout, density, disabled, grow, describedBy, registerDescription],
+		() => ({ id, role, layout, density, disabled: !!disabled, grow: grow !== false, describedBy, registerDescription }),
+		[id, role, layout, density, disabled, grow, describedBy, registerDescription],
 	);
 
 	return (
@@ -68,7 +69,7 @@ export const Label = ({ as, id, tooltip, className, testId, children }: FieldLab
 	const field = useField();
 	const renderable = typeof tooltip === 'string' || isNode(tooltip) || isValidElement(tooltip);
 	if (tooltip !== undefined && !renderable) {
-		console.warn(`Field "${field.id ?? children}": labelTooltip is neither a string, a node nor an element, so it is not rendered.`, tooltip);
+		console.warn(`Field "${field.id ?? children}": tooltip is neither a string, a node nor an element, so it is not rendered.`, tooltip);
 	}
 	const generatedId = useId();
 	const tooltipId = renderable ? `${field.id ?? generatedId}-tooltip` : undefined;
@@ -87,6 +88,7 @@ export const Label = ({ as, id, tooltip, className, testId, children }: FieldLab
 		return <Tooltip id={tooltipId} content={content} />;
 	}, [tooltipId, tooltip]);
 
+	const tag = as ?? (field.role === 'group' ? 'span' : 'label');
 	const props = {
 		id,
 		className: clsx('ui-field-label', className),
@@ -97,7 +99,7 @@ export const Label = ({ as, id, tooltip, className, testId, children }: FieldLab
 
 	return (
 		<>
-			{as === 'span' ? (
+			{tag === 'span' ? (
 				<span {...props}>{children}</span>
 			) : (
 				// `htmlFor` explicitly rather than letting Base UI derive it.
@@ -185,3 +187,11 @@ export const Clear = ({ show, label, className, testId, onClear, children }: Fie
 		</div>
 	);
 };
+
+Root.displayName = 'Field.Root';
+Label.displayName = 'Field.Label';
+Description.displayName = 'Field.Description';
+Control.displayName = 'Field.Control';
+Leading.displayName = 'Field.Leading';
+After.displayName = 'Field.After';
+Clear.displayName = 'Field.Clear';
