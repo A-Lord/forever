@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResultChannel } from '../../model/result_channel';
 import type { SimResultData } from '../../model/result_data';
 
-// The picker is `UnitPicker`'s test to cover; what this pane owns is the selection, so the filter is
+// The picker is `ResultsFilter`'s test to cover; what this pane owns is the selection, so the filter is
 // reduced to a button that reports one. Everything else in the module — `ALL_UNITS`, `hasTarget`,
 // `simResultFilter` — is the real thing.
 vi.mock('../ResultsFilter', async importOriginal => ({

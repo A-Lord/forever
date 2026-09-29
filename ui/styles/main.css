@@ -25,7 +25,7 @@
 @import '../ui-kit/BooleanPicker/BooleanPicker.css';
 @import '../ui-kit/FieldGrid/FieldGrid.css';
 @import '../ui-kit/IconRow/IconRow.css';
-@import '../ui-kit/DropdownPicker/DropdownMenu.css';
+@import '../ui-kit/ChoiceField/ChoiceField.css';
 @import '../ui-kit/Menu/Menu.css';
 @import '../ui-kit/Tooltip/Tooltip.css';
 @import '../ui-kit/Popover/Popover.css';
@@ -40,7 +40,6 @@
 @import '../ui-kit/Spinner/Spinner.css';
 @import '../ui-kit/Skeleton/Skeleton.css';
 @import '../ui-kit/Table/Table.css';
-@import '../ui-kit/UnitPicker/UnitIcon.css';
 @import '../ui-kit/hooks/useStickyToolbar.css';
 @import '../ui-kit/SimLinkContent/SimLinkContent.css';
 @import '../ui-kit/ContentBlock/ContentBlock.css';

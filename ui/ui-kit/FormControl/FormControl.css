@@ -15,18 +15,6 @@
 		}
 	}
 
-	.ui-select {
-		@apply block w-full appearance-none rounded-none border border-surface-border bg-surface bg-select-chevron bg-size-[16px_12px] bg-position-[right_.75rem_center] bg-no-repeat px-3 py-1.5 pr-9 text-ui leading-normal text-foreground transition-colors duration-150 ease-in-out;
-
-		&:focus {
-			@apply border-input-focus-border shadow-focus-input outline-none;
-		}
-
-		&:disabled {
-			@apply bg-input-disabled opacity-100;
-		}
-	}
-
 	.ui-field-label {
 		@apply mb-1 inline-block text-ui font-normal wrap-break-word;
 	}

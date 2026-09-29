@@ -1,5 +1,6 @@
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import { act, fireEvent, render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { RotationTypePickerView } from './RotationTypePickerView';
@@ -17,9 +18,9 @@ vi.mock('@i18n/config', () => ({
 	},
 }));
 
-const trigger = () => document.querySelector('[data-testid="dropdown-picker-button"]') as HTMLButtonElement;
-const items = () => [...document.querySelectorAll<HTMLElement>('[data-testid="dropdown-picker-item"]')];
-const open = () => act(() => void fireEvent.click(trigger()));
+const trigger = () => screen.getByRole('combobox');
+const items = () => screen.queryAllByRole('option');
+const open = () => userEvent.click(trigger());
 
 describe('RotationTypePickerView', () => {
 	it('offers Auto, Simple and APL when the spec has a simple rotation', async () => {
@@ -48,7 +49,7 @@ describe('RotationTypePickerView', () => {
 		render(<RotationTypePickerView value={APLRotationType.TypeAuto} hasSimple onChange={onChange} />);
 		await open();
 
-		await act(() => void fireEvent.click(items()[1]));
+		await userEvent.click(items()[1]);
 		expect(onChange).toHaveBeenCalledWith(APLRotationType.TypeSimple);
 	});
 });

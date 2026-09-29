@@ -1,5 +1,5 @@
 import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
@@ -55,11 +55,11 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 		<TargetPickerView
 			identity={
 				<>
-					<ConnectedEnumPicker modObject={null} config={npc} />
-					<ConnectedEnumPicker modObject={null} config={ai} />
-					<ConnectedEnumPicker modObject={null} config={level} />
-					<ConnectedEnumPicker modObject={null} config={mobType} />
-					{showThreatMetrics && <ConnectedEnumPicker modObject={null} config={tankIndex} />}
+					<ConnectedChoiceField modObject={null} config={npc} />
+					<ConnectedChoiceField modObject={null} config={ai} />
+					<ConnectedChoiceField modObject={null} config={level} />
+					<ConnectedChoiceField modObject={null} config={mobType} />
+					{showThreatMetrics && <ConnectedChoiceField modObject={null} config={tankIndex} />}
 					<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
 				</>
 			}
@@ -75,7 +75,7 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 						{booleans.map(config => (
 							<ConnectedBooleanPicker key={config.id} modObject={null} config={config} />
 						))}
-						<ConnectedEnumPicker modObject={null} config={spellSchool} />
+						<ConnectedChoiceField modObject={null} config={spellSchool} />
 					</>
 				)
 			}

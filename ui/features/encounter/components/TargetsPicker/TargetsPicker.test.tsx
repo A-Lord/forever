@@ -1,6 +1,7 @@
 import { InputType, PresetTarget, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import type { Encounter } from '@sim/raid/encounter';
-import { act, createEvent, fireEvent, render } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TargetsPicker } from './TargetsPicker';
@@ -200,15 +201,16 @@ describe('TargetsPicker', () => {
 		expect(encounter.targets.map(target => target.targetInputs.length)).toEqual([0, 1]);
 	});
 
-	it('reads each target row from its own index rather than from the first, and writes a level change back to it', () => {
+	it('reads each target row from its own index rather than from the first, and writes a level change back to it', async () => {
 		const encounter = new FakeEncounter([TargetProto.create({ level: 73 }), TargetProto.create({ level: 68 })]);
 		mount(encounter);
 
-		const levelOf = (index: number) => targetRoots()[index].querySelector('#target-' + index + '-picker-level') as HTMLSelectElement;
-		expect(levelOf(0).value).toBe('73');
-		expect(levelOf(1).value).toBe('68');
+		const levelOf = (index: number) => targetRoots()[index].querySelector<HTMLElement>('#target-' + index + '-picker-level')!;
+		expect(levelOf(0).textContent).toBe('73');
+		expect(levelOf(1).textContent).toBe('68');
 
-		act(() => void fireEvent.change(levelOf(1), { target: { value: '70' } }));
+		await userEvent.click(levelOf(1));
+		await userEvent.click(screen.getByRole('option', { name: '70' }));
 
 		expect(encounter.targets.map(target => target.level)).toEqual([73, 70]);
 	});
@@ -227,9 +229,12 @@ describe('TargetsPicker', () => {
 	// this picker's value, and all the sim resolves an AI from.
 	describe('AI options', () => {
 		const preset = (path: string, id: number) => PresetTarget.create({ path, target: TargetProto.create({ id }) });
-		const aiOptions = () => [...document.querySelectorAll<HTMLOptionElement>('#target-0-picker-ai option')].map(option => option.value);
+		const aiOptions = async () => {
+			await userEvent.click(document.getElementById('target-0-picker-ai')!);
+			return screen.getAllByRole('option').map(option => option.textContent);
+		};
 
-		it('offers one option per npc id, however many presets share it', () => {
+		it('offers one option per npc id, however many presets share it', async () => {
 			mount(
 				new FakeEncounter(
 					[defaultTarget()],
@@ -241,16 +246,13 @@ describe('TargetsPicker', () => {
 				),
 			);
 
-			expect(aiOptions()).toEqual(['0', '16152', '15690']);
+			expect(await aiOptions()).toEqual(['common.none', 'Karazhan/Attumen the Huntsman', 'x/Prince Malchezaar']);
 		});
 
-		it('keeps the preset the sim resolves the id to, which is the first one registered', () => {
+		it('keeps the preset the sim resolves the id to, which is the first one registered', async () => {
 			mount(new FakeEncounter([defaultTarget()], [preset('first', 71466), preset('second', 71466)]));
 
-			expect([...document.querySelectorAll<HTMLOptionElement>('#target-0-picker-ai option')].map(option => option.textContent)).toEqual([
-				'common.none',
-				'first',
-			]);
+			expect(await aiOptions()).toEqual(['common.none', 'first']);
 		});
 	});
 
@@ -274,14 +276,14 @@ describe('TargetsPicker', () => {
 			expect(inputRoots).toHaveLength(3);
 			const matchesRoot = (node: Element, index: number) =>
 				index === 2
-					? node.firstElementChild!.getAttribute('data-testid') === 'enum-picker-root'
+					? within(node.firstElementChild as HTMLElement).queryByRole('combobox') !== null
 					: node.firstElementChild!.getAttribute('data-testid') === ['number-picker-root', 'boolean-picker-root'][index];
 			expect(inputRoots.map((node, index) => matchesRoot(node, index))).toEqual([true, true, true]);
 
 			// `float: true`, so the number box shows two decimals.
 			expect(inputRoots[0].querySelector('input')!.value).toBe('3.00');
 			expect(inputRoots[1].querySelector('input')!.checked).toBe(true);
-			expect(inputRoots[2].querySelector('select')!.value).toBe('1');
+			expect(within(inputRoots[2] as HTMLElement).getByRole('combobox').textContent).toBe('Two');
 
 			const list = document.querySelector('[data-testid="target-inputs-picker"]')!;
 			expect(list.getAttribute('data-density')).toBe('compact');

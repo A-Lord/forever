@@ -10,10 +10,10 @@ import { CombinationsCountView } from './CombinationsCountView';
 const pair = (id: string, label: string, first: [string, ItemSlot], second: [string, ItemSlot]) => ({
 	id,
 	label,
-	values: [
-		{ name: 'None', value: -1 },
-		{ name: first[0], value: first[1] },
-		{ name: second[0], value: second[1] },
+	options: [
+		{ value: -1, label: 'None' },
+		{ value: first[1], label: first[0] },
+		{ value: second[1], label: second[0] },
 	],
 	value: -1,
 	onChange: fn(),

@@ -1,4 +1,4 @@
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { breakpointValueToDisplayPercentage } from '@features/reforge/model/utils';
 import { StatCapType } from '@generated/proto/api';
 import i18n from '@i18n/config';
@@ -36,7 +36,7 @@ export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useS
 				key: unitStat.getKey(),
 				statName,
 				picker: (
-					<ConnectedEnumPicker
+					<ConnectedChoiceField
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-breakpoint-limit`,
@@ -55,7 +55,6 @@ export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useS
 							},
 							setValue: (_player, newValue) => settings.setBreakpointLimits(settings.breakpointLimits.withUnitStat(unitStat, newValue)),
 						}}
-						selectClassName="w-full"
 					/>
 				),
 			};

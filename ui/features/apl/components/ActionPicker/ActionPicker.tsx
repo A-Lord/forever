@@ -5,7 +5,8 @@ import { actionListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl } from '@features/apl/model/field_specs';
 import { actionKindOptions } from '@features/apl/model/kind_options';
 import { swapActionKind } from '@features/apl/model/kind_swap';
-import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
+import { choiceTree } from '@features/apl/model/submenus';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { InputConfig } from '@features/inputs/input';
 import { APLAction, type APLValue } from '@generated/proto/apl';
 import i18n from '@i18n/config';
@@ -48,7 +49,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	const { value, hidden, disabled, chrome } = useAplInput(player, config);
 	const kind = value?.action.oneofKind;
 
-	const options = useMemo(() => actionKindOptions(player, isPrepull), [player, isPrepull]);
+	const options = useMemo(() => choiceTree(actionKindOptions(player, isPrepull), Object.is), [player, isPrepull]);
 
 	const conditionConfig: InputConfig<Player<any>, APLValue | undefined> = {
 		label: i18n.t('rotation_tab.apl.priority_list.if_label'),
@@ -96,12 +97,12 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 			disabled={disabled}>
 			{!isPrepull && !inSequence && <ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />}
 			<div className="flex w-full flex-row flex-wrap items-baseline gap-2" data-kind={kind}>
-				<ConnectedDropdown<Player<any>, ValidAPLActionKind>
+				<ConnectedChoiceField<Player<any>, ValidAPLActionKind>
 					modObject={player}
 					config={kindConfig}
 					options={options}
-					defaultLabel={i18n.t('rotation_tab.apl.priority_list.item_label')}
-					triggerClassName="p-0"
+					variant="link"
+					placeholder={i18n.t('rotation_tab.apl.priority_list.item_label')}
 				/>
 				{kind && value && (
 					<AplProvider inSequence={SEQUENCE_KINDS.has(kind)} listGroup={actionListGroup(value)}>

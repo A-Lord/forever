@@ -6,9 +6,9 @@ import type { ClassOptions, SpecOptions, SpecRotation } from '@sim/proto/spec_ty
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { formatToNumber } from '@sim/utils/format';
 import { randomUUID } from '@sim/utils/misc';
-import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
+import type { EnumValueConfig } from '@ui-kit/MultiComboBox';
 
-import type { BooleanPickerConfig, EnumPickerConfig, IconEnumPickerConfig, IconEnumValueConfig, IconPickerConfig, NumberFieldConfig } from './configs';
+import type { BooleanPickerConfig, ChoiceFieldConfig, IconEnumPickerConfig, IconEnumValueConfig, IconPickerConfig, NumberFieldConfig } from './configs';
 import type { InputChrome, StoreBinding } from './input';
 
 const storeBinding = <ModObject>(
@@ -311,16 +311,16 @@ export const makeRotationNumberInput = <SpecType extends Spec>(
 /////////////////////////////////////////////////////////////////////////////////
 //                                    ENUM
 /////////////////////////////////////////////////////////////////////////////////
-export interface TypedEnumPickerConfig<ModObject> extends EnumPickerConfig<ModObject> {
+export interface TypedChoiceFieldConfig<ModObject> extends ChoiceFieldConfig<ModObject> {
 	type: 'enum';
 }
 
-interface WrappedEnumInputConfig<SpecType extends Spec, ModObject> extends EnumPickerConfig<ModObject> {
+interface WrappedEnumInputConfig<SpecType extends Spec, ModObject> extends ChoiceFieldConfig<ModObject> {
 	getModObject: (player: Player<SpecType>) => ModObject;
 }
 const makeWrappedEnumInput = <SpecType extends Spec, ModObject>(
 	config: WrappedEnumInputConfig<SpecType, ModObject>,
-): TypedEnumPickerConfig<Player<SpecType>> => {
+): TypedChoiceFieldConfig<Player<SpecType>> => {
 	const getModObject = config.getModObject;
 	return {
 		id: config.id,
@@ -354,7 +354,7 @@ export interface PlayerEnumInputConfig<SpecType extends Spec, Message> {
 // T is unused, but kept to have the same interface as the icon enum inputs.
 export const makeSpecOptionsEnumInput = <SpecType extends Spec, _T>(
 	config: PlayerEnumInputConfig<SpecType, SpecOptions<SpecType>>,
-): TypedEnumPickerConfig<Player<SpecType>> => {
+): TypedChoiceFieldConfig<Player<SpecType>> => {
 	return makeWrappedEnumInput<SpecType, Player<SpecType>>({
 		id: `${String(config.fieldName) || randomUUID()}`,
 		label: config.label,
@@ -378,7 +378,7 @@ export const makeSpecOptionsEnumInput = <SpecType extends Spec, _T>(
 // T is unused, but kept to have the same interface as the icon enum inputs.
 export const makeRotationEnumInput = <SpecType extends Spec, _T>(
 	config: PlayerEnumInputConfig<SpecType, SpecRotation<SpecType>>,
-): TypedEnumPickerConfig<Player<SpecType>> => {
+): TypedChoiceFieldConfig<Player<SpecType>> => {
 	return makeWrappedEnumInput<SpecType, Player<SpecType>>({
 		id: `${String(config.fieldName) || randomUUID()}`,
 		label: config.label,

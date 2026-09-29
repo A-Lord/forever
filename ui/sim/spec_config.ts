@@ -27,7 +27,7 @@ export interface EncounterPickerConfig {
 export type InputConfig<ModObject> =
 	| InputHelpers.TypedBooleanPickerConfig<ModObject>
 	| InputHelpers.TypedNumberFieldConfig<ModObject>
-	| InputHelpers.TypedEnumPickerConfig<ModObject>;
+	| InputHelpers.TypedChoiceFieldConfig<ModObject>;
 
 export interface InputSection {
 	tooltip?: string;

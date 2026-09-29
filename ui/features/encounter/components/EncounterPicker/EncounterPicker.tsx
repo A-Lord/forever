@@ -1,4 +1,4 @@
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
@@ -36,9 +36,9 @@ export const EncounterPicker = ({ showExecuteProportion }: EncounterPickerProps)
 					<ConnectedNumberField key={config.id} modObject={encounter} config={config} />
 				))}
 				execute={showExecuteProportion && execute.map(config => <ConnectedNumberField key={config.id} modObject={encounter} config={config} />)}
-				zone={<ConnectedEnumPicker modObject={encounter} config={zone} />}
+				zone={<ConnectedChoiceField modObject={encounter} config={zone} />}
 				areaTypes={<AreaTypesPicker encounter={encounter} />}
-				preset={showDamage && <ConnectedEnumPicker modObject={encounter} config={preset} />}
+				preset={showDamage && <ConnectedChoiceField modObject={encounter} config={preset} />}
 				allies={player.canEnableTargetDummies() && <ConnectedNumberField modObject={host.sim.raid} config={allies} />}
 				minBaseDamage={player.getPlayerSpec().isTankSpec && <ConnectedNumberField modObject={encounter} config={minBaseDamage} />}
 				targetInputs={<TargetInputsPicker encounter={encounter} targetIndex={0} />}

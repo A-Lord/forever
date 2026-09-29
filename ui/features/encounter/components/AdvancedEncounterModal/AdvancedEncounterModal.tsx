@@ -1,6 +1,6 @@
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
-import type { EnumPickerConfig } from '@features/inputs/configs';
+import type { ChoiceFieldConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import type { Encounter } from '@sim/raid/encounter';
@@ -21,7 +21,7 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 	const host = useSimHost();
 	const encounter = host.sim.encounter;
 
-	const presetConfig = useMemo((): EnumPickerConfig<Encounter> => {
+	const presetConfig = useMemo((): ChoiceFieldConfig<Encounter> => {
 		const presets = encounter.sim.db.getAllPresetEncounters();
 		return {
 			id: 'aem-encounter-picker',
@@ -49,7 +49,7 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 			testId="advanced-encounter-picker-modal"
 			bodyClassName="overflow-auto"
 			bodyGap="gap-3"
-			headerChildren={<ConnectedEnumPicker modObject={encounter} config={presetConfig} />}>
+			headerChildren={<ConnectedChoiceField modObject={encounter} config={presetConfig} />}>
 			<div className="flex flex-col gap-3" data-testid="encounter-header">
 				<FieldGrid>
 					{duration.map(config => (

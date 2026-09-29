@@ -2,7 +2,7 @@ import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 
 import { ConnectedBooleanPicker } from '../ConnectedBooleanPicker';
-import { ConnectedEnumPicker } from '../ConnectedEnumPicker';
+import { ConnectedChoiceField } from '../ConnectedChoiceField';
 import { ConnectedNumberField } from '../ConnectedTextField';
 import type { ConnectedInputConfig } from './types';
 
@@ -25,6 +25,6 @@ export const ConnectedInput = ({ config, inline }: ConnectedInputProps) => {
 		case 'boolean':
 			return <ConnectedBooleanPicker modObject={player} config={{ ...shared, reverse: true }} />;
 		case 'enum':
-			return <ConnectedEnumPicker modObject={player} config={shared} />;
+			return <ConnectedChoiceField modObject={player} config={shared} />;
 	}
 };

@@ -1,4 +1,4 @@
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
@@ -58,7 +58,7 @@ export const EpReferenceOptions = ({ epStats, epReferenceStat, displayMetrics }:
 		<div data-testid="ep-reference-options" className="-mx-3 mb-3 flex flex-wrap [&_.ui-field-label]:font-bold">
 			{references.map(reference => (
 				<div key={reference.id} className="w-full px-3 sm:w-1/3">
-					<ConnectedEnumPicker
+					<ConnectedChoiceField
 						modObject={player}
 						config={{
 							id: reference.id,

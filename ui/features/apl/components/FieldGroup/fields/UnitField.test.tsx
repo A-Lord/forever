@@ -5,7 +5,8 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import { patchSlice } from '@sim/state/sim_store';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UnitField } from './UnitField';
@@ -25,8 +26,9 @@ const tree = (unitSet: 'targets' | 'players' | 'aura_sources') => (
 
 const label = (key: string) => `rotation_tab.apl.helpers.unit_labels.${key}`;
 
-const items = () => screen.queryAllByTestId('dropdown-picker-item').map(item => item.textContent);
-const open = () => act(() => void fireEvent.click(screen.getByTestId('dropdown-picker-button')));
+const trigger = () => document.getElementById('unit-field')!;
+const items = () => screen.queryAllByRole('option').map(item => item.textContent);
+const open = () => userEvent.click(trigger());
 
 beforeEach(() => {
 	document.body.innerHTML = '';
@@ -75,7 +77,7 @@ describe('UnitField', () => {
 		);
 		await act(async () => {});
 
-		const icon = within(screen.getByTestId('dropdown-picker-button')).getByTestId('unit-picker-item-icon');
+		const icon = within(trigger()).getByTestId('unit-picker-item-icon');
 		expect(icon.getAttribute('src')).toBe('stampede.jpg');
 		expect(fill).toHaveBeenCalledTimes(1);
 		fill.mockRestore();

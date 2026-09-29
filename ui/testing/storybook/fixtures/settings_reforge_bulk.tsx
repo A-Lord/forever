@@ -1,8 +1,9 @@
 import { BooleanPicker, type BooleanPickerProps } from '@ui-kit/BooleanPicker';
-import { EnumPicker, type EnumPickerProps } from '@ui-kit/EnumPicker';
+import { ChoiceField, type ChoiceFieldProps } from '@ui-kit/ChoiceField';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { type IconEnumOption, IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { IconPicker } from '@ui-kit/IconPicker';
+import type { EnumValueConfig } from '@ui-kit/MultiComboBox';
 import { NumberField, type NumberFieldProps } from '@ui-kit/TextField';
 import { useState } from 'react';
 
@@ -35,11 +36,11 @@ export const StoryIconEnum = ({ options, initial = 0 }: StoryIconEnumProps) => {
 	return <IconEnumPicker options={options} equals={(a, b) => a === b} zeroValue={0} value={value} onChange={setValue} />;
 };
 
-export type StoryEnumProps = Omit<EnumPickerProps, 'value' | 'onChange'> & { initial?: number };
+export type StoryEnumProps = Omit<ChoiceFieldProps<number>, 'value' | 'onChange' | 'options'> & { values: Array<EnumValueConfig>; initial?: number };
 
-export const StoryEnum = ({ initial, ...props }: StoryEnumProps) => {
-	const [value, setValue] = useState(initial ?? props.values[0]?.value ?? 0);
-	return <EnumPicker {...props} value={value} onChange={setValue} />;
+export const StoryEnum = ({ initial, values, ...props }: StoryEnumProps) => {
+	const [value, setValue] = useState(initial ?? values[0]?.value ?? 0);
+	return <ChoiceField {...props} options={values.map(entry => ({ value: entry.value, label: entry.name }))} value={value} onChange={setValue} />;
 };
 
 export type StoryNumberProps = Omit<NumberFieldProps, 'value' | 'onChange'> & { initial?: number };

@@ -36,8 +36,6 @@ const SOFT_CAPS = (
 					picker: (
 						<StoryEnum
 							label=""
-							className="mb-0"
-							selectClassName="w-full"
 							values={[
 								{ name: 'No limit set', value: 0 },
 								{ name: '9%', value: 9 },

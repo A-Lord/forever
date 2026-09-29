@@ -2,6 +2,7 @@ import { ArmorType, ItemSlot, RangedWeaponType, WeaponType } from '@generated/pr
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { renderWithHost } from '@testing/react';
 import { fireEvent, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { FiltersMenuView, type FiltersMenuViewProps } from './FiltersMenuView';
@@ -56,7 +57,7 @@ describe('FiltersMenuView', () => {
 		expect(sections().slice(3)).toEqual(['gear_tab.gear_picker.ranged_weapon_type', 'gear_tab.gear_picker.ranged_weapon_speed']);
 	});
 
-	it('shows the filters it is handed', () => {
+	it('shows the filters it is handed', async () => {
 		renderView({
 			filters: DatabaseFilters.create({
 				sources: [SourceFilterOption.SourceCrafting],
@@ -68,7 +69,8 @@ describe('FiltersMenuView', () => {
 		expect(input(`filters-source-${SourceFilterOption.SourceCrafting}`).checked).toBe(true);
 		expect(input('filters-min-ilvl').value).toBe('');
 		expect(input('filters-max-ilvl').value).toBe('528');
-		expect((document.getElementById('filters-faction-restriction') as HTMLSelectElement).value).toBe(String(UIItem_FactionRestriction.HORDE_ONLY));
+		await userEvent.click(document.getElementById('filters-faction-restriction')!);
+		expect(screen.getAllByRole('option').map(option => option.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true']);
 	});
 
 	it('adds a ticked list entry and removes an unticked one', () => {
@@ -84,9 +86,10 @@ describe('FiltersMenuView', () => {
 		]);
 	});
 
-	it('writes a faction pick', () => {
+	it('writes a faction pick', async () => {
 		const { lastEdit } = renderView();
-		fireEvent.change(document.getElementById('filters-faction-restriction')!, { target: { value: String(UIItem_FactionRestriction.ALLIANCE_ONLY) } });
+		await userEvent.click(document.getElementById('filters-faction-restriction')!);
+		await userEvent.click(screen.getAllByRole('option')[1]);
 		expect(lastEdit().factionRestriction).toBe(UIItem_FactionRestriction.ALLIANCE_ONLY);
 	});
 });

@@ -27,19 +27,6 @@ export const Input: Story = {
 		</>
 	),
 };
-export const Select: Story = {
-	render: ({ id, disabled }) => (
-		<>
-			<FormControl.FieldLabel htmlFor={id}>Target Level</FormControl.FieldLabel>
-			<FormControl.Select id={id} disabled={disabled} defaultValue="63">
-				<option value="60">60</option>
-				<option value="61">61</option>
-				<option value="62">62</option>
-				<option value="63">63</option>
-			</FormControl.Select>
-		</>
-	),
-};
 export const TextArea: Story = {
 	render: ({ id, disabled }) => (
 		<>

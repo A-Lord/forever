@@ -5,7 +5,8 @@ import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { bulkState, seedBulkSettings } from '@sim/settings/bulk_settings';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@sim/bulk/utils', async () => {
@@ -39,9 +40,16 @@ const mount = (reforger: unknown = null) => {
 			<BulkSettings />
 		</SimHostProvider>,
 	);
-	const select = (id: string) => container.querySelector<HTMLSelectElement>(`#${id}`)!;
+	const pick = async (id: string, index: number) => {
+		const trigger = container.querySelector<HTMLElement>(`#${id}`)!;
+		await userEvent.click(trigger);
+		const option = screen.getAllByRole('option')[index];
+		const label = option.textContent;
+		await userEvent.click(option);
+		return [trigger, label] as const;
+	};
 	const openGroup = (group: string) => fireEvent.click(container.querySelector(`[data-testid="bulk-settings-group-${group}-trigger"]`)!);
-	return { player, container, select, openGroup, checkbox: (id: string) => container.querySelector<HTMLInputElement>(`#${id}`)! };
+	return { player, container, pick, openGroup, checkbox: (id: string) => container.querySelector<HTMLInputElement>(`#${id}`)! };
 };
 
 beforeEach(() => {
@@ -60,26 +68,25 @@ describe('BulkSettings', () => {
 		expect(input.checked).toBe(true);
 	});
 
-	it('keeps the picked slot in the freeze ring select', () => {
-		const { player, select, openGroup } = mount();
+	// Both selects list None, then the pair's first slot (Finger 1, Main Hand), then its second.
+	it('keeps the picked slot in the freeze ring select', async () => {
+		const { player, pick, openGroup } = mount();
 		openGroup('freezes');
-		const ring = select('freeze-ring');
 
-		fireEvent.change(ring, { target: { value: String(ItemSlot.ItemSlotFinger1) } });
+		const [ring, picked] = await pick('freeze-ring', 1);
 
 		expect(bulkState(player).frozenItems.get(BulkSimItemSlot.ItemSlotFinger)).toBe(RING);
-		expect(ring.value).toBe(String(ItemSlot.ItemSlotFinger1));
+		expect(ring.textContent).toBe(picked);
 	});
 
-	it('keeps the picked slot in the freeze weapon select', () => {
-		const { player, select, openGroup } = mount();
+	it('keeps the picked slot in the freeze weapon select', async () => {
+		const { player, pick, openGroup } = mount();
 		openGroup('freezes');
-		const weapon = select('freeze-weapon');
 
-		fireEvent.change(weapon, { target: { value: String(ItemSlot.ItemSlotMainHand) } });
+		const [weapon, picked] = await pick('freeze-weapon', 1);
 
 		expect(bulkState(player).frozenWeaponSlot).toBe(ItemSlot.ItemSlotMainHand);
-		expect(weapon.value).toBe(String(ItemSlot.ItemSlotMainHand));
+		expect(weapon.textContent).toBe(picked);
 	});
 
 	it('opens only the batch options group before anything is stored', () => {

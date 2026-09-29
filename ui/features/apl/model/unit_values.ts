@@ -3,11 +3,20 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { type ActionId, defaultTargetIcon, getPetIconFromName } from '@sim/proto/action_id';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
-import type { UnitValue } from '@ui-kit/UnitPicker/types';
+import type { IconName } from '@ui-kit/Icon';
 
 import { type UNIT_SET, unitSets } from './unit_sets';
 
 const label = (key: string) => i18n.t(`rotation_tab.apl.helpers.unit_labels.${key}`);
+
+/** One unit as a unit field offers it: the reference, and the text, icon and class colour it shows with. */
+export interface UnitValue {
+	value: UnitReference | undefined;
+	text?: string;
+	icon?: IconName;
+	iconUrl?: string;
+	color?: string;
+}
 
 /** A `UnitValue` whose icon may still be an `ActionId` to resolve (a pet's). */
 export interface UnitModel extends Omit<UnitValue, 'iconUrl'> {

@@ -1,4 +1,4 @@
-import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedIconInput } from '@features/inputs/components/ConnectedIconInput';
 import { ConnectedInput } from '@features/inputs/components/ConnectedInput';
 import type { IconInputConfig } from '@features/inputs/icon_inputs';
@@ -25,12 +25,12 @@ export const PlayerSettings = ({ iconInputs, inputs }: PlayerSettingsProps) => {
 			iconPickers={iconInputs.map((config, index) => (
 				<ConnectedIconInput key={index} modObject={player} config={config} />
 			))}
-			race={<ConnectedEnumPicker modObject={player} config={race} />}
+			race={<ConnectedChoiceField modObject={player} config={race} />}
 			inputs={inputs.map(config => (
 				<ConnectedInput key={config.id} config={config} />
 			))}
 			professions={professions.map(config => (
-				<ConnectedEnumPicker key={config.id} modObject={player} config={config} />
+				<ConnectedChoiceField key={config.id} modObject={player} config={config} />
 			))}
 		/>
 	);

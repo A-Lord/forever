@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { type ItemListToggle, ItemListToolbarView, type ItemListToolbarViewProps } from './ItemListToolbarView';
@@ -50,13 +51,14 @@ describe('ItemListToolbarView', () => {
 		expect(screen.queryByTestId('selector-modal-filters-button')).toBeNull();
 	});
 
-	it('shows the phase and writes a pick back', () => {
+	it('shows the phase and writes a pick back', async () => {
 		const { props } = renderView({ phase: 3 });
-		const select = screen.getByTestId('selector-modal-phase-selector').querySelector('select')!;
-		expect(select.value).toBe('3');
-		expect(Array.from(select.options).map(option => option.value)).toEqual(['1', '2', '3', '4', '5']);
+		await userEvent.click(within(screen.getByTestId('selector-modal-phase-selector')).getByRole('combobox'));
+		const options = screen.getAllByRole('option');
+		expect(options).toHaveLength(5);
+		expect(options.map(option => option.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true', 'false', 'false']);
 
-		fireEvent.change(select, { target: { value: '5' } });
+		await userEvent.click(options[4]);
 		expect(props.onPhaseChange).toHaveBeenCalledWith(5);
 	});
 
