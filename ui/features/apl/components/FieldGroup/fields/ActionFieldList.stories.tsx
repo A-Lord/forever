@@ -3,7 +3,7 @@ import { APLAction, APLRotation, APLValue } from '@generated/proto/apl';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeAplStoryPlayer } from '@testing/storybook/fixtures/apl';
 
-import { ActionListField } from './ActionListField';
+import { ActionFieldList } from './ActionFieldList';
 
 const wait = (val: string) =>
 	APLAction.create({ action: { oneofKind: 'wait', wait: { duration: APLValue.create({ value: { oneofKind: 'const', const: { val } } }) } } });
@@ -25,12 +25,12 @@ const actionsOf = (initial: Array<APLAction>) => {
 };
 
 const meta = {
-	title: 'Features/Apl/ActionListField',
-	component: ActionListField,
+	title: 'Features/Apl/ActionFieldList',
+	component: ActionFieldList,
 	tags: ['autodocs'],
 	args: actionsOf([wait('1s'), wait('1.5s')]),
 	argTypes: { player: { control: false }, config: { control: false } },
-} satisfies Meta<typeof ActionListField>;
+} satisfies Meta<typeof ActionFieldList>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

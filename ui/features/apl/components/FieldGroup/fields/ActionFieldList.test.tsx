@@ -4,7 +4,7 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import { act, createEvent, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ActionListField } from './ActionListField';
+import { ActionFieldList } from './ActionFieldList';
 
 const source = vi.hoisted(() => {
 	const listeners = new Set<() => void>();
@@ -43,7 +43,7 @@ const fieldConfig = () => ({
 const mount = () =>
 	render(
 		<SimHostProvider host={{ player, rootElem: document.body } as never}>
-			<ActionListField player={player as never} config={fieldConfig() as never} />
+			<ActionFieldList player={player as never} config={fieldConfig() as never} />
 		</SimHostProvider>,
 	);
 
@@ -71,7 +71,7 @@ beforeEach(() => {
 	document.body.innerHTML = '';
 });
 
-describe('ActionListField', () => {
+describe('ActionFieldList', () => {
 	it('lays each action out as an inline row holding its action picker', () => {
 		setup();
 		mount();
@@ -114,7 +114,7 @@ describe('ActionListField', () => {
 		const setValue = vi.spyOn(config, 'setValue');
 		render(
 			<SimHostProvider host={{ player, rootElem: document.body } as never}>
-				<ActionListField player={player as never} config={config as never} />
+				<ActionFieldList player={player as never} config={config as never} />
 			</SimHostProvider>,
 		);
 		items().forEach(place);

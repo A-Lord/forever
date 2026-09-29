@@ -150,8 +150,8 @@ export const AddButton = ({ label, icon, tone = 'default', disabled, onClick, cl
 	};
 	if (!icon)
 		return (
-			<Button {...shared}>
-				<Icon name="plus" className="mr-2" />
+			<Button {...shared} className={clsx(shared.className, 'inline-flex items-baseline gap-2')}>
+				<Icon name="plus" />
 				{label}
 			</Button>
 		);

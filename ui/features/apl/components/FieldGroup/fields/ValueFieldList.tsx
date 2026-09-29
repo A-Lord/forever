@@ -18,7 +18,7 @@ import { randomUUID } from '@sim/utils/misc';
 import { Tree } from '@ui-kit/Tree';
 import clsx from 'clsx';
 
-export interface ValueListFieldProps {
+export interface ValueFieldListProps {
 	player: Player<any>;
 	config: InputConfig<Player<any>, Array<APLValue | undefined>> & { id: string };
 }
@@ -31,7 +31,7 @@ const newValue = () => APLValue.create({ uuid: { value: randomUUID() } });
  * Each row is a whole `ValuePicker`, so this is one of the two edges the value tree recurses
  * across. The row's own validations ride in the item title, and a row's id is its value's uuid.
  */
-export const ValueListField = ({ player, config }: ValueListFieldProps) => {
+export const ValueFieldList = ({ player, config }: ValueFieldListProps) => {
 	const values = () => config.getValue(player) || [];
 	const extraction = useVariableExtraction(
 		player,

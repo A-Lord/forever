@@ -89,7 +89,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	return (
 		<Field
 			{...chrome}
-			className={['m-0 flex-row gap-2', ownsList && 'w-full', chrome.className]}
+			className={['m-0 flex-row items-baseline gap-2', ownsList && 'w-full', chrome.className]}
 			testId={testId ?? 'apl-value-picker-root'}
 			disabled={disabled}>
 			<BoundDropdown<Player<any>, APLValueKind>

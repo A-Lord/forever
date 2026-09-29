@@ -1,6 +1,6 @@
 @layer components {
 	.ui-dropdown-trigger {
-		@apply flex cursor-pointer items-center rounded-none border-0 px-0 py-4 text-center align-middle text-sm leading-normal font-normal whitespace-nowrap no-underline transition-[color,background-color,border-color] duration-150 ease-in-out select-none;
+		@apply flex cursor-pointer items-baseline rounded-none border-0 px-0 py-4 text-center align-middle text-sm leading-normal font-normal whitespace-nowrap no-underline transition-[color,background-color,border-color] duration-150 ease-in-out select-none;
 
 		&:focus-visible {
 			@apply outline-none;
@@ -10,7 +10,12 @@
 			@apply pointer-events-none opacity-65;
 		}
 
+		& > * {
+			@apply self-center;
+		}
+
 		&::after {
+			align-self: center;
 			display: inline-block;
 			margin-left: 0.255em;
 			vertical-align: 0.255em;

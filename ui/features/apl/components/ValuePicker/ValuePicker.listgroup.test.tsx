@@ -12,8 +12,8 @@ vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).m
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 const ListProbe = ({ testId }: { testId: string }) => <span data-testid={testId}>{useApl().listGroup}</span>;
-vi.mock('@features/apl/components/FieldGroup/fields/ValueListField', () => ({ ValueListField: () => <ListProbe testId="values-probe" /> }));
-vi.mock('@features/apl/components/FieldGroup/fields/ActionListField', () => ({ ActionListField: () => <ListProbe testId="actions-probe" /> }));
+vi.mock('@features/apl/components/FieldGroup/fields/ValueFieldList', () => ({ ValueFieldList: () => <ListProbe testId="values-probe" /> }));
+vi.mock('@features/apl/components/FieldGroup/fields/ActionFieldList', () => ({ ActionFieldList: () => <ListProbe testId="actions-probe" /> }));
 
 let player: ReturnType<typeof makePlayer>;
 

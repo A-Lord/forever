@@ -5,11 +5,12 @@
 		--tree-row-py: var(--spacing-tree-row-py);
 		--tree-row-px: var(--spacing-tree-row-px);
 		--tree-row-border: var(--border-default);
-		--tree-areas: 'handle title aside trigger actions' 'body body body body body' 'children children children children children';
-		--tree-columns: auto minmax(0, 1fr) auto auto auto;
+		--tree-title-track: minmax(0, 1fr);
+		--tree-title-fallback: minmax(0, 1fr);
+		--tree-body-col: initial;
+		--tree-body-column: 1 / -1;
+		--tree-body-order: 7;
 		--tree-align: center;
-		--tree-title-end: 0;
-		--tree-body-offset: var(--tree-gap);
 		--tree-flow: row;
 		--tree-track: minmax(0, 1fr);
 		--tree-drop-before: 0 calc(var(--spacing-tree-drop-line) * -1);
@@ -27,11 +28,12 @@
 		}
 
 		&[data-layout='inline'] {
-			--tree-areas: 'handle title body aside trigger actions' 'children children children children children children';
-			--tree-columns: auto auto minmax(0, 1fr) auto auto auto;
-			--tree-align: start;
-			--tree-title-end: var(--tree-gap);
-			--tree-body-offset: 0;
+			--tree-title-track: auto;
+			--tree-title-fallback: initial;
+			--tree-body-col: [body] minmax(0, 1fr);
+			--tree-body-column: body / span 1;
+			--tree-body-order: 3;
+			--tree-align: baseline;
 		}
 
 		&[data-in-body] {
@@ -57,21 +59,49 @@
 		grid-auto-columns: var(--tree-track);
 		gap: var(--tree-gap);
 
-		@variant @max-md/tree {
-			--tree-areas: 'handle title aside trigger actions' 'body body body body body' 'children children children children children';
-			--tree-columns: auto minmax(0, 1fr) auto auto auto;
-			--tree-title-end: 0;
-			--tree-body-offset: var(--tree-gap);
+		@variant @max-lg/tree {
+			--tree-title-track: minmax(0, 1fr);
+			--tree-title-fallback: minmax(0, 1fr);
+			--tree-body-col: initial;
+			--tree-body-column: 1 / -1;
+			--tree-body-order: 7;
 		}
 	}
 
 	.ui-tree-item {
 		@apply relative grid;
+		--tree-col-handle: [handle] auto;
+		--tree-col-title: [title] var(--tree-title-track);
+		--tree-col-aside: [aside] auto;
+		--tree-col-trigger: [trigger] auto;
+		--tree-col-actions: [actions] auto;
 		align-items: var(--tree-align);
-		grid-template-areas: var(--tree-areas);
-		grid-template-columns: var(--tree-columns);
+		grid-template-columns: var(--tree-col-handle,) var(--tree-col-title,) var(--tree-body-col,) var(--tree-col-aside,) var(--tree-col-trigger,) var(
+				--tree-col-actions,
+			);
+		gap: var(--tree-gap);
 		padding: var(--tree-row-py) var(--tree-row-px);
 		border: var(--tree-row-border);
+
+		&:not(:has(> .ui-tree-item-header > .ui-tree-item-handle)) {
+			--tree-col-handle: initial;
+		}
+
+		&:not(:has(> .ui-tree-item-header > .ui-tree-item-title)) {
+			--tree-col-title: var(--tree-title-fallback,);
+		}
+
+		&:not(:has(> .ui-tree-item-header > .ui-tree-item-aside)) {
+			--tree-col-aside: initial;
+		}
+
+		&:not(:has(> .ui-tree-item-header > .ui-tree-item-trigger)) {
+			--tree-col-trigger: initial;
+		}
+
+		&:not(:has(> .ui-tree-item-header > .ui-tree-item-actions)) {
+			--tree-col-actions: initial;
+		}
 
 		&[data-disabled] {
 			@apply filter-[opacity(0.5)];
@@ -92,14 +122,6 @@
 		&[data-drop='into'] > .ui-tree-item-children {
 			@apply border-s-primary;
 		}
-
-		&:has(> .ui-tree-item-header) > .ui-tree-item-body {
-			margin-block-start: var(--tree-body-offset);
-		}
-
-		&:has(> .ui-tree-item-header, > .ui-tree-item-body) > .ui-tree-item-children {
-			margin-block-start: var(--tree-gap);
-		}
 	}
 
 	.ui-tree-item-header {
@@ -107,16 +129,14 @@
 	}
 
 	.ui-tree-item-handle {
-		@apply cursor-grab;
-		grid-area: handle;
-		margin-inline-end: var(--tree-gap);
+		@apply order-1 cursor-grab;
+		grid-column: handle / span 1;
 	}
 
 	.ui-tree-item-title {
-		@apply m-0 flex min-w-0 items-center;
-		grid-area: title;
+		@apply order-2 m-0 flex min-w-0 items-center;
+		grid-column: title / span 1;
 		gap: var(--tree-gap);
-		margin-inline-end: var(--tree-title-end);
 	}
 
 	.ui-tree-item[data-muted] > .ui-tree-item-header {
@@ -127,20 +147,19 @@
 	}
 
 	.ui-tree-item-aside {
-		@apply flex items-center;
-		grid-area: aside;
+		@apply order-4 flex items-center;
+		grid-column: aside / span 1;
 		gap: var(--tree-gap);
-		margin-inline-start: var(--tree-gap);
 	}
 
 	.ui-tree-item-trigger {
-		grid-area: trigger;
-		margin-inline-start: var(--tree-gap);
+		@apply order-5;
+		grid-column: trigger / span 1;
 	}
 
 	.ui-tree-item-actions {
-		grid-area: actions;
-		margin-inline-start: var(--tree-gap);
+		@apply order-6;
+		grid-column: actions / span 1;
 	}
 
 	.ui-tree-item-actions-popup {
@@ -157,11 +176,13 @@
 
 	.ui-tree-item-body {
 		@apply min-w-0;
-		grid-area: body;
+		order: var(--tree-body-order);
+		grid-column: var(--tree-body-column);
 	}
 
 	.ui-tree-item-children {
-		grid-area: children;
+		@apply order-8;
+		grid-column: 1 / -1;
 		padding-inline-start: var(--spacing-tree-indent);
 		border-inline-start: var(--border-default);
 	}
