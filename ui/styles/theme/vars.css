@@ -17,7 +17,7 @@
 
 	/* Modal */
 	--modal-margin: --spacing(7);
-	--modal-width-xl: 1140px;
+	--modal-width-xl: var(--container-modal-xl);
 	--modal-border-width: 1px;
 	--modal-border-color: var(--color-surface-border);
 	--modal-padding: --spacing(5);

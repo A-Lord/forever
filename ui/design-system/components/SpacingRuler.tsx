@@ -1,9 +1,18 @@
 import { Unstyled } from '@storybook/addon-docs/blocks';
 
+import baseCss from '../../styles/base.css?raw';
 import breakpointsCss from '../../styles/theme/breakpoints.css?raw';
+import { resolvePxValue } from '../tokens/parse_theme';
 import { parseRootVars, THEME_TOKENS } from '../tokens/theme_tokens';
 
 const PLAIN_LENGTH = /^([\d.]+(px|rem)|--spacing\([\d.]+\))$/;
+const ROOT_FONT_SIZE = Number(baseCss.match(/--font-size-root:\s*([\d.]+)px/)?.[1]);
+
+const describeValue = (value: string): string => {
+	if (/^[\d.]+px$/.test(value)) return value;
+	const resolved = resolvePxValue(value, ROOT_FONT_SIZE);
+	return resolved === null ? value : `${value} = ${resolved}px`;
+};
 
 export const SpacingRuler = () => (
 	<Unstyled>
@@ -11,7 +20,7 @@ export const SpacingRuler = () => (
 			{THEME_TOKENS.filter(token => ['spacing', 'size', 'container'].includes(token.prefix) && PLAIN_LENGTH.test(token.value)).map(token => (
 				<div key={token.name} className="flex items-center gap-4">
 					<code className="w-64 shrink-0 text-ui">
-						{token.name}: {token.value}
+						{token.name}: {describeValue(token.value)}
 					</code>
 					<span className="block h-3 max-w-full bg-primary" style={{ width: `var(${token.name})` }} />
 				</div>

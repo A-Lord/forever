@@ -4,11 +4,13 @@ import { Target as TargetProto } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { Encounter } from '@sim/raid/encounter';
 import { subscribeEncounterField } from '@sim/state/subscriptions';
-import { Tree, type TreeSortable } from '@ui-kit/Tree';
+import { Tree, type TreeDropRef, type TreeRef, type TreeSortable } from '@ui-kit/Tree';
 import { useMemo, useRef } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
 import { TargetPicker } from './TargetPicker';
+
+const GROUP = 'targets';
 
 export interface TargetsPickerProps {
 	encounter: Encounter;
@@ -36,12 +38,25 @@ export const TargetsPicker = ({ encounter }: TargetsPickerProps) => {
 	const { items, create, remove, copy, move, canRemove, hidden, disabled } = useListItems(encounter, config);
 	const moveRef = useRef(move);
 	moveRef.current = move;
-	const sortable = useMemo((): TreeSortable => ({ onMove: ({ from, to }) => moveRef.current(from.index, to.index) }), []);
+	const idsRef = useRef(new Set<string>());
+	idsRef.current = new Set(items.map((target, targetIndex) => String(keyFor(target, targetIndex))));
+	// The lists nested in a target row share this list's drag, so a move counts only when it is a
+	// target moving among the targets.
+	const sortable = useMemo((): TreeSortable => {
+		const isOwn = (from: TreeRef, to: TreeDropRef) =>
+			from.group === GROUP && to.group === GROUP && from.parentId === to.parentId && idsRef.current.has(from.id);
+		return {
+			canDrop: isOwn,
+			onMove: ({ from, to }) => {
+				if (isOwn(from, to)) moveRef.current(from.index, to.index);
+			},
+		};
+	}, []);
 	if (hidden) return null;
 
 	const itemLabel = i18n.t('settings_tab.encounter.target');
 	return (
-		<Tree.Root group="targets" sortable={sortable} disabled={disabled} testId="targets-picker">
+		<Tree.Root group={GROUP} sortable={sortable} disabled={disabled} testId="targets-picker">
 			<Tree.Items>
 				{items.map((target, targetIndex) => {
 					const key = String(keyFor(target, targetIndex));

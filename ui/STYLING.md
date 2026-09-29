@@ -29,9 +29,10 @@ Reach for a **named utility** first, including its variants and `!`-free forms. 
   e.g. `--color-grey: #808080`) rather than writing `bg-[#808080]` — never drop a declaration because
   no token exists yet either; a missing visible property is a bug, not a simplification.
 - **No arbitrary spacing where a scale step exists.** Tailwind's spacing scale in this repo is
-  _dynamic_: any multiple of `0.25` is a legal step, so `p-1.25` is exactly 5px and `w-4.5` is 18px.
-  Convert a source px value to its **exact** step (`gap-[4px]` → `gap-1`, `10px` → `p-2.5`, `5px` →
-  `p-1.25`, `18px` → `w-4.5`) rather than writing `[Npx]` — see §7 for why a rounded/nearest
+  _dynamic_: any multiple of `0.25` is a legal step, and one step is 3.5px at this repo's 14px root,
+  so `p-1.25` is exactly 4.375px and `w-4.5` is 15.75px.
+  Convert a source px value to its **exact** step (`gap-[3.5px]` → `gap-1`, `8.75px` → `p-2.5`, `4.375px` →
+  `p-1.25`, `15.75px` → `w-4.5`) rather than writing `[Npx]` — see §7 for why a rounded/nearest
   conversion is not acceptable here. Keep a literal `[Npx]` only when no step lands on the value
   exactly, and prefer a token over a repeated arbitrary value. `1rem` is 14px at every width
   (`ui/styles/base.css`'s `--font-size-root`), so a converted step follows the root everywhere — a
@@ -258,10 +259,12 @@ Two tree-wide tests in `npm run test:unit` run the checkers, both under `// @vit
       the diff before calling a class-hook or utility change done — the class-hook gate proves a
       class is gone, not that nothing rendered differently without it.
     - **A px value converts to its exact dynamic spacing step**: Tailwind v4's spacing scale here
-      accepts any multiple of `0.25`, so a source px value converts to its exact step — `10px` → `p-2.5`, `5px` → `p-1.25`,
-      `18px` → `w-4.5` — computed-identically, and `ui/testing/tailwind/canonical-classes.mjs`
-      rewrites a lingering `p-[5px]` to `p-1.25` automatically. Keep an arbitrary `[Npx]` only where
-      no named or dynamic step exists (an odd one-off border width, say), and add a token instead of
-      an arbitrary value for anything repeated.
+      accepts any multiple of `0.25`, and one step is 3.5px at this repo's 14px root, so a source px
+      value converts to its exact step — `8.75px` → `p-2.5`, `4.375px` → `p-1.25`,
+      `15.75px` → `w-4.5` — computed-identically. `ui/testing/tailwind/canonical-classes.mjs`
+      canonicalizes at a hardcoded 16px rem (its `{ rem: 16 }` option), so it rewrites a lingering
+      `p-[5px]` to `p-1.25` regardless — a rewrite that lands at 4.375px here, not 5px. Keep an
+      arbitrary `[Npx]` only where no named or dynamic step exists (an odd one-off border width, say),
+      and add a token instead of an arbitrary value for anything repeated.
     - A class-removal commit and a DOM-structure commit must never land together — a position-keyed
       comparison misaligns on every node after an inserted or deleted element.
