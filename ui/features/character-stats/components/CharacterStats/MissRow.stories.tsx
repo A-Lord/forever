@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { MISS_INFO } from '@testing/storybook/fixtures/character-stats';
 import { Table } from '@ui-kit/Table';
 
-import { MISS_INFO } from '../../../../testing/storybook/fixtures/character-stats';
 import { MissRow } from './MissRow';
 
 const meta = {

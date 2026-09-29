@@ -9,7 +9,8 @@ vi.hoisted(() => {
 	(globalThis as unknown as { fetch: unknown }).fetch = () => Promise.reject(new Error('offline'));
 });
 
-import { renderWithHost } from '../../../../testing/react';
+import { renderWithHost } from '@testing/react';
+
 import { EXPORT_CATEGORY_OPTIONS } from '../../exporters';
 import { exporterDialog } from './ExporterDialog';
 

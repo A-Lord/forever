@@ -1,9 +1,9 @@
 import { ArmorType, ItemSlot, RangedWeaponType, WeaponType } from '@generated/proto/common';
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
+import { renderWithHost } from '@testing/react';
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { FiltersMenuView, type FiltersMenuViewProps } from './FiltersMenuView';
 
 const renderView = (props: Partial<FiltersMenuViewProps> = {}) => {

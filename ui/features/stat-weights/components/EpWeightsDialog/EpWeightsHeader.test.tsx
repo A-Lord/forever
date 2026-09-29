@@ -1,8 +1,8 @@
+import { makeEpColumns } from '@testing/storybook/fixtures/stat-weights';
 import { fireEvent, render } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it, vi } from 'vitest';
 
-import { makeEpColumns } from '../../../../testing/storybook/fixtures/stat-weights';
 import { EpWeightsHeader } from './EpWeightsHeader';
 import type { EpColumn } from './types';
 

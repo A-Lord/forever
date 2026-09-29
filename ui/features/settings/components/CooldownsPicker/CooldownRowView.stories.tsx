@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { storyIcon, StoryIconEnum } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { NumberListPicker } from '@ui-kit/NumberListPicker';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { storyIcon, StoryIconEnum } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { CooldownRowView } from './CooldownRowView';
 
 const COOLDOWNS = [

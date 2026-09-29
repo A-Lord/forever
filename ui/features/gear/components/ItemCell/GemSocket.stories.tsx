@@ -1,9 +1,9 @@
 import { GemColor } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { cssVars } from '@ui-kit/utils/css';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { makeUIGem } from '../../../../testing/storybook/fixtures/protos';
 import { GemSocket } from './GemSocket';
 
 const meta = {

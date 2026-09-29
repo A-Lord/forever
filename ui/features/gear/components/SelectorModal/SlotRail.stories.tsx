@@ -1,9 +1,9 @@
 import { ItemSlot } from '@generated/proto/common';
 import { Gear } from '@sim/proto/gear';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 import { expect, fireEvent, fn, within } from 'storybook/test';
 
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { SlotRail } from './SlotRail';
 
 const meta = {

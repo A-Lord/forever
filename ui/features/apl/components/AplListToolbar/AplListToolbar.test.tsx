@@ -1,7 +1,7 @@
+import { renderWithHost } from '@testing/react';
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { AplListToolbar } from './AplListToolbar';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));

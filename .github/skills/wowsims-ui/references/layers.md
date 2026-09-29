@@ -14,18 +14,19 @@ can drift from the build silently.
 
 ## The bans, as configured
 
-| Scope                       | May not import                                                                           | Notes                                                                  |
-| --------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `ui/sim/**`                 | `@ui-kit` `@features` `@app` `@specs`                                                    | **`allowTypeImports: true`** — see below                               |
-| `ui/i18n/**/*.{ts,tsx}`     | `@app` `@features` `@ui-kit` `@specs/**`                                                 | `@sim` is allowed; no type-import escape hatch                         |
-| `ui/ui-kit/**`              | `@features` `@app` `@specs`, `react-dom/client`, `@sim` except `utils/**` `constants/**` | only the shell may create a React root; the `@sim` group is below      |
-| `ui/features/**`            | `@app` `@specs`, plus `react-dom/client`                                                 |                                                                        |
-| `ui/features/*/model/**`    | `@app` `@specs`, plus `react` and `react-dom`                                            | a model layer is framework-free, not merely DOM-free                   |
-| `ui/features/**/*.{ts,tsx}` | `patchSlice` `patchKeyed` `seedKeyed` `deleteKeyed` from `**/state/sim_store*`           | write through a facade instead                                         |
-| `ui/features/**/*.test.*`   | `@app` `@specs`, plus `react-dom/client`                                                 | a test may seed the store with the writers; a model test may use React |
-| `ui/app/**`                 | `@specs`                                                                                 | specs import app, never the reverse                                    |
-| `ui/design-system/**`       | `@features` `@app` `@specs`                                                              | the docs pages sit beside the kit: `@sim` and `@ui-kit` allowed        |
-| `ui/testing/**`             | `@app` `@specs`                                                                          | the story fixtures and decorators may reach features                   |
+| Scope                       | May not import                                                                                       | Notes                                                                                                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ui/sim/**`                 | `@ui-kit` `@features` `@app` `@specs`, `@testing`                                                    | **`allowTypeImports: true`** — see below                                                                                                                           |
+| `ui/i18n/**/*.{ts,tsx}`     | `@app` `@features` `@ui-kit` `@specs/**`, `@testing`                                                 | `@sim` is allowed; no type-import escape hatch                                                                                                                     |
+| `ui/ui-kit/**`              | `@features` `@app` `@specs`, `react-dom/client`, `@sim` except `utils/**` `constants/**`, `@testing` | only the shell may create a React root; the `@sim` group is below                                                                                                  |
+| `ui/features/**`            | `@app` `@specs`, plus `react-dom/client`, `@testing`                                                 |                                                                                                                                                                    |
+| `ui/features/*/model/**`    | `@app` `@specs`, plus `react` and `react-dom`, `@testing`                                            | a model layer is framework-free, not merely DOM-free                                                                                                               |
+| `ui/features/**/*.{ts,tsx}` | `patchSlice` `patchKeyed` `seedKeyed` `deleteKeyed` from `**/state/sim_store*`                       | write through a facade instead                                                                                                                                     |
+| `ui/features/**/*.test.*`   | `@app` `@specs`, plus `react-dom/client`                                                             | a test may seed the store with the writers; a model test may use React                                                                                             |
+| `ui/app/**`                 | `@specs`, `@testing`                                                                                 | specs import app, never the reverse                                                                                                                                |
+| tests and stories           | the bans of their layer, without `@testing`                                                          | `ui/{sim,i18n}/**/*.test.*`, `ui/{ui-kit,app}/**/*.{test,stories}.*`, `ui/features/**/*.stories.tsx` and the two features test blocks restate their layer's groups |
+| `ui/design-system/**`       | `@features` `@app` `@specs`                                                                          | the docs pages sit beside the kit: `@sim` and `@ui-kit` allowed                                                                                                    |
+| `ui/testing/**`             | `@app` `@specs`                                                                                      | the story fixtures and decorators may reach features                                                                                                               |
 
 The kit's `@sim` group is a positive list, because a negated glob inside a group is unproven here:
 `hooks` `context` `state` `player` `raid` `proto` `settings` `presets` `talents` `bulk` `cache`
@@ -70,6 +71,13 @@ a new top-level `ui/` directory needs its own override block — you cannot excl
 That is why `react-hooks/rules-of-hooks` appears in the root `rules` block by name; deleting the
 line silently disables it.
 
+**A later block replaces a rule, it does not add to it.** When two blocks match a file and both set
+`no-restricted-imports`, the later block's options win whole; the groups are not merged, and
+`typescript/no-restricted-imports` is the same rule under another name. `excludeFiles` exists, but a
+block that excludes the tests leaves them with none of its bans. So the `@testing` ban sits in each
+production block, and each test and story block that follows repeats its layer's groups without it.
+A new group in a layer block goes into that layer's test and story blocks as well.
+
 ## Aliases
 
 | Alias          | Resolves to      |
@@ -82,10 +90,11 @@ line silently disables it.
 | `@app/*`       | `ui/app/*`       |
 | `@specs/*`     | `ui/specs/*`     |
 | `@i18n/*`      | `ui/i18n/*`      |
+| `@testing/*`   | `ui/testing/*`   |
 
 Check with `node -e "console.log(require('./tsconfig.json').compilerOptions.paths)"`. The same table
-is `UI_ALIASES` in `vite.config.mts`, which `getBaseConfig` (inherited by the worker builds) and
-`vitest.config.mts` both spread into `resolve.alias`. The two must agree; a mismatch shows up as a type-check that passes and a
+is `UI_ALIASES` in `vite.config.mts`, which `getBaseConfig` (inherited by the worker builds),
+`vitest.config.mts` and `.storybook/vite.config.ts` spread into `resolve.alias`. The two must agree; a mismatch shows up as a type-check that passes and a
 build that cannot resolve.
 
 The aliases are `tsconfig` `paths` rather than Node's `package.json` `imports` field because `tsc`

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testing/storybook/fixtures/stat-weights';
 import { Table } from '@ui-kit/Table';
 import { fn } from 'storybook/test';
 
-import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '../../../../testing/storybook/fixtures/stat-weights';
 import { StatWeightRowView } from './StatWeightRowView';
 import { StatsType } from './types';
 

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makePresetBuild } from '@testing/storybook/fixtures/app';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { makePresetBuild } from '../testing/storybook/fixtures/app';
 import { PresetBuildChip, PresetBuildChipTooltip } from './PresetBuildChip';
 
 const TOOLTIP_ID = 'preset-build-chip-story';

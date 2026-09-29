@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { warriorRotationModel } from '@testing/storybook/fixtures/results-views';
 import { type ReactNode, useState } from 'react';
 
-import { warriorRotationModel } from '../../../../../testing/storybook/fixtures/results-views';
 import { DrStickySlotContext } from '../../DetailedResults/DrStickySlotContext';
 import { RotationView } from './RotationView';
 

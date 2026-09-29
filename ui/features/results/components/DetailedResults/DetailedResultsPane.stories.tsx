@@ -1,8 +1,8 @@
 import { Tabs } from '@base-ui/react/tabs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
+import { loadSimResult, type ResultFixture, resultsHostParts } from '@testing/storybook/fixtures/results-views';
 
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
-import { loadSimResult, type ResultFixture, resultsHostParts } from '../../../../testing/storybook/fixtures/results-views';
 import { DetailedResultsPane } from './DetailedResultsPane';
 
 const meta = {

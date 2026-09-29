@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { FLURRY, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
 
-import { FLURRY, MORTAL_STRIKE } from '../../../../../testing/storybook/fixtures/results-views';
 import { RotationRowIcon } from './RotationRowIcon';
 
 const meta = {

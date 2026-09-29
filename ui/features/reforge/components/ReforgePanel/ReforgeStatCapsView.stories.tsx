@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryBoolean, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { fn } from 'storybook/test';
 
-import { StoryBoolean, StoryNumber } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
 import { ReforgeStatCapsView } from './ReforgeStatCapsView';
 

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { castRotationRow, DEEP_WOUNDS, rotationTrackStyle, tickRowItem } from '@testing/storybook/fixtures/results-views';
 
-import { castRotationRow, DEEP_WOUNDS, rotationTrackStyle, tickRowItem } from '../../../../../testing/storybook/fixtures/results-views';
 import { TickItem } from './TickItem';
 
 const meta = {

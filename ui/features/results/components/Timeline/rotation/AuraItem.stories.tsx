@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { auraRowItem, castRotationRow, FLURRY, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
-import { auraRowItem, castRotationRow, FLURRY, rotationTrackStyle } from '../../../../../testing/storybook/fixtures/results-views';
 import { AuraItem } from './AuraItem';
 
 const meta = {

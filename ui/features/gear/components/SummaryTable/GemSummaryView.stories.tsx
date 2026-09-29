@@ -1,9 +1,9 @@
 import { GemColor, ItemQuality } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
+import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { wowheadIconUrl } from '../../../../testing/storybook/fixtures/gear';
-import { makeUIGem } from '../../../../testing/storybook/fixtures/protos';
 import { GemSummaryView } from './GemSummaryView';
 
 const meta = {

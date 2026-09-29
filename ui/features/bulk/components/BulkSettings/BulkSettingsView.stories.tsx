@@ -1,9 +1,9 @@
 import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryBoolean } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
-import { StoryBoolean } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettingsView';
 import { CombinationsCountView } from './CombinationsCountView';
 

@@ -1,8 +1,8 @@
 import { Tabs } from '@base-ui/react/tabs';
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withRotationTypeHost } from '@testing/storybook/fixtures/apl';
 
-import { withRotationTypeHost } from '../../../../testing/storybook/fixtures/apl';
 import { AplNavbar } from './AplNavbar';
 
 const meta = {

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeUIEnchant } from '@testing/storybook/fixtures/protos';
 import { fn } from 'storybook/test';
 
-import { makeUIEnchant } from '../../../../testing/storybook/fixtures/protos';
 import { EnchantLabel } from './EnchantLabel';
 
 const SMOKE_REASON = 'The label fetches /forever/assets/enchants/descriptions.json, and renders nothing without an enchant';

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { FLURRY, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { FLURRY, MORTAL_STRIKE } from '../../../../testing/storybook/fixtures/results-views';
 import { MetricsActionCell } from './MetricsActionCell';
 
 const meta = {

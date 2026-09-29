@@ -1,8 +1,8 @@
 import i18n from '@i18n/config';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { SelectorModalTabs } from '../../types';
 import { SelectorModalView, type SelectorModalViewProps } from './SelectorModalView';
 

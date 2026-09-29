@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { castLog } from '@testing/storybook/fixtures/results-views';
 
-import { castLog } from '../../../../../testing/storybook/fixtures/results-views';
 import { GcdSegmentTooltip } from './GcdSegmentTooltip';
 
 const meta = {

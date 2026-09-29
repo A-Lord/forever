@@ -1,8 +1,8 @@
 import { ResourceType } from '@generated/proto/spell';
 import type { AuraLog, CastBeganLog, CastFailedLog, CombatLog, PlainLog, StatChangeLog } from '@sim/proto/combat_log';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { BATTLE_SHOUT, damageLog, DEEP_WOUNDS, MORTAL_STRIKE, PET, resourceLog, TARGET } from '@testing/storybook/fixtures/results-views';
 
-import { BATTLE_SHOUT, damageLog, DEEP_WOUNDS, MORTAL_STRIKE, PET, resourceLog, TARGET } from '../../../../testing/storybook/fixtures/results-views';
 import { LogLine } from './LogLine';
 
 const base = damageLog(12.5, 0);

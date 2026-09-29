@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { loadTopline, type ToplineFixture } from '@testing/storybook/fixtures/results-views';
 
-import { loadTopline, type ToplineFixture } from '../../../../testing/storybook/fixtures/results-views';
 import { ResultMetricList } from './ResultMetricList';
 
 const meta = {

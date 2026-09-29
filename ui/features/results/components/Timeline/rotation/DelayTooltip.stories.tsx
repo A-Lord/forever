@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { delayRowItem } from '@testing/storybook/fixtures/results-views';
 
-import { delayRowItem } from '../../../../../testing/storybook/fixtures/results-views';
 import { DelayTooltip } from './DelayTooltip';
 
 const meta = {

@@ -2,10 +2,10 @@ import { Stat } from '@generated/proto/common';
 import { SavedEPWeights } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { SavedEpWeights } from './SavedEpWeights';
 
 const source = vi.hoisted(() => {

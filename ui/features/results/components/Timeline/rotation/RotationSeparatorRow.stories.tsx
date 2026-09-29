@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { rotationTrackStyle, TARGET_SEPARATOR_ROW } from '@testing/storybook/fixtures/results-views';
 
-import { rotationTrackStyle, TARGET_SEPARATOR_ROW } from '../../../../../testing/storybook/fixtures/results-views';
 import { RotationSeparatorRow } from './RotationSeparatorRow';
 
 const meta = {

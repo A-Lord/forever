@@ -2,8 +2,8 @@ import { Profession } from '@generated/proto/common';
 import { DungeonDifficulty, UIItemSource } from '@generated/proto/ui';
 import type { Sim } from '@sim/sim';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeUIItem } from '@testing/storybook/fixtures/protos';
 
-import { makeUIItem } from '../../../../testing/storybook/fixtures/protos';
 import { ItemSource } from './ItemSource';
 
 const MOLTEN_CORE = { id: 2717, name: 'Molten Core' };

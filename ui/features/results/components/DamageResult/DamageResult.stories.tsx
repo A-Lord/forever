@@ -1,7 +1,7 @@
 import { SpellSchool } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, DEEP_WOUNDS } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, DEEP_WOUNDS } from '../../../../testing/storybook/fixtures/results-views';
 import { DamageResult } from './DamageResult';
 
 const meta = {

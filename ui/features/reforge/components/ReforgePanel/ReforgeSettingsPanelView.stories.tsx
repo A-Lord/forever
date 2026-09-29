@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryBoolean, StoryEnum, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { StoryBoolean, StoryEnum, StoryNumber } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimitsView';
 import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
 import { ReforgeSettingsPanelView } from './ReforgeSettingsPanelView';

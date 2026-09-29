@@ -1,10 +1,10 @@
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
+import { makeRangedWeapon, makeStatAttribution, showStat } from '@testing/storybook/fixtures/character-stats';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { makeRangedWeapon, makeStatAttribution, showStat } from '../../../../testing/storybook/fixtures/character-stats';
 import { StatRowView, type StatRowViewProps } from './StatRowView';
 
 const MELEE_HIT = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent);

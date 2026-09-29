@@ -1,8 +1,8 @@
+import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testing/storybook/fixtures/stat-weights';
 import { render } from '@testing-library/react';
 import { Table, TableRow } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '../../../../testing/storybook/fixtures/stat-weights';
 import { StatWeightCells, type StatWeightCellsProps } from './StatWeightCells';
 
 const renderCells = (props: Partial<StatWeightCellsProps>) =>

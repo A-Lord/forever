@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryBoolean } from '@testing/storybook/fixtures/settings_reforge_bulk';
 
-import { StoryBoolean } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
 
 const SLOTS = ['Head', 'Neck', 'Shoulders', 'Back', 'Chest', 'Wrist', 'Hands', 'Waist', 'Legs', 'Feet', 'Finger 1', 'Finger 2'];

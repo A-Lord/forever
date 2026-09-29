@@ -1,7 +1,7 @@
 import { UIItem_FactionRestriction } from '@generated/proto/ui';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeUIItem } from '@testing/storybook/fixtures/protos';
 
-import { makeUIItem } from '../../../../testing/storybook/fixtures/protos';
 import { BulkItemSearchRow } from './BulkItemSearchRow';
 
 const meta = {

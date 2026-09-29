@@ -1,9 +1,9 @@
 import { WOWHEAD_GEAR_PLANNER_URL } from '@sim/proto/wowhead';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { DialogTrigger } from '@testing/storybook/fixtures/import-export';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 import { fn } from 'storybook/test';
 
-import { DialogTrigger } from '../../../../testing/storybook/fixtures/import-export';
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { type ExportCategories, JSON_EXPORTER, LINK_EXPORTER, selectedCategories, WOWHEAD_GEAR_PLANNER_EXPORTER } from '../../exporters';
 import { exporterDialog } from './ExporterDialog';
 

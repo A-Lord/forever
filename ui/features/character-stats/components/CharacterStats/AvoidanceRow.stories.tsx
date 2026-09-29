@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { AVOIDANCE_INFO } from '@testing/storybook/fixtures/character-stats';
 import { Table } from '@ui-kit/Table';
 
-import { AVOIDANCE_INFO } from '../../../../testing/storybook/fixtures/character-stats';
 import { AvoidanceRow } from './AvoidanceRow';
 
 const meta = {

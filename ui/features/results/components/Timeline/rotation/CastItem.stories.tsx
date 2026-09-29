@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { castRotationRow, castRowItem, MORTAL_STRIKE, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
-import { castRotationRow, castRowItem, MORTAL_STRIKE, rotationTrackStyle } from '../../../../../testing/storybook/fixtures/results-views';
 import { CastItem } from './CastItem';
 
 const meta = {

@@ -1,9 +1,9 @@
 import { Encounter as EncounterProto } from '@generated/proto/common';
 import { SavedEncounter as SavedEncounterProto } from '@generated/proto/ui';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { SavedEncounter } from './SavedEncounter';
 
 const source = vi.hoisted(() => {

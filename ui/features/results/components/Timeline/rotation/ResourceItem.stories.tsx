@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { rageRotationRow, resourceRowItem, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
-import { rageRotationRow, resourceRowItem, rotationTrackStyle } from '../../../../../testing/storybook/fixtures/results-views';
 import { ResourceItem } from './ResourceItem';
 
 const meta = {

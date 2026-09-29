@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { storyIcon, StoryIconEnum, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { PickerGroup } from '@ui-kit/PickerGroup';
 
-import { storyIcon, StoryIconEnum, StoryIconToggle } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { ConsumeRowView } from './ConsumeRowView';
 
 const FLASKS = [

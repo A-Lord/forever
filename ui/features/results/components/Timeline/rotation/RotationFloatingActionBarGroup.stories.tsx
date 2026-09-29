@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { warriorRotationModel } from '@testing/storybook/fixtures/results-views';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
-import { warriorRotationModel } from '../../../../../testing/storybook/fixtures/results-views';
 import type { ContentRow } from '../../../model/timeline/rotation';
 import { RotationFloatingActionBarGroup, type RotationFloatingActionBarGroupProps } from './RotationFloatingActionBarGroup';
 

@@ -1,10 +1,10 @@
 import { ItemSlot } from '@generated/proto/common';
 import { EquippedItem } from '@sim/proto/equipped_item';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
+import { makeUIItem } from '@testing/storybook/fixtures/protos';
 import { fn } from 'storybook/test';
 
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
-import { makeUIItem } from '../../../../testing/storybook/fixtures/protos';
 import { BulkItemPickerView } from './BulkItemPickerView';
 
 const NEEDS_DATABASE = { smoke: false, smokeReason: 'ActionId.fill() needs the item database for the item’s icon and name.' };

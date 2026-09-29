@@ -61,7 +61,7 @@ production entry; tokens and the 18 spec themes as CSS variables — see `ui/STY
 reaches for are `ui/ui-kit/utils/dom.ts`), `ui/design-system/` (the twelve Storybook docs pages,
 their `tokens/` parsers and `components/`), `ui/testing/` (`tailwind/`, the class checkers;
 `storybook/`, the decorators, fixtures and the `stories.test.tsx` smoke test; `react.tsx`,
-`renderWithHost`), `ui/types/` (ambient `.d.ts`), `ui/tracking/` (the analytics shim), and
+`renderWithHost`; tests and stories import it as `@testing/*`, production code may not), `ui/types/` (ambient `.d.ts`), `ui/tracking/` (the analytics shim), and
 `ui/index.html` / `ui/index_template.html` at the root. `.storybook/` at the repo root is the
 Storybook config (`main.ts`, `vite.config.ts`, `preview.tsx`, `storybook.css`). The React entry
 points are `ui/app/spec_entry.tsx` and `ui/app/landing_entry.tsx`.

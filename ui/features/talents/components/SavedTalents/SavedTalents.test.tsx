@@ -1,9 +1,9 @@
 import { SavedTalents as SavedTalentsProto } from '@generated/proto/ui';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { SavedTalents } from './SavedTalents';
 
 const KEY = 6;

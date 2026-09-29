@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, dpsLog } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, dpsLog } from '../../../../../testing/storybook/fixtures/results-views';
 import { TooltipAuras } from './TooltipAuras';
 
 const meta = {

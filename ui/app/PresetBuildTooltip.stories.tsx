@@ -1,7 +1,7 @@
 import { Stats } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makePresetBuild } from '@testing/storybook/fixtures/app';
 
-import { makePresetBuild } from '../testing/storybook/fixtures/app';
 import { PresetBuildTooltip } from './PresetBuildTooltip';
 
 const meta = {

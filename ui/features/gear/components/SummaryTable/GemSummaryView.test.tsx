@@ -1,11 +1,11 @@
 import { ItemQuality } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
+import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { itemQualityClassName } from '@ui-kit/utils/css';
 import { describe, expect, it, vi } from 'vitest';
 
-import { makeUIGem } from '../../../../testing/storybook/fixtures/protos';
 import { GemSummaryView } from './GemSummaryView';
 
 const ROWS = [

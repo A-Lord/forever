@@ -22,7 +22,8 @@
 			"@features/*": ["./ui/features/*"],
 			"@app/*": ["./ui/app/*"],
 			"@specs/*": ["./ui/specs/*"],
-			"@i18n/*": ["./ui/i18n/*"]
+			"@i18n/*": ["./ui/i18n/*"],
+			"@testing/*": ["./ui/testing/*"]
 		}
 	},
 	"include": [".", ".storybook"],

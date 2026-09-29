@@ -1,8 +1,8 @@
 import { PseudoStat, Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { BonusStatsLink } from './BonusStatsLink';
 
 const meta = {

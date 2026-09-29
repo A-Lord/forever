@@ -2,10 +2,10 @@ import { type EquipmentSpec, ItemSlot } from '@generated/proto/common';
 import { SavedGearSet } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withStorage } from '@testing/storybook/decorators';
+import { withSimHost } from '@testing/storybook/fixtures/models';
+import { makeEquipmentSpec } from '@testing/storybook/fixtures/protos';
 
-import { withStorage } from '../../../../testing/storybook/decorators';
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
-import { makeEquipmentSpec } from '../../../../testing/storybook/fixtures/protos';
 import { SavedGear } from './SavedGear';
 
 const STORAGE_KEY = 'storybook-savedGearSets';

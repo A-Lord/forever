@@ -1,9 +1,9 @@
 import { ItemSwap, Race } from '@generated/proto/common';
 import { SavedSettings as SavedSettingsProto } from '@generated/proto/ui';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { SavedSettings } from './SavedSettings';
 
 const source = vi.hoisted(() => {

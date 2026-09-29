@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { HEROIC_STRIKE, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
 
-import { HEROIC_STRIKE, MORTAL_STRIKE } from '../../../../testing/storybook/fixtures/results-views';
 import { ActionLink } from './ActionLink';
 
 const meta = {

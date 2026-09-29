@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, HEROIC_STRIKE, threatLogGroup } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, HEROIC_STRIKE, threatLogGroup } from '../../../../../testing/storybook/fixtures/results-views';
 import { ThreatTooltip } from './ThreatTooltip';
 
 const meta = {

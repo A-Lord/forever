@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testing/storybook/fixtures/stat-weights';
 import { Table, TableRow } from '@ui-kit/Table';
 
-import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '../../../../testing/storybook/fixtures/stat-weights';
 import { StatWeightCells } from './StatWeightCells';
 
 const RESULT = makeStatWeightsResult();

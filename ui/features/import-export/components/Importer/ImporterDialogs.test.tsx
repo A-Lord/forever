@@ -10,7 +10,8 @@ vi.hoisted(() => {
 	(globalThis as unknown as { fetch: unknown }).fetch = () => Promise.reject(new Error('offline'));
 });
 
-import { renderWithHost } from '../../../../testing/react';
+import { renderWithHost } from '@testing/react';
+
 import { ADDON_IMPORTER, BULK_GEAR_IMPORTER, JSON_IMPORTER, SIXTY_UPGRADES_IMPORTER, WOWHEAD_GEAR_PLANNER_IMPORTER } from '../../importers';
 import { AddonImporterDialog } from './AddonImporterDialog';
 import { BulkGearImporterDialog } from './BulkGearImporterDialog';

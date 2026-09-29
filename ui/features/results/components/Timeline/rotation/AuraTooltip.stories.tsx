@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { auraUptimeLog, BATTLE_SHOUT } from '@testing/storybook/fixtures/results-views';
 
-import { auraUptimeLog, BATTLE_SHOUT } from '../../../../../testing/storybook/fixtures/results-views';
 import { AuraTooltip } from './AuraTooltip';
 
 const meta = {

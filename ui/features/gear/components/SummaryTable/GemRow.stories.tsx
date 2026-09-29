@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
+import { makeUIGem } from '@testing/storybook/fixtures/protos';
 
-import { wowheadIconUrl } from '../../../../testing/storybook/fixtures/gear';
-import { makeUIGem } from '../../../../testing/storybook/fixtures/protos';
 import { GemRow } from './GemRow';
 
 const meta = {

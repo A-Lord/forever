@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, resourceLog } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, resourceLog } from '../../../../testing/storybook/fixtures/results-views';
 import { LogRow } from './LogRow';
 
 const meta = {

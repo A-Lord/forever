@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { DialogTrigger } from '@testing/storybook/fixtures/import-export';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 import { fn } from 'storybook/test';
 
-import { DialogTrigger } from '../../../../testing/storybook/fixtures/import-export';
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { JsonImporterDialog } from './JsonImporterDialog';
 
 const meta = {

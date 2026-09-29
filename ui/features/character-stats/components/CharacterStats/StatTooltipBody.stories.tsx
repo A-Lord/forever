@@ -1,8 +1,8 @@
 import { Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeStatAttribution, showStat } from '@testing/storybook/fixtures/character-stats';
 
-import { makeStatAttribution, showStat } from '../../../../testing/storybook/fixtures/character-stats';
 import { StatTooltipBody } from './StatTooltipBody';
 
 const meta = {

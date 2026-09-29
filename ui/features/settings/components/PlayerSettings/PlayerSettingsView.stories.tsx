@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryBoolean, StoryEnum, storyIcon, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
 
-import { StoryBoolean, StoryEnum, storyIcon, StoryIconToggle } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { PlayerSettingsView } from './PlayerSettingsView';
 
 const RACES = [

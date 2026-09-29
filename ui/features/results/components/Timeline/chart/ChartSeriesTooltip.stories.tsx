@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, dpsLog, HEROIC_STRIKE, resourceRowItem, threatLogGroup } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, dpsLog, HEROIC_STRIKE, resourceRowItem, threatLogGroup } from '../../../../../testing/storybook/fixtures/results-views';
 import { ChartSeriesTooltip } from './ChartSeriesTooltip';
 
 const HITS = [damageLog(12, 1420.5), damageLog(12.2, 980.25, { actionId: HEROIC_STRIKE })];

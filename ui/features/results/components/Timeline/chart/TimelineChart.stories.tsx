@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, dpsLog, HEROIC_STRIKE } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, dpsLog, HEROIC_STRIKE } from '../../../../../testing/storybook/fixtures/results-views';
 import type { TimelineChartSpec } from '../../../model/timeline/chart/types';
 import { DPS_SERIES_ID, dpsColor, dpsScale, timeScale, Y_DPS } from './series';
 import { TimelineChart } from './TimelineChart';

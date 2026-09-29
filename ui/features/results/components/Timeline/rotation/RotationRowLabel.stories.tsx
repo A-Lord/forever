@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { MORTAL_STRIKE } from '../../../../../testing/storybook/fixtures/results-views';
 import { RotationRowLabel } from './RotationRowLabel';
 
 const HIDE_TOOLTIP_ID = 'story-rotation-label-hide';

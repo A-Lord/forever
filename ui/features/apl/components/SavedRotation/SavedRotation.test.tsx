@@ -1,10 +1,10 @@
 import { APLRotation, APLRotation_Type } from '@generated/proto/apl';
 import { SavedRotation as SavedRotationProto } from '@generated/proto/ui';
+import { renderWithHost } from '@testing/react';
+import { makeAplRotation } from '@testing/storybook/fixtures/protos';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
-import { makeAplRotation } from '../../../../testing/storybook/fixtures/protos';
 import { SavedRotation } from './SavedRotation';
 
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());

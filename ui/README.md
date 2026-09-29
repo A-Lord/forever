@@ -66,7 +66,8 @@ ui/
                      components/ (the tables and swatches the pages render)
   testing/           tailwind/ (the canonical-class and class-hook checkers the two tree-wide
                      tests at the ui/ root run), storybook/ (decorators.tsx, the stories.test.tsx
-                     smoke test, fixtures/), react.tsx (renderWithHost)
+                     smoke test, fixtures/), react.tsx (renderWithHost). alias @testing, for
+                     tests and stories only
   types/             ambient .d.ts (i18n-loader.d.ts)
   index_template.html   the one spec page; tracking/ the analytics shim
   canonical_classes.test.ts, no_class_hooks.test.ts, class_hook_allowlist.json,
@@ -142,7 +143,8 @@ into i18n for label lookups). Each layer may only import from layers to its left
 `no-restricted-imports` on the alias forms (see overrides for `ui/sim/**`, `ui/i18n/**`, `ui/ui-kit/**`,
 `ui/features/**`, `ui/app/**`, and for the two directories outside the arrow, `ui/design-system/**`
 and `ui/testing/**`), plus `no-restricted-globals` (window/document/localStorage/
-location/navigator) on `ui/sim/**` and `ui/features/*/model/**`. The kit's `@sim` ban is a positive
+location/navigator) on `ui/sim/**` and `ui/features/*/model/**`. The sim, i18n, ui-kit, features
+and app blocks also ban `@testing`; their test and story files are allowed it. The kit's `@sim` ban is a positive
 list of every `ui/sim` entry except `utils/` and `constants/`; the message points at
 `ui/features/inputs` as the place a store binding goes.
 
@@ -197,10 +199,11 @@ override banning `@app`/`@features`/`@ui-kit`/`@specs/**` (`@sim` is allowed).
 | `@app/*`       | `ui/app/*`       |
 | `@specs/*`     | `ui/specs/*`     |
 | `@i18n/*`      | `ui/i18n/*`      |
+| `@testing/*`   | `ui/testing/*`   |
 
 Configured via `tsconfig.json` (`paths`) and `UI_ALIASES` in `vite.config.mts`, which
-`getBaseConfig` (inherited by worker builds) and `vitest.config.mts` both spread into
-`resolve.alias`. The aliases are not Node's `package.json` `imports` field, because `tsc` under
+`getBaseConfig` (inherited by worker builds), `vitest.config.mts` and `.storybook/vite.config.ts`
+spread into `resolve.alias`. The aliases are not Node's `package.json` `imports` field, because `tsc` under
 `moduleResolution: "bundler"` does not resolve `#foo/*` subpaths (it only works under `node16`/`nodenext`, and even then requires an
 explicit extension on every specifier).
 

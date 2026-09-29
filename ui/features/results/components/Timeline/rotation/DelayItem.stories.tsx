@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { castRotationRow, delayRowItem, HEROIC_STRIKE, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
-import { castRotationRow, delayRowItem, HEROIC_STRIKE, rotationTrackStyle } from '../../../../../testing/storybook/fixtures/results-views';
 import { DelayItem } from './DelayItem';
 
 const meta = {

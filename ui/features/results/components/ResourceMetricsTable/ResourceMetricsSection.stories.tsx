@@ -1,8 +1,8 @@
 import { ResourceType } from '@generated/proto/spell';
 import type { ResourceMetrics } from '@sim/proto/sim_result';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { loadRageResult } from '@testing/storybook/fixtures/results-views';
 
-import { loadRageResult } from '../../../../testing/storybook/fixtures/results-views';
 import { createMetricsColumnHelper } from '../../hooks/useMetricsTable';
 import type { SimResultData } from '../../model/result_data';
 import { MetricsActionCell } from '../MetricsTable';

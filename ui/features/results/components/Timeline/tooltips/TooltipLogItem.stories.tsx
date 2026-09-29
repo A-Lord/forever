@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, resourceLog } from '@testing/storybook/fixtures/results-views';
 import { TIMELINE_SERIES_TEXT } from '@ui-kit/utils/colors';
 
-import { damageLog, resourceLog } from '../../../../../testing/storybook/fixtures/results-views';
 import { TooltipLogItem } from './TooltipLogItem';
 
 const meta = {

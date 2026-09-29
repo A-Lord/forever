@@ -1,9 +1,9 @@
 import { GemColor } from '@generated/proto/common';
 import type { UIEnchant, UIGem } from '@generated/proto/ui';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeUIEnchant, makeUIGem } from '@testing/storybook/fixtures/protos';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { makeUIEnchant, makeUIGem } from '../../../../testing/storybook/fixtures/protos';
 import { QuickSwapList, type QuickSwapListProps } from './QuickSwapList';
 
 type Props = QuickSwapListProps<UIGem | UIEnchant>;

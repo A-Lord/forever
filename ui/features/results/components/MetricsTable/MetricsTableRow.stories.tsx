@@ -1,8 +1,8 @@
 import type { ActionMetrics } from '@sim/proto/sim_result';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { type AttackRowsFixture, loadAttackRows } from '@testing/storybook/fixtures/results-views';
 import { Table } from '@ui-kit/Table';
 
-import { type AttackRowsFixture, loadAttackRows } from '../../../../testing/storybook/fixtures/results-views';
 import { createMetricsColumnHelper, useMetricsTable } from '../../hooks/useMetricsTable';
 import type { MetricRow } from '../../model/grouping';
 import { attackMetricsColumns } from '../AttackMetricsColumns';

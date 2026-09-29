@@ -1,8 +1,8 @@
 import { createSimStore } from '@sim/state/sim_store';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../testing/react';
 import { SettingsDialog } from './SettingsDialog';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));

@@ -1,7 +1,6 @@
+import { renderWithHost } from '@testing/react';
 import { fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { renderWithHost } from '../../testing/react';
 
 const applyBuild = vi.fn();
 const activeNames = new Set<string>();

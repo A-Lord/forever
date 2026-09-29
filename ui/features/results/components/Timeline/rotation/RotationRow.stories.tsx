@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { rotationTrackStyle, warriorRotationModel } from '@testing/storybook/fixtures/results-views';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { rotationTrackStyle, warriorRotationModel } from '../../../../../testing/storybook/fixtures/results-views';
 import type { ContentRow } from '../../../model/timeline/rotation';
 import { RotationRow } from './RotationRow';
 

@@ -1,9 +1,9 @@
 import { Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
+import { makeStatAttribution, showStat } from '@testing/storybook/fixtures/character-stats';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { makeStatAttribution, showStat } from '../../../../testing/storybook/fixtures/character-stats';
 import { StatTooltipBody, type StatTooltipBodyProps } from './StatTooltipBody';
 
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);

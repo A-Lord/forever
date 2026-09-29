@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
+import { damageLog, DEEP_WOUNDS, resultsHostParts, TARGET } from '@testing/storybook/fixtures/results-views';
 
-import { withSimHost } from '../../../../../testing/storybook/fixtures/models';
-import { damageLog, DEEP_WOUNDS, resultsHostParts, TARGET } from '../../../../../testing/storybook/fixtures/results-views';
 import { TickTooltip } from './TickTooltip';
 
 const meta = {

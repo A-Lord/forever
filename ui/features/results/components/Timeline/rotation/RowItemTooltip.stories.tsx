@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
-import { withSimHost } from '../../../../../testing/storybook/fixtures/models';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 import {
 	auraRowItem,
 	castRowItem,
@@ -9,7 +8,8 @@ import {
 	resourceRowItem,
 	resultsHostParts,
 	tickRowItem,
-} from '../../../../../testing/storybook/fixtures/results-views';
+} from '@testing/storybook/fixtures/results-views';
+
 import { RowItemTooltip } from './RowItemTooltip';
 
 const meta = {

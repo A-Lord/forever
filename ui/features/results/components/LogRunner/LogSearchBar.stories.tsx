@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { LOG_SUGGESTIONS } from '@testing/storybook/fixtures/results-views';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
-import { LOG_SUGGESTIONS } from '../../../../testing/storybook/fixtures/results-views';
 import { LogSearchBar, type LogSearchBarProps } from './LogSearchBar';
 
 const StatefulBar = ({ groups: initial, onChange, ...props }: LogSearchBarProps) => {

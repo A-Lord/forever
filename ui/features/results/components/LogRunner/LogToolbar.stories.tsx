@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { LOG_SUGGESTIONS } from '@testing/storybook/fixtures/results-views';
 import { ToolbarButton } from '@ui-kit/Toolbar';
 import { fn } from 'storybook/test';
 
-import { LOG_SUGGESTIONS } from '../../../../testing/storybook/fixtures/results-views';
 import { LogToolbar } from './LogToolbar';
 
 const meta = {

@@ -1,8 +1,8 @@
 import type { Player } from '@sim/player/player';
 import type { InputConfig } from '@sim/spec_config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { OtherSettings } from './OtherSettings';
 
 const values = { inFrontOfTarget: false, healingModel: 0 };

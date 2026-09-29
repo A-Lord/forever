@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
+import { castLog, resultsHostParts } from '@testing/storybook/fixtures/results-views';
 
-import { withSimHost } from '../../../../../testing/storybook/fixtures/models';
-import { castLog, resultsHostParts } from '../../../../../testing/storybook/fixtures/results-views';
 import { CastTooltip } from './CastTooltip';
 
 const meta = {

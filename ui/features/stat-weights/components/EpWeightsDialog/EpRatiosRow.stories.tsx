@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeEpColumns } from '@testing/storybook/fixtures/stat-weights';
 import { Table } from '@ui-kit/Table';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { fn } from 'storybook/test';
 
-import { makeEpColumns } from '../../../../testing/storybook/fixtures/stat-weights';
 import { EpRatiosRow } from './EpRatiosRow';
 import { StatsType } from './types';
 import { EP_TOOLTIP_ID } from './utils';

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { storyIcon, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
 
-import { storyIcon, StoryIconToggle } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { BuffSectionView } from './BuffSectionView';
 
 const BUFFS = [

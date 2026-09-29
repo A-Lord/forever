@@ -1,9 +1,9 @@
 import { ItemSlot } from '@generated/proto/common';
 import { EquippedItem } from '@sim/proto/equipped_item';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withSimHost } from '@testing/storybook/fixtures/models';
+import { makeUIItem } from '@testing/storybook/fixtures/protos';
 
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
-import { makeUIItem } from '../../../../testing/storybook/fixtures/protos';
 import { ReforgeDoneToast } from './ReforgeDoneToast';
 
 const ITEM_SLOTS = [ItemSlot.ItemSlotHead, ItemSlot.ItemSlotNeck, ItemSlot.ItemSlotShoulder, ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand];

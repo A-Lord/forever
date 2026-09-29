@@ -1,7 +1,7 @@
 import { ResourceType } from '@generated/proto/spell';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { auraUptimeLog, BATTLE_SHOUT, resourceGroupLog, resourceLog } from '@testing/storybook/fixtures/results-views';
 
-import { auraUptimeLog, BATTLE_SHOUT, resourceGroupLog, resourceLog } from '../../../../../testing/storybook/fixtures/results-views';
 import { ResourceTooltip } from './ResourceTooltip';
 
 const RAGE = resourceGroupLog(12, [resourceLog(12, 60, 30), resourceLog(12.5, 30, 45)]);

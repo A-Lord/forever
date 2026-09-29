@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const UI = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const ALIASES = ['sim', 'ui-kit', 'features', 'app', 'specs', 'worker', 'generated', 'i18n'];
+const ALIASES = ['sim', 'ui-kit', 'features', 'app', 'specs', 'worker', 'generated', 'i18n', 'testing'];
 
 // Runtime imports only: `import type` never reaches the browser, and a bare package is out of scope.
 const IMPORT = /(?:import|export)\s+(?!type\s)(?:[^'";]*?\sfrom\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g;

@@ -1,8 +1,8 @@
 import { ItemQuality } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
-import { wowheadIconUrl } from '../../../../testing/storybook/fixtures/gear';
 import { SelectorModalTabs } from '../../types';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
 import { ItemListRowView } from './ItemListRowView';

@@ -1,10 +1,10 @@
 import type { StatWeightsResult, StatWeightValues } from '@generated/proto/api';
 import type { DisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeEpColumns, makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testing/storybook/fixtures/stat-weights';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { fn } from 'storybook/test';
 
-import { makeEpColumns, makeStatWeightsResult, STAT_WEIGHT_STATS } from '../../../../testing/storybook/fixtures/stat-weights';
 import { EpWeightsTableView } from './EpWeightsTableView';
 import { StatWeightRowView } from './StatWeightRowView';
 import { StatsType } from './types';

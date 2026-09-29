@@ -1,7 +1,6 @@
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
+import { renderWithHost } from '@testing/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { renderWithHost } from '../../testing/react';
 
 // Everything the simple pane mounts besides the Cooldowns block; none of it is under test here.
 vi.mock('@features/apl/components/AplNavbar', () => ({ AplNavbar: () => null }));

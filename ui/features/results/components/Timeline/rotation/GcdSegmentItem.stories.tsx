@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { gcdRotationRow, gcdSegmentRowItem, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
-import { gcdRotationRow, gcdSegmentRowItem, rotationTrackStyle } from '../../../../../testing/storybook/fixtures/results-views';
 import { GcdSegmentItem } from './GcdSegmentItem';
 
 const meta = {

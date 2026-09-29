@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { LOG_SUGGESTIONS } from '@testing/storybook/fixtures/results-views';
 import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { LOG_SUGGESTIONS } from '../../../../testing/storybook/fixtures/results-views';
 import { LogSearchGroup, type LogSearchGroupProps } from './LogSearchGroup';
 
 const StatefulGroup = ({ group: initial, onChange, ...props }: LogSearchGroupProps) => {

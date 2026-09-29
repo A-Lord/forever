@@ -1,10 +1,10 @@
 import { Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore } from '@sim/state/sim_store';
+import { renderWithHost } from '@testing/react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderWithHost } from '../../../../testing/react';
 import { BonusStatsLink } from './BonusStatsLink';
 
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);

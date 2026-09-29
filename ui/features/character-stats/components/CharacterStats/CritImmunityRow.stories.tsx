@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { CRIT_IMMUNITY_INFO } from '@testing/storybook/fixtures/character-stats';
 import { Table } from '@ui-kit/Table';
 
-import { CRIT_IMMUNITY_INFO } from '../../../../testing/storybook/fixtures/character-stats';
 import { CritImmunityRow } from './CritImmunityRow';
 
 const meta = {

@@ -1,10 +1,10 @@
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeRangedWeapon, makeStatAttribution, showStat } from '@testing/storybook/fixtures/character-stats';
+import { withSimHost } from '@testing/storybook/fixtures/models';
 import { Table } from '@ui-kit/Table';
 
-import { makeRangedWeapon, makeStatAttribution, showStat } from '../../../../testing/storybook/fixtures/character-stats';
-import { withSimHost } from '../../../../testing/storybook/fixtures/models';
 import { BonusStatsLink } from './BonusStatsLink';
 import { StatRowView } from './StatRowView';
 

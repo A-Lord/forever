@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryBoolean, StoryEnum, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { Table } from '@ui-kit/Table';
 
-import { StoryBoolean, StoryEnum, StoryNumber } from '../../../../testing/storybook/fixtures/settings_reforge_bulk';
 import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
 
 const percentage = (initial: number) => (

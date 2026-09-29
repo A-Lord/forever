@@ -1,7 +1,7 @@
 import { GemColor } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeUIGem } from '@testing/storybook/fixtures/protos';
 
-import { makeUIGem } from '../../../../testing/storybook/fixtures/protos';
 import { TabGemIcon } from './TabGemIcon';
 
 const meta = {

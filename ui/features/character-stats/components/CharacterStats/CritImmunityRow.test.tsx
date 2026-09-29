@@ -1,8 +1,8 @@
+import { CRIT_IMMUNITY_INFO } from '@testing/storybook/fixtures/character-stats';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { CRIT_IMMUNITY_INFO } from '../../../../testing/storybook/fixtures/character-stats';
 import { CritImmunityRow } from './CritImmunityRow';
 
 const openRows = async (info = CRIT_IMMUNITY_INFO) => {

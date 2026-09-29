@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { MORTAL_STRIKE, PLAYER_HEADER_ROW, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
-import { MORTAL_STRIKE, PLAYER_HEADER_ROW, rotationTrackStyle } from '../../../../../testing/storybook/fixtures/results-views';
 import { RotationHeaderRow } from './RotationHeaderRow';
 
 const meta = {

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { PET, PLAYER, TARGET } from '@testing/storybook/fixtures/results-views';
 
-import { PET, PLAYER, TARGET } from '../../../../testing/storybook/fixtures/results-views';
 import { EntityLabel } from './EntityLabel';
 
 const meta = {

@@ -1,8 +1,8 @@
+import { CRIT_CAP_INFO } from '@testing/storybook/fixtures/character-stats';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { CRIT_CAP_INFO } from '../../../../testing/storybook/fixtures/character-stats';
 import { CritCapRow } from './CritCapRow';
 
 const renderRow = (info = CRIT_CAP_INFO) =>

@@ -1,8 +1,8 @@
+import { MISS_INFO } from '@testing/storybook/fixtures/character-stats';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { MISS_INFO } from '../../../../testing/storybook/fixtures/character-stats';
 import { MissRow } from './MissRow';
 
 describe('MissRow', () => {

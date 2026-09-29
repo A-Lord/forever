@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { damageLog, DEEP_WOUNDS, dpsLog, HEROIC_STRIKE } from '@testing/storybook/fixtures/results-views';
 
-import { damageLog, DEEP_WOUNDS, dpsLog, HEROIC_STRIKE } from '../../../../../testing/storybook/fixtures/results-views';
 import { DpsTooltip } from './DpsTooltip';
 
 const meta = {

@@ -1,9 +1,9 @@
 import type { AplTestPlayer } from '@features/apl/testing';
 import { APLListItem, APLRotation, APLValue, APLValueCompare_ComparisonOperator as Op } from '@generated/proto/apl';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { makeAplStoryPlayer, withAplScope } from '@testing/storybook/fixtures/apl';
+import { makeAplRotation } from '@testing/storybook/fixtures/protos';
 
-import { makeAplStoryPlayer, withAplScope } from '../../../../testing/storybook/fixtures/apl';
-import { makeAplRotation } from '../../../../testing/storybook/fixtures/protos';
 import { AplListItem } from './AplListItem';
 
 const constant = (val: string) => APLValue.create({ value: { oneofKind: 'const', const: { val } } });

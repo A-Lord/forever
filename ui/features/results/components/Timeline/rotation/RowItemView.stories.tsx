@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
 import {
 	auraRowItem,
 	castRotationRow,
@@ -10,7 +9,8 @@ import {
 	resourceRowItem,
 	rotationTrackStyle,
 	tickRowItem,
-} from '../../../../../testing/storybook/fixtures/results-views';
+} from '@testing/storybook/fixtures/results-views';
+
 import { RowItemView } from './RowItemView';
 
 const meta = {

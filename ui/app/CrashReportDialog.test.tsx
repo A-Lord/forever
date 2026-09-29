@@ -1,7 +1,7 @@
+import { renderWithHost } from '@testing/react';
 import { act } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { renderWithHost } from '../testing/react';
 import { CrashReportOpener } from './crash_report_opener';
 import { CrashReportDialog } from './CrashReportDialog';
 
