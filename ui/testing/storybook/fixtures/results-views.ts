@@ -5,6 +5,7 @@ import type { SuggestionSource } from '@features/results/model/log/search/indexe
 import type { ReferenceDiffs } from '@features/results/model/reference_diffs';
 import { referenceDiffs } from '@features/results/model/reference_diffs';
 import { ResultChannel } from '@features/results/model/result_channel';
+import type { SimResultData } from '@features/results/model/result_data';
 import {
 	type AuraItem,
 	type AuraStackSegment,
@@ -26,7 +27,7 @@ import {
 } from '@features/results/model/timeline/rotation';
 import type { ResultMetric } from '@features/results/model/topline_metrics';
 import { toplineResultMetrics } from '@features/results/model/topline_metrics';
-import { ActionMetrics as ActionMetricsProto } from '@generated/proto/api';
+import { ActionMetrics as ActionMetricsProto, ResourceMetrics as ResourceMetricsProto } from '@generated/proto/api';
 import { ActionID, OtherAction, SpellSchool } from '@generated/proto/common';
 import { ResourceType } from '@generated/proto/spell';
 import { type ActionId, resourceTypeToIcon } from '@sim/proto/action_id';
@@ -104,6 +105,29 @@ export const loadAttackRows = async (): Promise<AttackRowsFixture> => {
 	const [mainHandMetrics, offHandMetrics] = (await SimResult.makeNew(request, result)).getFirstPlayer()!.getDamageActions();
 	const parent = ActionMetrics.merge([mainHandMetrics, offHandMetrics], { removeTag: true });
 	return { rows: [{ metric: parent, subRows: [{ metric: mainHandMetrics }, { metric: offHandMetrics }] }], maxDamage: parent.damage };
+};
+
+/** `makeSimRun()`'s warrior with two rage sources, its main-hand swings and a plain Rage Gain, as the results tab emits it. */
+export const loadRageResult = async (): Promise<{ resultData: SimResultData }> => {
+	const { request, result } = makeSimRun();
+	const otherId = (id: OtherAction, tag = 0) => ActionID.create({ rawId: { oneofKind: 'otherId', otherId: id }, tag });
+	result.raidMetrics!.parties[0].players[0].resources = [
+		ResourceMetricsProto.create({
+			id: otherId(OtherAction.OtherActionAttack, 1),
+			type: ResourceType.ResourceTypeRage,
+			events: 7_000,
+			gain: 98_000,
+			actualGain: 91_500,
+		}),
+		ResourceMetricsProto.create({
+			id: otherId(OtherAction.OtherActionRageGain),
+			type: ResourceType.ResourceTypeRage,
+			events: 1_200,
+			gain: 14_400,
+			actualGain: 14_400,
+		}),
+	];
+	return { resultData: { result: await SimResult.makeNew(request, result), filter: simResultFilter(ALL_UNITS) } };
 };
 
 /**
