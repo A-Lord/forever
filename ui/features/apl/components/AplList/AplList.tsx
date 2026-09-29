@@ -47,7 +47,7 @@ const Root = ({ group, isGroup, layout, testId, children }: AplListRootProps) =>
  * and its items take the enclosing item as their parent, as the children list's own would.
  */
 const Rows = ({ children }: { children: ReactNode }) => (
-	<Tree.Root layout="inline">
+	<Tree.Root layout="inline" density="default">
 		<Tree.Items>{children}</Tree.Items>
 	</Tree.Root>
 );
