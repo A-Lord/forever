@@ -62,17 +62,54 @@ describe('MenuItem', () => {
 		fireEvent.click(getByText('Open'));
 		expect(getByText('Block item').className).toContain('ui-menu-item');
 	});
+
+	it('takes its test id from testId', () => {
+		const { getByRole } = render(
+			<Menu trigger="Open" surface="menu" open>
+				<MenuItem layout="block" testId="export-item">
+					Export
+				</MenuItem>
+			</Menu>,
+		);
+		expect(getByRole('menuitem', { name: 'Export' }).getAttribute('data-testid')).toBe('export-item');
+	});
+
+	it('marks a bare item, keeping the item class, and leaves an ordinary one unmarked', () => {
+		const { getByRole } = render(
+			<Menu trigger="Open" surface="menu" open>
+				<MenuItem layout="block" bare>
+					Bare
+				</MenuItem>
+				<MenuItem layout="block">Padded</MenuItem>
+			</Menu>,
+		);
+		const bare = getByRole('menuitem', { name: 'Bare' });
+		expect(bare.getAttribute('data-bare')).toBe('');
+		expect(bare.classList.contains('ui-menu-item')).toBe(true);
+		expect(getByRole('menuitem', { name: 'Padded' }).hasAttribute('data-bare')).toBe(false);
+	});
 });
 
 describe('MenuLinkItem', () => {
 	const mountLink = () =>
 		render(
 			<Menu trigger="Open" surface="menu" open>
-				<MenuLinkItem layout="row" href="/warrior/dps/" className="ui-link-probe" data-testid="sim-link">
+				<MenuLinkItem layout="row" href="/warrior/dps/" className="ui-link-probe" testId="sim-link">
 					Warrior
 				</MenuLinkItem>
 			</Menu>,
 		);
+
+	it('marks a bare link item', () => {
+		const { getByRole } = render(
+			<Menu trigger="Open" surface="menu" open>
+				<MenuLinkItem layout="block" href="/mage/dps/" bare>
+					Mage
+				</MenuLinkItem>
+			</Menu>,
+		);
+		expect(getByRole('menuitem', { name: 'Mage' }).getAttribute('data-bare')).toBe('');
+	});
 
 	it('renders a menu row that is a link to its href', () => {
 		const { getByRole } = mountLink();
