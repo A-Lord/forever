@@ -1,6 +1,8 @@
 @import './main.css';
 
 @source not '../**/*.stories.tsx';
+@source not '../**/*.test.tsx';
+@source not '../**/*.test.ts';
 @source not '../testing/storybook';
 @source not '../design-system';
 @source not '../../**/*.md';
