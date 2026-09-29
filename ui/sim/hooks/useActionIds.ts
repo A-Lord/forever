@@ -28,13 +28,11 @@ export const useActionIds = (actionIds: ReadonlyArray<ActionId | undefined>): Ic
 		if (ids.every(id => !id || isFilled(id))) return;
 
 		const controller = new AbortController();
-		const fillOne = (id: ActionId) =>
-			id.fill().catch((error: unknown) => {
-				if (!controller.signal.aborted) console.error(error);
-				return undefined;
-			});
-		void Promise.all(ids.map(id => (id && !isFilled(id) ? fillOne(id) : id))).then(filled => {
-			if (!controller.signal.aborted) setState({ key, icons: filled.map(iconOf) });
+		void Promise.allSettled(ids.map(id => (id && !isFilled(id) ? id.fill() : Promise.resolve(id)))).then(results => {
+			if (controller.signal.aborted) return;
+			setState({ key, icons: results.map(result => iconOf(result.status === 'fulfilled' ? result.value : undefined)) });
+			const failed = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+			if (failed) throw failed.reason;
 		});
 		return () => controller.abort();
 	}, [key]);
