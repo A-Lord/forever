@@ -20,18 +20,18 @@ import type {
 } from './types';
 
 export const Header = ({ className, testId, children }: TreeItemHeaderProps) => {
-	useTreeItem();
+	const { headerProps } = useTreeItem();
 	return (
-		<div className={clsx('ui-tree-item-header', className)} data-testid={testId ?? 'tree-item-header'}>
+		<div className={clsx('ui-tree-item-header', className)} data-testid={testId ?? 'tree-item-header'} {...headerProps}>
 			{children}
 		</div>
 	);
 };
 
 export const Handle = ({ label, className, testId }: TreeItemHandleProps) => {
-	const { disabled } = useTreeItem();
+	const { disabled, handleProps } = useTreeItem();
 	return (
-		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId}>
+		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId} {...handleProps}>
 			<Icon name="bars" fixedWidth />
 		</Button>
 	);
@@ -115,10 +115,10 @@ export const Body = ({ className, testId, children }: TreeItemBodyProps) => {
 };
 
 export const Children = ({ className, testId, children }: TreeItemChildrenProps) => {
-	const { open } = useTreeItem();
+	const { open, childrenProps } = useTreeItem();
 	const { depth, group } = useTreeRoot();
 	return (
-		<div className={clsx('ui-tree-item-children', className)} hidden={!open} data-testid={testId}>
+		<div className={clsx('ui-tree-item-children', className)} hidden={!open} data-testid={testId} {...childrenProps}>
 			<Root depth={depth + 1} group={group}>
 				{children}
 			</Root>
@@ -130,7 +130,7 @@ export const AddButton = ({ label, icon, disabled, onClick, className, testId }:
 	const root = useTreeRoot();
 	const tooltipId = useId();
 	const shared = {
-		className: clsx('ui-tree-add', className),
+		className,
 		disabled: root.disabled || disabled,
 		'data-testid': testId ?? 'tree-add',
 		onClick,

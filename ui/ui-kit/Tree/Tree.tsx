@@ -1,7 +1,9 @@
+import { useSortable } from '@ui-kit/hooks/useSortable';
 import clsx from 'clsx';
 import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { TreeItemContext, TreeItemsContext, type TreeItemsContextValue, TreeRootContext, type TreeRootContextValue, useTreeRoot } from './context';
+import { SortableContext } from './sortable';
 import type { TreeItemsProps, TreeRootProps } from './types';
 
 export const Root = ({
@@ -11,6 +13,7 @@ export const Root = ({
 	layout = 'default',
 	orientation = 'vertical',
 	sortable,
+	handle,
 	disabled,
 	className,
 	testId,
@@ -19,6 +22,8 @@ export const Root = ({
 	const parent = useContext(TreeRootContext);
 	const parentId = useContext(TreeItemContext)?.id ?? null;
 	const ownGroup = useId();
+	const parentSortable = useContext(SortableContext);
+	const ownSortable = useSortable(parentSortable ? undefined : sortable);
 	const value = useMemo<TreeRootContextValue>(
 		() => ({
 			group: group ?? parent?.group ?? ownGroup,
@@ -27,23 +32,25 @@ export const Root = ({
 			layout,
 			orientation,
 			disabled: disabled ?? parent?.disabled ?? false,
-			sortable: sortable ?? parent?.sortable,
+			handle: handle ?? parent?.handle ?? 'handle',
 			parentId,
 		}),
-		[group, depth, density, layout, orientation, disabled, sortable, parent, ownGroup, parentId],
+		[group, depth, density, layout, orientation, disabled, handle, parent, ownGroup, parentId],
 	);
 	return (
-		<TreeRootContext.Provider value={value}>
-			<div
-				className={clsx('ui-tree', className)}
-				data-depth={value.depth}
-				data-density={value.density}
-				data-layout={layout}
-				data-orientation={orientation}
-				data-testid={testId ?? 'tree'}>
-				{children}
-			</div>
-		</TreeRootContext.Provider>
+		<SortableContext.Provider value={parentSortable ?? ownSortable}>
+			<TreeRootContext.Provider value={value}>
+				<div
+					className={clsx('ui-tree', className)}
+					data-depth={value.depth}
+					data-density={value.density}
+					data-layout={layout}
+					data-orientation={orientation}
+					data-testid={testId ?? 'tree'}>
+					{children}
+				</div>
+			</TreeRootContext.Provider>
+		</SortableContext.Provider>
 	);
 };
 

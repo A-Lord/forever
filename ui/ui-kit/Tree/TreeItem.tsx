@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { TreeItemContext, type TreeItemContextValue, useTreeItems, useTreeRoot } from './context';
+import { useItemSortable } from './sortable';
 import type { TreeItemProps } from './types';
 
 export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, disabled, className, testId, children }: TreeItemProps) => {
@@ -30,9 +31,29 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 	);
 
 	const itemDisabled = root.disabled || !!disabled;
+	const { armed, drag, drop, itemProps, handleProps, headerProps, childrenProps } = useItemSortable({
+		key,
+		element,
+		place: { group: root.group, id, index, parentId: root.parentId },
+		orientation: root.orientation,
+		header: root.handle === 'header',
+		disabled: itemDisabled,
+	});
 	const value = useMemo<TreeItemContextValue>(
-		() => ({ id, index, parentId: root.parentId, open, setOpen, drag: null, disabled: itemDisabled, bodyId: `${key}-body` }),
-		[id, index, root.parentId, open, setOpen, itemDisabled, key],
+		() => ({
+			id,
+			index,
+			parentId: root.parentId,
+			open,
+			setOpen,
+			drag,
+			disabled: itemDisabled,
+			bodyId: `${key}-body`,
+			handleProps,
+			headerProps,
+			childrenProps,
+		}),
+		[id, index, root.parentId, open, setOpen, drag, itemDisabled, key, handleProps, headerProps, childrenProps],
 	);
 
 	return (
@@ -41,9 +62,12 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 				ref={element}
 				className={clsx('ui-tree-item', className)}
 				data-open={open ? '' : undefined}
-				data-drag={value.drag ?? undefined}
+				data-drag={drag ?? undefined}
+				data-drop={drop ?? undefined}
 				data-disabled={itemDisabled ? '' : undefined}
-				data-testid={testId ?? 'tree-item'}>
+				data-testid={testId ?? 'tree-item'}
+				draggable={armed || undefined}
+				{...itemProps}>
 				{children}
 			</li>
 		</TreeItemContext.Provider>

@@ -13,6 +13,7 @@ export type {
 	TreeAddButtonProps,
 	TreeDensity,
 	TreeDropRef,
+	TreeHandle,
 	TreeItemActionProps,
 	TreeItemActionsProps,
 	TreeItemBodyProps,
