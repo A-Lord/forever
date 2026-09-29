@@ -29,11 +29,7 @@ describe('Icon', () => {
 		expect(iconDefinition('star', 'regular')).not.toBe(iconDefinition('star', 'solid'));
 	});
 
-	it('resolves an alias to its canonical name, keeping the alias as an extra class for a caller still keyed to it', () => {
-		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon', 'fa-width-auto']);
-		expect(classes(render(<Icon name="info-circle" />).container)).toContain('fa-circle-info');
-		expect(classes(render(<Icon name="pencil-alt" />).container)).toContain('fa-pencil');
-		// `rotate-left` is its own glyph (\f2ea), not a spelling of `arrow-rotate-left` (\f0e2).
+	it('keeps rotate-left and arrow-rotate-left as distinct glyphs', () => {
 		expect(iconDefinition('rotate-left', 'solid').icon[3]).toBe('f2ea');
 		expect(iconDefinition('arrow-rotate-left', 'solid').icon[3]).toBe('f0e2');
 	});

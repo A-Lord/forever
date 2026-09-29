@@ -6,7 +6,7 @@ import { NoticeIcon } from './NoticeIcon';
 
 describe('NoticeIcon', () => {
 	it.each([
-		['info', 'fa-info-circle'],
+		['info', 'fa-circle-info'],
 		['warning', 'fa-triangle-exclamation'],
 		['error', 'fa-triangle-exclamation'],
 	] as const)('draws the %s icon in its colour, with the level on the button', (level, glyph) => {

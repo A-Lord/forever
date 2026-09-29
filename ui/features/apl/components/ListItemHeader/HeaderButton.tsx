@@ -1,9 +1,9 @@
 import { Button } from '@ui-kit/Button';
-import { Icon, type IconAlias, type IconName } from '@ui-kit/Icon';
+import { Icon, type IconName } from '@ui-kit/Icon';
 import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 
 export interface HeaderButtonProps {
-	icon: IconName | IconAlias;
+	icon: IconName;
 	label?: string;
 	className?: string;
 	testId: string;

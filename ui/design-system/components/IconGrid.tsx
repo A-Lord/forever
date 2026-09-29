@@ -1,5 +1,5 @@
 import { Unstyled } from '@storybook/addon-docs/blocks';
-import { hasRegularDefinition, Icon, ICON_ALIASES, ICON_NAMES, type IconAlias, type IconName, type IconSize } from '@ui-kit/Icon';
+import { hasRegularDefinition, Icon, ICON_NAMES, type IconName, type IconSize } from '@ui-kit/Icon';
 
 const BRANDS = new Set<IconName>(['discord', 'github', 'patreon']);
 
@@ -39,35 +39,6 @@ export const IconGrid = () => (
 						</td>
 						<td className="p-2 text-center text-lg">{hasRegularDefinition(name) && <Icon name={name} style="regular" />}</td>
 						<td className="p-2 text-center text-lg">{BRANDS.has(name) && <Icon name={name} style="brands" />}</td>
-					</tr>
-				))}
-			</tbody>
-		</table>
-	</Unstyled>
-);
-
-export const IconAliases = () => (
-	<Unstyled>
-		<table className="mb-6 text-sm">
-			<thead>
-				<tr className="border-b border-border">
-					<th className="p-2 text-left">Alias</th>
-					<th className="p-2 text-left">Renders as</th>
-					<th className="p-2">Glyph</th>
-				</tr>
-			</thead>
-			<tbody>
-				{Object.entries(ICON_ALIASES).map(([alias, name]) => (
-					<tr key={alias} className="border-b border-border-muted">
-						<td className="p-2">
-							<code>{alias}</code>
-						</td>
-						<td className="p-2">
-							<code>{name}</code>
-						</td>
-						<td className="p-2 text-center text-lg">
-							<Icon name={alias as IconAlias} />
-						</td>
 					</tr>
 				))}
 			</tbody>

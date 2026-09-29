@@ -4,14 +4,14 @@ import clsx from 'clsx';
 import type { HTMLAttributes } from 'react';
 
 import { iconDefinition } from './definitions';
-import { ICON_ALIASES, type IconAlias, type IconName, type IconSize, type IconStyle } from './types';
+import type { IconName, IconSize, IconStyle } from './types';
 
 // ui/styles/main.css imports FontAwesome's stylesheet into the base layer, so `ui-icon` and utilities override it.
 config.autoAddCss = false;
 
 // `style` is the FontAwesome style here, not a CSS object, so it shadows the DOM prop.
 export interface IconProps extends Omit<HTMLAttributes<HTMLElement>, 'style'> {
-	name: IconName | IconAlias;
+	name: IconName;
 	style?: IconStyle;
 	size?: IconSize;
 	spin?: boolean;
@@ -23,20 +23,15 @@ export interface IconProps extends Omit<HTMLAttributes<HTMLElement>, 'style'> {
 	testId?: string;
 }
 
-const resolve = (name: IconName | IconAlias): IconName => (name in ICON_ALIASES ? ICON_ALIASES[name as IconAlias] : (name as IconName));
-
 // The rest props matter: an icon is an anchor for its own tooltip at several sites, and a dropped `data-tooltip-id` fails silently.
 export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className, title, testId, ...rest }: IconProps) => {
-	const resolved = resolve(name);
-	const definition = iconDefinition(resolved, style);
-	// FontAwesome names the svg `fa-<canonical name>`; an alias also carries its own name, for a caller still keyed to it.
-	const nameClass = definition.iconName !== name && `fa-${name}`;
+	const definition = iconDefinition(name, style);
 	return (
 		<FontAwesomeIcon
 			data-testid={testId}
 			{...(rest as Omit<HTMLAttributes<SVGSVGElement>, 'style'>)}
 			icon={definition}
-			className={clsx(nameClass, 'ui-icon', className)}
+			className={clsx('ui-icon', className)}
 			data-size={size}
 			size={size}
 			spin={spin}

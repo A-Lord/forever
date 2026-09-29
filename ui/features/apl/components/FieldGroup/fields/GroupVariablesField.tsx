@@ -101,7 +101,7 @@ export const GroupVariablesField = ({ player, config, groupNameField, getParentV
 								<Tree.Item.Actions label={i18n.t('common.list_picker.item_actions', { itemLabel })}>
 									<Tree.Item.Action
 										label={i18n.t('common.list_picker.delete_item', { itemLabel })}
-										icon="times"
+										icon="xmark"
 										tone="danger"
 										testId="apl-group-variables-delete"
 										onClick={() => remove(index)}

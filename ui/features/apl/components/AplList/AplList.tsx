@@ -131,7 +131,7 @@ export const AplItemActions = ({ label, onCopy, onExtract, canExtract, onDelete,
 		{onDelete && (
 			<Tree.Item.Action
 				label={i18n.t('common.list_picker.delete_item', { itemLabel: label })}
-				icon="times"
+				icon="xmark"
 				tone="danger"
 				testId={`${testIdPrefix}-delete`}
 				onClick={onDelete}

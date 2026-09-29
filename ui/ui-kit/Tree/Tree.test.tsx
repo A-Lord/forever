@@ -250,7 +250,7 @@ describe('Tree', () => {
 							<Tree.Item.Title>Row A</Tree.Item.Title>
 							<Tree.Item.Actions label="Row A actions">
 								<Tree.Item.Action icon="copy" label="Copy" />
-								<Tree.Item.Action icon="times" label="Delete" tone="danger" onClick={onDelete} testId="delete-a" />
+								<Tree.Item.Action icon="xmark" label="Delete" tone="danger" onClick={onDelete} testId="delete-a" />
 							</Tree.Item.Actions>
 						</Tree.Item.Header>
 					</Tree.Item>

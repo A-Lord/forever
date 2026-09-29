@@ -7,8 +7,6 @@ export type IconName = keyof typeof DEFINITIONS;
 /** Every name the kit ships a definition for, derived from `DEFINITIONS`. */
 export const ICON_NAMES = Object.keys(DEFINITIONS) as ReadonlyArray<IconName>;
 
-export { ICON_ALIASES, type IconAlias } from './definitions';
-
 /** base is the default style, solid. */
 export type IconStyle = 'solid' | 'regular' | 'brands' | 'base';
 

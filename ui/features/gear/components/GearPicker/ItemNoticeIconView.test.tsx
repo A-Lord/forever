@@ -18,7 +18,7 @@ describe('ItemNoticeIconView', () => {
 	it('draws an info notice as the circle, named for additional information', () => {
 		render(<ItemNoticeIconView level="info">Only in Forest areas</ItemNoticeIconView>);
 		const button = screen.getByRole('button', { name: i18n.t('common.list_picker.additional_information') });
-		expect(button.querySelector('svg')!.classList).toContain('fa-info-circle');
+		expect(button.querySelector('svg')!.classList).toContain('fa-circle-info');
 	});
 
 	it('shows its notices in a tooltip on the icon', async () => {

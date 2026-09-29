@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Icon } from './Icon';
-import { ICON_ALIASES, ICON_NAMES, type IconAlias, type IconSize, type IconStyle } from './types';
+import { ICON_NAMES, type IconSize, type IconStyle } from './types';
 
 const STYLES: Array<{ style: IconStyle; name: 'circle-question' | 'github' }> = [
 	{ style: 'solid', name: 'circle-question' },
@@ -59,21 +59,6 @@ export const Sizes: Story = {
 };
 
 export const Spin: Story = { args: { name: 'spinner', size: '2x', spin: true } };
-
-export const Aliases: Story = {
-	render: () => (
-		<div className="grid grid-cols-[auto_auto] items-center gap-x-6 gap-y-2">
-			{Object.entries(ICON_ALIASES).map(([alias, name]) => (
-				<div key={alias} className="contents">
-					<code className="text-ui">
-						{alias} → {name}
-					</code>
-					<Icon name={alias as IconAlias} size="lg" />
-				</div>
-			))}
-		</div>
-	),
-};
 
 export const FixedWidth: Story = {
 	render: () => (

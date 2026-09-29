@@ -44,7 +44,7 @@ export const AplListToolbarView = ({ itemName, nameDialog, onCreate, onReset, cl
 				{newLabel}
 			</ToolbarButton>
 			<ToolbarButton variant="link-danger" size="sm" className="ml-auto" onClick={onReset}>
-				<Icon name="times" className="mr-1" />
+				<Icon name="xmark" className="mr-1" />
 				{i18n.t('rotation_tab.apl.floatingActionBar.reset')}
 			</ToolbarButton>
 			{nameDialog && (

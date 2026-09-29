@@ -103,7 +103,7 @@ describe('ListItemHeader', () => {
 			const button = container.querySelector('[data-testid="apl-validations"]') as HTMLElement;
 			expect(button.style.display).not.toBe('none');
 			expect(button.classList.contains('apl-validation-information')).toBe(true);
-			expect(button.querySelector('svg')?.classList.contains('fa-info-circle')).toBe(true);
+			expect(button.querySelector('svg')?.classList.contains('fa-circle-info')).toBe(true);
 		});
 
 		it('uses the highest level in a mixed set of validations', async () => {

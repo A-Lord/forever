@@ -18,11 +18,11 @@ describe('NameDisplay', () => {
 		expect(onRename).toHaveBeenCalledTimes(1);
 	});
 
-	it('renders the solid pencil-alt icon', () => {
+	it('renders the solid pencil icon', () => {
 		render(<NameDisplay name="My Group" onRename={() => {}} />);
 
 		const icon = screen.getByRole('button').querySelector('svg');
 		expect(icon?.getAttribute('data-prefix')).toBe('fas');
-		expect(icon?.classList.contains('fa-pencil-alt')).toBe(true);
+		expect(icon?.classList.contains('fa-pencil')).toBe(true);
 	});
 });
