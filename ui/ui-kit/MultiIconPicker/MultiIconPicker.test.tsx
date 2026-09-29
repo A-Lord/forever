@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { describe, expect, it, vi } from 'vitest';
@@ -111,6 +112,17 @@ describe('MultiIconPicker', () => {
 		open();
 		fireEvent.click(clearOption());
 		expect(onClear).toHaveBeenCalledTimes(2);
+	});
+
+	it('names the clear option by its locale string by default, and by clearLabel when given one', () => {
+		const { unmount } = mount();
+		open();
+		expect(screen.getByLabelText(i18n.t('common.clear'))).toBe(clearOption());
+		unmount();
+
+		mount({ clearLabel: 'No stat buff' });
+		open();
+		expect(screen.getByLabelText('No stat buff')).toBe(clearOption());
 	});
 
 	it('prevents the context menu on the button', () => {

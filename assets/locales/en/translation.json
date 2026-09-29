@@ -28,6 +28,7 @@
 		"cancel": "Cancel",
 		"confirm": "Confirm",
 		"delete": "Delete",
+		"clear": "Clear",
 		"saved_data": {
 			"delete_title": "Delete saved {{label}}",
 			"delete_confirm": "Delete saved {{label}} '{{name}}'?",
