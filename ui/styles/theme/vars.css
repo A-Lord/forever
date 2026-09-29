@@ -16,7 +16,7 @@
 	--input-padding-x: --spacing(2);
 
 	/* Modal */
-	--modal-margin: --spacing(8);
+	--modal-margin: --spacing(6);
 	--modal-width-xl: var(--container-modal-xl);
 	--modal-border-width: 1px;
 	--modal-border-color: var(--color-surface-border);

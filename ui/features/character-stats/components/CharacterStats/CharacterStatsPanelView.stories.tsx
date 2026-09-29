@@ -62,7 +62,7 @@ const meta = {
 	render: args => <StatefulPanel {...args} />,
 	decorators: [
 		Story => (
-			<div className="flex w-64 flex-col">
+			<div className="flex w-62 flex-col">
 				<Story />
 			</div>
 		),
@@ -97,7 +97,7 @@ export const ClosedInScrollingSidebar: Story = {
 	args: { open: false },
 	decorators: [
 		Story => (
-			<div className="flex h-48 w-64 flex-col overflow-y-auto">
+			<div className="flex h-48 w-62 flex-col overflow-y-auto">
 				{Array.from({ length: 12 }, (_, index) => (
 					<p key={index} className="mb-2">
 						Sidebar setting {index + 1}

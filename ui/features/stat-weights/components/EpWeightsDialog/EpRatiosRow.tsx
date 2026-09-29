@@ -40,7 +40,7 @@ export const EpRatiosRow = ({ columns, epRatios, onEpRatioChange, onComputeEp, s
 							float
 							value={epRatios[column.ratioIndex!]}
 							onChange={value => onEpRatioChange(column.ratioIndex!, value)}
-							inputClassName={clsx('ui-ep-weights-input-align-right ml-auto max-w-26', showThreatMetrics && 'ui-ep-weights-compact-input')}
+							inputClassName={clsx('ui-ep-weights-input-align-right ml-auto max-w-24', showThreatMetrics && 'ui-ep-weights-compact-input')}
 						/>
 					</TableCell>
 				))}

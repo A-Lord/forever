@@ -28,7 +28,7 @@ const meta = {
 	argTypes: { notice: { control: false }, source: { control: false } },
 	decorators: [
 		Story => (
-			<div className="relative flex w-226 items-center gap-4 bg-gray-900 p-2">
+			<div className="relative flex w-4xl items-center gap-4 bg-gray-900 p-2">
 				<Story />
 			</div>
 		),

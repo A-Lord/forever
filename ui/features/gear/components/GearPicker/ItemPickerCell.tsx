@@ -47,7 +47,7 @@ export const ItemPickerCell = ({ slot, ready, align }: ItemPickerCellProps) => {
 					id={`${tooltipId}-enchant`}
 					className="tooltip-quick-swap cursor-default"
 					maxWidth="max-w-none"
-					width="w-56"
+					width="w-54"
 					align="start"
 					padded={false}
 					place="bottom"

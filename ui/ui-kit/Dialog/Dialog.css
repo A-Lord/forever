@@ -61,7 +61,7 @@
 	}
 
 	.ui-dialog-top {
-		@apply mx-auto my-8;
+		@apply mx-auto my-6;
 		@apply data-ending-style:transform-(--modal-fade-transform) data-starting-style:transform-(--modal-fade-transform);
 	}
 

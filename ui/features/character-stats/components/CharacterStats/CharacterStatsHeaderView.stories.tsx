@@ -27,7 +27,7 @@ const meta = {
 	render: args => <StatefulHeader {...args} />,
 	decorators: [
 		Story => (
-			<div className="w-64">
+			<div className="w-62">
 				<Story />
 			</div>
 		),

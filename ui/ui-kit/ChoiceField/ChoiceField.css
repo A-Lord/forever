@@ -5,7 +5,7 @@
 
 	.ui-choice-field-trigger {
 		&[data-variant='select'] {
-			@apply block w-full max-w-full appearance-none overflow-hidden rounded-none border border-surface-border bg-surface bg-select-chevron bg-size-[16px_12px] bg-position-[right_.75rem_center] bg-no-repeat px-(--input-padding-x) py-(--input-padding-y) pr-10 text-left text-ui leading-normal whitespace-nowrap text-foreground transition-colors duration-150 ease-in-out;
+			@apply block w-full max-w-full appearance-none overflow-hidden rounded-none border border-surface-border bg-surface bg-select-chevron bg-size-[16px_12px] bg-position-[right_.75rem_center] bg-no-repeat px-(--input-padding-x) py-(--input-padding-y) pr-8 text-left text-ui leading-normal whitespace-nowrap text-foreground transition-colors duration-150 ease-in-out;
 			contain: inline-size;
 
 			&:focus {

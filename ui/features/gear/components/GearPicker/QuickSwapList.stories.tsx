@@ -22,7 +22,7 @@ const meta = {
 	argTypes: { entries: { control: false } },
 	decorators: [
 		Story => (
-			<div className="w-56 bg-gray-900">
+			<div className="w-54 bg-gray-900">
 				<Story />
 			</div>
 		),

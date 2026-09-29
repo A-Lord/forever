@@ -6,7 +6,7 @@ import { TokenTable } from './components/TokenTable';
 
 # Spacing
 
-Tokens from `ui/styles/theme/spacing.css`. The spacing rhythm is even steps plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …` — and one step is 3.5px at this repo's 14px root, so `p-2` is exactly 7px and `w-4` is 14px. Convert a px value to the nearest even step (ties round up) rather than writing `[Npx]`; a sub-step hairline (a border, a divider, a ruler tick) converts to the fixed `px` step instead of rounding.
+Tokens from `ui/styles/theme/spacing.css`. The spacing rhythm is even steps plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …` — and one step is 3.5px at this repo's 14px root, so `p-2` is exactly 7px and `w-4` is 14px. Convert a px value to the nearest even step (ties round down) rather than writing `[Npx]`; a sub-step hairline (a border, a divider, a ruler tick) converts to the fixed `px` step instead of rounding.
 
 ## Base scale
 

@@ -93,7 +93,7 @@ export const ScrolledUnderHeader: Story = {
 	args: { columns: makeEpColumns(ALL), showThreatMetrics: true, children: rows(makeStatWeightsResult(), ALL, true) },
 	decorators: [
 		Story => (
-			<div className="flex h-46 flex-col">
+			<div className="flex h-44 flex-col">
 				<Story />
 			</div>
 		),

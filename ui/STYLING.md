@@ -32,7 +32,7 @@ Reach for a **named utility** first, including its variants and `!`-free forms. 
 - **No arbitrary spacing where a scale step exists.** The spacing rhythm in this repo is even steps
   plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …` — and one step is 3.5px at this repo's 14px root, so `p-2` is
   exactly 7px and `w-4` is 14px.
-  Convert a source px value to the **nearest even step** (ties round up), rather than writing `[Npx]`
+  Convert a source px value to the **nearest even step** (ties round down), rather than writing `[Npx]`
   — see §7 for the same rule at the rendering-diff gate. `gap-[3.5px]` → `gap-1`, `7px` → `p-2`,
   `14px` → `w-4`; a sub-step value that stands for a hairline (a border, a divider, a ruler tick)
   converts to the fixed `px` step instead — a `1.75px` border becomes `px`, not a rounded step. Keep a
@@ -264,7 +264,7 @@ Two tree-wide tests in `npm run test:unit` run the checkers, both under `// @vit
       class is gone, not that nothing rendered differently without it.
     - **A px value converts to the nearest even spacing step**: the scale here is 1 or an even integer
       — `1, 2, 4, 6, 8, 10, 12, 16, …` — one step is 3.5px at this repo's 14px root, and a source px
-      value snaps to its nearest step, ties rounding up (`7px` → `p-2`, `14px` → `w-4`); a sub-step
+      value snaps to its nearest step, ties rounding down (`7px` → `p-2`, `14px` → `w-4`); a sub-step
       value standing for a hairline (a border, a divider, a ruler tick) converts to the fixed `px` step
       instead of rounding. `ui/testing/tailwind/canonical-classes.mjs`'s `findUnevenSpacing` flags any
       spacing-scale utility or `--spacing(n)` whose step is not `1` and not an even integer, so a
