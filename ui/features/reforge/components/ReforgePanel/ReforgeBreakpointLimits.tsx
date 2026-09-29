@@ -40,7 +40,6 @@ export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useS
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-breakpoint-limit`,
-							extraClassNames: ['mb-0'],
 							label: '',
 							values: [
 								{ name: i18n.t('sidebar.buttons.suggest_reforges.no_limit_set'), value: 0 },

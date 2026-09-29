@@ -37,7 +37,7 @@ export const actionPickerConfig = (available: ReadonlyArray<ActionId>, index: nu
 
 export const timingsPickerConfig = (index: number, isAdd = false): NumberListPickerConfig<Player<any>> => ({
 	id: `cooldown-timings-${index}`,
-	extraClassNames: ['mb-0', 'ml-auto', 'min-w-2/5', 'w-2/5', ...(isAdd ? ['invisible'] : [])],
+	extraClassNames: ['ml-auto', 'min-w-2/5', 'w-2/5', ...(isAdd ? ['invisible'] : [])],
 	placeholder: i18n.t('rotation_tab.cooldowns.timings_placeholder'),
 	storeField: 'rotation' as const,
 	getValue: (player: Player<any>) => player.getSimpleCooldowns().cooldowns[index]?.timings || [],

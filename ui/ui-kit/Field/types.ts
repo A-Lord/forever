@@ -3,14 +3,14 @@ import type { AriaRole, ReactElement, ReactNode, Ref } from 'react';
 
 export type FieldLayout = 'inline' | 'split';
 export type FieldDensity = 'compact';
-export type FieldTooltip = string | Element | ReactElement;
+export type FieldTooltip = string | ReactElement;
 
 /** What every field renders around its control. */
 export interface FieldChromeProps {
 	id?: string;
 	label?: string;
 	labelTooltip?: FieldTooltip;
-	description?: string | Element;
+	description?: string;
 	layout?: FieldLayout;
 	/** `compact` tightens this field and every field nested inside it. */
 	density?: FieldDensity;
@@ -41,8 +41,6 @@ export interface FieldClearProps {
 
 export interface FieldProps extends FieldChromeProps {
 	disabled?: boolean;
-	/** Renders nothing different: the narrow container rules skip an icon field by its `ui-icon-field` class. */
-	iconField?: boolean;
 	/** `false` renders the root `flex-none` (SearchBar, ComboBox). */
 	grow?: boolean;
 	/** Renders the input wrapper with an absolute clear button; `show: false` keeps the wrapper and hides the button. */
@@ -89,7 +87,7 @@ export interface FieldDescriptionProps {
 	id?: string;
 	className?: ClassValue;
 	testId?: string;
-	children: ReactNode | Element;
+	children: ReactNode;
 }
 
 export interface FieldControlProps {

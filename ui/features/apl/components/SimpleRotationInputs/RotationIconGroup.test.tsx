@@ -16,7 +16,6 @@ describe('RotationIconGroup', () => {
 		render(<RotationIconGroup inputs={[]} />);
 
 		expect(group().className.split(' ').sort()).toEqual(['ui-picker-group', 'ui-picker-group-icons']);
-		expect(group().hasAttribute('data-picker-group')).toBe(true);
 	});
 
 	it('picks the picker each input type names, in order', () => {

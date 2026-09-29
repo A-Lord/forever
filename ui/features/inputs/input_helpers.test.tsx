@@ -87,7 +87,7 @@ describe('icon input factories', () => {
 	const labelTooltip = 'What the primary option controls.';
 	const chrome = { label, labelTooltip };
 	const fieldFor = (config: any, id: string = config.id) => (
-		<Field id={id} label={config.label} labelTooltip={config.labelTooltip} className="ui-icon-field" iconField />
+		<Field id={id} label={config.label} labelTooltip={config.labelTooltip} className="ui-icon-field" />
 	);
 
 	const factories: Record<string, () => { label?: string; labelTooltip?: unknown }> = {

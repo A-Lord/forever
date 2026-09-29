@@ -83,7 +83,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 						</>
 					}
 				/>
-				<div className="flex items-center [&_.ui-number-picker-root]:mb-0">
+				<div className="flex items-center">
 					<NumberPicker
 						id="bulkGearSearchMinIlvl"
 						label={i18n.t('bulk_tab.search.min_ilvl')}

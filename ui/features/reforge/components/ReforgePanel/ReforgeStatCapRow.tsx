@@ -57,7 +57,6 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 						maxDecimalDigits: 5,
 						showZeroes: false,
 						positive: true,
-						extraClassNames: ['mb-0'],
 						enableWhen,
 						storeField: CAP_FIELDS,
 						getValue,
@@ -86,7 +85,6 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-presets`,
-							extraClassNames: ['mb-0'],
 							label: '',
 							values: presetValues,
 							enableWhen,

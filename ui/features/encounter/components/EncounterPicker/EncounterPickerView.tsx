@@ -28,7 +28,7 @@ export const EncounterPickerView = ({
 }: EncounterPickerViewProps) => (
 	<div className="flex flex-wrap gap-3" data-testid="encounter-picker-root">
 		<PickerGroup>{duration}</PickerGroup>
-		{execute && <PickerGroup className="w-full flex-col flex-nowrap">{execute}</PickerGroup>}
+		{execute && <PickerGroup className="w-full">{execute}</PickerGroup>}
 		{zone}
 		{areaTypes}
 		{preset}

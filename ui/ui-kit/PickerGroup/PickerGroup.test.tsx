@@ -5,11 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { PickerGroup } from './PickerGroup';
 
 describe('PickerGroup', () => {
-	it('renders a grid group marked data-picker-group, with the caller classes after its own', () => {
+	it('renders a grid group, with the caller classes after its own', () => {
 		render(<PickerGroup testId="group" className={['justify-end', { hidden: false }]} />);
 		const group = screen.getByTestId('group');
 		expect(group.getAttribute('class')).toBe('ui-picker-group justify-end');
-		expect(group.hasAttribute('data-picker-group')).toBe(true);
 	});
 
 	it('adds the icon row class for the icons variant', () => {
@@ -31,6 +30,6 @@ describe('PickerGroup', () => {
 
 	it('lets an explicit data-testid stand in for testId', () => {
 		render(<PickerGroup data-testid="consumes-food" />);
-		expect(screen.getByTestId('consumes-food').hasAttribute('data-picker-group')).toBe(true);
+		expect(screen.getByTestId('consumes-food').classList.contains('ui-picker-group')).toBe(true);
 	});
 });

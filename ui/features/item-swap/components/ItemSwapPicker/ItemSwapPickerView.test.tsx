@@ -21,7 +21,6 @@ describe('ItemSwapPickerView', () => {
 		const row = screen.getByTestId('input-item-swap-container');
 		expect(row.classList).toContain('ui-field');
 		expect(row.getAttribute('data-layout')).toBe('split');
-		expect(row.hasAttribute('data-input-root')).toBe(true);
 	});
 
 	it('names the row, swap button and icons, as one group with the row label', () => {

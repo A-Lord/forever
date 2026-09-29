@@ -3,7 +3,6 @@ import { type ControlledProps, Field, type FieldChromeProps } from '@ui-kit/Fiel
 import { Input } from '@ui-kit/FormControl';
 import { useCommitChange } from '@ui-kit/hooks/useCommitChange';
 import { useDraft } from '@ui-kit/hooks/useDraft';
-import clsx from 'clsx';
 import { useCallback, useState } from 'react';
 
 import type { NumberPickerOptions } from './types';
@@ -55,7 +54,7 @@ export const NumberPicker = ({
 				type="text"
 				ref={attachInput}
 				id={chrome.id}
-				className={clsx('ui-number-picker-input', inputClassName)}
+				className={inputClassName}
 				data-testid="number-picker-input"
 				disabled={disabled}
 				value={text}

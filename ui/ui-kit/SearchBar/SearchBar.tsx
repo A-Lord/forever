@@ -71,7 +71,6 @@ export const SearchBar = ({
 				show: clearable && draft.length > 0,
 				label: clearLabel,
 				className: clearClassName,
-				testId: 'search-bar-clear-btn',
 				onClear: handleClear,
 			}}
 			after={children}>

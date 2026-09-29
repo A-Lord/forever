@@ -16,7 +16,6 @@ const meta = {
 	argTypes: {
 		layout: { control: 'select', options: [undefined, 'inline', 'split'] },
 		disabled: { control: 'boolean' },
-		iconField: { control: 'boolean' },
 		grow: { control: 'boolean' },
 		className: { control: 'text' },
 		children: { control: false },
@@ -35,7 +34,7 @@ export const Split: Story = { args: { layout: 'split' } };
 export const WithTooltip: Story = { args: { labelTooltip: 'Seconds of <b>human</b> reaction time before each cast.' } };
 export const WithDescription: Story = { args: { description: 'Delay before the first cast.' } };
 export const IconField: Story = {
-	args: { iconField: true, className: 'ui-icon-field', leading: <span className="ui-icon-picker-swatch" />, children: undefined },
+	args: { className: 'ui-icon-field', leading: <span className="ui-icon-picker-swatch" />, children: undefined },
 };
 export const WithClear: Story = {
 	args: {

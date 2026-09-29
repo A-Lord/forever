@@ -20,7 +20,6 @@ export interface IconPickerProps extends FieldChromeProps, ControlledProps<numbe
 }
 
 export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...chrome }: IconPickerProps) => {
-	const useImprovedIcons = !!improvedIcon;
 	const fillImproved1 = states >= 3 && !!improvedIcon;
 	const fillImproved2 = states >= 4 && !!improvedIcon2;
 	const showCounterText = !improvedIcon && (states > 3 || states === 0);
@@ -71,7 +70,6 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 				className={clsx('ui-icon-picker-swatch', value > 0 ? 'filter-none' : 'grayscale')}
 				data-testid="icon-picker-button"
 				data-active={value > 0 ? '' : undefined}
-				data-use-counter={!useImprovedIcons && states > 2 ? '' : undefined}
 				{...wowheadAnchorProps()}
 				// The glyph is a background image and the counter is a sibling, so without this the anchor announces nothing.
 				aria-label={icon?.name || undefined}
@@ -102,5 +100,5 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 		</div>
 	);
 
-	return <Field {...chrome} className={['ui-icon-field', className]} testId={testId ?? 'icon-picker-root'} iconField disabled={disabled} leading={main} />;
+	return <Field {...chrome} className={['ui-icon-field', className]} testId={testId ?? 'icon-picker-root'} disabled={disabled} leading={main} />;
 };

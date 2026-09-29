@@ -155,7 +155,7 @@ const GroupedGearPresets = () => {
 	];
 
 	return (
-		<div data-testid="preset-configuration-picker-root" data-saved-data-manager="">
+		<>
 			<PresetGroupPicker sections={sections} phases={filter.phases} phase={filter.phase} onSelectPhase={filter.selectPhase} />
 			<PresetBuildChipTooltip id={buildTooltipId} builds={builds} />
 			{/* The default preset-gear tooltip is the BIS disclaimer, which is two `<p>`s of markup. */}
@@ -164,6 +164,6 @@ const GroupedGearPresets = () => {
 				place="bottom"
 				render={({ content }) => (typeof content === 'string' && content ? <LocaleHtml html={content} /> : null)}
 			/>
-		</div>
+		</>
 	);
 };

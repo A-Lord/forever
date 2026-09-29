@@ -63,7 +63,6 @@ describe('DropdownPicker', () => {
 			/>,
 		);
 
-		expect(root().hasAttribute('data-input-root')).toBe(true);
 		expect(root().getAttribute('data-layout')).toBe('inline');
 		expect(within(root()).getByTestId('form-label').getAttribute('for')).toBe('target-filter');
 		expect(within(root()).getByTestId('form-label').textContent).toBe('Target');
