@@ -76,6 +76,7 @@ arguing with one.
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | moving a file, adding an import that lints, or deciding which directory something belongs in                 | `references/layers.md`          |
 | adding a settings field, wiring a picker, or chasing a component that renders stale data or re-renders twice | `references/state.md`           |
+| wiring a picker to a store field, or adding a `Bound*` adapter in `ui/features/inputs`                       | `references/state.md`           |
 | touching saved settings, the URL hash, autosave, or `IndividualSimSettings`                                  | `references/persistence.md`     |
 | about to call a change done, or wondering what CI actually runs                                              | `references/verification.md`    |
 | running the sim in a browser, in a fresh worktree, or measuring a perf regression                            | `references/running-locally.md` |
@@ -126,18 +127,19 @@ change, the way you would a stale comment.
 
 **Route by kind of change, so nobody has to re-read everything:**
 
-| You changed…                                                                                                                 | Update                                         |
-| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `.oxlintrc.json`, `tsconfig.json` `paths`, or a top-level `ui/` directory                                                    | `references/layers.md` and the layer map above |
-| `ui/sim/state/sim_store.ts`, `subscriptions.ts`, `batch.ts`, `events.ts`                                                     | `references/state.md`                          |
-| `ui/sim/hooks/*`, `ui/sim/context/SimHostContext.tsx`, `ui/features/inputs/hooks/useInput.ts`, `ui/features/inputs/input.ts` | `references/state.md`                          |
-| `ui/sim/state/persistence.ts`, `serialization.ts`, `sim_links.ts`                                                            | `references/persistence.md`                    |
-| a `package.json` script or `.github/workflows/run_tests.yml`                                                                 | `references/verification.md`                   |
-| `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets                        | `references/running-locally.md`                |
-| `.storybook/**`                                                                                                              | `references/running-locally.md`                |
-| `.oxfmtrc.json`, `ui/specs/**` authoring, or a decision recorded as settled                                                  | `references/conventions.md`                    |
-| the kit contract, the container/view split, `*.stories.tsx` conventions, `ui/testing/storybook/**`, `ui/design-system/**`    | `ui/README.md`                                 |
-| `ui/styles/*.css`, a `ui-*` class, a class-hook gate, or how elements are located in tests/tools                             | `ui/STYLING.md`                                |
+| You changed…                                                                                                                                                                                                   | Update                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `.oxlintrc.json`, `tsconfig.json` `paths`, or a top-level `ui/` directory                                                                                                                                      | `references/layers.md` and the layer map above |
+| `ui/sim/state/sim_store.ts`, `subscriptions.ts`, `batch.ts`, `events.ts`                                                                                                                                       | `references/state.md`                          |
+| `ui/sim/hooks/*`, `ui/sim/context/SimHostContext.tsx`                                                                                                                                                          | `references/state.md`                          |
+| `ui/features/inputs/**` — the binding layer: `input.ts`, `hooks/useInput.ts`, `hooks/useBoundField.ts`, `hooks/useHideZeroRestore.ts`, `configs.ts`, `input_helpers.ts`, `icon_inputs.ts`, `components/Bound*` | `references/state.md`                          |
+| `ui/sim/state/persistence.ts`, `serialization.ts`, `sim_links.ts`                                                                                                                                              | `references/persistence.md`                    |
+| a `package.json` script or `.github/workflows/run_tests.yml`                                                                                                                                                   | `references/verification.md`                   |
+| `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets                                                                                                          | `references/running-locally.md`                |
+| `.storybook/**`                                                                                                                                                                                                | `references/running-locally.md`                |
+| `.oxfmtrc.json`, `ui/specs/**` authoring, or a decision recorded as settled                                                                                                                                    | `references/conventions.md`                    |
+| the kit contract, the container/view split, `*.stories.tsx` conventions, `ui/testing/storybook/**`, `ui/design-system/**`                                                                                      | `ui/README.md`                                 |
+| `ui/styles/*.css`, a `ui-*` class, a class-hook gate, or how elements are located in tests/tools                                                                                                               | `ui/STYLING.md`                                |
 
 Then run the path check, which fails on any file this skill names that no longer exists:
 

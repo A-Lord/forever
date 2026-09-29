@@ -150,9 +150,15 @@ it: they take `value` and `onChange` and hold no store state.
 
 Its reader is `useHideZeroRestore` (`ui/features/inputs/hooks/useHideZeroRestore.ts`), which keys a
 `lastRevision` guard on it to tell a real notification apart from construction and a StrictMode
-replay before it zeroes a hidden input or restores a shown one. `BoundIconPicker` uses the hook;
-`BoundIconEnumPicker` runs the same guard inline, because its hidden-option rule has to see the value
-the hide/restore step just wrote.
+replay before it zeroes a hidden input or restores a shown one. Both icon adapters call it:
+
+- `BoundIconPicker` (`ui/features/inputs/components/BoundIconPicker/BoundIconPicker.tsx`) passes the
+  zero through its `write`, so a two-state source stores the zeroed or restored value as a boolean.
+- `BoundIconEnumPicker` (`ui/features/inputs/components/BoundIconEnumPicker/BoundIconEnumPicker.tsx`)
+  passes `restoreWhen`, so the stored value comes back only while the source holds
+  `zeroValue`, and `onSettled`, which sees the value the hide/restore step left and resets it to
+  `zeroValue` when that option is itself hidden by its `showWhen`. A user pick calls `clearStored()`
+  first, so a later show does not overwrite it.
 
 The three text pickers — `NumberPicker`, `AdaptiveStringPicker`, `NumberListPicker` — hold an
 uncommitted edit in `useDraft` (`ui/ui-kit/hooks/useDraft.ts`), keyed on the formatted display

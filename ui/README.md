@@ -155,7 +155,7 @@ Nothing below `ui/app` names the app host (`SimHostObject`). In features and ui-
 the specifier even for `import type`, which is erased at runtime; `ui/sim`, whose override allows
 type imports, uses the same interfaces. They are narrow host interfaces, all of them in
 `@sim/sim_host`: `SimWarning`, `SimHost`, `IndividualSimHost<Spec>`, plus the
-`isIndividualSimHost()` predicate that replaces `instanceof SimHostObject`. The
+`isIndividualSimHost()` predicate that stands in for `instanceof SimHostObject`. The
 host declares `implements IndividualSimHost` so the interfaces stay honest. The per-spec config schema lives in `@sim/spec_config` (`IndividualSimUIConfig`,
 `InputSection`, `OtherDefaults`, `Settings`, `registerSpecConfig`, `itemSwapEnabledSpecs`). It names
 the picker configs of `@features/inputs` (`input_helpers`, `icon_inputs`) and the kit's
@@ -251,8 +251,8 @@ sections: [{
 
 `iconInputs` land in a `picker-group icon-group` container above `inputs`, and every
 `.input-root` in the body then gets `input-inline` — exactly what the Other Settings block does.
-`when` is re-evaluated on `subscribePlayerChange`. `sections` is the only shape; the older
-`customSections` (an array of functions returning a `ContentBlock`) has been deleted.
+`when` is re-evaluated on `subscribePlayerChange`. `sections` is the only shape: a spec declares a
+section as data, never as a function that builds a `ContentBlock`.
 
 `reforge` may also be a function of the sim host, for options that need to call back into it.
 The `getEPDefaults` / `updateSoftCaps` callbacks receive `(…, player, ctx)` where
@@ -275,7 +275,7 @@ sim.raid.setPlayer  →  new SimHostObject(shellDom, player, def)
 
 **Ordering constraint:** `registerSpecConfig` must run _before_ `new Player()`, which resolves
 the spec's config out of the registry in its own constructor. This is the only place that
-ordering matters, and `spec_entry.ts` is the only place it is expressed.
+ordering matters, and `spec_entry.tsx` is the only place it is expressed.
 
 `SimHostObject` is concrete — a spec does not subclass it. Its constructor takes a
 `SpecDefinition<S>`, and runs the behaviour slots (features → reforge → derivedSettings) as its
@@ -302,8 +302,7 @@ anywhere else. `ui/index_template.html` is the _one_ spec page, and `tools/vite/
 `/forever/<class>/<spec>/` and `.../index.html` with it through `transformIndexHtml` in dev, and a
 `post` `generateBundle` takes the page vite already processed, drops its own output path from the
 bundle, and re-emits it as `<class>/<spec>/index.html` for every spec. Both halves discover the
-spec list from `ui/specs/*/*/spec.ts(x)` (`discoverSpecPages`) — the same glob `PAGE_INDECES` used
-before the makefile stopped generating pages — and `spec_entry.ts`'s `import.meta.glob` then picks
+spec list from `ui/specs/*/*/spec.ts(x)` (`discoverSpecPages`), and `spec_entry.tsx`'s `import.meta.glob` then picks
 the spec module up from the URL. A new spec's page therefore appears with no build-config edit.
 
 Copying one page 18× is only sound because the page is constant: `ui/index_template.html` carries

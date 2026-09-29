@@ -25,7 +25,7 @@ not a misconfigured invocation.
 
 Add `npm run test:locales` whenever you touched `assets/locales/**` or `schemas/**`, and
 `npm run lint:css` (stylelint over `ui/**/*.css`) whenever you touched a stylesheet. There is no
-SCSS left in the tree.
+SCSS in the tree.
 
 What each one is actually for:
 
@@ -33,13 +33,13 @@ What each one is actually for:
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `type-check`      | broken specifiers, alias mismatches, spec-config shape drift                                                                                             | a legal import that violates the layer direction                                |
 | `lint:js`         | layer violations (`no-restricted-imports`), browser globals in `ui/sim` and feature models, hook-rule breaks, import order                               | anything not listed in `.oxlintrc.json` — `categories.correctness` is **off**   |
-| `test:unit`       | component and helper behaviour, the store hooks' gating, a story that no longer mounts, and the tree-wide gates below                                    | anything without a `.test.ts(x)` beside it, and warnings — see the last section |
+| `test:unit`       | component and helper behaviour, the store hooks' gating, a story that fails to mount, and the tree-wide gates below                                      | anything without a `.test.ts(x)` beside it, and warnings — see the last section |
 | `test:locales`    | a locale key with no matching property in its `additionalProperties: false` schema                                                                       | a key the schema allows and no locale file defines                              |
 | `fmt`             | formatting across the repo, markdown included — `assets/**` and `**/test-fixtures/*.json` are the ignored trees                                          | anything `.gitignore` already hides, which is how generated output escapes it   |
 | `build-storybook` | what only Storybook's own build sees: a broken `.storybook/` config, an MDX page that does not compile, a story module the browser bundle cannot resolve | a story that builds and renders wrong — open it in `npm run storybook`          |
 
-**Zero `no-restricted-imports` errors is the bar**, not "no new ones": the layer rules are the whole
-point of the current tree, and `lint:js` is the only thing enforcing them anywhere.
+**Zero `no-restricted-imports` errors is the bar**, not a count held steady: the layer rules are the
+point of the layout, and `lint:js` is the only thing enforcing them anywhere.
 
 ## What CI runs
 
@@ -65,8 +65,8 @@ thing enforcing what they check: `ui/canonical_classes.test.ts` (no non-canonica
 no `var(...)` inside a class token) and `ui/no_class_hooks.test.ts` (no class hooks, no retired
 vanilla class names, no `[data-testid]` styling) run under `// @vitest-environment node` — they read
 the tree off disk and need no DOM — and read the data files `ui/retired_class_names.json` and
-`ui/class_hook_allowlist.json` (the rules are `ui/STYLING.md` §7; stories, `ui/testing/**` and
-`ui/design-system/**` count as production there). `ui/testing/storybook/stories.test.tsx` globs
+`ui/class_hook_allowlist.json` (the rules are `ui/STYLING.md` §7; stories, `ui/testing/**` and the
+design-system code count as production there, and `.mdx` pages are not scanned). `ui/testing/storybook/stories.test.tsx` globs
 every `*.stories.tsx`, composes each story with `.storybook/preview.tsx` and asserts it mounts under
 happy-dom; a story opts out with `parameters: { smoke: false, smokeReason: '…' }`, and an opt-out
 with no `smokeReason` fails. List the opt-outs with
@@ -91,7 +91,7 @@ CI logs and nowhere else, which makes them look like a CI-only phenomenon. They 
 RTK_DISABLED=1 npx vitest run --disableConsoleIntercept 2>&1 | grep -c "not wrapped in act"
 ```
 
-Three counts worth keeping at zero, all of which were nonzero the first time anyone looked here:
+Three counts to keep at zero:
 
 - `not wrapped in act` — a state update landing outside an act window. Usually a promise resolving
   after the test body, or a store notify called bare between acts.
@@ -106,8 +106,8 @@ If a flag the count depends on might be silently ignored, pass a deliberately bo
 so a clean run proves the real flag was accepted rather than dropped.
 
 **Do not attribute a warning from its position in the output.** Workers write to a shared stdout, so
-a warning header from one file routinely lands next to a stack frame from another — two sites were
-misread that way before this was noticed, and `--no-file-parallelism` does not fix it either, because
+a warning header from one file routinely lands next to a stack frame from another, which pins the
+warning on the wrong file. `--no-file-parallelism` does not fix it, because
 the reporter's file markers and the console writes are separate streams. Bisect instead: run a
 directory, then a file, then `-t 'test name'`, and read the count.
 

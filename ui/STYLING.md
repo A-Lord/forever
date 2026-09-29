@@ -113,9 +113,8 @@ Rules:
   `::after`), and element/descendant parts are allowed _inside_ a `ui-*` rule, but the file may never
   target a semantic hook class, a `data-testid`, or a raw element selector at the top level. The two
   exceptions are `ui/styles/theme/specs.css` (the spec theme selectors) and `vendor.css` (see below).
-- Built with `@apply`, unlayered classes stay unlayered (until the global element rules that
-  fight them are fully gone); the file itself lives inside `@layer components` in the ones written so
-  far, matching the layer order declared in `main.css:1`.
+- Built with `@apply`, inside `@layer components`, matching the layer order declared in
+  `main.css:1`; every co-located `.css` file `main.css` imports is written this way.
 - No comments — including lint-disable directives — in any `ui/` `.css` file, same rule as `.ts`/`.tsx`.
 - Names are `ui-<component>-<part-or-variant>` for both kit and feature components, so they can never
   collide with a retired hook name; tests never locate elements by them (see §5).
@@ -151,7 +150,7 @@ Style with the matching variant:
   `group-data-[…]:` for ancestor state (a marker `group`/`group/<name>` class sits directly on the
   ancestor; `group` and `peer` are plain marker classes, not utilities, and have no effect inside
   `@apply`), `in-data-[…]:` for a descendant-driven read.
-- A state class is never reintroduced as a styling hook once it's gone. `ui/retired_class_names.json`
+- A retired state class never comes back as a styling hook. `ui/retired_class_names.json`
   lists the retired names, and `ui/no_class_hooks.test.ts` fails on any of them through
   `findRetiredClassNames()` — see "The gates".
 - Perf-critical per-frame writers (the timeline ruler) use `element.toggleAttribute('data-*', cond)`
@@ -185,10 +184,10 @@ only when no role fits. Never `querySelector('.some-class')`, `closest('.x')`, `
 or an exact class-list snapshot (`expect(el.className).toBe(…)`) in production code or tests. This
 is a review rule on this tree, not a checked one.
 
-- **`data-testid` value convention:** when a class hook is retired and something still needs to find
-  the element, the testid keeps the old class name verbatim (`className="apl-list-item-picker"` →
-  `data-testid="apl-list-item-picker"`), so the mechanical rewrite is a search-and-replace and every
-  `\.name(\.|$)` regex a tool runs against the class keeps matching the testid instead. An
+- **`data-testid` value convention:** when a test or tool has to find an element whose class hook
+  is retired, the testid carries the retired class name verbatim (`className="apl-list-item-picker"`
+  → `data-testid="apl-list-item-picker"`), so the swap is a search-and-replace and every
+  `\.name(\.|$)` regex a tool runs against the class matches the testid instead. An
   _unread_ hook is just deleted — don't add a testid nobody consumes.
 - **`data-testid` is never a styling hook.** No `.css` rule, `@apply` selector, or TSX arbitrary
   variant may key off `[data-testid=…]`; `class-hooks.mjs`'s `findTestidStyling()` is the check for
