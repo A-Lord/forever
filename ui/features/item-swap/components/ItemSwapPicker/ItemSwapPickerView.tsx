@@ -3,7 +3,7 @@ import { Button } from '@ui-kit/Button';
 import { Field } from '@ui-kit/Field';
 import { HelpText } from '@ui-kit/FormControl';
 import { Icon } from '@ui-kit/Icon';
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { IconRow } from '@ui-kit/IconRow';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { type ReactNode, useId } from 'react';
 
@@ -31,13 +31,9 @@ export const ItemSwapPickerView = ({ slotCount, note, onSwap, children }: ItemSw
 					<Icon name="arrows-rotate" className="me-1" />
 				</Button>
 				<Tooltip id={swapId} content={swapTooltip} />
-				<PickerGroup
-					variant="icons"
-					className="items-center justify-end"
-					style={{ gridTemplateColumns: `repeat(${slotCount}, 4rem)` }}
-					testId="item-swap-icon-grid">
+				<IconRow className="items-center justify-end" style={{ gridTemplateColumns: `repeat(${slotCount}, 4rem)` }} testId="item-swap-icon-grid">
 					{children}
-				</PickerGroup>
+				</IconRow>
 			</Field>
 			{note && <HelpText as="p">{note}</HelpText>}
 		</>

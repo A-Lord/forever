@@ -1,10 +1,10 @@
 import i18n from '@i18n/config';
 import { Button } from '@ui-kit/Button';
-import { ButtonGroup } from '@ui-kit/ButtonGroup';
 import { Chip } from '@ui-kit/Chip';
 import { DropdownPicker } from '@ui-kit/DropdownPicker';
 import { Input } from '@ui-kit/FormControl';
 import { Icon } from '@ui-kit/Icon';
+import { ToggleGroup } from '@ui-kit/ToggleGroup';
 import { useMemo, useState } from 'react';
 
 import type { SuggestionSource } from '../../model/log/search/indexes';
@@ -66,21 +66,17 @@ export const LogSearchGroup = ({ group, suggestions, onChange, onRemove }: LogSe
 				<span data-testid="log-search-group-field" className="text-(length:--btn-font-size) leading-normal">
 					{sentenceCase(group.field)}
 				</span>
-				<ButtonGroup data-testid="log-search-group-join" className="ml-auto" size="sm">
-					{(['and', 'or'] as const).map(join => (
-						<Button
-							key={join}
-							size="sm"
-							variant={group.join === join ? 'primary' : 'outline-primary'}
-							aria-pressed={group.join === join}
-							onClick={() => {
-								if (group.join === join) return;
-								onChange({ ...group, join });
-							}}>
-							{join.toUpperCase()}
-						</Button>
-					))}
-				</ButtonGroup>
+				<ToggleGroup
+					testId="log-search-group-join"
+					className="ml-auto"
+					size="sm"
+					options={[
+						{ value: 'and', label: 'AND' },
+						{ value: 'or', label: 'OR' },
+					]}
+					value={group.join}
+					onChange={join => onChange({ ...group, join })}
+				/>
 				<DeleteButton
 					label={i18n.t('common.list_picker.delete_item', { itemLabel: sentenceCase(group.field) })}
 					onClick={onRemove}

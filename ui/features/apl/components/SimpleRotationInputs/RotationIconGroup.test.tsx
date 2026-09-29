@@ -12,10 +12,10 @@ const icon = (type: 'icon' | 'iconEnum') => ({ type }) as never;
 describe('RotationIconGroup', () => {
 	const group = () => document.querySelector('[data-testid="rotation-icon-group"]') as HTMLElement;
 
-	it('wears the classes the vanilla group container had', () => {
+	it('renders an icon row', () => {
 		render(<RotationIconGroup inputs={[]} />);
 
-		expect(group().className.split(' ').sort()).toEqual(['ui-picker-group', 'ui-picker-group-icons']);
+		expect(group().classList.contains('ui-icon-row')).toBe(true);
 	});
 
 	it('picks the picker each input type names, in order', () => {

@@ -3,7 +3,7 @@ import { BoundIconPicker } from '@features/inputs/components/BoundIconPicker';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { Database } from '@sim/proto/database';
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { IconRow } from '@ui-kit/IconRow';
 import { useMemo } from 'react';
 
 import { ConsumeRow } from './ConsumeRow';
@@ -29,50 +29,50 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 		<div className="grid gap-3 max-lg:grid-cols-3 max-md:grid-cols-1">
 			{encounterConsumes && (
 				<ConsumeRow name="potions" configs={[configs.potion, configs.conjured]}>
-					<PickerGroup variant="icons" className="justify-end" data-testid="consumes-potions">
+					<IconRow className="justify-end" data-testid="consumes-potions">
 						<BoundIconEnumPicker modObject={player} config={configs.potion} />
 						<BoundIconEnumPicker modObject={player} config={configs.conjured} />
-					</PickerGroup>
+					</IconRow>
 				</ConsumeRow>
 			)}
 			<ConsumeRow name="elixirs" configs={[configs.flask, ...configs.elixirs]}>
-				<PickerGroup variant="icons" className="justify-end">
+				<IconRow className="justify-end">
 					<div data-testid="consumes-flasks">
 						<BoundIconEnumPicker modObject={player} config={configs.flask} />
 					</div>
 					<Pickers player={player} configs={configs.elixirs} />
-				</PickerGroup>
+				</IconRow>
 			</ConsumeRow>
 			<ConsumeRow name="scrolls" configs={configs.scrolls}>
-				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-scrolls">
+				<IconRow className="justify-end" data-testid="consumes-scrolls">
 					<Pickers player={player} configs={configs.scrolls} />
-				</PickerGroup>
+				</IconRow>
 			</ConsumeRow>
 			<ConsumeRow name="food" configs={[configs.food, ...configs.groups]}>
-				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-food">
+				<IconRow className="justify-end" data-testid="consumes-food">
 					<BoundIconEnumPicker modObject={player} config={configs.food} />
 					<Pickers player={player} configs={configs.groups} />
-				</PickerGroup>
+				</IconRow>
 			</ConsumeRow>
 			{encounterConsumes && (
 				<ConsumeRow name="engineering" configs={[configs.explosive, ...configs.explosiveExtras]}>
-					<PickerGroup variant="icons" className="justify-end" data-testid="consumes-engi">
+					<IconRow className="justify-end" data-testid="consumes-engi">
 						<BoundIconEnumPicker modObject={player} config={configs.explosive} />
 						<Toggles player={player} toggles={configs.explosiveExtras} />
-					</PickerGroup>
+					</IconRow>
 				</ConsumeRow>
 			)}
 			<ConsumeRow name="imbue" configs={[configs.mhImbue, configs.ohImbue]}>
-				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-imbue">
+				<IconRow className="justify-end" data-testid="consumes-imbue">
 					<BoundIconEnumPicker modObject={player} config={configs.mhImbue} />
 					<BoundIconEnumPicker modObject={player} config={configs.ohImbue} />
-				</PickerGroup>
+				</IconRow>
 			</ConsumeRow>
 			{encounterConsumes && (
 				<ConsumeRow name="miscellaneous" configs={configs.miscellaneous}>
-					<PickerGroup variant="icons" className="justify-end" data-testid="consumes-misc">
+					<IconRow className="justify-end" data-testid="consumes-misc">
 						<Toggles player={player} toggles={configs.miscellaneous} />
-					</PickerGroup>
+					</IconRow>
 				</ConsumeRow>
 			)}
 		</div>

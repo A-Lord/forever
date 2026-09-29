@@ -1,26 +1,18 @@
 @layer components {
 	.ui-boolean-picker.ui-field {
-		@apply min-h-6 justify-start pl-8 max-xl:flex-row;
+		@apply min-h-6 flex-row items-center justify-start gap-2;
 
 		> .ui-field-label {
-			@apply mb-0 ml-2;
-		}
-	}
-
-	.ui-boolean-picker-reverse.ui-field {
-		@apply min-h-6 justify-between pr-8 pl-0 text-right max-xl:flex-row;
-
-		> .ui-field-label {
-			@apply mb-0 ml-0 text-left;
+			@apply mb-0;
 		}
 
-		> .ui-boolean-picker-input {
-			@apply float-right -mr-8 ml-0;
+		&[data-reverse] {
+			@apply justify-between;
 		}
 	}
 
 	.ui-boolean-picker-input {
-		@apply float-left -ml-8 size-8 shrink-0 appearance-none rounded-none border border-surface-border bg-surface align-top;
+		@apply size-8 shrink-0 rounded-none border border-surface-border bg-surface;
 
 		&:focus {
 			@apply border-input-focus-border shadow-focus-checkbox outline-none;

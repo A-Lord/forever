@@ -22,6 +22,7 @@ const FieldSugar = ({
 	role,
 	'aria-labelledby': labelledBy,
 	hidden,
+	reverse,
 }: FieldProps) => {
 	const generatedId = useId();
 	const groupLabelId = role === 'group' && !labelledBy && label ? `${id ?? generatedId}-label` : undefined;
@@ -33,6 +34,7 @@ const FieldSugar = ({
 			density={density}
 			disabled={disabled}
 			grow={grow}
+			reverse={reverse}
 			ref={ref}
 			role={role}
 			aria-labelledby={labelledBy ?? groupLabelId}

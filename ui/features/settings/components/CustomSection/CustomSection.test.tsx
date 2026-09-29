@@ -92,7 +92,7 @@ describe('CustomSection', () => {
 		const body = block.querySelector('[data-testid="content-block-body"]')!;
 		const iconPicker = body.querySelector('[data-testid="icon-picker-root"]')!;
 		expect(iconPicker.parentElement!.classList.contains('totem-dropdowns-container')).toBe(true);
-		expect(iconPicker.parentElement!.classList.contains('ui-picker-group-icons')).toBe(true);
+		expect(iconPicker.parentElement!.classList.contains('ui-icon-row')).toBe(true);
 		expect(iconPicker.getAttribute('data-layout')).toBe('inline');
 		expect(body.querySelector('[data-testid="input-picker-stub"]')!.getAttribute('data-layout')).toBe('inline');
 	});

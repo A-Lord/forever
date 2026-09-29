@@ -23,7 +23,8 @@
 @import '../ui-kit/IconSwatch/IconSwatch.css';
 @import '../ui-kit/Tree/Tree.css';
 @import '../ui-kit/BooleanPicker/BooleanPicker.css';
-@import '../ui-kit/PickerGroup/PickerGroup.css';
+@import '../ui-kit/FieldGrid/FieldGrid.css';
+@import '../ui-kit/IconRow/IconRow.css';
 @import '../ui-kit/DropdownPicker/DropdownMenu.css';
 @import '../ui-kit/Menu/Menu.css';
 @import '../ui-kit/Tooltip/Tooltip.css';

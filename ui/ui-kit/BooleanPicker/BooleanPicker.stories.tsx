@@ -50,3 +50,4 @@ export const Default: Story = {
 export const Reverse: Story = { args: { label: 'Dual Wield', reverse: true, layout: 'inline', value: true } };
 export const Inline: Story = { args: { label: 'Show All Stats', layout: 'inline' } };
 export const Disabled: Story = { args: { disabled: true, value: true } };
+export const Unlabelled: Story = { args: { label: undefined } };

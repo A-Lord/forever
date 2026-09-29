@@ -4,8 +4,8 @@ import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { EnumPicker, type EnumValueConfig } from '@ui-kit/EnumPicker';
+import { FieldGrid } from '@ui-kit/FieldGrid';
 import { HelpText } from '@ui-kit/FormControl';
-import { PickerGroup } from '@ui-kit/PickerGroup';
 import { NumberField } from '@ui-kit/TextField';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId, useMemo } from 'react';
@@ -100,7 +100,7 @@ export const SettingsDialogView = ({
 				</>
 			}>
 			<div className="flex flex-col gap-3">
-				<PickerGroup data-testid="picker-group">
+				<FieldGrid>
 					<div data-testid="fixed-rng-seed-container">
 						<div data-testid="fixed-rng-seed">
 							<NumberField
@@ -123,7 +123,7 @@ export const SettingsDialogView = ({
 							onChange={index => onLanguageChange(LANGUAGES[index] || 'en')}
 						/>
 					</div>
-				</PickerGroup>
+				</FieldGrid>
 				<div className="w-1/2 pr-2" data-testid="show-threat-metrics-picker">
 					<BooleanPicker
 						id="simui-show-threat-metrics"

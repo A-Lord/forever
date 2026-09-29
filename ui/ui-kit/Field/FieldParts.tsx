@@ -30,6 +30,7 @@ export const Root = ({
 	role,
 	'aria-labelledby': labelledBy,
 	hidden,
+	reverse,
 	children,
 }: FieldRootProps) => {
 	const [descriptionIds, setDescriptionIds] = useState<ReadonlyArray<string>>([]);
@@ -54,6 +55,7 @@ export const Root = ({
 				data-disabled={disabled ? '' : undefined}
 				data-layout={layout}
 				data-density={density}
+				data-reverse={reverse ? '' : undefined}
 				data-testid={testId ?? 'input-root'}
 				className={dedupe(
 					clsx(describedBy && 'flex-wrap', 'ui-field', density === 'compact' && 'ui-field-compact', grow === false && 'flex-none', className),

@@ -64,7 +64,7 @@ describe('BoundInput', () => {
 	it('renders a boolean input as a checkbox after its label, bound to the player', () => {
 		const root = mount(configs.boolean);
 		expect(root.getAttribute('data-testid')).toBe('boolean-picker-root');
-		expect(root.classList.contains('ui-boolean-picker-reverse')).toBe(true);
+		expect(root.hasAttribute('data-reverse')).toBe(true);
 
 		fireEvent.click(screen.getByRole('checkbox'));
 		expect(player.active).toBe(true);

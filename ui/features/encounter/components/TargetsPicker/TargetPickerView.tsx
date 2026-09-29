@@ -1,5 +1,5 @@
 import { Field } from '@ui-kit/Field';
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { FieldGrid } from '@ui-kit/FieldGrid';
 import type { ReactNode } from 'react';
 
 export interface TargetPickerViewProps {
@@ -12,10 +12,10 @@ export interface TargetPickerViewProps {
 
 export const TargetPickerView = ({ identity, stats, threat }: TargetPickerViewProps) => (
 	<Field testId="target-picker-root" className="grid grid-cols-1 gap-3 xl:grid-cols-3">
-		<PickerGroup data-testid="target-picker-section">{identity}</PickerGroup>
-		<PickerGroup data-testid="target-picker-section">{stats}</PickerGroup>
+		<FieldGrid data-testid="target-picker-section">{identity}</FieldGrid>
+		<FieldGrid data-testid="target-picker-section">{stats}</FieldGrid>
 		{threat ? (
-			<PickerGroup data-testid="target-picker-section">{threat}</PickerGroup>
+			<FieldGrid data-testid="target-picker-section">{threat}</FieldGrid>
 		) : (
 			<div className="hidden xl:block" data-testid="target-picker-section-placeholder" aria-hidden="true" />
 		)}

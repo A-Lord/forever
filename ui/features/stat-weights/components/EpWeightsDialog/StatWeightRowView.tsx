@@ -60,7 +60,6 @@ export const StatWeightRowView = ({
 					{include && (
 						<BooleanPicker
 							id={`sw-stat-toggle-${sanitizeId(fullName)}`}
-							className="mb-0"
 							value={include.value}
 							disabled={include.disabled}
 							onChange={include.onChange}

@@ -7,7 +7,7 @@ import type { Player } from '@sim/player/player';
 import type { CustomSection as CustomSectionConfig } from '@sim/spec_config';
 import { type StoreSubscribe, subscribePlayerChange } from '@sim/state/subscriptions';
 import { ContentBlock } from '@ui-kit/ContentBlock';
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { IconRow } from '@ui-kit/IconRow';
 
 export interface CustomSectionProps {
 	section: CustomSectionConfig<any>;
@@ -30,11 +30,11 @@ export const CustomSection = ({ section }: CustomSectionProps) => {
 			config={{ header: { title: section.title, tooltip: section.tooltip, className: section.description ? 'flex-col' : undefined } }}
 			headerChildren={section.description ? <p className="text-sm">{section.description}</p> : undefined}>
 			{!!section.iconInputs?.length && (
-				<PickerGroup variant="icons" className={section.iconGroupClassName}>
+				<IconRow className={section.iconGroupClassName}>
 					{section.iconInputs.map((config, index) => (
 						<BoundIconInput key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
 					))}
-				</PickerGroup>
+				</IconRow>
 			)}
 			{section.inputs?.map(config => (
 				<BoundInput key={config.id} config={{ ...config, layout: 'inline' }} />

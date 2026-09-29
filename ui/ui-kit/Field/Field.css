@@ -36,7 +36,7 @@
 
 			input,
 			select,
-			.ui-picker-group {
+			.ui-icon-row {
 				@apply min-w-2/5;
 			}
 		}
