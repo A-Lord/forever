@@ -17,7 +17,7 @@ const DIFFS: ReferenceDiffs = {
 
 const mount = (props: Partial<SimResultSummaryViewProps> = {}) => {
 	const handlers = { onSetReference: vi.fn(), onSwapReference: vi.fn(), onClearReference: vi.fn() };
-	const view = render(<SimResultSummaryView metrics={METRICS} pinClassName="text-warrior" {...handlers} {...props} />);
+	const view = render(<SimResultSummaryView metrics={METRICS} pinClassName="text-class-warrior" {...handlers} {...props} />);
 	return { ...handlers, ...view };
 };
 
@@ -63,7 +63,7 @@ describe('SimResultSummaryView', () => {
 
 		const pin = screen.getByTestId('results-sim-set-reference').querySelector('i')!;
 		expect(pin.classList.contains('fa-map-pin')).toBe(true);
-		expect(pin.classList.contains('text-warrior')).toBe(true);
+		expect(pin.classList.contains('text-class-warrior')).toBe(true);
 		expect(screen.getByTestId('results-sim-reference-swap').querySelector('i')!.classList.contains('fa-arrows-rotate')).toBe(true);
 		expect(screen.getByTestId('results-sim-reference-delete').querySelector('i')!.classList.contains('fa-times')).toBe(true);
 		expect([...strip(document.body).querySelectorAll('i')].every(icon => icon.getAttribute('aria-hidden') === 'true')).toBe(true);

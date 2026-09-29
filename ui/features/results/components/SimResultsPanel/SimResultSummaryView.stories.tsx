@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { CLASS_TEXT } from '@ui-kit/utils/colors';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { loadTopline, type ToplineFixture } from '../../../../testing/storybook/fixtures/results-views';
@@ -10,7 +11,7 @@ const meta = {
 	tags: ['autodocs'],
 	args: {
 		metrics: [],
-		pinClassName: 'text-warrior',
+		pinClassName: CLASS_TEXT.warrior,
 		onSetReference: fn(),
 		onSwapReference: fn(),
 		onClearReference: fn(),
