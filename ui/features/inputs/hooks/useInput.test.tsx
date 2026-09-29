@@ -77,6 +77,36 @@ describe('useInput without a source', () => {
 	});
 });
 
+describe('useInput defaultValue', () => {
+	const seeded = <T,>(value: T, defaultValue: T) => {
+		const listeners = new Set<() => void>();
+		const mod = { value };
+		const config: InputConfig<typeof mod, T> = {
+			storeSubscribe: () => listener => {
+				listeners.add(listener);
+				return () => listeners.delete(listener);
+			},
+			getValue: m => m.value,
+			setValue: () => {},
+			defaultValue,
+		};
+		const Probe = () => <span>{String(useInput(mod, config).value)}</span>;
+		const { container } = render(<Probe />);
+		return { container, mod, notify: () => act(() => listeners.forEach(listener => listener())) };
+	};
+
+	it.each([
+		[0, 7],
+		[false, true],
+	] as const)('seeds %s like any other value, until the source notifies', (defaultValue, sourceValue) => {
+		const { container, notify } = seeded<number | boolean>(sourceValue, defaultValue);
+		expect(container.textContent).toBe(String(defaultValue));
+
+		notify();
+		expect(container.textContent).toBe(String(sourceValue));
+	});
+});
+
 describe('useInput revision', () => {
 	it('counts notifications from its own source only', () => {
 		const own = new Set<() => void>();
