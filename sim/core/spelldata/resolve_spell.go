@@ -143,6 +143,17 @@ func Flags(flags core.SpellFlag) SpellOpt {
 	}
 }
 
+// RemoveFlags clears specific flags from the configuration that should not be present.
+//
+// Ex: ArcaneMissilesTickSpell is NotAProc so you cant use Proc() SpellOpt, so it ends up being castable through APL
+//
+// Usage: spelldata.RemoveFlags(core.SpellFlagAPL)
+func RemoveFlags(flags core.SpellFlag) SpellOpt {
+	return func(config *core.SpellConfig, _ *Spell) {
+		config.Flags &^= flags
+	}
+}
+
 // Splits one spell id into several actions, for a spell the sim registers more than once.
 func Tag(tag int32) SpellOpt {
 	return func(config *core.SpellConfig, _ *Spell) {
