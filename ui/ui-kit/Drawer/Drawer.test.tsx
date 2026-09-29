@@ -75,4 +75,44 @@ describe('Drawer', () => {
 		else expect(onOpenChange).toHaveBeenCalledWith(false);
 		outside.remove();
 	});
+
+	it('places no backdrop and no scrolling body without a side', () => {
+		mount({ open: true, modal: true });
+
+		expect(screen.queryByTestId('sim-drawer-backdrop')).toBeNull();
+		expect(screen.getByTestId('popup').hasAttribute('data-side')).toBe(false);
+		expect(screen.getByTestId('popup').firstElementChild?.getAttribute('data-testid')).toBe('content');
+	});
+
+	it('slides from the bottom over a backdrop, with the children in a body under the header', () => {
+		mount({ open: true, modal: true, side: 'bottom', title: 'Stats' });
+
+		const popup = screen.getByRole('dialog', { name: 'Stats' });
+		expect(popup.getAttribute('data-side')).toBe('bottom');
+		expect(screen.getByTestId('sim-drawer-backdrop')).not.toBeNull();
+		const [header, body] = Array.from(popup.children);
+		expect(header.getAttribute('data-testid')).toBe('sim-drawer-header');
+		expect(body.firstElementChild?.getAttribute('data-testid')).toBe('content');
+	});
+
+	it('has no backdrop on a non-modal bottom drawer', () => {
+		mount({ open: true, side: 'bottom' });
+
+		expect(screen.getByTestId('popup').getAttribute('data-side')).toBe('bottom');
+		expect(screen.queryByTestId('sim-drawer-backdrop')).toBeNull();
+	});
+
+	it('closes on a backdrop press', () => {
+		const onOpenChange = vi.fn();
+		mount({ open: true, modal: true, side: 'bottom', onOpenChange });
+
+		const backdrop = screen.getByTestId('sim-drawer-backdrop');
+		fireEvent.pointerDown(backdrop);
+		fireEvent.mouseDown(backdrop);
+		fireEvent.pointerUp(backdrop);
+		fireEvent.mouseUp(backdrop);
+		fireEvent.click(backdrop);
+
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+	});
 });

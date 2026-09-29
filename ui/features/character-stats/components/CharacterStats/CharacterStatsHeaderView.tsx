@@ -16,21 +16,25 @@ export interface CharacterStatsHeaderViewProps {
 	labels: CharacterStatsHeaderLabels;
 }
 
+export const CharacterStatsModeToggle = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
+	<ToggleGroup
+		size="xs"
+		className="shrink-0 whitespace-nowrap"
+		aria-label={labels.modeAriaLabel}
+		value={mode}
+		onChange={onModeChange}
+		options={[
+			{ value: 'key', label: labels.key },
+			{ value: 'all', label: labels.all },
+		]}
+	/>
+);
+
 export const CharacterStatsHeaderView = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
 	<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
 		<h3 data-testid="character-stats-label" className="m-0 text-base leading-tight font-bold">
 			{labels.title}
 		</h3>
-		<ToggleGroup
-			size="xs"
-			className="shrink-0 whitespace-nowrap"
-			aria-label={labels.modeAriaLabel}
-			value={mode}
-			onChange={onModeChange}
-			options={[
-				{ value: 'key', label: labels.key },
-				{ value: 'all', label: labels.all },
-			]}
-		/>
+		<CharacterStatsModeToggle mode={mode} onModeChange={onModeChange} labels={labels} />
 	</div>
 );
