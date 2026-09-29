@@ -1,8 +1,8 @@
+import { ActionCategory } from '@generated/proto/api';
 import { OtherAction } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { AuraStats, SpellStats, UnitMetadata } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import { bucket } from '@sim/utils/collections';
 import type { DropdownValueConfig } from '@ui-kit/DropdownPicker/types';
 
 export type ACTION_ID_SET =
@@ -30,6 +30,44 @@ const spellHasRanks = (actionId: ActionId, spells: Array<AuraStats | SpellStats>
 const createSpellSubmenu = (actionId: ActionId, spells: Array<AuraStats | SpellStats>, baseMenuEntry: Array<string> = []): Array<string> =>
 	spellHasRanks(actionId, spells) ? [...baseMenuEntry, actionId.nameWithoutRank] : baseMenuEntry;
 
+/** The submenus the sim's categories are filed under, in the order they are listed. */
+const CATEGORY_SUBMENUS: Array<[ActionCategory, string]> = [
+	[ActionCategory.ActionCategoryCooldown, 'cooldowns'],
+	[ActionCategory.ActionCategoryConsumable, 'consumables'],
+	[ActionCategory.ActionCategoryItem, 'items'],
+	[ActionCategory.ActionCategoryTalent, 'talents'],
+	[ActionCategory.ActionCategoryRacial, 'racials'],
+	[ActionCategory.ActionCategoryProfession, 'professions'],
+	[ActionCategory.ActionCategoryExternalBuff, 'external_buffs'],
+	[ActionCategory.ActionCategoryExternalCooldown, 'external_cooldowns'],
+	[ActionCategory.ActionCategoryExternalDebuff, 'external_debuffs'],
+];
+
+/**
+ * Files `entries` under their category's submenu, one category after another, and hands back the
+ * uncategorised rest for the caller to place.
+ *
+ * The categories are emitted in a fixed order because the menu places a submenu where its first
+ * option appears, and the metadata arrives sorted by name.
+ */
+const categorise = <T extends AuraStats | SpellStats>(
+	entries: Array<T>,
+	toOption: (entry: T, submenu: Array<string>) => ActionIdOption,
+	allEntries: Array<T> = entries,
+) => ({
+	categorised: CATEGORY_SUBMENUS.flatMap(([category, key]) =>
+		entries.filter(entry => entry.data.category === category).map(entry => toOption(entry, createSpellSubmenu(entry.id, allEntries, [key]))),
+	),
+	uncategorised: entries.filter(entry => !CATEGORY_SUBMENUS.some(([category]) => entry.data.category === category)),
+});
+
+/** The auras `keep` passes; `allAuras`, the unfiltered list, decides whether an aura has ranks. */
+const auraOptions = (allAuras: Array<AuraStats>, keep: (aura: AuraStats) => boolean = () => true): Array<ActionIdOption> => {
+	const toOption = (aura: AuraStats, submenu: Array<string>) => ({ value: aura.id, submenu });
+	const { categorised, uncategorised } = categorise(allAuras.filter(keep), toOption, allAuras);
+	return [...categorised, ...uncategorised.map(aura => toOption(aura, createSpellSubmenu(aura.id, allAuras)))];
+};
+
 /** The one list a spell may be cast from, for the spells the sim only accepts in one of them. */
 export type LIST_SCOPE = 'prepull' | 'priority';
 
@@ -54,57 +92,19 @@ export const actionIdSets: Record<
 > = {
 	auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.auras'),
-		getActionIDs: async metadata => {
-			const auras = metadata.getAuras();
-			return auras.map(actionId => {
-				return {
-					value: actionId.id,
-					submenu: createSpellSubmenu(actionId.id, auras),
-				};
-			});
-		},
+		getActionIDs: async metadata => auraOptions(metadata.getAuras()),
 	},
 	stackable_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.stackable_auras'),
-		getActionIDs: async metadata => {
-			const auras = metadata.getAuras();
-			return auras
-				.filter(aura => aura.data.maxStacks > 0)
-				.map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, auras),
-					};
-				});
-		},
+		getActionIDs: async metadata => auraOptions(metadata.getAuras(), aura => aura.data.maxStacks > 0),
 	},
 	icd_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.icd_auras'),
-		getActionIDs: async metadata => {
-			const auras = metadata.getAuras();
-			return auras
-				.filter(aura => aura.data.hasIcd)
-				.map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, auras),
-					};
-				});
-		},
+		getActionIDs: async metadata => auraOptions(metadata.getAuras(), aura => aura.data.hasIcd),
 	},
 	exclusive_effect_auras: {
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.exclusive_effect_auras'),
-		getActionIDs: async metadata => {
-			const auras = metadata.getAuras();
-			return auras
-				.filter(aura => aura.data.hasExclusiveEffect)
-				.map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, auras),
-					};
-				});
-		},
+		getActionIDs: async metadata => auraOptions(metadata.getAuras(), aura => aura.data.hasExclusiveEffect),
 	},
 	// Used for non categorized lists
 	spells: {
@@ -123,78 +123,14 @@ export const actionIdSets: Record<
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.castable_spells'),
 		getActionIDs: async metadata => {
 			const castableSpells = metadata.getSpells().filter(spell => spell.data.isCastable);
-
-			// Split up non-cooldowns, cooldowns, potions and conjured items into separate sections for easier browsing.
-			const { spells, cooldowns, potions, conjuredItems } = bucket(castableSpells, spell =>
-				spell.data.isPotion ? 'potions' : spell.data.isConjured ? 'conjuredItems' : spell.data.isMajorCooldown ? 'cooldowns' : 'spells',
-			);
+			const toOption = (spell: SpellStats, submenu: Array<string>) => ({ value: spell.id, submenu, listScope: listScopeOf(spell) });
+			const { categorised, uncategorised } = categorise(castableSpells, toOption);
 
 			const placeholders: Array<ActionId> = [ActionId.fromOtherId(OtherAction.OtherActionPotion)];
 
 			return [
-				[
-					{
-						value: ActionId.fromEmpty(),
-						headerText: i18n.t('rotation_tab.apl.submenus.spell'),
-						submenu: ['spell'],
-					},
-				],
-				(spells || []).map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, spells, ['spell']),
-						listScope: listScopeOf(actionId),
-					};
-				}),
-				[
-					{
-						value: ActionId.fromEmpty(),
-						headerText: i18n.t('rotation_tab.apl.submenus.cooldowns'),
-						submenu: ['cooldowns'],
-					},
-				],
-				(cooldowns || []).map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, spells, ['cooldowns']),
-						listScope: listScopeOf(actionId),
-					};
-				}),
-				[
-					{
-						value: ActionId.fromEmpty(),
-						headerText: i18n.t('rotation_tab.apl.submenus.potions'),
-						submenu: ['potions'],
-					},
-				],
-				(potions || []).map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, spells, ['potions']),
-						listScope: listScopeOf(actionId),
-					};
-				}),
-				[
-					{
-						value: ActionId.fromEmpty(),
-						headerText: i18n.t('rotation_tab.apl.submenus.conjured_items'),
-						submenu: ['conjured_items'],
-					},
-				],
-				(conjuredItems || []).map(actionId => {
-					return {
-						value: actionId.id,
-						submenu: createSpellSubmenu(actionId.id, spells, ['conjured_items']),
-						listScope: listScopeOf(actionId),
-					};
-				}),
-				[
-					{
-						value: ActionId.fromEmpty(),
-						headerText: i18n.t('rotation_tab.apl.submenus.placeholders'),
-						submenu: ['placeholders'],
-					},
-				],
+				uncategorised.map(spell => toOption(spell, createSpellSubmenu(spell.id, castableSpells, ['spell']))),
+				categorised,
 				placeholders.map(actionId => {
 					return {
 						value: actionId,

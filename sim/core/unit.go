@@ -975,6 +975,11 @@ func (unit *Unit) GetUnit(ref *proto.UnitReference) *Unit {
 }
 
 func (unit *Unit) GetMetadata() *proto.UnitMetadata {
+	return unit.metadata(unit)
+}
+
+// casters are the units whose spells can cast this unit's auras, which decides an aura's category.
+func (unit *Unit) metadata(casters ...*Unit) *proto.UnitMetadata {
 	metadata := &proto.UnitMetadata{
 		Name: unit.Label,
 	}
@@ -997,6 +1002,7 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 			HasExpectedTick: spell.expectedTickDamageInternal != nil,
 			HasMissileSpeed: spell.MissileSpeed > 0.0,
 			HasRanks:        spell.Rank > 0,
+			Category:        spell.category(),
 		}
 	})
 
@@ -1009,6 +1015,7 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 			MaxStacks:          aura.MaxStacks,
 			HasIcd:             aura.Icd != nil,
 			HasExclusiveEffect: len(aura.ExclusiveEffects) > 0,
+			Category:           auraCategory(aura, casters),
 		}
 	})
 

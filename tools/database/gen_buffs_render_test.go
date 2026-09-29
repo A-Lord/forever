@@ -296,11 +296,11 @@ func TestRenderedBuffFilesCompile(t *testing.T) {
 	if err := os.WriteFile(drivers, []byte("package buffs\n\n"+
 		"import (\n\t\"github.com/wowsims/forever/sim/core\"\n\t\"github.com/wowsims/forever/sim/core/proto\"\n)\n\n"+
 		"func driveSynthInnervates(char *core.Character, individual *proto.IndividualBuffs) {\n"+
-		"\tcore.NewGeneratedExternalCD(char, NewSpellDataSynthInnervatesAura(&char.Unit, false, 0),"+
-		" core.GeneratedExternalCD{NumSources: individual.Innervates,"+
+		"\tnewGeneratedExternalCD(char, NewSpellDataSynthInnervatesAura(&char.Unit, false, 0),"+
+		" generatedExternalCD{NumSources: individual.Innervates,"+
 		" Cooldown: SynthInnervatesCooldown(), Type: core.CooldownTypeMana})\n}\n\n"+
 		"func driveSynthBattleShout(char *core.Character, _ *proto.PartyBuffs) {\n"+
-		"\tcore.ApplyFixedShoutAura(char, NewSpellDataSynthBattleShoutAura(&char.Unit, false, 0),"+
+		"\tapplyFixedShoutAura(char, NewSpellDataSynthBattleShoutAura(&char.Unit, false, 0),"+
 		" SynthBattleShoutCategory)\n}\n\n"+
 		"func driveSynthSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {\n"+
 		"\tcore.MakePermanent(NewSpellDataSynthSunderArmorAura(target, false, 0))\n}\n\n"+
@@ -308,12 +308,12 @@ func TestRenderedBuffFilesCompile(t *testing.T) {
 		"\tcore.MakePermanent(NewSpellDataSynthAtieshMageAura(&char.Unit, false, 0,"+
 		" float64(party.AtieshMage)))\n}\n\n"+
 		"func driveSynthPowerInfusions(char *core.Character, individual *proto.IndividualBuffs) {\n"+
-		"\tcore.NewGeneratedExternalCD(char, NewSpellDataSynthPowerInfusionsAura(&char.Unit, false, 0),"+
-		" core.GeneratedExternalCD{NumSources: individual.PowerInfusions,"+
+		"\tnewGeneratedExternalCD(char, NewSpellDataSynthPowerInfusionsAura(&char.Unit, false, 0),"+
+		" generatedExternalCD{NumSources: individual.PowerInfusions,"+
 		" Cooldown: SynthPowerInfusionsCooldown(), Type: core.CooldownTypeDPS})\n}\n\n"+
 		"func driveSynthManaTide(char *core.Character, party *proto.PartyBuffs) {\n"+
-		"\tcore.NewGeneratedExternalCD(char, NewSpellDataSynthManaTideAura(&char.Unit, false, 0),"+
-		" core.GeneratedExternalCD{NumSources: party.ManaTideTotems,"+
+		"\tnewGeneratedExternalCD(char, NewSpellDataSynthManaTideAura(&char.Unit, false, 0),"+
+		" generatedExternalCD{NumSources: party.ManaTideTotems,"+
 		" Cooldown: SynthManaTideCooldown(), Type: core.CooldownTypeMana})\n}\n"), 0644); err != nil {
 		t.Fatal(err)
 	}

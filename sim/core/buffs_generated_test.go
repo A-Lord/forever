@@ -12,22 +12,10 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// applyBuffEffects takes an Agent, and the part of one a buff reaches is the
-// Character it wraps.
-type generatedBuffTestAgent struct {
-	*core.Character
-}
-
-func (agent generatedBuffTestAgent) GetCharacter() *core.Character       { return agent.Character }
-func (agent generatedBuffTestAgent) Initialize()                         {}
-func (agent generatedBuffTestAgent) ApplyTalents()                       {}
-func (agent generatedBuffTestAgent) Reset(_ *core.Simulation)            {}
-func (agent generatedBuffTestAgent) OnEncounterStart(_ *core.Simulation) {}
-
 func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -74,7 +62,7 @@ func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
 
 	player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
@@ -119,7 +107,7 @@ func TestImprovedPartyBattleShoutAddsTheTierTwoBonus(t *testing.T) {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
 
-			core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
+			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
 			char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 			if got := char.GetStats()[stats.AttackPower]; got != row.want {
@@ -148,11 +136,11 @@ func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
 
-			core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
+			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
 
 			player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
 			if row.playerBonus != 0 {
-				core.AddGeneratedFlatBonus(player, stats.AttackPower, buffs.BattleShoutValue(0), row.playerBonus)
+				buffs.AddGeneratedFlatBonus(player, stats.AttackPower, buffs.BattleShoutValue(0), row.playerBonus)
 			}
 			player.BuildPhase = core.CharacterBuildPhaseBuffs
 
@@ -176,7 +164,7 @@ func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
 func TestGeneratedFlatStatBuffsAddUp(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{PrayerOfFortitude: true}, &proto.PartyBuffs{BloodPact: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -202,7 +190,7 @@ func TestGeneratedGreaterBlessingOfKingsMultipliesEveryStat(t *testing.T) {
 		stats.Intellect: 100, stats.Spirit: 100, stats.Armor: 100,
 	})
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{}, &proto.IndividualBuffs{GreaterBlessingOfKings: true})
 	measureGeneratedBuffStats(char)
 
@@ -221,7 +209,7 @@ func TestGeneratedGreaterBlessingOfKingsMultipliesEveryStat(t *testing.T) {
 func TestGeneratedResistancesCompeteAcrossBuffs(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{GiftOfTheWild: true, PrayerOfShadowProtection: true},
 		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
@@ -252,7 +240,7 @@ func TestGeneratedResistancesCompeteAcrossBuffs(t *testing.T) {
 func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{DevotionAura: true}, &proto.IndividualBuffs{})
 
 	shared := char.ExclusiveEffectManager.GetExclusiveEffectCategory("PaladinAura")
@@ -293,7 +281,7 @@ func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testin
 func TestGeneratedManaSpringTotemTakesTheTalentedValue(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectImproved},
 		&proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
@@ -337,7 +325,7 @@ func TestGeneratedCritAurasApplyTheClientsThreeToEveryKindOfCrit(t *testing.T) {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
 
-			core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
+			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
 			char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 			if got := char.GetStats()[stats.PhysicalCritPercent]; got != 3 {
@@ -358,7 +346,7 @@ func TestGeneratedCritAurasApplyTheClientsThreeToEveryKindOfCrit(t *testing.T) {
 func TestGeneratedCritAurasLeaveTheOutbidCopyRegisteredAndInert(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{LeaderOfThePack: true, MoonkinAura: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -387,7 +375,7 @@ func TestGeneratedCritAurasLeaveTheOutbidCopyRegisteredAndInert(t *testing.T) {
 func TestGeneratedPartyConcentrationAuraReducesPushback(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{ConcentrationAura: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -402,7 +390,7 @@ func TestGeneratedPartyConcentrationAuraReducesPushback(t *testing.T) {
 func TestGeneratedTrueshotAuraGivesTheTopRanksRangedAttackPower(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{TrueshotAura: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -437,7 +425,7 @@ func measureGeneratedBuffStats(char *core.Character) {
 // totem simply stands.
 func TestGeneratedGraceOfAirFollowsTotemTwisting(t *testing.T) {
 	standing := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(generatedBuffTestAgent{standing},
+	core.ApplyBuffEffects(standing,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{GraceOfAirTotem: true}, &proto.IndividualBuffs{})
 	standing.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -453,7 +441,7 @@ func TestGeneratedGraceOfAirFollowsTotemTwisting(t *testing.T) {
 	}
 
 	twisting := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(generatedBuffTestAgent{twisting}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(twisting, &proto.RaidBuffs{},
 		&proto.PartyBuffs{GraceOfAirTotem: true, TotemTwisting: true}, &proto.IndividualBuffs{})
 	twisting.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -503,7 +491,7 @@ func TestGeneratedGraceOfAirFollowsTotemTwisting(t *testing.T) {
 func TestGeneratedAtieshStavesCountTheStaves(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{AtieshDruid: 1, AtieshMage: 3, AtieshPriest: 2, AtieshWarlock: 1},
 		&proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
@@ -875,7 +863,7 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 func TestGeneratedRetributionAuraHoldsThePaladinSlot(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{RetributionAura: true}, &proto.IndividualBuffs{})
 
 	external := char.GetAura("Retribution Aura (External)")
@@ -910,7 +898,7 @@ func TestGeneratedRetributionAuraHoldsThePaladinSlot(t *testing.T) {
 func TestRetributionAuraCarriesThePartysSpellPower(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(generatedBuffTestAgent{char},
+	core.ApplyBuffEffects(char,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{RetributionAura: true, RetributionAuraSpellPower: 450}, &proto.IndividualBuffs{})
 
 	if char.GetAura("Retribution Aura (External)") == nil {
@@ -1140,7 +1128,7 @@ func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
 	}
 
 	char := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{StoneskinTotem: proto.TristateEffect_TristateEffectImproved}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
@@ -1161,12 +1149,12 @@ func TestGeneratedFuriousHowlStacksWithBattleShout(t *testing.T) {
 	}
 
 	shoutOnly := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(generatedBuffTestAgent{shoutOnly}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(shoutOnly, &proto.RaidBuffs{},
 		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
 	shoutOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 	char := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(generatedBuffTestAgent{char}, &proto.RaidBuffs{},
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 

@@ -8,6 +8,8 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
+// Content phase from item level, drop zone, faction and name, for a phase ladder the game files do
+// not state. Not called: Forever's phases are not known yet, so gen_db stamps every item phase 1.
 func InferPhase(item *proto.UIItem) int32 {
 	ilvl := item.ScalingOptions[int32(0)].Ilvl
 	name := item.Name

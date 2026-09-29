@@ -6170,6 +6170,30 @@
 								},
 								"placeholders": {
 									"type": "string"
+								},
+								"consumables": {
+									"type": "string"
+								},
+								"items": {
+									"type": "string"
+								},
+								"talents": {
+									"type": "string"
+								},
+								"racials": {
+									"type": "string"
+								},
+								"professions": {
+									"type": "string"
+								},
+								"external_buffs": {
+									"type": "string"
+								},
+								"external_cooldowns": {
+									"type": "string"
+								},
+								"external_debuffs": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
@@ -6205,7 +6229,15 @@
 								"cooldowns",
 								"potions",
 								"conjured_items",
-								"placeholders"
+								"placeholders",
+								"consumables",
+								"items",
+								"talents",
+								"racials",
+								"professions",
+								"external_buffs",
+								"external_cooldowns",
+								"external_debuffs"
 							]
 						},
 						"item_swap_sets": {

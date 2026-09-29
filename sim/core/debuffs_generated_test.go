@@ -196,7 +196,7 @@ func TestGeneratedThunderClapBidsAgainstTheHandWrittenSlows(t *testing.T) {
 	// Through a variable, so that the test does the same float64 arithmetic the
 	// helper does rather than Go's exact constant arithmetic.
 	divisor := 1.5
-	stronger := core.AtkSpeedReductionEffect(slower, divisor)
+	stronger := buffs.AtkSpeedReductionEffect(slower, divisor)
 	if want := 1 - 1/divisor; stronger.Priority != want {
 		t.Errorf("a slow that divides by %v bids %v, want the magnitude %v", divisor, stronger.Priority, want)
 	}
@@ -227,7 +227,7 @@ func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 		ActionID: core.ActionID{SpellID: 27648},
 		Duration: time.Second * 12,
 	})
-	tied := core.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(20))
+	tied := buffs.AtkSpeedReductionEffect(cyclone, core.MultiplierFromPercent(20))
 	if clapBid := clap.ExclusiveEffects[0].Priority; tied.Priority != clapBid {
 		t.Fatalf("the proc bids %v against the clap's %v, want the same -20%% slow to tie", tied.Priority, clapBid)
 	}
