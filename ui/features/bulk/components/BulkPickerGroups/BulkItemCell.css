@@ -1,9 +1,9 @@
 @layer components {
 	.ui-bulk-item-cell {
-		--gem-width: 1rem;
+		--gem-width: --spacing(4);
 
 		& .ui-item-picker-icon-wrapper {
-			--icon-size: 3.5rem;
+			--icon-size: --spacing(14);
 			min-width: 3.5rem;
 			min-height: 3.5rem;
 		}

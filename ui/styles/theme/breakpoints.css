@@ -14,13 +14,13 @@
 
 :root {
 	@variant lg {
-		--spacing-page: 2rem;
-		--spacing-section: 1.5rem;
+		--spacing-page: --spacing(8);
+		--spacing-section: --spacing(6);
 	}
 
 	@variant xxl {
-		--spacing-page: 3rem;
-		--spacing-section: 2rem;
+		--spacing-page: --spacing(12);
+		--spacing-section: --spacing(8);
 	}
 
 	@variant max-lg {

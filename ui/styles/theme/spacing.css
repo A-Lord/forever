@@ -1,7 +1,7 @@
 @theme static {
-	--spacing-page: 0.5rem;
-	--spacing-section: 2rem;
-	--spacing-floating-action-bar: calc(2.75rem + (var(--spacing) * 2 * 2) + 2px);
+	--spacing-page: --spacing(2);
+	--spacing-section: --spacing(8);
+	--spacing-floating-action-bar: calc(--spacing(11) + (var(--spacing) * 2 * 2) + 2px);
 	--spacing-popup-min-w: 300px;
 	--size-scrollbar: 0.2rem;
 
@@ -9,8 +9,8 @@
 	--grid-template-columns-halves-wide: 1fr 1fr 2fr;
 	--grid-template-columns-label-value: 10ch 1fr;
 	--grid-template-columns-split: 1fr 0 1fr;
-	--grid-template-columns-icon-triple: 4rem repeat(3, 1fr);
-	--grid-template-columns-icon-fill: repeat(auto-fill, 4rem);
+	--grid-template-columns-icon-triple: --spacing(16) repeat(3, 1fr);
+	--grid-template-columns-icon-fill: repeat(auto-fill, --spacing(16));
 	--grid-template-rows-auto: auto;
 
 	--container-modal-sm: 300px;
@@ -25,7 +25,7 @@
 	--container-landing-lg: 960px;
 	--container-landing-xxl: 1320px;
 
-	--spacing-sim-header: 4.5rem;
+	--spacing-sim-header: --spacing(18);
 
 	--grid-template-columns-auto-fit-220: repeat(auto-fit, minmax(220px, 1fr));
 	--grid-template-columns-single: auto;
@@ -33,11 +33,11 @@
 
 	--spacing-cr-icon: 42px;
 
-	--spacing-tree-indent: 1rem;
-	--spacing-tree-gap: 0.75rem;
-	--spacing-tree-gap-compact: 0.5rem;
-	--spacing-tree-row-py: 1rem;
-	--spacing-tree-row-px: 1rem;
+	--spacing-tree-indent: --spacing(4);
+	--spacing-tree-gap: --spacing(3);
+	--spacing-tree-gap-compact: --spacing(2);
+	--spacing-tree-row-py: --spacing(4);
+	--spacing-tree-row-px: --spacing(4);
 	--spacing-tree-drop-line: 2px;
 }
 
