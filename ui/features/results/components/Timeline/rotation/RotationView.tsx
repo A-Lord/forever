@@ -397,7 +397,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 			{active &&
 				stickySlot &&
 				createPortal(
-					<div ref={rulerRowRef} className="flex h-8 shrink-0 grow-0 basis-8 text-white" style={paneVars}>
+					<div ref={rulerRowRef} className="flex h-6 shrink-0 grow-0 basis-6 text-white" style={paneVars}>
 						<RotationToolbar
 							ref={cornerRef}
 							onZoomOut={() => zoomRef.current?.stepOut()}

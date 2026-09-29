@@ -26,7 +26,7 @@ const meta = {
 	argTypes: { softCaps: { control: false }, additionalInformation: { control: false } },
 	decorators: [
 		Story => (
-			<div className="w-78">
+			<div className="w-76">
 				<Story />
 			</div>
 		),

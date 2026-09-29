@@ -35,7 +35,7 @@
 
 	--spacing-cr-icon: --spacing(12);
 
-	--spacing-tree-indent: --spacing(4);
+	--spacing-tree-indent: --spacing(2);
 	--spacing-tree-gap: --spacing(2);
 	--spacing-tree-gap-compact: --spacing(2);
 	--spacing-tree-row-py: --spacing(4);
