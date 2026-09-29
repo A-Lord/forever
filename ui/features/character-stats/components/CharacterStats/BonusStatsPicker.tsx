@@ -1,5 +1,5 @@
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
-import type { NumberPickerConfig } from '@features/inputs/configs';
+import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import type { NumberFieldConfig } from '@features/inputs/configs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { UnitStat } from '@sim/proto/stats';
@@ -19,7 +19,7 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 	const player = usePlayer();
 
 	const config = useMemo(
-		(): NumberPickerConfig<Player<any>> => ({
+		(): NumberFieldConfig<Player<any>> => ({
 			id: `character-bonus-stat-${unitStat.getKey()}`,
 			label,
 			inputClassName: 'm-0 w-32 flex-1',
@@ -43,5 +43,5 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 		[unitStat, label, onCommit],
 	);
 
-	return <BoundNumberPicker modObject={player} config={config} />;
+	return <BoundNumberField modObject={player} config={config} />;
 };

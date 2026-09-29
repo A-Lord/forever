@@ -1,6 +1,6 @@
 import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import { BoundNumberField } from '@features/inputs/components/BoundTextField';
 import type { ReforgeOptimizerModel } from '@features/reforge/model/reforge_optimizer';
 import { toDefaultUnitStatValue, toVisualUnitStatPercentage } from '@features/reforge/model/utils';
 import i18n from '@i18n/config';
@@ -49,7 +49,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 			statName={statName}
 			tooltip={tooltip}
 			percentage={
-				<BoundNumberPicker
+				<BoundNumberField
 					modObject={player}
 					config={{
 						id: `${idPrefix}-${statName}-percentage`,

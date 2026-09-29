@@ -13,7 +13,7 @@ describe('LogRunnerHeaderView', () => {
 		expect(input.value).toBe('Mortal');
 		expect(input.placeholder).toBe('results_tab.details.logs.search_placeholder');
 
-		fireEvent.change(input, { target: { value: 'Mortal Strike' } });
+		fireEvent.input(input, { target: { value: 'Mortal Strike' } });
 		expect(onSearchChange).not.toHaveBeenCalled();
 		act(() => vi.advanceTimersByTime(150));
 		expect(onSearchChange).toHaveBeenCalledWith('Mortal Strike');

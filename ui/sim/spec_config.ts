@@ -26,7 +26,7 @@ export interface EncounterPickerConfig {
 
 export type InputConfig<ModObject> =
 	| InputHelpers.TypedBooleanPickerConfig<ModObject>
-	| InputHelpers.TypedNumberPickerConfig<ModObject>
+	| InputHelpers.TypedNumberFieldConfig<ModObject>
 	| InputHelpers.TypedEnumPickerConfig<ModObject>;
 
 export interface InputSection {

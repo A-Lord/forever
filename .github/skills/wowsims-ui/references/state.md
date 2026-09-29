@@ -160,15 +160,17 @@ replay before it zeroes a hidden input or restores a shown one. Both icon adapte
   `zeroValue` when that option is itself hidden by its `showWhen`. A user pick calls `clearStored()`
   first, so a later show does not overwrite it.
 
-The three text pickers — `NumberPicker`, `AdaptiveStringPicker`, `NumberListPicker` — hold an
+`TextField` (`ui/ui-kit/TextField/TextField.tsx`) and its presets — `NumberField`, `StringField`,
+`NumberListField`, `SearchField` — hold an
 uncommitted edit in `useDraft` (`ui/ui-kit/hooks/useDraft.ts`), keyed on the formatted display
 string: a new value from the parent drops the draft, a commit clears it, and a notification that
 leaves the display string unchanged (a same-value write, a `revision` bump) keeps a mid-edit draft.
-They commit through `useCommitChange`
+With the default `commit="blur"`, which every `Bound*Field` uses, they commit through `useCommitChange`
 (`ui/ui-kit/hooks/useCommitChange.ts`), which listens for the **native `change` event** —
 blur-after-edit and Enter — not React's `onChange`, which fires per keystroke. Typing into one of
-them writes nothing to the store until the edit is committed; `EnumPicker`'s `<select>` is the
-exception and commits on selection. `EnumPicker` is a controlled native `<select>`, so a `value`
+them writes nothing to the store until the edit is committed. The exceptions are `SearchField`, which
+commits per keystroke or once typing pauses, and `EnumPicker`'s `<select>`, which commits on
+selection. `EnumPicker` is a controlled native `<select>`, so a `value`
 missing from its `values` shows the first option without writing it back.
 
 Omit both `storeField` and `storeSubscribe` for an input re-synced by its parent — the nested APL

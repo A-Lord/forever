@@ -79,13 +79,17 @@ export const ComboBox = <T,>({
 				id={id}
 				grow={grow}
 				testId="combo-box-root"
-				clear={{
-					show: clearable && value.length > 0,
-					label: clearLabel,
-					className: clearClassName,
-					testId: 'combo-box-clear-btn',
-					onClear: () => onChange(''),
-				}}>
+				clear={
+					clearable
+						? {
+								show: value.length > 0,
+								label: clearLabel,
+								className: clearClassName,
+								testId: 'combo-box-clear-btn',
+								onClear: () => onChange(''),
+							}
+						: undefined
+				}>
 				<Autocomplete.Input
 					id={id}
 					data-testid={inputTestId}

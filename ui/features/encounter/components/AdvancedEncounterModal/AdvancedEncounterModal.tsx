@@ -1,5 +1,5 @@
 import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import { BoundNumberField } from '@features/inputs/components/BoundTextField';
 import type { EnumPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -53,12 +53,12 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 			<div className="flex flex-col gap-3" data-testid="encounter-header">
 				<PickerGroup>
 					{duration.map(config => (
-						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
+						<BoundNumberField key={config.id} modObject={encounter} config={config} />
 					))}
 				</PickerGroup>
 				<PickerGroup>
 					{execute.map(config => (
-						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
+						<BoundNumberField key={config.id} modObject={encounter} config={config} />
 					))}
 				</PickerGroup>
 			</div>

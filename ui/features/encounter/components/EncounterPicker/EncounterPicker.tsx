@@ -1,5 +1,5 @@
 import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import { BoundNumberField } from '@features/inputs/components/BoundTextField';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { useMemo, useState } from 'react';
@@ -33,14 +33,14 @@ export const EncounterPicker = ({ showExecuteProportion }: EncounterPickerProps)
 		<>
 			<EncounterPickerView
 				duration={duration.map(config => (
-					<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
+					<BoundNumberField key={config.id} modObject={encounter} config={config} />
 				))}
-				execute={showExecuteProportion && execute.map(config => <BoundNumberPicker key={config.id} modObject={encounter} config={config} />)}
+				execute={showExecuteProportion && execute.map(config => <BoundNumberField key={config.id} modObject={encounter} config={config} />)}
 				zone={<BoundEnumPicker modObject={encounter} config={zone} />}
 				areaTypes={<AreaTypesPicker encounter={encounter} />}
 				preset={showDamage && <BoundEnumPicker modObject={encounter} config={preset} />}
-				allies={player.canEnableTargetDummies() && <BoundNumberPicker modObject={host.sim.raid} config={allies} />}
-				minBaseDamage={player.getPlayerSpec().isTankSpec && <BoundNumberPicker modObject={encounter} config={minBaseDamage} />}
+				allies={player.canEnableTargetDummies() && <BoundNumberField modObject={host.sim.raid} config={allies} />}
+				minBaseDamage={player.getPlayerSpec().isTankSpec && <BoundNumberField modObject={encounter} config={minBaseDamage} />}
 				targetInputs={<TargetInputsPicker encounter={encounter} targetIndex={0} />}
 				onAdvancedClick={() => setAdvancedOpen(true)}
 			/>

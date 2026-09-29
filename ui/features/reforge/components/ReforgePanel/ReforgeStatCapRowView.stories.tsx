@@ -4,9 +4,7 @@ import { Table } from '@ui-kit/Table';
 
 import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
 
-const percentage = (initial: number) => (
-	<StoryNumber float showZeroes={false} positive className="mb-0" inputClassName="pr-2 pl-2 text-right" initial={initial} />
-);
+const percentage = (initial: number) => <StoryNumber float showZeroes={false} positive inputClassName="pr-2 pl-2 text-right" initial={initial} />;
 
 const meta = {
 	title: 'Features/Reforge/ReforgePanel/Components/ReforgeStatCapRowView',
