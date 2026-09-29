@@ -1,8 +1,9 @@
 import { Popover as BasePopover } from '@base-ui/react/popover';
+import { Button } from '@ui-kit/Button';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import type { ClassValue } from 'clsx';
 import clsx from 'clsx';
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react';
 
 export type PopoverSide = 'top' | 'right' | 'bottom' | 'left';
 export type PopoverAlign = 'start' | 'center' | 'end';
@@ -10,6 +11,8 @@ export type PopoverAlign = 'start' | 'center' | 'end';
 export interface PopoverProps {
 	/** Contents of the trigger button. `Popover.Root` renders no element of its own, so the trigger is the only element the popover puts in the page's flow. Omit it and give `anchor` instead, for a popover a control opens without becoming its trigger. */
 	trigger?: ReactNode;
+	/** The trigger's own element, e.g. a kit `<Button variant="primary" />`, with `trigger` as its children; a plain `<button>` otherwise. */
+	triggerRender?: ReactElement;
 	/** What the popup is positioned against when there is no trigger. */
 	anchor?: BasePopover.Positioner.Props['anchor'];
 	triggerClassName?: ClassValue;
@@ -40,6 +43,7 @@ const ANCHOR_DISTANCE = 10;
 
 export const Popover = ({
 	trigger,
+	triggerRender,
 	anchor,
 	triggerClassName,
 	triggerTestId,
@@ -62,7 +66,14 @@ export const Popover = ({
 	return (
 		<BasePopover.Root open={open} modal={false} onOpenChange={nextOpen => onOpenChange?.(nextOpen)}>
 			{trigger != null && (
-				<BasePopover.Trigger className={clsx(triggerClassName)} data-testid={triggerTestId} openOnHover={openOnHover} delay={delay} {...triggerProps}>
+				<BasePopover.Trigger
+					render={triggerRender}
+					nativeButton={triggerRender === undefined || triggerRender.type === 'button' || triggerRender.type === Button}
+					className={clsx(triggerClassName)}
+					data-testid={triggerTestId}
+					openOnHover={openOnHover}
+					delay={delay}
+					{...triggerProps}>
 					{trigger}
 				</BasePopover.Trigger>
 			)}

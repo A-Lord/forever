@@ -179,22 +179,12 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				className="min-w-popup-min-w"
 				testId="reforge-optimiser-popover"
 				maxWidth="max-w-87.5 max-lg:max-w-settings-panel-max"
-				triggerClassName={[
-					'ui-button',
-					'ui-button-md',
-					'ui-button-primary',
-					'bg-transparent',
-					'border-transparent',
-					'hover:bg-primary-hover',
-					'hover:border-primary-hover',
-					'focus-visible:bg-primary-hover',
-					'focus-visible:border-primary-hover',
-					'active:bg-primary-active',
-					'active:border-primary-active',
-					'data-[popup-open]:bg-primary-active',
-					'data-[popup-open]:border-primary-active',
-					'w-(--settings-button-width)',
-				]}
+				triggerRender={
+					<Button
+						variant="primary"
+						className="w-(--settings-button-width) border-transparent bg-transparent hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active data-popup-open:border-primary-active data-popup-open:bg-primary-active"
+					/>
+				}
 				triggerTestId="suggest-reforges-button-settings"
 				triggerProps={settingsTriggerProps}
 				trigger={<Icon name="cog" />}>
