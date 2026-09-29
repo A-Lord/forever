@@ -56,13 +56,12 @@ const rows = () => Array.from(document.querySelectorAll('[data-testid="apl-group
 const labels = () => rows().map(row => row.querySelector('label')!.textContent);
 
 const clickItemAction = (index: number, action: string) => {
-	const item = document.querySelectorAll('[data-testid="list-picker-item-container"]')[index];
-	act(() => {
-		fireEvent.click(item.querySelector('[data-testid="list-picker-item-actions"]')!);
-	});
-	act(() => {
-		fireEvent.click(document.querySelector(action)!);
-	});
+	const item = document.querySelectorAll('[data-testid="apl-group-variables-item"]')[index];
+	const trigger = item.querySelector<HTMLButtonElement>('[data-testid="tree-item-actions"]')!;
+	trigger.focus();
+	act(() => void fireEvent.click(trigger));
+	const button = document.querySelector(`[data-testid="tree-item-actions-popup"][data-open] ${action}`)!;
+	act(() => void fireEvent.click(button));
 };
 
 beforeEach(() => {
@@ -92,7 +91,7 @@ describe('GroupVariablesField under StrictMode (bug 2 — reconcile is a write o
 		setup({ groupName: 'g1', placeholders: ['a', 'b'], existingVariables: [existingA] });
 		mount();
 
-		clickItemAction(0, '[data-testid="list-picker-item-delete"]');
+		clickItemAction(0, '[data-testid="apl-group-variables-delete"]');
 
 		expect(labels()).toEqual(['a:', 'b:']);
 		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a', 'b']);

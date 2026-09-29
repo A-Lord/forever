@@ -931,6 +931,9 @@
 						"move_drag_drop": {
 							"type": "string"
 						},
+						"item_actions": {
+							"type": "string"
+						},
 						"warnings": {
 							"type": "string"
 						},
@@ -950,6 +953,7 @@
 						"delete_item",
 						"copy_to_new",
 						"move_drag_drop",
+						"item_actions",
 						"warnings",
 						"additional_information",
 						"action_has_warnings",
