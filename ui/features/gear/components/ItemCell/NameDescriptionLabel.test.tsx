@@ -26,14 +26,4 @@ describe('NameDescriptionLabel', () => {
 		expect(classes).not.toContain('extra-c');
 		expect(classes.indexOf('text-quality-uncommon')).toBeLessThan(classes.indexOf('extra-a'));
 	});
-
-	it('drops the left margin when it is flush', () => {
-		const spaced = render(<NameDescriptionLabel nameDescription="Heroic" />).container.firstElementChild!;
-		expect([...spaced.classList]).toEqual(expect.arrayContaining(['ml-1']));
-		expect(spaced.classList.contains('ml-0')).toBe(false);
-
-		const flush = render(<NameDescriptionLabel nameDescription="Heroic" flush />).container.firstElementChild!;
-		expect([...flush.classList]).toEqual(expect.arrayContaining(['ml-0']));
-		expect(flush.classList.contains('ml-1')).toBe(false);
-	});
 });

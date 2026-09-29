@@ -38,7 +38,7 @@ export const BulkItemSearchRow = ({ item }: BulkItemSearchRowProps) => {
 			<div className="flex flex-col gap-1 pl-2">
 				<div className="flex flex-col flex-wrap gap-x-1 xxl:flex-row">
 					<span className={itemQualityClassName(item.quality)}>{item.name}</span>
-					{!!item.nameDescription && <NameDescriptionLabel nameDescription={item.nameDescription} flush />}
+					{!!item.nameDescription && <NameDescriptionLabel nameDescription={item.nameDescription} />}
 					{item.factionRestriction === UIItem_FactionRestriction.HORDE_ONLY && (
 						<span className={FACTION_TEXT[UIItem_FactionRestriction.HORDE_ONLY]}>(H)</span>
 					)}

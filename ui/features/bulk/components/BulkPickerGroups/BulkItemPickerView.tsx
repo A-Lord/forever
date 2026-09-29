@@ -38,7 +38,6 @@ export const BulkItemPickerView = ({ slot, item, state, onOpen, onRemove }: Bulk
 		<ItemDetailCell
 			slot={slot}
 			item={item}
-			nameDescriptionFlush
 			testId="bulk-item-picker"
 			rootDataAttributes={ROOT_ATTRIBUTES[state]}
 			className={clsx('ui-bulk-item-cell mb-0 p-2', FRAME[state])}
