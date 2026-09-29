@@ -7,20 +7,16 @@
 		}
 
 		&:not([data-open]) > .ui-character-stats-header {
-			@apply before:bg-border-muted;
-
-			&[data-stuck] {
-				@apply before:bg-border;
-			}
+			@apply before:border-t-border;
 		}
 	}
 
 	.ui-character-stats-panel {
-		@apply relative -mx-(--sidebar-inline-padding) px-(--sidebar-inline-padding) pt-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:h-px before:bg-border-muted;
+		@apply relative -mx-(--sidebar-inline-padding) px-(--sidebar-inline-padding) pt-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:border-t before:border-solid before:border-t-border;
 	}
 
 	.ui-character-stats-header {
-		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) bg-background px-(--sidebar-inline-padding) py-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:h-px before:bg-transparent;
+		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) bg-background px-(--sidebar-inline-padding) py-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:border-t before:border-solid before:border-t-transparent;
 	}
 
 	.ui-character-stats-bar {
