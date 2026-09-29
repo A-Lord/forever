@@ -1,4 +1,4 @@
-import { Field } from '@ui-kit/Field';
+import { Field, hasFieldChrome } from '@ui-kit/Field';
 import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { IconSwatch } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
@@ -7,7 +7,7 @@ import type { MouseEvent } from 'react';
 
 import { ImprovedAnchor } from './ImprovedAnchor';
 
-export interface IconPickerProps extends Omit<FieldChromeProps, 'layout'>, ControlledProps<number> {
+export interface IconPickerProps extends FieldChromeProps, ControlledProps<number> {
 	/** The number of states the icon cycles through: 2 is on/off, 0 is unlimited. */
 	states: number;
 	icon?: ResolvedIcon;
@@ -17,12 +17,12 @@ export interface IconPickerProps extends Omit<FieldChromeProps, 'layout'>, Contr
 	improvedIcon2?: ResolvedIcon;
 }
 
-/** Without a label or description the swatch renders bare; with one it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
+/** Without a label, description or layout the swatch renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
 export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...chrome }: IconPickerProps) => {
 	const fillImproved1 = states >= 3 && !!improvedIcon;
 	const fillImproved2 = states >= 4 && !!improvedIcon2;
 	const showCounterText = !improvedIcon && (states > 3 || states === 0);
-	const labelled = !!chrome.label || !!chrome.description;
+	const rooted = hasFieldChrome(chrome);
 
 	const handleLeftClick = () => {
 		// An <a> cannot be disabled, so the state change has to be stopped here.
@@ -81,7 +81,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 			disabled={disabled}
 			text={showCounterText ? String(value) : undefined}
 			badges={badges || undefined}
-			className={clsx(value === 0 && 'grayscale', !labelled && className)}
+			className={clsx(value === 0 && 'grayscale', !rooted && className)}
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.
 			aria-label={icon?.name || undefined}
@@ -90,7 +90,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 		/>
 	);
 
-	if (!labelled) return swatch;
+	if (!rooted) return swatch;
 
 	return <Field {...chrome} layout="icon" className={className} disabled={disabled} leading={swatch} />;
 };

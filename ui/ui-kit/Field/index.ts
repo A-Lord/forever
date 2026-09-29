@@ -15,3 +15,4 @@ export type {
 	FieldTooltip,
 	ResolvedIcon,
 } from './types';
+export { hasFieldChrome } from './utils';

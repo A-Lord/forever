@@ -80,8 +80,17 @@ describe('IconPicker', () => {
 	});
 
 	it('lays out an icon field whatever layout the caller asks for', () => {
-		const { container } = mount({ label: 'Buff', layout: 'inline' } as Partial<HarnessProps>);
+		const { container } = mount({ label: 'Buff', layout: 'inline' });
 		expect((container.firstElementChild as HTMLElement).getAttribute('data-layout')).toBe('icon');
+	});
+
+	it('sits in an icon field for a layout alone, with no label', () => {
+		const { container } = mount({ layout: 'inline', className: 'extra' });
+		const field = container.firstElementChild as HTMLElement;
+		expect(field.getAttribute('data-layout')).toBe('icon');
+		expect(field.classList.contains('extra')).toBe(true);
+		expect(field.firstElementChild).toBe(mainAnchor());
+		expect(screen.queryByTestId('form-label')).toBeNull();
 	});
 
 	it('takes a testId for its swatch', () => {

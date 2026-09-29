@@ -1,4 +1,4 @@
-import { Field } from '@ui-kit/Field';
+import { Field, hasFieldChrome } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
 import { useCommitChange } from '@ui-kit/hooks/useCommitChange';
 import { useDraft } from '@ui-kit/hooks/useDraft';
@@ -48,7 +48,7 @@ export const TextField = <V,>({
 		return () => clearTimeout(timer);
 	}, [debounceMs, text, display]);
 
-	const rooted = !!(chrome.label || chrome.description || chrome.layout || clear);
+	const rooted = hasFieldChrome(chrome, clear);
 
 	const control = (
 		<Input

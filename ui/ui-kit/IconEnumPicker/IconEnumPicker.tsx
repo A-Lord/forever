@@ -1,4 +1,4 @@
-import { Field } from '@ui-kit/Field';
+import { Field, hasFieldChrome } from '@ui-kit/Field';
 import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { IconMenu, IconSwatch } from '@ui-kit/IconSwatch';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
@@ -10,7 +10,7 @@ import { IconEnumOptionItem } from './IconEnumOption';
 import { type IconEnumOption, IconEnumPickerDirection } from './types';
 import { iconStyleOf } from './utils';
 
-export interface IconEnumPickerProps<T> extends Omit<FieldChromeProps, 'layout'>, ControlledProps<T> {
+export interface IconEnumPickerProps<T> extends FieldChromeProps, ControlledProps<T> {
 	options: Array<IconEnumOption<T>>;
 	equals: (a: T, b: T) => boolean;
 	/** The value that reads as inactive. */
@@ -25,7 +25,7 @@ export interface IconEnumPickerProps<T> extends Omit<FieldChromeProps, 'layout'>
 	onOpenChange?: (open: boolean) => void;
 }
 
-/** Without a label or description the trigger renders bare; with one it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
+/** Without a label, description or layout the trigger renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
 export const IconEnumPicker = <T,>({
 	options,
 	equals,
@@ -43,7 +43,7 @@ export const IconEnumPicker = <T,>({
 	...chrome
 }: IconEnumPickerProps<T>) => {
 	const tooltipId = useId();
-	const labelled = !!chrome.label || !!chrome.description;
+	const rooted = hasFieldChrome(chrome);
 
 	const selected = options.find(option => equals(option.value, value));
 	const selectedHidden = !!selected?.hidden;
@@ -66,7 +66,7 @@ export const IconEnumPicker = <T,>({
 					// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
 					// shared by every rank, the text is what tells the ranks apart.
 					text={selectedHidden ? undefined : selected?.text}
-					className={clsx('transition-none', !labelled && className)}
+					className={clsx('transition-none', !rooted && className)}
 					testId={testId ?? 'icon-enum-picker-root'}
 					{...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip)}
 				/>
@@ -88,7 +88,7 @@ export const IconEnumPicker = <T,>({
 	);
 	const optionTooltip = tooltips && <Tooltip id={tooltipId} />;
 
-	if (!labelled)
+	if (!rooted)
 		return (
 			<>
 				{menu}

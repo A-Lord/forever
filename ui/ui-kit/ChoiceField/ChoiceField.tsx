@@ -1,5 +1,5 @@
 import { Select } from '@base-ui/react/select';
-import { Field } from '@ui-kit/Field';
+import { Field, hasFieldChrome } from '@ui-kit/Field';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
@@ -44,7 +44,7 @@ export const ChoiceField = <V,>({
 	// Without a placeholder, the select look shows its first option while nothing matches; nothing is written back.
 	const shown = selected ?? (variant === 'select' && placeholder === undefined ? flat[0] : undefined);
 
-	const rooted = !!(chrome.label || chrome.description || chrome.layout);
+	const rooted = hasFieldChrome(chrome);
 	const trigger = shown ? renderValue ? renderValue(shown) : <OptionContent option={shown} /> : placeholder;
 	const triggerProps = {
 		id: chrome.id,

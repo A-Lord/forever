@@ -1,5 +1,5 @@
 import { Checkbox } from '@base-ui/react/checkbox';
-import { type ControlledProps, Field, type FieldChromeProps } from '@ui-kit/Field';
+import { type ControlledProps, Field, type FieldChromeProps, hasFieldChrome } from '@ui-kit/Field';
 import { Icon } from '@ui-kit/Icon';
 import clsx from 'clsx';
 
@@ -8,7 +8,7 @@ import type { BooleanPickerOptions } from './types';
 export type BooleanPickerProps = FieldChromeProps & ControlledProps<boolean> & BooleanPickerOptions;
 
 export const BooleanPicker = ({ value, onChange, disabled, reverse, className, testId, ...chrome }: BooleanPickerProps) => {
-	const hasChrome = Boolean(chrome.label || chrome.description || chrome.layout);
+	const hasChrome = hasFieldChrome(chrome);
 
 	const input = (
 		<Checkbox.Root
