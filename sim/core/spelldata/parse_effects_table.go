@@ -701,7 +701,7 @@ func maxPower(kind string, key string, v float64, apply func(sim *core.Simulatio
 func percentStatRow(p *parser, e *Effect, v float64) *attachment {
 	statList := clientStatList(e.Misc)
 	if e.Aura == dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE && e.Misc2 != 0 {
-		statList = clientStatMask(e.Misc2)
+		statList = statMaskList(e.Misc2)
 	}
 	return p.statMultiplier(statList, core.MultiplierFromPercent(v))
 }
@@ -1280,7 +1280,7 @@ func clientStatList(misc int32) []stats.Stat {
 // The stats a game files stat mask names, one bit per stat index. A_MOD_TOTAL_STAT_PERCENTAGE states
 // its stats this way in the second misc value where it has one, and leaves the first at 0: Heart of the
 // Wild 17003 states 0 and 8, Intellect, and Vitality 29140 states 2 and 5, Strength and Stamina.
-func clientStatMask(mask int32) []stats.Stat {
+func statMaskList(mask int32) []stats.Stat {
 	var statList []stats.Stat
 	for i, stat := range clientStats {
 		if mask&(1<<i) != 0 {
