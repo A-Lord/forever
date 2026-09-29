@@ -1,31 +1,17 @@
-import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
+import { useInput } from '@features/inputs/hooks/useInput';
 import type { InputConfig } from '@features/inputs/input';
-import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import i18n from '@i18n/config';
+import type { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { useSimHost } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import type { DropdownOption } from '@ui-kit/DropdownPicker';
 import { useMemo } from 'react';
 
-/** Auto / Simple / APL. Simple is offered only by a spec that ships a rotation generator. */
-export const RotationTypePicker = () => {
-	const host = useSimHost();
-	const player = host.player;
-	const hasSimple = player.hasSimpleRotationGenerator();
+import { RotationTypePickerView } from './RotationTypePickerView';
 
-	const options = useMemo(
-		(): Array<DropdownOption<APLRotationType>> =>
-			[
-				{ value: APLRotationType.TypeAuto, label: i18n.t('rotation_tab.common.rotation_type.auto') },
-				...(hasSimple ? [{ value: APLRotationType.TypeSimple, label: i18n.t('rotation_tab.common.rotation_type.simple') }] : []),
-				{ value: APLRotationType.TypeAPL, label: i18n.t('rotation_tab.common.rotation_type.apl') },
-			] satisfies Array<DropdownOption<APLRotationType>>,
-		[hasSimple],
-	);
+export const RotationTypePicker = () => {
+	const player = useSimHost().player;
 
 	const config = useMemo(
-		(): InputConfig<Player<any>, APLRotationType> & { id: string } => ({
-			id: 'rotation-tab-rotation-type',
+		(): InputConfig<Player<any>, APLRotationType> => ({
 			storeField: 'rotation',
 			getValue: (subject: Player<any>) => subject.getRotationType(),
 			setValue: (subject: Player<any>, newValue: APLRotationType) => {
@@ -36,6 +22,7 @@ export const RotationTypePicker = () => {
 		}),
 		[],
 	);
+	const { value, setValue } = useInput(player, config);
 
-	return <BoundDropdown<Player<any>, APLRotationType> modObject={player} config={config} options={options} defaultLabel="" triggerClassName="px-0 py-4" />;
+	return <RotationTypePickerView value={value} hasSimple={player.hasSimpleRotationGenerator()} onChange={setValue} />;
 };
