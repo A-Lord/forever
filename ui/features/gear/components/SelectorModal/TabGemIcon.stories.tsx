@@ -21,7 +21,4 @@ export const EmptyRedSocket: Story = {};
 
 export const EmptyMetaSocket: Story = { args: { socketColor: GemColor.GemColorMeta } };
 
-export const Socketed: Story = {
-	args: { gem: makeUIGem() },
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
-};
+export const Socketed: Story = { args: { gem: makeUIGem() } };

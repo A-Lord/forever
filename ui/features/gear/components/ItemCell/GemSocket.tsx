@@ -1,8 +1,8 @@
 import type { GemColor } from '@generated/proto/common';
 import type { UIGem as Gem } from '@generated/proto/ui';
-import { useActionId } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
+import { wowheadIconUrl } from '@sim/proto/wowhead';
 import clsx from 'clsx';
 
 import { ItemCellAnchor, type ItemCellAnchorProps } from './ItemCellAnchor';
@@ -13,8 +13,7 @@ export interface GemSocketProps extends Omit<ItemCellAnchorProps, 'href' | 'chil
 }
 
 export const GemSocket = ({ socketColor, gem, className, ...rest }: GemSocketProps) => {
-	const actionId = gem ? ActionId.fromItemId(gem.id) : undefined;
-	const { iconUrl, href } = useActionId(actionId);
+	const href = gem ? ActionId.makeItemUrl(gem.id) : undefined;
 	const emptyIconUrl = getEmptyGemSocketIconUrl(socketColor);
 
 	return (
@@ -27,7 +26,7 @@ export const GemSocket = ({ socketColor, gem, className, ...rest }: GemSocketPro
 				<img
 					className="absolute inset-gem z-1 inline-block size-gem-inner cursor-pointer rounded-full bg-cover bg-center bg-no-repeat"
 					data-testid="gem-icon"
-					src={iconUrl || undefined}
+					src={wowheadIconUrl(gem.icon)}
 					alt=""
 				/>
 			)}
