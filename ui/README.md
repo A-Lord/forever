@@ -6,20 +6,23 @@ The tree:
 
 ```
 ui/
-  worker/            NOT MOVED (Go package, go:embed highs.wasm). alias @worker
-  generated/         proto/*, *_auto_gen.ts — tool output only. alias @generated
-                     (*_auto_gen.ts still sit beside their consumers)
+  worker/            the three worker entries plus a Go package (go:embed highs.wasm). alias @worker
+  generated/         proto/* — tool output only. alias @generated
+                     (the *_auto_gen.ts files sit beside their consumers, not here)
   sim/               DOM-free, node-runnable model, grouped by subject: sim.ts + sim_host.ts +
                      sim_runs.ts + sim_signal_manager.ts + spec_config.ts at the root, then
                      player/ (player, player_class, player_spec, classes/, specs/),
                      raid/ (raid, party, encounter), settings/ (bulk, item_swap, reforge,
                      stat_weight), utils/ (collections, math, format, json, misc),
                      workers/, cache/, state/, proto/, talents data + trees, bulk/,
-                     wasm/, constants/, presets/, hooks/, context/. alias @sim
-  ui-kit/            sim-agnostic React widgets, one folder per component (about 45 of them:
-                     NumberPicker/, Dialog/, Tooltip/, VirtualList/, …), plus hooks/,
-                     utils/ (css, dom, wowhead), and the flat helper module child_props.ts.
-                     No @sim import except @sim/utils/** and @sim/constants/**. alias @ui-kit
+                     wasm/, constants/, presets/, hooks/, context/, and fake_host.ts (the
+                     vitest-free fakeHost that testing.ts re-exports and the story fixtures
+                     import). alias @sim
+  ui-kit/            sim-agnostic, controlled React widgets, one folder per component (50 of
+                     them: NumberPicker/, Dialog/, Field/, Table/, Notice/, …, each with a
+                     story and a test), plus hooks/, utils/ (css, dom, icons, colors, wowhead),
+                     and the flat helper module child_props.ts. No @sim import except
+                     @sim/utils/** and @sim/constants/**. alias @ui-kit
   features/<name>/   one folder per capability: model/ (DOM-free, lint-enforced) +
                      components/ (React, one folder per component) + hooks/ + utils/ (feature
                      helpers that are neither a component nor DOM-free). The twelve are
@@ -27,12 +30,17 @@ ui/
                      reforge, results, settings, stat-weights, talents. alias @features
   features/hooks/    React hooks several features share and none owns (useSavedPanel), one
                      per file, beside the twelve capability folders
-  features/inputs/   the binding layer between features and ui-kit's sim-agnostic pickers:
-                     input.ts, hooks/useInput.ts, input_helpers.ts, icon_inputs.ts
+  features/inputs/   the binding layer between the store and ui-kit's controlled pickers:
+                     input.ts (InputConfig, StoreBinding, InputChrome), hooks/ (useInput,
+                     useBoundField, useHideZeroRestore), components/Bound*/ (one adapter per
+                     kit picker, plus BoundInput, BoundIconInput and BoundListPicker),
+                     configs.ts (the Bound* config types in one barrel), input_helpers.ts,
+                     icon_inputs.ts
   app/               shells + chrome that compose features, and the only place allowed to
                      import react-dom/client (spec_entry.tsx). SimApp/SimShell/SimTabs,
-                     tabs/ (a React <X>TabBody per tab), header/, SettingsDialog/,
-                     PresetConfigurationPicker/, the sidebar and import/export pieces,
+                     tabs/ (a React <X>TabBody per tab), header/, landing/, SettingsDialog/,
+                     GearPresets/, PresetConfigurationPicker/, PresetGroupPicker/,
+                     PresetBuildChip.tsx, PresetBuildTooltip.tsx, the sidebar and import/export pieces,
                      shell_classes, browser_env, known_issues, preset_utils,
                      sidebar_registry.ts, tab_activation.ts, and individual_sim_ui.tsx — the
                      host object the React tree reaches through useSimHost(). types/ holds
@@ -43,42 +51,82 @@ ui/
   specs/<class>/<spec>/   spec data, presets. alias @specs. No html on disk: the one page at
                      ui/index_template.html is served (dev) and emitted (build) at every
                      /forever/<class>/<spec>/ by tools/vite/spec_pages.mts
-  styles/            the one CSS entry (style.css), theme/ (tokens + the 18 spec themes, split by
-                     type: colors.css, spacing.css, breakpoints.css, typography.css, effects.css,
-                     z-index.css, vars.css, specs.css, imported via index.css),
+  styles/            main.css (the stylesheet body), style.css (the production entry: main.css
+                     plus three @source not lines), theme/ (tokens + the 18 spec themes, split
+                     by type: colors.css, spacing.css, breakpoints.css, typography.css,
+                     effects.css, z-index.css, vars.css, specs.css, imported via index.css),
                      base.css (element defaults), vendor.css (third-party-only selectors) — see
-                     STYLING.md. No SCSS and no Bootstrap remain anywhere in ui/
+                     STYLING.md. No SCSS and no Bootstrap anywhere in ui/
   index.html          the landing page, a React tree mounted by app/landing_entry.tsx on #root.
                      Its components are in app/landing/
   shared/            two browser helpers: page_boot.ts, pointer.ts (DOM helpers a component
                      reaches for are ui-kit/utils/dom.ts)
-  testing/           tailwind/ — the canonical-class and class-hook checkers, run as node scripts
+  design-system/     the twelve Storybook docs pages (*.mdx: colours, spacing, typography, spec
+                     themes, state hooks, …), tokens/ (parsers that read the theme CSS) and
+                     components/ (the tables and swatches the pages render)
+  testing/           tailwind/ (the canonical-class and class-hook checkers the two tree-wide
+                     tests at the ui/ root run), storybook/ (decorators.tsx, the stories.test.tsx
+                     smoke test, fixtures/), react.tsx (renderWithHost)
   types/             ambient .d.ts (i18n-loader.d.ts)
-  index_template.html, tracking/   root, unchanged
+  index_template.html   the one spec page; tracking/ the analytics shim
+  canonical_classes.test.ts, no_class_hooks.test.ts, class_hook_allowlist.json,
+  retired_class_names.json   the tree-wide class gates and their data (STYLING.md §7)
+.storybook/          main.ts, vite.config.ts, preview.tsx, preview-head.html, manager.ts,
+                     storybook.css (the Storybook stylesheet entry) — at the repo root
 ```
+
+## Storybook is the component registry
+
+Every kit component, the feature views and the app's presentational pieces have a story; the
+stories are the catalogue of what exists and how it renders, so look there before writing a
+component. `npm run storybook` serves it on port 6006, `npm run build-storybook` builds it into
+`storybook-static/` (a CI step, see `.github/skills/wowsims-ui/references/verification.md`).
+Titles follow the tree: `Kit/<Name>`, `Features/<Feature>/<Name>`, `App/<Area>/<Name>`, and the
+twelve `Design System/*` pages.
+
+- **Stories are tests.** `ui/testing/storybook/stories.test.tsx` globs every `*.stories.tsx`,
+  composes each story with the preview annotations and asserts it mounts under happy-dom, inside
+  `npm run test:unit`. A story that cannot mount there sets `smoke: false` and a `smokeReason`
+  string in its `parameters`; the test fails on an opt-out with no reason.
+- **The frame.** `.storybook/preview.tsx` wraps every story in `withSimUi`
+  (`ui/testing/storybook/decorators.tsx`): a `sim-ui` root carrying the spec class chosen in the
+  toolbar, with the portal container inside it so overlays keep the theme. `parameters.spec` pins
+  the frame for one story (`'none'` for the landing page's components).
+- **Stories that read the store** use `withSimHost({ playerSlice, … })`
+  (`ui/testing/storybook/fixtures/models.tsx`), a stub host with one real `sim.store` and the player
+  slice seeded from defaults plus `playerSlice`. `withStorage(seed)` clears and seeds
+  `localStorage` for a story that reads saved data.
 
 ## JSX
 
 Every `.tsx` file is React (`tsconfig.json` is `jsx: react-jsx` / `jsxImportSource: react`, and both
 vite configs use the automatic runtime). There is no second dialect and no per-file pragma.
 
-Shared React components get a folder of their own, `ui-kit/<Name>/{<Name>.tsx, types.ts, index.ts}`,
+Shared React components get a folder of their own, `ui-kit/<Name>/{<Name>.tsx, <Name>.stories.tsx, <Name>.test.tsx, index.ts}`
+(plus `types.ts` where the props need one),
 plus a co-located `<Name>.css` only when the component needs `ui-*` composition classes (see
 `STYLING.md`) — most style with Tailwind utilities inline and have no `.css` file at all. Hooks live one per file named after
 the hook: the store's React binding and everything built on it in `ui/sim/hooks/`
 (`useStoreSubscribe.ts`, `useSimRun.ts`, `useActionId.ts`), the sim-agnostic ones in `ui-kit/hooks/` (`useDraft.ts`,
 `useCopyToClipboard.ts`), and the store-bound `useInput.ts` in `features/inputs/hooks/`. There is no `ui-kit/react/`: every component here is React, so the qualifier
-distinguished nothing. There is no separate component-registry document — components and their
-co-located CSS are covered here and in `STYLING.md`.
+would distinguish nothing. Storybook is the component registry (above); this file and `STYLING.md`
+cover placement and co-located CSS.
 
 ## Placement rules
 
 - `sim/`: if it needs `window`/`document`, it doesn't belong here — inject an `Env` adapter instead.
-- `ui-kit/`: reusable widgets with zero knowledge of sims: no `@sim` import except `@sim/utils/**` and `@sim/constants/**` (lint-enforced). A picker takes `value`/`onChange`; `features/inputs/` binds it to the store.
+- `ui-kit/`: reusable widgets with zero knowledge of sims: no `@sim` import except `@sim/utils/**` and `@sim/constants/**` (lint-enforced), so the kit never names the `Player`, `Sim` or `ActionId` types. The kit contract:
+    - **Controlled.** A picker takes `value`/`onChange`/`disabled` plus `FieldChromeProps` (`ui/ui-kit/Field/types.ts`) and holds no store state; `features/inputs/` binds it to the store.
+    - **One field shell.** `Field` renders the label, tooltip, description and layout for every picker, with `density="compact"`, `role`/`aria-labelledby` for a field that names a group, an optional clear button and an `after` slot.
+    - **Icons arrive resolved.** An icon prop is a `ResolvedIcon` (`iconUrl`, `name`, optional `href`); the caller resolves it (`useResolvedIcon`, `useActionIds` in `ui/sim/hooks/`) and the kit paints it with `resolvedIconStyle` (`ui/ui-kit/utils/icons.ts`).
+    - **`testId` everywhere**, forwarded to the element that carries the identity (`STYLING.md` §5).
+    - **A story and a test per folder.** Shared building blocks live here rather than in a feature: `Table`, `Notice`, `Menu`'s `MenuLinkItem`, `Button`'s `loading` state.
 - `features/<x>/model/`: DOM-free logic of one capability, and framework-free — no React, not even as a type. `features/<x>/components/`: its React components, and beside them the imperative helpers that
   touch the DOM without being components — the timeline's chart builders, zoom controllers and
   ruler sit in `results/components/Timeline/{chart,rotation}/`. The two may share a name:
   `results/model/timeline/` and `results/components/Timeline/`.
+- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View` beside it. The view takes props only, reads neither the sim host nor the store, and gets a story under `Features/<Feature>/<Name>`. A store-bound picker a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
+- `features/inputs/`: the store binding for the kit's pickers — `InputConfig` and `useInput`, one `Bound<Picker>` adapter per kit picker, and the config factories in `input_helpers.ts` / `icon_inputs.ts`. A feature or spec that needs a store-bound picker renders a `Bound*` component; the kit picker underneath never learns what it is bound to.
 - `app/`: composes features; the only place that knows the tab layout.
 - `specs/<class>/<spec>/`: data; the only code allowed is `features/` escape hatches and `shared/derived.ts` rules.
 
@@ -91,25 +139,31 @@ generated → worker → {sim, i18n} → ui-kit → features → app → specs �
 `ui/sim` and `i18n` are peers: both are leaves everything above them may depend on, and each
 may depend on the other (i18n's entity/status label maps name sim enums; sim in turn calls
 into i18n for label lookups). Each layer may only import from layers to its left. `.oxlintrc.json` enforces this with
-`no-restricted-imports` on the alias forms (see overrides for `ui/sim/**`, `ui/ui-kit/**`,
-`ui/features/**`, `ui/app/**`), plus `no-restricted-globals` (window/document/localStorage/
-location/navigator) on `ui/sim/**` and `ui/features/*/model/**`.
+`no-restricted-imports` on the alias forms (see overrides for `ui/sim/**`, `ui/i18n/**`, `ui/ui-kit/**`,
+`ui/features/**`, `ui/app/**`, and for the two directories outside the arrow, `ui/design-system/**`
+and `ui/testing/**`), plus `no-restricted-globals` (window/document/localStorage/
+location/navigator) on `ui/sim/**` and `ui/features/*/model/**`. The kit's `@sim` ban is a positive
+list of every `ui/sim` entry except `utils/` and `constants/`; the message points at
+`ui/features/inputs` as the place a store binding goes.
 
 The `no-restricted-imports` groups use `**` (not `*`): oxlint matches these patterns one
 path segment at a time, so `@features/*` would not catch `@features/reforge/model/reforge_optimizer`.
 `ui/features/**` may not import the store writers (`patchSlice` / `patchKeyed` / `seedKeyed` /
 `deleteKeyed`) — go through a facade.
 
-Features, ui-kit and sim must not name the app host (`SimHostObject`) even as a
-type: `import type` is erased at runtime but the lint bans the specifier either way. They use
-narrow host interfaces instead — all of them in `@sim/sim_host`: `SimWarning`, `SimHost`,
-`IndividualSimHost<Spec>`, plus the `isIndividualSimHost()` predicate that replaces
-`instanceof SimHostObject`. The
+Nothing below `ui/app` names the app host (`SimHostObject`). In features and ui-kit the lint bans
+the specifier even for `import type`, which is erased at runtime; `ui/sim`, whose override allows
+type imports, uses the same interfaces. They are narrow host interfaces, all of them in
+`@sim/sim_host`: `SimWarning`, `SimHost`, `IndividualSimHost<Spec>`, plus the
+`isIndividualSimHost()` predicate that replaces `instanceof SimHostObject`. The
 host declares `implements IndividualSimHost` so the interfaces stay honest. The per-spec config schema lives in `@sim/spec_config` (`IndividualSimUIConfig`,
 `InputSection`, `OtherDefaults`, `Settings`, `registerSpecConfig`, `itemSwapEnabledSpecs`). It names
-ui-kit picker configs, so it reaches them through `import type` only — a value import would be a
-layer violation. `ui/sim/spec_config.ts` and `ui/sim/sim_host.ts` (for `SidebarRegistry`) are the
-only files in `ui/sim` that name `@ui-kit`, both type-only.
+the picker configs of `@features/inputs` (`input_helpers`, `icon_inputs`) and the kit's
+`SavedDataConfig`, so it reaches them through `import type` only — a value import would be a
+layer violation. Every `@ui-kit`, `@features` or `@app` specifier in `ui/sim` is `import type`
+(`spec_config.ts`, `sim_host.ts` for `SidebarRegistry` and the reforge/results handles, and
+`hooks/useResolvedIcon.ts` / `hooks/useActionIds.ts` for `ResolvedIcon`); list them with
+`/usr/bin/grep -rn "@ui-kit\|@features\|@app" ui/sim --include=*.ts --include=*.tsx | /usr/bin/grep -v "\.test\."`.
 It also holds the declarative spec surface (`SpecDefinition`, `SpecBehaviors`, `DerivedSetting`,
 `CustomSection`, `defineSpec` — see "How to author a spec"); `app/individual_sim_ui.tsx` re-exports all of it as a
 convenience. The preset shapes

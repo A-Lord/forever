@@ -1,19 +1,22 @@
 # Styling, state and locating elements
 
-Source of truth: `ui/styles/style.css` (entry, `@utility`, `@source`), `ui/styles/theme/`
-(tokens, split by type — `colors.css`, `spacing.css`, `breakpoints.css`, `typography.css`,
-`effects.css`, `z-index.css`, `vars.css`, `specs.css`, imported via `index.css`),
-`ui/styles/base.css` (element defaults, replaces Bootstrap's reboot), `ui/styles/vendor.css`
-(the handful of selectors with no JSX element to carry them), and
-`ui/testing/tailwind/canonical-classes.mjs` / `ui/testing/tailwind/class-hooks.mjs`.
+Source of truth: `ui/styles/main.css` (the stylesheet body: layer order, `@import`s, `@utility`,
+`@source`), the two entries that import it — `ui/styles/style.css` (production, which adds three
+`@source not` lines) and `.storybook/storybook.css` (Storybook, which adds the matching `@source`
+lines) — `ui/styles/theme/` (tokens, split by type — `colors.css`, `spacing.css`, `breakpoints.css`,
+`typography.css`, `effects.css`, `z-index.css`, `vars.css`, `specs.css`, imported via `index.css`),
+`ui/styles/base.css` (element defaults), `ui/styles/vendor.css` (the handful of selectors with no
+JSX element to carry them), `ui/testing/tailwind/canonical-classes.mjs` /
+`ui/testing/tailwind/class-hooks.mjs`, and the two tests that run them, `ui/canonical_classes.test.ts`
+and `ui/no_class_hooks.test.ts`.
 
-There is no SCSS and no Bootstrap left anywhere in `ui/` (`find ui -name '*.scss'` is empty; neither
+There is no SCSS and no Bootstrap anywhere in `ui/` (`find ui -name '*.scss'` is empty; neither
 HTML entry links anything but `style.css` and the FontAwesome CDN sheet). Every class in `ui/`
-markup is a Tailwind utility, a `ui-*` composition class, one of a small fixed allowlist (`sim-ui`,
-`<spec>-sim-ui`, `group`/`peer` and their named forms, FontAwesome's `fa`/`fas`/`far`/`fab`/`fa-*`,
-and the two react-tooltip class-as-theme names), or a `data-testid`/`data-*` used only by tests and
-tools. That is a convention here, not yet an enforced gate — see "The gates" below for exactly what
-runs and what does not.
+markup is a Tailwind utility, a `ui-*` composition class, an entry of the fixed allowlist
+`ui/class_hook_allowlist.json` (`sim-ui`, `<spec>-sim-ui`, `group`/`peer` and their named forms,
+FontAwesome's `fa`/`fas`/`far`/`fab`/`fa-*`, and the react-tooltip class-as-theme names), or a
+`data-testid`/`data-*` used only by tests and tools. `npm run test:unit` enforces it — see "The
+gates" below for what each check covers.
 
 ## 1. Styling with Tailwind
 
@@ -80,7 +83,7 @@ documented block; the `inline` flag matters here specifically because plain `@th
 
 When a component needs a reusable multi-utility recipe, or a rule keyed on a state/descendant
 selector Tailwind's utility-per-property model can't express cleanly, it gets a `ui-<component>-<part>`
-class in a co-located `.css` file, `@import`ed from `ui/styles/style.css` (see the long list of
+class in a co-located `.css` file, `@import`ed from `ui/styles/main.css` (see the long list of
 `@import '../ui-kit/…/X.css'` lines there — one per component that has one). Example,
 `ui/ui-kit/Chip/Chip.css`:
 
@@ -112,13 +115,13 @@ Rules:
   exceptions are `ui/styles/theme/specs.css` (the spec theme selectors) and `vendor.css` (see below).
 - Built with `@apply`, unlayered classes stay unlayered (until the global element rules that
   fight them are fully gone); the file itself lives inside `@layer components` in the ones written so
-  far, matching the layer order declared in `style.css:1`.
+  far, matching the layer order declared in `main.css:1`.
 - No comments — including lint-disable directives — in any `ui/` `.css` file, same rule as `.ts`/`.tsx`.
 - Names are `ui-<component>-<part-or-variant>` for both kit and feature components, so they can never
   collide with a retired hook name; tests never locate elements by them (see §5).
 - `@utility` is reserved for a handful of atomic, non-component patterns where every carrier is
   enumerable and nothing else on any carrier sets the same properties. Only eight exist today, in
-  five groups, all in `ui/styles/style.css`: `text-fluid-xl`/`text-fluid-5xl` (RFS-style fluid headings), `interactive`
+  five groups, all in `ui/styles/main.css`: `text-fluid-xl`/`text-fluid-5xl` (RFS-style fluid headings), `interactive`
   (cursor + user-select), `icon-sm` (a fixed icon box), `focus-ring`/`focus-ring-inset` (the
   outline-based focus treatment), and `active-underline`/`fade-in-out` (an animated underline and a
   Base UI enter/exit fade). Don't add a sixth without the same proof: enumerate every element that
@@ -148,9 +151,9 @@ Style with the matching variant:
   `group-data-[…]:` for ancestor state (a marker `group`/`group/<name>` class sits directly on the
   ancestor; `group` and `peer` are plain marker classes, not utilities, and have no effect inside
   `@apply`), `in-data-[…]:` for a descendant-driven read.
-- A state class is never reintroduced as a styling hook once it's gone. `class-hooks.mjs` exports
-  `findRetiredClassNames(root, retired)` for this, but nothing calls it and there is no
-  retired-names list on disk — see "The gates".
+- A state class is never reintroduced as a styling hook once it's gone. `ui/retired_class_names.json`
+  lists the retired names, and `ui/no_class_hooks.test.ts` fails on any of them through
+  `findRetiredClassNames()` — see "The gates".
 - Perf-critical per-frame writers (the timeline ruler) use `element.toggleAttribute('data-*', cond)`
   instead of `classList.toggle` — same cost, same no-op when unchanged, and it's the attribute form
   the styling above already expects.
@@ -189,7 +192,7 @@ is a review rule on this tree, not a checked one.
   _unread_ hook is just deleted — don't add a testid nobody consumes.
 - **`data-testid` is never a styling hook.** No `.css` rule, `@apply` selector, or TSX arbitrary
   variant may key off `[data-testid=…]`; `class-hooks.mjs`'s `findTestidStyling()` is the check for
-  it, though nothing runs it automatically yet. If a style needs to reach a child, give that child a prop
+  it, run by `ui/no_class_hooks.test.ts`. If a style needs to reach a child, give that child a prop
   (`triggerClassName`), a `ui-*` class of its own, or a real `data-*` state — never repoint a rule at
   its testid.
 - **Kit components take a `testId` prop** (`Dialog`, `Popover`, `Tooltip`, …), forwarded to
@@ -207,33 +210,39 @@ fix is almost always removing whatever broke the native layering, not adding log
 
 ## 7. The gates
 
-**Read this section as a status report, not a list of things that run.** Only one of the two
-checkers below is wired to anything today.
+Two tree-wide tests in `npm run test:unit` run the checkers, both under `// @vitest-environment node`
+(they read the tree off disk and need no DOM):
 
-- **The canonical-class check works and is clean.** Running
-  `ui/testing/tailwind/canonical-classes.mjs` under node reports `Total: 0` over the whole tree;
-  `--write` auto-fixes, `--json` is for tooling. It is a standalone script, not a vitest test and
-  not a CI step, so it only runs when someone runs it.
-- **The class-hook gate is not wired up here.** `ui/testing/tailwind/class-hooks.mjs` implements it
-  — `findClassHooks()` (every class-bearing string that is not a real Tailwind utility, compiled
-  against `ui/styles/style.css` with Tailwind's own design system rather than a hand-maintained
-  list, is not `ui-*`, and is not allowlisted), `findRetiredClassNames()` and `findTestidStyling()`
-  — but:
-    - `ui/class_hook_allowlist.json` **does not exist**, so running the script throws `ENOENT`;
-    - `ui/retired_class_names.json` **does not exist**, and nothing calls `findRetiredClassNames()`;
-    - there is no `ui/no_class_hooks.test.ts`, and `vitest.config.mts` only collects
-      `ui/**/*.test.ts(x)`, so the two `.test.mjs` files beside the checkers (both passing under a
-      bare `node`) are not part of `npm run test:unit` either.
-- **Landing the gate** means writing the allowlist (`sim-ui` and the `<spec>-sim-ui` pattern that
-  `ui/styles/theme/specs.css` selects, `group`/`group/*`, `peer`/`peer/*`,
+- **`ui/canonical_classes.test.ts`** runs `ui/testing/tailwind/canonical-classes.mjs` over every
+  `ui/` class string and `@apply`: no non-canonical Tailwind token, no `var(...)` inside a class
+  token. Run the script under node with `--write` to auto-fix, or `--json` for tooling.
+- **`ui/no_class_hooks.test.ts`** runs `ui/testing/tailwind/class-hooks.mjs`, three checks:
+    - `findClassHooks()` — every class token in a `ui/**/*.{ts,tsx}` file that is not a real
+      Tailwind utility (compiled against `ui/styles/style.css` with Tailwind's own design system
+      rather than a hand-maintained list), is not `ui-*`, and is not in the allowlist;
+    - `findRetiredClassNames()` — no name from `ui/retired_class_names.json` anywhere in `ui/`, CSS
+      included;
+    - `findTestidStyling()` — no `[data-testid]` selector in CSS or in a TSX arbitrary variant.
+- **Production means every file but a test.** The checks skip `*.test.ts(x)` and `ui/generated/`
+  only, so a story (`*.stories.tsx`), `ui/testing/**` (decorators, fixtures, `react.tsx`) and the
+  design-system code (`ui/design-system/components/`, `tokens/`) are held to the same class rules as
+  a component. The checkers read `.ts`, `.tsx` and `.css`, so the `.mdx` pages are not scanned.
+- **The allowlist, `ui/class_hook_allowlist.json`,** is `sim-ui` and the `<spec>-sim-ui` pattern
+  that `ui/styles/theme/specs.css` selects, `group`/`group/*`, `peer`/`peer/*`,
   `sim-tooltip`/`sim-tooltip--unpadded`, `fa`/`fas`/`far`/`fab`/`fa-*`, and the three
   third-party-required names `tooltip-quick-swap`, `suggest-reforges-softcaps`,
   `bonus-stats-popover` — react-tooltip forwards a component's `className` as its own `data-theme`
-  attribute and forwards no `data-testid` equivalent, so those three cannot become pure testids),
-  writing the retired-names list, and adding a `.test.ts` wrapper vitest will collect. Until then
-  §§1-5 are conventions upheld by review. An allowlist entry needs a `token` or a `pattern` plus a
-  `reason`, and is only ever for a genuinely external constraint, never a shortcut past a real
-  conversion.
+  attribute and forwards no `data-testid` equivalent, so those three cannot become pure testids. An
+  entry needs a `token` or a `pattern` plus a `reason`, and is only ever for a genuinely external
+  constraint, never a shortcut past a real conversion.
+- **Stories and the design system stay out of production CSS.** Tailwind's automatic source
+  detection is on, so a class string in any file under `ui/` lands in the production bundle unless
+  `ui/styles/style.css` excludes it; its three `@source not` lines exclude `**/*.stories.tsx`,
+  `ui/testing/storybook` and `ui/design-system`, and `.storybook/storybook.css` adds the same three
+  back for Storybook. A new class-bearing file under `ui/testing/` outside `storybook/` needs its own
+  `@source not`. For a kit or styling change, build with `npx vite build` and diff the sorted
+  `dist/forever/bundle/*.style.css` against the parent commit's build: an unintended selector there
+  is a leak.
 - **Rendering is verified by diffing computed styles, not by reading classes.** Walk the DOM by
   child-index path from `document.body` plus tag, capture the computed style properties and the
   bounding box per node, and diff that against a build from before the change; that validates a
@@ -247,8 +256,8 @@ checkers below is wired to anything today.
       and the hook census tell the two apart by compiling every candidate against Tailwind's own
       design system (`ui/testing/tailwind/canonical-classes.mjs`), never a hand-written name list,
       and deleting one because it "looks like" an old semantic class is the mistake to avoid. Run
-      the diff before calling a class-hook or utility change done — with the class-hook gate
-      unwired, it is the only automated protection there is.
+      the diff before calling a class-hook or utility change done — the class-hook gate proves a
+      class is gone, not that nothing rendered differently without it.
     - **A px value converts to its exact dynamic spacing step**: Tailwind v4's spacing scale here
       accepts any multiple of `0.25`, so a source px value converts to its exact step — `10px` → `p-2.5`, `5px` → `p-1.25`,
       `18px` → `w-4.5` — computed-identically, and `ui/testing/tailwind/canonical-classes.mjs`

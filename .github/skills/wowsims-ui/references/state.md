@@ -2,8 +2,8 @@
 
 **Source of truth:** `ui/sim/state/sim_store.ts` for the shape, `ui/sim/state/subscriptions.ts` for
 the read side, `ui/sim/state/batch.ts` for gating. `ui/sim/state/README.md` is the long-form
-companion and has the add-a-field recipe — it predates the `runs` slice, so read the slice list from
-the code:
+companion and has the add-a-field recipe. Read the slice list from the code rather than from either
+file:
 
 ```
 sed -n '/^export interface SimState {/,/^}/p' ui/sim/state/sim_store.ts
@@ -100,7 +100,9 @@ the one that matches what you want: a value, or a notification. The hook reads i
 question a component has to answer.
 
 **A named store field on an `InputConfig`.** `InputConfig` (`ui/features/inputs/input.ts`, imported
-as `@features/inputs/input`) takes `storeField`, resolved by `useStoreField`
+as `@features/inputs/input`) is what a `Bound*` adapter (`ui/features/inputs/components/`) hands to
+`useInput`, which reads the value and gives the kit picker plain `value`/`onChange`. It takes
+`storeField`, resolved by `useStoreField`
 (`ui/sim/hooks/useStoreField.ts`) against the host from context. A
 `StoreField` is either a bare player field or a scoped one — `sim:` `ui:` `encounter:` `raid:`
 `reforge:` `bulk:` `statWeights:` — and an array of them folds into one `subscribeAll`, so several
@@ -110,10 +112,11 @@ than a closure, it is greppable, and it cannot capture the wrong object.
 
 `StoreField` also has two aggregates, `'player:*'` and `'encounter:*'`, which watch a whole slice.
 **They are a last resort** — each one is a component re-rendering on writes it does not read. There
-are five uses today; that number should fall and never rise:
+are seven outside tests (one `'player:*'`, six `'encounter:*'`); that number should fall and never
+rise:
 
 ```
-/usr/bin/grep -rn "player:\*\|encounter:\*" --include=*.ts --include=*.tsx ui/ | /usr/bin/grep -v useStoreField.ts
+/usr/bin/grep -rn "player:\*\|encounter:\*" --include=*.ts --include=*.tsx ui/ | /usr/bin/grep -v "useStoreField.ts\|\.test\."
 ```
 
 **`useStoreSubscribe(source, read)`** (`ui/sim/hooks/useStoreSubscribe.ts`) for a source that is not
@@ -134,9 +137,8 @@ afterwards. `useSimHost()` / `usePlayer()` / `useSim()` are the same kind of rea
 `useOptionalSimHost()` is the nullable variant, for a hook that needs the host on only some paths
 and still has to run unconditionally.
 
-Composite hooks, so nobody rebuilds one: `useIsBlacksmithing()` (`ui/sim/hooks/`, both profession
-fields), `useTalents()` (`ui/features/talents/hooks/useTalents.ts`), and `useAplRotation(select)` —
-the rotation is the one player field with no value in the store, so that hook keys a `useMemo` on the
+Composite hooks, so nobody rebuilds one: `useTalents()` (`ui/features/talents/hooks/useTalents.ts`)
+and `useAplRotation(select)` (`ui/sim/hooks/useAplRotation.ts`) — the rotation is the one player field with no value in the store, so that hook keys a `useMemo` on the
 `rotation` counter and reads `player.aplRotation` through it.
 
 ### `revision`, and who needs it
@@ -154,11 +156,14 @@ the hide/restore step just wrote.
 
 The three text pickers — `NumberPicker`, `AdaptiveStringPicker`, `NumberListPicker` — hold an
 uncommitted edit in `useDraft` (`ui/ui-kit/hooks/useDraft.ts`), keyed on the formatted display
-string, so a new value from the parent drops the draft. They commit through `useCommitChange`
+string: a new value from the parent drops the draft, a commit clears it, and a notification that
+leaves the display string unchanged (a same-value write, a `revision` bump) keeps a mid-edit draft.
+They commit through `useCommitChange`
 (`ui/ui-kit/hooks/useCommitChange.ts`), which listens for the **native `change` event** —
 blur-after-edit and Enter — not React's `onChange`, which fires per keystroke. Typing into one of
 them writes nothing to the store until the edit is committed; `EnumPicker`'s `<select>` is the
-exception and commits on selection.
+exception and commits on selection. `EnumPicker` is a controlled native `<select>`, so a `value`
+missing from its `values` shows the first option without writing it back.
 
 Omit both `storeField` and `storeSubscribe` for an input re-synced by its parent — the nested APL
 pickers — and for UI-local toggles; `useInput` then rings its own notification after `setValue`, and
@@ -171,31 +176,29 @@ uses, then calls a facade method that reads a field it did not name, and the ren
 mount and silently stale afterwards. There is no error, no warning and no failing test; the value is
 simply the one it had when the component last re-rendered for some other reason.
 
-A shape worth checking for on sight, because it has bitten this exact architecture before: a
-component calling `player.isBlacksmithing()` — which decides whether an item's extra Blacksmithing
-socket counts — while subscribing only to `gear`, so toggling the profession leaves gem totals and
-the favourite-gem socket colour stale until the next gear edit; or a component reading
-`player.hasProfession(...)` inside a `useMemo(…, [player, item])` with no profession subscription
-anywhere in the file, so a bulk-sim gear-change tooltip keeps whichever socket count was current
-when it mounted. The fix in both cases is `useIsBlacksmithing()`, which selects `profession1` and
-`profession2` directly. What surfaces this class of bug is naming the fields at the subscription
+A shape worth checking for on sight: a component calling `player.hasProfession(...)` — which
+decides, for one, whether a profession-only enchant or gem is offered — while subscribing only to
+`gear`, so toggling the profession leaves the list stale until the next gear edit; or a component
+reading `player.hasProfession(...)` inside a `useMemo(…, [player, item])` with no profession
+subscription anywhere in the file, so the memo keeps whichever answer was current when it mounted.
+The fix in both cases is to subscribe to what the method reads, `usePlayerStore('profession1')` and
+`usePlayerStore('profession2')`. What surfaces this class of bug is naming the fields at the subscription
 site: an aggregate, or a hand-built `storeSubscribe`, hides the read set, and `storeField` puts it
 in one greppable place. That is the practical argument for the preference order above.
 
 **No lint can find these.** The read is a method call on a facade, so the dependency is only visible
-by following `player.isBlacksmithing()` into `ui/sim/player/player.ts` and seeing which slice fields
+by following `player.hasProfession()` into `ui/sim/player/player.ts` and seeing which slice fields
 it touches. When you add a facade call to a component, audit what that method reads, not what the
 component names.
 
-**And `react-hooks/exhaustive-deps` reports the inverse case backwards.** This architecture has
-already hit one case where `ui/features/gear/components/SelectorModal/ItemList.tsx`'s
-`itemsToDisplay` memo listed `filters` in its dependency array while its body never named it
-directly — it read as a stray entry to delete. It was load-bearing: the body called
-`player.filterItemData(…)`, and that method reaches `sim.getFilters()` internally. Deleting the
-entry on a lint's word left the memo's correctness resting on another dependency happening to close
-over `filters` too — an accident of the code, not the reason the entry was there. Check for the same
-shape once `SelectorModal/ItemList.tsx` exists here: treat a dependency a lint calls unnecessary the
-same way you treat a missing one — go read the callee, don't trust the lint's diff.
+**And `react-hooks/exhaustive-deps` reports the inverse case backwards.**
+`ui/features/gear/components/SelectorModal/ItemList.tsx`'s `itemsToDisplay` memo lists `filters`
+in its dependency array while its body never names it directly, so it reads as a stray entry to
+delete. It is load-bearing: the body calls `player.filterItemData(…)`, and that method reaches
+`sim.getFilters()` internally. Deleting the entry on a lint's word leaves the memo's correctness
+resting on another dependency happening to close over `filters` too — an accident of the code, not
+the reason the entry is there; a comment beside it says so. Treat a dependency a lint calls
+unnecessary the same way you treat a missing one — go read the callee, don't trust the lint's diff.
 
 ## State vs events — the rule that gets got wrong
 
