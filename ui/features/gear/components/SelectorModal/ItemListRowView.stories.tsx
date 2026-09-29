@@ -6,7 +6,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { ItemListRowView } from './ItemListRowView';
 
 const meta = {
-	title: 'Features/Gear/ItemListRowView',
+	title: 'Features/Gear/SelectorModal/Components/ItemListRowView',
 	component: ItemListRowView,
 	tags: ['autodocs'],
 	args: {

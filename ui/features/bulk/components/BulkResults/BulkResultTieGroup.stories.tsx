@@ -18,7 +18,7 @@ const cell = (icon: string, name: string, ilvl: number) => (
 );
 
 const meta = {
-	title: 'Features/Bulk/BulkResultTieGroup',
+	title: 'Features/Bulk/BulkResults/Components/BulkResultTieGroup',
 	component: BulkResultTieGroup,
 	tags: ['autodocs'],
 	args: {

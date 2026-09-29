@@ -5,7 +5,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { SummaryTable } from './SummaryTable';
 
 const meta = {
-	title: 'Features/Gear/SummaryTable',
+	title: 'Features/Gear/SummaryTable/SummaryTable',
 	component: SummaryTable,
 	tags: ['autodocs'],
 	args: {

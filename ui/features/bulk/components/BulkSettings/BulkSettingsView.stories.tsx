@@ -45,7 +45,7 @@ const StatefulBulkSettings = (props: BulkSettingsViewProps) => {
 };
 
 const meta = {
-	title: 'Features/Bulk/BulkSettingsView',
+	title: 'Features/Bulk/BulkSettings/BulkSettingsView',
 	component: BulkSettingsView,
 	tags: ['autodocs'],
 	render: args => <StatefulBulkSettings {...args} />,

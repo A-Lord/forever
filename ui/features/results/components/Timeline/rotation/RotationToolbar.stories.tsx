@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { RotationToolbar } from './RotationToolbar';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationToolbar',
+	title: 'Features/Results/Timeline/Components/RotationToolbar',
 	component: RotationToolbar,
 	tags: ['autodocs'],
 	args: { onZoomOut: fn(), onZoomIn: fn(), onFit: fn(), onReset: fn() },

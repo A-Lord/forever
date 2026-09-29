@@ -9,7 +9,7 @@ import { RotationRowLabel } from './RotationRowLabel';
 const HIDE_TOOLTIP_ID = 'story-rotation-label-hide';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationRowLabel',
+	title: 'Features/Results/Timeline/Components/RotationRowLabel',
 	component: RotationRowLabel,
 	tags: ['autodocs'],
 	args: {

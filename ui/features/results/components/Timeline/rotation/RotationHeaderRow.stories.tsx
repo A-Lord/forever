@@ -4,7 +4,7 @@ import { MORTAL_STRIKE, PLAYER_HEADER_ROW, rotationTrackStyle } from '@testing/s
 import { RotationHeaderRow } from './RotationHeaderRow';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationHeaderRow',
+	title: 'Features/Results/Timeline/Components/RotationHeaderRow',
 	component: RotationHeaderRow,
 	tags: ['autodocs'],
 	args: { row: PLAYER_HEADER_ROW },

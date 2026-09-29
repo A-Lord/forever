@@ -13,7 +13,7 @@ const CAPS: Array<[string, number, boolean]> = [
 ];
 
 const meta = {
-	title: 'Features/Reforge/ReforgeStatCapsView',
+	title: 'Features/Reforge/ReforgePanel/Components/ReforgeStatCapsView',
 	component: ReforgeStatCapsView,
 	tags: ['autodocs'],
 	args: {

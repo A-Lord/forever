@@ -4,7 +4,7 @@ import { auraRowItem, castRotationRow, FLURRY, rotationTrackStyle } from '@testi
 import { AuraItem } from './AuraItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/AuraItem',
+	title: 'Features/Results/Timeline/Components/AuraItem',
 	component: AuraItem,
 	tags: ['autodocs'],
 	args: { item: auraRowItem(1, 9), index: 0 },

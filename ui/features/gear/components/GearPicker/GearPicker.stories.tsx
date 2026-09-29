@@ -9,7 +9,7 @@ import { OpenSelectorModalContext } from '../../hooks/useSelectorModal';
 import { GearPicker } from './GearPicker';
 
 const meta = {
-	title: 'Features/Gear/GearPicker',
+	title: 'Features/Gear/GearPicker/GearPicker',
 	component: GearPicker,
 	tags: ['autodocs'],
 	args: { ready: true },

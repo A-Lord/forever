@@ -9,7 +9,7 @@ import { QuickSwapList, type QuickSwapListProps } from './QuickSwapList';
 type Props = QuickSwapListProps<UIGem | UIEnchant>;
 
 const meta = {
-	title: 'Features/Gear/QuickSwapList',
+	title: 'Features/Gear/GearPicker/Components/QuickSwapList',
 	component: QuickSwapList as (props: Props) => ReturnType<typeof QuickSwapList>,
 	tags: ['autodocs'],
 	args: {

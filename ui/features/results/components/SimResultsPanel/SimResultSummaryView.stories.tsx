@@ -6,7 +6,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { SimResultSummaryView } from './SimResultSummaryView';
 
 const meta = {
-	title: 'Features/Results/SimResultsPanel/SimResultSummaryView',
+	title: 'Features/Results/SimResultsPanel/Components/SimResultSummaryView',
 	component: SimResultSummaryView,
 	tags: ['autodocs'],
 	args: {

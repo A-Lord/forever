@@ -28,7 +28,7 @@ const StatefulGroup = ({ hidden: initial, onToggle, ...props }: RotationFloating
 };
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationFloatingActionBarGroup',
+	title: 'Features/Results/Timeline/Components/RotationFloatingActionBarGroup',
 	component: RotationFloatingActionBarGroup,
 	tags: ['autodocs'],
 	args: { title: 'Player', rows: ROWS, hidden: new Set(), onToggle: fn() },

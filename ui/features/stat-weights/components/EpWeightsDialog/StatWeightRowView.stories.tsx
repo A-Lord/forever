@@ -10,7 +10,7 @@ const RESULT = makeStatWeightsResult();
 const [STRENGTH, AGILITY] = STAT_WEIGHT_STATS;
 
 const meta = {
-	title: 'Features/StatWeights/StatWeightRowView',
+	title: 'Features/StatWeights/EpWeightsDialog/Components/StatWeightRowView',
 	component: StatWeightRowView,
 	tags: ['autodocs'],
 	args: {

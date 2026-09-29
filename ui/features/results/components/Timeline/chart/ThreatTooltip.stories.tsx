@@ -4,7 +4,7 @@ import { damageLog, HEROIC_STRIKE, threatLogGroup } from '@testing/storybook/fix
 import { ThreatTooltip } from './ThreatTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Chart/ThreatTooltip',
+	title: 'Features/Results/Timeline/Components/ThreatTooltip',
 	component: ThreatTooltip,
 	tags: ['autodocs'],
 	args: { log: threatLogGroup(12, [damageLog(12, 1420.5), damageLog(12.2, 980.25, { actionId: HEROIC_STRIKE })]) },

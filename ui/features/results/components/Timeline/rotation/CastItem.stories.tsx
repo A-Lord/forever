@@ -4,7 +4,7 @@ import { castRotationRow, castRowItem, MORTAL_STRIKE, rotationTrackStyle } from 
 import { CastItem } from './CastItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/CastItem',
+	title: 'Features/Results/Timeline/Components/CastItem',
 	component: CastItem,
 	tags: ['autodocs'],
 	args: { item: castRowItem(1), index: 0, iconUrl: MORTAL_STRIKE.iconUrl },

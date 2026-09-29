@@ -7,7 +7,7 @@ import { TalentPicker } from './TalentPicker';
 const TALENT = { ...mageTalentsConfig[0].talents[1], location: { rowIdx: 0, colIdx: 0 } };
 
 const meta = {
-	title: 'Features/Talents/TalentPicker',
+	title: 'Features/Talents/TalentsPicker/Components/TalentPicker',
 	component: TalentPicker,
 	tags: ['autodocs'],
 	args: { config: TALENT, points: 0, canAdd: true, allPointsSpent: false, onSetPoints: fn() },

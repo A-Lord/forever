@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { RowActions } from './RowActions';
 
 const meta = {
-	title: 'Features/Gear/RowActions',
+	title: 'Features/Gear/SelectorModal/Components/RowActions',
 	component: RowActions,
 	tags: ['autodocs'],
 	args: {

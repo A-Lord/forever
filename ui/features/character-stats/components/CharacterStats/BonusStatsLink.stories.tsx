@@ -6,7 +6,7 @@ import { withSimHost } from '@testing/storybook/fixtures/models';
 import { BonusStatsLink } from './BonusStatsLink';
 
 const meta = {
-	title: 'Features/CharacterStats/BonusStatsLink',
+	title: 'Features/CharacterStats/CharacterStats/Components/BonusStatsLink',
 	component: BonusStatsLink,
 	tags: ['autodocs'],
 	args: { unitStat: UnitStat.fromStat(Stat.StatStrength) },

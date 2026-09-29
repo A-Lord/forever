@@ -5,7 +5,7 @@ import { damageLog, DEEP_WOUNDS, resultsHostParts, TARGET } from '@testing/story
 import { TickTooltip } from './TickTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/TickTooltip',
+	title: 'Features/Results/Timeline/Components/TickTooltip',
 	component: TickTooltip,
 	tags: ['autodocs'],
 	args: { log: damageLog(9, 310.25, { actionId: DEEP_WOUNDS, tick: true }) },

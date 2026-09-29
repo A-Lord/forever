@@ -5,7 +5,7 @@ import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { TabGemIcon } from './TabGemIcon';
 
 const meta = {
-	title: 'Features/Gear/TabGemIcon',
+	title: 'Features/Gear/SelectorModal/Components/TabGemIcon',
 	component: TabGemIcon,
 	tags: ['autodocs'],
 	args: { socketColor: GemColor.GemColorRed, gem: null },

@@ -19,7 +19,7 @@ const HASTE = StatCap.fromStat(Stat.StatHasteRating, {
 });
 
 const meta = {
-	title: 'Features/Reforge/ReforgeSoftCapsTooltip',
+	title: 'Features/Reforge/ReforgePanel/Components/ReforgeSoftCapsTooltip',
 	component: ReforgeSoftCapsTooltip,
 	tags: ['autodocs'],
 	args: { playerClass: Class.ClassWarrior, softCaps: [HIT, HASTE], additionalInformation: {} },

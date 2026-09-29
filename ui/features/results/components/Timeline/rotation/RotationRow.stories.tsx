@@ -12,7 +12,7 @@ const allItems = (row: ContentRow) => row.items.map((_, index) => index);
 const HIDE_TOOLTIP_ID = 'story-rotation-hide';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationRow',
+	title: 'Features/Results/Timeline/Components/RotationRow',
 	component: RotationRow,
 	tags: ['autodocs'],
 	args: { row: rowOf('cast:Mortal Strike'), items: allItems(rowOf('cast:Mortal Strike')), onHide: fn(), hideTooltipId: HIDE_TOOLTIP_ID },

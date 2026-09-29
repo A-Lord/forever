@@ -6,7 +6,7 @@ import { loadSimResult, type ResultFixture, resultsHostParts } from '@testing/st
 import { DetailedResultsPane } from './DetailedResultsPane';
 
 const meta = {
-	title: 'Features/Results/DetailedResults/DetailedResultsPane',
+	title: 'Features/Results/DetailedResults/Components/DetailedResultsPane',
 	component: DetailedResultsPane,
 	tags: ['autodocs'],
 	args: {

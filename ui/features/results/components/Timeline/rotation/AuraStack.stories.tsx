@@ -4,7 +4,7 @@ import { castRotationRow, FLURRY, rotationTrackStyle } from '@testing/storybook/
 import { AuraStack } from './AuraStack';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/AuraStack',
+	title: 'Features/Results/Timeline/Components/AuraStack',
 	component: AuraStack,
 	tags: ['autodocs'],
 	args: { segment: { offset: 1, duration: 4, stacks: 3 } },

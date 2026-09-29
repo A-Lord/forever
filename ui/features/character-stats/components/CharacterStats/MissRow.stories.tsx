@@ -5,7 +5,7 @@ import { Table } from '@ui-kit/Table';
 import { MissRow } from './MissRow';
 
 const meta = {
-	title: 'Features/CharacterStats/MissRow',
+	title: 'Features/CharacterStats/CharacterStats/Components/MissRow',
 	component: MissRow,
 	tags: ['autodocs'],
 	args: { info: MISS_INFO },

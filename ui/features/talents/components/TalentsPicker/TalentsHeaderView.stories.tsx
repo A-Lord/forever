@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { TalentsHeaderView } from './TalentsHeaderView';
 
 const meta = {
-	title: 'Features/Talents/TalentsHeaderView',
+	title: 'Features/Talents/TalentsPicker/Components/TalentsHeaderView',
 	component: TalentsHeaderView,
 	tags: ['autodocs'],
 	args: { pointsRemaining: 51, copied: false, onCopy: fn() },

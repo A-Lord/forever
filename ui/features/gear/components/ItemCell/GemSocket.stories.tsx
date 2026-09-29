@@ -7,7 +7,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { GemSocket } from './GemSocket';
 
 const meta = {
-	title: 'Features/Gear/GemSocket',
+	title: 'Features/Gear/ItemCell/GemSocket',
 	component: GemSocket,
 	tags: ['autodocs'],
 	args: { socketColor: GemColor.GemColorRed, gem: null, onActivate: fn() },

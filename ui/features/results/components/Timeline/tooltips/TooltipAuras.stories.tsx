@@ -4,7 +4,7 @@ import { damageLog, dpsLog } from '@testing/storybook/fixtures/results-views';
 import { TooltipAuras } from './TooltipAuras';
 
 const meta = {
-	title: 'Features/Results/Timeline/Tooltips/TooltipAuras',
+	title: 'Features/Results/Timeline/Components/TooltipAuras',
 	component: TooltipAuras,
 	tags: ['autodocs'],
 	args: { log: dpsLog(12, [damageLog(12, 1420.5)]) },

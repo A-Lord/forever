@@ -8,7 +8,7 @@ import { StatsType } from './types';
 import { EP_TOOLTIP_ID } from './utils';
 
 const meta = {
-	title: 'Features/StatWeights/EpWeightsHeader',
+	title: 'Features/StatWeights/EpWeightsDialog/Components/EpWeightsHeader',
 	component: EpWeightsHeader,
 	tags: ['autodocs'],
 	args: {

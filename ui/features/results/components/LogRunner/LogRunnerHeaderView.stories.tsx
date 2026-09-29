@@ -4,7 +4,7 @@ import { fn } from 'storybook/test';
 import { LogRunnerHeaderView, LogRunnerNoMatches } from './LogRunnerHeaderView';
 
 const meta = {
-	title: 'Features/Results/LogRunner/LogRunnerHeaderView',
+	title: 'Features/Results/LogRunner/Components/LogRunnerHeaderView',
 	component: LogRunnerHeaderView,
 	tags: ['autodocs'],
 	args: { searchText: '', onSearchChange: fn() },

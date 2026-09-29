@@ -4,7 +4,7 @@ import { castLog } from '@testing/storybook/fixtures/results-views';
 import { GcdSegmentTooltip } from './GcdSegmentTooltip';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/GcdSegmentTooltip',
+	title: 'Features/Results/Timeline/Components/GcdSegmentTooltip',
 	component: GcdSegmentTooltip,
 	tags: ['autodocs'],
 	args: { log: castLog(6) },

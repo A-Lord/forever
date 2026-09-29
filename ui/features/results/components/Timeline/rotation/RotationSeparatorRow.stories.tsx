@@ -4,7 +4,7 @@ import { rotationTrackStyle, TARGET_SEPARATOR_ROW } from '@testing/storybook/fix
 import { RotationSeparatorRow } from './RotationSeparatorRow';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationSeparatorRow',
+	title: 'Features/Results/Timeline/Components/RotationSeparatorRow',
 	component: RotationSeparatorRow,
 	tags: ['autodocs'],
 	args: { row: TARGET_SEPARATOR_ROW },

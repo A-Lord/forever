@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { BulkGearImporterDialog } from './BulkGearImporterDialog';
 
 const meta = {
-	title: 'Features/ImportExport/BulkGearImporterDialog',
+	title: 'Features/ImportExport/Importer/Components/BulkGearImporterDialog',
 	component: BulkGearImporterDialog,
 	tags: ['autodocs'],
 	args: { open: false, onOpenChange: fn() },

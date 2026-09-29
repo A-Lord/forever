@@ -6,7 +6,7 @@ import { ChartSeriesTooltip } from './ChartSeriesTooltip';
 const HITS = [damageLog(12, 1420.5), damageLog(12.2, 980.25, { actionId: HEROIC_STRIKE })];
 
 const meta = {
-	title: 'Features/Results/Timeline/Chart/ChartSeriesTooltip',
+	title: 'Features/Results/Timeline/Components/ChartSeriesTooltip',
 	component: ChartSeriesTooltip,
 	tags: ['autodocs'],
 	args: { spec: { kind: 'dps' }, log: dpsLog(12, HITS) },

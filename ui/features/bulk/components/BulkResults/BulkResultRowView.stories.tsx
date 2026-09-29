@@ -17,7 +17,7 @@ const cell = (icon: string, name: string, ilvl: number) => (
 );
 
 const meta = {
-	title: 'Features/Bulk/BulkResultRowView',
+	title: 'Features/Bulk/BulkResults/BulkResultRowView',
 	component: BulkResultRowView,
 	tags: ['autodocs'],
 	args: {

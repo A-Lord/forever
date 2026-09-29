@@ -4,7 +4,7 @@ import { rageRotationRow, resourceRowItem, rotationTrackStyle } from '@testing/s
 import { ResourceItem } from './ResourceItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/ResourceItem',
+	title: 'Features/Results/Timeline/Components/ResourceItem',
 	component: ResourceItem,
 	tags: ['autodocs'],
 	args: { item: resourceRowItem(1, 4, 60), index: 0, cssName: 'rage' },

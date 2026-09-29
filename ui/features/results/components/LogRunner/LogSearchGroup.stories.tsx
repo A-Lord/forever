@@ -20,7 +20,7 @@ const StatefulGroup = ({ group: initial, onChange, ...props }: LogSearchGroupPro
 };
 
 const meta = {
-	title: 'Features/Results/LogRunner/LogSearchGroup',
+	title: 'Features/Results/LogRunner/Components/LogSearchGroup',
 	component: LogSearchGroup,
 	tags: ['autodocs'],
 	args: {

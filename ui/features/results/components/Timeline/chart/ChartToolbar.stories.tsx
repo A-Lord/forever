@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { ChartToolbar } from './ChartToolbar';
 
 const meta = {
-	title: 'Features/Results/Timeline/Chart/ChartToolbar',
+	title: 'Features/Results/Timeline/Components/ChartToolbar',
 	component: ChartToolbar,
 	tags: ['autodocs'],
 	args: { onReset: fn(), onZoomIn: fn(), onZoomOut: fn(), onPanLeft: fn(), onPanRight: fn() },

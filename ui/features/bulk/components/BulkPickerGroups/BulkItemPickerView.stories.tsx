@@ -7,7 +7,7 @@ import { fn } from 'storybook/test';
 import { BulkItemPickerView } from './BulkItemPickerView';
 
 const meta = {
-	title: 'Features/Bulk/BulkItemPickerView',
+	title: 'Features/Bulk/BulkPickerGroups/BulkItemPickerView',
 	component: BulkItemPickerView,
 	tags: ['autodocs'],
 	decorators: [withSimHost({ player: { getSpec: () => 0 } })],

@@ -20,7 +20,7 @@ const StatefulBar = ({ groups: initial, onChange, ...props }: LogSearchBarProps)
 };
 
 const meta = {
-	title: 'Features/Results/LogRunner/LogSearchBar',
+	title: 'Features/Results/LogRunner/Components/LogSearchBar',
 	component: LogSearchBar,
 	tags: ['autodocs'],
 	args: {

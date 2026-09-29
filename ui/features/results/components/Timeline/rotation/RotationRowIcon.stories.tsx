@@ -4,7 +4,7 @@ import { FLURRY, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views
 import { RotationRowIcon } from './RotationRowIcon';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RotationRowIcon',
+	title: 'Features/Results/Timeline/Components/RotationRowIcon',
 	component: RotationRowIcon,
 	tags: ['autodocs'],
 	args: { actionId: MORTAL_STRIKE, tooltip: 'spell' },

@@ -5,7 +5,7 @@ import { TIMELINE_SERIES_TEXT } from '@ui-kit/utils/colors';
 import { TooltipLogItem } from './TooltipLogItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Tooltips/TooltipLogItem',
+	title: 'Features/Results/Timeline/Components/TooltipLogItem',
 	component: TooltipLogItem,
 	tags: ['autodocs'],
 	args: { log: damageLog(12, 1420.5), children: '1420.50 damage' },

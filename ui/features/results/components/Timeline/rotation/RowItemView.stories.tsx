@@ -14,7 +14,7 @@ import {
 import { RowItemView } from './RowItemView';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/RowItemView',
+	title: 'Features/Results/Timeline/Components/RowItemView',
 	component: RowItemView,
 	tags: ['autodocs'],
 	args: { item: castRowItem(1), index: 0, iconUrl: MORTAL_STRIKE.iconUrl, cssName: '' },

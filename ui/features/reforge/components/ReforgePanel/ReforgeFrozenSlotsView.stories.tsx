@@ -6,7 +6,7 @@ import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
 const SLOTS = ['Head', 'Neck', 'Shoulders', 'Back', 'Chest', 'Wrist', 'Hands', 'Waist', 'Legs', 'Feet', 'Finger 1', 'Finger 2'];
 
 const meta = {
-	title: 'Features/Reforge/ReforgeFrozenSlotsView',
+	title: 'Features/Reforge/ReforgePanel/Components/ReforgeFrozenSlotsView',
 	component: ReforgeFrozenSlotsView,
 	tags: ['autodocs'],
 	args: {

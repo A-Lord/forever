@@ -5,7 +5,7 @@ import { Table } from '@ui-kit/Table';
 import { CritCapRow } from './CritCapRow';
 
 const meta = {
-	title: 'Features/CharacterStats/CritCapRow',
+	title: 'Features/CharacterStats/CharacterStats/Components/CritCapRow',
 	component: CritCapRow,
 	tags: ['autodocs'],
 	args: { info: CRIT_CAP_INFO, text: '8.40% under' },

@@ -6,7 +6,7 @@ import { ResultReferenceDiff } from './ResultReferenceDiff';
 const TOOLTIP_ID = 'story-reference-diff';
 
 const meta = {
-	title: 'Features/Results/ResultMetricList/ResultReferenceDiff',
+	title: 'Features/Results/ResultMetricList/Components/ResultReferenceDiff',
 	component: ResultReferenceDiff,
 	tags: ['autodocs'],
 	args: {

@@ -16,7 +16,7 @@ const withInputs = () =>
 	});
 
 const meta = {
-	title: 'Features/Encounter/TargetsPicker',
+	title: 'Features/Encounter/TargetsPicker/TargetsPicker',
 	component: TargetsPicker,
 	tags: ['autodocs'],
 	args: { encounter: makeStoryEncounter([TargetProto.create({ level: 63, swingSpeed: 2 })]) },

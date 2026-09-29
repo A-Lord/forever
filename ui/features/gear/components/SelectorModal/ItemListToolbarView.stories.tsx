@@ -12,7 +12,7 @@ const toggle = (name: string, label: string, value: boolean) => ({
 });
 
 const meta = {
-	title: 'Features/Gear/ItemListToolbarView',
+	title: 'Features/Gear/SelectorModal/Components/ItemListToolbarView',
 	component: ItemListToolbarView,
 	tags: ['autodocs'],
 	args: {

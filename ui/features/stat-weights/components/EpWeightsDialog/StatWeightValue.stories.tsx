@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StatWeightValue } from './StatWeightValue';
 
 const meta = {
-	title: 'Features/StatWeights/StatWeightValue',
+	title: 'Features/StatWeights/EpWeightsDialog/Components/StatWeightValue',
 	component: StatWeightValue,
 	tags: ['autodocs'],
 	args: { value: 1.92, stdev: 0.4, iterations: 1000 },

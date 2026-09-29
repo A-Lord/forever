@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { LogToolbar } from './LogToolbar';
 
 const meta = {
-	title: 'Features/Results/LogRunner/LogToolbar',
+	title: 'Features/Results/LogRunner/Components/LogToolbar',
 	component: LogToolbar,
 	tags: ['autodocs'],
 	args: {

@@ -4,7 +4,7 @@ import { gcdRotationRow, gcdSegmentRowItem, rotationTrackStyle } from '@testing/
 import { GcdSegmentItem } from './GcdSegmentItem';
 
 const meta = {
-	title: 'Features/Results/Timeline/Rotation/GcdSegmentItem',
+	title: 'Features/Results/Timeline/Components/GcdSegmentItem',
 	component: GcdSegmentItem,
 	tags: ['autodocs'],
 	args: { item: gcdSegmentRowItem(1), index: 0 },

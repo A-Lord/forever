@@ -5,7 +5,7 @@ import { EpWeightsOptions } from './EpWeightsOptions';
 import { StatsType } from './types';
 
 const meta = {
-	title: 'Features/StatWeights/EpWeightsOptions',
+	title: 'Features/StatWeights/EpWeightsDialog/Components/EpWeightsOptions',
 	component: EpWeightsOptions,
 	tags: ['autodocs'],
 	args: {

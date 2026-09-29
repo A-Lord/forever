@@ -9,7 +9,7 @@ import { StatsType } from './types';
 import { EP_TOOLTIP_ID } from './utils';
 
 const meta = {
-	title: 'Features/StatWeights/EpRatiosRow',
+	title: 'Features/StatWeights/EpWeightsDialog/EpRatiosRow',
 	component: EpRatiosRow,
 	tags: ['autodocs'],
 	args: {

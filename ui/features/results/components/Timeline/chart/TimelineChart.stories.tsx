@@ -32,7 +32,7 @@ const dpsSpec = (): TimelineChartSpec => {
 };
 
 const meta = {
-	title: 'Features/Results/Timeline/Chart/TimelineChart',
+	title: 'Features/Results/Timeline/Components/TimelineChart',
 	component: TimelineChart,
 	tags: ['autodocs'],
 	args: { spec: null },

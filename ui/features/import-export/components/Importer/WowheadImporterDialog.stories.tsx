@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { WowheadImporterDialog } from './WowheadImporterDialog';
 
 const meta = {
-	title: 'Features/ImportExport/WowheadImporterDialog',
+	title: 'Features/ImportExport/Importer/Components/WowheadImporterDialog',
 	component: WowheadImporterDialog,
 	tags: ['autodocs'],
 	args: { open: false, onOpenChange: fn() },

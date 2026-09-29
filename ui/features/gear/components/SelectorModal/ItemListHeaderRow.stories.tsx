@@ -6,7 +6,7 @@ import { SelectorModalTabs } from '../../types';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
 
 const meta = {
-	title: 'Features/Gear/ItemListHeaderRow',
+	title: 'Features/Gear/SelectorModal/Components/ItemListHeaderRow',
 	component: ItemListHeaderRow,
 	tags: ['autodocs'],
 	args: { label: SelectorModalTabs.Items, showEPValues: true, epTooltipId: 'ep-tooltip', onSort: fn() },

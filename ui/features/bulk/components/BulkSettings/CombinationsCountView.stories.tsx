@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CombinationsCountView } from './CombinationsCountView';
 
 const meta = {
-	title: 'Features/Bulk/CombinationsCountView',
+	title: 'Features/Bulk/BulkSettings/Components/CombinationsCountView',
 	component: CombinationsCountView,
 	tags: ['autodocs'],
 	args: { pending: false, combinations: 48, iterations: 96000, iterationsLimit: 1000000 },
