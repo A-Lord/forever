@@ -18,8 +18,8 @@ const factionRestrictionsToLabels: Record<UIItem_FactionRestriction, string> = {
 	[UIItem_FactionRestriction.HORDE_ONLY]: i18n.t('gear_tab.gear_picker.filters.faction_labels.horde_only'),
 };
 
-// `Sim.ALL_SOURCES.sort()` sorted the shared static array in place. Both inputs are static, so the
-// order is decided once here instead of on every render of a component.
+// A sorted copy, since `Sim.ALL_SOURCES` is shared. Both inputs are static, so the order is decided
+// once here instead of on every render.
 const sourceKeys = Object.keys(sourceFilterI18nKeys) as unknown as SourceFilterOption[];
 const SOURCES = [...Sim.ALL_SOURCES].sort((a, b) => sourceKeys.indexOf(a) - sourceKeys.indexOf(b));
 
