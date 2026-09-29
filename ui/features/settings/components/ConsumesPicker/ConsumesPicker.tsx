@@ -35,7 +35,7 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					</PickerGroup>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="elixirs">
+			<ConsumeRow name="elixirs" configs={[configs.flask, ...configs.elixirs]}>
 				<PickerGroup variant="icons" className="justify-end">
 					<div data-testid="consumes-flasks">
 						<IconEnumPicker modObject={player} config={configs.flask} />
@@ -48,7 +48,7 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					<Pickers player={player} configs={configs.scrolls} />
 				</PickerGroup>
 			</ConsumeRow>
-			<ConsumeRow name="food">
+			<ConsumeRow name="food" configs={[configs.food, ...configs.groups]}>
 				<PickerGroup variant="icons" className="justify-end" data-testid="consumes-food">
 					<IconEnumPicker modObject={player} config={configs.food} />
 					<Pickers player={player} configs={configs.groups} />
