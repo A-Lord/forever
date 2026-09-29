@@ -10,7 +10,7 @@ export interface ImprovedAnchorProps {
 	disabled?: boolean;
 	/** Which bottom corner of the icon the badge sits in: the two improved badges share the box and must not stack. */
 	corner: 'left' | 'right';
-	onClick: MouseEventHandler;
+	onActivate: () => void;
 	onContextMenu: MouseEventHandler;
 	onMouseDown: MouseEventHandler;
 }

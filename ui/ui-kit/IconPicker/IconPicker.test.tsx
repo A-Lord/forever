@@ -207,10 +207,10 @@ describe('IconPicker', () => {
 		expect(screen.getByTestId('icon-input-improved2').hidden).toBe(false);
 	});
 
-	it('carries the wowhead opt-outs and opens in a new tab', () => {
+	it('carries the wowhead opt-outs and names no target window', () => {
 		mount({ states: 3, improvedIcon });
 		const [main, improved1] = allAnchors();
-		expect(main.target).toBe('_blank');
+		expect(main.target).toBe('');
 		expect(main.dataset.whtticon).toBe('false');
 		expect(main.dataset.disableWowheadTouchTooltip).toBe('true');
 		expect(improved1.dataset.whtticon).toBe('false');

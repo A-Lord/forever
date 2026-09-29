@@ -10,7 +10,7 @@ const meta = {
 	args: { onZoomOut: fn(), onZoomIn: fn(), onFit: fn(), onReset: fn() },
 	decorators: [
 		Story => (
-			<div className="flex h-8 text-white [--label-w:12rem]">
+			<div className="flex h-6 text-white [--label-w:12rem]">
 				<Story />
 			</div>
 		),

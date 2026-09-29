@@ -24,12 +24,16 @@ describe('IconSwatch', () => {
 		expect(swatch.getAttribute('rel')).toBe('noopener noreferrer');
 	});
 
-	it('carries the wowhead opt-outs on a linked swatch, and only the touch one without a link', () => {
+	it('carries the icon opt-out on a linked swatch, and the touch one only on a swatch that acts', () => {
 		const { rerender } = render(<IconSwatch icon={kings} href={kings.href} testId="swatch" />);
+		expect(screen.getByTestId('swatch').dataset.whtticon).toBe('false');
+		expect(screen.getByTestId('swatch').hasAttribute('data-disable-wowhead-touch-tooltip')).toBe(false);
+
+		rerender(<IconSwatch icon={kings} href={kings.href} testId="swatch" onActivate={() => {}} />);
 		expect(screen.getByTestId('swatch').dataset.whtticon).toBe('false');
 		expect(screen.getByTestId('swatch').dataset.disableWowheadTouchTooltip).toBe('true');
 
-		rerender(<IconSwatch icon={kings} testId="swatch" />);
+		rerender(<IconSwatch icon={kings} testId="swatch" onActivate={() => {}} />);
 		expect(screen.getByTestId('swatch').hasAttribute('href')).toBe(false);
 		expect(screen.getByTestId('swatch').hasAttribute('data-whtticon')).toBe(false);
 		expect(screen.getByTestId('swatch').dataset.disableWowheadTouchTooltip).toBe('true');

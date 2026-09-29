@@ -1,18 +1,13 @@
 import { WowheadAnchor, type WowheadAnchorProps } from '@ui-kit/WowheadAnchor';
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
 
 export interface WowheadIconProps extends WowheadAnchorProps {
 	/** A `div` takes the look, the label and the dataset, and none of the anchor's props. */
 	as?: 'a' | 'div';
 	iconUrl?: string;
-	href?: string;
 	/** The `data-wowhead` tooltip attributes, spread onto the element. */
 	wowhead?: Record<string, string>;
 	label?: string;
-	className?: string;
-	testId?: string;
-	children?: ReactNode;
 }
 
 export const WowheadIcon = ({ as = 'a', iconUrl, wowhead, label, className, testId, children, ...rest }: WowheadIconProps) => {

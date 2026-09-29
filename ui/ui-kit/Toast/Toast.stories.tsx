@@ -30,7 +30,7 @@ const ToastStory = ({ variant, ...props }: ToastStoryProps) => {
 const InlineStory = (props: ToastStoryProps) => {
 	const [host, setHost] = useState<HTMLDivElement | null>(null);
 	return (
-		<div className="w-88">
+		<div className="w-86">
 			<p>The area renders in flow, inside this column:</p>
 			<div ref={setHost} />
 			{host && <ToastStory {...props} container={host} inline />}

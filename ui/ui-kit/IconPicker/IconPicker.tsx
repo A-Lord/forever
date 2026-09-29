@@ -47,10 +47,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 
 	// The improved icons are anchors beside the swatch, not inside it, so each carries these too.
 	const stateEvents = {
-		onClick: (event: MouseEvent) => {
-			event.preventDefault();
-			handleLeftClick();
-		},
+		onActivate: handleLeftClick,
 		onContextMenu: (event: MouseEvent) => event.preventDefault(),
 		onMouseDown: (event: MouseEvent) => {
 			if (isRightClick(event.nativeEvent)) {
@@ -85,7 +82,6 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.
 			aria-label={icon?.name || undefined}
-			target="_blank"
 			{...stateEvents}
 		/>
 	);
