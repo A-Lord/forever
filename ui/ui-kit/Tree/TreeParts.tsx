@@ -130,7 +130,7 @@ export const AddButton = ({ label, icon, disabled, onClick, className, testId }:
 	const root = useTreeRoot();
 	const tooltipId = useId();
 	const shared = {
-		className: clsx('ui-tree-add', className),
+		className,
 		disabled: root.disabled || disabled,
 		'data-testid': testId ?? 'tree-add',
 		onClick,

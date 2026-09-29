@@ -14,6 +14,7 @@
 		--tree-drop-after: 0 var(--spacing-tree-drop-line);
 
 		container: tree / inline-size;
+		inline-size: 100%;
 		gap: var(--tree-gap);
 
 		&[data-density='compact'] {

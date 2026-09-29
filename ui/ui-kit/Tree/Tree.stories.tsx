@@ -225,6 +225,15 @@ export const Sortable: Story = {
 	},
 };
 
+export const InsideRowFlex: Story = {
+	render: args => (
+		<div className="flex items-start gap-4">
+			<span>Rotation</span>
+			<TreeStory {...args} />
+		</div>
+	),
+};
+
 export const Narrow: Story = {
 	render: ({ onDelete }) => (
 		<div className="w-64">
