@@ -36,6 +36,7 @@ describe('SidebarActionButton', () => {
 		const button = screen.getByRole('button', { name: 'Stat Weights' }) as HTMLButtonElement;
 		expect(button.disabled).toBe(true);
 		expect(button.hasAttribute('data-loading')).toBe(true);
+		expect(button.getAttribute('aria-busy')).toBe('true');
 		expect(button.textContent).toContain('Stat Weights');
 		expect(within(button).queryByTestId('loader')).not.toBeNull();
 	});

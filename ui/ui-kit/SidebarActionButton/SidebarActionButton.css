@@ -7,7 +7,7 @@
 		@apply relative;
 
 		&[data-loading] {
-			@apply text-primary-disabled;
+			@apply text-primary-disabled transition-none;
 		}
 	}
 

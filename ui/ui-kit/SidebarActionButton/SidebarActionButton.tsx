@@ -25,7 +25,8 @@ export const SidebarActionButton = ({ children, className, onClick, disabled, lo
 			data-sidebar-action=""
 			data-loading={loading ? '' : undefined}
 			onClick={onClick}
-			disabled={disabled || sidebarDisabled || loading}>
+			disabled={disabled || sidebarDisabled || loading}
+			aria-busy={loading || undefined}>
 			{children}
 			{loading && <Spinner size="sm" className="ui-sidebar-action-spinner" />}
 		</Button>
