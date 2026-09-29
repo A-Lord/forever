@@ -50,6 +50,44 @@ const ItemsPane = () => (
 	</>
 );
 
+const ENCHANTS = [
+	{ name: 'Crusader', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_holy_holysmite', ep: 12.6 },
+	{ name: 'Lifestealing', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_shadow_lifedrain', ep: 9.8 },
+	{ name: 'Fiery Weapon', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_fire_flameblades', ep: 7.1 },
+];
+
+const EnchantsPane = () => (
+	<>
+		<ItemListToolbarView
+			search=""
+			onSearchChange={fn()}
+			phase={1}
+			onPhaseChange={fn()}
+			toggles={[{ id: 'show-ep-values-selector-enchants', testId: 'selector-modal-show-ep-values', label: 'Show EP', value: true, onChange: fn() }]}
+			removeLabel="Remove Enchant"
+			onRemove={fn()}
+		/>
+		<ItemListHeaderRow label={SelectorModalTabs.Enchants} showEPValues epTooltipId="ep-tooltip" onSort={fn()} />
+		{ENCHANTS.map((row, index) => (
+			<div key={row.name} className="relative flex items-center gap-4 bg-gray-900 p-2">
+				<ItemListRowView
+					name={row.name}
+					quality={row.quality}
+					nameDescription=""
+					iconUrl={wowheadIconUrl(row.icon)}
+					href=""
+					active={index === 0}
+					onEquip={fn()}
+					ep={{ ep: row.ep, equippedEP: 12.6 }}
+					favourited={index === 1}
+					favouriteTooltipId="favourite-tooltip"
+					onToggleFavourite={fn()}
+				/>
+			</div>
+		))}
+	</>
+);
+
 const meta = {
 	title: 'Features/Gear/SelectorModalView',
 	component: SelectorModalView,
@@ -61,7 +99,7 @@ const meta = {
 		title: 'Main Hand',
 		tabs: [
 			{ label: SelectorModalTabs.Items, pane: <ItemsPane /> },
-			{ label: SelectorModalTabs.Enchants, pane: <p>Enchants</p> },
+			{ label: SelectorModalTabs.Enchants, pane: <EnchantsPane /> },
 		],
 		activeTab: SelectorModalTabs.Items,
 		onSelectTab: fn(),
@@ -76,5 +114,3 @@ type Story = StoryObj<typeof meta>;
 export const ItemsTab: Story = {};
 
 export const EnchantsTab: Story = { args: { activeTab: SelectorModalTabs.Enchants } };
-
-export const NoRequest: Story = { args: { title: '', tabs: [], activeTab: null, sequence: undefined } };

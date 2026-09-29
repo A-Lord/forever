@@ -22,8 +22,14 @@ const preview: Preview = {
 		docs: { theme: themes.dark },
 		controls: { matchers: { color: /(background|color)$/i } },
 	},
-	// Every `icon` prop typed IconName picks from the kit's FontAwesome set; a story whose `icon` is an object opts out with `control: false`.
-	argTypes: { icon: { control: 'select', options: ICON_NAMES } },
+	// A component that declares an `icon` prop picks it from the kit's FontAwesome set; a story whose `icon` is an object opts out with `control: false`.
+	argTypesEnhancers: [
+		context => {
+			const icon = context.argTypes.icon;
+			if (!icon || icon.control === false) return context.argTypes;
+			return { ...context.argTypes, icon: { ...icon, control: { type: 'select' }, options: [...ICON_NAMES] } };
+		},
+	],
 	globalTypes: {
 		spec: {
 			description: 'Which <spec>-sim-ui class frames the story',
