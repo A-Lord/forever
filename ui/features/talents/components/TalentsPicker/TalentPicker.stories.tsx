@@ -27,10 +27,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Available: Story = {};
 
-export const Locked: Story = { args: { canAdd: false } };
+export const Disabled: Story = { args: { canAdd: false, allPointsSpent: true } };
 
 export const Partial: Story = { args: { points: 2 } };
 
 export const Full: Story = { args: { points: TALENT.maxPoints, canAdd: false } };
-
-export const UnspentWithAllPointsSpent: Story = { args: { canAdd: false, allPointsSpent: true } };
