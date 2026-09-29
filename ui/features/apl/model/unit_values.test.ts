@@ -12,30 +12,30 @@ const label = (key: string) => `rotation_tab.apl.helpers.unit_labels.${key}`;
 describe('refToValue', () => {
 	it('defaults an undefined ref to self or current target depending on targetUI', () => {
 		const player: any = makePlayer({} as any);
-		expect(refToValue(undefined, player, false)).toEqual({ value: undefined, iconUrl: 'fa-user', text: label('self') });
-		expect(refToValue(undefined, player, true)).toEqual({ value: undefined, iconUrl: 'fa-bullseye', text: label('current_target') });
+		expect(refToValue(undefined, player, false)).toEqual({ value: undefined, icon: 'user', text: label('self') });
+		expect(refToValue(undefined, player, true)).toEqual({ value: undefined, icon: 'bullseye', text: label('current_target') });
 	});
 
 	it('treats an Unknown-type ref the same way as an undefined one', () => {
 		const player: any = makePlayer({} as any);
 		const ref = UnitReference.create({ type: UnitType.Unknown });
-		expect(refToValue(ref, player, false)).toEqual({ value: ref, iconUrl: 'fa-user', text: label('self') });
-		expect(refToValue(ref, player, true)).toEqual({ value: ref, iconUrl: 'fa-bullseye', text: label('current_target') });
+		expect(refToValue(ref, player, false)).toEqual({ value: ref, icon: 'user', text: label('self') });
+		expect(refToValue(ref, player, true)).toEqual({ value: ref, icon: 'bullseye', text: label('current_target') });
 	});
 
 	it('maps Self, CurrentTarget, PreviousTarget and NextTarget to their own icon and text', () => {
 		const player: any = makePlayer({} as any);
-		expect(refToValue(UnitReference.create({ type: UnitType.Self }), player, false)).toMatchObject({ iconUrl: 'fa-user', text: label('self') });
+		expect(refToValue(UnitReference.create({ type: UnitType.Self }), player, false)).toMatchObject({ icon: 'user', text: label('self') });
 		expect(refToValue(UnitReference.create({ type: UnitType.CurrentTarget }), player, false)).toMatchObject({
-			iconUrl: 'fa-bullseye',
+			icon: 'bullseye',
 			text: label('current_target'),
 		});
 		expect(refToValue(UnitReference.create({ type: UnitType.PreviousTarget }), player, false)).toMatchObject({
-			iconUrl: 'fa-arrow-left',
+			icon: 'arrow-left',
 			text: label('previous_target'),
 		});
 		expect(refToValue(UnitReference.create({ type: UnitType.NextTarget }), player, false)).toMatchObject({
-			iconUrl: 'fa-arrow-right',
+			icon: 'arrow-right',
 			text: label('next_target'),
 		});
 	});
@@ -78,7 +78,7 @@ describe('refToValue', () => {
 		player.sim.getUnitMetadata = () => ({ getName: () => undefined });
 
 		const ref = UnitReference.create({ type: UnitType.Pet, index: 2 });
-		expect(refToValue(ref, player, false)).toEqual({ value: ref, iconUrl: 'fa-paw', text: `${label('pet')} 3` });
+		expect(refToValue(ref, player, false)).toEqual({ value: ref, icon: 'paw', text: `${label('pet')} 3` });
 	});
 });
 
@@ -87,7 +87,7 @@ describe('withIconUrl', () => {
 		const ref = UnitReference.create({ type: UnitType.Pet, index: 0 });
 		const pet = { value: ref, text: 'Stampede', iconUrl: ActionId.fromSpellId(121818) };
 
-		expect(withIconUrl({ value: ref, iconUrl: 'fa-paw' })).toEqual({ value: ref, iconUrl: 'fa-paw' });
+		expect(withIconUrl({ value: ref, icon: 'paw' })).toEqual({ value: ref, icon: 'paw' });
 		expect(withIconUrl(pet, { iconUrl: 'stampede.jpg', name: 'Stampede' })).toEqual({ value: ref, text: 'Stampede', iconUrl: 'stampede.jpg' });
 		expect(withIconUrl(pet)).toEqual({ value: ref, text: 'Stampede', iconUrl: undefined });
 	});

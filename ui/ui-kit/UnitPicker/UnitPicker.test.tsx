@@ -11,7 +11,7 @@ const targetRef = (index: number) => UnitReference.create({ type: UnitType.Targe
 const options: Array<UnitValue> = [
 	{ value: allTargets, text: 'All Targets', iconUrl: '' },
 	{ value: targetRef(0), text: 'Target 1', iconUrl: 'boss.jpg', color: 'warrior' },
-	{ value: targetRef(1), text: 'Target 2', iconUrl: 'fa-bullseye' },
+	{ value: targetRef(1), text: 'Target 2', icon: 'bullseye' },
 ];
 
 const mount = (value: UnitReference | undefined, onChange = vi.fn(), values = options) =>
@@ -82,7 +82,7 @@ describe('UnitPicker', () => {
 	});
 	// The APL unit sets put `undefined` first — "Self" or "Current Target", depending on the set —
 	// and that is the entry whose text the trigger drops.
-	const withDefault: Array<UnitValue> = [{ value: undefined, text: 'Self', iconUrl: 'fa-user' }, ...options];
+	const withDefault: Array<UnitValue> = [{ value: undefined, text: 'Self', icon: 'user' }, ...options];
 
 	it('hides the text but keeps the icon on the trigger for the default unit, when asked', () => {
 		const { rerender } = render(<UnitPicker options={withDefault} value={undefined} onChange={vi.fn()} hideLabelWhenDefault />);
