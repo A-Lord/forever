@@ -107,17 +107,25 @@ jobs:
                     --commit-hash=${{ github.event.pull_request.head.sha }} \
                     --commit-dirty=true
 
-            # One comment per pull request, edited on every push so the link stays on top of
-            # the conversation instead of repeating.
+            # One comment per pull request, found again by its marker and edited on every push, so
+            # the link stays in one place instead of repeating. A script action rather than `gh`:
+            # the self-hosted runner's service PATH does not carry it.
             - name: Comment preview link 🔗
               if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  PR_NUMBER: ${{ github.event.pull_request.number }}
-                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-              run: |
-                  body="Preview: https://pr-${PR_NUMBER}.wowsims-forever.pages.dev/forever/ (built from ${HEAD_SHA})"
-                  gh pr comment "$PR_NUMBER" --edit-last --body "$body" || gh pr comment "$PR_NUMBER" --body "$body"
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const marker = '<!-- preview-link -->';
+                      const number = context.payload.pull_request.number;
+                      const sha = context.payload.pull_request.head.sha;
+                      const body = `${marker}\nPreview: https://pr-${number}.wowsims-forever.pages.dev/forever/ (built from ${sha})`;
+                      const comments = await github.paginate(github.rest.issues.listComments, { ...context.repo, issue_number: number, per_page: 100 });
+                      const existing = comments.find(comment => comment.body?.startsWith(marker));
+                      if (existing) {
+                          await github.rest.issues.updateComment({ ...context.repo, comment_id: existing.id, body });
+                      } else {
+                          await github.rest.issues.createComment({ ...context.repo, issue_number: number, body });
+                      }
 
     test:
         runs-on: self-hosted
