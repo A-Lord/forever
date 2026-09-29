@@ -26,7 +26,7 @@ export const CharacterStatsPanelView = ({ open, onToggle, mode, onModeChange, la
 					className="ui-character-stats-item"
 					headerClassName="ui-character-stats-header"
 					headerProps={{ 'data-stuck': stuck ? '' : undefined }}
-					panelClassName="pb-0"
+					panelClassName="ui-character-stats-panel pb-0"
 					testId="character-stats-panel">
 					{children}
 				</AccordionItem>

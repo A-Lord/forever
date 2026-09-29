@@ -3,7 +3,7 @@
 		@apply contents;
 
 		& > :first-child {
-			@apply -mx-(--sidebar-inline-padding) border-t border-border-muted px-(--sidebar-inline-padding) lg:mt-auto;
+			@apply lg:mt-auto;
 		}
 
 		&:not([data-open]) > .ui-character-stats-header {
@@ -11,8 +11,12 @@
 		}
 	}
 
+	.ui-character-stats-panel {
+		@apply -mx-(--sidebar-inline-padding) border-t border-border-muted px-(--sidebar-inline-padding);
+	}
+
 	.ui-character-stats-header {
-		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-transparent bg-background px-(--sidebar-inline-padding) py-2 transition-colors duration-150;
+		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-transparent bg-background px-(--sidebar-inline-padding) py-2;
 
 		&[data-stuck] {
 			@apply border-border;
