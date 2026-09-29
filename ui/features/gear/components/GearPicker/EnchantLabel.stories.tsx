@@ -18,6 +18,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Crusader: Story = {};
-
-export const ReadOnly: Story = { args: { onActivate: undefined } };
+export const Default: Story = {};
