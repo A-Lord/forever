@@ -62,8 +62,11 @@ Then make three comparisons for each spell:
 
 Each of these has a section in `references/defects.md`.
 
-- **Core's order.** `cast.go` runs `applyEffects` before `OnCastComplete`, so a buff that a hit procs and an
-  `OnCastComplete` handler consumes is eaten by the cast that procced it.
+- **Core's order.** `cast.go` runs `applyEffects` before `OnCastComplete`, and a proc trigger's handler runs
+  inside `applyEffects` only with `TriggerImmediately`; without it, which is how `spelldata.ProcTrigger`
+  builds one, the handler runs a `SpellBatchWindow` later. Which of the two a buff's proc is decides whether
+  an `OnCastComplete` handler sees the cast that procced it, so a claim about order is proven at runtime,
+  never by reading the call order alone.
 - **What a cast spends, and when.** Combo points and extra energy are spent on a landed hit only; a
   one-charge buff is consumed by the cast it modifies; a refund on a miss is the row's (`MissRefund()`).
 - **What scales.** A tick that should scale with stacks or combo points; a row's `PointsPerResource`; a flat
@@ -108,7 +111,8 @@ A finding is reported only with evidence of at least one of these kinds, named i
 - a value printed at runtime from a throwaway test.
 
 A finding with none is dropped, and so is one the evidence contradicts; list it under "checked, not
-findings" instead. A suggested fix is applied in a worktree, passes `go vet --tags=with_db ./sim/<class>/`,
+findings" instead. A finding about when something happens (an order, a consumption, a refund) needs the
+runtime print: reading the call order is how a withdrawn finding got posted. A suggested fix is applied in a worktree, passes `go vet --tags=with_db ./sim/<class>/`,
 and the number it claims is printed at runtime before it is posted ("Checked: `maxEnergy=110` at rank 2").
 
 ## 7. Report

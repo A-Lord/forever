@@ -47,28 +47,31 @@ reads the row. The cases name the row and the numbers, so each one can be checke
 - **Furor 17056:** the tooltip prices the energy with `$m2`, effect 2; the code read effect 1, the rage
   chance, whose curve happens to match.
 - **Heart of the Wild 17003:** the tooltip's `$s1` is Intellect and `$s3` cat Strength, and the code read
-  each from the other's effect; both hold 10, so nothing moved. Its `A_MOD_TOTAL_STAT_PERCENTAGE` effects,
-  like those of Heart of the Wild Cat Effect 24900 and Arcane Mind 11232, name the stat in the second misc
-  value, a bitmask (8 Intellect, 4 Stamina, 1 Strength), with 0 in the first. The parse and
-  `go run ./tools/spelldata` read only the first, so they answer Strength for these rows.
+  each from the other's effect; both hold 2/4/6/8/10, so nothing moved. An `A_MOD_TOTAL_STAT_PERCENTAGE`
+  effect names its stats in the second misc value where it sets one, a bitmask (8 Intellect, 4 Stamina, 1
+  Strength), and the first value then does not count: 17003 states 0 and 8. `Effect.TotalStatPercentStats()`
+  reads it, as the parse and `go run ./tools/spelldata` do; a hand read of `Misc` gets the wrong stat.
 - **Initiative 13976:** 33/67/100% from effect 1 and a hit listener. A hand trigger with no chance fired at
   every rank, and on `CallbackOnCastComplete`, which has no result, so a dodged Garrote still awarded the
   point. `spelldata.ProcTrigger` on the rank decodes both.
 
 ## Core's order
 
-- **Clearcasting consumed by the attack that procs it.** `cast.go` runs `applyEffects`, then
-  `Unit.OnCastComplete`. A Shred hit procs Omen of Clarity, Clearcasting activates, and its `OnCastComplete`
-  handler sees Shred's class flags and deactivates it, so the discount never lands. Consume it in
-  `OnApplyEffects` (before the effects run, `aura.go`), or from the Clearcasting row's own proc flags and its
-  one charge (16870, `ProcCharges`).
+- **Clearcasting and the attack that procs it: checked, not a finding.** `cast.go` runs `applyEffects`,
+  then `Unit.OnCastComplete`, which read as though a Claw that procs Omen of Clarity would consume the
+  Clearcasting it just gained. It does not: the Omen trigger comes from `spelldata.ProcTrigger`, which leaves
+  `TriggerImmediately` false, so the handler runs one `SpellBatchWindow` later (`aura_helpers.go`), after
+  `OnCastComplete`. Over 2000 stepped Claws, all 60 Clearcasting gains survived the Claw that procced them.
+  The same order is a real defect for a hand-built trigger that sets `TriggerImmediately`. This was posted
+  as a finding from reading the code and withdrawn once a runtime probe contradicted it.
 - **`CallbackOnCastComplete` has no result** (`aura_helpers.go`), so `Outcome: OutcomeLanded` on such a
   trigger is never consulted.
 
 ## What a cast spends, and when
 
 - **Ferocious Bite** spent every combo point and all extra energy before the attack roll, so a dodged
-  5-point bite left 0 of each. Spend them inside `result.Landed()`, as Rip does.
+  5-point bite at 100 energy left 0 combo points and 28 energy, the 80% refund of the 35 cost, where
+  spending on a landed bite only leaves 5 and 93. Spend them inside `result.Landed()`, as Rip does.
 - **Cutthroat 462707** carries one charge, and nothing consumed it, so one proc allowed every Ambush the
   energy paid for in its 10 s.
 
