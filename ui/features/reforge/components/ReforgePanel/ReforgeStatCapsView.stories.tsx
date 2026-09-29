@@ -23,7 +23,7 @@ const meta = {
 				key={statName}
 				statName={statName}
 				tooltip={statName === 'Haste' ? 'Final percentage value including all buffs/gear.' : undefined}
-				percentage={<StoryNumber float showZeroes={false} positive className="mb-0" inputClassName="pr-2 pl-2 text-right" initial={percentage} />}
+				percentage={<StoryNumber float showZeroes={false} positive inputClassName="pr-2 pl-2 text-right" initial={percentage} />}
 				undershoot={<StoryBoolean label="" initial={undershoot} />}
 			/>
 		)),

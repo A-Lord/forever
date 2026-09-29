@@ -41,7 +41,7 @@ export interface FieldClearProps {
 
 export interface FieldProps extends FieldChromeProps {
 	disabled?: boolean;
-	/** `false` renders the root `flex-none` (SearchBar, ComboBox). */
+	/** `false` renders the root `flex-none` (ComboBox). */
 	grow?: boolean;
 	/** Renders the input wrapper with an absolute clear button; `show: false` keeps the wrapper and hides the button. */
 	clear?: FieldClearProps;

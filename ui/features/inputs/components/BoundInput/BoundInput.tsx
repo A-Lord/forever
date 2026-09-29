@@ -3,7 +3,7 @@ import type { Player } from '@sim/player/player';
 
 import { BoundBooleanPicker } from '../BoundBooleanPicker';
 import { BoundEnumPicker } from '../BoundEnumPicker';
-import { BoundNumberPicker } from '../BoundNumberPicker';
+import { BoundNumberField } from '../BoundTextField';
 import type { BoundInputConfig } from './types';
 
 export interface BoundInputProps {
@@ -21,7 +21,7 @@ export const BoundInput = ({ config, inline }: BoundInputProps) => {
 
 	switch (shared.type) {
 		case 'number':
-			return <BoundNumberPicker modObject={player} config={shared} />;
+			return <BoundNumberField modObject={player} config={shared} />;
 		case 'boolean':
 			return <BoundBooleanPicker modObject={player} config={{ ...shared, reverse: true }} />;
 		case 'enum':

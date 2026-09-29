@@ -18,7 +18,7 @@ const STAT_CAPS = (
 			<ReforgeStatCapRowView
 				key={statName}
 				statName={statName}
-				percentage={<StoryNumber float showZeroes={false} positive className="mb-0" inputClassName="pr-2 pl-2 text-right" initial={9} />}
+				percentage={<StoryNumber float showZeroes={false} positive inputClassName="pr-2 pl-2 text-right" initial={9} />}
 				undershoot={<StoryBoolean label="" />}
 			/>
 		))}

@@ -8,7 +8,7 @@ import { formatToNumber } from '@sim/utils/format';
 import { randomUUID } from '@sim/utils/misc';
 import type { EnumValueConfig } from '@ui-kit/EnumPicker/types';
 
-import type { BooleanPickerConfig, EnumPickerConfig, IconEnumPickerConfig, IconEnumValueConfig, IconPickerConfig, NumberPickerConfig } from './configs';
+import type { BooleanPickerConfig, EnumPickerConfig, IconEnumPickerConfig, IconEnumValueConfig, IconPickerConfig, NumberFieldConfig } from './configs';
 import type { InputChrome, StoreBinding } from './input';
 
 const storeBinding = <ModObject>(
@@ -142,16 +142,16 @@ export const makeRotationBooleanInput = <SpecType extends Spec>(
 /////////////////////////////////////////////////////////////////////////////////
 //                                    NUMBER
 /////////////////////////////////////////////////////////////////////////////////
-export interface TypedNumberPickerConfig<ModObject> extends NumberPickerConfig<ModObject> {
+export interface TypedNumberFieldConfig<ModObject> extends NumberFieldConfig<ModObject> {
 	type: 'number';
 }
 
-interface WrappedNumberInputConfig<SpecType extends Spec, ModObject> extends NumberPickerConfig<ModObject> {
+interface WrappedNumberInputConfig<SpecType extends Spec, ModObject> extends NumberFieldConfig<ModObject> {
 	getModObject: (player: Player<SpecType>) => ModObject;
 }
 const makeWrappedNumberInput = <SpecType extends Spec, ModObject>(
 	config: WrappedNumberInputConfig<SpecType, ModObject>,
-): TypedNumberPickerConfig<Player<SpecType>> => {
+): TypedNumberFieldConfig<Player<SpecType>> => {
 	const getModObject = config.getModObject;
 	return {
 		id: config.id,
@@ -177,7 +177,7 @@ export interface PlayerNumberInputConfig<SpecType extends Spec, Message>
 	extends
 		BasePlayerConfig<SpecType, number>,
 		Pick<
-			NumberPickerConfig<Player<SpecType>>,
+			NumberFieldConfig<Player<SpecType>>,
 			'labelTooltip' | 'description' | 'showZeroes' | 'maxDecimalDigits' | 'float' | 'positive' | 'inputClassName'
 		> {
 	fieldName: keyof Message;
@@ -197,7 +197,7 @@ const numberInputPercentToValue = (value: number, config: PlayerNumberInputConfi
 
 export const makeClassOptionsNumberInput = <SpecType extends Spec>(
 	config: PlayerNumberInputConfig<SpecType, ClassOptions<SpecType>>,
-): TypedNumberPickerConfig<Player<SpecType>> => {
+): TypedNumberFieldConfig<Player<SpecType>> => {
 	const internalConfig = {
 		id: `${String(config.fieldName) || randomUUID()}`,
 		label: config.label,
@@ -234,7 +234,7 @@ export const makeClassOptionsNumberInput = <SpecType extends Spec>(
 };
 export const makeSpecOptionsNumberInput = <SpecType extends Spec>(
 	config: PlayerNumberInputConfig<SpecType, SpecOptions<SpecType>>,
-): TypedNumberPickerConfig<Player<SpecType>> => {
+): TypedNumberFieldConfig<Player<SpecType>> => {
 	const internalConfig = {
 		id: `${String(config.fieldName) || randomUUID()}`,
 		label: config.label,
@@ -272,7 +272,7 @@ export const makeSpecOptionsNumberInput = <SpecType extends Spec>(
 };
 export const makeRotationNumberInput = <SpecType extends Spec>(
 	config: PlayerNumberInputConfig<SpecType, SpecRotation<SpecType>>,
-): TypedNumberPickerConfig<Player<SpecType>> => {
+): TypedNumberFieldConfig<Player<SpecType>> => {
 	const internalConfig = {
 		id: `${String(config.fieldName) || randomUUID()}`,
 		label: config.label,

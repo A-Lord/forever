@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconEnum } from '@testing/storybook/fixtures/settings_reforge_bulk';
-import { NumberListPicker } from '@ui-kit/NumberListPicker';
+import { NumberListField } from '@ui-kit/TextField';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
@@ -15,9 +15,7 @@ const COOLDOWNS = [
 
 const Timings = ({ initial }: { initial: Array<number> }) => {
 	const [value, setValue] = useState(initial);
-	return (
-		<NumberListPicker id="story-cooldown-timings" className="mb-0 ml-auto w-2/5 min-w-2/5" placeholder="20, 40, ..." value={value} onChange={setValue} />
-	);
+	return <NumberListField id="story-cooldown-timings" className="ml-auto w-2/5 min-w-2/5" placeholder="20, 40, ..." value={value} onChange={setValue} />;
 };
 
 const meta = {

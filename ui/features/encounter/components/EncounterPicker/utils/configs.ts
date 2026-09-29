@@ -1,4 +1,4 @@
-import type { EnumPickerConfig, NumberPickerConfig } from '@features/inputs/configs';
+import type { EnumPickerConfig, NumberFieldConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Encounter } from '@sim/raid/encounter';
@@ -18,7 +18,7 @@ interface Field {
 	set: (encounter: Encounter, value: number) => void;
 }
 
-const field = (encounter: Encounter, spec: Field): NumberPickerConfig<Encounter> => ({
+const field = (encounter: Encounter, spec: Field): NumberFieldConfig<Encounter> => ({
 	id: spec.id,
 	label: i18n.t(`settings_tab.encounter.${spec.key}.label`),
 	labelTooltip: i18n.t(`settings_tab.encounter.${spec.key}.tooltip`),
@@ -31,7 +31,7 @@ const field = (encounter: Encounter, spec: Field): NumberPickerConfig<Encounter>
 	enableWhen: whileTimed(encounter),
 });
 
-export const durationConfigs = (encounter: Encounter): Array<NumberPickerConfig<Encounter>> =>
+export const durationConfigs = (encounter: Encounter): Array<NumberFieldConfig<Encounter>> =>
 	(
 		[
 			{ id: 'encounter-duration', key: 'duration', label: 'duration', category: 'duration', get: e => e.getDuration(), set: (e, v) => e.setDuration(v) },
@@ -90,9 +90,9 @@ const EXECUTE_BANDS: Array<Field> = [
 	},
 ];
 
-export const executeConfigs = (encounter: Encounter): Array<NumberPickerConfig<Encounter>> => EXECUTE_BANDS.map(band => field(encounter, band));
+export const executeConfigs = (encounter: Encounter): Array<NumberFieldConfig<Encounter>> => EXECUTE_BANDS.map(band => field(encounter, band));
 
-export const numAlliesConfig = (player: Player<any>): NumberPickerConfig<Raid> => ({
+export const numAlliesConfig = (player: Player<any>): NumberFieldConfig<Raid> => ({
 	id: 'encounter-num-allies',
 	label: i18n.t('settings_tab.encounter.num_allies.label'),
 	labelTooltip: i18n.t('settings_tab.encounter.num_allies.tooltip'),
@@ -102,7 +102,7 @@ export const numAlliesConfig = (player: Player<any>): NumberPickerConfig<Raid> =
 	showWhen: () => player.shouldEnableTargetDummies(),
 });
 
-export const minBaseDamageConfig = (): NumberPickerConfig<Encounter> => ({
+export const minBaseDamageConfig = (): NumberFieldConfig<Encounter> => ({
 	id: 'encounter-min-base-damage',
 	label: i18n.t('settings_tab.encounter.min_base_damage.label'),
 	labelTooltip: i18n.t('settings_tab.encounter.min_base_damage.tooltip'),

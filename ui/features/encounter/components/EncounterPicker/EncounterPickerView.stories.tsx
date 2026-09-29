@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { EnumPicker } from '@ui-kit/EnumPicker';
 import { MultiComboBox } from '@ui-kit/MultiComboBox';
-import { NumberPicker } from '@ui-kit/NumberPicker';
+import { NumberField } from '@ui-kit/TextField';
 import { fn } from 'storybook/test';
 
 import { EncounterPickerView } from './EncounterPickerView';
 
-const number = (id: string, label: string, value: number) => <NumberPicker id={id} label={label} value={value} onChange={fn()} />;
+const number = (id: string, label: string, value: number) => <NumberField id={id} label={label} value={value} onChange={fn()} />;
 
 const EXECUTE = (
 	<>

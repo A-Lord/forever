@@ -1,8 +1,8 @@
 import i18n from '@i18n/config';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { TableCell, TableRow } from '@ui-kit/Table';
+import { NumberField } from '@ui-kit/TextField';
 import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 
@@ -35,13 +35,12 @@ export const EpRatiosRow = ({ columns, epRatios, onEpRatioChange, onComputeEp, s
 							'text-right',
 							column.type === 'weight' ? 'in-data-[stats-type=ep]:hidden' : 'in-data-[stats-type=weight]:hidden',
 						]}>
-						<NumberPicker
+						<NumberField
 							id={`ep-ratio-${column.type}-${column.ratioIndex}`}
-							className={['items-end', 'mb-0']}
 							float
 							value={epRatios[column.ratioIndex!]}
 							onChange={value => onEpRatioChange(column.ratioIndex!, value)}
-							inputClassName={clsx('ui-ep-weights-input-align-right max-w-25', showThreatMetrics && 'ui-ep-weights-compact-input')}
+							inputClassName={clsx('ui-ep-weights-input-align-right ml-auto max-w-25', showThreatMetrics && 'ui-ep-weights-compact-input')}
 						/>
 					</TableCell>
 				))}
