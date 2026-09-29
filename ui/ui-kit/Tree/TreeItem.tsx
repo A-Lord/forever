@@ -5,7 +5,7 @@ import { TreeBodyContext, TreeItemContext, type TreeItemContextValue, useTreeIte
 import { useItemSortable } from './sortable';
 import type { TreeItemProps } from './types';
 
-export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, disabled, className, testId, children }: TreeItemProps) => {
+export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, disabled, muted, className, testId, children }: TreeItemProps) => {
 	const root = useTreeRoot();
 	const { register, unregister, indexOf, check } = useTreeItems();
 	const key = useId();
@@ -77,6 +77,7 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 				data-drag={drag ?? undefined}
 				data-drop={drop ?? undefined}
 				data-disabled={itemDisabled ? '' : undefined}
+				data-muted={muted ? '' : undefined}
 				data-testid={testId ?? 'tree-item'}
 				draggable={armed || undefined}
 				{...itemProps}>

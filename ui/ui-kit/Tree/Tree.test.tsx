@@ -340,6 +340,33 @@ describe('Tree', () => {
 		}
 	});
 
+	it('marks a muted item and keeps its handle and trigger usable', () => {
+		render(
+			<Tree.Root>
+				<Tree.Items>
+					<Tree.Item id="a" muted>
+						<Tree.Item.Header>
+							<Tree.Item.Handle label="Move row A" />
+							<Tree.Item.Trigger label="Toggle row A" />
+						</Tree.Item.Header>
+					</Tree.Item>
+					<Tree.Item id="b">
+						<Tree.Item.Header>
+							<Tree.Item.Handle label="Move row B" />
+						</Tree.Item.Header>
+					</Tree.Item>
+				</Tree.Items>
+			</Tree.Root>,
+		);
+		const [a, b] = screen.getAllByRole('listitem');
+		expect(a.hasAttribute('data-muted')).toBe(true);
+		expect(a.hasAttribute('data-disabled')).toBe(false);
+		expect(b.hasAttribute('data-muted')).toBe(false);
+		for (const name of ['Move row A', 'Toggle row A']) {
+			expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(false);
+		}
+	});
+
 	it('marks a disabled item without disabling its siblings', () => {
 		render(
 			<Tree.Root>

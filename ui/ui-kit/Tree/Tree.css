@@ -119,6 +119,13 @@
 		margin-inline-end: var(--tree-title-end);
 	}
 
+	.ui-tree-item[data-muted] > .ui-tree-item-header {
+		> .ui-tree-item-handle,
+		> .ui-tree-item-title {
+			@apply opacity-50;
+		}
+	}
+
 	.ui-tree-item-aside {
 		@apply flex items-center;
 		grid-area: aside;

@@ -76,6 +76,8 @@ export interface TreeItemProps extends TreePartProps {
 	defaultOpen?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	disabled?: boolean;
+	/** Fades the handle and title while the item stays movable and openable; for a row whose body is switched off. */
+	muted?: boolean;
 	children?: ReactNode;
 }
 

@@ -41,17 +41,14 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Creating: the confirm button waits for a name. */
-export const Create: Story = {};
-
-/** A taken name blocks the confirm button and says why. */
-export const NameConflict: Story = { args: { defaultValue: 'Execute' } };
-
-export const Rename: Story = {
-	args: { title: 'Rename Group', confirmLabel: 'Rename', defaultValue: 'Opener', existingNames: ['Execute'] },
-};
-
-/** Extracting a condition to a new value variable. */
-export const Extract: Story = {
-	args: { title: 'Extract to Variable', confirmLabel: 'Extract', placeholder: 'rage_pooled', existingNames: [] },
+/** Open on a rename with a taken name in the list: type one of `existingNames` to see the conflict block the confirm button. */
+export const Default: Story = {
+	args: {
+		open: true,
+		title: 'Rename Group',
+		confirmLabel: 'Rename',
+		defaultValue: 'Opener',
+		placeholder: 'rage_pooled',
+		existingNames: ['Execute', 'Opener'],
+	},
 };

@@ -14,10 +14,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** The priority list's bar: the new button appends an unnamed row at once. */
-export const Default: Story = {};
+export const PriorityListBar: Story = {};
 
 /** The groups' and variables' bar: the new button asks for a name, and a taken one blocks the confirm button. */
-export const AsksForAName: Story = {
+export const NamedItemBar: Story = {
 	args: {
 		itemName: 'Group',
 		nameDialog: { inputLabel: 'Name', existingNames: () => ['Execute', 'Opener'] },
