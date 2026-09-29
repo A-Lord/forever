@@ -26,10 +26,10 @@ npm start
 WATCH=1 make host
 
 # Serve the component catalogue (every story and the design-system pages) at http://localhost:6006
-npm run storybook
+npm run storybook:dev
 
 # Build the same catalogue as static files into storybook-static/
-npm run build-storybook
+npm run storybook:build
 
 # Delete all generated files (.pb.go and .ts proto files, and dist/)
 make clean

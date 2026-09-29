@@ -25,8 +25,8 @@
 		"type-check": "node_modules/typescript/bin/tsc --noEmit",
 		"test:unit": "vitest run",
 		"test:locales": "node ./test-locales.mjs",
-		"storybook": "storybook dev -p 6006 --no-open",
-		"build-storybook": "storybook build --quiet"
+		"storybook:dev": "storybook dev -p 6006 --no-open",
+		"storybook:build": "storybook build --quiet"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.7.0",

@@ -2,7 +2,7 @@
 
 **Source of truth:** `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the
 `devserver` / `rundevserver` / `devmode` / `host` targets in the makefile, and for Storybook
-`.storybook/main.ts` and the `storybook` / `build-storybook` scripts in `package.json`. Read the
+`.storybook/main.ts` and the `storybook:dev` / `storybook:build` scripts in `package.json`. Read the
 target before copying a command out of here:
 
 ```
@@ -78,8 +78,8 @@ Playwright yourself and record the protocol in the PR.
 ## Storybook
 
 ```
-npm run storybook          # storybook dev -p 6006 --no-open → http://localhost:6006
-npm run build-storybook    # storybook build --quiet → storybook-static/ (gitignored)
+npm run storybook:dev      # storybook dev -p 6006 --no-open → http://localhost:6006
+npm run storybook:build    # storybook build --quiet → storybook-static/ (gitignored)
 ```
 
 Both need the gitignored generated TS files like every other build (the story fixtures import

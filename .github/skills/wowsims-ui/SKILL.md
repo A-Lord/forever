@@ -31,7 +31,7 @@ of `references/state.md`.
 
 **This skill documents everything below the view layer.** Storybook is the component registry:
 every kit component, the feature views and the app's presentational pieces have a
-`*.stories.tsx`, and `npm run storybook` shows what exists before you write another. `ui/README.md`
+`*.stories.tsx`, and `npm run storybook:dev` shows what exists before you write another. `ui/README.md`
 has the kit contract, the container/view rule and the story conventions; `ui/STYLING.md` has the
 co-located CSS.
 

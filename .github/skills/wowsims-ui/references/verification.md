@@ -16,7 +16,7 @@ npm run lint:css         # stylelint "./ui/**/*.css"
 npm run fmt              # npx oxfmt . --check — the whole repo, not just ui/
 npm run test:unit        # vitest run — happy-dom, ui/**/*.test.ts(x), every story included
 npm run test:locales     # ajv, assets/locales/** against schemas/**
-npm run build-storybook  # storybook build --quiet → storybook-static/
+npm run storybook:build  # storybook build --quiet → storybook-static/
 ```
 
 `npm run lint:js` runs with `--max-warnings 0`, so a warning fails it exactly like an error. Note
@@ -36,7 +36,7 @@ What each one is actually for:
 | `test:unit`       | component and helper behaviour, the store hooks' gating, a story that fails to mount, and the tree-wide gates below                                      | anything without a `.test.ts(x)` beside it, and warnings — see the last section |
 | `test:locales`    | a locale key with no matching property in its `additionalProperties: false` schema                                                                       | a key the schema allows and no locale file defines                              |
 | `fmt`             | formatting across the repo, markdown included — `assets/**` and `**/test-fixtures/*.json` are the ignored trees                                          | anything `.gitignore` already hides, which is how generated output escapes it   |
-| `build-storybook` | what only Storybook's own build sees: a broken `.storybook/` config, an MDX page that does not compile, a story module the browser bundle cannot resolve | a story that builds and renders wrong — open it in `npm run storybook`          |
+| `storybook:build` | what only Storybook's own build sees: a broken `.storybook/` config, an MDX page that does not compile, a story module the browser bundle cannot resolve | a story that builds and renders wrong — open it in `npm run storybook`          |
 
 **Zero `no-restricted-imports` errors is the bar**, not a count held steady: the layer rules are the
 point of the layout, and `lint:js` is the only thing enforcing them anywhere.
@@ -47,7 +47,7 @@ point of the layout, and `lint:js` is the only thing enforcing them anywhere.
 
 - **`build-ui`**: `npm ci` and `test:locales`, then `fmt`, `lint:js`, `lint:css`, a
   `make ui/generated/proto/api.ts go-to-ts` generate step, `type-check`, `test:unit`,
-  `build-storybook`, and finally `make dist/forever/.dirstamp`.
+  `storybook:build`, and finally `make dist/forever/.dirstamp`.
 - **`test`**: `go test --tags=with_db ./sim/...` in one job (four shards when there is more than one runner) — the Go sim, not the UI.
 
 So every script in the list above runs in CI, cheapest first, which is why a formatting slip reports

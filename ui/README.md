@@ -80,7 +80,7 @@ ui/
 
 Every kit component, the feature views and the app's presentational pieces have a story; the
 stories are the catalogue of what exists and how it renders, so look there before writing a
-component. `npm run storybook` serves it on port 6006, `npm run build-storybook` builds it into
+component. `npm run storybook:dev` serves it on port 6006, `npm run storybook:build` builds it into
 `storybook-static/` (a CI step, see `.github/skills/wowsims-ui/references/verification.md`).
 Titles follow the tree: `Kit/<Name>`, `Features/<Feature>/<Name>`, `App/<Area>/<Name>`, and the
 twelve `Design System/*` pages.
