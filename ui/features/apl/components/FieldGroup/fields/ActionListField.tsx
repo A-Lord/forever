@@ -6,7 +6,6 @@ import type { InputConfig } from '@features/inputs/input';
 import { keyFor } from '@features/inputs/list_ids';
 import { APLAction } from '@generated/proto/apl';
 import i18n from '@i18n/config';
-import { translateItemLabel } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import { Tree, type TreeSortable } from '@ui-kit/Tree';
 import clsx from 'clsx';
@@ -46,7 +45,7 @@ export const ActionListField = ({ player, config }: ActionListFieldProps) => {
 	);
 	if (hidden) return null;
 
-	const itemLabel = translateItemLabel('action');
+	const itemLabel = i18n.t('rotation_tab.apl.priorityList.name');
 	return (
 		<Tree.Root
 			group={group}

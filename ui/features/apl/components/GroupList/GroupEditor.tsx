@@ -63,7 +63,7 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 			title={<NameDisplay name={group?.name || ''} onRename={() => setRenaming(true)} />}
 			actions={<AplItemActions label={groupLabel} onCopy={onCopy} onDelete={onDelete} />}
 			testId="apl-group-editor-root">
-			<Tree.Item.Children>
+			<Tree.Item.Children testId="apl-group-actions">
 				{actions.items.length > 0 && (
 					<AplList.Rows>
 						{actions.items.map((item, index) => {

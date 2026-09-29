@@ -335,6 +335,34 @@ describe('AplList drag and drop', () => {
 		expect(notifications).toBe(1);
 	});
 
+	it('reorders a nested operand list and leaves the list around it alone', () => {
+		const constant = (uuid: string) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'const', const: { val: uuid } } });
+		const list = (kind: 'and' | 'or', uuid: string, vals: Array<APLValue>) =>
+			APLValue.create({ uuid: { value: uuid }, value: { oneofKind: kind, [kind]: { vals } } as APLValue['value'] });
+		setup({
+			priorityList: [
+				APLListItem.create({
+					action: { condition: list('and', 'outer', [list('or', 'o', [constant('x'), constant('y')]), constant('c')]), action: reset('r').action },
+				}),
+			],
+		});
+		mount();
+		const [outerRows, innerRows] = [...document.querySelectorAll<HTMLElement>('[data-testid="apl-value-list"]')].map(element => [
+			...element.querySelectorAll<HTMLElement>(':scope > ul > [data-testid="apl-value-list-item"]'),
+		]);
+		outerRows.forEach((el, i) => vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, i * 100, 20, 100)));
+		innerRows.forEach((el, i) => vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 10 + i * 20, 20, 20)));
+
+		fireEvent.mouseDown(within(innerRows[1]).getAllByTestId('apl-value-list-handle')[0]);
+		fireEvent.dragStart(innerRows[1], { dataTransfer: new DataTransfer() });
+		drop(innerRows[0], 12);
+
+		const outer = player.aplRotation.priorityList[0].action!.condition!;
+		expect((outer.value as any).and.vals.map((value: APLValue) => value.uuid!.value)).toEqual(['o', 'c']);
+		expect(((outer.value as any).and.vals[0].value as any).or.vals.map((value: APLValue) => value.uuid!.value)).toEqual(['y', 'x']);
+		expect(notifications).toBe(1);
+	});
+
 	it('refuses a row dropped beside a section, outside every list', () => {
 		setup({ prepullActions: [prepull('p')], priorityList: [row('a')] });
 		mount();
@@ -405,5 +433,30 @@ describe('AplList on the action groups pane', () => {
 		});
 
 		expect(player.aplRotation.groups[0].actions).toHaveLength(1);
+	});
+
+	it('drops an action into a group that has none, through its children area', () => {
+		setup({ groups: [APLGroup.create({ name: 'one', actions: [row('x')] }), APLGroup.create({ name: 'two', actions: [] })] });
+		mount(<GroupList />);
+		const [one, two] = groupItems();
+		place(actionRows(one));
+		const empty = within(two).getByTestId('apl-group-actions');
+
+		grab(actionRows(one)[0]);
+		expect(accepts(empty, 0)).toBe(true);
+		drop(empty, 0);
+
+		const [first, second] = player.aplRotation.groups;
+		expect(first.actions).toEqual([]);
+		expect(sequenceNames(second.actions)).toEqual(['x']);
+		expect(notifications).toBe(1);
+	});
+
+	it('renders nothing of the closed rename dialogs inside a group item', () => {
+		setup({ groups: [APLGroup.create({ name: 'one', actions: [] })] });
+		mount(<GroupList />);
+
+		const item = groupItems()[0];
+		expect(Array.from(item.children).map(child => child.getAttribute('data-testid'))).toEqual(['tree-item-header', 'apl-group-actions']);
 	});
 });

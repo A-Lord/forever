@@ -264,7 +264,7 @@
 			"delete_item": "Delete {{itemLabel}}",
 			"copy_to_new": "Copy to New {{itemLabel}}",
 			"move_drag_drop": "Move (Drag+Drop)",
-			"item_actions": "{{itemLabel}} actions",
+			"item_actions": "{{itemLabel}} menu",
 			"warnings": "Warnings",
 			"additional_information": "Additional Information:",
 			"action_has_warnings": "This action has warnings, and might not behave as expected.",

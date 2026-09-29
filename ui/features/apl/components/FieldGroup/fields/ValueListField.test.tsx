@@ -155,4 +155,21 @@ describe('ValueListField', () => {
 		expect(setValue).toHaveBeenCalledTimes(1);
 		expect(uuids()).toEqual(['c', 'a', 'b']);
 	});
+
+	it('leaves the enclosing list alone when a row inside a nested operand list is dragged', () => {
+		const or = APLValue.create({ uuid: { value: 'o' }, value: { oneofKind: 'or', or: { vals: [constant('x', '1'), constant('y', '2')] } } });
+		mount([or, constant('c', '3')]);
+		const [outer, inner] = [...document.querySelectorAll<HTMLElement>('[data-testid="apl-value-list"]')].map(list => [
+			...list.querySelectorAll<HTMLElement>(':scope > ul > [data-testid="apl-value-list-item"]'),
+		]);
+		outer.forEach((el, i) => vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, i * 100, 20, 100)));
+		inner.forEach((el, i) => vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 10 + i * 20, 20, 20)));
+
+		fireEvent.mouseDown(inner[1].querySelector('[data-testid="apl-value-list-handle"]')!);
+		fireEvent.dragStart(inner[1], { dataTransfer: new DataTransfer() });
+		act(() => void dropOn(inner[0], 12));
+
+		expect(uuids()).toEqual(['o', 'c']);
+		expect((or.value as any).or.vals.map((value: APLValue) => value.uuid!.value)).toEqual(['x', 'y']);
+	});
 });

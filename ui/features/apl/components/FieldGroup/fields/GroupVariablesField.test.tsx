@@ -226,4 +226,16 @@ describe('GroupVariablesField — nothing to derive from', () => {
 
 		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a']);
 	});
+
+	it('reconciles on read without writing to the store, on mount and on every re-read', () => {
+		setup({ groupName: 'g1', placeholders: ['a', 'b'] });
+		const touched = vi.spyOn(player, 'touchRotation');
+		const modified = vi.spyOn(player, 'modifyAplRotation');
+		mount();
+		act(() => source.notify());
+
+		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a', 'b']);
+		expect(touched).not.toHaveBeenCalled();
+		expect(modified).not.toHaveBeenCalled();
+	});
 });
