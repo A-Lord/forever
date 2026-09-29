@@ -23,9 +23,8 @@ import (
 
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat
-// 30 to every effect of the Battle Shout family. The resolver reads no
-// ItemSetSpell, so the amount is stated here.
-const BattleShoutT2Bonus = 30.0
+// 30 to every effect of the Battle Shout family.
+var BattleShoutT2Bonus = spelldata.MustFind(23563).EffectN(1).BaseValue()
 
 // The party's Battle Shout is the external caster's copy, which chains behind
 // the player's own shout rather than being up from the start. Its improved state
