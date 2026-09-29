@@ -4,7 +4,7 @@ import { ActionId } from '@sim/proto/action_id';
 import { getEnchantDescription } from '@sim/proto/enchants';
 import { useEffect, useMemo, useState } from 'react';
 
-import { ItemCellAnchor } from '../ItemCell';
+import { ItemCellAnchor } from '../ItemCell/ItemCellAnchor';
 
 export interface EnchantLabelProps {
 	className: string;
