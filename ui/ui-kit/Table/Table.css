@@ -21,6 +21,14 @@
 		&[data-dense] > * > .ui-table-row > :is(.ui-table-cell, .ui-table-header-cell) {
 			@apply px-1 py-0.5;
 		}
+
+		&[data-variant='plain'] > * > .ui-table-row {
+			@apply border-b-0;
+
+			> :is(.ui-table-cell, .ui-table-header-cell) {
+				@apply border-x-0;
+			}
+		}
 	}
 
 	.ui-table-header-cell,
@@ -30,5 +38,9 @@
 
 	.ui-table-header-cell {
 		@apply text-center whitespace-nowrap;
+
+		&[data-wrap] {
+			@apply whitespace-normal;
+		}
 	}
 }

@@ -13,13 +13,14 @@ export interface EpWeightsHeaderProps {
 	showUpdateColumn?: boolean;
 }
 
+// Every label wraps: with threat metrics on, fourteen metric columns share the dialog's width.
 export const EpWeightsHeader = ({ columns, showThreatMetrics, showUpdateColumn = true }: EpWeightsHeaderProps) => (
 	<TableRow>
-		<TableHeaderCell className={['ui-ep-weights-table-header-cell', showThreatMetrics && 'lg:max-xl:pr-0']}>
+		<TableHeaderCell wrap className={['ui-ep-weights-table-header-cell', showThreatMetrics && 'lg:max-xl:pr-0']}>
 			{i18n.t('sidebar.buttons.stat_weights.modal.column_headers.stat')}
 		</TableHeaderCell>
 		{showUpdateColumn && (
-			<TableHeaderCell className={['ui-ep-weights-table-header-cell', showThreatMetrics && 'lg:max-xl:pr-0']}>
+			<TableHeaderCell wrap className={['ui-ep-weights-table-header-cell', showThreatMetrics && 'lg:max-xl:pr-0']}>
 				{i18n.t('sidebar.buttons.stat_weights.modal.column_headers.update')}
 			</TableHeaderCell>
 		)}
@@ -28,6 +29,7 @@ export const EpWeightsHeader = ({ columns, showThreatMetrics, showUpdateColumn =
 			return (
 				<TableHeaderCell
 					key={column.id}
+					wrap
 					data-column-type={isAction ? undefined : column.type}
 					className={[
 						'ui-ep-weights-table-header-cell',

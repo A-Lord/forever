@@ -12,7 +12,7 @@ const meta = {
 	argTypes: { info: { control: false } },
 	decorators: [
 		Story => (
-			<Table className="max-w-64">
+			<Table variant="plain" className="max-w-64">
 				<tbody>
 					<Story />
 				</tbody>

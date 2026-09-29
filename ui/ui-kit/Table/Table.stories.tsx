@@ -54,3 +54,29 @@ export const Default: Story = {};
 export const Striped: Story = { args: { striped: true } };
 export const Hover: Story = { args: { hover: true } };
 export const Dense: Story = { args: { dense: true } };
+export const Plain: Story = { args: { variant: 'plain' } };
+export const WrappingHeader: Story = {
+	args: {
+		className: 'max-w-64',
+		children: (
+			<>
+				<thead>
+					<TableRow>
+						<TableHeaderCell>Ability</TableHeaderCell>
+						<TableHeaderCell wrap>Damage per second</TableHeaderCell>
+						<TableHeaderCell>Casts per minute</TableHeaderCell>
+					</TableRow>
+				</thead>
+				<tbody>
+					{ROWS.map(row => (
+						<TableRow key={row.name}>
+							<TableCell>{row.name}</TableCell>
+							<TableCell className="text-right">{row.dps.toFixed(1)}</TableCell>
+							<TableCell className="text-right">{row.casts}</TableCell>
+						</TableRow>
+					))}
+				</tbody>
+			</>
+		),
+	},
+};

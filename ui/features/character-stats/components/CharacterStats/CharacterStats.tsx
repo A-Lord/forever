@@ -84,7 +84,7 @@ export const CharacterStats = () => {
 			<h3 data-testid="character-stats-label" className="m-0 mb-2 inline-block text-base leading-tight font-bold">
 				{i18n.t('sidebar.character_stats.title')}
 			</h3>
-			<Table className="p-2.5" aria-busy={pending || undefined}>
+			<Table variant="plain" className="p-2.5" aria-busy={pending || undefined}>
 				{groups.map(group => (
 					<tbody key={group.key}>
 						{group.rows.map(row => {

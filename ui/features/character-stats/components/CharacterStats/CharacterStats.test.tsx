@@ -129,6 +129,14 @@ const critCapRow = (rows: Array<Element>) => {
 	return row;
 };
 
+describe('CharacterStats sheet', () => {
+	it('lays the stats out on a plain table, with no row or column rules', () => {
+		const { view } = renderStats(true);
+
+		expect(view.container.querySelector('table')!.getAttribute('data-variant')).toBe('plain');
+	});
+});
+
 describe('CharacterStats loading state', () => {
 	it('shows a skeleton in every row, crit cap included, while the stats are still loading', () => {
 		const { view, rows } = renderStats(false);

@@ -69,4 +69,31 @@ describe('Table', () => {
 		expect(screen.getByTestId('body-row').className.split(' ')).toEqual(['ui-table-row', 'extra-row']);
 		expect(screen.getByText('Total').getAttribute('colspan')).toBe('2');
 	});
+
+	it('marks the plain variant, and nothing for the default one', () => {
+		const { unmount } = mount({ variant: 'plain' });
+		expect(screen.getByTestId('table').getAttribute('data-variant')).toBe('plain');
+		unmount();
+
+		mount({ variant: 'default' });
+		expect(screen.getByTestId('table').hasAttribute('data-variant')).toBe(false);
+	});
+
+	it('keeps a header cell on one line unless it is told to wrap', () => {
+		render(
+			<Table>
+				<thead>
+					<TableRow>
+						<TableHeaderCell testId="fixed">Damage per second</TableHeaderCell>
+						<TableHeaderCell testId="wrapping" wrap>
+							Casts per minute
+						</TableHeaderCell>
+					</TableRow>
+				</thead>
+			</Table>,
+		);
+
+		expect(screen.getByTestId('fixed').hasAttribute('data-wrap')).toBe(false);
+		expect(screen.getByTestId('wrapping').getAttribute('data-wrap')).toBe('');
+	});
 });
