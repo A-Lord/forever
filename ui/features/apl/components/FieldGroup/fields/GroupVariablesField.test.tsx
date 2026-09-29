@@ -57,14 +57,17 @@ const container = () => document.querySelector('[data-testid="group-reference-va
 const rows = () => Array.from(document.querySelectorAll('[data-testid="apl-group-variable-picker-root"]'));
 const labels = () => rows().map(row => row.querySelector('label')!.textContent);
 
+const openMenu = (index: number) => {
+	const item = document.querySelectorAll('[data-testid="apl-group-variables-item"]')[index];
+	const trigger = item.querySelector<HTMLButtonElement>('[data-testid="tree-item-actions"]')!;
+	trigger.focus();
+	act(() => void fireEvent.click(trigger));
+	return document.querySelector('[data-testid="tree-item-actions-popup"][data-open]') as HTMLElement;
+};
+
 const clickItemAction = (index: number, action: string) => {
-	const item = document.querySelectorAll('[data-testid="list-picker-item-container"]')[index];
-	act(() => {
-		fireEvent.click(item.querySelector('[data-testid="list-picker-item-actions"]')!);
-	});
-	act(() => {
-		fireEvent.click(document.querySelector(action)!);
-	});
+	const button = openMenu(index).querySelector(action)!;
+	act(() => void fireEvent.click(button));
 };
 
 beforeEach(() => {
@@ -118,7 +121,7 @@ describe('GroupVariablesField', () => {
 		setup({ groupName: 'g1', placeholders: ['a', 'b'], existingVariables: [existingA] });
 		mount();
 
-		clickItemAction(0, '[data-testid="list-picker-item-delete"]');
+		clickItemAction(0, '[data-testid="apl-group-variables-delete"]');
 
 		expect(labels()).toEqual(['a:', 'b:']);
 		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a', 'b']);
@@ -127,18 +130,23 @@ describe('GroupVariablesField', () => {
 		expect(parentValue.variables[0].value.value.variableRef.name).toBe('');
 	});
 
-	it('offers no copy action, because a duplicate entry is dropped by the next reconcile', () => {
+	it('offers delete and nothing else: no copy, because a duplicate entry is dropped by the next reconcile, and no add or drag, because the group fixes the rows', () => {
 		setup({ groupName: 'g1', placeholders: ['a', 'b'] });
 		mount();
 
-		const item = document.querySelectorAll('[data-testid="list-picker-item-container"]')[0];
-		act(() => {
-			fireEvent.click(item.querySelector('[data-testid="list-picker-item-actions"]')!);
-		});
+		const menu = openMenu(0);
+		expect([...menu.querySelectorAll('button')].map(button => button.getAttribute('data-testid'))).toEqual(['apl-group-variables-delete']);
+		expect(container().querySelector('[data-testid="tree-add"]')).toBeNull();
+		expect(container().querySelector('[aria-label="common.list_picker.move_drag_drop"]')).toBeNull();
+	});
 
-		// Delete is asserted present so a popover that never opened fails here rather than passing.
-		expect(document.querySelector('[data-testid="list-picker-item-delete"]')).not.toBeNull();
-		expect(document.querySelector('.list-picker-item-copy')).toBeNull();
+	it('titles the list with a caption that labels no control', () => {
+		setup({ groupName: 'g1', placeholders: ['a'] });
+		mount();
+
+		const caption = container().querySelector('[data-testid="form-label"]')!;
+		expect(caption.tagName).toBe('SPAN');
+		expect(caption.textContent).toBe('Group Variables');
 	});
 
 	it('writes a variableRef and touches the rotation when a row picks a variable', () => {

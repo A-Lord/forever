@@ -1,7 +1,7 @@
 import { makePlayer } from '@features/apl/testing';
 import { APLAction, APLRotation } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, createEvent, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ActionListField } from './ActionListField';
@@ -47,15 +47,24 @@ const mount = () =>
 		</SimHostProvider>,
 	);
 
-const items = () => Array.from(document.querySelectorAll('[data-testid="list-picker-item-container"]'));
+const items = () => Array.from(document.querySelectorAll<HTMLElement>('[data-testid="apl-action-list-item"]'));
+const sequenceNames = () => actions.map(action => (action.action.oneofKind === 'resetSequence' ? action.action.resetSequence.sequenceName : ''));
 
 const clickItemAction = (index: number, testId: string) => {
-	act(() => {
-		fireEvent.click(items()[index].querySelector('[data-testid="list-picker-item-actions"]')!);
-	});
-	act(() => {
-		fireEvent.click(document.querySelector(`[data-testid="${testId}"]`)!);
-	});
+	const trigger = items()[index].querySelector<HTMLButtonElement>(':scope > [data-testid="tree-item-header"] > [data-testid="tree-item-actions"]')!;
+	trigger.focus();
+	act(() => void fireEvent.click(trigger));
+	const action = document.querySelector(`[data-testid="tree-item-actions-popup"][data-open] [data-testid="${testId}"]`)!;
+	act(() => void fireEvent.click(action));
+};
+
+// happy-dom lays nothing out, so each row gets a 20px box, `index` rows from the top.
+const place = (element: HTMLElement, index: number) => vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, index * 20, 20, 20));
+// happy-dom's DragEvent is a plain Event, which drops `clientY` from its init.
+const dropOn = (target: HTMLElement, y: number) => {
+	const event = createEvent.drop(target, { dataTransfer: new DataTransfer() });
+	Object.defineProperty(event, 'clientY', { value: y });
+	return fireEvent(target, event);
 };
 
 beforeEach(() => {
@@ -67,12 +76,45 @@ describe('ActionListField', () => {
 		setup();
 		mount();
 
-		clickItemAction(0, 'list-picker-item-copy');
+		clickItemAction(0, 'apl-action-list-copy');
 
 		expect(actions).toHaveLength(2);
 		// A clone, not the same message: editing the copy must not edit the row it came from.
 		expect(actions[1]).not.toBe(actions[0]);
 		expect(actions[1]).toEqual(actions[0]);
 		expect(items()).toHaveLength(2);
+	});
+
+	it('deletes a row through its menu and adds an empty one through the add button', () => {
+		setup();
+		mount();
+
+		clickItemAction(0, 'apl-action-list-delete');
+		expect(actions).toEqual([]);
+		expect(items()).toHaveLength(0);
+
+		act(() => void fireEvent.click(document.querySelector('[data-testid="tree-add"]')!));
+		expect(actions).toEqual([APLAction.create()]);
+		expect(items()).toHaveLength(1);
+	});
+
+	it('moves a row by dragging its handle, in one write', () => {
+		setup();
+		actions = ['a', 'b', 'c'].map(sequenceName => APLAction.create({ action: { oneofKind: 'resetSequence', resetSequence: { sequenceName } } }));
+		const config = fieldConfig();
+		const setValue = vi.spyOn(config, 'setValue');
+		render(
+			<SimHostProvider host={{ player, rootElem: document.body } as never}>
+				<ActionListField player={player as never} config={config as never} />
+			</SimHostProvider>,
+		);
+		items().forEach(place);
+
+		fireEvent.mouseDown(items()[0].querySelector('[data-testid="apl-action-list-handle"]')!);
+		fireEvent.dragStart(items()[0], { dataTransfer: new DataTransfer() });
+		dropOn(items()[2], 55);
+
+		expect(setValue).toHaveBeenCalledTimes(1);
+		expect(sequenceNames()).toEqual(['b', 'c', 'a']);
 	});
 });

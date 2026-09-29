@@ -103,6 +103,6 @@ describe('FieldGroup', () => {
 		setup({ vals: [] });
 		mount([valueListFieldConfig('vals')]);
 
-		expect(root().querySelector('[data-testid="list-picker-root"]')!.className.split(' ')).toContain('ui-apl-picker-builder-multi');
+		expect(root().querySelector('[data-testid="apl-value-list"]')!.className.split(' ')).toContain('ui-apl-picker-builder-multi');
 	});
 });
