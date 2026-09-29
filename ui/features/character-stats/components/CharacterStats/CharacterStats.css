@@ -7,20 +7,20 @@
 		}
 
 		&:not([data-open]) > .ui-character-stats-header {
-			@apply border-border-muted;
+			@apply before:bg-border-muted;
 
 			&[data-stuck] {
-				@apply border-border;
+				@apply before:bg-border;
 			}
 		}
 	}
 
 	.ui-character-stats-panel {
-		@apply -mx-(--sidebar-inline-padding) border-t border-border-muted px-(--sidebar-inline-padding) pt-2;
+		@apply relative -mx-(--sidebar-inline-padding) px-(--sidebar-inline-padding) pt-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:h-px before:bg-border-muted;
 	}
 
 	.ui-character-stats-header {
-		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) border-t border-transparent bg-background px-(--sidebar-inline-padding) py-2;
+		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) bg-background px-(--sidebar-inline-padding) py-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:h-px before:bg-transparent;
 	}
 
 	.ui-character-stats-bar {
