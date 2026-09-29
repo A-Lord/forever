@@ -15,7 +15,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const WithSimple: Story = {};
-
-/** A spec without a rotation generator offers Auto and APL alone. */
-export const WithoutSimple: Story = { args: { value: APLRotationType.TypeAPL, hasSimple: false } };
+export const Default: Story = {};
