@@ -1,30 +1,29 @@
-import { externalRel } from '@sim/utils/links';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
+import { IconSwatch } from '@ui-kit/IconSwatch';
 import clsx from 'clsx';
-
-import { resolvedIconStyle } from '../utils/icons';
-import { wowheadAnchorProps } from '../utils/wowhead';
+import type { MouseEventHandler } from 'react';
 
 export interface ImprovedAnchorProps {
 	icon: ResolvedIcon;
 	testId: string;
 	active: boolean;
-	/** Which bottom corner of the icon the badge sits in: the two improved badges share the overlay and must not stack. */
+	disabled?: boolean;
+	/** Which bottom corner of the icon the badge sits in: the two improved badges share the box and must not stack. */
 	corner: 'left' | 'right';
+	onClick: MouseEventHandler;
+	onContextMenu: MouseEventHandler;
+	onMouseDown: MouseEventHandler;
 }
 
-export const ImprovedAnchor = ({ icon, testId, active, corner }: ImprovedAnchorProps) => (
-	<a
-		className={clsx(
-			'ui-icon-picker-swatch pointer-events-auto absolute bottom-0 size-5 min-w-5',
-			corner === 'left' ? 'left-0' : 'right-0',
-			active ? 'filter-none' : 'border-gray-600 grayscale',
-		)}
-		data-testid={testId}
-		data-active={active ? '' : undefined}
-		{...wowheadAnchorProps()}
-		href={icon.href || undefined}
-		rel={externalRel(icon.href, undefined)}
-		style={resolvedIconStyle(icon)}
+// The badges share a 38px square set in the swatch's bottom-right corner, hence 2px in on the left and none on the right.
+export const ImprovedAnchor = ({ icon, testId, active, disabled, corner, ...events }: ImprovedAnchorProps) => (
+	<IconSwatch
+		icon={icon}
+		href={icon.href}
+		active={active}
+		disabled={disabled}
+		testId={testId}
+		className={clsx('absolute bottom-0 size-5 min-w-5', corner === 'left' ? 'left-0.5' : 'right-0', !active && 'border-gray-600 grayscale')}
+		{...events}
 	/>
 );

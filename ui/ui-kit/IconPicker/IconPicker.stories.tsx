@@ -66,3 +66,4 @@ export const Quadstate: Story = {
 };
 export const Counter: Story = { args: { states: 0, icon: TOTEM, value: 4 } };
 export const Disabled: Story = { args: { disabled: true, value: 1 } };
+export const Labelled: Story = { args: { label: 'Blessing of Kings', value: 1 } };

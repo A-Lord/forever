@@ -66,7 +66,7 @@ const mount = (options: Options, config: IconEnumPickerConfig<Options, number> =
 	render(<BoundIconEnumPicker modObject={options} config={config} />);
 
 const root = () => screen.queryByTestId('icon-enum-picker-root');
-const button = () => within(root()!).getByTestId('icon-enum-picker-button') as HTMLAnchorElement;
+const button = () => root() as HTMLAnchorElement;
 const menu = () => screen.queryByTestId('icon-enum-picker-menu') as HTMLUListElement | null;
 const items = () => Array.from(menu()!.children) as HTMLLIElement[];
 const optionAnchor = (index: number) => within(items()[index]).getByTestId('icon-enum-option') as HTMLAnchorElement;
@@ -253,7 +253,6 @@ describe('BoundIconEnumPicker', () => {
 	it('disables the picker on enableWhen', () => {
 		mount(new Options(), configFor({ enableWhen: () => false }));
 		expect(root()!.hasAttribute('data-disabled')).toBe(true);
-		expect(button().hasAttribute('disabled')).toBe(true);
 	});
 
 	it('reads a numColumns function off the mod object', () => {
@@ -275,8 +274,11 @@ describe('BoundIconEnumPicker', () => {
 	});
 
 	it('carries the config chrome and a testId onto the field', () => {
-		render(<BoundIconEnumPicker modObject={new Options()} config={configFor({ label: 'Armor', extraClassNames: ['extra'] })} testId="armor-root" />);
-		const field = screen.getByTestId('armor-root');
+		const { container } = render(
+			<BoundIconEnumPicker modObject={new Options()} config={configFor({ label: 'Armor', extraClassNames: ['extra'] })} testId="armor-root" />,
+		);
+		const field = container.firstElementChild as HTMLElement;
+		expect(screen.getByTestId('armor-root').tagName).toBe('A');
 		expect(field.classList.contains('extra')).toBe(true);
 		expect(within(field).getByTestId('form-label').textContent).toBe('Armor');
 	});

@@ -86,9 +86,7 @@ describe('icon input factories', () => {
 	const label = 'Primary option';
 	const labelTooltip = 'What the primary option controls.';
 	const chrome = { label, labelTooltip };
-	const fieldFor = (config: any, id: string = config.id) => (
-		<Field id={id} label={config.label} labelTooltip={config.labelTooltip} className="ui-icon-field" />
-	);
+	const fieldFor = (config: any, id: string = config.id) => <Field id={id} label={config.label} labelTooltip={config.labelTooltip} layout="icon" />;
 
 	const factories: Record<string, () => { label?: string; labelTooltip?: unknown }> = {
 		makeClassOptionsBooleanIconInput: () =>

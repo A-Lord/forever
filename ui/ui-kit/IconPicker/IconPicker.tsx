@@ -1,15 +1,13 @@
-import { externalRel } from '@sim/utils/links';
 import { Field } from '@ui-kit/Field';
 import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
+import { IconSwatch } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import type { MouseEvent } from 'react';
 
-import { resolvedIconStyle } from '../utils/icons';
-import { wowheadAnchorProps } from '../utils/wowhead';
 import { ImprovedAnchor } from './ImprovedAnchor';
 
-export interface IconPickerProps extends FieldChromeProps, ControlledProps<number> {
+export interface IconPickerProps extends Omit<FieldChromeProps, 'layout'>, ControlledProps<number> {
 	/** The number of states the icon cycles through: 2 is on/off, 0 is unlimited. */
 	states: number;
 	icon?: ResolvedIcon;
@@ -19,14 +17,15 @@ export interface IconPickerProps extends FieldChromeProps, ControlledProps<numbe
 	improvedIcon2?: ResolvedIcon;
 }
 
+/** Without a label or description the swatch renders bare; with one it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
 export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...chrome }: IconPickerProps) => {
 	const fillImproved1 = states >= 3 && !!improvedIcon;
 	const fillImproved2 = states >= 4 && !!improvedIcon2;
 	const showCounterText = !improvedIcon && (states > 3 || states === 0);
-	const href = icon?.href;
+	const labelled = !!chrome.label || !!chrome.description;
 
 	const handleLeftClick = () => {
-		// `disabled` only reaches an <a>, where HTML ignores it, so the state change has to be stopped here.
+		// An <a> cannot be disabled, so the state change has to be stopped here.
 		if (disabled) return;
 
 		if (states === 0 || value + 1 < states) {
@@ -46,10 +45,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 		}
 	};
 
-	// `disabled` is not in React's anchor prop types because HTML has no such attribute on <a>.
-	const disabledAttribute = (disabled ? { disabled: true } : {}) as Record<string, boolean>;
-
-	// The level container overlays the anchor rather than sitting inside it, so a click on the improved icons reaches these only by carrying them on both.
+	// The improved icons are anchors beside the swatch, not inside it, so each carries these too.
 	const stateEvents = {
 		onClick: (event: MouseEvent) => {
 			event.preventDefault();
@@ -64,41 +60,37 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 		},
 	};
 
-	const main = (
-		<div className="relative size-10 shrink-0">
-			<a
-				className={clsx('ui-icon-picker-swatch', value > 0 ? 'filter-none' : 'grayscale')}
-				data-testid="icon-picker-button"
-				data-active={value > 0 ? '' : undefined}
-				{...wowheadAnchorProps()}
-				// The glyph is a background image and the counter is a sibling, so without this the anchor announces nothing.
-				aria-label={icon?.name || undefined}
-				target="_blank"
-				href={href || undefined}
-				rel={externalRel(href, undefined)}
-				style={resolvedIconStyle(icon)}
-				{...disabledAttribute}
-				{...stateEvents}
-			/>
-			{states > 2 && (
-				<div
-					className={clsx('pointer-events-none absolute top-0.5 left-0.5 size-9.5', value > 0 ? 'filter-none' : 'grayscale')}
-					data-testid="icon-input-level-container"
-					{...stateEvents}>
-					{/* Both badges stay visible in opposite corners: at a state below its own, a quadstate
-					    icon's grey second badge is the only affordance that a fourth state exists. */}
-					{fillImproved1 && improvedIcon && <ImprovedAnchor icon={improvedIcon} testId="icon-input-improved1" active={value > 1} corner="right" />}
-					{fillImproved2 && improvedIcon2 && <ImprovedAnchor icon={improvedIcon2} testId="icon-input-improved2" active={value > 2} corner="left" />}
-					<span
-						className="absolute inset-x-0 bottom-0 bg-scrim text-center text-2xs font-bold whitespace-nowrap text-success"
-						data-testid="icon-picker-label"
-						data-active={value > 0 ? '' : undefined}>
-						{showCounterText ? String(value) : null}
-					</span>
-				</div>
+	const badges = (fillImproved1 || fillImproved2) && (
+		<>
+			{/* Both badges stay visible in opposite corners: at a state below its own, a quadstate
+			    icon's grey second badge is the only affordance that a fourth state exists. */}
+			{fillImproved1 && improvedIcon && (
+				<ImprovedAnchor icon={improvedIcon} testId="icon-input-improved1" active={value > 1} disabled={disabled} corner="right" {...stateEvents} />
 			)}
-		</div>
+			{fillImproved2 && improvedIcon2 && (
+				<ImprovedAnchor icon={improvedIcon2} testId="icon-input-improved2" active={value > 2} disabled={disabled} corner="left" {...stateEvents} />
+			)}
+		</>
 	);
 
-	return <Field {...chrome} className={['ui-icon-field', className]} testId={testId ?? 'icon-picker-root'} disabled={disabled} leading={main} />;
+	const swatch = (
+		<IconSwatch
+			icon={icon}
+			href={icon?.href}
+			active={value > 0}
+			disabled={disabled}
+			text={showCounterText ? String(value) : undefined}
+			badges={badges || undefined}
+			className={clsx(value === 0 && 'grayscale', !labelled && className)}
+			testId={testId ?? 'icon-picker-root'}
+			// The glyph is a background image, so without this the anchor announces nothing.
+			aria-label={icon?.name || undefined}
+			target="_blank"
+			{...stateEvents}
+		/>
+	);
+
+	if (!labelled) return swatch;
+
+	return <Field {...chrome} layout="icon" className={className} disabled={disabled} leading={swatch} />;
 };
