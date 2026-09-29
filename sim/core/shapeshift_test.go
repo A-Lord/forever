@@ -202,6 +202,9 @@ func TestMajorCooldownKeepsForm(t *testing.T) {
 	}
 
 	fw.ShapeshiftForm = dbcenums.FORM_CAT_FORM
+	if !potion.CanCast(sim, fw.CurrentTarget) {
+		t.Fatal("the potion should be castable in Cat Form when the cast leaves it")
+	}
 	if mcd.shouldActivateHelper(sim, &fw.Character) {
 		t.Error("a major cooldown should not activate when its cast leaves Cat Form")
 	}
@@ -213,5 +216,9 @@ func TestMajorCooldownKeepsForm(t *testing.T) {
 	fw.ShapeshiftForm = 0
 	if !mcd.shouldActivateHelper(sim, &fw.Character) {
 		t.Error("a timed major cooldown should activate with no form")
+	}
+	mcd.timings = nil
+	if !mcd.shouldActivateHelper(sim, &fw.Character) {
+		t.Error("a major cooldown should activate with no form")
 	}
 }
