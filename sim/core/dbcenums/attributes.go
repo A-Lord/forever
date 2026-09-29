@@ -57,6 +57,7 @@ const (
 	ATTR_CANCEL_AUTO_ATTACK                 uint32 = 0x100000
 	ATTR_NO_D_P_B                           uint32 = 0x200000
 	ATTR_NO_COMBAT                          uint32 = 0x400000
+	ATTR_NOT_IN_COMBAT                      uint32 = 0x10000000
 	ATTR_NO_CANCEL                          uint32 = 0x80000000
 	ATTR_EX_1_NO_STEALTH_BREAK              uint32 = 0x20
 	ATTR_EX_1_MELEE_COMBAT_START            uint32 = 0x200

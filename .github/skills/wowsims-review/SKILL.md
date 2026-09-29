@@ -73,8 +73,8 @@ Each of these has a section in `references/defects.md`.
   weapon bonus, which is added before the weapon percent multiplies it.
 - **How many targets.** An area effect (`Effect.HitsAnArea()`, `Spell.MaxTargets`) hits every enemy, and a
   `SPELLMOD_JUMP_TARGETS` or tooltip "up to $s3 targets" is the total, not the extra.
-- **What the row forbids.** Attribute bits such as "not usable in combat"; a form or stance requirement,
-  which `CastRequirement` enforces and `ExtraCastCondition` never restates.
+- **What the row forbids.** A form or stance requirement, the weapon or shield the row needs and the "not
+  usable in combat" bit, which `CastRequirement` enforces and `ExtraCastCondition` never restates.
 - **Hooks.** Each hook is attached once, on every path that needs it (every attack that breaks stealth, a
   queued swing wired into the auto attacks for every spec that registers it), and not re-attached on each
   iteration's reset.
