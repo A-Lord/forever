@@ -1,9 +1,10 @@
-import { createContext, useContext } from 'react';
+import { type AriaRole, createContext, useContext } from 'react';
 
 import type { FieldDensity, FieldLayout } from './types';
 
 export interface FieldContextValue {
 	id: string | undefined;
+	role: AriaRole | undefined;
 	layout: FieldLayout | undefined;
 	density: FieldDensity | undefined;
 	disabled: boolean;

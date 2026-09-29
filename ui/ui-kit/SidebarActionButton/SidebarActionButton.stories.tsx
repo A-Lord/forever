@@ -37,7 +37,7 @@ export const Idle: Story = {
 		await expect(args.onClick).toHaveBeenCalledOnce();
 	},
 };
-export const Loading: Story = { args: { children: 'Stat Weights', loading: true, disabled: true } };
+export const Loading: Story = { args: { children: 'Stat Weights', loading: true } };
 export const Disabled: Story = { args: { disabled: true } };
 export const ContextDisabled: Story = {
 	decorators: [

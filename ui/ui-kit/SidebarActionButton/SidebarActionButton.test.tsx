@@ -20,22 +20,25 @@ describe('SidebarActionButton', () => {
 		expect(onClick).toHaveBeenCalledTimes(1);
 	});
 
-	it('shows no spinner and is not busy while idle', () => {
+	it('shows no spinner while idle', () => {
 		render(<SidebarActionButton onClick={() => {}}>Simulate</SidebarActionButton>);
 		const button = screen.getByRole('button', { name: 'Simulate' });
-		expect(button.hasAttribute('aria-busy')).toBe(false);
+		expect(button.hasAttribute('data-loading')).toBe(false);
 		expect(within(button).queryByTestId('loader')).toBeNull();
 	});
 
-	it('renders the Button spinner and aria-busy while loading', () => {
+	it('is disabled and overlays a spinner on the label while loading', () => {
 		render(
-			<SidebarActionButton loading disabled onClick={() => {}}>
+			<SidebarActionButton loading onClick={() => {}}>
 				Stat Weights
 			</SidebarActionButton>,
 		);
-		const button = screen.getByRole('button', { name: 'Stat Weights' });
+		const button = screen.getByRole('button', { name: 'Stat Weights' }) as HTMLButtonElement;
+		expect(button.disabled).toBe(true);
+		expect(button.hasAttribute('data-loading')).toBe(true);
 		expect(button.getAttribute('aria-busy')).toBe('true');
-		expect(within(button).getByTestId('loader')).toBe(button.firstElementChild);
+		expect(button.textContent).toContain('Stat Weights');
+		expect(within(button).queryByTestId('loader')).not.toBeNull();
 	});
 
 	it('is disabled by its own prop', () => {

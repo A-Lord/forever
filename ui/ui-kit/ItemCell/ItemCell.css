@@ -4,9 +4,9 @@
 	}
 
 	.ui-item-picker-icon-wrapper {
-		--icon-size: 4rem;
+		--icon-size: --spacing(16);
 
-		@apply relative h-(--icon-size) w-(--icon-size) border border-border max-lg:[--icon-size:3rem];
+		@apply relative h-(--icon-size) w-(--icon-size) border border-border max-lg:[--icon-size:--spacing(12)];
 	}
 
 	.ui-item-picker-ilvl {

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { SimTabPane } from './SimTabPane';
 
 describe('SimTabPane', () => {
-	it('names the pane by its id, as the element id and a class, around one columns container', () => {
+	it('names the pane by its id, as the element id and a class, and makes it a container around one columns container', () => {
 		render(
 			<SimTabPane id="gear-tab" className="p-0">
 				<span data-testid="body" />
@@ -13,7 +13,7 @@ describe('SimTabPane', () => {
 
 		const pane = screen.getByTestId('sim-tab');
 		expect(pane.id).toBe('gear-tab');
-		expect(pane.className.split(' ')).toEqual(['gear-tab', 'p-0']);
+		expect(pane.className.split(' ')).toEqual(['gear-tab', '@container', 'p-0']);
 		const content = screen.getByTestId('tab-pane-content-container');
 		expect(content.parentElement).toBe(pane);
 		expect(content.classList.contains('ui-columns')).toBe(true);

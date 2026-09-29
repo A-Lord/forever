@@ -20,7 +20,7 @@ describe('Field parts', () => {
 
 	it('renders a span caption that points at nothing when asked for one', () => {
 		render(
-			<Field.Root id="elixirs" role="group">
+			<Field.Root id="elixirs">
 				<Field.Label as="span">Elixirs</Field.Label>
 			</Field.Root>,
 		);
@@ -28,6 +28,23 @@ describe('Field parts', () => {
 		expect(caption.tagName).toBe('SPAN');
 		expect(caption.hasAttribute('for')).toBe(false);
 		expect(caption.getAttribute('title')).toBe('Elixirs');
+	});
+
+	it('captions a group root with a span by default, and with a label when asked', () => {
+		const { rerender } = render(
+			<Field.Root id="elixirs" role="group">
+				<Field.Label>Elixirs</Field.Label>
+			</Field.Root>,
+		);
+		expect(screen.getByTestId('form-label').tagName).toBe('SPAN');
+		expect(screen.getByTestId('input-root').getElementsByTagName('label')).toHaveLength(0);
+
+		rerender(
+			<Field.Root id="elixirs" role="group">
+				<Field.Label as="label">Elixirs</Field.Label>
+			</Field.Root>,
+		);
+		expect(screen.getByTestId('form-label').tagName).toBe('LABEL');
 	});
 
 	it('gives a native control the root id, so the label names it', () => {

@@ -1,8 +1,7 @@
 import type { APLValidation } from '@generated/proto/api';
 import { LogLevel } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import type { IconName } from '@ui-kit/Icon';
-import { NOTICE_COLOR, type NoticeLevel } from '@ui-kit/Notice';
+import { NOTICE_COLOR, NOTICE_ICON_NAME, type NoticeLevel } from '@ui-kit/Notice';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { Fragment, useId } from 'react';
 
@@ -18,12 +17,6 @@ const LEVEL = new Map<LogLevel, NoticeLevel>([
 	[LogLevel.Warning, 'warning'],
 	[LogLevel.Error, 'error'],
 ]);
-
-const LEVEL_ICON: Record<NoticeLevel, IconName> = {
-	info: 'info-circle',
-	warning: 'triangle-exclamation',
-	error: 'triangle-exclamation',
-};
 
 const HEADER = new Map<LogLevel, string>([
 	[LogLevel.Information, i18n.t('common.list_picker.additional_information')],
@@ -62,7 +55,7 @@ export const AplValidationsView = ({ validations }: AplValidationsViewProps) => 
 	const tooltipId = useId();
 	const shown = validations.length > 0;
 	const { maxLogLevel, groups } = groupByLevel(validations);
-	const icon = LEVEL_ICON[(shown && LEVEL.get(maxLogLevel)) || 'warning'];
+	const icon = NOTICE_ICON_NAME[(shown && LEVEL.get(maxLogLevel)) || 'warning'];
 
 	return (
 		<>

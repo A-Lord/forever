@@ -1,6 +1,6 @@
 import { InputType, PresetTarget, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import type { Encounter } from '@sim/raid/encounter';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, createEvent, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TargetsPicker } from './TargetsPicker';
@@ -66,12 +66,29 @@ class FakeEncounter {
 
 const mount = (encounter: FakeEncounter) => render(<TargetsPicker encounter={encounter as unknown as Encounter} />);
 
-const root = () => document.querySelector('[data-testid="list-picker-root"]') as HTMLElement;
+const root = () => document.querySelector('[data-testid="targets-picker"]') as HTMLElement;
 const targetRoots = () => [...document.querySelectorAll<HTMLElement>('[data-testid="target-picker-root"]')];
-const containers = () => [...root().querySelectorAll<HTMLElement>('[data-testid="list-picker-item-container"]')];
-const actionsButton = (index: number) => containers()[index].querySelector('[data-testid="list-picker-item-actions"]') as HTMLButtonElement;
-const popoverOf = (index: number) => document.getElementById(actionsButton(index).getAttribute('aria-controls')!);
+const items = () => [...root().querySelectorAll<HTMLElement>('[data-testid="targets-picker-item"]')];
 const idsIn = (element: Element) => [...element.querySelectorAll('[id]')].map(node => node.id);
+const openMenu = (index: number) => {
+	const trigger = items()[index].querySelector('[data-testid="tree-item-actions"]') as HTMLButtonElement;
+	trigger.focus();
+	act(() => void fireEvent.click(trigger));
+	return document.querySelector('[data-testid="tree-item-actions-popup"][data-open]') as HTMLElement;
+};
+
+// happy-dom lays nothing out, so each row gets a 20px box, `index` rows from the top.
+const place = (element: HTMLElement, index: number) => vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, index * 20, 20, 20));
+const grab = (index: number) => {
+	fireEvent.mouseDown(items()[index].querySelector('[data-testid="targets-picker-handle"]')!);
+	fireEvent.dragStart(items()[index], { dataTransfer: new DataTransfer() });
+};
+// happy-dom's DragEvent is a plain Event, which drops `clientY` from its init.
+const dragEvent = (type: 'dragOver' | 'drop', target: HTMLElement, y: number) => {
+	const event = createEvent[type](target, { dataTransfer: new DataTransfer() });
+	Object.defineProperty(event, 'clientY', { value: y });
+	return fireEvent(target, event);
+};
 
 beforeEach(() => {
 	source.listeners.clear();
@@ -79,21 +96,32 @@ beforeEach(() => {
 });
 
 describe('TargetsPicker', () => {
-	it('wears the classes the encounter stylesheet and the encounter gate select on, and renders one row per target', () => {
+	it('renders one tree row per target, each titled by its position, and follows the list on a write', () => {
 		const encounter = new FakeEncounter();
 		mount(encounter);
 
-		expect(root().hasAttribute('data-input-root')).toBe(true);
-		expect(root().classList.contains('mb-0')).toBe(true);
+		expect(items()).toHaveLength(1);
 		expect(targetRoots()).toHaveLength(1);
+		expect(items()[0].querySelector('h6')!.textContent).toBe('settings_tab.encounter.target 1');
 		const sections = [...targetRoots()[0].querySelectorAll('[data-testid="target-picker-section"]')];
 		expect(sections).toHaveLength(3);
 
 		act(() => encounter.setTargets([defaultTarget(), defaultTarget()]));
+		expect(items()).toHaveLength(2);
 		expect(targetRoots()).toHaveLength(2);
+		expect(items()[1].querySelector('h6')!.textContent).toBe('settings_tab.encounter.target 2');
 	});
 
-	it('gives every target its own picker ids, withholds delete from the first, and removes the second through the menu', () => {
+	it('withholds delete from the first target, so the list never runs empty', () => {
+		const encounter = new FakeEncounter([defaultTarget(), defaultTarget()]);
+		mount(encounter);
+
+		const menu = openMenu(0);
+		expect(menu.querySelector('[data-testid="targets-picker-copy"]')).not.toBeNull();
+		expect(menu.querySelector('[data-testid="targets-picker-delete"]')).toBeNull();
+	});
+
+	it('gives every target its own picker ids and removes the second through the menu', () => {
 		const encounter = new FakeEncounter([defaultTarget(), defaultTarget()]);
 		mount(encounter);
 
@@ -103,17 +131,60 @@ describe('TargetsPicker', () => {
 		expect(second).toEqual(expect.arrayContaining(['target-1-picker-npc', 'target-1-picker-level', 'target-1-picker-spell-school']));
 		expect(first.filter(id => second.includes(id))).toEqual([]);
 
-		fireEvent.click(actionsButton(0));
-		expect(popoverOf(0)).not.toBeNull();
-		expect(popoverOf(0)!.querySelector('[data-testid="list-picker-item-delete"]')).toBeNull();
-		fireEvent.click(actionsButton(1));
-		const deleteSecond = popoverOf(1)!.querySelector('[data-testid="list-picker-item-delete"]');
+		const deleteSecond = openMenu(1).querySelector('[data-testid="targets-picker-delete"]');
 		expect(deleteSecond).not.toBeNull();
-
 		act(() => void fireEvent.click(deleteSecond!));
 
 		expect(encounter.targets).toHaveLength(1);
+		expect(items()).toHaveLength(1);
 		expect(trackEvent).toHaveBeenCalledWith(expect.objectContaining({ label: 'remove-target' }));
+	});
+
+	it('copies a target to a clone beside it and adds a default target at the end', () => {
+		const encounter = new FakeEncounter([TargetProto.create({ level: 70 })]);
+		mount(encounter);
+
+		const copy = openMenu(0).querySelector('[data-testid="targets-picker-copy"]')!;
+		act(() => void fireEvent.click(copy));
+		expect(encounter.targets.map(target => target.level)).toEqual([70, 70]);
+		expect(encounter.targets[1]).not.toBe(encounter.targets[0]);
+
+		act(() => void fireEvent.click(document.querySelector('[data-testid="tree-add"]')!));
+		expect(encounter.targets).toHaveLength(3);
+		expect(items()).toHaveLength(3);
+		expect(trackEvent).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'add-target' }));
+	});
+
+	it('moves a target by dragging its handle, in one write', () => {
+		const encounter = new FakeEncounter([TargetProto.create({ level: 70 }), TargetProto.create({ level: 71 }), TargetProto.create({ level: 72 })]);
+		mount(encounter);
+		const setTargets = vi.spyOn(encounter, 'setTargets');
+		items().forEach(place);
+
+		grab(2);
+		dragEvent('drop', items()[0], 0);
+
+		expect(setTargets).toHaveBeenCalledTimes(1);
+		expect(encounter.targets.map(target => target.level)).toEqual([72, 70, 71]);
+	});
+
+	it('drops a target released over a target input beside the target row holding it, never into the input list', () => {
+		const encounter = new FakeEncounter([
+			TargetProto.create({ level: 70, targetInputs: [TargetInput.create({ label: 'Stacks', inputType: InputType.Number })] }),
+			TargetProto.create({ level: 71 }),
+		]);
+		mount(encounter);
+		const setTargets = vi.spyOn(encounter, 'setTargets');
+		items().forEach(place);
+		const input = document.querySelector<HTMLElement>('[data-testid="target-inputs-picker-item"]')!;
+		place(input, 0);
+
+		grab(1);
+		dragEvent('drop', input, 0);
+
+		expect(setTargets).toHaveBeenCalledTimes(1);
+		expect(encounter.targets.map(target => target.level)).toEqual([71, 70]);
+		expect(encounter.targets.map(target => target.targetInputs.length)).toEqual([0, 1]);
 	});
 
 	it('reads each target row from its own index rather than from the first, and writes a level change back to it', () => {
@@ -199,15 +270,22 @@ describe('TargetsPicker', () => {
 			expect(inputRoots[1].querySelector('input')!.checked).toBe(true);
 			expect(inputRoots[2].querySelector('select')!.value).toBe('1');
 
-			const list = document.querySelector('.ui-list-picker-compact')!;
-			expect(list.querySelector('[data-testid="list-picker-new-button"]')).toBeNull();
-			expect(list.querySelector('[data-testid="list-picker-item-actions"]')).toBeNull();
-			expect([...list.querySelectorAll('[data-testid="list-picker-item-container"]')].every(item => !item.hasAttribute('data-draggable'))).toBe(true);
+			const list = document.querySelector('[data-testid="target-inputs-picker"]')!;
+			expect(list.getAttribute('data-density')).toBe('compact');
+			expect(list.querySelector('[data-testid="tree-add"]')).toBeNull();
+			expect(list.querySelector('[data-testid="tree-item-header"]')).toBeNull();
+			expect(list.querySelectorAll('[data-testid="target-inputs-picker-item"]')).toHaveLength(3);
 
 			const numberInput = inputRoots[0].querySelector('input')!;
 			act(() => void fireEvent.change(numberInput, { target: { value: '7' } }));
 
 			expect(encounter.targets[0].targetInputs.map(input => input.numberValue)).toEqual([7, 0, 0]);
+		});
+
+		it('renders no list for a target that declares no input', () => {
+			mount(new FakeEncounter());
+
+			expect(document.querySelector('[data-testid="target-inputs-picker"]')).toBeNull();
 		});
 	});
 });

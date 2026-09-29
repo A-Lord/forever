@@ -43,10 +43,8 @@
 		grid-auto-flow: var(--tree-flow);
 		grid-auto-columns: var(--tree-track);
 		gap: var(--tree-gap);
-	}
 
-	@container tree (max-width: 28rem) {
-		.ui-tree-items {
+		@variant @max-md/tree {
 			--tree-areas: 'handle title trigger actions' 'body body body body' 'children children children children';
 			--tree-columns: auto minmax(0, 1fr) auto auto;
 			--tree-body-offset: var(--tree-gap);

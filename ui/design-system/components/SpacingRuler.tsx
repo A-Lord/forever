@@ -3,7 +3,7 @@ import { Unstyled } from '@storybook/addon-docs/blocks';
 import breakpointsCss from '../../styles/theme/breakpoints.css?raw';
 import { parseRootVars, THEME_TOKENS } from '../tokens/theme_tokens';
 
-const PLAIN_LENGTH = /^[\d.]+(px|rem)$/;
+const PLAIN_LENGTH = /^([\d.]+(px|rem)|--spacing\([\d.]+\))$/;
 
 export const SpacingRuler = () => (
 	<Unstyled>

@@ -101,18 +101,25 @@ describe('useActionIds', () => {
 		expect(spy).toHaveBeenCalledTimes(2);
 	});
 
-	it('settles each id on its own: a rejected fill leaves its slot undefined and logs, the others still resolve', async () => {
+	it('settles each id on its own: a rejected fill leaves its slot undefined, the others still resolve, and the rejection surfaces', async () => {
 		const failure = new Error('no tooltip data');
 		vi.spyOn(ActionId.prototype, 'fill').mockImplementation(async function (this: ActionId) {
 			if (this.spellId === 1) throw failure;
 			return filled(this, 'Second', 'second.jpg');
 		});
-		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const unhandled: Array<unknown> = [];
+		const onUnhandledRejection = (error: unknown) => unhandled.push(error);
+		process.on('unhandledRejection', onUnhandledRejection);
 
-		render(<Probe actionIds={[ActionId.fromSpellId(1), ActionId.fromSpellId(2)]} />);
-		await act(async () => {});
+		try {
+			render(<Probe actionIds={[ActionId.fromSpellId(1), ActionId.fromSpellId(2)]} />);
+			await act(async () => {});
+			await act(async () => await new Promise(resolve => setImmediate(resolve)));
 
-		expect(seen.at(-1)).toEqual([undefined, { iconUrl: 'second.jpg', name: 'Second', href: ActionId.makeSpellUrl(2) }]);
-		expect(log).toHaveBeenCalledExactlyOnceWith(failure);
+			expect(seen.at(-1)).toEqual([undefined, { iconUrl: 'second.jpg', name: 'Second', href: ActionId.makeSpellUrl(2) }]);
+			expect(unhandled).toEqual([failure]);
+		} finally {
+			process.removeListener('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

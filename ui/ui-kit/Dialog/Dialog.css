@@ -53,7 +53,7 @@
 	}
 
 	.ui-dialog-body {
-		@apply relative flex flex-1 flex-col gap-5 p-5;
+		@apply @container relative flex flex-1 flex-col gap-5 p-5;
 	}
 
 	.ui-dialog-footer {
