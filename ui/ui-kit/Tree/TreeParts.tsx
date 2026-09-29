@@ -33,7 +33,7 @@ export const Handle = ({ label, className, testId }: TreeItemHandleProps) => {
 	const { disabled, handleProps } = useTreeItem();
 	return (
 		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId} {...handleProps}>
-			<Icon name="grip-vertical" fixedWidth />
+			<Icon name="grip-vertical" size="sm" fixedWidth />
 		</Button>
 	);
 };
