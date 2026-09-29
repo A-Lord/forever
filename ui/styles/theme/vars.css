@@ -21,7 +21,7 @@
 	--modal-border-width: 1px;
 	--modal-border-color: var(--color-surface-border);
 	--modal-padding: --spacing(5);
-	--modal-fade-transform: translate(0, -50px);
+	--modal-fade-transform: translate(0, --spacing(-14.25));
 
 	/* Tooltip */
 	--tooltip-bg: color-mix(in srgb, var(--color-background), var(--color-white) 5%);

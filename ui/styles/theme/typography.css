@@ -17,13 +17,13 @@
 	--text-5xl: 5rem;
 
 	--text-ui: var(--text-xs);
-	--text-ep-delta: 0.8rem;
+	--text-ep-delta: var(--text-xs);
 
 	--leading-heading: 1.2;
 
 	--text-2xs: 0.625rem;
 
-	--text-cr-badge: 9px;
+	--text-cr-badge: var(--text-2xs);
 }
 
 @theme static inline {

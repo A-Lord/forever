@@ -3,7 +3,7 @@
 	--spacing-section: --spacing(8);
 	--spacing-floating-action-bar: calc(--spacing(11) + (var(--spacing) * 2 * 2) + 2px);
 	--spacing-popup-min-w: 300px;
-	--size-scrollbar: 0.2rem;
+	--size-scrollbar: --spacing(0.75);
 
 	--grid-template-columns-wide-narrow: 3fr 2fr;
 	--grid-template-columns-halves-wide: 1fr 1fr 2fr;
@@ -31,7 +31,7 @@
 	--grid-template-columns-single: auto;
 	--grid-template-columns-settings: 2fr 2fr 3fr;
 
-	--spacing-cr-icon: 42px;
+	--spacing-cr-icon: --spacing(12);
 
 	--spacing-tree-indent: --spacing(3.5);
 	--spacing-tree-gap: --spacing(3);
@@ -44,7 +44,7 @@
 @theme static inline {
 	--grid-template-columns-reforge: auto var(--settings-button-width);
 	--spacing-settings-button-inset: calc(--spacing(3) + var(--settings-button-width));
-	--spacing-settings-panel-max: min(350px, calc(100dvw - var(--settings-button-width, 36px) - --spacing(4) * 2));
+	--spacing-settings-panel-max: min(--spacing(100), calc(100dvw - var(--settings-button-width, --spacing(10.25)) - --spacing(4) * 2));
 	--spacing-selector-modal-w: min(calc(var(--modal-width-xl) - --spacing(10)), calc(100vw - (2 * var(--modal-margin)) - --spacing(10)));
 	--spacing-modal-inset-w: calc(100vw - 2 * var(--modal-margin));
 	--spacing-modal-inset-h: calc(100vh - 2 * var(--modal-margin));
@@ -52,7 +52,7 @@
 	--spacing-page-inset-w: calc(100% - 2 * var(--spacing-page));
 	--spacing-sim-header-plus: calc(var(--spacing-sim-header) + 1px);
 	--spacing-sim-header-minus: calc(var(--spacing-sim-header) - 1px);
-	--spacing-cr-icon-offset: calc(var(--spacing-cr-icon) + 20px);
+	--spacing-cr-icon-offset: calc(var(--spacing-cr-icon) + --spacing(5.75));
 	--spacing-log-body-min-h: calc(100dvh - var(--spacing-sim-header) - var(--spacing-page));
 	--spacing-bulk-settings-max-h: calc(100dvh - var(--spacing-sim-header) - var(--spacing-page));
 	--spacing-gem-inner: calc(4 * var(--gem-width) / 5);
