@@ -14,10 +14,6 @@ func (warrior *Warrior) registerShieldBash() {
 	// TODO: In-game test required
 	config.FlatThreatBonus = 0
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.PseudoStats.CanBlock
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := shieldBashRank.DamageEffect().Roll(sim, core.CharacterLevel)
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)

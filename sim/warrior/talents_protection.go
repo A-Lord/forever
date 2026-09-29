@@ -188,10 +188,6 @@ func (warrior *Warrior) registerShieldSlam() {
 	// TODO: In-game testing needed for threat multiplier / flat threat
 	config.FlatThreatBonus = 0
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.PseudoStats.CanBlock
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := shieldSlamRank.DamageEffect().Roll(sim, core.CharacterLevel) + warrior.BlockDamageReduction()
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
@@ -275,8 +271,8 @@ func (warrior *Warrior) registerBastion() {
 		return
 	}
 
-	// The row raises the physical school and states no shield of its own: the tooltip's shield
-	// requirement is the caller's condition, re-read on an off-hand swap.
+	// The row raises the physical school and states the shield, but the parse never scopes to a
+	// shield, so it is the caller's condition, re-read on an off-hand swap.
 	parsed := spelldata.ParseStatic(&warrior.Character, spellData.Bastion.Rank(warrior.Talents.Bastion),
 		spelldata.Conditional(func() bool { return warrior.PseudoStats.CanBlock }))
 

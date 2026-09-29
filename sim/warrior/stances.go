@@ -75,8 +75,8 @@ func (warrior *Warrior) registerDefensiveStanceAura() *core.Aura {
 	spelldata.ParseEffects(&warrior.Character, aura, defensiveStancePassive)
 
 	if warrior.Talents.Defiance > 0 {
-		// The stance the talent's threat applies in is the aura it hangs on; the shield the
-		// tooltip asks for is stated nowhere in the row, so it is the caller's condition, re-read
+		// The stance the talent's threat applies in is the aura it hangs on. The row states the
+		// shield, but the parse never scopes to a shield, so it is the caller's condition, re-read
 		// on an off-hand swap.
 		defiance := spelldata.ParseEffects(&warrior.Character, aura,
 			spellData.Defiance.Rank(warrior.Talents.Defiance),

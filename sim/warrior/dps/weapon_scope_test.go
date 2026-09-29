@@ -58,6 +58,30 @@ func TestRetaliationCounterattackSpendsNoFlurryCharge(t *testing.T) {
 	}
 }
 
+// Spearing Strike needs a two-handed axe, mace, sword, a polearm or a staff in the main hand: the
+// two-handed axe of p1_arms casts it, the one-handed axes of p1_fury do not.
+func TestSpearingStrikeNeedsATwoHander(t *testing.T) {
+	const spearingStrikeTalent = "000000001"
+	for _, c := range []struct {
+		gearSet string
+		want    bool
+	}{
+		{"p1_arms", true},
+		{"p1_fury", false},
+	} {
+		sim, warrior := orcWarriorSim(t, c.gearSet, spearingStrikeTalent)
+		spearingStrike := warrior.GetSpell(core.ActionID{SpellID: 1310222})
+		if spearingStrike == nil {
+			t.Fatal("the warrior has no Spearing Strike")
+		}
+		warrior.AddRage(sim, 100, warrior.NewRageMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionRageGain}))
+		warrior.GCD.Reset()
+		if got := spearingStrike.CanCast(sim, warrior.CurrentTarget); got != c.want {
+			t.Errorf("Spearing Strike with the %s main hand castable = %v, want %v", c.gearSet, got, c.want)
+		}
+	}
+}
+
 // Death Wish takes the global cooldown its row states and does not hold the rotation beyond it, so
 // an off-GCD ability can follow it at once.
 func TestDeathWishLeavesTheRotationFree(t *testing.T) {

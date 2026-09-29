@@ -134,6 +134,34 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 	}
 }
 
+// Shield Bash, Shield Block, Shield Wall and Shield Slam need a shield: with an off-hand axe none of
+// them can be cast.
+func TestShieldAbilitiesNeedAShield(t *testing.T) {
+	spellIDs := map[string]int32{"Shield Bash": 1672, "Shield Block": 2565, "Shield Wall": 871, "Shield Slam": 23925}
+	for _, c := range []struct {
+		offHand int32
+		want    bool
+	}{
+		{0, true},
+		{dualWieldOH, false},
+	} {
+		sim, war, target := shieldTestSim(t, DefaultProtectionTalents, c.offHand)
+		prot := sim.Raid.Parties[0].Players[0].(*ProtectionWarrior)
+		prot.AddRage(sim, 100, prot.NewRageMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionRageGain}))
+		for name, id := range spellIDs {
+			spell := war.GetSpell(core.ActionID{SpellID: id})
+			if spell == nil {
+				t.Fatalf("the warrior has no %s", name)
+			}
+			war.GCD.Reset()
+			spell.CD.Reset()
+			if got := spell.CanCast(sim, target); got != c.want {
+				t.Errorf("%s with off hand %d castable = %v, want %v", name, c.offHand, got, c.want)
+			}
+		}
+	}
+}
+
 // A procs-per-minute rate rolled from a shield's hit is measured against the main hand's swing
 // speed, since no off-hand weapon is behind it.
 func TestShieldHitsRollProcsPerMinuteAtTheMainHandSpeed(t *testing.T) {
