@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
 import { describe, expect, it } from 'vitest';
@@ -52,6 +53,13 @@ describe('ContentBlock', () => {
 		// Not a direct child of the header (only of the title).
 		const header = screen.getByTestId('content-block-header');
 		expect(Array.from(header.children)).toEqual([title]);
+	});
+
+	it('names the tooltip button Help, not after the title it sits in', () => {
+		render(<ContentBlock config={{ header: { title: 'My Title', tooltip: 'explains it' } }} />);
+		const title = screen.getByTestId('content-block-title');
+		expect(within(title).getByRole('button', { name: i18n.t('common.help') })).toBeTruthy();
+		expect(within(title).queryByRole('button', { name: 'My Title' })).toBeNull();
 	});
 
 	it('renders no tooltip button when config.header.tooltip is absent', () => {

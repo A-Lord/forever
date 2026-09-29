@@ -167,7 +167,6 @@ export const Clear = ({ show, label, className, testId, onClear, children }: Fie
 			{show && (
 				<Button
 					variant="link"
-					size="inline"
 					className={clsx('absolute inset-y-0 right-0 flex items-center', className)}
 					data-testid={testId}
 					aria-label={label}

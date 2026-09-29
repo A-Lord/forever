@@ -95,6 +95,9 @@
 				"clear": {
 					"type": "string"
 				},
+				"help": {
+					"type": "string"
+				},
 				"saved_data": {
 					"type": "object",
 					"properties": {

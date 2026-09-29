@@ -39,8 +39,12 @@ describe('Button', () => {
 	});
 
 	it('accepts an anchor only through href, and an icon-only button only with an aria-label', () => {
-		// @ts-expect-error `as="a"` is not a Button prop: `href` renders the anchor.
-		const byAs = <Button as="a">Item</Button>;
+		const byAs = (
+			// @ts-expect-error `as="a"` is not a Button prop, even with an href: `href` alone renders the anchor.
+			<Button as="a" href="/x">
+				Item
+			</Button>
+		);
 		// @ts-expect-error An icon-only button has no text to announce, so `aria-label` is required.
 		const unnamed = <Button iconOnly>×</Button>;
 		const named = (

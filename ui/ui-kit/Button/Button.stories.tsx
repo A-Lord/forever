@@ -19,7 +19,7 @@ const VARIANTS: Array<ButtonVariant> = [
 	'unstyled',
 ];
 
-const SIZES = ['default', 'sm', 'xs', 'inline', 'none'] as const;
+const SIZES = ['default', 'sm', 'xs', 'none'] as const;
 
 const meta = {
 	title: 'Kit/Button',
@@ -34,7 +34,7 @@ const meta = {
 	},
 	argTypes: {
 		variant: { control: 'select', options: [...VARIANTS, null] },
-		size: { control: 'select', options: [undefined, 'sm', 'xs', 'inline', 'none'] },
+		size: { control: 'select', options: [undefined, 'sm', 'xs', 'none'] },
 		iconOnly: { control: 'boolean' },
 		loading: { control: 'boolean' },
 		disabled: { control: 'boolean' },
@@ -60,7 +60,6 @@ export const OutlineCancel: Story = { args: { variant: 'outline-cancel' } };
 export const Unstyled: Story = { args: { variant: 'unstyled' } };
 
 export const Small: Story = { args: { size: 'sm' } };
-export const Inline: Story = { args: { size: 'inline' } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Loading: Story = { args: { loading: true, children: 'Stat Weights' } };
 export const IconOnly: Story = { args: { iconOnly: true, 'aria-label': 'Settings', children: <Icon name="gear" size="lg" /> } };

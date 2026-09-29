@@ -9,7 +9,6 @@ const SIZE_CLASS = {
 	default: 'ui-button-md',
 	sm: 'ui-button-sm',
 	xs: 'ui-button-xs',
-	inline: 'ui-button-inline',
 	none: undefined,
 } as const;
 

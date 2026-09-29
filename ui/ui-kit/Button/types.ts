@@ -12,7 +12,7 @@ export type ButtonVariant =
 	| 'outline-cancel'
 	| 'unstyled';
 
-export type ButtonSize = 'sm' | 'xs' | 'inline' | 'none';
+export type ButtonSize = 'sm' | 'xs' | 'none';
 
 interface ButtonCommonProps {
 	/** `null` emits the bare base bundle — no colour of its own. */

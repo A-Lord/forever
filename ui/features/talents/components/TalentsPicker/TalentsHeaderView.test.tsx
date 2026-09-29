@@ -47,8 +47,9 @@ describe('TalentsHeaderView', () => {
 		expect(copyButton().querySelector('svg')!.classList).toContain('fa-check');
 	});
 
-	it('anchors the copy tooltip on the button', () => {
+	it('anchors the copy tooltip on the button, keeping its variant, size and width', () => {
 		render(<TalentsHeaderView pointsRemaining={0} getTalentsString={() => ''} />);
 		expect(copyButton().getAttribute('data-tooltip-id')).toBeTruthy();
+		expect(copyButton().className).toBe('ui-button ui-button-outline-primary ui-button-sm w-24');
 	});
 });
