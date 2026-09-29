@@ -24,12 +24,27 @@ const arrowBetween = (parent: TalentLocation, child: TalentLocation): TalentArro
 	return buildTalentGraph(config).trees[0].arrows[0];
 };
 
+const ARROWS = {
+	down: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 1, colIdx: 1 }),
+	downTwoRows: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 2, colIdx: 1 }),
+	right: arrowBetween({ rowIdx: 1, colIdx: 0 }, { rowIdx: 1, colIdx: 1 }),
+	left: arrowBetween({ rowIdx: 1, colIdx: 2 }, { rowIdx: 1, colIdx: 1 }),
+	rightDown: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 1, colIdx: 2 }),
+	leftDown: arrowBetween({ rowIdx: 0, colIdx: 2 }, { rowIdx: 1, colIdx: 1 }),
+};
+
+interface StoryArgs {
+	direction: keyof typeof ARROWS;
+	fulfilled: boolean;
+}
+
 const meta = {
 	title: 'Features/Talents/TalentsPicker/Components/TalentReqArrow',
 	component: TalentReqArrow,
 	tags: ['autodocs'],
-	args: { arrow: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 1, colIdx: 1 }), fulfilled: false },
-	argTypes: { arrow: { control: false } },
+	args: { direction: 'down', fulfilled: false },
+	argTypes: { direction: { control: 'select', options: Object.keys(ARROWS) } },
+	render: ({ direction, fulfilled }) => <TalentReqArrow arrow={ARROWS[direction]} fulfilled={fulfilled} />,
 	decorators: [
 		Story => (
 			<div
@@ -44,21 +59,9 @@ const meta = {
 			</div>
 		),
 	],
-} satisfies Meta<typeof TalentReqArrow>;
+} satisfies Meta<StoryArgs>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Down: Story = {};
-
-export const DownFulfilled: Story = { args: { fulfilled: true } };
-
-export const DownTwoRows: Story = { args: { arrow: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 2, colIdx: 1 }) } };
-
-export const Right: Story = { args: { arrow: arrowBetween({ rowIdx: 1, colIdx: 0 }, { rowIdx: 1, colIdx: 1 }) } };
-
-export const Left: Story = { args: { arrow: arrowBetween({ rowIdx: 1, colIdx: 2 }, { rowIdx: 1, colIdx: 1 }) } };
-
-export const RightDown: Story = { args: { arrow: arrowBetween({ rowIdx: 0, colIdx: 1 }, { rowIdx: 1, colIdx: 2 }) } };
-
-export const LeftDown: Story = { args: { arrow: arrowBetween({ rowIdx: 0, colIdx: 2 }, { rowIdx: 1, colIdx: 1 }) } };
+export const Default: Story = {};
