@@ -32,6 +32,12 @@
 	--grid-template-columns-settings: 2fr 2fr 3fr;
 
 	--spacing-cr-icon: 42px;
+
+	--spacing-tree-indent: 1rem;
+	--spacing-tree-gap: 0.75rem;
+	--spacing-tree-gap-compact: 0.5rem;
+	--spacing-tree-row-py: 1rem;
+	--spacing-tree-row-px: 1rem;
 }
 
 @theme static inline {

@@ -1,0 +1,112 @@
+import type { IconAlias, IconName } from '@ui-kit/Icon';
+import type { ReactNode } from 'react';
+
+export type TreeDensity = 'default' | 'compact';
+/** `inline` puts the body on the header row, between the title and the trigger. */
+export type TreeLayout = 'default' | 'inline';
+export type TreeOrientation = 'vertical' | 'horizontal';
+
+export interface TreeRef {
+	group: string;
+	id: string;
+	index: number;
+	parentId: string | null;
+}
+
+export interface TreeDropRef {
+	group: string;
+	parentId: string | null;
+	index: number;
+}
+
+export interface TreeMove {
+	from: TreeRef;
+	to: TreeDropRef;
+}
+
+export interface TreeSortable {
+	onMove: (move: TreeMove) => void;
+	canDrop?: (from: TreeRef, to: TreeDropRef) => boolean;
+}
+
+interface TreePartProps {
+	className?: string;
+	testId?: string;
+}
+
+export interface TreeRootProps extends TreePartProps {
+	/** Nested roots inherit it; a top-level root without one gets a group of its own. */
+	group?: string;
+	/** Defaults to the parent root's depth + 1, and 0 at the top. */
+	depth?: number;
+	/** Nested roots inherit it. */
+	density?: TreeDensity;
+	layout?: TreeLayout;
+	orientation?: TreeOrientation;
+	sortable?: TreeSortable;
+	/** Nested roots inherit it. */
+	disabled?: boolean;
+	children: ReactNode;
+}
+
+export interface TreeItemsProps extends TreePartProps {
+	children: ReactNode;
+}
+
+export interface TreeItemProps extends TreePartProps {
+	/** Stable identity, used for moves and as the `parentId` of the items nested under it. */
+	id: string;
+	/** Omit for an uncontrolled item, which starts from `defaultOpen`. */
+	open?: boolean;
+	defaultOpen?: boolean;
+	onOpenChange?: (open: boolean) => void;
+	disabled?: boolean;
+	children?: ReactNode;
+}
+
+export interface TreeItemHeaderProps extends TreePartProps {
+	children: ReactNode;
+}
+
+export interface TreeItemHandleProps extends TreePartProps {
+	label: string;
+}
+
+export interface TreeItemTitleProps extends TreePartProps {
+	as?: 'span' | 'h6';
+	children: ReactNode;
+}
+
+export interface TreeItemTriggerProps extends TreePartProps {
+	label: string;
+}
+
+export interface TreeItemActionsProps extends TreePartProps {
+	/** The menu button's accessible name. */
+	label: string;
+	children: ReactNode;
+}
+
+export interface TreeItemActionProps extends TreePartProps {
+	label: string;
+	icon?: IconName | IconAlias;
+	tone?: 'default' | 'danger';
+	disabled?: boolean;
+	onClick?: () => void;
+}
+
+export interface TreeItemBodyProps extends TreePartProps {
+	children: ReactNode;
+}
+
+export interface TreeItemChildrenProps extends TreePartProps {
+	children: ReactNode;
+}
+
+export interface TreeAddButtonProps extends TreePartProps {
+	/** The button text, or with `icon` its accessible name and tooltip. */
+	label: string;
+	icon?: IconName | IconAlias;
+	disabled?: boolean;
+	onClick: () => void;
+}

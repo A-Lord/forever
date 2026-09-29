@@ -1,0 +1,111 @@
+import clsx from 'clsx';
+import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+
+import { TreeItemContext, TreeItemsContext, type TreeItemsContextValue, TreeRootContext, type TreeRootContextValue, useTreeRoot } from './context';
+import type { TreeItemsProps, TreeRootProps } from './types';
+
+export const Root = ({
+	group,
+	depth,
+	density,
+	layout = 'default',
+	orientation = 'vertical',
+	sortable,
+	disabled,
+	className,
+	testId,
+	children,
+}: TreeRootProps) => {
+	const parent = useContext(TreeRootContext);
+	const parentId = useContext(TreeItemContext)?.id ?? null;
+	const ownGroup = useId();
+	const value = useMemo<TreeRootContextValue>(
+		() => ({
+			group: group ?? parent?.group ?? ownGroup,
+			depth: depth ?? (parent ? parent.depth + 1 : 0),
+			density: density ?? parent?.density ?? 'default',
+			layout,
+			orientation,
+			disabled: disabled ?? parent?.disabled ?? false,
+			sortable: sortable ?? parent?.sortable,
+			parentId,
+		}),
+		[group, depth, density, layout, orientation, disabled, sortable, parent, ownGroup, parentId],
+	);
+	return (
+		<TreeRootContext.Provider value={value}>
+			<div
+				className={clsx('ui-tree', className)}
+				data-depth={value.depth}
+				data-density={value.density}
+				data-layout={layout}
+				data-orientation={orientation}
+				data-testid={testId ?? 'tree'}>
+				{children}
+			</div>
+		</TreeRootContext.Provider>
+	);
+};
+
+const inDocumentOrder = (a: HTMLElement, b: HTMLElement) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+
+const sameOrder = (a: ReadonlyArray<string>, b: ReadonlyArray<string>) => a.length === b.length && a.every((key, i) => key === b[i]);
+
+// Each item registers its element, and the order is read off the DOM, so an item rendered through a
+// wrapper component or a fragment counts like a direct child. A registration, a removal or an item
+// found out of place bumps `version`, which re-renders this list to recompute the order even when a
+// wrapper re-rendered on its own.
+export const Items = ({ className, testId, children }: TreeItemsProps) => {
+	useTreeRoot();
+	const elements = useRef(new Map<string, HTMLElement>());
+	const [order, setOrder] = useState<ReadonlyArray<string>>([]);
+	const [version, setVersion] = useState(0);
+	const invalidate = useCallback(() => setVersion(current => current + 1), []);
+
+	useLayoutEffect(() => {
+		const next = Array.from(elements.current.entries())
+			.sort(([, a], [, b]) => inDocumentOrder(a, b))
+			.map(([key]) => key);
+		if (!sameOrder(order, next)) setOrder(next);
+	}, [children, version, order]);
+
+	const register = useCallback(
+		(key: string, element: HTMLElement) => {
+			elements.current.set(key, element);
+			invalidate();
+		},
+		[invalidate],
+	);
+	const unregister = useCallback(
+		(key: string) => {
+			elements.current.delete(key);
+			invalidate();
+		},
+		[invalidate],
+	);
+	const value = useMemo<TreeItemsContextValue>(
+		() => ({
+			register,
+			unregister,
+			indexOf: key => order.indexOf(key),
+			check: (key, index) => {
+				const element = elements.current.get(key);
+				if (!element) return;
+				let position = 0;
+				for (const other of elements.current.values()) {
+					if (other !== element && inDocumentOrder(other, element) < 0) position++;
+				}
+				if (position !== index) invalidate();
+			},
+		}),
+		[register, unregister, invalidate, order],
+	);
+
+	return (
+		<TreeItemsContext.Provider value={value}>
+			<ul className={clsx('ui-tree-items', className)} role="list" data-testid={testId}>
+				{children}
+			</ul>
+		</TreeItemsContext.Provider>
+	);
+};

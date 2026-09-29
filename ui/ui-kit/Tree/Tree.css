@@ -1,0 +1,119 @@
+@layer components {
+	.ui-tree {
+		@apply flex flex-col items-start;
+		--tree-gap: var(--spacing-tree-gap);
+		--tree-row-py: var(--spacing-tree-row-py);
+		--tree-row-px: var(--spacing-tree-row-px);
+		--tree-row-border: var(--border-default);
+		--tree-areas: 'handle title trigger actions' 'body body body body' 'children children children children';
+		--tree-columns: auto minmax(0, 1fr) auto auto;
+		--tree-body-offset: var(--tree-gap);
+		--tree-flow: row;
+		--tree-track: minmax(0, 1fr);
+
+		container: tree / inline-size;
+		gap: var(--tree-gap);
+
+		&[data-density='compact'] {
+			--tree-gap: var(--spacing-tree-gap-compact);
+			--tree-row-py: 0;
+			--tree-row-px: 0;
+			--tree-row-border: none;
+		}
+
+		&[data-layout='inline'] {
+			--tree-areas: 'handle title body trigger actions' 'children children children children children';
+			--tree-columns: auto auto minmax(0, 1fr) auto auto;
+			--tree-body-offset: 0;
+		}
+
+		&[data-orientation='horizontal'] {
+			--tree-flow: column;
+			--tree-track: max-content;
+		}
+	}
+
+	.ui-tree-items {
+		@apply m-0 grid list-none self-stretch p-0;
+		grid-auto-flow: var(--tree-flow);
+		grid-auto-columns: var(--tree-track);
+		gap: var(--tree-gap);
+	}
+
+	@container tree (max-width: 28rem) {
+		.ui-tree-items {
+			--tree-areas: 'handle title trigger actions' 'body body body body' 'children children children children';
+			--tree-columns: auto minmax(0, 1fr) auto auto;
+			--tree-body-offset: var(--tree-gap);
+		}
+	}
+
+	.ui-tree-item {
+		@apply relative grid items-center;
+		grid-template-areas: var(--tree-areas);
+		grid-template-columns: var(--tree-columns);
+		padding: var(--tree-row-py) var(--tree-row-px);
+		border: var(--tree-row-border);
+
+		&[data-disabled] {
+			@apply filter-[opacity(0.5)];
+		}
+
+		&:has(> .ui-tree-item-header) > .ui-tree-item-body {
+			margin-block-start: var(--tree-body-offset);
+		}
+
+		&:has(> .ui-tree-item-header, > .ui-tree-item-body) > .ui-tree-item-children {
+			margin-block-start: var(--tree-gap);
+		}
+	}
+
+	.ui-tree-item-header {
+		@apply contents;
+	}
+
+	.ui-tree-item-handle {
+		@apply cursor-grab;
+		grid-area: handle;
+		margin-inline-end: var(--tree-gap);
+	}
+
+	.ui-tree-item-title {
+		@apply m-0 flex min-w-0 items-center;
+		grid-area: title;
+		gap: var(--tree-gap);
+	}
+
+	.ui-tree-item-trigger {
+		grid-area: trigger;
+		margin-inline-start: var(--tree-gap);
+	}
+
+	.ui-tree-item-actions {
+		grid-area: actions;
+		margin-inline-start: var(--tree-gap);
+	}
+
+	.ui-tree-item-actions-popup {
+		@apply flex flex-col items-start gap-2;
+	}
+
+	.ui-tree-item-action {
+		@apply flex items-center gap-2;
+
+		&[data-tone='danger'] {
+			@apply text-link-danger;
+		}
+	}
+
+	.ui-tree-item-body {
+		@apply min-w-0;
+		grid-area: body;
+	}
+
+	.ui-tree-item-children {
+		grid-area: children;
+		padding-inline-start: var(--spacing-tree-indent);
+		border-inline-start: var(--border-default);
+	}
+}
