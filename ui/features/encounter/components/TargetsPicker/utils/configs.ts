@@ -153,7 +153,6 @@ export const tankIndexConfig = ({ encounter, targetIndex, getTarget }: TargetFie
 export const statConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext, stat: Stat, tooltip: string, extraClassNames: Array<string>) =>
 	({
 		id: `target-${targetIndex}-picker-stats-${stat}`,
-		layout: 'inline',
 		extraClassNames,
 		label: translateStat(stat),
 		labelTooltip: tooltip,
