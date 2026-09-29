@@ -195,16 +195,48 @@ describe('Tree sortable', () => {
 		expect(onMove).not.toHaveBeenCalled();
 	});
 
-	it('refuses a drop into a list of another group, both ways', () => {
+	it('refuses a drop into a list of another group', () => {
 		const { onMove, sortable } = setup();
 		mount([{ id: 'a', values: flat('v1', 'v2') }, { id: 'b' }], { sortable });
 
 		grab('v1');
 		expect(accepts(item('b'))).toBe(false);
 		dropOn(item('b'));
+		expect(onMove).not.toHaveBeenCalled();
+	});
+
+	const mountOuterAroundValues = (sortable: TreeSortable) => {
+		mount([{ id: 'b' }, { id: 'a', values: flat('v1', 'v2') }], { sortable });
+		place('b', 0);
+		vi.spyOn(item('a'), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 20, 20, 80));
+		place('v1', 2);
+		place('v2', 3);
+	};
+
+	it('hands a drop over a nested list of another group to the item around it', () => {
+		const { onMove, sortable } = setup();
+		mountOuterAroundValues(sortable);
+
 		grab('b');
-		expect(accepts(item('v2'))).toBe(false);
-		dropOn(item('v2'));
+		expect(accepts(item('v2'), 70)).toBe(true);
+		expect(item('a').getAttribute('data-drop')).toBe('after');
+		expect(item('v2').hasAttribute('data-drag')).toBe(false);
+		dropOn(item('v2'), 70);
+		expect(onMove).toHaveBeenCalledTimes(1);
+		expect(onMove).toHaveBeenCalledWith({
+			from: { group: 'rows', id: 'b', index: 0, parentId: null },
+			to: { group: 'rows', parentId: null, index: 2 },
+		});
+	});
+
+	it('refuses a drop over a nested list of another group when the item around it refuses too', () => {
+		const onMove = vi.fn();
+		mountOuterAroundValues({ onMove, canDrop: (from, to) => from.group === to.group && to.parentId !== null });
+
+		grab('b');
+		expect(accepts(item('v2'), 70)).toBe(false);
+		expect(item('a').hasAttribute('data-drag')).toBe(false);
+		dropOn(item('v2'), 70);
 		expect(onMove).not.toHaveBeenCalled();
 	});
 
@@ -244,6 +276,25 @@ describe('Tree sortable', () => {
 		onMove.mockClear();
 		grab('B');
 		dropOn(item('b1'), 65);
+		expect(onMove).not.toHaveBeenCalled();
+	});
+
+	it('refuses a drop on the dragged item or next to it when canDrop allows everything, and keeps the parent out of it', () => {
+		const onMove = vi.fn();
+		mount([{ id: 'A', children: flat('a1', 'a2') }], { sortable: { onMove, canDrop: () => true } });
+		['A', 'a1', 'a2'].forEach(place);
+
+		grab('a1');
+		expect(accepts(item('a1'), 25)).toBe(false);
+		expect(item('A').hasAttribute('data-drag')).toBe(false);
+		expect(accepts(item('a2'), 45)).toBe(false);
+		for (const [id, y] of [
+			['a1', 25],
+			['a2', 45],
+		] as const) {
+			grab('a1');
+			dropOn(item(id), y);
+		}
 		expect(onMove).not.toHaveBeenCalled();
 	});
 
@@ -307,6 +358,20 @@ describe('Tree sortable', () => {
 		expect(item('a').getAttribute('data-drag')).toBe('from');
 	});
 
+	it('keeps the hover mark when the pointer moves between parts of the hovered item', () => {
+		const { sortable } = setup();
+		mount(flat('a', 'b'), { sortable });
+		['a', 'b'].forEach(place);
+
+		grab('a');
+		dragEvent('dragOver', item('b'), { y: 35 });
+		const leave = createEvent.dragLeave(item('b'), { dataTransfer: new DataTransfer() });
+		Object.defineProperty(leave, 'relatedTarget', { value: screen.getByTestId('title-b') });
+		fireEvent(item('b'), leave);
+		expect(item('b').getAttribute('data-drag')).toBe('to');
+		expect(item('b').getAttribute('data-drop')).toBe('after');
+	});
+
 	it('turns an item draggable while its handle is pressed', () => {
 		const { sortable } = setup();
 		mount(flat('a', 'b'), { sortable });
@@ -333,6 +398,20 @@ describe('Tree sortable', () => {
 
 		fireEvent.mouseDown(screen.getByTestId('input-A'));
 		expect(item('A').hasAttribute('draggable')).toBe(false);
+		const editors = [
+			['span', 'contenteditable', ''],
+			['span', 'contenteditable', 'plaintext-only'],
+			['select', 'aria-label', 'Choice'],
+		].map(([tag, name, value]) => {
+			const editor = document.createElement(tag);
+			editor.setAttribute(name, value);
+			screen.getByTestId('title-A').append(editor);
+			return editor;
+		});
+		for (const editor of editors) {
+			fireEvent.mouseDown(editor);
+			expect(item('A').hasAttribute('draggable')).toBe(false);
+		}
 		fireEvent.mouseDown(screen.getByTestId('title-a1'));
 		expect(item('a1').getAttribute('draggable')).toBe('true');
 		expect(item('A').hasAttribute('draggable')).toBe(false);

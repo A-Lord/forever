@@ -48,7 +48,9 @@ const sameGroup = (from: TreeRef, to: TreeDropRef) => from.group === to.group;
 
 const isTextTarget = (target: EventTarget, container: Element) => {
 	for (let el = target instanceof Element ? target : null; el && el !== container; el = el.parentElement) {
-		if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.getAttribute('contenteditable') === 'true') return true;
+		if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+		const editable = el.getAttribute('contenteditable');
+		if (editable !== null && editable !== 'false') return true;
 	}
 	return false;
 };
@@ -91,18 +93,20 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 		set({ armed: key });
 	};
 
-	// The dragged item never lands on itself or inside itself, whatever `canDrop` says: a move into
-	// its own subtree would detach it. A drop that leaves it where it is counts as refused.
-	const allowed = (from: SortableEntry, over: SortableEntry, to: TreeDropRef) => {
-		if (from.element.contains(over.element)) return false;
-		if (to.group === from.group && to.parentId === from.parentId && (to.index === from.index || to.index === from.index + 1)) return false;
-		return (options.current?.canDrop ?? sameGroup)(refOf(from), to);
+	// `refuse`: the drop would land on or inside the dragged item, whatever `canDrop` says (a move into
+	// its own subtree would detach it), or leave it where it is. The target still owns the event, so
+	// hovering the dragged item never reads as a drop around its parent. `pass`: the group rule or
+	// `canDrop` turns this target down, and the enclosing item or children area decides instead.
+	const verdict = (from: SortableEntry, over: SortableEntry, to: TreeDropRef) => {
+		if (from.element.contains(over.element)) return 'refuse';
+		if (to.group === from.group && to.parentId === from.parentId && (to.index === from.index || to.index === from.index + 1)) return 'refuse';
+		return (options.current?.canDrop ?? sameGroup)(refOf(from), to) ? 'accept' : 'pass';
 	};
 
 	const resolve = (key: string, event: DragEvent, into: boolean) => {
 		const from = state.from === null ? undefined : entries.get(state.from);
 		const over = entries.get(key);
-		if (!from || !over) return null;
+		if (!from || !over) return 'pass';
 		let drop: SortableDrop;
 		let to: TreeDropRef;
 		if (into) {
@@ -117,18 +121,18 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 			drop = after ? 'after' : 'before';
 			to = { group: over.group, parentId: over.parentId, index: after ? over.index + 1 : over.index };
 		}
-		return allowed(from, over, to) ? { from, drop, to } : null;
+		const result = verdict(from, over, to);
+		return result === 'accept' ? { from, drop, to } : result;
 	};
 
-	// The innermost target decides, so an event stops at the first item or children area it reaches.
+	// The innermost target that accepts or refuses stops the event; a passing one lets it bubble.
 	const onDragOver = (key: string, into: boolean) => (event: DragEvent<HTMLElement>) => {
 		if (state.from === null) return;
-		event.stopPropagation();
 		const target = resolve(key, event, into);
-		if (!target) {
-			set({ over: null });
-			return;
-		}
+		if (target === 'pass' || target === 'refuse') set({ over: null });
+		if (target === 'pass') return;
+		event.stopPropagation();
+		if (target === 'refuse') return;
 		event.preventDefault();
 		event.dataTransfer.dropEffect = 'move';
 		set({ over: { key, drop: target.drop } });
@@ -144,11 +148,12 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 	// detached element's dragend never reaches React.
 	const onDrop = (key: string, into: boolean) => (event: DragEvent<HTMLElement>) => {
 		if (state.from === null) return;
+		const target = resolve(key, event, into);
+		if (target === 'pass') return;
 		event.stopPropagation();
 		event.preventDefault();
-		const target = resolve(key, event, into);
 		end();
-		if (target) options.current?.onMove({ from: refOf(target.from), to: target.to });
+		if (target !== 'refuse') options.current?.onMove({ from: refOf(target.from), to: target.to });
 	};
 
 	return {
