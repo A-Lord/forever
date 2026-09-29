@@ -10,6 +10,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { CharacterStats } from './CharacterStats';
+import { buildRows } from './utils/rows';
 import { statDisplayString } from './utils/stat_display';
 
 const KEY = 7;
@@ -59,6 +60,7 @@ const renderStats = (settled: boolean) => {
 		isDualWielding: () => false,
 		getMeleeCritCap: () => CRIT_CAP_DELTA,
 		getMeleeCritCapInfo: () => CRIT_CAP_INFO,
+		getBaseDefense: () => 300,
 	};
 
 	const host = { player, sim: { store }, individualConfig: { displayStats: DISPLAY_STATS } } as never;
@@ -134,6 +136,40 @@ describe('CharacterStats sheet', () => {
 		const { view } = renderStats(true);
 
 		expect(view.container.querySelector('table')!.getAttribute('data-variant')).toBe('plain');
+	});
+});
+
+describe('CharacterStats Key/All toggle', () => {
+	const rowLabels = (view: ReturnType<typeof render>) =>
+		Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]')).map(row => row.firstElementChild!.textContent);
+	const modeButton = (mode: 'key' | 'all') => screen.getByRole('button', { name: i18n.t(`sidebar.character_stats.mode.${mode}`) });
+
+	it('opens on Key, showing the spec display stats and the crit cap', () => {
+		const { view } = renderStats(true);
+
+		expect(modeButton('key').getAttribute('aria-pressed')).toBe('true');
+		expect(rowLabels(view)).toEqual([
+			...DISPLAY_STATS.map(stat => stat.getShortName(Class.ClassWarrior)),
+			i18n.t('sidebar.character_stats.melee_crit_cap'),
+		]);
+	});
+
+	it('shows every row the sheet has on All, and the Key rows again on Key', () => {
+		const { view } = renderStats(true);
+		const keyLabels = rowLabels(view);
+
+		fireEvent.click(modeButton('all'));
+		const allLabels = rowLabels(view);
+		const allStatRows = buildRows({ getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }) } as never, UnitStat.getAll()).groups.flatMap(
+			group => group.rows,
+		);
+		expect(modeButton('all').getAttribute('aria-pressed')).toBe('true');
+		expect(allLabels.length).toBe(allStatRows.length);
+		expect(allLabels.length).toBeGreaterThan(keyLabels.length);
+		expect(allLabels).toEqual(expect.arrayContaining(keyLabels));
+
+		fireEvent.click(modeButton('key'));
+		expect(rowLabels(view)).toEqual(keyLabels);
 	});
 });
 

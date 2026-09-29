@@ -2518,6 +2518,11 @@
 		},
 		"character_stats": {
 			"title": "Stats",
+			"mode": {
+				"label": "Stats shown",
+				"key": "Key",
+				"all": "All"
+			},
 			"melee_crit_cap": "Melee Crit Cap",
 			"tooltip": {
 				"base": "Base:",
