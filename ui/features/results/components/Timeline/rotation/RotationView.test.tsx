@@ -117,6 +117,16 @@ describe('RotationView', () => {
 		expect(height()).toBe(60 * 32);
 	});
 
+	it('names every eye toggle through one shared tooltip rather than one per row', async () => {
+		const { container } = await mount();
+		const toggles = [...container.querySelectorAll('[data-testid="rotation-row-hide"]')];
+
+		expect(toggles).toHaveLength(2);
+		expect(new Set(toggles.map(toggle => toggle.getAttribute('data-tooltip-id'))).size).toBe(1);
+		expect(toggles.map(toggle => toggle.getAttribute('data-tooltip-content'))).toEqual(['Hide row', 'Hide row']);
+		expect(toggles.every(toggle => !toggle.hasAttribute('title'))).toBe(true);
+	});
+
 	it('takes each row out of the order as its eye toggle is clicked, drops the emptied section, and brings them all back from the floating bar', async () => {
 		const { container } = await mount();
 
