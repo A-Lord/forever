@@ -1,15 +1,9 @@
 import i18n from '@i18n/config';
 import { Button } from '@ui-kit/Button';
-import { Icon, type IconAlias, type IconName } from '@ui-kit/Icon';
-import { NOTICE_COLOR, type NoticeLevel } from '@ui-kit/Notice';
+import { Icon } from '@ui-kit/Icon';
+import { NOTICE_COLOR, NOTICE_ICON_NAME, type NoticeLevel } from '@ui-kit/Notice';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { type ReactNode, useId } from 'react';
-
-// The icon names `Notice` draws per level, which its barrel does not export.
-const LEVEL_ICON = { info: 'info-circle', warning: 'exclamation-triangle', error: 'exclamation-triangle' } as const satisfies Record<
-	NoticeLevel,
-	IconName | IconAlias
->;
 
 export interface ItemNoticeIconViewProps {
 	level: NoticeLevel;
@@ -27,7 +21,7 @@ export const ItemNoticeIconView = ({ level, children }: ItemNoticeIconViewProps)
 				className="mr-2"
 				data-level={level}
 				{...tooltipAnchorProps(tooltipId)}>
-				<Icon name={LEVEL_ICON[level]} size="xl" fixedWidth className={NOTICE_COLOR[level]} />
+				<Icon name={NOTICE_ICON_NAME[level]} size="xl" fixedWidth className={NOTICE_COLOR[level]} />
 			</Button>
 			<Tooltip id={tooltipId} content={<div>{children}</div>} clickable />
 		</div>
