@@ -50,19 +50,17 @@ func (warrior *Warrior) registerAnticipation() {
 	warrior.AddStat(stats.DefenseRating, spellData.Anticipation.ValueAt(warrior.Talents.Anticipation)*core.DefenseRatingPerDefenseLevel)
 }
 
-var shieldSpecializationEnergize = spellData.ShieldSpecializationTriggered.Highest()
-
 func (warrior *Warrior) registerShieldSpecialization() {
 	if warrior.Talents.ShieldSpecialization == 0 {
 		return
 	}
 
-	// Effect 1 is the block bonus; effect 2 is the proc trigger, which the parse skips.
-	spelldata.ParseStatic(&warrior.Character,
-		spellData.ShieldSpecialization.Rank(warrior.Talents.ShieldSpecialization))
+	talent := spellData.ShieldSpecialization.Rank(warrior.Talents.ShieldSpecialization)
 
-	warrior.registerRageOnAvoid(spellData.ShieldSpecialization.Rank(warrior.Talents.ShieldSpecialization),
-		shieldSpecializationEnergize, core.OutcomeBlock, nil)
+	// Effect 1 is the block bonus; effect 2 is the proc trigger, which the parse skips.
+	spelldata.ParseStatic(&warrior.Character, talent)
+
+	warrior.registerRageOnAvoid(talent, talent.EffectN(2).Trigger(), core.OutcomeBlock, nil)
 }
 
 // A chance to gain rage when an incoming attack is blocked, dodged or parried. The rate is the
@@ -166,9 +164,7 @@ func (warrior *Warrior) registerConcussionBlow() {
 		return
 	}
 
-	config := spelldata.SpellConfig(&warrior.Unit, concussionBlowRank,
-		spelldata.Flags(core.SpellFlagMeleeMetrics|core.SpellFlagAPL))
-	config.ProcMask = core.ProcMaskMeleeMHSpecial
+	config := spelldata.SpellConfig(&warrior.Unit, concussionBlowRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
@@ -216,16 +212,15 @@ func (warrior *Warrior) registerFocusedRage() {
 	spelldata.ParseStatic(&warrior.Character, spellData.FocusedRage.Rank(warrior.Talents.FocusedRage))
 }
 
-var masterOfDefenseEnergize = spellData.MasterOfDefenseTriggered.Highest()
-
 func (warrior *Warrior) registerMasterOfDefense() {
 	if warrior.Talents.MasterOfDefense == 0 {
 		return
 	}
 
+	talent := spellData.MasterOfDefense.Rank(warrior.Talents.MasterOfDefense)
+
 	// A shield has to be equipped, which the row does not state.
-	warrior.registerRageOnAvoid(spellData.MasterOfDefense.Rank(warrior.Talents.MasterOfDefense),
-		masterOfDefenseEnergize, core.OutcomeDodge|core.OutcomeParry,
+	warrior.registerRageOnAvoid(talent, talent.EffectN(1).Trigger(), core.OutcomeDodge|core.OutcomeParry,
 		func(_ *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
 			return warrior.PseudoStats.CanBlock
 		})
@@ -247,27 +242,23 @@ func (warrior *Warrior) registerImprovedDisarm() {
 	spelldata.ParseStatic(&warrior.Character, spellData.ImprovedDisarm.Rank(warrior.Talents.ImprovedDisarm))
 }
 
-var improvedShieldBashSilence = spellData.ImprovedShieldBashTriggered.Highest()
-
 func (warrior *Warrior) registerImprovedShieldBash() {
 	if warrior.Talents.ImprovedShieldBash == 0 {
 		return
 	}
 
+	talent := spellData.ImprovedShieldBash.Rank(warrior.Talents.ImprovedShieldBash)
+	silence := talent.EffectN(1).Trigger()
+
 	// TODO: nothing in the sim reads a silence on an enemy, so the aura only shows up in metrics.
 	silenceAuras := warrior.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.GetOrRegisterAura(core.Aura{
-			Label:    "Shield Bash - Silence",
-			ActionID: core.ActionID{SpellID: improvedShieldBashSilence.ID},
-			Duration: improvedShieldBashSilence.Duration(),
-		})
+		return target.GetOrRegisterAura(spelldata.AuraConfig(silence, spelldata.Label("Shield Bash - Silence")))
 	})
 
 	// The rate is the effect ladder the tooltip's $m1 names, and the 100 in the proc chance column
 	// is noise. The one ability it fires on is a shape no proc mask states, so the row's listener
 	// is narrowed to Shield Bash by hand.
-	trigger := spelldata.ProcTrigger(&warrior.Character,
-		spellData.ImprovedShieldBash.Rank(warrior.Talents.ImprovedShieldBash),
+	trigger := spelldata.ProcTrigger(&warrior.Character, talent,
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			silenceAuras.Get(result.Target).Activate(sim)
 		})
