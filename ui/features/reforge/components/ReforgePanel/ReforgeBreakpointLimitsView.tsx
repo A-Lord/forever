@@ -1,8 +1,8 @@
 import i18n from '@i18n/config';
-import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Table, TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { Tooltip } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { type ReactNode, useId } from 'react';
 
 export interface ReforgeBreakpointLimitRow {
@@ -21,9 +21,9 @@ export const ReforgeBreakpointLimitsView = ({ rows }: ReforgeBreakpointLimitsVie
 		<>
 			<div className="flex pb-4">
 				<h6 className="mr-1 mb-0">{i18n.t('sidebar.buttons.suggest_reforges.breakpoint_limit')}</h6>
-				<Button variant="unstyled" className="inline" {...tooltipAnchorProps(tooltipId)}>
+				<TooltipAnchor tooltipId={tooltipId} testId="reforge-breakpoint-limit-help">
 					<Icon name="circle-question" style="regular" />
-				</Button>
+				</TooltipAnchor>
 				<Tooltip id={tooltipId} content={i18n.t('sidebar.buttons.suggest_reforges.breakpoint_limit_tooltip')} />
 			</div>
 			<Table dense className="mb-2">

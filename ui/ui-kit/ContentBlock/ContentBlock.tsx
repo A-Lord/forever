@@ -51,7 +51,7 @@ export const ContentBlock = ({
 				<div ref={headerRef} className={clsx('ui-content-block-header flex items-baseline gap-2', header.className)} data-testid="content-block-header">
 					<TitleTag className="mb-0 flex items-center font-bold" data-testid="content-block-title">
 						{header.title}
-						{header.tooltip && <TooltipButton tooltip={<LocaleHtml html={header.tooltip} />} className="ml-2" />}
+						{header.tooltip && <TooltipButton tooltip={<LocaleHtml html={header.tooltip} />} label={header.title} className="ml-2" />}
 					</TitleTag>
 					{headerChildren}
 				</div>

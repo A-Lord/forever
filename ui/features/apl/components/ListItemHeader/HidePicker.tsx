@@ -1,5 +1,6 @@
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import type { InputConfig } from '@features/inputs/input';
+import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { Field } from '@ui-kit/Field';
 
@@ -10,19 +11,19 @@ export interface HidePickerProps {
 	config: InputConfig<Player<any>, boolean>;
 }
 
-/**
- * The eye that disables one APL list item.
- *
- * It deliberately has no tooltip: the "Enable/Disable" string it would want was never translated,
- * so adding it would put one English label into an otherwise localised header.
- */
+/** The eye that disables one APL list item. */
 export const HidePicker = ({ player, config }: HidePickerProps) => {
 	const { value, setValue, hidden, disabled, chrome } = useAplInput(player, config);
 
 	if (hidden) return null;
 	return (
 		<Field {...chrome} className={['m-0 w-auto', chrome.className]} testId="hide-picker-root" disabled={disabled}>
-			<HeaderButton icon={value ? 'eye-slash' : 'eye'} testId="hide-picker-button" onClick={() => setValue(!value)} />
+			<HeaderButton
+				icon={value ? 'eye-slash' : 'eye'}
+				label={i18n.t('rotation_tab.apl.helpers.buttons.enable_disable')}
+				testId="hide-picker-button"
+				onClick={() => setValue(!value)}
+			/>
 		</Field>
 	);
 };

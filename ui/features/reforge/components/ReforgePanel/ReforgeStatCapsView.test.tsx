@@ -22,6 +22,13 @@ describe('ReforgeStatCapsView', () => {
 		expect(screen.getAllByRole('columnheader').map(header => header.textContent)).toEqual(['sidebar.buttons.suggest_reforges.stat', '%', 'Max?']);
 	});
 
+	it('anchors the caps explanation on text, leaving the reset as the only button', () => {
+		renderCaps();
+
+		expect(screen.getByTestId('reforge-stat-caps-help').hasAttribute('data-tooltip-id')).toBe(true);
+		expect(screen.getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(['sidebar.buttons.suggest_reforges.reset_to_defaults']);
+	});
+
 	it('puts the rows it is given in the table body', () => {
 		renderCaps();
 		const [, body] = screen.getAllByRole('rowgroup');

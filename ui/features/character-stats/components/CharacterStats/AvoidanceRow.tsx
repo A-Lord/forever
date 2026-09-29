@@ -1,9 +1,9 @@
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
-import { Button } from '@ui-kit/Button';
 import { Skeleton } from '@ui-kit/Skeleton';
 import { TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { Tooltip } from '@ui-kit/Tooltip';
+import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
 import { useId } from 'react';
 
 import { TooltipRow } from './TooltipRow';
@@ -39,9 +39,9 @@ export const AvoidanceRow = ({ info, withHolyShield, hasParry, hasBlock, pending
 				) : (
 					<>
 						<div className="ui-stat-value-link-container">
-							<Button variant="unstyled" data-testid="stat-value-link" className="text-white" {...tooltipAnchorProps(id)}>
+							<TooltipAnchor tooltipId={id} testId="stat-value-link" className="text-white">
 								{totalString}
-							</Button>
+							</TooltipAnchor>
 						</div>
 						<Tooltip
 							id={id}

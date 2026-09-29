@@ -1,5 +1,5 @@
 import i18n from '@i18n/config';
-import { screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 // The exporters reach the addon importer, which asks GitHub for its version when its module loads.
@@ -41,5 +41,30 @@ describe('exporterDialog', () => {
 		renderWithHost(<FullExporterDialog open onOpenChange={() => {}} />);
 		expect(screen.getAllByRole('checkbox')).toHaveLength(EXPORT_CATEGORY_OPTIONS.length);
 		expect(screen.getByRole('button', { name: DOWNLOAD })).toBeTruthy();
+	});
+
+	it('copies the export text from a primary copy button with its tooltip, and confirms the copy', () => {
+		const writeText = vi.fn(() => Promise.resolve());
+		const own = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+		Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+		vi.useFakeTimers();
+		try {
+			renderWithHost(<TestExporterDialog open onOpenChange={() => {}} />);
+			const copy = screen.getByTestId('copy-button');
+			expect(copy.className).toBe('ui-button ui-button-primary ui-button-md w-48');
+			expect(copy.textContent).toBe(i18n.t('export.json.copy_button'));
+			expect(copy.getAttribute('data-tooltip-id')).toBeTruthy();
+
+			act(() => void fireEvent.click(copy));
+			expect(writeText).toHaveBeenCalledWith('{"player":{}}');
+			expect(copy.textContent).toBe(i18n.t('common.copy_button.copied'));
+
+			act(() => void vi.advanceTimersByTime(1500));
+			expect(copy.textContent).toBe(i18n.t('export.json.copy_button'));
+		} finally {
+			vi.useRealTimers();
+			if (own) Object.defineProperty(navigator, 'clipboard', own);
+			else Reflect.deleteProperty(navigator, 'clipboard');
+		}
 	});
 });

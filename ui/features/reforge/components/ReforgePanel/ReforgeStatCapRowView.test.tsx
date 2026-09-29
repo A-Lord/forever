@@ -33,13 +33,15 @@ describe('ReforgeStatCapRowView', () => {
 	it('explains the stat through a tooltip anchor when it has one', () => {
 		renderRow({ tooltip: 'Final percentage value including all buffs/gear.' });
 
-		expect(screen.getByRole('button').hasAttribute('data-tooltip-id')).toBe(true);
+		const anchor = screen.getByTestId('reforge-stat-cap-help');
+		expect(anchor.hasAttribute('data-tooltip-id')).toBe(true);
+		expect(screen.queryByRole('button')).toBeNull();
 	});
 
 	it('leaves the tooltip anchor out when the stat has no tooltip', () => {
 		renderRow();
 
-		expect(screen.queryByRole('button')).toBeNull();
+		expect(screen.queryByTestId('reforge-stat-cap-help')).toBeNull();
 	});
 
 	it('adds a second row for the spec’s preset caps', () => {

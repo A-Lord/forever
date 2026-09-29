@@ -36,9 +36,8 @@ export const Toast = ({ toast, inline = false }: ToastProps) => {
 				{/* `aria-hidden={false}`: Base UI hides the close button from assistive tech until the viewport is hovered or focused, because its own layout keeps toasts in a collapsed pile. This one is a flat column, so the button is on screen from the start. */}
 				{canClose && (
 					<BaseToast.Close
-						render={<Button iconOnly className="ui-toast-close" />}
+						render={<Button iconOnly aria-label="Close" className="ui-toast-close" />}
 						data-testid="sim-toast-close"
-						aria-label="Close"
 						aria-hidden={false}>
 						<Icon name="xmark" size="lg" />
 					</BaseToast.Close>

@@ -16,7 +16,6 @@ export const SocialLink = ({ social, testId }: SocialLinkProps) => {
 	return (
 		<>
 			<Button
-				as="a"
 				variant="unstyled"
 				href={social.href}
 				target="_blank"

@@ -4,7 +4,7 @@ import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 
 export interface HeaderButtonProps {
 	icon: IconName;
-	label?: string;
+	label: string;
 	className?: string;
 	testId: string;
 	tooltip?: string;
@@ -19,7 +19,7 @@ export const HeaderButton = ({ icon, label, className, testId, tooltip, tooltipI
 	<Button
 		iconOnly
 		className={className}
-		aria-label={label ?? tooltip}
+		aria-label={label}
 		data-testid={testId}
 		style={hidden === undefined ? undefined : { display: hidden ? 'none' : undefined }}
 		onClick={onClick}
