@@ -403,8 +403,8 @@ func statMaskName(mask int32) string {
 		return statName(-1)
 	}
 	var names []string
-	for i := int32(0); i < 5; i++ {
-		if mask&(1<<i) != 0 {
+	for i := int32(0); i < 32; i++ {
+		if uint32(mask)&(1<<i) != 0 {
 			names = append(names, statName(i))
 		}
 	}

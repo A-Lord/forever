@@ -250,7 +250,7 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statsBuff(clientStatList(e.Misc), v)
 	},
 	dbcenums.A_MOD_PERCENT_STAT:          percentStatRow,
-	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: percentStatRow,
+	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE: totalStatPercentRow,
 
 	// Hit and crit, which the sim states in percentage points the way the game files do. A row that
 	// names the weapon it needs is a mod on the attacks made with that weapon, except an A_MOD_CRIT_PCT
@@ -699,11 +699,11 @@ func maxPower(kind string, key string, v float64, apply func(sim *core.Simulatio
 }
 
 func percentStatRow(p *parser, e *Effect, v float64) *attachment {
-	statList := clientStatList(e.Misc)
-	if e.Aura == dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE && e.Misc2 != 0 {
-		statList = statMaskList(e.Misc2)
-	}
-	return p.statMultiplier(statList, core.MultiplierFromPercent(v))
+	return p.statMultiplier(clientStatList(e.Misc), core.MultiplierFromPercent(v))
+}
+
+func totalStatPercentRow(p *parser, e *Effect, v float64) *attachment {
+	return p.statMultiplier(e.TotalStatPercentStats(), core.MultiplierFromPercent(v))
 }
 
 // The spells a modifier effect names. The game files leave the mask empty on an effect that means the
@@ -1277,9 +1277,7 @@ func clientStatList(misc int32) []stats.Stat {
 	return []stats.Stat{clientStats[misc]}
 }
 
-// The stats a game files stat mask names, one bit per stat index. A_MOD_TOTAL_STAT_PERCENTAGE states
-// its stats this way in the second misc value where it has one, and leaves the first at 0: Heart of the
-// Wild 17003 states 0 and 8, Intellect, and Vitality 29140 states 2 and 5, Strength and Stamina.
+// The stats a game files stat mask names, one bit per stat index.
 func statMaskList(mask int32) []stats.Stat {
 	var statList []stats.Stat
 	for i, stat := range clientStats {
@@ -1288,6 +1286,16 @@ func statMaskList(mask int32) []stats.Stat {
 		}
 	}
 	return statList
+}
+
+// The stats an A_MOD_TOTAL_STAT_PERCENTAGE effect multiplies. A mask in the second misc value, where
+// there is one, names them, and the first then does not: Heart of the Wild 17003 states 0 and 8,
+// Intellect, and Vitality 29140 states 2 and 5, Strength and Stamina.
+func (e *Effect) TotalStatPercentStats() []stats.Stat {
+	if e.Misc2 != 0 {
+		return statMaskList(e.Misc2)
+	}
+	return clientStatList(e.Misc)
 }
 
 // The stats a flat damage mask names: the sim keeps one stat for physical damage and one for magic,

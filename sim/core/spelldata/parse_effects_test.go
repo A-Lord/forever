@@ -666,7 +666,7 @@ func TestTotalStatPercentageReadsTheStatMask(t *testing.T) {
 		{0, 8, "multiply-stat Intellect"},
 		{2, 5, "multiply-stat Strength, multiply-stat Stamina"},
 		{-1, 31, allFive},
-		{-1, 0, allFive},
+		{4, 16, "multiply-stat Spirit"},
 		{3, 0, "multiply-stat Intellect"},
 	}
 	for _, c := range cases {
@@ -677,6 +677,16 @@ func TestTotalStatPercentageReadsTheStatMask(t *testing.T) {
 		if got := strings.Join(appliedKinds(parsed), ", "); got != c.kind {
 			t.Errorf("misc %d and %d: kinds = %q, want %q", c.misc, c.misc2, got, c.kind)
 		}
+	}
+
+	demonicEmbrace := Spell{ID: 5000, Name: "Table Row", ClassFlags: parseFamily,
+		Effects: []Effect{
+			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, Misc2: 4, BasePoints: 15},
+			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, Misc: 4, BasePoints: -1},
+		}}
+	parsed := ParseStatic(parseWarrior(), &demonicEmbrace)
+	if got, want := strings.Join(appliedKinds(parsed), ", "), "multiply-stat Stamina, multiply-stat Spirit"; got != want {
+		t.Errorf("a mask effect beside a stat index effect: kinds = %q, want %q", got, want)
 	}
 }
 
