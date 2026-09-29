@@ -53,8 +53,7 @@ const mount = (props: HarnessProps = {}) => {
 	return { ...view, onChange, set: (next: number) => act(() => handle.current!.set(next)) };
 };
 
-const root = () => screen.getByTestId('icon-enum-picker-root');
-const button = () => within(root()).getByTestId('icon-enum-picker-button') as HTMLAnchorElement;
+const button = () => screen.getByTestId('icon-enum-picker-root') as HTMLAnchorElement;
 const menu = () => (screen.queryByTestId('icon-enum-picker-menu') ?? null) as HTMLUListElement | null;
 const items = () => Array.from(menu()!.children) as HTMLLIElement[];
 const optionAnchor = (index: number) => within(items()[index]).getByTestId('icon-enum-option') as HTMLAnchorElement;
@@ -64,49 +63,82 @@ const open = (trigger: HTMLElement = button()) =>
 		fireEvent.mouseEnter(trigger);
 		fireEvent.mouseMove(trigger);
 	});
-const iconText = () => within(button()).queryByTestId('icon-enum-text');
+const iconText = () => button().textContent || null;
 // happy-dom re-quotes the CSSOM value, so icons are compared by name rather than by literal.
 const iconOf = (element: HTMLElement) => element.style.backgroundImage.replace(/^url\(['"]?|['"]?\)$/g, '');
 
 describe('IconEnumPicker', () => {
-	it('builds the root and the button, and mounts the options against the viewport when the menu opens', async () => {
-		mount();
+	it('renders the bare trigger swatch, and mounts the options against the viewport when the menu opens', async () => {
+		const { container } = mount();
 
-		expect(root().classList.contains('relative')).toBe(true);
-
-		expect(Array.from(root().children).map(element => `${element.tagName.toLowerCase()}.${element.className}`)).toEqual([
-			'a.ui-icon-picker-swatch transition-none',
-		]);
+		expect(Array.from(container.children)).toEqual([button()]);
+		expect(button().tagName).toBe('A');
 
 		expect(screen.queryByTestId('icon-enum-picker-portal')).toBeNull();
 		expect(menu()).toBeNull();
 
 		await open();
 		const portal = screen.getByTestId('icon-enum-picker-portal');
-		expect(portal.className).toBe('contents');
-		expect(portal.children[0].className).toBe('z-dropdown');
 		expect(portal.children[0].getAttribute('data-testid')).toBe('icon-enum-picker-positioner');
 		expect(menu()!.parentElement).toBe(portal.children[0]);
 		expect(screen.getByTestId('icon-enum-picker-positioner').style.position).toBe('fixed');
 
 		expect(menu()!.hasAttribute('hidden')).toBe(false);
 		expect(items()).toHaveLength(3);
-		expect(items().map(item => `${item.tagName.toLowerCase()}.${item.className}`)).toEqual(['li.', 'li.', 'li.']);
+		expect(items().map(item => item.tagName)).toEqual(['LI', 'LI', 'LI']);
 		expect(items().map(item => item.getAttribute('role'))).toEqual(['none', 'none', 'none']);
-		expect(items().map(item => item.getAttribute('data-testid'))).toEqual(['icon-dropdown-option', 'icon-dropdown-option', 'icon-dropdown-option']);
-		expect(items().map(item => within(item).getByTestId('icon-enum-option').className)).toEqual([
-			'ui-icon-picker-swatch filter-[opacity(0.7)] transition-none hover:filter-none',
-			'ui-icon-picker-swatch filter-[opacity(0.7)] transition-none hover:filter-none',
-			'ui-icon-picker-swatch filter-[opacity(0.7)] transition-none hover:filter-none',
-		]);
+		expect(items().map(item => item.hasAttribute('data-testid'))).toEqual([false, false, false]);
+		expect(items().map(item => item.children.length)).toEqual([1, 1, 1]);
+		expect(items().map(item => optionAnchor(items().indexOf(item)).getAttribute('role'))).toEqual(['menuitem', 'menuitem', 'menuitem']);
 	});
 
-	it('renders the field chrome and takes a testId for its root', () => {
-		mount({ id: 'armor', label: 'Armor', className: 'extra', testId: 'armor-root' });
-		const field = screen.getByTestId('armor-root');
-		expect(field.classList.contains('ui-icon-field')).toBe(true);
+	it('lays a labelled trigger out in an icon field and takes a testId for its trigger', () => {
+		const { container } = mount({ id: 'armor', label: 'Armor', className: 'extra', testId: 'armor-root' });
+		const field = container.firstElementChild as HTMLElement;
+		const trigger = screen.getByTestId('armor-root');
+		expect(field.getAttribute('data-layout')).toBe('icon');
 		expect(field.classList.contains('extra')).toBe(true);
+		expect(field.firstElementChild).toBe(trigger);
+		expect(trigger.tagName).toBe('A');
 		expect(within(field).getByTestId('form-label').textContent).toBe('Armor');
+	});
+
+	it('puts the class on a bare trigger', () => {
+		mount({ className: 'extra' });
+		expect(button().classList.contains('extra')).toBe(true);
+	});
+
+	it('opens from the keyboard, moves through the options and picks one', async () => {
+		const { onChange } = mount();
+		act(() => button().focus());
+		act(() => {
+			fireEvent.keyDown(button(), { key: 'ArrowDown' });
+		});
+		await act(async () => {});
+		expect(button().getAttribute('aria-expanded')).toBe('true');
+		expect(items()).toHaveLength(3);
+
+		const highlighted = () => document.activeElement as HTMLElement;
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'ArrowDown' });
+		});
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'ArrowDown' });
+		});
+		expect(highlighted()).toBe(optionAnchor(2));
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'ArrowUp' });
+		});
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'ArrowUp' });
+		});
+		expect(highlighted()).toBe(optionAnchor(0));
+
+		act(() => {
+			fireEvent.keyDown(highlighted(), { key: 'Enter' });
+		});
+		expect(onChange).toHaveBeenCalledTimes(1);
+		expect(onChange).toHaveBeenCalledWith(0);
 	});
 
 	it('takes the button’s icon, href and active class from the selected value', () => {
@@ -166,11 +198,11 @@ describe('IconEnumPicker', () => {
 		expect(iconText()).toBeNull();
 
 		set(1);
-		expect(iconText()!.textContent).toBe('3');
+		expect(iconText()).toBe('3');
 
 		open();
-		expect(within(optionAnchor(0)).queryByTestId('icon-enum-text')).toBeNull();
-		expect(within(optionAnchor(1)).getByTestId('icon-enum-text').textContent).toBe('3');
+		expect(optionAnchor(0).textContent).toBe('');
+		expect(optionAnchor(1).textContent).toBe('3');
 	});
 
 	it('hands the chosen value to onChange and closes the menu', () => {
@@ -248,13 +280,16 @@ describe('IconEnumPicker', () => {
 		expect(iconText()).toBeNull();
 	});
 
-	it('writes disabled on the anchor as well as on the root', () => {
-		mount({ disabled: true });
+	it('marks the trigger disabled, and the field around a labelled one', () => {
+		const { unmount } = mount({ disabled: true });
 
-		expect(root().hasAttribute('data-disabled')).toBe(true);
-		expect(button().hasAttribute('disabled')).toBe(true);
-		// `disabled` lands on the root, not the button, so a disabled icon-enum picker still opens its menu.
+		expect(button().hasAttribute('data-disabled')).toBe(true);
+		// Base UI never hears of `disabled`, so a disabled icon-enum picker still opens its menu.
 		expect(button().getAttribute('aria-disabled')).toBe(null);
+		unmount();
+
+		const { container } = mount({ disabled: true, label: 'Armor' });
+		expect((container.firstElementChild as HTMLElement).hasAttribute('data-disabled')).toBe(true);
 	});
 
 	it('never marks the button active while it is disabled', () => {
@@ -267,12 +302,9 @@ describe('IconEnumPicker', () => {
 		open();
 		expect(menu()!.style.gridTemplateColumns).toBe('repeat(5, 1fr)');
 		expect(menu()!.style.gridAutoFlow).toBe('');
-		expect(root().classList.contains('relative')).toBe(true);
 
 		render(<Harness direction={IconEnumPickerDirection.Horizontal} />);
-		const horizontal = screen.getAllByTestId('icon-enum-picker-root')[1];
-		expect(horizontal.classList.contains('relative')).toBe(true);
-		const horizontalButton = within(horizontal).getByTestId('icon-enum-picker-button');
+		const horizontalButton = screen.getAllByTestId('icon-enum-picker-root')[1];
 		open(horizontalButton);
 		const horizontalMenu = document.getElementById(horizontalButton.getAttribute('aria-controls')!) as HTMLUListElement;
 		expect(horizontalMenu.style.gridAutoFlow).toBe('column');
@@ -296,8 +328,8 @@ describe('IconEnumPicker', () => {
 	});
 
 	it('renders no tooltip anchor at all when nothing configures one', () => {
-		mount({ options: [{ value: 0 }, { value: 1, icon: frostIcon }] });
-		expect(root().querySelectorAll('[data-tooltip-id]')).toHaveLength(0);
+		const { container } = mount({ options: [{ value: 0 }, { value: 1, icon: frostIcon }] });
+		expect(container.querySelectorAll('[data-tooltip-id]')).toHaveLength(0);
 	});
 
 	it('falls back to backupIcon for a value no option carries', () => {

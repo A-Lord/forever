@@ -1,7 +1,7 @@
 import type { ClassValue } from 'clsx';
 import type { AriaRole, ReactElement, ReactNode, Ref } from 'react';
 
-export type FieldLayout = 'inline' | 'split';
+export type FieldLayout = 'inline' | 'split' | 'icon';
 export type FieldDensity = 'compact';
 export type FieldTooltip = string | ReactElement;
 

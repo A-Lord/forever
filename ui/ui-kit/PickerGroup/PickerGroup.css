@@ -7,8 +7,4 @@
 	.ui-picker-group-icons {
 		@apply flex flex-wrap gap-1;
 	}
-
-	.ui-player-icon-group .ui-icon-field:has(.ui-field-label) {
-		@apply w-full flex-row-reverse justify-between;
-	}
 }

@@ -69,10 +69,10 @@ export const Closed: Story = {};
 export const Open: Story = {
 	play: async ({ args, canvasElement }) => {
 		const canvas = within(canvasElement);
-		const trigger = canvas.getByTestId('multi-icon-picker-button');
+		const trigger = canvas.getByTestId('multi-icon-picker-root');
 		await userEvent.hover(trigger);
 		const body = within(canvasElement.ownerDocument.body);
-		const options = await body.findAllByTestId('icon-picker-button');
+		const options = await body.findAllByTestId('icon-picker-root');
 		await expect(options).toHaveLength(BUFFS.length);
 		await userEvent.click(options[1]);
 		await expect(trigger.style.backgroundImage).toContain('spell_holy_sealofwisdom');
@@ -86,7 +86,7 @@ export const Active: Story = {
 export const ClearLabel: Story = {
 	args: { clearLabel: 'No stat buff' },
 	play: async ({ canvasElement }) => {
-		await userEvent.hover(within(canvasElement).getByTestId('multi-icon-picker-button'));
+		await userEvent.hover(within(canvasElement).getByTestId('multi-icon-picker-root'));
 		await expect(await within(canvasElement.ownerDocument.body).findByLabelText('No stat buff')).toBeTruthy();
 	},
 };

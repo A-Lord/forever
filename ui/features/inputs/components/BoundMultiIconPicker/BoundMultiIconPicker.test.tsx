@@ -56,8 +56,7 @@ const configFor = (extra: Partial<MultiIconPickerConfig<Buffs>> = {}): MultiIcon
 const mount = (buffs: Buffs, config: MultiIconPickerConfig<Buffs> = configFor(), onClear = () => {}) =>
 	render(<BoundMultiIconPicker modObject={buffs} config={config} subscribe={buffs.subscribe} onClear={onClear} />);
 
-const root = () => screen.getByTestId('multi-icon-picker-root');
-const trigger = () => within(root()).getByTestId('multi-icon-picker-button') as HTMLAnchorElement;
+const trigger = () => screen.getByTestId('multi-icon-picker-root') as HTMLAnchorElement;
 const menu = () => screen.queryByTestId('multi-icon-picker-menu') as HTMLUListElement;
 const open = () =>
 	act(() => {
@@ -77,11 +76,12 @@ describe('BoundMultiIconPicker', () => {
 	it('renders a bound icon picker per input, each toggling its own field', () => {
 		const buffs = new Buffs();
 		mount(buffs);
+		expect(screen.queryAllByTestId('icon-picker-root')).toHaveLength(0);
 		open();
 		const options = Array.from(menu().children).slice(1);
 		expect(options.every(option => within(option as HTMLElement).queryByTestId('icon-picker-root'))).toBe(true);
 
-		fireEvent.click(within(options[1] as HTMLElement).getByTestId('icon-picker-button'));
+		fireEvent.click(within(options[1] as HTMLElement).getByTestId('icon-picker-root'));
 		expect(buffs.values.mark).toBe(1);
 	});
 

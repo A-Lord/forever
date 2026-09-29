@@ -46,7 +46,7 @@ const configFor = (extra: Partial<IconPickerConfig<Settings, number | boolean>> 
 	...extra,
 });
 
-const mainAnchor = () => screen.getByTestId('icon-picker-button');
+const mainAnchor = () => screen.getByTestId('icon-picker-root');
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -95,9 +95,11 @@ describe('BoundIconPicker', () => {
 	});
 
 	it('carries the config chrome and a testId onto the field', () => {
-		render(<BoundIconPicker modObject={new Settings(0)} config={configFor({ label: 'Buff', extraClassNames: ['extra'] })} testId="bound-root" />);
-		const root = screen.getByTestId('bound-root');
-		expect(root.classList.contains('extra')).toBe(true);
+		const { container } = render(
+			<BoundIconPicker modObject={new Settings(0)} config={configFor({ label: 'Buff', extraClassNames: ['extra'] })} testId="bound-root" />,
+		);
+		expect(screen.getByTestId('bound-root').tagName).toBe('A');
+		expect((container.firstElementChild as HTMLElement).classList.contains('extra')).toBe(true);
 		expect(screen.getByTestId('form-label').textContent).toBe('Buff');
 	});
 

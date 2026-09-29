@@ -44,7 +44,7 @@ const mount = (props: Partial<HarnessProps> = {}) => {
 
 // By role would miss them: an <a> without an href has no `link` role.
 const allAnchors = () => Array.from(document.querySelectorAll('a'));
-const mainAnchor = () => allAnchors()[0];
+const mainAnchor = () => screen.getByTestId('icon-picker-root');
 
 describe('IconPicker', () => {
 	it('paints the icon as the anchor background, names the anchor after it and links it', () => {
@@ -61,17 +61,38 @@ describe('IconPicker', () => {
 		expect(mainAnchor().hasAttribute('href')).toBe(false);
 	});
 
-	it('renders the field chrome around the swatch', () => {
-		mount({ id: 'buff-icon', label: 'Buff', className: 'extra' });
-		const root = screen.getByTestId('icon-picker-root');
-		expect(root.classList.contains('ui-icon-field')).toBe(true);
-		expect(root.classList.contains('extra')).toBe(true);
-		expect(within(root).getByTestId('form-label').textContent).toBe('Buff');
+	it('renders a bare swatch without a label: the anchor is all there is', () => {
+		const { container } = mount({ className: 'extra' });
+		expect(Array.from(container.children)).toEqual([mainAnchor()]);
+		expect(mainAnchor().tagName).toBe('A');
+		expect(mainAnchor().classList.contains('extra')).toBe(true);
+		expect(screen.queryByTestId('form-label')).toBeNull();
 	});
 
-	it('takes a testId for its root', () => {
-		mount({ testId: 'custom-root' });
-		expect(screen.getByTestId('custom-root')).toBeTruthy();
+	it('lays a labelled swatch out in an icon field, the swatch first', () => {
+		const { container } = mount({ id: 'buff-icon', label: 'Buff', className: 'extra' });
+		const field = container.firstElementChild as HTMLElement;
+		expect(field.getAttribute('data-layout')).toBe('icon');
+		expect(field.classList.contains('extra')).toBe(true);
+		expect(mainAnchor().classList.contains('extra')).toBe(false);
+		expect(field.firstElementChild).toBe(mainAnchor());
+		expect(within(field).getByTestId('form-label').textContent).toBe('Buff');
+	});
+
+	it('lays out an icon field whatever layout the caller asks for', () => {
+		const { container } = mount({ label: 'Buff', layout: 'inline' } as Partial<HarnessProps>);
+		expect((container.firstElementChild as HTMLElement).getAttribute('data-layout')).toBe('icon');
+	});
+
+	it('takes a testId for its swatch', () => {
+		mount({ testId: 'custom-root', label: 'Buff' });
+		expect(screen.getByTestId('custom-root').tagName).toBe('A');
+	});
+
+	it('puts no box around a two-state swatch', () => {
+		const { container } = mount({ label: 'Buff' });
+		expect(mainAnchor().parentElement).toBe(container.firstElementChild);
+		expect(container.firstElementChild!.querySelectorAll('div')).toHaveLength(0);
 	});
 
 	it('grows the anchor count as each improved anchor mounts once its own states gate is met', () => {
@@ -92,17 +113,15 @@ describe('IconPicker', () => {
 		expect(improved.style.backgroundImage).toContain('improved.jpg');
 	});
 
-	// The level container mounts for every states > 2, but the counter TEXT only renders above
-	// states 3 (or at states 0): at states 3 the container is there and the text is empty.
-	it('mounts the level container but shows no text at states 3 without an improved icon', () => {
-		mount({ states: 3, initial: 2 });
-		expect(screen.getByTestId('icon-input-level-container')).toBeTruthy();
-		expect(screen.queryByText('2')).toBeNull();
+	it('shows no counter at states 3 without an improved icon, and no box without a badge', () => {
+		const { container } = mount({ states: 3, initial: 2 });
+		expect(mainAnchor().textContent).toBe('');
+		expect(Array.from(container.children)).toEqual([mainAnchor()]);
 	});
 
-	it('shows the counter text at states 4 without an improved icon', () => {
+	it('writes the counter inside the swatch at states 4 without an improved icon', () => {
 		mount({ states: 4, initial: 3 });
-		expect(screen.getByText('3')).toBeTruthy();
+		expect(mainAnchor().textContent).toBe('3');
 	});
 
 	it('left-clicks to the next state and rolls over to 0 at the top', () => {
@@ -146,10 +165,9 @@ describe('IconPicker', () => {
 		expect(fireEvent.contextMenu(mainAnchor())).toBe(false);
 	});
 
-	it('marks the main anchor and label active once the value is above zero', () => {
+	it('marks the main anchor active once the value is above zero', () => {
 		mount({ states: 3, initial: 1 });
 		expect(mainAnchor().hasAttribute('data-active')).toBe(true);
-		expect(screen.getByTestId('icon-picker-label').hasAttribute('data-active')).toBe(true);
 	});
 
 	it('does not mark the main anchor active at zero', () => {
@@ -159,15 +177,13 @@ describe('IconPicker', () => {
 
 	// A quadstate icon carries two proto fields, and the second badge is the only affordance that a
 	// fourth state exists — so both badges stay visible in opposite corners and only `active` moves.
-	it('keeps both improved anchors visible in opposite corners, marking only the ones the value has reached', () => {
+	it('keeps both improved anchors visible, marking only the ones the value has reached', () => {
 		const { set } = mount({ states: 4, improvedIcon, improvedIcon2, initial: 3 });
 		const [, improved1, improved2] = allAnchors();
 		expect(improved1.hidden).toBe(false);
 		expect(improved2.hidden).toBe(false);
 		expect(improved1.hasAttribute('data-active')).toBe(true);
 		expect(improved2.hasAttribute('data-active')).toBe(true);
-		expect(improved1.className).toContain('right-0');
-		expect(improved2.className).toContain('left-0');
 
 		set(1);
 		expect(improved1.hidden).toBe(false);
@@ -178,9 +194,8 @@ describe('IconPicker', () => {
 
 	it('renders an improved anchor only for an improved icon it was given', () => {
 		mount({ states: 4, initial: 2, improvedIcon2 });
-		const container = screen.getByTestId('icon-input-level-container');
-		expect(within(container).queryByTestId('icon-input-improved1')).toBeNull();
-		expect(within(container).getByTestId('icon-input-improved2').hidden).toBe(false);
+		expect(screen.queryByTestId('icon-input-improved1')).toBeNull();
+		expect(screen.getByTestId('icon-input-improved2').hidden).toBe(false);
 	});
 
 	it('carries the wowhead opt-outs and opens in a new tab', () => {
@@ -215,16 +230,18 @@ describe('IconPicker', () => {
 		expect(allAnchors()[1].hidden).toBe(false);
 	});
 
-	it('renders no counter label at states 2 and renders one above', () => {
-		const { rerender } = render(<IconPicker states={2} icon={buffIcon} value={0} onChange={() => {}} />);
-		const label = () => screen.queryByTestId('icon-picker-label');
-		expect(label()).toBeNull();
+	it('writes no counter at states 2 and at states 3, and one at states 0', () => {
+		const { rerender } = render(<IconPicker states={2} icon={buffIcon} value={1} onChange={() => {}} />);
+		expect(mainAnchor().textContent).toBe('');
 
-		rerender(<IconPicker states={3} icon={buffIcon} value={0} onChange={() => {}} />);
-		expect(label()).toBeTruthy();
+		rerender(<IconPicker states={3} icon={buffIcon} value={1} onChange={() => {}} />);
+		expect(mainAnchor().textContent).toBe('');
+
+		rerender(<IconPicker states={0} icon={buffIcon} value={1} onChange={() => {}} />);
+		expect(mainAnchor().textContent).toBe('1');
 	});
 
-	// `disabled` on an <a> is inert, and the root's opacity filter does not stop pointer events.
+	// Dimming a swatch does not stop pointer events.
 	it('changes nothing on a left or right click while disabled', () => {
 		const { onChange } = mount({ states: 3, initial: 1, disabled: true });
 
@@ -233,51 +250,52 @@ describe('IconPicker', () => {
 		expect(onChange).not.toHaveBeenCalled();
 	});
 
-	it('writes the disabled attribute on the anchor as well as on the root', () => {
-		mount({ disabled: true });
-		expect(mainAnchor().hasAttribute('disabled')).toBe(true);
-		expect(screen.getByTestId('icon-picker-root').hasAttribute('data-disabled')).toBe(true);
+	it('marks the swatch disabled, and the field around a labelled one', () => {
+		const { unmount } = mount({ disabled: true });
+		expect(mainAnchor().hasAttribute('data-disabled')).toBe(true);
+		unmount();
+
+		const { container } = mount({ disabled: true, label: 'Buff' });
+		expect(mainAnchor().hasAttribute('data-disabled')).toBe(true);
+		expect((container.firstElementChild as HTMLElement).hasAttribute('data-disabled')).toBe(true);
 	});
 
-	it("renders the level container as the anchor's next sibling, so no anchor sits inside another", () => {
-		mount({ states: 4, improvedIcon, improvedIcon2 });
-		const anchor = screen.getByTestId('icon-picker-button');
-		const container = screen.getByTestId('icon-input-level-container');
+	it('lays the improved anchors beside the swatch in one box, so no anchor sits inside another', () => {
+		const { container } = mount({ states: 4, improvedIcon, improvedIcon2, initial: 3 });
+		const box = mainAnchor().parentElement!;
 
-		expect(anchor.nextElementSibling).toBe(container);
-		expect(anchor.contains(container)).toBe(false);
-		expect(anchor.children).toHaveLength(0);
+		expect(box).toBe(container.firstElementChild);
+		expect(box.tagName).toBe('DIV');
+		expect(Array.from(box.children)).toEqual([mainAnchor(), screen.getByTestId('icon-input-improved1'), screen.getByTestId('icon-input-improved2')]);
+		expect(screen.getByTestId('icon-input-improved1').getAttribute('href')).toBe('https://www.wowhead.com/spell=2');
+		expect(screen.getByTestId('icon-input-improved2').getAttribute('href')).toBe('https://www.wowhead.com/spell=3');
 		expect(document.querySelectorAll('a a')).toHaveLength(0);
 	});
 
-	it('keeps the improved anchors and the counter inside the container, with their href intact', () => {
-		mount({ states: 4, improvedIcon, improvedIcon2, initial: 3 });
-		const container = screen.getByTestId('icon-input-level-container');
-		const [improved1, improved2] = Array.from(container.querySelectorAll('a'));
+	it('keeps the box inside a labelled field, and the class on the field', () => {
+		const { container } = mount({ states: 3, improvedIcon, label: 'Mark', className: 'extra' });
+		const field = container.firstElementChild as HTMLElement;
+		const box = mainAnchor().parentElement!;
 
-		expect(container.children).toHaveLength(3);
-		expect(improved1.getAttribute('href')).toBe('https://www.wowhead.com/spell=2');
-		expect(improved2.getAttribute('href')).toBe('https://www.wowhead.com/spell=3');
-		expect(within(container).getByTestId('icon-picker-label')).toBeTruthy();
+		expect(field.getAttribute('data-layout')).toBe('icon');
+		expect(field.classList.contains('extra')).toBe(true);
+		expect(box.parentElement).toBe(field);
+		expect(box.classList.contains('extra')).toBe(false);
 	});
 
-	// The container overlays the anchor rather than living inside it, so the handler has to be carried
-	// on both: otherwise a click on an improved icon leaves the value alone and follows the wowhead
-	// link instead.
-	it('left-clicks, right-clicks and suppresses the context menu from the container as well', () => {
+	// The improved icons are anchors of their own, so without the handlers a click on one would follow its wowhead link and leave the value alone.
+	it('left-clicks, right-clicks and suppresses the context menu from an improved anchor as well', () => {
 		const { onChange } = mount({ states: 3, improvedIcon, initial: 1 });
 		const improved = screen.getByTestId('icon-input-improved1');
-		const container = screen.getByTestId('icon-input-level-container');
 
-		fireEvent.click(improved);
+		// fireEvent returns false when preventDefault() was called.
+		expect(fireEvent.click(improved)).toBe(false);
 		expect(onChange).toHaveBeenLastCalledWith(2);
 
 		fireEvent.mouseDown(improved, { button: 2 });
 		expect(onChange).toHaveBeenLastCalledWith(1);
 
-		// fireEvent returns false when preventDefault() was called.
-		expect(fireEvent.contextMenu(container)).toBe(false);
-		expect(fireEvent.click(container)).toBe(false);
-		expect(onChange).toHaveBeenLastCalledWith(2);
+		expect(fireEvent.contextMenu(improved)).toBe(false);
+		expect(onChange).toHaveBeenCalledTimes(2);
 	});
 });
