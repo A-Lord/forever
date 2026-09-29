@@ -1,4 +1,4 @@
-import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
+import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
 import { breakpointValueToDisplayPercentage } from '@features/reforge/model/utils';
 import { StatCapType } from '@generated/proto/api';
 import i18n from '@i18n/config';
@@ -36,7 +36,7 @@ export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useS
 				key: unitStat.getKey(),
 				statName,
 				picker: (
-					<BoundEnumPicker
+					<ConnectedEnumPicker
 						modObject={player}
 						config={{
 							id: `${idPrefix}-${statName}-breakpoint-limit`,

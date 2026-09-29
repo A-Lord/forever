@@ -1,7 +1,7 @@
 import type { UNIT_SET } from '@features/apl/model/unit_sets';
 import { unitSets } from '@features/apl/model/unit_sets';
 import { refToValue, unitOptionModels, withIconUrl } from '@features/apl/model/unit_values';
-import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
+import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import type { UnitReference } from '@generated/proto/common';
 import { useActionIds } from '@sim/hooks/useActionIds';
@@ -19,7 +19,7 @@ export interface UnitFieldProps {
 /**
  * The unit a field points at.
  *
- * It binds through `BoundDropdown` rather than the unbound `UnitPicker`, which takes a value and
+ * It binds through `ConnectedDropdown` rather than the unbound `UnitPicker`, which takes a value and
  * no `InputConfig`. The `UnitValue` → option mapping is shared with it.
  *
  * The option list follows unit metadata, which is where pets and targets come from; the selected
@@ -45,7 +45,7 @@ export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 	};
 
 	return (
-		<BoundDropdown<Player<any>, UnitReference | undefined, UnitValue>
+		<ConnectedDropdown<Player<any>, UnitReference | undefined, UnitValue>
 			modObject={player}
 			config={boundConfig}
 			options={options}

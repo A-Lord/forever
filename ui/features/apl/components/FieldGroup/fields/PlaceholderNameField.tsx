@@ -1,7 +1,7 @@
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { NameDisplay } from '@features/apl/components/NameDisplay';
 import { clearPlaceholder, findContainingGroup, placeholderNames, renamePlaceholder } from '@features/apl/model/placeholders';
-import { useBoundField } from '@features/inputs/hooks/useBoundField';
+import { useConnectedField } from '@features/inputs/hooks/useConnectedField';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
@@ -27,7 +27,7 @@ const label = (key: string) => i18n.t(`rotation_tab.apl.variablePlaceholder.${ke
  * are unrelated.
  */
 export const PlaceholderNameField = ({ player, config, getParentValue }: PlaceholderNameFieldProps) => {
-	const { value, setValue, hidden, disabled, chrome } = useBoundField(player, config);
+	const { value, setValue, hidden, disabled, chrome } = useConnectedField(player, config);
 	const [open, setOpen] = useState(() => !config.getValue(player));
 
 	const isNew = !value;

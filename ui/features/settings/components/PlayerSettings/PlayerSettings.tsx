@@ -1,6 +1,6 @@
-import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundIconInput } from '@features/inputs/components/BoundIconInput';
-import { BoundInput } from '@features/inputs/components/BoundInput';
+import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedIconInput } from '@features/inputs/components/ConnectedIconInput';
+import { ConnectedInput } from '@features/inputs/components/ConnectedInput';
 import type { IconInputConfig } from '@features/inputs/icon_inputs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
@@ -23,14 +23,14 @@ export const PlayerSettings = ({ iconInputs, inputs }: PlayerSettingsProps) => {
 	return (
 		<PlayerSettingsView
 			iconPickers={iconInputs.map((config, index) => (
-				<BoundIconInput key={index} modObject={player} config={config} />
+				<ConnectedIconInput key={index} modObject={player} config={config} />
 			))}
-			race={<BoundEnumPicker modObject={player} config={race} />}
+			race={<ConnectedEnumPicker modObject={player} config={race} />}
 			inputs={inputs.map(config => (
-				<BoundInput key={config.id} config={config} />
+				<ConnectedInput key={config.id} config={config} />
 			))}
 			professions={professions.map(config => (
-				<BoundEnumPicker key={config.id} modObject={player} config={config} />
+				<ConnectedEnumPicker key={config.id} modObject={player} config={config} />
 			))}
 		/>
 	);

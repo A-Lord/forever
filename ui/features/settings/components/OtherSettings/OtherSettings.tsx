@@ -1,4 +1,4 @@
-import { BoundInput } from '@features/inputs/components/BoundInput';
+import { ConnectedInput } from '@features/inputs/components/ConnectedInput';
 import { ItemSwapPicker } from '@features/item-swap';
 import type { ItemSlot } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
@@ -12,7 +12,7 @@ export interface OtherSettingsProps {
 export const OtherSettings = ({ inputs, itemSlots }: OtherSettingsProps) => (
 	<>
 		{inputs.map(config => (
-			<BoundInput key={config.id} config={{ ...config, layout: 'split' }} />
+			<ConnectedInput key={config.id} config={{ ...config, layout: 'split' }} />
 		))}
 		{itemSlots.length > 0 && <ItemSwapPicker itemSlots={itemSlots} />}
 	</>

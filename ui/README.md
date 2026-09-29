@@ -32,9 +32,9 @@ ui/
                      per file, beside the twelve capability folders
   features/inputs/   the binding layer between the store and ui-kit's controlled pickers:
                      input.ts (InputConfig, StoreBinding, InputChrome), hooks/ (useInput,
-                     useBoundField, useHideZeroRestore), components/Bound*/ (one adapter per
-                     kit picker, plus BoundInput and BoundIconInput),
-                     configs.ts (the Bound* config types in one barrel), input_helpers.ts,
+                     useConnectedField, useHideZeroRestore), components/Connected*/ (one adapter per
+                     kit picker, plus ConnectedInput and ConnectedIconInput),
+                     configs.ts (the Connected* config types in one barrel), input_helpers.ts,
                      icon_inputs.ts
   app/               shells + chrome that compose features, and the only place allowed to
                      import react-dom/client (spec_entry.tsx). SimApp/SimShell/SimTabs,
@@ -128,8 +128,8 @@ cover placement and co-located CSS.
   touch the DOM without being components — the timeline's chart builders, zoom controllers and
   ruler sit in `results/components/Timeline/{chart,rotation}/`. The two may share a name:
   `results/model/timeline/` and `results/components/Timeline/`.
-- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View` beside it. The view takes props only, reads neither the sim host nor the store, and gets a story under `Features/<Feature>/<Name>`. A store-bound picker a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
-- `features/inputs/`: the store binding for the kit's pickers — `InputConfig` and `useInput`, one `Bound<Picker>` adapter per kit picker, and the config factories in `input_helpers.ts` / `icon_inputs.ts`. A feature or spec that needs a store-bound picker renders a `Bound*` component; the kit picker underneath never learns what it is bound to.
+- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View` beside it. The view takes props only, reads neither the sim host nor the store, and gets a story under `Features/<Feature>/<Name>`. A picker connected to the store that a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
+- `features/inputs/`: the store binding for the kit's pickers — `InputConfig` and `useInput`, one `Connected<Picker>` adapter per kit picker, and the config factories in `input_helpers.ts` / `icon_inputs.ts`. A feature or spec that needs a picker connected to the store renders a `Connected*` component; the kit picker underneath never learns what it is connected to.
 - `app/`: composes features; the only place that knows the tab layout.
 - `specs/<class>/<spec>/`: data; the only code allowed is `features/` escape hatches and `shared/derived.ts` rules.
 

@@ -1,8 +1,8 @@
-export type { NumberFieldConfig, NumberListFieldConfig, StringFieldConfig } from './components/BoundTextField/types';
-export type { BooleanPickerConfig } from './components/BoundBooleanPicker/types';
-export type { EnumPickerConfig } from './components/BoundEnumPicker/types';
-export type { MultiComboBoxConfig } from './components/BoundMultiComboBox/types';
-export type { BoundDropdownProps } from './components/BoundDropdown/types';
-export type { IconPickerConfig } from './components/BoundIconPicker/types';
-export type { IconEnumPickerConfig, IconEnumValueConfig } from './components/BoundIconEnumPicker/types';
-export type { MultiIconPickerConfig } from './components/BoundMultiIconPicker/types';
+export type { NumberFieldConfig, NumberListFieldConfig, StringFieldConfig } from './components/ConnectedTextField/types';
+export type { BooleanPickerConfig } from './components/ConnectedBooleanPicker/types';
+export type { EnumPickerConfig } from './components/ConnectedEnumPicker/types';
+export type { MultiComboBoxConfig } from './components/ConnectedMultiComboBox/types';
+export type { ConnectedDropdownProps } from './components/ConnectedDropdown/types';
+export type { IconPickerConfig } from './components/ConnectedIconPicker/types';
+export type { IconEnumPickerConfig, IconEnumValueConfig } from './components/ConnectedIconEnumPicker/types';
+export type { MultiIconPickerConfig } from './components/ConnectedMultiIconPicker/types';

@@ -1,4 +1,4 @@
-import { BoundInput } from '@features/inputs/components/BoundInput';
+import { ConnectedInput } from '@features/inputs/components/ConnectedInput';
 import { useSpecConfig } from '@sim/context/SimHostContext';
 
 import { RotationIconGroup } from './RotationIconGroup';
@@ -6,7 +6,7 @@ import { RotationIconGroup } from './RotationIconGroup';
 /**
  * The simple-rotation block: the spec's icon row, then its inputs.
  *
- * `inline` on `BoundInput` lays each input out on a copy of its config, so the spec object is
+ * `inline` on `ConnectedInput` lays each input out on a copy of its config, so the spec object is
  * never written.
  */
 export const SimpleRotationInputs = () => {
@@ -16,7 +16,7 @@ export const SimpleRotationInputs = () => {
 		<>
 			<RotationIconGroup inputs={config.rotationIconInputs ?? []} />
 			{(config.rotationInputs?.inputs ?? []).map((input, index) => (
-				<BoundInput key={index} config={input} inline />
+				<ConnectedInput key={index} config={input} inline />
 			))}
 		</>
 	);

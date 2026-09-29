@@ -1,4 +1,4 @@
-import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import type { NumberFieldConfig } from '@features/inputs/configs';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
@@ -43,5 +43,5 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 		[unitStat, label, onCommit],
 	);
 
-	return <BoundNumberField modObject={player} config={config} />;
+	return <ConnectedNumberField modObject={player} config={config} />;
 };

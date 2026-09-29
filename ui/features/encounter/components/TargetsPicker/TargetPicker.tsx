@@ -1,6 +1,6 @@
-import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
-import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
+import { ConnectedEnumPicker } from '@features/inputs/components/ConnectedEnumPicker';
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Encounter } from '@sim/raid/encounter';
@@ -55,27 +55,27 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 		<TargetPickerView
 			identity={
 				<>
-					<BoundEnumPicker modObject={null} config={npc} />
-					<BoundEnumPicker modObject={null} config={ai} />
-					<BoundEnumPicker modObject={null} config={level} />
-					<BoundEnumPicker modObject={null} config={mobType} />
-					{showThreatMetrics && <BoundEnumPicker modObject={null} config={tankIndex} />}
+					<ConnectedEnumPicker modObject={null} config={npc} />
+					<ConnectedEnumPicker modObject={null} config={ai} />
+					<ConnectedEnumPicker modObject={null} config={level} />
+					<ConnectedEnumPicker modObject={null} config={mobType} />
+					{showThreatMetrics && <ConnectedEnumPicker modObject={null} config={tankIndex} />}
 					<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
 				</>
 			}
 			stats={stats.map(config => (
-				<BoundNumberField key={config.id} modObject={null} config={config} />
+				<ConnectedNumberField key={config.id} modObject={null} config={config} />
 			))}
 			threat={
 				showThreatMetrics && (
 					<>
 						{numbers.map(config => (
-							<BoundNumberField key={config.id} modObject={null} config={config} />
+							<ConnectedNumberField key={config.id} modObject={null} config={config} />
 						))}
 						{booleans.map(config => (
-							<BoundBooleanPicker key={config.id} modObject={null} config={config} />
+							<ConnectedBooleanPicker key={config.id} modObject={null} config={config} />
 						))}
-						<BoundEnumPicker modObject={null} config={spellSchool} />
+						<ConnectedEnumPicker modObject={null} config={spellSchool} />
 					</>
 				)
 			}

@@ -1,4 +1,4 @@
-import { BoundMultiIconPicker } from '@features/inputs/components/BoundMultiIconPicker';
+import { ConnectedMultiIconPicker } from '@features/inputs/components/ConnectedMultiIconPicker';
 import { clearMultiIconInputs } from '@features/settings/model/multi_icon';
 import type { IconPickerStatOption, RenderableStatOptions } from '@features/settings/model/stat_options';
 import i18n from '@i18n/config';
@@ -26,7 +26,12 @@ export const RaidBuffs = ({ options, miscOptions }: RaidBuffsProps) => {
 		<>
 			<StatOptionIcons options={options} />
 			{miscOptions.length > 0 && (
-				<BoundMultiIconPicker modObject={player} config={miscConfig} subscribe={subscribe} onClear={() => clearMultiIconInputs(player, miscConfig)} />
+				<ConnectedMultiIconPicker
+					modObject={player}
+					config={miscConfig}
+					subscribe={subscribe}
+					onClear={() => clearMultiIconInputs(player, miscConfig)}
+				/>
 			)}
 		</>
 	);

@@ -100,7 +100,7 @@ the one that matches what you want: a value, or a notification. The hook reads i
 question a component has to answer.
 
 **A named store field on an `InputConfig`.** `InputConfig` (`ui/features/inputs/input.ts`, imported
-as `@features/inputs/input`) is what a `Bound*` adapter (`ui/features/inputs/components/`) hands to
+as `@features/inputs/input`) is what a `Connected*` adapter (`ui/features/inputs/components/`) hands to
 `useInput`, which reads the value and gives the kit picker plain `value`/`onChange`. It takes
 `storeField`, resolved by `useStoreField`
 (`ui/sim/hooks/useStoreField.ts`) against the host from context. A
@@ -152,9 +152,9 @@ Its reader is `useHideZeroRestore` (`ui/features/inputs/hooks/useHideZeroRestore
 `lastRevision` guard on it to tell a real notification apart from construction and a StrictMode
 replay before it zeroes a hidden input or restores a shown one. Both icon adapters call it:
 
-- `BoundIconPicker` (`ui/features/inputs/components/BoundIconPicker/BoundIconPicker.tsx`) passes the
+- `ConnectedIconPicker` (`ui/features/inputs/components/ConnectedIconPicker/ConnectedIconPicker.tsx`) passes the
   zero through its `write`, so a two-state source stores the zeroed or restored value as a boolean.
-- `BoundIconEnumPicker` (`ui/features/inputs/components/BoundIconEnumPicker/BoundIconEnumPicker.tsx`)
+- `ConnectedIconEnumPicker` (`ui/features/inputs/components/ConnectedIconEnumPicker/ConnectedIconEnumPicker.tsx`)
   passes `restoreWhen`, so the stored value comes back only while the source holds
   `zeroValue`, and `onSettled`, which sees the value the hide/restore step left and resets it to
   `zeroValue` when that option is itself hidden by its `showWhen`. A user pick calls `clearStored()`
@@ -165,7 +165,7 @@ replay before it zeroes a hidden input or restores a shown one. Both icon adapte
 uncommitted edit in `useDraft` (`ui/ui-kit/hooks/useDraft.ts`), keyed on the formatted display
 string: a new value from the parent drops the draft, a commit clears it, and a notification that
 leaves the display string unchanged (a same-value write, a `revision` bump) keeps a mid-edit draft.
-With the default `commit="blur"`, which every `Bound*Field` uses, they commit through `useCommitChange`
+With the default `commit="blur"`, which every `Connected*Field` uses, they commit through `useCommitChange`
 (`ui/ui-kit/hooks/useCommitChange.ts`), which listens for the **native `change` event** —
 blur-after-edit and Enter — not React's `onChange`, which fires per keystroke. Typing into one of
 them writes nothing to the store until the edit is committed. The exceptions are `SearchField`, which

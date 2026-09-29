@@ -1,4 +1,4 @@
-import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost } from '@sim/testing';
 import { act, render, screen } from '@testing-library/react';
@@ -33,7 +33,7 @@ const mount = () => {
 	} as any;
 	render(
 		<SimHostProvider host={fakeHost({ player })}>
-			<BoundNumberField modObject={player} config={DistanceFromTarget} />
+			<ConnectedNumberField modObject={player} config={DistanceFromTarget} />
 		</SimHostProvider>,
 	);
 };

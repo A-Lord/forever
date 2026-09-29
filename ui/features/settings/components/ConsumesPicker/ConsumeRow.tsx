@@ -1,4 +1,4 @@
-import { iconEnumPickerShown } from '@features/inputs/components/BoundIconEnumPicker';
+import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
 import type { IconEnumPickerConfig, IconPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
@@ -27,7 +27,7 @@ export const ConsumeRow = ({ name, configs, hidden = false, children }: ConsumeR
 	const shown = useStoreSubscribe(subscribePlayerChange(player), () => configs.some(config => rowConfigShown(config, player)));
 
 	// Hide, never unmount. Vanilla's updateRow only toggled a `hide` class, which kept every
-	// picker in the row alive: a hidden BoundIconEnumPicker is what zeroes the field it is bound to
+	// picker in the row alive: a hidden ConnectedIconEnumPicker is what zeroes the field it is bound to
 	// when the player can no longer use it, and restores the value if they can again. Returning
 	// null here skips that effect entirely, so a stale selection survives in the proto.
 	return (

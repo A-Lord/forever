@@ -1,5 +1,5 @@
 import { rotationSource } from '@features/apl/utils';
-import { BoundDropdown } from '@features/inputs/components/BoundDropdown';
+import { ConnectedDropdown } from '@features/inputs/components/ConnectedDropdown';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
@@ -38,7 +38,7 @@ export const RotationNameField = ({ player, config, source }: RotationNameFieldP
 	);
 
 	return (
-		<BoundDropdown<Player<any>, string>
+		<ConnectedDropdown<Player<any>, string>
 			modObject={player}
 			config={config}
 			options={options}

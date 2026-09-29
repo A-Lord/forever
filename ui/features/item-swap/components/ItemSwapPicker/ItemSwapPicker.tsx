@@ -1,4 +1,4 @@
-import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
+import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
 import type { BooleanPickerConfig } from '@features/inputs/configs';
 import type { ItemSlot, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -38,7 +38,7 @@ export const ItemSwapPicker = <SpecType extends Spec>({ itemSlots, note }: ItemS
 
 	return (
 		<div className="grid gap-3" data-testid="item-swap-picker-root">
-			<BoundBooleanPicker modObject={player} config={enableConfig} />
+			<ConnectedBooleanPicker modObject={player} config={enableConfig} />
 			{enabled && (
 				<ItemSwapPickerView slotCount={itemSlots.length} note={note} onSwap={() => swapWithGear(player, itemSlots)}>
 					{itemSlots.map(itemSlot => (

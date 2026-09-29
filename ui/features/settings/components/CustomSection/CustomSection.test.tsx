@@ -23,13 +23,13 @@ vi.mock('@sim/state/subscriptions', async () => {
 });
 
 // Both take a live player and are covered by their own suites.
-vi.mock('@features/inputs/components/BoundIconInput', () => ({
-	BoundIconInput: ({ config }: { config: { layout?: string } }) => (
+vi.mock('@features/inputs/components/ConnectedIconInput', () => ({
+	ConnectedIconInput: ({ config }: { config: { layout?: string } }) => (
 		<div className="icon-picker-root" data-testid="icon-picker-root" data-layout={config.layout} />
 	),
 }));
-vi.mock('@features/inputs/components/BoundInput', () => ({
-	BoundInput: ({ config }: { config: { id: string; layout?: string } }) => (
+vi.mock('@features/inputs/components/ConnectedInput', () => ({
+	ConnectedInput: ({ config }: { config: { id: string; layout?: string } }) => (
 		<div data-testid="input-picker-stub" data-id={config.id} data-layout={config.layout} />
 	),
 }));

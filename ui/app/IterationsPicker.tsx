@@ -1,4 +1,4 @@
-import { BoundNumberField } from '@features/inputs/components/BoundTextField';
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import i18n from '@i18n/config';
 import type { Sim } from '@sim/sim';
 import { subscribeSimField } from '@sim/state/subscriptions';
@@ -10,7 +10,7 @@ export interface IterationsPickerProps {
 }
 
 export const IterationsPicker = ({ sim }: IterationsPickerProps) => (
-	<BoundNumberField
+	<ConnectedNumberField
 		modObject={sim}
 		testId="iterations-picker"
 		inputClassName="m-0 w-full"

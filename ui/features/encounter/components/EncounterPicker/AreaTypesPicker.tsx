@@ -1,4 +1,4 @@
-import { BoundMultiComboBox } from '@features/inputs/components/BoundMultiComboBox';
+import { ConnectedMultiComboBox } from '@features/inputs/components/ConnectedMultiComboBox';
 import type { MultiComboBoxConfig } from '@features/inputs/configs';
 import { AreaType } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -51,5 +51,5 @@ export interface AreaTypesPickerProps {
 
 export const AreaTypesPicker = ({ encounter }: AreaTypesPickerProps) => {
 	const config = useMemo(() => areaTypesConfig(), []);
-	return <BoundMultiComboBox modObject={encounter} config={config} className="w-full flex-col items-stretch" testId="encounter-area-types" />;
+	return <ConnectedMultiComboBox modObject={encounter} config={config} className="w-full flex-col items-stretch" testId="encounter-area-types" />;
 };
