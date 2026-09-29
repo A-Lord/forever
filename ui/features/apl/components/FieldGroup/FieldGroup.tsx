@@ -37,7 +37,7 @@ export const FieldGroup = ({ player, config, fields }: FieldGroupProps) => {
 			labelTooltip={config.labelTooltip}
 			description={config.description}
 			layout={config.layout}
-			className={['ui-apl-picker-builder-root w-auto flex-row flex-wrap gap-2', config.extraClassNames]}
+			className={['w-auto flex-row flex-wrap gap-2', config.extraClassNames]}
 			testId="apl-picker-builder-root">
 			{/* The field list is fixed by the kind, so the position is the identity. */}
 			{specs.map((spec, index) => (

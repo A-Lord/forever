@@ -1,6 +1,7 @@
-import { useApl } from '@features/apl/context/AplContext';
+import { AplProvider, useApl } from '@features/apl/context/AplContext';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { actionKinds, type APLActionKind } from '@features/apl/model/action_kinds';
+import { actionListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl } from '@features/apl/model/field_specs';
 import { actionKindOptions } from '@features/apl/model/kind_options';
 import { swapActionKind } from '@features/apl/model/kind_swap';
@@ -25,11 +26,14 @@ export interface ActionPickerProps {
 
 type ValidAPLActionKind = NonNullable<APLActionKind>;
 
+const SEQUENCE_KINDS: ReadonlySet<ValidAPLActionKind> = new Set(['sequence', 'strictSequence', 'schedule']);
+
 /**
  * One APL action: an optional condition, a kind, and that kind's fields.
  *
  * The condition is a whole `ValuePicker`, and a sequence's field list holds more `ActionPicker`s —
- * so this is the action half of the same cycle `AplField` documents.
+ * so this is the action half of the same cycle `AplField` documents. An action in the pre-pull list,
+ * or inside a sequence, a strict sequence or a schedule, has no condition picker.
  *
  * The kind type is the non-nullable one: the option list is built from the kind table alone, with
  * no empty entry — unlike the value picker's — so "no kind" is not a selection the menu can make.
@@ -39,7 +43,7 @@ type ValidAPLActionKind = NonNullable<APLActionKind>;
  */
 export const ActionPicker = memo(({ player, config, stacked, fullWidth }: ActionPickerProps) => {
 	const kindId = useId();
-	const { isPrepull, changeSource } = useApl();
+	const { isPrepull, inSequence, changeSource } = useApl();
 
 	const { value, hidden, disabled, chrome } = useAplInput(player, config);
 	const kind = value?.action.oneofKind;
@@ -48,7 +52,6 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 
 	const conditionConfig: InputConfig<Player<any>, APLValue | undefined> = {
 		label: i18n.t('rotation_tab.apl.priority_list.if_label'),
-		extraClassNames: ['ui-apl-action-condition', 'ui-apl-priority-list-only'],
 		getValue: () => config.getValue(player)?.condition,
 		setValue: (subject: Player<any>, newValue: APLValue | undefined) => {
 			const source = config.getValue(subject);
@@ -76,7 +79,6 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	};
 
 	const implConfig = (implKind: ValidAPLActionKind): InputConfig<Player<any>, any> => ({
-		extraClassNames: [`ui-apl-action-${implKind.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}`],
 		getValue: () => (config.getValue(player)?.action as any)?.[implKind] || actionKinds[implKind].newValue(),
 		setValue: (subject: Player<any>, newValue: any) => {
 			const source = config.getValue(subject);
@@ -89,11 +91,11 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	return (
 		<Field
 			{...chrome}
-			className={[clsx('ui-apl-action-picker-root', 'm-0 gap-2', stacked ? 'flex-col' : 'flex-row', fullWidth && 'w-full'), chrome.className]}
+			className={[clsx('m-0 gap-2', stacked ? 'flex-col' : 'flex-row', fullWidth && 'w-full'), chrome.className]}
 			testId="apl-action-picker-root"
 			disabled={disabled}>
-			<ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />
-			<div className="flex flex-row gap-2 max-md:flex-wrap" data-kind={kind}>
+			{!isPrepull && !inSequence && <ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />}
+			<div className="flex flex-row flex-wrap gap-2" data-kind={kind}>
 				<BoundDropdown<Player<any>, ValidAPLActionKind>
 					modObject={player}
 					config={kindConfig}
@@ -101,7 +103,11 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 					defaultLabel={i18n.t('rotation_tab.apl.priority_list.item_label')}
 					triggerClassName="p-0"
 				/>
-				{kind && <FieldGroup key={kind} player={player} config={implConfig(kind)} fields={actionKinds[kind].fields} />}
+				{kind && value && (
+					<AplProvider inSequence={SEQUENCE_KINDS.has(kind)} listGroup={actionListGroup(value)}>
+						<FieldGroup key={kind} player={player} config={implConfig(kind)} fields={actionKinds[kind].fields} />
+					</AplProvider>
+				)}
 			</div>
 		</Field>
 	);

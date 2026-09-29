@@ -2,10 +2,11 @@ import type { APLValidation } from '@generated/proto/api';
 import { LogLevel } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { IconName } from '@ui-kit/Icon';
-import { ListItemAction } from '@ui-kit/ListPicker';
 import { NOTICE_COLOR, type NoticeLevel } from '@ui-kit/Notice';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { Fragment, useId } from 'react';
+
+import { HeaderButton } from './HeaderButton';
 
 export interface AplValidationsViewProps {
 	/** The item's validations, every spell id already resolved to its name. Empty hides the button. */
@@ -65,7 +66,7 @@ export const AplValidationsView = ({ validations }: AplValidationsViewProps) => 
 
 	return (
 		<>
-			<ListItemAction
+			<HeaderButton
 				icon={icon}
 				className={shown ? LEVEL_CLASS.get(maxLogLevel) : undefined}
 				testId="apl-validations"

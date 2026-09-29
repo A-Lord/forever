@@ -25,6 +25,28 @@ export const makeAplStoryPlayer = (rotation: APLRotation = makeAplRotation()): A
 	return player;
 };
 
+const AplHost = ({ rotation, children }: { rotation: () => APLRotation; children: ReactNode }) => {
+	const [host] = useState(() => {
+		const player = makeAplStoryPlayer(rotation());
+		const applyEmptyAplRotation = () =>
+			player.modifyAplRotation(target => {
+				target.prepullActions = [];
+				target.priorityList = [];
+			});
+		return { player, rootElem: document.body, applyEmptyAplRotation } as unknown as IndividualSimHost<any>;
+	});
+	return <SimHostProvider host={host}>{children}</SimHostProvider>;
+};
+
+/** A host whose player holds `rotation()`, for a story of a whole APL pane: the panes read the player off the host. */
+export const withAplHost =
+	(rotation: () => APLRotation): Decorator =>
+	Story => (
+		<AplHost rotation={rotation}>
+			<Story />
+		</AplHost>
+	);
+
 /** Renders the story inside `<AplProvider>`, e.g. `{ isPrepull: true }` for a pre-pull row. */
 export const withAplScope =
 	(scope: Omit<AplProviderProps, 'children'>): Decorator =>

@@ -1,5 +1,6 @@
-import { useApl } from '@features/apl/context/AplContext';
+import { AplProvider, useApl } from '@features/apl/context/AplContext';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
+import { valueListGroup } from '@features/apl/model/apply_move';
 import { newKindImpl } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
@@ -13,7 +14,7 @@ import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
 import type { DropdownOption } from '@ui-kit/DropdownPicker';
 import { Field } from '@ui-kit/Field';
-import { memo, useEffect, useId, useMemo } from 'react';
+import { memo, useId, useMemo } from 'react';
 
 import { FieldGroup } from '../FieldGroup';
 
@@ -41,11 +42,10 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	const kind = value?.value.oneofKind;
 
 	// A value loaded from a preset or an import may carry no uuid, and the sim keys its per-value
-	// validations on one. Minting it is a silent write, deliberately without a notification — it
-	// changes nothing the user can see.
-	useEffect(() => {
-		if (value && !value.uuid?.value) value.uuid = UUID.create({ value: randomUUID() });
-	}, [value]);
+	// validations on one, as `valueListGroup` keys this value's operand list. Minting it is a silent
+	// write during render, deliberately without a notification: it changes nothing the user can see,
+	// and the list below reads the group in this same render.
+	if (value && !value.uuid?.value) value.uuid = UUID.create({ value: randomUUID() });
 
 	const options = useMemo<Array<DropdownOption<APLValueKind>>>(
 		() => [{ value: undefined, label: i18n.t('rotation_tab.apl.values.none') }, ...valueKindOptions(player, isPrepull, isGroup)],
@@ -84,11 +84,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 
 	if (hidden) return null;
 	return (
-		<Field
-			{...chrome}
-			className={['ui-apl-value-picker-root m-0 flex-row gap-2', chrome.className]}
-			testId={testId ?? 'apl-value-picker-root'}
-			disabled={disabled}>
+		<Field {...chrome} className={['m-0 flex-row gap-2', chrome.className]} testId={testId ?? 'apl-value-picker-root'} disabled={disabled}>
 			<BoundDropdown<Player<any>, APLValueKind>
 				modObject={player}
 				config={kindConfig}
@@ -96,7 +92,11 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 				defaultLabel={i18n.t('rotation_tab.apl.values.no_condition')}
 				triggerClassName="p-0"
 			/>
-			{kind && <FieldGroup key={kind} player={player} config={implConfig(kind)} fields={valueKinds[kind].fields} />}
+			{kind && value && (
+				<AplProvider listGroup={valueListGroup(value)}>
+					<FieldGroup key={kind} player={player} config={implConfig(kind)} fields={valueKinds[kind].fields} />
+				</AplProvider>
+			)}
 		</Field>
 	);
 });

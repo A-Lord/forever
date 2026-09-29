@@ -1,3 +1,4 @@
+import { AplItemActions, AplList } from '@features/apl/components/AplList';
 import { AplListItem } from '@features/apl/components/AplListItem';
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { ListItemHeader } from '@features/apl/components/ListItemHeader';
@@ -5,43 +6,34 @@ import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { NameDisplay } from '@features/apl/components/NameDisplay';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
+import { aplItemId } from '@features/apl/model/apply_move';
 import { rotationSource } from '@features/apl/utils';
-import { BoundListPicker, type ListPickerConfig } from '@features/inputs/components/BoundListPicker';
+import { useListItems } from '@features/inputs/hooks/useListItems';
 import type { InputConfig } from '@features/inputs/input';
 import { APLGroup, APLListItem } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { renameAPLReference } from '@sim/proto/apl_utils';
-import { Field } from '@ui-kit/Field';
+import { Tree } from '@ui-kit/Tree';
 import { useState } from 'react';
 
 export interface GroupEditorProps {
+	/** The group's tree item id, `aplItemId(group, index)`; its actions' moves name it as their parent. */
+	id: string;
 	player: Player<any>;
 	config: InputConfig<Player<any>, APLGroup>;
 	/** Position in the rotation's group list, which is how the sim reports this group's validations. */
 	groupIndex: number;
+	onCopy: () => void;
+	onDelete: () => void;
 }
 
-/** One action group: its name, and the priority list it holds. */
-export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) => {
-	const { value: group, hidden, disabled, chrome } = useAplInput(player, config);
+/** One action group: its name in the title, and the priority list it holds as the item's children. */
+export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }: GroupEditorProps) => {
+	const { value: group } = useAplInput(player, config);
 	const [renaming, setRenaming] = useState(false);
 
-	const actions = () => config.getValue(player)?.actions || [];
-	const extraction = useVariableExtraction(
-		player,
-		index => actions()[index]?.action?.condition,
-		(index, reference) => {
-			actions()[index].action!.condition = reference;
-		},
-	);
-
-	const actionsConfig: ListPickerConfig<Player<any>, APLListItem> = {
-		extraClassNames: ['ui-apl-list-item-picker'],
-		title: i18n.t('rotation_tab.apl.actionGroups.attributes.actions'),
-		titleTooltip: i18n.t('rotation_tab.apl.actionGroups.tooltips.actions'),
-		itemLabel: i18n.t('rotation_tab.apl.priorityList.name'),
-		actions: { create: { useIcon: true } },
+	const actions = useListItems(player, {
 		storeSubscribe: rotationSource,
 		getValue: () => config.getValue(player)?.actions || [],
 		setValue: (subject: Player<any>, next: Array<APLListItem>) => {
@@ -51,45 +43,68 @@ export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) =>
 			subject.touchRotation();
 		},
 		newItem: () => APLListItem.create({ action: {} }),
-		copyItem: (oldItem: APLListItem) => APLListItem.clone(oldItem),
-		inlineMenuBar: true,
-		allowedActions: ['create', 'copy', 'delete', 'move'],
-		dragGroup: 'action-group-actions',
-		sameGroupOnly: true,
-		extraActions: [extraction.extraAction],
-	};
+		copyItem: item => APLListItem.clone(item),
+	});
+	const extraction = useVariableExtraction(
+		player,
+		index => config.getValue(player)?.actions?.[index]?.action?.condition,
+		(index, reference) => {
+			config.getValue(player)!.actions[index].action!.condition = reference;
+		},
+	);
+	const groupLabel = i18n.t('rotation_tab.apl.actionGroups.name');
+	const label = i18n.t('rotation_tab.apl.priorityList.name');
 
-	if (hidden) return null;
 	return (
-		<Field
-			{...chrome}
-			density="compact"
-			className={['ui-apl-group-editor-root', chrome.className, 'ui-apl-list-item-picker-root', 'flex', 'flex-row', 'items-center', 'm-0', 'gap-2']}
-			testId="apl-list-item-picker-root"
-			disabled={disabled}>
-			<div className="ui-apl-editor-row">
-				<NameDisplay name={group?.name || ''} onRename={() => setRenaming(true)} />
-				<div>
-					<BoundListPicker<Player<any>, APLListItem>
-						modObject={player}
-						config={actionsConfig}
-						renderItem={(_index, itemConfig) => <AplListItem player={player} config={itemConfig} actionFullWidth />}
-						renderItemHeader={(index, itemConfig) => (
-							<ListItemHeader
-								player={player}
-								getItem={itemConfig.getValue}
-								getValidations={subject => [
-									...(subject.getCurrentStats().rotationStats?.groups?.[groupIndex]?.actions?.[index]?.validations || []),
-									...uuidValidations(subject, itemConfig.getValue(subject)?.action?.condition?.uuid?.value),
-								]}
-							/>
-						)}
-					/>
-				</div>
-			</div>
+		<AplList.Item
+			id={id}
+			label={groupLabel}
+			title={<NameDisplay name={group?.name || ''} onRename={() => setRenaming(true)} />}
+			actions={<AplItemActions label={groupLabel} onCopy={onCopy} onDelete={onDelete} />}
+			testId="apl-group-editor-root">
+			<Tree.Item.Children>
+				{actions.items.length > 0 && (
+					<Tree.Items>
+						{actions.items.map((item, index) => {
+							const itemConfig = actions.itemConfig(item, index);
+							const itemId = aplItemId(item, index);
+							return (
+								<AplList.Item
+									key={itemId}
+									id={itemId}
+									label={label}
+									title={
+										<ListItemHeader
+											player={player}
+											getItem={itemConfig.getValue}
+											getValidations={subject => [
+												...(subject.getCurrentStats().rotationStats?.groups?.[groupIndex]?.actions?.[index]?.validations || []),
+												...uuidValidations(subject, itemConfig.getValue(subject)?.action?.condition?.uuid?.value),
+											]}
+										/>
+									}
+									actions={
+										<AplItemActions
+											label={label}
+											onCopy={() => actions.copy(index)}
+											onExtract={() => extraction.extract(index)}
+											canExtract={() => extraction.canExtract(index)}
+											onDelete={() => actions.remove(index)}
+										/>
+									}>
+									<Tree.Item.Body>
+										<AplListItem player={player} config={itemConfig} actionFullWidth />
+									</Tree.Item.Body>
+								</AplList.Item>
+							);
+						})}
+					</Tree.Items>
+				)}
+				<Tree.AddButton label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })} icon="plus" onClick={() => actions.create()} />
+			</Tree.Item.Children>
 			<AplNameDialog
 				open={renaming}
-				title={i18n.t('rotation_tab.apl.nameModal.rename', { itemName: i18n.t('rotation_tab.apl.actionGroups.name') })}
+				title={i18n.t('rotation_tab.apl.nameModal.rename', { itemName: groupLabel })}
 				inputLabel={i18n.t('rotation_tab.apl.actionGroups.attributes.name')}
 				confirmLabel={i18n.t('rotation_tab.apl.nameModal.renameConfirm')}
 				defaultValue={group?.name}
@@ -104,6 +119,6 @@ export const GroupEditor = ({ player, config, groupIndex }: GroupEditorProps) =>
 				onClose={() => setRenaming(false)}
 			/>
 			<AplNameDialog {...extraction.dialog} />
-		</Field>
+		</AplList.Item>
 	);
 };

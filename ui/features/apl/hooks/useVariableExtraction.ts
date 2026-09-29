@@ -2,12 +2,16 @@ import { APLValue, APLValueVariable } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import type { ListPickerExtraAction } from '@ui-kit/ListPicker';
+import type { IconName } from '@ui-kit/Icon';
 import { useRef, useState } from 'react';
 
 export interface VariableExtraction {
-	/** The list's per-item menu entry, hidden for an item there is nothing to extract from. */
-	extraAction: ListPickerExtraAction;
+	/** Whether the item at an index holds a value there is something to extract from. */
+	canExtract: (index: number) => boolean;
+	/** Opens the naming dialog for the item at an index. */
+	extract: (index: number) => void;
+	/** The same two as one per-item menu entry, for a list that takes its extra actions as data. */
+	extraAction: { className: string; icon: IconName; tooltip: string; shouldShow: (index: number) => boolean; onClick: (index: number) => void };
 	dialog: {
 		open: boolean;
 		title: string;
@@ -42,15 +46,19 @@ export const useVariableExtraction = (
 		return !!value && !!value.value.oneofKind && value.value.oneofKind !== 'variableRef';
 	};
 
+	const extract = (at: number) => {
+		if (isExtractable(at)) setIndex(at);
+	};
+
 	return {
+		canExtract: isExtractable,
+		extract,
 		extraAction: {
 			className: '',
 			icon: 'arrow-right-from-bracket',
 			tooltip: i18n.t('rotation_tab.apl.variables.extractToVariable'),
 			shouldShow: isExtractable,
-			onClick: (at: number) => {
-				if (isExtractable(at)) setIndex(at);
-			},
+			onClick: extract,
 		},
 		dialog: {
 			open: index !== null,

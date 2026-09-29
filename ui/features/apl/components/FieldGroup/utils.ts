@@ -5,14 +5,6 @@ import type { StoreSubscribe } from '@sim/state/subscriptions';
 
 const INLINE_KINDS: ReadonlySet<AplFieldSpec['kind']> = new Set(['boolean', 'number', 'string']);
 
-/** The two list fields that carry `ui-apl-picker-builder-multi` — `and.vals`, `sequence.actions` and their kin. */
-const MULTI_FIELDS: ReadonlySet<string> = new Set(['vals', 'actions']);
-
-const fieldClasses = (spec: AplFieldSpec): Array<string> | undefined => {
-	const classes = [...(MULTI_FIELDS.has(spec.field) ? ['ui-apl-picker-builder-multi'] : [])];
-	return classes.length ? classes : undefined;
-};
-
 /**
  * The binding one field of a kind's impl message gets.
  *
@@ -31,7 +23,6 @@ export const fieldInputConfig = (
 	label: spec.label,
 	labelTooltip: spec.labelTooltip,
 	layout: INLINE_KINDS.has(spec.kind) ? 'inline' : undefined,
-	extraClassNames: fieldClasses(spec),
 	storeSubscribe: changeSource,
 	getValue: () => {
 		const source = getParentValue();

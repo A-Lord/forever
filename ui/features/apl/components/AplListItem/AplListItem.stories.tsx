@@ -48,10 +48,23 @@ export const Default: Story = {};
 /** A row the eye has disabled stays on screen, greyed out. */
 export const Hidden: Story = { args: rowOf(APLRotation.create({ priorityList: [waitAfterTen(true)] })) };
 
-/** A pre-pull row, which offers the pre-pull set of kinds. */
+/** A pre-pull row, which offers the pre-pull set of kinds and has no condition picker. */
 export const PrePull: Story = {
 	args: rowOf(APLRotation.create({ priorityList: [waitAfterTen()] })),
 	decorators: [withAplScope({ isPrepull: true })],
+};
+
+const waitFor = (val: string) => ({ action: { oneofKind: 'wait' as const, wait: { duration: constant(val) } } });
+
+/** A sequence keeps its own condition; the actions it runs have none. */
+export const Sequence: Story = {
+	args: rowOf(
+		APLRotation.create({
+			priorityList: [
+				APLListItem.create({ action: { action: { oneofKind: 'sequence', sequence: { name: 'opener', actions: [waitFor('1s'), waitFor('2s')] } } } }),
+			],
+		}),
+	),
 };
 
 /** Casting Bloodthirst: the spell picker names and paints the spell. */

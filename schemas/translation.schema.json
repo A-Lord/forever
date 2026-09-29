@@ -942,6 +942,12 @@
 						},
 						"action_has_errors": {
 							"type": "string"
+						},
+						"item_actions": {
+							"type": "string"
+						},
+						"toggle_item": {
+							"type": "string"
 						}
 					},
 					"additionalProperties": false,
@@ -953,7 +959,9 @@
 						"warnings",
 						"additional_information",
 						"action_has_warnings",
-						"action_has_errors"
+						"action_has_errors",
+						"item_actions",
+						"toggle_item"
 					]
 				},
 				"preset": {

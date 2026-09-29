@@ -1,4 +1,4 @@
-import { booleanFieldConfig, numberFieldConfig, stringFieldConfig, valueListFieldConfig } from '@features/apl/model/field_descriptors';
+import { booleanFieldConfig, numberFieldConfig, stringFieldConfig } from '@features/apl/model/field_descriptors';
 import { makePlayer } from '@features/apl/testing';
 import { APLRotation } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
@@ -97,12 +97,5 @@ describe('FieldGroup', () => {
 		mount([stringFieldConfig('text'), booleanFieldConfig('flag', 'Flag'), numberFieldConfig('count', false)]);
 
 		expect([...root().children].map(child => child.getAttribute('data-layout'))).toEqual(['inline', 'inline', 'inline']);
-	});
-
-	it('marks a list field ui-apl-picker-builder-multi', () => {
-		setup({ vals: [] });
-		mount([valueListFieldConfig('vals')]);
-
-		expect(root().querySelector('[data-testid="list-picker-root"]')!.className.split(' ')).toContain('ui-apl-picker-builder-multi');
 	});
 });

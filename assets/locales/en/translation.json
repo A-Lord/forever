@@ -267,7 +267,9 @@
 			"warnings": "Warnings",
 			"additional_information": "Additional Information:",
 			"action_has_warnings": "This action has warnings, and might not behave as expected.",
-			"action_has_errors": "This action has errors, and will not behave as expected."
+			"action_has_errors": "This action has errors, and will not behave as expected.",
+			"item_actions": "{{itemLabel}} actions",
+			"toggle_item": "Show or hide {{itemLabel}}"
 		},
 		"preset": {
 			"ep_weights": "EP Weights",
