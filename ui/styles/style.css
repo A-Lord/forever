@@ -3,3 +3,4 @@
 @source not '../**/*.stories.tsx';
 @source not '../testing/storybook';
 @source not '../design-system';
+@source not '../../**/*.md';
