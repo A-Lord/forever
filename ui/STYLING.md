@@ -12,7 +12,7 @@ and `ui/no_class_hooks.test.ts`.
 
 There is no SCSS and no Bootstrap anywhere in `ui/` (`find ui -name '*.scss'` is empty; neither
 HTML entry links anything but `style.css`; icons are inline SVG from `@fortawesome/react-fontawesome`,
-whose stylesheet it injects itself). Every class in `ui/`
+and `main.css` imports FontAwesome's stylesheet into the base layer). Every class in `ui/`
 markup is a Tailwind utility, a `ui-*` composition class, an entry of the fixed allowlist
 `ui/class_hook_allowlist.json` (`sim-ui`, `<spec>-sim-ui`, `group`/`peer` and their named forms,
 and the react-tooltip class-as-theme names), or a

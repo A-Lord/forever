@@ -1,0 +1,38 @@
+@layer components {
+	.ui-icon {
+		&[data-size='2xs'] {
+			--ui-icon-line-height: 0.1em;
+			--ui-icon-vertical-align: 0.225em;
+		}
+
+		&[data-size='xs'] {
+			--ui-icon-line-height: 0.08333em;
+			--ui-icon-vertical-align: 0.125em;
+		}
+
+		&[data-size='sm'] {
+			--ui-icon-line-height: 0.07143em;
+			--ui-icon-vertical-align: 0.05357em;
+		}
+
+		&[data-size='lg'] {
+			--ui-icon-line-height: 0.05em;
+			--ui-icon-vertical-align: -0.075em;
+		}
+
+		&[data-size='xl'] {
+			--ui-icon-line-height: 0.04167em;
+			--ui-icon-vertical-align: -0.125em;
+		}
+
+		&[data-size='2xl'] {
+			--ui-icon-line-height: 0.03125em;
+			--ui-icon-vertical-align: -0.1875em;
+		}
+
+		&:is([data-size='2xs'], [data-size='xs'], [data-size='sm'], [data-size='lg'], [data-size='xl'], [data-size='2xl']) {
+			margin-block: calc((var(--ui-icon-line-height) - 1em) / 2);
+			vertical-align: calc(var(--ui-icon-vertical-align) - 0.125em + (1em - var(--ui-icon-line-height)) / 2);
+		}
+	}
+}

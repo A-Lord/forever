@@ -1,9 +1,13 @@
+import { config } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import clsx from 'clsx';
 import { type HTMLAttributes, useId } from 'react';
 
 import { iconDefinition } from './definitions';
 import { ICON_ALIASES, type IconAlias, type IconName, type IconSize, type IconStyle } from './types';
+
+// ui/styles/main.css imports FontAwesome's stylesheet into the base layer, so `ui-icon` and utilities override it.
+config.autoAddCss = false;
 
 // `style` is the FontAwesome style here, not a CSS object, so it shadows the DOM prop.
 export interface IconProps extends Omit<HTMLAttributes<HTMLElement>, 'style'> {
@@ -32,7 +36,8 @@ export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className,
 			data-testid={testId}
 			{...(rest as Omit<HTMLAttributes<SVGSVGElement>, 'style'>)}
 			icon={definition}
-			className={clsx(nameClass, className)}
+			className={clsx(nameClass, 'ui-icon', className)}
+			data-size={size}
 			size={size}
 			spin={spin}
 			fixedWidth={fixedWidth}

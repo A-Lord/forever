@@ -12,7 +12,7 @@ describe('Icon', () => {
 	it('renders an svg carrying its glyph class', () => {
 		const { container } = render(<Icon name="circle-question" />);
 		expect(el(container).tagName.toLowerCase()).toBe('svg');
-		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-circle-question']);
+		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-circle-question', 'ui-icon']);
 	});
 
 	it('draws the glyph of the style it is given', () => {
@@ -39,7 +39,7 @@ describe('Icon', () => {
 	});
 
 	it('keeps its own name as a class when FontAwesome names the glyph differently', () => {
-		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times']);
+		expect(classes(render(<Icon name="times" />).container)).toEqual(['svg-inline--fa', 'fa-xmark', 'fa-times', 'ui-icon']);
 	});
 
 	it.each(ICON_NAMES)('renders %s from a definition, as its fa- class', name => {
@@ -47,8 +47,11 @@ describe('Icon', () => {
 		expect(classes(render(<Icon name={name} />).container)).toContain(`fa-${name}`);
 	});
 
-	it('adds size and spin as classes', () => {
-		expect(classes(render(<Icon name="spinner" size="2xl" spin />).container)).toEqual(['svg-inline--fa', 'fa-spinner', 'fa-spin', 'fa-2xl']);
+	it('adds size and spin as classes, and the size as data-size', () => {
+		const { container } = render(<Icon name="spinner" size="2xl" spin />);
+		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-spinner', 'ui-icon', 'fa-spin', 'fa-2xl']);
+		expect(el(container).dataset.size).toBe('2xl');
+		expect(el(render(<Icon name="spinner" />).container).hasAttribute('data-size')).toBe(false);
 	});
 
 	it('adds fa-fw for a fixed-width icon, and nothing without it', () => {
