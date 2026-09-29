@@ -14,8 +14,10 @@ export interface EpWeightsHeaderProps {
 }
 
 // Every label wraps: with threat metrics on, fourteen metric columns share the dialog's width.
+// The sticky cells draw the row's bottom rule themselves, in its transparent border's place: a
+// collapsed row border stays with the scrolled table, not with the header.
 export const EpWeightsHeader = ({ columns, showThreatMetrics, showUpdateColumn = true }: EpWeightsHeaderProps) => (
-	<TableRow>
+	<TableRow className="border-b-transparent">
 		<TableHeaderCell wrap className={['ui-ep-weights-table-header-cell', showThreatMetrics && 'lg:max-xl:pr-0']}>
 			{i18n.t('sidebar.buttons.stat_weights.modal.column_headers.stat')}
 		</TableHeaderCell>
