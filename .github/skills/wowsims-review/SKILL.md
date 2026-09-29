@@ -38,7 +38,7 @@ go run ./tools/spelldata <id>                     # header, effects, the ladder 
 go run ./tools/spelldata -config 'spelldata.SpellConfig(&<class>.Unit, <rank>, ...)' -package <class>   # what the resolver builds
 sqlite3 tools/database/wowsims.db "select Description_lang, AuraDescription_lang from Spell where ID=<id>"   # the tooltip
 sqlite3 tools/database/wowsims.db "select Attributes from SpellMisc where SpellID=<id>"   # every attribute word
-SPELLDATA_REPORT=1 go test --tags=with_db ./sim/<class>/ -run <Test> -count=1   # the effects the parse skipped
+SPELLDATA_REPORT=1 go test --tags=with_db ./sim/<class>/ -run <Test> -count=1 -v   # the effects the parse skipped; -v, or a passing run prints nothing
 ```
 
 `go run ./tools/spelldata` prints only the attributes `attributes.go` reads; the `SpellMisc` query shows the
