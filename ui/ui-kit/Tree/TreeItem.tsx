@@ -30,6 +30,15 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 		[controlled, onOpenChange],
 	);
 
+	const [parts, setParts] = useState({ body: false, children: false });
+	const mountPart = useCallback((part: 'body' | 'children') => {
+		setParts(current => ({ ...current, [part]: true }));
+		return () => setParts(current => ({ ...current, [part]: false }));
+	}, []);
+	const bodyId = `${key}-body`;
+	const childrenId = `${key}-children`;
+	const controls = [parts.body && bodyId, parts.children && childrenId].filter(Boolean).join(' ') || undefined;
+
 	const itemDisabled = root.disabled || !!disabled;
 	const { armed, drag, drop, itemProps, handleProps, headerProps, childrenProps } = useItemSortable({
 		key,
@@ -48,12 +57,15 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 			setOpen,
 			drag,
 			disabled: itemDisabled,
-			bodyId: `${key}-body`,
+			bodyId,
+			childrenId,
+			controls,
+			mountPart,
 			handleProps,
 			headerProps,
 			childrenProps,
 		}),
-		[id, index, root.parentId, open, setOpen, drag, itemDisabled, key, handleProps, headerProps, childrenProps],
+		[id, index, root.parentId, open, setOpen, drag, itemDisabled, bodyId, childrenId, controls, mountPart, handleProps, headerProps, childrenProps],
 	);
 
 	return (

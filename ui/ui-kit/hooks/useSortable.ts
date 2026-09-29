@@ -1,5 +1,5 @@
 import type { TreeDropRef, TreeOrientation, TreeRef, TreeSortable } from '@ui-kit/Tree/types';
-import { type DragEvent, type MouseEvent, type RefObject, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { type DragEvent, type MouseEvent, type RefObject, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 
 export type SortableDrop = 'before' | 'after' | 'into';
 
@@ -237,7 +237,7 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 
 /**
  * Native drag and drop over a set of registered items. Returns `null` without `sortable`. The
- * controller is created once and reads `sortable` from the latest render, so a `sortable` object
+ * controller is created only while `sortable` is given, once, and reads it from the latest render, so a `sortable` object
  * written inline changes nothing downstream.
  */
 export const useSortable = (sortable: TreeSortable | undefined): SortableController | null => {
@@ -245,8 +245,8 @@ export const useSortable = (sortable: TreeSortable | undefined): SortableControl
 	useLayoutEffect(() => {
 		options.current = sortable;
 	});
-	const [controller] = useState(() => createSortable(options));
-	return sortable ? controller : null;
+	const enabled = sortable !== undefined;
+	return useMemo(() => (enabled ? createSortable(options) : null), [enabled]);
 };
 
 const inert = () => () => {};

@@ -192,6 +192,7 @@ describe('Tree', () => {
 		expect(item.hasAttribute('data-open')).toBe(false);
 		expect(trigger().getAttribute('aria-expanded')).toBe('false');
 		expect(body.hidden).toBe(true);
+		expect(trigger().getAttribute('aria-controls')).toBe(body.id);
 
 		fireEvent.click(trigger());
 		expect(item.hasAttribute('data-open')).toBe(true);
@@ -460,6 +461,66 @@ describe('Tree', () => {
 		expect(within(screen.getByTestId('a-children')).getByTestId('tree').hasAttribute('data-in-body')).toBe(false);
 		expect(within(screen.getByTestId('value-children')).getByTestId('tree').hasAttribute('data-in-body')).toBe(false);
 		expect(screen.getAllByTestId('tree')[0].hasAttribute('data-in-body')).toBe(false);
+	});
+
+	it('points the trigger at the parts the item mounts: body, children, both or none', () => {
+		const Toggle = ({ id, body, kids }: { id: string; body?: boolean; kids?: boolean }) => (
+			<Tree.Item id={id}>
+				<Tree.Item.Header>
+					<Tree.Item.Trigger label={`Toggle ${id}`} />
+				</Tree.Item.Header>
+				{body && <Tree.Item.Body testId={`body-${id}`}>Body</Tree.Item.Body>}
+				{kids && (
+					<Tree.Item.Children testId={`children-${id}`}>
+						<Tree.Items>{null}</Tree.Items>
+					</Tree.Item.Children>
+				)}
+			</Tree.Item>
+		);
+		render(
+			<Tree.Root>
+				<Tree.Items>
+					<Toggle id="b" body />
+					<Toggle id="c" kids />
+					<Toggle id="both" body kids />
+					<Toggle id="none" />
+				</Tree.Items>
+			</Tree.Root>,
+		);
+		const controls = (id: string) => screen.getByRole('button', { name: `Toggle ${id}` }).getAttribute('aria-controls');
+		expect(controls('b')).toBe(screen.getByTestId('body-b').id);
+		expect(controls('c')).toBe(screen.getByTestId('children-c').id);
+		expect(controls('both')).toBe(`${screen.getByTestId('body-both').id} ${screen.getByTestId('children-both').id}`);
+		expect(controls('none')).toBeNull();
+		for (const id of ['b', 'c', 'both'])
+			expect(
+				controls(id)!
+					.split(' ')
+					.every(part => document.getElementById(part)),
+			).toBe(true);
+	});
+
+	it('gives a root in a body without a group of its own a group apart from its parent', () => {
+		const GroupProbe = ({ testId }: { testId: string }) => <span data-testid={testId}>{useTreeRoot().group}</span>;
+		render(
+			<Tree.Root group="rows">
+				<Tree.Items>
+					<Tree.Item id="a">
+						<Tree.Item.Body>
+							<Tree.Root>
+								<GroupProbe testId="body-group" />
+							</Tree.Root>
+						</Tree.Item.Body>
+						<Tree.Item.Children>
+							<GroupProbe testId="children-group" />
+						</Tree.Item.Children>
+					</Tree.Item>
+				</Tree.Items>
+			</Tree.Root>,
+		);
+		expect(screen.getByTestId('children-group').textContent).toBe('rows');
+		expect(screen.getByTestId('body-group').textContent).not.toBe('rows');
+		expect(screen.getByTestId('body-group').textContent).toBeTruthy();
 	});
 
 	it('puts a plus before a text add button and marks the success tone', () => {

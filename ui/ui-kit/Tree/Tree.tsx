@@ -38,7 +38,7 @@ export const Root = ({
 	const listSortable = inBody ? parentSortable : null;
 	const value = useMemo<TreeRootContextValue>(
 		() => ({
-			group: group ?? parent?.group ?? ownGroup,
+			group: group ?? (inBody ? ownGroup : (parent?.group ?? ownGroup)),
 			depth: depth ?? (parent ? parent.depth + 1 : 0),
 			density: density ?? parent?.density ?? 'default',
 			layout,
@@ -47,7 +47,7 @@ export const Root = ({
 			handle: handle ?? parent?.handle ?? 'handle',
 			parentId,
 		}),
-		[group, depth, density, layout, orientation, disabled, handle, parent, ownGroup, parentId],
+		[group, inBody, depth, density, layout, orientation, disabled, handle, parent, ownGroup, parentId],
 	);
 
 	// A root in a body is a list of its own, not an item's children, so its area takes an `into` drop.
@@ -123,14 +123,17 @@ export const Items = ({ className, testId, children }: TreeItemsProps) => {
 			register,
 			unregister,
 			indexOf: key => order.indexOf(key),
+			// Two comparisons with the neighbours the order names; any mismatch re-sorts the whole list.
 			check: (key, index) => {
 				const element = elements.current.get(key);
 				if (!element) return;
-				let position = 0;
-				for (const other of elements.current.values()) {
-					if (other !== element && inDocumentOrder(other, element) < 0) position++;
+				if (order[index] !== key) {
+					invalidate();
+					return;
 				}
-				if (position !== index) invalidate();
+				const before = index > 0 ? elements.current.get(order[index - 1]) : undefined;
+				const after = elements.current.get(order[index + 1]);
+				if ((before && inDocumentOrder(before, element) > 0) || (after && inDocumentOrder(element, after) > 0)) invalidate();
 			},
 		}),
 		[register, unregister, invalidate, order],

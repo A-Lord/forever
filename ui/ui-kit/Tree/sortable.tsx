@@ -32,9 +32,10 @@ export const useItemSortable = ({ key, element, place, orientation, header, disa
 	const status = useSortableStatus(sortable, key);
 	const armProps = useMemo(() => (sortable && !disabled ? sortable.armProps(key, header) : undefined), [sortable, disabled, key, header]);
 	const childrenProps = useMemo(() => sortable?.childrenProps(key), [sortable, key]);
+	const itemProps = useMemo(() => sortable?.itemProps(key), [sortable, key]);
 	return {
 		...status,
-		itemProps: sortable?.itemProps(key),
+		itemProps,
 		childrenProps,
 		handleProps: header ? undefined : armProps,
 		headerProps: header ? armProps : undefined,

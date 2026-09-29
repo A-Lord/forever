@@ -3,7 +3,7 @@ import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
-import { useCallback, useContext, useId, useState } from 'react';
+import { useCallback, useContext, useId, useLayoutEffect, useState } from 'react';
 
 import { TreeActionsContext, TreeBodyContext, useTreeItem, useTreeRoot } from './context';
 import { Root } from './Tree';
@@ -48,14 +48,14 @@ export const Title = ({ as: Tag = 'span', className, testId, children }: TreeIte
 };
 
 export const Trigger = ({ label, className, testId }: TreeItemTriggerProps) => {
-	const { open, setOpen, disabled, bodyId } = useTreeItem();
+	const { open, setOpen, disabled, controls } = useTreeItem();
 	return (
 		<Button
 			iconOnly
 			className={clsx('ui-tree-item-trigger', className)}
 			aria-label={label}
 			aria-expanded={open}
-			aria-controls={bodyId}
+			aria-controls={controls}
 			disabled={disabled}
 			data-testid={testId}
 			onClick={() => setOpen(!open)}>
@@ -116,7 +116,8 @@ export const Aside = ({ className, testId, children }: TreeItemAsideProps) => {
 };
 
 export const Body = ({ className, testId, children }: TreeItemBodyProps) => {
-	const { open, bodyId } = useTreeItem();
+	const { open, bodyId, mountPart } = useTreeItem();
+	useLayoutEffect(() => mountPart('body'), [mountPart]);
 	return (
 		<div id={bodyId} className={clsx('ui-tree-item-body', className)} hidden={!open} data-testid={testId}>
 			<TreeBodyContext.Provider value>{children}</TreeBodyContext.Provider>
@@ -125,10 +126,11 @@ export const Body = ({ className, testId, children }: TreeItemBodyProps) => {
 };
 
 export const Children = ({ className, testId, children }: TreeItemChildrenProps) => {
-	const { open, childrenProps } = useTreeItem();
+	const { open, childrenProps, childrenId, mountPart } = useTreeItem();
 	const { depth, group } = useTreeRoot();
+	useLayoutEffect(() => mountPart('children'), [mountPart]);
 	return (
-		<div className={clsx('ui-tree-item-children', className)} hidden={!open} data-testid={testId} {...childrenProps}>
+		<div id={childrenId} className={clsx('ui-tree-item-children', className)} hidden={!open} data-testid={testId} {...childrenProps}>
 			<Root depth={depth + 1} group={group}>
 				{children}
 			</Root>

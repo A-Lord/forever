@@ -45,8 +45,8 @@ interface TreePartProps {
 
 export interface TreeRootProps extends TreePartProps {
 	/**
-	 * Nested roots inherit it; a top-level root without one gets a group of its own. A root in a body
-	 * needs a group of its own: inheriting one makes it the same list as its item's `Children`.
+	 * A root in children inherits its parent's; a top-level root, or a root in a body, without one gets a
+	 * group of its own, so a body list is never the same list as its item's `Children`.
 	 */
 	group?: string;
 	/** Defaults to the parent root's depth + 1, and 0 at the top. */

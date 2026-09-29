@@ -24,6 +24,11 @@ export interface TreeItemContextValue {
 	drag: 'from' | 'to' | null;
 	disabled: boolean;
 	bodyId: string;
+	childrenId: string;
+	/** The ids of the body and children parts that are mounted, for the trigger's `aria-controls`; `undefined` with neither. */
+	controls: string | undefined;
+	/** Body and Children announce themselves while mounted. */
+	mountPart: (part: 'body' | 'children') => () => void;
 	/** Set on the part the root's `handle` names, `undefined` without sortable. */
 	handleProps: SortableArmProps | undefined;
 	headerProps: SortableArmProps | undefined;
