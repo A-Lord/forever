@@ -25,7 +25,7 @@ export const Closed: Story = {};
 
 export const Open: Story = {
 	play: async ({ canvasElement }) => {
-		await userEvent.click(within(canvasElement).getByRole('button', { name: supportedLanguages.en }));
+		await userEvent.click(canvasElement.querySelector<HTMLElement>('#languageDropdown')!);
 		const items = within(canvasElement.ownerDocument.body).getAllByTestId('dropdown-item');
 		await expect(items).toHaveLength(Object.keys(supportedLanguages).length);
 	},
