@@ -42,7 +42,6 @@ export const ChoiceMenu = <V,>({
 		positionMethod={positionMethod}
 		sideOffset={2}
 		portalProps={{ className: 'contents' }}
-		positionerProps={{ 'data-testid': 'choice-field-positioner' }}
 		popupRender={<div />}>
 		<BaseMenu.RadioGroup render={<ul />} className="m-0 list-none p-0" value={selectedIndex} onValueChange={onSelect}>
 			{open && <ChoiceMenuItems entries={entries} indexOf={option => flat.indexOf(option)} tooltipId={tooltipId} onSelect={onSelect} />}

@@ -10,6 +10,7 @@ import { useUnitMetadataVersion } from '@sim/hooks/useUnitMetadataVersion';
 import type { Player } from '@sim/player/player';
 import { type ChoiceOption, UnitIcon } from '@ui-kit/ChoiceField';
 import { CLASS_TEXT } from '@ui-kit/utils/colors';
+import { useMemo } from 'react';
 
 export interface UnitFieldProps {
 	player: Player<any>;
@@ -45,17 +46,22 @@ const renderUnit = ({ value: unit, label }: ChoiceOption<UnitValue>) => (
  */
 export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 	const targetUI = unitSets[unitSet].targetUI;
-	useUnitMetadataVersion(player.sim);
-	const models = unitOptionModels(unitSet, player);
+	const metadataVersion = useUnitMetadataVersion(player.sim);
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- the metadata version is what moves when the units do.
+	const models = useMemo(() => unitOptionModels(unitSet, player), [unitSet, player, metadataVersion]);
 	const icons = useActionIds(models.map(({ unit }) => (typeof unit.iconUrl === 'string' ? undefined : unit.iconUrl)));
-	const options = choiceTree(
-		models.map((model, index) =>
-			unitOption(
-				withIconUrl(model.unit, icons[index]),
-				model.submenu?.map(unit => withIconUrl(unit)),
+	const options = useMemo(
+		() =>
+			choiceTree(
+				models.map((model, index) =>
+					unitOption(
+						withIconUrl(model.unit, icons[index]),
+						model.submenu?.map(unit => withIconUrl(unit)),
+					),
+				),
+				sameUnit,
 			),
-		),
-		sameUnit,
+		[models, icons],
 	);
 
 	const boundConfig = {

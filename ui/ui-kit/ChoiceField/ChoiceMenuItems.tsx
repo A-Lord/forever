@@ -50,7 +50,6 @@ export const ChoiceMenuItems = <V,>({ entries, indexOf, tooltipId, onSelect }: C
 					surface="menu"
 					align="start"
 					side="right"
-					positionerProps={{ 'data-testid': 'choice-field-positioner' }}
 					popupProps={{ 'data-testid': 'choice-field-submenu' }}
 					triggerRender={<button type="button" />}
 					triggerProps={{
