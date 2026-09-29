@@ -74,7 +74,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 					) : null}
 					<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
 						<aside
-							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-80"
+							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
 							data-testid="sim-sidebar">
 							<div className="z-sim-title h-sim-header-plus border-b border-b-border max-lg:sticky max-lg:-top-px" data-testid="sim-title">
 								<SimTitleDropdown currentSpec={spec} />
