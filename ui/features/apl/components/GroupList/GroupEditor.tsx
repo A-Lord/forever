@@ -82,6 +82,7 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 									key={itemId}
 									id={itemId}
 									label={label}
+									muted={item.hide}
 									aside={
 										<ListItemHeader
 											player={player}

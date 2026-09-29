@@ -40,6 +40,13 @@ describe('BulkItemPickerView', () => {
 		expect(cell.hasAttribute('data-frozen')).toBe(true);
 		expect(cell.hasAttribute('data-equipped')).toBe(false);
 		expect(cell.className).toContain('border-frozen');
+		expect(screen.getByTestId('item-picker-frozen')).toBeTruthy();
+	});
+
+	it('shows no lock on an editable item', () => {
+		renderPicker('editable', () => {});
+
+		expect(screen.queryByTestId('item-picker-frozen')).toBeNull();
 	});
 
 	it('marks a worn item equipped', () => {

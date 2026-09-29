@@ -2,6 +2,7 @@ import { StatCapType } from '@generated/proto/api';
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import { StatCap } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withTooltipSurface } from '@testing/storybook/decorators';
 
 import { ReforgeSoftCapsTooltip } from './ReforgeSoftCapsTooltip';
 
@@ -25,10 +26,11 @@ const meta = {
 	argTypes: { softCaps: { control: false }, additionalInformation: { control: false } },
 	decorators: [
 		Story => (
-			<div className="max-w-77.5">
+			<div className="w-77.5">
 				<Story />
 			</div>
 		),
+		withTooltipSurface,
 	],
 } satisfies Meta<typeof ReforgeSoftCapsTooltip>;
 

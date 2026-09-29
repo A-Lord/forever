@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withTooltipSurface } from '@testing/storybook/decorators';
 
 import { TooltipRow } from './TooltipRow';
 
@@ -9,10 +10,11 @@ const meta = {
 	args: { label: 'Gear', value: '+180' },
 	decorators: [
 		Story => (
-			<div className="max-w-56">
+			<div className="w-56">
 				<Story />
 			</div>
 		),
+		withTooltipSurface,
 	],
 } satisfies Meta<typeof TooltipRow>;
 

@@ -52,6 +52,7 @@ export const PrePullList = () => {
 										key={id}
 										id={id}
 										label={label}
+										muted={item.hide}
 										aside={
 											<ListItemHeader
 												player={player}

@@ -1,6 +1,7 @@
 import { Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { withTooltipSurface } from '@testing/storybook/decorators';
 import { makeStatAttribution, showStat } from '@testing/storybook/fixtures/character-stats';
 
 import { StatTooltipBody } from './StatTooltipBody';
@@ -24,10 +25,11 @@ const meta = {
 	},
 	decorators: [
 		Story => (
-			<div className="max-w-56 bg-surface p-2">
+			<div className="w-56">
 				<Story />
 			</div>
 		),
+		withTooltipSurface,
 	],
 } satisfies Meta<typeof StatTooltipBody>;
 

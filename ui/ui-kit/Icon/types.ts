@@ -36,6 +36,7 @@ export const ICON_NAMES = [
 	'globe',
 	'grip-lines',
 	'info-circle',
+	'lock',
 	'magnifying-glass-minus',
 	'magnifying-glass-plus',
 	'map-pin',

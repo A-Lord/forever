@@ -21,11 +21,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Apl: Story = {
+export const Default: Story = {
 	decorators: [withRotationTypeHost({ type: APLRotationType.TypeAPL, hasSimple: true })],
-};
-
-/** A spec without a rotation generator: the type picker offers Auto and APL alone. */
-export const AutoWithoutSimple: Story = {
-	decorators: [withRotationTypeHost({ type: APLRotationType.TypeAuto, hasSimple: false })],
 };

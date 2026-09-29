@@ -3498,6 +3498,9 @@
 						"remove_tooltip": {
 							"type": "string"
 						},
+						"frozen_tooltip": {
+							"type": "string"
+						},
 						"failed_update": {
 							"type": "string"
 						},
@@ -3506,7 +3509,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["no_items", "remove_tooltip", "failed_update", "failed_remove"]
+					"required": ["no_items", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
 				},
 				"results": {
 					"type": "object",

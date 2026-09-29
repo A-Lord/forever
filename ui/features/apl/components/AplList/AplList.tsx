@@ -76,14 +76,16 @@ export interface AplListEntryProps {
 	/** Tree.Item.Action entries; without them the item has no menu. */
 	actions?: ReactNode;
 	disabled?: boolean;
+	/** A row the eye has switched off: its handle and title fade with its body. */
+	muted?: boolean;
 	testId?: string;
 	/** The item's `Tree.Item.Body` and/or `Tree.Item.Children`. */
 	children?: ReactNode;
 }
 
 /** One APL entry: the kit's handle, title, aside, trigger and menu around the body or children the caller gives. */
-const Item = ({ id, label, title, titleAs, aside, movable = true, actions, disabled, testId, children }: AplListEntryProps) => (
-	<Tree.Item id={id} disabled={disabled} testId={testId}>
+const Item = ({ id, label, title, titleAs, aside, movable = true, actions, disabled, muted, testId, children }: AplListEntryProps) => (
+	<Tree.Item id={id} disabled={disabled} muted={muted} testId={testId}>
 		<Tree.Item.Header>
 			{movable && <Tree.Item.Handle label={i18n.t('common.list_picker.move_drag_drop')} />}
 			{title !== undefined && <Tree.Item.Title as={titleAs}>{title}</Tree.Item.Title>}

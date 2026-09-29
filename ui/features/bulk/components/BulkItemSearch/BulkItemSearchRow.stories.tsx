@@ -23,8 +23,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
-
-export const HordeOnly: Story = {
-	args: { item: makeUIItem({ id: 18832, name: 'Brutality Blade', icon: 'inv_sword_40', factionRestriction: UIItem_FactionRestriction.HORDE_ONLY }) },
+export const Default: Story = {
+	args: { item: makeUIItem({ nameDescription: 'Heroic', factionRestriction: UIItem_FactionRestriction.HORDE_ONLY }) },
 };
