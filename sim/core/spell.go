@@ -124,6 +124,7 @@ type Spell struct {
 	hasCastRequirement bool
 	casterAuras        []*Aura
 	excludeCasterAuras []*Aura
+	equipment          *Equipment
 
 	// Optional range constraints. If supplied, these are used to modify the ExtraCastCondition above to additionally check for DistanceFromTarget.
 	MinRange     float64
@@ -161,6 +162,7 @@ type Spell struct {
 	CdMultiplier             float64
 	GCDMultiplier            float64       // Scales DefaultCast.GCD, after the flat GCD mods and before haste and the GCD minimum; 1 = unmodified. Fed by SpellMod_GlobalCooldown_Pct.
 	unscaledGCD              time.Duration // DefaultCast.GCD is rewritten from this on every GCD mod, so a direct write there is lost.
+	RangeMultiplier          float64       // Scales MaxRange, after the flat range mods; 1 = unmodified. Fed by SpellMod_Range_Pct.
 	DamageMultiplier         float64
 	DamageMultiplierAdditive float64
 	// Added to DamageMultiplierAdditive on direct hits and direct heals only. Unlike that bucket
@@ -279,6 +281,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		CastTimeMultiplier:       1,
 		CdMultiplier:             1,
 		GCDMultiplier:            1,
+		RangeMultiplier:          1,
 		unscaledGCD:              config.Cast.DefaultCast.GCD,
 		DamageMultiplier:         config.DamageMultiplier,
 		DamageMultiplierAdditive: config.DamageMultiplierAdditive,
@@ -364,7 +367,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		spell.MaxRange = config.MaxRange
 		oldExtraCastCondition := spell.ExtraCastCondition
 		spell.ExtraCastCondition = func(sim *Simulation, target *Unit) bool {
-			if ((spell.MinRange != 0) && (spell.Unit.DistanceFromTarget < spell.MinRange)) || ((spell.MaxRange != 0) && (spell.Unit.DistanceFromTarget > spell.MaxRange)) {
+			if ((spell.MinRange != 0) && (spell.Unit.DistanceFromTarget < spell.MinRange)) || ((spell.MaxRange != 0) && (spell.Unit.DistanceFromTarget > spell.MaxRange*spell.RangeMultiplier)) {
 				/*if sim.Log != nil {
 					sim.Log("Cannot cast spell %s, out of range!", spell.ActionID)
 				}*/
@@ -520,6 +523,7 @@ func (spell *Spell) finalize() {
 
 	if spell.hasCastRequirement {
 		spell.resolveCasterAuras()
+		spell.equipment = spell.Unit.playerEquipment()
 	}
 
 	// Set the "static" "default" cost here
@@ -691,7 +695,7 @@ func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailur
 	}
 
 	if spell.hasCastRequirement {
-		if reason, _ := spell.castRequirementFailure(); reason != "" {
+		if reason, _ := spell.castRequirementFailure(sim); reason != "" {
 			if logCastFailure {
 				return spell.castFailureHelper(sim, reason)
 			}

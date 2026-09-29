@@ -335,6 +335,9 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	case dbcenums.A_MOD_STAT:
 		return join(signed(value(e)), statName(e.Misc))
 	case dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE:
+		if e.Misc2 != 0 {
+			return join(signedPercent(e), statMaskName(e.Misc2))
+		}
 		return join(signedPercent(e), statName(e.Misc))
 
 	case dbcenums.A_MOD_RESISTANCE:

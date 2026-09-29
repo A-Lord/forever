@@ -100,17 +100,17 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Beastmaster'sCap-22013"
  value: {
-  dps: 447.0391
-  tps: 693.98794
-  dtps: 3715.60538
+  dps: 447.31366
+  tps: 694.4123
+  dtps: 3717.07823
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Beastmaster'sGloves-22015"
  value: {
-  dps: 447.32676
-  tps: 694.58523
+  dps: 447.328
+  tps: 694.58708
   dtps: 3788.0218
   hps: 16.4
  }
@@ -136,9 +136,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BlessedPlate"
  value: {
-  dps: 467.17034
-  tps: 724.22829
-  dtps: 4061.36869
+  dps: 466.43398
+  tps: 723.0831
+  dtps: 4058.89488
   hps: 16.4
  }
 }
@@ -199,8 +199,8 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-DragonscaleBreastplate-8367"
  value: {
-  dps: 447.69526
-  tps: 695.06833
+  dps: 447.69662
+  tps: 695.07036
   dtps: 3854.29432
   hps: 16.4
  }
@@ -415,9 +415,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GnomishHarmPreventionBelt-10721"
  value: {
-  dps: 442.19776
-  tps: 686.83405
-  dtps: 3787.87966
+  dps: 442.25536
+  tps: 686.93403
+  dtps: 3789.363
   hps: 16.4
  }
 }
@@ -730,8 +730,8 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-StormGauntlets-12632"
  value: {
-  dps: 447.3011
-  tps: 694.31933
+  dps: 447.33336
+  tps: 694.36757
   dtps: 3785.39519
   hps: 16.4
  }
@@ -802,8 +802,8 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TheGreenTower-1204"
  value: {
-  dps: 447.01303
-  tps: 694.04839
+  dps: 447.01439
+  tps: 694.05042
   dtps: 3789.71339
   hps: 16.4
  }
@@ -874,9 +874,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-Average-Default"
  value: {
-  dps: 444.87086
-  tps: 689.43413
-  dtps: 3697.31842
+  dps: 444.87867
+  tps: 689.4459
+  dtps: 3697.365
   hps: 16.70542
  }
 }

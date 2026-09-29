@@ -592,6 +592,12 @@ const (
 	// Uses: FloatValue
 	SpellMod_Range_Flat
 
+	// Will add / subtract % amount from the range multiplier. +10% = 0.1
+	// Only spells registered with a range constraint check their range at all, so the mod is inert
+	// on the others.
+	// Uses: FloatValue
+	SpellMod_Range_Pct
+
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits and direct heals read.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
@@ -780,6 +786,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 	SpellMod_Range_Flat: {
 		Apply:  applyRangeFlat,
 		Remove: removeRangeFlat,
+	},
+
+	SpellMod_Range_Pct: {
+		Apply:  applyRangePercent,
+		Remove: removeRangePercent,
 	},
 
 	SpellMod_DirectDamageDone_Flat: {
@@ -1295,6 +1306,18 @@ func removeRangeFlat(mod *SpellMod, spell *Spell) {
 		return
 	}
 	spell.MaxRange -= mod.floatValue
+}
+
+func applyRangePercent(mod *SpellMod, spell *Spell) {
+	if spell.RangeMultiplier+mod.floatValue <= 0 {
+		panic(fmt.Sprintf("Spell mod would leave %s at a range multiplier of %0.2f. Something seems wrong.",
+			spell.ActionID, spell.RangeMultiplier+mod.floatValue))
+	}
+	spell.RangeMultiplier += mod.floatValue
+}
+
+func removeRangePercent(mod *SpellMod, spell *Spell) {
+	spell.RangeMultiplier -= mod.floatValue
 }
 
 func applyDirectDamageDoneAdd(mod *SpellMod, spell *Spell) {

@@ -16,7 +16,7 @@ const rowConfigShown = (config: ConsumeRowConfig, player: Player<any>): boolean 
 
 export interface ConsumeRowProps {
 	name: 'potions' | 'elixirs' | 'food' | 'engineering' | 'imbue' | 'scrolls' | 'miscellaneous';
-	configs?: ReadonlyArray<ConsumeRowConfig>;
+	configs: ReadonlyArray<ConsumeRowConfig>;
 	// Hides the row whatever its configs say; the pickers stay mounted (see below).
 	hidden?: boolean;
 	children: ReactNode;
@@ -25,7 +25,7 @@ export interface ConsumeRowProps {
 export const ConsumeRow = ({ name, configs, hidden = false, children }: ConsumeRowProps) => {
 	const player = usePlayer();
 	const labelId = useId();
-	const shown = useStoreSubscribe(subscribePlayerChange(player), () => !configs || configs.some(config => rowConfigShown(config, player)));
+	const shown = useStoreSubscribe(subscribePlayerChange(player), () => configs.some(config => rowConfigShown(config, player)));
 
 	// Hide, never unmount. Vanilla's updateRow only toggled a `hide` class, which kept every
 	// picker in the row alive: a hidden IconEnumPicker is what zeroes the field it is bound to

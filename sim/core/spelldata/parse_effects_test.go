@@ -493,6 +493,7 @@ func TestEveryTableRow(t *testing.T) {
 		{pct, int32(dbcenums.SPELLMOD_DOT), 10, "SpellMod_DotDamageDone_Pct", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_CHANCE_OF_SUCCESS), 100, "SpellMod_ProcChance_Pct", 1, false},
 		{pct, int32(dbcenums.SPELLMOD_GLOBAL_COOLDOWN), -10, "SpellMod_GlobalCooldown_Pct", -0.1, false},
+		{pct, int32(dbcenums.SPELLMOD_RANGE), 10, "SpellMod_Range_Pct", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT1), 10, "effect1-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT2), 10, "effect2-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
 		{pct, int32(dbcenums.SPELLMOD_EFFECT3), 10, "effect3-assumed-damage SpellMod_DamageDone_Flat", 0.1, false},
@@ -653,6 +654,39 @@ func TestEveryTableRow(t *testing.T) {
 				t.Errorf("value = %v, want %v", got, c.value)
 			}
 		})
+	}
+}
+
+func TestTotalStatPercentageReadsTheStatMask(t *testing.T) {
+	allFive := "multiply-stat Strength, multiply-stat Agility, multiply-stat Stamina, multiply-stat Intellect, multiply-stat Spirit"
+	cases := []struct {
+		misc, misc2 int32
+		kind        string
+	}{
+		{0, 8, "multiply-stat Intellect"},
+		{2, 5, "multiply-stat Strength, multiply-stat Stamina"},
+		{-1, 31, allFive},
+		{4, 16, "multiply-stat Spirit"},
+		{3, 0, "multiply-stat Intellect"},
+	}
+	for _, c := range cases {
+		row := Spell{ID: 5000, Name: "Table Row", ClassFlags: parseFamily,
+			Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE,
+				Misc: c.misc, Misc2: c.misc2, BasePoints: 10}}}
+		parsed := ParseStatic(parseWarrior(), &row)
+		if got := strings.Join(appliedKinds(parsed), ", "); got != c.kind {
+			t.Errorf("misc %d and %d: kinds = %q, want %q", c.misc, c.misc2, got, c.kind)
+		}
+	}
+
+	demonicEmbrace := Spell{ID: 5000, Name: "Table Row", ClassFlags: parseFamily,
+		Effects: []Effect{
+			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, Misc2: 4, BasePoints: 15},
+			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, Misc: 4, BasePoints: -1},
+		}}
+	parsed := ParseStatic(parseWarrior(), &demonicEmbrace)
+	if got, want := strings.Join(appliedKinds(parsed), ", "), "multiply-stat Stamina, multiply-stat Spirit"; got != want {
+		t.Errorf("a mask effect beside a stat index effect: kinds = %q, want %q", got, want)
 	}
 }
 
