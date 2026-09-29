@@ -14,7 +14,7 @@ const meta = {
 	argTypes: { children: { control: false } },
 	decorators: [
 		Story => (
-			<div className="w-[600px]">
+			<div className="w-150">
 				<Story />
 			</div>
 		),

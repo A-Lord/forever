@@ -21,7 +21,7 @@ const meta = {
 	argTypes: { item: { control: false }, notice: { control: false }, extraLabels: { control: false }, action: { control: false } },
 	decorators: [
 		Story => (
-			<div className="ui-gear-picker w-[480px]">
+			<div className="ui-gear-picker w-120">
 				<Story />
 			</div>
 		),

@@ -27,7 +27,7 @@ const meta = {
 	argTypes: { filtersMenu: { control: false } },
 	decorators: [
 		Story => (
-			<div className="w-[900px]">
+			<div className="w-225">
 				<Story />
 			</div>
 		),
