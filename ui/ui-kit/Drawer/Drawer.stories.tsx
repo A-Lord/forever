@@ -42,27 +42,6 @@ export const NonModal: Story = {
 	args: { modal: false, children: <p className="m-0">The page behind stays interactive.</p> },
 };
 
-export const Bottom: Story = {
-	args: {
-		side: 'bottom',
-		className: undefined,
-		title: 'Stats',
-		children: Array.from({ length: 40 }, (_, index) => (
-			<p key={index} className="m-0 py-1">
-				Row {index + 1}
-			</p>
-		)),
-	},
-	play: async ({ args, canvasElement }) => {
-		const canvas = within(canvasElement);
-		await userEvent.click(canvas.getByRole('button', { name: 'Open drawer' }));
-		const drawer = await canvas.findByRole('dialog', { name: 'Stats' });
-		await expect(drawer).toHaveAttribute('data-side', 'bottom');
-		await expect(canvas.getByTestId('sim-drawer-backdrop')).toBeInTheDocument();
-		await expect(args.onOpenChange).toHaveBeenCalledWith(true);
-	},
-};
-
 export const Opens: Story = {
 	args: { title: 'Filters' },
 	play: async ({ args, canvasElement }) => {

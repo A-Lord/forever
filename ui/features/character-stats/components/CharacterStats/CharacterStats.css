@@ -19,22 +19,6 @@
 		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-inline-padding) bg-background px-(--sidebar-inline-padding) py-2 before:absolute before:inset-x-(--sidebar-inline-padding) before:top-0 before:border-t before:border-solid before:border-t-transparent;
 	}
 
-	.ui-character-stats-bar {
-		@apply fixed inset-x-0 bottom-0 z-toolbar flex h-character-stats-bar items-center gap-2 border-t border-border bg-background px-(--sidebar-inline-padding);
-
-		& > :not(.ui-character-stats-bar-trigger) {
-			@apply pointer-events-none relative z-1;
-
-			& :is(button, a, input, select, [role='button']) {
-				@apply pointer-events-auto;
-			}
-		}
-	}
-
-	.ui-character-stats-bar-trigger {
-		@apply order-last -mr-1 p-1 after:absolute after:inset-0;
-	}
-
 	.ui-character-stats-row {
 		@apply text-ui;
 	}
