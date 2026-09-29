@@ -5,7 +5,7 @@ import { Table } from '@ui-kit/Table';
 import { AvoidanceRow } from './AvoidanceRow';
 
 const meta = {
-	title: 'Features/CharacterStats/CharacterStats/Components/AvoidanceRow',
+	title: 'Features/CharacterStats/Components/AvoidanceRow',
 	component: AvoidanceRow,
 	tags: ['autodocs'],
 	args: { info: AVOIDANCE_INFO, withHolyShield: false, hasParry: true, hasBlock: true },

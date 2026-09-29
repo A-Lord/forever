@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ItemNoticeIconView } from './ItemNoticeIconView';
 
 const meta = {
-	title: 'Features/Gear/ItemNoticeIconView',
+	title: 'Features/Gear/GearPicker/Components/ItemNoticeIconView',
 	component: ItemNoticeIconView,
 	tags: ['autodocs'],
 	args: { level: 'warning', children: <p>The following enchant effect (on-use or proc) is not implemented!</p> },

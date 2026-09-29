@@ -11,7 +11,7 @@ import { StatRowView } from './StatRowView';
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);
 
 const meta = {
-	title: 'Features/CharacterStats/CharacterStats/Components/StatRowView',
+	title: 'Features/CharacterStats/Components/StatRowView',
 	component: StatRowView,
 	tags: ['autodocs'],
 	args: {

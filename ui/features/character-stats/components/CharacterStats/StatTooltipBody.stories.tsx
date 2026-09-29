@@ -7,7 +7,7 @@ import { makeStatAttribution, showStat } from '@testing/storybook/fixtures/chara
 import { StatTooltipBody } from './StatTooltipBody';
 
 const meta = {
-	title: 'Features/CharacterStats/CharacterStats/Components/StatTooltipBody',
+	title: 'Features/CharacterStats/Components/StatTooltipBody',
 	component: StatTooltipBody,
 	tags: ['autodocs'],
 	args: {

@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { AddonImporterDialog } from './AddonImporterDialog';
 
 const meta = {
-	title: 'Features/ImportExport/Importer/AddonImporterDialog',
+	title: 'Features/ImportExport/Importer/Components/AddonImporterDialog',
 	component: AddonImporterDialog,
 	tags: ['autodocs'],
 	args: { open: false, onOpenChange: fn() },

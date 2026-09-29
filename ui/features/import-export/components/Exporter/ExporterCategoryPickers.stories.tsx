@@ -21,7 +21,7 @@ const StatefulPickers = ({ categories: initial, onChange }: ExporterCategoryPick
 };
 
 const meta = {
-	title: 'Features/ImportExport/Exporter/ExporterCategoryPickers',
+	title: 'Features/ImportExport/Exporter/Components/ExporterCategoryPickers',
 	component: ExporterCategoryPickers,
 	tags: ['autodocs'],
 	args: { categories: defaultExportCategories(), onChange: fn() },

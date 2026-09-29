@@ -89,7 +89,7 @@ const FREEZE_SLOTS = (
 );
 
 const meta = {
-	title: 'Features/Reforge/ReforgePanel/Components/ReforgeSettingsPanelView',
+	title: 'Features/Reforge/ReforgePanel/ReforgeSettingsPanelView',
 	component: ReforgeSettingsPanelView,
 	tags: ['autodocs'],
 	args: {

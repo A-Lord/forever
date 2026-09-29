@@ -8,7 +8,7 @@ import { SelectorModalTabs } from '../../types';
 import { ItemDetailCellView } from './ItemDetailCellView';
 
 const meta = {
-	title: 'Features/Gear/ItemCell/Components/ItemDetailCellView',
+	title: 'Features/Gear/ItemCell/ItemDetailCellView',
 	component: ItemDetailCellView,
 	tags: ['autodocs'],
 	args: {

@@ -5,7 +5,7 @@ import { Table } from '@ui-kit/Table';
 import { CritImmunityRow } from './CritImmunityRow';
 
 const meta = {
-	title: 'Features/CharacterStats/CharacterStats/Components/CritImmunityRow',
+	title: 'Features/CharacterStats/Components/CritImmunityRow',
 	component: CritImmunityRow,
 	tags: ['autodocs'],
 	args: { info: CRIT_IMMUNITY_INFO, text: 'Immune' },
