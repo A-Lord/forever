@@ -54,6 +54,8 @@ export interface FieldProps extends FieldChromeProps {
 	'aria-labelledby'?: string;
 	/** Hides the field and keeps its children mounted. */
 	hidden?: boolean;
+	/** `BooleanPicker`'s label-before-the-control order; renders as `data-reverse`. */
+	reverse?: boolean;
 }
 
 export interface FieldRootProps {
@@ -66,6 +68,8 @@ export interface FieldRootProps {
 	grow?: boolean;
 	className?: ClassValue;
 	testId?: string;
+	/** `BooleanPicker`'s label-before-the-control order; renders as `data-reverse`. */
+	reverse?: boolean;
 	ref?: Ref<HTMLDivElement>;
 	role?: AriaRole;
 	'aria-labelledby'?: string;

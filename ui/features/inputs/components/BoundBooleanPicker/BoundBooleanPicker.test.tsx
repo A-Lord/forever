@@ -91,7 +91,7 @@ describe('BoundBooleanPicker', () => {
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('picker');
 		expect(root.getAttribute('data-layout')).toBe('inline');
-		expect(root.classList.contains('ui-boolean-picker-reverse')).toBe(true);
+		expect(root.hasAttribute('data-reverse')).toBe(true);
 		expect(root.classList.contains('mb-0')).toBe(true);
 		expect(root.querySelector('label')!.getAttribute('for')).toBe('use-item-swap');
 		expect(root.querySelector('input')!.id).toBe('use-item-swap');

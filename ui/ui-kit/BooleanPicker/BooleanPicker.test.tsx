@@ -71,35 +71,53 @@ describe('BooleanPicker', () => {
 		expect(checkbox().closest('[data-testid="boolean-picker-root"]')!.hasAttribute('data-disabled')).toBe(true);
 	});
 
-	it('renders the same shape as the vanilla picker', () => {
+	it('renders a labelled field: the label targets the checkbox, and the description sits alongside it', () => {
 		const { container } = render(<Harness description="Swaps mid-fight" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('boolean-picker-root');
-		expect(root.classList.contains('ui-boolean-picker')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['SPAN', 'INPUT', 'LABEL', 'DIV']);
-		expect(root.querySelector('label')!.className).toBe('ui-field-label');
+		expect(screen.getByText('Enable Item Swap').getAttribute('for')).toBe(checkbox().nextElementSibling!.id);
 		expect(root.querySelector('[data-testid="boolean-picker-input"]')).toBe(checkbox());
 	});
 
-	it('puts the input last when reverse is set, after the description', () => {
+	it('puts the label before the box when reverse is set, and marks the root', () => {
 		const { container } = render(<Harness reverse description="Swaps mid-fight" />);
 		const root = container.firstElementChild!;
-		expect(root.classList.contains('ui-boolean-picker-reverse')).toBe(true);
+		expect(root.hasAttribute('data-reverse')).toBe(true);
 		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'SPAN', 'INPUT']);
 	});
 
-	it('takes a root testId, a layout and field classes', () => {
-		const { container } = render(<Harness testId="log-runner-show-debug" layout="inline" className={['w-auto', 'mb-0']} />);
+	it('has no data-reverse when reverse is not set', () => {
+		const { container } = render(<Harness />);
+		expect(container.firstElementChild!.hasAttribute('data-reverse')).toBe(false);
+	});
+
+	it('takes a root testId and a layout', () => {
+		const { container } = render(<Harness testId="log-runner-show-debug" layout="inline" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('log-runner-show-debug');
 		expect(root.getAttribute('data-layout')).toBe('inline');
-		expect(root.classList.contains('ui-boolean-picker')).toBe(true);
-		expect(root.classList.contains('w-auto')).toBe(true);
 	});
 
 	it('toggles the value when the label is clicked', () => {
 		render(<Harness />);
 		fireEvent.click(screen.getByText('Enable Item Swap'));
 		expect(changes).toHaveBeenLastCalledWith(true);
+	});
+
+	it('renders the checkbox alone, with no Field root, when there is no label, description or layout', () => {
+		const { container } = render(<Harness label={undefined} />);
+		expect(container.firstElementChild).toBe(checkbox());
+		expect(container.querySelector('[data-testid="boolean-picker-root"]')).toBeNull();
+	});
+
+	it('marks a disabled, unlabelled checkbox directly, with no root to carry it', () => {
+		render(<Harness label={undefined} disabled />);
+		expect(checkbox().getAttribute('aria-disabled')).toBe('true');
+	});
+
+	it('takes a testId on the bare checkbox when there is no label', () => {
+		render(<Harness label={undefined} testId="sw-stat-toggle" />);
+		expect(screen.getByTestId('sw-stat-toggle')).toBe(checkbox());
 	});
 });

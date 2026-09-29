@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconEnum, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { IconRow } from '@ui-kit/IconRow';
 
 import { ConsumeRowView } from './ConsumeRowView';
 
@@ -18,11 +18,11 @@ const meta = {
 		label: 'Elixirs',
 		hidden: false,
 		children: (
-			<PickerGroup variant="icons" className="justify-end">
+			<IconRow className="justify-end">
 				<StoryIconEnum options={FLASKS} initial={1} />
 				<StoryIconToggle icon={storyIcon('inv_potion_32', 'Elixir of the Mongoose', 'item', 13452)} initial={1} />
 				<StoryIconToggle icon={storyIcon('inv_potion_61', 'Elixir of Giants', 'item', 9206)} />
-			</PickerGroup>
+			</IconRow>
 		),
 	},
 	argTypes: { children: { control: false } },

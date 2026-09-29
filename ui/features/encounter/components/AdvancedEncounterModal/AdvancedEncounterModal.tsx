@@ -5,7 +5,7 @@ import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import type { Encounter } from '@sim/raid/encounter';
 import { Dialog } from '@ui-kit/Dialog';
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { FieldGrid } from '@ui-kit/FieldGrid';
 import { useMemo } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
@@ -51,16 +51,16 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 			bodyGap="gap-3"
 			headerChildren={<BoundEnumPicker modObject={encounter} config={presetConfig} />}>
 			<div className="flex flex-col gap-3" data-testid="encounter-header">
-				<PickerGroup>
+				<FieldGrid>
 					{duration.map(config => (
 						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}
-				</PickerGroup>
-				<PickerGroup>
+				</FieldGrid>
+				<FieldGrid>
 					{execute.map(config => (
 						<BoundNumberPicker key={config.id} modObject={encounter} config={config} />
 					))}
-				</PickerGroup>
+				</FieldGrid>
 			</div>
 			<div>
 				<TargetsPicker encounter={encounter} />

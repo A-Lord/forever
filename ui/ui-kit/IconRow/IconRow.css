@@ -1,0 +1,15 @@
+@layer components {
+	.ui-icon-row {
+		@apply flex w-full flex-wrap gap-1;
+	}
+
+	/*
+	 * Waits on Task 3's `layout="icon"`: until it merges, `IconPicker`/`IconEnumPicker`/
+	 * `MultiIconPicker` still carry `ui-icon-field`, not `data-layout="icon"`, so this rule matches
+	 * nothing here. The `.ui-player-icon-group` ancestor keeps the flip scoped to `PlayerSettingsView`'s
+	 * row; other labelled icon rows (Hunter's pet `iconInputs`) must not pick it up.
+	 */
+	.ui-player-icon-group.ui-icon-row .ui-field[data-layout='icon']:has(.ui-field-label) {
+		@apply w-full flex-row-reverse justify-between;
+	}
+}

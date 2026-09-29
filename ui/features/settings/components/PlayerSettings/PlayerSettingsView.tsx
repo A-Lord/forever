@@ -1,4 +1,5 @@
-import { PickerGroup } from '@ui-kit/PickerGroup';
+import { FieldGrid } from '@ui-kit/FieldGrid';
+import { IconRow } from '@ui-kit/IconRow';
 import type { ReactNode } from 'react';
 
 export interface PlayerSettingsViewProps {
@@ -11,12 +12,12 @@ export interface PlayerSettingsViewProps {
 export const PlayerSettingsView = ({ iconPickers, race, inputs, professions }: PlayerSettingsViewProps) => (
 	<>
 		{iconPickers.length > 0 && (
-			<PickerGroup variant="icons" className="ui-player-icon-group" data-testid="player-icon-group">
+			<IconRow className="ui-player-icon-group" data-testid="player-icon-group">
 				{iconPickers}
-			</PickerGroup>
+			</IconRow>
 		)}
 		{race}
 		{inputs}
-		<PickerGroup>{professions}</PickerGroup>
+		<FieldGrid>{professions}</FieldGrid>
 	</>
 );
