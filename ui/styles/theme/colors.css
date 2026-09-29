@@ -2,6 +2,7 @@
 	--color-black: #000;
 	--color-white: #fff;
 	--color-grey: #808080;
+	--color-blue: #0d6efd;
 
 	--color-gray-300: #dee2e6;
 	--color-gray-600: #6c757d;
@@ -21,7 +22,7 @@
 	--color-panel-hover: color-mix(in srgb, var(--color-background) 85%, transparent);
 	--color-border: var(--color-gray-600);
 	--color-border-muted: color-mix(in srgb, var(--color-border) 50%, transparent);
-	--color-primary: #0d6efd;
+	--color-primary: var(--color-blue);
 	--color-primary-foreground: var(--color-white);
 	--color-primary-disabled-foreground: var(--color-white);
 	--color-secondary: var(--color-gray-600);
