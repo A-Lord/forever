@@ -271,7 +271,7 @@ subclass and inventory-type masks match (Spearing Strike 1310222 a two-hander in
 a dagger in both), and a row with no hand bit is met by any weapon slot (Aimed Shot's bow, gun or
 crossbow in the ranged slot). An armor row (item class 4) naming the shield subclass is
 `CastRequirement.Shield`, met by a shield in the off hand; a shield is the only armor a castable spell
-asks for. A unit that is not a player meets neither, and neither does a player with no weapon. A spell
+asks for. A unit that is not a player meets neither; a player with no weapon meets no weapon requirement. A spell
 with the not-in-combat bit is refused from the start of the encounter on, so Charge is a prepull
 action.
 

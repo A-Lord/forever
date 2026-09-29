@@ -161,7 +161,8 @@ func Tag(tag int32) SpellOpt {
 	}
 }
 
-// A shield is the only armor a castable spell asks for.
+// The forms, caster auras, weapon or shield and out-of-combat state the row requires. A shield is the
+// only armor a castable spell asks for.
 func (s *Spell) CastRequirement() core.CastRequirement {
 	r := core.CastRequirement{
 		Forms:             s.StanceMask,
