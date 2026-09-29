@@ -2,12 +2,13 @@ import { ItemSlot, PseudoStat, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
-import { computeStatAttribution, type Stats, type UnitStat } from '@sim/proto/stats';
+import { computeStatAttribution, type Stats, UnitStat } from '@sim/proto/stats';
 import { Table } from '@ui-kit/Table';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
+import { CharacterStatsHeaderView, type CharacterStatsMode } from './CharacterStatsHeaderView';
 import { CritCapRow } from './CritCapRow';
 import { CritImmunityRow } from './CritImmunityRow';
 import { MissRow } from './MissRow';
@@ -21,15 +22,20 @@ import {
 	statDisplayString,
 } from './utils/stat_display';
 
+// buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
+const ALL_STATS = UnitStat.getAll();
+
 export const CharacterStats = () => {
 	const host = useSimHost();
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
+	const [mode, setMode] = useState<CharacterStatsMode>('key');
 	const currentStats = usePlayerStore('currentStats');
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
 	const dualWielding = player.isDualWielding();
-	const { groups, shownStats } = useMemo(() => buildRows(player, displayStats), [player, displayStats]);
+	const statList = mode === 'all' ? ALL_STATS : displayStats;
+	const { groups, shownStats } = useMemo(() => buildRows(player, statList), [player, statList]);
 	const race = usePlayerStore('race');
 	const consumables = usePlayerStore('consumables');
 	const talentsString = usePlayerStore('talentsString');
@@ -81,9 +87,16 @@ export const CharacterStats = () => {
 
 	return (
 		<div data-testid="character-stats-root" className="w-full">
-			<h3 data-testid="character-stats-label" className="m-0 mb-2 inline-block text-base leading-tight font-bold">
-				{i18n.t('sidebar.character_stats.title')}
-			</h3>
+			<CharacterStatsHeaderView
+				mode={mode}
+				onModeChange={setMode}
+				labels={{
+					title: i18n.t('sidebar.character_stats.title'),
+					modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
+					key: i18n.t('sidebar.character_stats.mode.key'),
+					all: i18n.t('sidebar.character_stats.mode.all'),
+				}}
+			/>
 			<Table variant="plain" flush className="p-2.5" aria-busy={pending || undefined}>
 				{groups.map(group => (
 					<tbody key={group.key}>
