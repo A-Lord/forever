@@ -31,6 +31,4 @@ export const MultiSpec: Story = {
 	},
 };
 
-export const Priest: Story = { args: { playerClass: PlayerClasses.Priest } };
-
 export const SingleSpec: Story = { args: { playerClass: PlayerClasses.Mage } };

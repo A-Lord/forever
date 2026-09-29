@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Icon } from './Icon';
-import { ICON_ALIASES, type IconAlias, type IconSize, type IconStyle } from './types';
+import { ICON_ALIASES, ICON_NAMES, type IconAlias, type IconSize, type IconStyle } from './types';
 
 const STYLES: Array<{ style: IconStyle; name: 'circle-question' | 'github' }> = [
 	{ style: 'solid', name: 'circle-question' },
@@ -18,6 +18,7 @@ const meta = {
 	tags: ['autodocs'],
 	args: { name: 'star' },
 	argTypes: {
+		name: { control: 'select', options: ICON_NAMES },
 		style: { control: 'select', options: ['solid', 'regular', 'brands', 'base'] },
 		size: { control: 'select', options: [undefined, ...SIZES] },
 		spin: { control: 'boolean' },

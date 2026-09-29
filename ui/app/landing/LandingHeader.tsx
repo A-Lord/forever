@@ -80,7 +80,7 @@ export const LandingHeader = () => {
 								<Icon name="patreon" style="brands" size="2x" className="mr-2" />
 								<span className="text-fluid-xl md:hidden lg:block">{i18n.t('landing.header.supportDevs')}</span>
 							</a>
-							<LandingLanguageMenu />
+							<LandingLanguageMenu triggerClassName="px-0 py-4 max-md:pt-2 md:px-2" />
 						</div>
 					</div>
 				</nav>

@@ -8,7 +8,7 @@ const meta = {
 	component: BulkTabActionsView,
 	tags: ['autodocs'],
 	args: {
-		showNativeDownload: false,
+		showNativeDownload: true,
 		onImportBags: fn(),
 		onImportFavorites: fn(),
 		onClear: fn(),
@@ -32,5 +32,3 @@ export const Default: Story = {
 		await expect(args.onClear).toHaveBeenCalledOnce();
 	},
 };
-
-export const BrowserSim: Story = { args: { showNativeDownload: true } };

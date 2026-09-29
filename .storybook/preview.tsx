@@ -8,6 +8,7 @@ import { themes } from 'storybook/theming';
 
 import { SPEC_THEMES } from '../ui/design-system/tokens/spec_themes';
 import { withSimUi } from '../ui/testing/storybook/decorators';
+import { ICON_NAMES } from '../ui/ui-kit/Icon';
 
 (globalThis as unknown as { gtag: () => void }).gtag = () => {};
 // The Actions panel logs an fn() call as its whole argument list, so a React event arrives unrecognised
@@ -21,6 +22,8 @@ const preview: Preview = {
 		docs: { theme: themes.dark },
 		controls: { matchers: { color: /(background|color)$/i } },
 	},
+	// Every `icon` prop typed IconName picks from the kit's FontAwesome set; a story whose `icon` is an object opts out with `control: false`.
+	argTypes: { icon: { control: 'select', options: ICON_NAMES } },
 	globalTypes: {
 		spec: {
 			description: 'Which <spec>-sim-ui class frames the story',

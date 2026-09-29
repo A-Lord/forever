@@ -21,9 +21,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Closed: Story = {};
-
-export const Open: Story = {
+export const Default: Story = {
 	play: async ({ canvasElement }) => {
 		await userEvent.click(canvasElement.querySelector<HTMLElement>('#languageDropdown')!);
 		const items = within(canvasElement.ownerDocument.body).getAllByTestId('dropdown-item');

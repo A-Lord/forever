@@ -22,8 +22,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const GearAndTalents: Story = {};
-
-export const WithStatWeights: Story = {
+export const Default: Story = {
 	args: { build: makePresetBuild('Phase 1', { epWeights: { name: 'Phase 1', epWeights: new Stats() } }) },
 };

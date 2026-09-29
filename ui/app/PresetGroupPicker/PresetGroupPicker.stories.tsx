@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Chip } from '@ui-kit/Chip';
+import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { PresetGroupPicker } from './PresetGroupPicker';
@@ -37,14 +38,32 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const PhaseOne: Story = {
+type PickerProps = Story['args'] & Parameters<typeof PresetGroupPicker>[0];
+
+const PhasedPicker = (args: PickerProps) => {
+	const [phase, setPhase] = useState(args.phase);
+	return (
+		<PresetGroupPicker
+			{...args}
+			phase={phase}
+			onSelectPhase={next => {
+				setPhase(next);
+				args.onSelectPhase(next);
+			}}
+		/>
+	);
+};
+
+export const MultiPhase: Story = {
+	render: args => <PhasedPicker {...args} />,
 	play: async ({ args, canvasElement }) => {
-		const tabs = within(within(canvasElement).getByTestId('preset-group-phase-tabs')).getAllByRole('tab');
+		const canvas = within(canvasElement);
+		const tabs = within(canvas.getByTestId('preset-group-phase-tabs')).getAllByRole('tab');
 		await userEvent.click(tabs[1]);
 		await expect(args.onSelectPhase).toHaveBeenCalledWith(2);
+		await expect(canvas.getByText('Fury P2')).toBeVisible();
+		await expect(canvas.queryByText('Fury P1')).not.toBeInTheDocument();
 	},
 };
 
-export const PhaseTwo: Story = { args: { phase: 2 } };
-
-export const OnePhase: Story = { args: { phases: [1] } };
+export const SinglePhase: Story = { args: { phases: [1] } };

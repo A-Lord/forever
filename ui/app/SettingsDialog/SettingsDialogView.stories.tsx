@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { SettingsDialogView } from './SettingsDialogView';
@@ -33,16 +34,53 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+type ViewProps = Parameters<typeof SettingsDialogView>[0];
+
+const LiveSettingsDialog = (args: ViewProps) => {
+	const [open, setOpen] = useState(args.open);
+	const [fixedRngSeed, setFixedRngSeed] = useState(args.fixedRngSeed);
+	const [language, setLanguage] = useState(args.language);
+	const [showThreatMetrics, setShowThreatMetrics] = useState(args.showThreatMetrics);
+	const [showExperimental, setShowExperimental] = useState(args.showExperimental);
+	const [showQuickSwap, setShowQuickSwap] = useState(args.showQuickSwap);
+	const [wasmConcurrency, setWasmConcurrency] = useState(args.wasmConcurrency);
+	const relay =
+		<T,>(set: (next: T) => void, report: (next: T) => void) =>
+		(next: T) => {
+			set(next);
+			report(next);
+		};
+	return (
+		<SettingsDialogView
+			{...args}
+			open={open}
+			onOpenChange={relay(setOpen, args.onOpenChange)}
+			fixedRngSeed={fixedRngSeed}
+			onFixedRngSeedChange={relay(setFixedRngSeed, args.onFixedRngSeedChange)}
+			language={language}
+			onLanguageChange={relay(setLanguage, args.onLanguageChange)}
+			showThreatMetrics={showThreatMetrics}
+			onShowThreatMetricsChange={relay(setShowThreatMetrics, args.onShowThreatMetricsChange)}
+			showExperimental={showExperimental}
+			onShowExperimentalChange={relay(setShowExperimental, args.onShowExperimentalChange)}
+			showQuickSwap={showQuickSwap}
+			onShowQuickSwapChange={relay(setShowQuickSwap, args.onShowQuickSwapChange)}
+			wasmConcurrency={wasmConcurrency}
+			onWasmConcurrencyChange={relay(setWasmConcurrency, args.onWasmConcurrencyChange)}
+		/>
+	);
+};
+
 export const Default: Story = {
+	args: { firefox: true },
+	render: args => <LiveSettingsDialog {...args} />,
 	play: async ({ args, canvasElement }) => {
 		const frame = within(canvasElement.ownerDocument.body);
-		await userEvent.click(await frame.findByTestId('restore-defaults'));
+		const threat = await frame.findByTestId('show-threat-metrics-picker');
+		await userEvent.click(within(threat).getByRole('checkbox'));
+		await expect(args.onShowThreatMetricsChange).toHaveBeenCalledWith(true);
+		await expect(within(threat).getByRole('checkbox')).toBeChecked();
+		await userEvent.click(frame.getByTestId('restore-defaults'));
 		await expect(args.onApplyDefaults).toHaveBeenCalledOnce();
 	},
 };
-
-export const FixedSeed: Story = { args: { fixedRngSeed: 12345, showThreatMetrics: true, showExperimental: true } };
-
-export const Firefox: Story = { args: { firefox: true } };
-
-export const NativeSim: Story = { args: { showConcurrency: false } };

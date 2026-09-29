@@ -23,11 +23,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Warrior: Story = {};
-
-export const Mage: Story = { args: { currentSpec: PlayerSpecs.fromProto(Spec.SpecMage) } };
-
-export const Open: Story = {
+export const Default: Story = {
 	play: async ({ canvasElement }) => {
 		await userEvent.click(within(within(canvasElement).getByTestId('sim-link-dropdown')).getByTestId('sim-link'));
 		await expect(await within(canvasElement.ownerDocument.body).findByTestId('sim-title-popup')).toBeTruthy();

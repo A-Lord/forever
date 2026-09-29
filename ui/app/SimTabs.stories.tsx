@@ -59,12 +59,3 @@ export const Default: Story = {
 		await waitFor(() => expect(pane).toBeVisible());
 	},
 };
-
-export const TwoTabs: Story = {
-	args: {
-		tabs: [
-			{ id: 'gear-tab', title: 'Gear' },
-			{ id: 'talents-tab', title: 'Talents' },
-		],
-	},
-};
