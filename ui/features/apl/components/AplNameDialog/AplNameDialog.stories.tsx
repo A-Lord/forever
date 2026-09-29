@@ -1,14 +1,33 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '@ui-kit/Button';
+import { useState } from 'react';
 import { fn } from 'storybook/test';
 
-import { AplNameDialog } from './AplNameDialog';
+import { AplNameDialog, type AplNameDialogProps } from './AplNameDialog';
+
+const AplNameDialogStory = ({ open: initialOpen, onClose, ...props }: AplNameDialogProps) => {
+	const [open, setOpen] = useState(initialOpen);
+	return (
+		<>
+			<Button onClick={() => setOpen(true)}>{props.title}</Button>
+			<AplNameDialog
+				{...props}
+				open={open}
+				onClose={() => {
+					setOpen(false);
+					onClose();
+				}}
+			/>
+		</>
+	);
+};
 
 const meta = {
 	title: 'Features/Apl/AplNameDialog',
 	component: AplNameDialog,
 	tags: ['autodocs'],
 	args: {
-		open: true,
+		open: false,
 		title: 'New Group',
 		inputLabel: 'Name',
 		existingNames: ['Execute', 'Opener'],
@@ -16,6 +35,7 @@ const meta = {
 		onCancel: fn(),
 		onClose: fn(),
 	},
+	render: args => <AplNameDialogStory {...args} />,
 } satisfies Meta<typeof AplNameDialog>;
 
 export default meta;
