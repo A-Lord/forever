@@ -1,10 +1,8 @@
 import { CharacterStats } from '@features/character-stats';
 import { SimResultsPanel } from '@features/results/components/SimResultsPanel';
-import { SOCIALS } from '@sim/constants/other';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import type { Sim } from '@sim/sim';
 import { StickyHeaderContext } from '@ui-kit/hooks/useStickyToolbar';
-import { SocialLink } from '@ui-kit/SocialLink';
 import { ToastArea, toastManager } from '@ui-kit/Toast';
 import clsx from 'clsx';
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -96,11 +94,6 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								</div>
 								<div className="mt-auto max-lg:mt-0" data-testid="sim-sidebar-stats">
 									{host && <CharacterStats />}
-								</div>
-								<div className="flex justify-center gap-4" data-testid="sim-sidebar-socials">
-									{SOCIALS.map(social => (
-										<SocialLink key={social.key} social={social} />
-									))}
 								</div>
 							</div>
 						</aside>
