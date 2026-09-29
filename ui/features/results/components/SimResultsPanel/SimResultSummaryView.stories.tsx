@@ -1,0 +1,44 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
+
+import { loadTopline, type ToplineFixture } from '../../../../testing/storybook/fixtures/results-views';
+import { SimResultSummaryView } from './SimResultSummaryView';
+
+const meta = {
+	title: 'Features/Results/SimResultsPanel/SimResultSummaryView',
+	component: SimResultSummaryView,
+	tags: ['autodocs'],
+	args: {
+		metrics: [],
+		pinClassName: 'text-warrior',
+		onSetReference: fn(),
+		onSwapReference: fn(),
+		onClearReference: fn(),
+	},
+	loaders: [loadTopline],
+	render: (args, { loaded }) => <SimResultSummaryView {...args} metrics={(loaded as ToplineFixture).metrics} />,
+	decorators: [
+		Story => (
+			<div className="w-72">
+				<Story />
+			</div>
+		),
+	],
+} satisfies Meta<typeof SimResultSummaryView>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const NoReference: Story = {
+	play: async ({ args, canvasElement }) => {
+		await userEvent.click(within(canvasElement).getByTestId('results-sim-set-reference'));
+		await expect(args.onSetReference).toHaveBeenCalledOnce();
+	},
+};
+
+export const WithReference: Story = {
+	render: (args, { loaded }) => {
+		const { metrics, referenceDiffs } = loaded as ToplineFixture;
+		return <SimResultSummaryView {...args} metrics={metrics} referenceDiffs={referenceDiffs} />;
+	},
+};
