@@ -4,6 +4,7 @@ import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { ItemCell } from '@ui-kit/ItemCell';
 import { itemQualityClassName } from '@ui-kit/utils/css';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import type { ClassValue } from 'clsx';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
@@ -12,7 +13,6 @@ import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { SelectorModalTabs } from '../../types';
 import { EnchantLabel } from '../GearPicker/EnchantLabel';
 import { GemSocket } from './GemSocket';
-import { ItemCellAnchor } from './ItemCellAnchor';
 import { NameDescriptionLabel } from './NameDescriptionLabel';
 
 export interface ItemDetailCellViewProps {
@@ -69,13 +69,11 @@ export const ItemDetailCellView = ({
 		rootDataAttributes={rootDataAttributes}
 		ilvl={item ? item.ilvl.toString() : null}
 		icon={
-			<ItemCellAnchor
+			<WowheadAnchor
 				className="ui-item-picker-icon"
-				data-testid="item-picker-icon"
-				role="button"
+				testId="item-picker-icon"
 				href={href || undefined}
 				onActivate={onOpen && (() => onOpen(SelectorModalTabs.Items))}
-				data-whtticon={item ? 'false' : undefined}
 				style={{ backgroundImage: `url('${(item && iconUrl) || getEmptySlotIconUrl(slot)}')` }}
 				{...wowhead}
 			/>
@@ -95,13 +93,11 @@ export const ItemDetailCellView = ({
 		}
 		name={
 			<>
-				<ItemCellAnchor
+				<WowheadAnchor
 					className={clsx('ui-item-picker-name-container', itemQualityClassName(item?.item.quality))}
-					data-testid="item-picker-name-container"
-					role="button"
+					testId="item-picker-name-container"
 					href={href || undefined}
 					onActivate={onOpen && (() => onOpen(SelectorModalTabs.Items))}
-					data-whtticon={item ? 'false' : undefined}
 					{...wowhead}>
 					{item ? (
 						<>
@@ -114,7 +110,7 @@ export const ItemDetailCellView = ({
 					) : (
 						translateSlotName(slot)
 					)}
-				</ItemCellAnchor>
+				</WowheadAnchor>
 				{notice}
 			</>
 		}

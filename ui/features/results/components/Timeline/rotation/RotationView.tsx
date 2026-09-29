@@ -457,7 +457,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 				<div ref={measurerRef} className="pointer-events-none invisible absolute top-0 left-0 w-max" aria-hidden="true">
 					<RotationRowLabel
 						text={longestLabel}
-						icon={<a data-testid="rotation-row-icon" className="ui-timeline-row-icon" />}
+						icon={<span data-testid="rotation-row-icon" className="ui-timeline-row-icon" />}
 						onHide={() => undefined}
 						measuring
 					/>

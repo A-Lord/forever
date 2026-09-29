@@ -51,6 +51,19 @@ describe('ItemDetailCellView', () => {
 		expect(onOpen.mock.calls).toEqual([[SelectorModalTabs.Items], [SelectorModalTabs.Items], [SelectorModalTabs.Gem1], [SelectorModalTabs.Gem2]]);
 	});
 
+	it('is a button only where it opens the selector with no link, and never nests one anchor in another', () => {
+		const { rerender } = renderCell({ item: makeEquippedItem({ item: SOCKETED_ITEM }), onOpen: () => {} });
+		expect([icon(), name()].map(anchor => anchor.getAttribute('role'))).toEqual([null, null]);
+		expect(document.querySelectorAll('a a')).toHaveLength(0);
+
+		rerender(<ItemDetailCellView slot={ItemSlot.ItemSlotMainHand} item={null} iconUrl="" href="" onOpen={() => {}} />);
+		expect([icon(), name()].map(anchor => anchor.getAttribute('role'))).toEqual(['button', 'button']);
+		expect([icon(), name()].map(anchor => anchor.tabIndex)).toEqual([0, 0]);
+
+		rerender(<ItemDetailCellView slot={ItemSlot.ItemSlotMainHand} item={null} iconUrl="" href="" />);
+		expect([icon(), name()].map(anchor => anchor.getAttribute('role'))).toEqual([null, null]);
+	});
+
 	it('anchors each socket at its own tooltip', () => {
 		renderCell({ item: makeEquippedItem({ item: SOCKETED_ITEM }), socketTooltipId: gemIdx => `socket-${gemIdx}` });
 		expect(screen.getAllByTestId('gem-socket-container').map(socket => socket.getAttribute('data-tooltip-id'))).toEqual(['socket-0', 'socket-1']);

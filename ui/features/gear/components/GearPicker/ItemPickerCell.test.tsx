@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 const tooltip = vi.hoisted(() => ({ settles: [] as Array<(url: string) => void> }));
 
-vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
+vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: 'https://www.wowhead.com/item=1', ready: true }) }));
 vi.mock('@sim/proto/action_id/tooltip_data', () => ({
 	equippedItemWowheadTooltipData: () => new Promise<string>(resolve => tooltip.settles.push(resolve)),
 	actionIdWowheadTooltipData: () => new Promise<string>(() => {}),

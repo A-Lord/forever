@@ -17,7 +17,6 @@ describe('ActionIdIcon', () => {
 
 		expect(anchor.style.backgroundImage).toContain('inv_sword_04.jpg');
 		expect(anchor.hasAttribute('href')).toBe(false);
-		expect(anchor.getAttribute('data-whtticon')).toBe('false');
 	});
 
 	it('paints nothing for an empty id', async () => {

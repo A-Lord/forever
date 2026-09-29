@@ -4,6 +4,7 @@ import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
 import { Icon } from '@ui-kit/Icon';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import { useId } from 'react';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
@@ -35,13 +36,7 @@ export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, soc
 					data-testid="item-picker-icon-wrapper"
 					style={{ backgroundImage: `url('${(equipped && iconUrl) || getEmptySlotIconUrl(slot)}')` }}
 				/>
-				<a
-					className="absolute inset-0"
-					data-testid="gear-change-icon-link"
-					href={equipped ? href || undefined : undefined}
-					data-whtticon={equipped ? 'false' : undefined}
-					{...wowhead}
-				/>
+				<WowheadAnchor className="absolute inset-0" testId="gear-change-icon-link" href={equipped ? href || undefined : undefined} {...wowhead} />
 				<div className="ui-item-picker-sockets-container" data-testid="item-picker-sockets-container">
 					{sockets.map(({ socketColor, gemName, changed }, gemIdx) => (
 						<div

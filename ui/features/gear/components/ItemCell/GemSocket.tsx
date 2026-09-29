@@ -3,11 +3,10 @@ import type { UIGem as Gem } from '@generated/proto/ui';
 import { ActionId } from '@sim/proto/action_id';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
 import { wowheadIconUrl } from '@sim/proto/wowhead';
+import { WowheadAnchor, type WowheadAnchorProps } from '@ui-kit/WowheadAnchor';
 import clsx from 'clsx';
 
-import { ItemCellAnchor, type ItemCellAnchorProps } from './ItemCellAnchor';
-
-export interface GemSocketProps extends Omit<ItemCellAnchorProps, 'href' | 'children'> {
+export interface GemSocketProps extends Omit<WowheadAnchorProps, 'href' | 'children'> {
 	socketColor: GemColor;
 	gem: Gem | null;
 }
@@ -17,10 +16,10 @@ export const GemSocket = ({ socketColor, gem, className, ...rest }: GemSocketPro
 	const emptyIconUrl = getEmptyGemSocketIconUrl(socketColor);
 
 	return (
-		<ItemCellAnchor
+		<WowheadAnchor
 			{...rest}
 			className={clsx('ui-gem-socket ui-gem-socket-focus-scope relative size-(--gem-width) shrink-0 not-last:mr-px', className)}
-			data-testid="gem-socket-container"
+			testId="gem-socket-container"
 			href={href}>
 			{gem && (
 				<img
@@ -36,6 +35,6 @@ export const GemSocket = ({ socketColor, gem, className, ...rest }: GemSocketPro
 				src={emptyIconUrl}
 				alt=""
 			/>
-		</ItemCellAnchor>
+		</WowheadAnchor>
 	);
 };

@@ -35,6 +35,20 @@ describe('BulkItemSearchRow', () => {
 		const { container } = render(<BulkItemSearchRow item={item()} />);
 
 		expect(anchor(container).getAttribute('href')).toBe(HREF);
-		expect(anchor(container).getAttribute('target')).toBe('_blank');
+		expect(anchor(container).hasAttribute('target')).toBe(false);
+	});
+
+	it('cancels the link on a click and lets it reach the option around the row, which selects', () => {
+		const onSelect = vi.fn();
+		const { container } = render(
+			<div role="option" aria-selected={false} onClick={onSelect}>
+				<BulkItemSearchRow item={item()} />
+			</div>,
+		);
+		const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+		anchor(container).dispatchEvent(click);
+
+		expect(click.defaultPrevented).toBe(true);
+		expect(onSelect).toHaveBeenCalledOnce();
 	});
 });
