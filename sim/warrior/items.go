@@ -65,15 +65,10 @@ var ItemSetBattlegearOfWrath = core.NewItemSet(core.ItemSet{
 	Bonuses: map[int32]core.ApplySetBonus{
 		3: func(agent core.Agent, setBonusAura *core.Aura) {
 			// Spell 23563 states 30 attack power on Battle Shout, through the flag the HasBsT2 option sets.
-			warrior := agent.(WarriorAgent).GetWarrior()
-			fromOptions := warrior.HasBsT2
-			setBonusAura.
-				ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-					warrior.HasBsT2 = true
-				}).
-				ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-					warrior.HasBsT2 = fromOptions
-				})
+			// The shout reads the flag once, when it is registered, so only a set worn at the start counts.
+			if setBonusAura.BuildPhase == core.CharacterBuildPhaseGear {
+				agent.(WarriorAgent).GetWarrior().HasBsT2 = true
+			}
 		},
 		5: func(agent core.Agent, setBonusAura *core.Aura) {
 			warrior := agent.(WarriorAgent).GetWarrior()

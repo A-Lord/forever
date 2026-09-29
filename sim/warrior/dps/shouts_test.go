@@ -52,9 +52,9 @@ func TestWarriorCastsTheGeneratedBattleShout(t *testing.T) {
 	}
 }
 
-// The warrior's own shout with three pieces of Battlegear of Wrath on: the set
-// is a class option rather than the equipped gear, and it raises what the
-// shout bids for its category by the 30 spell 23563 states.
+// The warrior's own shout with three pieces of Battlegear of Wrath on, through
+// the class option: it raises what the shout bids for its category by the 30
+// spell 23563 states.
 func TestWarriorShoutsForTheTierTwoBonus(t *testing.T) {
 	bidOf := func(hasT2 bool) float64 {
 		t.Helper()
