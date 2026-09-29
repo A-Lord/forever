@@ -33,7 +33,7 @@ ui/
   features/inputs/   the binding layer between the store and ui-kit's controlled pickers:
                      input.ts (InputConfig, StoreBinding, InputChrome), hooks/ (useInput,
                      useBoundField, useHideZeroRestore), components/Bound*/ (one adapter per
-                     kit picker, plus BoundInput, BoundIconInput and BoundListPicker),
+                     kit picker, plus BoundInput and BoundIconInput),
                      configs.ts (the Bound* config types in one barrel), input_helpers.ts,
                      icon_inputs.ts
   app/               shells + chrome that compose features, and the only place allowed to

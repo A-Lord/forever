@@ -8,4 +8,3 @@ export type { BoundDropdownProps } from './components/BoundDropdown/types';
 export type { IconPickerConfig } from './components/BoundIconPicker/types';
 export type { IconEnumPickerConfig, IconEnumValueConfig } from './components/BoundIconEnumPicker/types';
 export type { MultiIconPickerConfig } from './components/BoundMultiIconPicker/types';
-export type { ListItemPickerConfig, ListPickerConfig } from './components/BoundListPicker/types';

@@ -228,18 +228,15 @@ mutate in place and call `touchRotation` themselves — either form is fine, but
 replace-on-write, so re-reading state inside the closure hands you a stale object and your edit
 disappears.
 
-**Lists.** The list hands `onChange` a copy; the source's notification re-renders. `ListPicker`
-never mutates the `items` it is given: create, delete, copy, a move, a drag in or out and an item
-write each build a fresh array. `BoundListPicker`
-(`ui/features/inputs/components/BoundListPicker/`) passes that copy to `config.setValue`, so a
-config's `getValue` may return the live store array and its `setValue` assigns the new one
-(`rotation.priorityList = next`, `setTargets(next)`) and notifies. Each row's binding re-reads
-`config.getValue` and finds its item by key, so a row keeps its item through a reorder and through a
-source that hands back clones. Confirm with `/usr/bin/grep -n "slice()" ui/ui-kit/ListPicker/ListPicker.tsx`.
-`useListItems` (`ui/features/inputs/hooks/useListItems.ts`) is the same binding without the markup:
-`create`, `remove`, `copy`, `move` and each row's `itemConfig` write one fresh array through
-`config.setValue`, and `remove` refuses a row `minimumItems` keeps; the keys come from
-`ui/features/inputs/list_ids.ts`.
+**Lists.** `useListItems` (`ui/features/inputs/hooks/useListItems.ts`) binds an array field to a
+config: `create`, `remove`, `copy`, `move` and each row's `itemConfig` write one fresh array through
+`config.setValue`, never mutating the array it read; `remove` refuses a row `minimumItems` keeps. A
+config's `getValue` may return the live store array, and `setValue` assigns the new one
+(`rotation.priorityList = next`, `setTargets(next)`) and notifies. Each row's `itemConfig.getValue`
+re-reads `config.getValue` and finds its item by key (`ui/features/inputs/list_ids.ts`), so a row
+keeps its item through a reorder and through a source that hands back clones. The caller renders the
+array on the kit `Tree` (`ui/ui-kit/Tree/`) and wires `move` through `Tree.Root`'s
+`sortable.onMove`.
 
 ## Adding a field
 
