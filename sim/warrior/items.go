@@ -15,6 +15,7 @@ var (
 	mightSunderThreat = spelldata.MustFind(23561) // 8pc: Enhanced Sunder Armor
 )
 
+// TODO: items 16861-16868 have no ItemSparse rows in the game files, so the set cannot be worn yet.
 var ItemSetBattlegearOfMight = core.NewItemSet(core.ItemSet{
 	Name: "Battlegear of Might",
 	ID:   209,
@@ -59,6 +60,7 @@ var (
 	wrathParryBuff    = spelldata.MustFind(23547) // 8pc: Parry, the buff
 )
 
+// TODO: items 16959-16966 have no ItemSparse rows in the game files, so the set cannot be worn yet.
 var ItemSetBattlegearOfWrath = core.NewItemSet(core.ItemSet{
 	Name: "Battlegear of Wrath",
 	ID:   218,
