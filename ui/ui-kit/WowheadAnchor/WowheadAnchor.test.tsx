@@ -12,7 +12,7 @@ const click = (element: HTMLElement) => {
 };
 
 describe('WowheadAnchor', () => {
-	it('links out with the external rel and the wowhead opt-outs', () => {
+	it('links out with the external rel and the icon opt-out, and keeps the touch tooltip of a link that only navigates', () => {
 		render(<WowheadAnchor href={HREF} rel="nofollow" testId="anchor" data-wowhead="item=19019" />);
 		const anchor = screen.getByTestId('anchor');
 
@@ -20,19 +20,27 @@ describe('WowheadAnchor', () => {
 		expect(anchor.getAttribute('href')).toBe(HREF);
 		expect(anchor.getAttribute('rel')).toBe('nofollow noopener noreferrer');
 		expect(anchor.dataset.whtticon).toBe('false');
-		expect(anchor.dataset.disableWowheadTouchTooltip).toBe('true');
+		expect(anchor.hasAttribute('data-disable-wowhead-touch-tooltip')).toBe(false);
 		expect(anchor.dataset.wowhead).toBe('item=19019');
 		expect(anchor.hasAttribute('role')).toBe(false);
 	});
 
-	it('writes no href, rel or icon opt-out without a link, and keeps the touch opt-out', () => {
+	it('writes no href, rel or wowhead opt-out without a link or an action', () => {
 		render(<WowheadAnchor href="" testId="anchor" />);
 		const anchor = screen.getByTestId('anchor');
 
 		expect(anchor.hasAttribute('href')).toBe(false);
 		expect(anchor.hasAttribute('rel')).toBe(false);
 		expect(anchor.hasAttribute('data-whtticon')).toBe(false);
-		expect(anchor.dataset.disableWowheadTouchTooltip).toBe('true');
+		expect(anchor.hasAttribute('data-disable-wowhead-touch-tooltip')).toBe(false);
+	});
+
+	it('carries the touch opt-out on an anchor that acts, linked or not', () => {
+		const { rerender } = render(<WowheadAnchor href={HREF} testId="anchor" onActivate={() => {}} />);
+		expect(screen.getByTestId('anchor').dataset.disableWowheadTouchTooltip).toBe('true');
+
+		rerender(<WowheadAnchor testId="anchor" onActivate={() => {}} />);
+		expect(screen.getByTestId('anchor').dataset.disableWowheadTouchTooltip).toBe('true');
 	});
 
 	it('leaves the icon opt-out off a linked anchor when told to', () => {

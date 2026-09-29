@@ -25,12 +25,9 @@ export const IconEnumOptionItem = <T,>({ option, tooltipId, onSelect }: IconEnum
 						text={option.text}
 						className="filter-[opacity(0.7)] transition-none hover:filter-none"
 						testId="icon-enum-option"
+						onActivate={onSelect}
 					/>
 				}
-				onClick={event => {
-					event.preventDefault();
-					onSelect();
-				}}
 				{...tooltipAnchorProps(option.tooltip ? tooltipId : undefined, option.tooltip)}
 			/>
 		</li>

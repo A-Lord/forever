@@ -47,10 +47,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 
 	// The improved icons are anchors beside the swatch, not inside it, so each carries these too.
 	const stateEvents = {
-		onClick: (event: MouseEvent) => {
-			event.preventDefault();
-			handleLeftClick();
-		},
+		onActivate: handleLeftClick,
 		onContextMenu: (event: MouseEvent) => event.preventDefault(),
 		onMouseDown: (event: MouseEvent) => {
 			if (isRightClick(event.nativeEvent)) {
