@@ -3,7 +3,7 @@ import { newTalentsConfig } from '@sim/talents/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { buildTalentGraph, type TalentArrow } from '../../model/tree_graph';
-import { TalentReqArrow } from './TalentReqArrow';
+import { TalentReqArrow, type TalentReqArrowProps } from './TalentReqArrow';
 
 const ROWS = 4;
 const COLS = 4;
@@ -33,17 +33,14 @@ const ARROWS = {
 	leftDown: arrowBetween({ rowIdx: 0, colIdx: 2 }, { rowIdx: 1, colIdx: 1 }),
 };
 
-interface StoryArgs {
-	direction: keyof typeof ARROWS;
-	fulfilled: boolean;
-}
+type StoryArgs = TalentReqArrowProps & { direction: keyof typeof ARROWS };
 
 const meta = {
 	title: 'Features/Talents/TalentsPicker/Components/TalentReqArrow',
 	component: TalentReqArrow,
 	tags: ['autodocs'],
-	args: { direction: 'down', fulfilled: false },
-	argTypes: { direction: { control: 'select', options: Object.keys(ARROWS) } },
+	args: { arrow: ARROWS.down, direction: 'down', fulfilled: false },
+	argTypes: { arrow: { control: false }, direction: { control: 'select', options: Object.keys(ARROWS) } },
 	render: ({ direction, fulfilled }) => <TalentReqArrow arrow={ARROWS[direction]} fulfilled={fulfilled} />,
 	decorators: [
 		Story => (

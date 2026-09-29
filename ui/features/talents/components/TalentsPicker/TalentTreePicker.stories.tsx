@@ -40,8 +40,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Empty: Story = {};
-
-export const Spent: Story = { args: { points: parseTalentsString(mageTalentsConfig, MAGE_BUILD) } };
-
-export const EmptyTreeWithAllPointsSpent: Story = { args: { points: parseTalentsString(mageTalentsConfig, MAGE_BUILD), treeIdx: 1 } };
+export const Default: Story = { args: { points: parseTalentsString(mageTalentsConfig, MAGE_BUILD) } };
