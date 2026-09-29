@@ -10,12 +10,16 @@ const meta = {
 	render: args => (
 		<div className="flex w-72 flex-col gap-1">
 			<SummaryTableRow {...args}>
-				<span className="text-quality-rare">Runed Crimson Spinel</span>
-				<span>4</span>
+				<span>Casts</span>
+				<span>128</span>
 			</SummaryTableRow>
 			<SummaryTableRow {...args}>
-				<span className="text-quality-rare">Brilliant Lionseye</span>
-				<span>2</span>
+				<span className="text-success">Hits</span>
+				<span>97</span>
+			</SummaryTableRow>
+			<SummaryTableRow {...args}>
+				<span className="text-danger">Misses</span>
+				<span>31</span>
 			</SummaryTableRow>
 		</div>
 	),
