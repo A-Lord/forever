@@ -80,12 +80,15 @@ describe('useListItems', () => {
 		const rows = rowsOf('a', 'b');
 		const before = rows.value;
 		const { result, setValue } = setup(rows);
+		const keyOfB = keyFor(result.current.items[1], 1);
 
 		act(() => result.current.copy(1));
 
 		expect(setValue).toHaveBeenCalledOnce();
 		expect(names(rows.value)).toEqual(['a', 'b copy', 'b']);
 		expect(names(before)).toEqual(['a', 'b']);
+		expect(keyFor(rows.value[2], 2)).toBe(keyOfB);
+		expect(keyFor(rows.value[1], 1)).not.toBe(keyOfB);
 
 		const bare = rowsOf('a');
 		const { result: withoutCopy, setValue: bareWrite } = setup(bare, { copyItem: undefined });
@@ -148,6 +151,73 @@ describe('useListItems', () => {
 
 		expect(setValue).toHaveBeenCalledOnce();
 		expect(names(rows.value)).toEqual(['a', 'b', 'new']);
+	});
+
+	it('acts on the row an index named at render, after a write the render has not seen', () => {
+		const removeCase = rowsOf('a', 'b', 'c');
+		const { result: removing } = setup(removeCase);
+		const { remove } = removing.current;
+		removeCase.value = [{ name: 'x' }, ...removeCase.value];
+		act(() => remove(1));
+		expect(names(removeCase.value)).toEqual(['x', 'a', 'c']);
+
+		const copyCase = rowsOf('a', 'b');
+		const { result: copying } = setup(copyCase);
+		const { copy } = copying.current;
+		copyCase.value = [{ name: 'x' }, ...copyCase.value];
+		act(() => copy(0));
+		expect(names(copyCase.value)).toEqual(['x', 'a copy', 'a', 'b']);
+
+		const moveCase = rowsOf('a', 'b', 'c');
+		const { result: moving } = setup(moveCase);
+		const { move } = moving.current;
+		moveCase.value = [{ name: 'x' }, ...moveCase.value];
+		act(() => move(0, 2));
+		expect(names(moveCase.value)).toEqual(['x', 'b', 'a', 'c']);
+	});
+
+	it('writes nothing for an index outside the rendered list, or for a row that is gone', () => {
+		const rows = rowsOf('a', 'b');
+		const { result, setValue } = setup(rows);
+		const { remove, copy, move } = result.current;
+
+		act(() => remove(2));
+		act(() => copy(-1));
+		act(() => move(0, 3));
+		act(() => move(2, 0));
+		act(() => move(-1, 1));
+		expect(setValue).not.toHaveBeenCalled();
+
+		rows.value = rows.value.slice(1);
+		act(() => remove(0));
+		act(() => move(0, 2));
+		expect(setValue).not.toHaveBeenCalled();
+		expect(names(rows.value)).toEqual(['b']);
+	});
+
+	it('keeps each row key across a render that leaves the list alone', () => {
+		const rows = rowsOf('a', 'b');
+		const { result, rerender } = setup(rows);
+		const items = result.current.items;
+		const keys = items.map(keyFor);
+
+		rerender();
+
+		expect(result.current.items).toBe(items);
+		expect(result.current.items.map(keyFor)).toEqual(keys);
+	});
+
+	it('re-reads its own write when the config names no source', () => {
+		const model = { value: [{ name: 'a' }] };
+		const setValue = vi.fn((m: typeof model, next: Array<Row>) => {
+			m.value = next;
+		});
+		const { result } = renderHook(() => useListItems(model, { getValue: m => m.value, setValue, newItem: () => ({ name: 'new' }) }));
+
+		act(() => result.current.create());
+
+		expect(setValue).toHaveBeenCalledOnce();
+		expect(names(result.current.items)).toEqual(['a', 'new']);
 	});
 });
 

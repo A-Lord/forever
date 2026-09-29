@@ -43,7 +43,7 @@ const FieldSugar = ({
 			className={[!layout && !iconField && 'max-md:flex-col max-md:items-start', className]}>
 			{leading}
 			{label && (
-				<Label as={role === 'group' ? 'span' : 'label'} id={groupLabelId} tooltip={labelTooltip}>
+				<Label id={groupLabelId} tooltip={labelTooltip}>
 					{label}
 				</Label>
 			)}
@@ -53,6 +53,8 @@ const FieldSugar = ({
 		</Root>
 	);
 };
+
+FieldSugar.displayName = 'Field';
 
 /** A labelled field in one component, and the namespace of the parts it is built from. */
 export const Field = Object.assign(FieldSugar, { Root, Label, Control, Description, Leading, After, Clear });
