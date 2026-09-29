@@ -3,6 +3,7 @@ import { rotationSource } from '@features/apl/utils';
 import { type ListItemsConfig, useListItems } from '@features/inputs/hooks/useListItems';
 import type { InputConfig } from '@features/inputs/input';
 import i18n from '@i18n/config';
+import { translateItemLabel } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
 import { Field } from '@ui-kit/Field';
@@ -83,7 +84,7 @@ export const GroupVariablesField = ({ player, config, groupNameField, getParentV
 	};
 	const { items, itemConfig, remove } = useListItems(player, listConfig);
 
-	const itemLabel = 'Variable';
+	const itemLabel = translateItemLabel('Variable');
 	return (
 		<Field.Root
 			layout={config.layout}

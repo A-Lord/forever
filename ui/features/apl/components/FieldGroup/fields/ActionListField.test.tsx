@@ -72,6 +72,15 @@ beforeEach(() => {
 });
 
 describe('ActionListField', () => {
+	it('lays each action out as an inline row holding its action picker', () => {
+		setup();
+		mount();
+
+		const list = document.querySelector('[data-testid="apl-action-list"]')!;
+		expect(list.getAttribute('data-layout')).toBe('inline');
+		expect(list.querySelectorAll('[data-testid="apl-action-list-item"] [data-testid="apl-action-picker-root"]')).toHaveLength(1);
+	});
+
 	it('copies a row, which a sequence needs as much as the priority list does', () => {
 		setup();
 		mount();

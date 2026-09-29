@@ -140,13 +140,14 @@ describe('GroupVariablesField', () => {
 		expect(container().querySelector('[aria-label="common.list_picker.move_drag_drop"]')).toBeNull();
 	});
 
-	it('titles the list with a caption that labels no control', () => {
+	it('titles an inline list with a caption that labels no control', () => {
 		setup({ groupName: 'g1', placeholders: ['a'] });
 		mount();
 
 		const caption = container().querySelector('[data-testid="form-label"]')!;
 		expect(caption.tagName).toBe('SPAN');
 		expect(caption.textContent).toBe('Group Variables');
+		expect(container().querySelector('[data-testid="apl-group-variables"]')!.getAttribute('data-layout')).toBe('inline');
 	});
 
 	it('writes a variableRef and touches the rotation when a row picks a variable', () => {

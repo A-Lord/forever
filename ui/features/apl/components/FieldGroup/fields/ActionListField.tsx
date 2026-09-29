@@ -4,6 +4,7 @@ import type { InputConfig } from '@features/inputs/input';
 import { keyFor } from '@features/inputs/list_ids';
 import { APLAction } from '@generated/proto/apl';
 import i18n from '@i18n/config';
+import { translateItemLabel } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import { Tree, type TreeSortable } from '@ui-kit/Tree';
 import clsx from 'clsx';
@@ -33,7 +34,7 @@ export const ActionListField = ({ player, config }: ActionListFieldProps) => {
 	const sortable = useMemo((): TreeSortable => ({ onMove: ({ from, to }) => moveRef.current(from.index, to.index) }), []);
 	if (hidden) return null;
 
-	const itemLabel = 'action';
+	const itemLabel = translateItemLabel('action');
 	return (
 		<Tree.Root
 			group="apl-actions"

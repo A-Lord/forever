@@ -8,6 +8,7 @@ import type { InputConfig } from '@features/inputs/input';
 import { keyFor } from '@features/inputs/list_ids';
 import { APLValue } from '@generated/proto/apl';
 import i18n from '@i18n/config';
+import { translateItemLabel } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
 import { Tree, type TreeSortable } from '@ui-kit/Tree';
@@ -56,7 +57,7 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 	const sortable = useMemo((): TreeSortable => ({ onMove: ({ from, to }) => moveRef.current(from.index, to.index) }), []);
 	if (hidden) return null;
 
-	const itemLabel = 'Value';
+	const itemLabel = translateItemLabel('Value');
 	const { extraAction } = extraction;
 	return (
 		<>

@@ -44,7 +44,8 @@ export const AddTarget: Story = {
 	args: { encounter: makeStoryEncounter([TargetProto.create({ level: 63, swingSpeed: 2 })]) },
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
+		const before = canvas.getAllByTestId('targets-picker-item').length;
 		await userEvent.click(canvas.getByTestId('tree-add'));
-		await expect(canvas.getAllByTestId('targets-picker-item')).toHaveLength(2);
+		await expect(canvas.getAllByTestId('targets-picker-item')).toHaveLength(before + 1);
 	},
 };

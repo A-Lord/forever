@@ -55,7 +55,8 @@ export const AddOperand: Story = {
 	args: operandsOf([constant('a', '1')]),
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
+		const before = canvas.getAllByTestId('apl-value-list-item').length;
 		await userEvent.click(canvas.getByTestId('tree-add'));
-		await expect(canvas.getAllByTestId('apl-value-list-item')).toHaveLength(2);
+		await expect(canvas.getAllByTestId('apl-value-list-item')).toHaveLength(before + 1);
 	},
 };
