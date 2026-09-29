@@ -16,7 +16,7 @@ export const EpCell = ({ ep, equippedEP }: EpCellProps) => {
 				{ep < 9.95 ? ep.toFixed(1) : Math.round(ep).toString()}
 			</span>
 			<span
-				className={clsx('ml-1 text-ep-delta', toneTextClass(delta?.tone))}
+				className={clsx('ml-1 text-xs', toneTextClass(delta?.tone))}
 				data-testid="selector-modal-list-item-ep-delta"
 				data-sign={delta?.tone ?? undefined}>
 				{delta?.text}

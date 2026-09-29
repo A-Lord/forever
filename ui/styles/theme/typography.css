@@ -17,13 +17,10 @@
 	--text-5xl: 5rem;
 
 	--text-ui: var(--text-xs);
-	--text-ep-delta: var(--text-xs);
 
 	--leading-heading: 1.2;
 
 	--text-2xs: 0.625rem;
-
-	--text-cr-badge: var(--text-2xs);
 }
 
 @theme static inline {
@@ -35,5 +32,4 @@
 	--text-shadow-outline-strong: 0 0 6px var(--color-black), 0 0 6px var(--color-black), 0 2px 4px --alpha(var(--color-black) / 80%);
 	--text-shadow-outline-soft: 0 0 3px var(--color-black), 0 0 3px var(--color-black);
 	--text-shadow-outline-glow: 0 0 4px var(--color-black), 0 0 4px var(--color-black);
-	--text-shadow-glow-crit: 0 0 8px var(--color-danger), 0 0 8px var(--color-danger);
 }
