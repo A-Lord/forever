@@ -175,7 +175,7 @@ describe('Field', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		field({ labelTooltip: (() => 'from a function') as unknown as string });
 		expect(warn).toHaveBeenCalledOnce();
-		expect(warn.mock.calls[0][0]).toMatch(/^Field "cast-delay": labelTooltip/);
+		expect(warn.mock.calls[0][0]).toMatch(/^Field "cast-delay": tooltip is neither/);
 		expect(within(root()).getByTestId('form-label').getAttribute('data-tooltip-id')).toBeNull();
 	});
 
