@@ -52,7 +52,7 @@ const row = (options: Options, configs?: Array<IconEnumPickerConfig<Options, num
 	return screen.getByTestId('consumes-row');
 };
 
-const isHidden = (element: Element) => element.classList.contains('hidden');
+const isHidden = (element: Element) => element.hasAttribute('hidden');
 
 describe('ConsumeRow', () => {
 	it('captions the row with its consumable group', () => {

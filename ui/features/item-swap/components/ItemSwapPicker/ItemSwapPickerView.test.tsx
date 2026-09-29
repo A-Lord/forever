@@ -24,15 +24,17 @@ describe('ItemSwapPickerView', () => {
 		expect(row.hasAttribute('data-input-root')).toBe(true);
 	});
 
-	it('names the icon group with the row label', () => {
+	it('names the row, swap button and icons, as one group with the row label', () => {
 		renderView();
 		const group = screen.getByRole('group', { name: i18n.t('settings_tab.other.item_swap.label') });
+		expect(group).toBe(screen.getByTestId('input-item-swap-container'));
 		expect(group.querySelectorAll('[data-testid="slot-icon"]')).toHaveLength(2);
+		expect(group.contains(screen.getByTestId('gear-swap-icon'))).toBe(true);
 	});
 
 	it('gives the icon grid one column per slot', () => {
 		renderView({ slotCount: 3 });
-		expect(screen.getByRole('group').style.gridTemplateColumns).toBe('repeat(3, 4rem)');
+		expect(screen.getByTestId('item-swap-icon-grid').style.gridTemplateColumns).toBe('repeat(3, 4rem)');
 	});
 
 	it('swaps on the swap button', () => {

@@ -30,13 +30,13 @@ describe('ConsumeRowView', () => {
 	it('hides a hidden row and keeps its pickers mounted', () => {
 		renderRow(true);
 
-		expect(screen.getByTestId('consumes-row').classList.contains('hidden')).toBe(true);
+		expect(screen.getByTestId('consumes-row').hidden).toBe(true);
 		expect(screen.getByTestId('pickers')).toBeTruthy();
 	});
 
 	it('shows a row that is not hidden', () => {
 		renderRow();
 
-		expect(screen.getByTestId('consumes-row').classList.contains('hidden')).toBe(false);
+		expect(screen.getByTestId('consumes-row').hidden).toBe(false);
 	});
 });

@@ -56,6 +56,40 @@ describe('Field', () => {
 		expect(root().hasAttribute('data-input-root')).toBe(true);
 	});
 
+	it('names a group by its own label when no aria-labelledby is given', () => {
+		render(
+			<Field label="Elixirs" role="group">
+				<button type="button">Flask</button>
+			</Field>,
+		);
+
+		const group = screen.getByRole('group', { name: 'Elixirs' });
+		expect(group).toBe(root());
+		expect(group.getAttribute('aria-labelledby')).toBe(within(group).getByTestId('form-label').id);
+	});
+
+	it('keeps an explicit aria-labelledby on a group, and gives a field that is not a group no label reference', () => {
+		const { unmount } = field({ role: 'group', 'aria-labelledby': 'buffs-label' });
+		expect(root().getAttribute('aria-labelledby')).toBe('buffs-label');
+		unmount();
+
+		field();
+		expect(root().hasAttribute('aria-labelledby')).toBe(false);
+	});
+
+	it('hides a hidden field and keeps its children mounted', () => {
+		const { rerender } = field({ hidden: true });
+		expect(root().hidden).toBe(true);
+		expect(root().querySelector('input')).not.toBeNull();
+
+		rerender(
+			<Field id="cast-delay" label="Cast Delay">
+				<input id="cast-delay" />
+			</Field>,
+		);
+		expect(root().hidden).toBe(false);
+	});
+
 	it('takes its test id from testId', () => {
 		field({ testId: 'number-picker-root' });
 		expect(screen.getByTestId('number-picker-root').hasAttribute('data-input-root')).toBe(true);
@@ -124,6 +158,7 @@ describe('Field', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		field({ labelTooltip: (() => 'from a function') as unknown as string });
 		expect(warn).toHaveBeenCalledOnce();
+		expect(warn.mock.calls[0][0]).toMatch(/^Field "cast-delay": labelTooltip/);
 		expect(within(root()).getByTestId('form-label').getAttribute('data-tooltip-id')).toBeNull();
 	});
 
