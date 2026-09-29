@@ -257,7 +257,7 @@ type Power struct {
 	// ManaCost and ManaCostPerLevel, in the bar's own units.
 	Cost, CostPerLevel int32
 
-	// PowerCostPct: the share of the caster's maximum the cast takes instead of a flat amount.
+	// PowerCostPct: the share of the caster's base the cast takes instead of a flat amount.
 	CostPct float32
 
 	// ManaPerSecond, for a channel that drains while it runs.
