@@ -6,6 +6,7 @@ import type { PlayerClass } from '@sim/player/player_class';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import { PlayerSpecs } from '@sim/player/specs/index';
 import { textClassNameForClass, textClassNameForSpec } from '@sim/proto/utils';
+import { Button } from '@ui-kit/Button';
 import { Menu, MenuLinkItem } from '@ui-kit/Menu';
 import { SimLinkContent } from '@ui-kit/SimLinkContent';
 import clsx from 'clsx';
@@ -25,7 +26,7 @@ const ClassSubmenu = ({ playerClass }: { playerClass: PlayerClass<Class> }) => (
 		submenu
 		surface="plain"
 		trigger={<SimLinkContent iconPath={playerClass.getIcon('large')} title={translatePlayerClass(playerClass)} />}
-		triggerRender={<button type="button" />}
+		triggerRender={<Button variant="unstyled" />}
 		triggerProps={{ className: clsx(SIM_LINK_CLASSES, textClassNameForClass(playerClass)), 'data-testid': 'sim-link' }}
 		side="right"
 		align="start"

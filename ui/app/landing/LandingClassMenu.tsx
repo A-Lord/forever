@@ -4,6 +4,7 @@ import { PlayerClasses } from '@sim/player/classes/index';
 import type { PlayerClass } from '@sim/player/player_class';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import { textClassNameForClass, textClassNameForSpec } from '@sim/proto/utils';
+import { Button } from '@ui-kit/Button';
 import { Menu, MenuLinkItem } from '@ui-kit/Menu';
 import { SimLinkContent } from '@ui-kit/SimLinkContent';
 import { CLASS_BORDER } from '@ui-kit/utils/colors';
@@ -35,14 +36,18 @@ export const LandingClassMenu = ({ playerClass }: LandingClassMenuProps) => {
 		const [spec] = specs;
 		return (
 			<div className="ui-landing-sim-link-dropdown" data-testid="sim-link-dropdown">
-				<a href={spec.simLink} className={clsx('ui-landing-sim-link-cell', textClassNameForClass(playerClass))} data-testid="sim-link">
+				<Button
+					href={spec.simLink}
+					variant="unstyled"
+					className={clsx('ui-landing-sim-link-cell', textClassNameForClass(playerClass))}
+					data-testid="sim-link">
 					<SimLinkContent
 						iconPath={classIconPath}
 						iconClassName={CLASS_BORDER[PlayerClasses.getCssScheme(playerClass)]}
 						title={className}
 						status={translateStatus(spec.launch.status)}
 					/>
-				</a>
+				</Button>
 			</div>
 		);
 	}

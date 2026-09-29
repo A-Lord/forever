@@ -111,7 +111,7 @@ describe('MetricsTable', () => {
 		const { container } = render(
 			<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={buildRows()} sortColumnId="value" hasResult={true} />,
 		);
-		const value = table(container).headers[1];
+		const value = sortButton(table(container).headers[1]);
 
 		fireEvent.click(value);
 		expect(column(container, 1, parents)).toEqual(['10', '30', '70']);
@@ -126,7 +126,7 @@ describe('MetricsTable', () => {
 			<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={buildRows()} sortColumnId="value" hasResult={true} />,
 		);
 
-		fireEvent.click(table(container).headers[0]);
+		fireEvent.click(sortButton(table(container).headers[0]));
 		expect(column(container, 0, parents)).toEqual(['Alpha', 'Beta', 'Charlie']);
 		expect(
 			table(container)
@@ -140,11 +140,11 @@ describe('MetricsTable', () => {
 			<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={buildRows()} sortColumnId="value" hasResult={true} />,
 		);
 
-		fireEvent.click(table(container).headers[0]);
+		fireEvent.click(sortButton(table(container).headers[0]));
 		expect(column(container, 0, parents)).toEqual(['Alpha', 'Beta', 'Charlie']);
 
 		// Names are unique, so a second sort column would leave that order untouched.
-		fireEvent.click(table(container).headers[1], { shiftKey: true });
+		fireEvent.click(sortButton(table(container).headers[1]), { shiftKey: true });
 		expect(column(container, 1, parents)).toEqual(['10', '30', '70']);
 	});
 
@@ -163,7 +163,7 @@ describe('MetricsTable', () => {
 			['Alpha', false, false],
 		]);
 
-		fireEvent.click(table(container).headers[1]);
+		fireEvent.click(sortButton(table(container).headers[1]));
 		expect(table(container).rows.map(row => row.cells[0].getAttribute('data-text'))).toEqual(['Alpha', 'Charlie', 'Beta', 'Bite', 'Claw']);
 	});
 
@@ -190,7 +190,7 @@ describe('MetricsTable', () => {
 			<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={rows} sortColumnId="value" hasResult={true} />,
 		);
 
-		fireEvent.click(table(container).headers[1]);
+		fireEvent.click(sortButton(table(container).headers[1]));
 		fireEvent.click(table(container).rows[2]);
 		expect(column(container, 1, parents)).toEqual(['10', '30', '70']);
 		expect(table(container).rows.filter(row => row.hasAttribute('data-child'))).toHaveLength(0);

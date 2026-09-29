@@ -136,7 +136,14 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 				removeLabel={removeButtonLabel(label, key => i18n.t(key))}
 				onRemove={onRemove}
 			/>
-			<ItemListHeaderRow label={label} showEPValues={showEPValues} epTooltipId={`${tooltipId}-ep`} onSort={sort} />
+			<ItemListHeaderRow
+				label={label}
+				showEPValues={showEPValues}
+				epTooltipId={`${tooltipId}-ep`}
+				sortBy={sortBy}
+				sortDirection={sortDirection}
+				onSort={sort}
+			/>
 			<div
 				ref={listRef}
 				className="mb-0 max-h-[60vh] w-full overflow-x-hidden overflow-y-scroll p-0"

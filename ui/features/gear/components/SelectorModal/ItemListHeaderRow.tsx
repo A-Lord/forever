@@ -1,4 +1,5 @@
 import i18n from '@i18n/config';
+import { SortDirection } from '@sim/constants/other';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 
@@ -10,16 +11,23 @@ export interface ItemListHeaderRowProps {
 	label: SelectorModalTabs;
 	showEPValues: boolean;
 	epTooltipId: string;
+	sortBy: ItemListSortBy;
+	sortDirection: SortDirection;
 	onSort: (sortBy: ItemListSortBy) => void;
 }
 
-export const ItemListHeaderRow = ({ label, showEPValues, epTooltipId, onSort }: ItemListHeaderRowProps) => {
+const ariaSort = (sortBy: ItemListSortBy, sortDirection: SortDirection, column: ItemListSortBy) =>
+	sortBy !== column ? 'none' : sortDirection === SortDirection.ASC ? 'ascending' : 'descending';
+
+export const ItemListHeaderRow = ({ label, showEPValues, epTooltipId, sortBy, sortDirection, onSort }: ItemListHeaderRowProps) => {
 	const isItemsTab = label === SelectorModalTabs.Items;
 	return (
 		<div className="mr-4 flex justify-between gap-4 pr-2 text-md max-xl:mr-0" data-testid="selector-modal-list-labels">
 			{isItemsTab && (
-				<h6 className="w-12 cursor-pointer select-none" data-testid="ilvl-label" onClick={() => onSort(ItemListSortBy.ILVL)}>
-					{i18n.t('gear_tab.gear_picker.table_headers.ilvl')}
+				<h6 className="w-12 select-none" data-testid="ilvl-label" aria-sort={ariaSort(sortBy, sortDirection, ItemListSortBy.ILVL)}>
+					<Button variant="unstyled" className="text-inherit [font:inherit] focus-visible:focus-ring" onClick={() => onSort(ItemListSortBy.ILVL)}>
+						{i18n.t('gear_tab.gear_picker.table_headers.ilvl')}
+					</Button>
 				</h6>
 			)}
 			<h6 className="mr-2 flex-1" data-testid="item-label">
@@ -31,12 +39,17 @@ export const ItemListHeaderRow = ({ label, showEPValues, epTooltipId, onSort }: 
 				</h6>
 			)}
 			<h6
-				className="float-right flex w-24 cursor-pointer items-center select-none"
+				className="float-right flex w-24 items-center select-none"
 				data-testid="ep-label"
 				style={{ display: showEPValues ? undefined : 'none' }}
-				onClick={() => onSort(ItemListSortBy.EP)}>
-				<span>EP</span>
-				<Icon name="plus-minus" size="2xs" />
+				aria-sort={ariaSort(sortBy, sortDirection, ItemListSortBy.EP)}>
+				<Button
+					variant="unstyled"
+					className="flex items-center text-inherit [font:inherit] focus-visible:focus-ring"
+					onClick={() => onSort(ItemListSortBy.EP)}>
+					<span>EP</span>
+					<Icon name="plus-minus" size="2xs" />
+				</Button>
 				<Button iconOnly aria-label={i18n.t('gear_tab.gear_picker.ep_tooltip')} className="ml-1" data-tooltip-id={epTooltipId}>
 					<Icon name="circle-question" style="regular" size="lg" />
 				</Button>

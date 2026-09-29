@@ -241,9 +241,9 @@ describe('ItemList', () => {
 		const { container } = setup();
 		expect(names(container)).toEqual(['Beta', 'Gamma', 'Alpha']);
 
-		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"]')!.click());
+		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"] button')!.click());
 		expect(names(container)).toEqual(['Beta', 'Gamma', 'Alpha']);
-		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"]')!.click());
+		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"] button')!.click());
 		expect(names(container)).toEqual(['Alpha', 'Gamma', 'Beta']);
 
 		fireEvent.input(container.querySelector('[data-testid="selector-modal-search"]')!, { target: { value: 'a' } });
