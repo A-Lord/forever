@@ -40,7 +40,6 @@ func (mage *Mage) registerFlamestrikeSpell(castRank, tickRank *spelldata.Spell) 
 	config := spelldata.SpellConfig(&mage.Unit, castRank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellFlamestrike
 	config.RelatedDotSpell = dotSpell
-	config.Rank = castRank.RankNumber()
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, rollDamage(castRank.DamageEffect()))

@@ -896,7 +896,7 @@ func (unit *Unit) GetMetadata() *proto.UnitMetadata {
 		Name: unit.Label,
 	}
 
-	// The rank rides on the id so the UI can group a spell's ranks; the client's tooltips do not
+	// The rank rides on the id so the UI can group a spell's ranks; the tooltips the UI fetches do not
 	// always state one. An aura takes the rank of the spell sharing its id.
 	ranks := map[ActionID]int32{}
 	rankedID := func(actionID ActionID) *proto.ActionID {

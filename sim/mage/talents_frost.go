@@ -174,10 +174,13 @@ func (mage *Mage) registerArcticReach() {
 		return
 	}
 
-	//Percentage is not handled in SpellMod so we can't use ParseStatic
+	// Effect 1 is SPELLMOD_RANGE as a percentage, which core has no mod for: it is worked out
+	// against Frostbolt's range, which Blizzard shares. The radius (effect 2) does nothing to a
+	// single boss.
+	effect := spellData.ArcticReach.Rank(mage.Talents.ArcticReach).EffectN(1)
 	mage.AddStaticMod(core.SpellModConfig{
-		ClassMask:  MageSpellFrostbolt | MageSpellBlizzard,
-		FloatValue: 3 * float64(mage.Talents.ArcticReach),
+		ClassFlags: effect.ClassFlags,
+		FloatValue: effect.Percent() * float64(frostboltRank.MaxRange),
 		Kind:       core.SpellMod_Range_Flat,
 	})
 }
@@ -271,32 +274,24 @@ func (mage *Mage) registerFingersOfFrost() {
 // checked here; its chance is effect 2, which the resolver reads. Effect 1's base (1-5 by rank) is
 // ignored: every proc adds one stack. The debuff is A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES: it
 // raises only this mage's crit, and only for the spells its class mask names (Frostbolt and Ice
-// Lance), so it is applied by those spells rather than through the target's pseudo stats.
+// Lance), so it is parsed onto this mage's attack table against the target.
 func (mage *Mage) registerWinterChill() {
 	if mage.Talents.WintersChill == 0 {
 		return
 	}
 
 	debuff := spellData.WintersChillTriggered.Highest()
-	critEffect := debuff.EffectN(1)
-	critPerStack := critEffect.BaseValue()
+	critFlags := debuff.EffectN(1).ClassFlags
 
-	config := spelldata.AuraConfig(debuff)
 	wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.RegisterAura(config)
+		aura := target.RegisterAura(spelldata.AuraConfig(debuff, spelldata.Label(debuff.Name+mage.Label)))
+		spelldata.ParseEffects(nil, aura, debuff, spelldata.FromCaster(&mage.Unit, DDBC_WintersChill, DDBC_Total))
+		return aura
 	})
-
-	mage.addTargetCritBonus(
-		func(spell *core.Spell) bool {
-			return spell.MatchesFlags(critEffect.ClassFlags)
-		},
-		func(target *core.Unit) float64 {
-			return critPerStack * float64(wcAuras.Get(target).GetStacks())
-		})
 
 	mage.Env.RegisterPreFinalizeEffect(func() {
 		for _, spell := range mage.Spellbook {
-			if spell.MatchesFlags(critEffect.ClassFlags) {
+			if spell.MatchesFlags(critFlags) {
 				spell.RelatedAuraArrays = wcAuras.ToMap()
 			}
 		}
@@ -350,9 +345,9 @@ func (mage *Mage) isFrozen(_ *core.Unit) bool {
 }
 
 // addTargetCritBonus raises the crit chance of the spells matches accepts by what bonus reads for
-// the target. core has no per-target crit bonus scoped to a set of spells, so each matching spell
-// carries the bonus for the duration of its own effects: the crit is rolled there, travel time or
-// not. Spells are matched once every one is registered.
+// the target, for Shatter, whose bonus is a dummy effect with no aura on the target to parse onto.
+// Each matching spell carries the bonus for the duration of its own effects: the crit is rolled
+// there, travel time or not. Spells are matched once every one is registered.
 func (mage *Mage) addTargetCritBonus(matches func(*core.Spell) bool, bonus func(target *core.Unit) float64) {
 	mage.Env.RegisterPreFinalizeEffect(func() {
 		for _, spell := range mage.Spellbook {

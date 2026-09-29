@@ -75,11 +75,7 @@ func (mage *Mage) registerArcaneSubtlety() {
 		return
 	}
 
-	rank := spellData.ArcaneSubtlety.Rank(mage.Talents.ArcaneSubtlety)
-	spelldata.ParseStatic(&mage.Character, rank, spelldata.Effects(1))
-
-	// A_MOD_TARGET_RESISTANCE, which the parse does not know: spell penetration, stated negative.
-	mage.AddStat(stats.SpellPiercing, -rank.EffectN(2).BaseValue())
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneSubtlety.Rank(mage.Talents.ArcaneSubtlety))
 }
 
 // registerMagicAbsorption: "Increases all your resistances by 10 and causes all spells you fully
@@ -104,22 +100,10 @@ func (mage *Mage) registerArcaneConcentration() {
 	clearcastingRank := spellData.Clearcasting.Highest()
 	costEffect := clearcastingRank.EffectN(1)
 
-	costMod := mage.AddDynamicMod(core.SpellModConfig{
-		ClassFlags: costEffect.ClassFlags,
-		FloatValue: costEffect.Percent() / 10,
-		Kind:       core.SpellMod_PowerCost_Pct_Add,
-	})
-
 	var proccedAt time.Duration
 	var proccedBy *core.Spell
 
 	config := spelldata.AuraConfig(clearcastingRank)
-	config.OnGain = func(aura *core.Aura, sim *core.Simulation) {
-		costMod.Activate()
-	}
-	config.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-		costMod.Deactivate()
-	}
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
 		if !spell.MatchesFlags(costEffect.ClassFlags) || spell.Cost == nil || spell.Cost.BaseCost == 0 {
 			return
@@ -131,6 +115,9 @@ func (mage *Mage) registerArcaneConcentration() {
 		aura.Deactivate(sim)
 	}
 	mage.ClearCasting = mage.RegisterAura(config)
+	// The row's -1000% cost is what lets Clearcasting beat Arcane Charges and Arcane Power, which
+	// raise the cost in the same additive bucket.
+	spelldata.ParseEffects(&mage.Character, mage.ClearCasting, clearcastingRank)
 
 	trigger := spelldata.ProcTrigger(&mage.Character, spellData.ArcaneConcentration.Rank(mage.Talents.ArcaneConcentration),
 		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
@@ -149,13 +136,12 @@ func (mage *Mage) registerArcaneConcentration() {
 }
 
 // registerArcaneResilience: "Increases your Armor by an amount equal to 50% of your Intellect."
-// A_MOD_ARMOR_PCT_FROM_STAT, which the parse does not know.
 func (mage *Mage) registerArcaneResilience() {
 	if mage.Talents.ArcaneResilience == 0 {
 		return
 	}
 
-	mage.AddStatDependency(stats.Intellect, stats.Armor, spellData.ArcaneResilience.FractionAt(mage.Talents.ArcaneResilience))
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneResilience.Rank(mage.Talents.ArcaneResilience))
 }
 
 // registerArcaneGeometry: "Increases the range of your Arcane spells by 3/6 yards."
@@ -176,7 +162,7 @@ func (mage *Mage) registerArcaneImpact() {
 	spelldata.ParseStatic(&mage.Character, spellData.ArcaneImpact.Rank(mage.Talents.ArcaneImpact))
 }
 
-// registerArcaneBlastTalent: Arcane Blast is a talent in Forever.
+// registerArcaneBlastTalent implements the talent gate for Arcane Blast (arcane_blast.go).
 func (mage *Mage) registerArcaneBlastTalent() {
 	if !mage.Talents.ArcaneBlast {
 		return
@@ -220,13 +206,12 @@ func (mage *Mage) registerImprovedCounterspell() {
 }
 
 // registerArcaneMeditation: "Allows 50% of your Mana regeneration to continue while casting."
-// A_MOD_MANA_REGEN_INTERRUPT, which the parse does not know.
 func (mage *Mage) registerArcaneMeditation() {
 	if mage.Talents.ArcaneMeditation == 0 {
 		return
 	}
 
-	mage.PseudoStats.SpiritRegenRateCasting += spellData.ArcaneMeditation.FractionAt(mage.Talents.ArcaneMeditation)
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneMeditation.Rank(mage.Talents.ArcaneMeditation))
 }
 
 // registerMissileBarrage: "Gives your Arcane Blast spell a 40% chance, and your Fireball,

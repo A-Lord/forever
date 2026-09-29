@@ -40,7 +40,7 @@ func (mage *Mage) registerFireTalents() {
 	mage.registerCombustionTalent()
 }
 
-// registerWakeOfFire implements Wake of Fire, new in Forever.
+// registerWakeOfFire implements Wake of Fire.
 func (mage *Mage) registerWakeOfFire() {
 	if mage.Talents.WakeOfFire == 0 {
 		return
@@ -114,7 +114,7 @@ func (mage *Mage) registerIgnite() {
 	mage.MakeProcTriggerAura(trigger)
 }
 
-// registerFlameThrowing implements Flame Throwing, new in Forever.
+// registerFlameThrowing implements Flame Throwing.
 func (mage *Mage) registerFlameThrowing() {
 	if mage.Talents.FlameThrowing == 0 {
 		return
@@ -123,10 +123,10 @@ func (mage *Mage) registerFlameThrowing() {
 	spelldata.ParseStatic(&mage.Character, spellData.FlameThrowing.Rank(mage.Talents.FlameThrowing))
 }
 
-// registerImpact implements Impact, new in Forever.
+// registerImpact: "Gives your Fire spells a 10% chance to stun the target for 2 sec."
 //
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Not modelled: the proc (12355) is an A_MOD_STUN, which a boss the sim fights is immune to, the same
+// reason Frostbite's freeze is not modelled.
 func (mage *Mage) registerImpact() {
 	if mage.Talents.Impact == 0 {
 		return
@@ -149,7 +149,7 @@ func (mage *Mage) registerImprovedFlamestrike() {
 	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFlamestrike.Rank(mage.Talents.ImprovedFlamestrike))
 }
 
-// registerPyroblastTalent implements the Forever talent gate for Pyroblast.
+// registerPyroblastTalent implements the talent gate for Pyroblast (pyroblast.go).
 func (mage *Mage) registerPyroblastTalent() {
 	if !mage.Talents.Pyroblast {
 		return
@@ -185,7 +185,7 @@ func (mage *Mage) registerImprovedFireWard() {
 	}
 }
 
-// registerHotStreak implements Hot Streak, new in Forever.
+// registerHotStreak implements Hot Streak.
 func (mage *Mage) registerHotStreak() {
 	if !mage.Talents.HotStreak {
 		return

@@ -24,25 +24,17 @@ func (mage *Mage) registerArmorSpells() {
 	})
 
 	mageArmorRank := spellData.MageArmor.Highest()
-	resist := mageArmorRank.EffectN(1).BaseValue()
-	// Arcane Shielding's effect 2 raises Mage Armor's resistances.
-	if mage.Talents.ArcaneShielding > 0 {
-		resist *= 1 + spellData.ArcaneShielding.Rank(mage.Talents.ArcaneShielding).EffectN(2).Percent()
-	}
-	castingRegen := mageArmorRank.EffectN(2).Percent()
+	// Arcane Shielding's effect 2 raises Mage Armor's resistances (effect 1), so that effect is
+	// scaled here; the casting regen (effect 2) is parsed.
+	resist := mageArmorRank.EffectN(1).BaseValue() * (1 + spellData.ArcaneShielding.EffectAt(2).FractionAt(mage.Talents.ArcaneShielding))
 	mageArmor := mage.registerArmor(mageArmorRank, MageSpellMageArmor, stats.Stats{
 		stats.ArcaneResistance: resist,
 		stats.FireResistance:   resist,
 		stats.FrostResistance:  resist,
 		stats.NatureResistance: resist,
 		stats.ShadowResistance: resist,
-	}).ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-		mage.PseudoStats.SpiritRegenRateCasting += castingRegen
-		mage.UpdateManaRegenRates()
-	}).ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-		mage.PseudoStats.SpiritRegenRateCasting -= castingRegen
-		mage.UpdateManaRegenRates()
 	})
+	spelldata.ParseEffects(&mage.Character, mageArmor, mageArmorRank, spelldata.Effects(2))
 
 	if mage.Options == nil {
 		return

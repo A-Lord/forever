@@ -125,6 +125,15 @@ func NewMage(character *core.Character, options *proto.Player) *Mage {
 	return mage
 }
 
+// The slots the mage's caster-only debuffs hold on its attack table against a target, one per
+// FromCaster parse.
+const (
+	DDBC_FireVulnerability int = iota
+	DDBC_WintersChill
+
+	DDBC_Total
+)
+
 // Agent is a generic way to access underlying mage on any of the agents.
 type MageAgent interface {
 	GetMage() *Mage

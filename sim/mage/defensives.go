@@ -53,10 +53,7 @@ func (mage *Mage) registerWardSpell(rank *spelldata.Spell, onAbsorbed core.OnDam
 // lowers the mana per point (its effect 1). The shield breaks once the mana runs out; the hit that
 // empties it is still absorbed whole.
 func (mage *Mage) registerManaShieldSpell() {
-	manaPerPoint := float64(manaShieldRank.EffectN(1).Amplitude)
-	if mage.Talents.ArcaneShielding > 0 {
-		manaPerPoint *= 1 + spellData.ArcaneShielding.Rank(mage.Talents.ArcaneShielding).EffectN(1).Percent()
-	}
+	manaPerPoint := float64(manaShieldRank.EffectN(1).Amplitude) * (1 + spellData.ArcaneShielding.EffectAt(1).FractionAt(mage.Talents.ArcaneShielding))
 	manaMetrics := mage.NewManaMetrics(core.ActionID{SpellID: manaShieldRank.ID})
 
 	mage.registerWardSpell(manaShieldRank,

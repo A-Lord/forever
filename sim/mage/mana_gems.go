@@ -6,8 +6,8 @@ import (
 )
 
 // One of each conjured gem, best first, one use each per fight. They share the gems' 60 sec
-// category cooldown. Each is shown as its item, which the spell data does not link to the spell
-// it uses; the pairs are Wowhead's.
+// category cooldown. Each is shown as its item. The conjure spells' E_CREATE_ITEM states item 0
+// (Conjure Mana Ruby, 10054), so no row links a gem to its item and the item ids are stated here.
 var manaGems = []struct {
 	itemID int32
 	name   string

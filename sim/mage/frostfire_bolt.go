@@ -15,8 +15,11 @@ func (mage *Mage) registerFrostfireBoltSpell() {
 	dotConfig := spelldata.SpellConfig(&mage.Unit, frostfireBoltRank,
 		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc(), spelldata.Tag(1))
 	dotConfig.ClassSpellMask = MageSpellFrostfireBoltDot
-	dotConfig.Dot = spelldata.DotConfig(frostfireBoltRank, frostfireBoltRank.PeriodicEffect())
-	dotConfig.Dot.OnTick = chargeLock.onTick(dotConfig.Dot.OnTick)
+	tick := frostfireBoltRank.PeriodicEffect()
+	dotConfig.Dot = spelldata.DotConfig(frostfireBoltRank, tick)
+	// The DoT only goes out on a landed hit, so its ticks roll crit (the row states Periodic Can
+	// Crit) but not hit.
+	dotConfig.Dot.OnTick = chargeLock.onTick(spelldata.PeriodicDamageTick(tick, frostfireBoltRank.TickOutcomeHitRolled))
 	dotConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.Dot(target).Apply(sim)
 	}
