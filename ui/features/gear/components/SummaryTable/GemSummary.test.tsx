@@ -7,7 +7,9 @@ import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
-vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
+vi.mock('@sim/hooks/useActionIds', () => ({
+	useActionIds: (ids: Array<{ itemId: number }>) => ids.map(id => ({ iconUrl: `gem-${id.itemId}.jpg`, name: '', href: '' })),
+}));
 
 const { GemSummary } = await import('./GemSummary');
 
@@ -42,6 +44,7 @@ describe('GemSummary', () => {
 		expect(container.querySelector('[data-testid="summary-table-root"]')).not.toBeNull();
 		const rows = [...container.querySelectorAll('[data-testid="summary-table-row"]')].map(row => row.textContent);
 		expect(rows).toEqual(['Bold2', 'Delicate1']);
+		expect([...container.querySelectorAll('[data-testid="gem-icon"]')].map(icon => icon.getAttribute('src'))).toEqual(['gem-1.jpg', 'gem-2.jpg']);
 	});
 
 	it('renders nothing at all when there are no gems', () => {
