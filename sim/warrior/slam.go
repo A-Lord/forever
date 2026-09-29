@@ -2,17 +2,28 @@ package warrior
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Attributes[2]: the cast does not reset the auto attack timers.
+const attrEx2DoNotResetCombatTimers uint32 = 0x20000
+
 var slamRank = spellData.Slam.Highest()
-var slamBaseDamage = slamRank.DamageEffect().Average(core.CharacterLevel)
+
+var improvedSlamRank = slamRank.OverriddenBy(spellData.ImprovedSlam.Highest())
 
 func (warrior *Warrior) registerSlam() {
-	config := spelldata.SpellConfig(&warrior.Unit, slamRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	rank := core.Ternary(warrior.Talents.ImprovedSlam > 0, improvedSlamRank, slamRank)
+	slamBaseDamage := rank.DamageEffect().Average(core.CharacterLevel)
+	stopsSwing := !rank.HasAttr(dbcenums.ATTR_INDEX_EX_2, attrEx2DoNotResetCombatTimers)
+
+	config := spelldata.SpellConfig(&warrior.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	// The APL names Slam by the spell the talent replaces.
+	config.ActionID = core.ActionID{SpellID: slamRank.ID}
 
 	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-		if cast.CastTime > 0 && warrior.Talents.ImprovedSlam == 0 {
+		if cast.CastTime > 0 && stopsSwing {
 			warrior.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+cast.CastTime)
 		}
 	}
