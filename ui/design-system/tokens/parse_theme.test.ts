@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { parseThemeVars } from './parse_theme';
+import { parseThemeVars, resolvePxValue } from './parse_theme';
 
 const themeDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../styles/theme');
 const read = (file: string) => readFileSync(path.join(themeDir, file), 'utf8');
@@ -35,5 +35,11 @@ describe('parseThemeVars', () => {
 		const names = parseThemeVars(read('effects.css')).map(token => token.name);
 		expect(names).not.toContain('--radius-*');
 		expect(names).toContain('--radius-xs');
+	});
+});
+
+describe('resolvePxValue', () => {
+	it('resolves a --spacing(n) step at the 14px root', () => {
+		expect(resolvePxValue('--spacing(18.5)', 14)).toBe(64.75);
 	});
 });

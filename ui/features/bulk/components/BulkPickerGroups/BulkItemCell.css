@@ -4,8 +4,8 @@
 
 		& .ui-item-picker-icon-wrapper {
 			--icon-size: --spacing(14);
-			min-width: 3.5rem;
-			min-height: 3.5rem;
+			min-width: var(--icon-size);
+			min-height: var(--icon-size);
 		}
 
 		& .ui-item-picker-labels-container {
