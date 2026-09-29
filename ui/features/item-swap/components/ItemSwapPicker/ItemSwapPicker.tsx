@@ -40,7 +40,7 @@ export const ItemSwapPicker = <SpecType extends Spec>({ itemSlots, note }: ItemS
 		<div className="grid gap-2" data-testid="item-swap-picker-root">
 			<ConnectedBooleanPicker modObject={player} config={enableConfig} />
 			{enabled && (
-				<ItemSwapPickerView slotCount={itemSlots.length} note={note} onSwap={() => swapWithGear(player, itemSlots)}>
+				<ItemSwapPickerView note={note} onSwap={() => swapWithGear(player, itemSlots)}>
 					{itemSlots.map(itemSlot => (
 						<ItemSwapIcon key={itemSlot} slot={itemSlot} />
 					))}

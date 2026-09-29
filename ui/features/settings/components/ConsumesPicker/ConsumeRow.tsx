@@ -26,8 +26,7 @@ export const ConsumeRow = ({ name, configs, hidden = false, children }: ConsumeR
 	const player = usePlayer();
 	const shown = useStoreSubscribe(subscribePlayerChange(player), () => configs.some(config => rowConfigShown(config, player)));
 
-	// Hide, never unmount. Vanilla's updateRow only toggled a `hide` class, which kept every
-	// picker in the row alive: a hidden ConnectedIconEnumPicker is what zeroes the field it is bound to
+	// Hide, never unmount: a hidden ConnectedIconEnumPicker is what zeroes the field it is bound to
 	// when the player can no longer use it, and restores the value if they can again. Returning
 	// null here skips that effect entirely, so a stale selection survives in the proto.
 	return (

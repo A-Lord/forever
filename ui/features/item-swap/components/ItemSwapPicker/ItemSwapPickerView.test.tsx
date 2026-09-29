@@ -7,7 +7,7 @@ import { ItemSwapPickerView } from './ItemSwapPickerView';
 const renderView = (props: Partial<Parameters<typeof ItemSwapPickerView>[0]> = {}) => {
 	const onSwap = vi.fn();
 	render(
-		<ItemSwapPickerView slotCount={2} onSwap={onSwap} {...props}>
+		<ItemSwapPickerView onSwap={onSwap} {...props}>
 			<span data-testid="slot-icon" />
 			<span data-testid="slot-icon" />
 		</ItemSwapPickerView>,
@@ -31,11 +31,6 @@ describe('ItemSwapPickerView', () => {
 		expect(group.contains(screen.getByTestId('gear-swap-icon'))).toBe(true);
 	});
 
-	it('gives the icon grid one column per slot', () => {
-		renderView({ slotCount: 3 });
-		expect(screen.getByTestId('item-swap-icon-grid').style.gridTemplateColumns).toBe('repeat(3, 4rem)');
-	});
-
 	it('swaps on the swap button', () => {
 		const { onSwap } = renderView();
 		fireEvent.click(screen.getByRole('button', { name: i18n.t('settings_tab.other.item_swap.tooltip') }));
@@ -44,7 +39,7 @@ describe('ItemSwapPickerView', () => {
 
 	it('leaves the note out when there is none', () => {
 		const { container } = render(
-			<ItemSwapPickerView slotCount={1} onSwap={() => {}}>
+			<ItemSwapPickerView onSwap={() => {}}>
 				<span />
 			</ItemSwapPickerView>,
 		);

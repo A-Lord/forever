@@ -8,14 +8,13 @@ import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { type ReactNode, useId } from 'react';
 
 export interface ItemSwapPickerViewProps {
-	slotCount: number;
 	note?: string;
 	onSwap: () => void;
 	/** One icon per swap slot. */
 	children: ReactNode;
 }
 
-export const ItemSwapPickerView = ({ slotCount, note, onSwap, children }: ItemSwapPickerViewProps) => {
+export const ItemSwapPickerView = ({ note, onSwap, children }: ItemSwapPickerViewProps) => {
 	const swapId = useId();
 	const swapTooltip = i18n.t('settings_tab.other.item_swap.tooltip');
 
@@ -31,7 +30,7 @@ export const ItemSwapPickerView = ({ slotCount, note, onSwap, children }: ItemSw
 					<Icon name="arrows-rotate" className="me-1" />
 				</Button>
 				<Tooltip id={swapId} content={swapTooltip} />
-				<IconRow className="items-center justify-end" style={{ gridTemplateColumns: `repeat(${slotCount}, 4rem)` }} testId="item-swap-icon-grid">
+				<IconRow className="items-center justify-end" testId="item-swap-icon-grid">
 					{children}
 				</IconRow>
 			</Field>

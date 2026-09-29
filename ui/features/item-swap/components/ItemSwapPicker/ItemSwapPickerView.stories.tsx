@@ -16,7 +16,6 @@ const meta = {
 	component: ItemSwapPickerView,
 	tags: ['autodocs'],
 	args: {
-		slotCount: SLOTS.length,
 		onSwap: fn(),
 		children: SLOTS.map(slot => <EmptySlot key={slot} slot={slot} />),
 	},
@@ -42,4 +41,4 @@ export const Default: Story = {
 
 export const WithNote: Story = { args: { note: 'Only the main hand swaps back after the opener.' } };
 
-export const OneSlot: Story = { args: { slotCount: 1, children: <EmptySlot slot={ItemSlot.ItemSlotTrinket1} /> } };
+export const OneSlot: Story = { args: { children: <EmptySlot slot={ItemSlot.ItemSlotTrinket1} /> } };

@@ -51,8 +51,7 @@ export const rowStyle = (row: Row): CSSProperties =>
 		'--row-h': String(row.height),
 		// Every item positions itself with `top-(--rotation-item-top)`, and the row is the only place
 		// both halves of it are in scope: `--row-h` is set here, `--rotation-item-h` on the pane.
-		// Vanilla derived it in `_timeline_rotation.scss:139`, which went with the SCSS; until it came
-		// back the variable resolved nowhere and every item fell back to `top: auto`.
+		// Without it the variable resolves nowhere and every item falls back to `top: auto`.
 		'--rotation-item-top': 'calc((var(--row-h) * 1px - var(--rotation-item-h)) / 2)',
 		// The GCD band is two spacing steps tall (`GcdSegmentItem`'s `h-2`) rather than the full item
 		// height, so it centres against the item rather than the row. Derived here for the same reason

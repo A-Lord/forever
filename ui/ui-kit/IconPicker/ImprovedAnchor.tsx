@@ -15,7 +15,6 @@ export interface ImprovedAnchorProps {
 	onMouseDown: MouseEventHandler;
 }
 
-// The badges share a 38px square set in the swatch's bottom-right corner, hence 1px in on the left and none on the right.
 export const ImprovedAnchor = ({ icon, testId, active, disabled, corner, ...events }: ImprovedAnchorProps) => (
 	<IconSwatch
 		icon={icon}
