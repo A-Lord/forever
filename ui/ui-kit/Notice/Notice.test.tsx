@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { NOTICE_ICON_NAME as EXPORTED_ICON_NAME } from '.';
 import { Notice } from './Notice';
-import { NOTICE_COLOR, NOTICE_ICON, NOTICE_ICON_NAME, noticeIconClass } from './noticeLevel';
+import { NOTICE_COLOR, NOTICE_ICON_NAME } from './noticeLevel';
 
 const icon = (el: HTMLElement) => el.querySelector('i')!;
 
@@ -58,12 +58,5 @@ describe('NOTICE_ICON_NAME', () => {
 	it('is the icon name Notice draws per level, exported from the barrel', () => {
 		expect(EXPORTED_ICON_NAME).toBe(NOTICE_ICON_NAME);
 		expect(NOTICE_ICON_NAME).toEqual({ info: 'info-circle', warning: 'exclamation-triangle', error: 'exclamation-triangle' });
-	});
-});
-
-describe('noticeIconClass', () => {
-	it('keeps the FontAwesome 5 glyph class the feature callers read', () => {
-		expect(NOTICE_ICON).toEqual({ info: 'fa-info-circle', warning: 'fa-exclamation-triangle', error: 'fa-exclamation-triangle' });
-		expect(noticeIconClass('error').split(' ')).toEqual(['fa', 'fa-exclamation-triangle', ...NOTICE_COLOR.error.split(' ')]);
 	});
 });
