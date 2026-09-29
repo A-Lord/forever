@@ -396,6 +396,21 @@ func statName(misc int32) string {
 	return fmt.Sprintf("stat %d", misc)
 }
 
+// A_MOD_TOTAL_STAT_PERCENTAGE states its stats as a mask of stat indexes in its second misc value,
+// where it has one; 31 is all five.
+func statMaskName(mask int32) string {
+	if mask == 31 {
+		return statName(-1)
+	}
+	var names []string
+	for i := int32(0); i < 32; i++ {
+		if uint32(mask)&(1<<i) != 0 {
+			names = append(names, statName(i))
+		}
+	}
+	return strings.Join(names, " and ")
+}
+
 // SpellCategories.DispelType, which is also what an E_DISPEL effect names in its misc value.
 func dispelName(t int32) string {
 	switch t {
