@@ -14,7 +14,7 @@ describe.each(Object.entries(modules))('%s', (_file, mod) => {
 	const stories = Object.entries(composeStories(mod));
 	it.each(stories)('%s mounts', async (_name, story) => {
 		if (story.parameters?.smoke === false) {
-			expect(typeof story.parameters.smokeReason).toBe('string');
+			expect(story.parameters.smokeReason).toMatch(/\S/);
 			return;
 		}
 		const canvasElement = document.body.appendChild(document.createElement('div'));

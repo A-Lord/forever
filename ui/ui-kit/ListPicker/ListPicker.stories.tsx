@@ -140,8 +140,9 @@ export const Density: Story = {
 	),
 };
 
-// A synthetic drag brings no data transfer of its own; the list only ever reads these three members.
-const dataTransfer = () => ({ setDragImage: () => {}, dropEffect: '', effectAllowed: '' });
+// A synthetic drag brings no data transfer of its own. A browser's DragEvent only takes a real one,
+// and the test DOM's setDragImage throws.
+const dataTransfer = () => Object.assign(new DataTransfer(), { setDragImage: () => {} });
 
 export const DragBetweenLists: Story = {
 	args: { dragGroup: 'targets', sameGroupOnly: true, inlineMenuBar: true },

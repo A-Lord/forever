@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SimTabPane } from '@ui-kit/SimTabPane';
 import { useState } from 'react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { SimTabDef } from './SimTabDef';
 import { SimTabs } from './SimTabs';
@@ -34,7 +34,7 @@ const SimTabsFrame = ({ tabs }: SimTabsFrameProps) => {
 };
 
 const meta = {
-	title: 'App/SimTabs',
+	title: 'App/Tabs/SimTabs',
 	component: SimTabsFrame,
 	subcomponents: { SimTabs, SimTabDef },
 	tags: ['autodocs'],
@@ -55,7 +55,8 @@ export const Default: Story = {
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		await userEvent.click(await canvas.findByRole('tab', { name: 'Talents' }));
-		await expect(await canvas.findByText('Talents pane')).toBeVisible();
+		const pane = await canvas.findByText('Talents pane');
+		await waitFor(() => expect(pane).toBeVisible());
 	},
 };
 

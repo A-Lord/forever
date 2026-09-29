@@ -55,6 +55,31 @@ describe('useActionId', () => {
 		expect(anchor(container).dataset.ready).toBe('true');
 	});
 
+	it('logs a rejected fill and leaves the id unresolved, without an unhandled rejection', async () => {
+		const failure = new Error('no tooltip data');
+		vi.spyOn(ActionId.prototype, 'fill').mockRejectedValue(failure);
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const { container } = render(<Probe actionId={ActionId.fromSpellId(2)} />);
+		await act(async () => {});
+
+		expect(log).toHaveBeenCalledExactlyOnceWith(failure);
+		expect(anchor(container).dataset.icon).toBe('');
+		expect(anchor(container).dataset.ready).toBe('false');
+	});
+
+	it('stays silent when the fill rejects after the id is gone', async () => {
+		const rejecters: Array<(error: Error) => void> = [];
+		vi.spyOn(ActionId.prototype, 'fill').mockImplementation(() => new Promise<ActionId>((_resolve, reject) => rejecters.push(reject)));
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const { unmount } = render(<Probe actionId={ActionId.fromSpellId(2)} />);
+		unmount();
+		await act(async () => rejecters[0](new Error('no tooltip data')));
+
+		expect(log).not.toHaveBeenCalled();
+	});
+
 	it('lets the current id win when an earlier fill resolves last', async () => {
 		const { resolvers } = deferFill();
 		const first = ActionId.fromSpellId(3);

@@ -62,7 +62,7 @@ export const useActionId = (actionId: ActionId | undefined): ActionIdState => {
 				if (!controller.signal.aborted) setState({ iconUrl: filled.iconUrl, name: filled.name, href: actionIdHref(filled), ready: true });
 			})
 			.catch((error: unknown) => {
-				if (!controller.signal.aborted) throw error;
+				if (!controller.signal.aborted) console.error(error);
 			});
 		return () => controller.abort();
 	}, [key]);

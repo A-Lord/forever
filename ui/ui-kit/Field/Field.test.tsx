@@ -14,7 +14,7 @@ const field = (props: Partial<FieldProps> = {}) =>
 const root = () => screen.getByTestId('input-root');
 
 describe('Field', () => {
-	it('builds the root class list in the order the vanilla Input produces', () => {
+	it('builds the root class list as ui-field followed by className in order', () => {
 		field({ layout: 'inline', className: ['number-picker-root', 'apl-picker'], disabled: true });
 		expect(root().getAttribute('class')).toBe('ui-field number-picker-root apl-picker');
 		expect(root().hasAttribute('data-input-root')).toBe(true);
@@ -151,8 +151,6 @@ describe('Field', () => {
 		expect(detach).toHaveBeenCalledOnce();
 	});
 
-	// `classList.add` drops a repeat and clsx does not, so a name passed twice would reach the DOM
-	// and the parity harness twice.
 	it('emits a class once when className supplies it twice', () => {
 		const { container } = render(<Field id="x" className={['number-picker-root', ['number-picker-root', 'mb-0']]} />);
 		const classes = Array.from(container.firstElementChild!.classList);

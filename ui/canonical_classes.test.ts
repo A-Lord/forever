@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 // oxlint-disable-next-line import/extensions
-import { findNonCanonical, findVarInClass } from './testing/tailwind/canonical-classes.mjs';
+import { collectTokens, findDefaultCss, findNonCanonical, findVarInClass, loadDesignSystemCached } from './testing/tailwind/canonical-classes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -20,13 +20,21 @@ function formatVarOffenders(rows: Array<{ file: string; line: number; token: str
 
 let offenders: Awaited<ReturnType<typeof findNonCanonical>>;
 let varOffenders: ReturnType<typeof findVarInClass>;
+let resolvedTokens: number;
 
 beforeAll(async () => {
 	offenders = await findNonCanonical(ROOT);
 	varOffenders = findVarInClass(ROOT);
+	const designSystem = await loadDesignSystemCached(findDefaultCss(ROOT));
+	const tokens = [...new Set(collectTokens(ROOT).map((occurrence: { token: string }) => occurrence.token))];
+	resolvedTokens = designSystem.candidatesToCss(tokens).filter(Boolean).length;
 }, 40000);
 
 describe('canonical Tailwind classes', () => {
+	it('resolves class tokens from ui/ against the loaded design system', () => {
+		expect(resolvedTokens).toBeGreaterThan(0);
+	});
+
 	it('has no non-canonical Tailwind class tokens in ui/', () => {
 		expect(offenders, formatOffenders(offenders)).toEqual([]);
 	});

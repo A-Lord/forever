@@ -4,7 +4,7 @@ import type { InputConfig } from '../../input';
 
 export interface BoundDropdownProps<M, T, V = T> extends Pick<
 	DropdownPickerProps<V>,
-	'options' | 'defaultLabel' | 'hideLabelWhenDefault' | 'triggerClassName'
+	'options' | 'defaultLabel' | 'hideLabelWhenDefault' | 'triggerClassName' | 'testId'
 > {
 	modObject: M;
 	/**

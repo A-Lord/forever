@@ -5,7 +5,7 @@ import { makePhasedPresetBuilds, makePresetBuild } from '../../testing/storybook
 import { PresetConfigurationPickerView } from './PresetConfigurationPickerView';
 
 const meta = {
-	title: 'App/PresetConfigurationPicker/PresetConfigurationPickerView',
+	title: 'App/Presets/PresetConfigurationPickerView',
 	component: PresetConfigurationPickerView,
 	tags: ['autodocs'],
 	args: {

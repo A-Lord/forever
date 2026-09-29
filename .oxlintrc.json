@@ -133,6 +133,7 @@
 									"@sim/wasm",
 									"@sim/wasm/**",
 									"@sim/workers/**",
+									"@sim/fake_host",
 									"@sim/sim",
 									"@sim/sim_host",
 									"@sim/sim_runs",

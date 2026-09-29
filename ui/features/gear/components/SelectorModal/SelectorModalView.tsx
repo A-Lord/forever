@@ -92,7 +92,7 @@ export const SelectorModalView = ({ id, open, onOpenChange, onKeyDown, rail, tit
 						))}
 				</div>
 				<HelpText as="div">
-					<Notice level="info" testId="selector-modal-missing-gear">
+					<Notice level="warning" testId="selector-modal-missing-gear">
 						{i18n.t('gear_tab.gear_picker.missing_gear_message.title')}
 						<br />
 						{i18n.t('gear_tab.gear_picker.missing_gear_message.description')}

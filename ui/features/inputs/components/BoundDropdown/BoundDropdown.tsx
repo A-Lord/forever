@@ -13,12 +13,14 @@ export const BoundDropdown = <M, T, V = T>({
 	defaultLabel,
 	hideLabelWhenDefault,
 	triggerClassName,
+	testId,
 }: BoundDropdownProps<M, T, V>) => {
 	const { value, setValue, hidden, disabled, chrome } = useBoundField<M, T, V>(modObject, config);
 	if (hidden) return null;
 	return (
 		<DropdownPicker<V>
 			{...chrome}
+			testId={testId}
 			value={value}
 			onChange={setValue}
 			disabled={disabled}

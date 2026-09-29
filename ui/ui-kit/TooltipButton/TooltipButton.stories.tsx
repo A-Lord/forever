@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { TooltipButton } from './TooltipButton';
 
@@ -32,6 +32,7 @@ export const InHeading: Story = {
 export const ShowsTooltip: Story = {
 	play: async ({ canvasElement }) => {
 		await userEvent.hover(within(canvasElement).getByTestId('tooltip-button'));
-		await expect(await within(document.body).findByText('Explains the setting next to it.')).toBeVisible();
+		const tooltip = await within(document.body).findByText('Explains the setting next to it.');
+		await waitFor(() => expect(tooltip).toBeVisible());
 	},
 };

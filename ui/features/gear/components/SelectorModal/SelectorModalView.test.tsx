@@ -75,10 +75,10 @@ describe('SelectorModalView', () => {
 		expect(onKeyDown).toHaveBeenCalledOnce();
 	});
 
-	it('says what to do about missing gear as an info notice', () => {
+	it('says what to do about missing gear as a warning notice', () => {
 		renderView();
 		const notice = screen.getByTestId('selector-modal-missing-gear');
-		expect(notice.dataset.level).toBe('info');
+		expect(notice.dataset.level).toBe('warning');
 		expect(notice.textContent).toContain(i18n.t('gear_tab.gear_picker.missing_gear_message.title'));
 		expect(notice.textContent).toContain(i18n.t('gear_tab.gear_picker.missing_gear_message.description'));
 	});

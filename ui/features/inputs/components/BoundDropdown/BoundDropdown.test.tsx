@@ -55,6 +55,11 @@ describe('BoundDropdown', () => {
 		expect(trigger().textContent).toBe('Wait');
 	});
 
+	it('passes testId to the picker root', () => {
+		render(<BoundDropdown modObject={new Settings(1)} config={configFor()} options={KINDS} defaultLabel="Pick" testId="kind-picker" />);
+		expect(screen.getByTestId('kind-picker').contains(screen.getByTestId('dropdown-picker-button'))).toBe(true);
+	});
+
 	it('writes the picked option back through setValue', async () => {
 		const settings = new Settings(0);
 		render(<BoundDropdown modObject={settings} config={configFor()} options={KINDS} defaultLabel="Pick" />);
