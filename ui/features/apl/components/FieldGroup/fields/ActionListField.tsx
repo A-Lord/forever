@@ -85,7 +85,7 @@ export const ActionListField = ({ player, config }: ActionListFieldProps) => {
 					);
 				})}
 			</Tree.Items>
-			<Tree.AddButton label={i18n.t('common.list_picker.new_item', { itemLabel })} icon="plus" onClick={create} />
+			<Tree.AddButton label={i18n.t('common.list_picker.new_item', { itemLabel })} icon="plus" tone="success" onClick={create} />
 		</Tree.Root>
 	);
 };

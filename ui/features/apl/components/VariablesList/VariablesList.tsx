@@ -41,10 +41,10 @@ export const VariablesList = () => {
 
 	return (
 		<div>
-			<span className="mb-3 flex w-full items-center gap-2 text-base">
+			<h6 className="mb-3 flex items-center gap-2">
 				<AplSectionTitle text={i18n.t('rotation_tab.apl.variables.header')} tooltip={i18n.t('rotation_tab.apl.variables.tooltips.overview')} />
-			</span>
-			<AplList.Root group={APL_VARIABLES} layout="inline" testId="apl-variables-tree">
+			</h6>
+			<AplList.Root group={APL_VARIABLES} testId="apl-variables-tree">
 				{variables.items.map((variable, index) => {
 					const id = aplItemId(variable, index);
 					return (

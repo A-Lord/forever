@@ -116,7 +116,7 @@ describe('AplList on the priority pane', () => {
 		expect(namesShown()).toEqual(['p', 'a', 'b']);
 	});
 
-	it('puts the validations badge then the hide eye in the row’s title, and the action picker in its compact body', () => {
+	it('puts the validations badge then the hide eye beside the trigger, no title, and the action picker in its compact body', () => {
 		setup({ priorityList: [row('a')] });
 		mount();
 
@@ -124,6 +124,11 @@ describe('AplList on the priority pane', () => {
 		const header = within(first).getAllByTestId('tree-item-header')[0];
 		const badges = Array.from(header.querySelectorAll('[data-testid="apl-validations"], [data-testid="hide-picker-root"]'));
 		expect(badges.map(element => element.getAttribute('data-testid'))).toEqual(['apl-validations', 'hide-picker-root']);
+		const [handle, aside, trigger] = Array.from(header.children);
+		expect(handle.getAttribute('aria-label')).toBe(MOVE);
+		expect(aside.contains(badges[0]) && aside.contains(badges[1])).toBe(true);
+		expect(trigger.getAttribute('aria-label')).toBe(TOGGLE);
+		expect(header.children).toHaveLength(4);
 		const body = first.querySelector('[data-testid="apl-list-item-picker-root"]')!;
 		expect(body.getAttribute('data-density')).toBe('compact');
 		expect(body.querySelector('[data-testid="apl-action-picker-root"]')).not.toBeNull();
@@ -360,6 +365,49 @@ describe('AplList drag and drop', () => {
 		const outer = player.aplRotation.priorityList[0].action!.condition!;
 		expect((outer.value as any).and.vals.map((value: APLValue) => value.uuid!.value)).toEqual(['o', 'c']);
 		expect(((outer.value as any).and.vals[0].value as any).or.vals.map((value: APLValue) => value.uuid!.value)).toEqual(['y', 'x']);
+		expect(notifications).toBe(1);
+	});
+
+	it('drops a value into another row’s empty operand list', () => {
+		const constant = (uuid: string) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'const', const: { val: uuid } } });
+		const and = (uuid: string, vals: Array<APLValue>) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'and', and: { vals } } });
+		const withCondition = (condition: APLValue) => APLListItem.create({ action: { condition, action: reset('x').action } });
+		setup({ priorityList: [withCondition(and('first', [constant('v1')])), withCondition(and('second', []))] });
+		mount();
+		const [, empty] = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="apl-value-list"]'));
+		const operand = document.querySelector<HTMLElement>('[data-testid="apl-value-list-item"]')!;
+
+		fireEvent.mouseDown(within(operand).getAllByTestId('apl-value-list-handle')[0]);
+		fireEvent.dragStart(operand, { dataTransfer: new DataTransfer() });
+		expect(accepts(empty, 0)).toBe(true);
+		drop(empty, 0);
+
+		const vals = (index: number) =>
+			(player.aplRotation.priorityList[index].action!.condition!.value as any).and.vals.map((value: APLValue) => value.uuid!.value);
+		expect(vals(0)).toEqual([]);
+		expect(vals(1)).toEqual(['v1']);
+		expect(notifications).toBe(1);
+	});
+
+	it('reorders a sequence in a row a rotation load skipped', () => {
+		const sequenceRow = () =>
+			APLListItem.create({ action: { action: { oneofKind: 'sequence', sequence: { name: 'opener', actions: [reset('a'), reset('b')] } } } });
+		setup({ priorityList: [sequenceRow(), row('x')] });
+		mount();
+		act(() => {
+			player.aplRotation = APLRotation.create({ priorityList: [sequenceRow(), row('changed')] });
+			source.notify();
+		});
+		notifications = 0;
+		const steps = () => Array.from(document.querySelectorAll<HTMLElement>('[data-testid="apl-action-list-item"]'));
+		place(steps());
+
+		fireEvent.mouseDown(within(steps()[1]).getAllByTestId('apl-action-list-handle')[0]);
+		fireEvent.dragStart(steps()[1], { dataTransfer: new DataTransfer() });
+		drop(steps()[0], 5);
+
+		const actions = (player.aplRotation.priorityList[0].action!.action as any).sequence.actions;
+		expect(actions.map((action: APLAction) => (action.action as any).resetSequence.sequenceName)).toEqual(['b', 'a']);
 		expect(notifications).toBe(1);
 	});
 

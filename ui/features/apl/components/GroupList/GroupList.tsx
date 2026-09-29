@@ -55,9 +55,9 @@ export const GroupList = () => {
 
 	return (
 		<div>
-			<span className="mb-3 flex w-full items-center gap-2 text-base">
+			<h6 className="mb-3 flex items-center gap-2">
 				<AplSectionTitle text={i18n.t('rotation_tab.apl.actionGroups.header')} tooltip={i18n.t('rotation_tab.apl.actionGroups.tooltips.overview')} />
-			</span>
+			</h6>
 			<AplList.Root group={APL_GROUPS} isGroup testId="apl-groups-tree">
 				{groups.items.map((group, index) => {
 					const id = aplItemId(group, index);

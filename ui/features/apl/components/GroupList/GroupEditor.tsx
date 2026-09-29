@@ -1,4 +1,4 @@
-import { AplItemActions, AplList } from '@features/apl/components/AplList';
+import { AplItemActions, AplList, AplSectionTitle } from '@features/apl/components/AplList';
 import { AplListItem } from '@features/apl/components/AplListItem';
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { ListItemHeader } from '@features/apl/components/ListItemHeader';
@@ -31,7 +31,7 @@ export interface GroupEditorProps {
 
 /** One action group: its name in the title, and the priority list it holds as the item's children. */
 export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }: GroupEditorProps) => {
-	const { value: group } = useAplInput(player, config);
+	const { value: group, hidden, disabled } = useAplInput(player, config);
 	const [renaming, setRenaming] = useState(false);
 
 	const actions = useListItems(player, {
@@ -56,14 +56,22 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 	const groupLabel = i18n.t('rotation_tab.apl.actionGroups.name');
 	const label = i18n.t('rotation_tab.apl.priorityList.name');
 
+	if (hidden) return null;
 	return (
 		<AplList.Item
 			id={id}
 			label={groupLabel}
 			title={<NameDisplay name={group?.name || ''} onRename={() => setRenaming(true)} />}
 			actions={<AplItemActions label={groupLabel} onCopy={onCopy} onDelete={onDelete} />}
+			disabled={disabled}
 			testId="apl-group-editor-root">
 			<Tree.Item.Children testId="apl-group-actions">
+				<span className="flex items-center gap-2">
+					<AplSectionTitle
+						text={i18n.t('rotation_tab.apl.actionGroups.attributes.actions')}
+						tooltip={i18n.t('rotation_tab.apl.actionGroups.tooltips.actions')}
+					/>
+				</span>
 				{actions.items.length > 0 && (
 					<AplList.Rows>
 						{actions.items.map((item, index) => {
@@ -74,7 +82,7 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 									key={itemId}
 									id={itemId}
 									label={label}
-									title={
+									aside={
 										<ListItemHeader
 											player={player}
 											getItem={itemConfig.getValue}
@@ -101,7 +109,12 @@ export const GroupEditor = ({ id, player, config, groupIndex, onCopy, onDelete }
 						})}
 					</AplList.Rows>
 				)}
-				<Tree.AddButton label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })} icon="plus" onClick={() => actions.create()} />
+				<Tree.AddButton
+					label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })}
+					icon="plus"
+					tone="success"
+					onClick={() => actions.create()}
+				/>
 			</Tree.Item.Children>
 			<AplNameDialog
 				open={renaming}

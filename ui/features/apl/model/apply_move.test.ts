@@ -121,9 +121,10 @@ describe('applyMove', () => {
 			expect(Object.keys(rotation.priorityList[1]).sort()).toEqual(['action', 'hide', 'notes']);
 		});
 
-		it('moves a priority row into the pre-pull list with the pull as its time', () => {
+		it('moves a priority row into the pre-pull list with the pull as its time and no condition', () => {
 			const source = row('a');
 			source.hide = true;
+			source.action!.condition = constant('false', 'never');
 			const rotation = rotationOf({ prepullActions: [prepull('p')], priorityList: [source] });
 
 			applyMove(rotation, move(rotation.priorityList, 0, APL_ROWS, PRIORITY, 0, APL_ROWS, PREPULL));
@@ -132,6 +133,7 @@ describe('applyMove', () => {
 			expect(names(rotation.prepullActions)).toEqual(['a', 'p']);
 			const moved = rotation.prepullActions[0];
 			expect(moved.action).toBe(source.action);
+			expect(moved.action?.condition).toBeUndefined();
 			expect(moved.hide).toBe(true);
 			expect(moved.doAtValue?.value).toEqual({ oneofKind: 'const', const: { val: '-1s' } });
 			expect(moved.doAtValue?.uuid?.value).toBeTruthy();
@@ -247,6 +249,15 @@ describe('applyMove', () => {
 			const toPrepull = move(rotation.priorityList, 0, APL_ROWS, PRIORITY, 0, APL_ROWS, PREPULL);
 			expect(canApplyMove(rotation, toPrepull, (kind, isPrepull) => !(kind === 'resetSequence' && isPrepull))).toBe(false);
 			expect(canApplyMove(rotation, toPrepull, () => true)).toBe(true);
+		});
+
+		it('refuses an operand list whose owner’s uuid another value shares', () => {
+			const first = and('same', [constant('1', 'x'), constant('2', 'y')]);
+			const second = and('same', [constant('3', 'z')]);
+			const rotation = rotationOf({ priorityList: [listItem(condition(first)), listItem(condition(second))] });
+			const reorder = move(valsOf(first), 0, valueListGroup(first), 'row', 2);
+			expect(canApplyMove(rotation, reorder)).toBe(false);
+			untouched(rotation, () => applyMove(rotation, reorder));
 		});
 	});
 });

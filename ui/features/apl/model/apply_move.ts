@@ -50,6 +50,13 @@ const find = (node: unknown, match: (candidate: any) => boolean): any => {
 	return undefined;
 };
 
+const collect = (node: unknown, match: (candidate: any) => boolean, found: Array<any> = []): Array<any> => {
+	if (!node || typeof node !== 'object') return found;
+	if (match(node)) found.push(node);
+	for (const child of Object.values(node)) collect(child, match, found);
+	return found;
+};
+
 const contains = (node: unknown, target: object): boolean => node === target || find(node, candidate => candidate === target) !== undefined;
 
 const implOf = (message: { oneofKind?: string } | undefined): any => (message?.oneofKind ? (message as any)[message.oneofKind] : undefined);
@@ -66,7 +73,9 @@ const slotAt = (rotation: APLRotation, group: string, parentId: string | null): 
 	}
 	if (group.startsWith(VALUES)) {
 		const uuid = group.slice(VALUES.length);
-		const owner: APLValue | undefined = uuid ? find(rotation, candidate => candidate.uuid?.value === uuid && 'value' in candidate) : undefined;
+		const owners: Array<APLValue> = uuid ? collect(rotation, candidate => candidate.uuid?.value === uuid && 'value' in candidate) : [];
+		// Two values sharing a uuid name no list at all, rather than whichever comes first.
+		const owner = owners.length === 1 ? owners[0] : undefined;
 		const impl = implOf(owner?.value);
 		return impl && Array.isArray(impl.vals) ? { family: 'values', list: impl.vals, write: next => (impl.vals = next), owner } : undefined;
 	}
@@ -90,6 +99,8 @@ const convert = (item: any, from: Slot, to: Slot): any => {
 			? APLListItem.create({ hide: item.hide })
 			: APLPrepullAction.create({ hide: item.hide, doAtValue: { uuid: { value: randomUUID() }, value: { oneofKind: 'const', const: { val: '-1s' } } } });
 	next.action = item.action;
+	// The pre-pull list shows no condition, and the sim still reads one: a row keeps none there.
+	if (to.family === PREPULL && next.action) next.action.condition = undefined;
 	carryId(item, next);
 	return next;
 };

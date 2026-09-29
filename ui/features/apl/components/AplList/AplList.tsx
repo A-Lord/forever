@@ -57,24 +57,28 @@ export interface AplListEntryProps {
 	id: string;
 	/** The translated singular, e.g. "Action": names the item in the trigger and menu labels. */
 	label: string;
-	/** The title row's content: a name, the validations badge, the hide eye. */
+	/** A name or a heading; an action row has none, so its body starts right after the handle. */
 	title?: ReactNode;
 	titleAs?: 'span' | 'h6';
+	/** Status and toggles beside the trigger: the validations badge, the hide eye. */
+	aside?: ReactNode;
 	/** A drag handle; a section stays where it is. */
 	movable?: boolean;
 	/** Tree.Item.Action entries; without them the item has no menu. */
 	actions?: ReactNode;
+	disabled?: boolean;
 	testId?: string;
 	/** The item's `Tree.Item.Body` and/or `Tree.Item.Children`. */
 	children?: ReactNode;
 }
 
-/** One APL entry: the kit's handle, title, trigger and menu around the body or children the caller gives. */
-const Item = ({ id, label, title, titleAs, movable = true, actions, testId, children }: AplListEntryProps) => (
-	<Tree.Item id={id} testId={testId}>
+/** One APL entry: the kit's handle, title, aside, trigger and menu around the body or children the caller gives. */
+const Item = ({ id, label, title, titleAs, aside, movable = true, actions, disabled, testId, children }: AplListEntryProps) => (
+	<Tree.Item id={id} disabled={disabled} testId={testId}>
 		<Tree.Item.Header>
 			{movable && <Tree.Item.Handle label={i18n.t('common.list_picker.move_drag_drop')} />}
 			{title !== undefined && <Tree.Item.Title as={titleAs}>{title}</Tree.Item.Title>}
+			{aside !== undefined && <Tree.Item.Aside>{aside}</Tree.Item.Aside>}
 			<Tree.Item.Trigger label={i18n.t('common.list_picker.toggle_item', { itemLabel: label })} />
 			{actions && <Tree.Item.Actions label={i18n.t('common.list_picker.item_actions', { itemLabel: label })}>{actions}</Tree.Item.Actions>}
 		</Tree.Item.Header>

@@ -52,7 +52,7 @@ export const PrePullList = () => {
 										key={id}
 										id={id}
 										label={label}
-										title={
+										aside={
 											<ListItemHeader
 												player={player}
 												getItem={config.getValue}
@@ -89,7 +89,11 @@ export const PrePullList = () => {
 							})}
 						</AplList.Rows>
 					)}
-					<Tree.AddButton label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })} onClick={() => rows.create()} />
+					<Tree.AddButton
+						className="mb-3"
+						label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })}
+						onClick={() => rows.create()}
+					/>
 				</Tree.Item.Children>
 			</AplList.Item>
 		</AplProvider>

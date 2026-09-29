@@ -28,7 +28,7 @@ let player: ReturnType<typeof makePlayer>;
 
 const fieldConfig = () => ({
 	id: 'vals',
-	extraClassNames: ['ui-apl-picker-builder-multi'],
+	extraClassNames: ['story-extra'],
 	storeSubscribe: () => source.subscribe,
 	getValue: () => values,
 	setValue: (_subject: unknown, next: Array<APLValue | undefined>) => {
@@ -83,7 +83,7 @@ describe('ValueListField', () => {
 
 		expect(items()).toHaveLength(2);
 		expect(list().getAttribute('data-layout')).toBe('inline');
-		expect(list().className.split(' ')).toContain('ui-apl-picker-builder-multi');
+		expect(list().className.split(' ')).toContain('story-extra');
 		expect(items().map(item => item.querySelector('[data-testid="apl-value-picker-root"]'))).not.toContain(null);
 	});
 

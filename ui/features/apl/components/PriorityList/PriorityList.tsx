@@ -59,7 +59,7 @@ export const PriorityList = () => {
 									key={id}
 									id={id}
 									label={label}
-									title={
+									aside={
 										<ListItemHeader
 											player={player}
 											getItem={config.getValue}
@@ -86,7 +86,7 @@ export const PriorityList = () => {
 						})}
 					</AplList.Rows>
 				)}
-				<AplListToolbar itemName={label} onCreate={() => rows.create()} />
+				<AplListToolbar className="self-stretch" itemName={label} onCreate={() => rows.create()} />
 				<AplNameDialog {...extraction.dialog} />
 			</Tree.Item.Children>
 		</AplList.Item>

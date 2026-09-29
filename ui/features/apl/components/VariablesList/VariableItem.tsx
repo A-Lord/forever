@@ -57,12 +57,8 @@ export const VariableItem = ({ id, player, config, onCopy, onDelete }: VariableI
 		<AplList.Item
 			id={id}
 			label={variableLabel}
-			title={
-				<>
-					<NameDisplay name={variable?.name || ''} onRename={() => setRenaming(true)} />
-					<AplValidations getValidations={subject => uuidValidations(subject, config.getValue(subject)?.value?.uuid?.value)} />
-				</>
-			}
+			title={<NameDisplay name={variable?.name || ''} onRename={() => setRenaming(true)} />}
+			aside={<AplValidations getValidations={subject => uuidValidations(subject, config.getValue(subject)?.value?.uuid?.value)} />}
 			actions={<AplItemActions label={variableLabel} onCopy={onCopy} onDelete={onDelete} />}
 			testId="apl-variable-root">
 			<Tree.Item.Body>

@@ -2,7 +2,6 @@ import { APLValue, APLValueVariable } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import type { IconName } from '@ui-kit/Icon';
 import { useRef, useState } from 'react';
 
 export interface VariableExtraction {
@@ -10,8 +9,6 @@ export interface VariableExtraction {
 	canExtract: (index: number) => boolean;
 	/** Opens the naming dialog for the item at an index. */
 	extract: (index: number) => void;
-	/** The same two as one per-item menu entry, for a list that takes its extra actions as data. */
-	extraAction: { className: string; icon: IconName; tooltip: string; shouldShow: (index: number) => boolean; onClick: (index: number) => void };
 	dialog: {
 		open: boolean;
 		title: string;
@@ -53,13 +50,6 @@ export const useVariableExtraction = (
 	return {
 		canExtract: isExtractable,
 		extract,
-		extraAction: {
-			className: '',
-			icon: 'arrow-right-from-bracket',
-			tooltip: i18n.t('rotation_tab.apl.variables.extractToVariable'),
-			shouldShow: isExtractable,
-			onClick: extract,
-		},
 		dialog: {
 			open: index !== null,
 			title: i18n.t('rotation_tab.apl.variables.extractToVariable'),

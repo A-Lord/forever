@@ -69,7 +69,6 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 	if (hidden) return null;
 
 	const itemLabel = translateItemLabel('Value');
-	const { extraAction } = extraction;
 	return (
 		<>
 			<Tree.Root
@@ -88,9 +87,9 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 							<Tree.Item key={key} id={value?.uuid?.value || key} testId="apl-value-list-item">
 								<Tree.Item.Header>
 									<Tree.Item.Handle label={i18n.t('common.list_picker.move_drag_drop')} testId="apl-value-list-handle" />
-									<Tree.Item.Title>
+									<Tree.Item.Aside>
 										<AplValidations getValidations={subject => uuidValidations(subject, valueConfig.getValue(subject)?.uuid?.value)} />
-									</Tree.Item.Title>
+									</Tree.Item.Aside>
 									<Tree.Item.Actions label={i18n.t('common.list_picker.item_actions', { itemLabel })}>
 										<Tree.Item.Action
 											label={i18n.t('common.list_picker.delete_item', { itemLabel })}
@@ -99,12 +98,12 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 											testId="apl-value-list-delete"
 											onClick={() => remove(index)}
 										/>
-										{(extraAction.shouldShow?.(index) ?? true) && (
+										{extraction.canExtract(index) && (
 											<Tree.Item.Action
-												label={extraAction.tooltip}
-												icon={extraAction.icon}
+												label={i18n.t('rotation_tab.apl.variables.extractToVariable')}
+												icon="arrow-right-from-bracket"
 												testId="apl-value-list-extract"
-												onClick={() => extraAction.onClick(index)}
+												onClick={() => extraction.extract(index)}
 											/>
 										)}
 										<Tree.Item.Action
@@ -122,7 +121,7 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 						);
 					})}
 				</Tree.Items>
-				<Tree.AddButton label={i18n.t('common.list_picker.new_item', { itemLabel })} icon="plus" onClick={create} />
+				<Tree.AddButton label={i18n.t('common.list_picker.new_item', { itemLabel })} icon="plus" tone="success" onClick={create} />
 			</Tree.Root>
 			<AplNameDialog {...extraction.dialog} />
 		</>

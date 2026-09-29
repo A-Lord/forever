@@ -1,7 +1,7 @@
 import { AplProvider, useApl } from '@features/apl/context/AplContext';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { valueListGroup } from '@features/apl/model/apply_move';
-import { newKindImpl } from '@features/apl/model/field_specs';
+import { newKindImpl, resolveField } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
 import { type APLValueKind, type ValidAPLValueKind, valueKinds } from '@features/apl/model/value_kinds';
@@ -47,6 +47,9 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	// and the list below reads the group in this same render.
 	if (value && !value.uuid?.value) value.uuid = UUID.create({ value: randomUUID() });
 
+	// An operand list takes the whole line, so its rows lay out by the row's width, not their own.
+	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => resolveField(field).kind === 'valueList'), [kind]);
+
 	const options = useMemo<Array<DropdownOption<APLValueKind>>>(
 		() => [{ value: undefined, label: i18n.t('rotation_tab.apl.values.none') }, ...valueKindOptions(player, isPrepull, isGroup)],
 		[player, isPrepull, isGroup],
@@ -84,7 +87,11 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 
 	if (hidden) return null;
 	return (
-		<Field {...chrome} className={['m-0 flex-row gap-2', chrome.className]} testId={testId ?? 'apl-value-picker-root'} disabled={disabled}>
+		<Field
+			{...chrome}
+			className={['m-0 flex-row gap-2', ownsList && 'w-full', chrome.className]}
+			testId={testId ?? 'apl-value-picker-root'}
+			disabled={disabled}>
 			<BoundDropdown<Player<any>, APLValueKind>
 				modObject={player}
 				config={kindConfig}
