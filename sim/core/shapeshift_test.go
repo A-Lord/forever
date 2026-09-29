@@ -183,3 +183,35 @@ func TestCastRequirementCastPath(t *testing.T) {
 		t.Errorf("Wrath's cast left the form %d times, now in form %d; want once, no form", unshifts, fw.ShapeshiftForm)
 	}
 }
+
+func TestMajorCooldownKeepsForm(t *testing.T) {
+	sim := SetupFakeRageSim()
+	fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+	sim.CurrentTime = 0
+
+	potion := fw.RegisterSpell(SpellConfig{
+		ActionID:        ActionID{ItemID: 13442},
+		CastRequirement: CastRequirement{NotShapeshifted: true},
+	})
+	fw.AutoUnshift = func(*Simulation) {
+		fw.ShapeshiftForm = 0
+	}
+	mcd := &MajorCooldown{
+		Spell:          potion,
+		ShouldActivate: func(*Simulation, *Character) bool { return true },
+	}
+
+	fw.ShapeshiftForm = dbcenums.FORM_CAT_FORM
+	if mcd.shouldActivateHelper(sim, &fw.Character) {
+		t.Error("a major cooldown should not activate when its cast leaves Cat Form")
+	}
+	mcd.timings = []time.Duration{0}
+	if mcd.shouldActivateHelper(sim, &fw.Character) {
+		t.Error("a timed major cooldown should not activate when its cast leaves Cat Form")
+	}
+
+	fw.ShapeshiftForm = 0
+	if !mcd.shouldActivateHelper(sim, &fw.Character) {
+		t.Error("a timed major cooldown should activate with no form")
+	}
+}
