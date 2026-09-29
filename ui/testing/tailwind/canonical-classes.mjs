@@ -331,7 +331,7 @@ export async function findNonCanonical(root, opts = {}) {
 	const uniqueTokens = [...new Set(occurrences.map(occ => occ.token))];
 	const canonicalByToken = new Map();
 	for (const token of uniqueTokens) {
-		const [canonical] = designSystem.canonicalizeCandidates([token], { rem: 16 });
+		const [canonical] = designSystem.canonicalizeCandidates([token], { rem: 14 });
 		canonicalByToken.set(token, canonical);
 	}
 

@@ -264,8 +264,8 @@ Two tree-wide tests in `npm run test:unit` run the checkers, both under `// @vit
       accepts any multiple of `0.25`, and one step is 3.5px at this repo's 14px root, so a source px
       value converts to its exact step — `8.75px` → `p-2.5`, `4.375px` → `p-1.25`,
       `15.75px` → `w-4.5` — computed-identically. `ui/testing/tailwind/canonical-classes.mjs`
-      canonicalizes at a hardcoded 16px rem (its `{ rem: 16 }` option), so it rewrites a lingering
-      `p-[5px]` to `p-1.25` regardless — a rewrite that lands at 4.375px here, not 5px. Keep an
+      canonicalizes at this 14px rem (its `{ rem: 14 }` option), so a px value with no exact step,
+      such as `p-[5px]`, is left as it is rather than rewritten to a step that renders differently. Keep an
       arbitrary `[Npx]` only where no named or dynamic step exists (an odd one-off border width, say),
       and add a token instead of an arbitrary value for anything repeated.
     - A class-removal commit and a DOM-structure commit must never land together — a position-keyed
