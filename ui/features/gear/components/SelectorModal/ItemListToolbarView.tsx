@@ -2,7 +2,7 @@ import i18n from '@i18n/config';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { EnumPicker } from '@ui-kit/EnumPicker';
-import { SearchBar } from '@ui-kit/SearchBar';
+import { SearchField } from '@ui-kit/TextField';
 import { type ReactNode, useId } from 'react';
 
 const phaseValues = () => [
@@ -50,14 +50,13 @@ export const ItemListToolbarView = ({
 
 	return (
 		<div className="ui-selector-modal-filters mb-(--modal-padding) flex items-center [&>*:not(:last-child)]:mr-2">
-			<SearchBar
+			<SearchField
 				value={search}
 				onChange={onSearchChange}
 				placeholder={i18n.t('common.search')}
-				className="max-w-48"
+				inputClassName="max-w-48"
 				id={searchId}
 				inputTestId="selector-modal-search"
-				grow={false}
 			/>
 			{filtersMenu !== undefined && (
 				<>

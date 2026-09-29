@@ -2,8 +2,8 @@ import type { StatWeightValues } from '@generated/proto/api';
 import type { UnitStat } from '@sim/proto/stats';
 import { sanitizeId } from '@sim/utils/format';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { TableCell, TableRow } from '@ui-kit/Table';
+import { NumberField } from '@ui-kit/TextField';
 import clsx from 'clsx';
 
 import { StatWeightCells } from './StatWeightCells';
@@ -80,9 +80,8 @@ export const StatWeightRowView = ({
 				/>
 			))}
 			<TableCell testId="current-ep" className={cellClassName}>
-				<NumberPicker
+				<NumberField
 					id={`ep-weight-stat-${sanitizeId(shortName)}`}
-					className="mb-0"
 					float
 					value={currentEp}
 					onChange={onCurrentEpChange}

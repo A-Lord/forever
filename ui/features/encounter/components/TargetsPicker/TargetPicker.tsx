@@ -1,6 +1,6 @@
 import { BoundBooleanPicker } from '@features/inputs/components/BoundBooleanPicker';
 import { BoundEnumPicker } from '@features/inputs/components/BoundEnumPicker';
-import { BoundNumberPicker } from '@features/inputs/components/BoundNumberPicker';
+import { BoundNumberField } from '@features/inputs/components/BoundTextField';
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Encounter } from '@sim/raid/encounter';
@@ -64,13 +64,13 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 				</>
 			}
 			stats={stats.map(config => (
-				<BoundNumberPicker key={config.id} modObject={null} config={config} />
+				<BoundNumberField key={config.id} modObject={null} config={config} />
 			))}
 			threat={
 				showThreatMetrics && (
 					<>
 						{numbers.map(config => (
-							<BoundNumberPicker key={config.id} modObject={null} config={config} />
+							<BoundNumberField key={config.id} modObject={null} config={config} />
 						))}
 						{booleans.map(config => (
 							<BoundBooleanPicker key={config.id} modObject={null} config={config} />

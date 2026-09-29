@@ -1,5 +1,0 @@
-@layer components {
-	.ui-field-compact .ui-number-picker-root {
-		@apply flex-row;
-	}
-}

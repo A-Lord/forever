@@ -1,4 +1,4 @@
-import type { BooleanPickerConfig, EnumPickerConfig, NumberPickerConfig } from '@features/inputs/configs';
+import type { BooleanPickerConfig, EnumPickerConfig, NumberFieldConfig } from '@features/inputs/configs';
 import { InputType, MobType, SpellSchool, Stat, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { translateMobType, translateSpellSchool, translateStat, translateTargetInputLabel, translateTargetInputTooltip } from '@i18n/localization';
@@ -162,7 +162,7 @@ export const statConfig = ({ encounter, targetIndex, getTarget }: TargetFieldCon
 				target.stats[stat] = newValue;
 			});
 		},
-	}) satisfies NumberPickerConfig<null>;
+	}) satisfies NumberFieldConfig<null>;
 
 interface NumberField {
 	name: string;
@@ -205,7 +205,7 @@ const NUMBER_FIELDS: Array<NumberField> = [
 	},
 ];
 
-export const numberConfigs = ({ encounter, targetIndex, getTarget }: TargetFieldContext): Array<NumberPickerConfig<null>> =>
+export const numberConfigs = ({ encounter, targetIndex, getTarget }: TargetFieldContext): Array<NumberFieldConfig<null>> =>
 	NUMBER_FIELDS.map(field => ({
 		id: targetId(targetIndex, field.name),
 		label: i18n.t(`settings_tab.encounter.${field.key}.label`),
@@ -328,7 +328,7 @@ export const targetInputConfig = (encounter: Encounter, targetIndex: number, inp
 				setValue: write<number>((draft, value) => {
 					draft.numberValue = value;
 				}),
-			} satisfies NumberPickerConfig<null>,
+			} satisfies NumberFieldConfig<null>,
 		};
 	}
 	if (input.inputType === InputType.Bool) {

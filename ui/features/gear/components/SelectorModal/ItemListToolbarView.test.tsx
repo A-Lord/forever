@@ -32,7 +32,7 @@ describe('ItemListToolbarView', () => {
 		const input = screen.getByTestId('selector-modal-search') as HTMLInputElement;
 		expect(input.value).toBe('thunder');
 
-		fireEvent.change(input, { target: { value: 'thunderfury' } });
+		fireEvent.input(input, { target: { value: 'thunderfury' } });
 		expect(props.onSearchChange).toHaveBeenCalledWith('thunderfury');
 	});
 

@@ -1,8 +1,6 @@
-export type { NumberPickerConfig } from './components/BoundNumberPicker/types';
+export type { NumberFieldConfig, NumberListFieldConfig, StringFieldConfig } from './components/BoundTextField/types';
 export type { BooleanPickerConfig } from './components/BoundBooleanPicker/types';
 export type { EnumPickerConfig } from './components/BoundEnumPicker/types';
-export type { StringPickerConfig } from './components/BoundStringPicker/types';
-export type { NumberListPickerConfig } from './components/BoundNumberListPicker/types';
 export type { MultiComboBoxConfig } from './components/BoundMultiComboBox/types';
 export type { BoundDropdownProps } from './components/BoundDropdown/types';
 export type { IconPickerConfig } from './components/BoundIconPicker/types';

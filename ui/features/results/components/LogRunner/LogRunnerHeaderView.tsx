@@ -1,5 +1,5 @@
 import i18n from '@i18n/config';
-import { SearchBar } from '@ui-kit/SearchBar';
+import { SearchField } from '@ui-kit/TextField';
 
 const SEARCH_DEBOUNCE_MS = 150;
 
@@ -12,7 +12,7 @@ export interface LogRunnerHeaderViewProps {
 export const LogRunnerHeaderView = ({ searchText, onSearchChange }: LogRunnerHeaderViewProps) => (
 	<div data-testid="log-runner-sticky" className="flex flex-col gap-2 pt-2">
 		<div data-testid="log-search" className="w-full lg:max-w-[50%]">
-			<SearchBar
+			<SearchField
 				value={searchText}
 				onChange={onSearchChange}
 				placeholder={i18n.t('results_tab.details.logs.search_placeholder')}
