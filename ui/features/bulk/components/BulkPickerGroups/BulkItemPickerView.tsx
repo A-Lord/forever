@@ -21,7 +21,7 @@ export interface BulkItemPickerViewProps {
 }
 
 const FRAME: Record<BulkItemPickerState, string> = {
-	frozen: 'border-3 border-frozen',
+	frozen: 'border border-frozen',
 	equipped: 'border border-brand',
 	editable: 'border border-border',
 };
@@ -45,6 +45,9 @@ export const BulkItemPickerView = ({ slot, item, state, onOpen, onRemove }: Bulk
 			onOpen={onOpen}
 			action={
 				<div className="ml-2 grid grid-flow-col [align-items:start] gap-1">
+					{state === 'frozen' && (
+						<Icon name="lock" className="text-xs text-frozen" title={i18n.t('bulk_tab.picker.frozen_tooltip')} testId="item-picker-frozen" />
+					)}
 					{onRemove && (
 						<>
 							<Button
