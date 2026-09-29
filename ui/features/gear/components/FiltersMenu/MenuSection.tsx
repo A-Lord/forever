@@ -14,6 +14,6 @@ export const MenuSection = ({ name, className, children }: MenuSectionProps) => 
 		<div className="flex-1">
 			<h6 data-testid="menu-section-title">{name}</h6>
 		</div>
-		<div className={clsx('flex-3', className ?? 'flex flex-col gap-3')}>{children}</div>
+		<div className={clsx('flex-3', className ?? 'flex flex-col gap-2')}>{children}</div>
 	</div>
 );

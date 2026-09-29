@@ -25,7 +25,7 @@ export const ItemSwapPickerView = ({ slotCount, note, onSwap, children }: ItemSw
 				layout="split"
 				role="group"
 				label={i18n.t('settings_tab.other.item_swap.label')}
-				className="flex-wrap gap-3"
+				className="flex-wrap gap-2"
 				testId="input-item-swap-container">
 				<Button variant="unstyled" data-testid="gear-swap-icon" aria-label={swapTooltip} {...tooltipAnchorProps(swapId)} onClick={onSwap}>
 					<Icon name="arrows-rotate" className="me-1" />

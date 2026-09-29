@@ -10,7 +10,7 @@ export interface ExporterCategoryPickersProps {
 }
 
 export const ExporterCategoryPickers = ({ categories, onChange }: ExporterCategoryPickersProps) => (
-	<div className="grid grid-cols-4 gap-x-5 gap-y-1 max-md:grid-cols-3">
+	<div className="grid grid-cols-4 gap-x-4 gap-y-1 max-md:grid-cols-3">
 		{EXPORT_CATEGORY_OPTIONS.map(option => (
 			<BooleanPicker
 				key={option.category}

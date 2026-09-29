@@ -91,7 +91,7 @@ export const PrePullList = () => {
 						</AplList.Rows>
 					)}
 					<Tree.AddButton
-						className="mb-3"
+						className="mb-2"
 						label={i18n.t('rotation_tab.apl.floatingActionBar.new', { itemName: label })}
 						onClick={() => rows.create()}
 					/>

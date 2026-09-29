@@ -71,7 +71,7 @@ export const Timeline = ({ active }: TimelineProps) => {
 					</p>
 					<p>{i18n.t('results_tab.details.timeline.note')}</p>
 				</div>
-				<div className="ml-auto flex shrink-0 items-center gap-3 self-start">
+				<div className="ml-auto flex shrink-0 items-center gap-2 self-start">
 					<BooleanPicker
 						id="timeline-show-gcd"
 						label={i18n.t('results_tab.details.timeline.show_gcd')}

@@ -51,11 +51,11 @@ export const WithBadges: Story = {
 		active: true,
 		badges: (
 			<>
-				<IconSwatch icon={IMPROVED_BLOODLUST} href={IMPROVED_BLOODLUST.href} active className="absolute right-0 bottom-0 size-5 min-w-5" />
+				<IconSwatch icon={IMPROVED_BLOODLUST} href={IMPROVED_BLOODLUST.href} active className="absolute right-0 bottom-0 size-4 min-w-4" />
 				<IconSwatch
 					icon={GREATER_BLOODLUST}
 					href={GREATER_BLOODLUST.href}
-					className="absolute bottom-0 left-0.5 size-5 min-w-5 border-gray-600 grayscale"
+					className="absolute bottom-0 left-px size-4 min-w-4 border-gray-600 grayscale"
 				/>
 			</>
 		),

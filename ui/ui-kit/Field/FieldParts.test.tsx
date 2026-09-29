@@ -192,7 +192,7 @@ describe('Field parts', () => {
 				<Field.Label testId="label" className="font-bold">
 					X
 				</Field.Label>
-				<Field.Description testId="description" className="mb-3">
+				<Field.Description testId="description" className="mb-2">
 					About X
 				</Field.Description>
 				<Field.Control testId="control" className="grow">
@@ -208,7 +208,7 @@ describe('Field parts', () => {
 			root: 'mb-0',
 			leading: 'mr-2',
 			label: 'font-bold',
-			description: 'mb-3',
+			description: 'mb-2',
 			control: 'grow',
 			clear: 'text-danger',
 			after: 'ml-2',

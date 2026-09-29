@@ -31,7 +31,7 @@ const HeaderRowStory = ({ initial }: AccordionStoryProps) => {
 	const [open, setOpen] = useState(initial);
 	const [mode, setMode] = useState<'key' | 'all'>('key');
 	return (
-		<div className="w-63">
+		<div className="w-64">
 			<Accordion value={open} onValueChange={setOpen}>
 				<AccordionItem
 					value="stats"

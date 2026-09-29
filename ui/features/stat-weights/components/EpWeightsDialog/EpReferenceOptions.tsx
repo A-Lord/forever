@@ -55,9 +55,9 @@ export const EpReferenceOptions = ({ epStats, epReferenceStat, displayMetrics }:
 	const values = useMemo(() => epStats.map(stat => ({ name: statName(stat), value: stat })), [epStats]);
 
 	return (
-		<div data-testid="ep-reference-options" className="-mx-3 mb-3 flex flex-wrap [&_.ui-field-label]:font-bold">
+		<div data-testid="ep-reference-options" className="-mx-2 mb-2 flex flex-wrap [&_.ui-field-label]:font-bold">
 			{references.map(reference => (
-				<div key={reference.id} className="w-full px-3 sm:w-1/3">
+				<div key={reference.id} className="w-full px-2 sm:w-1/3">
 					<ConnectedChoiceField
 						modObject={player}
 						config={{
@@ -72,7 +72,7 @@ export const EpReferenceOptions = ({ epStats, epReferenceStat, displayMetrics }:
 					/>
 				</div>
 			))}
-			<p className="mt-3">{i18n.t('sidebar.buttons.stat_weights.modal.reference_description')}</p>
+			<p className="mt-2">{i18n.t('sidebar.buttons.stat_weights.modal.reference_description')}</p>
 		</div>
 	);
 };

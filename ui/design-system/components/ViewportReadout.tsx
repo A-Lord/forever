@@ -15,7 +15,7 @@ export const ViewportReadout = () => {
 	const active = breakpoints.filter(breakpoint => width >= breakpoint.minWidth).map(breakpoint => breakpoint.name);
 	return (
 		<Unstyled>
-			<p className="mb-6 border border-border-muted p-3">
+			<p className="mb-6 border border-border-muted p-2">
 				Preview viewport: <strong>{width}px</strong>. Active: <code>{active.length ? active.join(' ') : 'none (below sm)'}</code>
 			</p>
 		</Unstyled>

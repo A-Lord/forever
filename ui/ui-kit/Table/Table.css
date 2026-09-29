@@ -19,7 +19,7 @@
 		}
 
 		&[data-dense] > * > .ui-table-row > :is(.ui-table-cell, .ui-table-header-cell) {
-			@apply px-1 py-0.5;
+			@apply px-1 py-1;
 		}
 
 		&[data-variant='plain'] > * > .ui-table-row {

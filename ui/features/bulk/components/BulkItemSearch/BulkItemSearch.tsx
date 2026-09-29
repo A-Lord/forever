@@ -66,7 +66,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 					onItemSelect={item => addBulkItem(player, ItemSpec.create({ id: item.id }))}
 					clearable
 					clearLabel={i18n.t('bulk_tab.search.clear_search')}
-					clearClassName="z-2 -ml-px flex items-center border border-surface-border bg-surface px-3 py-1.5"
+					clearClassName="z-2 -ml-px flex items-center border border-surface-border bg-surface px-(--input-padding-x) py-(--input-padding-y)"
 					listTestId="bulk-gear-search-results"
 					footer={
 						<>
@@ -91,7 +91,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 						value={minIlvl}
 						onChange={setMinIlvl}
 					/>
-					<span className="mx-3 mt-3">-</span>
+					<span className="mx-2 mt-2">-</span>
 					<NumberField
 						id="bulkGearSearchMaxIlvl"
 						label={i18n.t('bulk_tab.search.max_ilvl')}

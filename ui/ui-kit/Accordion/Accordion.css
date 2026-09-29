@@ -20,7 +20,7 @@
 	}
 
 	.ui-accordion-trigger {
-		@apply flex w-full interactive items-center justify-between gap-2 py-3 text-left font-bold text-foreground;
+		@apply flex w-full interactive items-center justify-between gap-2 py-2 text-left font-bold text-foreground;
 
 		&:hover {
 			@apply text-link-hover;

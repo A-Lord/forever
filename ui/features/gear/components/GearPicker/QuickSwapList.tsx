@@ -58,7 +58,7 @@ export const QuickSwapList = <T extends QuickSwapItem>({ title, emptyMessage, en
 			{title}
 		</h3>
 		{entries.length ? (
-			<ul className="mb-0 max-h-51.5 list-none gap-0.5 overflow-y-auto pl-0">
+			<ul className="mb-0 max-h-52 list-none gap-px overflow-y-auto pl-0">
 				{entries.map(entry => (
 					<QuickSwapRow key={keyOf(entry.item)} entry={entry} onItemClick={onItemClick} />
 				))}

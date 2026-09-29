@@ -71,10 +71,10 @@ export const BareItems: Story = {
 	args: {
 		children: (
 			<>
-				<MenuItem layout="row" bare className="gap-2 p-3 data-highlighted:bg-primary-dampened" testId="bare-item">
+				<MenuItem layout="row" bare className="gap-2 p-2 data-highlighted:bg-primary-dampened" testId="bare-item">
 					Brings its own padding and highlight
 				</MenuItem>
-				<MenuLinkItem layout="row" href="#bare-link" bare className="gap-2 p-3 data-highlighted:bg-primary-dampened" testId="bare-link">
+				<MenuLinkItem layout="row" href="#bare-link" bare className="gap-2 p-2 data-highlighted:bg-primary-dampened" testId="bare-link">
 					Bare link
 				</MenuLinkItem>
 			</>

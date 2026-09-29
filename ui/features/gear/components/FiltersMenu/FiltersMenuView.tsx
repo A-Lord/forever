@@ -89,12 +89,12 @@ export const FiltersMenuView = ({
 			testId="filters-menu"
 			size="md"
 			elevated
-			bodyGap="gap-3"
+			bodyGap="gap-2"
 			title={i18n.t('gear_tab.gear_picker.filters.title')}>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.filters.general')}>
 				<div className="grid grid-cols-split gap-x-(--modal-padding)">
 					{numberInput('minIlvl', 'filters-min-ilvl', i18n.t('gear_tab.gear_picker.filters.min_ilvl'), { showZeroes: false })}
-					<span className="flex justify-center self-end py-1.5">-</span>
+					<span className="flex justify-center self-end py-2">-</span>
 					{numberInput('maxIlvl', 'filters-max-ilvl', i18n.t('gear_tab.gear_picker.filters.max_ilvl'), { showZeroes: false })}
 				</div>
 				<ChoiceField

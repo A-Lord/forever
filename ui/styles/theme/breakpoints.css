@@ -24,6 +24,6 @@
 	}
 
 	@variant max-lg {
-		--spacing-sim-header: --spacing(18.5);
+		--spacing-sim-header: --spacing(18);
 	}
 }

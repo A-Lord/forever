@@ -48,7 +48,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 const NumberStory = ({ onChange }: { onChange: (next: number) => void }) => (
-	<div className="flex flex-col gap-3">
+	<div className="flex flex-col gap-2">
 		<NumberField id="number-field-int" label="Iterations" {...useStoryValue(12500, onChange)} />
 		<NumberField id="number-field-float" label="Swing Speed" float {...useStoryValue(2.6, onChange)} />
 		<NumberField id="number-field-positive" label="Distance From Target" float positive {...useStoryValue(5, onChange)} />
@@ -113,7 +113,7 @@ const MatrixCell = ({ label, commit, onChange }: { label?: string; commit: TextF
 
 export const Matrix: Story = {
 	render: args => (
-		<div className="grid grid-cols-[auto_1fr_1fr] items-center gap-3">
+		<div className="grid grid-cols-[auto_1fr_1fr] items-center gap-2">
 			<span />
 			<span>labelled</span>
 			<span>unlabelled</span>

@@ -34,7 +34,7 @@ export const AplListToolbarView = ({ itemName, nameDialog, onCreate, onReset, cl
 		<Toolbar
 			ref={rootRef}
 			className={clsx(
-				'sticky bottom-0 mt-3 flex items-center border-0 border-border transition-[padding,border-width,background-color] duration-150 ease-in-out data-stuck:border data-stuck:bg-background data-stuck:p-2',
+				'sticky bottom-0 mt-2 flex items-center border-0 border-border transition-[padding,border-width,background-color] duration-150 ease-in-out data-stuck:border data-stuck:bg-background data-stuck:p-2',
 				className,
 			)}
 			testId="apl-floating-action-bar-root"

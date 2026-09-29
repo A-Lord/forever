@@ -41,11 +41,11 @@ export const DetailedResultsView = ({
 
 	return (
 		<div data-testid="detailed-results-manager-root" className="flex flex-col *:min-h-0">
-			<div data-testid="detailed-results-controls-div" className="mb-3 flex">
+			<div data-testid="detailed-results-controls-div" className="mb-2 flex">
 				<Button data-testid="detailed-results-1-iteration-button" disabled={iterationDisabled} onClick={onSimulateIteration}>
 					{i18n.t('results_tab.details.sim_1_iteration')}
 				</Button>
-				<Button className="ml-3" disabled={deathDisabled} onClick={onSimulateDeath}>
+				<Button className="ml-2" disabled={deathDisabled} onClick={onSimulateDeath}>
 					{i18n.t('results_tab.details.sim_1_death')}
 				</Button>
 			</div>

@@ -62,7 +62,7 @@ export const SpacingScale = ({ prefixes, bar }: SpacingScaleProps) => {
 				{tokens.map(token => (
 					<ScaleRow key={token.name} name={token.name.slice(token.prefix.length + 3)} value={token.value} px={token.px}>
 						{bar ? (
-							<span className="block h-3 max-w-full rounded-md bg-primary" style={{ width: token.px ?? 0 }} />
+							<span className="block h-2 max-w-full rounded-md bg-primary" style={{ width: token.px ?? 0 }} />
 						) : (
 							<span className="block shrink-0 rounded-md bg-primary" style={{ width: token.px ?? 0, height: token.px ?? 0 }} />
 						)}
