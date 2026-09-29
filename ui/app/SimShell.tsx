@@ -74,7 +74,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 					) : null}
 					<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
 						<aside
-							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full"
+							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-80"
 							data-testid="sim-sidebar">
 							<div className="z-sim-title h-sim-header-plus border-b border-b-border max-lg:sticky max-lg:-top-px" data-testid="sim-title">
 								<SimTitleDropdown currentSpec={spec} />
@@ -85,7 +85,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								{/* The picker is the shell's own and has to stay ahead of every action the registry adds. */}
 								<div
 									ref={sidebarActions}
-									className="ui-sim-sidebar-actions -mx-6 flex flex-col items-center gap-3 px-page *:mb-0 max-xxl:mx-0 max-xxl:p-0"
+									className="ui-sim-sidebar-actions flex flex-col items-center gap-3 *:mb-0"
 									data-testid="sim-sidebar-actions">
 									{/* Nothing to iterate on a sim that never runs. */}
 									{!host?.simDisabled && <IterationsPicker sim={sim} />}
