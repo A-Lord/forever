@@ -9,12 +9,14 @@ export interface ItemCellProps {
 	name: ReactNode;
 	labels?: ReactNode;
 	action?: ReactNode;
+	/** Where the name and labels sit: `end` right-aligns them from `md` up, and below `md` they read from the start. */
+	align?: 'start' | 'end';
 	className?: ClassValue;
 	testId?: string;
 	rootDataAttributes?: Record<string, string>;
 }
 
-export const ItemCell = ({ icon, ilvl, sockets, name, labels, action, className, testId, rootDataAttributes }: ItemCellProps) => (
+export const ItemCell = ({ icon, ilvl, sockets, name, labels, action, align, className, testId, rootDataAttributes }: ItemCellProps) => (
 	<div className={clsx('ui-item-picker-root', className)} data-testid={testId ?? 'item-picker-root'} {...rootDataAttributes}>
 		<div className="ui-item-picker-icon-wrapper" data-testid="item-picker-icon-wrapper">
 			{ilvl !== undefined && (
@@ -29,7 +31,7 @@ export const ItemCell = ({ icon, ilvl, sockets, name, labels, action, className,
 				</div>
 			)}
 		</div>
-		<div className="ui-item-picker-labels-container" data-testid="item-picker-labels-container">
+		<div className="ui-item-picker-labels-container" data-align={align} data-testid="item-picker-labels-container">
 			<div className="ui-item-picker-name-row flex gap-1 tracking-normal" data-testid="item-picker-name-row">
 				{name}
 			</div>

@@ -9,7 +9,6 @@ export interface ConsumeRowViewProps {
 }
 
 // The caption is a <span> that names the row's picker group, since no single control owns it.
-// `Field` takes no `hidden` attribute, so a hidden row carries the `hidden` utility instead.
 export const ConsumeRowView = ({ label, hidden, children }: ConsumeRowViewProps) => {
 	const labelId = useId();
 	return (
@@ -18,7 +17,7 @@ export const ConsumeRowView = ({ label, hidden, children }: ConsumeRowViewProps)
 			role="group"
 			aria-labelledby={labelId}
 			testId="consumes-row"
-			className={hidden && 'hidden'}
+			hidden={hidden}
 			leading={
 				<FieldLabel as="span" id={labelId}>
 					{label}

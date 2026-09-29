@@ -73,14 +73,14 @@ export const LandingClassMenu = ({ playerClass }: LandingClassMenuProps) => {
 				// `keepMounted`: the 18 spec links are the landing page's only content for a crawler, and an unmounted popup has none of them in the document.
 				keepMounted
 				className="ui-landing-sim-link-popup">
-				{/* `p-0`: the link content pads itself, so the menu item's own padding would double it. */}
 				{specs.map(spec => (
 					<MenuLinkItem
 						key={spec.simLink}
 						layout="block"
+						bare
 						href={spec.simLink}
-						className={clsx('ui-landing-sim-link-cell p-0', textClassNameForSpec(spec))}
-						data-testid="sim-link">
+						className={clsx('ui-landing-sim-link-cell', textClassNameForSpec(spec))}
+						testId="sim-link">
 						<SimLinkContent
 							iconPath={spec.getIcon('large')}
 							label={className}

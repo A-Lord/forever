@@ -6,13 +6,14 @@ import type { ProgressTrackerHandle, ProgressTrackerProgress } from './types';
 export interface HandleProgressBarProps {
 	running: boolean;
 	ref?: Ref<ProgressTrackerHandle>;
+	testId?: string;
 }
 
 /** One shared object, so resetting an already-unmeasured bar bails out instead of committing. */
 const UNMEASURED: ProgressTrackerProgress = {};
 
 /** `setProgress` is called from a worker progress callback, so it stays out of the store: a tick renders this leaf, never the dialog. */
-export const HandleProgressBar = ({ running, ref }: HandleProgressBarProps) => {
+export const HandleProgressBar = ({ running, ref, testId }: HandleProgressBarProps) => {
 	const [{ title, current, total }, setProgress] = useState<ProgressTrackerProgress>(UNMEASURED);
 	const [wasRunning, setWasRunning] = useState(running);
 	if (running !== wasRunning) {
@@ -31,6 +32,7 @@ export const HandleProgressBar = ({ running, ref }: HandleProgressBarProps) => {
 			title={title}
 			progress={measured ? rounded / total : undefined}
 			readout={measured ? `${rounded}/${total}` : undefined}
+			testId={testId}
 		/>
 	);
 };

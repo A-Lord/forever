@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { Button } from '@ui-kit/Button';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { PopoverProps } from './Popover';
@@ -162,6 +163,30 @@ describe('Popover', () => {
 		unmount();
 		expect(document.body.querySelector('[data-base-ui-portal]')).toBeNull();
 		expect(screen.queryByRole('dialog')).toBeNull();
+	});
+
+	it('renders the trigger as the kit Button it is given, and opens from it', () => {
+		const error = vi.spyOn(console, 'error');
+		const onOpenChange = vi.fn();
+		const { trigger } = openPopover(
+			{
+				onOpenChange,
+				triggerRender: <Button variant="primary" className="w-8" />,
+				triggerTestId: 'settings-trigger',
+				triggerProps: { 'aria-label': 'Reforge settings' },
+				trigger: <span>Cog</span>,
+			},
+			'Reforge settings',
+		);
+
+		expect(trigger).toBe(screen.getByTestId('settings-trigger'));
+		expect(trigger.tagName).toBe('BUTTON');
+		expect(Array.from(trigger.classList)).toEqual(expect.arrayContaining(['ui-button', 'ui-button-primary', 'ui-button-md', 'w-8']));
+		expect(trigger.textContent).toBe('Cog');
+		expect(onOpenChange).toHaveBeenCalledWith(true);
+		expect(trigger.hasAttribute('data-popup-open')).toBe(true);
+		expect(error).not.toHaveBeenCalled();
+		error.mockRestore();
 	});
 
 	it('takes its portal node with it when it unmounts from a container', () => {

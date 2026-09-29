@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { Field } from '@ui-kit/Field';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { Menu } from '@ui-kit/Menu';
@@ -13,12 +14,14 @@ export interface MultiIconPickerProps {
 	icon?: ResolvedIcon;
 	active: boolean;
 	onClear: () => void;
+	/** The clear option's accessible name; "Clear" by default. */
+	clearLabel?: string;
 	/** One menu entry per child, each an icon toggle. */
 	children: ReactNode;
 	testId?: string;
 }
 
-export const MultiIconPicker = ({ label, icon, active, onClear, children, testId }: MultiIconPickerProps) => {
+export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, children, testId }: MultiIconPickerProps) => {
 	const labelId = useId();
 
 	return (
@@ -62,6 +65,7 @@ export const MultiIconPicker = ({ label, icon, active, onClear, children, testId
 							<a
 								className="ui-icon-picker-swatch p-0 filter-[opacity(0.7)] hover:filter-none"
 								data-testid="icon-picker-clear"
+								aria-label={clearLabel ?? i18n.t('common.clear')}
 								onClick={onClear}
 							/>
 						</li>

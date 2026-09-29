@@ -3,7 +3,7 @@ import type { DisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeEpColumns, makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testing/storybook/fixtures/stat-weights';
 import { Tooltip } from '@ui-kit/Tooltip';
-import { fn } from 'storybook/test';
+import { expect, fn, within } from 'storybook/test';
 
 import { EpWeightsTableView } from './EpWeightsTableView';
 import { StatWeightRowView } from './StatWeightRowView';
@@ -86,6 +86,23 @@ export const Weights: Story = { args: { statsType: StatsType.Weight, children: r
 /** With threat metrics on every metric shows, and the inputs go compact to fit the columns. */
 export const ThreatMetrics: Story = {
 	args: { columns: makeEpColumns(ALL), showThreatMetrics: true, children: rows(makeStatWeightsResult(), ALL, true) },
+};
+
+/** Scrolled inside a short dialog: the header, and the rule under it, stay put while the rows pass beneath. */
+export const ScrolledUnderHeader: Story = {
+	args: { columns: makeEpColumns(ALL), showThreatMetrics: true, children: rows(makeStatWeightsResult(), ALL, true) },
+	decorators: [
+		Story => (
+			<div className="flex h-45 flex-col">
+				<Story />
+			</div>
+		),
+	],
+	play: async ({ canvasElement }) => {
+		const container = within(canvasElement).getByTestId('results-ep-table-container');
+		container.scrollTop = 60;
+		await expect(container.scrollTop).toBeGreaterThan(0);
+	},
 };
 
 /** A gear planner computes nothing: only the editable Current EP column is left. */

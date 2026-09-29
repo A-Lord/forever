@@ -21,6 +21,11 @@ describe('EpWeightsHeader', () => {
 		expect([...container.querySelectorAll('th')].map(th => th.getAttribute('data-column-type'))).toEqual([null, null, 'weight', 'ep', null]);
 	});
 
+	it('lets every column label wrap', () => {
+		const { container } = renderHeader(makeEpColumns());
+		expect([...container.querySelectorAll('th')].map(th => th.hasAttribute('data-wrap'))).toEqual([true, true, true, true, true]);
+	});
+
 	it('puts each column label on its tooltip anchor, and copies the column from its action button', () => {
 		const onCopy = vi.fn();
 		const columns = makeEpColumns().map((column, index) => (index === 1 ? { ...column, onCopy } : column));

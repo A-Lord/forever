@@ -10,6 +10,7 @@ import { Profiler, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ElapsedTime } from './ElapsedTime';
+import { HandleProgressBar } from './HandleProgressBar';
 import { ProgressTrackerBar } from './ProgressTrackerBar';
 import { ProgressTrackerDialog } from './ProgressTrackerDialog';
 import type { ProgressTrackerHandle, ProgressTrackerState } from './types';
@@ -236,6 +237,23 @@ describe('ProgressTrackerBar', () => {
 		expect(barTitle()).toBeNull();
 		expect(barText()).toBeNull();
 	});
+
+	it('takes its root test id from testId, progress-tracker-bar by default', () => {
+		const { unmount } = render(<ProgressTrackerBar running />);
+		expect(screen.getByTestId('progress-tracker-bar').contains(barFill())).toBe(true);
+		unmount();
+
+		render(<ProgressTrackerBar running testId="batch-progress" />);
+		expect(screen.getByTestId('batch-progress').contains(barFill())).toBe(true);
+	});
+});
+
+describe('HandleProgressBar', () => {
+	it('hands its testId to the bar it renders', () => {
+		render(<HandleProgressBar running testId="reforge-progress" />);
+		expect(screen.getByTestId('reforge-progress').contains(barFill())).toBe(true);
+		expect(screen.queryByTestId('progress-tracker-bar')).toBeNull();
+	});
 });
 
 describe('ElapsedTime', () => {
@@ -301,6 +319,12 @@ describe('ElapsedTime', () => {
 		});
 		expect(text()).toBe('0s');
 		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('takes its test id from testId, time-elapsed by default', () => {
+		render(<ElapsedTime running={false} startedAt={Date.now()} testId="bulk-elapsed" />);
+		expect(screen.getByTestId('bulk-elapsed').textContent).toBe('0s');
+		expect(screen.queryByTestId('time-elapsed')).toBeNull();
 	});
 
 	it('counts from the start it is given, not from when it mounted', () => {

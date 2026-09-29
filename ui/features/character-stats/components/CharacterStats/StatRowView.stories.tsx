@@ -32,7 +32,7 @@ const meta = {
 	},
 	decorators: [
 		Story => (
-			<Table className="max-w-64">
+			<Table variant="plain" className="max-w-64">
 				<tbody>
 					<Story />
 				</tbody>

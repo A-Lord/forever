@@ -11,12 +11,18 @@ export interface BoundMultiComboBoxProps<M> {
 }
 
 export const BoundMultiComboBox = <M,>({ modObject, config, className, testId }: BoundMultiComboBoxProps<M>) => {
-	const { value, setValue, hidden, disabled, chrome } = useBoundField(modObject, config);
+	const {
+		value,
+		setValue,
+		hidden,
+		disabled,
+		chrome: { className: chromeClassName, ...chrome },
+	} = useBoundField(modObject, config);
 	if (hidden) return null;
 	return (
 		<MultiComboBox
 			{...chrome}
-			className={[className, chrome.className]}
+			className={[chromeClassName, className]}
 			testId={testId}
 			value={value}
 			onChange={setValue}

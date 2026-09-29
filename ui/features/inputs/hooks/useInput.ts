@@ -19,7 +19,7 @@ export const useInput = <ModObject, T, V = T>(modObject: ModObject, config: Inpu
 	configRef.current = config;
 
 	// `defaultValue` seeds the input without writing to the source, and the source takes over at the first notification.
-	const [seed, setSeed] = useState(() => (config.defaultValue ? config.defaultValue : undefined));
+	const [seed, setSeed] = useState(() => config.defaultValue);
 	const revision = useRef(0);
 
 	const notify = useRef<() => void>(() => {});

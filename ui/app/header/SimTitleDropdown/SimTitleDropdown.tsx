@@ -33,14 +33,14 @@ const ClassSubmenu = ({ playerClass }: { playerClass: PlayerClass<Class> }) => (
 		className="ui-sim-title-popup w-auto min-w-popup-min-w"
 		positionerProps={{ 'data-testid': 'sim-title-positioner' }}
 		popupProps={{ 'data-testid': 'sim-title-popup' }}>
-		{/* `p-0`: the link content pads itself, so the menu item's own padding would double it. */}
 		{Object.values(playerClass.specs).map(spec => (
 			<MenuLinkItem
 				key={spec.simLink}
 				layout="block"
+				bare
 				href={new URL(spec.simLink, window.location.href).toString()}
-				className={clsx(SIM_LINK_CLASSES, 'p-0', textClassNameForSpec(spec))}
-				data-testid="sim-link">
+				className={clsx(SIM_LINK_CLASSES, textClassNameForSpec(spec))}
+				testId="sim-link">
 				<SimLinkContent
 					iconPath={spec.getIcon('large')}
 					label={translatePlayerClass(PlayerSpecs.getPlayerClass(spec))}

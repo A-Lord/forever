@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { NOTICE_ICON_NAME as EXPORTED_ICON_NAME } from '.';
 import { Notice } from './Notice';
-import { NOTICE_COLOR, NOTICE_ICON, noticeIconClass } from './noticeLevel';
+import { NOTICE_COLOR, NOTICE_ICON, NOTICE_ICON_NAME, noticeIconClass } from './noticeLevel';
 
 const icon = (el: HTMLElement) => el.querySelector('i')!;
 
@@ -50,6 +51,13 @@ describe('Notice', () => {
 			</Notice>,
 		);
 		expect(screen.getByTestId('notice').classList).toContain('mt-2');
+	});
+});
+
+describe('NOTICE_ICON_NAME', () => {
+	it('is the icon name Notice draws per level, exported from the barrel', () => {
+		expect(EXPORTED_ICON_NAME).toBe(NOTICE_ICON_NAME);
+		expect(NOTICE_ICON_NAME).toEqual({ info: 'info-circle', warning: 'exclamation-triangle', error: 'exclamation-triangle' });
 	});
 });
 

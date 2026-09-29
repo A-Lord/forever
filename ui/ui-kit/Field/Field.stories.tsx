@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '@ui-kit/Button';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { Field } from './Field';
@@ -48,3 +49,21 @@ export const WithClear: Story = {
 	},
 };
 export const Disabled: Story = { args: { disabled: true } };
+export const Group: Story = {
+	args: {
+		id: undefined,
+		label: 'Elixirs',
+		role: 'group',
+		layout: 'inline',
+		children: (
+			<span className="flex gap-2">
+				<Button size="sm">Flask of Supreme Power</Button>
+				<Button size="sm">Elixir of the Mongoose</Button>
+			</span>
+		),
+	},
+	play: async ({ canvasElement }) => {
+		await expect(within(canvasElement).getByRole('group', { name: 'Elixirs' })).toBeTruthy();
+	},
+};
+export const Hidden: Story = { args: { hidden: true } };

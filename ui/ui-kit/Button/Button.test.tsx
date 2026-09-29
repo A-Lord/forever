@@ -168,6 +168,26 @@ describe('Button', () => {
 		expect(spinner.className).toContain('ui-spinner-sm');
 	});
 
+	it('lays the spinner over an iconOnly button, keeping the icon in place but invisible, and marks itself busy', () => {
+		render(
+			<Button iconOnly loading aria-label="Settings">
+				<i data-testid="cog" className="fas fa-cog" />
+			</Button>,
+		);
+		const button = screen.getByRole('button', { name: 'Settings' });
+		expect(button.getAttribute('aria-busy')).toBe('true');
+		expect(button.className).toBe('ui-button-icon');
+
+		const icon = within(button).getByTestId('cog');
+		expect(icon.parentElement!.parentElement).toBe(button);
+		expect(icon.parentElement!.className).toBe('invisible');
+
+		const spinner = within(button).getByTestId('loader');
+		expect(spinner.previousElementSibling).toBe(icon.parentElement);
+		expect(spinner.classList).toContain('ui-button-icon-spinner');
+		expect(spinner.classList).not.toContain('ui-button-spinner');
+	});
+
 	it('renders no spinner and no aria-busy when not loading', () => {
 		render(<Button>Simulate</Button>);
 		const button = screen.getByRole('button', { name: 'Simulate' });

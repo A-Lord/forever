@@ -49,7 +49,9 @@ export interface FieldProps extends FieldChromeProps {
 	children?: ReactNode;
 	after?: ReactNode;
 	ref?: Ref<HTMLDivElement>;
-	/** For a field that names a group of controls rather than one input. */
+	/** For a field that names a group of controls rather than one input; a `group` with a `label` and no `aria-labelledby` is named by that label. */
 	role?: AriaRole;
 	'aria-labelledby'?: string;
+	/** Hides the field and keeps its children mounted. */
+	hidden?: boolean;
 }

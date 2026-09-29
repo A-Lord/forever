@@ -66,3 +66,11 @@ export const WithAction: Story = {
 		),
 	},
 };
+
+export const AlignEnd: Story = {
+	args: {
+		align: 'end',
+		className: 'w-96',
+		labels: <span className="ui-item-picker-label-muted">Crusader</span>,
+	},
+};

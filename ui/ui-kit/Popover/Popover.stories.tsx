@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '@ui-kit/Button';
+import { Icon } from '@ui-kit/Icon';
 import { useRef, useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
@@ -39,6 +40,7 @@ const meta = {
 		align: { control: 'select', options: ALIGNS },
 		children: { control: false },
 		trigger: { control: 'text' },
+		triggerRender: { control: false },
 		anchor: { control: false },
 		container: { control: false },
 	},
@@ -72,6 +74,20 @@ export const Sides: Story = {
 
 export const Hover: Story = {
 	args: { openOnHover: true, delay: 0, trigger: 'Hover me' },
+};
+
+export const ButtonTrigger: Story = {
+	args: {
+		triggerClassName: undefined,
+		triggerRender: <Button variant="primary" />,
+		triggerProps: { 'aria-label': 'Reforge settings' },
+		trigger: <Icon name="cog" />,
+	},
+	play: async ({ canvasElement }) => {
+		const trigger = within(canvasElement).getByRole('button', { name: 'Reforge settings' });
+		await userEvent.click(trigger);
+		await expect(trigger.hasAttribute('data-popup-open')).toBe(true);
+	},
 };
 
 export const Anchored: Story = {

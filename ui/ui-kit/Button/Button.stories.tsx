@@ -64,6 +64,15 @@ export const Inline: Story = { args: { size: 'inline' } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Loading: Story = { args: { loading: true, children: 'Stat Weights' } };
 export const IconOnly: Story = { args: { iconOnly: true, 'aria-label': 'Settings', children: <Icon name="cog" size="lg" /> } };
+export const IconOnlyLoading: Story = {
+	args: { iconOnly: true, loading: true, 'aria-label': 'Settings', children: <Icon name="cog" size="lg" /> },
+	render: args => (
+		<span className="inline-flex items-center gap-2 border border-surface-border p-1">
+			<Button {...args} />
+			<Button {...args} loading={false} />
+		</span>
+	),
+};
 export const IconOnlyLink: Story = {
 	args: { iconOnly: true, variant: 'link', 'aria-label': 'Help', children: <Icon name="circle-question" style="regular" /> },
 };

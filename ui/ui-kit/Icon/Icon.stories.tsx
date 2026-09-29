@@ -73,3 +73,16 @@ export const Aliases: Story = {
 		</div>
 	),
 };
+
+export const FixedWidth: Story = {
+	render: () => (
+		<div className="flex flex-col gap-1">
+			{(['info-circle', 'triangle-exclamation', 'star', 'user'] as const).map(name => (
+				<div key={name} className="flex items-center gap-2">
+					<Icon name={name} size="lg" fixedWidth className="bg-surface" />
+					<code className="text-ui">{name}</code>
+				</div>
+			))}
+		</div>
+	),
+};

@@ -43,6 +43,21 @@ describe('Icon', () => {
 		expect(el(render(<Icon name="spinner" size="2xl" spin />).container).className).toBe('fas fa-spinner fa-2xl fa-spin');
 	});
 
+	it('adds fa-fw for a fixed-width icon, and nothing without it', () => {
+		expect(el(render(<Icon name="info-circle" size="xl" fixedWidth />).container).className).toBe('fas fa-info-circle fa-xl fa-fw');
+		expect(el(render(<Icon name="info-circle" />).container).classList).not.toContain('fa-fw');
+	});
+
+	it('takes its test id from testId', () => {
+		const { getByTestId } = render(<Icon name="cog" testId="settings-icon" />);
+		expect(getByTestId('settings-icon').tagName).toBe('I');
+	});
+
+	it('keeps a data-testid passed as an attribute when it has no testId', () => {
+		const { getByTestId } = render(<Icon name="cog" data-testid="gem-marker" />);
+		expect(getByTestId('gem-marker').tagName).toBe('I');
+	});
+
 	it('is hidden from assistive tech unless it carries a title', () => {
 		expect(el(render(<Icon name="times" />).container).getAttribute('aria-hidden')).toBe('true');
 		const titled = el(render(<Icon name="times" title="Close" />).container);

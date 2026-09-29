@@ -92,6 +92,9 @@
 				"delete": {
 					"type": "string"
 				},
+				"clear": {
+					"type": "string"
+				},
 				"saved_data": {
 					"type": "object",
 					"properties": {
