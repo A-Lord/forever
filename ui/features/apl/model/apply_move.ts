@@ -36,9 +36,19 @@ interface Slot {
 	/** Lists of one family exchange items; `prepull` and `priority` convert theirs on the way. */
 	family: string;
 	list: Array<any>;
+	/** The list its owner holds now, which is `list` for as long as the slot is current. */
+	read: () => Array<any> | undefined;
 	write: (next: Array<any>) => void;
 	owner?: object;
 }
+
+/** A drag's source list, resolved once per drag; `canApplyMove` takes it so a dragover walks the rotation for the target only. */
+export type MoveSource = Slot;
+
+const slot = (family: string, read: () => Array<any> | undefined, write: (next: Array<any>) => void, owner?: object): Slot | undefined => {
+	const list = read();
+	return list ? { family, list, read, write, owner } : undefined;
+};
 
 const find = (node: unknown, match: (candidate: any) => boolean): any => {
 	if (!node || typeof node !== 'object') return undefined;
@@ -62,28 +72,63 @@ const contains = (node: unknown, target: object): boolean => node === target || 
 const implOf = (message: { oneofKind?: string } | undefined): any => (message?.oneofKind ? (message as any)[message.oneofKind] : undefined);
 
 const slotAt = (rotation: APLRotation, group: string, parentId: string | null): Slot | undefined => {
-	if (group === APL_ROWS && parentId === PREPULL) return { family: PREPULL, list: rotation.prepullActions, write: next => (rotation.prepullActions = next) };
-	if (group === APL_ROWS && parentId === PRIORITY) return { family: PRIORITY, list: rotation.priorityList, write: next => (rotation.priorityList = next) };
+	if (group === APL_ROWS && parentId === PREPULL)
+		return slot(
+			PREPULL,
+			() => rotation.prepullActions,
+			next => (rotation.prepullActions = next),
+		);
+	if (group === APL_ROWS && parentId === PRIORITY)
+		return slot(
+			PRIORITY,
+			() => rotation.priorityList,
+			next => (rotation.priorityList = next),
+		);
 	if (group === APL_VARIABLES && parentId === null)
-		return { family: APL_VARIABLES, list: rotation.valueVariables || [], write: next => (rotation.valueVariables = next) };
-	if (group === APL_GROUPS && parentId === null) return { family: APL_GROUPS, list: rotation.groups || [], write: next => (rotation.groups = next) };
+		return slot(
+			APL_VARIABLES,
+			() => (rotation.valueVariables ??= []),
+			next => (rotation.valueVariables = next),
+		);
+	if (group === APL_GROUPS && parentId === null)
+		return slot(
+			APL_GROUPS,
+			() => (rotation.groups ??= []),
+			next => (rotation.groups = next),
+		);
 	if (group === APL_GROUPS) {
 		const owner = (rotation.groups || []).find((candidate, index) => hasId(candidate) && aplItemId(candidate, index) === parentId);
-		return owner && { family: 'group-actions', list: owner.actions, write: next => (owner.actions = next), owner };
+		return (
+			owner &&
+			slot(
+				'group-actions',
+				() => owner.actions,
+				next => (owner.actions = next),
+				owner,
+			)
+		);
 	}
 	if (group.startsWith(VALUES)) {
 		const uuid = group.slice(VALUES.length);
 		const owners: Array<APLValue> = uuid ? collect(rotation, candidate => candidate.uuid?.value === uuid && 'value' in candidate) : [];
 		// Two values sharing a uuid name no list at all, rather than whichever comes first.
 		const owner = owners.length === 1 ? owners[0] : undefined;
-		const impl = implOf(owner?.value);
-		return impl && Array.isArray(impl.vals) ? { family: 'values', list: impl.vals, write: next => (impl.vals = next), owner } : undefined;
+		if (!owner) return undefined;
+		const vals = () => {
+			const impl = implOf(owner.value);
+			return Array.isArray(impl?.vals) ? impl.vals : undefined;
+		};
+		return slot('values', vals, next => (implOf(owner.value).vals = next), owner);
 	}
 	if (group.startsWith(ACTIONS)) {
 		const key = group.slice(ACTIONS.length);
 		const owner: APLAction | undefined = find(rotation, candidate => hasId(candidate) && String(keyFor(candidate, 0)) === key && 'action' in candidate);
-		const impl = implOf(owner?.action);
-		return impl && Array.isArray(impl.actions) ? { family: 'actions', list: impl.actions, write: next => (impl.actions = next), owner } : undefined;
+		if (!owner) return undefined;
+		const actions = () => {
+			const impl = implOf(owner.action);
+			return Array.isArray(impl?.actions) ? impl.actions : undefined;
+		};
+		return slot('actions', actions, next => (implOf(owner.action).actions = next), owner);
 	}
 	return undefined;
 };
@@ -92,24 +137,37 @@ const ROW_FAMILIES = new Set([PREPULL, PRIORITY]);
 
 const compatible = (from: Slot, to: Slot) => from.family === to.family || (ROW_FAMILIES.has(from.family) && ROW_FAMILIES.has(to.family));
 
+const AT_PULL = '-1s';
+
 const convert = (item: any, from: Slot, to: Slot): any => {
 	if (from.family === to.family) return item;
 	const next =
 		to.family === PRIORITY
 			? APLListItem.create({ hide: item.hide })
-			: APLPrepullAction.create({ hide: item.hide, doAtValue: { uuid: { value: randomUUID() }, value: { oneofKind: 'const', const: { val: '-1s' } } } });
+			: APLPrepullAction.create({
+					hide: item.hide,
+					doAtValue: { uuid: { value: randomUUID() }, value: { oneofKind: 'const', const: { val: AT_PULL } } },
+				});
 	next.action = item.action;
-	// The pre-pull list shows no condition, and the sim still reads one: a row keeps none there.
-	if (to.family === PREPULL && next.action) next.action.condition = undefined;
 	carryId(item, next);
 	return next;
 };
 
+const atPull = (doAt: APLValue | undefined) => {
+	const value = doAt?.value;
+	return !value?.oneofKind || (value.oneofKind === 'const' && value.const.val.trim() === AT_PULL);
+};
+
+// A crossing converts the row, and each list keeps a field the other has no room for: the pre-pull list
+// shows no condition (the sim still reads one), the priority list has no time. A row carrying either stays.
+const losesData = (item: any, to: Slot) =>
+	to.family === PREPULL ? !!item?.action?.condition?.value?.oneofKind : to.family === PRIORITY && !atPull(item?.doAtValue);
+
 const matches = (item: unknown, index: number, id: string) =>
 	(hasId(item) && aplItemId(item, index) === id) || (item as APLValue | undefined)?.uuid?.value === id;
 
-const plan = (rotation: APLRotation, { from, to }: AplMove, offersKind?: OffersKind): (() => void) | null => {
-	const source = slotAt(rotation, from.group, from.parentId);
+const plan = (rotation: APLRotation, { from, to }: AplMove, offersKind?: OffersKind, resolved?: MoveSource): (() => void) | null => {
+	const source = resolved && resolved.read() === resolved.list ? resolved : slotAt(rotation, from.group, from.parentId);
 	const target = slotAt(rotation, to.group, to.parentId);
 	if (!source || !target || !compatible(source, target)) return null;
 	const item = source.list[from.index];
@@ -124,6 +182,7 @@ const plan = (rotation: APLRotation, { from, to }: AplMove, offersKind?: OffersK
 	if (target.owner && contains(item, target.owner)) return null;
 	const kind = item?.action?.action?.oneofKind;
 	if (source.family !== target.family && kind && offersKind && !offersKind(kind, target.family === PREPULL)) return null;
+	if (source.family !== target.family && losesData(item, target)) return null;
 	return () => {
 		const remaining = source.list.slice();
 		remaining.splice(from.index, 1);
@@ -137,9 +196,15 @@ const plan = (rotation: APLRotation, { from, to }: AplMove, offersKind?: OffersK
 /**
  * Whether `move` names two lists of this rotation that can exchange the item: the id still names
  * the item at its index, the lists are of one kind, the target is not inside the item, and a row
- * crossing into the pre-pull list or out of it has a kind the other list offers.
+ * crossing into the pre-pull list or out of it has a kind the other list offers and carries no
+ * condition (into pre-pull) or time other than the pull (out of it). A `source` from
+ * `resolveMoveSource` is used while its list is still the one its owner holds.
  */
-export const canApplyMove = (rotation: APLRotation, move: AplMove, offersKind?: OffersKind): boolean => plan(rotation, move, offersKind) !== null;
+export const canApplyMove = (rotation: APLRotation, move: AplMove, offersKind?: OffersKind, source?: MoveSource): boolean =>
+	plan(rotation, move, offersKind, source) !== null;
+
+/** The source list of a drag, for `canApplyMove` to reuse on every dragover of that drag. */
+export const resolveMoveSource = (rotation: APLRotation, from: AplMove['from']): MoveSource | undefined => slotAt(rotation, from.group, from.parentId);
 
 /**
  * Applies a drop to the live rotation. Each changed list is replaced by a fresh array on its owner,

@@ -35,7 +35,8 @@ const TOGGLE = 'common.list_picker.toggle_item';
 
 const reset = (sequenceName: string) => APLAction.create({ action: { oneofKind: 'resetSequence', resetSequence: { sequenceName } } });
 const row = (name: string) => APLListItem.create({ action: reset(name) });
-const prepull = (name: string) => APLPrepullAction.create({ action: reset(name), doAtValue: { value: { oneofKind: 'const', const: { val: '-2s' } } } });
+const prepull = (name: string, doAt = '-2s') =>
+	APLPrepullAction.create({ action: reset(name), doAtValue: { value: { oneofKind: 'const', const: { val: doAt } } } });
 const sequenceNames = (list: Array<{ action?: APLAction }>) => list.map(item => (item.action?.action as any).resetSequence.sequenceName);
 
 let player: ReturnType<typeof makePlayer>;
@@ -288,8 +289,23 @@ describe('AplList drag and drop', () => {
 		expect(sequenceNames(player.aplRotation.priorityList)).toEqual(['b', 'c', 'moved']);
 	});
 
-	it('moves a pre-pull row into the priority list, holding the same action', () => {
-		setup({ prepullActions: [prepull('p')], priorityList: [row('a'), row('b')] });
+	it('refuses a pre-pull row timed before the pull into the priority list, keeping its time', () => {
+		setup({ prepullActions: [prepull('p')], priorityList: [row('a')] });
+		mount();
+		place(prepullRows());
+		place(priorityRows(), 1);
+
+		grab(prepullRows()[0]);
+		expect(accepts(priorityRows()[0], 20 + 5)).toBe(false);
+		drop(priorityRows()[0], 20 + 5);
+
+		expect(player.aplRotation.prepullActions).toHaveLength(1);
+		expect(player.aplRotation.prepullActions[0].doAtValue?.value).toEqual({ oneofKind: 'const', const: { val: '-2s' } });
+		expect(notifications).toBe(0);
+	});
+
+	it('moves a pre-pull row at the pull into the priority list, holding the same action', () => {
+		setup({ prepullActions: [prepull('p', '-1s')], priorityList: [row('a'), row('b')] });
 		mount();
 		place(prepullRows());
 		place(priorityRows(), 2);

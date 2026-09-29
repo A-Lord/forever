@@ -22,7 +22,9 @@ export const fieldInputConfig = (
 	id,
 	label: spec.label,
 	labelTooltip: spec.labelTooltip,
-	layout: INLINE_KINDS.has(spec.kind) ? 'inline' : undefined,
+	// A wide field stacks, so its input takes the field's own width instead of the inline one.
+	layout: INLINE_KINDS.has(spec.kind) && !spec.wide ? 'inline' : undefined,
+	extraClassNames: spec.wide ? ['w-64', 'max-w-full'] : undefined,
 	storeSubscribe: changeSource,
 	getValue: () => {
 		const source = getParentValue();

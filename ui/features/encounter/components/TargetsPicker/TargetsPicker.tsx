@@ -66,6 +66,12 @@ export const TargetsPicker = ({ encounter }: TargetsPickerProps) => {
 								<Tree.Item.Handle label={i18n.t('common.list_picker.move_drag_drop')} testId="targets-picker-handle" />
 								<Tree.Item.Title as="h6">{`${itemLabel} ${targetIndex + 1}`}</Tree.Item.Title>
 								<Tree.Item.Actions label={i18n.t('common.list_picker.item_actions', { itemLabel })}>
+									<Tree.Item.Action
+										label={i18n.t('common.list_picker.copy_to_new', { itemLabel })}
+										icon="copy"
+										testId="targets-picker-copy"
+										onClick={() => copy(targetIndex)}
+									/>
 									{canRemove(targetIndex) && (
 										<Tree.Item.Action
 											label={i18n.t('common.list_picker.delete_item', { itemLabel })}
@@ -75,12 +81,6 @@ export const TargetsPicker = ({ encounter }: TargetsPickerProps) => {
 											onClick={() => remove(targetIndex)}
 										/>
 									)}
-									<Tree.Item.Action
-										label={i18n.t('common.list_picker.copy_to_new', { itemLabel })}
-										icon="copy"
-										testId="targets-picker-copy"
-										onClick={() => copy(targetIndex)}
-									/>
 								</Tree.Item.Actions>
 							</Tree.Item.Header>
 							<Tree.Item.Body>

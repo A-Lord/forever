@@ -98,4 +98,12 @@ describe('FieldGroup', () => {
 
 		expect([...root().children].map(child => child.getAttribute('data-layout'))).toEqual(['inline', 'inline', 'inline']);
 	});
+
+	it('stacks a wide string field so its input is not held to the inline width', () => {
+		setup({ schedule: '0s, 60s', name: 'x' });
+		mount([stringFieldConfig('schedule', { label: 'Do At', wide: true }), stringFieldConfig('name')]);
+
+		expect([...root().children].map(child => child.getAttribute('data-layout'))).toEqual([null, 'inline']);
+		expect(root().querySelector('input')!.value).toBe('0s, 60s');
+	});
 });

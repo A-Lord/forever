@@ -1,8 +1,10 @@
+import { AplItemActions } from '@features/apl/components/AplList';
 import { AplNameDialog } from '@features/apl/components/AplNameDialog';
 import { AplValidations } from '@features/apl/components/ListItemHeader';
 import { uuidValidations } from '@features/apl/components/ListItemHeader/utils';
 import { ValuePicker } from '@features/apl/components/ValuePicker';
 import { useApl } from '@features/apl/context/AplContext';
+import { useOwnListSortable } from '@features/apl/hooks/useOwnListSortable';
 import { useVariableExtraction } from '@features/apl/hooks/useVariableExtraction';
 import { freshUuids } from '@features/apl/model/fresh_uuids';
 import { type ListItemsConfig, useListItems } from '@features/inputs/hooks/useListItems';
@@ -13,9 +15,8 @@ import i18n from '@i18n/config';
 import { translateItemLabel } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import { randomUUID } from '@sim/utils/misc';
-import { Tree, type TreeSortable } from '@ui-kit/Tree';
+import { Tree } from '@ui-kit/Tree';
 import clsx from 'clsx';
-import { useMemo, useRef } from 'react';
 
 export interface ValueListFieldProps {
 	player: Player<any>;
@@ -55,17 +56,7 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 	};
 	const group = useApl().listGroup ?? 'apl-values';
 	const { items, itemConfig, create, remove, copy, move, hidden, disabled } = useListItems(player, listConfig);
-	const latest = useRef({ move, group });
-	latest.current = { move, group };
-	// Outside an `AplList` root this list owns the drag, and the lists nested in its rows report to it too.
-	const sortable = useMemo(
-		(): TreeSortable => ({
-			onMove: ({ from, to }) => {
-				if (from.group === latest.current.group && to.group === latest.current.group) latest.current.move(from.index, to.index);
-			},
-		}),
-		[],
-	);
+	const sortable = useOwnListSortable(move, group);
 	if (hidden) return null;
 
 	const itemLabel = translateItemLabel('Value');
@@ -91,26 +82,13 @@ export const ValueListField = ({ player, config }: ValueListFieldProps) => {
 										<AplValidations getValidations={subject => uuidValidations(subject, valueConfig.getValue(subject)?.uuid?.value)} />
 									</Tree.Item.Aside>
 									<Tree.Item.Actions label={i18n.t('common.list_picker.item_actions', { itemLabel })}>
-										<Tree.Item.Action
-											label={i18n.t('common.list_picker.delete_item', { itemLabel })}
-											icon="times"
-											tone="danger"
-											testId="apl-value-list-delete"
-											onClick={() => remove(index)}
-										/>
-										{extraction.canExtract(index) && (
-											<Tree.Item.Action
-												label={i18n.t('rotation_tab.apl.variables.extractToVariable')}
-												icon="arrow-right-from-bracket"
-												testId="apl-value-list-extract"
-												onClick={() => extraction.extract(index)}
-											/>
-										)}
-										<Tree.Item.Action
-											label={i18n.t('common.list_picker.copy_to_new', { itemLabel })}
-											icon="copy"
-											testId="apl-value-list-copy"
-											onClick={() => copy(index)}
+										<AplItemActions
+											label={itemLabel}
+											onCopy={() => copy(index)}
+											onExtract={() => extraction.extract(index)}
+											canExtract={() => extraction.canExtract(index)}
+											onDelete={() => remove(index)}
+											testIdPrefix="apl-value-list"
 										/>
 									</Tree.Item.Actions>
 								</Tree.Item.Header>

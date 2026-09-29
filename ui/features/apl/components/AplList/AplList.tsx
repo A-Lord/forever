@@ -1,6 +1,7 @@
 import { AplProvider } from '@features/apl/context/AplContext';
 import { actionKinds, type APLActionKind } from '@features/apl/model/action_kinds';
-import { applyMove, canApplyMove, type OffersKind } from '@features/apl/model/apply_move';
+import { type AplMove, applyMove, canApplyMove, type MoveSource, type OffersKind, resolveMoveSource } from '@features/apl/model/apply_move';
+import type { APLRotation } from '@generated/proto/apl';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { TooltipButton } from '@ui-kit/TooltipButton';
@@ -26,9 +27,17 @@ const Root = ({ group, isGroup, layout, testId, children }: AplListRootProps) =>
 	const player = usePlayer();
 	const sortable = useMemo<TreeSortable>(() => {
 		const offersKind: OffersKind = (kind, isPrepull) => actionKinds[kind as NonNullable<APLActionKind>]?.includeIf?.(player, isPrepull) ?? true;
+		// The dragged item's list is resolved once per drag, so a dragover looks up the target alone.
+		let cached: { rotation: APLRotation; key: string; source: MoveSource | undefined } | null = null;
+		const sourceOf = (from: AplMove['from']) => {
+			const rotation = player.aplRotation;
+			const key = `${from.group}\n${from.parentId}\n${from.index}\n${from.id}`;
+			if (cached?.rotation !== rotation || cached.key !== key) cached = { rotation, key, source: resolveMoveSource(rotation, from) };
+			return cached.source;
+		};
 		return {
 			onMove: move => player.modifyAplRotation(rotation => applyMove(rotation, move, offersKind)),
-			canDrop: (from, to) => canApplyMove(player.aplRotation, { from, to }, offersKind),
+			canDrop: (from, to) => canApplyMove(player.aplRotation, { from, to }, offersKind, sourceOf(from)),
 		};
 	}, [player]);
 
@@ -94,19 +103,26 @@ export interface AplItemActionsProps {
 	/** Read when the menu opens: the entry shows only for an item that holds a value to extract. */
 	canExtract?: () => boolean;
 	onDelete?: () => void;
+	/** The entries' testids are `${testIdPrefix}-copy`, `-extract` and `-delete`. */
+	testIdPrefix?: string;
 }
 
 /** The menu entries an APL item offers, in a fixed order: copy, extract to a variable, delete. */
-export const AplItemActions = ({ label, onCopy, onExtract, canExtract, onDelete }: AplItemActionsProps) => (
+export const AplItemActions = ({ label, onCopy, onExtract, canExtract, onDelete, testIdPrefix = 'apl-item' }: AplItemActionsProps) => (
 	<>
 		{onCopy && (
-			<Tree.Item.Action label={i18n.t('common.list_picker.copy_to_new', { itemLabel: label })} icon="copy" testId="apl-item-copy" onClick={onCopy} />
+			<Tree.Item.Action
+				label={i18n.t('common.list_picker.copy_to_new', { itemLabel: label })}
+				icon="copy"
+				testId={`${testIdPrefix}-copy`}
+				onClick={onCopy}
+			/>
 		)}
 		{onExtract && (canExtract?.() ?? true) && (
 			<Tree.Item.Action
 				label={i18n.t('rotation_tab.apl.variables.extractToVariable')}
 				icon="arrow-right-from-bracket"
-				testId="apl-item-extract"
+				testId={`${testIdPrefix}-extract`}
 				onClick={onExtract}
 			/>
 		)}
@@ -115,7 +131,7 @@ export const AplItemActions = ({ label, onCopy, onExtract, canExtract, onDelete 
 				label={i18n.t('common.list_picker.delete_item', { itemLabel: label })}
 				icon="times"
 				tone="danger"
-				testId="apl-item-delete"
+				testId={`${testIdPrefix}-delete`}
 				onClick={onDelete}
 			/>
 		)}
