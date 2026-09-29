@@ -3,7 +3,7 @@ import { useSimHost } from '@sim/context/SimHostContext';
 import { useTypedLocalStorage } from '@ui-kit/hooks/useTypedLocalStorage';
 import { useCallback, useMemo } from 'react';
 
-import { PRESET_FILTER_STORAGE_KEY } from '../storage_keys';
+import { PRESET_FILTER_STORAGE_KEY } from '../../storage_keys';
 
 /** Anything the picker filters: only the phase is read, so builds and gear presets both fit. */
 type Phased = { phase?: Phase };

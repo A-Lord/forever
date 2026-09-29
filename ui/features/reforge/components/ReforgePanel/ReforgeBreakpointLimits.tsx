@@ -6,8 +6,8 @@ import type { Player } from '@sim/player/player';
 import type { StatCap } from '@sim/proto/stats';
 import type { ReforgeSettings } from '@sim/settings/reforge_settings';
 
+import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
 import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimitsView';
-import { useReforgeIdPrefix } from './ReforgeIdPrefixContext';
 import { isIncludedStat } from './utils';
 
 export interface ReforgeBreakpointLimitsProps {

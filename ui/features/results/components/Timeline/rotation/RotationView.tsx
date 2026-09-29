@@ -15,7 +15,7 @@ import { computeOrder, rowAt } from '../../../model/timeline/rotation';
 import { NO_ITEMS } from '../../../model/timeline/rotation/row_track';
 import type { RowWindow, TrackBand } from '../../../model/timeline/rotation/timeline_window';
 import { trackBand, VERTICAL_PADDING_PX } from '../../../model/timeline/rotation/timeline_window';
-import { useDrStickySlot } from '../../DetailedResults/DrStickySlotContext';
+import { useDrStickySlot } from '../../DetailedResults/context/DrStickySlotContext';
 import { RotationHeaderRow } from './RotationHeaderRow';
 import { RotationRow } from './RotationRow';
 import { RotationRowLabel } from './RotationRowLabel';

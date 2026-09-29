@@ -6,7 +6,8 @@ import clsx from 'clsx';
 import { isValidElement, type ReactNode, useCallback, useId, useLayoutEffect, useMemo, useState } from 'react';
 
 import { adoptNode, isNode } from '../utils/dom';
-import { FieldContext, useField } from './context';
+import { FieldContext } from './context/FieldContext';
+import { useField } from './hooks/useField';
 import type { FieldClearPartProps, FieldControlProps, FieldDescriptionProps, FieldLabelProps, FieldRootProps, FieldSlotProps } from './types';
 
 const dedupe = (classes: string) => Array.from(new Set(classes.split(' '))).join(' ');

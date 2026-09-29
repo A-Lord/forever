@@ -5,8 +5,8 @@ import type { Player } from '@sim/player/player';
 import type { ReforgeSettings } from '@sim/settings/reforge_settings';
 import { useMemo } from 'react';
 
+import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
 import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
-import { useReforgeIdPrefix } from './ReforgeIdPrefixContext';
 
 export interface ReforgeFrozenSlotsProps {
 	settings: ReforgeSettings;

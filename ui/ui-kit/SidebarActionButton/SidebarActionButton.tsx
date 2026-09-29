@@ -3,7 +3,7 @@ import { Spinner } from '@ui-kit/Spinner';
 import clsx from 'clsx';
 import { type MouseEvent, type ReactNode, useContext } from 'react';
 
-import { SidebarDisabledContext } from './sidebar_disabled';
+import { SidebarDisabledContext } from './context/sidebar_disabled';
 
 export interface SidebarActionButtonProps {
 	children: ReactNode;

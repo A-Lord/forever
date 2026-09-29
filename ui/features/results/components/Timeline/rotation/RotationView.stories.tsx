@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { warriorRotationModel } from '@testing/storybook/fixtures/results-views';
 import { type ReactNode, useState } from 'react';
 
-import { DrStickySlotContext } from '../../DetailedResults/DrStickySlotContext';
+import { DrStickySlotContext } from '../../DetailedResults/context/DrStickySlotContext';
 import { RotationView } from './RotationView';
 
 // The ruler and the zoom buttons portal into the detailed results' sticky slot.

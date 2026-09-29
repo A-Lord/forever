@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DrStickySlotContext } from '../../DetailedResults/DrStickySlotContext';
+import { DrStickySlotContext } from '../../DetailedResults/context/DrStickySlotContext';
 import { RotationView } from './RotationView';
 import { castItem, castRow, rotationModel } from './testing';
 

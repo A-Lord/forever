@@ -6,8 +6,8 @@ import { TabPanels } from '@ui-kit/TabNav';
 import clsx from 'clsx';
 import { type ReactNode, useState } from 'react';
 
+import { DrStickySlotContext } from './context/DrStickySlotContext';
 import { DetailedResultsTabs } from './DetailedResultsTabs';
-import { DrStickySlotContext } from './DrStickySlotContext';
 import type { DetailedResultsTabConfig } from './utils';
 
 export interface DetailedResultsViewProps {

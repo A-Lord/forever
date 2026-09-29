@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SidebarDisabledContext } from './sidebar_disabled';
+import { SidebarDisabledContext } from './context/sidebar_disabled';
 import { SidebarActionButton } from './SidebarActionButton';
 
 describe('SidebarActionButton', () => {
