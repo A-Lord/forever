@@ -22,11 +22,11 @@ const resolve = (name: IconName | IconAlias): IconName => (name in ICON_ALIASES 
 export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className, title, testId, ...rest }: IconProps) => {
 	return (
 		<i
+			data-testid={testId}
 			{...rest}
 			className={clsx(ICON_STYLE_CLASS[style], `fa-${resolve(name)}`, size && `fa-${size}`, spin && 'fa-spin', fixedWidth && 'fa-fw', className)}
 			title={title}
 			aria-hidden={title ? undefined : true}
-			data-testid={testId}
 		/>
 	);
 };

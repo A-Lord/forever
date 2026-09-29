@@ -53,6 +53,11 @@ describe('Icon', () => {
 		expect(getByTestId('settings-icon').tagName).toBe('I');
 	});
 
+	it('keeps a data-testid passed as an attribute when it has no testId', () => {
+		const { getByTestId } = render(<Icon name="cog" data-testid="gem-marker" />);
+		expect(getByTestId('gem-marker').tagName).toBe('I');
+	});
+
 	it('is hidden from assistive tech unless it carries a title', () => {
 		expect(el(render(<Icon name="times" />).container).getAttribute('aria-hidden')).toBe('true');
 		const titled = el(render(<Icon name="times" title="Close" />).container);
