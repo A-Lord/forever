@@ -117,12 +117,12 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 
 	rotation := &cat.Rotation
 
-	// Maintain Faerie Fire (Feral) before other decisions.
-	if rotation.MaintainFaerieFire && cat.FaerieFireFeral != nil &&
+	// Maintain Faerie Fire before other decisions.
+	if rotation.MaintainFaerieFire && cat.FaerieFire != nil &&
 		cat.FaerieFireAuras != nil &&
 		!cat.FaerieFireAuras.Get(cat.CurrentTarget).IsActive() &&
-		cat.FaerieFireFeral.CanCast(sim, cat.CurrentTarget) {
-		return cat.FaerieFireFeral.Cast(sim, cat.CurrentTarget)
+		cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
+		return cat.FaerieFire.Cast(sim, cat.CurrentTarget)
 	}
 
 	energy := cat.CurrentEnergy()
@@ -133,12 +133,6 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if ripDebuff {
 		ripEnd = ripDot.ExpiresAt()
 	}
-	mangleAura := cat.MangleAuras.Get(cat.CurrentTarget)
-	mangleDebuff := mangleAura.IsActive()
-	mangleEnd := core.NeverExpires
-	if mangleDebuff {
-		mangleEnd = mangleAura.ExpiresAt()
-	}
 	rakeDebuff := cat.Rake.CurDot().IsActive()
 	nextTick := cat.NextEnergyTickAt()
 	omenProc := cat.ClearcastingAura.IsActive()
@@ -146,11 +140,9 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	ripCost := cat.CurrentRipCost()
 	biteCost := cat.CurrentFerociousBiteCost()
 	shredCost := cat.CurrentShredCost()
-	// TODO: these thresholds were tuned against TBC's 45-energy Mangle (Cat)
-	// cycle; Forever has no Cat-form Mangle, so 45 is now a fixed constant
-	// rather than a measured cost. Re-tune when the Forever cat rotation is
-	// revisited.
-	mangleCost := 45.0
+	// TODO: The energy thresholds below assume a 45-energy builder, a fixed constant rather than a
+	// cost read from the rows. Re-tune them with the Forever cat rotation.
+	builderCost := 45.0
 
 	ripNow := cp >= rotation.RipCP && !ripDebuff
 	ripweaveNow := rotation.UseRipTrick &&
@@ -173,10 +165,6 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 
 	ripNext := (ripNow || (cp >= rotation.RipCP && ripEnd <= nextTick)) &&
 		sim.Duration-nextTick >= RipEndThresh
-
-	mangleNext := !ripNext && mangleEnd <= nextTick
-
-	waitToMangle := mangleNext || (!rotation.Wolfshead && mangleCost <= 38)
 
 	biteBeforeRipNext := biteBeforeRip && ripEnd-nextTick >= BiteTime
 
@@ -217,7 +205,7 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 			wait = true
 		} else if energy >= 15 && (!biteBeforeRip || biteBeforeRipNext || biteAtEnd) {
 			wait = true
-		} else if !ripNext && (energy < 20 || !mangleNext) {
+		} else if !ripNext {
 			wait = false
 			cat.shift(sim)
 		} else {
@@ -232,7 +220,7 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		!omenProc &&
 		cp >= BiteTrickCP {
 		return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-	} else if energy >= biteCost && energy < mangleCost &&
+	} else if energy >= biteCost && energy < builderCost &&
 		rotation.UseRakeTrick &&
 		timeToNextTick > time.Second+cat.ReactionTime &&
 		!rakeDebuff &&
@@ -248,7 +236,7 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		if timeToNextTick > MaxWaitTime {
 			cat.shift(sim)
 		}
-	} else if !ripNext && (energy < mangleCost-20 || !waitToMangle) {
+	} else if !ripNext {
 		cat.shift(sim)
 	} else if timeToNextTick > MaxWaitTime {
 		cat.shift(sim)

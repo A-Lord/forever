@@ -12,15 +12,15 @@ func (druid *Druid) registerDemoralizingRoarSpell() {
 		return buffs.NewSpellDataDemoralizingRoarAura(target, true, 0)
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskEmpty))
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
-		if result.Landed() {
-			druid.DemoralizingRoarAuras.Get(target).Activate(sim)
+	// Effect 1 hits every enemy around the caster, and the row states no target cap.
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		for _, target := range sim.Encounter.ActiveTargetUnits {
+			result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+			if result.Landed() {
+				druid.DemoralizingRoarAuras.Get(target).Activate(sim)
+			}
 		}
 	}
 	config.RelatedAuraArrays = druid.DemoralizingRoarAuras.ToMap()
 	druid.DemoralizingRoar = druid.RegisterSpell(config)
-}
-
-func (druid *Druid) registerDemoralizingRoarAura() {
 }

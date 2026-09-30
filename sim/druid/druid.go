@@ -35,7 +35,6 @@ type Druid struct {
 	Dash                 *DruidSpell
 	DemoralizingRoar     *DruidSpell
 	FaerieFire           *DruidSpell
-	FaerieFireFeral      *DruidSpell
 	FeralCharge          *DruidSpell
 	FerociousBite        *DruidSpell
 	Enrage               *DruidSpell
@@ -46,7 +45,6 @@ type Druid struct {
 	Innervate            *DruidSpell
 	InsectSwarm          *DruidSpell
 	Lacerate             *DruidSpell
-	MangleBear           *DruidSpell
 	Maul                 *DruidSpell
 	Moonfire             *DruidSpell
 	NaturesSwiftness     *DruidSpell
@@ -78,19 +76,20 @@ type Druid struct {
 	FrenziedRegenerationAura *core.Aura
 	DemoralizingRoarAuras    core.AuraArray
 	FaerieFireAuras          core.AuraArray
-	MangleAuras              core.AuraArray
 	MoonkinFormAura          *core.Aura
 	ProwlAura                *core.Aura
 
 	form DruidForm
 
-	// Energy left when cat form dropped, and when it was dropped. Reset clears both.
+	// Energy left when cat form dropped, when it was dropped, and the time spent in bear forms since.
+	// Reset clears them.
 	furorStoredEnergy     float64
 	furorLeftCatAt        time.Duration
-	furorEnergyMetric     *core.ResourceMetrics
-	furorRageMetric *core.ResourceMetrics
-	enrageMetric    *core.ResourceMetrics
-	ripComboPoints        map[int32]float64
+	furorBearTime         time.Duration
+	furorEnergyMetric *core.ResourceMetrics
+	furorRageMetric   *core.ResourceMetrics
+	enrageMetric      *core.ResourceMetrics
+	ripComboPoints    map[int32]float64
 
 	IntensityEnrageRageBonus float64
 
@@ -204,7 +203,7 @@ func (druid *Druid) registerFeralKit() {
 func (druid *Druid) Reset(_ *core.Simulation) {
 	druid.furorStoredEnergy = 0
 	druid.furorLeftCatAt = 0
-	druid.ripComboPoints = nil
+	druid.furorBearTime = 0
 	druid.setForm(Humanoid)
 }
 

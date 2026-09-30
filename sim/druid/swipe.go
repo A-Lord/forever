@@ -9,18 +9,18 @@ import (
 func (druid *Druid) registerSwipeBearSpell() {
 	rank := spellData.Swipe.Highest()
 	damageEffect := rank.DamageEffect()
-	// The row states no attack power coefficient. Swipe does not scale with attack power.
+	// TODO: Next game build -- Swipe gains damage from attack power; this row states no coefficient.
 	base := damageEffect.Average()
 	targets := int32(damageEffect.ChainTargets)
 	if targets < 1 {
 		targets = int32(rank.MaxTargets)
 	}
+	var results core.SpellResultSlice
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		results := spell.CalcCleaveDamage(sim, target, targets, base*druid.rendAndTearMultiplier(target), spell.OutcomeMeleeSpecialHitAndCrit)
-		for _, result := range results {
-			spell.DealDamage(sim, result)
-		}
+		cleave(sim, target, spell, targets, &results, func(target *core.Unit) *core.SpellResult {
+			return spell.CalcDamage(sim, target, base*druid.rendAndTearMultiplier(target), spell.OutcomeMeleeSpecialHitAndCrit)
+		})
 	}
 	druid.Swipe = druid.RegisterSpell(config)
 }

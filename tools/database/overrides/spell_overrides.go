@@ -305,6 +305,20 @@ var Spells = []Override{
 		Reason:  "Placeholder: Omen of Clarity rate; the game files state none",
 		Source:  "classic-carryover",
 	},
+	{
+		SpellID: 9896,
+		Field:   APCoefPeriodic,
+		Value:   0.01,
+		Reason:  "Placeholder: Rip attack power per combo point on each tick; the game files state none",
+		Source:  "classic-carryover",
+	},
+	{
+		SpellID: 22829,
+		Field:   APCoefDirect,
+		Value:   0.03,
+		Reason:  "Placeholder: Ferocious Bite attack power per combo point; the game files state none",
+		Source:  "classic-carryover",
+	},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it

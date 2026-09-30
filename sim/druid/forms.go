@@ -117,6 +117,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
 		druid.furorStoredEnergy = 0
 		druid.furorLeftCatAt = 0
+		druid.furorBearTime = 0
 	})
 }
 
@@ -139,6 +140,7 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 		druid.furorRageOnEnterBear(sim)
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+		druid.furorBearTime += sim.CurrentTime - aura.StartedAt()
 		druid.restoreHumanoidBody(sim)
 	})
 	return aura
@@ -185,12 +187,9 @@ func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Au
 	return druid.RegisterSpell(config)
 }
 
-// furorFraction is the talent curve, 0.2 at 1/5 through 1 at 5/5.
+// furorFraction is the rage chance, the tooltip's $m1: 0.2 at 1/5 through 1 at 5/5.
 func (druid *Druid) furorFraction() float64 {
-	if druid.Talents.Furor == 0 {
-		return 0
-	}
-	return spellData.Furor.Rank(druid.Talents.Furor).EffectN(1).Percent()
+	return spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
 }
 
 func (druid *Druid) rememberCatEnergy(sim *core.Simulation) {
@@ -199,27 +198,28 @@ func (druid *Druid) rememberCatEnergy(sim *core.Simulation) {
 	}
 	druid.furorStoredEnergy = druid.CurrentEnergy()
 	druid.furorLeftCatAt = sim.CurrentTime
+	druid.furorBearTime = 0
 }
 
+// restoreCatEnergy is the tooltip's rule, priced with $m2: the energy left in Cat Form plus 10 for
+// each second spent outside Bear, Cat and Dire Bear Form, up to 100, all scaled by the rank. With the
+// talent untaken the cat comes back with none.
+//
+// TODO: Next game build -- entering Bear Form loses all of it, and energy outside Cat Form regenerates
+// at the Cat Form rate at 5/5.
 func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
-	if !druid.HasEnergyBar() || druid.furorFraction() == 0 || druid.Env.MeasuringStats {
+	if !druid.HasEnergyBar() || druid.Env.MeasuringStats {
 		return
 	}
-	// The first shift of an iteration has nothing stored. A later shift restores what was left
-	// plus 10 energy per second away, both scaled by the talent curve, and caps at the energy bar.
-	// TODO: Ingame research needed -- whether both the stored energy and the 10 per second scale by
-	// the rank curve, and what death, a reset, or cancelling the form does to the stored energy.
+	// The energy bar ticks in every form, so the first entry of an iteration keeps the pull's bar.
+	// TODO: Ingame research needed -- what death or cancelling the form does to the stored energy, and
+	// what a first entry later in the fight starts with.
 	if druid.furorLeftCatAt == 0 && druid.furorStoredEnergy == 0 {
 		return
 	}
-	seconds := (sim.CurrentTime - druid.furorLeftCatAt).Seconds()
-	if seconds < 0 {
-		seconds = 0
-	}
-	gained := druid.furorFraction() * (druid.furorStoredEnergy + 10*seconds)
-	if gained > druid.MaximumEnergy() {
-		gained = druid.MaximumEnergy()
-	}
+	seconds := max(0, (sim.CurrentTime - druid.furorLeftCatAt - druid.furorBearTime).Seconds())
+	fraction := spellData.Furor.EffectAt(2).FractionAt(druid.Talents.Furor)
+	gained := fraction * min(druid.furorStoredEnergy+10*seconds, 100)
 	delta := gained - druid.CurrentEnergy()
 	if delta > 0 {
 		druid.AddEnergy(sim, delta, druid.furorEnergyMetrics())

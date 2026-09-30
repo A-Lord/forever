@@ -15,7 +15,7 @@ func (druid *Druid) registerCowerSpell() {
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, 0, spell.OutcomeMeleeSpecialHit)
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Cower = druid.RegisterSpell(config)
 }

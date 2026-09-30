@@ -14,7 +14,7 @@ func (druid *Druid) registerClawSpell() {
 		if result.Landed() {
 			druid.awardComboPoints(sim, spell, rank)
 		}
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Claw = druid.RegisterSpell(config)
 }

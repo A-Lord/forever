@@ -11,24 +11,18 @@ func (druid *Druid) registerRipSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ExtraCastCondition = druid.requiresComboPoints(rank)
 	config.Dot = spelldata.DotConfig(rank, tick, bleedAuraOpt())
-	// Combo points are captured when the dot is applied. Attack power is read on the tick.
+	// Combo points are captured when the dot is applied. Attack power is read on the tick, and scales
+	// per combo point with the fifth counted as the fourth.
 	// TODO: Ingame research needed -- whether Rip snapshots attack power.
-	config.Dot.OnSnapshot = func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
+	comboPoints := map[int32]float64{}
+	config.Dot.OnSnapshot = func(_ *core.Simulation, target *core.Unit, dot *core.Dot) {
 		cp := float64(druid.ComboPoints())
 		dot.SnapshotBaseDamage = tick.AverageAt(druid.level()) + float64(tick.PointsPerResource)*cp
-		if druid.ripComboPoints == nil {
-			druid.ripComboPoints = map[int32]float64{}
-		}
-		druid.ripComboPoints[dot.Unit.UnitIndex] = cp
-		_ = sim
+		comboPoints[target.UnitIndex] = cp
 	}
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		cp := druid.ripComboPoints[target.UnitIndex]
-		apScale := cp
-		if apScale > 4 {
-			apScale = 4
-		}
-		damage := dot.SnapshotBaseDamage + classicAPPerComboPointRip*apScale*dot.Spell.MeleeAttackPower(target)
+		apScale := min(comboPoints[target.UnitIndex], 4)
+		damage := dot.SnapshotBaseDamage + tick.APCoeff()*apScale*dot.Spell.MeleeAttackPower(target)
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, rank.TickOutcome(dot))
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
@@ -38,7 +32,7 @@ func (druid *Druid) registerRipSpell() {
 			spell.Dot(target).Apply(sim)
 			druid.spendComboPoints(sim, spell)
 		}
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Rip = druid.RegisterSpell(config)
 	druid.Rip.ShortName = "Rip"

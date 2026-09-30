@@ -89,6 +89,9 @@ func (druid *Druid) applySharpenedClaws() {
 	druid.parseOnFeralForms(druid.Talents.SharpenedClaws, spellData.SharpenedClaws)
 }
 
+// TODO: Next game build -- Shredding Attacks moves up to row 3 and is the prerequisite of Shifting Power,
+// a 16-point talent that grants 40 energy for mana on a 16 s cooldown, which Improved Shifting Power
+// (row 5) takes to 8 s. Neither is in the game files yet.
 func (druid *Druid) applyShreddingAttacks() {
 	druid.parseTalent(druid.Talents.ShreddingAttacks, spellData.ShreddingAttacks)
 }
@@ -118,13 +121,14 @@ func (druid *Druid) applyHeartOfTheWild() {
 	if druid.Talents.HeartOfTheWild == 0 {
 		return
 	}
+	// Effect 1 is the Intellect ($s1), which the parse reads from its stat mask. The bear Stamina ($s2)
+	// and cat Strength ($s3) are dummies the forms carry.
+	druid.parseTalent(druid.Talents.HeartOfTheWild, spellData.HeartOfTheWild)
 	row := spellData.HeartOfTheWild.Rank(druid.Talents.HeartOfTheWild)
-	// TODO: Ingame research needed -- the strength row's misc2 is 8. The tooltip puts that strength in cat form only.
-	strength := druid.NewDynamicMultiplyStat(stats.Strength, 1+row.EffectN(1).Percent())
+	strength := druid.NewDynamicMultiplyStat(stats.Strength, 1+row.EffectN(3).Percent())
 	if druid.CatFormAura != nil {
 		druid.CatFormAura.AttachStatDependency(strength)
 	}
-	druid.MultiplyStat(stats.Intellect, 1+row.EffectN(3).Percent())
 	stamina := druid.NewDynamicMultiplyStat(stats.Stamina, 1+row.EffectN(2).Percent())
 	for _, aura := range []*core.Aura{druid.BearFormAura, druid.DireBearFormAura} {
 		if aura != nil {

@@ -9,25 +9,6 @@ import (
 // Bleed auras share a tag so Rend and Tear can see them without naming every spell.
 const druidBleedTag = "DruidBleed"
 
-// classicAPPerComboPointRip is applied per tick, and the fifth combo point counts as the fourth.
-//
-// TODO: Placeholder -- 0.01 is the classic value; the game files state none. Replace once measured in game.
-const classicAPPerComboPointRip = 0.01
-
-// classicAPPerComboPointBite is applied once, for the combo points the bite spends.
-//
-// TODO: Placeholder -- 0.03 is the classic value; the game files state none. Replace once measured in game.
-const classicAPPerComboPointBite = 0.03
-
-// TODO: Placeholder -- 0 is the classic value; the game files state none. Replace once measured in game.
-const classicAPCoefficientRake = 0.0
-
-// TODO: Placeholder -- 0 is the classic value; the game files state none. Replace once measured in game.
-const classicAPCoefficientPounce = 0.0
-
-// TODO: Placeholder -- 0 is the classic value; the game files state none. Replace once measured in game.
-const classicAPCoefficientLacerate = 0.0
-
 func (druid *Druid) level() int32 {
 	return druid.Level
 }
@@ -41,19 +22,11 @@ func (druid *Druid) rendAndTearMultiplier(target *core.Unit) float64 {
 	return 1 + spellData.RendAndTear.Rank(druid.Talents.RendAndTear).EffectN(1).Percent()
 }
 
-// weaponSpecialDamage is the row's weapon percent and flat bonus on top of the main-hand swing.
-// A row that states no percent is a full swing plus the flat bonus.
+// weaponSpecialDamage is the row's weapon strike on the main-hand swing: the flat bonus and the swing,
+// both scaled by the weapon percent.
 func (druid *Druid) weaponSpecialDamage(sim *core.Simulation, spell *core.Spell, target *core.Unit, rank *spelldata.Spell) float64 {
-	pct := 100.0
-	if e := rank.FindEffect(dbcenums.E_WEAPON_PERCENT_DAMAGE, 0, 0); e != spelldata.NilEffect {
-		pct = e.BaseValue()
-	}
-	flat := 0.0
-	if e := rank.FindEffect(dbcenums.E_WEAPON_DAMAGE, 0, 0); e != spelldata.NilEffect {
-		flat = e.AverageAt(druid.level())
-	}
-	damage := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))*(pct/100) + flat
-	return damage * druid.rendAndTearMultiplier(target)
+	weapon := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
+	return rank.WeaponStrike(sim, spell, weapon, 0) * druid.rendAndTearMultiplier(target)
 }
 
 func (druid *Druid) awardComboPoints(sim *core.Simulation, spell *core.Spell, rank *spelldata.Spell) {
@@ -62,15 +35,6 @@ func (druid *Druid) awardComboPoints(sim *core.Simulation, spell *core.Spell, ra
 		return
 	}
 	druid.AddComboPoints(sim, int32(e.BaseValue()), spell.ComboPointMetrics())
-}
-
-func comboPointCost(rank *spelldata.Spell) int32 {
-	for _, power := range rank.Powers {
-		if power.Type == dbcenums.POWER_COMBO_POINTS && power.Cost > 0 {
-			return power.Cost
-		}
-	}
-	return 0
 }
 
 // spendComboPoints spends every combo point. The row's combo-point cost is the minimum the cast
@@ -84,7 +48,7 @@ func (druid *Druid) spendComboPoints(sim *core.Simulation, spell *core.Spell) in
 }
 
 func (druid *Druid) requiresComboPoints(rank *spelldata.Spell) core.CanCastCondition {
-	need := comboPointCost(rank)
+	need := rank.Power(dbcenums.POWER_COMBO_POINTS).Cost
 	if need == 0 {
 		return nil
 	}
@@ -93,8 +57,9 @@ func (druid *Druid) requiresComboPoints(rank *spelldata.Spell) core.CanCastCondi
 	}
 }
 
-func (druid *Druid) refundOnMiss(sim *core.Simulation, spell *core.Spell, result *core.SpellResult, rank *spelldata.Spell) {
-	if !result.Landed() && rank.RefundsOnMiss() {
+// refundOnMiss returns the row's miss refund, which SpellConfig set on the cost.
+func (druid *Druid) refundOnMiss(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	if !result.Landed() {
 		spell.IssueRefund(sim)
 	}
 }
@@ -120,10 +85,10 @@ func (druid *Druid) breakProwl(sim *core.Simulation) {
 	}
 }
 
-// berserkExtraTargets is the jump-target modifier the parser does not apply.
-// TODO: Ingame research needed -- SPELLMOD_JUMP_TARGETS is not parsed. The row adds 3, and this
-// treats that base as the number of extra targets beyond the primary.
-func (druid *Druid) berserkExtraTargets() int32 {
+// berserkTargets is the number of targets Primal Bite strikes under Berserk, the primary included:
+// the tooltip's "strike up to $s3 targets" is effect 3, a SPELLMOD_JUMP_TARGETS the parser does not
+// apply. 0 outside Berserk.
+func (druid *Druid) berserkTargets() int32 {
 	if druid.BerserkAura == nil || !druid.BerserkAura.IsActive() {
 		return 0
 	}
@@ -132,4 +97,19 @@ func (druid *Druid) berserkExtraTargets() int32 {
 		return 0
 	}
 	return int32(e.BaseValue())
+}
+
+// cleave hits up to count active targets starting from target, prices each hit on its own target, and
+// deals them together once all are rolled. It returns the primary target's result. results is the
+// caller's own buffer, reused across casts.
+func cleave(sim *core.Simulation, target *core.Unit, spell *core.Spell, count int32, results *core.SpellResultSlice, hit func(target *core.Unit) *core.SpellResult) *core.SpellResult {
+	*results = (*results)[:0]
+	for range min(count, sim.Environment.ActiveTargetCount()) {
+		*results = append(*results, hit(target))
+		target = sim.Environment.NextActiveTargetUnit(target)
+	}
+	for _, result := range *results {
+		spell.DealDamage(sim, result)
+	}
+	return (*results)[0]
 }

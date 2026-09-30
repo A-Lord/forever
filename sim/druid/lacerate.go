@@ -11,29 +11,29 @@ func (druid *Druid) registerLacerateSpell() {
 	perStack := rank.EffectN(2).Percent()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Dot = spelldata.DotConfig(rank, tick, bleedAuraOpt())
+	// Each application stacks the bleed, so a tick is the row's amount per stack.
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		damage := tick.AverageAt(druid.level()) + classicAPCoefficientLacerate*dot.Spell.MeleeAttackPower(target)
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, rank.TickOutcome(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.AverageAt(druid.level())*float64(dot.GetStacks()), rank.TickOutcome(dot))
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		dot := spell.Dot(target)
-		stacks := int32(0)
+		existing := int32(0)
 		if dot.IsActive() {
-			stacks = dot.GetStacks()
+			existing = dot.GetStacks()
 		}
+		stacks := existing
 		if maxStacks := dot.MaxStacks; maxStacks == 0 || stacks < maxStacks {
 			stacks++
 		}
-		// The direct hit is weapon damage times the dummy percent per stack. The dot stays the row's amount.
+		// The tooltip's "$s2% weapon damage per existing application": a first Lacerate hits for nothing.
 		weapon := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
-		damage := weapon*perStack*float64(stacks) + classicAPCoefficientLacerate*spell.MeleeAttackPower(target)
-		damage *= druid.rendAndTearMultiplier(target)
+		damage := weapon * perStack * float64(existing) * druid.rendAndTearMultiplier(target)
 		result := spell.CalcAndDealDamage(sim, target, damage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 		if result.Landed() {
 			dot.Apply(sim)
 			dot.SetStacks(sim, stacks)
 		}
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Lacerate = druid.RegisterSpell(config)
 	druid.Lacerate.ShortName = "Lacerate"

@@ -8,6 +8,7 @@ import (
 func (druid *Druid) registerRavageSpell() {
 	rank := spellData.Ravage.Highest()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	// "Must be prowling and behind the target" is the tooltip's; the row states Cat Form only.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.behindTarget()
 	}
@@ -17,7 +18,7 @@ func (druid *Druid) registerRavageSpell() {
 		if result.Landed() {
 			druid.awardComboPoints(sim, spell, rank)
 		}
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Ravage = druid.RegisterSpell(config)
 }

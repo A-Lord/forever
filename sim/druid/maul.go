@@ -9,17 +9,17 @@ import (
 
 func (druid *Druid) registerMaulSpell() {
 	rank := spellData.Maul.Highest()
-	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial),
+		spelldata.RemoveFlags(core.SpellFlagAPL))
 	// The queued cast keeps the spell id the APL names. The swing's damage is the same id, tagged,
 	// so a lookup of the untagged id finds the queue.
 	config.ActionID = config.ActionID.WithTag(1)
-	config.Flags &^= core.SpellFlagAPL
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		if druid.maulQueueAura != nil {
 			druid.maulQueueAura.Deactivate(sim)
 		}
 		result := spell.CalcAndDealDamage(sim, target, druid.weaponSpecialDamage(sim, spell, target, rank), spell.OutcomeMeleeWeaponSpecialHitAndCrit)
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	damage := druid.RegisterSpell(config)
 	druid.Maul = druid.makeMaulQueueSpellAndAura(damage)

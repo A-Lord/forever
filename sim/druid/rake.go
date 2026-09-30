@@ -7,23 +7,19 @@ import (
 
 func (druid *Druid) registerRakeSpell() {
 	rank := spellData.Rake.Highest()
-	dotEffect := rank.PeriodicDamageEffect()
+	// TODO: Next game build -- Rake gains damage from attack power; this row states no coefficient, so
+	// the hit and the ticks are the row's amounts until one is measured and added as an override.
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.Dot = spelldata.DotConfig(rank, dotEffect, bleedAuraOpt())
-	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		tick := dotEffect.AverageAt(druid.level()) + classicAPCoefficientRake*dot.Spell.MeleeAttackPower(target)
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick, rank.TickOutcome(dot))
-	}
+	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect(), bleedAuraOpt())
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		druid.breakProwl(sim)
-		initial := rank.DamageEffect().AverageAt(druid.level()) + classicAPCoefficientRake*spell.MeleeAttackPower(target)
-		initial *= druid.rendAndTearMultiplier(target)
+		initial := rank.DamageEffect().AverageAt(druid.level()) * druid.rendAndTearMultiplier(target)
 		result := spell.CalcAndDealDamage(sim, target, initial, spell.OutcomeMeleeSpecialHitAndCrit)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 			druid.awardComboPoints(sim, spell, rank)
 		}
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Rake = druid.RegisterSpell(config)
 	druid.Rake.ShortName = "Rake"

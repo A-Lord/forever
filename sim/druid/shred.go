@@ -18,7 +18,7 @@ func (druid *Druid) registerShredSpell() {
 		if result.Landed() {
 			druid.awardComboPoints(sim, spell, rank)
 		}
-		druid.refundOnMiss(sim, spell, result, rank)
+		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Shred = druid.RegisterSpell(config)
 }
