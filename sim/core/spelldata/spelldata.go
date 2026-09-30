@@ -201,8 +201,8 @@ type Effect struct {
 	// keeps the answer the same for an effect whose spell the store does not carry.
 	BaseLevel, MaxLevel int16
 
-	// EffectVariance: the spread the server rolls the amount over, as min/max = average * (1 -/+
-	// Variance/2). Zero on an effect that does not roll.
+	// EffectVariance: the spread the amount rolls over, |BasePoints| * Variance/2 either side of the
+	// scaled amount (Min, Max). Zero on an effect that does not roll.
 	Variance float64
 
 	// EffectBonusCoefficient and BonusCoefficientFromAP: the share of spell power and attack power the

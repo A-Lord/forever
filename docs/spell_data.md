@@ -135,9 +135,10 @@ where it does not - Vindication's debuff states 0 and 1 - the in-game amount cou
 The arithmetic is float32 on purpose - the game files' per-level gain is a float32 widened into the
 database, and folding it in float64 moves six rows off the tooltip.
 
-`EffectVariance` is the spread the server rolls the amount over: `Min` and `Max` are the average times
-`1 -/+ Variance/2`. `Roll` rolls it where the row states one and answers the average where it does
-not, so a call site never has to ask whether this particular spell's amount is a range.
+`EffectVariance` is the spread the amount rolls over. It spreads the base points only:
+`|BasePoints| * Variance/2` either side of the scaled amount before it is floored, with `Min` rounded
+down and `Max` rounded up. `Roll` rolls it where the row states one and answers the average where it
+does not, so a call site never has to ask whether this particular spell's amount is a range.
 
 ### Attributes, edges and class flags
 

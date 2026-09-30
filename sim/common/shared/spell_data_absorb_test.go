@@ -125,7 +125,7 @@ func TestOnUseAbsorbRunsOnTheItemsCooldownAndCategory(t *testing.T) {
 	}
 }
 
-// With the row's spread the shield rolls within 780 * (1 -/+ 0.6/2).
+// With the row's spread the shield rolls within 780 ± 234, 0.6/2 of its base points either side.
 func TestOnUseAbsorbRollsTheRowsSpread(t *testing.T) {
 	const itemID int32 = 991205
 	effect := spelldata.MustFind(resolutionSpell).AbsorbEffect()
