@@ -121,14 +121,14 @@ func (s *Spell) DamageEffect() *Effect {
 // A weapon strike's damage: its flat weapon-damage roll, the weapon damage and extra, all scaled by
 // the spell's weapon percent, or taken whole where it states none. In game the percent scales the
 // flat part too: Holy Strike rank 1's 12 ± 1.5 at 25% shows as 2 to 4.
-func (s *Spell) WeaponStrike(sim *core.Simulation, level int32, weaponDamage, extra float64) float64 {
+func (s *Spell) WeaponStrike(sim *core.Simulation, spell *core.Spell, weaponDamage, extra float64) float64 {
 	flat := s.firstOfType(dbcenums.E_NORMALIZED_WEAPON_DMG, dbcenums.E_WEAPON_DAMAGE_NOSCHOOL,
 		dbcenums.E_WEAPON_DAMAGE)
 	percent := 1.0
 	if p := s.firstOfType(dbcenums.E_WEAPON_PERCENT_DAMAGE); p != NilEffect {
 		percent = p.Percent()
 	}
-	return (flat.Roll(sim, level) + weaponDamage + extra) * percent
+	return (flat.RollAt(sim, spell.Unit.Level) + weaponDamage + extra) * percent
 }
 
 // The effect granting the caster extra attacks, whose BasePoints is how many.

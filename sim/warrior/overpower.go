@@ -6,7 +6,7 @@ import (
 )
 
 var overpowerRank = spellData.Overpower.ByID(11585)
-var overpowerBaseDamage = overpowerRank.DamageEffect().Average(core.CharacterLevel)
+var overpowerBaseDamage = overpowerRank.DamageEffect().Average()
 
 // The window a dodge opens: the aura Offensive State (DND) fires on the hit.
 var overpowerWindow = spellData.OffensiveStateTriggered.Highest()

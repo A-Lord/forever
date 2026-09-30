@@ -6,7 +6,7 @@ import (
 )
 
 var cleaveRank = spellData.Cleave.Highest()
-var cleaveBaseDamage = cleaveRank.DamageEffect().Average(core.CharacterLevel)
+var cleaveBaseDamage = cleaveRank.DamageEffect().Average()
 var cleaveTargets = int32(cleaveRank.DamageEffect().ChainTargets)
 
 func (warrior *Warrior) registerCleave() {

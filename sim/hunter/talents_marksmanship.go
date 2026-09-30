@@ -176,7 +176,7 @@ func (hunter *Hunter) registerRangedWeaponSpecialization() {
 }
 
 var sniperShotRank = spellData.SniperShot.Highest()
-var sniperShotBonusDamage = sniperShotRank.DamageEffect().Average(core.CharacterLevel)
+var sniperShotBonusDamage = sniperShotRank.DamageEffect().Average()
 
 func (hunter *Hunter) registerSniperShot() {
 	if !hunter.Talents.SniperShot {

@@ -7,7 +7,7 @@ import (
 )
 
 var mongooseBiteRank = spellData.MongooseBite.Highest()
-var mongooseBiteBonusDamage = mongooseBiteRank.DamageEffect().Average(core.CharacterLevel)
+var mongooseBiteBonusDamage = mongooseBiteRank.DamageEffect().Average()
 
 // The window a dodge opens: the aura Defensive State fires on the dodge.
 var mongooseBiteWindow = spellData.DefensiveStateTriggered.Highest()

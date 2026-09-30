@@ -6,7 +6,7 @@ import (
 )
 
 var aimedShotRank = spellData.AimedShot.Highest()
-var aimedShotBonusDamage = aimedShotRank.DamageEffect().Average(core.CharacterLevel)
+var aimedShotBonusDamage = aimedShotRank.DamageEffect().Average()
 
 func (hunter *Hunter) registerAimedShot() {
 	config := spelldata.SpellConfig(&hunter.Unit, aimedShotRank, spelldata.Melee(core.ProcMaskRangedSpecial))

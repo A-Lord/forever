@@ -87,8 +87,8 @@ func (warrior *Warrior) registerImprovedOverpower() {
 
 var angerManagementRank = spellData.AngerManagement.Highest()
 
-var angerManagementRage = angerManagementRank.EffectN(2).Average(core.CharacterLevel)
-var angerManagementPeriod = time.Duration(angerManagementRank.EffectN(3).Average(core.CharacterLevel)) * time.Second
+var angerManagementRage = angerManagementRank.EffectN(2).Average()
+var angerManagementPeriod = time.Duration(angerManagementRank.EffectN(3).Average()) * time.Second
 
 func (warrior *Warrior) registerAngerManagement() {
 	if !warrior.Talents.AngerManagement {
@@ -187,7 +187,7 @@ func (warrior *Warrior) registerImpale() {
 }
 
 var mortalStrikeRank = spellData.MortalStrike.Highest()
-var mortalStrikeBaseDamage = mortalStrikeRank.DamageEffect().Average(core.CharacterLevel)
+var mortalStrikeBaseDamage = mortalStrikeRank.DamageEffect().Average()
 
 func (warrior *Warrior) registerMortalStrike() {
 	if !warrior.Talents.MortalStrike {
@@ -213,7 +213,7 @@ var spearingStrikeRank = spellData.SpearingStrike.Highest()
 // The tooltip reads "deals $s2% weapon damage" and "an additional ${$s2*$s3}%" against Giants and
 // Dragonkin, and the effects share an aura and misc value, so both are taken by effect index.
 var spearingStrikeWeaponShare = spearingStrikeRank.EffectN(2).Percent()
-var spearingStrikeGiantMultiplier = 1 + spearingStrikeRank.EffectN(3).Average(core.CharacterLevel)
+var spearingStrikeGiantMultiplier = 1 + spearingStrikeRank.EffectN(3).Average()
 
 func (warrior *Warrior) registerSpearingStrike() {
 	if !warrior.Talents.SpearingStrike {

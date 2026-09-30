@@ -6,7 +6,7 @@ import (
 )
 
 var raptorStrikeRank = spellData.RaptorStrike.Highest()
-var raptorStrikeBonusDamage = raptorStrikeRank.DamageEffect().Average(core.CharacterLevel)
+var raptorStrikeBonusDamage = raptorStrikeRank.DamageEffect().Average()
 
 func (hunter *Hunter) registerRaptorStrike() {
 	config := spelldata.SpellConfig(&hunter.Unit, raptorStrikeRank,

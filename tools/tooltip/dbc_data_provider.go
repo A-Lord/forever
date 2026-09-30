@@ -305,9 +305,9 @@ func (d DBCTooltipDataProvider) GetDescriptionVariableString(spellId int64) stri
 // effectEnd returns one end of the range the sim rolls for an effect at the character's level. An
 // effect the spell store does not carry reads its base points at both ends, whatever variance it
 // states.
-func (d DBCTooltipDataProvider) effectEnd(spellId int64, effectIdx int64, end func(*spelldata.Effect, int32) float64) float64 {
+func (d DBCTooltipDataProvider) effectEnd(spellId int64, effectIdx int64, end func(*spelldata.Effect) float64) float64 {
 	if effect := spelldata.Find(int32(spellId)).EffectAtIndex(uint8(effectIdx)); effect != spelldata.NilEffect {
-		return end(effect, core.CharacterLevel)
+		return end(effect)
 	}
 
 	effectEntries, ok := d.DBC.SpellEffects[int(spellId)]

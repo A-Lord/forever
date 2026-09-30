@@ -130,7 +130,7 @@ func TestOnUseAbsorbRollsTheRowsSpread(t *testing.T) {
 	const itemID int32 = 991205
 	effect := spelldata.MustFind(resolutionSpell).AbsorbEffect()
 	sim, caster := newOnUseSim(t, NewSpellDataAbsorbOnUse, map[int32]*proto.ItemEffect{itemID: resolutionOnUse()})
-	low, high := effect.Min(caster.Level), effect.Max(caster.Level)
+	low, high := effect.Min(), effect.Max()
 	if low == high {
 		t.Fatalf("%d states no spread", resolutionSpell)
 	}

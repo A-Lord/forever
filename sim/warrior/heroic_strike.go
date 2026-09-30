@@ -6,7 +6,7 @@ import (
 )
 
 var heroicStrikeRank = spellData.HeroicStrike.Highest()
-var heroicStrikeBaseDamage = heroicStrikeRank.DamageEffect().Average(core.CharacterLevel)
+var heroicStrikeBaseDamage = heroicStrikeRank.DamageEffect().Average()
 
 func (warrior *Warrior) registerHeroicStrike() {
 	config := spelldata.SpellConfig(&warrior.Unit, heroicStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))

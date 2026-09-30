@@ -30,7 +30,7 @@ The full guide is `docs/spell_data.md`; this is the map.
 
 ```go
 var slamRank = spellData.Slam.Highest()          // a ladder: Rank(n), Highest(), ByID(id), Len()
-var slamDamage = slamRank.DamageEffect().Average(core.CharacterLevel)
+var slamDamage = slamRank.DamageEffect().Average()
 
 rank := spellData.Defiance.Rank(points)          // rank 0 is untaken and answers Nil
 spelldata.Find(id)                               // Nil where the store does not carry it; chains safely
@@ -47,13 +47,13 @@ spelldata.MustFind(id)                           // panics instead, for a spell 
 | `SpellSchool()`, `DefenseTypeCore()`, `MissRefund()`, `TickOutcome(dot)`         | core's own forms                                                                                              |
 | `Refs()`, `Triggered()`, `Drivers()`                                             | the tooltip's spells, the ones the effects fire, the ones that fire this                                      |
 
-| on an `*Effect`                                                  |                                                                |
-| ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| `BaseValue()`                                                    | the game files' number, unconverted                            |
-| `Percent()`, `Tenths()`, `TimeValue()`, `Period()`               | over 100, over 10, as milliseconds, the tick interval          |
-| `Average(level)`, `Min(level)`, `Max(level)`, `Roll(sim, level)` | the folded amount, the ends of the spread, and one cast's roll |
-| `Coeff()`, `APCoeff()`                                           | the spell power and attack power shares                        |
-| `Trigger()`                                                      | the spell the effect fires                                     |
+| on an `*Effect`                                      |                                                                                                                                                                                  |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BaseValue()`                                        | the game files' number, unconverted                                                                                                                                              |
+| `Percent()`, `Tenths()`, `TimeValue()`, `Period()`   | over 100, over 10, as milliseconds, the tick interval                                                                                                                            |
+| `Average()`, `Min()`, `Max()`, `Mean()`, `Roll(sim)` | the folded amount, the ends of the spread, what a cast averages, and one cast's roll, at the sim's level; the `At` forms (`AverageAt(level)`, `RollAt(sim, level)`) take a level |
+| `Coeff()`, `APCoeff()`                               | the spell power and attack power shares                                                                                                                                          |
+| `Trigger()`                                          | the spell the effect fires                                                                                                                                                       |
 
 A `Ladder` reads per rank: `ValueAt`, `FractionAt`, `MultiplierAt`, `TenthsAt`, and `EffectAt(n)` / `Effect(aura, misc)` for a rank with more than one effect. Rank 0 answers 0, so no `if rank > 0` guard. `Contains(spell)` asks whether a registered spell is one of the ladder's ranks, by spell id: it is how a handler or a `ProcTrigger`'s `ExtraCondition` names one ability, and the class `SpellMask*` constants it replaced are gone from the warrior.
 
@@ -135,7 +135,7 @@ Where the row and the tooltip disagree, the tooltip can win — Flurry's haste l
 go run ./tools/spelldata 11574                   # one row: header, ladder call, a worded line and the game files' columns per effect; -json for a tool
 go run ./tools/spelldata -family warrior/Execute # the ladder: one line per rank with the call reaching it, then the highest rank's row (<Family> alone where one class states it)
 go run ./tools/spelldata -expr 'spellData.Execute.Rank(3)' -package warrior   # the row a ladder call names, Highest(), Rank(n) or ByID(id)
-go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)' -package warrior   # a pick followed by the store's own accessors: the value it reads, that accessor's doc comment and the row with the effect it read marked
+go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average()' -package warrior   # a pick followed by the store's own accessors: the value it reads, that accessor's doc comment and the row with the effect it read marked
 go run ./tools/spelldata -config 'spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))' -package warrior   # the config the resolver builds, each field with the step that filled it
 go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE}'   # each field, the weapons it needs and the rule core applies
 go run ./tools/spelldata -hover sim/warrior/execute.go 12:40   # the markdown an editor hover shows at line:column (1-based); the trace on stderr

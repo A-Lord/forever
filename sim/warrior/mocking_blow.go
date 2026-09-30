@@ -6,7 +6,7 @@ import (
 )
 
 var mockingBlowRank = spellData.MockingBlow.Highest()
-var mockingBlowBaseDamage = mockingBlowRank.DamageEffect().Average(core.CharacterLevel)
+var mockingBlowBaseDamage = mockingBlowRank.DamageEffect().Average()
 
 func (warrior *Warrior) registerMockingBlow() {
 	// TODO: Test the threat multiplier in-game

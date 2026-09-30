@@ -7,7 +7,7 @@ import (
 
 var retaliationRank = spellData.Retaliation.Highest()
 var retaliationHit = spellData.RetaliationTriggered.Highest()
-var retaliationHitBaseDamage = retaliationHit.DamageEffect().Average(core.CharacterLevel)
+var retaliationHitBaseDamage = retaliationHit.DamageEffect().Average()
 
 func (warrior *Warrior) registerRetaliation() {
 	// The aura casts the counterattack, but it does not take spelldata.Proc(): that marks the spell
