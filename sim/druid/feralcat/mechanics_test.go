@@ -188,7 +188,7 @@ func TestConsumablesFollowTheNotShapeshiftedRow(t *testing.T) {
 			continue
 		}
 		sawBreaker = true
-		if mcd.ShouldActivate(sim, cat.GetCharacter()) {
+		if mcd.TryActivate(sim, cat.GetCharacter()) || !cat.InForm(druid.Cat) {
 			t.Error("a cat automatically used a consumable that leaves cat form")
 		}
 	}
