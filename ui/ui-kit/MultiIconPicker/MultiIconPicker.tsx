@@ -21,6 +21,7 @@ export interface MultiIconPickerProps {
 export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, children, testId }: MultiIconPickerProps) => {
 	const menu = (
 		<IconMenu
+			fieldControl={!!label}
 			trigger={{
 				icon,
 				active,

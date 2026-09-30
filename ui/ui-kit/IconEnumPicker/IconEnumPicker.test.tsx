@@ -103,6 +103,16 @@ describe('IconEnumPicker', () => {
 		expect(within(field).getByTestId('form-label').textContent).toBe('Armor');
 	});
 
+	it('names the trigger by the label, and opens the menu from a click on the label', () => {
+		mount({ id: 'armor', label: 'Armor' });
+		const label = screen.getByTestId('form-label');
+		expect(button().getAttribute('aria-labelledby')).toBe(label.id);
+		expect(screen.getByRole('button', { name: 'Armor' })).toBe(button());
+
+		fireEvent.click(label);
+		expect(button().getAttribute('aria-expanded')).toBe('true');
+	});
+
 	it('puts the class on a bare trigger', () => {
 		mount({ className: 'extra' });
 		expect(button().classList.contains('extra')).toBe(true);

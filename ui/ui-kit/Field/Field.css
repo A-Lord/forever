@@ -54,6 +54,10 @@
 		@apply w-full flex-row-reverse justify-between;
 	}
 
+	.ui-field-label[data-activates] {
+		@apply cursor-pointer;
+	}
+
 	.ui-field-description {
 		@apply order-3 mt-1 w-full bg-surface p-2 text-ui [&_*:last-child]:mb-0;
 	}

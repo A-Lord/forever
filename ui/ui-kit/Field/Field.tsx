@@ -1,5 +1,3 @@
-import { useId } from 'react';
-
 import { After, Clear, Control, Description, Label, Leading, Root } from './FieldParts';
 import type { FieldProps } from './types';
 
@@ -23,36 +21,27 @@ const FieldSugar = ({
 	'aria-labelledby': labelledBy,
 	hidden,
 	reverse,
-}: FieldProps) => {
-	const generatedId = useId();
-	const groupLabelId = role === 'group' && !labelledBy && label ? `${id ?? generatedId}-label` : undefined;
-
-	return (
-		<Root
-			id={id}
-			layout={layout}
-			density={density}
-			disabled={disabled}
-			grow={grow}
-			reverse={reverse}
-			ref={ref}
-			role={role}
-			aria-labelledby={labelledBy ?? groupLabelId}
-			hidden={hidden}
-			testId={testId}
-			className={className}>
-			{leading}
-			{label && (
-				<Label id={groupLabelId} tooltip={labelTooltip}>
-					{label}
-				</Label>
-			)}
-			{description && <Description>{description}</Description>}
-			{clear ? <Clear {...clear}>{children}</Clear> : children}
-			{after}
-		</Root>
-	);
-};
+}: FieldProps) => (
+	<Root
+		id={id}
+		layout={layout}
+		density={density}
+		disabled={disabled}
+		grow={grow}
+		reverse={reverse}
+		ref={ref}
+		role={role}
+		aria-labelledby={labelledBy}
+		hidden={hidden}
+		testId={testId}
+		className={className}>
+		{leading}
+		{label && <Label tooltip={labelTooltip}>{label}</Label>}
+		{description && <Description>{description}</Description>}
+		{clear ? <Clear {...clear}>{children}</Clear> : children}
+		{after}
+	</Root>
+);
 
 FieldSugar.displayName = 'Field';
 

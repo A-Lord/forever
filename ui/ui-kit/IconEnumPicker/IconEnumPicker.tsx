@@ -57,6 +57,7 @@ export const IconEnumPicker = <T,>({
 	const menu = (
 		<IconMenu
 			onOpenChange={onOpenChange}
+			fieldControl={rooted}
 			trigger={{
 				href,
 				style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),

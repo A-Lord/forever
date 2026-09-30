@@ -3,7 +3,7 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
-import { isValidElement, type ReactNode, useCallback, useId, useLayoutEffect, useMemo, useState } from 'react';
+import { isValidElement, type ReactNode, useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { FieldContext } from './context/FieldContext';
 import { useField } from './hooks/useField';
@@ -39,17 +39,21 @@ export const Root = ({
 		return () => setDescriptionIds(ids => ids.filter(other => other !== descriptionId));
 	}, []);
 	const describedBy = descriptionIds.length > 0 ? descriptionIds.join(' ') : undefined;
+	const labelId = useId();
+	const controlRef = useRef<HTMLElement | null>(null);
 	const context = useMemo(
-		() => ({ id, role, layout, density, disabled: !!disabled, grow: grow !== false, describedBy, registerDescription }),
-		[id, role, layout, density, disabled, grow, describedBy, registerDescription],
+		() => ({ id, role, layout, density, disabled: !!disabled, grow: grow !== false, describedBy, registerDescription, labelId, controlRef }),
+		[id, role, layout, density, disabled, grow, describedBy, registerDescription, labelId, controlRef],
 	);
+	// A group has no single control a `for` could point at, so its label names it by `aria-labelledby` instead.
+	const groupLabelledBy = role === 'group' ? labelId : undefined;
 
 	return (
 		<FieldContext.Provider value={context}>
 			<BaseField.Root
 				ref={ref}
 				role={role}
-				aria-labelledby={labelledBy}
+				aria-labelledby={labelledBy ?? groupLabelledBy}
 				hidden={hidden}
 				disabled={disabled}
 				data-disabled={disabled ? '' : undefined}
@@ -83,12 +87,19 @@ export const Label = ({ as, id, tooltip, className, testId, children }: FieldLab
 		return <Tooltip id={tooltipId} content={content} />;
 	}, [tooltipId, tooltip]);
 
-	const tag = as ?? (field.role === 'group' ? 'span' : 'label');
+	// A group's caption and an icon field's label both name a control (or several) they cannot carry a
+	// `for` to, so both fall back to `field.labelId`, which the field's `aria-labelledby` and control
+	// share. An icon field's label also clicks the control it names, since it is the only thing a
+	// wowhead anchor swatch can be labelled by.
+	const spanned = !as && (field.role === 'group' || field.layout === 'icon');
+	const tag = as ?? (spanned ? 'span' : 'label');
+	const activates = spanned && field.layout === 'icon';
 	const props = {
-		id,
+		id: spanned ? (id ?? field.labelId) : id,
 		className: clsx('ui-field-label', className),
 		title: children,
 		'data-testid': testId ?? 'form-label',
+		...(activates ? { onClick: () => field.controlRef.current?.click(), 'data-activates': '' } : {}),
 		...tooltipAnchorProps(tooltipId),
 	};
 
