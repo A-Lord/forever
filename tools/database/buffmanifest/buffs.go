@@ -464,11 +464,10 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatSpellDamage,
 		},
 	},
-	// Curse of Recklessness and Faerie Fire do not stack in game: one holds the slot.
 	{
 		Field:      "curse_of_recklessness",
 		SpellID:    11717,
-		Category:   "MinorArmorReduction",
+		Category:   "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
@@ -477,11 +476,10 @@ var Debuffs = []BuffSpec{
 	{
 		Field:      "faerie_fire",
 		SpellID:    9907,
-		Category:   "MinorArmorReduction",
+		Category:   "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
-			proto.Stat_StatHitRating,
 		},
 	},
 	// The -450 armor is per combo point, so the raid config's debuff is the five-point finisher. A
@@ -546,16 +544,20 @@ var Debuffs = []BuffSpec{
 		},
 	},
 	{
-		Field:   "insect_swarm",
-		SpellID: 24977,
+		Field:      "insect_swarm",
+		SpellID:    24977,
+		Category:   "HitChanceReduction", // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
+		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:   "scorpid_sting",
-		SpellID: 3043,
+		Field:      "scorpid_sting",
+		SpellID:    3043,
+		Category:   "HitChanceReduction", // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
+		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
@@ -599,7 +601,7 @@ var Debuffs = []BuffSpec{
 		Field:      "dust_cloud",
 		SpellID:    1265904,
 		CastID:     1265911,
-		Category:   "DustCloud",
+		Category:   "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 		SingleAura: true,
 		Driver:     true,
 		Stats: []proto.Stat{

@@ -2,6 +2,7 @@ package hunter
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -12,7 +13,8 @@ func (hunter *Hunter) registerScorpidSting() {
 		aura := target.RegisterAura(spelldata.AuraConfig(scorpidStingRank,
 			spelldata.Label("Scorpid Sting-"+hunter.Label)))
 		aura.Tag = "Sting"
-		spelldata.ParseEffects(&hunter.Character, aura, scorpidStingRank)
+		spelldata.ParseEffects(&hunter.Character, aura, scorpidStingRank,
+			spelldata.Exclusive(buffs.ScorpidStingCategory, true)) // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
 		return aura
 	})
 

@@ -617,7 +617,7 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: FaerieFire,
-		stats: [Stat.StatAttackPower, Stat.StatHitRating],
+		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassDruid,
 	},
 	{

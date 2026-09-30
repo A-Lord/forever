@@ -250,10 +250,13 @@ func NewSpellDataThunderClapAura(unit *core.Unit, isPlayer bool, talentPoints in
 
 // Insect Swarm
 // Left out: effect 1 A_PERIODIC_DAMAGE(3) misc 0
+var InsectSwarmCategory = "HitChanceReduction"
 var insectSwarmSpell = spelldata.MustFind(24977)
 var insectSwarmMeta = &Meta{
-	Label: "Insect Swarm",
-	Spell: insectSwarmSpell,
+	Label:      "Insect Swarm",
+	Spell:      insectSwarmSpell,
+	Category:   InsectSwarmCategory,
+	SingleAura: true,
 }
 
 func InsectSwarmValue(talentPoints int32) float64 {
@@ -267,10 +270,13 @@ func NewSpellDataInsectSwarmAura(unit *core.Unit, isPlayer bool, talentPoints in
 }
 
 // Scorpid Sting
+var ScorpidStingCategory = "HitChanceReduction"
 var scorpidStingSpell = spelldata.MustFind(3043)
 var scorpidStingMeta = &Meta{
-	Label: "Scorpid Sting",
-	Spell: scorpidStingSpell,
+	Label:      "Scorpid Sting",
+	Spell:      scorpidStingSpell,
+	Category:   ScorpidStingCategory,
+	SingleAura: true,
 }
 
 func ScorpidStingValue(talentPoints int32) float64 {
@@ -344,7 +350,7 @@ func NewSpellDataCurseOfWeaknessAura(unit *core.Unit, isPlayer bool, talentPoint
 }
 
 // Dust Cloud
-var DustCloudCategory = "DustCloud"
+var DustCloudCategory = "MinorArmorReduction"
 var dustCloudSpell = spelldata.MustFind(1265904)
 var dustCloudMeta = &Meta{
 	Label:      "Dust Cloud",

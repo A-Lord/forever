@@ -403,15 +403,15 @@ func TestGeneratedCurseOfWeaknessStacksWithDemoralizingShout(t *testing.T) {
 // The game files state Dust Cloud at one stack, which the store reads as a stacking row, so the raid's
 // copy takes its stack from a driver: without one, the amount would follow zero stacks and apply
 // nothing.
-func TestGeneratedDustCloudStacksWithFaerieFire(t *testing.T) {
+func TestGeneratedDustCloudTakesItsStackFromTheDriver(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	base := target.GetStats()[stats.Armor]
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{FaerieFire: true, DustCloud: true})
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{DustCloud: true})
 	if got := buffs.DustCloudValue(0); got != -505 {
 		t.Errorf("Dust Cloud is worth %v, want the game files' -505", got)
 	}
-	if got := target.GetStats()[stats.Armor] - base; got != -1010 {
-		t.Errorf("armor moved by %v, want both -505s", got)
+	if got := target.GetStats()[stats.Armor] - base; got != -505 {
+		t.Errorf("armor moved by %v, want the game files' -505", got)
 	}
 	dust := target.GetAura("Dust Cloud (External)")
 	if dust == nil {
@@ -419,6 +419,49 @@ func TestGeneratedDustCloudStacksWithFaerieFire(t *testing.T) {
 	}
 	if got := dust.GetStacks(); got != 1 {
 		t.Errorf("Dust Cloud sits at %d stacks, want the driver to have taken its one stack", got)
+	}
+}
+
+// Dust Cloud shares the armor reduction slot of Faerie Fire and Curse of Recklessness, so the target
+// takes one -505, not both.
+func TestGeneratedDustCloudAndFaerieFireDoNotStack(t *testing.T) {
+	target := core.NewGeneratedDebuffTestTarget()
+	base := target.GetStats()[stats.Armor]
+
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{FaerieFire: true, DustCloud: true})
+
+	if got := target.GetStats()[stats.Armor] - base; got != -505 {
+		t.Errorf("armor moved by %v, want one reduction of the game files' -505", got)
+	}
+	dust := target.GetAura("Dust Cloud (External)")
+	faerieFire := target.GetAura("Faerie Fire (External)")
+	if dust == nil || faerieFire == nil {
+		t.Fatalf("Dust Cloud %v, Faerie Fire %v; the target has %v", dust, faerieFire, targetAuraLabels(target))
+	}
+	if dust.IsActive() == faerieFire.IsActive() {
+		t.Errorf("Dust Cloud active %v, Faerie Fire active %v; want exactly one on the target",
+			dust.IsActive(), faerieFire.IsActive())
+	}
+}
+
+// Scorpid Sting and Insect Swarm share one slot, so the target's hit chance drops by one -2%, not both.
+func TestGeneratedScorpidStingAndInsectSwarmDoNotStack(t *testing.T) {
+	target := core.NewGeneratedDebuffTestTarget()
+	base := target.GetStats()[stats.PhysicalHitPercent]
+
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{ScorpidSting: true, InsectSwarm: true})
+
+	if got := target.GetStats()[stats.PhysicalHitPercent] - base; got != -2 {
+		t.Errorf("hit chance moved by %v, want one reduction of the game files' -2", got)
+	}
+	sting := target.GetAura("Scorpid Sting (External)")
+	swarm := target.GetAura("Insect Swarm (External)")
+	if sting == nil || swarm == nil {
+		t.Fatalf("Scorpid Sting %v, Insect Swarm %v; the target has %v", sting, swarm, targetAuraLabels(target))
+	}
+	if sting.IsActive() == swarm.IsActive() {
+		t.Errorf("Scorpid Sting active %v, Insect Swarm active %v; want exactly one on the target",
+			sting.IsActive(), swarm.IsActive())
 	}
 }
 
