@@ -191,11 +191,13 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 	})
 }
 
+// The party aura the totem puts up, a Proc Trigger Spell aura that names 10610.
+var windfuryTotemPartyAura = spelldata.MustFind(10612)
+
 // The totem's aura is the attack power a windfury proc grants. The totem hands
-// the proc out as a combat enchant on the main hand (SpellItemEnchantment 564:
-// 10610 at 20%), whose chance the store carries in 10610's ProcChance column.
-// The driver keeps the 1.5 second internal cooldown and the extra attack the
-// proc lands, and the totem aura that holds the category.
+// the proc out as the party aura 10612, whose row states the chance, what it
+// hears and its 100 ms cooldown. The driver keeps the extra attack the proc
+// lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	if !char.TakesTotemEnchant() {
 		return
@@ -216,28 +218,24 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	spender.TriggerImmediately = true
 	procAura.AttachProcTriggerCallback(&char.Unit, spender)
 
-	// A combat enchant hears every hit of the weapon it sits on, specials
-	// included. A main-hand auto that procs it has spent the first charge
-	// itself, so the extra attack is the only one buffed; a special hands both
-	// charges to the extra attack and the auto after it.
-	trigger := core.ProcTrigger{
-		Name:            "Windfury Totem Trigger",
-		MetricsActionID: core.ActionID{SpellID: 25580, Tag: -1},
-		ProcChance:      windfuryTotemSpell.StatedChance(),
-		Duration:        core.NeverExpires,
-		Outcome:         core.OutcomeLanded,
-		ICD:             time.Millisecond * 1500,
-		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
-			procAura.Activate(sim)
-			charges := procAura.MaxStacks
-			if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
-				charges--
-			}
-			procAura.SetStacks(sim, charges)
-		},
-	}
-	spelldata.WeaponProc()(char, &trigger)
-	trigger.ProcMask = core.ProcMaskMeleeMH
+	// The row hears auto attacks and melee abilities, so the hit of a proc
+	// without Not a Proc does not reach it. The mask names both hands; the
+	// main-hand rule the tooltip states is the server's. A main-hand auto that
+	// procs it has spent the first charge itself, so the extra attack is the only
+	// one buffed; a special hands both charges to the extra attack and the auto
+	// after it.
+	trigger := spelldata.ProcTrigger(char, windfuryTotemPartyAura, func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+		procAura.Activate(sim)
+		charges := procAura.MaxStacks
+		if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
+			charges--
+		}
+		procAura.SetStacks(sim, charges)
+	})
+	trigger.Name = "Windfury Totem Trigger"
+	trigger.MetricsActionID = core.ActionID{SpellID: 25580, Tag: -1}
+	trigger.Duration = core.NeverExpires
+	trigger.ProcMask &= core.ProcMaskMeleeMH
 	onInit := char.ExtraAttackProc(&trigger, 25584, 1)
 	procTrigger := char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 

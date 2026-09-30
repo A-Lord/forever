@@ -620,10 +620,10 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 	}
 }
 
-// Windfury Totem's proc is a combat enchant on the main hand: a main-hand hit
-// that lands can fire it, auto or special, whether or not it deals damage, and
-// no other hit can. A main-hand auto that procs it has spent the first charge
-// itself and leaves one for the extra attack; a special leaves both.
+// Windfury Totem's proc is the party aura 10612: a main-hand hit that deals
+// damage can fire it, auto or special, and no other hit can, a proc's hit
+// included. A main-hand auto that procs it has spent the first charge itself
+// and leaves one for the extra attack; a special leaves both.
 func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeaves(t *testing.T) {
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Aura, *[]int32) {
 		t.Helper()
@@ -649,8 +649,7 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 	}
 
 	// Offers the trigger up to 200 landed hits of one kind and answers whether any of them procced.
-	offer := func(sim *core.Simulation, target *core.Unit, trigger *core.Aura, started *[]int32, procMask core.ProcMask, damage float64) bool {
-		spell := &core.Spell{ProcMask: procMask}
+	offer := func(sim *core.Simulation, target *core.Unit, trigger *core.Aura, started *[]int32, spell *core.Spell, damage float64) bool {
 		for i := 0; i < 200 && len(*started) == 0; i++ {
 			trigger.OnSpellHitDealt(trigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: damage})
 		}
@@ -658,18 +657,16 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 	}
 
 	for _, row := range []struct {
-		name     string
-		procMask core.ProcMask
-		damage   float64
-		charges  int32
+		name    string
+		spell   *core.Spell
+		charges int32
 	}{
-		{"a main-hand auto leaves one charge", core.ProcMaskMeleeMHAuto, 100, 1},
-		{"a main-hand special leaves both charges", core.ProcMaskMeleeMHSpecial, 100, 2},
-		{"a main-hand special that deals no damage leaves both charges", core.ProcMaskMeleeMHSpecial, 0, 2},
+		{"a main-hand auto leaves one charge", &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}, 1},
+		{"a main-hand special leaves both charges", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}, 2},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			sim, target, trigger, started := setup(t)
-			if !offer(sim, target, trigger, started, row.procMask, row.damage) {
+			if !offer(sim, target, trigger, started, row.spell, 100) {
 				t.Fatal("200 landed hits never procced the totem")
 			}
 			if got := (*started)[0]; got != row.charges {
@@ -679,22 +676,32 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 	}
 
 	for _, row := range []struct {
-		name     string
-		procMask core.ProcMask
+		name   string
+		spell  *core.Spell
+		damage float64
 	}{
-		{"an off-hand auto", core.ProcMaskMeleeOHAuto},
-		{"an off-hand special", core.ProcMaskMeleeOHSpecial},
-		{"a ranged auto", core.ProcMaskRangedAuto},
-		{"a ranged special", core.ProcMaskRangedSpecial},
-		{"a spell", core.ProcMaskSpellDamage},
+		{"an off-hand auto", &core.Spell{ProcMask: core.ProcMaskMeleeOHAuto}, 100},
+		{"an off-hand special", &core.Spell{ProcMask: core.ProcMaskMeleeOHSpecial}, 100},
+		{"a ranged auto", &core.Spell{ProcMask: core.ProcMaskRangedAuto}, 100},
+		{"a ranged special", &core.Spell{ProcMask: core.ProcMaskRangedSpecial}, 100},
+		{"a spell", &core.Spell{ProcMask: core.ProcMaskSpellDamage}, 100},
+		{"a main-hand special that deals no damage", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}, 0},
+		{"a main-hand proc's hit", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial, Flags: core.SpellFlagProc}, 100},
 	} {
 		t.Run(row.name+" never procs it", func(t *testing.T) {
 			sim, target, trigger, started := setup(t)
-			if offer(sim, target, trigger, started, row.procMask, 100) {
+			if offer(sim, target, trigger, started, row.spell, row.damage) {
 				t.Errorf("%s procced the totem", row.name)
 			}
 		})
 	}
+
+	t.Run("the trigger waits 100 ms between procs", func(t *testing.T) {
+		_, _, trigger, _ := setup(t)
+		if trigger.Icd == nil || trigger.Icd.Duration != 100*time.Millisecond {
+			t.Errorf("the trigger's cooldown is %v, want the game files' 100 ms", trigger.Icd)
+		}
+	})
 }
 
 // Every main-hand hit adds 1363 x weapon speed / 100 fire damage.
