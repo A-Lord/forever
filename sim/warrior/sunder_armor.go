@@ -17,10 +17,6 @@ func (warrior *Warrior) registerSunderArmor() {
 	config := spelldata.SpellConfig(&warrior.Unit, sunderArmorRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.FlatThreatBonus = sunderArmorRank.FindEffect(dbcenums.E_THREAT, 0, 0).Average(core.CharacterLevel)
 
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		return warrior.CanApplySunderAura(target)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 
@@ -38,19 +34,4 @@ func (warrior *Warrior) registerSunderArmor() {
 	config.RelatedAuraArrays = warrior.SunderArmorAuras.ToMap()
 
 	warrior.RegisterSpell(config)
-}
-
-// Sunder Armor is one debuff on the target whichever warrior stacks it, so the warrior leaves
-// another copy of it alone; any other armor reduction lets the sunder land beside it.
-func (warrior *Warrior) CanApplySunderAura(target *core.Unit) bool {
-	own := warrior.SunderArmorAuras.Get(target)
-	if own.IsActive() {
-		return true
-	}
-	for _, aura := range target.GetAurasWithTag(own.Tag) {
-		if aura != own && aura.IsActive() && aura.ActionID.SpellID == own.ActionID.SpellID {
-			return false
-		}
-	}
-	return true
 }
