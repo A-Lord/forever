@@ -1,5 +1,9 @@
 @layer components {
 	.ui-sim-sidebar-content {
-		--sidebar-inline-padding: var(--spacing-page);
+		--sidebar-padding: var(--spacing-page);
+
+		@variant xxl {
+			--sidebar-padding: calc(var(--spacing-page) / 2);
+		}
 	}
 }
