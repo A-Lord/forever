@@ -58,6 +58,16 @@ describe('BooleanPicker', () => {
 		expect(isChecked(checkbox())).toBe(true);
 	});
 
+	it('keeps the check mark mounted in both states, marked unchecked while the box is clear', () => {
+		render(<Harness initial />);
+		const indicator = () => checkbox().firstElementChild;
+		expect(indicator()?.hasAttribute('data-unchecked')).toBe(false);
+
+		fireEvent.click(checkbox());
+		expect(indicator()).not.toBeNull();
+		expect(indicator()?.hasAttribute('data-unchecked')).toBe(true);
+	});
+
 	it('follows the value the parent keeps, not the click', () => {
 		render(<Harness accept={() => false} />);
 		fireEvent.click(checkbox());

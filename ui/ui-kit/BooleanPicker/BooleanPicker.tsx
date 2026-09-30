@@ -18,7 +18,7 @@ export const BooleanPicker = ({ value, onChange, disabled, reverse, className, t
 			checked={value}
 			disabled={disabled}
 			onCheckedChange={checked => onChange(checked)}>
-			<Checkbox.Indicator>
+			<Checkbox.Indicator keepMounted className="ui-boolean-picker-indicator">
 				<Icon name="check" className="text-primary-foreground" />
 			</Checkbox.Indicator>
 		</Checkbox.Root>

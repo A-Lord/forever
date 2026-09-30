@@ -12,7 +12,7 @@
 	}
 
 	.ui-boolean-picker-input {
-		@apply size-8 shrink-0 rounded-none border border-surface-border bg-surface;
+		@apply relative size-8 shrink-0 rounded-none border border-surface-border bg-surface;
 
 		&:focus {
 			@apply border-input-focus-border shadow-focus-checkbox outline-none;
@@ -24,6 +24,14 @@
 
 		&[data-disabled] {
 			@apply pointer-events-none opacity-50;
+		}
+	}
+
+	.ui-boolean-picker-indicator {
+		@apply absolute inset-0 flex items-center justify-center;
+
+		&[data-unchecked] {
+			@apply invisible;
 		}
 	}
 }
