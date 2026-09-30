@@ -18,19 +18,11 @@ describe('RowActions', () => {
 		expect(onRow).not.toHaveBeenCalled();
 	});
 
-	it('marks a favourite for the shared tooltip and fills its star', () => {
-		render(<RowActions favourited favouriteTooltipId="favourite-7" onToggleFavourite={vi.fn()} />);
+	it.each([true, false])('marks favourited=%s on the star, for the shared tooltip', favourited => {
+		render(<RowActions favourited={favourited} favouriteTooltipId="favourite-7" onToggleFavourite={vi.fn()} />);
 		const button = screen.getByTestId('selector-modal-list-item-favorite');
-		expect(button.getAttribute('data-favourited')).toBe('true');
+		expect(button.getAttribute('data-favourited')).toBe(String(favourited));
 		expect(button.getAttribute('data-tooltip-id')).toBe('favourite-7');
-		expect(button.querySelector('svg')!.getAttribute('data-prefix')).toBe('fas');
-	});
-
-	it('outlines the star of a row that is not a favourite', () => {
-		render(<RowActions favourited={false} favouriteTooltipId="favourite" onToggleFavourite={vi.fn()} />);
-		const button = screen.getByTestId('selector-modal-list-item-favorite');
-		expect(button.getAttribute('data-favourited')).toBe('false');
-		expect(button.querySelector('svg')!.getAttribute('data-prefix')).toBe('far');
 	});
 
 	it('leaves the batch toggle out unless it is given', () => {

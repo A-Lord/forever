@@ -54,22 +54,6 @@ const sortButton = (header: HTMLElement) => header.querySelector('button')!;
 const ariaSorts = (container: HTMLElement) => table(container).headers.map(header => header.getAttribute('aria-sort'));
 
 describe('MetricsTable', () => {
-	it('builds the whole shell before any result, with an empty body', () => {
-		const { container } = render(<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={[]} sortColumnId="value" hasResult={false} />);
-
-		expect(container.querySelector('[data-testid="test-metrics-root"]')).toBeTruthy();
-		expect(container.querySelector('table')).toBeTruthy();
-		expect(container.querySelector('thead')).toBeTruthy();
-		expect(container.querySelector('thead tr')).toBeTruthy();
-		expect(container.querySelector('tbody')).toBeTruthy();
-		expect(table(container).headers.map(header => [header.firstElementChild?.tagName, header.textContent])).toEqual([
-			['BUTTON', 'Name'],
-			['BUTTON', 'Value'],
-		]);
-		expect(table(container).headers.map(header => header.querySelector('span')?.textContent)).toEqual(['Name', 'Value']);
-		expect(table(container).rows).toHaveLength(0);
-	});
-
 	it('makes every sortable header a real button and reports the sort on the cell', () => {
 		const { container } = render(
 			<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={buildRows()} sortColumnId="value" hasResult={true} />,

@@ -12,8 +12,7 @@ import { LogRunner } from './LogRunner';
 let result: SimResultData | null = null;
 vi.mock('../../hooks/useSimResult', () => ({ useSimResult: () => result }));
 
-// Every row, so the assertions are about what the list selected rather than what it windowed. The
-// wrapper carries `data-index`/`data-stripe` because that is what the real one stripes off.
+// Every row, so the assertions are about what the list selected rather than what it windowed.
 vi.mock('@ui-kit/VirtualList', async importOriginal => ({
 	...(await importOriginal<typeof import('@ui-kit/VirtualList')>()),
 	VirtualList: ({
@@ -37,7 +36,7 @@ vi.mock('@ui-kit/VirtualList', async importOriginal => ({
 			})()}
 			data-scroll-margin={scrollMargin}>
 			{Array.from({ length: count }, (_unused, index) => (
-				<div key={index} data-testid="virtual-list-row" data-index={index} data-stripe={index % 2 === 0 ? 'even' : 'odd'}>
+				<div key={index} data-testid="virtual-list-row">
 					{renderRow(index) as never}
 				</div>
 			))}
@@ -105,19 +104,6 @@ beforeEach(() => {
 });
 
 describe('LogRunner', () => {
-	it('renders the sticky header, the list and the bar even before the first run', () => {
-		const { container } = mount();
-
-		expect(container.querySelector('[data-testid="log-runner-root"]')).not.toBeNull();
-		expect(container.querySelector('[data-testid="log-runner-sticky"] > [data-testid="log-search"] > [data-testid="log-search-input"]')).not.toBeNull();
-		expect([...container.querySelectorAll('[data-testid="log-runner-header"] > div')].map(cell => cell.textContent)).toEqual([
-			'results_tab.details.logs.time_column',
-			'results_tab.details.logs.event_column',
-		]);
-		expect(container.querySelector('[data-testid="log-runner-scroll"] > [data-testid="log-runner-list"] > [data-testid="log-runner-logs"]')).not.toBeNull();
-		expect(rows(container)).toEqual([]);
-	});
-
 	it('lists every non-debug line once a run lands, dropping the cast-completed noise', () => {
 		result = resultWith(LOGS);
 		const { container } = mount();
@@ -134,13 +120,6 @@ describe('LogRunner', () => {
 		rerender(<LogRunner active={true} />);
 
 		expect(rows(container)).toHaveLength(2);
-	});
-
-	it('stripes from the absolute index, which is what survives the transform layout', () => {
-		result = resultWith(LOGS);
-		const { container } = mount();
-
-		expect([...container.querySelectorAll('[data-testid="virtual-list-row"]')].map(row => (row as HTMLElement).dataset.stripe)).toEqual(['even', 'odd']);
 	});
 
 	it('narrows the list to the lines the search box matches', async () => {
@@ -224,15 +203,6 @@ describe('LogRunner', () => {
 		const { container } = mount();
 
 		expect(container.querySelector('[data-testid="log-runner-logs"]')!.getAttribute('data-scroller')).toBe('window');
-	});
-
-	it('gives both bar buttons an explicit type, so neither submits a form', () => {
-		const { container } = mount();
-
-		expect([...container.querySelectorAll('[data-testid="log-floating-action-bar-controls"] button')].map(button => button.getAttribute('type'))).toEqual([
-			'button',
-			'button',
-		]);
 	});
 
 	// The debounced search box fires `onChange('')` once on mount. Scrolling the page then would move

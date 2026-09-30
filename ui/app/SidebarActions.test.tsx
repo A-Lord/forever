@@ -39,7 +39,6 @@ describe('SidebarActions', () => {
 			const child = [...container.children][i];
 			expect(child.tagName).toBe('BUTTON');
 			expect(child.hasAttribute('data-sidebar-action')).toBe(true);
-			expect(child.classList.contains('w-full')).toBe(true);
 		});
 	});
 

@@ -19,17 +19,17 @@ const Probe = ({ hidden, revision, value, setValue, restoreWhen, onSettled }: Pr
 };
 
 describe('useHideZeroRestore', () => {
-	it('stores the value and zeroes the source when it goes hidden, and restores it when visible again', () => {
+	it.each([2, 1])('stores %i and zeroes the source when it goes hidden, then restores exactly that, leaving normalisation to the caller', value => {
 		const setValue = vi.fn();
-		const { rerender } = render(<Probe hidden={false} revision={0} value={2} setValue={setValue} />);
+		const { rerender } = render(<Probe hidden={false} revision={0} value={value} setValue={setValue} />);
 
-		rerender(<Probe hidden setValue={setValue} revision={1} value={2} />);
+		rerender(<Probe hidden setValue={setValue} revision={1} value={value} />);
 		expect(setValue).toHaveBeenCalledTimes(1);
 		expect(setValue).toHaveBeenLastCalledWith(0);
 
 		rerender(<Probe hidden={false} setValue={setValue} revision={2} value={0} />);
 		expect(setValue).toHaveBeenCalledTimes(2);
-		expect(setValue).toHaveBeenLastCalledWith(2);
+		expect(setValue).toHaveBeenLastCalledWith(value);
 	});
 
 	it('zeroes a picker that mounts hidden at the first notification, not at mount', () => {
@@ -63,17 +63,6 @@ describe('useHideZeroRestore', () => {
 		});
 		expect(setValue).toHaveBeenCalledTimes(1);
 		expect(setValue).toHaveBeenLastCalledWith(0);
-	});
-
-	it('restores exactly what it stored, leaving normalisation to the caller', () => {
-		const setValue = vi.fn();
-		const { rerender } = render(<Probe hidden={false} revision={0} value={1} setValue={setValue} />);
-
-		rerender(<Probe hidden setValue={setValue} revision={1} value={1} />);
-		expect(setValue).toHaveBeenLastCalledWith(0);
-
-		rerender(<Probe hidden={false} setValue={setValue} revision={2} value={0} />);
-		expect(setValue).toHaveBeenLastCalledWith(1);
 	});
 
 	it('settles on the value each notification leaves behind: the zero, the restored value, or the value as it stands', () => {

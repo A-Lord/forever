@@ -71,19 +71,9 @@ describe('VirtualList', () => {
 		expect(rendered.some(row => row.dataset.stripe === 'odd' && rendered.indexOf(row) % 2 === 0)).toBe(true);
 	});
 
-	it('offsets each row by its own start, so the window lands where the scroller is', () => {
-		const { container } = renderList(1000);
-
-		expect(rows(container).length).toBeGreaterThan(1);
-		for (const row of rows(container)) {
-			expect(row.style.transform).toBe(`translateY(${Number(row.dataset.index) * ROW_HEIGHT}px)`);
-		}
-	});
-
 	// A shared scroller has a sticky header above the rows, and `scrollMargin` is how the virtualiser
 	// is told about it. Without subtracting it back out of the transform every row sits that far too low.
-	it('subtracts the scroll margin from each row offset', () => {
-		const margin = 120;
+	it.each([0, 120])('offsets each row by its own start, less a scroll margin of %ipx, so the window lands where the scroller is', margin => {
 		const { container } = renderList(1000, 2, margin);
 
 		const rendered = rows(container);

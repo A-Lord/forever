@@ -59,4 +59,15 @@ describe('PresetConfigurationPickerView', () => {
 		fireEvent.click(phaseTabs(container)[1]);
 		expect(handlers.onSelectPhase).toHaveBeenCalledWith(3);
 	});
+
+	it('labels the groups only when there is more than one', () => {
+		const builds = [
+			{ name: 'P1a', phase: 1, group: 'Beast Mastery' },
+			{ name: 'P1b', phase: 1, group: 'Survival' },
+			{ name: 'P3', phase: 3 },
+		] as Array<PresetBuild>;
+		const { container } = render(<PresetConfigurationPickerView {...props({ builds, active: [false, false, false], phases: [1, 3], phase: 1 })} />);
+
+		expect([...container.querySelectorAll('[data-testid="preset-group-label"]')].map(label => label.textContent)).toEqual(['Beast Mastery', 'Survival']);
+	});
 });

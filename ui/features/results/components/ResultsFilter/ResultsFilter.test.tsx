@@ -20,7 +20,7 @@ const resultWith = (...targets: Array<{ index: number; iconUrl?: string; classCo
 
 const mount = (target: number, onTargetChange = vi.fn()) => render(<ResultsFilter target={target} onTargetChange={onTargetChange} />);
 
-const trigger = () => within(screen.getByTestId('results-filter-root')).getByRole('combobox', { hidden: true });
+const trigger = () => within(screen.getByTestId('results-filter-root')).getByRole('combobox', { hidden: true }) as HTMLButtonElement;
 const items = () => screen.queryAllByRole('option');
 const open = () => userEvent.click(trigger());
 
@@ -29,17 +29,17 @@ beforeEach(() => {
 });
 
 describe('ResultsFilter', () => {
-	it('stays hidden until a run has produced targets', () => {
+	it('stays disabled until a run has produced targets', () => {
 		mount(ALL_UNITS);
 
-		expect(trigger().getAttribute('class')).toContain('hidden');
+		expect(trigger().disabled).toBe(true);
 		expect(trigger().textContent).toBe('Unit');
 	});
 
 	it('shows all targets plus one option per target of the run, in encounter order', async () => {
 		resultData = resultWith({ index: 0 }, { index: 1 }, { index: 2 });
 		mount(ALL_UNITS);
-		expect(trigger().getAttribute('class')).not.toContain('hidden');
+		expect(trigger().disabled).toBe(false);
 
 		await open();
 		expect(items().map(item => item.textContent)).toEqual([
@@ -51,13 +51,12 @@ describe('ResultsFilter', () => {
 		expect(items()[0].getAttribute('aria-selected')).toBe('true');
 	});
 
-	it("takes each target option's icon and colour off the unit it stands for", async () => {
+	it("takes each target option's icon off the unit it stands for", async () => {
 		resultData = resultWith({ index: 0, iconUrl: 'boss.jpg', classColor: 'warrior' });
 		mount(ALL_UNITS);
 		await open();
 
 		expect(within(items()[1]).getByTestId('unit-picker-item-icon').getAttribute('src')).toBe('boss.jpg');
-		expect(items()[1].getAttribute('class')).toContain('text-class-warrior');
 		expect(within(items()[0]).queryByTestId('unit-picker-item-icon')).toBeNull();
 	});
 

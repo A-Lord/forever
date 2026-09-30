@@ -78,26 +78,19 @@ describe('IconEnumPicker', () => {
 		expect(menu()).toBeNull();
 
 		await open();
-		const portal = screen.getByTestId('icon-enum-picker-portal');
-		expect(portal.children[0].getAttribute('data-testid')).toBe('icon-enum-picker-positioner');
-		expect(menu()!.parentElement).toBe(portal.children[0]);
 		expect(screen.getByTestId('icon-enum-picker-positioner').style.position).toBe('fixed');
 
 		expect(menu()!.hasAttribute('hidden')).toBe(false);
 		expect(items()).toHaveLength(3);
-		expect(items().map(item => item.tagName)).toEqual(['LI', 'LI', 'LI']);
 		expect(items().map(item => item.getAttribute('role'))).toEqual(['none', 'none', 'none']);
-		expect(items().map(item => item.hasAttribute('data-testid'))).toEqual([false, false, false]);
-		expect(items().map(item => item.children.length)).toEqual([1, 1, 1]);
 		expect(items().map(item => optionAnchor(items().indexOf(item)).getAttribute('role'))).toEqual(['menuitem', 'menuitem', 'menuitem']);
 	});
 
 	it('lays a labelled trigger out in an icon field and takes a testId for its trigger', () => {
-		const { container } = mount({ id: 'armor', label: 'Armor', className: 'extra', testId: 'armor-root' });
+		const { container } = mount({ id: 'armor', label: 'Armor', testId: 'armor-root' });
 		const field = container.firstElementChild as HTMLElement;
 		const trigger = screen.getByTestId('armor-root');
 		expect(field.getAttribute('data-layout')).toBe('icon');
-		expect(field.classList.contains('extra')).toBe(true);
 		expect(field.firstElementChild).toBe(trigger);
 		expect(trigger.tagName).toBe('A');
 		expect(within(field).getByTestId('form-label').textContent).toBe('Armor');
@@ -111,11 +104,6 @@ describe('IconEnumPicker', () => {
 
 		fireEvent.click(label);
 		expect(button().getAttribute('aria-expanded')).toBe('true');
-	});
-
-	it('puts the class on a bare trigger', () => {
-		mount({ className: 'extra' });
-		expect(button().classList.contains('extra')).toBe(true);
 	});
 
 	it('opens from the keyboard, moves through the options and picks one', async () => {
@@ -379,7 +367,7 @@ describe('IconEnumPicker', () => {
 		expect(button().getAttribute('data-tooltip-content')).toBe('Lethal Poison');
 		// Before the menu is opened, because opening it is a hover on the button and a hover is what
 		// asks for a tooltip.
-		expect(document.querySelector('.sim-tooltip')).toBeNull();
+		expect(screen.queryByRole('tooltip')).toBeNull();
 
 		open();
 		expect(optionAnchor(0).getAttribute('data-tooltip-content')).toBe('No Armor');

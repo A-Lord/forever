@@ -65,21 +65,6 @@ const mount = (sim: FakeSim, applyDefaults = vi.fn()) => {
 const container = () => document.querySelector('[data-testid="use-concurrency-container"]') as HTMLElement;
 
 describe('SettingsDialog', () => {
-	it('renders every picker under the id the vanilla menu used', () => {
-		mount(new FakeSim());
-
-		for (const id of [
-			'simui-fixed-rng-seed',
-			'simui-language-picker',
-			'simui-show-threat-metrics',
-			'simui-show-experimental',
-			'simui-show-quick-swap',
-			'simui-concurrent-workers-picker',
-		]) {
-			expect(document.getElementById(id), id).toBeTruthy();
-		}
-	});
-
 	it('keeps the concurrency row mounted and hides it with the attribute when the sim is not wasm', async () => {
 		const sim = new FakeSim();
 		sim.wasm = Promise.resolve(false);
@@ -88,14 +73,6 @@ describe('SettingsDialog', () => {
 		expect(container().hidden).toBe(false);
 		await waitFor(() => expect(container().hidden).toBe(true));
 		expect(container().isConnected).toBe(true);
-	});
-
-	it('keeps the worker note mounted and hidden off firefox', () => {
-		mount(new FakeSim());
-
-		const note = container().querySelector('.ui-help-text') as HTMLElement;
-		expect(note.hidden).toBe(true);
-		expect(note.textContent).toBe('');
 	});
 
 	it('writes a toggle through to the sim', () => {

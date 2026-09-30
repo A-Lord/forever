@@ -48,19 +48,6 @@ beforeEach(() => {
 });
 
 describe('ActionPicker', () => {
-	it('renders the condition, then the kind picker and its fields, in that order', () => {
-		setup(APLAction.create({ action: { oneofKind: 'resetSequence', resetSequence: { sequenceName: 'seq' } } }));
-		render(<ActionPicker player={player as never} config={configForRoot() as never} />);
-
-		const root = roots()[0];
-		expect(root.children[0].getAttribute('data-testid')).toBe('apl-action-condition');
-
-		const actionContainer = root.children[1];
-		expect(actionContainer.children[0].tagName).toBe('BUTTON');
-		expect(actionContainer.children[0].getAttribute('aria-haspopup')).toBe('menu');
-		expect(actionContainer.children[1].getAttribute('data-testid')).toBe('apl-picker-builder-root');
-	});
-
 	it('carries the kind as data-kind on the field group container', () => {
 		setup(APLAction.create({ action: { oneofKind: 'resetSequence', resetSequence: { sequenceName: 'seq' } } }));
 		render(<ActionPicker player={player as never} config={configForRoot() as never} />);

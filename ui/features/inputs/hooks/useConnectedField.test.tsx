@@ -35,14 +35,4 @@ describe('useConnectedField', () => {
 			className: ['a', 'b'],
 		});
 	});
-
-	it('lands extraClassNames in className', () => {
-		let seen: unknown;
-		const Reader = () => {
-			seen = useConnectedField(local, config).frameProps.className;
-			return null;
-		};
-		render(<Reader />);
-		expect(seen).toBe(config.extraClassNames);
-	});
 });

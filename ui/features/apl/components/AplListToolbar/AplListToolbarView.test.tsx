@@ -1,24 +1,10 @@
+import { FakeIntersectionObserver } from '@features/apl/testing_dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AplListToolbarView, type AplListToolbarViewProps } from './AplListToolbarView';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string, opts?: Record<string, unknown>) => (opts?.itemName ? `${key}:${opts.itemName}` : key) } }));
-
-class FakeIntersectionObserver {
-	static instances: Array<FakeIntersectionObserver> = [];
-	callback: IntersectionObserverCallback;
-	constructor(callback: IntersectionObserverCallback) {
-		this.callback = callback;
-		FakeIntersectionObserver.instances.push(this);
-	}
-	observe = vi.fn();
-	disconnect = vi.fn();
-	unobserve = vi.fn();
-	fire(isIntersecting: boolean) {
-		this.callback([{ isIntersecting } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
-	}
-}
 
 const mount = (props: Partial<AplListToolbarViewProps> = {}) => {
 	const scrollRoot = document.createElement('div');
@@ -94,13 +80,13 @@ describe('AplListToolbarView', () => {
 		expect(root.hasAttribute('data-stuck')).toBe(false);
 
 		const observer = FakeIntersectionObserver.instances[0];
-		act(() => observer.fire(false));
+		act(() => observer.fire({ isIntersecting: false }));
 		expect(root.hasAttribute('data-stuck')).toBe(true);
 
-		act(() => observer.fire(false));
+		act(() => observer.fire({ isIntersecting: false }));
 		expect(root.hasAttribute('data-stuck')).toBe(true);
 
-		act(() => observer.fire(true));
+		act(() => observer.fire({ isIntersecting: true }));
 		expect(root.hasAttribute('data-stuck')).toBe(false);
 	});
 });

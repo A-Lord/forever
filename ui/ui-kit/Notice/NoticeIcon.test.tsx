@@ -1,15 +1,14 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { NOTICE_COLOR } from '@ui-kit/Notice';
 import { describe, expect, it } from 'vitest';
 
 import { NoticeIcon } from './NoticeIcon';
 
 describe('NoticeIcon', () => {
 	it.each([
-		['info', 'fa-circle-info'],
-		['warning', 'fa-triangle-exclamation'],
-		['error', 'fa-triangle-exclamation'],
-	] as const)('draws the %s icon in its colour, with the level on the button', (level, glyph) => {
+		['info', 'circle-info'],
+		['warning', 'triangle-exclamation'],
+		['error', 'triangle-exclamation'],
+	] as const)('draws the %s icon, with the level on the button', (level, glyph) => {
 		render(
 			<NoticeIcon level={level} label="Notices">
 				Some notice
@@ -17,9 +16,7 @@ describe('NoticeIcon', () => {
 		);
 		const button = screen.getByRole('button', { name: 'Notices' });
 		expect(button.getAttribute('data-level')).toBe(level);
-		const icon = button.querySelector('svg')!;
-		expect(icon.classList.contains(glyph)).toBe(true);
-		for (const token of NOTICE_COLOR[level].split(' ')) expect(icon.classList.contains(token)).toBe(true);
+		expect(button.querySelector('svg')!.getAttribute('data-icon')).toBe(glyph);
 	});
 
 	it('opens the tooltip on click and shows the children', async () => {

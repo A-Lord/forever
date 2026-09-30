@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { toneTextClass } from '@ui-kit/utils/css';
 import { describe, expect, it, vi } from 'vitest';
 
 import { BulkResultRowView, type BulkResultRowViewProps } from './BulkResultRowView';
@@ -36,7 +35,7 @@ describe('BulkResultRowView', () => {
 	it('colours the difference by its tone', () => {
 		renderRow({ delta: { text: '-10.00 (1.00%)', tone: 'negative' } });
 
-		expect(screen.getByTestId('results-reference-diff').className).toContain(toneTextClass('negative'));
+		expect(screen.getByTestId('results-reference-diff').getAttribute('data-tone')).toBe('negative');
 	});
 
 	it('leaves the margin out when a run has no spread', () => {
@@ -50,7 +49,7 @@ describe('BulkResultRowView', () => {
 
 		expect(screen.queryByTestId('results-reference-diff')).toBeNull();
 		expect(screen.getByTestId('results-reference').textContent).toBe('bulk_tab.results.current_gear');
-		expect(screen.getByTestId('bulk-equip-btn').classList.contains('hidden')).toBe(true);
+		expect(screen.getByTestId('bulk-equip-btn').hasAttribute('data-hidden')).toBe(true);
 	});
 
 	it('hides the dps block when damage is not displayed', () => {

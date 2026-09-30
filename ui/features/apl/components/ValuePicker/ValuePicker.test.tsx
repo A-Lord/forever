@@ -54,14 +54,11 @@ beforeEach(() => {
 });
 
 describe('ValuePicker', () => {
-	it('renders the kind picker and the kind’s fields, in that order', () => {
+	it('renders the kind’s fields', () => {
 		setup(constValue('5'));
 		render(<ValuePicker player={player as never} config={configForRoot() as never} />);
 
-		const root = roots()[0];
-		expect(root.children[0]).toBe(kindTriggers()[0]);
-		expect(root.children[1].getAttribute('data-testid')).toBe('apl-picker-builder-root');
-		expect(root.querySelector('[data-testid="adaptive-string-picker-root"] input')).toHaveProperty('value', '5');
+		expect(roots()[0].querySelector('[data-testid="adaptive-string-picker-root"] input')).toHaveProperty('value', '5');
 	});
 
 	it('renders no field group while the value has no kind', () => {

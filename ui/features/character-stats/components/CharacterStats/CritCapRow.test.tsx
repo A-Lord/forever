@@ -21,11 +21,10 @@ const openRows = async (container: HTMLElement) => {
 };
 
 describe('CritCapRow', () => {
-	it('shows the text coloured by the cap delta, and a breakdown ending in how far hit and expertise can raise the cap', async () => {
+	it('shows the text, and a breakdown ending in how far hit and expertise can raise the cap', async () => {
 		const { container } = renderRow();
 		const link = container.querySelector('[data-testid="stat-value-link"]')!;
 		expect(link.textContent).toBe('8.40% under ');
-		expect(link.className).toContain('text-success');
 
 		const rows = await openRows(container);
 		expect(rows.map(([label]) => label)).not.toContain('sidebar.character_stats.attack_table.spec_offsets');
@@ -35,5 +34,13 @@ describe('CritCapRow', () => {
 	it('adds the spec offset row when there is one', async () => {
 		const { container } = renderRow({ ...CRIT_CAP_INFO, specSpecificOffset: 1.5 });
 		expect(await openRows(container)).toContainEqual(['sidebar.character_stats.attack_table.spec_offsets', '1.50%']);
+	});
+
+	it('colours the value by whether the player is under or over the crit cap', () => {
+		const under = renderRow(CRIT_CAP_INFO);
+		expect(under.container.querySelector('[data-tone]')!.getAttribute('data-tone')).toBe('positive');
+
+		const over = renderRow({ ...CRIT_CAP_INFO, playerCritCapDelta: 8.4 });
+		expect(over.container.querySelector('[data-tone]')!.getAttribute('data-tone')).toBe('negative');
 	});
 });

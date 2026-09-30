@@ -35,12 +35,11 @@ describe('useWowheadTooltipRefresh', () => {
 		expect(refreshLinks).toHaveBeenCalledTimes(2);
 	});
 
-	it('does nothing when the wowhead script is absent', () => {
-		expect(() => render(<Probe token="2552-" />)).not.toThrow();
-	});
-
-	it('does nothing when the script loaded without the tooltip api', () => {
-		(window as unknown as { WH: unknown }).WH = {};
+	it.each([
+		['the wowhead script is absent', undefined],
+		['the script loaded without the tooltip api', {}],
+	])('does nothing when %s', (_, wh) => {
+		if (wh) (window as unknown as { WH: unknown }).WH = wh;
 		expect(() => render(<Probe token="2552-" />)).not.toThrow();
 	});
 

@@ -104,49 +104,33 @@ describe('ItemSource', () => {
 		expect(container.textContent).toBe(`Icecrown Citadel (${difficultyNames.get(DungeonDifficulty.DifficultyRaid10H)})The Lich King - Hard Mode`);
 	});
 
-	it('links to the zone for a drop source with no npc but another name', () => {
+	it.each([
+		['with no npc but another name', 'Trash', 'Deadwind PassTrash'],
+		['with neither npc nor other name', '', 'Deadwind Pass'],
+	])('links to the zone for a drop source %s', (_case, otherName, text) => {
 		const item = Item.create({
 			id: 601,
-			sources: [{ source: { oneofKind: 'drop', drop: { zoneId: 11, npcId: 0, difficulty: 0, otherName: 'Trash', category: '' } } }],
+			sources: [{ source: { oneofKind: 'drop', drop: { zoneId: 11, npcId: 0, difficulty: 0, otherName, category: '' } } }],
 		});
 		const { container, getByRole } = mount(item, { zones: { 11: { id: 11, name: 'Deadwind Pass' } } });
 
 		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeZoneUrl(11));
-		expect(container.textContent).toBe('Deadwind PassTrash');
+		expect(container.textContent).toBe(text);
 	});
 
-	it('links to the zone for a drop source with neither npc nor other name', () => {
-		const item = Item.create({
-			id: 602,
-			sources: [{ source: { oneofKind: 'drop', drop: { zoneId: 12, npcId: 0, difficulty: 0, otherName: '', category: '' } } }],
-		});
-		const { container, getByRole } = mount(item, { zones: { 12: { id: 12, name: 'Stranglethorn Vale' } } });
-
-		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeZoneUrl(12));
-		expect(container.textContent).toBe('Stranglethorn Vale');
-	});
-
-	it('shows an alliance icon for a quest available only to alliance', () => {
+	it.each([
+		['an alliance', UIItem_FactionRestriction.ALLIANCE_ONLY, 'alliance'],
+		['a horde', UIItem_FactionRestriction.HORDE_ONLY, 'horde'],
+	])('shows %s icon for a quest available only to that faction', (_case, factionRestriction, icon) => {
 		const item = Item.create({
 			id: 700,
-			factionRestriction: UIItem_FactionRestriction.ALLIANCE_ONLY,
+			factionRestriction,
 			sources: [{ source: { oneofKind: 'quest', quest: { id: 1, name: 'A Call to Arms' } } }],
 		});
 		const { getByRole, getByAltText } = mount(item);
 
 		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeQuestUrl(1));
-		expect(getByAltText('').getAttribute('src')).toBe('/forever/assets/img/alliance.png');
-	});
-
-	it('shows a horde icon for a quest available only to horde', () => {
-		const item = Item.create({
-			id: 701,
-			factionRestriction: UIItem_FactionRestriction.HORDE_ONLY,
-			sources: [{ source: { oneofKind: 'quest', quest: { id: 2, name: 'For the Horde' } } }],
-		});
-		const { getByAltText } = mount(item);
-
-		expect(getByAltText('').getAttribute('src')).toBe('/forever/assets/img/horde.png');
+		expect(getByAltText('').getAttribute('src')).toBe(`/forever/assets/img/${icon}.png`);
 	});
 
 	it('shows no faction icon for a quest with no faction restriction', () => {
@@ -172,7 +156,6 @@ describe('ItemSource', () => {
 		const { container, getByRole } = mount(item);
 
 		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeNpcUrl(REP_FACTION_QUARTERMASTERS[REP_FACTION]));
-		expect(container.querySelectorAll('span')).toHaveLength(2);
 		expect(container.textContent).toBe(`${REP_FACTION_NAMES[REP_FACTION]}${REP_LEVEL_NAMES[RepLevel.RepLevelRevered]}`);
 	});
 

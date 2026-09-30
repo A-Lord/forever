@@ -17,23 +17,17 @@ describe('CharacterStatsHeaderView', () => {
 		mount('key');
 
 		expect(screen.getByTestId('character-stats-label').textContent).toBe('Stats');
-		const group = screen.getByRole('group', { name: 'Stats shown' });
-		expect(screen.getAllByRole('button').every(button => button.parentElement === group)).toBe(true);
+		expect(screen.getByRole('group', { name: 'Stats shown' })).toBeTruthy();
 	});
 
-	it('presses the mode it is given', () => {
-		mount('key');
+	it.each<[CharacterStatsMode, string, string]>([
+		['key', 'true', 'false'],
+		['all', 'false', 'true'],
+	])('presses the mode it is given (%s)', (mode, key, all) => {
+		mount(mode);
 		expect(pressed()).toEqual([
-			['Key', 'true'],
-			['All', 'false'],
-		]);
-	});
-
-	it('presses All when the mode is all', () => {
-		mount('all');
-		expect(pressed()).toEqual([
-			['Key', 'false'],
-			['All', 'true'],
+			['Key', key],
+			['All', all],
 		]);
 	});
 

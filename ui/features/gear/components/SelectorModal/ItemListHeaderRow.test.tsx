@@ -40,19 +40,16 @@ describe('ItemListHeaderRow', () => {
 		expect(onSort.mock.calls).toEqual([[ItemListSortBy.ILVL], [ItemListSortBy.EP]]);
 	});
 
-	it('names the sort direction on the active column’s button only', () => {
-		renderRow({ sortBy: ItemListSortBy.ILVL, sortDirection: SortDirection.ASC });
-		const ilvlLabel = i18n.t('gear_tab.gear_picker.table_headers.ilvl');
-		const ascendingLabel = i18n.t('gear_tab.gear_picker.sorted_ascending');
-		expect(screen.getByRole('button', { name: new RegExp(`^${ilvlLabel}\\s*,\\s*${ascendingLabel}$`) })).toBeTruthy();
-		expect(within(screen.getByTestId('ep-label')).getByRole('button', { name: 'EP' })).toBeTruthy();
-	});
-
-	it('names a descending sort on the active column’s button', () => {
-		renderRow({ sortBy: ItemListSortBy.EP, sortDirection: SortDirection.DESC });
-		const descendingLabel = i18n.t('gear_tab.gear_picker.sorted_descending');
-		expect(within(screen.getByTestId('ep-label')).getByRole('button', { name: new RegExp(`^EP\\s*,\\s*${descendingLabel}$`) })).toBeTruthy();
-		expect(within(screen.getByTestId('ilvl-label')).getByRole('button', { name: i18n.t('gear_tab.gear_picker.table_headers.ilvl') })).toBeTruthy();
+	it.each([
+		[ItemListSortBy.ILVL, SortDirection.ASC, 'ilvl-label', 'ep-label', 'gear_tab.gear_picker.sorted_ascending'],
+		[ItemListSortBy.EP, SortDirection.DESC, 'ep-label', 'ilvl-label', 'gear_tab.gear_picker.sorted_descending'],
+	] as const)('names the sort direction on the active column’s button only (sort %s, direction %s)', (sortBy, sortDirection, active, other, directionKey) => {
+		renderRow({ sortBy, sortDirection });
+		const headerName = (id: 'ilvl-label' | 'ep-label') => (id === 'ep-label' ? 'EP' : i18n.t('gear_tab.gear_picker.table_headers.ilvl'));
+		expect(
+			within(screen.getByTestId(active)).getByRole('button', { name: new RegExp(`^${headerName(active)}\\s*,\\s*${i18n.t(directionKey)}$`) }),
+		).toBeTruthy();
+		expect(within(screen.getByTestId(other)).getByRole('button', { name: headerName(other) })).toBeTruthy();
 	});
 
 	it('hides the EP header when EP values are off', () => {

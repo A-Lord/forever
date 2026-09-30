@@ -2,18 +2,8 @@ import { ActionId } from '@sim/proto/action_id';
 import { act, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { deferFill, filled } from './testing';
 import { useActionIds } from './useActionIds';
-
-// A filled ActionId as fill() returns one: same id fields, plus name and iconUrl.
-const filled = (actionId: ActionId, name: string, iconUrl: string) => Object.assign(Object.create(ActionId.prototype), actionId, { name, iconUrl }) as ActionId;
-
-const deferFill = () => {
-	const resolvers: Array<(value: ActionId) => void> = [];
-	const spy = vi.spyOn(ActionId.prototype, 'fill').mockImplementation(function (this: ActionId) {
-		return new Promise<ActionId>(resolve => resolvers.push(resolve));
-	});
-	return { spy, resolvers };
-};
 
 const seen: Array<ReturnType<typeof useActionIds>> = [];
 const Probe = ({ actionIds }: { actionIds: Array<ActionId | undefined> }) => {

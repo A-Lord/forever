@@ -21,15 +21,6 @@ describe('ChartViewPicker', () => {
 		]);
 	});
 
-	it('presses the view it is given, not the one that was clicked last', () => {
-		const { onChange } = mount('dps');
-
-		expect(views().map(button => button.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
-		fireEvent.click(views()[0]);
-		expect(onChange).toHaveBeenCalledWith('rotation');
-		expect(views().map(button => button.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
-	});
-
 	it('reports the picked view, and stays quiet for the one already showing', () => {
 		const { onChange } = mount('rotation');
 

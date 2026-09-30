@@ -6,15 +6,8 @@ import { Icon } from './Icon';
 import { ICON_NAMES } from './types';
 
 const el = (c: HTMLElement) => c.querySelector('svg')!;
-const classes = (c: HTMLElement) => [...el(c).classList];
 
 describe('Icon', () => {
-	it('renders an svg carrying its glyph class', () => {
-		const { container } = render(<Icon name="circle-question" />);
-		expect(el(container).tagName.toLowerCase()).toBe('svg');
-		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-circle-question', 'ui-icon', 'fa-width-auto']);
-	});
-
 	it('draws the glyph of the style it is given', () => {
 		const path = (c: HTMLElement) => el(c).querySelector('path')!.getAttribute('d');
 		const solid = path(render(<Icon name="circle-question" />).container);
@@ -34,27 +27,16 @@ describe('Icon', () => {
 		expect(iconDefinition('arrow-rotate-left', 'solid').icon[3]).toBe('f0e2');
 	});
 
-	it.each(ICON_NAMES)('renders %s from a definition, canonically named, as its fa- class', name => {
+	it.each(ICON_NAMES)('renders %s from a definition, canonically named', name => {
 		const definition = iconDefinition(name, 'solid');
 		expect(definition).toBeDefined();
 		expect(definition.iconName).toBe(name);
-		expect(classes(render(<Icon name={name} />).container)).toContain(`fa-${name}`);
+		expect(el(render(<Icon name={name} />).container).dataset.icon).toBe(name);
 	});
 
-	it('adds size and spin as classes, and the size as data-size', () => {
-		const { container } = render(<Icon name="spinner" size="2xl" spin />);
-		expect(classes(container)).toEqual(['svg-inline--fa', 'fa-spinner', 'ui-icon', 'fa-spin', 'fa-2xl', 'fa-width-auto']);
-		expect(el(container).dataset.size).toBe('2xl');
+	it('marks the size as data-size', () => {
+		expect(el(render(<Icon name="spinner" size="2xl" spin />).container).dataset.size).toBe('2xl');
 		expect(el(render(<Icon name="spinner" />).container).hasAttribute('data-size')).toBe(false);
-	});
-
-	it('is as wide as its glyph unless it is fixed width', () => {
-		const fixed = classes(render(<Icon name="circle-question" size="xl" fixedWidth />).container);
-		expect(fixed).toContain('fa-fw');
-		expect(fixed).not.toContain('fa-width-auto');
-		const auto = classes(render(<Icon name="circle-question" />).container);
-		expect(auto).not.toContain('fa-fw');
-		expect(auto).toContain('fa-width-auto');
 	});
 
 	it('takes its test id from testId', () => {

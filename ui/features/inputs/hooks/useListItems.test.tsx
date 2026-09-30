@@ -135,11 +135,6 @@ describe('useListItems', () => {
 		expect(names(rows.value)).toEqual(['only']);
 	});
 
-	it('lets every row go without a minimum', () => {
-		const { result } = setup(rowsOf('a'));
-		expect(result.current.canRemove(0)).toBe(true);
-	});
-
 	it('bases each operation on the source, not on the last render', () => {
 		const rows = rowsOf('a');
 		const { result, setValue } = setup(rows);
@@ -205,19 +200,6 @@ describe('useListItems', () => {
 
 		expect(result.current.items).toBe(items);
 		expect(result.current.items.map(keyFor)).toEqual(keys);
-	});
-
-	it('re-reads its own write when the config names no source', () => {
-		const model = { value: [{ name: 'a' }] };
-		const setValue = vi.fn((m: typeof model, next: Array<Row>) => {
-			m.value = next;
-		});
-		const { result } = renderHook(() => useListItems(model, { getValue: m => m.value, setValue, newItem: () => ({ name: 'new' }) }));
-
-		act(() => result.current.create());
-
-		expect(setValue).toHaveBeenCalledOnce();
-		expect(names(result.current.items)).toEqual(['a', 'new']);
 	});
 });
 

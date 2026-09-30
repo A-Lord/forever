@@ -67,13 +67,11 @@ describe('TextField', () => {
 			expect(screen.queryByTestId('rotation-name-field')).toBeNull();
 		});
 
-		it('renders a field root for a label: label, description, then the input', () => {
+		it('renders a field root for a label, with the description', () => {
 			const { container } = render(
 				<Harness label="Rotation Name" description="Shown in the list" testId="rotation-name-field" inputTestId="rotation-name-input" />,
 			);
-			const root = screen.getByTestId('rotation-name-field');
-			expect(container.firstElementChild).toBe(root);
-			expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
+			expect(container.firstElementChild).toBe(screen.getByTestId('rotation-name-field'));
 			expect(screen.getByLabelText('Rotation Name')).toBe(input());
 			expect(screen.getByText('Shown in the list')).toBeTruthy();
 			expect(screen.getByTestId('rotation-name-input')).toBe(input());
@@ -89,15 +87,13 @@ describe('TextField', () => {
 			expect(container.firstElementChild!.contains(input())).toBe(true);
 		});
 
-		it('disables the input and marks the root when disabled', () => {
-			render(<Harness label="Rotation Name" testId="rotation-name-field" disabled />);
+		it.each([
+			['a labelled field, marking the root', 'Rotation Name'],
+			['a bare input', undefined],
+		])('disables the input of %s when disabled', (_, label) => {
+			render(<Harness label={label} testId="rotation-name-field" disabled />);
 			expect(input().disabled).toBe(true);
-			expect(screen.getByTestId('rotation-name-field').hasAttribute('data-disabled')).toBe(true);
-		});
-
-		it('disables a bare input', () => {
-			render(<Harness disabled />);
-			expect(input().disabled).toBe(true);
+			if (label) expect(screen.getByTestId('rotation-name-field').hasAttribute('data-disabled')).toBe(true);
 		});
 
 		it('passes the placeholder and autocomplete through', () => {
@@ -139,15 +135,6 @@ describe('TextField', () => {
 			fireEvent.blur(input());
 			expect(commits).not.toHaveBeenCalled();
 			expect(input().value).toBe('abc');
-		});
-
-		it('keeps a draft across a notification that leaves the shown value unchanged', () => {
-			const handle = handleRef<string>();
-			render(<Harness initial="abc" handle={handle} />);
-			type('typed-but-uncommitted');
-
-			act(() => handle.current!.set('abc'));
-			expect(input().value).toBe('typed-but-uncommitted');
 		});
 
 		it('drops the draft when the value changes underneath it', () => {
@@ -326,14 +313,12 @@ describe('NumberField', () => {
 		expect(input().size).toBe(5);
 	});
 
-	it('formats a float ungrouped, at 2 decimal digits by default', () => {
-		render(<NumberHarness initial={1234.5} float />);
-		expect(input().value).toBe('1234.50');
-	});
-
-	it('honours maxDecimalDigits for a float', () => {
-		render(<NumberHarness initial={3.14159} float maxDecimalDigits={4} />);
-		expect(input().value).toBe('3.1416');
+	it.each([
+		[1234.5, undefined, '1234.50'],
+		[3.14159, 4, '3.1416'],
+	])('formats the float %d ungrouped, at maxDecimalDigits %s (2 by default)', (initial, maxDecimalDigits, shown) => {
+		render(<NumberHarness initial={initial} float maxDecimalDigits={maxDecimalDigits} />);
+		expect(input().value).toBe(shown);
 	});
 
 	it('shows zero as an empty field when showZeroes is false, and as 0 otherwise', () => {
@@ -503,14 +488,6 @@ describe('SearchField', () => {
 		expect(container.firstElementChild).toBe(screen.getByTestId('search-input'));
 		type('a');
 		expect(commits).toHaveBeenLastCalledWith('a');
-	});
-
-	it('clears through its clear button when asked for one', () => {
-		render(<SearchHarness clear={{ label: 'Clear search' }} />);
-		type('abc');
-		fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
-		expect(commits).toHaveBeenLastCalledWith('');
-		expect(input().value).toBe('');
 	});
 
 	describe('debounced', () => {

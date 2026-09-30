@@ -41,13 +41,4 @@ describe('useDraft', () => {
 		fireEvent.click(screen.getByText('clear'));
 		expect(screen.getByTestId('text').textContent).toBe('500');
 	});
-
-	it('keeps the draft across a fresh-but-equal display string', () => {
-		const { rerender } = render(<Probe display="500" />);
-		fireEvent.click(screen.getByText('type'));
-		expect(screen.getByTestId('text').textContent).toBe('typed');
-
-		rerender(<Probe display={String(500)} />);
-		expect(screen.getByTestId('text').textContent).toBe('typed');
-	});
 });

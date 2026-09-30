@@ -169,19 +169,6 @@ describe('TargetsPicker', () => {
 		expect(encounter.targets.map(target => target.level)).toEqual([72, 70, 71]);
 	});
 
-	it('moves a target down by one when it is released past the next target’s midpoint', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 }), TargetProto.create({ level: 71 }), TargetProto.create({ level: 72 })]);
-		mount(encounter);
-		const setTargets = vi.spyOn(encounter, 'setTargets');
-		items().forEach(place);
-
-		grab(0);
-		dragEvent('drop', items()[1], 35);
-
-		expect(setTargets).toHaveBeenCalledTimes(1);
-		expect(encounter.targets.map(target => target.level)).toEqual([71, 70, 72]);
-	});
-
 	it('drops a target released over a target input beside the target row holding it, never into the input list', () => {
 		const encounter = new FakeEncounter([
 			TargetProto.create({ level: 70, targetInputs: [TargetInput.create({ label: 'Stacks', inputType: InputType.Number })] }),

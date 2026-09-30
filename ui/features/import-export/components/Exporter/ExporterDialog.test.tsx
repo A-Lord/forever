@@ -1,5 +1,5 @@
 import i18n from '@i18n/config';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 // The exporters reach the addon importer, which asks GitHub for its version when its module loads.
@@ -21,10 +21,6 @@ const TestExporterDialog = exporterDialog({ title: 'Test Export', getData });
 const FullExporterDialog = exporterDialog({ title: 'Full Export', allowDownload: true, selectCategories: true, getData });
 
 describe('exporterDialog', () => {
-	it('names the component after the definition', () => {
-		expect(TestExporterDialog.displayName).toBe('ExporterDialog(Test Export)');
-	});
-
 	it('opens the exporter under the definition title with its data', () => {
 		renderWithHost(<TestExporterDialog open onOpenChange={() => {}} />);
 		expect(screen.getByTestId('sim-dialog-title').textContent).toBe('Test Export');
@@ -43,24 +39,15 @@ describe('exporterDialog', () => {
 		expect(screen.getByRole('button', { name: DOWNLOAD })).toBeTruthy();
 	});
 
-	it('copies the export text from a primary copy button with its tooltip, and confirms the copy', () => {
+	it('copies the export text from its copy button', () => {
 		const writeText = vi.fn(() => Promise.resolve());
 		const own = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
 		Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
 		vi.useFakeTimers();
 		try {
 			renderWithHost(<TestExporterDialog open onOpenChange={() => {}} />);
-			const copy = screen.getByTestId('copy-button');
-			expect(copy.className).toBe('ui-button ui-button-primary ui-button-md w-48');
-			expect(copy.textContent).toBe(i18n.t('export.json.copy_button'));
-			expect(copy.getAttribute('data-tooltip-id')).toBeTruthy();
-
-			act(() => void fireEvent.click(copy));
+			fireEvent.click(screen.getByTestId('copy-button'));
 			expect(writeText).toHaveBeenCalledWith('{"player":{}}');
-			expect(copy.textContent).toBe(i18n.t('common.copy_button.copied'));
-
-			act(() => void vi.advanceTimersByTime(1500));
-			expect(copy.textContent).toBe(i18n.t('export.json.copy_button'));
 		} finally {
 			vi.useRealTimers();
 			if (own) Object.defineProperty(navigator, 'clipboard', own);

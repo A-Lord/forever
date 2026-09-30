@@ -28,6 +28,7 @@ export const CooldownRowView = ({ name, isAdd, deleteTooltipId, onDelete, action
 			aria-label={i18n.t('rotation_tab.cooldowns.delete_tooltip')}
 			className={clsx('text-link-danger', isAdd && 'invisible')}
 			data-testid="delete-cooldown"
+			data-hidden={isAdd ? '' : undefined}
 			onClick={onDelete}
 			{...tooltipAnchorProps(deleteTooltipId)}>
 			<Icon name="xmark" style="base" size="xl" />

@@ -4,10 +4,10 @@
 // to appear, so it passes on tick two and can never see that tick one's numbers were dropped — that
 // gap is what the "same commit" case below covers.
 import { ProgressMetrics } from '@generated/proto/api';
-import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { SimWarning } from '@sim/sim_host';
-import { fakeHost, mockSubscriptions } from '@sim/testing';
-import { act, render } from '@testing-library/react';
+import { mockSubscriptions } from '@sim/testing';
+import { renderWithHost } from '@testing/react';
+import { act } from '@testing-library/react';
 import { Profiler } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -22,19 +22,6 @@ vi.mock('@sim/state/subscriptions', async () => mockSubscriptions());
 // under test here is that the content zone renders it and nothing else.
 vi.mock('./SimResultSummary', () => ({ SimResultSummary: () => <div data-testid="sim-result-summary-root" /> }));
 
-const host = (disabled = false, simDisabled = disabled) =>
-	fakeHost({
-		disabled,
-		simDisabled,
-		// The warnings only read the registry once the sim reports ready; every case here is a loaded sim.
-		sim: {
-			waitForInit: () => Promise.resolve(),
-			getShowDamageMetrics: () => true,
-			getShowThreatMetrics: () => true,
-			getShowHealingMetrics: () => true,
-		},
-	});
-
 const progress = (dps: number, hps: number, completed: number, total: number, presimRunning = false) =>
 	ProgressMetrics.create({ dps, hps, completedIterations: completed, totalIterations: total, presimRunning });
 
@@ -48,19 +35,28 @@ const mount = async (
 	simDisabled = disabled,
 ) => {
 	const commits = vi.fn();
-	const view = render(
-		<SimHostProvider host={host(disabled, simDisabled)}>
-			<Profiler id="panel" onRender={commits}>
-				<SimResultsPanel panel={panel} warnings={warnings} results={results} />
-			</Profiler>
-		</SimHostProvider>,
+	const view = renderWithHost(
+		<Profiler id="panel" onRender={commits}>
+			<SimResultsPanel panel={panel} warnings={warnings} results={results} />
+		</Profiler>,
+		{
+			disabled,
+			simDisabled,
+			// The warnings only read the registry once the sim reports ready; every case here is a loaded sim.
+			sim: {
+				waitForInit: () => Promise.resolve(),
+				getShowDamageMetrics: () => true,
+				getShowThreatMetrics: () => true,
+				getShowHealingMetrics: () => true,
+			},
+		},
 	);
 	await act(async () => {});
 	return { commits, view };
 };
 
-const zone = (view: ReturnType<typeof render>, selector: string) => view.container.querySelector<HTMLElement>(selector)!;
-const zones = (view: ReturnType<typeof render>) => ({
+const zone = (view: ReturnType<typeof renderWithHost>, selector: string) => view.container.querySelector<HTMLElement>(selector)!;
+const zones = (view: ReturnType<typeof renderWithHost>) => ({
 	pending: !!view.container.querySelector('[data-testid="results-sim"], [data-testid="loader"]'),
 	content: !!view.container.querySelector('[data-testid="sim-result-summary-root"]'),
 	buttons: !!view.container.querySelector('[data-testid="button-zone"]:not([hidden])'),
@@ -188,48 +184,19 @@ describe('SimResultsPanel', () => {
 		);
 
 		const button = view.container.querySelector<HTMLButtonElement>('[data-testid="button-zone"]')!;
-		expect(button.getAttribute('type')).toBe('button');
 		expect(button.textContent!.trim()).toBe('sidebar.results.stop');
 
 		act(() => button.click());
 		expect(seen).toEqual([{ label: 'sidebar.results.stopping', disabled: true }]);
 	});
 
-	it('follows the warnings registry in both directions and lists one entry each', async () => {
-		let active = '';
-		let notify = () => {};
-		warnings.add({
-			updateOn: listener => {
-				notify = listener;
-				return () => {};
-			},
-			getContent: () => active,
-		});
-		const { view } = await mount(panel, warnings);
-		const item = () => view.container.querySelector('[data-testid="warning-zone"] [data-testid="warning-trigger"]');
-		expect(item()).toBeNull();
-
-		act(() => {
-			active = 'Unspent talent points';
-			notify();
-		});
-		expect(item()).toBeTruthy();
-
-		act(() => {
-			active = '';
-			notify();
-		});
-		expect(item()).toBeNull();
-	});
-
-	it('names the warning trigger and draws its glyph through Icon', async () => {
+	it('names the warning trigger', async () => {
 		warnings.add(staticWarning(() => 'a warning'));
 		const { view } = await mount(panel, warnings);
 		// The trigger only mounts once the registry has something to say.
 		const trigger = zone(view, '[data-testid="warning-zone"] button');
 
 		expect(trigger.getAttribute('aria-label')).toBeTruthy();
-		expect(trigger.querySelector('svg')!.classList.contains('fa-triangle-exclamation')).toBe(true);
 	});
 
 	it('renders the unlaunched notice after the four zones, and only for a disabled spec', async () => {

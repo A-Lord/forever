@@ -63,12 +63,11 @@ describe('IconSwatch', () => {
 		expect(screen.getByTestId('swatch').childElementCount).toBe(1);
 	});
 
-	it('lays badges beside the anchor in one box, and puts the class on the box', () => {
+	it('lays badges beside the anchor in one box', () => {
 		const { container } = render(
 			<IconSwatch
 				icon={kings}
 				text="2"
-				className="extra"
 				testId="swatch"
 				badges={
 					<>
@@ -82,8 +81,6 @@ describe('IconSwatch', () => {
 		const swatch = screen.getByTestId('swatch');
 
 		expect(box.tagName).toBe('DIV');
-		expect(box.classList.contains('extra')).toBe(true);
-		expect(swatch.classList.contains('extra')).toBe(false);
 		expect(Array.from(box.children)).toEqual([swatch, screen.getByTestId('badge-1'), screen.getByTestId('badge-2')]);
 		expect(box.querySelectorAll('div')).toHaveLength(0);
 		expect(document.querySelectorAll('a a')).toHaveLength(0);
@@ -137,7 +134,7 @@ describe('IconMenu', () => {
 		expect(trigger.getAttribute('aria-expanded')).toBe('true');
 	});
 
-	it('opens on a click of a linked swatch without following the link, and closes on the next', () => {
+	it('opens on a click of a linked swatch without following the link, and closes on the next', async () => {
 		const { trigger, onOpenChange } = mount(vi.fn(), kings.href);
 		expect(trigger.getAttribute('href')).toBe(kings.href);
 
@@ -155,6 +152,9 @@ describe('IconMenu', () => {
 		});
 		expect(second.defaultPrevented).toBe(true);
 		expect(onOpenChange.mock.calls.map(([open]) => open)).toEqual([true, false]);
+
+		await act(async () => {});
+		expect(screen.queryByTestId('entry')).toBeNull();
 	});
 
 	it('opens once on Enter and once on Space from an unlinked swatch, never twice', () => {

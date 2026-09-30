@@ -16,7 +16,7 @@ export const GemRow = ({ gem, count, iconUrl }: GemRowProps) => {
 	const href = ActionId.makeItemUrl(gem.id);
 	return (
 		<SummaryTableRow>
-			<WowheadAnchor className={clsx('flex items-center', itemQualityClassName(gem.quality))} target="_blank" href={href}>
+			<WowheadAnchor className={clsx('flex items-center', itemQualityClassName(gem.quality))} target="_blank" href={href} data-quality={gem.quality}>
 				<img
 					className="ui-summary-table-gem-icon static inset-gem z-1 inline-block size-gem-inner cursor-pointer rounded-none bg-cover bg-center bg-no-repeat"
 					data-testid="gem-icon"

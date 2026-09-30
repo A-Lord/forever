@@ -99,10 +99,9 @@ describe('MultiComboBox', () => {
 		expect(chips()).toEqual(['Banana']);
 	});
 
-	it('takes the root test id and class from testId and className', () => {
-		render(<Harness testId="custom-root" className="w-full" />);
-		const root = screen.getByTestId('custom-root');
-		expect(root.classList.contains('w-full')).toBe(true);
+	it('takes the root test id from testId', () => {
+		render(<Harness testId="custom-root" />);
+		expect(screen.getByTestId('custom-root').contains(input())).toBe(true);
 	});
 
 	it('disables the input and marks the root when disabled', () => {

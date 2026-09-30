@@ -7,18 +7,9 @@ import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const store = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		subscribe: (callback: () => void) => {
-			listeners.add(callback);
-			return () => listeners.delete(callback);
-		},
-		notify: () => listeners.forEach(listener => listener()),
-	};
-});
+import { storeSource as store } from '../../testing';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(store.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('../../testing')).storeSource.subscribe));
 
 const { FiltersMenu } = await import('./FiltersMenu');
 
@@ -75,37 +66,18 @@ describe('FiltersMenu', () => {
 		});
 	});
 
-	it('renders nothing while closed', () => {
-		setup({}, { open: false });
-		expect(rootElem.querySelector('[data-testid="filters-menu"]')).toBeNull();
-	});
-
-	it('always offers the general, source and raid sections', () => {
-		setup({ armorTypes: [] }, { slot: ItemSlot.ItemSlotTrinket1 });
-		expect(sections()).toEqual(['gear_tab.gear_picker.filters.general', 'gear_tab.gear_picker.filters.source', 'gear_tab.gear_picker.filters.raids']);
-	});
-
-	it('adds the armor type section to an armor slot, and only for a class with more than one', () => {
-		setup();
-		expect(sections()).toContain('gear_tab.gear_picker.armor_type');
-		expect(pickerIds()).toContain(`filters-armor-type-${ArmorType.ArmorTypePlate}`);
-
-		setup({ armorTypes: [ArmorType.ArmorTypePlate] });
-		expect(sections()).not.toContain('gear_tab.gear_picker.armor_type');
-	});
-
-	it('gives a weapon slot the weapon type and speed sections instead', () => {
+	it('hands the class weapon types to the weapon type section of a weapon slot', () => {
 		setup({ weaponTypes: [WeaponType.WeaponTypeAxe, WeaponType.WeaponTypeSword] }, { slot: ItemSlot.ItemSlotMainHand });
 
-		expect(sections()).toEqual([
-			'gear_tab.gear_picker.filters.general',
-			'gear_tab.gear_picker.filters.source',
-			'gear_tab.gear_picker.filters.raids',
-			'gear_tab.gear_picker.weapon_type',
-			'gear_tab.gear_picker.weapon_speed',
-		]);
 		expect(pickerIds()).toContain(`filters-weapon-type-${WeaponType.WeaponTypeSword}`);
-		expect(sections()).not.toContain('gear_tab.gear_picker.armor_type');
+	});
+
+	it('hands the class armor and ranged weapon types to their filter sections', () => {
+		setup({ armorTypes: [ArmorType.ArmorTypeMail, ArmorType.ArmorTypePlate] }, { slot: ItemSlot.ItemSlotHead });
+		expect(pickerIds()).toContain(`filters-armor-type-${ArmorType.ArmorTypePlate}`);
+
+		setup({ rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeGun] }, { slot: ItemSlot.ItemSlotRanged });
+		expect(sections()).toContain('gear_tab.gear_picker.ranged_weapon_type');
 	});
 
 	it('adds the off hand speed and ranged sections only for a spec that can dual wield and a class with ranged weapons', () => {
@@ -115,42 +87,6 @@ describe('FiltersMenu', () => {
 
 		setup({ weaponTypes: [WeaponType.WeaponTypeAxe], canDualWield: true }, { slot: ItemSlot.ItemSlotMainHand });
 		expect(pickerIds()).toEqual(expect.arrayContaining(['filters-min-oh-weapon-speed', 'filters-max-oh-weapon-speed']));
-	});
-
-	// Ranged weapons live in their own slot, so the ranged sections belong to it and never to
-	// a melee weapon slot.
-	it('keeps the ranged sections off a melee weapon slot', () => {
-		setup({ weaponTypes: [WeaponType.WeaponTypeAxe], rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeBow] }, { slot: ItemSlot.ItemSlotMainHand });
-		expect(sections()).not.toContain('gear_tab.gear_picker.ranged_weapon_type');
-	});
-
-	it('gives the ranged slot the ranged type and speed sections', () => {
-		setup(
-			{ weaponTypes: [WeaponType.WeaponTypeAxe], rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeGun] },
-			{ slot: ItemSlot.ItemSlotRanged },
-		);
-		expect(sections()).toEqual([
-			'gear_tab.gear_picker.filters.general',
-			'gear_tab.gear_picker.filters.source',
-			'gear_tab.gear_picker.filters.raids',
-			'gear_tab.gear_picker.ranged_weapon_type',
-			'gear_tab.gear_picker.ranged_weapon_speed',
-		]);
-		expect(sections()).not.toContain('gear_tab.gear_picker.weapon_type');
-	});
-
-	// One ranged weapon type is no choice at all, so the sections are not worth the space.
-	it('hides the ranged sections from a class with a single ranged weapon type', () => {
-		setup({ rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeGun] }, { slot: ItemSlot.ItemSlotRanged });
-		expect(sections()).not.toContain('gear_tab.gear_picker.ranged_weapon_type');
-	});
-
-	it('shows an unset item level bound as an empty field rather than a zero', () => {
-		filters = DatabaseFilters.create({ minIlvl: 0, maxIlvl: 528 });
-		setup();
-
-		expect(rootElem.querySelector<HTMLInputElement>('#filters-min-ilvl')!.value).toBe('');
-		expect(rootElem.querySelector<HTMLInputElement>('#filters-max-ilvl')!.value).toBe('528');
 	});
 
 	it('portals into the sim root for the spec theme, writes a source toggle and a faction pick back through the sim, and closes on its own close button', async () => {

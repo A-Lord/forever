@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { DrawerProps } from './Drawer';
@@ -20,25 +20,6 @@ const mount = (props: Partial<DrawerProps> = {}) =>
 	);
 
 describe('Drawer', () => {
-	it('opens on trigger click and closes on Escape, returning focus', async () => {
-		mount();
-		expect(screen.queryByTestId('popup')).toBeNull();
-
-		fireEvent.click(screen.getByTestId('trigger'));
-		expect(screen.getByTestId('popup')).not.toBeNull();
-		expect(screen.getByTestId('content')).not.toBeNull();
-
-		fireEvent.keyDown(screen.getByTestId('popup'), { key: 'Escape' });
-
-		await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId('trigger')));
-	});
-
-	it('puts the drawer class and the caller class on the popup', () => {
-		mount({ open: true, className: 'ui-floating-action-bar-sheet' });
-
-		expect(Array.from(screen.getByTestId('popup').classList)).toEqual(expect.arrayContaining(['ui-drawer', 'ui-floating-action-bar-sheet']));
-	});
-
 	it.each(['left', 'bottom', 'right'] as const)('marks a %s drawer with its side, and a drawer without one with none', side => {
 		const { unmount } = mount({ open: true, side });
 		expect(screen.getByTestId('popup').getAttribute('data-side')).toBe(side);

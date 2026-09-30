@@ -23,27 +23,21 @@ describe('AplValidationsView', () => {
 		const { container } = render(<AplValidationsView validations={[]} />);
 
 		expect(button(container).style.display).toBe('none');
-		expect(button(container).className).not.toMatch(/apl-validation-(information|warning|error)/);
 	});
 
-	it('shows the information class and icon for information alone', () => {
-		const { container } = render(<AplValidationsView validations={[validation(LogLevel.Information, 'fyi')]} />);
+	it.each([
+		['information alone', [validation(LogLevel.Information, 'fyi')], 'info'],
+		['a warning above information', [validation(LogLevel.Information, 'fyi'), validation(LogLevel.Warning, 'careful')], 'warning'],
+		[
+			'an error above the rest',
+			[validation(LogLevel.Information, 'fyi'), validation(LogLevel.Error, 'broken'), validation(LogLevel.Warning, 'careful')],
+			'error',
+		],
+	])('shows itself at the highest level present, for %s', (_case, validations, level) => {
+		const { container } = render(<AplValidationsView validations={validations} />);
 
 		expect(button(container).style.display).not.toBe('none');
-		expect(button(container).classList.contains('apl-validation-information')).toBe(true);
-		expect(button(container).querySelector('svg')?.classList.contains('fa-circle-info')).toBe(true);
-	});
-
-	it('takes its class and icon from the highest level present', () => {
-		const { container } = render(
-			<AplValidationsView
-				validations={[validation(LogLevel.Information, 'fyi'), validation(LogLevel.Error, 'broken'), validation(LogLevel.Warning, 'careful')]}
-			/>,
-		);
-
-		expect(button(container).classList.contains('apl-validation-error')).toBe(true);
-		expect(button(container).classList.contains('apl-validation-warning')).toBe(false);
-		expect(button(container).querySelector('svg')?.classList.contains('fa-triangle-exclamation')).toBe(true);
+		expect(button(container).getAttribute('data-level')).toBe(level);
 	});
 
 	it('groups the messages under one header per level, in the order the levels first appear', async () => {

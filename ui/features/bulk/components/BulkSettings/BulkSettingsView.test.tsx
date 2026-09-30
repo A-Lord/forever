@@ -76,14 +76,11 @@ describe('BulkSettingsView', () => {
 		expect(screen.getByTestId('weapon-types')).toBeTruthy();
 	});
 
-	it('adds the reforge group only when it is given reforge settings', () => {
-		renderSettings();
-		expect(screen.queryByTestId('bulk-settings-group-reforge')).toBeNull();
-	});
+	it.each([false, true])('adds the reforge group, holding the reforge settings, only when it is given them (%s)', shown => {
+		renderSettings({ reforgeSettings: shown ? <span data-testid="reforge-body" /> : null });
+		const group = screen.queryByTestId('bulk-settings-group-reforge');
 
-	it('shows the reforge settings in their own group', () => {
-		renderSettings({ reforgeSettings: <span data-testid="reforge-body" /> });
-
-		expect(screen.getByTestId('bulk-settings-group-reforge').contains(screen.getByTestId('reforge-body'))).toBe(true);
+		expect(!!group).toBe(shown);
+		expect(!!group?.contains(screen.queryByTestId('reforge-body'))).toBe(shown);
 	});
 });

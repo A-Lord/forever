@@ -1,9 +1,7 @@
 import { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
-import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { fakeHost } from '@sim/testing';
-import { render } from '@testing-library/react';
+import { renderWithHost } from '@testing/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
@@ -25,13 +23,8 @@ const equippedItem = (id: number) =>
 	}) as unknown as EquippedItem;
 
 const setup = (props: Partial<Parameters<typeof SlotRailIcon>[0]> = {}) => {
-	const host = fakeHost();
 	const onOpen = vi.fn();
-	const result = render(
-		<SimHostProvider host={host}>
-			<SlotRailIcon slot={ItemSlot.ItemSlotHead} item={null} active={false} tooltipId="rail-tooltip" onOpen={onOpen} {...props} />
-		</SimHostProvider>,
-	);
+	const result = renderWithHost(<SlotRailIcon slot={ItemSlot.ItemSlotHead} item={null} active={false} tooltipId="rail-tooltip" onOpen={onOpen} {...props} />);
 	return { ...result, onOpen };
 };
 
@@ -42,11 +35,7 @@ describe('SlotRailIcon', () => {
 		expect(wrapper.dataset.slot).toBe(String(ItemSlot.ItemSlotFeet));
 		expect(wrapper.hasAttribute('data-active')).toBe(false);
 
-		rerender(
-			<SimHostProvider host={fakeHost()}>
-				<SlotRailIcon slot={ItemSlot.ItemSlotFeet} item={null} active={true} tooltipId="rail-tooltip" onOpen={vi.fn()} />
-			</SimHostProvider>,
-		);
+		rerender(<SlotRailIcon slot={ItemSlot.ItemSlotFeet} item={null} active={true} tooltipId="rail-tooltip" onOpen={vi.fn()} />);
 		wrapper = container.querySelector<HTMLElement>('[data-testid="item-picker-icon-wrapper"]')!;
 		expect(wrapper.hasAttribute('data-active')).toBe(true);
 	});

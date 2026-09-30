@@ -48,6 +48,7 @@ export const BulkResultRowView = ({ showDamage, avg, plusMinus, isBase, delta, s
 									<span
 										className={clsx('font-bold', toneTextClass(delta.tone))}
 										data-testid="results-reference-diff"
+										data-tone={delta.tone}
 										{...tooltipAnchorProps(deltaTooltipId)}>
 										{delta.text}
 									</span>
@@ -62,7 +63,7 @@ export const BulkResultRowView = ({ showDamage, avg, plusMinus, isBase, delta, s
 				{children}
 			</div>
 			<div className="flex flex-1 justify-end">
-				<Button className={clsx(isBase && 'hidden')} data-testid="bulk-equip-btn" onClick={onEquip}>
+				<Button className={clsx(isBase && 'hidden')} data-testid="bulk-equip-btn" data-hidden={isBase ? '' : undefined} onClick={onEquip}>
 					{i18n.t('bulk_tab.results.equip_button')}
 				</Button>
 			</div>

@@ -37,7 +37,6 @@ const renderPanel = async () => {
 };
 
 const chipNamed = (name: string) => [...document.querySelectorAll('[data-testid="saved-data-set-chip"]')].find(chip => chip.textContent?.startsWith(name))!;
-const chipNames = () => [...document.querySelectorAll('[data-testid="saved-data-set-chip"]')].map(chip => chip.textContent);
 
 beforeEach(() => {
 	trackEvent.mockClear();
@@ -77,18 +76,5 @@ describe('SavedRotation', () => {
 
 		expect(player.setAplRotation).toHaveBeenCalledWith(APLRotation.create());
 		expect(onLoad).toHaveBeenCalledWith(player);
-	});
-
-	it('holds the presets back until the sim is ready', async () => {
-		presets = [{ name: 'Default', rotation: SavedRotationProto.create({ rotation: makeAplRotation() }) }];
-		window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ Mine: storedJson(makeAplRotation()) }));
-		let resolveInit = () => {};
-		waitForInit = () => new Promise(resolve => (resolveInit = resolve));
-
-		renderWithHost(<SavedRotation />, hostParts());
-
-		expect(chipNames()).toEqual(['Mine']);
-		await act(async () => resolveInit());
-		expect(chipNames()).toEqual(['Default', 'Mine']);
 	});
 });

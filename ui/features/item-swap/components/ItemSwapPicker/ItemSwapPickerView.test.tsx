@@ -19,7 +19,6 @@ describe('ItemSwapPickerView', () => {
 	it('renders the row as a split field', () => {
 		renderView();
 		const row = screen.getByTestId('input-item-swap-container');
-		expect(row.classList).toContain('ui-field');
 		expect(row.getAttribute('data-layout')).toBe('split');
 	});
 
@@ -37,17 +36,8 @@ describe('ItemSwapPickerView', () => {
 		expect(onSwap).toHaveBeenCalledOnce();
 	});
 
-	it('leaves the note out when there is none', () => {
-		const { container } = render(
-			<ItemSwapPickerView onSwap={() => {}}>
-				<span />
-			</ItemSwapPickerView>,
-		);
-		expect(container.querySelector('p')).toBeNull();
-	});
-
-	it('shows the note under the row', () => {
-		renderView({ note: 'Swap before the pull.' });
-		expect(screen.getByText('Swap before the pull.').tagName).toBe('P');
+	it.each([undefined, 'Swap before the pull.'])('shows the note %j under the row only when there is one', note => {
+		renderView({ note });
+		expect(document.querySelector('p')?.textContent ?? null).toBe(note ?? null);
 	});
 });

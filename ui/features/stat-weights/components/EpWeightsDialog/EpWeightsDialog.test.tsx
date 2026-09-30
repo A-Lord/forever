@@ -384,9 +384,7 @@ describe('EpWeightsDialog', () => {
 			fireEvent.click(getByTestId('toggle-open'));
 		});
 
-		const tableClasses = table().className.split(' ');
-		expect(tableClasses).toHaveLength(2);
-		expect(tableClasses).toEqual(expect.arrayContaining(['ui-table', 'stats-type-weight']));
+		expect(table().getAttribute('data-stats-type')).toBe('weight');
 		expect(select().textContent).toBe('sidebar.buttons.stat_weights.modal.weights');
 		expect(showAll().checked).toBe(true);
 	});

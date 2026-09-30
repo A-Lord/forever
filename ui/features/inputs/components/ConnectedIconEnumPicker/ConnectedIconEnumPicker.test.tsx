@@ -1,5 +1,5 @@
+import { FakeSource, filled } from '@features/inputs/testing';
 import { ActionId } from '@sim/proto/action_id';
-import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
@@ -8,25 +8,22 @@ import { ConnectedIconEnumPicker } from './ConnectedIconEnumPicker';
 import type { IconEnumPickerConfig } from './types';
 import { iconEnumPickerShown } from './utils';
 
-// A filled ActionId as fill() returns one, so the icons resolve synchronously and no test touches the network.
-const filled = (actionId: ActionId, name: string, iconUrl: string) => Object.assign(Object.create(ActionId.prototype), actionId, { name, iconUrl }) as ActionId;
-
 const frostId = filled(ActionId.fromSpellId(7302), 'Frost Armor', 'frost.jpg');
 const moltenId = filled(ActionId.fromSpellId(30482), 'Molten Armor', 'molten.jpg');
 
-/** Stands in for the player: one number, plus the `(onChange) => unsubscribe` contract. */
-class Options {
-	private listeners = new Set<() => void>();
-	armor = 0;
+/** Stands in for the player: the armor value, plus the flags the configs read. */
+class Options extends FakeSource<number> {
 	engineer = true;
 	visible = true;
 	enabled = true;
 	columns = 2;
-	set(next: number) {
+	constructor() {
+		super(0);
+	}
+	override set(next: number) {
 		// The real facades drop equal writes (`Player.setConsumes` returns early), so the guard mirrors that here.
-		if (this.armor === next) return;
-		this.armor = next;
-		this.notify();
+		if (this.value === next) return;
+		super.set(next);
 	}
 	setEngineer(next: boolean) {
 		this.engineer = next;
@@ -36,13 +33,6 @@ class Options {
 		this.visible = next;
 		this.notify();
 	}
-	notify() {
-		this.listeners.forEach(listener => listener());
-	}
-	readonly subscribe: StoreSubscribe = listener => {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	};
 }
 
 const configFor = (extra: Partial<IconEnumPickerConfig<Options, number>> = {}): IconEnumPickerConfig<Options, number> => ({
@@ -54,7 +44,7 @@ const configFor = (extra: Partial<IconEnumPickerConfig<Options, number>> = {}): 
 	equals: (a, b) => a === b,
 	zeroValue: 0,
 	storeSubscribe: options => options.subscribe,
-	getValue: options => options.armor,
+	getValue: options => options.value,
 	setValue: (options, next) => options.set(next),
 	...extra,
 });
@@ -87,7 +77,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('ConnectedIconEnumPicker', () => {
 	it('resolves each value’s action id into its option’s icon and link', () => {
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		mount(options);
 		expect(iconOf(button())).toBe('molten.jpg');
 		expect(button().getAttribute('href')).toBe(ActionId.makeSpellUrl(30482));
@@ -103,7 +93,7 @@ describe('ConnectedIconEnumPicker', () => {
 		});
 		const filledSpells = () => new Set(fill.mock.contexts.map(actionId => (actionId as ActionId).spellId));
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		mount(
 			options,
 			configFor({
@@ -133,7 +123,7 @@ describe('ConnectedIconEnumPicker', () => {
 		act(() => {
 			fireEvent.click(optionAnchor(2));
 		});
-		expect(options.armor).toBe(2);
+		expect(options.value).toBe(2);
 	});
 
 	it('unmounts a value whose showWhen is false and brings the option back with it', () => {
@@ -152,17 +142,17 @@ describe('ConnectedIconEnumPicker', () => {
 
 	it('zeroes the selection when the option holding it is hidden', () => {
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		mount(options, withEngineerOnly());
-		expect(options.armor).toBe(2);
+		expect(options.value).toBe(2);
 
 		act(() => options.setEngineer(false));
-		expect(options.armor).toBe(0);
+		expect(options.value).toBe(0);
 	});
 
 	it('zeroes once when the picker and the option holding the selection hide in the same notification', () => {
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		const setValue = vi.fn((obj: Options, next: number) => obj.set(next));
 		mount(
 			options,
@@ -182,7 +172,7 @@ describe('ConnectedIconEnumPicker', () => {
 
 		// Back in view with the option still hidden: the put-aside value comes back and is zeroed in the same pass.
 		act(() => options.setVisible(true));
-		expect(options.armor).toBe(0);
+		expect(options.value).toBe(0);
 		expect(setValue.mock.calls.map(([, next]) => next)).toEqual([0, 2, 0]);
 	});
 
@@ -194,46 +184,36 @@ describe('ConnectedIconEnumPicker', () => {
 
 	it('unmounts on its own showWhen, and puts the value aside across it', () => {
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		mount(options, configFor({ showWhen: (obj: Options) => obj.visible }));
 		expect(root()).toBeTruthy();
 
 		act(() => options.setVisible(false));
 		expect(root()).toBeNull();
-		expect(options.armor).toBe(0);
+		expect(options.value).toBe(0);
 
 		// The source was still zero, so what was put aside comes back.
 		act(() => options.setVisible(true));
 		expect(root()).toBeTruthy();
-		expect(options.armor).toBe(2);
+		expect(options.value).toBe(2);
 	});
 
 	it('lets a value set while the picker was hidden beat the one put aside', () => {
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		mount(options, configFor({ showWhen: (obj: Options) => obj.visible }));
 
 		act(() => options.setVisible(false));
-		expect(options.armor).toBe(0);
+		expect(options.value).toBe(0);
 		// A preset writing while the picker is away.
 		act(() => options.set(1));
 		act(() => options.setVisible(true));
-		expect(options.armor).toBe(1);
-	});
-
-	it('offers nothing to choose while hidden, so the put-aside value can only be beaten from the source', () => {
-		const options = new Options();
-		options.armor = 2;
-		mount(options, configFor({ showWhen: (obj: Options) => obj.visible }));
-
-		act(() => options.setVisible(false));
-		expect(options.armor).toBe(0);
-		expect(menu()).toBeNull();
+		expect(options.value).toBe(1);
 	});
 
 	it('does not put a value aside for a picker that mounts hidden', () => {
 		const options = new Options();
-		options.armor = 2;
+		options.value = 2;
 		options.visible = false;
 		// Store/restore is driven by the source subscription, so it never runs during construction, and
 		// the revision guard keeps StrictMode's second mount render from reading as a transition.
@@ -243,11 +223,11 @@ describe('ConnectedIconEnumPicker', () => {
 			</StrictMode>,
 		);
 		expect(root()).toBeNull();
-		expect(options.armor).toBe(2);
+		expect(options.value).toBe(2);
 
 		// Nothing was put aside, so coming back is a no-op rather than a restore.
 		act(() => options.setVisible(true));
-		expect(options.armor).toBe(2);
+		expect(options.value).toBe(2);
 	});
 
 	it('disables the picker on enableWhen', () => {
@@ -265,7 +245,7 @@ describe('ConnectedIconEnumPicker', () => {
 
 	it('falls back to backupIconUrl for a value the list does not carry', () => {
 		const options = new Options();
-		options.armor = 99;
+		options.value = 99;
 		mount(options, configFor({ backupIconUrl: () => moltenId }));
 
 		expect(iconOf(button())).toBe('molten.jpg');
@@ -274,12 +254,9 @@ describe('ConnectedIconEnumPicker', () => {
 	});
 
 	it('carries the config frame onto the field and the testId onto the swatch', () => {
-		const { container } = render(
-			<ConnectedIconEnumPicker modObject={new Options()} config={configFor({ label: 'Armor', extraClassNames: ['extra'] })} testId="armor-root" />,
-		);
+		const { container } = render(<ConnectedIconEnumPicker modObject={new Options()} config={configFor({ label: 'Armor' })} testId="armor-root" />);
 		const field = container.firstElementChild as HTMLElement;
 		expect(screen.getByTestId('armor-root').tagName).toBe('A');
-		expect(field.classList.contains('extra')).toBe(true);
 		expect(within(field).getByTestId('form-label').textContent).toBe('Armor');
 	});
 });

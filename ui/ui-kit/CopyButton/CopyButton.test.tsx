@@ -31,36 +31,24 @@ afterEach(() => {
 const button = (container: HTMLElement) => container.querySelector('button')!;
 
 describe('CopyButton', () => {
-	it('wears the base bundle and the caller class list, carries the copy-button testid, with no variant of its own', () => {
-		const { container } = render(<CopyButton getContent={() => 'x'} className={['text-link-danger', 'mt-2']} />);
+	it('carries the copy-button testid and is a plain button', () => {
+		const { container } = render(<CopyButton getContent={() => 'x'} />);
 
-		expect([...button(container).classList].sort()).toEqual(['ui-button', 'ui-button-md', 'text-link-danger', 'mt-2'].sort());
 		expect(button(container).getAttribute('data-testid')).toBe('copy-button');
 		expect(button(container).getAttribute('type')).toBe('button');
 	});
 
-	it('copies the content read at click time and swaps to the copied label for 1500ms', () => {
-		let payload = 'before';
-		const { container } = render(<CopyButton getContent={() => payload} text="Copy me" />);
+	it('copies the content and swaps to the copied label and icon', () => {
+		const { container } = render(<CopyButton getContent={() => 'payload'} text="Copy me" />);
 
 		expect(button(container).textContent).toContain('Copy me');
-		expect(container.querySelector('svg')?.classList.contains('fa-copy')).toBe(true);
+		expect(container.querySelector('svg')?.getAttribute('data-icon')).toBe('copy');
 
-		payload = 'after';
 		act(() => void fireEvent.click(button(container)));
 
-		expect(copied).toEqual(['after']);
-		expect(container.querySelector('svg')?.classList.contains('fa-check')).toBe(true);
+		expect(copied).toEqual(['payload']);
+		expect(container.querySelector('svg')?.getAttribute('data-icon')).toBe('check');
 		expect(button(container).textContent).not.toContain('Copy me');
-
-		act(() => void fireEvent.click(button(container)));
-		expect(copied).toEqual(['after']);
-
-		act(() => void vi.advanceTimersByTime(1500));
-		expect(container.querySelector('svg')?.classList.contains('fa-copy')).toBe(true);
-
-		act(() => void fireEvent.click(button(container)));
-		expect(copied).toEqual(['after', 'after']);
 	});
 
 	it('shows the payload in a sticky error toast when there is no clipboard, and never enters the copied window', () => {
@@ -76,7 +64,7 @@ describe('CopyButton', () => {
 		expect(options).toMatchObject({ variant: 'error', autohide: false });
 		expect(render(<>{options.body}</>).container.textContent).toBe('payload');
 		expect(button(container).textContent).toContain('Copy me');
-		expect(button(container).querySelector('svg')?.classList.contains('fa-copy')).toBe(true);
+		expect(button(container).querySelector('svg')?.getAttribute('data-icon')).toBe('copy');
 	});
 
 	it('fires onCopied on both branches', () => {

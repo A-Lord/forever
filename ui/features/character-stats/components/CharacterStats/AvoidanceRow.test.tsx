@@ -29,8 +29,8 @@ describe('AvoidanceRow', () => {
 			'sidebar.character_stats.tank_caps.crush',
 			'sidebar.character_stats.tank_caps.shear',
 		]);
-		expect(rows[4].className).toContain('text-success');
-		expect(rows[5].className).toContain('text-danger');
+		expect(rows[4].dataset.cap).toBe('met');
+		expect(rows[5].dataset.cap).toBe('missed');
 	});
 
 	it('drops parry and block for a class without them, and suffixes block-derived figures with Holy Shield', async () => {

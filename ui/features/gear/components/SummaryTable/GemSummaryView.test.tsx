@@ -1,9 +1,7 @@
 import { ItemQuality } from '@generated/proto/common';
-import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
 import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { itemQualityClassName } from '@ui-kit/utils/css';
 import { describe, expect, it, vi } from 'vitest';
 
 import { GemSummaryView } from './GemSummaryView';
@@ -14,9 +12,8 @@ const ROWS = [
 ];
 
 describe('GemSummaryView', () => {
-	it('titles the table and lists each gem with its count', () => {
+	it('lists each gem with its count', () => {
 		render(<GemSummaryView rows={ROWS} onReset={vi.fn()} />);
-		expect(screen.getByText(i18n.t('gear_tab.gem_summary.title'))).toBeTruthy();
 		expect(screen.getAllByTestId('summary-table-row').map(row => row.textContent)).toEqual(['Blood Ruby3', 'Citrine1']);
 	});
 
@@ -24,7 +21,7 @@ describe('GemSummaryView', () => {
 		render(<GemSummaryView rows={ROWS} onReset={vi.fn()} />);
 		const links = screen.getAllByRole('link');
 		expect(links.map(link => link.getAttribute('href'))).toEqual([ActionId.makeItemUrl(1), ActionId.makeItemUrl(2)]);
-		expect(links[1].classList).toContain(itemQualityClassName(ItemQuality.ItemQualityUncommon));
+		expect(links[1].dataset.quality).toBe(String(ItemQuality.ItemQualityUncommon));
 		expect(screen.getAllByTestId('gem-icon').map(icon => icon.getAttribute('src'))).toEqual(['ruby.jpg', null]);
 	});
 

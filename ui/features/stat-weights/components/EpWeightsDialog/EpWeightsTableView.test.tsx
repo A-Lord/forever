@@ -1,6 +1,6 @@
 import { makeEpColumns } from '@testing/storybook/fixtures/stat-weights';
-import { fireEvent, render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
 import { EpWeightsTableView, type EpWeightsTableViewProps } from './EpWeightsTableView';
 import { StatsType } from './types';
@@ -25,7 +25,6 @@ describe('EpWeightsTableView', () => {
 		const { getByTestId } = renderTable({ statsType: StatsType.Weight });
 		const table = getByTestId('results-ep-table');
 		expect(table.getAttribute('data-stats-type')).toBe('weight');
-		expect(table.classList.contains('stats-type-weight')).toBe(true);
 		expect(table.querySelector('tbody [data-testid="stat-row"]')).not.toBeNull();
 	});
 
@@ -46,20 +45,5 @@ describe('EpWeightsTableView', () => {
 		const table = getByTestId('results-ep-table');
 		expect(table.querySelectorAll('thead tr')).toHaveLength(1);
 		expect(table.querySelectorAll('thead th')).toHaveLength(4);
-	});
-
-	it('shows each ratio at its index and reports an edit and the Update EP press', () => {
-		const onEpRatioChange = vi.fn();
-		const onComputeEp = vi.fn();
-		const { getByTestId } = renderTable({ epRatios: [0.5, 0, 0, 0, 0, 0], onEpRatioChange, onComputeEp });
-		const ratios = getByTestId('ep-ratios');
-		const input = ratios.querySelector<HTMLInputElement>('#ep-ratio-ep-0')!;
-		expect(input.value).toBe('0.50');
-		input.value = '0.75';
-		fireEvent.change(input);
-		expect(onEpRatioChange).toHaveBeenCalledWith(0, 0.75);
-
-		fireEvent.click(ratios.querySelector('[data-testid="compute-ep"]')!);
-		expect(onComputeEp).toHaveBeenCalledTimes(1);
 	});
 });

@@ -1,7 +1,34 @@
+import '@i18n/config';
+
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+
+import { LocaleHtml } from './LocaleHtml';
+
+const html = (markup: string) => render(<LocaleHtml html={markup} />).container.innerHTML;
+
+describe('LocaleHtml', () => {
+	it.each([
+		['a locale tag as a real element carrying its own attributes', '<span className="bold">Batch</span> plain', '<span class="bold">Batch</span> plain'],
+		[
+			'void and repeated tags apart',
+			'<span className="bold">a</span><br /><span className="text-brand">b</span>',
+			'<span class="bold">a</span><br><span class="text-brand">b</span>',
+		],
+		[
+			'anchors with href and target',
+			'<a href="https://raidbots.com" target="_blank" rel="noopener noreferrer">R</a>',
+			'<a href="https://raidbots.com" target="_blank" rel="noopener noreferrer">R</a>',
+		],
+		['nested block markup', '<p>one</p><ul><li>two</li></ul>', '<p>one</p><ul><li>two</li></ul>'],
+		['a separator-bearing sentence intact', 'Stats: haste. Then <span className="bold">more</span>', 'Stats: haste. Then <span class="bold">more</span>'],
+	])('renders %s', (_, markup, expected) => {
+		expect(html(markup)).toBe(expected);
+	});
+});
 
 const LOCALES = join(process.cwd(), 'assets/locales');
 const HTML_TAG = /<[a-zA-Z/][^>]*>/;

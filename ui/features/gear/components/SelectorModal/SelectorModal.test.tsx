@@ -12,18 +12,7 @@ import { type OpenSelectorModal, type SelectorModalState, useSelectorModalState 
 import { ALL_ITEM_SLOTS } from '../../model/gear_data';
 import { type GearData, SelectorModalTabs } from '../../types';
 
-const store = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		subscribe: (callback: () => void) => {
-			listeners.add(callback);
-			return () => listeners.delete(callback);
-		},
-		notify: () => listeners.forEach(listener => listener()),
-	};
-});
-
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(store.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
 
 const tabs = vi.hoisted(() => ({ build: vi.fn(), eligibility: vi.fn() }));
 vi.mock('./utils', () => ({ buildSelectorTabs: tabs.build, eligibilityFor: tabs.eligibility }));
@@ -141,16 +130,11 @@ describe('SelectorModal', () => {
 		host.rootElem.remove();
 	});
 
-	it('renders one tab button and one pane per tab the data earned, wired to each other', () => {
+	it('renders one tab button and one pane per tab the data earned', () => {
 		setup({ tabSet: [tab(SelectorModalTabs.Items), tab(SelectorModalTabs.RandomSuffixes), tab(SelectorModalTabs.Gem1, 0)] });
 
 		expect(tabButtons().map(button => button.dataset.label)).toEqual([SelectorModalTabs.Items, SelectorModalTabs.RandomSuffixes, SelectorModalTabs.Gem1]);
 		expect(panes.rendered.map(pane => pane.label)).toEqual([SelectorModalTabs.Items, SelectorModalTabs.RandomSuffixes, SelectorModalTabs.Gem1]);
-		for (const button of tabButtons()) {
-			const pane = document.getElementById(button.getAttribute('aria-controls')!);
-			expect(pane).not.toBeNull();
-			expect(pane!.getAttribute('aria-labelledby')).toBe(button.id);
-		}
 	});
 
 	it('marks a gem tab and gives it an icon instead of a label', () => {

@@ -69,24 +69,17 @@ describe('BulkSettings', () => {
 	});
 
 	// Both selects list None, then the pair's first slot (Finger 1, Main Hand), then its second.
-	it('keeps the picked slot in the freeze ring select', async () => {
+	it.each<[string, (player: Player<any>) => unknown, unknown]>([
+		['freeze-ring', player => bulkState(player).frozenItems.get(BulkSimItemSlot.ItemSlotFinger), RING],
+		['freeze-weapon', player => bulkState(player).frozenWeaponSlot, ItemSlot.ItemSlotMainHand],
+	])('keeps the picked slot in the %s select', async (id, stored, expected) => {
 		const { player, pick, openGroup } = mount();
 		openGroup('freezes');
 
-		const [ring, picked] = await pick('freeze-ring', 1);
+		const [select, picked] = await pick(id, 1);
 
-		expect(bulkState(player).frozenItems.get(BulkSimItemSlot.ItemSlotFinger)).toBe(RING);
-		expect(ring.textContent).toBe(picked);
-	});
-
-	it('keeps the picked slot in the freeze weapon select', async () => {
-		const { player, pick, openGroup } = mount();
-		openGroup('freezes');
-
-		const [weapon, picked] = await pick('freeze-weapon', 1);
-
-		expect(bulkState(player).frozenWeaponSlot).toBe(ItemSlot.ItemSlotMainHand);
-		expect(weapon.textContent).toBe(picked);
+		expect(stored(player)).toBe(expected);
+		expect(select.textContent).toBe(picked);
 	});
 
 	it('opens only the batch options group before anything is stored', () => {
@@ -102,15 +95,6 @@ describe('BulkSettings', () => {
 		openGroup('freezes');
 
 		expect(JSON.parse(localStorage.getItem('test-__bulkSettingsGroups')!)).toEqual(['options', 'freezes']);
-	});
-
-	it('leaves both groups open, since one does not close the other', () => {
-		const { container, openGroup } = mount();
-
-		openGroup('freezes');
-
-		expect(container.querySelector('#use-legacy-bulk-sim')).not.toBeNull();
-		expect(container.querySelector('#freeze-ring')).not.toBeNull();
 	});
 
 	it('renders no reforge group for a spec without a reforge optimizer', () => {

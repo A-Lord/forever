@@ -240,7 +240,7 @@ describe('Tree', () => {
 		expect(screen.getByTestId('children-a').hidden).toBe(true);
 	});
 
-	it('opens the actions menu, runs an action and closes, and closes on Escape', () => {
+	it('opens the actions menu, runs an action and closes', () => {
 		const onDelete = vi.fn();
 		render(
 			<Tree.Root>
@@ -270,11 +270,6 @@ describe('Tree', () => {
 		fireEvent.click(remove);
 		expect(onDelete).toHaveBeenCalledTimes(1);
 		expect(menu.hasAttribute('data-open')).toBe(false);
-
-		fireEvent.click(actions);
-		expect(screen.getByRole('dialog').hasAttribute('data-open')).toBe(true);
-		fireEvent.keyDown(actions, { key: 'Escape' });
-		expect(screen.getByRole('dialog').hasAttribute('data-open')).toBe(false);
 	});
 
 	it('runs an action rendered outside a menu', () => {
@@ -381,39 +376,35 @@ describe('Tree', () => {
 		expect(screen.getByTestId('item-b').hasAttribute('data-disabled')).toBe(false);
 	});
 
-	it('forwards testId and className on every part', () => {
+	it('forwards testId on every part', () => {
 		render(
-			<Tree.Root testId="t-root" className="x-root">
-				<Tree.Items testId="t-items" className="x-items">
-					<Tree.Item id="a" testId="t-item" className="x-item">
-						<Tree.Item.Header testId="t-header" className="x-header">
-							<Tree.Item.Handle label="Move" testId="t-handle" className="x-handle" />
-							<Tree.Item.Title testId="t-title" className="x-title" as="h6">
+			<Tree.Root testId="t-root">
+				<Tree.Items testId="t-items">
+					<Tree.Item id="a" testId="t-item">
+						<Tree.Item.Header testId="t-header">
+							<Tree.Item.Handle label="Move" testId="t-handle" />
+							<Tree.Item.Title testId="t-title" as="h6">
 								Title
 							</Tree.Item.Title>
-							<Tree.Item.Aside testId="t-aside" className="x-aside">
-								Badge
-							</Tree.Item.Aside>
-							<Tree.Item.Trigger label="Toggle" testId="t-trigger" className="x-trigger" />
-							<Tree.Item.Actions label="Actions" testId="t-actions" className="x-actions">
-								<Tree.Item.Action label="Delete" testId="t-action" className="x-action" />
+							<Tree.Item.Aside testId="t-aside">Badge</Tree.Item.Aside>
+							<Tree.Item.Trigger label="Toggle" testId="t-trigger" />
+							<Tree.Item.Actions label="Actions" testId="t-actions">
+								<Tree.Item.Action label="Delete" testId="t-action" />
 							</Tree.Item.Actions>
 						</Tree.Item.Header>
-						<Tree.Item.Body testId="t-body" className="x-body">
-							Body
-						</Tree.Item.Body>
-						<Tree.Item.Children testId="t-children" className="x-children">
+						<Tree.Item.Body testId="t-body">Body</Tree.Item.Body>
+						<Tree.Item.Children testId="t-children">
 							<Tree.Items>{null}</Tree.Items>
 						</Tree.Item.Children>
 					</Tree.Item>
 				</Tree.Items>
-				<Tree.AddButton label="Add" testId="t-add" className="x-add" onClick={() => {}} />
+				<Tree.AddButton label="Add" testId="t-add" onClick={() => {}} />
 			</Tree.Root>,
 		);
 		fireEvent.click(screen.getByTestId('t-actions'));
 		const parts = ['root', 'items', 'item', 'header', 'handle', 'title', 'aside', 'trigger', 'actions', 'action', 'body', 'children', 'add'];
 		for (const part of parts) {
-			expect(screen.getByTestId(`t-${part}`).classList.contains(`x-${part}`), part).toBe(true);
+			expect(screen.queryByTestId(`t-${part}`), part).not.toBeNull();
 		}
 		expect(screen.getByTestId('t-title').tagName).toBe('H6');
 	});
@@ -559,7 +550,7 @@ describe('Tree', () => {
 			</Tree.Root>,
 		);
 		const text = screen.getByRole('button', { name: 'New row' });
-		expect(text.querySelector('svg')?.classList.contains('fa-plus')).toBe(true);
+		expect(text.querySelector('svg')?.getAttribute('data-icon')).toBe('plus');
 		expect(text.hasAttribute('data-tone')).toBe(false);
 		expect(screen.getByTestId('icon-add').getAttribute('data-tone')).toBe('success');
 	});

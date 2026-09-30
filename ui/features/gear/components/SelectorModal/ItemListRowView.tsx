@@ -48,7 +48,10 @@ export const ItemListRowView = ({
 		<div className="flex flex-1 items-center gap-1" data-testid="selector-modal-list-label-cell" data-active={active ? '' : undefined}>
 			<WowheadAnchor className="ui-selector-modal-list-item-link" testId="selector-modal-list-item-link" href={href || undefined} onActivate={onEquip}>
 				<img className="ui-selector-modal-list-item-icon" data-testid="selector-modal-list-item-icon" src={iconUrl || undefined} alt="" />
-				<span className={clsx('ui-selector-modal-list-item-name', itemQualityClassName(quality))} data-testid="selector-modal-list-item-name">
+				<span
+					className={clsx('ui-selector-modal-list-item-name', itemQualityClassName(quality))}
+					data-testid="selector-modal-list-item-name"
+					data-quality={quality}>
 					{name}
 					{!!nameDescription && <NameDescriptionLabel nameDescription={nameDescription} />}
 				</span>

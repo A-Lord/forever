@@ -27,6 +27,7 @@ export const ResultsFilter = ({ target, onTargetChange }: ResultsFilterProps) =>
 				options={options}
 				value={target}
 				onChange={onTargetChange}
+				disabled={!resultData}
 				variant="link"
 				placeholder="Unit"
 			/>

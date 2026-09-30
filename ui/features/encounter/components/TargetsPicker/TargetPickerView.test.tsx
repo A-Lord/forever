@@ -4,12 +4,10 @@ import { describe, expect, it } from 'vitest';
 import { TargetPickerView } from './TargetPickerView';
 
 describe('TargetPickerView', () => {
-	it('lays the identity, stat and threat fields out as three sections of one field', () => {
-		const { getByTestId, getAllByTestId, queryByTestId } = render(
+	it('lays the identity, stat and threat fields out as three sections', () => {
+		const { getAllByTestId, queryByTestId } = render(
 			<TargetPickerView identity={<span>npc</span>} stats={<span>armor</span>} threat={<span>swing speed</span>} />,
 		);
-		const root = getByTestId('target-picker-root');
-		expect(root.classList.contains('ui-field')).toBe(true);
 		expect(getAllByTestId('target-picker-section').map(section => section.textContent)).toEqual(['npc', 'armor', 'swing speed']);
 		expect(queryByTestId('target-picker-section-placeholder')).toBeNull();
 	});

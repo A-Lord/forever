@@ -16,7 +16,7 @@ const mount = (props: Parameters<typeof Table>[0] = {}) =>
 				</TableRow>
 			</thead>
 			<tbody>
-				<TableRow className="extra-row" testId="body-row">
+				<TableRow>
 					<TableCell testId="body-cell">Fireball</TableCell>
 					<TableCell>1200</TableCell>
 				</TableRow>
@@ -27,39 +27,26 @@ const mount = (props: Parameters<typeof Table>[0] = {}) =>
 		</Table>,
 	);
 
+const FLAGS = ['striped', 'hover', 'dense', 'flush'] as const;
+
 describe('Table', () => {
-	it('renders a table of kit rows and cells, each with its class', () => {
+	it('renders a table of kit rows and cells', () => {
 		mount();
 
-		const table = screen.getByTestId('table');
-		expect(table.tagName).toBe('TABLE');
-		expect(table.classList.contains('ui-table')).toBe(true);
+		expect(screen.getByTestId('table').tagName).toBe('TABLE');
 		expect(screen.getByTestId('header-row').tagName).toBe('TR');
-		expect(screen.getByTestId('header-row').classList.contains('ui-table-row')).toBe(true);
 		expect(screen.getByTestId('header-cell').tagName).toBe('TH');
-		expect(screen.getByTestId('header-cell').classList.contains('ui-table-header-cell')).toBe(true);
 		expect(screen.getByTestId('body-cell').tagName).toBe('TD');
-		expect(screen.getByTestId('body-cell').classList.contains('ui-table-cell')).toBe(true);
 	});
 
-	it('marks no variant by default', () => {
-		mount();
-
-		const table = screen.getByTestId('table');
-		expect(table.hasAttribute('data-striped')).toBe(false);
-		expect(table.hasAttribute('data-hover')).toBe(false);
-		expect(table.hasAttribute('data-dense')).toBe(false);
-		expect(table.hasAttribute('data-flush')).toBe(false);
-	});
-
-	it('marks each variant it is given as a data attribute', () => {
-		mount({ striped: true, hover: true, dense: true, flush: true, testId: 'dps-table' });
+	it.each([
+		['no variant by default', {}, null],
+		['each variant it is given as a data attribute', { striped: true, hover: true, dense: true, flush: true }, ''],
+	])('marks %s', (_, props, expected) => {
+		mount({ ...props, testId: 'dps-table' });
 
 		const table = screen.getByTestId('dps-table');
-		expect(table.getAttribute('data-striped')).toBe('');
-		expect(table.getAttribute('data-hover')).toBe('');
-		expect(table.getAttribute('data-dense')).toBe('');
-		expect(table.getAttribute('data-flush')).toBe('');
+		for (const flag of FLAGS) expect(table.getAttribute(`data-${flag}`)).toBe(expected);
 	});
 
 	it('marks solid striping apart from the shaded kind', () => {
@@ -67,13 +54,10 @@ describe('Table', () => {
 		expect(screen.getByTestId('table').getAttribute('data-striped')).toBe('solid');
 	});
 
-	it('adds the caller class to its own and passes other attributes through', () => {
-		mount({ className: 'extra-table', 'aria-label': 'Damage' });
+	it('passes other attributes through', () => {
+		mount({ 'aria-label': 'Damage' });
 
-		const table = screen.getByTestId('table');
-		expect(table.className.split(' ')).toEqual(['ui-table', 'extra-table']);
-		expect(table.getAttribute('aria-label')).toBe('Damage');
-		expect(screen.getByTestId('body-row').className.split(' ')).toEqual(['ui-table-row', 'extra-row']);
+		expect(screen.getByTestId('table').getAttribute('aria-label')).toBe('Damage');
 		expect(screen.getByText('Total').getAttribute('colspan')).toBe('2');
 	});
 

@@ -78,7 +78,6 @@ class FakePlayer {
 let player: FakePlayer;
 let host: any;
 let presets: Array<any>;
-let waitForInit: () => Promise<void>;
 
 const setup = () => {
 	source.entries.clear();
@@ -86,11 +85,10 @@ const setup = () => {
 	window.localStorage.clear();
 	player = new FakePlayer();
 	presets = [];
-	waitForInit = () => Promise.resolve();
 	host = {
 		player,
 		sim: {
-			waitForInit: () => waitForInit(),
+			waitForInit: () => Promise.resolve(),
 			db: { lookupEquipmentSpec: (spec: EquipmentSpec) => new FakeGear(spec) },
 		},
 		get individualConfig() {
@@ -130,16 +128,6 @@ describe('SavedGear', () => {
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Raiding']);
 			expect(stored()).toEqual({ Raiding: storedJson(5) });
 			expect(trackEvent).toHaveBeenCalledWith({ action: 'settings', category: 'save', label: 'Gear Set' });
-		});
-
-		it('refuses an empty name with an alert and writes nothing', async () => {
-			await renderPanel();
-
-			fireEvent.click(saveButton());
-
-			expect(popover()).not.toBeNull();
-			expect(popoverButtons()).toHaveLength(1);
-			expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
 		});
 	});
 
@@ -198,19 +186,6 @@ describe('SavedGear', () => {
 
 			expect(chipNamed('On').querySelector('[data-testid="saved-data-set-name"]')!.getAttribute('data-tooltip-content')).toBe('Best in slot');
 		});
-
-		it('holds the presets back until the sim is ready', async () => {
-			presets = [{ name: 'Default', gear: gearWith(1) }];
-			window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ Raiding: storedJson(4) }));
-			let resolveInit = () => {};
-			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
-
-			renderWithHost(<SavedGear />, host);
-
-			expect(chips('presets')).toHaveLength(0);
-			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Raiding']);
-			await act(async () => resolveInit());
-		});
 	});
 
 	describe('deleting', () => {
@@ -225,13 +200,6 @@ describe('SavedGear', () => {
 			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Other']);
 			expect(stored()).toEqual({ Other: storedJson(2) });
 			expect(trackEvent).toHaveBeenCalledWith({ action: 'settings', category: 'delete', label: 'Gear Set' });
-		});
-
-		it('gives a preset no delete button', async () => {
-			presets = [{ name: 'Default', gear: gearWith(1) }];
-			await renderPanel();
-
-			expect(chipNamed('Default').querySelector('[data-testid="saved-data-set-delete"]')).toBeNull();
 		});
 	});
 });

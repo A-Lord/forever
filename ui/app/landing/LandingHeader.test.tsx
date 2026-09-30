@@ -8,15 +8,16 @@ describe('LandingHeader', () => {
 	it('opens and closes the collapsed navigation from its togglers', () => {
 		render(<LandingHeader />);
 		const [open, close] = screen.getAllByTestId('navbar-toggler');
-		const collapse = document.getElementById(open.getAttribute('aria-controls')!)!;
-		expect(collapse.classList.contains('hidden')).toBe(true);
+		expect(open.getAttribute('aria-expanded')).toBe('false');
+		expect(close.getAttribute('aria-expanded')).toBe('false');
 
 		fireEvent.click(open);
-		expect(collapse.classList.contains('hidden')).toBe(false);
+		expect(open.getAttribute('aria-expanded')).toBe('true');
 		expect(close.getAttribute('aria-expanded')).toBe('true');
 
 		fireEvent.click(close);
-		expect(collapse.classList.contains('hidden')).toBe(true);
+		expect(open.getAttribute('aria-expanded')).toBe('false');
+		expect(close.getAttribute('aria-expanded')).toBe('false');
 	});
 
 	it('opens every external nav link in a new tab with no opener', () => {

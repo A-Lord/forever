@@ -9,18 +9,8 @@ import { act, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@features/gear/components/ItemCell', () => ({
-	ItemDetailCell: ({
-		className,
-		rootDataAttributes,
-		action,
-		testId,
-	}: {
-		className?: unknown;
-		rootDataAttributes?: Record<string, string>;
-		action?: unknown;
-		testId?: string;
-	}) => (
-		<div data-testid={testId} className={String(className)} {...rootDataAttributes}>
+	ItemDetailCell: ({ rootDataAttributes, action, testId }: { rootDataAttributes?: Record<string, string>; action?: unknown; testId?: string }) => (
+		<div data-testid={testId} {...rootDataAttributes}>
 			{action as never}
 		</div>
 	),
@@ -89,7 +79,6 @@ const mount = () => {
 		cell,
 		view: () => ({
 			equipped: cell().hasAttribute('data-equipped'),
-			border: cell().className.includes('border-brand') ? 'brand' : 'plain',
 			removable: !!cell().querySelector('[data-testid="item-picker-actions-btn"]'),
 		}),
 	};
@@ -149,7 +138,7 @@ describe('BulkItemPicker when the batch entry is swapped for an item the player 
 	it('seeds one editable cell for the batched ring', () => {
 		const h = mount();
 		expect(bulkState(h.player).pickerGroups.get(BulkSimItemSlot.ItemSlotFinger)).toEqual([{ index: 0, item: BATCHED }]);
-		expect(h.view()).toEqual({ equipped: false, border: 'plain', removable: true });
+		expect(h.view()).toEqual({ equipped: false, removable: true });
 	});
 
 	it('replaces the entry item in the store while keeping the same mounted instance', () => {
@@ -162,21 +151,14 @@ describe('BulkItemPicker when the batch entry is swapped for an item the player 
 		expect(h.cell()).toBe(before);
 	});
 
-	it('marks the cell as equipped and non-removable in the commit that brings the worn item', () => {
+	it('marks the cell as equipped and non-removable in the commit that brings the worn item, and keeps it on the next unrelated bulk notification', () => {
 		const h = mount();
 
 		act(() => createBulkGearData(h.player, BulkSimItemSlot.ItemSlotFinger, 0).equipItem(WORN));
+		expect(h.view()).toEqual({ equipped: true, removable: false });
 
-		expect(h.view()).toEqual({ equipped: true, border: 'brand', removable: false });
-	});
-
-	it('catches up on the next unrelated bulk notification, showing the value is one behind rather than lost', () => {
-		const h = mount();
-
-		act(() => createBulkGearData(h.player, BulkSimItemSlot.ItemSlotFinger, 0).equipItem(WORN));
 		act(() => patchBulkState(h.player, {}, ['items']));
-
-		expect(h.view()).toEqual({ equipped: true, border: 'brand', removable: false });
+		expect(h.view()).toEqual({ equipped: true, removable: false });
 	});
 });
 
@@ -197,20 +179,13 @@ describe('BulkItemPicker on the frozen main-hand cell when the player swaps that
 		expect(h.cell()).toBe(before);
 	});
 
-	it('keeps the frozen slot marked frozen in the commit that brings the new weapon', () => {
+	it('keeps the frozen slot marked frozen in the commit that brings the new weapon, and on the next unrelated bulk notification', () => {
 		const h = mountFrozenWeapon();
 
 		h.swapWeapon();
-
 		expect(h.frozen()).toBe(true);
-	});
 
-	it('restores the frozen marking on the next unrelated bulk notification', () => {
-		const h = mountFrozenWeapon();
-
-		h.swapWeapon();
 		act(() => patchBulkState(h.player, {}, ['items']));
-
 		expect(h.frozen()).toBe(true);
 	});
 });

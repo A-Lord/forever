@@ -39,6 +39,11 @@ describe('StatRowView', () => {
 		expect(container.querySelector('[data-testid="bonus-slot"]')).not.toBeNull();
 	});
 
+	it('colours the value by the bonus on its stat', () => {
+		const { container } = renderRow({ bonusStats: new Stats().withStat(Stat.StatStrength, 10) });
+		expect(container.querySelector('[data-tone]')!.getAttribute('data-tone')).toBe('positive');
+	});
+
 	it('shows a skeleton and no value while the stats are pending', () => {
 		const { container } = renderRow({ pending: true });
 		expect(links(container)).toEqual([]);
@@ -65,11 +70,6 @@ describe('StatRowView', () => {
 			</Table>,
 		);
 		expect(links(container)).toEqual(['8.00%', '7.00%']);
-	});
-
-	it('colours the value by the bonus on its stat', () => {
-		const { container } = renderRow({ bonusStats: new Stats().withStat(Stat.StatStrength, 10) });
-		expect(container.querySelector('[data-testid="stat-value-link"]')!.className).toContain('text-success');
 	});
 
 	it("adds the effective weapon speed to a hunter's ranged haste breakdown", async () => {

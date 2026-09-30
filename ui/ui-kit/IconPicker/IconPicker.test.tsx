@@ -62,19 +62,16 @@ describe('IconPicker', () => {
 	});
 
 	it('renders a bare swatch without a label: the anchor is all there is', () => {
-		const { container } = mount({ className: 'extra' });
+		const { container } = mount();
 		expect(Array.from(container.children)).toEqual([mainAnchor()]);
 		expect(mainAnchor().tagName).toBe('A');
-		expect(mainAnchor().classList.contains('extra')).toBe(true);
 		expect(screen.queryByTestId('form-label')).toBeNull();
 	});
 
 	it('lays a labelled swatch out in an icon field, the swatch first', () => {
-		const { container } = mount({ id: 'buff-icon', label: 'Buff', className: 'extra' });
+		const { container } = mount({ id: 'buff-icon', label: 'Buff' });
 		const field = container.firstElementChild as HTMLElement;
 		expect(field.getAttribute('data-layout')).toBe('icon');
-		expect(field.classList.contains('extra')).toBe(true);
-		expect(mainAnchor().classList.contains('extra')).toBe(false);
 		expect(field.firstElementChild).toBe(mainAnchor());
 		expect(within(field).getByTestId('form-label').textContent).toBe('Buff');
 	});
@@ -103,10 +100,9 @@ describe('IconPicker', () => {
 	});
 
 	it('sits in an icon field for a layout alone, with no label', () => {
-		const { container } = mount({ layout: 'inline', className: 'extra' });
+		const { container } = mount({ layout: 'inline' });
 		const field = container.firstElementChild as HTMLElement;
 		expect(field.getAttribute('data-layout')).toBe('icon');
-		expect(field.classList.contains('extra')).toBe(true);
 		expect(field.firstElementChild).toBe(mainAnchor());
 		expect(screen.queryByTestId('form-label')).toBeNull();
 	});
@@ -114,12 +110,6 @@ describe('IconPicker', () => {
 	it('takes a testId for its swatch', () => {
 		mount({ testId: 'custom-root', label: 'Buff' });
 		expect(screen.getByTestId('custom-root').tagName).toBe('A');
-	});
-
-	it('puts no box around a two-state swatch', () => {
-		const { container } = mount({ label: 'Buff' });
-		expect(mainAnchor().parentElement).toBe(container.firstElementChild);
-		expect(container.firstElementChild!.querySelectorAll('div')).toHaveLength(0);
 	});
 
 	it('grows the anchor count as each improved anchor mounts once its own states gate is met', () => {
@@ -140,15 +130,15 @@ describe('IconPicker', () => {
 		expect(improved.style.backgroundImage).toContain('improved.jpg');
 	});
 
-	it('shows no counter at states 3 without an improved icon, and no box without a badge', () => {
-		const { container } = mount({ states: 3, initial: 2 });
-		expect(mainAnchor().textContent).toBe('');
-		expect(Array.from(container.children)).toEqual([mainAnchor()]);
-	});
-
-	it('writes the counter inside the swatch at states 4 without an improved icon', () => {
-		mount({ states: 4, initial: 3 });
-		expect(mainAnchor().textContent).toBe('3');
+	it.each([
+		['', 2, 1],
+		['', 3, 1],
+		['', 3, 2],
+		['3', 4, 3],
+		['1', 0, 1],
+	])('shows counter %j for states %i at value %i, without an improved icon', (counter, states, initial) => {
+		mount({ states, initial });
+		expect(mainAnchor().textContent).toBe(counter);
 	});
 
 	it('left-clicks to the next state and rolls over to 0 at the top', () => {
@@ -192,14 +182,12 @@ describe('IconPicker', () => {
 		expect(fireEvent.contextMenu(mainAnchor())).toBe(false);
 	});
 
-	it('marks the main anchor active once the value is above zero', () => {
-		mount({ states: 3, initial: 1 });
-		expect(mainAnchor().hasAttribute('data-active')).toBe(true);
-	});
-
-	it('does not mark the main anchor active at zero', () => {
-		mount({ states: 3 });
-		expect(mainAnchor().hasAttribute('data-active')).toBe(false);
+	it.each([
+		[1, true],
+		[0, false],
+	])('marks the main anchor active only above zero: value %i is %s', (initial, active) => {
+		mount({ states: 3, initial });
+		expect(mainAnchor().hasAttribute('data-active')).toBe(active);
 	});
 
 	// A quadstate icon carries two proto fields, and the second badge is the only affordance that a
@@ -257,17 +245,6 @@ describe('IconPicker', () => {
 		expect(allAnchors()[1].hidden).toBe(false);
 	});
 
-	it('writes no counter at states 2 and at states 3, and one at states 0', () => {
-		const { rerender } = render(<IconPicker states={2} icon={buffIcon} value={1} onChange={() => {}} />);
-		expect(mainAnchor().textContent).toBe('');
-
-		rerender(<IconPicker states={3} icon={buffIcon} value={1} onChange={() => {}} />);
-		expect(mainAnchor().textContent).toBe('');
-
-		rerender(<IconPicker states={0} icon={buffIcon} value={1} onChange={() => {}} />);
-		expect(mainAnchor().textContent).toBe('1');
-	});
-
 	// Dimming a swatch does not stop pointer events.
 	it('changes nothing on a left or right click while disabled', () => {
 		const { onChange } = mount({ states: 3, initial: 1, disabled: true });
@@ -302,15 +279,12 @@ describe('IconPicker', () => {
 		expect(document.querySelectorAll('a a')).toHaveLength(0);
 	});
 
-	it('keeps the box inside a labelled field, and the class on the field', () => {
-		const { container } = mount({ states: 3, improvedIcon, label: 'Mark', className: 'extra' });
+	it('keeps the box inside a labelled field', () => {
+		const { container } = mount({ states: 3, improvedIcon, label: 'Mark' });
 		const field = container.firstElementChild as HTMLElement;
-		const box = mainAnchor().parentElement!;
 
 		expect(field.getAttribute('data-layout')).toBe('icon');
-		expect(field.classList.contains('extra')).toBe(true);
-		expect(box.parentElement).toBe(field);
-		expect(box.classList.contains('extra')).toBe(false);
+		expect(mainAnchor().parentElement!.parentElement).toBe(field);
 	});
 
 	// The improved icons are anchors of their own, so without the handlers a click on one would follow its wowhead link and leave the value alone.

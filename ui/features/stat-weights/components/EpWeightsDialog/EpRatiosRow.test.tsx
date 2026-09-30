@@ -6,8 +6,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { EpRatiosRow } from './EpRatiosRow';
 
 describe('EpRatiosRow', () => {
-	it('gives each metric column a ratio input at its index, and reports an edit to it', () => {
+	it('gives each metric column a ratio input at its index, and reports an edit to it and the Update EP press', () => {
 		const onEpRatioChange = vi.fn();
+		const onComputeEp = vi.fn();
 		const { getByTestId } = render(
 			<Table>
 				<thead>
@@ -15,7 +16,7 @@ describe('EpRatiosRow', () => {
 						columns={makeEpColumns({ damage: true, healing: true, threat: false })}
 						epRatios={[1, 0.5, 0, 0, 0, 0]}
 						onEpRatioChange={onEpRatioChange}
-						onComputeEp={() => {}}
+						onComputeEp={onComputeEp}
 						showThreatMetrics={false}
 					/>
 				</thead>
@@ -28,5 +29,8 @@ describe('EpRatiosRow', () => {
 		inputs[3].value = '2';
 		fireEvent.change(inputs[3]);
 		expect(onEpRatioChange).toHaveBeenCalledWith(1, 2);
+
+		fireEvent.click(getByTestId('ep-ratios').querySelector('[data-testid="compute-ep"]')!);
+		expect(onComputeEp).toHaveBeenCalledTimes(1);
 	});
 });

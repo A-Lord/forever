@@ -1,6 +1,6 @@
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost, noopSubscribe } from '@sim/testing';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { noopSubscribe } from '@sim/testing';
+import { renderWithHost } from '@testing/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { ConnectedInput } from './ConnectedInput';
@@ -48,11 +48,7 @@ const configs = {
 } as unknown as Record<'number' | 'boolean' | 'enum', ConnectedInputConfig<any>>;
 
 const mount = (config: ConnectedInputConfig<any>, inline?: boolean) =>
-	render(
-		<SimHostProvider host={fakeHost({ player })}>
-			<ConnectedInput config={config} inline={inline} />
-		</SimHostProvider>,
-	).container.firstElementChild!;
+	renderWithHost(<ConnectedInput config={config} inline={inline} />, { player }).container.firstElementChild!;
 
 describe('ConnectedInput', () => {
 	it('renders a number input as a number picker bound to the player', () => {

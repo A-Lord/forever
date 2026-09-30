@@ -3,9 +3,9 @@ import { type EnumTable, resolveField } from '@features/apl/model/field_specs';
 import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import type { ChoiceFieldConfig } from '@features/inputs/configs';
 import type { InputConfig } from '@features/inputs/input';
+import { FakeSource } from '@features/inputs/testing';
 import { APLValueCompare_ComparisonOperator as ComparisonOperator } from '@generated/proto/apl';
 import type { Player } from '@sim/player/player';
-import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -14,18 +14,7 @@ import { EnumField } from './EnumField';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
-class Source {
-	private listeners = new Set<() => void>();
-	constructor(public value: number) {}
-	set(next: number) {
-		this.value = next;
-		this.listeners.forEach(listener => listener());
-	}
-	readonly subscribe: StoreSubscribe = listener => {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	};
-}
+type Source = FakeSource<number>;
 
 // The comparison operator field as the APL resolves it: a proto enum table with a default label.
 const spec = resolveField(comparisonOperatorFieldConfig('op'));
@@ -47,8 +36,8 @@ const settingsConfig: ChoiceFieldConfig<Source> = {
 };
 
 const mount = (value: number) => {
-	const apl = new Source(value);
-	const settings = new Source(value);
+	const apl = new FakeSource(value);
+	const settings = new FakeSource(value);
 	render(
 		<>
 			<EnumField player={apl as unknown as Player<any>} config={binding<InputConfig<Player<any>, number> & { id: string }>('apl-op')} table={table} />

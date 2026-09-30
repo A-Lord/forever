@@ -4,15 +4,14 @@ import { describe, expect, it } from 'vitest';
 import { ButtonGroup } from './ButtonGroup';
 
 describe('ButtonGroup', () => {
-	it('renders a group role carrying its own class and the caller classes', () => {
+	it('renders a group role around its children', () => {
 		render(
-			<ButtonGroup className="mt-2">
+			<ButtonGroup>
 				<button type="button">One</button>
 				<button type="button">Two</button>
 			</ButtonGroup>,
 		);
 		const group = screen.getByRole('group');
-		expect(Array.from(group.classList).sort()).toEqual(['mt-2', 'ui-button-group']);
 		expect(screen.getAllByRole('button').map(button => button.parentElement)).toEqual([group, group]);
 	});
 

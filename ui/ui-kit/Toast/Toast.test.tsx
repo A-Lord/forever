@@ -25,15 +25,14 @@ describe('Toast', () => {
 		expect(toast.getAttribute('aria-describedby')).toBe(within(toast).getByTestId('sim-toast-body').id);
 	});
 
-	it('takes the title and the caller class from the options', () => {
+	it('takes the title from the options', () => {
 		render(<ToastArea manager={toastManager} />);
 		act(() => {
-			toastManager.add({ variant: 'warning', body: 'Download it', title: 'Native sim', className: 'toast-notice-native-download' });
+			toastManager.add({ variant: 'warning', body: 'Download it', title: 'Native sim' });
 		});
 
 		const toast = within(standardViewport()).getByTestId('sim-toast');
 		expect(toast.getAttribute('data-variant')).toBe('warning');
-		expect(toast.classList.contains('toast-notice-native-download')).toBe(true);
 		expect(within(toast).getByTestId('sim-toast-title').textContent).toBe('Native sim');
 	});
 
@@ -150,12 +149,14 @@ describe('Toast', () => {
 			toastManager.add({ variant: 'error', body: 'boom' });
 		});
 
-		const icon = screen.getByRole('button', { name: 'Close' }).querySelector('svg')!;
-		expect(Array.from(icon.classList)).toEqual(['svg-inline--fa', 'fa-xmark', 'ui-icon', 'fa-lg', 'fa-width-auto']);
+		const close = screen.getByRole('button', { name: 'Close' }).querySelectorAll('svg');
+		expect(close).toHaveLength(1);
+		expect(close[0].getAttribute('data-icon')).toBe('xmark');
+		expect(close[0].getAttribute('data-size')).toBe('lg');
 		const icon2xl = within(standardViewport()).getByTestId('sim-toast-icon');
 		expect(icon2xl.getAttribute('data-prefix')).toBe('fas');
-		expect(icon2xl.classList.contains('fa-circle-exclamation')).toBe(true);
-		expect(icon2xl.classList.contains('fa-2xl')).toBe(true);
+		expect(icon2xl.getAttribute('data-icon')).toBe('circle-exclamation');
+		expect(icon2xl.getAttribute('data-size')).toBe('2xl');
 	});
 
 	// The negative half is the control: without it the positive half passes even if no timer ever runs.

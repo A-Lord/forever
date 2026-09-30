@@ -20,6 +20,7 @@ export const HidePicker = ({ player, config }: HidePickerProps) => {
 		<Field {...frameProps} className={['m-0 w-auto', frameProps.className]} testId="hide-picker-root" disabled={disabled}>
 			<HeaderButton
 				icon={value ? 'eye-slash' : 'eye'}
+				pressed={value}
 				label={i18n.t('rotation_tab.apl.helpers.buttons.enable_disable')}
 				testId="hide-picker-button"
 				onClick={() => setValue(!value)}

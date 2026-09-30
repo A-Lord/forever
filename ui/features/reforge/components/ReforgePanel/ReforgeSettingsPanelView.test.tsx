@@ -22,17 +22,11 @@ describe('ReforgeSettingsPanelView', () => {
 		expect(container.lastElementChild).toBe(screen.getByTestId('reforge-edit-weights'));
 	});
 
-	it('explains how to edit weights while the custom EP values are off', () => {
-		renderPanel({ showEpHelp: true });
+	it.each([true, false])('explains how to edit weights only while the custom EP values are off (showEpHelp %s)', showEpHelp => {
+		renderPanel({ showEpHelp });
 
-		expect(screen.getByText('sidebar.buttons.suggest_reforges.enable_modification')).toBeTruthy();
-		expect(screen.getByText('sidebar.buttons.suggest_reforges.hard_cap_info')).toBeTruthy();
-	});
-
-	it('drops the explanation while the custom EP values are on', () => {
-		renderPanel();
-
-		expect(screen.queryByText('sidebar.buttons.suggest_reforges.enable_modification')).toBeNull();
+		expect(!!screen.queryByText('sidebar.buttons.suggest_reforges.enable_modification')).toBe(showEpHelp);
+		expect(!!screen.queryByText('sidebar.buttons.suggest_reforges.hard_cap_info')).toBe(showEpHelp);
 	});
 
 	it('opens the weights editor from its button', () => {

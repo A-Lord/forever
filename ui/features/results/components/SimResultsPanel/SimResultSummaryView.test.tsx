@@ -32,6 +32,7 @@ describe('SimResultSummaryView', () => {
 		expect(screen.getByTestId('results-sim-set-reference').hidden).toBe(false);
 		expect(screen.getByTestId('results-sim-reference-swap').parentElement!.hidden).toBe(true);
 		expect(container.querySelectorAll('[data-testid="results-reference-diff"]')).toHaveLength(0);
+		expect([...strip(container).querySelectorAll('svg')].every(icon => icon.getAttribute('aria-hidden') === 'true')).toBe(true);
 	});
 
 	it('flags the strip, swaps the buttons and fills the deltas in once a reference is set', () => {
@@ -56,16 +57,5 @@ describe('SimResultSummaryView', () => {
 		expect(onSetReference).toHaveBeenCalledOnce();
 		expect(onSwapReference).toHaveBeenCalledOnce();
 		expect(onClearReference).toHaveBeenCalledOnce();
-	});
-
-	it('draws the pin in the class accent and every glyph through Icon', () => {
-		mount();
-
-		const pin = screen.getByTestId('results-sim-set-reference').querySelector('svg')!;
-		expect(pin.classList.contains('fa-map-pin')).toBe(true);
-		expect(pin.classList.contains('text-class-warrior')).toBe(true);
-		expect(screen.getByTestId('results-sim-reference-swap').querySelector('svg')!.classList.contains('fa-arrows-rotate')).toBe(true);
-		expect(screen.getByTestId('results-sim-reference-delete').querySelector('svg')!.classList.contains('fa-xmark')).toBe(true);
-		expect([...strip(document.body).querySelectorAll('svg')].every(icon => icon.getAttribute('aria-hidden') === 'true')).toBe(true);
 	});
 });

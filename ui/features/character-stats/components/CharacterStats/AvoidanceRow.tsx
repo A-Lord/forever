@@ -53,11 +53,13 @@ export const AvoidanceRow = ({ info, withHolyShield, hasParry, hasBlock, pending
 									{hasBlock && <TooltipRow label={i18n.t('sidebar.character_stats.tank_caps.block')} value={blockString} />}
 									<TooltipRow
 										className={info.total >= CRUSH_CAP ? 'text-success' : 'text-danger'}
+										cap={info.total >= CRUSH_CAP ? 'met' : 'missed'}
 										label={i18n.t('sidebar.character_stats.tank_caps.crush')}
 										value={totalString}
 									/>
 									<TooltipRow
 										className={info.shear >= SHEAR_CAP ? 'text-success' : 'text-danger'}
+										cap={info.shear >= SHEAR_CAP ? 'met' : 'missed'}
 										label={i18n.t('sidebar.character_stats.tank_caps.shear')}
 										value={shearString}
 									/>

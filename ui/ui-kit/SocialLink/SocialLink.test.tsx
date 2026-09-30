@@ -16,7 +16,7 @@ describe('SocialLink', () => {
 		expect(link.getAttribute('rel')).toBe('noopener noreferrer');
 		expect(link.getAttribute('data-testid')).toBe('social-discord');
 		const icon = link.querySelector('svg')!;
-		expect(icon.classList).toContain('fa-discord');
+		expect(icon.getAttribute('data-icon')).toBe('discord');
 		expect(icon.getAttribute('data-prefix')).toBe('fab');
 	});
 

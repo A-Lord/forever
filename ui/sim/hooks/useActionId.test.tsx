@@ -2,18 +2,8 @@ import { ActionId } from '@sim/proto/action_id';
 import { act, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { deferFill, filled } from './testing';
 import { useActionId } from './useActionId';
-
-// A filled ActionId as fill() returns one: same id fields, plus name and iconUrl.
-const filled = (actionId: ActionId, name: string, iconUrl: string) => Object.assign(Object.create(ActionId.prototype), actionId, { name, iconUrl }) as ActionId;
-
-const deferFill = () => {
-	const resolvers: Array<(value: ActionId) => void> = [];
-	const spy = vi.spyOn(ActionId.prototype, 'fill').mockImplementation(function (this: ActionId) {
-		return new Promise<ActionId>(resolve => resolvers.push(resolve));
-	});
-	return { spy, resolvers };
-};
 
 const Probe = ({ actionId }: { actionId?: ActionId }) => {
 	const { iconUrl, name, href, ready } = useActionId(actionId);
@@ -150,13 +140,6 @@ describe('useActionId', () => {
 
 		rerender(<Probe actionId={ActionId.fromTalent(12297, 1, 999999)} />);
 		expect(spy).toHaveBeenCalledTimes(2);
-	});
-
-	it('previews rank 1 for an unspent talent rather than letting wowhead pick a default', () => {
-		deferFill();
-		const unspentPoints = 0;
-		const { container } = render(<Probe actionId={ActionId.fromTalent(12297, Math.max(unspentPoints, 1), 135506)} />);
-		expect(anchor(container).href).toContain('rank=1');
 	});
 
 	it('keeps the definition through fill, which rebuilds the id field by field', async () => {

@@ -138,14 +138,12 @@ describe('SimApp', () => {
 		expect(container.querySelectorAll('[data-testid="sim-ui"]')).toHaveLength(1);
 	});
 
-	it('renders the sidebar stats', async () => {
+	it.each([
+		['the sidebar stats', '.character-stats-root'],
+		['the results panel', '[data-testid="results-viewer"]'],
+	])('renders %s', async (_name, selector) => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
-		expect(container.querySelectorAll('.character-stats-root')).toHaveLength(1);
-	});
-
-	it('renders the results panel', async () => {
-		const { container } = await mount(<SimApp player={player} def={def} />);
-		expect(container.querySelectorAll('[data-testid="results-viewer"]')).toHaveLength(1);
+		expect(container.querySelectorAll(selector)).toHaveLength(1);
 	});
 
 	it('renders each registered pane inside the shell’s main column', async () => {
@@ -185,13 +183,5 @@ describe('SimApp', () => {
 		expect(constructedMains[0]).not.toBeNull();
 		expect(container.querySelector('[data-testid="sim-header"]')).toBe(constructedHeaders[0]);
 		expect(container.querySelector('[data-testid="sim-main"]')).toBe(constructedMains[0]);
-	});
-
-	it('mounts the shell at the mount point, with no wrapper of its own', async () => {
-		const { container } = await mount(<SimApp player={player} def={def} />);
-		// The shell is handed a DOM bundle rather than a parent, so what ties it to the mount is the
-		// bundle's root being a child of it.
-		expect(constructions[0].root).toBe(container.querySelector('[data-testid="sim-ui"]'));
-		expect(constructions[0].root.parentElement).toBe(container);
 	});
 });

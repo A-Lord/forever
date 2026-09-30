@@ -1,6 +1,5 @@
 import { ItemQuality } from '@generated/proto/common';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { itemQualityClassName } from '@ui-kit/utils/css';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ItemListRowView, type ItemListRowViewProps } from './ItemListRowView';
@@ -52,11 +51,16 @@ describe('ItemListRowView', () => {
 		expect(renderRow().cells()).toEqual(['selector-modal-list-label-cell', 'selector-modal-list-item-favorite']);
 	});
 
+	it('leaves the description label off when the item has none', () => {
+		renderRow({ nameDescription: '' });
+		expect(screen.getByTestId('selector-modal-list-item-name').textContent).toBe('Thunderfury');
+	});
+
 	it('shows the icon, the quality-coloured name, its description and the notice beside them', () => {
 		renderRow({ nameDescription: 'Heroic', notice: <span data-testid="notice" />, active: true });
 		expect(screen.getByTestId('selector-modal-list-item-icon').getAttribute('src')).toBe('icon.jpg');
 		expect(screen.getByTestId('selector-modal-list-item-link').getAttribute('href')).toBe('https://example.com/item');
-		expect(screen.getByTestId('selector-modal-list-item-name').classList).toContain(itemQualityClassName(ItemQuality.ItemQualityLegendary));
+		expect(screen.getByTestId('selector-modal-list-item-name').dataset.quality).toBe(String(ItemQuality.ItemQualityLegendary));
 		expect(screen.getByTestId('heroic-label').textContent).toBe('(Heroic)');
 		expect(screen.getByTestId('selector-modal-list-label-cell').hasAttribute('data-active')).toBe(true);
 		expect(screen.getByTestId('notice')).toBeTruthy();

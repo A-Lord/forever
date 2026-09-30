@@ -17,6 +17,7 @@ export interface CritCapRowProps {
 
 export const CritCapRow = ({ info, text, pending }: CritCapRowProps) => {
 	const id = useId();
+	const tone = info.playerCritCapDelta === 0 ? 'neutral' : info.playerCritCapDelta > 0 ? 'negative' : 'positive';
 	return (
 		<TableRow testId="character-stats-table-row" className="ui-character-stats-row">
 			<TableCell className="ui-character-stats-label">{i18n.t('sidebar.character_stats.melee_crit_cap')}</TableCell>
@@ -25,7 +26,7 @@ export const CritCapRow = ({ info, text, pending }: CritCapRowProps) => {
 					<Skeleton />
 				) : (
 					<>
-						<div className="ui-stat-value-link-container">
+						<div className="ui-stat-value-link-container" data-tone={tone}>
 							<TooltipAnchor tooltipId={id} testId="stat-value-link" className={critCapClass(info.playerCritCapDelta)}>
 								{`${text} `}
 							</TooltipAnchor>

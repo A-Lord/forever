@@ -55,7 +55,6 @@ describe('ItemListToolbarView', () => {
 		const { props } = renderView({ phase: 3 });
 		await userEvent.click(within(screen.getByTestId('selector-modal-phase-selector')).getByRole('combobox'));
 		const options = screen.getAllByRole('option');
-		expect(options).toHaveLength(5);
 		expect(options.map(option => option.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true', 'false', 'false']);
 
 		await userEvent.click(options[4]);

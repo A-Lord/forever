@@ -3,21 +3,18 @@ import type { CustomSection as CustomSectionConfig } from '@sim/spec_config';
 import { act, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// The real source selects from a zustand store on `player.sim`; this file is about *whether* the
-// section subscribes and what it does with the answer, so the source is stubbed and driven directly.
+// The real source selects from a zustand store on `player.sim`; this file is about what the section
+// does with the answer, so the source is stubbed and driven directly.
 const source = vi.hoisted(() => {
 	const listeners = new Set<() => void>();
-	return { listeners, subscribed: 0, notify: () => listeners.forEach(listener => listener()) };
+	return { listeners, notify: () => listeners.forEach(listener => listener()) };
 });
 vi.mock('@sim/state/subscriptions', async () => {
 	const { mockSubscriptions, noopSubscribe } = await import('@sim/testing');
 	return mockSubscriptions(noopSubscribe, {
-		subscribePlayerChange: () => {
-			source.subscribed++;
-			return (onChange: () => void) => {
-				source.listeners.add(onChange);
-				return () => source.listeners.delete(onChange);
-			};
+		subscribePlayerChange: () => (onChange: () => void) => {
+			source.listeners.add(onChange);
+			return () => source.listeners.delete(onChange);
 		},
 	});
 });
@@ -52,17 +49,6 @@ describe('CustomSection', () => {
 	beforeEach(() => {
 		player.shown = true;
 		source.listeners.clear();
-		source.subscribed = 0;
-	});
-
-	it('is a content block named by className', () => {
-		const classes = [...mount({ className: 'custom-section-example' }).classList];
-		expect(classes).toHaveLength(4);
-		for (const token of ['ui-content-block', 'flex', 'flex-col', 'custom-section-example']) expect(classes).toContain(token);
-	});
-
-	it('falls back to the section id when it declares no className', () => {
-		expect(mount({}).classList.contains('totems')).toBe(true);
 	});
 
 	it('renders the title into the block header', () => {
@@ -87,20 +73,11 @@ describe('CustomSection', () => {
 		const block = mount({
 			iconInputs: [{ type: 'icon' }] as never,
 			inputs: [{ id: 'disable-immolate', type: 'boolean' }] as never,
-			iconGroupClassName: 'totem-dropdowns-container',
 		});
 		const body = block.querySelector('[data-testid="content-block-body"]')!;
 		const iconPicker = body.querySelector('[data-testid="icon-picker-root"]')!;
-		expect(iconPicker.parentElement!.classList.contains('totem-dropdowns-container')).toBe(true);
-		expect(iconPicker.parentElement!.classList.contains('ui-icon-row')).toBe(true);
 		expect(iconPicker.hasAttribute('data-layout')).toBe(false);
 		expect(body.querySelector('[data-testid="input-picker-stub"]')!.getAttribute('data-layout')).toBe('inline');
-	});
-
-	it('does not subscribe at all when the section declares no `when`', () => {
-		mount({});
-		expect(source.subscribed).toBe(0);
-		expect(source.listeners.size).toBe(0);
 	});
 
 	it('renders no block at all when `when` is false at mount', () => {

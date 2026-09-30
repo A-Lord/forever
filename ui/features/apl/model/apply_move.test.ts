@@ -57,22 +57,14 @@ const move = (
 
 describe('applyMove', () => {
 	describe('within one list, with the drop index read before the item leaves', () => {
-		it('moves a row down: dropped after the third row, it lands third', () => {
-			const rotation = rotationOf({ priorityList: [row('a'), row('b'), row('c'), row('d')] });
-			applyMove(rotation, move(rotation.priorityList, 0, APL_ROWS, PRIORITY, 3));
-			expect(names(rotation.priorityList)).toEqual(['b', 'c', 'a', 'd']);
-		});
-
-		it('moves a row up', () => {
-			const rotation = rotationOf({ priorityList: [row('a'), row('b'), row('c'), row('d')] });
-			applyMove(rotation, move(rotation.priorityList, 3, APL_ROWS, PRIORITY, 1));
-			expect(names(rotation.priorityList)).toEqual(['a', 'd', 'b', 'c']);
-		});
-
-		it('moves a row to the end', () => {
-			const rotation = rotationOf({ priorityList: [row('a'), row('b'), row('c')] });
-			applyMove(rotation, move(rotation.priorityList, 0, APL_ROWS, PRIORITY, 3));
-			expect(names(rotation.priorityList)).toEqual(['b', 'c', 'a']);
+		it.each([
+			['down: dropped after the third row, it lands third', ['a', 'b', 'c', 'd'], 0, 3, ['b', 'c', 'a', 'd']],
+			['up', ['a', 'b', 'c', 'd'], 3, 1, ['a', 'd', 'b', 'c']],
+			['to the end', ['a', 'b', 'c'], 0, 3, ['b', 'c', 'a']],
+		])('moves a row %s', (_case, start, from, to, expected) => {
+			const rotation = rotationOf({ priorityList: start.map(row) });
+			applyMove(rotation, move(rotation.priorityList, from, APL_ROWS, PRIORITY, to));
+			expect(names(rotation.priorityList)).toEqual(expected);
 		});
 
 		it('writes one fresh array for the changed list and leaves every other list and every row as they were', () => {

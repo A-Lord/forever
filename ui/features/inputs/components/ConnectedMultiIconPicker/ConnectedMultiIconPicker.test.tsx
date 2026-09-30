@@ -1,3 +1,4 @@
+import { filled } from '@features/inputs/testing';
 import { ActionId } from '@sim/proto/action_id';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
@@ -6,9 +7,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IconPickerConfig } from '../ConnectedIconPicker/types';
 import { ConnectedMultiIconPicker } from './ConnectedMultiIconPicker';
 import type { MultiIconPickerConfig } from './types';
-
-// A filled ActionId as fill() returns one, so the icons resolve synchronously and no test touches the network.
-const filled = (actionId: ActionId, name: string, iconUrl: string) => Object.assign(Object.create(ActionId.prototype), actionId, { name, iconUrl }) as ActionId;
 
 const kingsId = filled(ActionId.fromSpellId(20217), 'Kings', 'kings.jpg');
 const markId = filled(ActionId.fromSpellId(1126), 'Mark', 'mark.jpg');
@@ -76,7 +74,6 @@ describe('ConnectedMultiIconPicker', () => {
 	it('renders a connected icon picker per input, each toggling its own field', () => {
 		const buffs = new Buffs();
 		mount(buffs);
-		expect(screen.queryAllByTestId('icon-picker-root')).toHaveLength(0);
 		open();
 		const options = Array.from(menu().children).slice(1);
 		expect(options.every(option => within(option as HTMLElement).queryByTestId('icon-picker-root'))).toBe(true);

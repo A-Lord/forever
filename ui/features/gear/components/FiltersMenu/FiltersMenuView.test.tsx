@@ -57,6 +57,15 @@ describe('FiltersMenuView', () => {
 		expect(sections().slice(3)).toEqual(['gear_tab.gear_picker.ranged_weapon_type', 'gear_tab.gear_picker.ranged_weapon_speed']);
 	});
 
+	// One type is no choice at all, so the section is not worth the space.
+	it.each([
+		['armor', { armorTypes: [ArmorType.ArmorTypePlate] }],
+		['ranged', { slot: ItemSlot.ItemSlotRanged, rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeGun] }],
+	] as const)('leaves the %s type section out for a class with a single type', (_kind, props) => {
+		renderView(props);
+		expect(sections()).toEqual(['gear_tab.gear_picker.filters.general', 'gear_tab.gear_picker.filters.source', 'gear_tab.gear_picker.filters.raids']);
+	});
+
 	it('shows the filters it is handed', async () => {
 		renderView({
 			filters: DatabaseFilters.create({

@@ -1,5 +1,6 @@
 import { booleanFieldConfig, numberFieldConfig, stringFieldConfig } from '@features/apl/model/field_descriptors';
 import { makePlayer } from '@features/apl/testing';
+import { source } from '@features/apl/testing_source';
 import { APLRotation } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { act, fireEvent, render } from '@testing-library/react';
@@ -7,19 +8,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FieldGroup } from './FieldGroup';
 
-const source = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		listeners,
-		subscribe: (onChange: () => void) => {
-			listeners.add(onChange);
-			return () => listeners.delete(onChange);
-		},
-		notify: () => Array.from(listeners).forEach(listener => listener()),
-	};
+vi.mock('@sim/state/subscriptions', async () => {
+	const { mockSubscriptions } = await import('@sim/testing');
+	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
 });
-
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 let impl: Record<string, any>;

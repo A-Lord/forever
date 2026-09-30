@@ -5,15 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { IconRow } from './IconRow';
 
 describe('IconRow', () => {
-	// A layout primitive has no role or state to assert on; its class is the only observable
-	// contract (STYLING §5's exception for layout primitives).
-	it('renders the icon row class, with the caller classes after its own', () => {
-		render(<IconRow testId="group" className={['justify-end', { hidden: false }]} />);
-		const group = screen.getByTestId('group');
-		expect(group.getAttribute('class')).toBe('ui-icon-row justify-end');
-		expect(group.getAttribute('role')).toBeNull();
-	});
-
 	it('renders its children and forwards native attributes and the ref', () => {
 		const ref = createRef<HTMLDivElement>();
 		render(
@@ -28,6 +19,6 @@ describe('IconRow', () => {
 
 	it('lets an explicit data-testid stand in for testId', () => {
 		render(<IconRow data-testid="consumes-food" />);
-		expect(screen.getByTestId('consumes-food').classList.contains('ui-icon-row')).toBe(true);
+		expect(screen.getByTestId('consumes-food')).toBeTruthy();
 	});
 });

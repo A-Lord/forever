@@ -45,7 +45,7 @@ describe('CooldownRowView', () => {
 		renderRow({ isAdd: true, name: undefined });
 
 		expect(screen.getByTestId('cooldown-picker').hasAttribute('data-add')).toBe(true);
-		expect(screen.getByTestId('delete-cooldown').classList.contains('invisible')).toBe(true);
+		expect(screen.getByTestId('delete-cooldown').hasAttribute('data-hidden')).toBe(true);
 		expect(screen.getByTestId('cooldown-picker-label').textContent).toBe('');
 	});
 

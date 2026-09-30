@@ -83,21 +83,18 @@ describe('BooleanPicker', () => {
 		const { container } = render(<Harness description="Swaps mid-fight" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('boolean-picker-root');
-		expect([...root.children].map(el => el.tagName)).toEqual(['SPAN', 'INPUT', 'LABEL', 'DIV']);
 		expect(screen.getByText('Enable Item Swap').getAttribute('for')).toBe(checkbox().nextElementSibling!.id);
 		expect(root.querySelector('[data-testid="boolean-picker-input"]')).toBe(checkbox());
 	});
 
-	it('puts the label before the box when reverse is set, and marks the root', () => {
-		const { container } = render(<Harness reverse description="Swaps mid-fight" />);
+	it.each([
+		[true, ['LABEL', 'DIV', 'SPAN', 'INPUT']],
+		[false, ['SPAN', 'INPUT', 'LABEL', 'DIV']],
+	])('orders the label and the box, and marks the root, for reverse=%s', (reverse, order) => {
+		const { container } = render(<Harness reverse={reverse} description="Swaps mid-fight" />);
 		const root = container.firstElementChild!;
-		expect(root.hasAttribute('data-reverse')).toBe(true);
-		expect([...root.children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'SPAN', 'INPUT']);
-	});
-
-	it('has no data-reverse when reverse is not set', () => {
-		const { container } = render(<Harness />);
-		expect(container.firstElementChild!.hasAttribute('data-reverse')).toBe(false);
+		expect(root.hasAttribute('data-reverse')).toBe(reverse);
+		expect([...root.children].map(el => el.tagName)).toEqual(order);
 	});
 
 	it('takes a root testId and a layout', () => {

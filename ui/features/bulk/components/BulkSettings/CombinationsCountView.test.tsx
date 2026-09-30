@@ -37,6 +37,5 @@ describe('CombinationsCountView', () => {
 		expect(warning.tagName).toBe('BUTTON');
 		expect(warning.getAttribute('aria-label')).toBe('bulk_tab.warning.iterations_limit');
 		expect(warning.hasAttribute('data-tooltip-id')).toBe(true);
-		expect(screen.getByTestId('bulk-combinations-count').querySelector('.text-danger')).not.toBeNull();
 	});
 });

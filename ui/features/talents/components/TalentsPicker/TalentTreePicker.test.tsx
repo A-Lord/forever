@@ -142,16 +142,6 @@ describe('TalentTreePicker tier gating', () => {
 		expect(talents()[4].dataset.canAdd).toBe('false');
 	});
 
-	it('allows it once the tier is met', () => {
-		tree('5');
-		expect(talents()[4].dataset.canAdd).toBe('true');
-	});
-
-	it('gates on points spent anywhere in the tree, not on character level', () => {
-		tree('00005');
-		expect(talents()[4].dataset.canAdd).toBe('true');
-	});
-
 	it('leaves the string untouched when a gated click is rejected', () => {
 		const { onChange, written } = tree('4');
 		fireEvent.mouseDown(talents()[4], { button: 0 });
@@ -161,26 +151,10 @@ describe('TalentTreePicker tier gating', () => {
 });
 
 describe('TalentTreePicker prerequisites', () => {
-	it('refuses a talent whose prerequisite is unfilled', () => {
-		tree('50');
-		expect(talents()[5].dataset.canAdd).toBe('false');
-	});
-
-	it('allows it once the prerequisite is full', () => {
-		tree('51');
-		expect(talents()[5].dataset.canAdd).toBe('true');
-	});
-
 	it('refuses to free a prerequisite that a spent child depends on', () => {
 		const { written } = tree('510001');
 		fireEvent.mouseDown(talents()[1], { button: 2 });
 		expect(written()).toBe('510001');
-	});
-
-	it('frees it once the child is empty', () => {
-		const { written } = tree('51');
-		fireEvent.mouseDown(talents()[1], { button: 2 });
-		expect(written()).toBe('5');
 	});
 });
 

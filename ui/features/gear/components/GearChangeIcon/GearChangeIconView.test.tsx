@@ -40,9 +40,7 @@ describe('GearChangeIconView', () => {
 		expect(sockets[0].style.backgroundImage).toContain(getEmptyGemSocketIconUrl(GemColor.GemColorRed));
 		expect(sockets[1].style.backgroundImage).toContain(getEmptyGemSocketIconUrl(GemColor.GemColorYellow));
 		expect(sockets.map(socket => socket.hasAttribute('data-interactive'))).toEqual([false, true]);
-		const marker = sockets[1].querySelector('[data-testid="gear-change-icon-gem-marker"]')!;
-		expect(marker.tagName).toBe('svg');
-		expect(marker.classList).toContain('fa-circle-exclamation');
+		expect(sockets[1].querySelector('[data-testid="gear-change-icon-gem-marker"]')).not.toBeNull();
 		expect(sockets[0].querySelector('[data-testid="gear-change-icon-gem-marker"]')).toBeNull();
 	});
 

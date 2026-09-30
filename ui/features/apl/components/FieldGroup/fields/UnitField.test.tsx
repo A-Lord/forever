@@ -96,7 +96,6 @@ describe('UnitField', () => {
 
 		const icon = within(trigger()).getByTestId('unit-picker-item-icon');
 		expect(icon.getAttribute('src')).toBe('stampede.jpg');
-		expect(fill).toHaveBeenCalledTimes(1);
 		fill.mockRestore();
 	});
 });

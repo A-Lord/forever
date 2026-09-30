@@ -25,13 +25,9 @@ describe('ResultMetricList row layout', () => {
 
 		const headers = [...container.querySelectorAll('th')];
 		expect(headers).toHaveLength(4);
-		expect(headers.every(cell => cell.getAttribute('data-testid') === 'metrics-table-header-cell')).toBe(true);
-		expect(headers.map(cell => cell.classList.contains('danger'))).toEqual([false, false, false, true]);
 		expect(headers.map(cell => cell.getAttribute('data-metric-category'))).toEqual(['damage', 'threat', 'healing', null]);
 		expect(cells(container, 'th')).toEqual(['DPS', 'TMI', 'TTO', 'OOM']);
-		const bodyCells = [...container.querySelectorAll('td')];
-		expect(bodyCells).toHaveLength(4);
-		expect(bodyCells.map(cell => cell.classList.contains('danger'))).toEqual([false, false, false, true]);
+		expect(container.querySelectorAll('td')).toHaveLength(4);
 	});
 
 	it('formats each unit the way the metric asks for', () => {
@@ -68,8 +64,6 @@ describe('ResultMetricList list layout', () => {
 
 		const rows = [...container.querySelectorAll('[data-testid="results-metric"]')];
 		expect(rows).toHaveLength(4);
-		expect(rows.every(row => row.classList.contains('text-left') && row.classList.contains('font-bold'))).toBe(true);
-		expect(rows.map(row => row.classList.contains('danger'))).toEqual([false, false, false, true]);
 		expect(cells(container, '[data-testid="topline-result-avg"]')).toEqual(['1234.50 DPS', '2.50 TMI', '30.00 TTO', '5.00 OOM']);
 	});
 

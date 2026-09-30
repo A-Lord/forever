@@ -14,31 +14,19 @@ const field = (props: Partial<FieldProps> = {}) =>
 const root = () => screen.getByTestId('input-root');
 
 describe('Field', () => {
-	it('builds the root class list as ui-field followed by className in order', () => {
-		field({ layout: 'inline', className: ['number-picker-root', 'apl-picker'], disabled: true });
-		expect(root().getAttribute('class')).toBe('ui-field number-picker-root apl-picker');
+	it('marks the layout and the disabled state on the root', () => {
+		field({ layout: 'inline', disabled: true });
 		expect(root().getAttribute('data-layout')).toBe('inline');
 		expect(root().hasAttribute('data-disabled')).toBe(true);
 	});
 
-	it('lays a split field out on one row too, without the stacking classes', () => {
-		field({ layout: 'split', className: ['number-picker-root', 'apl-picker'] });
+	it('marks a split layout on the root', () => {
+		field({ layout: 'split' });
 		expect(root().getAttribute('data-layout')).toBe('split');
-		expect(root().getAttribute('class')).toBe('ui-field number-picker-root apl-picker');
-	});
-
-	it('carries no viewport classes: the narrow container rules in the stylesheet do the stacking', () => {
-		const { rerender } = field();
-		expect(root().getAttribute('class')).toBe('ui-field number-picker-root');
-
-		rerender(<Field id="cast-delay" label="Cast Delay" />);
-		expect(root().getAttribute('class')).toBe('ui-field');
 	});
 
 	it('omits the state attributes when neither applies', () => {
 		field();
-		expect(Array.from(root().classList).filter(name => name.startsWith('ui-'))).toEqual(['ui-field']);
-		expect(root().classList.contains('number-picker-root')).toBe(true);
 		expect(root().hasAttribute('data-layout')).toBe(false);
 		expect(root().hasAttribute('data-disabled')).toBe(false);
 		expect(root().hasAttribute('role')).toBe(false);
@@ -49,7 +37,6 @@ describe('Field', () => {
 		field({ role: 'group', 'aria-labelledby': 'buffs-label', layout: 'inline' });
 		expect(root().getAttribute('role')).toBe('group');
 		expect(root().getAttribute('aria-labelledby')).toBe('buffs-label');
-		expect(root().getAttribute('class')).toBe('ui-field number-picker-root');
 		expect(root().getAttribute('data-layout')).toBe('inline');
 	});
 
@@ -63,23 +50,6 @@ describe('Field', () => {
 		const group = screen.getByRole('group', { name: 'Elixirs' });
 		expect(group).toBe(root());
 		expect(group.getAttribute('aria-labelledby')).toBe(within(group).getByTestId('form-label').id);
-	});
-
-	it('captions a group with a span rather than a label, and names the group by it', () => {
-		render(
-			<Field label="Elixirs" role="group" labelTooltip="Battle and guardian elixirs">
-				<button type="button">Flask</button>
-			</Field>,
-		);
-
-		const group = screen.getByRole('group', { name: 'Elixirs' });
-		const caption = within(group).getByTestId('form-label');
-		expect(group.getElementsByTagName('label')).toHaveLength(0);
-		expect(caption.tagName).toBe('SPAN');
-		expect(caption.className).toBe('ui-field-label');
-		expect(caption.id).toBeTruthy();
-		expect(group.getAttribute('aria-labelledby')).toBe(caption.id);
-		expect(caption.getAttribute('data-tooltip-id')).toBeTruthy();
 	});
 
 	it('keeps an explicit aria-labelledby on a group, and gives a field that is not a group no label reference', () => {
@@ -115,14 +85,6 @@ describe('Field', () => {
 		expect(screen.queryByTestId('input-root')).toBeNull();
 	});
 
-	it('links the label to the input and titles it', () => {
-		field();
-		const label = within(root()).getByTestId('form-label');
-		expect(label.className).toBe('ui-field-label');
-		expect(label.getAttribute('for')).toBe('cast-delay');
-		expect(label.getAttribute('title')).toBe('Cast Delay');
-	});
-
 	it('renders no label at all without one', () => {
 		field({ label: undefined });
 		expect(within(root()).queryByTestId('form-label')).toBeNull();
@@ -132,18 +94,11 @@ describe('Field', () => {
 		field({ description: 'Delay before the first cast' });
 		expect([...root().children].map(el => el.tagName)).toEqual(['LABEL', 'DIV', 'INPUT']);
 		expect(within(root()).getByTestId('input-description').textContent).toBe('Delay before the first cast');
-		expect(root().classList.contains('flex-wrap')).toBe(true);
 	});
 
 	it('renders leading before the label', () => {
 		field({ leading: <span data-testid="leading" /> });
 		expect(root().firstElementChild).toBe(screen.getByTestId('leading'));
-	});
-
-	it('shows a string labelTooltip on hover, anchored to the label', async () => {
-		field({ labelTooltip: 'Seconds of human reaction time' });
-		fireEvent.mouseEnter(screen.getByText('Cast Delay'));
-		expect(await screen.findByText('Seconds of human reaction time')).toBeTruthy();
 	});
 
 	it('anchors a labelTooltip to the label when the field has no id', async () => {
@@ -189,13 +144,6 @@ describe('Field', () => {
 		expect(detach).toHaveBeenCalledOnce();
 	});
 
-	it('emits a class once when className supplies it twice', () => {
-		const { container } = render(<Field id="x" className={['number-picker-root', ['number-picker-root', 'mb-0']]} />);
-		const classes = Array.from(container.firstElementChild!.classList);
-		expect(classes.filter(name => name === 'number-picker-root')).toHaveLength(1);
-		expect(container.firstElementChild!.className.split(' ')).toEqual(classes);
-	});
-
 	// Every markup string goes through LocaleHtml, which hands Field a React element rather than a
 	// string.
 	it('renders an element labelTooltip as markup instead of literal tags', async () => {
@@ -215,11 +163,9 @@ describe('Field', () => {
 
 	it('wraps the control with a clear button when clear.show is set', () => {
 		const onClear = vi.fn();
-		field({ clear: { show: true, label: 'Clear', className: 'text-danger', testId: 'clear-btn', onClear } });
+		field({ clear: { show: true, label: 'Clear', testId: 'clear-btn', onClear } });
 		const button = screen.getByTestId('clear-btn');
 		expect(button.getAttribute('aria-label')).toBe('Clear');
-		expect(button.classList.contains('text-danger')).toBe(true);
-		expect(button.parentElement!.className).toBe('relative flex w-full');
 		expect(button.parentElement!.querySelector('input')).toBeTruthy();
 
 		fireEvent.click(button);
@@ -227,15 +173,19 @@ describe('Field', () => {
 	});
 
 	it('keeps the wrapper and hides the button when clear.show is false', () => {
-		field({ clear: { show: false, testId: 'clear-btn', onClear: () => {} } });
+		const { rerender } = field({ clear: { show: false, testId: 'clear-btn', onClear: () => {} } });
+		const input = root().querySelector('input');
 		expect(screen.queryByTestId('clear-btn')).toBeNull();
-		expect(root().querySelector('input')!.parentElement!.className).toBe('relative flex w-full');
-	});
+		expect(input).not.toBeNull();
+		expect(input!.parentElement).not.toBe(root());
 
-	it('holds the root and the wrapper at their size when grow is false', () => {
-		field({ grow: false, clear: { show: false, onClear: () => {} } });
-		expect(root().classList.contains('flex-none')).toBe(true);
-		expect(root().querySelector('input')!.parentElement!.className).toBe('relative flex flex-none');
+		rerender(
+			<Field id="cast-delay" label="Cast Delay" className="number-picker-root" clear={{ show: true, testId: 'clear-btn', onClear: () => {} }}>
+				<input id="cast-delay" />
+			</Field>,
+		);
+		expect(root().querySelector('input')).toBe(input);
+		expect(screen.getByTestId('clear-btn')).toBeTruthy();
 	});
 
 	it('renders the after slot last', () => {

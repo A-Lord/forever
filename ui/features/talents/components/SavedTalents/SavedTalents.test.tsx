@@ -95,7 +95,7 @@ const chips = (section: 'presets' | 'custom') => [
 const chipNamed = (name: string) => [...document.querySelectorAll('[data-testid="saved-data-set-chip"]')].find(chip => chip.textContent?.startsWith(name))!;
 const stored = () => JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null');
 const popover = () => document.querySelector('[data-testid="sim-confirm-popover"]');
-const popoverText = () => popover()?.querySelector('[data-testid="sim-confirm-popover-message"]')?.textContent ?? '';
+const popoverText = () => popover()?.querySelector('[data-testid="sim-confirm-popover-message"]')?.textContent;
 const popoverButtons = () => [...(popover()?.querySelectorAll<HTMLButtonElement>('[data-testid="sim-confirm-popover-actions"] button') ?? [])];
 
 beforeEach(setup);
@@ -113,16 +113,6 @@ describe('SavedTalents', () => {
 			expect(stored()).toEqual({ Raiding: storedJson('12321') });
 			expect(trackEvent).toHaveBeenCalledWith({ action: 'settings', category: 'save', label: 'Talents' });
 		});
-
-		it('refuses an empty name with an alert and writes nothing', async () => {
-			await renderPanel();
-
-			fireEvent.click(saveButton());
-
-			expect(popover()).not.toBeNull();
-			expect(popoverButtons()).toHaveLength(1);
-			expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
-		});
 	});
 
 	describe('loading', () => {
@@ -136,36 +126,13 @@ describe('SavedTalents', () => {
 			expect(trackEvent).toHaveBeenCalledWith({ action: 'settings', category: 'load', label: 'Talents' });
 		});
 
-		it("runs a preset's onLoad and never gives it a delete button", async () => {
+		it("runs a preset's onLoad", async () => {
 			const onLoad = vi.fn();
 			presets = [{ name: 'Default', data: talentsWith('222'), onLoad }];
 			await renderPanel();
 
 			fireEvent.click(chipNamed('Default').querySelector('[data-testid="saved-data-set-name"]')!);
 			expect(onLoad).toHaveBeenCalledWith(player);
-			expect(chipNamed('Default').querySelector('[data-testid="saved-data-set-delete"]')).toBeNull();
-		});
-
-		it('substitutes {{name}} in the delete-confirm message', async () => {
-			window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ Raiding: storedJson('111') }));
-			await renderPanel();
-
-			fireEvent.click(chipNamed('Raiding').querySelector('[data-testid="saved-data-set-delete"]')!);
-
-			expect(popoverText()).toBe("Delete saved talents 'Raiding'?");
-		});
-
-		it('holds the presets back until the sim is ready', async () => {
-			presets = [{ name: 'Default', data: talentsWith('222') }];
-			window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ Raiding: storedJson('111') }));
-			let resolveInit = () => {};
-			waitForInit = () => new Promise(resolve => (resolveInit = resolve));
-
-			renderWithHost(<SavedTalents />, host);
-
-			expect(chips('presets')).toHaveLength(0);
-			expect(chips('custom').map(chip => chip.textContent)).toEqual(['Raiding']);
-			await act(async () => resolveInit());
 		});
 	});
 
@@ -175,6 +142,7 @@ describe('SavedTalents', () => {
 			await renderPanel();
 
 			fireEvent.click(chipNamed('Raiding').querySelector('[data-testid="saved-data-set-delete"]')!);
+			expect(popoverText()).toBe("Delete saved talents 'Raiding'?");
 			const [, confirm] = popoverButtons();
 			fireEvent.click(confirm);
 

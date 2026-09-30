@@ -48,6 +48,7 @@ export const StatRowView = ({
 			? bonusStats.getPseudoStat(unitStat.getPseudoStat())
 			: 0;
 	const contextualClass = bonusStatClass(bonusStatValue);
+	const tone = bonusStatValue === 0 ? 'neutral' : bonusStatValue > 0 ? 'positive' : 'negative';
 
 	const showEffectiveWeaponSpeed =
 		playerClass === Class.ClassHunter &&
@@ -75,7 +76,7 @@ export const StatRowView = ({
 					<Skeleton />
 				) : (
 					<>
-						<div className="ui-stat-value-link-container">
+						<div className="ui-stat-value-link-container" data-tone={tone}>
 							<span>
 								{hands.map((hand, i) => (
 									<Fragment key={hand.stat.getKey()}>

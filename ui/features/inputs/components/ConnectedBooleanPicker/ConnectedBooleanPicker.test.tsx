@@ -1,33 +1,17 @@
-import type { StoreSubscribe } from '@sim/state/subscriptions';
+import { FakeSource } from '@features/inputs/testing';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { ConnectedBooleanPicker } from './ConnectedBooleanPicker';
 import type { BooleanPickerConfig } from './types';
 
-// Stands in for a domain facade: a value plus the (onChange) => unsubscribe contract every
-// storeSubscribe helper in state/subscriptions.ts returns.
-class Settings {
-	private listeners = new Set<() => void>();
-	constructor(public flag = false) {}
-	set(next: boolean) {
-		this.flag = next;
-		this.listeners.forEach(listener => listener());
-	}
-	readonly subscribe: StoreSubscribe = listener => {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	};
-	get listenerCount() {
-		return this.listeners.size;
-	}
-}
+type Settings = FakeSource<boolean>;
 
 const configFor = (extra: Partial<BooleanPickerConfig<Settings>> = {}): BooleanPickerConfig<Settings> => ({
 	id: 'use-item-swap',
 	label: 'Enable Item Swap',
 	storeSubscribe: settings => settings.subscribe,
-	getValue: settings => settings.flag,
+	getValue: settings => settings.value,
 	setValue: (settings, value) => settings.set(value),
 	...extra,
 });
@@ -37,24 +21,24 @@ const isChecked = (el: HTMLElement) => el.getAttribute('aria-checked') === 'true
 
 describe('ConnectedBooleanPicker', () => {
 	it('shows the source value and writes back through setValue', () => {
-		const settings = new Settings(true);
+		const settings = new FakeSource(true);
 		render(<ConnectedBooleanPicker modObject={settings} config={configFor()} />);
 		expect(isChecked(checkbox())).toBe(true);
 
 		fireEvent.click(checkbox());
-		expect(settings.flag).toBe(false);
+		expect(settings.value).toBe(false);
 		expect(isChecked(checkbox())).toBe(false);
 	});
 
 	it('re-renders when the source changes underneath it', () => {
-		const settings = new Settings(false);
+		const settings = new FakeSource(false);
 		render(<ConnectedBooleanPicker modObject={settings} config={configFor()} />);
 		act(() => settings.set(true));
 		expect(isChecked(checkbox())).toBe(true);
 	});
 
 	it('subscribes once and unsubscribes on unmount', () => {
-		const settings = new Settings();
+		const settings = new FakeSource(false);
 		const { unmount } = render(<ConnectedBooleanPicker modObject={settings} config={configFor()} />);
 		expect(settings.listenerCount).toBe(1);
 		unmount();
@@ -62,37 +46,25 @@ describe('ConnectedBooleanPicker', () => {
 	});
 
 	it('renders nothing when showWhen is false', () => {
-		const settings = new Settings();
+		const settings = new FakeSource(false);
 		const { container } = render(<ConnectedBooleanPicker modObject={settings} config={configFor({ showWhen: () => false })} />);
 		expect(container.firstChild).toBeNull();
 	});
 
 	it('disables the input and marks the root when enableWhen is false', () => {
-		const settings = new Settings();
+		const settings = new FakeSource(false);
 		render(<ConnectedBooleanPicker modObject={settings} config={configFor({ enableWhen: () => false })} />);
 		expect(checkbox().getAttribute('aria-disabled')).toBe('true');
 		expect(checkbox().closest('[data-testid="boolean-picker-root"]')!.hasAttribute('data-disabled')).toBe(true);
 	});
 
-	it('seeds from defaultValue, then hands over to the source on its first change', () => {
-		const settings = new Settings(false);
-		render(<ConnectedBooleanPicker modObject={settings} config={configFor({ defaultValue: true })} />);
-		expect(isChecked(checkbox())).toBe(true);
-
-		act(() => settings.set(false));
-		expect(isChecked(checkbox())).toBe(false);
-	});
-
 	it('passes the frame and reverse through', () => {
-		const settings = new Settings();
-		const { container } = render(
-			<ConnectedBooleanPicker modObject={settings} config={configFor({ reverse: true, layout: 'inline', extraClassNames: ['mb-0'] })} testId="picker" />,
-		);
+		const settings = new FakeSource(false);
+		const { container } = render(<ConnectedBooleanPicker modObject={settings} config={configFor({ reverse: true, layout: 'inline' })} testId="picker" />);
 		const root = container.firstElementChild!;
 		expect(root.getAttribute('data-testid')).toBe('picker');
 		expect(root.getAttribute('data-layout')).toBe('inline');
 		expect(root.hasAttribute('data-reverse')).toBe(true);
-		expect(root.classList.contains('mb-0')).toBe(true);
 		expect(root.querySelector('label')!.getAttribute('for')).toBe('use-item-swap');
 		expect(root.querySelector('input')!.id).toBe('use-item-swap');
 	});

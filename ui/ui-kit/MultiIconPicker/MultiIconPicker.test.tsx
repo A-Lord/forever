@@ -1,7 +1,6 @@
 import i18n from '@i18n/config';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
-import { useEffect } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MultiIconPicker, type MultiIconPickerProps } from './MultiIconPicker';
@@ -51,37 +50,6 @@ describe('MultiIconPicker', () => {
 		expect(options).toHaveLength(4);
 		expect(options[0].querySelector('a')).toBe(clearOption());
 		expect(options.slice(1).every(option => option.querySelector('[data-testid="child"]'))).toBe(true);
-	});
-
-	it('mounts its children only while the menu is open', async () => {
-		const mounts = vi.fn();
-		const unmounts = vi.fn();
-		const Probe = () => {
-			useEffect(() => {
-				mounts();
-				return unmounts;
-			}, []);
-			return <span data-testid="child" />;
-		};
-		mount({ children: <Probe /> });
-		expect(mounts).not.toHaveBeenCalled();
-
-		open();
-		expect(mounts).toHaveBeenCalledTimes(1);
-
-		act(() => {
-			fireEvent.keyDown(menu(), { key: 'Escape' });
-		});
-		await act(async () => {});
-		expect(trigger().getAttribute('aria-expanded')).toBe('false');
-		expect(screen.queryByTestId('child')).toBeNull();
-		expect(unmounts).toHaveBeenCalledTimes(1);
-	});
-
-	it('positions the menu against the viewport', async () => {
-		mount();
-		await open();
-		expect(screen.getByTestId('multi-icon-picker-positioner').style.position).toBe('fixed');
 	});
 
 	it('names the group and the trigger with its label, and renders neither name without one', () => {

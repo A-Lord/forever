@@ -3,6 +3,8 @@ import type { EquippedItem } from '@sim/proto/equipped_item';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { BulkItemPickerState } from './BulkItemPickerView';
+
 vi.mock('@features/gear/components/ItemCell', () => ({
 	ItemDetailCell: ({
 		className,
@@ -27,41 +29,23 @@ const { BulkItemPickerView } = await import('./BulkItemPickerView');
 
 const ITEM = { id: 1 } as unknown as EquippedItem;
 
-const renderPicker = (state: 'frozen' | 'equipped' | 'editable', onRemove?: () => void) => {
+const renderPicker = (state: BulkItemPickerState, onRemove?: () => void) => {
 	const onOpen = vi.fn();
 	render(<BulkItemPickerView slot={ItemSlot.ItemSlotFinger1} item={ITEM} state={state} onOpen={onOpen} onRemove={onRemove} />);
 	return { onOpen, cell: screen.getByTestId('bulk-item-picker') };
 };
 
 describe('BulkItemPickerView', () => {
-	it('frames a frozen item and marks it frozen', () => {
-		const { cell } = renderPicker('frozen');
+	it.each<[BulkItemPickerState, boolean, boolean, boolean]>([
+		['frozen', true, false, true],
+		['equipped', false, true, false],
+		['editable', false, false, false],
+	])('marks a %s item frozen %s and equipped %s, with a lock %s', (state, frozen, equipped, lock) => {
+		const { cell } = renderPicker(state);
 
-		expect(cell.hasAttribute('data-frozen')).toBe(true);
-		expect(cell.hasAttribute('data-equipped')).toBe(false);
-		expect(cell.className).toContain('border-frozen');
-		expect(screen.getByTestId('item-picker-frozen')).toBeTruthy();
-	});
-
-	it('shows no lock on an editable item', () => {
-		renderPicker('editable', () => {});
-
-		expect(screen.queryByTestId('item-picker-frozen')).toBeNull();
-	});
-
-	it('marks a worn item equipped', () => {
-		const { cell } = renderPicker('equipped');
-
-		expect(cell.hasAttribute('data-equipped')).toBe(true);
-		expect(cell.className).toContain('border-brand');
-	});
-
-	it('gives an editable item the plain frame', () => {
-		const { cell } = renderPicker('editable');
-
-		expect(cell.hasAttribute('data-frozen')).toBe(false);
-		expect(cell.hasAttribute('data-equipped')).toBe(false);
-		expect(cell.className).toContain('border-border');
+		expect(cell.hasAttribute('data-frozen')).toBe(frozen);
+		expect(cell.hasAttribute('data-equipped')).toBe(equipped);
+		expect(!!screen.queryByTestId('item-picker-frozen')).toBe(lock);
 	});
 
 	it('removes the item from its remove button', () => {

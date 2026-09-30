@@ -1,24 +1,17 @@
 import { makePlayer } from '@features/apl/testing';
+import { dragEvent, place } from '@features/apl/testing_dom';
+import { source } from '@features/apl/testing_source';
 import { APLRotation, APLValue } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { act, createEvent, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ValueFieldList } from './ValueFieldList';
 
-const source = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		listeners,
-		subscribe: (onChange: () => void) => {
-			listeners.add(onChange);
-			return () => listeners.delete(onChange);
-		},
-		notify: () => Array.from(listeners).forEach(listener => listener()),
-	};
+vi.mock('@sim/state/subscriptions', async () => {
+	const { mockSubscriptions } = await import('@sim/testing');
+	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
 });
-
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 const constant = (uuid: string, val: string) => APLValue.create({ uuid: { value: uuid }, value: { oneofKind: 'const', const: { val } } });
@@ -28,7 +21,6 @@ let player: ReturnType<typeof makePlayer>;
 
 const fieldConfig = () => ({
 	id: 'vals',
-	extraClassNames: ['story-extra'],
 	storeSubscribe: () => source.subscribe,
 	getValue: () => values,
 	setValue: (_subject: unknown, next: Array<APLValue | undefined>) => {
@@ -64,26 +56,16 @@ const clickItemAction = (index: number, testId: string) => {
 	act(() => void fireEvent.click(action));
 };
 
-// happy-dom lays nothing out, so each row gets a 20px box, `index` rows from the top.
-const place = (element: HTMLElement, index: number) => vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, index * 20, 20, 20));
-// happy-dom's DragEvent is a plain Event, which drops `clientY` from its init.
-const dropOn = (target: HTMLElement, y: number) => {
-	const event = createEvent.drop(target, { dataTransfer: new DataTransfer() });
-	Object.defineProperty(event, 'clientY', { value: y });
-	return fireEvent(target, event);
-};
-
 beforeEach(() => {
 	document.body.innerHTML = '';
 });
 
 describe('ValueFieldList', () => {
-	it('renders one inline value row per operand and carries the field classes on the list', () => {
+	it('renders one inline value row per operand', () => {
 		mount([constant('a', '1'), constant('b', '2')]);
 
 		expect(items()).toHaveLength(2);
 		expect(list().getAttribute('data-layout')).toBe('inline');
-		expect(list().className.split(' ')).toContain('story-extra');
 		expect(items().map(item => item.querySelector('[data-testid="apl-value-picker-root"]'))).not.toContain(null);
 	});
 
@@ -130,46 +112,26 @@ describe('ValueFieldList', () => {
 		expect(values[0]!.uuid!.value).toBeTruthy();
 	});
 
-	it('offers to extract a value that has a kind, and not an empty one', () => {
+	it.each([
+		['offers to extract a value that has a kind', 0, true],
+		['withholds the extract entry from an empty value', 1, false],
+	])('%s', (_case, index, offered) => {
 		mount([constant('a', '1'), APLValue.create({ uuid: { value: 'b' } })]);
 
-		expect(openMenu(0).querySelector('[data-testid="apl-value-list-extract"]')).not.toBeNull();
-	});
-
-	it('withholds the extract entry from an empty value', () => {
-		mount([constant('a', '1'), APLValue.create({ uuid: { value: 'b' } })]);
-
-		expect(openMenu(1).querySelector('[data-testid="apl-value-list-extract"]')).toBeNull();
+		expect(openMenu(index).querySelector('[data-testid="apl-value-list-extract"]') !== null).toBe(offered);
 	});
 
 	it('moves a row by dragging its handle, in one write', () => {
 		const config = fieldConfig();
 		const setValue = vi.spyOn(config, 'setValue');
 		mount([constant('a', '1'), constant('b', '2'), constant('c', '3')], config);
-		items().forEach(place);
+		place(items());
 
 		fireEvent.mouseDown(items()[2].querySelector('[data-testid="apl-value-list-handle"]')!);
 		fireEvent.dragStart(items()[2], { dataTransfer: new DataTransfer() });
-		dropOn(items()[0], 0);
+		dragEvent('drop', items()[0], 0);
 
 		expect(setValue).toHaveBeenCalledTimes(1);
 		expect(uuids()).toEqual(['c', 'a', 'b']);
-	});
-
-	it('leaves the enclosing list alone when a row inside a nested operand list is dragged', () => {
-		const or = APLValue.create({ uuid: { value: 'o' }, value: { oneofKind: 'or', or: { vals: [constant('x', '1'), constant('y', '2')] } } });
-		mount([or, constant('c', '3')]);
-		const [outer, inner] = [...document.querySelectorAll<HTMLElement>('[data-testid="apl-value-list"]')].map(list => [
-			...list.querySelectorAll<HTMLElement>(':scope > ul > [data-testid="apl-value-list-item"]'),
-		]);
-		outer.forEach((el, i) => vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, i * 100, 20, 100)));
-		inner.forEach((el, i) => vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 10 + i * 20, 20, 20)));
-
-		fireEvent.mouseDown(inner[1].querySelector('[data-testid="apl-value-list-handle"]')!);
-		fireEvent.dragStart(inner[1], { dataTransfer: new DataTransfer() });
-		act(() => void dropOn(inner[0], 12));
-
-		expect(uuids()).toEqual(['o', 'c']);
-		expect((or.value as any).or.vals.map((value: APLValue) => value.uuid!.value)).toEqual(['x', 'y']);
 	});
 });

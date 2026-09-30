@@ -4,14 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { TabBadge } from './TabBadge';
 
 describe('TabBadge', () => {
-	it('renders nothing without a label', () => {
-		const { container } = render(<TabBadge />);
-
-		expect(container.childNodes).toHaveLength(0);
-	});
-
-	it('renders nothing for an empty label', () => {
-		const { container } = render(<TabBadge label="" />);
+	it.each([
+		['without a label', undefined],
+		['for an empty label', ''],
+	])('renders nothing %s', (_, label) => {
+		const { container } = render(<TabBadge label={label} />);
 
 		expect(container.childNodes).toHaveLength(0);
 	});
@@ -21,7 +18,6 @@ describe('TabBadge', () => {
 
 		expect(container.textContent).toBe(' (Beta)');
 		expect(screen.getByTestId('tab-badge').textContent).toBe('Beta');
-		expect(screen.getByTestId('tab-badge').className).toBe('text-success');
 	});
 
 	it('takes its testId', () => {

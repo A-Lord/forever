@@ -1,24 +1,17 @@
 import { makePlayer } from '@features/apl/testing';
+import { source } from '@features/apl/testing_source';
 import { APLRotation } from '@generated/proto/apl';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GroupVariablesField } from './GroupVariablesField';
 
-const source = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		listeners,
-		subscribe: (onChange: () => void) => {
-			listeners.add(onChange);
-			return () => listeners.delete(onChange);
-		},
-		notify: () => Array.from(listeners).forEach(listener => listener()),
-	};
+vi.mock('@sim/state/subscriptions', async () => {
+	const { mockSubscriptions } = await import('@sim/testing');
+	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
 });
-
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 const placeholderAction = (name: string) => ({
@@ -44,15 +37,17 @@ const setup = (opts: { groupName?: string; placeholders?: Array<string>; existin
 	parentValue = { groupName: opts.groupName, variables: opts.existingVariables || [] };
 };
 
-const mount = () =>
-	render(
+const mount = ({ strict = false } = {}) => {
+	const field = (
 		<GroupVariablesField
 			player={player as never}
 			config={{ id: 'gv', getValue: () => parentValue.variables, setValue: () => player.touchRotation() } as never}
 			groupNameField="groupName"
 			getParentValue={() => parentValue}
-		/>,
+		/>
 	);
+	return render(strict ? <StrictMode>{field}</StrictMode> : field);
+};
 
 const container = () => document.querySelector('[data-testid="group-reference-variables-container"]') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll('[data-testid="apl-group-variable-picker-root"]'));
@@ -85,18 +80,14 @@ describe('GroupVariablesField', () => {
 		expect(rows()[1].querySelector('label')!.textContent).toBe('b:');
 	});
 
-	it('is hidden with no group selected', () => {
-		setup({ placeholders: ['a'] });
+	it.each([
+		['with no group selected', { placeholders: ['a'] }],
+		['when the selected group defines no placeholders', { groupName: 'g1', placeholders: [] }],
+	])('is hidden %s', (_case, opts) => {
+		setup(opts);
 		mount();
 
-		expect(container().className.split(' ')).toContain('hidden');
-	});
-
-	it('is hidden when the selected group defines no placeholders', () => {
-		setup({ groupName: 'g1', placeholders: [] });
-		mount();
-
-		expect(container().className.split(' ')).toContain('hidden');
+		expect(container().hidden).toBe(true);
 		expect(rows()).toHaveLength(0);
 	});
 
@@ -185,34 +176,18 @@ describe('GroupVariablesField — nothing to derive from', () => {
 		value: { uuid: { value: 'keep' }, value: { oneofKind: 'variableRef', variableRef: { name: 'No' } } },
 	});
 
-	it('leaves the stored variables alone with no group selected', () => {
+	it.each([
+		['with no group selected', { placeholders: ['a'] }],
+		['when the named group no longer exists', { groupName: 'deleted', placeholders: ['a'] }],
+		['when the selected group declares no placeholder', { groupName: 'g1', placeholders: [] }],
+	])('leaves the stored variables alone %s', (_case, opts) => {
 		const existing = [assigned()];
-		setup({ placeholders: ['a'], existingVariables: existing });
+		setup({ ...opts, existingVariables: existing });
 		mount();
 
 		expect(parentValue.variables).toBe(existing);
 		expect(parentValue.variables[0].value.value.variableRef.name).toBe('No');
-		expect(container().className.split(' ')).toContain('hidden');
-	});
-
-	it('leaves the stored variables alone when the named group no longer exists', () => {
-		const existing = [assigned()];
-		setup({ groupName: 'deleted', placeholders: ['a'], existingVariables: existing });
-		mount();
-
-		expect(parentValue.variables).toBe(existing);
-		expect(parentValue.variables[0].value.value.variableRef.name).toBe('No');
-		expect(container().className.split(' ')).toContain('hidden');
-	});
-
-	it('leaves the stored variables alone when the selected group declares no placeholder', () => {
-		const existing = [assigned()];
-		setup({ groupName: 'g1', placeholders: [], existingVariables: existing });
-		mount();
-
-		expect(parentValue.variables).toBe(existing);
-		expect(parentValue.variables[0].value.value.variableRef.name).toBe('No');
-		expect(container().className.split(' ')).toContain('hidden');
+		expect(container().hidden).toBe(true);
 		expect(rows()).toHaveLength(0);
 	});
 
@@ -233,5 +208,69 @@ describe('GroupVariablesField — nothing to derive from', () => {
 		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a', 'b']);
 		expect(touched).not.toHaveBeenCalled();
 		expect(modified).not.toHaveBeenCalled();
+	});
+});
+
+describe('GroupVariablesField under StrictMode (bug 2 — reconcile is a write on a read path)', () => {
+	it('mounts with exactly one row per placeholder, no duplicates from the double-invoked read', () => {
+		setup({ groupName: 'g1', placeholders: ['a', 'b'] });
+		mount({ strict: true });
+
+		expect(labels()).toEqual(['a:', 'b:']);
+		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a', 'b']);
+	});
+
+	it('keeps existing entries by identity through the StrictMode double render', () => {
+		const existingA = { name: 'a', value: { uuid: { value: 'keep-a' }, value: { oneofKind: 'variableRef', variableRef: { name: 'x' } } } };
+		setup({ groupName: 'g1', placeholders: ['a', 'b'], existingVariables: [existingA] });
+		mount({ strict: true });
+
+		expect(parentValue.variables[0]).toBe(existingA);
+		expect(parentValue.variables).toHaveLength(2);
+	});
+
+	it('reconciles a delete correctly under StrictMode, with no duplicate or dropped rows', () => {
+		const existingA = { name: 'a', value: { uuid: { value: 'keep-a' }, value: { oneofKind: 'variableRef', variableRef: { name: 'x' } } } };
+		setup({ groupName: 'g1', placeholders: ['a', 'b'], existingVariables: [existingA] });
+		mount({ strict: true });
+
+		clickItemAction(0, '[data-testid="apl-group-variables-delete"]');
+
+		expect(labels()).toEqual(['a:', 'b:']);
+		expect(parentValue.variables.map(entry => entry.name)).toEqual(['a', 'b']);
+	});
+});
+
+describe('GroupVariableRow — a row only exists while its group is selected', () => {
+	it('deselecting the group unmounts every row rather than leaving one mounted', () => {
+		setup({ groupName: 'g1', placeholders: ['a', 'b'] });
+		mount();
+		expect(rows()).toHaveLength(2);
+
+		act(() => {
+			parentValue.groupName = undefined;
+			player.touchRotation();
+		});
+
+		expect(rows()).toHaveLength(0);
+	});
+
+	it('reselecting the group mounts fresh row instances, which start with stale=true and read correctly on their first render', () => {
+		setup({ groupName: 'g1', placeholders: ['a'] });
+		mount();
+		expect(rows()).toHaveLength(1);
+
+		act(() => {
+			parentValue.groupName = undefined;
+			player.touchRotation();
+		});
+		expect(rows()).toHaveLength(0);
+
+		act(() => {
+			parentValue.groupName = 'g1';
+			player.touchRotation();
+		});
+
+		expect(rows()).toHaveLength(1);
 	});
 });

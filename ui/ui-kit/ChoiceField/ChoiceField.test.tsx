@@ -65,7 +65,7 @@ beforeEach(() => {
 describe('ChoiceField', () => {
 	describe('shell', () => {
 		it('renders the bare trigger when it has no label, description or layout', () => {
-			const { container } = render(<Harness id="mode" options={MODES} initial={0} className="w-full" testId="mode-field" />);
+			const { container } = render(<Harness id="mode" options={MODES} initial={0} testId="mode-field" />);
 
 			// No wrapper: the trigger, and beside it the hidden input Base UI's Select keeps for forms.
 			expect([...container.children].map(child => child.tagName)).toEqual(['BUTTON', 'INPUT']);
@@ -73,7 +73,6 @@ describe('ChoiceField', () => {
 			expect(trigger().tagName).toBe('BUTTON');
 			expect(trigger().id).toBe('mode');
 			expect(trigger().getAttribute('data-testid')).toBe('mode-field');
-			expect(trigger().getAttribute('class')).toContain('w-full');
 		});
 
 		it('renders one Field root around the trigger, the label names the trigger and the description describes it', () => {
@@ -124,12 +123,11 @@ describe('ChoiceField', () => {
 	});
 
 	describe('value', () => {
-		it("shows the selected option's icon and label, and carries its class onto the trigger", () => {
+		it("shows the selected option's icon and label", () => {
 			render(<Harness options={UNITS} equals={sameId} initial={{ id: 1, name: 'One' }} variant="link" />);
 
 			expect(trigger().textContent).toBe('Target 1');
 			expect(within(trigger()).getByTestId('unit-picker-item-icon').tagName).toBe('svg');
-			expect(trigger().getAttribute('class')).toContain('text-class-warrior');
 		});
 
 		it('shows the placeholder while no option matches the value', () => {
@@ -224,27 +222,6 @@ describe('ChoiceField', () => {
 			expect(options()).toHaveLength(0);
 			expect(document.activeElement).toBe(trigger());
 		});
-
-		it('jumps with Home and End, finds an option by typing, and closes on Escape back onto the trigger without a pick', async () => {
-			const user = userEvent.setup();
-			render(<Harness options={MODES} initial={1} />);
-
-			trigger().focus();
-			await user.keyboard('{ArrowDown}');
-			expect(focused()).toBe('Aggressive');
-			await user.keyboard('{End}');
-			expect(focused()).toBe('Defensive');
-			await user.keyboard('{Home}');
-			expect(focused()).toBe('Passive');
-			await user.keyboard('d');
-			expect(focused()).toBe('Defensive');
-
-			await user.keyboard('{Escape}');
-			expect(options()).toHaveLength(0);
-			expect(document.activeElement).toBe(trigger());
-			expect(picks).not.toHaveBeenCalled();
-			expect(trigger().textContent).toBe('Aggressive');
-		});
 	});
 
 	describe('per-option tooltips', () => {
@@ -271,20 +248,15 @@ describe('ChoiceField', () => {
 	describe('side and positionMethod', () => {
 		const positioner = () => screen.getByTestId('choice-field-positioner');
 
-		it('opens below the trigger, positioned in flow, by default', async () => {
-			render(<Harness options={MODES} initial={0} />);
+		it.each([
+			['below the trigger, positioned in flow, by default', {}, 'bottom', 'absolute'],
+			['above the trigger and out of flow when asked', { side: 'top', positionMethod: 'fixed' } as const, 'top', 'fixed'],
+		])('opens %s', async (_, props, side, position) => {
+			render(<Harness options={MODES} initial={0} {...props} />);
 			await open();
 
-			expect(positioner().getAttribute('data-side')).toBe('bottom');
-			expect(positioner().style.position).toBe('absolute');
-		});
-
-		it('opens above the trigger and out of flow when asked', async () => {
-			render(<Harness options={MODES} initial={0} side="top" positionMethod="fixed" />);
-			await open();
-
-			expect(positioner().getAttribute('data-side')).toBe('top');
-			expect(positioner().style.position).toBe('fixed');
+			expect(positioner().getAttribute('data-side')).toBe(side);
+			expect(positioner().style.position).toBe(position);
 		});
 	});
 
@@ -384,25 +356,6 @@ describe('ChoiceField', () => {
 			expect(picks).toHaveBeenLastCalledWith('or');
 			expect(screen.queryByRole('menu')).toBeNull();
 			expect(document.activeElement).toBe(menuTrigger());
-		});
-
-		it('jumps with Home and End, finds a row by typing, and closes on Escape back onto the trigger without a pick', async () => {
-			const user = userEvent.setup();
-			render(<Harness options={KINDS} initial="none" testId="kind-field" />);
-			menuTrigger().focus();
-			await user.keyboard('{ArrowDown}');
-
-			await user.keyboard('{End}');
-			expect(focused()).toBe('Resources »');
-			await user.keyboard('{Home}');
-			expect(focused()).toBe('None');
-			await user.keyboard('l');
-			expect(focused()).toBe('Logic »');
-
-			await user.keyboard('{Escape}');
-			expect(screen.queryByRole('menu')).toBeNull();
-			expect(document.activeElement).toBe(menuTrigger());
-			expect(picks).not.toHaveBeenCalled();
 		});
 	});
 

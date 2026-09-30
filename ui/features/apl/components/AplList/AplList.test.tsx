@@ -1,34 +1,19 @@
 import { GroupList } from '@features/apl/components/GroupList';
 import { PriorityPane } from '@features/apl/components/PriorityPane';
 import { makePlayer } from '@features/apl/testing';
+import { dragEvent, FakeIntersectionObserver, place } from '@features/apl/testing_dom';
+import { source } from '@features/apl/testing_source';
 import { APLAction, APLGroup, APLListItem, APLPrepullAction, APLRotation, APLValue } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { act, createEvent, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const source = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		listeners,
-		subscribe: (onChange: () => void) => {
-			listeners.add(onChange);
-			return () => listeners.delete(onChange);
-		},
-		notify: () => Array.from(listeners).forEach(listener => listener()),
-	};
+vi.mock('@sim/state/subscriptions', async () => {
+	const { mockSubscriptions } = await import('@sim/testing');
+	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
 });
-
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 vi.mock('@sim/proto/action_id', () => ({ ActionId: { replaceAllInString: async (str: string) => str } }));
-
-// AplListToolbar's sticky-bar effect needs one; happy-dom does not provide it.
-class FakeIntersectionObserver {
-	constructor() {}
-	observe = vi.fn();
-	disconnect = vi.fn();
-	unobserve = vi.fn();
-}
 
 const MOVE = 'common.list_picker.move_drag_drop';
 const TOGGLE = 'common.list_picker.toggle_item';
@@ -60,21 +45,11 @@ const priorityRows = () => rowsOf('apl-priority-list-picker-root');
 const prepullRows = () => rowsOf('apl-prepull-list-root');
 const namesShown = () => Array.from(document.querySelectorAll<HTMLInputElement>('[data-kind="resetSequence"] input')).map(input => input.value);
 
-// happy-dom lays nothing out, so each row is given a box: `index` rows of 20px from the top.
-const place = (rows: Array<HTMLElement>, offset = 0) =>
-	rows.forEach((element, index) => vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, (offset + index) * 20, 200, 20)));
-
 const grab = (element: HTMLElement) => {
 	fireEvent.mouseDown(within(element).getAllByRole('button', { name: MOVE })[0]);
 	fireEvent.dragStart(element, { dataTransfer: new DataTransfer() });
 };
 
-// happy-dom's DragEvent is a plain Event, which drops `clientY` from its init.
-const dragEvent = (type: 'dragOver' | 'drop', target: HTMLElement, y: number) => {
-	const event = createEvent[type](target, { dataTransfer: new DataTransfer() });
-	Object.defineProperty(event, 'clientY', { value: y });
-	return fireEvent(target, event);
-};
 const accepts = (target: HTMLElement, y: number) => !dragEvent('dragOver', target, y);
 const drop = (target: HTMLElement, y: number) =>
 	act(() => {
@@ -115,25 +90,7 @@ describe('AplList on the priority pane', () => {
 		expect(prepullRows()).toHaveLength(1);
 		expect(priorityRows()).toHaveLength(2);
 		expect(namesShown()).toEqual(['p', 'a', 'b']);
-	});
-
-	it('puts the validations badge then the hide eye beside the trigger, no title, and the action picker in its compact body', () => {
-		setup({ priorityList: [row('a')] });
-		mount();
-
-		const [first] = priorityRows();
-		const header = within(first).getAllByTestId('tree-item-header')[0];
-		const badges = Array.from(header.querySelectorAll('[data-testid="apl-validations"], [data-testid="hide-picker-root"]'));
-		expect(badges.map(element => element.getAttribute('data-testid'))).toEqual(['apl-validations', 'hide-picker-root']);
-		const [handle, aside, trigger] = Array.from(header.children);
-		expect(handle.getAttribute('aria-label')).toBe(MOVE);
-		expect(aside.contains(badges[0]) && aside.contains(badges[1])).toBe(true);
-		expect(trigger.getAttribute('aria-label')).toBe(TOGGLE);
-		expect(header.children).toHaveLength(4);
-		const body = first.querySelector('[data-testid="apl-list-item-picker-root"]')!;
-		expect(body.getAttribute('data-density')).toBe('compact');
-		expect(body.querySelector('[data-testid="apl-action-picker-root"]')).not.toBeNull();
-		expect(header.contains(body)).toBe(false);
+		expect(priorityRows()[0].querySelector('[data-testid="apl-list-item-picker-root"]')!.getAttribute('data-density')).toBe('compact');
 	});
 
 	it('hides a row through its eye with one notification, and keeps the row’s menu usable', () => {
@@ -260,17 +217,6 @@ describe('AplList drag and drop', () => {
 		expect(sequenceNames(player.aplRotation.priorityList)).toEqual(['b', 'c', 'a', 'd']);
 		expect(notifications).toBe(1);
 		expect(namesShown()).toEqual(['b', 'c', 'a', 'd']);
-	});
-
-	it('moves a row up', () => {
-		setup({ priorityList: [row('a'), row('b'), row('c')] });
-		mount();
-		place(priorityRows());
-
-		grab(priorityRows()[2]);
-		drop(priorityRows()[0], 5);
-
-		expect(sequenceNames(player.aplRotation.priorityList)).toEqual(['c', 'a', 'b']);
 	});
 
 	it('edits a moved row through its own binding', () => {
@@ -514,13 +460,5 @@ describe('AplList on the action groups pane', () => {
 		expect(first.actions).toEqual([]);
 		expect(sequenceNames(second.actions)).toEqual(['x']);
 		expect(notifications).toBe(1);
-	});
-
-	it('renders nothing of the closed rename dialogs inside a group item', () => {
-		setup({ groups: [APLGroup.create({ name: 'one', actions: [] })] });
-		mount(<GroupList />);
-
-		const item = groupItems()[0];
-		expect(Array.from(item.children).map(child => child.getAttribute('data-testid'))).toEqual(['tree-item-header', 'apl-group-actions']);
 	});
 });

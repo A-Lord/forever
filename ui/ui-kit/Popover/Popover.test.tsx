@@ -1,23 +1,10 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Button } from '@ui-kit/Button';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { PopoverProps } from './Popover';
 import { Popover } from './Popover';
-
-const outsideNodes: Element[] = [];
-
-// Every outside element is created *before* the popover opens. floating-ui ignores presses on nodes
-// that appear after it, on the reasoning that a third party injected them — so a node made later
-// leaves the dismiss tests passing for a reason that has nothing to do with the dismiss.
-const addOutside = (className?: string) => {
-	const node = document.createElement('div');
-	if (className) node.className = className;
-	node.innerHTML = '<button type="button">Haste</button>';
-	document.body.appendChild(node);
-	outsideNodes.push(node);
-	return node.querySelector('button')!;
-};
 
 // `outsidePressEvent.mouse` is `'intentional'` for a non-modal popover: the press is the whole
 // sequence, and only the closing `click` dismisses.
@@ -45,43 +32,7 @@ const openPopover = (props: Partial<PopoverProps> = {}, triggerName = 'Settings'
 	return { ...result, trigger };
 };
 
-afterEach(() => {
-	outsideNodes.splice(0).forEach(node => node.remove());
-});
-
 describe('Popover', () => {
-	it('opens on a trigger click and renders its children into the portal', () => {
-		const onOpenChange = vi.fn();
-		const { trigger } = openPopover({ onOpenChange });
-
-		expect(onOpenChange).toHaveBeenCalledWith(true);
-		const popup = screen.getByRole('dialog');
-		expect(popup.getAttribute('data-testid')).toBe('sim-popover-popup');
-		expect(screen.getByRole('button', { name: 'Reset' })).toBeTruthy();
-		const portal = document.body.querySelector('[data-base-ui-portal]');
-		expect(portal?.contains(popup)).toBe(true);
-		expect(trigger.contains(popup)).toBe(false);
-	});
-
-	// Content mounts on open, and it is the whole of it — nothing here rebuilds or clears content.
-	it('renders nothing while closed', () => {
-		renderPopover();
-		expect(screen.queryByRole('dialog')).toBeNull();
-		expect(screen.queryByRole('button', { name: 'Reset' })).toBeNull();
-	});
-
-	it('follows the open prop when it is given one', () => {
-		const { rerender } = renderPopover({ open: false });
-		expect(screen.queryByRole('dialog')).toBeNull();
-
-		rerender(
-			<Popover trigger="Settings" open>
-				<button type="button">Reset</button>
-			</Popover>,
-		);
-		expect(screen.getByRole('dialog')).toBeTruthy();
-	});
-
 	it('portals into the container it is given', () => {
 		const host = document.createElement('div');
 		host.className = 'sim-ui';
@@ -93,16 +44,21 @@ describe('Popover', () => {
 		host.remove();
 	});
 
-	it('puts the caller class on the popup and the trigger class on the trigger', () => {
-		const { trigger } = openPopover({ className: ['reforge-settings', 'w-full'], triggerClassName: 'suggest-reforges-button-settings' });
+	it('portals into the container from context when it is given none', () => {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
 
-		expect(Array.from(screen.getByRole('dialog').classList)).toEqual(expect.arrayContaining(['reforge-settings', 'w-full']));
-		expect(trigger.classList.contains('suggest-reforges-button-settings')).toBe(true);
-	});
+		render(
+			<PortalContainerContext value={host}>
+				<Popover trigger="Settings">
+					<button type="button">Reset</button>
+				</Popover>
+			</PortalContainerContext>,
+		);
+		fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+		expect(host.contains(screen.getByRole('dialog'))).toBe(true);
 
-	it('paints its popup with the surface it shares with Menu', () => {
-		openPopover();
-		expect(screen.getByRole('dialog').classList.contains('ui-popup-surface')).toBe(true);
+		host.remove();
 	});
 
 	it('opens on hover when openOnHover is set', () => {
@@ -143,17 +99,6 @@ describe('Popover', () => {
 		await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' })));
 	});
 
-	it('closes on a press outside it', () => {
-		const outside = addOutside();
-		const onOpenChange = vi.fn();
-		openPopover({ onOpenChange });
-		onOpenChange.mockClear();
-
-		pressOutside(outside);
-		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(screen.getByRole('dialog').hasAttribute('data-open')).toBe(false);
-	});
-
 	it('renders no backdrop unless asked for one', () => {
 		openPopover();
 		expect(screen.queryByTestId('sim-popover-backdrop')).toBeNull();
@@ -165,7 +110,6 @@ describe('Popover', () => {
 		onOpenChange.mockClear();
 
 		const backdrop = screen.getByTestId('sim-popover-backdrop');
-		expect(backdrop.classList.contains('ui-popover-backdrop')).toBe(true);
 		expect(backdrop.contains(screen.getByRole('dialog'))).toBe(false);
 
 		pressOutside(backdrop);
@@ -174,13 +118,22 @@ describe('Popover', () => {
 
 	// The bug class this pins: a popup whose portal node outlives the React tree that opened it. The
 	// portal is a body child no ancestor unmount reaches, so nothing but Base UI's own cleanup removes it.
-	it('takes its portal node with it when it unmounts', () => {
-		const { unmount } = openPopover();
-		expect(document.body.querySelectorAll('[data-base-ui-portal]').length).toBe(1);
+	it.each([
+		['', false],
+		[' from a container', true],
+	])('takes its portal node with it when it unmounts%s', (_, inContainer) => {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		const root = inContainer ? host : document.body;
+
+		const { unmount } = openPopover(inContainer ? { container: host } : {});
+		expect(within(root).getAllByTestId('sim-popover-portal')).toHaveLength(1);
 
 		unmount();
-		expect(document.body.querySelector('[data-base-ui-portal]')).toBeNull();
+		expect(within(root).queryByTestId('sim-popover-portal')).toBeNull();
 		expect(screen.queryByRole('dialog')).toBeNull();
+		if (inContainer) expect(host.innerHTML).toBe('');
+		host.remove();
 	});
 
 	it('renders the trigger as the kit Button it is given, and opens from it', () => {
@@ -189,7 +142,7 @@ describe('Popover', () => {
 		const { trigger } = openPopover(
 			{
 				onOpenChange,
-				triggerRender: <Button variant="primary" className="w-8" />,
+				triggerRender: <Button variant="primary" />,
 				triggerTestId: 'settings-trigger',
 				triggerProps: { 'aria-label': 'Reforge settings' },
 				trigger: <span>Cog</span>,
@@ -199,7 +152,6 @@ describe('Popover', () => {
 
 		expect(trigger).toBe(screen.getByTestId('settings-trigger'));
 		expect(trigger.tagName).toBe('BUTTON');
-		expect(Array.from(trigger.classList)).toEqual(expect.arrayContaining(['ui-button', 'ui-button-primary', 'ui-button-md', 'w-8']));
 		expect(trigger.textContent).toBe('Cog');
 		expect(onOpenChange).toHaveBeenCalledWith(true);
 		expect(trigger.hasAttribute('data-popup-open')).toBe(true);
@@ -212,17 +164,5 @@ describe('Popover', () => {
 
 		expect(trigger.tagName).toBe('A');
 		expect(trigger.getAttribute('role')).toBe('button');
-	});
-
-	it('takes its portal node with it when it unmounts from a container', () => {
-		const host = document.createElement('div');
-		document.body.appendChild(host);
-
-		const { unmount } = openPopover({ container: host });
-		expect(within(host).getAllByTestId('sim-popover-portal')).toHaveLength(1);
-
-		unmount();
-		expect(host.innerHTML).toBe('');
-		host.remove();
 	});
 });

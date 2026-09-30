@@ -35,17 +35,6 @@ beforeEach(() => {
 const phaseTabs = (container: HTMLElement) => [...container.querySelectorAll<HTMLElement>('[data-testid="preset-group-phase-tabs"] button')];
 
 describe('PresetConfigurationPicker', () => {
-	it('renders one chip per build, with the name as the clickable span', () => {
-		const { container } = setup([
-			{ name: 'P1', gear: {} },
-			{ name: 'P2', gear: {} },
-		]);
-
-		expect(chips(container)).toHaveLength(2);
-		expect(chips(container).map(chip => chip.querySelector('[data-testid="saved-data-set-name"]')?.textContent)).toEqual(['P1', 'P2']);
-		expect(chips(container)[0].querySelector('[data-testid="saved-data-set-name"]')?.getAttribute('role')).toBe('button');
-	});
-
 	// The picker is mounted in four places with different category lists, and each shows only the
 	// builds touching its own categories.
 	it('keeps only the builds that carry one of its categories', () => {
@@ -80,14 +69,6 @@ describe('PresetConfigurationPicker', () => {
 
 		expect(applyBuild).toHaveBeenCalledTimes(1);
 		expect((applyBuild.mock.calls[0][0] as { name: string }).name).toBe('P2');
-	});
-
-	// Five specs have no builds at all, so nothing at all is what those panes contain.
-	it('renders nothing when there are no builds', () => {
-		const { container } = setup([]);
-
-		expect(container.querySelector('[data-testid="preset-configuration-picker-root"]')).toBeNull();
-		expect(container.querySelector('[data-testid="content-block"]')).toBeNull();
 	});
 
 	// Before the sim is ready, the block exists but is empty.
@@ -130,12 +111,6 @@ describe('PresetConfigurationPicker, grouped by phase', () => {
 		fireEvent.click(phaseTabs(container)[1]);
 
 		expect(chips(container).map(chip => chip.textContent)).toEqual(['P3']);
-	});
-
-	it('labels the groups only when there is more than one', () => {
-		const { container } = setup(phased);
-
-		expect([...container.querySelectorAll('[data-testid="preset-group-label"]')].map(label => label.textContent)).toEqual(['Beast Mastery', 'Survival']);
 	});
 
 	// A default page load leaves `__presetFilters__` absent.

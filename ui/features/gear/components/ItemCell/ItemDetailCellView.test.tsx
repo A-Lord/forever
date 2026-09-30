@@ -69,13 +69,11 @@ describe('ItemDetailCellView', () => {
 		expect(screen.getAllByTestId('gem-socket-container').map(socket => socket.getAttribute('data-tooltip-id'))).toEqual(['socket-0', 'socket-1']);
 	});
 
-	it('sits the name and labels at the start by default', () => {
-		renderCell();
-		expect(screen.getByTestId('item-picker-labels-container').dataset.align).toBe('start');
-	});
-
-	it('sits the name and labels against the icon at the end for the right column', () => {
-		renderCell({ align: 'end' });
-		expect(screen.getByTestId('item-picker-labels-container').dataset.align).toBe('end');
+	it.each([
+		['start', undefined],
+		['end', 'end'],
+	] as const)('sits the name and labels at the %s edge, the start by default', (edge, align) => {
+		renderCell({ align });
+		expect(screen.getByTestId('item-picker-labels-container').dataset.align).toBe(edge);
 	});
 });

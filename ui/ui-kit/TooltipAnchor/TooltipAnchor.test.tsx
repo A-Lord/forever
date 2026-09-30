@@ -30,15 +30,6 @@ describe('TooltipAnchor', () => {
 		expect(screen.getByTestId('ep-label').getAttribute('data-tooltip-content')).toBe('DPS per point');
 	});
 
-	it('adds the caller classes after its own', () => {
-		render(
-			<TooltipAnchor tooltipId="t" className={['text-white', false]} testId="anchor">
-				x
-			</TooltipAnchor>,
-		);
-		expect(screen.getByTestId('anchor').className).toBe('ui-tooltip-anchor text-white');
-	});
-
 	it('opens its tooltip on hover and on keyboard focus', async () => {
 		const { unmount } = render(
 			<>

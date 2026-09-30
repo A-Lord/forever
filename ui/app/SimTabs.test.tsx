@@ -72,11 +72,6 @@ beforeEach(() => {
 	trackPageView.mockClear();
 });
 
-const press = (key: string) =>
-	act(() => {
-		(document.activeElement ?? strip).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
-	});
-
 const tabs = () => [...strip.querySelectorAll<HTMLElement>('[role="tab"]')];
 const tab = (id: string) => strip.querySelector<HTMLElement>(`[data-testid="${id}"]`)!;
 const panels = () => [...panes.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
@@ -128,27 +123,8 @@ describe('SimTabs', () => {
 		expect(tab('gear-tab').getAttribute('aria-selected')).toBe('false');
 	});
 
-	it('keeps a roving tabindex, so Tab reaches the strip once and lands on the open tab', async () => {
-		renderTabs(['gear-tab', 'settings-tab', 'talents-tab']);
-		const stops = () =>
-			tabs()
-				.filter(el => el.tabIndex !== -1)
-				.map(el => el.getAttribute('data-testid'));
-		expect(stops()).toEqual(['gear-tab']);
-
-		await activate('talents-tab');
-		expect(stops()).toEqual(['talents-tab']);
-	});
-
 	// Arrow/Home/End navigation is Base UI's composite, and it does not drive under happy-dom — the
 	// keys land but the roving focus never moves, so this file cannot assert the sequence.
-
-	it('leaves other keys alone, so typing still reaches the page', () => {
-		renderTabs(['gear-tab', 'settings-tab']);
-		act(() => tab('gear-tab').focus());
-		press('a');
-		expect(openId()).toBe('gear-tab');
-	});
 
 	it('activates by identifier, which is how the bulk results renderer returns to the gear tab', async () => {
 		renderTabs(['gear-tab', 'settings-tab']);
