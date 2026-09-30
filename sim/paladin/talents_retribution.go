@@ -386,9 +386,14 @@ func (paladin *Paladin) applyTwistOfLight() {
 			ProcMask:           core.ProcMaskMeleeWhiteHit,
 			Outcome:            core.OutcomeLanded,
 			TriggerImmediately: true,
+			// The hit that lands consumes the Echo at once, so the next hit cannot; the replayed
+			// seal effect resolves a batch window later, as a live seal's does.
 			Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-				if echo.seal != nil && echo.seal.echo != nil {
-					echo.seal.echo(sim, result.Target)
+				if seal := echo.seal; seal != nil && seal.echo != nil {
+					target := result.Target
+					afterBatch(sim, core.ActionPriorityDOT, func(sim *core.Simulation) {
+						seal.echo(sim, target)
+					})
 				}
 				echo.seal = nil
 				echo.aura.Deactivate(sim)

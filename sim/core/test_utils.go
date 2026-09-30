@@ -73,7 +73,6 @@ var FullPartyBuffs = &proto.PartyBuffs{
 	AtieshMage:        1,
 	AtieshPriest:      1,
 	AtieshWarlock:     1,
-	TotemTwisting:     true,
 
 	ManaSpringTotem:      proto.TristateEffect_TristateEffectImproved,
 	ManaTideTotems:       1,

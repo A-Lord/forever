@@ -5,22 +5,12 @@ import (
 )
 
 // Puts the temporary enchant each imbue the spec names on its hand, where the enchant takes that
-// hand's weapon; the main hand's only where neither of the party's weapon totems, Windfury Totem and
-// Flametongue Totem, takes its place. It runs before the weapons are built, and a weapon built from a
-// hand's item takes the enchant's flat weapon damage. The consumable's registered effect then applies
-// the rest of the enchant to the hands carrying it.
-func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) {
-	weaponTotem := partyBuffs.GetWindfuryTotem() || partyBuffs.GetFlametongueTotem()
-	if !weaponTotem || !character.TakesTotemEnchant() {
-		character.applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand)
-	}
+// hand's weapon. It runs before the weapons are built, and a weapon built from a hand's item takes
+// the enchant's flat weapon damage. The consumable's registered effect then applies the rest of the
+// enchant to the hands carrying it.
+func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec) {
+	character.applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand)
 	character.applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand)
-}
-
-// Windfury Totem and Flametongue Totem enchant the main hand, which does nothing for a druid in Cat or
-// Bear Form, so the feral specs neither proc them nor give their main-hand imbue up for them.
-func (character *Character) TakesTotemEnchant() bool {
-	return !character.isFeralDruid()
 }
 
 func (character *Character) isFeralDruid() bool {
