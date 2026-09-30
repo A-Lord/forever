@@ -6,7 +6,6 @@ import (
 )
 
 var cleaveRank = spellData.Cleave.Highest()
-var cleaveBaseDamage = cleaveRank.DamageEffect().Average()
 var cleaveTargets = int32(cleaveRank.DamageEffect().ChainTargets)
 
 func (warrior *Warrior) registerCleave() {
@@ -15,7 +14,7 @@ func (warrior *Warrior) registerCleave() {
 	config.FlatThreatBonus = 0
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := cleaveBaseDamage + warrior.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
+		baseDamage := cleaveRank.WeaponStrike(sim, spell, warrior.MHWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
 		results := spell.CalcCleaveDamage(sim, target, cleaveTargets, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 		spell.DealBatchedAoeDamage(sim)
 		if !results[0].Landed() {

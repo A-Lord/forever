@@ -187,7 +187,6 @@ func (warrior *Warrior) registerImpale() {
 }
 
 var mortalStrikeRank = spellData.MortalStrike.Highest()
-var mortalStrikeBaseDamage = mortalStrikeRank.DamageEffect().Average()
 
 func (warrior *Warrior) registerMortalStrike() {
 	if !warrior.Talents.MortalStrike {
@@ -197,7 +196,7 @@ func (warrior *Warrior) registerMortalStrike() {
 	config := spelldata.SpellConfig(&warrior.Unit, mortalStrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := mortalStrikeBaseDamage + spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		baseDamage := mortalStrikeRank.WeaponStrike(sim, spell, spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 
 		if !result.Landed() {
