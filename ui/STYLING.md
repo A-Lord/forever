@@ -30,15 +30,16 @@ Reach for a **named utility** first, including its variants and `!`-free forms. 
   e.g. `--color-grey: #808080`) rather than writing `bg-[#808080]` — never drop a declaration because
   no token exists yet either; a missing visible property is a bug, not a simplification.
 - **No arbitrary spacing where a scale step exists.** The spacing rhythm in this repo is even steps
-  plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …` — and one step is 3.5px at this repo's 14px root, so `p-2` is
-  exactly 7px and `w-4` is 14px.
+  plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …`. The root is 12px below `xxxl` (1600px) and 14px from `xxxl`
+  on, so one step is 3px or 3.5px and `p-2` is 6px or 7px. Conversions read a source px value at the
+  14px root.
   Convert a source px value to the **nearest even step** (ties round down), rather than writing `[Npx]`
   — see §7 for the same rule at the rendering-diff gate. `gap-[3.5px]` → `gap-1`, `7px` → `p-2`,
   `14px` → `w-4`; a sub-step value that stands for a hairline (a border, a divider, a ruler tick)
   converts to the fixed `px` step instead — a `1.75px` border becomes `px`, not a rounded step. Keep a
   literal `[Npx]` only where no step and no hairline fits, and prefer a token over a repeated arbitrary
-  value. `1rem` is 14px at every width (`ui/styles/base.css`'s `--font-size-root`), so a converted step
-  follows the root everywhere — a size the JavaScript relies on (the timeline, the log runner's virtual
+  value. `1rem` follows `ui/styles/base.css`'s `--font-size-root`, so a converted step scales with the
+  root — a size the JavaScript relies on (the timeline, the log runner's virtual
   list) is pinned to an exact px value with a named `@theme` token instead, so it never scales with the
   root.
 - **Canonical spelling only.** `node ui/testing/tailwind/canonical-classes.mjs` runs Tailwind's own
@@ -267,7 +268,7 @@ Three tree-wide tests in `npm run test:unit` run the checkers, all under `// @vi
       the diff before calling a class-hook or utility change done — the class-hook gate proves a
       class is gone, not that nothing rendered differently without it.
     - **A px value converts to the nearest even spacing step**: the scale here is 1 or an even integer
-      — `1, 2, 4, 6, 8, 10, 12, 16, …` — one step is 3.5px at this repo's 14px root, and a source px
+      — `1, 2, 4, 6, 8, 10, 12, 16, …` — one step is 3.5px at the 14px root conversions use, and a source px
       value snaps to its nearest step, ties rounding down (`7px` → `p-2`, `14px` → `w-4`); a sub-step
       value standing for a hairline (a border, a divider, a ruler tick) converts to the fixed `px` step
       instead of rounding. `ui/testing/tailwind/canonical-classes.mjs`'s `findUnevenSpacing` flags any

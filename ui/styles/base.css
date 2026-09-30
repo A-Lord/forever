@@ -14,8 +14,12 @@
 }
 
 :root {
-	--font-size-root: 14px;
+	--font-size-root: 12px;
 	font-size: var(--font-size-root);
+
+	@variant xxxl {
+		--font-size-root: 14px;
+	}
 
 	@variant motion-safe {
 		scroll-behavior: smooth;
