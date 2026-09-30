@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	googleProto "google.golang.org/protobuf/proto"
@@ -212,6 +213,40 @@ func TestEachStingDropsTheHuntersOtherSting(t *testing.T) {
 	land(scorpid, scorpidAura)
 	if serpentAura.IsActive() {
 		t.Error("Scorpid Sting landed beside the hunter's own Serpent Sting, want it dropped")
+	}
+}
+
+// The hunter's own Hunter's Mark carries the mark's tag, which Expose Prey reads before it opens
+// Mongoose Bite, and gives every attacker its ranged attack power.
+func TestTheHuntersOwnMarkCarriesTheMarkTag(t *testing.T) {
+	player := &proto.Player{
+		Name:          "Mark",
+		Race:          proto.Race_RaceOrc,
+		Class:         proto.Class_ClassHunter,
+		Equipment:     &proto.EquipmentSpec{},
+		TalentsString: DefaultSVTalents,
+		Spec:          DefaultOptions,
+		Rotation:      &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	target := sim.Encounter.AllTargetUnits[0]
+
+	mark := hunter.GetSpell(core.ActionID{SpellID: huntersMarkRank.ID})
+	if mark == nil {
+		t.Fatal("the hunter has no Hunter's Mark")
+	}
+	mark.SkipCastAndApplyEffects(sim, target)
+	if !target.HasActiveAuraWithTag(buffs.HuntersMarkCategory) {
+		t.Error("the hunter's mark is up but no aura tagged HuntersMark is, so Expose Prey never sees it")
+	}
+	if got, want := target.PseudoStats.BonusRangedAttackPower, buffs.HuntersMarkValue(0); got != want {
+		t.Errorf("the mark gives attackers %v ranged attack power, want %v", got, want)
 	}
 }
 
