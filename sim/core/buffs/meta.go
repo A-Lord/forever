@@ -135,7 +135,8 @@ func (m *Meta) buff(unit *core.Unit, isPlayer bool, talentPoints int32, opts []s
 
 // The aura a generated debuff registers on the target: labelled and tagged like newBuff, never in a
 // build phase, with Exclusive(Category, SingleAura) where it names a category and no school
-// resistance categories of its own.
+// resistance categories of its own. A debuff in a category that holds more than one aura bids each
+// effect alone, so a stronger one holds only the effects of its own kind.
 func newDebuff(target *core.Unit, m *Meta, isPlayer bool, talentPoints int32) *core.Aura {
 	return m.debuff(target, isPlayer, m.label(isPlayer), m.Category, talentPoints)
 }
@@ -157,7 +158,13 @@ func (m *Meta) debuff(target *core.Unit, isPlayer bool, label string, tag string
 
 func (m *Meta) parsedAura(unit *core.Unit, isPlayer bool, label string, tag string, talentPoints int32,
 	buildPhase core.CharacterBuildPhase, opts []spelldata.ParseOpt) *core.Aura {
-	aura := unit.GetOrRegisterAura(core.Aura{
+	// A second caller of the same copy shares the aura the first registered, which carries its
+	// effects already.
+	if aura := unit.GetAura(label); aura != nil {
+		return aura
+	}
+
+	aura := unit.RegisterAura(core.Aura{
 		Label:      label,
 		Tag:        tag,
 		ActionID:   m.actionID(isPlayer),
