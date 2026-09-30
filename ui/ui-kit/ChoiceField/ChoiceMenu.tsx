@@ -52,21 +52,24 @@ export const ChoiceMenu = <V,>({
 	tooltipId,
 	side,
 	positionMethod,
-}: ChoiceMenuProps<V>) => (
-	<Menu
-		surface="menu"
-		open={open}
-		onOpenChange={onOpenChange}
-		trigger={trigger}
-		// A Select's trigger gets aria-describedby from Base UI's own Field wiring; a Menu's trigger is not one of
-		// its field-aware controls, so it never does.
-		triggerProps={{ ...triggerProps, 'aria-describedby': useFieldDescribedBy() }}
-		align="start"
-		side={side}
-		positionMethod={positionMethod}
-		sideOffset={2}
-		portalProps={{ className: 'contents' }}
-		popupRender={<div />}>
-		{open && <ChoiceMenuList entries={entries} value={value} equals={equals} onSelect={onSelect} tooltipId={tooltipId} />}
-	</Menu>
-);
+}: ChoiceMenuProps<V>) => {
+	// A Select's trigger gets aria-describedby from Base UI's own Field wiring; a Menu's trigger is not one of
+	// its field-aware controls, so it never does.
+	const describedBy = useFieldDescribedBy();
+	return (
+		<Menu
+			surface="menu"
+			open={open}
+			onOpenChange={onOpenChange}
+			trigger={trigger}
+			triggerProps={{ ...triggerProps, 'aria-describedby': describedBy }}
+			align="start"
+			side={side}
+			positionMethod={positionMethod}
+			sideOffset={2}
+			portalProps={{ className: 'contents' }}
+			popupRender={<div />}>
+			{open && <ChoiceMenuList entries={entries} value={value} equals={equals} onSelect={onSelect} tooltipId={tooltipId} />}
+		</Menu>
+	);
+};
