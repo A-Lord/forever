@@ -32,7 +32,7 @@ export const NoticeIcon = ({ level, label, children, size = 'xl', hidden, classN
 				{...tooltipAnchorProps(tooltipId)}>
 				<Icon name={NOTICE_ICON_NAME[level]} size={size} fixedWidth className={NOTICE_COLOR[level]} />
 			</Button>
-			<Tooltip id={tooltipId} content={<div>{children}</div>} clickable />
+			<Tooltip id={tooltipId} content={children} clickable />
 		</>
 	);
 };

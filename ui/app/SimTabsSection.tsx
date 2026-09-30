@@ -52,9 +52,7 @@ export const SimTabsSection = ({ host, children }: SimTabsSectionProps) => {
 							{/* Not a `SimTabPane`: the doubled id and the missing content container are what the stylesheets select on. */}
 							<SimTabDef id="detailed-results-tab-tab" title={i18n.t('results_tab.title')}>
 								<div id="detailed-results-tab-tab">
-									<div>
-										<DetailedResults resultsManager={host.raidSimResultsManager} />
-									</div>
+									<DetailedResults resultsManager={host.raidSimResultsManager} />
 								</div>
 							</SimTabDef>
 							<SimTabDef id="bulk-tab" title={i18n.t('bulk_tab.title')} badge={i18n.t('bulk_tab.title_badge')}>
