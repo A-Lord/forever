@@ -1,5 +1,5 @@
 import { Popover as BasePopover } from '@base-ui/react/popover';
-import { Button } from '@ui-kit/Button';
+import { isNativeButtonTrigger } from '@ui-kit/Button';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import type { ClassValue } from 'clsx';
 import clsx from 'clsx';
@@ -68,7 +68,7 @@ export const Popover = ({
 			{trigger != null && (
 				<BasePopover.Trigger
 					render={triggerRender}
-					nativeButton={triggerRender === undefined || triggerRender.type === 'button' || triggerRender.type === Button}
+					nativeButton={isNativeButtonTrigger(triggerRender)}
 					className={clsx(triggerClassName)}
 					data-testid={triggerTestId}
 					openOnHover={openOnHover}

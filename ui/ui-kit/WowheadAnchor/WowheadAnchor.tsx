@@ -11,7 +11,9 @@ import type { WowheadAnchorProps } from './types';
 export const WowheadAnchor = ({
 	href,
 	icon = true,
+	navigate = true,
 	onActivate,
+	disabled,
 	onClick,
 	onKeyDown,
 	onKeyUp,
@@ -24,6 +26,7 @@ export const WowheadAnchor = ({
 	...rest
 }: WowheadAnchorProps) => {
 	const button = !!onActivate && !href;
+	const cancels = !navigate || !!onActivate;
 
 	return (
 		<a
@@ -34,12 +37,13 @@ export const WowheadAnchor = ({
 			href={href || undefined}
 			rel={externalRel(href || undefined, rel)}
 			role={role ?? (button ? 'button' : undefined)}
-			tabIndex={tabIndex ?? (button ? 0 : undefined)}
+			aria-disabled={disabled ? 'true' : undefined}
+			tabIndex={tabIndex ?? (button ? (disabled ? -1 : 0) : undefined)}
 			onClick={
-				onActivate
+				cancels
 					? (event: MouseEvent<HTMLAnchorElement>) => {
 							event.preventDefault();
-							onActivate(event);
+							if (!disabled) onActivate?.(event);
 							onClick?.(event);
 						}
 					: onClick

@@ -189,6 +189,13 @@ describe('Popover', () => {
 		error.mockRestore();
 	});
 
+	it('renders a kit Button trigger with an href as an anchor with an explicit role="button"', () => {
+		const { trigger } = openPopover({ triggerRender: <Button href="https://x" />, triggerTestId: 'settings-trigger', trigger: <span>Cog</span> }, 'Cog');
+
+		expect(trigger.tagName).toBe('A');
+		expect(trigger.getAttribute('role')).toBe('button');
+	});
+
 	it('takes its portal node with it when it unmounts from a container', () => {
 		const host = document.createElement('div');
 		document.body.appendChild(host);

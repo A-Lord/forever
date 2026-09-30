@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -22,11 +23,14 @@ describe('ReforgeStatCapsView', () => {
 		expect(screen.getAllByRole('columnheader').map(header => header.textContent)).toEqual(['sidebar.buttons.suggest_reforges.stat', '%', 'Max?']);
 	});
 
-	it('anchors the caps explanation on text, leaving the reset as the only button', () => {
+	it('names the caps explanation and the reset as the only two buttons', () => {
 		renderCaps();
 
 		expect(screen.getByTestId('reforge-stat-caps-help').hasAttribute('data-tooltip-id')).toBe(true);
-		expect(screen.getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(['sidebar.buttons.suggest_reforges.reset_to_defaults']);
+		expect(screen.getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual([
+			i18n.t('common.help'),
+			i18n.t('sidebar.buttons.suggest_reforges.reset_to_defaults'),
+		]);
 	});
 
 	it('puts the rows it is given in the table body', () => {

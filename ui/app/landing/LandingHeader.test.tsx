@@ -21,7 +21,7 @@ describe('LandingHeader', () => {
 
 	it('opens every external nav link in a new tab with no opener', () => {
 		render(<LandingHeader />);
-		const names = [i18n.t('info.discord'), i18n.t('info.github'), i18n.t('landing.header.supportDevs')];
+		const names = [i18n.t('info.discord'), i18n.t('info.github'), i18n.t('info.patreon')];
 
 		names.forEach(name => {
 			const link = screen.getByRole('link', { name });

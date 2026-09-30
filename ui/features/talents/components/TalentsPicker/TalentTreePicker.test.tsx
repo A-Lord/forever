@@ -120,6 +120,13 @@ describe('TalentTreePicker icons', () => {
 		expect(talents()[0].getAttribute('href')).toContain('rank=1');
 	});
 
+	it('keeps the wowhead touch tooltip and adds no role or tab stop, since mousedown commits the spend', () => {
+		tree('');
+		expect(talents()[0].hasAttribute('data-disable-wowhead-touch-tooltip')).toBe(false);
+		expect(talents()[0].hasAttribute('role')).toBe(false);
+		expect(talents()[0].hasAttribute('tabindex')).toBe(false);
+	});
+
 	it('keys the icon lookup on rank 1 whatever the points, so spending one never blanks the cell', () => {
 		lookedUpRanks.length = 0;
 		tree('35');

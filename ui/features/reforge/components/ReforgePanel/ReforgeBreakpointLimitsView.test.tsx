@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -9,12 +10,13 @@ const ROWS = [
 ];
 
 describe('ReforgeBreakpointLimitsView', () => {
-	it('titles the limits and anchors their explanation', () => {
+	it('titles the limits and names their explanation button', () => {
 		render(<ReforgeBreakpointLimitsView rows={ROWS} />);
 
 		expect(screen.getByRole('heading').textContent).toBe('sidebar.buttons.suggest_reforges.breakpoint_limit');
-		expect(screen.getByTestId('reforge-breakpoint-limit-help').hasAttribute('data-tooltip-id')).toBe(true);
-		expect(screen.queryByRole('button')).toBeNull();
+		const button = screen.getByTestId('reforge-breakpoint-limit-help');
+		expect(button.hasAttribute('data-tooltip-id')).toBe(true);
+		expect(screen.getByRole('button', { name: i18n.t('common.help') })).toBe(button);
 	});
 
 	it('lists one stat per row beside its limit select', () => {

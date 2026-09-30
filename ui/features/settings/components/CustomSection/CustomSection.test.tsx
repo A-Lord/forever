@@ -83,7 +83,7 @@ describe('CustomSection', () => {
 		expect(header.classList.contains('flex-col')).toBe(false);
 	});
 
-	it('renders its icons and inputs into the block body, both forced inline', () => {
+	it('renders its icons into the block body bare, and forces its inputs inline', () => {
 		const block = mount({
 			iconInputs: [{ type: 'icon' }] as never,
 			inputs: [{ id: 'disable-immolate', type: 'boolean' }] as never,
@@ -93,7 +93,7 @@ describe('CustomSection', () => {
 		const iconPicker = body.querySelector('[data-testid="icon-picker-root"]')!;
 		expect(iconPicker.parentElement!.classList.contains('totem-dropdowns-container')).toBe(true);
 		expect(iconPicker.parentElement!.classList.contains('ui-icon-row')).toBe(true);
-		expect(iconPicker.getAttribute('data-layout')).toBe('inline');
+		expect(iconPicker.hasAttribute('data-layout')).toBe(false);
 		expect(body.querySelector('[data-testid="input-picker-stub"]')!.getAttribute('data-layout')).toBe('inline');
 	});
 

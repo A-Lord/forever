@@ -1,12 +1,25 @@
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ChoiceOption } from '@ui-kit/ChoiceField';
-import { describe, expect, it } from 'vitest';
+import type { ChoiceFieldProps, ChoiceOption } from '@ui-kit/ChoiceField';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { InputConfig } from '../../input';
 import { ConnectedChoiceField } from './ConnectedChoiceField';
 import type { ChoiceFieldConfig } from './types';
+
+// Records the `options` array identity every render hands to `ChoiceField`, to prove `ConnectedChoiceField` maps `config.values` once per identity rather than once per render.
+const { seenOptions } = vi.hoisted(() => ({ seenOptions: [] as Array<unknown> }));
+vi.mock('@ui-kit/ChoiceField', async importOriginal => {
+	const actual = await importOriginal<typeof import('@ui-kit/ChoiceField')>();
+	return {
+		...actual,
+		ChoiceField: (props: ChoiceFieldProps<unknown>) => {
+			seenOptions.push(props.options);
+			return <actual.ChoiceField {...props} />;
+		},
+	};
+});
 
 // Stands in for a domain facade: a value plus the (onChange) => unsubscribe contract every
 // storeSubscribe helper in state/subscriptions.ts returns.
@@ -190,5 +203,15 @@ describe('ConnectedChoiceField', () => {
 		const { container } = render(<ConnectedChoiceField modObject={new Settings(0)} config={enumConfig({ enableWhen: () => false })} />);
 		expect((trigger() as HTMLButtonElement).disabled).toBe(true);
 		expect(container.firstElementChild!.hasAttribute('data-disabled')).toBe(true);
+	});
+
+	it('keeps the same mapped choices array across a re-render the values do not touch', () => {
+		seenOptions.length = 0;
+		const settings = new Settings(1);
+		render(<ConnectedChoiceField modObject={settings} config={enumConfig()} />);
+		act(() => settings.set(2));
+
+		expect(seenOptions.length).toBeGreaterThanOrEqual(2);
+		expect(seenOptions.every(options => options === seenOptions[0])).toBe(true);
 	});
 });

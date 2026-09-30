@@ -32,7 +32,7 @@ export const CustomSection = ({ section }: CustomSectionProps) => {
 			{!!section.iconInputs?.length && (
 				<IconRow className={section.iconGroupClassName}>
 					{section.iconInputs.map((config, index) => (
-						<ConnectedIconInput key={index} modObject={player} config={{ ...config, layout: 'inline' }} />
+						<ConnectedIconInput key={index} modObject={player} config={config} />
 					))}
 				</IconRow>
 			)}

@@ -80,6 +80,7 @@ export const LandingHeader = () => {
 								href="https://patreon.com/wowsims"
 								target="_blank"
 								variant="unstyled"
+								aria-label={i18n.t('info.patreon')}
 								className="ui-landing-nav-link flex items-center px-0 py-4 text-sm whitespace-nowrap md:px-2">
 								<Icon name="patreon" style="brands" size="2x" className="mr-2" />
 								<span className="text-fluid-xl md:hidden lg:block">{i18n.t('landing.header.supportDevs')}</span>

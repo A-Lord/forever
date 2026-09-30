@@ -27,7 +27,7 @@ export const BulkItemSearchRow = ({ item }: BulkItemSearchRowProps) => {
 			href={href || undefined}
 			tabIndex={-1}
 			// The combo box option around the row selects the item on the same click.
-			onActivate={() => {}}>
+			navigate={false}>
 			<div className="relative size-10 shrink-0 border border-border">
 				<span className="ui-item-picker-ilvl" data-testid="item-picker-ilvl">
 					{baseIlvl(item)}
