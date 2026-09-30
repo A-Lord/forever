@@ -97,6 +97,15 @@ describe('MultiIconPicker', () => {
 		expect(trigger().hasAttribute('aria-label')).toBe(false);
 	});
 
+	it('names the trigger by the label and opens the menu from a click on the label', () => {
+		mount();
+		const label = screen.getByTestId('form-label');
+		expect(trigger().getAttribute('aria-labelledby')).toBe(label.id);
+
+		fireEvent.click(label);
+		expect(trigger().getAttribute('aria-expanded')).toBe('true');
+	});
+
 	it('paints the icon it is given and marks the trigger active', () => {
 		const { rerender } = mount();
 		expect(trigger().hasAttribute('data-active')).toBe(false);

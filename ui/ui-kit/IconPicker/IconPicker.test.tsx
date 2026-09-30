@@ -79,6 +79,24 @@ describe('IconPicker', () => {
 		expect(within(field).getByTestId('form-label').textContent).toBe('Buff');
 	});
 
+	it('names the swatch by the label, beating the icon name', () => {
+		mount({ id: 'battle-shout', label: 'Battle Shout' });
+		expect(screen.getByRole('link', { name: 'Battle Shout' })).toBe(mainAnchor());
+		expect(screen.queryByRole('link', { name: 'Buff' })).toBeNull();
+	});
+
+	it('clicks the swatch when its label is clicked, cycling the value exactly once', () => {
+		const { onChange } = mount({ states: 3, label: 'Buff' });
+		fireEvent.click(screen.getByTestId('form-label'));
+		expect(onChange).toHaveBeenCalledOnce();
+		expect(onChange).toHaveBeenLastCalledWith(1);
+	});
+
+	it('leaves an unlabelled swatch without an aria-labelledby', () => {
+		mount();
+		expect(mainAnchor().hasAttribute('aria-labelledby')).toBe(false);
+	});
+
 	it('lays out an icon field whatever layout the caller asks for', () => {
 		const { container } = mount({ label: 'Buff', layout: 'inline' });
 		expect((container.firstElementChild as HTMLElement).getAttribute('data-layout')).toBe('icon');

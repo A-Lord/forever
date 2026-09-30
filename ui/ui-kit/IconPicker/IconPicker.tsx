@@ -1,9 +1,9 @@
-import { Field, hasFieldChrome } from '@ui-kit/Field';
+import { Field, hasFieldChrome, useOptionalField } from '@ui-kit/Field';
 import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
-import { IconSwatch } from '@ui-kit/IconSwatch';
+import { IconSwatch, type IconSwatchProps } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
-import type { MouseEvent } from 'react';
+import type { MouseEvent, Ref } from 'react';
 
 import { ImprovedAnchor } from './ImprovedAnchor';
 
@@ -16,6 +16,14 @@ export interface IconPickerProps extends FieldChromeProps, ControlledProps<numbe
 	/** Shown from states 4 up. */
 	improvedIcon2?: ResolvedIcon;
 }
+
+// Rendered only as a labelled `Field`'s `leading`, so the context it reads is that field's own, never an
+// ancestor's: the swatch becomes the field's control, named by the label instead of the icon.
+const FieldSwatch = (props: IconSwatchProps) => {
+	const field = useOptionalField();
+	if (!field) return <IconSwatch {...props} />;
+	return <IconSwatch {...props} ref={field.controlRef as Ref<HTMLAnchorElement>} aria-labelledby={field.labelId} />;
+};
 
 /** Without a label, description or layout the swatch renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
 export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...chrome }: IconPickerProps) => {
@@ -70,8 +78,9 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 		</>
 	);
 
+	const SwatchComponent = rooted ? FieldSwatch : IconSwatch;
 	const swatch = (
-		<IconSwatch
+		<SwatchComponent
 			icon={icon}
 			href={icon?.href}
 			active={value > 0}
