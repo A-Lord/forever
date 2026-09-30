@@ -34,6 +34,8 @@ export interface PopoverProps {
 	delay?: number;
 	/** Base UI moves focus to the first tabbable element in the popup; `false` leaves it on the trigger. */
 	initialFocus?: boolean;
+	/** Dims the page behind the popup, as a dialog does; a press on it closes the popover. */
+	backdrop?: boolean;
 	children?: ReactNode;
 	testId?: string;
 }
@@ -59,6 +61,7 @@ export const Popover = ({
 	openOnHover,
 	delay,
 	initialFocus = false,
+	backdrop = false,
 	children,
 	testId,
 }: PopoverProps) => {
@@ -79,6 +82,7 @@ export const Popover = ({
 			)}
 			{/* Named, because with a `container` the portal renders a wrapper element of its own. */}
 			<BasePopover.Portal className="contents" data-testid="sim-popover-portal" container={container ?? portalContainer ?? undefined}>
+				{backdrop && <BasePopover.Backdrop className="ui-popover-backdrop" data-testid="sim-popover-backdrop" />}
 				<BasePopover.Positioner
 					className="ui-popover-positioner"
 					data-testid="sim-popover-positioner"

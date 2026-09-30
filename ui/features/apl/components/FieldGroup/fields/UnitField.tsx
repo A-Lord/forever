@@ -50,19 +50,19 @@ export const UnitField = ({ player, config, unitSet }: UnitFieldProps) => {
 	// eslint-disable-next-line react-hooks/exhaustive-deps -- the metadata version is what moves when the units do.
 	const models = useMemo(() => unitOptionModels(unitSet, player), [unitSet, player, metadataVersion]);
 	const icons = useActionIds(models.map(({ unit }) => (typeof unit.iconUrl === 'string' ? undefined : unit.iconUrl)));
-	const choices = useMemo(
-		() =>
-			pathChoices(
-				models.map((model, index) =>
-					unitOption(
-						withIconUrl(model.unit, icons[index]),
-						model.submenu?.map(unit => withIconUrl(unit)),
-					),
+	const choices = useMemo(() => {
+		const built = pathChoices(
+			models.map((model, index) =>
+				unitOption(
+					withIconUrl(model.unit, icons[index]),
+					model.submenu?.map(unit => withIconUrl(unit)),
 				),
-				sameUnit,
 			),
-		[models, icons],
-	);
+			sameUnit,
+		);
+		// A pet, and with it the only submenu, can arrive after mount; an optionTree from the first render keeps the trigger on the menu path instead of swapping it then.
+		return { options: built.options, optionTree: built.optionTree ?? (() => built.options) };
+	}, [models, icons]);
 
 	const boundConfig = {
 		...config,

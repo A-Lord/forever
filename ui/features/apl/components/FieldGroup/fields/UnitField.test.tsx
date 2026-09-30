@@ -17,6 +17,7 @@ const config = { id: 'unit-field', getValue: () => undefined as UnitReference | 
 
 let player: ReturnType<typeof makePlayer>;
 let targets: Array<unknown>;
+let pets: Array<unknown>;
 
 const tree = (unitSet: 'targets' | 'players' | 'aura_sources') => (
 	<SimHostProvider host={{ player, rootElem: document.body } as never}>
@@ -27,12 +28,13 @@ const tree = (unitSet: 'targets' | 'players' | 'aura_sources') => (
 const label = (key: string) => `rotation_tab.apl.helpers.unit_labels.${key}`;
 
 const trigger = () => document.getElementById('unit-field')!;
-const items = () => screen.queryAllByRole('option').map(item => item.textContent);
+const items = () => screen.queryAllByRole('menuitemradio').map(item => item.textContent);
 const open = () => userEvent.click(trigger());
 
 beforeEach(() => {
 	document.body.innerHTML = '';
 	targets = [];
+	pets = [];
 	player = makePlayer(APLRotation.create());
 	player.sim.encounter = { targetsMetadata: { asList: () => targets.slice() } };
 });
@@ -59,6 +61,21 @@ describe('UnitField', () => {
 		});
 
 		expect(items()).toHaveLength(4);
+	});
+
+	it('keeps the same trigger node when a pet, and with it a submenu, arrives after mount', async () => {
+		player.getPetMetadatas = () => ({ asList: () => pets.slice() });
+		player.sim.raid.getActivePlayers = () => [];
+		player.sim.getUnitMetadata = () => ({ getName: () => 'Player 1 - Stampede' });
+		render(tree('aura_sources'));
+		const before = trigger();
+
+		await act(() => {
+			pets.push({});
+			patchSlice(player.sim.store, 'sim', { metadataVersion: 1 });
+		});
+
+		expect(trigger()).toBe(before);
 	});
 
 	it('shows a pet whose icon is an ActionId with the url it resolves to', async () => {

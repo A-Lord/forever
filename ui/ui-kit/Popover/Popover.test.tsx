@@ -154,6 +154,24 @@ describe('Popover', () => {
 		expect(screen.getByRole('dialog').hasAttribute('data-open')).toBe(false);
 	});
 
+	it('renders no backdrop unless asked for one', () => {
+		openPopover();
+		expect(screen.queryByTestId('sim-popover-backdrop')).toBeNull();
+	});
+
+	it('dims the page behind the popup when asked, and closes on a press on the backdrop', () => {
+		const onOpenChange = vi.fn();
+		openPopover({ backdrop: true, onOpenChange });
+		onOpenChange.mockClear();
+
+		const backdrop = screen.getByTestId('sim-popover-backdrop');
+		expect(backdrop.classList.contains('ui-popover-backdrop')).toBe(true);
+		expect(backdrop.contains(screen.getByRole('dialog'))).toBe(false);
+
+		pressOutside(backdrop);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+	});
+
 	// The bug class this pins: a popup whose portal node outlives the React tree that opened it. The
 	// portal is a body child no ancestor unmount reaches, so nothing but Base UI's own cleanup removes it.
 	it('takes its portal node with it when it unmounts', () => {
