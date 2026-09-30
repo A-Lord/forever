@@ -129,9 +129,13 @@ func (hunter *Hunter) hasteRangedCast(config *core.SpellConfig) {
 	}
 }
 
-// One sting per target: applying either sting drops the other.
+func (hunter *Hunter) stingTag() string {
+	return "Sting-" + hunter.Label
+}
+
+// One sting per hunter on a target: applying either sting drops the hunter's other one.
 func dropOtherSting(sim *core.Simulation, sting *core.Aura) {
-	if active := sting.Unit.GetActiveAuraWithTag("Sting"); active != nil && active != sting {
+	if active := sting.Unit.GetActiveAuraWithTag(sting.Tag); active != nil && active != sting {
 		active.Deactivate(sim)
 	}
 }

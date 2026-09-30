@@ -161,32 +161,42 @@ func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
 }
 
 // One sting per hunter on a target: Serpent Sting drops the hunter's own Scorpid Sting, and Scorpid
-// Sting drops its Serpent Sting.
+// Sting drops its Serpent Sting. Another hunter's sting stays.
 func TestEachStingDropsTheHuntersOtherSting(t *testing.T) {
-	player := &proto.Player{
-		Name:               "Stings",
-		Race:               proto.Race_RaceOrc,
-		Class:              proto.Class_ClassHunter,
-		Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
-		TalentsString:      DefaultMMTalents,
-		Spec:               DefaultOptions,
-		Rotation:           &proto.APLRotation{},
-		DistanceFromTarget: 20,
+	newPlayer := func(name string) *proto.Player {
+		return &proto.Player{
+			Name:               name,
+			Race:               proto.Race_RaceOrc,
+			Class:              proto.Class_ClassHunter,
+			Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
+			TalentsString:      DefaultMMTalents,
+			Spec:               DefaultOptions,
+			Rotation:           &proto.APLRotation{},
+			DistanceFromTarget: 20,
+		}
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
-		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Raid: &proto.Raid{
+			Parties: []*proto.Party{{Players: []*proto.Player{newPlayer("Stings"), newPlayer("Other")}, Buffs: &proto.PartyBuffs{}}},
+			Buffs:   &proto.RaidBuffs{},
+			Debuffs: &proto.Debuffs{},
+		},
 		Encounter:  core.MakeSingleTargetEncounter(0),
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	other := sim.Raid.Parties[0].Players[1].(*Hunter)
 	target := sim.Encounter.AllTargetUnits[0]
 
 	serpent := hunter.GetSpell(core.ActionID{SpellID: serpentStingRank.ID})
 	scorpid := hunter.GetSpell(core.ActionID{SpellID: scorpidStingRank.ID})
 	scorpidAura := target.GetAura("Scorpid Sting-" + hunter.Label)
-	if serpent == nil || scorpid == nil || scorpidAura == nil {
-		t.Fatalf("Serpent Sting %v, Scorpid Sting %v, its aura %v; want all three", serpent, scorpid, scorpidAura)
+	otherScorpid := other.GetSpell(core.ActionID{SpellID: scorpidStingRank.ID})
+	otherScorpidAura := target.GetAura("Scorpid Sting-" + other.Label)
+	if serpent == nil || scorpid == nil || scorpidAura == nil || otherScorpid == nil || otherScorpidAura == nil {
+		t.Fatalf("Serpent Sting %v, Scorpid Sting %v, its aura %v, the other hunter's %v and its aura %v; want all five",
+			serpent, scorpid, scorpidAura, otherScorpid, otherScorpidAura)
 	}
 	serpentAura := serpent.Dot(target).Aura
 
@@ -204,6 +214,7 @@ func TestEachStingDropsTheHuntersOtherSting(t *testing.T) {
 		t.Fatalf("%s never landed", aura.Label)
 	}
 
+	land(otherScorpid, otherScorpidAura)
 	land(scorpid, scorpidAura)
 	land(serpent, serpentAura)
 	if scorpidAura.IsActive() {
@@ -213,6 +224,9 @@ func TestEachStingDropsTheHuntersOtherSting(t *testing.T) {
 	land(scorpid, scorpidAura)
 	if serpentAura.IsActive() {
 		t.Error("Scorpid Sting landed beside the hunter's own Serpent Sting, want it dropped")
+	}
+	if !otherScorpidAura.IsActive() {
+		t.Error("the hunter's stings dropped the other hunter's Scorpid Sting, want it on the target")
 	}
 }
 
