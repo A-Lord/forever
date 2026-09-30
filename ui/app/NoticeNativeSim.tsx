@@ -36,12 +36,12 @@ export const NoticeNativeSim = () => {
 			autohide: false,
 			onClose: () => setHasSeen(true),
 			body: (
-				<div>
+				<>
 					<p>{i18n.t('sim.notice_native_download.message')}</p>
 					<Button variant="outline-light" href={REPO_RELEASES_URL} target="_blank" onClick={() => setHasSeen(true)}>
 						{i18n.t('sim.notice_native_download.download_button')}
 					</Button>
-				</div>
+				</>
 			),
 		});
 		return () => manager.close();
