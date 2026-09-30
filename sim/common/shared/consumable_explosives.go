@@ -74,7 +74,7 @@ func registerCasterDamageSpell(character *core.Character, config core.SpellConfi
 	config.ActionID = config.ActionID.WithTag(1)
 	var outcome core.OutcomeApplier
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, e.Roll(sim, character.Level), outcome)
+		spell.CalcAndDealDamage(sim, target, e.Roll(sim), outcome)
 	}
 	spell := character.RegisterSpell(config)
 	outcome = casterDamageOutcome(spell, spelldata.Find(e.SpellID).CannotCrit())

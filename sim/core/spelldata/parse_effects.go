@@ -301,7 +301,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 			continue
 		}
 
-		value := e.Average(level)
+		value := e.MeanAt(level)
 
 		if e.PointsPerResource != 0 && value == 0 {
 			if !o.comboPoints {

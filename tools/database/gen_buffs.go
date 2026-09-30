@@ -266,7 +266,7 @@ func parseBuff(row *ResolvedBuff) {
 	// own value through a driver.
 	if row.Scope == buffmanifest.ScopeDebuff {
 		row.FullComboPoints = slices.ContainsFunc(row.Spell.Effects, func(e spelldata.Effect) bool {
-			return e.PointsPerResource != 0 && e.Average(core.CharacterLevel) == 0
+			return e.PointsPerResource != 0 && e.Average() == 0
 		})
 	}
 

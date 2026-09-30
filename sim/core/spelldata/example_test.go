@@ -44,7 +44,7 @@ func ExampleSpell_EffectN() {
 	damage := frostbolt.EffectN(2)
 
 	fmt.Println(damage.Index)
-	fmt.Printf("%.0f %.0f %.3f\n", damage.BaseValue(), damage.Average(60), damage.Coeff())
+	fmt.Printf("%.0f %.0f %.3f\n", damage.BaseValue(), damage.AverageAt(60), damage.Coeff())
 	fmt.Println(frostbolt.EffectN(3) == NilEffect)
 	// Output:
 	// 1

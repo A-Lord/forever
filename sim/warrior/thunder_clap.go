@@ -8,7 +8,7 @@ import (
 
 var thunderClapRank = spellData.ThunderClap.Highest()
 
-var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average(core.CharacterLevel)
+var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average()
 var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
 
 // The melee speed factor the warrior's clap leaves on the target, the Conqueror's set included.

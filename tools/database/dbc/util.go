@@ -233,10 +233,8 @@ func equipFold(s *spelldata.Spell, e *spelldata.Effect) EquipFold {
 // does not carry names no weapon.
 func EquipEffectFold(effect SpellEffect) EquipFold {
 	s := spelldata.Find(int32(effect.SpellID))
-	for i := range s.Effects {
-		if int(s.Effects[i].Index) == effect.EffectIndex {
-			return equipFold(s, &s.Effects[i])
-		}
+	if e := s.EffectAtIndex(uint8(effect.EffectIndex)); e != spelldata.NilEffect {
+		return equipFold(s, e)
 	}
 	return equipFold(s, &spelldata.Effect{Aura: effect.EffectAura, Misc: int32(effect.EffectMiscValues[0])})
 }
