@@ -405,7 +405,9 @@ func driveJudgementOfWisdom(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) 
 
 // A stack of Sunder Armor is worth nothing until it is on the target, so the
 // raid's copy is ramped to five over the first five global cooldowns, which is
-// how long a warrior takes to stack it.
+// how long a warrior takes to stack it. The stacks build while a stronger armor
+// reduction holds the category, and the sunder applies once it outbids it or
+// that one ends.
 func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 	aura := core.MakePermanent(NewSpellDataSunderArmorAura(target, false, 0))
 
@@ -416,9 +418,7 @@ func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		Priority:        core.ActionPriorityDOT,
 		OnAction: func(sim *core.Simulation) {
 			aura.Activate(sim)
-			if aura.IsActive() {
-				aura.AddStack(sim)
-			}
+			aura.AddStack(sim)
 		},
 	})
 }

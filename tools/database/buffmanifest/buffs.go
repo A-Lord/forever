@@ -412,10 +412,9 @@ var Individual = []BuffSpec{
 
 var Debuffs = []BuffSpec{
 	{
-		Field:      "hunters_mark",
-		SpellID:    14325,
-		Category:   "HuntersMark",
-		SingleAura: true,
+		Field:    "hunters_mark",
+		SpellID:  14325,
+		Category: "HuntersMark",
 		Stats: []proto.Stat{
 			proto.Stat_StatRangedAttackPower,
 			proto.Stat_StatAttackPower,
@@ -424,11 +423,10 @@ var Debuffs = []BuffSpec{
 	// The Holy damage taken is applied by NewSpellDataJudgementOfTheCrusaderAuraRank in debuffs.go,
 	// which the paladin's own ranks share.
 	{
-		Field:      "judgement_of_the_crusader",
-		SpellID:    20303,
-		TooltipID:  20308,
-		Category:   "Judgement of the Crusader",
-		SingleAura: true,
+		Field:     "judgement_of_the_crusader",
+		SpellID:   20303,
+		TooltipID: 20308,
+		Category:  "Judgement of the Crusader",
 		Stats: []proto.Stat{
 			proto.Stat_StatHolyDamage,
 			proto.Stat_StatSpellDamage,
@@ -453,10 +451,9 @@ var Debuffs = []BuffSpec{
 		},
 	},
 	{
-		Field:      "curse_of_elements",
-		SpellID:    1311680,
-		Category:   "CurseOfElements",
-		SingleAura: true,
+		Field:    "curse_of_elements",
+		SpellID:  1311680,
+		Category: "CurseOfElements",
 		Stats: []proto.Stat{
 			proto.Stat_StatSpellDamage,
 		},
@@ -480,50 +477,45 @@ var Debuffs = []BuffSpec{
 	// The -450 armor is per combo point, so the raid config's debuff is the five-point finisher. A
 	// rogue spending fewer needs a driver that prices the aura, and there is none.
 	{
-		Field:      "expose_armor",
-		SpellID:    11198,
-		Category:   "MajorArmorReduction",
-		SingleAura: true,
+		Field:    "expose_armor",
+		SpellID:  11198,
+		Category: "MajorArmorReduction",
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
 	},
 	// Five stacks are worth nothing until they are there, so a driver ramps them.
 	{
-		Field:      "sunder_armor",
-		SpellID:    11597,
-		Category:   "MajorArmorReduction",
-		SingleAura: true,
-		Driver:     true,
+		Field:    "sunder_armor",
+		SpellID:  11597,
+		Category: "MajorArmorReduction",
+		Driver:   true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
 	},
 	{
-		Field:      "gift_of_arthas",
-		SpellID:    11374,
-		Category:   "GiftOfArthasAura",
-		SingleAura: true,
+		Field:    "gift_of_arthas",
+		SpellID:  11374,
+		Category: "GiftOfArthasAura",
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:      "demoralizing_roar",
-		SpellID:    9898,
-		Category:   "Demoralizing",
-		SingleAura: true,
+		Field:    "demoralizing_roar",
+		SpellID:  9898,
+		Category: "Demoralizing",
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:      "demoralizing_shout",
-		SpellID:    11556,
-		Category:   "Demoralizing",
-		SingleAura: true,
+		Field:    "demoralizing_shout",
+		SpellID:  11556,
+		Category: "Demoralizing",
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
@@ -558,31 +550,28 @@ var Debuffs = []BuffSpec{
 	},
 	// Every flat attack-power reduction on a target bids in one category: the strongest applies.
 	{
-		Field:      "hex_of_weakness",
-		SpellID:    19285,
-		Category:   "Demoralizing",
-		SingleAura: true,
+		Field:    "hex_of_weakness",
+		SpellID:  19285,
+		Category: "Demoralizing",
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:      "demoralizing_screech",
-		SpellID:    24579,
-		Owner:      proto.Class_ClassHunter,
-		Category:   "Demoralizing",
-		SingleAura: true,
+		Field:    "demoralizing_screech",
+		SpellID:  24579,
+		Owner:    proto.Class_ClassHunter,
+		Category: "Demoralizing",
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:      "curse_of_weakness",
-		SpellID:    11708,
-		Category:   "CurseOfWeakness",
-		SingleAura: true,
+		Field:    "curse_of_weakness",
+		SpellID:  11708,
+		Category: "CurseOfWeakness",
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
@@ -602,25 +591,23 @@ var Debuffs = []BuffSpec{
 	},
 	// Annihilator's proc keeps the stacks up, so the raid's copy holds all three from the start.
 	{
-		Field:      "armor_shatter",
-		SpellID:    16928,
-		Category:   "ArmorShatter",
-		SingleAura: true,
-		Driver:     true,
+		Field:    "armor_shatter",
+		SpellID:  16928,
+		Category: "ArmorShatter",
+		Driver:   true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
 	},
 	// The talent's rank prices the debuff, which the talent states only in its tooltip.
 	{
-		Field:      "vindication",
-		SpellID:    440667,
-		TooltipID:  9452,
-		Owner:      proto.Class_ClassPaladin,
-		Talent:     9452,
-		Proto:      ProtoBool,
-		Category:   "Demoralizing",
-		SingleAura: true,
+		Field:     "vindication",
+		SpellID:   440667,
+		TooltipID: 9452,
+		Owner:     proto.Class_ClassPaladin,
+		Talent:    9452,
+		Proto:     ProtoBool,
+		Category:  "Demoralizing",
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,

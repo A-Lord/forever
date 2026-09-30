@@ -18,7 +18,7 @@ func (hunter *Hunter) registerHuntersMark() {
 		aura := target.RegisterAura(spelldata.AuraConfig(huntersMarkRank,
 			spelldata.Label("Hunter's Mark-"+hunter.Label)))
 		aura.Tag = "HuntersMark"
-		aura.NewExclusiveEffect("HuntersMark", true, core.ExclusiveEffect{
+		aura.NewExclusiveEffect("HuntersMark", false, core.ExclusiveEffect{
 			Priority: huntersMarkRangedAttackPower,
 			OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
 				ee.Aura.Unit.PseudoStats.BonusRangedAttackPower += ee.Priority

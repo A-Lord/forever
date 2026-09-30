@@ -82,8 +82,8 @@ func TestGeneratedExposeArmorIsTheFivePointFinisher(t *testing.T) {
 	}
 
 	category := target.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.ExposeArmorCategory)
-	if !category.SingleAura {
-		t.Error("the armor category is not single-aura, so a second armor reduction could sit next to it")
+	if category.SingleAura {
+		t.Error("the armor category is single-aura, so a stronger armor reduction would push this one off the target")
 	}
 	if len(category.Effects()) != 1 || category.Effects()[0].Priority != 2250 {
 		t.Errorf("the category holds %d effects, first bid %v; want one bidding the magnitude 2250",
@@ -118,8 +118,8 @@ func TestGeneratedSunderArmorPricesEveryStack(t *testing.T) {
 	}
 }
 
-// Only the strongest armor reduction is on the target: the weaker one's aura is
-// pushed off and its armor given back.
+// The strongest armor reduction applies and the weaker one stays on the target
+// beside it; when the strongest ends, the weaker one's armor applies.
 func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 
@@ -136,27 +136,38 @@ func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 	if got := target.GetStats()[stats.Armor]; got != -2250 {
 		t.Errorf("armor is %v, want only Expose Armor's -2250", got)
 	}
-	if sunder.IsActive() {
-		t.Error("the weaker armor reduction is still on the target, so both apply")
+	if !sunder.IsActive() {
+		t.Error("the weaker armor reduction was pushed off the target, want it beside Expose Armor")
+	}
+
+	expose.Deactivate(sim)
+	if got := target.GetStats()[stats.Armor]; got != -450 {
+		t.Errorf("with Expose Armor off, armor is %v, want the sunder's -450", got)
 	}
 }
 
 // With both in the raid config, Expose Armor is worth its full -2250 from the
-// first moment and the raid's Sunder Armor is worth nothing until it has
-// stacks, so the category turns the sunder away and its ramp never starts.
-func TestGeneratedExposeArmorHoldsTheSlotAgainstTheRaidsSunder(t *testing.T) {
+// first moment and the raid's Sunder Armor lands beside it worth nothing. The
+// sunder's stacks build while Expose Armor holds the category, and apply once
+// Expose Armor ends.
+func TestGeneratedRaidsSunderStacksUnderExposeArmor(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{ExposeArmor: true, SunderArmor: true})
+	sim := applyGeneratedTestDebuffs(target, &proto.Debuffs{ExposeArmor: true, SunderArmor: true})
+	expose := target.GetAura("Expose Armor (External)")
+	sunder := target.GetAura("Sunder Armor (External)")
+	if !expose.IsActive() || !sunder.IsActive() {
+		t.Fatalf("expose active %v, sunder active %v; want both on the target", expose.IsActive(), sunder.IsActive())
+	}
 
+	sunder.SetStacks(sim, 3)
 	if got := target.GetStats()[stats.Armor]; got != -2250 {
-		t.Errorf("armor is %v, want one reduction of -2250", got)
+		t.Errorf("armor is %v, want Expose Armor's -2250 once", got)
 	}
-	if expose := target.GetAura("Expose Armor (External)"); !expose.IsActive() {
-		t.Error("Expose Armor is not on the target")
-	}
-	if sunder := target.GetAura("Sunder Armor (External)"); sunder.IsActive() {
-		t.Error("the raid's Sunder Armor activated next to Expose Armor, so both are on the target")
+
+	expose.Deactivate(sim)
+	if got := target.GetStats()[stats.Armor]; got != -1350 {
+		t.Errorf("with Expose Armor off, armor is %v, want the sunder's three stacks of -450", got)
 	}
 }
 
@@ -319,23 +330,9 @@ func TestGeneratedThunderfuryKeepsItsResistanceBesideThunderClap(t *testing.T) {
 // Demoralizing Roar and Demoralizing Shout are the same category, so the attack
 // power comes off the target once however many of them the raid brings.
 func TestGeneratedDemoralizingDebuffsApplyOnce(t *testing.T) {
-	target := core.NewGeneratedDebuffTestTarget()
-
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{DemoralizingRoar: true, DemoralizingShout: true})
-
-	if got := target.GetStats()[stats.AttackPower]; got != -205 {
-		t.Errorf("attack power is %v, want the store's -205 once", got)
-	}
-
-	roar := target.GetAura("Demoralizing Roar (External)")
-	shout := target.GetAura("Demoralizing Shout (External)")
-	if roar == nil || shout == nil {
-		t.Fatalf("the target has %v, want both demoralizing auras", targetAuraLabels(target))
-	}
-	if roar.IsActive() == shout.IsActive() {
-		t.Errorf("roar active %v, shout active %v; want exactly one of them on the target",
-			roar.IsActive(), shout.IsActive())
-	}
+	checkOneReductionApplies(t, &proto.Debuffs{DemoralizingRoar: true, DemoralizingShout: true},
+		buffs.DemoralizingShoutCategory, stats.AttackPower, -205,
+		"Demoralizing Roar (External)", "Demoralizing Shout (External)")
 }
 
 // The two judgements are bare 40-second auras in the game files; what they do to
@@ -393,10 +390,11 @@ func TestGeneratedAttackPowerReductionsApplyTheStrongestOnce(t *testing.T) {
 	}
 }
 
-// Without the shout, Demoralizing Screech's -205 outbids Hex of Weakness's -204.
+// Without the shout, Demoralizing Screech's -205 outbids Hex of Weakness's -204, and the hex's
+// applies once the screech ends.
 func TestGeneratedDemoralizingScreechOutbidsHexOfWeakness(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{HexOfWeakness: true, DemoralizingScreech: true})
+	sim := applyGeneratedTestDebuffs(target, &proto.Debuffs{HexOfWeakness: true, DemoralizingScreech: true})
 	if got := target.GetStats()[stats.AttackPower]; got != -205 {
 		t.Errorf("attack power is %v, want the screech's -205 once", got)
 	}
@@ -406,8 +404,13 @@ func TestGeneratedDemoralizingScreechOutbidsHexOfWeakness(t *testing.T) {
 	if hex == nil || screech == nil {
 		t.Fatalf("the target has %v, want both attack power reductions", targetAuraLabels(target))
 	}
-	if !screech.IsActive() || hex.IsActive() {
-		t.Errorf("screech active %v, hex active %v; want the screech alone on the target", screech.IsActive(), hex.IsActive())
+	if !screech.IsActive() || !hex.IsActive() {
+		t.Errorf("screech active %v, hex active %v; want both on the target", screech.IsActive(), hex.IsActive())
+	}
+
+	screech.Deactivate(sim)
+	if got := target.GetStats()[stats.AttackPower]; got != -204 {
+		t.Errorf("with the screech off, attack power is %v, want the hex's -204", got)
 	}
 }
 

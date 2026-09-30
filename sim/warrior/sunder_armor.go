@@ -40,6 +40,17 @@ func (warrior *Warrior) registerSunderArmor() {
 	warrior.RegisterSpell(config)
 }
 
+// Sunder Armor is one debuff on the target whichever warrior stacks it, so the warrior leaves
+// another copy of it alone; any other armor reduction lets the sunder land beside it.
 func (warrior *Warrior) CanApplySunderAura(target *core.Unit) bool {
-	return warrior.SunderArmorAuras.Get(target).IsActive() || !warrior.SunderArmorAuras.Get(target).ExclusiveEffects[0].Category.AnyActive()
+	own := warrior.SunderArmorAuras.Get(target)
+	if own.IsActive() {
+		return true
+	}
+	for _, aura := range target.GetAurasWithTag(own.Tag) {
+		if aura != own && aura.IsActive() && aura.ActionID.SpellID == own.ActionID.SpellID {
+			return false
+		}
+	}
+	return true
 }

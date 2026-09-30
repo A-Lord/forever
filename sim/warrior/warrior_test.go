@@ -285,6 +285,46 @@ func TestWarriorShoutsOnlyWhenTheCategoryWillTakeIt(t *testing.T) {
 	}
 }
 
+// Sunder Armor lands beside Expose Armor, which holds the armor category, but the raid's own Sunder
+// Armor is the same debuff, so the warrior leaves it alone.
+func TestWarriorSundersBesideExposeArmorButNotTheRaidsSunder(t *testing.T) {
+	for _, row := range []struct {
+		name    string
+		debuffs *proto.Debuffs
+		label   string
+		want    bool
+	}{
+		{"Expose Armor", &proto.Debuffs{ExposeArmor: true}, "Expose Armor (External)", true},
+		{"the raid's Sunder Armor", &proto.Debuffs{SunderArmor: true}, "Sunder Armor (External)", false},
+	} {
+		t.Run(row.name, func(t *testing.T) {
+			player := &proto.Player{
+				Name:          "Sunder",
+				Race:          proto.Race_RaceOrc,
+				Class:         proto.Class_ClassWarrior,
+				Equipment:     &proto.EquipmentSpec{},
+				TalentsString: furyTalents,
+				Spec:          dpsOptions,
+			}
+			env, _, _ := core.NewEnvironment(
+				core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, row.debuffs),
+				core.MakeSingleTargetEncounter(0), false, true)
+			war := env.Raid.Parties[0].Players[0].(*dps.DpsWarrior)
+			target := env.Encounter.AllTargetUnits[0]
+
+			held := target.GetAura(row.label)
+			if held == nil {
+				t.Fatalf("the target carries no aura labelled %q", row.label)
+			}
+			held.Activate(&core.Simulation{})
+
+			if got := war.CanApplySunderAura(target); got != row.want {
+				t.Errorf("with %s up, the warrior would sunder: %v, want %v", row.name, got, row.want)
+			}
+		})
+	}
+}
+
 // A Retaliation counterattack is a main-hand special, so it spends no Flurry charge: a crit sets
 // the charges to three, and anything else leaves the two the buff holds.
 func TestRetaliationCounterattackSpendsNoFlurryCharge(t *testing.T) {

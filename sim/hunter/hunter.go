@@ -62,7 +62,7 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 
 	core.FillTalentsProto(hunter.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
 
-	// The hunter casts its own mark, which the raid's permanent one would keep from ever landing.
+	// The hunter casts its own mark, so a raid's permanent one would credit it before the cast.
 	if raid.Debuffs != nil {
 		raid.Debuffs.HuntersMark = false
 	}

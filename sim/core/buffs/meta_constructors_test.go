@@ -251,7 +251,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{"CurseOfElements", true, false, NewSpellDataCurseOfElementsAura, auraShape{
 			Label: "Curse of the Elements (External)", ActionID: external(1311680), Tag: "CurseOfElements",
 			Duration: 5 * time.Minute,
-			Bids:     []string{"CurseOfElements single=true priority=75"},
+			Bids:     []string{"CurseOfElements single=false priority=75"},
 			Stacks: []unitDelta{{
 				Stats: map[string]float64{
 					"ArcaneResistance": -75, "FireResistance": -75, "FrostResistance": -75,
