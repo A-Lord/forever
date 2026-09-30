@@ -111,37 +111,38 @@ func TestBearWeaponTakesTheWeaponstoneOnce(t *testing.T) {
 	}
 }
 
-// Windfury Totem does nothing in Cat Form, so the cat keeps the stone under it and hears no
-// Windfury procs.
-func TestCatKeepsItsMainHandImbueUnderWindfuryTotem(t *testing.T) {
+// Windfury Totem's party aura reaches the cat like any other melee: its paw hears the Windfury
+// procs, and the totem takes the main-hand imbue's place, so the paw is built from Monk's Staff
+// alone: 60 / 2.4.
+func TestCatHearsWindfuryTotemInPlaceOfItsMainHandImbue(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
 	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{WindfuryTotem: true})
 
-	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 1703 {
-		t.Errorf("the main hand carries temporary enchant %d, want Dense Weightstone's 1703", got)
+	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
+		t.Errorf("the main hand carries temporary enchant %d under the totem, want none", got)
 	}
-	if paw := character.AutoAttacks.MH(); !approxEqual(paw.BaseDamageMin, 68/2.4) {
-		t.Errorf("the paw deals %.3f at least, want %.3f", paw.BaseDamageMin, 68/2.4)
+	if paw := character.AutoAttacks.MH(); !approxEqual(paw.BaseDamageMin, 60/2.4) {
+		t.Errorf("the paw deals %.3f at least, want %.3f", paw.BaseDamageMin, 60/2.4)
 	}
-	if character.GetAura("Windfury Totem Trigger") != nil {
-		t.Error("the cat registers the Windfury Totem proc")
+	if character.GetAura("Windfury Totem Trigger") == nil {
+		t.Error("the cat registers no Windfury Totem proc")
 	}
 }
 
-// Flametongue Totem enchants the main hand the same way, so the cat keeps the stone under it too and
-// its paw strikes no totem fire.
-func TestCatKeepsItsMainHandImbueUnderFlametongueTotem(t *testing.T) {
+// Flametongue Totem's party aura reaches the cat the same way: its paw strikes totem fire, and the
+// totem takes the main-hand imbue's place.
+func TestCatHearsFlametongueTotemInPlaceOfItsMainHandImbue(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
 	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{FlametongueTotem: true})
 
-	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 1703 {
-		t.Errorf("the main hand carries temporary enchant %d, want Dense Weightstone's 1703", got)
+	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
+		t.Errorf("the main hand carries temporary enchant %d under the totem, want none", got)
 	}
-	if character.GetAura("Flametongue Totem Trigger") != nil {
-		t.Error("the cat registers the Flametongue Totem proc")
+	if character.GetAura("Flametongue Totem Trigger") == nil {
+		t.Error("the cat registers no Flametongue Totem proc")
 	}
-	if character.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) != nil {
-		t.Error("the cat registers the Flametongue Totem strike")
+	if character.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) == nil {
+		t.Error("the cat registers no Flametongue Totem strike")
 	}
 }
 

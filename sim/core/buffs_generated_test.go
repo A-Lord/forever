@@ -711,9 +711,9 @@ func TestGeneratedFlametongueTotemDamageFollowsWeaponSpeed(t *testing.T) {
 	}
 }
 
-// A main-hand hit that lands, auto or special, strikes the target for the
-// game files' 1363 x the weapon's speed / 100 in fire damage on the spell hit and
-// crit tables; an off-hand hit or a missed swing strikes nothing.
+// A main-hand auto attack that lands strikes the target for the game files'
+// 1363 x the weapon's speed / 100 in fire damage on the spell hit and crit
+// tables; a special, an off-hand hit or a missed swing strikes nothing.
 func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{FlametongueTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
@@ -756,7 +756,6 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		procMask core.ProcMask
 	}{
 		{"a 2.6 speed main-hand auto", 2.6, core.ProcMaskMeleeMHAuto},
-		{"a 2.6 speed main-hand special", 2.6, core.ProcMaskMeleeMHSpecial},
 		{"a 1.3 speed main-hand auto", 1.3, core.ProcMaskMeleeMHAuto},
 	} {
 		char.AutoAttacks.SetMH(core.Weapon{SwingSpeed: row.speed})
@@ -785,6 +784,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		procMask core.ProcMask
 		outcome  core.HitOutcome
 	}{
+		{"a main-hand special", core.ProcMaskMeleeMHSpecial, core.OutcomeHit},
 		{"an off-hand auto", core.ProcMaskMeleeOHAuto, core.OutcomeHit},
 		{"a ranged auto", core.ProcMaskRangedAuto, core.OutcomeHit},
 		{"a missed main-hand auto", core.ProcMaskMeleeMHAuto, core.OutcomeMiss},

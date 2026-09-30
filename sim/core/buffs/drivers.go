@@ -199,9 +199,6 @@ var windfuryTotemPartyAura = spelldata.MustFind(10612)
 // hears and its 100 ms cooldown. The driver keeps the extra attack the proc
 // lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
-	if !char.TakesTotemEnchant() {
-		return
-	}
 	procAura := NewSpellDataWindfuryTotemAura(&char.Unit, false, 0)
 	// The attack power is only there for a moment after a proc, so it is not
 	// part of the stats the character sheet is measured with.
@@ -288,16 +285,15 @@ func FlametongueTotemDamage(weaponSpeed float64) float64 {
 	return flametongueTotemProc.EffectN(1).BaseValue() * weaponSpeed / 100
 }
 
-// The totem hands its proc out as a combat enchant on the main hand
-// (SpellItemEnchantment 1683: 16389 at 100%), whose chance the store carries in
-// 16389's ProcChance column. Every main-hand hit that lands adds fire damage
+// The totem hands its proc out as the party aura 15036, whose row hears auto
+// attacks at 100%. Every main-hand auto attack that lands adds fire damage
 // priced by the weapon's speed. 16389 states no defense type, and a fire proc
 // with none rolls on the spell hit and crit tables.
 //
-// A main hand carries one totem enchant, so under both totems it carries
-// Windfury Totem's and Flametongue Totem does nothing.
+// The two totems do not stack: under both, Windfury Totem's proc holds and
+// Flametongue Totem does nothing.
 func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
-	if party.WindfuryTotem || !char.TakesTotemEnchant() {
+	if party.WindfuryTotem {
 		return
 	}
 	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc(), spelldata.Tag(-1))
@@ -314,18 +310,15 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	}
 	strike := char.RegisterSpell(config)
 
-	trigger := core.ProcTrigger{
-		Name:               "Flametongue Totem Trigger",
-		ProcChance:         flametongueTotemProc.StatedChance(),
-		Duration:           core.NeverExpires,
-		Outcome:            core.OutcomeLanded,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-			strike.Cast(sim, result.Target)
-		},
-	}
-	spelldata.WeaponProc()(char, &trigger)
-	trigger.ProcMask = core.ProcMaskMeleeMH
+	// The mask names both hands; the main-hand rule the tooltip states is the
+	// server's.
+	trigger := spelldata.ProcTrigger(char, flametongueTotemSpell, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		strike.Cast(sim, result.Target)
+	})
+	trigger.Name = "Flametongue Totem Trigger"
+	trigger.Duration = core.NeverExpires
+	trigger.TriggerImmediately = true
+	trigger.ProcMask &= core.ProcMaskMeleeMH
 	procTrigger := char.MakeProcTriggerAura(trigger)
 
 	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
