@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SimTabDef } from './SimTabDef';
-import { SimTabs } from './SimTabs';
+import { SimTabs, SimTabsPanels, SimTabsStrip } from './SimTabs';
 
 const trackPageView = vi.hoisted(() => vi.fn());
 vi.mock('../tracking/utils', () => ({ trackPageView }));
@@ -36,14 +36,31 @@ let panes: HTMLElement;
 // The first pane gets a button per tab, plus one for an id no tab carries.
 const declare = (ids: string[]) => ids.map((id, index) => makeTab(id, index, [...ids, 'nope']));
 
-const renderTabs = (ids: string[], extra?: ReactNode) =>
-	render(
-		<SimTabs panes={panes}>
-			{declare(ids)}
-			{extra}
-		</SimTabs>,
-		{ container: strip },
+// The strip and the panes are ordinary children of one `SimTabs`, in the header and `main` the shell renders them into.
+const layout = (defs: ReactNode) => (
+	<SimTabs defs={defs}>
+		<header>
+			<SimTabsStrip />
+		</header>
+		<main>
+			<SimTabsPanels />
+		</main>
+	</SimTabs>
+);
+
+const renderTabs = (ids: string[], extra?: ReactNode) => {
+	const view = render(
+		layout(
+			<>
+				{declare(ids)}
+				{extra}
+			</>,
+		),
 	);
+	strip = view.container.querySelector('header')!;
+	panes = view.container.querySelector('main')!;
+	return view;
+};
 
 // Awaited: Base UI settles a panel's `hidden` on the microtask after the value changes.
 const activate = (id: string) =>
@@ -53,11 +70,6 @@ const activate = (id: string) =>
 
 beforeEach(() => {
 	trackPageView.mockClear();
-	document.body.innerHTML = '';
-	strip = document.createElement('div');
-	panes = document.createElement('main');
-	// Attached, so focus() actually moves document.activeElement.
-	document.body.append(strip, panes);
 });
 
 const press = (key: string) =>
@@ -149,7 +161,7 @@ describe('SimTabs', () => {
 
 	it('places a tab declared after mount without disturbing the active one', () => {
 		const { rerender } = renderTabs(['gear-tab', 'settings-tab']);
-		rerender(<SimTabs panes={panes}>{declare(['gear-tab', 'settings-tab', 'bulk-tab'])}</SimTabs>);
+		rerender(layout(<>{declare(['gear-tab', 'settings-tab', 'bulk-tab'])}</>));
 		expect(panels().map(panel => panel.firstElementChild!.id)).toEqual(['gear-tab', 'settings-tab', 'bulk-tab']);
 		expect(openId()).toBe('gear-tab');
 	});

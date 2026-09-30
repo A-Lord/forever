@@ -8,7 +8,7 @@ export interface ToastAreaProps {
 	manager: ToastManager;
 	/** Base UI's default is `<body>`, which is outside `.sim-ui` — a themed body (`.btn-outline-light`, item icons) needs the element that carries the spec theme. */
 	container?: HTMLElement | null;
-	/** Render in flow where the area is portaled, instead of pinned to the bottom right of the viewport. */
+	/** Render in flow instead of pinned to the bottom right of the viewport. Without a `container`, the area renders where its caller placed it rather than through a portal. */
 	inline?: boolean;
 	className?: string;
 	limit?: number;
@@ -17,12 +17,18 @@ export interface ToastAreaProps {
 
 export const ToastArea = ({ manager, container, inline = false, className, limit = DEFAULT_TOAST_LIMIT, testId }: ToastAreaProps) => {
 	const portalContainer = usePortalContainer();
+	const viewport = <ToastViewport inline={inline} className={className} testId={testId} />;
+
 	return (
 		<BaseToast.Provider toastManager={manager.base} timeout={DEFAULT_TOAST_DELAY} limit={limit}>
-			{/* Named, because with a `container` the portal renders a wrapper element of its own. */}
-			<BaseToast.Portal className="contents" data-testid="sim-toast-portal" container={container ?? portalContainer ?? undefined}>
-				<ToastViewport inline={inline} className={className} testId={testId} />
-			</BaseToast.Portal>
+			{inline && !container ? (
+				viewport
+			) : (
+				// Named, because with a `container` the portal renders a wrapper element of its own.
+				<BaseToast.Portal className="contents" data-testid="sim-toast-portal" container={container ?? portalContainer ?? undefined}>
+					{viewport}
+				</BaseToast.Portal>
+			)}
 		</BaseToast.Provider>
 	);
 };

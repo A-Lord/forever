@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { createRef } from 'react';
+import { createRef, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { SimHostObject } from './individual_sim_ui';
@@ -17,7 +17,7 @@ vi.mock('./SimSidebarActions', () => ({
 		</>
 	),
 }));
-vi.mock('./SimTabsSection', () => ({ SimTabsSection: () => <div /> }));
+vi.mock('./SimTabsSection', () => ({ SimTabsSection: ({ children }: { children: ReactNode }) => children }));
 vi.mock('./SimImportExport', () => ({ SimImportExport: () => <div /> }));
 vi.mock('@features/results/components/SimResultsPanel', () => ({ SimResultsPanel: () => <div /> }));
 vi.mock('@features/character-stats', () => ({ CharacterStats: () => <div /> }));

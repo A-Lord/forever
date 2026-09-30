@@ -34,7 +34,6 @@ export interface SimHost {
 	readonly simDisabled: boolean;
 	readonly config: { className: string; cssScheme: string };
 	readonly resultsViewer: ResultsPanelHandle;
-	readonly simTabContentsContainer: HTMLElement;
 	readonly sidebar: SidebarRegistry;
 	runIndividualSim(onProgress: WorkerProgressCallback, options?: RunSimOptions): Promise<SimResult | ErrorOutcome | undefined>;
 	runGearSim(gear: Gear, onProgress: WorkerProgressCallback, options?: RunSimOptions): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome | undefined>;

@@ -80,8 +80,6 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 	readonly resultsPanel = new ResultsPanelStore();
 	readonly warnings = new WarningsRegistry();
 
-	readonly simActionsContainer: HTMLElement;
-	readonly simTabContentsContainer: HTMLElement;
 	readonly sidebar = new SidebarRegistry();
 
 	readonly player: Player<SpecType>;
@@ -113,9 +111,6 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		this.simDisabled = this.disabled || launchStatus === LaunchStatus.GearPlanner;
 
 		this.sim.crashEmitter.on((error: SimError) => this.handleCrash(error));
-
-		this.simActionsContainer = dom.sidebarActions;
-		this.simTabContentsContainer = dom.main;
 
 		this.player = player;
 		this.individualConfig = this.applyDefaultConfigOptions(config);

@@ -17,6 +17,6 @@ export const SimSidebarActions = ({ host }: SimSidebarActionsProps) => (
 		{!host.simDisabled && <SimulateAction />}
 		<SidebarActions registry={host.sidebar} />
 		<StatWeightsAction />
-		<NoticeNativeSim container={host.simActionsContainer} />
+		<NoticeNativeSim />
 	</SidebarDisabledContext>
 );
