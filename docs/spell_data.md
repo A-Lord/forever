@@ -138,8 +138,9 @@ database, and folding it in float64 moves six rows off the tooltip.
 `EffectVariance` is the spread the amount rolls over. It spreads the base points only:
 `|BasePoints| * Variance/2` either side of them, each end rounded to a whole number, then the per-level
 gain is added to both and `Min` is rounded down and `Max` rounded up, in float32 for the same reason,
-with a base end on a half rounding to the even one. `Roll` rolls it where the row states one and answers the average
-where it does not, so a call site never has to ask whether this particular spell's amount is a range.
+with a base end on a half rounding to the even one. `Roll` rolls it where the row states one and
+answers the average where it does not, so a call site never has to ask whether this particular spell's
+amount is a range.
 
 ### Attributes, edges and class flags
 
@@ -1359,7 +1360,9 @@ its 30 is a percentage and the parse reads `A_MOD_MAX_HEALTH` as flat health.
 
 **A melee ability states its bonus as weapon damage, not school damage.** Sinister Strike's +98 is
 `E_NORMALIZED_WEAPON_DMG`, and Holy Strike's flat part sits there too; `DamageEffect()` answers the
-first weapon or school damage effect alike, so the read is the same either way.
+first weapon or school damage effect alike, so the read is the same either way. An
+`E_WEAPON_PERCENT_DAMAGE` on the same spell scales the flat part as well as the weapon damage: Holy
+Strike rank 1's 12 ± 1.5 at 25% shows in game as 2 to 4.
 
 **Rage is stored on a 0-1000 bar.** Heroic Strike's cost reads 150 where the player sees 15.
 `PowerCost` and `Cost()` divide it through; mana, energy and focus need no conversion, and an

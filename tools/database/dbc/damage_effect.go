@@ -18,8 +18,7 @@ type DamageEffect struct {
 }
 
 // The effect types whose value is flat damage. E_WEAPON_PERCENT_DAMAGE is deliberately absent: it
-// is a percentage of weapon damage rather than an amount, so it needs different wiring than a flat
-// min/max roll.
+// is a percentage of weapon damage rather than an amount.
 var directDamageEffectTypes = []SpellEffectType{dbcenums.E_SCHOOL_DAMAGE, dbcenums.E_HEALTH_LEECH}
 
 // Walks the trigger chain below spellID and returns the first direct damage effect it reaches, or

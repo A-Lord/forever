@@ -303,7 +303,8 @@ func (d DBCTooltipDataProvider) GetDescriptionVariableString(spellId int64) stri
 }
 
 // effectRange returns the bottom and top of the value an effect rolls at the character's level, the
-// range the sim rolls. An effect the spell store does not carry reads its base points.
+// range the sim rolls. An effect the spell store does not carry reads its base points at both ends,
+// whatever variance it states.
 func (d DBCTooltipDataProvider) effectRange(spellId int64, effectIdx int64) (float64, float64) {
 	if spell := spelldata.Find(int32(spellId)); spell != spelldata.Nil {
 		for i := range spell.Effects {
