@@ -2,8 +2,8 @@ import clsx, { type ClassValue } from 'clsx';
 import type { ComponentPropsWithoutRef } from 'react';
 
 export interface TableProps extends Omit<ComponentPropsWithoutRef<'table'>, 'className'> {
-	/** Shades every second body row. */
-	striped?: boolean;
+	/** `true` shades every second body row; `solid` paints odd and even body rows in the two table row colours. */
+	striped?: boolean | 'solid';
 	/** Highlights the body row under the pointer. */
 	hover?: boolean;
 	/** Halves the cell padding. */
@@ -22,7 +22,7 @@ export const Table = ({ striped, hover, dense, variant, flush, className, testId
 	<table
 		{...rest}
 		className={clsx('ui-table', className)}
-		data-striped={flag(striped)}
+		data-striped={striped === 'solid' ? 'solid' : flag(striped)}
 		data-hover={flag(hover)}
 		data-dense={flag(dense)}
 		data-flush={flag(flush)}

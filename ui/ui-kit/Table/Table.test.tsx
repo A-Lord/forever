@@ -62,6 +62,11 @@ describe('Table', () => {
 		expect(table.getAttribute('data-flush')).toBe('');
 	});
 
+	it('marks solid striping apart from the shaded kind', () => {
+		mount({ striped: 'solid' });
+		expect(screen.getByTestId('table').getAttribute('data-striped')).toBe('solid');
+	});
+
 	it('adds the caller class to its own and passes other attributes through', () => {
 		mount({ className: 'extra-table', 'aria-label': 'Damage' });
 

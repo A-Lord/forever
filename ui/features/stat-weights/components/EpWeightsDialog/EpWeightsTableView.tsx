@@ -30,7 +30,11 @@ export const EpWeightsTableView = ({
 	children,
 }: EpWeightsTableViewProps) => (
 	<div data-testid="results-ep-table-container" className="relative flex-1 overflow-y-auto">
-		<Table testId="results-ep-table" className={[showThreatMetrics && 'max-lg:pr-0', `stats-type-${statsType}`]} data-stats-type={statsType}>
+		<Table
+			testId="results-ep-table"
+			striped="solid"
+			className={[showThreatMetrics && 'max-lg:pr-0', `stats-type-${statsType}`]}
+			data-stats-type={statsType}>
 			<thead>
 				<EpWeightsHeader columns={columns} showThreatMetrics={showThreatMetrics} showUpdateColumn={showUpdateColumn} />
 				{showEpRatios && (

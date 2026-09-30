@@ -44,6 +44,7 @@ const meta = {
 	argTypes: {
 		children: { control: false },
 		className: { control: 'text' },
+		striped: { control: 'select', options: [false, true, 'solid'] },
 	},
 } satisfies Meta<typeof Table>;
 

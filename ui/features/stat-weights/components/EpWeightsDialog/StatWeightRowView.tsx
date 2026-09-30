@@ -53,7 +53,7 @@ export const StatWeightRowView = ({
 	const cellClassName = clsx('ui-ep-weights-table-cell', showThreatMetrics && 'max-lg:pl-0');
 
 	return (
-		<TableRow className="odd:bg-(--table-row-odd-bg) even:bg-(--table-row-even-bg)">
+		<TableRow>
 			<TableCell className={cellClassName}>{fullName}</TableCell>
 			{showUpdateColumn && (
 				<TableCell testId="swcalc-include-toggle" className={cellClassName}>

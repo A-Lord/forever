@@ -10,8 +10,12 @@
 			@apply border-b border-solid border-b-white/20;
 		}
 
-		&[data-striped] > tbody > .ui-table-row:nth-child(even) {
+		&[data-striped=''] > tbody > .ui-table-row:nth-child(even) {
 			@apply bg-white/5;
+		}
+
+		&[data-striped='solid'] > tbody > .ui-table-row {
+			@apply odd:bg-(--table-row-odd-bg) even:bg-(--table-row-even-bg);
 		}
 
 		&[data-hover] > tbody > .ui-table-row:hover {
