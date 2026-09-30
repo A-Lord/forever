@@ -262,6 +262,9 @@ describe('IconPicker', () => {
 	it('marks the swatch disabled, and the field around a labelled one', () => {
 		const { unmount } = mount({ disabled: true });
 		expect(mainAnchor().hasAttribute('data-disabled')).toBe(true);
+		// The swatch links to wowhead, so it would otherwise be a natively focusable anchor.
+		expect(mainAnchor().getAttribute('aria-disabled')).toBe('true');
+		expect(mainAnchor().getAttribute('tabindex')).toBe('-1');
 		unmount();
 
 		const { container } = mount({ disabled: true, label: 'Buff' });

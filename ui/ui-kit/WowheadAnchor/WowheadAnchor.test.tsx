@@ -165,4 +165,16 @@ describe('WowheadAnchor', () => {
 		fireEvent.keyDown(anchor, { key: 'Enter' });
 		expect(onActivate).not.toHaveBeenCalled();
 	});
+
+	it('drops a linked acting anchor out of the tab order too, since it would otherwise be natively focusable', () => {
+		const onActivate = vi.fn();
+		render(<WowheadAnchor href={HREF} testId="anchor" disabled onActivate={onActivate} />);
+		const anchor = screen.getByTestId('anchor');
+
+		expect(anchor.getAttribute('aria-disabled')).toBe('true');
+		expect(anchor.hasAttribute('role')).toBe(false);
+		expect(anchor.getAttribute('tabindex')).toBe('-1');
+		expect(click(anchor).defaultPrevented).toBe(true);
+		expect(onActivate).not.toHaveBeenCalled();
+	});
 });

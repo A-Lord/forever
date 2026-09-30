@@ -38,7 +38,7 @@ export const WowheadAnchor = ({
 			rel={externalRel(href || undefined, rel)}
 			role={role ?? (button ? 'button' : undefined)}
 			aria-disabled={disabled ? 'true' : undefined}
-			tabIndex={tabIndex ?? (button ? (disabled ? -1 : 0) : undefined)}
+			tabIndex={tabIndex ?? (disabled && !!onActivate ? -1 : button ? 0 : undefined)}
 			onClick={
 				cancels
 					? (event: MouseEvent<HTMLAnchorElement>) => {
