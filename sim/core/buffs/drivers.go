@@ -193,6 +193,9 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 // The party aura the totem puts up, a Proc Trigger Spell aura that names 10610.
 var windfuryTotemPartyAura = spelldata.MustFind(10612)
 
+// The totem's summon, which names the totem aura in the metrics.
+var windfuryTotemCast = spelldata.MustFind(10614)
+
 // The totem's aura is the attack power a windfury proc grants. The totem hands
 // the proc out as the party aura 10612, whose row states the chance, what it
 // hears and its 100 ms cooldown. The driver keeps the extra attack the proc
@@ -229,35 +232,24 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 		procAura.SetStacks(sim, charges)
 	})
 	trigger.Name = "Windfury Totem Trigger"
-	trigger.MetricsActionID = core.ActionID{SpellID: 25580, Tag: -1}
+	trigger.MetricsActionID = core.ActionID{SpellID: windfuryTotemPartyAura.ID, Tag: -1}
 	trigger.Duration = core.NeverExpires
 	trigger.ProcMask &= core.ProcMaskMeleeMH
-	onInit := char.ExtraAttackProc(&trigger, 25584, 1)
+	// TODO: verify in game whether a landed hit that deals no damage, such as Sunder Armor, rolls the totem, and if it does, clear RequireDamageDealt.
+	onInit := char.ExtraAttackProc(&trigger, windfuryTotemSpell.ID, 1)
 	procTrigger := char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 
 	totemAura := char.GetOrRegisterAura(core.Aura{
 		Label:    "Windfury Totem",
-		ActionID: core.ActionID{SpellID: 25587, Tag: -1},
+		ActionID: core.ActionID{SpellID: windfuryTotemCast.ID, Tag: -1},
 	})
-	holdTotemEnchant(char, totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
+	holdTotemAura(totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
 }
 
-// A weapon totem's enchant lasts 10 seconds and the shaman puts it back every
-// 5, so the aura that holds the category is simply refreshed and keeps the
-// proc trigger up; a weapon swapped into the main hand goes without it until
-// the next refresh.
-func holdTotemEnchant(char *core.Character, totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
-	totemAura.Duration = time.Second * 10
-	totemAura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
-		aura.Activate(sim)
-		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
-			Period:   time.Second * 5,
-			Priority: core.ActionPriorityAuto,
-			OnAction: func(sim *core.Simulation) {
-				aura.Activate(sim)
-			},
-		})
-	})
+// A weapon totem's party aura stands for the fight and holds the category,
+// which keeps the proc trigger up.
+func holdTotemAura(totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
+	core.MakePermanent(totemAura)
 
 	totemAura.NewExclusiveEffect(category, false, core.ExclusiveEffect{
 		Priority: priority,
@@ -268,10 +260,6 @@ func holdTotemEnchant(char *core.Character, totemAura *core.Aura, category strin
 			procTrigger.Deactivate(sim)
 			totemAura.Deactivate(sim)
 		},
-	})
-
-	char.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, _ proto.ItemSlot) {
-		totemAura.Deactivate(sim)
 	})
 }
 
@@ -322,7 +310,7 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 
 	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
 	totemAura.BuildPhase = core.CharacterBuildPhaseNone
-	holdTotemEnchant(char, totemAura, FlametongueTotemCategory, flametongueTotemProc.EffectN(1).BaseValue(), procTrigger)
+	holdTotemAura(totemAura, FlametongueTotemCategory, flametongueTotemProc.EffectN(1).BaseValue(), procTrigger)
 }
 
 // Windfury Totem and Grace of Air Totem do not stack: under both, Windfury

@@ -38,13 +38,6 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'groups';
 
-// Windfury Totem and Flametongue Totem take the main-hand imbue's place.
-const mainHandImbueShown = (player: Player<any>) => {
-	if (!player.getParty()) return true;
-	const buffs = player.getParty()!.getBuffs();
-	return !buffs.windfuryTotem && !buffs.flametongueTotem;
-};
-
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
@@ -96,7 +89,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 				consumesFieldName: 'mhImbueId',
 				tooltip: i18n.t('settings_tab.consumables.imbue.mhImbue'),
 				offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotMainHand)),
-				showWhen: mainHandImbueShown,
 			},
 			imbues,
 		),

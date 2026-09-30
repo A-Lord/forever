@@ -145,9 +145,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Conqueror'sBattlegear"
  value: {
-  dps: 455.82932
-  tps: 705.96555
-  dtps: 3503.73823
+  dps: 456.27273
+  tps: 706.62844
+  dtps: 3507.25123
   hps: 16.4
  }
 }
@@ -532,9 +532,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-KissoftheSpider-22954"
  value: {
-  dps: 457.70625
-  tps: 710.36887
-  dtps: 4054.1146
+  dps: 457.42906
+  tps: 709.93098
+  dtps: 4048.64991
   hps: 16.4
  }
 }
@@ -874,9 +874,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-Average-Default"
  value: {
-  dps: 447.79871
-  tps: 694.21739
-  dtps: 3950.97514
+  dps: 447.8011
+  tps: 694.22104
+  dtps: 3950.97498
   hps: 16.70542
  }
 }

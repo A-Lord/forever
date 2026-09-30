@@ -585,6 +585,10 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 		t.Fatalf("a proc no auto landed on is active %v with %v left, want the full second",
 			proc.IsActive(), proc.RemainingDuration(sim))
 	}
+	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{
+		DoAt:     start + time.Second*2,
+		OnAction: func(*core.Simulation) {},
+	}))
 	for proc.IsActive() && sim.CurrentTime < start+time.Second*2 {
 		sim.Step()
 	}
@@ -769,9 +773,9 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 	}
 }
 
-// The totem's enchant lasts 10 seconds and is refreshed every 5, so a weapon
-// swapped into the main hand goes without it until the next refresh.
-func TestGeneratedFlametongueTotemLeavesASwappedInMainHandUntilTheNextRefresh(t *testing.T) {
+// The totem is a party aura, so it stands for the fight and a weapon swapped
+// into the main hand keeps it.
+func TestGeneratedFlametongueTotemStaysThroughAMainHandSwap(t *testing.T) {
 	const arcaniteReaper, whirlwindAxe = 12784, 6975
 	withMainHand := func(id int32) []*proto.ItemSpec {
 		items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
@@ -805,45 +809,24 @@ func TestGeneratedFlametongueTotemLeavesASwappedInMainHandUntilTheNextRefresh(t 
 	if totem == nil || trigger == nil {
 		t.Fatalf("totem %v, trigger %v; want both registered", totem, trigger)
 	}
-	if totem.Duration != time.Second*10 {
-		t.Errorf("the totem's enchant lasts %v, want 10 seconds", totem.Duration)
+	if totem.Duration != core.NeverExpires {
+		t.Errorf("the totem lasts %v, want it to stand for the fight", totem.Duration)
 	}
-
-	stepUntil := func(done func() bool, limit time.Duration) {
-		t.Helper()
-		for !done() && sim.CurrentTime < limit {
-			if sim.Step() {
-				t.Fatalf("the fight ended at %v", sim.CurrentTime)
-			}
-		}
-	}
-	stepUntil(trigger.IsActive, time.Second*10)
 	if !totem.IsActive() || !trigger.IsActive() {
-		t.Fatalf("by %v the totem is active %v and its trigger %v, want both up", sim.CurrentTime,
+		t.Fatalf("at the pull the totem is active %v and its trigger %v, want both up",
 			totem.IsActive(), trigger.IsActive())
 	}
 
-	swappedAt := sim.CurrentTime
 	char.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
-	if totem.IsActive() || trigger.IsActive() {
-		t.Errorf("after the swap the totem is active %v and its trigger %v, want the new main hand bare",
+	if !totem.IsActive() || !trigger.IsActive() {
+		t.Errorf("after the swap the totem is active %v and its trigger %v, want both still up",
 			totem.IsActive(), trigger.IsActive())
-	}
-
-	stepUntil(trigger.IsActive, swappedAt+time.Second*10)
-	if !trigger.IsActive() || sim.CurrentTime != swappedAt+time.Second*5 {
-		t.Errorf("the trigger is active %v at %v, want it back at the refresh 5 seconds after the swap",
-			trigger.IsActive(), sim.CurrentTime)
-	}
-	stepUntil(func() bool { return false }, time.Second*30)
-	if !trigger.IsActive() {
-		t.Errorf("the trigger has dropped by %v, want the refresh to keep it up", sim.CurrentTime)
 	}
 }
 
-// Both totems enchant the main hand, which carries one of them: under both, the
-// party's Windfury Totem holds it and Flametongue Totem registers nothing.
-func TestGeneratedWindfuryTotemHoldsTheMainHandOverFlametongueTotem(t *testing.T) {
+// The two totems do not stack: under both, Windfury Totem holds and Flametongue
+// Totem registers nothing.
+func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
 		&proto.PartyBuffs{WindfuryTotem: true, FlametongueTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()

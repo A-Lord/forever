@@ -576,8 +576,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-ScrollsofBlindingLight-19343"
  value: {
-  dps: 556.8937
-  tps: 408.82661
+  dps: 556.88349
+  tps: 408.81946
   dtps: 11.13442
  }
 }

@@ -91,12 +91,12 @@ func TestTemporaryEnchantGoesOnTheHandsTheSpecNames(t *testing.T) {
 	}
 
 	underWindfury := newCharacter(&proto.PartyBuffs{WindfuryTotem: true})
-	if got := underWindfury.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
-		t.Errorf("main hand carries enchant %d under Windfury Totem", got)
+	if got := underWindfury.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != stoneEnchantID {
+		t.Errorf("main hand carries enchant %d under Windfury Totem, want the stone's %d", got, stoneEnchantID)
 	}
 
 	underFlametongue := newCharacter(&proto.PartyBuffs{FlametongueTotem: true})
-	if got := underFlametongue.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 0 {
-		t.Errorf("main hand carries enchant %d under Flametongue Totem", got)
+	if got := underFlametongue.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != stoneEnchantID {
+		t.Errorf("main hand carries enchant %d under Flametongue Totem, want the stone's %d", got, stoneEnchantID)
 	}
 }
