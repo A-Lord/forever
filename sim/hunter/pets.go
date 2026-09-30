@@ -373,14 +373,14 @@ func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 	return hp.RegisterSpell(config)
 }
 
-// The armor the enemy loses, exclusive with the other major armor reductions the way Expose Armor
-// is, and not cast over one already holding the target.
+// The armor the enemy loses, in the slot the raid's Dust Cloud, Faerie Fire and Curse of
+// Recklessness share, and not cast over one already holding the target.
 func (hp *HunterPet) registerDustCloud(rank *spelldata.Spell) *core.Spell {
 	armor := -rank.EffectN(1).Average(core.CharacterLevel)
 	effects := map[*core.Unit]*core.ExclusiveEffect{}
 	auras := hp.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		aura := target.GetOrRegisterAura(spelldata.AuraConfig(rank))
-		effects[target] = aura.NewExclusiveEffect(buffs.ExposeArmorCategory, true, core.ExclusiveEffect{
+		effects[target] = aura.NewExclusiveEffect(buffs.DustCloudCategory, true, core.ExclusiveEffect{ // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 			Priority: armor,
 			OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
 				ee.Aura.Unit.AddStatDynamic(sim, stats.Armor, -ee.Priority)

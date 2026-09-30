@@ -3,8 +3,63 @@ package hunter
 import (
 	"testing"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 )
+
+// The tallstrider's Dust Cloud holds the slot the raid's Dust Cloud, Faerie Fire and Curse of
+// Recklessness share: it lands beside Expose Armor, and the raid's own Dust Cloud turns it away and
+// keeps the pet from casting it.
+func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
+	for _, c := range []struct {
+		name     string
+		debuffs  *proto.Debuffs
+		armor    float64
+		castable bool
+	}{
+		{"beside Expose Armor", &proto.Debuffs{ExposeArmor: true}, -505, true},
+		{"against the raid's Dust Cloud", &proto.Debuffs{DustCloud: true}, 0, false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			player := &proto.Player{
+				Name:          "Dust Cloud",
+				Race:          proto.Race_RaceOrc,
+				Class:         proto.Class_ClassHunter,
+				Equipment:     &proto.EquipmentSpec{},
+				TalentsString: DefaultBMTalents,
+				Spec: &proto.Player_Hunter{Hunter: &proto.Hunter{Options: &proto.Hunter_Options{
+					ClassOptions: &proto.HunterOptions{PetType: proto.HunterOptions_Tallstrider, PetUptime: 1},
+				}}},
+				Rotation: &proto.APLRotation{},
+			}
+			sim := core.NewSim(&proto.RaidSimRequest{
+				Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, c.debuffs),
+				Encounter:  core.MakeSingleTargetEncounter(0),
+				SimOptions: &proto.SimOptions{RandomSeed: 1},
+			}, simsignals.CreateSignals())
+			sim.Reset()
+			pet := sim.Raid.Parties[0].Players[0].(*Hunter).Pet
+			target := sim.Encounter.AllTargetUnits[0]
+
+			spell := pet.GetSpell(core.ActionID{SpellID: spellData.DustCloudTriggered.Highest().ID})
+			aura := target.GetAura("Dust Cloud")
+			if spell == nil || aura == nil {
+				t.Fatalf("spell %v, aura %v; the tallstrider has no Dust Cloud", spell, aura)
+			}
+			if got := spell.ExtraCastCondition(sim, target); got != c.castable {
+				t.Errorf("the pet's cast condition is %v, want %v", got, c.castable)
+			}
+
+			before := target.GetStat(stats.Armor)
+			aura.Activate(sim)
+			if got := target.GetStat(stats.Armor) - before; got != c.armor {
+				t.Errorf("the pet's Dust Cloud moved armor by %v, want %v", got, c.armor)
+			}
+		})
+	}
+}
 
 // The generated family table and the options enum name the same families: a family the client
 // adds needs its enum value, and an enum value the client no longer describes has to go.
