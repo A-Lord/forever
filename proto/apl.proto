@@ -229,6 +229,7 @@ message APLValue {
         APLValueTotemRemainingTime totem_remaining_time = 49;
 APLValueWarlockAssignedCurseIsActive warlock_assigned_curse_is_active = 59;
 		APLValueWarlockIsAssignedCurse warlock_is_assigned_curse = 129;
+		APLValueWarlockActivePet warlock_active_pet = 135;
         APLValueCurrentEclipsePhase druid_current_eclipse_phase = 70;
 		APLValueProtectionPaladinDamageTakenLastGlobal protection_paladin_damage_taken_last_global = 100;
 
@@ -780,6 +781,10 @@ message APLValueWarlockAssignedCurseIsActive {
 }
 message APLValueWarlockIsAssignedCurse {
 	WarlockOptions.CurseOptions curse_type = 1;
+}
+// True while this demon is out; NoSummon is true while no demon is.
+message APLValueWarlockActivePet {
+	WarlockOptions.Summon summon = 1;
 }
 message APLValueAfflictionCurrentSnapshot {
 	ActionID spell_id = 1;

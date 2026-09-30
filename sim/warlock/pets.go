@@ -16,7 +16,8 @@ type WarlockPet struct {
 	summon proto.WarlockOptions_Summon
 
 	AutoCastAbilities []*core.Spell
-	MinMana           float64 // The mana the pet keeps before it casts again
+	MinMana           float64      // The mana the pet keeps before it casts again
+	ownerAuras        []*core.Aura // the warlock's effects that last while this demon, and no other, is out
 }
 
 // A demon's level 60 stats and what its own stats convert into, from the team's pet model sheet where no
@@ -120,8 +121,8 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 	},
 }
 
-// The Voidwalker, Sayaad and Felhunter share their level 60 stats and base mana, each with its own base health.
-// The Voidwalker's and Sayaad's Stamina and Strength convert to nothing (their health and attack power are set
+// The Voidwalker, Succubus and Felhunter share their level 60 stats and base mana, each with its own base health.
+// The Voidwalker's and Succubus's Stamina and Strength convert to nothing (their health and attack power are set
 // directly).
 func meleeDemonStats(baseHealth float64) stats.Stats {
 	return stats.Stats{
@@ -178,8 +179,25 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 func (warlock *Warlock) registerPets() {
 	warlock.Imp = warlock.registerPet(proto.WarlockOptions_Imp, "Imp")
 	warlock.Voidwalker = warlock.registerPet(proto.WarlockOptions_Voidwalker, "Voidwalker")
-	warlock.Succubus = warlock.registerPet(proto.WarlockOptions_Succubus, "Sayaad")
+	warlock.Succubus = warlock.registerPet(proto.WarlockOptions_Succubus, "Succubus")
 	warlock.Felhunter = warlock.registerPet(proto.WarlockOptions_Felhunter, "Felhunter")
+
+	// The demon out when the fight starts, if any; a summon in the APL changes it.
+	startPet := warlock.demon(warlock.Options.Summon)
+	warlock.ActivePet = startPet
+	warlock.RegisterResetEffect(func(sim *core.Simulation) {
+		warlock.ActivePet = startPet
+	})
+}
+
+// The registered demon of that summon, nil for none.
+func (warlock *Warlock) demon(summon proto.WarlockOptions_Summon) *WarlockPet {
+	for _, pet := range warlock.demons() {
+		if pet.summon == summon {
+			return pet
+		}
+	}
+	return nil
 }
 
 func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name string) *WarlockPet {
@@ -223,21 +241,20 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 		})
 	}
 
-	if enabledOnStart {
-		warlock.ActivePet = pet
-		warlock.RegisterResetEffect(func(sim *core.Simulation) {
-			warlock.ActivePet = pet
-		})
-	}
-
-	// The warlock's effects that last while a demon is out
+	// The warlock's effects that last while a demon is out, and those that last while this one is
 	pet.OnPetEnable = func(sim *core.Simulation) {
 		for _, aura := range warlock.petActiveAuras {
+			aura.Activate(sim)
+		}
+		for _, aura := range pet.ownerAuras {
 			aura.Activate(sim)
 		}
 	}
 	pet.OnPetDisable = func(sim *core.Simulation) {
 		for _, aura := range warlock.petActiveAuras {
+			aura.Deactivate(sim)
+		}
+		for _, aura := range pet.ownerAuras {
 			aura.Deactivate(sim)
 		}
 	}
@@ -344,7 +361,7 @@ func (pet *WarlockPet) registerFirebolt() {
 	pet.AutoCastAbilities = append(pet.AutoCastAbilities, pet.RegisterSpell(config))
 }
 
-// --- Sayaad ---
+// --- Succubus ---
 
 // The 12s cooldown is the row's category cooldown, which SpellConfig reads.
 func (pet *WarlockPet) registerLashOfPain() {

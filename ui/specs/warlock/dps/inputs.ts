@@ -38,6 +38,9 @@ export const settleDemons = <SpecType extends WarlockSpecs>(player: Player<SpecT
 export const PetInput = <SpecType extends WarlockSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, Summon>({
 		fieldName: 'summon',
+		label: i18n.t('settings_tab.other.warlock_pet.label'),
+		labelTooltip: i18n.t('settings_tab.other.warlock_pet.tooltip'),
+		numColumns: 5,
 		values: [
 			{ value: Summon.NoSummon, tooltip: 'No Pet' },
 			{ actionId: ActionId.fromSpellId(691), value: Summon.Felhunter },
@@ -49,25 +52,32 @@ export const PetInput = <SpecType extends WarlockSpecs>() =>
 		setValue: (player: Player<SpecType>, newValue: Summon) => settleDemons(player, { field: 'summon', value: newValue }),
 	});
 
+// Demon Armor on or off: the only armor the game files carry for Forever's warlock.
 export const ArmorInput = <SpecType extends WarlockSpecs>() =>
-	InputHelpers.makeClassOptionsEnumIconInput<SpecType, WarlockOptions_Armor>({
+	InputHelpers.makeClassOptionsBooleanIconInput<SpecType>({
 		fieldName: 'armor',
-		values: [
-			{ value: WarlockOptions_Armor.NoArmor, tooltip: 'No Armor' },
-			{ actionId: ActionId.fromSpellId(706), value: WarlockOptions_Armor.DemonArmor },
-		],
+		// The rank the sim casts (armors.go).
+		id: ActionId.fromSpellId(11735),
+		value: WarlockOptions_Armor.DemonArmor,
+		label: i18n.t('settings_tab.other.warlock_armor.label'),
+		labelTooltip: i18n.t('settings_tab.other.warlock_armor.tooltip'),
 	});
 
-// The demon Demonic Sacrifice sacrifices, shown by its summon icon.
+// The Demonic Sacrifice effect up when the fight starts, by the demon sacrificed.
 export const DemonicSacrificeInput = <SpecType extends WarlockSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, Summon>({
 		fieldName: 'sacrificedDemon',
+		label: i18n.t('settings_tab.other.warlock_demonic_sacrifice.label'),
+		labelTooltip: i18n.t('settings_tab.other.warlock_demonic_sacrifice.tooltip'),
+		numColumns: 5,
 		values: [
 			{ value: Summon.NoSummon, tooltip: 'No Sacrifice' },
-			{ actionId: ActionId.fromSpellId(691), value: Summon.Felhunter },
-			{ actionId: ActionId.fromSpellId(688), value: Summon.Imp },
-			{ actionId: ActionId.fromSpellId(712), value: Summon.Succubus },
-			{ actionId: ActionId.fromSpellId(697), value: Summon.Voidwalker },
+			// The effect's icon, with the demon sacrificed for it written on it: the effects name no demon.
+			// Short enough to fit the swatch.
+			{ actionId: ActionId.fromSpellId(18789), value: Summon.Imp, text: 'Imp' },
+			{ actionId: ActionId.fromSpellId(18791), value: Summon.Succubus, text: 'Succ' },
+			{ actionId: ActionId.fromSpellId(18792), value: Summon.Voidwalker, text: 'Void' },
+			{ actionId: ActionId.fromSpellId(18790), value: Summon.Felhunter, text: 'Fel' },
 		],
 		// `talentsString` too, so untalenting Demonic Sacrifice hides the picker straight away.
 		storeField: ['specOptions', 'talentsString'] as const,
@@ -90,11 +100,10 @@ const makeCursePicker = <SpecType extends WarlockSpecs>(curse: WarlockOptions_Cu
 
 		getValue: (player: Player<SpecType>) => player.getClassOptions().curseOptions === curse,
 
+		// Clicking the assigned curse again unassigns it.
 		setValue: (player: Player<SpecType>, newValue: boolean) => {
-			if (!newValue) return;
-
 			const newOptions = player.getClassOptions();
-			newOptions.curseOptions = curse;
+			newOptions.curseOptions = newValue ? curse : WarlockOptions_CurseOptions.NoCurse;
 
 			player.setClassOptions(newOptions);
 		},
@@ -105,9 +114,11 @@ export const CursesSection: CustomSection<Spec.SpecWarlock> = {
 	id: 'assigned-curse-settings',
 	title: i18n.t('settings_tab.other.warlock_assigned_curse.title'),
 	description: i18n.t('settings_tab.other.warlock_assigned_curse.description'),
-	// Agony and Doom are Banes now, cast directly rather than as the assigned curse.
+	// Agony and Doom are Banes now, cast directly rather than as the assigned curse. The ids are the
+	// ranks the sim casts (curse_of_elements.go, curse_of_recklessness.go, curse_of_weakness.go).
 	iconInputs: [
-		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Elements, 1490),
-		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Recklessness, 704),
+		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Elements, 1311680),
+		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Recklessness, 11717),
+		makeCursePicker<Spec.SpecWarlock>(WarlockOptions_CurseOptions.Weakness, 11708),
 	],
 };

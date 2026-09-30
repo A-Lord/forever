@@ -33,6 +33,7 @@ import {
 	reactionTimeCheckbox,
 	statTypeFieldConfig,
 	stringFieldConfig,
+	summonTypeFieldConfig,
 	totemTypeFieldConfig,
 	unitFieldConfig,
 	valueFieldConfig,
@@ -54,6 +55,7 @@ describe('resolveField kinds', () => {
 		const descriptors = [
 			eclipseTypeFieldConfig('f'),
 			curseTypeFieldConfig('f'),
+			summonTypeFieldConfig('f'),
 			autoTypeFieldConfig('f'),
 			autoSwingTypeFieldConfig('f'),
 			statTypeFieldConfig('f'),
