@@ -23,28 +23,10 @@ func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
 		{"against the raid's Dust Cloud", &proto.Debuffs{DustCloud: true}, "Dust Cloud (External)", 0},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			player := &proto.Player{
-				Name:          "Dust Cloud",
-				Race:          proto.Race_RaceOrc,
-				Class:         proto.Class_ClassHunter,
-				Equipment:     &proto.EquipmentSpec{},
-				TalentsString: DefaultBMTalents,
-				Spec: &proto.Player_Hunter{Hunter: &proto.Hunter{Options: &proto.Hunter_Options{
-					ClassOptions: &proto.HunterOptions{PetType: proto.HunterOptions_Tallstrider, PetUptime: 1},
-				}}},
-				Rotation: &proto.APLRotation{},
-			}
-			sim := core.NewSim(&proto.RaidSimRequest{
-				Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, c.debuffs),
-				Encounter:  core.MakeSingleTargetEncounter(0),
-				SimOptions: &proto.SimOptions{RandomSeed: 1},
-			}, simsignals.CreateSignals())
-			sim.Reset()
-			pet := sim.Raid.Parties[0].Players[0].(*Hunter).Pet
-			target := sim.Encounter.AllTargetUnits[0]
+			sim, pet, target := newPetSim(proto.HunterOptions_Tallstrider, c.debuffs)
 
-			spell := pet.GetSpell(core.ActionID{SpellID: spellData.DustCloudTriggered.Highest().ID})
-			aura := target.GetAura("Dust Cloud")
+			id := core.ActionID{SpellID: spellData.DustCloudTriggered.Highest().ID}
+			spell, aura := pet.GetSpell(id), target.GetAuraByID(id)
 			if spell == nil || aura == nil {
 				t.Fatalf("spell %v, aura %v; the tallstrider has no Dust Cloud", spell, aura)
 			}
@@ -54,7 +36,7 @@ func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
 
 			other := target.GetAura(c.other)
 			before := target.GetStat(stats.Armor)
-			aura.Activate(sim)
+			spell.SkipCastAndApplyEffects(sim, target)
 			if !aura.IsActive() || !other.IsActive() {
 				t.Errorf("the pet's Dust Cloud active %v, %s active %v; want both on the target",
 					aura.IsActive(), c.other, other.IsActive())
@@ -71,6 +53,56 @@ func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
 			}
 		})
 	}
+}
+
+// The carrion bird's Demoralizing Screech bids in the slot the raid's Demoralizing Shout holds: both
+// are on the target and it loses one -205, and with the shout off the screech's -205 applies.
+func TestPetDemoralizingScreechSharesTheRaidsDemoralizingSlot(t *testing.T) {
+	sim, pet, target := newPetSim(proto.HunterOptions_CarrionBird, &proto.Debuffs{DemoralizingShout: true})
+
+	id := core.ActionID{SpellID: spellData.DemoralizingScreechTriggered.Highest().ID}
+	spell, aura := pet.GetSpell(id), target.GetAuraByID(id)
+	shout := target.GetAura("Demoralizing Shout (External)")
+	if spell == nil || aura == nil || shout == nil {
+		t.Fatalf("spell %v, aura %v, the raid's shout %v; want all three", spell, aura, shout)
+	}
+
+	before := target.GetStat(stats.AttackPower)
+	spell.SkipCastAndApplyEffects(sim, target)
+	if !aura.IsActive() || !shout.IsActive() {
+		t.Errorf("the screech active %v, the shout active %v; want both on the target", aura.IsActive(), shout.IsActive())
+	}
+	if got := target.GetStat(stats.AttackPower) - before; got != 0 {
+		t.Errorf("the screech moved attack power by %v beside the shout, want 0", got)
+	}
+
+	shout.Deactivate(sim)
+	if got := target.GetStat(stats.AttackPower) - before; got != 0 {
+		t.Errorf("with the shout off, attack power moved by %v, want 0: the screech's -205 takes the shout's place", got)
+	}
+}
+
+// A hunter with no gear and a pet of the family, up for the whole fight, against one target carrying
+// the raid's debuffs.
+func newPetSim(petType proto.HunterOptions_PetType, debuffs *proto.Debuffs) (*core.Simulation, *HunterPet, *core.Unit) {
+	player := &proto.Player{
+		Name:          "Pet",
+		Race:          proto.Race_RaceOrc,
+		Class:         proto.Class_ClassHunter,
+		Equipment:     &proto.EquipmentSpec{},
+		TalentsString: DefaultBMTalents,
+		Spec: &proto.Player_Hunter{Hunter: &proto.Hunter{Options: &proto.Hunter_Options{
+			ClassOptions: &proto.HunterOptions{PetType: petType, PetUptime: 1},
+		}}},
+		Rotation: &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, debuffs),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].(*Hunter).Pet, sim.Encounter.AllTargetUnits[0]
 }
 
 // The generated family table and the options enum name the same families: a family the game files

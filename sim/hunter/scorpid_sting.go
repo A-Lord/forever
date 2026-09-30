@@ -10,12 +10,8 @@ var scorpidStingRank = spellData.ScorpidSting.Highest()
 
 func (hunter *Hunter) registerScorpidSting() {
 	auras := hunter.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		config := spelldata.AuraConfig(scorpidStingRank, spelldata.Label("Scorpid Sting-"+hunter.Label))
-		config.Tag = "Sting"
-		aura := target.RegisterAura(config)
-		spelldata.ParseEffects(&hunter.Character, aura, scorpidStingRank,
-			spelldata.Exclusive(buffs.ScorpidStingCategory, false)) // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
-		return aura
+		// TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
+		return buffs.NewSpellDataScorpidStingAuraFor(target, &hunter.Unit, "Sting")
 	})
 
 	config := spelldata.SpellConfig(&hunter.Unit, scorpidStingRank, spelldata.Flags(core.SpellFlagAPL))

@@ -320,12 +320,11 @@ func (hp *HunterPet) registerStrike(rank *spelldata.Spell, onCast func(sim *core
 	return hp.RegisterSpell(config)
 }
 
-// The hit, then the attack power every enemy around the pet loses.
+// The hit, then the attack power every enemy around the pet loses, in the slot the raid's
+// Demoralizing Shout and Roar share.
 func (hp *HunterPet) registerDemoralizingScreech(rank *spelldata.Spell) *core.Spell {
 	auras := hp.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.GetOrRegisterAura(spelldata.AuraConfig(rank))
-		spelldata.ParseEffects(&hp.Character, aura, rank, spelldata.Effects(2))
-		return aura
+		return buffs.NewSpellDataDemoralizingScreechAura(target, true, 0)
 	})
 	spell := hp.registerStrike(rank, func(sim *core.Simulation, _ *core.Unit) {
 		for _, enemy := range sim.Encounter.ActiveTargetUnits {
@@ -376,24 +375,17 @@ func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 // The armor the enemy loses, in the slot the raid's Dust Cloud, Faerie Fire and Curse of
 // Recklessness share: the debuff lands beside the others, and only the strongest one's armor counts.
 func (hp *HunterPet) registerDustCloud(rank *spelldata.Spell) *core.Spell {
-	armor := -rank.EffectN(1).Average(core.CharacterLevel)
 	auras := hp.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.GetOrRegisterAura(spelldata.AuraConfig(rank))
-		aura.NewExclusiveEffect(buffs.DustCloudCategory, false, core.ExclusiveEffect{ // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
-			Priority: armor,
-			OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-				ee.Aura.Unit.AddStatDynamic(sim, stats.Armor, -ee.Priority)
-			},
-			OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-				ee.Aura.Unit.AddStatDynamic(sim, stats.Armor, ee.Priority)
-			},
-		})
-		return aura
+		// TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
+		return buffs.NewSpellDataDustCloudAura(target, true, 0)
 	})
 
 	config := hp.spellConfig(rank)
+	// The row states one stack, and the armor follows the stacks.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		auras.Get(target).Activate(sim)
+		aura := auras.Get(target)
+		aura.Activate(sim)
+		aura.AddStack(sim)
 	}
 	config.RelatedAuraArrays = auras.ToMap()
 	return hp.RegisterSpell(config)

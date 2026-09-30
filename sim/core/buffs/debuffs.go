@@ -14,3 +14,8 @@ func applyDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 		core.MakePermanent(NewSpellDataJudgementOfTheCrusaderAuraRank(target, JudgementOfTheCrusaderMaxRank))
 	}
 }
+
+// A hunter's own Scorpid Sting, one per hunter, tagged with the tag its stings share.
+func NewSpellDataScorpidStingAuraFor(target *core.Unit, hunter *core.Unit, stingTag string) *core.Aura {
+	return newCasterDebuff(target, scorpidStingMeta, hunter, stingTag, 0)
+}
