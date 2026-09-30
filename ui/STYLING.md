@@ -30,8 +30,8 @@ Reach for a **named utility** first, including its variants and `!`-free forms. 
   e.g. `--color-grey: #808080`) rather than writing `bg-[#808080]` — never drop a declaration because
   no token exists yet either; a missing visible property is a bug, not a simplification.
 - **No arbitrary spacing where a scale step exists.** The spacing rhythm in this repo is even steps
-  plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …`. The root is 12px below `xxxl` (1600px) and 14px from `xxxl`
-  on, so one step is 3px or 3.5px and `p-2` is 6px or 7px. Conversions read a source px value at the
+  plus 1 — `1, 2, 4, 6, 8, 10, 12, 16, …`. The root is 14px below `fhd` (1921px) and 16px from `fhd`
+  on, so one step is 3.5px or 4px and `p-2` is 7px or 8px. Conversions read a source px value at the
   14px root.
   Convert a source px value to the **nearest even step** (ties round down), rather than writing `[Npx]`
   — see §7 for the same rule at the rendering-diff gate. `gap-[3.5px]` → `gap-1`, `7px` → `p-2`,

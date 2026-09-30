@@ -14,11 +14,11 @@
 }
 
 :root {
-	--font-size-root: 12px;
+	--font-size-root: 14px;
 	font-size: var(--font-size-root);
 
-	@variant xxxl {
-		--font-size-root: 14px;
+	@variant fhd {
+		--font-size-root: 16px;
 	}
 
 	@variant motion-safe {
