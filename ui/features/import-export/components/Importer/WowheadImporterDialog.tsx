@@ -8,7 +8,7 @@ import type { ImporterDialogProps } from './types';
 
 export const WowheadImporterDialog = ({ open, onOpenChange }: ImporterDialogProps) => (
 	<Importer open={open} onOpenChange={onOpenChange} {...WOWHEAD_GEAR_PLANNER_IMPORTER}>
-		<div>
+		<>
 			<p>
 				{i18n.t('import.wowhead.description')}{' '}
 				<Button href={WOWHEAD_GEAR_PLANNER_URL} target="_blank" variant="unstyled">
@@ -18,6 +18,6 @@ export const WowheadImporterDialog = ({ open, onOpenChange }: ImporterDialogProp
 			</p>
 			<p>{i18n.t('import.wowhead.feature_description')}</p>
 			<p>{i18n.t('import.wowhead.instructions')}</p>
-		</div>
+		</>
 	</Importer>
 );

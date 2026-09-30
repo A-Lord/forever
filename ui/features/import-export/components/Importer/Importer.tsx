@@ -69,7 +69,8 @@ export const Importer = ({ open, onOpenChange, title, allowFileUpload = false, o
 					</Button>
 				</div>
 			}>
-			<div>
+			{/* The dialog body is a flex column with a gap; this stays a single flex item so that gap doesn't land between the description and the textarea. */}
+			<div className="flex flex-col">
 				<div data-testid="import-description">{children}</div>
 				<TextArea spellCheck={false} data-testid="importer-textarea" className="h-[40vh] w-full resize-none" ref={textRef} />
 			</div>

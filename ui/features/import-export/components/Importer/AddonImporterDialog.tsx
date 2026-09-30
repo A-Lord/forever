@@ -7,7 +7,7 @@ import type { ImporterDialogProps } from './types';
 
 export const AddonImporterDialog = ({ open, onOpenChange }: ImporterDialogProps) => (
 	<Importer open={open} onOpenChange={onOpenChange} {...ADDON_IMPORTER}>
-		<div>
+		<>
 			<p>
 				{i18n.t('import.addon.description')}{' '}
 				<Button href="https://www.curseforge.com/wow/addons/wowsimsexporter" target="_blank" variant="unstyled">
@@ -17,6 +17,6 @@ export const AddonImporterDialog = ({ open, onOpenChange }: ImporterDialogProps)
 			</p>
 			<p>{i18n.t('import.addon.feature_description')}</p>
 			<p>{i18n.t('import.addon.instructions')}</p>
-		</div>
+		</>
 	</Importer>
 );
