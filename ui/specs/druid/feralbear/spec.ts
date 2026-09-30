@@ -121,7 +121,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	playerIconInputs: [],
 	rotationInputs: FeralBearInputs.FeralBearRotationConfig,
 	includeBuffDebuffInputs: [Stat.StatStamina, Stat.StatArmor],
-	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem, BuffDebuffInputs.FlametongueTotem],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem, BuffDebuffInputs.FlametongueTotem, BuffDebuffInputs.AtieshMage],
 	otherInputs: {
 		inputs: [
 			OtherInputs.TotemTwisting,
