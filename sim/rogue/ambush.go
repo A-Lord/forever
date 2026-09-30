@@ -8,8 +8,8 @@ import (
 var ambushRank = spellData.Ambush.Highest()
 
 func (rogue *Rogue) registerAmbushSpell() {
-	ambushBaseDamage := ambushRank.DamageEffect().Average(core.CharacterLevel)
-	comboPointGen := ambushRank.EnergizeEffect().Average(core.CharacterLevel)
+	ambushBaseDamage := ambushRank.DamageEffect().Average()
+	comboPointGen := ambushRank.EnergizeEffect().Average()
 	config := spelldata.SpellConfig(&rogue.Unit, ambushRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
 	config.ClassSpellMask = RogueSpellAmbush

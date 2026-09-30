@@ -99,7 +99,7 @@ func (rogue *Rogue) registerGhostlyStrike() {
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 
 		if result.Landed() {
-			rogue.AddComboPoints(sim, int32(ghostlyStrikeRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+			rogue.AddComboPoints(sim, int32(ghostlyStrikeRank.ProcEnergizeEffect().Roll(sim)), spell.ComboPointMetrics())
 		} else {
 			spell.IssueRefund(sim)
 		}
@@ -331,7 +331,7 @@ func (rogue *Rogue) registerHemorrhage() {
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 		if result.Landed() {
 			hemoAuras.Get(target).Activate(sim)
-			rogue.AddComboPoints(sim, int32(hemorrhageRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), spell.ComboPointMetrics())
+			rogue.AddComboPoints(sim, int32(hemorrhageRank.ProcEnergizeEffect().Roll(sim)), spell.ComboPointMetrics())
 		} else {
 			spell.IssueRefund(sim)
 		}
@@ -398,7 +398,7 @@ func (rogue *Rogue) registerPremeditation() {
 	premedMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: premeditationRank.ID})
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		rogue.AddComboPoints(sim, int32(premeditationRank.ProcEnergizeEffect().Roll(sim, core.CharacterLevel)), premedMetrics)
+		rogue.AddComboPoints(sim, int32(premeditationRank.ProcEnergizeEffect().Roll(sim)), premedMetrics)
 	}
 
 	rogue.Premeditation = rogue.GetOrRegisterSpell(config)

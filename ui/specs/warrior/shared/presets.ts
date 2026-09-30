@@ -8,11 +8,9 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	graceOfAirTotem: true,
 	strengthOfEarthTotem: true,
 	windfuryTotem: true,
 	leaderOfThePack: true,
-	totemTwisting: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({

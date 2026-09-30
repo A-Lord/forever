@@ -9,7 +9,7 @@ var kickRank = spellData.Kick.Highest()
 
 // This exists purely to model the DPS loss of having to occasionally kick
 func (rogue *Rogue) registerKickSpell() {
-	kickBaseDamage := kickRank.DamageEffect().Average(core.CharacterLevel)
+	kickBaseDamage := kickRank.DamageEffect().Average()
 	config := spelldata.SpellConfig(&rogue.Unit, kickRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

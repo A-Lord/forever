@@ -10,7 +10,7 @@ var garroteRank = spellData.Garrote.Highest()
 func (rogue *Rogue) registerGarrote() {
 	tick := garroteRank.PeriodicEffect()
 	apScaling := 0.03 // Estimated from in-game tests.
-	comboPointGen := garroteRank.EnergizeEffect().Average(core.CharacterLevel)
+	comboPointGen := garroteRank.EnergizeEffect().Average()
 
 	config := spelldata.SpellConfig(&rogue.Unit, garroteRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Flags |= SpellFlagBuilder
@@ -21,7 +21,7 @@ func (rogue *Rogue) registerGarrote() {
 
 	config.Dot = spelldata.DotConfig(garroteRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel)+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcomeHitRolled(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average()+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcomeHitRolled(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

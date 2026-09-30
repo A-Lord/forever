@@ -308,10 +308,10 @@ func (hp *HunterPet) registerStrike(rank *spelldata.Spell, onCast func(sim *core
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		if targets > 1 {
 			spell.CalcCleaveDamageWithVariance(sim, target, targets, hitAndCritOutcome(spell, rank),
-				func(sim *core.Simulation, spell *core.Spell) float64 { return damage.Roll(sim, hp.Level) })
+				func(sim *core.Simulation, spell *core.Spell) float64 { return damage.Roll(sim) })
 			spell.DealBatchedAoeDamage(sim)
 		} else {
-			spell.CalcAndDealDamage(sim, target, damage.Roll(sim, hp.Level), hitAndCritOutcome(spell, rank))
+			spell.CalcAndDealDamage(sim, target, damage.Roll(sim), hitAndCritOutcome(spell, rank))
 		}
 		if onCast != nil {
 			onCast(sim, target)
@@ -320,12 +320,11 @@ func (hp *HunterPet) registerStrike(rank *spelldata.Spell, onCast func(sim *core
 	return hp.RegisterSpell(config)
 }
 
-// The hit, then the attack power every enemy around the pet loses.
+// The hit, then the attack power every enemy around the pet loses, in the slot the raid's
+// Demoralizing Shout and Roar share.
 func (hp *HunterPet) registerDemoralizingScreech(rank *spelldata.Spell) *core.Spell {
 	auras := hp.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.GetOrRegisterAura(spelldata.AuraConfig(rank))
-		spelldata.ParseEffects(&hp.Character, aura, rank, spelldata.Effects(2))
-		return aura
+		return buffs.NewSpellDataDemoralizingScreechAura(target, true, 0)
 	})
 	spell := hp.registerStrike(rank, func(sim *core.Simulation, _ *core.Unit) {
 		for _, enemy := range sim.Encounter.ActiveTargetUnits {
@@ -358,7 +357,7 @@ func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 	config := hp.spellConfig(rank, schoolOpt(rank))
 	config.Dot = spelldata.DotConfig(rank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(hp.Level)*float64(dot.GetStacks()), rank.TickOutcome(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average()*float64(dot.GetStacks()), rank.TickOutcome(dot))
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, hitOutcome(spell, rank))
@@ -373,32 +372,20 @@ func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 	return hp.RegisterSpell(config)
 }
 
-// The armor the enemy loses, exclusive with the other major armor reductions the way Expose Armor
-// is, and not cast over one already holding the target.
+// The armor the enemy loses, in the slot the raid's Dust Cloud, Faerie Fire and Curse of
+// Recklessness share: the debuff lands beside the others, and only the strongest one's armor counts.
 func (hp *HunterPet) registerDustCloud(rank *spelldata.Spell) *core.Spell {
-	armor := -rank.EffectN(1).Average(core.CharacterLevel)
-	effects := map[*core.Unit]*core.ExclusiveEffect{}
 	auras := hp.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.GetOrRegisterAura(spelldata.AuraConfig(rank))
-		effects[target] = aura.NewExclusiveEffect(buffs.ExposeArmorCategory, true, core.ExclusiveEffect{
-			Priority: armor,
-			OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-				ee.Aura.Unit.AddStatDynamic(sim, stats.Armor, -ee.Priority)
-			},
-			OnExpire: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
-				ee.Aura.Unit.AddStatDynamic(sim, stats.Armor, ee.Priority)
-			},
-		})
-		return aura
+		// TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
+		return buffs.NewSpellDataDustCloudAura(target, true, 0)
 	})
 
 	config := hp.spellConfig(rank)
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		effect := effects[target]
-		return hp.IsEnabled() && (!effect.Category.AnyActive() || effect.IsActive())
-	}
+	// The row states one stack, and the armor follows the stacks.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		auras.Get(target).Activate(sim)
+		aura := auras.Get(target)
+		aura.Activate(sim)
+		aura.AddStack(sim)
 	}
 	config.RelatedAuraArrays = auras.ToMap()
 	return hp.RegisterSpell(config)

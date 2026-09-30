@@ -8,7 +8,7 @@ import (
 var eviscerateRank = spellData.Eviscerate.Highest()
 
 func (rogue *Rogue) registerEviscerate() {
-	eviscerateBaseDamage := eviscerateRank.DamageEffect().Average(core.CharacterLevel)
+	eviscerateBaseDamage := eviscerateRank.DamageEffect().Average()
 	eviscerateDamagePerPoint := float64(eviscerateRank.DamageEffect().PointsPerResource)
 	eviscerateApScalingPerPoint := 0.04 // Estimated from in-game tests.
 	config := spelldata.SpellConfig(&rogue.Unit, eviscerateRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
