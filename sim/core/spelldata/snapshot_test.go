@@ -146,7 +146,7 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 	} {
 		damage := MustFind(c.spell).DamageEffect()
 		if got, want := [2]float64{damage.Min(c.level), damage.Max(c.level)}, [2]float64{c.min, c.max}; got != want {
-			t.Errorf("%d at %d rolls %v to %v, want %v to %v", c.spell, c.level, got[0], got[1], c.min, c.max)
+			t.Errorf("%d at %d rolls %v, want %v", c.spell, c.level, got, want)
 		}
 	}
 }

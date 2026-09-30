@@ -76,9 +76,8 @@ func (e *Effect) levelGain(level int32) float32 {
 }
 
 // The low end of the roll. EffectVariance spreads the base points, whose ends are rounded to whole
-// numbers; the per-level gain is added to both, and each end is rounded outward. Starfire rank 1's
-// 81 ± 8.18 is 73 to 89, and Wrath rank 2's 23 ± 1.70 is 21 to 25, which is 24 to 29 with its 3.6
-// gain. An effect that does not roll answers the average at both ends.
+// numbers; the per-level gain is added to both, and each end is rounded outward. An effect that does
+// not roll answers the average at both ends.
 func (e *Effect) Min(level int32) float64 {
 	low, _ := e.spread(level)
 	return low

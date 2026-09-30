@@ -137,10 +137,9 @@ database, and folding it in float64 moves six rows off the tooltip.
 
 `EffectVariance` is the spread the amount rolls over. It spreads the base points only:
 `|BasePoints| * Variance/2` either side of them, each end rounded to a whole number, then the per-level
-gain is added to both and `Min` is rounded down and `Max` rounded up. This is float32 as well: Wrath
-rank 3's 30 ± 2.5 ends on halves there, which round up to 28 to 33, and in float64 a hair to either
-side of them. `Roll` rolls it where the row states one and answers the average where it does not, so a
-call site never has to ask whether this particular spell's amount is a range.
+gain is added to both and `Min` is rounded down and `Max` rounded up, in float32 for the same reason,
+with a base end on a half rounding up. `Roll` rolls it where the row states one and answers the average
+where it does not, so a call site never has to ask whether this particular spell's amount is a range.
 
 ### Attributes, edges and class flags
 
