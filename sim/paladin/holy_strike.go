@@ -14,8 +14,8 @@ var HolyStrikeRankMap = spellData.HolyStrike
 // An instant strike that causes 40% weapon damage plus an additional 93 as Holy damage.
 //
 // The row states the flat part as its normalized-weapon-damage effect and the percentage as a
-// second effect; the tooltip reads them as 40% of weapon damage plus the flat number, and so
-// does this.
+// second effect, and the percentage scales the flat part too: in game Rank 1 at level 20 shows its
+// 12 ± 1.5 at 25% as 2 to 4.
 //
 // The spell power coefficient sits on the flat effect, but the paladin's own spell power goes
 // through the weapon percent, as it does for the Seal of Command proc: Rank 3's 0.429 at 32% is
@@ -54,7 +54,7 @@ func (paladin *Paladin) registerHolyStrike(_ int32, rank *spelldata.Spell) {
 
 		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 			weaponDamage := spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
-			baseDamage := flat.Roll(sim, core.CharacterLevel) + (weaponDamage+coefficient*spell.SpellDamage(target))*weaponPercent
+			baseDamage := (flat.Roll(sim, core.CharacterLevel) + weaponDamage + coefficient*spell.SpellDamage(target)) * weaponPercent
 
 			targetBonus := target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly] +
 				spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.SpellDamage]
