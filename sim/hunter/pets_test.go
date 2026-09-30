@@ -9,18 +9,18 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// The tallstrider's Dust Cloud holds the slot the raid's Dust Cloud, Faerie Fire and Curse of
-// Recklessness share: it lands beside Expose Armor, and the raid's own Dust Cloud turns it away and
-// keeps the pet from casting it.
+// The tallstrider's Dust Cloud bids in the slot the raid's Dust Cloud, Faerie Fire and Curse of
+// Recklessness share: it lands beside Expose Armor and both apply, and beside the raid's own Dust
+// Cloud it lands too, with the target still losing one -505.
 func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
 	for _, c := range []struct {
-		name     string
-		debuffs  *proto.Debuffs
-		armor    float64
-		castable bool
+		name    string
+		debuffs *proto.Debuffs
+		other   string
+		armor   float64
 	}{
-		{"beside Expose Armor", &proto.Debuffs{ExposeArmor: true}, -505, true},
-		{"against the raid's Dust Cloud", &proto.Debuffs{DustCloud: true}, 0, false},
+		{"beside Expose Armor", &proto.Debuffs{ExposeArmor: true}, "Expose Armor (External)", -505},
+		{"against the raid's Dust Cloud", &proto.Debuffs{DustCloud: true}, "Dust Cloud (External)", 0},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			player := &proto.Player{
@@ -48,14 +48,26 @@ func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
 			if spell == nil || aura == nil {
 				t.Fatalf("spell %v, aura %v; the tallstrider has no Dust Cloud", spell, aura)
 			}
-			if got := spell.ExtraCastCondition(sim, target); got != c.castable {
-				t.Errorf("the pet's cast condition is %v, want %v", got, c.castable)
+			if !spell.ExtraCastCondition(sim, target) {
+				t.Error("the pet cannot cast Dust Cloud, want it castable over the other debuff")
 			}
 
+			other := target.GetAura(c.other)
 			before := target.GetStat(stats.Armor)
 			aura.Activate(sim)
+			if !aura.IsActive() || !other.IsActive() {
+				t.Errorf("the pet's Dust Cloud active %v, %s active %v; want both on the target",
+					aura.IsActive(), c.other, other.IsActive())
+			}
 			if got := target.GetStat(stats.Armor) - before; got != c.armor {
 				t.Errorf("the pet's Dust Cloud moved armor by %v, want %v", got, c.armor)
+			}
+
+			other.Deactivate(sim)
+			withPet := target.GetStat(stats.Armor)
+			aura.Deactivate(sim)
+			if got := withPet - target.GetStat(stats.Armor); got != -505 {
+				t.Errorf("with %s off, the pet's Dust Cloud is worth %v, want -505", c.other, got)
 			}
 		})
 	}

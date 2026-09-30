@@ -1529,24 +1529,24 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Tallstrider-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 576.53503
-  tps: 457.76526
+  dps: 573.57312
+  tps: 457.02446
   dtps: 2.5183
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Tallstrider-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 458.74551
-  tps: 254.53856
+  dps: 456.01235
+  tps: 253.98112
   dtps: 2.49108
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Tallstrider-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 472.74297
-  tps: 260.99033
+  dps: 471.66192
+  tps: 260.74805
   dtps: 7.47325
  }
 }

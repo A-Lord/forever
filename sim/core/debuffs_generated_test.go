@@ -160,25 +160,48 @@ func TestGeneratedExposeArmorHoldsTheSlotAgainstTheRaidsSunder(t *testing.T) {
 	}
 }
 
-// Curse of Recklessness and Faerie Fire share one armor reduction slot, so the
-// target takes one -505, not both.
-func TestGeneratedCurseOfRecklessnessAndFaerieFireDoNotStack(t *testing.T) {
+// Every debuff in a shared category is on the target, but only the one holding the category applies
+// its reduction; taking that one off hands the reduction to the next.
+func checkOneReductionApplies(t *testing.T, debuffs *proto.Debuffs, category string, stat stats.Stat, want float64, labels ...string) {
+	t.Helper()
 	target := core.NewGeneratedDebuffTestTarget()
+	base := target.GetStats()[stat]
 
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{CurseOfRecklessness: true, FaerieFire: true})
+	sim := applyGeneratedTestDebuffs(target, debuffs)
 
-	if got := target.GetStats()[stats.Armor]; got != -505 {
-		t.Errorf("armor is %v, want one reduction of the game files' -505", got)
+	for _, label := range labels {
+		aura := target.GetAura(label)
+		if aura == nil {
+			t.Fatalf("no aura is labelled %q; the target has %v", label, targetAuraLabels(target))
+		}
+		if !aura.IsActive() {
+			t.Errorf("%s is not on the target, want every debuff in the category applied", label)
+		}
 	}
-	curse := target.GetAura("Curse of Recklessness (External)")
-	faerieFire := target.GetAura("Faerie Fire (External)")
-	if curse == nil || faerieFire == nil {
-		t.Fatalf("curse %v, Faerie Fire %v; the target has %v", curse, faerieFire, targetAuraLabels(target))
+	if got := target.GetStats()[stat] - base; got != want {
+		t.Errorf("%s moved by %v, want one reduction of the game files' %v", stat.StatName(), got, want)
 	}
-	if curse.IsActive() == faerieFire.IsActive() {
-		t.Errorf("curse active %v, Faerie Fire active %v; want exactly one on the target",
-			curse.IsActive(), faerieFire.IsActive())
+
+	slot := target.ExclusiveEffectManager.GetExclusiveEffectCategory(category)
+	holder := slot.GetActiveAura()
+	if holder == nil {
+		t.Fatalf("no debuff holds the %s category", category)
 	}
+	holder.Deactivate(sim)
+	if next := slot.GetActiveAura(); next == nil || next == holder {
+		t.Fatalf("with %s off, %v holds the %s category, want the other debuff", holder.Label, next, category)
+	}
+	if got := target.GetStats()[stat] - base; got != want {
+		t.Errorf("with %s off, %s moved by %v, want the other debuff's %v", holder.Label, stat.StatName(), got, want)
+	}
+}
+
+// Curse of Recklessness and Faerie Fire share one armor reduction slot: both are on the target, and
+// it takes one -505, not both.
+func TestGeneratedCurseOfRecklessnessAndFaerieFireDoNotStack(t *testing.T) {
+	checkOneReductionApplies(t, &proto.Debuffs{CurseOfRecklessness: true, FaerieFire: true},
+		buffs.CurseOfRecklessnessCategory, stats.Armor, -505,
+		"Curse of Recklessness (External)", "Faerie Fire (External)")
 }
 
 func TestGeneratedThunderClapSlowsTheTarget(t *testing.T) {
@@ -422,47 +445,20 @@ func TestGeneratedDustCloudTakesItsStackFromTheDriver(t *testing.T) {
 	}
 }
 
-// Dust Cloud shares the armor reduction slot of Faerie Fire and Curse of Recklessness, so the target
-// takes one -505, not both.
+// Dust Cloud shares the armor reduction slot of Faerie Fire and Curse of Recklessness: both are on the
+// target, and it takes one -505, not both.
 func TestGeneratedDustCloudAndFaerieFireDoNotStack(t *testing.T) {
-	target := core.NewGeneratedDebuffTestTarget()
-	base := target.GetStats()[stats.Armor]
-
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{FaerieFire: true, DustCloud: true})
-
-	if got := target.GetStats()[stats.Armor] - base; got != -505 {
-		t.Errorf("armor moved by %v, want one reduction of the game files' -505", got)
-	}
-	dust := target.GetAura("Dust Cloud (External)")
-	faerieFire := target.GetAura("Faerie Fire (External)")
-	if dust == nil || faerieFire == nil {
-		t.Fatalf("Dust Cloud %v, Faerie Fire %v; the target has %v", dust, faerieFire, targetAuraLabels(target))
-	}
-	if dust.IsActive() == faerieFire.IsActive() {
-		t.Errorf("Dust Cloud active %v, Faerie Fire active %v; want exactly one on the target",
-			dust.IsActive(), faerieFire.IsActive())
-	}
+	checkOneReductionApplies(t, &proto.Debuffs{FaerieFire: true, DustCloud: true},
+		buffs.DustCloudCategory, stats.Armor, -505,
+		"Dust Cloud (External)", "Faerie Fire (External)")
 }
 
-// Scorpid Sting and Insect Swarm share one slot, so the target's hit chance drops by one -2%, not both.
+// Scorpid Sting and Insect Swarm share one slot: both are on the target, and its hit chance drops by
+// one -2%, not both.
 func TestGeneratedScorpidStingAndInsectSwarmDoNotStack(t *testing.T) {
-	target := core.NewGeneratedDebuffTestTarget()
-	base := target.GetStats()[stats.PhysicalHitPercent]
-
-	applyGeneratedTestDebuffs(target, &proto.Debuffs{ScorpidSting: true, InsectSwarm: true})
-
-	if got := target.GetStats()[stats.PhysicalHitPercent] - base; got != -2 {
-		t.Errorf("hit chance moved by %v, want one reduction of the game files' -2", got)
-	}
-	sting := target.GetAura("Scorpid Sting (External)")
-	swarm := target.GetAura("Insect Swarm (External)")
-	if sting == nil || swarm == nil {
-		t.Fatalf("Scorpid Sting %v, Insect Swarm %v; the target has %v", sting, swarm, targetAuraLabels(target))
-	}
-	if sting.IsActive() == swarm.IsActive() {
-		t.Errorf("Scorpid Sting active %v, Insect Swarm active %v; want exactly one on the target",
-			sting.IsActive(), swarm.IsActive())
-	}
+	checkOneReductionApplies(t, &proto.Debuffs{ScorpidSting: true, InsectSwarm: true},
+		buffs.ScorpidStingCategory, stats.PhysicalHitPercent, -2,
+		"Scorpid Sting (External)", "Insect Swarm (External)")
 }
 
 // The raid's Annihilator keeps all three stacks up. Armor Shatter 16928 states -165 per stack and a

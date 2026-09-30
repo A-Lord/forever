@@ -465,19 +465,17 @@ var Debuffs = []BuffSpec{
 		},
 	},
 	{
-		Field:      "curse_of_recklessness",
-		SpellID:    11717,
-		Category:   "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
-		SingleAura: true,
+		Field:    "curse_of_recklessness",
+		SpellID:  11717,
+		Category: "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
 	},
 	{
-		Field:      "faerie_fire",
-		SpellID:    9907,
-		Category:   "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
-		SingleAura: true,
+		Field:    "faerie_fire",
+		SpellID:  9907,
+		Category: "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
@@ -544,20 +542,18 @@ var Debuffs = []BuffSpec{
 		},
 	},
 	{
-		Field:      "insect_swarm",
-		SpellID:    24977,
-		Category:   "HitChanceReduction", // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
-		SingleAura: true,
+		Field:    "insect_swarm",
+		SpellID:  24977,
+		Category: "HitChanceReduction", // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
 		},
 	},
 	{
-		Field:      "scorpid_sting",
-		SpellID:    3043,
-		Category:   "HitChanceReduction", // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
-		SingleAura: true,
+		Field:    "scorpid_sting",
+		SpellID:  3043,
+		Category: "HitChanceReduction", // TODO: verify in game that Scorpid Sting and Insect Swarm share one slot.
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 			proto.Stat_StatDefenseRating,
@@ -598,12 +594,11 @@ var Debuffs = []BuffSpec{
 	// The game files state one stack, and a stacking row's amount follows its stacks, so the raid's
 	// copy takes it from a driver rather than sitting at zero.
 	{
-		Field:      "dust_cloud",
-		SpellID:    1265904,
-		CastID:     1265911,
-		Category:   "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
-		SingleAura: true,
-		Driver:     true,
+		Field:    "dust_cloud",
+		SpellID:  1265904,
+		CastID:   1265911,
+		Category: "MinorArmorReduction", // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
+		Driver:   true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},

@@ -273,7 +273,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{"InsectSwarm", true, false, NewSpellDataInsectSwarmAura, auraShape{
 			Label: "Insect Swarm (External)", ActionID: external(24977), Tag: "HitChanceReduction",
 			Duration: 12 * time.Second,
-			Bids:     []string{"HitChanceReduction single=true priority=2"},
+			Bids:     []string{"HitChanceReduction single=false priority=2"},
 			Stacks:   statsOnly(map[string]float64{"PhysicalHitPercent": -2}),
 		}},
 	}

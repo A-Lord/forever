@@ -374,13 +374,12 @@ func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 }
 
 // The armor the enemy loses, in the slot the raid's Dust Cloud, Faerie Fire and Curse of
-// Recklessness share, and not cast over one already holding the target.
+// Recklessness share: the debuff lands beside the others, and only the strongest one's armor counts.
 func (hp *HunterPet) registerDustCloud(rank *spelldata.Spell) *core.Spell {
 	armor := -rank.EffectN(1).Average(core.CharacterLevel)
-	effects := map[*core.Unit]*core.ExclusiveEffect{}
 	auras := hp.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		aura := target.GetOrRegisterAura(spelldata.AuraConfig(rank))
-		effects[target] = aura.NewExclusiveEffect(buffs.DustCloudCategory, true, core.ExclusiveEffect{ // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
+		aura.NewExclusiveEffect(buffs.DustCloudCategory, false, core.ExclusiveEffect{ // TODO: verify in game that Curse of Recklessness, Faerie Fire and Dust Cloud share one slot.
 			Priority: armor,
 			OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
 				ee.Aura.Unit.AddStatDynamic(sim, stats.Armor, -ee.Priority)
@@ -393,10 +392,6 @@ func (hp *HunterPet) registerDustCloud(rank *spelldata.Spell) *core.Spell {
 	})
 
 	config := hp.spellConfig(rank)
-	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
-		effect := effects[target]
-		return hp.IsEnabled() && (!effect.Category.AnyActive() || effect.IsActive())
-	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		auras.Get(target).Activate(sim)
 	}

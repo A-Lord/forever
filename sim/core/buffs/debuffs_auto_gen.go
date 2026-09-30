@@ -90,10 +90,9 @@ func NewSpellDataCurseOfElementsAura(unit *core.Unit, isPlayer bool, talentPoint
 var CurseOfRecklessnessCategory = "MinorArmorReduction"
 var curseOfRecklessnessSpell = spelldata.MustFind(11717)
 var curseOfRecklessnessMeta = &Meta{
-	Label:      "Curse of Recklessness",
-	Spell:      curseOfRecklessnessSpell,
-	Category:   CurseOfRecklessnessCategory,
-	SingleAura: true,
+	Label:    "Curse of Recklessness",
+	Spell:    curseOfRecklessnessSpell,
+	Category: CurseOfRecklessnessCategory,
 }
 
 func CurseOfRecklessnessValue(talentPoints int32) float64 {
@@ -112,10 +111,9 @@ func NewSpellDataCurseOfRecklessnessAura(unit *core.Unit, isPlayer bool, talentP
 var FaerieFireCategory = "MinorArmorReduction"
 var faerieFireSpell = spelldata.MustFind(9907)
 var faerieFireMeta = &Meta{
-	Label:      "Faerie Fire",
-	Spell:      faerieFireSpell,
-	Category:   FaerieFireCategory,
-	SingleAura: true,
+	Label:    "Faerie Fire",
+	Spell:    faerieFireSpell,
+	Category: FaerieFireCategory,
 }
 
 func FaerieFireValue(talentPoints int32) float64 {
@@ -253,10 +251,9 @@ func NewSpellDataThunderClapAura(unit *core.Unit, isPlayer bool, talentPoints in
 var InsectSwarmCategory = "HitChanceReduction"
 var insectSwarmSpell = spelldata.MustFind(24977)
 var insectSwarmMeta = &Meta{
-	Label:      "Insect Swarm",
-	Spell:      insectSwarmSpell,
-	Category:   InsectSwarmCategory,
-	SingleAura: true,
+	Label:    "Insect Swarm",
+	Spell:    insectSwarmSpell,
+	Category: InsectSwarmCategory,
 }
 
 func InsectSwarmValue(talentPoints int32) float64 {
@@ -273,10 +270,9 @@ func NewSpellDataInsectSwarmAura(unit *core.Unit, isPlayer bool, talentPoints in
 var ScorpidStingCategory = "HitChanceReduction"
 var scorpidStingSpell = spelldata.MustFind(3043)
 var scorpidStingMeta = &Meta{
-	Label:      "Scorpid Sting",
-	Spell:      scorpidStingSpell,
-	Category:   ScorpidStingCategory,
-	SingleAura: true,
+	Label:    "Scorpid Sting",
+	Spell:    scorpidStingSpell,
+	Category: ScorpidStingCategory,
 }
 
 func ScorpidStingValue(talentPoints int32) float64 {
@@ -353,10 +349,9 @@ func NewSpellDataCurseOfWeaknessAura(unit *core.Unit, isPlayer bool, talentPoint
 var DustCloudCategory = "MinorArmorReduction"
 var dustCloudSpell = spelldata.MustFind(1265904)
 var dustCloudMeta = &Meta{
-	Label:      "Dust Cloud",
-	Spell:      dustCloudSpell,
-	Category:   DustCloudCategory,
-	SingleAura: true,
+	Label:    "Dust Cloud",
+	Spell:    dustCloudSpell,
+	Category: DustCloudCategory,
 }
 
 func DustCloudValue(talentPoints int32) float64 {
