@@ -7,6 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -301,11 +302,17 @@ func (d DBCTooltipDataProvider) GetDescriptionVariableString(spellId int64) stri
 	return spellEntry.Variables
 }
 
-// effectRange returns the bottom and top of the value an effect rolls. TBC
-// carries the spread as die sides rather than a variance: in game it rolls
-// basePoints + 1 .. basePoints + dieSides, so no sides at all collapses the
-// range onto basePoints, and negative sides roll the other way.
+// effectRange returns the bottom and top of the value an effect rolls at the character's level, the
+// range the sim rolls. An effect the spell store does not carry reads its base points.
 func (d DBCTooltipDataProvider) effectRange(spellId int64, effectIdx int64) (float64, float64) {
+	if spell := spelldata.Find(int32(spellId)); spell != spelldata.Nil {
+		for i := range spell.Effects {
+			if effect := &spell.Effects[i]; int64(effect.Index) == effectIdx {
+				return effect.Min(core.CharacterLevel), effect.Max(core.CharacterLevel)
+			}
+		}
+	}
+
 	effectEntries, ok := d.DBC.SpellEffects[int(spellId)]
 	if !ok {
 		return 0, 0
@@ -317,12 +324,7 @@ func (d DBCTooltipDataProvider) effectRange(spellId int64, effectIdx int64) (flo
 	}
 
 	base := float64(effect.EffectBasePoints)
-	if effect.EffectDieSides == 0 {
-		return base, base
-	}
-
-	sides := float64(effect.EffectDieSides)
-	return math.Min(base+1, base+sides), math.Max(base+1, base+sides)
+	return base, base
 }
 
 // GetEffectBaseValue implements TooltipDataProvider.
