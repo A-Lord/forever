@@ -40,7 +40,7 @@ export interface NumberCodecOptions {
 	showZeroes?: boolean;
 }
 
-export type NumberFieldProps = Omit<TextFieldProps<number>, 'codec' | 'commit'> & NumberCodecOptions;
+export type NumberFieldProps = Omit<TextFieldProps<number>, 'codec' | 'commit' | 'autosize'> & NumberCodecOptions;
 
 export type StringFieldProps = Omit<TextFieldProps<string>, 'codec' | 'commit' | 'autosize'>;
 

@@ -314,6 +314,12 @@ describe('NumberField', () => {
 		expect(screen.getByTestId('number-picker-root').contains(input())).toBe(true);
 	});
 
+	it('rejects autosize, since NumberField always sets it itself', () => {
+		// @ts-expect-error NumberFieldProps omits autosize, the same as StringField and the others.
+		const withAutosize = <NumberField id="x" value={0} onChange={() => {}} autosize />;
+		expect(withAutosize).toBeTruthy();
+	});
+
 	it('shows a whole number with String(value) and sizes to it', () => {
 		render(<NumberHarness initial={12345} />);
 		expect(input().value).toBe('12345');

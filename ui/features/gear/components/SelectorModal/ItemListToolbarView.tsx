@@ -3,7 +3,7 @@ import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { ChoiceField } from '@ui-kit/ChoiceField';
 import { SearchField } from '@ui-kit/TextField';
-import { type ReactNode, useId } from 'react';
+import type { ReactNode } from 'react';
 
 const phaseOptions = () => [
 	{ value: 1, label: i18n.t('common.phases.1') },
@@ -45,9 +45,6 @@ export const ItemListToolbarView = ({
 	removeLabel,
 	onRemove,
 }: ItemListToolbarViewProps) => {
-	const searchId = useId();
-	const phaseId = useId();
-
 	return (
 		<div className="ui-selector-modal-filters mb-(--modal-padding) flex items-center [&>*:not(:last-child)]:mr-2">
 			<SearchField
@@ -55,7 +52,6 @@ export const ItemListToolbarView = ({
 				onChange={onSearchChange}
 				placeholder={i18n.t('common.search')}
 				inputClassName="max-w-48"
-				id={searchId}
 				inputTestId="selector-modal-search"
 			/>
 			{filtersMenu !== undefined && (
@@ -67,7 +63,7 @@ export const ItemListToolbarView = ({
 				</>
 			)}
 			<div className="min-w-28" data-testid="selector-modal-phase-selector">
-				<ChoiceField id={phaseId} options={phaseOptions()} value={phase} onChange={onPhaseChange} />
+				<ChoiceField options={phaseOptions()} value={phase} onChange={onPhaseChange} />
 			</div>
 			{toggles.map(toggle => (
 				<div key={toggle.id} data-testid={toggle.testId}>
