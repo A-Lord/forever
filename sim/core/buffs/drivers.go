@@ -18,8 +18,7 @@ import (
 // hands the driver the *Character the buffs are applied to and the message its
 // field lives on, a debuff-scope row the *Unit the debuffs land on plus the
 // debuffs and the raid. The driver reads its own field out of the message, and
-// any other field it needs: Grace of Air lasts 9 seconds while the party is
-// twisting totems.
+// any other field it needs: Grace of Air does nothing under Windfury Totem.
 
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat

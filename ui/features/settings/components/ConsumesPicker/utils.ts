@@ -1,5 +1,5 @@
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
-import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
+import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
@@ -38,10 +38,9 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'groups';
 
-// Feral druids cannot take Windfury or Flametongue Totem, so their main-hand imbue shows under them.
-const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
+// Windfury Totem and Flametongue Totem take the main-hand imbue's place, a feral druid's included.
 const mainHandImbueShown = (player: Player<any>) => {
-	if (SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty()) return true;
+	if (!player.getParty()) return true;
 	const buffs = player.getParty()!.getBuffs();
 	return !buffs.windfuryTotem && !buffs.flametongueTotem;
 };

@@ -104,7 +104,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
-			graceOfAirTotem: true,
 			strengthOfEarthTotem: true,
 			windfuryTotem: true,
 			battleShout: TristateEffect.TristateEffectRegular,

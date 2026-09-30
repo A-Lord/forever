@@ -161,14 +161,14 @@ describe('consumeConfigs', () => {
 		const { player } = playerOf({ windfury: true });
 		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
 		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, windfury: true }).player;
-		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
+		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(false);
 	});
 
 	it('hides the main-hand imbue under Flametongue Totem', () => {
 		const { player } = playerOf({ flametongue: true });
 		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
 		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, flametongue: true }).player;
-		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
+		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(false);
 	});
 
 	it('labels each group as db.json does and hides one that offers the player nothing', () => {
