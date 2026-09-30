@@ -618,7 +618,6 @@ func (at *auraTracker) reset(sim *Simulation) {
 	at.onPeriodicHealDealtAuras = at.onPeriodicHealDealtAuras[:0]
 	at.onPeriodicHealTakenAuras = at.onPeriodicHealTakenAuras[:0]
 	at.onEncounterStartAuras = at.onEncounterStartAuras[:0]
-	at.dispatchDepth = 0
 
 	for _, resetEffect := range at.resetEffects {
 		resetEffect(sim)
@@ -966,9 +965,10 @@ func (at *auraTracker) endDispatch() {
 // Invokes the OnApplyEffects event for all tracked Auras.
 func (at *auraTracker) OnApplyEffects(sim *Simulation, target *Unit, spell *Spell) {
 	for _, aura := range at.beginDispatch(at.onApplyEffectsAuras) {
-		if aura.active {
-			aura.OnApplyEffects(aura, sim, target, spell)
+		if !aura.active {
+			continue
 		}
+		aura.OnApplyEffects(aura, sim, target, spell)
 	}
 	at.endDispatch()
 }
@@ -976,9 +976,10 @@ func (at *auraTracker) OnApplyEffects(sim *Simulation, target *Unit, spell *Spel
 // Invokes the OnCastComplete event for all tracked Auras.
 func (at *auraTracker) OnCastComplete(sim *Simulation, spell *Spell) {
 	for _, aura := range at.beginDispatch(at.onCastCompleteAuras) {
-		if aura.active {
-			aura.OnCastComplete(aura, sim, spell)
+		if !aura.active {
+			continue
 		}
+		aura.OnCastComplete(aura, sim, spell)
 	}
 	at.endDispatch()
 }
@@ -986,17 +987,21 @@ func (at *auraTracker) OnCastComplete(sim *Simulation, spell *Spell) {
 // Invokes the OnSpellHit event for all tracked Auras.
 func (at *auraTracker) OnSpellHitDealt(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onSpellHitDealtAuras) {
-		if aura.active {
-			aura.OnSpellHitDealt(aura, sim, spell, result)
+		// this check is to handle a case where auras are deactivated during iteration.
+		if !aura.active {
+			continue
 		}
+		aura.OnSpellHitDealt(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
 func (at *auraTracker) OnSpellHitTaken(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onSpellHitTakenAuras) {
-		if aura.active {
-			aura.OnSpellHitTaken(aura, sim, spell, result)
+		// this check is to handle a case where auras are deactivated during iteration.
+		if !aura.active {
+			continue
 		}
+		aura.OnSpellHitTaken(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
@@ -1007,17 +1012,19 @@ func (at *auraTracker) OnSpellHitTaken(sim *Simulation, spell *Spell, result *Sp
 //	As a buff when caster's dots are ticking.
 func (at *auraTracker) OnPeriodicDamageDealt(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onPeriodicDamageDealtAuras) {
-		if aura.active {
-			aura.OnPeriodicDamageDealt(aura, sim, spell, result)
+		if !aura.active {
+			continue
 		}
+		aura.OnPeriodicDamageDealt(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
 func (at *auraTracker) OnPeriodicDamageTaken(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onPeriodicDamageTakenAuras) {
-		if aura.active {
-			aura.OnPeriodicDamageTaken(aura, sim, spell, result)
+		if !aura.active {
+			continue
 		}
+		aura.OnPeriodicDamageTaken(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
@@ -1025,17 +1032,21 @@ func (at *auraTracker) OnPeriodicDamageTaken(sim *Simulation, spell *Spell, resu
 // Invokes the OnHeal event for all tracked Auras.
 func (at *auraTracker) OnHealDealt(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onHealDealtAuras) {
-		if aura.active {
-			aura.OnHealDealt(aura, sim, spell, result)
+		// this check is to handle a case where auras are deactivated during iteration.
+		if !aura.active {
+			continue
 		}
+		aura.OnHealDealt(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
 func (at *auraTracker) OnHealTaken(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onHealTakenAuras) {
-		if aura.active {
-			aura.OnHealTaken(aura, sim, spell, result)
+		// this check is to handle a case where auras are deactivated during iteration.
+		if !aura.active {
+			continue
 		}
+		aura.OnHealTaken(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
@@ -1046,26 +1057,29 @@ func (at *auraTracker) OnHealTaken(sim *Simulation, spell *Spell, result *SpellR
 //	As a buff when caster's dots are ticking.
 func (at *auraTracker) OnPeriodicHealDealt(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onPeriodicHealDealtAuras) {
-		if aura.active {
-			aura.OnPeriodicHealDealt(aura, sim, spell, result)
+		if !aura.active {
+			continue
 		}
+		aura.OnPeriodicHealDealt(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
 func (at *auraTracker) OnPeriodicHealTaken(sim *Simulation, spell *Spell, result *SpellResult) {
 	for _, aura := range at.beginDispatch(at.onPeriodicHealTakenAuras) {
-		if aura.active {
-			aura.OnPeriodicHealTaken(aura, sim, spell, result)
+		if !aura.active {
+			continue
 		}
+		aura.OnPeriodicHealTaken(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
 
 func (at *auraTracker) OnEncounterStart(sim *Simulation) {
 	for _, aura := range at.beginDispatch(at.onEncounterStartAuras) {
-		if aura.active {
-			aura.OnEncounterStart(aura, sim)
+		if !aura.active {
+			continue
 		}
+		aura.OnEncounterStart(aura, sim)
 	}
 	at.endDispatch()
 }

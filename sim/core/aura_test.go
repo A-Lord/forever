@@ -11,7 +11,6 @@ func TestOnSpellHitDealtRunsEachAuraOncePerHit(t *testing.T) {
 	swing := &Spell{}
 	extraAttack := &Spell{}
 
-	var charge, seal *Aura
 	sealHits := map[*Spell]int{}
 	unit.RegisterAura(Aura{
 		Label:    "Extra Attack",
@@ -22,7 +21,7 @@ func TestOnSpellHitDealtRunsEachAuraOncePerHit(t *testing.T) {
 			}
 		},
 	}).Activate(sim)
-	charge = unit.RegisterAura(Aura{
+	charge := unit.RegisterAura(Aura{
 		Label:    "Charge",
 		Duration: NeverExpires,
 		OnSpellHitDealt: func(aura *Aura, sim *Simulation, _ *Spell, _ *SpellResult) {
@@ -30,7 +29,7 @@ func TestOnSpellHitDealtRunsEachAuraOncePerHit(t *testing.T) {
 		},
 	})
 	charge.Activate(sim)
-	seal = unit.RegisterAura(Aura{
+	seal := unit.RegisterAura(Aura{
 		Label:    "Seal",
 		Duration: NeverExpires,
 		OnSpellHitDealt: func(_ *Aura, _ *Simulation, spell *Spell, _ *SpellResult) {
