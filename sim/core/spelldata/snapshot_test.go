@@ -125,28 +125,32 @@ func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 	}
 }
 
-// The game shows Shadow Oil's bolt 350026 as 60 to 69 and Frost Oil's bolt 350025 as 39 to 44 at level
-// 14, and Wrath rank 2 as 24 to 29 and Starfire rank 1 as 73 to 89 at level 20. Wrath rank 3's 30 ± 2.5
-// ends on halves in float32, 27.5 and 32.5, and a half rounds up: 28 to 33 at its level 14.
+// Every row but 350026 at 0 and 60 is an in-game tooltip. Wrath rank 3 (5178), Wildvine Potion's 11387
+// and Minor Recombobulator's 18805 end their base points on halves, which round to the even end: 27.5
+// and 32.5 are 28 and 32, 0.5 and 1499.5 are 0 and 1500.
 func TestRollEndsMatchTheTooltip(t *testing.T) {
 	withGeneratedStore(t)
 
 	for _, c := range []struct {
 		spell    int32
+		effect   int
 		level    int32
 		min, max float64
 	}{
-		{350026, 0, 48, 56},
-		{350026, 14, 60, 69},
-		{350026, 60, 63, 72},
-		{350025, 14, 39, 44},
-		{5177, 20, 24, 29},
-		{2912, 20, 73, 89},
-		{5178, 14, 28, 33},
+		{350026, 1, 0, 48, 56},
+		{350026, 1, 14, 60, 69},
+		{350026, 1, 60, 63, 72},
+		{350025, 2, 14, 39, 44},
+		{5177, 1, 20, 24, 29},
+		{2912, 1, 20, 73, 89},
+		{5178, 1, 20, 32, 37},
+		{11387, 1, 35, 0, 1500},
+		{18805, 2, 60, 202, 338},
+		{18805, 3, 60, 96, 160},
 	} {
-		damage := MustFind(c.spell).DamageEffect()
-		if got, want := [2]float64{damage.Min(c.level), damage.Max(c.level)}, [2]float64{c.min, c.max}; got != want {
-			t.Errorf("%d at %d rolls %v, want %v", c.spell, c.level, got, want)
+		effect := MustFind(c.spell).EffectN(c.effect)
+		if got, want := [2]float64{effect.Min(c.level), effect.Max(c.level)}, [2]float64{c.min, c.max}; got != want {
+			t.Errorf("%d effect %d at %d rolls %v, want %v", c.spell, c.effect, c.level, got, want)
 		}
 	}
 }

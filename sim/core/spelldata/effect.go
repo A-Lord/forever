@@ -76,8 +76,8 @@ func (e *Effect) levelGain(level int32) float32 {
 }
 
 // The low end of the roll. EffectVariance spreads the base points, whose ends are rounded to whole
-// numbers; the per-level gain is added to both, and each end is rounded outward. An effect that does
-// not roll answers the average at both ends.
+// numbers, a half to the even one; the per-level gain is added to both, and each end is rounded
+// outward. An effect that does not roll answers the average at both ends.
 func (e *Effect) Min(level int32) float64 {
 	low, _ := e.spread(level)
 	return low
@@ -98,8 +98,8 @@ func (e *Effect) spread(level int32) (float64, float64) {
 	base := float32(e.BasePoints)
 	half := float32(float32(math.Abs(e.BasePoints)) * float32(e.Variance) / 2)
 	gain := e.levelGain(level)
-	low := float32(math.Round(float64(base-half))) + gain
-	high := float32(math.Round(float64(base+half))) + gain
+	low := float32(math.RoundToEven(float64(base-half))) + gain
+	high := float32(math.RoundToEven(float64(base+half))) + gain
 	return math.Floor(float64(low)), math.Ceil(float64(high))
 }
 

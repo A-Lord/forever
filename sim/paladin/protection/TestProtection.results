@@ -536,8 +536,8 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 216.24648
-  tps: 228.91934
+  dps: 216.22632
+  tps: 228.89918
   dtps: 5876.10614
  }
 }
