@@ -42,8 +42,12 @@ func CastSpeedReductionEffect(aura *core.Aura, castTimeMultiplier float64) *core
 	})
 }
 
+// The slot every slow on attacks bids in: the one Thunder Clap's melee haste takes, so only the
+// strongest applies.
+var AtkSpeedReductionCategory = core.ExclusiveStatCategory(ThunderClapCategory, "MeleeSpeedMultiplier", true)
+
 func AtkSpeedReductionEffect(aura *core.Aura, speedMultiplier float64) *core.ExclusiveEffect {
-	return aura.NewExclusiveEffect("AtkSpdReduction", false, core.ExclusiveEffect{
+	return aura.NewExclusiveEffect(AtkSpeedReductionCategory, false, core.ExclusiveEffect{
 		// How far from 1 the applied factor is, which is the scale every member
 		// of the category bids on: a 20% slow outbids a 10% one. The factor is
 		// 1/speedMultiplier, so a helper stating 1.2 is a 16.67% slow.

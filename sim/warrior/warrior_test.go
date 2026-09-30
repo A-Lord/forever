@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/warrior"
 	"github.com/wowsims/forever/sim/warrior/dps"
 	"github.com/wowsims/forever/sim/warrior/protection"
@@ -282,6 +283,66 @@ func TestWarriorShoutsOnlyWhenTheCategoryWillTakeIt(t *testing.T) {
 					got, row.want, row.remaining, warrior.ShoutExpirationThreshold)
 			}
 		})
+	}
+}
+
+// Sunder Armor is one debuff on the target: with a warrior in the raid, the raid's Sunder is the
+// player's copy, which the warrior's cast stacks and the rotation reads by the spell's id, up to five,
+// and the armor counts once.
+func TestWarriorSunderStacksTheRaidsSunder(t *testing.T) {
+	player := &proto.Player{
+		Name:          "Sunder",
+		Race:          proto.Race_RaceOrc,
+		Class:         proto.Class_ClassWarrior,
+		Equipment:     &proto.EquipmentSpec{},
+		TalentsString: furyTalents,
+		Spec:          dpsOptions,
+		Rotation:      &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid: core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{},
+			&proto.Debuffs{SunderArmor: true}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	war := sim.Raid.Parties[0].Players[0].(*dps.DpsWarrior)
+	target := sim.Encounter.AllTargetUnits[0]
+	sunder := war.GetSpell(core.ActionID{SpellID: 11597})
+
+	shared := target.GetAuraByID(core.ActionID{SpellID: 11597})
+	if shared == nil {
+		t.Fatalf("the rotation finds no Sunder Armor by its id on the target")
+	}
+	if shared.Label != "Sunder Armor (Player)" {
+		t.Errorf("the raid's Sunder is labelled %q, want the player's copy %q", shared.Label, "Sunder Armor (Player)")
+	}
+	if own := war.SunderArmorAuras.Get(target); own != shared {
+		t.Fatalf("the warrior stacks %q, want the raid's %q", own.Label, shared.Label)
+	}
+
+	armor := target.GetStats()[stats.Armor]
+	shared.Activate(sim)
+	shared.SetStacks(sim, 2)
+
+	for range 50 {
+		sunder.SkipCastAndApplyEffects(sim, target)
+	}
+
+	if got := shared.GetStacks(); got != 5 {
+		t.Errorf("the raid's Sunder is at %d stacks after the warrior's casts, want 5", got)
+	}
+	if got, want := target.GetStats()[stats.Armor], armor-5*450; got != want {
+		t.Errorf("armor is %v, want %v: five stacks of -450, counted once", got, want)
+	}
+	var sunders int
+	for _, aura := range target.GetAurasWithTag(buffs.SunderArmorCategory) {
+		if aura.ActionID.SpellID == 11597 {
+			sunders++
+		}
+	}
+	if sunders != 1 {
+		t.Errorf("the target carries %d Sunder Armor auras, want the one both share", sunders)
 	}
 }
 

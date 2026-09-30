@@ -2,6 +2,7 @@ package hunter
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -54,7 +55,7 @@ func (hunter *Hunter) registerExposePrey() {
 		})
 	trigger.Name = "Expose Prey - Trigger"
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-		return result.Target.HasActiveAuraWithTag("HuntersMark")
+		return result.Target.HasActiveAuraWithTag(buffs.HuntersMarkCategory)
 	}
 
 	hunter.MakeProcTriggerAura(trigger)
