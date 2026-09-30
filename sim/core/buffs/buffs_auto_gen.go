@@ -348,8 +348,6 @@ func NewSpellDataAtieshPriestAura(unit *core.Unit, isPlayer bool, talentPoints i
 	return newItemCountBuff(unit, atieshPriestMeta, isPlayer, count)
 }
 
-// func NewSpellDataTotemTwistingAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura // totem_twisting, KindFlag: sim behaviour toggle with no spell source; rendered under Other Inputs.
-
 // Stoneskin Totem
 var StoneskinTotemCategory = "StoneskinTotem"
 var stoneskinTotemSpell = spelldata.MustFind(10405)

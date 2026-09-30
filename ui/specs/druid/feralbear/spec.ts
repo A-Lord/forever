@@ -100,7 +100,6 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 			windfuryTotem: true,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
 			strengthOfEarthTotem: true,
-			totemTwisting: true,
 		}),
 		individualBuffs: IndividualBuffs.create({
 			greaterBlessingOfKings: true,
@@ -124,7 +123,6 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem, BuffDebuffInputs.FlametongueTotem],
 	otherInputs: {
 		inputs: [
-			OtherInputs.TotemTwisting,
 			FeralBearInputs.StartingRage,
 			OtherInputs.InputDelay,
 			OtherInputs.TankAssignment,

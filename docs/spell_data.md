@@ -1612,7 +1612,7 @@ A row the generator cannot express outright states `Driver: true`, or is a kind 
 and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buffs/drivers.go`: a buff
 row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
 debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
-`party.TotemTwisting`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
+`party.WindfuryTotem`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
 game files do not state: a proc trigger, a cooldown, a delay, the metrics of a regen. Declaring the function is what
 makes the row compile.
 

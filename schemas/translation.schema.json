@@ -1853,19 +1853,6 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"totem_twisting": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
 						"pet_uptime": {
 							"type": "object",
 							"properties": {
@@ -2380,7 +2367,6 @@
 						"burst_window",
 						"hp_percent_for_defensives",
 						"retribution_aura_spell_power",
-						"totem_twisting",
 						"pet_uptime",
 						"pet_type",
 						"ammo",
@@ -8165,6 +8151,12 @@
 						"unspent_talent_points": {
 							"type": "string"
 						},
+						"windfury_over_grace_of_air": {
+							"type": "string"
+						},
+						"windfury_over_flametongue": {
+							"type": "string"
+						},
 						"custom_ep_not_enabled": {
 							"type": "string"
 						},
@@ -8173,7 +8165,16 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["meta_gem_disabled", "profession_requirement", "too_many_jc_gems", "unspent_talent_points", "custom_ep_not_enabled", "label"]
+					"required": [
+						"meta_gem_disabled",
+						"profession_requirement",
+						"too_many_jc_gems",
+						"unspent_talent_points",
+						"windfury_over_grace_of_air",
+						"windfury_over_flametongue",
+						"custom_ep_not_enabled",
+						"label"
+					]
 				},
 				"buttons": {
 					"type": "object",

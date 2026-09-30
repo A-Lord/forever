@@ -113,7 +113,6 @@ export default defineSpec<Spec.SpecProtectionPaladin>({
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [
-			OtherInputs.TotemTwisting,
 			OtherInputs.InputDelay,
 			OtherInputs.TankAssignment,
 			OtherInputs.InspirationUptime,

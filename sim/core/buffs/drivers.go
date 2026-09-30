@@ -326,29 +326,13 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	holdTotemEnchant(char, totemAura, FlametongueTotemCategory, flametongueTotemProc.EffectN(1).BaseValue(), procTrigger)
 }
 
-// A shaman twisting totems keeps Grace of Air up for 9 seconds out of every 10,
-// because the air slot is holding another totem the rest of the time; a shaman
-// who is not twisting leaves it standing.
+// Windfury Totem and Grace of Air Totem do not stack: under both, Windfury
+// Totem holds and Grace of Air does nothing.
 func driveGraceOfAirTotem(char *core.Character, party *proto.PartyBuffs) {
-	aura := NewSpellDataGraceOfAirTotemAura(&char.Unit, false, 0)
-
-	if !party.TotemTwisting {
-		core.MakePermanent(aura)
+	if party.WindfuryTotem {
 		return
 	}
-
-	// The first cast lands a totem cycle into the fight, because the shaman
-	// spends the opening one on the totem being twisted with.
-	aura.Duration = time.Second * 9
-	aura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
-		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
-			Period:   time.Second * 10,
-			Priority: core.ActionPriorityAuto,
-			OnAction: func(sim *core.Simulation) {
-				aura.Activate(sim)
-			},
-		})
-	})
+	core.MakePermanent(NewSpellDataGraceOfAirTotemAura(&char.Unit, false, 0))
 }
 
 // The party's Retribution Aura is the top rank, and its damage carries the

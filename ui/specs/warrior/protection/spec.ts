@@ -107,7 +107,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			graceOfAirTotem: true,
 			strengthOfEarthTotem: true,
 			windfuryTotem: true,
-			totemTwisting: true,
 			battleShout: TristateEffect.TristateEffectRegular,
 		}),
 		individualBuffs: IndividualBuffs.create({
@@ -130,7 +129,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [
-			OtherInputs.TotemTwisting,
 			WarriorInputs.StartingRage(),
 			WarriorInputs.StanceSnapshot(),
 			OtherInputs.InputDelay,

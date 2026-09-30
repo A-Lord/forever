@@ -99,7 +99,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			windfuryTotem: true,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
 			strengthOfEarthTotem: true,
-			totemTwisting: true,
 		}),
 		individualBuffs: IndividualBuffs.create({
 			greaterBlessingOfKings: true,
@@ -126,7 +125,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [
-			OtherInputs.TotemTwisting,
 			OtherInputs.InputDelay,
 			OtherInputs.DistanceFromTarget,
 			OtherInputs.TankAssignment,

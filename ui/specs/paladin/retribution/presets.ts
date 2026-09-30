@@ -44,7 +44,6 @@ export const DefaultPartyBuffs = PartyBuffs.create({
 	leaderOfThePack: true,
 	battleShout: TristateEffect.TristateEffectRegular,
 	strengthOfEarthTotem: true,
-	totemTwisting: true,
 	windfuryTotem: true,
 	graceOfAirTotem: true,
 });

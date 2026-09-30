@@ -420,10 +420,9 @@ func measureGeneratedBuffStats(char *core.Character) {
 	char.SetStats(char.SortAndApplyStatDependencies(char.GetStats()).FloorGameStats())
 }
 
-// Grace of Air is the row whose uptime another field decides: with totem
-// twisting on it is 9 seconds long and re-cast every 10, and without it the
-// totem simply stands.
-func TestGeneratedGraceOfAirFollowsTotemTwisting(t *testing.T) {
+// Grace of Air stands for the fight on its own, and gives way to Windfury
+// Totem: under both, the party gets no agility from it.
+func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
 	standing := core.NewGeneratedBuffTestCharacter()
 	core.ApplyBuffEffects(standing,
 		&proto.RaidBuffs{}, &proto.PartyBuffs{GraceOfAirTotem: true}, &proto.IndividualBuffs{})
@@ -440,48 +439,23 @@ func TestGeneratedGraceOfAirFollowsTotemTwisting(t *testing.T) {
 		t.Errorf("the totem's aura lasts %v, want it to stand for the fight", aura.Duration)
 	}
 
-	twisting := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(twisting, &proto.RaidBuffs{},
-		&proto.PartyBuffs{GraceOfAirTotem: true, TotemTwisting: true}, &proto.IndividualBuffs{})
-	twisting.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
-
-	if got := twisting.GetStats()[stats.Agility]; got != 89 {
-		t.Errorf("the twisted totem applied %v agility, want the game files' 89", got)
-	}
-	twisted := twisting.GetAura("Grace of Air Totem (External)")
-	if twisted.Duration != time.Second*9 {
-		t.Errorf("the twisted totem's aura lasts %v, want 9 seconds of every 10", twisted.Duration)
-	}
-
-	// The schedule itself: the first cast lands one totem cycle in, not at the
-	// pull, so the aura is down for the opening 10 seconds.
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
-		&proto.PartyBuffs{GraceOfAirTotem: true, TotemTwisting: true}, &proto.IndividualBuffs{})
-	scheduled := sim.Raid.Parties[0].Players[0].GetCharacter().GetAura("Grace of Air Totem (External)")
-	if scheduled == nil {
-		t.Fatal("the twisting shaman's totem registered no aura")
-	}
-	if scheduled.IsActive() {
-		t.Error("the twisted totem is up at the pull, want the first cast one cycle in")
-	}
-
-	for sim.CurrentTime < time.Second*10 && !scheduled.IsActive() {
-		sim.Step()
-	}
-	if !scheduled.IsActive() {
-		t.Errorf("the twisted totem is still down at %v, want it up after the first 10 second tick",
-			sim.CurrentTime)
-	}
-	if sim.CurrentTime != time.Second*10 {
-		t.Errorf("the first cast landed at %v, want 10 seconds in", sim.CurrentTime)
-	}
-
-	standingSim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
 		&proto.PartyBuffs{GraceOfAirTotem: true}, &proto.IndividualBuffs{})
-	permanent := standingSim.Raid.Parties[0].Players[0].GetCharacter().GetAura("Grace of Air Totem (External)")
-	if !permanent.IsActive() || permanent.Duration != core.NeverExpires {
-		t.Errorf("without twisting the totem is active %v for %v, want it up from the pull for the fight",
-			permanent.IsActive(), permanent.Duration)
+	permanent := sim.Raid.Parties[0].Players[0].GetCharacter().GetAura("Grace of Air Totem (External)")
+	if !permanent.IsActive() {
+		t.Error("the totem is down at the pull, want it up for the fight")
+	}
+
+	underWindfury := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(underWindfury, &proto.RaidBuffs{},
+		&proto.PartyBuffs{GraceOfAirTotem: true, WindfuryTotem: true}, &proto.IndividualBuffs{})
+	underWindfury.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	if got := underWindfury.GetStats()[stats.Agility]; got != 0 {
+		t.Errorf("under Windfury Totem the totem applied %v agility, want none", got)
+	}
+	if underWindfury.GetAura("Grace of Air Totem (External)") != nil {
+		t.Error("under Windfury Totem the totem registered its aura")
 	}
 }
 
