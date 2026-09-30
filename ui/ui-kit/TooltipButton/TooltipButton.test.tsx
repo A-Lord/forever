@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { TooltipButton } from './TooltipButton';
 
 describe('TooltipButton', () => {
-	it('renders a chromeless link-coloured icon button, with the extra classes the callers pass', () => {
+	it('renders a frameless link-coloured icon button, with the extra classes the callers pass', () => {
 		render(<TooltipButton tooltip="What this does" className="ml-2" />);
 		const button = screen.getByRole('button');
 		expect(Array.from(button.classList).filter(name => name.startsWith('ui-'))).toEqual(['ui-button-icon', 'ui-button-link']);

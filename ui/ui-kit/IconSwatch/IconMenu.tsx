@@ -1,7 +1,6 @@
-import { useOptionalField } from '@ui-kit/Field';
 import { Menu } from '@ui-kit/Menu';
 import clsx from 'clsx';
-import type { ReactNode, Ref } from 'react';
+import type { ReactNode } from 'react';
 
 import { IconSwatch, type IconSwatchProps } from './IconSwatch';
 
@@ -14,24 +13,20 @@ export interface IconMenuProps {
 	portalProps?: Record<string, unknown>;
 	positionerProps?: Record<string, unknown>;
 	popupProps?: Record<string, unknown>;
-	/** Set by the picker that is this menu's own `Field`'s `leading`, so the trigger becomes that field's control; unset, a nested picker's menu leaves an ancestor field's control alone. */
-	fieldControl?: boolean;
 	children: ReactNode;
 }
 
 /** A grid of icons that opens on hover from a swatch, overlapping its border by a pixel. */
-export const IconMenu = ({ trigger, side, onOpenChange, className, portalProps, positionerProps, popupProps, fieldControl, children }: IconMenuProps) => {
-	const field = useOptionalField();
-	const swatchProps = fieldControl && field ? { ...trigger, ref: field.controlRef as Ref<HTMLAnchorElement>, 'aria-labelledby': field.labelId } : trigger;
-
+export const IconMenu = ({ trigger, side, onOpenChange, className, portalProps, positionerProps, popupProps, children }: IconMenuProps) => {
 	return (
 		<Menu
 			onOpenChange={onOpenChange}
 			surface="none"
-			triggerRender={<IconSwatch {...swatchProps} />}
+			triggerRender={<IconSwatch {...trigger} />}
 			// No href on the swatch leaves an anchor that is not focusable; `nativeButton: false` gives it the button role and a tab stop.
 			// A swatch with a wowhead href is still a link. Base UI hands `onActivate` on to the swatch, which cancels the click, and its own click handler toggles the menu: a tap, which never hovers, opens the menu rather than the link.
-			triggerProps={{ nativeButton: false, openOnHover: true, delay: 0, onActivate: () => {} }}
+			// The trigger's own disabled swatch dims and blocks its clicks; this also stops Base UI opening the menu from the trigger or a click relayed onto it.
+			triggerProps={{ nativeButton: false, openOnHover: true, delay: 0, onActivate: () => {}, disabled: trigger.disabled }}
 			side={side}
 			align="start"
 			sideOffset={-1}

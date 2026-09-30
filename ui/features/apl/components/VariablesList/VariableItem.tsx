@@ -27,7 +27,7 @@ export interface VariableItemProps {
 /** One named value variable: its name and validations in the title, and the value it stands for as the body. */
 export const VariableItem = ({ id, player, config, onCopy, onDelete }: VariableItemProps) => {
 	const { changeSource } = useApl();
-	const { value: variable, disabled, chrome } = useAplInput(player, config);
+	const { value: variable, disabled, frameProps } = useAplInput(player, config);
 	const [renaming, setRenaming] = useState(false);
 
 	const latest = useRef(config);
@@ -62,7 +62,7 @@ export const VariableItem = ({ id, player, config, onCopy, onDelete }: VariableI
 			actions={<AplItemActions label={variableLabel} onCopy={onCopy} onDelete={onDelete} />}
 			testId="apl-variable-root">
 			<Tree.Item.Body>
-				<Field {...chrome} density="compact" className={[chrome.className, 'm-0']} testId="apl-list-item-picker-root" disabled={disabled}>
+				<Field {...frameProps} density="compact" className={[frameProps.className, 'm-0']} testId="apl-list-item-picker-root" disabled={disabled}>
 					<AplProvider changeSource={row.changeSource}>
 						<ValuePicker player={player} config={row.value} />
 					</AplProvider>

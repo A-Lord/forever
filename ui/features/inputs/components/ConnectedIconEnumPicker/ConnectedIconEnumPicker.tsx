@@ -15,7 +15,7 @@ export interface ConnectedIconEnumPickerProps<ModObject, T> {
 }
 
 export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testId }: ConnectedIconEnumPickerProps<ModObject, T>) => {
-	const { value, setValue, disabled, revision, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, disabled, revision, frameProps } = useConnectedField(modObject, config);
 	const shows = (valueConfig: IconEnumValueConfig<ModObject, T>) => !valueConfig.showWhen || valueConfig.showWhen(modObject);
 
 	// Keyed on which values carry an actionId, not on which icons have resolved: a notification landing before the icons arrive must not read as hidden and zero the source.
@@ -42,7 +42,7 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 
 	return (
 		<IconEnumPicker
-			{...chrome}
+			{...frameProps}
 			testId={testId}
 			options={config.values.map((valueConfig, index) => ({
 				value: valueConfig.value,

@@ -24,7 +24,7 @@ export const useListItems = <M, T>(modObject: M, config: ListItemsConfig<M, T>) 
 	configRef.current = config;
 	const lastSeenRef = useRef<ReadonlyArray<T> | null>(null);
 
-	const { value, setValue, hidden, disabled, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, hidden, disabled, frameProps } = useConnectedField(modObject, config);
 	reconcileIds(lastSeenRef.current, value);
 	lastSeenRef.current = value;
 
@@ -96,5 +96,5 @@ export const useListItems = <M, T>(modObject: M, config: ListItemsConfig<M, T>) 
 		};
 	};
 
-	return { items: value, itemConfig, create, remove, copy, move, canRemove, hidden, disabled, chrome };
+	return { items: value, itemConfig, create, remove, copy, move, canRemove, hidden, disabled, frameProps };
 };

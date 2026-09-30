@@ -8,14 +8,25 @@ import { useMemo, useRef } from 'react';
 import type { EnumValueConfig, MultiComboBoxProps } from './types';
 
 // base-ui's multi-select combobox, with the picks as chips below the field.
-export const MultiComboBox = ({ value, onChange, disabled, values, placeholder, emptyText, removeLabel, openLabel, testId, ...chrome }: MultiComboBoxProps) => {
+export const MultiComboBox = ({
+	value,
+	onChange,
+	disabled,
+	values,
+	placeholder,
+	emptyText,
+	removeLabel,
+	openLabel,
+	testId,
+	...frameProps
+}: MultiComboBoxProps) => {
 	const portalContainer = usePortalContainer();
 	const anchor = useRef<HTMLDivElement>(null);
 
 	const selected = useMemo(() => values.filter(entry => value.includes(entry.value)), [values, value]);
 
 	return (
-		<Field {...chrome} disabled={disabled} testId={testId ?? 'multi-combo-box-root'}>
+		<Field {...frameProps} disabled={disabled} testId={testId ?? 'multi-combo-box-root'}>
 			<Combobox.Root
 				multiple
 				items={values}
@@ -25,7 +36,7 @@ export const MultiComboBox = ({ value, onChange, disabled, values, placeholder, 
 				isItemEqualToValue={(a: EnumValueConfig, b: EnumValueConfig) => a.value === b.value}
 				disabled={disabled}>
 				<Combobox.InputGroup ref={anchor} className="ui-multi-combo-box-field" data-testid="multi-combo-box-field">
-					<Combobox.Input id={chrome.id} className="ui-multi-combo-box-input" placeholder={placeholder} data-testid="multi-combo-box-input" />
+					<Combobox.Input id={frameProps.id} className="ui-multi-combo-box-input" placeholder={placeholder} data-testid="multi-combo-box-input" />
 					<Combobox.Trigger className="ui-multi-combo-box-trigger" aria-label={openLabel} data-testid="multi-combo-box-trigger">
 						<Icon name="chevron-down" />
 					</Combobox.Trigger>

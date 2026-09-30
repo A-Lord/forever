@@ -1,13 +1,13 @@
-import { Field, hasFieldChrome, useOptionalField } from '@ui-kit/Field';
-import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
-import { IconSwatch, type IconSwatchProps } from '@ui-kit/IconSwatch';
+import { Field, hasFieldFrame } from '@ui-kit/Field';
+import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
+import { IconSwatch } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
-import type { MouseEvent, Ref } from 'react';
+import { type MouseEvent, useId, useRef } from 'react';
 
 import { ImprovedAnchor } from './ImprovedAnchor';
 
-export interface IconPickerProps extends FieldChromeProps, ControlledProps<number> {
+export interface IconPickerProps extends FieldFrameProps, ControlledProps<number> {
 	/** The number of states the icon cycles through: 2 is on/off, 0 is unlimited. */
 	states: number;
 	icon?: ResolvedIcon;
@@ -17,20 +17,14 @@ export interface IconPickerProps extends FieldChromeProps, ControlledProps<numbe
 	improvedIcon2?: ResolvedIcon;
 }
 
-// Rendered only as a labelled `Field`'s `leading`, so the context it reads is that field's own, never an
-// ancestor's: the swatch becomes the field's control, named by the label instead of the icon.
-const FieldSwatch = (props: IconSwatchProps) => {
-	const field = useOptionalField();
-	if (!field) return <IconSwatch {...props} />;
-	return <IconSwatch {...props} ref={field.controlRef as Ref<HTMLAnchorElement>} aria-labelledby={field.labelId} />;
-};
-
 /** Without a label, description or layout the swatch renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
-export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...chrome }: IconPickerProps) => {
+export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...frameProps }: IconPickerProps) => {
+	const labelId = useId();
+	const controlRef = useRef<HTMLAnchorElement>(null);
 	const fillImproved1 = states >= 3 && !!improvedIcon;
 	const fillImproved2 = states >= 4 && !!improvedIcon2;
 	const showCounterText = !improvedIcon && (states > 3 || states === 0);
-	const rooted = hasFieldChrome(chrome);
+	const rooted = hasFieldFrame(frameProps);
 
 	const handleLeftClick = () => {
 		// An <a> cannot be disabled, so the state change has to be stopped here.
@@ -78,9 +72,8 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 		</>
 	);
 
-	const SwatchComponent = rooted ? FieldSwatch : IconSwatch;
 	const swatch = (
-		<SwatchComponent
+		<IconSwatch
 			icon={icon}
 			href={icon?.href}
 			active={value > 0}
@@ -91,11 +84,12 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.
 			aria-label={icon?.name || undefined}
+			{...(rooted ? { ref: controlRef, 'aria-labelledby': labelId } : {})}
 			{...stateEvents}
 		/>
 	);
 
 	if (!rooted) return swatch;
 
-	return <Field {...chrome} layout="icon" className={className} disabled={disabled} leading={swatch} />;
+	return <Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={swatch} labelId={labelId} controlRef={controlRef} />;
 };

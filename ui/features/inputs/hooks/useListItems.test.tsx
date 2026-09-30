@@ -281,11 +281,11 @@ describe('useListItems itemConfig', () => {
 	});
 });
 
-describe('useListItems chrome', () => {
-	it('passes the field chrome, hidden and disabled through from the config', () => {
+describe('useListItems frame', () => {
+	it('passes the field frame, hidden and disabled through from the config', () => {
 		const rows = rowsOf('a');
 		const { result } = setup(rows, { label: 'Targets', id: 'targets', showWhen: () => true, enableWhen: () => false });
-		expect(result.current.chrome).toMatchObject({ id: 'targets', label: 'Targets' });
+		expect(result.current.frameProps).toMatchObject({ id: 'targets', label: 'Targets' });
 		expect(result.current.hidden).toBe(false);
 		expect(result.current.disabled).toBe(true);
 	});

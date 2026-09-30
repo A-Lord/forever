@@ -1,5 +1,5 @@
 import { Select } from '@base-ui/react/select';
-import { Field, hasFieldChrome } from '@ui-kit/Field';
+import { Field, hasFieldFrame } from '@ui-kit/Field';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import { LocaleHtml, Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
@@ -32,7 +32,7 @@ export const ChoiceField = <V,>({
 	positionMethod,
 	className,
 	testId,
-	...chrome
+	...frameProps
 }: ChoiceFieldProps<V>) => {
 	const [open, setOpen] = useState(false);
 	const tooltipId = `${useId()}-option`;
@@ -45,10 +45,10 @@ export const ChoiceField = <V,>({
 	// Without a placeholder, the select look shows its first option while nothing matches; nothing is written back.
 	const shown = selected ?? (variant === 'select' && placeholder === undefined ? flat[0] : undefined);
 
-	const rooted = hasFieldChrome(chrome);
+	const rooted = hasFieldFrame(frameProps);
 	const trigger = shown ? renderValue ? renderValue(shown) : <OptionContent option={shown} /> : placeholder;
 	const triggerProps = {
-		id: chrome.id,
+		id: frameProps.id,
 		className: clsx(!rooted && ['ui-choice-field', className], 'ui-choice-field-trigger', shown?.className),
 		'data-variant': variant,
 		'data-testid': rooted ? undefined : testId,
@@ -131,7 +131,7 @@ export const ChoiceField = <V,>({
 		);
 
 	return (
-		<Field {...chrome} className={className} testId={testId} disabled={disabled}>
+		<Field {...frameProps} className={className} testId={testId} disabled={disabled}>
 			{control}
 			{tooltip}
 		</Field>

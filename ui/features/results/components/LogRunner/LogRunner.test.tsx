@@ -105,7 +105,7 @@ beforeEach(() => {
 });
 
 describe('LogRunner', () => {
-	it('renders the sticky chrome, the list and the bar even before the first run', () => {
+	it('renders the sticky header, the list and the bar even before the first run', () => {
 		const { container } = mount();
 
 		expect(container.querySelector('[data-testid="log-runner-root"]')).not.toBeNull();
@@ -289,7 +289,7 @@ describe('LogRunner', () => {
 			expect(listScrollIntoView).not.toHaveBeenCalled();
 		});
 
-		it('never scrolls down to the list when its first row is already below the sticky chrome', () => {
+		it('never scrolls down to the list when its first row is already below the sticky header', () => {
 			result = resultWith(LOGS);
 			const { container } = mount();
 			placeList(container, document.body, 200);

@@ -153,7 +153,7 @@ describe('Button', () => {
 		expect(screen.getByRole('button').className).toBe('ui-button-link ui-button-link-danger');
 	});
 
-	it('is chromeless for iconOnly, with no variant of its own', () => {
+	it('is frameless for iconOnly, with no variant of its own', () => {
 		render(
 			<Button iconOnly aria-label="Close">
 				×
@@ -163,7 +163,7 @@ describe('Button', () => {
 		expect(button.className).toBe('ui-button-icon');
 	});
 
-	it('applies a colour variant to an iconOnly button, still chromeless', () => {
+	it('applies a colour variant to an iconOnly button, still frameless', () => {
 		render(
 			<Button iconOnly variant="link-danger" aria-label="Delete">
 				×

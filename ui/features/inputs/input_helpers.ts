@@ -9,7 +9,7 @@ import { randomUUID } from '@sim/utils/misc';
 import type { EnumValueConfig } from '@ui-kit/MultiComboBox';
 
 import type { BooleanPickerConfig, ChoiceFieldConfig, IconEnumPickerConfig, IconEnumValueConfig, IconPickerConfig, NumberFieldConfig } from './configs';
-import type { InputChrome, StoreBinding } from './input';
+import type { InputFrame, StoreBinding } from './input';
 
 const storeBinding = <ModObject>(
 	storeSubscribe: ((obj: ModObject) => StoreSubscribe) | undefined,
@@ -448,7 +448,7 @@ export const makeBooleanIconInput = <SpecType extends Spec, Message, ModObject>(
 	fieldName: keyof Message,
 	value?: number,
 	label?: string,
-	labelTooltip?: InputChrome<ModObject>['labelTooltip'],
+	labelTooltip?: InputFrame<ModObject>['labelTooltip'],
 ): TypedIconPickerConfig<Player<SpecType>, boolean> => {
 	return makeWrappedIconInput<SpecType, ModObject, boolean>({
 		id: config.id,
@@ -484,7 +484,7 @@ export const makeBooleanIconInput = <SpecType extends Spec, Message, ModObject>(
 };
 
 export interface PlayerBooleanIconInputConfig<SpecType extends Spec, Message, T>
-	extends BasePlayerConfig<SpecType, T>, Pick<InputChrome<Player<SpecType>>, 'label' | 'labelTooltip'> {
+	extends BasePlayerConfig<SpecType, T>, Pick<InputFrame<Player<SpecType>>, 'label' | 'labelTooltip'> {
 	fieldName: keyof Message;
 	id: ActionId;
 	value?: number;
@@ -599,7 +599,7 @@ const makeWrappedEnumIconInput = <SpecType extends Spec, ModObject, T>(
 };
 
 export interface PlayerEnumIconInputConfig<SpecType extends Spec, Message, T>
-	extends BasePlayerConfig<SpecType, T>, Pick<InputChrome<Player<SpecType>>, 'label' | 'labelTooltip'> {
+	extends BasePlayerConfig<SpecType, T>, Pick<InputFrame<Player<SpecType>>, 'label' | 'labelTooltip'> {
 	fieldName: keyof Message;
 	values: Array<IconEnumValueConfig<Player<SpecType>, T>>;
 	numColumns?: number;

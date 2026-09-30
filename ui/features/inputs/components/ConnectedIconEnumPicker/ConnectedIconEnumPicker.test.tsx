@@ -273,7 +273,7 @@ describe('ConnectedIconEnumPicker', () => {
 		expect(button().hasAttribute('data-active')).toBe(true);
 	});
 
-	it('carries the config chrome onto the field and the testId onto the swatch', () => {
+	it('carries the config frame onto the field and the testId onto the swatch', () => {
 		const { container } = render(
 			<ConnectedIconEnumPicker modObject={new Options()} config={configFor({ label: 'Armor', extraClassNames: ['extra'] })} testId="armor-root" />,
 		);

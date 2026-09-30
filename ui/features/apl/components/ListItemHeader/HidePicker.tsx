@@ -13,11 +13,11 @@ export interface HidePickerProps {
 
 /** The eye that disables one APL list item. */
 export const HidePicker = ({ player, config }: HidePickerProps) => {
-	const { value, setValue, hidden, disabled, chrome } = useAplInput(player, config);
+	const { value, setValue, hidden, disabled, frameProps } = useAplInput(player, config);
 
 	if (hidden) return null;
 	return (
-		<Field {...chrome} className={['m-0 w-auto', chrome.className]} testId="hide-picker-root" disabled={disabled}>
+		<Field {...frameProps} className={['m-0 w-auto', frameProps.className]} testId="hide-picker-root" disabled={disabled}>
 			<HeaderButton
 				icon={value ? 'eye-slash' : 'eye'}
 				label={i18n.t('rotation_tab.apl.helpers.buttons.enable_disable')}

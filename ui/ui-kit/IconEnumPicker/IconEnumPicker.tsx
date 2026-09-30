@@ -1,16 +1,16 @@
-import { Field, hasFieldChrome } from '@ui-kit/Field';
-import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
+import { Field, hasFieldFrame } from '@ui-kit/Field';
+import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { IconMenu } from '@ui-kit/IconSwatch';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 
 import { resolvedIconStyle } from '../utils/icons';
 import { IconEnumOptionItem } from './IconEnumOption';
 import { type IconEnumOption, IconEnumPickerDirection } from './types';
 import { iconStyleOf } from './utils';
 
-export interface IconEnumPickerProps<T> extends FieldChromeProps, ControlledProps<T> {
+export interface IconEnumPickerProps<T> extends FieldFrameProps, ControlledProps<T> {
 	options: Array<IconEnumOption<T>>;
 	equals: (a: T, b: T) => boolean;
 	/** The value that reads as inactive. */
@@ -40,10 +40,12 @@ export const IconEnumPicker = <T,>({
 	disabled,
 	className,
 	testId,
-	...chrome
+	...frameProps
 }: IconEnumPickerProps<T>) => {
 	const tooltipId = useId();
-	const rooted = hasFieldChrome(chrome);
+	const labelId = useId();
+	const controlRef = useRef<HTMLAnchorElement>(null);
+	const rooted = hasFieldFrame(frameProps);
 
 	const selected = options.find(option => equals(option.value, value));
 	const selectedHidden = !!selected?.hidden;
@@ -57,7 +59,6 @@ export const IconEnumPicker = <T,>({
 	const menu = (
 		<IconMenu
 			onOpenChange={onOpenChange}
-			fieldControl={rooted}
 			trigger={{
 				href,
 				style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),
@@ -68,6 +69,7 @@ export const IconEnumPicker = <T,>({
 				text: selectedHidden ? undefined : selected?.text,
 				className: clsx('transition-none', !rooted && className),
 				testId: testId ?? 'icon-enum-picker-root',
+				...(rooted ? { ref: controlRef, 'aria-labelledby': labelId } : {}),
 				...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip),
 			}}
 			side={horizontal ? 'right' : 'bottom'}
@@ -96,7 +98,7 @@ export const IconEnumPicker = <T,>({
 		);
 
 	return (
-		<Field {...chrome} layout="icon" className={className} disabled={disabled} leading={menu}>
+		<Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={menu} labelId={labelId} controlRef={controlRef}>
 			{optionTooltip}
 		</Field>
 	);

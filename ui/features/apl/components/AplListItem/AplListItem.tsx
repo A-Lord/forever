@@ -28,7 +28,7 @@ export interface AplListItemProps<T extends HideableAction> {
  */
 export const AplListItem = <T extends HideableAction>({ player, config, leading, actionFullWidth }: AplListItemProps<T>) => {
 	const { changeSource } = useApl();
-	const { hidden, disabled, chrome } = useAplInput(player, { ...config, enableWhen: () => !config.getValue(player)?.hide });
+	const { hidden, disabled, frameProps } = useAplInput(player, { ...config, enableWhen: () => !config.getValue(player)?.hide });
 
 	const item = useRef(() => config.getValue(player));
 	item.current = () => config.getValue(player);
@@ -51,9 +51,9 @@ export const AplListItem = <T extends HideableAction>({ player, config, leading,
 		<AplProvider changeSource={row.changeSource}>
 			{hidden ? null : (
 				<Field
-					{...chrome}
+					{...frameProps}
 					density="compact"
-					className={['m-0 flex flex-row items-baseline gap-2', chrome.className]}
+					className={['m-0 flex flex-row items-baseline gap-2', frameProps.className]}
 					testId="apl-list-item-picker-root"
 					disabled={disabled}>
 					{leading}

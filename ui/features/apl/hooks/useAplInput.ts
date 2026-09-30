@@ -2,12 +2,12 @@ import { useApl } from '@features/apl/context/AplContext';
 import { type InputState, useInput } from '@features/inputs/hooks/useInput';
 import type { InputConfig } from '@features/inputs/input';
 import type { Player } from '@sim/player/player';
-import type { FieldChromeProps } from '@ui-kit/Field';
+import type { FieldFrameProps } from '@ui-kit/Field';
 import { useId } from 'react';
 
 export interface AplInput<T> extends InputState<T> {
 	/** The caller's label, layout and classes for its `Field`, with the id filled in. */
-	chrome: FieldChromeProps & { id: string };
+	frameProps: FieldFrameProps & { id: string };
 }
 
 /**
@@ -25,7 +25,7 @@ export const useAplInput = <T>(player: Player<any>, config: InputConfig<Player<a
 	const generatedId = useId();
 	const { changeSource } = useApl();
 	const id = config.id || generatedId;
-	const chrome = {
+	const frameProps = {
 		id,
 		label: config.label,
 		labelTooltip: config.labelTooltip,
@@ -33,5 +33,5 @@ export const useAplInput = <T>(player: Player<any>, config: InputConfig<Player<a
 		layout: config.layout,
 		className: config.extraClassNames,
 	};
-	return { ...useInput(player, { ...config, storeSubscribe: changeSource, id }), chrome };
+	return { ...useInput(player, { ...config, storeSubscribe: changeSource, id }), frameProps };
 };

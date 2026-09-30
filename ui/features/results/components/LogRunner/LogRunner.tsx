@@ -19,7 +19,7 @@ import { LogToolbar } from './LogToolbar';
 import type { IdentifiedSearchGroup } from './utils';
 import { combinedLogText, DEBUG_MARKER, keywordsOf, selectedTargetNumber } from './utils';
 
-/** Until a real row has been measured. The sticky chrome is covered by the list's own overscan. */
+/** Until a real row has been measured. The sticky header is covered by the list's own overscan. */
 const ESTIMATED_ROW_HEIGHT = 32;
 
 type Measured = { for: object | null; width: number; rowHeight: number };
@@ -112,8 +112,8 @@ export const LogRunner = ({ active }: LogRunnerProps) => {
 	const scrollListToTop = useCallback(() => {
 		const list = listRef.current;
 		if (!list || list.offsetParent === null) return;
-		const chrome = stickySlot?.parentElement ?? stickySlot;
-		const visibleTop = chrome ? chrome.getBoundingClientRect().bottom : 0;
+		const stickyHeader = stickySlot?.parentElement ?? stickySlot;
+		const visibleTop = stickyHeader ? stickyHeader.getBoundingClientRect().bottom : 0;
 		if (list.getBoundingClientRect().top >= visibleTop - 1) return;
 		const target = stickySlot?.closest<HTMLElement>('[data-testid="dr-root"]') ?? list;
 		target.scrollIntoView({ block: 'start' });

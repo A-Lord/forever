@@ -1,4 +1,4 @@
-import { Field, hasFieldChrome } from '@ui-kit/Field';
+import { Field, hasFieldFrame } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
 import { useCommitChange } from '@ui-kit/hooks/useCommitChange';
 import { useDraft } from '@ui-kit/hooks/useDraft';
@@ -22,7 +22,7 @@ export const TextField = <V,>({
 	inputTestId,
 	className,
 	testId,
-	...chrome
+	...frameProps
 }: TextFieldProps<V>) => {
 	const [input, setInput] = useState<HTMLInputElement | null>(null);
 	const attachInput = useCallback((element: HTMLElement | null) => setInput(element instanceof HTMLInputElement ? element : null), []);
@@ -48,13 +48,13 @@ export const TextField = <V,>({
 		return () => clearTimeout(timer);
 	}, [debounceMs, text, display]);
 
-	const rooted = hasFieldChrome(chrome, clear);
+	const rooted = hasFieldFrame(frameProps, clear);
 
 	const control = (
 		<Input
 			type="text"
 			ref={attachInput}
-			id={chrome.id}
+			id={frameProps.id}
 			className={clsx(!rooted && ['ui-text-field', className], inputClassName)}
 			data-testid={inputTestId ?? (rooted ? undefined : testId)}
 			disabled={disabled}
@@ -75,7 +75,7 @@ export const TextField = <V,>({
 
 	return (
 		<Field
-			{...chrome}
+			{...frameProps}
 			className={['ui-text-field', className]}
 			testId={testId}
 			disabled={disabled}

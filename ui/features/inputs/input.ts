@@ -11,7 +11,7 @@ export type StoreBinding<ModObject> =
 	| { storeSubscribe?: undefined; storeField: StoreField | ReadonlyArray<StoreField> };
 
 /** What an input renders around its value. */
-export interface InputChrome<ModObject> {
+export interface InputFrame<ModObject> {
 	label?: string;
 	labelTooltip?: string | ReactElement;
 	description?: string;
@@ -29,7 +29,7 @@ export interface InputChrome<ModObject> {
 /**
  * Data for creating a new input UI element, reading its own value off the mod object.
  */
-export interface InputConfig<ModObject, T, V = T> extends InputChrome<ModObject> {
+export interface InputConfig<ModObject, T, V = T> extends InputFrame<ModObject> {
 	defaultValue?: T;
 
 	// The input's change source: given the mod object, returns a subscribe

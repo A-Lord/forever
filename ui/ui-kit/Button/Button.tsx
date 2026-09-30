@@ -23,7 +23,7 @@ export const Button = (props: ButtonProps) => {
 			? props.className
 			: clsx(
 					base,
-					// `ui-button-link` is the link colour; an iconOnly link keeps it on top of the chromeless base.
+					// `ui-button-link` is the link colour; an iconOnly link keeps it on top of the frameless base.
 					variant && (variant !== 'link' || props.iconOnly) && `ui-button-${variant}`,
 					!isLink && !props.iconOnly && SIZE_CLASS[props.size ?? 'default'],
 					props.className,

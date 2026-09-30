@@ -10,7 +10,7 @@ export interface ConnectedBooleanPickerProps<ModObject> {
 }
 
 export const ConnectedBooleanPicker = <ModObject,>({ modObject, config, testId }: ConnectedBooleanPickerProps<ModObject>) => {
-	const { value, setValue, hidden, disabled, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, hidden, disabled, frameProps } = useConnectedField(modObject, config);
 	if (hidden) return null;
-	return <BooleanPicker {...chrome} testId={testId} value={value} onChange={setValue} disabled={disabled} reverse={config.reverse} />;
+	return <BooleanPicker {...frameProps} testId={testId} value={value} onChange={setValue} disabled={disabled} reverse={config.reverse} />;
 };

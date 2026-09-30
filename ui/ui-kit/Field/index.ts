@@ -1,13 +1,13 @@
 export { Field } from './Field';
-export { useFieldDescribedBy, useOptionalField } from './hooks/useField';
+export { useFieldDescribedBy } from './hooks/useField';
 export type {
 	ControlledProps,
-	FieldChromeProps,
 	FieldClearPartProps,
 	FieldClearProps,
 	FieldControlProps,
 	FieldDensity,
 	FieldDescriptionProps,
+	FieldFrameProps,
 	FieldLabelProps,
 	FieldLayout,
 	FieldProps,
@@ -16,4 +16,4 @@ export type {
 	FieldTooltip,
 	ResolvedIcon,
 } from './types';
-export { hasFieldChrome } from './utils';
+export { hasFieldFrame } from './utils';

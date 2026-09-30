@@ -4,7 +4,7 @@ import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { IconMenu } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
-import { Children, type MouseEvent, type ReactNode } from 'react';
+import { Children, type MouseEvent, type ReactNode, useId, useRef } from 'react';
 
 export interface MultiIconPickerProps {
 	label?: string;
@@ -19,16 +19,21 @@ export interface MultiIconPickerProps {
 }
 
 export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, children, testId }: MultiIconPickerProps) => {
+	const labelId = useId();
+	const controlRef = useRef<HTMLAnchorElement>(null);
 	const menu = (
 		<IconMenu
-			fieldControl={!!label}
 			trigger={{
 				icon,
 				active,
 				className: clsx(!active && 'grayscale'),
 				testId: testId ?? 'multi-icon-picker-root',
-				// The trigger is a bare anchor carrying a background image, so it announces nothing without this — and Base UI points the popup's `aria-labelledby` at it.
+				// The trigger is a bare anchor carrying a background image, so it announces nothing without this. Base UI
+				// points the popup's `aria-labelledby` at the trigger, and accessible-name resolution does not chase a
+				// second `aria-labelledby` hop through that id, so this literal string is what names the popup,
+				// independently of the trigger's own `aria-labelledby` below.
 				'aria-label': label,
+				...(label ? { ref: controlRef, 'aria-labelledby': labelId } : {}),
 				onContextMenu: (event: MouseEvent) => event.preventDefault(),
 				onMouseDown: (event: MouseEvent) => {
 					if (isRightClick(event.nativeEvent)) onClear();
@@ -55,5 +60,5 @@ export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, chil
 
 	if (!label) return menu;
 
-	return <Field role="group" label={label} layout="icon" leading={menu} />;
+	return <Field role="group" label={label} layout="icon" leading={menu} labelId={labelId} controlRef={controlRef} />;
 };
