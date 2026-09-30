@@ -1,4 +1,5 @@
 import { Menu as BaseMenu } from '@base-ui/react/menu';
+import { useFieldDescribedBy } from '@ui-kit/Field';
 import { Menu } from '@ui-kit/Menu';
 import { type ReactNode, useMemo } from 'react';
 
@@ -57,7 +58,9 @@ export const ChoiceMenu = <V,>({
 		open={open}
 		onOpenChange={onOpenChange}
 		trigger={trigger}
-		triggerProps={triggerProps}
+		// A Select's trigger gets aria-describedby from Base UI's own Field wiring; a Menu's trigger is not one of
+		// its field-aware controls, so it never does.
+		triggerProps={{ ...triggerProps, 'aria-describedby': useFieldDescribedBy() }}
 		align="start"
 		side={side}
 		positionMethod={positionMethod}

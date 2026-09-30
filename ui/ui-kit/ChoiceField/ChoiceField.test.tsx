@@ -76,7 +76,7 @@ describe('ChoiceField', () => {
 			expect(trigger().getAttribute('class')).toContain('w-full');
 		});
 
-		it('renders one Field root around the trigger for a label, and the label names the trigger', () => {
+		it('renders one Field root around the trigger, the label names the trigger and the description describes it', () => {
 			const { container } = render(
 				<Harness id="mode" label="Pet Mode" description="Controls the pet" layout="inline" options={MODES} initial={0} testId="mode-field" />,
 			);
@@ -91,7 +91,9 @@ describe('ChoiceField', () => {
 					.getAttribute('for'),
 			).toBe('mode');
 			expect(screen.getByRole('combobox', { name: 'Pet Mode' })).toBe(trigger());
-			expect(within(root as HTMLElement).getByText('Controls the pet')).not.toBeNull();
+			const description = within(root as HTMLElement).getByText('Controls the pet');
+			expect(description).not.toBeNull();
+			expect(trigger().getAttribute('aria-describedby')).toBe(description.id);
 		});
 
 		it('names an unlabelled trigger through ariaLabel', () => {
@@ -312,6 +314,12 @@ describe('ChoiceField', () => {
 
 			expect(rows().map(row => row.textContent)).toEqual(['None', 'Logic »', 'Resources »']);
 			expect(within(rows()[0]).getByRole('menuitemradio').getAttribute('aria-checked')).toBe('false');
+		});
+
+		it('gives the menu trigger aria-describedby too, since Base UI only wires that onto a select', () => {
+			const { container } = render(<Harness id="kind" label="Kind" description="Picks the kind" options={KINDS} initial="none" />);
+			const description = within(container.firstElementChild as HTMLElement).getByText('Picks the kind');
+			expect(screen.getByRole('button', { name: 'Kind' }).getAttribute('aria-describedby')).toBe(description.id);
 		});
 
 		it('renders a submenu once it is opened, and nests a two-level path', async () => {
