@@ -1,4 +1,5 @@
 import { act, render, within } from '@testing-library/react';
+import { useRef } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { VirtualList } from './VirtualList';
@@ -90,6 +91,38 @@ describe('VirtualList', () => {
 		for (const row of rendered) {
 			expect(row.style.transform).toBe(`translateY(${Number(row.dataset.index) * ROW_HEIGHT}px)`);
 		}
+	});
+
+	it('follows a scroller its parent holds in a ref, which React attaches after the list first looks for it', async () => {
+		let scrollerElement: HTMLDivElement | null = null;
+		const Harness = () => {
+			const ref = useRef<HTMLDivElement | null>(null);
+			return (
+				<div
+					ref={element => {
+						if (element) {
+							Object.defineProperty(element, 'offsetHeight', { value: VIEWPORT, configurable: true });
+							Object.defineProperty(element, 'offsetWidth', { value: 400, configurable: true });
+						}
+						ref.current = element;
+						scrollerElement = element;
+					}}>
+					<VirtualList
+						count={1000}
+						rowHeight={ROW_HEIGHT}
+						overscan={2}
+						getScrollElement={() => ref.current}
+						initialRect={{ width: 400, height: VIEWPORT }}
+						renderRow={index => <span>row {index}</span>}
+					/>
+				</div>
+			);
+		};
+		const { container } = render(<Harness />);
+		await act(async () => {});
+
+		await scrollTo(scrollerElement!, 100 * ROW_HEIGHT);
+		expect(Math.min(...rows(container).map(row => Number(row.dataset.index)))).toBeGreaterThan(90);
 	});
 
 	it('renders nothing but keeps its height at zero for an empty list', () => {

@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useReducer } from 'react';
 
 import { WINDOW_SCROLLER } from './window_scroller';
 
@@ -69,6 +69,13 @@ export const VirtualList = ({
 		scrollMargin,
 		initialRect,
 		...(scrollsWithWindow ? WINDOW_SCROLLER : {}),
+	});
+
+	// The virtualiser looks for its scroller in a layout effect, which runs before a parent's ref is
+	// attached; when it found none but one is there now, one more render lets it subscribe.
+	const [, rerender] = useReducer((renders: number) => renders + 1, 0);
+	useEffect(() => {
+		if (virtualizer.scrollElement === null && getScrollElement() !== null) rerender();
 	});
 
 	return (
