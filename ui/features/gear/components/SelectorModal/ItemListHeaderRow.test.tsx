@@ -48,6 +48,13 @@ describe('ItemListHeaderRow', () => {
 		expect(within(screen.getByTestId('ep-label')).getByRole('button', { name: 'EP' })).toBeTruthy();
 	});
 
+	it('names a descending sort on the active column’s button', () => {
+		renderRow({ sortBy: ItemListSortBy.EP, sortDirection: SortDirection.DESC });
+		const descendingLabel = i18n.t('gear_tab.gear_picker.sorted_descending');
+		expect(within(screen.getByTestId('ep-label')).getByRole('button', { name: new RegExp(`^EP\\s*,\\s*${descendingLabel}$`) })).toBeTruthy();
+		expect(within(screen.getByTestId('ilvl-label')).getByRole('button', { name: i18n.t('gear_tab.gear_picker.table_headers.ilvl') })).toBeTruthy();
+	});
+
 	it('hides the EP header when EP values are off', () => {
 		renderRow({ showEPValues: false });
 		expect(screen.getByTestId('ep-label').style.display).toBe('none');
