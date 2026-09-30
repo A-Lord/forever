@@ -31,9 +31,12 @@ export const SimResultSummaryView = ({
 	const hasReference = referenceDiffs !== undefined;
 
 	return (
-		<div data-testid="results-sim" className="text-center">
-			<ResultMetricList metrics={metrics} layout="list" referenceDiffs={referenceDiffs} />
-			<div className="mt-2 font-normal" data-testid="results-sim-reference" data-has-reference={hasReference ? '' : undefined}>
+		<div data-testid="results-sim" className="flex flex-col gap-2 text-center">
+			{/* One flex item, so the metric rows inside it keep their own (unspaced) stacking instead of sharing this gap. */}
+			<div>
+				<ResultMetricList metrics={metrics} layout="list" referenceDiffs={referenceDiffs} />
+			</div>
+			<div className="font-normal" data-testid="results-sim-reference" data-has-reference={hasReference ? '' : undefined}>
 				<Button
 					variant="unstyled"
 					hidden={hasReference}

@@ -1,52 +1,62 @@
 import { LaunchStatus, Phase } from '@sim/constants/other';
 import { createSimStore } from '@sim/state/sim_store';
 import { act, render } from '@testing-library/react';
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { StrictMode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The shell is stubbed on purpose. What is under test is the construct-once gate, not the shell —
 // and constructing the real one would need a Database and a worker.
-const constructions: Array<{ root: HTMLElement; sidebarActions: HTMLElement }> = [];
-// Recorded rather than read off the document: the container the panes render into is only ever a
-// child of a shell this test does not build.
-const paneContainers: Array<HTMLElement> = [];
+const constructions: Array<{ root: HTMLElement }> = [];
+// Read off `dom.root` inside the constructor, which runs before the render that hands the shell its
+// host — the only way to prove the header and `main` it names are the ones still in the document later.
+const constructedHeaders: Array<Element | null> = [];
+const constructedMains: Array<Element | null> = [];
 vi.mock('./individual_sim_ui', async () => {
 	const { SidebarRegistry } = await import('@app/sidebar_registry');
 	const { CrashReportOpener } = await import('./crash_report_opener');
 	return {
 		SimHostObject: class {
-			readonly simTabContentsContainer = document.createElement('main');
 			// `NoticeNativeSim` asks the host's sim whether this is a local build; a native one raises no notice.
 			readonly sim = { waitForInit: () => Promise.resolve(), isNative: true };
 			readonly sidebar = new SidebarRegistry();
 			readonly disabled = false;
 			readonly simDisabled = false;
 			readonly individualConfig = { displayStats: [], epReferenceStat: 0 };
-			readonly simActionsContainer: HTMLElement;
 			// The sidebar panel is React now; the shell only owns the store it drives and the registry
 			// the warnings zone reads.
 			readonly resultsPanel = {} as never;
 			readonly warnings = {} as never;
 			readonly raidSimResultsManager = {} as never;
 			readonly crashReport = new CrashReportOpener();
-			constructor(dom: { root: HTMLElement; sidebarActions: HTMLElement }) {
+			constructor(dom: { root: HTMLElement }) {
 				constructions.push(dom);
-				paneContainers.push(this.simTabContentsContainer);
-				this.simActionsContainer = dom.sidebarActions;
+				constructedHeaders.push(dom.root.querySelector('[data-testid="sim-header"]'));
+				constructedMains.push(dom.root.querySelector('[data-testid="sim-main"]'));
 			}
 		},
 	};
 });
 
-// The six real panes need a Database and a worker; what is under test is that the tab tree is handed
-// the container the shell built, so the stub portals one marker into it.
+// The six real panes need a Database and a worker; what is under test is that a pane renders as an
+// ordinary child of the shell's main column, so the stub wraps one fake tab through the real `SimTabs`
+// — mirroring the real delegation on `host`, so the host's arrival is the same defs-appear transition.
 vi.mock('./SimTabsSection', async () => {
 	const { createElement } = await import('react');
-	const { createPortal } = await import('react-dom');
+	const { SimTabDef } = await import('./SimTabDef');
+	const { SimTabs } = await import('./SimTabs');
 	return {
-		SimTabsSection: ({ host }: { host: { simTabContentsContainer: HTMLElement } }) =>
-			createPortal(createElement('div', { className: 'gear-tab-left' }), host.simTabContentsContainer),
+		SimTabsSection: ({ host, children }: { host: unknown; children: ReactNode }) =>
+			createElement(SimTabs, {
+				defs: host
+					? createElement(SimTabDef, {
+							id: 'gear-tab',
+							title: 'Gear',
+							children: createElement('div', { className: 'gear-tab-left' }),
+						})
+					: null,
+				children,
+			}),
 	};
 });
 // Every import and export dialog reads the item database.
@@ -75,7 +85,7 @@ const { SimApp } = await import('./SimApp');
 // spec's shape decides the `sim-type--*` class, so both have to be genuine rather than empty casts.
 const sim = {
 	store: createSimStore(),
-	// The tab bodies gate their own content on this; `SimApp` only portals them in.
+	// The tab bodies gate their own content on this.
 	waitForInit: () => Promise.resolve(),
 	getShowDamageMetrics: () => true,
 	getShowThreatMetrics: () => false,
@@ -105,7 +115,8 @@ const mount = async (element: ReactElement) => {
 describe('SimApp', () => {
 	beforeEach(() => {
 		constructions.length = 0;
-		paneContainers.length = 0;
+		constructedHeaders.length = 0;
+		constructedMains.length = 0;
 	});
 
 	it('constructs the shell once', async () => {
@@ -127,19 +138,19 @@ describe('SimApp', () => {
 		expect(container.querySelectorAll('[data-testid="sim-ui"]')).toHaveLength(1);
 	});
 
-	it('renders the sidebar stats into the container the shell built', async () => {
+	it('renders the sidebar stats', async () => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
-		expect(container.querySelectorAll('[data-testid="sim-sidebar-stats"] .character-stats-root')).toHaveLength(1);
+		expect(container.querySelectorAll('.character-stats-root')).toHaveLength(1);
 	});
 
-	it('renders the results panel into the container the shell built', async () => {
+	it('renders the results panel', async () => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
-		expect(container.querySelectorAll('[data-testid="sim-sidebar-results"] [data-testid="results-viewer"]')).toHaveLength(1);
+		expect(container.querySelectorAll('[data-testid="results-viewer"]')).toHaveLength(1);
 	});
 
-	it('renders each registered pane into the pane container the shell built', async () => {
-		await mount(<SimApp player={player} def={def} />);
-		expect(paneContainers[0].querySelectorAll('.gear-tab-left')).toHaveLength(1);
+	it('renders each registered pane inside the shell’s main column', async () => {
+		const { container } = await mount(<SimApp player={player} def={def} />);
+		expect(container.querySelectorAll('[data-testid="sim-main"] .gear-tab-left')).toHaveLength(1);
 	});
 
 	it('renders it exactly once under StrictMode', async () => {
@@ -157,14 +168,23 @@ describe('SimApp', () => {
 	it('keeps the same skeleton nodes when the constructed shell arrives', async () => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
 		const dom = constructions[0];
+		const sidebarActions = dom.root.querySelector('[data-testid="sim-sidebar-actions"]')!;
 		const marker = document.createElement('span');
 		marker.className = 'built-imperatively';
-		dom.sidebarActions.appendChild(marker);
+		sidebarActions.appendChild(marker);
 
 		// `setSimUI` has already re-rendered by now; the nodes must have survived it.
 		expect(container.querySelector('[data-testid="sim-ui"]')).toBe(dom.root);
-		expect(dom.sidebarActions.isConnected).toBe(true);
-		expect(dom.sidebarActions.querySelector('.built-imperatively')).toBe(marker);
+		expect(sidebarActions.isConnected).toBe(true);
+		expect(sidebarActions.querySelector('.built-imperatively')).toBe(marker);
+	});
+
+	it('keeps the header and main mounted when the host arrives and the tabs get their defs', async () => {
+		const { container } = await mount(<SimApp player={player} def={def} />);
+		expect(constructedHeaders[0]).not.toBeNull();
+		expect(constructedMains[0]).not.toBeNull();
+		expect(container.querySelector('[data-testid="sim-header"]')).toBe(constructedHeaders[0]);
+		expect(container.querySelector('[data-testid="sim-main"]')).toBe(constructedMains[0]);
 	});
 
 	it('mounts the shell at the mount point, with no wrapper of its own', async () => {

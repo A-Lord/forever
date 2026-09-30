@@ -14,5 +14,9 @@ export interface SimToolbarProps {
 
 export const SimToolbar = ({ sim, knownIssues, onOpenSettings }: SimToolbarProps) => {
 	const outdatedNativeSim = useOutdatedNativeSim(sim);
-	return <SimToolbarView knownIssues={knownIssues} outdatedNativeSim={outdatedNativeSim} onOpenSettings={onOpenSettings} />;
+	return (
+		<div className="ml-auto flex flex-nowrap items-end text-(length:--text-ui) font-bold" data-testid="sim-toolbar">
+			<SimToolbarView knownIssues={knownIssues} outdatedNativeSim={outdatedNativeSim} onOpenSettings={onOpenSettings} />
+		</div>
+	);
 };

@@ -54,7 +54,7 @@ const ClassSubmenu = ({ playerClass }: { playerClass: PlayerClass<Class> }) => (
 );
 
 export const SimTitleDropdown = ({ currentSpec }: SimTitleDropdownProps) => (
-	<div className="h-sim-header-minus" data-testid="sim-title-dropdown-root">
+	<div className="z-sim-title h-sim-header-plus border-b border-b-border pb-px max-lg:sticky max-lg:-top-px" data-testid="sim-title-dropdown-root">
 		<div className="relative h-full" data-testid="sim-link-dropdown">
 			<Menu
 				surface="plain"

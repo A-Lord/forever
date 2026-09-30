@@ -14,6 +14,7 @@ import { IterationsPicker } from './IterationsPicker';
 import { simUiAttributes, simUiClasses } from './shell_classes';
 import { SimImportExport } from './SimImportExport';
 import { SimSidebarActions } from './SimSidebarActions';
+import { SimTabsPanels, SimTabsStrip } from './SimTabs';
 import { SimTabsSection } from './SimTabsSection';
 import type { ShellDom } from './types/shell_dom';
 
@@ -31,8 +32,6 @@ export interface SimShellProps {
 
 export const SimShell = ({ domRef, host, sim, className, spec, noticeText, knownIssues, onOpenSettings }: SimShellProps) => {
 	const root = useRef<HTMLDivElement>(null);
-	const sidebarActions = useRef<HTMLDivElement>(null);
-	const main = useRef<HTMLElement>(null);
 	const header = useRef<HTMLElement>(null);
 	const [headerEl, setHeaderEl] = useState<HTMLElement | null>(null);
 
@@ -48,11 +47,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 
 	// A child's layout effect runs before its parent's, which is what lets `SimApp` construct against a populated bundle in the very same commit.
 	useLayoutEffect(() => {
-		domRef.current = {
-			root: root.current!,
-			sidebarActions: sidebarActions.current!,
-			main: main.current!,
-		};
+		domRef.current = { root: root.current! };
 		setHeaderEl(header.current);
 	}, [domRef]);
 
@@ -60,11 +55,13 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 		<StickyHeaderContext value={headerEl}>
 			<div
 				ref={root}
-				className={clsx(simUiClasses({ className, spec }), 'max-h-screen overflow-y-auto')}
+				className={clsx(
+					simUiClasses({ className, spec }),
+					"max-h-screen overflow-y-auto before:fixed before:top-0 before:left-0 before:-z-1 before:h-screen before:w-screen before:bg-sim before:bg-cover before:bg-no-repeat before:content-['']",
+				)}
 				data-testid="sim-ui"
 				{...simUiAttributes({ spec })}>
 				<div className="flex h-full min-h-screen flex-col" data-testid="sim-root">
-					<div className="fixed top-0 left-0 -z-1 h-screen w-screen bg-sim bg-cover bg-no-repeat" data-testid="sim-bg" />
 					{noticeText ? (
 						<div className="relative mb-0 w-full border border-transparent bg-overlay p-4 text-center" data-testid="notices-banner">
 							{noticeText}
@@ -74,55 +71,41 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 						<aside
 							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
 							data-testid="sim-sidebar">
-							<div className="z-sim-title h-sim-header-plus border-b border-b-border max-lg:sticky max-lg:-top-px" data-testid="sim-title">
-								<SimTitleDropdown currentSpec={spec} />
-							</div>
+							<SimTitleDropdown currentSpec={spec} />
 							<div
 								className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible lg:pb-0 [&>*:not(:last-child)]:mb-6"
 								data-testid="sim-sidebar-content">
 								{/* The picker is the shell's own and has to stay ahead of every action the registry adds. */}
-								<div
-									ref={sidebarActions}
-									className="ui-sim-sidebar-actions flex flex-col items-center gap-2 *:mb-0"
-									data-testid="sim-sidebar-actions">
+								<div className="ui-sim-sidebar-actions flex flex-col items-center gap-2 *:mb-0" data-testid="sim-sidebar-actions">
 									{/* Nothing to iterate on a sim that never runs. */}
 									{!host?.simDisabled && <IterationsPicker sim={sim} />}
 									{host && <SimSidebarActions host={host} />}
 								</div>
-								<div className="flex items-center justify-center" data-testid="sim-sidebar-results">
-									{host && <SimResultsPanel panel={host.resultsPanel} warnings={host.warnings} results={host.raidSimResultsManager} />}
-								</div>
-								{/* A box here would fence in the stats header's `position: sticky`, so the panel's own parts are the sidebar's flex items. */}
-								<div className="contents" data-testid="sim-sidebar-stats">
-									{host && <CharacterStats />}
-								</div>
+								{host && <SimResultsPanel panel={host.resultsPanel} warnings={host.warnings} results={host.raidSimResultsManager} />}
+								{host && <CharacterStats />}
 							</div>
 						</aside>
 						<div
 							className="z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto"
 							data-testid="sim-content">
-							<header
-								ref={header}
-								className="sticky -top-px z-header -mx-page h-sim-header pt-6 pr-page pl-page whitespace-nowrap transition-colors duration-150 ease-in-out after:absolute after:inset-x-0 after:-bottom-px after:mx-auto after:h-px after:w-page-inset-w after:bg-border after:transition-[width] after:duration-150 after:ease-in-out after:content-[''] data-stuck:bg-background data-stuck:after:w-full max-lg:pt-2"
-								data-testid="sim-header"
-								data-stuck={stuck ? '' : undefined}>
-								<div
-									className="flex h-full flex-1 scrollbar-none items-stretch overflow-x-scroll [&::-webkit-scrollbar]:hidden"
-									data-testid="sim-header-container">
-									<div className="contents" data-testid="sim-tabs-mount">
-										{host && <SimTabsSection host={host} />}
-									</div>
-									<div className="mb-0 flex list-none flex-nowrap items-end pl-0 font-bold" data-testid="import-export">
-										{host && <SimImportExport />}
-									</div>
+							<SimTabsSection host={host}>
+								<header
+									ref={header}
+									className="sticky -top-px z-header -mx-page h-sim-header pt-6 pr-page pl-page whitespace-nowrap transition-colors duration-150 ease-in-out after:absolute after:inset-x-0 after:-bottom-px after:mx-auto after:h-px after:w-page-inset-w after:bg-border after:transition-[width] after:duration-150 after:ease-in-out after:content-[''] data-stuck:bg-background data-stuck:after:w-full max-lg:pt-2"
+									data-testid="sim-header"
+									data-stuck={stuck ? '' : undefined}>
 									<div
-										className="mb-0 ml-auto flex list-none flex-nowrap items-end pl-0 text-(length:--text-ui) font-bold"
-										data-testid="sim-toolbar">
+										className="flex h-full flex-1 scrollbar-none items-stretch overflow-x-scroll [&::-webkit-scrollbar]:hidden"
+										data-testid="sim-header-container">
+										<SimTabsStrip />
+										{host && <SimImportExport />}
 										<SimToolbar sim={sim} knownIssues={knownIssues} onOpenSettings={onOpenSettings} />
 									</div>
-								</div>
-							</header>
-							<main ref={main} className="flex h-4/5 grow" data-testid="sim-main" />
+								</header>
+								<main className="flex h-4/5 grow" data-testid="sim-main">
+									<SimTabsPanels />
+								</main>
+							</SimTabsSection>
 						</div>
 					</div>
 				</div>

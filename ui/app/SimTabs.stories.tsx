@@ -1,37 +1,34 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SimTabPane } from '@ui-kit/SimTabPane';
-import { useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { SimTabDef } from './SimTabDef';
-import { SimTabs } from './SimTabs';
+import { SimTabs, SimTabsPanels, SimTabsStrip } from './SimTabs';
 
 interface SimTabsFrameProps {
 	tabs: Array<{ id: string; title: string; badge?: string }>;
 }
 
-// SimTabs portals the panels into an element outside the strip, as the shell's main column is.
-const SimTabsFrame = ({ tabs }: SimTabsFrameProps) => {
-	const [panes, setPanes] = useState<HTMLElement | null>(null);
-	return (
+// The strip and the panels are ordinary children of one `SimTabs`, in the header and `main` the shell renders them into.
+const SimTabsFrame = ({ tabs }: SimTabsFrameProps) => (
+	<SimTabs
+		defs={tabs.map(tab => (
+			<SimTabDef key={tab.id} id={tab.id} title={tab.title} badge={tab.badge}>
+				<SimTabPane id={tab.id}>
+					<p>{tab.title} pane</p>
+				</SimTabPane>
+			</SimTabDef>
+		))}>
 		<div className="flex flex-col">
 			<header className="flex h-sim-header items-stretch font-bold whitespace-nowrap">
-				{panes && (
-					<SimTabs panes={panes}>
-						{tabs.map(tab => (
-							<SimTabDef key={tab.id} id={tab.id} title={tab.title} badge={tab.badge}>
-								<SimTabPane id={tab.id}>
-									<p>{tab.title} pane</p>
-								</SimTabPane>
-							</SimTabDef>
-						))}
-					</SimTabs>
-				)}
+				<SimTabsStrip />
 			</header>
-			<main ref={setPanes} className="flex grow" />
+			<main className="flex grow">
+				<SimTabsPanels />
+			</main>
 		</div>
-	);
-};
+	</SimTabs>
+);
 
 const meta = {
 	title: 'App/Tabs/SimTabs',
