@@ -141,7 +141,7 @@ func NewSpellDataJudgementOfTheCrusaderAuraRank(target *core.Unit, rank Judgemen
 		Duration: auraDuration(judgementOfTheCrusaderSpell),
 	})
 
-	aura.NewExclusiveEffect("Judgement of the Crusader", true, core.ExclusiveEffect{
+	aura.NewExclusiveEffect("Judgement of the Crusader", false, core.ExclusiveEffect{
 		Priority: bonus,
 		OnGain: func(ee *core.ExclusiveEffect, sim *core.Simulation) {
 			target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly] += bonus

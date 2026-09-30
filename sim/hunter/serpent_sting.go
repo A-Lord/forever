@@ -23,7 +23,7 @@ func (hunter *Hunter) registerSerpentSting() {
 	config.ThreatMultiplier = 1
 
 	config.Dot = spelldata.DotConfig(serpentStingRank, tick)
-	config.Dot.Aura.Tag = "Sting"
+	config.Dot.Aura.Tag = hunter.stingTag()
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		baseDamage := tick.Average(core.CharacterLevel) + serpentStingTickAPShare*dot.Spell.RangedAttackPower(target)
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, baseDamage, serpentStingRank.TickOutcome(dot))
