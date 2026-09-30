@@ -15,9 +15,9 @@
 
 	--container-popup: 300px;
 	--container-tile: 220px;
-	--container-modal-md: 500px;
-	--container-modal-lg: 800px;
-	--container-modal-xl: 1140px;
+	--container-modal-md: var(--breakpoint-sm);
+	--container-modal-lg: var(--breakpoint-lg);
+	--container-modal-xl: var(--breakpoint-xl);
 	--container-landing-lg: 960px;
 	--container-landing-xxl: 1320px;
 	--container-modal-sm: var(--container-popup);
@@ -37,9 +37,9 @@
 
 	--spacing-tree-indent: --spacing(2);
 	--spacing-tree-gap: --spacing(2);
-	--spacing-tree-gap-compact: --spacing(2);
-	--spacing-tree-row-py: --spacing(4);
-	--spacing-tree-row-px: --spacing(4);
+	--spacing-tree-gap-compact: --spacing(1);
+	--spacing-tree-row-py: --spacing(2);
+	--spacing-tree-row-px: --spacing(2);
 	--spacing-tree-drop-line: 2px;
 }
 

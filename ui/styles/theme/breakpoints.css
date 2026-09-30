@@ -2,24 +2,24 @@
 	--breakpoint-*: initial;
 
 	--breakpoint-sm: 576px;
-	--breakpoint-md: 768px;
-	--breakpoint-lg: 992px;
-	--breakpoint-xl: 1200px;
-	--breakpoint-xxl: 1400px;
-	--breakpoint-xxxl: 1600px;
-	--breakpoint-fhd: 1921px;
-	--breakpoint-qhd: 2561px;
-	--breakpoint-uhd: 3841px;
+	--breakpoint-md: 786px;
+	--breakpoint-lg: 1024px;
+	--breakpoint-xl: 1280px;
+	--breakpoint-xxl: 1440px;
+	--breakpoint-xxxl: 1640px;
+	--breakpoint-fhd: 1920px;
+	--breakpoint-qhd: 2560px;
+	--breakpoint-uhd: 3840px;
 }
 
 :root {
 	@variant lg {
-		--spacing-page: --spacing(8);
+		--spacing-page: --spacing(4);
 		--spacing-section: --spacing(6);
 	}
 
 	@variant xxl {
-		--spacing-page: --spacing(12);
+		--spacing-page: --spacing(8);
 		--spacing-section: --spacing(8);
 	}
 
