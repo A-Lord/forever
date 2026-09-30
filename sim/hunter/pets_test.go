@@ -73,8 +73,8 @@ func TestPetDustCloudSharesTheRaidsDustCloudSlot(t *testing.T) {
 	}
 }
 
-// The generated family table and the options enum name the same families: a family the client
-// adds needs its enum value, and an enum value the client no longer describes has to go.
+// The generated family table and the options enum name the same families: a family the game files
+// add needs its enum value, and an enum value the game files no longer describe has to go.
 func TestPetFamiliesMatchTheOptions(t *testing.T) {
 	for name := range petFamilies {
 		if _, ok := proto.HunterOptions_PetType_value[name]; !ok {

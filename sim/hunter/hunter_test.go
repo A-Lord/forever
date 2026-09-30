@@ -4,11 +4,13 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	googleProto "google.golang.org/protobuf/proto"
 
 	"testing"
@@ -154,6 +156,62 @@ func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
 	}
 	if casts, windups := autoShots(thrown); casts != 0 || windups != 0 {
 		t.Errorf("a thrown weapon fired %d Auto Shots after %d windups, want none", casts, windups)
+	}
+}
+
+// One sting per hunter on a target: Serpent Sting drops the hunter's own Scorpid Sting, and Scorpid
+// Sting drops its Serpent Sting.
+func TestEachStingDropsTheHuntersOtherSting(t *testing.T) {
+	player := &proto.Player{
+		Name:               "Stings",
+		Race:               proto.Race_RaceOrc,
+		Class:              proto.Class_ClassHunter,
+		Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
+		TalentsString:      DefaultMMTalents,
+		Spec:               DefaultOptions,
+		Rotation:           &proto.APLRotation{},
+		DistanceFromTarget: 20,
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	target := sim.Encounter.AllTargetUnits[0]
+
+	serpent := hunter.GetSpell(core.ActionID{SpellID: serpentStingRank.ID})
+	scorpid := hunter.GetSpell(core.ActionID{SpellID: scorpidStingRank.ID})
+	scorpidAura := target.GetAura("Scorpid Sting-" + hunter.Label)
+	if serpent == nil || scorpid == nil || scorpidAura == nil {
+		t.Fatalf("Serpent Sting %v, Scorpid Sting %v, its aura %v; want all three", serpent, scorpid, scorpidAura)
+	}
+	serpentAura := serpent.Dot(target).Aura
+
+	// A sting can miss and lands after its travel time, so it is cast until it is on the target.
+	land := func(spell *core.Spell, aura *core.Aura) {
+		t.Helper()
+		for range 20 {
+			spell.SkipCastAndApplyEffects(sim, target)
+			for until := sim.CurrentTime + time.Second*2; !aura.IsActive() && sim.CurrentTime < until && !sim.Step(); {
+			}
+			if aura.IsActive() {
+				return
+			}
+		}
+		t.Fatalf("%s never landed", aura.Label)
+	}
+
+	land(scorpid, scorpidAura)
+	land(serpent, serpentAura)
+	if scorpidAura.IsActive() {
+		t.Error("Serpent Sting landed beside the hunter's own Scorpid Sting, want it dropped")
+	}
+
+	land(scorpid, scorpidAura)
+	if serpentAura.IsActive() {
+		t.Error("Scorpid Sting landed beside the hunter's own Serpent Sting, want it dropped")
 	}
 }
 
