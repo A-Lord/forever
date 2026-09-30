@@ -3,6 +3,7 @@ import i18n from '@i18n/config';
 import { useReadyStoreSubscribe } from '@sim/hooks/useReadyStoreSubscribe';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
+import { NOTICE_COLOR, NOTICE_ICON_NAME } from '@ui-kit/Notice';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { useId } from 'react';
 
@@ -25,11 +26,11 @@ export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
 				<div data-testid="sim-toolbar-item">
 					<Button
 						variant="unstyled"
-						className="text-link-warning focus-visible:focus-ring"
+						className="focus-visible:focus-ring"
 						data-testid="warning-trigger"
 						aria-label={i18n.t('sidebar.warnings.label')}
 						{...tooltipAnchorProps(id)}>
-						<Icon name="triangle-exclamation" size="3x" />
+						<Icon name={NOTICE_ICON_NAME.warning} size="3x" className={NOTICE_COLOR.warning} />
 					</Button>
 					<Tooltip
 						id={id}
