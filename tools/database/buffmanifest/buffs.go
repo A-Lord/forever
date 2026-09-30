@@ -464,10 +464,11 @@ var Debuffs = []BuffSpec{
 			proto.Stat_StatSpellDamage,
 		},
 	},
+	// Curse of Recklessness and Faerie Fire do not stack in game: one holds the slot.
 	{
 		Field:      "curse_of_recklessness",
 		SpellID:    11717,
-		Category:   "CurseOfRecklessness",
+		Category:   "MinorArmorReduction",
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
@@ -476,7 +477,7 @@ var Debuffs = []BuffSpec{
 	{
 		Field:      "faerie_fire",
 		SpellID:    9907,
-		Category:   "FaerieFireAura",
+		Category:   "MinorArmorReduction",
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,

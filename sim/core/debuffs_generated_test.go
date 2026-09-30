@@ -160,6 +160,27 @@ func TestGeneratedExposeArmorHoldsTheSlotAgainstTheRaidsSunder(t *testing.T) {
 	}
 }
 
+// Curse of Recklessness and Faerie Fire share one armor reduction slot, so the
+// target takes one -505, not both.
+func TestGeneratedCurseOfRecklessnessAndFaerieFireDoNotStack(t *testing.T) {
+	target := core.NewGeneratedDebuffTestTarget()
+
+	applyGeneratedTestDebuffs(target, &proto.Debuffs{CurseOfRecklessness: true, FaerieFire: true})
+
+	if got := target.GetStats()[stats.Armor]; got != -505 {
+		t.Errorf("armor is %v, want one reduction of the game files' -505", got)
+	}
+	curse := target.GetAura("Curse of Recklessness (External)")
+	faerieFire := target.GetAura("Faerie Fire (External)")
+	if curse == nil || faerieFire == nil {
+		t.Fatalf("curse %v, Faerie Fire %v; the target has %v", curse, faerieFire, targetAuraLabels(target))
+	}
+	if curse.IsActive() == faerieFire.IsActive() {
+		t.Errorf("curse active %v, Faerie Fire active %v; want exactly one on the target",
+			curse.IsActive(), faerieFire.IsActive())
+	}
+}
+
 func TestGeneratedThunderClapSlowsTheTarget(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 
