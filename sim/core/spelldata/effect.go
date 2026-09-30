@@ -75,35 +75,37 @@ func (e *Effect) scaled(level int32) float32 {
 	return float32(e.BasePoints) + float32(float32(delta)*float32(e.PPL))
 }
 
-// The low end of the roll. EffectVariance spreads the base points only, so the spread keeps its width
-// as the amount scales, and it sits around the amount before it is floored, with each end rounded
-// outward. At level 14 Shadow Oil's 350026 is 64.6 ± 4, shown as 60 to 69, and Frost Oil's 350025 is
-// 41.4 ± 2, shown as 39 to 44. An effect that does not roll answers the average at both ends.
+// The low end of the roll. EffectVariance spreads the base points only, around the amount before it is
+// floored, with each end rounded outward. An effect that does not roll answers the average at both ends.
 func (e *Effect) Min(level int32) float64 {
 	if e.Variance == 0 {
 		return e.Average(level)
 	}
-	return e.spreadEnd(level, -1)
+	low, _ := e.spread(level)
+	return low
 }
 
 func (e *Effect) Max(level int32) float64 {
 	if e.Variance == 0 {
 		return e.Average(level)
 	}
-	return e.spreadEnd(level, 1)
+	_, high := e.spread(level)
+	return high
+}
+
+func (e *Effect) spread(level int32) (float64, float64) {
+	amount := float64(e.scaled(level))
+	half := math.Abs(e.BasePoints) * e.Variance / 2
+	return roundOutward(amount-half, math.Floor), roundOutward(amount+half, math.Ceil)
 }
 
 // EffectVariance is a float32 widened into the DB, so an end that is whole in game lands a hair to
 // either side of it here (47.99999985 for 350026's 48); it is snapped before it is rounded.
-func (e *Effect) spreadEnd(level int32, side float64) float64 {
-	end := float64(e.scaled(level)) + side*math.Abs(e.BasePoints)*e.Variance/2
-	if whole := math.Round(end); math.Abs(end-whole) < 1e-4 {
+func roundOutward(end float64, round func(float64) float64) float64 {
+	if whole := math.Round(end); core.WithinToleranceFloat64(whole, end, 1e-4) {
 		return whole
 	}
-	if side < 0 {
-		return math.Floor(end)
-	}
-	return math.Ceil(end)
+	return round(end)
 }
 
 // The amount for one cast: rolled where the game files state a spread, the average where they do not.
@@ -111,5 +113,5 @@ func (e *Effect) Roll(sim *core.Simulation, level int32) float64 {
 	if e.Variance == 0 {
 		return e.Average(level)
 	}
-	return sim.Roll(e.Min(level), e.Max(level))
+	return sim.Roll(e.spread(level))
 }
