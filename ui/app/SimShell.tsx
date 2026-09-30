@@ -78,7 +78,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								<SimTitleDropdown currentSpec={spec} />
 							</div>
 							<div
-								className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto px-(--sidebar-inline-padding) py-6 max-lg:min-h-0 max-lg:overflow-visible max-lg:py-4 lg:pb-0 [&>*:not(:last-child)]:mb-6"
+								className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto px-(--sidebar-inline-padding) py-page max-lg:min-h-0 max-lg:overflow-visible lg:pb-0 [&>*:not(:last-child)]:mb-6"
 								data-testid="sim-sidebar-content">
 								{/* The picker is the shell's own and has to stay ahead of every action the registry adds. */}
 								<div
