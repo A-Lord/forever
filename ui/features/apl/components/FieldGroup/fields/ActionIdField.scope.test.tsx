@@ -94,3 +94,17 @@ describe('ActionIdField — the list a spell may be used in', () => {
 		expect(await openSpellSubmenu()).toEqual(['Plain Spell', 'Prepull Spell']);
 	});
 });
+
+describe('ActionIdField — the trigger element', () => {
+	it('keeps the same trigger node once the async spell list resolves and gains its submenu', async () => {
+		setup();
+		mount(false);
+
+		const before = document.getElementById('spell');
+		expect(before).not.toBeNull();
+
+		await act(async () => {});
+
+		expect(document.getElementById('spell')).toBe(before);
+	});
+});

@@ -45,7 +45,7 @@ export const SelectorModalView = ({ id, open, onOpenChange, onKeyDown, rail, tit
 				onOpenChange={onOpenChange}
 				testId="selector-modal"
 				size="xl"
-				maxWidth="max-w-selector-modal-w"
+				maxWidthClassName="max-w-selector-modal-w"
 				headerFlush
 				onKeyDown={onKeyDown}
 				headerChildren={

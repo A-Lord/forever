@@ -1,7 +1,7 @@
 import i18n from '@i18n/config';
 import { Field } from '@ui-kit/Field';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
-import { IconMenu, IconSwatch } from '@ui-kit/IconSwatch';
+import { IconMenu } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { Children, type MouseEvent, type ReactNode } from 'react';
@@ -21,20 +21,18 @@ export interface MultiIconPickerProps {
 export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, children, testId }: MultiIconPickerProps) => {
 	const menu = (
 		<IconMenu
-			trigger={
-				<IconSwatch
-					icon={icon}
-					active={active}
-					className={clsx(!active && 'grayscale')}
-					testId={testId ?? 'multi-icon-picker-root'}
-					// The trigger is a bare anchor carrying a background image, so it announces nothing without this — and Base UI points the popup's `aria-labelledby` at it.
-					aria-label={label}
-					onContextMenu={(event: MouseEvent) => event.preventDefault()}
-					onMouseDown={(event: MouseEvent) => {
-						if (isRightClick(event.nativeEvent)) onClear();
-					}}
-				/>
-			}
+			trigger={{
+				icon,
+				active,
+				className: clsx(!active && 'grayscale'),
+				testId: testId ?? 'multi-icon-picker-root',
+				// The trigger is a bare anchor carrying a background image, so it announces nothing without this — and Base UI points the popup's `aria-labelledby` at it.
+				'aria-label': label,
+				onContextMenu: (event: MouseEvent) => event.preventDefault(),
+				onMouseDown: (event: MouseEvent) => {
+					if (isRightClick(event.nativeEvent)) onClear();
+				},
+			}}
 			side="right"
 			positionerProps={{ 'data-testid': 'multi-icon-picker-positioner' }}
 			className="grid-flow-col"

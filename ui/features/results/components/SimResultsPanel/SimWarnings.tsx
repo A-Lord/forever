@@ -33,7 +33,7 @@ export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
 					</Button>
 					<Tooltip
 						id={id}
-						width="w-full"
+						widthClassName="w-full"
 						place="bottom"
 						content={
 							<ul className="mb-0 ps-2 text-start">

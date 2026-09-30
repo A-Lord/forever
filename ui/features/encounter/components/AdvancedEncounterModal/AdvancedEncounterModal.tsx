@@ -47,8 +47,7 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 			open={open}
 			onOpenChange={onOpenChange}
 			testId="advanced-encounter-picker-modal"
-			bodyClassName="overflow-auto"
-			bodyGap="gap-2"
+			bodyClassName="gap-2 overflow-auto"
 			headerChildren={<ConnectedChoiceField modObject={encounter} config={presetConfig} />}>
 			<div className="flex flex-col gap-2" data-testid="encounter-header">
 				<FieldGrid>

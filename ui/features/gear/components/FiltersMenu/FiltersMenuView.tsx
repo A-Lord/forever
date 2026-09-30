@@ -89,7 +89,7 @@ export const FiltersMenuView = ({
 			testId="filters-menu"
 			size="md"
 			elevated
-			bodyGap="gap-2"
+			bodyClassName="gap-2"
 			title={i18n.t('gear_tab.gear_picker.filters.title')}>
 			<MenuSection name={i18n.t('gear_tab.gear_picker.filters.general')}>
 				<div className="grid grid-cols-split gap-x-(--modal-padding)">

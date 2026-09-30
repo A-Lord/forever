@@ -110,12 +110,10 @@ function isGeneratedFile(relPath) {
 // list: any tight `wordClassName=`/`wordClassNames=` occurrence (JSX attributes and
 // destructured prop defaults are written without spaces around `=`; a plain `const x = …`
 // assignment has spaces and so is not matched), plus className itself.
-// Tooltip/Popover pass a bare Tailwind class string through `width`/`maxWidth` props
-// (see ui/ui-kit/Tooltip/Tooltip.tsx, ui/ui-kit/Popover/Popover.tsx), and Dialog forwards
-// `bodyGap` straight into its body's `clsx(...)` (ui/ui-kit/Dialog/Dialog.tsx); those names
-// don't follow the `*ClassName(s)` convention CLASS_ATTR_RE derives, so they're listed
-// explicitly.
-const KNOWN_CLASS_PROPS = ['width', 'maxWidth', 'bodyGap'];
+// Tooltip's `maxWidth` also takes a bare Tailwind class string, alongside its `'default'`/`'none'`
+// modes (see ui/ui-kit/Tooltip/Tooltip.tsx); that name doesn't follow the `*ClassName(s)`
+// convention CLASS_ATTR_RE derives, so it's listed explicitly.
+const KNOWN_CLASS_PROPS = ['maxWidth'];
 
 export function deriveClassAttrs(root) {
 	const skipDirs = new Set([path.join(root, 'ui/generated'), path.join(root, 'node_modules')]);
@@ -143,9 +141,9 @@ function collectFromScript(text, relPath, classAttrs) {
 	const attrPattern = new RegExp(`\\b(${classAttrs.join('|')})\\s*=\\s*(\\{([^{}]|\\{[^{}]*\\})*\\}|"[^"]*"|'[^']*')`, 'g');
 	let m;
 	while ((m = attrPattern.exec(text))) {
-		// A KNOWN_CLASS_PROPS name (width/maxWidth) also occurs as an ordinary destructured
-		// parameter default (`{ ..., maxWidth = 'default', ... }`), which isn't a JSX attribute
-		// at all; those are always preceded by `,` or `{`, which a real JSX attribute never is.
+		// A KNOWN_CLASS_PROPS name (maxWidth) also occurs as an ordinary destructured parameter
+		// default (`{ ..., maxWidth = 'default', ... }`), which isn't a JSX attribute at all;
+		// those are always preceded by `,` or `{`, which a real JSX attribute never is.
 		if (KNOWN_CLASS_PROPS.includes(m[1])) {
 			const before = text.slice(0, m.index).trimEnd();
 			if (before.endsWith(',') || before.endsWith('{')) continue;
@@ -154,9 +152,6 @@ function collectFromScript(text, relPath, classAttrs) {
 		const index = m.index + m[0].indexOf(raw);
 		if (raw.startsWith('"') || raw.startsWith("'")) {
 			const body = raw.slice(1, -1);
-			// `width` is also the native <img>/<video> pixel attribute (width="15"), which
-			// isn't a Tailwind class at all; a plain integer is never a class token.
-			if (KNOWN_CLASS_PROPS.includes(m[1]) && /^\d+$/.test(body)) continue;
 			for (const token of splitClassString(body)) found.push({ token, index });
 			continue;
 		}

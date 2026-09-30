@@ -3,7 +3,8 @@ import type { StoreSubscribe } from '@sim/state/subscriptions';
 import type { FieldLayout } from '@ui-kit/Field';
 import type { ReactElement } from 'react';
 
-export type PickerLayout = FieldLayout;
+/** `icon` is out: the icon pickers set that layout themselves, never a config. */
+export type PickerLayout = Exclude<FieldLayout, 'icon'>;
 
 export type StoreBinding<ModObject> =
 	| { storeSubscribe: (obj: ModObject) => StoreSubscribe; storeField?: StoreField | ReadonlyArray<StoreField> }

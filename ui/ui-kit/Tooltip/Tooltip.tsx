@@ -23,7 +23,7 @@ export interface TooltipProps {
 	hidden?: boolean;
 	/** Fires after the open and close transitions, not at the request — see `BonusStatsLink`. */
 	onOpenChange?: (open: boolean) => void;
-	width?: string;
+	widthClassName?: string;
 	maxWidth?: 'default' | 'none' | string;
 	align?: 'start' | 'center';
 	padded?: boolean;
@@ -39,7 +39,22 @@ const HOVER_CLOSE = { mouseleave: true, blur: true, click: true };
 /** Content is `children`, which react-tooltip does not render until the tooltip first opens — so a picker built inside one costs nothing until it is shown. */
 export const Tooltip = forwardRef<TooltipRefProps, TooltipProps>(
 	(
-		{ id, content, render, place = 'top', clickable, openOnClick, hidden, onOpenChange, width, maxWidth = 'default', align, padded, className, testId },
+		{
+			id,
+			content,
+			render,
+			place = 'top',
+			clickable,
+			openOnClick,
+			hidden,
+			onOpenChange,
+			widthClassName,
+			maxWidth = 'default',
+			align,
+			padded,
+			className,
+			testId,
+		},
 		ref,
 	) => {
 		const maxWidthClassName = maxWidth === 'default' ? DEFAULT_MAX_WIDTH : maxWidth === 'none' ? 'max-w-none' : maxWidth;
@@ -63,7 +78,7 @@ export const Tooltip = forwardRef<TooltipRefProps, TooltipProps>(
 					'sim-tooltip',
 					'ui-tooltip',
 					maxWidthClassName,
-					width,
+					widthClassName,
 					align === 'start' && 'text-left',
 					padded === false && 'sim-tooltip--unpadded',
 					testId,

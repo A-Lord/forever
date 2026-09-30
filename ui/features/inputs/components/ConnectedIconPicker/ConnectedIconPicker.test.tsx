@@ -94,7 +94,7 @@ describe('ConnectedIconPicker', () => {
 		expect(screen.queryByTestId('icon-picker-root')).toBeNull();
 	});
 
-	it('carries the config chrome and a testId onto the field', () => {
+	it('carries the config chrome onto the field and the testId onto the swatch', () => {
 		const { container } = render(
 			<ConnectedIconPicker modObject={new Settings(0)} config={configFor({ label: 'Buff', extraClassNames: ['extra'] })} testId="bound-root" />,
 		);

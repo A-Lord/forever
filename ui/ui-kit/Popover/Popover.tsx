@@ -24,7 +24,7 @@ export interface PopoverProps {
 	onOpenChange?: (open: boolean) => void;
 	/** On the popup, which is the box a consumer sizes. */
 	className?: ClassValue;
-	maxWidth?: string;
+	maxWidthClassName?: string;
 	/** Base UI's default is `<body>`, and that is outside `.sim-ui` — where the spec theme lives. See `Dialog`. */
 	container?: HTMLElement | null;
 	side?: PopoverSide;
@@ -51,7 +51,7 @@ export const Popover = ({
 	open,
 	onOpenChange,
 	className,
-	maxWidth,
+	maxWidthClassName,
 	container,
 	side = 'bottom',
 	align = 'center',
@@ -87,7 +87,7 @@ export const Popover = ({
 					align={align}
 					sideOffset={sideOffset}>
 					<BasePopover.Popup
-						className={clsx(maxWidth ?? 'max-w-(--available-width)', 'ui-popup-surface ui-popover', className)}
+						className={clsx(maxWidthClassName ?? 'max-w-(--available-width)', 'ui-popup-surface ui-popover', className)}
 						data-testid={testId ?? 'sim-popover-popup'}
 						initialFocus={initialFocus}>
 						{children}
