@@ -186,7 +186,7 @@ func (rogue *Rogue) applyInstantPoison() {
 		ProcMask:            procMask,
 		IsWeaponProc:        true,
 		ProcSpellClassFlags: instantPoisonRank.ClassFlags,
-		DPM:                 rogue.NewFixedProcChanceManager(0.3, procMask),
+		DPM:                 rogue.NewFixedProcChanceManager(0.2, procMask), //Confirmed in game 9/30/2026
 		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			rogue.InstantPoison.Cast(sim, result.Target)
 		},
