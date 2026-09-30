@@ -83,7 +83,7 @@ describe('ConnectedBooleanPicker', () => {
 		expect(isChecked(checkbox())).toBe(false);
 	});
 
-	it('passes the chrome and reverse through', () => {
+	it('passes the frame and reverse through', () => {
 		const settings = new Settings();
 		const { container } = render(
 			<ConnectedBooleanPicker modObject={settings} config={configFor({ reverse: true, layout: 'inline', extraClassNames: ['mb-0'] })} testId="picker" />,

@@ -27,7 +27,7 @@ const label = (key: string) => i18n.t(`rotation_tab.apl.variablePlaceholder.${ke
  * are unrelated.
  */
 export const PlaceholderNameField = ({ player, config, getParentValue }: PlaceholderNameFieldProps) => {
-	const { value, setValue, hidden, disabled, chrome } = useConnectedField(player, config);
+	const { value, setValue, hidden, disabled, frameProps } = useConnectedField(player, config);
 	const [open, setOpen] = useState(() => !config.getValue(player));
 
 	const isNew = !value;
@@ -36,7 +36,7 @@ export const PlaceholderNameField = ({ player, config, getParentValue }: Placeho
 
 	if (hidden) return null;
 	return (
-		<Field {...chrome} disabled={disabled}>
+		<Field {...frameProps} disabled={disabled}>
 			<NameDisplay name={value} onRename={() => setOpen(true)} compact />
 			<AplNameDialog
 				open={open}

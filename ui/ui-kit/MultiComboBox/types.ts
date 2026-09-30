@@ -1,4 +1,4 @@
-import type { ControlledProps, FieldChromeProps } from '@ui-kit/Field';
+import type { ControlledProps, FieldFrameProps } from '@ui-kit/Field';
 
 export interface EnumValueConfig {
 	name: string;
@@ -6,7 +6,7 @@ export interface EnumValueConfig {
 	tooltip?: string;
 }
 
-export interface MultiComboBoxProps extends FieldChromeProps, ControlledProps<Array<number>> {
+export interface MultiComboBoxProps extends FieldFrameProps, ControlledProps<Array<number>> {
 	values: Array<EnumValueConfig>;
 	placeholder?: string;
 	emptyText?: string;

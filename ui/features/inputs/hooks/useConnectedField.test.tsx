@@ -19,12 +19,12 @@ const config = {
 };
 
 const Probe = () => {
-	const { chrome } = useConnectedField(local, config);
-	return <span>{JSON.stringify(chrome)}</span>;
+	const { frameProps } = useConnectedField(local, config);
+	return <span>{JSON.stringify(frameProps)}</span>;
 };
 
 describe('useConnectedField', () => {
-	it('maps every chrome field off the config', () => {
+	it('maps every frame field off the config', () => {
 		render(<Probe />);
 		expect(JSON.parse(screen.getByText(/./).textContent!)).toEqual({
 			id: 'my-field',
@@ -39,7 +39,7 @@ describe('useConnectedField', () => {
 	it('lands extraClassNames in className', () => {
 		let seen: unknown;
 		const Reader = () => {
-			seen = useConnectedField(local, config).chrome.className;
+			seen = useConnectedField(local, config).frameProps.className;
 			return null;
 		};
 		render(<Reader />);

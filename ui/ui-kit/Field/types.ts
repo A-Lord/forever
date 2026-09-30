@@ -6,7 +6,7 @@ export type FieldDensity = 'compact';
 export type FieldTooltip = string | ReactElement;
 
 /** What every field renders around its control. */
-export interface FieldChromeProps {
+export interface FieldFrameProps {
 	id?: string;
 	label?: string;
 	labelTooltip?: FieldTooltip;
@@ -39,7 +39,7 @@ export interface FieldClearProps {
 	onClear: () => void;
 }
 
-export interface FieldProps extends FieldChromeProps {
+export interface FieldProps extends FieldFrameProps {
 	disabled?: boolean;
 	/** `false` renders the root `flex-none` (ComboBox). */
 	grow?: boolean;

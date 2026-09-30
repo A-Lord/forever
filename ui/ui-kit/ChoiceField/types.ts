@@ -1,5 +1,5 @@
 import type { Select } from '@base-ui/react/select';
-import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field';
+import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field';
 import type { IconName } from '@ui-kit/Icon';
 import type { ClassValue } from 'clsx';
 import type { ReactNode } from 'react';
@@ -32,7 +32,7 @@ export type ChoiceVariant = 'select' | 'link';
  * A field renders a `Field` root only for a label, description or layout; without any of them it
  * is the bare trigger. `className` and `testId` land on the outermost element either way.
  */
-export interface ChoiceFieldProps<V> extends FieldChromeProps, ControlledProps<V> {
+export interface ChoiceFieldProps<V> extends FieldFrameProps, ControlledProps<V> {
 	options: ReadonlyArray<ChoiceEntry<V>>;
 	/**
 	 * Builds the nested menu, called only while it is open and once per opening, so a large tree costs

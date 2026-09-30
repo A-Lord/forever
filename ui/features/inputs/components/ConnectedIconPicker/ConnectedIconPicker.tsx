@@ -12,7 +12,7 @@ export interface ConnectedIconPickerProps<ModObject, ValueType> {
 }
 
 export const ConnectedIconPicker = <ModObject, ValueType>({ modObject, config, testId }: ConnectedIconPickerProps<ModObject, ValueType>) => {
-	const { value, setValue, hidden: showWhenHidden, disabled, revision, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, hidden: showWhenHidden, disabled, revision, frameProps } = useConnectedField(modObject, config);
 	const hidden = config.actionId == null || showWhenHidden;
 
 	// A two-state source stores a boolean. The hide/restore writes go through `write` as well, so a restored number is stored as a boolean too.
@@ -28,7 +28,7 @@ export const ConnectedIconPicker = <ModObject, ValueType>({ modObject, config, t
 
 	return (
 		<IconPicker
-			{...chrome}
+			{...frameProps}
 			testId={testId}
 			states={config.states}
 			icon={icon}

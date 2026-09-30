@@ -79,8 +79,8 @@ describe('VirtualList', () => {
 		}
 	});
 
-	// A shared scroller has chrome above the rows, and `scrollMargin` is how the virtualiser is told
-	// about it. Without subtracting it back out of the transform every row sits that far too low.
+	// A shared scroller has a sticky header above the rows, and `scrollMargin` is how the virtualiser
+	// is told about it. Without subtracting it back out of the transform every row sits that far too low.
 	it('subtracts the scroll margin from each row offset', () => {
 		const margin = 120;
 		const { container } = renderList(1000, 2, margin);

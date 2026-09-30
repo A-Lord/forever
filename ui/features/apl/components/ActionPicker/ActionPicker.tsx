@@ -46,7 +46,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	const kindId = useId();
 	const { isPrepull, inSequence, changeSource } = useApl();
 
-	const { value, hidden, disabled, chrome } = useAplInput(player, config);
+	const { value, hidden, disabled, frameProps } = useAplInput(player, config);
 	const kind = value?.action.oneofKind;
 
 	const choices = useMemo(() => pathChoices(actionKindOptions(player, isPrepull), Object.is), [player, isPrepull]);
@@ -91,8 +91,8 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 	if (hidden) return null;
 	return (
 		<Field
-			{...chrome}
-			className={[clsx('m-0 min-w-0 grow gap-2', stacked ? 'flex-col' : 'flex-row items-baseline', fullWidth && 'w-full'), chrome.className]}
+			{...frameProps}
+			className={[clsx('m-0 min-w-0 grow gap-2', stacked ? 'flex-col' : 'flex-row items-baseline', fullWidth && 'w-full'), frameProps.className]}
 			testId="apl-action-picker-root"
 			disabled={disabled}>
 			{!isPrepull && !inSequence && <ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />}

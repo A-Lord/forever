@@ -14,8 +14,8 @@ export interface VirtualListProps {
 	// a caller resolving its scroller with `findScrollParent` may report either without knowing which
 	// it will be until the list is in the document.
 	getScrollElement: () => HTMLElement | Window | null;
-	// Pixels of a shared scroller above the first row: sticky chrome, a header, a filter bar. In
-	// window mode this is the list's own offset down the document.
+	// Pixels of a shared scroller above the first row: a sticky header, a filter bar. In window
+	// mode this is the list's own offset down the document.
 	scrollMargin?: number;
 	// The scroller's size before it has been measured. Without it the first render produces no rows,
 	// which is also what happens in a DOM that reports every element as 0x0.

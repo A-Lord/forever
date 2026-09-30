@@ -102,7 +102,7 @@ describe('ConnectedChoiceField', () => {
 			expect(trigger().textContent).toBe('Aggressive');
 		});
 
-		it('passes the chrome, the config classes and the caller class through', () => {
+		it('passes the frame, the config classes and the caller class through', () => {
 			const settings = new Settings(0);
 			const { container } = render(
 				<ConnectedChoiceField

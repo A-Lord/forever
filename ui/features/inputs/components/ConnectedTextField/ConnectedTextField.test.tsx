@@ -130,7 +130,7 @@ describe('ConnectedNumberField', () => {
 		expect(settings.value).toBe(1);
 	});
 
-	it('passes the chrome, the options and both input class names through', () => {
+	it('passes the frame, the options and both input class names through', () => {
 		const settings = new Settings(3);
 		render(
 			<ConnectedNumberField
@@ -231,7 +231,7 @@ describe('ConnectedStringField', () => {
 		expect(input().value).toBe('xyz');
 	});
 
-	it('forwards the config chrome and extraClassNames to the root', () => {
+	it('forwards the config frame and extraClassNames to the root', () => {
 		const settings = new Settings('');
 		render(<ConnectedStringField modObject={settings} config={stringConfig({ extraClassNames: ['apl-extra'], layout: 'inline' })} />);
 		const root = screen.getByTestId('adaptive-string-picker-root');
@@ -290,7 +290,7 @@ describe('ConnectedNumberListField', () => {
 		expect(input().value).toBe('1,3');
 	});
 
-	it('forwards the config chrome and placeholder', () => {
+	it('forwards the config frame and placeholder', () => {
 		const settings = new Settings<Array<number>>([]);
 		render(<ConnectedNumberListField modObject={settings} config={listConfig({ placeholder: 'e.g. 1,2,3' })} />);
 		expect(screen.getByLabelText('Thresholds')).toBe(input());

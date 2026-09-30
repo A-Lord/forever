@@ -26,7 +26,7 @@ interface ButtonCommonProps {
 
 type ButtonIconProps =
 	| {
-			/** Chromeless: no padding, border or background of its own — an icon-sized hit target. */
+			/** No padding, border or background of its own — an icon-sized hit target. */
 			iconOnly: true;
 			'aria-label': string;
 	  }

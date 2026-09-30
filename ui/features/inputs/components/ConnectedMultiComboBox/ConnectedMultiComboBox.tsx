@@ -16,13 +16,13 @@ export const ConnectedMultiComboBox = <M,>({ modObject, config, className, testI
 		setValue,
 		hidden,
 		disabled,
-		chrome: { className: chromeClassName, ...chrome },
+		frameProps: { className: frameClassName, ...frameProps },
 	} = useConnectedField(modObject, config);
 	if (hidden) return null;
 	return (
 		<MultiComboBox
-			{...chrome}
-			className={[chromeClassName, className]}
+			{...frameProps}
+			className={[frameClassName, className]}
 			testId={testId}
 			value={value}
 			onChange={setValue}

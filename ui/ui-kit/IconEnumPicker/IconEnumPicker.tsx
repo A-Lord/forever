@@ -1,5 +1,5 @@
-import { Field, hasFieldChrome } from '@ui-kit/Field';
-import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
+import { Field, hasFieldFrame } from '@ui-kit/Field';
+import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { IconMenu } from '@ui-kit/IconSwatch';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
@@ -10,7 +10,7 @@ import { IconEnumOptionItem } from './IconEnumOption';
 import { type IconEnumOption, IconEnumPickerDirection } from './types';
 import { iconStyleOf } from './utils';
 
-export interface IconEnumPickerProps<T> extends FieldChromeProps, ControlledProps<T> {
+export interface IconEnumPickerProps<T> extends FieldFrameProps, ControlledProps<T> {
 	options: Array<IconEnumOption<T>>;
 	equals: (a: T, b: T) => boolean;
 	/** The value that reads as inactive. */
@@ -40,12 +40,12 @@ export const IconEnumPicker = <T,>({
 	disabled,
 	className,
 	testId,
-	...chrome
+	...frameProps
 }: IconEnumPickerProps<T>) => {
 	const tooltipId = useId();
 	const labelId = useId();
 	const controlRef = useRef<HTMLAnchorElement>(null);
-	const rooted = hasFieldChrome(chrome);
+	const rooted = hasFieldFrame(frameProps);
 
 	const selected = options.find(option => equals(option.value, value));
 	const selectedHidden = !!selected?.hidden;
@@ -98,7 +98,7 @@ export const IconEnumPicker = <T,>({
 		);
 
 	return (
-		<Field {...chrome} layout="icon" className={className} disabled={disabled} leading={menu} labelId={labelId} controlRef={controlRef}>
+		<Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={menu} labelId={labelId} controlRef={controlRef}>
 			{optionTooltip}
 		</Field>
 	);

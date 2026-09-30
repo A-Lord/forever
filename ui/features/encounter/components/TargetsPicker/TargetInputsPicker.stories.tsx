@@ -23,5 +23,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** One picker per declared input, dispatched on its type, with no list chrome. */
+/** One picker per declared input, dispatched on its type, with no list wrapper of its own. */
 export const Default: Story = {};

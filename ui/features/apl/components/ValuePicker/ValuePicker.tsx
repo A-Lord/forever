@@ -38,7 +38,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	const kindId = useId();
 	const { isPrepull, isGroup, changeSource } = useApl();
 
-	const { value, hidden, disabled, chrome } = useAplInput(player, config);
+	const { value, hidden, disabled, frameProps } = useAplInput(player, config);
 	const kind = value?.value.oneofKind;
 
 	// A value loaded from a preset or an import may carry no uuid, and the sim keys its per-value
@@ -92,8 +92,8 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	if (hidden) return null;
 	return (
 		<Field
-			{...chrome}
-			className={['m-0 flex-row items-baseline gap-2', ownsList && 'w-full', chrome.className]}
+			{...frameProps}
+			className={['m-0 flex-row items-baseline gap-2', ownsList && 'w-full', frameProps.className]}
 			testId={testId ?? 'apl-value-picker-root'}
 			disabled={disabled}>
 			<ConnectedChoiceField<Player<any>, APLValueKind>

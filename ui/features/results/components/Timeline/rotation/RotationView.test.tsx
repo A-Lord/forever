@@ -170,7 +170,7 @@ describe('RotationView', () => {
 		expect(rulerRow.style.getPropertyValue('--pps')).toBe(pane.style.getPropertyValue('--pps'));
 	});
 
-	it('renders nothing but its chrome without a model', async () => {
+	it('renders nothing but its own wrapper without a model', async () => {
 		const { container } = await mount(null as never);
 		expect(rowKeys(container)).toEqual([]);
 		expect(container.querySelector('[data-testid="rotation-ruler-track"]')).not.toBeNull();

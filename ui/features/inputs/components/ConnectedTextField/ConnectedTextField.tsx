@@ -12,11 +12,11 @@ export interface ConnectedNumberFieldProps<ModObject> {
 }
 
 export const ConnectedNumberField = <ModObject,>({ modObject, config, inputClassName, testId }: ConnectedNumberFieldProps<ModObject>) => {
-	const { value, setValue, hidden, disabled, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, hidden, disabled, frameProps } = useConnectedField(modObject, config);
 	if (hidden) return null;
 	return (
 		<NumberField
-			{...chrome}
+			{...frameProps}
 			testId={testId}
 			value={value}
 			onChange={setValue}
@@ -37,9 +37,9 @@ export interface ConnectedStringFieldProps<M> {
 }
 
 export const ConnectedStringField = <M,>({ modObject, config, testId }: ConnectedStringFieldProps<M>) => {
-	const { value, setValue, hidden, disabled, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, hidden, disabled, frameProps } = useConnectedField(modObject, config);
 	if (hidden) return null;
-	return <StringField {...chrome} testId={testId} value={value} onChange={setValue} disabled={disabled} />;
+	return <StringField {...frameProps} testId={testId} value={value} onChange={setValue} disabled={disabled} />;
 };
 
 export interface ConnectedNumberListFieldProps<M> {
@@ -49,7 +49,7 @@ export interface ConnectedNumberListFieldProps<M> {
 }
 
 export const ConnectedNumberListField = <M,>({ modObject, config, testId }: ConnectedNumberListFieldProps<M>) => {
-	const { value, setValue, hidden, disabled, chrome } = useConnectedField(modObject, config);
+	const { value, setValue, hidden, disabled, frameProps } = useConnectedField(modObject, config);
 	if (hidden) return null;
-	return <NumberListField {...chrome} testId={testId} value={value} onChange={setValue} disabled={disabled} placeholder={config.placeholder} />;
+	return <NumberListField {...frameProps} testId={testId} value={value} onChange={setValue} disabled={disabled} placeholder={config.placeholder} />;
 };

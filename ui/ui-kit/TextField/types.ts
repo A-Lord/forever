@@ -1,4 +1,4 @@
-import type { ControlledProps, FieldChromeProps } from '@ui-kit/Field';
+import type { ControlledProps, FieldFrameProps } from '@ui-kit/Field';
 
 /** How a value becomes the field's text and back; `parse` returns `undefined` for text that commits nothing. */
 export interface TextCodec<V> {
@@ -17,7 +17,7 @@ export type TextFieldCommit = 'blur' | 'input' | { debounceMs: number };
  * any of them it is the bare `<input>`. `className` and `testId` land on the outermost element
  * either way, and on a bare field `inputTestId` wins over `testId`.
  */
-export interface TextFieldProps<V> extends FieldChromeProps, ControlledProps<V> {
+export interface TextFieldProps<V> extends FieldFrameProps, ControlledProps<V> {
 	codec: TextCodec<V>;
 	commit?: TextFieldCommit;
 	/** Sizes the input to its text, at least 3 characters wide. */
