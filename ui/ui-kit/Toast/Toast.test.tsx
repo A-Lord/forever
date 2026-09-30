@@ -102,6 +102,27 @@ describe('Toast', () => {
 		host.remove();
 	});
 
+	it('renders an inline area with no container in place, not through a portal, and shows and closes its toasts there', async () => {
+		const manager = createToastManager();
+		const { container } = render(
+			<div data-testid="toast-host">
+				<ToastArea manager={manager} inline testId="in-place-area" />
+			</div>,
+		);
+		const area = screen.getByTestId('in-place-area');
+		expect(within(screen.getByTestId('toast-host')).getByTestId('in-place-area')).toBe(area);
+		expect(container.querySelector('[data-testid="sim-toast-portal"]')).toBeNull();
+
+		let id = '';
+		act(() => {
+			id = manager.add({ variant: 'info', body: 'in place body', canClose: true });
+		});
+		expect(within(area).getByText('in place body')).toBeTruthy();
+
+		act(() => manager.close(id));
+		await waitFor(() => expect(within(area).queryByText('in place body')).toBeNull());
+	});
+
 	it('renders no close button when canClose is false, and closes on it when it is true', async () => {
 		const manager = createToastManager();
 		render(<ToastArea manager={manager} />);

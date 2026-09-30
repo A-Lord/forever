@@ -63,7 +63,7 @@ export const ResultMetricList = ({ metrics, layout, referenceDiffs }: ResultMetr
 					<div
 						key={column.metric}
 						data-testid="results-metric"
-						className={clsx('text-left font-bold', column.extraClass)}
+						className={clsx('text-left font-bold', referenceDiffs && 'not-last:mb-2', column.extraClass)}
 						data-metric={column.metric}
 						data-metric-category={resultMetricCategories[column.metric]}
 						{...anchorFor(column.metric)}>
