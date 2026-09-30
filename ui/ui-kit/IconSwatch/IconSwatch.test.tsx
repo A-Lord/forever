@@ -105,7 +105,7 @@ describe('IconMenu', () => {
 			<IconMenu
 				side="bottom"
 				onOpenChange={onOpenChange}
-				trigger={<IconSwatch icon={kings} href={href} testId="trigger" />}
+				trigger={{ icon: kings, href, testId: 'trigger' }}
 				positionerProps={{ 'data-testid': 'positioner' }}
 				popupProps={{ 'data-testid': 'popup' }}>
 				<li data-testid="entry" />

@@ -1,6 +1,6 @@
 import { Field, hasFieldChrome } from '@ui-kit/Field';
 import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Field/types';
-import { IconMenu, IconSwatch } from '@ui-kit/IconSwatch';
+import { IconMenu } from '@ui-kit/IconSwatch';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { useId } from 'react';
@@ -57,20 +57,18 @@ export const IconEnumPicker = <T,>({
 	const menu = (
 		<IconMenu
 			onOpenChange={onOpenChange}
-			trigger={
-				<IconSwatch
-					href={href}
-					style={selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon)}
-					active={active}
-					disabled={disabled}
-					// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
-					// shared by every rank, the text is what tells the ranks apart.
-					text={selectedHidden ? undefined : selected?.text}
-					className={clsx('transition-none', !rooted && className)}
-					testId={testId ?? 'icon-enum-picker-root'}
-					{...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip)}
-				/>
-			}
+			trigger={{
+				href,
+				style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),
+				active,
+				disabled,
+				// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
+				// shared by every rank, the text is what tells the ranks apart.
+				text: selectedHidden ? undefined : selected?.text,
+				className: clsx('transition-none', !rooted && className),
+				testId: testId ?? 'icon-enum-picker-root',
+				...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip),
+			}}
 			side={horizontal ? 'right' : 'bottom'}
 			portalProps={{ 'data-testid': 'icon-enum-picker-portal' }}
 			positionerProps={{ 'data-testid': 'icon-enum-picker-positioner' }}
