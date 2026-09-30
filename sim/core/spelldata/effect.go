@@ -75,35 +75,35 @@ func (e *Effect) scaled(level int32) float32 {
 	return float32(e.BasePoints) + float32(float32(delta)*float32(e.PPL))
 }
 
-// The low end of the roll. EffectVariance is the spread around the amount before it is floored, and
-// each end is rounded toward that amount: Shadow Oil's 350026 at level 14 is 64.6, so 59.63 to 69.57,
-// which the game shows as 60 to 69. An effect that does not roll answers the average at both ends.
+// The low end of the roll. EffectVariance spreads the base points only, so the spread keeps its width
+// as the amount scales, and it sits around the amount before it is floored, with each end rounded
+// outward. At level 14 Shadow Oil's 350026 is 64.6 ± 4, shown as 60 to 69, and Frost Oil's 350025 is
+// 41.4 ± 2, shown as 39 to 44. An effect that does not roll answers the average at both ends.
 func (e *Effect) Min(level int32) float64 {
 	if e.Variance == 0 {
 		return e.Average(level)
 	}
-	return e.spreadEnd(level, 1-e.Variance/2)
+	return e.spreadEnd(level, -1)
 }
 
 func (e *Effect) Max(level int32) float64 {
 	if e.Variance == 0 {
 		return e.Average(level)
 	}
-	return e.spreadEnd(level, 1+e.Variance/2)
+	return e.spreadEnd(level, 1)
 }
 
 // EffectVariance is a float32 widened into the DB, so an end that is whole in game lands a hair to
 // either side of it here (47.99999985 for 350026's 48); it is snapped before it is rounded.
-func (e *Effect) spreadEnd(level int32, factor float64) float64 {
-	amount := float64(e.scaled(level))
-	end := amount * factor
+func (e *Effect) spreadEnd(level int32, side float64) float64 {
+	end := float64(e.scaled(level)) + side*math.Abs(e.BasePoints)*e.Variance/2
 	if whole := math.Round(end); math.Abs(end-whole) < 1e-4 {
 		return whole
 	}
-	if end < amount {
-		return math.Ceil(end)
+	if side < 0 {
+		return math.Floor(end)
 	}
-	return math.Floor(end)
+	return math.Ceil(end)
 }
 
 // The amount for one cast: rolled where the game files state a spread, the average where they do not.

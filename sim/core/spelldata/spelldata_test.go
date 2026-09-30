@@ -115,7 +115,7 @@ func TestEffectAverage(t *testing.T) {
 		t.Errorf("Average(2) = %v, want 19", got)
 	}
 
-	// 21 spread by 10.5% is 19.89 to 22.1, rounded toward 21.
+	// 21 spread by 10.5% of the base 19 is 21 ± 1.
 	if got := damage.Min(60); got != 20 {
 		t.Errorf("Min(60) = %v, want 20", got)
 	}
