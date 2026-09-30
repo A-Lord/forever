@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { type Ref, useImperativeHandle, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -58,12 +58,12 @@ describe('BooleanPicker', () => {
 		expect(isChecked(checkbox())).toBe(true);
 	});
 
-	it('renders the check mark only while the box is checked', () => {
+	it('renders the check mark only while the box is checked', async () => {
 		render(<Harness initial />);
 		expect(checkbox().firstElementChild).not.toBeNull();
 
 		fireEvent.click(checkbox());
-		expect(checkbox().firstElementChild).toBeNull();
+		await waitFor(() => expect(checkbox().firstElementChild).toBeNull());
 	});
 
 	it('follows the value the parent keeps, not the click', () => {
