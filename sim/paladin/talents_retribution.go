@@ -391,13 +391,9 @@ func (paladin *Paladin) applyTwistOfLight() {
 			Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
 				if seal := echo.seal; seal != nil && seal.echo != nil {
 					target := result.Target
-					sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{
-						DoAt:     sim.CurrentTime + core.SpellBatchWindow,
-						Priority: core.ActionPriorityDOT,
-						OnAction: func(sim *core.Simulation) {
-							seal.echo(sim, target)
-						},
-					}))
+					afterBatch(sim, core.ActionPriorityDOT, func(sim *core.Simulation) {
+						seal.echo(sim, target)
+					})
 				}
 				echo.seal = nil
 				echo.aura.Deactivate(sim)
