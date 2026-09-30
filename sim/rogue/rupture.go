@@ -10,7 +10,7 @@ var ruptureApScaling = [6]float64{0, 0.01, 0.02, 0.03, 0.03, 0.03}
 
 func (rogue *Rogue) registerRupture() {
 	tick := ruptureRank.PeriodicEffect()
-	tickBase := tick.Average(core.CharacterLevel)
+	tickBase := tick.Average()
 	tickPerPoint := float64(tick.PointsPerResource)
 	baseTicks := int32(ruptureRank.Duration() / tick.Period())
 	var comboPoints int32

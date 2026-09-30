@@ -233,7 +233,7 @@ func (rogue *Rogue) registerMutilate() {
 
 	// TODO: Verify if Mutilate (Cast) can proc MH poisons itself (detected as a double MH poison proc)
 	config := spelldata.SpellConfig(&rogue.Unit, mutilateCastRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	pointGen := mutilateCastRank.EnergizeEffect().Average(core.CharacterLevel)
+	pointGen := mutilateCastRank.EnergizeEffect().Average()
 	config.ExtraCastCondition = func(sim *core.Simulation, target *core.Unit) bool {
 		return rogue.HasDagger(core.MainHand) && rogue.HasDagger(core.OffHand)
 	}
@@ -303,7 +303,7 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 		hitRank = mutilateCastRank.EffectN(2).Trigger() // 1241586, main hand
 		spellOpt = spelldata.Melee(core.ProcMaskMeleeMHSpecial)
 	}
-	mutilateHitBaseDamage := hitRank.DamageEffect().Average(core.CharacterLevel)
+	mutilateHitBaseDamage := hitRank.DamageEffect().Average()
 	config := spelldata.SpellConfig(&rogue.Unit, hitRank, spellOpt)
 	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
 	config.Tag = core.TernaryInt32(isMH, 1, 2)
