@@ -80,35 +80,28 @@ func (e *Effect) levelGain(level int32) float32 {
 // 81 ± 8.18 is 73 to 89, and Wrath rank 2's 23 ± 1.70 is 21 to 25, which is 24 to 29 with its 3.6
 // gain. An effect that does not roll answers the average at both ends.
 func (e *Effect) Min(level int32) float64 {
-	if e.Variance == 0 {
-		return e.Average(level)
-	}
 	low, _ := e.spread(level)
 	return low
 }
 
 func (e *Effect) Max(level int32) float64 {
-	if e.Variance == 0 {
-		return e.Average(level)
-	}
 	_, high := e.spread(level)
 	return high
 }
 
+// float32 for the reason Average is: Wrath rank 3's 30 ± 2.5 ends on halves there, 27.5 and 32.5,
+// which float64 reads a hair to either side of.
 func (e *Effect) spread(level int32) (float64, float64) {
-	half := math.Abs(e.BasePoints) * e.Variance / 2
-	gain := float64(e.levelGain(level))
-	return roundOutward(math.Round(e.BasePoints-half)+gain, math.Floor),
-		roundOutward(math.Round(e.BasePoints+half)+gain, math.Ceil)
-}
-
-// The per-level gain is a float32 widened here, so an end that is whole in game can land a hair to
-// either side of it (Exorcism 415068 at 25 reads 114.0000019); it is snapped before it is rounded.
-func roundOutward(end float64, round func(float64) float64) float64 {
-	if whole := math.Round(end); core.WithinToleranceFloat64(whole, end, 1e-4) {
-		return whole
+	if e.Variance == 0 {
+		average := e.Average(level)
+		return average, average
 	}
-	return round(end)
+	base := float32(e.BasePoints)
+	half := float32(float32(math.Abs(e.BasePoints)) * float32(e.Variance) / 2)
+	gain := e.levelGain(level)
+	low := float32(math.Round(float64(base-half))) + gain
+	high := float32(math.Round(float64(base+half))) + gain
+	return math.Floor(float64(low)), math.Ceil(float64(high))
 }
 
 // The amount for one cast: rolled where the game files state a spread, the average where they do not.

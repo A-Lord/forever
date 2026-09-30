@@ -126,8 +126,8 @@ func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 }
 
 // The game shows Shadow Oil's bolt 350026 as 60 to 69 and Frost Oil's bolt 350025 as 39 to 44 at level
-// 14, and Wrath rank 2 as 24 to 29 and Starfire rank 1 as 73 to 89 at level 20. Shadow Oil's unscaled
-// ends are 47.99999985 and 56.00000015 through the float32 variance, and read 48 to 56.
+// 14, and Wrath rank 2 as 24 to 29 and Starfire rank 1 as 73 to 89 at level 20. Wrath rank 3's 30 ± 2.5
+// ends on halves in float32, 27.5 and 32.5, and a half rounds up: 28 to 33 at its level 14.
 func TestRollEndsMatchTheTooltip(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -142,6 +142,7 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 		{350025, 14, 39, 44},
 		{5177, 20, 24, 29},
 		{2912, 20, 73, 89},
+		{5178, 14, 28, 33},
 	} {
 		damage := MustFind(c.spell).DamageEffect()
 		if got, want := [2]float64{damage.Min(c.level), damage.Max(c.level)}, [2]float64{c.min, c.max}; got != want {
