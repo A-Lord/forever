@@ -4,7 +4,6 @@ import (
 	"maps"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
@@ -12,6 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 	googleProto "google.golang.org/protobuf/proto"
 
 	"testing"
@@ -160,73 +160,52 @@ func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
 	}
 }
 
-// One sting per hunter on a target: Serpent Sting drops the hunter's own Scorpid Sting, and Scorpid
-// Sting drops its Serpent Sting. Another hunter's sting stays.
-func TestEachStingDropsTheHuntersOtherSting(t *testing.T) {
-	newPlayer := func(name string) *proto.Player {
-		return &proto.Player{
-			Name:               name,
-			Race:               proto.Race_RaceOrc,
-			Class:              proto.Class_ClassHunter,
-			Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
-			TalentsString:      DefaultMMTalents,
-			Spec:               DefaultOptions,
-			Rotation:           &proto.APLRotation{},
-			DistanceFromTarget: 20,
-		}
+// One sting per hunter on a target: a hunter's sting drops that hunter's other sting and leaves
+// another hunter's. Two hunters' Scorpid Stings both stay up, and their -2% hit counts once.
+func TestEachHunterKeepsOneStingPerTarget(t *testing.T) {
+	player := func(name string) *proto.Player {
+		return &proto.Player{Name: name, Race: proto.Race_RaceOrc, Class: proto.Class_ClassHunter,
+			Equipment: &proto.EquipmentSpec{}, Spec: DefaultOptions, Rotation: &proto.APLRotation{}}
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
 		Raid: &proto.Raid{
-			Parties: []*proto.Party{{Players: []*proto.Player{newPlayer("Stings"), newPlayer("Other")}, Buffs: &proto.PartyBuffs{}}},
+			Parties: []*proto.Party{{Players: []*proto.Player{player("A"), player("B")}, Buffs: &proto.PartyBuffs{}}},
 			Buffs:   &proto.RaidBuffs{},
 			Debuffs: &proto.Debuffs{},
 		},
 		Encounter:  core.MakeSingleTargetEncounter(0),
-		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		SimOptions: &proto.SimOptions{},
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
 	other := sim.Raid.Parties[0].Players[1].(*Hunter)
 	target := sim.Encounter.AllTargetUnits[0]
 
-	serpent := hunter.GetSpell(core.ActionID{SpellID: serpentStingRank.ID})
-	scorpid := hunter.GetSpell(core.ActionID{SpellID: scorpidStingRank.ID})
-	scorpidAura := target.GetAura("Scorpid Sting-" + hunter.Label)
-	otherScorpid := other.GetSpell(core.ActionID{SpellID: scorpidStingRank.ID})
-	otherScorpidAura := target.GetAura("Scorpid Sting-" + other.Label)
-	if serpent == nil || scorpid == nil || scorpidAura == nil || otherScorpid == nil || otherScorpidAura == nil {
-		t.Fatalf("Serpent Sting %v, Scorpid Sting %v, its aura %v, the other hunter's %v and its aura %v; want all five",
-			serpent, scorpid, scorpidAura, otherScorpid, otherScorpidAura)
-	}
-	serpentAura := serpent.Dot(target).Aura
+	serpent := hunter.GetSpell(core.ActionID{SpellID: serpentStingRank.ID}).Dot(target)
+	scorpid := target.GetAura("Scorpid Sting-" + hunter.Label)
+	otherScorpid := target.GetAura("Scorpid Sting-" + other.Label)
 
-	// A sting can miss and lands after its travel time, so it is cast until it is on the target.
-	land := func(spell *core.Spell, aura *core.Aura) {
-		t.Helper()
-		for range 20 {
-			spell.SkipCastAndApplyEffects(sim, target)
-			for until := sim.CurrentTime + time.Second*2; !aura.IsActive() && sim.CurrentTime < until && !sim.Step(); {
-			}
-			if aura.IsActive() {
-				return
-			}
-		}
-		t.Fatalf("%s never landed", aura.Label)
-	}
-
-	land(otherScorpid, otherScorpidAura)
-	land(scorpid, scorpidAura)
-	land(serpent, serpentAura)
-	if scorpidAura.IsActive() {
+	// What a landed sting does: drop the hunter's other sting, then go up.
+	dropOtherSting(sim, otherScorpid)
+	otherScorpid.Activate(sim)
+	dropOtherSting(sim, scorpid)
+	scorpid.Activate(sim)
+	dropOtherSting(sim, serpent.Aura)
+	serpent.Apply(sim)
+	if scorpid.IsActive() {
 		t.Error("Serpent Sting landed beside the hunter's own Scorpid Sting, want it dropped")
 	}
 
-	land(scorpid, scorpidAura)
-	if serpentAura.IsActive() {
+	dropOtherSting(sim, scorpid)
+	scorpid.Activate(sim)
+	if serpent.IsActive() {
 		t.Error("Scorpid Sting landed beside the hunter's own Serpent Sting, want it dropped")
 	}
-	if !otherScorpidAura.IsActive() {
+	if !otherScorpid.IsActive() {
 		t.Error("the hunter's stings dropped the other hunter's Scorpid Sting, want it on the target")
+	}
+	if got := target.GetStats()[stats.PhysicalHitPercent]; got != -2 {
+		t.Errorf("two hunters' Scorpid Stings moved hit by %v, want -2 once", got)
 	}
 }
 
