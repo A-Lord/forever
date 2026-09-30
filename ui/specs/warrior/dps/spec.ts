@@ -1,3 +1,4 @@
+import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation, APLRotation_Type, SimpleRotation } from '@generated/proto/apl';
@@ -106,7 +107,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	playerIconInputs: [WarriorInputs.ShoutPicker(), WarriorInputs.StancePicker(), WarriorInputs.BattleShoutT2()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [],
-	excludeBuffDebuffInputs: [],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.AtieshMage],
 	rotationInputs: DpsWarriorInputs.RotationInputs,
 	// `simpleRotation` below never reads its Cooldowns argument.
 	hideSimpleCooldowns: true,

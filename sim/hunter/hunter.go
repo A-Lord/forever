@@ -62,7 +62,7 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 
 	core.FillTalentsProto(hunter.Talents.ProtoReflect(), options.TalentsString, TalentTreeSizes)
 
-	// The hunter casts its own mark, which the raid's permanent one would keep from ever landing.
+	// The hunter casts its own mark, so a raid's permanent one would credit it before the cast.
 	if raid.Debuffs != nil {
 		raid.Debuffs.HuntersMark = false
 	}
@@ -129,9 +129,13 @@ func (hunter *Hunter) hasteRangedCast(config *core.SpellConfig) {
 	}
 }
 
-// One sting per target: applying either sting drops the other.
+func (hunter *Hunter) stingTag() string {
+	return "Sting-" + hunter.Label
+}
+
+// One sting per hunter on a target: applying either sting drops the hunter's other one.
 func dropOtherSting(sim *core.Simulation, sting *core.Aura) {
-	if active := sting.Unit.GetActiveAuraWithTag("Sting"); active != nil && active != sting {
+	if active := sting.Unit.GetActiveAuraWithTag(sting.Tag); active != nil && active != sting {
 		active.Deactivate(sim)
 	}
 }

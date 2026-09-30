@@ -1460,7 +1460,11 @@ whole amount the way the tooltip shows it, and 0 points is the full amount. `new
 `Category` is set, `Exclusive(Category, true)` for a `SingleAura` row or `ExclusivePerStat(Category)`
 for any other, so a generated buff and a hand-written scroll of the same stat or resistance bid
 against each other under the categories core's own exclusive stat buffs use. `newDebuff` adds only
-`Exclusive(Category, SingleAura)`, since a debuff never carries a resistance of its own;
+`Exclusive(Category, SingleAura)`, since a debuff never carries a resistance of its own; without
+`SingleAura` each of its stats and pseudo-stats bids alone under `Category` + its key, priced per
+stack, so a stronger debuff holds only the effects of its own kind and Hex of Weakness keeps its
+healing taken under Demoralizing Shout's attack power; a row a raid debuff reads that an item proc
+puts on the target is that debuff's player copy (`NewSpellDataDebuffAuraBySpell`);
 `newItemCountBuff` adds `Count` so that a party with several of the same item is worth that many
 copies of the amount. `Value` is a damage shield's own effect where the spell states one, and otherwise
 the first thing `spelldata.DryRun` attaches for those options. `Duration` reads the spell, or `Cast` where the

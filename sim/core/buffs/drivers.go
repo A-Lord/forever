@@ -367,9 +367,12 @@ func driveJudgementOfWisdom(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) 
 
 // A stack of Sunder Armor is worth nothing until it is on the target, so the
 // raid's copy is ramped to five over the first five global cooldowns, which is
-// how long a warrior takes to stack it.
-func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
-	aura := core.MakePermanent(NewSpellDataSunderArmorAura(target, false, 0))
+// how long a warrior takes to stack it. The stacks build while a stronger armor
+// reduction holds the category, and the sunder applies once it outbids it or
+// that one ends. With a warrior in the raid the raid's copy is the player's
+// own, which the warrior's Sunder Armor stacks, so the target carries one.
+func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, raid *proto.Raid) {
+	aura := core.MakePermanent(NewSpellDataSunderArmorAura(target, raidHasClass(raid, proto.Class_ClassWarrior), 0))
 
 	scheduledAura(aura, core.PeriodicActionOptions{
 		Period:          core.GCDDefault,
@@ -378,11 +381,20 @@ func driveSunderArmor(target *core.Unit, _ *proto.Debuffs, _ *proto.Raid) {
 		Priority:        core.ActionPriorityDOT,
 		OnAction: func(sim *core.Simulation) {
 			aura.Activate(sim)
-			if aura.IsActive() {
-				aura.AddStack(sim)
-			}
+			aura.AddStack(sim)
 		},
 	})
+}
+
+func raidHasClass(raid *proto.Raid, class proto.Class) bool {
+	for _, party := range raid.GetParties() {
+		for _, player := range party.GetPlayers() {
+			if player.GetClass() == class {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Annihilator procs often enough to keep all three stacks on the target.
