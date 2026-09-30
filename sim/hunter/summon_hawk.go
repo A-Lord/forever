@@ -9,7 +9,7 @@ import (
 )
 
 var summonHawkRank = spellData.SummonHawk.Highest()
-var summonHawkBaseDamage = summonHawkRank.DamageEffect().Average(core.CharacterLevel)
+var summonHawkBaseDamage = summonHawkRank.DamageEffect().Average()
 
 // The creature the dive leaves behind, up for 18 s.
 var hawkSummon = spellData.SummonHawkTriggered.ByID(1293248)

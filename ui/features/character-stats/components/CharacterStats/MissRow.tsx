@@ -29,12 +29,12 @@ export const MissRow = ({ info, pending }: { info: MissInfo; pending?: boolean }
 						<Tooltip
 							id={id}
 							content={
-								<div>
+								<>
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.base')} value={`${info.base.toFixed(2)}%`} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tank_caps.defense')} value={`${info.defense.toFixed(2)}%`} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.debuffs')} value={`${info.debuffs.toFixed(2)}%`} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.total')} value={`${info.total.toFixed(2)}%`} />
-								</div>
+								</>
 							}
 						/>
 					</>

@@ -15,7 +15,7 @@ func (warrior *Warrior) registerShieldBash() {
 	config.FlatThreatBonus = 0
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := shieldBashRank.DamageEffect().Roll(sim, core.CharacterLevel)
+		baseDamage := shieldBashRank.DamageEffect().Roll(sim)
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
 
 		if !result.Landed() {

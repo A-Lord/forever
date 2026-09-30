@@ -20,7 +20,7 @@ func NewSpellDataEnergizeOnUse(itemID int32) {
 		}
 
 		amount := func(sim *core.Simulation) float64 {
-			gain := effect.Roll(sim, character.Level)
+			gain := effect.Roll(sim)
 			if power.InTenths() {
 				gain /= 10
 			}
@@ -45,7 +45,7 @@ func NewSpellDataEnergizeOnUse(itemID int32) {
 			}
 		}
 
-		whole := effect.Max(character.Level) * ticks
+		whole := effect.Max() * ticks
 		if power.InTenths() {
 			whole /= 10
 		}

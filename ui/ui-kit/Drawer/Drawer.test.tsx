@@ -39,6 +39,15 @@ describe('Drawer', () => {
 		expect(Array.from(screen.getByTestId('popup').classList)).toEqual(expect.arrayContaining(['ui-drawer', 'ui-floating-action-bar-sheet']));
 	});
 
+	it.each(['left', 'bottom', 'right'] as const)('marks a %s drawer with its side, and a drawer without one with none', side => {
+		const { unmount } = mount({ open: true, side });
+		expect(screen.getByTestId('popup').getAttribute('data-side')).toBe(side);
+		unmount();
+
+		mount({ open: true });
+		expect(screen.getByTestId('popup').hasAttribute('data-side')).toBe(false);
+	});
+
 	it('renders no header without a title or header content', () => {
 		mount({ open: true });
 

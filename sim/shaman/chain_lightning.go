@@ -57,7 +57,7 @@ func (shaman *Shaman) newChainLightningSpell(config *spelldata.Spell, isElementa
 		numHits := min(maxHits, shaman.Env.ActiveTargetCount())
 		results := make([]*core.SpellResult, numHits)
 		for hitIndex := range numHits {
-			baseDamage := config.DamageEffect().Average(core.CharacterLevel)
+			baseDamage := config.DamageEffect().Average()
 			results[hitIndex] = spell.CalcDamage(sim, curTarget, baseDamage, spell.OutcomeMagicHitAndCrit)
 
 			curTarget = sim.Environment.NextActiveTargetUnit(curTarget)

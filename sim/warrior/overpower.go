@@ -6,7 +6,6 @@ import (
 )
 
 var overpowerRank = spellData.Overpower.ByID(11585)
-var overpowerBaseDamage = overpowerRank.DamageEffect().Average(core.CharacterLevel)
 
 // The window a dodge opens: the aura Offensive State (DND) fires on the hit.
 var overpowerWindow = spellData.OffensiveStateTriggered.Highest()
@@ -30,7 +29,7 @@ func (warrior *Warrior) registerOverpower() {
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := overpowerBaseDamage + spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		baseDamage := overpowerRank.WeaponStrike(sim, spell, spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
 		warrior.OverpowerAura.Deactivate(sim)
 

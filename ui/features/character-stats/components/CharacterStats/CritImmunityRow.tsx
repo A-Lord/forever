@@ -30,13 +30,13 @@ export const CritImmunityRow = ({ info, text, pending }: { info: CritImmunityInf
 						<Tooltip
 							id={id}
 							content={
-								<div>
+								<>
 									<TooltipRow label={i18n.t('sidebar.character_stats.tank_caps.defense')} value={`${info.defense.toFixed(2)}%`} />
 									{info.talents > 0 && (
 										<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.talents')} value={`${info.talents.toFixed(2)}%`} />
 									)}
 									<TooltipRow label={i18n.t('sidebar.character_stats.tooltip.total')} value={`${info.total.toFixed(2)}%`} />
-								</div>
+								</>
 							}
 						/>
 					</>

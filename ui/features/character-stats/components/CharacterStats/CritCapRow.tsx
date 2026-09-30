@@ -33,7 +33,7 @@ export const CritCapRow = ({ info, text, pending }: CritCapRowProps) => {
 						<Tooltip
 							id={id}
 							content={
-								<div>
+								<>
 									<TooltipRow label={i18n.t('sidebar.character_stats.attack_table.glancing')} value={`${info.glancing.toFixed(2)}%`} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.attack_table.suppression')} value={`${info.suppression.toFixed(2)}%`} />
 									<TooltipRow
@@ -60,7 +60,7 @@ export const CritCapRow = ({ info, text, pending }: CritCapRowProps) => {
 										label={i18n.t('sidebar.character_stats.attack_table.can_raise_by')}
 										value={`${(info.remainingExpertiseCap + info.remainingMeleeHitCap).toFixed(2)}%`}
 									/>
-								</div>
+								</>
 							}
 						/>
 					</>

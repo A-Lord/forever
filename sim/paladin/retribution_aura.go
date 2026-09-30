@@ -1,7 +1,6 @@
 package paladin
 
 import (
-	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -17,7 +16,7 @@ func (paladin *Paladin) registerRetributionAura() {
 	RetributionAuraRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		// The damage shield's number is the rank's first effect.
 		r := auraRank(rank)
-		r.Value = rank.EffectN(1).Average(core.CharacterLevel)
+		r.Value = rank.EffectN(1).Average()
 		aura := buffs.NewSpellDataRetributionAuraRank(&paladin.Character, true, r, 0)
 		paladin.registerAuraSpell(rank, aura, SpellMaskRetributionAura)
 	})

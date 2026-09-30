@@ -267,7 +267,7 @@ func init() {
 			aura := character.GetOrRegisterAura(config)
 
 			spelldata.ParseEffects(character, aura, row, spelldata.Effects(1))
-			bonus, err := NaturalFlaskZoneBonusOf(row, row.EffectN(2).Average(character.Level))
+			bonus, err := NaturalFlaskZoneBonusOf(row, row.EffectN(2).Average())
 			if err != nil {
 				panic(err)
 			}
