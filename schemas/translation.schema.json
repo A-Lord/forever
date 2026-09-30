@@ -1418,6 +1418,12 @@
 							"additionalProperties": false,
 							"required": ["ilvl", "item", "source"]
 						},
+						"sorted_ascending": {
+							"type": "string"
+						},
+						"sorted_descending": {
+							"type": "string"
+						},
 						"show_ep": {
 							"type": "string"
 						},
@@ -1467,6 +1473,8 @@
 						"filters_button",
 						"unequip_item",
 						"table_headers",
+						"sorted_ascending",
+						"sorted_descending",
 						"show_ep",
 						"armor_type",
 						"weapon_type",

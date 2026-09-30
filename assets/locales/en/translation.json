@@ -397,6 +397,8 @@
 				"item": "Item",
 				"source": "Source"
 			},
+			"sorted_ascending": "sorted ascending",
+			"sorted_descending": "sorted descending",
 			"show_ep": "Show EP",
 			"armor_type": "Armor Type",
 			"weapon_type": "Weapon Type",

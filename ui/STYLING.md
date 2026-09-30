@@ -227,9 +227,9 @@ Three tree-wide tests in `npm run test:unit` run the checkers, all under `// @vi
       included;
     - `findTestidStyling()` — no `[data-testid]` selector in CSS or in a TSX arbitrary variant.
 - **`ui/no_raw_controls.test.ts`** enforces that `ui/features`, `ui/app` and `ui/specs` render every
-  control through the kit `Button` — no bare `<a>` or `<button>` in a production `.tsx` file there.
-  `ui/ui-kit` and `ui/design-system` are outside its scope, since the kit's own primitives are what
-  `Button` is built from.
+  control through a kit primitive (`Button`, `WowheadAnchor`, the menu items) — no bare `<a>` or
+  `<button>` in a production `.tsx` file there. `ui/ui-kit` and `ui/design-system` are outside its
+  scope: they are where those primitives and their docs live.
 - **Production means every file but a test.** The checks skip `*.test.ts(x)` and `ui/generated/`
   only, so a story (`*.stories.tsx`), `ui/testing/**` (decorators, fixtures, `react.tsx`) and the
   design-system code (`ui/design-system/components/`, `tokens/`) are held to the same class rules as

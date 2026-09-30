@@ -9,7 +9,7 @@ export const SixtyUpgradesImporterDialog = ({ open, onOpenChange }: ImporterDial
 		<div>
 			<p>
 				Import settings from{' '}
-				<Button href="https://sixtyupgrades.com/forever" target="_blank" variant="link">
+				<Button href="https://sixtyupgrades.com/forever" target="_blank" variant="unstyled">
 					Sixty Upgrades
 				</Button>
 				.

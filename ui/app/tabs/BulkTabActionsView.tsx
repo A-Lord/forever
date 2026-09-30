@@ -15,7 +15,7 @@ export const BulkTabActionsView = ({ showNativeDownload, onImportBags, onImportF
 		<div>
 			{showNativeDownload && (
 				<p className="mb-0">
-					<Button href={REPO_RELEASES_URL} target="_blank" variant="link">
+					<Button href={REPO_RELEASES_URL} target="_blank" variant="unstyled">
 						<Icon name="gauge-high" className="mr-1" />
 						{i18n.t('bulk_tab.download_native')}
 					</Button>

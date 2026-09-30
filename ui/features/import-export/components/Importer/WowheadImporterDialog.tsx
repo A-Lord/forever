@@ -11,7 +11,7 @@ export const WowheadImporterDialog = ({ open, onOpenChange }: ImporterDialogProp
 		<div>
 			<p>
 				{i18n.t('import.wowhead.description')}{' '}
-				<Button href={WOWHEAD_GEAR_PLANNER_URL} target="_blank" variant="link">
+				<Button href={WOWHEAD_GEAR_PLANNER_URL} target="_blank" variant="unstyled">
 					{i18n.t('import.wowhead.gear_planner_link')}
 				</Button>
 				.

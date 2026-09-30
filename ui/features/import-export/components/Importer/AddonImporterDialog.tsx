@@ -10,7 +10,7 @@ export const AddonImporterDialog = ({ open, onOpenChange }: ImporterDialogProps)
 		<div>
 			<p>
 				{i18n.t('import.addon.description')}{' '}
-				<Button href="https://www.curseforge.com/wow/addons/wowsimsexporter" target="_blank" variant="link">
+				<Button href="https://www.curseforge.com/wow/addons/wowsimsexporter" target="_blank" variant="unstyled">
 					{i18n.t('import.addon.addon_link')}
 				</Button>
 				.

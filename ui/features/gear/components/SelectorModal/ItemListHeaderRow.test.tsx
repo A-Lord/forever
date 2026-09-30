@@ -36,14 +36,16 @@ describe('ItemListHeaderRow', () => {
 	it('sorts by item level and by EP from their headers', () => {
 		const { onSort } = renderRow();
 		fireEvent.click(within(screen.getByTestId('ilvl-label')).getByRole('button'));
-		fireEvent.click(within(screen.getByTestId('ep-label')).getByRole('button', { name: 'EP' }));
+		fireEvent.click(within(screen.getByTestId('ep-label')).getByRole('button', { name: /^EP/ }));
 		expect(onSort.mock.calls).toEqual([[ItemListSortBy.ILVL], [ItemListSortBy.EP]]);
 	});
 
-	it('reports aria-sort on the header cell for the active sort column only', () => {
+	it('names the sort direction on the active column’s button only', () => {
 		renderRow({ sortBy: ItemListSortBy.ILVL, sortDirection: SortDirection.ASC });
-		expect(screen.getByTestId('ilvl-label').getAttribute('aria-sort')).toBe('ascending');
-		expect(screen.getByTestId('ep-label').getAttribute('aria-sort')).toBe('none');
+		const ilvlLabel = i18n.t('gear_tab.gear_picker.table_headers.ilvl');
+		const ascendingLabel = i18n.t('gear_tab.gear_picker.sorted_ascending');
+		expect(screen.getByRole('button', { name: new RegExp(`^${ilvlLabel}\\s*,\\s*${ascendingLabel}$`) })).toBeTruthy();
+		expect(within(screen.getByTestId('ep-label')).getByRole('button', { name: 'EP' })).toBeTruthy();
 	});
 
 	it('hides the EP header when EP values are off', () => {

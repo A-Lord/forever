@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -20,9 +21,17 @@ describe('LandingHeader', () => {
 
 	it('opens every external nav link in a new tab with no opener', () => {
 		render(<LandingHeader />);
-		const links = screen.getAllByRole('link').filter(link => link.getAttribute('target') === '_blank');
+		const names = [i18n.t('info.discord'), i18n.t('info.github'), i18n.t('landing.header.supportDevs')];
 
-		expect(links).toHaveLength(3);
-		links.forEach(link => expect(link.getAttribute('rel')).toBe('noopener noreferrer'));
+		names.forEach(name => {
+			const link = screen.getByRole('link', { name });
+			expect(link.getAttribute('target')).toBe('_blank');
+			expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+		});
+	});
+
+	it('does not turn the logo into a link', () => {
+		render(<LandingHeader />);
+		expect(screen.getByTestId('wowsims-title').closest('a')).toBeNull();
 	});
 });
