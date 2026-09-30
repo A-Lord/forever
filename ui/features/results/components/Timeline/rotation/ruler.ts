@@ -76,21 +76,18 @@ export class Ruler {
 
 	constructor(private readonly track: HTMLElement) {
 		const tickClass = 'absolute bottom-0 left-timeline-pos h-1 w-px bg-current';
+		const majorTickClass = `${tickClass} h-2`;
+		const labelClass = 'absolute top-px left-timeline-pos -translate-x-1/2 whitespace-nowrap data-first:translate-x-0';
 		this.minorTicks = new TickPool(track, tickClass, 'rotation-ruler-tick', (elem, index) => elem.style.setProperty('--t', String(index * this.minorStep)));
-		this.majorTicks = new TickPool(track, `${tickClass} h-2`, 'rotation-ruler-tick', (elem, index) =>
+		this.majorTicks = new TickPool(track, majorTickClass, 'rotation-ruler-tick', (elem, index) =>
 			elem.style.setProperty('--t', String(index * this.labelStep)),
 		);
-		this.labels = new TickPool(
-			track,
-			'absolute top-px left-timeline-pos -translate-x-1/2 whitespace-nowrap data-first:translate-x-0',
-			'rotation-ruler-label',
-			(elem, index) => {
-				const time = index * this.labelStep;
-				elem.style.setProperty('--t', String(time));
-				elem.textContent = formatTick(time, this.labelStep);
-				elem.toggleAttribute('data-first', index === 0);
-			},
-		);
+		this.labels = new TickPool(track, labelClass, 'rotation-ruler-label', (elem, index) => {
+			const time = index * this.labelStep;
+			elem.style.setProperty('--t', String(time));
+			elem.textContent = formatTick(time, this.labelStep);
+			elem.toggleAttribute('data-first', index === 0);
+		});
 	}
 
 	draw({ scrollLeft, pps, duration, width }: RulerFrame) {
