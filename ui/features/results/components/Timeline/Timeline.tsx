@@ -89,10 +89,8 @@ export const Timeline = ({ active }: TimelineProps) => {
 						<TimelineChart spec={spec} />
 					</div>
 				) : (
-					<div data-testid="rotation-plot">
-						<div className="m-auto">
-							<RotationView model={model} active={active} />
-						</div>
+					<div className="m-auto" data-testid="rotation-plot">
+						<RotationView model={model} active={active} />
 					</div>
 				)}
 			</div>

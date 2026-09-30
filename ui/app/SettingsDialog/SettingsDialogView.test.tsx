@@ -44,7 +44,7 @@ describe('SettingsDialogView', () => {
 		render(<SettingsDialogView {...props({ fixedRngSeed: 42, lastUsedRngSeed: 1234, showThreatMetrics: true, wasmConcurrency: 3 })} />);
 
 		expect((byId('simui-fixed-rng-seed') as HTMLInputElement).value).toBe('42');
-		expect(screen.getByTestId('last-used-rng-seed').textContent).toBe('1234');
+		expect(screen.getByText('info.options.fixed_rng_seed.last_used').parentElement?.textContent).toContain('1234');
 		expect(byId('simui-language-picker').textContent).toBe(supportedLanguages.en);
 		expect(checked('show-threat-metrics-picker')).toBe('true');
 		expect(checked('show-experimental-picker')).toBe('false');

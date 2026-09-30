@@ -125,13 +125,12 @@ describe('Importer', () => {
 		expect(rootElem.querySelector('[data-testid="importer-upload-input"]')).not.toBe(null);
 	});
 
-	it('puts the description above the textarea, inside the description block', () => {
+	it('puts the description above the textarea', () => {
 		renderImporter();
 		const body = rootElem.querySelector('[data-testid="sim-dialog-body"] > div')!;
 		const [description, textarea] = Array.from(body.children);
-		expect(description.getAttribute('data-testid')).toBe('import-description');
+		expect(description.textContent).toBe('how to');
 		expect(textarea.getAttribute('data-testid')).toBe('importer-textarea');
 		expect(textarea.className.split(' ')).toEqual(expect.arrayContaining(['ui-input']));
-		expect(body.querySelector('[data-testid="import-description"]')!.textContent).toBe('how to');
 	});
 });

@@ -28,18 +28,12 @@ export const SimResultsPanel = ({ panel, warnings, results }: SimResultsPanelPro
 
 	return (
 		<div className="mx-auto flex w-fit flex-col" data-testid="results-viewer">
-			<div
-				className="[&_.ui-spinner]:m-auto"
-				data-testid="results-pending"
-				hidden={stage !== ResultsPanelStage.Pending && stage !== ResultsPanelStage.Running}>
-				{stage === ResultsPanelStage.Running ? <SimProgress panel={panel} /> : <Spinner size="lg" />}
-			</div>
-			<div data-testid="results-content" hidden={stage !== ResultsPanelStage.Result}>
-				{results && <SimResultSummary results={results} />}
-			</div>
-			<div className="text-center" data-testid="button-zone" hidden={!buttonsVisible}>
-				{abortHandler && <AbortButton onAbort={abortHandler} />}
-			</div>
+			{(stage === ResultsPanelStage.Pending || stage === ResultsPanelStage.Running) &&
+				(stage === ResultsPanelStage.Running ? <SimProgress panel={panel} /> : <Spinner size="lg" className="m-auto" />)}
+			{stage === ResultsPanelStage.Result && results && <SimResultSummary results={results} />}
+			{/* `stopping` is its own state, which a remount on `buttonsVisible` would drop — so the button
+				stays mounted and only `hidden` moves with visibility; `abortHandler` is what removes it. */}
+			{abortHandler && <AbortButton onAbort={abortHandler} hidden={!buttonsVisible} testId="button-zone" />}
 			<SimWarnings warnings={warnings} ready={ready} />
 			{host.disabled && <UnlaunchedNotice />}
 			{host.simDisabled && !host.disabled && <GearPlannerNotice />}

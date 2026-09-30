@@ -7,7 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 // The picker is tested where it lives. What is under test here is that it is the navbar's first
 // child, because the strip's `margin-left: auto` is what pushes the tabs to the other end.
-vi.mock('@features/apl/components/RotationTypePicker', () => ({ RotationTypePicker: () => <div className="rotation-type-picker-stub" /> }));
+vi.mock('@features/apl/components/RotationTypePicker', () => ({
+	RotationTypePicker: ({ testId }: { testId?: string }) => <div className="rotation-type-picker-stub" data-testid={testId} />,
+}));
 
 class FakeIntersectionObserver {
 	static instances: Array<FakeIntersectionObserver> = [];
@@ -56,7 +58,7 @@ describe('AplNavbar', () => {
 		const root = container.querySelector('[data-testid="apl-rotation-navbar"]')!;
 		expect(root.children[0].getAttribute('data-testid')).toBe('rotation-type-container');
 		expect(root.children[1].className.split(' ')).toEqual(expect.arrayContaining(['ui-tabs']));
-		expect(root.querySelector('[data-testid="rotation-type-container"] > .rotation-type-picker-stub')).not.toBeNull();
+		expect(root.children[0].className).toBe('rotation-type-picker-stub');
 	});
 
 	it('renders the three sub-tabs with the active one selected and the only Tab stop', () => {

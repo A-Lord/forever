@@ -133,22 +133,22 @@ describe('DetailedResults', () => {
 		expect(
 			container.querySelectorAll('[data-testid="dr-toolbar-row"] > [data-testid="results-filter"] > [data-testid="results-filter-root"]'),
 		).toHaveLength(1);
-		expect(container.querySelectorAll('#logTab [data-testid="dr-row"] > [data-testid="log"] > .log-runner-root')).toHaveLength(1);
-		expect(container.querySelectorAll('#timelineTab [data-testid="dr-row"] > [data-testid="timeline"] > .timeline-root')).toHaveLength(1);
+		expect(container.querySelectorAll('#logTab [data-testid="dr-row"] > .log-runner-root')).toHaveLength(1);
+		expect(container.querySelectorAll('#timelineTab [data-testid="dr-row"] > .timeline-root')).toHaveLength(1);
 	});
 
-	it('holds every metrics table in its own container', () => {
+	it('holds every metrics table in its own tab, under its own root', () => {
 		metrics.threat = true;
 		metrics.healing = true;
 		const { container } = renderPane();
-		expect(container.querySelectorAll('#damageTab [data-testid="damage-spell-metrics"] > [data-testid="damage-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#healingTab [data-testid="healing-spell-metrics"] > [data-testid="healing-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#damageTakenTab [data-testid="dtps-metrics"] > [data-testid="dtps-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#threatTab [data-testid="threat-metrics"] > [data-testid="threat-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#castsTab [data-testid="cast-metrics"] > [data-testid="cast-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#buffsTab [data-testid="buff-aura-metrics"] > [data-testid="buff-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#debuffsTab [data-testid="debuff-aura-metrics"] > [data-testid="debuff-metrics-root"]')).toHaveLength(1);
-		expect(container.querySelectorAll('#resourcesTab [data-testid="resource-metrics"] > [data-testid="resource-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#damageTab [data-testid="dr-row"] > [data-testid="damage-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#healingTab [data-testid="dr-row"] > [data-testid="healing-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#damageTakenTab [data-testid="dr-row"] > [data-testid="dtps-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#threatTab [data-testid="dr-row"] > [data-testid="threat-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#castsTab [data-testid="dr-row"] > [data-testid="cast-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#buffsTab [data-testid="dr-row"] > [data-testid="buff-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#debuffsTab [data-testid="dr-row"] > [data-testid="debuff-metrics-root"]')).toHaveLength(1);
+		expect(container.querySelectorAll('#resourcesTab [data-testid="dr-row"] > [data-testid="resource-metrics-root"]')).toHaveLength(1);
 		expect(container.querySelectorAll('[data-testid="dr-row-topline"] > [data-testid="topline-results-root"]')).toHaveLength(4);
 		expect(container.querySelectorAll('#damageTab [data-testid="dr-row-dps-histogram"] > [data-testid="dps-histogram-root"]')).toHaveLength(1);
 	});

@@ -38,17 +38,16 @@ export const LogSearchBar = ({ groups, suggestions, onChange }: LogSearchBarProp
 					/>
 				))}
 			</div>
-			<div data-testid="log-search-add-field">
-				<ChoiceField<ClauseField | undefined>
-					id="log-search-add-filter"
-					options={FIELD_OPTIONS}
-					value={undefined}
-					onChange={field => field && addField(field)}
-					variant="link"
-					placeholder={i18n.t('results_tab.details.logs.search_add_filter')}
-					{...DROPUP}
-				/>
-			</div>
+			<ChoiceField<ClauseField | undefined>
+				id="log-search-add-filter"
+				testId="log-search-add-field"
+				options={FIELD_OPTIONS}
+				value={undefined}
+				onChange={field => field && addField(field)}
+				variant="link"
+				placeholder={i18n.t('results_tab.details.logs.search_add_filter')}
+				{...DROPUP}
+			/>
 		</div>
 	);
 };

@@ -23,7 +23,7 @@ export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
 	return (
 		<div className="text-center" data-testid="warning-zone">
 			{contents.length > 0 && (
-				<div data-testid="sim-toolbar-item">
+				<>
 					<Button
 						variant="unstyled"
 						className="focus-visible:focus-ring"
@@ -44,7 +44,7 @@ export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
 							</ul>
 						}
 					/>
-				</div>
+				</>
 			)}
 		</div>
 	);

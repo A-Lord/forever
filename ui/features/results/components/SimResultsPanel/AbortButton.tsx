@@ -6,15 +6,19 @@ import { flushSync } from 'react-dom';
 
 export interface AbortButtonProps {
 	onAbort: (event: MouseEvent) => void;
+	hidden?: boolean;
+	testId?: string;
 }
 
-export const AbortButton = ({ onAbort }: AbortButtonProps) => {
+export const AbortButton = ({ onAbort, hidden, testId }: AbortButtonProps) => {
 	const [stopping, setStopping] = useState(false);
 	return (
 		<Button
 			variant="unstyled"
 			className="focus-visible:focus-ring"
 			disabled={stopping}
+			hidden={hidden}
+			data-testid={testId}
 			onClick={event => {
 				// Synchronous: the run action reads the button back in the click's own task.
 				flushSync(() => setStopping(true));

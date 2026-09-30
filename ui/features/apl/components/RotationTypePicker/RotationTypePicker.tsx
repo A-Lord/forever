@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 
 import { RotationTypePickerView } from './RotationTypePickerView';
 
-export const RotationTypePicker = () => {
+export const RotationTypePicker = ({ testId }: { testId?: string }) => {
 	const player = useSimHost().player;
 
 	const config = useMemo(
@@ -24,5 +24,5 @@ export const RotationTypePicker = () => {
 	);
 	const { value, setValue } = useInput(player, config);
 
-	return <RotationTypePickerView value={value} hasSimple={player.hasSimpleRotationGenerator()} onChange={setValue} />;
+	return <RotationTypePickerView value={value} hasSimple={player.hasSimpleRotationGenerator()} onChange={setValue} testId={testId} />;
 };

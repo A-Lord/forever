@@ -56,7 +56,7 @@ const mount = (pickerTrees: TalentsConfig<any> = trees) => {
 
 const talents = () => Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-testid="talent-picker-root"]'));
 const copyButton = () => document.querySelector<HTMLButtonElement>('[data-testid="talents-picker-actions"] button')!;
-const remaining = () => screen.getByTestId('talents-picker-points-remaining').textContent;
+const remaining = () => document.querySelector('label')!.textContent!.match(/\d+$/)?.[0];
 
 beforeEach(() => {
 	vi.useFakeTimers();

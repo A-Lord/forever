@@ -35,7 +35,7 @@ describe('RowActions', () => {
 
 	it('leaves the batch toggle out unless it is given', () => {
 		render(<RowActions favourited={false} favouriteTooltipId="favourite" onToggleFavourite={vi.fn()} />);
-		expect(screen.queryByTestId('selector-modal-list-item-compare-container')).toBeNull();
+		expect(screen.queryByTestId('selector-modal-list-item-compare')).toBeNull();
 	});
 
 	it('marks and toggles the batch state', () => {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -31,7 +31,7 @@ const mount = (groups: Array<IdentifiedSearchGroup>, onChange = vi.fn()) => ({
 
 const group = (id: number, field: IdentifiedSearchGroup['field']): IdentifiedSearchGroup => ({ id, field, join: 'or', values: [] });
 
-const addField = (container: HTMLElement) => within(container.querySelector<HTMLElement>('[data-testid="log-search-add-field"]')!).getByRole('combobox');
+const addField = (container: HTMLElement) => container.querySelector<HTMLElement>('[data-testid="log-search-add-field"]')!;
 const openAddField = (container: HTMLElement) => userEvent.click(addField(container));
 const items = () => screen.queryAllByRole('option');
 

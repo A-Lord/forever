@@ -112,11 +112,12 @@ describe('SettingsDialog', () => {
 		const sim = new FakeSim();
 		mount(sim);
 
-		expect(document.querySelector('[data-testid="last-used-rng-seed"]')!.textContent).toBe('0');
+		const lastUsedRngSeedText = () => screen.getByText('info.options.fixed_rng_seed.last_used').parentElement!.textContent;
+		expect(lastUsedRngSeedText()).toContain('0');
 		act(() => {
 			sim.recordLastUsedRngSeed(1234);
 		});
-		await waitFor(() => expect(document.querySelector('[data-testid="last-used-rng-seed"]')!.textContent).toBe('1234'));
+		await waitFor(() => expect(lastUsedRngSeedText()).toContain('1234'));
 	});
 
 	it('restores defaults, reports it and toasts', () => {

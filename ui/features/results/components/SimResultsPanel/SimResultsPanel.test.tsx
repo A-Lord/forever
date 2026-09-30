@@ -60,11 +60,10 @@ const mount = async (
 };
 
 const zone = (view: ReturnType<typeof render>, selector: string) => view.container.querySelector<HTMLElement>(selector)!;
-const shown = (view: ReturnType<typeof render>, selector: string) => !zone(view, selector).hidden;
 const zones = (view: ReturnType<typeof render>) => ({
-	pending: shown(view, '[data-testid="results-pending"]'),
-	content: shown(view, '[data-testid="results-content"]'),
-	buttons: shown(view, '[data-testid="button-zone"]'),
+	pending: !!view.container.querySelector('[data-testid="results-sim"], [data-testid="loader"]'),
+	content: !!view.container.querySelector('[data-testid="sim-result-summary-root"]'),
+	buttons: !!view.container.querySelector('[data-testid="button-zone"]:not([hidden])'),
 });
 
 let panel: ResultsPanelStore;
@@ -81,18 +80,16 @@ describe('SimResultsPanel', () => {
 		warnings = new WarningsRegistry();
 	});
 
-	it('renders the four zones in order, with every run zone hidden at construction', async () => {
+	it('renders nothing but the warning zone before a run starts', async () => {
 		const { view } = await mount(panel, warnings);
 		const viewer = zone(view, '[data-testid="results-viewer"]');
 
-		expect([...viewer.children].map(el => el.getAttribute('data-testid'))).toEqual(['results-pending', 'results-content', 'button-zone', 'warning-zone']);
+		expect([...viewer.children].map(el => el.getAttribute('data-testid'))).toEqual(['warning-zone']);
 		expect(zones(view)).toEqual({ pending: false, content: false, buttons: false });
-		expect(shown(view, '[data-testid="warning-zone"]')).toBe(true);
-		expect(viewer.querySelector('[data-testid="results-pending"] [data-testid="loader"]')).not.toBeNull();
 	});
 
 	it('follows the visibility table through the handle', async () => {
-		const { view } = await mount(panel, warnings);
+		const { view } = await mount(panel, warnings, false, {} as SimResultsManager);
 
 		act(() => panel.setPending());
 		expect(zones(view)).toEqual({ pending: true, content: false, buttons: false });
@@ -103,26 +100,29 @@ describe('SimResultsPanel', () => {
 
 		act(() => panel.setProgress(progress(1, 2, 3, 4)));
 		expect(zones(view)).toEqual({ pending: true, content: false, buttons: true });
-		expect(view.container.querySelector('[data-testid="results-pending"] [data-testid="results-sim"]')).not.toBeNull();
-		expect(view.container.querySelector('[data-testid="results-pending"] [data-testid="loader"]')).toBeNull();
+		expect(view.container.querySelector('[data-testid="results-sim"]')).not.toBeNull();
+		expect(view.container.querySelector('[data-testid="loader"]')).toBeNull();
 
 		act(() => panel.showResult());
 		expect(zones(view)).toEqual({ pending: false, content: true, buttons: true });
 
-		// `hideAll` takes the Stop button's zone down with the other two, before it is ever removed.
+		// `hideAll` only hides the Stop button; `removeAbortButton` is what unmounts it, since it holds
+		// its own `stopping` state a remount would drop.
 		act(() => panel.hideAll());
 		expect(zones(view)).toEqual({ pending: false, content: false, buttons: false });
-		expect(view.container.querySelector('[data-testid="button-zone"] button')).not.toBeNull();
+		expect(view.container.querySelector('[data-testid="button-zone"]')).not.toBeNull();
 
 		act(() => panel.removeAbortButton());
-		expect(view.container.querySelector('[data-testid="button-zone"] button')).toBeNull();
+		expect(view.container.querySelector('[data-testid="button-zone"]')).toBeNull();
 	});
 
-	it('renders the finished run into the content zone, and leaves it empty without a manager', async () => {
-		expect(zone((await mount(panel, warnings)).view, '[data-testid="results-content"]').childNodes.length).toBe(0);
+	it('renders the finished run into the content zone once the stage says so, and leaves it out without a manager', async () => {
+		const { view } = await mount(panel, warnings);
+		act(() => panel.showResult());
+		expect(view.container.querySelector('[data-testid="sim-result-summary-root"]')).toBeNull();
 
-		const { view } = await mount(panel, warnings, false, {} as SimResultsManager);
-		expect(zone(view, '[data-testid="results-content"] > [data-testid="sim-result-summary-root"]')).not.toBeNull();
+		const { view: withResults } = await mount(panel, warnings, false, {} as SimResultsManager);
+		expect(withResults.container.querySelector('[data-testid="sim-result-summary-root"]')).not.toBeNull();
 	});
 
 	it('puts the first tick on screen in the same commit that mounts the block', async () => {
@@ -182,12 +182,12 @@ describe('SimResultsPanel', () => {
 		const { view } = await mount(panel, warnings);
 		act(() =>
 			panel.addAbortButton(() => {
-				const button = view.container.querySelector<HTMLButtonElement>('[data-testid="button-zone"] button')!;
+				const button = view.container.querySelector<HTMLButtonElement>('[data-testid="button-zone"]')!;
 				seen.push({ label: button.textContent!.trim(), disabled: button.disabled });
 			}),
 		);
 
-		const button = view.container.querySelector<HTMLButtonElement>('[data-testid="button-zone"] button')!;
+		const button = view.container.querySelector<HTMLButtonElement>('[data-testid="button-zone"]')!;
 		expect(button.getAttribute('type')).toBe('button');
 		expect(button.textContent!.trim()).toBe('sidebar.results.stop');
 
@@ -206,7 +206,7 @@ describe('SimResultsPanel', () => {
 			getContent: () => active,
 		});
 		const { view } = await mount(panel, warnings);
-		const item = () => view.container.querySelector('[data-testid="warning-zone"] [data-testid="sim-toolbar-item"]');
+		const item = () => view.container.querySelector('[data-testid="warning-zone"] [data-testid="warning-trigger"]');
 		expect(item()).toBeNull();
 
 		act(() => {

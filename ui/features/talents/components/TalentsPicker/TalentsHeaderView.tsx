@@ -9,8 +9,7 @@ export interface TalentsHeaderViewProps {
 export const TalentsHeaderView = ({ pointsRemaining, getTalentsString }: TalentsHeaderViewProps) => (
 	<div className="mb-1 flex w-full items-center">
 		<label>
-			{i18n.t('talents_tab.points_remaining', { defaultValue: 'Points Remaining' })}:{' '}
-			<span data-testid="talents-picker-points-remaining">{pointsRemaining}</span>
+			{i18n.t('talents_tab.points_remaining', { defaultValue: 'Points Remaining' })}: {pointsRemaining}
 		</label>
 		<div className="ml-auto" data-testid="talents-picker-actions">
 			<CopyButton

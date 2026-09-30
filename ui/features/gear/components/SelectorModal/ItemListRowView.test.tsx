@@ -41,15 +41,15 @@ describe('ItemListRowView', () => {
 			'selector-modal-list-label-cell',
 			'selector-modal-list-item-source-container',
 			'selector-modal-list-item-ep',
-			'selector-modal-list-item-favorite-container',
-			'selector-modal-list-item-compare-container',
+			'selector-modal-list-item-favorite',
+			'selector-modal-list-item-compare',
 		]);
 		expect(screen.getByTestId('selector-modal-list-item-ilvl-container').textContent).toBe('80');
 		expect(screen.getByTestId('selector-modal-list-item-source-container').textContent).toBe('Molten Core');
 	});
 
 	it('keeps the label and favourite columns alone when nothing else is given', () => {
-		expect(renderRow().cells()).toEqual(['selector-modal-list-label-cell', 'selector-modal-list-item-favorite-container']);
+		expect(renderRow().cells()).toEqual(['selector-modal-list-label-cell', 'selector-modal-list-item-favorite']);
 	});
 
 	it('shows the icon, the quality-coloured name, its description and the notice beside them', () => {

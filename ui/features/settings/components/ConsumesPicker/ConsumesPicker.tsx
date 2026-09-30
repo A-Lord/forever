@@ -37,9 +37,7 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 			)}
 			<ConsumeRow name="elixirs" configs={[configs.flask, ...configs.elixirs]}>
 				<IconRow className="justify-end">
-					<div data-testid="consumes-flasks">
-						<ConnectedIconEnumPicker modObject={player} config={configs.flask} />
-					</div>
+					<ConnectedIconEnumPicker modObject={player} config={configs.flask} testId="consumes-flasks" />
 					<Pickers player={player} configs={configs.elixirs} />
 				</IconRow>
 			</ConsumeRow>
