@@ -10,34 +10,43 @@ import (
 )
 
 // Feral charge, primal bite and berserk, plus furor and natural shapeshifter so the form spells can
-// both be paid for. The opener sequence prowls into ravage, prowls into pounce, then leaves cat form
-// and comes back so both form spells are casts.
+// both be paid for. Prowl is castable only before the pull, so each opener is its own request: one
+// prowls into Pounce, the other into Ravage. Both then leave cat form and come back so both form
+// spells are casts.
 const coverageTalents = "0000000000000000-0000000100100000001-0500300000000000"
 
 func TestFeralCatCoverage(t *testing.T) {
-	core.RunTestSuite(t, t.Name(), []core.TestGenerator{castsGen{catCoverageRequest()}})
+	core.RunTestSuite(t, t.Name(), []core.TestGenerator{castsGen{
+		{"Casts", catCoverageRequest(9827)},
+		{"RavageCasts", catCoverageRequest(9867)},
+	}})
 }
 
-type castsGen struct {
-	rsr *proto.RaidSimRequest
+type namedRequest struct {
+	name string
+	rsr  *proto.RaidSimRequest
 }
 
-func (g castsGen) NumTests() int { return 1 }
+type castsGen []namedRequest
 
-func (g castsGen) GetTest(int) (string, *proto.ComputeStatsRequest, *proto.StatWeightsRequest, *proto.RaidSimRequest) {
-	return "Casts", nil, nil, g.rsr
+func (g castsGen) NumTests() int { return len(g) }
+
+func (g castsGen) GetTest(i int) (string, *proto.ComputeStatsRequest, *proto.StatWeightsRequest, *proto.RaidSimRequest) {
+	return g[i].name, nil, nil, g[i].rsr
 }
 
-func catCoverageRequest() *proto.RaidSimRequest {
-	// Pounce while the pounce bleed is down, ravage once that bleed is up, and nothing else while
-	// prowling so an auto-replace does not spend the stealth. The form spells sit under the builders.
+func catCoverageRequest(opener int32) *proto.RaidSimRequest {
+	// The opener while prowling, and nothing else while prowling so an auto-replace does not spend the
+	// stealth. The form spells sit under the builders.
 	prowling := auraUp(9913)
 	return coverageRequest(false, &proto.APLRotation{
 		Type: proto.APLRotation_TypeAPL,
+		PrepullActions: []*proto.APLPrepullAction{{
+			Action:    spellAction(9913),
+			DoAtValue: &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: "-1s"}}},
+		}},
 		PriorityList: []*proto.APLListItem{
-			castWhen(9827, not(auraOnTarget(9826))),
-			castWhen(9867, auraOnTarget(9826)),
-			cast(9913),
+			castWhen(opener, prowling),
 			castWhen(417141, not(prowling)),
 			castWhen(5217, not(prowling)),
 			// Energy ticks jump over the gaps between these costs, so each builder and finisher
@@ -53,7 +62,7 @@ func catCoverageRequest() *proto.RaidSimRequest {
 			castWhen(768, and(not(prowling), timeBelow("0.2"))),
 			castWhen(9892, not(prowling)),
 			castWhen(9821, not(prowling)),
-			castWhen(9907, not(prowling)),
+			castWhen(9907, and(not(prowling), not(auraOnTarget(9907)))),
 		},
 	})
 }

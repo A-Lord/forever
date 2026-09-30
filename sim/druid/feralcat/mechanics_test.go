@@ -72,9 +72,83 @@ func TestFurorRestoresEnergyAfterLeavingCat(t *testing.T) {
 	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("cat form did not cast on the way back")
 	}
-	// 40 stored, plus 10 per second for 3 seconds, at 5/5.
-	if got := cat.CurrentEnergy(); got != 70 {
-		t.Errorf("energy back in cat form = %v, want 70", got)
+	// 40 stored at 5/5. The 3 seconds were spent in Dire Bear Form, which earns nothing.
+	if got := cat.CurrentEnergy(); got != 40 {
+		t.Errorf("energy back in cat form = %v, want 40", got)
+	}
+}
+
+func TestWithoutFurorCatFormComesBackEmpty(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	fillResource(sim, cat)
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	sim.CurrentTime += 3 * time.Second
+	fillResource(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("cat form did not cast on the way back")
+	}
+	if got := cat.CurrentEnergy(); got != 0 {
+		t.Errorf("energy back in cat form without Furor = %v, want 0", got)
+	}
+}
+
+func TestProwlHoldsAutoAttacksUntilTheOpener(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	sim.CurrentTime = -time.Second
+	if !cat.Prowl.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("prowl did not cast before the pull")
+	}
+	mh, _, _ := cat.AutoAttacks.SwingAt()
+	if mh != core.NeverExpires-time.Second {
+		t.Errorf("main-hand swing while prowling at %v, want held", mh)
+	}
+	sim.CurrentTime = 0
+	fillResource(sim, cat)
+	if cat.Prowl.CanCast(sim, cat.CurrentTarget) {
+		t.Error("prowl could be cast in combat")
+	}
+	if !cat.Pounce.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("pounce did not cast from prowl")
+	}
+	if cat.ProwlAura.IsActive() {
+		t.Error("pounce left the druid prowling")
+	}
+	if mh, _, _ := cat.AutoAttacks.SwingAt(); mh != 0 {
+		t.Errorf("main-hand swing after the opener at %v, want 0", mh)
+	}
+}
+
+func TestCatQueuesMaulOntoTheBearSwing(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	fillResource(sim, cat)
+	if !cat.Maul.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("maul did not queue")
+	}
+	for sim.CurrentTime < 100*time.Millisecond {
+		if sim.Step() {
+			break
+		}
+	}
+	if got := cat.AutoAttacks.MaybeReplaceMHSwing(sim, nil); got == nil || got.ActionID.SpellID != 9881 {
+		t.Fatalf("the queued swing was %v, want maul 9881", got)
+	}
+}
+
+func TestFaerieFireRefreshesWhileUp(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	target := cat.CurrentTarget
+	aura := cat.FaerieFireAuras.Get(target)
+	aura.Activate(sim)
+	sim.CurrentTime += 35 * time.Second
+	if !cat.FaerieFire.CanCast(sim, target) {
+		t.Fatal("faerie fire could not be recast with 5 s of its debuff left")
 	}
 }
 

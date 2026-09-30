@@ -56,7 +56,7 @@ func bearCoverageRequest() *proto.RaidSimRequest {
 						cast(6795),
 						cast(1238122),
 						cast(22812),
-						cast(9907),
+						castUnlessOnTarget(9907),
 						cast(417141),
 						sequence(768, 9634),
 					},
@@ -70,6 +70,18 @@ func bearCoverageRequest() *proto.RaidSimRequest {
 
 func cast(id int32) *proto.APLListItem {
 	return &proto.APLListItem{Action: spellAction(id)}
+}
+
+// A debuff the druid can refresh at any time, cast only while the target does not have it.
+func castUnlessOnTarget(id int32) *proto.APLListItem {
+	action := spellAction(id)
+	action.Condition = &proto.APLValue{Value: &proto.APLValue_Not{Not: &proto.APLValueNot{Val: &proto.APLValue{
+		Value: &proto.APLValue_AuraIsActive{AuraIsActive: &proto.APLValueAuraIsActive{
+			SourceUnit: &proto.UnitReference{Type: proto.UnitReference_CurrentTarget},
+			AuraId:     &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}},
+		}},
+	}}}}
+	return &proto.APLListItem{Action: action}
 }
 
 func sequence(ids ...int32) *proto.APLListItem {

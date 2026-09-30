@@ -18,6 +18,15 @@ func newBear(t *testing.T) (*core.Simulation, *GuardianDruid) {
 
 func newBearWithTalents(t *testing.T, talents string) (*core.Simulation, *GuardianDruid) {
 	t.Helper()
+	return newBearAgainst(t, talents, 1)
+}
+
+func newBearAgainst(t *testing.T, talents string, numTargets int) (*core.Simulation, *GuardianDruid) {
+	t.Helper()
+	targets := make([]*proto.Target, numTargets)
+	for i := range targets {
+		targets[i] = &proto.Target{Name: "target", Level: 60}
+	}
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
@@ -39,10 +48,93 @@ func newBearWithTalents(t *testing.T, talents string) (*core.Simulation, *Guardi
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
-		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 60},
+		Encounter: &proto.Encounter{Targets: targets, Duration: 60},
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	return sim, sim.Raid.Parties[0].Players[0].(*GuardianDruid)
+}
+
+func TestDemoralizingRoarReachesEveryTarget(t *testing.T) {
+	sim, bear := newBearAgainst(t, "0000000000000000-0000000000000000000-0000000000000000", 3)
+	targets := sim.Encounter.ActiveTargetUnits
+	for range 20 {
+		bear.AddRage(sim, 50, bear.NewRageMetrics(core.ActionID{SpellID: 1}))
+		bear.DemoralizingRoar.Cast(sim, bear.CurrentTarget)
+		sim.CurrentTime += 2 * time.Second
+		debuffed := 0
+		for _, target := range targets {
+			if bear.DemoralizingRoarAuras.Get(target).IsActive() {
+				debuffed++
+			}
+		}
+		if debuffed == len(targets) {
+			return
+		}
+	}
+	t.Error("demoralizing roar never debuffed every target")
+}
+
+func TestBerserkPrimalBiteStrikesThreeTargets(t *testing.T) {
+	sim, bear := newBearAgainst(t, "0000000000000000-0000000000100000001-0000000000000000", 5)
+	metrics := bear.NewRageMetrics(core.ActionID{SpellID: 1})
+	bear.BerserkAura.Activate(sim)
+	bear.AddRage(sim, 100, metrics)
+	if !bear.PrimalBite.Cast(sim, bear.CurrentTarget) {
+		t.Fatal("primal bite did not cast under berserk")
+	}
+	struck := 0
+	for _, target := range sim.Encounter.ActiveTargetUnits {
+		if m := bear.PrimalBite.SpellMetrics[target.UnitIndex]; m.Hits+m.Crits+m.Misses+m.Dodges+m.Parries+m.Glances+m.Blocks > 0 {
+			struck++
+		}
+	}
+	if struck != 3 {
+		t.Errorf("primal bite under berserk struck %d targets, want 3", struck)
+	}
+}
+
+func TestFrenziedRegenerationSpendsRageForHealth(t *testing.T) {
+	sim, bear := newBear(t)
+	bear.AddRage(sim, 100, bear.NewRageMetrics(core.ActionID{SpellID: 1}))
+	before := bear.CurrentRage()
+	if !bear.FrenziedRegeneration.Cast(sim, bear.CurrentTarget) {
+		t.Fatal("frenzied regeneration did not cast")
+	}
+	for sim.CurrentTime < 1100*time.Millisecond {
+		if sim.Step() {
+			break
+		}
+	}
+	if spent := before - bear.CurrentRage(); spent < 10 {
+		t.Errorf("frenzied regeneration spent %v rage in its first tick, want 10", spent)
+	}
+	healed := 0.0
+	for _, m := range bear.FrenziedRegeneration.SpellMetrics {
+		healed += m.TotalHealing
+	}
+	if healed <= 0 {
+		t.Error("frenzied regeneration healed nothing")
+	}
+}
+
+func TestFirstLacerateHitsForNothing(t *testing.T) {
+	sim, bear := newBear(t)
+	target := bear.CurrentTarget
+	metrics := bear.NewRageMetrics(core.ActionID{SpellID: 1})
+	for range 20 {
+		bear.AddRage(sim, 50, metrics)
+		bear.Lacerate.Cast(sim, target)
+		if bear.Lacerate.Dot(target).IsActive() {
+			break
+		}
+		sim.CurrentTime += 2 * time.Second
+	}
+	if !bear.Lacerate.Dot(target).IsActive() {
+		t.Fatal("lacerate never landed")
+	}
+	if got := bear.Lacerate.SpellMetrics[target.UnitIndex].TotalDamage; got != 0 {
+		t.Errorf("the first lacerate dealt %v, want 0 with no stack already on the target", got)
+	}
 }
 
 func TestLacerateStacksToFive(t *testing.T) {

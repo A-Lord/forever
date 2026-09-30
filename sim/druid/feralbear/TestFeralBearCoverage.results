@@ -3,7 +3,7 @@ casts_results: {
  value: {
   casts: {
    key: "other_id:OtherActionAttack tag:1"
-   value: 146
+   value: 149
   }
   casts: {
    key: "other_id:OtherActionAttack tag:2"
@@ -19,11 +19,11 @@ casts_results: {
   }
   casts: {
    key: "other_id:OtherActionRageGain"
-   value: 13
+   value: 14
   }
   casts: {
    key: "spell_id:1235827"
-   value: 11
+   value: 9
   }
   casts: {
    key: "spell_id:1238073"
@@ -135,11 +135,11 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9907"
-   value: 5
+   value: 4
   }
   casts: {
    key: "spell_id:9908"
-   value: 13
+   value: 11
   }
   casts: {
    key: "spell_id:9910"
