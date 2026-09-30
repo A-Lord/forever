@@ -12,7 +12,6 @@ var improvedSlamRank = slamRank.OverriddenBy(spellData.ImprovedSlam.Highest())
 
 func (warrior *Warrior) registerSlam() {
 	rank := core.Ternary(warrior.Talents.ImprovedSlam > 0, improvedSlamRank, slamRank)
-	slamBaseDamage := rank.DamageEffect().Average(core.CharacterLevel)
 	stopsSwing := !rank.HasAttr(dbcenums.ATTR_INDEX_EX_2, dbcenums.ATTR_EX_2_DO_NOT_RESET_COMBAT_TIMERS)
 
 	config := spelldata.SpellConfig(&warrior.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
@@ -26,7 +25,7 @@ func (warrior *Warrior) registerSlam() {
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := slamBaseDamage + spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
+		baseDamage := rank.WeaponStrike(sim, spell, spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 
 		if !result.Landed() {

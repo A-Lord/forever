@@ -139,9 +139,12 @@ func BuffAuras() ParseOpt {
 	}
 }
 
-// Everything the parse attaches bids under one exclusive category, priced at how strong the first
-// attachment is: a multiplier by how far it is from 1, and a stacking row once per stack. Only the
-// strongest member of the category applies, and with singleAura it deactivates the others outright.
+// The parse bids under an exclusive category, where only the strongest member applies: a multiplier
+// priced by how far it is from 1, a stat by its size, and a stacking row once per stack. With
+// singleAura everything it attaches bids as a whole, priced at the first attachment, and deactivates
+// the others outright. Without, each stat and pseudo-stat bids alone under category + its key +
+// "Add" or "Mul", so a stronger member holds only the effects of its own kind and the aura keeps the
+// rest.
 func Exclusive(category string, singleAura bool) ParseOpt {
 	return func(o *parseOptions) {
 		o.exclusive, o.category, o.singleAura = true, category, singleAura
@@ -298,7 +301,7 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 			continue
 		}
 
-		value := e.Average(level)
+		value := e.MeanAt(level)
 
 		if e.PointsPerResource != 0 && value == 0 {
 			if !o.comboPoints {

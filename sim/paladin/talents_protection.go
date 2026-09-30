@@ -119,9 +119,9 @@ func (paladin *Paladin) applyImprovedSealOfFury(shield *core.DamageAbsorptionAur
 	}
 
 	rank := spellData.ImprovedSealOfFury.Highest()
-	mana := rank.EffectN(1).Average(core.CharacterLevel)
+	mana := rank.EffectN(1).Average()
 	perLevel := rank.EffectN(2).Percent()
-	maxLevels := rank.EffectN(3).Average(core.CharacterLevel)
+	maxLevels := rank.EffectN(3).Average()
 	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: rank.ID})
 
 	shield.AttachOnDamageAbsorbed(func(sim *core.Simulation, aura *core.DamageAbsorptionAura, _ *core.SpellResult, _ float64) {

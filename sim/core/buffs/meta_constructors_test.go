@@ -251,7 +251,14 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{"CurseOfElements", true, false, NewSpellDataCurseOfElementsAura, auraShape{
 			Label: "Curse of the Elements (External)", ActionID: external(1311680), Tag: "CurseOfElements",
 			Duration: 5 * time.Minute,
-			Bids:     []string{"CurseOfElements single=true priority=75"},
+			Bids: []string{
+				"CurseOfElementsArcaneResistanceAdd single=false priority=75",
+				"CurseOfElementsFireResistanceAdd single=false priority=75",
+				"CurseOfElementsFrostResistanceAdd single=false priority=75",
+				"CurseOfElementsNatureResistanceAdd single=false priority=75",
+				"CurseOfElementsSchoolDamageTakenMultiplierMul single=false priority=0.1",
+				"CurseOfElementsShadowResistanceAdd single=false priority=75",
+			},
 			Stacks: []unitDelta{{
 				Stats: map[string]float64{
 					"ArcaneResistance": -75, "FireResistance": -75, "FrostResistance": -75,
@@ -267,12 +274,14 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{"ThunderClap", true, false, NewSpellDataThunderClapAura, auraShape{
 			Label: "Thunder Clap (External)", ActionID: external(11581), Tag: "AtkSpdReduction",
 			Duration: 30 * time.Second,
-			Bids:     []string{"AtkSpdReduction single=false priority=0.166667"},
+			Bids:     []string{AtkSpeedReductionCategory + " single=false priority=0.166667"},
 			Stacks:   pseudoOnly(map[string]float64{"MeleeSpeedMultiplier": -0.166667}),
 		}},
 		{"InsectSwarm", true, false, NewSpellDataInsectSwarmAura, auraShape{
-			Label: "Insect Swarm (External)", ActionID: external(24977), Duration: 12 * time.Second,
-			Stacks: statsOnly(map[string]float64{"PhysicalHitPercent": -2}),
+			Label: "Insect Swarm (External)", ActionID: external(24977), Tag: "HitChanceReduction",
+			Duration: 12 * time.Second,
+			Bids:     []string{"HitChanceReductionPhysicalHitPercentAdd single=false priority=2"},
+			Stacks:   statsOnly(map[string]float64{"PhysicalHitPercent": -2}),
 		}},
 	}
 

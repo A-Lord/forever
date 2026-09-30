@@ -245,12 +245,6 @@ func (char *Character) CalcAndRollDamageRange(sim *Simulation, min float64, max 
 	return sim.Roll(min, max)
 }
 
-func ApplyVarianceMinMax(avgEffect float64, variance float64) (float64, float64) {
-	min := avgEffect * (1 - variance/2.0)
-	max := avgEffect * (1 + variance/2.0)
-	return min, max
-}
-
 type aggregator struct {
 	n     int
 	sum   float64
