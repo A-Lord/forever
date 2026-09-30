@@ -46,7 +46,7 @@ export const AvoidanceRow = ({ info, withHolyShield, hasParry, hasBlock, pending
 						<Tooltip
 							id={id}
 							content={
-								<div>
+								<>
 									<TooltipRow label={i18n.t('sidebar.character_stats.tank_caps.miss')} value={`${info.miss.toFixed(2)}%`} />
 									<TooltipRow label={i18n.t('sidebar.character_stats.tank_caps.dodge')} value={`${info.dodge.toFixed(2)}%`} />
 									{hasParry && <TooltipRow label={i18n.t('sidebar.character_stats.tank_caps.parry')} value={`${info.parry.toFixed(2)}%`} />}
@@ -61,7 +61,7 @@ export const AvoidanceRow = ({ info, withHolyShield, hasParry, hasBlock, pending
 										label={i18n.t('sidebar.character_stats.tank_caps.shear')}
 										value={shearString}
 									/>
-								</div>
+								</>
 							}
 						/>
 					</>
