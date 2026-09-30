@@ -63,9 +63,9 @@ func TestChanceOnHitHotRoutesAsAHeal(t *testing.T) {
 		heal := spelldata.Find(tc.spellID)
 		e := heal.ProcHealEffect()
 		if e.Aura != dbcenums.A_PERIODIC_HEAL || e.Target[0] != dbcenums.TARGET_UNIT_CASTER ||
-			e.Average(core.CharacterLevel) != tc.perTick || e.Period() != 2*time.Second || heal.Duration() != tc.duration {
+			e.Average() != tc.perTick || e.Period() != 2*time.Second || heal.Duration() != tc.duration {
 			t.Errorf("%d heals through aura %v on target %d, %v every %v for %v; want A_PERIODIC_HEAL on the caster, %v every 2s for %v",
-				tc.spellID, e.Aura, e.Target[0], e.Average(core.CharacterLevel), e.Period(), heal.Duration(), tc.perTick, tc.duration)
+				tc.spellID, e.Aura, e.Target[0], e.Average(), e.Period(), heal.Duration(), tc.perTick, tc.duration)
 		}
 	}
 }

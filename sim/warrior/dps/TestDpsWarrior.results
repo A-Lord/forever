@@ -460,8 +460,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 268.90018
-  tps: 156.47023
+  dps: 268.90092
+  tps: 156.47065
   dtps: 2.90588
   hps: 19.19089
  }

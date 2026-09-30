@@ -176,7 +176,6 @@ func (hunter *Hunter) registerRangedWeaponSpecialization() {
 }
 
 var sniperShotRank = spellData.SniperShot.Highest()
-var sniperShotBonusDamage = sniperShotRank.DamageEffect().Average(core.CharacterLevel)
 
 func (hunter *Hunter) registerSniperShot() {
 	if !hunter.Talents.SniperShot {
@@ -187,7 +186,7 @@ func (hunter *Hunter) registerSniperShot() {
 	hunter.hasteRangedCast(&config)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := sniperShotBonusDamage + hunter.RangedNormalizedWeaponDamage(sim, spell.RangedAttackPower(target))
+		baseDamage := sniperShotRank.WeaponStrike(sim, spell, hunter.RangedNormalizedWeaponDamage(sim, spell.RangedAttackPower(target)), 0)
 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {

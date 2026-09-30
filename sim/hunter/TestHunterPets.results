@@ -899,7 +899,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Bear-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 560.36346
+  dps: 560.36625
   tps: 443.44918
   dtps: 2.36101
  }
@@ -907,7 +907,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Bear-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 434.52225
+  dps: 434.52029
   tps: 240.45179
   dtps: 2.62365
  }
@@ -915,7 +915,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Bear-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 448.734
+  dps: 448.73025
   tps: 246.7181
   dtps: 7.87095
  }
@@ -923,28 +923,28 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Bear-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 270.4172
+  dps: 270.41609
   tps: 203.93515
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Bear-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 265.40394
+  dps: 265.40247
   tps: 203.25643
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Bear-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 289.77519
+  dps: 289.77367
   tps: 221.87082
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-BirdOfPrey-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 566.47288
+  dps: 566.47285
   tps: 440.85359
   dtps: 2.28923
  }
@@ -952,7 +952,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-BirdOfPrey-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 448.51544
+  dps: 448.51546
   tps: 239.34804
   dtps: 2.62365
  }
@@ -960,7 +960,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-BirdOfPrey-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 467.45133
+  dps: 467.45157
   tps: 247.84632
   dtps: 7.87095
  }
@@ -968,21 +968,21 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-BirdOfPrey-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 277.23779
+  dps: 277.23782
   tps: 203.4571
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-BirdOfPrey-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 277.23779
+  dps: 277.23782
   tps: 203.4571
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-BirdOfPrey-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 300.07998
+  dps: 300.08012
   tps: 221.5032
  }
 }
@@ -1034,7 +1034,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CarrionBird-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 559.97347
+  dps: 559.97265
   tps: 440.85194
   dtps: 2.28923
  }
@@ -1042,7 +1042,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CarrionBird-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 441.9482
+  dps: 441.94725
   tps: 239.04189
   dtps: 2.62365
  }
@@ -1050,7 +1050,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CarrionBird-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 457.52907
+  dps: 457.5275
   tps: 246.00676
   dtps: 7.87095
  }
@@ -1058,21 +1058,21 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CarrionBird-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 272.25374
+  dps: 272.25328
   tps: 202.99813
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CarrionBird-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 272.25374
+  dps: 272.25328
   tps: 202.99813
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CarrionBird-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 296.182
+  dps: 296.18161
   tps: 221.41445
  }
 }
@@ -1124,7 +1124,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CoreHound-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 577.45881
+  dps: 577.55025
   tps: 441.50339
   dtps: 2.44662
  }
@@ -1132,7 +1132,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CoreHound-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 447.17951
+  dps: 447.22156
   tps: 239.14336
   dtps: 2.86185
  }
@@ -1140,7 +1140,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CoreHound-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 466.34936
+  dps: 466.40436
   tps: 246.33289
   dtps: 8.58556
  }
@@ -1148,28 +1148,28 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CoreHound-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 287.97346
+  dps: 288.06137
   tps: 202.60621
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CoreHound-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 277.58392
+  dps: 277.62353
   tps: 203.24263
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-CoreHound-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 302.72374
+  dps: 302.77593
   tps: 220.4531
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crab-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 555.60322
+  dps: 555.6032
   tps: 443.93622
   dtps: 2.41961
  }
@@ -1177,7 +1177,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crab-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 437.52835
+  dps: 437.52912
   tps: 240.53029
   dtps: 2.64894
  }
@@ -1185,7 +1185,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crab-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 459.02858
+  dps: 459.02764
   tps: 251.80063
   dtps: 7.94682
  }
@@ -1193,28 +1193,28 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crab-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 268.14312
+  dps: 268.14302
   tps: 203.68026
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crab-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 268.14312
+  dps: 268.14302
   tps: 203.68026
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crab-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 295.209
+  dps: 295.20882
   tps: 226.24402
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crocilisk-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 558.13994
+  dps: 558.14054
   tps: 442.21442
   dtps: 2.29854
  }
@@ -1222,7 +1222,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crocilisk-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 439.73967
+  dps: 439.74041
   tps: 239.07056
   dtps: 2.72773
  }
@@ -1230,7 +1230,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crocilisk-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 457.65861
+  dps: 457.65817
   tps: 248.50292
   dtps: 8.18318
  }
@@ -1238,21 +1238,21 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crocilisk-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 270.67863
+  dps: 270.67892
   tps: 202.52729
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crocilisk-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 270.67863
+  dps: 270.67892
   tps: 202.52729
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Crocilisk-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 294.97467
+  dps: 294.97461
   tps: 223.14659
  }
 }
@@ -1304,7 +1304,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Gorilla-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 557.00097
+  dps: 557.00146
   tps: 444.01343
   dtps: 2.61325
  }
@@ -1312,7 +1312,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Gorilla-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 439.44072
+  dps: 439.44041
   tps: 240.03643
   dtps: 2.38564
  }
@@ -1320,7 +1320,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Gorilla-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 456.53764
+  dps: 456.53748
   tps: 248.01142
   dtps: 7.15693
  }
@@ -1328,21 +1328,21 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Gorilla-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 270.52254
+  dps: 270.52239
   tps: 201.80227
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Gorilla-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 270.52254
+  dps: 270.52239
   tps: 201.80227
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Gorilla-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 294.22525
+  dps: 294.2251
   tps: 221.544
  }
 }
@@ -1619,7 +1619,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-WindSerpent-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 566.34647
+  dps: 566.34654
   tps: 440.60853
   dtps: 2.55968
  }
@@ -1627,7 +1627,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-WindSerpent-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 448.14253
+  dps: 448.14212
   tps: 239.28071
   dtps: 2.83067
  }
@@ -1635,7 +1635,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-WindSerpent-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 465.49283
+  dps: 465.4926
   tps: 246.61788
   dtps: 8.49201
  }
@@ -1643,21 +1643,21 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-WindSerpent-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 278.8473
+  dps: 278.84718
   tps: 203.39094
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-WindSerpent-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 278.8473
+  dps: 278.84718
   tps: 203.39094
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-WindSerpent-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 303.12327
+  dps: 303.12317
   tps: 221.79596
  }
 }
