@@ -412,6 +412,31 @@ func NewSpellDataThunderfuryAura(unit *core.Unit, isPlayer bool, talentPoints in
 	return newDebuff(unit, thunderfuryMeta, isPlayer, talentPoints)
 }
 
+// The generated debuffs by the spell they read.
+var debuffMetas = map[int32]*Meta{
+	14325:   huntersMarkMeta,
+	20346:   judgementOfLightMeta,
+	20355:   judgementOfWisdomMeta,
+	1311680: curseOfElementsMeta,
+	11717:   curseOfRecklessnessMeta,
+	9907:    faerieFireMeta,
+	11198:   exposeArmorMeta,
+	11597:   sunderArmorMeta,
+	11374:   giftOfArthasMeta,
+	9898:    demoralizingRoarMeta,
+	11556:   demoralizingShoutMeta,
+	11581:   thunderClapMeta,
+	24977:   insectSwarmMeta,
+	3043:    scorpidStingMeta,
+	19285:   hexOfWeaknessMeta,
+	24579:   demoralizingScreechMeta,
+	11708:   curseOfWeaknessMeta,
+	1265904: dustCloudMeta,
+	16928:   armorShatterMeta,
+	440667:  vindicationMeta,
+	21992:   thunderfuryMeta,
+}
+
 func applyGeneratedDebuffs(target *core.Unit, debuffs *proto.Debuffs, raid *proto.Raid) {
 	if debuffs.HuntersMark {
 		core.MakePermanent(NewSpellDataHuntersMarkAura(target, false, 0))
