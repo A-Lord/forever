@@ -134,6 +134,8 @@ func (rogue *Rogue) Initialize() {
 	rogue.registerSliceAndDice()
 	rogue.registerVanishSpell()
 	rogue.registerStealthAura()
+	rogue.registerKickSpell()
+	rogue.registerFeintSpell()
 
 	ruthRank := spellData.Ruthlessness.Rank(rogue.Talents.Ruthlessness)
 	if ruthRank != nil {

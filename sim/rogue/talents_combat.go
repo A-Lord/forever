@@ -219,9 +219,10 @@ func (rogue *Rogue) registerHackAndSlash() {
 	readWeapons()
 
 	critAura := rogue.RegisterAura(core.Aura{
-		Label:    "Hack and Slash (Fist/Dagger)",
-		ActionID: actionID.WithTag(2),
-		Duration: core.NeverExpires,
+		Label:      "Hack and Slash (Fist/Dagger)",
+		ActionID:   actionID.WithTag(2),
+		Duration:   core.NeverExpires,
+		BuildPhase: core.Ternary(critOn, core.CharacterBuildPhaseBase, core.CharacterBuildPhaseNone),
 	}).AttachStatBuff(stats.PhysicalCritPercent, spellData.HackAndSlash.EffectAt(1).ValueAt(rank))
 	if critOn {
 		core.MakePermanent(critAura)

@@ -63,6 +63,8 @@ export default defineSpec<Spec.SpecRogue>({
 			PseudoStat.PseudoStatOffHandCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatExpertisePercent,
+			PseudoStat.PseudoStatSpellHitPercent,
+			PseudoStat.PseudoStatSpellCritPercent,
 		],
 	),
 
@@ -132,22 +134,37 @@ export default defineSpec<Spec.SpecRogue>({
 	itemSwapSlots: [ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2, ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand],
 	encounterPicker: {
 		// Whether to include 'Execute Duration (%)' in the 'Encounter' section of the settings tab.
-		showExecuteProportion: false,
+		showExecuteProportion: true,
 	},
 
 	presets: {
 		epWeights: [],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [
+			Presets.TALENTS_MUTILATE_ASN,
+			Presets.TALENTS_MUTILATE_COM,
+			Presets.TALENTS_COMBAT_SS,
+			Presets.TALENTS_COMBAT_BS,
+			Presets.TALENTS_SUB_HEMO,
+			Presets.TALENTS_SUB_BS,
+		],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.SINSITER_APL],
+		rotations: [Presets.DEFAULT_APL, Presets.BACKSTAB_APL],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.P1_BS_COMBAT_GEAR, Presets.P1_MUTI_GEAR, Presets.P1_SLOW_MH_GEAR, Presets.P1_BS_SUB_GEAR],
+		builds: [
+			Presets.PRESET_BUILD_MUTILATE_ASN,
+			Presets.PRESET_BUILD_MUTILATE_COM,
+			Presets.PRESET_BUILD_COMBAT_SS,
+			Presets.PRESET_BUILD_COMBAT_BS,
+			Presets.PRESET_BUILD_SUB_HEMO,
+			Presets.PRESET_BUILD_SUB_BS,
+		],
 	},
 
 	autoRotation: (_player: Player<Spec.SpecRogue>): APLRotation => {
-		return Presets.SINSITER_APL.rotation.rotation!;
+		return Presets.DEFAULT_APL.rotation.rotation!;
 	},
 
-	reforge: {},
+	// reforge: {},
 });

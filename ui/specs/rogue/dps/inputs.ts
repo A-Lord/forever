@@ -8,7 +8,7 @@ import { ActionId } from '../../../sim/proto/action_id';
 export const MainHandPoison = <SpecType extends RogueSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, RoguePoison>({
 		fieldName: 'mainHandPoison',
-		label: i18n.t('settings_tab.other.poison.label'),
+		label: i18n.t('settings_tab.other.poison.label.mh'),
 		labelTooltip: i18n.t('settings_tab.other.poison.tooltip'),
 		values: [
 			{ value: RoguePoison.None, tooltip: i18n.t('settings_tab.other.poison.none') },
@@ -19,7 +19,7 @@ export const MainHandPoison = <SpecType extends RogueSpecs>() =>
 export const OffHandPoison = <SpecType extends RogueSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, RoguePoison>({
 		fieldName: 'offHandPoison',
-		label: i18n.t('settings_tab.other.poison.label'),
+		label: i18n.t('settings_tab.other.poison.label.oh'),
 		labelTooltip: i18n.t('settings_tab.other.poison.tooltip'),
 		values: [
 			{ value: RoguePoison.None, tooltip: i18n.t('settings_tab.other.poison.none') },
