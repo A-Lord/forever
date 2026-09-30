@@ -269,7 +269,7 @@ var Party = []BuffSpec{
 			proto.Stat_StatStrength,
 		},
 	},
-	// Driven because totem_twisting shortens the aura to the 9 s of every 10 a twisting shaman keeps it up.
+	// Driven because Windfury Totem takes the air slot: under both, Grace of Air does nothing.
 	{
 		Field:    "grace_of_air_totem",
 		SpellID:  25360,
@@ -311,11 +311,6 @@ var Party = []BuffSpec{
 		},
 	},
 	{
-		Field:  "totem_twisting",
-		Kind:   KindFlag,
-		Reason: "sim behaviour toggle with no spell source; rendered under Other Inputs.",
-	},
-	{
 		Field:    "stoneskin_totem",
 		SpellID:  10405,
 		CastID:   10408,
@@ -336,7 +331,7 @@ var Party = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
-	// The totem's party aura procs 16389 on every main-hand hit; the fire damage is the driver's.
+	// The totem's party aura procs 16389 on every main-hand auto attack; the fire damage is the driver's.
 	{
 		Field:    "flametongue_totem",
 		SpellID:  15036,

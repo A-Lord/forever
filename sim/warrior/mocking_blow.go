@@ -9,10 +9,8 @@ var mockingBlowRank = spellData.MockingBlow.Highest()
 var mockingBlowBaseDamage = mockingBlowRank.DamageEffect().Average(core.CharacterLevel)
 
 func (warrior *Warrior) registerMockingBlow() {
+	// TODO: Test the threat multiplier in-game
 	config := spelldata.SpellConfig(&warrior.Unit, mockingBlowRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-
-	// TODO: Test in-game
-	config.ThreatMultiplier = 1
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, mockingBlowBaseDamage, spell.OutcomeMeleeSpecialHitAndCrit)

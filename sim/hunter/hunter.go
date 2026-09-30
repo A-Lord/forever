@@ -85,12 +85,13 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 		AutoSwingMelee:  true,
 	})
 
-	// Auto Shot is the client's row 75: its range, and the class flags that put the auto inside the
-	// talents naming it - Hawk Eye, Mortal Shots, Deadly Aspects.
+	// Auto Shot is row 75: its range, the bow, gun or crossbow it needs, and the class flags that put
+	// the auto inside the talents naming it - Hawk Eye, Mortal Shots, Deadly Aspects.
 	rangedConfig := hunter.AutoAttacks.RangedConfig()
 	rangedConfig.MinRange = float64(autoShotRank.MinRange)
 	rangedConfig.MaxRange = float64(autoShotRank.MaxRange)
 	rangedConfig.ClassFlags = autoShotRank.ClassFlags
+	rangedConfig.CastRequirement = autoShotRank.CastRequirement()
 
 	hunter.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	hunter.AddStatDependency(stats.Agility, stats.AttackPower, 1)

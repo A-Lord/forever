@@ -3,11 +3,13 @@ package hunter
 import (
 	"maps"
 	"slices"
+	"strings"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	googleProto "google.golang.org/protobuf/proto"
 
 	"testing"
 )
@@ -103,6 +105,56 @@ func TestHunterPets(t *testing.T) {
 			ItemFilter:       core.ItemFilter{ArmorType: proto.ArmorType_ArmorTypeMail},
 		},
 	}))
+}
+
+// Auto Shot needs the bow, gun or crossbow its row names: a thrown weapon in the ranged slot fires
+// none and starts no windup, the p1 bow fires them.
+func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
+	const thrown = 20814 // Master's Throwing Dagger
+	if item := core.GetItemByID(thrown); item == nil || item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeThrown {
+		t.Fatalf("item %d is not a thrown weapon", thrown)
+	}
+	windup := "Casting " + core.ActionID{OtherID: proto.OtherAction_OtherActionShoot}.String()
+
+	autoShots := func(rangedID int32) (casts int32, windups int) {
+		gear := googleProto.Clone(core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet).(*proto.EquipmentSpec)
+		if rangedID != 0 {
+			gear.Items[proto.ItemSlot_ItemSlotRanged] = &proto.ItemSpec{Id: rangedID}
+		}
+		player := &proto.Player{
+			Name:               "Auto Shot",
+			Race:               proto.Race_RaceOrc,
+			Class:              proto.Class_ClassHunter,
+			Equipment:          gear,
+			TalentsString:      DefaultMMTalents,
+			Spec:               DefaultOptions,
+			Rotation:           &proto.APLRotation{},
+			DistanceFromTarget: 20,
+		}
+		result := core.RunRaidSim(&proto.RaidSimRequest{
+			Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+			Encounter:  core.MakeSingleTargetEncounter(0),
+			SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 1, Debug: true},
+		})
+		if result.Error != nil {
+			t.Fatalf("the sim failed: %s", result.Error.Message)
+		}
+		for _, action := range result.RaidMetrics.Parties[0].Players[0].Actions {
+			if action.Id.GetOtherId() == proto.OtherAction_OtherActionShoot {
+				for _, target := range action.Targets {
+					casts += target.Casts
+				}
+			}
+		}
+		return casts, strings.Count(result.Logs, windup)
+	}
+
+	if casts, windups := autoShots(0); casts == 0 || windups == 0 {
+		t.Errorf("the p1 bow fired %d Auto Shots after %d windups, want some", casts, windups)
+	}
+	if casts, windups := autoShots(thrown); casts != 0 || windups != 0 {
+		t.Errorf("a thrown weapon fired %d Auto Shots after %d windups, want none", casts, windups)
+	}
 }
 
 // One combo per pet family, fully trained.

@@ -123,8 +123,6 @@ export const AtieshPriest = makeMultistatePartyBuffInput({
 	label: 'Atiesh - Priest',
 });
 
-// totem_twisting: sim behaviour toggle with no spell source; rendered under Other Inputs.
-
 export const StoneskinTotem = makeTristatePartyBuffInput({
 	actionId: ActionId.fromSpellId(10408),
 	impId: ActionId.fromSpellId(16258),

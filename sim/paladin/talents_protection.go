@@ -187,7 +187,7 @@ func (paladin *Paladin) applySacredDuty() {
 		return
 	}
 
-	paladin.MultiplyStat(stats.Stamina, spellData.SacredDuty.Effect(dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, 0).MultiplierAt(paladin.Talents.SacredDuty))
+	spelldata.ParseStatic(&paladin.Character, spellData.SacredDuty.Rank(paladin.Talents.SacredDuty), spelldata.Effects(1))
 	paladin.AddStaticMod(core.SpellModConfig{
 		ClassMask: SpellMaskTemplarsBulwark,
 		Kind:      core.SpellMod_Cooldown_Flat,
