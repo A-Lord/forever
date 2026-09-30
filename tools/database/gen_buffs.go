@@ -799,7 +799,7 @@ func buffConstructor(row ResolvedBuff, rendered buffRow) string {
 // uptime calls a driver of a fixed name that sim/core/buffs/drivers.go declares,
 // and so does a row the manifest marks as driven. A driver is handed the whole
 // scope message rather than its own field, because a driven buff often reads a
-// second one: Grace of Air is 9 seconds long while the party is twisting totems.
+// second one: Grace of Air does nothing under Windfury Totem.
 func buffApply(row ResolvedBuff) (string, string, bool) {
 	unit, field := "char", buffScopeField(row.Scope)
 	if row.Scope == buffmanifest.ScopeDebuff {

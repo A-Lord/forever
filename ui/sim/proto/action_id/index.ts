@@ -103,8 +103,8 @@ export class ActionId {
 					name += ' (Main Hand)';
 				} else if (this.tag == 2) {
 					name += ' (Off Hand)';
-				} else if (this.tag == 25584) {
-					// Windfury Totem's swings, whose tag is no spell the game files carry.
+				} else if (this.tag == 10610) {
+					// Windfury Totem's swings, tagged with 10610, the spell that grants them.
 					name += ' (Windfury)';
 				} else if (this.tag == 17257) {
 					name += ' (Magtheridon)';
