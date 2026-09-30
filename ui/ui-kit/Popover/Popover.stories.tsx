@@ -38,6 +38,7 @@ const meta = {
 	argTypes: {
 		side: { control: 'select', options: SIDES },
 		align: { control: 'select', options: ALIGNS },
+		backdrop: { control: 'boolean' },
 		children: { control: false },
 		trigger: { control: 'text' },
 		triggerRender: { control: false },

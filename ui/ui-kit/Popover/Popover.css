@@ -1,4 +1,8 @@
 @layer components {
+	.ui-popover-backdrop {
+		@apply fixed inset-0 z-popover-backdrop bg-black fade-in-out opacity-50 motion-reduce:transition-none;
+	}
+
 	.ui-popover-positioner {
 		@apply z-popover;
 	}

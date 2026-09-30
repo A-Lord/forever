@@ -178,6 +178,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				align="start"
 				className="min-w-popup-min-w"
 				testId="reforge-optimiser-popover"
+				backdrop
 				maxWidthClassName="max-w-86 max-lg:max-w-settings-panel-max"
 				triggerRender={
 					<Button
