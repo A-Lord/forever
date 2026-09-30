@@ -85,13 +85,13 @@ describe('makeBooleanIconInput', () => {
 describe('icon input factories', () => {
 	const label = 'Primary option';
 	const labelTooltip = 'What the primary option controls.';
-	const frame = { label, labelTooltip };
+	const frameProps = { label, labelTooltip };
 	const fieldFor = (config: any, id: string = config.id) => <Field id={id} label={config.label} labelTooltip={config.labelTooltip} layout="icon" />;
 
 	const factories: Record<string, () => { label?: string; labelTooltip?: unknown }> = {
-		makeClassOptionsBooleanIconInput: () => makeClassOptionsBooleanIconInput<any>({ ...frame, fieldName: 'primary' as never, id: ActionId.fromSpellId(1) }),
-		makeClassOptionsEnumIconInput: () => makeClassOptionsEnumIconInput<any, number>({ ...frame, fieldName: 'primary' as never, values: [] }),
-		makeSpecOptionsEnumIconInput: () => makeSpecOptionsEnumIconInput<any, number>({ ...frame, fieldName: 'primary' as never, values: [] }),
+		makeClassOptionsBooleanIconInput: () => makeClassOptionsBooleanIconInput<any>({ ...frameProps, fieldName: 'primary' as never, id: ActionId.fromSpellId(1) }),
+		makeClassOptionsEnumIconInput: () => makeClassOptionsEnumIconInput<any, number>({ ...frameProps, fieldName: 'primary' as never, values: [] }),
+		makeSpecOptionsEnumIconInput: () => makeSpecOptionsEnumIconInput<any, number>({ ...frameProps, fieldName: 'primary' as never, values: [] }),
 	};
 
 	// react-tooltip resolves anchors document-wide by id, so two pickers sharing one leaves every
