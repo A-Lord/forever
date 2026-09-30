@@ -91,7 +91,7 @@ export const TalentPicker = <TalentsProto,>({ config, points, canAdd, allPointsS
 				backgroundImage: iconUrl ? `url('${iconUrl}')` : undefined,
 			}}
 			// `mousedown` rather than the click commits, which is why a right click reaches it at all, so the click only cancels the wowhead link.
-			onActivate={() => {}}
+			navigate={false}
 			onContextMenu={event => event.preventDefault()}
 			onMouseDown={event => (isRightClick(event.nativeEvent) ? handlers.current.unspend() : handlers.current.spend())}>
 			<span className="ui-talent-picker-points" data-testid="talent-picker-points">

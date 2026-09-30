@@ -126,4 +126,55 @@ describe('WowheadAnchor', () => {
 		expect(ref.current).toBe(screen.getByTestId('anchor'));
 		expect(screen.getByTestId('anchor').textContent).toBe('Thunderfury');
 	});
+
+	it('cancels the click and stops there with navigate={false}, no role, tab index or touch opt-out', () => {
+		const onClick = vi.fn();
+		render(<WowheadAnchor href={HREF} testId="anchor" navigate={false} onClick={onClick} />);
+		const anchor = screen.getByTestId('anchor');
+
+		expect(click(anchor).defaultPrevented).toBe(true);
+		expect(onClick).toHaveBeenCalledOnce();
+		expect(anchor.hasAttribute('role')).toBe(false);
+		expect(anchor.hasAttribute('tabindex')).toBe(false);
+		expect(anchor.hasAttribute('data-disable-wowhead-touch-tooltip')).toBe(false);
+	});
+
+	it('lets onActivate win on role and touch when navigate={false} and onActivate are both given', () => {
+		const onActivate = vi.fn();
+		render(<WowheadAnchor testId="anchor" navigate={false} onActivate={onActivate} />);
+		const anchor = screen.getByTestId('anchor');
+
+		expect(anchor.getAttribute('role')).toBe('button');
+		expect(anchor.getAttribute('tabindex')).toBe('0');
+		expect(anchor.dataset.disableWowheadTouchTooltip).toBe('true');
+		expect(click(anchor).defaultPrevented).toBe(true);
+		expect(onActivate).toHaveBeenCalledOnce();
+	});
+
+	it('is aria-disabled and out of the tab order, and never activates, while still cancelling the click', () => {
+		const onActivate = vi.fn();
+		render(<WowheadAnchor testId="anchor" disabled onActivate={onActivate} />);
+		const anchor = screen.getByTestId('anchor');
+
+		expect(anchor.getAttribute('aria-disabled')).toBe('true');
+		expect(anchor.getAttribute('role')).toBe('button');
+		expect(anchor.getAttribute('tabindex')).toBe('-1');
+		expect(click(anchor).defaultPrevented).toBe(true);
+		expect(onActivate).not.toHaveBeenCalled();
+
+		fireEvent.keyDown(anchor, { key: 'Enter' });
+		expect(onActivate).not.toHaveBeenCalled();
+	});
+
+	it('drops a linked acting anchor out of the tab order too, since it would otherwise be natively focusable', () => {
+		const onActivate = vi.fn();
+		render(<WowheadAnchor href={HREF} testId="anchor" disabled onActivate={onActivate} />);
+		const anchor = screen.getByTestId('anchor');
+
+		expect(anchor.getAttribute('aria-disabled')).toBe('true');
+		expect(anchor.hasAttribute('role')).toBe(false);
+		expect(anchor.getAttribute('tabindex')).toBe('-1');
+		expect(click(anchor).defaultPrevented).toBe(true);
+		expect(onActivate).not.toHaveBeenCalled();
+	});
 });

@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
@@ -30,18 +31,19 @@ describe('ReforgeStatCapRowView', () => {
 		]);
 	});
 
-	it('explains the stat through a tooltip anchor when it has one', () => {
+	it('explains the stat through a named tooltip button when it has one', () => {
 		renderRow({ tooltip: 'Final percentage value including all buffs/gear.' });
 
-		const anchor = screen.getByTestId('reforge-stat-cap-help');
-		expect(anchor.hasAttribute('data-tooltip-id')).toBe(true);
-		expect(screen.queryByRole('button')).toBeNull();
+		const button = screen.getByTestId('reforge-stat-cap-help');
+		expect(button.hasAttribute('data-tooltip-id')).toBe(true);
+		expect(screen.getByRole('button', { name: i18n.t('common.help') })).toBe(button);
 	});
 
-	it('leaves the tooltip anchor out when the stat has no tooltip', () => {
+	it('leaves the tooltip button out when the stat has no tooltip', () => {
 		renderRow();
 
 		expect(screen.queryByTestId('reforge-stat-cap-help')).toBeNull();
+		expect(screen.queryByRole('button')).toBeNull();
 	});
 
 	it('adds a second row for the spec’s preset caps', () => {

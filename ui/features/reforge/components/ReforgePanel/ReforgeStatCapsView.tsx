@@ -3,7 +3,7 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Table, TableHeaderCell, TableRow } from '@ui-kit/Table';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
+import { TooltipButton } from '@ui-kit/TooltipButton';
 import { type ReactNode, useId } from 'react';
 
 export interface ReforgeStatCapsViewProps {
@@ -13,7 +13,6 @@ export interface ReforgeStatCapsViewProps {
 }
 
 export const ReforgeStatCapsView = ({ onReset, children }: ReforgeStatCapsViewProps) => {
-	const capsTooltipId = useId();
 	const resetTooltipId = useId();
 	const resetLabel = i18n.t('sidebar.buttons.suggest_reforges.reset_to_defaults');
 
@@ -21,9 +20,11 @@ export const ReforgeStatCapsView = ({ onReset, children }: ReforgeStatCapsViewPr
 		<>
 			<div className="flex pb-4">
 				<h6 className="mr-1 mb-0">{i18n.t('sidebar.buttons.suggest_reforges.edit_stat_caps')}</h6>
-				<TooltipAnchor tooltipId={capsTooltipId} testId="reforge-stat-caps-help">
-					<Icon name="circle-question" style="regular" />
-				</TooltipAnchor>
+				<TooltipButton
+					tooltip={i18n.t('sidebar.buttons.suggest_reforges.stat_caps_tooltip')}
+					label={i18n.t('common.help')}
+					testId="reforge-stat-caps-help"
+				/>
 				<Button
 					variant="unstyled"
 					className="ml-auto inline"
@@ -33,7 +34,6 @@ export const ReforgeStatCapsView = ({ onReset, children }: ReforgeStatCapsViewPr
 					onClick={onReset}>
 					<Icon name="arrow-rotate-left" />
 				</Button>
-				<Tooltip id={capsTooltipId} content={i18n.t('sidebar.buttons.suggest_reforges.stat_caps_tooltip')} />
 				<Tooltip id={resetTooltipId} content={resetLabel} />
 			</div>
 			<Table dense className="mb-2">

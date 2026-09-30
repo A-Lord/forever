@@ -2,8 +2,11 @@ import { Menu } from '@ui-kit/Menu';
 import clsx from 'clsx';
 import type { ReactElement, ReactNode } from 'react';
 
+import type { IconSwatchProps } from './IconSwatch';
+
 export interface IconMenuProps {
-	trigger: ReactElement;
+	/** An `IconSwatch`: the swatch consumes `onActivate` (through `triggerProps`) to cancel its own click and let the menu's own toggle run instead. */
+	trigger: ReactElement<IconSwatchProps>;
 	side: 'right' | 'bottom';
 	onOpenChange?: (open: boolean) => void;
 	className?: string;

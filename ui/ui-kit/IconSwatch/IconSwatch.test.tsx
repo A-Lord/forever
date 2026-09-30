@@ -48,6 +48,7 @@ describe('IconSwatch', () => {
 		expect(screen.getByTestId('swatch').hasAttribute('data-active')).toBe(true);
 		expect(screen.getByTestId('swatch').hasAttribute('data-disabled')).toBe(true);
 		expect(screen.getByTestId('swatch').hasAttribute('disabled')).toBe(false);
+		expect(screen.getByTestId('swatch').getAttribute('aria-disabled')).toBe('true');
 	});
 
 	it('lets a style replace the icon background', () => {

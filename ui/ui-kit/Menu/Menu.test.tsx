@@ -1,4 +1,5 @@
 import { act, fireEvent, render, within } from '@testing-library/react';
+import { Button } from '@ui-kit/Button';
 import { describe, expect, it } from 'vitest';
 
 import { Menu } from './Menu';
@@ -165,5 +166,45 @@ describe('Menu submenu', () => {
 		act(() => void fireEvent.click(getByTestId('submenu-trigger')));
 
 		expect(within(getByTestId('submenu-popup')).getByText('Nested item')).toBeTruthy();
+	});
+
+	it('renders a kit Button submenu trigger without an href as a native button, and with an href as an anchor', () => {
+		const { getByTestId, rerender } = render(
+			<Menu trigger="Open" surface="menu" triggerProps={{ 'data-testid': 'trigger' }} open>
+				<Menu submenu surface="menu" trigger="Sub" triggerRender={<Button />} triggerProps={{ 'data-testid': 'submenu-trigger' }}>
+					<MenuItem layout="row">Nested item</MenuItem>
+				</Menu>
+			</Menu>,
+		);
+		expect(getByTestId('submenu-trigger').tagName).toBe('BUTTON');
+
+		rerender(
+			<Menu trigger="Open" surface="menu" triggerProps={{ 'data-testid': 'trigger' }} open>
+				<Menu submenu surface="menu" trigger="Sub" triggerRender={<Button href="https://x" />} triggerProps={{ 'data-testid': 'submenu-trigger' }}>
+					<MenuItem layout="row">Nested item</MenuItem>
+				</Menu>
+			</Menu>,
+		);
+		expect(getByTestId('submenu-trigger').tagName).toBe('A');
+	});
+});
+
+describe('Menu root trigger', () => {
+	it('gives a kit Button trigger with no href its native role, and one with an href an explicit role="button"', () => {
+		const { getByTestId, rerender } = render(
+			<Menu trigger="Open" surface="menu" triggerRender={<Button />} triggerProps={{ 'data-testid': 'trigger' }}>
+				<MenuItem layout="row">Item</MenuItem>
+			</Menu>,
+		);
+		expect(getByTestId('trigger').tagName).toBe('BUTTON');
+		expect(getByTestId('trigger').hasAttribute('role')).toBe(false);
+
+		rerender(
+			<Menu trigger="Open" surface="menu" triggerRender={<Button href="https://x" />} triggerProps={{ 'data-testid': 'trigger' }}>
+				<MenuItem layout="row">Item</MenuItem>
+			</Menu>,
+		);
+		expect(getByTestId('trigger').tagName).toBe('A');
+		expect(getByTestId('trigger').getAttribute('role')).toBe('button');
 	});
 });

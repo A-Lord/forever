@@ -38,6 +38,7 @@ export const MetricsTable = <T,>({ rootTestId, columns, rows, sortColumnId, hasR
 									data-primary-metric={header.column.columnDef.meta?.primaryColumn ? '' : undefined}
 									className={[
 										'ui-metrics-header-cell',
+										'p-0',
 										header.column.columnDef.meta?.columnClass,
 										header.column.columnDef.meta?.headerCellClass,
 									]}
@@ -46,7 +47,7 @@ export const MetricsTable = <T,>({ rootTestId, columns, rows, sortColumnId, hasR
 									<Button
 										data-testid="metrics-table-sort"
 										variant="unstyled"
-										className="text-inherit [font:inherit] focus-visible:focus-ring"
+										className="flex h-full w-full items-center justify-center px-2 py-1 text-inherit [font:inherit] focus-visible:focus-ring"
 										onClick={header.column.getToggleSortingHandler()}>
 										<span>
 											<table.FlexRender header={header} />

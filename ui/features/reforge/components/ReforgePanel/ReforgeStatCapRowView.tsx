@@ -1,8 +1,7 @@
-import { Icon } from '@ui-kit/Icon';
+import i18n from '@i18n/config';
 import { TableCell, TableRow } from '@ui-kit/Table';
-import { Tooltip } from '@ui-kit/Tooltip';
-import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
-import { type ReactNode, useId } from 'react';
+import { TooltipButton } from '@ui-kit/TooltipButton';
+import type { ReactNode } from 'react';
 
 export interface ReforgeStatCapRowViewProps {
 	statName: string;
@@ -14,20 +13,11 @@ export interface ReforgeStatCapRowViewProps {
 }
 
 export const ReforgeStatCapRowView = ({ statName, tooltip, percentage, undershoot, presets }: ReforgeStatCapRowViewProps) => {
-	const tooltipId = useId();
 	return (
 		<>
 			<TableRow>
 				<TableCell className="w-0 whitespace-nowrap">
-					{statName}{' '}
-					{!!tooltip && (
-						<>
-							<TooltipAnchor tooltipId={tooltipId} testId="reforge-stat-cap-help">
-								<Icon name="circle-question" style="regular" />
-							</TooltipAnchor>
-							<Tooltip id={tooltipId} content={tooltip} />
-						</>
-					)}
+					{statName} {!!tooltip && <TooltipButton tooltip={tooltip} label={i18n.t('common.help')} testId="reforge-stat-cap-help" />}
 				</TableCell>
 				<TableCell className="w-18">{percentage}</TableCell>
 				<TableCell className="w-14 text-right">{undershoot}</TableCell>

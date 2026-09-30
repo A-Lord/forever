@@ -23,6 +23,7 @@ export const IconSwatch = ({ icon, active, disabled, text, badges, className, st
 			className={clsx('ui-icon-picker-swatch', !badges && className)}
 			data-active={active ? '' : undefined}
 			data-disabled={disabled ? '' : undefined}
+			disabled={disabled}
 			style={style ?? resolvedIconStyle(icon)}
 			{...rest}>
 			{text !== undefined && <span className="ui-icon-swatch-text">{text}</span>}
