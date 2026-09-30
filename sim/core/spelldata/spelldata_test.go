@@ -1,7 +1,6 @@
 package spelldata
 
 import (
-	"math"
 	"os"
 	"strings"
 	"testing"
@@ -116,12 +115,12 @@ func TestEffectAverage(t *testing.T) {
 		t.Errorf("Average(2) = %v, want 19", got)
 	}
 
-	wantMin, wantMax := 21-21*0.105263/2, 21+21*0.105263/2
-	if got := damage.Min(60); math.Abs(got-wantMin) > 1e-9 {
-		t.Errorf("Min(60) = %v, want %v", got, wantMin)
+	// 21 spread by 10.5% is 19.89 to 22.1, rounded toward 21.
+	if got := damage.Min(60); got != 20 {
+		t.Errorf("Min(60) = %v, want 20", got)
 	}
-	if got := damage.Max(60); math.Abs(got-wantMax) > 1e-9 {
-		t.Errorf("Max(60) = %v, want %v", got, wantMax)
+	if got := damage.Max(60); got != 22 {
+		t.Errorf("Max(60) = %v, want 22", got)
 	}
 }
 

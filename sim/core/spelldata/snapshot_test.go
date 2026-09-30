@@ -125,6 +125,22 @@ func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 	}
 }
 
+// Shadow Oil's bolt 350026 shows 60 to 69 in game at level 14. The unscaled ends are 47.99999985 and
+// 56.00000015 through the float32 variance, and read 48 to 56.
+func TestRollEndsMatchTheTooltip(t *testing.T) {
+	withGeneratedStore(t)
+
+	damage := MustFind(350026).DamageEffect()
+	for _, c := range []struct {
+		level    int32
+		min, max float64
+	}{{0, 48, 56}, {14, 60, 69}, {60, 63, 72}} {
+		if got, want := [2]float64{damage.Min(c.level), damage.Max(c.level)}, [2]float64{c.min, c.max}; got != want {
+			t.Errorf("Shadow Oil's bolt at %d rolls %v to %v, want %v to %v", c.level, got[0], got[1], c.min, c.max)
+		}
+	}
+}
+
 // Lightning Shield rank 1: the proc columns, and the two edges a proc row is read through. The aura
 // triggers the shared dispatcher 26545, which every rank triggers; the rank's own damage spell is
 // named by the tooltip instead, which is what RefIDs carries.
