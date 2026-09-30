@@ -99,27 +99,29 @@ export const ActionIdField = ({ player, config, actionIdSet, unitRefField, defau
 	const isMissing = selected.anyId() != 0 && !available.some(option => sameActionId(option.value, selected));
 	const { name: missingName } = useActionId(isMissing ? selected : undefined);
 
-	const choices = useMemo(
-		() =>
-			pathChoices(
-				isMissing
-					? [
-							...available,
-							{
-								value: selected,
-								label: (
-									<>
-										<ActionIdIcon actionId={selected} useBuffAura={useBuffAura} />
-										{missingName}
-									</>
-								),
-							},
-						]
-					: available,
-				sameActionId,
-			),
-		[available, isMissing, selected, missingName, useBuffAura],
-	);
+	const choices = useMemo(() => {
+		const built = pathChoices(
+			isMissing
+				? [
+						...available,
+						{
+							value: selected,
+							label: (
+								<>
+									<ActionIdIcon actionId={selected} useBuffAura={useBuffAura} />
+									{missingName}
+								</>
+							),
+						},
+					]
+				: available,
+			sameActionId,
+		);
+		// A truthy optionTree even with no submenu paths: the list arrives async, and picking the
+		// menu by optionTree presence would swap the select trigger for the menu one the moment the
+		// first submenu-bearing batch lands.
+		return { options: built.options, optionTree: built.optionTree ?? (() => built.options) };
+	}, [available, isMissing, selected, missingName, useBuffAura]);
 
 	const boundConfig = {
 		...config,
