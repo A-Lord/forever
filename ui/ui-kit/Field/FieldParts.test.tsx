@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { useField } from './hooks/useField';
 import { Field } from './index';
 
-/** Stands in for a picker's swatch: registers itself on `controlRef` the way `IconMenu` and `IconPicker`'s `FieldSwatch` do, and carries `field.labelId` back out so a test can compare it against the rendered label's id. */
+/** Stands in for a picker's swatch: registers itself on `controlRef` the way an icon picker's own trigger does, and carries `field.labelId` back out so a test can compare it against the rendered label's id. */
 const ControlProbe = ({ onClick }: { onClick: () => void }) => {
 	const field = useField();
 	return (
@@ -84,21 +84,25 @@ describe('Field parts', () => {
 		expect(label.hasAttribute('data-activates')).toBe(false);
 	});
 
-	it('captions a group root with a span by default, and with a label when asked', () => {
+	it('captions a group root with a span by default, and with a label when asked, both carrying the field labelId', () => {
 		const { rerender } = render(
 			<Field.Root id="elixirs" role="group">
 				<Field.Label>Elixirs</Field.Label>
+				<ControlProbe onClick={() => {}} />
 			</Field.Root>,
 		);
 		expect(screen.getByTestId('form-label').tagName).toBe('SPAN');
 		expect(screen.getByTestId('input-root').getElementsByTagName('label')).toHaveLength(0);
+		expect(screen.getByTestId('form-label').id).toBe(screen.getByTestId('control').getAttribute('aria-labelledby'));
 
 		rerender(
 			<Field.Root id="elixirs" role="group">
 				<Field.Label as="label">Elixirs</Field.Label>
+				<ControlProbe onClick={() => {}} />
 			</Field.Root>,
 		);
 		expect(screen.getByTestId('form-label').tagName).toBe('LABEL');
+		expect(screen.getByTestId('form-label').id).toBe(screen.getByTestId('control').getAttribute('aria-labelledby'));
 	});
 
 	it('gives a native control the root id, so the label names it', () => {

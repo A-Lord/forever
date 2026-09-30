@@ -1,5 +1,5 @@
 export { Field } from './Field';
-export { useFieldDescribedBy, useOptionalField } from './hooks/useField';
+export { useFieldDescribedBy } from './hooks/useField';
 export type {
 	ControlledProps,
 	FieldChromeProps,

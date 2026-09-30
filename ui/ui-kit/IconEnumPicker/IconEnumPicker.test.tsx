@@ -334,20 +334,23 @@ describe('IconEnumPicker', () => {
 		expect(iconText()).toBeNull();
 	});
 
-	it('marks the trigger disabled and aria-disabled, but its menu still opens on a click', () => {
+	it('marks the trigger disabled and aria-disabled, and its menu stays closed from a click on the trigger or the label', () => {
 		const { unmount } = mount({ disabled: true });
 
 		expect(button().hasAttribute('data-disabled')).toBe(true);
 		expect(button().getAttribute('aria-disabled')).toBe('true');
-		// Base UI's own toggle reaches the trigger through `onClick`, which the disabled guard leaves alone.
 		act(() => {
 			button().dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 		});
-		expect(button().getAttribute('aria-expanded')).toBe('true');
+		expect(button().getAttribute('aria-expanded')).toBe('false');
+		expect(menu()).toBeNull();
 		unmount();
 
 		const { container } = mount({ disabled: true, label: 'Armor' });
 		expect((container.firstElementChild as HTMLElement).hasAttribute('data-disabled')).toBe(true);
+		fireEvent.click(screen.getByTestId('form-label'));
+		expect(button().getAttribute('aria-expanded')).toBe('false');
+		expect(menu()).toBeNull();
 	});
 
 	it('never marks the button active while it is disabled', () => {

@@ -3,7 +3,7 @@ import type { ControlledProps, FieldChromeProps, ResolvedIcon } from '@ui-kit/Fi
 import { IconMenu } from '@ui-kit/IconSwatch';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 
 import { resolvedIconStyle } from '../utils/icons';
 import { IconEnumOptionItem } from './IconEnumOption';
@@ -43,6 +43,8 @@ export const IconEnumPicker = <T,>({
 	...chrome
 }: IconEnumPickerProps<T>) => {
 	const tooltipId = useId();
+	const labelId = useId();
+	const controlRef = useRef<HTMLAnchorElement>(null);
 	const rooted = hasFieldChrome(chrome);
 
 	const selected = options.find(option => equals(option.value, value));
@@ -57,7 +59,6 @@ export const IconEnumPicker = <T,>({
 	const menu = (
 		<IconMenu
 			onOpenChange={onOpenChange}
-			fieldControl={rooted}
 			trigger={{
 				href,
 				style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),
@@ -68,6 +69,7 @@ export const IconEnumPicker = <T,>({
 				text: selectedHidden ? undefined : selected?.text,
 				className: clsx('transition-none', !rooted && className),
 				testId: testId ?? 'icon-enum-picker-root',
+				...(rooted ? { ref: controlRef, 'aria-labelledby': labelId } : {}),
 				...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip),
 			}}
 			side={horizontal ? 'right' : 'bottom'}
@@ -96,7 +98,7 @@ export const IconEnumPicker = <T,>({
 		);
 
 	return (
-		<Field {...chrome} layout="icon" className={className} disabled={disabled} leading={menu}>
+		<Field {...chrome} layout="icon" className={className} disabled={disabled} leading={menu} labelId={labelId} controlRef={controlRef}>
 			{optionTooltip}
 		</Field>
 	);

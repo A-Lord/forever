@@ -91,6 +91,11 @@ describe('Field', () => {
 		expect(root().hasAttribute('aria-labelledby')).toBe(false);
 	});
 
+	it('gives a group no aria-labelledby without a label', () => {
+		field({ role: 'group', label: undefined });
+		expect(root().hasAttribute('aria-labelledby')).toBe(false);
+	});
+
 	it('hides a hidden field and keeps its children mounted', () => {
 		const { rerender } = field({ hidden: true });
 		expect(root().hidden).toBe(true);

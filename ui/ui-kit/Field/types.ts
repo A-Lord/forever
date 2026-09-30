@@ -1,5 +1,5 @@
 import type { ClassValue } from 'clsx';
-import type { AriaRole, ReactElement, ReactNode, Ref } from 'react';
+import type { AriaRole, ReactElement, ReactNode, Ref, RefObject } from 'react';
 
 export type FieldLayout = 'inline' | 'split' | 'icon';
 export type FieldDensity = 'compact';
@@ -56,6 +56,10 @@ export interface FieldProps extends FieldChromeProps {
 	hidden?: boolean;
 	/** `BooleanPicker`'s label-before-the-control order; renders as `data-reverse`. */
 	reverse?: boolean;
+	/** Shares the label's id with a control the caller renders itself, such as an icon picker's swatch; defaults to one generated here. */
+	labelId?: string;
+	/** The control an icon field's label clicks; defaults to one generated here. */
+	controlRef?: RefObject<HTMLElement | null>;
 }
 
 export interface FieldRootProps {
@@ -75,6 +79,10 @@ export interface FieldRootProps {
 	'aria-labelledby'?: string;
 	hidden?: boolean;
 	children?: ReactNode;
+	/** Shares the label's id with a control the caller renders itself, such as an icon picker's swatch; defaults to one generated here. */
+	labelId?: string;
+	/** The control an icon field's label clicks; defaults to one generated here. */
+	controlRef?: RefObject<HTMLElement | null>;
 }
 
 export interface FieldLabelProps {

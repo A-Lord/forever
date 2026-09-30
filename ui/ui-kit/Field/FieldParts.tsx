@@ -31,6 +31,8 @@ export const Root = ({
 	'aria-labelledby': labelledBy,
 	hidden,
 	reverse,
+	labelId: labelIdProp,
+	controlRef: controlRefProp,
 	children,
 }: FieldRootProps) => {
 	const [descriptionIds, setDescriptionIds] = useState<ReadonlyArray<string>>([]);
@@ -39,21 +41,21 @@ export const Root = ({
 		return () => setDescriptionIds(ids => ids.filter(other => other !== descriptionId));
 	}, []);
 	const describedBy = descriptionIds.length > 0 ? descriptionIds.join(' ') : undefined;
-	const labelId = useId();
-	const controlRef = useRef<HTMLElement | null>(null);
+	const generatedLabelId = useId();
+	const labelId = labelIdProp ?? generatedLabelId;
+	const generatedControlRef = useRef<HTMLElement | null>(null);
+	const controlRef = controlRefProp ?? generatedControlRef;
 	const context = useMemo(
 		() => ({ id, role, layout, density, disabled: !!disabled, grow: grow !== false, describedBy, registerDescription, labelId, controlRef }),
 		[id, role, layout, density, disabled, grow, describedBy, registerDescription, labelId, controlRef],
 	);
-	// A group has no single control a `for` could point at, so its label names it by `aria-labelledby` instead.
-	const groupLabelledBy = role === 'group' ? labelId : undefined;
 
 	return (
 		<FieldContext.Provider value={context}>
 			<BaseField.Root
 				ref={ref}
 				role={role}
-				aria-labelledby={labelledBy ?? groupLabelledBy}
+				aria-labelledby={labelledBy}
 				hidden={hidden}
 				disabled={disabled}
 				data-disabled={disabled ? '' : undefined}
@@ -95,7 +97,7 @@ export const Label = ({ as, id, tooltip, className, testId, children }: FieldLab
 	const tag = as ?? (spanned ? 'span' : 'label');
 	const activates = spanned && field.layout === 'icon';
 	const props = {
-		id: spanned ? (id ?? field.labelId) : id,
+		id: id ?? (field.role === 'group' || field.layout === 'icon' ? field.labelId : undefined),
 		className: clsx('ui-field-label', className),
 		title: children,
 		'data-testid': testId ?? 'form-label',
