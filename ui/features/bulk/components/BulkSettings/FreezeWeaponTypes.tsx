@@ -20,9 +20,9 @@ export const FreezeWeaponTypes = ({ slot }: FreezeWeaponTypesProps) => {
 	const weaponTypes = getBulkFreezeWeaponTypes(player, slot);
 
 	return (
-		<div>
+		<>
 			{!!weaponTypes.length && frozenWeaponSlot !== slot && (
-				<div data-testid="bulk-gear-freeze-weapontypes">
+				<>
 					<h6 className="mb-2">
 						{slot === ItemSlot.ItemSlotMainHand
 							? i18n.t('bulk_tab.settings.freeze_weapon_types.mainhand_label')
@@ -45,8 +45,8 @@ export const FreezeWeaponTypes = ({ slot }: FreezeWeaponTypesProps) => {
 							/>
 						))}
 					</div>
-				</div>
+				</>
 			)}
-		</div>
+		</>
 	);
 };

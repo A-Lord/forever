@@ -11,7 +11,6 @@ const meta = {
 	tags: ['autodocs'],
 	args: {
 		id: 'damageTab',
-		contentTestId: 'damage-spell-metrics',
 		children: <p className="p-4">The pane's table.</p>,
 	},
 	argTypes: { children: { control: false } },

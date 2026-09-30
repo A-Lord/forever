@@ -37,7 +37,7 @@ describe.each(CASES)('%s', (_name, Dialog, title, instructions) => {
 	it('opens the importer under its title with its instructions above the textarea', () => {
 		renderWithHost(<Dialog open onOpenChange={() => {}} />);
 		expect(screen.getByTestId('sim-dialog-title').textContent).toBe(title);
-		expect(screen.getByTestId('import-description').textContent).toContain(instructions);
+		expect(screen.getByText(instructions).textContent).toBe(instructions);
 		expect(screen.getByTestId('importer-textarea')).toBeTruthy();
 	});
 

@@ -41,8 +41,7 @@ const FIREFOX_WORKER_NOTE = `Too many workers can cause significant memory usage
 
 const LastUsedRngSeed = ({ seed }: { seed: number }) => (
 	<HelpText as="div">
-		<span>{i18n.t('info.options.fixed_rng_seed.last_used')}</span>&nbsp;
-		<span data-testid="last-used-rng-seed">{seed}</span>
+		<span>{i18n.t('info.options.fixed_rng_seed.last_used')}</span>&nbsp;{seed}
 	</HelpText>
 );
 
@@ -98,28 +97,24 @@ export const SettingsDialogView = ({
 			}>
 			<div className="flex flex-col gap-2">
 				<FieldGrid>
-					<div data-testid="fixed-rng-seed-container">
-						<div data-testid="fixed-rng-seed">
-							<NumberField
-								id="simui-fixed-rng-seed"
-								label={i18n.t('info.options.fixed_rng_seed.label')}
-								labelTooltip={i18n.t('info.options.fixed_rng_seed.tooltip')}
-								value={fixedRngSeed}
-								onChange={onFixedRngSeedChange}
-							/>
-						</div>
+					<div>
+						<NumberField
+							id="simui-fixed-rng-seed"
+							label={i18n.t('info.options.fixed_rng_seed.label')}
+							labelTooltip={i18n.t('info.options.fixed_rng_seed.tooltip')}
+							value={fixedRngSeed}
+							onChange={onFixedRngSeedChange}
+						/>
 						<LastUsedRngSeed seed={lastUsedRngSeed} />
 					</div>
-					<div data-testid="language-picker">
-						<ChoiceField
-							id="simui-language-picker"
-							label={i18n.t('info.options.language.label')}
-							labelTooltip={i18n.t('info.options.language.tooltip')}
-							options={LANGUAGE_OPTIONS}
-							value={LANGUAGE_OPTIONS.some(option => option.value === language) ? language : 'en'}
-							onChange={onLanguageChange}
-						/>
-					</div>
+					<ChoiceField
+						id="simui-language-picker"
+						label={i18n.t('info.options.language.label')}
+						labelTooltip={i18n.t('info.options.language.tooltip')}
+						options={LANGUAGE_OPTIONS}
+						value={LANGUAGE_OPTIONS.some(option => option.value === language) ? language : 'en'}
+						onChange={onLanguageChange}
+					/>
 				</FieldGrid>
 				<div className="w-1/2 pr-2" data-testid="show-threat-metrics-picker">
 					<BooleanPicker
@@ -152,16 +147,14 @@ export const SettingsDialogView = ({
 					/>
 				</div>
 				<div className="w-1/2 pr-2" data-testid="use-concurrency-container" hidden={!showConcurrency}>
-					<div data-testid="use-concurrent-workers-picker">
-						<ChoiceField
-							id="simui-concurrent-workers-picker"
-							label={i18n.t('info.options.use_multiple_cpu_cores.label')}
-							labelTooltip="Use web workers to spread sim workload over multiple CPU cores."
-							options={workerOptions}
-							value={wasmConcurrency}
-							onChange={onWasmConcurrencyChange}
-						/>
-					</div>
+					<ChoiceField
+						id="simui-concurrent-workers-picker"
+						label={i18n.t('info.options.use_multiple_cpu_cores.label')}
+						labelTooltip="Use web workers to spread sim workload over multiple CPU cores."
+						options={workerOptions}
+						value={wasmConcurrency}
+						onChange={onWasmConcurrencyChange}
+					/>
 					<WorkerNote shown={firefox} />
 				</div>
 			</div>

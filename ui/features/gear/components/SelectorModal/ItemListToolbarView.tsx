@@ -66,9 +66,15 @@ export const ItemListToolbarView = ({
 				<ChoiceField options={phaseOptions()} value={phase} onChange={onPhaseChange} />
 			</div>
 			{toggles.map(toggle => (
-				<div key={toggle.id} data-testid={toggle.testId}>
-					<BooleanPicker id={toggle.id} label={toggle.label} layout="inline" value={toggle.value} onChange={toggle.onChange} />
-				</div>
+				<BooleanPicker
+					key={toggle.id}
+					id={toggle.id}
+					testId={toggle.testId}
+					label={toggle.label}
+					layout="inline"
+					value={toggle.value}
+					onChange={toggle.onChange}
+				/>
 			))}
 			<Button variant="danger" className="-mt-2 mr-4 -mb-2 ml-auto" data-testid="selector-modal-remove-button" onClick={onRemove}>
 				{removeLabel}

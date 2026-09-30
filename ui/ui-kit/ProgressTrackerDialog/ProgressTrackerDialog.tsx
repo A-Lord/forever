@@ -43,7 +43,7 @@ export const ProgressTrackerDialog = ({ open, title, state, className, warning, 
 					</div>
 				)}
 				{hasProgressBar && <HandleProgressBar running={open} ref={ref} />}
-				<div data-testid="progress-tracker-modal-time-display">
+				<div>
 					<strong>{i18n.t('common.elapsed_time')}:</strong> <ElapsedTime running={open} startedAt={run.startedAt} />
 				</div>
 				<div

@@ -114,8 +114,8 @@ describe('ItemListRow', () => {
 			'selector-modal-list-label-cell',
 			'selector-modal-list-item-source-container',
 			'selector-modal-list-item-ep',
-			'selector-modal-list-item-favorite-container',
-			'selector-modal-list-item-compare-container',
+			'selector-modal-list-item-favorite',
+			'selector-modal-list-item-compare',
 		]);
 	});
 
@@ -288,9 +288,9 @@ describe('ItemListRow', () => {
 
 	it('renders the compare container on the items tab alone', () => {
 		const items = renderRow({ label: SelectorModalTabs.Items });
-		expect(items.container.querySelector('[data-testid="selector-modal-list-item-compare-container"]')).not.toBeNull();
+		expect(items.container.querySelector('[data-testid="selector-modal-list-item-compare"]')).not.toBeNull();
 
 		const enchants = renderRow({ label: SelectorModalTabs.Enchants });
-		expect(enchants.container.querySelector('[data-testid="selector-modal-list-item-compare-container"]')).toBeNull();
+		expect(enchants.container.querySelector('[data-testid="selector-modal-list-item-compare"]')).toBeNull();
 	});
 });

@@ -44,11 +44,11 @@ export const SimProgress = ({ panel }: SimProgressProps) => {
 					<span ref={hps} data-testid="topline-result-avg" className="text-2xl" />
 				</div>
 			)}
-			<div>
+			<p className="mb-0">
 				<span ref={counter} />
 				<br />
 				{i18n.t('sidebar.results.progress.iterations_complete')}
-			</div>
+			</p>
 		</div>
 	);
 };

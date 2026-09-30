@@ -29,7 +29,7 @@ afterEach(() => {
 describe('TalentsHeaderView', () => {
 	it('shows the points left to spend', () => {
 		render(<TalentsHeaderView pointsRemaining={36} getTalentsString={() => ''} />);
-		expect(screen.getByTestId('talents-picker-points-remaining').textContent).toBe('36');
+		expect(document.querySelector('label')!.textContent!.match(/\d+$/)?.[0]).toBe('36');
 	});
 
 	it('offers the copy action until the string is copied', () => {

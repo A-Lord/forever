@@ -180,41 +180,41 @@ export const DetailedResults = ({ resultsManager }: DetailedResultsProps) => {
 				/>
 			}>
 			{showDamage && (
-				<DetailedResultsPane id="damageTab" className="[&_.ui-metrics-table]:text-xs" contentTestId="damage-spell-metrics" topline histogram>
+				<DetailedResultsPane id="damageTab" className="[&_.ui-metrics-table]:text-xs" topline histogram>
 					<DamageMetricsTable />
 				</DetailedResultsPane>
 			)}
 			{showThreat && (
-				<DetailedResultsPane id="threatTab" className="[&_.ui-metrics-table]:text-xs" contentTestId="threat-metrics" topline>
+				<DetailedResultsPane id="threatTab" className="[&_.ui-metrics-table]:text-xs" topline>
 					<ThreatMetricsTable />
 				</DetailedResultsPane>
 			)}
 			{showHealing && (
-				<DetailedResultsPane id="healingTab" className="[&_.ui-metrics-table]:text-xs" contentTestId="healing-spell-metrics" topline>
+				<DetailedResultsPane id="healingTab" className="[&_.ui-metrics-table]:text-xs" topline>
 					<HealingMetricsTable />
 				</DetailedResultsPane>
 			)}
 			{showThreat && (
-				<DetailedResultsPane id="damageTakenTab" contentTestId="dtps-metrics" topline>
+				<DetailedResultsPane id="damageTakenTab" topline>
 					<DtpsMetricsTable />
 				</DetailedResultsPane>
 			)}
-			<DetailedResultsPane id="buffsTab" contentTestId="buff-aura-metrics">
+			<DetailedResultsPane id="buffsTab">
 				<AuraMetricsTable useDebuffs={false} />
 			</DetailedResultsPane>
-			<DetailedResultsPane id="debuffsTab" contentTestId="debuff-aura-metrics">
+			<DetailedResultsPane id="debuffsTab">
 				<AuraMetricsTable useDebuffs={true} />
 			</DetailedResultsPane>
-			<DetailedResultsPane id="castsTab" contentTestId="cast-metrics">
+			<DetailedResultsPane id="castsTab">
 				<CastMetricsTable />
 			</DetailedResultsPane>
-			<DetailedResultsPane id="resourcesTab" contentTestId="resource-metrics">
+			<DetailedResultsPane id="resourcesTab">
 				<ResourceMetricsTable />
 			</DetailedResultsPane>
-			<DetailedResultsPane id="timelineTab" contentTestId="timeline" filling>
+			<DetailedResultsPane id="timelineTab" filling>
 				<Timeline active={activeId === 'timelineTab'} />
 			</DetailedResultsPane>
-			<DetailedResultsPane id="logTab" contentTestId="log">
+			<DetailedResultsPane id="logTab">
 				<LogRunner active={activeId === 'logTab'} />
 			</DetailedResultsPane>
 		</DetailedResultsView>
