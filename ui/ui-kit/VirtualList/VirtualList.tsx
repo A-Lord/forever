@@ -71,12 +71,13 @@ export const VirtualList = ({
 		...(scrollsWithWindow ? WINDOW_SCROLLER : {}),
 	});
 
-	// The virtualiser looks for its scroller in a layout effect, which runs before a parent's ref is
-	// attached; when it found none but one is there now, one more render lets it subscribe.
+	// The virtualiser first looks for its scroller in a layout effect, which runs before a parent's ref
+	// is attached; when it found none at mount but one is there now, one more render lets it subscribe.
 	const [, rerender] = useReducer((renders: number) => renders + 1, 0);
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- once after mount; later scroller changes reach the virtualiser through its own update.
 	useEffect(() => {
 		if (virtualizer.scrollElement === null && getScrollElement() !== null) rerender();
-	});
+	}, []);
 
 	return (
 		<div className={className} data-testid={testId} style={{ position: 'relative', height: virtualizer.getTotalSize() }}>
