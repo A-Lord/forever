@@ -72,8 +72,6 @@ message SpellEffect {
     int32 spell_id = 2;
     int32 index = 3;
     EffectType type = 4;
-	reserved 5, 6;
-	reserved "min_effect_size", "effect_spread";
 	oneof misc_value0 {
 		ResourceType resource_type = 7;
 		SpellSchool school = 8;
