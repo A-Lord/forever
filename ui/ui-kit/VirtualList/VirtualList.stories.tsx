@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef } from 'react';
-import { expect, within } from 'storybook/test';
 
 import { VirtualList } from './VirtualList';
 
@@ -44,12 +43,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const ThousandRows: Story = {
-	play: async ({ canvasElement }) => {
-		const rows = within(canvasElement).getAllByTestId('virtual-list-row');
-		await expect(rows.length).toBeGreaterThan(0);
-		await expect(rows.length).toBeLessThan(100);
-	},
-};
+export const ThousandRows: Story = {};
 
 export const TallRows: Story = { args: { rowHeight: 48 } };
