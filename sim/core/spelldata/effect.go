@@ -57,10 +57,10 @@ func (e *Effect) Trigger() *Spell {
 // (3.79999995231628), and multiplying in float64 moves the result off the tooltip on six rows. The
 // game resolves the amount to a whole number, which is the floor below.
 func (e *Effect) Average(level int32) float64 {
-	return math.Floor(float64(e.scaled(level)))
+	return math.Floor(float64(float32(e.BasePoints) + e.levelGain(level)))
 }
 
-func (e *Effect) scaled(level int32) float32 {
+func (e *Effect) levelGain(level int32) float32 {
 	// MaxLevel 0 is the game files' "no cap", which a spell with no SpellLevels row carries.
 	lvl := level
 	if e.MaxLevel > 0 && int32(e.MaxLevel) < lvl {
@@ -72,11 +72,13 @@ func (e *Effect) scaled(level int32) float32 {
 		delta = 0
 	}
 
-	return float32(e.BasePoints) + float32(float32(delta)*float32(e.PPL))
+	return float32(float32(delta) * float32(e.PPL))
 }
 
-// The low end of the roll. EffectVariance spreads the base points only, around the amount before it is
-// floored, with each end rounded outward. An effect that does not roll answers the average at both ends.
+// The low end of the roll. EffectVariance spreads the base points, whose ends are rounded to whole
+// numbers; the per-level gain is added to both, and each end is rounded outward. Starfire rank 1's
+// 81 ± 8.18 is 73 to 89, and Wrath rank 2's 23 ± 1.70 is 21 to 25, which is 24 to 29 with its 3.6
+// gain. An effect that does not roll answers the average at both ends.
 func (e *Effect) Min(level int32) float64 {
 	if e.Variance == 0 {
 		return e.Average(level)
@@ -94,13 +96,14 @@ func (e *Effect) Max(level int32) float64 {
 }
 
 func (e *Effect) spread(level int32) (float64, float64) {
-	amount := float64(e.scaled(level))
 	half := math.Abs(e.BasePoints) * e.Variance / 2
-	return roundOutward(amount-half, math.Floor), roundOutward(amount+half, math.Ceil)
+	gain := float64(e.levelGain(level))
+	return roundOutward(math.Round(e.BasePoints-half)+gain, math.Floor),
+		roundOutward(math.Round(e.BasePoints+half)+gain, math.Ceil)
 }
 
-// EffectVariance is a float32 widened into the DB, so an end that is whole in game lands a hair to
-// either side of it here (47.99999985 for 350026's 48); it is snapped before it is rounded.
+// The per-level gain is a float32 widened here, so an end that is whole in game can land a hair to
+// either side of it (Exorcism 415068 at 25 reads 114.0000019); it is snapped before it is rounded.
 func roundOutward(end float64, round func(float64) float64) float64 {
 	if whole := math.Round(end); core.WithinToleranceFloat64(whole, end, 1e-4) {
 		return whole

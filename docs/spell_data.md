@@ -136,9 +136,10 @@ The arithmetic is float32 on purpose - the game files' per-level gain is a float
 database, and folding it in float64 moves six rows off the tooltip.
 
 `EffectVariance` is the spread the amount rolls over. It spreads the base points only:
-`|BasePoints| * Variance/2` either side of the scaled amount before it is floored, with `Min` rounded
-down and `Max` rounded up. `Roll` rolls it where the row states one and answers the average where it
-does not, so a call site never has to ask whether this particular spell's amount is a range.
+`|BasePoints| * Variance/2` either side of them, each end rounded to a whole number, then the per-level
+gain is added to both and `Min` is rounded down and `Max` rounded up. `Roll` rolls it where the row
+states one and answers the average where it does not, so a call site never has to ask whether this
+particular spell's amount is a range.
 
 ### Attributes, edges and class flags
 

@@ -202,7 +202,7 @@ type Effect struct {
 	BaseLevel, MaxLevel int16
 
 	// EffectVariance: the spread the amount rolls over, |BasePoints| * Variance/2 either side of the
-	// scaled amount (Min, Max). Zero on an effect that does not roll.
+	// base points, plus the per-level gain (Min, Max). Zero on an effect that does not roll.
 	Variance float64
 
 	// EffectBonusCoefficient and BonusCoefficientFromAP: the share of spell power and attack power the
