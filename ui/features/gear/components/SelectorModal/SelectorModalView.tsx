@@ -51,7 +51,7 @@ export const SelectorModalView = ({ id, open, onOpenChange, onKeyDown, rail, tit
 				headerChildren={
 					<>
 						{rail}
-						<div>
+						<div className="flex flex-col">
 							<h6 className="mb-0" data-testid="selector-modal-title">
 								{title}
 							</h6>
@@ -73,7 +73,7 @@ export const SelectorModalView = ({ id, open, onOpenChange, onKeyDown, rail, tit
 						</div>
 					</>
 				}>
-				<div>
+				<div className="flex flex-col">
 					{sequence !== undefined &&
 						tabs.map(tab => (
 							// `active` comes from the selection, not from the panel's transition status: this strip has

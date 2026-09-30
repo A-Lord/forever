@@ -23,9 +23,9 @@ export const GemRow = ({ gem, count, iconUrl }: GemRowProps) => {
 					src={iconUrl || undefined}
 					alt=""
 				/>
-				<div>{gem.name}</div>
+				{gem.name}
 			</WowheadAnchor>
-			<div>{count.toFixed(0)}</div>
+			<div className="ml-auto">{count.toFixed(0)}</div>
 		</SummaryTableRow>
 	);
 };
