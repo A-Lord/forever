@@ -61,9 +61,7 @@ export const AdvancedEncounterModal = ({ open, onOpenChange }: AdvancedEncounter
 					))}
 				</FieldGrid>
 			</div>
-			<div>
-				<TargetsPicker encounter={encounter} />
-			</div>
+			<TargetsPicker encounter={encounter} />
 		</Dialog>
 	);
 };

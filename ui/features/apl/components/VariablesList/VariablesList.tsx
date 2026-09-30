@@ -40,7 +40,8 @@ export const VariablesList = () => {
 	});
 
 	return (
-		<div>
+		// The tab panel is a flex column with a gap; this stays a single flex item so that gap doesn't land between the header and the tree.
+		<div className="flex flex-col">
 			<h6 className="mb-2 flex items-center gap-2">
 				<AplSectionTitle text={i18n.t('rotation_tab.apl.variables.header')} tooltip={i18n.t('rotation_tab.apl.variables.tooltips.overview')} />
 			</h6>
