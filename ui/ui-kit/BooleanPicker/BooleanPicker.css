@@ -29,9 +29,5 @@
 
 	.ui-boolean-picker-indicator {
 		@apply absolute inset-0 flex items-center justify-center;
-
-		&[data-unchecked] {
-			@apply invisible;
-		}
 	}
 }
