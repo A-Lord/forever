@@ -27,9 +27,9 @@ func effectLines(s *spelldata.Spell) []Line {
 	return out
 }
 
-// The amount at the level the sim prices a cast at, which is Effect.Average(core.CharacterLevel).
+// The amount at the level the sim prices a cast at, which is Effect.Mean(core.CharacterLevel).
 func value(e *spelldata.Effect) float64 {
-	return e.Average(core.CharacterLevel)
+	return e.Mean(core.CharacterLevel)
 }
 
 // The amount as the row states it: one number, or the ends of the roll where the row states a

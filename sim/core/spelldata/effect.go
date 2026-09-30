@@ -110,3 +110,10 @@ func (e *Effect) Roll(sim *core.Simulation, level int32) float64 {
 	}
 	return sim.Roll(e.spread(level))
 }
+
+// What a cast averages: the middle of the roll where the game files state a spread, which can sit
+// half a point above Average, and the average where they do not.
+func (e *Effect) Mean(level int32) float64 {
+	low, high := e.spread(level)
+	return (low + high) / 2
+}

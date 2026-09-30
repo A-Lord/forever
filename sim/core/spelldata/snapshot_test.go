@@ -153,6 +153,11 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 			t.Errorf("%d effect %d at %d rolls %v, want %v", c.spell, c.effect, c.level, got, want)
 		}
 	}
+
+	// Wrath rank 3 at 20 rolls 32 to 37, which averages 34.5 where Average floors 34.2 to 34.
+	if got := MustFind(5178).DamageEffect().Mean(20); got != 34.5 {
+		t.Errorf("Wrath rank 3 at 20 averages %v, want 34.5", got)
+	}
 }
 
 // Lightning Shield rank 1: the proc columns, and the two edges a proc row is read through. The aura

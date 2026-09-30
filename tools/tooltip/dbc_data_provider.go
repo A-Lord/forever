@@ -302,42 +302,35 @@ func (d DBCTooltipDataProvider) GetDescriptionVariableString(spellId int64) stri
 	return spellEntry.Variables
 }
 
-// effectRange returns the bottom and top of the value an effect rolls at the character's level, the
-// range the sim rolls. An effect the spell store does not carry reads its base points at both ends,
-// whatever variance it states.
-func (d DBCTooltipDataProvider) effectRange(spellId int64, effectIdx int64) (float64, float64) {
-	if spell := spelldata.Find(int32(spellId)); spell != spelldata.Nil {
-		for i := range spell.Effects {
-			if effect := &spell.Effects[i]; int64(effect.Index) == effectIdx {
-				return effect.Min(core.CharacterLevel), effect.Max(core.CharacterLevel)
-			}
-		}
+// effectEnd returns one end of the range the sim rolls for an effect at the character's level. An
+// effect the spell store does not carry reads its base points at both ends, whatever variance it
+// states.
+func (d DBCTooltipDataProvider) effectEnd(spellId int64, effectIdx int64, end func(*spelldata.Effect, int32) float64) float64 {
+	if effect := spelldata.Find(int32(spellId)).EffectAtIndex(uint8(effectIdx)); effect != spelldata.NilEffect {
+		return end(effect, core.CharacterLevel)
 	}
 
 	effectEntries, ok := d.DBC.SpellEffects[int(spellId)]
 	if !ok {
-		return 0, 0
+		return 0
 	}
 
 	effect := GetEffectByIndex(effectEntries, int(effectIdx))
 	if effect == nil {
-		return 0, 0
+		return 0
 	}
 
-	base := float64(effect.EffectBasePoints)
-	return base, base
+	return float64(effect.EffectBasePoints)
 }
 
 // GetEffectBaseValue implements TooltipDataProvider.
 func (d DBCTooltipDataProvider) GetEffectBaseValue(spellId int64, effectIdx int64) float64 {
-	low, _ := d.effectRange(spellId, effectIdx)
-	return low
+	return d.effectEnd(spellId, effectIdx, (*spelldata.Effect).Min)
 }
 
 // GetEffectMaxValue implements TooltipDataProvider.
 func (d DBCTooltipDataProvider) GetEffectMaxValue(spellId int64, effectIdx int64) float64 {
-	_, high := d.effectRange(spellId, effectIdx)
-	return high
+	return d.effectEnd(spellId, effectIdx, (*spelldata.Effect).Max)
 }
 
 // GetEffectPeriod implements TooltipDataProvider.

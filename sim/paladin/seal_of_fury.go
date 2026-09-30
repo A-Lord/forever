@@ -60,7 +60,7 @@ func (paladin *Paladin) registerSealOfFury(_ int32, rank *spelldata.Spell) {
 	})
 	paladin.applyImprovedSealOfFury(shield)
 
-	damage := procDamage.Average(core.CharacterLevel)
+	damage := procDamage.Mean(core.CharacterLevel)
 	procSpell := paladin.RegisterSpell(core.SpellConfig{
 		ActionID:    core.ActionID{SpellID: procRank.ID},
 		SpellSchool: core.SpellSchoolHoly,
