@@ -24,7 +24,7 @@ const metadata = (auras: Array<ReturnType<typeof aura>>, spells: Array<ReturnTyp
 	({ getAuras: () => auras, getSpells: () => spells, getName: () => '' }) as unknown as UnitMetadata;
 
 const menu = (options: Array<{ value: ActionId; submenu?: Array<unknown> }>) =>
-	options.map(option => [option.value.name, ...(option.submenu ?? [])].join(' > '));
+	options.map(option => [option.value.name, ...(option.submenu ?? []).map(segment => (segment instanceof ActionId ? segment.name : segment))].join(' > '));
 
 describe('aura sets', () => {
 	// Sorted by name, as the metadata arrives.
@@ -43,8 +43,8 @@ describe('aura sets', () => {
 			'Recklessness > cooldowns',
 			'Mighty Rage Potion > consumables',
 			'Flurry > talents',
-			'Unbridled Wrath (Rank 1) > talents > Unbridled Wrath',
-			'Unbridled Wrath (Rank 2) > talents > Unbridled Wrath',
+			'Unbridled Wrath (Rank 1) > talents > Unbridled Wrath (Rank 2)',
+			'Unbridled Wrath (Rank 2) > talents',
 			'Battle Shout (External) > external_buffs',
 			'Battle Shout',
 		]);
@@ -73,5 +73,14 @@ describe('castable_spells', () => {
 		]);
 		expect(options.at(-1)?.submenu).toEqual(['placeholders']);
 		expect(options.find(option => option.value.name === 'Mighty Rage Potion')?.listScope).toBe('priority');
+	});
+
+	it('files the lower ranks of a spell under its highest rank, so the submenu row picks the highest', async () => {
+		const ranked = [spell(named(20, 'Fireball (Rank 1)', 1)), spell(named(21, 'Fireball (Rank 3)', 3)), spell(named(22, 'Fireball (Rank 2)', 2))];
+		expect(menu(await actionIdSets.castable_spells.getActionIDs(metadata([], ranked))).slice(0, 3)).toEqual([
+			'Fireball (Rank 1) > spell > Fireball (Rank 3)',
+			'Fireball (Rank 3) > spell',
+			'Fireball (Rank 2) > spell > Fireball (Rank 3)',
+		]);
 	});
 });

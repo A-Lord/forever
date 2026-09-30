@@ -101,7 +101,14 @@ export const DropdownMenu = <V,>({
 					value={selectedIndex}
 					onValueChange={(index: number) => onChange(options[index].value)}>
 					{/* Built on open and dropped on close. */}
-					{open && <DropdownMenuItems entries={entries} tooltipId={tooltipId} onSelect={index => onChange(options[index].value)} />}
+					{open && (
+						<DropdownMenuItems
+							entries={entries}
+							tooltipId={tooltipId}
+							onSelect={index => onChange(options[index].value)}
+							onClose={() => setOpen(false)}
+						/>
+					)}
 				</BaseMenu.RadioGroup>
 			</Menu>
 			{/*

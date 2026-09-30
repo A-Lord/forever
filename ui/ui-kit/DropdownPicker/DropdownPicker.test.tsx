@@ -195,10 +195,28 @@ describe('DropdownPicker', () => {
 			await open();
 
 			const trigger = screen.getByTestId('dropdown-item');
-			expect(trigger.textContent).toBe('Self');
+			expect(trigger.textContent).toBe('Self »');
 			await act(() => void fireEvent.click(trigger));
 
 			expect(onChange).toHaveBeenCalledWith({ id: 'self' });
+			expect(screen.queryByTestId('dropdown-picker-menu')).toBeNull();
+		});
+
+		it('keeps the menu open after a tap on a submenu trigger, so the choices behind it stay in reach', async () => {
+			const onChange = vi.fn();
+			const self = { value: { id: 'self' }, label: 'Self' };
+			const pet = { value: { id: 'pet' }, label: 'Pet', submenu: [{ id: 'self' }] };
+			render(<DropdownPicker options={[self, pet]} value={undefined} onChange={onChange} equals={sameKind} defaultLabel="Unit" />);
+			await open();
+
+			const trigger = screen.getByTestId('dropdown-item');
+			await act(() => {
+				fireEvent.pointerDown(trigger, { pointerType: 'touch' });
+				fireEvent.click(trigger);
+			});
+
+			expect(onChange).toHaveBeenCalledWith({ id: 'self' });
+			expect(screen.queryByTestId('dropdown-picker-menu')).not.toBeNull();
 		});
 	});
 

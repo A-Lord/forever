@@ -19,7 +19,8 @@ export interface DropdownOption<V> {
 	itemClassName?: ClassValue;
 	/**
 	 * The category path this option is filed under. A string names a submenu; a value makes the
-	 * option carrying it the submenu's trigger, which is how a pet is filed under its owner.
+	 * option carrying it the submenu's trigger, which is how a pet is filed under its owner and a
+	 * spell's lower ranks under its highest.
 	 */
 	submenu?: Array<string | V>;
 	/** Hover text for this option alone. The APL kind pickers pass HTML built in `model/`. */
