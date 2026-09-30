@@ -60,11 +60,13 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 		<StickyHeaderContext value={headerEl}>
 			<div
 				ref={root}
-				className={clsx(simUiClasses({ className, spec }), 'max-h-screen overflow-y-auto')}
+				className={clsx(
+					simUiClasses({ className, spec }),
+					"max-h-screen overflow-y-auto before:fixed before:top-0 before:left-0 before:-z-1 before:h-screen before:w-screen before:bg-sim before:bg-cover before:bg-no-repeat before:content-['']",
+				)}
 				data-testid="sim-ui"
 				{...simUiAttributes({ spec })}>
 				<div className="flex h-full min-h-screen flex-col" data-testid="sim-root">
-					<div className="fixed top-0 left-0 -z-1 h-screen w-screen bg-sim bg-cover bg-no-repeat" data-testid="sim-bg" />
 					{noticeText ? (
 						<div className="relative mb-0 w-full border border-transparent bg-overlay p-4 text-center" data-testid="notices-banner">
 							{noticeText}
@@ -74,9 +76,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 						<aside
 							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
 							data-testid="sim-sidebar">
-							<div className="z-sim-title h-sim-header-plus border-b border-b-border max-lg:sticky max-lg:-top-px" data-testid="sim-title">
-								<SimTitleDropdown currentSpec={spec} />
-							</div>
+							<SimTitleDropdown currentSpec={spec} />
 							<div
 								className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible lg:pb-0 [&>*:not(:last-child)]:mb-6"
 								data-testid="sim-sidebar-content">
@@ -89,13 +89,8 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 									{!host?.simDisabled && <IterationsPicker sim={sim} />}
 									{host && <SimSidebarActions host={host} />}
 								</div>
-								<div className="flex items-center justify-center" data-testid="sim-sidebar-results">
-									{host && <SimResultsPanel panel={host.resultsPanel} warnings={host.warnings} results={host.raidSimResultsManager} />}
-								</div>
-								{/* A box here would fence in the stats header's `position: sticky`, so the panel's own parts are the sidebar's flex items. */}
-								<div className="contents" data-testid="sim-sidebar-stats">
-									{host && <CharacterStats />}
-								</div>
+								{host && <SimResultsPanel panel={host.resultsPanel} warnings={host.warnings} results={host.raidSimResultsManager} />}
+								{host && <CharacterStats />}
 							</div>
 						</aside>
 						<div
@@ -109,17 +104,9 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								<div
 									className="flex h-full flex-1 scrollbar-none items-stretch overflow-x-scroll [&::-webkit-scrollbar]:hidden"
 									data-testid="sim-header-container">
-									<div className="contents" data-testid="sim-tabs-mount">
-										{host && <SimTabsSection host={host} />}
-									</div>
-									<div className="mb-0 flex list-none flex-nowrap items-end pl-0 font-bold" data-testid="import-export">
-										{host && <SimImportExport />}
-									</div>
-									<div
-										className="mb-0 ml-auto flex list-none flex-nowrap items-end pl-0 text-(length:--text-ui) font-bold"
-										data-testid="sim-toolbar">
-										<SimToolbar sim={sim} knownIssues={knownIssues} onOpenSettings={onOpenSettings} />
-									</div>
+									{host && <SimTabsSection host={host} />}
+									{host && <SimImportExport />}
+									<SimToolbar sim={sim} knownIssues={knownIssues} onOpenSettings={onOpenSettings} />
 								</div>
 							</header>
 							<main ref={main} className="flex h-4/5 grow" data-testid="sim-main" />

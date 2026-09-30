@@ -13,7 +13,7 @@ const meta = {
 	argTypes: { currentSpec: { control: false } },
 	decorators: [
 		Story => (
-			<div className="h-sim-header-plus w-80 border-b border-b-border bg-background">
+			<div className="w-80 bg-background">
 				<Story />
 			</div>
 		),

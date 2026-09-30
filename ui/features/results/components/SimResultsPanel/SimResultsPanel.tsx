@@ -27,7 +27,7 @@ export const SimResultsPanel = ({ panel, warnings, results }: SimResultsPanelPro
 	const buttonsVisible = useSyncExternalStore(panel.subscribe, panel.getButtonsVisible);
 
 	return (
-		<div data-testid="results-viewer">
+		<div className="mx-auto flex w-fit flex-col" data-testid="results-viewer">
 			<div
 				className="[&_.ui-spinner]:m-auto"
 				data-testid="results-pending"

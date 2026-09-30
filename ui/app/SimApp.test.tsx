@@ -127,14 +127,14 @@ describe('SimApp', () => {
 		expect(container.querySelectorAll('[data-testid="sim-ui"]')).toHaveLength(1);
 	});
 
-	it('renders the sidebar stats into the container the shell built', async () => {
+	it('renders the sidebar stats', async () => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
-		expect(container.querySelectorAll('[data-testid="sim-sidebar-stats"] .character-stats-root')).toHaveLength(1);
+		expect(container.querySelectorAll('.character-stats-root')).toHaveLength(1);
 	});
 
-	it('renders the results panel into the container the shell built', async () => {
+	it('renders the results panel', async () => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
-		expect(container.querySelectorAll('[data-testid="sim-sidebar-results"] [data-testid="results-viewer"]')).toHaveLength(1);
+		expect(container.querySelectorAll('[data-testid="results-viewer"]')).toHaveLength(1);
 	});
 
 	it('renders each registered pane into the pane container the shell built', async () => {
