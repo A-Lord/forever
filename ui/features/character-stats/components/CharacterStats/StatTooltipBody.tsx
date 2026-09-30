@@ -22,7 +22,7 @@ export interface StatTooltipBodyProps {
 // list so the two tooltips read apart. As a component rather than a plain function, its `show()` calls
 // run only once react-tooltip actually opens it, not on every StatRow render.
 export const StatTooltipBody = ({ hand, handLabel, attribution, show, bonusStats, bonusStatValue, total, rangedWeaponSpeed }: StatTooltipBodyProps) => (
-	<div>
+	<>
 		{handLabel && (
 			<div data-testid="character-stats-tooltip-hand" className="mb-1 text-sm font-semibold text-white">
 				{handLabel}
@@ -42,5 +42,5 @@ export const StatTooltipBody = ({ hand, handLabel, attribution, show, bonusStats
 				value={`${(rangedWeaponSpeed / (1 + attribution.final.getPseudoStat(PseudoStat.PseudoStatRangedHastePercent) / 100)).toFixed(2)}s`}
 			/>
 		)}
-	</div>
+	</>
 );
