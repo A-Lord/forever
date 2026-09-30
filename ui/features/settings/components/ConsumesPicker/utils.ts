@@ -38,7 +38,7 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'groups';
 
-// Windfury Totem and Flametongue Totem take the main-hand imbue's place, a feral druid's included.
+// Windfury Totem and Flametongue Totem take the main-hand imbue's place.
 const mainHandImbueShown = (player: Player<any>) => {
 	if (!player.getParty()) return true;
 	const buffs = player.getParty()!.getBuffs();
