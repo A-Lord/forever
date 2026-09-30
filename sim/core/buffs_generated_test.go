@@ -226,6 +226,11 @@ func TestGeneratedResistancesCompeteAcrossBuffs(t *testing.T) {
 	if got := char.GetStats()[stats.Stamina]; got != 16 {
 		t.Errorf("stamina is %v, want Gift of the Wild's 16", got)
 	}
+	for _, label := range []string{"Gift of the Wild (External)", "Prayer of Shadow Protection (External)"} {
+		if aura := char.GetAura(label); aura == nil || !aura.IsActive() {
+			t.Errorf("%s is not active, want both buffs up with only the shadow resistance held", label)
+		}
+	}
 
 	school := char.ExclusiveEffectManager.GetExclusiveEffectCategory(
 		core.ResistanceCategoryShadow + stats.ShadowResistance.StatName() + "Add")
