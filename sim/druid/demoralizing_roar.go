@@ -15,7 +15,8 @@ func (druid *Druid) registerDemoralizingRoarSpell() {
 	// Effect 1 hits every enemy around the caster, and the row states no target cap.
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		for _, target := range sim.Encounter.ActiveTargetUnits {
-			result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+			// The row's defense type is magic, so a target cannot dodge it.
+			result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
 			if result.Landed() {
 				druid.DemoralizingRoarAuras.Get(target).Activate(sim)
 			}

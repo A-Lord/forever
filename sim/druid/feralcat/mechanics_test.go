@@ -140,6 +140,39 @@ func TestCatQueuesMaulOntoTheBearSwing(t *testing.T) {
 	}
 }
 
+func TestCowerAndFaerieFireEndProwl(t *testing.T) {
+	for _, spell := range []struct {
+		name string
+		cast func(*core.Simulation, *FeralDruid) bool
+	}{
+		{"cower", func(sim *core.Simulation, cat *FeralDruid) bool {
+			return cat.Cower.Cast(sim, cat.CurrentTarget)
+		}},
+		{"faerie fire", func(sim *core.Simulation, cat *FeralDruid) bool {
+			return cat.FaerieFire.Cast(sim, cat.CurrentTarget)
+		}},
+	} {
+		t.Run(spell.name, func(t *testing.T) {
+			sim, cat := newCat(t, furorTalents, nil)
+			sim.CurrentTime = -time.Second
+			if !cat.Prowl.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("prowl did not cast before the pull")
+			}
+			sim.CurrentTime = 3 * time.Second
+			fillResource(sim, cat)
+			if !spell.cast(sim, cat) {
+				t.Fatalf("%s did not cast from prowl", spell.name)
+			}
+			if cat.ProwlAura.IsActive() {
+				t.Errorf("%s left the druid prowling", spell.name)
+			}
+			if mh, _, _ := cat.AutoAttacks.SwingAt(); mh != 3*time.Second {
+				t.Errorf("main-hand swing after %s at %v, want 3s", spell.name, mh)
+			}
+		})
+	}
+}
+
 func TestFaerieFireRefreshesWhileUp(t *testing.T) {
 	sim, cat := newCat(t, furorTalents, nil)
 	fillResource(sim, cat)

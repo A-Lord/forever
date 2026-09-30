@@ -74,6 +74,24 @@ func TestDemoralizingRoarReachesEveryTarget(t *testing.T) {
 	t.Error("demoralizing roar never debuffed every target")
 }
 
+func TestDemoralizingRoarIgnoresDodge(t *testing.T) {
+	sim, bear := newBear(t)
+	target := sim.Encounter.ActiveTargetUnits[0]
+	target.PseudoStats.BaseDodgeChance = 1
+	for range 20 {
+		bear.AddRage(sim, 50, bear.NewRageMetrics(core.ActionID{SpellID: 1}))
+		bear.DemoralizingRoar.Cast(sim, bear.CurrentTarget)
+		sim.CurrentTime += 2 * time.Second
+		if m := bear.DemoralizingRoar.SpellMetrics[target.UnitIndex]; m.Dodges != 0 {
+			t.Fatalf("demoralizing roar was dodged %d times", m.Dodges)
+		}
+		if bear.DemoralizingRoarAuras.Get(target).IsActive() {
+			return
+		}
+	}
+	t.Error("demoralizing roar never landed against a target that dodges every melee attack")
+}
+
 func TestBerserkPrimalBiteStrikesThreeTargets(t *testing.T) {
 	sim, bear := newBearAgainst(t, "0000000000000000-0000000000100000001-0000000000000000", 5)
 	metrics := bear.NewRageMetrics(core.ActionID{SpellID: 1})

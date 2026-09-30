@@ -8,9 +8,9 @@ import (
 func (druid *Druid) registerProwlSpell() {
 	rank := spellData.Prowl.Highest()
 	druid.ProwlAura = druid.RegisterAura(spelldata.AuraConfig(rank))
-	// The row's attribute word 0 cancels auto attack (0x100000), which core does not read: no swing
-	// lands while prowling, and the opener that ends it starts them again. The row's not-in-combat bit
-	// keeps the cast before the pull, so the pause cannot run past the encounter's clock.
+	// Attribute word 0 cancels auto attack (0x100000), which core does not read, so the aura pauses
+	// melee until a cast ends it. Dash and Tiger's Fury carry ATTR_EX_1_NO_STEALTH_BREAK and do not.
+	// The not-in-combat bit keeps Prowl itself before the pull.
 	druid.ProwlAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.AutoAttacks.PauseMeleeBy(sim, core.NeverExpires)
 	})
