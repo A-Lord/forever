@@ -89,7 +89,8 @@ describe('icon input factories', () => {
 	const fieldFor = (config: any, id: string = config.id) => <Field id={id} label={config.label} labelTooltip={config.labelTooltip} layout="icon" />;
 
 	const factories: Record<string, () => { label?: string; labelTooltip?: unknown }> = {
-		makeClassOptionsBooleanIconInput: () => makeClassOptionsBooleanIconInput<any>({ ...frameProps, fieldName: 'primary' as never, id: ActionId.fromSpellId(1) }),
+		makeClassOptionsBooleanIconInput: () =>
+			makeClassOptionsBooleanIconInput<any>({ ...frameProps, fieldName: 'primary' as never, id: ActionId.fromSpellId(1) }),
 		makeClassOptionsEnumIconInput: () => makeClassOptionsEnumIconInput<any, number>({ ...frameProps, fieldName: 'primary' as never, values: [] }),
 		makeSpecOptionsEnumIconInput: () => makeSpecOptionsEnumIconInput<any, number>({ ...frameProps, fieldName: 'primary' as never, values: [] }),
 	};
