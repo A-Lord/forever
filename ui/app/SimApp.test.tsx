@@ -8,6 +8,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // The shell is stubbed on purpose. What is under test is the construct-once gate, not the shell —
 // and constructing the real one would need a Database and a worker.
 const constructions: Array<{ root: HTMLElement }> = [];
+// Read off `dom.root` inside the constructor, which runs before the render that hands the shell its
+// host — the only way to prove the header and `main` it names are the ones still in the document later.
+const constructedHeaders: Array<Element | null> = [];
+const constructedMains: Array<Element | null> = [];
 vi.mock('./individual_sim_ui', async () => {
 	const { SidebarRegistry } = await import('@app/sidebar_registry');
 	const { CrashReportOpener } = await import('./crash_report_opener');
@@ -27,25 +31,30 @@ vi.mock('./individual_sim_ui', async () => {
 			readonly crashReport = new CrashReportOpener();
 			constructor(dom: { root: HTMLElement }) {
 				constructions.push(dom);
+				constructedHeaders.push(dom.root.querySelector('[data-testid="sim-header"]'));
+				constructedMains.push(dom.root.querySelector('[data-testid="sim-main"]'));
 			}
 		},
 	};
 });
 
 // The six real panes need a Database and a worker; what is under test is that a pane renders as an
-// ordinary child of the shell's main column, so the stub wraps one fake tab through the real `SimTabs`.
+// ordinary child of the shell's main column, so the stub wraps one fake tab through the real `SimTabs`
+// — mirroring the real delegation on `host`, so the host's arrival is the same defs-appear transition.
 vi.mock('./SimTabsSection', async () => {
 	const { createElement } = await import('react');
 	const { SimTabDef } = await import('./SimTabDef');
 	const { SimTabs } = await import('./SimTabs');
 	return {
-		SimTabsSection: ({ children }: { children: ReactNode }) =>
+		SimTabsSection: ({ host, children }: { host: unknown; children: ReactNode }) =>
 			createElement(SimTabs, {
-				defs: createElement(SimTabDef, {
-					id: 'gear-tab',
-					title: 'Gear',
-					children: createElement('div', { className: 'gear-tab-left' }),
-				}),
+				defs: host
+					? createElement(SimTabDef, {
+							id: 'gear-tab',
+							title: 'Gear',
+							children: createElement('div', { className: 'gear-tab-left' }),
+						})
+					: null,
 				children,
 			}),
 	};
@@ -106,6 +115,8 @@ const mount = async (element: ReactElement) => {
 describe('SimApp', () => {
 	beforeEach(() => {
 		constructions.length = 0;
+		constructedHeaders.length = 0;
+		constructedMains.length = 0;
 	});
 
 	it('constructs the shell once', async () => {
@@ -166,6 +177,14 @@ describe('SimApp', () => {
 		expect(container.querySelector('[data-testid="sim-ui"]')).toBe(dom.root);
 		expect(sidebarActions.isConnected).toBe(true);
 		expect(sidebarActions.querySelector('.built-imperatively')).toBe(marker);
+	});
+
+	it('keeps the header and main mounted when the host arrives and the tabs get their defs', async () => {
+		const { container } = await mount(<SimApp player={player} def={def} />);
+		expect(constructedHeaders[0]).not.toBeNull();
+		expect(constructedMains[0]).not.toBeNull();
+		expect(container.querySelector('[data-testid="sim-header"]')).toBe(constructedHeaders[0]);
+		expect(container.querySelector('[data-testid="sim-main"]')).toBe(constructedMains[0]);
 	});
 
 	it('mounts the shell at the mount point, with no wrapper of its own', async () => {

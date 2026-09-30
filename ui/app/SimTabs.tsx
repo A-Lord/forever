@@ -16,16 +16,19 @@ interface SimTabsListContextValue {
 	tabs: ReadonlyArray<SimTabDefProps>;
 }
 
-// `null` outside a `SimTabs`, which is how `SimTabsStrip`/`SimTabsPanels` render nothing before a host exists.
 const SimTabsListContext = createContext<SimTabsListContextValue | null>(null);
 
 // `Tabs.Root` is the one React ancestor the strip and the panels both need; the shell renders it around
-// the header and `main`, so a pane stays a plain child of `main` instead of a portal target.
+// the header and `main`, so a pane is a plain child of `main`. It mounts with no `defs` at all (before a
+// host exists) and keeps mounting through every later render — swapping it out for a plain fragment on the
+// render `defs` first arrives would remount the header and `main` themselves.
 export const SimTabs = ({ defs, children }: SimTabsProps) => {
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const tabs = useMemo(() => childProps<SimTabDefProps>(defs), [defs]);
-	// The first tab is the one open on load, and an id no tab carries falls back to it.
-	const value = tabs.find(tab => tab.id === activeId)?.id ?? tabs[0]?.id;
+	// The first tab is the one open on load, and an id no tab carries falls back to it. `null`, not
+	// `undefined`, so `Tabs.Root` is controlled from its first render (with no tabs yet) rather than
+	// flipping from uncontrolled once one exists.
+	const value = tabs.find(tab => tab.id === activeId)?.id ?? tabs[0]?.id ?? null;
 
 	// Base UI fires `onValueChange` for a user interaction only, so a pane opening a sibling tab
 	// reports the page view through here instead. Stable, so a shell re-render unrelated to the tabs
@@ -51,13 +54,13 @@ export const SimTabs = ({ defs, children }: SimTabsProps) => {
 
 export const SimTabsStrip = () => {
 	const list = use(SimTabsListContext);
-	if (!list) return null;
+	if (!list?.tabs.length) return null;
 	return <TabNav variant="sim" testId="sim-tabs" tabs={list.tabs.map(tab => ({ id: tab.id, label: tab.title, badge: tab.badge }))} />;
 };
 
 export const SimTabsPanels = () => {
 	const list = use(SimTabsListContext);
-	if (!list) return null;
+	if (!list?.tabs.length) return null;
 	return (
 		<>
 			{list.tabs.map(tab => (

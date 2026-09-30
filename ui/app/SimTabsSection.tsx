@@ -69,6 +69,8 @@ export const SimTabsSection = ({ host, children }: SimTabsSectionProps) => {
 		[host],
 	);
 
-	if (!defs) return <>{children}</>;
+	// Always `SimTabs`, even with no `defs` yet: switching element types here on the render the host
+	// arrives would remount `children` (the header and `main`), taking the sticky header's observer
+	// and `StickyHeaderContext` down with the old nodes.
 	return <SimTabs defs={defs}>{children}</SimTabs>;
 };
