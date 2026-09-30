@@ -21,9 +21,9 @@ func (warrior *Warrior) registerBattleShout() {
 	castsOwnShout := warrior.UseBattleShout
 
 	// Three pieces of Battlegear of Wrath add a flat 30 to the shout. HasBsT2 is
-	// the user saying this warrior wears them; the equipped set is not read. The
-	// set is worth the 30 on the shout this warrior makes, so it raises what that
-	// copy applies and what the cast is worth to the category together.
+	// set by the user or by the set worn at the start. The set is worth the 30 on
+	// the shout this warrior makes, so it raises what that copy applies and what
+	// the cast is worth to the category together.
 	battleShoutBase := buffs.BattleShoutValue(0)
 	battleShoutValue := battleShoutBase
 	shoutsWithTheSet := castsOwnShout && warrior.HasBsT2

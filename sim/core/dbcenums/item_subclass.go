@@ -3,6 +3,12 @@ package dbcenums
 // The item class a spell names in SpellEquippedItems.EquippedItemClass when it needs a weapon.
 const ITEM_CLASS_WEAPON = 2
 
+// The item class and subclass bit a spell names when it needs a shield.
+const (
+	ITEM_CLASS_ARMOR               = 4
+	ITEM_SUBCLASS_BIT_ARMOR_SHIELD = 0x00000040
+)
+
 // The weapon subclass bits of SpellEquippedItems.EquippedItemSubclass: 1 << the item's weapon
 // subclass.
 const (

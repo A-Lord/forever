@@ -1,6 +1,6 @@
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
-import { ConsumableType, ItemSlot, Spec } from '@generated/proto/common';
+import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
@@ -37,14 +37,6 @@ export interface ConsumeConfigs {
 }
 
 type GroupRow = 'elixirs' | 'scrolls' | 'groups';
-
-// Feral druids cannot take Windfury or Flametongue Totem, so their main-hand imbue shows under them.
-const SPECS_WITHOUT_WINDFURY = [Spec.SpecFeralBearDruid, Spec.SpecFeralCatDruid];
-const mainHandImbueShown = (player: Player<any>) => {
-	if (SPECS_WITHOUT_WINDFURY.includes(player.getSpec()) || !player.getParty()) return true;
-	const buffs = player.getParty()!.getBuffs();
-	return !buffs.windfuryTotem && !buffs.flametongueTotem;
-};
 
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
@@ -97,7 +89,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 				consumesFieldName: 'mhImbueId',
 				tooltip: i18n.t('settings_tab.consumables.imbue.mhImbue'),
 				offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotMainHand)),
-				showWhen: mainHandImbueShown,
 			},
 			imbues,
 		),

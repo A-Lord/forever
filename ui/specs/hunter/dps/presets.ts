@@ -65,7 +65,6 @@ export const DefaultPartyBuffs = PartyBuffs.create({
 	graceOfAirTotem: true,
 	leaderOfThePack: true,
 	strengthOfEarthTotem: true,
-	totemTwisting: true,
 	windfuryTotem: true,
 });
 

@@ -133,7 +133,7 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	if player.Consumables != nil {
 		character.Consumables = player.Consumables
 	}
-	applyTemporaryEnchants(&character, character.Consumables, party.buffs)
+	applyTemporaryEnchants(&character, character.Consumables)
 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 

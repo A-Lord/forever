@@ -3,7 +3,6 @@ package hunter
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
-	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func (hunter *Hunter) registerSurvivalTalents() {
@@ -136,14 +135,12 @@ func (hunter *Hunter) registerStriderKick() {
 	hunter.RegisterSpell(config)
 }
 
-// The row's A_MOD_TOTAL_STAT_PERCENTAGE names stat 0, strength, where the tooltip says agility;
-// the tooltip wins.
 func (hunter *Hunter) registerLightningReflexes() {
 	if hunter.Talents.LightningReflexes == 0 {
 		return
 	}
 
-	hunter.MultiplyStat(stats.Agility, spellData.LightningReflexes.MultiplierAt(hunter.Talents.LightningReflexes))
+	spelldata.ParseStatic(&hunter.Character, spellData.LightningReflexes.Rank(hunter.Talents.LightningReflexes))
 }
 
 var laceratingStrikesBleed = spellData.LaceratingStrikesTriggered.Highest()

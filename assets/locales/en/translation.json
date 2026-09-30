@@ -529,10 +529,6 @@
 				"label": "Retribution Aura Spell Power",
 				"tooltip": "The Holy spell power of the paladin providing Retribution Aura. Each hit you take deals the aura's base damage plus about 13.6% of this."
 			},
-			"totem_twisting": {
-				"label": "Totem Twisting",
-				"tooltip": "If both Windfury and Grace of Air are active will alternate between them to keep up both buffs."
-			},
 			"pet_uptime": {
 				"label": "Pet Uptime (%)",
 				"tooltip": "Percent of the fight duration for which your pet will be alive."
@@ -2324,6 +2320,8 @@
 			"profession_requirement": "{{itemName}} requires {{professionName}}, but it is not selected.",
 			"too_many_jc_gems": "Only 2 Jewelcrafting Gems are allowed, but {{count}} are equipped.",
 			"unspent_talent_points": "You have {{count}} unspent talent point(s).",
+			"windfury_over_grace_of_air": "Windfury Totem and Grace of Air Totem do not stack: only Windfury Totem applies.",
+			"windfury_over_flametongue": "Windfury Totem and Flametongue Totem do not stack: only Windfury Totem applies.",
 			"custom_ep_not_enabled": "Detected custom EPs. Enable \"Use custom EP Weights\" in the Suggest Gems settings to use them for gemming."
 		},
 		"buttons": {

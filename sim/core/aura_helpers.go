@@ -66,7 +66,7 @@ type ProcTrigger struct {
 	// which is how the game treats every talent, set bonus and Equip effect by default.
 	CanProcFromProcs bool
 	// A weapon proc: a "Chance on hit" item effect (ItemEffect.TriggerType 2) or a combat enchant
-	// (SpellItemEnchantment.Effect 1, e.g. Mongoose, Crusader, poisons, imbues, Windfury Totem).
+	// (SpellItemEnchantment.Effect 1, e.g. Mongoose, Crusader, poisons, imbues).
 	// The game casts these off every melee or ranged hit that lacks SpellFlagSuppressWeaponProcs,
 	// whether or not that hit was itself a proc, so SpellFlagProc and CanProcFromProcs are ignored.
 	// Which hand's hits qualify is still the DPM's or ProcMask's job.

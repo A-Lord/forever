@@ -98,7 +98,7 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
-		inputs: [OtherInputs.TotemTwisting, OtherInputs.InputDelay, OtherInputs.TankAssignment, OtherInputs.InFrontOfTarget],
+		inputs: [OtherInputs.InputDelay, OtherInputs.TankAssignment, OtherInputs.InFrontOfTarget],
 	},
 	encounterPicker: {
 		// Whether to include 'Execute Duration (%)' in the 'Encounter' section of the settings tab.
