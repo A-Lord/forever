@@ -21,7 +21,6 @@ var Raid = []BuffSpec{
 		Category: "StatBuff",
 		Stats: []proto.Stat{
 			proto.Stat_StatSpirit,
-			proto.Stat_StatSpellDamage,
 		},
 	},
 	{
@@ -58,7 +57,6 @@ var Raid = []BuffSpec{
 		SpellID: 27683,
 		Stats: []proto.Stat{
 			proto.Stat_StatShadowResistance,
-			proto.Stat_StatStamina,
 		},
 	},
 	{
@@ -209,7 +207,6 @@ var Party = []BuffSpec{
 		SingleAura:     true,
 		Driver:         true,
 		Stats: []proto.Stat{
-			proto.Stat_StatArmor,
 			proto.Stat_StatDefenseRating,
 		},
 	},
@@ -226,7 +223,8 @@ var Party = []BuffSpec{
 		SharedCategory: "PaladinAura",
 		SingleAura:     true,
 		Stats: []proto.Stat{
-			proto.Stat_StatDefenseRating,
+			proto.Stat_StatSpellDamage,
+			proto.Stat_StatHealingPower,
 		},
 	},
 	// TODO: rank 5 states 50 ranged attack power and rank 4 states 75; in-game testing has to say
@@ -245,8 +243,7 @@ var Party = []BuffSpec{
 		Kind:    KindItemCount,
 		Label:   "Atiesh - Mage",
 		Stats: []proto.Stat{
-			proto.Stat_StatSpellDamage,
-			proto.Stat_StatHealingPower,
+			proto.Stat_StatCritRating,
 		},
 	},
 	{
@@ -322,8 +319,7 @@ var Party = []BuffSpec{
 		Talent:   16258,
 		Category: "StoneskinTotem",
 		Stats: []proto.Stat{
-			proto.Stat_StatArmor,
-			proto.Stat_StatStamina,
+			proto.Stat_StatDefenseRating,
 		},
 	},
 	// A pet ability the hunter class family does not file, so the owner is stated.
@@ -407,7 +403,8 @@ var Individual = []BuffSpec{
 		Kind:     KindExternalCD,
 		Category: "PowerInfusion",
 		Stats: []proto.Stat{
-			proto.Stat_StatHasteRating,
+			proto.Stat_StatSpellDamage,
+			proto.Stat_StatHealingPower,
 		},
 		Label: "Power Infusions",
 	},
