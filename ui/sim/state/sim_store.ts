@@ -5,7 +5,7 @@
 //
 // Slices are added here as each facade is converted; a slice absent from this
 // file still lives in its class.
-import type { PlayerStats } from '@generated/proto/api';
+import type { BulkEnchantPreset, PlayerStats } from '@generated/proto/api';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import {
 	type AreaType,
@@ -210,6 +210,8 @@ export interface BulkSlice {
 	frozenItems: ReadonlyMap<BulkSimItemSlot, EquippedItem | null>;
 	frozenWeaponSlot: ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand | undefined;
 	weaponTypeFilters: ReadonlyMap<ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand, WeaponType[]>;
+	enchantPresets: readonly BulkEnchantPreset[];
+	checkedEnchantPresets: readonly string[];
 	combinations: number;
 	iterations: number;
 	combinationsPending: boolean;

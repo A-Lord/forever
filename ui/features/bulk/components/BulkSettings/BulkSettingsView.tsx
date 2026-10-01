@@ -24,6 +24,7 @@ export interface BulkSettingsViewProps {
 	onOpenGroupsChange: (groups: string[]) => void;
 	/** Null for a spec without a reforge optimizer. */
 	reforgeSettings: ReactNode;
+	enchants: ReactNode;
 	frozenItems: ReadonlyArray<ChoiceFieldProps<number>>;
 	/** Null for a player who cannot dual wield. */
 	weaponFreeze: BulkWeaponFreeze | null;
@@ -37,6 +38,7 @@ export const BulkSettingsView = ({
 	openGroups,
 	onOpenGroupsChange,
 	reforgeSettings,
+	enchants,
 	frozenItems,
 	weaponFreeze,
 	onFrozenWeaponSlotChange,
@@ -63,6 +65,12 @@ export const BulkSettingsView = ({
 							{reforgeSettings}
 						</AccordionItem>
 					)}
+					<AccordionItem
+						value={BULK_SETTINGS_GROUP.enchants}
+						title={i18n.t('bulk_tab.settings.groups.enchants')}
+						testId="bulk-settings-group-enchants">
+						{enchants}
+					</AccordionItem>
 					<AccordionItem
 						value={BULK_SETTINGS_GROUP.freezes}
 						title={i18n.t('bulk_tab.settings.groups.frozen_slots')}

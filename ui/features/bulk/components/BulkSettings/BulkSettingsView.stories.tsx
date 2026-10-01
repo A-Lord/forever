@@ -4,6 +4,7 @@ import { StoryBoolean } from '@testing/storybook/fixtures/settings_reforge_bulk'
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
+import { BulkEnchantsView } from '../BulkEnchants';
 import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettingsView';
 import { CombinationsCountView } from './CombinationsCountView';
 
@@ -56,6 +57,19 @@ const meta = {
 		openGroups: ['freezes'],
 		onOpenGroupsChange: fn(),
 		reforgeSettings: null,
+		enchants: (
+			<BulkEnchantsView
+				presets={[
+					{ name: 'Undead', checked: true },
+					{ name: 'Outdoor', checked: false },
+				]}
+				onCheckedChange={fn()}
+				onNew={fn()}
+				onEdit={fn()}
+				onDelete={fn()}
+				dialog={null}
+			/>
+		),
 		frozenItems: [
 			pair('story-freeze-ring', 'Freeze ring', ['Finger 1', ItemSlot.ItemSlotFinger1], ['Finger 2', ItemSlot.ItemSlotFinger2]),
 			pair('story-freeze-trinket', 'Freeze trinket', ['Trinket 1', ItemSlot.ItemSlotTrinket1], ['Trinket 2', ItemSlot.ItemSlotTrinket2]),
@@ -66,6 +80,7 @@ const meta = {
 	argTypes: {
 		combinationsCount: { control: false },
 		reforgeSettings: { control: false },
+		enchants: { control: false },
 		frozenItems: { control: false },
 		weaponFreeze: { control: false },
 	},

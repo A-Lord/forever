@@ -948,6 +948,7 @@
 			"combinations": "Combinations",
 			"total_iterations": "Estimated iterations",
 			"groups": {
+				"enchants": "Enchants",
 				"frozen_slots": "Frozen slots",
 				"reforge": "Gem settings",
 				"reforge_description": "These are the same settings the Suggest Gems button uses. The batch sim applies them to every gear set it simulates."
@@ -969,6 +970,19 @@
 				"mainhand_label": "Freeze MH weapon type",
 				"offhand_label": "Freeze OH weapon type",
 				"tooltip": "Leave all unchecked to allow any weapon type for this slot."
+			},
+			"enchant_presets": {
+				"description": "The batch tries every enchant of the ticked presets on each item that fits it.",
+				"empty": "No enchant presets yet.",
+				"new": "New preset",
+				"edit": "Edit {{name}}",
+				"delete": "Delete {{name}}",
+				"delete_confirm": "Delete the enchant preset {{name}}?",
+				"new_title": "New enchant preset",
+				"edit_title": "Edit enchant preset",
+				"name": "Preset name",
+				"name_duplicate": "A preset with this name already exists.",
+				"save": "Save"
 			}
 		},
 		"progress": {

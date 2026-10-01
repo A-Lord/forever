@@ -1,7 +1,7 @@
 // The bulk tab's store slice and its persisted settings blob, so the UI neither writes the
 // store directly nor owns a localStorage key. Everything is derived from the player: the slice
 // is `bulk[player.storeKey]` and the key is the player's spec prefix.
-import { BulkSettings as BulkSettingsProto } from '@generated/proto/api';
+import { BulkEnchantPresets, BulkSettings as BulkSettingsProto } from '@generated/proto/api';
 import { ItemSlot } from '@generated/proto/common';
 
 import { BulkSimItemSlot } from '../bulk/constants_auto_gen';
@@ -11,6 +11,7 @@ import { specStorageKey } from '../state/storage_keys';
 
 const BULK_SETTINGS_STORAGE_KEY = 'bulk-settings.v2';
 const LEGACY_BULK_SETTINGS_STORAGE_KEY = 'bulk-settings.v1';
+const BULK_ENCHANT_PRESETS_STORAGE_KEY = 'bulk-enchant-presets.v1';
 
 const initialBulkSlice = (): BulkSlice => ({
 	items: [],
@@ -24,6 +25,8 @@ const initialBulkSlice = (): BulkSlice => ({
 		[ItemSlot.ItemSlotMainHand, []],
 		[ItemSlot.ItemSlotOffHand, []],
 	]),
+	enchantPresets: [],
+	checkedEnchantPresets: [],
 	combinations: 0,
 	iterations: 0,
 	combinationsPending: false,
@@ -71,3 +74,19 @@ export const storeBulkSettings = (player: Player<any>, settings: BulkSettingsPro
 		}
 	}
 };
+
+export const loadStoredEnchantPresets = (player: Player<any>): BulkEnchantPresets | null => {
+	const stored = player.sim.env.storage.getItem(specStorageKey(player.getPlayerSpec(), BULK_ENCHANT_PRESETS_STORAGE_KEY));
+	if (stored == null) return null;
+	try {
+		return BulkEnchantPresets.fromJsonString(stored, { ignoreUnknownFields: true });
+	} catch {
+		return BulkEnchantPresets.create();
+	}
+};
+
+export const storeEnchantPresets = (player: Player<any>, presets: BulkEnchantPresets) =>
+	player.sim.env.storage.setItem(
+		specStorageKey(player.getPlayerSpec(), BULK_ENCHANT_PRESETS_STORAGE_KEY),
+		BulkEnchantPresets.toJsonString(presets, { enumAsInteger: true }),
+	);

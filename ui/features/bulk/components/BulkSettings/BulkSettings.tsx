@@ -14,6 +14,7 @@ import { frozenItemSlot } from '../../model/picker_groups';
 import { runBulkBatch } from '../../model/run';
 import { canRunBatch } from '../../model/selectors';
 import { setBulkFrozenItem, setBulkFrozenWeaponSlot } from '../../model/settings';
+import { BulkEnchants } from '../BulkEnchants';
 import { BulkSettingsView } from './BulkSettingsView';
 import { CombinationsCount } from './CombinationsCount';
 import { FreezeWeaponTypes } from './FreezeWeaponTypes';
@@ -84,6 +85,7 @@ export const BulkSettings = () => {
 			reforgeSettings={
 				host.reforger && <ReforgeSettingsPanel model={host.reforger} options={host.reforgeOptions ?? undefined} idPrefix="bulk-reforge-optimizer" />
 			}
+			enchants={<BulkEnchants />}
 			frozenItems={FROZEN_PAIRS.map(freezeItemProps)}
 			weaponFreeze={
 				getBulkPlayerCanDualWield(player)

@@ -3336,6 +3336,9 @@
 						"groups": {
 							"type": "object",
 							"properties": {
+								"enchants": {
+									"type": "string"
+								},
 								"frozen_slots": {
 									"type": "string"
 								},
@@ -3347,7 +3350,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["frozen_slots", "reforge", "reforge_description"]
+							"required": ["enchants", "frozen_slots", "reforge", "reforge_description"]
 						},
 						"iterations": {
 							"type": "string"
@@ -3406,6 +3409,58 @@
 							},
 							"additionalProperties": false,
 							"required": ["mainhand_label", "offhand_label", "tooltip"]
+						},
+						"enchant_presets": {
+							"type": "object",
+							"properties": {
+								"description": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"new": {
+									"type": "string"
+								},
+								"edit": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"delete_confirm": {
+									"type": "string"
+								},
+								"new_title": {
+									"type": "string"
+								},
+								"edit_title": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"name_duplicate": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": [
+								"description",
+								"empty",
+								"new",
+								"edit",
+								"delete",
+								"delete_confirm",
+								"new_title",
+								"edit_title",
+								"name",
+								"name_duplicate",
+								"save"
+							]
 						}
 					},
 					"additionalProperties": false,
@@ -3417,7 +3472,8 @@
 						"freeze_ring",
 						"freeze_trinket",
 						"freeze_weapon",
-						"freeze_weapon_types"
+						"freeze_weapon_types",
+						"enchant_presets"
 					]
 				},
 				"progress": {

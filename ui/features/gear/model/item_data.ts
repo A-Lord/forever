@@ -38,6 +38,8 @@ const byEffectIdDescending = (itemA: Enchant, itemB: Enchant) => {
 	return 0;
 };
 
+export const enchantActionId = (enchant: Enchant): ActionId => (enchant.itemId ? ActionId.fromItemId(enchant.itemId) : ActionId.fromSpellId(enchant.spellId));
+
 const enchantRow = (
 	enchant: Enchant,
 	equip: (equippedItem: EquippedItem, enchant: Enchant) => EquippedItem,
@@ -45,7 +47,7 @@ const enchantRow = (
 ): ItemData<Enchant, string> => ({
 	item: enchant,
 	id: enchant.effectId,
-	actionId: enchant.itemId ? ActionId.fromItemId(enchant.itemId) : ActionId.fromSpellId(enchant.spellId),
+	actionId: enchantActionId(enchant),
 	name: enchant.name,
 	searchText: enchant.name,
 	quality: enchant.quality,

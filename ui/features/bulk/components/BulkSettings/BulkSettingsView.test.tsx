@@ -24,6 +24,7 @@ const renderSettings = (props: Partial<BulkSettingsViewProps> = {}) => {
 			canRun
 			openGroups={['freezes', 'reforge']}
 			reforgeSettings={null}
+			enchants={null}
 			frozenItems={[RING]}
 			weaponFreeze={null}
 			{...handlers}

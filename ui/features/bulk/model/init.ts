@@ -1,8 +1,17 @@
+import { BulkEnchantPresets } from '@generated/proto/api';
 import { ItemSlot } from '@generated/proto/common';
 import { BULK_SIM_ITEM_SLOT_TO_ITEM_SLOT_PAIRS, BulkSimItemSlot } from '@sim/bulk/utils';
 import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { loadStoredBulkSettings, seedBulkSettings, storeBulkSettings } from '@sim/settings/bulk_settings';
+import {
+	bulkState,
+	loadStoredBulkSettings,
+	loadStoredEnchantPresets,
+	patchBulkState,
+	seedBulkSettings,
+	storeBulkSettings,
+	storeEnchantPresets,
+} from '@sim/settings/bulk_settings';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { subscribeBulkChange, subscribePlayerField } from '@sim/state/subscriptions';
 
@@ -33,6 +42,16 @@ const loadSettings = (player: Player<any>) => {
 		setBulkWeaponTypeFilter(player, ItemSlot.ItemSlotMainHand, settings.freezeMainhandWeaponSlots);
 		setBulkWeaponTypeFilter(player, ItemSlot.ItemSlotOffHand, settings.freezeOffhandWeaponSlots);
 	}
+
+	const enchantPresets = loadStoredEnchantPresets(player);
+	if (enchantPresets != null) {
+		patchBulkState(player, { enchantPresets: enchantPresets.presets, checkedEnchantPresets: enchantPresets.checked }, ['settings']);
+	}
+};
+
+const storeBulkEnchantPresets = (player: Player<any>) => {
+	const { enchantPresets, checkedEnchantPresets } = bulkState(player);
+	storeEnchantPresets(player, BulkEnchantPresets.create({ presets: [...enchantPresets], checked: [...checkedEnchantPresets] }));
 };
 
 /**
@@ -48,7 +67,10 @@ export const initBulk = (host: IndividualSimHost<any>) => {
 		loadSettings(player);
 
 		subscribePlayerField(player, 'gear')(() => loadEquippedBulkItems(player));
-		subscribeBulkChange(player)(() => storeBulkSettings(player, createBulkSettingsProto(player)));
+		subscribeBulkChange(player)(() => {
+			storeBulkSettings(player, createBulkSettingsProto(player));
+			storeBulkEnchantPresets(player);
+		});
 		subscribeBulkChange(player)(() => void refreshBulkCombinations(host));
 
 		loadEquippedBulkItems(player);
