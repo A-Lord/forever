@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { castRotationRow, castRowItem, MORTAL_STRIKE, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
+import { castLog, castRotationRow, castRowItem, MORTAL_STRIKE, rotationTrackStyle } from '@testing/storybook/fixtures/results-views';
 
 import { CastItem } from './CastItem';
 
@@ -32,3 +32,8 @@ export const Miss: Story = { args: { item: castRowItem(1, { outcome: 'miss' }) }
 export const Cancelled: Story = { args: { item: castRowItem(1, { cancelled: true, outcome: 'none' }) } };
 
 export const WithTravel: Story = { args: { item: castRowItem(1, { end: 3, travelStart: 3, travelDuration: 0.8 }) } };
+
+const stackTop = castLog(1);
+
+/** Three casts inside the stack window: the last one draws over the others and counts them. */
+export const Stacked: Story = { args: { item: castRowItem(1, { log: stackTop, stack: [castLog(1), castLog(1), stackTop] }) } };

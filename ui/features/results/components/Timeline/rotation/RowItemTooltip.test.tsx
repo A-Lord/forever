@@ -62,6 +62,16 @@ describe('RowItemTooltip', () => {
 		expect(withDamage).toContain('(40.3 results_tab.details.timeline.tooltips.threat)');
 	});
 
+	it('lists the damage of every cast in a stack and totals it over their effective time', () => {
+		const first = { ...cast().log, timestamp: 1.9, effectiveTime: 1 };
+		const last = { ...cast().log, effectiveTime: 1, damageDealtLogs: [damage(3000)] };
+		const stacked = text({ ...cast(), log: last, stack: [{ ...first, damageDealtLogs: [damage(1000)] }, last] } as CastItem);
+		expect(stacked).toContain('2 casts from 1.90s to 2.00s');
+		expect(stacked).toContain('Total: 4000.00 (2000.00 DPET)');
+		expect(stacked).toContain('for 1000.00 damage');
+		expect(stacked).toContain('for 3000.00 damage');
+	});
+
 	it('leaves the total out of a cast that dealt none', () => {
 		expect(text(cast())).not.toContain('Total:');
 	});
