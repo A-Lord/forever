@@ -6,7 +6,7 @@ import (
 )
 
 // A channel on the caster: each second it fires Hellfire Effect at every enemy nearby, and burns the caster
-// for the same. An area effect that ticks rolls hit on every tick.
+// for the same. An area effect that ticks rolls hit on every tick; Hellfire Effect's row bars it from critting.
 func (warlock *Warlock) registerHellfire() {
 	rankedSpell := spellData.Hellfire.ByID(11684)
 	channelTick := rankedSpell.PeriodicEffect()
@@ -14,13 +14,18 @@ func (warlock *Warlock) registerHellfire() {
 
 	effectRow := spellData.HellfireEffect.ByID(11682)
 	effectHit := effectRow.DamageEffect()
+	cannotCrit := effectRow.CannotCrit()
 
 	// Fired by the channel; hits every enemy in range
 	effectConfig := spelldata.SpellConfig(&warlock.Unit, effectRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
 	effectConfig.ClassSpellMask = WarlockSpellHellfire
 	effectConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		outcome := spell.OutcomeMagicHitAndCrit
+		if cannotCrit {
+			outcome = spell.OutcomeMagicHit
+		}
 		for _, target := range sim.Encounter.ActiveTargetUnits {
-			spell.CalcAndDealDamage(sim, target, effectHit.Average(), spell.OutcomeMagicHitAndCrit)
+			spell.CalcAndDealDamage(sim, target, effectHit.Average(), outcome)
 		}
 	}
 	hellfireEffect := warlock.RegisterSpell(effectConfig)
