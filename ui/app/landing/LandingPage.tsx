@@ -17,7 +17,7 @@ export const LandingPage = () => (
 							{i18n.t('landing.home.welcomeDescription')}
 						</p>
 					</div>
-					<div className="flex flex-col max-lg:-mx-4">
+					<div className="flex flex-col max-lg:-mx-2">
 						<div className="flex flex-wrap" id="sim-links">
 							{LANDING_CLASS_ORDER.map(classId => (
 								<LandingClassMenu key={classId} playerClass={PlayerClasses.fromProto(classId)} />
