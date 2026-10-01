@@ -126,8 +126,8 @@ describe('gearChangeEnchant', () => {
 		expect(gearChangeEnchant(withEnchant(8), withEnchant())?.name).toBe('Enchant 8');
 	});
 
-	it('returns null when the enchant was removed', () => {
-		expect(gearChangeEnchant(withEnchant(), withEnchant(7))).toBeNull();
+	it('returns nothing when the enchant was removed', () => {
+		expect(gearChangeEnchant(withEnchant(), withEnchant(7))).toBeUndefined();
 	});
 
 	it('returns nothing without a previous item or without an item', () => {

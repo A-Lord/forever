@@ -1,11 +1,11 @@
 import type { ItemSlot } from '@generated/proto/common';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
-import { ActionId } from '@sim/proto/action_id';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { useMemo } from 'react';
 
 import { useEquippedItemWowheadDataset } from '../../hooks/useEquippedItemWowheadDataset';
+import { enchantActionId } from '../../model/item_data';
 import { GearChangeIconView } from './GearChangeIconView';
 import { gearChangeEnchant, gearChangeSockets } from './utils';
 
@@ -25,12 +25,8 @@ export const GearChangeIcon = ({ slot, item, previousItem }: GearChangeIconProps
 	const sockets = useMemo(() => gearChangeSockets(item, previousItem), [item, previousItem]);
 
 	const changedEnchant = useMemo(() => gearChangeEnchant(item, previousItem), [item, previousItem]);
-	const enchantActionId = useMemo(
-		() =>
-			changedEnchant ? (changedEnchant.spellId ? ActionId.fromSpellId(changedEnchant.spellId) : ActionId.fromItemId(changedEnchant.itemId)) : undefined,
-		[changedEnchant],
-	);
-	const { iconUrl: enchantIconUrl } = useActionId(enchantActionId);
+	const changedEnchantActionId = useMemo(() => (changedEnchant ? enchantActionId(changedEnchant) : undefined), [changedEnchant]);
+	const { iconUrl: enchantIconUrl } = useActionId(changedEnchantActionId);
 	const enchant = changedEnchant ? { name: changedEnchant.name, iconUrl: enchantIconUrl } : undefined;
 
 	return <GearChangeIconView slot={slot} equipped={!!item} iconUrl={iconUrl} href={href} wowhead={wowhead} sockets={sockets} enchant={enchant} />;

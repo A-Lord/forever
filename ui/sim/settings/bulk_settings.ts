@@ -85,8 +85,14 @@ export const loadStoredEnchantPresets = (player: Player<any>): BulkEnchantPreset
 	}
 };
 
-export const storeEnchantPresets = (player: Player<any>, presets: BulkEnchantPresets) =>
-	player.sim.env.storage.setItem(
-		specStorageKey(player.getPlayerSpec(), BULK_ENCHANT_PRESETS_STORAGE_KEY),
-		BulkEnchantPresets.toJsonString(presets, { enumAsInteger: true }),
-	);
+// Over the quota the previously stored presets stay, rather than the key being dropped with them.
+export const storeEnchantPresets = (player: Player<any>, presets: BulkEnchantPresets) => {
+	try {
+		player.sim.env.storage.setItem(
+			specStorageKey(player.getPlayerSpec(), BULK_ENCHANT_PRESETS_STORAGE_KEY),
+			BulkEnchantPresets.toJsonString(presets, { enumAsInteger: true }),
+		);
+	} catch (e) {
+		if (!(e instanceof DOMException && e.name === 'QuotaExceededError')) throw e;
+	}
+};

@@ -28,13 +28,7 @@ export const gearChangeSockets = (item: EquippedItem | undefined, previousItem: 
 	}));
 };
 
-/**
- * The enchant the new item carries when it differs from the previous item's: null when the enchant
- * was removed, undefined when nothing changed or there is no pair to compare.
- */
-export const gearChangeEnchant = (item: EquippedItem | undefined, previousItem: EquippedItem | undefined): UIEnchant | null | undefined => {
-	if (!item || !previousItem) return undefined;
-	const enchant = item.enchant;
-	if (enchant?.effectId === previousItem.enchant?.effectId) return undefined;
-	return enchant;
+export const gearChangeEnchant = (item: EquippedItem | undefined, previousItem: EquippedItem | undefined): UIEnchant | undefined => {
+	if (!item?.enchant || !previousItem) return undefined;
+	return item.enchant.effectId === previousItem.enchant?.effectId ? undefined : item.enchant;
 };

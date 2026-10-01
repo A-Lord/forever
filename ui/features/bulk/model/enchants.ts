@@ -21,7 +21,7 @@ export const BULK_ENCHANT_SLOTS: readonly ItemSlot[] = [
 	ItemSlot.ItemSlotRanged,
 ];
 
-// Sorted, so the request that seeds the batch's RNG does not depend on the order presets were ticked in.
+// Sorted, so the request that seeds the batch's RNG does not depend on preset order or the order enchants were picked in.
 export const bulkEnchantPool = (player: Player<any>): BulkEnchantSlotOptions[] => {
 	const { enchantPresets, checkedEnchantPresets } = bulkState(player);
 	const checked = enchantPresets.filter(preset => checkedEnchantPresets.includes(preset.name));
