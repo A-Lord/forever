@@ -22,6 +22,7 @@ type Consumable struct {
 	ClassMask          int
 	RaceMask           int64
 	RequiredSkill      int
+	RequiredSkillRank  int
 	TemporaryEnchant   TemporaryEnchant
 }
 
@@ -92,6 +93,7 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		Type:               c.consumableType(enchant, category),
 		Stats:              c.GetStatModifiers().ToProtoArray(),
 		Name:               c.Name,
+		Ilvl:               int32(c.ItemLevel),
 		BuffsMainStat:      false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
 		CategoryId:         int32(c.SpellCategoryID),
 		EffectIds:          c.GetNonStatEffectIds(),
@@ -101,6 +103,9 @@ func (c *Consumable) ToProto() *proto.Consumable {
 	}
 	if category > 0 {
 		consumable.CategoryId = category
+	}
+	if consumable.RequiredProfession != proto.Profession_ProfessionUnknown {
+		consumable.ReqProfRank = int32(c.RequiredSkillRank)
 	}
 	if c.RaceMask != -1 && c.RaceMask != 0 {
 		consumable.RaceAllowlist = GetRacesFromRaceMask(c.RaceMask)

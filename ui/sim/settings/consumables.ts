@@ -24,7 +24,7 @@ export enum ConsumableSlot {
 export interface ConsumableUser {
 	getClass(): Class;
 	getRace(): Race;
-	hasProfession(profession: Profession): boolean;
+	hasProfession(profession: Profession, rank?: number): boolean;
 	getEquippedItem(slot: ItemSlot): EquippedItem | null;
 	getSpecConfig(): Pick<SpecConfigData<any>, 'epStats' | 'consumableStats' | 'epPseudoStats' | 'displayStats'>;
 }
@@ -185,7 +185,7 @@ const STAT_TYPES = [
 	ConsumableType.ConsumableTypeElixir,
 ];
 
-// Whether the settings offer the consumable to this player: the class, race and profession the
+// Whether the settings offer the consumable to this player: the class, race, profession and skill the
 // game files allow it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
 // resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
 // (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
@@ -198,7 +198,8 @@ export function isConsumableRelevant(
 	pseudoStats = consumablePseudoStatsOf(user.getSpecConfig()),
 ): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
-	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession)) return false;
+	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession, consumable.reqProfRank))
+		return false;
 	if (consumable.raceAllowlist.length && !consumable.raceAllowlist.includes(user.getRace())) return false;
 
 	const { grantedStats, grantedPseudoStats, restores } = factsOf(consumable, db);
@@ -253,20 +254,25 @@ export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Cons
 }
 
 // isConsumableRelevant for one spec's stats and percents, remembered for as long as the class, race
-// and the professions any of the consumables requires stay the same.
+// and the profession requirements the player meets stay the same.
 export function relevanceFor(
 	consumables: ReadonlyArray<Consumable>,
 	db: SpellEffectSource,
 	stats: Set<Stat>,
 	pseudoStats: Set<PseudoStat>,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
-	const professions = [...new Set(consumables.map(consumable => consumable.requiredProfession))].filter(
-		profession => profession !== Profession.ProfessionUnknown,
-	);
+	const requirements = [
+		...new Map(
+			consumables
+				.filter(consumable => consumable.requiredProfession !== Profession.ProfessionUnknown)
+				.map(consumable => [`${consumable.requiredProfession}:${consumable.reqProfRank}`, consumable] as const),
+		).values(),
+	];
 	let key = '';
 	let relevant = new Map<Consumable, boolean>();
 	return (consumable, user) => {
-		const userKey = `${user.getClass()}:${user.getRace()}:${professions.filter(profession => user.hasProfession(profession))}`;
+		const met = requirements.filter(requirement => user.hasProfession(requirement.requiredProfession, requirement.reqProfRank));
+		const userKey = `${user.getClass()}:${user.getRace()}:${met.map(requirement => `${requirement.requiredProfession}:${requirement.reqProfRank}`)}`;
 		if (userKey !== key) {
 			key = userKey;
 			relevant = new Map();

@@ -25,6 +25,7 @@ import {
 } from '@generated/proto/api';
 import {
 	ArmorType,
+	ConsumableType,
 	EquipmentSpec,
 	Faction,
 	GemColor,
@@ -905,6 +906,9 @@ export class Sim {
 	getFilters(): DatabaseFilters {
 		// Make a defensive copy
 		return DatabaseFilters.clone(this.store.getState().sim.filters);
+	}
+	getMinConsumableIlvl(type: ConsumableType): number {
+		return this.store.getState().sim.filters.minConsumableIlvl[type] ?? 0;
 	}
 	setFilters(newFilters: DatabaseFilters) {
 		if (DatabaseFilters.equals(newFilters, this.store.getState().sim.filters)) {

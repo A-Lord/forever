@@ -24,11 +24,11 @@ export interface ConsumableInputOptions {
 }
 
 const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offers?: ConsumableInputOptions['offers']) => (player: Player<any>) => {
-	const usable = (c: Consumable) => relevance.relevant(c, player) && (!offers || offers(c, player));
+	const usable = (c: Consumable) => c.ilvl >= player.sim.getMinConsumableIlvl(c.type) && relevance.relevant(c, player) && (!offers || offers(c, player));
 	return usable(consumable) && !(relevance.higherRanks.get(consumable.id) ?? []).some(usable);
 };
 
-const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'race'];
+const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
 export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, options: ConsumableInputOptions) =>
 	consumablePicker(

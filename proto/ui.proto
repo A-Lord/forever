@@ -280,6 +280,8 @@ message DatabaseFilters {
 	UIItem.FactionRestriction faction_restriction = 19;
 	int32 min_ilvl = 20;
 	int32 max_ilvl = 21;
+	// The consumable pickers hide a consumable below the item level set for its ConsumableType.
+	map<int32, int32> min_consumable_ilvl = 24;
 
 	double min_mh_weapon_speed = 4;
 	double max_mh_weapon_speed = 5;

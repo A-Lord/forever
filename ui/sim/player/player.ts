@@ -341,6 +341,8 @@ export class Player<SpecType extends Spec> {
 			race: this.playerClass.races[0],
 			profession1: 0,
 			profession2: 0,
+			prof1Rank: 0,
+			prof2Rank: 0,
 			buffs: IndividualBuffs.create(),
 			consumables: ConsumesSpec.create(),
 			bonusStats: new Stats(),
@@ -670,8 +672,17 @@ export class Player<SpecType extends Spec> {
 			this.setProfession2(newProfessions[1] || Profession.ProfessionUnknown);
 		});
 	}
-	hasProfession(prof: Profession): boolean {
-		return this.getProfessions().includes(prof);
+	// Skill ranks in profession1 and profession2; 0 is the maximum.
+	setProfessionRanks(prof1Rank: number, prof2Rank: number) {
+		batch(() => {
+			if (prof1Rank != this.slice().prof1Rank) this.patch('prof1Rank', prof1Rank);
+			if (prof2Rank != this.slice().prof2Rank) this.patch('prof2Rank', prof2Rank);
+		});
+	}
+	hasProfession(prof: Profession, rank = 0): boolean {
+		const { profession1, profession2, prof1Rank, prof2Rank } = this.slice();
+		const meets = (held: number, heldRank: number) => held == prof && prof != Profession.ProfessionUnknown && (heldRank == 0 || heldRank >= rank);
+		return meets(profession1, prof1Rank) || meets(profession2, prof2Rank);
 	}
 
 	getFaction(): Faction {
@@ -693,7 +704,8 @@ export class Player<SpecType extends Spec> {
 	getConsumes(forSimming?: boolean): ConsumesSpec {
 		if (forSimming) {
 			const db = this.sim.db;
-			const key = [this.getSpec(), this.getClass(), this.getRace(), this.getProfession1(), this.getProfession2()].join(':');
+			const { prof1Rank, prof2Rank } = this.slice();
+			const key = [this.getSpec(), this.getClass(), this.getRace(), this.getProfession1(), this.getProfession2(), prof1Rank, prof2Rank].join(':');
 			let cache = this.relevantConsumablesCache;
 			if (cache?.key !== key || cache.db !== db) {
 				const consumables = db.getConsumables();
@@ -1514,6 +1526,8 @@ export class Player<SpecType extends Spec> {
 				race: this.getRace(),
 				profession1: this.getProfession1(),
 				profession2: this.getProfession2(),
+				prof1Rank: this.slice().prof1Rank,
+				prof2Rank: this.slice().prof2Rank,
 				reactionTimeMs: this.getReactionTime(),
 				channelClipDelayMs: this.getChannelClipDelay(),
 				inFrontOfTarget: this.getInFrontOfTarget(),
@@ -1564,6 +1578,7 @@ export class Player<SpecType extends Spec> {
 				this.setRace(proto.race);
 				this.setProfession1(proto.profession1);
 				this.setProfession2(proto.profession2);
+				this.setProfessionRanks(proto.prof1Rank, proto.prof2Rank);
 				this.setReactionTime(proto.reactionTimeMs);
 				this.setChannelClipDelay(proto.channelClipDelayMs);
 				this.setInFrontOfTarget(proto.inFrontOfTarget);

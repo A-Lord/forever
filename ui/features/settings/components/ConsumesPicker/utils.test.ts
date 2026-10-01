@@ -50,11 +50,19 @@ const CONSUMABLES = [
 		itemEffects: [onUse(11)],
 		stats: strength(20),
 	}),
-	Consumable.create({ id: 18588, name: 'Ez-Thro Dynamite II', type: ConsumableType.ConsumableTypeExplosive, categoryId: 24, itemEffects: [onUse(24)] }),
+	Consumable.create({
+		id: 18588,
+		name: 'Ez-Thro Dynamite II',
+		type: ConsumableType.ConsumableTypeExplosive,
+		ilvl: 40,
+		categoryId: 24,
+		itemEffects: [onUse(24)],
+	}),
 	Consumable.create({
 		id: 10646,
 		name: 'Goblin Sapper Charge',
 		type: ConsumableType.ConsumableTypeExplosive,
+		ilvl: 41,
 		categoryId: 24,
 		itemEffects: [onUse(24, 300000)],
 		requiredProfession: Profession.Engineering,
@@ -85,6 +93,7 @@ interface PlayerState {
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	consumes: ConsumesSpec;
+	minIlvl: Partial<Record<ConsumableType, number>>;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -97,9 +106,11 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		windfury: false,
 		flametongue: false,
 		consumes: ConsumesSpec.create(),
+		minIlvl: {},
 		...state,
 	};
 	const player = {
+		sim: { getMinConsumableIlvl: (type: ConsumableType) => full.minIlvl[type] ?? 0 },
 		getClass: () => full.cls,
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
@@ -141,6 +152,14 @@ describe('consumeConfigs', () => {
 		expect(offered(configs.explosive, player)).toEqual([18588]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
 		expect(toggled(configs.miscellaneous, player)).toEqual([4376]);
+	});
+
+	it('hides a consumable below the minimum item level set for its type only', () => {
+		const { player } = playerOf({ professions: [Profession.Engineering], minIlvl: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.explosive, player)).toEqual([]);
+		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
+		expect(offered(configs.food, player)).toEqual([238637]);
 	});
 
 	it('offers the Goblin Sapper Charge to an engineer only', () => {

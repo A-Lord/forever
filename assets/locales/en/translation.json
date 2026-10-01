@@ -674,6 +674,22 @@
 		},
 		"consumables": {
 			"title": "Consumables",
+			"filters": {
+				"title": "Consumable filters",
+				"min_ilvl": "Minimum item level",
+				"types": {
+					"potion": "Potions",
+					"conjured": "Conjured",
+					"flask": "Flasks",
+					"elixir": "Elixirs",
+					"scroll": "Scrolls",
+					"food": "Food",
+					"explosive": "Explosives",
+					"imbue": "Imbues",
+					"device": "Devices",
+					"other": "Other"
+				}
+			},
 			"potions": {
 				"title": "Potions",
 				"prepop": "Prepop Potion",
@@ -686,7 +702,7 @@
 				"title": "Food"
 			},
 			"engineering": {
-				"title": "Engineering",
+				"title": "Explosives",
 				"explosives": "Explosives"
 			},
 			"imbue": {

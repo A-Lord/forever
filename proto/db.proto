@@ -64,6 +64,7 @@ message Consumable {
 	bool buffs_main_stat = 4;
 	string name = 5;
 	string icon = 6;
+	int32 ilvl = 24;
 	int32 category_id = 11;
 	repeated int32 effect_ids = 8;
 
@@ -72,6 +73,7 @@ message Consumable {
 	// Empty when every class can use it.
 	repeated Class class_allowlist = 13;
 	Profession required_profession = 15;
+	int32 req_prof_rank = 23; // The skill in required_profession the item needs (ItemSparse.RequiredSkillRank).
 	// SpellEquippedItems of a temporary enchant's spell: the weapon subclasses and inventory types
 	// it can be applied to. Zero on consumables that enchant nothing.
 	int32 weapon_subclass_mask = 16;
