@@ -931,16 +931,11 @@
 			"combinations": "Combinations",
 			"total_iterations": "Estimated iterations",
 			"groups": {
-				"options": "Batch options",
 				"frozen_slots": "Frozen slots",
 				"reforge": "Gem settings",
 				"reforge_description": "These are the same settings the Suggest Gems button uses. The batch sim applies them to every gear set it simulates."
 			},
 			"iterations": "Iterations",
-			"use_legacy_bulk_sim": {
-				"label": "Use legacy single-stage sim",
-				"tooltip": "By default, Bulk Sim runs large batches in multiple stages: a low-iteration pass to find likely contenders, a medium-iteration refinement pass, and a final high-iteration pass for the best remaining gear sets. Enable this only to force the legacy high-stage-only behavior."
-			},
 			"freeze_ring": {
 				"label": "Freeze ring slot",
 				"tooltip": "Freeze one equipped ring to reduce combination counts"

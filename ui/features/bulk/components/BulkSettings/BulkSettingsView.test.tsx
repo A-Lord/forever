@@ -17,13 +17,12 @@ const RING = {
 };
 
 const renderSettings = (props: Partial<BulkSettingsViewProps> = {}) => {
-	const handlers = { onRun: vi.fn(), onOpenGroupsChange: vi.fn(), onUseLegacyBulkSimChange: vi.fn(), onFrozenWeaponSlotChange: vi.fn() };
+	const handlers = { onRun: vi.fn(), onOpenGroupsChange: vi.fn(), onFrozenWeaponSlotChange: vi.fn() };
 	const { container } = render(
 		<BulkSettingsView
 			combinationsCount={<span data-testid="count" />}
 			canRun
-			openGroups={['options', 'freezes', 'reforge']}
-			useLegacyBulkSim={false}
+			openGroups={['freezes', 'reforge']}
 			reforgeSettings={null}
 			frozenItems={[RING]}
 			weaponFreeze={null}
@@ -47,14 +46,6 @@ describe('BulkSettingsView', () => {
 		renderSettings({ canRun: false });
 
 		expect((screen.getByTestId('bulk-settings-btn') as HTMLButtonElement).disabled).toBe(true);
-	});
-
-	it('reports the legacy bulk sim toggle', () => {
-		const { container, onUseLegacyBulkSimChange } = renderSettings();
-
-		fireEvent.click(container.querySelector('#use-legacy-bulk-sim')!);
-
-		expect(onUseLegacyBulkSimChange).toHaveBeenCalledWith(true);
 	});
 
 	it('renders one freeze select per paired slot', () => {

@@ -1,7 +1,6 @@
 import { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { Accordion, AccordionItem } from '@ui-kit/Accordion';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Box } from '@ui-kit/Box';
 import { Button } from '@ui-kit/Button';
 import { ChoiceField, type ChoiceFieldProps } from '@ui-kit/ChoiceField';
@@ -23,8 +22,6 @@ export interface BulkSettingsViewProps {
 	onRun: () => void;
 	openGroups: string[];
 	onOpenGroupsChange: (groups: string[]) => void;
-	useLegacyBulkSim: boolean;
-	onUseLegacyBulkSimChange: (value: boolean) => void;
 	/** Null for a spec without a reforge optimizer. */
 	reforgeSettings: ReactNode;
 	frozenItems: ReadonlyArray<ChoiceFieldProps<number>>;
@@ -39,8 +36,6 @@ export const BulkSettingsView = ({
 	onRun,
 	openGroups,
 	onOpenGroupsChange,
-	useLegacyBulkSim,
-	onUseLegacyBulkSimChange,
 	reforgeSettings,
 	frozenItems,
 	weaponFreeze,
@@ -59,20 +54,6 @@ export const BulkSettingsView = ({
 					{combinationsCount}
 				</RunCard>
 				<Accordion value={openGroups} onValueChange={onOpenGroupsChange} variant="boxed">
-					<AccordionItem
-						value={BULK_SETTINGS_GROUP.options}
-						title={i18n.t('bulk_tab.settings.groups.options')}
-						panelClassName="grid gap-6"
-						testId="bulk-settings-group-options">
-						<BooleanPicker
-							id="use-legacy-bulk-sim"
-							label={i18n.t('bulk_tab.settings.use_legacy_bulk_sim.label')}
-							labelTooltip={i18n.t('bulk_tab.settings.use_legacy_bulk_sim.tooltip')}
-							layout="inline"
-							value={useLegacyBulkSim}
-							onChange={onUseLegacyBulkSimChange}
-						/>
-					</AccordionItem>
 					{reforgeSettings && (
 						<AccordionItem
 							value={BULK_SETTINGS_GROUP.reforge}
@@ -85,12 +66,10 @@ export const BulkSettingsView = ({
 					<AccordionItem
 						value={BULK_SETTINGS_GROUP.freezes}
 						title={i18n.t('bulk_tab.settings.groups.frozen_slots')}
-						panelClassName="grid gap-6"
+						panelClassName="grid gap-4"
 						testId="bulk-settings-group-freezes">
 						{frozenItems.map(props => (
-							<div key={props.id}>
-								<ChoiceField {...props} />
-							</div>
+							<ChoiceField key={props.id} {...props} />
 						))}
 						{weaponFreeze && (
 							<>

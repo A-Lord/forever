@@ -19,7 +19,6 @@ export const createBulkSettingsProto = (player: Player<any>): BulkSettings => {
 	const current = bulkState(player);
 	return BulkSettings.create({
 		items: current.items.flatMap(spec => (spec ? [ItemSpec.clone(spec)] : [])),
-		useLegacyBulkSim: current.useLegacyBulkSim,
 		freezeRingSlot: bulkFrozenItemSlot(player, BulkSimItemSlot.ItemSlotFinger),
 		freezeTrinketSlot: bulkFrozenItemSlot(player, BulkSimItemSlot.ItemSlotTrinket),
 		freezeWeaponSlot: current.frozenWeaponSlot,
@@ -27,8 +26,6 @@ export const createBulkSettingsProto = (player: Player<any>): BulkSettings => {
 		freezeOffhandWeaponSlots: current.weaponTypeFilters.get(ItemSlot.ItemSlotOffHand)?.slice(),
 	});
 };
-
-export const setBulkUseLegacyBulkSim = (player: Player<any>, newValue: boolean) => patchBulkState(player, { useLegacyBulkSim: newValue }, ['settings']);
 
 export const setBulkFrozenItem = (player: Player<any>, bulkSlot: BulkFrozenSlot, item: EquippedItem | null) => {
 	const frozenItems = bulkState(player).frozenItems;

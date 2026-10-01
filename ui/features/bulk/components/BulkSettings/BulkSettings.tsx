@@ -7,14 +7,13 @@ import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import type { ChoiceFieldProps } from '@ui-kit/ChoiceField';
 import { useEffect } from 'react';
 
-import { trackEvent } from '../../../../tracking/utils';
 import { useBulkSettingsGroups } from '../../hooks/useBulkSettingsGroups';
 import { useBulkState } from '../../hooks/useBulkState';
 import { bulkCombinationsLimit } from '../../model/limits';
 import { frozenItemSlot } from '../../model/picker_groups';
 import { runBulkBatch } from '../../model/run';
 import { canRunBatch } from '../../model/selectors';
-import { setBulkFrozenItem, setBulkFrozenWeaponSlot, setBulkUseLegacyBulkSim } from '../../model/settings';
+import { setBulkFrozenItem, setBulkFrozenWeaponSlot } from '../../model/settings';
 import { BulkSettingsView } from './BulkSettingsView';
 import { CombinationsCount } from './CombinationsCount';
 import { FreezeWeaponTypes } from './FreezeWeaponTypes';
@@ -49,7 +48,6 @@ export const BulkSettings = () => {
 	const player = usePlayer();
 	const frozenItems = useBulkState(slice => slice.frozenItems);
 	const frozenWeaponSlot = useBulkState(slice => slice.frozenWeaponSlot);
-	const useLegacyBulkSim = useBulkState(slice => slice.useLegacyBulkSim);
 	const canRun = useBulkState(slice => canRunBatch(slice, bulkCombinationsLimit(player.sim.isNative)));
 	const gear = usePlayerStore('gear');
 	const [openGroups, setOpenGroups] = useBulkSettingsGroups();
@@ -83,11 +81,6 @@ export const BulkSettings = () => {
 			onRun={() => void runBulkBatch(host)}
 			openGroups={openGroups}
 			onOpenGroupsChange={setOpenGroups}
-			useLegacyBulkSim={useLegacyBulkSim}
-			onUseLegacyBulkSimChange={newValue => {
-				setBulkUseLegacyBulkSim(player, newValue);
-				trackEvent({ action: 'settings', category: 'batch_sim', label: 'use_legacy_bulk_sim', value: newValue });
-			}}
 			reforgeSettings={
 				host.reforger && <ReforgeSettingsPanel model={host.reforger} options={host.reforgeOptions ?? undefined} idPrefix="bulk-reforge-optimizer" />
 			}

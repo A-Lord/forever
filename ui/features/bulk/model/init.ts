@@ -8,14 +8,7 @@ import { subscribeBulkChange, subscribePlayerField } from '@sim/state/subscripti
 
 import { addBulkItems, loadEquippedBulkItems, seedBulkPickerGroups } from './items';
 import { refreshBulkCombinations } from './run';
-import {
-	type BulkFrozenSlot,
-	createBulkSettingsProto,
-	setBulkFrozenItem,
-	setBulkFrozenWeaponSlot,
-	setBulkUseLegacyBulkSim,
-	setBulkWeaponTypeFilter,
-} from './settings';
+import { type BulkFrozenSlot, createBulkSettingsProto, setBulkFrozenItem, setBulkFrozenWeaponSlot, setBulkWeaponTypeFilter } from './settings';
 
 const equippedItemForFrozenSlot = (player: Player<any>, bulkSlot: BulkFrozenSlot, itemSlot: number): EquippedItem | null => {
 	const slots = BULK_SIM_ITEM_SLOT_TO_ITEM_SLOT_PAIRS.get(bulkSlot);
@@ -39,7 +32,6 @@ const loadSettings = (player: Player<any>) => {
 		setBulkFrozenWeaponSlot(player, settings.freezeWeaponSlot);
 		setBulkWeaponTypeFilter(player, ItemSlot.ItemSlotMainHand, settings.freezeMainhandWeaponSlots);
 		setBulkWeaponTypeFilter(player, ItemSlot.ItemSlotOffHand, settings.freezeOffhandWeaponSlots);
-		setBulkUseLegacyBulkSim(player, settings.useLegacyBulkSim);
 	}
 };
 

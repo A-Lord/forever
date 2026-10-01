@@ -22,13 +22,13 @@ export const FreezeWeaponTypes = ({ slot }: FreezeWeaponTypesProps) => {
 	return (
 		<>
 			{!!weaponTypes.length && frozenWeaponSlot !== slot && (
-				<>
-					<h6 className="mb-2">
+				<div className="flex flex-col gap-2">
+					<h6 className="mb-0 text-sm font-semibold">
 						{slot === ItemSlot.ItemSlotMainHand
 							? i18n.t('bulk_tab.settings.freeze_weapon_types.mainhand_label')
 							: i18n.t('bulk_tab.settings.freeze_weapon_types.offhand_label')}
 					</h6>
-					<div className="mb-2 text-ui">{i18n.t('bulk_tab.settings.freeze_weapon_types.tooltip')}</div>
+					<div className="text-ui">{i18n.t('bulk_tab.settings.freeze_weapon_types.tooltip')}</div>
 					<div className="grid grid-cols-2 gap-1">
 						{weaponTypes.map(weaponType => (
 							<BooleanPicker
@@ -45,7 +45,7 @@ export const FreezeWeaponTypes = ({ slot }: FreezeWeaponTypesProps) => {
 							/>
 						))}
 					</div>
-				</>
+				</div>
 			)}
 		</>
 	);

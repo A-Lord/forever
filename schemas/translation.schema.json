@@ -3302,9 +3302,6 @@
 						"groups": {
 							"type": "object",
 							"properties": {
-								"options": {
-									"type": "string"
-								},
 								"frozen_slots": {
 									"type": "string"
 								},
@@ -3316,23 +3313,10 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["options", "frozen_slots", "reforge", "reforge_description"]
+							"required": ["frozen_slots", "reforge", "reforge_description"]
 						},
 						"iterations": {
 							"type": "string"
-						},
-						"use_legacy_bulk_sim": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
 						},
 						"freeze_ring": {
 							"type": "object",
@@ -3396,7 +3380,6 @@
 						"total_iterations",
 						"groups",
 						"iterations",
-						"use_legacy_bulk_sim",
 						"freeze_ring",
 						"freeze_trinket",
 						"freeze_weapon",

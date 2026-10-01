@@ -49,7 +49,7 @@ const mount = (reforger: unknown = null) => {
 		return [trigger, label] as const;
 	};
 	const openGroup = (group: string) => fireEvent.click(container.querySelector(`[data-testid="bulk-settings-group-${group}-trigger"]`)!);
-	return { player, container, pick, openGroup, checkbox: (id: string) => container.querySelector<HTMLInputElement>(`#${id}`)! };
+	return { player, container, pick, openGroup };
 };
 
 beforeEach(() => {
@@ -58,16 +58,6 @@ beforeEach(() => {
 });
 
 describe('BulkSettings', () => {
-	it('shows the legacy bulk sim toggle as ticked after one click', () => {
-		const { player, checkbox } = mount();
-		const input = checkbox('use-legacy-bulk-sim');
-
-		fireEvent.click(input);
-
-		expect(bulkState(player).useLegacyBulkSim).toBe(true);
-		expect(input.checked).toBe(true);
-	});
-
 	// Both selects list None, then the pair's first slot (Finger 1, Main Hand), then its second.
 	it.each<[string, (player: Player<any>) => unknown, unknown]>([
 		['freeze-ring', player => bulkState(player).frozenItems.get(BulkSimItemSlot.ItemSlotFinger), RING],
@@ -82,10 +72,9 @@ describe('BulkSettings', () => {
 		expect(select.textContent).toBe(picked);
 	});
 
-	it('opens only the batch options group before anything is stored', () => {
+	it('opens no group before anything is stored', () => {
 		const { container } = mount();
 
-		expect(container.querySelector('#use-legacy-bulk-sim')).not.toBeNull();
 		expect(container.querySelector('#freeze-ring')).toBeNull();
 	});
 
@@ -94,7 +83,7 @@ describe('BulkSettings', () => {
 
 		openGroup('freezes');
 
-		expect(JSON.parse(localStorage.getItem('test-__bulkSettingsGroups')!)).toEqual(['options', 'freezes']);
+		expect(JSON.parse(localStorage.getItem('test-__bulkSettingsGroups')!)).toEqual(['freezes']);
 	});
 
 	it('renders no reforge group for a spec without a reforge optimizer', () => {

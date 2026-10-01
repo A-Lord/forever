@@ -21,7 +21,7 @@ const pair = (id: string, label: string, first: [string, ItemSlot], second: [str
 
 const WEAPON_TYPES = (
 	<div>
-		<h6 className="mb-2">Main hand weapon types</h6>
+		<h6>Main hand weapon types</h6>
 		<div className="grid grid-cols-2 gap-1">
 			{['Sword', 'Axe', 'Mace', 'Dagger'].map(type => (
 				<StoryBoolean key={type} id={`story-weapon-type-${type}`} label={type} layout="inline" initial={type === 'Sword'} />
@@ -53,10 +53,8 @@ const meta = {
 		combinationsCount: <CombinationsCountView pending={false} combinations={48} iterations={96000} iterationsLimit={1000000} />,
 		canRun: true,
 		onRun: fn(),
-		openGroups: ['options', 'freezes'],
+		openGroups: ['freezes'],
 		onOpenGroupsChange: fn(),
-		useLegacyBulkSim: false,
-		onUseLegacyBulkSimChange: fn(),
 		reforgeSettings: null,
 		frozenItems: [
 			pair('story-freeze-ring', 'Freeze ring', ['Finger 1', ItemSlot.ItemSlotFinger1], ['Finger 2', ItemSlot.ItemSlotFinger2]),
@@ -82,7 +80,7 @@ export const DualWield: Story = { args: { weaponFreeze: { value: -1, weaponTypes
 
 export const WithReforge: Story = {
 	args: {
-		openGroups: ['options', 'reforge'],
+		openGroups: ['reforge'],
 		reforgeSettings: <StoryBoolean id="story-bulk-reforge-custom-ep" label="Use custom EP values" layout="inline" />,
 	},
 };

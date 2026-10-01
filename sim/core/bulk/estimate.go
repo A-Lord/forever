@@ -9,10 +9,7 @@ func bulkSimHighStageFloor(requested int32) int32 {
 	return getBulkSimStageMinIterations(requested, BulkSimStageConfigs[len(BulkSimStageConfigs)-1])
 }
 
-func shouldUseLegacyBulkSim(settings *proto.BulkSettings, highStageIterations int32, candidateCount int) bool {
-	if settings != nil && settings.GetUseLegacyBulkSim() {
-		return true
-	}
+func shouldUseSingleStageBulkSim(highStageIterations int32, candidateCount int) bool {
 	if candidateCount < BulkSimMinCombinations {
 		return true
 	}
@@ -43,11 +40,11 @@ func getBulkSimOptimisationIterationsUpperBound(highStageIterations int32, candi
 	return iterations + int64(highStageIterations)*int64(remainingCandidates+1)
 }
 
-func estimateBulkSimIterations(settings *proto.BulkSettings, highStageIterations int32, candidateCount int) (int64, bool) {
+func estimateBulkSimIterations(highStageIterations int32, candidateCount int) int64 {
 	highStageIterations = bulkSimHighStageFloor(highStageIterations)
-	if shouldUseLegacyBulkSim(settings, highStageIterations, candidateCount) {
-		return int64(highStageIterations) * int64(candidateCount), true
+	if shouldUseSingleStageBulkSim(highStageIterations, candidateCount) {
+		return int64(highStageIterations) * int64(candidateCount)
 	}
 
-	return getBulkSimOptimisationIterationsUpperBound(highStageIterations, candidateCount), false
+	return getBulkSimOptimisationIterationsUpperBound(highStageIterations, candidateCount)
 }
