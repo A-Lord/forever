@@ -195,14 +195,8 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 		fmt.Println("Error loading items:", err.Error())
 		return nil, err
 	}
-	creatorMasks, err := LoadCreatorClassMasks(dbHelper)
-	if err != nil {
+	if err := applyCreatorClassMasks(dbHelper, items, func(item *dbc.Item) (int, *int) { return item.Id, &item.ClassMask }); err != nil {
 		return nil, err
-	}
-	for i := range items {
-		if mask, ok := creatorMasks[items[i].Id]; ok {
-			items[i].ClassMask = mask
-		}
 	}
 	json, _ := json.Marshal(items)
 	if err := dbc.WriteGzipFile(fmt.Sprintf("%s/dbc/items.json", inputsDir), json); err != nil {
@@ -237,6 +231,20 @@ func LoadCreatorClassMasks(dbHelper *DBHelper) (map[int]int, error) {
 		masks[c.itemID] |= c.classMask
 	}
 	return masks, nil
+}
+
+// Each row's class mask becomes the one LoadCreatorClassMasks derives for its item, where it derives one.
+func applyCreatorClassMasks[T any](dbHelper *DBHelper, rows []T, classMaskOf func(*T) (int, *int)) error {
+	masks, err := LoadCreatorClassMasks(dbHelper)
+	if err != nil {
+		return err
+	}
+	for i := range rows {
+		if id, classMask := classMaskOf(&rows[i]); masks[id] != 0 {
+			*classMask = masks[id]
+		}
+	}
+	return nil
 }
 
 //ItemStatEffects
@@ -1098,14 +1106,8 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 	if err != nil {
 		return nil, fmt.Errorf("error loading consumables: %w", err)
 	}
-	creatorMasks, err := LoadCreatorClassMasks(dbHelper)
-	if err != nil {
+	if err := applyCreatorClassMasks(dbHelper, consumables, func(c *dbc.Consumable) (int, *int) { return c.Id, &c.ClassMask }); err != nil {
 		return nil, err
-	}
-	for i := range consumables {
-		if mask, ok := creatorMasks[consumables[i].Id]; ok {
-			consumables[i].ClassMask = mask
-		}
 	}
 
 	fmt.Println("Loaded Consumables:", len(consumables))

@@ -266,13 +266,13 @@ export function relevanceFor(
 			consumables
 				.filter(consumable => consumable.requiredProfession !== Profession.ProfessionUnknown)
 				.map(consumable => [`${consumable.requiredProfession}:${consumable.reqProfRank}`, consumable] as const),
-		).values(),
+		),
 	];
 	let key = '';
 	let relevant = new Map<Consumable, boolean>();
 	return (consumable, user) => {
-		const met = requirements.filter(requirement => user.hasProfession(requirement.requiredProfession, requirement.reqProfRank));
-		const userKey = `${user.getClass()}:${user.getRace()}:${met.map(requirement => `${requirement.requiredProfession}:${requirement.reqProfRank}`)}`;
+		const met = requirements.filter(([, requirement]) => user.hasProfession(requirement.requiredProfession, requirement.reqProfRank));
+		const userKey = `${user.getClass()}:${user.getRace()}:${met.map(([requirementKey]) => requirementKey)}`;
 		if (userKey !== key) {
 			key = userKey;
 			relevant = new Map();

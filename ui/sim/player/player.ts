@@ -674,10 +674,9 @@ export class Player<SpecType extends Spec> {
 	}
 	// Skill ranks in profession1 and profession2; 0 is the maximum.
 	setProfessionRanks(prof1Rank: number, prof2Rank: number) {
-		batch(() => {
-			if (prof1Rank != this.slice().prof1Rank) this.patch('prof1Rank', prof1Rank);
-			if (prof2Rank != this.slice().prof2Rank) this.patch('prof2Rank', prof2Rank);
-		});
+		const current = this.slice();
+		const changed = [...(prof1Rank != current.prof1Rank ? ['prof1Rank' as const] : []), ...(prof2Rank != current.prof2Rank ? ['prof2Rank' as const] : [])];
+		if (changed.length) this.write({ prof1Rank, prof2Rank }, changed);
 	}
 	hasProfession(prof: Profession, rank = 0): boolean {
 		const { profession1, profession2, prof1Rank, prof2Rank } = this.slice();

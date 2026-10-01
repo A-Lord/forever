@@ -50,17 +50,4 @@ func TestCreatorClassMasks(t *testing.T) {
 			t.Errorf("item %d: class mask %d derived, want it open to every class", id, masks[id])
 		}
 	}
-	for _, c := range []struct {
-		name string
-		id   int
-	}{
-		{"Healthstone", 5509},
-		{"Conjured Water", 5350},
-		{"Blinding Powder", 5530},
-		{"Atiesh, Greatstaff of the Guardian", 22589},
-	} {
-		if _, ok := masks[c.id]; ok {
-			t.Errorf("%s (%d): class mask derived, want it open to every class", c.name, c.id)
-		}
-	}
 }

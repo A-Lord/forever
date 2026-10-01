@@ -37,11 +37,7 @@ export const ConsumesFilters = () => {
 			return range ? [{ type, key, range: `${range[0]}-${range[1]}` }] : [];
 		});
 	}, []);
-	const edit = (change: (levels: { [type: number]: number }) => void) => {
-		const next = sim.getFilters();
-		change(next.minConsumableLevel);
-		sim.setFilters(next);
-	};
+	const setLevels = (minConsumableLevel: { [type: number]: number }) => sim.setFilters({ ...sim.getFilters(), minConsumableLevel });
 
 	return (
 		<Popover
@@ -65,7 +61,7 @@ export const ConsumesFilters = () => {
 						positive
 						showZeroes={false}
 						value={sim.getMinConsumableLevel(type)}
-						onChange={value => edit(levels => (levels[type] = value))}
+						onChange={value => setLevels({ ...filters.minConsumableLevel, [type]: value })}
 					/>
 				))}
 			</div>
@@ -75,11 +71,7 @@ export const ConsumesFilters = () => {
 				className="mt-2 ml-auto flex"
 				data-testid="consumes-filters-reset"
 				disabled={Object.keys(filters.minConsumableLevel).length === 0}
-				onClick={() =>
-					edit(levels => {
-						for (const type of Object.keys(levels)) delete levels[Number(type)];
-					})
-				}>
+				onClick={() => setLevels({})}>
 				{i18n.t('settings_tab.consumables.filters.reset')}
 			</Button>
 		</Popover>
