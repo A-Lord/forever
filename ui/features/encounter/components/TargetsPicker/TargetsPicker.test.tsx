@@ -142,12 +142,12 @@ describe('TargetsPicker', () => {
 	});
 
 	it('copies a target to a clone beside it and adds a default target at the end', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 60 })]);
 		mount(encounter);
 
 		const copy = openMenu(0).querySelector('[data-testid="targets-picker-copy"]')!;
 		act(() => void fireEvent.click(copy));
-		expect(encounter.targets.map(target => target.level)).toEqual([70, 70]);
+		expect(encounter.targets.map(target => target.level)).toEqual([60, 60]);
 		expect(encounter.targets[1]).not.toBe(encounter.targets[0]);
 
 		act(() => void fireEvent.click(document.querySelector('[data-testid="tree-add"]')!));
@@ -157,7 +157,7 @@ describe('TargetsPicker', () => {
 	});
 
 	it('moves a target by dragging its handle, in one write', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 }), TargetProto.create({ level: 71 }), TargetProto.create({ level: 72 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 60 }), TargetProto.create({ level: 61 }), TargetProto.create({ level: 62 })]);
 		mount(encounter);
 		const setTargets = vi.spyOn(encounter, 'setTargets');
 		items().forEach(place);
@@ -166,13 +166,13 @@ describe('TargetsPicker', () => {
 		dragEvent('drop', items()[0], 0);
 
 		expect(setTargets).toHaveBeenCalledTimes(1);
-		expect(encounter.targets.map(target => target.level)).toEqual([72, 70, 71]);
+		expect(encounter.targets.map(target => target.level)).toEqual([62, 60, 61]);
 	});
 
 	it('drops a target released over a target input beside the target row holding it, never into the input list', () => {
 		const encounter = new FakeEncounter([
-			TargetProto.create({ level: 70, targetInputs: [TargetInput.create({ label: 'Stacks', inputType: InputType.Number })] }),
-			TargetProto.create({ level: 71 }),
+			TargetProto.create({ level: 60, targetInputs: [TargetInput.create({ label: 'Stacks', inputType: InputType.Number })] }),
+			TargetProto.create({ level: 61 }),
 		]);
 		mount(encounter);
 		const setTargets = vi.spyOn(encounter, 'setTargets');
@@ -184,7 +184,7 @@ describe('TargetsPicker', () => {
 		dragEvent('drop', input, 0);
 
 		expect(setTargets).toHaveBeenCalledTimes(1);
-		expect(encounter.targets.map(target => target.level)).toEqual([71, 70]);
+		expect(encounter.targets.map(target => target.level)).toEqual([61, 60]);
 		expect(encounter.targets.map(target => target.targetInputs.length)).toEqual([0, 1]);
 	});
 

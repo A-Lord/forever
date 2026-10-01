@@ -77,7 +77,7 @@ beforeEach(() => {
 
 describe('TargetsPicker moves', () => {
 	it('ignores a move inside a nested list of another group', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 }), TargetProto.create({ level: 71 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 60 }), TargetProto.create({ level: 61 })]);
 		render(<TargetsPicker encounter={encounter as unknown as Encounter} />);
 		const setTargets = vi.spyOn(encounter, 'setTargets');
 		place('foreign-0-a', 0);
@@ -87,11 +87,11 @@ describe('TargetsPicker moves', () => {
 		dropOn('foreign-0-a', 0);
 
 		expect(setTargets).not.toHaveBeenCalled();
-		expect(levels(encounter)).toEqual([70, 71]);
+		expect(levels(encounter)).toEqual([60, 61]);
 	});
 
 	it('ignores a move of a row that is not a target, even in the targets’ own group', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 }), TargetProto.create({ level: 71 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 60 }), TargetProto.create({ level: 61 })]);
 		render(<TargetsPicker encounter={encounter as unknown as Encounter} />);
 		const setTargets = vi.spyOn(encounter, 'setTargets');
 		place('targets-1-a', 0);
@@ -101,6 +101,6 @@ describe('TargetsPicker moves', () => {
 		dropOn('targets-1-b', 35);
 
 		expect(setTargets).not.toHaveBeenCalled();
-		expect(levels(encounter)).toEqual([70, 71]);
+		expect(levels(encounter)).toEqual([60, 61]);
 	});
 });
