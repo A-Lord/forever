@@ -12,7 +12,9 @@ const ThreatPerRageGained = 5
 // as if armor reduced it by half, whatever the defender's armor.
 const DamageTakenRageArmorMultiplier = 0.5
 
-// Damage taken grants 2.5 * damage / c rage, where c is the rage conversion value at the defender's level (230.6 at 60).
+// Damage taken grants DamageTakenRageFactor * damage / c rage, where c is the rage conversion value at the defender's level (230.6 at 60).
+const DamageTakenRageFactor = 2.5
+
 func rageConversion(level int32) float64 {
 	l := float64(level)
 	return 0.0091107836*l*l + 3.225598133*l + 4.2652911
@@ -47,6 +49,7 @@ type RageBarOptions struct {
 
 func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	rageFromDamageTakenMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken})
+	damageTakenRageConversion := rageConversion(unit.Level)
 
 	unit.SetCurrentPowerBar(RageBar)
 	unit.RegisterAura(Aura{
@@ -100,6 +103,8 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			}
 			unit.AddRage(sim, generatedRage, metrics)
 		},
+		// TODO: Ingame test needed -- only direct hits grant rage from damage taken; whether periodic damage
+		// taken (OnPeriodicDamageTaken) grants rage, and on which damage, is unverified.
 		OnSpellHitTaken: func(aura *Aura, sim *Simulation, spell *Spell, result *SpellResult) {
 			if unit.GetCurrentPowerBar() != RageBar {
 				return
@@ -112,7 +117,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			if spell.SpellSchool.Matches(SpellSchoolPhysical) {
 				damage *= DamageTakenRageArmorMultiplier
 			}
-			generatedRage := 2.5 * damage / rageConversion(unit.Level) * unit.rageBar.damageTakenRageMultiplier
+			generatedRage := DamageTakenRageFactor * damage / damageTakenRageConversion * unit.rageBar.damageTakenRageMultiplier
 
 			unit.AddRage(sim, generatedRage, rageFromDamageTakenMetrics)
 		},

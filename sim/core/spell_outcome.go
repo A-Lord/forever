@@ -759,7 +759,9 @@ func (result *SpellResult) applyEnemyAttackTableBlock(sim *Simulation, spell *Sp
 		spell.SpellMetrics[result.Target.UnitIndex].Blocks++
 
 		if result.Target.Blockhandler != nil {
+			beforeBlock := result.Damage
 			result.Target.Blockhandler(sim, spell, result)
+			result.BlockedDamage = beforeBlock - result.Damage
 			return true
 		}
 
