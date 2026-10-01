@@ -20,8 +20,8 @@ func TestEffectLines(t *testing.T) {
 			name:    "a bleed tick",
 			id:      11574,
 			effect:  1,
-			human:   "21 physical damage every 3 s to the enemy (7 ticks)",
-			literal: "E_APPLY_AURA A_PERIODIC_DAMAGE base=21 period=3000ms target=[6,0]",
+			human:   "21 physical damage every 3 s to the enemy (7 ticks, +0.02 attack power)",
+			literal: "E_APPLY_AURA A_PERIODIC_DAMAGE base=21 ap=0.02 period=3000ms target=[6,0]",
 		},
 		{
 			name:    "school damage that rolls and scales",

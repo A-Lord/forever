@@ -182,6 +182,101 @@ var Spells = []Override{
 		Reason:  "Badge of the Swarmguard: stacks on hits with a damage component",
 		Source:  "owner decision, PR #99",
 	},
+
+	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from
+	// 99 to 154. Only Rend Rank 2 and Thunder Clap Rank 1 were measured; the other ranks carry the
+	// same share until a log at their level says otherwise.
+	{
+		SpellID: 772,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 1: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6546,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 2: ticks average 7 + 0.02 x Attack Power, read on every tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6547,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 3: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6548,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 4: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11572,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 5: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11573,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 6: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11574,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 7: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6343,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 1: hits deal 10 + 0.07 x Attack Power, rounded down, before armor",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8198,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 2: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8204,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 3: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8205,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 4: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 11580,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 5: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 11581,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 6: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
 }
 
 // The procs-per-minute rate stated for a spell, or zero where none is. The item database reads it
