@@ -905,7 +905,7 @@ export class Sim {
 		return DatabaseFilters.clone(this.store.getState().sim.filters);
 	}
 	// The consumable pickers' minimum level by ConsumableType, where the filters set none.
-	static readonly DEFAULT_MIN_CONSUMABLE_LEVEL: Partial<Record<ConsumableType, number>> = {
+	static readonly DEFAULT_MIN_CONSUMABLE_LVL: Partial<Record<ConsumableType, number>> = {
 		[ConsumableType.ConsumableTypePotion]: 40,
 		[ConsumableType.ConsumableTypeFlask]: 0,
 		[ConsumableType.ConsumableTypeElixir]: 40,
@@ -913,8 +913,8 @@ export class Sim {
 		[ConsumableType.ConsumableTypeExplosive]: 30,
 		[ConsumableType.ConsumableTypeImbue]: 40,
 	};
-	getMinConsumableLevel(type: ConsumableType): number {
-		return this.store.getState().sim.filters.minConsumableLevel[type] ?? Sim.DEFAULT_MIN_CONSUMABLE_LEVEL[type] ?? 0;
+	getMinConsumableLvl(type: ConsumableType): number {
+		return this.store.getState().sim.filters.minConsumableLvl[type] ?? Sim.DEFAULT_MIN_CONSUMABLE_LVL[type] ?? 0;
 	}
 	setFilters(newFilters: DatabaseFilters) {
 		if (DatabaseFilters.equals(newFilters, this.store.getState().sim.filters)) {

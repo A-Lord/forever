@@ -65,7 +65,7 @@ message Consumable {
 	string name = 5;
 	string icon = 6;
 	// The level the item requires, or its item level where it requires none or level 1 (most explosives).
-	int32 level = 19;
+	int32 lvl = 19;
 	int32 category_id = 7;
 	repeated int32 effect_ids = 8;
 

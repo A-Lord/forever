@@ -25,7 +25,7 @@ export interface ConsumableInputOptions {
 const offeredTo =
 	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, offers?: ConsumableInputOptions['offers']) =>
 	(player: Player<any>) =>
-		(picked(player) || consumable.level >= player.sim.getMinConsumableLevel(consumable.type)) &&
+		(picked(player) || consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type)) &&
 		relevance.relevant(consumable, player) &&
 		(!offers || offers(consumable, player));
 
@@ -71,8 +71,8 @@ function consumablePicker(
 	pickOf: (consumes: ConsumesSpec) => number,
 	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
-	const byLevel = [...consumables].sort((a, b) => b.level - a.level);
-	const values: Array<IconEnumValueConfig<Player<any>, number>> = byLevel.map(consumable => ({
+	const byLvl = [...consumables].sort((a, b) => b.lvl - a.lvl);
+	const values: Array<IconEnumValueConfig<Player<any>, number>> = byLvl.map(consumable => ({
 		value: consumable.id,
 		actionId: ActionId.fromItemId(consumable.id),
 		tooltip: consumable.name,

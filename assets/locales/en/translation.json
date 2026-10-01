@@ -683,7 +683,7 @@
 			"title": "Consumables",
 			"filters": {
 				"title": "Consumable filters",
-				"min_level": "Minimum required level",
+				"min_lvl": "Minimum required level",
 				"reset": "Reset to defaults",
 				"types": {
 					"potion": "Potions",

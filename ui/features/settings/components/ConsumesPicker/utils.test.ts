@@ -54,7 +54,7 @@ const CONSUMABLES = [
 		id: 18588,
 		name: 'Ez-Thro Dynamite II',
 		type: ConsumableType.ConsumableTypeExplosive,
-		level: 30,
+		lvl: 30,
 		categoryId: 24,
 		itemEffects: [onUse(24)],
 	}),
@@ -62,7 +62,7 @@ const CONSUMABLES = [
 		id: 10646,
 		name: 'Goblin Sapper Charge',
 		type: ConsumableType.ConsumableTypeExplosive,
-		level: 41,
+		lvl: 41,
 		categoryId: 24,
 		itemEffects: [onUse(24, 300000)],
 		requiredProfession: Profession.Engineering,
@@ -93,7 +93,7 @@ interface PlayerState {
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	consumes: ConsumesSpec;
-	minLevel: Partial<Record<ConsumableType, number>>;
+	minLvl: Partial<Record<ConsumableType, number>>;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -106,11 +106,11 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		windfury: false,
 		flametongue: false,
 		consumes: ConsumesSpec.create(),
-		minLevel: {},
+		minLvl: {},
 		...state,
 	};
 	const player = {
-		sim: { getMinConsumableLevel: (type: ConsumableType) => full.minLevel[type] ?? 0 },
+		sim: { getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0 },
 		getClass: () => full.cls,
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
@@ -155,7 +155,7 @@ describe('consumeConfigs', () => {
 	});
 
 	it('hides a consumable below the minimum level set for its type only', () => {
-		const { player } = playerOf({ professions: [Profession.Engineering], minLevel: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+		const { player } = playerOf({ professions: [Profession.Engineering], minLvl: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.explosive, player)).toEqual([]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
@@ -163,8 +163,8 @@ describe('consumeConfigs', () => {
 	});
 
 	it('lists a picker by level, highest first', () => {
-		const potion = (id: number, level: number) =>
-			Consumable.create({ id, name: `Potion ${id}`, type: ConsumableType.ConsumableTypePotion, level, stats: strength(10) });
+		const potion = (id: number, lvl: number) =>
+			Consumable.create({ id, name: `Potion ${id}`, type: ConsumableType.ConsumableTypePotion, lvl, stats: strength(10) });
 		const potions = { getConsumables: () => [potion(1, 20), potion(2, 50), potion(3, 35)], getSpellEffect: () => undefined } as unknown as Database;
 		const { player } = playerOf();
 		expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([2, 3, 1]);
@@ -284,8 +284,8 @@ describe('consumeConfigs', () => {
 			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), '29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
 			Consumable.create({ id: 12404, name: 'Dense Sharpening Stone II', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 7 }),
 			Consumable.create({ id: 12643, name: 'Dense Sharpening Stone III', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 15 }),
-			Consumable.create({ id: 8928, name: 'Instant Poison V', type: ConsumableType.ConsumableTypeImbue, level: 52, weaponSubclassMask: 1 << 15 }),
-			Consumable.create({ id: 8927, name: 'Instant Poison IV', type: ConsumableType.ConsumableTypeImbue, level: 44, weaponSubclassMask: 1 << 15 }),
+			Consumable.create({ id: 8928, name: 'Instant Poison V', type: ConsumableType.ConsumableTypeImbue, lvl: 52, weaponSubclassMask: 1 << 15 }),
+			Consumable.create({ id: 8927, name: 'Instant Poison IV', type: ConsumableType.ConsumableTypeImbue, lvl: 44, weaponSubclassMask: 1 << 15 }),
 		];
 		const rankDb = { getConsumables: () => ranks, getSpellEffect: () => undefined } as unknown as Database;
 		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
@@ -303,7 +303,7 @@ describe('consumeConfigs', () => {
 	});
 
 	it('keeps offering a picked consumable below the minimum level, and hides it once unpicked', () => {
-		const { player, state } = playerOf({ minLevel: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+		const { player, state } = playerOf({ minLvl: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.explosive, player)).toEqual([]);
 		state.consumes = ConsumesSpec.create({ explosiveId: 18588 });

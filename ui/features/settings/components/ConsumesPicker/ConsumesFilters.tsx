@@ -28,16 +28,16 @@ export const ConsumesFilters = () => {
 	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());
 	const types = useMemo(() => {
 		const ranges = new Map<ConsumableType, [number, number]>();
-		for (const { type, level } of Database.getSync().getConsumables()) {
+		for (const { type, lvl } of Database.getSync().getConsumables()) {
 			const range = ranges.get(type);
-			ranges.set(type, range ? [Math.min(range[0], level), Math.max(range[1], level)] : [level, level]);
+			ranges.set(type, range ? [Math.min(range[0], lvl), Math.max(range[1], lvl)] : [lvl, lvl]);
 		}
 		return TYPE_KEYS.flatMap(([type, key]) => {
 			const range = ranges.get(type);
 			return range ? [{ type, key, range: `${range[0]}-${range[1]}` }] : [];
 		});
 	}, []);
-	const setLevels = (minConsumableLevel: { [type: number]: number }) => sim.setFilters({ ...sim.getFilters(), minConsumableLevel });
+	const setMinLvls = (minConsumableLvl: { [type: number]: number }) => sim.setFilters({ ...sim.getFilters(), minConsumableLvl });
 
 	return (
 		<Popover
@@ -50,18 +50,18 @@ export const ConsumesFilters = () => {
 			align="end"
 			backdrop
 			testId="consumes-filters-popover">
-			<h6>{i18n.t('settings_tab.consumables.filters.min_level')}</h6>
+			<h6>{i18n.t('settings_tab.consumables.filters.min_lvl')}</h6>
 			<div className="grid grid-cols-2 gap-2">
 				{types.map(({ type, key, range }) => (
 					<NumberField
 						key={type}
-						id={`consumes-filters-min-level-${key}`}
+						id={`consumes-filters-min-lvl-${key}`}
 						label={i18n.t(`settings_tab.consumables.filters.types.${key}`)}
 						placeholder={range}
 						positive
 						showZeroes={false}
-						value={sim.getMinConsumableLevel(type)}
-						onChange={value => setLevels({ ...filters.minConsumableLevel, [type]: value })}
+						value={sim.getMinConsumableLvl(type)}
+						onChange={value => setMinLvls({ ...filters.minConsumableLvl, [type]: value })}
 					/>
 				))}
 			</div>
@@ -70,8 +70,8 @@ export const ConsumesFilters = () => {
 				size="sm"
 				className="mt-2 ml-auto flex"
 				data-testid="consumes-filters-reset"
-				disabled={Object.keys(filters.minConsumableLevel).length === 0}
-				onClick={() => setLevels({})}>
+				disabled={Object.keys(filters.minConsumableLvl).length === 0}
+				onClick={() => setMinLvls({})}>
 				{i18n.t('settings_tab.consumables.filters.reset')}
 			</Button>
 		</Popover>

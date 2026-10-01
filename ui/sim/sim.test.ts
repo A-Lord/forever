@@ -279,17 +279,17 @@ describe('Sim.updateCharacterStats', () => {
 	});
 });
 
-describe('Sim.getMinConsumableLevel', () => {
+describe('Sim.getMinConsumableLvl', () => {
 	it('takes the default for a type the filters leave unset, and the filters where they set one, 0 included', () => {
 		const sim = new Sim({ env: makeEnv() });
-		expect(sim.getMinConsumableLevel(ConsumableType.ConsumableTypePotion)).toBe(Sim.DEFAULT_MIN_CONSUMABLE_LEVEL[ConsumableType.ConsumableTypePotion]);
-		expect(sim.getMinConsumableLevel(ConsumableType.ConsumableTypeFood)).toBe(0);
+		expect(sim.getMinConsumableLvl(ConsumableType.ConsumableTypePotion)).toBe(Sim.DEFAULT_MIN_CONSUMABLE_LVL[ConsumableType.ConsumableTypePotion]);
+		expect(sim.getMinConsumableLvl(ConsumableType.ConsumableTypeFood)).toBe(0);
 
 		const filters = sim.getFilters();
-		filters.minConsumableLevel[ConsumableType.ConsumableTypePotion] = 0;
-		filters.minConsumableLevel[ConsumableType.ConsumableTypeFood] = 45;
+		filters.minConsumableLvl[ConsumableType.ConsumableTypePotion] = 0;
+		filters.minConsumableLvl[ConsumableType.ConsumableTypeFood] = 45;
 		sim.setFilters(filters);
-		expect(sim.getMinConsumableLevel(ConsumableType.ConsumableTypePotion)).toBe(0);
-		expect(sim.getMinConsumableLevel(ConsumableType.ConsumableTypeFood)).toBe(45);
+		expect(sim.getMinConsumableLvl(ConsumableType.ConsumableTypePotion)).toBe(0);
+		expect(sim.getMinConsumableLvl(ConsumableType.ConsumableTypeFood)).toBe(45);
 	});
 });
