@@ -43,18 +43,7 @@ const dtpsGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 		.getTargets(resultData.filter)
 		.flatMap(target => target.getDamageActions().map(action => action.forTarget({ player: player.unitIndex })));
 
-	// Self-inflicted damage (sappers, ...) is one of the player's own actions
-	// that happens to list the player among its targets, so getTargets() never
-	// reaches it even though it already counts towards DTPS. getTargetIndex()
-	// resolves a player's action against filter.target, hence `target` here
-	// rather than the `player` key the enemy actions above use.
-	const selfDamageActions = player
-		.getDamageActions()
-		.filter(action => action.targets.some(target => target.data.unitIndex === player.unitIndex))
-		.map(action => action.forTarget({ target: player.unitIndex }))
-		.filter(action => action.damage > 0);
-
-	return ActionMetrics.groupById([...targetActions, ...selfDamageActions]);
+	return ActionMetrics.groupById([...targetActions, ...player.getSelfDamageActions()]);
 };
 
 const grouping: MetricGrouping<ActionMetrics> = {

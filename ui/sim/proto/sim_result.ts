@@ -324,6 +324,9 @@ export class PartyMetrics {
 	}
 }
 
+const damageDone = (actions: Array<ActionMetrics>): Array<ActionMetrics> =>
+	actions.map(action => action.againstOpponents()).filter((action): action is ActionMetrics => !!action && action.dps !== 0 && action.hps === 0);
+
 export class UnitMetrics {
 	// If this Unit is a pet, player is the owner. If it's a target, player is null.
 	private readonly player: PlayerProto | null;
@@ -363,7 +366,7 @@ export class UnitMetrics {
 	private memoMajorCooldownAuraUptimeLogs?: Array<AuraUptimeLog>;
 
 	get damageDealtLogs(): Array<DamageLog> {
-		return (this.memoDamageDealtLogs ??= this.logs.filter(isDamage));
+		return (this.memoDamageDealtLogs ??= this.logs.filter(isDamage).filter(log => log.target?.isTarget !== this.isTarget));
 	}
 
 	get dpsLogs(): Array<DpsLog> {
@@ -535,7 +538,7 @@ export class UnitMetrics {
 	}
 
 	getMeleeDamageActions(): Array<ActionMetrics> {
-		return this.getMeleeActions().filter(e => e.dps !== 0 && e.hps === 0);
+		return damageDone(this.getMeleeActions());
 	}
 
 	getSpellActions(): Array<ActionMetrics> {
@@ -543,11 +546,20 @@ export class UnitMetrics {
 	}
 
 	getSpellDamageActions(): Array<ActionMetrics> {
-		return this.getSpellActions().filter(e => e.dps !== 0 && e.hps === 0);
+		return damageDone(this.getSpellActions());
 	}
 
 	getDamageActions(): Array<ActionMetrics> {
-		return this.getActionsForDisplay().filter(e => e.dps !== 0 && e.hps === 0);
+		return damageDone(this.getActionsForDisplay());
+	}
+
+	// The unit's own actions that damage itself, such as a sapper's hit on its thrower, cut down to that
+	// damage. They count towards its damage taken, and an enemy's actions never reach them.
+	getSelfDamageActions(): Array<ActionMetrics> {
+		return this.getActionsForDisplay()
+			.filter(e => e.hps === 0 && e.targets.some(target => target.data.unitIndex === this.unitIndex))
+			.map(e => e.forTarget(this.isPlayer ? { target: this.unitIndex } : { player: this.unitIndex }))
+			.filter(e => e.damage > 0);
 	}
 
 	getThreatActions(): Array<ActionMetrics> {
@@ -1346,6 +1358,24 @@ export class ActionMetrics {
 				average: this.avgCrushDamage / this.crushes,
 			},
 		};
+	}
+
+	// The action against the other side only, or null when it never reaches the other side. Damage it deals
+	// its own side, such as a sapper's hit on its thrower, is damage taken, not damage done.
+	againstOpponents(): ActionMetrics | null {
+		const enemyIndices = new Set(this.resultData.result.encounterMetrics?.targets.map(target => target.unitIndex));
+		const onEnemySide = this.unit?.isTarget ?? false;
+		const targets = this.data.targets.filter(target => enemyIndices.has(target.unitIndex) !== onEnemySide);
+		if (targets.length === this.data.targets.length) {
+			return this;
+		}
+		if (targets.length === 0) {
+			return null;
+		}
+
+		const opponentData = ActionMetricsProto.clone(this.data);
+		opponentData.targets = targets;
+		return new ActionMetrics(this.unit, this.actionId, opponentData, this.resultData);
 	}
 
 	forTarget(filter?: SimResultFilter): ActionMetrics {
