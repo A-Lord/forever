@@ -559,8 +559,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-RingofSaviors-1447"
  value: {
-  dps: 287.81285
-  tps: 167.27245
+  dps: 335.81341
+  tps: 194.15277
   dtps: 2.90588
   hps: 20.24368
  }

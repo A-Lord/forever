@@ -147,6 +147,8 @@ func (warrior *Warrior) registerDeepWounds() {
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHitNoHitCounter)
 		dot := spell.Dot(target)
+		// TODO: Ingame test needed -- which weapon damage one application scales off: the main hand's average
+		// with Attack Power, without it, or the critting weapon's (off-hand crits apply the bleed too).
 		totalDamage := dot.OutstandingDmg() + warrior.AutoAttacks.MH().CalculateAverageWeaponDamage(spell.MeleeAttackPower(target))*share
 
 		if dot.IsActive() {
