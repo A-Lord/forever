@@ -8,8 +8,15 @@ import (
 
 const ThreatPerRageGained = 5
 
-// TODO: Ingame test needed at higher levels
-const DamageTakenRageFactor = 10
+// Rage from damage taken counts every physical hit as if armor reduced it by half, whatever the defender's armor.
+const DamageTakenRageArmorMultiplier = 0.5
+
+// Damage taken grants 2.5 * damage / c rage, where c is the rage conversion value at the defender's level (230.6 at 60).
+func rageConversion(level int32) float64 {
+	l := float64(level)
+	return 0.0091107836*l*l + 3.225598133*l + 4.2652911
+}
+
 const (
 	BaseRageHitFactor     = 3.46
 	TwoHandRageHitFactor  = 4.5
@@ -92,12 +99,15 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			if unit.GetCurrentPowerBar() != RageBar {
 				return
 			}
-
-			preArmorDamage := result.PostArmorAndResistanceMultiplier
-			if result.ArmorAndResistanceMultiplier > 0 {
-				preArmorDamage /= result.ArmorAndResistanceMultiplier
+			if !result.Landed() {
+				return
 			}
-			generatedRage := preArmorDamage * DamageTakenRageFactor / unit.MaxHealth() * unit.rageBar.damageTakenRageMultiplier
+
+			damage := result.Damage
+			if spell.SpellSchool.Matches(SpellSchoolPhysical) && result.ArmorAndResistanceMultiplier > 0 {
+				damage *= DamageTakenRageArmorMultiplier / result.ArmorAndResistanceMultiplier
+			}
+			generatedRage := 2.5 * damage / rageConversion(unit.Level) * unit.rageBar.damageTakenRageMultiplier
 
 			unit.AddRage(sim, generatedRage, rageFromDamageTakenMetrics)
 		},

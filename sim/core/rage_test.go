@@ -206,6 +206,50 @@ func TestOffHandAutoAttackRageGeneration(t *testing.T) {
 	}
 }
 
+func TestDamageTakenRageGeneration(t *testing.T) {
+	// 1000 damage taken at level 60: 2.5 * 1000 / 230.6 = 10.841. A physical hit counts as if armor
+	// halved it, so 1000 taken through 60% armor reduction counts as 2.5 * 1000 / 0.4 * 0.5 / 230.6 = 13.552.
+	const damageTaken = 1000.0
+
+	tests := []struct {
+		name            string
+		school          SpellSchool
+		outcome         HitOutcome
+		armorMultiplier float64
+		wantRage        float64
+	}{
+		{name: "physical hit", school: SpellSchoolPhysical, outcome: OutcomeHit, armorMultiplier: 0.4, wantRage: 13.552},
+		{name: "physical hit through no armor", school: SpellSchoolPhysical, outcome: OutcomeHit, armorMultiplier: 1, wantRage: 5.421},
+		{name: "fire hit", school: SpellSchoolFire, outcome: OutcomeHit, armorMultiplier: 1, wantRage: 10.841},
+		{name: "dodge", school: SpellSchoolPhysical, outcome: OutcomeDodge, armorMultiplier: 0.4, wantRage: 0},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			sim := SetupFakeRageSim()
+			fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+			attacker := sim.Encounter.ActiveTargetUnits[0]
+
+			result := &SpellResult{
+				Target:                       &fw.Unit,
+				Outcome:                      test.outcome,
+				ArmorAndResistanceMultiplier: test.armorMultiplier,
+			}
+			if test.outcome.Matches(OutcomeLanded) {
+				result.Damage = damageTaken
+			}
+
+			rageBefore := fw.CurrentRage()
+			fw.Unit.OnSpellHitTaken(sim, &Spell{Unit: attacker, SpellSchool: test.school}, result)
+			gained := fw.CurrentRage() - rageBefore
+
+			if !WithinToleranceFloat64(test.wantRage, gained, 0.001) {
+				t.Fatalf("Incorrect Rage from %s: Expected: %0.3f, Actual: %0.3f", test.name, test.wantRage, gained)
+			}
+		})
+	}
+}
+
 func TestOffHandRageMultiplier(t *testing.T) {
 	const swingDamage = 500.0
 
