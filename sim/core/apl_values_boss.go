@@ -88,9 +88,6 @@ type APLValueTargetIsMobType struct {
 }
 
 func (rot *APLRotation) newValueTargetIsMobType(config *proto.APLValueTargetIsMobType, _ *proto.UUID) APLValue {
-	if config.MobType == proto.MobType_MobTypeUnknown {
-		return nil
-	}
 	target := rot.GetTargetUnit(config.TargetUnit)
 	if target.Get() == nil {
 		return nil

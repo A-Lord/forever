@@ -25,32 +25,24 @@ func setupFakeRageRotationWith(register func(char *Character)) (*Simulation, *Fa
 	return sim, fw, rot
 }
 
-func protoSpellID(id int32) *proto.ActionID {
-	return &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}}
-}
-
-func protoItemID(id int32) *proto.ActionID {
-	return &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: id}}
-}
+const (
+	testPlainAuraID   = 910001
+	testStackAuraID   = 910002
+	testICDAuraID     = 910003
+	testMissingAuraID = 910099
+)
 
 func constValue(val string) *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: val}}}
 }
 
-func constValues(vals ...string) []*proto.APLValue {
-	out := make([]*proto.APLValue, len(vals))
-	for i, val := range vals {
-		out[i] = constValue(val)
+func wantNoValue(t *testing.T, values map[string]APLValue) {
+	t.Helper()
+	for name, value := range values {
+		if value != nil {
+			t.Errorf("%s: got a value, want none", name)
+		}
 	}
-	return out
-}
-
-func cmpValue(op proto.APLValueCompare_ComparisonOperator, lhs, rhs string) *proto.APLValue {
-	return &proto.APLValue{Value: &proto.APLValue_Cmp{Cmp: &proto.APLValueCompare{Op: op, Lhs: constValue(lhs), Rhs: constValue(rhs)}}}
-}
-
-func mathValue(op proto.APLValueMath_MathOperator, lhs, rhs string) *proto.APLValue {
-	return &proto.APLValue{Value: &proto.APLValue_Math{Math: &proto.APLValueMath{Op: op, Lhs: constValue(lhs), Rhs: constValue(rhs)}}}
 }
 
 func renderValue(sim *Simulation, value APLValue) string {
@@ -63,8 +55,9 @@ func renderValue(sim *Simulation, value APLValue) string {
 		return fmt.Sprint(value.GetFloat(sim))
 	case proto.APLValueType_ValueTypeDuration:
 		return value.GetDuration(sim).String()
+	default:
+		return value.Type().String()
 	}
-	return fmt.Sprintf("type %s", value.Type())
 }
 
 func newStatAura(char *Character, label string, id int32, stat stats.Stat, duration time.Duration) *StatBuffAura {
@@ -122,6 +115,28 @@ func TestValueOperators(t *testing.T) {
 	sim, _, rot := setupFakeRageRotation()
 	lt, ge, eq := proto.APLValueCompare_OpLt, proto.APLValueCompare_OpGe, proto.APLValueCompare_OpEq
 	add, mul, div := proto.APLValueMath_OpAdd, proto.APLValueMath_OpMul, proto.APLValueMath_OpDiv
+	consts := func(vals ...string) []*proto.APLValue {
+		out := make([]*proto.APLValue, len(vals))
+		for i, val := range vals {
+			out[i] = constValue(val)
+		}
+		return out
+	}
+	cmpValue := func(op proto.APLValueCompare_ComparisonOperator, lhs, rhs string) *proto.APLValue {
+		return &proto.APLValue{Value: &proto.APLValue_Cmp{Cmp: &proto.APLValueCompare{Op: op, Lhs: constValue(lhs), Rhs: constValue(rhs)}}}
+	}
+	mathValue := func(op proto.APLValueMath_MathOperator, lhs, rhs string) *proto.APLValue {
+		return &proto.APLValue{Value: &proto.APLValue_Math{Math: &proto.APLValueMath{Op: op, Lhs: constValue(lhs), Rhs: constValue(rhs)}}}
+	}
+	maxValue := func(vals ...string) *proto.APLValue {
+		return &proto.APLValue{Value: &proto.APLValue_Max{Max: &proto.APLValueMax{Vals: consts(vals...)}}}
+	}
+	minValue := func(vals ...string) *proto.APLValue {
+		return &proto.APLValue{Value: &proto.APLValue_Min{Min: &proto.APLValueMin{Vals: consts(vals...)}}}
+	}
+	not := func(val *proto.APLValue) *proto.APLValue {
+		return &proto.APLValue{Value: &proto.APLValue_Not{Not: &proto.APLValueNot{Val: val}}}
+	}
 	and := func(vals ...*proto.APLValue) *proto.APLValue {
 		return &proto.APLValue{Value: &proto.APLValue_And{And: &proto.APLValueAnd{Vals: vals}}}
 	}
@@ -152,12 +167,12 @@ func TestValueOperators(t *testing.T) {
 		{"math bool is rejected", mathValue(add, "true", "1"), ""},
 		{"math string is rejected", mathValue(add, "abc", "abc"), ""},
 
-		{"max int", &proto.APLValue{Value: &proto.APLValue_Max{Max: &proto.APLValueMax{Vals: constValues("3", "7", "5")}}}, "7"},
-		{"min int", &proto.APLValue{Value: &proto.APLValue_Min{Min: &proto.APLValueMin{Vals: constValues("3", "7", "5")}}}, "3"},
-		{"max coerces int and float", &proto.APLValue{Value: &proto.APLValue_Max{Max: &proto.APLValueMax{Vals: constValues("3", "2.5")}}}, "3"},
-		{"min of durations", &proto.APLValue{Value: &proto.APLValue_Min{Min: &proto.APLValueMin{Vals: constValues("3s", "2s")}}}, "2s"},
-		{"max single value", &proto.APLValue{Value: &proto.APLValue_Max{Max: &proto.APLValueMax{Vals: constValues("4")}}}, "4"},
-		{"min empty", &proto.APLValue{Value: &proto.APLValue_Min{Min: &proto.APLValueMin{}}}, ""},
+		{"max int", maxValue("3", "7", "5"), "7"},
+		{"min int", minValue("3", "7", "5"), "3"},
+		{"max coerces int and float", maxValue("3", "2.5"), "3"},
+		{"min of durations", minValue("3s", "2s"), "2s"},
+		{"max single value", maxValue("4"), "4"},
+		{"min empty", minValue(), ""},
 
 		{"and both true", and(yes, yes), "true"},
 		{"and one false", and(yes, no), "false"},
@@ -167,10 +182,10 @@ func TestValueOperators(t *testing.T) {
 		{"or one true", or(no, yes), "true"},
 		{"or const true short-circuits", or(no, constValue("true")), "true"},
 		{"or empty", or(), ""},
-		{"not of true", &proto.APLValue{Value: &proto.APLValue_Not{Not: &proto.APLValueNot{Val: yes}}}, "false"},
-		{"not of false", &proto.APLValue{Value: &proto.APLValue_Not{Not: &proto.APLValueNot{Val: no}}}, "true"},
-		{"not of const true", &proto.APLValue{Value: &proto.APLValue_Not{Not: &proto.APLValueNot{Val: constValue("true")}}}, "false"},
-		{"not of nothing", &proto.APLValue{Value: &proto.APLValue_Not{Not: &proto.APLValueNot{}}}, ""},
+		{"not of true", not(yes), "false"},
+		{"not of false", not(no), "true"},
+		{"not of const true", not(constValue("true")), "false"},
+		{"not of nothing", not(nil), ""},
 	}
 
 	for _, tc := range tests {
@@ -199,17 +214,16 @@ func TestValueVariables(t *testing.T) {
 	if ref == nil || ref.Type() != proto.APLValueType_ValueTypeInt || ref.GetInt(sim) != 5 {
 		t.Errorf("a reference to a variable holding 5 should resolve to the int 5, got %v", ref)
 	}
-	if rot.newValueVariableRef(&proto.APLValueVariableRef{Name: "missing"}, nil) != nil {
-		t.Error("a reference to an unknown variable should not construct")
-	}
 
 	placeholder := rot.newValueVariablePlaceholder(&proto.APLValueVariablePlaceholder{Name: "x"}, nil)
 	if placeholder == nil || placeholder.Type() != proto.APLValueType_ValueTypeUnknown {
 		t.Errorf("a named placeholder should construct with the unknown type, got %v", placeholder)
 	}
-	if rot.newValueVariablePlaceholder(&proto.APLValueVariablePlaceholder{}, nil) != nil {
-		t.Error("a placeholder without a name should not construct")
-	}
+
+	wantNoValue(t, map[string]APLValue{
+		"Variable Ref to an unknown variable": rot.newValueVariableRef(&proto.APLValueVariableRef{Name: "missing"}, nil),
+		"Variable Placeholder without a name": rot.newValueVariablePlaceholder(&proto.APLValueVariablePlaceholder{}, nil),
+	})
 }
 
 func TestValueEncounter(t *testing.T) {
@@ -240,52 +254,64 @@ func TestValueEncounter(t *testing.T) {
 	}
 
 	thresholds := []struct {
-		name      string
 		threshold proto.APLValueIsExecutePhase_ExecutePhaseThreshold
 		phase     int32
 		want      bool
 	}{
-		{"E20 in the 20 phase", proto.APLValueIsExecutePhase_E20, 20, true},
-		{"E20 in the 25 phase", proto.APLValueIsExecutePhase_E20, 25, false},
-		{"E25 in the 25 phase", proto.APLValueIsExecutePhase_E25, 25, true},
-		{"E35 in the 45 phase", proto.APLValueIsExecutePhase_E35, 45, false},
-		{"E45 in the 45 phase", proto.APLValueIsExecutePhase_E45, 45, true},
-		{"E90 in the 100 phase", proto.APLValueIsExecutePhase_E90, 100, true},
-		{"E90 in the 90 phase", proto.APLValueIsExecutePhase_E90, 90, false},
+		{proto.APLValueIsExecutePhase_E20, 20, true},
+		{proto.APLValueIsExecutePhase_E20, 25, false},
+		{proto.APLValueIsExecutePhase_E25, 25, true},
+		{proto.APLValueIsExecutePhase_E35, 45, false},
+		{proto.APLValueIsExecutePhase_E45, 45, true},
+		{proto.APLValueIsExecutePhase_E90, 100, true},
+		{proto.APLValueIsExecutePhase_E90, 90, false},
 	}
 	for _, tt := range thresholds {
 		value := rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{Threshold: tt.threshold}, nil)
 		sim.executePhase = tt.phase
 		if got := value.GetBool(sim); got != tt.want {
-			t.Errorf("Is Execute Phase, %s = %t, want %t", tt.name, got, tt.want)
+			t.Errorf("Is Execute Phase %v in the %d phase = %t, want %t", tt.threshold, tt.phase, got, tt.want)
 		}
 	}
-	if rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{}, nil) != nil {
-		t.Fatalf("Expected no value for an unknown execute threshold")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Is Execute Phase with an unknown threshold": rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{}, nil),
+	})
 }
 
 func TestValueTargetIsMobTypeAndEncounterInArea(t *testing.T) {
-	sim := &Simulation{Environment: &Environment{Encounter: Encounter{AreaTypes: []proto.AreaType{proto.AreaType_AreaTypeHaunted}}}}
-	rot := &APLRotation{
-		unit: &Unit{CurrentTarget: &Unit{MobType: proto.MobType_MobTypeUndead}},
-	}
+	sim, _, rot := setupFakeRageRotation()
+	sim.Encounter.AreaTypes = []proto.AreaType{proto.AreaType_AreaTypeHaunted}
 
-	isUndead := rot.newValueTargetIsMobType(&proto.APLValueTargetIsMobType{MobType: proto.MobType_MobTypeUndead}, nil)
-	isDemon := rot.newValueTargetIsMobType(&proto.APLValueTargetIsMobType{MobType: proto.MobType_MobTypeDemon}, nil)
-	if !isUndead.GetBool(sim) || isDemon.GetBool(sim) {
-		t.Fatalf("Target Is Mob Type: undead = %t, demon = %t, want true, false", isUndead.GetBool(sim), isDemon.GetBool(sim))
+	isMobType := func(mobType proto.MobType, targetUnit *proto.UnitReference) APLValue {
+		return rot.newValueTargetIsMobType(&proto.APLValueTargetIsMobType{TargetUnit: targetUnit, MobType: mobType}, nil)
+	}
+	firstTarget := &proto.UnitReference{Type: proto.UnitReference_Target, Index: 0}
+	for _, tc := range []struct {
+		mobType    proto.MobType
+		targetUnit *proto.UnitReference
+		want       bool
+	}{
+		{proto.MobType_MobTypeHumanoid, nil, true},
+		{proto.MobType_MobTypeDemon, nil, false},
+		{proto.MobType_MobTypeUnknown, nil, false},
+		{proto.MobType_MobTypeHumanoid, firstTarget, true},
+		{proto.MobType_MobTypeUndead, firstTarget, false},
+	} {
+		if got := isMobType(tc.mobType, tc.targetUnit).GetBool(sim); got != tc.want {
+			t.Errorf("Target Is Mob Type(%v, %v) = %t, want %t", tc.targetUnit, tc.mobType, got, tc.want)
+		}
 	}
 
 	inHaunted := rot.newValueEncounterInArea(&proto.APLValueEncounterInArea{AreaType: proto.AreaType_AreaTypeHaunted}, nil)
 	inDesert := rot.newValueEncounterInArea(&proto.APLValueEncounterInArea{AreaType: proto.AreaType_AreaTypeDesert}, nil)
 	if !inHaunted.GetBool(sim) || inDesert.GetBool(sim) {
-		t.Fatalf("Encounter In Area: haunted = %t, desert = %t, want true, false", inHaunted.GetBool(sim), inDesert.GetBool(sim))
+		t.Errorf("Encounter In Area: haunted = %t, desert = %t, want true, false", inHaunted.GetBool(sim), inDesert.GetBool(sim))
 	}
 
-	if rot.newValueTargetIsMobType(&proto.APLValueTargetIsMobType{}, nil) != nil || rot.newValueEncounterInArea(&proto.APLValueEncounterInArea{}, nil) != nil {
-		t.Fatalf("Expected no value for an unknown mob or area type")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Target Is Mob Type for a missing target":    isMobType(proto.MobType_MobTypeHumanoid, &proto.UnitReference{Type: proto.UnitReference_Target, Index: 5}),
+		"Encounter In Area for an unknown area type": rot.newValueEncounterInArea(&proto.APLValueEncounterInArea{}, nil),
+	})
 }
 
 func TestValueBoss(t *testing.T) {
@@ -298,7 +324,7 @@ func TestValueBoss(t *testing.T) {
 			CD: Cooldown{Timer: target.NewTimer(), Duration: 10 * time.Second},
 		},
 	})
-	id := protoSpellID(bossSpellID.SpellID)
+	id := bossSpellID.ToProto()
 	bossRef := &proto.UnitReference{Type: proto.UnitReference_Target, Index: 0}
 
 	isCasting := rot.newValueBossSpellIsCasting(&proto.APLValueBossSpellIsCasting{SpellId: id}, nil)
@@ -335,12 +361,6 @@ func TestValueBoss(t *testing.T) {
 	target.CurrentTarget = target
 	if currentTarget.GetBool(sim) {
 		t.Fatalf("Boss Current Target while the boss targets another unit = true, want false")
-	}
-
-	unknown := protoSpellID(999999)
-	if rot.newValueBossSpellIsCasting(&proto.APLValueBossSpellIsCasting{SpellId: unknown}, nil) != nil ||
-		rot.newValueBossSpellTimeToReady(&proto.APLValueBossSpellTimeToReady{SpellId: unknown}, nil) != nil {
-		t.Fatalf("Expected no value for a spell the boss does not know")
 	}
 }
 
@@ -380,19 +400,15 @@ func TestValueHealthAndMana(t *testing.T) {
 		t.Errorf("Current Mana Regen = %v, want 7", got)
 	}
 
-	for name, value := range map[string]APLValue{
-		"Current Health":   rot.newValueCurrentHealth(&proto.APLValueCurrentHealth{}, nil),
-		"Current Health %": rot.newValueCurrentHealthPercent(&proto.APLValueCurrentHealthPercent{}, nil),
-		"Max Health":       rot.newValueMaxHealth(&proto.APLValueMaxHealth{}, nil),
-		"Current Mana":     rot.newValueCurrentMana(&proto.APLValueCurrentMana{}, nil),
-		"Current Mana %":   rot.newValueCurrentManaPercent(&proto.APLValueCurrentManaPercent{}, nil),
-		"Max Mana":         rot.newValueMaxMana(&proto.APLValueMaxMana{}, nil),
-		"Mana Regen":       rot.newValueCurrentManaRegen(&proto.APLValueCurrentManaRegen{}, nil),
-	} {
-		if value != nil {
-			t.Errorf("%s without the bar: got a value, want none", name)
-		}
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Current Health without the bar":   rot.newValueCurrentHealth(&proto.APLValueCurrentHealth{}, nil),
+		"Current Health % without the bar": rot.newValueCurrentHealthPercent(&proto.APLValueCurrentHealthPercent{}, nil),
+		"Max Health without the bar":       rot.newValueMaxHealth(&proto.APLValueMaxHealth{}, nil),
+		"Current Mana without the bar":     rot.newValueCurrentMana(&proto.APLValueCurrentMana{}, nil),
+		"Current Mana % without the bar":   rot.newValueCurrentManaPercent(&proto.APLValueCurrentManaPercent{}, nil),
+		"Max Mana without the bar":         rot.newValueMaxMana(&proto.APLValueMaxMana{}, nil),
+		"Mana Regen without the bar":       rot.newValueCurrentManaRegen(&proto.APLValueCurrentManaRegen{}, nil),
+	})
 }
 
 func TestValueRageAndEnergyAndComboPoints(t *testing.T) {
@@ -432,19 +448,15 @@ func TestValueRageAndEnergyAndComboPoints(t *testing.T) {
 	}
 
 	empty := &APLRotation{unit: &Unit{}}
-	for name, value := range map[string]APLValue{
-		"Current Rage":         empty.newValueCurrentRage(&proto.APLValueCurrentRage{}, nil),
-		"Max Rage":             empty.newValueMaxRage(&proto.APLValueMaxRage{}, nil),
-		"Current Energy":       empty.newValueCurrentEnergy(&proto.APLValueCurrentEnergy{}, nil),
-		"Max Energy":           empty.newValueMaxEnergy(&proto.APLValueMaxEnergy{}, nil),
-		"Current Combo Points": empty.newValueCurrentComboPoints(&proto.APLValueCurrentComboPoints{}, nil),
-		"Max Combo Points":     empty.newValueMaxComboPoints(&proto.APLValueMaxComboPoints{}, nil),
-		"Next Energy Tick":     empty.newValueTimeToNextEnergyTick(&proto.APLValueTimeToNextEnergyTick{}, nil),
-	} {
-		if value != nil {
-			t.Errorf("%s without the bar: got a value, want none", name)
-		}
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Current Rage without the bar":         empty.newValueCurrentRage(&proto.APLValueCurrentRage{}, nil),
+		"Max Rage without the bar":             empty.newValueMaxRage(&proto.APLValueMaxRage{}, nil),
+		"Current Energy without the bar":       empty.newValueCurrentEnergy(&proto.APLValueCurrentEnergy{}, nil),
+		"Max Energy without the bar":           empty.newValueMaxEnergy(&proto.APLValueMaxEnergy{}, nil),
+		"Current Combo Points without the bar": empty.newValueCurrentComboPoints(&proto.APLValueCurrentComboPoints{}, nil),
+		"Max Combo Points without the bar":     empty.newValueMaxComboPoints(&proto.APLValueMaxComboPoints{}, nil),
+		"Next Energy Tick without the bar":     empty.newValueTimeToNextEnergyTick(&proto.APLValueTimeToNextEnergyTick{}, nil),
+	})
 }
 
 func TestValueEnergyTimeToTarget(t *testing.T) {
@@ -453,14 +465,14 @@ func TestValueEnergyTimeToTarget(t *testing.T) {
 		return &proto.APLValueEnergyTimeToTarget{TargetEnergy: constValue(target)}
 	}
 
-	if rot.newValueEnergyTimeToTarget(config("50"), nil) != nil {
-		t.Fatalf("Energy Time To Target without an energy bar: got a value, want none")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Energy Time To Target without an energy bar": rot.newValueEnergyTimeToTarget(config("50"), nil),
+	})
 
 	fw.EnableEnergyBar(EnergyBarOptions{MaxEnergy: 100, MaxComboPoints: 5})
-	if rot.newValueEnergyTimeToTarget(&proto.APLValueEnergyTimeToTarget{}, nil) != nil {
-		t.Errorf("Energy Time To Target without a target energy: got a value, want none")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Energy Time To Target without a target energy": rot.newValueEnergyTimeToTarget(&proto.APLValueEnergyTimeToTarget{}, nil),
+	})
 
 	sim.CurrentTime = 0
 	fw.energyBar.currentEnergy = 40
@@ -581,44 +593,65 @@ func TestValueUnitDistanceAndMoving(t *testing.T) {
 	}
 
 	noTarget := &APLRotation{unit: &Unit{}}
-	if noTarget.newValueUnitIsMoving(&proto.APLValueUnitIsMoving{SourceUnit: targetRef}, nil) != nil {
-		t.Errorf("Unit Is Moving without a current target: got a value, want none")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Unit Is Moving without a current target": noTarget.newValueUnitIsMoving(&proto.APLValueUnitIsMoving{SourceUnit: targetRef}, nil),
+	})
 }
 
-func TestValueSpellUnknown(t *testing.T) {
+func TestValueUnknownIDs(t *testing.T) {
 	_, _, rot := setupFakeRageRotation()
-	unknown := protoSpellID(1)
+	spell := ActionID{SpellID: 999999}.ToProto()
+	aura := ActionID{SpellID: testMissingAuraID}.ToProto()
 
-	values := map[string]APLValue{
-		"CanCast":          rot.newValueSpellCanCast(&proto.APLValueSpellCanCast{SpellId: unknown}, nil),
-		"IsReady":          rot.newValueSpellIsReady(&proto.APLValueSpellIsReady{SpellId: unknown}, nil),
-		"TimeToReady":      rot.newValueSpellTimeToReady(&proto.APLValueSpellTimeToReady{SpellId: unknown}, nil),
-		"CastTime":         rot.newValueSpellCastTime(&proto.APLValueSpellCastTime{SpellId: unknown}, nil),
-		"TravelTime":       rot.newValueSpellTravelTime(&proto.APLValueSpellTravelTime{SpellId: unknown}, nil),
-		"CPM":              rot.newValueSpellCPM(&proto.APLValueSpellCPM{SpellId: unknown}, nil),
-		"IsChanneling":     rot.newValueSpellIsChanneling(&proto.APLValueSpellIsChanneling{SpellId: unknown}, nil),
-		"ChanneledTicks":   rot.newValueSpellChanneledTicks(&proto.APLValueSpellChanneledTicks{SpellId: unknown}, nil),
-		"CurrentCost":      rot.newValueSpellCurrentCost(&proto.APLValueSpellCurrentCost{SpellId: unknown}, nil),
-		"NumCharges":       rot.newValueSpellNumCharges(&proto.APLValueSpellNumCharges{SpellId: unknown}, nil),
-		"TimeToCharge":     rot.newValueSpellTimeToCharge(&proto.APLValueSpellTimeToCharge{SpellId: unknown}, nil),
-		"GCDHastedDur":     rot.newValueSpellGCDHastedDuration(&proto.APLValueSpellGCDHastedDuration{SpellId: unknown}, nil),
-		"FullCooldown":     rot.newValueSpellFullCooldown(&proto.APLValueSpellFullCooldown{SpellId: unknown}, nil),
-		"InFlight":         rot.newValueSpellInFlight(&proto.APLValueSpellInFlight{SpellId: unknown}, nil),
-		"InFlightExported": rot.NewValueSpellInFlight(&proto.APLValueSpellInFlight{SpellId: unknown}, nil),
-	}
-	for name, value := range values {
-		if value != nil {
-			t.Errorf("%s for an unknown spell: got %v, want no value", name, value)
-		}
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Spell Can Cast for an unknown spell":            rot.newValueSpellCanCast(&proto.APLValueSpellCanCast{SpellId: spell}, nil),
+		"Spell Is Ready for an unknown spell":            rot.newValueSpellIsReady(&proto.APLValueSpellIsReady{SpellId: spell}, nil),
+		"Spell Time To Ready for an unknown spell":       rot.newValueSpellTimeToReady(&proto.APLValueSpellTimeToReady{SpellId: spell}, nil),
+		"Spell Cast Time for an unknown spell":           rot.newValueSpellCastTime(&proto.APLValueSpellCastTime{SpellId: spell}, nil),
+		"Spell Travel Time for an unknown spell":         rot.newValueSpellTravelTime(&proto.APLValueSpellTravelTime{SpellId: spell}, nil),
+		"Spell CPM for an unknown spell":                 rot.newValueSpellCPM(&proto.APLValueSpellCPM{SpellId: spell}, nil),
+		"Spell Is Channeling for an unknown spell":       rot.newValueSpellIsChanneling(&proto.APLValueSpellIsChanneling{SpellId: spell}, nil),
+		"Spell Channeled Ticks for an unknown spell":     rot.newValueSpellChanneledTicks(&proto.APLValueSpellChanneledTicks{SpellId: spell}, nil),
+		"Spell Current Cost for an unknown spell":        rot.newValueSpellCurrentCost(&proto.APLValueSpellCurrentCost{SpellId: spell}, nil),
+		"Spell Num Charges for an unknown spell":         rot.newValueSpellNumCharges(&proto.APLValueSpellNumCharges{SpellId: spell}, nil),
+		"Spell Time To Charge for an unknown spell":      rot.newValueSpellTimeToCharge(&proto.APLValueSpellTimeToCharge{SpellId: spell}, nil),
+		"Spell GCD Hasted Duration for an unknown spell": rot.newValueSpellGCDHastedDuration(&proto.APLValueSpellGCDHastedDuration{SpellId: spell}, nil),
+		"Spell Full Cooldown for an unknown spell":       rot.newValueSpellFullCooldown(&proto.APLValueSpellFullCooldown{SpellId: spell}, nil),
+		"Spell In Flight for an unknown spell":           rot.newValueSpellInFlight(&proto.APLValueSpellInFlight{SpellId: spell}, nil),
+		"exported Spell In Flight for an unknown spell":  rot.NewValueSpellInFlight(&proto.APLValueSpellInFlight{SpellId: spell}, nil),
+
+		"Boss Spell Is Casting for a spell the boss does not know":    rot.newValueBossSpellIsCasting(&proto.APLValueBossSpellIsCasting{SpellId: spell}, nil),
+		"Boss Spell Time To Ready for a spell the boss does not know": rot.newValueBossSpellTimeToReady(&proto.APLValueBossSpellTimeToReady{SpellId: spell}, nil),
+
+		"Dot Is Active for an unknown spell":                rot.newValueDotIsActive(&proto.APLValueDotIsActive{SpellId: spell}, nil),
+		"Dot Is Active On All Targets for an unknown spell": rot.newValueDotIsActiveOnAllTargets(&proto.APLValueDotIsActiveOnAllTargets{SpellId: spell}, nil),
+		"Dot Remaining Time for an unknown spell":           rot.newValueDotRemainingTime(&proto.APLValueDotRemainingTime{SpellId: spell}, nil),
+		"Dot Lowest Remaining Time for an unknown spell":    rot.newValueDotLowestRemainingTime(&proto.APLValueDotLowestRemainingTime{SpellId: spell}, nil),
+		"Dot Tick Frequency for an unknown spell":           rot.newValueDotTickFrequency(&proto.APLValueDotTickFrequency{SpellId: spell}, nil),
+		"Dot Time To Next Tick for an unknown spell":        rot.newValueDotTimeToNextTick(&proto.APLValueDotTimeToNextTick{SpellId: spell}, nil),
+		"Dot Base Duration for an unknown spell":            rot.newValueDotBaseDuration(&proto.APLValueDotBaseDuration{SpellId: spell}, nil),
+
+		"Aura Is Active without an aura id":      rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{}, nil),
+		"Aura Is Inactive without an aura id":    rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{}, nil),
+		"Aura Remaining Time without an aura id": rot.newValueAuraRemainingTime(&proto.APLValueAuraRemainingTime{}, nil),
+		"Aura Duration without an aura id":       rot.newValueAuraDuration(&proto.APLValueAuraDuration{}, nil),
+
+		"Aura Is Active for a missing aura":         rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: aura}, nil),
+		"Aura Is Inactive for a missing aura":       rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: aura}, nil),
+		"Aura Remaining Time for a missing aura":    rot.newValueAuraRemainingTime(&proto.APLValueAuraRemainingTime{AuraId: aura}, nil),
+		"Aura Duration for a missing aura":          rot.newValueAuraDuration(&proto.APLValueAuraDuration{AuraId: aura}, nil),
+		"Aura Num Stacks for a missing aura":        rot.newValueAuraNumStacks(&proto.APLValueAuraNumStacks{AuraId: aura}, nil),
+		"Aura Internal Cooldown for a missing aura": rot.newValueAuraInternalCooldown(&proto.APLValueAuraInternalCooldown{AuraId: aura}, nil),
+		"Aura ICD Is Ready for a missing aura":      rot.newValueAuraICDIsReady(&proto.APLValueAuraICDIsReady{AuraId: aura}, nil),
+		"Aura Should Refresh for a missing aura":    rot.newValueAuraShouldRefresh(&proto.APLValueAuraShouldRefresh{AuraId: aura}, nil),
+	})
 }
 
 func TestValueSpellIsKnown(t *testing.T) {
 	sim, _, rot := setupFakeRageRotation()
 
-	known := rot.newValueSpellIsKnown(&proto.APLValueSpellIsKnown{SpellId: protoSpellID(fakeRendActionID.SpellID)}, nil)
-	unknown := rot.newValueSpellIsKnown(&proto.APLValueSpellIsKnown{SpellId: protoSpellID(1)}, nil)
+	known := rot.newValueSpellIsKnown(&proto.APLValueSpellIsKnown{SpellId: fakeRendActionID.ToProto()}, nil)
+	unknown := rot.newValueSpellIsKnown(&proto.APLValueSpellIsKnown{SpellId: ActionID{SpellID: 1}.ToProto()}, nil)
 	if !known.GetBool(sim) || unknown.GetBool(sim) {
 		t.Fatalf("Is Known: Rend = %t, unknown = %t, want true, false", known.GetBool(sim), unknown.GetBool(sim))
 	}
@@ -629,8 +662,8 @@ func TestValueSpellCastState(t *testing.T) {
 	target := sim.Encounter.ActiveTargetUnits[0]
 	rend := fw.GetSpell(fakeRendActionID)
 	cdSpell := fw.GetSpell(fakeCategorySpellActionIDs[0])
-	rendID := protoSpellID(fakeRendActionID.SpellID)
-	cdID := protoSpellID(fakeCategorySpellActionIDs[0].SpellID)
+	rendID := fakeRendActionID.ToProto()
+	cdID := fakeCategorySpellActionIDs[0].ToProto()
 
 	canCast := rot.newValueSpellCanCast(&proto.APLValueSpellCanCast{SpellId: rendID}, nil)
 	if canCast.GetBool(sim) {
@@ -674,7 +707,7 @@ func TestValueSpellCastState(t *testing.T) {
 	}
 
 	castTime := rot.newValueSpellCastTime(&proto.APLValueSpellCastTime{SpellId: rendID}, nil)
-	if castTime.GetDuration(sim) != rend.CastTime() || castTime.GetDuration(sim) != 0 {
+	if castTime.GetDuration(sim) != 0 {
 		t.Errorf("Cast Time(Rend) = %s, want 0s", castTime.GetDuration(sim))
 	}
 
@@ -692,7 +725,7 @@ func TestValueSpellCastState(t *testing.T) {
 func TestValueSpellGCDHastedDuration(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
 	spell := fw.GetSpell(fakeGCDSpellActionID)
-	value := rot.newValueSpellGCDHastedDuration(&proto.APLValueSpellGCDHastedDuration{SpellId: protoSpellID(fakeGCDSpellActionID.SpellID)}, nil)
+	value := rot.newValueSpellGCDHastedDuration(&proto.APLValueSpellGCDHastedDuration{SpellId: fakeGCDSpellActionID.ToProto()}, nil)
 
 	if value.GetDuration(sim) != GCDDefault || value.GetFloat(sim) != GCDDefault.Seconds() {
 		t.Errorf("GCD without haste = %s, want %s", value.GetDuration(sim), GCDDefault)
@@ -713,7 +746,7 @@ func TestValueSpellGCDHastedDuration(t *testing.T) {
 func TestValueSpellCharges(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
 	spell := fw.GetSpell(fakeGCDSpellActionID)
-	id := protoSpellID(fakeGCDSpellActionID.SpellID)
+	id := fakeGCDSpellActionID.ToProto()
 	numCharges := rot.newValueSpellNumCharges(&proto.APLValueSpellNumCharges{SpellId: id}, nil)
 	timeToCharge := rot.newValueSpellTimeToCharge(&proto.APLValueSpellTimeToCharge{SpellId: id}, nil)
 
@@ -735,7 +768,7 @@ func TestValueSpellChannelingAndFlight(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
 	rend := fw.GetSpell(fakeRendActionID)
 	other := fw.GetSpell(fakeGCDSpellActionID)
-	rendID := protoSpellID(fakeRendActionID.SpellID)
+	rendID := fakeRendActionID.ToProto()
 	target := sim.Encounter.ActiveTargetUnits[0]
 
 	isChanneling := rot.newValueSpellIsChanneling(&proto.APLValueSpellIsChanneling{SpellId: rendID}, nil)
@@ -771,32 +804,31 @@ func TestValueSelectedConsumables(t *testing.T) {
 	fw.Consumables.PotId = 100
 	fw.Consumables.ConjuredId = 200
 
-	selected := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: protoItemID(100)}, nil)
-	other := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: protoItemID(101)}, nil)
+	selected := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 100}.ToProto()}, nil)
+	other := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 101}.ToProto()}, nil)
 	if !selected.GetBool(sim) || other.GetBool(sim) {
 		t.Errorf("Selected Potion: matching = %t, other = %t, want true, false", selected.GetBool(sim), other.GetBool(sim))
 	}
 
-	selectedConjured := rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{ConjuredId: protoItemID(200)}, nil)
-	otherConjured := rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{ConjuredId: protoItemID(201)}, nil)
+	selectedConjured := rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{ConjuredId: ActionID{ItemID: 200}.ToProto()}, nil)
+	otherConjured := rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{ConjuredId: ActionID{ItemID: 201}.ToProto()}, nil)
 	if !selectedConjured.GetBool(sim) || otherConjured.GetBool(sim) {
 		t.Errorf("Selected Conjured: matching = %t, other = %t, want true, false", selectedConjured.GetBool(sim), otherConjured.GetBool(sim))
 	}
 
-	if rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{}, nil) != nil || rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{}, nil) != nil {
-		t.Errorf("Expected no value for an unset potion or conjured item")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Selected Potion without a potion":          rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{}, nil),
+		"Selected Conjured without a conjured item": rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{}, nil),
+	})
 }
 
 func TestValueActiveItemSwapSet(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
 
-	if rot.newValueActiveItemSwapSet(&proto.APLValueActiveItemSwapSet{}, nil) != nil {
-		t.Errorf("Expected no value for an unknown swap set")
-	}
-	if rot.newValueActiveItemSwapSet(&proto.APLValueActiveItemSwapSet{SwapSet: proto.APLActionItemSwap_Swap1}, nil) != nil {
-		t.Errorf("Expected no value for a swap set without item swap enabled")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Active Item Swap Set for an unknown swap set":   rot.newValueActiveItemSwapSet(&proto.APLValueActiveItemSwapSet{}, nil),
+		"Active Item Swap Set without item swap enabled": rot.newValueActiveItemSwapSet(&proto.APLValueActiveItemSwapSet{SwapSet: proto.APLActionItemSwap_Swap1}, nil),
+	})
 
 	fw.ItemSwap.character = &fw.Character
 	fw.ItemSwap.slots = []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}
@@ -813,63 +845,45 @@ func TestValueActiveItemSwapSet(t *testing.T) {
 	}
 }
 
-func TestValueAuras(t *testing.T) {
-	const (
-		plainID   = 910001
-		stackID   = 910002
-		icdID     = 910003
-		missingID = 910099
-	)
-	var plain, stacking, icdAura *Aura
-
-	sim, _, rot := setupFakeRageRotationWith(func(char *Character) {
-		plain = char.RegisterAura(Aura{Label: "Plain", ActionID: ActionID{SpellID: plainID}, Duration: 10 * time.Second})
-		stacking = char.RegisterAura(Aura{Label: "Stacking", ActionID: ActionID{SpellID: stackID}, Duration: 10 * time.Second, MaxStacks: 5})
-		icdAura = char.RegisterAura(Aura{
-			Label:    "Icd",
-			ActionID: ActionID{SpellID: icdID},
-			Duration: 10 * time.Second,
-			Icd:      &Cooldown{Timer: char.NewTimer(), Duration: 30 * time.Second},
-		})
+func registerTestAuras(char *Character) (plain, stacking, icdAura *Aura) {
+	plain = char.RegisterAura(Aura{Label: "Plain", ActionID: ActionID{SpellID: testPlainAuraID}, Duration: 10 * time.Second})
+	stacking = char.RegisterAura(Aura{Label: "Stacking", ActionID: ActionID{SpellID: testStackAuraID}, Duration: 10 * time.Second, MaxStacks: 5})
+	icdAura = char.RegisterAura(Aura{
+		Label:    "Icd",
+		ActionID: ActionID{SpellID: testICDAuraID},
+		Duration: 10 * time.Second,
+		Icd:      &Cooldown{Timer: char.NewTimer(), Duration: 30 * time.Second},
 	})
-	uuid := &proto.UUID{Value: "test"}
+	return plain, stacking, icdAura
+}
 
-	if rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{}, uuid) != nil ||
-		rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{}, uuid) != nil ||
-		rot.newValueAuraRemainingTime(&proto.APLValueAuraRemainingTime{}, uuid) != nil ||
-		rot.newValueAuraDuration(&proto.APLValueAuraDuration{}, uuid) != nil {
-		t.Fatalf("expected no value when the aura id is unset")
-	}
-	if rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraRemainingTime(&proto.APLValueAuraRemainingTime{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraDuration(&proto.APLValueAuraDuration{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraNumStacks(&proto.APLValueAuraNumStacks{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraInternalCooldown(&proto.APLValueAuraInternalCooldown{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraICDIsReady(&proto.APLValueAuraICDIsReady{AuraId: protoSpellID(missingID)}, uuid) != nil ||
-		rot.newValueAuraShouldRefresh(&proto.APLValueAuraShouldRefresh{AuraId: protoSpellID(missingID)}, uuid) != nil {
-		t.Fatalf("expected no value for an aura the unit does not have")
-	}
-	if rot.newValueAuraInternalCooldown(&proto.APLValueAuraInternalCooldown{AuraId: protoSpellID(plainID)}, uuid) != nil {
-		t.Errorf("expected no Aura Internal Cooldown value for an aura without an ICD")
-	}
-	if rot.newValueAuraNumStacks(&proto.APLValueAuraNumStacks{AuraId: protoSpellID(plainID)}, uuid) != nil {
-		t.Errorf("expected no Aura Num Stacks value for a non-stacking aura")
-	}
+func TestValueAuras(t *testing.T) {
+	var plain, stacking, icdAura *Aura
+	sim, _, rot := setupFakeRageRotationWith(func(char *Character) {
+		plain, stacking, icdAura = registerTestAuras(char)
+	})
+	plainID := ActionID{SpellID: testPlainAuraID}.ToProto()
+	stackID := ActionID{SpellID: testStackAuraID}.ToProto()
+	icdID := ActionID{SpellID: testICDAuraID}.ToProto()
 
-	known := rot.newValueAuraIsKnown(&proto.APLValueAuraIsKnown{AuraId: protoSpellID(plainID)}, uuid)
-	unknown := rot.newValueAuraIsKnown(&proto.APLValueAuraIsKnown{AuraId: protoSpellID(missingID)}, uuid)
+	wantNoValue(t, map[string]APLValue{
+		"Aura Internal Cooldown for an aura without an ICD": rot.newValueAuraInternalCooldown(&proto.APLValueAuraInternalCooldown{AuraId: plainID}, nil),
+		"Aura Num Stacks for a non-stacking aura":           rot.newValueAuraNumStacks(&proto.APLValueAuraNumStacks{AuraId: plainID}, nil),
+	})
+
+	known := rot.newValueAuraIsKnown(&proto.APLValueAuraIsKnown{AuraId: plainID}, nil)
+	unknown := rot.newValueAuraIsKnown(&proto.APLValueAuraIsKnown{AuraId: ActionID{SpellID: testMissingAuraID}.ToProto()}, nil)
 	if !known.GetBool(sim) || unknown.GetBool(sim) {
 		t.Errorf("Aura Is Known: registered = %t, missing = %t, want true, false", known.GetBool(sim), unknown.GetBool(sim))
 	}
 
-	isActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: protoSpellID(plainID)}, uuid)
-	isInactive := rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: protoSpellID(plainID)}, uuid)
-	remaining := rot.newValueAuraRemainingTime(&proto.APLValueAuraRemainingTime{AuraId: protoSpellID(plainID)}, uuid)
-	duration := rot.newValueAuraDuration(&proto.APLValueAuraDuration{AuraId: protoSpellID(plainID)}, uuid)
-	numStacks := rot.newValueAuraNumStacks(&proto.APLValueAuraNumStacks{AuraId: protoSpellID(stackID)}, uuid)
-	icdRemaining := rot.newValueAuraInternalCooldown(&proto.APLValueAuraInternalCooldown{AuraId: protoSpellID(icdID)}, uuid)
-	icdReady := rot.newValueAuraICDIsReady(&proto.APLValueAuraICDIsReady{AuraId: protoSpellID(icdID)}, uuid)
+	isActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: plainID}, nil)
+	isInactive := rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: plainID}, nil)
+	remaining := rot.newValueAuraRemainingTime(&proto.APLValueAuraRemainingTime{AuraId: plainID}, nil)
+	duration := rot.newValueAuraDuration(&proto.APLValueAuraDuration{AuraId: plainID}, nil)
+	numStacks := rot.newValueAuraNumStacks(&proto.APLValueAuraNumStacks{AuraId: stackID}, nil)
+	icdRemaining := rot.newValueAuraInternalCooldown(&proto.APLValueAuraInternalCooldown{AuraId: icdID}, nil)
+	icdReady := rot.newValueAuraICDIsReady(&proto.APLValueAuraICDIsReady{AuraId: icdID}, nil)
 
 	if isActive.GetBool(sim) || !isInactive.GetBool(sim) || remaining.GetDuration(sim) != 0 {
 		t.Errorf("inactive aura: active = %t, inactive = %t, remaining = %s, want false, true, 0s", isActive.GetBool(sim), isInactive.GetBool(sim), remaining.GetDuration(sim))
@@ -908,19 +922,14 @@ func TestValueAuras(t *testing.T) {
 func TestValueAuraReactionTime(t *testing.T) {
 	var plain, icdAura *Aura
 	sim, fw, rot := setupFakeRageRotationWith(func(char *Character) {
-		plain = char.RegisterAura(Aura{Label: "Plain", ActionID: ActionID{SpellID: 910001}, Duration: 10 * time.Second})
-		icdAura = char.RegisterAura(Aura{
-			Label:    "Icd",
-			ActionID: ActionID{SpellID: 910003},
-			Duration: 10 * time.Second,
-			Icd:      &Cooldown{Timer: char.NewTimer(), Duration: 30 * time.Second},
-		})
+		plain, _, icdAura = registerTestAuras(char)
 	})
 	fw.ReactionTime = 100 * time.Millisecond
+	plainID := ActionID{SpellID: testPlainAuraID}.ToProto()
 
-	isActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: protoSpellID(910001), IncludeReactionTime: true}, nil)
-	isInactive := rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: protoSpellID(910001), IncludeReactionTime: true}, nil)
-	icdReady := rot.newValueAuraICDIsReady(&proto.APLValueAuraICDIsReady{AuraId: protoSpellID(910003), IncludeReactionTime: true}, nil)
+	isActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: plainID, IncludeReactionTime: true}, nil)
+	isInactive := rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: plainID, IncludeReactionTime: true}, nil)
+	icdReady := rot.newValueAuraICDIsReady(&proto.APLValueAuraICDIsReady{AuraId: ActionID{SpellID: testICDAuraID}.ToProto(), IncludeReactionTime: true}, nil)
 
 	sim.CurrentTime = time.Second
 	plain.Activate(sim)
@@ -939,13 +948,13 @@ func TestValueAuraReactionTime(t *testing.T) {
 func TestValueAuraShouldRefresh(t *testing.T) {
 	var buff *Aura
 	sim, _, rot := setupFakeRageRotationWith(func(char *Character) {
-		buff = char.RegisterAura(Aura{Label: "Buff", ActionID: ActionID{SpellID: 910001}, Duration: 10 * time.Second})
+		buff, _, _ = registerTestAuras(char)
 		buff.NewExclusiveEffect("aplAuraCategory", false, ExclusiveEffect{Priority: 1})
 	})
 
 	value := rot.newValueAuraShouldRefresh(&proto.APLValueAuraShouldRefresh{
 		SourceUnit: &proto.UnitReference{Type: proto.UnitReference_Self},
-		AuraId:     protoSpellID(910001),
+		AuraId:     ActionID{SpellID: testPlainAuraID}.ToProto(),
 	}, nil)
 	if value == nil {
 		t.Fatalf("expected a Should Refresh value for a known aura")
@@ -980,42 +989,44 @@ func TestValueAuraSets(t *testing.T) {
 		spell := char.RegisterSpell(SpellConfig{ActionID: ActionID{SpellID: cdSpellID}})
 		char.initialMajorCooldowns = append(char.initialMajorCooldowns, MajorCooldown{Spell: spell, BuffAura: cdAura})
 	})
-	uuid := &proto.UUID{Value: "test"}
 
 	const none = -1
+	valuesFor := func(stat int32) map[string]APLValue {
+		return map[string]APLValue{
+			"All Item Stat Procs Active":           rot.newValueAllItemStatProcsActive(&proto.APLValueAllItemStatProcsActive{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Any Item Stat Procs Active":           rot.newValueAnyItemStatProcsActive(&proto.APLValueAnyItemStatProcsActive{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Any Item Stat Procs Available":        rot.newValueAnyItemStatProcsAvailable(&proto.APLValueAnyItemStatProcsAvailable{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Item Procs Min Remaining Time":        rot.newValueItemProcsMinRemainingTime(&proto.APLValueItemProcsMinRemainingTime{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Item Procs Max Remaining ICD":         rot.newValueItemsProcsMaxRemainingICD(&proto.APLValueItemProcsMaxRemainingICD{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Any Stat Buff Cooldowns Active":       rot.newValueAnyStatBuffCooldownsActive(&proto.APLValueAnyStatBuffCooldownsActive{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Any Stat Buff Cooldowns Min Duration": rot.newValueAnyStatBuffCooldownsMinDuration(&proto.APLValueAnyStatBuffCooldownsMinDuration{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Num Equipped Stat Proc Items":         rot.newValueNumEquippedStatProcItems(&proto.APLValueNumEquippedStatProcItems{StatType1: stat, StatType2: none, StatType3: none}, nil),
+			"Num Stat Buff Cooldowns":              rot.newValueNumStatBuffCooldowns(&proto.APLValueNumStatBuffCooldowns{StatType1: stat, StatType2: none, StatType3: none}, nil),
+		}
+	}
 	str := int32(proto.Stat_StatStrength)
-	dodge := int32(proto.Stat_StatDodgeRating)
 
-	if rot.newValueAllItemStatProcsActive(&proto.APLValueAllItemStatProcsActive{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil ||
-		rot.newValueAnyItemStatProcsActive(&proto.APLValueAnyItemStatProcsActive{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil ||
-		rot.newValueAnyItemStatProcsAvailable(&proto.APLValueAnyItemStatProcsAvailable{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil ||
-		rot.newValueItemProcsMinRemainingTime(&proto.APLValueItemProcsMinRemainingTime{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil ||
-		rot.newValueItemsProcsMaxRemainingICD(&proto.APLValueItemProcsMaxRemainingICD{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil ||
-		rot.newValueAnyStatBuffCooldownsActive(&proto.APLValueAnyStatBuffCooldownsActive{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil ||
-		rot.newValueAnyStatBuffCooldownsMinDuration(&proto.APLValueAnyStatBuffCooldownsMinDuration{StatType1: dodge, StatType2: none, StatType3: none}, uuid) != nil {
-		t.Fatalf("expected no value when no proc or cooldown buffs the stat")
+	unbuffed := valuesFor(int32(proto.Stat_StatDodgeRating))
+	for _, name := range []string{"Num Equipped Stat Proc Items", "Num Stat Buff Cooldowns"} {
+		if got := unbuffed[name].GetInt(sim); got != 0 {
+			t.Errorf("%s for an unbuffed stat = %d, want 0", name, got)
+		}
+		delete(unbuffed, name)
 	}
-	if got := rot.newValueNumEquippedStatProcItems(&proto.APLValueNumEquippedStatProcItems{StatType1: dodge, StatType2: none, StatType3: none}, uuid).GetInt(sim); got != 0 {
-		t.Errorf("Num Equipped Stat Proc Items for an unbuffed stat = %d, want 0", got)
-	}
-	if got := rot.newValueNumStatBuffCooldowns(&proto.APLValueNumStatBuffCooldowns{StatType1: dodge, StatType2: none, StatType3: none}, uuid).GetInt(sim); got != 0 {
-		t.Errorf("Num Stat Buff Cooldowns for an unbuffed stat = %d, want 0", got)
-	}
+	wantNoValue(t, unbuffed)
 
-	allActive := rot.newValueAllItemStatProcsActive(&proto.APLValueAllItemStatProcsActive{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	anyActive := rot.newValueAnyItemStatProcsActive(&proto.APLValueAnyItemStatProcsActive{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	anyAvailable := rot.newValueAnyItemStatProcsAvailable(&proto.APLValueAnyItemStatProcsAvailable{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	minRemaining := rot.newValueItemProcsMinRemainingTime(&proto.APLValueItemProcsMinRemainingTime{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	maxICD := rot.newValueItemsProcsMaxRemainingICD(&proto.APLValueItemProcsMaxRemainingICD{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	numItems := rot.newValueNumEquippedStatProcItems(&proto.APLValueNumEquippedStatProcItems{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	numItemsHighIcd := rot.newValueNumEquippedStatProcItems(&proto.APLValueNumEquippedStatProcItems{StatType1: str, StatType2: none, StatType3: none, MinIcdSeconds: 50}, uuid)
-	numCooldowns := rot.newValueNumStatBuffCooldowns(&proto.APLValueNumStatBuffCooldowns{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	cdActive := rot.newValueAnyStatBuffCooldownsActive(&proto.APLValueAnyStatBuffCooldownsActive{StatType1: str, StatType2: none, StatType3: none}, uuid)
-	cdMinDuration := rot.newValueAnyStatBuffCooldownsMinDuration(&proto.APLValueAnyStatBuffCooldownsMinDuration{StatType1: str, StatType2: none, StatType3: none}, uuid)
-
-	if allActive == nil || anyActive == nil || anyAvailable == nil || minRemaining == nil || maxICD == nil || cdActive == nil || cdMinDuration == nil {
-		t.Fatalf("expected values for a stat that a proc and a cooldown buff")
+	values := valuesFor(str)
+	for name, value := range values {
+		if value == nil {
+			t.Fatalf("%s for a stat that a proc and a cooldown buff: got no value", name)
+		}
 	}
+	allActive, anyActive, anyAvailable := values["All Item Stat Procs Active"], values["Any Item Stat Procs Active"], values["Any Item Stat Procs Available"]
+	minRemaining, maxICD := values["Item Procs Min Remaining Time"], values["Item Procs Max Remaining ICD"]
+	cdActive, cdMinDuration := values["Any Stat Buff Cooldowns Active"], values["Any Stat Buff Cooldowns Min Duration"]
+	numItems, numCooldowns := values["Num Equipped Stat Proc Items"], values["Num Stat Buff Cooldowns"]
+	numItemsHighIcd := rot.newValueNumEquippedStatProcItems(&proto.APLValueNumEquippedStatProcItems{StatType1: str, StatType2: none, StatType3: none, MinIcdSeconds: 50}, nil)
+
 	if got := numItems.GetInt(sim); got != 1 {
 		t.Errorf("Num Equipped Stat Proc Items = %d, want 1", got)
 	}
@@ -1066,7 +1077,6 @@ func TestValueAuraSets(t *testing.T) {
 		t.Errorf("Any Item Stat Procs Available while the proc is on its ICD = true, want false")
 	}
 
-	// With its only proc swapped out, All Item Stat Procs Active has nothing left to wait for.
 	strProc.IsSwapped = true
 	if got := numItems.GetInt(sim); got != 0 {
 		t.Errorf("Num Equipped Stat Proc Items with the item swapped out = %d, want 0", got)
@@ -1079,7 +1089,7 @@ func TestValueAuraSets(t *testing.T) {
 func TestValueDots(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
 	dot := fw.GetSpell(fakeRendActionID).Dot(sim.Encounter.AllTargetUnits[0])
-	id := protoSpellID(fakeRendActionID.SpellID)
+	id := fakeRendActionID.ToProto()
 
 	isActive := rot.newValueDotIsActive(&proto.APLValueDotIsActive{SpellId: id}, nil)
 	activeOnAll := rot.newValueDotIsActiveOnAllTargets(&proto.APLValueDotIsActiveOnAllTargets{SpellId: id}, nil)
@@ -1113,28 +1123,17 @@ func TestValueDots(t *testing.T) {
 	if tickFrequency.GetDuration(sim) != 3*time.Second || nextTick.GetDuration(sim) != 2*time.Second {
 		t.Fatalf("Active dot: tick frequency = %s, time to next tick = %s, want 3s, 2s", tickFrequency.GetDuration(sim), nextTick.GetDuration(sim))
 	}
-
-	unknown := protoSpellID(999999)
-	if rot.newValueDotIsActive(&proto.APLValueDotIsActive{SpellId: unknown}, nil) != nil ||
-		rot.newValueDotIsActiveOnAllTargets(&proto.APLValueDotIsActiveOnAllTargets{SpellId: unknown}, nil) != nil ||
-		rot.newValueDotRemainingTime(&proto.APLValueDotRemainingTime{SpellId: unknown}, nil) != nil ||
-		rot.newValueDotLowestRemainingTime(&proto.APLValueDotLowestRemainingTime{SpellId: unknown}, nil) != nil ||
-		rot.newValueDotTickFrequency(&proto.APLValueDotTickFrequency{SpellId: unknown}, nil) != nil ||
-		rot.newValueDotTimeToNextTick(&proto.APLValueDotTimeToNextTick{SpellId: unknown}, nil) != nil ||
-		rot.newValueDotBaseDuration(&proto.APLValueDotBaseDuration{SpellId: unknown}, nil) != nil {
-		t.Fatalf("Expected no value for a spell the unit does not know")
-	}
 }
 
 func TestValueDotPercentIncrease(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
 	rend := fw.GetSpell(fakeRendActionID)
-	id := protoSpellID(fakeRendActionID.SpellID)
+	id := fakeRendActionID.ToProto()
 
-	if rot.newValueDotPercentIncrease(&proto.APLValueDotPercentIncrease{SpellId: id}, nil) != nil ||
-		rot.newValueDotTickRatePercentIncrease(&proto.APLValueDotPercentIncrease{SpellId: id}, nil) != nil {
-		t.Fatalf("Expected no value for a dot without an expected tick damage calculator")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Dot Percent Increase without an expected tick damage calculator":           rot.newValueDotPercentIncrease(&proto.APLValueDotPercentIncrease{SpellId: id}, nil),
+		"Dot Tick Rate Percent Increase without an expected tick damage calculator": rot.newValueDotTickRatePercentIncrease(&proto.APLValueDotPercentIncrease{SpellId: id}, nil),
+	})
 
 	snapshotDamage, currentDamage := 0.0, 0.0
 	result := &SpellResult{}
@@ -1184,11 +1183,11 @@ func TestValueSequences(t *testing.T) {
 		rot.priorityList = append(rot.priorityList, &APLAction{impl: sequence})
 	}
 
-	if rot.newValueSequenceIsComplete(&proto.APLValueSequenceIsComplete{}, nil) != nil ||
-		rot.newValueSequenceIsReady(&proto.APLValueSequenceIsReady{}, nil) != nil ||
-		rot.newValueSequenceTimeToReady(&proto.APLValueSequenceTimeToReady{}, nil) != nil {
-		t.Error("sequence values without a sequence name should not construct")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Sequence Is Complete without a sequence name":   rot.newValueSequenceIsComplete(&proto.APLValueSequenceIsComplete{}, nil),
+		"Sequence Is Ready without a sequence name":      rot.newValueSequenceIsReady(&proto.APLValueSequenceIsReady{}, nil),
+		"Sequence Time To Ready without a sequence name": rot.newValueSequenceTimeToReady(&proto.APLValueSequenceTimeToReady{}, nil),
+	})
 
 	tests := []struct {
 		name            string
@@ -1258,14 +1257,12 @@ func TestValueMultipleCdUsages(t *testing.T) {
 	plain := fw.GetSpell(fakeCategorySpellActionIDs[1])
 	target.RelatedSelfBuff = &Aura{Duration: 10 * time.Second}
 	sim.Duration = 180 * time.Second
-	targetID := protoSpellID(target.ActionID.SpellID)
+	targetID := target.ActionID.ToProto()
 
-	if rot.newValueMultipleCdUsages(&proto.APLValueMultipleCdUsages{}, nil) != nil {
-		t.Error("a value without a target spell should not construct")
-	}
-	if rot.newValueMultipleCdUsages(&proto.APLValueMultipleCdUsages{TargetSpellId: protoSpellID(plain.ActionID.SpellID)}, nil) != nil {
-		t.Error("a target spell without a related self buff should not construct")
-	}
+	wantNoValue(t, map[string]APLValue{
+		"Multiple Cd Usages without a target spell":                  rot.newValueMultipleCdUsages(&proto.APLValueMultipleCdUsages{}, nil),
+		"Multiple Cd Usages for a spell without a related self buff": rot.newValueMultipleCdUsages(&proto.APLValueMultipleCdUsages{TargetSpellId: plain.ActionID.ToProto()}, nil),
+	})
 
 	always := rot.newValueMultipleCdUsages(&proto.APLValueMultipleCdUsages{TargetSpellId: targetID}, nil)
 	aligned := rot.newValueMultipleCdUsages(&proto.APLValueMultipleCdUsages{TargetSpellId: targetID, AlignCdEnd: true}, nil)

@@ -135,8 +135,9 @@ type APLValueEncounterInArea struct {
 	areaType proto.AreaType
 }
 
-func (rot *APLRotation) newValueEncounterInArea(config *proto.APLValueEncounterInArea, _ *proto.UUID) APLValue {
+func (rot *APLRotation) newValueEncounterInArea(config *proto.APLValueEncounterInArea, uuid *proto.UUID) APLValue {
 	if config.AreaType == proto.AreaType_AreaTypeUnknown {
+		rot.ValidationMessageByUUID(uuid, proto.LogLevel_Warning, "Unknown area type")
 		return nil
 	}
 	return &APLValueEncounterInArea{

@@ -1,4 +1,5 @@
-import { ActionID, AreaType, MobType, Stat } from '@generated/proto/common';
+import { APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold } from '@generated/proto/apl';
+import { ActionID, AreaType, Stat } from '@generated/proto/common';
 import { getEnumValues } from '@sim/utils/collections';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -38,7 +39,7 @@ import { newKindImpl, resolveField } from './field_specs';
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 describe('resolveField kinds', () => {
-	it('resolves the thirteen fixed-enum descriptor types to kind enum', () => {
+	it('resolves the fixed-enum descriptor types to kind enum', () => {
 		const descriptors = [
 			eclipseTypeFieldConfig('f'),
 			hotwStrategyFieldConfig('f'),
@@ -56,18 +57,6 @@ describe('resolveField kinds', () => {
 		];
 		for (const descriptor of descriptors) {
 			expect(resolveField(descriptor).kind).toBe('enum');
-		}
-	});
-
-	it('leaves the unknown mob and area type out of their dropdowns', () => {
-		for (const [descriptor, unknown] of [
-			[mobTypeFieldConfig('f'), MobType.MobTypeUnknown],
-			[areaTypeFieldConfig('f'), AreaType.AreaTypeUnknown],
-		] as const) {
-			const spec = resolveField(descriptor);
-			if (spec.kind !== 'enum') throw new Error(`expected an enum field, got ${spec.kind}`);
-			expect(spec.table.options.map(option => option.value)).not.toContain(unknown);
-			expect(spec.table.options.map(option => option.value)).toContain(spec.newValue());
 		}
 	});
 
@@ -185,5 +174,13 @@ describe('newKindImpl', () => {
 		const spellId = ActionID.create({ rawId: { oneofKind: 'spellId', spellId: 1 } });
 		const impl = newKindImpl({ newValue: () => ({ spellId }), fields: [actionIdFieldConfig('spellId', 'castable_spells')] })();
 		expect(impl).toEqual({ spellId });
+	});
+
+	it('sets unset enum fields to the default their picker writes', () => {
+		const impl = newKindImpl({
+			newValue: () => ({ areaType: AreaType.AreaTypeUnknown, threshold: ExecutePhaseThreshold.Unknown }),
+			fields: [areaTypeFieldConfig('areaType'), executePhaseThresholdFieldConfig('threshold')],
+		})();
+		expect(impl).toEqual({ areaType: AreaType.AreaTypeForestGrassland, threshold: ExecutePhaseThreshold.E20 });
 	});
 });
