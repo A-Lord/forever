@@ -1,4 +1,4 @@
-import { ActionID, Stat } from '@generated/proto/common';
+import { ActionID, AreaType, MobType, Stat } from '@generated/proto/common';
 import { getEnumValues } from '@sim/utils/collections';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +6,7 @@ import {
 	actionFieldConfig,
 	actionIdFieldConfig,
 	actionListFieldConfig,
+	areaTypeFieldConfig,
 	autoSwingTypeFieldConfig,
 	autoTypeFieldConfig,
 	booleanFieldConfig,
@@ -20,6 +21,7 @@ import {
 	makeUseDotBaseValueCheckbox,
 	mathOperatorFieldConfig,
 	minIcdInput,
+	mobTypeFieldConfig,
 	numberFieldConfig,
 	placeholderNameFieldConfig,
 	reactionTimeCheckbox,
@@ -36,7 +38,7 @@ import { newKindImpl, resolveField } from './field_specs';
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 describe('resolveField kinds', () => {
-	it('resolves the nine fixed-enum descriptor types to kind enum', () => {
+	it('resolves the thirteen fixed-enum descriptor types to kind enum', () => {
 		const descriptors = [
 			eclipseTypeFieldConfig('f'),
 			hotwStrategyFieldConfig('f'),
@@ -49,9 +51,23 @@ describe('resolveField kinds', () => {
 			mathOperatorFieldConfig('f'),
 			executePhaseThresholdFieldConfig('f'),
 			totemTypeFieldConfig('f'),
+			mobTypeFieldConfig('f'),
+			areaTypeFieldConfig('f'),
 		];
 		for (const descriptor of descriptors) {
 			expect(resolveField(descriptor).kind).toBe('enum');
+		}
+	});
+
+	it('leaves the unknown mob and area type out of their dropdowns', () => {
+		for (const [descriptor, unknown] of [
+			[mobTypeFieldConfig('f'), MobType.MobTypeUnknown],
+			[areaTypeFieldConfig('f'), AreaType.AreaTypeUnknown],
+		] as const) {
+			const spec = resolveField(descriptor);
+			if (spec.kind !== 'enum') throw new Error(`expected an enum field, got ${spec.kind}`);
+			expect(spec.table.options.map(option => option.value)).not.toContain(unknown);
+			expect(spec.table.options.map(option => option.value)).toContain(spec.newValue());
 		}
 	});
 

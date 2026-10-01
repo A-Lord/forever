@@ -40,6 +40,8 @@ type FieldDescriptorPayloads = {
 	mathOperator: { field: string };
 	executePhaseThreshold: { field: string };
 	totemType: { field: string };
+	mobType: { field: string };
+	areaType: { field: string };
 	value: { field: string; options?: FieldOptions };
 	valueList: { field: string };
 	// Rendered by ActionPicker (they nest an APL action).
@@ -150,6 +152,14 @@ export function executePhaseThresholdFieldConfig(field: string): Descriptor<'exe
 
 export function totemTypeFieldConfig(field: string): Descriptor<'totemType'> {
 	return { type: 'totemType', field };
+}
+
+export function mobTypeFieldConfig(field: string): Descriptor<'mobType'> {
+	return { type: 'mobType', field };
+}
+
+export function areaTypeFieldConfig(field: string): Descriptor<'areaType'> {
+	return { type: 'areaType', field };
 }
 
 export function valueFieldConfig(field: string, options?: FieldOptions): Descriptor<'value'> {

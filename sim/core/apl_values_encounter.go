@@ -129,3 +129,26 @@ func (value *APLValueIsExecutePhase) GetBool(sim *Simulation) bool {
 func (value *APLValueIsExecutePhase) String() string {
 	return "Is Execute Phase"
 }
+
+type APLValueEncounterInArea struct {
+	DefaultAPLValueImpl
+	areaType proto.AreaType
+}
+
+func (rot *APLRotation) newValueEncounterInArea(config *proto.APLValueEncounterInArea, _ *proto.UUID) APLValue {
+	if config.AreaType == proto.AreaType_AreaTypeUnknown {
+		return nil
+	}
+	return &APLValueEncounterInArea{
+		areaType: config.AreaType,
+	}
+}
+func (value *APLValueEncounterInArea) Type() proto.APLValueType {
+	return proto.APLValueType_ValueTypeBool
+}
+func (value *APLValueEncounterInArea) GetBool(sim *Simulation) bool {
+	return sim.Encounter.InArea(value.areaType)
+}
+func (value *APLValueEncounterInArea) String() string {
+	return fmt.Sprintf("In Area(%s)", value.areaType)
+}
