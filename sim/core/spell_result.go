@@ -74,6 +74,7 @@ func (spell *Spell) NewResult(target *Unit) *SpellResult {
 	result.Threat = 0
 	result.Outcome = OutcomeEmpty // for blocks
 	result.inUse = true
+	result.ArmorAndResistanceMultiplier = 0
 	result.PostArmorAndResistanceMultiplier = 0
 	result.PostOutcomeDamage = 0
 	result.AbsorbedDamage = 0
@@ -91,6 +92,7 @@ func (spell *Spell) CloneResult(result *SpellResult) *SpellResult {
 	newResult.Damage = result.Damage
 	newResult.Threat = result.Threat
 	newResult.Outcome = result.Outcome
+	newResult.ArmorAndResistanceMultiplier = result.ArmorAndResistanceMultiplier
 	newResult.PostArmorAndResistanceMultiplier = result.PostArmorAndResistanceMultiplier
 	newResult.PostOutcomeDamage = result.PostOutcomeDamage
 	newResult.AbsorbedDamage = result.AbsorbedDamage
