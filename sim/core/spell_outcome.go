@@ -635,10 +635,11 @@ func (result *SpellResult) applyAttackTableBlock(spell *Spell, attackTable *Atta
 		}
 		// Physical abilities tagged with "Completely Blocked" are fully blocked every time
 		if spell.Flags.Matches(SpellFlagBinary) {
-			result.Damage = 0
+			result.BlockedDamage = result.Damage
 		} else {
-			result.Damage = max(0, result.Damage-result.Target.BlockDamageReduction())
+			result.BlockedDamage = min(result.Damage, result.Target.BlockDamageReduction())
 		}
+		result.Damage -= result.BlockedDamage
 		return true
 	}
 	return false
@@ -758,11 +759,14 @@ func (result *SpellResult) applyEnemyAttackTableBlock(sim *Simulation, spell *Sp
 		spell.SpellMetrics[result.Target.UnitIndex].Blocks++
 
 		if result.Target.Blockhandler != nil {
+			beforeBlock := result.Damage
 			result.Target.Blockhandler(sim, spell, result)
+			result.BlockedDamage = beforeBlock - result.Damage
 			return true
 		}
 
-		result.Damage = max(0, result.Damage-result.Target.BlockDamageReduction())
+		result.BlockedDamage = min(result.Damage, result.Target.BlockDamageReduction())
+		result.Damage -= result.BlockedDamage
 
 		return true
 	}

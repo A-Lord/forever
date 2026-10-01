@@ -16,7 +16,7 @@ interface ChoiceMenuListProps<V> {
 }
 
 /** Mounts with each opening, so a tree builder runs once per opening and never while the menu is closed. */
-const ChoiceMenuList = <V,>({ entries, value, equals, onSelect, tooltipId }: ChoiceMenuListProps<V>) => {
+const ChoiceMenuList = <V,>({ entries, value, equals, onSelect, tooltipId, onClose }: ChoiceMenuListProps<V> & { onClose: () => void }) => {
 	const { tree, flat, indexOf } = useMemo(() => {
 		const tree = typeof entries === 'function' ? entries() : entries;
 		const flat = flattenChoices(tree);
@@ -27,7 +27,7 @@ const ChoiceMenuList = <V,>({ entries, value, equals, onSelect, tooltipId }: Cho
 
 	return (
 		<BaseMenu.RadioGroup render={<ul />} className="m-0 list-none p-0" value={flat.findIndex(option => equals(option.value, value))} onValueChange={select}>
-			<ChoiceMenuItems entries={tree} indexOf={indexOf} tooltipId={tooltipId} onSelect={select} />
+			<ChoiceMenuItems entries={tree} indexOf={indexOf} tooltipId={tooltipId} onSelect={select} onClose={onClose} />
 		</BaseMenu.RadioGroup>
 	);
 };
@@ -69,7 +69,9 @@ export const ChoiceMenu = <V,>({
 			sideOffset={2}
 			portalProps={{ className: 'contents' }}
 			popupRender={<div />}>
-			{open && <ChoiceMenuList entries={entries} value={value} equals={equals} onSelect={onSelect} tooltipId={tooltipId} />}
+			{open && (
+				<ChoiceMenuList entries={entries} value={value} equals={equals} onSelect={onSelect} tooltipId={tooltipId} onClose={() => onOpenChange(false)} />
+			)}
 		</Menu>
 	);
 };

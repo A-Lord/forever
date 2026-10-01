@@ -3,7 +3,8 @@ import type { ChoiceEntry, ChoiceOption } from '@ui-kit/ChoiceField';
 
 /**
  * An option filed by path. A string segment names a category submenu; a value segment files it
- * under the option carrying that value, which is how a pet is filed under its owner.
+ * under the option carrying that value, which is how a pet is filed under its owner and a spell's
+ * lower ranks under its highest.
  */
 export interface PathOption<V> extends Omit<ChoiceOption<V>, 'submenu'> {
 	submenu?: ReadonlyArray<string | V>;

@@ -26,8 +26,23 @@ export type ACTION_ID_SET =
 const spellHasRanks = (actionId: ActionId, spells: Array<AuraStats | SpellStats>) =>
 	spells.filter(spell => actionId.baseName === spell.id.baseName && actionId.tag === spell.id.tag && spell.id.hasRank).length > 1;
 
-const createSpellSubmenu = (actionId: ActionId, spells: Array<AuraStats | SpellStats>, baseMenuEntry: Array<string> = []): Array<string> =>
-	spellHasRanks(actionId, spells) ? [...baseMenuEntry, actionId.nameWithoutRank] : baseMenuEntry;
+/**
+ * The menu path `actionId` is filed under. The ranks of a spell are filed under the highest rank
+ * `offered`, which makes that rank the submenu's own row: picking the row picks the highest rank,
+ * and the lower ranks sit behind it. `spells` decides whether `actionId` has ranks at all.
+ */
+const createSpellSubmenu = (
+	actionId: ActionId,
+	spells: Array<AuraStats | SpellStats>,
+	baseMenuEntry: Array<string> = [],
+	offered: Array<AuraStats | SpellStats> = spells,
+): Array<string | ActionId> => {
+	if (!spellHasRanks(actionId, spells)) return baseMenuEntry;
+	const highest = offered
+		.filter(spell => actionId.baseName === spell.id.baseName && actionId.tag === spell.id.tag && spell.id.hasRank)
+		.reduce((top, spell) => (spell.id.rank > top.rank ? spell.id : top), actionId);
+	return highest === actionId ? baseMenuEntry : [...baseMenuEntry, highest];
+};
 
 /** The submenus the sim's categories are filed under, in the order they are listed. */
 const CATEGORY_SUBMENUS: Array<[ActionCategory, string]> = [
@@ -51,20 +66,21 @@ const CATEGORY_SUBMENUS: Array<[ActionCategory, string]> = [
  */
 const categorise = <T extends AuraStats | SpellStats>(
 	entries: Array<T>,
-	toOption: (entry: T, submenu: Array<string>) => ActionIdOption,
+	toOption: (entry: T, submenu: Array<string | ActionId>) => ActionIdOption,
 	allEntries: Array<T> = entries,
 ) => ({
 	categorised: CATEGORY_SUBMENUS.flatMap(([category, key]) =>
-		entries.filter(entry => entry.data.category === category).map(entry => toOption(entry, createSpellSubmenu(entry.id, allEntries, [key]))),
+		entries.filter(entry => entry.data.category === category).map(entry => toOption(entry, createSpellSubmenu(entry.id, allEntries, [key], entries))),
 	),
 	uncategorised: entries.filter(entry => !CATEGORY_SUBMENUS.some(([category]) => entry.data.category === category)),
 });
 
 /** The auras `keep` passes; `allAuras`, the unfiltered list, decides whether an aura has ranks. */
 const auraOptions = (allAuras: Array<AuraStats>, keep: (aura: AuraStats) => boolean = () => true): Array<ActionIdOption> => {
-	const toOption = (aura: AuraStats, submenu: Array<string>) => ({ value: aura.id, submenu });
-	const { categorised, uncategorised } = categorise(allAuras.filter(keep), toOption, allAuras);
-	return [...categorised, ...uncategorised.map(aura => toOption(aura, createSpellSubmenu(aura.id, allAuras)))];
+	const toOption = (aura: AuraStats, submenu: Array<string | ActionId>) => ({ value: aura.id, submenu });
+	const kept = allAuras.filter(keep);
+	const { categorised, uncategorised } = categorise(kept, toOption, allAuras);
+	return [...categorised, ...uncategorised.map(aura => toOption(aura, createSpellSubmenu(aura.id, allAuras, [], kept)))];
 };
 
 /** The one list a spell may be cast from, for the spells the sim only accepts in one of them. */
@@ -72,8 +88,8 @@ export type LIST_SCOPE = 'prepull' | 'priority';
 
 export interface ActionIdOption {
 	value: ActionId;
-	/** The category and rank submenus the spell or aura is filed under. */
-	submenu?: Array<string>;
+	/** The category submenus the spell or aura is filed under, then the highest rank its lower ranks sit behind. */
+	submenu?: Array<string | ActionId>;
 	tooltip?: string;
 	/**
 	 * Read by the field, which drops the entries the list it is in cannot use.
@@ -126,7 +142,7 @@ export const actionIdSets: Record<
 		defaultLabel: i18n.t('rotation_tab.apl.helpers.action_id_sets.castable_spells'),
 		getActionIDs: async metadata => {
 			const castableSpells = metadata.getSpells().filter(spell => spell.data.isCastable);
-			const toOption = (spell: SpellStats, submenu: Array<string>) => ({ value: spell.id, submenu, listScope: listScopeOf(spell) });
+			const toOption = (spell: SpellStats, submenu: Array<string | ActionId>) => ({ value: spell.id, submenu, listScope: listScopeOf(spell) });
 			const { categorised, uncategorised } = categorise(castableSpells, toOption);
 
 			const placeholders: Array<ActionId> = [ActionId.fromOtherId(OtherAction.OtherActionPotion)];

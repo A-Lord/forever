@@ -324,10 +324,26 @@ describe('ChoiceField', () => {
 			await openMenu();
 
 			const owner = within(rows()[0]).getByRole('menuitem');
-			expect(owner.textContent).toBe('Self');
+			expect(owner.textContent).toBe('Self »');
 			await act(() => void fireEvent.click(owner));
 
 			expect(picks).toHaveBeenLastCalledWith('self');
+			expect(screen.queryByRole('menu')).toBeNull();
+		});
+
+		it('keeps the menu open after a tap on a submenu trigger, so the choices behind it stay in reach', async () => {
+			const units: Array<ChoiceEntry<string>> = [{ value: 'self', label: 'Self', submenu: [{ value: 'pet', label: 'Pet' }] }];
+			render(<Harness options={units} initial="pet" testId="kind-field" />);
+			await openMenu();
+
+			const owner = within(rows()[0]).getByRole('menuitem');
+			await act(() => {
+				fireEvent.pointerDown(owner, { pointerType: 'touch' });
+				fireEvent.click(owner);
+			});
+
+			expect(picks).toHaveBeenLastCalledWith('self');
+			expect(screen.queryByRole('menu')).not.toBeNull();
 		});
 
 		it('lets a keyboard user into a submenu with ArrowRight, back out with ArrowLeft, and pick inside it', async () => {
