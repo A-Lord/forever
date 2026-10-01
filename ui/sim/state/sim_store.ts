@@ -102,6 +102,8 @@ export interface PlayerSlice {
 	race: number;
 	profession1: number;
 	profession2: number;
+	prof1Rank: number;
+	prof2Rank: number;
 	buffs: IndividualBuffs;
 	consumables: ConsumesSpec;
 	bonusStats: Stats;
@@ -133,6 +135,8 @@ export const PLAYER_FIELDS = [
 	'race',
 	'profession1',
 	'profession2',
+	'prof1Rank',
+	'prof2Rank',
 	'buffs',
 	'consumables',
 	'bonusStats',
@@ -203,7 +207,6 @@ export interface BulkSlice {
 	// A removed item leaves a null, so the picker entries' indexes never shift.
 	items: ReadonlyArray<ItemSpec | null>;
 	pickerGroups: ReadonlyMap<BulkSimItemSlot, readonly BulkPickerEntry[]>;
-	useLegacyBulkSim: boolean;
 	frozenItems: ReadonlyMap<BulkSimItemSlot, EquippedItem | null>;
 	frozenWeaponSlot: ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand | undefined;
 	weaponTypeFilters: ReadonlyMap<ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand, WeaponType[]>;

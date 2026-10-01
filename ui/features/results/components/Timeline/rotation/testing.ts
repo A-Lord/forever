@@ -15,25 +15,18 @@ export const actionId = (name: string): ActionId =>
 		spellIdTooltipOverride: 0,
 	}) as unknown as ActionId;
 
-export const castItem = (start: number, end: number): RowItem =>
-	({
-		kind: 'cast',
-		start,
-		end,
-		outcome: 'hit',
-		cancelled: false,
-		travelStart: null,
-		travelDuration: null,
-		log: {
-			actionId: actionId('Bolt'),
-			timestamp: start,
-			castTime: end - start,
-			effectiveTime: end - start,
-			travelTime: 0,
-			cancelTime: 0,
-			damageDealtLogs: [],
-		},
-	}) as unknown as RowItem;
+export const castItem = (start: number, end: number): RowItem => {
+	const log = {
+		actionId: actionId('Bolt'),
+		timestamp: start,
+		castTime: end - start,
+		effectiveTime: end - start,
+		travelTime: 0,
+		cancelTime: 0,
+		damageDealtLogs: [],
+	};
+	return { kind: 'cast', start, end, outcome: 'hit', cancelled: false, travelStart: null, travelDuration: null, log, stack: [log] } as unknown as RowItem;
+};
 
 const prefixMax = (items: Array<RowItem>) => items.map((_, index) => Math.max(...items.slice(0, index + 1).map(entry => entry.end)));
 

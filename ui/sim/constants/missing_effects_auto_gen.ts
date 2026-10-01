@@ -244,6 +244,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		5028, // Lord Sakrasis' Scepter
+		[
+			"Smite your target with the power of the holy spring, inflicting 56 Holy damage.", // 1312330 - https://www.wowhead.com/forever/spell=1312330
+		]
+	],
+	[
 		5079, // Cold Basilisk Eye
 		[
 			"Increases time between target's attacks by 20% and reduces their movement speed by 40% for 15s.", // 1139 - https://www.wowhead.com/forever/spell=1139
@@ -355,6 +361,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		6681, // Thornspike
 		[
 			"Hurl spikes at the target, dealing 45 Physical damage and jumping to 1 additional nearby enemy. Each jump reduces the damage by 50%.", // 1293183 - https://www.wowhead.com/forever/spell=1293183
+		]
+	],
+	[
+		6693, // Agamaggan's Clutch
+		[
+			"Movement speed Increased by 3% in The Barrens, Thousand Needles, Razorfen Kraul, and Razorfen Downs.", // 1293199 - https://www.wowhead.com/forever/spell=1293199
 		]
 	],
 	[
@@ -541,6 +553,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		9453, // Toxic Revenger
 		[
 			"Deals 14 Nature damage every 3.0 sec to any enemy in an 8 yard radius around the caster for 12s.", // 11790 - https://www.wowhead.com/forever/spell=11790
+		]
+	],
+	[
+		9486, // Supercharger Battle Axe
+		[
+			"Blasts a target for 105 Nature damage.", // 13527 - https://www.wowhead.com/forever/spell=13527
+		]
+	],
+	[
+		9509, // Petrolspill Leggings
+		[
+			"Fire damage taken increased by 10%.", // 1293003 - https://www.wowhead.com/forever/spell=1293003
 		]
 	],
 	[
@@ -2375,6 +2399,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		274290, // Painwalker Buckler
+		[
+			"17% chance when struck in combat to gain 12 mana per 5 sec for 10s.", // 1293700 - https://www.wowhead.com/forever/spell=1293700
+		]
+	],
+	[
 		274386, // Toy Soldier
 		[
 			"Increases your chance to Dodge by 3% for 20s. This effect is doubled in Strongholds and Cities.", // 1293820 - https://www.wowhead.com/forever/spell=1293820
@@ -2562,6 +2592,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		282703, // Needletooth's Needletooth
+		[
+			"Puncture the target, inflicting 21 Physical damage.", // 1314305 - https://www.wowhead.com/forever/spell=1314305
+		]
+	],
+	[
 		284193, // Moongazer's Wand
 		[
 			"Increases intellect by 5 at night.", // 1315339 - https://www.wowhead.com/forever/spell=1315339
@@ -2577,6 +2613,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		284386, // Whipfang's Skinsearer
 		[
 			"Sear your target's flesh dealing 84 Fire damage.", // 1316039 - https://www.wowhead.com/forever/spell=1316039
+		]
+	],
+	[
+		284667, // Flame Seared Sword
+		[
+			"Burns the target for 33 Fire damage every 3.0 sec for 15s.", // 1316865 - https://www.wowhead.com/forever/spell=1316865
+		]
+	],
+	[
+		284699, // Still Water Band
+		[
+			"Underwater breath lasts 50% longer than normal.", // 1316928 - https://www.wowhead.com/forever/spell=1316928
 		]
 	],
 	[
@@ -2613,6 +2661,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		286541, // Bael'dun Tankard
 		[
 			"Restores 0 mana over 27s. Must remain seated while drinking.", // 1133 - https://www.wowhead.com/forever/spell=1133
+		]
+	],
+	[
+		286556, // Winds of Tanaris
+		[
+			"Slows nearby enemies by 50% for 10s, increased to 80% in Desert areas.", // 1320579 - https://www.wowhead.com/forever/spell=1320579
 		]
 	],
 ])

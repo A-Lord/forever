@@ -1,11 +1,12 @@
 import { observeElementRect, useVirtualizer } from '@tanstack/react-virtual';
+import { Tooltip } from '@ui-kit/Tooltip';
 import { cssVars } from '@ui-kit/utils/css';
 import { findScrollParent } from '@ui-kit/utils/dom';
 import type { RectObserver } from '@ui-kit/VirtualList';
 import { WINDOW_SCROLLER } from '@ui-kit/VirtualList';
 import clsx from 'clsx';
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useHoverTooltip } from '../../../hooks/useHoverTooltip';
@@ -14,7 +15,7 @@ import { computeOrder, rowAt } from '../../../model/timeline/rotation';
 import { NO_ITEMS } from '../../../model/timeline/rotation/row_track';
 import type { RowWindow, TrackBand } from '../../../model/timeline/rotation/timeline_window';
 import { trackBand, VERTICAL_PADDING_PX } from '../../../model/timeline/rotation/timeline_window';
-import { useDrStickySlot } from '../../DetailedResults/DrStickySlotContext';
+import { useDrStickySlot } from '../../DetailedResults/context/DrStickySlotContext';
 import { RotationHeaderRow } from './RotationHeaderRow';
 import { RotationRow } from './RotationRow';
 import { RotationRowLabel } from './RotationRowLabel';
@@ -78,6 +79,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 	const [pps, setPps] = useState(DEFAULT_PPS);
 	const [measurable, setMeasurable] = useState(false);
 	const { ref: tooltipRef, content: hover, show: showTip, moveTo: moveTip, hide: hideTip } = useHoverTooltip<{ rowKey: string; index: number }>();
+	const hideTooltipId = useId();
 
 	const rowFor = useCallback((key: string): Row => rowAt(model!, key), [model]);
 	const order = useMemo(() => (model ? computeOrder(model, hidden) : NO_ORDER), [model, hidden]);
@@ -395,7 +397,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 			{active &&
 				stickySlot &&
 				createPortal(
-					<div ref={rulerRowRef} className="flex h-7.5 shrink-0 grow-0 basis-7.5 text-white" style={paneVars}>
+					<div ref={rulerRowRef} className="flex h-6 shrink-0 grow-0 basis-6 text-white" style={paneVars}>
 						<RotationToolbar
 							ref={cornerRef}
 							onZoomOut={() => zoomRef.current?.stepOut()}
@@ -434,7 +436,15 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 						const row = rowFor(key);
 						if (row.kind === 'separator') return <RotationSeparatorRow key={key} row={row} />;
 						if (row.kind === 'header') return <RotationHeaderRow key={key} row={row} />;
-						return <RotationRow key={key} row={row as ContentRow} items={frame.items.get(key) ?? NO_ITEMS} onHide={onHide} />;
+						return (
+							<RotationRow
+								key={key}
+								row={row as ContentRow}
+								items={frame.items.get(key) ?? NO_ITEMS}
+								onHide={onHide}
+								hideTooltipId={hideTooltipId}
+							/>
+						);
 					})}
 					<div
 						data-testid="rotation-vspacer"
@@ -447,7 +457,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 				<div ref={measurerRef} className="pointer-events-none invisible absolute top-0 left-0 w-max" aria-hidden="true">
 					<RotationRowLabel
 						text={longestLabel}
-						icon={<a data-testid="rotation-row-icon" className="ui-timeline-row-icon" />}
+						icon={<span data-testid="rotation-row-icon" className="ui-timeline-row-icon" />}
 						onHide={() => undefined}
 						measuring
 					/>
@@ -459,6 +469,7 @@ export const RotationView = ({ model, active }: RotationViewProps) => {
 				</div>
 			)}
 			<RotationRowsToolbar model={model} hidden={hidden} onToggle={onToggle} onShowAll={onShowAll} />
+			<Tooltip id={hideTooltipId} />
 		</div>
 	);
 };

@@ -1,3 +1,4 @@
+import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
 import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
@@ -11,10 +12,8 @@ import {
 	consumableStatsOf,
 	explosiveUsedBeside,
 	handTakesImbue,
-	higherRanks,
 	relevanceFor,
 } from '@sim/settings/consumables';
-import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@ui-kit/input_helpers';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
 export type ConsumeToggle = TypedIconPickerConfig<Player<any>, boolean>;
@@ -42,7 +41,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
 		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig()), consumablePseudoStatsOf(player.getSpecConfig())),
-		higherRanks: higherRanks(all),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
 	const byGroup = new Map<string, Array<Consumable>>();

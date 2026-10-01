@@ -15,7 +15,6 @@ const LEGACY_BULK_SETTINGS_STORAGE_KEY = 'bulk-settings.v1';
 const initialBulkSlice = (): BulkSlice => ({
 	items: [],
 	pickerGroups: new Map(),
-	useLegacyBulkSim: false,
 	frozenItems: new Map([
 		[BulkSimItemSlot.ItemSlotFinger, null],
 		[BulkSimItemSlot.ItemSlotTrinket, null],

@@ -12,7 +12,6 @@ import {
 	type ConsumableUser,
 	explosiveUsedBeside,
 	handTakesImbue,
-	higherRanks,
 	highestRanks,
 	isConsumableRelevant,
 	relevanceFor,
@@ -48,6 +47,7 @@ const user = (
 		cls: Class;
 		race: Race;
 		professions: Profession[];
+		profRank: number;
 		epStats: Stat[];
 		epPseudoStats: PseudoStat[];
 		displayPseudoStats: PseudoStat[];
@@ -57,7 +57,7 @@ const user = (
 ): ConsumableUser => ({
 	getClass: () => fields.cls ?? Class.ClassWarrior,
 	getRace: () => fields.race ?? Race.RaceOrc,
-	hasProfession: profession => (fields.professions ?? []).includes(profession),
+	hasProfession: (profession, rank = 0) => (fields.professions ?? []).includes(profession) && (!fields.profRank || fields.profRank >= rank),
 	getEquippedItem: slot => {
 		const item = slot === ItemSlot.ItemSlotMainHand ? fields.mainHand : slot === ItemSlot.ItemSlotOffHand ? fields.offHand : undefined;
 		return item ? ({ item } as EquippedItem) : null;
@@ -92,6 +92,12 @@ describe('isConsumableRelevant', () => {
 		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering });
 		expect(isConsumableRelevant(sapper, user(), db)).toBe(false);
 		expect(isConsumableRelevant(sapper, user({ professions: [Profession.Engineering] }), db)).toBe(true);
+
+		// Dark Iron Bomb 16005: Engineering 285.
+		const darkIronBomb = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering, reqProfRank: 285 });
+		expect(isConsumableRelevant(darkIronBomb, user({ professions: [Profession.Engineering] }), db)).toBe(true);
+		expect(isConsumableRelevant(darkIronBomb, user({ professions: [Profession.Engineering], profRank: 300 }), db)).toBe(true);
+		expect(isConsumableRelevant(darkIronBomb, user({ professions: [Profession.Engineering], profRank: 250 }), db)).toBe(false);
 
 		const orcOnly = consumable({ type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
 		expect(isConsumableRelevant(orcOnly, user(), db)).toBe(true);
@@ -196,10 +202,12 @@ describe('handTakesImbue', () => {
 
 describe('relevanceFor', () => {
 	it('answers as isConsumableRelevant does, and again once the class, race or a required profession changes', () => {
-		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering });
+		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering, reqProfRank: 205 });
 		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
 		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]), new Set());
 		expect(relevant(sapper, user())).toBe(false);
+		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
+		expect(relevant(sapper, user({ professions: [Profession.Engineering], profRank: 150 }))).toBe(false);
 		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
 		expect(relevant(orcOnly, user({ professions: [Profession.Engineering] }))).toBe(true);
 		expect(relevant(orcOnly, user({ race: Race.RaceHuman, professions: [Profession.Engineering] }))).toBe(false);
@@ -217,10 +225,6 @@ describe('highestRanks', () => {
 			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion }),
 		];
 		expect(highestRanks(ranks).map(c => c.id)).toEqual([10309, 5633, 13442]);
-		const higher = higherRanks(ranks);
-		expect(higher.get(1477)!.map(c => c.id)).toEqual([10309, 4425]);
-		expect(higher.get(10309)).toEqual([]);
-		expect(higher.get(5633)).toEqual([]);
 	});
 });
 

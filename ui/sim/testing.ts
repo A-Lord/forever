@@ -1,11 +1,11 @@
 import { vi } from 'vitest';
 
-import type { IndividualSimHost } from './sim_host';
+import { noopSubscribe } from './fake_host';
 import type { StoreSubscribe } from './state/subscriptions';
 
-type Subscriptions = typeof import('./state/subscriptions');
+export { fakeHost, type FakeHostParts, noopSubscribe } from './fake_host';
 
-export const noopSubscribe: StoreSubscribe = () => () => {};
+type Subscriptions = typeof import('./state/subscriptions');
 
 /**
  * Every `subscribe*` export answered from one source; non-subscription exports stay real.
@@ -24,16 +24,3 @@ export const mockSubscriptions = async (
 	const answered = Object.keys(actual).map(name => [name, name.startsWith('subscribe') ? () => source : (actual as Record<string, unknown>)[name]]);
 	return { ...Object.fromEntries(answered), ...overrides } as Subscriptions;
 };
-
-export type FakeHostParts = Partial<Record<keyof IndividualSimHost<any>, unknown>>;
-
-export const fakeHost = (parts: FakeHostParts = {}): IndividualSimHost<any> =>
-	({
-		player: {},
-		sim: {},
-		disabled: false,
-		simDisabled: false,
-		config: { className: '', cssScheme: '' },
-		individualConfig: {},
-		...parts,
-	}) as unknown as IndividualSimHost<any>;

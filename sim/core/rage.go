@@ -8,12 +8,23 @@ import (
 
 const ThreatPerRageGained = 5
 
-// TODO: Ingame test needed at higher levels
-const DamageTakenRageFactor = 10
+// Rage from damage taken counts a hit before any of the defender's mitigation, with a physical hit counted
+// as if armor reduced it by half, whatever the defender's armor.
+const DamageTakenRageArmorMultiplier = 0.5
+
+// Damage taken grants DamageTakenRageFactor * damage / c rage, where c is the rage conversion value at the defender's level (230.6 at 60).
+const DamageTakenRageFactor = 2.5
+
+func rageConversion(level int32) float64 {
+	l := float64(level)
+	return 0.0091107836*l*l + 3.225598133*l + 4.2652911
+}
+
 const (
 	BaseRageHitFactor     = 3.46
 	TwoHandRageHitFactor  = 4.5
 	TwoHandRageMultiplier = TwoHandRageHitFactor / BaseRageHitFactor
+	CritRageMultiplier    = 1.75
 )
 
 type rageBar struct {
@@ -38,6 +49,7 @@ type RageBarOptions struct {
 
 func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	rageFromDamageTakenMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken})
+	damageTakenRageConversion := rageConversion(unit.Level)
 
 	unit.SetCurrentPowerBar(RageBar)
 	unit.RegisterAura(Aura{
@@ -76,6 +88,9 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 
 			// rage is normalized so it only depends on weapon swing speed and some multipliers
 			generatedRage := hitFactor * weapon.SwingSpeed * options.BaseRageMultiplier * handMultiplier
+			if result.DidCrit() {
+				generatedRage *= CritRageMultiplier
+			}
 
 			var metrics *ResourceMetrics
 			if spell.Cost != nil {
@@ -88,16 +103,21 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			}
 			unit.AddRage(sim, generatedRage, metrics)
 		},
+		// TODO: Ingame test needed -- only direct hits grant rage from damage taken; whether periodic damage
+		// taken (OnPeriodicDamageTaken) grants rage, and on which damage, is unverified.
 		OnSpellHitTaken: func(aura *Aura, sim *Simulation, spell *Spell, result *SpellResult) {
 			if unit.GetCurrentPowerBar() != RageBar {
 				return
 			}
-
-			preArmorDamage := result.PostArmorAndResistanceMultiplier
-			if result.ArmorAndResistanceMultiplier > 0 {
-				preArmorDamage /= result.ArmorAndResistanceMultiplier
+			if !result.Landed() {
+				return
 			}
-			generatedRage := preArmorDamage * DamageTakenRageFactor / unit.MaxHealth() * unit.rageBar.damageTakenRageMultiplier
+
+			damage := result.PreMitigationDamage
+			if spell.SpellSchool.Matches(SpellSchoolPhysical) {
+				damage *= DamageTakenRageArmorMultiplier
+			}
+			generatedRage := DamageTakenRageFactor * damage / damageTakenRageConversion * unit.rageBar.damageTakenRageMultiplier
 
 			unit.AddRage(sim, generatedRage, rageFromDamageTakenMetrics)
 		},

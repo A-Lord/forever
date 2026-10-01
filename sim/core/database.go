@@ -119,6 +119,7 @@ type Consumable struct {
 	Name               string
 	ItemEffects        []*proto.ItemEffect
 	RequiredProfession proto.Profession
+	ReqProfRank        int32
 	// The category the first on-use shares: the item row's, or where it states none, its spell's.
 	CategoryId int32
 	// The enchant a temporary enchant puts on a weapon, nil on consumables that enchant nothing, and
@@ -159,6 +160,7 @@ func ConsumableFromProto(consumable *proto.Consumable) Consumable {
 		Name:                    consumable.Name,
 		ItemEffects:             consumable.ItemEffects,
 		RequiredProfession:      consumable.RequiredProfession,
+		ReqProfRank:             consumable.ReqProfRank,
 		CategoryId:              consumable.CategoryId,
 		TemporaryEnchant:        temporaryEnchant,
 		WeaponSubclassMask:      consumable.WeaponSubclassMask,

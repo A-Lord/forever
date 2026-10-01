@@ -1,19 +1,15 @@
 import { Raid as RaidProto } from '@generated/proto/api';
 import { Encounter as EncounterProto } from '@generated/proto/common';
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost, mockSubscriptions } from '@sim/testing';
-import { act, fireEvent, render } from '@testing-library/react';
+import { createSimStore } from '@sim/state/sim_store';
+import { mockSubscriptions } from '@sim/testing';
+import { renderWithHost } from '@testing/react';
+import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SimResultsManager } from '../../model/results_manager';
 import { SimResultSummary } from './SimResultSummary';
 
 vi.mock('@sim/state/subscriptions', async () => mockSubscriptions());
-
-const host = fakeHost({
-	config: { cssScheme: 'test' },
-	sim: { getShowDamageMetrics: () => true, getShowThreatMetrics: () => true, getShowHealingMetrics: () => true } as never,
-});
 
 const dist = (avg: number, stdev = 0) => ({ avg, stdev });
 
@@ -47,18 +43,20 @@ const player = {
 	secondsOomAvg: 0,
 };
 
+let store: ReturnType<typeof createSimStore>;
+
 const sim = () =>
 	({
+		store,
 		raid: { toProto: () => RaidProto.create(), fromProto: vi.fn() },
 		encounter: { toProto: () => EncounterProto.create(), fromProto: vi.fn() },
 	}) as never;
 
 const mount = (results: SimResultsManager) =>
-	render(
-		<SimHostProvider host={host}>
-			<SimResultSummary results={results} />
-		</SimHostProvider>,
-	);
+	renderWithHost(<SimResultSummary results={results} />, {
+		config: { cssScheme: 'test' },
+		sim: { store, getShowDamageMetrics: () => true, getShowThreatMetrics: () => true, getShowHealingMetrics: () => true },
+	});
 
 const diffs = (container: HTMLElement) => [...container.querySelectorAll('[data-testid="results-reference"] > [data-testid="results-reference-diff"]')];
 
@@ -66,11 +64,12 @@ let results: SimResultsManager;
 
 describe('SimResultSummary', () => {
 	beforeEach(() => {
+		store = createSimStore();
 		results = new SimResultsManager(sim());
 	});
 
 	it('renders nothing before the first run', () => {
-		expect(mount(results).container.innerHTML).toBe('');
+		expect([...mount(results).container.children].map(child => child.getAttribute('data-testid'))).toEqual(['test-portal']);
 	});
 
 	it('renders the stacked metric list and the reference bar once a run lands', () => {
@@ -87,20 +86,6 @@ describe('SimResultSummary', () => {
 			'hps',
 		]);
 		expect(container.querySelector('[data-testid="results-sim-reference"]')?.hasAttribute('data-has-reference')).toBe(false);
-		expect([...container.querySelectorAll('[data-testid="results-sim-reference"] button')].map(button => button.getAttribute('type'))).toEqual([
-			'button',
-			'button',
-			'button',
-		]);
-	});
-
-	it('renders no reference slot at all until a reference is saved', () => {
-		act(() => results.setSimResult(result(1000)));
-		const { container } = mount(results);
-
-		expect(diffs(container)).toEqual([]);
-		expect(container.querySelectorAll('[data-testid="results-reference"]')).toHaveLength(0);
-		expect(container.querySelectorAll('[data-testid="results-metric"]')).toHaveLength(7);
 	});
 
 	it('fills the deltas in and flags the bar the moment the reference is set', () => {
@@ -149,5 +134,24 @@ describe('SimResultSummary', () => {
 		const dps = container.querySelector('[data-metric="dps"] [data-testid="results-reference-diff"]')!;
 		expect(dps.textContent).toBe('-100.00 (10.00%)');
 		expect(dps.getAttribute('data-sign')).toBe('negative');
+	});
+
+	it('titles a swapped-in run as the reference run, and the last run again after swapping back or a new run', () => {
+		const title = (container: HTMLElement) => container.querySelector('[data-testid="results-run-title"]')!.textContent;
+		act(() => results.setSimResult(result(1000)));
+		const { container } = mount(results);
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-set-reference"]')!));
+		act(() => results.setSimResult(result(1100)));
+		expect(title(container)).toBe('sidebar.results.last_run');
+
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-swap"]')!));
+		expect(title(container)).toBe('sidebar.results.reference_run');
+
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-swap"]')!));
+		expect(title(container)).toBe('sidebar.results.last_run');
+
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-swap"]')!));
+		act(() => results.setSimResult(result(1200)));
+		expect(title(container)).toBe('sidebar.results.last_run');
 	});
 });

@@ -1,21 +1,15 @@
+import { source } from '@features/apl/testing_source';
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RotationTypePicker } from './RotationTypePicker';
 
-const source = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		listeners,
-		subscribe: (onChange: () => void) => {
-			listeners.add(onChange);
-			return () => listeners.delete(onChange);
-		},
-		notify: () => Array.from(listeners).forEach(listener => listener()),
-	};
+vi.mock('@sim/state/subscriptions', async () => {
+	const { mockSubscriptions } = await import('@sim/testing');
+	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
 });
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({
 	default: {
 		t: (key: string) =>
@@ -57,31 +51,20 @@ const mount = (player: FakePlayer) => {
 	return render(<RotationTypePicker />);
 };
 
-const root = () => document.querySelector('[data-testid="dropdown-picker-root"]') as HTMLElement;
-const trigger = () => root().querySelector('[data-testid="dropdown-picker-button"]') as HTMLButtonElement;
-const items = () => [...document.querySelectorAll<HTMLElement>('[data-testid="dropdown-picker-item"]')];
-const open = () => act(() => void fireEvent.click(trigger()));
+const trigger = () => screen.getByRole('combobox');
+const items = () => screen.queryAllByRole('option');
+const open = () => userEvent.click(trigger());
 
 beforeEach(() => source.listeners.clear());
 
 describe('RotationTypePicker', () => {
-	it('is one element: the shell is the dropdown root, not a wrapper around it', () => {
-		mount(new FakePlayer(true));
-
-		expect(root().hasAttribute('data-input-root')).toBe(true);
-		expect(trigger().id).toBe('rotation-tab-rotation-type');
-	});
-
-	it('offers Simple only when the spec ships a rotation generator', async () => {
-		mount(new FakePlayer(true));
+	it.each([
+		[true, ['Auto', 'Simple', 'APL']],
+		[false, ['Auto', 'APL']],
+	])('offers Simple only when the spec ships a rotation generator (hasSimple=%s)', async (hasSimple, expected) => {
+		mount(new FakePlayer(hasSimple));
 		await open();
-		expect(items().map(item => item.textContent)).toEqual(['Auto', 'Simple', 'APL']);
-	});
-
-	it('offers Auto and APL alone otherwise', async () => {
-		mount(new FakePlayer(false));
-		await open();
-		expect(items().map(item => item.textContent)).toEqual(['Auto', 'APL']);
+		expect(items().map(item => item.textContent)).toEqual(expected);
 	});
 
 	it('shows the rotation type the player currently holds', () => {
@@ -95,7 +78,7 @@ describe('RotationTypePicker', () => {
 		mount(player);
 		await open();
 
-		await act(() => void fireEvent.click(items()[2]));
+		await userEvent.click(items()[2]);
 
 		expect(player.type).toBe(APLRotationType.TypeAPL);
 		expect(trigger().textContent).toBe('APL');

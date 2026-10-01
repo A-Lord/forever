@@ -43,6 +43,7 @@ interface FieldBase {
 	field: string;
 	label?: string;
 	labelTooltip?: string;
+	wide?: boolean;
 	/** What to write into the field when it is unset. */
 	newValue: () => any;
 }
@@ -186,7 +187,7 @@ const newAplValue = () => APLValue.create({ uuid: { value: randomUUID() } });
  */
 export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
 	const options = 'options' in descriptor ? descriptor.options : undefined;
-	const base = { label: options?.label, labelTooltip: options?.labelTooltip };
+	const base = { label: options?.label, labelTooltip: options?.labelTooltip, ...(options?.wide ? { wide: true } : {}) };
 	const asEnum = (field: string, table: EnumTable, newValue: () => number, label?: string, labelTooltip?: string): AplFieldSpec => ({
 		kind: 'enum',
 		field,

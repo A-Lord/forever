@@ -38,7 +38,7 @@ describe('ItemNoticeIcon', () => {
 	it('shows the item notice behind the warning icon', async () => {
 		mount(NOTICED_ITEM);
 
-		expect(screen.getByRole('button').className).toContain('fa-exclamation-triangle');
+		expect(screen.getByRole('button').dataset.level).toBe('warning');
 		open();
 		expect(await screen.findByText('Item notice')).toBeTruthy();
 	});
@@ -63,8 +63,7 @@ describe('ItemNoticeIcon', () => {
 		ITEM_INFO_NOTICES.set(SPEC_SPECIFIC_ITEM, <p>Only in Forest and Grassland areas</p>);
 		const { rerender, unmount } = mount(SPEC_SPECIFIC_ITEM);
 
-		expect(screen.getByRole('button').className).toContain('fa-info-circle');
-		expect(screen.getByRole('button').className).not.toContain('fa-exclamation-triangle');
+		expect(screen.getByRole('button').dataset.level).toBe('info');
 		open();
 		expect(await screen.findByText('Only in Forest and Grassland areas')).toBeTruthy();
 
@@ -73,7 +72,7 @@ describe('ItemNoticeIcon', () => {
 				<ItemNoticeIcon itemId={SPEC_SPECIFIC_ITEM} additionalNotice={<p>Please select a random suffix</p>} />
 			</SimHostProvider>,
 		);
-		expect(screen.getByRole('button').className).toContain('fa-exclamation-triangle');
+		expect(screen.getByRole('button').dataset.level).toBe('warning');
 		unmount();
 		ITEM_INFO_NOTICES.delete(SPEC_SPECIFIC_ITEM);
 	});
@@ -81,7 +80,7 @@ describe('ItemNoticeIcon', () => {
 	it('shows the notice of an enchant whose effect is missing, on an item that has none of its own', async () => {
 		mount(1, undefined, Spec.SpecUnknown, 1894);
 
-		expect(screen.getByRole('button').className).toContain('fa-exclamation-triangle');
+		expect(screen.getByRole('button').dataset.level).toBe('warning');
 		open();
 		expect(await screen.findByText('The following enchant effect (on-use or proc) is not implemented!')).toBeTruthy();
 		expect(await screen.findByText(/often chill the target/)).toBeTruthy();
