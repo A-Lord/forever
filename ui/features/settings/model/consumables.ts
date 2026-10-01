@@ -11,8 +11,6 @@ export type ConsumableIdField = 'potId' | 'conjuredId' | 'flaskId' | 'foodId' | 
 
 export interface ConsumableRelevance {
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;
-	// The higher ranks of each consumable, by id: one is offered only while none of these is.
-	higherRanks: ReadonlyMap<number, ReadonlyArray<Consumable>>;
 }
 
 export interface ConsumableInputOptions {
@@ -23,10 +21,13 @@ export interface ConsumableInputOptions {
 	tooltip?: string;
 }
 
-const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offers?: ConsumableInputOptions['offers']) => (player: Player<any>) => {
-	const usable = (c: Consumable) => c.level >= player.sim.getMinConsumableLevel(c.type) && relevance.relevant(c, player) && (!offers || offers(c, player));
-	return usable(consumable) && !(relevance.higherRanks.get(consumable.id) ?? []).some(usable);
-};
+// The minimum level only trims what is offered: a consumable already picked stays offered below it.
+const offeredTo =
+	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, offers?: ConsumableInputOptions['offers']) =>
+	(player: Player<any>) =>
+		(picked(player) || consumable.level >= player.sim.getMinConsumableLevel(consumable.type)) &&
+		relevance.relevant(consumable, player) &&
+		(!offers || offers(consumable, player));
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
@@ -75,7 +76,7 @@ function consumablePicker(
 		value: consumable.id,
 		actionId: ActionId.fromItemId(consumable.id),
 		tooltip: consumable.name,
-		showWhen: offeredTo(consumable, relevance, options.offers),
+		showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.offers),
 	}));
 	return {
 		type: 'iconEnum',
@@ -106,7 +107,7 @@ export function makeIdListInput(consumable: Consumable, relevance: ConsumableRel
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
 		storeField: STORE_FIELDS,
-		showWhen: offeredTo(consumable, relevance),
+		showWhen: offeredTo(consumable, relevance, player => player.getConsumes().extraIds.includes(consumable.id)),
 		getValue: (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id),
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();

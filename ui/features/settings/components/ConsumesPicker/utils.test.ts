@@ -278,12 +278,14 @@ describe('consumeConfigs', () => {
 		expect(state.consumes.extraIds).toEqual([20079]);
 	});
 
-	it('offers the highest rank the player can use, below a top rank it cannot, and every scroll rank', () => {
+	it('offers every rank the player can use, lower ranks included', () => {
 		const ranks = [
 			scroll(2289, 'Scroll of Strength II', strength(9), '29/0', 'Strength'),
 			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), '29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
 			Consumable.create({ id: 12404, name: 'Dense Sharpening Stone II', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 7 }),
 			Consumable.create({ id: 12643, name: 'Dense Sharpening Stone III', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 15 }),
+			Consumable.create({ id: 8928, name: 'Instant Poison V', type: ConsumableType.ConsumableTypeImbue, level: 52, weaponSubclassMask: 1 << 15 }),
+			Consumable.create({ id: 8927, name: 'Instant Poison IV', type: ConsumableType.ConsumableTypeImbue, level: 44, weaponSubclassMask: 1 << 15 }),
 		];
 		const rankDb = { getConsumables: () => ranks, getSpellEffect: () => undefined } as unknown as Database;
 		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
@@ -297,6 +299,16 @@ describe('consumeConfigs', () => {
 		const rogue = playerOf({ cls: Class.ClassRogue, mainHand: dagger }).player;
 		const rogueConfigs = consumeConfigs(rogue, rankDb);
 		expect(offered(rogueConfigs.scrolls[0], rogue)).toEqual([2289, 10310]);
-		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([12643]);
+		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([8928, 8927, 12643]);
+	});
+
+	it('keeps offering a picked consumable below the minimum level, and hides it once unpicked', () => {
+		const { player, state } = playerOf({ minLevel: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.explosive, player)).toEqual([]);
+		state.consumes = ConsumesSpec.create({ explosiveId: 18588 });
+		expect(offered(configs.explosive, player)).toEqual([18588]);
+		configs.explosive.setValue(player, 0);
+		expect(offered(configs.explosive, player)).toEqual([]);
 	});
 });

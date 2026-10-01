@@ -12,7 +12,6 @@ import {
 	type ConsumableUser,
 	explosiveUsedBeside,
 	handTakesImbue,
-	higherRanks,
 	highestRanks,
 	isConsumableRelevant,
 	relevanceFor,
@@ -226,10 +225,6 @@ describe('highestRanks', () => {
 			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion }),
 		];
 		expect(highestRanks(ranks).map(c => c.id)).toEqual([10309, 5633, 13442]);
-		const higher = higherRanks(ranks);
-		expect(higher.get(1477)!.map(c => c.id)).toEqual([10309, 4425]);
-		expect(higher.get(10309)).toEqual([]);
-		expect(higher.get(5633)).toEqual([]);
 	});
 });
 

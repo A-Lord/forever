@@ -213,8 +213,8 @@ export function isConsumableRelevant(
 	return !grantedStats.length && !grantedPseudoStats.length && !restores.length && !STAT_TYPES.includes(consumable.type);
 }
 
-// Roman-numeral ranks of one consumable share a name up to the numeral; the settings offer the
-// highest of those the player could use, so an unusable top rank leaves a usable lower one offered.
+// Roman-numeral ranks of one consumable share a name up to the numeral; a sim request lists the
+// highest of those the player could use, so an unusable top rank leaves a usable lower one listed.
 const RANK_SUFFIX = / (I|II|III|IV|V|VI|VII|VIII|IX|X)$/;
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
@@ -234,19 +234,6 @@ const rankLadders = (consumables: ReadonlyArray<Consumable>): Array<Array<{ cons
 	}
 	return [...ladders.values()];
 };
-
-export function higherRanks(consumables: ReadonlyArray<Consumable>): Map<number, Array<Consumable>> {
-	const higher = new Map<number, Array<Consumable>>();
-	for (const ladder of rankLadders(consumables)) {
-		for (const { consumable, rank } of ladder) {
-			higher.set(
-				consumable.id,
-				ladder.filter(other => other.rank > rank).map(other => other.consumable),
-			);
-		}
-	}
-	return higher;
-}
 
 export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
 	const kept = new Set(rankLadders(consumables).map(ladder => ladder.reduce((best, entry) => (entry.rank > best.rank ? entry : best)).consumable));

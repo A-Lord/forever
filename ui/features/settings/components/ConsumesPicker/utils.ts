@@ -12,7 +12,6 @@ import {
 	consumableStatsOf,
 	explosiveUsedBeside,
 	handTakesImbue,
-	higherRanks,
 	relevanceFor,
 } from '@sim/settings/consumables';
 
@@ -42,8 +41,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
 		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig()), consumablePseudoStatsOf(player.getSpecConfig())),
-		// Every scroll rank is offered; the minimum level filter is what leaves the lower ones out.
-		higherRanks: higherRanks(all.filter(consumable => consumable.type !== ConsumableType.ConsumableTypeScroll)),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
 	const byGroup = new Map<string, Array<Consumable>>();
