@@ -1,4 +1,5 @@
 // Building the trimmed SimDatabase a bulk run ships to the workers.
+import { BulkEnchantSlotOptions } from '@generated/proto/api';
 import { ItemRandomSuffix, ItemSpec } from '@generated/proto/common';
 import { ItemEffectRandPropPoints, SimDatabase, SimEnchant, SimGem, SimItem } from '@generated/proto/db';
 import { UIEnchant as Enchant, UIGem as Gem, UIItem as Item } from '@generated/proto/ui';
@@ -56,7 +57,22 @@ export const makeBulkGearDatabase = (db: Database, gearSets: Gear[], extraItems:
 	});
 };
 
-export const makeBulkItemDatabaseFromSpecs = (db: Database, baselineGear: Gear, itemSpecs: readonly ItemSpec[]): SimDatabase => {
+export const makeBulkItemDatabaseFromSpecs = (
+	db: Database,
+	baselineGear: Gear,
+	itemSpecs: readonly ItemSpec[],
+	enchantPools: readonly BulkEnchantSlotOptions[] = [],
+): SimDatabase => {
 	const extraItems = itemSpecs.map(itemSpec => (itemSpec ? db.lookupItemSpec(itemSpec) : null)).filter((item): item is EquippedItem => item != null);
-	return makeBulkGearDatabase(db, [baselineGear], extraItems);
+	const database = makeBulkGearDatabase(db, [baselineGear], extraItems);
+
+	const shipped = new Set(database.enchants.map(enchant => enchant.effectId));
+	for (const { slot, effectIds } of enchantPools) {
+		for (const enchant of db.getEnchants(slot)) {
+			if (!effectIds.includes(enchant.effectId) || shipped.has(enchant.effectId)) continue;
+			shipped.add(enchant.effectId);
+			database.enchants.push(SimEnchant.fromJson(Enchant.toJson(enchant), { ignoreUnknownFields: true }));
+		}
+	}
+	return database;
 };

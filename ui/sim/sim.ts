@@ -524,7 +524,7 @@ export class Sim {
 			const cachedOptimizedGearSets = bulkReforgeCacheData?.cachedOptimizedGearSets ?? [];
 			const bulkGearDatabase =
 				backendBuildCandidates && bulkSettings
-					? makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings.items)
+					? makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings.items, bulkSettings.enchants)
 					: makeBulkGearDatabase(this.db, [baselineGear, ...preparedGearSets, ...cachedOptimizedGearSets]);
 			if (bulkReforgeRequest) {
 				this.augmentDatabaseForReforge(bulkGearDatabase, bulkReforgeRequest.gemOptions);
@@ -619,7 +619,7 @@ export class Sim {
 		const player = baseRequest.raid!.parties[0].players[0];
 		const isEnchanter = [player.profession1, player.profession2].includes(Profession.Enchanting);
 		const baselineGear = Sim.prepareGear(this.raid.getActivePlayers()[0].getGear(), isEnchanter);
-		const bulkGearDatabase = makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings.items);
+		const bulkGearDatabase = makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings.items, bulkSettings.enchants);
 		player.database = player.database ? Database.mergeSimDatabases(player.database, bulkGearDatabase) : bulkGearDatabase;
 		player.equipment = baselineGear.asSpec();
 		baseRequest.raid!.parties[0].players[0] = player;
