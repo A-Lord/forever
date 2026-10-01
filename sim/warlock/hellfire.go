@@ -20,7 +20,7 @@ func (warlock *Warlock) registerHellfire() {
 	effectConfig.ClassSpellMask = WarlockSpellHellfire
 	effectConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		for _, target := range sim.Encounter.ActiveTargetUnits {
-			spell.CalcAndDealDamage(sim, target, effectHit.Average(spell.Unit.Level), spell.OutcomeMagicHitAndCrit)
+			spell.CalcAndDealDamage(sim, target, effectHit.Average(), spell.OutcomeMagicHitAndCrit)
 		}
 	}
 	hellfireEffect := warlock.RegisterSpell(effectConfig)
@@ -33,7 +33,7 @@ func (warlock *Warlock) registerHellfire() {
 	config.Dot.SelfOnly = true
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		hellfireEffect.Cast(sim, target)
-		warlock.RemoveHealth(sim, selfBurn.Average(warlock.Level))
+		warlock.RemoveHealth(sim, selfBurn.Average())
 	}
 
 	// Channel on the caster

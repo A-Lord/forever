@@ -10,7 +10,7 @@ func (warlock *Warlock) registerCorruption() {
 	corruptionTick := rankedSpell.PeriodicEffect()
 
 	// TODO: Only read by the TBC set bonuses in items.go; drop with them.
-	warlock.CorruptionTickBaseDamage = corruptionTick.Average(warlock.Level)
+	warlock.CorruptionTickBaseDamage = corruptionTick.Average()
 
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = WarlockSpellCorruption
@@ -31,7 +31,7 @@ func (warlock *Warlock) registerCorruption() {
 
 	// Calculate expected damage from the row's average tick
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcPeriodicDamage(sim, target, corruptionTick.Average(spell.Unit.Level), spell.OutcomeExpectedMagicAlwaysHit)
+		return spell.CalcPeriodicDamage(sim, target, corruptionTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
 
 	warlock.Corruption = warlock.RegisterSpell(config)

@@ -16,7 +16,7 @@ func (warlock *Warlock) registerShadowBurn() {
 
 	// Roll the damage and to hit
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, shadowburnHit.Roll(sim, spell.Unit.Level), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, shadowburnHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 	}
 
 	warlock.Shadowburn = warlock.RegisterSpell(config)

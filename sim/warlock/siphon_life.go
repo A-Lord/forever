@@ -20,7 +20,7 @@ func (warlock *Warlock) registerSiphonLifeSpell() {
 	config.Dot = spelldata.DotConfig(rankedSpell, siphonLifeTick)
 	config.Dot.Aura.Tag = "Affliction"
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		result := dot.Spell.CalcAndDealPeriodicDamage(sim, target, siphonLifeTick.Average(dot.Spell.Unit.Level), rankedSpell.TickOutcomeHitRolled(dot))
+		result := dot.Spell.CalcAndDealPeriodicDamage(sim, target, siphonLifeTick.Average(), rankedSpell.TickOutcomeHitRolled(dot))
 
 		heal := result.Damage * warlock.PseudoStats.SelfHealingMultiplier * warlock.PseudoStats.HealingTakenMultiplier
 		warlock.GainHealth(sim, heal, healthMetrics)
@@ -37,7 +37,7 @@ func (warlock *Warlock) registerSiphonLifeSpell() {
 
 	// Calculate expected damage from the row's average tick
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcPeriodicDamage(sim, target, siphonLifeTick.Average(spell.Unit.Level), spell.OutcomeExpectedMagicAlwaysHit)
+		return spell.CalcPeriodicDamage(sim, target, siphonLifeTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
 
 	warlock.SiphonLife = warlock.RegisterSpell(config)

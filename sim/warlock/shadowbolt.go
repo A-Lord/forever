@@ -15,7 +15,7 @@ func (warlock *Warlock) registerShadowBolt() {
 
 	// Roll the damage and to hit, then land it after the bolt's travel time
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, shadowBoltHit.Roll(sim, spell.Unit.Level), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, shadowBoltHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)
 		})
@@ -23,7 +23,7 @@ func (warlock *Warlock) registerShadowBolt() {
 
 	// Calculate expected damage from the row's average hit
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcDamage(sim, target, shadowBoltHit.Average(spell.Unit.Level), spell.OutcomeExpectedMagicHitAndCrit)
+		return spell.CalcDamage(sim, target, shadowBoltHit.Average(), spell.OutcomeExpectedMagicHitAndCrit)
 	}
 
 	warlock.ShadowBolt = warlock.RegisterSpell(config)

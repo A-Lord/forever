@@ -31,7 +31,7 @@ func (warlock *Warlock) registerBaneOfDoom() {
 
 	// Calculate expected damage from the row's average tick
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcPeriodicDamage(sim, target, doomTick.Average(spell.Unit.Level), spell.OutcomeExpectedMagicAlwaysHit)
+		return spell.CalcPeriodicDamage(sim, target, doomTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
 
 	warlock.BaneOfDoom = warlock.RegisterSpell(config)

@@ -14,12 +14,12 @@ func (warlock *Warlock) registerSearingPain() {
 
 	// Roll the damage and to hit
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, searingPainHit.Roll(sim, spell.Unit.Level), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, searingPainHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 	}
 
 	// Calculate expected damage from the row's average hit
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcDamage(sim, target, searingPainHit.Average(spell.Unit.Level), spell.OutcomeExpectedMagicHitAndCrit)
+		return spell.CalcDamage(sim, target, searingPainHit.Average(), spell.OutcomeExpectedMagicHitAndCrit)
 	}
 
 	warlock.SearingPain = warlock.RegisterSpell(config)

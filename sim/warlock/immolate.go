@@ -15,7 +15,7 @@ func (warlock *Warlock) registerImmolate() {
 	immolateTick := rankedSpell.PeriodicEffect()
 
 	// TODO: Only read by the TBC set bonuses in items.go; drop with them.
-	warlock.ImmolateTickBaseDamage = immolateTick.Average(warlock.Level)
+	warlock.ImmolateTickBaseDamage = immolateTick.Average()
 
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = WarlockSpellImmolate
@@ -27,7 +27,7 @@ func (warlock *Warlock) registerImmolate() {
 
 	// Roll the hit, and apply the dot if it landed
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, immolateHit.Roll(sim, spell.Unit.Level), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, immolateHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 		}
@@ -35,10 +35,10 @@ func (warlock *Warlock) registerImmolate() {
 
 	// Calculate expected damage from the row's average hit and tick
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcDamage(sim, target, immolateHit.Average(spell.Unit.Level), spell.OutcomeExpectedMagicHitAndCrit)
+		return spell.CalcDamage(sim, target, immolateHit.Average(), spell.OutcomeExpectedMagicHitAndCrit)
 	}
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcPeriodicDamage(sim, target, immolateTick.Average(spell.Unit.Level), spell.OutcomeExpectedMagicAlwaysHit)
+		return spell.CalcPeriodicDamage(sim, target, immolateTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
 
 	warlock.Immolate = warlock.RegisterSpell(config)

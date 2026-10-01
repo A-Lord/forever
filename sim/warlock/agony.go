@@ -33,7 +33,7 @@ func (warlock *Warlock) registerBaneOfAgony() {
 
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		// The ramp goes on the base alone; CalcPeriodicDamage adds the spell power share on top, unramped.
-		baseDamage := agonyTick.Average(dot.Spell.Unit.Level) * baneOfAgonyRamp(dot.TickCount(), dot.BaseTickCount)
+		baseDamage := agonyTick.Average() * baneOfAgonyRamp(dot.TickCount(), dot.BaseTickCount)
 		result := dot.Spell.CalcPeriodicDamage(sim, target, baseDamage, rankedSpell.TickOutcomeHitRolled(dot))
 
 		// Amplify Curse raises the whole effect, spell power included. A dot activated without Apply has
@@ -60,7 +60,7 @@ func (warlock *Warlock) registerBaneOfAgony() {
 	// With Amplify Curse: the dot on the target as it landed (useSnapshot), or a cast now, amplified if the
 	// buff is up, so Dot Percent Increase sees what re-applying under Amplify Curse gains.
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
-		result := spell.CalcPeriodicDamage(sim, target, agonyTick.Average(spell.Unit.Level), spell.OutcomeExpectedMagicAlwaysHit)
+		result := spell.CalcPeriodicDamage(sim, target, agonyTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 
 		ampMult := 1.0
 		if useSnapshot {

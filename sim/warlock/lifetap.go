@@ -11,7 +11,7 @@ import (
 // Improved Life Tap's row is a dummy only this formula reads, so the talent is read here rather than parsed.
 func (warlock *Warlock) registerLifeTap() {
 	rankedSpell := spellData.LifeTap.ByID(11689)
-	baseAmount := rankedSpell.EffectN(1).Average(warlock.Level)
+	baseAmount := rankedSpell.EffectN(1).Average()
 	improvedLifeTapMult := 1 + spellData.ImprovedLifeTap.FractionAt(warlock.Talents.ImprovedLifeTap)
 
 	manaMetrics := warlock.NewManaMetrics(core.ActionID{SpellID: rankedSpell.ID})
