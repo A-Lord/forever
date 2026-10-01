@@ -80,8 +80,9 @@ func (generator *bulkSimCandidateGenerator) buildCandidates() ([]*proto.BulkGear
 	// so a few extra selections take it past anything that can be allocated for. Append
 	// grows geometrically from here anyway.
 	candidates := make([]*proto.BulkGearCandidate, 0, min(rawCombinations, maxBulkCandidatePreallocation))
+	weaponCombos := generator.getAllWeaponCombos()
 	for comboIdx := 0; comboIdx < rawCombinations; comboIdx++ {
-		gear, err := generator.buildGearForCombo(comboIdx)
+		gear, err := generator.buildGearForCombo(comboIdx, weaponCombos)
 		if err != nil {
 			return nil, err
 		}
@@ -320,9 +321,9 @@ func (generator *bulkSimCandidateGenerator) rawCombinationsCount() int {
 	return rawCombinations
 }
 
-func (generator *bulkSimCandidateGenerator) buildGearForCombo(comboIdx int) (*proto.EquipmentSpec, error) {
+func (generator *bulkSimCandidateGenerator) buildGearForCombo(comboIdx int, weaponCombos [][2]*bulkSimCandidateOption) (*proto.EquipmentSpec, error) {
 	gear := generator.baseEquipment
-	slotItems, err := generator.populateItemsForCombo(comboIdx)
+	slotItems, err := generator.populateItemsForCombo(comboIdx, weaponCombos)
 	if err != nil {
 		return nil, err
 	}
@@ -343,10 +344,9 @@ func (generator *bulkSimCandidateGenerator) buildGearForCombo(comboIdx int) (*pr
 	return gear.ToEquipmentSpecProto(), nil
 }
 
-func (generator *bulkSimCandidateGenerator) populateItemsForCombo(comboIdx int) (map[proto.ItemSlot]bulkSimCandidateOption, error) {
+func (generator *bulkSimCandidateGenerator) populateItemsForCombo(comboIdx int, allWeaponPairs [][2]*bulkSimCandidateOption) (map[proto.ItemSlot]bulkSimCandidateOption, error) {
 	itemsBySlot := make(map[proto.ItemSlot]bulkSimCandidateOption)
 
-	allWeaponPairs := generator.getAllWeaponCombos()
 	if len(allWeaponPairs) > 0 {
 		weaponPairIdx := comboIdx % len(allWeaponPairs)
 		comboIdx = comboIdx / len(allWeaponPairs)

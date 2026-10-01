@@ -373,7 +373,7 @@ func TestBuildGearForComboClearsOffHandForTwoHandMainHand(t *testing.T) {
 		t.Fatalf("expected 1 weapon combo, got %d", len(combos))
 	}
 
-	gear, err := generator.buildGearForCombo(0)
+	gear, err := generator.buildGearForCombo(0, generator.getAllWeaponCombos())
 	if err != nil {
 		t.Fatalf("buildGearForCombo failed: %v", err)
 	}
