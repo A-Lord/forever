@@ -20,6 +20,8 @@ const defaultPlayerSlice = (): PlayerSlice => ({
 	race: 0,
 	profession1: 0,
 	profession2: 0,
+	prof1Rank: 0,
+	prof2Rank: 0,
 	buffs: IndividualBuffs.create(),
 	consumables: ConsumesSpec.create(),
 	bonusStats: new Stats(),
