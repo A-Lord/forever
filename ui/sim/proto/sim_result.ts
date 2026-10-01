@@ -225,6 +225,13 @@ export class SimResult {
 		return this.raidMetrics.dps;
 	}
 
+	// The damage a unit's own side deals it, such as a sapper's hit on its thrower or a hit on a pet: every
+	// action of that side, pets included, cut down to its damage on the unit. It counts as damage taken.
+	getOwnSideDamageOn(unit: UnitMetrics): Array<ActionMetrics> {
+		const side = unit.isTarget ? this.encounterMetrics.targets : this.players.flatMap(player => [player, ...player.pets]);
+		return side.flatMap(source => source.getDamageActionsOn(unit.unitIndex));
+	}
+
 	getRaidIndexedActionMetrics(filter?: SimResultFilter): Array<ActionMetrics> {
 		return ActionMetrics.joinById(
 			this.getRaidIndexedPlayers(filter)
@@ -363,7 +370,7 @@ export class UnitMetrics {
 	private memoMajorCooldownAuraUptimeLogs?: Array<AuraUptimeLog>;
 
 	get damageDealtLogs(): Array<DamageLog> {
-		return (this.memoDamageDealtLogs ??= this.logs.filter(isDamage));
+		return (this.memoDamageDealtLogs ??= this.logs.filter(isDamage).filter(log => log.target?.isTarget !== this.isTarget));
 	}
 
 	get dpsLogs(): Array<DpsLog> {
@@ -379,7 +386,7 @@ export class UnitMetrics {
 	}
 
 	get threatLogs(): Array<ThreatLogGroup> {
-		return (this.memoThreatLogs ??= buildThreatGroups(this.logs));
+		return (this.memoThreatLogs ??= buildThreatGroups(this.logs.filter(log => !isDamage(log) || log.target?.isTarget !== this.isTarget)));
 	}
 
 	get auraUptimeLogs(): Array<AuraUptimeLog> {
@@ -534,24 +541,29 @@ export class UnitMetrics {
 		return this.getActionsForDisplay().filter(e => e.isMeleeAction);
 	}
 
-	getMeleeDamageActions(): Array<ActionMetrics> {
-		return this.getMeleeActions().filter(e => e.dps !== 0 && e.hps === 0);
-	}
-
 	getSpellActions(): Array<ActionMetrics> {
 		return this.getActionsForDisplay().filter(e => !e.isMeleeAction);
 	}
 
-	getSpellDamageActions(): Array<ActionMetrics> {
-		return this.getSpellActions().filter(e => e.dps !== 0 && e.hps === 0);
+	getDamageActions(): Array<ActionMetrics> {
+		return this.getActionsForDisplay()
+			.filter(e => e.hps === 0)
+			.map(e => e.againstOpponents())
+			.filter(e => e.dps !== 0);
 	}
 
-	getDamageActions(): Array<ActionMetrics> {
-		return this.getActionsForDisplay().filter(e => e.dps !== 0 && e.hps === 0);
+	getDamageActionsOn(unitIndex: number): Array<ActionMetrics> {
+		return this.getActionsForDisplay()
+			.filter(e => e.hps === 0 && e.targets.some(target => target.data.unitIndex === unitIndex))
+			.map(e => e.forUnit(unitIndex))
+			.filter(e => e.damage > 0);
 	}
 
 	getThreatActions(): Array<ActionMetrics> {
-		return this.getActionsForDisplay().filter(e => e.tps !== 0 && e.hps === 0);
+		return this.getActionsForDisplay()
+			.filter(e => e.hps === 0)
+			.map(e => e.againstOpponents())
+			.filter(e => e.tps !== 0);
 	}
 
 	getHealingActions(): Array<ActionMetrics> {
@@ -851,16 +863,6 @@ export class ActionMetrics {
 
 	get isPassiveAction() {
 		return this.data.isPassive;
-	}
-
-	get totalDamageTakenPercent() {
-		// Self-damage rows carry the player as their unit, whose unitIndex is not
-		// an index into the encounter's targets, so this lookup can come back
-		// undefined rather than merely lacking a dps field.
-		const totalAvgDtps = this.resultData.result.encounterMetrics?.targets?.[this.unit?.unitIndex || 0]?.dps?.avg;
-		if (!totalAvgDtps) return undefined;
-
-		return percentOf(this.avgDamage, totalAvgDtps * this.duration);
 	}
 
 	get totalDamagePercent() {
@@ -1348,20 +1350,34 @@ export class ActionMetrics {
 		};
 	}
 
+	// The action without the units on its own side when it damages or threatens any of them. Damage and
+	// threat it puts on its own side, such as a sapper's hit on its thrower, are taken, not done.
+	againstOpponents(): ActionMetrics {
+		const enemyIndices = new Set(this.resultData.result.encounterMetrics!.targets.map(target => target.unitIndex));
+		const onEnemySide = this.unit?.isTarget ?? false;
+		const isOpponent = (target: TargetedActionMetricsProto) => enemyIndices.has(target.unitIndex) !== onEnemySide;
+		if (this.data.targets.every(target => isOpponent(target) || (target.damage === 0 && target.threat === 0))) {
+			return this;
+		}
+
+		return this.withTargets(this.data.targets.filter(isOpponent));
+	}
+
 	forTarget(filter?: SimResultFilter): ActionMetrics {
 		const unitIndex = this.unit!.getTargetIndex(filter);
-		if (unitIndex == null) {
-			return this;
-		} else {
-			const target = this.targets.find(target => target.data.unitIndex == unitIndex);
-			if (target) {
-				const targetData = ActionMetricsProto.clone(this.data);
-				targetData.targets = [target.data];
-				return new ActionMetrics(this.unit, this.actionId, targetData, this.resultData);
-			} else {
-				throw new Error('Could not find target with unitIndex ' + unitIndex);
-			}
+		return unitIndex == null ? this : this.forUnit(unitIndex);
+	}
+
+	forUnit(unitIndex: number): ActionMetrics {
+		const target = this.data.targets.find(target => target.unitIndex == unitIndex);
+		if (!target) {
+			throw new Error('Could not find target with unitIndex ' + unitIndex);
 		}
+		return this.withTargets([target]);
+	}
+
+	private withTargets(targets: Array<TargetedActionMetricsProto>): ActionMetrics {
+		return new ActionMetrics(this.unit, this.actionId, ActionMetricsProto.create({ ...this.data, targets }), this.resultData);
 	}
 
 	static async makeNew(unit: UnitMetrics | null, resultData: SimResultData, actionMetrics: ActionMetricsProto, playerIndex?: number): Promise<ActionMetrics> {

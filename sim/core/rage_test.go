@@ -5,6 +5,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func init() {
@@ -89,7 +90,7 @@ func SetupFakeRageSim() *Simulation {
 		},
 		Encounter: &proto.Encounter{
 			Targets: []*proto.Target{
-				{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid},
+				{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid, SwingSpeed: 2},
 			},
 			Duration: 180,
 		},
@@ -100,13 +101,10 @@ func SetupFakeRageSim() *Simulation {
 }
 
 // Feeds a hand-crafted auto attack result to the Rage bar and returns the Rage gained from it.
-// PostArmorAndResistanceMultiplier is always populated, because the sim fills it in before the
-// outcome is applied, even for swings which end up doing no damage.
 func rageFromAutoAttack(sim *Simulation, fw *FakeRageWarrior, spell *Spell, outcome HitOutcome, preOutcomeDamage float64) float64 {
 	result := &SpellResult{
-		Target:                           sim.Encounter.ActiveTargetUnits[0],
-		Outcome:                          outcome,
-		PostArmorAndResistanceMultiplier: preOutcomeDamage,
+		Target:  sim.Encounter.ActiveTargetUnits[0],
+		Outcome: outcome,
 	}
 	if outcome.Matches(OutcomeLanded) {
 		result.Damage = preOutcomeDamage
@@ -119,7 +117,7 @@ func rageFromAutoAttack(sim *Simulation, fw *FakeRageWarrior, spell *Spell, outc
 }
 
 func TestAutoAttackRageGeneration(t *testing.T) {
-	// A one-hand MH swing at 2.6 speed: 2.6 * 3.46 = 8.996, whatever it dealt.
+	// A one-hand MH swing at 2.6 speed: 2.6 * 3.46 = 8.996, whatever it dealt; a crit 8.996 * 1.75 = 15.743.
 	const swingDamage = 500.0
 
 	tests := []struct {
@@ -135,7 +133,7 @@ func TestAutoAttackRageGeneration(t *testing.T) {
 		{
 			name:     "crit",
 			outcome:  OutcomeCrit,
-			wantRage: 8.996,
+			wantRage: 15.743,
 		},
 		{
 			name:     "glance",
@@ -203,6 +201,86 @@ func TestOffHandAutoAttackRageGeneration(t *testing.T) {
 	dodgeRage := rageFromAutoAttack(sim, fw, ohAuto, OutcomeDodge, swingDamage)
 	if dodgeRage != 0 {
 		t.Fatalf("Dodged OH swing generated %0.3f Rage, expected none", dodgeRage)
+	}
+}
+
+func TestDamageTakenRageGeneration(t *testing.T) {
+	// 1000 damage before mitigation at level 60: 2.5 * 1000 / 230.6 = 10.841, and half that for a
+	// physical hit, which counts as if armor halved it.
+	const preMitigationDamage = 1000.0
+
+	tests := []struct {
+		name     string
+		school   SpellSchool
+		outcome  HitOutcome
+		wantRage float64
+	}{
+		{name: "physical hit", school: SpellSchoolPhysical, outcome: OutcomeHit, wantRage: 5.421},
+		{name: "fire hit", school: SpellSchoolFire, outcome: OutcomeHit, wantRage: 10.841},
+		{name: "dodge", school: SpellSchoolPhysical, outcome: OutcomeDodge, wantRage: 0},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			sim := SetupFakeRageSim()
+			fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+			attacker := sim.Encounter.ActiveTargetUnits[0]
+
+			result := &SpellResult{
+				Target:              &fw.Unit,
+				Outcome:             test.outcome,
+				PreMitigationDamage: preMitigationDamage,
+			}
+
+			rageBefore := fw.CurrentRage()
+			fw.Unit.OnSpellHitTaken(sim, &Spell{Unit: attacker, SpellSchool: test.school}, result)
+			gained := fw.CurrentRage() - rageBefore
+
+			if !WithinToleranceFloat64(test.wantRage, gained, 0.001) {
+				t.Fatalf("Incorrect Rage from %s: Expected: %0.3f, Actual: %0.3f", test.name, test.wantRage, gained)
+			}
+		})
+	}
+}
+
+func TestPreMitigationDamage(t *testing.T) {
+	// A 1000 hit through 5755 armor against a level 63 attacker (half), a 10% damage taken reduction,
+	// a crit, a 100 block and a 300 absorb: 1000 * 0.5 * 0.9 * 2 - 100 - 300 = 500 taken. Before
+	// mitigation the crit counts and nothing else does: 2000.
+	sim := SetupFakeRageSim()
+	fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+	attacker := sim.Encounter.ActiveTargetUnits[0]
+	spell := attacker.AutoAttacks.MHAuto()
+
+	fw.stats[stats.Armor] = 5755
+	fw.stats[stats.BlockValue] = 100
+	fw.PseudoStats.CanBlock = true
+	fw.PseudoStats.DamageTakenMultiplier = 0.9
+	fw.DynamicDamageTakenModifiers = append(fw.DynamicDamageTakenModifiers, func(_ *Simulation, _ *Spell, result *SpellResult, _ bool) {
+		result.Damage -= 300
+	})
+
+	critThenBlock := func(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
+		result.Outcome = OutcomeCrit
+		result.Damage *= 2
+		chance := 0.0
+		result.applyEnemyAttackTableBlock(sim, spell, attackTable, -1, &chance)
+	}
+
+	rageBefore := fw.CurrentRage()
+	result := spell.calcDamageInternal(sim, &fw.Unit, 1000, 1, false, critThenBlock)
+	spell.DealDamage(sim, result)
+	gained := fw.CurrentRage() - rageBefore
+
+	if !WithinToleranceFloat64(500, result.Damage, 0.001) {
+		t.Fatalf("Damage taken: Expected: %0.3f, Actual: %0.3f", 500.0, result.Damage)
+	}
+	if !WithinToleranceFloat64(2000, result.PreMitigationDamage, 0.001) {
+		t.Fatalf("Damage before mitigation: Expected: %0.3f, Actual: %0.3f", 2000.0, result.PreMitigationDamage)
+	}
+	// 2.5 * 2000 * 0.5 / 230.6 = 10.841.
+	if !WithinToleranceFloat64(10.841, gained, 0.001) {
+		t.Fatalf("Rage from the hit: Expected: %0.3f, Actual: %0.3f", 10.841, gained)
 	}
 }
 

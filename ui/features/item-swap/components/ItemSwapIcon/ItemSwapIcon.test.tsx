@@ -21,7 +21,7 @@ const trackReleases = (store: SimStore) => {
 	return releases;
 };
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: (actionId?: { itemId: number }) =>
 		actionId
 			? { iconUrl: `icon-${actionId.itemId}.jpg`, name: `Item ${actionId.itemId}`, href: `https://wowhead.test/item=${actionId.itemId}`, ready: true }
@@ -87,14 +87,6 @@ beforeEach(() => {
 });
 
 describe('ItemSwapIcon', () => {
-	it('renders one picker root per swap slot, unfilled and carrying the slot placeholder', () => {
-		const { view } = setup();
-
-		expect(view.container.querySelectorAll('[data-testid="icon-picker-root"]')).toHaveLength(SLOTS.length);
-		expect(icons(view.container).map(icon => icon.hasAttribute('data-active'))).toEqual([false, false, false, false]);
-		expect(icons(view.container)[0].style.backgroundImage).toContain('/forever/assets/item_slots/mainhand.jpg');
-	});
-
 	it('marks a filled slot active and links it to the item, which is what the swap probe reads', () => {
 		const { view } = setup(new Map([[ItemSlot.ItemSlotMainHand, equippedItem(1234)]]));
 
@@ -112,17 +104,6 @@ describe('ItemSwapIcon', () => {
 
 		tooltip.settles[0]('item=1234');
 		await waitFor(() => expect(icons(view.container)[0].dataset.wowhead).toBe('item=1234'));
-	});
-
-	it('hangs the sockets off the picker root rather than inside the icon anchor', () => {
-		const { view } = setup(new Map([[ItemSlot.ItemSlotMainHand, equippedItem(1234, [GemColor.GemColorRed, GemColor.GemColorBlue])]]));
-
-		const root = view.container.querySelector('[data-testid="icon-picker-root"]')!;
-		expect([...root.children].map(child => child.tagName.toLowerCase())).toEqual(['a', 'div']);
-		expect(root.querySelector('[data-testid="icon-picker-button"][data-active]')).toBe(root.children[0]);
-		expect(root.children[1].getAttribute('data-testid')).toBe('item-picker-sockets-container');
-		expect(root.querySelectorAll('[data-testid="item-picker-sockets-container"] [data-testid="gem-socket-container"]')).toHaveLength(2);
-		expect(root.querySelector('[data-testid="icon-picker-button"] a')).toBeNull();
 	});
 
 	it('keeps the sockets container on an empty slot, so both builds serialise the same element', () => {

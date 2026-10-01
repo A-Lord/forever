@@ -100,7 +100,7 @@ func TestGeneratedFrostbolt(t *testing.T) {
 		t.Errorf("Frostbolt's spell power coefficient is %v, want 0.407", damage.SPCoef)
 	}
 	// 19 plus half a point for each of the four levels between the rank's own 4 and its cap of 8.
-	if got := damage.Average(60); got != 21 {
+	if got := damage.AverageAt(60); got != 21 {
 		t.Errorf("Frostbolt rank 1 averages %v at level 60, want 21", got)
 	}
 }
@@ -115,13 +115,48 @@ func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 		level int32
 		want  float64
 	}{{16, -50}, {20, -64}, {60, -204}} {
-		if got := vindication.Average(c.level); got != c.want {
+		if got := vindication.AverageAt(c.level); got != c.want {
 			t.Errorf("Vindication's debuff at %d is %v, want %v", c.level, got, c.want)
 		}
 	}
 	// BaseLevel equals SpellLevel on ordinary ranks, so their amounts do not move.
-	if got := MustFind(11556).EffectN(1).Average(60); got != -205 {
+	if got := MustFind(11556).EffectN(1).AverageAt(60); got != -205 {
 		t.Errorf("Demoralizing Shout at 60 is %v, want -205", got)
+	}
+}
+
+// Every row but 350026 at 0 and 60 is an in-game tooltip. Wrath rank 3 (5178), Wildvine Potion's 11387
+// and Minor Recombobulator's 18805 end their base points on halves, which round to the even end: 27.5
+// and 32.5 are 28 and 32, 0.5 and 1499.5 are 0 and 1500.
+func TestRollEndsMatchTheTooltip(t *testing.T) {
+	withGeneratedStore(t)
+
+	for _, c := range []struct {
+		spell    int32
+		effect   int
+		level    int32
+		min, max float64
+	}{
+		{350026, 1, 0, 48, 56},
+		{350026, 1, 14, 60, 69},
+		{350026, 1, 60, 63, 72},
+		{350025, 2, 14, 39, 44},
+		{5177, 1, 20, 24, 29},
+		{2912, 1, 20, 73, 89},
+		{5178, 1, 20, 32, 37},
+		{11387, 1, 35, 0, 1500},
+		{18805, 2, 60, 202, 338},
+		{18805, 3, 60, 96, 160},
+	} {
+		effect := MustFind(c.spell).EffectN(c.effect)
+		if got, want := [2]float64{effect.MinAt(c.level), effect.MaxAt(c.level)}, [2]float64{c.min, c.max}; got != want {
+			t.Errorf("%d effect %d at %d rolls %v, want %v", c.spell, c.effect, c.level, got, want)
+		}
+	}
+
+	// Wrath rank 3 at 20 rolls 32 to 37, which averages 34.5 where Average floors 34.2 to 34.
+	if got := MustFind(5178).DamageEffect().MeanAt(20); got != 34.5 {
+		t.Errorf("Wrath rank 3 at 20 averages %v, want 34.5", got)
 	}
 }
 

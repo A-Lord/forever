@@ -61,7 +61,7 @@ export default defineSpec<Spec.SpecBalanceDruid>({
 		epWeights: new Stats(),
 		// Default stat caps for stat weights tab. (also needed for reforging since we don't want to reforge above stat caps)
 		statCaps: (() => {
-			return new Stats().withPseudoStat(PseudoStat.PseudoStatSpellHitPercent, 16);
+			return new Stats().withPseudoStat(PseudoStat.PseudoStatSpellHitPercent, 17);
 		})(),
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,

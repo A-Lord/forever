@@ -348,8 +348,9 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 
 	// A ranged auto can't fire while moving. The hidden retry timer then
 	// checks every 500ms, and the shot goes off at the first check after the
-	// move ends. Casts never hold it.
-	if isRanged && wa.unit.Moving {
+	// move ends. Casts never hold it. A ranged auto whose cast requirement
+	// fails, such as a weapon the ranged slot does not hold, waits the same way.
+	if isRanged && (wa.unit.Moving || wa.requirementFails(sim)) {
 		wa.swingAt = sim.CurrentTime + RangedAutoRetryInterval
 		return wa.swingAt
 	}
@@ -407,6 +408,14 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	}
 
 	return wa.swingAt
+}
+
+func (wa *WeaponAttack) requirementFails(sim *Simulation) bool {
+	if !wa.spell.hasCastRequirement {
+		return false
+	}
+	reason, _ := wa.spell.castRequirementFailure(sim)
+	return reason != ""
 }
 
 func (wa *WeaponAttack) updateSwingDuration(curSwingSpeed float64) {

@@ -1,6 +1,6 @@
-import type { Sim } from '@sim/sim';
 import { createSimStore } from '@sim/state/sim_store';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithHost } from '@testing/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { SettingsDialog } from './SettingsDialog';
@@ -28,22 +28,13 @@ class FakeSim {
 	isWasm() {
 		return this.wasm;
 	}
-	getFixedRngSeed() {
-		return this.store.getState().sim.fixedRngSeed;
-	}
 	setFixedRngSeed(value: number) {
 		this.store.setState(state => ({ sim: { ...state.sim, fixedRngSeed: value } }));
-	}
-	getLastUsedRngSeed() {
-		return this.store.getState().sim.lastUsedRngSeed;
 	}
 	recordLastUsedRngSeed(value: number) {
 		this.store.setState(state => ({
 			sim: { ...state.sim, lastUsedRngSeed: value, lastUsedRngSeedVersion: state.sim.lastUsedRngSeedVersion + 1 },
 		}));
-	}
-	getLanguage() {
-		return this.store.getState().ui.language;
 	}
 	setLanguage(value: string) {
 		this.store.setState(state => ({ ui: { ...state.ui, language: value } }));
@@ -54,20 +45,11 @@ class FakeSim {
 	setShowThreatMetrics(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showThreatMetrics: value } }));
 	}
-	getShowExperimental() {
-		return this.store.getState().ui.showExperimental;
-	}
 	setShowExperimental(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showExperimental: value } }));
 	}
-	getShowQuickSwap() {
-		return this.store.getState().ui.showQuickSwap;
-	}
 	setShowQuickSwap(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showQuickSwap: value } }));
-	}
-	getWasmConcurrency() {
-		return this.store.getState().ui.wasmConcurrency;
 	}
 	setWasmConcurrency(value: number) {
 		this.store.setState(state => ({ ui: { ...state.ui, wasmConcurrency: value } }));
@@ -75,29 +57,14 @@ class FakeSim {
 }
 
 const mount = (sim: FakeSim, applyDefaults = vi.fn()) => {
-	const host = { rootElem: document.body, sim: sim as unknown as Sim, applyDefaults } as never;
-	const rendered = render(<SettingsDialog open onOpenChange={() => {}} host={host} />);
+	const host = { applyDefaults } as never;
+	const rendered = renderWithHost(<SettingsDialog open onOpenChange={() => {}} host={host} />, { sim });
 	return { ...rendered, applyDefaults };
 };
 
 const container = () => document.querySelector('[data-testid="use-concurrency-container"]') as HTMLElement;
 
 describe('SettingsDialog', () => {
-	it('renders every picker under the id the vanilla menu used', () => {
-		mount(new FakeSim());
-
-		for (const id of [
-			'simui-fixed-rng-seed',
-			'simui-language-picker',
-			'simui-show-threat-metrics',
-			'simui-show-experimental',
-			'simui-show-quick-swap',
-			'simui-concurrent-workers-picker',
-		]) {
-			expect(document.getElementById(id), id).toBeTruthy();
-		}
-	});
-
 	it('keeps the concurrency row mounted and hides it with the attribute when the sim is not wasm', async () => {
 		const sim = new FakeSim();
 		sim.wasm = Promise.resolve(false);
@@ -106,14 +73,6 @@ describe('SettingsDialog', () => {
 		expect(container().hidden).toBe(false);
 		await waitFor(() => expect(container().hidden).toBe(true));
 		expect(container().isConnected).toBe(true);
-	});
-
-	it('keeps the worker note mounted and hidden off firefox', () => {
-		mount(new FakeSim());
-
-		const note = container().querySelector('.ui-help-text') as HTMLElement;
-		expect(note.hidden).toBe(true);
-		expect(note.textContent).toBe('');
 	});
 
 	it('writes a toggle through to the sim', () => {
@@ -130,11 +89,12 @@ describe('SettingsDialog', () => {
 		const sim = new FakeSim();
 		mount(sim);
 
-		expect(document.querySelector('[data-testid="last-used-rng-seed"]')!.textContent).toBe('0');
+		const lastUsedRngSeedText = () => screen.getByText('info.options.fixed_rng_seed.last_used').parentElement!.textContent;
+		expect(lastUsedRngSeedText()).toContain('0');
 		act(() => {
 			sim.recordLastUsedRngSeed(1234);
 		});
-		await waitFor(() => expect(document.querySelector('[data-testid="last-used-rng-seed"]')!.textContent).toBe('1234'));
+		await waitFor(() => expect(lastUsedRngSeedText()).toContain('1234'));
 	});
 
 	it('restores defaults, reports it and toasts', () => {

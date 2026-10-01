@@ -2,7 +2,6 @@
 package core
 
 import (
-	"math"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/stats"
@@ -67,7 +66,7 @@ type ProcTrigger struct {
 	// which is how the game treats every talent, set bonus and Equip effect by default.
 	CanProcFromProcs bool
 	// A weapon proc: a "Chance on hit" item effect (ItemEffect.TriggerType 2) or a combat enchant
-	// (SpellItemEnchantment.Effect 1, e.g. Mongoose, Crusader, poisons, imbues, Windfury Totem).
+	// (SpellItemEnchantment.Effect 1, e.g. Mongoose, Crusader, poisons, imbues).
 	// The game casts these off every melee or ranged hit that lacks SpellFlagSuppressWeaponProcs,
 	// whether or not that hit was itself a proc, so SpellFlagProc and CanProcFromProcs are ignored.
 	// Which hand's hits qualify is still the DPM's or ProcMask's job.
@@ -954,40 +953,4 @@ func (caster *Unit) NewAllyDamageAbsorptionAuraArray(makeAura func(*Unit) *Damag
 		}
 	}
 	return auras
-}
-
-func ApplyFixedUptimeAura(aura *Aura, uptime float64, tickLength time.Duration, startTime time.Duration) {
-	auraDuration := aura.Duration
-	ticksPerAura := float64(auraDuration) / float64(tickLength)
-	chancePerTick := TernaryFloat64(uptime == 1, 1, 1.0-math.Pow(1-uptime, 1/ticksPerAura))
-
-	aura.Unit.RegisterResetEffect(func(sim *Simulation) {
-		StartPeriodicAction(sim, PeriodicActionOptions{
-			Period: tickLength,
-			OnAction: func(sim *Simulation) {
-				if sim.RandomFloat("FixedAura") < chancePerTick {
-					aura.Activate(sim)
-					if aura.MaxStacks > 0 {
-						aura.AddStack(sim)
-					}
-				}
-			},
-		})
-
-		// Also try once at the start.
-		StartPeriodicAction(sim, PeriodicActionOptions{
-			Period:   startTime,
-			NumTicks: 1,
-			OnAction: func(sim *Simulation) {
-				if sim.RandomFloat("FixedAura") < uptime {
-					// Use random duration to compensate for increased chance collapsed into single tick.
-					randomDur := tickLength + time.Duration(float64(auraDuration-tickLength)*sim.RandomFloat("FixedAuraDur"))
-
-					aura.Duration = randomDur
-					aura.Activate(sim)
-					aura.Duration = auraDuration
-				}
-			},
-		})
-	})
 }

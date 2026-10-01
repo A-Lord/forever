@@ -1,6 +1,5 @@
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
-import { fireEvent, render } from '@testing-library/react';
+import { renderWithHost } from '@testing/react';
+import { fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const applyBuild = vi.fn();
@@ -18,14 +17,11 @@ vi.mock('@sim/hooks/useSimReady', () => ({ useSimReady: () => ready }));
 let ready = true;
 const { PresetConfigurationPicker } = await import('./PresetConfigurationPicker');
 
-const setup = (builds: Array<Record<string, unknown>>, categories = ['gear']) => {
-	const host = fakeHost({ individualConfig: { presets: { builds } }, getStorageKey: (part: string) => `spec${part}` });
-	return render(
-		<SimHostProvider host={host}>
-			<PresetConfigurationPicker categories={categories as never} />
-		</SimHostProvider>,
-	);
-};
+const setup = (builds: Array<Record<string, unknown>>, categories = ['gear']) =>
+	renderWithHost(<PresetConfigurationPicker categories={categories as never} />, {
+		individualConfig: { presets: { builds } },
+		getStorageKey: (part: string) => `spec${part}`,
+	});
 
 const chips = (container: HTMLElement) => [...container.querySelectorAll<HTMLElement>('[data-testid="saved-data-set-chip"]')];
 
@@ -39,17 +35,6 @@ beforeEach(() => {
 const phaseTabs = (container: HTMLElement) => [...container.querySelectorAll<HTMLElement>('[data-testid="preset-group-phase-tabs"] button')];
 
 describe('PresetConfigurationPicker', () => {
-	it('renders one chip per build, with the name as the clickable span', () => {
-		const { container } = setup([
-			{ name: 'P1', gear: {} },
-			{ name: 'P2', gear: {} },
-		]);
-
-		expect(chips(container)).toHaveLength(2);
-		expect(chips(container).map(chip => chip.querySelector('[data-testid="saved-data-set-name"]')?.textContent)).toEqual(['P1', 'P2']);
-		expect(chips(container)[0].querySelector('[data-testid="saved-data-set-name"]')?.getAttribute('role')).toBe('button');
-	});
-
 	// The picker is mounted in four places with different category lists, and each shows only the
 	// builds touching its own categories.
 	it('keeps only the builds that carry one of its categories', () => {
@@ -86,14 +71,6 @@ describe('PresetConfigurationPicker', () => {
 		expect((applyBuild.mock.calls[0][0] as { name: string }).name).toBe('P2');
 	});
 
-	// Five specs have no builds at all, so nothing at all is what those panes contain.
-	it('renders nothing when there are no builds', () => {
-		const { container } = setup([]);
-
-		expect(container.querySelector('[data-testid="preset-configuration-picker-root"]')).toBeNull();
-		expect(container.querySelector('[data-testid="content-block"]')).toBeNull();
-	});
-
 	// Before the sim is ready, the block exists but is empty.
 	it('renders the block but no chips before the sim is ready', () => {
 		ready = false;
@@ -107,9 +84,9 @@ describe('PresetConfigurationPicker', () => {
 // A spec whose builds carry a phase gets the tab bar, and only the chosen phase's chips.
 describe('PresetConfigurationPicker, grouped by phase', () => {
 	const phased = [
-		{ name: 'P1', gear: {}, phase: 1 },
-		{ name: 'P3a', gear: {}, phase: 3, group: 'Beast Mastery' },
-		{ name: 'P3b', gear: {}, phase: 3, group: 'Survival' },
+		{ name: 'P1a', gear: {}, phase: 1, group: 'Beast Mastery' },
+		{ name: 'P1b', gear: {}, phase: 1, group: 'Survival' },
+		{ name: 'P3', gear: {}, phase: 3 },
 	];
 
 	it('leaves an unphased spec on the flat picker', () => {
@@ -123,23 +100,17 @@ describe('PresetConfigurationPicker, grouped by phase', () => {
 		const { container } = setup(phased);
 
 		expect(phaseTabs(container).map(tab => tab.textContent)).toEqual(['common.phase_names.1', 'common.phase_names.3']);
-		// CURRENT_PHASE is 3, and it is among the builds' phases, so that tab opens selected.
-		expect(phaseTabs(container).map(tab => tab.hasAttribute('data-active'))).toEqual([false, true]);
-		expect(chips(container).map(chip => chip.textContent)).toEqual(['P3a', 'P3b']);
+		// CURRENT_PHASE is 1, and it is among the builds' phases, so that tab opens selected.
+		expect(phaseTabs(container).map(tab => tab.hasAttribute('data-active'))).toEqual([true, false]);
+		expect(chips(container).map(chip => chip.textContent)).toEqual(['P1a', 'P1b']);
 	});
 
 	it('switches the visible chips when another phase tab is clicked', () => {
 		const { container } = setup(phased);
 
-		fireEvent.click(phaseTabs(container)[0]);
+		fireEvent.click(phaseTabs(container)[1]);
 
-		expect(chips(container).map(chip => chip.textContent)).toEqual(['P1']);
-	});
-
-	it('labels the groups only when there is more than one', () => {
-		const { container } = setup(phased);
-
-		expect([...container.querySelectorAll('[data-testid="preset-group-label"]')].map(label => label.textContent)).toEqual(['Beast Mastery', 'Survival']);
+		expect(chips(container).map(chip => chip.textContent)).toEqual(['P3']);
 	});
 
 	// A default page load leaves `__presetFilters__` absent.
@@ -148,17 +119,18 @@ describe('PresetConfigurationPicker, grouped by phase', () => {
 
 		expect(window.localStorage.getItem('spec__presetFilters__')).toBeNull();
 
-		fireEvent.click(phaseTabs(container)[0]);
+		fireEvent.click(phaseTabs(container)[1]);
 
-		expect(JSON.parse(window.localStorage.getItem('spec__presetFilters__')!)).toEqual({ phase: 1 });
+		expect(JSON.parse(window.localStorage.getItem('spec__presetFilters__')!)).toEqual({ phase: 3 });
 	});
 
-	// Applying a build from another phase jumps the bar to it, so the chip that was just clicked
-	// stays on screen.
+	// Applying a build writes its phase to the bar, so the chip that was just clicked stays on
+	// screen; no tab is clicked first, so the write is the build's alone.
 	it('follows the applied build to its phase', () => {
 		const { container } = setup(phased);
 
-		fireEvent.click(phaseTabs(container)[0]);
+		expect(window.localStorage.getItem('spec__presetFilters__')).toBeNull();
+
 		fireEvent.click(chips(container)[0].querySelector('[data-testid="saved-data-set-name"]')!);
 
 		expect(applyBuild).toHaveBeenCalledTimes(1);

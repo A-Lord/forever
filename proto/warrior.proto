@@ -77,15 +77,12 @@ enum WarriorStance {
 }
 
 message WarriorOptions {
-	reserved 1;
-	reserved "default_shout";
+	WarriorStance default_stance = 1;
 
-	WarriorStance default_stance = 2;
-
-	double starting_rage = 3;
-	bool stance_snapshot = 4;
-	bool has_bs_t2 = 5;
-	bool use_battle_shout = 6;
+	double starting_rage = 2;
+	bool stance_snapshot = 3;
+	bool has_bs_t2 = 4;
+	bool use_battle_shout = 5;
 }
 
 enum DpsWarriorSpec {

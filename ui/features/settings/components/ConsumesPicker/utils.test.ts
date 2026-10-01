@@ -1,3 +1,4 @@
+import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
@@ -5,7 +6,6 @@ import { UIItem } from '@generated/proto/ui';
 import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import { UnitStat } from '@sim/proto/stats';
-import { iconEnumPickerShown } from '@ui-kit/IconEnumPicker';
 import { describe, expect, it } from 'vitest';
 
 import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
@@ -157,18 +157,10 @@ describe('consumeConfigs', () => {
 		expect(offered(configs.ohImbue, player)).toEqual([228980]);
 	});
 
-	it('hides the main-hand imbue under Windfury Totem', () => {
-		const { player } = playerOf({ windfury: true });
-		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
-		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, windfury: true }).player;
-		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
-	});
-
-	it('hides the main-hand imbue under Flametongue Totem', () => {
-		const { player } = playerOf({ flametongue: true });
-		expect(consumeConfigs(player, db).mhImbue.showWhen!(player)).toBe(false);
-		const feral = playerOf({ cls: Class.ClassDruid, spec: Spec.SpecFeralCatDruid, flametongue: true }).player;
-		expect(consumeConfigs(feral, db).mhImbue.showWhen!(feral)).toBe(true);
+	it('shows the main-hand imbue under Windfury Totem and Flametongue Totem', () => {
+		const { player } = playerOf({ windfury: true, flametongue: true });
+		const mhImbue = consumeConfigs(player, db).mhImbue;
+		expect(mhImbue.showWhen?.(player) ?? true).toBe(true);
 	});
 
 	it('labels each group as db.json does and hides one that offers the player nothing', () => {

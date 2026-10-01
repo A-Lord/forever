@@ -1,3 +1,4 @@
+import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation, APLRotation_Type, SimpleRotation } from '@generated/proto/apl';
@@ -59,8 +60,6 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			PseudoStat.PseudoStatMeleeCritPercent,
 			PseudoStat.PseudoStatOffHandHitPercent,
 			PseudoStat.PseudoStatOffHandCritPercent,
-			PseudoStat.PseudoStatRangedHitPercent,
-			PseudoStat.PseudoStatRangedCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatExpertisePercent,
 		],
@@ -106,14 +105,13 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	playerIconInputs: [WarriorInputs.ShoutPicker(), WarriorInputs.StancePicker(), WarriorInputs.BattleShoutT2()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [],
-	excludeBuffDebuffInputs: [],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.AtieshMage],
 	rotationInputs: DpsWarriorInputs.RotationInputs,
 	// `simpleRotation` below never reads its Cooldowns argument.
 	hideSimpleCooldowns: true,
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [
-			OtherInputs.TotemTwisting,
 			WarriorInputs.StartingRage(),
 			WarriorInputs.StanceSnapshot(),
 			OtherInputs.DistanceFromTarget,

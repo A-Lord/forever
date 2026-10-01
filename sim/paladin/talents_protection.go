@@ -119,9 +119,9 @@ func (paladin *Paladin) applyImprovedSealOfFury(shield *core.DamageAbsorptionAur
 	}
 
 	rank := spellData.ImprovedSealOfFury.Highest()
-	mana := rank.EffectN(1).Average(core.CharacterLevel)
+	mana := rank.EffectN(1).Average()
 	perLevel := rank.EffectN(2).Percent()
-	maxLevels := rank.EffectN(3).Average(core.CharacterLevel)
+	maxLevels := rank.EffectN(3).Average()
 	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: rank.ID})
 
 	shield.AttachOnDamageAbsorbed(func(sim *core.Simulation, aura *core.DamageAbsorptionAura, _ *core.SpellResult, _ float64) {
@@ -187,7 +187,7 @@ func (paladin *Paladin) applySacredDuty() {
 		return
 	}
 
-	paladin.MultiplyStat(stats.Stamina, spellData.SacredDuty.Effect(dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, 0).MultiplierAt(paladin.Talents.SacredDuty))
+	spelldata.ParseStatic(&paladin.Character, spellData.SacredDuty.Rank(paladin.Talents.SacredDuty), spelldata.Effects(1))
 	paladin.AddStaticMod(core.SpellModConfig{
 		ClassMask: SpellMaskTemplarsBulwark,
 		Kind:      core.SpellMod_Cooldown_Flat,

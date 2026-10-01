@@ -31,6 +31,7 @@ export const UI_ALIASES: Record<string, string> = {
 	'@app': path.resolve(BASE_PATH, 'app'),
 	'@specs': path.resolve(BASE_PATH, 'specs'),
 	'@i18n': path.resolve(BASE_PATH, 'i18n'),
+	'@testing': path.resolve(BASE_PATH, 'testing'),
 };
 
 function serveExternalAssets() {

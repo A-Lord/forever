@@ -1,6 +1,6 @@
 import { Class, Spec } from '@generated/proto/common';
 
-import { getSpecSitePath, LaunchStatus, Phase } from '../../constants/other';
+import { CURRENT_PHASE, getSpecSitePath, LaunchStatus } from '../../constants/other';
 import { IconSize } from '../player_class';
 import { PlayerSpec, SimStatus } from '../player_spec';
 
@@ -18,7 +18,7 @@ export class DpsWarrior extends PlayerSpec<Spec.SpecDpsWarrior> {
 	static canDualWield = true;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: CURRENT_PHASE,
 		status: LaunchStatus.Alpha,
 	};
 
@@ -60,7 +60,7 @@ export class ProtectionWarrior extends PlayerSpec<Spec.SpecProtectionWarrior> {
 	static canDualWield = true;
 
 	static launch: SimStatus = {
-		phase: Phase.Phase3,
+		phase: CURRENT_PHASE,
 		status: LaunchStatus.Alpha,
 	};
 

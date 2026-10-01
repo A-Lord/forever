@@ -10,7 +10,7 @@ import {
 	makeMultistateIndividualBuffInput,
 	makeMultistatePartyBuffInput,
 	makeTristatePartyBuffInput,
-} from '@ui-kit/icon_inputs';
+} from '@features/inputs/icon_inputs';
 
 import type { RenderableStatOptions } from './stat_options';
 
@@ -122,8 +122,6 @@ export const AtieshPriest = makeMultistatePartyBuffInput({
 	fieldName: 'atieshPriest',
 	label: 'Atiesh - Priest',
 });
-
-// totem_twisting: sim behaviour toggle with no spell source; rendered under Other Inputs.
 
 export const StoneskinTotem = makeTristatePartyBuffInput({
 	actionId: ActionId.fromSpellId(10408),
@@ -398,7 +396,7 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: PrayerOfSpirit,
-		stats: [Stat.StatSpirit, Stat.StatSpellDamage],
+		stats: [Stat.StatSpirit],
 		ownerClass: Class.ClassPriest,
 	},
 	{
@@ -418,7 +416,7 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: PrayerOfShadowProtection,
-		stats: [Stat.StatShadowResistance, Stat.StatStamina],
+		stats: [Stat.StatShadowResistance],
 		ownerClass: Class.ClassPriest,
 	},
 	{
@@ -496,7 +494,7 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: ConcentrationAura,
-		stats: [Stat.StatDefenseRating],
+		stats: [Stat.StatSpellDamage, Stat.StatHealingPower],
 		ownerClass: Class.ClassPaladin,
 	},
 	{
@@ -506,7 +504,7 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: AtieshMage,
-		stats: [Stat.StatSpellDamage, Stat.StatHealingPower],
+		stats: [Stat.StatCritRating],
 		ownerClass: Class.ClassMage,
 	},
 	{
@@ -541,7 +539,7 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: StoneskinTotem,
-		stats: [Stat.StatArmor, Stat.StatStamina],
+		stats: [Stat.StatDefenseRating],
 		ownerClass: Class.ClassShaman,
 	},
 	{
@@ -579,7 +577,7 @@ export const GENERATED_INDIVIDUAL_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: PowerInfusions,
-		stats: [Stat.StatHasteRating],
+		stats: [Stat.StatSpellDamage, Stat.StatHealingPower],
 		ownerClass: Class.ClassPriest,
 	},
 ];
@@ -617,7 +615,7 @@ export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: FaerieFire,
-		stats: [Stat.StatAttackPower, Stat.StatHitRating],
+		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassDruid,
 	},
 	{

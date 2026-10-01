@@ -2,7 +2,7 @@ character_stats_results: {
  key: "TestHunter-CharacterStats-Default"
  value: {
   final_stats: 168
-  final_stats: 616
+  final_stats: 518
   final_stats: 410
   final_stats: 273
   final_stats: 190
@@ -15,8 +15,8 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 183
-  final_stats: 1511
-  final_stats: 1655
+  final_stats: 1413
+  final_stats: 1459
   final_stats: 0
   final_stats: 20
   final_stats: 84
@@ -26,9 +26,9 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 295.68
+  final_stats: 248.64
   final_stats: 0
-  final_stats: 2352
+  final_stats: 2156
   final_stats: 40
   final_stats: 7488
   final_stats: 5535
@@ -41,12 +41,12 @@ character_stats_results: {
   final_stats: 0
   final_stats: 2
   final_stats: 2
-  final_stats: 26.1104
+  final_stats: 24.2582
   final_stats: 26.1065
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 24.64
+  final_stats: 20.72
   final_stats: 0
   final_stats: 0
   final_stats: 0
@@ -55,867 +55,867 @@ character_stats_results: {
 dps_results: {
  key: "TestHunter-AllItems-Annihilator-12798"
  value: {
-  dps: 501.49823
-  tps: 359.8963
+  dps: 453.63282
+  tps: 326.39052
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-ArenaGrandMaster-19024"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-BadgeoftheSwarmguard-21670"
  value: {
-  dps: 501.54481
-  tps: 359.92891
+  dps: 452.79623
+  tps: 325.8049
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-BarbaricBelt-4264"
  value: {
-  dps: 476.81356
-  tps: 342.66948
+  dps: 427.97163
+  tps: 308.48013
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Beastmaster'sBoots-22061"
  value: {
-  dps: 494.13112
-  tps: 354.78685
+  dps: 446.18193
+  tps: 321.22241
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Beastmaster'sCap-22013"
  value: {
-  dps: 493.22972
-  tps: 354.12272
+  dps: 442.615
+  tps: 318.69242
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Beastmaster'sGloves-22015"
  value: {
-  dps: 491.97012
-  tps: 353.22283
+  dps: 441.79241
+  tps: 318.09843
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 499.35066
-  tps: 358.47405
+  dps: 451.22956
+  tps: 324.78929
   dtps: 3.12184
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-BlazingEmblem-2802"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 2.77053
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-BloodGuard'sChainVices-22862"
  value: {
-  dps: 492.06305
-  tps: 353.29571
+  dps: 441.84568
+  tps: 318.14355
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-CryptstalkerArmor"
  value: {
-  dps: 533.31229
-  tps: 384.85683
+  dps: 482.37139
+  tps: 349.07124
   dtps: 3.21033
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Defiler'sTalisman-20072"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Defiler'sTalisman-21115"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Doombringer-13053"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-DragonscaleBreastplate-8367"
  value: {
-  dps: 467.86855
-  tps: 336.41542
+  dps: 420.1904
+  tps: 303.04072
   dtps: 0.33971
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EarthenSigil-20525"
  value: {
-  dps: 496.9396
-  tps: 357.56375
+  dps: 448.90258
+  tps: 323.93783
   dtps: 3.15653
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Earthstrike-21180"
  value: {
-  dps: 504.87475
-  tps: 362.25986
+  dps: 456.36454
+  tps: 328.30272
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Enchant2HWeapon-GrandArcanist-7941"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantChest-Absorption-8220"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantChest-LesserAbsorption-63"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantChest-MinorAbsorption-44"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantCloak-Subtlety-2621"
  value: {
-  dps: 496.9842
-  tps: 349.7787
+  dps: 448.94393
+  tps: 316.82308
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantGloves-Threat-2613"
  value: {
-  dps: 496.9842
-  tps: 363.69426
+  dps: 448.94393
+  tps: 329.39351
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantWeapon-Crusader-1900"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantWeapon-GrandSorcerer-7942"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantWeapon-Insight-8216"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EnchantWeapon-Recovery-8721"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EverlookPathcarver-274759"
  value: {
-  dps: 499.45536
-  tps: 358.46629
+  dps: 451.22157
+  tps: 324.70264
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EyeofMoam-21473"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-EyeoftheDead-23047"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-FieryWarAxe-870"
  value: {
-  dps: 501.49823
-  tps: 359.8963
+  dps: 453.63282
+  tps: 326.39052
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-FlurryAxe-871"
  value: {
-  dps: 501.49823
-  tps: 359.8963
+  dps: 453.63282
+  tps: 326.39052
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-FrozenHeartoftheMountain-249469"
  value: {
-  dps: 499.80289
-  tps: 358.70735
+  dps: 451.03227
+  tps: 324.56792
   dtps: 3.12184
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-General'sChainGloves-16571"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-GirdleofReprisal-11861"
  value: {
-  dps: 476.81356
-  tps: 342.66948
+  dps: 427.97163
+  tps: 308.48013
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-GlacialBlade-19099"
  value: {
-  dps: 500.53918
-  tps: 359.22497
+  dps: 452.17651
+  tps: 325.3711
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-GnomishHarmPreventionBelt-10721"
  value: {
-  dps: 476.81356
-  tps: 342.66948
+  dps: 427.97163
+  tps: 308.48013
   dtps: 0.60289
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 479.83952
-  tps: 344.77666
+  dps: 431.25792
+  tps: 310.76954
   dtps: 0.767
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-GoldenBanana-270226"
  value: {
-  dps: 497.62868
-  tps: 357.18762
+  dps: 449.68558
+  tps: 323.62745
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-GrimReaper-13054"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-HanzoSword-8190"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-HeartoftheScale-13164"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.04265
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-HelmofFire-8348"
  value: {
-  dps: 488.50242
-  tps: 350.84069
+  dps: 439.10031
+  tps: 316.25922
   dtps: 2.96889
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-HibernationCrystal-20636"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-JomGabbar-23570"
  value: {
-  dps: 506.94394
-  tps: 363.7083
+  dps: 458.34966
+  tps: 329.69231
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Julie'sDagger-6660"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-KissoftheSpider-22954"
  value: {
-  dps: 516.58352
-  tps: 370.8535
+  dps: 466.55762
+  tps: 335.83537
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Knight-Lieutenant'sChainVices-23279"
  value: {
-  dps: 492.06305
-  tps: 353.29571
+  dps: 441.84568
+  tps: 318.14355
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Linken'sBoomerang-11905"
  value: {
-  dps: 498.07909
-  tps: 357.55976
+  dps: 449.28842
+  tps: 323.40629
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Loatheb'sReflection-23042"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 2.73542
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-MarkofResolution-17759"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-MarkoftheChampion-23206"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-MarkoftheChampion-23207"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-MarkoftheRedFlight-282778"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 0.40573
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-MoltenHeartoftheMountain-249470"
  value: {
-  dps: 498.48776
-  tps: 357.78897
+  dps: 450.33047
+  tps: 324.07887
   dtps: 3.12184
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Nightfall-19169"
  value: {
-  dps: 501.49823
-  tps: 359.8963
+  dps: 453.63282
+  tps: 326.39052
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-ObsidianMailTunic-22191"
  value: {
-  dps: 473.17292
-  tps: 340.12848
+  dps: 424.97855
+  tps: 306.39243
   dtps: 3.09821
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-OrbofFire-12805"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-PhantomBlade-7961"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-SerenityField-272439"
  value: {
-  dps: 496.96843
-  tps: 356.69684
+  dps: 448.94864
+  tps: 323.08298
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 500.7946
-  tps: 359.40376
+  dps: 452.79683
+  tps: 325.80532
   dtps: 2.96889
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-ShortswordofVengeance-754"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-SmokingHeartoftheMountain-11811"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.12184
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-StormGauntlets-12632"
  value: {
-  dps: 487.38185
-  tps: 350.00838
+  dps: 437.50693
+  tps: 315.09594
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-SwordofZeal-6622"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TalismanofArathor-20071"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TalismanofArathor-21117"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 497.39993
-  tps: 357.02749
+  dps: 449.35966
+  tps: 323.3993
   dtps: 2.87991
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TalismanofAscendance-22678"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TalismanofEphemeralPower-18820"
  value: {
-  dps: 496.96843
-  tps: 356.72544
+  dps: 448.94864
+  tps: 323.11159
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TheBurrower'sShell-23558"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 0.02495
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TheLobotomizer-19324"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TheNeedler-13060"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-ThrashBlade-17705"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Uther'sStrength-11302"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-WarmthofForgiveness-23027"
  value: {
-  dps: 496.79358
-  tps: 357.60096
+  dps: 448.78869
+  tps: 323.99754
   dtps: 3.19598
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Witchfury-13051"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-WrathofCenarius-21190"
  value: {
-  dps: 484.18059
-  tps: 347.77395
+  dps: 436.06145
+  tps: 314.09056
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-Average-Default"
  value: {
-  dps: 494.77582
-  tps: 355.19613
+  dps: 445.42682
+  tps: 320.65183
   dtps: 3.14437
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 653.75953
-  tps: 636.93404
+  dps: 604.63477
+  tps: 602.54671
   dtps: 3.60596
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 504.73568
-  tps: 362.2801
+  dps: 455.92714
+  tps: 328.11412
   dtps: 4.04229
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 547.50334
-  tps: 392.62006
+  dps: 496.5516
+  tps: 356.95384
   dtps: 12.12688
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 249.78719
-  tps: 249.78719
+  dps: 244.43648
+  tps: 244.43648
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 249.78719
-  tps: 249.78719
+  dps: 244.43648
+  tps: 244.43648
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 347.47422
-  tps: 347.47422
+  dps: 341.13817
+  tps: 341.13817
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 525.16703
-  tps: 526.61319
+  dps: 487.14084
+  tps: 500.10106
   dtps: 3.15935
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 397.34534
-  tps: 286.07083
+  dps: 359.42279
+  tps: 259.54463
   dtps: 3.28966
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 422.59489
-  tps: 304.11869
+  dps: 383.75192
+  tps: 276.93678
   dtps: 9.86897
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 217.90006
-  tps: 217.90006
+  dps: 213.80378
+  tps: 213.80378
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 217.90006
-  tps: 217.90006
+  dps: 213.80378
+  tps: 213.80378
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 264.69652
-  tps: 264.69652
+  dps: 260.06689
+  tps: 260.06689
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 642.25698
-  tps: 626.53071
+  dps: 594.16025
+  tps: 592.863
   dtps: 3.00524
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 496.9842
-  tps: 356.73648
+  dps: 448.94393
+  tps: 323.10829
   dtps: 3.15134
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 523.98998
-  tps: 375.92926
+  dps: 475.84065
+  tps: 342.22472
   dtps: 9.45401
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 246.387
-  tps: 246.387
+  dps: 240.97982
+  tps: 240.97982
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 246.387
-  tps: 246.387
+  dps: 240.97982
+  tps: 240.97982
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 330.04673
-  tps: 330.04673
+  dps: 323.58821
+  tps: 323.58821
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 520.27887
-  tps: 522.65409
+  dps: 482.10288
+  tps: 496.72696
   dtps: 2.48611
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 394.41495
-  tps: 284.01684
+  dps: 356.40032
+  tps: 257.44725
   dtps: 2.62611
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 413.87651
-  tps: 297.99481
+  dps: 375.9014
+  tps: 271.42919
   dtps: 7.87834
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 215.62254
-  tps: 215.62254
+  dps: 211.58174
+  tps: 211.58174
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 215.62254
-  tps: 215.62254
+  dps: 211.58174
+  tps: 211.58174
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 260.30942
-  tps: 260.30942
+  dps: 255.80485
+  tps: 255.80485
  }
 }
 dps_results: {
  key: "TestHunter-SwitchInFrontOfTarget-Default"
  value: {
-  dps: 495.1242
-  tps: 355.43448
+  dps: 447.08393
+  tps: 321.80629
   dtps: 3.15134
  }
 }

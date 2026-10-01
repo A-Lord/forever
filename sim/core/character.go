@@ -133,7 +133,7 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	if player.Consumables != nil {
 		character.Consumables = player.Consumables
 	}
-	applyTemporaryEnchants(&character, character.Consumables, party.buffs)
+	applyTemporaryEnchants(&character, character.Consumables)
 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 
@@ -281,26 +281,30 @@ func (character *Character) applyAllEffects(agent Agent, raidBuffs *proto.RaidBu
 		return measuredStatsProto
 	}
 
-	applyRaceEffects(agent)
-	character.applyProfessionEffects()
+	character.WithSource(SourceRacial, func() { applyRaceEffects(agent) })
+	character.WithSource(SourceProfession, character.applyProfessionEffects)
 	character.applyBuildPhaseAuras(CharacterBuildPhaseBase)
 	playerStats.BaseStats = measureStats()
 
 	character.applyEquipment()
-	character.applyItemEffects(agent)
-	character.applyItemSetBonusEffects(agent)
+	character.WithSource(SourceItem, func() {
+		character.applyItemEffects(agent)
+		character.applyItemSetBonusEffects(agent)
+	})
 	character.applyBuildPhaseAuras(CharacterBuildPhaseGear)
 	playerStats.GearStats = measureStats()
 
-	agent.ApplyTalents()
+	character.WithSource(SourceTalent, agent.ApplyTalents)
 	character.applyBuildPhaseAuras(CharacterBuildPhaseTalents)
 	playerStats.TalentsStats = measureStats()
 
-	applyBuffEffects(agent, raidBuffs, partyBuffs, individualBuffs)
+	character.WithSource(SourceExternalBuff, func() {
+		registeredBuffs().ApplyBuffs(character, raidBuffs, partyBuffs, individualBuffs)
+	})
 	character.applyBuildPhaseAuras(CharacterBuildPhaseBuffs)
 	playerStats.BuffsStats = measureStats()
 
-	applyConsumeEffects(agent)
+	character.WithSource(SourceConsumable, func() { applyConsumeEffects(agent) })
 	character.applyBuildPhaseAuras(CharacterBuildPhaseConsumes)
 	playerStats.ConsumesStats = measureStats()
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)

@@ -30,7 +30,7 @@ The full guide is `docs/spell_data.md`; this is the map.
 
 ```go
 var slamRank = spellData.Slam.Highest()          // a ladder: Rank(n), Highest(), ByID(id), Len()
-var slamDamage = slamRank.DamageEffect().Average(core.CharacterLevel)
+var slamDamage = slamRank.DamageEffect().Average()
 
 rank := spellData.Defiance.Rank(points)          // rank 0 is untaken and answers Nil
 spelldata.Find(id)                               // Nil where the store does not carry it; chains safely
@@ -47,13 +47,13 @@ spelldata.MustFind(id)                           // panics instead, for a spell 
 | `SpellSchool()`, `DefenseTypeCore()`, `MissRefund()`, `TickOutcome(dot)`         | core's own forms                                                                                              |
 | `Refs()`, `Triggered()`, `Drivers()`                                             | the tooltip's spells, the ones the effects fire, the ones that fire this                                      |
 
-| on an `*Effect`                                                  |                                                                |
-| ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| `BaseValue()`                                                    | the game files' number, unconverted                            |
-| `Percent()`, `Tenths()`, `TimeValue()`, `Period()`               | over 100, over 10, as milliseconds, the tick interval          |
-| `Average(level)`, `Min(level)`, `Max(level)`, `Roll(sim, level)` | the folded amount, the ends of the spread, and one cast's roll |
-| `Coeff()`, `APCoeff()`                                           | the spell power and attack power shares                        |
-| `Trigger()`                                                      | the spell the effect fires                                     |
+| on an `*Effect`                                      |                                                                                                                                                                                  |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BaseValue()`                                        | the game files' number, unconverted                                                                                                                                              |
+| `Percent()`, `Tenths()`, `TimeValue()`, `Period()`   | over 100, over 10, as milliseconds, the tick interval                                                                                                                            |
+| `Average()`, `Min()`, `Max()`, `Mean()`, `Roll(sim)` | the folded amount, the ends of the spread, what a cast averages, and one cast's roll, at the sim's level; the `At` forms (`AverageAt(level)`, `RollAt(sim, level)`) take a level |
+| `Coeff()`, `APCoeff()`                               | the spell power and attack power shares                                                                                                                                          |
+| `Trigger()`                                          | the spell the effect fires                                                                                                                                                       |
 
 A `Ladder` reads per rank: `ValueAt`, `FractionAt`, `MultiplierAt`, `TenthsAt`, and `EffectAt(n)` / `Effect(aura, misc)` for a rank with more than one effect. Rank 0 answers 0, so no `if rank > 0` guard. `Contains(spell)` asks whether a registered spell is one of the ladder's ranks, by spell id: it is how a handler or a `ProcTrigger`'s `ExtraCondition` names one ability, and the class `SpellMask*` constants it replaced are gone from the warrior.
 
@@ -80,7 +80,7 @@ A debuff that raises only its caster's damage or crit against the target (Shadow
 
 `Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ApplyEffects` by hand; Flurry tells it from the main-hand strike with `spellData.Whirlwind.Contains(spell)` and an off-hand proc mask. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
 
-Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions and the shapeshift attribute bits, and core enforces it. Never write a stance or form check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
+Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions, the shapeshift attribute bits, the weapon or shield `SpellEquippedItems` and the hand bits name, and the not-in-combat attribute bit, and core enforces it, reading the equipment at cast time. Never write a stance, form, weapon, shield or `sim.CurrentTime < 0` check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
 
 ## Weapon requirements and the one rating
 
@@ -88,7 +88,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 
 ## Porting a class
 
-`docs/spell_data.md` has the checklist under "Porting a class onto the resolvers". The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move .results files only for a cause you isolated by reverting one change.
+`docs/spell_data.md` has the checklist under "Porting a class onto the resolvers". The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move .results files only for a cause you isolated by reverting one change. Before committing, run the `wowsims-review` pass over the diff.
 
 ## Traps
 
@@ -101,6 +101,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 - **`Average` floors the whole amount, in float32.** In game an amount resolves to a whole number, so an effect with a fractional base and per-level gain answers something `BaseValue()` arithmetic in float64 does not.
 - **A proc chance of 100 is not a roll.** 100 and 101 are the game files' "fires on its own condition" sentinel. Read `ProcChanceSource`, never the `ProcChance` column.
 - **A proc chance talent reaches only a trigger that states `ProcSpellClassFlags`.** A `SPELLMOD_CHANCE_OF_SUCCESS` reaches the triggers `spelldata.ProcTrigger` builds, and a hand-built one only where it sets them itself (Judgement of Light): it matches the trigger's `ProcSpellClassFlags`, the class flags of the spell that procs (Instant Poison for a poison), and raises the one chance the trigger draws: the manager's for the hit's mask where it has one, else the stated chance. A mask the manager does not hear fails without a draw. Build poisons and other talented procs from their row, and do not also add the talent's chance by hand: the parsed talent already counts. The mods counted are the caster's wherever the trigger sits: `spelldata.ProcTrigger` sets `Caster` to its character, a hand-built trigger on the target sets it to the caster (Judgement of Light, raised by Improved Judgement of Light 23564), and a pet's trigger counts its owner's mods with its own. A pet proc no store row carries (Frenzy 19621 on Tamed Pet Passive 20784) sets `ProcSpellClassFlags` from the talent's effect mask.
+- **A row-built trigger can be silent twice over.** `spelldata.ProcTrigger` names the trigger after its row, and `MakeProcTriggerAura` registers it through `GetOrRegisterAura` under that name, so beside an `AuraConfig` buff with the same name its callbacks are copied onto the buff and fire only while the buff is up: set `trigger.Name`. And `DecodeProcTypeMask` files `PROC_FLAG_DEAL_HARMFUL_PERIODIC` under `ProcMaskSpellDamage`, which a bleed tick does not carry, so a periodic listener built from a row never hears a bleed.
 - **`A_MOD_CRIT_PERCENT_VERSUS` is crit damage and `A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT` is armor ignored.** Humanoid Slaying 19153 raises the crit multiplier against Humanoids, not the crit chance; Serrated Blades 14171 adds to `ArmorIgnoreFactor`, not a rating.
 - **`RequireDamageDealt` defaults true.** A listener that fires on a dodge, a parry, a miss or a block needs it false. The decoder has done that already where the tooltip named the outcome and the row carries `ProcHintOutcomeTaken`; hand-clear it only on a row whose wording yielded no hint (23547). The outcome itself is always the caller's — no `ProcTypeMask` has a bit for one.
 - **Raise a bar's maximum before the racials run.** Expansive Mind multiplies the maximum rage and energy once, in `applyRaceEffects`, between the class constructor and `ApplyTalents`. Boundless Rage is parsed in `NewWarrior` straight after `EnableRageBar`, and the rogue's Vigor goes into the `MaxEnergy` it enables the bar with; a maximum raised with the talents misses the racial. Later changes go through `SetMaximumRage` / `SetMaximumEnergy`.
@@ -134,7 +135,7 @@ Where the row and the tooltip disagree, the tooltip can win — Flurry's haste l
 go run ./tools/spelldata 11574                   # one row: header, ladder call, a worded line and the game files' columns per effect; -json for a tool
 go run ./tools/spelldata -family warrior/Execute # the ladder: one line per rank with the call reaching it, then the highest rank's row (<Family> alone where one class states it)
 go run ./tools/spelldata -expr 'spellData.Execute.Rank(3)' -package warrior   # the row a ladder call names, Highest(), Rank(n) or ByID(id)
-go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)' -package warrior   # a pick followed by the store's own accessors: the value it reads, that accessor's doc comment and the row with the effect it read marked
+go run ./tools/spelldata -expr 'spellData.Execute.Highest().EffectN(1).Average()' -package warrior   # a pick followed by the store's own accessors: the value it reads, that accessor's doc comment and the row with the effect it read marked
 go run ./tools/spelldata -config 'spelldata.SpellConfig(&warrior.Unit, executeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))' -package warrior   # the config the resolver builds, each field with the step that filled it
 go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusCrit_Percent, ProcMask: core.ProcMaskMelee, EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_1H_AXE | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_2H_AXE}'   # each field, the weapons it needs and the rule core applies
 go run ./tools/spelldata -hover sim/warrior/execute.go 12:40   # the markdown an editor hover shows at line:column (1-based); the trace on stderr
