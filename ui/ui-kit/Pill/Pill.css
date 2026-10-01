@@ -1,6 +1,6 @@
 @layer components {
 	.ui-pill {
-		@apply inline-flex w-fit items-center gap-1 bg-current/15 px-1 leading-normal font-medium;
+		@apply inline-flex w-fit items-center gap-1 bg-current/15 px-1 leading-normal font-semibold;
 
 		&[data-tone='positive'] {
 			@apply text-success;

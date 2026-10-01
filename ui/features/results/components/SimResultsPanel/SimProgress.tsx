@@ -3,6 +3,7 @@ import i18n from '@i18n/config';
 import { useSim } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { ProgressTrackerBar } from '@ui-kit/ProgressTrackerDialog';
+import { Spinner } from '@ui-kit/Spinner';
 import clsx, { ClassValue } from 'clsx';
 import { useLayoutEffect, useState } from 'react';
 
@@ -17,9 +18,9 @@ export interface SimProgressProps {
 const fractionDone = (progress: ProgressMetrics | null): number | undefined =>
 	progress && !progress.presimRunning && progress.totalIterations > 0 ? progress.completedIterations / progress.totalIterations : undefined;
 
-const readoutOf = (progress: ProgressMetrics | null): string | undefined => {
-	if (!progress) return undefined;
-	if (progress.presimRunning) return i18n.t('sidebar.results.progress.presim_running');
+const readoutOf = (progress: ProgressMetrics | null): string => {
+	if (progress?.presimRunning) return i18n.t('sidebar.results.progress.presim_running');
+	if (!progress?.completedIterations) return i18n.t('sidebar.results.progress.starting');
 	return `${formatToNumber(progress.completedIterations)} / ${formatToNumber(progress.totalIterations)}`;
 };
 
@@ -43,28 +44,27 @@ export const SimProgress = ({ panel, className }: SimProgressProps) => {
 	const { damage: showDamage, healing: showHealing } = useDisplayMetrics(useSim());
 	const [{ progress, secondsRemaining }, setTick] = useState(() => ({ progress: panel.latestProgress, secondsRemaining: undefined as number | undefined }));
 	useLayoutEffect(() => panel.onProgress(next => setTick({ progress: next, secondsRemaining: panel.secondsRemaining(next) })), [panel]);
+	const fraction = fractionDone(progress);
 
 	return (
 		<div data-testid="results-sim" className={clsx('flex w-full flex-col gap-2', className)}>
 			<div className="flex items-center justify-between gap-2 text-sm" data-testid="results-progress-header">
 				<span>{i18n.t('sidebar.results.progress.running')}</span>
-				{secondsRemaining !== undefined && (
-					<span className="tabular-nums" data-testid="results-sim-time-remaining">
-						{i18n.t('sidebar.results.progress.time_remaining', {
-							time: formatDurationSeconds(secondsRemaining, { separatorStyle: 'colon', minimumUnit: 'minutes' }).padStart(5, '0'),
-						})}
-					</span>
+				{!fraction ? (
+					<Spinner size="xs" />
+				) : (
+					secondsRemaining !== undefined && (
+						<span className="tabular-nums" data-testid="results-sim-time-remaining">
+							{i18n.t('sidebar.results.progress.time_remaining', {
+								time: formatDurationSeconds(secondsRemaining, { separatorStyle: 'colon', minimumUnit: 'minutes' }).padStart(5, '0'),
+							})}
+						</span>
+					)
 				)}
 			</div>
 			{showDamage && <ProgressMetric metric="dps" value={progress?.dps} compact={false} />}
 			{showHealing && <ProgressMetric metric="hps" value={progress?.hps} compact={showDamage} />}
-			<ProgressTrackerBar
-				running
-				progress={fractionDone(progress)}
-				readout={readoutOf(progress)}
-				className="w-full max-w-full"
-				testId="results-sim-progress"
-			/>
+			<ProgressTrackerBar running progress={fraction} readout={readoutOf(progress)} className="w-full max-w-full" testId="results-sim-progress" />
 		</div>
 	);
 };

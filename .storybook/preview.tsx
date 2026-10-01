@@ -21,6 +21,7 @@ const preview: Preview = {
 		layout: 'fullscreen',
 		docs: { theme: themes.dark },
 		controls: { matchers: { color: /(background|color)$/i } },
+		options: { storySort: { method: 'alphabetical' } },
 	},
 	// A component that declares an `icon` prop picks it from the kit's FontAwesome set; a story whose `icon` is an object opts out with `control: false`.
 	argTypesEnhancers: [

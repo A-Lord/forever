@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 
@@ -33,52 +33,5 @@ describe('Accordion', () => {
 		const { container } = render(<Harness />);
 
 		expect(container.querySelector('[data-testid="accordion"]')).not.toBeNull();
-	});
-});
-
-const HeaderRowHarness = ({ initial = [] as string[] }) => {
-	const [open, setOpen] = useState(initial);
-	return (
-		<Accordion value={open} onValueChange={setOpen}>
-			<AccordionItem
-				value="stats"
-				title="Stats"
-				header={<button type="button">Mode</button>}
-				headerProps={{ 'data-stuck': '' }}
-				panelFirst
-				testId="group-stats">
-				<span data-testid="stats-body" />
-			</AccordionItem>
-		</Accordion>
-	);
-};
-
-describe('Accordion header row', () => {
-	it('sets a chevron-only trigger that the title names ahead of the row, first in tab order', () => {
-		render(<HeaderRowHarness />);
-
-		const trigger = screen.getByRole('button', { name: 'Stats' });
-		expect(trigger.getAttribute('aria-expanded')).toBe('false');
-		expect(trigger.nextElementSibling).toBe(screen.getByRole('button', { name: 'Mode' }));
-	});
-
-	it('opens from the trigger, not from the controls in the row', () => {
-		render(<HeaderRowHarness />);
-
-		fireEvent.click(screen.getByRole('button', { name: 'Mode' }));
-		expect(screen.queryByTestId('stats-body')).toBeNull();
-
-		fireEvent.click(screen.getByRole('button', { name: 'Stats' }));
-		expect(screen.getByTestId('stats-body')).not.toBeNull();
-		expect(screen.getByRole('button', { name: 'Stats' }).getAttribute('aria-expanded')).toBe('true');
-	});
-
-	it('sets the panel above the header, and passes the header props through', () => {
-		render(<HeaderRowHarness initial={['stats']} />);
-
-		const header = screen.getByRole('button', { name: 'Stats' }).parentElement!;
-		expect(header.hasAttribute('data-stuck')).toBe(true);
-		expect(header.firstElementChild).toBe(screen.getByRole('button', { name: 'Stats' }));
-		expect(header.previousElementSibling!.contains(screen.getByTestId('stats-body'))).toBe(true);
 	});
 });

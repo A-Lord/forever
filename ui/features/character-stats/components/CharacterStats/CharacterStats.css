@@ -1,39 +1,10 @@
 @layer components {
-	.ui-character-stats-item {
-		@apply contents;
-
-		& > :first-child {
-			@apply lg:mt-auto;
-		}
-
-		&:not([data-open]) > .ui-character-stats-header {
-			@apply before:border-t-border;
-		}
-	}
-
 	.ui-character-stats-panel {
-		@apply relative -mx-(--sidebar-padding) px-(--sidebar-padding) pt-2 before:absolute before:inset-x-(--sidebar-padding) before:top-0 before:border-t before:border-solid before:border-t-border;
-	}
-
-	.ui-character-stats-header {
-		@apply sticky bottom-0 z-toolbar -mx-(--sidebar-padding) bg-background px-(--sidebar-padding) py-2 before:absolute before:inset-x-(--sidebar-padding) before:top-0 before:border-t before:border-solid before:border-t-transparent;
+		@apply flex flex-col gap-2 border-t border-border pt-2;
 	}
 
 	.ui-character-stats-row {
 		@apply text-ui;
-	}
-
-	.ui-character-stats-row:first-child {
-		@apply border-t border-solid border-t-border;
-	}
-
-	.ui-character-stats-table > tbody:first-child > .ui-character-stats-row:first-child {
-		@apply border-t-0;
-	}
-
-	.ui-character-stats-row:last-child .ui-character-stats-label,
-	.ui-character-stats-row:last-child .ui-character-stats-value {
-		@apply pb-2;
 	}
 
 	.ui-character-stats-label {

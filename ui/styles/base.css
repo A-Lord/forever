@@ -9,8 +9,8 @@
 
 @font-face {
 	font-family: SimDefaultFont;
-	src: url(/forever/assets/fonts/PlusJakartaSans-Medium.woff2);
-	font-weight: 500;
+	src: url(/forever/assets/fonts/PlusJakartaSans-SemiBold.woff2);
+	font-weight: 600;
 }
 
 @font-face {

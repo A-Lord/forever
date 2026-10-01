@@ -11,6 +11,7 @@
 @import './theme/index.css';
 
 @import '../ui-kit/Accordion/Accordion.css';
+@import '../ui-kit/Box/Box.css';
 @import '../ui-kit/Icon/Icon.css';
 @import '../ui-kit/ItemCell/ItemCell.css';
 @import '../ui-kit/Button/Button.css';

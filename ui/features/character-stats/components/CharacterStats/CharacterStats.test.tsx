@@ -67,6 +67,7 @@ const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, play
 		},
 		sim: { store },
 		individualConfig: { displayStats },
+		getStorageKey: (keyPart: string) => `test${keyPart}`,
 	});
 	const rows = Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]'));
 	return { view, rows };
@@ -143,51 +144,66 @@ describe('CharacterStats Key/All toggle', () => {
 		]);
 	});
 
-	it('shows every row the sheet has on All, and the Key rows again on Key', () => {
+	it('shows every group on All, with the rows of the open ones, and the Key rows again on Key', () => {
 		const { view } = renderStats(true);
 		const keyLabels = rowLabels(view);
 
 		fireEvent.click(modeButton('all'));
-		const allLabels = rowLabels(view);
-		const allStatRows = buildRows({ getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }) } as never, UnitStat.getAll()).groups.flatMap(
-			group => group.rows,
-		);
+		const allGroups = buildRows({ getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }) } as never, UnitStat.getAll()).groups;
+		const shownRows = allGroups.filter(group => ['primary', 'attributes', 'physical'].includes(group.key)).flatMap(group => group.rows);
 		expect(modeButton('all').getAttribute('aria-pressed')).toBe('true');
-		expect(allLabels.length).toBe(allStatRows.length);
-		expect(allLabels.length).toBeGreaterThan(keyLabels.length);
-		expect(allLabels).toEqual(expect.arrayContaining(keyLabels));
+		expect(groupTriggers().map(trigger => trigger.getAttribute('data-testid'))).toEqual(
+			['attributes', 'physical', 'spell', 'defense', 'resistance'].map(key => `character-stats-group-${key}-trigger`),
+		);
+		expect(rowLabels(view).length).toBe(shownRows.length);
+		expect(rowLabels(view)).toEqual(expect.arrayContaining(keyLabels));
 
 		fireEvent.click(modeButton('key'));
 		expect(rowLabels(view)).toEqual(keyLabels);
 	});
 });
 
-describe('CharacterStats open state', () => {
-	const OPEN_KEY = '__forever_character-stats-open.v1';
-	const trigger = () => screen.getByRole('button', { name: i18n.t('sidebar.character_stats.title') });
+const groupTriggers = () => screen.queryAllByTestId(/^character-stats-group-[a-z]+-trigger$/);
+const groupTrigger = (key: string) => screen.getByTestId(`character-stats-group-${key}-trigger`);
+const expandedGroups = () => groupTriggers().filter(trigger => trigger.getAttribute('aria-expanded') === 'true');
+const showAll = () => fireEvent.click(screen.getByRole('button', { name: i18n.t('sidebar.character_stats.mode.all') }));
 
+describe('CharacterStats groups', () => {
 	afterEach(() => {
 		window.localStorage.clear();
 	});
 
-	it('opens by default, as the sidebar panel', () => {
-		const { rows } = renderStats(true);
+	it('keeps health and mana above the groups, under no header', () => {
+		renderStats(true);
+		showAll();
 
-		expect(trigger().getAttribute('aria-expanded')).toBe('true');
-		expect(rows.length).toBe(DISPLAY_STATS.length + 1);
-		expect(screen.getByTestId('character-stats-root')).toBeTruthy();
+		const healthLabel = UnitStat.fromStat(Stat.StatHealth).getShortName(Class.ClassWarrior);
+		const health = screen.getAllByTestId('character-stats-table-row').find(row => row.firstElementChild!.textContent === healthLabel)!;
+		expect(screen.getByTestId('character-stats-groups').contains(health)).toBe(false);
 	});
 
-	it('keeps the choice in local storage, and a remount reads it back', () => {
-		const { view } = renderStats(true);
+	it.each([
+		['a melee spec', renderStats, 'physical'],
+		['a tank', renderTankStats, 'defense'],
+	])('opens Attributes and the main group for %s, and leaves the rest closed', (_spec, render, main) => {
+		render(true);
+		showAll();
 
-		fireEvent.click(trigger());
-		expect(trigger().getAttribute('aria-expanded')).toBe('false');
-		expect(window.localStorage.getItem(OPEN_KEY)).toBe('false');
+		expect(expandedGroups()).toEqual([groupTrigger('attributes'), groupTrigger(main)]);
+	});
+
+	it('keeps the open groups under the spec storage key, and a remount reads them back', () => {
+		const { view } = renderStats(true);
+		showAll();
+
+		fireEvent.click(groupTrigger('spell'));
+		fireEvent.click(groupTrigger('attributes'));
+		expect(JSON.parse(window.localStorage.getItem('test__characterStatsGroups')!)).toEqual(['physical', 'spell']);
 
 		view.unmount();
 		renderStats(true);
-		expect(trigger().getAttribute('aria-expanded')).toBe('false');
+		showAll();
+		expect(expandedGroups()).toEqual([groupTrigger('physical'), groupTrigger('spell')]);
 	});
 });
 

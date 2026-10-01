@@ -60,7 +60,7 @@ export const BulkSettingsView = ({
 					}>
 					{combinationsCount}
 				</RunCard>
-				<Accordion value={openGroups} onValueChange={onOpenGroupsChange}>
+				<Accordion value={openGroups} onValueChange={onOpenGroupsChange} variant="boxed">
 					<AccordionItem
 						value={BULK_SETTINGS_GROUP.options}
 						title={i18n.t('bulk_tab.settings.groups.options')}

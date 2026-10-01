@@ -1,22 +1,24 @@
 import { ItemSlot, PseudoStat, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import { LOCAL_STORAGE_PREFIX } from '@sim/constants/other';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { computeStatAttribution, type Stats, UnitStat } from '@sim/proto/stats';
-import { useTypedLocalStorage } from '@ui-kit/hooks/useTypedLocalStorage';
+import { Accordion, AccordionItem } from '@ui-kit/Accordion';
+import { Box } from '@ui-kit/Box';
+import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
 import { Table } from '@ui-kit/Table';
 import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
 import type { CharacterStatsMode } from './CharacterStatsHeaderView';
+import type { CharacterStatsPanelViewProps } from './CharacterStatsPanelView';
 import { CharacterStatsPanelView } from './CharacterStatsPanelView';
 import { CritCapRow } from './CritCapRow';
 import { CritImmunityRow } from './CritImmunityRow';
 import { MissRow } from './MissRow';
 import { StatRow } from './StatRow';
-import { buildRows } from './utils/rows';
+import { buildRows, defaultOpenStatGroups, type Row } from './utils/rows';
 import {
 	critImmunityCapDisplayString,
 	meleeCritCapDisplayString,
@@ -28,22 +30,18 @@ import {
 // buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
 const ALL_STATS = UnitStat.getAll();
 
-const OPEN_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_character-stats-open.v1`;
+const GROUPS_STORAGE_SUFFIX = '__characterStatsGroups';
 
-const parseOpen = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
+interface CharacterStatsProps extends Pick<CharacterStatsPanelViewProps, 'className'> {}
 
-export const CharacterStats = () => {
+export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const host = useSimHost();
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
 	const [mode, setMode] = useState<CharacterStatsMode>('key');
-	const [storedOpen, setStoredOpen] = useTypedLocalStorage<boolean>(OPEN_STORAGE_KEY, parseOpen);
-	// React state over the stored value: with storage blocked nothing is written, and the panel still has to open.
-	const [open, setOpen] = useState(() => storedOpen ?? true);
-	const toggle = (next: boolean) => {
-		setOpen(next);
-		setStoredOpen(next);
-	};
+	const [openGroups, setOpenGroups] = useLocalStorageState<string[]>(host.getStorageKey(GROUPS_STORAGE_SUFFIX), parseStringArray, () =>
+		defaultOpenStatGroups(player.getPlayerSpec().isTankSpec, displayStats),
+	);
 	const currentStats = usePlayerStore('currentStats');
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
@@ -106,54 +104,71 @@ export const CharacterStats = () => {
 		all: i18n.t('sidebar.character_stats.mode.all'),
 	};
 
-	const table = (
-		<Table variant="plain" flush className="ui-character-stats-table p-2" aria-busy={pending || undefined}>
-			{groups.map(group => (
-				<tbody key={group.key}>
-					{group.rows.map(row => {
-						switch (row.kind) {
-							case 'stat':
-								return (
-									<StatRow
-										key={row.id}
-										displayStat={row.displayStat}
-										bonusStats={bonusStats}
-										attribution={attribution}
-										show={show}
-										rangedWeapon={rangedWeapon}
-										dualWielding={dualWielding}
-										pending={pending}
-									/>
-								);
-							case 'miss':
-								return miss && <MissRow key={row.id} info={miss} pending={pending} />;
-							case 'avoidance':
-								return (
-									avoidance && (
-										<AvoidanceRow
-											key={row.id}
-											info={avoidance}
-											withHolyShield={player.isSpec(Spec.SpecProtectionPaladin)}
-											hasParry={hasParry}
-											hasBlock={hasBlock}
-											pending={pending}
-										/>
-									)
-								);
-							case 'crit-immunity':
-								return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
-							case 'melee-crit-cap':
-								return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
-						}
-					})}
-				</tbody>
-			))}
+	const renderRow = (row: Row) => {
+		switch (row.kind) {
+			case 'stat':
+				return (
+					<StatRow
+						key={row.id}
+						displayStat={row.displayStat}
+						bonusStats={bonusStats}
+						attribution={attribution}
+						show={show}
+						rangedWeapon={rangedWeapon}
+						dualWielding={dualWielding}
+						pending={pending}
+					/>
+				);
+			case 'miss':
+				return miss && <MissRow key={row.id} info={miss} pending={pending} />;
+			case 'avoidance':
+				return (
+					avoidance && (
+						<AvoidanceRow
+							key={row.id}
+							info={avoidance}
+							withHolyShield={player.isSpec(Spec.SpecProtectionPaladin)}
+							hasParry={hasParry}
+							hasBlock={hasBlock}
+							pending={pending}
+						/>
+					)
+				);
+			case 'crit-immunity':
+				return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
+			case 'melee-crit-cap':
+				return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
+		}
+	};
+
+	const table = (rows: Row[]) => (
+		<Table variant="plain" flush aria-busy={pending || undefined}>
+			<tbody>{rows.map(renderRow)}</tbody>
 		</Table>
 	);
 
+	const primary = groups.find(group => group.key === 'primary');
+	const collapsible = groups.filter(group => group !== primary);
+
 	return (
-		<CharacterStatsPanelView open={open} onToggle={toggle} mode={mode} onModeChange={setMode} labels={labels}>
-			{table}
+		<CharacterStatsPanelView className={className} mode={mode} onModeChange={setMode} labels={labels}>
+			{primary && (
+				<Box border="subtle" padding="xs" testId="character-stats-primary">
+					{table(primary.rows)}
+				</Box>
+			)}
+			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="boxed" testId="character-stats-groups">
+				{collapsible.map(group => (
+					<AccordionItem
+						key={group.key}
+						value={group.key}
+						title={i18n.t(`sidebar.character_stats.groups.${group.key}`)}
+						panelClassName="pb-1"
+						testId={`character-stats-group-${group.key}`}>
+						{table(group.rows)}
+					</AccordionItem>
+				))}
+			</Accordion>
 		</CharacterStatsPanelView>
 	);
 };

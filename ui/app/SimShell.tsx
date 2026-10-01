@@ -78,11 +78,11 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								data-testid="sim-sidebar">
 								<SimTitleDropdown currentSpec={spec} />
 								<div
-									className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible lg:pb-0 [&>*:not(:last-child)]:mb-6"
+									className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible [&>*:not(:last-child)]:mb-6"
 									data-testid="sim-sidebar-content">
 									<SimRunCard host={host} sim={sim} />
 									{host && <SidebarWarnings warnings={host.warnings} />}
-									{host && <CharacterStats />}
+									{host && <CharacterStats className="mt-auto" />}
 								</div>
 							</aside>
 							<div

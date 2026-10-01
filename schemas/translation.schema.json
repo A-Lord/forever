@@ -8685,6 +8685,9 @@
 								"presim_running": {
 									"type": "string"
 								},
+								"starting": {
+									"type": "string"
+								},
 								"iterations": {
 									"type": "string"
 								},
@@ -8696,7 +8699,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["running", "presim_running", "iterations", "time_remaining"]
+							"required": ["running", "starting", "presim_running", "iterations", "time_remaining"]
 						},
 						"reference": {
 							"type": "object",
@@ -8939,6 +8942,28 @@
 							"additionalProperties": false,
 							"required": ["label", "key", "all"]
 						},
+						"groups": {
+							"type": "object",
+							"properties": {
+								"attributes": {
+									"type": "string"
+								},
+								"physical": {
+									"type": "string"
+								},
+								"spell": {
+									"type": "string"
+								},
+								"defense": {
+									"type": "string"
+								},
+								"resistance": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["attributes", "physical", "spell", "defense", "resistance"]
+						},
 						"melee_crit_cap": {
 							"type": "string"
 						},
@@ -9124,6 +9149,7 @@
 					"required": [
 						"title",
 						"mode",
+						"groups",
 						"melee_crit_cap",
 						"tooltip",
 						"attack_table",

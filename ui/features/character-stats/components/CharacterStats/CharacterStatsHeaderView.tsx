@@ -1,4 +1,5 @@
 import { ToggleGroup } from '@ui-kit/ToggleGroup';
+import { ClassValue } from 'clsx';
 
 /** `key` is the spec's display-stat list, `all` every stat the sheet has a row for. */
 export type CharacterStatsMode = 'key' | 'all';
@@ -14,6 +15,7 @@ export interface CharacterStatsHeaderViewProps {
 	mode: CharacterStatsMode;
 	onModeChange: (next: CharacterStatsMode) => void;
 	labels: CharacterStatsHeaderLabels;
+	className?: ClassValue;
 }
 
 export const CharacterStatsModeToggle = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
@@ -31,7 +33,7 @@ export const CharacterStatsModeToggle = ({ mode, onModeChange, labels }: Charact
 );
 
 export const CharacterStatsHeaderView = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
-	<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+	<div className="flex items-center justify-between gap-2">
 		<h3 data-testid="character-stats-label" className="m-0 text-base leading-tight font-bold">
 			{labels.title}
 		</h3>

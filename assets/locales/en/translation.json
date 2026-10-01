@@ -2465,6 +2465,7 @@
 			},
 			"progress": {
 				"running": "Simulating",
+				"starting": "starting",
 				"presim_running": "presimulations running",
 				"iterations": "{{completed}} / {{total}} iterations",
 				"time_remaining": "{{time}} remaining"
@@ -2532,6 +2533,13 @@
 				"label": "Stats shown",
 				"key": "Key",
 				"all": "All"
+			},
+			"groups": {
+				"attributes": "Attributes",
+				"physical": "Physical",
+				"spell": "Spell",
+				"defense": "Defense",
+				"resistance": "Resistances"
 			},
 			"melee_crit_cap": "Melee Crit Cap",
 			"tooltip": {
