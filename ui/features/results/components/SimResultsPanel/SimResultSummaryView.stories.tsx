@@ -15,6 +15,8 @@ const meta = {
 		onSetReference: fn(),
 		onSwapReference: fn(),
 		onClearReference: fn(),
+		onOpenBreakdown: fn(),
+		freshness: 'fresh',
 	},
 	loaders: [loadTopline],
 	render: (args, { loaded }) => <SimResultSummaryView {...args} metrics={(loaded as ToplineFixture).metrics} />,

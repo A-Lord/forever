@@ -18,7 +18,7 @@ const meta = {
 		icon: <Icon name="filter" />,
 		summary: 'No filters',
 		preview: '',
-		clear: { testId: 'story-floating-action-bar-clear', icon: <Icon name="xmark" className="mr-1" />, label: 'Clear', hidden: true, onClick: fn() },
+		clear: { testId: 'story-floating-action-bar-clear', icon: <Icon name="xmark" />, label: 'Clear', hidden: true, onClick: fn() },
 		controls: (
 			<div className="flex items-center gap-2 md:ml-auto">
 				<ToolbarButton className="whitespace-nowrap">Export</ToolbarButton>
@@ -38,6 +38,6 @@ export const Active: Story = {
 	args: {
 		summary: '2 filters',
 		preview: 'Spell: Mortal Strike, Outcome: Crit',
-		clear: { testId: 'story-floating-action-bar-clear', icon: <Icon name="xmark" className="mr-1" />, label: 'Clear', hidden: false, onClick: fn() },
+		clear: { testId: 'story-floating-action-bar-clear', icon: <Icon name="xmark" />, label: 'Clear', hidden: false, onClick: fn() },
 	},
 };

@@ -21,7 +21,7 @@ export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
 	const id = useId();
 	const contents = useReadyStoreSubscribe(warnings.subscribe, warnings.getContents, ready) ?? [];
 	return (
-		<div className="text-center" data-testid="warning-zone">
+		<div className="text-center empty:hidden" data-testid="warning-zone">
 			{contents.length > 0 && (
 				<>
 					<Button

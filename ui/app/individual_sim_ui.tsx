@@ -69,6 +69,9 @@ export { PRESET_FILTER_STORAGE_KEY } from './storage_keys';
 
 const ALL_SETTING_CATEGORIES = getEnumValues<SimSettingCategories>(SimSettingCategories);
 
+// Forever ships no gems yet, so the gem optimizer has nothing to suggest; a spec's `reforge` config is kept for when it does.
+const REFORGE_OPTIMIZER_ENABLED = false;
+
 // The individual sim's host: the registries, openers and cross-cutting actions the React tree
 // reaches through `useSimHost()`. `SimShell` owns every element handed to the constructor.
 export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<SpecType> {
@@ -158,7 +161,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		for (const feature of config.features || []) {
 			feature(this);
 		}
-		if (config.reforge) {
+		if (REFORGE_OPTIMIZER_ENABLED && config.reforge) {
 			this.reforgeOptions = typeof config.reforge === 'function' ? config.reforge(this) : config.reforge;
 			this.reforger = createReforgeOptimizer(this.sim, this.player, {
 				...this.reforgeOptions,

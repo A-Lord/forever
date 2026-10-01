@@ -52,7 +52,7 @@ export const CopyButton = ({ getContent, variant = null, size, className, text, 
 				data-testid={testId}
 				onClick={onClick}
 				{...(tooltip ? tooltipAnchorProps(tooltipId) : {})}>
-				<Icon name={copied ? 'check' : 'copy'} className="mr-1" />
+				<Icon name={copied ? 'check' : 'copy'} />
 				{copied ? i18n.t('common.copy_button.copied') : (text ?? i18n.t('common.copy_button.default_text'))}
 			</Button>
 			{tooltip && <Tooltip id={tooltipId} content={tooltip} />}

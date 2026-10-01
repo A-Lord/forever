@@ -52,6 +52,15 @@ beforeEach(() => {
 });
 
 describe('TextField', () => {
+	it.each([
+		[undefined, 'sm'],
+		['md', 'md'],
+	] as const)('sizes the input as %s by default or as asked (%s)', (inputSize, expected) => {
+		render(<Harness inputSize={inputSize} />);
+
+		expect(input().getAttribute('data-size')).toBe(expected);
+	});
+
 	describe('shell', () => {
 		it('renders the bare input when there is no label, description, layout or clear button', () => {
 			const { container } = render(<Harness className="w-2/5" testId="rotation-name-field" />);

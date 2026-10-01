@@ -19,6 +19,7 @@ export const TextField = <V,>({
 	placeholder,
 	autoComplete,
 	inputClassName,
+	inputSize,
 	inputTestId,
 	className,
 	testId,
@@ -56,6 +57,7 @@ export const TextField = <V,>({
 			ref={attachInput}
 			id={frameProps.id}
 			className={clsx(!rooted && ['ui-text-field', className], inputClassName)}
+			inputSize={inputSize}
 			data-testid={inputTestId ?? (rooted ? undefined : testId)}
 			disabled={disabled}
 			placeholder={placeholder}

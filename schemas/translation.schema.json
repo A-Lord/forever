@@ -3293,10 +3293,10 @@
 				"settings": {
 					"type": "object",
 					"properties": {
-						"combinations_count": {
+						"combinations": {
 							"type": "string"
 						},
-						"combination_singular": {
+						"total_iterations": {
 							"type": "string"
 						},
 						"groups": {
@@ -3392,8 +3392,8 @@
 					},
 					"additionalProperties": false,
 					"required": [
-						"combinations_count",
-						"combination_singular",
+						"combinations",
+						"total_iterations",
 						"groups",
 						"iterations",
 						"use_legacy_bulk_sim",
@@ -8685,12 +8685,18 @@
 								"presim_running": {
 									"type": "string"
 								},
-								"iterations_complete": {
+								"iterations": {
+									"type": "string"
+								},
+								"time_remaining": {
+									"type": "string"
+								},
+								"running": {
 									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["presim_running", "iterations_complete"]
+							"required": ["running", "presim_running", "iterations", "time_remaining"]
 						},
 						"reference": {
 							"type": "object",
@@ -8713,12 +8719,24 @@
 								"remove_reference": {
 									"type": "string"
 								},
+								"unset": {
+									"type": "string"
+								},
 								"vs_ref": {
 									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["save_as_reference", "use_as_reference", "swap", "swap_reference_with_current", "cancel", "remove_reference", "vs_ref"]
+							"required": [
+								"save_as_reference",
+								"use_as_reference",
+								"swap",
+								"swap_reference_with_current",
+								"cancel",
+								"unset",
+								"remove_reference",
+								"vs_ref"
+							]
 						},
 						"metrics": {
 							"type": "object",
@@ -8875,10 +8893,29 @@
 						},
 						"stopping": {
 							"type": "string"
+						},
+						"last_run": {
+							"type": "string"
+						},
+						"reference_run": {
+							"type": "string"
+						},
+						"freshness": {
+							"type": "object",
+							"properties": {
+								"fresh": {
+									"type": "string"
+								},
+								"stale": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["fresh", "stale"]
 						}
 					},
 					"additionalProperties": false,
-					"required": ["progress", "reference", "metrics", "stop", "stopping"]
+					"required": ["progress", "reference", "metrics", "stop", "stopping", "last_run", "reference_run", "freshness"]
 				},
 				"character_stats": {
 					"type": "object",

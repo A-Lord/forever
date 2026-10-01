@@ -26,6 +26,17 @@ describe('ButtonGroup', () => {
 		expect(screen.getByTestId('default').hasAttribute('data-size')).toBe(false);
 	});
 
+	it('marks a spaced group with data-gap, and a joined one without it', () => {
+		render(
+			<>
+				<ButtonGroup gap testId="spaced" />
+				<ButtonGroup testId="joined" />
+			</>,
+		);
+		expect(screen.getByTestId('spaced').hasAttribute('data-gap')).toBe(true);
+		expect(screen.getByTestId('joined').hasAttribute('data-gap')).toBe(false);
+	});
+
 	it('lets a caller override the role', () => {
 		render(<ButtonGroup role="toolbar" testId="group" />);
 		expect(screen.getByTestId('group').getAttribute('role')).toBe('toolbar');

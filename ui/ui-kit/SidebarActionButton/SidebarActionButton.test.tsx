@@ -20,6 +20,19 @@ describe('SidebarActionButton', () => {
 		expect(onClick).toHaveBeenCalledTimes(1);
 	});
 
+	it.each([
+		[undefined, 'primary'],
+		['cancel', 'cancel'],
+	] as const)('renders the %s variant as %s', (variant, expected) => {
+		render(
+			<SidebarActionButton variant={variant} onClick={() => {}}>
+				Stop
+			</SidebarActionButton>,
+		);
+
+		expect(screen.getByRole('button', { name: 'Stop' }).getAttribute('data-variant')).toBe(expected);
+	});
+
 	it('shows no spinner while idle', () => {
 		render(<SidebarActionButton onClick={() => {}}>Simulate</SidebarActionButton>);
 		const button = screen.getByRole('button', { name: 'Simulate' });

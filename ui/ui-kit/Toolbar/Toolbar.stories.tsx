@@ -17,15 +17,15 @@ const meta = {
 	render: args => (
 		<Toolbar {...args}>
 			<ToolbarButton variant="primary" testId="toolbar-story-new">
-				<Icon name="plus" className="mr-2" />
+				<Icon name="plus" />
 				New Rotation
 			</ToolbarButton>
 			<ToolbarButton variant="outline-primary" testId="toolbar-story-copy">
-				<Icon name="copy" className="mr-2" />
+				<Icon name="copy" />
 				Copy
 			</ToolbarButton>
 			<ToolbarButton variant="link-danger" size="sm" testId="toolbar-story-reset">
-				<Icon name="xmark" className="mr-1" />
+				<Icon name="xmark" />
 				Reset
 			</ToolbarButton>
 		</Toolbar>

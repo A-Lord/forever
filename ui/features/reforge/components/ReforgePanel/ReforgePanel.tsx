@@ -155,15 +155,17 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 	return (
 		<>
 			<Button
+				variant="outline-primary"
 				size="none"
-				className="-mr-(--settings-button-width) grow px-settings-button-inset py-2"
+				className="peer -mr-(--settings-button-width) grow py-2 pr-settings-button-inset pl-2"
+				aria-label={i18n.t('sidebar.buttons.suggest_reforges.title')}
 				data-testid="suggest-reforges-action-button"
 				data-sidebar-action=""
 				disabled={isRunning}
 				loading={isRunning}
 				onClick={onOptimize}
 				{...tooltipAnchorProps(softCapsTooltipId)}>
-				{i18n.t('sidebar.buttons.suggest_reforges.title')}
+				<Icon name="gem" />
 			</Button>
 			<Popover
 				open={open}
@@ -182,8 +184,8 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				maxWidthClassName="max-w-86 max-lg:max-w-settings-panel-max"
 				triggerRender={
 					<Button
-						variant="primary"
-						className="w-(--settings-button-width) border-transparent bg-transparent hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active data-popup-open:border-primary-active data-popup-open:bg-primary-active"
+						variant="outline-primary"
+						className="w-(--settings-button-width) border-transparent bg-transparent peer-hover:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
 					/>
 				}
 				triggerTestId="suggest-reforges-button-settings"

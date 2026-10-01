@@ -1,5 +1,6 @@
 import { Raid as RaidProto } from '@generated/proto/api';
 import { Encounter as EncounterProto } from '@generated/proto/common';
+import { createSimStore } from '@sim/state/sim_store';
 import { mockSubscriptions } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
 import { act, fireEvent } from '@testing-library/react';
@@ -42,8 +43,11 @@ const player = {
 	secondsOomAvg: 0,
 };
 
+let store: ReturnType<typeof createSimStore>;
+
 const sim = () =>
 	({
+		store,
 		raid: { toProto: () => RaidProto.create(), fromProto: vi.fn() },
 		encounter: { toProto: () => EncounterProto.create(), fromProto: vi.fn() },
 	}) as never;
@@ -51,7 +55,7 @@ const sim = () =>
 const mount = (results: SimResultsManager) =>
 	renderWithHost(<SimResultSummary results={results} />, {
 		config: { cssScheme: 'test' },
-		sim: { getShowDamageMetrics: () => true, getShowThreatMetrics: () => true, getShowHealingMetrics: () => true },
+		sim: { store, getShowDamageMetrics: () => true, getShowThreatMetrics: () => true, getShowHealingMetrics: () => true },
 	});
 
 const diffs = (container: HTMLElement) => [...container.querySelectorAll('[data-testid="results-reference"] > [data-testid="results-reference-diff"]')];
@@ -60,6 +64,7 @@ let results: SimResultsManager;
 
 describe('SimResultSummary', () => {
 	beforeEach(() => {
+		store = createSimStore();
 		results = new SimResultsManager(sim());
 	});
 
@@ -129,5 +134,24 @@ describe('SimResultSummary', () => {
 		const dps = container.querySelector('[data-metric="dps"] [data-testid="results-reference-diff"]')!;
 		expect(dps.textContent).toBe('-100.00 (10.00%)');
 		expect(dps.getAttribute('data-sign')).toBe('negative');
+	});
+
+	it('titles a swapped-in run as the reference run, and the last run again after swapping back or a new run', () => {
+		const title = (container: HTMLElement) => container.querySelector('[data-testid="results-run-title"]')!.textContent;
+		act(() => results.setSimResult(result(1000)));
+		const { container } = mount(results);
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-set-reference"]')!));
+		act(() => results.setSimResult(result(1100)));
+		expect(title(container)).toBe('sidebar.results.last_run');
+
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-swap"]')!));
+		expect(title(container)).toBe('sidebar.results.reference_run');
+
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-swap"]')!));
+		expect(title(container)).toBe('sidebar.results.last_run');
+
+		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-swap"]')!));
+		act(() => results.setSimResult(result(1200)));
+		expect(title(container)).toBe('sidebar.results.last_run');
 	});
 });

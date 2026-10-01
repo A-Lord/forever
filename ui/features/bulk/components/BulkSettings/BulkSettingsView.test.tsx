@@ -20,6 +20,7 @@ const renderSettings = (props: Partial<BulkSettingsViewProps> = {}) => {
 	const handlers = { onRun: vi.fn(), onOpenGroupsChange: vi.fn(), onUseLegacyBulkSimChange: vi.fn(), onFrozenWeaponSlotChange: vi.fn() };
 	const { container } = render(
 		<BulkSettingsView
+			iterations={<span data-testid="iterations" />}
 			combinationsCount={<span data-testid="count" />}
 			canRun
 			openGroups={['options', 'freezes', 'reforge']}

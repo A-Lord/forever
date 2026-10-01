@@ -14,9 +14,10 @@ export interface ResultMetricListProps {
 	metrics: Array<ResultMetric>;
 	layout: ResultMetricLayout;
 	referenceDiffs?: ReferenceDiffs;
+	size?: 'md' | 'sm';
 }
 
-export const ResultMetricList = ({ metrics, layout, referenceDiffs }: ResultMetricListProps) => {
+export const ResultMetricList = ({ metrics, layout, referenceDiffs, size = 'md' }: ResultMetricListProps) => {
 	const tooltipId = useId();
 	const diffTooltipId = useId();
 	const anchorFor = (metric: keyof ResultMetrics) => tooltipAnchorProps(hasMetricTooltip(metric, layout) ? tooltipId : undefined);
@@ -63,11 +64,12 @@ export const ResultMetricList = ({ metrics, layout, referenceDiffs }: ResultMetr
 					<div
 						key={column.metric}
 						data-testid="results-metric"
-						className={clsx('text-left font-bold', referenceDiffs && 'not-last:mb-2', column.extraClass)}
+						className={clsx('text-left font-bold', column.extraClass)}
 						data-metric={column.metric}
 						data-metric-category={resultMetricCategories[column.metric]}
+						data-size={size}
 						{...anchorFor(column.metric)}>
-						<span data-testid="topline-result-avg" className="text-2xl">
+						<span data-testid="topline-result-avg" className={size === 'sm' ? 'text-md' : 'text-2xl leading-none'}>
 							{formatAverage(column, layout)}
 							<span className="text-ui font-normal"> {column.name}</span>
 						</span>

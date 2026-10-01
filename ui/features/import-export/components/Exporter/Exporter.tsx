@@ -69,7 +69,7 @@ export const Exporter = ({
 					/>
 					{allowDownload && (
 						<Button className="ml-2 w-48" onClick={() => downloadString(dataRef.current, downloadFileName, downloadMimeType)}>
-							<Icon name="download" style="base" className="mr-1" />
+							<Icon name="download" style="base" />
 							{i18n.t('export.json.download_button')}
 						</Button>
 					)}

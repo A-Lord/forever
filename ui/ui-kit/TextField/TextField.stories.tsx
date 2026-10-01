@@ -47,6 +47,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const MediumSize: Story = { args: { inputSize: 'md' } };
+
 const NumberStory = ({ onChange }: { onChange: (next: number) => void }) => (
 	<div className="flex flex-col gap-2">
 		<NumberField id="number-field-int" label="Iterations" {...useStoryValue(12500, onChange)} />

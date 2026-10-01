@@ -62,4 +62,11 @@ describe('SimWarnings', () => {
 		rerender(<SimWarnings warnings={registry} ready />);
 		expect(shown()).toBe(true);
 	});
+
+	it('takes its tooltip with it on unmount', () => {
+		const { unmount } = render(<SimWarnings warnings={registryWith('an enchant needs a profession')} ready />);
+		unmount();
+
+		expect(document.querySelector('.sim-tooltip')).toBeNull();
+	});
 });

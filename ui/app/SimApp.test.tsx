@@ -67,7 +67,10 @@ vi.mock('@features/stat-weights/components/StatWeightsAction', () => ({ StatWeig
 
 // The real one needs a Player with a live store; what is under test here is the portal, not it.
 vi.mock('@features/character-stats', () => ({ CharacterStats: () => <div className="character-stats-root" /> }));
-vi.mock('@features/results/components/SimResultsPanel', () => ({ SimResultsPanel: () => <div data-testid="results-viewer" /> }));
+vi.mock('@features/results/components/SimResultsPanel', () => ({
+	SimResultsPanel: () => <div data-testid="results-viewer" />,
+	SimWarnings: () => <div data-testid="warning-zone" />,
+}));
 vi.mock('@features/stat-weights/components/EpWeightsDialog', () => ({ EpWeightsDialog: () => <div className="ep-weights-dialog-root" /> }));
 // Six pickers over a real Sim and a Base UI portal into `host.rootElem`; SettingsDialog.test.tsx is where those are asserted.
 vi.mock('./SettingsDialog', () => ({ SettingsDialog: () => <div className="settings-menu-root" /> }));
@@ -166,7 +169,7 @@ describe('SimApp', () => {
 	it('keeps the same skeleton nodes when the constructed shell arrives', async () => {
 		const { container } = await mount(<SimApp player={player} def={def} />);
 		const dom = constructions[0];
-		const sidebarActions = dom.root.querySelector('[data-testid="sim-sidebar-actions"]')!;
+		const sidebarActions = dom.root.querySelector('[data-testid="sim-sidebar"]')!;
 		const marker = document.createElement('span');
 		marker.className = 'built-imperatively';
 		sidebarActions.appendChild(marker);

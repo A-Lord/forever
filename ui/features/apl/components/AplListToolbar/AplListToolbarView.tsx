@@ -40,11 +40,11 @@ export const AplListToolbarView = ({ itemName, nameDialog, onCreate, onReset, cl
 			testId="apl-floating-action-bar-root"
 			data-stuck={stuck ? '' : undefined}>
 			<ToolbarButton variant="primary" onClick={() => (nameDialog ? setNaming(true) : onCreate())}>
-				<Icon name="plus" className="mr-2" />
+				<Icon name="plus" />
 				{newLabel}
 			</ToolbarButton>
 			<ToolbarButton variant="link-danger" size="sm" className="ml-auto" onClick={onReset}>
-				<Icon name="xmark" className="mr-1" />
+				<Icon name="xmark" />
 				{i18n.t('rotation_tab.apl.floatingActionBar.reset')}
 			</ToolbarButton>
 			{nameDialog && (

@@ -24,13 +24,13 @@ export const BulkTabActionsView = ({ showNativeDownload, onImportBags, onImportF
 		</div>
 		<div className="flex grid-flow-col gap-2" data-testid="bulk-gear-actions">
 			<Button variant="secondary" onClick={onImportBags}>
-				<Icon name="download" style="base" className="mr-1" /> {i18n.t('bulk_tab.actions.import_bags')}
+				<Icon name="download" style="base" /> {i18n.t('bulk_tab.actions.import_bags')}
 			</Button>
 			<Button variant="secondary" onClick={onImportFavorites}>
-				<Icon name="download" style="base" className="mr-1" /> {i18n.t('bulk_tab.actions.import_favorites')}
+				<Icon name="download" style="base" /> {i18n.t('bulk_tab.actions.import_favorites')}
 			</Button>
 			<Button variant="danger" className="ml-auto" onClick={onClear}>
-				<Icon name="xmark" className="mr-1" />
+				<Icon name="xmark" />
 				{i18n.t('bulk_tab.actions.clear_items')}
 			</Button>
 		</div>

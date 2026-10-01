@@ -31,17 +31,12 @@ export const Button = (props: ButtonProps) => {
 	const busy = props.loading || undefined;
 	const content = !props.loading ? (
 		props.children
-	) : props.iconOnly ? (
-		<>
-			<span className="invisible" data-hidden="">
-				{props.children}
-			</span>
-			<Spinner size="xs" className="ui-button-icon-spinner" />
-		</>
 	) : (
 		<>
+			<span className="invisible contents" data-hidden="">
+				{props.children}
+			</span>
 			<Spinner size="xs" className="ui-button-spinner" />
-			{props.children}
 		</>
 	);
 

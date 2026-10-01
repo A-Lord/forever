@@ -14,6 +14,7 @@ vi.mock('@sim/bulk/utils', async () => {
 	return { ...actual, getBulkPlayerCanDualWield: () => true, getBulkFreezeWeaponTypes: () => [] };
 });
 vi.mock('../../model/run', () => ({ runBulkBatch: vi.fn() }));
+vi.mock('@features/results/components/IterationsPicker', () => ({ IterationsPicker: () => <div data-testid="iterations-picker" /> }));
 
 const reforgePanelProps = vi.fn();
 vi.mock('@features/reforge/components/ReforgePanel', () => ({

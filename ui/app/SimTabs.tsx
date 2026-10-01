@@ -18,10 +18,10 @@ interface SimTabsListContextValue {
 
 const SimTabsListContext = createContext<SimTabsListContextValue | null>(null);
 
-// `Tabs.Root` is the one React ancestor the strip and the panels both need; the shell renders it around
-// the header and `main`, so a pane is a plain child of `main`. It mounts with no `defs` at all (before a
-// host exists) and keeps mounting through every later render — swapping it out for a plain fragment on the
-// render `defs` first arrives would remount the header and `main` themselves.
+// `Tabs.Root` is the one React ancestor the strip, the panels and the sidebar's tab links all need; the
+// shell renders it around the whole sim container, so a pane is a plain child of `main`. It mounts with no
+// `defs` at all (before a host exists) and keeps mounting through every later render — swapping it out for a
+// plain fragment on the render `defs` first arrives would remount the sidebar, the header and `main`.
 export const SimTabs = ({ defs, children }: SimTabsProps) => {
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const tabs = useMemo(() => childProps<SimTabDefProps>(defs), [defs]);

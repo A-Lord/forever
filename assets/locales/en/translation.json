@@ -928,8 +928,8 @@
 			"item_unique": "{{itemName}} is unique and already added."
 		},
 		"settings": {
-			"combinations_count": "{{amount}} Combinations",
-			"combination_singular": "1 Combination",
+			"combinations": "Combinations",
+			"total_iterations": "Total iterations",
 			"groups": {
 				"options": "Batch options",
 				"frozen_slots": "Frozen slots",
@@ -2457,17 +2457,26 @@
 		"results": {
 			"stop": "Stop",
 			"stopping": "Stopping...",
+			"last_run": "Last run",
+			"reference_run": "Reference run",
+			"freshness": {
+				"fresh": "Up to date",
+				"stale": "Outdated"
+			},
 			"progress": {
+				"running": "Simulating",
 				"presim_running": "presimulations running",
-				"iterations_complete": "iterations complete"
+				"iterations": "{{completed}} / {{total}} iterations",
+				"time_remaining": "{{time}} remaining"
 			},
 			"reference": {
-				"save_as_reference": "Save as Reference",
+				"save_as_reference": "Set as reference",
 				"use_as_reference": "Use as reference",
 				"swap": "Swap",
 				"swap_reference_with_current": "Swap reference with current",
 				"cancel": "Cancel",
-				"remove_reference": "Remove reference",
+				"unset": "Unset",
+				"remove_reference": "Unset reference",
 				"vs_ref": "vs ref"
 			},
 			"metrics": {

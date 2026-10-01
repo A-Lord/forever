@@ -1,4 +1,5 @@
 import type { ControlledProps, FieldFrameProps } from '@ui-kit/Field';
+import type { InputSize } from '@ui-kit/FormControl';
 
 /** How a value becomes the field's text and back; `parse` returns `undefined` for text that commits nothing. */
 export interface TextCodec<V> {
@@ -27,6 +28,7 @@ export interface TextFieldProps<V> extends FieldFrameProps, ControlledProps<V> {
 	placeholder?: string;
 	autoComplete?: 'on' | 'off';
 	inputClassName?: string;
+	inputSize?: InputSize;
 	inputTestId?: string;
 }
 

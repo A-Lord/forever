@@ -47,6 +47,41 @@ describe('SimResultSummaryView', () => {
 		]);
 	});
 
+	it('shows the first metric at full size and the rest compact', () => {
+		const { container } = mount();
+
+		expect(
+			[...container.querySelectorAll('[data-testid="results-metric"]')].map(row => [row.getAttribute('data-metric'), row.getAttribute('data-size')]),
+		).toEqual([
+			['dps', 'md'],
+			['tps', 'sm'],
+		]);
+	});
+
+	it.each(['fresh', 'stale'] as const)('marks a %s result in the header', freshness => {
+		mount({ freshness });
+
+		expect(screen.getByTestId('results-freshness').getAttribute('data-freshness')).toBe(freshness);
+		expect(screen.getByTestId('results-freshness').textContent).toBe(`sidebar.results.freshness.${freshness}`);
+	});
+
+	it('leaves the freshness out while nothing tracks it', () => {
+		mount({ freshness: null });
+
+		expect(screen.queryByTestId('results-freshness')).toBeNull();
+	});
+
+	it('opens the breakdown through its handler, and has no link without one', () => {
+		const onOpenBreakdown = vi.fn();
+		const { unmount } = mount({ onOpenBreakdown });
+		fireEvent.click(screen.getByTestId('results-open-breakdown'));
+		expect(onOpenBreakdown).toHaveBeenCalledOnce();
+		unmount();
+
+		mount();
+		expect(screen.queryByTestId('results-open-breakdown')).toBeNull();
+	});
+
 	it('reports each of the three reference actions', () => {
 		const { onSetReference, onSwapReference, onClearReference } = mount({ referenceDiffs: DIFFS });
 

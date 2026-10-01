@@ -4,6 +4,7 @@ import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { ChoiceField, type ChoiceFieldProps } from '@ui-kit/ChoiceField';
+import { RunCard } from '@ui-kit/RunCard';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import type { ReactNode } from 'react';
 
@@ -16,6 +17,7 @@ export interface BulkWeaponFreeze {
 }
 
 export interface BulkSettingsViewProps {
+	iterations: ReactNode;
 	combinationsCount: ReactNode;
 	canRun: boolean;
 	onRun: () => void;
@@ -32,6 +34,7 @@ export interface BulkSettingsViewProps {
 }
 
 export const BulkSettingsView = ({
+	iterations,
 	combinationsCount,
 	canRun,
 	onRun,
@@ -47,10 +50,16 @@ export const BulkSettingsView = ({
 	<TabPanelColumns.Right>
 		<div className="sticky top-sim-header pt-6 lg:max-h-bulk-settings-max-h lg:overflow-y-auto">
 			<div className="grid gap-6 border border-border bg-background p-4" data-testid="bulk-settings-container">
-				{combinationsCount}
-				<Button data-testid="bulk-settings-btn" disabled={!canRun} onClick={onRun}>
-					{i18n.t('bulk_tab.actions.simulate_batch')}
-				</Button>
+				<RunCard
+					testId="bulk-run-card"
+					controls={iterations}
+					action={
+						<Button className="w-full" data-testid="bulk-settings-btn" disabled={!canRun} onClick={onRun}>
+							{i18n.t('bulk_tab.actions.simulate_batch')}
+						</Button>
+					}>
+					{combinationsCount}
+				</RunCard>
 				<Accordion value={openGroups} onValueChange={onOpenGroupsChange}>
 					<AccordionItem
 						value={BULK_SETTINGS_GROUP.options}

@@ -47,7 +47,7 @@ export const Importer = ({ open, onOpenChange, title, allowFileUpload = false, o
 				<div className="flex gap-2">
 					{allowFileUpload && (
 						<Button as="label" htmlFor={uploadInputId} data-testid="upload-button" className="w-48">
-							<Icon name="file-arrow-up" className="mr-1" />
+							<Icon name="file-arrow-up" />
 							{i18n.t('import.json.upload_button')}
 						</Button>
 					)}
@@ -64,7 +64,7 @@ export const Importer = ({ open, onOpenChange, title, allowFileUpload = false, o
 						}}
 					/>
 					<Button data-testid="import-button" className="w-48" onClick={runImport}>
-						<Icon name="download" style="base" className="mr-1" />
+						<Icon name="download" style="base" />
 						{i18n.t('import.json.import_button')}
 					</Button>
 				</div>

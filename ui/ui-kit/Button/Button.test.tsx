@@ -87,34 +87,32 @@ describe('Button', () => {
 		screen.getAllByRole('link').forEach(link => expect(link.getAttribute('rel')).toBeNull());
 	});
 
-	it('renders a small spinner before the children and marks itself busy while loading', () => {
+	it.each([
+		['a framed button', false],
+		['an iconOnly button', true],
+	])('lays a small spinner over %s, keeping its content in place but hidden, and marks itself busy', (_kind, iconOnly) => {
+		const icon = <Icon name="gear" testId="gear" />;
 		render(
-			<Button loading disabled>
-				Stat Weights
-			</Button>,
-		);
-		const button = screen.getByRole('button', { name: 'Stat Weights' });
-		expect(button.getAttribute('aria-busy')).toBe('true');
-		const spinner = within(button).getByTestId('loader');
-		expect(button.firstElementChild).toBe(spinner);
-		expect(spinner.getAttribute('data-size')).toBe('xs');
-	});
-
-	it('lays the spinner over an iconOnly button, keeping the icon in place but hidden, and marks itself busy', () => {
-		render(
-			<Button iconOnly loading aria-label="Settings">
-				<Icon name="gear" testId="gear" />
-			</Button>,
+			iconOnly ? (
+				<Button iconOnly loading aria-label="Settings">
+					{icon}
+				</Button>
+			) : (
+				<Button variant="outline-primary" loading aria-label="Settings">
+					{icon}
+				</Button>
+			),
 		);
 		const button = screen.getByRole('button', { name: 'Settings' });
 		expect(button.getAttribute('aria-busy')).toBe('true');
 
-		const icon = within(button).getByTestId('gear');
-		expect(icon.parentElement!.parentElement).toBe(button);
-		expect(icon.parentElement!.hasAttribute('data-hidden')).toBe(true);
+		const rendered = within(button).getByTestId('gear');
+		expect(rendered.parentElement!.parentElement).toBe(button);
+		expect(rendered.parentElement!.hasAttribute('data-hidden')).toBe(true);
 
 		const spinner = within(button).getByTestId('loader');
-		expect(spinner.previousElementSibling).toBe(icon.parentElement);
+		expect(spinner.previousElementSibling).toBe(rendered.parentElement);
+		expect(spinner.getAttribute('data-size')).toBe('xs');
 	});
 
 	it('renders no spinner and no aria-busy when not loading', () => {

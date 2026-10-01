@@ -1,4 +1,6 @@
 import { Progress } from '@base-ui/react/progress';
+import type { ClassValue } from 'clsx';
+import clsx from 'clsx';
 
 export interface ProgressTrackerBarProps {
 	/** While `false` the bar shows nothing measured, whatever else it is given. */
@@ -7,11 +9,12 @@ export interface ProgressTrackerBarProps {
 	progress?: number;
 	title?: string;
 	readout?: string;
+	className?: ClassValue;
 	testId?: string;
 }
 
-export const ProgressTrackerBar = ({ running, progress, title, readout, testId = 'progress-tracker-bar' }: ProgressTrackerBarProps) => (
-	<div className="ui-progress" data-testid={testId}>
+export const ProgressTrackerBar = ({ running, progress, title, readout, className, testId = 'progress-tracker-bar' }: ProgressTrackerBarProps) => (
+	<div className={clsx('ui-progress', className)} data-testid={testId}>
 		{running && title && (
 			<div className="mb-2" data-testid="progress-tracker-modal-progress-title">
 				{title}
@@ -23,7 +26,7 @@ export const ProgressTrackerBar = ({ running, progress, title, readout, testId =
 			</Progress.Track>
 		</Progress.Root>
 		{running && readout && (
-			<div className="text-right text-xs text-border" data-testid="progress-tracker-modal-progress-text">
+			<div className="text-right text-xs text-gray-400" data-testid="progress-tracker-modal-progress-text">
 				{readout}
 			</div>
 		)}

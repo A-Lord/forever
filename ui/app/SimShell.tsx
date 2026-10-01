@@ -1,5 +1,7 @@
 import { CharacterStats } from '@features/character-stats';
-import { SimResultsPanel } from '@features/results/components/SimResultsPanel';
+import { SimWarnings } from '@features/results/components/SimResultsPanel';
+import type { WarningsRegistry } from '@features/results/model/warnings';
+import { useSimReady } from '@sim/hooks/useSimReady';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import type { Sim } from '@sim/sim';
 import { StickyHeaderContext } from '@ui-kit/hooks/useStickyToolbar';
@@ -10,13 +12,14 @@ import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, use
 import { SimTitleDropdown } from './header/SimTitleDropdown';
 import { SimToolbar } from './header/SimToolbar';
 import type { SimHostObject } from './individual_sim_ui';
-import { IterationsPicker } from './IterationsPicker';
 import { simUiAttributes, simUiClasses } from './shell_classes';
 import { SimImportExport } from './SimImportExport';
-import { SimSidebarActions } from './SimSidebarActions';
+import { SimRunCard } from './SimRunCard';
 import { SimTabsPanels, SimTabsStrip } from './SimTabs';
 import { SimTabsSection } from './SimTabsSection';
 import type { ShellDom } from './types/shell_dom';
+
+const SidebarWarnings = ({ warnings }: { warnings: WarningsRegistry }) => <SimWarnings warnings={warnings} ready={useSimReady()} />;
 
 export interface SimShellProps {
 	domRef: RefObject<ShellDom | null>;
@@ -67,28 +70,24 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 							{noticeText}
 						</div>
 					) : null}
-					<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
-						<aside
-							className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
-							data-testid="sim-sidebar">
-							<SimTitleDropdown currentSpec={spec} />
-							<div
-								className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible lg:pb-0 [&>*:not(:last-child)]:mb-6"
-								data-testid="sim-sidebar-content">
-								{/* The picker is the shell's own and has to stay ahead of every action the registry adds. */}
-								<div className="ui-sim-sidebar-actions flex flex-col items-center gap-2 *:mb-0" data-testid="sim-sidebar-actions">
-									{/* Nothing to iterate on a sim that never runs. */}
-									{!host?.simDisabled && <IterationsPicker sim={sim} />}
-									{host && <SimSidebarActions host={host} />}
+					{/* The tab root wraps the sidebar too, so the last run can open the Results tab; it renders as `display: contents`. */}
+					<SimTabsSection host={host}>
+						<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
+							<aside
+								className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
+								data-testid="sim-sidebar">
+								<SimTitleDropdown currentSpec={spec} />
+								<div
+									className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible lg:pb-0 [&>*:not(:last-child)]:mb-6"
+									data-testid="sim-sidebar-content">
+									<SimRunCard host={host} sim={sim} />
+									{host && <SidebarWarnings warnings={host.warnings} />}
+									{host && <CharacterStats />}
 								</div>
-								{host && <SimResultsPanel panel={host.resultsPanel} warnings={host.warnings} results={host.raidSimResultsManager} />}
-								{host && <CharacterStats />}
-							</div>
-						</aside>
-						<div
-							className="z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto"
-							data-testid="sim-content">
-							<SimTabsSection host={host}>
+							</aside>
+							<div
+								className="z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto"
+								data-testid="sim-content">
 								<header
 									ref={header}
 									className="sticky -top-px z-header -mx-page h-sim-header pt-6 pr-page pl-page whitespace-nowrap transition-colors duration-150 ease-in-out after:absolute after:inset-x-0 after:-bottom-px after:mx-auto after:h-px after:w-page-inset-w after:bg-border after:transition-[width] after:duration-150 after:ease-in-out after:content-[''] data-stuck:bg-background data-stuck:after:w-full max-lg:pt-2"
@@ -105,9 +104,9 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								<main className="flex h-4/5 grow" data-testid="sim-main">
 									<SimTabsPanels />
 								</main>
-							</SimTabsSection>
+							</div>
 						</div>
-					</div>
+					</SimTabsSection>
 				</div>
 				<ToastArea manager={toastManager} />
 			</div>

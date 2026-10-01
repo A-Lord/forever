@@ -1,6 +1,7 @@
 import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryBoolean } from '@testing/storybook/fixtures/settings_reforge_bulk';
+import { NumberField } from '@ui-kit/TextField';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
@@ -50,6 +51,7 @@ const meta = {
 	tags: ['autodocs'],
 	render: args => <StatefulBulkSettings {...args} />,
 	args: {
+		iterations: <NumberField id="story-bulk-iterations" label="Iterations" value={12500} onChange={() => {}} />,
 		combinationsCount: <CombinationsCountView pending={false} combinations={48} iterations={96000} iterationsLimit={1000000} />,
 		canRun: true,
 		onRun: fn(),
@@ -66,6 +68,7 @@ const meta = {
 		onFrozenWeaponSlotChange: fn(),
 	},
 	argTypes: {
+		iterations: { control: false },
 		combinationsCount: { control: false },
 		reforgeSettings: { control: false },
 		frozenItems: { control: false },

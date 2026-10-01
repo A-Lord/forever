@@ -3,6 +3,7 @@ import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { textClassName } from '@sim/proto/utils';
 
+import { useResultFreshness } from '../../hooks/useResultFreshness';
 import { referenceDiffs } from '../../model/reference_diffs';
 import type { SimResultsManager } from '../../model/results_manager';
 import { toplineResultMetrics } from '../../model/topline_metrics';
@@ -10,13 +11,15 @@ import { SimResultSummaryView } from './SimResultSummaryView';
 
 export interface SimResultSummaryProps {
 	results: SimResultsManager;
+	onOpenBreakdown?: () => void;
 }
 
 /** Renders nothing until a run completes, so the panel's result zone is empty at load. */
-export const SimResultSummary = ({ results }: SimResultSummaryProps) => {
+export const SimResultSummary = ({ results, onOpenBreakdown }: SimResultSummaryProps) => {
 	const { cssScheme } = useSimHost().config;
 	const displayMetrics = useDisplayMetrics(useSim());
-	const { current, reference } = useStoreSubscribe(results.subscribe, results.getData);
+	const { current, reference, swapped } = useStoreSubscribe(results.subscribe, results.getData);
+	const freshness = useResultFreshness();
 
 	if (!current) return null;
 
@@ -24,7 +27,10 @@ export const SimResultSummary = ({ results }: SimResultSummaryProps) => {
 		<SimResultSummaryView
 			metrics={toplineResultMetrics(current.simResult, undefined, { displayMetrics })}
 			referenceDiffs={reference ? referenceDiffs(current.simResult, reference.simResult) : undefined}
+			freshness={freshness}
+			swapped={swapped}
 			pinClassName={textClassName(cssScheme)}
+			onOpenBreakdown={onOpenBreakdown}
 			onSetReference={() => results.setReference()}
 			onSwapReference={() => results.swapReference()}
 			onClearReference={() => results.clearReference()}
