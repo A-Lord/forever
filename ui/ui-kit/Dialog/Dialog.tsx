@@ -15,7 +15,7 @@ export interface DialogProps {
 	/** Base UI's default is `<body>`, and that is outside `.sim-ui` — which is where the spec theme lives. Measured on `warrior/arms`: inside `.sim-ui`, `--color-primary` is `rgb(199, 156, 110)` and a `.btn-primary` is brown on black; on `<body>` the same markup is Bootstrap's `rgb(13, 110, 253)` on white. */
 	container?: HTMLElement | null;
 	size?: DialogSize;
-	maxWidth?: string;
+	maxWidthClassName?: string;
 	title?: ReactNode;
 	/** Whether the header is a header bar. `false` keeps the close button but drops the padding and the bottom border. */
 	header?: boolean;
@@ -32,7 +32,6 @@ export interface DialogProps {
 	/** For a dialog opened from another dialog. Without it both share one z-index tier, so this one's backdrop renders under the dialog that opened it instead of over it. */
 	elevated?: boolean;
 	verticalAlign?: 'top' | 'center';
-	bodyGap?: string;
 	bodyClassName?: string;
 	closeClassName?: string;
 	/** On the popup, which is where Base UI stops keydown propagation — a listener above it never sees a key. */
@@ -47,7 +46,7 @@ export const Dialog = ({
 	className,
 	container,
 	size = 'lg',
-	maxWidth,
+	maxWidthClassName,
 	title,
 	header = true,
 	headerFlush = false,
@@ -58,7 +57,6 @@ export const Dialog = ({
 	keepMounted = false,
 	elevated = false,
 	verticalAlign = 'top',
-	bodyGap,
 	bodyClassName,
 	closeClassName,
 	onKeyDown,
@@ -85,7 +83,7 @@ export const Dialog = ({
 					<BaseDialog.Popup
 						className={clsx(
 							'ui-dialog',
-							maxWidth,
+							maxWidthClassName,
 							scrollContents && 'ui-dialog-scroll',
 							verticalAlign === 'center' ? 'ui-dialog-centered' : 'ui-dialog-top',
 							className,
@@ -106,15 +104,14 @@ export const Dialog = ({
 								{headerChildren}
 								{!preventClose && (
 									<BaseDialog.Close
-										render={<Button iconOnly className={clsx('ui-dialog-close', closeClassName)} />}
-										data-testid="sim-dialog-close"
-										aria-label="Close">
-										<Icon name="times" size="2xl" />
+										render={<Button iconOnly aria-label="Close" className={clsx('ui-dialog-close', closeClassName)} />}
+										data-testid="sim-dialog-close">
+										<Icon name="xmark" size="2xl" />
 									</BaseDialog.Close>
 								)}
 							</div>
 						)}
-						<div className={clsx('ui-dialog-body', bodyGap, scrollContents && 'overflow-auto', bodyClassName)} data-testid="sim-dialog-body">
+						<div className={clsx('ui-dialog-body', scrollContents && 'overflow-auto', bodyClassName)} data-testid="sim-dialog-body">
 							{children}
 						</div>
 						{footer != null && (

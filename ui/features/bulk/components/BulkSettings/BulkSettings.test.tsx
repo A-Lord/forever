@@ -5,7 +5,8 @@ import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { bulkState, seedBulkSettings } from '@sim/settings/bulk_settings';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@sim/bulk/utils', async () => {
@@ -39,9 +40,16 @@ const mount = (reforger: unknown = null) => {
 			<BulkSettings />
 		</SimHostProvider>,
 	);
-	const select = (id: string) => container.querySelector<HTMLSelectElement>(`#${id}`)!;
+	const pick = async (id: string, index: number) => {
+		const trigger = container.querySelector<HTMLElement>(`#${id}`)!;
+		await userEvent.click(trigger);
+		const option = screen.getAllByRole('option')[index];
+		const label = option.textContent;
+		await userEvent.click(option);
+		return [trigger, label] as const;
+	};
 	const openGroup = (group: string) => fireEvent.click(container.querySelector(`[data-testid="bulk-settings-group-${group}-trigger"]`)!);
-	return { player, container, select, openGroup, checkbox: (id: string) => container.querySelector<HTMLInputElement>(`#${id}`)! };
+	return { player, container, pick, openGroup };
 };
 
 beforeEach(() => {
@@ -50,42 +58,23 @@ beforeEach(() => {
 });
 
 describe('BulkSettings', () => {
-	it('shows the legacy bulk sim toggle as ticked after one click', () => {
-		const { player, checkbox } = mount();
-		const input = checkbox('use-legacy-bulk-sim');
-
-		fireEvent.click(input);
-
-		expect(bulkState(player).useLegacyBulkSim).toBe(true);
-		expect(input.checked).toBe(true);
-	});
-
-	it('keeps the picked slot in the freeze ring select', () => {
-		const { player, select, openGroup } = mount();
+	// Both selects list None, then the pair's first slot (Finger 1, Main Hand), then its second.
+	it.each<[string, (player: Player<any>) => unknown, unknown]>([
+		['freeze-ring', player => bulkState(player).frozenItems.get(BulkSimItemSlot.ItemSlotFinger), RING],
+		['freeze-weapon', player => bulkState(player).frozenWeaponSlot, ItemSlot.ItemSlotMainHand],
+	])('keeps the picked slot in the %s select', async (id, stored, expected) => {
+		const { player, pick, openGroup } = mount();
 		openGroup('freezes');
-		const ring = select('freeze-ring');
 
-		fireEvent.change(ring, { target: { value: String(ItemSlot.ItemSlotFinger1) } });
+		const [select, picked] = await pick(id, 1);
 
-		expect(bulkState(player).frozenItems.get(BulkSimItemSlot.ItemSlotFinger)).toBe(RING);
-		expect(ring.value).toBe(String(ItemSlot.ItemSlotFinger1));
+		expect(stored(player)).toBe(expected);
+		expect(select.textContent).toBe(picked);
 	});
 
-	it('keeps the picked slot in the freeze weapon select', () => {
-		const { player, select, openGroup } = mount();
-		openGroup('freezes');
-		const weapon = select('freeze-weapon');
-
-		fireEvent.change(weapon, { target: { value: String(ItemSlot.ItemSlotMainHand) } });
-
-		expect(bulkState(player).frozenWeaponSlot).toBe(ItemSlot.ItemSlotMainHand);
-		expect(weapon.value).toBe(String(ItemSlot.ItemSlotMainHand));
-	});
-
-	it('opens only the batch options group before anything is stored', () => {
+	it('opens no group before anything is stored', () => {
 		const { container } = mount();
 
-		expect(container.querySelector('#use-legacy-bulk-sim')).not.toBeNull();
 		expect(container.querySelector('#freeze-ring')).toBeNull();
 	});
 
@@ -94,16 +83,7 @@ describe('BulkSettings', () => {
 
 		openGroup('freezes');
 
-		expect(JSON.parse(localStorage.getItem('test-__bulkSettingsGroups')!)).toEqual(['options', 'freezes']);
-	});
-
-	it('leaves both groups open, since one does not close the other', () => {
-		const { container, openGroup } = mount();
-
-		openGroup('freezes');
-
-		expect(container.querySelector('#use-legacy-bulk-sim')).not.toBeNull();
-		expect(container.querySelector('#freeze-ring')).not.toBeNull();
+		expect(JSON.parse(localStorage.getItem('test-__bulkSettingsGroups')!)).toEqual(['freezes']);
 	});
 
 	it('renders no reforge group for a spec without a reforge optimizer', () => {

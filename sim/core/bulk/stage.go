@@ -42,7 +42,7 @@ var BulkSimStageConfigs = []BulkSimStageConfig{
 	},
 	{
 		Stage:            proto.BulkSimStage_BulkSimStageHigh,
-		MinIterations:    1000,
+		MinIterations:    10000,
 		TargetErrorPct:   0.05,
 		UseConcurrentSim: true,
 	},

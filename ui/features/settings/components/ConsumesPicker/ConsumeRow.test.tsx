@@ -1,7 +1,7 @@
+import type { IconEnumPickerConfig } from '@features/inputs/configs';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
-import { act, render } from '@testing-library/react';
-import type { IconEnumPickerConfig } from '@ui-kit/IconEnumPicker/types';
+import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { ConsumeRow } from './ConsumeRow';
@@ -41,40 +41,24 @@ const configFor = (shown: (options: Options) => boolean): IconEnumPickerConfig<O
 		setValue: () => {},
 	}) as IconEnumPickerConfig<Options, number>;
 
-const CHILD_CLASS_NAME = 'picker-group icon-group consumes-row-inputs consumes-engi';
-
 const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>, hidden?: boolean) => {
 	render(
 		<SimHostProvider host={{ player: options } as never}>
 			<ConsumeRow name="engineering" configs={configs as never} hidden={hidden}>
-				<div className={CHILD_CLASS_NAME} />
+				<div className="consumes-engi" />
 			</ConsumeRow>
 		</SimHostProvider>,
 	);
-	return document.querySelector('[data-testid="consumes-row"]') as HTMLElement;
+	return screen.getByTestId('consumes-row');
 };
 
+const isHidden = (element: Element) => element.hasAttribute('hidden');
+
 describe('ConsumeRow', () => {
-	it('builds vanilla’s row: the caption first, then whatever it was given', () => {
-		const element = row(new Options(), [configFor(() => true)]);
+	it('captions the row with its consumable group', () => {
+		row(new Options(), [configFor(() => true)]);
 
-		expect(element.hasAttribute('data-input-root')).toBe(true);
-		expect(element.getAttribute('data-layout')).toBe('inline');
-		// A <span>: it names the row's icon group, not a form control.
-		const children = Array.from(element.children);
-		expect(children).toHaveLength(2);
-		expect(children.map(child => child.tagName.toLowerCase())).toEqual(['span', 'div']);
-		expect(children[0].className.split(' ')).toEqual(['ui-field-label']);
-		expect(children[1].className).toBe(CHILD_CLASS_NAME);
-	});
-
-	it('names the row group with its caption', () => {
-		const element = row(new Options(), [configFor(() => true)]);
-		const caption = element.querySelector('span.ui-field-label')!;
-
-		expect(element.getAttribute('role')).toBe('group');
-		expect(element.getAttribute('aria-labelledby')).toBe(caption.id);
-		expect(caption.id).not.toBe('');
+		expect(screen.getByRole('group', { name: 'settings_tab.consumables.engineering.title' })).toBe(screen.getByTestId('consumes-row'));
 	});
 
 	// Vanilla's updateRow toggled a `hide` class and nothing more, so the pickers inside a hidden
@@ -82,19 +66,18 @@ describe('ConsumeRow', () => {
 	// instead would strand a selection the player can no longer use.
 	it('hides the row when every picker in it is hidden, without unmounting it, and shows it again', () => {
 		const options = new Options();
-		row(options, [configFor(opts => opts.engineer), configFor(opts => opts.engineer)]);
-		const rowElem = document.querySelector('[data-testid="consumes-row"]')!;
-		expect(rowElem.hasAttribute('hidden')).toBe(false);
+		const rowElem = row(options, [configFor(opts => opts.engineer), configFor(opts => opts.engineer)]);
+		expect(isHidden(rowElem)).toBe(false);
 
 		options.engineer = false;
 		act(() => options.changeProfession(1));
-		expect(document.querySelector('[data-testid="consumes-row"]')).toBe(rowElem);
-		expect(rowElem.hasAttribute('hidden')).toBe(true);
+		expect(screen.getByTestId('consumes-row')).toBe(rowElem);
+		expect(isHidden(rowElem)).toBe(true);
 		expect(document.querySelector('.consumes-engi')).not.toBeNull();
 
 		options.engineer = true;
 		act(() => options.changeProfession(2));
-		expect(rowElem.hasAttribute('hidden')).toBe(false);
+		expect(isHidden(rowElem)).toBe(false);
 	});
 
 	it('keeps the row shown while any one of its pickers is', () => {
@@ -103,12 +86,12 @@ describe('ConsumeRow', () => {
 
 		options.engineer = false;
 		act(() => options.changeProfession(1));
-		expect(document.body.contains(element)).toBe(true);
+		expect(isHidden(element)).toBe(false);
 	});
 
 	it('hides a row that names no pickers', () => {
 		const element = row(new Options(), []);
-		expect(element.hasAttribute('hidden')).toBe(true);
+		expect(isHidden(element)).toBe(true);
 	});
 
 	// A gear planner has no encounter, so it hides the miscellaneous row outright; the pickers inside
@@ -117,11 +100,11 @@ describe('ConsumeRow', () => {
 		const options = new Options();
 		const element = row(options, [configFor(() => true)], true);
 
-		expect(element.hasAttribute('hidden')).toBe(true);
+		expect(isHidden(element)).toBe(true);
 		expect(document.querySelector('.consumes-engi')).not.toBeNull();
 
 		act(() => options.changeProfession(1));
-		expect(element.hasAttribute('hidden')).toBe(true);
+		expect(isHidden(element)).toBe(true);
 	});
 
 	it('re-evaluates on any player change, not only a profession change', () => {
@@ -129,14 +112,14 @@ describe('ConsumeRow', () => {
 		// rest on the spec's stats — so this subscribes to the whole player-change aggregate rather
 		// than naming individual fields the way the profession-only rows would suggest.
 		const options = new Options();
-		row(options, [configFor(opts => opts.engineer)]);
+		const element = row(options, [configFor(opts => opts.engineer)]);
 
 		options.engineer = false;
 		act(() => options.changeSomethingElse());
-		expect(document.querySelector('[data-testid="consumes-row"]')!.hasAttribute('hidden')).toBe(true);
+		expect(isHidden(element)).toBe(true);
 
 		options.engineer = true;
 		act(() => options.changeProfession(1));
-		expect(document.querySelector('[data-testid="consumes-row"]')).toBeTruthy();
+		expect(isHidden(element)).toBe(false);
 	});
 });
