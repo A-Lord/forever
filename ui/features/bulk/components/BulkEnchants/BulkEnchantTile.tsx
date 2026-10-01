@@ -40,7 +40,7 @@ export const BulkEnchantTile = ({ name, effect, iconUrl, href, checked, onToggle
 		<WowheadIcon as="div" className="size-8 shrink-0" iconUrl={iconUrl || undefined} />
 		<span className="flex min-w-0 flex-col">
 			<span className="truncate">{name}</span>
-			{effect && <span className="truncate text-xs text-muted">{effect}</span>}
+			{effect && <span className="truncate text-xs text-gray-400">{effect}</span>}
 		</span>
 	</WowheadAnchor>
 );

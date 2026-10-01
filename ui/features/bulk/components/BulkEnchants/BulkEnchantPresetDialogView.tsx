@@ -74,7 +74,7 @@ export const BulkEnchantPresetDialogView = ({
 				{groups.map(group => (
 					<section key={group.slot} className="grid gap-2" data-testid="bulk-enchant-slot">
 						<h6 className="mb-0 text-sm font-semibold">{group.label}</h6>
-						<div className="grid grid-cols-auto-fit-220 gap-2">{group.tiles}</div>
+						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">{group.tiles}</div>
 					</section>
 				))}
 			</div>
