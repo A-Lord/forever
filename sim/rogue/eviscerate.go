@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var eviscerateRank = spellData.Eviscerate.Highest()
+var eviscerateRank = spellData.Eviscerate.Rank(8)
 
 func (rogue *Rogue) registerEviscerate() {
 	eviscerateBaseDamage := eviscerateRank.DamageEffect().Average()

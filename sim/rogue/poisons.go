@@ -11,7 +11,7 @@ func (rogue *Rogue) applyPoisons() {
 	rogue.applyInstantPoison()
 }
 
-var deadlyPoisonRank = spellData.DeadlyPoison.Highest()
+var deadlyPoisonRank = spellData.DeadlyPoison.Rank(4)
 
 func (rogue *Rogue) registerDeadlyPoisonSpell() {
 	config := spelldata.SpellConfig(&rogue.Unit, deadlyPoisonRank, spelldata.Magic(core.ProcMaskSpellDamageProc))
