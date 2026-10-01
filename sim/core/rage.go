@@ -8,7 +8,8 @@ import (
 
 const ThreatPerRageGained = 5
 
-// Rage from damage taken counts every physical hit as if armor reduced it by half, whatever the defender's armor.
+// Rage from damage taken counts a hit before any of the defender's mitigation, with a physical hit counted
+// as if armor reduced it by half, whatever the defender's armor.
 const DamageTakenRageArmorMultiplier = 0.5
 
 // Damage taken grants 2.5 * damage / c rage, where c is the rage conversion value at the defender's level (230.6 at 60).
@@ -107,9 +108,9 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 				return
 			}
 
-			damage := result.Damage + result.AbsorbedDamage
-			if spell.SpellSchool.Matches(SpellSchoolPhysical) && result.ArmorAndResistanceMultiplier > 0 {
-				damage *= DamageTakenRageArmorMultiplier / result.ArmorAndResistanceMultiplier
+			damage := result.PreMitigationDamage
+			if spell.SpellSchool.Matches(SpellSchoolPhysical) {
+				damage *= DamageTakenRageArmorMultiplier
 			}
 			generatedRage := 2.5 * damage / rageConversion(unit.Level) * unit.rageBar.damageTakenRageMultiplier
 
