@@ -111,6 +111,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Smite your target with the power of the holy spring, inflicting 56 Holy damage.
+	// https://www.wowhead.com/forever/spell=1312330
+	// unsupported: states no rate
+	// trigger 1312330 (every time, core.CallbackOnSpellHitDealt, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeMHSpecial)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1312330, BuffSpellID: 1312330, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 5028, ItemName: "Lord Sakrasis' Scepter"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Deals 14 Holy damage every time you block.
 	// https://www.wowhead.com/forever/spell=1293539
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{

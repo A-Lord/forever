@@ -653,6 +653,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-RingofSaviors-1447"
+ value: {
+  dps: 421.94423
+  tps: 229.48447
+  dtps: 2.49108
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-SatchelofDarkIronBombs-285278"
  value: {
   dps: 240.24478
