@@ -5,7 +5,7 @@ import { IconData, UIDatabase, UIEnchant as Enchant, UIGem as Gem, UIItem as Ite
 
 import { CacheHandler } from '../cache/cache_handler';
 import { CHARACTER_LEVEL } from '../constants/mechanics';
-import { distinct } from '../utils/collections';
+import { arrayEquals, distinct } from '../utils/collections';
 import { EquippedItem } from './equipped_item';
 import { Gear, ItemSwapGear } from './gear';
 import { gemEligibleForSocket, gemMatchesSocket } from './gems';
@@ -214,6 +214,15 @@ export class Database {
 		return this.enchantsBySlot[slot] || [];
 	}
 
+	// A row that fits several slots sits in each slot's list.
+	getEnchantsByEffectId(effectId: number): Array<Enchant> {
+		return distinct(
+			Object.values(this.enchantsBySlot)
+				.flat()
+				.filter(enchant => enchant.effectId === effectId),
+		);
+	}
+
 	getGems(socketColor?: GemColor): Array<Gem> {
 		if (!socketColor) return Array.from(this.gems.values());
 
@@ -403,7 +412,10 @@ export class Database {
 			items: distinct(db1.items.concat(db2.items), (a, b) => a.id == b.id),
 			randomSuffixes: distinct(db1.randomSuffixes.concat(db2.randomSuffixes), (a, b) => a.id == b.id),
 			itemEffectRandPropPoints: distinct(db1.itemEffectRandPropPoints.concat(db2.itemEffectRandPropPoints), (a, b) => a.ilvl == b.ilvl),
-			enchants: distinct(db1.enchants.concat(db2.enchants), (a, b) => a.effectId == b.effectId),
+			enchants: distinct(
+				db1.enchants.concat(db2.enchants),
+				(a, b) => a.effectId == b.effectId && a.type == b.type && a.enchantType == b.enchantType && arrayEquals(a.extraTypes, b.extraTypes),
+			),
 			gems: distinct(db1.gems.concat(db2.gems), (a, b) => a.id == b.id),
 			spellEffects: distinct(db1.spellEffects.concat(db2.spellEffects), (a, b) => a.id == b.id),
 			consumables: distinct(db1.consumables.concat(db2.consumables), (a, b) => a.id == b.id),
