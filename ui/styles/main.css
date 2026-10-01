@@ -68,7 +68,6 @@
 
 @import '../app/header/SimTitleDropdown/SimTitleDropdown.css';
 @import '../app/landing/Landing.css';
-@import '../app/SimShell.css';
 
 @source '../app';
 @source '../features';

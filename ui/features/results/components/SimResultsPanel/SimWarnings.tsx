@@ -5,23 +5,25 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { NOTICE_COLOR, NOTICE_ICON_NAME } from '@ui-kit/Notice';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import clsx, { ClassValue } from 'clsx';
 import { useId } from 'react';
 
 export interface SimWarningsProps {
 	warnings: WarningsRegistry;
 	/** Every warning judges the player's gear and talents, which are empty until the sim has loaded. */
 	ready: boolean;
+	className?: ClassValue;
 }
 
 /**
  * `getContents()` builds a fresh array per call, so it is read through the snapshot cache;
  * `useSyncExternalStore` would read the new identity as a change and loop.
  */
-export const SimWarnings = ({ warnings, ready }: SimWarningsProps) => {
+export const SimWarnings = ({ warnings, ready, className }: SimWarningsProps) => {
 	const id = useId();
 	const contents = useReadyStoreSubscribe(warnings.subscribe, warnings.getContents, ready) ?? [];
 	return (
-		<div className="border-t border-border pt-4 text-center empty:hidden" data-testid="warning-zone">
+		<div className={clsx('text-center empty:hidden', className)} data-testid="warning-zone">
 			{contents.length > 0 && (
 				<>
 					<Button

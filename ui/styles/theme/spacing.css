@@ -1,5 +1,6 @@
 @theme static {
 	--spacing-page: --spacing(2);
+	--spacing-sidebar: --spacing(2);
 	--spacing-section: --spacing(8);
 	--spacing-floating-action-bar: calc(--spacing(10) + (var(--spacing) * 2 * 2) + 2px);
 	--spacing-popup-min-w: var(--container-popup);

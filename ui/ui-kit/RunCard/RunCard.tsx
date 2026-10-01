@@ -9,15 +9,13 @@ export interface RunCardProps {
 	action?: ReactNode;
 	/** What the run produced or will produce, under the action. */
 	children?: ReactNode;
-	/** Rules the body off from the controls. An empty body is hidden, rule included. */
-	divided?: boolean;
 	/** Covers the whole card with a spinner and blocks it, while what it drives is not ready yet. */
 	loading?: boolean;
 	className?: string;
 	testId?: string;
 }
 
-export const RunCard = ({ controls, action, children, divided = false, loading = false, className, testId = 'run-card' }: RunCardProps) => (
+export const RunCard = ({ controls, action, children, loading = false, className, testId = 'run-card' }: RunCardProps) => (
 	<section className={clsx('relative flex w-full flex-col gap-4', className)} data-testid={testId} aria-busy={loading || undefined}>
 		{(controls || action) && (
 			<div className="flex flex-col gap-2" data-testid="run-card-controls">
@@ -26,7 +24,7 @@ export const RunCard = ({ controls, action, children, divided = false, loading =
 			</div>
 		)}
 		{children && (
-			<div className={clsx('flex flex-col gap-4 empty:hidden', divided && 'border-t border-border pt-4')} data-testid="run-card-body">
+			<div className={clsx('flex flex-col gap-4 empty:hidden')} data-testid="run-card-body">
 				{children}
 			</div>
 		)}

@@ -15,6 +15,7 @@
 :root {
 	@variant lg {
 		--spacing-page: --spacing(4);
+		--spacing-sidebar: --spacing(4);
 		--spacing-section: --spacing(6);
 	}
 

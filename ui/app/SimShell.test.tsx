@@ -11,7 +11,7 @@ vi.mock('./SimTabsSection', () => ({ SimTabsSection: ({ children }: { children: 
 vi.mock('./SimImportExport', () => ({ SimImportExport: () => <div /> }));
 vi.mock('@features/character-stats', () => ({ CharacterStats: () => <div data-testid="character-stats" /> }));
 vi.mock('@features/results/components/SimResultsPanel', () => ({ SimWarnings: () => <div data-testid="warning-zone" /> }));
-vi.mock('@sim/hooks/useSimReady', () => ({ useSimReady: () => true }));
+vi.mock('@sim/hooks/useSimStatus', () => ({ useSimStatus: () => ({ status: 'ready', error: null }) }));
 vi.mock('./header/SimTitleDropdown', () => ({ SimTitleDropdown: () => <div /> }));
 vi.mock('./header/SimToolbar', () => ({ SimToolbar: () => <div /> }));
 vi.mock('@ui-kit/SocialLink', () => ({ SocialLink: () => <a /> }));

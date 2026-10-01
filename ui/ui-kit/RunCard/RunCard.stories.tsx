@@ -116,7 +116,6 @@ type Story = StoryObj<typeof meta>;
 /** The sim sidebar after a run, with a reference set. */
 export const LastRun: Story = {
 	args: {
-		divided: true,
 		children: <LastRunBody />,
 	},
 };
@@ -124,7 +123,6 @@ export const LastRun: Story = {
 /** The sim sidebar mid-run: Simulate turns into Stop, and the body shows live numbers. */
 export const Running: Story = {
 	args: {
-		divided: true,
 		action: <RunRow running />,
 		children: <RunningBody />,
 	},
@@ -147,4 +145,4 @@ export const Batch: Story = {
 
 export const ControlsOnly: Story = {};
 
-export const Loading: Story = { args: { divided: true, loading: true, children: <LastRunBody /> } };
+export const Loading: Story = { args: { loading: true, children: <LastRunBody /> } };

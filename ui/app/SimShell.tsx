@@ -1,7 +1,6 @@
 import { CharacterStats } from '@features/character-stats';
 import { SimWarnings } from '@features/results/components/SimResultsPanel';
-import type { WarningsRegistry } from '@features/results/model/warnings';
-import { useSimReady } from '@sim/hooks/useSimReady';
+import { useSimStatus } from '@sim/hooks/useSimStatus';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import type { Sim } from '@sim/sim';
 import { StickyHeaderContext } from '@ui-kit/hooks/useStickyToolbar';
@@ -19,8 +18,6 @@ import { SimTabsPanels, SimTabsStrip } from './SimTabs';
 import { SimTabsSection } from './SimTabsSection';
 import type { ShellDom } from './types/shell_dom';
 
-const SidebarWarnings = ({ warnings }: { warnings: WarningsRegistry }) => <SimWarnings warnings={warnings} ready={useSimReady()} />;
-
 export interface SimShellProps {
 	domRef: RefObject<ShellDom | null>;
 	/** Null on the render that builds the containers it is constructed from, so everything reaching through it waits a render. */
@@ -37,6 +34,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 	const root = useRef<HTMLDivElement>(null);
 	const header = useRef<HTMLElement>(null);
 	const [headerEl, setHeaderEl] = useState<HTMLElement | null>(null);
+	const simReady = useSimStatus(sim).status === 'ready';
 
 	const [stuck, setStuck] = useState(false);
 	useEffect(() => {
@@ -78,10 +76,10 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 								data-testid="sim-sidebar">
 								<SimTitleDropdown currentSpec={spec} />
 								<div
-									className="ui-sim-sidebar-content @container flex flex-1 flex-col overflow-y-auto p-(--sidebar-padding) max-lg:min-h-0 max-lg:overflow-visible [&>*:not(:last-child)]:mb-6"
+									className="@container flex flex-1 flex-col overflow-y-auto p-sidebar max-lg:min-h-0 max-lg:overflow-visible [&>*:not(:last-child)]:mb-4"
 									data-testid="sim-sidebar-content">
 									<SimRunCard host={host} sim={sim} />
-									{host && <SidebarWarnings warnings={host.warnings} />}
+									{host && <SimWarnings warnings={host.warnings} ready={simReady} className="my-auto" />}
 									{host && <CharacterStats className="mt-auto" />}
 								</div>
 							</aside>

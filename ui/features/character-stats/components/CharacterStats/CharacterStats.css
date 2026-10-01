@@ -1,6 +1,6 @@
 @layer components {
 	.ui-character-stats-panel {
-		@apply flex flex-col gap-2 border-t border-border pt-2;
+		@apply flex flex-col gap-2;
 	}
 
 	.ui-character-stats-row {

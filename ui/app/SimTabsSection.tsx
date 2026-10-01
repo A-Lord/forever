@@ -55,7 +55,7 @@ export const SimTabsSection = ({ host, children }: SimTabsSectionProps) => {
 									<DetailedResults resultsManager={host.raidSimResultsManager} />
 								</div>
 							</SimTabDef>
-							<SimTabDef id="bulk-tab" title={i18n.t('bulk_tab.title')} badge={i18n.t('bulk_tab.title_badge')}>
+							<SimTabDef id="bulk-tab" title={i18n.t('bulk_tab.title')}>
 								<SimTabPane id="bulk-tab" className="p-0">
 									<BulkTabBody />
 								</SimTabPane>

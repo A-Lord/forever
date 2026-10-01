@@ -30,7 +30,6 @@ export const SimRunCard = ({ host, sim }: SimRunCardProps) => {
 		<SidebarDisabledContext value={!!host?.disabled}>
 			<RunCard
 				testId="sim-run-card"
-				divided
 				loading={status === 'loading'}
 				controls={runs && <IterationsPicker sim={sim} />}
 				action={
