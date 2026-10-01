@@ -75,7 +75,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		gear: EquipmentSpec.create(),
 		epWeights: new Stats(),
 		statCaps: (() => {
-			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8);
+			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 9);
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			const critImmunityCap = new Stats().withPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent, 5.6);
 			return hitCap.add(expCap).add(critImmunityCap);
