@@ -10,7 +10,7 @@ vi.mock('../../model/empty_slot_icons', () => ({ getEmptySlotIconUrl: () => 'emp
 vi.mock('@sim/proto/gems', () => ({ getEmptyGemSocketIconUrl: (color: number) => `socket-${color}.png` }));
 
 const { GearChangeIcon } = await import('./GearChangeIcon');
-const { gearChangeSockets } = await import('./utils');
+const { gearChangeEnchant, gearChangeSockets } = await import('./utils');
 
 const item = ({ gems = [], sockets = [] }: { gems?: Array<{ id: number; name: string } | null>; sockets?: number[] }) =>
 	({
@@ -107,5 +107,31 @@ describe('gearChangeSockets', () => {
 
 	it('reports an empty list when there is no item', () => {
 		expect(gearChangeSockets(undefined, item({ gems: [], sockets: [1] }))).toEqual([]);
+	});
+});
+
+describe('gearChangeEnchant', () => {
+	const withEnchant = (effectId?: number) => ({ ...item({}), enchant: effectId ? { effectId, name: `Enchant ${effectId}` } : null }) as any;
+
+	it('returns nothing when the enchant is the same', () => {
+		expect(gearChangeEnchant(withEnchant(7), withEnchant(7))).toBeUndefined();
+		expect(gearChangeEnchant(withEnchant(), withEnchant())).toBeUndefined();
+	});
+
+	it('returns the new enchant when it differs from the previous item', () => {
+		expect(gearChangeEnchant(withEnchant(8), withEnchant(7))?.name).toBe('Enchant 8');
+	});
+
+	it('returns the new enchant when the previous item had none', () => {
+		expect(gearChangeEnchant(withEnchant(8), withEnchant())?.name).toBe('Enchant 8');
+	});
+
+	it('returns null when the enchant was removed', () => {
+		expect(gearChangeEnchant(withEnchant(), withEnchant(7))).toBeNull();
+	});
+
+	it('returns nothing without a previous item or without an item', () => {
+		expect(gearChangeEnchant(withEnchant(8), undefined)).toBeUndefined();
+		expect(gearChangeEnchant(undefined, withEnchant(7))).toBeUndefined();
 	});
 });

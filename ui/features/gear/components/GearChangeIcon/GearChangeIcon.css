@@ -9,3 +9,9 @@
 		@apply ml-px text-(length:--changed-socket-marker-size) text-danger;
 	}
 }
+
+@layer components {
+	.ui-gear-change-icon-enchant {
+		@apply absolute top-0 right-0 flex size-(--gem-width) cursor-pointer items-center justify-center bg-contain bg-no-repeat select-none;
+	}
+}
