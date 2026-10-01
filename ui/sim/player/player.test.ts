@@ -16,16 +16,12 @@ const debuffStats = (debuffs: Partial<Debuffs>): Stats =>
 describe('Player.getDebuffStats', () => {
 	// Judgement of the Crusader raises Holy damage taken and nothing else: Improved Seal of the
 	// Crusader, the crit half, has no node in any Forever trait tree, so the sheet credits no crit.
-	it('credits Judgement of the Crusader with no crit', () => {
-		const stats = debuffStats({ judgementOfTheCrusader: true });
-
-		expect(stats.getPseudoStat(PseudoStat.PseudoStatMeleeCritPercent)).toBe(0);
-		expect(stats.getPseudoStat(PseudoStat.PseudoStatRangedCritPercent)).toBe(0);
-		expect(stats.getPseudoStat(PseudoStat.PseudoStatSpellCritPercent)).toBe(0);
-	});
-
-	it('credits nothing for a debuff that moves no stat on the sheet', () => {
-		const stats = debuffStats({ faerieFire: true });
+	// Faerie Fire stands for a debuff that moves no stat on the sheet at all.
+	it.each<[string, Partial<Debuffs>]>([
+		['Judgement of the Crusader', { judgementOfTheCrusader: true }],
+		['Faerie Fire', { faerieFire: true }],
+	])('credits %s with no crit', (_name, debuffs) => {
+		const stats = debuffStats(debuffs);
 
 		expect(stats.getPseudoStat(PseudoStat.PseudoStatMeleeCritPercent)).toBe(0);
 		expect(stats.getPseudoStat(PseudoStat.PseudoStatRangedCritPercent)).toBe(0);

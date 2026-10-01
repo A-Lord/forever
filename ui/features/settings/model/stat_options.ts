@@ -1,9 +1,7 @@
+import type { IconEnumPickerConfig, IconPickerConfig, MultiIconPickerConfig } from '@features/inputs/configs';
 import { Class, Stat } from '@generated/proto/common';
 import { Player } from '@sim/player/player';
 import type { IndividualSimHost } from '@sim/sim_host';
-import type { IconEnumPickerConfig } from '@ui-kit/IconEnumPicker/types';
-import type { IconPickerConfig } from '@ui-kit/IconPicker/types';
-import type { MultiIconPickerConfig } from '@ui-kit/MultiIconPicker/types';
 
 export interface StatOption {
 	stats: Array<Stat>;

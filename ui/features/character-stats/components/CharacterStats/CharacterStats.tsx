@@ -2,16 +2,23 @@ import { ItemSlot, PseudoStat, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
-import { computeStatAttribution, type Stats, type UnitStat } from '@sim/proto/stats';
-import { useMemo } from 'react';
+import { computeStatAttribution, type Stats, UnitStat } from '@sim/proto/stats';
+import { Accordion, AccordionItem } from '@ui-kit/Accordion';
+import { Box } from '@ui-kit/Box';
+import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
+import { Table } from '@ui-kit/Table';
+import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
+import type { CharacterStatsMode } from './CharacterStatsHeaderView';
+import type { CharacterStatsPanelViewProps } from './CharacterStatsPanelView';
+import { CharacterStatsPanelView } from './CharacterStatsPanelView';
 import { CritCapRow } from './CritCapRow';
 import { CritImmunityRow } from './CritImmunityRow';
 import { MissRow } from './MissRow';
 import { StatRow } from './StatRow';
-import { buildRows } from './utils/rows';
+import { buildRows, defaultOpenStatGroups, type Row } from './utils/rows';
 import {
 	critImmunityCapDisplayString,
 	meleeCritCapDisplayString,
@@ -20,15 +27,27 @@ import {
 	statDisplayString,
 } from './utils/stat_display';
 
-export const CharacterStats = () => {
+// buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
+const ALL_STATS = UnitStat.getAll();
+
+const GROUPS_STORAGE_SUFFIX = '__characterStatsGroups';
+
+interface CharacterStatsProps extends Pick<CharacterStatsPanelViewProps, 'className'> {}
+
+export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const host = useSimHost();
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
+	const [mode, setMode] = useState<CharacterStatsMode>('key');
+	const [openGroups, setOpenGroups] = useLocalStorageState<string[]>(host.getStorageKey(GROUPS_STORAGE_SUFFIX), parseStringArray, () =>
+		defaultOpenStatGroups(player.getPlayerSpec().isTankSpec, displayStats),
+	);
 	const currentStats = usePlayerStore('currentStats');
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
 	const dualWielding = player.isDualWielding();
-	const { groups, shownStats } = useMemo(() => buildRows(player, displayStats), [player, displayStats]);
+	const statList = mode === 'all' ? ALL_STATS : displayStats;
+	const { groups, shownStats } = useMemo(() => buildRows(player, statList), [player, statList]);
 	const race = usePlayerStore('race');
 	const consumables = usePlayerStore('consumables');
 	const talentsString = usePlayerStore('talentsString');
@@ -78,53 +97,78 @@ export const CharacterStats = () => {
 	const hasParry = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatParryPercent));
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));
 
+	const labels = {
+		title: i18n.t('sidebar.character_stats.title'),
+		modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
+		key: i18n.t('sidebar.character_stats.mode.key'),
+		all: i18n.t('sidebar.character_stats.mode.all'),
+	};
+
+	const renderRow = (row: Row) => {
+		switch (row.kind) {
+			case 'stat':
+				return (
+					<StatRow
+						key={row.id}
+						displayStat={row.displayStat}
+						bonusStats={bonusStats}
+						attribution={attribution}
+						show={show}
+						rangedWeapon={rangedWeapon}
+						dualWielding={dualWielding}
+						pending={pending}
+					/>
+				);
+			case 'miss':
+				return miss && <MissRow key={row.id} info={miss} pending={pending} />;
+			case 'avoidance':
+				return (
+					avoidance && (
+						<AvoidanceRow
+							key={row.id}
+							info={avoidance}
+							withHolyShield={player.isSpec(Spec.SpecProtectionPaladin)}
+							hasParry={hasParry}
+							hasBlock={hasBlock}
+							pending={pending}
+						/>
+					)
+				);
+			case 'crit-immunity':
+				return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
+			case 'melee-crit-cap':
+				return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
+		}
+	};
+
+	const table = (rows: Row[]) => (
+		<Table variant="plain" flush aria-busy={pending || undefined}>
+			<tbody>{rows.map(renderRow)}</tbody>
+		</Table>
+	);
+
+	const primary = groups.find(group => group.key === 'primary');
+	const collapsible = groups.filter(group => group !== primary);
+
 	return (
-		<div data-testid="character-stats-root" className="w-full">
-			<h3 data-testid="character-stats-label" className="m-0 mb-2 inline-block text-base leading-tight font-bold">
-				{i18n.t('sidebar.character_stats.title')}
-			</h3>
-			<table className="w-full p-2.5" aria-busy={pending || undefined}>
-				{groups.map(group => (
-					<tbody key={group.key}>
-						{group.rows.map(row => {
-							switch (row.kind) {
-								case 'stat':
-									return (
-										<StatRow
-											key={row.id}
-											displayStat={row.displayStat}
-											bonusStats={bonusStats}
-											attribution={attribution}
-											show={show}
-											rangedWeapon={rangedWeapon}
-											dualWielding={dualWielding}
-											pending={pending}
-										/>
-									);
-								case 'miss':
-									return miss && <MissRow key={row.id} info={miss} pending={pending} />;
-								case 'avoidance':
-									return (
-										avoidance && (
-											<AvoidanceRow
-												key={row.id}
-												info={avoidance}
-												withHolyShield={player.isSpec(Spec.SpecProtectionPaladin)}
-												hasParry={hasParry}
-												hasBlock={hasBlock}
-												pending={pending}
-											/>
-										)
-									);
-								case 'crit-immunity':
-									return critImmunity && <CritImmunityRow key={row.id} info={critImmunity.info} text={critImmunity.text} pending={pending} />;
-								case 'melee-crit-cap':
-									return critCap && <CritCapRow key={row.id} info={critCap.info} text={critCap.text} pending={pending} />;
-							}
-						})}
-					</tbody>
+		<CharacterStatsPanelView className={className} mode={mode} onModeChange={setMode} labels={labels}>
+			{primary && (
+				<Box border="border-muted" padding="xs" testId="character-stats-primary">
+					{table(primary.rows)}
+				</Box>
+			)}
+			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="boxed" testId="character-stats-groups">
+				{collapsible.map(group => (
+					<AccordionItem
+						key={group.key}
+						value={group.key}
+						title={i18n.t(`sidebar.character_stats.groups.${group.key}`)}
+						panelClassName="pb-1"
+						testId={`character-stats-group-${group.key}`}>
+						{table(group.rows)}
+					</AccordionItem>
 				))}
-			</table>
-		</div>
+			</Accordion>
+		</CharacterStatsPanelView>
 	);
 };

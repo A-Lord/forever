@@ -1,11 +1,11 @@
+import type { IconEnumValueConfig } from '@features/inputs/configs';
+import * as InputHelpers from '@features/inputs/input_helpers';
 import { ConsumableType, ConsumesSpec } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import { IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
-import * as InputHelpers from '@ui-kit/input_helpers';
 
 export type ConsumableIdField = 'potId' | 'conjuredId' | 'flaskId' | 'foodId' | 'explosiveId' | 'mhImbueId' | 'ohImbueId';
 

@@ -85,6 +85,9 @@ jobs:
             - name: Unit tests 🧪
               run: npm run test:unit
 
+            - name: Build Storybook 📚
+              run: npm run storybook:build
+
             - name: Build 🔧
               run: |
                   make dist/forever/.dirstamp

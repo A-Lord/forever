@@ -1,3 +1,4 @@
+import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
@@ -5,7 +6,6 @@ import { UIItem } from '@generated/proto/ui';
 import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import { UnitStat } from '@sim/proto/stats';
-import { iconEnumPickerShown } from '@ui-kit/IconEnumPicker';
 import { describe, expect, it } from 'vitest';
 
 import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
