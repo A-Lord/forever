@@ -84,5 +84,10 @@ carry no seal spell id at all, so every seal change "passed" while testing nothi
 verified instead by dumping each constructed row against the literal it replaced, field by field,
 which is what found the bugs.
 
+**Before committing, run the `wowsims-review` pass over the diff**, ideally from a fresh agent: every number
+and hand-built config against its row and tooltip, the rules the rows cannot show, and every finding
+verified before it is fixed. The PR body carries its "checked, not findings" and "hand numbers that stay"
+lists.
+
 Read the summary lines rather than the exit code: `rtk`-wrapped `go test` has reported success for a
 failing run. `.results.tmp` files are written on every run, so their presence means nothing either.

@@ -27,9 +27,9 @@ func effectLines(s *spelldata.Spell) []Line {
 	return out
 }
 
-// The amount at the level the sim prices a cast at, which is Effect.Average(core.CharacterLevel).
+// The amount at the level the sim prices a cast at, which is Effect.Mean().
 func value(e *spelldata.Effect) float64 {
-	return e.Average(core.CharacterLevel)
+	return e.Mean()
 }
 
 // The amount as the row states it: one number, or the ends of the roll where the row states a
@@ -38,7 +38,7 @@ func amount(e *spelldata.Effect) string {
 	if e.Variance == 0 {
 		return number(value(e))
 	}
-	return number(e.Min(core.CharacterLevel)) + "–" + number(e.Max(core.CharacterLevel))
+	return number(e.Min()) + "–" + number(e.Max())
 }
 
 // A percentage the game files state as an integer, which is what Percent() divides by 100.
@@ -335,6 +335,9 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 	case dbcenums.A_MOD_STAT:
 		return join(signed(value(e)), statName(e.Misc))
 	case dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE:
+		if e.Misc2 != 0 {
+			return join(signedPercent(e), statMaskName(e.Misc2))
+		}
 		return join(signedPercent(e), statName(e.Misc))
 
 	case dbcenums.A_MOD_RESISTANCE:

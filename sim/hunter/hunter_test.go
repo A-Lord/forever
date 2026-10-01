@@ -3,11 +3,16 @@ package hunter
 import (
 	"maps"
 	"slices"
+	"strings"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
+	googleProto "google.golang.org/protobuf/proto"
 
 	"testing"
 )
@@ -103,6 +108,139 @@ func TestHunterPets(t *testing.T) {
 			ItemFilter:       core.ItemFilter{ArmorType: proto.ArmorType_ArmorTypeMail},
 		},
 	}))
+}
+
+// Auto Shot needs the bow, gun or crossbow its row names: a thrown weapon in the ranged slot fires
+// none and starts no windup, the p1 bow fires them.
+func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
+	const thrown = 20814 // Master's Throwing Dagger
+	if item := core.GetItemByID(thrown); item == nil || item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeThrown {
+		t.Fatalf("item %d is not a thrown weapon", thrown)
+	}
+	windup := "Casting " + core.ActionID{OtherID: proto.OtherAction_OtherActionShoot}.String()
+
+	autoShots := func(rangedID int32) (casts int32, windups int) {
+		gear := googleProto.Clone(core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet).(*proto.EquipmentSpec)
+		if rangedID != 0 {
+			gear.Items[proto.ItemSlot_ItemSlotRanged] = &proto.ItemSpec{Id: rangedID}
+		}
+		player := &proto.Player{
+			Name:               "Auto Shot",
+			Race:               proto.Race_RaceOrc,
+			Class:              proto.Class_ClassHunter,
+			Equipment:          gear,
+			TalentsString:      DefaultMMTalents,
+			Spec:               DefaultOptions,
+			Rotation:           &proto.APLRotation{},
+			DistanceFromTarget: 20,
+		}
+		result := core.RunRaidSim(&proto.RaidSimRequest{
+			Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+			Encounter:  core.MakeSingleTargetEncounter(0),
+			SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 1, Debug: true},
+		})
+		if result.Error != nil {
+			t.Fatalf("the sim failed: %s", result.Error.Message)
+		}
+		for _, action := range result.RaidMetrics.Parties[0].Players[0].Actions {
+			if action.Id.GetOtherId() == proto.OtherAction_OtherActionShoot {
+				for _, target := range action.Targets {
+					casts += target.Casts
+				}
+			}
+		}
+		return casts, strings.Count(result.Logs, windup)
+	}
+
+	if casts, windups := autoShots(0); casts == 0 || windups == 0 {
+		t.Errorf("the p1 bow fired %d Auto Shots after %d windups, want some", casts, windups)
+	}
+	if casts, windups := autoShots(thrown); casts != 0 || windups != 0 {
+		t.Errorf("a thrown weapon fired %d Auto Shots after %d windups, want none", casts, windups)
+	}
+}
+
+// One sting per hunter on a target: a hunter's sting drops that hunter's other sting and leaves
+// another hunter's. Two hunters' Scorpid Stings both stay up, and their -2% hit counts once.
+func TestEachHunterKeepsOneStingPerTarget(t *testing.T) {
+	player := func(name string) *proto.Player {
+		return &proto.Player{Name: name, Race: proto.Race_RaceOrc, Class: proto.Class_ClassHunter,
+			Equipment: &proto.EquipmentSpec{}, Spec: DefaultOptions, Rotation: &proto.APLRotation{}}
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid: &proto.Raid{
+			Parties: []*proto.Party{{Players: []*proto.Player{player("A"), player("B")}, Buffs: &proto.PartyBuffs{}}},
+			Buffs:   &proto.RaidBuffs{},
+			Debuffs: &proto.Debuffs{},
+		},
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	other := sim.Raid.Parties[0].Players[1].(*Hunter)
+	target := sim.Encounter.AllTargetUnits[0]
+
+	serpent := hunter.GetSpell(core.ActionID{SpellID: serpentStingRank.ID}).Dot(target)
+	scorpid := target.GetAura("Scorpid Sting-" + hunter.Label)
+	otherScorpid := target.GetAura("Scorpid Sting-" + other.Label)
+
+	// What a landed sting does: drop the hunter's other sting, then go up.
+	dropOtherSting(sim, otherScorpid)
+	otherScorpid.Activate(sim)
+	dropOtherSting(sim, scorpid)
+	scorpid.Activate(sim)
+	dropOtherSting(sim, serpent.Aura)
+	serpent.Apply(sim)
+	if scorpid.IsActive() {
+		t.Error("Serpent Sting landed beside the hunter's own Scorpid Sting, want it dropped")
+	}
+
+	dropOtherSting(sim, scorpid)
+	scorpid.Activate(sim)
+	if serpent.IsActive() {
+		t.Error("Scorpid Sting landed beside the hunter's own Serpent Sting, want it dropped")
+	}
+	if !otherScorpid.IsActive() {
+		t.Error("the hunter's stings dropped the other hunter's Scorpid Sting, want it on the target")
+	}
+	if got := target.GetStats()[stats.PhysicalHitPercent]; got != -2 {
+		t.Errorf("two hunters' Scorpid Stings moved hit by %v, want -2 once", got)
+	}
+}
+
+// The hunter's own Hunter's Mark carries the mark's tag, which Expose Prey reads before it opens
+// Mongoose Bite, and gives every attacker its ranged attack power.
+func TestTheHuntersOwnMarkCarriesTheMarkTag(t *testing.T) {
+	player := &proto.Player{
+		Name:          "Mark",
+		Race:          proto.Race_RaceOrc,
+		Class:         proto.Class_ClassHunter,
+		Equipment:     &proto.EquipmentSpec{},
+		TalentsString: DefaultSVTalents,
+		Spec:          DefaultOptions,
+		Rotation:      &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	target := sim.Encounter.AllTargetUnits[0]
+
+	mark := hunter.GetSpell(core.ActionID{SpellID: huntersMarkRank.ID})
+	if mark == nil {
+		t.Fatal("the hunter has no Hunter's Mark")
+	}
+	mark.SkipCastAndApplyEffects(sim, target)
+	if !target.HasActiveAuraWithTag(buffs.HuntersMarkCategory) {
+		t.Error("the hunter's mark is up but no aura tagged HuntersMark is, so Expose Prey never sees it")
+	}
+	if got, want := target.PseudoStats.BonusRangedAttackPower, buffs.HuntersMarkValue(0); got != want {
+		t.Errorf("the mark gives attackers %v ranged attack power, want %v", got, want)
+	}
 }
 
 // One combo per pet family, fully trained.

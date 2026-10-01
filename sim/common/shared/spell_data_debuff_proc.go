@@ -49,13 +49,17 @@ func applyDebuff(sim *core.Simulation, aura *core.Aura) {
 // The aura is the row's rather than the wearer's, so every character applying the row refreshes one
 // debuff on the target, and the first to register it parses it. Each slow takes its exclusive
 // category, attacks Thunder Clap's and casts Slow's, where only the strongest applies; every other
-// effect applies to the target as the row states it, per stack.
+// effect applies to the target as the row states it, per stack. A row a raid debuff reads is that
+// debuff's player copy instead, which bids in the raid debuff's category beside the raid's copy.
 func enemyDebuffAuras(character *core.Character, row *spelldata.Spell, duration time.Duration, effects []int32) core.AuraArray {
 	config := spelldata.AuraConfig(row, spelldata.Label(fmt.Sprintf("%s %d", row.Name, row.ID)))
 	config.Duration = duration
 	slows := row.SlowEffects()
 
 	return character.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		if aura := buffs.NewSpellDataDebuffAuraBySpell(target, row.ID); aura != nil {
+			return aura
+		}
 		if aura := target.GetAura(config.Label); aura != nil {
 			return aura
 		}
@@ -68,7 +72,7 @@ func enemyDebuffAuras(character *core.Character, row *spelldata.Spell, duration 
 				continue
 			}
 			effect := row.EffectN(int(i))
-			slowedTime := core.MultiplierFromPercent(-effect.Average(character.Level))
+			slowedTime := core.MultiplierFromPercent(-effect.Average())
 			if effect.ChangesCastSpeed() {
 				buffs.CastSpeedReductionEffect(aura, slowedTime)
 			} else {

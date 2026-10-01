@@ -53,7 +53,7 @@ const findSubmenu = <V>(entries: MenuEntries<V>, segment: string | V, equals: (a
  * Two flavours of path segment, both of which the APL pickers use:
  * - a **string** names a category submenu (`['resources', 'chi']`, two deep at most today);
  * - a **value** makes the option carrying that value the submenu's trigger, which is how a pet is
- *   filed under its owner.
+ *   filed under its owner and a spell's lower ranks under its highest.
  */
 export const buildMenuTree = <V>(options: Array<DropdownOption<V>>, equals: (a: V | undefined, b: V | undefined) => boolean): MenuEntries<V> => {
 	const root: MenuEntries<V> = [];

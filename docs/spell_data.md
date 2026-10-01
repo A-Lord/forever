@@ -44,7 +44,7 @@ frostbolt := spelldata.Find(116)      // Nil where the store does not carry the 
 frostbolt = spelldata.MustFind(116)   // panics there instead
 ```
 
-Every accessor answers on `Nil`, and `Nil` chains: `spelldata.Find(0).EffectN(1).Average(60)` is 0
+Every accessor answers on `Nil`, and `Nil` chains: `spelldata.Find(0).EffectN(1).Average()` is 0
 rather than a crash, so a caller can ask about a spell this build does not have. `MustFind` is the
 other bargain, and it is what a package-level variable takes - a regeneration that drops an id then
 fails at startup, naming the id, instead of registering a spell with no numbers. `All()` and
@@ -61,7 +61,7 @@ the generator has not put on ladders yet. The same scan reads the other way too:
 warrior/Execute` prints a ladder's ranks with the call that reaches each, then its highest rank in full,
 and `-expr 'spellData.Execute.Rank(3)' -package warrior` prints the row one ladder call names. A pick
 followed by the store's own accessors is read too - `-expr
-'spellData.Execute.Highest().EffectN(1).Average(core.CharacterLevel)'` answers the value, the doc comment
+'spellData.Execute.Highest().EffectN(1).Average()'` answers the value, the doc comment
 that accessor carries and the row with the effect it read marked `(read)`.
 
 The worded line states each number in the unit the sim spends it in, which is also how it names the
@@ -116,28 +116,35 @@ damage or any of the weapon-damage effects), `HealEffect()`, `EnergizeEffect()` 
 
 ### Reading a value
 
-|                           |                                                                       |
-| ------------------------- | --------------------------------------------------------------------- |
-| `BaseValue()`             | the game files' own number, unconverted                               |
-| `Percent()`               | over 100, because the game files state a percentage as the integer 16 |
-| `Tenths()`                | over 10, because rage sits on a 0-1000 bar                            |
-| `TimeValue()`             | the number read as milliseconds, which is what a duration modifier is |
-| `Period()`                | `EffectAuraPeriod`, the tick interval                                 |
-| `Coeff()` / `APCoeff()`   | the spell power and attack power shares of the effect                 |
-| `Average(level)`          | the amount at a caster level                                          |
-| `Min(level)`/`Max(level)` | the ends of the roll                                                  |
-| `Roll(sim, level)`        | the amount for one cast                                               |
+|                         |                                                                       |
+| ----------------------- | --------------------------------------------------------------------- |
+| `BaseValue()`           | the game files' own number, unconverted                               |
+| `Percent()`             | over 100, because the game files state a percentage as the integer 16 |
+| `Tenths()`              | over 10, because rage sits on a 0-1000 bar                            |
+| `TimeValue()`           | the number read as milliseconds, which is what a duration modifier is |
+| `Period()`              | `EffectAuraPeriod`, the tick interval                                 |
+| `Coeff()` / `APCoeff()` | the spell power and attack power shares of the effect                 |
+| `Average()`             | the amount at the sim's character level                               |
+| `Min()` / `Max()`       | the ends of the roll                                                  |
+| `Mean()`                | what a cast averages, the middle of the roll                          |
+| `Roll(sim)`             | the amount for one cast                                               |
 
-`Average(level)` folds the amount the way the tooltip does: the base points plus
+Each also comes in an `At` form taking a level (`AverageAt(level)`, `RollAt(sim, level)`), for a test
+pinning an in-game tooltip at a lower level and for `ParseEffects`' level option.
+
+`AverageAt(level)` folds the amount the way the tooltip does: the base points plus
 `EffectRealPointsPerLevel` for each level between the spell's `BaseLevel` and the caster's, stopped
 at `MaxLevel` where the row states one, and floored. `BaseLevel` equals `SpellLevel` on most ranks;
 where it does not - Vindication's debuff states 0 and 1 - the in-game amount counts from `BaseLevel`.
 The arithmetic is float32 on purpose - the game files' per-level gain is a float32 widened into the
 database, and folding it in float64 moves six rows off the tooltip.
 
-`EffectVariance` is the spread the server rolls the amount over: `Min` and `Max` are the average times
-`1 -/+ Variance/2`. `Roll` rolls it where the row states one and answers the average where it does
-not, so a call site never has to ask whether this particular spell's amount is a range.
+`EffectVariance` is the spread the amount rolls over. It spreads the base points only:
+`|BasePoints| * Variance/2` either side of them, each end rounded to a whole number, then the per-level
+gain is added to both and `Min` is rounded down and `Max` rounded up, in float32 for the same reason,
+with a base end on a half rounding to the even one. `Roll` rolls it where the row states one and
+answers the average where it does not, so a call site never has to ask whether this particular spell's
+amount is a range.
 
 ### Attributes, edges and class flags
 
@@ -220,8 +227,9 @@ What the row fills: the `ActionID`, `Rank` (from "Rank 4", which is what flips `
 UI), `SpellSchool`, `DefenseType`, `ClassFlags`, `MissileSpeed`, `MinRange`/`MaxRange`, the cast - cast
 time, the GCD where the row sits in the global cooldown category, its own cooldown and the category one
 it shares - and the cost out of the first bar it states, with rage divided off the 0-1000 bar and the
-refund the Discount Power On Miss attribute states. `CastRequirement` gets the forms and caster auras
-the game files require (see below), which is why Pummel needs no Berserker Stance condition. `Flags` gets
+refund the Discount Power On Miss attribute states. `CastRequirement` gets the forms, caster auras,
+weapon, shield and out-of-combat state the game files require (see below), which is why Pummel needs no
+Berserker Stance condition and Shield Bash no shield check. `Flags` gets
 what the attributes and targets say:
 `SpellFlagPassiveSpell`, `SpellFlagChanneled`, `SpellFlagSuppressWeaponProcs` and `SpellFlagHelpful`.
 
@@ -249,18 +257,30 @@ put there.
 
 ### Where a spell can be cast
 
-`core.CastRequirement` is what the game files require of the caster's form and auras, and core refuses a
-cast, `CanCast` and `CanQueue` that break it ("wrong form", "missing caster aura", "excluded caster
-aura"). It reads four game files sources: `SpellShapeshift`'s mask and exclude mask (`StanceMask`,
-`StanceExclude`), `SpellAuraRestrictions` (`CasterAura`, `ExcludeCasterAura` - Tiger's Fury states its
-Cat Form requirement there, not in a mask), the not-shapeshifted and castable-in-caster-form attribute
-bits, and `SpellShapeshiftForm`'s stance flag (`dbcenums.ShapeshiftForm.IsStance`, generated into
-`sim/core/dbcenums/forms_auto_gen.go`).
+`core.CastRequirement` is what the game files require of the caster's form, auras and equipment, and
+core refuses a cast, `CanCast` and `CanQueue` that break it ("wrong form", "missing caster aura",
+"excluded caster aura", "missing equipped item", "in combat"). It reads six game files sources:
+`SpellShapeshift`'s mask and exclude mask (`StanceMask`, `StanceExclude`), `SpellAuraRestrictions`
+(`CasterAura`, `ExcludeCasterAura` - Tiger's Fury states its Cat Form requirement there, not in a mask),
+the not-shapeshifted and castable-in-caster-form attribute bits, `SpellShapeshiftForm`'s stance flag
+(`dbcenums.ShapeshiftForm.IsStance`, generated into `sim/core/dbcenums/forms_auto_gen.go`),
+`SpellEquippedItems` with the `ATTR_EX_3_REQ_MAIN_HAND` and `ATTR_EX_3_REQ_OFF_HAND` hand bits, and the
+not-in-combat attribute bit (`ATTR_NOT_IN_COMBAT`, Charge's).
 
 For the caster's form `f`: an excluded form refuses; a form in the mask allows; in a shapeshift that is
 not a stance (Cat, Bear) a spell with a mask or the not-shapeshifted bit is refused; with no form or in
 a stance (the warrior's, Moonkin, Tree) a spell with a mask is refused unless it is castable in caster
 form. A required caster aura must then be active on the caster, matched by `ActionID.SpellID`.
+
+The equipment is read as the spell is cast, so it follows item swaps. A weapon row (item class 2) is
+`CastRequirement.Weapon`, a `core.EquipRequirement`: each hand a hand bit names must hold a weapon its
+subclass and inventory-type masks match (Spearing Strike 1310222 a two-hander in the main hand, Mutilate
+a dagger in both), and a row with no hand bit is met by any weapon slot (Aimed Shot's bow, gun or
+crossbow in the ranged slot). An armor row (item class 4) naming the shield subclass is
+`CastRequirement.Shield`, met by a shield in the off hand; a shield is the only armor a castable spell
+asks for. A unit that is not a player meets neither; a player with no weapon meets no weapon requirement. A spell
+with the not-in-combat bit is refused from the start of the encounter on, so Charge is a prepull
+action.
 
 The class reports its form in `Unit.ShapeshiftForm` - the warrior's `setStance`, the druid's `setForm` -
 and nothing else. A unit that sets `Unit.AutoUnshift` (the druid, to `ClearForm`) casts a spell its form
@@ -396,8 +416,8 @@ spelldata.ParseEffects(nil, swAura, spellData.ShadowWeavingTriggered.Highest(),
 ```
 
 Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance passive is parsed onto
-the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its
-tooltip asks for and the row states nowhere, re-read through `Refresh` on an off-hand swap.
+the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its row
+states and the parse does not scope to, re-read through `Refresh` on an off-hand swap.
 
 The call answers a `*Parsed`. `Applied` names each attachment, or each part of one that has parts (the
 stats of a multi-stat row, the melee-defense part beside a weapon damage done row) - the effect, the sim
@@ -445,6 +465,7 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 | the energy bar's maximum (misc 3, and `A_MOD_INCREASE_ENERGY`)      | energy                                                | the value                                                              |
 | the maximum mana (misc 0 of either)                                 | Mana, flat points                                     | the value                                                              |
 | a percentage GCD modifier (`SPELLMOD_GLOBAL_COOLDOWN`)              | `spell.GCDMultiplier`, summed from 1                  | the value over 100                                                     |
+| a percentage range modifier (`SPELLMOD_RANGE`)                      | `spell.RangeMultiplier`, summed from 1                | the value over 100                                                     |
 
 Block, dodge and parry are percentage points like hit and crit: core divides them by 100 where it rolls
 them (`GetBlockFromRating`), so the game files' 5 is stored as 5. `TestParseStaticStatConventions` pins
@@ -981,11 +1002,11 @@ func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell, spellSchool cor
 }
 ```
 
-**An amount is `Average(core.CharacterLevel)`, or `Roll(sim, level)` where the class rolls it.** The
+**An amount is `Average()`, or `Roll(sim)` where the class rolls it.** The
 seven classes ported first read every amount as `Average`, both ends of a `(low, high)` alike, because
 the literals they replaced never rolled. Paladin's did, so its damage and heals take `Roll` and its
 per-hit and aura numbers `Average`. A row can still carry a spread (Frostbolt's `Variance` is 0.105)
-and `Roll(sim, level)`/`Min`/`Max` read it where a class asks for one; `Average` is what keeps a
+and `Roll(sim)`/`Min`/`Max` read it where a class asks for one; `Average` is what keeps a
 ported number equal to the one it replaces, not an absence of spread in the data.
 
 **Name the effect by role where one applies; by position where the row hides it behind another
@@ -1041,7 +1062,7 @@ read low wherever the game files scale it past the rank's `BaseLevel`. Read the 
 through `Average` instead of the ladder's per-rank reader:
 
 ```go
-X.Rank(rank).EffectN(1).Average(core.CharacterLevel)   // not X.EffectAt(1).ValueAt(rank)
+X.Rank(rank).EffectN(1).Average()   // not X.EffectAt(1).ValueAt(rank)
 ```
 
 **A dot ticks on current stats, so there is no `OnSnapshot`.** `OnTick` reads the effect's own
@@ -1135,17 +1156,17 @@ priest.RegisterSpell(core.SpellConfig{
 		BonusCoefficient:    tick.Coeff(),
 
 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-			dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), dot.OutcomeTick)
+			dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average(), dot.OutcomeTick)
 		},
 	},
 
 	ExpectedTickDamage: func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
-		return spell.CalcPeriodicDamage(sim, target, tick.Average(core.CharacterLevel), spell.OutcomeExpectedMagicHit)
+		return spell.CalcPeriodicDamage(sim, target, tick.Average(), spell.OutcomeExpectedMagicHit)
 	},
 })
 ```
 
-No `OnSnapshot`, no `useSnapshot` branch: the tick is `tick.Average(core.CharacterLevel)` wherever it
+No `OnSnapshot`, no `useSnapshot` branch: the tick is `tick.Average()` wherever it
 is asked for, cast or projected.
 
 #### Consecration's borrowed tick
@@ -1163,15 +1184,15 @@ tick := tickSpell.EffectN(1)
 bonus := tickSpell.EffectN(2)
 
 dummy := rank.Effect(dbcenums.A_PERIODIC_DUMMY, 0)
-bonusTargets := int(dummy.Average(core.CharacterLevel))
+bonusTargets := int(dummy.Average())
 tickLength := dummy.Period()
 numberOfTicks := int32(rank.Duration() / tickLength)
 
 dealTick := func(sim *core.Simulation, dot *core.Dot) {
 	for i, target := range sim.Encounter.ActiveTargetUnits {
-		damage := tick.Average(core.CharacterLevel)
+		damage := tick.Average()
 		if i < bonusTargets {
-			damage += bonus.Average(core.CharacterLevel) + bonus.Coeff()*dot.Spell.BonusDamage(dot.Spell.Unit.AttackTables[target.UnitIndex])
+			damage += bonus.Average() + bonus.Coeff()*dot.Spell.BonusDamage(dot.Spell.Unit.AttackTables[target.UnitIndex])
 		}
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, dot.OutcomeTickMagicHit)
 	}
@@ -1181,8 +1202,8 @@ dealTick := func(sim *core.Simulation, dot *core.Dot) {
 #### A heal and a mana restore
 
 ```go
-heal := rank.HealEffect().Average(core.CharacterLevel)      // both ends, where the class does not roll
-mana := rank.EnergizeEffect().Average(core.CharacterLevel)  // 0 on a rank with no Energize effect at all
+heal := rank.HealEffect().Average()      // both ends, where the class does not roll
+mana := rank.EnergizeEffect().Average()  // 0 on a rank with no Energize effect at all
 ```
 
 #### Registering several ranks
@@ -1284,7 +1305,7 @@ was meant to be mechanical and moves a .results number is a wrong port, not a ne
    `IsFriendly` in the APL editor, so an attack whose first effect is a self side-effect needs it
    cleared. `Rank` comes from "Rank N" and flips `HasRanks` there. `IgnoreHaste` follows the physical
    school, not the defense type.
-6. **A row with a `Variance` rolls.** Use `Roll(sim, level)` where the game files state a spread; the
+6. **A row with a `Variance` rolls.** Use `Roll(sim)` where the game files state a spread; the
    extra draw reshuffles every later roll, which is a .results move with a known cause.
 7. **Parse before you activate.** `ParseEffects` attaches on gain, so an aura already up when the parse
    runs loses the rows that need a `Simulation`.
@@ -1343,7 +1364,9 @@ its 30 is a percentage and the parse reads `A_MOD_MAX_HEALTH` as flat health.
 
 **A melee ability states its bonus as weapon damage, not school damage.** Sinister Strike's +98 is
 `E_NORMALIZED_WEAPON_DMG`, and Holy Strike's flat part sits there too; `DamageEffect()` answers the
-first weapon or school damage effect alike, so the read is the same either way.
+first weapon or school damage effect alike, so the read is the same either way. An
+`E_WEAPON_PERCENT_DAMAGE` on the same spell scales the flat part as well as the weapon damage: Holy
+Strike rank 1's 12 ± 1.5 at 25% shows in game as 2 to 4.
 
 **Rage is stored on a 0-1000 bar.** Heroic Strike's cost reads 150 where the player sees 15.
 `PowerCost` and `Cost()` divide it through; mana, energy and focus need no conversion, and an
@@ -1368,7 +1391,7 @@ read the first of several, and `Effect(aura, misc)` panics when two effects matc
 rule: `EffectAt(n)` or `EffectN(n)` is how a caller says which.
 
 **A hand-built `Effect` scales from its own `BaseLevel` and `MaxLevel`.** The generator stamps both onto
-every effect so `Average(level)` needs no lookup; an `Effect` literal in a test or a hand-written config
+every effect so `AverageAt(level)` needs no lookup; an `Effect` literal in a test or a hand-written config
 that leaves them zero scales `PPL` from level 0 up to the caster's level. Copy them from the spell's row,
 or set `PPL` to 0.
 
@@ -1444,7 +1467,11 @@ whole amount the way the tooltip shows it, and 0 points is the full amount. `new
 `Category` is set, `Exclusive(Category, true)` for a `SingleAura` row or `ExclusivePerStat(Category)`
 for any other, so a generated buff and a hand-written scroll of the same stat or resistance bid
 against each other under the categories core's own exclusive stat buffs use. `newDebuff` adds only
-`Exclusive(Category, SingleAura)`, since a debuff never carries a resistance of its own;
+`Exclusive(Category, SingleAura)`, since a debuff never carries a resistance of its own; without
+`SingleAura` each of its stats and pseudo-stats bids alone under `Category` + its key, priced per
+stack, so a stronger debuff holds only the effects of its own kind and Hex of Weakness keeps its
+healing taken under Demoralizing Shout's attack power; a row a raid debuff reads that an item proc
+puts on the target is that debuff's player copy (`NewSpellDataDebuffAuraBySpell`);
 `newItemCountBuff` adds `Count` so that a party with several of the same item is worth that many
 copies of the amount. `Value` is a damage shield's own effect where the spell states one, and otherwise
 the first thing `spelldata.DryRun` attaches for those options. `Duration` reads the spell, or `Cast` where the
@@ -1598,7 +1625,7 @@ A row the generator cannot express outright states `Driver: true`, or is a kind 
 and the apply block calls `drive<Go>` instead. The contract is in `sim/core/buffs/drivers.go`: a buff
 row's driver takes the `*Character` and the whole scope message, a debuff row's takes the `*Unit`, the
 debuffs and the raid. Handing over the message rather than the one field is what lets Grace of Air read
-`party.TotemTwisting`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
+`party.WindfuryTotem`. The driver builds the generated aura with its `NewSpellData...` constructor and adds what the
 game files do not state: a proc trigger, a cooldown, a delay, the metrics of a regen. Declaring the function is what
 makes the row compile.
 

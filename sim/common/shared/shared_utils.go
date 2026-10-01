@@ -715,10 +715,10 @@ func spellDataProcDamageSpell(character *core.Character, damage *spelldata.Spell
 				if batchSpell != spell {
 					batchSpell, batchOutcome = spell, GetOutcome(spell, outcome)
 				}
-				dealOnArrival(sim, spell, target, calcMultiTargetDamage(sim, spell, target, damage, effect, character.Level, batchOutcome), debuff)
+				dealOnArrival(sim, spell, target, calcMultiTargetDamage(sim, spell, target, damage, effect, batchOutcome), debuff)
 				return
 			}
-			single[0] = spell.CalcDamage(sim, target, effect.Roll(sim, character.Level), GetOutcome(spell, outcome))
+			single[0] = spell.CalcDamage(sim, target, effect.Roll(sim), GetOutcome(spell, outcome))
 			dealOneOnArrival(sim, spell, target, single, debuff)
 		}
 		return config
@@ -740,7 +740,7 @@ func spellDataProcDamageSpell(character *core.Character, damage *spelldata.Spell
 			dealOnArrival(sim, spell, target, nil, after)
 			return
 		}
-		single[0] = spell.CalcDamage(sim, target, effect.Roll(sim, character.Level), GetOutcome(spell, outcome))
+		single[0] = spell.CalcDamage(sim, target, effect.Roll(sim), GetOutcome(spell, outcome))
 		dealOneOnArrival(sim, spell, target, single, after)
 	}
 
@@ -798,9 +798,9 @@ func applyDotIfLanded(sim *core.Simulation, spell *core.Spell, target *core.Unit
 // ChainAmp of the damage at each jump. A split row rolls once and divides the roll evenly among the
 // targets it reaches. Otherwise each target rolls its own, and an uncapped area takes the encounter's
 // AoE cap the way an explosive does.
-func calcMultiTargetDamage(sim *core.Simulation, spell *core.Spell, target *core.Unit, row *spelldata.Spell, effect *spelldata.Effect, level int32, outcome core.OutcomeApplier) core.SpellResultSlice {
+func calcMultiTargetDamage(sim *core.Simulation, spell *core.Spell, target *core.Unit, row *spelldata.Spell, effect *spelldata.Effect, outcome core.OutcomeApplier) core.SpellResultSlice {
 	roll := func(sim *core.Simulation, _ *core.Spell) float64 {
-		return effect.Roll(sim, level)
+		return effect.Roll(sim)
 	}
 
 	if !effect.HitsAnArea() {
@@ -972,7 +972,7 @@ func spellDataProcHealSpell(character *core.Character, heal *spelldata.Spell, as
 		if effect.Type == dbcenums.E_HEAL_PCT {
 			return target.MaxHealth() * effect.Percent()
 		}
-		return effect.Roll(sim, character.Level)
+		return effect.Roll(sim)
 	}
 
 	cannotCrit := heal.CannotCrit()
@@ -1001,7 +1001,7 @@ func spellDataProcHotSpell(character *core.Character, heal *spelldata.Spell, eff
 		if canCrit {
 			outcome = dot.Spell.OutcomeTickHealingCrit
 		}
-		dot.Spell.CalcAndDealPeriodicHealing(sim, target, effect.Roll(sim, character.Level), outcome)
+		dot.Spell.CalcAndDealPeriodicHealing(sim, target, effect.Roll(sim), outcome)
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
@@ -1110,7 +1110,7 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 	config.ProcMask = core.ProcMaskEmpty
 	config.RelatedSelfBuff = shield.Aura
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-		amount = effect.Roll(sim, character.Level)
+		amount = effect.Roll(sim)
 		shield.Activate(sim)
 	}
 

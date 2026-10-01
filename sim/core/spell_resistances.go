@@ -11,7 +11,6 @@ func (result *SpellResult) applyResistances(sim *Simulation, spell *Spell, isPer
 	result.Outcome |= outcome
 
 	result.ArmorAndResistanceMultiplier = resistanceMultiplier
-	result.PostArmorAndResistanceMultiplier = result.Damage
 }
 
 // Modifies damage based on Armor or Magic resistances, depending on the damage type.

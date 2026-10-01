@@ -22,11 +22,9 @@ func (warrior *Warrior) registerWhirlwind() {
 		whirlwindOH = warrior.RegisterSpell(config)
 	}
 
+	// TODO: In-game testing required for threat multiplier / threat bonus.
 	config := spelldata.SpellConfig(&warrior.Unit, whirlwindRank,
 		spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Tag(1))
-
-	// TODO: In-game testing required for threat multiplier / threat bonus.
-	config.ThreatMultiplier = 1
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := warrior.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))

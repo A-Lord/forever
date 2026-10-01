@@ -32,23 +32,23 @@ func AddUnparsedStats(db *WowDatabase) error {
 				continue
 			}
 			if stat, ok := spelldata.VersusStat(e.Aura); ok {
-				granted[stat] += e.Average(core.CharacterLevel)
+				granted[stat] += e.Average()
 			}
 			switch e.Aura {
 			case dbcenums.A_MOD_HIT_CHANCE:
-				percents[stats.PhysicalHitPercent] += e.Average(core.CharacterLevel)
+				percents[stats.PhysicalHitPercent] += e.Average()
 			case dbcenums.A_MOD_SPELL_HIT_CHANCE:
-				percents[stats.SpellHitPercent] += e.Average(core.CharacterLevel)
+				percents[stats.SpellHitPercent] += e.Average()
 			case dbcenums.A_MOD_WEAPON_CRIT_PERCENT:
-				percents[stats.PhysicalCritPercent] += e.Average(core.CharacterLevel)
+				percents[stats.PhysicalCritPercent] += e.Average()
 			case dbcenums.A_MOD_SPELL_CRIT_CHANCE:
-				percents[stats.SpellCritPercent] += e.Average(core.CharacterLevel)
+				percents[stats.SpellCritPercent] += e.Average()
 			case dbcenums.A_MOD_CRIT_PCT:
-				allCrit += e.Average(core.CharacterLevel)
+				allCrit += e.Average()
 			}
 		}
 		if slices.Contains(forever.NaturalFlasks, id) {
-			bonus, err := forever.NaturalFlaskZoneBonusOf(row, row.EffectN(2).Average(core.CharacterLevel))
+			bonus, err := forever.NaturalFlaskZoneBonusOf(row, row.EffectN(2).Average())
 			if err != nil {
 				return err
 			}

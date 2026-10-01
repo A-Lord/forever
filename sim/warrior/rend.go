@@ -7,7 +7,8 @@ import (
 
 var rendRank = spellData.Rend.Highest()
 
-// TODO: Ingame testing needed if Rend has a coef
+// TODO: Forever announces Rend scaling with Attack Power; the game files state a flat 21 per tick and no
+// Attack Power coefficient. Add it once a game build carries it or it is measured in game.
 func (warrior *Warrior) registerRend() {
 	tick := rendRank.PeriodicEffect()
 

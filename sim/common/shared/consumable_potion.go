@@ -318,7 +318,6 @@ func newConsumableGain(character *core.Character, row *spelldata.Spell, e *spell
 		return nil
 	}
 
-	level := character.Level
 	amount := func(roll func(*spelldata.Effect) float64) float64 {
 		if e.Type == dbcenums.E_ENERGIZE_PCT {
 			return maximum() * e.Percent() * bonus
@@ -340,13 +339,13 @@ func newConsumableGain(character *core.Character, row *spelldata.Spell, e *spell
 				NumTicks: ticks,
 				Priority: core.ActionPriorityDOT,
 				OnAction: func(sim *core.Simulation) {
-					add(sim, amount(func(e *spelldata.Effect) float64 { return e.Roll(sim, level) }), metrics)
+					add(sim, amount(func(e *spelldata.Effect) float64 { return e.Roll(sim) }), metrics)
 				},
 			})
 		}
 	} else {
 		gain.apply = func(sim *core.Simulation) {
-			add(sim, amount(func(e *spelldata.Effect) float64 { return e.Roll(sim, level) }), metrics)
+			add(sim, amount(func(e *spelldata.Effect) float64 { return e.Roll(sim) }), metrics)
 		}
 	}
 
@@ -355,7 +354,7 @@ func newConsumableGain(character *core.Character, row *spelldata.Spell, e *spell
 		if power == dbcenums.POWER_MANA {
 			room -= character.ManaRegenPerSecondWhileCasting() * 5
 		}
-		return room >= amount(func(e *spelldata.Effect) float64 { return e.Max(level) })*float64(ticks)
+		return room >= amount(func(e *spelldata.Effect) float64 { return e.Max() })*float64(ticks)
 	}
 	return gain
 }
