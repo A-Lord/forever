@@ -324,9 +324,6 @@ export class PartyMetrics {
 	}
 }
 
-const damageDone = (actions: Array<ActionMetrics>): Array<ActionMetrics> =>
-	actions.map(action => action.againstOpponents()).filter((action): action is ActionMetrics => !!action && action.dps !== 0 && action.hps === 0);
-
 export class UnitMetrics {
 	// If this Unit is a pet, player is the owner. If it's a target, player is null.
 	private readonly player: PlayerProto | null;
@@ -538,7 +535,7 @@ export class UnitMetrics {
 	}
 
 	getMeleeDamageActions(): Array<ActionMetrics> {
-		return damageDone(this.getMeleeActions());
+		return this.getMeleeActions().filter(e => e.dps !== 0 && e.hps === 0);
 	}
 
 	getSpellActions(): Array<ActionMetrics> {
@@ -546,11 +543,14 @@ export class UnitMetrics {
 	}
 
 	getSpellDamageActions(): Array<ActionMetrics> {
-		return damageDone(this.getSpellActions());
+		return this.getSpellActions().filter(e => e.dps !== 0 && e.hps === 0);
 	}
 
 	getDamageActions(): Array<ActionMetrics> {
-		return damageDone(this.getActionsForDisplay());
+		return this.getActionsForDisplay()
+			.filter(e => e.hps === 0)
+			.map(e => e.againstOpponents())
+			.filter((e): e is ActionMetrics => !!e && e.dps !== 0);
 	}
 
 	// The unit's own actions that damage itself, such as a sapper's hit on its thrower, cut down to that
@@ -1360,15 +1360,23 @@ export class ActionMetrics {
 		};
 	}
 
-	// The action against the other side only, or null when it never reaches the other side. Damage it deals
-	// its own side, such as a sapper's hit on its thrower, is damage taken, not damage done.
+	// The action without the units on its own side when it damages any of them, or null when it never
+	// reaches the other side. Damage it deals its own side, such as a sapper's hit on its thrower, is
+	// damage taken, not damage done.
 	againstOpponents(): ActionMetrics | null {
-		const enemyIndices = new Set(this.resultData.result.encounterMetrics?.targets.map(target => target.unitIndex));
-		const onEnemySide = this.unit?.isTarget ?? false;
-		const targets = this.data.targets.filter(target => enemyIndices.has(target.unitIndex) !== onEnemySide);
-		if (targets.length === this.data.targets.length) {
+		const encounterTargets = this.resultData.result.encounterMetrics?.targets;
+		if (!encounterTargets) {
 			return this;
 		}
+
+		const enemyIndices = new Set(encounterTargets.map(target => target.unitIndex));
+		const onEnemySide = this.unit?.isTarget ?? false;
+		const isOpponent = (target: TargetedActionMetricsProto) => enemyIndices.has(target.unitIndex) !== onEnemySide;
+		if (this.data.targets.every(target => isOpponent(target) || target.damage === 0)) {
+			return this;
+		}
+
+		const targets = this.data.targets.filter(isOpponent);
 		if (targets.length === 0) {
 			return null;
 		}

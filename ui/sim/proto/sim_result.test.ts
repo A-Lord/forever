@@ -8,7 +8,7 @@ import { ActionMetrics, TargetedActionMetrics, UnitMetrics } from './sim_result'
 // One enemy (unit 0) and the player (unit 1), over one iteration of 100 seconds.
 const ENEMY = 0;
 const PLAYER = 1;
-const resultData = { iterations: 1, duration: 100, result: { encounterMetrics: { targets: [{ unitIndex: ENEMY }] } } };
+const withEncounter = { iterations: 1, duration: 100, result: { encounterMetrics: { targets: [{ unitIndex: ENEMY }] } } };
 
 const unit = (unitIndex: number, side: 'player' | 'enemy') =>
 	Object.assign(Object.create(UnitMetrics.prototype), {
@@ -18,11 +18,13 @@ const unit = (unitIndex: number, side: 'player' | 'enemy') =>
 		actions: [] as Array<ActionMetrics>,
 	}) as UnitMetrics;
 
-const action = (owner: UnitMetrics, damageByTarget: Record<number, number>) => {
+// The sim sends an action one entry per unit, its own unit included, so every action here lists both.
+const action = (owner: UnitMetrics, onEnemy: { damage?: number }, onPlayer: { damage?: number; healing?: number }, resultData: object = withEncounter) => {
 	const data = ActionMetricsProto.create({
-		targets: Object.entries(damageByTarget).map(([unitIndex, damage]) =>
-			TargetedActionMetricsProto.create({ unitIndex: Number(unitIndex), damage, hits: 1 }),
-		),
+		targets: [
+			TargetedActionMetricsProto.create({ unitIndex: ENEMY, hits: 1, ...onEnemy }),
+			TargetedActionMetricsProto.create({ unitIndex: PLAYER, hits: 1, ...onPlayer }),
+		],
 	});
 	const build = ActionMetrics as unknown as new (...args: Array<unknown>) => ActionMetrics;
 	const metrics = new build(owner, { name: 'Goblin Sapper Charge', iconUrl: '' }, data, resultData);
@@ -33,30 +35,51 @@ const action = (owner: UnitMetrics, damageByTarget: Record<number, number>) => {
 describe('damage done and damage taken from self-inflicted damage', () => {
 	it('counts only the damage on the other side as damage done', () => {
 		const player = unit(PLAYER, 'player');
-		action(player, { [ENEMY]: 1000, [PLAYER]: 500 });
+		action(player, { damage: 1000 }, { damage: 500 });
 
 		const [sapper] = player.getDamageActions();
 		expect(sapper.damage).toBe(1000);
 		expect(sapper.forTarget({ target: ENEMY }).damage).toBe(1000);
 	});
 
+	it('leaves an action that deals its own side no damage as it is', () => {
+		const player = unit(PLAYER, 'player');
+		const melee = action(player, { damage: 1000 }, {});
+
+		expect(player.getDamageActions()).toEqual([melee]);
+	});
+
 	it('drops an action that only damages its own side from damage done', () => {
 		const player = unit(PLAYER, 'player');
-		action(player, { [ENEMY]: 0, [PLAYER]: 500 });
+		action(player, {}, { damage: 500 });
 
 		expect(player.getDamageActions()).toEqual([]);
 	});
 
+	it('keeps an action that damages the other side and heals its own out of damage done', () => {
+		const player = unit(PLAYER, 'player');
+		action(player, { damage: 1000 }, { healing: 300 });
+
+		expect(player.getDamageActions()).toEqual([]);
+	});
+
+	it('leaves every action whole when the result carries no encounter', () => {
+		const player = unit(PLAYER, 'player');
+		action(player, { damage: 1000 }, { damage: 500 }, { iterations: 1, duration: 100, result: {} });
+
+		expect(player.getDamageActions().map(sapper => sapper.damage)).toEqual([1500]);
+	});
+
 	it("reports the damage an action deals its own unit as that unit's damage taken", () => {
 		const player = unit(PLAYER, 'player');
-		action(player, { [ENEMY]: 1000, [PLAYER]: 500 });
+		action(player, { damage: 1000 }, { damage: 500 });
 
 		expect(player.getSelfDamageActions().map(self => self.damage)).toEqual([500]);
 	});
 
 	it("keeps an enemy's damage on the player as damage done", () => {
 		const enemy = unit(ENEMY, 'enemy');
-		action(enemy, { [PLAYER]: 800 });
+		action(enemy, {}, { damage: 800 });
 
 		expect(enemy.getDamageActions().map(melee => melee.damage)).toEqual([800]);
 	});
