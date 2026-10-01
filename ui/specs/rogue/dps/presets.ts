@@ -60,47 +60,69 @@ export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear);
 export const P1_SLOW_MH_GEAR = PresetUtils.makePresetGear('Slow Main Hand', P1SlowMhGear);
 export const P1_BS_SUB_GEAR = PresetUtils.makePresetGear('Backstab Subtlety', P1BsSubGear);
 
+export const DefaultOptions = RogueOptions.create({
+	classOptions: {
+		mainHandPoison: RoguePoison.InstantPoison,
+		offHandPoison: RoguePoison.DeadlyPoison,
+	},
+});
+
+const FlippedPoisons = RogueOptions.create({
+	classOptions: {
+		mainHandPoison: RoguePoison.DeadlyPoison,
+		offHandPoison: RoguePoison.InstantPoison,
+	},
+});
+
+const IP_MH_Settings = {
+	name: 'Default',
+	specOptions: DefaultOptions,
+};
+const DP_MH_Settings = {
+	name: 'Flipped Poisons',
+	specOptions: FlippedPoisons,
+};
+
 export const PRESET_BUILD_MUTILATE_ASN = PresetUtils.makePresetBuild('Asn Muti', {
 	talents: TALENTS_MUTILATE_ASN,
 	rotation: DEFAULT_APL,
 	gear: P1_MUTI_GEAR,
+	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_MUTILATE_COM = PresetUtils.makePresetBuild('Combat Muti', {
 	talents: TALENTS_MUTILATE_COM,
 	rotation: DEFAULT_APL,
 	gear: P1_MUTI_GEAR,
+	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_COMBAT_SS = PresetUtils.makePresetBuild('Combat SS', {
 	talents: TALENTS_COMBAT_SS,
 	rotation: DEFAULT_APL,
 	gear: P1_SLOW_MH_GEAR,
+	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_COMBAT_BS = PresetUtils.makePresetBuild('Combat BS', {
 	talents: TALENTS_COMBAT_BS,
 	rotation: BACKSTAB_APL,
 	gear: P1_BS_COMBAT_GEAR,
+	settings: DP_MH_Settings,
 });
 
 export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo', {
 	talents: TALENTS_SUB_HEMO,
 	rotation: DEFAULT_APL,
 	gear: P1_SLOW_MH_GEAR,
+	settings: DP_MH_Settings,
 });
 
 export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
 	talents: TALENTS_SUB_BS,
 	rotation: BACKSTAB_APL,
 	gear: P1_BS_SUB_GEAR,
-});
-
-export const DefaultOptions = RogueOptions.create({
-	classOptions: {
-		mainHandPoison: RoguePoison.DeadlyPoison,
-		offHandPoison: RoguePoison.InstantPoison,
-	},
+	settings: DP_MH_Settings,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({

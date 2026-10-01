@@ -65,17 +65,13 @@ func (rogue *Rogue) registerInitiative() {
 	initiativeRank := spellData.Initiative.Rank(rogue.Talents.Initiative)
 	initMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: initiativeRank.ID})
 
-	rogue.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Initiative - Trigger",
-		ActionID:           core.ActionID{SpellID: initiativeRank.ID},
-		Callback:           core.CallbackOnCastComplete,
-		ClassSpellMask:     RogueSpellGarrote | RogueSpellAmbush,
-		Outcome:            core.OutcomeLanded,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+	trigger := spelldata.ProcTrigger(&rogue.Character, initiativeRank,
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			rogue.AddComboPoints(sim, 1, initMetrics)
-		},
-	})
+		})
+	trigger.ClassSpellMask = RogueSpellGarrote | RogueSpellAmbush
+	trigger.TriggerImmediately = true
+	rogue.MakeProcTriggerAura(trigger)
 }
 
 var ghostlyStrikeRank = spellData.GhostlyStrike.Highest()
@@ -497,7 +493,7 @@ func (rogue *Rogue) registerQuietus() {
 	}).AttachSpellMod(core.SpellModConfig{
 		Kind:       core.SpellMod_DamageDone_Flat,
 		ClassMask:  RogueSpellQuietus, // Set to the spells the bonus should affect.
-		FloatValue: 0.1,
+		FloatValue: spellData.Quietus.EffectAt(1).FractionAt(rogue.Talents.Quietus),
 	})
 
 	rogue.RegisterResetEffect(func(sim *core.Simulation) {

@@ -1,8 +1,6 @@
 package rogue
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -122,8 +120,8 @@ func (rogue *Rogue) registerDualWieldSpecialization() {
 	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
+var bladeFlurryRank = spellData.BladeFlurry.Highest()
+
 func (rogue *Rogue) registerBladeFlurry() {
 	if !rogue.Talents.BladeFlurry {
 		return
@@ -145,48 +143,26 @@ func (rogue *Rogue) registerBladeFlurry() {
 		},
 	})
 
-	rogue.BladeFlurryAura = rogue.GetOrRegisterAura(core.Aura{
-		Label:    "Blade Flurry",
-		ActionID: core.ActionID{SpellID: 13877},
-		Duration: time.Second * 15,
+	rogue.BladeFlurryAura = rogue.RegisterAura(spelldata.AuraConfig(bladeFlurryRank))
+	spelldata.ParseEffects(&rogue.Character, rogue.BladeFlurryAura, bladeFlurryRank)
+	rogue.BladeFlurryAura.OnSpellHitDealt = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		if sim.ActiveTargetCount() < 2 {
+			return
+		}
+		if result.Damage == 0 || !spell.ProcMask.Matches(core.ProcMaskMelee) {
+			return
+		}
+		curDmg = result.Damage
+		bfHit.Cast(sim, rogue.Env.NextActiveTargetUnit(result.Target))
+		bfHit.SpellMetrics[result.Target.UnitIndex].Casts--
+	}
 
-		OnSpellHitDealt: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if sim.ActiveTargetCount() < 2 {
-				return
-			}
-
-			if result.Damage == 0 || !spell.ProcMask.Matches(core.ProcMaskMelee) {
-				return
-			}
-
-			curDmg = result.Damage
-			bfHit.Cast(sim, rogue.Env.NextActiveTargetUnit(result.Target))
-			bfHit.SpellMetrics[result.Target.UnitIndex].Casts--
-		},
-	}).AttachMultiplyAttackSpeed(1.2)
-
-	rogue.BladeFlurry = rogue.GetOrRegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: 13877},
-		ClassSpellMask: RogueSpellBladeFlurry,
-
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: time.Second,
-			},
-			CD: core.Cooldown{
-				Timer:    rogue.NewTimer(),
-				Duration: time.Minute * 2,
-			},
-			IgnoreHaste: true,
-		},
-		EnergyCost: core.EnergyCostOptions{
-			Cost: 25,
-		},
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			rogue.BladeFlurryAura.Activate(sim)
-		},
-	})
+	config := spelldata.SpellConfig(&rogue.Unit, bladeFlurryRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagMCD))
+	config.ClassSpellMask = RogueSpellBladeFlurry
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		rogue.BladeFlurryAura.Activate(sim)
+	}
+	rogue.BladeFlurry = rogue.RegisterSpell(config)
 
 	rogue.AddMajorCooldown(core.MajorCooldown{
 		Spell: rogue.BladeFlurry,

@@ -20,7 +20,7 @@ func (rogue *Rogue) registerAssassinationTalents() {
 
 	// Tier 3
 	// Relentless Strikes modeled in rogue.go ApplyFinisher
-	// Improved Expose Armor modeled in Expose Armor directly
+	rogue.registerImprovedExposeArmor()
 	rogue.registerLethality()
 
 	// Tier 4
@@ -69,6 +69,15 @@ func (rogue *Rogue) registerMurder() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.Murder.Rank(rogue.Talents.Murder))
+}
+
+func (rogue *Rogue) registerImprovedExposeArmor() {
+	if rogue.Talents.ImprovedExposeArmor == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&rogue.Character,
+		spellData.ImprovedExposeArmor.Rank(rogue.Talents.ImprovedExposeArmor))
 }
 
 // TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
@@ -320,7 +329,7 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 		oldMultiplier := spell.DamageMultiplier
 		// TODO: Detect any poison on the target, not just rogue poisons
 		if rogue.DeadlyPoison.Dot(target).IsActive() || rogue.WoundPoisonDebuffAuras.Get(target).IsActive() {
-			spell.DamageMultiplier *= 1.2
+			spell.DamageMultiplier *= 1 + mutilateCastRank.EffectN(4).Percent()
 		}
 
 		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialBlockAndCrit)

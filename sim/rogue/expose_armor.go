@@ -26,11 +26,9 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 				rogue.ExposeArmorAuras.Get(target).Activate(sim)
 
 				if rogue.Talents.ImprovedExposeArmor > 0 && rogue.ComboPoints() >= 5 {
-					pointsRefunded := rogue.Talents.ImprovedExposeArmor
-					energyRefunded := 5.0 * float64(rogue.Talents.ImprovedExposeArmor)
+					pointsRefunded := int32(spellData.ImprovedExposeArmor.Rank(rogue.Talents.ImprovedExposeArmor).EffectN(2).BaseValue())
 					rogue.ApplyFinisher(sim, spell)
 					rogue.AddComboPoints(sim, pointsRefunded, spell.ComboPointMetrics())
-					rogue.AddEnergy(sim, energyRefunded, spell.EnergyMetrics())
 				} else {
 					rogue.ApplyFinisher(sim, spell)
 				}
@@ -102,10 +100,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 }
 
 func (rogue *Rogue) GetExposeArmorValue() float64 {
-	// TODO: Forever repurposes Improved Expose Armor: the spell now carries an energy cost
-	// reduction (SPELLMOD_COST -5/-10) and a dummy of 1/2, neither of which is the 25/50%
-	// armor bonus this call wants, so the armor value is pinned to the untalented one.
-	return 450.0 * float64(rogue.ComboPoints())
+	return float64(exposeArmorRank.EffectN(1).PointsPerResource) * float64(rogue.ComboPoints())
 }
 
 func (rogue *Rogue) CanApplyExposeArmorAura(target *core.Unit) bool {
