@@ -1,7 +1,7 @@
+import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { fakeHost } from '@sim/testing';
 import { act, render, screen } from '@testing-library/react';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DistanceFromTarget, RetributionAuraSpellPower } from './other_inputs';
@@ -33,7 +33,7 @@ const mount = () => {
 	} as any;
 	render(
 		<SimHostProvider host={fakeHost({ player })}>
-			<NumberPicker modObject={player} config={DistanceFromTarget} />
+			<ConnectedNumberField modObject={player} config={DistanceFromTarget} />
 		</SimHostProvider>,
 	);
 };

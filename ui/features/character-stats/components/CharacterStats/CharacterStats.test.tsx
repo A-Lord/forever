@@ -3,13 +3,14 @@
 // with its siblings instead of reading as settled while the stats are still in flight.
 import { Class, PseudoStat, Race, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { renderWithHost } from '@testing/react';
+import { fireEvent, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { CharacterStats } from './CharacterStats';
+import { buildRows } from './utils/rows';
 import { statDisplayString } from './utils/stat_display';
 
 const KEY = 7;
@@ -33,43 +34,59 @@ const CRIT_CAP_INFO = {
 	playerCritCapDelta: CRIT_CAP_DELTA,
 };
 
-const renderStats = (settled: boolean) => {
+interface SheetSetup {
+	displayStats: Array<UnitStat>;
+	currentStats: object;
+	inFrontOfTarget?: boolean;
+	player: Record<string, unknown>;
+}
+
+const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, player }: SheetSetup) => {
 	const store = createSimStore();
-	const currentStats = settled ? { finalStats: new Stats().toProto() } : {};
 	seedKeyed(store, 'players', KEY, {
 		name: 'P',
 		race: Race.RaceOrc,
 		gear: { id: 'gear' },
 		bonusStats: new Stats(),
-		inFrontOfTarget: false,
+		inFrontOfTarget,
 		currentStats,
 		v: zeroVersions(PLAYER_FIELDS),
 	} as unknown as PlayerSlice);
 
-	const player = {
+	const view = renderWithHost(<CharacterStats />, {
+		player: {
+			sim: { store },
+			storeKey: KEY,
+			getClass: () => Class.ClassWarrior,
+			getRace: () => Race.RaceOrc,
+			getCurrentStats: () => currentStats,
+			getDebuffStats: () => new Stats(),
+			getEquippedItem: () => null,
+			isDualWielding: () => false,
+			...player,
+		},
 		sim: { store },
-		storeKey: KEY,
-		// Melee DPS but not a tank: the crit cap row is shown, the miss/avoidance/crit-immunity trio is not.
-		getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }),
-		getClass: () => Class.ClassWarrior,
-		getRace: () => Race.RaceOrc,
-		getCurrentStats: () => currentStats,
-		getDebuffStats: () => new Stats(),
-		getEquippedItem: () => null,
-		isDualWielding: () => false,
-		getMeleeCritCap: () => CRIT_CAP_DELTA,
-		getMeleeCritCapInfo: () => CRIT_CAP_INFO,
-	};
-
-	const host = { player, sim: { store }, individualConfig: { displayStats: DISPLAY_STATS } } as never;
-	const view = render(
-		<SimHostProvider host={host}>
-			<CharacterStats />
-		</SimHostProvider>,
-	);
+		individualConfig: { displayStats },
+		getStorageKey: (keyPart: string) => `test${keyPart}`,
+	});
 	const rows = Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]'));
 	return { view, rows };
 };
+
+const statsWhen = (settled: boolean) => (settled ? { finalStats: new Stats().toProto() } : {});
+
+const renderStats = (settled: boolean) =>
+	renderSheet({
+		displayStats: DISPLAY_STATS,
+		currentStats: statsWhen(settled),
+		player: {
+			// Melee DPS but not a tank: the crit cap row is shown, the miss/avoidance/crit-immunity trio is not.
+			getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }),
+			getMeleeCritCap: () => CRIT_CAP_DELTA,
+			getMeleeCritCapInfo: () => CRIT_CAP_INFO,
+			getBaseDefense: () => 300,
+		},
+	});
 
 // The tank trio is appended to the Defense group, so that group has to be populated for the
 // rows to exist at all.
@@ -82,52 +99,113 @@ const CRIT_IMMUNITY_INFO = { total: 5.6, delta: 0, defense: 4.6, talents: 1 };
 // The tank sheet adds three rows the DPS sheet has no equivalent for -- miss, avoidance and
 // crit immunity -- appended to the Defense group. What is pinned here is that they skeleton with
 // every other row rather than reading as settled while the stats are still in flight.
-const renderTankStats = (settled: boolean) => {
-	const store = createSimStore();
-	const currentStats = settled ? { finalStats: new Stats().toProto() } : {};
-	seedKeyed(store, 'players', KEY, {
-		name: 'P',
-		race: Race.RaceOrc,
-		gear: { id: 'gear' },
-		bonusStats: new Stats(),
+const renderTankStats = (settled: boolean) =>
+	renderSheet({
+		displayStats: TANK_DISPLAY_STATS,
+		currentStats: statsWhen(settled),
 		inFrontOfTarget: true,
-		currentStats,
-		v: zeroVersions(PLAYER_FIELDS),
-	} as unknown as PlayerSlice);
-
-	const player = {
-		sim: { store },
-		storeKey: KEY,
-		getPlayerSpec: () => ({ isTankSpec: true, isMeleeDpsSpec: false }),
-		getClass: () => Class.ClassWarrior,
-		getRace: () => Race.RaceOrc,
-		getCurrentStats: () => currentStats,
-		getDebuffStats: () => new Stats(),
-		getEquippedItem: () => null,
-		isDualWielding: () => false,
-		isSpec: () => false,
-		getMissChanceInfo: () => MISS_INFO,
-		getAvoidanceInfo: () => AVOIDANCE_INFO,
-		getCritImmunityInfo: () => CRIT_IMMUNITY_INFO,
-		getCritImmunity: () => CRIT_IMMUNITY_INFO.delta,
-		getBaseDefense: () => 350,
-	};
-
-	const host = { player, sim: { store }, individualConfig: { displayStats: TANK_DISPLAY_STATS } } as never;
-	const view = render(
-		<SimHostProvider host={host}>
-			<CharacterStats />
-		</SimHostProvider>,
-	);
-	const rows = Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]'));
-	return { view, rows };
-};
+		player: {
+			getPlayerSpec: () => ({ isTankSpec: true, isMeleeDpsSpec: false }),
+			isSpec: () => false,
+			getMissChanceInfo: () => MISS_INFO,
+			getAvoidanceInfo: () => AVOIDANCE_INFO,
+			getCritImmunityInfo: () => CRIT_IMMUNITY_INFO,
+			getCritImmunity: () => CRIT_IMMUNITY_INFO.delta,
+			getBaseDefense: () => 350,
+		},
+	});
 
 const critCapRow = (rows: Array<Element>) => {
 	const row = rows.at(-1)!;
 	expect(row.querySelector('.ui-character-stats-label')!.textContent).toBe(i18n.t('sidebar.character_stats.melee_crit_cap'));
 	return row;
 };
+
+describe('CharacterStats sheet', () => {
+	it('lays the stats out on a plain table, with no row or column rules', () => {
+		const { view } = renderStats(true);
+
+		expect(view.container.querySelector('table')!.getAttribute('data-variant')).toBe('plain');
+	});
+});
+
+describe('CharacterStats Key/All toggle', () => {
+	const rowLabels = (view: ReturnType<typeof renderWithHost>) =>
+		Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]')).map(row => row.firstElementChild!.textContent);
+	const modeButton = (mode: 'key' | 'all') => screen.getByRole('button', { name: i18n.t(`sidebar.character_stats.mode.${mode}`) });
+
+	it('opens on Key, showing the spec display stats and the crit cap', () => {
+		const { view } = renderStats(true);
+
+		expect(modeButton('key').getAttribute('aria-pressed')).toBe('true');
+		expect(rowLabels(view)).toEqual([
+			...DISPLAY_STATS.map(stat => stat.getShortName(Class.ClassWarrior)),
+			i18n.t('sidebar.character_stats.melee_crit_cap'),
+		]);
+	});
+
+	it('shows every group on All, with the rows of the open ones, and the Key rows again on Key', () => {
+		const { view } = renderStats(true);
+		const keyLabels = rowLabels(view);
+
+		fireEvent.click(modeButton('all'));
+		const allGroups = buildRows({ getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }) } as never, UnitStat.getAll()).groups;
+		const shownRows = allGroups.filter(group => ['primary', 'attributes', 'physical'].includes(group.key)).flatMap(group => group.rows);
+		expect(modeButton('all').getAttribute('aria-pressed')).toBe('true');
+		expect(groupTriggers().map(trigger => trigger.getAttribute('data-testid'))).toEqual(
+			['attributes', 'physical', 'spell', 'defense', 'resistance'].map(key => `character-stats-group-${key}-trigger`),
+		);
+		expect(rowLabels(view).length).toBe(shownRows.length);
+		expect(rowLabels(view)).toEqual(expect.arrayContaining(keyLabels));
+
+		fireEvent.click(modeButton('key'));
+		expect(rowLabels(view)).toEqual(keyLabels);
+	});
+});
+
+const groupTriggers = () => screen.queryAllByTestId(/^character-stats-group-[a-z]+-trigger$/);
+const groupTrigger = (key: string) => screen.getByTestId(`character-stats-group-${key}-trigger`);
+const expandedGroups = () => groupTriggers().filter(trigger => trigger.getAttribute('aria-expanded') === 'true');
+const showAll = () => fireEvent.click(screen.getByRole('button', { name: i18n.t('sidebar.character_stats.mode.all') }));
+
+describe('CharacterStats groups', () => {
+	afterEach(() => {
+		window.localStorage.clear();
+	});
+
+	it('keeps health and mana above the groups, under no header', () => {
+		renderStats(true);
+		showAll();
+
+		const healthLabel = UnitStat.fromStat(Stat.StatHealth).getShortName(Class.ClassWarrior);
+		const health = screen.getAllByTestId('character-stats-table-row').find(row => row.firstElementChild!.textContent === healthLabel)!;
+		expect(screen.getByTestId('character-stats-groups').contains(health)).toBe(false);
+	});
+
+	it.each([
+		['a melee spec', renderStats, 'physical'],
+		['a tank', renderTankStats, 'defense'],
+	])('opens Attributes and the main group for %s, and leaves the rest closed', (_spec, render, main) => {
+		render(true);
+		showAll();
+
+		expect(expandedGroups()).toEqual([groupTrigger('attributes'), groupTrigger(main)]);
+	});
+
+	it('keeps the open groups under the spec storage key, and a remount reads them back', () => {
+		const { view } = renderStats(true);
+		showAll();
+
+		fireEvent.click(groupTrigger('spell'));
+		fireEvent.click(groupTrigger('attributes'));
+		expect(JSON.parse(window.localStorage.getItem('test__characterStatsGroups')!)).toEqual(['physical', 'spell']);
+
+		view.unmount();
+		renderStats(true);
+		showAll();
+		expect(expandedGroups()).toEqual([groupTrigger('physical'), groupTrigger('spell')]);
+	});
+});
 
 describe('CharacterStats loading state', () => {
 	it('shows a skeleton in every row, crit cap included, while the stats are still loading', () => {
@@ -197,82 +275,49 @@ const MELEE_HIT_STATS = new Stats()
 const MAIN_HAND_VALUE = statDisplayString({} as never, MELEE_HIT_STATS, UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent), true);
 const OFF_HAND_VALUE = statDisplayString({} as never, MELEE_HIT_STATS, UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent), true);
 
-const renderMeleeHitRow = (dualWielding: boolean) => {
-	const store = createSimStore();
-	const finalStats = MELEE_HIT_STATS.toProto();
-	seedKeyed(store, 'players', KEY, {
-		name: 'P',
-		race: Race.RaceOrc,
-		gear: { id: 'gear' },
-		bonusStats: new Stats(),
-		inFrontOfTarget: false,
-		currentStats: { finalStats },
-		v: zeroVersions(PLAYER_FIELDS),
-	} as unknown as PlayerSlice);
+const EVEN_HANDS_STATS = MELEE_HIT_STATS.withPseudoStat(PseudoStat.PseudoStatOffHandHitPercent, 3).withPseudoStat(PseudoStat.PseudoStatOffHandHitRating, 30);
 
-	const player = {
-		sim: { store },
-		storeKey: KEY,
-		getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: false }),
-		getClass: () => Class.ClassWarrior,
-		getRace: () => Race.RaceOrc,
-		getCurrentStats: () => ({ finalStats }),
-		getDebuffStats: () => new Stats(),
-		getEquippedItem: () => null,
-		isDualWielding: () => dualWielding,
-	};
-
-	const host = { player, sim: { store }, individualConfig: { displayStats: MELEE_HIT_DISPLAY_STATS } } as never;
-	const view = render(
-		<SimHostProvider host={host}>
-			<CharacterStats />
-		</SimHostProvider>,
-	);
-	const meleeHitRow = view.container.querySelectorAll('[data-testid="character-stats-table-row"]')[0];
-	return { meleeHitRow };
+const renderMeleeHitRow = (dualWielding: boolean, stats = MELEE_HIT_STATS) => {
+	const { rows } = renderSheet({
+		displayStats: MELEE_HIT_DISPLAY_STATS,
+		currentStats: { finalStats: stats.toProto() },
+		player: {
+			getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: false }),
+			isDualWielding: () => dualWielding,
+		},
+	});
+	return { meleeHitRow: rows[0] };
 };
 
 const MAIN_HAND_LABEL = i18n.t('slots.main_hand', { ns: 'character' });
 const OFF_HAND_LABEL = i18n.t('slots.off_hand', { ns: 'character' });
 
 describe('CharacterStats combined melee hand rows', () => {
-	it('shows only the main-hand value, with no off-hand tooltip anchor, while single wielding', async () => {
-		const { meleeHitRow } = renderMeleeHitRow(false);
+	it.each([
+		['single wielding', false, MELEE_HIT_STATS, [MAIN_HAND_VALUE]],
+		['dual wielding with even hands', true, EVEN_HANDS_STATS, [MAIN_HAND_VALUE]],
+		[
+			'dual wielding with uneven hands',
+			true,
+			MELEE_HIT_STATS,
+			[`${i18n.t('sidebar.character_stats.hands.main')} ${MAIN_HAND_VALUE}`, `${i18n.t('sidebar.character_stats.hands.off')} ${OFF_HAND_VALUE}`],
+		],
+	])('shows one value while %s, and each hand prefixed MH and OH only when they differ', (_case, dualWielding, stats, lines) => {
+		const { meleeHitRow } = renderMeleeHitRow(dualWielding, stats);
 		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
 
-		expect(links.length).toBe(1);
-		expect(links[0].textContent?.trim()).toBe(MAIN_HAND_VALUE);
-
-		fireEvent.mouseEnter(links[0]);
-		expect((await screen.findAllByText(MAIN_HAND_VALUE)).length).toBeGreaterThan(1);
-		expect(screen.queryByTestId('character-stats-tooltip-hand')).toBeNull();
+		expect([...links].map(link => link.parentElement!.textContent)).toEqual(lines);
 	});
 
-	it('shows both hands, joined by " / ", while dual wielding', () => {
+	it.each([
+		['main', 0, MAIN_HAND_LABEL, MAIN_HAND_VALUE],
+		['off', 1, OFF_HAND_LABEL, OFF_HAND_VALUE],
+	])("opens the %s hand's own breakdown, headed by its hand, when its half is hovered", async (_hand, index, label, value) => {
 		const { meleeHitRow } = renderMeleeHitRow(true);
 		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
 
-		expect(links.length).toBe(2);
-		expect(links[0].textContent).toBe(MAIN_HAND_VALUE);
-		expect(links[1].textContent).toBe(OFF_HAND_VALUE);
-		expect(meleeHitRow.textContent).toContain(' / ');
-	});
-
-	it('opens the main hand\'s own breakdown, headed "Main Hand", when its half is hovered', async () => {
-		const { meleeHitRow } = renderMeleeHitRow(true);
-		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
-
-		fireEvent.mouseEnter(links[0]);
-		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(MAIN_HAND_LABEL);
-		expect((await screen.findAllByText(MAIN_HAND_VALUE)).length).toBeGreaterThan(1);
-	});
-
-	it('opens the off hand\'s own breakdown, headed "Off Hand", when its half is hovered', async () => {
-		const { meleeHitRow } = renderMeleeHitRow(true);
-		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
-
-		fireEvent.mouseEnter(links[1]);
-		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(OFF_HAND_LABEL);
-		expect((await screen.findAllByText(OFF_HAND_VALUE)).length).toBeGreaterThan(1);
+		fireEvent.mouseEnter(links[index]);
+		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(label);
+		expect((await screen.findAllByText(value)).length).toBeGreaterThan(1);
 	});
 });

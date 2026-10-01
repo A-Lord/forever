@@ -44,8 +44,8 @@ export const ConfirmPopover = ({
 		triggerProps={triggerProps}
 		side={side}
 		testId={testId ?? 'sim-confirm-popover'}
-		maxWidth="max-w-55">
-		<p className="mb-3" data-testid="sim-confirm-popover-message">
+		maxWidthClassName="max-w-54">
+		<p className="mb-2" data-testid="sim-confirm-popover-message">
 			{children}
 		</p>
 		<div className="flex justify-end gap-2" data-testid="sim-confirm-popover-actions">

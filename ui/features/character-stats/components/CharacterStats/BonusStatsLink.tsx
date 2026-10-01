@@ -37,7 +37,6 @@ export const BonusStatsLink = ({ unitStat }: BonusStatsLinkProps) => {
 				ref={popover}
 				id={`${id}-popover`}
 				testId="bonus-stats-popover"
-				className="[&_.ui-number-picker-input]:m-0 [&_.ui-number-picker-input]:w-32 [&_.ui-number-picker-input]:flex-1 [&_.ui-number-picker-root]:flex-col"
 				align="start"
 				place="right"
 				openOnClick

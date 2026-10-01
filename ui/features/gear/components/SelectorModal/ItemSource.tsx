@@ -3,7 +3,7 @@ import { ActionId } from '@sim/proto/action_id';
 import { getPVPSeasonFromItem, isPVPItem } from '@sim/proto/items';
 import { difficultyNames, professionNames, REP_FACTION_NAMES, REP_FACTION_QUARTERMASTERS, REP_LEVEL_NAMES } from '@sim/proto/names';
 import type { Sim } from '@sim/sim';
-import { externalRel } from '@sim/utils/links';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import type { ReactNode } from 'react';
 
 export interface ItemSourceProps {
@@ -19,9 +19,9 @@ const FactionIcon = ({ restriction }: { restriction: UIItem_FactionRestriction }
 };
 
 const SourceLink = ({ href, children }: { href: string; children: ReactNode }) => (
-	<a href={href} target="_blank" rel={externalRel(href, undefined)} data-whtticon="false" className="relative z-1">
+	<WowheadAnchor href={href} target="_blank" className="relative z-1">
 		<small>{children}</small>
-	</a>
+	</WowheadAnchor>
 );
 
 export const ItemSource = ({ item, sim }: ItemSourceProps): ReactNode => {

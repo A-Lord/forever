@@ -12,7 +12,7 @@
 	}
 
 	.ui-selector-modal-list-item-name {
-		@apply ml-2 cursor-pointer text-md font-normal tracking-normal;
+		@apply ml-2 flex cursor-pointer flex-wrap items-baseline gap-x-1 text-md font-normal tracking-normal;
 	}
 
 	.ui-selector-modal-filters {

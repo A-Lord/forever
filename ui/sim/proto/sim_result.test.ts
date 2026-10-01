@@ -1,10 +1,7 @@
 import { TargetedActionMetrics as TargetedActionMetricsProto } from '@generated/proto/api';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@i18n/localization', () => ({
-	translateStat: (stat: unknown) => String(stat),
-	translatePseudoStat: (pseudoStat: unknown) => String(pseudoStat),
-}));
+vi.mock('@i18n/localization', async () => (await import('./testing')).localizationStub);
 
 import { TargetedActionMetrics } from './sim_result';
 

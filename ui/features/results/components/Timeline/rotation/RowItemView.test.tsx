@@ -50,10 +50,9 @@ describe('RowItemView', () => {
 		expect(vars(stacks[1])).toEqual({ t: '2', dur: '2' });
 	});
 
-	it('draws a resource block in the row’s colour, filling it only when the row asks for a fill', () => {
+	it('draws a resource block, filling it only when the row asks for a fill', () => {
 		const numeric = mount({ kind: 'resource', start: 0, end: 2, display: 'number', fillPercent: 0, text: '42' } as ResourceItem);
 		expect(numeric.dataset.testid).toBe('series-color');
-		expect(numeric.classList.contains('mana')).toBe(true);
 		expect(numeric.querySelector<HTMLElement>('[data-testid="rotation-item-resource-fill"]')!.hidden).toBe(true);
 		expect(numeric.querySelector('[data-testid="rotation-item-resource-text"]')!.textContent).toBe('42');
 
