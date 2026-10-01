@@ -90,7 +90,7 @@ func SetupFakeRageSim() *Simulation {
 		},
 		Encounter: &proto.Encounter{
 			Targets: []*proto.Target{
-				{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid, SwingSpeed: 2, MinBaseDamage: 1000},
+				{Name: "target", Level: 63, MobType: proto.MobType_MobTypeHumanoid, SwingSpeed: 2},
 			},
 			Duration: 180,
 		},
@@ -101,13 +101,10 @@ func SetupFakeRageSim() *Simulation {
 }
 
 // Feeds a hand-crafted auto attack result to the Rage bar and returns the Rage gained from it.
-// PostArmorAndResistanceMultiplier is always populated, because the sim fills it in before the
-// outcome is applied, even for swings which end up doing no damage.
 func rageFromAutoAttack(sim *Simulation, fw *FakeRageWarrior, spell *Spell, outcome HitOutcome, preOutcomeDamage float64) float64 {
 	result := &SpellResult{
-		Target:                           sim.Encounter.ActiveTargetUnits[0],
-		Outcome:                          outcome,
-		PostArmorAndResistanceMultiplier: preOutcomeDamage,
+		Target:  sim.Encounter.ActiveTargetUnits[0],
+		Outcome: outcome,
 	}
 	if outcome.Matches(OutcomeLanded) {
 		result.Damage = preOutcomeDamage
@@ -230,12 +227,9 @@ func TestDamageTakenRageGeneration(t *testing.T) {
 			attacker := sim.Encounter.ActiveTargetUnits[0]
 
 			result := &SpellResult{
-				Target:  &fw.Unit,
-				Outcome: test.outcome,
-			}
-			if test.outcome.Matches(OutcomeLanded) {
-				result.Damage = preMitigationDamage / 4
-				result.PreMitigationDamage = preMitigationDamage
+				Target:              &fw.Unit,
+				Outcome:             test.outcome,
+				PreMitigationDamage: preMitigationDamage,
 			}
 
 			rageBefore := fw.CurrentRage()
