@@ -1,7 +1,7 @@
+import * as InputHelpers from '@features/inputs/input_helpers';
 import { RoguePoison } from '@generated/proto/rogue';
 import i18n from '@i18n/config';
 import { RogueSpecs } from '@sim/proto/spec_types';
-import * as InputHelpers from '@ui-kit/input_helpers';
 
 import { ActionId } from '../../../sim/proto/action_id';
 
