@@ -7,7 +7,7 @@ export interface BulkResultTieGroupProps {
 }
 
 export const BulkResultTieGroup = ({ children }: BulkResultTieGroupProps) => (
-	<div className="mb-6 flex flex-col rounded-md border border-l-3 border-border border-l-warning px-4 py-2" data-testid="bulk-results-tie-group">
+	<div className="mb-6 flex flex-col rounded-sm border border-l-3 border-border border-l-warning px-4 py-2" data-testid="bulk-results-tie-group">
 		<span className="mb-6">{i18n.t('bulk_tab.results.tied_group')}</span>
 		{children}
 	</div>
