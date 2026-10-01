@@ -652,7 +652,7 @@ export class Player<SpecType extends Spec> {
 	}
 	setProfession1(newProfession: Profession) {
 		if (newProfession != this.getProfession1()) {
-			this.patch('profession1', newProfession);
+			this.write({ profession1: newProfession, prof1Rank: 0 }, ['profession1', 'prof1Rank']);
 		}
 	}
 	getProfession2(): Profession {
@@ -660,7 +660,7 @@ export class Player<SpecType extends Spec> {
 	}
 	setProfession2(newProfession: Profession) {
 		if (newProfession != this.getProfession2()) {
-			this.patch('profession2', newProfession);
+			this.write({ profession2: newProfession, prof2Rank: 0 }, ['profession2', 'prof2Rank']);
 		}
 	}
 	getProfessions(): Array<Profession> {

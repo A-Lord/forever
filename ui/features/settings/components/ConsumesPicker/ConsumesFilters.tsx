@@ -3,7 +3,6 @@ import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Database } from '@sim/proto/database';
-import { Sim } from '@sim/sim';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
@@ -47,7 +46,8 @@ export const ConsumesFilters = () => {
 	return (
 		<Popover
 			trigger={<Icon name="filter" />}
-			triggerClassName={['ui-button', 'ui-button-sm', 'ui-button-link', 'ml-auto']}
+			triggerRender={<Button variant="link" size="sm" />}
+			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			triggerProps={{ 'aria-label': i18n.t('settings_tab.consumables.filters.title') }}
 			side="bottom"
@@ -64,7 +64,7 @@ export const ConsumesFilters = () => {
 						placeholder={range}
 						positive
 						showZeroes={false}
-						value={filters.minConsumableLevel[type] ?? Sim.DEFAULT_MIN_CONSUMABLE_LEVEL[type] ?? 0}
+						value={sim.getMinConsumableLevel(type)}
 						onChange={value => edit(levels => (levels[type] = value))}
 					/>
 				))}

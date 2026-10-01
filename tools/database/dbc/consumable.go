@@ -1,7 +1,6 @@
 package dbc
 
 import (
-	"cmp"
 	"slices"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -94,7 +93,7 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		Type:               c.consumableType(enchant, category),
 		Stats:              c.GetStatModifiers().ToProtoArray(),
 		Name:               c.Name,
-		Level:              int32(cmp.Or(c.RequiredLevel, c.ItemLevel)),
+		Level:              int32(c.ItemLevel),
 		BuffsMainStat:      false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
 		CategoryId:         int32(c.SpellCategoryID),
 		EffectIds:          c.GetNonStatEffectIds(),
@@ -104,6 +103,11 @@ func (c *Consumable) ToProto() *proto.Consumable {
 	}
 	if category > 0 {
 		consumable.CategoryId = category
+	}
+	// A required level of 1 requires nothing: the EZ-Thro and SAF-T bombs and the Restored potions
+	// state 1 beside item levels up to 60.
+	if c.RequiredLevel > 1 {
+		consumable.Level = int32(c.RequiredLevel)
 	}
 	if consumable.RequiredProfession != proto.Profession_ProfessionUnknown {
 		consumable.ReqProfRank = int32(c.RequiredSkillRank)
