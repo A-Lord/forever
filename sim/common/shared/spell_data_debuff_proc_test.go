@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -196,6 +197,78 @@ func TestAnnihilatorShattersTheTargetsArmor(t *testing.T) {
 
 	stepPast(t, sim, refreshed+45*time.Second+time.Millisecond)
 	expectArmor("past the refreshed 45 s", targetArmor)
+}
+
+// The raid's Armor Shatter holds its three stacks from the start, and the wielder's own procs land
+// Annihilator's copy beside it in the same category: both are on the target, and its armor drops
+// by the stronger of the two once.
+func TestAnnihilatorBidsBesideTheRaidsArmorShatter(t *testing.T) {
+	const armorShatter, weaponID int32 = 16928, 991409
+	editRow(t, armorShatter, func(s *spelldata.Spell) {
+		alwaysProcs(s)
+		s.RPPM = 0
+	})
+	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{testOneHander(weaponID)}})
+	registerSpellDataDebuffProc(SpellDataProc{Name: "Test Annihilator", ItemID: weaponID,
+		TriggerSpellID: armorShatter, BuffSpellID: armorShatter, IsWeaponProc: true})
+
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid: &proto.Raid{
+			Parties: []*proto.Party{{
+				Players: []*proto.Player{{
+					Name:      "Caster",
+					Class:     proto.Class_ClassShaman,
+					Race:      proto.Race_RaceTroll,
+					Buffs:     &proto.IndividualBuffs{},
+					Spec:      &proto.Player_ElementalShaman{},
+					Equipment: &proto.EquipmentSpec{Items: testHands(&proto.ItemSpec{Id: weaponID}, &proto.ItemSpec{})},
+				}},
+				Buffs: &proto.PartyBuffs{},
+			}},
+			Debuffs: &proto.Debuffs{ArmorShatter: true},
+		},
+		Encounter: &proto.Encounter{
+			Targets:  []*proto.Target{{Name: "target", Level: 60, MobType: proto.MobType_MobTypeDemon}},
+			Duration: 180,
+		},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+	target := sim.Encounter.ActiveTargetUnits[0]
+
+	raids := target.GetAura("Armor Shatter (External)")
+	if raids == nil || !raids.IsActive() || raids.GetStacks() != 3 {
+		t.Fatalf("the raid's Armor Shatter is %v, want it on the target at three stacks", raids)
+	}
+	shattered := target.GetStat(stats.Armor)
+	raids.Deactivate(sim)
+	base := target.GetStat(stats.Armor)
+	raids.Activate(sim)
+	if shattered != base-495 {
+		t.Fatalf("the raid's three stacks leave the target at %v armor, want %v", shattered, base-495)
+	}
+
+	for range 3 {
+		landMainHandSwing(sim, caster, target)
+	}
+
+	if got := target.GetStat(stats.Armor); got != shattered {
+		t.Errorf("the target's armor is %v, want the %v one Armor Shatter at three stacks leaves", got, shattered)
+	}
+	if !raids.IsActive() {
+		t.Error("the wielder's procs pushed the raid's Armor Shatter off the target, want both on it")
+	}
+	var wielders *core.Aura
+	for _, aura := range target.GetAuras() {
+		if aura != raids && aura.ActionID.SpellID == armorShatter && aura.IsActive() {
+			wielders = aura
+		}
+	}
+	if wielders == nil || wielders.GetStacks() != 3 || wielders.Tag != buffs.ArmorShatterCategory {
+		t.Errorf("the wielder's Armor Shatter is %v, want it on the target at three stacks, tagged %q",
+			wielders, buffs.ArmorShatterCategory)
+	}
 }
 
 // Depleted Eye of Influence 275630's Eye of Influence 1297082 states A_MOD_ATTACK_POWER and

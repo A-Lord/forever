@@ -29,7 +29,7 @@ func (mage *Mage) registerFlamestrikeSpell(castRank, tickRank *spelldata.Spell) 
 	dotConfig.Dot.BonusCoefficient = tickDamage.Coeff()
 	dotConfig.Dot.OnTick = func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
 		chargeLock.deal(dot.Spell, &mage.Unit, func() {
-			dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tickDamage.Roll(sim, core.CharacterLevel), dot.OutcomeTickMagicHit)
+			dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tickDamage.Roll(sim), dot.OutcomeTickMagicHit)
 		})
 	}
 	dotConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {

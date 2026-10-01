@@ -216,7 +216,24 @@ var configFields = []configField{
 	{name: "MaxRange", read: func(c *core.SpellConfig) string { return nonZero(c.MaxRange, floatText) }},
 	{name: "MissileSpeed", read: func(c *core.SpellConfig) string { return nonZero(c.MissileSpeed, floatText) }},
 	{name: "ClassFlags", read: func(c *core.SpellConfig) string { return classFlagsPhrase(c.ClassFlags) }},
+	{name: "CastRequirement.Forms", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.Forms, formsText) }},
+	{name: "CastRequirement.ExcludedForms", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.ExcludedForms, formsText) }},
+	{name: "CastRequirement.CasterForm", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.CasterForm, boolText) }},
+	{name: "CastRequirement.NotShapeshifted", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.NotShapeshifted, boolText) }},
+	{name: "CastRequirement.CasterAura", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.CasterAura, intText[int32]) }},
+	{name: "CastRequirement.ExcludeCasterAura", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.ExcludeCasterAura, intText[int32]) }},
+	{name: "CastRequirement.Weapon.SubclassMask", read: func(c *core.SpellConfig) string {
+		return nonZero(c.CastRequirement.Weapon.SubclassMask, func(mask int32) string { return fmt.Sprintf("%d (%s)", mask, weaponRequirement(mask)) })
+	}},
+	{name: "CastRequirement.Weapon.InvTypeMask", read: func(c *core.SpellConfig) string {
+		return nonZero(c.CastRequirement.Weapon.InvTypeMask, func(mask int32) string { return fmt.Sprintf("%d (%s)", mask, maskNames(mask, inventoryTypes)) })
+	}},
+	{name: "CastRequirement.Weapon.Hand", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.Weapon.Hand, procMaskNames) }},
+	{name: "CastRequirement.Shield", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.Shield, boolText) }},
+	{name: "CastRequirement.NotInCombat", read: func(c *core.SpellConfig) string { return nonZero(c.CastRequirement.NotInCombat, boolText) }},
 }
+
+func formsText(mask uint64) string { return fmt.Sprintf("%#x (%s)", mask, stanceList(mask)) }
 
 func attribute(stages []core.SpellConfig, labels []string) []configRow {
 	final := &stages[len(stages)-1]

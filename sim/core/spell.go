@@ -124,6 +124,7 @@ type Spell struct {
 	hasCastRequirement bool
 	casterAuras        []*Aura
 	excludeCasterAuras []*Aura
+	equipment          *Equipment
 
 	// Optional range constraints. If supplied, these are used to modify the ExtraCastCondition above to additionally check for DistanceFromTarget.
 	MinRange     float64
@@ -525,6 +526,7 @@ func (spell *Spell) finalize() {
 
 	if spell.hasCastRequirement {
 		spell.resolveCasterAuras()
+		spell.equipment = spell.Unit.playerEquipment()
 	}
 
 	// Set the "static" "default" cost here
@@ -696,7 +698,7 @@ func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailur
 	}
 
 	if spell.hasCastRequirement {
-		if reason, _ := spell.castRequirementFailure(); reason != "" {
+		if reason, _ := spell.castRequirementFailure(sim); reason != "" {
 			if logCastFailure {
 				return spell.castFailureHelper(sim, reason)
 			}

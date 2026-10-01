@@ -30,7 +30,7 @@ func (mage *Mage) registerFireballSpell() {
 	spellConfig.ClassSpellMask = MageSpellFireball
 
 	spellConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, fireballDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, fireballDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		chargeBonus := mage.arcaneChargesBonus()
 		spell.WaitTravelTime(sim, func(s *core.Simulation) {
 			spell.DealDamage(sim, result)

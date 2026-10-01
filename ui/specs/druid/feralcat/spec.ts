@@ -95,11 +95,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,
-			graceOfAirTotem: true,
 			windfuryTotem: true,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
 			strengthOfEarthTotem: true,
-			totemTwisting: true,
 		}),
 		individualBuffs: IndividualBuffs.create({
 			greaterBlessingOfKings: true,
@@ -122,11 +120,10 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	rotationInputs: FeralInputs.FeralDruidRotationConfig,
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatIntellect, Stat.StatStamina],
-	excludeBuffDebuffInputs: [BuffDebuffInputs.WindfuryTotem, BuffDebuffInputs.FlametongueTotem],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.AtieshMage],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [
-			OtherInputs.TotemTwisting,
 			OtherInputs.InputDelay,
 			OtherInputs.DistanceFromTarget,
 			OtherInputs.TankAssignment,

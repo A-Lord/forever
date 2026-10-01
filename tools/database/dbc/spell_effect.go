@@ -52,20 +52,15 @@ type SpellEffect struct {
 
 func (se *SpellEffect) ToProto() *proto.SpellEffect {
 	spellEffect := &proto.SpellEffect{
-		Id:            int32(se.ID),
-		SpellId:       int32(se.SpellID),
-		Index:         int32(se.EffectIndex),
-		Type:          proto.EffectType(se.EffectType),
-		EffectSpread:  math.Round(se.Delta(BASE_LEVEL, BASE_LEVEL)),
-		MinEffectSize: math.Round(se.Min(BASE_LEVEL, BASE_LEVEL)),
-		AuraPeriodMs:  int32(se.EffectAuraPeriod),
-		DurationMs:    int32(dbcInstance.Spells[se.SpellID].Duration),
+		Id:           int32(se.ID),
+		SpellId:      int32(se.SpellID),
+		Index:        int32(se.EffectIndex),
+		Type:         proto.EffectType(se.EffectType),
+		AuraPeriodMs: int32(se.EffectAuraPeriod),
+		DurationMs:   int32(dbcInstance.Spells[se.SpellID].Duration),
 	}
 	if effectStats, ok := se.ParseStatEffect(false, 0); ok {
 		spellEffect.Stats = effectStats.ToProtoArray()
-	}
-	if spellEffect.EffectSpread == 0 {
-		spellEffect.EffectSpread = float64(se.EffectDieSides)
 	}
 	switch se.EffectType {
 	case dbcenums.E_ENERGIZE:
@@ -126,85 +121,6 @@ func (s *SpellEffect) ScalingClass() proto.Class {
 	default:
 		return proto.Class_ClassUnknown
 	}
-}
-func (s *SpellEffect) Delta(pLevel int, level int) float64 {
-	if level > 60 {
-		level = 60
-	}
-
-	var mScale float64
-	spell := dbcInstance.Spells[s.SpellID]
-	if s.Variance != 0 && s.ScalingClass() != 0 {
-		scalingLevel := level
-		if scalingLevel == 0 {
-			scalingLevel = pLevel
-		}
-		if spell.MaxScalingLevel > 0 {
-			scalingLevel = min(scalingLevel, spell.MaxScalingLevel)
-		}
-		mScale = dbcInstance.SpellScaling(s.ScalingClass(), scalingLevel)
-	}
-
-	return s.scaledDelta(mScale)
-}
-
-func (s *SpellEffect) Average(pLevel int, level int) float64 {
-	if level == 0 {
-		level = pLevel
-	}
-
-	scale := s.ScalingClass()
-	spell := dbcInstance.Spells[s.SpellID]
-
-	if s.Coefficient != 0 && scale != proto.Class_ClassUnknown {
-		if spell.MaxScalingLevel > 0 {
-			level = min(level, spell.MaxScalingLevel)
-		}
-		scaler := dbcInstance.SpellScaling(scale, level)
-		value := s.Coefficient * scaler
-		return value
-	} else if s.EffectRealPointsPerLevel != 0 {
-		if spell.MaxLevel > 0 {
-			return float64(s.EffectBasePoints) + float64(min(level, spell.MaxLevel)-spell.SpellLevel)*s.EffectRealPointsPerLevel
-		}
-		return float64(s.EffectBasePoints) + float64(level-spell.SpellLevel)*s.EffectRealPointsPerLevel
-	}
-	return float64(s.EffectBasePoints)
-}
-
-// Minimum value calculation for player
-func (s *SpellEffect) Min(pLevel int, level int) float64 {
-	return s.scaledMin(s.Average(pLevel, level), s.Delta(pLevel, level))
-}
-
-// Maximum value calculation for player
-func (s *SpellEffect) Max(pLevel int, level int) float64 {
-	return s.scaledMax(s.Average(pLevel, level), s.Delta(pLevel, level))
-}
-
-func (s *SpellEffect) scaledDelta(budget float64) float64 {
-	if s.Variance != 0 && budget > 0 {
-		return s.Coefficient * float64(s.Variance) * budget
-	}
-	return 0
-}
-
-// Scaled minimum calculation
-func (s *SpellEffect) scaledMin(avg, delta float64) float64 {
-	result := avg - delta/2
-	if s.EffectType == dbcenums.E_WEAPON_PERCENT_DAMAGE {
-		result *= 0.01
-	}
-	return result
-}
-
-// Scaled maximum calculation
-func (s *SpellEffect) scaledMax(avg, delta float64) float64 {
-	result := avg + delta/2
-	if s.EffectType == dbcenums.E_WEAPON_PERCENT_DAMAGE {
-		result *= 0.01
-	}
-	return result
 }
 
 // Reports whether the aura fires another spell when its owner procs. Both forms are the same edge

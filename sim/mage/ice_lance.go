@@ -30,7 +30,7 @@ func (mage *Mage) registerIceLanceSpell() {
 		}
 
 		spell.DamageMultiplier *= frozenMultiplier
-		result := spell.CalcDamage(sim, target, iceLanceDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, iceLanceDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		spell.DamageMultiplier /= frozenMultiplier
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {

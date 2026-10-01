@@ -195,7 +195,7 @@ func (warrior *Warrior) registerBloodthirst() {
 	config := spelldata.SpellConfig(&warrior.Unit, bloodthirstRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := spell.MeleeAttackPower(target)*apShare + bloodthirstRank.DamageEffect().Roll(sim, core.CharacterLevel)
+		baseDamage := spell.MeleeAttackPower(target)*apShare + bloodthirstRank.DamageEffect().Roll(sim)
 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
 		if !result.Landed() {
 			spell.IssueRefund(sim)
@@ -299,7 +299,6 @@ func (warrior *Warrior) registerDeathWish() {
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		deathWishAura.Activate(sim)
-		warrior.WaitUntil(sim, sim.CurrentTime+core.GCDDefault)
 	}
 
 	config.RelatedSelfBuff = deathWishAura

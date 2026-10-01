@@ -16,7 +16,7 @@ func (mage *Mage) registerArcaneMissilesSpell() {
 	chargeLock := arcaneChargesLock{}
 	tickConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		chargeLock.deal(spell, target, func() {
-			spell.CalcAndDealDamage(sim, target, arcaneMissilesDamage.Roll(sim, core.CharacterLevel), spell.OutcomeTickMagicHitAndCrit)
+			spell.CalcAndDealDamage(sim, target, arcaneMissilesDamage.Roll(sim), spell.OutcomeTickMagicHitAndCrit)
 		})
 		spell.SpellMetrics[target.UnitIndex].Casts--
 	}

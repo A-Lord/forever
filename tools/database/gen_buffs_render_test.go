@@ -285,6 +285,7 @@ func TestRenderedBuffFilesCompile(t *testing.T) {
 	overlay := map[string]string{}
 	for name, rendered := range renderSyntheticBuffFiles(t) {
 		body := strings.ReplaceAll(string(rendered), "func applyGenerated", "func synthApplyGenerated")
+		body = strings.ReplaceAll(body, "var debuffMetas", "var synthDebuffMetas")
 		path := filepath.Join(dir, filepath.Base(name))
 		if err := os.WriteFile(path, []byte(body), 0644); err != nil {
 			t.Fatal(err)

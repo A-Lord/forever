@@ -18,7 +18,7 @@ func (mage *Mage) registerFireBlastSpell() {
 	config.ClassSpellMask = MageSpellFireBlast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, fireBlastDamage.Roll(sim, core.CharacterLevel), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, fireBlastDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
 	}
 
 	mage.FireBlast = mage.RegisterSpell(config)

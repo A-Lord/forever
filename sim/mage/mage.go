@@ -96,7 +96,7 @@ func (mage *Mage) registerSpells() {
 // One roll of a damage effect per target, for the AoE damage calls.
 func rollDamage(e *spelldata.Effect) core.BaseDamageCalculator {
 	return func(sim *core.Simulation, _ *core.Spell) float64 {
-		return e.Roll(sim, core.CharacterLevel)
+		return e.Roll(sim)
 	}
 }
 

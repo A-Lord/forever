@@ -136,7 +136,7 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 		unshift := false
 		if spell.hasCastRequirement {
 			var reason string
-			if reason, unshift = spell.castRequirementFailure(); reason != "" {
+			if reason, unshift = spell.castRequirementFailure(sim); reason != "" {
 				return spell.castFailureHelper(sim, reason)
 			}
 		}
@@ -325,7 +325,7 @@ func (spell *Spell) makeCastFuncSimple() CastSuccessFunc {
 		unshift := false
 		if spell.hasCastRequirement {
 			var reason string
-			if reason, unshift = spell.castRequirementFailure(); reason != "" {
+			if reason, unshift = spell.castRequirementFailure(sim); reason != "" {
 				return spell.castFailureHelper(sim, reason)
 			}
 		}

@@ -6,7 +6,7 @@ import (
 )
 
 var iceBarrierRank = spellData.IceBarrier.Highest()
-var iceBarrierAbsorb = iceBarrierRank.EffectN(1).Average(core.CharacterLevel)
+var iceBarrierAbsorb = iceBarrierRank.EffectN(1).Average()
 
 // Ice Barrier
 // https://www.wowhead.com/forever/spell=13033

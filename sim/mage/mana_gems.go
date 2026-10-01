@@ -49,7 +49,7 @@ func (mage *Mage) registerManaGems() {
 
 		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 			charge.RemoveStack(sim)
-			mage.AddMana(sim, manaEffect.Roll(sim, core.CharacterLevel), manaMetrics)
+			mage.AddMana(sim, manaEffect.Roll(sim), manaMetrics)
 		}
 
 		// Hold this gem until every better one has been used.
@@ -65,7 +65,7 @@ func (mage *Mage) registerManaGems() {
 						return false
 					}
 				}
-				return character.CurrentMana()+manaEffect.Max(core.CharacterLevel) <= character.MaxMana()
+				return character.CurrentMana()+manaEffect.Max() <= character.MaxMana()
 			},
 		})
 	}

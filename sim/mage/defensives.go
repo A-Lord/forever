@@ -24,7 +24,7 @@ func (mage *Mage) registerDefensiveSpells() {
 func (mage *Mage) registerWardSpell(rank *spelldata.Spell, onAbsorbed core.OnDamageAbsorbedCallback) *core.DamageAbsorptionAura {
 	absorbEffect := rank.EffectN(1)
 	school := core.SpellSchool(absorbEffect.Misc)
-	strength := absorbEffect.Average(core.CharacterLevel)
+	strength := absorbEffect.Average()
 
 	shield := mage.NewDamageAbsorptionAura(core.AbsorptionAuraConfig{
 		Aura: spelldata.AuraConfig(rank),
