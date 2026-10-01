@@ -6,10 +6,9 @@ import (
 )
 
 type bulkSimCandidateOption struct {
-	spec *proto.ItemSpec
-	item core.Item
-	// enchant is the pooled enchant this option was expanded with; 0 keeps the carry-over.
-	enchant int32
+	spec    *proto.ItemSpec
+	item    core.Item
+	enchant int32 // The pooled enchant this option was expanded with; 0 keeps the carry-over.
 	hand    weaponHand
 }
 

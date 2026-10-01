@@ -11,21 +11,17 @@ import (
 
 // Enchant, gem and item-rule helpers.
 
-func addBulkTestEnchant(effectID int32, itemType proto.ItemType) {
+func addBulkTestEnchant(effectID int32, itemType proto.ItemType, enchantType proto.EnchantType) int32 {
 	core.AddToDatabase(&proto.SimDatabase{
-		Enchants: []*proto.SimEnchant{
-			{
-				EffectId: effectID,
-				Type:     itemType,
-			},
-		},
+		Enchants: []*proto.SimEnchant{{EffectId: effectID, Type: itemType, EnchantType: enchantType}},
 	})
+	return effectID
 }
 
 func TestBulkSimEnchantAppliesToItem_UsesWeaponTypeRules(t *testing.T) {
 	weaponEffectID := int32(910001)
 
-	addBulkTestEnchant(weaponEffectID, proto.ItemType_ItemTypeWeapon)
+	addBulkTestEnchant(weaponEffectID, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
 
 	twoHandSword := core.Item{
 		Type:       proto.ItemType_ItemTypeWeapon,
@@ -71,16 +67,10 @@ func TestBulkSimEnchantAppliesToItem_UsesWeaponTypeRules(t *testing.T) {
 }
 
 func TestBulkSimEnchantAppliesToItem_UsesEnchantTypeRules(t *testing.T) {
-	enchantOfType := func(effectID int32, itemType proto.ItemType, enchantType proto.EnchantType) int32 {
-		core.AddToDatabase(&proto.SimDatabase{
-			Enchants: []*proto.SimEnchant{{EffectId: effectID, Type: itemType, EnchantType: enchantType}},
-		})
-		return effectID
-	}
-	twoHand := enchantOfType(910010, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
-	shieldOnly := enchantOfType(910011, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeShield)
-	staffOnly := enchantOfType(910012, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeStaff)
-	offHandOnly := enchantOfType(910013, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeOffHand)
+	twoHand := addBulkTestEnchant(910010, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
+	shieldOnly := addBulkTestEnchant(910011, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeShield)
+	staffOnly := addBulkTestEnchant(910012, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeStaff)
+	offHandOnly := addBulkTestEnchant(910013, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeOffHand)
 
 	oneHandSword := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeOneHand}
 	twoHandSword := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeTwoHand}
@@ -111,12 +101,31 @@ func TestBulkSimEnchantAppliesToItem_UsesEnchantTypeRules(t *testing.T) {
 	}
 }
 
+func TestBulkSimEnchantAppliesToItem_AnyRowFits(t *testing.T) {
+	sharedEffectID := addBulkTestEnchant(910020, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
+	addBulkTestEnchant(sharedEffectID, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
+
+	oneHandSword := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeOneHand}
+	twoHandSword := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeTwoHand}
+	shield := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeShield, HandType: proto.HandType_HandTypeOffHand}
+
+	if !enchantAppliesToItem(sharedEffectID, oneHandSword) {
+		t.Errorf("expected the one-hand row to fit a one-hander")
+	}
+	if !enchantAppliesToItem(sharedEffectID, twoHandSword) {
+		t.Errorf("expected the enchant to fit a two-hander")
+	}
+	if enchantAppliesToItem(sharedEffectID, shield) {
+		t.Errorf("expected neither row to fit a shield")
+	}
+}
+
 func TestBulkSimEnchantAppliesToItem_UsesTypedRangedRules(t *testing.T) {
 	rangedEffectID := int32(910005)
 	weaponEffectID := int32(910006)
 
-	addBulkTestEnchant(rangedEffectID, proto.ItemType_ItemTypeRanged)
-	addBulkTestEnchant(weaponEffectID, proto.ItemType_ItemTypeWeapon)
+	addBulkTestEnchant(rangedEffectID, proto.ItemType_ItemTypeRanged, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(weaponEffectID, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
 
 	bow := core.Item{
 		Type:             proto.ItemType_ItemTypeRanged,
@@ -144,7 +153,7 @@ func TestBulkSimEnchantAppliesToItem_UsesTypedRangedRules(t *testing.T) {
 
 func TestBulkSimEnchantAppliesToItem_RejectsNonMatchingItemTypes(t *testing.T) {
 	extraTypeEffectID := int32(910007)
-	addBulkTestEnchant(extraTypeEffectID, proto.ItemType_ItemTypeChest)
+	addBulkTestEnchant(extraTypeEffectID, proto.ItemType_ItemTypeChest, proto.EnchantType_EnchantTypeNormal)
 
 	wrist := core.Item{Type: proto.ItemType_ItemTypeWrist}
 	legs := core.Item{Type: proto.ItemType_ItemTypeLegs}
@@ -368,12 +377,13 @@ func TestBuildGearForComboClearsOffHandForTwoHandMainHand(t *testing.T) {
 		},
 	}
 	generator.initCopyCounts()
+	generator.weaponCombos = generator.getAllWeaponCombos()
 
-	if combos := generator.getAllWeaponCombos(); len(combos) != 1 {
-		t.Fatalf("expected 1 weapon combo, got %d", len(combos))
+	if len(generator.weaponCombos) != 1 {
+		t.Fatalf("expected 1 weapon combo, got %d", len(generator.weaponCombos))
 	}
 
-	gear, err := generator.buildGearForCombo(0, generator.getAllWeaponCombos())
+	gear, err := generator.buildGearForCombo(0)
 	if err != nil {
 		t.Fatalf("buildGearForCombo failed: %v", err)
 	}
@@ -848,6 +858,7 @@ const (
 	bulkEnchantWeaponB     int32 = 910106
 	bulkEnchantWeaponKept  int32 = 910107
 	bulkEnchantTwoHandOnly int32 = 910108
+	bulkEnchantTwoRows     int32 = 910109 // A 2H row and a one-hand row under one effect id, 2H loaded first.
 	bulkEnchantUnknown     int32 = 910199
 )
 
@@ -879,10 +890,6 @@ func registerBulkEnchantFixtures() {
 		simItem.HandType = proto.HandType_HandTypeOneHand
 		return simItem
 	}
-	enchant := func(effectID int32, itemType proto.ItemType, enchantType proto.EnchantType) *proto.SimEnchant {
-		return &proto.SimEnchant{EffectId: effectID, Type: itemType, EnchantType: enchantType}
-	}
-
 	core.AddToDatabase(&proto.SimDatabase{
 		Items: []*proto.SimItem{
 			item(bulkEnchantCloakID, proto.ItemType_ItemTypeBack),
@@ -896,18 +903,18 @@ func registerBulkEnchantFixtures() {
 			weapon(bulkEnchantSwordAID, proto.WeaponType_WeaponTypeSword),
 			weapon(bulkEnchantSwordBID, proto.WeaponType_WeaponTypeSword),
 		},
-		Enchants: []*proto.SimEnchant{
-			enchant(bulkEnchantBackA, proto.ItemType_ItemTypeBack, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantBackB, proto.ItemType_ItemTypeBack, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantRingA, proto.ItemType_ItemTypeFinger, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantRingB, proto.ItemType_ItemTypeFinger, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantRingKept, proto.ItemType_ItemTypeFinger, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantWeaponA, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantWeaponB, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantWeaponKept, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal),
-			enchant(bulkEnchantTwoHandOnly, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand),
-		},
 	})
+	addBulkTestEnchant(bulkEnchantBackA, proto.ItemType_ItemTypeBack, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantBackB, proto.ItemType_ItemTypeBack, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantRingA, proto.ItemType_ItemTypeFinger, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantRingB, proto.ItemType_ItemTypeFinger, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantRingKept, proto.ItemType_ItemTypeFinger, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantWeaponA, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantWeaponB, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantWeaponKept, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
+	addBulkTestEnchant(bulkEnchantTwoHandOnly, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
+	addBulkTestEnchant(bulkEnchantTwoRows, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
+	addBulkTestEnchant(bulkEnchantTwoRows, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
 }
 
 type bulkEnchantEquipped struct {
@@ -936,31 +943,11 @@ func bulkEnchantSelection(ids ...int32) []*proto.ItemSpec {
 	return specs
 }
 
-// newBulkEnchantTestGenerator runs the same init steps as newBulkSimCandidateGenerator for a
-// spec given directly, since the bulk package has no agent factories to resolve a player proto.
 func newBulkEnchantTestGenerator(t *testing.T, spec proto.Spec, class proto.Class, equipment core.Equipment, settings *proto.BulkSettings) *bulkSimCandidateGenerator {
 	t.Helper()
-	generator := &bulkSimCandidateGenerator{
-		settings:           settings,
-		playerClass:        class,
-		playerSpec:         spec,
-		playerCanDualWield: core.SpecCanDualWieldCapabilities[spec],
-		baseEquipment:      equipment,
-		selectedByBulkSlot: make(map[BulkSimItemSlot][]bulkSimCandidateOption),
-		groupedPairsBySlot: make(map[BulkSimItemSlot][][2]bulkSimCandidateOption),
-		frozenItems:        make(map[BulkSimItemSlot]*core.Item),
-		weaponTypeFilters: map[proto.ItemSlot][]proto.WeaponType{
-			proto.ItemSlot_ItemSlotMainHand: settings.GetFreezeMainhandWeaponSlots(),
-			proto.ItemSlot_ItemSlotOffHand:  settings.GetFreezeOffhandWeaponSlots(),
-		},
-	}
-	generator.initFrozenSettings()
-	if err := generator.initSelectedItems(); err != nil {
-		t.Fatalf("initSelectedItems: %v", err)
-	}
-	generator.initGroupedSlotPairs()
-	if err := generator.validateGroupedSlots(); err != nil {
-		t.Fatalf("validateGroupedSlots: %v", err)
+	generator, err := newBulkSimCandidateGeneratorForSpec(settings, class, spec, equipment)
+	if err != nil {
+		t.Fatalf("newBulkSimCandidateGeneratorForSpec: %v", err)
 	}
 	return generator
 }
@@ -986,8 +973,16 @@ func bulkEnchantGearKey(gear *proto.EquipmentSpec) string {
 	return key
 }
 
-func bulkEnchantSlotItem(gear *proto.EquipmentSpec, slot proto.ItemSlot) *proto.ItemSpec {
-	return gear.GetItems()[slot]
+func assertDistinctGear(t *testing.T, gear []*proto.EquipmentSpec) {
+	t.Helper()
+	seen := make(map[string]bool, len(gear))
+	for _, candidate := range gear {
+		key := bulkEnchantGearKey(candidate)
+		if seen[key] {
+			t.Fatalf("two candidates share the gear set %s", key)
+		}
+		seen[key] = true
+	}
 }
 
 func TestBulkEnchantExpandsEquippedItem(t *testing.T) {
@@ -1003,8 +998,8 @@ func TestBulkEnchantExpandsEquippedItem(t *testing.T) {
 		t.Fatalf("expected 2 candidates (cloak x 2 pooled enchants), got %d", len(gear))
 	}
 	got := []int32{
-		bulkEnchantSlotItem(gear[0], proto.ItemSlot_ItemSlotBack).GetEnchant(),
-		bulkEnchantSlotItem(gear[1], proto.ItemSlot_ItemSlotBack).GetEnchant(),
+		gear[0].GetItems()[proto.ItemSlot_ItemSlotBack].GetEnchant(),
+		gear[1].GetItems()[proto.ItemSlot_ItemSlotBack].GetEnchant(),
 	}
 	if got[0] != bulkEnchantBackA || got[1] != bulkEnchantBackB {
 		t.Fatalf("cloak enchants = %v, want [%d %d]", got, bulkEnchantBackA, bulkEnchantBackB)
@@ -1024,14 +1019,7 @@ func TestBulkEnchantPoolsDedupeOverlaps(t *testing.T) {
 	if len(gear) != 2 {
 		t.Fatalf("expected 2 candidates from the overlapping pools, got %d", len(gear))
 	}
-	seen := make(map[string]bool, len(gear))
-	for _, candidate := range gear {
-		key := bulkEnchantGearKey(candidate)
-		if seen[key] {
-			t.Fatalf("two candidates share the gear set %s", key)
-		}
-		seen[key] = true
-	}
+	assertDistinctGear(t, gear)
 }
 
 func TestBulkEnchantSkipsUnknownEffectID(t *testing.T) {
@@ -1046,7 +1034,7 @@ func TestBulkEnchantSkipsUnknownEffectID(t *testing.T) {
 	if len(gear) != 1 {
 		t.Fatalf("expected 1 candidate (the unknown effect id skipped), got %d", len(gear))
 	}
-	if got := bulkEnchantSlotItem(gear[0], proto.ItemSlot_ItemSlotBack).GetEnchant(); got != bulkEnchantBackA {
+	if got := gear[0].GetItems()[proto.ItemSlot_ItemSlotBack].GetEnchant(); got != bulkEnchantBackA {
 		t.Fatalf("cloak enchant = %d, want %d", got, bulkEnchantBackA)
 	}
 }
@@ -1068,10 +1056,27 @@ func TestBulkEnchantFallsBackWhenNothingFits(t *testing.T) {
 		t.Fatalf("expected 2 candidates (one per sword), got %d", len(gear))
 	}
 	for _, candidate := range gear {
-		mainHand := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotMainHand)
+		mainHand := candidate.GetItems()[proto.ItemSlot_ItemSlotMainHand]
 		if mainHand.GetEnchant() != bulkEnchantWeaponKept {
 			t.Fatalf("main hand %d enchant = %d, want the carry-over %d", mainHand.GetId(), mainHand.GetEnchant(), bulkEnchantWeaponKept)
 		}
+	}
+}
+
+func TestBulkEnchantSharedEffectIDFitsOneHander(t *testing.T) {
+	registerBulkEnchantFixtures()
+	generator := newBulkEnchantTestGenerator(t, proto.Spec_SpecRetributionPaladin, proto.Class_ClassPaladin,
+		bulkEnchantEquipment(bulkEnchantEquipped{slot: proto.ItemSlot_ItemSlotMainHand, id: bulkEnchantSwordAID, enchant: bulkEnchantWeaponKept}),
+		&proto.BulkSettings{Enchants: []*proto.BulkEnchantSlotOptions{
+			bulkEnchantPool(proto.ItemSlot_ItemSlotMainHand, bulkEnchantTwoRows),
+		}})
+
+	gear := bulkEnchantCandidateGear(t, generator)
+	if len(gear) != 1 {
+		t.Fatalf("expected 1 candidate, got %d", len(gear))
+	}
+	if got := gear[0].GetItems()[proto.ItemSlot_ItemSlotMainHand].GetEnchant(); got != bulkEnchantTwoRows {
+		t.Fatalf("one-hander enchant = %d, want %d", got, bulkEnchantTwoRows)
 	}
 }
 
@@ -1092,8 +1097,8 @@ func TestBulkEnchantDualWieldHandPools(t *testing.T) {
 		t.Fatalf("expected 2 candidates (both dagger orders), got %d", len(gear))
 	}
 	for _, candidate := range gear {
-		mainHand := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotMainHand)
-		offHand := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotOffHand)
+		mainHand := candidate.GetItems()[proto.ItemSlot_ItemSlotMainHand]
+		offHand := candidate.GetItems()[proto.ItemSlot_ItemSlotOffHand]
 		if mainHand.GetEnchant() != bulkEnchantWeaponA || offHand.GetEnchant() != bulkEnchantWeaponB {
 			t.Fatalf("hands %d+%d / %d+%d, want main hand enchant %d and off hand enchant %d",
 				mainHand.GetId(), mainHand.GetEnchant(), offHand.GetId(), offHand.GetEnchant(), bulkEnchantWeaponA, bulkEnchantWeaponB)
@@ -1122,8 +1127,8 @@ func TestBulkEnchantDualWieldMainHandPoolOnly(t *testing.T) {
 		t.Fatalf("expected 2 candidates (both dagger orders), got %d", len(gear))
 	}
 	for _, candidate := range gear {
-		mainHand := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotMainHand)
-		offHand := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotOffHand)
+		mainHand := candidate.GetItems()[proto.ItemSlot_ItemSlotMainHand]
+		offHand := candidate.GetItems()[proto.ItemSlot_ItemSlotOffHand]
 		if offHand.GetId() == 0 || offHand.GetId() == mainHand.GetId() {
 			t.Fatalf("hands %d / %d, want two different daggers", mainHand.GetId(), offHand.GetId())
 		}
@@ -1143,7 +1148,7 @@ func TestBulkEnchantRingVariantsNeedTwoCopies(t *testing.T) {
 		bulkEnchantPool(proto.ItemSlot_ItemSlotFinger1, bulkEnchantRingA, bulkEnchantRingB),
 	}
 	ringPair := func(gear *proto.EquipmentSpec) (*proto.ItemSpec, *proto.ItemSpec) {
-		return bulkEnchantSlotItem(gear, proto.ItemSlot_ItemSlotFinger1), bulkEnchantSlotItem(gear, proto.ItemSlot_ItemSlotFinger2)
+		return gear.GetItems()[proto.ItemSlot_ItemSlotFinger1], gear.GetItems()[proto.ItemSlot_ItemSlotFinger2]
 	}
 
 	oneCopy := bulkEnchantCandidateGear(t, newBulkEnchantTestGenerator(t, proto.Spec_SpecRogue, proto.Class_ClassRogue, equipment,
@@ -1192,7 +1197,7 @@ func TestBulkEnchantFrozenSlotUntouched(t *testing.T) {
 		t.Fatalf("expected 2 candidates (frozen R with S x 2 pooled enchants), got %d", len(gear))
 	}
 	for _, candidate := range gear {
-		frozen := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotFinger1)
+		frozen := candidate.GetItems()[proto.ItemSlot_ItemSlotFinger1]
 		if frozen.GetId() != bulkEnchantRingRID || frozen.GetEnchant() != bulkEnchantRingKept {
 			t.Fatalf("frozen ring slot holds %d+%d, want %d+%d", frozen.GetId(), frozen.GetEnchant(), bulkEnchantRingRID, bulkEnchantRingKept)
 		}
@@ -1213,11 +1218,11 @@ func TestBulkFrozenSecondRingKeepsItsSlotAndEnchant(t *testing.T) {
 		t.Fatalf("expected candidates")
 	}
 	for _, candidate := range gear {
-		frozen := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotFinger2)
+		frozen := candidate.GetItems()[proto.ItemSlot_ItemSlotFinger2]
 		if frozen.GetId() != bulkEnchantRingSID || frozen.GetEnchant() != bulkEnchantRingKept {
 			t.Fatalf("frozen Finger 2 holds %d+%d, want %d+%d", frozen.GetId(), frozen.GetEnchant(), bulkEnchantRingSID, bulkEnchantRingKept)
 		}
-		other := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotFinger1)
+		other := candidate.GetItems()[proto.ItemSlot_ItemSlotFinger1]
 		if other.GetId() == bulkEnchantRingRID && other.GetEnchant() != bulkEnchantRingA {
 			t.Fatalf("Finger 1 ring R holds enchant %d, want its own %d", other.GetEnchant(), bulkEnchantRingA)
 		}
@@ -1243,8 +1248,8 @@ func TestBulkEnchantFrozenWeaponUntouched(t *testing.T) {
 	if len(gear) != 1 {
 		t.Fatalf("expected 1 candidate (frozen A with B + off-hand enchant), got %d", len(gear))
 	}
-	mainHand := bulkEnchantSlotItem(gear[0], proto.ItemSlot_ItemSlotMainHand)
-	offHand := bulkEnchantSlotItem(gear[0], proto.ItemSlot_ItemSlotOffHand)
+	mainHand := gear[0].GetItems()[proto.ItemSlot_ItemSlotMainHand]
+	offHand := gear[0].GetItems()[proto.ItemSlot_ItemSlotOffHand]
 	if mainHand.GetId() != bulkEnchantDaggerAID || mainHand.GetEnchant() != bulkEnchantWeaponKept {
 		t.Fatalf("frozen main hand holds %d+%d, want %d+%d", mainHand.GetId(), mainHand.GetEnchant(), bulkEnchantDaggerAID, bulkEnchantWeaponKept)
 	}
@@ -1311,12 +1316,5 @@ func TestBulkEnchantCountMatchesCandidates(t *testing.T) {
 	if combinations <= 2*3*7 {
 		t.Fatalf("expected the pools to multiply the combinations, got %d", combinations)
 	}
-	seen := make(map[string]bool, len(gear))
-	for _, candidate := range gear {
-		key := bulkEnchantGearKey(candidate)
-		if seen[key] {
-			t.Fatalf("two candidates share the gear set %s", key)
-		}
-		seen[key] = true
-	}
+	assertDistinctGear(t, gear)
 }
