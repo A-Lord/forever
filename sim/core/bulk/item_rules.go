@@ -12,7 +12,9 @@ func replaceItem(existing core.Item, option bulkSimCandidateOption) core.Item {
 	itemSpec.Id = option.spec.GetId()
 	itemSpec.RandomSuffix = option.spec.GetRandomSuffix()
 
-	if !enchantAppliesToItem(itemSpec.GetEnchant(), option.item) {
+	if option.enchant != 0 {
+		itemSpec.Enchant = option.enchant
+	} else if !enchantAppliesToItem(itemSpec.GetEnchant(), option.item) {
 		itemSpec.Enchant = 0
 	}
 	itemSpec.Gems = mergeGems(existing, option, option.item)

@@ -195,6 +195,7 @@ func (generator *bulkSimCandidateGenerator) initSelectedItems() error {
 	for bulkSlot, options := range generator.selectedByBulkSlot {
 		generator.selectedByBulkSlot[bulkSlot] = dedupeCandidateOptions(options)
 	}
+	generator.initEnchantVariants()
 	return nil
 }
 
@@ -266,6 +267,9 @@ func (generator *bulkSimCandidateGenerator) initGroupedSlotPairs() {
 					pairs = append(pairs, [2]bulkSimCandidateOption{options[i], options[i]})
 				}
 				for j := i + 1; j < len(options); j++ {
+					if candidateOptionsShareItem(options[i], options[j]) && !generator.hasTwoCopies(options[i], options[i].item) {
+						continue
+					}
 					if options[i].item.Unique && options[i].item.ID == options[j].item.ID {
 						continue
 					}

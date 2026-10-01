@@ -8,11 +8,34 @@ import (
 type bulkSimCandidateOption struct {
 	spec *proto.ItemSpec
 	item core.Item
+	// enchant is the pooled enchant this option was expanded with; 0 keeps the carry-over.
+	enchant int32
+	hand    weaponHand
 }
 
+// weaponHand limits an expanded dual-wield weapon to the hand whose pool supplied its enchant.
+type weaponHand uint8
+
+const (
+	eitherHand weaponHand = iota
+	mainHandOnly
+	offHandOnly
+)
+
+// itemSpecCacheKey identifies the base item; copy counting runs on it, so enchant variants of one
+// item count as one copy.
 type itemSpecCacheKey struct {
 	id           int32
 	randomSuffix int32
+}
+
+type candidateOptionKey struct {
+	item    itemSpecCacheKey
+	enchant int32
+}
+
+func buildCandidateOptionKey(option bulkSimCandidateOption) candidateOptionKey {
+	return candidateOptionKey{item: buildItemSpecKey(option.spec), enchant: option.enchant}
 }
 
 // itemSpecFingerprintKey is a zero-allocation alternative to the string fingerprint.
@@ -47,10 +70,10 @@ func dedupeCandidateOptions(options []bulkSimCandidateOption) []bulkSimCandidate
 		return options
 	}
 
-	seen := make(map[itemSpecCacheKey]struct{}, len(options))
+	seen := make(map[candidateOptionKey]struct{}, len(options))
 	deduped := make([]bulkSimCandidateOption, 0, len(options))
 	for _, option := range options {
-		key := buildItemSpecKey(option.spec)
+		key := buildCandidateOptionKey(option)
 		if _, ok := seen[key]; ok {
 			continue
 		}
@@ -71,6 +94,10 @@ func optionsContainEquivalent(options []bulkSimCandidateOption, target bulkSimCa
 }
 
 func candidateOptionsEqual(left bulkSimCandidateOption, right bulkSimCandidateOption) bool {
+	return buildCandidateOptionKey(left) == buildCandidateOptionKey(right)
+}
+
+func candidateOptionsShareItem(left bulkSimCandidateOption, right bulkSimCandidateOption) bool {
 	return buildItemSpecKey(left.spec) == buildItemSpecKey(right.spec)
 }
 

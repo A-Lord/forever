@@ -130,6 +130,9 @@ func (generator *bulkSimCandidateGenerator) getAllWeaponCombos() [][2]*bulkSimCa
 				allWeaponCombos = append(allWeaponCombos, [2]*bulkSimCandidateOption{&unique[i], &unique[i]})
 			}
 			for j := i + 1; j < len(unique); j++ {
+				if candidateOptionsShareItem(unique[i], unique[j]) && !generator.hasTwoCopies(unique[i], unique[i].item) {
+					continue
+				}
 				jCanMH := unique[j].item.HandType != proto.HandType_HandTypeOffHand
 				jCanOH := unique[j].item.HandType != proto.HandType_HandTypeMainHand
 				if iCanMH && jCanOH {
@@ -144,7 +147,7 @@ func (generator *bulkSimCandidateGenerator) getAllWeaponCombos() [][2]*bulkSimCa
 
 	filteredCombos := make([][2]*bulkSimCandidateOption, 0, len(allWeaponCombos))
 	for _, combo := range allWeaponCombos {
-		if generator.weaponComboMatchesSettings(combo[0], combo[1]) {
+		if weaponHandsAllowed(combo[0], combo[1]) && generator.weaponComboMatchesSettings(combo[0], combo[1]) {
 			filteredCombos = append(filteredCombos, combo)
 		}
 	}
