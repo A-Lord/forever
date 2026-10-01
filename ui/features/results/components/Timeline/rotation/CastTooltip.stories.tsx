@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { withSimHost } from '@testing/storybook/fixtures/models';
-import { castLog, resultsHostParts } from '@testing/storybook/fixtures/results-views';
+import { castLog, damageLog, resultsHostParts } from '@testing/storybook/fixtures/results-views';
 
 import { CastTooltip } from './CastTooltip';
 
@@ -37,3 +37,8 @@ export const Cancelled: Story = {
 		}),
 	},
 };
+
+const stackedHits = castLog(12, { damageDealtLogs: [damageLog(12.01, 244.59), damageLog(12.01, 489.19, { outcome: 'crit' })] });
+
+/** Two casts at the same time, where the later one took both hits. */
+export const Stacked: Story = { args: { log: stackedHits, stack: [castLog(12, { damageDealtLogs: [] }), stackedHits] } };
