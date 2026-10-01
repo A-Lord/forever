@@ -5,7 +5,6 @@ import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { bulkState, patchBulkState } from '@sim/settings/bulk_settings';
 
-import { bulkEnchantPool } from './enchants';
 import { frozenItemSlot } from './picker_groups';
 
 export type BulkWeaponSlot = ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand;
@@ -25,7 +24,6 @@ export const createBulkSettingsProto = (player: Player<any>): BulkSettings => {
 		freezeWeaponSlot: current.frozenWeaponSlot,
 		freezeMainhandWeaponSlots: current.weaponTypeFilters.get(ItemSlot.ItemSlotMainHand)?.slice(),
 		freezeOffhandWeaponSlots: current.weaponTypeFilters.get(ItemSlot.ItemSlotOffHand)?.slice(),
-		enchants: bulkEnchantPool(player),
 	});
 };
 

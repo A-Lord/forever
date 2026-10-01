@@ -2,10 +2,11 @@ import type { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
+import type { ResolvedIcon } from '@ui-kit/Field';
 import { Icon } from '@ui-kit/Icon';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import type { GearChangeSocket } from './utils';
@@ -19,7 +20,7 @@ export interface GearChangeIconViewProps {
 	wowhead?: WowheadDatasetProps;
 	sockets: ReadonlyArray<GearChangeSocket>;
 	/** Set when the enchant differs from the previous item's; an empty iconUrl falls back to a glyph. */
-	enchant?: { name: string; iconUrl: string };
+	enchant?: ResolvedIcon;
 }
 
 /**
@@ -29,6 +30,7 @@ export interface GearChangeIconViewProps {
 export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, sockets, enchant }: GearChangeIconViewProps) => {
 	const slotName = translateSlotName(slot);
 	const tooltipId = useId();
+	const linkRef = useRef<HTMLAnchorElement>(null);
 
 	return (
 		<div className="ui-item-picker-root" data-testid="gear-change-icon">
@@ -38,14 +40,22 @@ export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, soc
 					data-testid="item-picker-icon-wrapper"
 					style={{ backgroundImage: `url('${(equipped && iconUrl) || getEmptySlotIconUrl(slot)}')` }}
 				/>
-				<WowheadAnchor className="absolute inset-0" testId="gear-change-icon-link" href={equipped ? href || undefined : undefined} {...wowhead} />
+				<WowheadAnchor
+					ref={linkRef}
+					className="absolute inset-0"
+					testId="gear-change-icon-link"
+					href={equipped ? href || undefined : undefined}
+					{...wowhead}
+				/>
 				{enchant && (
+					// The marker takes the hover for its tooltip and hands its click to the item link underneath.
 					<div
 						className="ui-gear-change-icon-enchant"
 						data-testid="gear-change-icon-enchant"
 						role="img"
 						aria-label={enchant.name}
 						style={enchant.iconUrl ? { backgroundImage: `url('${enchant.iconUrl}')` } : undefined}
+						onClick={() => linkRef.current?.click()}
 						{...tooltipAnchorProps(`${tooltipId}-enchant`)}>
 						{!enchant.iconUrl && <Icon name="circle-exclamation" className="ui-gear-change-icon-gem-marker block" />}
 					</div>

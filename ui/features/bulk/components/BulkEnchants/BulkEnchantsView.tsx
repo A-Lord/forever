@@ -58,7 +58,7 @@ export const BulkEnchantsView = ({ presets, onCheckedChange, onNew, onEdit, onDe
 					))}
 				</div>
 			) : (
-				<p className="mb-0 text-muted">{i18n.t('bulk_tab.settings.enchant_presets.empty')}</p>
+				<p className="mb-0 text-gray-400">{i18n.t('bulk_tab.settings.enchant_presets.empty')}</p>
 			)}
 			<Button variant="outline-primary" size="sm" onClick={onNew}>
 				<Icon name="plus" />

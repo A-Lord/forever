@@ -6,7 +6,8 @@ import type { WowheadAnchorProps } from './types';
 
 /**
  * The anchor behind every wowhead link, swatch and icon: wowhead's tooltip script finds it through the `href` and the dataset.
- * The keys follow a native button, Enter on keydown and Space on keyup, so a Base UI trigger rendered onto it sees each key as already handled.
+ * An anchor that acts takes a native button's keys, Enter on keydown and Space on keyup, so a Base UI trigger rendered onto it sees each key as
+ * already handled. With an href, Enter stays the link's own, whose click acts.
  */
 export const WowheadAnchor = ({
 	href,
@@ -49,16 +50,16 @@ export const WowheadAnchor = ({
 					: onClick
 			}
 			onKeyDown={
-				button
+				onActivate
 					? (event: KeyboardEvent<HTMLAnchorElement>) => {
-							if (event.key === 'Enter' || event.key === ' ') event.preventDefault();
-							if (event.key === 'Enter') event.currentTarget.click();
+							if (event.key === ' ' || (button && event.key === 'Enter')) event.preventDefault();
+							if (button && event.key === 'Enter') event.currentTarget.click();
 							onKeyDown?.(event);
 						}
 					: onKeyDown
 			}
 			onKeyUp={
-				button
+				onActivate
 					? (event: KeyboardEvent<HTMLAnchorElement>) => {
 							if (event.key === ' ') {
 								event.preventDefault();

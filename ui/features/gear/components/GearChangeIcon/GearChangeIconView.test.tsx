@@ -2,7 +2,7 @@ import { GemColor, ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { GearChangeIconView, type GearChangeIconViewProps } from './GearChangeIconView';
@@ -53,5 +53,15 @@ describe('GearChangeIconView', () => {
 	it('anchors no tooltip on a changed socket that is now empty', () => {
 		renderView({ sockets: [{ socketColor: GemColor.GemColorRed, gemName: undefined, changed: true }] });
 		expect(screen.getByTestId('gem-socket-container').hasAttribute('data-tooltip-id')).toBe(false);
+	});
+
+	it('hands a click on the changed-enchant marker to the item link', () => {
+		renderView({ enchant: { name: 'Crusader', iconUrl: 'crusader.jpg' } });
+		const onLinkClick = vi.fn((event: MouseEvent) => event.preventDefault());
+		link().addEventListener('click', onLinkClick);
+
+		fireEvent.click(screen.getByRole('img', { name: 'Crusader' }));
+
+		expect(onLinkClick).toHaveBeenCalledOnce();
 	});
 });

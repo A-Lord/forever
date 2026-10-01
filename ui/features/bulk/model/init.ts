@@ -1,19 +1,10 @@
-import { BulkEnchantPresets } from '@generated/proto/api';
 import { ItemSlot } from '@generated/proto/common';
 import { BULK_SIM_ITEM_SLOT_TO_ITEM_SLOT_PAIRS, BulkSimItemSlot } from '@sim/bulk/utils';
 import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import {
-	bulkState,
-	loadStoredBulkSettings,
-	loadStoredEnchantPresets,
-	patchBulkState,
-	seedBulkSettings,
-	storeBulkSettings,
-	storeEnchantPresets,
-} from '@sim/settings/bulk_settings';
+import { loadStoredBulkSettings, loadStoredEnchantPresets, patchBulkState, seedBulkSettings, storeBulkSettings } from '@sim/settings/bulk_settings';
 import type { IndividualSimHost } from '@sim/sim_host';
-import { subscribeBulkChange, subscribePlayerField } from '@sim/state/subscriptions';
+import { subscribeAll, subscribeBulkChange, subscribePlayerField } from '@sim/state/subscriptions';
 
 import { addBulkItems, loadEquippedBulkItems, seedBulkPickerGroups } from './items';
 import { refreshBulkCombinations } from './run';
@@ -45,13 +36,8 @@ const loadSettings = (player: Player<any>) => {
 
 	const enchantPresets = loadStoredEnchantPresets(player);
 	if (enchantPresets != null) {
-		patchBulkState(player, { enchantPresets: enchantPresets.presets, checkedEnchantPresets: enchantPresets.checked }, ['settings']);
+		patchBulkState(player, { enchantPresets: enchantPresets.presets }, ['settings']);
 	}
-};
-
-const storeBulkEnchantPresets = (player: Player<any>) => {
-	const { enchantPresets, checkedEnchantPresets } = bulkState(player);
-	storeEnchantPresets(player, BulkEnchantPresets.create({ presets: [...enchantPresets], checked: [...checkedEnchantPresets] }));
 };
 
 /**
@@ -67,11 +53,10 @@ export const initBulk = (host: IndividualSimHost<any>) => {
 		loadSettings(player);
 
 		subscribePlayerField(player, 'gear')(() => loadEquippedBulkItems(player));
-		subscribeBulkChange(player)(() => {
-			storeBulkSettings(player, createBulkSettingsProto(player));
-			storeBulkEnchantPresets(player);
-		});
+		subscribeBulkChange(player)(() => storeBulkSettings(player, createBulkSettingsProto(player)));
 		subscribeBulkChange(player)(() => void refreshBulkCombinations(host));
+		// Enchanting unlocks enchants, so it can change the enchant pool.
+		subscribeAll([subscribePlayerField(player, 'profession1'), subscribePlayerField(player, 'profession2')])(() => void refreshBulkCombinations(host));
 
 		loadEquippedBulkItems(player);
 		void refreshBulkCombinations(host);

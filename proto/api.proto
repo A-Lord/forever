@@ -776,17 +776,6 @@ message BulkEnchantSlotOptions {
 	repeated int32 effect_ids = 2;
 }
 
-// The ticked presets are unioned per slot into BulkSettings.enchants.
-message BulkEnchantPreset {
-	string name = 1;
-	repeated BulkEnchantSlotOptions slots = 2;
-}
-
-message BulkEnchantPresets {
-	repeated BulkEnchantPreset presets = 1;
-	repeated string checked = 2;
-}
-
 message BulkGearCandidate {
 	int32 index = 1;
 	EquipmentSpec gear = 2;

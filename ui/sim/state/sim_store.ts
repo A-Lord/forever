@@ -5,7 +5,7 @@
 //
 // Slices are added here as each facade is converted; a slice absent from this
 // file still lives in its class.
-import type { BulkEnchantPreset, PlayerStats } from '@generated/proto/api';
+import type { PlayerStats } from '@generated/proto/api';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import {
 	type AreaType,
@@ -19,7 +19,7 @@ import {
 	UnitReference,
 	type WeaponType,
 } from '@generated/proto/common';
-import { DatabaseFilters } from '@generated/proto/ui';
+import { type BulkEnchantPreset, DatabaseFilters } from '@generated/proto/ui';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { createStore } from 'zustand/vanilla';
 
@@ -211,7 +211,6 @@ export interface BulkSlice {
 	frozenWeaponSlot: ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand | undefined;
 	weaponTypeFilters: ReadonlyMap<ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand, WeaponType[]>;
 	enchantPresets: readonly BulkEnchantPreset[];
-	checkedEnchantPresets: readonly string[];
 	combinations: number;
 	iterations: number;
 	combinationsPending: boolean;

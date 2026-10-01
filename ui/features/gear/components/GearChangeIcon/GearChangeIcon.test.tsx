@@ -113,25 +113,15 @@ describe('gearChangeSockets', () => {
 describe('gearChangeEnchant', () => {
 	const withEnchant = (effectId?: number) => ({ ...item({}), enchant: effectId ? { effectId, name: `Enchant ${effectId}` } : null }) as any;
 
-	it('returns nothing when the enchant is the same', () => {
-		expect(gearChangeEnchant(withEnchant(7), withEnchant(7))).toBeUndefined();
-		expect(gearChangeEnchant(withEnchant(), withEnchant())).toBeUndefined();
-	});
-
-	it('returns the new enchant when it differs from the previous item', () => {
-		expect(gearChangeEnchant(withEnchant(8), withEnchant(7))?.name).toBe('Enchant 8');
-	});
-
-	it('returns the new enchant when the previous item had none', () => {
-		expect(gearChangeEnchant(withEnchant(8), withEnchant())?.name).toBe('Enchant 8');
-	});
-
-	it('returns nothing when the enchant was removed', () => {
-		expect(gearChangeEnchant(withEnchant(), withEnchant(7))).toBeUndefined();
-	});
-
-	it('returns nothing without a previous item or without an item', () => {
-		expect(gearChangeEnchant(withEnchant(8), undefined)).toBeUndefined();
-		expect(gearChangeEnchant(undefined, withEnchant(7))).toBeUndefined();
+	it.each([
+		['the same enchant', withEnchant(7), withEnchant(7), undefined],
+		['no enchant before or after', withEnchant(), withEnchant(), undefined],
+		['an enchant that differs from the previous item', withEnchant(8), withEnchant(7), 'Enchant 8'],
+		['an enchant the previous item did not have', withEnchant(8), withEnchant(), 'Enchant 8'],
+		['a removed enchant', withEnchant(), withEnchant(7), undefined],
+		['no previous item', withEnchant(8), undefined, undefined],
+		['no item', undefined, withEnchant(7), undefined],
+	])('answers %s', (_, after, before, expected) => {
+		expect(gearChangeEnchant(after, before)?.name).toBe(expected);
 	});
 });

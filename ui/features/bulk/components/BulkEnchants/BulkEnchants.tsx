@@ -1,4 +1,4 @@
-import type { BulkEnchantPreset } from '@generated/proto/api';
+import type { BulkEnchantPreset } from '@generated/proto/ui';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { useState } from 'react';
 
@@ -17,14 +17,13 @@ interface DialogState {
 export const BulkEnchants = () => {
 	const player = usePlayer();
 	const presets = useBulkState(slice => slice.enchantPresets);
-	const checked = useBulkState(slice => slice.checkedEnchantPresets);
 	const [dialog, setDialog] = useState<DialogState>({ open: false, preset: null, key: 0 });
 
 	const openDialog = (preset: BulkEnchantPreset | null) => setDialog(current => ({ open: true, preset, key: current.key + 1 }));
 
 	return (
 		<BulkEnchantsView
-			presets={presets.map(preset => ({ name: preset.name, checked: checked.includes(preset.name) }))}
+			presets={presets}
 			onCheckedChange={(name, value) => setBulkEnchantPresetChecked(player, name, value)}
 			onNew={() => openDialog(null)}
 			onEdit={name => openDialog(presets.find(preset => preset.name === name) ?? null)}
