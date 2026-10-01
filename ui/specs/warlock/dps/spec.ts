@@ -6,6 +6,7 @@ import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { DEFAULT_CASTER_GEM_STATS, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
+import { subscribeAll, subscribePlayerField } from '@sim/state/subscriptions';
 
 import * as WarlockInputs from './inputs';
 import * as Presets from './presets';
@@ -124,6 +125,15 @@ export default defineSpec<Spec.SpecWarlock>({
 		return Presets.DEFAULT_APL.rotation.rotation!;
 	},
 	sections: [WarlockInputs.CursesSection],
+
+	// Re-settles the demon out and the demon sacrificed when the talents or the options change: dropping
+	// Demonic Pact or Demonic Sacrifice, or loading settings from before the sacrificed demon was its own option.
+	derivedSettings: [
+		{
+			subscribe: player => subscribeAll([subscribePlayerField(player, 'talentsString'), subscribePlayerField(player, 'specOptions')]),
+			apply: player => WarlockInputs.settleDemons(player),
+		},
+	],
 
 	reforge: {},
 });

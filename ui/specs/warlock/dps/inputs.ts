@@ -10,6 +10,38 @@ import type { CustomSection } from '@sim/spec_config';
 // Configuration for spec-specific UI elements on the settings tab.
 // These don't need to be in a separate file but it keeps things cleaner.
 
+type DemonField = 'summon' | 'sacrificedDemon';
+
+// Settles the demon out and the demon sacrificed against each other and the talents, with `pick` (the
+// value just chosen in one of the two pickers) winning over the other:
+//   - Settings that only set the older sacrificeSummon sacrifice the summoned demon.
+//   - Without Demonic Sacrifice, nothing is sacrificed.
+//   - A demon is either out or sacrificed, never both; and without Demonic Pact, any sacrifice leaves no
+//     demon out.
+export const settleDemons = <SpecType extends WarlockSpecs>(player: Player<SpecType>, pick?: { field: DemonField; value: Summon }) => {
+	const options = player.getClassOptions();
+	const talents = player.getTalents();
+	if (pick) options[pick.field] = pick.value;
+
+	if (options.sacrificeSummon) {
+		if (talents.demonicSacrifice && options.sacrificedDemon == Summon.NoSummon) {
+			options.sacrificedDemon = options.summon;
+			options.summon = Summon.NoSummon;
+		}
+		options.sacrificeSummon = false;
+	}
+
+	if (!talents.demonicSacrifice) options.sacrificedDemon = Summon.NoSummon;
+
+	const sacrificed = options.sacrificedDemon != Summon.NoSummon;
+	if (sacrificed && options.summon != Summon.NoSummon && (options.summon == options.sacrificedDemon || !talents.demonicPact)) {
+		if (pick?.field == 'summon') options.sacrificedDemon = Summon.NoSummon;
+		else options.summon = Summon.NoSummon;
+	}
+
+	player.setClassOptions(options);
+};
+
 export const PetInput = <SpecType extends WarlockSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, Summon>({
 		fieldName: 'summon',
@@ -19,9 +51,9 @@ export const PetInput = <SpecType extends WarlockSpecs>() =>
 			{ actionId: ActionId.fromSpellId(688), value: Summon.Imp },
 			{ actionId: ActionId.fromSpellId(712), value: Summon.Succubus },
 			{ actionId: ActionId.fromSpellId(697), value: Summon.Voidwalker },
-			{ actionId: ActionId.fromSpellId(30146), value: Summon.Felguard },
 		],
 		storeField: 'player:*' as const,
+		setValue: (player: Player<SpecType>, newValue: Summon) => settleDemons(player, { field: 'summon', value: newValue }),
 	});
 
 export const ArmorInput = <SpecType extends WarlockSpecs>() =>
@@ -29,25 +61,25 @@ export const ArmorInput = <SpecType extends WarlockSpecs>() =>
 		fieldName: 'armor',
 		values: [
 			{ value: WarlockOptions_Armor.NoArmor, tooltip: 'No Armor' },
-			{ actionId: ActionId.fromSpellId(28176), value: WarlockOptions_Armor.FelArmor },
 			{ actionId: ActionId.fromSpellId(706), value: WarlockOptions_Armor.DemonArmor },
 		],
 	});
 
+// The demon Demonic Sacrifice sacrifices, shown by its summon icon.
 export const DemonicSacrificeInput = <SpecType extends WarlockSpecs>() =>
-	InputHelpers.makeClassOptionsBooleanIconInput<SpecType>({
-		fieldName: 'sacrificeSummon',
-		id: ActionId.fromSpellId(18788),
-		// `talentsString` too, because both accessors below read the talent. Without it, untalenting
-		// Demonic Sacrifice leaves the icon lit and the sim reading a stale `sacrificeSummon`.
+	InputHelpers.makeClassOptionsEnumIconInput<SpecType, Summon>({
+		fieldName: 'sacrificedDemon',
+		values: [
+			{ value: Summon.NoSummon, tooltip: 'No Sacrifice' },
+			{ actionId: ActionId.fromSpellId(691), value: Summon.Felhunter },
+			{ actionId: ActionId.fromSpellId(688), value: Summon.Imp },
+			{ actionId: ActionId.fromSpellId(712), value: Summon.Succubus },
+			{ actionId: ActionId.fromSpellId(697), value: Summon.Voidwalker },
+		],
+		// `talentsString` too, so untalenting Demonic Sacrifice hides the picker straight away.
 		storeField: ['specOptions', 'talentsString'] as const,
-		getValue: (player: Player<SpecType>) =>
-			player.getClassOptions().sacrificeSummon && player.getTalents().demonicSacrifice && player.getClassOptions().summon != Summon.NoSummon,
-		setValue: (player: Player<SpecType>, newValue: boolean) => {
-			const options = player.getClassOptions();
-			options.sacrificeSummon = player.getTalents().demonicSacrifice ? newValue : false;
-			player.setClassOptions(options);
-		},
+		showWhen: (player: Player<SpecType>) => player.getTalents().demonicSacrifice,
+		setValue: (player: Player<SpecType>, newValue: Summon) => settleDemons(player, { field: 'sacrificedDemon', value: newValue }),
 	});
 
 const makeCursePicker = <SpecType extends WarlockSpecs>(curse: WarlockOptions_CurseOptions, spellId: number) =>
