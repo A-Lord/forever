@@ -557,6 +557,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-RingofSaviors-1447"
+ value: {
+  dps: 287.81285
+  tps: 167.27245
+  dtps: 2.90588
+  hps: 20.24368
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-SatchelofDarkIronBombs-285278"
  value: {
   dps: 290.11436

@@ -574,6 +574,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-RingofSaviors-1447"
+ value: {
+  dps: 525.32757
+  tps: 386.4243
+  dtps: 10.27616
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-ScrollsofBlindingLight-19343"
  value: {
   dps: 538.6628
