@@ -371,7 +371,6 @@ type AttackTable struct {
 	GlanceMultiplier     float64
 	MeleeCritSuppression float64
 	SpellCritSuppression float64
-	HitSuppression       float64
 
 	// All "Apply Aura: Mod All Damage Done Against Creature" effects in Vanilla and TBC also increase the CritMultiplier.
 	// Explicitly for hunters' "Monster Slaying" and "Humanoid Slaying", but likewise for rogues' "Murder", or trolls' "Beastslaying".
@@ -424,7 +423,6 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		table.BaseGlanceChance = UnitLevelFloat64(defender.Level, 0, 0.06, 0.12, 0.18, 0.24)
 
 		table.GlanceMultiplier = UnitLevelFloat64(defender.Level, 0.95, 0.95, 0.95, 0.85, 0.75)
-		table.HitSuppression = UnitLevelFloat64(defender.Level, 0, 0, 0, 0, 0.01)
 		table.MeleeCritSuppression = UnitLevelFloat64(defender.Level, 0, 0, 0.01, 0.02, 0.048)
 		table.SpellCritSuppression = UnitLevelFloat64(defender.Level, 0, 0, 0, 0.003, 0.021)
 	} else {
