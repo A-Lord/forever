@@ -4,7 +4,7 @@ import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { loadStoredBulkSettings, seedBulkSettings, storeBulkSettings } from '@sim/settings/bulk_settings';
 import type { IndividualSimHost } from '@sim/sim_host';
-import { subscribeBulkChange, subscribePlayerField, subscribeSimField } from '@sim/state/subscriptions';
+import { subscribeBulkChange, subscribePlayerField } from '@sim/state/subscriptions';
 
 import { addBulkItems, loadEquippedBulkItems, seedBulkPickerGroups } from './items';
 import { refreshBulkCombinations } from './run';
@@ -58,7 +58,6 @@ export const initBulk = (host: IndividualSimHost<any>) => {
 		subscribePlayerField(player, 'gear')(() => loadEquippedBulkItems(player));
 		subscribeBulkChange(player)(() => storeBulkSettings(player, createBulkSettingsProto(player)));
 		subscribeBulkChange(player)(() => void refreshBulkCombinations(host));
-		subscribeSimField(sim, 'iterations')(() => void refreshBulkCombinations(host));
 
 		loadEquippedBulkItems(player);
 		void refreshBulkCombinations(host);

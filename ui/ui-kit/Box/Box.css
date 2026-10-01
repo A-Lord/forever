@@ -1,11 +1,7 @@
 @layer components {
 	.ui-box {
-		&[data-border='subtle'] {
-			@apply border border-border/60;
-		}
-
-		&[data-border='default'] {
-			@apply border border-border;
+		&:not([data-border='none']) {
+			@apply border border-(--box-border-color);
 		}
 
 		&[data-padding='xs'] {

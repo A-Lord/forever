@@ -12,7 +12,7 @@ export interface NameDisplayProps {
 export const NameDisplay = ({ name, onRename, compact }: NameDisplayProps) => (
 	<div className="flex items-center gap-2">
 		<span className={clsx('font-bold', compact && 'text-sm')}>{name}</span>
-		<Button variant="link" className="leading-none" onClick={onRename}>
+		<Button variant="link" size="sm" className="leading-none" onClick={onRename}>
 			<Icon name="pencil" />
 		</Button>
 	</div>

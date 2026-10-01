@@ -33,20 +33,4 @@ describe('RunCard', () => {
 		expect(screen.getByTestId('run-card').hasAttribute('aria-busy')).toBe(false);
 		expect(screen.queryByTestId('run-card-loading')).toBeNull();
 	});
-
-	it('marks the body divided only when asked', () => {
-		const { rerender } = render(
-			<RunCard action={<button />}>
-				<div />
-			</RunCard>,
-		);
-		expect(screen.getByTestId('run-card-body').hasAttribute('data-divided')).toBe(false);
-
-		rerender(
-			<RunCard action={<button />} divided>
-				<div />
-			</RunCard>,
-		);
-		expect(screen.getByTestId('run-card-body').hasAttribute('data-divided')).toBe(true);
-	});
 });

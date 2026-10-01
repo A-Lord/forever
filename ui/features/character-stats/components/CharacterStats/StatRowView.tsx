@@ -6,7 +6,7 @@ import { Skeleton } from '@ui-kit/Skeleton';
 import { TableCell, TableRow } from '@ui-kit/Table';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
-import { Fragment, type ReactNode, useId } from 'react';
+import { type ReactNode, useId } from 'react';
 
 import { type ShowStat, StatTooltipBody } from './StatTooltipBody';
 import type { DisplayStat } from './utils/rows';
@@ -56,17 +56,30 @@ export const StatRowView = ({
 		!!rangedWeapon &&
 		HUNTER_RANGED_TYPES.includes(rangedWeapon.rangedWeaponType);
 
-	// A row with an off-hand half reads as "<main hand> / <off hand>" while dual wielding, and as the
-	// main-hand value alone otherwise.
-	const offHand = dualWielding ? offHandStat : undefined;
-	const handSlots: { stat: UnitStat; id: string; label?: string }[] = offHand
-		? [
-				{ stat: unitStat, id: mainHandId, label: i18n.t('slots.main_hand', { ns: 'character' }) },
-				{ stat: offHand, id: offHandId, label: i18n.t('slots.off_hand', { ns: 'character' }) },
-			]
-		: [{ stat: unitStat, id: mainHandId }];
+	// A row with an off-hand half shows each hand on its own line, prefixed MH and OH, while dual
+	// wielding with hands that differ, and the main-hand value alone otherwise.
 	// Each hand's final display string, computed once and shared by its anchor and its tooltip's Total row.
-	const hands = handSlots.map(hand => ({ ...hand, total: show(attribution.final, hand.stat, true) }));
+	const mainHandTotal = show(attribution.final, unitStat, true);
+	const offHandTotal = dualWielding && offHandStat ? show(attribution.final, offHandStat, true) : mainHandTotal;
+	const hands: { stat: UnitStat; id: string; total: string; label?: string; prefix?: string }[] =
+		offHandStat && offHandTotal !== mainHandTotal
+			? [
+					{
+						stat: unitStat,
+						id: mainHandId,
+						total: mainHandTotal,
+						label: i18n.t('slots.main_hand', { ns: 'character' }),
+						prefix: i18n.t('sidebar.character_stats.hands.main'),
+					},
+					{
+						stat: offHandStat,
+						id: offHandId,
+						total: offHandTotal,
+						label: i18n.t('slots.off_hand', { ns: 'character' }),
+						prefix: i18n.t('sidebar.character_stats.hands.off'),
+					},
+				]
+			: [{ stat: unitStat, id: mainHandId, total: mainHandTotal }];
 
 	return (
 		<TableRow testId="character-stats-table-row" className="ui-character-stats-row">
@@ -77,16 +90,14 @@ export const StatRowView = ({
 				) : (
 					<>
 						<div className="ui-stat-value-link-container" data-tone={tone}>
-							<span>
-								{hands.map((hand, i) => (
-									<Fragment key={hand.stat.getKey()}>
-										{i > 0 && ' / '}
-										<TooltipAnchor tooltipId={hand.id} testId="stat-value-link" className={contextualClass}>
-											{hand.total}
-										</TooltipAnchor>
-									</Fragment>
-								))}
-							</span>
+							{hands.map(hand => (
+								<span key={hand.stat.getKey()}>
+									{hand.prefix && <span className="font-normal">{hand.prefix} </span>}
+									<TooltipAnchor tooltipId={hand.id} testId="stat-value-link" className={contextualClass}>
+										{hand.total}
+									</TooltipAnchor>
+								</span>
+							))}
 						</div>
 						{bonusStatsLink}
 						{hands.map(hand => (

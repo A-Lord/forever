@@ -2,6 +2,7 @@ import { ItemSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { canEquipItem } from '@sim/proto/items';
+import { Box } from '@ui-kit/Box';
 import { ComboBox } from '@ui-kit/ComboBox';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { NumberField } from '@ui-kit/TextField';
@@ -46,7 +47,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 
 	return (
 		<ContentBlock config={{ header: { title: i18n.t('bulk_tab.search.title'), className: 'pb-0 border-b-0' } }} flush>
-			<div ref={panelRef} className="relative grid grid-cols-2 gap-6 border border-border bg-background p-4 md:grid-cols-halves-wide">
+			<Box ref={panelRef} padding="md" className="relative grid grid-cols-2 gap-6 bg-background md:grid-cols-halves-wide" testId="bulk-item-search-panel">
 				<ComboBox
 					id="bulkGearSearch"
 					label={i18n.t('common.name')}
@@ -100,7 +101,7 @@ export const BulkItemSearch = ({ ready }: BulkItemSearchProps) => {
 						onChange={setMaxIlvl}
 					/>
 				</div>
-			</div>
+			</Box>
 		</ContentBlock>
 	);
 };

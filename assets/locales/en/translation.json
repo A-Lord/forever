@@ -929,7 +929,7 @@
 		},
 		"settings": {
 			"combinations": "Combinations",
-			"total_iterations": "Total iterations",
+			"total_iterations": "Estimated iterations",
 			"groups": {
 				"options": "Batch options",
 				"frozen_slots": "Frozen slots",
@@ -2540,6 +2540,10 @@
 				"spell": "Spell",
 				"defense": "Defense",
 				"resistance": "Resistances"
+			},
+			"hands": {
+				"main": "MH",
+				"off": "OH"
 			},
 			"melee_crit_cap": "Melee Crit Cap",
 			"tooltip": {

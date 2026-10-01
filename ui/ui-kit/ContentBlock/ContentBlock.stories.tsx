@@ -35,7 +35,7 @@ export const WithHeader: Story = {
 	args: {
 		config: { header: { title: 'Encounter' } },
 		headerChildren: (
-			<Button variant="link" className="ml-auto">
+			<Button variant="link" size="sm" className="ml-auto">
 				Reset
 			</Button>
 		),

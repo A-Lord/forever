@@ -17,7 +17,7 @@ const DIFFS: ReferenceDiffs = {
 
 const mount = (props: Partial<SimResultSummaryViewProps> = {}) => {
 	const handlers = { onSetReference: vi.fn(), onSwapReference: vi.fn(), onClearReference: vi.fn() };
-	const view = render(<SimResultSummaryView metrics={METRICS} pinClassName="text-class-warrior" {...handlers} {...props} />);
+	const view = render(<SimResultSummaryView metrics={METRICS} {...handlers} {...props} />);
 	return { ...handlers, ...view };
 };
 

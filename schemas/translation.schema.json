@@ -8964,6 +8964,19 @@
 							"additionalProperties": false,
 							"required": ["attributes", "physical", "spell", "defense", "resistance"]
 						},
+						"hands": {
+							"type": "object",
+							"properties": {
+								"main": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["main", "off"]
+						},
 						"melee_crit_cap": {
 							"type": "string"
 						},
@@ -9150,6 +9163,7 @@
 						"title",
 						"mode",
 						"groups",
+						"hands",
 						"melee_crit_cap",
 						"tooltip",
 						"attack_table",

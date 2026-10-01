@@ -68,7 +68,7 @@ const LastRunBody = () => (
 					Unset
 				</Button>
 			</ButtonGroup>
-			<Button variant="link">
+			<Button variant="link" size="sm">
 				Results
 				<Icon name="arrow-right" />
 			</Button>

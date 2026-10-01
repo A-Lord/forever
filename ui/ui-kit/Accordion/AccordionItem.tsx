@@ -20,7 +20,7 @@ export const AccordionItem = ({ value, title, panelClassName, testId, children }
 		className="ui-accordion-item"
 		value={value}
 		data-testid={testId}
-		render={use(AccordionVariantContext) === 'boxed' ? <Box border="subtle" padding="none" /> : undefined}>
+		render={use(AccordionVariantContext) === 'boxed' ? <Box border="border-muted" padding="none" /> : undefined}>
 		<BaseAccordion.Trigger className="ui-accordion-trigger" data-testid={testId ? `${testId}-trigger` : undefined}>
 			{title}
 			<Icon name="chevron-down" className="ui-accordion-chevron" />

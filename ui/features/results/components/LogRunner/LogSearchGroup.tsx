@@ -1,4 +1,5 @@
 import i18n from '@i18n/config';
+import { Box } from '@ui-kit/Box';
 import { Button } from '@ui-kit/Button';
 import { Chip } from '@ui-kit/Chip';
 import { ChoiceField } from '@ui-kit/ChoiceField';
@@ -63,9 +64,10 @@ export const LogSearchGroup = ({ group, suggestions, onChange, onRemove }: LogSe
 	const placeholder = TYPED_FIELDS[group.field];
 
 	return (
-		<div
-			data-testid="log-search-group"
-			className="flex max-w-62 flex-col gap-2 rounded-none border border-border-muted bg-panel p-2 [transition:all_0.2s_ease] hover:border-border hover:bg-panel-hover">
+		<Box
+			border="border-muted"
+			testId="log-search-group"
+			className="flex max-w-62 flex-col gap-2 bg-panel [transition:all_0.2s_ease] hover:border-border hover:bg-panel-hover">
 			<div data-testid="log-search-group-head" className="flex items-center gap-2">
 				<span data-testid="log-search-group-field" className="text-(length:--btn-font-size) leading-normal">
 					{sentenceCase(group.field)}
@@ -134,6 +136,6 @@ export const LogSearchGroup = ({ group, suggestions, onChange, onRemove }: LogSe
 					)}
 				</div>
 			</div>
-		</div>
+		</Box>
 	);
 };

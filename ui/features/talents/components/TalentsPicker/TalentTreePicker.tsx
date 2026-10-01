@@ -2,6 +2,7 @@ import i18n from '@i18n/config';
 import type { TalentsConfig } from '@sim/talents/config';
 import type { TalentPoints } from '@sim/talents/talents_string';
 import { totalPointsSpent, treePointTotal, withTalentPoints, withTreeCleared } from '@sim/talents/talents_string';
+import { Box } from '@ui-kit/Box';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
@@ -44,9 +45,10 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 	};
 
 	return (
-		<div
-			className="ui-talents-picker-tree relative flex flex-1 flex-col border border-border not-first:-ml-px"
-			data-testid="talent-tree"
+		<Box
+			padding="none"
+			className="ui-talents-picker-tree relative flex flex-1 flex-col not-first:-ml-px"
+			testId="talent-tree"
 			style={{ maxWidth: `calc(${CELL} * ${graph.numCols + 2})` }}>
 			<div className="z-1 flex items-center bg-black p-2 text-base text-white">
 				<span className="mr-2 flex-1 font-bold whitespace-nowrap" data-testid="talent-tree-title">
@@ -97,6 +99,6 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 					/>
 				))}
 			</div>
-		</div>
+		</Box>
 	);
 };

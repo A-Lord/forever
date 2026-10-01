@@ -275,10 +275,12 @@ const MELEE_HIT_STATS = new Stats()
 const MAIN_HAND_VALUE = statDisplayString({} as never, MELEE_HIT_STATS, UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent), true);
 const OFF_HAND_VALUE = statDisplayString({} as never, MELEE_HIT_STATS, UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent), true);
 
-const renderMeleeHitRow = (dualWielding: boolean) => {
+const EVEN_HANDS_STATS = MELEE_HIT_STATS.withPseudoStat(PseudoStat.PseudoStatOffHandHitPercent, 3).withPseudoStat(PseudoStat.PseudoStatOffHandHitRating, 30);
+
+const renderMeleeHitRow = (dualWielding: boolean, stats = MELEE_HIT_STATS) => {
 	const { rows } = renderSheet({
 		displayStats: MELEE_HIT_DISPLAY_STATS,
-		currentStats: { finalStats: MELEE_HIT_STATS.toProto() },
+		currentStats: { finalStats: stats.toProto() },
 		player: {
 			getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: false }),
 			isDualWielding: () => dualWielding,
@@ -292,18 +294,20 @@ const OFF_HAND_LABEL = i18n.t('slots.off_hand', { ns: 'character' });
 
 describe('CharacterStats combined melee hand rows', () => {
 	it.each([
-		[false, [MAIN_HAND_VALUE]],
-		[true, [MAIN_HAND_VALUE, OFF_HAND_VALUE]],
-	])(
-		'shows the main-hand value alone while single wielding, and both hands joined by " / " while dual wielding (dualWielding: %s)',
-		(dualWielding, values) => {
-			const { meleeHitRow } = renderMeleeHitRow(dualWielding);
-			const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
+		['single wielding', false, MELEE_HIT_STATS, [MAIN_HAND_VALUE]],
+		['dual wielding with even hands', true, EVEN_HANDS_STATS, [MAIN_HAND_VALUE]],
+		[
+			'dual wielding with uneven hands',
+			true,
+			MELEE_HIT_STATS,
+			[`${i18n.t('sidebar.character_stats.hands.main')} ${MAIN_HAND_VALUE}`, `${i18n.t('sidebar.character_stats.hands.off')} ${OFF_HAND_VALUE}`],
+		],
+	])('shows one value while %s, and each hand prefixed MH and OH only when they differ', (_case, dualWielding, stats, lines) => {
+		const { meleeHitRow } = renderMeleeHitRow(dualWielding, stats);
+		const links = meleeHitRow.querySelectorAll('[data-testid="stat-value-link"]');
 
-			expect([...links].map(link => link.textContent)).toEqual(values);
-			expect(meleeHitRow.textContent!.includes(' / ')).toBe(dualWielding);
-		},
-	);
+		expect([...links].map(link => link.parentElement!.textContent)).toEqual(lines);
+	});
 
 	it.each([
 		['main', 0, MAIN_HAND_LABEL, MAIN_HAND_VALUE],

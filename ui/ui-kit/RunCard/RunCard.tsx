@@ -9,6 +9,7 @@ export interface RunCardProps {
 	action?: ReactNode;
 	/** What the run produced or will produce, under the action. */
 	children?: ReactNode;
+	/** Rules the body off from the controls. An empty body is hidden, rule included. */
 	divided?: boolean;
 	/** Covers the whole card with a spinner and blocks it, while what it drives is not ready yet. */
 	loading?: boolean;
@@ -25,10 +26,7 @@ export const RunCard = ({ controls, action, children, divided = false, loading =
 			</div>
 		)}
 		{children && (
-			<div
-				className={clsx('flex flex-col gap-4', divided && 'border-t border-border pt-4')}
-				data-testid="run-card-body"
-				data-divided={divided ? '' : undefined}>
+			<div className={clsx('flex flex-col gap-4 empty:hidden', divided && 'border-t border-border pt-4')} data-testid="run-card-body">
 				{children}
 			</div>
 		)}

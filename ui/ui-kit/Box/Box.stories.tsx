@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { COLOR_TOKENS } from '@ui-kit/utils/color_tokens';
 
 import { Box, type BoxBorder, type BoxPadding } from './Box';
 
-const BORDERS: Array<BoxBorder> = ['none', 'subtle', 'default'];
+const BORDERS: Array<BoxBorder> = ['none', 'border', 'border-muted', 'frozen', 'brand', 'warning'];
 const PADDINGS: Array<BoxPadding> = ['none', 'xs', 'sm', 'md'];
 
 const meta = {
@@ -11,7 +12,7 @@ const meta = {
 	tags: ['autodocs'],
 	args: { children: 'Health 7354' },
 	argTypes: {
-		border: { control: 'inline-radio', options: BORDERS },
+		border: { control: 'select', options: ['none', ...COLOR_TOKENS] },
 		padding: { control: 'inline-radio', options: PADDINGS },
 		children: { control: false },
 	},

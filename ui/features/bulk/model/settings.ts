@@ -20,7 +20,6 @@ export const createBulkSettingsProto = (player: Player<any>): BulkSettings => {
 	return BulkSettings.create({
 		items: current.items.flatMap(spec => (spec ? [ItemSpec.clone(spec)] : [])),
 		useLegacyBulkSim: current.useLegacyBulkSim,
-		iterationsPerCombo: player.sim.getIterations(),
 		freezeRingSlot: bulkFrozenItemSlot(player, BulkSimItemSlot.ItemSlotFinger),
 		freezeTrinketSlot: bulkFrozenItemSlot(player, BulkSimItemSlot.ItemSlotTrinket),
 		freezeWeaponSlot: current.frozenWeaponSlot,

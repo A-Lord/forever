@@ -153,7 +153,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	return (
 		<CharacterStatsPanelView className={className} mode={mode} onModeChange={setMode} labels={labels}>
 			{primary && (
-				<Box border="subtle" padding="xs" testId="character-stats-primary">
+				<Box border="border-muted" padding="xs" testId="character-stats-primary">
 					{table(primary.rows)}
 				</Box>
 			)}

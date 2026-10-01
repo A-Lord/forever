@@ -18,13 +18,14 @@ export const SimResultsPanel = ({ panel, results, onOpenBreakdown }: SimResultsP
 	const host = useSimHost();
 	const stage = useSyncExternalStore(panel.subscribe, panel.getStage);
 
+	const summary = stage === ResultsPanelStage.Result ? results : null;
+	const showProgress = stage === ResultsPanelStage.Pending || stage === ResultsPanelStage.Running;
+	if (!summary && !showProgress && !host.simDisabled) return null;
+
 	return (
 		<div className="flex flex-col gap-2" data-testid="results-viewer">
-			{stage === ResultsPanelStage.Result && results ? (
-				<SimResultSummary results={results} onOpenBreakdown={onOpenBreakdown} />
-			) : (
-				(stage === ResultsPanelStage.Pending || stage === ResultsPanelStage.Running) && <SimProgress panel={panel} />
-			)}
+			{summary && <SimResultSummary results={summary} onOpenBreakdown={onOpenBreakdown} />}
+			{showProgress && <SimProgress panel={panel} />}
 			{host.disabled && <UnlaunchedNotice />}
 			{host.simDisabled && !host.disabled && <GearPlannerNotice />}
 		</div>

@@ -65,9 +65,8 @@ describe('SimResultsPanel', () => {
 
 	it('renders nothing before a run starts', async () => {
 		const { view } = await mount(panel);
-		const viewer = zone(view, '[data-testid="results-viewer"]');
 
-		expect(viewer.children).toHaveLength(0);
+		expect(view.container.querySelector('[data-testid="results-viewer"]')).toBeNull();
 		expect(zones(view)).toEqual({ pending: false, content: false });
 	});
 

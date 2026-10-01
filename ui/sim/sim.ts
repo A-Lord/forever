@@ -542,9 +542,6 @@ export class Sim {
 				candidates: requestCandidates,
 				optimizedCandidates: bulkReforgeCacheData?.optimizedCandidates ?? [],
 				topResults: 5,
-				// `||`, not `??`: `iterationsPerCombo` is a proto3 scalar, so an unset one arrives as 0
-				// rather than undefined and `??` would run the high stage with zero iterations.
-				highStageIterations: bulkSettings?.iterationsPerCombo || this.getIterations(),
 				reforgeRequest: bulkReforgeRequest,
 				bulkSettings,
 			});

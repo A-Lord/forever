@@ -1,8 +1,11 @@
+import { Box, type BoxBorder, type BoxPadding } from '@ui-kit/Box';
 import type { ClassValue } from 'clsx';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
 export interface ItemCellProps {
+	border?: BoxBorder;
+	padding?: BoxPadding;
 	icon: ReactNode;
 	ilvl?: ReactNode;
 	sockets?: ReactNode;
@@ -16,8 +19,21 @@ export interface ItemCellProps {
 	rootDataAttributes?: Record<string, string>;
 }
 
-export const ItemCell = ({ icon, ilvl, sockets, name, labels, action, align, className, testId, rootDataAttributes }: ItemCellProps) => (
-	<div className={clsx('ui-item-picker-root', className)} data-testid={testId ?? 'item-picker-root'} {...rootDataAttributes}>
+export const ItemCell = ({
+	border = 'none',
+	padding = 'none',
+	icon,
+	ilvl,
+	sockets,
+	name,
+	labels,
+	action,
+	align,
+	className,
+	testId,
+	rootDataAttributes,
+}: ItemCellProps) => (
+	<Box border={border} padding={padding} className={clsx('ui-item-picker-root', className)} testId={testId ?? 'item-picker-root'} {...rootDataAttributes}>
 		<div className="ui-item-picker-icon-wrapper" data-testid="item-picker-icon-wrapper">
 			{ilvl !== undefined && (
 				<span className="ui-item-picker-ilvl" data-testid="item-picker-ilvl">
@@ -38,5 +54,5 @@ export const ItemCell = ({ icon, ilvl, sockets, name, labels, action, align, cla
 			{labels}
 		</div>
 		{action}
-	</div>
+	</Box>
 );

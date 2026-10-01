@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Box } from '@ui-kit/Box';
 import { useRef } from 'react';
 
 import { VirtualList } from './VirtualList';
@@ -14,7 +15,7 @@ const HEIGHT = 320;
 const VirtualListStory = ({ count, rowHeight, overscan }: VirtualListStoryProps) => {
 	const scroller = useRef<HTMLDivElement>(null);
 	return (
-		<div ref={scroller} className="h-80 w-96 overflow-y-auto border border-border" data-testid="story-scroller">
+		<Box ref={scroller} padding="none" className="h-80 w-96 overflow-y-auto" testId="story-scroller">
 			<VirtualList
 				count={count}
 				rowHeight={rowHeight}
@@ -29,7 +30,7 @@ const VirtualListStory = ({ count, rowHeight, overscan }: VirtualListStoryProps)
 					</>
 				)}
 			/>
-		</div>
+		</Box>
 	);
 };
 

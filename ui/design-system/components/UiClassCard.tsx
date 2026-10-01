@@ -1,4 +1,5 @@
 import { Unstyled } from '@storybook/addon-docs/blocks';
+import { Box } from '@ui-kit/Box';
 import { Spinner } from '@ui-kit/Spinner';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
@@ -51,7 +52,7 @@ interface UiClassCardProps {
 }
 
 const UiClassCard = ({ name, rules, sample }: UiClassCardProps) => (
-	<div className="flex flex-col gap-2 border border-border-muted p-2">
+	<Box border="border-muted" className="flex flex-col gap-2" testId="ui-class-card">
 		<code className="font-bold">{name}</code>
 		{rules.map((rule, i) => (
 			<pre key={i} className="overflow-x-auto bg-surface p-2 text-ui whitespace-pre text-link">
@@ -59,7 +60,7 @@ const UiClassCard = ({ name, rules, sample }: UiClassCardProps) => (
 			</pre>
 		))}
 		{sample ?? <span className="text-ui text-foreground-disabled">No standalone sample: needs its component.</span>}
-	</div>
+	</Box>
 );
 
 export const UiClassGroups = () => (

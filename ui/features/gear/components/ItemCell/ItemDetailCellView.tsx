@@ -2,7 +2,7 @@ import type { ItemSlot } from '@generated/proto/common';
 import { translateProtoStatName, translateSlotName } from '@i18n/localization';
 import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { ItemCell } from '@ui-kit/ItemCell';
+import { ItemCell, type ItemCellProps } from '@ui-kit/ItemCell';
 import { itemQualityClassName } from '@ui-kit/utils/css';
 import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import type { ClassValue } from 'clsx';
@@ -15,7 +15,7 @@ import { EnchantLabel } from '../GearPicker/EnchantLabel';
 import { GemSocket } from './GemSocket';
 import { NameDescriptionLabel } from './NameDescriptionLabel';
 
-export interface ItemDetailCellViewProps {
+export interface ItemDetailCellViewProps extends Pick<ItemCellProps, 'border' | 'padding'> {
 	/** Drives the empty-state icon and the empty-state name. */
 	slot: ItemSlot;
 	item: EquippedItem | null;
@@ -52,6 +52,8 @@ export const ItemDetailCellView = ({
 	href,
 	wowhead,
 	align = 'start',
+	border,
+	padding,
 	className,
 	onOpen,
 	notice,
@@ -64,6 +66,8 @@ export const ItemDetailCellView = ({
 }: ItemDetailCellViewProps) => (
 	<ItemCell
 		align={align}
+		border={border}
+		padding={padding}
 		className={className}
 		testId={testId}
 		rootDataAttributes={rootDataAttributes}

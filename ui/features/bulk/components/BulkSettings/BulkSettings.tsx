@@ -1,5 +1,4 @@
 import { ReforgeSettingsPanel } from '@features/reforge/components/ReforgePanel';
-import { IterationsPicker } from '@features/results/components/IterationsPicker';
 import { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { BulkSimItemSlot, getBulkPlayerCanDualWield } from '@sim/bulk/utils';
@@ -79,7 +78,6 @@ export const BulkSettings = () => {
 
 	return (
 		<BulkSettingsView
-			iterations={<IterationsPicker sim={host.sim} />}
 			combinationsCount={<CombinationsCount />}
 			canRun={canRun}
 			onRun={() => void runBulkBatch(host)}

@@ -50,7 +50,7 @@ export const Pending: Story = { args: { pending: true } };
 
 export const WithBonus: Story = { args: { bonusStats: new Stats().withStat(Stat.StatStrength, 20) } };
 
-/** A combined melee row reads "main hand / off hand" while dual wielding, each half with its own breakdown. */
+/** A combined melee row shows each hand on its own line, prefixed MH and OH, while dual wielding, each with its own breakdown. */
 export const DualWielding: Story = {
 	args: {
 		displayStat: {

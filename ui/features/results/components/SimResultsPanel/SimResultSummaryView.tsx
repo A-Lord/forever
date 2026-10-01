@@ -19,7 +19,6 @@ export interface SimResultSummaryViewProps {
 	freshness?: ResultFreshness;
 	/** These metrics came in through a swap: they are the reference run's, not the last run's. */
 	swapped?: boolean;
-	pinClassName: string;
 	onSetReference: () => void;
 	onSwapReference: () => void;
 	onClearReference: () => void;
@@ -37,7 +36,6 @@ export const SimResultSummaryView = ({
 	referenceDiffs,
 	freshness,
 	swapped = false,
-	pinClassName,
 	onSetReference,
 	onSwapReference,
 	onClearReference,
@@ -70,12 +68,13 @@ export const SimResultSummaryView = ({
 				data-testid="results-sim-reference"
 				data-has-reference={hasReference ? '' : undefined}>
 				<Button
-					variant="unstyled"
+					variant="outline-primary"
+					size="sm"
 					hidden={hasReference}
 					data-testid="results-sim-set-reference"
 					onClick={onSetReference}
 					{...tooltipAnchorProps(tooltipId, i18n.t('sidebar.results.reference.use_as_reference'))}>
-					<Icon name="map-pin" style="base" size="lg" className={`${pinClassName} mr-2`} />
+					<Icon name="map-pin" style="base" />
 					{i18n.t('sidebar.results.reference.save_as_reference')}
 				</Button>
 				<ButtonGroup size="sm" hidden={!hasReference} testId="results-sim-reference-actions">
@@ -97,7 +96,7 @@ export const SimResultSummaryView = ({
 					</Button>
 				</ButtonGroup>
 				{onOpenBreakdown && (
-					<Button variant="link" data-testid="results-open-breakdown" onClick={onOpenBreakdown}>
+					<Button variant="link" size="sm" data-testid="results-open-breakdown" onClick={onOpenBreakdown}>
 						{i18n.t('results_tab.title')}
 						<Icon name="arrow-right" />
 					</Button>
