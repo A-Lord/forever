@@ -12,7 +12,6 @@ import {
 	consumableStatsOf,
 	explosiveUsedBeside,
 	handTakesImbue,
-	higherRanks,
 	relevanceFor,
 } from '@sim/settings/consumables';
 
@@ -42,7 +41,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
 		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig()), consumablePseudoStatsOf(player.getSpecConfig())),
-		higherRanks: higherRanks(all),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
 	const byGroup = new Map<string, Array<Consumable>>();

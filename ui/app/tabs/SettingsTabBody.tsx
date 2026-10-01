@@ -1,7 +1,7 @@
 import { EncounterPicker, SavedEncounter } from '@features/encounter';
 import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
-import { BuffSectionView, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
+import { BuffSectionView, ConsumesFilters, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { applyOwnerClassLabels, relevantStatOptions } from '@features/settings/model/stat_options';
 import i18n from '@i18n/config';
@@ -69,7 +69,8 @@ export const SettingsTabBody = () => {
 							))}
 							<ContentBlock
 								rootDataAttributes={{ 'data-block': 'consumes-settings' }}
-								config={{ header: { title: i18n.t('settings_tab.consumables.title') } }}>
+								config={{ header: { title: i18n.t('settings_tab.consumables.title') } }}
+								headerChildren={<ConsumesFilters />}>
 								<ConsumesPicker encounterConsumes={!gearPlanner} />
 							</ContentBlock>
 							{hasOtherSettings && (

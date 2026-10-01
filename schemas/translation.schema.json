@@ -2428,6 +2428,39 @@
 						"title": {
 							"type": "string"
 						},
+						"filters": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"min_lvl": {
+									"type": "string"
+								},
+								"reset": {
+									"type": "string"
+								},
+								"types": {
+									"type": "object",
+									"properties": {
+										"potion": { "type": "string" },
+										"conjured": { "type": "string" },
+										"flask": { "type": "string" },
+										"elixir": { "type": "string" },
+										"scroll": { "type": "string" },
+										"food": { "type": "string" },
+										"explosive": { "type": "string" },
+										"imbue": { "type": "string" },
+										"device": { "type": "string" },
+										"other": { "type": "string" }
+									},
+									"additionalProperties": false,
+									"required": ["potion", "conjured", "flask", "elixir", "scroll", "food", "explosive", "imbue", "device", "other"]
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title", "min_lvl", "reset", "types"]
+						},
 						"potions": {
 							"type": "object",
 							"properties": {
@@ -2515,7 +2548,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "potions", "elixirs", "food", "engineering", "imbue", "scrolls", "miscellaneous"]
+					"required": ["title", "filters", "potions", "elixirs", "food", "engineering", "imbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
