@@ -20,6 +20,7 @@ type SpellResult struct {
 	ArmorAndResistanceMultiplier     float64 // Armor multiplier
 	PostArmorAndResistanceMultiplier float64 // Damage done by this cast after Armor is applied
 	PostOutcomeDamage                float64 // Damage done by this cast after Outcome is applied
+	AbsorbedDamage                   float64 // Damage that absorption auras took off this cast
 
 	inUse bool
 }
@@ -75,6 +76,7 @@ func (spell *Spell) NewResult(target *Unit) *SpellResult {
 	result.inUse = true
 	result.PostArmorAndResistanceMultiplier = 0
 	result.PostOutcomeDamage = 0
+	result.AbsorbedDamage = 0
 
 	return result
 }
@@ -91,6 +93,7 @@ func (spell *Spell) CloneResult(result *SpellResult) *SpellResult {
 	newResult.Outcome = result.Outcome
 	newResult.PostArmorAndResistanceMultiplier = result.PostArmorAndResistanceMultiplier
 	newResult.PostOutcomeDamage = result.PostOutcomeDamage
+	newResult.AbsorbedDamage = result.AbsorbedDamage
 
 	return newResult
 }

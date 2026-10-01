@@ -55,1041 +55,1041 @@ character_stats_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Annihilator-12798"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ArenaGrandMaster-19024"
  value: {
-  dps: 735.64006
-  tps: 1121.40129
-  dtps: 4383.81379
+  dps: 745.44265
+  tps: 1135.94184
+  dtps: 4367.26207
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BadgeoftheSwarmguard-21670"
  value: {
-  dps: 756.78966
-  tps: 1153.07985
-  dtps: 4431.95589
+  dps: 772.59947
+  tps: 1176.26373
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BarbaricBelt-4264"
  value: {
-  dps: 744.16152
-  tps: 1134.25157
-  dtps: 4435.11449
+  dps: 763.43256
+  tps: 1162.67073
+  dtps: 4512.62252
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Beastmaster'sBoots-22061"
  value: {
-  dps: 733.30965
-  tps: 1117.87446
-  dtps: 4356.45117
+  dps: 748.1112
+  tps: 1139.98294
+  dtps: 4375.05381
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Beastmaster'sCap-22013"
  value: {
-  dps: 741.0318
-  tps: 1129.37438
-  dtps: 4389.60824
+  dps: 758.9734
+  tps: 1156.08796
+  dtps: 4441.19711
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Beastmaster'sGloves-22015"
  value: {
-  dps: 745.17236
-  tps: 1135.70329
-  dtps: 4423.77293
+  dps: 759.21534
+  tps: 1156.38915
+  dtps: 4464.72259
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 750.33487
-  tps: 1143.455
-  dtps: 4382.93411
+  dps: 763.30841
+  tps: 1162.73295
+  dtps: 4375.85916
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BlazingEmblem-2802"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.90789
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.94164
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BlessedPlate"
  value: {
-  dps: 785.79077
-  tps: 1195.82796
-  dtps: 4733.53319
+  dps: 793.2461
+  tps: 1206.99829
+  dtps: 4718.08404
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Conqueror'sBattlegear"
  value: {
-  dps: 750.38364
-  tps: 1142.65575
-  dtps: 3815.70518
+  dps: 767.13089
+  tps: 1167.55174
+  dtps: 3817.22661
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 767.55397
-  tps: 1169.15243
-  dtps: 4445.39015
+  dps: 777.34059
+  tps: 1183.31018
+  dtps: 4454.63976
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Defiler'sTalisman-20072"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Defiler'sTalisman-21115"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-DragonscaleBreastplate-8367"
  value: {
-  dps: 745.87905
-  tps: 1136.74145
-  dtps: 4518.15071
+  dps: 755.54244
+  tps: 1150.83483
+  dtps: 4539.48374
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Dreadnaught'sBattlegear"
  value: {
-  dps: 704.00449
-  tps: 1073.38274
-  dtps: 3661.917
+  dps: 713.82242
+  tps: 1088.13722
+  dtps: 3650.44207
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EarthenSigil-20525"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Earthstrike-21180"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EbonHand-19170"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Enchant2HWeapon-GrandArcanist-7941"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 749.38375
-  tps: 1141.70292
-  dtps: 4432.15462
+  dps: 757.97905
+  tps: 1154.47565
+  dtps: 4403.27258
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantChest-Absorption-8220"
  value: {
-  dps: 747.29984
-  tps: 1138.89391
-  dtps: 4427.93849
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4443.04723
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantChest-LesserAbsorption-63"
  value: {
-  dps: 746.23943
-  tps: 1137.32876
-  dtps: 4424.33553
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.10973
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantChest-MinorAbsorption-44"
  value: {
-  dps: 745.64344
-  tps: 1136.38936
-  dtps: 4425.5783
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.49723
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantCloak-Subtlety-2621"
  value: {
-  dps: 745.87905
-  tps: 1114.14505
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1127.95367
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantGloves-Threat-2613"
  value: {
-  dps: 745.87905
-  tps: 1159.33815
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1173.71629
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantWeapon-Crusader-1900"
  value: {
-  dps: 785.50032
-  tps: 1196.02436
-  dtps: 4423.50691
+  dps: 796.19812
+  tps: 1211.62184
+  dtps: 4434.59284
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantWeapon-GrandSorcerer-7942"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantWeapon-Insight-8216"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantWeapon-Recovery-8721"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
-  hps: 58.83795
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
+  hps: 59.22312
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EverlookPathcarver-274759"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EyeofMoam-21473"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-EyeoftheDead-23047"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-FieryPlateGauntlets-12631"
  value: {
-  dps: 762.99917
-  tps: 1162.31037
-  dtps: 4533.07773
+  dps: 772.88815
+  tps: 1176.86753
+  dtps: 4503.93049
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-FlurryAxe-871"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ForceReactiveDisk-18168"
  value: {
-  dps: 749.40564
-  tps: 1141.80091
-  dtps: 4334.58754
+  dps: 767.06923
+  tps: 1168.04967
+  dtps: 4417.3718
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-FrozenHeartoftheMountain-249469"
  value: {
-  dps: 746.6456
-  tps: 1137.91448
-  dtps: 4431.95589
+  dps: 760.33511
+  tps: 1157.9285
+  dtps: 4477.97411
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GirdleofReprisal-11861"
  value: {
-  dps: 746.50528
-  tps: 1137.71603
-  dtps: 4437.06176
+  dps: 764.98003
+  tps: 1164.9332
+  dtps: 4510.82073
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GnomishHarmPreventionBelt-10721"
  value: {
-  dps: 737.67601
-  tps: 1124.55566
-  dtps: 4435.3326
+  dps: 756.75787
+  tps: 1152.69195
+  dtps: 4512.84009
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 748.09728
-  tps: 1140.17416
-  dtps: 4472.19344
+  dps: 757.54135
+  tps: 1153.86929
+  dtps: 4515.31969
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GoldenBanana-270226"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-GrandMarshal'sAegis-18825"
  value: {
-  dps: 752.16583
-  tps: 1145.95776
-  dtps: 4402.77426
+  dps: 764.44463
+  tps: 1164.21795
+  dtps: 4406.1866
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Gri'lek'sCharmofMight-19951"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HammeroftheNorthernWind-810"
  value: {
-  dps: 754.42057
-  tps: 1149.31084
-  dtps: 4418.73426
+  dps: 762.81341
+  tps: 1161.98942
+  dtps: 4412.95165
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HanzoSword-8190"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HeartoftheScale-13164"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HelmofFire-8348"
  value: {
-  dps: 741.27431
-  tps: 1129.86523
-  dtps: 4405.10944
+  dps: 758.08395
+  tps: 1154.71851
+  dtps: 4456.38486
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HibernationCrystal-20636"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-HighWarlord'sShieldWall-18826"
  value: {
-  dps: 749.13935
-  tps: 1141.3755
-  dtps: 4392.4281
+  dps: 765.98403
+  tps: 1166.39848
+  dtps: 4428.28683
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ImperialPlate"
  value: {
-  dps: 795.42218
-  tps: 1210.38388
-  dtps: 4626.80405
+  dps: 810.96815
+  tps: 1234.00794
+  dtps: 4716.1788
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-JomGabbar-23570"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-KissoftheSpider-22954"
  value: {
-  dps: 756.96473
-  tps: 1152.9649
-  dtps: 4432.61817
+  dps: 763.2126
+  tps: 1162.52461
+  dtps: 4419.91834
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Linken'sBoomerang-11905"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 685.80951
-  tps: 1046.78581
-  dtps: 4451.96207
+  dps: 686.42284
+  tps: 1047.6876
+  dtps: 4424.99508
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Loatheb'sReflection-23042"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.90789
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.94164
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-MarkofResolution-17759"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-MarkoftheChampion-23206"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-MarkoftheChampion-23207"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-MarkoftheRedFlight-282778"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-MasterworkStormhammer-12794"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-MoltenHeartoftheMountain-249470"
  value: {
-  dps: 750.17646
-  tps: 1143.19312
-  dtps: 4431.95589
+  dps: 764.00827
+  tps: 1163.41987
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ObsidianMailTunic-22191"
  value: {
-  dps: 771.40374
-  tps: 1174.90086
-  dtps: 4518.15271
+  dps: 785.30856
+  tps: 1195.37799
+  dtps: 4561.38707
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-OrbofFire-12805"
  value: {
-  dps: 749.84633
-  tps: 1142.56847
-  dtps: 4445.13651
+  dps: 762.12694
+  tps: 1160.73374
+  dtps: 4458.39951
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-PhantomBlade-7961"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-PremierGrandMarshal'sAegis-272838"
  value: {
-  dps: 749.06428
-  tps: 1141.33867
-  dtps: 4400.72755
+  dps: 766.54875
+  tps: 1167.34019
+  dtps: 4427.94563
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-PremierHighWarlord'sShieldWall-272591"
  value: {
-  dps: 751.08888
-  tps: 1144.39603
-  dtps: 4417.10034
+  dps: 767.71811
+  tps: 1169.23326
+  dtps: 4439.8615
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-SatchelofDarkIronBombs-285278"
  value: {
-  dps: 741.64369
-  tps: 1130.52836
-  dtps: 4431.42519
+  dps: 753.63769
+  tps: 1147.89692
+  dtps: 4466.87214
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-SatchelofIronBombs-285277"
  value: {
-  dps: 741.64369
-  tps: 1130.52836
-  dtps: 4431.42519
+  dps: 753.63769
+  tps: 1147.89692
+  dtps: 4466.87214
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-SerenityField-272439"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ShortswordofVengeance-754"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Slayer'sCrest-23041"
  value: {
-  dps: 778.37576
-  tps: 1185.35578
-  dtps: 4435.30007
+  dps: 791.25826
+  tps: 1204.21993
+  dtps: 4470.65365
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-SmokingHeartoftheMountain-11811"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-StormGauntlets-12632"
  value: {
-  dps: 760.6517
-  tps: 1158.80398
-  dtps: 4523.34196
+  dps: 770.43515
+  tps: 1173.18377
+  dtps: 4503.46774
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-SwordofZeal-6622"
  value: {
-  dps: 894.88989
-  tps: 1359.20998
-  dtps: 4316.91216
+  dps: 925.83395
+  tps: 1405.89815
+  dtps: 4344.74404
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TalismanofArathor-20071"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TalismanofArathor-21117"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TalismanofAscendance-22678"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TalismanofEphemeralPower-18820"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TheBurrower'sShell-23558"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TheGreenTower-1204"
  value: {
-  dps: 745.82148
-  tps: 1136.59872
-  dtps: 4432.999
+  dps: 753.77727
+  tps: 1148.22709
+  dtps: 4451.33744
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TheRestrainedEssenceofSapphiron-23046"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ThrashBlade-17705"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
-  dps: 745.87905
-  tps: 1136.7416
-  dtps: 4425.66997
+  dps: 755.54244
+  tps: 1150.83498
+  dtps: 4446.5889
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TruesilverBreastplate-7939"
  value: {
-  dps: 745.87251
-  tps: 1136.73168
-  dtps: 4518.20521
-  hps: 17.03856
+  dps: 755.45302
+  tps: 1150.70115
+  dtps: 4539.53824
+  hps: 17.04878
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-Uther'sStrength-11302"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4428.47589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4474.56964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-WarmthofForgiveness-23027"
  value: {
-  dps: 746.44595
-  tps: 1137.61601
-  dtps: 4431.95589
+  dps: 760.20248
+  tps: 1157.73022
+  dtps: 4477.98964
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-WrathofCenarius-21190"
  value: {
-  dps: 745.87905
-  tps: 1136.74149
-  dtps: 4494.6106
+  dps: 755.54244
+  tps: 1150.83487
+  dtps: 4515.83859
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Average-Default"
  value: {
-  dps: 737.92887
-  tps: 1123.78078
-  dtps: 4331.58274
+  dps: 750.58061
+  tps: 1142.69787
+  dtps: 4346.29263
   hps: 16.70542
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 5155.33161
-  tps: 8427.35436
-  dtps: 66420.91498
+  dps: 5245.97156
+  tps: 8560.12416
+  dtps: 66416.3406
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 623.75485
-  tps: 950.58772
-  dtps: 2952.44723
+  dps: 633.34392
+  tps: 964.85947
+  dtps: 2960.94883
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 598.43409
-  tps: 918.19683
-  dtps: 2675.12671
+  dps: 613.08878
+  tps: 939.97554
+  dtps: 2682.66256
   hps: 24.6
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2553.40812
-  tps: 4464.32838
-  dtps: 126848.22827
+  dps: 2564.71718
+  tps: 4481.08017
+  dtps: 126847.49811
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.8029
-  tps: 593.99408
-  dtps: 4850.72004
+  dps: 378.64164
+  tps: 592.43154
+  dtps: 4850.84327
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 354.55939
-  tps: 567.22333
-  dtps: 4552.37629
+  dps: 356.23016
+  tps: 569.70697
+  dtps: 4564.22643
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 5155.33161
-  tps: 8427.35436
-  dtps: 66420.91498
+  dps: 5245.97156
+  tps: 8560.12416
+  dtps: 66416.3406
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 623.75485
-  tps: 950.58772
-  dtps: 2952.44723
+  dps: 633.34392
+  tps: 964.85947
+  dtps: 2960.94883
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 598.43409
-  tps: 918.19683
-  dtps: 2675.12671
+  dps: 613.08878
+  tps: 939.97554
+  dtps: 2682.66256
   hps: 24.6
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2553.40812
-  tps: 4464.32838
-  dtps: 126848.22827
+  dps: 2564.71718
+  tps: 4481.08017
+  dtps: 126847.49811
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 379.8029
-  tps: 593.99408
-  dtps: 4850.72004
+  dps: 378.64164
+  tps: 592.43154
+  dtps: 4850.84327
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 354.55939
-  tps: 567.22333
-  dtps: 4552.37629
+  dps: 356.23016
+  tps: 569.70697
+  dtps: 4564.22643
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-p1_bis-Protection-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 5212.34431
-  tps: 8508.47457
-  dtps: 66570.4946
+  dps: 5300.37088
+  tps: 8637.83575
+  dtps: 66572.70211
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-p1_bis-Protection-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 631.50347
-  tps: 962.13417
-  dtps: 2959.34224
+  dps: 641.88974
+  tps: 977.59237
+  dtps: 2976.79905
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-p1_bis-Protection-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 608.90151
-  tps: 933.85071
-  dtps: 2696.73941
+  dps: 622.56656
+  tps: 954.14991
+  dtps: 2684.02554
   hps: 24.6
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-p1_bis-Protection-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2605.318
-  tps: 4538.12206
-  dtps: 127173.74689
+  dps: 2613.19782
+  tps: 4550.27122
+  dtps: 127129.79522
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-p1_bis-Protection-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 384.41434
-  tps: 600.77219
-  dtps: 4870.6008
+  dps: 383.60422
+  tps: 599.65426
+  dtps: 4877.59312
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-p1_bis-Protection-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 358.77215
-  tps: 573.51322
-  dtps: 4561.17687
+  dps: 360.87064
+  tps: 576.63629
+  dtps: 4573.03831
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-preraid-Protection-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 5212.34431
-  tps: 8508.47457
-  dtps: 66570.4946
+  dps: 5300.37088
+  tps: 8637.83575
+  dtps: 66572.70211
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-preraid-Protection-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 631.50347
-  tps: 962.13417
-  dtps: 2959.34224
+  dps: 641.88974
+  tps: 977.59237
+  dtps: 2976.79905
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-preraid-Protection-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 608.90151
-  tps: 933.85071
-  dtps: 2696.73941
+  dps: 622.56656
+  tps: 954.14991
+  dtps: 2684.02554
   hps: 24.6
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-preraid-Protection-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2605.318
-  tps: 4538.12206
-  dtps: 127173.74689
+  dps: 2613.19782
+  tps: 4550.27122
+  dtps: 127129.79522
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-preraid-Protection-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 384.41434
-  tps: 600.77219
-  dtps: 4870.6008
+  dps: 383.60422
+  tps: 599.65426
+  dtps: 4877.59312
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Orc-preraid-Protection-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 358.77215
-  tps: 573.51322
-  dtps: 4561.17687
+  dps: 360.87064
+  tps: 576.63629
+  dtps: 4573.03831
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-SwitchInFrontOfTarget-Default"
  value: {
-  dps: 631.50347
-  tps: 962.13417
-  dtps: 2959.34224
+  dps: 641.88974
+  tps: 977.59237
+  dtps: 2976.79905
   hps: 16.4
  }
 }

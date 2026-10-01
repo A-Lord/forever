@@ -119,7 +119,7 @@ func rageFromAutoAttack(sim *Simulation, fw *FakeRageWarrior, spell *Spell, outc
 }
 
 func TestAutoAttackRageGeneration(t *testing.T) {
-	// A one-hand MH swing at 2.6 speed: 2.6 * 3.46 = 8.996, whatever it dealt.
+	// A one-hand MH swing at 2.6 speed: 2.6 * 3.46 = 8.996, whatever it dealt; a crit 8.996 * 1.75 = 15.743.
 	const swingDamage = 500.0
 
 	tests := []struct {
@@ -135,7 +135,7 @@ func TestAutoAttackRageGeneration(t *testing.T) {
 		{
 			name:     "crit",
 			outcome:  OutcomeCrit,
-			wantRage: 8.996,
+			wantRage: 15.743,
 		},
 		{
 			name:     "glance",
@@ -209,6 +209,7 @@ func TestOffHandAutoAttackRageGeneration(t *testing.T) {
 func TestDamageTakenRageGeneration(t *testing.T) {
 	// 1000 damage taken at level 60: 2.5 * 1000 / 230.6 = 10.841. A physical hit counts as if armor
 	// halved it, so 1000 taken through 60% armor reduction counts as 2.5 * 1000 / 0.4 * 0.5 / 230.6 = 13.552.
+	// Absorbed damage counts as taken: 1000 taken and 500 absorbed counts as 1500.
 	const damageTaken = 1000.0
 
 	tests := []struct {
@@ -216,9 +217,11 @@ func TestDamageTakenRageGeneration(t *testing.T) {
 		school          SpellSchool
 		outcome         HitOutcome
 		armorMultiplier float64
+		absorbed        float64
 		wantRage        float64
 	}{
 		{name: "physical hit", school: SpellSchoolPhysical, outcome: OutcomeHit, armorMultiplier: 0.4, wantRage: 13.552},
+		{name: "physical hit partly absorbed", school: SpellSchoolPhysical, outcome: OutcomeHit, armorMultiplier: 0.4, absorbed: 500, wantRage: 20.328},
 		{name: "physical hit through no armor", school: SpellSchoolPhysical, outcome: OutcomeHit, armorMultiplier: 1, wantRage: 5.421},
 		{name: "fire hit", school: SpellSchoolFire, outcome: OutcomeHit, armorMultiplier: 1, wantRage: 10.841},
 		{name: "dodge", school: SpellSchoolPhysical, outcome: OutcomeDodge, armorMultiplier: 0.4, wantRage: 0},
@@ -237,6 +240,7 @@ func TestDamageTakenRageGeneration(t *testing.T) {
 			}
 			if test.outcome.Matches(OutcomeLanded) {
 				result.Damage = damageTaken
+				result.AbsorbedDamage = test.absorbed
 			}
 
 			rageBefore := fw.CurrentRage()

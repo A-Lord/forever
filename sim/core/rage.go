@@ -21,6 +21,7 @@ const (
 	BaseRageHitFactor     = 3.46
 	TwoHandRageHitFactor  = 4.5
 	TwoHandRageMultiplier = TwoHandRageHitFactor / BaseRageHitFactor
+	CritRageMultiplier    = 1.75
 )
 
 type rageBar struct {
@@ -83,6 +84,9 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 
 			// rage is normalized so it only depends on weapon swing speed and some multipliers
 			generatedRage := hitFactor * weapon.SwingSpeed * options.BaseRageMultiplier * handMultiplier
+			if result.DidCrit() {
+				generatedRage *= CritRageMultiplier
+			}
 
 			var metrics *ResourceMetrics
 			if spell.Cost != nil {
@@ -103,7 +107,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 				return
 			}
 
-			damage := result.Damage
+			damage := result.Damage + result.AbsorbedDamage
 			if spell.SpellSchool.Matches(SpellSchoolPhysical) && result.ArmorAndResistanceMultiplier > 0 {
 				damage *= DamageTakenRageArmorMultiplier / result.ArmorAndResistanceMultiplier
 			}

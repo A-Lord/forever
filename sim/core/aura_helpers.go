@@ -888,6 +888,7 @@ func (unit *Unit) NewDamageAbsorptionAura(config AbsorptionAuraConfig) *DamageAb
 			}
 
 			result.Damage -= absorbedDamage
+			result.AbsorbedDamage += absorbedDamage
 			aura.ShieldStrength -= absorbedDamage
 
 			if sim.Log != nil {
