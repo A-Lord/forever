@@ -28,10 +28,14 @@ func replaceItem(existing core.Item, option bulkSimCandidateOption) core.Item {
 }
 
 func createSelectedItem(option bulkSimCandidateOption) core.Item {
+	enchant := option.spec.GetEnchant()
+	if option.enchant != 0 {
+		enchant = option.enchant
+	}
 	return core.NewItem(core.ItemSpec{
 		ID:           option.spec.GetId(),
 		RandomSuffix: option.spec.GetRandomSuffix(),
-		Enchant:      option.spec.GetEnchant(),
+		Enchant:      enchant,
 		Gems:         slices.Clone(option.spec.GetGems()),
 	})
 }
@@ -76,13 +80,12 @@ func enchantAppliesToItem(effectID int32, item core.Item) bool {
 	if effectID == 0 {
 		return false
 	}
-	enchant := core.GetEnchantByEffectID(effectID)
-	if enchant == nil {
-		return false
-	}
-	if !core.CheckSliceOverlap(getEligibleEnchantSlots(*enchant), core.EligibleSlotsForItem(&item)) {
-		return false
-	}
+	return slices.ContainsFunc(core.GetEnchantRowsByEffectID(effectID), func(enchant core.Enchant) bool {
+		return enchantRowAppliesToItem(enchant, item)
+	})
+}
+
+func enchantRowAppliesToItem(enchant core.Enchant, item core.Item) bool {
 	if enchant.EnchantType == proto.EnchantType_EnchantTypeTwoHand && item.HandType != proto.HandType_HandTypeTwoHand {
 		return false
 	}
@@ -96,12 +99,13 @@ func enchantAppliesToItem(effectID int32, item core.Item) bool {
 		return false
 	}
 	if enchant.Type == proto.ItemType_ItemTypeRanged {
-		return item.RangedWeaponType == proto.RangedWeaponType_RangedWeaponTypeBow || item.RangedWeaponType == proto.RangedWeaponType_RangedWeaponTypeCrossbow || item.RangedWeaponType == proto.RangedWeaponType_RangedWeaponTypeGun
-	}
-	if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeWand && enchant.Type != proto.ItemType_ItemTypeRanged {
+		if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeBow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeCrossbow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeGun {
+			return false
+		}
+	} else if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeWand {
 		return false
 	}
-	return true
+	return core.CheckSliceOverlap(getEligibleEnchantSlots(enchant), core.EligibleSlotsForItem(&item))
 }
 
 func getEligibleEnchantSlots(enchant core.Enchant) []proto.ItemSlot {

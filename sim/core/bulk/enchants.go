@@ -5,7 +5,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	googleProto "google.golang.org/protobuf/proto"
 )
 
 // enchantPools holds the pooled effect ids per item slot, deduped in request order.
@@ -23,29 +22,25 @@ func newEnchantPools(settings *proto.BulkSettings) enchantPools {
 	return pools
 }
 
-// poolFor reads a ring or trinket pool from the first slot of the pair, so the Finger1 row
-// serves both fingers.
+// poolFor reads the ring pool from the Finger1 row, which serves both fingers. Trinkets take no
+// enchants and have no pool.
 func (pools enchantPools) poolFor(bulkSlot BulkSimItemSlot) []int32 {
-	if bulkSlot == BulkSimItemSlotFinger || bulkSlot == BulkSimItemSlotTrinket {
-		return pools[BulkSimItemSlotToItemSlotPairs[bulkSlot][0]]
+	if bulkSlot == BulkSimItemSlotFinger {
+		return pools[proto.ItemSlot_ItemSlotFinger1]
 	}
-	return pools[BulkSimItemSlotToSingleItemSlot[bulkSlot]]
+	if slot, ok := BulkSimItemSlotToSingleItemSlot[bulkSlot]; ok {
+		return pools[slot]
+	}
+	return nil
 }
 
 func fittingEnchants(pool []int32, item core.Item) []int32 {
-	var fitting []int32
-	for _, effectID := range pool {
-		if enchantAppliesToItem(effectID, item) {
-			fitting = append(fitting, effectID)
-		}
-	}
-	return fitting
+	return core.FilterSlice(pool, func(effectID int32) bool {
+		return enchantAppliesToItem(effectID, item)
+	})
 }
 
 func withEnchant(option bulkSimCandidateOption, effectID int32, hand weaponHand) bulkSimCandidateOption {
-	spec := googleProto.Clone(option.spec).(*proto.ItemSpec)
-	spec.Enchant = effectID
-	option.spec = spec
 	option.enchant = effectID
 	option.hand = hand
 	return option
@@ -118,7 +113,7 @@ func (generator *bulkSimCandidateGenerator) initEnchantVariants() {
 		expanded := make([]bulkSimCandidateOption, 0, len(options))
 		for _, option := range options {
 			switch {
-			case generator.isFrozenWeapon(bulkSlot, option):
+			case generator.isFrozenWeapon(option):
 				expanded = append(expanded, option)
 			case bulkSlot == BulkSimItemSlotHandWeapon:
 				expanded = append(expanded, handWeaponEnchantVariants(option, mainHandPool, offHandPool)...)
@@ -130,14 +125,8 @@ func (generator *bulkSimCandidateGenerator) initEnchantVariants() {
 	}
 }
 
-func (generator *bulkSimCandidateGenerator) isFrozenWeapon(bulkSlot BulkSimItemSlot, option bulkSimCandidateOption) bool {
-	if generator.frozenWeaponItem == nil {
-		return false
-	}
-	if bulkSlot != BulkSimItemSlotMainHand && bulkSlot != BulkSimItemSlotOffHand && bulkSlot != BulkSimItemSlotHandWeapon {
-		return false
-	}
-	return candidateOptionEqualsItem(option, *generator.frozenWeaponItem)
+func (generator *bulkSimCandidateGenerator) isFrozenWeapon(option bulkSimCandidateOption) bool {
+	return generator.frozenWeaponItem != nil && candidateOptionEqualsItem(option, *generator.frozenWeaponItem)
 }
 
 func weaponHandsAllowed(mainHand *bulkSimCandidateOption, offHand *bulkSimCandidateOption) bool {
