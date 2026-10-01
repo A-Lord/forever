@@ -62,11 +62,52 @@ func TestBulkSimEnchantAppliesToItem_UsesWeaponTypeRules(t *testing.T) {
 	if !enchantAppliesToItem(weaponEffectID, staff) {
 		t.Fatalf("expected weapon enchant to apply to staff")
 	}
-	if !enchantAppliesToItem(weaponEffectID, shield) {
-		t.Fatalf("expected weapon enchant to apply to shield off-hand slot")
+	if enchantAppliesToItem(weaponEffectID, shield) {
+		t.Fatalf("expected weapon enchant to not apply to shield")
 	}
-	if !enchantAppliesToItem(weaponEffectID, offHand) {
-		t.Fatalf("expected weapon enchant to apply to off-hand frill")
+	if enchantAppliesToItem(weaponEffectID, offHand) {
+		t.Fatalf("expected weapon enchant to not apply to off-hand frill")
+	}
+}
+
+func TestBulkSimEnchantAppliesToItem_UsesEnchantTypeRules(t *testing.T) {
+	enchantOfType := func(effectID int32, itemType proto.ItemType, enchantType proto.EnchantType) int32 {
+		core.AddToDatabase(&proto.SimDatabase{
+			Enchants: []*proto.SimEnchant{{EffectId: effectID, Type: itemType, EnchantType: enchantType}},
+		})
+		return effectID
+	}
+	twoHand := enchantOfType(910010, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
+	shieldOnly := enchantOfType(910011, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeShield)
+	staffOnly := enchantOfType(910012, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeStaff)
+	offHandOnly := enchantOfType(910013, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeOffHand)
+
+	oneHandSword := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeOneHand}
+	twoHandSword := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeTwoHand}
+	staff := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeStaff, HandType: proto.HandType_HandTypeTwoHand}
+	mace := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeMace, HandType: proto.HandType_HandTypeTwoHand}
+	shield := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeShield, HandType: proto.HandType_HandTypeOffHand}
+	frill := core.Item{Type: proto.ItemType_ItemTypeWeapon, WeaponType: proto.WeaponType_WeaponTypeOffHand, HandType: proto.HandType_HandTypeOffHand}
+
+	cases := []struct {
+		name    string
+		enchant int32
+		item    core.Item
+		want    bool
+	}{
+		{"two-hand enchant on two-hander", twoHand, twoHandSword, true},
+		{"two-hand enchant on one-hander", twoHand, oneHandSword, false},
+		{"shield enchant on shield", shieldOnly, shield, true},
+		{"shield enchant on weapon", shieldOnly, oneHandSword, false},
+		{"staff enchant on staff", staffOnly, staff, true},
+		{"staff enchant on two-hand mace", staffOnly, mace, false},
+		{"off-hand enchant on off-hand frill", offHandOnly, frill, true},
+		{"off-hand enchant on shield", offHandOnly, shield, false},
+	}
+	for _, c := range cases {
+		if got := enchantAppliesToItem(c.enchant, c.item); got != c.want {
+			t.Errorf("%s: got %v, want %v", c.name, got, c.want)
+		}
 	}
 }
 

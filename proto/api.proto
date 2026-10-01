@@ -766,6 +766,25 @@ message BulkSettings {
 	int32 freeze_weapon_slot = 5;
 	repeated WeaponType freeze_mainhand_weapon_slots = 6;
 	repeated WeaponType freeze_offhand_weapon_slots = 7;
+
+	// Enchants to cross with the candidate items, per slot. Finger1 serves both fingers.
+	repeated BulkEnchantSlotOptions enchants = 8;
+}
+
+message BulkEnchantSlotOptions {
+	ItemSlot slot = 1;
+	repeated int32 effect_ids = 2;
+}
+
+// The ticked presets are unioned per slot into BulkSettings.enchants.
+message BulkEnchantPreset {
+	string name = 1;
+	repeated BulkEnchantSlotOptions slots = 2;
+}
+
+message BulkEnchantPresets {
+	repeated BulkEnchantPreset presets = 1;
+	repeated string checked = 2;
 }
 
 message BulkGearCandidate {

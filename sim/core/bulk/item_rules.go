@@ -81,6 +81,18 @@ func enchantAppliesToItem(effectID int32, item core.Item) bool {
 	if !core.CheckSliceOverlap(getEligibleEnchantSlots(*enchant), core.EligibleSlotsForItem(&item)) {
 		return false
 	}
+	if enchant.EnchantType == proto.EnchantType_EnchantTypeTwoHand && item.HandType != proto.HandType_HandTypeTwoHand {
+		return false
+	}
+	if enchant.EnchantType == proto.EnchantType_EnchantTypeStaff && item.WeaponType != proto.WeaponType_WeaponTypeStaff {
+		return false
+	}
+	if (enchant.EnchantType == proto.EnchantType_EnchantTypeShield) != (item.WeaponType == proto.WeaponType_WeaponTypeShield) {
+		return false
+	}
+	if (enchant.EnchantType == proto.EnchantType_EnchantTypeOffHand) != (item.WeaponType == proto.WeaponType_WeaponTypeOffHand) {
+		return false
+	}
 	if enchant.Type == proto.ItemType_ItemTypeRanged {
 		return item.RangedWeaponType == proto.RangedWeaponType_RangedWeaponTypeBow || item.RangedWeaponType == proto.RangedWeaponType_RangedWeaponTypeCrossbow || item.RangedWeaponType == proto.RangedWeaponType_RangedWeaponTypeGun
 	}
