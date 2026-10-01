@@ -1,7 +1,7 @@
+import { makeBooleanIndividualBuffInput, makeBooleanPartyBuffInput } from '@features/inputs/icon_inputs';
 import { Class, Stat } from '@generated/proto/common';
 import { ActionId } from '@sim/proto/action_id';
 import { Party } from '@sim/raid/party';
-import { makeBooleanIndividualBuffInput, makeBooleanPartyBuffInput } from '@ui-kit/icon_inputs';
 
 import * as Generated from './buffs_debuffs_auto_gen';
 import { IconPickerStatOption, inDisplayOrder } from './stat_options';

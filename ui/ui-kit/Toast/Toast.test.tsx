@@ -25,15 +25,14 @@ describe('Toast', () => {
 		expect(toast.getAttribute('aria-describedby')).toBe(within(toast).getByTestId('sim-toast-body').id);
 	});
 
-	it('takes the title and the caller class from the options', () => {
+	it('takes the title from the options', () => {
 		render(<ToastArea manager={toastManager} />);
 		act(() => {
-			toastManager.add({ variant: 'warning', body: 'Download it', title: 'Native sim', className: 'toast-notice-native-download' });
+			toastManager.add({ variant: 'warning', body: 'Download it', title: 'Native sim' });
 		});
 
 		const toast = within(standardViewport()).getByTestId('sim-toast');
 		expect(toast.getAttribute('data-variant')).toBe('warning');
-		expect(toast.classList.contains('toast-notice-native-download')).toBe(true);
 		expect(within(toast).getByTestId('sim-toast-title').textContent).toBe('Native sim');
 	});
 
@@ -102,6 +101,27 @@ describe('Toast', () => {
 		host.remove();
 	});
 
+	it('renders an inline area with no container in place, not through a portal, and shows and closes its toasts there', async () => {
+		const manager = createToastManager();
+		const { container } = render(
+			<div data-testid="toast-host">
+				<ToastArea manager={manager} inline testId="in-place-area" />
+			</div>,
+		);
+		const area = screen.getByTestId('in-place-area');
+		expect(within(screen.getByTestId('toast-host')).getByTestId('in-place-area')).toBe(area);
+		expect(container.querySelector('[data-testid="sim-toast-portal"]')).toBeNull();
+
+		let id = '';
+		act(() => {
+			id = manager.add({ variant: 'info', body: 'in place body', canClose: true });
+		});
+		expect(within(area).getByText('in place body')).toBeTruthy();
+
+		act(() => manager.close(id));
+		await waitFor(() => expect(within(area).queryByText('in place body')).toBeNull());
+	});
+
 	it('renders no close button when canClose is false, and closes on it when it is true', async () => {
 		const manager = createToastManager();
 		render(<ToastArea manager={manager} />);
@@ -129,12 +149,14 @@ describe('Toast', () => {
 			toastManager.add({ variant: 'error', body: 'boom' });
 		});
 
-		const icon = screen.getByRole('button', { name: 'Close' }).querySelector('i')!;
-		expect(Array.from(icon.classList)).toEqual(['fas', 'fa-times', 'fa-lg']);
+		const close = screen.getByRole('button', { name: 'Close' }).querySelectorAll('svg');
+		expect(close).toHaveLength(1);
+		expect(close[0].getAttribute('data-icon')).toBe('xmark');
+		expect(close[0].getAttribute('data-size')).toBe('lg');
 		const icon2xl = within(standardViewport()).getByTestId('sim-toast-icon');
-		expect(icon2xl.classList.contains('fas')).toBe(true);
-		expect(icon2xl.classList.contains('fa-circle-exclamation')).toBe(true);
-		expect(icon2xl.classList.contains('fa-2xl')).toBe(true);
+		expect(icon2xl.getAttribute('data-prefix')).toBe('fas');
+		expect(icon2xl.getAttribute('data-icon')).toBe('circle-exclamation');
+		expect(icon2xl.getAttribute('data-size')).toBe('2xl');
 	});
 
 	// The negative half is the control: without it the positive half passes even if no timer ever runs.

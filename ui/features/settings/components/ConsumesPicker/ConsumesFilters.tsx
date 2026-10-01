@@ -1,12 +1,14 @@
 import { ConsumableType } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
+import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Database } from '@sim/proto/database';
 import { Sim } from '@sim/sim';
 import { subscribeSimField } from '@sim/state/subscriptions';
+import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
-import { NumberPicker } from '@ui-kit/NumberPicker';
 import { Popover } from '@ui-kit/Popover';
+import { NumberField } from '@ui-kit/TextField';
 import { useMemo } from 'react';
 
 const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
@@ -22,31 +24,25 @@ const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 	[ConsumableType.ConsumableTypeOther, 'other'],
 ];
 
-const minIlvlConfig = (type: ConsumableType, key: string) => ({
-	id: `consumes-filters-min-ilvl-${key}`,
-	label: i18n.t(`settings_tab.consumables.filters.types.${key}`),
-	positive: true,
-	showZeroes: false,
-	storeSubscribe: (sim: Sim) => subscribeSimField(sim, 'filters'),
-	getValue: (sim: Sim) => sim.getMinConsumableIlvl(type),
-	setValue: (sim: Sim, newValue: number) => {
-		const filters = sim.getFilters();
-		if (newValue > 0) filters.minConsumableIlvl[type] = newValue;
-		else delete filters.minConsumableIlvl[type];
-		sim.setFilters(filters);
-	},
-});
-
 export const ConsumesFilters = () => {
 	const { sim } = useSimHost();
+	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());
 	const types = useMemo(() => {
-		const present = new Set(
-			Database.getSync()
-				.getConsumables()
-				.map(consumable => consumable.type),
-		);
-		return TYPE_KEYS.filter(([type]) => present.has(type));
+		const ranges = new Map<ConsumableType, [number, number]>();
+		for (const { type, level } of Database.getSync().getConsumables()) {
+			const range = ranges.get(type);
+			ranges.set(type, range ? [Math.min(range[0], level), Math.max(range[1], level)] : [level, level]);
+		}
+		return TYPE_KEYS.flatMap(([type, key]) => {
+			const range = ranges.get(type);
+			return range ? [{ type, key, range: `${range[0]}-${range[1]}` }] : [];
+		});
 	}, []);
+	const edit = (change: (levels: { [type: number]: number }) => void) => {
+		const next = sim.getFilters();
+		change(next.minConsumableLevel);
+		sim.setFilters(next);
+	};
 
 	return (
 		<Popover
@@ -56,13 +52,36 @@ export const ConsumesFilters = () => {
 			triggerProps={{ 'aria-label': i18n.t('settings_tab.consumables.filters.title') }}
 			side="bottom"
 			align="end"
+			backdrop
 			testId="consumes-filters-popover">
-			<h6>{i18n.t('settings_tab.consumables.filters.min_ilvl')}</h6>
-			<div className="grid grid-cols-2 gap-3">
-				{types.map(([type, key]) => (
-					<NumberPicker<Sim> key={type} modObject={sim} config={minIlvlConfig(type, key)} />
+			<h6>{i18n.t('settings_tab.consumables.filters.min_level')}</h6>
+			<div className="grid grid-cols-2 gap-2">
+				{types.map(({ type, key, range }) => (
+					<NumberField
+						key={type}
+						id={`consumes-filters-min-level-${key}`}
+						label={i18n.t(`settings_tab.consumables.filters.types.${key}`)}
+						placeholder={range}
+						positive
+						showZeroes={false}
+						value={filters.minConsumableLevel[type] ?? Sim.DEFAULT_MIN_CONSUMABLE_LEVEL[type] ?? 0}
+						onChange={value => edit(levels => (levels[type] = value))}
+					/>
 				))}
 			</div>
+			<Button
+				variant="outline-primary"
+				size="sm"
+				className="mt-2 ml-auto flex"
+				data-testid="consumes-filters-reset"
+				disabled={Object.keys(filters.minConsumableLevel).length === 0}
+				onClick={() =>
+					edit(levels => {
+						for (const type of Object.keys(levels)) delete levels[Number(type)];
+					})
+				}>
+				{i18n.t('settings_tab.consumables.filters.reset')}
+			</Button>
 		</Popover>
 	);
 };

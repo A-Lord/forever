@@ -1,6 +1,7 @@
 package dbc
 
 import (
+	"cmp"
 	"slices"
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -93,7 +94,7 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		Type:               c.consumableType(enchant, category),
 		Stats:              c.GetStatModifiers().ToProtoArray(),
 		Name:               c.Name,
-		Ilvl:               int32(c.ItemLevel),
+		Level:              int32(cmp.Or(c.RequiredLevel, c.ItemLevel)),
 		BuffsMainStat:      false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
 		CategoryId:         int32(c.SpellCategoryID),
 		EffectIds:          c.GetNonStatEffectIds(),
@@ -222,8 +223,10 @@ func (s ConsumableClass) ToProto() proto.ConsumableType {
 // A consumable's effects that restore a resource rather than grant a stat, which the sim wires up
 // separately.
 var consumableRestoreEffectTypes = map[SpellEffectType]bool{
-	dbcenums.E_HEAL:     true,
-	dbcenums.E_ENERGIZE: true,
+	dbcenums.E_HEAL:         true,
+	dbcenums.E_HEAL_PCT:     true,
+	dbcenums.E_ENERGIZE:     true,
+	dbcenums.E_ENERGIZE_PCT: true,
 }
 
 func (consumable *Consumable) GetNonStatEffectIds() []int32 {

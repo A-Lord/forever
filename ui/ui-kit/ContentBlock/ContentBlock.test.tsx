@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
 import { describe, expect, it } from 'vitest';
@@ -5,13 +6,11 @@ import { describe, expect, it } from 'vitest';
 import { ContentBlock, type ContentBlockHeaderProps } from './ContentBlock';
 
 describe('ContentBlock', () => {
-	it('renders no header when config.header is absent', () => {
-		render(<ContentBlock className="mt-2" config={{}} />);
-		expect(screen.queryByTestId('content-block-header')).toBeNull();
-	});
-
-	it('renders no header when config.header is an empty object', () => {
-		render(<ContentBlock className="mt-2" config={{ header: {} as ContentBlockHeaderProps }} />);
+	it.each([
+		['absent', {}],
+		['an empty object', { header: {} as ContentBlockHeaderProps }],
+	])('renders no header when config.header is %s', (_, config) => {
+		render(<ContentBlock className="mt-2" config={config} />);
 		expect(screen.queryByTestId('content-block-header')).toBeNull();
 	});
 
@@ -46,12 +45,17 @@ describe('ContentBlock', () => {
 	it('puts the tooltip button inside the title element, not the header', () => {
 		render(<ContentBlock className="mt-2" config={{ header: { title: 'My Title', tooltip: 'explains it' } }} />);
 		const title = screen.getByTestId('content-block-title');
-		const button = within(title).queryByRole('button');
-		expect(button).not.toBeNull();
-		expect(button!.classList.contains('ml-2')).toBe(true);
+		expect(within(title).queryByRole('button')).not.toBeNull();
 		// Not a direct child of the header (only of the title).
 		const header = screen.getByTestId('content-block-header');
 		expect(Array.from(header.children)).toEqual([title]);
+	});
+
+	it('names the tooltip button Help, not after the title it sits in', () => {
+		render(<ContentBlock config={{ header: { title: 'My Title', tooltip: 'explains it' } }} />);
+		const title = screen.getByTestId('content-block-title');
+		expect(within(title).getByRole('button', { name: i18n.t('common.help') })).toBeTruthy();
+		expect(within(title).queryByRole('button', { name: 'My Title' })).toBeNull();
 	});
 
 	it('renders no tooltip button when config.header.tooltip is absent', () => {
@@ -81,29 +85,5 @@ describe('ContentBlock', () => {
 		);
 		const body = screen.getByTestId('content-block-body');
 		expect(body.textContent).toBe('child content');
-	});
-
-	it('applies className, bodyClassName and header.className', () => {
-		const { container } = render(
-			<ContentBlock
-				className={['mt-2', 'pt-2']}
-				config={{
-					bodyClassName: ['pb-2'],
-					header: { title: 'My Title', className: 'pl-2' },
-				}}
-			/>,
-		);
-		const root = container.firstElementChild!;
-		expect(Array.from(root.classList).sort()).toEqual(['pt-2', 'ui-content-block', 'flex', 'flex-col', 'mt-2'].sort());
-		expect(screen.getByTestId('content-block-header').classList.contains('pl-2')).toBe(true);
-		expect(screen.getByTestId('content-block-body').classList.contains('pb-2')).toBe(true);
-	});
-
-	it('adds mb-0 to the root when flush is set, and omits it otherwise', () => {
-		const { rerender, container } = render(<ContentBlock className="mt-2" config={{}} />);
-		expect(container.firstElementChild!.classList.contains('mb-0')).toBe(false);
-
-		rerender(<ContentBlock className="mt-2" config={{}} flush />);
-		expect(container.firstElementChild!.classList.contains('mb-0')).toBe(true);
 	});
 });

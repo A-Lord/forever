@@ -1,6 +1,7 @@
+import { useActionId } from '@sim/hooks/useActionId';
+import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
 import type { ActionId } from '@sim/proto/action_id';
 import { Button } from '@ui-kit/Button';
-import { useActionId } from '@ui-kit/hooks/useActionId';
 import { Icon } from '@ui-kit/Icon';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 
@@ -15,6 +16,7 @@ export interface MetricsActionCellProps {
 
 export const MetricsActionCell = ({ name, actionId, useBuffAura, expandable, expanded, onToggle }: MetricsActionCellProps) => {
 	const { iconUrl, href } = useActionId(actionId);
+	const wowhead = useActionIdWowheadDataset(actionId, useBuffAura);
 
 	return (
 		<div data-testid="metrics-action" className="flex items-center gap-2 whitespace-normal">
@@ -24,8 +26,7 @@ export const MetricsActionCell = ({ name, actionId, useBuffAura, expandable, exp
 				label={name}
 				href={href || undefined}
 				iconUrl={iconUrl}
-				actionId={actionId}
-				useBuffAura={useBuffAura}
+				wowhead={wowhead}
 			/>
 			<span data-testid="metrics-action-name" className="truncate">
 				{name}

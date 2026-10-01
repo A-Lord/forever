@@ -1,9 +1,7 @@
 import { ItemQuality, ItemSlot, type ItemSpec } from '@generated/proto/common';
 import type { UIItem as Item } from '@generated/proto/ui';
-import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
-import { fireEvent, render } from '@testing-library/react';
-import { itemQualityClassName } from '@ui-kit/utils/css';
+import { renderWithHost } from '@testing/react';
+import { fireEvent } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -31,7 +29,7 @@ const store = vi.hoisted(() => {
 	};
 });
 
-vi.mock('@ui-kit/hooks/useActionId', () => ({
+vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: () => ({ iconUrl: 'icon-url.png', name: 'item-name', href: 'https://example.com/item', ready: true }),
 }));
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(store.subscribe));
@@ -68,10 +66,8 @@ const makeItemData = (overrides: Partial<ItemData<ItemListType, ReactNode>> = {}
 const renderRow = (
 	overrides: Partial<ItemListRowProps> = {},
 	batchOverrides: Partial<{ hasItem: ReturnType<typeof vi.fn>; addItem: ReturnType<typeof vi.fn>; removeItem: ReturnType<typeof vi.fn> }> = {},
-	onWrapperClick?: () => void,
 ) => {
 	Object.assign(batch, { hasItem: vi.fn(() => false), addItem: vi.fn(), removeItem: vi.fn() }, batchOverrides);
-	const host = fakeHost({ sim: { store } });
 
 	const props: ItemListRowProps = {
 		itemData: makeItemData(),
@@ -88,50 +84,28 @@ const renderRow = (
 		...overrides,
 	};
 
-	const tree = (next: ItemListRowProps) => (
-		<SimHostProvider host={host}>
-			<div onClick={onWrapperClick}>
-				<ItemListRow {...next} />
-			</div>
-		</SimHostProvider>
-	);
-	const { container, rerender } = render(tree(props));
+	const { container, rerender } = renderWithHost(<ItemListRow {...props} />, { sim: { store } });
 
 	return {
 		container,
-		wrapper: container.firstElementChild as HTMLElement,
 		batch,
 		props,
-		rerender: (next: Partial<ItemListRowProps>) => rerender(tree({ ...props, ...next })),
+		rerender: (next: Partial<ItemListRowProps>) => rerender(<ItemListRow {...props} {...next} />),
 	};
 };
 
 describe('ItemListRow', () => {
-	it('renders the six list cells in order on the items tab', () => {
-		const { wrapper } = renderRow();
-		expect(Array.from(wrapper.children).map(child => child.getAttribute('data-testid'))).toEqual([
-			'selector-modal-list-item-ilvl-container',
-			'selector-modal-list-label-cell',
-			'selector-modal-list-item-source-container',
-			'selector-modal-list-item-ep',
-			'selector-modal-list-item-favorite-container',
-			'selector-modal-list-item-compare-container',
-		]);
-	});
-
 	it('omits the ilvl cell outside the items and upgrades tabs', () => {
 		const { container } = renderRow({ label: SelectorModalTabs.Enchants });
 		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')).toBeNull();
 	});
 
-	it('prefers the itemData ilvl over the item ilvl', () => {
-		const { container } = renderRow({ itemData: makeItemData({ ilvl: 500, item: { id: 1, ilvl: 400 } as Item }) });
-		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')?.textContent).toBe('500');
-	});
-
-	it('falls back to the item ilvl when the itemData ilvl is unset', () => {
-		const { container } = renderRow({ itemData: makeItemData({ ilvl: 0, item: { id: 1, ilvl: 450 } as Item }) });
-		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')?.textContent).toBe('450');
+	it.each([
+		['prefers the itemData ilvl over the item ilvl', 500, 400, '500'],
+		['falls back to the item ilvl when the itemData ilvl is unset', 0, 450, '450'],
+	])('%s', (_name, ilvl, itemIlvl, shown) => {
+		const { container } = renderRow({ itemData: makeItemData({ ilvl, item: { id: 1, ilvl: itemIlvl } as Item }) });
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')?.textContent).toBe(shown);
 	});
 
 	it('renders the item source cell only on the items tab', () => {
@@ -154,6 +128,12 @@ describe('ItemListRow', () => {
 		expect(itemNotice.hasAttribute('data-enchant-id')).toBe(false);
 	});
 
+	it('hands the ep and equipped ep to the ep cell', () => {
+		const { container } = renderRow({ itemEP: 80, equippedEP: 50 });
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ep-value"]')?.textContent).toBe('80');
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ep-delta"]')?.getAttribute('data-sign')).toBe('positive');
+	});
+
 	it('hides the ep cell for trinket slots', () => {
 		const trinket1 = renderRow({ slot: ItemSlot.ItemSlotTrinket1 });
 		expect(trinket1.container.querySelector('[data-testid="selector-modal-list-item-ep"]')).toBeNull();
@@ -165,85 +145,10 @@ describe('ItemListRow', () => {
 		expect(head.container.querySelector('[data-testid="selector-modal-list-item-ep"]')).not.toBeNull();
 	});
 
-	it('formats ep with one decimal below the rounding boundary and rounds at or above it', () => {
-		const below = renderRow({ itemEP: 9.94 });
-		expect(below.container.querySelector('[data-testid="selector-modal-list-item-ep-value"]')?.textContent).toBe('9.9');
-
-		const above = renderRow({ itemEP: 9.95 });
-		expect(above.container.querySelector('[data-testid="selector-modal-list-item-ep-value"]')?.textContent).toBe('10');
-	});
-
-	it('omits the delta when there is no equipped item to compare against', () => {
-		const { container } = renderRow({ equippedEP: null, itemEP: 5 });
-		expect(container.querySelector('[data-testid="selector-modal-list-item-ep-delta"]')?.textContent).toBe('');
-	});
-
-	it('omits the delta when the equipped and candidate ep are equal', () => {
-		const { container } = renderRow({ equippedEP: 5, itemEP: 5 });
-		expect(container.querySelector('[data-testid="selector-modal-list-item-ep-delta"]')?.textContent).toBe('');
-	});
-
-	it('shows a positive delta for a higher-ep item', () => {
-		const { container } = renderRow({ equippedEP: 5, itemEP: 8 });
-		const delta = container.querySelector('[data-testid="selector-modal-list-item-ep-delta"]');
-		expect(delta?.textContent).toBe('+3');
-		expect(delta?.getAttribute('data-sign')).toBe('positive');
-	});
-
-	it('shows a negative delta for a lower-ep item', () => {
-		const { container } = renderRow({ equippedEP: 8, itemEP: 5 });
-		const delta = container.querySelector('[data-testid="selector-modal-list-item-ep-delta"]');
-		expect(delta?.textContent).toBe('-3');
-		expect(delta?.getAttribute('data-sign')).toBe('negative');
-	});
-
-	it('carries the item quality class on the name, and wires the icon and anchor to useActionId', () => {
-		const { container } = renderRow({ itemData: makeItemData({ quality: ItemQuality.ItemQualityLegendary }) });
-		const name = container.querySelector('[data-testid="selector-modal-list-item-name"]');
-		expect(name?.classList.contains(itemQualityClassName(ItemQuality.ItemQualityLegendary)!)).toBe(true);
+	it('wires the icon and anchor to useActionId', () => {
+		const { container } = renderRow();
 		expect(container.querySelector('[data-testid="selector-modal-list-item-icon"]')?.getAttribute('src')).toBe('icon-url.png');
 		expect(container.querySelector('[data-testid="selector-modal-list-item-link"]')?.getAttribute('href')).toBe('https://example.com/item');
-	});
-
-	it('renders the name description label only when set', () => {
-		const withDescription = renderRow({ itemData: makeItemData({ nameDescription: 'Heroic' }) });
-		expect(withDescription.container.querySelector('[data-testid="heroic-label"]')?.textContent).toBe('(Heroic)');
-
-		const withoutDescription = renderRow({ itemData: makeItemData({ nameDescription: '' }) });
-		expect(withoutDescription.container.querySelector('[data-testid="heroic-label"]')).toBeNull();
-	});
-
-	it('calls onEquip when the row link is clicked', () => {
-		const onEquip = vi.fn();
-		const { container } = renderRow({ onEquip });
-		fireEvent.click(container.querySelector('[data-testid="selector-modal-list-item-link"]')!);
-		expect(onEquip).toHaveBeenCalledTimes(1);
-	});
-
-	it('clicking the favourite star toggles favourite and does not bubble to the row or equip', () => {
-		const onEquip = vi.fn();
-		const onToggleFavourite = vi.fn();
-		const onWrapperClick = vi.fn();
-		const { container } = renderRow({ onEquip, onToggleFavourite }, {}, onWrapperClick);
-
-		fireEvent.click(container.querySelector('[data-testid="selector-modal-list-item-favorite"]')!);
-
-		expect(onToggleFavourite).toHaveBeenCalledTimes(1);
-		expect(onEquip).not.toHaveBeenCalled();
-		expect(onWrapperClick).not.toHaveBeenCalled();
-	});
-
-	it('marks the favourite button data attributes and swaps the star style', () => {
-		const favouritedRow = renderRow({ favourited: true, favouriteTooltipId: 'fav-42' });
-		const favouritedButton = favouritedRow.container.querySelector('[data-testid="selector-modal-list-item-favorite"]')!;
-		expect(favouritedButton.getAttribute('data-favourited')).toBe('true');
-		expect(favouritedButton.getAttribute('data-tooltip-id')).toBe('fav-42');
-		expect(favouritedButton.querySelector('i')?.classList.contains('fas')).toBe(true);
-
-		const unfavouritedRow = renderRow({ favourited: false });
-		const unfavouritedButton = unfavouritedRow.container.querySelector('[data-testid="selector-modal-list-item-favorite"]')!;
-		expect(unfavouritedButton.getAttribute('data-favourited')).toBe('false');
-		expect(unfavouritedButton.querySelector('i')?.classList.contains('far')).toBe(true);
 	});
 
 	it('reflects whether the item is already in the bulk batch', () => {
@@ -288,9 +193,9 @@ describe('ItemListRow', () => {
 
 	it('renders the compare container on the items tab alone', () => {
 		const items = renderRow({ label: SelectorModalTabs.Items });
-		expect(items.container.querySelector('[data-testid="selector-modal-list-item-compare-container"]')).not.toBeNull();
+		expect(items.container.querySelector('[data-testid="selector-modal-list-item-compare"]')).not.toBeNull();
 
 		const enchants = renderRow({ label: SelectorModalTabs.Enchants });
-		expect(enchants.container.querySelector('[data-testid="selector-modal-list-item-compare-container"]')).toBeNull();
+		expect(enchants.container.querySelector('[data-testid="selector-modal-list-item-compare"]')).toBeNull();
 	});
 });

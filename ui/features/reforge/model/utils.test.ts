@@ -7,7 +7,6 @@ import {
 	applyBreakpointLimits,
 	breakpointValueToDisplayPercentage,
 	clearSoftCappedStats,
-	gemPhaseValues,
 	toDefaultUnitStatValue,
 	toRelativeSoftCaps,
 	toVisualUnitStatPercentage,
@@ -117,11 +116,5 @@ describe('stat cap unit conversions', () => {
 
 	it('shows a breakpoint to two decimal places', () => {
 		expect(breakpointValueToDisplayPercentage(8, MELEE_HIT_PERCENT)).toBe('8.00');
-	});
-});
-
-describe('gemPhaseValues', () => {
-	it('lists the five phases, ascending', () => {
-		expect(gemPhaseValues()).toEqual([1, 2, 3, 4, 5]);
 	});
 });

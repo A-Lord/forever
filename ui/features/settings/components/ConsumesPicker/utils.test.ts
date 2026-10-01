@@ -1,3 +1,4 @@
+import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
@@ -5,7 +6,6 @@ import { UIItem } from '@generated/proto/ui';
 import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import { UnitStat } from '@sim/proto/stats';
-import { iconEnumPickerShown } from '@ui-kit/IconEnumPicker';
 import { describe, expect, it } from 'vitest';
 
 import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
@@ -54,7 +54,7 @@ const CONSUMABLES = [
 		id: 18588,
 		name: 'Ez-Thro Dynamite II',
 		type: ConsumableType.ConsumableTypeExplosive,
-		ilvl: 40,
+		level: 30,
 		categoryId: 24,
 		itemEffects: [onUse(24)],
 	}),
@@ -62,7 +62,7 @@ const CONSUMABLES = [
 		id: 10646,
 		name: 'Goblin Sapper Charge',
 		type: ConsumableType.ConsumableTypeExplosive,
-		ilvl: 41,
+		level: 41,
 		categoryId: 24,
 		itemEffects: [onUse(24, 300000)],
 		requiredProfession: Profession.Engineering,
@@ -93,7 +93,7 @@ interface PlayerState {
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	consumes: ConsumesSpec;
-	minIlvl: Partial<Record<ConsumableType, number>>;
+	minLevel: Partial<Record<ConsumableType, number>>;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -106,11 +106,11 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		windfury: false,
 		flametongue: false,
 		consumes: ConsumesSpec.create(),
-		minIlvl: {},
+		minLevel: {},
 		...state,
 	};
 	const player = {
-		sim: { getMinConsumableIlvl: (type: ConsumableType) => full.minIlvl[type] ?? 0 },
+		sim: { getMinConsumableLevel: (type: ConsumableType) => full.minLevel[type] ?? 0 },
 		getClass: () => full.cls,
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
@@ -145,7 +145,7 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 10310], [], [12820]]);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 2289, 10310], [], [12820]]);
 		expect(configs.scrolls.map(config => offered(config, player))).toEqual([[]]);
 		expect(configs.groups.map(config => offered(config, player))).toEqual([[], [8410]]);
 		expect(offered(configs.food, player)).toEqual([238637]);
@@ -154,12 +154,20 @@ describe('consumeConfigs', () => {
 		expect(toggled(configs.miscellaneous, player)).toEqual([4376]);
 	});
 
-	it('hides a consumable below the minimum item level set for its type only', () => {
-		const { player } = playerOf({ professions: [Profession.Engineering], minIlvl: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+	it('hides a consumable below the minimum level set for its type only', () => {
+		const { player } = playerOf({ professions: [Profession.Engineering], minLevel: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.explosive, player)).toEqual([]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
 		expect(offered(configs.food, player)).toEqual([238637]);
+	});
+
+	it('lists a picker by level, highest first', () => {
+		const potion = (id: number, level: number) =>
+			Consumable.create({ id, name: `Potion ${id}`, type: ConsumableType.ConsumableTypePotion, level, stats: strength(10) });
+		const potions = { getConsumables: () => [potion(1, 20), potion(2, 50), potion(3, 35)], getSpellEffect: () => undefined } as unknown as Database;
+		const { player } = playerOf();
+		expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([2, 3, 1]);
 	});
 
 	it('offers the Goblin Sapper Charge to an engineer only', () => {
@@ -270,7 +278,7 @@ describe('consumeConfigs', () => {
 		expect(state.consumes.extraIds).toEqual([20079]);
 	});
 
-	it('offers the highest rank the player can use, below a top rank it cannot', () => {
+	it('offers the highest rank the player can use, below a top rank it cannot, and every scroll rank', () => {
 		const ranks = [
 			scroll(2289, 'Scroll of Strength II', strength(9), '29/0', 'Strength'),
 			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), '29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
@@ -288,7 +296,7 @@ describe('consumeConfigs', () => {
 
 		const rogue = playerOf({ cls: Class.ClassRogue, mainHand: dagger }).player;
 		const rogueConfigs = consumeConfigs(rogue, rankDb);
-		expect(offered(rogueConfigs.scrolls[0], rogue)).toEqual([10310]);
+		expect(offered(rogueConfigs.scrolls[0], rogue)).toEqual([2289, 10310]);
 		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([12643]);
 	});
 });

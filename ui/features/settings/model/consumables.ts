@@ -1,11 +1,11 @@
+import type { IconEnumValueConfig } from '@features/inputs/configs';
+import * as InputHelpers from '@features/inputs/input_helpers';
 import { ConsumableType, ConsumesSpec } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import { IconEnumValueConfig } from '@ui-kit/IconEnumPicker/types';
-import * as InputHelpers from '@ui-kit/input_helpers';
 
 export type ConsumableIdField = 'potId' | 'conjuredId' | 'flaskId' | 'foodId' | 'explosiveId' | 'mhImbueId' | 'ohImbueId';
 
@@ -24,7 +24,7 @@ export interface ConsumableInputOptions {
 }
 
 const offeredTo = (consumable: Consumable, relevance: ConsumableRelevance, offers?: ConsumableInputOptions['offers']) => (player: Player<any>) => {
-	const usable = (c: Consumable) => c.ilvl >= player.sim.getMinConsumableIlvl(c.type) && relevance.relevant(c, player) && (!offers || offers(c, player));
+	const usable = (c: Consumable) => c.level >= player.sim.getMinConsumableLevel(c.type) && relevance.relevant(c, player) && (!offers || offers(c, player));
 	return usable(consumable) && !(relevance.higherRanks.get(consumable.id) ?? []).some(usable);
 };
 
@@ -70,7 +70,8 @@ function consumablePicker(
 	pickOf: (consumes: ConsumesSpec) => number,
 	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
-	const values: Array<IconEnumValueConfig<Player<any>, number>> = consumables.map(consumable => ({
+	const byLevel = [...consumables].sort((a, b) => b.level - a.level);
+	const values: Array<IconEnumValueConfig<Player<any>, number>> = byLevel.map(consumable => ({
 		value: consumable.id,
 		actionId: ActionId.fromItemId(consumable.id),
 		tooltip: consumable.name,
