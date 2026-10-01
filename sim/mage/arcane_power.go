@@ -14,10 +14,8 @@ var arcanePowerRank = spellData.ArcanePower.Highest()
 func (mage *Mage) registerArcanePowerSpell() {
 	mage.ArcanePowerAura = mage.RegisterAura(spelldata.AuraConfig(arcanePowerRank))
 
-	// Effect 3 is the SPELLMOD_DOT twin of effect 1's SPELLMOD_DAMAGE, on a mask effect 1 already
-	// covers. The damage mod reaches the ticks as well as the hits, so the twin would count twice;
-	// the parse folds such a twin only when both masks match, and these do not.
-	spelldata.ParseEffects(&mage.Character, mage.ArcanePowerAura, arcanePowerRank, spelldata.SkipEffects(3))
+	// Effect 1's SPELLMOD_DAMAGE raises the direct hits and effect 3's SPELLMOD_DOT the ticks.
+	spelldata.ParseEffects(&mage.Character, mage.ArcanePowerAura, arcanePowerRank)
 
 	config := spelldata.SpellConfig(&mage.Unit, arcanePowerRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagNoOnCastComplete))
 	config.ClassSpellMask = MageSpellArcanePower

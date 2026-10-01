@@ -46,9 +46,12 @@ func (mage *Mage) registerArmorSpells() {
 		proto.MageArmor_MageArmorMageArmor:   mageArmor,
 		proto.MageArmor_MageArmorMoltenArmor: mageArmor,
 	}[mage.Options.DefaultMageArmor]
+
 	if defaultArmor != nil {
-		core.MakePermanent(defaultArmor)
 		defaultArmor.BuildPhase = core.CharacterBuildPhaseBuffs
+		defaultArmor.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
+			aura.Activate(sim)
+		})
 	}
 }
 

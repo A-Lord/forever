@@ -41,7 +41,6 @@ func (mage *Mage) registerManaGems() {
 		config.Rank = 0
 		config.ClassSpellMask = MageSpellManaGem
 		config.Cast.DefaultCast.NonEmpty = true
-		config.Cast.CD.Timer = mage.GetConjuredCD()
 
 		config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 			return charge.GetStacks() > 0

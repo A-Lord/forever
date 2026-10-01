@@ -1,8 +1,6 @@
 package mage
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -100,16 +98,9 @@ func (mage *Mage) registerArcaneConcentration() {
 	clearcastingRank := spellData.Clearcasting.Highest()
 	costEffect := clearcastingRank.EffectN(1)
 
-	var proccedAt time.Duration
-	var proccedBy *core.Spell
-
 	config := spelldata.AuraConfig(clearcastingRank)
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
 		if !spell.MatchesFlags(costEffect.ClassFlags) || spell.Cost == nil || spell.Cost.BaseCost == 0 {
-			return
-		}
-		// An instant that hits before its own OnCastComplete must not spend what it just procced.
-		if proccedAt == sim.CurrentTime && proccedBy == spell {
 			return
 		}
 		aura.Deactivate(sim)
@@ -120,9 +111,7 @@ func (mage *Mage) registerArcaneConcentration() {
 	spelldata.ParseEffects(&mage.Character, mage.ClearCasting, clearcastingRank)
 
 	trigger := spelldata.ProcTrigger(&mage.Character, spellData.ArcaneConcentration.Rank(mage.Talents.ArcaneConcentration),
-		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
-			proccedAt = sim.CurrentTime
-			proccedBy = spell
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			mage.ClearCasting.Activate(sim)
 		})
 	trigger.Name = "Arcane Concentration - Trigger"
@@ -283,8 +272,6 @@ func (mage *Mage) registerArcaneInstability() {
 		return
 	}
 
-	// Effect 2 is the SPELLMOD_DOT twin of effect 1's SPELLMOD_DAMAGE, on a mask effect 1 already
-	// covers. The damage mod reaches the ticks as well as the hits, so the twin would count twice;
-	// the parse folds such a twin only when both masks match, and these do not.
-	spelldata.ParseStatic(&mage.Character, spellData.ArcaneInstability.Rank(mage.Talents.ArcaneInstability), spelldata.SkipEffects(2))
+	// Effect 1's SPELLMOD_DAMAGE raises the direct hits and effect 2's SPELLMOD_DOT the ticks.
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneInstability.Rank(mage.Talents.ArcaneInstability))
 }

@@ -48,9 +48,6 @@ func (mage *Mage) registerCombustionSpell() {
 
 		if result.DidCrit() {
 			aura.RemoveStack(sim)
-			if aura.GetStacks() == 0 {
-				aura.Deactivate(sim)
-			}
 		}
 	}
 
