@@ -1,87 +1,75 @@
 import { ActionMetrics as ActionMetricsProto, TargetedActionMetrics as TargetedActionMetricsProto } from '@generated/proto/api';
+import { makeSimRun } from '@testing/storybook/fixtures/results';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@i18n/localization', async () => (await import('./testing')).localizationStub);
 
-import { ActionMetrics, TargetedActionMetrics, UnitMetrics } from './sim_result';
+import { SimResult, TargetedActionMetrics } from './sim_result';
 
-// One enemy (unit 0) and the player (unit 1), over one iteration of 100 seconds.
-const ENEMY = 0;
-const PLAYER = 1;
-const withEncounter = { iterations: 1, duration: 100, result: { encounterMetrics: { targets: [{ unitIndex: ENEMY }] } } };
+// makeSimRun()'s warrior and its target.
+const PLAYER = 0;
+const TARGET = 1;
 
-const unit = (unitIndex: number, side: 'player' | 'enemy') =>
-	Object.assign(Object.create(UnitMetrics.prototype), {
-		unitIndex,
-		player: side === 'player' ? {} : null,
-		target: side === 'enemy' ? {} : null,
-		actions: [] as Array<ActionMetrics>,
-	}) as UnitMetrics;
+type Entry = Partial<TargetedActionMetricsProto>;
 
-// The sim sends an action one entry per unit, its own unit included, so every action here lists both.
-const action = (owner: UnitMetrics, onEnemy: { damage?: number }, onPlayer: { damage?: number; healing?: number }, resultData: object = withEncounter) => {
-	const data = ActionMetricsProto.create({
-		targets: [
-			TargetedActionMetricsProto.create({ unitIndex: ENEMY, hits: 1, ...onEnemy }),
-			TargetedActionMetricsProto.create({ unitIndex: PLAYER, hits: 1, ...onPlayer }),
-		],
-	});
-	const build = ActionMetrics as unknown as new (...args: Array<unknown>) => ActionMetrics;
-	const metrics = new build(owner, { name: 'Goblin Sapper Charge', iconUrl: '' }, data, resultData);
-	owner.actions.push(metrics);
-	return metrics;
+// The warrior's main-hand action with these entries on the target and on the warrior. The sim lists
+// every unit on every action, the action's own unit included.
+const playerAction = async (onTarget: Entry, onPlayer: Entry) => {
+	const { request, result } = makeSimRun();
+	result.raidMetrics!.parties[0].players[0].actions[0].targets = [
+		TargetedActionMetricsProto.create({ unitIndex: TARGET, hits: 1, ...onTarget }),
+		TargetedActionMetricsProto.create({ unitIndex: PLAYER, hits: 1, ...onPlayer }),
+	];
+	return (await SimResult.makeNew(request, result)).getFirstPlayer()!;
 };
 
 describe('damage done and damage taken from self-inflicted damage', () => {
-	it('counts only the damage on the other side as damage done', () => {
-		const player = unit(PLAYER, 'player');
-		action(player, { damage: 1000 }, { damage: 500 });
+	it('counts only the damage on the other side as damage done', async () => {
+		const [sapper] = (await playerAction({ damage: 1000 }, { damage: 500 })).getDamageActions();
 
-		const [sapper] = player.getDamageActions();
 		expect(sapper.damage).toBe(1000);
-		expect(sapper.forTarget({ target: ENEMY }).damage).toBe(1000);
+		expect(sapper.forTarget({ target: TARGET }).damage).toBe(1000);
 	});
 
-	it('leaves an action that deals its own side no damage as it is', () => {
-		const player = unit(PLAYER, 'player');
-		const melee = action(player, { damage: 1000 }, {});
+	it('leaves an action that puts nothing on its own side as it is', async () => {
+		const player = await playerAction({ damage: 1000 }, { casts: 3 });
 
-		expect(player.getDamageActions()).toEqual([melee]);
+		expect(player.getDamageActions()).toEqual(player.actions);
 	});
 
-	it('drops an action that only damages its own side from damage done', () => {
-		const player = unit(PLAYER, 'player');
-		action(player, {}, { damage: 500 });
+	it('drops an action that only damages its own side from damage done and threat', async () => {
+		const player = await playerAction({}, { damage: 500, threat: 500 });
+
+		expect(player.getDamageActions()).toEqual([]);
+		expect(player.getThreatActions()).toEqual([]);
+	});
+
+	it('keeps an action that damages the other side and heals its own out of damage done', async () => {
+		const player = await playerAction({ damage: 1000 }, { healing: 300 });
 
 		expect(player.getDamageActions()).toEqual([]);
 	});
 
-	it('keeps an action that damages the other side and heals its own out of damage done', () => {
-		const player = unit(PLAYER, 'player');
-		action(player, { damage: 1000 }, { healing: 300 });
-
-		expect(player.getDamageActions()).toEqual([]);
-	});
-
-	it('leaves every action whole when the result carries no encounter', () => {
-		const player = unit(PLAYER, 'player');
-		action(player, { damage: 1000 }, { damage: 500 }, { iterations: 1, duration: 100, result: {} });
-
-		expect(player.getDamageActions().map(sapper => sapper.damage)).toEqual([1500]);
-	});
-
-	it("reports the damage an action deals its own unit as that unit's damage taken", () => {
-		const player = unit(PLAYER, 'player');
-		action(player, { damage: 1000 }, { damage: 500 });
+	it("reports the damage an action deals its own unit as that unit's damage taken", async () => {
+		const player = await playerAction({ damage: 1000 }, { damage: 500 });
 
 		expect(player.getSelfDamageActions().map(self => self.damage)).toEqual([500]);
 	});
 
-	it("keeps an enemy's damage on the player as damage done", () => {
-		const enemy = unit(ENEMY, 'enemy');
-		action(enemy, {}, { damage: 800 });
+	it("keeps an enemy's damage on the player as damage done", async () => {
+		const { request, result } = makeSimRun();
+		result.encounterMetrics!.targets[0].actions = [
+			ActionMetricsProto.create({
+				id: result.raidMetrics!.parties[0].players[0].actions[0].id,
+				targets: [
+					TargetedActionMetricsProto.create({ unitIndex: PLAYER, hits: 1, damage: 800 }),
+					TargetedActionMetricsProto.create({ unitIndex: TARGET }),
+				],
+			}),
+		];
+		const [target] = (await SimResult.makeNew(request, result)).getTargets();
 
-		expect(enemy.getDamageActions().map(melee => melee.damage)).toEqual([800]);
+		expect(target.getDamageActions().map(melee => melee.damage)).toEqual([800]);
 	});
 });
 
