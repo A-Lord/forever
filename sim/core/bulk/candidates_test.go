@@ -1199,6 +1199,31 @@ func TestBulkEnchantFrozenSlotUntouched(t *testing.T) {
 	}
 }
 
+func TestBulkFrozenSecondRingKeepsItsSlotAndEnchant(t *testing.T) {
+	registerBulkEnchantFixtures()
+	generator := newBulkEnchantTestGenerator(t, proto.Spec_SpecRogue, proto.Class_ClassRogue,
+		bulkEnchantEquipment(
+			bulkEnchantEquipped{slot: proto.ItemSlot_ItemSlotFinger1, id: bulkEnchantRingRID, enchant: bulkEnchantRingA},
+			bulkEnchantEquipped{slot: proto.ItemSlot_ItemSlotFinger2, id: bulkEnchantRingSID, enchant: bulkEnchantRingKept},
+		),
+		&proto.BulkSettings{FreezeRingSlot: int32(proto.ItemSlot_ItemSlotFinger2)})
+
+	gear := bulkEnchantCandidateGear(t, generator)
+	if len(gear) == 0 {
+		t.Fatalf("expected candidates")
+	}
+	for _, candidate := range gear {
+		frozen := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotFinger2)
+		if frozen.GetId() != bulkEnchantRingSID || frozen.GetEnchant() != bulkEnchantRingKept {
+			t.Fatalf("frozen Finger 2 holds %d+%d, want %d+%d", frozen.GetId(), frozen.GetEnchant(), bulkEnchantRingSID, bulkEnchantRingKept)
+		}
+		other := bulkEnchantSlotItem(candidate, proto.ItemSlot_ItemSlotFinger1)
+		if other.GetId() == bulkEnchantRingRID && other.GetEnchant() != bulkEnchantRingA {
+			t.Fatalf("Finger 1 ring R holds enchant %d, want its own %d", other.GetEnchant(), bulkEnchantRingA)
+		}
+	}
+}
+
 func TestBulkEnchantFrozenWeaponUntouched(t *testing.T) {
 	registerBulkEnchantFixtures()
 	generator := newBulkEnchantTestGenerator(t, proto.Spec_SpecRogue, proto.Class_ClassRogue,

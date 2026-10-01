@@ -236,6 +236,17 @@ func (generator *bulkSimCandidateGenerator) hasTwoCopies(option bulkSimCandidate
 	return canStackTwoCopies(item, generator.playerCanDualWield) && generator.copyCounts[buildItemSpecKey(option.spec)] >= 2
 }
 
+// A frozen item stays in the slot it is worn in: replaceItem takes the enchant and gems from that slot.
+func (generator *bulkSimCandidateGenerator) frozenInSecondSlot(bulkSlot BulkSimItemSlot) bool {
+	switch bulkSlot {
+	case BulkSimItemSlotFinger:
+		return generator.settings.GetFreezeRingSlot() == int32(proto.ItemSlot_ItemSlotFinger2)
+	case BulkSimItemSlotTrinket:
+		return generator.settings.GetFreezeTrinketSlot() == int32(proto.ItemSlot_ItemSlotTrinket2)
+	}
+	return false
+}
+
 func (generator *bulkSimCandidateGenerator) initGroupedSlotPairs() {
 	for _, bulkSlot := range []BulkSimItemSlot{BulkSimItemSlotFinger, BulkSimItemSlotTrinket} {
 		options := generator.selectedByBulkSlot[bulkSlot]
@@ -257,7 +268,12 @@ func (generator *bulkSimCandidateGenerator) initGroupedSlotPairs() {
 				if frozenItem.LimitCategory != 0 && frozenItem.LimitCategory == option.item.LimitCategory {
 					continue
 				}
-				pairs = append(pairs, [2]bulkSimCandidateOption{{spec: frozenSpec, item: *frozenItem}, option})
+				frozenOption := bulkSimCandidateOption{spec: frozenSpec, item: *frozenItem}
+				if generator.frozenInSecondSlot(bulkSlot) {
+					pairs = append(pairs, [2]bulkSimCandidateOption{option, frozenOption})
+				} else {
+					pairs = append(pairs, [2]bulkSimCandidateOption{frozenOption, option})
+				}
 			}
 		} else {
 			pairs = make([][2]bulkSimCandidateOption, 0, len(options)*(len(options)-1)/2)
