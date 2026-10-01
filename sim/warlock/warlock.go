@@ -23,6 +23,7 @@ type Warlock struct {
 	Hellfire    *core.Spell
 	Immolate    *core.Spell
 	Incinerate  *core.Spell
+	RainOfFire  *core.Spell
 	SearingPain *core.Spell
 	ShadowBolt  *core.Spell
 	Soulfire    *core.Spell
@@ -124,6 +125,7 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerHellfire()
 	warlock.registerImmolate()
 	warlock.registerLifeTap()
+	warlock.registerRainOfFire()
 	warlock.registerShadowBolt()
 	warlock.registerSearingPain()
 
