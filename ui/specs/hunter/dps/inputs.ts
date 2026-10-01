@@ -1,3 +1,4 @@
+import * as InputHelpers from '@features/inputs/input_helpers';
 import { HandType, ItemSlot, Spec } from '@generated/proto/common';
 import { HunterOptions_Ammo, HunterOptions_PetAttackSpeed, HunterOptions_PetType, HunterOptions_QuiverBonus } from '@generated/proto/hunter';
 import i18n from '@i18n/config';
@@ -6,7 +7,6 @@ import { ActionId } from '@sim/proto/action_id';
 import { HunterSpecs } from '@sim/proto/spec_types';
 import type { CustomSection } from '@sim/spec_config';
 import { getEnumValues } from '@sim/utils/collections';
-import * as InputHelpers from '@ui-kit/input_helpers';
 
 // The arrows the client's items describe, as the Ammo enum lists them: each value is the arrow's item
 // id, so the icon and the hover tooltip come from the item. Every ranged weapon is taken to fire them.
@@ -28,7 +28,6 @@ export const AmmoInput = <SpecType extends HunterSpecs>() =>
 // enum the way AmmoInput lists the arrows.
 export const QuiverInput = <SpecType extends HunterSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, HunterOptions_QuiverBonus>({
-		extraClassNames: ['quiver-picker'],
 		fieldName: 'quiverBonus',
 		label: i18n.t('settings_tab.other.quiver.label'),
 		labelTooltip: i18n.t('settings_tab.other.quiver.tooltip'),

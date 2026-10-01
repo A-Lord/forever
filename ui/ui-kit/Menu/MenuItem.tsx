@@ -12,12 +12,15 @@ export interface MenuItemProps {
 	disabled?: boolean;
 	onClick?: () => void;
 	render?: ReactElement;
+	/** Skips the item's own padding and highlight, for content that brings both. */
+	bare?: boolean;
 	className?: string;
+	testId?: string;
 	children: ReactNode;
 	[key: string]: unknown;
 }
 
-export const MenuItem = ({ layout, disabled, onClick, render, className, children, ...rest }: MenuItemProps) => (
+export const MenuItem = ({ layout, disabled, onClick, render, bare, className, testId, children, ...rest }: MenuItemProps) => (
 	<li role="none">
 		<BaseMenu.Item
 			render={render ?? <button type="button" />}
@@ -25,6 +28,8 @@ export const MenuItem = ({ layout, disabled, onClick, render, className, childre
 			disabled={disabled}
 			onClick={onClick}
 			className={clsx('ui-menu-item', LAYOUT_CLASSES[layout], className)}
+			data-bare={bare ? '' : undefined}
+			data-testid={testId}
 			{...rest}>
 			{children}
 		</BaseMenu.Item>

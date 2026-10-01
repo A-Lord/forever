@@ -11,7 +11,6 @@ func (result *SpellResult) applyResistances(sim *Simulation, spell *Spell, isPer
 	result.Outcome |= outcome
 
 	result.ArmorAndResistanceMultiplier = resistanceMultiplier
-	result.PostArmorAndResistanceMultiplier = result.Damage
 }
 
 // Modifies damage based on Armor or Magic resistances, depending on the damage type.
@@ -124,8 +123,6 @@ func (unit *Unit) partialResistRollThresholds(spell *Spell, attacker *Unit) (flo
 	}
 }
 
-// https://web.archive.org/web/20130208043756/http://elitistjerks.com/f15/t29453-combat_ratings_level_85_cataclysm/
-// https://web.archive.org/web/20110309163709/http://elitistjerks.com/f78/t105429-cataclysm_mechanics_testing/
 func (at *AttackTable) GetArmorDamageModifier(spell *Spell) float64 {
 	if at.IgnoreArmor {
 		return 1.0
@@ -133,8 +130,7 @@ func (at *AttackTable) GetArmorDamageModifier(spell *Spell) float64 {
 
 	ignoreArmorFactor := Clamp(at.ArmorIgnoreFactor, 0.0, 1.0)
 
-	// Assume target > 80
-	armorConstant := float64(at.Attacker.Level)*467.5 - 22167.5
+	armorConstant := 400 + 85*float64(at.Attacker.Level)
 	defenderArmor := at.Defender.Armor() - (at.Defender.Armor() * ignoreArmorFactor)
 	// TODO: Forever possibly has different rules as there is Armor Piercing Flat and % values
 	defenderArmor = max(defenderArmor-at.Attacker.stats[stats.ArmorPenetration], 0)

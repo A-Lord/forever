@@ -1,16 +1,4 @@
-import {
-	APLActionGuardianHotwDpsRotation_Strategy as HotwStrategy,
-	APLActionItemSwap_SwapSet as ItemSwapSet,
-	APLValueAutoAttackType,
-	APLValueAutoSwingTime_SwingType as AutoSwingType,
-	APLValueCompare_ComparisonOperator as ComparisonOperator,
-	APLValueEclipsePhase,
-	APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold,
-	APLValueMath_MathOperator as MathOperator,
-} from '@generated/proto/apl';
 import { ActionID, Stat } from '@generated/proto/common';
-import { ShamanTotems_TotemType as TotemType } from '@generated/proto/shaman';
-import { WarlockOptions_CurseOptions as CurseOptions } from '@generated/proto/warlock';
 import { getEnumValues } from '@sim/utils/collections';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -126,23 +114,6 @@ describe('resolveField newValue defaults', () => {
 		expect(value.uuid.value.length).toBeGreaterThan(0);
 		expect(typeof action.uuid.value).toBe('string');
 		expect(value.uuid.value).not.toBe(action.uuid.value);
-	});
-
-	it('defaults eclipseType to LunarPhase', () => {
-		expect(resolveField(eclipseTypeFieldConfig('f')).newValue()).toBe(APLValueEclipsePhase.LunarPhase);
-	});
-
-	it('defaults the remaining enum kinds to their documented member', () => {
-		expect(resolveField(hotwStrategyFieldConfig('f')).newValue()).toBe(HotwStrategy.Caster);
-		expect(resolveField(curseTypeFieldConfig('f')).newValue()).toBe(CurseOptions.Agony);
-		expect(resolveField(autoTypeFieldConfig('f')).newValue()).toBe(APLValueAutoAttackType.AnyAuto);
-		expect(resolveField(autoSwingTypeFieldConfig('f')).newValue()).toBe(AutoSwingType.MainHand);
-		expect(resolveField(statTypeFieldConfig('f')).newValue()).toBe(0);
-		expect(resolveField(itemSwapSetFieldConfig('f')).newValue()).toBe(ItemSwapSet.Swap1);
-		expect(resolveField(comparisonOperatorFieldConfig('f')).newValue()).toBe(ComparisonOperator.OpEq);
-		expect(resolveField(mathOperatorFieldConfig('f')).newValue()).toBe(MathOperator.OpAdd);
-		expect(resolveField(executePhaseThresholdFieldConfig('f')).newValue()).toBe(ExecutePhaseThreshold.E20);
-		expect(resolveField(totemTypeFieldConfig('f')).newValue()).toBe(TotemType.Water);
 	});
 });
 

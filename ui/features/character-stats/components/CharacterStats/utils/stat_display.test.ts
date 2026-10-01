@@ -87,6 +87,23 @@ describe('statDisplayString, stats with a composite display', () => {
 	});
 });
 
+describe('statDisplayString, speed multipliers', () => {
+	const melee = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier);
+	const ranged = UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedSpeedMultiplier);
+	const multiplier = (unitStat: UnitStat, value: number) => new Stats().withPseudoStat(unitStat.getPseudoStat(), value);
+
+	it('reads a total as a signed percentage over 1', () => {
+		expect(show(multiplier(melee, 1.3), melee, true)).toBe('+30.00%');
+		expect(show(multiplier(melee, 1), melee, true)).toBe('+0.00%');
+		expect(show(multiplier(ranged, 0.9), ranged, true)).toBe('-10.00%');
+	});
+
+	it('reads a stage delta without the base stage as the change itself', () => {
+		expect(show(multiplier(melee, 0.1), melee)).toBe('+10.00%');
+		expect(show(multiplier(ranged, 0), ranged)).toBe('+0.00%');
+	});
+});
+
 describe('crit immunity readout', () => {
 	// The delta is cap minus total, so a positive delta means the character is SHORT of the cap.
 	it('inverts the over/under wording against the melee crit cap', () => {

@@ -542,9 +542,6 @@ export class Sim {
 				candidates: requestCandidates,
 				optimizedCandidates: bulkReforgeCacheData?.optimizedCandidates ?? [],
 				topResults: 5,
-				// `||`, not `??`: `iterationsPerCombo` is a proto3 scalar, so an unset one arrives as 0
-				// rather than undefined and `??` would run the high stage with zero iterations.
-				highStageIterations: bulkSettings?.iterationsPerCombo || this.getIterations(),
 				reforgeRequest: bulkReforgeRequest,
 				bulkSettings,
 			});
@@ -1001,6 +998,7 @@ export class Sim {
 	static readonly ALL_RANGED_WEAPON_TYPES = (getEnumValues(RangedWeaponType) as Array<RangedWeaponType>).filter(v => v != 0);
 	static readonly ALL_SOURCES = (getEnumValues(SourceFilterOption) as Array<SourceFilterOption>).filter(v => v != 0);
 	static readonly ALL_RAIDS = (getEnumValues(RaidFilterOption) as Array<RaidFilterOption>).filter(v => v != 0);
+	static readonly DEFAULT_ITERATIONS = 12500;
 
 	toProto(): SimSettingsProto {
 		const filters = this.getFilters();
@@ -1079,7 +1077,7 @@ export class Sim {
 	applyDefaults(isTankSim: boolean, isHealingSim: boolean) {
 		this.fromProto(
 			SimSettingsProto.create({
-				iterations: 12500,
+				iterations: Sim.DEFAULT_ITERATIONS,
 				phase: CURRENT_PHASE,
 				faction: Faction.Alliance,
 				showDamageMetrics: !isHealingSim,

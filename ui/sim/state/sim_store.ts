@@ -203,7 +203,6 @@ export interface BulkSlice {
 	// A removed item leaves a null, so the picker entries' indexes never shift.
 	items: ReadonlyArray<ItemSpec | null>;
 	pickerGroups: ReadonlyMap<BulkSimItemSlot, readonly BulkPickerEntry[]>;
-	useLegacyBulkSim: boolean;
 	frozenItems: ReadonlyMap<BulkSimItemSlot, EquippedItem | null>;
 	frozenWeaponSlot: ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand | undefined;
 	weaponTypeFilters: ReadonlyMap<ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand, WeaponType[]>;

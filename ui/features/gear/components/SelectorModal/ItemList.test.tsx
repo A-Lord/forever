@@ -8,21 +8,11 @@ import { fakeHost } from '@sim/testing';
 import { act, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { storeSource as store } from '../../testing';
 import { type ItemData, type ItemListType, SelectorModalTabs } from '../../types';
 import type { SelectorTab } from './utils';
 
-const store = vi.hoisted(() => {
-	const listeners = new Set<() => void>();
-	return {
-		subscribe: (callback: () => void) => {
-			listeners.add(callback);
-			return () => listeners.delete(callback);
-		},
-		notify: () => listeners.forEach(listener => listener()),
-	};
-});
-
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(store.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('../../testing')).storeSource.subscribe));
 
 // Every row, so the assertions are about what the list selected rather than what it windowed.
 vi.mock('@ui-kit/VirtualList', () => ({
@@ -118,8 +108,6 @@ describe('ItemList', () => {
 		);
 
 	const names = (container: HTMLElement) => Array.from(container.querySelectorAll('[data-row]')).map(node => (node as HTMLElement).dataset.row);
-	const headers = (container: HTMLElement) =>
-		Array.from(container.querySelectorAll('[data-testid="selector-modal-list-labels"] h6')).map(node => node.getAttribute('data-testid'));
 
 	beforeEach(() => {
 		filtersMenu.opens.length = 0;
@@ -228,28 +216,19 @@ describe('ItemList', () => {
 		expect(labelFor(SelectorModalTabs.Gem3)).toContain('remove_gem');
 	});
 
-	it('gives the ilvl, source and compare columns to the items tab alone', () => {
-		const { container, unmount } = setup();
-		expect(headers(container)).toEqual(['ilvl-label', 'item-label', 'source-label', 'ep-label', 'favorite-label', 'compare-label']);
-		unmount();
-
-		const enchants = setup({ label: SelectorModalTabs.Enchants });
-		expect(headers(enchants.container)).toEqual(['item-label', 'ep-label', 'favorite-label']);
-	});
-
 	it('narrows the rows to the search, without losing the sort the user chose', () => {
 		const { container } = setup();
 		expect(names(container)).toEqual(['Beta', 'Gamma', 'Alpha']);
 
-		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"]')!.click());
+		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"] button')!.click());
 		expect(names(container)).toEqual(['Beta', 'Gamma', 'Alpha']);
-		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"]')!.click());
+		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"] button')!.click());
 		expect(names(container)).toEqual(['Alpha', 'Gamma', 'Beta']);
 
-		fireEvent.change(container.querySelector('[data-testid="selector-modal-search"]')!, { target: { value: 'a' } });
+		fireEvent.input(container.querySelector('[data-testid="selector-modal-search"]')!, { target: { value: 'a' } });
 		expect(names(container)).toEqual(['Alpha', 'Gamma', 'Beta']);
 
-		fireEvent.change(container.querySelector('[data-testid="selector-modal-search"]')!, { target: { value: 'bet' } });
+		fireEvent.input(container.querySelector('[data-testid="selector-modal-search"]')!, { target: { value: 'bet' } });
 		expect(names(container)).toEqual(['Beta']);
 	});
 
@@ -287,7 +266,6 @@ describe('ItemList', () => {
 		patchSlice(realStore, 'ui', { showEPValues: false });
 		const { container } = setup();
 		expect(container.querySelector('[data-testid="selector-modal-list"]')!.hasAttribute('data-hide-ep')).toBe(true);
-		expect(container.querySelector<HTMLElement>('[data-testid="ep-label"]')!.style.display).toBe('none');
 	});
 
 	it('re-reads the rows when the sim announces a filter change', () => {

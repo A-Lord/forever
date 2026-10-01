@@ -8,6 +8,8 @@ import (
 
 var thunderClapRank = spellData.ThunderClap.Highest()
 
+// TODO: Forever announces Thunder Clap scaling with Attack Power; the game files state a flat 103 and no
+// Attack Power coefficient. Add it once a game build carries it or it is measured in game.
 var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average()
 var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
 
