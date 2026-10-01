@@ -63,6 +63,7 @@ export const BulkEnchantPresetDialogView = ({
 					<Input
 						id={nameId}
 						type="text"
+						placeholder={i18n.t('bulk_tab.settings.enchant_presets.name_placeholder')}
 						aria-invalid={nameTaken}
 						value={name}
 						onChange={event => onNameChange(event.target.value)}

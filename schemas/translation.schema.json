@@ -3443,6 +3443,9 @@
 								"name_duplicate": {
 									"type": "string"
 								},
+								"name_placeholder": {
+									"type": "string"
+								},
 								"save": {
 									"type": "string"
 								}
@@ -3459,6 +3462,7 @@
 								"edit_title",
 								"name",
 								"name_duplicate",
+								"name_placeholder",
 								"save"
 							]
 						}

@@ -982,6 +982,7 @@
 				"edit_title": "Edit enchant preset",
 				"name": "Preset name",
 				"name_duplicate": "A preset with this name already exists.",
+				"name_placeholder": "e.g. Undead, Outdoor, Raid",
 				"save": "Save"
 			}
 		},
