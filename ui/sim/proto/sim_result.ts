@@ -225,6 +225,13 @@ export class SimResult {
 		return this.raidMetrics.dps;
 	}
 
+	// The damage a unit's own side deals it, such as a sapper's hit on its thrower or a hit on a pet: every
+	// action of that side, pets included, cut down to its damage on the unit. It counts as damage taken.
+	getOwnSideDamageOn(unit: UnitMetrics): Array<ActionMetrics> {
+		const side = unit.isTarget ? this.encounterMetrics.targets : this.players.flatMap(player => [player, ...player.pets]);
+		return side.flatMap(source => source.getDamageActionsOn(unit.unitIndex));
+	}
+
 	getRaidIndexedActionMetrics(filter?: SimResultFilter): Array<ActionMetrics> {
 		return ActionMetrics.joinById(
 			this.getRaidIndexedPlayers(filter)
@@ -379,7 +386,7 @@ export class UnitMetrics {
 	}
 
 	get threatLogs(): Array<ThreatLogGroup> {
-		return (this.memoThreatLogs ??= buildThreatGroups(this.logs));
+		return (this.memoThreatLogs ??= buildThreatGroups(this.logs.filter(log => !isDamage(log) || log.target?.isTarget !== this.isTarget)));
 	}
 
 	get auraUptimeLogs(): Array<AuraUptimeLog> {
@@ -534,16 +541,8 @@ export class UnitMetrics {
 		return this.getActionsForDisplay().filter(e => e.isMeleeAction);
 	}
 
-	getMeleeDamageActions(): Array<ActionMetrics> {
-		return this.getMeleeActions().filter(e => e.dps !== 0 && e.hps === 0);
-	}
-
 	getSpellActions(): Array<ActionMetrics> {
 		return this.getActionsForDisplay().filter(e => !e.isMeleeAction);
-	}
-
-	getSpellDamageActions(): Array<ActionMetrics> {
-		return this.getSpellActions().filter(e => e.dps !== 0 && e.hps === 0);
 	}
 
 	getDamageActions(): Array<ActionMetrics> {
@@ -553,12 +552,10 @@ export class UnitMetrics {
 			.filter(e => e.dps !== 0);
 	}
 
-	// The unit's own actions that damage itself, such as a sapper's hit on its thrower, cut down to that
-	// damage. They count towards its damage taken, and an enemy's actions never reach them.
-	getSelfDamageActions(): Array<ActionMetrics> {
+	getDamageActionsOn(unitIndex: number): Array<ActionMetrics> {
 		return this.getActionsForDisplay()
-			.filter(e => e.hps === 0 && e.targets.some(target => target.data.unitIndex === this.unitIndex))
-			.map(e => e.forUnit(this.unitIndex))
+			.filter(e => e.hps === 0 && e.targets.some(target => target.data.unitIndex === unitIndex))
+			.map(e => e.forUnit(unitIndex))
 			.filter(e => e.damage > 0);
 	}
 
@@ -866,16 +863,6 @@ export class ActionMetrics {
 
 	get isPassiveAction() {
 		return this.data.isPassive;
-	}
-
-	get totalDamageTakenPercent() {
-		// Self-damage rows carry the player as their unit, whose unitIndex is not
-		// an index into the encounter's targets, so this lookup can come back
-		// undefined rather than merely lacking a dps field.
-		const totalAvgDtps = this.resultData.result.encounterMetrics?.targets?.[this.unit?.unitIndex || 0]?.dps?.avg;
-		if (!totalAvgDtps) return undefined;
-
-		return percentOf(this.avgDamage, totalAvgDtps * this.duration);
 	}
 
 	get totalDamagePercent() {

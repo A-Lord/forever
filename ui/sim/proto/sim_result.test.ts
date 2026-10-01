@@ -1,4 +1,8 @@
-import { ActionMetrics as ActionMetricsProto, TargetedActionMetrics as TargetedActionMetricsProto } from '@generated/proto/api';
+import {
+	ActionMetrics as ActionMetricsProto,
+	TargetedActionMetrics as TargetedActionMetricsProto,
+	UnitMetrics as UnitMetricsProto,
+} from '@generated/proto/api';
 import { makeSimRun } from '@testing/storybook/fixtures/results';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -50,10 +54,43 @@ describe('damage done and damage taken from self-inflicted damage', () => {
 		expect(player.getDamageActions()).toEqual([]);
 	});
 
-	it("reports the damage an action deals its own unit as that unit's damage taken", async () => {
-		const player = await playerAction({ damage: 1000 }, { damage: 500 });
+	it("reports the damage its own side deals a unit, its own hits and its pet's, as that unit's damage taken", async () => {
+		const { request, result } = makeSimRun();
+		const warrior = result.raidMetrics!.parties[0].players[0];
+		warrior.actions[0].targets = [
+			TargetedActionMetricsProto.create({ unitIndex: TARGET, hits: 1, damage: 1000 }),
+			TargetedActionMetricsProto.create({ unitIndex: PLAYER, hits: 1, damage: 500 }),
+		];
+		warrior.pets = [
+			UnitMetricsProto.create({
+				name: 'Pet',
+				unitIndex: 2,
+				actions: [
+					ActionMetricsProto.create({
+						id: warrior.actions[0].id,
+						targets: [
+							TargetedActionMetricsProto.create({ unitIndex: TARGET }),
+							TargetedActionMetricsProto.create({ unitIndex: PLAYER, hits: 1, damage: 300 }),
+						],
+					}),
+				],
+			}),
+		];
+		const simResult = await SimResult.makeNew(request, result);
 
-		expect(player.getSelfDamageActions().map(self => self.damage)).toEqual([500]);
+		expect(simResult.getOwnSideDamageOn(simResult.getFirstPlayer()!).map(hit => hit.damage)).toEqual([500, 300]);
+	});
+
+	it('leaves a hit on its own side out of the DPS and threat timelines', async () => {
+		const { request, result } = makeSimRun();
+		result.logs = [
+			'[1.00] [Player (#1)] [Target 1] {OtherID: 1} Hit for 1000.000 damage (SpellSchool: 1). (Threat: 800.000)',
+			'[2.00] [Player (#1)] [Player (#1)] {OtherID: 1} Hit for 500.000 damage (SpellSchool: 1). (Threat: 500.000)',
+		].join('\n');
+		const player = (await SimResult.makeNew(request, result)).getFirstPlayer()!;
+
+		expect(player.damageDealtLogs.map(log => log.amount)).toEqual([1000]);
+		expect(player.maxThreat).toBe(800);
 	});
 
 	it("keeps an enemy's damage on the player as damage done", async () => {

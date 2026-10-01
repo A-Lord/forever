@@ -47,7 +47,6 @@ export const actionMetric = (name: string, overrides: Record<string, unknown> = 
 		damage: 100,
 		avgDamage: 100,
 		totalDamagePercent: 50,
-		totalDamageTakenPercent: 50,
 		damageThroughput: 20,
 		avgCastHit: 10,
 		avgCastTick: 0,
