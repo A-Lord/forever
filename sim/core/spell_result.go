@@ -20,6 +20,8 @@ type SpellResult struct {
 	ArmorAndResistanceMultiplier     float64 // Armor multiplier
 	PostArmorAndResistanceMultiplier float64 // Damage done by this cast after Armor is applied
 	PostOutcomeDamage                float64 // Damage done by this cast after Outcome is applied
+	BlockedDamage                    float64 // Damage a block took off this cast
+	PreMitigationDamage              float64 // Damage done by this cast with the Outcome's multiplier but before the target's armor, resistances, damage taken modifiers, block and absorbs
 
 	inUse bool
 }
@@ -73,8 +75,11 @@ func (spell *Spell) NewResult(target *Unit) *SpellResult {
 	result.Threat = 0
 	result.Outcome = OutcomeEmpty // for blocks
 	result.inUse = true
+	result.ArmorAndResistanceMultiplier = 0
 	result.PostArmorAndResistanceMultiplier = 0
 	result.PostOutcomeDamage = 0
+	result.BlockedDamage = 0
+	result.PreMitigationDamage = 0
 
 	return result
 }
@@ -89,8 +94,11 @@ func (spell *Spell) CloneResult(result *SpellResult) *SpellResult {
 	newResult.Damage = result.Damage
 	newResult.Threat = result.Threat
 	newResult.Outcome = result.Outcome
+	newResult.ArmorAndResistanceMultiplier = result.ArmorAndResistanceMultiplier
 	newResult.PostArmorAndResistanceMultiplier = result.PostArmorAndResistanceMultiplier
 	newResult.PostOutcomeDamage = result.PostOutcomeDamage
+	newResult.BlockedDamage = result.BlockedDamage
+	newResult.PreMitigationDamage = result.PreMitigationDamage
 
 	return newResult
 }
@@ -335,8 +343,10 @@ func (spell *Spell) calcDamageInternal(sim *Simulation, target *Unit, baseDamage
 
 	if sim.Log == nil {
 		result.Damage *= attackerMultiplier
+		afterAttackMods := result.Damage
 		result.applyResistances(sim, spell, isPeriodic, attackTable)
 		result.applyTargetModifiers(sim, spell, attackTable, isPeriodic)
+		afterTargetMods := result.Damage
 
 		// Save partial outcome which comes from applyResistances call
 		partialOutcome := OutcomeEmpty
@@ -345,6 +355,7 @@ func (spell *Spell) calcDamageInternal(sim *Simulation, target *Unit, baseDamage
 		}
 
 		outcomeApplier(sim, result, attackTable)
+		result.setPreMitigationDamage(afterAttackMods, afterTargetMods)
 
 		// Restore partial outcome
 		if partialOutcome != OutcomeEmpty {
@@ -368,6 +379,7 @@ func (spell *Spell) calcDamageInternal(sim *Simulation, target *Unit, baseDamage
 
 		outcomeApplier(sim, result, attackTable)
 		afterOutcome := result.Damage
+		result.setPreMitigationDamage(afterAttackMods, afterTargetMods)
 
 		// Restore partial outcome
 		if partialOutcome != OutcomeEmpty {
@@ -387,6 +399,17 @@ func (spell *Spell) calcDamageInternal(sim *Simulation, target *Unit, baseDamage
 
 	return result
 }
+
+// The outcome scales the mitigated damage by its multiplier and then takes the block off, so the
+// multiplier is the blocked and unblocked damage over the damage before the outcome.
+func (result *SpellResult) setPreMitigationDamage(afterAttackMods float64, beforeOutcome float64) {
+	if beforeOutcome <= 0 {
+		result.PreMitigationDamage = 0
+		return
+	}
+	result.PreMitigationDamage = afterAttackMods * (result.Damage + result.BlockedDamage) / beforeOutcome
+}
+
 func (spell *Spell) CalcDamage(sim *Simulation, target *Unit, baseDamage float64, outcomeApplier OutcomeApplier) *SpellResult {
 	attackTable := spell.Unit.AttackTables[target.UnitIndex]
 	attackerMultiplier := spell.AttackerDamageMultiplier(spell.Unit.AttackTables[target.UnitIndex], false)
