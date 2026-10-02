@@ -81,8 +81,14 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		consumables: Presets.DefaultConsumables,
 		// Default rotation settings.
 		rotationType: APLRotationType.TypeAuto,
-		// Default talents.
-		talents: SavedTalents.create(),
+		simpleRotation: Presets.DefaultRotation,
+		// Ferocity, shredding attacks, savage fury, charge, sharpened claws,
+		// shifting power, predatory strikes, blood frenzy, improved shifting power,
+		// leader of the pack, predatory instincts, rend and tear, berserk, furor,
+		// natural shapeshifter.
+		talents: SavedTalents.create({
+			talentsString: '0000000000000000-50000032121032212051-0500300000000000',
+		}),
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -146,23 +152,28 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		gear: [],
 	},
 
-	autoRotation: (_player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
-		return Presets.APL.rotation.rotation!;
+	autoRotation: (player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
+		return catPowershiftRotation(player.getSimpleRotation());
 	},
 
 	simpleRotation: (_player: Player<Spec.SpecFeralCatDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {
-		// All cooldowns (potions, sappers, runes) are fired by the Go rotation
-		// during power shifts (ClearForm → fire MCDs → CatForm), not through the APL.
-		const doRotation = APLAction.fromJsonString(
-			`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints},"biteMinComboPoints":${simple.biteMinComboPoints},"mangleTrick":${simple.mangleTrick},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
-		);
-
-		return APLRotation.create({
-			priorityList: [APLListItem.create({ action: doRotation })],
-		});
+		return catPowershiftRotation(simple);
 	},
 
 	hiddenMCDs: [],
 
 	reforge: {},
 });
+
+// The Go rotation decides Rip, Bite, Shred and when energy is too low to wait.
+// That low-energy button is Shifting Power. Cooldowns fire from the same decision;
+// core refuses one that would leave cat form.
+function catPowershiftRotation(simple: DruidRotation): APLRotation {
+	const doRotation = APLAction.fromJsonString(
+		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"mangleTrick":${simple.mangleTrick},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
+	);
+
+	return APLRotation.create({
+		priorityList: [APLListItem.create({ action: doRotation })],
+	});
+}

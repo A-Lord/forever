@@ -82,9 +82,13 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		})(),
 		other: Presets.OtherDefaults,
 		consumables: Presets.DefaultConsumables,
-		rotationType: APLRotationType.TypeAPL,
-		aplRotation: Presets.ROTATION_DEFAULT.rotation.rotation!,
-		talents: SavedTalents.create(),
+		rotationType: APLRotationType.TypeAuto,
+		simpleRotation: Presets.DefaultSimpleRotation,
+		// Heart of the wild, feral instinct, thick hide, feral charge, primal bite,
+		// leader of the pack, natural reaction.
+		talents: SavedTalents.create({
+			talentsString: '0000000000000000-05030300100100010500-0000000000000000',
+		}),
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
 			arcaneBrilliance: true,
@@ -151,18 +155,22 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		gear: [],
 	},
 
-	autoRotation: (_player: Player<Spec.SpecFeralBearDruid>): APLRotation => {
-		return Presets.ROTATION_DEFAULT.rotation.rotation!;
+	autoRotation: (player: Player<Spec.SpecFeralBearDruid>): APLRotation => {
+		return bearSimpleRotation(player.getSimpleRotation());
 	},
 
 	simpleRotation: (_player: Player<Spec.SpecFeralBearDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {
-		const doRotation = APLAction.fromJsonString(
-			`{"bearOptimalRotationAction":{"maintainFaerieFire":${simple.maintainFaerieFire},"maintainDemoralizingRoar":${simple.maintainDemoralizingRoar},"maulRageThreshold":${simple.maulRageThreshold},"swipeUsage":${simple.swipeUsage},"swipeApThreshold":${simple.swipeApThreshold}}}`,
-		);
-		return APLRotation.create({
-			priorityList: [APLListItem.create({ action: doRotation })],
-		});
+		return bearSimpleRotation(simple);
 	},
 
 	reforge: {},
 });
+
+function bearSimpleRotation(simple: DruidRotation): APLRotation {
+	const doRotation = APLAction.fromJsonString(
+		`{"bearOptimalRotationAction":{"maintainFaerieFire":${simple.maintainFaerieFire},"maintainDemoralizingRoar":${simple.maintainDemoralizingRoar},"maulRageThreshold":${simple.maulRageThreshold || 50},"swipeUsage":${simple.swipeUsage},"swipeApThreshold":${simple.swipeApThreshold || 2700}}}`,
+	);
+	return APLRotation.create({
+		priorityList: [APLListItem.create({ action: doRotation })],
+	});
+}

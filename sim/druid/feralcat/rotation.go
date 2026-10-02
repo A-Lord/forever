@@ -56,6 +56,13 @@ func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
 func (cat *FeralDruid) shift(sim *core.Simulation) bool {
+	// Shifting Power spends mana for energy and stays in cat form. A cast that
+	// cannot happen (cooldown, mana, missing talent, wrong form) is not a shift.
+	if !cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
+		cat.readyToShift = false
+		return false
+	}
+
 	cat.waitingForTick = false
 
 	// If we have just now decided to shift, then we do not execute the
@@ -67,10 +74,8 @@ func (cat *FeralDruid) shift(sim *core.Simulation) bool {
 
 	cat.readyToShift = false
 
-	// Drop form, fire all ready cooldowns (potions, sappers, runes) while out
-	// of form so their form-cancelling side-effects are irrelevant, then
-	// immediately reshift. Mirrors PowerShiftCat from the old TBC sim.
-	cat.ClearForm(sim)
+	// Ready cooldowns fire first. Core refuses one that would leave cat form.
+	// One that takes the GCD is left for the next decision.
 	for _, mcd := range cat.GetMajorCooldowns() {
 		if !mcd.IsReady(sim) {
 			continue
@@ -81,7 +86,7 @@ func (cat *FeralDruid) shift(sim *core.Simulation) bool {
 	if !cat.GCD.IsReady(sim) {
 		return true
 	}
-	return cat.CatForm.Cast(sim, nil)
+	return cat.ShiftingPower.Cast(sim, cat.CurrentTarget)
 }
 
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
@@ -89,13 +94,13 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		return false
 	}
 
-	// The APL opens an OOM event by attempting the shift and failing the mana
-	// check. This rotation bails out before casting, so drive the event pair
-	// explicitly to keep the measured OOM time accurate. It has to sit above the
-	// early returns below: an event opened here must be able to close on the
-	// same evaluation paths, or a reshift, a readyToShift tick or a Faerie Fire
-	// refresh leaves it open and inflates the measured OOM time.
-	shiftCost := cat.CatForm.Cost.GetCurrentCost()
+	// Shifting Power is the mana check that opens an OOM event. This rotation
+	// bails out before casting, so drive the event pair explicitly to keep the
+	// measured OOM time accurate. It has to sit above the early returns below:
+	// an event opened here must be able to close on the same evaluation paths,
+	// or a readyToShift tick or a Faerie Fire refresh leaves it open and
+	// inflates the measured OOM time.
+	shiftCost := cat.ShiftingPower.Cost.GetCurrentCost()
 	oom := cat.CurrentMana() < shiftCost
 	if oom {
 		if !cat.IsOOM() {
@@ -111,8 +116,9 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	}
 
 	// If we previously decided to shift, execute now after input delay.
-	if cat.readyToShift {
-		return cat.shift(sim)
+	// A failed cast falls through and chooses another button this evaluation.
+	if cat.readyToShift && cat.shift(sim) {
+		return true
 	}
 
 	rotation := &cat.Rotation
