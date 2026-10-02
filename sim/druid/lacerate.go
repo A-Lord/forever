@@ -36,5 +36,4 @@ func (druid *Druid) registerLacerateSpell() {
 		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Lacerate = druid.RegisterSpell(config)
-	druid.Lacerate.ShortName = "Lacerate"
 }

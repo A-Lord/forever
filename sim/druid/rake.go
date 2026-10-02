@@ -23,7 +23,6 @@ func (druid *Druid) registerRakeSpell() {
 		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Rake = druid.RegisterSpell(config)
-	druid.Rake.ShortName = "Rake"
 }
 
 func (druid *Druid) CurrentRakeCost() float64 {

@@ -111,6 +111,53 @@ func TestBerserkPrimalBiteStrikesThreeTargets(t *testing.T) {
 	}
 }
 
+// Bash 8983 states a melee defense type and a miss refund: a dodged Bash stuns nothing and gives rage back.
+func TestDodgedBashStunsNothingAndRefunds(t *testing.T) {
+	sim, bear := newBear(t)
+	target := sim.Encounter.ActiveTargetUnits[0]
+	target.PseudoStats.BaseDodgeChance = 1
+	before := bear.CurrentRage()
+	if !bear.Bash.Cast(sim, bear.CurrentTarget) {
+		t.Fatal("bash did not cast")
+	}
+	if m := bear.Bash.SpellMetrics[target.UnitIndex]; m.Dodges != 1 {
+		t.Fatalf("bash dodges = %d, want 1", m.Dodges)
+	}
+	for _, aura := range bear.Bash.RelatedAuraArrays {
+		if aura.Get(target).IsActive() {
+			t.Error("a dodged bash stunned the target")
+		}
+	}
+	if spent := before - bear.CurrentRage(); spent >= bear.Bash.DefaultCast.Cost {
+		t.Errorf("a dodged bash spent %v of its %v rage", spent, bear.Bash.DefaultCast.Cost)
+	}
+}
+
+// Berserk effect 2 is -100% on Primal Bite's 6 s cooldown, while Berserk is up.
+func TestBerserkLiftsPrimalBiteCooldownOnlyWhileUp(t *testing.T) {
+	sim, bear := newBearWithTalents(t, "0000000000000000-00000000000100000001-0000000000000000")
+	metrics := bear.NewRageMetrics(core.ActionID{SpellID: 1})
+	cast := func(when string) {
+		t.Helper()
+		bear.AddRage(sim, 100, metrics)
+		if !bear.PrimalBite.Cast(sim, bear.CurrentTarget) {
+			t.Fatalf("primal bite did not cast %s", when)
+		}
+		sim.CurrentTime += 2 * time.Second
+	}
+
+	bear.BerserkAura.Activate(sim)
+	cast("under berserk")
+	if !bear.PrimalBite.IsReady(sim) {
+		t.Errorf("primal bite is on cooldown until %v under berserk", bear.PrimalBite.ReadyAt())
+	}
+	bear.BerserkAura.Deactivate(sim)
+	cast("after berserk")
+	if got, want := bear.PrimalBite.ReadyAt(), sim.CurrentTime+4*time.Second; got != want {
+		t.Errorf("primal bite is ready at %v after berserk, want %v", got, want)
+	}
+}
+
 func TestFrenziedRegenerationSpendsRageForHealth(t *testing.T) {
 	sim, bear := newBear(t)
 	bear.AddRage(sim, 100, bear.NewRageMetrics(core.ActionID{SpellID: 1}))

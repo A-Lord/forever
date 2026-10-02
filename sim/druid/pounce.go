@@ -9,6 +9,8 @@ func (druid *Druid) registerPounceSpell() {
 	rank := spellData.Pounce.Highest()
 	bleedRank := spellData.PounceBleed.Highest()
 
+	// TODO: Ingame research needed -- Genesis names Pounce 9827 by its class flags, and the bleed 9826
+	// states none, so the bleed here takes no class-flag modifier.
 	bleedConfig := spelldata.SpellConfig(&druid.Unit, bleedRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
 	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedRank.PeriodicDamageEffect(), bleedAuraOpt())
 	druid.PounceBleed = druid.RegisterSpell(bleedConfig)
@@ -17,9 +19,9 @@ func (druid *Druid) registerPounceSpell() {
 		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" Stun")))
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	// "Must be prowling" is the tooltip's; the row states Cat Form only.
+	// "Must be prowling and behind the target" is the tooltip's; the row states Cat Form only.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
-		return druid.ProwlAura != nil && druid.ProwlAura.IsActive()
+		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		druid.breakProwl(sim)

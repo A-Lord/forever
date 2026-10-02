@@ -6,28 +6,27 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
+// The feral tree in its own order. Shifting Power and Primal Bite are spells whose cast condition is
+// the talent; registerFeralKit registers them.
 func (druid *Druid) registerFeralCombatTalents() {
 	druid.applyFerocity()
-	druid.applyFeralAggression()
+	druid.applyHeartOfTheWild()
+	druid.applyFeralSwiftness()
 	druid.applyFeralInstinct()
 	druid.applyBrutalImpact()
 	druid.applyThickHide()
-	druid.applyFeralSwiftness()
-	druid.applySharpenedClaws()
 	druid.applyShreddingAttacks()
-	druid.applyPredatoryStrikes()
-	druid.applyPrimalFury()
 	druid.applySavageFury()
-	druid.applyHeartOfTheWild()
-	druid.applyLeaderOfThePack()
+	druid.applyFeralCharge()
+	druid.applySharpenedClaws()
+	druid.applyPredatoryStrikes()
+	druid.applyBloodFrenzy()
 	druid.applyImprovedShiftingPower()
-	druid.applyPrimalTenacity()
-	druid.applySurvivalInstincts()
+	druid.applyLeaderOfThePack()
 	druid.applyPredatoryInstincts()
+	druid.applyNaturalReaction()
 	druid.applyRendAndTear()
 	druid.applyBerserk()
-	druid.applyNaturalReaction()
-	druid.applyFeralCharge()
 }
 
 func (druid *Druid) parseTalent(rank int32, ladder spelldata.Ladder) {
@@ -51,9 +50,6 @@ func (druid *Druid) parseOnFeralForms(rank int32, ladder spelldata.Ladder) {
 
 func (druid *Druid) applyFerocity() {
 	druid.parseTalent(druid.Talents.Ferocity, spellData.Ferocity)
-}
-
-func (druid *Druid) applyFeralAggression() {
 }
 
 func (druid *Druid) applyFeralInstinct() {
@@ -109,10 +105,6 @@ func (druid *Druid) applyPredatoryStrikes() {
 	}
 }
 
-func (druid *Druid) applyPrimalFury() {
-	druid.applyBloodFrenzy()
-}
-
 func (druid *Druid) applySavageFury() {
 	druid.parseTalent(druid.Talents.SavageFury, spellData.SavageFury)
 }
@@ -154,6 +146,8 @@ func (druid *Druid) applyBloodFrenzy() {
 		return
 	}
 	row := spellData.BloodFrenzy.Rank(druid.Talents.BloodFrenzy)
+	rageChance := row.EffectN(1).Percent()  // $m1, the rage in Bear and Dire Bear Form
+	comboChance := row.EffectN(2).Percent() // $m2, the combo point in Cat Form
 	rageSpell := spellData.BloodFrenzyTriggered.Highest()
 	metrics := druid.NewRageMetrics(core.ActionID{SpellID: rageSpell.ID})
 	combo := druid.NewComboPointMetrics(core.ActionID{SpellID: row.ID})
@@ -162,21 +156,19 @@ func (druid *Druid) applyBloodFrenzy() {
 			return
 		}
 		if druid.InForm(Bear) {
-			druid.AddRage(sim, rageSpell.EnergizeEffect().Tenths(), metrics)
+			if sim.Proc(rageChance, "Blood Frenzy Rage") {
+				druid.AddRage(sim, rageSpell.EnergizeEffect().Tenths(), metrics)
+			}
 			return
 		}
 		// TODO: Ingame research needed -- the triggered spell restores rage in bear form. The cat's
 		// extra combo point on a non-periodic builder crit is the tooltip, not an effect on the row.
-		if druid.InForm(Cat) && druid.isComboBuilder(spell) {
+		if druid.InForm(Cat) && druid.isComboBuilder(spell) && sim.Proc(comboChance, "Blood Frenzy Combo Point") {
 			druid.AddComboPoints(sim, 1, combo)
 		}
-	}))
+	}, spelldata.Chance(1)))
 }
 
-// applyShiftingPower implements Shifting Power, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (druid *Druid) applyNaturalReaction() {
 	druid.parseTalent(druid.Talents.NaturalReaction, spellData.NaturalReaction)
 	if druid.Talents.NaturalReaction == 0 {
@@ -214,10 +206,8 @@ func (druid *Druid) applyBerserk() {
 	}
 	config.RelatedSelfBuff = druid.BerserkAura
 	druid.Berserk = druid.RegisterSpell(config)
-}
-
-func (druid *Druid) applyPrimalTenacity() {
-}
-
-func (druid *Druid) applySurvivalInstincts() {
+	druid.AddMajorCooldown(core.MajorCooldown{
+		Spell: druid.Berserk.Spell,
+		Type:  core.CooldownTypeDPS,
+	})
 }

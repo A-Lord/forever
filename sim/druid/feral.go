@@ -69,7 +69,8 @@ func (druid *Druid) isComboBuilder(spell *core.Spell) bool {
 		spellData.Ravage.Contains(spell) || spellData.Pounce.Contains(spell)
 }
 
-func (druid *Druid) behindTarget() bool {
+// Whether Shred, Ravage and Pounce can land: the druid is behind the target and the target can be shredded.
+func (druid *Druid) BehindTarget() bool {
 	return !druid.PseudoStats.InFrontOfTarget && !druid.CannotShredTarget
 }
 

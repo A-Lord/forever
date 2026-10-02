@@ -9,7 +9,7 @@ func (druid *Druid) registerShredSpell() {
 	rank := spellData.Shred.Highest()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
-		return druid.behindTarget()
+		return druid.BehindTarget()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		druid.breakProwl(sim)

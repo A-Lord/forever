@@ -112,7 +112,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	druid.CatFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.rememberCatEnergy(sim)
 		druid.breakProwl(sim)
-		druid.restoreHumanoidBody(sim)
+		druid.restoreHumanoidBody()
 	})
 	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
 		druid.furorStoredEnergy = 0
@@ -143,7 +143,7 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.furorBearTime += sim.CurrentTime - aura.StartedAt()
-		druid.restoreHumanoidBody(sim)
+		druid.restoreHumanoidBody()
 	})
 	return aura
 }
@@ -156,7 +156,7 @@ func (druid *Druid) registerFormAura(form *spelldata.Spell, starting bool) *core
 	}))
 }
 
-func (druid *Druid) restoreHumanoidBody(sim *core.Simulation) {
+func (druid *Druid) restoreHumanoidBody() {
 	if druid.Env != nil && !druid.Env.MeasuringStats && druid.AutoAttacks.MH() != nil {
 		druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
 	}
@@ -164,7 +164,6 @@ func (druid *Druid) restoreHumanoidBody(sim *core.Simulation) {
 		druid.SetCurrentPowerBar(core.ManaBar)
 	}
 	druid.setForm(Humanoid)
-	_ = sim
 }
 
 func (druid *Druid) registerCatFormSpell() {
@@ -268,7 +267,7 @@ func (druid *Druid) RegisterMoonkinFormAura() {
 		druid.SetCurrentPowerBar(core.ManaBar)
 	})
 	druid.MoonkinFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-		druid.restoreHumanoidBody(sim)
+		druid.restoreHumanoidBody()
 	})
 }
 

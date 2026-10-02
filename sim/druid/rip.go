@@ -35,7 +35,6 @@ func (druid *Druid) registerRipSpell() {
 		druid.refundOnMiss(sim, spell, result)
 	}
 	druid.Rip = druid.RegisterSpell(config)
-	druid.Rip.ShortName = "Rip"
 }
 
 func (druid *Druid) CurrentRipCost() float64 {

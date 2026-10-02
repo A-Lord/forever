@@ -6,8 +6,8 @@ import (
 )
 
 func (druid *Druid) registerFerociousBiteSpell() {
-	// The trainer list stops at rank 4. Rank 5 (31018) is in the store.
-	// TODO: Ingame research needed -- whether rank 5 spell 31018 can be learned.
+	// Rank 5 (31018) is taught by an item, Book of Ferocious Bite V (24101), not by the trainer.
+	// TODO: Ingame research needed -- whether that book can be obtained.
 	rank := spellData.FerociousBite.ByID(22829)
 	damageEffect := rank.DamageEffect()
 	perEnergy := rank.EffectN(2).BaseValue() / 100

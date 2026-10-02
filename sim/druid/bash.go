@@ -5,35 +5,37 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// The row rolls a melee hit and refunds on a miss; the stun lands only on a hit.
 func (druid *Druid) registerBashSpell() {
-	druid.Bash = druid.registerBearUtility(spellData.Bash.Highest(), true)
+	rank := spellData.Bash.Highest()
+	stuns := druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name)))
+	})
+	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.Flags |= core.SpellFlagAPL
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+		if result.Landed() {
+			stuns.Get(target).Activate(sim)
+		}
+		druid.refundOnMiss(sim, spell, result)
+	}
+	config.RelatedAuraArrays = stuns.ToMap()
+	druid.Bash = druid.RegisterSpell(config)
 }
 
 func (druid *Druid) registerGrowlSpell() {
-	druid.Growl = druid.registerBearUtility(spellData.Growl.Highest(), false)
+	druid.Growl = druid.registerBearUtility(spellData.Growl.Highest())
 }
 
 func (druid *Druid) registerChallengingRoarSpell() {
-	druid.ChallengingRoar = druid.registerBearUtility(spellData.ChallengingRoar.Highest(), false)
+	druid.ChallengingRoar = druid.registerBearUtility(spellData.ChallengingRoar.Highest())
 }
 
-// A bear spell with no damage contribution. The aura is the debuff the cast leaves, so an APL can call it.
-func (druid *Druid) registerBearUtility(rank *spelldata.Spell, onTarget bool) *DruidSpell {
-	var auras core.AuraArray
-	if onTarget {
-		auras = druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-			return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name)))
-		})
-	}
+// A taunt: castable from an APL, with no effect the sim models.
+func (druid *Druid) registerBearUtility(rank *spelldata.Spell) *DruidSpell {
 	config := spelldata.SpellConfig(&druid.Unit, rank)
 	config.Flags |= core.SpellFlagAPL
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, _ *core.Spell) {
-		if auras != nil {
-			auras.Get(target).Activate(sim)
-		}
-	}
-	if auras != nil {
-		config.RelatedAuraArrays = auras.ToMap()
-	}
+	config.ApplyEffects = func(_ *core.Simulation, _ *core.Unit, _ *core.Spell) {}
 	return druid.RegisterSpell(config)
 }

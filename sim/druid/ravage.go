@@ -10,7 +10,7 @@ func (druid *Druid) registerRavageSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	// "Must be prowling and behind the target" is the tooltip's; the row states Cat Form only.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
-		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.behindTarget()
+		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		druid.breakProwl(sim)

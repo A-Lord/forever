@@ -91,12 +91,6 @@ type Druid struct {
 	furorEnergyMetric *core.ResourceMetrics
 	furorRageMetric   *core.ResourceMetrics
 	enrageMetric      *core.ResourceMetrics
-	ripComboPoints    map[int32]float64
-
-	IntensityEnrageRageBonus float64
-
-	// Furor: chance to gain energy/rage when shifting into Cat/Bear Form.
-	FurorProcChance float64
 
 	// Maul queue (fires on next auto-attack swing, like warrior Heroic Strike)
 	maulQueueAura  *core.Aura
@@ -232,7 +226,7 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 	druid.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
 	druid.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[char.Class])
 
-	// TBC: Druids have a -1.87% base dodge correction to match in-game values.
+	// Druids have a -1.87% base dodge correction to match in-game values.
 	druid.PseudoStats.BaseDodgeChance -= 0.0187
 
 	return druid
@@ -240,11 +234,6 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 
 type DruidSpell struct {
 	*core.Spell
-
-	// Optional fields used in snapshotting calculations
-	CurrentSnapshotPower float64
-	NewSnapshotPower     float64
-	ShortName            string
 }
 
 func (ds *DruidSpell) IsReady(sim *core.Simulation) bool {
@@ -266,26 +255,6 @@ func (ds *DruidSpell) IsEqual(s *core.Spell) bool {
 		return false
 	}
 	return ds.Spell == s
-}
-
-func (druid *Druid) UpdateBleedPower(bleedSpell *DruidSpell, sim *core.Simulation, target *core.Unit, updateCurrent bool, updateNew bool) {
-	snapshotPower := bleedSpell.ExpectedTickDamage(sim, target)
-
-	if updateCurrent {
-		bleedSpell.CurrentSnapshotPower = snapshotPower
-
-		if sim.Log != nil {
-			druid.Log(sim, "%s Snapshot Power: %.1f", bleedSpell.ShortName, snapshotPower)
-		}
-	}
-
-	if updateNew {
-		bleedSpell.NewSnapshotPower = snapshotPower
-
-		if (sim.Log != nil) && !updateCurrent {
-			druid.Log(sim, "%s Projected Power: %.1f", bleedSpell.ShortName, snapshotPower)
-		}
-	}
 }
 
 // Agent is a generic way to access underlying druid on any of the agents (for example balance druid.)
