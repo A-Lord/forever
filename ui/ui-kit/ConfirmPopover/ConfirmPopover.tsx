@@ -13,6 +13,7 @@ export interface ConfirmPopoverProps {
 	triggerClassName?: PopoverProps['triggerClassName'];
 	triggerProps?: PopoverProps['triggerProps'];
 	side?: PopoverProps['side'];
+	backdrop?: PopoverProps['backdrop'];
 	confirmLabel?: string;
 	cancelLabel?: string;
 	/** Omit for a message that is only acknowledged: one dismissing button, no cancel. */
@@ -29,6 +30,7 @@ export const ConfirmPopover = ({
 	triggerClassName,
 	triggerProps,
 	side = 'top',
+	backdrop = true,
 	confirmLabel,
 	cancelLabel,
 	onConfirm,
@@ -43,6 +45,7 @@ export const ConfirmPopover = ({
 		triggerClassName={triggerClassName}
 		triggerProps={triggerProps}
 		side={side}
+		backdrop={backdrop}
 		testId={testId ?? 'sim-confirm-popover'}
 		maxWidthClassName="max-w-54">
 		<p className="mb-2" data-testid="sim-confirm-popover-message">

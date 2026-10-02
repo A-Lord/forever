@@ -16,6 +16,7 @@ var itemsByID = map[int32]Item{}
 var gemsByID = map[int32]Gem{}
 var randomSuffixesByID = map[int32]RandomSuffix{}
 var enchantsByEffectID = map[int32]Enchant{}
+var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id; enchantsByEffectID keeps only the first.
 var itemEffectRandPropPointsByIlvl = map[int32]ItemEffectRandPropPoints{}
 var consumablesByID = map[int32]Consumable{}
 var spellEffectsById = map[int32]*proto.SpellEffect{}
@@ -62,8 +63,12 @@ func addToDatabase(newDB *proto.SimDatabase) {
 	}
 
 	for _, v := range newDB.Enchants {
+		enchant := EnchantFromProto(v)
 		if _, ok := enchantsByEffectID[v.EffectId]; !ok {
-			enchantsByEffectID[v.EffectId] = EnchantFromProto(v)
+			enchantsByEffectID[v.EffectId] = enchant
+		}
+		if !slices.ContainsFunc(enchantRowsByEffectID[v.EffectId], enchant.sameSlotRules) {
+			enchantRowsByEffectID[v.EffectId] = append(enchantRowsByEffectID[v.EffectId], enchant)
 		}
 	}
 
@@ -468,6 +473,19 @@ func GetEnchantByEffectID(effectID int32) *Enchant {
 		return nil
 	}
 	return &enchant
+}
+
+// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
+// Superior Striking), differing in the items they fit. fits runs under the read lock, so
+// nothing it calls may take dbMu.
+func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
+}
+
+func (enchant Enchant) sameSlotRules(other Enchant) bool {
+	return enchant.Type == other.Type && enchant.EnchantType == other.EnchantType && slices.Equal(enchant.ExtraTypes, other.ExtraTypes)
 }
 
 func GetGemByID(id int32) (Gem, bool) {

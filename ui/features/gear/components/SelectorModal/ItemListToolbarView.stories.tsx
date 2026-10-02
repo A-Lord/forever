@@ -21,8 +21,7 @@ const meta = {
 		phase: 1,
 		onPhaseChange: fn(),
 		toggles: [toggle('ep-values', 'Show EP', true)],
-		removeLabel: 'Unequip Item',
-		onRemove: fn(),
+		remove: { label: 'Unequip Item', onClick: fn() },
 	},
 	argTypes: { filtersMenu: { control: false } },
 	decorators: [
@@ -38,10 +37,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const EnchantsTab: Story = {
-	args: { removeLabel: 'Remove Enchant' },
+	args: { remove: { label: 'Remove Enchant', onClick: fn() } },
 	play: async ({ args, canvasElement }) => {
 		await userEvent.click(within(canvasElement).getByTestId('selector-modal-remove-button'));
-		await expect(args.onRemove).toHaveBeenCalledOnce();
+		await expect(args.remove?.onClick).toHaveBeenCalledOnce();
 	},
 };
 
@@ -60,7 +59,7 @@ export const MainHandItems: Story = {
 
 export const GemTab: Story = {
 	args: {
-		removeLabel: 'Remove Gem',
+		remove: { label: 'Remove Gem', onClick: fn() },
 		toggles: [toggle('matching-gems', 'Show Matching Gems', true), toggle('ep-values', 'Show EP', false)],
 	},
 };

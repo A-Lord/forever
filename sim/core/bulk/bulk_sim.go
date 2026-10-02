@@ -96,7 +96,7 @@ func runBulkSim(request *proto.BulkSimRequest, progress chan *proto.ProgressMetr
 	baselineGear := GetBulkSimBaselineGear(request)
 
 	if len(candidates) == 0 {
-		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, request.BaseRequest.SimOptions.Iterations, signals)
+		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, bulkSimHighStageFloor(), signals)
 		if baselineResult.Error != nil {
 			result.Error = baselineResult.Error
 			return result
@@ -112,7 +112,7 @@ func runBulkSim(request *proto.BulkSimRequest, progress chan *proto.ProgressMetr
 	var latestResults []*BulkSimCandidateResult
 
 	var carry *bulkSimStageCarryOver
-	singleStage := shouldUseSingleStageBulkSim(request.HighStageIterations, len(candidates))
+	singleStage := shouldUseSingleStageBulkSim(len(candidates))
 	// Culling intervals are corrected for how many candidates the run started with,
 	// not for how many are left: the survivors were themselves selected by the same
 	// noisy metric, so recomputing the correction on the shrinking set would weaken
@@ -168,7 +168,7 @@ func runBulkSim(request *proto.BulkSimRequest, progress chan *proto.ProgressMetr
 	}
 
 	if latestBaseline == nil {
-		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, request.BaseRequest.SimOptions.Iterations, signals)
+		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, bulkSimHighStageFloor(), signals)
 		if baselineResult.Error != nil {
 			result.Error = baselineResult.Error
 			return result

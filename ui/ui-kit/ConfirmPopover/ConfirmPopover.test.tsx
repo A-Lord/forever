@@ -26,6 +26,16 @@ describe('ConfirmPopover', () => {
 		expect(buttons.map(button => button.textContent)).toEqual(['common.cancel', 'common.confirm']);
 	});
 
+	it('dims the page behind it unless told not to', () => {
+		renderOpen({ onConfirm: () => {} });
+		expect(screen.getByTestId('sim-popover-backdrop')).toBeTruthy();
+	});
+
+	it('leaves the page undimmed with backdrop off', () => {
+		renderOpen({ onConfirm: () => {}, backdrop: false });
+		expect(screen.queryByTestId('sim-popover-backdrop')).toBeNull();
+	});
+
 	it('confirms, then closes', () => {
 		const calls: string[] = [];
 		const onConfirm = vi.fn(() => calls.push('confirm'));

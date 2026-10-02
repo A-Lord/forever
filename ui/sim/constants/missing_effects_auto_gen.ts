@@ -2745,12 +2745,6 @@ export const MISSING_ENCHANT_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		7124, // Wolfshead Trophy
-		[
-			"Permanently enchant a helm slot item, causing you to gain 20 energy or 5 rage when shapeshifting into Cat or Bear form.", // 17768 - https://www.wowhead.com/forever/spell=17768
-		]
-	],
-	[
 		7210, // Enchant Weapon - Dismantle
 		[
 			"Permanently enchant a Weapon to cause all spells and attacks to sometimes deal 75 additional damage to mechanical creatures.", // 435467 - https://www.wowhead.com/forever/spell=435467

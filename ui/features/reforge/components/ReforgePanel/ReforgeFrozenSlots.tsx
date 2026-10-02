@@ -3,10 +3,20 @@ import { ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import type { Player } from '@sim/player/player';
 import type { ReforgeSettings } from '@sim/settings/reforge_settings';
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
 import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
-import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
+
+export interface ReforgeFrozenSlotsViewProps {
+	hidden: boolean;
+	pickers: ReadonlyArray<ReactNode>;
+}
+
+export const ReforgeFrozenSlotsView = ({ hidden, pickers }: ReforgeFrozenSlotsViewProps) => (
+	<div className="mb-2 grid grid-cols-2" data-testid="reforge-frozen-slots" hidden={hidden}>
+		{pickers}
+	</div>
+);
 
 export interface ReforgeFrozenSlotsProps {
 	settings: ReforgeSettings;

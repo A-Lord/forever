@@ -1,5 +1,6 @@
 import { BulkSimItemSlot } from '@sim/bulk/utils';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
 import { BulkItemPickerGroup } from './BulkItemPickerGroup';
 
@@ -7,7 +8,7 @@ const meta = {
 	title: 'Features/Bulk/BulkPickerGroups/Components/BulkItemPickerGroup',
 	component: BulkItemPickerGroup,
 	tags: ['autodocs'],
-	args: { bulkSlot: BulkSimItemSlot.ItemSlotFinger, entries: [] },
+	args: { bulkSlot: BulkSimItemSlot.ItemSlotFinger, entries: [], onAddItem: fn(), addTooltipId: 'bulk-add-items-tooltip' },
 	argTypes: { entries: { control: false } },
 } satisfies Meta<typeof BulkItemPickerGroup>;
 

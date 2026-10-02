@@ -135,21 +135,6 @@ func RegisterAllEnchants() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Permanently enchant a helm slot item, causing you to gain 20 energy or 5 rage when shapeshifting into
-	// Cat or Bear form.
-	// https://www.wowhead.com/forever/spell=432190
-	// unsupported: no callback in the proc mask; states no rate; the enchant's effect entry resolves no stats from 17768 (A_ADD_PCT_MODIFIER, A_DUMMY)
-	// trigger 17768 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
-	// shared.NewSpellDataProc(shared.SpellDataProc{
-	//	Name:           "Wolfshead Trophy",
-	//	EnchantID:      7124,
-	//	TriggerSpellID: 17768,
-	// }, nil)
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Permanently enchant a Weapon to cause all spells and attacks to sometimes deal 75 additional damage to
 	// mechanical creatures.
 	// https://www.wowhead.com/forever/spell=435481
