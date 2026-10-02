@@ -4,7 +4,7 @@
 import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ResourceType, SpellEffect } from '@generated/proto/spell';
-import { UIItem as Item } from '@generated/proto/ui';
+import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
 import type { SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
@@ -138,6 +138,28 @@ export function consumablePseudoStatsOf(specConfig: Pick<SpecConfigData<any>, 'e
 	return new Set([...shown, ...(specConfig.epPseudoStats ?? [])]);
 }
 
+type EnchantRelevanceSpec = Pick<SpecConfigData<any>, 'epStats' | 'epPseudoStats' | 'displayStats'>;
+
+const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, { stats: Set<Stat>; pseudoStats: Set<PseudoStat> }>();
+
+// The consumables' rule on the stats the spec weighs: an enchant counts when it grants one of them or a percent the
+// spec shows or weighs, flat weapon damage counting as physical damage. One that grants none of these (a proc) counts.
+// Enchants are weighed by the spec's EP stats alone, not by its consumableStats.
+export function isEnchantRelevantFor(enchant: Enchant, specConfig: EnchantRelevanceSpec): boolean {
+	const grantedStats: Stat[] = enchant.stats.flatMap((value, stat) => (value ? [stat] : []));
+	if (enchant.weaponDamage) grantedStats.push(Stat.StatPhysicalDamage);
+	const grantedPseudoStats: PseudoStat[] = enchant.pseudoStats.flatMap((value, pseudoStat) => (value ? [pseudoStat] : []));
+	if (!grantedStats.length && !grantedPseudoStats.length) return true;
+
+	let relevant = enchantRelevanceCache.get(specConfig);
+	if (!relevant) {
+		relevant = { stats: consumableStatsOf({ epStats: specConfig.epStats }), pseudoStats: consumablePseudoStatsOf(specConfig) };
+		enchantRelevanceCache.set(specConfig, relevant);
+	}
+	const { stats, pseudoStats } = relevant;
+	return grantedStats.some(stat => stats.has(stat)) || grantedPseudoStats.some(pseudoStat => pseudoStats.has(pseudoStat));
+}
+
 interface ConsumableFacts {
 	db: SpellEffectSource;
 	grantedStats: Array<Stat>;
@@ -190,13 +212,7 @@ const STAT_TYPES = [
 // resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
 // (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
 // handTakesImbue.
-export function isConsumableRelevant(
-	consumable: Consumable,
-	user: ConsumableUser,
-	db: SpellEffectSource,
-	stats = consumableStatsOf(user.getSpecConfig()),
-	pseudoStats = consumablePseudoStatsOf(user.getSpecConfig()),
-): boolean {
+function isConsumableRelevant(consumable: Consumable, user: ConsumableUser, db: SpellEffectSource, stats: Set<Stat>, pseudoStats: Set<PseudoStat>): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
 	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession, consumable.reqProfRank))
 		return false;
@@ -235,7 +251,7 @@ const rankLadders = (consumables: ReadonlyArray<Consumable>): Array<Array<{ cons
 	return [...ladders.values()];
 };
 
-export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
+function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
 	const kept = new Set(rankLadders(consumables).map(ladder => ladder.reduce((best, entry) => (entry.rank > best.rank ? entry : best)).consumable));
 	return consumables.filter(consumable => kept.has(consumable));
 }

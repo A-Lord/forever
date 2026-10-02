@@ -14,6 +14,7 @@ import (
 	"github.com/wowsims/forever/sim"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 	"google.golang.org/protobuf/encoding/protojson"
 	protopkg "google.golang.org/protobuf/proto"
@@ -49,7 +50,7 @@ func TestReforgerOptimizer(t *testing.T) {
 				t.Fatal("preset has no player equipment to compare against")
 			}
 
-			result := Optimize(request)
+			result := OptimizeAsync(request, simsignals.CreateSignals())
 			if err := result.GetError(); err != nil {
 				t.Fatalf("Optimize returned error: %s", err.GetMessage())
 			}

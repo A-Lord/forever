@@ -23,9 +23,9 @@ import type {
 } from './types';
 
 export const Header = ({ className, testId, children }: TreeItemHeaderProps) => {
-	const { headerProps } = useTreeItem();
+	useTreeItem();
 	return (
-		<div className={clsx('ui-tree-item-header', className)} data-testid={testId ?? 'tree-item-header'} {...headerProps}>
+		<div className={clsx('ui-tree-item-header', className)} data-testid={testId ?? 'tree-item-header'}>
 			{children}
 		</div>
 	);

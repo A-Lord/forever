@@ -2176,6 +2176,19 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
+						"show_all_enchants": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"show_ep_values": {
 							"type": "object",
 							"properties": {
@@ -2377,6 +2390,7 @@
 						"show_1h_weapons",
 						"show_2h_weapons",
 						"show_matching_gems",
+						"show_all_enchants",
 						"show_ep_values",
 						"phase_selector",
 						"enable_item_swap",
@@ -3300,9 +3314,15 @@
 						"total_iterations": {
 							"type": "string"
 						},
+						"total_iterations_tooltip": {
+							"type": "string"
+						},
 						"groups": {
 							"type": "object",
 							"properties": {
+								"enchants": {
+									"type": "string"
+								},
 								"frozen_slots": {
 									"type": "string"
 								},
@@ -3314,7 +3334,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["frozen_slots", "reforge", "reforge_description"]
+							"required": ["enchants", "frozen_slots", "reforge", "reforge_description"]
 						},
 						"iterations": {
 							"type": "string"
@@ -3373,18 +3393,92 @@
 							},
 							"additionalProperties": false,
 							"required": ["mainhand_label", "offhand_label", "tooltip"]
+						},
+						"enchant_presets": {
+							"type": "object",
+							"properties": {
+								"description": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"new": {
+									"type": "string"
+								},
+								"edit": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"delete_confirm": {
+									"type": "string"
+								},
+								"new_title": {
+									"type": "string"
+								},
+								"edit_title": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"name_duplicate": {
+									"type": "string"
+								},
+								"name_placeholder": {
+									"type": "string"
+								},
+								"show_all": {
+									"type": "string"
+								},
+								"show_all_tooltip": {
+									"type": "string"
+								},
+								"slot_weapons": {
+									"type": "string"
+								},
+								"slot_off_hand": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": [
+								"description",
+								"empty",
+								"new",
+								"edit",
+								"delete",
+								"delete_confirm",
+								"new_title",
+								"edit_title",
+								"name",
+								"name_duplicate",
+								"name_placeholder",
+								"show_all",
+								"show_all_tooltip",
+								"slot_weapons",
+								"slot_off_hand",
+								"save"
+							]
 						}
 					},
 					"additionalProperties": false,
 					"required": [
 						"combinations",
 						"total_iterations",
+						"total_iterations_tooltip",
 						"groups",
 						"iterations",
 						"freeze_ring",
 						"freeze_trinket",
 						"freeze_weapon",
-						"freeze_weapon_types"
+						"freeze_weapon_types",
+						"enchant_presets"
 					]
 				},
 				"progress": {
@@ -3476,6 +3570,12 @@
 						"no_items": {
 							"type": "string"
 						},
+						"add_items": {
+							"type": "string"
+						},
+						"add_items_to": {
+							"type": "string"
+						},
 						"remove_tooltip": {
 							"type": "string"
 						},
@@ -3490,7 +3590,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["no_items", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
+					"required": ["no_items", "add_items", "add_items_to", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
 				},
 				"results": {
 					"type": "object",
@@ -4650,6 +4750,32 @@
 									"required": ["label", "tooltip"]
 								},
 								"boss_current_target": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
+								"target_is_mob_type": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
+								"encounter_in_area": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -5870,6 +5996,8 @@
 								"boss_cast",
 								"boss_cast_time_to_ready",
 								"boss_current_target",
+								"target_is_mob_type",
+								"encounter_in_area",
 								"unit_is_moving",
 								"distance_to_unit",
 								"current_health",
@@ -6321,9 +6449,6 @@
 										"type": {
 											"type": "string"
 										},
-										"strategy": {
-											"type": "string"
-										},
 										"buff_type": {
 											"type": "string"
 										},
@@ -6352,7 +6477,6 @@
 									"additionalProperties": false,
 									"required": [
 										"type",
-										"strategy",
 										"buff_type",
 										"min_icd",
 										"min_icd_tooltip",
@@ -6391,22 +6515,6 @@
 									},
 									"additionalProperties": false,
 									"required": ["single_target", "aoe"]
-								},
-								"hotw_strategies": {
-									"type": "object",
-									"properties": {
-										"caster": {
-											"type": "string"
-										},
-										"cat": {
-											"type": "string"
-										},
-										"hybrid": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["caster", "cat", "hybrid"]
 								},
 								"unit_labels": {
 									"type": "object",
@@ -6474,7 +6582,6 @@
 								"field_configs",
 								"eclipse_types",
 								"rotation_types",
-								"hotw_strategies",
 								"unit_labels",
 								"placeholder_tooltip",
 								"select_variable",

@@ -521,6 +521,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectPointsString string
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
+	var spellItemLevel int
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -540,10 +541,12 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&raw.EffectName,
 		&spellItemEnchantmentFlags,
 		&raw.IsLive,
+		&spellItemLevel,
 	)
 	if err != nil {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
+	raw.Lvl = enchantLvl(spellItemLevel)
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -570,6 +573,22 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	return raw, nil
 }
 
+// The highest item level of an item outside the Season of Discovery range that applies or teaches the
+// enchant's spell; 0 where every such item is level 1, as the Forever enchant scrolls are.
+func enchantLvl(spellItemLevel int) int {
+	if spellItemLevel > 1 {
+		return spellItemLevel
+	}
+	return 0
+}
+
+// Season of Discovery items occupy this id range in the game files; an enchant only they carry is left
+// out, and none of them gives an enchant its level.
+const (
+	sodItemIDMin = 202251
+	sodItemIDMax = 244460
+)
+
 func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchant, error) {
 	query := `
 		SELECT DISTINCT
@@ -592,9 +611,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				WHEN sie.Effect_2 IN (1, 3) THEN sie.EffectArg_2
 				ELSE se.SpellID
 			END AS spellId,
-			-- The lowest item the game files ship (it has an ItemSparse row), else the lowest item. This is the
-			-- query's only aggregate, so the bare columns (icon and quality among them) come from its row.
-			COALESCE(MIN(CASE WHEN isp.ID IS NULL THEN ixie.ItemID + 1000000000 ELSE ixie.ItemID END) % 1000000000, 0) as ItemId,
+			-- The lowest item the game files ship (it has an ItemSparse row), else the lowest item, an item in
+			-- the Season of Discovery range last. This is the query's only aggregate, so the bare columns (icon
+			-- and quality among them) come from its row.
+			COALESCE(MIN(
+				CASE WHEN ixie.ItemID BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + ` THEN 2000000000 ELSE 0 END
+				+ CASE WHEN isp.ID IS NULL THEN 1000000000 ELSE 0 END
+				+ ixie.ItemID
+			) % 1000000000, 0) as ItemId,
 			sie.RequiredSkillID as professionId,
 			sie.Effect as Effect,
 			sie.EffectPointsMin as EffectPoints,
@@ -619,7 +643,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 						JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 						JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
 					WHERE lie.SpellID = se.SpellID AND ` + notPlaceholderItemName("lisp.Display_lang") + `
-				) AS IsLive
+				) AS IsLive,
+			COALESCE((
+				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
+					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
+					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
+				WHERE lie.SpellID = se.SpellID
+					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
 			JOIN SpellName sn ON se.SpellID = sn.ID

@@ -300,6 +300,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-EnchantWeapon-Revelation-8217"
+ value: {
+  dps: 448.94393
+  tps: 323.10829
+  dtps: 3.15134
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 451.22157

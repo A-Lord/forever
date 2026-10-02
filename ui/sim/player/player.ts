@@ -53,7 +53,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { ConsumableSlot, relevantConsumableIds } from '../settings/consumables';
+import { ConsumableSlot, isEnchantRelevantFor, relevantConsumableIds } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -78,10 +78,10 @@ export interface SpellStats {
 /**
  * Drops the rank from every id no other entry shares at another rank, so only a spell the sim
  * registers at several ranks reads "(Rank N)" and gets a rank submenu. Entries are the same spell
- * when they share `nameOf` and the tag.
+ * when they share the base name and the tag.
  */
-export const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>, nameOf: (id: ActionId) => string = id => id.baseName): Array<T> => {
-	const keyOf = (id: ActionId) => `${nameOf(id)}|${id.tag}`;
+const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>): Array<T> => {
+	const keyOf = (id: ActionId) => `${id.baseName}|${id.tag}`;
 	const ranks = new Map<string, Set<number>>();
 	for (const { id } of entries) {
 		if (!id.hasRank) continue;
@@ -237,7 +237,7 @@ export function registerSpecConfig<SpecType extends Spec>(spec: SpecType, config
 	SPEC_CONFIGS[spec] = config;
 }
 
-export function getSpecConfig<SpecType extends Spec>(spec: SpecType): PlayerConfig<SpecType> {
+function getSpecConfig<SpecType extends Spec>(spec: SpecType): PlayerConfig<SpecType> {
 	const config = SPEC_CONFIGS[spec] as PlayerConfig<SpecType>;
 	if (!config) {
 		throw new Error('No config registered for Spec: ' + spec);
@@ -1196,6 +1196,10 @@ export class Player<SpecType extends Spec> {
 		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
+	isEnchantRelevant(enchant: Enchant): boolean {
+		return isEnchantRelevantFor(enchant, this.getSpecConfig());
+	}
+
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {
 		if (this.randomSuffixEPCache.has(randomSuffix.id)) {
 			return this.randomSuffixEPCache.get(randomSuffix.id)!;
@@ -1434,7 +1438,8 @@ export class Player<SpecType extends Spec> {
 			return enchantData;
 		}
 
-		//const filters = this.sim.getFilters();
+		const filters = this.sim.getFilters();
+		const equippedEffectId = currentEquippedItem.enchant?.effectId;
 
 		return enchantData.filter(enchantElem => {
 			const enchant = getEnchantFunc(enchantElem);
@@ -1443,7 +1448,7 @@ export class Player<SpecType extends Spec> {
 				return false;
 			}
 
-			return true;
+			return filters.showAllEnchants || enchant.effectId === equippedEffectId || this.isEnchantRelevant(enchant);
 		});
 	}
 

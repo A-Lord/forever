@@ -95,7 +95,7 @@ export function getStatName(stat: Stat): string {
 	}
 }
 
-export enum SpellSchool {
+enum SpellSchool {
 	None = 0,
 	Physical = 1,
 	Holy = 2,

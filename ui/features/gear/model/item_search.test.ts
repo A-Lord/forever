@@ -2,7 +2,7 @@ import { UIItem as Item, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
 import { ItemData, ItemListType } from '../types';
-import { formatSearchQuery, itemSourceSearchNames, matchesSearch } from './item_search';
+import { formatSearchQuery, matchesSearch } from './item_search';
 
 const row = <T extends ItemListType>(over: Partial<ItemData<T>> & { item: T }): ItemData<T> =>
 	({
@@ -80,16 +80,18 @@ describe('matchesSearch', () => {
 	});
 });
 
-describe('itemSourceSearchNames', () => {
-	it('is empty for a tab whose item is not an Item proto', () => {
-		expect(itemSourceSearchNames(row({ item: 3 as unknown as ItemListType }), noNpc)).toEqual([]);
+describe('matchesSearch on item sources', () => {
+	it('matches only the name for a tab whose item is not an Item proto', () => {
+		const entry = row({ item: 3 as unknown as ItemListType, searchText: 'Rune' });
+		expect(matchesSearch('rune', entry, noNpc)).toBe(true);
+		expect(matchesSearch('vendor', entry, noNpc)).toBe(false);
 	});
 
 	it('folds vendor names the same way as the query, so punctuation cannot block a match', () => {
 		const entry = row({
 			item: item({ sources: [{ source: { oneofKind: 'soldBy', soldBy: { npcId: 2, npcName: "Sha'tari Quartermaster", zoneId: 1 } } }] }),
 		});
-		expect(itemSourceSearchNames(entry, noNpc)).toEqual(['shatari quartermaster']);
+		expect(matchesSearch('shatari quartermaster', entry, noNpc)).toBe(true);
 		expect(matchesSearch("sha'tari", entry, noNpc)).toBe(true);
 	});
 });

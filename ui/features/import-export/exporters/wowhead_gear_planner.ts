@@ -83,7 +83,7 @@ function writeHash(data: WowheadGearPlannerData): string {
 	return hash;
 }
 
-export interface WowheadGearPlannerData {
+interface WowheadGearPlannerData {
 	class?: string;
 	race?: string;
 	level: number;
@@ -99,7 +99,7 @@ export interface WowheadItemData {
 	enchantId?: number;
 }
 
-export function createWowheadGearPlannerLink(data: WowheadGearPlannerData): string {
+function createWowheadGearPlannerLink(data: WowheadGearPlannerData): string {
 	const baseUrl = '';
 	const hash = writeHash(data);
 	return baseUrl + hash;

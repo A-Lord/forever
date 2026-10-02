@@ -15,7 +15,7 @@ export interface PathOption<V> extends Omit<ChoiceOption<V>, 'submenu'> {
  * segment that is not such a string — a value segment, or a category already in the user's
  * language — is used as it stands.
  */
-export const submenuLabel = (segment: unknown): string => {
+const submenuLabel = (segment: unknown): string => {
 	if (typeof segment !== 'string') return '';
 	if (!/^[a-z_]+$/.test(segment)) return `${segment} »`;
 	const key = `rotation_tab.apl.submenus.${segment}`;
@@ -36,7 +36,7 @@ interface Submenu<V> {
  * - a **string** names a category submenu (`['resources', 'mana']`, two deep at most today);
  * - a **value** makes the option carrying that value the submenu's own option, still selectable.
  */
-export const choiceTree = <V>(options: ReadonlyArray<PathOption<V>>, equals: (a: V, b: V) => boolean): Array<ChoiceEntry<V>> => {
+const choiceTree = <V>(options: ReadonlyArray<PathOption<V>>, equals: (a: V, b: V) => boolean): Array<ChoiceEntry<V>> => {
 	const root: Array<ChoiceEntry<V>> = [];
 	const submenus = new Map<Array<ChoiceEntry<V>>, Array<Submenu<V>>>();
 

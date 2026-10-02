@@ -20,10 +20,10 @@ var HandTriggers = []HandTrigger{
 		Source: "game-files-rows",
 	},
 	{
-		Spell:    16344,
-		Triggers: 10444,
-		Reason: "Flametongue Weapon Proc rank 6 states no spell power share; Flametongue Attack 10444 carries it: " +
-			"same class set and mask 0x200000, fire school and icon, a school damage effect of base 1 with a 0.1 coefficient",
+		Spell:    1323967,
+		Triggers: 1323969,
+		Reason: "Gore Drinker's talent aura (two dummies) applies the buff its tooltip describes: same name, class " +
+			"set and icon, 3 charges heard on melee attacks, and its aura 231 casts the heal 1323968",
 		Source: "game-files-rows",
 	},
 }

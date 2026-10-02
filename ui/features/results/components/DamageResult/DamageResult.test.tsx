@@ -1,6 +1,5 @@
 import type { SpellSchool as SpellSchoolValue } from '@generated/proto/common';
 import type { DamageLog, Entity } from '@sim/proto/combat_log';
-import { SpellSchool } from '@sim/proto/names';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -16,8 +15,8 @@ describe('DamageResult', () => {
 		const { container } = render(
 			<DamageResult
 				log={damage({
-					outcome: 'crit', // `spellSchoolNames` is keyed on the bitmask enum in `names.ts`, which is not the generated one the log declares.
-					spellSchool: SpellSchool.Physical as unknown as SpellSchoolValue,
+					outcome: 'crit', // `spellSchoolNames` is keyed on the bitmask enum in `names.ts` (1 is Physical), which is not the generated one the log declares.
+					spellSchool: 1 as SpellSchoolValue,
 				})}
 			/>,
 		);

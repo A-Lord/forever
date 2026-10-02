@@ -17,14 +17,14 @@ describe('Pill', () => {
 	});
 
 	it.each([
-		['positive', 'md', 'xs'],
-		['negative', 'sm', 'md'],
-		['warning', 'xs', 'sm'],
-		['primary', 'full', 'xs'],
-	] as const)('carries tone %s, rounded %s and size %s as data attributes', (tone, rounded, size) => {
-		render(<Pill tone={tone} rounded={rounded} size={size} />);
+		['positive', 'xs'],
+		['negative', 'md'],
+		['warning', 'sm'],
+		['primary', 'xs'],
+	] as const)('carries tone %s and size %s as data attributes', (tone, size) => {
+		render(<Pill tone={tone} size={size} />);
 
-		expect(attributes()).toEqual({ tone, rounded, size });
+		expect(attributes()).toEqual({ tone, rounded: 'full', size });
 	});
 
 	it('passes other span props through, so it can anchor a tooltip', () => {

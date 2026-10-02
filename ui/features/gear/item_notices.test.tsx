@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ENCHANT_NOTICES, ITEM_INFO_NOTICES, ITEM_NOTICES, registerAreaStatsNotices, registerSetBonusNotices, SET_BONUS_NOTICES } from './item_notices';
+import { ENCHANT_NOTICES, ITEM_INFO_NOTICES, ITEM_NOTICES, registerAreaStatsNotices, registerSetBonusNotices } from './item_notices';
 
 vi.mock('@i18n/localization', () => ({
 	translateAreaType: (value: number) => `area-${value}`,
@@ -38,21 +38,14 @@ describe('registerSetBonusNotices', () => {
 	const ITEM_IDS = [90001, 90002];
 
 	afterEach(() => {
-		SET_BONUS_NOTICES.delete(SET_ID);
 		ITEM_IDS.forEach(id => ITEM_NOTICES.delete(id));
 	});
 
-	// The set-bonus notices are written into the same map the pickers read at runtime, which is why
-	// there is one table rather than a second copy.
-	it('writes a notice into the shared table for every item in the set', () => {
-		SET_BONUS_NOTICES.set(SET_ID, null);
+	it('writes no notice while no set is listed', () => {
 		registerSetBonusNotices({ getItemIdsForSet: (setId: number) => (setId === SET_ID ? ITEM_IDS : []) } as unknown as Database);
 
 		for (const id of ITEM_IDS) {
-			expect(notice(ITEM_NOTICES.get(id)?.[Spec.SpecUnknown])).toEqual({
-				heading: ' This item set has the following warnings:',
-				items: ['2-piece: Not yet implemented', '4-piece: Not yet implemented'],
-			});
+			expect(ITEM_NOTICES.has(id)).toBe(false);
 		}
 	});
 });

@@ -51,7 +51,7 @@ func (paladin *Paladin) applyToughness() {
 }
 
 // Redoubt - Damaging melee attacks against you have a 10% chance to increase your chance to block
-// by 6/12/18/24/30%. Lasts 10 sec or 5 blocks.
+// by 4/8/12/16/20%. Lasts 10 sec or 5 blocks.
 func (paladin *Paladin) applyRedoubt() {
 	if paladin.Talents.Redoubt == 0 {
 		return

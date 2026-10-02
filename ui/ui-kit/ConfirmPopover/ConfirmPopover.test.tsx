@@ -26,6 +26,16 @@ describe('ConfirmPopover', () => {
 		expect(buttons.map(button => button.textContent)).toEqual(['common.cancel', 'common.confirm']);
 	});
 
+	it('dims the page behind it unless told not to', () => {
+		renderOpen({ onConfirm: () => {} });
+		expect(screen.getByTestId('sim-popover-backdrop')).toBeTruthy();
+	});
+
+	it('leaves the page undimmed with backdrop off', () => {
+		renderOpen({ onConfirm: () => {}, backdrop: false });
+		expect(screen.queryByTestId('sim-popover-backdrop')).toBeNull();
+	});
+
 	it('confirms, then closes', () => {
 		const calls: string[] = [];
 		const onConfirm = vi.fn(() => calls.push('confirm'));
@@ -57,15 +67,15 @@ describe('ConfirmPopover', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 	});
 
-	it('takes its button labels and testId from the caller', () => {
-		const { popup } = renderOpen({ onConfirm: () => {}, confirmLabel: 'Delete', cancelLabel: 'Keep', testId: 'saved-data-delete-confirm' });
+	it('takes its confirm label and testId from the caller', () => {
+		const { popup } = renderOpen({ onConfirm: () => {}, confirmLabel: 'Delete', testId: 'saved-data-delete-confirm' });
 
 		expect(popup.getAttribute('data-testid')).toBe('saved-data-delete-confirm');
 		expect(
 			within(popup)
 				.getAllByRole('button')
 				.map(button => button.textContent),
-		).toEqual(['Keep', 'Delete']);
+		).toEqual(['common.cancel', 'Delete']);
 	});
 
 	it('opens from its own trigger when the caller holds the state', () => {

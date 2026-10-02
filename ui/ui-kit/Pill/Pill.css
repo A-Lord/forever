@@ -22,18 +22,6 @@
 			@apply rounded-full;
 		}
 
-		&[data-rounded='md'] {
-			@apply rounded-md;
-		}
-
-		&[data-rounded='sm'] {
-			@apply rounded-sm;
-		}
-
-		&[data-rounded='xs'] {
-			@apply rounded-xs;
-		}
-
 		&[data-size='xs'] {
 			@apply px-1 text-ui;
 		}

@@ -126,10 +126,14 @@ func (generator *bulkSimCandidateGenerator) getAllWeaponCombos() [][2]*bulkSimCa
 			iCanOH := unique[i].item.HandType != proto.HandType_HandTypeMainHand
 			// Only wield the same 1H weapon in both hands when two copies exist and the weapon
 			// itself allows it (not unique, no limit category).
-			if generator.hasTwoCopies(unique[i], unique[i].item) && iCanMH && iCanOH {
+			twoCopies := generator.hasTwoCopies(unique[i], unique[i].item)
+			if twoCopies && iCanMH && iCanOH {
 				allWeaponCombos = append(allWeaponCombos, [2]*bulkSimCandidateOption{&unique[i], &unique[i]})
 			}
 			for j := i + 1; j < len(unique); j++ {
+				if !twoCopies && candidateOptionsShareItem(unique[i], unique[j]) {
+					continue
+				}
 				jCanMH := unique[j].item.HandType != proto.HandType_HandTypeOffHand
 				jCanOH := unique[j].item.HandType != proto.HandType_HandTypeMainHand
 				if iCanMH && jCanOH {
@@ -144,7 +148,7 @@ func (generator *bulkSimCandidateGenerator) getAllWeaponCombos() [][2]*bulkSimCa
 
 	filteredCombos := make([][2]*bulkSimCandidateOption, 0, len(allWeaponCombos))
 	for _, combo := range allWeaponCombos {
-		if generator.weaponComboMatchesSettings(combo[0], combo[1]) {
+		if weaponHandsAllowed(combo[0], combo[1]) && generator.weaponComboMatchesSettings(combo[0], combo[1]) {
 			filteredCombos = append(filteredCombos, combo)
 		}
 	}

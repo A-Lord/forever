@@ -16,6 +16,7 @@ var itemsByID = map[int32]Item{}
 var gemsByID = map[int32]Gem{}
 var randomSuffixesByID = map[int32]RandomSuffix{}
 var enchantsByEffectID = map[int32]Enchant{}
+var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id; enchantsByEffectID keeps only the first.
 var itemEffectRandPropPointsByIlvl = map[int32]ItemEffectRandPropPoints{}
 var consumablesByID = map[int32]Consumable{}
 var spellEffectsById = map[int32]*proto.SpellEffect{}
@@ -62,8 +63,12 @@ func addToDatabase(newDB *proto.SimDatabase) {
 	}
 
 	for _, v := range newDB.Enchants {
+		enchant := EnchantFromProto(v)
 		if _, ok := enchantsByEffectID[v.EffectId]; !ok {
-			enchantsByEffectID[v.EffectId] = EnchantFromProto(v)
+			enchantsByEffectID[v.EffectId] = enchant
+		}
+		if !slices.ContainsFunc(enchantRowsByEffectID[v.EffectId], enchant.sameSlotRules) {
+			enchantRowsByEffectID[v.EffectId] = append(enchantRowsByEffectID[v.EffectId], enchant)
 		}
 	}
 
@@ -470,6 +475,19 @@ func GetEnchantByEffectID(effectID int32) *Enchant {
 	return &enchant
 }
 
+// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
+// Superior Striking), differing in the items they fit. fits runs under the read lock, so
+// nothing it calls may take dbMu.
+func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
+}
+
+func (enchant Enchant) sameSlotRules(other Enchant) bool {
+	return enchant.Type == other.Type && enchant.EnchantType == other.EnchantType && slices.Equal(enchant.ExtraTypes, other.ExtraTypes)
+}
+
 func GetGemByID(id int32) (Gem, bool) {
 	dbMu.RLock()
 	gem, ok := gemsByID[id]
@@ -482,37 +500,6 @@ func GetConsumableByID(id int32) Consumable {
 	c := consumablesByID[id]
 	dbMu.RUnlock()
 	return c
-}
-
-// The ids of every consumable the loaded database carries, sorted.
-func ConsumableIDs() []int32 {
-	dbMu.RLock()
-	defer dbMu.RUnlock()
-	ids := make([]int32, 0, len(consumablesByID))
-	for id := range consumablesByID {
-		ids = append(ids, id)
-	}
-	slices.Sort(ids)
-	return ids
-}
-
-// Narrows the loaded consumables to these ids until the returned function restores the rest, for a
-// test that runs the sim on the consumables a browser request carries.
-func KeepOnlyConsumablesForTest(ids []int32) (restore func()) {
-	dbMu.Lock()
-	defer dbMu.Unlock()
-	all := consumablesByID
-	consumablesByID = make(map[int32]Consumable, len(ids))
-	for _, id := range ids {
-		if consumable, ok := all[id]; ok {
-			consumablesByID[id] = consumable
-		}
-	}
-	return func() {
-		dbMu.Lock()
-		consumablesByID = all
-		dbMu.Unlock()
-	}
 }
 
 func GetSpellEffectByID(id int32) *proto.SpellEffect {
@@ -889,17 +876,4 @@ func ColorIntersects(g proto.GemColor, o proto.GemColor) bool {
 	}
 
 	return false // dunno what else could be.
-}
-
-// ItemsWithSockets returns the loaded items that carry at least one gem socket. Tests use
-// it to skip when the database has none, which is the case while Forever keeps item stats
-// encrypted until an item is discovered in game.
-func ItemsWithSockets() []Item {
-	var out []Item
-	for _, item := range itemsByID {
-		if len(item.GemSockets) > 0 {
-			out = append(out, item)
-		}
-	}
-	return out
 }

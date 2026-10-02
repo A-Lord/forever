@@ -363,22 +363,13 @@ func attachStackTrigger(character *core.Character, config ProcStatBonusEffect, e
 	})
 }
 
-// Registers the same effect once per item that carries it. Only the highest ID is added to the
-// test suite, so that a dozen re-issues of one trinket do not each get their own fixture entry.
+// Registers the same effect once per item that carries it.
 func forEachVariant(config ProcStatBonusEffect, variants []ItemVariant, register func(config ProcStatBonusEffect)) {
-	var maxItemID int32
-	for _, variant := range variants {
-		maxItemID = max(maxItemID, variant.ItemID)
-	}
-
 	for _, variant := range variants {
 		config.Name = variant.ItemName
 		config.ItemID = variant.ItemID
-		core.AddEffectsToTest = (config.ItemID == maxItemID)
 		register(config)
 	}
-
-	core.AddEffectsToTest = true
 }
 
 func NewProcStatBonusEffectWithVariants(config ProcStatBonusEffect, variants []ItemVariant) {
@@ -415,8 +406,7 @@ type SpellDataProc struct {
 	IsWeaponProc bool
 }
 
-// Registers the same effect once per item that carries it. Only the highest ID is added to the test
-// suite, the way the stat-bonus constructors do it.
+// Registers the same effect once per item that carries it, the way the stat-bonus constructors do it.
 func NewSpellDataProc(cfg SpellDataProc, variants []ItemVariant) {
 	forEachSpellDataVariant(cfg, variants, registerSpellDataProc)
 }
@@ -439,19 +429,11 @@ func forEachSpellDataVariant(cfg SpellDataProc, variants []ItemVariant, register
 		return
 	}
 
-	var maxItemID int32
-	for _, variant := range variants {
-		maxItemID = max(maxItemID, variant.ItemID)
-	}
-
 	for _, variant := range variants {
 		cfg.Name = variant.ItemName
 		cfg.ItemID = variant.ItemID
-		core.AddEffectsToTest = cfg.ItemID == maxItemID
 		register(cfg)
 	}
-
-	core.AddEffectsToTest = true
 }
 
 // An aura the row applies to an enemy is NewSpellDataDebuffProc's to build, never a buff on the
@@ -637,12 +619,7 @@ func attachChargeSpender(character *core.Character, cfg SpellDataProc, trigger *
 		return
 	}
 
-	spender := spelldata.ProcTrigger(character, buff, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-		procAura.RemoveStack(sim)
-	})
-	spender.Name = cfg.Name + " Charge"
-
-	procAura.AttachProcTriggerCallback(&character.Unit, spender)
+	spelldata.AttachChargeSpender(character, procAura.Aura, buff, cfg.Name+" Charge")
 }
 
 // Whether a trigger can be built from this row at all: it has to name hits the sim hears and a rate

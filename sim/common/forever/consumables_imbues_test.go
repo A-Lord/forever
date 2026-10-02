@@ -127,10 +127,10 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 	}
 }
 
-// Scroll of Imbue Baleflame 277487 puts enchant 8706 on a staff, whose equip spell 1306572 states
-// A_MOD_TARGET_RESISTANCE -10 on fire alone, and Scroll of Imbue Balefrost 277496 puts 8714 on it,
-// whose 1306580 states -15 on frost alone. Each pierces its own school's resistance and neither
-// adds SpellPiercing, which would reach every school.
+// Scroll of Imbue Baleflame 277487 puts enchant 8706 on a staff, which states 2 of the fire spell
+// penetration stat 119, and Scroll of Imbue Balefrost 277496 puts 8714 on it, which states 3 of the
+// frost one, 121. Each pierces its own school's resistance and neither adds SpellPiercing, which
+// would reach every school.
 func TestBaleImbuesPierceOneSchool(t *testing.T) {
 	const staff = 873
 	for _, c := range []struct {
@@ -138,8 +138,8 @@ func TestBaleImbuesPierceOneSchool(t *testing.T) {
 		fire, frost float64
 	}{
 		{0, 0, 0},
-		{277487, 10, 0},
-		{277496, 0, 15},
+		{277487, 2, 0},
+		{277496, 0, 3},
 	} {
 		_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: c.imbue}, staff, 0, proto.MobType_MobTypeUnknown)
 
@@ -150,6 +150,29 @@ func TestBaleImbuesPierceOneSchool(t *testing.T) {
 		}
 		if got := character.GetStat(stats.SpellPiercing); got != 0 {
 			t.Errorf("imbue %d: SpellPiercing %v, want 0", c.imbue, got)
+		}
+	}
+}
+
+// Scroll of Imbue Spark 277489 takes a one-hand sword and Scroll of Imbue Manablade 277498 a dagger.
+// Spark's listener, which moves a spell category's cooldown, registers on any wearer; Manablade's,
+// which restores mana, only on a wearer with a mana bar, which a warrior lacks.
+func TestProcImbuesRegisterTheirListeners(t *testing.T) {
+	for _, c := range []struct {
+		imbue, weapon, enchant int32
+		name                   string
+		listens                bool
+	}{
+		{277489, notchedShortsword, 8707, "Scroll of Imbue Spark", true},
+		{277498, smallHandBlade, 8715, "Scroll of Imbue Manablade", false},
+	} {
+		_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: c.imbue}, c.weapon, 0, proto.MobType_MobTypeUnknown)
+
+		if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != c.enchant {
+			t.Errorf("%s puts enchant %d on the main hand, want %d", c.name, got, c.enchant)
+		}
+		if got := character.GetAura(c.name) != nil; got != c.listens {
+			t.Errorf("%s registers a listener: %v, want %v", c.name, got, c.listens)
 		}
 	}
 }

@@ -1,10 +1,10 @@
-import { makePlayer } from '@features/apl/testing';
 import { APLRotation } from '@generated/proto/apl';
 import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import { patchSlice } from '@sim/state/sim_store';
+import { makePlayer } from '@testing/apl/player';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

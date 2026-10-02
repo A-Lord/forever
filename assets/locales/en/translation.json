@@ -623,6 +623,10 @@
 				"label": "Match Socket",
 				"tooltip": "Show only items with matching socket colors"
 			},
+			"show_all_enchants": {
+				"label": "Show All",
+				"tooltip": "Also show enchants whose stats are worth nothing to this spec's stat weights"
+			},
 			"show_ep_values": {
 				"label": "Show EP",
 				"tooltip": "Show EP (Effective Power) values"
@@ -910,7 +914,7 @@
 	},
 	"bulk_tab": {
 		"title": "Batch",
-		"description": "<span className=\"bold\">Batch Simming</span> is a new feature akin to the <span className=\"bold\">Top Gear</span> sim on <a href=\"https://raidbots.com\" target=\"_blank\">Raidbots.com</a> that allows you to select multiple items and sim them find the best combinations.<br />This is an <span className=\"text-brand\">Alpha</span> feature, so if you have feedback or find a bug, please report it!",
+		"description": "<span className=\"bold\">Batch Simming</span> is a new feature akin to the <span className=\"bold\">Top Gear</span> sim on <a href=\"https://raidbots.com\" target=\"_blank\">Raidbots.com</a> that allows you to select multiple items and sim them to find the best combinations.<br />This is an <span className=\"text-brand\">Alpha</span> feature, so if you have feedback or found a bug, please report it!",
 		"download_native": "Download the local sim for faster results.",
 		"tabs": {
 			"setup": "Setup",
@@ -936,8 +940,10 @@
 		},
 		"settings": {
 			"combinations": "Combinations",
-			"total_iterations": "Estimated iterations",
+			"total_iterations": "Minimum iterations",
+			"total_iterations_tooltip": "The batch sims at least this many iterations. The error target adds more as it runs.",
 			"groups": {
+				"enchants": "Enchants",
 				"frozen_slots": "Frozen slots",
 				"reforge": "Gem settings",
 				"reforge_description": "These are the same settings the Suggest Gems button uses. The batch sim applies them to every gear set it simulates."
@@ -959,6 +965,24 @@
 				"mainhand_label": "Freeze MH weapon type",
 				"offhand_label": "Freeze OH weapon type",
 				"tooltip": "Leave all unchecked to allow any weapon type for this slot."
+			},
+			"enchant_presets": {
+				"description": "Select one or multiple enchant presets to apply to your selected items.",
+				"empty": "No enchant presets yet.",
+				"new": "New preset",
+				"edit": "Edit {{name}}",
+				"delete": "Delete {{name}}",
+				"delete_confirm": "Delete the enchant preset {{name}}?",
+				"new_title": "New enchant preset",
+				"edit_title": "Edit enchant preset",
+				"name": "Preset name",
+				"name_duplicate": "A preset with this name already exists.",
+				"name_placeholder": "e.g. Undead, Outdoor, Raid",
+				"show_all": "Show all enchants",
+				"show_all_tooltip": "Also list enchants whose stats are worth nothing to this spec's stat weights. Ticked enchants are always listed.",
+				"slot_weapons": "Weapons",
+				"slot_off_hand": "Off Hand (non-weapon)",
+				"save": "Save"
 			}
 		},
 		"progress": {
@@ -985,6 +1009,8 @@
 		},
 		"picker": {
 			"no_items": "No items selected.",
+			"add_items": "Add items",
+			"add_items_to": "Add items to {{slot}}",
 			"remove_tooltip": "Remove this item from the batch.",
 			"frozen_tooltip": "This slot is frozen: the batch keeps this item.",
 			"failed_update": "Failed to update item, please report this issue.",
@@ -1337,6 +1363,14 @@
 				"boss_current_target": {
 					"label": "Is Tanking",
 					"tooltip": "True if the player is currently tanking"
+				},
+				"target_is_mob_type": {
+					"label": "Target Is Mob Type",
+					"tooltip": "True if the target is the chosen creature type"
+				},
+				"encounter_in_area": {
+					"label": "In Area",
+					"tooltip": "True if the encounter's areas include the chosen area type"
 				},
 				"unit_is_moving": {
 					"label": "Unit Is Moving",
@@ -1797,7 +1831,6 @@
 				},
 				"field_configs": {
 					"type": "Type",
-					"strategy": "Strategy",
 					"buff_type": "Buff Type",
 					"min_icd": "Min ICD",
 					"min_icd_tooltip": "If non-zero, filter out any procs that either lack an ICD or for which the ICD is smaller than the specified value (in seconds). This can be useful for certain snapshotting checks, since procs with low ICDs are often too weak to snapshot.",
@@ -1815,11 +1848,6 @@
 				"rotation_types": {
 					"single_target": "Single Target",
 					"aoe": "AOE"
-				},
-				"hotw_strategies": {
-					"caster": "Caster",
-					"cat": "Cat",
-					"hybrid": "Hybrid"
 				},
 				"unit_labels": {
 					"self": "Self",

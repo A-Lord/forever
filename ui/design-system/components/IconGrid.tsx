@@ -1,5 +1,8 @@
 import { Unstyled } from '@storybook/addon-docs/blocks';
-import { hasRegularDefinition, Icon, ICON_NAMES, type IconName, type IconSize } from '@ui-kit/Icon';
+import { hasRegularDefinition, Icon, type IconName, type IconSize } from '@ui-kit/Icon';
+import { DEFINITIONS } from '@ui-kit/Icon/definitions';
+
+const ICON_NAMES = Object.keys(DEFINITIONS) as IconName[];
 
 const BRANDS = new Set<IconName>(['discord', 'github', 'patreon']);
 

@@ -1,14 +1,14 @@
 import { ActionPicker } from '@features/apl/components/ActionPicker';
 import { useApl } from '@features/apl/context/AplContext';
 import { actionListGroup, APL_ROWS, aplItemId, canApplyMove, PRIORITY, valueListGroup } from '@features/apl/model/apply_move';
-import { makePlayer } from '@features/apl/testing';
 import { APLAction, APLRotation, APLValue } from '@generated/proto/apl';
+import { makePlayer } from '@testing/apl/player';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ValuePicker } from './ValuePicker';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(() => () => {}));
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions(() => () => {}));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 const ListProbe = ({ testId }: { testId: string }) => <span data-testid={testId}>{useApl().listGroup}</span>;

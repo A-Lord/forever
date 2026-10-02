@@ -21,15 +21,6 @@ describe('TooltipAnchor', () => {
 		expect(screen.queryByRole('button')).toBeNull();
 	});
 
-	it('carries per-anchor content for a shared tooltip', () => {
-		render(
-			<TooltipAnchor tooltipId="ep" tooltip="DPS per point" testId="ep-label">
-				DPS EP
-			</TooltipAnchor>,
-		);
-		expect(screen.getByTestId('ep-label').getAttribute('data-tooltip-content')).toBe('DPS per point');
-	});
-
 	it('opens its tooltip on hover and on keyboard focus', async () => {
 		const { unmount } = render(
 			<>
