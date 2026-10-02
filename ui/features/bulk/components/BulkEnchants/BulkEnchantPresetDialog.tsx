@@ -9,6 +9,7 @@ import { ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT } from '@sim/bulk/utils';
 import { usePlayer } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
+import { useSimReady } from '@sim/hooks/useSimReady';
 import { memo, useCallback, useMemo, useState } from 'react';
 
 import { useBulkState } from '../../hooks/useBulkState';
@@ -59,9 +60,10 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	);
 
 	// One tile per enchant row; rows that share an effect id are one enchant to the sim, so they tick together.
+	const ready = useSimReady();
 	const slots = useMemo(
-		() => BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: player.getEnchants(slot) })).filter(({ enchants }) => enchants.length),
-		[player],
+		() => (ready ? BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: player.getEnchants(slot) })).filter(({ enchants }) => enchants.length) : []),
+		[player, ready],
 	);
 
 	const [openSlots, setOpenSlots] = useState(() => preset?.slots.filter(options => options.effectIds.length).map(options => String(options.slot)) ?? []);

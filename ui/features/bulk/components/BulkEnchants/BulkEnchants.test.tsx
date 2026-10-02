@@ -27,13 +27,15 @@ const ENCHANTS = new Map<ItemSlot, UIEnchant[]>([
 	[ItemSlot.ItemSlotMainHand, [LESSER_IMPACT, SUPERIOR_STRIKING]],
 ]);
 
-const mount = () => {
+// `loaded: false` stands for the page before the game database arrives, when `getEnchants` cannot run.
+const mount = ({ loaded = true } = {}) => {
 	const storage = new Map<string, string>();
 	const store = createSimStore();
 	const player = {
 		storeKey: 1,
 		sim: {
 			store,
+			waitForInit: () => (loaded ? Promise.resolve() : new Promise(() => {})),
 			env: {
 				storage: {
 					getItem: (key: string) => storage.get(key) ?? null,
@@ -43,7 +45,10 @@ const mount = () => {
 			},
 		},
 		getPlayerSpec: () => PlayerSpecs.DpsWarrior,
-		getEnchants: (slot: ItemSlot) => ENCHANTS.get(slot) ?? [],
+		getEnchants: (slot: ItemSlot) => {
+			if (!loaded) throw new TypeError("Cannot read properties of null (reading 'getEnchants')");
+			return ENCHANTS.get(slot) ?? [];
+		},
 	} as unknown as Player<any>;
 	seedBulkSettings(player);
 	render(
@@ -103,6 +108,12 @@ describe('BulkEnchants', () => {
 		expect(screen.getByRole('checkbox', { name: /Lesser Agility/ }).getAttribute('aria-checked')).toBe('true');
 		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
 		expect(screen.getAllByTestId('bulk-enchant-slot-count').map(pill => pill.textContent)).toEqual(['1']);
+	});
+
+	it('renders the presets before the game database has loaded', () => {
+		mount({ loaded: false });
+
+		expect(screen.getByRole('button', { name: 'bulk_tab.settings.enchant_presets.new' })).toBeTruthy();
 	});
 
 	it('disables Save while the name is taken by another preset', async () => {
