@@ -41,29 +41,35 @@ describe('Player.computeEnchantEP', () => {
 });
 
 describe('Player.isEnchantRelevant', () => {
-	const isEnchantRelevant = (enchant: Enchant, slot: ItemSlot) => {
-		const player = {
-			enchantEPCache: new Map<number, number>(),
-			computeStatsEP: (stats: Stats) => stats.computeEP(weights),
-			computeEnchantEP: Player.prototype.computeEnchantEP,
-			computeWeaponDpsEP: Player.prototype.computeWeaponDpsEP,
-		} as unknown as Player<any>;
-		return Player.prototype.isEnchantRelevant.call(player, enchant, slot);
-	};
+	const melee = { epStats: [Stat.StatStrength, Stat.StatAttackPower, Stat.StatStamina], epPseudoStats: [PseudoStat.PseudoStatDodgePercent] };
+	const caster = { epStats: [Stat.StatIntellect, Stat.StatSpellDamage], epPseudoStats: [] };
+	const isEnchantRelevant = (enchant: Enchant, specConfig: { epStats: Stat[]; epPseudoStats: PseudoStat[] } = melee) =>
+		Player.prototype.isEnchantRelevant.call({ getSpecConfig: () => ({ ...specConfig, displayStats: [] }) } as unknown as Player<any>, enchant);
 	const statEnchant = (effectId: number, stat: Stat) => Enchant.create({ effectId, stats: new Stats().withStat(stat, 3).asProtoArray() });
 
-	it('keeps an enchant whose stats the spec weighs and drops one whose stats it does not', () => {
-		expect(isEnchantRelevant(statEnchant(3, Stat.StatStrength), ItemSlot.ItemSlotHead)).toBe(true);
-		expect(isEnchantRelevant(statEnchant(4, Stat.StatIntellect), ItemSlot.ItemSlotHead)).toBe(false);
+	it('keeps an enchant granting a stat the spec weighs and drops one granting only stats it does not', () => {
+		expect(isEnchantRelevant(statEnchant(3, Stat.StatStrength))).toBe(true);
+		expect(isEnchantRelevant(statEnchant(4, Stat.StatIntellect))).toBe(false);
 	});
 
-	it('keeps a proc, which has no stats to weigh', () => {
-		expect(isEnchantRelevant(Enchant.create({ effectId: 5, enchantEffects: [ItemEffect.create()] }), ItemSlot.ItemSlotMainHand)).toBe(true);
+	it('widens the weighed stats as the consumables do: stamina brings the resistances', () => {
+		expect(isEnchantRelevant(statEnchant(5, Stat.StatFireResistance))).toBe(true);
+		expect(isEnchantRelevant(statEnchant(5, Stat.StatFireResistance), caster)).toBe(false);
 	});
 
-	it('keeps flat weapon damage only where the spec weighs the weapon DPS of the slot', () => {
-		expect(isEnchantRelevant(striking, ItemSlot.ItemSlotMainHand)).toBe(true);
-		expect(isEnchantRelevant(striking, ItemSlot.ItemSlotRanged)).toBe(false);
+	it('keeps a percent the spec weighs', () => {
+		const dodge = Enchant.create({ effectId: 6, pseudoStats: Stats.fromMap({}, { [PseudoStat.PseudoStatDodgePercent]: 1 }).toProto().pseudoStats });
+		expect(isEnchantRelevant(dodge)).toBe(true);
+		expect(isEnchantRelevant(dodge, caster)).toBe(false);
+	});
+
+	it('counts flat weapon damage as physical damage, which weighing attack power covers', () => {
+		expect(isEnchantRelevant(striking)).toBe(true);
+		expect(isEnchantRelevant(striking, caster)).toBe(false);
+	});
+
+	it('keeps an enchant that grants no stat at all, such as a proc', () => {
+		expect(isEnchantRelevant(Enchant.create({ effectId: 7, enchantEffects: [ItemEffect.create()] }), caster)).toBe(true);
 	});
 });
 

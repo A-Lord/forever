@@ -91,7 +91,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const query = search.trim().toLowerCase();
 	const listed = useCallback(
 		(slot: ItemSlot, enchant: Enchant, nameQuery: string) =>
-			(showAll || player.isEnchantRelevant(enchant, slot) || !!selected.get(slot)?.includes(enchant.effectId)) &&
+			(showAll || player.isEnchantRelevant(enchant) || !!selected.get(slot)?.includes(enchant.effectId)) &&
 			(!nameQuery || enchant.name.toLowerCase().includes(nameQuery)),
 		[player, showAll, selected],
 	);

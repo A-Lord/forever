@@ -1,4 +1,4 @@
-import { Class, GemColor, ItemQuality, ItemSlot, ItemType, ScalingItemProperties } from '@generated/proto/common';
+import { Class, GemColor, ItemQuality, ItemSlot, ItemType, ScalingItemProperties, Stat } from '@generated/proto/common';
 import { ItemEffect } from '@generated/proto/spell';
 import { DatabaseFilters, UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
@@ -52,6 +52,7 @@ vi.mock('../FiltersMenu', () => ({
 
 const { ItemList } = await import('./ItemList');
 const { Player } = await import('@sim/player/player');
+const { Stats } = await import('@sim/proto/stats');
 
 // `sortItemIdxs` reads the base scaling entry, not `ilvl`, whenever it sorts by item level.
 const item = (id: number, name: string, ilvl: number) =>
@@ -286,16 +287,16 @@ describe('ItemList', () => {
 
 	it('lists the enchants worth something to the spec, the procs and the equipped one, and every enchant once Show All is ticked', () => {
 		const head = (effectId: number, name: string, over: Partial<Enchant> = {}) => Enchant.create({ effectId, name, type: ItemType.ItemTypeHead, ...over });
-		const relevant = head(1, 'Relevant');
-		const worthless = head(2, 'Worthless');
+		const granting = (stat: Stat) => ({ stats: new Stats().withStat(stat, 3).asProtoArray() });
+		const relevant = head(1, 'Relevant', granting(Stat.StatStrength));
+		const worthless = head(2, 'Worthless', granting(Stat.StatIntellect));
 		const proc = head(3, 'Proc', { enchantEffects: [ItemEffect.create()] });
-		const equipped = head(4, 'Equipped');
+		const equipped = head(4, 'Equipped', granting(Stat.StatIntellect));
 		Object.assign(host.player, {
 			getEquippedItem: () => ({ item: Item.create({ type: ItemType.ItemTypeHead }), enchant: equipped }),
 			filterEnchantData: Player.prototype.filterEnchantData,
 			isEnchantRelevant: Player.prototype.isEnchantRelevant,
-			computeEnchantEP: (enchant: Enchant) => (enchant === relevant ? 1 : 0),
-			computeWeaponDpsEP: () => 0,
+			getSpecConfig: () => ({ epStats: [Stat.StatStrength], epPseudoStats: [], displayStats: [] }),
 		});
 
 		const { container } = setup({ label: SelectorModalTabs.Enchants, over: { itemData: [relevant, worthless, proc, equipped].map(enchantRow) } });

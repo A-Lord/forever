@@ -53,7 +53,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { ConsumableSlot, relevantConsumableIds } from '../settings/consumables';
+import { consumablePseudoStatsOf, ConsumableSlot, consumableStatsOf, relevantConsumableIds } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -1196,12 +1196,18 @@ export class Player<SpecType extends Spec> {
 		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
-	// The stat weights decide relevance, as for random suffixes. A proc has no stats to weigh, so it always counts;
-	// flat weapon damage counts when the spec values weapon DPS in the slot.
-	isEnchantRelevant(enchant: Enchant, slot: ItemSlot): boolean {
-		if (enchant.enchantEffects.length > 0) return true;
-		const weaponSpeed = enchant.weaponDamage ? 1 : 0;
-		return this.computeEnchantEP(enchant, weaponSpeed, weaponSpeed ? this.computeWeaponDpsEP(slot) : 0) > 0;
+	// The consumables' rule on the stats the spec weighs: an enchant counts when it grants one of them or a percent the
+	// spec shows or weighs, flat weapon damage counting as physical damage. One that grants none of these (a proc) counts.
+	isEnchantRelevant(enchant: Enchant): boolean {
+		const grantedStats: Stat[] = enchant.stats.flatMap((value, stat) => (value ? [stat] : []));
+		if (enchant.weaponDamage) grantedStats.push(Stat.StatPhysicalDamage);
+		const grantedPseudoStats: PseudoStat[] = enchant.pseudoStats.flatMap((value, pseudoStat) => (value ? [pseudoStat] : []));
+		if (!grantedStats.length && !grantedPseudoStats.length) return true;
+
+		const specConfig = this.getSpecConfig();
+		const stats = consumableStatsOf({ epStats: specConfig.epStats });
+		const pseudoStats = consumablePseudoStatsOf(specConfig);
+		return grantedStats.some(stat => stats.has(stat)) || grantedPseudoStats.some(pseudoStat => pseudoStats.has(pseudoStat));
 	}
 
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {
@@ -1452,7 +1458,7 @@ export class Player<SpecType extends Spec> {
 				return false;
 			}
 
-			return filters.showAllEnchants || enchant.effectId === equippedEffectId || this.isEnchantRelevant(enchant, slot);
+			return filters.showAllEnchants || enchant.effectId === equippedEffectId || this.isEnchantRelevant(enchant);
 		});
 	}
 
