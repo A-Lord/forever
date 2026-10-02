@@ -229,7 +229,7 @@ func TestCloakMinorAgilityFitsTheBack(t *testing.T) {
 	withDBCInputs(t)
 
 	if !rawEnchantByName(t, 247, "Enchant Cloak - Minor Agility").IsWeaponEnchant {
-		t.Fatalf("the game files no longer give 13419 the weapon item class; drop its EnchantOverrides entry")
+		t.Fatalf("the game files do not give 13419 the weapon item class; drop its EnchantOverrides entry")
 	}
 
 	db := NewWowDatabase()

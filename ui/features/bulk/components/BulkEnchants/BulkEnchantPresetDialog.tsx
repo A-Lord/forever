@@ -92,24 +92,31 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const [showAll, setShowAll] = useState(false);
 	const query = search.trim().toLowerCase();
 	const listed = useCallback(
-		(slot: ItemSlot, enchant: Enchant, nameQuery: string) =>
-			(showAll || player.isEnchantRelevant(enchant) || !!selected.get(slot)?.includes(enchant.effectId)) &&
+		(slot: ItemSlot, enchant: Enchant, nameQuery: string, all: boolean) =>
+			(all || player.isEnchantRelevant(enchant) || !!selected.get(slot)?.includes(enchant.effectId)) &&
 			(!nameQuery || enchant.name.toLowerCase().includes(nameQuery)),
-		[player, showAll, selected],
+		[player, selected],
 	);
 	const shown = useMemo(
 		() =>
 			slots
-				.map(({ slot, enchants }) => ({ slot, enchants: enchants.filter(enchant => listed(slot, enchant, query)) }))
+				.map(({ slot, enchants }) => ({ slot, enchants: enchants.filter(enchant => listed(slot, enchant, query, showAll)) }))
 				.filter(({ enchants }) => enchants.length),
-		[slots, query, listed],
+		[slots, query, showAll, listed],
 	);
-	const changeSearch = (next: string) => {
-		const nextQuery = next.trim().toLowerCase();
-		setSearch(next);
+	const openMatchingSlots = (nameQuery: string, all: boolean) =>
 		setSearchOpenSlots(
-			nextQuery ? slots.filter(({ slot, enchants }) => enchants.some(enchant => listed(slot, enchant, nextQuery))).map(({ slot }) => String(slot)) : [],
+			nameQuery
+				? slots.filter(({ slot, enchants }) => enchants.some(enchant => listed(slot, enchant, nameQuery, all))).map(({ slot }) => String(slot))
+				: [],
 		);
+	const changeSearch = (next: string) => {
+		setSearch(next);
+		openMatchingSlots(next.trim().toLowerCase(), showAll);
+	};
+	const changeShowAll = (next: boolean) => {
+		setShowAll(next);
+		openMatchingSlots(query, next);
 	};
 
 	const problem = validateBulkEnchantPresetName(presets, name, preset?.name);
@@ -143,7 +150,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 			search={search}
 			onSearchChange={changeSearch}
 			showAll={showAll}
-			onShowAllChange={setShowAll}
+			onShowAllChange={changeShowAll}
 			groups={shown.map(({ slot, enchants }) => ({
 				slot,
 				label: slotLabel(slot),

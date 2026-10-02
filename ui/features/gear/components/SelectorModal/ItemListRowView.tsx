@@ -14,7 +14,7 @@ export interface ItemListRowViewProps extends RowActionsProps {
 	nameDescription: string;
 	iconUrl: string;
 	href: string;
-	/** The level column: an item's ilvl on the items tab, an enchant's lvl on the enchants tab. */
+	/** The level column: an item's ilvl on the items tab, an enchant's lvl on the enchants tab; 0 leaves the cell empty. */
 	ilvl?: number;
 	active: boolean;
 	onEquip: () => void;
@@ -42,7 +42,7 @@ export const ItemListRowView = ({
 	<>
 		{ilvl !== undefined && (
 			<div className="w-12 text-center" data-testid="selector-modal-list-item-ilvl-container">
-				{ilvl}
+				{ilvl || null}
 			</div>
 		)}
 		<div className="flex flex-1 items-center gap-1" data-testid="selector-modal-list-label-cell" data-active={active ? '' : undefined}>

@@ -9,7 +9,7 @@ import { arrayEquals, distinct } from '../utils/collections';
 import { EquippedItem } from './equipped_item';
 import { Gear, ItemSwapGear } from './gear';
 import { gemEligibleForSocket, gemMatchesSocket } from './gems';
-import { getEligibleEnchantSlots, getEligibleItemSlots } from './items';
+import { enchantAppliesToItem, getEligibleEnchantSlots, getEligibleItemSlots } from './items';
 import { Stats } from './stats';
 import { WOWHEAD_DOMAIN, WOWHEAD_EXPANSION_ENV } from './wowhead';
 
@@ -100,6 +100,7 @@ export class Database {
 	private readonly randomSuffixes = new Map<number, ItemRandomSuffix>();
 	private readonly itemEffectRandPropPoints = new Map<number, ItemEffectRandPropPoints>();
 	private readonly enchantsBySlot: Partial<Record<ItemSlot, Enchant[]>> = {};
+	private readonly enchantsByEffectId = new Map<number, Enchant[]>();
 	private readonly gems = new Map<number, Gem>();
 	private readonly npcs = new Map<number, Npc>();
 	private readonly zones = new Map<number, Zone>();
@@ -134,6 +135,9 @@ export class Database {
 		db.randomSuffixes.forEach(randomSuffix => this.randomSuffixes.set(randomSuffix.id, randomSuffix));
 		db.itemEffectRandPropPoints.forEach(ieRpp => this.itemEffectRandPropPoints.set(ieRpp.ilvl, ieRpp));
 		db.enchants.forEach(enchant => {
+			const rows = this.enchantsByEffectId.get(enchant.effectId);
+			if (rows) rows.push(enchant);
+			else this.enchantsByEffectId.set(enchant.effectId, [enchant]);
 			const slots = getEligibleEnchantSlots(enchant);
 			slots.forEach(slot => {
 				if (!this.enchantsBySlot[slot]) {
@@ -214,13 +218,8 @@ export class Database {
 		return this.enchantsBySlot[slot] || [];
 	}
 
-	// A row that fits several slots sits in each slot's list.
 	getEnchantsByEffectId(effectId: number): Array<Enchant> {
-		return distinct(
-			Object.values(this.enchantsBySlot)
-				.flat()
-				.filter(enchant => enchant.effectId === effectId),
-		);
+		return this.enchantsByEffectId.get(effectId) ?? [];
 	}
 
 	getGems(socketColor?: GemColor): Array<Gem> {
@@ -263,9 +262,11 @@ export class Database {
 		if (itemSpec.enchant) {
 			const slots = getEligibleItemSlots(item);
 			for (let i = 0; i < slots.length; i++) {
-				enchant =
-					(this.enchantsBySlot[slots[i]] || []).find(enchant => [enchant.effectId, enchant.itemId, enchant.spellId].includes(itemSpec.enchant)) ||
-					null;
+				const matches = (this.enchantsBySlot[slots[i]] || []).filter(enchant =>
+					[enchant.effectId, enchant.itemId, enchant.spellId].includes(itemSpec.enchant),
+				);
+				// Rows sharing an effect id can differ in the items they fit (1897 is 2H Lesser Impact and Superior Striking).
+				enchant = matches.find(enchant => enchantAppliesToItem(enchant, item)) || matches[0] || null;
 				if (enchant) {
 					break;
 				}

@@ -25,8 +25,8 @@ export const GearChangeIcon = ({ slot, item, previousItem }: GearChangeIconProps
 	const wowhead = useEquippedItemWowheadDataset(player, item);
 	const sockets = useMemo(() => gearChangeSockets(item, previousItem), [item, previousItem]);
 
-	const itemEnchant = useMemo(() => item?.enchant ?? undefined, [item]);
-	const enchantChanged = useMemo(() => !!gearChangeEnchant(item, previousItem), [item, previousItem]);
+	const itemEnchant = item?.enchant ?? undefined;
+	const enchantChanged = !!gearChangeEnchant(item, previousItem);
 	const enchantActionIdOf = useMemo(() => (itemEnchant ? enchantActionId(itemEnchant) : undefined), [itemEnchant]);
 	const { iconUrl: enchantIconUrl, href: enchantHref } = useActionId(enchantActionIdOf);
 	const enchantWowhead = useActionIdWowheadDataset(enchantActionIdOf);

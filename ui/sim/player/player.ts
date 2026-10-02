@@ -233,6 +233,8 @@ export interface SpecConfigData<SpecType extends Spec> extends PlayerConfig<Spec
 
 const SPEC_CONFIGS: Partial<Record<Spec, PlayerConfig<any>>> = {};
 
+const enchantRelevanceCache = new WeakMap<object, { stats: Set<Stat>; pseudoStats: Set<PseudoStat> }>();
+
 export function registerSpecConfig<SpecType extends Spec>(spec: SpecType, config: PlayerConfig<SpecType>) {
 	SPEC_CONFIGS[spec] = config;
 }
@@ -1205,8 +1207,12 @@ export class Player<SpecType extends Spec> {
 		if (!grantedStats.length && !grantedPseudoStats.length) return true;
 
 		const specConfig = this.getSpecConfig();
-		const stats = consumableStatsOf({ epStats: specConfig.epStats });
-		const pseudoStats = consumablePseudoStatsOf(specConfig);
+		let relevant = enchantRelevanceCache.get(specConfig);
+		if (!relevant) {
+			relevant = { stats: consumableStatsOf({ epStats: specConfig.epStats }), pseudoStats: consumablePseudoStatsOf(specConfig) };
+			enchantRelevanceCache.set(specConfig, relevant);
+		}
+		const { stats, pseudoStats } = relevant;
 		return grantedStats.some(stat => stats.has(stat)) || grantedPseudoStats.some(pseudoStat => pseudoStats.has(pseudoStat));
 	}
 
