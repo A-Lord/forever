@@ -1374,6 +1374,14 @@
 					"label": "Is Tanking",
 					"tooltip": "True if the player is currently tanking"
 				},
+				"target_is_mob_type": {
+					"label": "Target Is Mob Type",
+					"tooltip": "True if the target is the chosen creature type"
+				},
+				"encounter_in_area": {
+					"label": "In Area",
+					"tooltip": "True if the encounter's areas include the chosen area type"
+				},
 				"unit_is_moving": {
 					"label": "Unit Is Moving",
 					"tooltip": "True if the unit is moving"

@@ -78,15 +78,30 @@ make wowsimforever
 make simdb
 
 # Generate data from WoW game files
-# Requires a local WoW install; point Settings.BaseDir in the settings file at it
+# Requires a local WoW install. It reads the folder in WOW_DIR, or Settings.BaseDir in the settings
+# file (/mnt/c/Program Files/World of Warcraft) when WOW_DIR is not set.
 # Uses tools/database/generator-settings.json for settings
 # Also runs make simdb
 # This is what you will use most of the time for generation
 make db
 
-# Same as make db but from the ptr client
+# Same as make db but from the PTR install, and WOW_DIR applies the same way
 # Uses tools/database/ptr-generator-settings.json for settings
 make ptrdb
+
+# WoW installed somewhere other than C:? Point make db and make ptrdb at the folder that holds
+# _classic_beta_ and the other game folders. For one run:
+make db WOW_DIR="/mnt/e/World of Warcraft"
+# Or for every run, from your shell profile (then source the profile or open a new terminal).
+# Linux and WSL (bash):
+echo 'export WOW_DIR="/mnt/e/World of Warcraft"' >> ~/.bashrc
+# macOS (zsh):
+echo 'export WOW_DIR="/Applications/World of Warcraft"' >> ~/.zshrc
+# Windows, running make natively (PowerShell; open a new terminal afterwards):
+[Environment]::SetEnvironmentVariable("WOW_DIR", "E:\World of Warcraft", "User")
+# Windows, Command Prompt (open a new terminal afterwards):
+setx WOW_DIR "E:\World of Warcraft"
+# A variable set on the Windows side does not reach WSL; under WSL, use the bash line above.
 
 # Same as make db but without a WoW install: reads the current build off Blizzard's CDN
 # and applies the hotfix cache you point it at (see tools/db2tool/README.md).

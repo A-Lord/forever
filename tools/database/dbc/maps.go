@@ -2,6 +2,7 @@ package dbc
 
 import (
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func MapResistanceToStat(index int) (proto.Stat, bool) {
@@ -174,6 +175,17 @@ func MapBonusStatIndexToStats(index int) ([]proto.Stat, bool) {
 		return []proto.Stat{stat}, true
 	}
 	return nil, false
+}
+
+// The school a spell penetration stat pierces, which the sim keeps outside the stat array.
+func MapBonusStatIndexToPiercingSchool(index int) (stats.SchoolIndex, bool) {
+	switch index {
+	case ITEM_MOD_FIRE_SPELL_PENETRATION:
+		return stats.SchoolIndexFire, true
+	case ITEM_MOD_FROST_SPELL_PENETRATION:
+		return stats.SchoolIndexFrost, true
+	}
+	return stats.SchoolIndexNone, false
 }
 
 var MapProfessionIdToProfession = map[int]proto.Profession{

@@ -160,6 +160,58 @@ func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
 	}
 }
 
+// Sniper Shot's buff carries Auto Shot's reach past the 41 yards Hawk Eye gives it, for three Shots: a
+// hunter at 45 yards fires no Auto Shot until Sniper Shot lands, then lands at most three per Sniper
+// Shot, since a miss keeps its charge.
+func TestSniperShotExtendsAutoShotRange(t *testing.T) {
+	shots := func(castSniperShot bool) (sniperShots, autoShots, landed int32) {
+		rotation := &proto.APLRotation{Type: proto.APLRotation_TypeAPL}
+		if castSniperShot {
+			rotation.PriorityList = []*proto.APLListItem{{Action: &proto.APLAction{Action: &proto.APLAction_CastSpell{
+				CastSpell: &proto.APLActionCastSpell{SpellId: &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: sniperShotRank.ID}}},
+			}}}}
+		}
+		player := &proto.Player{
+			Name:               "Sniper Shot",
+			Race:               proto.Race_RaceOrc,
+			Class:              proto.Class_ClassHunter,
+			Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
+			TalentsString:      DefaultMMTalents,
+			Spec:               DefaultOptions,
+			Rotation:           rotation,
+			DistanceFromTarget: 45,
+		}
+		result := core.RunRaidSim(&proto.RaidSimRequest{
+			Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+			Encounter:  core.MakeSingleTargetEncounter(0),
+			SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 1},
+		})
+		if result.Error != nil {
+			t.Fatalf("the sim failed: %s", result.Error.Message)
+		}
+		for _, action := range result.RaidMetrics.Parties[0].Players[0].Actions {
+			for _, target := range action.Targets {
+				switch {
+				case action.Id.GetOtherId() == proto.OtherAction_OtherActionShoot:
+					autoShots += target.Casts
+					landed += target.Hits + target.Crits
+				case action.Id.GetSpellId() == sniperShotRank.ID:
+					sniperShots += target.Casts
+				}
+			}
+		}
+		return sniperShots, autoShots, landed
+	}
+
+	if _, autoShots, _ := shots(false); autoShots != 0 {
+		t.Errorf("a hunter at 45 yards fired %d Auto Shots with no Sniper Shot, want none", autoShots)
+	}
+	sniperShots, _, landed := shots(true)
+	if sniperShots == 0 || landed == 0 || landed > 3*sniperShots {
+		t.Errorf("%d Sniper Shots let %d Auto Shots land from 45 yards, want some and at most 3 each", sniperShots, landed)
+	}
+}
+
 // One sting per hunter on a target: a hunter's sting drops that hunter's other sting and leaves
 // another hunter's. Two hunters' Scorpid Stings both stay up, and their -2% hit counts once.
 func TestEachHunterKeepsOneStingPerTarget(t *testing.T) {

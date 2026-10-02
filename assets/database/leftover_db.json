@@ -1131,8 +1131,6 @@
 {"id":263408,"name":"Exterminator's Vest","icon":"inv_chest_leather_skybornec60_b_02","type":5,"armorType":2,"quality":1,"scalingOptions":{"0":{"ilvl":5}}},
 {"id":263409,"name":"Gardening Pants","icon":"inv_pants_09","type":9,"armorType":1,"quality":1,"scalingOptions":{"0":{"ilvl":5}}},
 {"id":263410,"name":"Watcher's Mail Chest","icon":"inv_chest_chain","type":5,"armorType":3,"quality":1,"scalingOptions":{"0":{"ilvl":5}}},
-{"id":263411,"name":"Windcharged Leaf","icon":"inv_relics_idolofrejuvenation","type":14,"rangedWeaponType":6,"quality":1,"classAllowlist":[11],"scalingOptions":{"0":{"ilvl":6}}},
-{"id":263412,"name":"Windcarved Effigy","icon":"ability_shaman_multitotemactivation","type":14,"rangedWeaponType":8,"quality":1,"classAllowlist":[7],"scalingOptions":{"0":{"ilvl":6}}},
 {"id":263414,"name":"Traveler's Wraps","icon":"inv_glove_cloth_skybornec60_b_01","type":7,"armorType":2,"quality":1,"scalingOptions":{"0":{"ilvl":8}}},
 {"id":263417,"name":"Adventurer's Cloak","icon":"inv_cape_leather_skybornec60_b_01","type":4,"armorType":1,"quality":1,"scalingOptions":{"0":{"ilvl":8}}},
 {"id":263420,"name":"Hiking Boots","icon":"inv_boot_mail_skybornec60_b_01","type":10,"armorType":3,"quality":1,"scalingOptions":{"0":{"ilvl":8}}},

@@ -10,36 +10,43 @@ import (
 
 func (warrior *Warrior) registerProtectionTalents() {
 	// Tier 1
+	// Improved Bloodrage: bloodrage.go
 	warrior.registerShieldSpecialization()
-	warrior.registerAnticipation()
+	warrior.registerIronWill()
 
 	// Tier 2
-	// Improved Bloodrage: bloodrage.go
-	warrior.registerToughness()
+	warrior.registerAnticipation()
+	warrior.registerImprovedRevenge()
 	warrior.registerImprovedThunderClap()
 
 	// Tier 3
 	warrior.registerLastStand()
 	warrior.registerMasterOfDefense()
-	warrior.registerImprovedRevenge()
+	warrior.registerImprovedDisarm()
 	// Defiance: stances.go
 
 	// Tier 4
 	warrior.registerImprovedSunderArmor()
-	warrior.registerImprovedDisarm()
 	// Vanguard: charge.go
+	warrior.registerImprovedShieldBash()
 
 	// Tier 5
 	warrior.registerImprovedShieldWall()
 	warrior.registerConcussionBlow()
-	warrior.registerImprovedShieldBash()
-	warrior.registerBastion()
+	warrior.registerFocusedRage()
 
 	// Tier 6
-	warrior.registerFocusedRage()
+	warrior.registerBastion()
 
 	// Tier 7
 	warrior.registerShieldSlam()
+}
+
+func (warrior *Warrior) registerIronWill() {
+	if warrior.Talents.IronWill == 0 {
+		return
+	}
+	spelldata.ParseStatic(&warrior.Character, spellData.IronWill.Rank(warrior.Talents.IronWill))
 }
 
 func (warrior *Warrior) registerAnticipation() {
@@ -82,17 +89,6 @@ func (warrior *Warrior) registerRageOnAvoid(driver *spelldata.Spell, energize *s
 	trigger.ExtraCondition = extra
 
 	warrior.MakeProcTriggerAura(trigger)
-}
-
-func (warrior *Warrior) registerToughness() {
-	if warrior.Talents.Toughness == 0 {
-		return
-	}
-
-	// The game files state the ladder twice, once on base armor and once on bonus armor; the parse
-	// takes the base armor effect, which the tooltip words as armor from items, onto the equipment
-	// share of the sim's single Armor stat, and skips the bonus armor one.
-	spelldata.ParseStatic(&warrior.Character, spellData.Toughness.Rank(warrior.Talents.Toughness))
 }
 
 var lastStandRank = spellData.LastStand.Highest()
