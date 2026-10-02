@@ -7334,6 +7334,10 @@ var generatedSpells = []Spell{
 			{ID: 688218, SpellID: 10442, Type: dbcenums.E_SUMMON, BasePoints: 5, BaseLevel: 52, PvpMult: 1, Misc: 7403, Misc2: 81, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{41, 0}},
 		},
 		Powers: []Power{{Cost: 225}}},
+	{ID: 10444, Name: "Flametongue Attack", Rank: "Rank 3", School: 4, Attr: [17]uint32{0: 0x40000, 1: 0x88, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, MaxRange: 50000, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 2097152}}, Labels: []int16{24},
+		Effects: []Effect{
+			{ID: 688427, SpellID: 10444, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 1, BaseLevel: 1, SPCoef: 0.10000000149011612, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 10445, Name: "Flametongue Weapon Proc", Rank: "Rank 4", School: 4, Attr: [17]uint32{0: 0x40100, 15: 0x2000}, SpellLevel: 36, BaseLevel: 36, MaxLevel: 44, MaxRange: 100, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 2097152}}, Labels: []int16{24},
 		Effects: []Effect{
 			{ID: 687263, SpellID: 10445, Type: dbcenums.E_DUMMY, BasePoints: 1144, PPL: 73, BaseLevel: 36, MaxLevel: 44, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -37860,6 +37864,7 @@ var generatedCurves = map[int32][][]float64{
 }
 
 var generatedHandTriggers = map[int32][]int32{
+	16344: {10444}, // Flametongue Weapon Proc rank 6 states no spell power share; Flametongue Attack 10444 carries it: same class set and mask 0x200000, fire school and icon, a school damage effect of base 1 with a 0.1 coefficient
 	20230: {20240}, // Retaliation's dummy aura (aura 4) casts the counterattack 20240: same name, class set and icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage
 }
 

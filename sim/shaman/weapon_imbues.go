@@ -26,6 +26,7 @@ var (
 	windfuryWeaponAttack     = spellData.WindfuryWeaponTriggered.Highest()
 	flametongueWeaponPassive = spelldata.MustFind(436519)
 	flametongueWeaponProc    = spellData.FlametongueWeaponTriggered.Highest()
+	flametongueAttack        = spelldata.MustFind(10444)
 	frostbrandWeaponAttack   = spellData.FrostbrandWeaponTriggered.Highest()
 	rockbiterWeaponPassive   = spellData.RockbiterWeaponTriggered.Highest()
 )
@@ -141,9 +142,9 @@ func (shaman *Shaman) RegisterWindfuryImbue() {
 }
 
 // The fire damage a main-hand hit adds: the tooltip's ${$16344m1/77-1} to ${$16344m1/25} over
-// weapon speeds of 1.3 to 4.0 s is m1 for every 100 s of swing.
-//
-// TODO: Ingame test needed: the spell power share, which 16344 does not state.
+// weapon speeds of 1.3 to 4.0 s is m1 for every 100 s of swing. 16344 states no spell power share;
+// Flametongue Attack 10444, which a hand trigger links to it, carries one, the same at every weapon
+// speed.
 func (shaman *Shaman) newFlametongueImbueSpell() *core.Spell {
 	config := spelldata.SpellConfig(&shaman.Unit, flametongueWeaponProc,
 		spelldata.Magic(core.ProcMaskSpellDamageProc), spelldata.Proc(),
@@ -151,6 +152,7 @@ func (shaman *Shaman) newFlametongueImbueSpell() *core.Spell {
 	// 16344 states no defense type, and a fire proc with none rolls on the spell hit and crit tables.
 	config.DefenseType = core.DefenseTypeMagic
 	config.ClassSpellMask = SpellMaskFlametongueWeapon
+	config.BonusCoefficient = flametongueAttack.EffectN(1).Coeff()
 
 	damage := flametongueWeaponProc.EffectN(1)
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

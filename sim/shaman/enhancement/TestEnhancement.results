@@ -624,46 +624,46 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-Settings-Orc-preraid-Flametongue-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 1587.01014
-  tps: 1390.84123
+  dps: 1595.1541
+  tps: 1394.83177
   dtps: 2.43112
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-preraid-Flametongue-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 465.07279
-  tps: 245.67133
+  dps: 473.30646
+  tps: 249.70582
   dtps: 10.24141
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-preraid-Flametongue-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 483.15257
-  tps: 255.9532
+  dps: 491.68249
+  tps: 260.13286
   dtps: 17.34252
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-preraid-Flametongue-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 296.23603
-  tps: 207.36522
+  dps: 297.82037
+  tps: 208.47426
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-preraid-Flametongue-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 172.64762
-  tps: 120.85334
+  dps: 174.23692
+  tps: 121.96585
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-preraid-Flametongue-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 228.9603
-  tps: 160.27221
+  dps: 230.76683
+  tps: 161.53678
  }
 }
 dps_results: {
@@ -804,46 +804,46 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-Settings-Troll-preraid-Flametongue-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 1586.83942
-  tps: 1395.39642
+  dps: 1594.74462
+  tps: 1399.26997
   dtps: 2.88695
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-preraid-Flametongue-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 456.5347
-  tps: 241.83279
+  dps: 464.57343
+  tps: 245.77177
   dtps: 10.55029
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-preraid-Flametongue-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 479.34236
-  tps: 254.5987
+  dps: 487.88283
+  tps: 258.78353
   dtps: 16.94384
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-preraid-Flametongue-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 299.68949
-  tps: 209.78265
+  dps: 301.24822
+  tps: 210.87375
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-preraid-Flametongue-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 171.11829
-  tps: 119.7828
+  dps: 172.64683
+  tps: 120.85278
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-preraid-Flametongue-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 234.02276
-  tps: 163.81594
+  dps: 235.79466
+  tps: 165.05626
  }
 }
 dps_results: {

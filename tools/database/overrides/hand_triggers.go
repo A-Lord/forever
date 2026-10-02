@@ -19,4 +19,11 @@ var HandTriggers = []HandTrigger{
 			"icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage",
 		Source: "game-files-rows",
 	},
+	{
+		Spell:    16344,
+		Triggers: 10444,
+		Reason: "Flametongue Weapon Proc rank 6 states no spell power share; Flametongue Attack 10444 carries it: " +
+			"same class set and mask 0x200000, fire school and icon, a school damage effect of base 1 with a 0.1 coefficient",
+		Source: "game-files-rows",
+	},
 }
