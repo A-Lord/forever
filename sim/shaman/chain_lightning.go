@@ -35,15 +35,16 @@ func (shaman *Shaman) newChainLightningSpellConfig(rank *spelldata.Spell, overlo
 		}
 
 		// Each target hit rolls its own overload, at a third of Lightning Bolt's chance, and the
-		// overload strikes that target alone.
+		// overload strikes that target alone, after the hit lands, as Lightning Bolt's does.
 		//
 		// TODO: Ingame test needed: the tooltip of 408438 states one chance for both spells.
 		for _, result := range results {
-			if result.Landed() && sim.Proc(shaman.GetOverloadChance()/3, "Lightning Overload") {
-				overload.Cast(sim, result.Target)
-			}
+			landed, hitTarget := result.Landed(), result.Target
 			spell.DealDamage(sim, result)
 			spell.DamageMultiplier /= bounce
+			if landed && sim.Proc(shaman.GetOverloadChance()/3, "Lightning Overload") {
+				overload.Cast(sim, hitTarget)
+			}
 		}
 	}
 
