@@ -169,12 +169,13 @@ func TestRawEnchantIsLiveWhenTaughtOrOnAShippedItem(t *testing.T) {
 	}
 }
 
-// The level is the highest item level above 1 of an item carrying the grant, else 0.
+// The level is the highest item level above 1 of an item carrying the grant outside the Season of
+// Discovery item range, else 0.
 func TestRawEnchantLvl(t *testing.T) {
 	byKey := rawEnchantsByKey(loadRawEnchantFixture(t))
 
 	for key, want := range map[rawEnchantKey]int{
-		{7940, "Enchant Weapon - Grand Crusader"}:       80,
+		{7940, "Enchant Weapon - Grand Crusader"}:       0,
 		{7659, "Enchant Off-Hand - Superior Intellect"}: 0,
 		{247, "Enchant Bracer - Minor Agility"}:         0,
 	} {

@@ -521,7 +521,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectPointsString string
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
-	var itemLevel, spellItemLevel int
+	var spellItemLevel int
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -541,13 +541,12 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&raw.EffectName,
 		&spellItemEnchantmentFlags,
 		&raw.IsLive,
-		&itemLevel,
 		&spellItemLevel,
 	)
 	if err != nil {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
-	raw.Lvl = enchantLvl(itemLevel, spellItemLevel)
+	raw.Lvl = enchantLvl(spellItemLevel)
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -574,20 +573,17 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	return raw, nil
 }
 
-// The item level of the enchant's own item, else the highest one of an item that applies or teaches its
-// spell; 0 where every such item is level 1, as the Forever enchant scrolls are.
-func enchantLvl(itemLevel, spellItemLevel int) int {
-	switch {
-	case itemLevel > 1:
-		return itemLevel
-	case spellItemLevel > 1:
+// The highest item level of an item outside the Season of Discovery range that applies or teaches the
+// enchant's spell; 0 where every such item is level 1, as the Forever enchant scrolls are.
+func enchantLvl(spellItemLevel int) int {
+	if spellItemLevel > 1 {
 		return spellItemLevel
-	default:
-		return 0
 	}
+	return 0
 }
 
-// Season of Discovery items occupy this id range in the game files; an enchant only they carry is left out.
+// Season of Discovery items occupy this id range in the game files; an enchant only they carry is left
+// out, and none of them gives an enchant its level.
 const (
 	sodItemIDMin = 202251
 	sodItemIDMax = 244460
@@ -648,12 +644,12 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 						JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
 					WHERE lie.SpellID = se.SpellID AND ` + notPlaceholderItemName("lisp.Display_lang") + `
 				) AS IsLive,
-			COALESCE(isp.ItemLevel, 0) AS ItemLevel,
 			COALESCE((
 				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
 					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
 				WHERE lie.SpellID = se.SpellID
+					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
 			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID

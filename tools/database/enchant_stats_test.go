@@ -183,7 +183,7 @@ func TestEnchantLvl(t *testing.T) {
 		{24, "Enchant Chest - Minor Intellect", 12},
 		{33, "Accurate Scope", 36},
 		{8721, "Enchant Weapon - Recovery", 28},
-		{7210, "Enchant Weapon - Dismantle", 45},
+		{7210, "Enchant Weapon - Dismantle", 0},
 		{8204, "Enchant Bracer - Lesser Agility", 0},
 		{7659, "Enchant Off-Hand - Superior Intellect", 0},
 		{247, "Enchant Bracer - Minor Agility", 0},
