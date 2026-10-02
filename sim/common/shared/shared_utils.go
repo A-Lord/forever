@@ -637,12 +637,7 @@ func attachChargeSpender(character *core.Character, cfg SpellDataProc, trigger *
 		return
 	}
 
-	spender := spelldata.ProcTrigger(character, buff, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-		procAura.RemoveStack(sim)
-	})
-	spender.Name = cfg.Name + " Charge"
-
-	procAura.AttachProcTriggerCallback(&character.Unit, spender)
+	spelldata.AttachChargeSpender(character, procAura.Aura, buff, cfg.Name+" Charge")
 }
 
 // Whether a trigger can be built from this row at all: it has to name hits the sim hears and a rate

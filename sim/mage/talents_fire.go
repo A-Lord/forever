@@ -26,7 +26,7 @@ func (mage *Mage) registerFireTalents() {
 	// Tier 4
 	// Improved Scorch implemented in scorch.go
 	mage.registerImprovedFireWard()
-	mage.registerHotStreak()
+	mage.registerHeatingUp()
 	mage.registerMasterOfElements()
 
 	// Tier 5
@@ -191,15 +191,15 @@ func (mage *Mage) registerImprovedFireWard() {
 	}
 }
 
-// registerHotStreak implements Hot Streak.
-func (mage *Mage) registerHotStreak() {
-	if !mage.Talents.HotStreak {
+// registerHeatingUp implements Heating Up.
+func (mage *Mage) registerHeatingUp() {
+	if !mage.Talents.HeatingUp {
 		return
 	}
 
-	hotStreakBuff := spellData.HotStreakTriggered.Highest()
+	heatingUpBuff := spellData.HeatingUpTriggered.Highest()
 
-	config := spelldata.AuraConfig(hotStreakBuff)
+	config := spelldata.AuraConfig(heatingUpBuff)
 
 	// UNVERIFIED: whether a Pyroblast consumes every stack or only one has not been checked in game.
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
@@ -208,17 +208,17 @@ func (mage *Mage) registerHotStreak() {
 		}
 	}
 
-	hotStreakAura := mage.RegisterAura(config)
+	heatingUpAura := mage.RegisterAura(config)
 
-	spelldata.ParseEffects(&mage.Character, hotStreakAura, hotStreakBuff, spelldata.Effects(1))
+	spelldata.ParseEffects(&mage.Character, heatingUpAura, heatingUpBuff, spelldata.Effects(1))
 
 	trigger := spelldata.ProcTrigger(&mage.Character,
-		spellData.HotStreak.Rank(1),
+		spellData.HeatingUp.Rank(1),
 		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			hotStreakAura.Activate(sim)
-			hotStreakAura.AddStack(sim)
+			heatingUpAura.Activate(sim)
+			heatingUpAura.AddStack(sim)
 		})
-	trigger.Name = "Hot Streak - Trigger"
+	trigger.Name = "Heating Up - Trigger"
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return spellData.Fireball.Contains(spell) || spellData.FrostfireBolt.Contains(spell) ||
 			spellData.FireBlast.Contains(spell) || spellData.Scorch.Contains(spell)

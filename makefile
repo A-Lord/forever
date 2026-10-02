@@ -247,6 +247,12 @@ CLIENTDATA_OUTPUT   := $(abspath ./tools/database/wowsims.db)
 # Extra db2tool flags. `make db DB2TOOL_FLAGS="--cdn --dbcache path/to/DBCache.bin"`
 # reads the build off Blizzard's CDN instead of BaseDir (no install needed).
 DB2TOOL_FLAGS ?=
+# The WoW install `make db` and `make ptrdb` read, in place of the settings file's BaseDir.
+# `make db WOW_DIR="/mnt/e/World of Warcraft"`, or export WOW_DIR once in your shell profile.
+WOW_DIR ?=
+ifneq ($(WOW_DIR),)
+DB2TOOL_FLAGS += --basedir "$(WOW_DIR)"
+endif
 
 # The spell store is regenerated before the item database, and the order is load-bearing: gen_db
 # classifies every item and enchant proc from the store compiled into it, so running it against a
