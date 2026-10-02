@@ -9,8 +9,8 @@ import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
-vi.mock('@ui-kit/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
-vi.mock('@ui-kit/BooleanPicker', () => ({ BooleanPicker: () => <div className="boolean-picker-root" /> }));
+vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
+vi.mock('@features/inputs/components/ConnectedBooleanPicker', () => ({ ConnectedBooleanPicker: () => <div className="boolean-picker-root" /> }));
 
 const { ItemSwapPicker } = await import('./ItemSwapPicker');
 
@@ -39,7 +39,7 @@ describe('ItemSwapPicker', () => {
 	it('puts one icon per swap slot directly in the icon group', () => {
 		const { container } = setup(true);
 
-		const group = container.querySelector('[data-picker-group].ui-picker-group-icons')!;
+		const group = container.querySelector('[data-testid="item-swap-icon-grid"]')!;
 		expect(group.children).toHaveLength(SLOTS.length);
 		expect([...group.children].every(child => child.getAttribute('data-testid') === 'icon-picker-root')).toBe(true);
 	});
@@ -48,6 +48,6 @@ describe('ItemSwapPicker', () => {
 		const { container } = setup(false);
 
 		expect(container.querySelector('[data-testid="input-item-swap-container"]')).toBeNull();
-		expect(container.querySelector('.picker-group.ui-picker-group-icons')).toBeNull();
+		expect(container.querySelector('[data-testid="item-swap-icon-grid"]')).toBeNull();
 	});
 });

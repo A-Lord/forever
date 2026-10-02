@@ -4,5 +4,7 @@ export { TargetInputsPicker } from './TargetInputsPicker';
 export type { TargetInputsPickerProps } from './TargetInputsPicker';
 export { TargetPicker } from './TargetPicker';
 export type { TargetPickerProps } from './TargetPicker';
+export { TargetPickerView } from './TargetPickerView';
+export type { TargetPickerViewProps } from './TargetPickerView';
 export { TargetsPicker } from './TargetsPicker';
 export type { TargetsPickerProps } from './TargetsPicker';

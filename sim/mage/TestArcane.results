@@ -397,6 +397,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-RingofSaviors-1447"
+ value: {
+  dps: 574.01595
+  tps: 302.39195
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-RobeoftheArchmage-14152"
  value: {
   dps: 580.05059

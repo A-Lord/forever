@@ -22,15 +22,18 @@ export type Row =
 	| { kind: 'crit-immunity'; id: string }
 	| { kind: 'melee-crit-cap'; id: string };
 
+/** `primary` (health and mana) shows without a header; the rest are collapsible. */
+export type StatGroupKey = 'primary' | 'attributes' | 'physical' | 'spell' | 'defense' | 'resistance';
+
 export interface RowGroup {
-	key: string;
+	key: StatGroupKey;
 	rows: Row[];
 }
 
-const statGroups = new Map<string, Array<DisplayStat>>([
-	['Primary', [{ stat: UnitStat.fromStat(Stat.StatHealth) }, { stat: UnitStat.fromStat(Stat.StatMana) }]],
+const statGroups = new Map<StatGroupKey, Array<DisplayStat>>([
+	['primary', [{ stat: UnitStat.fromStat(Stat.StatHealth) }, { stat: UnitStat.fromStat(Stat.StatMana) }]],
 	[
-		'Attributes',
+		'attributes',
 		[
 			{ stat: UnitStat.fromStat(Stat.StatStrength) },
 			{ stat: UnitStat.fromStat(Stat.StatAgility) },
@@ -40,7 +43,7 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 		],
 	],
 	[
-		'Physical',
+		'physical',
 		[
 			{ stat: UnitStat.fromStat(Stat.StatAttackPower) },
 			{ stat: UnitStat.fromStat(Stat.StatFeralAttackPower) },
@@ -64,7 +67,7 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 		],
 	],
 	[
-		'Spell',
+		'spell',
 		[
 			{ stat: UnitStat.fromStat(Stat.StatSpellDamage) },
 			{ stat: UnitStat.fromStat(Stat.StatHealingPower) },
@@ -88,7 +91,7 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 		],
 	],
 	[
-		'Defense',
+		'defense',
 		[
 			{ stat: UnitStat.fromStat(Stat.StatArmor) },
 			{ stat: UnitStat.fromStat(Stat.StatBonusArmor) },
@@ -100,7 +103,7 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 		],
 	],
 	[
-		'Resistance',
+		'resistance',
 		[
 			{ stat: UnitStat.fromStat(Stat.StatArcaneResistance) },
 			{ stat: UnitStat.fromStat(Stat.StatFireResistance) },
@@ -110,6 +113,17 @@ const statGroups = new Map<string, Array<DisplayStat>>([
 		],
 	],
 ]);
+
+const statsInGroup = (groupedStats: ReadonlyArray<DisplayStat>, stats: ReadonlyArray<UnitStat>) =>
+	groupedStats.filter(displayStat => stats.some(stat => stat.equals(displayStat.stat)));
+
+const keyStatsIn = (group: StatGroupKey, keyStats: ReadonlyArray<UnitStat>) => statsInGroup(statGroups.get(group)!, keyStats).length;
+
+/** Attributes and the spec's main group: Defense for a tank, otherwise whichever of Physical and Spell holds more of its key stats. */
+export const defaultOpenStatGroups = (isTank: boolean, keyStats: ReadonlyArray<UnitStat>): StatGroupKey[] => {
+	if (isTank) return ['attributes', 'defense'];
+	return ['attributes', keyStatsIn('spell', keyStats) > keyStatsIn('physical', keyStats) ? 'spell' : 'physical'];
+};
 
 export interface RowLayout {
 	groups: RowGroup[];
@@ -124,7 +138,7 @@ export const buildRows = (player: Player<any>, statList: Array<UnitStat>): RowLa
 	const shownStats: UnitStat[] = [];
 
 	statGroups.forEach((groupedStats, key) => {
-		const filtered = groupedStats.filter(displayStat => statList.find(listStat => listStat.equals(displayStat.stat)));
+		const filtered = statsInGroup(groupedStats, statList);
 		if (!filtered.length) return;
 
 		const rows: Row[] = [];
@@ -134,7 +148,7 @@ export const buildRows = (player: Player<any>, statList: Array<UnitStat>): RowLa
 		});
 
 		// The melee crit cap sits directly under the Melee Crit row, in the Physical block.
-		if (key === 'Physical' && showMeleeCritCap) {
+		if (key === 'physical' && showMeleeCritCap) {
 			const meleeCritRow = filtered.findIndex(displayStat => displayStat.stat.equalsPseudoStat(PseudoStat.PseudoStatMeleeCritPercent));
 			if (meleeCritRow !== -1) {
 				rows.splice(meleeCritRow + 1, 0, { kind: 'melee-crit-cap', id: `${key}-melee-crit-cap` });
@@ -142,7 +156,7 @@ export const buildRows = (player: Player<any>, statList: Array<UnitStat>): RowLa
 		}
 
 		// The tank readouts hang off the defensive block, in the order the sheet has always shown them.
-		if (key === 'Defense' && showCritImmunity) {
+		if (key === 'defense' && showCritImmunity) {
 			rows.push(
 				{ kind: 'miss', id: `${key}-miss` },
 				{ kind: 'avoidance', id: `${key}-avoidance` },

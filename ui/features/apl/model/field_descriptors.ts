@@ -6,6 +6,8 @@ export type DEFAULT_UNIT_REF = 'self' | 'currentTarget';
 export interface FieldOptions {
 	label?: string;
 	labelTooltip?: string;
+	/** Text that runs long, such as a schedule's list of times: the field gets a wide input under its label. */
+	wide?: boolean;
 }
 
 // The DOM-free half of an APL picker field: which proto field it edits, how to

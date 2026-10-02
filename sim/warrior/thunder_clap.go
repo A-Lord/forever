@@ -8,9 +8,10 @@ import (
 
 var thunderClapRank = spellData.ThunderClap.Highest()
 
-// TODO: Forever announces Thunder Clap scaling with Attack Power; the game files state a flat 103 and no
-// Attack Power coefficient. Add it once a game build carries it or it is measured in game.
+// TODO: The Attack Power share (0.07) is verified in game on Rank 1 only; Ranks 2 to 6 carry the same
+// share unmeasured. Verify it on the higher ranks once logs at their level exist.
 var thunderClapBaseDamage = thunderClapRank.DamageEffect().Average()
+var thunderClapAPCoeff = thunderClapRank.DamageEffect().APCoeff()
 var thunderClapSlow = thunderClapRank.EffectN(2).BaseValue()
 
 // The melee speed factor the warrior's clap leaves on the target, the Conqueror's set included.
@@ -49,7 +50,8 @@ func (warrior *Warrior) registerThunderClap() {
 	config.ThreatMultiplier = 1
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		results := spell.CalcCleaveDamage(sim, target, int32(thunderClapRank.MaxTargets), thunderClapBaseDamage, spell.OutcomeMagicHitAndCrit)
+		baseDamage := thunderClapBaseDamage + thunderClapAPCoeff*spell.MeleeAttackPower(target)
+		results := spell.CalcCleaveDamage(sim, target, int32(thunderClapRank.MaxTargets), baseDamage, spell.OutcomeMagicHitAndCrit)
 		warrior.CastNormalizedSweepingStrikesAttack(results, sim)
 
 		for _, result := range results {

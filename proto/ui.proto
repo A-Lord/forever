@@ -280,6 +280,9 @@ message DatabaseFilters {
 	UIItem.FactionRestriction faction_restriction = 19;
 	int32 min_ilvl = 20;
 	int32 max_ilvl = 21;
+	// The consumable pickers hide a consumable below the level set for its ConsumableType (keyed by
+	// ConsumableType; Consumable.lvl). A type with no entry takes Sim.DEFAULT_MIN_CONSUMABLE_LVL.
+	map<int32, int32> min_consumable_lvl = 24;
 
 	double min_mh_weapon_speed = 4;
 	double max_mh_weapon_speed = 5;

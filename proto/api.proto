@@ -76,6 +76,9 @@ message Player {
 	string talents_string = 39;
 	Profession profession1 = 41;
 	Profession profession2 = 42;
+	// Skill in profession1 and profession2; 0 means the maximum.
+	int32 prof1_rank = 59;
+	int32 prof2_rank = 60;
 	Cooldowns cooldowns = 43;
 
 	APLRotation rotation = 44;
@@ -758,13 +761,11 @@ message BulkSettings {
 	repeated ItemSpec items = 1;
 	int32 iterations_per_combo = 2;
 
-	bool use_legacy_bulk_sim = 3;
-
-	int32 freeze_ring_slot = 4;
-	int32 freeze_trinket_slot = 5;
-	int32 freeze_weapon_slot = 6;
-	repeated WeaponType freeze_mainhand_weapon_slots = 7;
-	repeated WeaponType freeze_offhand_weapon_slots = 8;
+	int32 freeze_ring_slot = 3;
+	int32 freeze_trinket_slot = 4;
+	int32 freeze_weapon_slot = 5;
+	repeated WeaponType freeze_mainhand_weapon_slots = 6;
+	repeated WeaponType freeze_offhand_weapon_slots = 7;
 }
 
 message BulkGearCandidate {
@@ -824,8 +825,7 @@ message BulkCombinationCountResult {
 	int32 raw_combinations = 1;
 	int32 combinations = 2;
 	double iterations = 3;
-	bool use_legacy_bulk_sim = 4;
-	ErrorOutcome error = 5;
+	ErrorOutcome error = 4;
 }
 
 message BulkCandidatesRequest {

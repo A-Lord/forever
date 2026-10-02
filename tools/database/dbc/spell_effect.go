@@ -63,9 +63,9 @@ func (se *SpellEffect) ToProto() *proto.SpellEffect {
 		spellEffect.Stats = effectStats.ToProtoArray()
 	}
 	switch se.EffectType {
-	case dbcenums.E_ENERGIZE:
+	case dbcenums.E_ENERGIZE, dbcenums.E_ENERGIZE_PCT:
 		spellEffect.MiscValue0 = &proto.SpellEffect_ResourceType{ResourceType: MapPowerTypeEnumToResourceType[int32(se.EffectMiscValues[0])]}
-	case dbcenums.E_HEAL:
+	case dbcenums.E_HEAL, dbcenums.E_HEAL_PCT:
 		spellEffect.MiscValue0 = &proto.SpellEffect_ResourceType{ResourceType: proto.ResourceType_ResourceTypeHealth}
 	case dbcenums.E_APPLY_AURA:
 		if se.EffectAura == dbcenums.A_PERIODIC_ENERGIZE {

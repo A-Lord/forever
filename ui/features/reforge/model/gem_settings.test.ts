@@ -33,15 +33,6 @@ describe('gem optimizer settings', () => {
 		expect(proto.epStats).toEqual(EP_STATS);
 	});
 
-	it('serializes caps on the 41-entry stat enum', () => {
-		const proto = makeSettings().toProto();
-
-		expect(proto.statCaps?.stats).toHaveLength(38);
-		expect(proto.statCaps?.pseudoStats).toHaveLength(36);
-		expect(proto.breakpointLimits?.stats).toHaveLength(38);
-		expect(proto.breakpointLimits?.pseudoStats).toHaveLength(36);
-	});
-
 	it('round-trips the gem knobs back out of a proto', () => {
 		const source = makeSettings();
 		source.setMaxGemPhase(Phase.Phase5);

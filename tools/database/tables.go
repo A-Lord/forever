@@ -195,12 +195,56 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 		fmt.Println("Error loading items:", err.Error())
 		return nil, err
 	}
+	if err := applyCreatorClassMasks(dbHelper, items, func(item *dbc.Item) (int, *int) { return item.Id, &item.ClassMask }); err != nil {
+		return nil, err
+	}
 	json, _ := json.Marshal(items)
 	if err := dbc.WriteGzipFile(fmt.Sprintf("%s/dbc/items.json", inputsDir), json); err != nil {
 		panic(fmt.Sprintf("Error loading DBC data %v", err))
 	}
 
 	return items, nil
+}
+
+// The class mask of each soulbound item the game files leave open to every class while only class
+// spells create it, such as the warlock's Firestone and the mage's mana gems: the creating spells'
+// SkillLineAbility class bits, ORed. A soulbound item never leaves the character who made it. A
+// tradable one (Healthstone, Conjured Water, Blinding Powder) stays open to every class.
+func LoadCreatorClassMasks(dbHelper *DBHelper) (map[int]int, error) {
+	type creator struct{ itemID, classMask int }
+	creators, err := LoadRows(dbHelper.db, fmt.Sprintf(`
+		SELECT DISTINCT e.EffectItemType, sla.ClassMask
+		FROM SpellEffect e
+		JOIN SkillLineAbility sla ON sla.Spell = e.SpellID AND sla.ClassMask != 0
+		JOIN ItemSparse s ON s.ID = e.EffectItemType
+		WHERE e.Effect = %d AND s.Bonding = %d AND s.AllowableClass IN (-1, 0)`,
+		dbcenums.E_CREATE_ITEM, dbc.BIND_ON_ACQUIRE),
+		func(rows *sql.Rows) (creator, error) {
+			var c creator
+			return c, rows.Scan(&c.itemID, &c.classMask)
+		})
+	if err != nil {
+		return nil, fmt.Errorf("error loading creator class masks: %w", err)
+	}
+	masks := make(map[int]int, len(creators))
+	for _, c := range creators {
+		masks[c.itemID] |= c.classMask
+	}
+	return masks, nil
+}
+
+// Each row's class mask becomes the one LoadCreatorClassMasks derives for its item, where it derives one.
+func applyCreatorClassMasks[T any](dbHelper *DBHelper, rows []T, classMaskOf func(*T) (int, *int)) error {
+	masks, err := LoadCreatorClassMasks(dbHelper)
+	if err != nil {
+		return err
+	}
+	for i := range rows {
+		if id, classMask := classMaskOf(&rows[i]); masks[id] != 0 {
+			*classMask = masks[id]
+		}
+	}
+	return nil
 }
 
 //ItemStatEffects
@@ -932,6 +976,7 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.ClassMask,
 		&consumable.RaceMask,
 		&consumable.RequiredSkill,
+		&consumable.RequiredSkillRank,
 		&consumable.TemporaryEnchant.ID,
 		&consumable.TemporaryEnchant.Effects[0],
 		&consumable.TemporaryEnchant.Effects[1],
@@ -1031,6 +1076,7 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 				s.AllowableClass,
 				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
 				s.RequiredSkill,
+				s.RequiredSkillRank,
 				COALESCE(tsie.ID, 0),
 				COALESCE(tsie.Effect_0, 0), COALESCE(tsie.Effect_1, 0), COALESCE(tsie.Effect_2, 0),
 				COALESCE(tsie.EffectPointsMin_0, 0), COALESCE(tsie.EffectPointsMin_1, 0), COALESCE(tsie.EffectPointsMin_2, 0),
@@ -1059,6 +1105,9 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 	consumables, err := LoadRows(dbHelper.db, query, ScanConsumable)
 	if err != nil {
 		return nil, fmt.Errorf("error loading consumables: %w", err)
+	}
+	if err := applyCreatorClassMasks(dbHelper, consumables, func(c *dbc.Consumable) (int, *int) { return c.Id, &c.ClassMask }); err != nil {
+		return nil, err
 	}
 
 	fmt.Println("Loaded Consumables:", len(consumables))

@@ -150,11 +150,9 @@ message HunterOptions {
 message Hunter {
 	message Rotation {
 		bool melee_weave = 1;
-		int32 time_to_weave = 8;
+		int32 time_to_weave = 2;
 		bool use_multi = 3;
 		bool use_arcane = 4;
-
-		reserved 2, 5, 6, 7, 9;
 	}
 	message Options {
 		HunterOptions class_options = 1;

@@ -1,4 +1,4 @@
-import { BulkSettings, DistributionMetrics, ProgressMetrics } from '@generated/proto/api';
+import { BulkSettings, ProgressMetrics } from '@generated/proto/api';
 import i18n from '@i18n/config';
 import type { BulkSimReforgeCacheProgress } from '@sim/bulk/reforge_cache';
 import { BulkResults, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
@@ -13,7 +13,7 @@ import { RequestTypes } from '@sim/sim_signal_manager';
 import { toastManager } from '@ui-kit/Toast';
 
 import { trackEvent } from '../../../tracking/utils';
-import { runCoreBulkSim as runCoreBulkSimImpl } from './core_sim';
+import { type CoreBulkSimResult, runCoreBulkSim as runCoreBulkSimImpl } from './core_sim';
 import { BulkProgress, candidateGearProgress, simProgress } from './progress';
 import { createBulkSettingsProto } from './settings';
 import { buildTieChains } from './tie_chains';
@@ -158,7 +158,7 @@ const runCoreBulkSim = async (
 	signal: AbortSignal,
 	reforgeConfig?: ReforgeOptimizeConfig,
 	bulkSettings?: BulkSettings,
-): Promise<{ referenceDpsMetrics: DistributionMetrics; topGearResults: TopGearResult[]; metrics: Record<string, string | number> }> => {
+): Promise<CoreBulkSimResult> => {
 	const { player } = host;
 	return runCoreBulkSimImpl(
 		{
@@ -285,7 +285,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 		rankedResults.push(originalGearResults);
 		rankedResults.sort((a, b) => b.dpsMetrics.avg - a.dpsMetrics.avg);
 
-		const resultIterations = Math.max(1, sim.getIterations());
+		const resultIterations = Math.max(1, bulkSimResult.iterations || sim.getIterations());
 		results = {
 			chains: buildTieChains(rankedResults, originalGearResults, resultIterations),
 			originalGearResults,

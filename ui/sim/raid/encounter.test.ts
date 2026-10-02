@@ -35,34 +35,20 @@ const presetEncounter = () =>
 	});
 
 describe('Encounter', () => {
-	describe('applyPreset', () => {
-		it('stores a copy of every preset target, down to the nested target inputs', () => {
-			const preset = presetEncounter();
-			const dbTarget = preset.targets[0].target!;
-			const encounter = makeEncounter();
+	it.each([
+		['applyPreset', (encounter: Encounter, preset: PresetEncounter) => encounter.applyPreset(preset)],
+		['applyPresetTarget', (encounter: Encounter, preset: PresetEncounter) => encounter.applyPresetTarget(preset.targets[0], 0)],
+	] as const)('%s stores a copy of the preset target, down to the nested target inputs', (_name, apply) => {
+		const preset = presetEncounter();
+		const dbTarget = preset.targets[0].target!;
+		const encounter = makeEncounter();
 
-			encounter.applyPreset(preset);
+		apply(encounter, preset);
 
-			const stored = encounter.getTarget(0)!;
-			expect(stored).not.toBe(dbTarget);
-			expect(stored.targetInputs[0]).not.toBe(dbTarget.targetInputs[0]);
-			expect(TargetProto.equals(stored, dbTarget)).toBe(true);
-		});
-	});
-
-	describe('applyPresetTarget', () => {
-		it('stores a copy of the preset target at the given index', () => {
-			const preset = presetEncounter().targets[0];
-			const dbTarget = preset.target!;
-			const encounter = makeEncounter();
-
-			encounter.applyPresetTarget(preset, 0);
-
-			const stored = encounter.getTarget(0)!;
-			expect(stored).not.toBe(dbTarget);
-			expect(stored.targetInputs[0]).not.toBe(dbTarget.targetInputs[0]);
-			expect(TargetProto.equals(stored, dbTarget)).toBe(true);
-		});
+		const stored = encounter.getTarget(0)!;
+		expect(stored).not.toBe(dbTarget);
+		expect(stored.targetInputs[0]).not.toBe(dbTarget.targetInputs[0]);
+		expect(TargetProto.equals(stored, dbTarget)).toBe(true);
 	});
 
 	describe('area types', () => {

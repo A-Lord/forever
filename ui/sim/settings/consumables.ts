@@ -24,7 +24,7 @@ export enum ConsumableSlot {
 export interface ConsumableUser {
 	getClass(): Class;
 	getRace(): Race;
-	hasProfession(profession: Profession): boolean;
+	hasProfession(profession: Profession, rank?: number): boolean;
 	getEquippedItem(slot: ItemSlot): EquippedItem | null;
 	getSpecConfig(): Pick<SpecConfigData<any>, 'epStats' | 'consumableStats' | 'epPseudoStats' | 'displayStats'>;
 }
@@ -185,7 +185,7 @@ const STAT_TYPES = [
 	ConsumableType.ConsumableTypeElixir,
 ];
 
-// Whether the settings offer the consumable to this player: the class, race and profession the
+// Whether the settings offer the consumable to this player: the class, race, profession and skill the
 // game files allow it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
 // resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
 // (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
@@ -198,7 +198,8 @@ export function isConsumableRelevant(
 	pseudoStats = consumablePseudoStatsOf(user.getSpecConfig()),
 ): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
-	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession)) return false;
+	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession, consumable.reqProfRank))
+		return false;
 	if (consumable.raceAllowlist.length && !consumable.raceAllowlist.includes(user.getRace())) return false;
 
 	const { grantedStats, grantedPseudoStats, restores } = factsOf(consumable, db);
@@ -212,8 +213,8 @@ export function isConsumableRelevant(
 	return !grantedStats.length && !grantedPseudoStats.length && !restores.length && !STAT_TYPES.includes(consumable.type);
 }
 
-// Roman-numeral ranks of one consumable share a name up to the numeral; the settings offer the
-// highest of those the player could use, so an unusable top rank leaves a usable lower one offered.
+// Roman-numeral ranks of one consumable share a name up to the numeral; a sim request lists the
+// highest of those the player could use, so an unusable top rank leaves a usable lower one listed.
 const RANK_SUFFIX = / (I|II|III|IV|V|VI|VII|VIII|IX|X)$/;
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
@@ -234,39 +235,31 @@ const rankLadders = (consumables: ReadonlyArray<Consumable>): Array<Array<{ cons
 	return [...ladders.values()];
 };
 
-export function higherRanks(consumables: ReadonlyArray<Consumable>): Map<number, Array<Consumable>> {
-	const higher = new Map<number, Array<Consumable>>();
-	for (const ladder of rankLadders(consumables)) {
-		for (const { consumable, rank } of ladder) {
-			higher.set(
-				consumable.id,
-				ladder.filter(other => other.rank > rank).map(other => other.consumable),
-			);
-		}
-	}
-	return higher;
-}
-
 export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
 	const kept = new Set(rankLadders(consumables).map(ladder => ladder.reduce((best, entry) => (entry.rank > best.rank ? entry : best)).consumable));
 	return consumables.filter(consumable => kept.has(consumable));
 }
 
 // isConsumableRelevant for one spec's stats and percents, remembered for as long as the class, race
-// and the professions any of the consumables requires stay the same.
+// and the profession requirements the player meets stay the same.
 export function relevanceFor(
 	consumables: ReadonlyArray<Consumable>,
 	db: SpellEffectSource,
 	stats: Set<Stat>,
 	pseudoStats: Set<PseudoStat>,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
-	const professions = [...new Set(consumables.map(consumable => consumable.requiredProfession))].filter(
-		profession => profession !== Profession.ProfessionUnknown,
-	);
+	const requirements = [
+		...new Map(
+			consumables
+				.filter(consumable => consumable.requiredProfession !== Profession.ProfessionUnknown)
+				.map(consumable => [`${consumable.requiredProfession}:${consumable.reqProfRank}`, consumable] as const),
+		),
+	];
 	let key = '';
 	let relevant = new Map<Consumable, boolean>();
 	return (consumable, user) => {
-		const userKey = `${user.getClass()}:${user.getRace()}:${professions.filter(profession => user.hasProfession(profession))}`;
+		const met = requirements.filter(([, requirement]) => user.hasProfession(requirement.requiredProfession, requirement.reqProfRank));
+		const userKey = `${user.getClass()}:${user.getRace()}:${met.map(([requirementKey]) => requirementKey)}`;
 		if (userKey !== key) {
 			key = userKey;
 			relevant = new Map();

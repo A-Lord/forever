@@ -1,4 +1,4 @@
-import { useActionId } from '@ui-kit/hooks/useActionId';
+import { useActionId } from '@sim/hooks/useActionId';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 import { memo } from 'react';
 
@@ -13,13 +13,14 @@ export interface RotationRowProps {
 	/** The row's item indexes inside the current track window, ascending. */
 	items: ReadonlyArray<number>;
 	onHide: (key: string) => void;
+	hideTooltipId?: string;
 }
 
 /**
  * Memoised on the row and its item window: a frame that leaves both alone — every vertical scroll,
  * and every horizontal one that does not cross an item's edge — never renders the row again.
  */
-export const RotationRow = memo(({ row, items, onHide }: RotationRowProps) => {
+export const RotationRow = memo(({ row, items, onHide, hideTooltipId }: RotationRowProps) => {
 	// Every cast in a row is the same action, so the icon is resolved once here rather than per item.
 	const { iconUrl } = useActionId(row.kind === 'resource' || row.kind === 'gcd' ? undefined : row.actionId);
 
@@ -38,6 +39,7 @@ export const RotationRow = memo(({ row, items, onHide }: RotationRowProps) => {
 					)
 				}
 				onHide={() => onHide(row.key)}
+				hideTooltipId={hideTooltipId}
 			/>
 			<div data-testid="rotation-row-track" className="ui-timeline-row-track">
 				{items.map(index => (

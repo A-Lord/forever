@@ -18,6 +18,7 @@
 		}
 	},
 	"common": {
+		"new": "New",
 		"none": "None",
 		"custom": "Custom",
 		"name": "Name",
@@ -28,6 +29,8 @@
 		"cancel": "Cancel",
 		"confirm": "Confirm",
 		"delete": "Delete",
+		"clear": "Clear",
+		"help": "Help",
 		"saved_data": {
 			"delete_title": "Delete saved {{label}}",
 			"delete_confirm": "Delete saved {{label}} '{{name}}'?",
@@ -263,10 +266,12 @@
 			"delete_item": "Delete {{itemLabel}}",
 			"copy_to_new": "Copy to New {{itemLabel}}",
 			"move_drag_drop": "Move (Drag+Drop)",
+			"item_actions": "{{itemLabel}} menu",
 			"warnings": "Warnings",
 			"additional_information": "Additional Information:",
 			"action_has_warnings": "This action has warnings, and might not behave as expected.",
-			"action_has_errors": "This action has errors, and will not behave as expected."
+			"action_has_errors": "This action has errors, and will not behave as expected.",
+			"toggle_item": "Show or hide {{itemLabel}}"
 		},
 		"preset": {
 			"ep_weights": "EP Weights",
@@ -393,6 +398,8 @@
 				"item": "Item",
 				"source": "Source"
 			},
+			"sorted_ascending": "sorted ascending",
+			"sorted_descending": "sorted descending",
 			"show_ep": "Show EP",
 			"armor_type": "Armor Type",
 			"weapon_type": "Weapon Type",
@@ -674,6 +681,23 @@
 		},
 		"consumables": {
 			"title": "Consumables",
+			"filters": {
+				"title": "Consumable filters",
+				"min_lvl": "Minimum required level",
+				"reset": "Reset to defaults",
+				"types": {
+					"potion": "Potions",
+					"conjured": "Conjured",
+					"flask": "Flasks",
+					"elixir": "Elixirs",
+					"scroll": "Scrolls",
+					"food": "Food",
+					"explosive": "Explosives",
+					"imbue": "Imbues",
+					"device": "Devices",
+					"other": "Other"
+				}
+			},
 			"potions": {
 				"title": "Potions",
 				"prepop": "Prepop Potion",
@@ -686,7 +710,7 @@
 				"title": "Food"
 			},
 			"engineering": {
-				"title": "Engineering",
+				"title": "Explosives",
 				"explosives": "Explosives"
 			},
 			"imbue": {
@@ -896,7 +920,6 @@
 	},
 	"bulk_tab": {
 		"title": "Batch",
-		"title_badge": "New",
 		"description": "<span className=\"bold\">Batch Simming</span> is a new feature akin to the <span className=\"bold\">Top Gear</span> sim on <a href=\"https://raidbots.com\" target=\"_blank\">Raidbots.com</a> that allows you to select multiple items and sim them find the best combinations.<br />This is an <span className=\"text-brand\">Alpha</span> feature, so if you have feedback or find a bug, please report it!",
 		"download_native": "Download the local sim for faster results.",
 		"tabs": {
@@ -922,19 +945,14 @@
 			"item_unique": "{{itemName}} is unique and already added."
 		},
 		"settings": {
-			"combinations_count": "{{amount}} Combinations",
-			"combination_singular": "1 Combination",
+			"combinations": "Combinations",
+			"total_iterations": "Estimated iterations",
 			"groups": {
-				"options": "Batch options",
 				"frozen_slots": "Frozen slots",
 				"reforge": "Gem settings",
 				"reforge_description": "These are the same settings the Suggest Gems button uses. The batch sim applies them to every gear set it simulates."
 			},
 			"iterations": "Iterations",
-			"use_legacy_bulk_sim": {
-				"label": "Use legacy single-stage sim",
-				"tooltip": "By default, Bulk Sim runs large batches in multiple stages: a low-iteration pass to find likely contenders, a medium-iteration refinement pass, and a final high-iteration pass for the best remaining gear sets. Enable this only to force the legacy high-stage-only behavior."
-			},
 			"freeze_ring": {
 				"label": "Freeze ring slot",
 				"tooltip": "Freeze one equipped ring to reduce combination counts"
@@ -978,6 +996,7 @@
 		"picker": {
 			"no_items": "No items selected.",
 			"remove_tooltip": "Remove this item from the batch.",
+			"frozen_tooltip": "This slot is frozen: the batch keeps this item.",
 			"failed_update": "Failed to update item, please report this issue.",
 			"failed_remove": "Failed to remove item, please report this issue."
 		},
@@ -2450,17 +2469,27 @@
 		"results": {
 			"stop": "Stop",
 			"stopping": "Stopping...",
+			"last_run": "Last run",
+			"reference_run": "Reference run",
+			"freshness": {
+				"fresh": "Up to date",
+				"stale": "Outdated"
+			},
 			"progress": {
+				"running": "Simulating",
+				"starting": "starting",
 				"presim_running": "presimulations running",
-				"iterations_complete": "iterations complete"
+				"iterations": "{{completed}} / {{total}} iterations",
+				"time_remaining": "{{time}} remaining"
 			},
 			"reference": {
-				"save_as_reference": "Save as Reference",
+				"save_as_reference": "Set as reference",
 				"use_as_reference": "Use as reference",
 				"swap": "Swap",
 				"swap_reference_with_current": "Swap reference with current",
 				"cancel": "Cancel",
-				"remove_reference": "Remove reference",
+				"unset": "Unset",
+				"remove_reference": "Unset reference",
 				"vs_ref": "vs ref"
 			},
 			"metrics": {
@@ -2512,6 +2541,22 @@
 		},
 		"character_stats": {
 			"title": "Stats",
+			"mode": {
+				"label": "Stats shown",
+				"key": "Key",
+				"all": "All"
+			},
+			"groups": {
+				"attributes": "Attributes",
+				"physical": "Physical",
+				"spell": "Spell",
+				"defense": "Defense",
+				"resistance": "Resistances"
+			},
+			"hands": {
+				"main": "MH",
+				"off": "OH"
+			},
 			"melee_crit_cap": "Melee Crit Cap",
 			"tooltip": {
 				"base": "Base:",
