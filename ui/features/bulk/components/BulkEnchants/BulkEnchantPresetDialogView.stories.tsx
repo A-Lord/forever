@@ -5,11 +5,11 @@ import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
 import { BulkEnchantPresetDialogView } from './BulkEnchantPresetDialogView';
-import { BulkEnchantTile } from './BulkEnchantTile';
+import { BulkEnchantTileView } from './BulkEnchantTileView';
 
 const tiles = (enchants: Array<[string, string | undefined, boolean]>) =>
 	enchants.map(([name, effect, checked]) => (
-		<BulkEnchantTile key={name} name={name} effect={effect} iconUrl={wowheadIconUrl('inv_misc_note_01')} checked={checked} onToggle={fn()} />
+		<BulkEnchantTileView key={name} name={name} effect={effect} iconUrl={wowheadIconUrl('inv_misc_note_01')} checked={checked} onToggle={fn()} />
 	));
 
 const meta = {

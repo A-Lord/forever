@@ -1,6 +1,5 @@
-import { useEnchantDescription } from '@features/gear/hooks/useEnchantDescription';
 import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
-import { byLvlDescending, enchantActionId } from '@features/gear/model/item_data';
+import { byLvlDescending } from '@features/gear/model/item_data';
 import { formatSearchQuery } from '@features/gear/model/item_search';
 import { ItemSlot } from '@generated/proto/common';
 import type { BulkEnchantPreset, UIEnchant as Enchant } from '@generated/proto/ui';
@@ -8,12 +7,10 @@ import i18n from '@i18n/config';
 import { translateBulkSlotName } from '@i18n/localization';
 import { ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT } from '@sim/bulk/utils';
 import { usePlayer } from '@sim/context/SimHostContext';
-import { useActionId } from '@sim/hooks/useActionId';
-import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
 import { useSimReady } from '@sim/hooks/useSimReady';
 import { useSimStore } from '@sim/hooks/useSimStore';
 import { isOffHandOnlyEnchant } from '@sim/proto/items';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useBulkState } from '../../hooks/useBulkState';
 import { BULK_ENCHANT_SLOTS, saveBulkEnchantPreset, validateBulkEnchantPresetName } from '../../model/enchants';
@@ -38,33 +35,6 @@ const slotLabel = (slot: ItemSlot): string => {
 	if (slot === ItemSlot.ItemSlotOffHand) return i18n.t('bulk_tab.settings.enchant_presets.slot_off_hand');
 	return translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(slot)!);
 };
-
-interface EnchantTileProps {
-	slot: ItemSlot;
-	enchant: Enchant;
-	checked: boolean;
-	onToggle: (slot: ItemSlot, effectId: number) => void;
-}
-
-const EnchantTile = memo(({ slot, enchant, checked, onToggle }: EnchantTileProps) => {
-	const actionId = useMemo(() => enchantActionId(enchant), [enchant]);
-	const { iconUrl, href } = useActionId(actionId);
-	const wowhead = useActionIdWowheadDataset(actionId);
-	const description = useEnchantDescription(enchant);
-	const toggle = useCallback(() => onToggle(slot, enchant.effectId), [onToggle, slot, enchant]);
-
-	return (
-		<BulkEnchantTile
-			name={enchant.name}
-			effect={description === enchant.name ? undefined : description}
-			iconUrl={iconUrl}
-			href={href}
-			wowhead={wowhead}
-			checked={checked}
-			onToggle={toggle}
-		/>
-	);
-});
 
 export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPresetDialogProps) => {
 	const player = usePlayer();
@@ -164,7 +134,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 				checkedCount: selected.get(slot)?.length ?? 0,
 				// One tile per enchant row; rows that share an effect id are one enchant to the sim, so they tick together.
 				tiles: enchants.map(enchant => (
-					<EnchantTile
+					<BulkEnchantTile
 						key={`${enchant.effectId}-${enchant.name}`}
 						slot={slot}
 						enchant={enchant}

@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantTile } from './BulkEnchantTile';
+import { BulkEnchantTileView } from './BulkEnchantTileView';
 
 const meta = {
-	title: 'Features/Bulk/BulkEnchants/BulkEnchantTile',
-	component: BulkEnchantTile,
+	title: 'Features/Bulk/BulkEnchants/BulkEnchantTileView',
+	component: BulkEnchantTileView,
 	tags: ['autodocs'],
 	args: {
 		name: 'Enchant Cloak - Greater Agility',
@@ -23,7 +23,7 @@ const meta = {
 			</div>
 		),
 	],
-} satisfies Meta<typeof BulkEnchantTile>;
+} satisfies Meta<typeof BulkEnchantTileView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
