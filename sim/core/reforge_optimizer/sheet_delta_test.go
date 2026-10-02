@@ -14,8 +14,8 @@ import (
 	protopkg "google.golang.org/protobuf/proto"
 )
 
-// A protection warrior's gear on a character that parries, which is all the sheet reads off the
-// warrior: blocking follows the shield.
+// A protection warrior's gear on a character that can parry. The sheet reads nothing else off the
+// warrior, and blocking comes with the shield.
 func init() {
 	testagent.RegisterAsProtectionWarrior(func(agent *testagent.Agent) {
 		agent.PseudoStats.CanParry = true

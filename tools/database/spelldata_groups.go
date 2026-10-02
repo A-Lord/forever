@@ -18,20 +18,20 @@ import (
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
-// A partial update takes some spell data groups of the game files database into the store and keeps
-// every other row as the committed inputs state it, so one class can move onto a new game build while
-// the others stay on the build their code was written against.
+// A partial update takes only some spell data groups from the game files database. Every other row
+// stays as the committed inputs have it, so one class can move to a new game build while the others
+// stay on the build their code was written for.
 //
-// A spell data group - a group, below - is one of the nine classes (by package name), racials, items or
-// shared. A row belongs to a group by the first of these that holds:
+// A spell data group (a group, below) is one of the nine classes by package name, racials, items or
+// shared. A row belongs to the group the first matching rule names:
 //
-//   - it is a hand-kept extra spell marked racials (the Eureka! rows);
-//   - it states a class family: its flags are that class's, so it moves with that class's spells,
-//     wherever it is reached from (a set bonus, an enchant's class buff);
-//   - a group's roots reach it. A row more than one group reaches moves when any of them does.
+//   - a hand-kept extra spell marked racials (the Eureka! rows) belongs to racials;
+//   - a row that states a class family belongs to that class wherever it is reached from (a set
+//     bonus, an enchant's class buff), because its flags are that class's;
+//   - any other row belongs to the groups whose roots reach it, and moves when any of them is taken.
 //
-// Items and shared are always taken: the item database gen_db writes is not split, and the store's
-// item rows have to match it.
+// Every run takes items and shared. gen_db writes the item database whole, and the store's item rows
+// have to match it.
 const (
 	groupItems   = "items"
 	groupRacials = "racials"
@@ -54,13 +54,12 @@ func allSpellDataGroups() []string {
 	return append(classGroups(), groupRacials, groupItems, groupShared)
 }
 
-// The groups a run takes from the game files database. Nil takes every one, which is a full
-// regeneration.
+// The groups a run takes from the game files database. Nil means every group: a full regeneration.
 type SpellDataGroups map[string]bool
 
-// The groups -classes and -racials name, with items and shared, which are always taken. classes is a
-// comma-separated list of class package names, "all" or "none". Naming neither is the default
-// selection, which is nil here.
+// The groups -classes and -racials name, plus items and shared, which every run takes. classes is a
+// comma-separated list of class package names, "all" or "none". With neither flag set it returns nil,
+// the default selection.
 func ParseSpellDataGroups(classes string, racials bool) (SpellDataGroups, error) {
 	classes = strings.TrimSpace(classes)
 	if classes == "" && !racials {
@@ -108,9 +107,8 @@ func buildVersion(helper *DBHelper) (string, error) {
 	return version, nil
 }
 
-// The groups whose committed build is the one the database was extracted from, which is what -check
-// renders: a group on another build is not ported yet, not stale. Inputs that record no builds are
-// checked whole.
+// The groups whose committed build matches the database's. -check compares only these and reports a
+// group on another build as not ported. Inputs that record no builds are checked whole.
 func currentSpellDataGroups(builds map[string]string, version string) (only SpellDataGroups, behind []string) {
 	if builds == nil {
 		return nil, nil
@@ -131,10 +129,10 @@ func currentSpellDataGroups(builds map[string]string, version string) (only Spel
 	return only, behind
 }
 
-// The groups a run that names none takes. While the committed inputs record one game build for
-// every group, that is all of them: a full regeneration. Once a partial update has left groups on
-// different builds, it is the ones on the database's build, so a run that names no groups never
-// moves a class that has not been ported.
+// The groups a run takes when it names none. While every group records the same game build, that is
+// all of them: a full regeneration. Once a partial update has left groups on different builds, it is
+// only the groups on the database's build, so a plain run never moves a class that has not been
+// ported.
 func defaultSpellDataGroups(helper *DBHelper) (SpellDataGroups, []string, error) {
 	builds, err := readCommittedBuilds()
 	if err != nil {
@@ -155,8 +153,8 @@ func defaultSpellDataGroups(helper *DBHelper) (SpellDataGroups, []string, error)
 	return only, behind, nil
 }
 
-// The groups a run takes: the ones -classes and -racials name, or, naming neither, the default groups,
-// with a line for each group the default leaves on its committed build.
+// The groups a run takes: the ones -classes and -racials name, or the default groups when neither is
+// set, with a line for each group the default leaves on its committed build.
 func ResolveSpellDataGroups(helper *DBHelper, classes string, racials bool) (SpellDataGroups, []string, error) {
 	only, err := ParseSpellDataGroups(classes, racials)
 	if err != nil || only != nil {
@@ -165,9 +163,9 @@ func ResolveSpellDataGroups(helper *DBHelper, classes string, racials bool) (Spe
 	return defaultSpellDataGroups(helper)
 }
 
-// The ids each group is rooted at: its captured roots, plus the hand-kept extra spells and buff
+// The ids each group starts from: its captured roots, plus the hand-kept extra spells and buff
 // manifest rows that belong to it. The extras and the manifest are not captured as roots (see
-// withExtraIDs), so they are added here, the same way on every set of inputs.
+// withExtraIDs), so they are added here, the same way for every set of inputs.
 func groupSeeds(roots map[string][]int32) map[string][]int32 {
 	seeds := map[string][]int32{}
 	for p, ids := range roots {
@@ -222,7 +220,7 @@ func (o rowOwners) has(id int32) bool {
 	return len(o.reached[id]) > 0
 }
 
-// Worked out once per set of inputs: the merge and the change report both ask.
+// Computed once per set of inputs, since the merge and the change report both need it.
 func ownersOf(in *storeInputs) rowOwners {
 	if in.owners != nil {
 		return *in.owners
@@ -257,9 +255,9 @@ func rootUnion(t *spellTables, roots map[string][]int32) []int32 {
 	return namedIDs(t, lists...)
 }
 
-// A committed root of a group that is not taken never moves: that group's committed class file
-// names the row, so it keeps the row it was written against. Otherwise a row moves with the group
-// that places it, or, where no group does, when a taken group reaches it.
+// A committed root of a group that is not taken never moves, because that group's committed class
+// file names the row and was written against it. Any other row moves with the group its racials tag or
+// family names, or, when it has neither, as soon as a taken group reaches it.
 func (o rowOwners) taken(id int32, only SpellDataGroups, kept map[int32]bool) bool {
 	if kept[id] {
 		return false
@@ -270,10 +268,10 @@ func (o rowOwners) taken(id int32, only SpellDataGroups, kept map[int32]bool) bo
 	return slices.ContainsFunc(o.reached[id], only.Takes)
 }
 
-// The inputs of a partial update: fresh's rows, roots, talent nodes and builds for the groups only
-// takes, and old's for the rest. The notes name what the merge decided that the rules alone would not
-// show: an adoption of inputs that record no groups, a spell taken because the new build adds it, a
-// name dropped, and racial rows on another build than their class.
+// The inputs of a partial update. Rows, roots, talent nodes and builds come from fresh for the groups
+// only takes and from old for the rest. The notes report what the rules alone would not show: inputs
+// that record no groups being adopted, a spell taken because the new build adds it, a dropped name,
+// and racial rows on a different build from their class.
 func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version string) (*storeInputs, []string, error) {
 	var notes []string
 	if old.SpellDataGroupRoots == nil {
@@ -297,10 +295,10 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 
 	oldOwners, freshOwners := ownersOf(old), ownersOf(fresh)
 
-	// The committed store's ids are the ones its inputs carry rows for: Names holds every spell of the
-	// build, so a hand-kept seed added since is named there without being carried. A taken row takes the
-	// new build's version, unless the new build still names the spell and no longer reaches it: its rows
-	// were not captured then, and the committed row stays for the kept rows that still reach it.
+	// The committed store's ids are the ones its inputs have rows for. Names lists every spell of the
+	// build, so a hand-kept seed added since is named there without being carried. A taken row gets the
+	// new build's version, except when the new build still names the spell but no longer reaches it. Its
+	// rows were not captured then, so the committed row stays for the kept rows that still reach it.
 	oldIDs := map[int32]bool{}
 	moved := map[int32]bool{}
 	for id := range oldOwners.reached {
@@ -330,10 +328,10 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 		roots[p] = source(p).SpellDataGroupRoots[p]
 	}
 
-	// A spell the committed store does not carry, which a taken row or root, a hand-kept extra spell or
-	// a buff manifest row reaches on the new build, is one the new build adds. No committed file names it,
-	// so it comes from the new build whichever group it belongs to. Only rows taken from the new build are
-	// followed: a kept row reaches what its committed version names.
+	// A spell the committed store does not carry is one the new build adds, when a taken row or root, a
+	// hand-kept extra spell or a buff manifest row reaches it on the new build. No committed file names
+	// it, so it comes from the new build whatever its group. The walk follows only rows taken from the
+	// new build, because a kept row reaches what its committed version names.
 	queue := slices.Sorted(maps.Keys(moved))
 	for _, p := range allSpellDataGroups() {
 		if only.Takes(p) {
@@ -377,8 +375,8 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	}
 	union := rootUnion(t, roots)
 
-	// A moved row can name an id the committed store's build names and does not carry, where the new
-	// build names it no longer: the name is dropped, so the store carries no row of a name alone.
+	// A moved row can name a spell that the committed build names, the store does not carry, and the
+	// new build no longer names. Its name is dropped, so the store has no row that is only a name.
 	var ids []int32
 	for {
 		extended, err := withExtraIDs(t, union)
@@ -432,13 +430,13 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	return merged, append(notes, racialBuildWarnings(merged)...), nil
 }
 
-// Inputs that record no groups, split by group the way fresh splits the same ids.
-// A talent node takes the class and tree of the fresh node with its definition, else of its spell's
-// family, else of the node before it, since a tree's nodes are captured together. A root goes to items
-// when it is a gear root, else to the class of the talent node granting it, else to the first group
-// whose fresh roots hold it, else to the class its family names, else to shared, which the notes list:
-// a spell the new build dropped that names no class is the one case this cannot place. Their builds
-// are unrecorded.
+// Splits inputs that record no groups the way fresh splits the same ids. A talent node takes the class
+// and tree of the fresh node with the same definition; failing that, of its spell's family; failing
+// that, of the node before it, since a tree's nodes are captured together. A root goes to items if it is
+// a gear root, otherwise to the first of: the class of the talent node granting it, the first group
+// whose fresh roots hold it, the class its family names. A root none of these place goes to shared and
+// is listed in the notes; only a spell the new build dropped that names no class ends up there. The
+// adopted builds are unrecorded.
 func adoptSpellDataGroups(old, fresh *storeInputs) (*storeInputs, []string, error) {
 	adopted := *old
 	adopted.owners = nil
@@ -507,9 +505,9 @@ func adoptSpellDataGroups(old, fresh *storeInputs) (*storeInputs, []string, erro
 	return &adopted, notes, nil
 }
 
-// The groups a run takes that the committed inputs record on a later game build than the database's,
-// which taking would move back. A build is compared by its trailing build number, the part that grows
-// with every build; one that names none cannot be ordered and is not reported.
+// The taken groups that the committed inputs record on a later game build than the database's. Taking
+// them would move them back a build. Builds are compared by their trailing build number, which grows
+// with every build; a build without one cannot be ordered and is skipped.
 func groupsOnALaterBuild(committed *storeInputs, only SpellDataGroups, version string) []string {
 	database, ok := buildNumber(version)
 	if !ok {
@@ -536,8 +534,8 @@ func describeBuild(build string) string {
 	return build
 }
 
-// A racial row states the class flags of the class it serves, so it reads that class's spells right
-// only while both are on the same game build.
+// A racial row states the class flags of the class it serves, so it matches that class's spells only
+// while both are on the same game build.
 func racialBuildWarnings(in *storeInputs) []string {
 	var warnings []string
 	for _, id := range slices.Sorted(maps.Keys(racialExtraIDs())) {
@@ -551,8 +549,8 @@ func racialBuildWarnings(in *storeInputs) []string {
 	return warnings
 }
 
-// The positions of spellTables' tables: its exported maps, every one keyed by spell id. Walking them
-// rather than naming them keeps a table added later in the clone, the move and the report.
+// The field indices of spellTables' tables: its exported maps, all keyed by spell id. Walking them by
+// index means a table added later is cloned, moved and reported without another edit.
 var tableFields = sync.OnceValue(func() []int {
 	tables := reflect.TypeFor[spellTables]()
 	var fields []int
@@ -576,7 +574,7 @@ func cloneTables(t *spellTables) *spellTables {
 	return clone
 }
 
-// The id's rows in into become the ones in from, and a table from has no row for loses it.
+// Each of into's rows for the id becomes from's row for it; where from has none, into's row goes too.
 func moveRow(into, from *spellTables, id int32) {
 	to, source, key := reflect.ValueOf(into).Elem(), reflect.ValueOf(from).Elem(), reflect.ValueOf(id)
 	for _, i := range tableFields() {
@@ -595,8 +593,8 @@ func hasRows(t *spellTables, id int32) bool {
 	return false
 }
 
-// The siblings of each group's reach, added to that group's roots: a rank that reads its number
-// off a same-name sibling belongs to the group of the rank.
+// Each group's roots with the siblings of its reach: a rank that reads its number off a same-name
+// sibling belongs to the rank's group.
 func withSiblings(db *sql.DB, t *spellTables, roots map[string][]int32) (map[string][]int32, error) {
 	seeds := groupSeeds(roots)
 	reaches := map[string][]int32{}

@@ -1249,8 +1249,8 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups, committed *sto
 		pkg := classGroup(class)
 		out, files, roots, err := discoverClass(helper.db, class, pkg, trees, runeOnly)
 		if err != nil {
-			// A class the run does not take keeps its committed rows and files, so a new build it cannot
-			// read yet is its port's to fix, not the run's.
+			// A class the run does not take keeps its committed rows and files. When the new build
+			// breaks its discovery, the class's own port fixes that.
 			if only.Takes(pkg) {
 				return nil, nil, err
 			}

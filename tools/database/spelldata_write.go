@@ -174,9 +174,9 @@ func GenerateSpellDataFiles(helper *DBHelper, unchecked bool, only SpellDataGrou
 }
 
 // The committed files that no longer match what the generator writes, for a caller that wants to
-// know rather than to regenerate. Silent on the way there: its output is the list it returns, and the
-// spell data groups on another game build than the database, which are not ported rather than stale
-// and are rendered from the committed inputs.
+// know rather than to regenerate. Silent on the way there: its output is the lists it returns. behind
+// names the spell data groups recorded on a different game build from the database's. Those are not
+// ported yet, and their files are rendered from the committed inputs.
 func CheckSpellDataFiles(helper *DBHelper) (stale []string, behind []string, err error) {
 	progress = io.Discard
 	defer func() { progress = os.Stderr }()

@@ -67,7 +67,7 @@ type storeInputs struct {
 
 	// Roots by spell data group, whose union is Roots, and the game build each group's rows were taken
 	// from. A partial update takes some groups from the database and keeps the others as they are
-	// here - see spelldata_groups.go.
+	// here (see spelldata_groups.go).
 	SpellDataGroupRoots map[string][]int32
 	Builds              map[string]string
 

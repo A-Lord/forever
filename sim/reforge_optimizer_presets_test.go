@@ -19,8 +19,8 @@ import (
 )
 
 // The committed coverage fixtures (<name>.test.json) the optimizer is run against. Each is a real spec's
-// preset, named after the optimizer behaviour it guards rather than the spec it was captured from, so
-// the test lives here with every class registered rather than in the optimizer's own package.
+// preset, named after the optimizer behaviour it guards. Running a real spec's preset needs every
+// class registered, so the test lives here and the optimizer's own package stays free of classes.
 const reforgeFixturesDir = "core/reforge_optimizer/test-fixtures"
 
 func TestReforgerOptimizer(t *testing.T) {

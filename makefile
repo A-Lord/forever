@@ -253,10 +253,10 @@ WOW_DIR ?=
 ifneq ($(WOW_DIR),)
 DB2TOOL_FLAGS += --basedir "$(WOW_DIR)"
 endif
-# What of the extracted build `make db`, `make ptrdb` and `make spelldata` take into the tree:
-# `make db CLASSES=druid` moves the druid and keeps every other class as committed, `RACIALS=1` moves
-# the racials, and `CLASSES=all` or `CLASSES=none` name every class or none. Setting neither takes the
-# default spell data groups. See "Taking a new game build one spell data group at a time" in
+# CLASSES and RACIALS choose what `make db`, `make ptrdb` and `make spelldata` take from the extracted
+# build. `make db CLASSES=druid` takes the druid and keeps every other class as committed;
+# `CLASSES=all` and `CLASSES=none` name every class or none. `RACIALS=1` takes the racials. With
+# neither set, the run takes the default spell data groups. See "Taking a new game build one spell data group at a time" in
 # docs/spell_data.md.
 CLASSES ?=
 RACIALS ?=
@@ -332,8 +332,8 @@ update-tests:
 
 # Names the generated spell data files that are not what tools/database/gen_spelldata writes
 # today, and writes nothing. Exits 1 with the paths when the committed files have drifted, which a
-# game files update or a hand edit both do. A spell data group the inputs record on another game build
-# than the database is printed as not ported and does not fail it. Needs tools/database/wowsims.db.
+# game files update or a hand edit both do. A spell data group the inputs record on a different game
+# build from the database's is printed as not ported, and the check still passes. Needs tools/database/wowsims.db.
 .PHONY: spelldata-check
 spelldata-check:
 	go run ./tools/database/gen_spelldata -check
