@@ -1,6 +1,6 @@
 import { addBulkItem, hasBulkItem, removeBulkItem } from '@features/bulk/model/items';
 import { ItemSlot, ItemSpec } from '@generated/proto/common';
-import { UIItem as Item } from '@generated/proto/ui';
+import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import { isIndividualSimHost } from '@sim/sim_host';
@@ -8,6 +8,7 @@ import { type ReactNode, useMemo } from 'react';
 import { useStore } from 'zustand';
 
 import { trackEvent } from '../../../../tracking/utils';
+import { tabSortsByEP } from '../../model/item_sort';
 import type { ItemData, ItemListType } from '../../types';
 import { SelectorModalTabs } from '../../types';
 import { ItemNoticeIcon } from '../GearPicker/ItemNoticeIcon';
@@ -43,9 +44,9 @@ export const ItemListRow = ({
 }: ItemListRowProps) => {
 	const host = useSimHost();
 	const { iconUrl, href } = useActionId(itemData.actionId);
-	const showEp = ![ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2].includes(slot);
 	const isItemsTab = label === SelectorModalTabs.Items;
 	const isEnchantsTab = label === SelectorModalTabs.Enchants;
+	const level = isEnchantsTab ? (itemData.item as unknown as Enchant).lvl : isItemsTab ? itemData.ilvl || (itemData.item as unknown as Item).ilvl : undefined;
 
 	const batchPlayer = isIndividualSimHost(host) ? host.player : null;
 	const batchSpec = useMemo(() => ItemSpec.create({ id: itemData.id }), [itemData.id]);
@@ -66,12 +67,12 @@ export const ItemListRow = ({
 			nameDescription={itemData.nameDescription}
 			iconUrl={iconUrl}
 			href={href}
-			ilvl={isItemsTab ? itemData.ilvl || (itemData.item as unknown as Item).ilvl : undefined}
+			ilvl={level}
 			active={active}
 			onEquip={onEquip}
 			notice={<ItemNoticeIcon itemId={isEnchantsTab ? undefined : itemData.id} enchantId={isEnchantsTab ? itemData.id : undefined} />}
 			source={isItemsTab ? <ItemSource item={itemData.item as unknown as Item} sim={host.sim} /> : undefined}
-			ep={showEp ? { ep: itemEP, equippedEP } : undefined}
+			ep={tabSortsByEP(label, slot) ? { ep: itemEP, equippedEP } : undefined}
 			favourited={favourited}
 			favouriteTooltipId={favouriteTooltipId}
 			onToggleFavourite={onToggleFavourite}

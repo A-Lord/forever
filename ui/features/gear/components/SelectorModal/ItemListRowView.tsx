@@ -14,7 +14,7 @@ export interface ItemListRowViewProps extends RowActionsProps {
 	nameDescription: string;
 	iconUrl: string;
 	href: string;
-	/** The item level column; the items tab alone has one. */
+	/** The level column: an item's ilvl on the items tab, an enchant's lvl on the enchants tab. */
 	ilvl?: number;
 	active: boolean;
 	onEquip: () => void;

@@ -188,6 +188,28 @@ describe('ItemList', () => {
 		const head = setup();
 		expect(head.container.querySelector('[data-testid="selector-modal-show-ep-values"]')).not.toBeNull();
 		expect(head.container.querySelector('#show-ep-values-selector')).not.toBeNull();
+		expect(head.container.querySelector('[data-testid="ep-label"]')).not.toBeNull();
+	});
+
+	it('lists enchants by lvl, highest first with ties in the order given, and offers no EP on the enchants tab', () => {
+		const enchants = [
+			Enchant.create({ effectId: 1, name: 'Low', lvl: 20 }),
+			Enchant.create({ effectId: 2, name: 'HighFirst', lvl: 60 }),
+			Enchant.create({ effectId: 3, name: 'Mid', lvl: 40 }),
+			Enchant.create({ effectId: 4, name: 'HighSecond', lvl: 60 }),
+		];
+		const { container } = setup({
+			label: SelectorModalTabs.Enchants,
+			slot: ItemSlot.ItemSlotMainHand,
+			over: { itemData: enchants.map(enchantRow), computeEP: (candidate: any) => (candidate.effectId === 1 ? 100 : 0) },
+		});
+		expect(names(container)).toEqual(['HighFirst', 'HighSecond', 'Mid', 'Low']);
+		expect(container.querySelector('[data-testid="ep-label"]')).toBeNull();
+		expect(container.querySelector('[data-testid="selector-modal-show-ep-values"]')).toBeNull();
+		expect(container.querySelector('[data-testid="selector-modal-show-all-enchants"]')).not.toBeNull();
+
+		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"] button')!.click());
+		expect(names(container)).toEqual(['Low', 'Mid', 'HighFirst', 'HighSecond']);
 	});
 
 	it('renders the matching-gems option on a gem tab and nowhere else', () => {

@@ -3,8 +3,8 @@ import { UIEnchant, UIItem as Item } from '@generated/proto/ui';
 import { SortDirection } from '@sim/constants/other';
 import { describe, expect, it } from 'vitest';
 
-import { ItemData } from '../types';
-import { defaultSortBy, ItemListSortBy, sortItemIdxs } from './item_sort';
+import { ItemData, SelectorModalTabs } from '../types';
+import { defaultSortBy, ItemListSortBy, sortItemIdxs, tabHasLevel, tabSortsByEP } from './item_sort';
 
 const row = (id: number, ilvl: number, scalingIlvl?: number): ItemData<Item> =>
 	({
@@ -35,13 +35,32 @@ const sort = (rows: ItemData<Item>[], over: Partial<Parameters<typeof sortItemId
 	);
 
 describe('defaultSortBy', () => {
-	it('is EP for an ordinary slot', () => {
-		expect(defaultSortBy(ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.EP);
+	it('is EP for the items and gem tabs of an ordinary slot', () => {
+		expect(defaultSortBy(SelectorModalTabs.Items, ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.EP);
+		expect(defaultSortBy(SelectorModalTabs.Gem1, ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.EP);
 	});
 
-	it('is ilvl on both trinket slots, whose EP is not comparable', () => {
-		expect(defaultSortBy(ItemSlot.ItemSlotTrinket1)).toBe(ItemListSortBy.ILVL);
-		expect(defaultSortBy(ItemSlot.ItemSlotTrinket2)).toBe(ItemListSortBy.ILVL);
+	it('is level on both trinket slots and on the enchants tab of every slot, whose EP leaves procs out', () => {
+		expect(defaultSortBy(SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket1)).toBe(ItemListSortBy.ILVL);
+		expect(defaultSortBy(SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket2)).toBe(ItemListSortBy.ILVL);
+		expect(defaultSortBy(SelectorModalTabs.Enchants, ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.ILVL);
+		expect(defaultSortBy(SelectorModalTabs.Enchants, ItemSlot.ItemSlotMainHand)).toBe(ItemListSortBy.ILVL);
+	});
+});
+
+describe('tab columns', () => {
+	it('gives the EP column to every tab but the enchants tab, outside the trinket slots', () => {
+		expect(tabSortsByEP(SelectorModalTabs.Items, ItemSlot.ItemSlotChest)).toBe(true);
+		expect(tabSortsByEP(SelectorModalTabs.Gem2, ItemSlot.ItemSlotChest)).toBe(true);
+		expect(tabSortsByEP(SelectorModalTabs.Enchants, ItemSlot.ItemSlotChest)).toBe(false);
+		expect(tabSortsByEP(SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket2)).toBe(false);
+	});
+
+	it('gives the level column to the items and enchants tabs alone', () => {
+		expect(tabHasLevel(SelectorModalTabs.Items)).toBe(true);
+		expect(tabHasLevel(SelectorModalTabs.Enchants)).toBe(true);
+		expect(tabHasLevel(SelectorModalTabs.Gem1)).toBe(false);
+		expect(tabHasLevel(SelectorModalTabs.RandomSuffixes)).toBe(false);
 	});
 });
 

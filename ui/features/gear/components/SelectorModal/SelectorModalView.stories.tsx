@@ -30,6 +30,7 @@ const ItemsPane = () => (
 		/>
 		<ItemListHeaderRow
 			label={SelectorModalTabs.Items}
+			epColumn
 			showEPValues
 			epTooltipId="ep-tooltip"
 			sortBy={ItemListSortBy.EP}
@@ -60,9 +61,9 @@ const ItemsPane = () => (
 );
 
 const ENCHANTS = [
-	{ name: 'Crusader', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_holy_holysmite', ep: 12.6 },
-	{ name: 'Lifestealing', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_shadow_lifedrain', ep: 9.8 },
-	{ name: 'Fiery Weapon', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_fire_flameblades', ep: 7.1 },
+	{ name: 'Crusader', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_holy_holysmite', lvl: 60 },
+	{ name: 'Lifestealing', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_shadow_lifedrain', lvl: 60 },
+	{ name: 'Fiery Weapon', quality: ItemQuality.ItemQualityUncommon, icon: 'spell_fire_flameblades', lvl: 50 },
 ];
 
 const EnchantsPane = () => (
@@ -72,15 +73,16 @@ const EnchantsPane = () => (
 			onSearchChange={fn()}
 			phase={1}
 			onPhaseChange={fn()}
-			toggles={[{ id: 'show-ep-values-selector-enchants', testId: 'selector-modal-show-ep-values', label: 'Show EP', value: true, onChange: fn() }]}
+			toggles={[{ id: 'show-all-enchants-selector', testId: 'selector-modal-show-all-enchants', label: 'Show All', value: false, onChange: fn() }]}
 			removeLabel="Remove Enchant"
 			onRemove={fn()}
 		/>
 		<ItemListHeaderRow
 			label={SelectorModalTabs.Enchants}
+			epColumn={false}
 			showEPValues
 			epTooltipId="ep-tooltip"
-			sortBy={ItemListSortBy.EP}
+			sortBy={ItemListSortBy.ILVL}
 			sortDirection={SortDirection.DESC}
 			onSort={fn()}
 		/>
@@ -92,9 +94,9 @@ const EnchantsPane = () => (
 					nameDescription=""
 					iconUrl={wowheadIconUrl(row.icon)}
 					href=""
+					ilvl={row.lvl}
 					active={index === 0}
 					onEquip={fn()}
-					ep={{ ep: row.ep, equippedEP: 12.6 }}
 					favourited={index === 1}
 					favouriteTooltipId="favourite-tooltip"
 					onToggleFavourite={fn()}

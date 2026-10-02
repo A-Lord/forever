@@ -12,6 +12,7 @@ const meta = {
 	tags: ['autodocs'],
 	args: {
 		label: SelectorModalTabs.Items,
+		epColumn: true,
 		showEPValues: true,
 		epTooltipId: 'ep-tooltip',
 		sortBy: ItemListSortBy.EP,
@@ -37,6 +38,6 @@ export const ItemsTab: Story = {
 	},
 };
 
-export const EnchantsTab: Story = { args: { label: SelectorModalTabs.Enchants } };
+export const EnchantsTab: Story = { args: { label: SelectorModalTabs.Enchants, epColumn: false, sortBy: ItemListSortBy.ILVL } };
 
 export const EpHidden: Story = { args: { showEPValues: false } };

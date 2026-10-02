@@ -12,6 +12,7 @@ const renderRow = (props: Partial<ItemListHeaderRowProps> = {}) => {
 	const { container } = render(
 		<ItemListHeaderRow
 			label={SelectorModalTabs.Items}
+			epColumn
 			showEPValues
 			epTooltipId="ep-tooltip"
 			sortBy={ItemListSortBy.EP}
@@ -25,12 +26,16 @@ const renderRow = (props: Partial<ItemListHeaderRowProps> = {}) => {
 };
 
 describe('ItemListHeaderRow', () => {
-	it('gives the ilvl, source and compare columns to the items tab alone', () => {
+	it('gives the source and compare columns to the items tab alone', () => {
 		expect(renderRow().headers).toEqual(['ilvl-label', 'item-label', 'source-label', 'ep-label', 'favorite-label', 'compare-label']);
 	});
 
-	it('keeps the item, EP and favourite columns on another tab', () => {
-		expect(renderRow({ label: SelectorModalTabs.Enchants }).headers).toEqual(['item-label', 'ep-label', 'favorite-label']);
+	it('keeps the item, EP and favourite columns on a gem tab', () => {
+		expect(renderRow({ label: SelectorModalTabs.Gem1 }).headers).toEqual(['item-label', 'ep-label', 'favorite-label']);
+	});
+
+	it('gives the enchants tab a level column and, without an EP column, no EP header', () => {
+		expect(renderRow({ label: SelectorModalTabs.Enchants, epColumn: false }).headers).toEqual(['ilvl-label', 'item-label', 'favorite-label']);
 	});
 
 	it('sorts by item level and by EP from their headers', () => {

@@ -1,5 +1,5 @@
 import { ItemQuality, ItemSlot, type ItemSpec } from '@generated/proto/common';
-import type { UIItem as Item } from '@generated/proto/ui';
+import { UIEnchant as Enchant, type UIItem as Item } from '@generated/proto/ui';
 import { renderWithHost } from '@testing/react';
 import { fireEvent } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -95,9 +95,19 @@ const renderRow = (
 };
 
 describe('ItemListRow', () => {
-	it('omits the ilvl cell outside the items and upgrades tabs', () => {
-		const { container } = renderRow({ label: SelectorModalTabs.Enchants });
+	it('omits the level cell outside the items and enchants tabs', () => {
+		const { container } = renderRow({ label: SelectorModalTabs.Gem1 });
 		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')).toBeNull();
+	});
+
+	it('shows an enchant’s lvl and no EP cell on the enchants tab', () => {
+		const { container } = renderRow({
+			label: SelectorModalTabs.Enchants,
+			itemData: makeItemData({ item: Enchant.create({ effectId: 1894, lvl: 47 }) as unknown as ItemListType }),
+			itemEP: 80,
+		});
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')?.textContent).toBe('47');
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ep"]')).toBeNull();
 	});
 
 	it.each([

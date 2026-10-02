@@ -16,7 +16,7 @@ import { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { applyFavourite, isItemFavourited } from '../../model/favourites';
 import { getItemIdByItemType } from '../../model/item_ids';
 import { matchesSearch } from '../../model/item_search';
-import { defaultSortBy, ItemListSortBy, sortItemIdxs } from '../../model/item_sort';
+import { defaultSortBy, ItemListSortBy, sortItemIdxs, tabSortsByEP } from '../../model/item_sort';
 import { type ItemDataFields, type ItemListType, SelectorModalTabs } from '../../types';
 import { FiltersMenu } from '../FiltersMenu';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
@@ -54,7 +54,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 	const { label, itemData, computeEP, equippedToItem, onRemove, socketColor } = tab;
 
 	const [search, setSearch] = useState('');
-	const [sortBy, setSortBy] = useState(() => defaultSortBy(slot));
+	const [sortBy, setSortBy] = useState(() => defaultSortBy(label, slot));
 	const [sortDirection, setSortDirection] = useState(SortDirection.DESC);
 	const listRef = useRef<HTMLDivElement>(null);
 	const [filtersOpen, setFiltersOpen] = useState(false);
@@ -108,7 +108,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 		sim.setFilters(next);
 	};
 
-	const showEPOptions = ![ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2].includes(slot);
+	const showEPOptions = tabSortsByEP(label, slot);
 	const showWeaponOptions =
 		label === SelectorModalTabs.Items &&
 		(slot === ItemSlot.ItemSlotMainHand || (slot === ItemSlot.ItemSlotOffHand && player.getClass() === Class.ClassWarrior));
@@ -140,6 +140,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 			/>
 			<ItemListHeaderRow
 				label={label}
+				epColumn={showEPOptions}
 				showEPValues={showEPValues}
 				epTooltipId={`${tooltipId}-ep`}
 				sortBy={sortBy}
