@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/buffmanifest"
 	"github.com/wowsims/forever/tools/database/dbc"
@@ -35,30 +36,20 @@ const (
 	groupShared  = "shared"
 )
 
-// The SpellClassSet each class's spells carry in the game files, which is the family its class flags
-// are stated in.
-var classFamilies = map[string]int32{
-	"warrior": 4,
-	"paladin": 10,
-	"hunter":  9,
-	"rogue":   8,
-	"priest":  6,
-	"shaman":  11,
-	"mage":    3,
-	"warlock": 5,
-	"druid":   7,
-}
-
 func classGroup(class dbc.DbcClass) string {
 	return strings.ToLower(dbc.ClassNameFromDBC(class))
 }
 
-func allSpellDataGroups() []string {
-	groups := make([]string, 0, len(dbc.Classes)+3)
+func classGroups() []string {
+	groups := make([]string, 0, len(dbc.Classes))
 	for _, class := range dbc.Classes {
 		groups = append(groups, classGroup(class))
 	}
-	return append(groups, groupRacials, groupItems, groupShared)
+	return groups
+}
+
+func allSpellDataGroups() []string {
+	return append(classGroups(), groupRacials, groupItems, groupShared)
 }
 
 // The groups a run takes from the game files database. Nil takes every one, which is a full
@@ -79,17 +70,15 @@ func ParseSpellDataGroups(classes string, racials bool) (SpellDataGroups, error)
 	switch classes {
 	case "", "none":
 	case "all":
-		for _, class := range dbc.Classes {
-			names = append(names, classGroup(class))
-		}
+		names = classGroups()
 	default:
 		names = strings.Split(classes, ",")
 	}
 	for _, name := range names {
 		name = strings.TrimSpace(name)
-		if _, ok := classFamilies[name]; !ok {
+		if !slices.Contains(classGroups(), name) {
 			return nil, fmt.Errorf("unknown class %q: one of %s, all or none; racials are taken with -racials",
-				name, strings.Join(slices.Sorted(maps.Keys(classFamilies)), ", "))
+				name, strings.Join(slices.Sorted(slices.Values(classGroups())), ", "))
 		}
 		only[name] = true
 	}
@@ -204,9 +193,9 @@ func racialExtraIDs() map[int32]bool {
 }
 
 func familyGroup(family int32) (string, bool) {
-	for p, f := range classFamilies {
-		if f == family {
-			return p, true
+	for _, class := range dbc.Classes {
+		if f, ok := core.ClassSpellFamilies[class.ProtoClass]; ok && f == family {
+			return classGroup(class), true
 		}
 	}
 	return "", false
