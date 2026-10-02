@@ -64,6 +64,12 @@ type storeInputs struct {
 	// Every SpellShapeshiftForm row, whole: renderFormsFile reads it directly rather than through the
 	// store's own ids, since a form names no spell for the closure to reach it by.
 	Forms []formRow
+
+	// Roots by portion, whose union is Roots, and the game build each portion's rows were taken
+	// from. A partial update takes some portions from the database and keeps the others as they are
+	// here - see spelldata_portions.go.
+	PortionRoots map[string][]int32
+	Builds       map[string]string
 }
 
 // The tables the generator reads, from the captured rows.

@@ -29,11 +29,16 @@ import (
 var outDir = flag.String("outDir", "assets", "Path to output directory for writing generated .go files.")
 var genAsset = flag.String("gen", "", "Asset to generate. Valid values are 'db', 'atlasloot' and 'go-to-ts'")
 var dbPath = flag.String("dbPath", "./tools/database/wowsims.db", "Location of the wowsims.db file produced by tools/db2tool")
+var onlyList = flag.String("only", "", "Write the talent files of these classes only (comma-separated, as gen_spelldata -only); the item database is always written")
 
 func main() {
 	flag.Parse()
 
 	database.DatabasePath = *dbPath
+	only, err := database.ParsePortions(*onlyList)
+	if err != nil {
+		log.Fatalf("-only: %v", err)
+	}
 
 	if *outDir == "" {
 		panic("outDir flag is required!")
@@ -72,6 +77,16 @@ func main() {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
 	defer helper.Close()
+
+	if only == nil {
+		var behind []string
+		if only, behind, err = database.DefaultPortions(helper); err != nil {
+			log.Fatalf("failed to read the committed portions: %v", err)
+		}
+		for _, line := range behind {
+			fmt.Fprintf(os.Stderr, "talent files kept, not ported: %s\n", line)
+		}
+	}
 
 	if err := database.RunOverrides(helper, "tools/database/overrides"); err != nil {
 		log.Fatalf("failed to run overrides: %v", err)
@@ -132,7 +147,7 @@ func main() {
 	var instance = dbc.GetDBC()
 	instance.LoadSpellScaling()
 	instance.LoadShieldBlockValues()
-	database.GenerateProtos(instance, db)
+	database.GenerateProtos(instance, db, only)
 
 	processItems(instance, iconsMap, names, dropSources, craftingSources, repSources, db)
 

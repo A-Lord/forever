@@ -151,8 +151,8 @@ func goTool() string {
 // check when unchecked is set - and writes the game files rows the store was built from beside them:
 // they are what lets the store be regenerated and checked without the game files database, so they are
 // written from the same pass that wrote it and only once that pass has landed.
-func GenerateSpellDataFiles(helper *DBHelper, unchecked bool) error {
-	files, inputs, err := renderSpellDataFiles(helper)
+func GenerateSpellDataFiles(helper *DBHelper, unchecked bool, only Portions) error {
+	files, inputs, err := renderSpellDataFiles(helper, only)
 	if err != nil {
 		return err
 	}
@@ -163,19 +163,33 @@ func GenerateSpellDataFiles(helper *DBHelper, unchecked bool) error {
 }
 
 // The committed files that no longer match what the generator writes, for a caller that wants to
-// know rather than to regenerate. Silent on the way there: its output is the list it returns.
-func CheckSpellDataFiles(helper *DBHelper) ([]string, error) {
+// know rather than to regenerate. Silent on the way there: its output is the list it returns, and the
+// portions still on an older game build than the database, which are behind rather than stale and
+// are rendered from the committed inputs.
+func CheckSpellDataFiles(helper *DBHelper) (stale []string, behind []string, err error) {
 	progress = io.Discard
 	defer func() { progress = os.Stderr }()
 
-	files, inputs, err := renderSpellDataFiles(helper)
+	version, err := buildVersion(helper)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	var only Portions
+	committed, err := readStoreInputs(spellStoreInputsPath)
+	if err == nil {
+		only, behind = currentPortions(committed, version)
+	} else if _, missing := os.Stat(spellStoreInputsPath); !os.IsNotExist(missing) {
+		return nil, nil, err
 	}
 
-	stale, err := checkSpellDataFiles(files)
+	files, inputs, err := renderSpellDataFiles(helper, only)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	stale, err = checkSpellDataFiles(files)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// The committed inputs are checked too, and not only the store they render: a capture that no
@@ -183,11 +197,11 @@ func CheckSpellDataFiles(helper *DBHelper) ([]string, error) {
 	// capture - so nothing else here would notice it going stale.
 	current, err := storeInputsAreCurrent(inputs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !current {
 		stale = append(stale, spellStoreInputsPath)
 		sort.Strings(stale)
 	}
-	return stale, nil
+	return stale, behind, nil
 }

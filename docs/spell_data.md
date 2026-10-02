@@ -1232,6 +1232,7 @@ func (rogue *Rogue) ruptureDamage(target *core.Unit, comboPoints int32, baseDama
 
 ```
 go run ./tools/database/gen_spelldata              # rewrite every generated spell data file
+go run ./tools/database/gen_spelldata -only druid  # take the druid from the database, keep every other class as committed
 go run ./tools/database/gen_spelldata -check       # name the ones that are stale, write nothing
 go run ./tools/database/gen_spelldata -unchecked   # write without the type-check below
 make spelldata-check                               # the same check
@@ -1284,6 +1285,57 @@ What guards the outputs:
 The .results files are the last check and the one that costs time: run the suites of the class that changed, and
 diff the `.results` against the `.results.tmp` with a local diff helper or by hand. A port that
 was meant to be mechanical and moves a .results number is a wrong port, not a new baseline.
+
+### Taking a new game build one portion at a time
+
+A new game build moves every class at once: talents leave the trees, rows change, and each class's
+code has to follow before its tests pass. `-only` takes some portions of the database and keeps every
+other row as the committed inputs state it, so each class moves onto the build in its own pull request:
+
+```
+make db ONLY=druid                                   # extract, then gen_spelldata and gen_db with -only druid
+go run ./tools/database/gen_spelldata -only druid,racials
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db -only druid
+```
+
+The portions are the nine classes by package name, `racials`, `items` and `shared`. `items` (the item,
+enchant and set-bonus rows, with the item database `gen_db` writes) and `shared` (the shapeshift forms,
+and the extra spells and buff manifest rows no class owns) are always taken. A row belongs to the first
+of these that holds:
+
+1. it is an `overrides.ExtraSpells` entry with `Portion: "racials"`, the Eureka! rows;
+2. it states a class family: its class flags are that class's, so a set bonus or an enchant's class
+   buff moves with the class's own spells;
+3. a portion's roots reach it. A row a taken portion reaches moves. A row that moves although a portion
+   that is not taken also reaches it is printed as a shared row.
+
+Two rules come before all three. A committed root of a portion that is not taken never moves: that
+class file names it and keeps the row it was written against. A spell the new build adds, which a
+taken row or root reaches, always comes from the new build, since no committed file names it.
+
+A class that is not taken keeps its `sim/<class>/spell_data_auto_gen.go`, and a class it cannot read
+from the new build yet is reported rather than stopping the run. `gen_db -only` writes only the taken
+classes' talent protos, TS configs and tree JSON. The hunter's ammo file goes with the hunter, though
+the item database always ships the new build's arrows.
+
+A run that names no portions takes all of them while the inputs record one game build, which is a full
+regeneration. Once a partial update leaves portions on different builds, it takes only the ones on the
+database's build and prints the rest, so `make db`, `make spelldata` or the `all_items.go` rule never
+moves a class that has not been ported. The inputs record the game build each
+portion was taken from (`Builds`, read from the `BuildInfo` table `db2tool` writes), and the roots of
+each portion (`PortionRoots`), which is what the next partial update keeps the others by. A racial row
+on a different build from the class whose flags it states is printed as a warning.
+
+`-check` renders the portions whose recorded build is the database's and compares those; a portion on
+another build is printed as not ported and does not fail it, and its class file is not compared,
+since only its own build could render it. Items and shared are always compared. Hotfixes within one game build are not
+recorded, so a re-extraction that picked up new ones fails `-check` on the current portions until they
+are regenerated. Inputs that record no portions are split the way the database splits the same ids,
+and a root that names no portion there is printed as adopted into `shared`.
+
+Two pull requests that each take a class both rewrite the store and the gzipped inputs. Resolve the
+conflict by taking the base branch's copies and running `gen_spelldata -only <class>` again; the merge
+is deterministic.
 
 ## Porting a class onto the resolvers
 

@@ -1,0 +1,316 @@
+package database
+
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"os"
+	"reflect"
+	"slices"
+	"strings"
+	"testing"
+
+	"github.com/wowsims/forever/sim/core"
+)
+
+// A two-build world small enough to read: every row states base points 1 on the old build and 2 on the
+// new one, so which build a merged row came from is its base points.
+//
+//	100 warrior spell (family 4), warrior root, triggers 101 (no family)
+//	200 mage spell (family 3), mage root, triggers 400
+//	300 item spell, items root, triggers 301 (family 4, a set bonus), 400 and 500
+//	400 no family, reached from mage and items
+//	500 no family, a warrior root as well; the new build drops it
+//	1259813 Eureka!'s warrior row (family 4), a racials extra spell
+const eureka = 1259813
+
+func portionWorld(build int, points float64) *storeInputs {
+	in := &storeInputs{spellTables: *newSpellTables()}
+	add := func(id int32, family int32, triggers ...int32) {
+		in.Names[id] = "spell"
+		if family != 0 {
+			in.ClassOptions[id] = core.ClassFlags{Family: family}
+		}
+		in.Effects[id] = []storeEffect{{SpellID: id, BasePoints: points}}
+		for _, trigger := range triggers {
+			in.Effects[id] = append(in.Effects[id], storeEffect{SpellID: id, TriggerID: trigger})
+		}
+	}
+	add(100, 4, 101)
+	add(101, 0)
+	add(200, 3, 400)
+	add(400, 0)
+	add(301, 4)
+	add(eureka, 4)
+	in.PortionRoots = map[string][]int32{"warrior": {100}, "mage": {200}, portionItems: {300}}
+	if build == 1 {
+		add(300, 0, 301, 400, 500)
+		add(500, 0)
+		in.PortionRoots["warrior"] = []int32{100, 500}
+	} else {
+		add(300, 0, 301, 400)
+	}
+	in.ItemRoots = in.PortionRoots[portionItems]
+	in.TraitNodes = []traitNode{
+		{DefinitionID: 1, SpellID: 100, MaxRanks: 1, TreeID: 10, Class: "warrior"},
+		{DefinitionID: 2, SpellID: 200, MaxRanks: int32(build), TreeID: 20, Class: "mage"},
+	}
+	in.TraitPoints = map[int32]map[int32]map[int32]float64{1: {}, 2: {}}
+	in.Builds = map[string]string{}
+	for _, p := range allPortions() {
+		in.Builds[p] = []string{"", "old", "new"}[build]
+	}
+	return in
+}
+
+func mergeWorld(t *testing.T, list string) (*storeInputs, []string) {
+	t.Helper()
+	return mergeInputs(t, portionWorld(1, 1), portionWorld(2, 2), list)
+}
+
+func mergeInputs(t *testing.T, old, fresh *storeInputs, list string) (*storeInputs, []string) {
+	t.Helper()
+	quiet(t)
+	only, err := ParsePortions(list)
+	if err != nil {
+		t.Fatal(err)
+	}
+	merged, notes, err := mergeStoreInputs(old, fresh, only, "new")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return merged, notes
+}
+
+// A spell triggered from an item on the new build, so reached from a taken portion.
+func addItemTrigger(in *storeInputs, id, family int32) {
+	in.Names[id] = "spell"
+	if family != 0 {
+		in.ClassOptions[id] = core.ClassFlags{Family: family}
+	}
+	in.Effects[id] = []storeEffect{{SpellID: id, BasePoints: 2}}
+	in.Effects[300] = append(in.Effects[300], storeEffect{SpellID: 300, TriggerID: id})
+}
+
+func quiet(t *testing.T) {
+	progress = io.Discard
+	t.Cleanup(func() { progress = os.Stderr })
+}
+
+// The build each id's row came from, by its base points: 1 old, 2 new, absent where the store does not
+// carry the id.
+func rowBuilds(in *storeInputs) map[int32]float64 {
+	builds := map[int32]float64{}
+	for id, effects := range in.Effects {
+		builds[id] = effects[0].BasePoints
+	}
+	return builds
+}
+
+func TestMergeTakesOnlyTheSelectedClass(t *testing.T) {
+	merged, notes := mergeWorld(t, "mage")
+	want := map[int32]float64{
+		100: 1, 101: 1, 500: 1, // warrior's, and 500 is a warrior root the new build drops
+		200:    2,
+		300:    2, // items are always taken
+		301:    1, // states the warrior family, so stays with the warrior although items reach it
+		400:    2, // reached from mage and items, both taken
+		eureka: 1,
+	}
+	if got := rowBuilds(merged); !reflect.DeepEqual(got, want) {
+		t.Errorf("rows by build = %v, want %v", got, want)
+	}
+	if len(notes) != 0 {
+		t.Errorf("notes = %q, want none: 400 is reached only by taken portions", notes)
+	}
+	if merged.Builds["mage"] != "new" || merged.Builds["warrior"] != "old" || merged.Builds[portionItems] != "new" {
+		t.Errorf("builds = %v, want mage and items on new, warrior on old", merged.Builds)
+	}
+}
+
+func TestMergeMovesAClassAndDropsWhatItsBuildDropped(t *testing.T) {
+	merged, notes := mergeWorld(t, "warrior")
+	want := map[int32]float64{100: 2, 101: 2, 200: 1, 300: 2, 301: 2, 400: 2, eureka: 1}
+	if got := rowBuilds(merged); !reflect.DeepEqual(got, want) {
+		t.Errorf("rows by build = %v, want %v", got, want)
+	}
+	if _, named := merged.Names[500]; named {
+		t.Errorf("500 is still named, but the new build dropped it and the warrior is taken")
+	}
+	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "shared row 400") }) {
+		t.Errorf("notes = %q, want 400 named as a shared row: mage reaches it and is not taken", notes)
+	}
+	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "Eureka") || strings.Contains(n, "1259813") }) {
+		t.Errorf("notes = %q, want the racial row warned about: racials is on old and the warrior on new", notes)
+	}
+}
+
+func TestMergeKeepsARowAClassFileNames(t *testing.T) {
+	merged, _ := mergeWorld(t, "mage")
+	if got := rowBuilds(merged)[500]; got != 1 {
+		t.Errorf("500 is on build %v, want the old one: the warrior is not taken and holds it as a root, "+
+			"though items, which are taken, reach it", got)
+	}
+}
+
+func TestMergeKeepsACommittedRootTheNewBuildNoLongerRoots(t *testing.T) {
+	fresh := portionWorld(2, 2)
+	addItemTrigger(fresh, 500, 0)
+	merged, _ := mergeInputs(t, portionWorld(1, 1), fresh, "mage")
+	if got := rowBuilds(merged)[500]; got != 1 {
+		t.Errorf("500 is on build %v, want the old one: the committed warrior roots hold it, and the "+
+			"warrior is not taken, though only items reach it on the new build", got)
+	}
+}
+
+func TestMergeTakesASpellTheNewBuildAdds(t *testing.T) {
+	fresh := portionWorld(2, 2)
+	addItemTrigger(fresh, 302, 4)
+	merged, notes := mergeInputs(t, portionWorld(1, 1), fresh, "mage")
+	if got, ok := rowBuilds(merged)[302]; !ok || got != 2 {
+		t.Errorf("302 is on build %v (carried %v), want the new one: the new build adds it, the item that "+
+			"triggers it is taken, and no committed file names it", got, ok)
+	}
+	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "row 302") }) {
+		t.Errorf("notes = %q, want 302 named", notes)
+	}
+	if !slices.Contains(merged.Roots, 300) {
+		t.Errorf("roots = %v, want the item root 300", merged.Roots)
+	}
+}
+
+func TestMergeTakesTheRacialRowByItsTag(t *testing.T) {
+	merged, notes := mergeWorld(t, "racials")
+	builds := rowBuilds(merged)
+	if builds[eureka] != 2 || builds[100] != 1 {
+		t.Errorf("Eureka! on %v and warrior 100 on %v, want Eureka! new by its racials tag and the warrior old",
+			builds[eureka], builds[100])
+	}
+	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "warrior class flags") }) {
+		t.Errorf("notes = %q, want the racial row warned about", notes)
+	}
+}
+
+func TestMergeKeepsTheTalentNodesInTreeOrder(t *testing.T) {
+	merged, _ := mergeWorld(t, "mage")
+	var got []string
+	for _, node := range merged.TraitNodes {
+		got = append(got, node.Class)
+	}
+	if !slices.Equal(got, []string{"warrior", "mage"}) {
+		t.Errorf("node classes = %v, want warrior then mage, the order of their tree ids", got)
+	}
+	if merged.TraitNodes[1].MaxRanks != 2 || merged.TraitNodes[0].MaxRanks != 1 {
+		t.Errorf("nodes = %+v, want the mage node from the new build", merged.TraitNodes)
+	}
+}
+
+func TestMergeAdoptsInputsThatRecordNoPortions(t *testing.T) {
+	quiet(t)
+	old := portionWorld(1, 1)
+	old.PortionRoots, old.Builds = nil, nil
+	old.Roots = []int32{100, 200, 300, 500}
+	for i := range old.TraitNodes {
+		old.TraitNodes[i].Class, old.TraitNodes[i].TreeID = "", 0
+	}
+
+	only, _ := ParsePortions("mage")
+	merged, notes, err := mergeStoreInputs(old, portionWorld(2, 2), only, "new")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := rowBuilds(merged); got[100] != 1 || got[200] != 2 || got[300] != 2 {
+		t.Errorf("rows by build = %v, want the warrior old, mage and items new", got)
+	}
+	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "root 500") }) {
+		t.Errorf("notes = %q, want root 500 named: it names no class and the new build dropped it", notes)
+	}
+	if merged.Builds["warrior"] != "" || merged.Builds["mage"] != "new" {
+		t.Errorf("builds = %v, want the warrior unrecorded and mage on new", merged.Builds)
+	}
+}
+
+// The committed inputs merged with themselves, one portion at a time, are the committed inputs again.
+func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
+	inRepositoryRoot(t)
+	committed := committedInputs(t)
+	if committed.Builds == nil {
+		t.Skip("the committed inputs record no portions")
+	}
+	want, err := json.Marshal(committed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, portion := range []string{"warrior", "hunter", "druid", portionRacials} {
+		only, _ := ParsePortions(portion)
+		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), only, committed.Builds[portion])
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := json.Marshal(merged)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, want) {
+			t.Errorf("-only %s: the merge of the committed inputs with themselves differs from them", portion)
+		}
+	}
+}
+
+func TestMoveRowCoversEveryTable(t *testing.T) {
+	from := newSpellTables()
+	tables := reflect.ValueOf(from).Elem()
+	for i := 0; i < tables.NumField(); i++ {
+		field := tables.Field(i)
+		if !tables.Type().Field(i).IsExported() {
+			continue
+		}
+		field.SetMapIndex(reflect.ValueOf(int32(7)), reflect.New(field.Type().Elem()).Elem())
+	}
+
+	into := cloneTables(newSpellTables())
+	moveRow(into, from, 7)
+	moved := reflect.ValueOf(into).Elem()
+	for i := 0; i < moved.NumField(); i++ {
+		name := moved.Type().Field(i).Name
+		if !moved.Type().Field(i).IsExported() {
+			continue
+		}
+		if !moved.Field(i).MapIndex(reflect.ValueOf(int32(7))).IsValid() {
+			t.Errorf("moveRow does not move %s", name)
+		}
+	}
+}
+
+func TestParsePortions(t *testing.T) {
+	only, err := ParsePortions("warrior, racials")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for portion, want := range map[string]bool{"warrior": true, portionRacials: true, portionItems: true,
+		portionShared: true, "mage": false} {
+		if only.Takes(portion) != want {
+			t.Errorf("Takes(%s) = %v, want %v", portion, !want, want)
+		}
+	}
+	if only, _ := ParsePortions(""); !only.all() {
+		t.Errorf("an empty list takes %v, want every portion", only)
+	}
+	for _, list := range []string{"items", "shared", "deathknight"} {
+		if _, err := ParsePortions(list); err == nil {
+			t.Errorf("ParsePortions(%q) succeeds, want it refused", list)
+		}
+	}
+}
+
+func TestCurrentPortionsChecksOnlyTheExtractedBuild(t *testing.T) {
+	in := portionWorld(1, 1)
+	in.Builds["warrior"] = "new"
+	only, behind := currentPortions(in, "new")
+	if !only.Takes("warrior") || only.Takes("mage") || !only.Takes(portionItems) {
+		t.Errorf("checked portions = %v, want the warrior, items and shared", only)
+	}
+	if !slices.ContainsFunc(behind, func(b string) bool { return strings.HasPrefix(b, "mage is on old") }) {
+		t.Errorf("behind = %q, want mage named", behind)
+	}
+}

@@ -15,17 +15,16 @@ import (
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
-// The spells the sim can reach without anything naming them first: everything the nine class files
-// are built from, and every spell an item, an enchant or a set bonus casts. What those spells trigger
-// is reached from here by reachableSpells.
+// The spells the sim can reach from gear without anything naming them first: every spell an item, an
+// enchant or a set bonus casts. With the spells the nine class files are built from, they are the
+// store's roots, and what those spells trigger is reached from there by reachableSpells. They are kept
+// apart from the class roots: they are the items portion and the universe the proc audit asks its
+// question over, and which query a root came from cannot be recovered from a merged list.
 //
 // The hand-kept extra spells are not here: they are added while the store is rendered, so that adding
 // one and forgetting to regenerate fails the regeneration check instead of passing it - see
 // withExtraIDs.
-// The gear half is returned on its own as well: it is the universe the proc audit asks its question
-// over, and which query a root came from cannot be recovered from the merged list.
-func storeRoots(db *sql.DB, t *spellTables, ladderIDs []int32) (roots []int32, gear []int32, err error) {
-	roots = slices.Clone(ladderIDs)
+func gearRoots(db *sql.DB, t *spellTables) (gear []int32, err error) {
 	for _, source := range []struct {
 		name  string
 		query string
@@ -40,15 +39,14 @@ func storeRoots(db *sql.DB, t *spellTables, ladderIDs []int32) (roots []int32, g
 			if err := rows.Scan(&id); err != nil {
 				return err
 			}
-			roots = append(roots, id)
 			gear = append(gear, id)
 			return nil
 		}); err != nil {
-			return nil, nil, fmt.Errorf("%s: %w", source.name, err)
+			return nil, fmt.Errorf("%s: %w", source.name, err)
 		}
 	}
 
-	return namedIDs(t, roots), namedIDs(t, gear), nil
+	return namedIDs(t, gear), nil
 }
 
 // Set by gen_spelldata -everyClassSpell: roots the store at every spell of a class family as well,
@@ -106,6 +104,10 @@ func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 		if extra.Reason == "" {
 			return nil, fmt.Errorf("the extra spell %d states no reason", extra.SpellID)
 		}
+		if extra.Portion != "" && extra.Portion != portionRacials {
+			return nil, fmt.Errorf("the extra spell %d names portion %q, and only %q is named by hand",
+				extra.SpellID, extra.Portion, portionRacials)
+		}
 		// Dropped like any other unnamed id, but said out loud: it was written down on purpose.
 		if _, named := t.Names[extra.SpellID]; !named {
 			fmt.Fprintf(progress, "spelldata: extra spell %d is no spell in the game files, so the store does not carry it\n",
@@ -123,10 +125,15 @@ func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 func buffManifestIDs() []int32 {
 	var ids []int32
 	for _, spec := range buffmanifest.All() {
-		ids = append(ids, spec.SpellID, spec.CastID, spec.Talent)
-		if spec.ImpAction != nil {
-			ids = append(ids, spec.ImpAction.SpellID)
-		}
+		ids = append(ids, buffSpecIDs(spec)...)
+	}
+	return ids
+}
+
+func buffSpecIDs(spec buffmanifest.Row) []int32 {
+	ids := []int32{spec.SpellID, spec.CastID, spec.Talent}
+	if spec.ImpAction != nil {
+		ids = append(ids, spec.ImpAction.SpellID)
 	}
 	return ids
 }

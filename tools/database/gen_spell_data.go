@@ -1201,8 +1201,15 @@ func overrideReplacements(db *sql.DB, ids map[int32]bool) (map[int32]bool, error
 
 // Every file the generator writes, by the path it is written to, rendered and none written: what
 // happens to them is writeSpellDataFiles' business, and -check's business is that nothing does.
-func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, error) {
+//
+// A portion only does not take keeps the committed inputs' rows, and a class it does not take keeps
+// its committed class file, which is therefore not among the files returned.
+func renderSpellDataFiles(helper *DBHelper, only Portions) (map[string][]byte, *storeInputs, error) {
 	if err := RequireSpellCastTimes(helper); err != nil {
+		return nil, nil, err
+	}
+	version, err := buildVersion(helper)
+	if err != nil {
 		return nil, nil, err
 	}
 
@@ -1222,85 +1229,50 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 
 	// The store carries every spell the class files are built from, so the discovery runs here and
 	// both consumers read the one result rather than each rediscovering the ladders.
-	var ladderIDs []int32
+	classRoots := map[string][]int32{}
 	runeOnly, err := loadRuneOnlySpells(helper.db)
 	if err != nil {
 		return nil, nil, err
 	}
 	for _, class := range dbc.Classes {
 		pkg := strings.ToLower(dbc.ClassNameFromDBC(class))
-		tree, ok := trees[classMaskOf(class)]
-		if !ok {
-			return nil, nil, fmt.Errorf("%s: the game files hold no talent tree for this class", pkg)
-		}
-		ladders, skipped, partial, err := discoverLadders(helper.db, class, tree, runeOnly)
+		out, files, roots, err := discoverClass(helper.db, class, pkg, trees, runeOnly)
 		if err != nil {
-			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
+			// A class the run does not take keeps its committed rows and files, so a new build it cannot
+			// read yet is its port's to fix, not the run's.
+			if only.Takes(pkg) {
+				return nil, nil, err
+			}
+			fmt.Fprintf(progress, "spelldata: %s is not taken and keeps its committed rows: %v\n", pkg, err)
+			continue
 		}
-		triggered, err := triggeredByField(helper.db, ladders)
-		if err != nil {
-			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
-		}
-		out, err := renderClassFile(pkg, ladders, triggered, skipped, partial)
-		if err != nil {
-			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
-		}
-		rendered[pkg] = out
-
-		// The hunter's pet families read the class's ladders, so they are discovered here, and their
-		// passives are roots the ladders do not reach.
-		if pkg == "hunter" {
-			families, familiesSkipped, err := discoverPetFamilies(helper.db, ladders, triggered)
-			if err != nil {
-				return nil, nil, fmt.Errorf("%s pet families: %w", pkg, err)
-			}
-			petFile, err := renderPetFamiliesFile(families, familiesSkipped)
-			if err != nil {
-				return nil, nil, fmt.Errorf("%s pet families: %w", pkg, err)
-			}
-			extra[fmt.Sprintf("sim/%s/pet_families_auto_gen.go", pkg)] = petFile
-			ladderIDs = append(ladderIDs, petFamilyRoots(families)...)
-
-			arrows, arrowsSkipped, err := discoverArrows(helper.db)
-			if err != nil {
-				return nil, nil, fmt.Errorf("%s arrows: %w", pkg, err)
-			}
-			quivers, quiversSkipped, err := discoverQuivers(helper.db)
-			if err != nil {
-				return nil, nil, fmt.Errorf("%s quivers: %w", pkg, err)
-			}
-			ammoFile, err := renderAmmoFile(arrows, quivers, append(arrowsSkipped, quiversSkipped...))
-			if err != nil {
-				return nil, nil, fmt.Errorf("%s ammo: %w", pkg, err)
-			}
-			extra[fmt.Sprintf("sim/%s/ammo_auto_gen.go", pkg)] = ammoFile
-		}
-
-		for _, l := range ladders {
-			for _, id := range l.Ranks {
-				ladderIDs = append(ladderIDs, id)
-			}
-		}
-
-		// A node the ladders do not describe still grants a spell the sim registers - Hemorrhage is
-		// one - so every spell the tree defines is a root of the store.
-		treeSpells, err := treeSpellIDs(helper.db, tree)
-		if err != nil {
-			return nil, nil, fmt.Errorf("%s: %w", pkg, err)
-		}
-		for id := range treeSpells {
-			if id != 0 {
-				ladderIDs = append(ladderIDs, id)
-			}
+		classRoots[pkg] = roots
+		if only.Takes(pkg) {
+			rendered[pkg] = out
+			maps.Copy(extra, files)
 		}
 	}
 
 	// The game files rows the store is built from are captured on the way through and handed back, so
 	// the caller can write them next to the store and the regeneration can be checked without the
 	// database - see spelldata_inputs.go.
-	inputs, err := loadStoreInputs(helper.db, ladderIDs, trees)
+	inputs, err := loadStoreInputs(helper.db, classRoots, trees, version)
 	if err != nil {
 		return nil, nil, err
+	}
+	if !only.all() {
+		committed, err := readStoreInputs(spellStoreInputsPath)
+		if err != nil {
+			return nil, nil, err
+		}
+		var notes []string
+		inputs, notes, err = mergeStoreInputs(committed, inputs, only, version)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, note := range notes {
+			fmt.Fprintf(progress, "spelldata: %s\n", note)
+		}
 	}
 	store, err := renderStore(inputs, namer)
 	if err != nil {
@@ -1327,6 +1299,76 @@ func renderSpellDataFiles(helper *DBHelper) (map[string][]byte, *storeInputs, er
 		files[path] = out
 	}
 	return files, inputs, nil
+}
+
+// One class's file, the hunter's extra files by path, and the roots the class gives the store.
+func discoverClass(db *sql.DB, class dbc.DbcClass, pkg string, trees map[int]int,
+	runeOnly map[int32]bool) (out []byte, files map[string][]byte, roots []int32, err error) {
+	tree, ok := trees[classMaskOf(class)]
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("%s: the game files hold no talent tree for this class", pkg)
+	}
+	ladders, skipped, partial, err := discoverLadders(db, class, tree, runeOnly)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", pkg, err)
+	}
+	triggered, err := triggeredByField(db, ladders)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", pkg, err)
+	}
+	out, err = renderClassFile(pkg, ladders, triggered, skipped, partial)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", pkg, err)
+	}
+	files = map[string][]byte{}
+
+	// The hunter's pet families read the class's ladders, so they are discovered here, and their
+	// passives are roots the ladders do not reach.
+	if pkg == "hunter" {
+		families, familiesSkipped, err := discoverPetFamilies(db, ladders, triggered)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("%s pet families: %w", pkg, err)
+		}
+		petFile, err := renderPetFamiliesFile(families, familiesSkipped)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("%s pet families: %w", pkg, err)
+		}
+		files[fmt.Sprintf("sim/%s/pet_families_auto_gen.go", pkg)] = petFile
+		roots = append(roots, petFamilyRoots(families)...)
+
+		arrows, arrowsSkipped, err := discoverArrows(db)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("%s arrows: %w", pkg, err)
+		}
+		quivers, quiversSkipped, err := discoverQuivers(db)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("%s quivers: %w", pkg, err)
+		}
+		ammoFile, err := renderAmmoFile(arrows, quivers, append(arrowsSkipped, quiversSkipped...))
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("%s ammo: %w", pkg, err)
+		}
+		files[fmt.Sprintf("sim/%s/ammo_auto_gen.go", pkg)] = ammoFile
+	}
+
+	for _, l := range ladders {
+		for _, id := range l.Ranks {
+			roots = append(roots, id)
+		}
+	}
+
+	// A node the ladders do not describe still grants a spell the sim registers - Hemorrhage is
+	// one - so every spell the tree defines is a root of the store.
+	treeSpells, err := treeSpellIDs(db, tree)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", pkg, err)
+	}
+	for id := range treeSpells {
+		if id != 0 {
+			roots = append(roots, id)
+		}
+	}
+	return out, files, roots, nil
 }
 
 // The triggered table of every family that has one, by the family's field.

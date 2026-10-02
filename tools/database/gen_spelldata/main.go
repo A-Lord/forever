@@ -11,6 +11,7 @@
 // until they move onto what it will state.
 //
 //	go run ./tools/database/gen_spelldata
+//	go run ./tools/database/gen_spelldata -only druid,racials   # those portions from the database, the rest as committed
 //	go run ./tools/database/gen_spelldata -check
 //	go run ./tools/database/gen_spelldata -unchecked
 //	go run ./tools/database/gen_spelldata -everyClassSpell -unchecked   # a store of every class spell, for tools/spelldata -dump
@@ -29,11 +30,20 @@ var dbPath = flag.String("dbPath", "./tools/database/wowsims.db", "Location of t
 var check = flag.Bool("check", false, "Name the generated files that are not what this generator writes, and write nothing")
 var everyClassSpell = flag.Bool("everyClassSpell", false, "Root the store at every class spell the game files have, not only what the sim reaches - for an export with tools/spelldata -dump, not to commit")
 var unchecked = flag.Bool("unchecked", false, "Write the rendered files without type-checking them first, for a class file whose call sites cannot compile until they move onto what it will state")
+var onlyList = flag.String("only", "", "Take only these portions from the database (class names and racials, comma-separated; items and shared always), keeping the rest as the committed inputs state them")
 
 func main() {
 	flag.Parse()
 	database.DatabasePath = *dbPath
 	database.EveryClassSpell = *everyClassSpell
+
+	only, err := database.ParsePortions(*onlyList)
+	if err != nil {
+		log.Fatalf("-only: %v", err)
+	}
+	if only != nil && (*check || *everyClassSpell) {
+		log.Fatalf("-only does not combine with -check or -everyClassSpell")
+	}
 
 	helper, err := database.NewDBHelper()
 	if err != nil {
@@ -42,9 +52,12 @@ func main() {
 	defer helper.Close()
 
 	if *check {
-		stale, err := database.CheckSpellDataFiles(helper)
+		stale, behind, err := database.CheckSpellDataFiles(helper)
 		if err != nil {
 			log.Fatalf("failed to generate spell data tables: %v", err)
+		}
+		for _, line := range behind {
+			fmt.Fprintf(os.Stderr, "not ported: %s\n", line)
 		}
 		for _, path := range stale {
 			fmt.Fprintln(os.Stderr, path)
@@ -55,7 +68,16 @@ func main() {
 		return
 	}
 
-	if err := database.GenerateSpellDataFiles(helper, *unchecked); err != nil {
+	if only == nil && !*everyClassSpell {
+		var behind []string
+		if only, behind, err = database.DefaultPortions(helper); err != nil {
+			log.Fatalf("failed to read the committed portions: %v", err)
+		}
+		for _, line := range behind {
+			fmt.Fprintf(os.Stderr, "kept, not ported: %s\n", line)
+		}
+	}
+	if err := database.GenerateSpellDataFiles(helper, *unchecked, only); err != nil {
 		log.Fatalf("failed to generate spell data tables: %v", err)
 	}
 }
