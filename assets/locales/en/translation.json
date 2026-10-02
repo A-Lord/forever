@@ -1977,21 +1977,38 @@
 				}
 			},
 			"hunter": {
-				"melee_weave": {
-					"label": "Melee Weaving",
-					"tooltip": "Uses melee weaving in the rotation."
+				"playstyle": {
+					"label": "Playstyle",
+					"tooltip": "Where the hunter stands. Turret stays at range. Melee weave walks in for each main hand swing, Raptor Strike riding it, and back out to shoot. Melee stays in melee range.",
+					"values": {
+						"turret": "Turret",
+						"weave": "Melee weave",
+						"melee": "Melee"
+					}
 				},
 				"time_to_weave": {
 					"label": "Time to weave (ms)",
 					"tooltip": "Amount of time, in milliseconds, between when you start moving towards the boss and when you re-engage your ranged autos."
 				},
+				"use_aimed": {
+					"label": "Use Aimed Shot",
+					"tooltip": "Casts Aimed Shot on cooldown. It shares its cooldown with Multi-Shot."
+				},
 				"use_multi": {
 					"label": "Use Multi-Shot",
-					"tooltip": "Includes Multi-Shot as a filler in the rotation."
+					"tooltip": "Includes Multi-Shot as a filler in the rotation. It shares its cooldown with Aimed Shot."
 				},
 				"use_arcane": {
 					"label": "Use Arcane Shot",
-					"tooltip": "Include Arcane Shot as a filler in the rotation."
+					"tooltip": "Include Arcane Shot as a filler in the rotation. It shares its cooldown with Summon Hawk."
+				},
+				"use_sniper": {
+					"label": "Use Sniper Shot",
+					"tooltip": "Casts Sniper Shot while Rapid Fire or Quick Shots shortens its cast."
+				},
+				"use_hawk": {
+					"label": "Use Summon Hawk",
+					"tooltip": "Sends hawks between Arcane Shots, the two sharing a cooldown."
 				}
 			},
 			"warrior": {
