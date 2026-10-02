@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"maps"
 	"math"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1260,10 +1261,15 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]
 	if err != nil {
 		return nil, nil, err
 	}
-	if !only.all() {
-		committed, err := readStoreInputs(spellStoreInputsPath)
-		if err != nil {
+	var committed *storeInputs
+	if _, statErr := os.Stat(spellStoreInputsPath); statErr == nil {
+		if committed, err = readStoreInputs(spellStoreInputsPath); err != nil {
 			return nil, nil, err
+		}
+	}
+	if !only.all() {
+		if committed == nil {
+			return nil, nil, fmt.Errorf("%s is missing, so there is nothing to keep the groups not taken from", spellStoreInputsPath)
 		}
 		var notes []string
 		inputs, notes, err = mergeStoreInputs(committed, inputs, only, version)
@@ -1272,6 +1278,11 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]
 		}
 		for _, note := range notes {
 			fmt.Fprintf(progress, "spelldata: %s\n", note)
+		}
+	}
+	if committed != nil {
+		for _, line := range changeReport(committed, inputs, only, version) {
+			fmt.Fprintf(progress, "spelldata: %s\n", line)
 		}
 	}
 	store, err := renderStore(inputs, namer)

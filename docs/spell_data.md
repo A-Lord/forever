@@ -1307,8 +1307,22 @@ belongs to the first of these that holds:
 1. it is an `overrides.ExtraSpells` entry with `SpellDataGroup: "racials"`, the Eureka! rows;
 2. it states a class family: its class flags are that class's, so a set bonus or an enchant's class
    buff moves with the class's own spells;
-3. a group's roots reach it. A row a taken group reaches moves. A row that moves although a group that
-   is not taken also reaches it is printed as a shared row.
+3. a group's roots reach it. A row a taken group reaches moves. A row that changes although a group
+   that is not taken also reaches it is printed as a shared row.
+
+Every run, full or partial, prints what it changes against the committed inputs, one block per group it
+takes: the build it moves from and to, the counts, and each spell added, changed (with the tables whose
+rows differ) or removed.
+
+```
+spelldata: warrior 1.60.1.70124 -> 1.60.1.70170: 5 added, 40 changed, 4 removed
+spelldata:   + 1323963 Furious Precision
+spelldata:   ~ 23881 Bloodthirst (Effects)
+spelldata:   ~ 12321 Booming Voice (Descriptions, Effects, TraitPoints)
+spelldata:   - 1310236 Boundless Rage
+spelldata: items 1.60.1.70124 -> 1.60.1.70170: 6 added, 225 changed, 3 removed
+spelldata: shared row 10612 Windfury Totem changed, also reached by shaman
+```
 
 Two rules come before all three. A committed root of a group that is not taken never moves: that
 class file names it and keeps the row it was written against. A spell the new build adds, which a

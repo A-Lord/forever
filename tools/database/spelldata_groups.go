@@ -255,7 +255,9 @@ func (o rowOwners) taken(id int32, only SpellDataGroups, kept map[int32]bool) bo
 }
 
 // The inputs of a partial update: fresh's rows, roots, talent nodes and builds for the groups only
-// takes, and old's for the rest. The notes name the rows a group that is not taken also reaches.
+// takes, and old's for the rest. The notes name what the merge decided that the rules alone would not
+// show: an adoption of inputs that record no groups, a spell taken because the new build adds it, a
+// name dropped, and racial rows on another build than their class.
 func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version string) (*storeInputs, []string, error) {
 	var notes []string
 	if old.SpellDataGroupRoots == nil {
@@ -292,13 +294,6 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 			continue
 		}
 		moved[id] = true
-		if _, forced := freshOwners.forced[id]; forced {
-			continue
-		}
-		if others := slices.DeleteFunc(slices.Clone(freshOwners.reached[id]), only.Takes); len(others) > 0 {
-			notes = append(notes, fmt.Sprintf("shared row %d %s taken from %s, also reached by %s",
-				id, fresh.Names[id], version, strings.Join(others, ", ")))
-		}
 	}
 
 	roots := map[string][]int32{}

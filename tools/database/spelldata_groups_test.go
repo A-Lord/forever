@@ -146,11 +146,48 @@ func TestMergeMovesAClassAndDropsWhatItsBuildDropped(t *testing.T) {
 	if _, named := merged.Names[500]; named {
 		t.Errorf("500 is still named, but the new build dropped it and the warrior is taken")
 	}
-	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "shared row 400") }) {
-		t.Errorf("notes = %q, want 400 named as a shared row: mage reaches it and is not taken", notes)
-	}
 	if !slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "Eureka") || strings.Contains(n, "1259813") }) {
 		t.Errorf("notes = %q, want the racial row warned about: racials is on old and the warrior on new", notes)
+	}
+}
+
+func TestChangeReportListsEveryGroupAFullRunTakes(t *testing.T) {
+	quiet(t)
+	report := strings.Join(changeReport(groupWorld(1, 1), groupWorld(2, 2), nil, "new"), "\n")
+	for _, want := range []string{
+		"warrior old -> new: 0 added, 3 changed, 1 removed",
+		"  ~ 100 spell (Effects)",
+		"  ~ 301 spell (Effects)",
+		"  - 500 spell",
+		"mage old -> new: 0 added, 2 changed, 0 removed",
+		"  ~ 400 spell (Effects)",
+		"items old -> new: 0 added, 1 changed, 0 removed",
+		"racials old -> new: 0 added, 1 changed, 0 removed",
+		"druid old -> new: 0 added, 0 changed, 0 removed",
+	} {
+		if !strings.Contains(report, want) {
+			t.Errorf("report lacks %q:\n%s", want, report)
+		}
+	}
+	if strings.Contains(report, "shared row") {
+		t.Errorf("a full run takes every group, so no row is shared with one it leaves:\n%s", report)
+	}
+}
+
+func TestChangeReportListsOnlyTakenGroupsAndSharedRows(t *testing.T) {
+	merged, _ := mergeWorld(t, "warrior")
+	report := strings.Join(changeReport(groupWorld(1, 1), merged, groupsOf(t, "warrior"), "new"), "\n")
+	for _, want := range []string{
+		"warrior old -> new: 0 added, 3 changed, 1 removed",
+		"items old -> new: 0 added, 2 changed, 0 removed",
+		"shared row 400 spell changed, also reached by mage",
+	} {
+		if !strings.Contains(report, want) {
+			t.Errorf("report lacks %q:\n%s", want, report)
+		}
+	}
+	if strings.Contains(report, "mage old") || strings.Contains(report, "racials old") {
+		t.Errorf("report names a group the run does not take:\n%s", report)
 	}
 }
 
