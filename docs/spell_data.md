@@ -1337,6 +1337,65 @@ Two pull requests that each take a class both rewrite the store and the gzipped 
 conflict by taking the base branch's copies and running `gen_spelldata -only <class>` again; the merge
 is deterministic.
 
+#### Commands
+
+`-only` takes `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock`, `druid`
+and `racials`, comma-separated. `items` and `shared` are always taken, and naming one is refused.
+
+```
+make db                                   # extract, then gen_spelldata and gen_db, default portions
+make db ONLY=druid                        # take the druid, with items and shared
+make db ONLY=druid,racials
+make db ONLY=warrior WOW_DIR="/mnt/e/World of Warcraft"
+make db ONLY=mage DB2TOOL_FLAGS="--cdn --dbcache caches/DBCache.bin"
+make ptrdb ONLY=druid                     # the same from the PTR settings
+make spelldata ONLY=hunter                # gen_spelldata alone, no extraction
+make spelldata-check                      # stale files exit 1; portions not ported are listed and pass
+```
+
+```
+go run ./tools/database/gen_spelldata                          # default portions
+go run ./tools/database/gen_spelldata -only druid
+go run ./tools/database/gen_spelldata -only "druid, racials"
+go run ./tools/database/gen_spelldata -only druid -unchecked   # write without the type-check
+go run ./tools/database/gen_spelldata -check                   # compare, write nothing
+go run ./tools/database/gen_spelldata -dbPath /path/to/other.db -only druid
+
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db             # talent files of the default portions
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db -only druid # the druid's talent files only
+```
+
+`-only` does not combine with `-check` or `-everyClassSpell`. The item database is always written.
+
+`db2tool` writes the `BuildInfo` table on every extraction. In offline mode pass the full version,
+`--build 1.60.1.70170`; a bare build number is recorded as given, with a warning. A database extracted
+without `BuildInfo` is stamped rather than re-extracted, since a new extraction can pick up hotfixes
+the committed rows do not have:
+
+```
+sqlite3 tools/database/wowsims.db "CREATE TABLE BuildInfo (Version TEXT NOT NULL, Product TEXT NOT NULL); INSERT INTO BuildInfo VALUES ('1.60.1.70170','wow_classic_beta');"
+sqlite3 tools/database/wowsims.db "SELECT * FROM BuildInfo"
+```
+
+The build each portion is on, and the conflict resolution between two class pull requests:
+
+```
+zcat assets/db_inputs/spell_store_inputs.json | python3 -c "import json,sys; print(json.load(sys.stdin)['Builds'])"
+
+git checkout origin/master -- sim/core/spelldata/spells_auto_gen.go assets/db_inputs/spell_store_inputs.json
+go run ./tools/database/gen_spelldata -only mage
+```
+
+A new game build, start to finish:
+
+```
+make db ONLY=racials                      # the update pull request: items, shared and racials
+make db ONLY=druid                        # each class on its own branch, once the update is merged
+make spelldata-check                      # the classes still to port
+go test ./tools/database/ -count=1 -run 'Merge|MoveRow|ParsePortions|CurrentPortions'
+go test --tags=with_db -count=1 ./sim/druid/...
+```
+
 ## Porting a class onto the resolvers
 
 1. **Start from the ladders.** Every class file is already one ladder per family, and the seven
