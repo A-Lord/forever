@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { useTreeItem } from './hooks/useTreeItem';
 import { useTreeRoot } from './hooks/useTreeRoot';
 import { Tree } from './index';
-import type { TreeOrientation, TreeSortable } from './types';
+import type { TreeSortable } from './types';
 
 interface Row {
 	id: string;
@@ -18,10 +18,7 @@ const RowItem = ({ row }: { row: Row }) => (
 	<Tree.Item id={row.id} testId={`item-${row.id}`}>
 		<Tree.Item.Header>
 			<Tree.Item.Handle label={`Move ${row.id}`} testId={`handle-${row.id}`} />
-			<Tree.Item.Title testId={`title-${row.id}`}>
-				{row.id}
-				<input aria-label={`Name of ${row.id}`} data-testid={`input-${row.id}`} />
-			</Tree.Item.Title>
+			<Tree.Item.Title testId={`title-${row.id}`}>{row.id}</Tree.Item.Title>
 		</Tree.Item.Header>
 		{row.values && (
 			<Tree.Item.Body>
@@ -46,12 +43,9 @@ const RowItem = ({ row }: { row: Row }) => (
 	</Tree.Item>
 );
 
-const mount = (
-	rows: Array<Row>,
-	{ sortable, handle, orientation }: { sortable?: TreeSortable; handle?: 'handle' | 'header'; orientation?: TreeOrientation } = {},
-) =>
+const mount = (rows: Array<Row>, { sortable }: { sortable?: TreeSortable } = {}) =>
 	render(
-		<Tree.Root group="rows" sortable={sortable} handle={handle} orientation={orientation}>
+		<Tree.Root group="rows" sortable={sortable}>
 			<Tree.Items>
 				{rows.map(row => (
 					<RowItem key={row.id} row={row} />
@@ -115,16 +109,6 @@ describe('Tree sortable', () => {
 			from: { group: 'rows', id: 'a', index: 0, parentId: null },
 			to: { group: 'rows', parentId: null, index: 2 },
 		});
-	});
-
-	it('reads the midpoint across the row in a horizontal list', () => {
-		const { onMove, sortable } = setup();
-		mount(flat('a', 'b'), { sortable, orientation: 'horizontal' });
-		['a', 'b'].forEach(place);
-
-		grab('a');
-		dragEvent('drop', item('b'), { x: 35, y: 0 });
-		expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ to: { group: 'rows', parentId: null, index: 2 } }));
 	});
 
 	it('refuses a drop on the item itself or next to it, where nothing would move', () => {
@@ -439,40 +423,12 @@ describe('Tree sortable', () => {
 		expect(item('a').hasAttribute('draggable')).toBe(false);
 	});
 
-	it('does not arm an item on a press elsewhere in the header by default', () => {
+	it('does not arm an item on a press elsewhere in the header', () => {
 		const { sortable } = setup();
 		mount(flat('a'), { sortable });
 
 		fireEvent.mouseDown(screen.getByTestId('title-a'));
 		expect(item('a').hasAttribute('draggable')).toBe(false);
-	});
-
-	it('with handle="header" arms the item on a press anywhere in its header except a text field', () => {
-		const { sortable } = setup();
-		mount([{ id: 'A', children: flat('a1') }], { sortable, handle: 'header' });
-
-		fireEvent.mouseDown(screen.getByTestId('input-A'));
-		expect(item('A').hasAttribute('draggable')).toBe(false);
-		const editors = [
-			['span', 'contenteditable', ''],
-			['span', 'contenteditable', 'plaintext-only'],
-			['select', 'aria-label', 'Choice'],
-		].map(([tag, name, value]) => {
-			const editor = document.createElement(tag);
-			editor.setAttribute(name, value);
-			screen.getByTestId('title-A').append(editor);
-			return editor;
-		});
-		for (const editor of editors) {
-			fireEvent.mouseDown(editor);
-			expect(item('A').hasAttribute('draggable')).toBe(false);
-		}
-		fireEvent.mouseDown(screen.getByTestId('title-a1'));
-		expect(item('a1').getAttribute('draggable')).toBe('true');
-		expect(item('A').hasAttribute('draggable')).toBe(false);
-		fireEvent.mouseUp(document);
-		fireEvent.mouseDown(screen.getByTestId('title-A'));
-		expect(item('A').getAttribute('draggable')).toBe('true');
 	});
 
 	it('ignores a dragstart that bubbles up from a nested item', () => {

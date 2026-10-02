@@ -30,13 +30,6 @@ describe('TooltipButton', () => {
 		expect(screen.getByRole('button').getAttribute('data-testid')).toBe('consumes-help');
 	});
 
-	it('takes another glyph, which the vanilla component hardcodes', () => {
-		render(<TooltipButton tooltip="Warning" icon="triangle-exclamation" iconStyle="solid" />);
-		const icon = screen.getByRole('button').querySelector('svg')!;
-		expect(icon.getAttribute('data-icon')).toBe('triangle-exclamation');
-		expect(icon.getAttribute('data-prefix')).toBe('fas');
-	});
-
 	it('gives each button its own tooltip', () => {
 		render(
 			<>

@@ -59,10 +59,6 @@ export const Wrap: Story = {
 	),
 };
 
-export const WithBadge: Story = {
-	args: { tabs: [...TABS, { id: 'story-bulk', label: 'Bulk', badge: 'Beta' }] },
-};
-
 export const Switches: Story = {
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);

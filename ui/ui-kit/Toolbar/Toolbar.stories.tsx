@@ -11,7 +11,6 @@ const meta = {
 	tags: ['autodocs'],
 	args: { testId: 'toolbar-story', 'aria-label': 'Rotation list' },
 	argTypes: {
-		orientation: { control: 'select', options: ['horizontal', 'vertical'] },
 		className: { control: 'text' },
 	},
 	render: args => (
@@ -36,13 +35,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Horizontal: Story = { args: { className: 'items-center gap-2' } };
-export const Vertical: Story = { args: { orientation: 'vertical', className: 'flex-col items-start gap-2' } };
 
 export const DisabledButton: Story = {
 	render: args => (
 		<Toolbar {...args} className="items-center gap-2">
 			<ToolbarButton variant="primary">Enabled</ToolbarButton>
-			<ToolbarButton variant="primary" disabled focusableWhenDisabled>
+			<ToolbarButton variant="primary" disabled>
 				Disabled but focusable
 			</ToolbarButton>
 		</Toolbar>

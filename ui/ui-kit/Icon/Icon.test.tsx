@@ -35,7 +35,7 @@ describe('Icon', () => {
 	});
 
 	it('marks the size as data-size', () => {
-		expect(el(render(<Icon name="spinner" size="2xl" spin />).container).dataset.size).toBe('2xl');
+		expect(el(render(<Icon name="spinner" size="2xl" />).container).dataset.size).toBe('2xl');
 		expect(el(render(<Icon name="spinner" />).container).hasAttribute('data-size')).toBe(false);
 	});
 

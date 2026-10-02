@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ToastArea, toastManager } from '@ui-kit/Toast';
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { CopyButton } from './CopyButton';
 
@@ -10,7 +10,6 @@ const meta = {
 	tags: ['autodocs'],
 	args: {
 		getContent: () => '{"player":{"name":"Player"}}',
-		onCopied: fn(),
 	},
 	argTypes: {
 		variant: { control: 'select', options: [null, 'primary', 'outline-primary', 'link'] },
@@ -45,9 +44,8 @@ export const NoClipboard: Story = {
 			<ToastArea manager={toastManager} inline />
 		</>
 	),
-	play: async ({ args, canvasElement }) => {
+	play: async ({ canvasElement }) => {
 		await userEvent.click(within(canvasElement).getByTestId('copy-button'));
-		await expect(args.onCopied).toHaveBeenCalledOnce();
 		const payload = await within(canvasElement.ownerDocument.body).findByText('{"player":{"name":"Player"}}');
 		await waitFor(() => expect(payload).toBeVisible());
 	},

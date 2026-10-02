@@ -1,5 +1,4 @@
 import { Tabs } from '@base-ui/react/tabs';
-import { TabBadge } from '@ui-kit/TabBadge';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
@@ -7,7 +6,6 @@ export interface TabNavTab {
 	id: string;
 	label: ReactNode;
 	className?: string;
-	badge?: string;
 	tabId?: string;
 	ariaControls?: string;
 	dataLabel?: string;
@@ -31,7 +29,6 @@ export const TabNav = ({ tabs, className, variant = 'nav-tabs', tabItemClassName
 				{tabs.map(tab => (
 					<Tabs.Tab key={tab.id} value={tab.id} className={clsx(tab.id, 'ui-tab', tab.buttonClassName)} data-testid={tab.id}>
 						{tab.label}
-						<TabBadge label={tab.badge} />
 					</Tabs.Tab>
 				))}
 			</Tabs.List>
@@ -53,7 +50,6 @@ export const TabNav = ({ tabs, className, variant = 'nav-tabs', tabItemClassName
 						data-label={tab.dataLabel}
 						className={clsx('ui-tab ui-tab-nav', tab.buttonClassName)}>
 						{tab.label}
-						<TabBadge label={tab.badge} />
 					</Tabs.Tab>
 				</li>
 			))}

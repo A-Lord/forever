@@ -8,7 +8,6 @@ export interface VirtualListProps {
 	// Every row is exactly this tall. Rows are never measured — dynamic measurement would re-render
 	// on every row that reports a different height, which is an easy infinite loop.
 	rowHeight?: number;
-	overscan?: number;
 	// The element that scrolls. May be an ancestor the list shares with other content, or `window`
 	// when the list scrolls with the page. Returning `window` switches the list into window mode, so
 	// a caller resolving its scroller with `findScrollParent` may report either without knowing which
@@ -24,7 +23,7 @@ export interface VirtualListProps {
 }
 
 const DEFAULT_ROW_HEIGHT = 28;
-const DEFAULT_OVERSCAN = 10;
+const OVERSCAN = 10;
 
 /**
  * Rows are absolutely positioned and moved with `transform`, which is how `@tanstack/react-virtual`
@@ -43,7 +42,6 @@ const DEFAULT_OVERSCAN = 10;
 export const VirtualList = ({
 	count,
 	rowHeight = DEFAULT_ROW_HEIGHT,
-	overscan = DEFAULT_OVERSCAN,
 	getScrollElement,
 	scrollMargin = 0,
 	className,
@@ -61,7 +59,7 @@ export const VirtualList = ({
 		count,
 		getScrollElement: getScrollElement as () => HTMLElement | null,
 		estimateSize: () => rowHeight,
-		overscan,
+		overscan: OVERSCAN,
 		scrollMargin,
 		...(scrollsWithWindow ? WINDOW_SCROLLER : {}),
 	});

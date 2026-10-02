@@ -31,10 +31,7 @@ const TextField = <V,>({
 	const display = codec.format(value);
 	const { text, setDraft, clear: dropDraft } = useDraft(display);
 
-	const report = (entered: string) => {
-		const next = codec.parse(entered);
-		if (next !== undefined) onChange(next);
-	};
+	const report = (entered: string) => onChange(codec.parse(entered));
 
 	useCommitChange(commit === 'blur' ? input : null, committed => {
 		report(committed.value);

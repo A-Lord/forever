@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { Button } from '@ui-kit/Button';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { describe, expect, it, vi } from 'vitest';
@@ -61,15 +61,6 @@ describe('Popover', () => {
 		host.remove();
 	});
 
-	it('opens on hover when openOnHover is set', () => {
-		const onOpenChange = vi.fn();
-		renderPopover({ openOnHover: true, delay: 0, onOpenChange });
-
-		fireEvent.mouseEnter(screen.getByRole('button', { name: 'Settings' }));
-		expect(onOpenChange).toHaveBeenCalledWith(true);
-		expect(screen.getByRole('dialog')).toBeTruthy();
-	});
-
 	it('forwards trigger props, so an icon-only trigger can be named and anchor a tooltip', () => {
 		renderPopover({ triggerProps: { 'aria-label': 'Reforge settings', 'data-tooltip-id': 'reforge-settings-tip' } });
 
@@ -79,10 +70,9 @@ describe('Popover', () => {
 		expect(trigger.getAttribute('type')).toBe('button');
 	});
 
-	// The pickers this popover is for commit on their own events, so the default leaves focus on the
-	// trigger. Escape still closes, because the dismiss listener is on the document rather than on
-	// the popup.
-	it('leaves focus on the trigger by default, and still closes on Escape', () => {
+	// The pickers this popover is for commit on their own events, so it leaves focus on the trigger.
+	// Escape still closes, because the dismiss listener is on the document rather than on the popup.
+	it('leaves focus on the trigger, and still closes on Escape', () => {
 		const onOpenChange = vi.fn();
 		const { trigger } = openPopover({ onOpenChange });
 		expect(document.activeElement).toBe(trigger);
@@ -91,12 +81,6 @@ describe('Popover', () => {
 		fireEvent.keyDown(trigger, { key: 'Escape' });
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 		expect(screen.getByRole('dialog').hasAttribute('data-open')).toBe(false);
-	});
-
-	// Asynchronous: Base UI focuses after the popup has been positioned, so this is a `waitFor`.
-	it('moves focus to the first control in the popup when initialFocus is asked for', async () => {
-		openPopover({ initialFocus: true });
-		await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' })));
 	});
 
 	it('renders no backdrop unless asked for one', () => {
