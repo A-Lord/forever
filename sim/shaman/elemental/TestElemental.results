@@ -508,6 +508,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-RingofSaviors-1447"
+ value: {
+  dps: 330.7413
+  tps: 236.66346
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-SerenityField-272439"
  value: {
   dps: 336.93722
