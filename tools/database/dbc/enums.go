@@ -308,6 +308,11 @@ const (
 	ITEM_MOD_SHADOW_DAMAGE = 88
 	ITEM_MOD_ARCANE_DAMAGE = 89
 
+	// Spell penetration on one school, in points of the target's resistance: 21516 Dagger of Spell
+	// Penetration - Fire 150 Resist (TEST) budgets 150 of 119, and 21518's Frost twin 150 of 121.
+	ITEM_MOD_FIRE_SPELL_PENETRATION  = 119
+	ITEM_MOD_FROST_SPELL_PENETRATION = 121
+
 	ITEM_MOD_ALL_RESISTANCES = 124
 )
 

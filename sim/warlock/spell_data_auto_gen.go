@@ -143,8 +143,8 @@ type generatedSpellData struct {
 	SiphonLife                  spelldata.Ladder
 	SoothingKiss                spelldata.Ladder
 	SoulFire                    spelldata.Ladder
-	SoulHarvesting              spelldata.Ladder
-	SoulHarvestingTriggered     spelldata.Ladder
+	SoulHarvest                 spelldata.Ladder
+	SoulHarvestTriggered        spelldata.Ladder
 	SoulLink                    spelldata.Ladder
 	SoulLinkTriggered           spelldata.Ladder
 	SoulSiphon                  spelldata.Ladder
@@ -287,8 +287,8 @@ var spellData = generatedSpellData{
 	SiphonLife:                  spelldata.Ranked(18265, 18879, 18880, 18881),
 	SoothingKiss:                spelldata.Ranked(6360, 7813, 11784, 11785),
 	SoulFire:                    spelldata.Ranked(6353, 17924),
-	SoulHarvesting:              spelldata.Talent(437032, 2),
-	SoulHarvestingTriggered:     spelldata.Ranked(1242853),
+	SoulHarvest:                 spelldata.Talent(437032, 2),
+	SoulHarvestTriggered:        spelldata.Ranked(1242853),
 	SoulLink:                    spelldata.Ranked(19028),
 	SoulLinkTriggered:           spelldata.Ranked(18814, 25228),
 	SoulSiphon:                  spelldata.Talent(17804, 3),

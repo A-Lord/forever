@@ -23,9 +23,9 @@ func init() {
 }
 
 // The fixtures mirror the spec suites' Default* fixtures.
-var furyTalents = "30305003-050530205052310051"
-var armsTalents = "30305213032115201-05052030004"
-var protectionTalents = "05--552531233311210531"
+var furyTalents = "30305003-05053035052210501"
+var armsTalents = "30305213032315201-0505003004"
+var protectionTalents = "05--255533121331021351"
 
 var dpsOptions = &proto.Player_DpsWarrior{
 	DpsWarrior: &proto.DpsWarrior{
@@ -430,7 +430,7 @@ func TestOverpowerAndRevengeWindowsOpenOnAvoidedMeleeHits(t *testing.T) {
 	}
 }
 
-// Dual Wield Specialization 5/5 gives the off-hand axe's attacks 10% hit and the main hand's none.
+// Furious Precision 3/3 gives the off-hand axe's attacks 10% hit and the main hand's none.
 // Cruelty 5/5 gives each axe 5% crit, and a two-handed axe also takes Weaponmaster's 5%, whose aura is
 // up. Axe Specialization is crit on every attack, not a mod on the axes.
 func TestTalentsReachTheirWeapons(t *testing.T) {

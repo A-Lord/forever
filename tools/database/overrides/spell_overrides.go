@@ -40,6 +40,11 @@ const (
 	// The ProcHint bits the tooltip's wording did not yield, which Value carries as a bit set. It
 	// replaces what the wording produced rather than adding to it.
 	Hint
+
+	// The stat mask of the A_MOD_TOTAL_STAT_PERCENTAGE effect, onto its second misc value, one bit
+	// per stat index. Fails when the effect states either misc value itself, since 0 and 0 is
+	// Strength by index.
+	StatMask
 )
 
 func (f Field) String() string {
@@ -58,6 +63,8 @@ func (f Field) String() string {
 		return "DurationMs"
 	case Hint:
 		return "Hint"
+	case StatMask:
+		return "StatMask"
 	}
 	return "unknown field"
 }
@@ -181,6 +188,20 @@ var Spells = []Override{
 		Value:   float64(core.ProcHintDamage),
 		Reason:  "Badge of the Swarmguard: stacks on hits with a damage component",
 		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 1299796,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Insight's proc doubles Spirit, not Strength.
+		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
+		Source:  "tooltip",
+	},
+	{
+		SpellID: 1248751,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Mystic Mushroom raises Spirit, not Strength.
+		Reason:  "Increased Spirit: misc 0 and 0 is Strength by index, the tooltip reads 'Increases Spirit by 5%'",
+		Source:  "tooltip",
 	},
 
 	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from
