@@ -307,11 +307,8 @@ const eurekaDamageBonus = 0.1
 
 // Eureka! scopes its mods to each class's abilities by the game files' class masks: idx0 of each row
 // names the spells whose cost it lowers, idx1 the ones whose direct damage it raises, and idx2, on the
-// warlock and priest rows only, the ones whose periodic damage it raises. The idx2 masks also name
-// Haunt and Penance's bolts, which are not channels; only a channel takes that bonus, since no other
-// periodic effect benefits. A channel takes it by spending a stack and keeps it on all of its ticks;
-// one cast with no stack up, or already ticking when Eureka! goes up, takes none. A stack goes on a
-// landed ability any of them names that has a damage component, a channel included.
+// warlock and priest rows only, the channels whose ticks it raises once the channel spends a stack. A
+// stack goes on a landed ability any of them names that has a damage component.
 func applyEureka(character *Character) {
 	var spellID int32
 	var resourceType proto.ResourceType
@@ -350,50 +347,48 @@ func applyEureka(character *Character) {
 
 	actionID := ActionID{SpellID: spellID}
 
-	mods := []*SpellMod{
-		character.AddDynamicMod(SpellModConfig{
-			Kind:         SpellMod_PowerCost_Pct,
-			ClassFlags:   costFlags,
-			ProcMask:     procMask,
-			ResourceType: resourceType,
-			FloatValue:   -eurekaCostReduction,
-		}),
-		character.AddDynamicMod(SpellModConfig{
-			Kind:       SpellMod_DirectDamageDone_Flat,
-			ClassFlags: damageFlags,
-			ProcMask:   procMask,
-			FloatValue: eurekaDamageBonus,
-		}),
-	}
+	costMod := character.AddDynamicMod(SpellModConfig{
+		Kind:         SpellMod_PowerCost_Pct,
+		ClassFlags:   costFlags,
+		ProcMask:     procMask,
+		ResourceType: resourceType,
+		FloatValue:   -eurekaCostReduction,
+	})
+	damageMod := character.AddDynamicMod(SpellModConfig{
+		Kind:       SpellMod_DirectDamageDone_Flat,
+		ClassFlags: damageFlags,
+		ProcMask:   procMask,
+		FloatValue: eurekaDamageBonus,
+	})
 	// TODO: Ingame test needed: whether a channel that spends a stack keeps the bonus on all of its
 	// ticks once the aura has ended, the last stack included.
 	isEurekaChannel := func(spell *Spell) bool {
-		return !channelFlags.IsZero() && spell.Flags.Matches(SpellFlagChanneled) && !spell.Flags.Matches(SpellFlagNoSpellMods) &&
-			channelFlags.Reaches(spell) && procMask.Matches(spell.ProcMask)
+		return spell.Flags.Matches(SpellFlagChanneled) && !spell.Flags.Matches(SpellFlagNoSpellMods) &&
+			spell.MatchesFlags(channelFlags) && procMask.Matches(spell.ProcMask)
 	}
-	boostedChannels := make(map[*Dot]bool)
-	// The channel's own expire hook comes first, so its final tick keeps the bonus.
-	character.OnSpellRegistered(func(spell *Spell) {
-		if !isEurekaChannel(spell) {
-			return
-		}
-		for _, dot := range append(DotArray{spell.AOEDot()}, spell.dots...) {
-			if dot == nil {
-				continue
+	var boostedChannels map[*Dot]bool
+	if !channelFlags.IsZero() {
+		boostedChannels = make(map[*Dot]bool)
+		// The channel's own expire hook comes first, so its final tick keeps the bonus.
+		character.OnSpellRegistered(func(spell *Spell) {
+			if !isEurekaChannel(spell) {
+				return
 			}
-			dot.ApplyOnExpire(func(_ *Aura, _ *Simulation) {
-				if boostedChannels[dot] {
-					dot.PeriodicDamageMultiplier /= 1 + eurekaDamageBonus
-					delete(boostedChannels, dot)
+			for _, dot := range append(DotArray{spell.AOEDot()}, spell.dots...) {
+				if dot == nil {
+					continue
 				}
-			})
-		}
-	})
+				dot.ApplyOnExpire(func(_ *Aura, _ *Simulation) {
+					if boostedChannels[dot] {
+						dot.PeriodicDamageMultiplier /= 1 + eurekaDamageBonus
+						delete(boostedChannels, dot)
+					}
+				})
+			}
+		})
+	}
 
-	// One stack per cast, however many targets it lands on, keyed by spell id so Whirlwind's off-hand
-	// strike counts with its main-hand one.
-	var lastSpentID int32
-	var lastSpentAt time.Duration
+	firstHit, resetFirstHit := OncePerCast()
 
 	aura := character.RegisterAura(Aura{
 		Label:     "Eureka!",
@@ -401,16 +396,14 @@ func applyEureka(character *Character) {
 		Duration:  time.Second * 15,
 		MaxStacks: 3,
 		OnGain: func(aura *Aura, sim *Simulation) {
-			lastSpentID = 0
+			resetFirstHit()
 			aura.SetStacks(sim, 3)
-			for _, mod := range mods {
-				mod.Activate()
-			}
+			costMod.Activate()
+			damageMod.Activate()
 		},
 		OnExpire: func(_ *Aura, _ *Simulation) {
-			for _, mod := range mods {
-				mod.Deactivate()
-			}
+			costMod.Deactivate()
+			damageMod.Deactivate()
 		},
 	})
 
@@ -429,11 +422,7 @@ func applyEureka(character *Character) {
 		RequireDamageComponent: true,
 
 		ExtraCondition: func(sim *Simulation, spell *Spell, _ *SpellResult) bool {
-			if spell.ActionID.SpellID == lastSpentID && sim.CurrentTime == lastSpentAt {
-				return false
-			}
-			lastSpentID, lastSpentAt = spell.ActionID.SpellID, sim.CurrentTime
-			return true
+			return firstHit(sim, spell)
 		},
 		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
 			if isEurekaChannel(spell) {

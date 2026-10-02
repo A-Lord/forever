@@ -226,7 +226,7 @@ func equipSpellUnsupported(enchantID int, s *spelldata.Spell, spellID int32) []s
 		return []string{fmt.Sprintf("enchant %d's equip spell %d has no row in the store", enchantID, spellID)}
 	}
 	var unsupported []string
-	if s.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect {
+	if shared.TemporaryEnchantEquipSpellProcs(s) {
 		for _, reason := range shared.TemporaryEnchantProcUnsupported(s) {
 			unsupported = append(unsupported, fmt.Sprintf("enchant %d's equip spell %d: %s", enchantID, spellID, reason))
 		}

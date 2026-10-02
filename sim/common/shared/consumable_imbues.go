@@ -33,12 +33,10 @@ func NewSpellDataTemporaryEnchant(itemID int32, piercing SchoolPiercing, equipSp
 		if len(hands) == 0 {
 			return
 		}
-		if piercing.Amount != 0 {
-			character.PseudoStats.SchoolSpellPiercing[piercing.School] += piercing.Amount * float64(len(hands))
-		}
+		character.PseudoStats.SchoolSpellPiercing[piercing.School] += piercing.Amount * float64(len(hands))
 		for _, spellID := range equipSpellIDs {
 			row := spelldata.MustFind(spellID)
-			if row.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect {
+			if TemporaryEnchantEquipSpellProcs(row) {
 				registerTemporaryEnchantProc(character, consumable, row, hands)
 				continue
 			}
@@ -103,7 +101,7 @@ func TemporaryEnchantProcUnsupported(row *spelldata.Spell) []string {
 		unsupported = append(unsupported, fmt.Sprintf("%d states effects beside its proc, which the listener leaves out", row.ID))
 	}
 	fired := row.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL).Trigger()
-	gain, cooldown := fired.EnergizeEffect(), categoryCooldownEffect(fired)
+	gain, cooldown := fired.EnergizeEffect(), fired.CategoryCooldownEffect()
 
 	switch {
 	case fired == spelldata.Nil:
@@ -125,6 +123,10 @@ func TemporaryEnchantProcUnsupported(row *spelldata.Spell) []string {
 		unsupported = append(unsupported, fmt.Sprintf("%d fires %d, which neither restores a resource nor changes a spell category's cooldown", row.ID, fired.ID))
 	}
 	return unsupported
+}
+
+func TemporaryEnchantEquipSpellProcs(row *spelldata.Spell) bool {
+	return row.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect
 }
 
 // An equip spell that procs, built from its row: the hits it hears, its chance and its internal
@@ -162,26 +164,13 @@ func temporaryEnchantProcHandler(character *core.Character, actionID core.Action
 			return nil
 		}
 		return func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			amount := gain.Roll(sim)
-			if power.InTenths() {
-				amount /= 10
-			}
-			bar.add(sim, amount, bar.metrics)
+			bar.add(sim, barAmount(power, gain.Roll(sim)), bar.metrics)
 		}
 	}
 
-	cooldown := categoryCooldownEffect(fired)
+	cooldown := fired.CategoryCooldownEffect()
 	timer := character.CategoryTimer(cooldown.Misc)
 	return func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		timer.Set(max(sim.CurrentTime, timer.ReadyAt()+cooldown.TimeValue()))
 	}
-}
-
-func categoryCooldownEffect(s *spelldata.Spell) *spelldata.Effect {
-	for i := range s.Effects {
-		if s.Effects[i].Type == dbcenums.E_MODIFY_COOLDOWNS_BY_CATEGORY {
-			return &s.Effects[i]
-		}
-	}
-	return spelldata.NilEffect
 }

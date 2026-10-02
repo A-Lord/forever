@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/wowsims/forever/sim/common/shared"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -169,9 +168,11 @@ func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 			fields.WeaponDamage != 0 || len(fields.EnchantEffects) > 0 || row == spelldata.Nil {
 			continue
 		}
-		procs := row.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect
-		if procs && len(shared.TemporaryEnchantProcUnsupported(row)) > 0 ||
-			!procs && (slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0) {
+		if shared.TemporaryEnchantEquipSpellProcs(row) {
+			if len(shared.TemporaryEnchantProcUnsupported(row)) > 0 {
+				continue
+			}
+		} else if slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0 {
 			continue
 		}
 		spellIDs = append(spellIDs, spellID)

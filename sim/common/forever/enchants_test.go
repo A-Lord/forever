@@ -112,14 +112,7 @@ func revelationWearer(t *testing.T, class proto.Class, spec any) (*core.Simulati
 		Buffs:     &proto.IndividualBuffs{},
 		Rotation:  &proto.APLRotation{},
 	}
-	switch s := spec.(type) {
-	case *proto.Player_BalanceDruid:
-		player.Spec = s
-	case *proto.Player_DpsWarrior:
-		player.Spec = s
-	case *proto.Player_Hunter:
-		player.Spec = s
-	}
+	core.WithSpec(player, spec)
 
 	sim := core.NewSim(&proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 1},

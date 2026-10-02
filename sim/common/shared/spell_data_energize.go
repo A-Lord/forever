@@ -20,11 +20,7 @@ func NewSpellDataEnergizeOnUse(itemID int32) {
 		}
 
 		amount := func(sim *core.Simulation) float64 {
-			gain := effect.Roll(sim)
-			if power.InTenths() {
-				gain /= 10
-			}
-			return gain
+			return barAmount(power, effect.Roll(sim))
 		}
 
 		config := spelldata.SpellConfig(&character.Unit, row)
@@ -45,10 +41,7 @@ func NewSpellDataEnergizeOnUse(itemID int32) {
 			}
 		}
 
-		whole := effect.Max() * ticks
-		if power.InTenths() {
-			whole /= 10
-		}
+		whole := barAmount(power, effect.Max()*ticks)
 
 		return config, core.MajorCooldown{
 			Type: bar.cdType,
@@ -93,4 +86,11 @@ func energizedBarOf(character *core.Character, power dbcenums.PowerType, actionI
 		}, true
 	}
 	return energizedBar{}, false
+}
+
+func barAmount(power dbcenums.PowerType, v float64) float64 {
+	if power.InTenths() {
+		return v / 10
+	}
+	return v
 }

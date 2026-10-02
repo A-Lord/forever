@@ -1,8 +1,6 @@
 package warrior
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -205,15 +203,12 @@ func (warrior *Warrior) registerGoreDrinker() {
 	}
 	heal := warrior.RegisterSpell(healConfig)
 
-	// One charge per cast of Cleave or Whirlwind, keyed by spell id so Whirlwind's off-hand strike
-	// counts with its main-hand one.
-	var lastAoeSpellID int32
-	var lastAoeAt time.Duration
+	firstAoeHit, resetFirstAoeHit := core.OncePerCast()
 
 	buffConfig := spelldata.AuraConfig(goreDrinkerBuff)
 	buffConfig.MaxStacks = charges
 	buffConfig.OnReset = func(_ *core.Aura, _ *core.Simulation) {
-		lastAoeSpellID = 0
+		resetFirstAoeHit()
 	}
 	warrior.GoreDrinkerAura = warrior.RegisterAura(buffConfig)
 
@@ -232,14 +227,13 @@ func (warrior *Warrior) registerGoreDrinker() {
 	consume.Name = "Gore Drinker - Heal"
 	consume.Outcome = core.OutcomeLanded
 	consume.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		if !spell.ProcMask.Matches(core.ProcMaskMeleeSpecial) {
+			return true
+		}
 		if !spellData.Cleave.Contains(spell) && !spellData.Whirlwind.Contains(spell) {
 			return true
 		}
-		if spell.ActionID.SpellID == lastAoeSpellID && sim.CurrentTime == lastAoeAt {
-			return false
-		}
-		lastAoeSpellID, lastAoeAt = spell.ActionID.SpellID, sim.CurrentTime
-		return true
+		return firstAoeHit(sim, spell)
 	}
 	warrior.GoreDrinkerAura.AttachProcTrigger(consume)
 
@@ -253,7 +247,7 @@ func (warrior *Warrior) registerGoreDrinker() {
 			if result == nil {
 				return spellData.BerserkerRage.Contains(spell) || spellData.Bloodrage.Contains(spell) || spellData.DeathWish.Contains(spell)
 			}
-			return spellData.Bloodthirst.Contains(spell)
+			return spell.ProcMask.Matches(core.ProcMaskMeleeMHSpecial) && spellData.Bloodthirst.Contains(spell)
 		},
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			warrior.activateGoreDrinker(sim)

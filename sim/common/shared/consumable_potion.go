@@ -322,11 +322,7 @@ func newConsumableGain(character *core.Character, row *spelldata.Spell, e *spell
 		if e.Type == dbcenums.E_ENERGIZE_PCT {
 			return maximum() * e.Percent() * bonus
 		}
-		value := roll(e)
-		if power.InTenths() {
-			value /= 10
-		}
-		return value * bonus
+		return barAmount(power, roll(e)) * bonus
 	}
 
 	ticks := 1

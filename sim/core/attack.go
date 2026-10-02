@@ -723,10 +723,11 @@ func (wa *WeaponAttack) IsInRange() bool {
 
 // Starts or stops the ranged auto attack when the target has come into or gone out of its range.
 func (aa *AutoAttacks) UpdateRangedRange(sim *Simulation) {
-	if aa.ranged.enabled == aa.ranged.IsInRange() {
+	inRange := aa.ranged.IsInRange()
+	if aa.ranged.enabled == inRange {
 		return
 	}
-	if aa.ranged.IsInRange() {
+	if inRange {
 		aa.EnableRangedSwing(sim)
 	} else {
 		aa.CancelRangedSwing(sim)
