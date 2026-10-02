@@ -1,6 +1,7 @@
 // db2tool extracts data from the World of Warcraft game files into tools/database/wowsims.db.
 //
-// The default mode reads the local install named by the settings' BaseDir:
+// The default mode reads the local install named by the settings' BaseDir, or
+// by --basedir when given:
 // .build.info picks the build, files come from local CASC
 // (root → encoding → .idx → data.NNN → BLTE), .dbd definitions and the
 // community listfile are fetched/cached over plain HTTPS. The game files'
@@ -45,6 +46,7 @@ func main() {
 type options struct {
 	settingsFile string
 	databaseFile string
+	baseDir      string   // overrides the settings' BaseDir when set
 	db2Dir       string   // offline mode only
 	dbdDir       string   // offline mode override
 	buildNumber  uint32   // nonzero → offline mode
@@ -77,6 +79,8 @@ func parseArgs(args []string) (options, error) {
 			opts.settingsFile, err = next()
 		case "--output", "-output", "-o":
 			opts.databaseFile, err = next()
+		case "--basedir":
+			opts.baseDir, err = next()
 		case "--db2dir":
 			opts.db2Dir, err = next()
 		case "--dbddir":
@@ -146,6 +150,9 @@ func run(args []string) error {
 	}
 	if len(settings.Tables) == 0 {
 		return fmt.Errorf("settings file lists no Tables")
+	}
+	if opts.baseDir != "" {
+		settings.Settings.BaseDir = opts.baseDir
 	}
 
 	// The tool home is resolved from the working directory, which must be the
