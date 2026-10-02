@@ -4,7 +4,7 @@ import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed,
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ConsumeRow } from './ConsumeRow';
+import { ConsumeRow, ConsumeRowView } from './ConsumeRow';
 
 const KEY = 2;
 
@@ -121,5 +121,20 @@ describe('ConsumeRow', () => {
 		options.engineer = true;
 		act(() => options.changeProfession(1));
 		expect(isHidden(element)).toBe(false);
+	});
+});
+
+describe('ConsumeRowView', () => {
+	it('lays the caption out inline before the pickers', () => {
+		render(
+			<ConsumeRowView label="Elixirs" hidden={false}>
+				<div data-testid="pickers" />
+			</ConsumeRowView>,
+		);
+		const row = screen.getByTestId('consumes-row');
+
+		expect(row.getAttribute('data-layout')).toBe('inline');
+		expect(row.children[0].textContent).toBe('Elixirs');
+		expect(row.children[1]).toBe(screen.getByTestId('pickers'));
 	});
 });

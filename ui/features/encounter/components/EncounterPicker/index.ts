@@ -1,2 +1,2 @@
-export { EncounterPicker, EncounterPickerView } from './EncounterPicker';
-export type { EncounterPickerProps, EncounterPickerViewProps } from './EncounterPicker';
+export { EncounterPicker } from './EncounterPicker';
+export type { EncounterPickerProps } from './EncounterPicker';

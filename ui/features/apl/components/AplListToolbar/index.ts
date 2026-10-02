@@ -1,2 +1,2 @@
-export { AplListToolbar, AplListToolbarView } from './AplListToolbar';
-export type { AplListToolbarProps, AplListToolbarViewProps } from './AplListToolbar';
+export { AplListToolbar } from './AplListToolbar';
+export type { AplListToolbarProps } from './AplListToolbar';

@@ -85,6 +85,9 @@ component. `npm run storybook:dev` serves it on port 6006, `npm run storybook:bu
 Titles follow the tree: `Kit/<Name>`, `Features/<Feature>/<Name>`, `App/<Area>/<Name>`, and the
 twelve `Design System/*` pages.
 
+- **Stories and tests add no code to the UI.** A story or a unit test works through what a
+  component already exposes; no export, prop, branch or flag goes into `ui/` only so one of them can
+  render or cover something. Fixtures and stubs live in the story or test, or in `ui/testing/`.
 - **Stories are tests.** `ui/testing/storybook/stories.test.tsx` globs every `*.stories.tsx`,
   composes each story with the preview annotations and asserts it mounts under happy-dom, inside
   `npm run test:unit`. A story that cannot mount there sets `smoke: false` and a `smokeReason`
@@ -128,7 +131,7 @@ cover placement and co-located CSS.
   touch the DOM without being components — the timeline's chart builders, zoom controllers and
   ruler sit in `results/components/Timeline/{chart,rotation}/`. The two may share a name:
   `results/model/timeline/` and `results/components/Timeline/`.
-- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View`. Both live in `<Name>.tsx` and are exported separately, the view above the container, so the logic sits in one file while stories render the view on its own. The view takes props only, reads neither the sim host nor the store, and gets a story under `Features/<Feature>/<Name>`. A picker connected to the store that a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
+- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View`. Both live in `<Name>.tsx` and are exported separately, the view above the container, so the logic sits in one file while stories render the view on its own; its story and test are `<Name>.stories.tsx` and `<Name>.test.tsx`. A view of only a part of a container (`ItemListToolbarView` inside `ItemList`) keeps its own `<Part>View.tsx`. The view takes props only, reads neither the sim host nor the store, and gets a story under `Features/<Feature>/<Name>`. A picker connected to the store that a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
 - `features/inputs/`: the store binding for the kit's pickers — `InputConfig` and `useInput`, one `Connected<Picker>` adapter per kit picker, and the config factories in `input_helpers.ts` / `icon_inputs.ts`. A feature or spec that needs a picker connected to the store renders a `Connected*` component; the kit picker underneath never learns what it is connected to.
 - `app/`: composes features; the only place that knows the tab layout.
 - `specs/<class>/<spec>/`: data; the only code allowed is `features/` escape hatches and `shared/derived.ts` rules.

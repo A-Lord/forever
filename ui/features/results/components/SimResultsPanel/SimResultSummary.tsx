@@ -10,7 +10,7 @@ import clsx from 'clsx';
 import { useId } from 'react';
 
 import { useResultFreshness } from '../../hooks/useResultFreshness';
-import { type ReferenceDiffs, referenceDiffs } from '../../model/reference_diffs';
+import { type ReferenceDiffs, referenceDiffs as computeReferenceDiffs } from '../../model/reference_diffs';
 import type { ResultFreshness } from '../../model/result_freshness';
 import type { SimResultsManager } from '../../model/results_manager';
 import { type ResultMetric, toplineResultMetrics } from '../../model/topline_metrics';
@@ -128,7 +128,7 @@ export const SimResultSummary = ({ results, onOpenBreakdown }: SimResultSummaryP
 	return (
 		<SimResultSummaryView
 			metrics={toplineResultMetrics(current.simResult, undefined, { displayMetrics })}
-			referenceDiffs={reference ? referenceDiffs(current.simResult, reference.simResult) : undefined}
+			referenceDiffs={reference ? computeReferenceDiffs(current.simResult, reference.simResult) : undefined}
 			freshness={freshness}
 			swapped={swapped}
 			onOpenBreakdown={onOpenBreakdown}

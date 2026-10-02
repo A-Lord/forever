@@ -15,7 +15,7 @@ import { useId, useMemo } from 'react';
 import { useEquippedItemWowheadDataset } from '../../hooks/useEquippedItemWowheadDataset';
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { enchantActionId } from '../../model/item_data';
-import { enchantChanged, type GearChangeSocket, gearChangeSockets } from './utils';
+import { enchantChanged as hasEnchantChanged, type GearChangeSocket, gearChangeSockets } from './utils';
 
 export interface GearChangeIconViewProps {
 	slot: ItemSlot;
@@ -129,7 +129,7 @@ export const GearChangeIcon = ({ slot, item, previousItem, showEnchant = false }
 			wowhead={wowhead}
 			sockets={sockets}
 			enchant={enchant}
-			enchantChanged={enchantChanged(item, previousItem)}
+			enchantChanged={hasEnchantChanged(item, previousItem)}
 			enchantWowhead={enchantWowhead}
 		/>
 	);
