@@ -140,10 +140,15 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 	}
 	core.FillTalentsProto(warrior.Talents.ProtoReflect(), talents, TalentTreeSizes)
 
+	// A warrior's critical auto attack gains the extra rage the dummy of Rule of Rage (DND) holds, 100%,
+	// in place of the 75% every other rage user gains.
+	// TODO: A combat log of the live game showed about 75% extra rage on white crits (11.4 on a 14.9
+	// swing, arriving after the crit's own gain), not 100%. Recheck with more crits.
 	warrior.EnableRageBar(core.RageBarOptions{
 		MaxRage:            100,
 		BaseRageMultiplier: 1,
 		StartingRage:       inputs.StartingRage,
+		CritRageMultiplier: 1 + spellData.RuleOfRage.Highest().EffectN(1).Percent(),
 	})
 
 	warrior.EnableAutoAttacks(warrior, core.AutoAttackOptions{

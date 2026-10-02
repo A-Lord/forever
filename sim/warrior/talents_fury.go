@@ -1,6 +1,8 @@
 package warrior
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -57,7 +59,6 @@ func (warrior *Warrior) registerCruelty() {
 }
 
 var unbridledWrathRank = spellData.UnbridledWrathTriggered.Highest()
-
 var unbridledWrathRage = unbridledWrathRank.EnergizeEffect().Tenths()
 
 func (warrior *Warrior) registerUnbridledWrath() {
@@ -204,10 +205,21 @@ func (warrior *Warrior) registerGoreDrinker() {
 	}
 	heal := warrior.RegisterSpell(healConfig)
 
+	// One charge per cast of Cleave or Whirlwind, keyed by spell id so Whirlwind's off-hand strike
+	// counts with its main-hand one.
+	var lastAoeSpellID int32
+	var lastAoeAt time.Duration
+
 	buffConfig := spelldata.AuraConfig(goreDrinkerBuff)
 	buffConfig.MaxStacks = charges
+	buffConfig.OnReset = func(_ *core.Aura, _ *core.Simulation) {
+		lastAoeSpellID = 0
+	}
 	warrior.GoreDrinkerAura = warrior.RegisterAura(buffConfig)
 
+	// TODO: Ingame test needed: a melee hit that deals no damage spends no charge.
+	// TODO: Ingame test needed: Cleave and Whirlwind spend one charge and heal once per cast, however
+	// many targets they hit.
 	consume := spelldata.ProcTrigger(&warrior.Character, goreDrinkerBuff,
 		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			heal.Cast(sim, &warrior.Unit)
@@ -215,6 +227,16 @@ func (warrior *Warrior) registerGoreDrinker() {
 		})
 	consume.Name = "Gore Drinker - Heal"
 	consume.Outcome = core.OutcomeLanded
+	consume.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		if !spellData.Cleave.Contains(spell) && !spellData.Whirlwind.Contains(spell) {
+			return true
+		}
+		if spell.ActionID.SpellID == lastAoeSpellID && sim.CurrentTime == lastAoeAt {
+			return false
+		}
+		lastAoeSpellID, lastAoeAt = spell.ActionID.SpellID, sim.CurrentTime
+		return true
+	}
 	warrior.GoreDrinkerAura.AttachProcTrigger(consume)
 
 	// The talent's effects name no spells, so the abilities are the tooltip's: Berserker Rage,

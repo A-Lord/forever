@@ -196,6 +196,13 @@ var Spells = []Override{
 		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
 		Source:  "tooltip",
 	},
+	{
+		SpellID: 1248751,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Mystic Mushroom raises Spirit, not Strength.
+		Reason:  "Increased Spirit: misc 0 and 0 is Strength by index, the tooltip reads 'Increases Spirit by 5%'",
+		Source:  "tooltip",
+	},
 
 	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from
 	// 99 to 154. Only Rend Rank 2 and Thunder Clap Rank 1 were measured; the other ranks carry the

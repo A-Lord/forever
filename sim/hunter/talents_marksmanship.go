@@ -1,6 +1,8 @@
 package hunter
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -182,10 +184,41 @@ func (hunter *Hunter) registerSniperShot() {
 		return
 	}
 
+	// The buff is the row's own aura: its duration, its charges and the range its second effect adds
+	// to the Shots its class flags name, Auto Shot among them. Sniper Shot is not one of them.
+	buff := hunter.RegisterAura(spelldata.AuraConfig(sniperShotRank))
+	spelldata.ParseEffects(&hunter.Character, buff, sniperShotRank)
+	buff.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+		hunter.AutoAttacks.UpdateRangedRange(sim)
+	}).ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+		hunter.AutoAttacks.UpdateRangedRange(sim)
+	})
+
+	// One charge per Shot, however many targets it hits.
+	var lastSpent *core.Spell
+	var lastSpentAt time.Duration
+	spend := spelldata.ProcTrigger(&hunter.Character, sniperShotRank,
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			buff.RemoveStack(sim)
+		})
+	spend.Name = "Sniper Shot - Spend"
+	spend.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		if spell == lastSpent && sim.CurrentTime == lastSpentAt {
+			return false
+		}
+		lastSpent, lastSpentAt = spell, sim.CurrentTime
+		return true
+	}
+	buff.AttachProcTrigger(spend)
+
 	config := spelldata.SpellConfig(&hunter.Unit, sniperShotRank, spelldata.Melee(core.ProcMaskRangedSpecial))
 	hunter.hasteRangedCast(&config)
+	config.RelatedSelfBuff = buff
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		buff.Activate(sim)
+		buff.SetStacks(sim, buff.MaxStacks)
+
 		baseDamage := sniperShotRank.WeaponStrike(sim, spell, hunter.RangedNormalizedWeaponDamage(sim, spell.RangedAttackPower(target)), 0)
 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
 

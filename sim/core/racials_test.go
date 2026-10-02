@@ -191,13 +191,13 @@ func TestGnomeWarrior(t *testing.T) {
 		},
 	})
 
-	if !WithinToleranceFloat64(1.1, mortalStrike.DamageMultiplier, 0.0001) {
-		t.Fatalf("Eureka! should raise Mortal Strike's damage by 10%%, got x%0.2f", mortalStrike.DamageMultiplier)
+	if !WithinToleranceFloat64(0.1, mortalStrike.DirectDamageMultiplierAdditive, 0.0001) {
+		t.Fatalf("Eureka! should raise Mortal Strike's direct damage by 10%%, got +%0.2f", mortalStrike.DirectDamageMultiplierAdditive)
 	}
-	if !WithinToleranceFloat64(18, mortalStrike.Cost.GetCurrentCost(), 0.0001) {
-		t.Fatalf("Eureka! should cut Mortal Strike's 30 Rage by 40%%, got %0.1f", mortalStrike.Cost.GetCurrentCost())
+	if !WithinToleranceFloat64(27, mortalStrike.Cost.GetCurrentCost(), 0.0001) {
+		t.Fatalf("Eureka! should cut Mortal Strike's 30 Rage by 10%%, got %0.1f", mortalStrike.Cost.GetCurrentCost())
 	}
-	if sunderArmor.DamageMultiplier != 1 || sunderArmor.Cost.GetCurrentCost() != 30 {
+	if sunderArmor.DirectDamageMultiplierAdditive != 0 || sunderArmor.Cost.GetCurrentCost() != 30 {
 		t.Fatalf("Eureka! should leave Sunder Armor alone, which its class mask does not name")
 	}
 
@@ -209,7 +209,7 @@ func TestGnomeWarrior(t *testing.T) {
 		return eureka.GetStacks()
 	}
 
-	if stacksAfter(itemSpell) != 3 || itemSpell.DamageMultiplier != 1 {
+	if stacksAfter(itemSpell) != 3 || itemSpell.DirectDamageMultiplierAdditive != 0 {
 		t.Fatalf("Eureka! should ignore spells that are not class abilities")
 	}
 	if stacksAfter(sunderArmor) != 3 {
@@ -229,8 +229,44 @@ func TestGnomeWarrior(t *testing.T) {
 	if eureka.IsActive() {
 		t.Fatalf("Eureka! should end after 3 abilities, %d left at %v", eureka.GetStacks(), sim.CurrentTime)
 	}
-	if !WithinToleranceFloat64(1, mortalStrike.DamageMultiplier, 0.0001) {
-		t.Fatalf("Eureka! should drop its damage bonus when it ends, got x%0.2f", mortalStrike.DamageMultiplier)
+	if !WithinToleranceFloat64(0, mortalStrike.DirectDamageMultiplierAdditive, 0.0001) {
+		t.Fatalf("Eureka! should drop its damage bonus when it ends, got +%0.2f", mortalStrike.DirectDamageMultiplierAdditive)
+	}
+}
+
+// Eureka!'s idx2 raises the ticks of a warlock channel its mask names, and the channel's landed cast
+// spends a stack. A periodic spell that is not a channel takes no bonus, on the mask or off it.
+func TestGnomeWarlockEurekaChannel(t *testing.T) {
+	sim, fw := setupFakeWarlockSim(proto.Race_RaceGnome)
+	target := fw.CurrentTarget
+
+	eurekaSpell := fw.GetSpell(ActionID{SpellID: 1259821})
+	if eurekaSpell == nil || !eurekaSpell.Cast(sim, target) {
+		t.Fatalf("a gnome warlock should cast Eureka! 1259821")
+	}
+	eureka := fw.GetAura("Eureka!")
+
+	multiplier := func(spell *Spell) float64 { return spell.Dot(target).PeriodicDamageMultiplier }
+	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1.1, got, 0.0001) {
+		t.Fatalf("Eureka! should raise Drain Life's ticks by 10%%, got x%0.2f", got)
+	}
+	if got := multiplier(fw.Haunt); got != 1 {
+		t.Fatalf("Eureka! should leave a periodic spell that is not a channel alone, even on its mask, got x%0.2f", got)
+	}
+	if got := multiplier(fw.Corruption); got != 1 {
+		t.Fatalf("Eureka! should leave Corruption's ticks alone, got x%0.2f", got)
+	}
+
+	fw.DrainLife.SkipCastAndApplyEffects(sim, target)
+	for end := sim.CurrentTime + SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	}
+	if eureka.GetStacks() != 2 {
+		t.Fatalf("Drain Life's landed cast should spend a stack, %d left", eureka.GetStacks())
+	}
+
+	eureka.Deactivate(sim)
+	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1, got, 0.0001) {
+		t.Fatalf("Eureka! should drop the channel bonus when it ends, got x%0.2f", got)
 	}
 }
 
@@ -464,6 +500,8 @@ type fakeDotWarlock struct {
 
 	Corruption    *Spell
 	Curse         *Spell
+	DrainLife     *Spell
+	Haunt         *Spell
 	damagingTicks int
 }
 
@@ -513,6 +551,38 @@ func (fw *fakeDotWarlock) Initialize() {
 			spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
 		},
 	})
+
+	fw.DrainLife = fw.RegisterSpell(fakeWarlockDot(689, "Drain Life", ClassFlags{Family: 5, Mask: [4]uint32{8}}, SpellFlagChanneled))
+	fw.Haunt = fw.RegisterSpell(fakeWarlockDot(1293694, "Haunt", ClassFlags{Family: 5, Mask: [4]uint32{0, 262144}}, 0))
+}
+
+// A periodic warlock spell with the game files' family 5 flags, which always lands.
+func fakeWarlockDot(id int32, label string, flags ClassFlags, spellFlags SpellFlag) SpellConfig {
+	return SpellConfig{
+		ActionID:         ActionID{SpellID: id},
+		ClassFlags:       flags,
+		Flags:            spellFlags,
+		SpellSchool:      SpellSchoolShadow,
+		DefenseType:      DefenseTypeMagic,
+		ProcMask:         ProcMaskSpellDamage,
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+
+		Dot: DotConfig{
+			Aura:          Aura{Label: label},
+			NumberOfTicks: 5,
+			TickLength:    time.Second,
+			OnTick: func(sim *Simulation, target *Unit, dot *Dot) {
+				dot.Spell.CalcAndDealPeriodicDamage(sim, target, 100, dot.OutcomeTick)
+			},
+		},
+
+		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+			result := spell.CalcOutcome(sim, target, spell.OutcomeAlwaysHit)
+			spell.Dot(target).Apply(sim)
+			spell.DealOutcome(sim, result)
+		},
+	}
 }
 
 func (fw *fakeDotWarlock) ApplyTalents()                  {}
@@ -522,12 +592,21 @@ func (fw *fakeDotWarlock) OnEncounterStart(_ *Simulation) {}
 
 func setupTouchOfTheGraveWarlock(t *testing.T) (*Simulation, *fakeDotWarlock, *Aura) {
 	t.Helper()
+	sim, fw := setupFakeWarlockSim(proto.Race_RaceUndead)
+	aura := fw.GetAura("Touch of the Grave")
+	if aura == nil || !aura.IsActive() || aura.Icd == nil {
+		t.Fatalf("An undead warlock should carry an active Touch of the Grave with its cooldown")
+	}
+	return sim, fw, aura
+}
+
+func setupFakeWarlockSim(race proto.Race) (*Simulation, *fakeDotWarlock) {
 	sim := NewSim(&proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 100},
 		Raid: SinglePlayerRaidProto(&proto.Player{
 			Name:      "Warlock",
 			Class:     proto.Class_ClassWarlock,
-			Race:      proto.Race_RaceUndead,
+			Race:      race,
 			Buffs:     &proto.IndividualBuffs{},
 			Spec:      &proto.Player_Warlock{},
 			Equipment: &proto.EquipmentSpec{},
@@ -540,12 +619,7 @@ func setupTouchOfTheGraveWarlock(t *testing.T) (*Simulation, *fakeDotWarlock, *A
 	}, simsignals.CreateSignals())
 	sim.Reset()
 
-	fw := sim.Raid.Parties[0].Players[0].(*fakeDotWarlock)
-	aura := fw.GetAura("Touch of the Grave")
-	if aura == nil || !aura.IsActive() || aura.Icd == nil {
-		t.Fatalf("An undead warlock should carry an active Touch of the Grave with its cooldown")
-	}
-	return sim, fw, aura
+	return sim, sim.Raid.Parties[0].Players[0].(*fakeDotWarlock)
 }
 
 // Whether Touch of the Grave procs within the given number of hits. Time never advances, so the

@@ -301,38 +301,46 @@ func applyExpansiveMind(character *Character) {
 	}
 }
 
-// Eureka! scopes its cost and damage mods to each class's damaging abilities by the game files' class
-// masks: effect 1 of each row names the spells whose cost it lowers, effect 2 the ones it raises the
-// damage of. A stack goes on a landed ability either names that has a damage component.
+// What every Eureka! row states: idx0 SPELLMOD_COST -10%, idx1 SPELLMOD_DAMAGE +10%, idx2 SPELLMOD_DOT +10%.
+const eurekaCostReduction = 0.1
+const eurekaDamageBonus = 0.1
+
+// Eureka! scopes its mods to each class's abilities by the game files' class masks: idx0 of each row
+// names the spells whose cost it lowers, idx1 the ones whose direct damage it raises, and idx2, on the
+// warlock and priest rows only, the ones whose periodic damage it raises. The idx2 masks also name
+// Haunt and Penance's bolts, which are not channels; only a channel takes that bonus, since no other
+// periodic effect benefits. A stack goes on a landed ability any of them names that has a damage
+// component, a channel included.
 func applyEureka(character *Character) {
 	var spellID int32
-	var costReduction float64
 	var resourceType proto.ResourceType
-	var costFlags, damageFlags ClassFlags
+	var costFlags, damageFlags, channelFlags ClassFlags
 	procMask := ProcMaskSpecial
 	spendCallback := CallbackOnSpellHitDealt
 
 	switch character.Class {
 	case proto.Class_ClassRogue:
-		spellID, costReduction, resourceType = 1259812, 0.2, proto.ResourceType_ResourceTypeEnergy
+		spellID, resourceType = 1259812, proto.ResourceType_ResourceTypeEnergy
 		costFlags = ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}}
 		damageFlags = costFlags
 	case proto.Class_ClassWarrior:
-		spellID, costReduction, resourceType = 1259813, 0.4, proto.ResourceType_ResourceTypeRage
+		spellID, resourceType = 1259813, proto.ResourceType_ResourceTypeRage
 		costFlags = ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}}
 		damageFlags = costFlags
 	case proto.Class_ClassMage:
-		spellID, costReduction, resourceType = 1259817, 0.5, proto.ResourceType_ResourceTypeMana
+		spellID, resourceType = 1259817, proto.ResourceType_ResourceTypeMana
 		costFlags = ClassFlags{Family: 3, Mask: [4]uint32{549591799, 4096}}
 		damageFlags = ClassFlags{Family: 3, Mask: [4]uint32{551688947, 4096, 0, 8}}
 	case proto.Class_ClassWarlock:
-		spellID, costReduction, resourceType = 1259821, 0.5, proto.ResourceType_ResourceTypeMana
+		spellID, resourceType = 1259821, proto.ResourceType_ResourceTypeMana
 		costFlags = ClassFlags{Family: 5, Mask: [4]uint32{541165, 8650880}}
 		damageFlags = ClassFlags{Family: 5, Mask: [4]uint32{524773, 8388736}}
+		channelFlags = ClassFlags{Family: 5, Mask: [4]uint32{16392, 262144}}
 	case proto.Class_ClassPriest:
-		spellID, costReduction, resourceType = 1259823, 0.15, proto.ResourceType_ResourceTypeMana
+		spellID, resourceType = 1259823, proto.ResourceType_ResourceTypeMana
 		costFlags = ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8388614}}
 		damageFlags = ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8486918}}
+		channelFlags = ClassFlags{Family: 6, Mask: [4]uint32{10485760, 98304}}
 		procMask |= ProcMaskSpellHealing
 		spendCallback |= CallbackOnHealDealt
 	default:
@@ -341,19 +349,32 @@ func applyEureka(character *Character) {
 
 	actionID := ActionID{SpellID: spellID}
 
-	costMod := character.AddDynamicMod(SpellModConfig{
-		Kind:         SpellMod_PowerCost_Pct,
-		ClassFlags:   costFlags,
-		ProcMask:     procMask,
-		ResourceType: resourceType,
-		FloatValue:   -costReduction,
-	})
-	damageMod := character.AddDynamicMod(SpellModConfig{
-		Kind:       SpellMod_DamageDone_Pct,
-		ClassFlags: damageFlags,
-		ProcMask:   procMask,
-		FloatValue: 0.1,
-	})
+	mods := []*SpellMod{
+		character.AddDynamicMod(SpellModConfig{
+			Kind:         SpellMod_PowerCost_Pct,
+			ClassFlags:   costFlags,
+			ProcMask:     procMask,
+			ResourceType: resourceType,
+			FloatValue:   -eurekaCostReduction,
+		}),
+		character.AddDynamicMod(SpellModConfig{
+			Kind:       SpellMod_DirectDamageDone_Flat,
+			ClassFlags: damageFlags,
+			ProcMask:   procMask,
+			FloatValue: eurekaDamageBonus,
+		}),
+	}
+	// TODO: Ingame test needed: whether a channel that spends the last stack keeps the bonus on its
+	// ticks; here the aura drops and takes the bonus with it.
+	if !channelFlags.IsZero() {
+		mods = append(mods, character.AddDynamicMod(SpellModConfig{
+			Kind:       SpellMod_DotDamageDone_Pct,
+			ClassFlags: channelFlags,
+			SpellFlag:  SpellFlagChanneled,
+			ProcMask:   procMask,
+			FloatValue: eurekaDamageBonus,
+		}))
+	}
 
 	// One stack per cast, however many targets it lands on.
 	var lastSpent *Spell
@@ -367,12 +388,14 @@ func applyEureka(character *Character) {
 		OnGain: func(aura *Aura, sim *Simulation) {
 			lastSpent = nil
 			aura.SetStacks(sim, 3)
-			costMod.Activate()
-			damageMod.Activate()
+			for _, mod := range mods {
+				mod.Activate()
+			}
 		},
 		OnExpire: func(_ *Aura, _ *Simulation) {
-			costMod.Deactivate()
-			damageMod.Deactivate()
+			for _, mod := range mods {
+				mod.Deactivate()
+			}
 		},
 	})
 

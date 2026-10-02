@@ -1930,12 +1930,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		263412, // Totem of Charged Flames
-		[
-			"Reduces the mana cost of Flame Shock and Lightning Bolt by 5 Mana.", // 1270478 - https://www.wowhead.com/forever/spell=1270478
-		]
-	],
-	[
 		263435, // Mark of Urs'endris
 		[
 			"Increases your Armor contribution from items by 4%.", // 1270490 - https://www.wowhead.com/forever/spell=1270490

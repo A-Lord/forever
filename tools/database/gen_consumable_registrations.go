@@ -187,12 +187,6 @@ func enchantPiercing(enchant dbc.TemporaryEnchant) shared.SchoolPiercing {
 	return shared.SchoolPiercing{}
 }
 
-// The name a generated file reaches a school index by.
-var schoolIndexNames = map[stats.SchoolIndex]string{
-	stats.SchoolIndexFire:  "stats.SchoolIndexFire",
-	stats.SchoolIndexFrost: "stats.SchoolIndexFrost",
-}
-
 func landsOffTheUser(e spelldata.Effect) bool {
 	return !shared.LandsOnTheUser(&e)
 }
@@ -209,6 +203,12 @@ func onUseUnsupported(c *proto.Consumable) []string {
 		}
 	}
 	return nil
+}
+
+// The name a generated file reaches a school index by.
+var schoolIndexNames = map[stats.SchoolIndex]string{
+	stats.SchoolIndexFire:  "stats.SchoolIndexFire",
+	stats.SchoolIndexFrost: "stats.SchoolIndexFrost",
 }
 
 // Each family is one table and one loop that calls its builder: the compiler inlines the builder, and

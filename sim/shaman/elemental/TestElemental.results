@@ -627,6 +627,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-TotemofChargedFlames-263412"
+ value: {
+  dps: 335.80236
+  tps: 240.01429
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-TotemoftheStorm-23199"
  value: {
   dps: 346.39751

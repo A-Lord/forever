@@ -255,6 +255,18 @@ func init() {
 		trigger.ExtraCondition = func(_ *core.Simulation, _ *core.Spell, result *core.SpellResult) bool {
 			return !result.DidCrit() && !buff.IsActive()
 		}
+
+		// The hunter buff's spells, Arcane Shot and Volley, are ranged shots that the row's spell and
+		// heal listener does not hear, so for a hunter they roll the same chance as well.
+		// TODO: Verify in game that a hunter's Arcane Shot and Volley proc Revelation.
+		if character.Class == proto.Class_ClassHunter {
+			spellHits := trigger.ProcMask
+			trigger.ProcMask = core.ProcMaskUnknown
+			trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+				heard := spell.ProcMask.Matches(spellHits) || spell.MatchesFlags(spender.ClassFlags)
+				return heard && !result.DidCrit() && !buff.IsActive()
+			}
+		}
 		character.ItemSwap.RegisterEnchantProc(8217, character.MakeProcTriggerAura(trigger))
 	})
 

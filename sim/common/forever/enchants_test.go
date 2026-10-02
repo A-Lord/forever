@@ -24,6 +24,16 @@ func init() {
 			player.Spec = spec.(*proto.Player_BalanceDruid)
 		},
 	)
+	core.RegisterAgentFactory(
+		proto.Player_Hunter{},
+		proto.Spec_SpecHunter,
+		func(character *core.Character, _ *proto.Player, _ *proto.Raid) core.Agent {
+			return &testHunter{Character: *character}
+		},
+		func(player *proto.Player, spec interface{}) {
+			player.Spec = spec.(*proto.Player_Hunter)
+		},
+	)
 }
 
 // A caster with two druid spells: Wrath, which Revelation's druid buff 1323400 names (family 7 bit 0),
@@ -59,6 +69,39 @@ func (d *testDruid) Initialize() {
 	d.moonfire = nuke(8921, 1)
 }
 
+// A hunter with two ranged shots: Arcane Shot, which Revelation's hunter buff 1323410 names (family 9
+// bit 11), and Aimed Shot, which it does not (bit 17).
+type testHunter struct {
+	core.Character
+	arcaneShot, aimedShot *core.Spell
+	last                  *core.SpellResult
+}
+
+func (h *testHunter) GetCharacter() *core.Character       { return &h.Character }
+func (h *testHunter) ApplyTalents()                       {}
+func (h *testHunter) Reset(_ *core.Simulation)            {}
+func (h *testHunter) OnGCDReady(_ *core.Simulation)       {}
+func (h *testHunter) OnEncounterStart(_ *core.Simulation) {}
+
+func (h *testHunter) Initialize() {
+	shot := func(id int32, bit uint) *core.Spell {
+		return h.RegisterSpell(core.SpellConfig{
+			ActionID:         core.ActionID{SpellID: id},
+			SpellSchool:      core.SpellSchoolArcane,
+			DefenseType:      core.DefenseTypeRanged,
+			ProcMask:         core.ProcMaskRangedSpecial,
+			ClassFlags:       core.ClassFlags{Family: 9, Mask: [4]uint32{1 << bit}},
+			DamageMultiplier: 1,
+			ThreatMultiplier: 1,
+			ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+				h.last = spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeRangedHitAndCrit)
+			},
+		})
+	}
+	h.arcaneShot = shot(14287, 11)
+	h.aimedShot = shot(20904, 17)
+}
+
 func revelationWearer(t *testing.T, class proto.Class, spec any) (*core.Simulation, *core.Character) {
 	t.Helper()
 	items := weaponSlots(873, 0)
@@ -73,6 +116,8 @@ func revelationWearer(t *testing.T, class proto.Class, spec any) (*core.Simulati
 	case *proto.Player_BalanceDruid:
 		player.Spec = s
 	case *proto.Player_DpsWarrior:
+		player.Spec = s
+	case *proto.Player_Hunter:
 		player.Spec = s
 	}
 
@@ -133,5 +178,43 @@ func TestRevelationGrantsTheWearersClassBuff(t *testing.T) {
 		Options: &proto.DpsWarrior_Options{ClassOptions: &proto.WarriorOptions{}}}})
 	if warrior.GetAura("Revelation") != nil {
 		t.Error("a warrior has a Revelation buff")
+	}
+}
+
+// A hunter's buff 1323410 also procs off the ranged shots its mask names, and not off a shot outside it.
+func TestRevelationProcsOffAHuntersShots(t *testing.T) {
+	sim, character := revelationWearer(t, proto.Class_ClassHunter, &proto.Player_Hunter{Hunter: &proto.Hunter{}})
+	hunter := sim.Raid.Parties[0].Players[0].(*testHunter)
+	target := character.CurrentTarget
+
+	buff := character.GetAuraByID(core.ActionID{SpellID: 1323410})
+	if buff == nil {
+		t.Fatal("no Revelation buff 1323410 on the hunter")
+	}
+
+	castAndStep := func(spell *core.Spell) *core.SpellResult {
+		spell.SkipCastAndApplyEffects(sim, target)
+		sim.Step()
+		return hunter.last
+	}
+
+	for range 300 {
+		castAndStep(hunter.aimedShot)
+	}
+	if buff.IsActive() {
+		t.Fatal("Aimed Shot, which the buff's mask does not name, procced Revelation")
+	}
+
+	for casts := 0; !buff.IsActive(); casts++ {
+		if casts > 300 {
+			t.Fatal("300 Arcane Shots and Revelation never procced")
+		}
+		castAndStep(hunter.arcaneShot)
+	}
+	if result := castAndStep(hunter.arcaneShot); !result.DidCrit() {
+		t.Error("Arcane Shot with Revelation up did not crit")
+	}
+	if buff.IsActive() {
+		t.Error("Arcane Shot did not spend Revelation's charge")
 	}
 }

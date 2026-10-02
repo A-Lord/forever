@@ -305,6 +305,7 @@ func (druid *Druid) RegisterBearFormAura() {
 }
 
 // TODO: To be implemented.
+// TODO: Bear and Dire Bear Form generate 75% more rage from critical strikes; check the rage bar's crit multiplier applies to them.
 func (druid *Druid) registerBearFormSpell() {
 	panic("To be implemented")
 

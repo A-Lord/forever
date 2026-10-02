@@ -45,11 +45,13 @@ type RageBarOptions struct {
 	MaxRage            float64
 	StartingRage       float64
 	BaseRageMultiplier float64
+	CritRageMultiplier float64 // What a critical auto attack multiplies its rage by; 0 keeps CritRageMultiplier.
 }
 
 func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	rageFromDamageTakenMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken})
 	damageTakenRageConversion := rageConversion(unit.Level)
+	critRageMultiplier := Ternary(options.CritRageMultiplier == 0, CritRageMultiplier, options.CritRageMultiplier)
 
 	unit.SetCurrentPowerBar(RageBar)
 	unit.RegisterAura(Aura{
@@ -89,7 +91,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			// rage is normalized so it only depends on weapon swing speed and some multipliers
 			generatedRage := hitFactor * weapon.SwingSpeed * options.BaseRageMultiplier * handMultiplier
 			if result.DidCrit() {
-				generatedRage *= CritRageMultiplier
+				generatedRage *= critRageMultiplier
 			}
 
 			var metrics *ResourceMetrics
