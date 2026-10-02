@@ -83,9 +83,9 @@ type Druid struct {
 
 	// Energy left when cat form dropped, when it was dropped, and the time spent in bear forms since.
 	// Reset clears them.
-	furorStoredEnergy     float64
-	furorLeftCatAt        time.Duration
-	furorBearTime         time.Duration
+	furorStoredEnergy float64
+	furorLeftCatAt    time.Duration
+	furorBearTime     time.Duration
 	furorEnergyMetric *core.ResourceMetrics
 	furorRageMetric   *core.ResourceMetrics
 	enrageMetric      *core.ResourceMetrics

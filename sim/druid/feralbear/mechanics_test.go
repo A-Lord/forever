@@ -13,7 +13,7 @@ import (
 )
 
 func newBear(t *testing.T) (*core.Simulation, *GuardianDruid) {
-	return newBearWithTalents(t, "0000000000000000-0000000000000000000-0000000000000000")
+	return newBearWithTalents(t, "0000000000000000-00000000000000000000-0000000000000000")
 }
 
 func newBearWithTalents(t *testing.T, talents string) (*core.Simulation, *GuardianDruid) {
@@ -55,7 +55,7 @@ func newBearAgainst(t *testing.T, talents string, numTargets int) (*core.Simulat
 }
 
 func TestDemoralizingRoarReachesEveryTarget(t *testing.T) {
-	sim, bear := newBearAgainst(t, "0000000000000000-0000000000000000000-0000000000000000", 3)
+	sim, bear := newBearAgainst(t, "0000000000000000-00000000000000000000-0000000000000000", 3)
 	targets := sim.Encounter.ActiveTargetUnits
 	for range 20 {
 		bear.AddRage(sim, 50, bear.NewRageMetrics(core.ActionID{SpellID: 1}))
@@ -93,7 +93,7 @@ func TestDemoralizingRoarIgnoresDodge(t *testing.T) {
 }
 
 func TestBerserkPrimalBiteStrikesThreeTargets(t *testing.T) {
-	sim, bear := newBearAgainst(t, "0000000000000000-0000000000100000001-0000000000000000", 5)
+	sim, bear := newBearAgainst(t, "0000000000000000-00000000000100000001-0000000000000000", 5)
 	metrics := bear.NewRageMetrics(core.ActionID{SpellID: 1})
 	bear.BerserkAura.Activate(sim)
 	bear.AddRage(sim, 100, metrics)
@@ -195,7 +195,7 @@ func TestMaulReplacesTheNextSwing(t *testing.T) {
 }
 
 func TestFeralChargeCastsOutsideMelee(t *testing.T) {
-	sim, bear := newBearWithTalents(t, "0000000000000000-0000000100000000000-0000000000000000")
+	sim, bear := newBearWithTalents(t, "0000000000000000-00000000100000000000-0000000000000000")
 	bear.DistanceFromTarget = 10
 	if !bear.FeralCharge.Cast(sim, bear.CurrentTarget) {
 		t.Fatal("feral charge did not cast at 10 yards")

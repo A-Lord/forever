@@ -16,6 +16,7 @@ import (
 //   Natural Reaction: effect 2, 3 of spell 417051 has no rank curve and is held at its base points
 //   Nature's Splendor: effect 0, 1, 2 of spell 1223083 has no rank curve and is held at its base points
 //   Predatory Strikes: effect 1 of spell 16972 has no rank curve and is held at its base points
+//   Shifting Power: effect 0 of spell 1322605 has no rank curve and is held at its base points
 
 type generatedSpellData struct {
 	AbolishPoison             spelldata.Ladder
@@ -130,6 +131,7 @@ type generatedSpellData struct {
 	Rip                       spelldata.Ladder
 	SavageFury                spelldata.Ladder
 	SharpenedClaws            spelldata.Ladder
+	ShiftingPower             spelldata.Ladder
 	Shred                     spelldata.Ladder
 	ShreddingAttacks          spelldata.Ladder
 	SootheAnimal              spelldata.Ladder
@@ -263,6 +265,7 @@ var spellData = generatedSpellData{
 	Rip:                       spelldata.Ranked(1079, 9492, 9493, 9752, 9894, 9896),
 	SavageFury:                spelldata.Talent(16998, 2),
 	SharpenedClaws:            spelldata.Talent(16942, 2),
+	ShiftingPower:             spelldata.Talent(1322605, 1),
 	Shred:                     spelldata.Ranked(5221, 6800, 8992, 9829, 9830),
 	ShreddingAttacks:          spelldata.Talent(16966, 3),
 	SootheAnimal:              spelldata.Ranked(2908, 8955, 9901),

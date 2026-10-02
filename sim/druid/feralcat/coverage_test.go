@@ -13,7 +13,7 @@ import (
 // both be paid for. Prowl is castable only before the pull, so each opener is its own request: one
 // prowls into Pounce, the other into Ravage. Both then leave cat form and come back so both form
 // spells are casts.
-const coverageTalents = "0000000000000000-0000000100100000001-0500300000000000"
+const coverageTalents = "0000000000000000-00000000100100000001-0500300000000000"
 
 func TestFeralCatCoverage(t *testing.T) {
 	core.RunTestSuite(t, t.Name(), []core.TestGenerator{castsGen{
@@ -48,7 +48,6 @@ func catCoverageRequest(opener int32) *proto.RaidSimRequest {
 		PriorityList: []*proto.APLListItem{
 			castWhen(opener, prowling),
 			castWhen(417141, not(prowling)),
-			castWhen(5217, not(prowling)),
 			// Energy ticks jump over the gaps between these costs, so each builder and finisher
 			// owns a slice of the fight. Claw also builds combo points for the finishers.
 			castWhen(9830, and(not(prowling), timeBetween("0.2", "0.4"))),

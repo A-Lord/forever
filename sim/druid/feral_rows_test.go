@@ -49,4 +49,3 @@ func TestFinisherAttackPowerPlaceholders(t *testing.T) {
 		t.Errorf("Ferocious Bite attack power per combo point = %v, want the placeholder 0.03", got)
 	}
 }
-

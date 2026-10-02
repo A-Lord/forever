@@ -11,7 +11,7 @@ import (
 
 // The same talent string the cat coverage uses. The opener leaves dire bear and comes back so both
 // form spells are casts, then the bear abilities run.
-const coverageTalents = "0000000000000000-0000000100100000001-0500300000000000"
+const coverageTalents = "0000000000000000-00000000100100000001-0500300000000000"
 
 func TestFeralBearCoverage(t *testing.T) {
 	core.RunTestSuite(t, t.Name(), []core.TestGenerator{castsGen{bearCoverageRequest()}})

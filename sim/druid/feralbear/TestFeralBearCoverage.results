@@ -62,10 +62,6 @@ casts_results: {
    value: 1
   }
   casts: {
-   key: "spell_id:5217"
-   value: 0
-  }
-  casts: {
    key: "spell_id:5229"
    value: 1
   }

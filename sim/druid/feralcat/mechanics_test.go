@@ -13,8 +13,8 @@ import (
 	"github.com/wowsims/forever/sim/druid"
 )
 
-// 16 balance, 19 feral, 16 restoration. Furor is the second restoration talent.
-const furorTalents = "0000000000000000-0000000000000000000-0500000000000000"
+// 16 balance, 20 feral, 16 restoration. Furor is the second restoration talent.
+const furorTalents = "0000000000000000-00000000000000000000-0500000000000000"
 
 func newCat(t *testing.T, talents string, consumes *proto.ConsumesSpec) (*core.Simulation, *FeralDruid) {
 	t.Helper()
