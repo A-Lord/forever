@@ -259,8 +259,10 @@ func NewWindfuryTotemProcTrigger(char *core.Character) *core.Aura {
 	return char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 }
 
-// A weapon totem's party aura stands for the fight and holds the category,
-// which keeps the proc trigger up.
+// A weapon totem's party aura stands for the fight and bids for the category,
+// which keeps the proc trigger up while it holds it. Outbid, by a main-hand
+// imbue or the shaman's own totem, it stays up and takes the category back
+// once the higher bid goes.
 func holdTotemAura(totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
 	core.MakePermanent(totemAura)
 
@@ -271,7 +273,6 @@ func holdTotemAura(totemAura *core.Aura, category string, priority float64, proc
 		},
 		OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
 			procTrigger.Deactivate(sim)
-			totemAura.Deactivate(sim)
 		},
 	})
 }
