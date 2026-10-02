@@ -9,10 +9,23 @@ import (
 // returns that listener. A cast spends one charge however many targets it hits. The spells that
 // spend one are the ones the row's proc effect names; a row whose proc effect names none states them
 // on its spell modifiers instead, and the charge goes to the spells the buff modifies.
+//
+// A channel is one cast: the charge stays up for every tick and every target, and is spent when the
+// channel ends.
+// TODO: A tick that lands after its channel ends, a missile still in flight, misses the charge.
 func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, name string, opts ...ProcOpt) core.ProcTrigger {
 	firstHit, resetFirstHit := core.OncePerCast()
+	channelHit := false
 	buff.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
 		resetFirstHit()
+		channelHit = false
+	})
+
+	character.OnChannelEnd(func(sim *core.Simulation) {
+		if channelHit && buff.IsActive() {
+			channelHit = false
+			buff.RemoveStack(sim)
+		}
 	})
 
 	spender := ProcTrigger(character, s, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
@@ -21,6 +34,12 @@ func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, n
 	spender.Name = name
 	spender.ClassFlags = chargeClassFlags(character, s)
 	spender.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		// The channel's own hit lands before its dot starts, its ticks while it runs. A hit the wearer
+		// takes is not part of the channel.
+		if spell.Unit == &character.Unit && (character.IsChanneling() || spell.Flags.Matches(core.SpellFlagChanneled)) {
+			channelHit = true
+			return false
+		}
 		return firstHit(sim, spell)
 	}
 
