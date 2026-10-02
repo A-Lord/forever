@@ -25,12 +25,12 @@ CREATE TABLE SpellItemEnchantment (
 	EffectArg_1 INTEGER GENERATED ALWAYS AS (json_extract(EffectArg, '$[1]')),
 	EffectArg_2 INTEGER GENERATED ALWAYS AS (json_extract(EffectArg, '$[2]'))
 );
-CREATE TABLE ItemEffect (ID INTEGER PRIMARY KEY, SpellID INTEGER, TriggerType INTEGER DEFAULT 0);
+CREATE TABLE ItemEffect (ID INTEGER PRIMARY KEY, SpellID INTEGER);
 CREATE TABLE ItemXItemEffect (ID INTEGER PRIMARY KEY, ItemID INTEGER, ItemEffectID INTEGER);
 CREATE TABLE SpellEquippedItems (ID INTEGER PRIMARY KEY, SpellID INTEGER, EquippedItemClass INTEGER, EquippedItemInvTypes INTEGER, EquippedItemSubclass INTEGER);
-CREATE TABLE SkillLineAbility (ID INTEGER PRIMARY KEY, Spell INTEGER, ClassMask INTEGER, SkillLine INTEGER, TrivialSkillLineRankLow INTEGER DEFAULT 0);
+CREATE TABLE SkillLineAbility (ID INTEGER PRIMARY KEY, Spell INTEGER, ClassMask INTEGER, SkillLine INTEGER);
 CREATE TABLE Item (ID INTEGER PRIMARY KEY, IconFileDataID INTEGER);
-CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQualityID INTEGER, ItemLevel INTEGER DEFAULT 1, RequiredSkillRank INTEGER DEFAULT 0);
+CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQualityID INTEGER, ItemLevel INTEGER DEFAULT 1);
 `
 
 // Scourge shoulder enchant 2717 (grant 29467, a profession ability) and its re-issue 7884 (grant
@@ -38,8 +38,8 @@ CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQuali
 // and a boots recipe under two names; each is taught by two items, and the boots' lower item has no
 // ItemSparse row. Enchant 1523 (grant 15427) is used only by a placeholder ([PH]) item. Grand
 // Crusader 7940 is taught by a Season of Discovery formula of item level 80 and applied by a level 1
-// scroll; Minor Agility 247 has only a level 1 scroll and the spell's skill ranks; Superior Intellect
-// 7659 has a level 1 scroll and a level 1 formula needing skill 300.
+// scroll; Minor Agility 247 has only a level 1 scroll, and Superior Intellect 7659 a level 1 scroll and
+// a level 1 formula.
 const rawEnchantFixture = `
 INSERT INTO SpellItemEnchantment (ID, Name_lang, Flags, RequiredSkillID, RequiredSkillRank, Effect, EffectPointsMin, EffectArg) VALUES
 	(2717, 'Attack Power +26', 0, 0, 0, '[5,0,0]', '[26,0,0]', '[38,0,0]'),
@@ -67,13 +67,13 @@ INSERT INTO Spell (ID, NameSubtext_lang) VALUES (1231128, ''), (7779, ''), (1219
 INSERT INTO SpellName (ID, Name_lang) VALUES
 	(1231128, 'Enchant Weapon - Grand Crusader'), (7779, 'Enchant Bracer - Minor Agility'), (1219577, 'Enchant Off-Hand - Superior Intellect');
 INSERT INTO SpellEffect (SpellID, Effect, EffectMiscValue_0) VALUES (1231128, 53, 7940), (7779, 53, 247), (1219577, 53, 7659);
-INSERT INTO SkillLineAbility (Spell, ClassMask, SkillLine, TrivialSkillLineRankLow) VALUES (1231128, 0, 333, 305), (7779, 0, 333, 115), (1219577, 0, 333, 340);
-INSERT INTO ItemEffect (ID, SpellID, TriggerType) VALUES (7, 1231128, 6), (8, 1231128, 0), (9, 7779, 0), (10, 1219577, 0), (11, 1219577, 6);
+INSERT INTO SkillLineAbility (Spell, ClassMask, SkillLine) VALUES (1231128, 0, 333), (7779, 0, 333), (1219577, 0, 333);
+INSERT INTO ItemEffect (ID, SpellID) VALUES (7, 1231128), (8, 1231128), (9, 7779), (10, 1219577), (11, 1219577);
 INSERT INTO ItemXItemEffect (ItemID, ItemEffectID) VALUES (241191, 7), (273607, 8), (273470, 9), (273598, 10), (274391, 11);
 INSERT INTO Item (ID, IconFileDataID) VALUES (241191, 134327), (273607, 463531), (273470, 463531), (273598, 463531), (274391, 134327);
-INSERT INTO ItemSparse (ID, Display_lang, OverallQualityID, ItemLevel, RequiredSkillRank) VALUES
-	(241191, 'Formula', 3, 80, 280), (273607, 'Enchant Weapon - Grand Crusader', 1, 1, 0), (273470, 'Enchant Bracer - Minor Agility', 1, 1, 0),
-	(273598, 'Enchant Off-Hand - Superior Intellect', 1, 1, 0), (274391, 'Formula', 1, 1, 300);
+INSERT INTO ItemSparse (ID, Display_lang, OverallQualityID, ItemLevel) VALUES
+	(241191, 'Formula', 3, 80), (273607, 'Enchant Weapon - Grand Crusader', 1, 1), (273470, 'Enchant Bracer - Minor Agility', 1, 1),
+	(273598, 'Enchant Off-Hand - Superior Intellect', 1, 1), (274391, 'Formula', 1, 1);
 `
 
 func loadRawEnchantFixture(t *testing.T) []dbc.Enchant {
@@ -169,15 +169,14 @@ func TestRawEnchantIsLiveWhenTaughtOrOnAShippedItem(t *testing.T) {
 	}
 }
 
-// The level is the item level of an item carrying the grant, else the skill it needs over 5: the
-// formula's required skill, else 20 below the spell's TrivialSkillLineRankLow.
+// The level is the highest item level above 1 of an item carrying the grant, else 0.
 func TestRawEnchantLvl(t *testing.T) {
 	byKey := rawEnchantsByKey(loadRawEnchantFixture(t))
 
 	for key, want := range map[rawEnchantKey]int{
 		{7940, "Enchant Weapon - Grand Crusader"}:       80,
-		{7659, "Enchant Off-Hand - Superior Intellect"}: 60,
-		{247, "Enchant Bracer - Minor Agility"}:         19,
+		{7659, "Enchant Off-Hand - Superior Intellect"}: 0,
+		{247, "Enchant Bracer - Minor Agility"}:         0,
 	} {
 		if got := byKey[key].Lvl; got != want {
 			t.Errorf("enchant %d %q: lvl %d, want %d", key.id, key.name, got, want)

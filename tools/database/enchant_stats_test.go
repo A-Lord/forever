@@ -184,10 +184,10 @@ func TestEnchantLvl(t *testing.T) {
 		{33, "Accurate Scope", 36},
 		{8721, "Enchant Weapon - Recovery", 28},
 		{7210, "Enchant Weapon - Dismantle", 45},
-		{8204, "Enchant Bracer - Lesser Agility", 28},
-		{7659, "Enchant Off-Hand - Superior Intellect", 60},
-		{247, "Enchant Bracer - Minor Agility", 19},
-		{1897, "Enchant 2H Weapon - Lesser Impact", 30},
+		{8204, "Enchant Bracer - Lesser Agility", 0},
+		{7659, "Enchant Off-Hand - Superior Intellect", 0},
+		{247, "Enchant Bracer - Minor Agility", 0},
+		{1897, "Enchant 2H Weapon - Lesser Impact", 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := enchantByName(t, tc.effectID, tc.name).Lvl; got != tc.want {

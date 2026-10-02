@@ -521,7 +521,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectPointsString string
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
-	var itemLevel, itemSkillRank, spellItemLevel, formulaSkillRank, trivialSkillRank int
+	var itemLevel, spellItemLevel int
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -542,15 +542,12 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&spellItemEnchantmentFlags,
 		&raw.IsLive,
 		&itemLevel,
-		&itemSkillRank,
 		&spellItemLevel,
-		&formulaSkillRank,
-		&trivialSkillRank,
 	)
 	if err != nil {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
-	raw.Lvl = enchantLvl(itemLevel, itemSkillRank, spellItemLevel, formulaSkillRank, trivialSkillRank)
+	raw.Lvl = enchantLvl(itemLevel, spellItemLevel)
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -578,21 +575,15 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 }
 
 // The item level of the enchant's own item, else the highest one of an item that applies or teaches its
-// spell. Without one, the level is skill rank / 5 (integer division), the ratio most enchanting formulas
-// in the game files show between their item level and required skill: the item's required skill, else
-// the teaching formula's, else 20 below the spell's TrivialSkillLineRankLow, which most formulas sit at.
-func enchantLvl(itemLevel, itemSkillRank, spellItemLevel, formulaSkillRank, trivialSkillRank int) int {
+// spell; 0 where every such item is level 1, as the Forever enchant scrolls are.
+func enchantLvl(itemLevel, spellItemLevel int) int {
 	switch {
 	case itemLevel > 1:
 		return itemLevel
 	case spellItemLevel > 1:
 		return spellItemLevel
-	case itemSkillRank > 0:
-		return itemSkillRank / 5
-	case formulaSkillRank > 0:
-		return formulaSkillRank / 5
 	default:
-		return max(trivialSkillRank-20, 0) / 5
+		return 0
 	}
 }
 
@@ -658,20 +649,12 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 					WHERE lie.SpellID = se.SpellID AND ` + notPlaceholderItemName("lisp.Display_lang") + `
 				) AS IsLive,
 			COALESCE(isp.ItemLevel, 0) AS ItemLevel,
-			COALESCE(isp.RequiredSkillRank, 0) AS ItemSkillRank,
 			COALESCE((
 				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
 					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
 				WHERE lie.SpellID = se.SpellID
-			), 0) AS SpellItemLevel,
-			COALESCE((
-				SELECT MAX(lisp.RequiredSkillRank) FROM ItemEffect lie
-					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
-					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-				WHERE lie.SpellID = se.SpellID AND lie.TriggerType = 6
-			), 0) AS FormulaSkillRank,
-			COALESCE((SELECT MAX(TrivialSkillLineRankLow) FROM SkillLineAbility WHERE Spell = se.SpellID), 0) AS TrivialSkillRank
+			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
 			JOIN SpellName sn ON se.SpellID = sn.ID
