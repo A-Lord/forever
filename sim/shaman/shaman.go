@@ -47,14 +47,6 @@ func NewShaman(character *core.Character, talents string, selfBuffs SelfBuffs) *
 	return shaman
 }
 
-func (shaman *Shaman) GetImbueProcMask(imbue proto.ShamanImbue) core.ProcMask {
-	var mask core.ProcMask
-	if shaman.SelfBuffs.ImbueMH == imbue || shaman.SelfBuffs.ImbueMHSwap == imbue {
-		mask |= core.ProcMaskMeleeMH
-	}
-	return mask
-}
-
 // Which buffs this shaman is using.
 type SelfBuffs struct {
 	ShieldProcrate float64

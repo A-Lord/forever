@@ -2,7 +2,6 @@ package shaman
 
 import (
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -170,16 +169,11 @@ func (shaman *Shaman) applySpiritWeapons() {
 
 	rank := spellData.SpiritWeapons.Highest()
 
-	// Effect 1 is the threat reduction while Rockbiter Weapon is not active. With it active, effect
-	// 3 is the threat increase the tooltip states, and effect 2 raises Rockbiter Weapon (Passive)'s
-	// own threat effect, which the imbue reads. Which applies is read off the imbues the options
-	// name, so a weapon swap onto or off Rockbiter does not change it.
-	if shaman.GetImbueProcMask(proto.ShamanImbue_RockbiterWeapon) == core.ProcMaskUnknown {
-		spelldata.ParseStatic(&shaman.Character, rank, spelldata.Effects(1))
-		return
-	}
+	// Effect 1 cuts threat always, and effect 2 raises Rockbiter Weapon (Passive)'s own threat
+	// effect, which the imbue reads. Effect 3 is the dummy stating the result under Rockbiter,
+	// 0.7 x 1.86, the tooltip's 30% more.
+	spelldata.ParseStatic(&shaman.Character, rank, spelldata.Effects(1))
 	shaman.spiritWeaponsRockbiterThreat = rank.EffectN(2).Percent()
-	shaman.PseudoStats.ThreatMultiplier *= 1 + rank.EffectN(3).Percent()
 }
 
 func (shaman *Shaman) applyMentalQuickness() {
