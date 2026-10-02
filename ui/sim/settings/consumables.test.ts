@@ -12,8 +12,6 @@ import {
 	type ConsumableUser,
 	explosiveUsedBeside,
 	handTakesImbue,
-	highestRanks,
-	isConsumableRelevant,
 	isEnchantRelevantFor,
 	relevanceFor,
 	relevantConsumableIds,
@@ -84,40 +82,42 @@ describe('consumableSlot', () => {
 	});
 });
 
-describe('isConsumableRelevant', () => {
+describe('consumable relevance', () => {
+	const offered = (candidate: Consumable, player: ConsumableUser) => relevantConsumableIds([candidate], consumableSlot(candidate), player, db).length === 1;
+
 	it('keeps a consumable off a class, a profession or a race the game files do not allow it', () => {
 		const mightyRage = consumable({ classAllowlist: [Class.ClassWarrior, Class.ClassDruid], stats: stats({ [Stat.StatStrength]: 60 }) });
-		expect(isConsumableRelevant(mightyRage, user(), db)).toBe(true);
-		expect(isConsumableRelevant(mightyRage, user({ cls: Class.ClassRogue }), db)).toBe(false);
+		expect(offered(mightyRage, user())).toBe(true);
+		expect(offered(mightyRage, user({ cls: Class.ClassRogue }))).toBe(false);
 
 		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering });
-		expect(isConsumableRelevant(sapper, user(), db)).toBe(false);
-		expect(isConsumableRelevant(sapper, user({ professions: [Profession.Engineering] }), db)).toBe(true);
+		expect(offered(sapper, user())).toBe(false);
+		expect(offered(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
 
 		// Dark Iron Bomb 16005: Engineering 285.
 		const darkIronBomb = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering, reqProfRank: 285 });
-		expect(isConsumableRelevant(darkIronBomb, user({ professions: [Profession.Engineering] }), db)).toBe(true);
-		expect(isConsumableRelevant(darkIronBomb, user({ professions: [Profession.Engineering], profRank: 300 }), db)).toBe(true);
-		expect(isConsumableRelevant(darkIronBomb, user({ professions: [Profession.Engineering], profRank: 250 }), db)).toBe(false);
+		expect(offered(darkIronBomb, user({ professions: [Profession.Engineering] }))).toBe(true);
+		expect(offered(darkIronBomb, user({ professions: [Profession.Engineering], profRank: 300 }))).toBe(true);
+		expect(offered(darkIronBomb, user({ professions: [Profession.Engineering], profRank: 250 }))).toBe(false);
 
 		const orcOnly = consumable({ type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
-		expect(isConsumableRelevant(orcOnly, user(), db)).toBe(true);
-		expect(isConsumableRelevant(orcOnly, user({ race: Race.RaceHuman }), db)).toBe(false);
+		expect(offered(orcOnly, user())).toBe(true);
+		expect(offered(orcOnly, user({ race: Race.RaceHuman }))).toBe(false);
 	});
 
 	it('offers a stat consumable by a stat the spec weighs, Stamina bringing the resistances', () => {
 		const giants = consumable({ type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatStrength]: 25 }) });
 		const arthas = consumable({ type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatShadowResistance]: 10 }) });
-		expect(isConsumableRelevant(giants, user(), db)).toBe(true);
-		expect(isConsumableRelevant(giants, user({ epStats: [Stat.StatIntellect] }), db)).toBe(false);
-		expect(isConsumableRelevant(arthas, user(), db)).toBe(false);
-		expect(isConsumableRelevant(arthas, user({ epStats: [Stat.StatStamina] }), db)).toBe(true);
+		expect(offered(giants, user())).toBe(true);
+		expect(offered(giants, user({ epStats: [Stat.StatIntellect] }))).toBe(false);
+		expect(offered(arthas, user())).toBe(false);
+		expect(offered(arthas, user({ epStats: [Stat.StatStamina] }))).toBe(true);
 	});
 
 	it('offers flat physical damage to a spec that weighs Attack Power', () => {
 		const frenzy = consumable({ type: ConsumableType.ConsumableTypePotion, stats: stats({ [Stat.StatPhysicalDamage]: 40 }) });
-		expect(isConsumableRelevant(frenzy, user({ epStats: [Stat.StatAttackPower] }), db)).toBe(true);
-		expect(isConsumableRelevant(frenzy, user({ epStats: [Stat.StatIntellect] }), db)).toBe(false);
+		expect(offered(frenzy, user({ epStats: [Stat.StatAttackPower] }))).toBe(true);
+		expect(offered(frenzy, user({ epStats: [Stat.StatIntellect] }))).toBe(false);
 	});
 
 	it('offers a one-channel percent to a spec that shows or weighs it, not by the rating the spec weighs', () => {
@@ -127,9 +127,9 @@ describe('isConsumableRelevant', () => {
 			pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeHitPercent]: 2, [PseudoStat.PseudoStatRangedHitPercent]: 2 }),
 		});
 		const caster = { epStats: [Stat.StatSpellDamage, Stat.StatHitRating], displayPseudoStats: [PseudoStat.PseudoStatSpellHitPercent] };
-		expect(isConsumableRelevant(darkDesire, user(caster), db)).toBe(false);
-		expect(isConsumableRelevant(darkDesire, user({ ...caster, displayPseudoStats: [PseudoStat.PseudoStatMeleeHitPercent] }), db)).toBe(true);
-		expect(isConsumableRelevant(darkDesire, user({ ...caster, epPseudoStats: [PseudoStat.PseudoStatRangedHitPercent] }), db)).toBe(true);
+		expect(offered(darkDesire, user(caster))).toBe(false);
+		expect(offered(darkDesire, user({ ...caster, displayPseudoStats: [PseudoStat.PseudoStatMeleeHitPercent] }))).toBe(true);
+		expect(offered(darkDesire, user({ ...caster, epPseudoStats: [PseudoStat.PseudoStatRangedHitPercent] }))).toBe(true);
 	});
 
 	it('offers an all-channel crit percent to a melee spec and to a caster that shows spell crit', () => {
@@ -144,27 +144,27 @@ describe('isConsumableRelevant', () => {
 		});
 		const rogue = user({ cls: Class.ClassRogue, epStats: [Stat.StatAgility], displayPseudoStats: [PseudoStat.PseudoStatMeleeCritPercent] });
 		const mage = user({ cls: Class.ClassMage, epStats: [Stat.StatIntellect], displayPseudoStats: [PseudoStat.PseudoStatSpellCritPercent] });
-		expect(isConsumableRelevant(mongoose, rogue, db)).toBe(true);
-		expect(isConsumableRelevant(mongoose, mage, db)).toBe(true);
+		expect(offered(mongoose, rogue)).toBe(true);
+		expect(offered(mongoose, mage)).toBe(true);
 	});
 
 	it('offers a restore by the resource the spec spends', () => {
 		const mana = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
 		const health = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [2] });
 		const rage = consumable({ type: ConsumableType.ConsumableTypePotion, effectIds: [3] });
-		expect(isConsumableRelevant(mana, user(), db)).toBe(false);
-		expect(isConsumableRelevant(mana, user({ epStats: [Stat.StatIntellect] }), db)).toBe(true);
-		expect(isConsumableRelevant(health, user(), db)).toBe(false);
-		expect(isConsumableRelevant(health, user({ epStats: [Stat.StatStamina] }), db)).toBe(true);
-		expect(isConsumableRelevant(rage, user(), db)).toBe(true);
-		expect(isConsumableRelevant(rage, user({ epStats: [Stat.StatIntellect] }), db)).toBe(false);
+		expect(offered(mana, user())).toBe(false);
+		expect(offered(mana, user({ epStats: [Stat.StatIntellect] }))).toBe(true);
+		expect(offered(health, user())).toBe(false);
+		expect(offered(health, user({ epStats: [Stat.StatStamina] }))).toBe(true);
+		expect(offered(rage, user())).toBe(true);
+		expect(offered(rage, user({ epStats: [Stat.StatIntellect] }))).toBe(false);
 	});
 
 	it('offers a consumable of another kind to everyone, but not a stat consumable that grants nothing', () => {
-		expect(isConsumableRelevant(consumable({ type: ConsumableType.ConsumableTypeDevice }), user(), db)).toBe(true);
-		expect(isConsumableRelevant(consumable({ type: ConsumableType.ConsumableTypeExplosive }), user(), db)).toBe(true);
-		expect(isConsumableRelevant(consumable({ type: ConsumableType.ConsumableTypeOther }), user(), db)).toBe(false);
-		expect(isConsumableRelevant(consumable({ type: ConsumableType.ConsumableTypeElixir }), user(), db)).toBe(false);
+		expect(offered(consumable({ type: ConsumableType.ConsumableTypeDevice }), user())).toBe(true);
+		expect(offered(consumable({ type: ConsumableType.ConsumableTypeExplosive }), user())).toBe(true);
+		expect(offered(consumable({ type: ConsumableType.ConsumableTypeOther }), user())).toBe(false);
+		expect(offered(consumable({ type: ConsumableType.ConsumableTypeElixir }), user())).toBe(false);
 	});
 });
 
@@ -249,20 +249,6 @@ describe('isEnchantRelevantFor', () => {
 	});
 });
 
-describe('highestRanks', () => {
-	it('keeps the highest numeral of a name, and every consumable whose name has none', () => {
-		const ranks = [
-			consumable({ id: 3012, name: 'Scroll of Agility', type: ConsumableType.ConsumableTypeScroll }),
-			consumable({ id: 1477, name: 'Scroll of Agility II', type: ConsumableType.ConsumableTypeScroll }),
-			consumable({ id: 10309, name: 'Scroll of Agility IV', type: ConsumableType.ConsumableTypeScroll }),
-			consumable({ id: 4425, name: 'Scroll of Agility III', type: ConsumableType.ConsumableTypeScroll }),
-			consumable({ id: 5633, name: 'Great Rage Potion', type: ConsumableType.ConsumableTypePotion }),
-			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion }),
-		];
-		expect(highestRanks(ranks).map(c => c.id)).toEqual([10309, 5633, 13442]);
-	});
-});
-
 describe('explosiveUsedBeside', () => {
 	it('names an explosive with a cooldown of its own', () => {
 		expect(explosiveUsedBeside(consumable({ itemEffects: [onUse(24, 300000)] }))).toBe(true);
@@ -295,5 +281,20 @@ describe('relevantConsumableIds', () => {
 		];
 		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, user(), db)).toEqual([1]);
 		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, user({ cls: Class.ClassRogue }), db)).toEqual([2]);
+	});
+
+	it('keeps the highest numeral of a name, and every consumable whose name has none', () => {
+		const agility = stats({ [Stat.StatAgility]: 5 });
+		const consumables = [
+			consumable({ id: 3012, name: 'Scroll of Agility', type: ConsumableType.ConsumableTypeScroll, stats: agility }),
+			consumable({ id: 1477, name: 'Scroll of Agility II', type: ConsumableType.ConsumableTypeScroll, stats: agility }),
+			consumable({ id: 10309, name: 'Scroll of Agility IV', type: ConsumableType.ConsumableTypeScroll, stats: agility }),
+			consumable({ id: 4425, name: 'Scroll of Agility III', type: ConsumableType.ConsumableTypeScroll, stats: agility }),
+			consumable({ id: 5633, name: 'Great Rage Potion', type: ConsumableType.ConsumableTypePotion, effectIds: [3] }),
+			consumable({ id: 13442, name: 'Mighty Rage Potion', type: ConsumableType.ConsumableTypePotion, effectIds: [3] }),
+		];
+		const warrior = user({ epStats: [Stat.StatStrength, Stat.StatAgility, Stat.StatAttackPower] });
+		expect(relevantConsumableIds(consumables, ConsumableSlot.Extra, warrior, db)).toEqual([10309]);
+		expect(relevantConsumableIds(consumables, ConsumableSlot.Potion, warrior, db)).toEqual([5633, 13442]);
 	});
 });
