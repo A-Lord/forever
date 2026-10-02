@@ -5,11 +5,11 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+var lightningBoltRank = spellData.LightningBolt.Highest()
+
 func (shaman *Shaman) registerLightningBoltSpell() {
-	spellData.LightningBolt.Each(func(_ int32, rank *spelldata.Spell) {
-		overload := shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(rank, nil))
-		shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(rank, overload))
-	})
+	overload := shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(lightningBoltRank, nil))
+	shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(lightningBoltRank, overload))
 }
 
 // The cast, with the overload it may trigger; the overload itself, where overload is nil.
