@@ -1841,7 +1841,6 @@
 				},
 				"field_configs": {
 					"type": "Type",
-					"strategy": "Strategy",
 					"buff_type": "Buff Type",
 					"min_icd": "Min ICD",
 					"min_icd_tooltip": "If non-zero, filter out any procs that either lack an ICD or for which the ICD is smaller than the specified value (in seconds). This can be useful for certain snapshotting checks, since procs with low ICDs are often too weak to snapshot.",
@@ -1859,11 +1858,6 @@
 				"rotation_types": {
 					"single_target": "Single Target",
 					"aoe": "AOE"
-				},
-				"hotw_strategies": {
-					"caster": "Caster",
-					"cat": "Cat",
-					"hybrid": "Hybrid"
 				},
 				"unit_labels": {
 					"self": "Self",

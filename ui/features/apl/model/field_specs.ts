@@ -1,5 +1,4 @@
 import {
-	APLActionGuardianHotwDpsRotation_Strategy as HotwStrategy,
 	APLActionItemSwap_SwapSet as ItemSwapSet,
 	APLValue,
 	APLValueAutoAttackType,
@@ -78,15 +77,6 @@ const ECLIPSE_TYPES: EnumTable = {
 		{ value: APLValueEclipsePhase.LunarPhase, label: i18n.t('rotation_tab.apl.helpers.eclipse_types.lunar') },
 		{ value: APLValueEclipsePhase.SolarPhase, label: i18n.t('rotation_tab.apl.helpers.eclipse_types.solar') },
 		{ value: APLValueEclipsePhase.NeutralPhase, label: i18n.t('rotation_tab.apl.helpers.eclipse_types.neutral') },
-	],
-};
-
-const HOTW_STRATEGIES: EnumTable = {
-	defaultLabel: i18n.t('rotation_tab.apl.helpers.hotw_strategies.caster'),
-	options: [
-		{ value: HotwStrategy.Caster, label: i18n.t('rotation_tab.apl.helpers.hotw_strategies.caster') },
-		{ value: HotwStrategy.Cat, label: i18n.t('rotation_tab.apl.helpers.hotw_strategies.cat') },
-		{ value: HotwStrategy.Hybrid, label: i18n.t('rotation_tab.apl.helpers.hotw_strategies.hybrid') },
 	],
 };
 
@@ -238,8 +228,6 @@ export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
 			return { ...base, kind: 'groupVariables', field: descriptor.field, newValue: () => [], groupNameField: descriptor.groupNameField };
 		case 'eclipseType':
 			return asEnum(descriptor.field, ECLIPSE_TYPES, () => APLValueEclipsePhase.LunarPhase);
-		case 'hotwStrategy':
-			return asEnum(descriptor.field, HOTW_STRATEGIES, () => HotwStrategy.Caster, i18n.t('rotation_tab.apl.helpers.field_configs.strategy'));
 		case 'curseType':
 			return asEnum(descriptor.field, CURSE_TYPES, () => CurseOptions.Agony);
 		case 'autoType':

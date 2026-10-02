@@ -26,7 +26,7 @@ const meta = {
 		children: [
 			<ImportExportItem key="json" label="JSON" dialog={stubDialog('JSON Import')} />,
 			<ImportExportItem key="60u" label="60U" dialog={stubDialog('60U Import')} />,
-			<ImportExportItem key="addon" label="Addon" dialog={stubDialog('Addon Import')} isUnsupported />,
+			<ImportExportItem key="addon" label="Addon" dialog={stubDialog('Addon Import')} />,
 		],
 	},
 	argTypes: { children: { control: false } },
