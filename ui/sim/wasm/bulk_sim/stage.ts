@@ -74,12 +74,9 @@ export const shouldRunBulkSimStage = (config: ConcurrentBulkSimStageConfig, cand
 	);
 };
 
-export const getBulkSimStageMinIterations = (config: ConcurrentBulkSimStageConfig): number => config.minIterations ?? 0;
-
 const getBulkSimStageIterations = (config: ConcurrentBulkSimStageConfig, baselineMetrics: DistributionMetrics | undefined, candidateCount: number): number => {
-	const minIterations = getBulkSimStageMinIterations(config);
 	const targetIterations = getBulkSimTargetIterations(config.targetErrorPct, baselineMetrics, candidateCount);
-	return Math.max(minIterations, targetIterations);
+	return Math.max(config.minIterations ?? 0, targetIterations);
 };
 
 // Runs `iterations` of the baseline gear at `seedOffset` and folds the result into
@@ -257,7 +254,7 @@ export const runConcurrentBulkSimStage = async (
 	carryOver?: ConcurrentBulkSimStageCarryOver,
 ): Promise<ConcurrentBulkSimStageResult> => {
 	const startedAt = new Date().getTime();
-	const minIterations = getBulkSimStageMinIterations(config);
+	const minIterations = config.minIterations ?? 0;
 	const carry = bulkSimCarryOverCovers(carryOver, candidates) ? carryOver : undefined;
 	const carriedIterations = carry?.iterations ?? 0;
 	const concurrency = Math.min(workerPool.getNumWorkers(), candidates.length);

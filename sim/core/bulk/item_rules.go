@@ -80,7 +80,7 @@ func enchantAppliesToItem(effectID int32, item core.Item) bool {
 	if effectID == 0 {
 		return false
 	}
-	return slices.ContainsFunc(core.GetEnchantRowsByEffectID(effectID), func(enchant core.Enchant) bool {
+	return core.AnyEnchantRow(effectID, func(enchant core.Enchant) bool {
 		return enchantRowAppliesToItem(enchant, item)
 	})
 }

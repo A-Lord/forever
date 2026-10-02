@@ -49,6 +49,8 @@ func TestEstimateBulkSimIterationsCountsTheBaselineAtTheStageMinimums(t *testing
 	}{
 		{"no candidates sims the baseline alone", 0, 10000},
 		{"16 candidates and the baseline in the high stage", 16, 17 * 10000},
+		{"27 candidates sim fewer iterations in the high stage alone than culling through the medium stage", 27, 28 * 10000},
+		{"28 candidates sim fewer iterations culling through the medium stage than in the high stage alone", 28, 29*1000 + 26*10000},
 		{"100 candidates cull through the medium stage to 25", 100, 101*1000 + 26*10000},
 		{"1000 candidates cull through the low stage to 100 and the medium stage to 25", 1000, 1001*100 + 101*1000 + 26*10000},
 	}
@@ -62,28 +64,33 @@ func TestEstimateBulkSimIterationsCountsTheBaselineAtTheStageMinimums(t *testing
 }
 
 func TestBulkSimRunsAtTheStageMinimumsNotTheSimIterations(t *testing.T) {
-	t.Run("a run with no candidates sims the baseline at the high stage minimum", func(t *testing.T) {
-		result := BulkSim(bulkSimTestRequest(12500, 0))
-		if result.Error != nil {
-			t.Fatalf("bulk sim failed: %s", result.Error.Message)
-		}
-		if got := simmedIterations(result.Baseline); got != 10000 {
-			t.Fatalf("baseline simmed %d iterations, want 10000", got)
-		}
-	})
-
-	t.Run("a run with candidates sims them and the baseline at the high stage minimum", func(t *testing.T) {
-		result := BulkSim(bulkSimTestRequest(12500, 1))
-		if result.Error != nil {
-			t.Fatalf("bulk sim failed: %s", result.Error.Message)
-		}
-		if got := simmedIterations(result.Baseline); got != 10000 {
-			t.Fatalf("baseline simmed %d iterations, want 10000", got)
-		}
-		if got := simmedIterations(result.TopResults[0]); got != 10000 {
-			t.Fatalf("candidate simmed %d iterations, want 10000", got)
-		}
-	})
+	const simIterations = 12500
+	cases := []struct {
+		name       string
+		candidates int
+	}{
+		{"a run with no candidates sims the baseline at the high stage minimum", 0},
+		{"a run with candidates sims them and the baseline at the high stage minimum", 1},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := BulkSim(bulkSimTestRequest(simIterations, tc.candidates))
+			if result.Error != nil {
+				t.Fatalf("bulk sim failed: %s", result.Error.Message)
+			}
+			if got := simmedIterations(result.Baseline); got != 10000 {
+				t.Fatalf("baseline simmed %d iterations, want 10000", got)
+			}
+			if len(result.TopResults) != tc.candidates {
+				t.Fatalf("got %d top results, want %d", len(result.TopResults), tc.candidates)
+			}
+			for _, topResult := range result.TopResults {
+				if got := simmedIterations(topResult); got != 10000 {
+					t.Fatalf("candidate simmed %d iterations, want 10000", got)
+				}
+			}
+		})
+	}
 }
 
 func TestGetBulkSimStageMaxSurvivorsScalesLowStage(t *testing.T) {

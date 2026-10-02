@@ -201,8 +201,6 @@ func bulkSimStageMetrics(config BulkSimStageConfig, candidates []BulkSimCandidat
 }
 
 func getBulkSimStageIterations(config BulkSimStageConfig, baselineMetrics *proto.DistributionMetrics, candidateCount int) int32 {
-	// The stage minimum is a floor, not a cap. Every stage still uses enough
-	// iterations to satisfy its target error when needed.
 	targetIterations := getBulkSimTargetIterations(config.TargetErrorPct, baselineMetrics, candidateCount)
 	return max(config.MinIterations, targetIterations)
 }

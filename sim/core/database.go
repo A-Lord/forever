@@ -476,11 +476,12 @@ func GetEnchantByEffectID(effectID int32) *Enchant {
 }
 
 // The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
-// Superior Striking), differing in the items they fit.
-func GetEnchantRowsByEffectID(effectID int32) []Enchant {
+// Superior Striking), differing in the items they fit. fits runs under the read lock, so
+// nothing it calls may take dbMu.
+func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
 	dbMu.RLock()
 	defer dbMu.RUnlock()
-	return slices.Clone(enchantRowsByEffectID[effectID])
+	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
 }
 
 func (enchant Enchant) sameSlotRules(other Enchant) bool {

@@ -33,6 +33,7 @@ func EnchantToDBKey(enchant *proto.UIEnchant) EnchantDBKey {
 // Whether an enchant in db.json survives the global filters: a Season of Discovery item, or a
 // deny-list, template, test or QA name drops it.
 func KeepEnchant(enchant *proto.UIEnchant) bool {
+	// Every Season of Discovery enchant carrier lies in the range; items use ItemDenyList instead because kept items also sit inside it.
 	if enchant.ItemId >= sodItemIDMin && enchant.ItemId <= sodItemIDMax {
 		return false
 	}

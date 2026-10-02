@@ -8,14 +8,16 @@ func bulkSimHighStageFloor() int32 {
 	return BulkSimStageConfigs[len(BulkSimStageConfigs)-1].MinIterations
 }
 
+func bulkSimSingleStageIterations(candidateCount int) int64 {
+	return int64(bulkSimHighStageFloor()) * int64(candidateCount+1)
+}
+
 func shouldUseSingleStageBulkSim(candidateCount int) bool {
 	if candidateCount < BulkSimMinCombinations {
 		return true
 	}
 
-	fullRunIterations := int64(bulkSimHighStageFloor()) * int64(candidateCount)
-	estimatedMultistageIterationsUpperBound := getBulkSimOptimisationIterationsUpperBound(candidateCount)
-	return estimatedMultistageIterationsUpperBound >= fullRunIterations
+	return getBulkSimOptimisationIterationsUpperBound(candidateCount) >= bulkSimSingleStageIterations(candidateCount)
 }
 
 func getBulkSimOptimisationIterationsUpperBound(candidateCount int) int64 {
@@ -41,9 +43,11 @@ func getBulkSimOptimisationIterationsUpperBound(candidateCount int) int64 {
 // with every culling stage keeping its most survivors. The error target can raise a stage above its minimum, and the adaptive
 // passes and the finalist stage add iterations on top, so a run usually sims more.
 func estimateBulkSimIterations(candidateCount int) int64 {
-	if shouldUseSingleStageBulkSim(candidateCount) {
-		return int64(bulkSimHighStageFloor()) * int64(candidateCount+1)
+	singleStageIterations := bulkSimSingleStageIterations(candidateCount)
+	if candidateCount < BulkSimMinCombinations {
+		return singleStageIterations
 	}
 
-	return getBulkSimOptimisationIterationsUpperBound(candidateCount)
+	// shouldUseSingleStageBulkSim runs whichever of the two sims fewer iterations.
+	return min(singleStageIterations, getBulkSimOptimisationIterationsUpperBound(candidateCount))
 }
