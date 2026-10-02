@@ -174,13 +174,7 @@ export const WOWHEAD_GEAR_PLANNER_IMPORTER: ImporterDefinition = {
 			throw new Error(i18n.t('import.wowhead.error_cannot_parse_class', { classId: parsed.classId }));
 		}
 
-		const converWowheadRace = (raceId: string): string => {
-			const allianceSuffix = raceId.startsWith('alliance-') ? ' (A)' : undefined;
-			const hordeSuffix = raceId.startsWith('horde-') ? ' (H)' : undefined;
-			return raceId.replaceAll('alliance', '').replaceAll('horde', '').replaceAll('-', '') + (allianceSuffix ?? hordeSuffix ?? '');
-		};
-
-		const race = nameToRace(converWowheadRace(parsed.raceId));
+		const race = nameToRace(parsed.raceId.replaceAll('-', ''));
 		if (race == Race.RaceUnknown) {
 			throw new Error(i18n.t('import.wowhead.error_cannot_parse_race', { raceId: parsed.raceId }));
 		}
