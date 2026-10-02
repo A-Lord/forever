@@ -20,6 +20,15 @@ const mount = (props: Partial<DrawerProps> = {}) =>
 	);
 
 describe('Drawer', () => {
+	it.each(['left', 'bottom', 'right'] as const)('marks a %s drawer with its side, and a drawer without one with none', side => {
+		const { unmount } = mount({ open: true, side });
+		expect(screen.getByTestId('popup').getAttribute('data-side')).toBe(side);
+		unmount();
+
+		mount({ open: true });
+		expect(screen.getByTestId('popup').hasAttribute('data-side')).toBe(false);
+	});
+
 	it('renders its children straight in the popup', () => {
 		mount({ open: true });
 

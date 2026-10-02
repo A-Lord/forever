@@ -4,6 +4,8 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { Drawer } from './Drawer';
 
+const SIDES = ['left', 'bottom', 'right'] as const;
+
 const meta = {
 	title: 'Kit/Drawer',
 	component: Drawer,
@@ -11,10 +13,11 @@ const meta = {
 	args: {
 		trigger: <Button>Open drawer</Button>,
 		onOpenChange: fn(),
-		className: 'inset-x-0 bottom-0 border-t border-border bg-background p-4',
+		side: 'bottom',
 		children: <p className="m-0">Drawer contents.</p>,
 	},
 	argTypes: {
+		side: { control: 'select', options: SIDES },
 		trigger: { control: false },
 		children: { control: false },
 		style: { control: false },
@@ -26,6 +29,16 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const Sides: Story = {
+	render: args => (
+		<div className="flex gap-2">
+			{SIDES.map(side => (
+				<Drawer key={side} {...args} side={side} trigger={<Button>Open {side}</Button>} />
+			))}
+		</div>
+	),
+};
 
 export const NonModal: Story = {
 	args: { modal: false, children: <p className="m-0">The page behind stays interactive.</p> },
