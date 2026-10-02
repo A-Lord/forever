@@ -468,7 +468,7 @@ func (swap *ItemSwap) swapItem(sim *Simulation, slot proto.ItemSlot, isPrepull b
 		if character.AutoAttacks.AutoSwingMelee {
 			weapon := character.WeaponFromOffHand()
 			character.AutoAttacks.SetOH(weapon)
-			character.AutoAttacks.IsDualWielding = weapon.SwingSpeed != 0
+			character.AutoAttacks.IsDualWielding = weapon.SwingSpeed != 0 && SpecCanDualWieldCapabilities[character.Spec]
 			if !isReset {
 				character.AutoAttacks.EnableMeleeSwing(sim)
 			}

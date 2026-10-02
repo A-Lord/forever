@@ -57,7 +57,7 @@ export class EnhancementShaman extends PlayerSpec<Spec.SpecEnhancementShaman> {
 	static isHealingSpec = false;
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = true;
-	static canDualWield = true;
+	static canDualWield = false;
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
