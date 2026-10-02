@@ -1,4 +1,5 @@
 import { ItemSlot, PseudoStat, Stat } from '@generated/proto/common';
+import { ItemEffect } from '@generated/proto/spell';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -36,6 +37,33 @@ describe('Player.computeEnchantEP', () => {
 	it('gives weapon damage nothing without a weapon to read the speed off', () => {
 		expect(computeEnchantEP(striking, ItemSlot.ItemSlotMainHand, null)).toBe(0);
 		expect(computeEnchantEP(striking)).toBe(0);
+	});
+});
+
+describe('Player.isEnchantRelevant', () => {
+	const isEnchantRelevant = (enchant: Enchant, slot: ItemSlot) => {
+		const player = {
+			enchantEPCache: new Map<number, number>(),
+			computeStatsEP: (stats: Stats) => stats.computeEP(weights),
+			computeEnchantEP: Player.prototype.computeEnchantEP,
+			computeWeaponDpsEP: Player.prototype.computeWeaponDpsEP,
+		} as unknown as Player<any>;
+		return Player.prototype.isEnchantRelevant.call(player, enchant, slot);
+	};
+	const statEnchant = (effectId: number, stat: Stat) => Enchant.create({ effectId, stats: new Stats().withStat(stat, 3).asProtoArray() });
+
+	it('keeps an enchant whose stats the spec weighs and drops one whose stats it does not', () => {
+		expect(isEnchantRelevant(statEnchant(3, Stat.StatStrength), ItemSlot.ItemSlotHead)).toBe(true);
+		expect(isEnchantRelevant(statEnchant(4, Stat.StatIntellect), ItemSlot.ItemSlotHead)).toBe(false);
+	});
+
+	it('keeps a proc, which has no stats to weigh', () => {
+		expect(isEnchantRelevant(Enchant.create({ effectId: 5, enchantEffects: [ItemEffect.create()] }), ItemSlot.ItemSlotMainHand)).toBe(true);
+	});
+
+	it('keeps flat weapon damage only where the spec weighs the weapon DPS of the slot', () => {
+		expect(isEnchantRelevant(striking, ItemSlot.ItemSlotMainHand)).toBe(true);
+		expect(isEnchantRelevant(striking, ItemSlot.ItemSlotRanged)).toBe(false);
 	});
 });
 

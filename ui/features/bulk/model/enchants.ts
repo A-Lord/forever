@@ -1,6 +1,6 @@
 import { BulkEnchantSlotOptions } from '@generated/proto/api';
 import { ItemSlot } from '@generated/proto/common';
-import { BulkEnchantPreset, BulkEnchantPresets, type UIEnchant } from '@generated/proto/ui';
+import { BulkEnchantPreset, BulkEnchantPresets } from '@generated/proto/ui';
 import type { Player } from '@sim/player/player';
 import { bulkState, patchBulkState, storeEnchantPresets } from '@sim/settings/bulk_settings';
 
@@ -22,12 +22,6 @@ export const BULK_ENCHANT_SLOTS: readonly ItemSlot[] = [
 	ItemSlot.ItemSlotOffHand,
 	ItemSlot.ItemSlotRanged,
 ];
-
-// The stat weights decide relevance, as for random suffixes. A proc has no stats to weigh, so it always counts;
-// flat weapon damage counts when the spec values weapon DPS.
-export const isRelevantEnchant = (player: Player<any>, enchant: UIEnchant): boolean =>
-	enchant.enchantEffects.length > 0 ||
-	player.computeEnchantEP(enchant, enchant.weaponDamage ? 1 : 0, enchant.weaponDamage ? player.computeWeaponDpsEP(ItemSlot.ItemSlotMainHand) : 0) > 0;
 
 // Sorted, so the request that seeds the batch's RNG does not depend on preset order or the order enchants were picked in.
 export const bulkEnchantPool = (player: Player<any>): BulkEnchantSlotOptions[] => {

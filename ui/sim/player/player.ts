@@ -1196,6 +1196,14 @@ export class Player<SpecType extends Spec> {
 		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
+	// The stat weights decide relevance, as for random suffixes. A proc has no stats to weigh, so it always counts;
+	// flat weapon damage counts when the spec values weapon DPS in the slot.
+	isEnchantRelevant(enchant: Enchant, slot: ItemSlot): boolean {
+		if (enchant.enchantEffects.length > 0) return true;
+		const weaponSpeed = enchant.weaponDamage ? 1 : 0;
+		return this.computeEnchantEP(enchant, weaponSpeed, weaponSpeed ? this.computeWeaponDpsEP(slot) : 0) > 0;
+	}
+
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {
 		if (this.randomSuffixEPCache.has(randomSuffix.id)) {
 			return this.randomSuffixEPCache.get(randomSuffix.id)!;
@@ -1434,7 +1442,8 @@ export class Player<SpecType extends Spec> {
 			return enchantData;
 		}
 
-		//const filters = this.sim.getFilters();
+		const filters = this.sim.getFilters();
+		const equippedEffectId = currentEquippedItem.enchant?.effectId;
 
 		return enchantData.filter(enchantElem => {
 			const enchant = getEnchantFunc(enchantElem);
@@ -1443,7 +1452,7 @@ export class Player<SpecType extends Spec> {
 				return false;
 			}
 
-			return true;
+			return filters.showAllEnchants || enchant.effectId === equippedEffectId || this.isEnchantRelevant(enchant, slot);
 		});
 	}
 

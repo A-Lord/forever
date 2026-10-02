@@ -31,7 +31,7 @@ const ROW_CLASS = clsx(
 	'[&_[data-active]_.ui-selector-modal-list-item-icon]:outline-2 [&_[data-active]_.ui-selector-modal-list-item-icon]:outline-success',
 );
 
-type FilterFlag = 'oneHandedWeapons' | 'twoHandedWeapons' | 'matchingGemsOnly';
+type FilterFlag = 'oneHandedWeapons' | 'twoHandedWeapons' | 'matchingGemsOnly' | 'showAllEnchants';
 
 const toggle = (name: string, label: string, value: boolean, onChange: (value: boolean) => void): ItemListToggle => ({
 	id: `show-${name}-selector`,
@@ -80,8 +80,8 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 
 		idxs = idxs.filter(index => itemData[index].phase <= phase && matchesSearch(search, itemData[index], npcId => sim.db.getNpc(npcId)?.name));
 		return sortItemIdxs(idxs, itemData, { sortBy, sortDirection, computeEP, isFavourited });
-		// `filters` is named here even though the body never reads it: `player.filterItemData` and
-		// `player.filterGemData` reach `sim.getFilters()` internally, so a filter change has to
+		// `filters` is named here even though the body never reads it: `player.filterItemData`,
+		// `player.filterEnchantData` and `player.filterGemData` reach `sim.getFilters()` internally, so a filter change has to
 		// rebuild this. The lint calls it unnecessary; deleting it leaves correctness resting on
 		// `isFavourited` happening to close over `filters` too.
 		// oxlint-disable-next-line react-hooks/exhaustive-deps
@@ -120,6 +120,8 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 			toggle('2h-weapons', i18n.t('settings_tab.other.show_2h_weapons.label'), filters.twoHandedWeapons, setFilterFlag('twoHandedWeapons')),
 		label.startsWith('Gem') &&
 			toggle('matching-gems', i18n.t('settings_tab.other.show_matching_gems.label'), filters.matchingGemsOnly, setFilterFlag('matchingGemsOnly')),
+		label === SelectorModalTabs.Enchants &&
+			toggle('all-enchants', i18n.t('settings_tab.other.show_all_enchants.label'), filters.showAllEnchants, setFilterFlag('showAllEnchants')),
 		showEPOptions && toggle('ep-values', i18n.t('settings_tab.other.show_ep_values.label'), showEPValues, value => sim.setShowEPValues(value)),
 	].filter((entry): entry is ItemListToggle => !!entry);
 

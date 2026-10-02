@@ -1,5 +1,6 @@
-import { Class, GemColor, ItemQuality, ItemSlot, ScalingItemProperties } from '@generated/proto/common';
-import { DatabaseFilters, UIItem as Item } from '@generated/proto/ui';
+import { Class, GemColor, ItemQuality, ItemSlot, ItemType, ScalingItemProperties } from '@generated/proto/common';
+import { ItemEffect } from '@generated/proto/spell';
+import { DatabaseFilters, UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import type { IndividualSimHost } from '@sim/sim_host';
@@ -50,6 +51,7 @@ vi.mock('../FiltersMenu', () => ({
 }));
 
 const { ItemList } = await import('./ItemList');
+const { Player } = await import('@sim/player/player');
 
 // `sortItemIdxs` reads the base scaling entry, not `ilvl`, whenever it sorts by item level.
 const item = (id: number, name: string, ilvl: number) =>
@@ -76,6 +78,20 @@ const row = (id: number, name: string, ilvl: number, phase = 1): ItemData<ItemLi
 });
 
 const ROWS = [row(1, 'Alpha', 500), row(2, 'Beta', 520), row(3, 'Gamma', 510)];
+
+const enchantRow = (enchant: Enchant): ItemData<ItemListType, string> => ({
+	item: enchant as unknown as ItemListType,
+	name: enchant.name,
+	searchText: enchant.name,
+	id: enchant.effectId,
+	actionId: { spellId: enchant.effectId } as any,
+	quality: ItemQuality.ItemQualityEpic,
+	phase: 1,
+	ilvl: 0,
+	ignoreEPFilter: false,
+	nameDescription: '',
+	onEquip: () => undefined,
+});
 
 describe('ItemList', () => {
 	let filters: DatabaseFilters;
@@ -266,6 +282,29 @@ describe('ItemList', () => {
 		patchSlice(realStore, 'ui', { showEPValues: false });
 		const { container } = setup();
 		expect(container.querySelector('[data-testid="selector-modal-list"]')!.hasAttribute('data-hide-ep')).toBe(true);
+	});
+
+	it('lists the enchants worth something to the spec, the procs and the equipped one, and every enchant once Show All is ticked', () => {
+		const head = (effectId: number, name: string, over: Partial<Enchant> = {}) => Enchant.create({ effectId, name, type: ItemType.ItemTypeHead, ...over });
+		const relevant = head(1, 'Relevant');
+		const worthless = head(2, 'Worthless');
+		const proc = head(3, 'Proc', { enchantEffects: [ItemEffect.create()] });
+		const equipped = head(4, 'Equipped');
+		Object.assign(host.player, {
+			getEquippedItem: () => ({ item: Item.create({ type: ItemType.ItemTypeHead }), enchant: equipped }),
+			filterEnchantData: Player.prototype.filterEnchantData,
+			isEnchantRelevant: Player.prototype.isEnchantRelevant,
+			computeEnchantEP: (enchant: Enchant) => (enchant === relevant ? 1 : 0),
+			computeWeaponDpsEP: () => 0,
+		});
+
+		const { container } = setup({ label: SelectorModalTabs.Enchants, over: { itemData: [relevant, worthless, proc, equipped].map(enchantRow) } });
+		expect(names(container).sort()).toEqual(['Equipped', 'Proc', 'Relevant']);
+
+		act(() => container.querySelector<HTMLElement>('#show-all-enchants-selector')!.click());
+		expect(setFilters.mock.calls[0][0].showAllEnchants).toBe(true);
+		act(() => store.notify());
+		expect(names(container).sort()).toEqual(['Equipped', 'Proc', 'Relevant', 'Worthless']);
 	});
 
 	it('re-reads the rows when the sim announces a filter change', () => {

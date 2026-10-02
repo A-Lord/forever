@@ -54,8 +54,7 @@ const mount = ({ loaded = true } = {}) => {
 			if (!loaded) throw new TypeError("Cannot read properties of null (reading 'getEnchants')");
 			return ENCHANTS.get(slot) ?? [];
 		},
-		computeEnchantEP: (enchant: UIEnchant) => (enchant === HEALING ? 0 : 1),
-		computeWeaponDpsEP: () => 1,
+		isEnchantRelevant: (enchant: UIEnchant) => enchant !== HEALING,
 	} as unknown as Player<any>;
 	seedBulkSettings(player);
 	render(

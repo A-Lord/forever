@@ -13,7 +13,7 @@ import { useSimReady } from '@sim/hooks/useSimReady';
 import { memo, useCallback, useMemo, useState } from 'react';
 
 import { useBulkState } from '../../hooks/useBulkState';
-import { BULK_ENCHANT_SLOTS, isRelevantEnchant, saveBulkEnchantPreset, validateBulkEnchantPresetName } from '../../model/enchants';
+import { BULK_ENCHANT_SLOTS, saveBulkEnchantPreset, validateBulkEnchantPresetName } from '../../model/enchants';
 import { BulkEnchantPresetDialogView } from './BulkEnchantPresetDialogView';
 import { BulkEnchantTile } from './BulkEnchantTile';
 
@@ -91,7 +91,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const query = search.trim().toLowerCase();
 	const listed = useCallback(
 		(slot: ItemSlot, enchant: Enchant, nameQuery: string) =>
-			(showAll || isRelevantEnchant(player, enchant) || !!selected.get(slot)?.includes(enchant.effectId)) &&
+			(showAll || player.isEnchantRelevant(enchant, slot) || !!selected.get(slot)?.includes(enchant.effectId)) &&
 			(!nameQuery || enchant.name.toLowerCase().includes(nameQuery)),
 		[player, showAll, selected],
 	);

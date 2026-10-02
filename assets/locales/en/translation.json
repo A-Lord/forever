@@ -633,6 +633,10 @@
 				"label": "Match Socket",
 				"tooltip": "Show only items with matching socket colors"
 			},
+			"show_all_enchants": {
+				"label": "Show All",
+				"tooltip": "Also show enchants whose stats are worth nothing to this spec's stat weights"
+			},
 			"show_ep_values": {
 				"label": "Show EP",
 				"tooltip": "Show EP (Effective Power) values"

@@ -2208,6 +2208,19 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
+						"show_all_enchants": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"show_ep_values": {
 							"type": "object",
 							"properties": {
@@ -2410,6 +2423,7 @@
 						"show_1h_weapons",
 						"show_2h_weapons",
 						"show_matching_gems",
+						"show_all_enchants",
 						"show_ep_values",
 						"phase_selector",
 						"enable_item_swap",
