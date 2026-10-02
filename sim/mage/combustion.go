@@ -12,7 +12,7 @@ var combustionBuffRank = spellData.CombustionTriggered.Highest()
 // https://www.wowhead.com/forever/spell=11129
 //
 // "When activated, this spell causes each of your Fire damage spell hits to increase your critical
-// strike chance with Fire damage spells by 10%. This effect lasts until you have caused 4
+// strike chance with Fire damage spells by 10%. This effect lasts until you have caused 3
 // non-periodic critical strikes with Fire spells."
 //
 // Two auras: 11129 counts the crits left in its stacks (its ProcCharges), and 28682 carries the

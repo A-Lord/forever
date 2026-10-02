@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	_ "github.com/wowsims/forever/sim/common"
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -278,9 +279,7 @@ func tickUnsupported(what string, s *spelldata.Spell, effect *spelldata.Effect) 
 
 func energizeUnsupported(s *spelldata.Spell, effect *spelldata.Effect) []string {
 	unsupported := wearerTarget("gain", effect)
-	switch dbcenums.PowerType(effect.Misc) {
-	case dbcenums.POWER_MANA, dbcenums.POWER_RAGE, dbcenums.POWER_ENERGY:
-	default:
+	if !shared.EnergizesABar(dbcenums.PowerType(effect.Misc)) {
 		unsupported = append(unsupported, fmt.Sprintf("the gain fills power type %d, not mana, rage or energy", effect.Misc))
 	}
 	if effect.Aura == dbcenums.A_PERIODIC_ENERGIZE {
@@ -1340,6 +1339,7 @@ var itemAuraKinds = []dbcenums.EffectAuraType{
 	dbcenums.A_MOD_BASE_RESISTANCE_PCT,
 	dbcenums.A_MOD_INCREASE_HEALTH_PERCENT,
 	dbcenums.A_MOD_PERCENT_STAT,
+	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE,
 	dbcenums.A_MOD_HIT_CHANCE,
 	dbcenums.A_MOD_WEAPON_CRIT_PERCENT,
 	dbcenums.A_MOD_SPELL_HIT_CHANCE,

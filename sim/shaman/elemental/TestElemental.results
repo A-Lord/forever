@@ -256,6 +256,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-EnchantWeapon-Revelation-8217"
+ value: {
+  dps: 352.32322
+  tps: 251.27123
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 331.11709
@@ -508,6 +515,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-RingofSaviors-1447"
+ value: {
+  dps: 330.7413
+  tps: 236.66346
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-SerenityField-272439"
  value: {
   dps: 336.93722
@@ -613,6 +627,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-TotemofChargedFlames-263412"
+ value: {
+  dps: 335.80236
+  tps: 240.01429
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-TotemoftheStorm-23199"
  value: {
   dps: 346.39751
@@ -624,6 +645,13 @@ dps_results: {
  value: {
   dps: 333.61143
   tps: 238.56238
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-VileProtector-7747"
+ value: {
+  dps: 325.20104
+  tps: 232.52911
  }
 }
 dps_results: {

@@ -36,7 +36,7 @@ func (warrior *Warrior) registerBattleShout() {
 		// keeps the build phase it was registered with.
 		partyShout := !castsOwnShout && unit.GetAuraByID(core.ActionID{SpellID: battleShoutRank.ID}.WithTag(-1)) != nil
 
-		// Booming Voice widens the radius only, so the aura takes no talent points.
+		// Booming Voice widens the radius and lowers the cost only, so the aura takes no talent points.
 		aura := buffs.NewSpellDataBattleShoutAura(unit, castsOwnShout, 0)
 		if shoutsWithTheSet {
 			buffs.AddGeneratedFlatBonus(aura, stats.AttackPower, battleShoutBase, buffs.BattleShoutT2Bonus)

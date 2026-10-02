@@ -308,6 +308,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-EnchantWeapon-Revelation-8217"
+ value: {
+  dps: 431.74812
+  tps: 235.567
+  dtps: 2.49108
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 433.55491
@@ -821,6 +829,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestHunterPets-AllItems-Uther'sStrength-11302"
+ value: {
+  dps: 431.74812
+  tps: 235.567
+  dtps: 2.49108
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-VileProtector-7747"
  value: {
   dps: 431.74812
   tps: 235.567
@@ -1672,7 +1688,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Wolf-turret-FullBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 555.5093
+  dps: 550.17524
   tps: 435.34442
   dtps: 2.35647
  }
@@ -1680,7 +1696,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Wolf-turret-FullBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 437.7566
+  dps: 432.42253
   tps: 234.38847
   dtps: 2.45599
  }
@@ -1688,7 +1704,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Wolf-turret-FullBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 454.35875
+  dps: 448.75559
   tps: 241.81841
   dtps: 7.36798
  }
@@ -1696,21 +1712,21 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Wolf-turret-NoBuffs-8.0yards-LongMultiTarget"
  value: {
-  dps: 267.93204
+  dps: 263.97009
   tps: 195.53467
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Wolf-turret-NoBuffs-8.0yards-LongSingleTarget"
  value: {
-  dps: 267.93204
+  dps: 263.97009
   tps: 195.53467
  }
 }
 dps_results: {
  key: "TestHunterPets-Settings-Orc-p1-Wolf-turret-NoBuffs-8.0yards-ShortSingleTarget"
  value: {
-  dps: 291.79101
+  dps: 287.65273
   tps: 215.08965
  }
 }

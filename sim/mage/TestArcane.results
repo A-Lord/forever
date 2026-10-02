@@ -221,6 +221,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-EnchantWeapon-Revelation-8217"
+ value: {
+  dps: 619.47041
+  tps: 324.84821
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 561.14824
