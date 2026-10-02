@@ -188,11 +188,8 @@ func (hunter *Hunter) registerSniperShot() {
 	buff := hunter.RegisterAura(spelldata.AuraConfig(sniperShotRank))
 	spelldata.ParseEffects(&hunter.Character, buff, sniperShotRank)
 	firstHit, resetFirstHit := core.OncePerCast()
-	buff.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
-		hunter.AutoAttacks.UpdateRangedRange(sim)
+	buff.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
 		resetFirstHit()
-	}).ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-		hunter.AutoAttacks.UpdateRangedRange(sim)
 	})
 
 	// One charge per Shot the range mod names, however many targets it hits. The row's proc flags hear
