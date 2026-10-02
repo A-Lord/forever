@@ -929,8 +929,16 @@ const petNameToActionId: Record<string, ActionId> = {
 	'Fire Spirit': ActionId.fromSpellId(138123),
 };
 
+// The owner's spell a pet is summoned by, for a pet the results list under that spell.
+export const petNameToSummonSpell: Record<string, string> = {
+	'Hawk 1': 'Summon Hawk',
+	'Hawk 2': 'Summon Hawk',
+};
+
 // https://wowhead.com/forever/hunter-pets
 const petNameToIcon: Record<string, string> = {
+	'Hawk 1': 'https://wow.zamimg.com/images/wow/icons/medium/spell_nature_ravenform.jpg',
+	'Hawk 2': 'https://wow.zamimg.com/images/wow/icons/medium/spell_nature_ravenform.jpg',
 	Bat: 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_bat.jpg',
 	Bear: 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_bear.jpg',
 	'Bird of Prey': 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_owl.jpg',
