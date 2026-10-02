@@ -4,7 +4,7 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Spinner } from '@ui-kit/Spinner';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import { TooltipAnchor } from '@ui-kit/TooltipAnchor';
+import { TooltipButton } from '@ui-kit/TooltipButton';
 import clsx from 'clsx';
 import { useId } from 'react';
 
@@ -17,7 +17,6 @@ export interface CombinationsCountViewProps {
 
 export const CombinationsCountView = ({ pending, combinations, iterations, iterationsLimit }: CombinationsCountViewProps) => {
 	const tooltipId = useId();
-	const labelTooltipId = useId();
 	const overLimit = !pending && iterations > iterationsLimit;
 	const warningText = i18n.t('bulk_tab.warning.iterations_limit', { limit: formatToNumber(iterationsLimit) });
 
@@ -27,11 +26,13 @@ export const CombinationsCountView = ({ pending, combinations, iterations, itera
 			<dd className="mb-0 text-right font-bold tabular-nums" data-testid="bulk-combinations">
 				{pending ? <Spinner size="sm" /> : formatToNumber(combinations)}
 			</dd>
-			<dt className="font-normal">
-				<TooltipAnchor tooltipId={labelTooltipId} testId="bulk-total-iterations-label">
-					{i18n.t('bulk_tab.settings.total_iterations')}
-				</TooltipAnchor>
-				<Tooltip id={labelTooltipId} content={i18n.t('bulk_tab.settings.total_iterations_tooltip')} />
+			<dt className="flex items-center gap-1 font-normal">
+				{i18n.t('bulk_tab.settings.total_iterations')}
+				<TooltipButton
+					tooltip={i18n.t('bulk_tab.settings.total_iterations_tooltip')}
+					label={i18n.t('common.help')}
+					testId="bulk-total-iterations-help"
+				/>
 			</dt>
 			<dd
 				className={clsx('mb-0 flex items-center justify-end gap-2 font-bold tabular-nums', overLimit && 'text-danger')}

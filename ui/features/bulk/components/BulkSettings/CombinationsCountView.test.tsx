@@ -23,12 +23,12 @@ describe('CombinationsCountView', () => {
 		expect(screen.queryByTestId('warning')).toBeNull();
 	});
 
-	it('explains on the iterations label that the count is a minimum', async () => {
+	it('explains through a help icon beside the iterations label that the count is a minimum', async () => {
 		renderCount();
-		const label = screen.getByTestId('bulk-total-iterations-label');
+		const help = screen.getByTestId('bulk-total-iterations-help');
 
-		expect(label.textContent).toBe('bulk_tab.settings.total_iterations');
-		fireEvent.focus(label);
+		expect(help.parentElement!.textContent).toBe('bulk_tab.settings.total_iterations');
+		fireEvent.focus(help);
 		expect(await screen.findByText('bulk_tab.settings.total_iterations_tooltip')).toBeTruthy();
 	});
 
