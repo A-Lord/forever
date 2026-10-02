@@ -1,11 +1,8 @@
 import type { SizeProp } from '@fortawesome/fontawesome-svg-core';
 
-import { DEFINITIONS } from './definitions';
+import type { DEFINITIONS } from './definitions';
 
 export type IconName = keyof typeof DEFINITIONS;
-
-/** Every name the kit ships a definition for, derived from `DEFINITIONS`. */
-export const ICON_NAMES = Object.keys(DEFINITIONS) as ReadonlyArray<IconName>;
 
 /** base is the default style, solid. */
 export type IconStyle = 'solid' | 'regular' | 'brands' | 'base';

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useState } from 'react
 import { numberCodec, numberListCodec, stringCodec } from './codecs';
 import type { NumberFieldProps, NumberListFieldProps, SearchFieldProps, StringFieldProps, TextFieldProps } from './types';
 
-export const TextField = <V,>({
+const TextField = <V,>({
 	codec,
 	value,
 	onChange,

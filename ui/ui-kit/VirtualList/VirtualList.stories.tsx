@@ -10,8 +10,6 @@ interface VirtualListStoryProps {
 	overscan?: number;
 }
 
-const HEIGHT = 320;
-
 const VirtualListStory = ({ count, rowHeight, overscan }: VirtualListStoryProps) => {
 	const scroller = useRef<HTMLDivElement>(null);
 	return (
@@ -21,7 +19,6 @@ const VirtualListStory = ({ count, rowHeight, overscan }: VirtualListStoryProps)
 				rowHeight={rowHeight}
 				overscan={overscan}
 				getScrollElement={() => scroller.current}
-				initialRect={{ width: 384, height: HEIGHT }}
 				rowClassName={() => 'flex items-center px-2 data-[stripe=odd]:bg-white/5'}
 				renderRow={index => (
 					<>

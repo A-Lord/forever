@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { iconDefinition } from './definitions';
+import { DEFINITIONS, iconDefinition } from './definitions';
 import { Icon } from './Icon';
-import { ICON_NAMES } from './types';
+import type { IconName } from './types';
 
 const el = (c: HTMLElement) => c.querySelector('svg')!;
 
@@ -27,7 +27,7 @@ describe('Icon', () => {
 		expect(iconDefinition('arrow-rotate-left', 'solid').icon[3]).toBe('f0e2');
 	});
 
-	it.each(ICON_NAMES)('renders %s from a definition, canonically named', name => {
+	it.each(Object.keys(DEFINITIONS) as IconName[])('renders %s from a definition, canonically named', name => {
 		const definition = iconDefinition(name, 'solid');
 		expect(definition).toBeDefined();
 		expect(definition.iconName).toBe(name);

@@ -27,7 +27,6 @@ const renderList = (count: number, overscan = 2, scrollMargin = 0) => {
 			overscan={overscan}
 			scrollMargin={scrollMargin}
 			getScrollElement={() => element}
-			initialRect={{ width: 400, height: VIEWPORT }}
 			renderRow={index => <span>row {index}</span>}
 		/>,
 		{ container: element },
@@ -102,7 +101,6 @@ describe('VirtualList', () => {
 						rowHeight={ROW_HEIGHT}
 						overscan={2}
 						getScrollElement={() => ref.current}
-						initialRect={{ width: 400, height: VIEWPORT }}
 						renderRow={index => <span>row {index}</span>}
 					/>
 				</div>
@@ -145,11 +143,11 @@ describe('VirtualList', () => {
 			});
 		};
 
-		it('measures the viewport off window.innerHeight without an initialRect', () => {
+		it('measures the viewport off window.innerHeight', () => {
 			const { container } = renderWindowList();
 
-			// An element scroller reports 0x0 in happy-dom, which is why every other case here passes
-			// `initialRect`; `window.innerHeight` is real, so window mode needs none.
+			// An element scroller reports 0x0 in happy-dom, which is why every other case here stubs
+			// its box; `window.innerHeight` is real, so window mode needs no stub.
 			expect(rows(container).length).toBe(Math.ceil(window.innerHeight / ROW_HEIGHT) + 2);
 			expect(Number(rows(container)[0].dataset.index)).toBe(0);
 		});

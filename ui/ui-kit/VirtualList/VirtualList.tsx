@@ -17,9 +17,6 @@ export interface VirtualListProps {
 	// Pixels of a shared scroller above the first row: a sticky header, a filter bar. In window
 	// mode this is the list's own offset down the document.
 	scrollMargin?: number;
-	// The scroller's size before it has been measured. Without it the first render produces no rows,
-	// which is also what happens in a DOM that reports every element as 0x0.
-	initialRect?: { width: number; height: number };
 	className?: string;
 	rowClassName?: (index: number) => string | undefined;
 	renderRow: (index: number) => ReactNode;
@@ -49,7 +46,6 @@ export const VirtualList = ({
 	overscan = DEFAULT_OVERSCAN,
 	getScrollElement,
 	scrollMargin = 0,
-	initialRect,
 	className,
 	rowClassName,
 	renderRow,
@@ -67,7 +63,6 @@ export const VirtualList = ({
 		estimateSize: () => rowHeight,
 		overscan,
 		scrollMargin,
-		initialRect,
 		...(scrollsWithWindow ? WINDOW_SCROLLER : {}),
 	});
 
