@@ -1,6 +1,7 @@
 package warrior
 
 import (
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -27,14 +28,10 @@ var ItemSetBattlegearOfMight = core.NewItemSet(core.ItemSet{
 		},
 		5: func(agent core.Agent, setBonusAura *core.Aura) {
 			warrior := agent.(WarriorAgent).GetWarrior()
-			rageMetrics := warrior.NewRageMetrics(core.ActionID{SpellID: mightRageEnergize.ID})
-			rage := mightRageEnergize.EnergizeEffect().Tenths()
+			gain := shared.FiredSpellHandler(&warrior.Character, core.ActionID{SpellID: mightRageEnergize.ID}, mightRageProc)
 
 			// The rate is the proc chance column, which the tooltip's $h% says is a real roll.
-			trigger := spelldata.ProcTrigger(&warrior.Character, mightRageProc,
-				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-					warrior.AddRage(sim, rage, rageMetrics)
-				})
+			trigger := spelldata.ProcTrigger(&warrior.Character, mightRageProc, gain)
 			trigger.Name = "Battlegear of Might - 5PC"
 
 			setBonusAura.AttachProcTrigger(trigger)

@@ -169,7 +169,7 @@ func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 			continue
 		}
 		if shared.TemporaryEnchantEquipSpellProcs(row) {
-			if len(shared.TemporaryEnchantProcUnsupported(row)) > 0 {
+			if len(spelldata.EnchantAuraUnsupported(row)) > 0 || len(shared.FiredSpellUnsupported(row)) > 0 {
 				continue
 			}
 		} else if slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0 {
