@@ -610,6 +610,26 @@ func (parentAura *Aura) AttachProcTrigger(config ProcTrigger) *Aura {
 	return parentAura
 }
 
+// One charge per cast, however many targets it hits: first is true for a cast's first hit only. A
+// cast's hits share its spell id and time, so a tagged off-hand strike counts with its main-hand one.
+// reset forgets the last cast.
+func OncePerCast() (first func(sim *Simulation, spell *Spell) bool, reset func()) {
+	var recorded bool
+	var lastID int32
+	var lastAt time.Duration
+	first = func(sim *Simulation, spell *Spell) bool {
+		if recorded && spell.ActionID.SpellID == lastID && sim.CurrentTime == lastAt {
+			return false
+		}
+		recorded, lastID, lastAt = true, spell.ActionID.SpellID, sim.CurrentTime
+		return true
+	}
+	reset = func() {
+		recorded = false
+	}
+	return first, reset
+}
+
 // Attaches a SpellMod to a parent Aura
 // Returns parent aura for chaining
 func (parentAura *Aura) AttachSpellMod(spellModConfig SpellModConfig) *Aura {

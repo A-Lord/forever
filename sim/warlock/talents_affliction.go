@@ -13,7 +13,7 @@ func (warlock *Warlock) registerAfflictionTalents() {
 
 	// Tier 2
 	warlock.applyMalediction()
-	warlock.applySoulHarvesting()
+	warlock.applySoulHarvest()
 	warlock.applyImprovedDrains()
 
 	// Tier 3
@@ -67,8 +67,8 @@ func (warlock *Warlock) applyMalediction() {
 
 // TODO: Not implemented due to lack of a kill event: adds "leave" the encounter on a set timer rather
 // than dying. Requires a Drain Soul kill to trigger.
-func (warlock *Warlock) applySoulHarvesting() {
-	if warlock.Talents.SoulHarvesting == 0 {
+func (warlock *Warlock) applySoulHarvest() {
+	if warlock.Talents.SoulHarvest == 0 {
 		return
 	}
 }

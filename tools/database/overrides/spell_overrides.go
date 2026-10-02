@@ -40,6 +40,11 @@ const (
 	// The ProcHint bits the tooltip's wording did not yield, which Value carries as a bit set. It
 	// replaces what the wording produced rather than adding to it.
 	Hint
+
+	// The stat mask of the A_MOD_TOTAL_STAT_PERCENTAGE effect, onto its second misc value, one bit
+	// per stat index. Fails when the effect states either misc value itself, since 0 and 0 is
+	// Strength by index.
+	StatMask
 )
 
 func (f Field) String() string {
@@ -58,6 +63,8 @@ func (f Field) String() string {
 		return "DurationMs"
 	case Hint:
 		return "Hint"
+	case StatMask:
+		return "StatMask"
 	}
 	return "unknown field"
 }
@@ -181,6 +188,115 @@ var Spells = []Override{
 		Value:   float64(core.ProcHintDamage),
 		Reason:  "Badge of the Swarmguard: stacks on hits with a damage component",
 		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 1299796,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Insight's proc doubles Spirit, not Strength.
+		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
+		Source:  "tooltip",
+	},
+	{
+		SpellID: 1248751,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Mystic Mushroom raises Spirit, not Strength.
+		Reason:  "Increased Spirit: misc 0 and 0 is Strength by index, the tooltip reads 'Increases Spirit by 5%'",
+		Source:  "tooltip",
+	},
+
+	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from
+	// 99 to 154. Only Rend Rank 2 and Thunder Clap Rank 1 were measured; the other ranks carry the
+	// same share until a log at their level says otherwise.
+	{
+		SpellID: 772,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 1: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6546,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 2: ticks average 7 + 0.02 x Attack Power, read on every tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6547,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 3: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6548,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 4: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11572,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 5: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11573,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 6: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11574,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 7: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6343,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 1: hits deal 10 + 0.07 x Attack Power, rounded down, before armor",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8198,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 2: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8204,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 3: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8205,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 4: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 11580,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 5: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 11581,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 6: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
 	},
 }
 

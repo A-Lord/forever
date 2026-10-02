@@ -76,6 +76,9 @@ message Player {
 	string talents_string = 39;
 	Profession profession1 = 41;
 	Profession profession2 = 42;
+	// Skill in profession1 and profession2; 0 means the maximum.
+	int32 prof1_rank = 59;
+	int32 prof2_rank = 60;
 	Cooldowns cooldowns = 43;
 
 	APLRotation rotation = 44;

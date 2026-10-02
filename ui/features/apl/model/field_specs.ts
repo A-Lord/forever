@@ -9,11 +9,11 @@ import {
 	APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold,
 	APLValueMath_MathOperator as MathOperator,
 } from '@generated/proto/apl';
-import { ActionID, Stat } from '@generated/proto/common';
+import { ActionID, AreaType, MobType, Stat } from '@generated/proto/common';
 import { ShamanTotems_TotemType as TotemType } from '@generated/proto/shaman';
 import { WarlockOptions_CurseOptions as CurseOptions } from '@generated/proto/warlock';
 import i18n from '@i18n/config';
-import { translateStat } from '@i18n/localization';
+import { translateAreaType, translateMobType, translateStat } from '@i18n/localization';
 import { getEnumValues } from '@sim/utils/collections';
 import { randomUUID } from '@sim/utils/misc';
 
@@ -51,7 +51,7 @@ interface FieldBase {
 /**
  * A field descriptor resolved to the picker shape the view has to build.
  *
- * Twenty-seven descriptor types collapse to thirteen kinds: the nine fixed-enum types are one
+ * The descriptor types collapse to thirteen kinds: the fixed-enum types are one
  * `enum`, the three alias descriptors (`minIcd`, `reactionTime`, `useDotBaseValue`) are a `number`
  * and two `boolean`s, and `variableName`/`groupName` are one `rotationName` over two sources.
  */
@@ -174,6 +174,18 @@ const TOTEM_TYPES: EnumTable = {
 	],
 };
 
+const MOB_TYPES: EnumTable = {
+	defaultLabel: none(),
+	options: (getEnumValues(MobType) as Array<MobType>).map(mobType => ({ value: mobType, label: translateMobType(mobType) })),
+};
+
+const AREA_TYPES: EnumTable = {
+	defaultLabel: none(),
+	options: (getEnumValues(AreaType) as Array<AreaType>)
+		.filter(areaType => areaType !== AreaType.AreaTypeUnknown)
+		.map(areaType => ({ value: areaType, label: translateAreaType(areaType) })),
+};
+
 const newAplValue = () => APLValue.create({ uuid: { value: randomUUID() } });
 
 /**
@@ -244,6 +256,10 @@ export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
 			return asEnum(descriptor.field, EXECUTE_PHASE_THRESHOLDS, () => ExecutePhaseThreshold.E20);
 		case 'totemType':
 			return asEnum(descriptor.field, TOTEM_TYPES, () => TotemType.Water);
+		case 'mobType':
+			return asEnum(descriptor.field, MOB_TYPES, () => MobType.MobTypeUnknown);
+		case 'areaType':
+			return asEnum(descriptor.field, AREA_TYPES, () => AreaType.AreaTypeForestGrassland);
 		case 'minIcd':
 			return {
 				kind: 'number',
@@ -284,13 +300,15 @@ export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
 };
 
 /**
- * A fresh impl for a newly picked kind, with its action-id fields set: the sim is asked for stats
- * before the pickers render and fill their defaults.
+ * A fresh impl for a newly picked kind, with its action-id and enum fields set to the default their
+ * picker writes on render: the sim is asked for stats before the pickers render, and it rejects an
+ * unset action id or enum.
  */
 export const newKindImpl = (kind: { newValue: () => unknown; fields: Array<APLFieldDescriptor> }) => (): unknown => {
 	const impl = kind.newValue() as Record<string, unknown>;
 	for (const descriptor of kind.fields) {
-		if (descriptor.type === 'actionId' && !impl[descriptor.field]) impl[descriptor.field] = ActionID.create();
+		const spec = resolveField(descriptor);
+		if ((spec.kind === 'actionId' || spec.kind === 'enum') && !impl[spec.field]) impl[spec.field] = spec.newValue();
 	}
 	return impl;
 };

@@ -102,6 +102,8 @@ export interface PlayerSlice {
 	race: number;
 	profession1: number;
 	profession2: number;
+	prof1Rank: number;
+	prof2Rank: number;
 	buffs: IndividualBuffs;
 	consumables: ConsumesSpec;
 	bonusStats: Stats;
@@ -133,6 +135,8 @@ export const PLAYER_FIELDS = [
 	'race',
 	'profession1',
 	'profession2',
+	'prof1Rank',
+	'prof2Rank',
 	'buffs',
 	'consumables',
 	'bonusStats',

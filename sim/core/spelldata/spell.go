@@ -165,6 +165,10 @@ func (s *Spell) EnergizeEffect() *Effect {
 	return s.firstOfType(dbcenums.E_ENERGIZE)
 }
 
+func (s *Spell) CategoryCooldownEffect() *Effect {
+	return s.firstOfType(dbcenums.E_MODIFY_COOLDOWNS_BY_CATEGORY)
+}
+
 // The effect a resource gain lands through: E_ENERGIZE, an amount into the bar its misc value names
 // (Burst of Energy 24532 reads 60 energy), or an A_PERIODIC_ENERGIZE aura that restores the amount
 // every period (Earthen Sigil 24884 reads 40 mana every 1 s).

@@ -681,6 +681,23 @@
 		},
 		"consumables": {
 			"title": "Consumables",
+			"filters": {
+				"title": "Consumable filters",
+				"min_lvl": "Minimum required level",
+				"reset": "Reset to defaults",
+				"types": {
+					"potion": "Potions",
+					"conjured": "Conjured",
+					"flask": "Flasks",
+					"elixir": "Elixirs",
+					"scroll": "Scrolls",
+					"food": "Food",
+					"explosive": "Explosives",
+					"imbue": "Imbues",
+					"device": "Devices",
+					"other": "Other"
+				}
+			},
 			"potions": {
 				"title": "Potions",
 				"prepop": "Prepop Potion",
@@ -693,7 +710,7 @@
 				"title": "Food"
 			},
 			"engineering": {
-				"title": "Engineering",
+				"title": "Explosives",
 				"explosives": "Explosives"
 			},
 			"imbue": {
@@ -1330,6 +1347,14 @@
 				"boss_current_target": {
 					"label": "Is Tanking",
 					"tooltip": "True if the player is currently tanking"
+				},
+				"target_is_mob_type": {
+					"label": "Target Is Mob Type",
+					"tooltip": "True if the target is the chosen creature type"
+				},
+				"encounter_in_area": {
+					"label": "In Area",
+					"tooltip": "True if the encounter's areas include the chosen area type"
 				},
 				"unit_is_moving": {
 					"label": "Unit Is Moving",

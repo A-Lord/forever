@@ -65,7 +65,8 @@ type Character struct {
 	bonusOHDps     float64
 	bonusRangedDps float64
 
-	professions [2]proto.Profession
+	professions    [2]proto.Profession
+	professionRank [2]int32 // 0 is the maximum.
 
 	// Used for effects like "Increased Armor Value from Items"
 	*EquipScalingManager
@@ -117,6 +118,10 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 		professions: [2]proto.Profession{
 			player.Profession1,
 			player.Profession2,
+		},
+		professionRank: [2]int32{
+			player.Prof1Rank,
+			player.Prof2Rank,
 		},
 
 		Party:      party,
@@ -513,6 +518,19 @@ func (character *Character) reset(sim *Simulation, agent Agent) {
 
 func (character *Character) HasProfession(prof proto.Profession) bool {
 	return prof == character.professions[0] || prof == character.professions[1]
+}
+
+// Whether the character has prof at rank or higher. ProfessionUnknown is always met.
+func (character *Character) MeetsProfession(prof proto.Profession, rank int32) bool {
+	if prof == proto.Profession_ProfessionUnknown {
+		return true
+	}
+	for i, p := range character.professions {
+		if p == prof && (character.professionRank[i] == 0 || character.professionRank[i] >= rank) {
+			return true
+		}
+	}
+	return false
 }
 
 func (character *Character) HasTrinketEquipped(itemID int32) bool {
