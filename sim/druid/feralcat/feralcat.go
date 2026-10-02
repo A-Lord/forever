@@ -1,6 +1,8 @@
 package feralcat
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/druid"
@@ -60,6 +62,10 @@ type FeralDruid struct {
 
 	readyToShift   bool
 	waitingForTick bool
+
+	// bearweave is 0 off, 1 waiting to bite, 2 waiting for a queued maul to land.
+	bearweave   int
+	bearweaveAt time.Duration
 }
 
 func (cat *FeralDruid) GetDruid() *druid.Druid {
@@ -89,4 +95,6 @@ func (cat *FeralDruid) Reset(sim *core.Simulation) {
 	cat.CatFormAura.Activate(sim)
 	cat.readyToShift = false
 	cat.waitingForTick = false
+	cat.bearweave = 0
+	cat.bearweaveAt = 0
 }

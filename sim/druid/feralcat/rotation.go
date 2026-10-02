@@ -5,17 +5,11 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/druid"
 )
 
 // Ported from https://github.com/NerdEgghead/TBC_cat_sim
 
-const BiteTrickCP = int32(2)
-const BiteTrickMax = 39.0
-const BiteTime = time.Duration(0)
-const RipTrickMin = 52.0
 const RipEndThresh = time.Second * 10
-const MaxWaitTime = time.Second * 1
 
 type FeralDruidRotation struct {
 	RipCP        int32
@@ -110,150 +104,5 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		cat.EndOOMEvent(sim, false)
 	}
 
-	// If we're out of form always shift back in.
-	if !cat.InForm(druid.Cat) {
-		return cat.CatForm.Cast(sim, nil)
-	}
-
-	// If we previously decided to shift, execute now after input delay.
-	// A failed cast falls through and chooses another button this evaluation.
-	if cat.readyToShift && cat.shift(sim) {
-		return true
-	}
-
-	rotation := &cat.Rotation
-
-	// Maintain Faerie Fire before other decisions.
-	if rotation.MaintainFaerieFire && cat.FaerieFire != nil &&
-		cat.FaerieFireAuras != nil &&
-		!cat.FaerieFireAuras.Get(cat.CurrentTarget).IsActive() &&
-		cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
-		return cat.FaerieFire.Cast(sim, cat.CurrentTarget)
-	}
-
-	energy := cat.CurrentEnergy()
-	cp := cat.ComboPoints()
-	ripDot := cat.Rip.CurDot()
-	ripDebuff := ripDot.IsActive()
-	ripEnd := core.NeverExpires
-	if ripDebuff {
-		ripEnd = ripDot.ExpiresAt()
-	}
-	rakeDebuff := cat.Rake.CurDot().IsActive()
-	nextTick := cat.NextEnergyTickAt()
-	omenProc := cat.ClearcastingAura.IsActive()
-
-	ripCost := cat.CurrentRipCost()
-	biteCost := cat.CurrentFerociousBiteCost()
-	shredCost := cat.CurrentShredCost()
-	// TODO: The energy thresholds below assume a 45-energy builder, a fixed constant rather than a
-	// cost read from the rows. Re-tune them with the Forever cat rotation.
-	builderCost := 45.0
-
-	ripNow := cp >= rotation.RipCP && !ripDebuff
-	ripweaveNow := rotation.UseRipTrick &&
-		cp >= rotation.RipTrickCP &&
-		!ripDebuff &&
-		energy >= RipTrickMin
-
-	remainingDuration := sim.GetRemainingDuration()
-	ripNow = (ripNow || ripweaveNow) && remainingDuration >= RipEndThresh
-
-	biteAtEnd := cp >= rotation.BiteCP &&
-		(remainingDuration < RipEndThresh ||
-			(ripDebuff && sim.Duration-ripEnd < RipEndThresh))
-
-	biteBeforeRip := ripDebuff && rotation.UseBite &&
-		ripEnd-sim.CurrentTime >= BiteTime
-
-	biteNow := (biteBeforeRip || rotation.BiteOverRip) &&
-		cp >= rotation.BiteCP
-
-	ripNext := (ripNow || (cp >= rotation.RipCP && ripEnd <= nextTick)) &&
-		sim.Duration-nextTick >= RipEndThresh
-
-	biteBeforeRipNext := biteBeforeRip && ripEnd-nextTick >= BiteTime
-
-	timeToNextTick := nextTick - sim.CurrentTime
-	cat.waitingForTick = true
-
-	if oom {
-		// No-shift rotation when OOM.
-		if ripNow && (energy >= ripCost || omenProc) {
-			return cat.Rip.Cast(sim, cat.CurrentTarget)
-		} else if biteNow && (energy >= biteCost || omenProc) {
-			return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-		} else if energy >= shredCost || omenProc {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-	} else if energy < 10 {
-		cat.shift(sim)
-	} else if ripNow {
-		if energy >= ripCost || omenProc {
-			cat.Rip.Cast(sim, cat.CurrentTarget)
-			cat.waitingForTick = false
-		} else if timeToNextTick > MaxWaitTime {
-			cat.shift(sim)
-		}
-	} else if biteNow || biteAtEnd {
-		cutoffMod := 20.0
-		if timeToNextTick <= time.Second {
-			cutoffMod = 0.0
-		}
-		if energy >= shredCost+15.0+cutoffMod || (energy >= 15+cutoffMod && omenProc) {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-		if energy >= biteCost {
-			return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-		}
-		wait := false
-		if energy >= 22 && biteBeforeRip && !biteBeforeRipNext {
-			wait = true
-		} else if energy >= 15 && (!biteBeforeRip || biteBeforeRipNext || biteAtEnd) {
-			wait = true
-		} else if !ripNext {
-			wait = false
-			cat.shift(sim)
-		} else {
-			wait = true
-		}
-		if wait && timeToNextTick > MaxWaitTime {
-			cat.shift(sim)
-		}
-	} else if energy >= biteCost && energy <= BiteTrickMax &&
-		rotation.UseRakeTrick &&
-		timeToNextTick > cat.ReactionTime &&
-		!omenProc &&
-		cp >= BiteTrickCP {
-		return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-	} else if energy >= biteCost && energy < builderCost &&
-		rotation.UseRakeTrick &&
-		timeToNextTick > time.Second+cat.ReactionTime &&
-		!rakeDebuff &&
-		!omenProc {
-		return cat.Rake.Cast(sim, cat.CurrentTarget)
-	} else if energy >= 22 {
-		if omenProc {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-		if energy >= shredCost {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-		if timeToNextTick > MaxWaitTime {
-			cat.shift(sim)
-		}
-	} else if !ripNext {
-		cat.shift(sim)
-	} else if timeToNextTick > MaxWaitTime {
-		cat.shift(sim)
-	}
-
-	// Model input latency: delay GCD trigger after a power shift or energy tick.
-	if cat.readyToShift {
-		cat.WaitUntil(sim, sim.CurrentTime+cat.ReactionTime)
-	} else if cat.waitingForTick {
-		cat.WaitUntil(sim, sim.CurrentTime+timeToNextTick+cat.ReactionTime)
-	}
-
-	return false
+	return cat.probeRotation(sim)
 }

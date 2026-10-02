@@ -165,9 +165,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	reforge: {},
 });
 
-// The Go rotation decides Rip, Bite, Shred and when energy is too low to wait.
-// That low-energy button is Shifting Power. Cooldowns fire from the same decision;
-// core refuses one that would leave cat form.
+// Shifting Power is cast when energy is short of Shred. Rake, when enabled, is
+// refreshed before Shred. Cooldowns fire from the same decision; core refuses one
+// that would leave cat form.
 function catPowershiftRotation(simple: DruidRotation): APLRotation {
 	const doRotation = APLAction.fromJsonString(
 		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"mangleTrick":${simple.mangleTrick},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
