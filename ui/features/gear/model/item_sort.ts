@@ -1,5 +1,5 @@
 import { ItemSlot } from '@generated/proto/common';
-import { UIItem as Item } from '@generated/proto/ui';
+import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { SortDirection } from '@sim/constants/other';
 
 import { ItemDataFields, ItemListType } from '../types';
@@ -13,7 +13,7 @@ export enum ItemListSortBy {
 export const defaultSortBy = (slot: ItemSlot): ItemListSortBy =>
 	[ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2].includes(slot) ? ItemListSortBy.ILVL : ItemListSortBy.EP;
 
-const baseIlvl = (item: Item): number => item.scalingOptions?.[0].ilvl || item.ilvl;
+const baseIlvl = (item: Item | Enchant): number => ('lvl' in item ? item.lvl : item.scalingOptions?.[0].ilvl || item.ilvl);
 
 export type SortOptions<T extends ItemListType> = {
 	sortBy: ItemListSortBy;

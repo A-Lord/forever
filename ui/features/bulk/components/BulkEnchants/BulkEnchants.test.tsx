@@ -18,16 +18,17 @@ vi.mock('@sim/proto/enchants', () => ({ getEnchantDescription: async (enchant: U
 const { BulkEnchants } = await import('./BulkEnchants');
 const { saveBulkEnchantPreset } = await import('../../model/enchants');
 
-const AGILITY = UIEnchant.create({ effectId: 849, spellId: 13882, name: 'Lesser Agility' });
-const LESSER_IMPACT = UIEnchant.create({ effectId: 1897, itemId: 2, name: 'Lesser Impact' });
-const SUPERIOR_STRIKING = UIEnchant.create({ effectId: 1897, itemId: 3, name: 'Superior Striking' });
+const AGILITY = UIEnchant.create({ effectId: 849, spellId: 13882, name: 'Lesser Agility', lvl: 45 });
+const GREATER_RESISTANCE = UIEnchant.create({ effectId: 1888, itemId: 6, name: 'Greater Resistance', lvl: 45 });
+const LESSER_IMPACT = UIEnchant.create({ effectId: 1897, itemId: 2, name: 'Lesser Impact', lvl: 30 });
+const SUPERIOR_STRIKING = UIEnchant.create({ effectId: 1897, itemId: 3, name: 'Superior Striking', lvl: 60 });
 
 const SHIELD_SPIKE = UIEnchant.create({ effectId: 1704, itemId: 4, name: 'Thorium Shield Spike', enchantType: EnchantType.EnchantTypeShield });
 const HEALING = UIEnchant.create({ effectId: 2566, itemId: 5, name: 'Healing Power' });
 
 // The game database lists every weapon enchant, shield ones included, under both hands.
 const ENCHANTS = new Map<ItemSlot, UIEnchant[]>([
-	[ItemSlot.ItemSlotBack, [AGILITY, HEALING]],
+	[ItemSlot.ItemSlotBack, [AGILITY, HEALING, GREATER_RESISTANCE]],
 	[ItemSlot.ItemSlotMainHand, [LESSER_IMPACT, SUPERIOR_STRIKING, SHIELD_SPIKE]],
 	[ItemSlot.ItemSlotOffHand, [LESSER_IMPACT, SUPERIOR_STRIKING, SHIELD_SPIKE]],
 ]);
@@ -158,6 +159,21 @@ describe('BulkEnchants', () => {
 				.getAllByRole('checkbox')
 				.map(tile => tile.textContent),
 		).toEqual(['Thorium Shield Spike']);
+	});
+
+	it('lists each slot highest lvl first, the higher effect id first on a tie', async () => {
+		mount();
+
+		await openNewPreset();
+		await expandSlots();
+
+		const [back, weapons] = screen.getAllByTestId('bulk-enchant-slot');
+		const names = (slot: HTMLElement) =>
+			within(slot)
+				.getAllByRole('checkbox')
+				.map(tile => tile.textContent);
+		expect(names(back)).toEqual(['Greater Resistance', 'Lesser Agility']);
+		expect(names(weapons)).toEqual(['Superior Striking', 'Lesser Impact']);
 	});
 
 	it('hides enchants worth nothing to the spec until Show all is on', async () => {

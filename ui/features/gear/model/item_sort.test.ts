@@ -1,5 +1,5 @@
 import { ItemSlot } from '@generated/proto/common';
-import { UIItem as Item } from '@generated/proto/ui';
+import { UIEnchant, UIItem as Item } from '@generated/proto/ui';
 import { SortDirection } from '@sim/constants/other';
 import { describe, expect, it } from 'vitest';
 
@@ -62,6 +62,20 @@ describe('sortItemIdxs', () => {
 			[3, 5],
 		]);
 		expect(sort(rows, { sortBy: ItemListSortBy.EP, computeEP: item => ep.get(item.id)! })).toEqual([1, 0, 2]);
+	});
+
+	it('reads an enchant by its lvl, on the ilvl sort and on an EP near-tie', () => {
+		const enchant = (effectId: number, lvl: number) => ({ item: UIEnchant.create({ effectId, lvl }), id: effectId }) as unknown as ItemData<UIEnchant>;
+		const rows = [enchant(1, 20), enchant(2, 60), enchant(3, 40)];
+		const enchantSort = (over: Partial<Parameters<typeof sortItemIdxs<UIEnchant>>[2]>) =>
+			sortItemIdxs(
+				rows.map((_, i) => i),
+				rows,
+				{ sortBy: ItemListSortBy.ILVL, sortDirection: SortDirection.DESC, computeEP: () => 0, isFavourited: () => false, ...over },
+			);
+
+		expect(enchantSort({})).toEqual([1, 2, 0]);
+		expect(enchantSort({ sortBy: ItemListSortBy.EP, computeEP: item => (item.effectId === 1 ? 10 : 1) })).toEqual([0, 1, 2]);
 	});
 
 	it('floats favourites above everything else', () => {

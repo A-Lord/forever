@@ -32,11 +32,7 @@ export const itemsTabData = (gearData: GearData, items: Item[]): ItemData<Item, 
 		};
 	});
 
-const byEffectIdDescending = (itemA: Enchant, itemB: Enchant) => {
-	if (itemA.effectId > itemB.effectId) return -1;
-	if (itemA.effectId < itemB.effectId) return 1;
-	return 0;
-};
+export const byLvlDescending = (itemA: Enchant, itemB: Enchant) => itemB.lvl - itemA.lvl || itemB.effectId - itemA.effectId;
 
 export const enchantActionId = (enchant: Enchant): ActionId => (enchant.itemId ? ActionId.fromItemId(enchant.itemId) : ActionId.fromSpellId(enchant.spellId));
 
@@ -61,7 +57,7 @@ const enchantRow = (
 });
 
 export const enchantsTabData = (gearData: GearData, enchants: Enchant[]): ItemData<Enchant, string>[] =>
-	enchants.sort(byEffectIdDescending).map(enchant => enchantRow(enchant, (equippedItem, value) => equippedItem.withEnchant(value), gearData));
+	enchants.sort(byLvlDescending).map(enchant => enchantRow(enchant, (equippedItem, value) => equippedItem.withEnchant(value), gearData));
 
 export const gemsTabData = (gearData: GearData, gems: Gem[], socketIdx: number): ItemData<Gem, string>[] =>
 	gems.map(gem => ({

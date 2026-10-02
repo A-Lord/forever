@@ -1,6 +1,6 @@
 import { useEnchantDescription } from '@features/gear/hooks/useEnchantDescription';
 import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
-import { enchantActionId } from '@features/gear/model/item_data';
+import { byLvlDescending, enchantActionId } from '@features/gear/model/item_data';
 import { EnchantType, ItemSlot } from '@generated/proto/common';
 import type { BulkEnchantPreset, UIEnchant as Enchant } from '@generated/proto/ui';
 import i18n from '@i18n/config';
@@ -78,7 +78,9 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const slots = useMemo(
 		() =>
 			ready
-				? BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: slotEnchants(slot, player.getEnchants(slot)) })).filter(({ enchants }) => enchants.length)
+				? BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: slotEnchants(slot, [...player.getEnchants(slot)].sort(byLvlDescending)) })).filter(
+						({ enchants }) => enchants.length,
+					)
 				: [],
 		[player, ready],
 	);
