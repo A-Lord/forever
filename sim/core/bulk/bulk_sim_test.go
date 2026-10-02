@@ -4,8 +4,87 @@ import (
 	"math"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/warrior/dps"
 )
+
+func init() {
+	dps.RegisterDpsWarrior()
+}
+
+func bulkSimTestRequest(simIterations int32, candidateCount int) *proto.BulkSimRequest {
+	request := &proto.BulkSimRequest{
+		BaseRequest: &proto.RaidSimRequest{
+			SimOptions: &proto.SimOptions{Iterations: simIterations, RandomSeed: 101, IsTest: true},
+			Raid: core.SinglePlayerRaidProto(&proto.Player{
+				Name:      "Warrior",
+				Class:     proto.Class_ClassWarrior,
+				Race:      proto.Race_RaceOrc,
+				Equipment: &proto.EquipmentSpec{},
+				Spec:      &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{Options: &proto.DpsWarrior_Options{ClassOptions: &proto.WarriorOptions{}}}},
+				Buffs:     &proto.IndividualBuffs{},
+				Rotation:  &proto.APLRotation{Type: proto.APLRotation_TypeAPL},
+				// Out of melee range, so every iteration deals no damage and no stage raises its iterations to meet the error target.
+				DistanceFromTarget: 100,
+			}, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+			Encounter: &proto.Encounter{Duration: 10, Targets: []*proto.Target{core.NewDefaultTarget()}},
+		},
+	}
+	for idx := range candidateCount {
+		request.Candidates = append(request.Candidates, &proto.BulkGearCandidate{Index: int32(idx), Gear: &proto.EquipmentSpec{}})
+	}
+	return request
+}
+
+func simmedIterations(result *proto.BulkGearResult) int32 {
+	return result.DpsMetrics.AggregatorData.N
+}
+
+func TestEstimateBulkSimIterationsCountsTheBaselineAtTheStageMinimums(t *testing.T) {
+	cases := []struct {
+		name       string
+		candidates int
+		want       int64
+	}{
+		{"no candidates sims the baseline alone", 0, 10000},
+		{"16 candidates and the baseline in the high stage", 16, 17 * 10000},
+		{"100 candidates cull through the medium stage to 25", 100, 101*1000 + 26*10000},
+		{"1000 candidates cull through the low stage to 100 and the medium stage to 25", 1000, 1001*100 + 101*1000 + 26*10000},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := estimateBulkSimIterations(tc.candidates); got != tc.want {
+				t.Fatalf("estimate for %d candidates = %d, want %d", tc.candidates, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestBulkSimRunsAtTheStageMinimumsNotTheSimIterations(t *testing.T) {
+	t.Run("a run with no candidates sims the baseline at the high stage minimum", func(t *testing.T) {
+		result := BulkSim(bulkSimTestRequest(12500, 0))
+		if result.Error != nil {
+			t.Fatalf("bulk sim failed: %s", result.Error.Message)
+		}
+		if got := simmedIterations(result.Baseline); got != 10000 {
+			t.Fatalf("baseline simmed %d iterations, want 10000", got)
+		}
+	})
+
+	t.Run("a run with candidates sims them and the baseline at the high stage minimum", func(t *testing.T) {
+		result := BulkSim(bulkSimTestRequest(12500, 1))
+		if result.Error != nil {
+			t.Fatalf("bulk sim failed: %s", result.Error.Message)
+		}
+		if got := simmedIterations(result.Baseline); got != 10000 {
+			t.Fatalf("baseline simmed %d iterations, want 10000", got)
+		}
+		if got := simmedIterations(result.TopResults[0]); got != 10000 {
+			t.Fatalf("candidate simmed %d iterations, want 10000", got)
+		}
+	})
+}
 
 func TestGetBulkSimStageMaxSurvivorsScalesLowStage(t *testing.T) {
 	lowStageConfig := BulkSimStageConfig{

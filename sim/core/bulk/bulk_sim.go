@@ -96,7 +96,7 @@ func runBulkSim(request *proto.BulkSimRequest, progress chan *proto.ProgressMetr
 	baselineGear := GetBulkSimBaselineGear(request)
 
 	if len(candidates) == 0 {
-		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, request.BaseRequest.SimOptions.Iterations, signals)
+		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, bulkSimHighStageFloor(request.HighStageIterations), signals)
 		if baselineResult.Error != nil {
 			result.Error = baselineResult.Error
 			return result
@@ -168,7 +168,7 @@ func runBulkSim(request *proto.BulkSimRequest, progress chan *proto.ProgressMetr
 	}
 
 	if latestBaseline == nil {
-		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, request.BaseRequest.SimOptions.Iterations, signals)
+		baselineResult := runSingleBulkSim(request, BulkSimCandidate{Index: -1, Gear: baselineGear}, bulkSimHighStageFloor(request.HighStageIterations), signals)
 		if baselineResult.Error != nil {
 			result.Error = baselineResult.Error
 			return result

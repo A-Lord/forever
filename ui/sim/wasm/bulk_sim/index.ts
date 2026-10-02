@@ -16,7 +16,7 @@ import { WorkerPool, WorkerProgressCallback } from '../../workers/worker_pool';
 import { BulkSimCandidateTransport, runSingleBulkSimCandidate } from './batch';
 import { ConcurrentBulkSimStageCarryOver, newBulkSimStageCarryOver } from './carry_over';
 import { BULK_SIM_DEFAULT_TOP_RESULTS } from './constants_auto_gen';
-import { shouldUseSingleStageBulkSim } from './estimate';
+import { bulkSimHighStageFloor, shouldUseSingleStageBulkSim } from './estimate';
 import { bulkSimCandidateResultToProto } from './merge';
 import { formatBulkSimStageSummary } from './progress';
 import { optimizeReforgeCandidates } from './reforge';
@@ -86,7 +86,7 @@ export const runConcurrentBulkSim = async (
 		const baseline = await runSingleBulkSimCandidate(
 			request,
 			{ index: -1, gear: getBulkSimBaselineGear(request) },
-			request.baseRequest!.simOptions!.iterations,
+			bulkSimHighStageFloor(request),
 			workerPool,
 			signals,
 			BulkSimCandidateTransport.SplitAcrossWorkers,
@@ -154,7 +154,7 @@ export const runConcurrentBulkSim = async (
 		latestBaseline = await runSingleBulkSimCandidate(
 			request,
 			{ index: -1, gear: getBulkSimBaselineGear(request) },
-			request.baseRequest!.simOptions!.iterations,
+			bulkSimHighStageFloor(request),
 			workerPool,
 			signals,
 			BulkSimCandidateTransport.SplitAcrossWorkers,

@@ -10,6 +10,7 @@ import { bulkState, patchBulkState } from '@sim/settings/bulk_settings';
 import type { ReforgeOptimizeConfig } from '@sim/sim';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { RequestTypes } from '@sim/sim_signal_manager';
+import { BULK_SIM_STAGE_CONFIGS } from '@sim/wasm/bulk_sim/constants_auto_gen';
 import { toastManager } from '@ui-kit/Toast';
 
 import { trackEvent } from '../../../tracking/utils';
@@ -289,7 +290,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 		rankedResults.push(originalGearResults);
 		rankedResults.sort((a, b) => b.dpsMetrics.avg - a.dpsMetrics.avg);
 
-		const resultIterations = Math.max(1, bulkSimResult.iterations || sim.getIterations());
+		const resultIterations = Math.max(1, bulkSimResult.iterations || (BULK_SIM_STAGE_CONFIGS.at(-1)!.minIterations ?? 1));
 		results = {
 			chains: buildTieChains(rankedResults, originalGearResults, resultIterations),
 			originalGearResults,
