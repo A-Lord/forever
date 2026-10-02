@@ -1,9 +1,27 @@
 import { Spec } from '@generated/proto/common';
+import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
+import { NoticeIcon, type NoticeLevel } from '@ui-kit/Notice';
 import type { ReactNode } from 'react';
 
 import { ENCHANT_NOTICES, ITEM_INFO_NOTICES, ITEM_NOTICES } from '../../item_notices';
-import { ItemNoticeIconView } from './ItemNoticeIconView';
+
+export interface ItemNoticeIconViewProps {
+	level: NoticeLevel;
+	/** The notices, shown in a clickable tooltip on the icon. */
+	children: ReactNode;
+}
+
+export const ItemNoticeIconView = ({ level, children }: ItemNoticeIconViewProps) => (
+	<div className="relative z-1 inline">
+		<NoticeIcon
+			level={level}
+			label={i18n.t(level === 'info' ? 'common.list_picker.additional_information' : 'common.list_picker.warnings')}
+			className="mr-2">
+			{children}
+		</NoticeIcon>
+	</div>
+);
 
 export interface ItemNoticeIconProps {
 	itemId?: number;

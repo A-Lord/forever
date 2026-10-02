@@ -1,9 +1,13 @@
 import { addBulkItem, hasBulkItem, removeBulkItem } from '@features/bulk/model/items';
-import { ItemSpec } from '@generated/proto/common';
+import { type ItemQuality, ItemSpec } from '@generated/proto/common';
 import type { UIItem as Item } from '@generated/proto/ui';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import { isIndividualSimHost } from '@sim/sim_host';
+import { FakeLink } from '@ui-kit/FakeLink';
+import { itemQualityClassName } from '@ui-kit/utils/css';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
+import clsx from 'clsx';
 import { type ReactNode, useMemo } from 'react';
 import { useStore } from 'zustand';
 
@@ -12,9 +16,71 @@ import { tabHasLevel } from '../../model/item_sort';
 import type { ItemData, ItemListType } from '../../types';
 import { SelectorModalTabs } from '../../types';
 import { ItemNoticeIcon } from '../GearPicker/ItemNoticeIcon';
-import type { EpCellProps } from './EpCell';
-import { ItemListRowView } from './ItemListRowView';
+import { NameDescriptionLabel } from '../ItemCell';
+import { EpCell, type EpCellProps } from './EpCell';
 import { ItemSource } from './ItemSource';
+import { RowActions, type RowActionsProps } from './RowActions';
+
+export interface ItemListRowViewProps extends RowActionsProps {
+	name: ReactNode;
+	quality: ItemQuality;
+	nameDescription: string;
+	iconUrl: string;
+	href: string;
+	/** The level column: an item's ilvl on the items tab, an enchant's lvl on the enchants tab; 0 leaves the cell empty. */
+	ilvl?: number;
+	active: boolean;
+	onEquip: () => void;
+	notice?: ReactNode;
+	/** The source column; the items tab alone has one. */
+	source?: ReactNode;
+	/** Omitted for a slot the list computes no EP for. */
+	ep?: EpCellProps;
+}
+
+export const ItemListRowView = ({
+	name,
+	quality,
+	nameDescription,
+	iconUrl,
+	href,
+	ilvl,
+	active,
+	onEquip,
+	notice,
+	source,
+	ep,
+	...actions
+}: ItemListRowViewProps) => (
+	<>
+		{ilvl !== undefined && (
+			<div className="w-12 text-center" data-testid="selector-modal-list-item-ilvl-container">
+				{ilvl || null}
+			</div>
+		)}
+		<div className="flex flex-1 items-center gap-1" data-testid="selector-modal-list-label-cell" data-active={active ? '' : undefined}>
+			<WowheadAnchor className="ui-selector-modal-list-item-link" testId="selector-modal-list-item-link" href={href || undefined} onActivate={onEquip}>
+				<img className="ui-selector-modal-list-item-icon" data-testid="selector-modal-list-item-icon" src={iconUrl || undefined} alt="" />
+				<span
+					className={clsx('ui-selector-modal-list-item-name', itemQualityClassName(quality))}
+					data-testid="selector-modal-list-item-name"
+					data-quality={quality}>
+					{name}
+					{!!nameDescription && <NameDescriptionLabel nameDescription={nameDescription} />}
+				</span>
+			</WowheadAnchor>
+			{notice}
+		</div>
+		{source !== undefined && (
+			<div className="w-64" data-testid="selector-modal-list-item-source-container">
+				{source}
+			</div>
+		)}
+		{ep && <EpCell {...ep} />}
+		<RowActions {...actions} />
+		<FakeLink onActivate={onEquip} testId="selector-modal-list-item-row-link" />
+	</>
+);
 
 export interface ItemListRowProps {
 	itemData: ItemData<ItemListType, ReactNode>;
