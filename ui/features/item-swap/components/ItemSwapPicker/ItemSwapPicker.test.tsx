@@ -5,11 +5,11 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { ItemSwapGear } from '@sim/proto/gear';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { fakeHost } from '@sim/testing';
+import { fakeHost } from '@testing/sim/fake_host';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions());
 vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
 vi.mock('@features/inputs/components/ConnectedBooleanPicker', () => ({ ConnectedBooleanPicker: () => <div className="boolean-picker-root" /> }));
 

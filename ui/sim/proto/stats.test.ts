@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 // `stats.ts` only needs localization for display names, and `@i18n/localization` drags the whole
 // i18next bootstrap in with it. Stubbing it keeps this file about the stat model.
-vi.mock('@i18n/localization', async () => (await import('./testing')).localizationStub);
+vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
 import * as Mechanics from '../constants/mechanics';
 import { displayStatOrder, Stats, UnitStat } from './stats';

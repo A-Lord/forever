@@ -8,7 +8,7 @@ import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { ItemSwapGear } from '@sim/proto/gear';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
-import { fakeHost } from '@sim/testing';
+import { fakeHost } from '@testing/sim/fake_host';
 import { makeEquippedItem, SOCKETED_ITEM } from '@testing/storybook/fixtures/gear';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

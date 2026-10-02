@@ -1,5 +1,5 @@
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost, type FakeHostParts } from '@sim/testing';
+import { fakeHost, type FakeHostParts } from '@testing/sim/fake_host';
 import { render } from '@testing-library/react';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { type ReactElement, type ReactNode, useState } from 'react';

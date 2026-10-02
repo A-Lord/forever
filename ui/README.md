@@ -15,9 +15,7 @@ ui/
                      raid/ (raid, party, encounter), settings/ (bulk, item_swap, reforge,
                      stat_weight), utils/ (collections, math, format, json, misc),
                      workers/, cache/, state/, proto/, talents data + trees, bulk/,
-                     wasm/, constants/, presets/, hooks/, context/, and fake_host.ts (the
-                     vitest-free fakeHost that testing.ts re-exports and the story fixtures
-                     import). alias @sim
+                     wasm/, constants/, presets/, hooks/, and context/. alias @sim
   ui-kit/            sim-agnostic, controlled React widgets, one folder per component (48 of
                      them: TextField/, Dialog/, Field/, Table/, Notice/, …, each with a
                      story and a test), plus hooks/, utils/ (css, dom, icons, colors, wowhead),
@@ -66,8 +64,11 @@ ui/
                      components/ (the tables and swatches the pages render)
   testing/           tailwind/ (the canonical-class and class-hook checkers the two tree-wide
                      tests at the ui/ root run), storybook/ (decorators.tsx, the stories.test.tsx
-                     smoke test, fixtures/), react.tsx (renderWithHost). alias @testing, for
-                     tests and stories only
+                     smoke test, fixtures/), react.tsx (renderWithHost), sim/ (fake_host.ts, a
+                     vitest-free fakeHost the story fixtures import, plus subscriptions.ts,
+                     hooks.tsx, localization.ts), apl/ (player.ts, dom.ts, source.ts), and the
+                     gear.ts, inputs.ts, timeline_rotation.ts helpers. A module under testing/sim/
+                     imports neither @features nor @ui-kit. alias @testing, for tests and stories only
   types/             ambient .d.ts (i18n-loader.d.ts)
   index_template.html   the one spec page; tracking/ the analytics shim
   canonical_classes.test.ts, no_class_hooks.test.ts, class_hook_allowlist.json,

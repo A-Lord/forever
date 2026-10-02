@@ -10,7 +10,8 @@ const source = vi.hoisted(() => {
 	return { listeners, notify: () => listeners.forEach(listener => listener()) };
 });
 vi.mock('@sim/state/subscriptions', async () => {
-	const { mockSubscriptions, noopSubscribe } = await import('@sim/testing');
+	const { mockSubscriptions } = await import('@testing/sim/subscriptions');
+	const { noopSubscribe } = await import('@testing/sim/fake_host');
 	return mockSubscriptions(noopSubscribe, {
 		subscribePlayerChange: () => (onChange: () => void) => {
 			source.listeners.add(onChange);

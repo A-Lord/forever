@@ -6,7 +6,7 @@ import {
 import { makeSimRun } from '@testing/storybook/fixtures/results';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@i18n/localization', async () => (await import('./testing')).localizationStub);
+vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
 import { SimResult, TargetedActionMetrics } from './sim_result';
 

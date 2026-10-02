@@ -1,17 +1,19 @@
 import { ArmorType, ItemSlot, RangedWeaponType, WeaponType } from '@generated/proto/common';
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
+import { storeSource as store } from '@testing/gear';
 import { renderWithHost } from '@testing/react';
+import { fakeHost } from '@testing/sim/fake_host';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { storeSource as store } from '../../testing';
 import type { FiltersMenuViewProps } from './FiltersMenu';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('../../testing')).storeSource.subscribe));
+vi.mock('@sim/state/subscriptions', async () =>
+	(await import('@testing/sim/subscriptions')).mockSubscriptions((await import('@testing/gear')).storeSource.subscribe),
+);
 
 const { FiltersMenu, FiltersMenuView } = await import('./FiltersMenu');
 

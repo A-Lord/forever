@@ -4,8 +4,8 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
-import { fakeHost } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { fakeHost } from '@testing/sim/fake_host';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useMemo } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -15,7 +15,7 @@ import { ALL_ITEM_SLOTS } from '../../model/gear_data';
 import { type GearData, SelectorModalTabs } from '../../types';
 import type { SelectorModalViewProps } from './SelectorModal';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions());
 
 const tabs = vi.hoisted(() => ({ build: vi.fn(), eligibility: vi.fn() }));
 vi.mock('./utils', () => ({ buildSelectorTabs: tabs.build, eligibilityFor: tabs.eligibility }));

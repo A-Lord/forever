@@ -1,8 +1,8 @@
 import { Raid as RaidProto } from '@generated/proto/api';
 import { Encounter as EncounterProto } from '@generated/proto/common';
 import { createSimStore } from '@sim/state/sim_store';
-import { mockSubscriptions } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

@@ -14,7 +14,7 @@ vi.mock('../preset_build_state', () => ({
 	isBuildActive: (build: { name: string }) => activeNames.has(build.name),
 }));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions());
 vi.mock('@sim/hooks/useSimReady', () => ({ useSimReady: () => ready }));
 
 let ready = true;

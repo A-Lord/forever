@@ -1,6 +1,6 @@
-import { makePlayer } from '@features/apl/testing';
 import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
 import { ActionId, defaultTargetIcon, getPetIconFromName } from '@sim/proto/action_id';
+import { makePlayer } from '@testing/apl/player';
 import { describe, expect, it, vi } from 'vitest';
 
 import { refToValue, unitOptionModels, withIconUrl } from './unit_values';

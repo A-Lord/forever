@@ -5,15 +5,17 @@ import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
-import { fakeHost } from '@sim/testing';
+import { storeSource as store } from '@testing/gear';
+import { fakeHost } from '@testing/sim/fake_host';
 import { act, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { storeSource as store } from '../../testing';
 import { type ItemData, type ItemListType, SelectorModalTabs } from '../../types';
 import type { SelectorTab } from './utils';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('../../testing')).storeSource.subscribe));
+vi.mock('@sim/state/subscriptions', async () =>
+	(await import('@testing/sim/subscriptions')).mockSubscriptions((await import('@testing/gear')).storeSource.subscribe),
+);
 
 // Every row, so the assertions are about what the list selected rather than what it windowed.
 vi.mock('@ui-kit/VirtualList', () => ({
