@@ -19,4 +19,11 @@ var ExtraSpells = []Extra{
 	{SpellID: 1323410, Reason: "Revelation, the hunter buff of enchant 8217", Source: "owner decision"},
 	{SpellID: 1323418, Reason: "Revelation, the shaman buff of enchant 8217", Source: "owner decision"},
 	{SpellID: 1323419, Reason: "Revelation, the paladin buff of enchant 8217", Source: "owner decision"},
+	// Eureka!, the gnome racial: a row per class, each scoping its mods to that class's abilities,
+	// which the sim picks by the gnome's class.
+	{SpellID: 1259812, Reason: "Eureka!, the rogue row of the gnome racial", Source: "owner decision"},
+	{SpellID: 1259813, Reason: "Eureka!, the warrior row of the gnome racial", Source: "owner decision"},
+	{SpellID: 1259817, Reason: "Eureka!, the mage row of the gnome racial", Source: "owner decision"},
+	{SpellID: 1259821, Reason: "Eureka!, the warlock row of the gnome racial", Source: "owner decision"},
+	{SpellID: 1259823, Reason: "Eureka!, the priest row of the gnome racial", Source: "owner decision"},
 }

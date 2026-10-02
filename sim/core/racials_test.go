@@ -243,6 +243,42 @@ func TestGnomeWarrior(t *testing.T) {
 	}
 }
 
+func TestGnomeEurekaReadsEachClassRow(t *testing.T) {
+	for spellID, want := range map[int32]EurekaMods{
+		1259812: {
+			CostFlags:   ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}},
+			DamageFlags: ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}},
+			Cost:        -0.1, Damage: 0.1,
+		},
+		1259813: {
+			CostFlags:   ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}},
+			DamageFlags: ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}},
+			Cost:        -0.1, Damage: 0.1,
+		},
+		1259817: {
+			CostFlags:   ClassFlags{Family: 3, Mask: [4]uint32{549591799, 4096}},
+			DamageFlags: ClassFlags{Family: 3, Mask: [4]uint32{551688947, 4096, 0, 8}},
+			Cost:        -0.1, Damage: 0.1, Channel: 0.1,
+		},
+		1259821: {
+			CostFlags:    ClassFlags{Family: 5, Mask: [4]uint32{541165, 8650880}},
+			DamageFlags:  ClassFlags{Family: 5, Mask: [4]uint32{524773, 8388736}},
+			ChannelFlags: ClassFlags{Family: 5, Mask: [4]uint32{16392, 262144}},
+			Cost:         -0.1, Damage: 0.1, Channel: 0.1,
+		},
+		1259823: {
+			CostFlags:    ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8388614}},
+			DamageFlags:  ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8486918}},
+			ChannelFlags: ClassFlags{Family: 6, Mask: [4]uint32{10485760, 98304}},
+			Cost:         -0.1, Damage: 0.1, Channel: 0.1,
+		},
+	} {
+		if got := eurekaMods(spellID); got != want {
+			t.Errorf("Eureka! %d reads %+v, want %+v", spellID, got, want)
+		}
+	}
+}
+
 // Eureka!'s idx2 raises the ticks of a warlock channel its mask names that spends a stack, on all of
 // its ticks, also after the last stack is gone. A channel cast with no stack up takes no bonus, nor
 // does a periodic spell that is not a channel, on the mask or off it.
