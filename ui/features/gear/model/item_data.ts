@@ -44,6 +44,7 @@ const enchantRow = (
 	item: enchant,
 	id: enchant.effectId,
 	actionId: enchantActionId(enchant),
+	ilvl: enchant.lvl,
 	name: enchant.name,
 	searchText: enchant.name,
 	quality: enchant.quality,

@@ -1,11 +1,11 @@
 import { EnchantType, ItemSlot } from '@generated/proto/common';
-import { UIEnchant } from '@generated/proto/ui';
+import { DatabaseFilters, UIEnchant } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { PlayerSpecs } from '@sim/player/specs';
 import { bulkState, seedBulkSettings } from '@sim/settings/bulk_settings';
-import { createSimStore } from '@sim/state/sim_store';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { createSimStore, patchSlice } from '@sim/state/sim_store';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -42,6 +42,8 @@ const mount = ({ loaded = true } = {}) => {
 		sim: {
 			store,
 			waitForInit: () => (loaded ? Promise.resolve() : new Promise(() => {})),
+			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
+			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 			env: {
 				storage: {
 					getItem: (key: string) => storage.get(key) ?? null,
@@ -72,6 +74,12 @@ const openNewPreset = () => userEvent.click(screen.getByRole('button', { name: '
 const expandSlots = async () => {
 	for (const trigger of screen.getAllByTestId('bulk-enchant-slot-trigger')) await userEvent.click(trigger);
 };
+const searchField = () => screen.getByTestId('bulk-enchant-search');
+const showAllToggle = () => screen.getByRole('checkbox', { name: 'bulk_tab.settings.enchant_presets.show_all' });
+const tileNames = (slot: HTMLElement) =>
+	within(slot)
+		.getAllByRole('checkbox')
+		.map(tile => tile.textContent);
 
 describe('BulkEnchants', () => {
 	it('creates a preset through the dialog, and a tick puts it in the batch', async () => {
@@ -117,30 +125,68 @@ describe('BulkEnchants', () => {
 		expect(screen.getAllByTestId('bulk-enchant-slot-count').map(pill => pill.textContent)).toEqual(['1']);
 	});
 
-	it('narrows the slots to the enchants a search matches, opened, and restores them when cleared', async () => {
+	it('narrows the slots to the enchants a search matches, opened, and restores the slots opened by hand when cleared', async () => {
 		mount();
 
 		await openNewPreset();
-		await userEvent.type(screen.getByTestId('bulk-enchant-search'), 'strik');
+		await userEvent.click(screen.getAllByTestId('bulk-enchant-slot-trigger')[0]);
+		await userEvent.type(searchField(), 'strik');
 
 		expect(screen.getByRole('checkbox', { name: /Superior Striking/ })).toBeTruthy();
 		expect(screen.queryByRole('checkbox', { name: /Lesser Impact/ })).toBeNull();
 		expect(screen.getAllByTestId('bulk-enchant-slot')).toHaveLength(1);
 
-		await userEvent.clear(screen.getByTestId('bulk-enchant-search'));
+		await userEvent.clear(searchField());
 
 		expect(screen.getAllByTestId('bulk-enchant-slot')).toHaveLength(3);
 		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
+		expect(screen.getByRole('checkbox', { name: /Lesser Agility/ })).toBeTruthy();
+	});
+
+	it('matches every search term on its own, in any order', async () => {
+		mount();
+
+		await openNewPreset();
+		await userEvent.type(searchField(), 'striking superior');
+
+		expect(tileNames(screen.getByTestId('bulk-enchant-slot'))).toEqual(['Superior Striking']);
+	});
+
+	it('keeps a slot closed by hand during a search closed until the search changes', async () => {
+		mount();
+
+		await openNewPreset();
+		await userEvent.type(searchField(), 'superior');
+		await userEvent.click(screen.getByTestId('bulk-enchant-slot-trigger'));
+
+		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
+
+		await userEvent.type(searchField(), ' strik');
+
+		expect(screen.getByRole('checkbox', { name: /Superior Striking/ })).toBeTruthy();
+	});
+
+	it('opens the slots Show all brings into a search', async () => {
+		mount();
+
+		await openNewPreset();
+		await userEvent.type(searchField(), 'healing');
+
+		expect(screen.queryAllByTestId('bulk-enchant-slot')).toHaveLength(0);
+
+		await userEvent.click(showAllToggle());
+
+		expect(screen.getByRole('checkbox', { name: /Healing Power/ })).toBeTruthy();
 	});
 
 	it('says so when a search matches no enchant', async () => {
 		mount();
 
 		await openNewPreset();
-		await userEvent.type(screen.getByTestId('bulk-enchant-search'), 'mongoose');
+		await userEvent.type(searchField(), 'mongoose');
 
 		expect(screen.queryAllByTestId('bulk-enchant-slot')).toHaveLength(0);
-		expect(screen.getByText('bulk_tab.settings.enchant_presets.no_matches')).toBeTruthy();
+		expect(screen.getByText('bulk_tab.search.no_results')).toBeTruthy();
 	});
 
 	it('groups weapon enchants under Weapons and shield enchants under the non-weapon off hand only', async () => {
@@ -154,11 +200,7 @@ describe('BulkEnchants', () => {
 		expect(within(weapons).queryByRole('checkbox', { name: /Shield Spike/ })).toBeNull();
 		expect(within(weapons).getByRole('checkbox', { name: /Superior Striking/ })).toBeTruthy();
 		expect(within(offHand).getByText('bulk_tab.settings.enchant_presets.slot_off_hand')).toBeTruthy();
-		expect(
-			within(offHand)
-				.getAllByRole('checkbox')
-				.map(tile => tile.textContent),
-		).toEqual(['Thorium Shield Spike']);
+		expect(tileNames(offHand)).toEqual(['Thorium Shield Spike']);
 	});
 
 	it('lists each slot highest lvl first, the higher effect id first on a tie', async () => {
@@ -168,16 +210,12 @@ describe('BulkEnchants', () => {
 		await expandSlots();
 
 		const [back, weapons] = screen.getAllByTestId('bulk-enchant-slot');
-		const names = (slot: HTMLElement) =>
-			within(slot)
-				.getAllByRole('checkbox')
-				.map(tile => tile.textContent);
-		expect(names(back)).toEqual(['Greater Resistance', 'Lesser Agility']);
-		expect(names(weapons)).toEqual(['Superior Striking', 'Lesser Impact']);
+		expect(tileNames(back)).toEqual(['Greater Resistance', 'Lesser Agility']);
+		expect(tileNames(weapons)).toEqual(['Superior Striking', 'Lesser Impact']);
 	});
 
-	it('hides enchants worth nothing to the spec until Show all is on', async () => {
-		mount();
+	it('hides enchants worth nothing to the spec until Show all is on, which it saves to the gear picker’s filter', async () => {
+		const player = mount();
 
 		await openNewPreset();
 		await expandSlots();
@@ -185,8 +223,20 @@ describe('BulkEnchants', () => {
 		expect(screen.queryByRole('checkbox', { name: /Healing Power/ })).toBeNull();
 		expect(screen.getByRole('checkbox', { name: /Lesser Agility/ })).toBeTruthy();
 
-		await userEvent.click(screen.getByRole('checkbox', { name: 'bulk_tab.settings.enchant_presets.show_all' }));
+		await userEvent.click(showAllToggle());
 
+		expect(screen.getByRole('checkbox', { name: /Healing Power/ })).toBeTruthy();
+		expect(player.sim.getFilters().showAllEnchants).toBe(true);
+	});
+
+	it('lists every enchant when the gear picker’s Show all filter is saved on', async () => {
+		const player = mount();
+		act(() => player.sim.setFilters(DatabaseFilters.create({ showAllEnchants: true })));
+
+		await openNewPreset();
+		await expandSlots();
+
+		expect(showAllToggle().getAttribute('aria-checked')).toBe('true');
 		expect(screen.getByRole('checkbox', { name: /Healing Power/ })).toBeTruthy();
 	});
 

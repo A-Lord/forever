@@ -74,6 +74,7 @@ export const BulkResultRow = ({ result, baseResult, iterations, onActivateTab }:
 									slot={idx}
 									item={host.sim.db.lookupItemSpec(spec) ?? undefined}
 									previousItem={baseResult.gear.getEquippedItem(idx) ?? undefined}
+									showEnchant
 								/>
 							</div>
 						);

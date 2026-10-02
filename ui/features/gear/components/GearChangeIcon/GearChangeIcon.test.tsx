@@ -10,7 +10,7 @@ vi.mock('../../model/empty_slot_icons', () => ({ getEmptySlotIconUrl: () => 'emp
 vi.mock('@sim/proto/gems', () => ({ getEmptyGemSocketIconUrl: (color: number) => `socket-${color}.png` }));
 
 const { GearChangeIcon } = await import('./GearChangeIcon');
-const { gearChangeEnchant, gearChangeSockets } = await import('./utils');
+const { enchantChanged, gearChangeSockets } = await import('./utils');
 
 const item = ({ gems = [], sockets = [] }: { gems?: Array<{ id: number; name: string } | null>; sockets?: number[] }) =>
 	({
@@ -61,6 +61,16 @@ describe('GearChangeIcon', () => {
 		const sockets = container.querySelectorAll('[data-testid="gem-socket-container"]');
 		expect([...sockets].map(socket => socket.hasAttribute('data-interactive'))).toEqual([false, true]);
 	});
+
+	it.each([
+		['draws no enchant marker by default', undefined, false],
+		['draws the enchant marker when asked to', true, true],
+	])('%s', (_, showEnchant, marked) => {
+		const enchanted = { ...item({}), enchant: { effectId: 1900, spellId: 20034, name: 'Crusader' } };
+		const { container } = renderIcon({ slot: ItemSlot.ItemSlotMainHand, item: enchanted, previousItem: item({}), showEnchant });
+
+		expect(!!container.querySelector('[data-testid="gear-change-icon-enchant"]')).toBe(marked);
+	});
 });
 
 describe('gearChangeSockets', () => {
@@ -110,18 +120,18 @@ describe('gearChangeSockets', () => {
 	});
 });
 
-describe('gearChangeEnchant', () => {
+describe('enchantChanged', () => {
 	const withEnchant = (effectId?: number) => ({ ...item({}), enchant: effectId ? { effectId, name: `Enchant ${effectId}` } : null }) as any;
 
 	it.each([
-		['the same enchant', withEnchant(7), withEnchant(7), undefined],
-		['no enchant before or after', withEnchant(), withEnchant(), undefined],
-		['an enchant that differs from the previous item', withEnchant(8), withEnchant(7), 'Enchant 8'],
-		['an enchant the previous item did not have', withEnchant(8), withEnchant(), 'Enchant 8'],
-		['a removed enchant', withEnchant(), withEnchant(7), undefined],
-		['no previous item', withEnchant(8), undefined, undefined],
-		['no item', undefined, withEnchant(7), undefined],
+		['the same enchant', withEnchant(7), withEnchant(7), false],
+		['no enchant before or after', withEnchant(), withEnchant(), false],
+		['an enchant that differs from the previous item', withEnchant(8), withEnchant(7), true],
+		['an enchant the previous item did not have', withEnchant(8), withEnchant(), true],
+		['a removed enchant', withEnchant(), withEnchant(7), false],
+		['no previous item', withEnchant(8), undefined, false],
+		['no item', undefined, withEnchant(7), false],
 	])('answers %s', (_, after, before, expected) => {
-		expect(gearChangeEnchant(after, before)?.name).toBe(expected);
+		expect(enchantChanged(after, before)).toBe(expected);
 	});
 });

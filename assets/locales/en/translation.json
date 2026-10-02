@@ -924,7 +924,7 @@
 	},
 	"bulk_tab": {
 		"title": "Batch",
-		"description": "<span className=\"bold\">Batch Simming</span> is a new feature akin to the <span className=\"bold\">Top Gear</span> sim on <a href=\"https://raidbots.com\" target=\"_blank\">Raidbots.com</a> that allows you to select multiple items and sim them find the best combinations.<br />This is an <span className=\"text-brand\">Alpha</span> feature, so if you have feedback or find a bug, please report it!",
+		"description": "<span className=\"bold\">Batch Simming</span> is a new feature akin to the <span className=\"bold\">Top Gear</span> sim on <a href=\"https://raidbots.com\" target=\"_blank\">Raidbots.com</a> that allows you to select multiple items and sim them to find the best combinations.<br />This is an <span className=\"text-brand\">Alpha</span> feature, so if you have feedback or found a bug, please report it!",
 		"download_native": "Download the local sim for faster results.",
 		"tabs": {
 			"setup": "Setup",
@@ -988,7 +988,6 @@
 				"name": "Preset name",
 				"name_duplicate": "A preset with this name already exists.",
 				"name_placeholder": "e.g. Undead, Outdoor, Raid",
-				"no_matches": "No enchant matches the search.",
 				"show_all": "Show all enchants",
 				"show_all_tooltip": "Also list enchants whose stats are worth nothing to this spec's stat weights. Ticked enchants are always listed.",
 				"slot_weapons": "Weapons",

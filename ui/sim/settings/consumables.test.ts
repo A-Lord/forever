@@ -1,7 +1,7 @@
 import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect, ResourceType, SpellEffect } from '@generated/proto/spell';
-import { UIItem } from '@generated/proto/ui';
+import { UIEnchant, UIItem } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
 import type { EquippedItem } from '../proto/equipped_item';
@@ -14,6 +14,7 @@ import {
 	handTakesImbue,
 	highestRanks,
 	isConsumableRelevant,
+	isEnchantRelevantFor,
 	relevanceFor,
 	relevantConsumableIds,
 } from './consumables';
@@ -211,6 +212,40 @@ describe('relevanceFor', () => {
 		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
 		expect(relevant(orcOnly, user({ professions: [Profession.Engineering] }))).toBe(true);
 		expect(relevant(orcOnly, user({ race: Race.RaceHuman, professions: [Profession.Engineering] }))).toBe(false);
+	});
+});
+
+describe('isEnchantRelevantFor', () => {
+	const melee = { epStats: [Stat.StatStrength, Stat.StatAttackPower, Stat.StatStamina], epPseudoStats: [PseudoStat.PseudoStatDodgePercent] };
+	const caster = { epStats: [Stat.StatIntellect, Stat.StatSpellDamage], epPseudoStats: [] };
+	const relevant = (enchant: UIEnchant, specConfig: { epStats: Stat[]; epPseudoStats: PseudoStat[] } = melee) =>
+		isEnchantRelevantFor(enchant, { ...specConfig, displayStats: [] });
+	const statEnchant = (effectId: number, stat: Stat) => UIEnchant.create({ effectId, stats: stats({ [stat]: 3 }) });
+	const striking = UIEnchant.create({ effectId: 1897, weaponDamage: 5 });
+
+	it('keeps an enchant granting a stat the spec weighs and drops one granting only stats it does not', () => {
+		expect(relevant(statEnchant(3, Stat.StatStrength))).toBe(true);
+		expect(relevant(statEnchant(4, Stat.StatIntellect))).toBe(false);
+	});
+
+	it('widens the weighed stats as the consumables do: stamina brings the resistances', () => {
+		expect(relevant(statEnchant(5, Stat.StatFireResistance))).toBe(true);
+		expect(relevant(statEnchant(5, Stat.StatFireResistance), caster)).toBe(false);
+	});
+
+	it('keeps a percent the spec weighs', () => {
+		const dodge = UIEnchant.create({ effectId: 6, pseudoStats: pseudoStats({ [PseudoStat.PseudoStatDodgePercent]: 1 }) });
+		expect(relevant(dodge)).toBe(true);
+		expect(relevant(dodge, caster)).toBe(false);
+	});
+
+	it('counts flat weapon damage as physical damage, which weighing attack power covers', () => {
+		expect(relevant(striking)).toBe(true);
+		expect(relevant(striking, caster)).toBe(false);
+	});
+
+	it('keeps an enchant that grants no stat at all, such as a proc', () => {
+		expect(relevant(UIEnchant.create({ effectId: 7, enchantEffects: [ItemEffect.create()] }), caster)).toBe(true);
 	});
 });
 

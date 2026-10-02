@@ -3463,9 +3463,6 @@
 								"name_placeholder": {
 									"type": "string"
 								},
-								"no_matches": {
-									"type": "string"
-								},
 								"show_all": {
 									"type": "string"
 								},
@@ -3495,7 +3492,6 @@
 								"name",
 								"name_duplicate",
 								"name_placeholder",
-								"no_matches",
 								"show_all",
 								"show_all_tooltip",
 								"slot_weapons",

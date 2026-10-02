@@ -1,7 +1,8 @@
 import { useEnchantDescription } from '@features/gear/hooks/useEnchantDescription';
 import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import { byLvlDescending, enchantActionId } from '@features/gear/model/item_data';
-import { EnchantType, ItemSlot } from '@generated/proto/common';
+import { formatSearchQuery } from '@features/gear/model/item_search';
+import { ItemSlot } from '@generated/proto/common';
 import type { BulkEnchantPreset, UIEnchant as Enchant } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { translateBulkSlotName } from '@i18n/localization';
@@ -10,6 +11,8 @@ import { usePlayer } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
 import { useSimReady } from '@sim/hooks/useSimReady';
+import { useSimStore } from '@sim/hooks/useSimStore';
+import { isOffHandOnlyEnchant } from '@sim/proto/items';
 import { memo, useCallback, useMemo, useState } from 'react';
 
 import { useBulkState } from '../../hooks/useBulkState';
@@ -24,11 +27,9 @@ export interface BulkEnchantPresetDialogProps {
 	onClose: () => void;
 }
 
-const isOffHandOnly = (enchant: Enchant) => enchant.enchantType === EnchantType.EnchantTypeShield || enchant.enchantType === EnchantType.EnchantTypeOffHand;
-
 const slotEnchants = (slot: ItemSlot, enchants: Enchant[]): Enchant[] => {
-	if (slot === ItemSlot.ItemSlotMainHand) return enchants.filter(enchant => !isOffHandOnly(enchant));
-	if (slot === ItemSlot.ItemSlotOffHand) return enchants.filter(isOffHandOnly);
+	if (slot === ItemSlot.ItemSlotMainHand) return enchants.filter(enchant => !isOffHandOnlyEnchant(enchant));
+	if (slot === ItemSlot.ItemSlotOffHand) return enchants.filter(isOffHandOnlyEnchant);
 	return enchants;
 };
 
@@ -73,51 +74,56 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 		() => new Map(preset?.slots.map(options => [options.slot, options.effectIds]) ?? []),
 	);
 
-	// One tile per enchant row; rows that share an effect id are one enchant to the sim, so they tick together.
 	const ready = useSimReady();
 	const slots = useMemo(
 		() =>
 			ready
-				? BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: slotEnchants(slot, [...player.getEnchants(slot)].sort(byLvlDescending)) })).filter(
-						({ enchants }) => enchants.length,
-					)
+				? BULK_ENCHANT_SLOTS.map(slot => ({
+						slot,
+						enchants: slotEnchants(slot, [...player.getEnchants(slot)].sort(byLvlDescending)).map(enchant => ({
+							enchant,
+							relevant: player.isEnchantRelevant(enchant),
+							searchName: formatSearchQuery(enchant.name),
+						})),
+					})).filter(({ enchants }) => enchants.length)
 				: [],
 		[player, ready],
 	);
 
 	const [openSlots, setOpenSlots] = useState(() => preset?.slots.filter(options => options.effectIds.length).map(options => String(options.slot)) ?? []);
 	const [search, setSearch] = useState('');
-	// A search opens every slot it matches in, on its own open state, so clearing it brings back the slots opened by hand.
-	const [searchOpenSlots, setSearchOpenSlots] = useState<string[]>([]);
-	const [showAll, setShowAll] = useState(false);
-	const query = search.trim().toLowerCase();
-	const listed = useCallback(
-		(slot: ItemSlot, enchant: Enchant, nameQuery: string, all: boolean) =>
-			(all || player.isEnchantRelevant(enchant) || !!selected.get(slot)?.includes(enchant.effectId)) &&
-			(!nameQuery || enchant.name.toLowerCase().includes(nameQuery)),
-		[player, selected],
-	);
+	// A search opens every slot it matches in, less those closed by hand since the search text last changed. The slots
+	// opened by hand keep their own state, so clearing the search brings them back.
+	const [searchClosedSlots, setSearchClosedSlots] = useState<ReadonlySet<string>>(() => new Set());
+	const showAll = useSimStore('filters').showAllEnchants;
+	const changeShowAll = (next: boolean) => {
+		const filters = player.sim.getFilters();
+		filters.showAllEnchants = next;
+		player.sim.setFilters(filters);
+	};
+	const terms = useMemo(() => formatSearchQuery(search).split(' ').filter(Boolean), [search]);
 	const shown = useMemo(
 		() =>
 			slots
-				.map(({ slot, enchants }) => ({ slot, enchants: enchants.filter(enchant => listed(slot, enchant, query, showAll)) }))
+				.map(({ slot, enchants }) => ({
+					slot,
+					enchants: enchants
+						.filter(
+							({ enchant, relevant, searchName }) =>
+								(showAll || relevant || !!selected.get(slot)?.includes(enchant.effectId)) && terms.every(term => searchName.includes(term)),
+						)
+						.map(({ enchant }) => enchant),
+				}))
 				.filter(({ enchants }) => enchants.length),
-		[slots, query, showAll, listed],
+		[slots, terms, showAll, selected],
 	);
-	const openMatchingSlots = (nameQuery: string, all: boolean) =>
-		setSearchOpenSlots(
-			nameQuery
-				? slots.filter(({ slot, enchants }) => enchants.some(enchant => listed(slot, enchant, nameQuery, all))).map(({ slot }) => String(slot))
-				: [],
-		);
+	const shownSlots = shown.map(({ slot }) => String(slot));
 	const changeSearch = (next: string) => {
 		setSearch(next);
-		openMatchingSlots(next.trim().toLowerCase(), showAll);
+		setSearchClosedSlots(new Set());
 	};
-	const changeShowAll = (next: boolean) => {
-		setShowAll(next);
-		openMatchingSlots(query, next);
-	};
+	const changeSearchOpenSlots = (next: string[]) =>
+		setSearchClosedSlots(current => new Set([...current, ...shownSlots].filter(slot => !next.includes(slot))));
 
 	const problem = validateBulkEnchantPresetName(presets, name, preset?.name);
 
@@ -145,8 +151,8 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 			nameTaken={problem === 'duplicate'}
 			canSave={problem === null}
 			onSave={save}
-			openSlots={query ? searchOpenSlots : openSlots}
-			onOpenSlotsChange={query ? setSearchOpenSlots : setOpenSlots}
+			openSlots={terms.length ? shownSlots.filter(slot => !searchClosedSlots.has(slot)) : openSlots}
+			onOpenSlotsChange={terms.length ? changeSearchOpenSlots : setOpenSlots}
 			search={search}
 			onSearchChange={changeSearch}
 			showAll={showAll}
@@ -156,6 +162,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 				label: slotLabel(slot),
 				iconUrl: getEmptySlotIconUrl(slot),
 				checkedCount: selected.get(slot)?.length ?? 0,
+				// One tile per enchant row; rows that share an effect id are one enchant to the sim, so they tick together.
 				tiles: enchants.map(enchant => (
 					<EnchantTile
 						key={`${enchant.effectId}-${enchant.name}`}

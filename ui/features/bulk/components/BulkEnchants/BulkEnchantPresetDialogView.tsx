@@ -110,7 +110,7 @@ export const BulkEnchantPresetDialogView = ({
 						onChange={onShowAllChange}
 					/>
 				</div>
-				{search.trim() && !groups.length && <p className="mb-0 text-gray-400">{i18n.t('bulk_tab.settings.enchant_presets.no_matches')}</p>}
+				{search.trim() && !groups.length && <p className="mb-0 text-gray-400">{i18n.t('bulk_tab.search.no_results')}</p>}
 				<Accordion value={openSlots} onValueChange={onOpenSlotsChange} variant="boxed">
 					{groups.map(group => (
 						<AccordionItem

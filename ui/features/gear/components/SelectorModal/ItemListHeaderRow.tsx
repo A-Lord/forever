@@ -9,10 +9,8 @@ import { columnHeaderLabel } from './utils';
 
 export interface ItemListHeaderRowProps {
 	label: SelectorModalTabs;
-	/** Whether the list has an EP column at all; `showEPValues` then shows or hides it. */
-	epColumn: boolean;
-	showEPValues: boolean;
-	epTooltipId: string;
+	/** The EP column; omitted for a list with none. `showValues` shows or hides it. */
+	ep?: { showValues: boolean; tooltipId: string };
 	sortBy: ItemListSortBy;
 	sortDirection: SortDirection;
 	onSort: (sortBy: ItemListSortBy) => void;
@@ -23,7 +21,7 @@ const sortedLabel = (sortBy: ItemListSortBy, sortDirection: SortDirection, colum
 		? undefined
 		: i18n.t(sortDirection === SortDirection.ASC ? 'gear_tab.gear_picker.sorted_ascending' : 'gear_tab.gear_picker.sorted_descending');
 
-export const ItemListHeaderRow = ({ label, epColumn, showEPValues, epTooltipId, sortBy, sortDirection, onSort }: ItemListHeaderRowProps) => {
+export const ItemListHeaderRow = ({ label, ep, sortBy, sortDirection, onSort }: ItemListHeaderRowProps) => {
 	const isItemsTab = label === SelectorModalTabs.Items;
 	const ilvlSortedLabel = sortedLabel(sortBy, sortDirection, ItemListSortBy.ILVL);
 	const epSortedLabel = sortedLabel(sortBy, sortDirection, ItemListSortBy.EP);
@@ -45,8 +43,8 @@ export const ItemListHeaderRow = ({ label, epColumn, showEPValues, epTooltipId, 
 					{i18n.t('gear_tab.gear_picker.table_headers.source')}
 				</h6>
 			)}
-			{epColumn && (
-				<h6 className="float-right flex w-24 items-center select-none" data-testid="ep-label" style={{ display: showEPValues ? undefined : 'none' }}>
+			{ep && (
+				<h6 className="float-right flex w-24 items-center select-none" data-testid="ep-label" style={{ display: ep.showValues ? undefined : 'none' }}>
 					<Button
 						variant="unstyled"
 						className="flex items-center text-inherit [font:inherit] focus-visible:focus-ring"
@@ -55,7 +53,7 @@ export const ItemListHeaderRow = ({ label, epColumn, showEPValues, epTooltipId, 
 						<Icon name="plus-minus" size="2xs" />
 						{epSortedLabel && <span className="sr-only">, {epSortedLabel}</span>}
 					</Button>
-					<Button iconOnly aria-label={i18n.t('gear_tab.gear_picker.ep_tooltip')} className="ml-1" data-tooltip-id={epTooltipId}>
+					<Button iconOnly aria-label={i18n.t('gear_tab.gear_picker.ep_tooltip')} className="ml-1" data-tooltip-id={ep.tooltipId}>
 						<Icon name="circle-question" style="regular" size="lg" />
 					</Button>
 				</h6>

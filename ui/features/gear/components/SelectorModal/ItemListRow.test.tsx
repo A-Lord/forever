@@ -1,4 +1,4 @@
-import { ItemQuality, ItemSlot, type ItemSpec } from '@generated/proto/common';
+import { ItemQuality, type ItemSpec } from '@generated/proto/common';
 import { UIEnchant as Enchant, type UIItem as Item } from '@generated/proto/ui';
 import { renderWithHost } from '@testing/react';
 import { fireEvent } from '@testing-library/react';
@@ -72,10 +72,8 @@ const renderRow = (
 	const props: ItemListRowProps = {
 		itemData: makeItemData(),
 		label: SelectorModalTabs.Items,
-		slot: ItemSlot.ItemSlotHead,
 		active: false,
-		equippedEP: null,
-		itemEP: 0,
+		ep: { ep: 0, equippedEP: null },
 		favourited: false,
 		favouriteTooltipId: 'fav-tooltip',
 		compareTooltipId: 'compare-tooltip',
@@ -100,14 +98,16 @@ describe('ItemListRow', () => {
 		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')).toBeNull();
 	});
 
-	it('shows an enchant’s lvl and no EP cell on the enchants tab', () => {
+	it.each([
+		['an enchant’s lvl', 47, '47'],
+		['an empty cell for an enchant with no lvl', 0, ''],
+	])('shows %s on the enchants tab', (_name, lvl, shown) => {
 		const { container } = renderRow({
 			label: SelectorModalTabs.Enchants,
-			itemData: makeItemData({ item: Enchant.create({ effectId: 1894, lvl: 47 }) as unknown as ItemListType }),
-			itemEP: 80,
+			itemData: makeItemData({ ilvl: lvl, item: Enchant.create({ effectId: 1894, lvl }) as unknown as ItemListType }),
+			ep: undefined,
 		});
-		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')?.textContent).toBe('47');
-		expect(container.querySelector('[data-testid="selector-modal-list-item-ep"]')).toBeNull();
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ilvl-container"]')?.textContent).toBe(shown);
 	});
 
 	it.each([
@@ -139,20 +139,14 @@ describe('ItemListRow', () => {
 	});
 
 	it('hands the ep and equipped ep to the ep cell', () => {
-		const { container } = renderRow({ itemEP: 80, equippedEP: 50 });
+		const { container } = renderRow({ ep: { ep: 80, equippedEP: 50 } });
 		expect(container.querySelector('[data-testid="selector-modal-list-item-ep-value"]')?.textContent).toBe('80');
 		expect(container.querySelector('[data-testid="selector-modal-list-item-ep-delta"]')?.getAttribute('data-sign')).toBe('positive');
 	});
 
-	it('hides the ep cell for trinket slots', () => {
-		const trinket1 = renderRow({ slot: ItemSlot.ItemSlotTrinket1 });
-		expect(trinket1.container.querySelector('[data-testid="selector-modal-list-item-ep"]')).toBeNull();
-
-		const trinket2 = renderRow({ slot: ItemSlot.ItemSlotTrinket2 });
-		expect(trinket2.container.querySelector('[data-testid="selector-modal-list-item-ep"]')).toBeNull();
-
-		const head = renderRow({ slot: ItemSlot.ItemSlotHead });
-		expect(head.container.querySelector('[data-testid="selector-modal-list-item-ep"]')).not.toBeNull();
+	it('draws no ep cell when the list has no EP column', () => {
+		const { container } = renderRow({ ep: undefined });
+		expect(container.querySelector('[data-testid="selector-modal-list-item-ep"]')).toBeNull();
 	});
 
 	it('wires the icon and anchor to useActionId', () => {

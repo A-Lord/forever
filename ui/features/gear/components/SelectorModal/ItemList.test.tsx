@@ -29,12 +29,12 @@ vi.mock('@ui-kit/VirtualList', () => ({
 }));
 
 vi.mock('./ItemListRow', () => ({
-	ItemListRow: ({ itemData, active, itemEP, equippedEP, favourited, onToggleFavourite }: any) => (
+	ItemListRow: ({ itemData, active, ep, favourited, onToggleFavourite }: any) => (
 		<span
 			data-row={itemData.name}
 			data-active={active ? '' : undefined}
-			data-ep={itemEP}
-			data-equipped-ep={String(equippedEP)}
+			data-ep={ep?.ep}
+			data-equipped-ep={String(ep?.equippedEP)}
 			data-favourited={String(favourited)}>
 			<button type="button" data-toggle={itemData.name} onClick={onToggleFavourite} />
 		</span>
@@ -53,6 +53,7 @@ vi.mock('../FiltersMenu', () => ({
 const { ItemList } = await import('./ItemList');
 const { Player } = await import('@sim/player/player');
 const { Stats } = await import('@sim/proto/stats');
+const { isEnchantRelevantFor } = await import('@sim/settings/consumables');
 
 // `sortItemIdxs` reads the base scaling entry, not `ilvl`, whenever it sorts by item level.
 const item = (id: number, name: string, ilvl: number) =>
@@ -198,12 +199,14 @@ describe('ItemList', () => {
 			Enchant.create({ effectId: 3, name: 'Mid', lvl: 40 }),
 			Enchant.create({ effectId: 4, name: 'HighSecond', lvl: 60 }),
 		];
+		const computeEP = vi.fn((candidate: any) => (candidate.effectId === 1 ? 100 : 0));
 		const { container } = setup({
 			label: SelectorModalTabs.Enchants,
 			slot: ItemSlot.ItemSlotMainHand,
-			over: { itemData: enchants.map(enchantRow), computeEP: (candidate: any) => (candidate.effectId === 1 ? 100 : 0) },
+			over: { itemData: enchants.map(enchantRow), computeEP },
 		});
 		expect(names(container)).toEqual(['HighFirst', 'HighSecond', 'Mid', 'Low']);
+		expect(computeEP).not.toHaveBeenCalled();
 		expect(container.querySelector('[data-testid="ep-label"]')).toBeNull();
 		expect(container.querySelector('[data-testid="selector-modal-show-ep-values"]')).toBeNull();
 		expect(container.querySelector('[data-testid="selector-modal-show-all-enchants"]')).not.toBeNull();
@@ -317,8 +320,7 @@ describe('ItemList', () => {
 		Object.assign(host.player, {
 			getEquippedItem: () => ({ item: Item.create({ type: ItemType.ItemTypeHead }), enchant: equipped }),
 			filterEnchantData: Player.prototype.filterEnchantData,
-			isEnchantRelevant: Player.prototype.isEnchantRelevant,
-			getSpecConfig: () => ({ epStats: [Stat.StatStrength], epPseudoStats: [], displayStats: [] }),
+			isEnchantRelevant: (enchant: Enchant) => isEnchantRelevantFor(enchant, { epStats: [Stat.StatStrength], epPseudoStats: [], displayStats: [] }),
 		});
 
 		const { container } = setup({ label: SelectorModalTabs.Enchants, over: { itemData: [relevant, worthless, proc, equipped].map(enchantRow) } });

@@ -87,9 +87,10 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 		// oxlint-disable-next-line react-hooks/exhaustive-deps
 	}, [itemData, player, sim, slot, label, socketColor, phase, search, sortBy, sortDirection, computeEP, isFavourited, filters]);
 
+	const showEPOptions = tabSortsByEP(label, slot);
 	const equipped = equippedToItem(equippedItem);
 	const equippedId = getItemIdByItemType(label, equipped);
-	const equippedEP = equipped !== null && equipped !== undefined ? computeEP(equipped) : null;
+	const equippedEP = showEPOptions && equipped !== null && equipped !== undefined ? computeEP(equipped) : null;
 
 	const sort = (next: ItemListSortBy) => {
 		setSortDirection(current => (sortBy === next ? 1 - current : SortDirection.DESC));
@@ -108,7 +109,6 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 		sim.setFilters(next);
 	};
 
-	const showEPOptions = tabSortsByEP(label, slot);
 	const showWeaponOptions =
 		label === SelectorModalTabs.Items &&
 		(slot === ItemSlot.ItemSlotMainHand || (slot === ItemSlot.ItemSlotOffHand && player.getClass() === Class.ClassWarrior));
@@ -140,9 +140,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 			/>
 			<ItemListHeaderRow
 				label={label}
-				epColumn={showEPOptions}
-				showEPValues={showEPValues}
-				epTooltipId={`${tooltipId}-ep`}
+				ep={showEPOptions ? { showValues: showEPValues, tooltipId: `${tooltipId}-ep` } : undefined}
 				sortBy={sortBy}
 				sortDirection={sortDirection}
 				onSort={sort}
@@ -164,10 +162,8 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 							<ItemListRow
 								itemData={row}
 								label={label}
-								slot={slot}
 								active={row.id === equippedId}
-								equippedEP={equippedEP}
-								itemEP={computeEP(row.item)}
+								ep={showEPOptions ? { ep: computeEP(row.item), equippedEP } : undefined}
 								favourited={isFavourited(row)}
 								favouriteTooltipId={`${tooltipId}-favourite`}
 								compareTooltipId={`${tooltipId}-compare`}

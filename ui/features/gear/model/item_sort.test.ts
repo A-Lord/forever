@@ -21,7 +21,7 @@ const row = (id: number, ilvl: number, scalingIlvl?: number): ItemData<Item> =>
 		onEquip: () => {},
 	}) as unknown as ItemData<Item>;
 
-const sort = (rows: ItemData<Item>[], over: Partial<Parameters<typeof sortItemIdxs<Item>>[2]> = {}) =>
+const sort = <T extends Item | UIEnchant>(rows: ItemData<T>[], over: Partial<Parameters<typeof sortItemIdxs<T>>[2]> = {}) =>
 	sortItemIdxs(
 		rows.map((_, i) => i),
 		rows,
@@ -35,32 +35,35 @@ const sort = (rows: ItemData<Item>[], over: Partial<Parameters<typeof sortItemId
 	);
 
 describe('defaultSortBy', () => {
-	it('is EP for the items and gem tabs of an ordinary slot', () => {
-		expect(defaultSortBy(SelectorModalTabs.Items, ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.EP);
-		expect(defaultSortBy(SelectorModalTabs.Gem1, ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.EP);
-	});
-
-	it('is level on both trinket slots and on the enchants tab of every slot, whose EP leaves procs out', () => {
-		expect(defaultSortBy(SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket1)).toBe(ItemListSortBy.ILVL);
-		expect(defaultSortBy(SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket2)).toBe(ItemListSortBy.ILVL);
-		expect(defaultSortBy(SelectorModalTabs.Enchants, ItemSlot.ItemSlotHead)).toBe(ItemListSortBy.ILVL);
-		expect(defaultSortBy(SelectorModalTabs.Enchants, ItemSlot.ItemSlotMainHand)).toBe(ItemListSortBy.ILVL);
+	it.each([
+		[SelectorModalTabs.Items, ItemSlot.ItemSlotHead, ItemListSortBy.EP],
+		[SelectorModalTabs.Gem1, ItemSlot.ItemSlotHead, ItemListSortBy.EP],
+		[SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket1, ItemListSortBy.ILVL],
+		[SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket2, ItemListSortBy.ILVL],
+		[SelectorModalTabs.Enchants, ItemSlot.ItemSlotHead, ItemListSortBy.ILVL],
+		[SelectorModalTabs.Enchants, ItemSlot.ItemSlotMainHand, ItemListSortBy.ILVL],
+	])('sorts the %s tab of slot %i by %i: level on the trinket slots and the enchants tab, whose EP leaves procs out', (label, slot, sortBy) => {
+		expect(defaultSortBy(label, slot)).toBe(sortBy);
 	});
 });
 
 describe('tab columns', () => {
-	it('gives the EP column to every tab but the enchants tab, outside the trinket slots', () => {
-		expect(tabSortsByEP(SelectorModalTabs.Items, ItemSlot.ItemSlotChest)).toBe(true);
-		expect(tabSortsByEP(SelectorModalTabs.Gem2, ItemSlot.ItemSlotChest)).toBe(true);
-		expect(tabSortsByEP(SelectorModalTabs.Enchants, ItemSlot.ItemSlotChest)).toBe(false);
-		expect(tabSortsByEP(SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket2)).toBe(false);
+	it.each([
+		[SelectorModalTabs.Items, ItemSlot.ItemSlotChest, true],
+		[SelectorModalTabs.Gem2, ItemSlot.ItemSlotChest, true],
+		[SelectorModalTabs.Enchants, ItemSlot.ItemSlotChest, false],
+		[SelectorModalTabs.Items, ItemSlot.ItemSlotTrinket2, false],
+	])('gives the %s tab of slot %i an EP column: %s', (label, slot, hasEP) => {
+		expect(tabSortsByEP(label, slot)).toBe(hasEP);
 	});
 
-	it('gives the level column to the items and enchants tabs alone', () => {
-		expect(tabHasLevel(SelectorModalTabs.Items)).toBe(true);
-		expect(tabHasLevel(SelectorModalTabs.Enchants)).toBe(true);
-		expect(tabHasLevel(SelectorModalTabs.Gem1)).toBe(false);
-		expect(tabHasLevel(SelectorModalTabs.RandomSuffixes)).toBe(false);
+	it.each([
+		[SelectorModalTabs.Items, true],
+		[SelectorModalTabs.Enchants, true],
+		[SelectorModalTabs.Gem1, false],
+		[SelectorModalTabs.RandomSuffixes, false],
+	])('gives the %s tab a level column: %s', (label, hasLevel) => {
+		expect(tabHasLevel(label)).toBe(hasLevel);
 	});
 });
 
@@ -86,15 +89,9 @@ describe('sortItemIdxs', () => {
 	it('reads an enchant by its lvl, on the ilvl sort and on an EP near-tie', () => {
 		const enchant = (effectId: number, lvl: number) => ({ item: UIEnchant.create({ effectId, lvl }), id: effectId }) as unknown as ItemData<UIEnchant>;
 		const rows = [enchant(1, 20), enchant(2, 60), enchant(3, 40)];
-		const enchantSort = (over: Partial<Parameters<typeof sortItemIdxs<UIEnchant>>[2]>) =>
-			sortItemIdxs(
-				rows.map((_, i) => i),
-				rows,
-				{ sortBy: ItemListSortBy.ILVL, sortDirection: SortDirection.DESC, computeEP: () => 0, isFavourited: () => false, ...over },
-			);
 
-		expect(enchantSort({})).toEqual([1, 2, 0]);
-		expect(enchantSort({ sortBy: ItemListSortBy.EP, computeEP: item => (item.effectId === 1 ? 10 : 1) })).toEqual([0, 1, 2]);
+		expect(sort(rows)).toEqual([1, 2, 0]);
+		expect(sort(rows, { sortBy: ItemListSortBy.EP, computeEP: item => (item.effectId === 1 ? 10 : 1) })).toEqual([0, 1, 2]);
 	});
 
 	it('floats favourites above everything else', () => {

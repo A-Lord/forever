@@ -30,9 +30,7 @@ const ItemsPane = () => (
 		/>
 		<ItemListHeaderRow
 			label={SelectorModalTabs.Items}
-			epColumn
-			showEPValues
-			epTooltipId="ep-tooltip"
+			ep={{ showValues: true, tooltipId: 'ep-tooltip' }}
 			sortBy={ItemListSortBy.EP}
 			sortDirection={SortDirection.DESC}
 			onSort={fn()}
@@ -77,15 +75,7 @@ const EnchantsPane = () => (
 			removeLabel="Remove Enchant"
 			onRemove={fn()}
 		/>
-		<ItemListHeaderRow
-			label={SelectorModalTabs.Enchants}
-			epColumn={false}
-			showEPValues
-			epTooltipId="ep-tooltip"
-			sortBy={ItemListSortBy.ILVL}
-			sortDirection={SortDirection.DESC}
-			onSort={fn()}
-		/>
+		<ItemListHeaderRow label={SelectorModalTabs.Enchants} sortBy={ItemListSortBy.ILVL} sortDirection={SortDirection.DESC} onSort={fn()} />
 		{ENCHANTS.map((row, index) => (
 			<div key={row.name} className="relative flex items-center gap-4 bg-gray-900 p-2">
 				<ItemListRowView

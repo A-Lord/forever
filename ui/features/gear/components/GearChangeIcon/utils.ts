@@ -1,5 +1,4 @@
 import type { GemColor } from '@generated/proto/common';
-import type { UIEnchant } from '@generated/proto/ui';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 
 export interface GearChangeSocket {
@@ -28,7 +27,5 @@ export const gearChangeSockets = (item: EquippedItem | undefined, previousItem: 
 	}));
 };
 
-export const gearChangeEnchant = (item: EquippedItem | undefined, previousItem: EquippedItem | undefined): UIEnchant | undefined => {
-	if (!item?.enchant || !previousItem) return undefined;
-	return item.enchant.effectId === previousItem.enchant?.effectId ? undefined : item.enchant;
-};
+export const enchantChanged = (item: EquippedItem | undefined, previousItem: EquippedItem | undefined): boolean =>
+	!!item?.enchant && !!previousItem && item.enchant.effectId !== previousItem.enchant?.effectId;

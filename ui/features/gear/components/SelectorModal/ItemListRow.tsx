@@ -1,6 +1,6 @@
 import { addBulkItem, hasBulkItem, removeBulkItem } from '@features/bulk/model/items';
-import { ItemSlot, ItemSpec } from '@generated/proto/common';
-import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
+import { ItemSpec } from '@generated/proto/common';
+import type { UIItem as Item } from '@generated/proto/ui';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import { isIndividualSimHost } from '@sim/sim_host';
@@ -8,20 +8,19 @@ import { type ReactNode, useMemo } from 'react';
 import { useStore } from 'zustand';
 
 import { trackEvent } from '../../../../tracking/utils';
-import { tabSortsByEP } from '../../model/item_sort';
+import { tabHasLevel } from '../../model/item_sort';
 import type { ItemData, ItemListType } from '../../types';
 import { SelectorModalTabs } from '../../types';
 import { ItemNoticeIcon } from '../GearPicker/ItemNoticeIcon';
+import type { EpCellProps } from './EpCell';
 import { ItemListRowView } from './ItemListRowView';
 import { ItemSource } from './ItemSource';
 
 export interface ItemListRowProps {
 	itemData: ItemData<ItemListType, ReactNode>;
 	label: SelectorModalTabs;
-	slot: ItemSlot;
 	active: boolean;
-	equippedEP: number | null;
-	itemEP: number;
+	ep?: EpCellProps;
 	favourited: boolean;
 	favouriteTooltipId: string;
 	compareTooltipId: string;
@@ -32,10 +31,8 @@ export interface ItemListRowProps {
 export const ItemListRow = ({
 	itemData,
 	label,
-	slot,
 	active,
-	equippedEP,
-	itemEP,
+	ep,
 	favourited,
 	favouriteTooltipId,
 	compareTooltipId,
@@ -46,7 +43,7 @@ export const ItemListRow = ({
 	const { iconUrl, href } = useActionId(itemData.actionId);
 	const isItemsTab = label === SelectorModalTabs.Items;
 	const isEnchantsTab = label === SelectorModalTabs.Enchants;
-	const level = isEnchantsTab ? (itemData.item as unknown as Enchant).lvl : isItemsTab ? itemData.ilvl || (itemData.item as unknown as Item).ilvl : undefined;
+	const level = tabHasLevel(label) ? itemData.ilvl || (isItemsTab ? (itemData.item as unknown as Item).ilvl : 0) : undefined;
 
 	const batchPlayer = isIndividualSimHost(host) ? host.player : null;
 	const batchSpec = useMemo(() => ItemSpec.create({ id: itemData.id }), [itemData.id]);
@@ -72,7 +69,7 @@ export const ItemListRow = ({
 			onEquip={onEquip}
 			notice={<ItemNoticeIcon itemId={isEnchantsTab ? undefined : itemData.id} enchantId={isEnchantsTab ? itemData.id : undefined} />}
 			source={isItemsTab ? <ItemSource item={itemData.item as unknown as Item} sim={host.sim} /> : undefined}
-			ep={tabSortsByEP(label, slot) ? { ep: itemEP, equippedEP } : undefined}
+			ep={ep}
 			favourited={favourited}
 			favouriteTooltipId={favouriteTooltipId}
 			onToggleFavourite={onToggleFavourite}

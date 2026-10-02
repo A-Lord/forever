@@ -53,7 +53,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { consumablePseudoStatsOf, ConsumableSlot, consumableStatsOf, relevantConsumableIds } from '../settings/consumables';
+import { ConsumableSlot, isEnchantRelevantFor, relevantConsumableIds } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -232,8 +232,6 @@ export interface SpecConfigData<SpecType extends Spec> extends PlayerConfig<Spec
 }
 
 const SPEC_CONFIGS: Partial<Record<Spec, PlayerConfig<any>>> = {};
-
-const enchantRelevanceCache = new WeakMap<object, { stats: Set<Stat>; pseudoStats: Set<PseudoStat> }>();
 
 export function registerSpecConfig<SpecType extends Spec>(spec: SpecType, config: PlayerConfig<SpecType>) {
 	SPEC_CONFIGS[spec] = config;
@@ -1198,22 +1196,8 @@ export class Player<SpecType extends Spec> {
 		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
-	// The consumables' rule on the stats the spec weighs: an enchant counts when it grants one of them or a percent the
-	// spec shows or weighs, flat weapon damage counting as physical damage. One that grants none of these (a proc) counts.
 	isEnchantRelevant(enchant: Enchant): boolean {
-		const grantedStats: Stat[] = enchant.stats.flatMap((value, stat) => (value ? [stat] : []));
-		if (enchant.weaponDamage) grantedStats.push(Stat.StatPhysicalDamage);
-		const grantedPseudoStats: PseudoStat[] = enchant.pseudoStats.flatMap((value, pseudoStat) => (value ? [pseudoStat] : []));
-		if (!grantedStats.length && !grantedPseudoStats.length) return true;
-
-		const specConfig = this.getSpecConfig();
-		let relevant = enchantRelevanceCache.get(specConfig);
-		if (!relevant) {
-			relevant = { stats: consumableStatsOf({ epStats: specConfig.epStats }), pseudoStats: consumablePseudoStatsOf(specConfig) };
-			enchantRelevanceCache.set(specConfig, relevant);
-		}
-		const { stats, pseudoStats } = relevant;
-		return grantedStats.some(stat => stats.has(stat)) || grantedPseudoStats.some(pseudoStat => pseudoStats.has(pseudoStat));
+		return isEnchantRelevantFor(enchant, this.getSpecConfig());
 	}
 
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {
