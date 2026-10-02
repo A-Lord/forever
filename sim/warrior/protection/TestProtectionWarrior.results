@@ -341,6 +341,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-EnchantWeapon-Revelation-8217"
+ value: {
+  dps: 774.91831
+  tps: 1179.65956
+  dtps: 4409.77802
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 774.52339
@@ -859,6 +868,15 @@ dps_results: {
   dps: 774.52339
   tps: 1178.89319
   dtps: 4427.88295
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-VileProtector-7747"
+ value: {
+  dps: 781.95066
+  tps: 1189.95476
+  dtps: 4441.75845
   hps: 16.4
  }
 }

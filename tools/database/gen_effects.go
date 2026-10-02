@@ -1340,6 +1340,7 @@ var itemAuraKinds = []dbcenums.EffectAuraType{
 	dbcenums.A_MOD_BASE_RESISTANCE_PCT,
 	dbcenums.A_MOD_INCREASE_HEALTH_PERCENT,
 	dbcenums.A_MOD_PERCENT_STAT,
+	dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE,
 	dbcenums.A_MOD_HIT_CHANCE,
 	dbcenums.A_MOD_WEAPON_CRIT_PERCENT,
 	dbcenums.A_MOD_SPELL_HIT_CHANCE,

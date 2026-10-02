@@ -7,18 +7,28 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
+// Target resistance a temporary enchant ignores on one school's spells.
+type SchoolPiercing struct {
+	School stats.SchoolIndex
+	Amount float64
+}
+
 // A temporary enchant consumable, applied to each hand core put its enchant on: the enchant's stats
 // once per hand and each combat spell cast off that hand's hits at the chance its row states. Its flat
 // weapon damage is core's, on every weapon built from that hand's item. The equip spells named are
 // the enchant's that grant no stat of the enchant's own, such as Consecrated Sharpening Stone's 28893:
 // their auras are parsed onto one permanent aura once per hand, since each weapon carries its own copy
-// of the equip aura, and an aura bound to a matching weapon reaches that hand's attacks alone.
-func NewSpellDataTemporaryEnchant(itemID int32, equipSpellIDs ...int32) {
+// of the equip aura, and an aura bound to a matching weapon reaches that hand's attacks alone. The
+// piercing is a stat slot of the enchant that has no place in the stat array, added once per hand too.
+func NewSpellDataTemporaryEnchant(itemID int32, piercing SchoolPiercing, equipSpellIDs ...int32) {
 	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		hands := applyTemporaryEnchant(character, core.GetConsumableByID(itemID))
 		if len(hands) == 0 {
 			return
+		}
+		if piercing.Amount != 0 {
+			character.PseudoStats.SchoolSpellPiercing[piercing.School] += piercing.Amount * float64(len(hands))
 		}
 		for _, spellID := range equipSpellIDs {
 			row := spelldata.MustFind(spellID)

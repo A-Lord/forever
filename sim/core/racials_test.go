@@ -218,8 +218,11 @@ func TestGnomeWarrior(t *testing.T) {
 	if stacksAfter(hamstring) != 3 {
 		t.Fatalf("an ability the mask names should not spend a charge when it deals no damage")
 	}
-	if stacksAfter(rend) != 2 {
-		t.Fatalf("Rend's landed application deals no damage but should spend a charge for its DoT")
+	if stacksAfter(rend) != 3 {
+		t.Fatalf("Rend should not spend a charge: it is periodic, and the class mask does not name it")
+	}
+	if stacksAfter(mortalStrike) != 2 {
+		t.Fatalf("Mortal Strike should spend a charge")
 	}
 	stacksAfter(mortalStrike)
 	stacksAfter(mortalStrike)

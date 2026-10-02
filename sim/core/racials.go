@@ -315,24 +315,24 @@ func applyEureka(character *Character) {
 	switch character.Class {
 	case proto.Class_ClassRogue:
 		spellID, costReduction, resourceType = 1259812, 0.2, proto.ResourceType_ResourceTypeEnergy
-		costFlags = ClassFlags{Family: 8, Mask: [4]uint32{68290334, 2099464}}
-		damageFlags = ClassFlags{Family: 8, Mask: [4]uint32{68290334, 2318}}
+		costFlags = ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}}
+		damageFlags = costFlags
 	case proto.Class_ClassWarrior:
 		spellID, costReduction, resourceType = 1259813, 0.4, proto.ResourceType_ResourceTypeRage
-		costFlags = ClassFlags{Family: 4, Mask: [4]uint32{710934758, 4}}
+		costFlags = ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}}
 		damageFlags = costFlags
 	case proto.Class_ClassMage:
 		spellID, costReduction, resourceType = 1259817, 0.5, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 3, Mask: [4]uint32{545397431, 4096}}
-		damageFlags = costFlags
+		costFlags = ClassFlags{Family: 3, Mask: [4]uint32{549591799, 4096}}
+		damageFlags = ClassFlags{Family: 3, Mask: [4]uint32{551688947, 4096, 0, 8}}
 	case proto.Class_ClassWarlock:
 		spellID, costReduction, resourceType = 1259821, 0.5, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 5, Mask: [4]uint32{542127, 8388994}}
-		damageFlags = costFlags
+		costFlags = ClassFlags{Family: 5, Mask: [4]uint32{541165, 8650880}}
+		damageFlags = ClassFlags{Family: 5, Mask: [4]uint32{524773, 8388736}}
 	case proto.Class_ClassPriest:
 		spellID, costReduction, resourceType = 1259823, 0.15, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 6, Mask: [4]uint32{183811792, 8486916, 64}}
-		damageFlags = costFlags
+		costFlags = ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8388614}}
+		damageFlags = ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8486918}}
 		procMask |= ProcMaskSpellHealing
 		spendCallback |= CallbackOnHealDealt
 	default:

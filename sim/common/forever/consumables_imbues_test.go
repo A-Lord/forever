@@ -127,10 +127,10 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 	}
 }
 
-// Scroll of Imbue Baleflame 277487 puts enchant 8706 on a staff, whose equip spell 1306572 states
-// A_MOD_TARGET_RESISTANCE -10 on fire alone, and Scroll of Imbue Balefrost 277496 puts 8714 on it,
-// whose 1306580 states -15 on frost alone. Each pierces its own school's resistance and neither
-// adds SpellPiercing, which would reach every school.
+// Scroll of Imbue Baleflame 277487 puts enchant 8706 on a staff, which states 2 of the fire spell
+// penetration stat 119, and Scroll of Imbue Balefrost 277496 puts 8714 on it, which states 3 of the
+// frost one, 121. Each pierces its own school's resistance and neither adds SpellPiercing, which
+// would reach every school.
 func TestBaleImbuesPierceOneSchool(t *testing.T) {
 	const staff = 873
 	for _, c := range []struct {
@@ -138,8 +138,8 @@ func TestBaleImbuesPierceOneSchool(t *testing.T) {
 		fire, frost float64
 	}{
 		{0, 0, 0},
-		{277487, 10, 0},
-		{277496, 0, 15},
+		{277487, 2, 0},
+		{277496, 0, 3},
 	} {
 		_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: c.imbue}, staff, 0, proto.MobType_MobTypeUnknown)
 

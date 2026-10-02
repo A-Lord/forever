@@ -230,23 +230,6 @@ func RegisterAllEnchants() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Permanently enchant a Melee Weapon to have a chance to trigger Revelation when a non-periodic spell fails
-	// to critically strike. Revelation grants 100% increased critical strike chance to the next spell cast.
-	// Revelation's chance to trigger is diminished as your critical strike chance increases.
-	// https://www.wowhead.com/forever/spell=1248805
-	// unsupported: states no rate
-	// trigger 1248806 (no stated rate, core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt, core.ProcMaskSpellDamage | core.ProcMaskSpellHealing) -> buff 1248808
-	// shared.NewSpellDataAuraProc(shared.SpellDataProc{
-	//	Name:           "Enchant Weapon - Revelation",
-	//	EnchantID:      8217,
-	//	TriggerSpellID: 1248806,
-	//	BuffSpellID:    1248808,
-	// }, nil)
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Permanently enchant a pair of gloves to give a small chance to acquire Death Lotus when gathering any
 	// herb in Hyjal.
 	// https://www.wowhead.com/forever/spell=1294054

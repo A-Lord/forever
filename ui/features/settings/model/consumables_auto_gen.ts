@@ -312,7 +312,6 @@ export const TheMcWeaksauceClassic = { id: 23579 };
 export const DistilledFirewater = { id: 246948 };
 export const MinorArcaneElixir = { id: 247754 };
 export const ElixirOfMinorForce = { id: 247755 };
-export const LightningInABottle = { id: 248613 };
 export const PeaceTea = { id: 249865 };
 export const RoyalTea = { id: 249866 };
 export const RootTea = { id: 249867 };
