@@ -223,8 +223,7 @@ func init() {
 	// The proc spell names no buff: each class with spells to crit has a Revelation of its own, and the
 	// wearer gets its class's, with that row's class flags and charge. The game files state no rate,
 	// only that a direct spell or heal landing without a crit rolls it, and that the chance falls as
-	// the wearer's crit chance rises. A channel and the spell it casts each tick (Blizzard's) are not
-	// direct and never roll it.
+	// the wearer's crit chance rises. The spell a channel casts each tick (Blizzard's) rolls it too.
 	// TODO: Verify in game that warriors and rogues get no buff.
 	core.NewEnchantEffect(8217, func(agent core.Agent) {
 		character := agent.GetCharacter()
@@ -257,9 +256,6 @@ func init() {
 		spellHits, classFlags := trigger.ProcMask, spender.ClassFlags
 		trigger.ProcMask = core.ProcMaskUnknown
 		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			if character.IsChanneling() || spell.Flags.Matches(core.SpellFlagChanneled) {
-				return false
-			}
 			shot := spell.DefenseType == core.DefenseTypeRanged && spell.MatchesFlags(classFlags)
 			if !spell.ProcMask.Matches(spellHits) && !shot {
 				return false

@@ -210,8 +210,8 @@ func TestRevelationGrantsTheWearersClassBuff(t *testing.T) {
 	}
 }
 
-// A channel neither rolls Revelation nor spends it tick by tick: every tick crits with the buff up,
-// and the charge goes when the channel ends, run out or cut short.
+// A channel's ticks roll Revelation, but do not spend it tick by tick: every tick crits with the buff
+// up, and the charge goes when the channel ends, run out or cut short.
 func TestRevelationLastsTheWholeChannel(t *testing.T) {
 	sim, character := revelationWearer(t, proto.Class_ClassDruid, &proto.Player_BalanceDruid{BalanceDruid: &proto.BalanceDruid{}})
 	druid := sim.Raid.Parties[0].Players[0].(*testDruid)
@@ -227,19 +227,19 @@ func TestRevelationLastsTheWholeChannel(t *testing.T) {
 			sim.Step()
 		}
 	}
-	channelAndStep := func() {
-		druid.tickCrits = nil
-		druid.hurricane.SkipCastAndApplyEffects(sim, target)
-		stepWhile(channel.IsActive)
-		sim.Step()
-	}
-
-	for range 40 {
-		channelAndStep()
-		if buff.IsActive() {
-			t.Fatal("a channel's tick procced Revelation")
+	procced := false
+	for casts := 0; !procced; casts++ {
+		if casts > 40 {
+			t.Fatal("40 channels and no tick procced Revelation")
 		}
+		druid.hurricane.SkipCastAndApplyEffects(sim, target)
+		stepWhile(func() bool {
+			procced = procced || buff.IsActive()
+			return channel.IsActive()
+		})
 	}
+	sim.Step()
+	buff.Deactivate(sim)
 
 	for casts := 0; !buff.IsActive(); casts++ {
 		if casts > 300 {
