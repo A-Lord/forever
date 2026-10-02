@@ -178,7 +178,8 @@ func consumableEffects(s *spelldata.Spell) []*spelldata.Effect {
 
 // A temporary enchant's slots, by what the sim's enchant handling reads: flat weapon damage, a
 // resistance or a stat, a combat spell that deals damage at the chance the slot states, or an equip
-// spell whose auras the parser attaches. Spells that work only in one area do nothing in the sim.
+// spell whose auras the parser attaches or whose proc the imbue builder takes from its row. Spells
+// that work only in one area do nothing in the sim.
 func temporaryEnchantUnsupported(enchant dbc.TemporaryEnchant) []string {
 	if enchant.ID == 0 {
 		return []string{"the temporary enchant names no SpellItemEnchantment row"}
@@ -225,6 +226,12 @@ func equipSpellUnsupported(enchantID int, s *spelldata.Spell, spellID int32) []s
 		return []string{fmt.Sprintf("enchant %d's equip spell %d has no row in the store", enchantID, spellID)}
 	}
 	var unsupported []string
+	if s.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect {
+		for _, reason := range shared.TemporaryEnchantProcUnsupported(s) {
+			unsupported = append(unsupported, fmt.Sprintf("enchant %d's equip spell %d: %s", enchantID, spellID, reason))
+		}
+		return unsupported
+	}
 	for i := range s.Effects {
 		if e := &s.Effects[i]; e.Aura != 0 && !e.ParsedAura() {
 			unsupported = append(unsupported, fmt.Sprintf("enchant %d's equip spell %d applies %v, which the parser does not attach", enchantID, spellID, e.Aura))

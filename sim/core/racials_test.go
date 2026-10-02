@@ -234,8 +234,9 @@ func TestGnomeWarrior(t *testing.T) {
 	}
 }
 
-// Eureka!'s idx2 raises the ticks of a warlock channel its mask names, and the channel's landed cast
-// spends a stack. A periodic spell that is not a channel takes no bonus, on the mask or off it.
+// Eureka!'s idx2 raises the ticks of a warlock channel its mask names that spends a stack, on all of
+// its ticks, also after the last stack is gone. A channel cast with no stack up takes no bonus, nor
+// does a periodic spell that is not a channel, on the mask or off it.
 func TestGnomeWarlockEurekaChannel(t *testing.T) {
 	sim, fw := setupFakeWarlockSim(proto.Race_RaceGnome)
 	target := fw.CurrentTarget
@@ -247,9 +248,36 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 	eureka := fw.GetAura("Eureka!")
 
 	multiplier := func(spell *Spell) float64 { return spell.Dot(target).PeriodicDamageMultiplier }
-	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1.1, got, 0.0001) {
-		t.Fatalf("Eureka! should raise Drain Life's ticks by 10%%, got x%0.2f", got)
+	drainLife := fw.DrainLife.Dot(target)
+	var tickMultipliers []float64
+	onTick := drainLife.onTick
+	drainLife.onTick = func(sim *Simulation, target *Unit, dot *Dot) {
+		tickMultipliers = append(tickMultipliers, dot.PeriodicDamageMultiplier)
+		onTick(sim, target, dot)
 	}
+	castAndSpend := func(spell *Spell) {
+		tickMultipliers = nil
+		spell.SkipCastAndApplyEffects(sim, target)
+		for end := sim.CurrentTime + SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+		}
+	}
+	channelTicks := func() []float64 {
+		for drainLife.IsActive() && !sim.Step() {
+		}
+		return tickMultipliers
+	}
+
+	if got := multiplier(fw.DrainLife); got != 1 {
+		t.Fatalf("Eureka! should leave Drain Life alone until a cast spends a stack, got x%0.2f", got)
+	}
+	castAndSpend(fw.DrainLife)
+	if eureka.GetStacks() != 2 {
+		t.Fatalf("Drain Life's landed cast should spend a stack, %d left", eureka.GetStacks())
+	}
+	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1.1, got, 0.0001) {
+		t.Fatalf("Eureka! should raise the ticks of the Drain Life that spent a stack by 10%%, got x%0.2f", got)
+	}
+	castAndSpend(fw.Haunt)
 	if got := multiplier(fw.Haunt); got != 1 {
 		t.Fatalf("Eureka! should leave a periodic spell that is not a channel alone, even on its mask, got x%0.2f", got)
 	}
@@ -257,16 +285,32 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 		t.Fatalf("Eureka! should leave Corruption's ticks alone, got x%0.2f", got)
 	}
 
-	fw.DrainLife.SkipCastAndApplyEffects(sim, target)
-	for end := sim.CurrentTime + SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	castAndSpend(fw.DrainLife)
+	if eureka.IsActive() {
+		t.Fatalf("Drain Life should spend the last stack, %d left", eureka.GetStacks())
 	}
-	if eureka.GetStacks() != 2 {
-		t.Fatalf("Drain Life's landed cast should spend a stack, %d left", eureka.GetStacks())
+	ticks := channelTicks()
+	if len(ticks) != 5 {
+		t.Fatalf("Drain Life should tick 5 times, got %d", len(ticks))
+	}
+	for i, got := range ticks {
+		if !WithinToleranceFloat64(1.1, got, 0.0001) {
+			t.Fatalf("the Drain Life that spent the last stack should keep x1.1 on every tick, tick %d got x%0.2f", i+1, got)
+		}
+	}
+	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1, got, 0.0001) {
+		t.Fatalf("Drain Life should drop the bonus when its channel ends, got x%0.2f", got)
 	}
 
-	eureka.Deactivate(sim)
-	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1, got, 0.0001) {
-		t.Fatalf("Eureka! should drop the channel bonus when it ends, got x%0.2f", got)
+	castAndSpend(fw.DrainLife)
+	ticks = channelTicks()
+	if len(ticks) != 5 {
+		t.Fatalf("Drain Life should tick 5 times, got %d", len(ticks))
+	}
+	for i, got := range ticks {
+		if !WithinToleranceFloat64(1, got, 0.0001) {
+			t.Fatalf("a Drain Life cast after Eureka! ended should take no bonus, tick %d got x%0.2f", i+1, got)
+		}
 	}
 }
 

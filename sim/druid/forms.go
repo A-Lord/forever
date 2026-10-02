@@ -170,10 +170,6 @@ func (druid *Druid) RegisterCatFormAura() {
 	// druid.DisableBuildPhaseStatDep(sim, hotWCatApDep)
 	// }
 	//
-	// if druid.TigersFuryAura != nil {
-	// druid.TigersFuryAura.Deactivate(sim)
-	// }
-	//
 	// if !druid.Env.MeasuringStats {
 	// druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
 	// druid.AutoAttacks.EnableAutoSwing(sim)
@@ -305,7 +301,8 @@ func (druid *Druid) RegisterBearFormAura() {
 }
 
 // TODO: To be implemented.
-// TODO: Bear and Dire Bear Form generate 75% more rage from critical strikes; check the rage bar's crit multiplier applies to them.
+// TODO: A bear's auto attack takes the two-hander rage factor (11.25 rage a swing at a normalized speed of 2.5 in a
+// combat log), which the rage bar grants only at a normalized speed of 3.3; check whether the equipped weapon decides it.
 func (druid *Druid) registerBearFormSpell() {
 	panic("To be implemented")
 

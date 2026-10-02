@@ -52,9 +52,11 @@ func RegisterAllTemporaryEnchantConsumables() {
 		{itemID: 274947}, // Scroll of Imbue Lesser Flame
 		{itemID: 277485}, // Scroll of Imbue Frost
 		{itemID: 277487, piercing: shared.SchoolPiercing{School: stats.SchoolIndexFire, Amount: 2}}, // Scroll of Imbue Baleflame
+		{itemID: 277489, equipSpellIDs: []int32{1307644}},                                           // Scroll of Imbue Spark
 		{itemID: 277494}, // Scroll of Imbue Accuracy
 		{itemID: 277496, piercing: shared.SchoolPiercing{School: stats.SchoolIndexFrost, Amount: 3}}, // Scroll of Imbue Balefrost
 		{itemID: 277497}, // Scroll of Imbue Flame
+		{itemID: 277498, equipSpellIDs: []int32{1308913}}, // Scroll of Imbue Manablade
 		{itemID: 277500}, // Scroll of Imbue Greater Flame
 		{itemID: 277501}, // Scroll of Imbue Greater Frost
 		{itemID: 277502}, // Scroll of Imbue Precision

@@ -195,6 +195,8 @@ func (hunter *Hunter) registerSniperShot() {
 	})
 
 	// One charge per Shot, however many targets it hits.
+	// TODO: Ingame test needed: a Shot that misses keeps the charge (the row's proc flags ask for damage
+	// dealt), and Multi-Shot spends one charge per cast.
 	var lastSpent *core.Spell
 	var lastSpentAt time.Duration
 	spend := spelldata.ProcTrigger(&hunter.Character, sniperShotRank,

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -151,7 +152,8 @@ func registrationFamilyOf(c *proto.Consumable, catalogued *dbc.Consumable, routi
 // resistance or weapon damage to the enchant's own fields, whose every effect lands on the user, and
 // whose every aura the builder's parse, counted once per hand, attaches. Consecrated Sharpening
 // Stone's enchant 2684 names 28893, its attack power against Undead; a wizard oil's equip spell is
-// already the enchant's spell damage.
+// already the enchant's spell damage. An equip spell that procs is taken where the builder can
+// build its listener: Scroll of Imbue Manablade's enchant 8715 names 1308913, mana on melee hits.
 func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 	var spellIDs []int32
 	for slot, effect := range enchant.Effects {
@@ -164,8 +166,12 @@ func parsedEquipSpells(enchant dbc.TemporaryEnchant) []int32 {
 		fields := alone.ToProto()
 		row := spelldata.Find(spellID)
 		if slices.ContainsFunc(fields.Stats, isNonZero) || slices.ContainsFunc(fields.PseudoStats, isNonZero) ||
-			fields.WeaponDamage != 0 || len(fields.EnchantEffects) > 0 ||
-			row == spelldata.Nil || slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0 {
+			fields.WeaponDamage != 0 || len(fields.EnchantEffects) > 0 || row == spelldata.Nil {
+			continue
+		}
+		procs := row.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect
+		if procs && len(shared.TemporaryEnchantProcUnsupported(row)) > 0 ||
+			!procs && (slices.ContainsFunc(row.Effects, landsOffTheUser) || len(spelldata.DryRun(row, spelldata.Count(2)).Skipped) > 0) {
 			continue
 		}
 		spellIDs = append(spellIDs, spellID)
