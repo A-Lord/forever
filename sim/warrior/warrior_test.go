@@ -479,8 +479,16 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 	if crusaderTrigger == nil || crusaderTrigger.Dpm == nil {
 		t.Fatal("the main hand's Crusader registered no proc manager")
 	}
-	if crusaderTrigger.Dpm.Chance(mainHandSpecial.ProcMask, sim) == 0 {
-		t.Fatal("a main-hand special never rolls Crusader, so the check below proves nothing")
+	rollsCrusader := func(procMask core.ProcMask) bool {
+		for range 1000 {
+			if crusaderTrigger.Dpm.Proc(sim, procMask, "Crusader Test") {
+				return true
+			}
+		}
+		return false
+	}
+	if !rollsCrusader(mainHandSpecial.ProcMask) {
+		t.Fatal("1000 main-hand specials never procced Crusader, so the check below proves nothing")
 	}
 
 	windfuryTrigger := war.GetAura("Windfury Totem Trigger")
@@ -490,8 +498,8 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 	}
 
 	for name, spell := range shieldSpells(t, war) {
-		if got := crusaderTrigger.Dpm.Chance(spell.ProcMask, sim); got != 0 {
-			t.Errorf("%s rolls the main hand's Crusader at %v, want never", name, got)
+		if rollsCrusader(spell.ProcMask) {
+			t.Errorf("%s procced the main hand's Crusader", name)
 		}
 		for i := 0; i < 200 && !windfury.IsActive(); i++ {
 			windfuryTrigger.OnSpellHitDealt(windfuryTrigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})

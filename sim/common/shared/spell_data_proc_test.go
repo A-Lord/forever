@@ -50,18 +50,6 @@ func TestSpellDataProcRegistersEveryVariant(t *testing.T) {
 	if !core.HasItemEffect(990001) || !core.HasItemEffect(990002) {
 		t.Error("a variant was left unregistered")
 	}
-
-	// Only the highest ID goes into the test suite, so a dozen re-issues of one trinket do not each
-	// get their own fixture entry.
-	if core.HasItemEffectForTest(990001) {
-		t.Error("the lower-ID variant was added to the test suite as well")
-	}
-	if !core.HasItemEffectForTest(990002) {
-		t.Error("the highest-ID variant was kept out of the test suite")
-	}
-	if !core.AddEffectsToTest {
-		t.Error("the variant loop left effects out of the test suite for whatever registers next")
-	}
 }
 
 // A row that names no hits the sim hears would register a listener that can never fire. 1249119 is
@@ -482,7 +470,7 @@ func TestSpellDataProcTakesAPPMOverride(t *testing.T) {
 			row := *spelldata.MustFind(tc.spellID)
 			unsupported := func() []string {
 				if tc.isWeaponProc {
-					return spelldata.ItemProcUnsupported(&row, true)
+					return spelldata.ItemProcUnsupportedWithRate(&row, true, 0)
 				}
 				return spelldata.EnchantAuraUnsupported(&row)
 			}

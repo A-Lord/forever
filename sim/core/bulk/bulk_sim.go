@@ -34,10 +34,6 @@ type BulkSimCandidateResult struct {
 	Error      *proto.ErrorOutcome
 }
 
-func BulkSim(request *proto.BulkSimRequest) *proto.BulkSimResult {
-	return runBulkSim(request, nil, simsignals.CreateSignals())
-}
-
 func BulkSimAsync(request *proto.BulkSimRequest, progress chan *proto.ProgressMetrics, requestId string) {
 	signals, err := simsignals.RegisterWithId(requestId)
 	if err != nil {
