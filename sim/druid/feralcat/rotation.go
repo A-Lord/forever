@@ -5,98 +5,54 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/druid"
 )
 
-// Ported from https://github.com/NerdEgghead/TBC_cat_sim
-
+// A Rip cast with less of the fight left than this does not tick out.
 const RipEndThresh = time.Second * 10
 
 type FeralDruidRotation struct {
-	RipCP        int32
-	BiteCP       int32
-	RipTrickCP   int32
-	UseBite      bool
-	BiteOverRip  bool
-	UseRipTrick  bool
-	UseRakeTrick bool
-	Wolfshead    bool
-
+	RipCP              int32
+	BiteCP             int32
+	UseBite            bool
+	BiteOverRip        bool
+	UseRakeTrick       bool
 	MaintainFaerieFire bool
 }
 
 func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
-	useBite := (rotation.Biteweave && rotation.FinishingMove == proto.FeralCatDruid_Rotation_Rip) ||
-		rotation.FinishingMove == proto.FeralCatDruid_Rotation_Bite
-	ripCP := rotation.RipMinComboPoints
-
-	if rotation.FinishingMove != proto.FeralCatDruid_Rotation_Rip {
-		ripCP = 6
+	ripFinisher := rotation.FinishingMove == proto.FeralCatDruid_Rotation_Rip
+	biteFinisher := rotation.FinishingMove == proto.FeralCatDruid_Rotation_Bite
+	// A Rip needs more combo points than the bar holds when the rotation never casts it.
+	ripCP := int32(6)
+	if ripFinisher || (biteFinisher && rotation.Ripweave) {
+		ripCP = rotation.RipMinComboPoints
 	}
 
 	cat.Rotation = FeralDruidRotation{
-		RipCP:        ripCP,
-		BiteCP:       rotation.BiteMinComboPoints,
-		RipTrickCP:   rotation.RipMinComboPoints,
-		UseBite:      useBite,
-		BiteOverRip:  useBite && rotation.FinishingMove != proto.FeralCatDruid_Rotation_Rip,
-		UseRipTrick:  rotation.Ripweave,
-		UseRakeTrick: rotation.RakeTrick,
-		Wolfshead:    cat.HasItemEquipped(8345, []proto.ItemSlot{proto.ItemSlot_ItemSlotHead}),
-
+		RipCP:              ripCP,
+		BiteCP:             rotation.BiteMinComboPoints,
+		UseBite:            biteFinisher || (ripFinisher && rotation.Biteweave),
+		BiteOverRip:        biteFinisher,
+		UseRakeTrick:       rotation.RakeTrick,
 		MaintainFaerieFire: rotation.MaintainFaerieFire,
 	}
 }
 
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
-func (cat *FeralDruid) shift(sim *core.Simulation) bool {
-	// Shifting Power spends mana for energy and stays in cat form. A cast that
-	// cannot happen (cooldown, mana, missing talent, wrong form) is not a shift.
-	if !cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
-		cat.readyToShift = false
-		return false
-	}
-
-	cat.waitingForTick = false
-
-	// If we have just now decided to shift, then we do not execute the
-	// shift immediately, but instead trigger an input delay for realism.
-	if !cat.readyToShift {
-		cat.readyToShift = true
-		return false
-	}
-
-	cat.readyToShift = false
-
-	// Ready cooldowns fire first. Core refuses one that would leave cat form.
-	// One that takes the GCD is left for the next decision.
-	for _, mcd := range cat.GetMajorCooldowns() {
-		if !mcd.IsReady(sim) {
-			continue
-		}
-		mcd.TryActivate(sim, &cat.Character)
-	}
-
-	if !cat.GCD.IsReady(sim) {
-		return true
-	}
-	return cat.ShiftingPower.Cast(sim, cat.CurrentTarget)
-}
-
+// One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder, and
+// Shifting Power when the builder is unaffordable. When nothing is castable it returns without
+// waiting, so the APL looks again one reaction time later.
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if !cat.GCD.IsReady(sim) {
 		return false
 	}
 
-	// Shifting Power is the mana check that opens an OOM event. This rotation
-	// bails out before casting, so drive the event pair explicitly to keep the
-	// measured OOM time accurate. It has to sit above the early returns below:
-	// an event opened here must be able to close on the same evaluation paths,
-	// or a readyToShift tick or a Faerie Fire refresh leaves it open and
-	// inflates the measured OOM time.
+	// Shifting Power is the mana check that opens an OOM event. This rotation bails out before
+	// casting, so it drives the event pair itself to keep the measured OOM time accurate.
 	shiftCost := cat.ShiftingPower.Cost.GetCurrentCost()
-	oom := cat.CurrentMana() < shiftCost
-	if oom {
+	if cat.CurrentMana() < shiftCost {
 		if !cat.IsOOM() {
 			cat.StartOOMEvent(sim, shiftCost, false)
 		}
@@ -104,5 +60,47 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		cat.EndOOMEvent(sim, false)
 	}
 
-	return cat.probeRotation(sim)
+	shiftDecided := cat.readyToShift
+	cat.readyToShift = false
+
+	if !cat.InForm(druid.Cat) {
+		return cat.CatForm.Cast(sim, nil)
+	}
+
+	rotation := &cat.Rotation
+	target := cat.CurrentTarget
+	if rotation.MaintainFaerieFire && !cat.FaerieFireAuras.Get(target).IsActive() && cat.FaerieFire.CanCast(sim, target) {
+		return cat.FaerieFire.Cast(sim, target)
+	}
+
+	cp := cat.ComboPoints()
+	ripUp := cat.Rip.CurDot().IsActive()
+	if cp >= rotation.RipCP && !ripUp && sim.GetRemainingDuration() >= RipEndThresh &&
+		cat.Rip.CanCast(sim, target) {
+		return cat.Rip.Cast(sim, target)
+	}
+	if rotation.UseBite && cp >= rotation.BiteCP && (ripUp || rotation.BiteOverRip) && cat.FerociousBite.CanCast(sim, target) {
+		return cat.FerociousBite.Cast(sim, target)
+	}
+	if rotation.UseRakeTrick && !cat.Rake.CurDot().IsActive() && cat.Rake.CanCast(sim, target) {
+		return cat.Rake.Cast(sim, target)
+	}
+
+	builder := cat.Claw
+	if cat.BehindTarget() {
+		builder = cat.Shred
+	}
+	if builder.CanCast(sim, target) {
+		return builder.Cast(sim, target)
+	}
+
+	// Shifting Power is cast on the decision after the one that first finds the builder
+	// unaffordable, one reaction time later.
+	if cat.CurrentEnergy() < builder.Cost.GetCurrentCost() && cat.ShiftingPower.CanCast(sim, target) {
+		if shiftDecided {
+			return cat.ShiftingPower.Cast(sim, target)
+		}
+		cat.readyToShift = true
+	}
+	return false
 }

@@ -64,11 +64,6 @@ export const FeralDruidRotationConfig = {
 			},
 		}),
 		InputHelpers.makeRotationBooleanInput<Spec.SpecFeralCatDruid>({
-			fieldName: 'mangleTrick',
-			label: i18n.t('rotation_tab.options.druid.feral_cat.mangle_trick.label'),
-			labelTooltip: i18n.t('rotation_tab.options.druid.feral_cat.mangle_trick.tooltip'),
-		}),
-		InputHelpers.makeRotationBooleanInput<Spec.SpecFeralCatDruid>({
 			fieldName: 'rakeTrick',
 			label: i18n.t('rotation_tab.options.druid.feral_cat.rake_trick.label'),
 			labelTooltip: i18n.t('rotation_tab.options.druid.feral_cat.rake_trick.tooltip'),

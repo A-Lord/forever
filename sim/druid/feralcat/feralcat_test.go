@@ -118,18 +118,15 @@ func BenchmarkSimulate(b *testing.B) {
 	core.RaidBenchmark(b, rsr)
 }
 
-const DefaultTalents = "-50303231320221050012-05503301"
-const MonocatTalents = "-5530023132022105001-05503301"
+const DefaultTalents = "05002-55000032021032212051-055"
+const MonocatTalents = "-55000032021032212051-05503"
 
 var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 	FeralCatDruid: &proto.FeralCatDruid{
 		Rotation: &proto.FeralCatDruid_Rotation{
 			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-			Biteweave:          true,
-			RipMinComboPoints:  5,
+			RipMinComboPoints:  4,
 			BiteMinComboPoints: 5,
-			MangleTrick:        true,
-			MaintainFaerieFire: false,
 		},
 		Options: &proto.FeralCatDruid_Options{},
 	},

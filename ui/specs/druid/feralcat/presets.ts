@@ -32,7 +32,6 @@ export const DefaultRotation = FeralCatDruidRotation.create({
 	finishingMove: FinishingMove.Rip,
 	ripMinComboPoints: 4,
 	biteMinComboPoints: 5,
-	rakeTrick: true,
 });
 
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);

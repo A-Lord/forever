@@ -165,15 +165,14 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	reforge: {},
 });
 
-// Shifting Power is cast when energy is short of Shred. Rake, when enabled, is
-// refreshed before Shred. Cooldowns fire from the same decision; core refuses one
-// that would leave cat form.
+// Major cooldowns (Berserk, trinkets, potions) fire on cooldown ahead of the cat rotation; core refuses
+// one that would leave cat form. The rotation casts Shifting Power when the builder is unaffordable.
 function catPowershiftRotation(simple: DruidRotation): APLRotation {
 	const doRotation = APLAction.fromJsonString(
-		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"mangleTrick":${simple.mangleTrick},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
+		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
 	);
 
 	return APLRotation.create({
-		priorityList: [APLListItem.create({ action: doRotation })],
+		priorityList: [APLListItem.create({ action: APLAction.fromJsonString(`{"autocastOtherCooldowns":{}}`) }), APLListItem.create({ action: doRotation })],
 	});
 }

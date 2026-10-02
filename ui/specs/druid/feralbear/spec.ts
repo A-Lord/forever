@@ -171,6 +171,6 @@ function bearSimpleRotation(simple: DruidRotation): APLRotation {
 		`{"bearOptimalRotationAction":{"maintainFaerieFire":${simple.maintainFaerieFire},"maintainDemoralizingRoar":${simple.maintainDemoralizingRoar},"maulRageThreshold":${simple.maulRageThreshold || 50},"swipeUsage":${simple.swipeUsage},"swipeApThreshold":${simple.swipeApThreshold || 2700}}}`,
 	);
 	return APLRotation.create({
-		priorityList: [APLListItem.create({ action: doRotation })],
+		priorityList: [APLListItem.create({ action: APLAction.fromJsonString(`{"autocastOtherCooldowns":{}}`) }), APLListItem.create({ action: doRotation })],
 	});
 }

@@ -377,7 +377,8 @@ message APLActionCatOptimalRotationAction {
     bool ripweave = 3;
     int32 rip_min_combo_points = 4;
     int32 bite_min_combo_points = 5;
-    bool mangle_trick = 6;
+    reserved 6;
+    reserved "mangle_trick";
     bool rake_trick = 7;
     bool maintain_faerie_fire = 8;
 }

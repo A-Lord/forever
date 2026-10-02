@@ -5,7 +5,7 @@ package feralcat
 import (
 	"fmt"
 	"os"
-	"strings"
+	"strconv"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
@@ -13,110 +13,145 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
+// Compares the simple rotation's options, a build without Shifting Power, and bear-weaving written
+// as an APL around the cat rotation. Prints a table; asserts nothing.
 func TestRotationSweep(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
-		t.Skip("set ROTATION_SWEEP=1 to compare Shifting Power thresholds, bearweaving and finishers")
+		t.Skip("set ROTATION_SWEEP=1 (and ROTATION_SWEEP_ITERATIONS) to compare rotation options")
 	}
-	defer func() { probe = rotationProbe{} }()
+	iterations := int32(300)
+	if n, err := strconv.Atoi(os.Getenv("ROTATION_SWEEP_ITERATIONS")); err == nil && n > 0 {
+		iterations = int32(n)
+	}
 
 	_, costCat := newCat(t, powershiftTalents, nil)
-	fmt.Printf("energy cost shred %.0f rip %.0f bite %.0f rake %.0f\n",
-		costCat.CurrentShredCost(), costCat.CurrentRipCost(), costCat.CurrentFerociousBiteCost(), costCat.Rake.Cost.GetCurrentCost())
-	fmt.Printf("shifting power %v improved %d heart %d shapeshifter %d naturalist %d genesis %d majesty %d mana cost %.0f\n",
-		costCat.Talents.ShiftingPower, costCat.Talents.ImprovedShiftingPower, costCat.Talents.HeartOfTheWild,
-		costCat.Talents.NaturalShapeshifter, costCat.Talents.Naturalist, costCat.Talents.Genesis, costCat.Talents.NaturesMajesty,
-		costCat.ShiftingPower.Cost.GetCurrentCost())
+	fmt.Printf("energy cost shred %.0f claw %.0f rip %.0f bite %.0f rake %.0f, shifting power %.0f mana\n",
+		costCat.Shred.Cost.GetCurrentCost(), costCat.Claw.Cost.GetCurrentCost(), costCat.Rip.Cost.GetCurrentCost(),
+		costCat.FerociousBite.Cost.GetCurrentCost(), costCat.Rake.Cost.GetCurrentCost(), costCat.ShiftingPower.Cost.GetCurrentCost())
 
-	base := sweepRotation(true, false, 5, 5, false, true)
-	rake5 := sweepRotation(true, false, 5, 5, true, true)
-	rake4 := sweepRotation(true, false, 4, 5, true, true)
-	belowShred := rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true}
+	shipped := func() *proto.FeralCatDruid_Rotation {
+		return &proto.FeralCatDruid_Rotation{FinishingMove: proto.FeralCatDruid_Rotation_Rip, RipMinComboPoints: 4, BiteMinComboPoints: 5}
+	}
+	with := func(edit func(*proto.FeralCatDruid_Rotation)) *proto.FeralCatDruid_Rotation {
+		r := shipped()
+		edit(r)
+		return r
+	}
 	rows := []struct {
-		name string
-		p    rotationProbe
-		rot  *proto.APLActionCatOptimalRotationAction
-		bite bool
+		name     string
+		talents  string
+		rotation *proto.APLRotation
+		noShred  bool
 	}{
-		{"shipped policy on rip 5", rotationProbe{}, base, false},
-		{"SP when short of shred", belowShred, base, false},
-		{"SP<=60 after builders", rotationProbe{enabled: true, shiftBelow: 60}, base, false},
-		{"SP before shred at <=60", rotationProbe{enabled: true, shiftBelow: 60, spBeforeBuilder: true}, base, false},
-		{"short + rake after shred", belowShred, rake5, false},
-		{"short + rake before shred", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, rake5, false},
-		{"short + rake + rip 4", belowShred, rake4, false},
-		{"rake first + rip 4", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, rake4, false},
-		{"rake first rip 4 bite off", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, true), false},
-		{"rake first rip 4 no ff", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(true, false, 4, 5, true, false), false},
-		{"shipped default", rotationProbe{}, sweepRotation(false, false, 4, 5, true, false), false},
-		{"SP<=42 shipped apl", rotationProbe{enabled: true, shiftBelow: 42, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
-		{"SP<=30 shipped apl", rotationProbe{enabled: true, shiftBelow: 30, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
-		{"SP<=20 shipped apl", rotationProbe{enabled: true, shiftBelow: 20, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
-		{"never shifting power", rotationProbe{enabled: true, shiftBelow: -1, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
-		{"no shifting power talent", rotationProbe{}, sweepRotation(false, false, 4, 5, true, false), false},
-		{"rake first rip 5 bite off", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(false, false, 5, 5, true, true), false},
-		{"bearweave", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, bearweave: true}, rake5, true},
-		{"bite is the finisher", belowShred, sweepRotation(false, true, 5, 5, true, true), false},
-		{"rip4 rake-first, raid has no ff", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(true, false, 4, 5, true, true), false},
-		{"rip4 rake-first, no ff cast, raid has no ff", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(true, false, 4, 5, true, false), false},
+		{"default: rip 4, no rake/bite/ff", powershiftTalents, catRotation(shipped()), false},
+		{"rip 5", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.RipMinComboPoints = 5 })), false},
+		{"maintain rake", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.RakeTrick = true })), false},
+		{"maintain rake, rip 5", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) {
+			r.RakeTrick = true
+			r.RipMinComboPoints = 5
+		})), false},
+		{"biteweave", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.Biteweave = true })), false},
+		{"bite finisher", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) {
+			r.FinishingMove = proto.FeralCatDruid_Rotation_Bite
+		})), false},
+		{"bite finisher + ripweave", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) {
+			r.FinishingMove = proto.FeralCatDruid_Rotation_Bite
+			r.Ripweave = true
+		})), false},
+		{"maintain faerie fire", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.MaintainFaerieFire = true })), false},
+		{"no shifting power talent", withFeralDigit(powershiftTalents, 10, '0'), catRotation(shipped()), false},
+		{"claw, target cannot be shredded", powershiftTalents, catRotation(shipped()), true},
+		// Primal Bite is one point over the 51 the default build spends, so this row is the most a
+		// bear-weave could gain.
+		{"bear-weave Primal Bite", withFeralDigit(powershiftTalents, 11, '1'), bearweaveRotation(shipped()), false},
 	}
 
-	fmt.Printf("%-28s %8s %7s %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		"rotation", "dps", "stdev", "sp", "shred", "rip", "bite", "rake", "ff", "bear", "pbite")
+	fmt.Printf("%-34s %8s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
+		"rotation", "dps", "stdev", "sp", "shred", "claw", "rip", "bite", "rake", "ff", "bsrk", "bear", "pbite")
 	for _, row := range rows {
-		probe = row.p
-		talents := powershiftTalents
-		if row.bite {
-			talents = withFeralDigit(talents, 11, '1')
-		}
-		if strings.Contains(row.name, "no shifting power talent") {
-			talents = withFeralDigit(talents, 10, '0')
-		}
-		result := core.RunSim(sweepRequest(talents, row.rot, !strings.Contains(row.name, "raid has no ff")), nil, simsignals.CreateSignals())
+		result := core.RunSim(sweepRequest(row.talents, row.rotation, row.noShred, iterations), nil, simsignals.CreateSignals())
 		if result.Error != nil {
 			t.Fatalf("%s: %s", row.name, result.Error.Message)
 		}
 		player := result.RaidMetrics.Parties[0].Players[0]
-		per := float64(result.IterationsDone)
-		fmt.Printf("%-28s %8.2f %7.2f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
+		per := func(id int32) float64 { return float64(castsOf(player.Actions, id)) / float64(result.IterationsDone) }
+		fmt.Printf("%-34s %8.2f %7.2f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
 			row.name, player.Dps.Avg, player.Dps.Stdev,
-			sweepCasts(player, 1322605)/per, sweepCasts(player, 9830)/per, sweepCasts(player, 9896)/per,
-			sweepCasts(player, 22829)/per, sweepCasts(player, 9904)/per, sweepCasts(player, 9907)/per,
-			sweepCasts(player, 9634)/per, sweepCasts(player, 1238073)/per)
+			per(1322605), per(9830), per(9850), per(9896), per(22829), per(9904), per(9907), per(417141), per(9634), per(1238073))
 	}
+}
+
+func catRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
+	return &proto.APLRotation{PriorityList: []*proto.APLListItem{
+		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{}}}},
+		{Action: catAction(simple)},
+	}}
+}
+
+// Dire Bear Form when Shred is unaffordable and Shifting Power is on cooldown, Primal Bite once the
+// rage is there, and back to cat once it is on cooldown. 42 is Shred's cost with Shredding Attacks 3/3.
+func bearweaveRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
+	inBear := auraUp(9634)
+	cat := catAction(simple)
+	cat.Condition = not(inBear)
+	return &proto.APLRotation{PriorityList: []*proto.APLListItem{
+		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{}}}},
+		castWhen(1238073, inBear),
+		castWhen(768, and(inBear, not(spellReady(1238073)))),
+		castWhen(9634, and(auraUp(768), cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst("42")),
+			not(spellReady(1322605)), spellReady(1238073))),
+		{Action: cat},
+	}}
+}
+
+func catAction(simple *proto.FeralCatDruid_Rotation) *proto.APLAction {
+	return &proto.APLAction{Action: &proto.APLAction_CatOptimalRotationAction{
+		CatOptimalRotationAction: &proto.APLActionCatOptimalRotationAction{
+			FinishingMove:      simple.FinishingMove,
+			Biteweave:          simple.Biteweave,
+			Ripweave:           simple.Ripweave,
+			RipMinComboPoints:  simple.RipMinComboPoints,
+			BiteMinComboPoints: simple.BiteMinComboPoints,
+			RakeTrick:          simple.RakeTrick,
+			MaintainFaerieFire: simple.MaintainFaerieFire,
+		},
+	}}
+}
+
+func spellReady(id int32) *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_SpellIsReady{SpellIsReady: &proto.APLValueSpellIsReady{
+		SpellId: &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}},
+	}}}
+}
+
+func currentEnergy() *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_CurrentEnergy{CurrentEnergy: &proto.APLValueCurrentEnergy{}}}
 }
 
 // withFeralDigit sets one feral-tree digit. Index 10 is Shifting Power, 11 is Primal Bite.
 func withFeralDigit(talents string, index int, digit byte) string {
-	parts := strings.Split(talents, "-")
-	feral := []byte(parts[1])
-	feral[index] = digit
-	parts[1] = string(feral)
-	return strings.Join(parts, "-")
+	parts := []byte(talents)
+	start := 0
+	for i, c := range parts {
+		if c == '-' {
+			start = i + 1
+			break
+		}
+	}
+	parts[start+index] = digit
+	return string(parts)
 }
 
-func sweepRotation(biteweave bool, biteFinisher bool, ripCP, biteCP int32, rake, ff bool) *proto.APLActionCatOptimalRotationAction {
-	finish := proto.FeralCatDruid_Rotation_Rip
-	if biteFinisher {
-		finish = proto.FeralCatDruid_Rotation_Bite
-	}
-	return &proto.APLActionCatOptimalRotationAction{
-		FinishingMove:      finish,
-		Biteweave:          biteweave,
-		RipMinComboPoints:  ripCP,
-		BiteMinComboPoints: biteCP,
-		RakeTrick:          rake,
-		MaintainFaerieFire: ff,
-	}
-}
-
-func sweepRequest(talents string, rot *proto.APLActionCatOptimalRotationAction, raidFaerieFire bool) *proto.RaidSimRequest {
+// A 180-second fight against a level-63 demon with the cat UI's default raid buffs and debuffs, the
+// 866 dagger and no consumables.
+func sweepRequest(talents string, rotation *proto.APLRotation, cannotShred bool, iterations int32) *proto.RaidSimRequest {
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
 	}
 	items[proto.ItemSlot_ItemSlotMainHand].Id = 866
 	return &proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{RandomSeed: 101, Iterations: 300, IsTest: true},
+		SimOptions: &proto.SimOptions{RandomSeed: 101, Iterations: iterations, IsTest: true},
 		Raid: &proto.Raid{
 			Parties: []*proto.Party{{
 				Players: []*proto.Player{{
@@ -130,13 +165,9 @@ func sweepRequest(talents string, rot *proto.APLActionCatOptimalRotationAction, 
 						GreaterBlessingOfMight: true,
 					},
 					Spec: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
-						Options: &proto.FeralCatDruid_Options{},
+						Options: &proto.FeralCatDruid_Options{CannotShredTarget: cannotShred},
 					}},
-					Rotation: &proto.APLRotation{PriorityList: []*proto.APLListItem{{
-						Action: &proto.APLAction{Action: &proto.APLAction_CatOptimalRotationAction{
-							CatOptimalRotationAction: rot,
-						}},
-					}}},
+					Rotation: rotation,
 				}},
 				Buffs: &proto.PartyBuffs{
 					BattleShout:          proto.TristateEffect_TristateEffectRegular,
@@ -157,7 +188,7 @@ func sweepRequest(talents string, rot *proto.APLActionCatOptimalRotationAction, 
 				HuntersMark:         true,
 				JudgementOfWisdom:   true,
 				CurseOfRecklessness: true,
-				FaerieFire:          raidFaerieFire,
+				FaerieFire:          true,
 				SunderArmor:         true,
 				GiftOfArthas:        true,
 			},
@@ -166,17 +197,4 @@ func sweepRequest(talents string, rot *proto.APLActionCatOptimalRotationAction, 
 			Name: "target", Level: 63, MobType: proto.MobType_MobTypeDemon,
 		}}, Duration: 180},
 	}
-}
-
-func sweepCasts(player *proto.UnitMetrics, spellID int32) float64 {
-	var n int32
-	for _, action := range player.Actions {
-		if action.GetId().GetSpellId() != spellID {
-			continue
-		}
-		for _, target := range action.Targets {
-			n += target.Casts
-		}
-	}
-	return float64(n)
 }

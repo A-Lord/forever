@@ -6822,19 +6822,6 @@
 											"additionalProperties": false,
 											"required": ["label", "tooltip"]
 										},
-										"mangle_trick": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
 										"rake_trick": {
 											"type": "object",
 											"properties": {
@@ -6869,7 +6856,6 @@
 										"ripweave",
 										"rip_min_combo_points",
 										"bite_min_combo_points",
-										"mangle_trick",
 										"rake_trick",
 										"maintain_faerie_fire"
 									]

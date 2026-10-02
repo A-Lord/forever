@@ -13,32 +13,84 @@ import (
 // Same tree as the cat UI default. Shifting Power is the 11th feral talent.
 const powershiftTalents = "05002-55000032021032212051-055"
 
-func TestPowershiftUsesShiftingPower(t *testing.T) {
-	result := core.RunSim(catPowershiftRequest(), nil, simsignals.CreateSignals())
-	if result.Error != nil {
-		t.Fatalf("sim error: %s", result.Error.Message)
+// The rotation the cat UI sends by default.
+func defaultCatRotation() *proto.APLRotation {
+	return catRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  4,
+		BiteMinComboPoints: 5,
+	})
+}
+
+func TestDefaultRotationStaysInCatForm(t *testing.T) {
+	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), false))
+	for _, c := range []struct {
+		name string
+		id   int32
+	}{{"Shifting Power", 1322605}, {"Shred", 9830}, {"Rip", 9896}, {"Berserk", 417141}} {
+		if castsOf(player.Actions, c.id) == 0 {
+			t.Errorf("%s was never cast", c.name)
+		}
 	}
-	player := result.RaidMetrics.Parties[0].Players[0]
-	if player.Dps.Avg <= 0 {
-		t.Fatalf("dps = %v, want a fight that deals damage", player.Dps.Avg)
+	for _, c := range []struct {
+		name string
+		id   int32
+	}{{"Cat Form", 768}, {"Ferocious Bite", 22829}, {"Rake", 9904}, {"Faerie Fire", 9907}} {
+		if got := castsOf(player.Actions, c.id); got != 0 {
+			t.Errorf("%s casts = %d, the default rotation leaves it out", c.name, got)
+		}
 	}
-	if got := castsOf(player.Actions, 1322605); got == 0 {
-		t.Fatal("shifting power was never cast")
-	}
-	if got := castsOf(player.Actions, 9830); got == 0 {
-		t.Fatal("shred was never cast")
-	}
-	if got := castsOf(player.Actions, 9896); got == 0 {
-		t.Fatal("rip was never cast")
-	}
-	if got := castsOf(player.Actions, 768); got != 0 {
-		t.Fatalf("cat form casts = %d, the energy button left cat form", got)
+}
+
+func TestMaintainRakeKeepsRakeUp(t *testing.T) {
+	rotation := catRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  4,
+		BiteMinComboPoints: 5,
+		RakeTrick:          true,
+	})
+	player := runCat(t, catPowershiftRequest(powershiftTalents, rotation, false))
+	// Rake lasts 9 s, so a 90 s fight that keeps it up casts it about ten times.
+	if got := castsOf(player.Actions, 9904); got < 8 {
+		t.Errorf("rake casts = %d in 90 s, want it kept up", got)
 	}
 }
 
 func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
-	request := catPowershiftRequest()
-	request.Raid.Parties[0].Players[0].TalentsString = withFeralDigit(powershiftTalents, 10, '0')
+	player := runCat(t, catPowershiftRequest(withFeralDigit(powershiftTalents, 10, '0'), defaultCatRotation(), false))
+	if got := castsOf(player.Actions, 1322605); got != 0 {
+		t.Fatalf("shifting power casts = %d, the talent is not taken", got)
+	}
+	if castsOf(player.Actions, 9896) == 0 {
+		t.Fatal("rip was never cast")
+	}
+}
+
+func TestRotationClawsWhenShredCannotLand(t *testing.T) {
+	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), true))
+	if got := castsOf(player.Actions, 9830); got != 0 {
+		t.Errorf("shred casts = %d against a target that cannot be shredded", got)
+	}
+	if castsOf(player.Actions, 9850) == 0 || castsOf(player.Actions, 9896) == 0 {
+		t.Error("claw did not build combo points into rip")
+	}
+}
+
+func TestRipweaveCastsRipBesideTheBiteFinisher(t *testing.T) {
+	rotation := catRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Bite,
+		Ripweave:           true,
+		RipMinComboPoints:  5,
+		BiteMinComboPoints: 5,
+	})
+	player := runCat(t, catPowershiftRequest(powershiftTalents, rotation, false))
+	if castsOf(player.Actions, 9896) == 0 || castsOf(player.Actions, 22829) == 0 {
+		t.Errorf("rip %d and bite %d casts, want both", castsOf(player.Actions, 9896), castsOf(player.Actions, 22829))
+	}
+}
+
+func runCat(t *testing.T, request *proto.RaidSimRequest) *proto.UnitMetrics {
+	t.Helper()
 	result := core.RunSim(request, nil, simsignals.CreateSignals())
 	if result.Error != nil {
 		t.Fatalf("sim error: %s", result.Error.Message)
@@ -47,12 +99,10 @@ func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
 	if player.Dps.Avg <= 0 {
 		t.Fatalf("dps = %v, want a fight that deals damage", player.Dps.Avg)
 	}
-	if got := castsOf(player.Actions, 1322605); got != 0 {
-		t.Fatalf("shifting power casts = %d, the talent is not taken", got)
-	}
+	return player
 }
 
-func catPowershiftRequest() *proto.RaidSimRequest {
+func catPowershiftRequest(talents string, rotation *proto.APLRotation, cannotShred bool) *proto.RaidSimRequest {
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
@@ -63,29 +113,15 @@ func catPowershiftRequest() *proto.RaidSimRequest {
 		Raid: &proto.Raid{Parties: []*proto.Party{{
 			Players: []*proto.Player{{
 				Name: "Cat", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
-				TalentsString:  powershiftTalents,
+				TalentsString:  talents,
 				ReactionTimeMs: 100,
 				Equipment:      &proto.EquipmentSpec{Items: items},
 				Consumables:    &proto.ConsumesSpec{},
 				Buffs:          &proto.IndividualBuffs{},
 				Spec: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
-					Options: &proto.FeralCatDruid_Options{},
+					Options: &proto.FeralCatDruid_Options{CannotShredTarget: cannotShred},
 				}},
-				Rotation: &proto.APLRotation{
-					PriorityList: []*proto.APLListItem{{
-						Action: &proto.APLAction{
-							Action: &proto.APLAction_CatOptimalRotationAction{
-								CatOptimalRotationAction: &proto.APLActionCatOptimalRotationAction{
-									FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-									Biteweave:          true,
-									RipMinComboPoints:  5,
-									BiteMinComboPoints: 5,
-									MaintainFaerieFire: true,
-								},
-							},
-						},
-					}},
-				},
+				Rotation: rotation,
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
