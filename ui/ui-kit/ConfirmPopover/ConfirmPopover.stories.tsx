@@ -34,6 +34,7 @@ const meta = {
 	},
 	argTypes: {
 		side: { control: 'select', options: ['top', 'right', 'bottom', 'left'] },
+		backdrop: { control: 'boolean' },
 		children: { control: 'text' },
 		trigger: { control: 'text' },
 		anchor: { control: false },
