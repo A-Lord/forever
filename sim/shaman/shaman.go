@@ -179,7 +179,6 @@ const (
 	SpellMaskMagmaTotem
 	SpellMaskSearingTotem
 	SpellMaskFireNova
-	SpellMaskFlametongueTotem
 	SpellMaskStormstrike
 	SpellMaskEarthShield
 	SpellMaskFrostShock

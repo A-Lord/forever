@@ -142,9 +142,6 @@ message EnhancementShaman {
 
 	message Options {
 		ShamanOptions class_options = 1;
-		// The off-hand swing sync and imbues: shamans do not dual wield.
-		reserved 2, 3, 4;
-		reserved "sync_type", "imbue_oh", "imbue_oh_swap";
 	}
 
 	Options options = 3;
