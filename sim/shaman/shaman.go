@@ -27,6 +27,12 @@ func NewShaman(character *core.Character, talents string, selfBuffs SelfBuffs) *
 
 	core.FillTalentsProto(shaman.Talents.ProtoReflect(), talents, TalentTreeSizes)
 
+	// A weapon holds one temporary enchant, so the shaman's imbue takes its hand from an oil or
+	// stone. The consumable's enchant comes off before the weapons are built, which keeps its flat
+	// weapon damage off them, and its effect then finds no hand carrying it.
+	shaman.clearConsumableImbue(proto.ItemSlot_ItemSlotMainHand, selfBuffs.ImbueMH)
+	shaman.clearConsumableImbue(proto.ItemSlot_ItemSlotOffHand, selfBuffs.ImbueOH)
+
 	// Add Shaman stat dependencies
 	shaman.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 	shaman.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[shaman.Class])
@@ -36,7 +42,8 @@ func NewShaman(character *core.Character, talents string, selfBuffs SelfBuffs) *
 	shaman.AddStatDependency(stats.Strength, stats.AttackPower, 2.0)
 	shaman.AddStat(stats.AttackPower, -20)
 
-	shaman.WindfuryAPBonus = 475.0 //Base Windfury Bonus
+	shaman.windfuryWeaponMultiplier = 1
+	shaman.rockbiterWeaponMultiplier = 1
 
 	return shaman
 }
@@ -73,7 +80,11 @@ const (
 type Shaman struct {
 	core.Character
 
-	WindfuryAPBonus float64
+	// Elemental Weapons' share of the imbues' attack power, and the threat Spirit Weapons adds to
+	// Rockbiter Weapon's effect 2.
+	windfuryWeaponMultiplier     float64
+	rockbiterWeaponMultiplier    float64
+	spiritWeaponsRockbiterThreat float64
 
 	Talents   *proto.ShamanTalents
 	SelfBuffs SelfBuffs
@@ -85,22 +96,26 @@ type Shaman struct {
 
 	LavaBurst *core.Spell
 
-	Stormstrike           *core.Spell
-	StormstrikeCastResult *core.SpellResult
+	Stormstrike *core.Spell
 
+	LightningShield     *core.Spell
 	LightningShieldAura *core.Aura
 	WaterShieldAura     *core.Aura
-	ShieldSelfProcSpell *core.Spell
+	// Spends a Lightning Shield charge the way a hit taken does, for the shield proc rate option.
+	ShieldSelfProc func(sim *core.Simulation)
 
 	EarthShock *core.Spell
 	FlameShock *core.Spell
 	FrostShock *core.Spell
 
-	StormStrikeDebuffAuras core.AuraArray
+	StormstrikeDebuffAuras core.AuraArray
 
 	MagmaTotem   *core.Spell
 	SearingTotem *core.Spell
 	FireNova     *core.Spell
+
+	WindfuryTotem    *core.Spell
+	FlametongueTotem *core.Spell
 	// Always nil: its registrar is commented out in totems.go, upstream of the fork.
 	HealingStreamTotem *core.Spell
 
@@ -131,10 +146,14 @@ func (shaman *Shaman) Initialize() {
 	shaman.registerSearingTotemSpell()
 	shaman.registerFireNovaSpell()
 	shaman.registerWindfuryTotemSpell()
+	shaman.registerFlametongueTotemSpell()
 	shaman.registerStrengthOfEarthTotemSpell()
 	shaman.registerGraceOfAirTotemSpell()
 	shaman.registerManaSpringTotemSpell()
 	shaman.registerShocks()
+
+	// In Initialize so that the imbues read the multipliers the talents set.
+	shaman.registerImbues()
 }
 
 func (shaman *Shaman) ApplyTalents() {
@@ -174,27 +193,21 @@ const (
 	SpellMaskSearingTotem
 	SpellMaskFireNova
 	SpellMaskFlametongueTotem
-	SpellMaskStormstrikeCast
-	SpellMaskStormstrikeDamage
+	SpellMaskStormstrike
 	SpellMaskEarthShield
 	SpellMaskFrostShock
 	SpellMaskFlametongueWeapon
-	SpellMaskWindfuryWeapon
 	SpellMaskFrostbrandWeapon
-	SpellMaskRockbiterWeapon
 	SpellMaskElementalMastery
 	SpellMaskShamanisticRage
 	SpellMaskBasicTotem
-	SpellMaskShieldSelfProc
 
-	SpellMaskStormstrike = SpellMaskStormstrikeCast | SpellMaskStormstrikeDamage
-	SpellMaskFlameShock  = SpellMaskFlameShockDirect | SpellMaskFlameShockDot
-	SpellMaskFire        = SpellMaskFlameShock
-	SpellMaskNature      = SpellMaskLightningBolt | SpellMaskLightningBoltOverload | SpellMaskChainLightning | SpellMaskChainLightningOverload | SpellMaskEarthShock
-	SpellMaskFrost       = SpellMaskFrostShock
-	SpellMaskOverload    = SpellMaskLightningBoltOverload | SpellMaskChainLightningOverload
-	SpellMaskShock       = SpellMaskFlameShock | SpellMaskEarthShock | SpellMaskFrostShock
-	SpellMaskFireTotem   = SpellMaskMagmaTotem | SpellMaskSearingTotem
-	SpellMaskTotem       = SpellMaskFireTotem | SpellMaskBasicTotem
-	SpellMaskImbue       = SpellMaskFrostbrandWeapon | SpellMaskWindfuryWeapon | SpellMaskFlametongueWeapon | SpellMaskRockbiterWeapon
+	SpellMaskFlameShock = SpellMaskFlameShockDirect | SpellMaskFlameShockDot
+	SpellMaskFire       = SpellMaskFlameShock
+	SpellMaskNature     = SpellMaskLightningBolt | SpellMaskLightningBoltOverload | SpellMaskChainLightning | SpellMaskChainLightningOverload | SpellMaskEarthShock
+	SpellMaskFrost      = SpellMaskFrostShock
+	SpellMaskOverload   = SpellMaskLightningBoltOverload | SpellMaskChainLightningOverload
+	SpellMaskShock      = SpellMaskFlameShock | SpellMaskEarthShock | SpellMaskFrostShock
+	SpellMaskFireTotem  = SpellMaskMagmaTotem | SpellMaskSearingTotem
+	SpellMaskTotem      = SpellMaskFireTotem | SpellMaskBasicTotem
 )

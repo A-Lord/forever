@@ -57,8 +57,6 @@ func NewEnhancementShaman(character *core.Character, options *proto.Player) *Enh
 		enh.SelfBuffs.ImbueOH = proto.ShamanImbue_NoImbue
 	}
 
-	enh.PseudoStats.CanParry = true
-
 	return enh
 }
 
@@ -80,10 +78,6 @@ func (enh *EnhancementShaman) ApplyTalents() {
 
 func (enh *EnhancementShaman) Initialize() {
 	enh.Shaman.Initialize()
-	// In the Initialize due to frost brand adding the aura to the enemy
-	enh.RegisterFrostbrandImbue(enh.GetImbueProcMask(proto.ShamanImbue_FrostbrandWeapon))
-	enh.RegisterFlametongueImbue(enh.GetImbueProcMask(proto.ShamanImbue_FlametongueWeapon))
-	enh.RegisterWindfuryImbue(enh.GetImbueProcMask(proto.ShamanImbue_WindfuryWeapon))
 }
 
 func (enh *EnhancementShaman) Reset(sim *core.Simulation) {
@@ -91,7 +85,7 @@ func (enh *EnhancementShaman) Reset(sim *core.Simulation) {
 }
 
 func (enh *EnhancementShaman) ApplySyncType(syncType proto.ShamanSyncType) {
-	const FlurryICD = time.Millisecond * 500
+	FlurryICD := shaman.FlurryChargeICD()
 
 	switch syncType {
 	case proto.ShamanSyncType_Auto:

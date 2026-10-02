@@ -1,7 +1,10 @@
 package shaman
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -83,12 +86,11 @@ func (shaman *Shaman) applyElementalWeapons() {
 
 	// Effect 2 is the Flametongue and Frostbrand damage. Effects 1 and 3 raise effect 1 of Rockbiter
 	// Weapon (Passive) and Windfury Weapon, which is attack power on both rows; the parse would read
-	// them as damage.
+	// them as damage, so the imbues read them instead.
 	spelldata.ParseStatic(&shaman.Character, rank, spelldata.Effects(2))
 
-	shaman.WindfuryAPBonus *= 1 + rank.EffectN(3).Percent()
-
-	// TODO: Effect 1, Rockbiter Weapon's attack power, waits on the Rockbiter imbue.
+	shaman.rockbiterWeaponMultiplier = 1 + rank.EffectN(1).Percent()
+	shaman.windfuryWeaponMultiplier = 1 + rank.EffectN(3).Percent()
 }
 
 // The cost reduction is permanent; the row states no proc.
@@ -114,6 +116,11 @@ func (shaman *Shaman) applyToughness() {
 }
 
 var flurryBuff = spellData.FlurryTriggered.Highest()
+
+// The time Flurry needs between two of its charges spent, which the swing sync keeps the hands apart by.
+func FlurryChargeICD() time.Duration {
+	return flurryBuff.ICD()
+}
 
 func (shaman *Shaman) applyFlurry() {
 	if shaman.Talents.Flurry == 0 {
@@ -168,11 +175,18 @@ func (shaman *Shaman) applySpiritWeapons() {
 	// "Gives a chance to parry enemy melee attacks."
 	shaman.PseudoStats.CanParry = true
 
-	// Effect 1 is the threat reduction, which the tooltip applies while Rockbiter Weapon is not
-	// active; the sim has no Rockbiter imbue, so it always applies.
-	//
-	// TODO: Effects 2 and 3, the threat Rockbiter Weapon gains instead, wait on the Rockbiter imbue.
-	spelldata.ParseStatic(&shaman.Character, spellData.SpiritWeapons.Highest(), spelldata.Effects(1))
+	rank := spellData.SpiritWeapons.Highest()
+
+	// Effect 1 is the threat reduction while Rockbiter Weapon is not active. With it active, effect
+	// 3 is the threat increase the tooltip states, and effect 2 raises Rockbiter Weapon (Passive)'s
+	// own threat effect, which the imbue reads. Which applies is read off the imbues the options
+	// name, so a weapon swap onto or off Rockbiter does not change it.
+	if shaman.GetImbueProcMask(proto.ShamanImbue_RockbiterWeapon) == core.ProcMaskUnknown {
+		spelldata.ParseStatic(&shaman.Character, rank, spelldata.Effects(1))
+		return
+	}
+	shaman.spiritWeaponsRockbiterThreat = rank.EffectN(2).Percent()
+	shaman.PseudoStats.ThreatMultiplier *= 1 + rank.EffectN(3).Percent()
 }
 
 func (shaman *Shaman) applyMentalQuickness() {

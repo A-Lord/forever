@@ -2,37 +2,77 @@ package shaman
 
 import (
 	"fmt"
-	"time"
+	"math"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
+// The temporary enchants the highest rank of each imbue puts on the weapon, the misc value of the
+// cast's effect 1.
 const (
-	frostbrandEnchantID  int32 = 2
-	flametongueEnchantID int32 = 5
-	windfuryEnchantID    int32 = 283
-	earthlivingEnchantID int32 = 3345
-	rockbiterEnchantID   int32 = 3021
+	rockbiterEnchantID   int32 = 1664
+	flametongueEnchantID int32 = 1666
+	frostbrandEnchantID  int32 = 1668
+	windfuryEnchantID    int32 = 1669
 )
 
-func (shaman *Shaman) RegisterOnItemSwapWithImbue(effectID int32, procMask *core.ProcMask, aura *core.Aura) {
-	shaman.RegisterItemSwapCallback(core.AllWeaponSlots(), func(sim *core.Simulation, slot proto.ItemSlot) {
-		mask := core.ProcMaskUnknown
-		if shaman.MainHand().TempEnchant == effectID {
-			mask |= core.ProcMaskMeleeMH
-		}
-		if shaman.OffHand().TempEnchant == effectID {
-			mask |= core.ProcMaskMeleeOH
-		}
-		*procMask = mask
+// Windfury Weapon and Flametongue Weapon put the same passive on the weapon at every rank, and the
+// rank decides only which spell the passive fires, so the rank's own row is named here.
+var (
+	windfuryWeaponPassive    = spelldata.MustFind(439431)
+	windfuryWeaponAttack     = spellData.WindfuryWeaponTriggered.Highest()
+	flametongueWeaponPassive = spelldata.MustFind(436519)
+	flametongueWeaponProc    = spellData.FlametongueWeaponTriggered.Highest()
+	frostbrandWeaponAttack   = spellData.FrostbrandWeaponTriggered.Highest()
+	rockbiterWeaponPassive   = spellData.RockbiterWeaponTriggered.Highest()
+)
 
-		if mask == core.ProcMaskUnknown {
-			aura.Deactivate(sim)
-		} else {
-			aura.Activate(sim)
+// The game files state no chance for Frostbrand Weapon: enchant 1668 is a combat spell enchant with
+// 0 in its amount.
+//
+// TODO: Ingame test needed: the procs per minute.
+const frostbrandWeaponPPM = 9.0
+
+// Each imbue registers only where a hand, equipped or in the swap set, carries it.
+func (shaman *Shaman) registerImbues() {
+	shaman.RegisterWindfuryImbue()
+	shaman.RegisterFlametongueImbue()
+	shaman.RegisterFrostbrandImbue()
+	shaman.RegisterRockbiterImbue()
+}
+
+func (shaman *Shaman) clearConsumableImbue(slot proto.ItemSlot, imbue proto.ShamanImbue) {
+	if imbue == proto.ShamanImbue_NoImbue {
+		return
+	}
+	shaman.Equipment[slot].TempEnchant = 0
+	shaman.Equipment[slot].TempEnchantWeaponDamage = 0
+}
+
+// Puts the imbue's enchant on each hand the options name it for, and on the swap set's, and answers
+// the equipped hands carrying it.
+func (shaman *Shaman) applyImbue(imbue proto.ShamanImbue, enchantID int32) core.ProcMask {
+	mask := core.ProcMaskUnknown
+	if shaman.HasMHWeapon() && shaman.SelfBuffs.ImbueMH == imbue {
+		shaman.MainHand().TempEnchant = enchantID
+		if shaman.ItemSwap.IsEnabled() {
+			shaman.ItemSwap.AddTempEnchant(enchantID, proto.ItemSlot_ItemSlotMainHand, false)
 		}
-	})
+		mask |= core.ProcMaskMeleeMH
+	}
+	if shaman.HasOHWeapon() && shaman.SelfBuffs.ImbueOH == imbue {
+		shaman.OffHand().TempEnchant = enchantID
+		if shaman.ItemSwap.IsEnabled() {
+			shaman.ItemSwap.AddTempEnchant(enchantID, proto.ItemSlot_ItemSlotOffHand, false)
+		}
+		mask |= core.ProcMaskMeleeOH
+	}
+	shaman.setupItemSwapImbue(imbue, enchantID)
+	return mask
 }
 
 func (shaman *Shaman) setupItemSwapImbue(imbue proto.ShamanImbue, imbueID int32) {
@@ -48,293 +88,189 @@ func (shaman *Shaman) setupItemSwapImbue(imbue proto.ShamanImbue, imbueID int32)
 	}
 }
 
-func (shaman *Shaman) newWindfuryImbueSpell(isMH bool) *core.Spell {
-	tag := 1
-	procMask := core.ProcMaskMeleeMHSpecial
-	weaponDamageFunc := shaman.MHWeaponDamage
-	if !isMH {
-		tag = 2
-		procMask = core.ProcMaskMeleeOHSpecial
-		weaponDamageFunc = shaman.OHWeaponDamage
-	}
-
-	spellConfig := core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: 25505, Tag: int32(tag)},
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee, // Windfury Attack (25504)
-		ProcMask:       procMask,
-		ClassSpellMask: SpellMaskWindfuryWeapon,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: 1,
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			apBonus := shaman.WindfuryAPBonus
-			if spell.Tag == 2 { //OH Spell
-				apBonus *= 2
-			}
-			mAP := spell.MeleeAttackPower(target) + apBonus
-
-			baseDamage1 := weaponDamageFunc(sim, mAP)
-			baseDamage2 := weaponDamageFunc(sim, mAP)
-			result1 := spell.CalcDamage(sim, target, baseDamage1, spell.OutcomeMeleeSpecialHitAndCrit)
-			result2 := spell.CalcDamage(sim, target, baseDamage2, spell.OutcomeMeleeSpecialHitAndCrit)
-			spell.DealDamage(sim, result1)
-			spell.DealDamage(sim, result2)
-		},
-	}
-
-	return shaman.RegisterSpell(spellConfig)
+// Whether the imbue reaches any hand, equipped or in the swap set.
+func (shaman *Shaman) imbueIsUsed(mask core.ProcMask) bool {
+	return mask != core.ProcMaskUnknown || shaman.ItemSwap.IsEnabled()
 }
 
-func (shaman *Shaman) makeWFProcTriggerAura(dpm *core.DynamicProcManager, procMask *core.ProcMask, mhSpell *core.Spell, ohSpell *core.Spell) *core.Aura {
-	aura := shaman.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               "Windfury Imbue",
-		Callback:           core.CallbackOnSpellHitDealt,
-		ProcMask:           *procMask,
-		IsWeaponProc:       true,
-		Outcome:            core.OutcomeLanded,
-		ICD:                time.Second * 3,
-		DPM:                dpm,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if spell.IsMH() {
-				mhSpell.Cast(sim, result.Target)
+// "When applied to main hand, disables any benefit you personally receive from" the totem of the
+// same name: while the main hand carries the enchant, an aura outbids the totem for its category.
+func (shaman *Shaman) holdTotemCategoryOnMainHand(label string, actionID core.ActionID, category string, enchantID int32) {
+	aura := shaman.RegisterAura(core.Aura{
+		Label:    label,
+		ActionID: actionID,
+		Duration: core.NeverExpires,
+		OnReset: func(aura *core.Aura, sim *core.Simulation) {
+			if shaman.MainHand().TempEnchant == enchantID {
+				aura.Activate(sim)
+			}
+		},
+	})
+	aura.NewExclusiveEffect(category, false, core.ExclusiveEffect{
+		Priority: math.MaxFloat64,
+	})
+
+	shaman.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, _ proto.ItemSlot) {
+		if shaman.MainHand().TempEnchant == enchantID {
+			aura.Activate(sim)
+		} else {
+			aura.Deactivate(sim)
+		}
+	})
+}
+
+// 439431 rolls its 20% on the melee hits of the hands carrying the enchant, once per 1.5 s, and
+// fires the rank's 16361: the attack power for its charges and two extra main-hand swings.
+func (shaman *Shaman) RegisterWindfuryImbue() {
+	mask := shaman.applyImbue(proto.ShamanImbue_WindfuryWeapon, windfuryEnchantID)
+	if !shaman.imbueIsUsed(mask) {
+		return
+	}
+
+	// Elemental Weapons raises effect 1, which the parse would read as damage.
+	attackPower := windfuryWeaponAttack.EffectN(1).Average() * shaman.windfuryWeaponMultiplier
+	buff := shaman.RegisterAura(spelldata.AuraConfig(windfuryWeaponAttack)).
+		AttachStatBuff(stats.AttackPower, attackPower)
+
+	// The buff's own row hears the auto attacks that spend a charge.
+	spender := spelldata.ProcTrigger(&shaman.Character, windfuryWeaponAttack, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+		buff.RemoveStack(sim)
+	}, spelldata.Chance(1))
+	spender.Name = "Windfury Weapon Charges"
+	spender.TriggerImmediately = true
+	buff.AttachProcTriggerCallback(&shaman.Unit, spender)
+
+	// A main-hand auto that procs it spends the first charge itself, so the extra attacks are the
+	// ones buffed; a special leaves the last charge to the auto after them.
+	chance := windfuryWeaponPassive.StatedChance()
+	trigger := spelldata.ProcTrigger(&shaman.Character, windfuryWeaponPassive, func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+		buff.Activate(sim)
+		charges := buff.MaxStacks
+		if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
+			charges--
+		}
+		buff.SetStacks(sim, charges)
+	}, func(character *core.Character, trigger *core.ProcTrigger) {
+		trigger.ProcChance = 0
+		trigger.DPM = character.NewDynamicLegacyProcForTempEnchant(windfuryEnchantID, 0, func(core.ProcMask) float64 { return chance })
+	})
+	trigger.Name = "Windfury Weapon Trigger"
+	trigger.MetricsActionID = core.ActionID{SpellID: windfuryWeaponAttack.ID}
+	onInit := shaman.ExtraAttackProc(&trigger, windfuryWeaponAttack.ID, int(windfuryWeaponAttack.ExtraAttacksEffect().BaseValue()))
+	shaman.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
+
+	shaman.holdTotemCategoryOnMainHand("Windfury Weapon (Main Hand)", core.ActionID{SpellID: spellData.WindfuryWeapon.Highest().ID},
+		buffs.WindfuryTotemCategory, windfuryEnchantID)
+}
+
+// The fire damage a hit of this hand adds: the tooltip's ${$16344m1/77-1} to ${$16344m1/25} over
+// weapon speeds of 1.3 to 4.0 s is m1 for every 100 s of swing.
+//
+// TODO: Ingame test needed: the spell power share, which 16344 does not state.
+func (shaman *Shaman) newFlametongueImbueSpell(isMH bool) *core.Spell {
+	config := spelldata.SpellConfig(&shaman.Unit, flametongueWeaponProc,
+		spelldata.Magic(core.ProcMaskSpellDamageProc), spelldata.Proc(),
+		spelldata.Tag(core.TernaryInt32(isMH, 1, 2)), spelldata.Flags(core.SpellFlagProc|SpellFlagShamanSpell))
+	// 16344 states no defense type, and a fire proc with none rolls on the spell hit and crit tables.
+	config.DefenseType = core.DefenseTypeMagic
+	config.ClassSpellMask = SpellMaskFlametongueWeapon
+
+	damage := flametongueWeaponProc.EffectN(1)
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		weapon := core.Ternary(isMH, shaman.AutoAttacks.MH(), shaman.AutoAttacks.OH())
+		spell.CalcAndDealDamage(sim, target, damage.Average()*weapon.SwingSpeed/100, spell.OutcomeMagicHitAndCrit)
+	}
+	return shaman.RegisterSpell(config)
+}
+
+// 436519 has no roll: every melee hit of a hand carrying the enchant adds that hand's fire damage.
+func (shaman *Shaman) RegisterFlametongueImbue() {
+	mask := shaman.applyImbue(proto.ShamanImbue_FlametongueWeapon, flametongueEnchantID)
+	if !shaman.imbueIsUsed(mask) {
+		return
+	}
+
+	mhSpell := shaman.newFlametongueImbueSpell(true)
+	ohSpell := shaman.newFlametongueImbueSpell(false)
+
+	trigger := spelldata.ProcTrigger(&shaman.Character, flametongueWeaponPassive, func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		core.Ternary(spell.IsMH(), mhSpell, ohSpell).Cast(sim, result.Target)
+	}, func(character *core.Character, trigger *core.ProcTrigger) {
+		trigger.ProcChance = 0
+		trigger.DPM = character.NewDynamicLegacyProcForTempEnchant(flametongueEnchantID, 0, func(core.ProcMask) float64 { return 1 })
+	})
+	trigger.Name = "Flametongue Weapon Trigger"
+	trigger.TriggerImmediately = true
+	shaman.MakeProcTriggerAura(trigger)
+
+	shaman.holdTotemCategoryOnMainHand("Flametongue Weapon (Main Hand)", core.ActionID{SpellID: spellData.FlametongueWeapon.Highest().ID},
+		buffs.FlametongueTotemCategory, flametongueEnchantID)
+}
+
+// Enchant 1668 casts 16353 off the hits of the hands carrying it. The slow, effect 1, is not
+// modelled.
+func (shaman *Shaman) RegisterFrostbrandImbue() {
+	mask := shaman.applyImbue(proto.ShamanImbue_FrostbrandWeapon, frostbrandEnchantID)
+	if !shaman.imbueIsUsed(mask) {
+		return
+	}
+
+	config := spelldata.SpellConfig(&shaman.Unit, frostbrandWeaponAttack,
+		spelldata.Magic(core.ProcMaskSpellDamageProc), spelldata.Proc(), spelldata.Flags(core.SpellFlagProc|SpellFlagShamanSpell))
+	config.ClassSpellMask = SpellMaskFrostbrandWeapon
+	damage := frostbrandWeaponAttack.DamageEffect()
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+	}
+	frostbrandSpell := shaman.RegisterSpell(config)
+
+	trigger := spelldata.ProcTrigger(&shaman.Character, frostbrandWeaponAttack, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		frostbrandSpell.Cast(sim, result.Target)
+	}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
+		trigger.ProcChance = 0
+		trigger.DPM = character.NewDynamicLegacyProcForTempEnchant(frostbrandEnchantID, frostbrandWeaponPPM, func(core.ProcMask) float64 { return 0 })
+	})
+	trigger.Name = "Frostbrand Weapon Trigger"
+	trigger.TriggerImmediately = true
+	shaman.MakeProcTriggerAura(trigger)
+}
+
+// Enchant 1664 puts 16313 on the weapon as an equip aura, one per hand carrying it: the attack power,
+// and the threat Spirit Weapons gives effect 2, which the row states as 0.
+//
+// TODO: Ingame test needed: whether a Rockbiter Weapon on each hand gives the attack power twice.
+func (shaman *Shaman) RegisterRockbiterImbue() {
+	mask := shaman.applyImbue(proto.ShamanImbue_RockbiterWeapon, rockbiterEnchantID)
+	if !shaman.imbueIsUsed(mask) {
+		return
+	}
+
+	// Elemental Weapons raises effect 1, which the parse would read as damage.
+	attackPower := rockbiterWeaponPassive.EffectN(1).Average() * shaman.rockbiterWeaponMultiplier
+	threat := 1 + rockbiterWeaponPassive.EffectN(2).Percent() + shaman.spiritWeaponsRockbiterThreat
+
+	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
+		item := func() *core.Item {
+			return core.Ternary(slot == proto.ItemSlot_ItemSlotMainHand, shaman.MainHand(), shaman.OffHand())
+		}
+
+		config := spelldata.AuraConfig(rockbiterWeaponPassive, spelldata.Label(fmt.Sprintf("Rockbiter Weapon (%s)", slot)))
+		config.Duration = core.NeverExpires
+		config.OnReset = func(aura *core.Aura, sim *core.Simulation) {
+			if item().TempEnchant == rockbiterEnchantID {
+				aura.Activate(sim)
+			}
+		}
+		aura := shaman.RegisterAura(config).
+			AttachStatBuff(stats.AttackPower, attackPower).
+			AttachMultiplicativePseudoStatBuff(&shaman.PseudoStats.ThreatMultiplier, threat)
+
+		shaman.RegisterItemSwapCallback([]proto.ItemSlot{slot}, func(sim *core.Simulation, _ proto.ItemSlot) {
+			if item().TempEnchant == rockbiterEnchantID {
+				aura.Activate(sim)
 			} else {
-				ohSpell.Cast(sim, result.Target)
-			}
-		},
-	})
-	return aura
-}
-
-func (shaman *Shaman) getWindfuryFixedProcChance(procMask core.ProcMask) float64 {
-	return core.TernaryFloat64(procMask == core.ProcMaskMelee, 0.36, 0.2)
-}
-
-// TODO: To be implemented. Not verified against Forever.
-func (shaman *Shaman) RegisterWindfuryImbue(procMask core.ProcMask) {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// if procMask == core.ProcMaskUnknown && !shaman.ItemSwap.IsEnabled() {
-	// return
-	// }
-	//
-	// mask := core.ProcMaskUnknown
-	//
-	// mH := shaman.MainHand()
-	// if mH != nil && shaman.SelfBuffs.ImbueMH == proto.ShamanImbue_WindfuryWeapon {
-	// mH.TempEnchant = windfuryEnchantID
-	// if shaman.ItemSwap.IsEnabled() {
-	// shaman.ItemSwap.AddTempEnchant(windfuryEnchantID, proto.ItemSlot_ItemSlotMainHand, false)
-	// }
-	// mask |= core.ProcMaskMeleeMH
-	// }
-	// oH := shaman.OffHand()
-	// if oH != nil && shaman.SelfBuffs.ImbueOH == proto.ShamanImbue_WindfuryWeapon {
-	// oH.TempEnchant = windfuryEnchantID
-	// if shaman.ItemSwap.IsEnabled() {
-	// shaman.ItemSwap.AddTempEnchant(windfuryEnchantID, proto.ItemSlot_ItemSlotOffHand, false)
-	// }
-	// mask |= core.ProcMaskMeleeOH
-	// }
-	//
-	// shaman.setupItemSwapImbue(proto.ShamanImbue_WindfuryWeapon, windfuryEnchantID)
-	//
-	// dpm := shaman.NewDynamicLegacyProcForTempEnchant(windfuryEnchantID, 0, shaman.getWindfuryFixedProcChance)
-	//
-	// mhSpell := shaman.newWindfuryImbueSpell(true)
-	// ohSpell := shaman.newWindfuryImbueSpell(false)
-	//
-	// aura := shaman.makeWFProcTriggerAura(dpm, &mask, mhSpell, ohSpell)
-	//
-	// if mask.Matches(core.ProcMaskMeleeMH) {
-	// aura.NewExclusiveEffect(buffs.WindfuryTotemCategory, false, core.ExclusiveEffect{
-	// Priority: shaman.WindfuryAPBonus * 2, // Need to be higher than Windfury Totem priority
-	// })
-	// }
-	//
-	// shaman.RegisterOnItemSwapWithImbue(windfuryEnchantID, &mask, aura)
-}
-
-func (shaman *Shaman) newFlametongueImbueSpell(weapon *core.Item) *core.Spell {
-	return shaman.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: 25489},
-		SpellSchool: core.SpellSchoolFire,
-		// The damage logs as Flametongue Attack (10444), Magic in SpellCategories; it crits for 1.5x
-		// (2.0x with Elemental Fury, see talents_elemental.go).
-		DefenseType:      core.DefenseTypeMagic,
-		ProcMask:         core.ProcMaskSpellDamageProc,
-		ClassSpellMask:   SpellMaskFlametongueWeapon,
-		Flags:            core.SpellFlagPassiveSpell | core.SpellFlagProc | SpellFlagShamanSpell,
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: 0.10000000149,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			if weapon.SwingSpeed != 0 {
-				baseDamage := weapon.SwingSpeed * 35 // from old tbc sim
-				spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
-			}
-		},
-	})
-}
-
-func (shaman *Shaman) makeFTProcTriggerAura(itemSlot proto.ItemSlot, triggerProcMask core.ProcMask, flameTongueSpell *core.Spell) *core.Aura {
-	aura := shaman.MakeProcTriggerAura(core.ProcTrigger{
-		Name:               fmt.Sprintf("Flametongue Imbue %s", itemSlot),
-		ProcMask:           triggerProcMask,
-		IsWeaponProc:       true,
-		Outcome:            core.OutcomeLanded,
-		Callback:           core.CallbackOnSpellHitDealt,
-		TriggerImmediately: true,
-
-		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-			flameTongueSpell.Cast(sim, result.Target)
-		},
-	})
-
-	shaman.RegisterItemSwapCallback([]proto.ItemSlot{itemSlot}, func(sim *core.Simulation, is proto.ItemSlot) {
-		if is == proto.ItemSlot_ItemSlotMainHand {
-			mh := shaman.MainHand()
-			mhSwap := shaman.ItemSwap.GetUnequippedItemBySlot(is)
-			if mh.TempEnchant != flametongueEnchantID {
-				// The new main hand does not have flametongue on, so deactivate
 				aura.Deactivate(sim)
-				return
 			}
-			if mhSwap.TempEnchant != flametongueEnchantID {
-				// The new main hand has flametongue on and the swapped one does not, so need to activate
-				aura.Activate(sim)
-				return
-			}
-		}
-		if is == proto.ItemSlot_ItemSlotOffHand {
-			oh := shaman.OffHand()
-			ohSwap := shaman.ItemSwap.GetUnequippedItemBySlot(is)
-			if oh.TempEnchant != flametongueEnchantID {
-				// The new offhand does not have flametongue on, so deactivate
-				aura.Deactivate(sim)
-				return
-			}
-			if ohSwap.TempEnchant != flametongueEnchantID {
-				// The new offhand has flametongue on and the swapped one does not, so need to activate
-				aura.Activate(sim)
-				return
-			}
-
-		}
-	})
-
-	return aura
-}
-
-// TODO: To be implemented. Not verified against Forever.
-func (shaman *Shaman) RegisterFlametongueImbue(procMask core.ProcMask) {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// if procMask == core.ProcMaskUnknown && !shaman.ItemSwap.IsEnabled() {
-	// return
-	// }
-	//
-	// for _, itemSlot := range core.AllWeaponSlots() {
-	// var weapon *core.Item
-	// var triggerProcMask core.ProcMask
-	// switch {
-	// case shaman.SelfBuffs.ImbueMH == proto.ShamanImbue_FlametongueWeapon && itemSlot == proto.ItemSlot_ItemSlotMainHand:
-	// weapon = shaman.MainHand()
-	// triggerProcMask = core.ProcMaskMeleeMH
-	// case shaman.SelfBuffs.ImbueOH == proto.ShamanImbue_FlametongueWeapon && itemSlot == proto.ItemSlot_ItemSlotOffHand:
-	// weapon = shaman.OffHand()
-	// triggerProcMask = core.ProcMaskMeleeOH
-	// }
-	//
-	// if weapon == nil {
-	// continue
-	// }
-	//
-	// weapon.TempEnchant = flametongueEnchantID
-	//
-	// if shaman.ItemSwap.IsEnabled() {
-	// shaman.ItemSwap.AddTempEnchant(flametongueEnchantID, itemSlot, false)
-	// }
-	//
-	// flameTongueSpell := shaman.newFlametongueImbueSpell(weapon)
-	// aura := shaman.makeFTProcTriggerAura(itemSlot, triggerProcMask, flameTongueSpell)
-	// if itemSlot == proto.ItemSlot_ItemSlotMainHand {
-	// aura.NewExclusiveEffect(buffs.WindfuryTotemCategory, false, core.ExclusiveEffect{
-	// Priority: shaman.WindfuryAPBonus * 2, // Need to be higher than Windfury Totem priority
-	// })
-	// }
-	// }
-	//
-	// shaman.setupItemSwapImbue(proto.ShamanImbue_FlametongueWeapon, flametongueEnchantID)
-}
-
-func (shaman *Shaman) newFrostbrandImbueSpell() *core.Spell {
-	return shaman.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: 8033},
-		SpellSchool:    core.SpellSchoolFrost,
-		DefenseType:    core.DefenseTypeMagic, // Frostbrand Attack (25501 / 38617) is Magic in SpellCategories
-		ClassSpellMask: SpellMaskFrostbrandWeapon,
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagPassiveSpell | core.SpellFlagProc | SpellFlagShamanSpell,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: 0.10000000149,
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := 0.0 //spell id 8034
-			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
-		},
-	})
-}
-
-// TODO: To be implemented. Not verified against Forever.
-func (shaman *Shaman) RegisterFrostbrandImbue(procMask core.ProcMask) {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// if procMask == core.ProcMaskUnknown && !shaman.ItemSwap.IsEnabled() {
-	// return
-	// }
-	//
-	// mH := shaman.MainHand()
-	// if mH != nil && shaman.SelfBuffs.ImbueMH == proto.ShamanImbue_FrostbrandWeapon {
-	// mH.TempEnchant = frostbrandEnchantID
-	// if shaman.ItemSwap.IsEnabled() {
-	// shaman.ItemSwap.AddTempEnchant(frostbrandEnchantID, proto.ItemSlot_ItemSlotMainHand, false)
-	// }
-	// }
-	// oH := shaman.OffHand()
-	// if oH != nil && shaman.SelfBuffs.ImbueOH == proto.ShamanImbue_FrostbrandWeapon {
-	// oH.TempEnchant = frostbrandEnchantID
-	// if shaman.ItemSwap.IsEnabled() {
-	// shaman.ItemSwap.AddTempEnchant(frostbrandEnchantID, proto.ItemSlot_ItemSlotOffHand, false)
-	// }
-	// }
-	//
-	// shaman.setupItemSwapImbue(proto.ShamanImbue_FrostbrandWeapon, frostbrandEnchantID)
-	//
-	// dpm := shaman.NewDynamicLegacyProcForTempEnchant(frostbrandEnchantID, 9.0, func(pm core.ProcMask) float64 { return 0 })
-	//
-	// fbSpell := shaman.newFrostbrandImbueSpell()
-	//
-	// aura := shaman.MakeProcTriggerAura(core.ProcTrigger{
-	// Name:               "Frostbrand Imbue",
-	// Callback:           core.CallbackOnSpellHitDealt,
-	// IsWeaponProc:       true,
-	// Outcome:            core.OutcomeLanded,
-	// DPM:                dpm,
-	// TriggerImmediately: true,
-	//
-	// Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// fbSpell.Cast(sim, result.Target)
-	// },
-	// })
-	//
-	// shaman.RegisterOnItemSwapWithImbue(frostbrandEnchantID, &procMask, aura)
+		})
+	}
 }
