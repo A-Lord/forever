@@ -24,7 +24,7 @@ export const MetricsTotalBar = ({ percentage, max, total, value, overlayValue, s
 	const fillBg =
 		(spellSchoolString && SPELL_SCHOOL_BG[spellSchoolString.toLowerCase()]) || (classColor && CLASS_BG[classColor.toLowerCase()]) || 'bg-current';
 	return (
-		<div className="pointer-events-none relative flex w-full min-w-[calc(7ch+7ch+50px)] justify-between">
+		<div className="relative flex w-full min-w-[calc(7ch+7ch+50px)] justify-between">
 			<div className="w-[7ch] shrink-0">{formatToPercent(percentage || 0)}</div>
 			<div className="absolute right-[7ch] left-[7ch] mr-1 ml-1 h-full shrink grow bg-white/5">
 				<div data-testid="metrics-total-bar-fill" className={clsx('absolute top-0 left-0 h-full w-(--percentage)', fillBg)} style={fill(value, max)} />

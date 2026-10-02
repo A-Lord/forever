@@ -37,8 +37,8 @@ export const MetricsTableRow = <T,>({ row, rowThreatOnly }: MetricsTableRowProps
 						data-text={String(cell.getValue())}
 						{...tooltipAnchorProps(tooltipId)}
 						data-row-id={tooltipId ? row.id : undefined}>
-						{toggle && <FakeLink onActivate={toggle} />}
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+						{toggle && <FakeLink onActivate={toggle} />}
 					</TableCell>
 				);
 			})}

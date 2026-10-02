@@ -23,7 +23,7 @@ export const BulkItemPickerGroup = ({ bulkSlot, entries, onAddItem, addTooltipId
 	const slotName = translateBulkSlotName(bulkSlot);
 
 	return (
-		<Box padding="sm">
+		<Box>
 			<ContentBlock
 				rootDataAttributes={{ 'data-gear-group': slotKey.replace(/_/g, '-') }}
 				config={{ header: { title: slotName, className: 'border-b-0 mb-0 pb-0' }, bodyClassName: 'gap-2' }}

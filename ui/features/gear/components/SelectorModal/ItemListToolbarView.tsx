@@ -30,9 +30,8 @@ export interface ItemListToolbarViewProps {
 	phase: number;
 	onPhaseChange: (phase: number) => void;
 	toggles: ReadonlyArray<ItemListToggle>;
-	removeLabel: string;
 	/** The remove button renders only beside one. */
-	onRemove?: () => void;
+	remove?: { label: string; onClick: () => void };
 }
 
 export const ItemListToolbarView = ({
@@ -43,8 +42,7 @@ export const ItemListToolbarView = ({
 	phase,
 	onPhaseChange,
 	toggles,
-	removeLabel,
-	onRemove,
+	remove,
 }: ItemListToolbarViewProps) => {
 	return (
 		<div className="ui-selector-modal-filters mb-(--modal-padding) flex items-center [&>*:not(:last-child)]:mr-2">
@@ -77,9 +75,9 @@ export const ItemListToolbarView = ({
 					onChange={toggle.onChange}
 				/>
 			))}
-			{onRemove && (
-				<Button variant="danger" className="-mt-2 mr-4 -mb-2 ml-auto" data-testid="selector-modal-remove-button" onClick={onRemove}>
-					{removeLabel}
+			{remove && (
+				<Button variant="danger" className="-mt-2 mr-4 -mb-2 ml-auto" data-testid="selector-modal-remove-button" onClick={remove.onClick}>
+					{remove.label}
 				</Button>
 			)}
 		</div>

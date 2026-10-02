@@ -135,8 +135,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 				phase={phase}
 				onPhaseChange={next => sim.setPhase(next)}
 				toggles={toggles}
-				removeLabel={removeButtonLabel(label, key => i18n.t(key))}
-				onRemove={onRemove}
+				remove={onRemove && { label: removeButtonLabel(label, key => i18n.t(key)), onClick: onRemove }}
 			/>
 			<ItemListHeaderRow
 				label={label}

@@ -15,15 +15,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** A row that activates anywhere: the layer sits first, and the button lifted above it keeps its own click. */
+/** A row that activates anywhere: the layer sits last, and the button lifted above it keeps its own click. */
 export const Row: Story = {
 	render: args => (
 		<div className="relative flex w-96 items-center gap-4 bg-gray-900 p-2 hover:bg-gray-800">
-			<FakeLink {...args} />
 			<span>Click anywhere in the row</span>
 			<Button size="sm" className="relative z-1 ml-auto">
 				Own action
 			</Button>
+			<FakeLink {...args} />
 		</div>
 	),
 };

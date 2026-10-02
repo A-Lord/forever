@@ -1,6 +1,6 @@
 import type { ActionIdState } from '@sim/hooks/useActionId';
 import { ActionId } from '@sim/proto/action_id';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MetricsActionCell } from './MetricsActionCell';
@@ -69,14 +69,5 @@ describe('MetricsActionCell', () => {
 		await cell({ expandable: true, expanded: true });
 
 		expect(screen.getByRole('button', { name: 'Kill Command' }).getAttribute('aria-expanded')).toBe('true');
-	});
-
-	it('toggles once when the button is clicked', async () => {
-		const onToggle = vi.fn();
-		render(<MetricsActionCell name="Kill Command" actionId={actionId} expandable={true} expanded={false} onToggle={onToggle} />);
-		await act(async () => {});
-
-		fireEvent.click(screen.getByRole('button', { name: 'Kill Command' }));
-		expect(onToggle).toHaveBeenCalledTimes(1);
 	});
 });

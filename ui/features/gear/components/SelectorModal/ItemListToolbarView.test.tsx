@@ -19,8 +19,7 @@ const renderView = (props: Partial<ItemListToolbarViewProps> = {}) => {
 		phase: 2,
 		onPhaseChange: vi.fn(),
 		toggles: [],
-		removeLabel: 'Unequip Item',
-		onRemove: vi.fn(),
+		remove: { label: 'Unequip Item', onClick: vi.fn() },
 		...props,
 	};
 	const utils = render(<ItemListToolbarView {...all} />);
@@ -81,16 +80,17 @@ describe('ItemListToolbarView', () => {
 	});
 
 	it('names the remove button and calls it', () => {
-		const { props } = renderView({ removeLabel: 'Remove Enchant' });
+		const onClick = vi.fn();
+		renderView({ remove: { label: 'Remove Enchant', onClick } });
 		const button = screen.getByTestId('selector-modal-remove-button');
 		expect(button.textContent).toBe('Remove Enchant');
 
 		fireEvent.click(button);
-		expect(props.onRemove).toHaveBeenCalledOnce();
+		expect(onClick).toHaveBeenCalledOnce();
 	});
 
 	it('leaves the remove button out without a remove action', () => {
-		renderView({ onRemove: undefined });
+		renderView({ remove: undefined });
 		expect(screen.queryByTestId('selector-modal-remove-button')).toBeNull();
 	});
 });

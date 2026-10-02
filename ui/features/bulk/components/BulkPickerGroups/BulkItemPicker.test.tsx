@@ -1,3 +1,5 @@
+import { OpenSelectorModalContext, type SelectorModalState, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
+import { SelectorModalTabs } from '@features/gear/types';
 import { ItemSlot, ItemSpec } from '@generated/proto/common';
 import { BulkSimItemSlot } from '@sim/bulk/constants_auto_gen';
 import { SimHostProvider } from '@sim/context/SimHostContext';
@@ -5,7 +7,7 @@ import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { bulkState, patchBulkState, seedBulkSettings } from '@sim/settings/bulk_settings';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@features/gear/components/ItemCell', () => ({
@@ -28,16 +30,16 @@ vi.mock('@sim/bulk/utils', async () => {
 
 const { BulkPickerGroups } = await import('./BulkPickerGroups');
 const { createBulkGearData } = await import('../../model/gear_data');
-const { addBulkItems, loadEquippedBulkItems, seedBulkPickerGroups } = await import('../../model/items');
+const { addBulkItems, hasBulkItem, loadEquippedBulkItems, seedBulkPickerGroups } = await import('../../model/items');
 
 const STORE_KEY = 7;
 
-const fakeItem = (id: number, name: string): EquippedItem => {
+const fakeItem = (id: number, name: string, gems: number[] = []): EquippedItem => {
 	const item = {
 		id,
 		item: { id, name, unique: false },
 		_item: { id, name, unique: false },
-		asSpec: () => ItemSpec.create({ id }),
+		asSpec: () => ItemSpec.create({ id, gems }),
 		equals: (other: EquippedItem | null) => !!other && other.id === id,
 		withDynamicStats: () => item as unknown as EquippedItem,
 	};
@@ -46,13 +48,15 @@ const fakeItem = (id: number, name: string): EquippedItem => {
 
 const BATCHED = fakeItem(1, 'Batched Ring');
 const WORN = fakeItem(2, 'Worn Ring');
+const PICKED = fakeItem(3, 'Picked Ring');
+const SOCKETED = fakeItem(4, 'Socketed Ring', [0, 0]);
 
 const mount = () => {
 	const store = createSimStore();
 	const gear = { getEquippedItem: () => null };
 	seedKeyed(store, 'players', STORE_KEY, { gear, v: zeroVersions(PLAYER_FIELDS) } as never);
 
-	const db = { lookupItemSpec: (spec: ItemSpec) => (spec.id === WORN.id ? WORN : spec.id === BATCHED.id ? BATCHED : null) };
+	const db = { lookupItemSpec: (spec: ItemSpec) => [BATCHED, WORN, PICKED, SOCKETED].find(item => item.id === spec.id) ?? null };
 	const player = {
 		sim: { store, db, isNative: false, encounter: { getAreaTypes: () => [] } },
 		storeKey: STORE_KEY,
@@ -66,10 +70,20 @@ const mount = () => {
 	seedBulkPickerGroups(player);
 	addBulkItems(player, [BATCHED.asSpec()], true);
 
+	let modal: SelectorModalState | null = null;
+	const Harness = () => {
+		modal = useSelectorModalState();
+		return (
+			<OpenSelectorModalContext value={modal.openTab}>
+				<BulkPickerGroups />
+			</OpenSelectorModalContext>
+		);
+	};
+
 	const host = { player, sim: player.sim } as never;
 	const { container } = render(
 		<SimHostProvider host={host}>
-			<BulkPickerGroups />
+			<Harness />
 		</SimHostProvider>,
 	);
 
@@ -77,6 +91,11 @@ const mount = () => {
 	return {
 		player,
 		cell,
+		modal: () => modal!,
+		clickAdd: (group: string) =>
+			fireEvent.click(
+				within(container.querySelector<HTMLElement>(`[data-gear-group="${group}"]`)!).getByRole('button', { name: 'bulk_tab.picker.add_items_to' }),
+			),
 		view: () => ({
 			equipped: cell().hasAttribute('data-equipped'),
 			removable: !!cell().querySelector('[data-testid="item-picker-actions-btn"]'),
@@ -159,6 +178,47 @@ describe('BulkItemPicker when the batch entry is swapped for an item the player 
 
 		act(() => patchBulkState(h.player, {}, ['items']));
 		expect(h.view()).toEqual({ equipped: true, removable: false });
+	});
+});
+
+describe('BulkItemPickerGroup add button', () => {
+	it.each([
+		['rings', ItemSlot.ItemSlotFinger1],
+		['trinkets', ItemSlot.ItemSlotTrinket1],
+		['weapons', ItemSlot.ItemSlotMainHand],
+		['head', ItemSlot.ItemSlotHead],
+	])('opens the item list for the %s group on its slot', (group, itemSlot) => {
+		const h = mount();
+
+		h.clickAdd(group);
+
+		expect(h.modal().open).toBe(true);
+		expect(h.modal().request).toMatchObject({ slot: itemSlot, tab: SelectorModalTabs.Items });
+		expect(h.modal().request!.gearData.getEquippedItem()).toBeNull();
+	});
+
+	it('adds each picked item to the group and leaves the modal open', () => {
+		const h = mount();
+		h.clickAdd('rings');
+		const { gearData } = h.modal().request!;
+
+		act(() => gearData.equipItem(PICKED));
+		act(() => gearData.equipItem(SOCKETED));
+
+		const rings = bulkState(h.player).pickerGroups.get(BulkSimItemSlot.ItemSlotFinger)!;
+		expect(rings.map(entry => entry.item)).toEqual([BATCHED, PICKED, SOCKETED]);
+		expect(screen.getAllByTestId('bulk-item-picker')).toHaveLength(3);
+		expect(h.modal().open).toBe(true);
+		expect(gearData.getEquippedItem()).toBeNull();
+	});
+
+	it("adds a socketed pick in the shape the list's in-batch mark looks for", () => {
+		const h = mount();
+		h.clickAdd('rings');
+
+		act(() => h.modal().request!.gearData.equipItem(SOCKETED));
+
+		expect(hasBulkItem(h.player, ItemSpec.create({ id: SOCKETED.id }))).toBe(true);
 	});
 });
 

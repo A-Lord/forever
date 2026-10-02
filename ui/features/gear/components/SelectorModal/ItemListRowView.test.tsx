@@ -37,20 +37,20 @@ describe('ItemListRowView', () => {
 			compare: { inBatch: false, tooltipId: 'compare', onToggle: vi.fn() },
 		});
 		expect(cells()).toEqual([
-			'selector-modal-list-item-row-link',
 			'selector-modal-list-item-ilvl-container',
 			'selector-modal-list-label-cell',
 			'selector-modal-list-item-source-container',
 			'selector-modal-list-item-ep',
 			'selector-modal-list-item-favorite',
 			'selector-modal-list-item-compare',
+			'selector-modal-list-item-row-link',
 		]);
 		expect(screen.getByTestId('selector-modal-list-item-ilvl-container').textContent).toBe('80');
 		expect(screen.getByTestId('selector-modal-list-item-source-container').textContent).toBe('Molten Core');
 	});
 
 	it('keeps the label and favourite columns alone when nothing else is given', () => {
-		expect(renderRow().cells()).toEqual(['selector-modal-list-item-row-link', 'selector-modal-list-label-cell', 'selector-modal-list-item-favorite']);
+		expect(renderRow().cells()).toEqual(['selector-modal-list-label-cell', 'selector-modal-list-item-favorite', 'selector-modal-list-item-row-link']);
 	});
 
 	it('leaves the description label off when the item has none', () => {

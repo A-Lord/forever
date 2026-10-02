@@ -25,8 +25,7 @@ const ItemsPane = () => (
 			phase={1}
 			onPhaseChange={fn()}
 			toggles={[{ id: 'show-ep-values-selector', testId: 'selector-modal-show-ep-values', label: 'Show EP', value: true, onChange: fn() }]}
-			removeLabel="Unequip Item"
-			onRemove={fn()}
+			remove={{ label: 'Unequip Item', onClick: fn() }}
 		/>
 		<ItemListHeaderRow
 			label={SelectorModalTabs.Items}
@@ -72,8 +71,7 @@ const EnchantsPane = () => (
 			phase={1}
 			onPhaseChange={fn()}
 			toggles={[{ id: 'show-all-enchants-selector', testId: 'selector-modal-show-all-enchants', label: 'Show All', value: false, onChange: fn() }]}
-			removeLabel="Remove Enchant"
-			onRemove={fn()}
+			remove={{ label: 'Remove Enchant', onClick: fn() }}
 		/>
 		<ItemListHeaderRow label={SelectorModalTabs.Enchants} sortBy={ItemListSortBy.ILVL} sortDirection={SortDirection.DESC} onSort={fn()} />
 		{ENCHANTS.map((row, index) => (

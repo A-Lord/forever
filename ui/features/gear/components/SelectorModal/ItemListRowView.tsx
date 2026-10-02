@@ -41,7 +41,6 @@ export const ItemListRowView = ({
 	...actions
 }: ItemListRowViewProps) => (
 	<>
-		<FakeLink onActivate={onEquip} testId="selector-modal-list-item-row-link" />
 		{ilvl !== undefined && (
 			<div className="w-12 text-center" data-testid="selector-modal-list-item-ilvl-container">
 				{ilvl || null}
@@ -67,5 +66,6 @@ export const ItemListRowView = ({
 		)}
 		{ep && <EpCell {...ep} />}
 		<RowActions {...actions} />
+		<FakeLink onActivate={onEquip} testId="selector-modal-list-item-row-link" />
 	</>
 );
