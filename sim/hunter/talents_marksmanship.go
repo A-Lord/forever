@@ -2,7 +2,6 @@ package hunter
 
 import (
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -187,25 +186,12 @@ func (hunter *Hunter) registerSniperShot() {
 	// to the Shots its class flags name, Auto Shot among them. Sniper Shot is not one of them.
 	buff := hunter.RegisterAura(spelldata.AuraConfig(sniperShotRank))
 	spelldata.ParseEffects(&hunter.Character, buff, sniperShotRank)
-	firstHit, resetFirstHit := core.OncePerCast()
-	buff.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-		resetFirstHit()
-	})
 
 	// One charge per Shot the range mod names, however many targets it hits. The row's proc flags hear
 	// every ranged hit, Sniper Shot's own among them, so the listener takes the mod's class flags.
 	// TODO: Ingame test needed: a Shot that misses keeps the charge (the row's proc flags ask for damage
 	// dealt), and Multi-Shot spends one charge per cast.
-	spend := spelldata.ProcTrigger(&hunter.Character, sniperShotRank,
-		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			buff.RemoveStack(sim)
-		})
-	spend.Name = "Sniper Shot - Spend"
-	spend.ClassFlags = sniperShotRank.FirstAura(dbcenums.A_ADD_FLAT_MODIFIER).ClassFlags
-	spend.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		return firstHit(sim, spell)
-	}
-	buff.AttachProcTrigger(spend)
+	spelldata.AttachChargeSpender(&hunter.Character, buff, sniperShotRank, "Sniper Shot - Spend")
 
 	config := spelldata.SpellConfig(&hunter.Unit, sniperShotRank, spelldata.Melee(core.ProcMaskRangedSpecial))
 	hunter.hasteRangedCast(&config)

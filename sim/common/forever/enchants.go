@@ -237,14 +237,12 @@ func init() {
 		spelldata.ParseEffects(character, buff, row)
 		character.ItemSwap.RegisterWeaponEnchantBuff(buff, 8217)
 
-		// The charge goes to the next spell the crit modifier reaches, whatever its proc mask.
-		spender := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			buff.RemoveStack(sim)
-		})
-		spender.Name = "Revelation Charge"
-		spender.ClassFlags = row.EffectN(1).ClassFlags
-		spender.ProcMask = core.ProcMaskUnknown
-		buff.AttachProcTriggerCallback(&character.Unit, spender)
+		// The charge goes to the next cast the crit modifier reaches, whatever its proc mask.
+		// TODO: Ingame test needed -- a cast that hits several targets spends one Revelation charge.
+		spender := spelldata.AttachChargeSpender(character, buff, row, "Revelation Charge",
+			func(_ *core.Character, trigger *core.ProcTrigger) {
+				trigger.ProcMask = core.ProcMaskUnknown
+			})
 
 		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1248806), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			buff.Activate(sim)
@@ -252,16 +250,14 @@ func init() {
 		}, spelldata.Chance(0.09))
 		trigger.Name = "Enchant Weapon - Revelation"
 		trigger.Outcome = core.OutcomeLanded
-		// The hunter buff's spells, Arcane Shot and Volley, are ranged shots that the row's spell and
-		// heal listener does not hear, so for a hunter they roll the same chance as well.
+		// The row's listener hears direct spells and heals. A ranged Shot the buff's class flags name
+		// rolls the same chance, which the hunter buff's Arcane Shot and Volley are.
 		// TODO: Verify in game that a hunter's Arcane Shot and Volley proc Revelation.
-		hunter := character.Class == proto.Class_ClassHunter
 		spellHits, classFlags := trigger.ProcMask, spender.ClassFlags
-		if hunter {
-			trigger.ProcMask = core.ProcMaskUnknown
-		}
+		trigger.ProcMask = core.ProcMaskUnknown
 		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			if hunter && !spell.ProcMask.Matches(spellHits) && !spell.MatchesFlags(classFlags) {
+			shot := spell.DefenseType == core.DefenseTypeRanged && spell.MatchesFlags(classFlags)
+			if !spell.ProcMask.Matches(spellHits) && !shot {
 				return false
 			}
 			return !result.DidCrit() && !buff.IsActive()
