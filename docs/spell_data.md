@@ -1299,10 +1299,20 @@ go run ./tools/database/gen_spelldata -classes=druid -racials
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid
 ```
 
-The spell data groups are the nine classes by package name, `racials`, `items` and `shared`. `items`
-(the item, enchant and set-bonus rows, with the item database `gen_db` writes) and `shared` (the
-shapeshift forms, and the extra spells and buff manifest rows no class owns) are always taken. A row
-belongs to the first of these that holds:
+A run chooses which of the nine classes (by package name) and whether `racials` it takes. Two more
+spell data groups cannot be chosen: every run takes `items` (the item, enchant and set-bonus rows,
+with the item database `gen_db` writes) and `shared` (the shapeshift forms, and the extra spells and
+buff manifest rows no class owns) from the database, because the item database is not split and the
+store's item rows have to match it. So `-classes=druid` moves the druid, the items and the shared rows,
+and `-racials` moves the racials, the items and the shared rows.
+
+| Spell data group                                                                        | Chosen with                      |
+| --------------------------------------------------------------------------------------- | -------------------------------- |
+| `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock`, `druid` | `-classes` (`CLASSES=` in make)  |
+| `racials`                                                                               | `-racials` (`RACIALS=1` in make) |
+| `items`, `shared`                                                                       | not chosen: every run takes them |
+
+A row belongs to the first of these that holds:
 
 1. it is an `overrides.ExtraSpells` entry with `SpellDataGroup: "racials"`, the Eureka! rows;
 2. it states a class family: its class flags are that class's, so a set bonus or an enchant's class
@@ -1361,7 +1371,8 @@ is deterministic.
 
 `-classes` takes `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock` and
 `druid`, comma-separated, or `all` or `none`; `-racials` takes the racials. Either one makes the run a
-partial update, and `-racials` with no `-classes` takes no class. `items` and `shared` are always taken.
+partial update, and `-racials` with no `-classes` takes no class. Neither flag can leave out `items` or
+`shared`: every run, partial or full, takes both from the database.
 
 ```
 make db                                   # extract, then gen_spelldata and gen_db, default groups
