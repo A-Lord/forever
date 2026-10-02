@@ -10,9 +10,8 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
-// Same tree as the cat UI default: shifting power, improved shifting power,
-// shredding attacks, and natural shapeshifter.
-const powershiftTalents = "0000000000000000-50000032121032212051-0500300000000000"
+// Same tree as the cat UI default. Shifting Power is the 11th feral talent.
+const powershiftTalents = "05002-55000032021032212051-055"
 
 func TestPowershiftUsesShiftingPower(t *testing.T) {
 	result := core.RunSim(catPowershiftRequest(), nil, simsignals.CreateSignals())
@@ -34,6 +33,22 @@ func TestPowershiftUsesShiftingPower(t *testing.T) {
 	}
 	if got := castsOf(player.Actions, 768); got != 0 {
 		t.Fatalf("cat form casts = %d, the energy button left cat form", got)
+	}
+}
+
+func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
+	request := catPowershiftRequest()
+	request.Raid.Parties[0].Players[0].TalentsString = withFeralDigit(powershiftTalents, 10, '0')
+	result := core.RunSim(request, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatalf("sim error: %s", result.Error.Message)
+	}
+	player := result.RaidMetrics.Parties[0].Players[0]
+	if player.Dps.Avg <= 0 {
+		t.Fatalf("dps = %v, want a fight that deals damage", player.Dps.Avg)
+	}
+	if got := castsOf(player.Actions, 1322605); got != 0 {
+		t.Fatalf("shifting power casts = %d, the talent is not taken", got)
 	}
 }
 

@@ -22,6 +22,10 @@ func TestRotationSweep(t *testing.T) {
 	_, costCat := newCat(t, powershiftTalents, nil)
 	fmt.Printf("energy cost shred %.0f rip %.0f bite %.0f rake %.0f\n",
 		costCat.CurrentShredCost(), costCat.CurrentRipCost(), costCat.CurrentFerociousBiteCost(), costCat.Rake.Cost.GetCurrentCost())
+	fmt.Printf("shifting power %v improved %d heart %d shapeshifter %d naturalist %d genesis %d majesty %d mana cost %.0f\n",
+		costCat.Talents.ShiftingPower, costCat.Talents.ImprovedShiftingPower, costCat.Talents.HeartOfTheWild,
+		costCat.Talents.NaturalShapeshifter, costCat.Talents.Naturalist, costCat.Talents.Genesis, costCat.Talents.NaturesMajesty,
+		costCat.ShiftingPower.Cost.GetCurrentCost())
 
 	base := sweepRotation(true, false, 5, 5, false, true)
 	rake5 := sweepRotation(true, false, 5, 5, true, true)
@@ -44,6 +48,11 @@ func TestRotationSweep(t *testing.T) {
 		{"rake first rip 4 bite off", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, true), false},
 		{"rake first rip 4 no ff", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(true, false, 4, 5, true, false), false},
 		{"shipped default", rotationProbe{}, sweepRotation(false, false, 4, 5, true, false), false},
+		{"SP<=42 shipped apl", rotationProbe{enabled: true, shiftBelow: 42, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
+		{"SP<=30 shipped apl", rotationProbe{enabled: true, shiftBelow: 30, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
+		{"SP<=20 shipped apl", rotationProbe{enabled: true, shiftBelow: 20, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
+		{"never shifting power", rotationProbe{enabled: true, shiftBelow: -1, rakeFirst: true}, sweepRotation(false, false, 4, 5, true, false), false},
+		{"no shifting power talent", rotationProbe{}, sweepRotation(false, false, 4, 5, true, false), false},
 		{"rake first rip 5 bite off", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, rakeFirst: true}, sweepRotation(false, false, 5, 5, true, true), false},
 		{"bearweave", rotationProbe{enabled: true, shiftBelow: -1, shiftBelowShred: true, bearweave: true}, rake5, true},
 		{"bite is the finisher", belowShred, sweepRotation(false, true, 5, 5, true, true), false},
@@ -57,7 +66,10 @@ func TestRotationSweep(t *testing.T) {
 		probe = row.p
 		talents := powershiftTalents
 		if row.bite {
-			talents = powershiftTalents[:28] + "1" + powershiftTalents[29:]
+			talents = withFeralDigit(talents, 11, '1')
+		}
+		if strings.Contains(row.name, "no shifting power talent") {
+			talents = withFeralDigit(talents, 10, '0')
 		}
 		result := core.RunSim(sweepRequest(talents, row.rot, !strings.Contains(row.name, "raid has no ff")), nil, simsignals.CreateSignals())
 		if result.Error != nil {
@@ -71,6 +83,15 @@ func TestRotationSweep(t *testing.T) {
 			sweepCasts(player, 22829)/per, sweepCasts(player, 9904)/per, sweepCasts(player, 9907)/per,
 			sweepCasts(player, 9634)/per, sweepCasts(player, 1238073)/per)
 	}
+}
+
+// withFeralDigit sets one feral-tree digit. Index 10 is Shifting Power, 11 is Primal Bite.
+func withFeralDigit(talents string, index int, digit byte) string {
+	parts := strings.Split(talents, "-")
+	feral := []byte(parts[1])
+	feral[index] = digit
+	parts[1] = string(feral)
+	return strings.Join(parts, "-")
 }
 
 func sweepRotation(biteweave bool, biteFinisher bool, ripCP, biteCP int32, rake, ff bool) *proto.APLActionCatOptimalRotationAction {

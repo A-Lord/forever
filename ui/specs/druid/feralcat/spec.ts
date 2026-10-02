@@ -82,12 +82,12 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		// Default rotation settings.
 		rotationType: APLRotationType.TypeAuto,
 		simpleRotation: Presets.DefaultRotation,
-		// Ferocity, shredding attacks, savage fury, charge, sharpened claws,
-		// shifting power, predatory strikes, blood frenzy, improved shifting power,
-		// leader of the pack, predatory instincts, rend and tear, berserk, furor,
-		// natural shapeshifter.
+		// Genesis, nature's majesty, ferocity, heart of the wild, shredding attacks,
+		// savage fury, sharpened claws, shifting power, predatory strikes, blood frenzy,
+		// improved shifting power, leader of the pack, predatory instincts, rend and tear,
+		// berserk, furor, naturalist. Shifting Power is absent until that talent is taken.
 		talents: SavedTalents.create({
-			talentsString: '0000000000000000-50000032121032212051-0500300000000000',
+			talentsString: '05002-55000032021032212051-055',
 		}),
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
