@@ -29,15 +29,15 @@ import (
 var outDir = flag.String("outDir", "assets", "Path to output directory for writing generated .go files.")
 var genAsset = flag.String("gen", "", "Asset to generate. Valid values are 'db', 'atlasloot' and 'go-to-ts'")
 var dbPath = flag.String("dbPath", "./tools/database/wowsims.db", "Location of the wowsims.db file produced by tools/db2tool")
-var onlyList = flag.String("only", "", "Write the talent files of these classes only (comma-separated, as gen_spelldata -only); the item database is always written")
+var classes = flag.String("classes", "", "Write the talent files of these classes only (comma-separated package names, all or none, as gen_spelldata -classes); the item database is always written")
 
 func main() {
 	flag.Parse()
 
 	database.DatabasePath = *dbPath
-	only, err := database.ParsePortions(*onlyList)
+	only, err := database.ParsePortions(*classes, false)
 	if err != nil {
-		log.Fatalf("-only: %v", err)
+		log.Fatalf("-classes: %v", err)
 	}
 
 	if *outDir == "" {

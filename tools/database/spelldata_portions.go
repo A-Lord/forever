@@ -65,25 +65,33 @@ func allPortions() []string {
 // regeneration.
 type Portions map[string]bool
 
-// The portions a comma-separated list names, with items and shared, which are always taken. An empty
-// list is a full regeneration.
-func ParsePortions(list string) (Portions, error) {
-	if strings.TrimSpace(list) == "" {
+// The portions -classes and -racials name, with items and shared, which are always taken. classes is a
+// comma-separated list of class package names, "all" or "none". Naming neither is the default
+// selection, which is nil here.
+func ParsePortions(classes string, racials bool) (Portions, error) {
+	classes = strings.TrimSpace(classes)
+	if classes == "" && !racials {
 		return nil, nil
 	}
 
-	only := Portions{portionItems: true, portionShared: true}
-	for _, name := range strings.Split(list, ",") {
-		name = strings.TrimSpace(name)
-		switch {
-		case name == portionItems || name == portionShared:
-			return nil, fmt.Errorf("%s is always taken from the game files database, so it is not named", name)
-		case slices.Contains(allPortions(), name):
-			only[name] = true
-		default:
-			return nil, fmt.Errorf("unknown portion %q: the portions are the class names and %s",
-				name, portionRacials)
+	only := Portions{portionItems: true, portionShared: true, portionRacials: racials}
+	var names []string
+	switch classes {
+	case "", "none":
+	case "all":
+		for _, class := range dbc.Classes {
+			names = append(names, classPortion(class))
 		}
+	default:
+		names = strings.Split(classes, ",")
+	}
+	for _, name := range names {
+		name = strings.TrimSpace(name)
+		if _, ok := classFamilies[name]; !ok {
+			return nil, fmt.Errorf("unknown class %q: one of %s, all or none; racials are taken with -racials",
+				name, strings.Join(slices.Sorted(maps.Keys(classFamilies)), ", "))
+		}
+		only[name] = true
 	}
 	return only, nil
 }

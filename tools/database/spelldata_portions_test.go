@@ -71,15 +71,24 @@ func mergeWorld(t *testing.T, list string) (*storeInputs, []string) {
 func mergeInputs(t *testing.T, old, fresh *storeInputs, list string) (*storeInputs, []string) {
 	t.Helper()
 	quiet(t)
-	only, err := ParsePortions(list)
-	if err != nil {
-		t.Fatal(err)
-	}
-	merged, notes, err := mergeStoreInputs(old, fresh, only, "new")
+	merged, notes, err := mergeStoreInputs(old, fresh, portionsOf(t, list), "new")
 	if err != nil {
 		t.Fatal(err)
 	}
 	return merged, notes
+}
+
+// One portion as the flags name it: racials through -racials, a class through -classes.
+func portionsOf(t *testing.T, portion string) Portions {
+	t.Helper()
+	only, err := ParsePortions(portion, false)
+	if portion == portionRacials {
+		only, err = ParsePortions("", true)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	return only
 }
 
 // A spell triggered from an item on the new build, so reached from a taken portion.
@@ -214,8 +223,7 @@ func TestMergeAdoptsInputsThatRecordNoPortions(t *testing.T) {
 		old.TraitNodes[i].Class, old.TraitNodes[i].TreeID = "", 0
 	}
 
-	only, _ := ParsePortions("mage")
-	merged, notes, err := mergeStoreInputs(old, portionWorld(2, 2), only, "new")
+	merged, notes, err := mergeStoreInputs(old, portionWorld(2, 2), portionsOf(t, "mage"), "new")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,8 +250,7 @@ func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, portion := range []string{"warrior", "hunter", "druid", portionRacials} {
-		only, _ := ParsePortions(portion)
-		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), only, committed.Builds[portion])
+		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), portionsOf(t, portion), committed.Builds[portion])
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -252,7 +259,7 @@ func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(got, want) {
-			t.Errorf("-only %s: the merge of the committed inputs with themselves differs from them", portion)
+			t.Errorf("%s: the merge of the committed inputs with themselves differs from them", portion)
 		}
 	}
 }
@@ -283,22 +290,39 @@ func TestMoveRowCoversEveryTable(t *testing.T) {
 }
 
 func TestParsePortions(t *testing.T) {
-	only, err := ParsePortions("warrior, racials")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for portion, want := range map[string]bool{"warrior": true, portionRacials: true, portionItems: true,
-		portionShared: true, "mage": false} {
-		if only.Takes(portion) != want {
-			t.Errorf("Takes(%s) = %v, want %v", portion, !want, want)
+	for _, c := range []struct {
+		classes string
+		racials bool
+		takes   []string
+		leaves  []string
+	}{
+		{"warrior, mage", false, []string{"warrior", "mage", portionItems, portionShared}, []string{"druid", portionRacials}},
+		{"druid", true, []string{"druid", portionRacials}, []string{"warrior"}},
+		{"", true, []string{portionRacials, portionItems, portionShared}, []string{"warrior", "druid"}},
+		{"none", false, []string{portionItems, portionShared}, []string{"warrior", portionRacials}},
+		{"all", false, []string{"warrior", "druid", "hunter"}, []string{portionRacials}},
+	} {
+		only, err := ParsePortions(c.classes, c.racials)
+		if err != nil {
+			t.Fatalf("-classes=%q -racials=%v: %v", c.classes, c.racials, err)
+		}
+		for _, p := range c.takes {
+			if !only.Takes(p) {
+				t.Errorf("-classes=%q -racials=%v leaves %s, want it taken", c.classes, c.racials, p)
+			}
+		}
+		for _, p := range c.leaves {
+			if only.Takes(p) {
+				t.Errorf("-classes=%q -racials=%v takes %s, want it left", c.classes, c.racials, p)
+			}
 		}
 	}
-	if only, _ := ParsePortions(""); !only.all() {
-		t.Errorf("an empty list takes %v, want every portion", only)
+	if only, _ := ParsePortions("", false); !only.all() {
+		t.Errorf("naming nothing takes %v, want the default selection", only)
 	}
-	for _, list := range []string{"items", "shared", "deathknight"} {
-		if _, err := ParsePortions(list); err == nil {
-			t.Errorf("ParsePortions(%q) succeeds, want it refused", list)
+	for _, list := range []string{"items", "shared", portionRacials, "deathknight"} {
+		if _, err := ParsePortions(list, false); err == nil {
+			t.Errorf("-classes=%s succeeds, want it refused", list)
 		}
 	}
 }

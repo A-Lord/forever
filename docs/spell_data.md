@@ -1232,7 +1232,7 @@ func (rogue *Rogue) ruptureDamage(target *core.Unit, comboPoints int32, baseDama
 
 ```
 go run ./tools/database/gen_spelldata              # rewrite every generated spell data file
-go run ./tools/database/gen_spelldata -only druid  # take the druid from the database, keep every other class as committed
+go run ./tools/database/gen_spelldata -classes=druid  # take the druid from the database, keep every other class as committed
 go run ./tools/database/gen_spelldata -check       # name the ones that are stale, write nothing
 go run ./tools/database/gen_spelldata -unchecked   # write without the type-check below
 make spelldata-check                               # the same check
@@ -1289,13 +1289,14 @@ was meant to be mechanical and moves a .results number is a wrong port, not a ne
 ### Taking a new game build one portion at a time
 
 A new game build moves every class at once: talents leave the trees, rows change, and each class's
-code has to follow before its tests pass. `-only` takes some portions of the database and keeps every
-other row as the committed inputs state it, so each class moves onto the build in its own pull request:
+code has to follow before its tests pass. `-classes` and `-racials` take some portions of the database
+and keep every other row as the committed inputs state it, so each class moves onto the build in its own
+pull request:
 
 ```
-make db ONLY=druid                                   # extract, then gen_spelldata and gen_db with -only druid
-go run ./tools/database/gen_spelldata -only druid,racials
-go run tools/database/gen_db/*.go -outDir=./assets -gen=db -only druid
+make db CLASSES=druid                                # extract, then gen_spelldata and gen_db with -classes=druid
+go run ./tools/database/gen_spelldata -classes=druid -racials
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid
 ```
 
 The portions are the nine classes by package name, `racials`, `items` and `shared`. `items` (the item,
@@ -1314,7 +1315,7 @@ class file names it and keeps the row it was written against. A spell the new bu
 taken row or root reaches, always comes from the new build, since no committed file names it.
 
 A class that is not taken keeps its `sim/<class>/spell_data_auto_gen.go`, and a class it cannot read
-from the new build yet is reported rather than stopping the run. `gen_db -only` writes only the taken
+from the new build yet is reported rather than stopping the run. `gen_db -classes` writes only the taken
 classes' talent protos, TS configs and tree JSON. The hunter's ammo file goes with the hunter, though
 the item database always ships the new build's arrows.
 
@@ -1334,38 +1335,44 @@ are regenerated. Inputs that record no portions are split the way the database s
 and a root that names no portion there is printed as adopted into `shared`.
 
 Two pull requests that each take a class both rewrite the store and the gzipped inputs. Resolve the
-conflict by taking the base branch's copies and running `gen_spelldata -only <class>` again; the merge
+conflict by taking the base branch's copies and running `gen_spelldata -classes=<class>` again; the merge
 is deterministic.
 
 #### Commands
 
-`-only` takes `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock`, `druid`
-and `racials`, comma-separated. `items` and `shared` are always taken, and naming one is refused.
+`-classes` takes `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock` and
+`druid`, comma-separated, or `all` or `none`; `-racials` takes the racials. Either one makes the run a
+partial update, and `-racials` with no `-classes` takes no class. `items` and `shared` are always taken.
 
 ```
 make db                                   # extract, then gen_spelldata and gen_db, default portions
-make db ONLY=druid                        # take the druid, with items and shared
-make db ONLY=druid,racials
-make db ONLY=warrior WOW_DIR="/mnt/e/World of Warcraft"
-make db ONLY=mage DB2TOOL_FLAGS="--cdn --dbcache caches/DBCache.bin"
-make ptrdb ONLY=druid                     # the same from the PTR settings
-make spelldata ONLY=hunter                # gen_spelldata alone, no extraction
+make db CLASSES=druid                     # take the druid, with items and shared
+make db CLASSES=druid,mage RACIALS=1
+make db RACIALS=1                         # the racials, with items and shared, no class
+make db CLASSES=none                      # items and shared alone
+make db CLASSES=all RACIALS=1             # every portion, also while the builds are mixed
+make db CLASSES=warrior WOW_DIR="/mnt/e/World of Warcraft"
+make db CLASSES=mage DB2TOOL_FLAGS="--cdn --dbcache caches/DBCache.bin"
+make ptrdb CLASSES=druid                  # the same from the PTR settings
+make spelldata CLASSES=hunter             # gen_spelldata alone, no extraction
 make spelldata-check                      # stale files exit 1; portions not ported are listed and pass
 ```
 
 ```
-go run ./tools/database/gen_spelldata                          # default portions
-go run ./tools/database/gen_spelldata -only druid
-go run ./tools/database/gen_spelldata -only "druid, racials"
-go run ./tools/database/gen_spelldata -only druid -unchecked   # write without the type-check
-go run ./tools/database/gen_spelldata -check                   # compare, write nothing
-go run ./tools/database/gen_spelldata -dbPath /path/to/other.db -only druid
+go run ./tools/database/gen_spelldata                               # default portions
+go run ./tools/database/gen_spelldata -classes=druid
+go run ./tools/database/gen_spelldata -classes="druid, mage" -racials
+go run ./tools/database/gen_spelldata -racials
+go run ./tools/database/gen_spelldata -classes=druid -unchecked     # write without the type-check
+go run ./tools/database/gen_spelldata -check                        # compare, write nothing
+go run ./tools/database/gen_spelldata -dbPath /path/to/other.db -classes=druid
 
-go run tools/database/gen_db/*.go -outDir=./assets -gen=db             # talent files of the default portions
-go run tools/database/gen_db/*.go -outDir=./assets -gen=db -only druid # the druid's talent files only
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db                 # talent files of the default portions
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid  # the druid's talent files only
 ```
 
-`-only` does not combine with `-check` or `-everyClassSpell`. The item database is always written.
+`-classes` and `-racials` do not combine with `-check` or `-everyClassSpell`. `gen_db` takes `-classes`
+alone, having no racial files, and always writes the item database.
 
 `db2tool` writes the `BuildInfo` table on every extraction. In offline mode pass the full version,
 `--build 1.60.1.70170`; a bare build number is recorded as given, with a warning. A database extracted
@@ -1383,14 +1390,14 @@ The build each portion is on, and the conflict resolution between two class pull
 zcat assets/db_inputs/spell_store_inputs.json | python3 -c "import json,sys; print(json.load(sys.stdin)['Builds'])"
 
 git checkout origin/master -- sim/core/spelldata/spells_auto_gen.go assets/db_inputs/spell_store_inputs.json
-go run ./tools/database/gen_spelldata -only mage
+go run ./tools/database/gen_spelldata -classes=mage
 ```
 
 A new game build, start to finish:
 
 ```
-make db ONLY=racials                      # the update pull request: items, shared and racials
-make db ONLY=druid                        # each class on its own branch, once the update is merged
+make db RACIALS=1                         # the update pull request: items, shared and racials
+make db CLASSES=druid                     # each class on its own branch, once the update is merged
 make spelldata-check                      # the classes still to port
 go test ./tools/database/ -count=1 -run 'Merge|MoveRow|ParsePortions|CurrentPortions'
 go test --tags=with_db -count=1 ./sim/druid/...
