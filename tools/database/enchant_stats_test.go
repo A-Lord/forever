@@ -3,6 +3,8 @@ package database
 import (
 	"testing"
 
+	googleProto "google.golang.org/protobuf/proto"
+
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -167,6 +169,35 @@ func TestEnchantSlot(t *testing.T) {
 					enchant.Type, enchant.EnchantType, enchant.ExtraTypes, tc.itemType, tc.enchantType)
 			}
 		})
+	}
+}
+
+// 13419 Enchant Cloak - Minor Agility names the weapon item class with the cloak inventory type in the
+// game files. The override patches the generated row rather than adding a second one.
+func TestCloakMinorAgilityFitsTheBack(t *testing.T) {
+	withDBCInputs(t)
+
+	if !rawEnchantByName(t, 247, "Enchant Cloak - Minor Agility").IsWeaponEnchant {
+		t.Fatalf("the game files no longer give 13419 the weapon item class; drop its EnchantOverrides entry")
+	}
+
+	db := NewWowDatabase()
+	db.MergeEnchant(enchantByName(t, 247, "Enchant Cloak - Minor Agility"))
+	for _, override := range EnchantOverrides {
+		db.MergeEnchant(googleProto.Clone(override).(*proto.UIEnchant))
+	}
+
+	var rows []*proto.UIEnchant
+	for _, enchant := range db.Enchants {
+		if enchant.EffectId == 247 {
+			rows = append(rows, enchant)
+		}
+	}
+	if len(rows) != 1 {
+		t.Fatalf("%d rows for enchant 247, want 1", len(rows))
+	}
+	if enchant := rows[0]; enchant.Type != proto.ItemType_ItemTypeBack || enchant.EnchantType != proto.EnchantType_EnchantTypeNormal || len(enchant.ExtraTypes) != 0 {
+		t.Errorf("type %v, enchant type %v, extra types %v; want back, normal, none", enchant.Type, enchant.EnchantType, enchant.ExtraTypes)
 	}
 }
 
