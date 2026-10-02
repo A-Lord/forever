@@ -3603,6 +3603,9 @@
 						"no_items": {
 							"type": "string"
 						},
+						"add_item": {
+							"type": "string"
+						},
 						"remove_tooltip": {
 							"type": "string"
 						},
@@ -3617,7 +3620,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["no_items", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
+					"required": ["no_items", "add_item", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
 				},
 				"results": {
 					"type": "object",

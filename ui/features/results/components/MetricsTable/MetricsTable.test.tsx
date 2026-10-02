@@ -1,9 +1,15 @@
-import { act, fireEvent, render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { ActionId } from '@sim/proto/action_id';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createMetricsColumnHelper } from '../../hooks/useMetricsTable';
 import type { MetricRow } from '../../model/grouping';
+import { MetricsActionCell } from './MetricsActionCell';
 import { MetricsTable } from './MetricsTable';
+
+vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: 'https://wowhead/spell=1', ready: true }) }));
+vi.mock('@sim/proto/action_id/tooltip_data', () => ({ actionIdWowheadTooltipData: () => Promise.resolve('spell=1') }));
 
 interface Metric {
 	name: string;
@@ -50,6 +56,8 @@ const column = (container: HTMLElement, index: number, filter?: (row: HTMLTableR
 const parents = (row: HTMLTableRowElement) => !row.hasAttribute('data-child');
 
 const sortButton = (header: HTMLElement) => header.querySelector('button')!;
+
+const clickRow = (row: HTMLTableRowElement) => fireEvent.click(row.cells[1].querySelector('[data-testid="fake-link"]')!);
 
 const ariaSorts = (container: HTMLElement) => table(container).headers.map(header => header.getAttribute('aria-sort'));
 
@@ -159,11 +167,11 @@ describe('MetricsTable', () => {
 		expect(parent.hasAttribute('data-expanded')).toBe(true);
 		expect(table(container).rows.filter(row => row.hasAttribute('data-child'))).toHaveLength(2);
 
-		fireEvent.click(parent);
+		clickRow(parent);
 		expect(parent.hasAttribute('data-expanded')).toBe(false);
 		expect(table(container).rows.filter(row => row.hasAttribute('data-child'))).toHaveLength(0);
 
-		fireEvent.click(parent);
+		clickRow(parent);
 		expect(parent.hasAttribute('data-expanded')).toBe(true);
 		expect(table(container).rows.filter(row => row.hasAttribute('data-child'))).toHaveLength(2);
 	});
@@ -175,7 +183,7 @@ describe('MetricsTable', () => {
 		);
 
 		fireEvent.click(sortButton(table(container).headers[1]));
-		fireEvent.click(table(container).rows[2]);
+		clickRow(table(container).rows[2]);
 		expect(column(container, 1, parents)).toEqual(['10', '30', '70']);
 		expect(table(container).rows.filter(row => row.hasAttribute('data-child'))).toHaveLength(0);
 
@@ -188,5 +196,67 @@ describe('MetricsTable', () => {
 		rerender(<MetricsTable rootTestId="test-metrics-root" columns={columns} rows={buildRows()} sortColumnId="value" hasResult={true} />);
 		await act(async () => {});
 		expect(table(container).rows.filter(row => row.hasAttribute('data-child'))).toHaveLength(2);
+	});
+});
+
+describe('MetricsTable rows with an action cell', () => {
+	const actionColumns = helper.columns([
+		helper.accessor(row => row.metric.name, {
+			id: 'name',
+			header: 'Name',
+			cell: info => (
+				<MetricsActionCell
+					name={info.getValue()}
+					actionId={ActionId.empty(info.getValue())}
+					expandable={info.row.getCanExpand()}
+					expanded={info.row.getIsExpanded()}
+					onToggle={info.row.getToggleExpandedHandler()}
+				/>
+			),
+		}),
+		helper.accessor(row => row.metric.value, { id: 'value', header: 'Value', cell: info => String(info.getValue()) }),
+	]);
+
+	const mount = async () => {
+		const view = render(<MetricsTable rootTestId="test-metrics-root" columns={actionColumns} rows={buildRows()} sortColumnId="value" hasResult={true} />);
+		await act(async () => {});
+		const parent = () => table(view.container).rows.find(row => row.hasAttribute('data-parent'))!;
+		return { parent, toggle: () => screen.getByRole('button', { name: 'Beta' }) };
+	};
+
+	it('leaves the action icon link to itself', async () => {
+		const { parent } = await mount();
+
+		fireEvent.click(parent().querySelector('[data-testid="metrics-action-icon"]')!);
+
+		expect(parent().hasAttribute('data-expanded')).toBe(true);
+	});
+
+	it('toggles once from the expand button, which reports the state', async () => {
+		const { parent, toggle } = await mount();
+
+		fireEvent.click(toggle());
+
+		expect(parent().hasAttribute('data-expanded')).toBe(false);
+		expect(toggle().getAttribute('aria-expanded')).toBe('false');
+	});
+
+	it('toggles from the keyboard on the expand button', async () => {
+		const { parent, toggle } = await mount();
+
+		toggle().focus();
+		await userEvent.keyboard('{Enter}');
+		expect(parent().hasAttribute('data-expanded')).toBe(false);
+
+		await userEvent.keyboard(' ');
+		expect(parent().hasAttribute('data-expanded')).toBe(true);
+		expect(toggle().getAttribute('aria-expanded')).toBe('true');
+	});
+
+	it('leaves a row that cannot expand without a click layer', async () => {
+		await mount();
+
+		const leaves = table(document.body).rows.filter(row => !row.hasAttribute('data-parent'));
+		expect(leaves.map(row => row.querySelector('[data-testid="fake-link"]'))).toEqual(leaves.map(() => null));
 	});
 });

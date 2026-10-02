@@ -1,5 +1,6 @@
 import { ItemQuality } from '@generated/proto/common';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ItemListRowView, type ItemListRowViewProps } from './ItemListRowView';
@@ -36,6 +37,7 @@ describe('ItemListRowView', () => {
 			compare: { inBatch: false, tooltipId: 'compare', onToggle: vi.fn() },
 		});
 		expect(cells()).toEqual([
+			'selector-modal-list-item-row-link',
 			'selector-modal-list-item-ilvl-container',
 			'selector-modal-list-label-cell',
 			'selector-modal-list-item-source-container',
@@ -48,7 +50,7 @@ describe('ItemListRowView', () => {
 	});
 
 	it('keeps the label and favourite columns alone when nothing else is given', () => {
-		expect(renderRow().cells()).toEqual(['selector-modal-list-label-cell', 'selector-modal-list-item-favorite']);
+		expect(renderRow().cells()).toEqual(['selector-modal-list-item-row-link', 'selector-modal-list-label-cell', 'selector-modal-list-item-favorite']);
 	});
 
 	it('leaves the description label off when the item has none', () => {
@@ -70,5 +72,29 @@ describe('ItemListRowView', () => {
 		const { props } = renderRow();
 		fireEvent.click(screen.getByTestId('selector-modal-list-item-link'));
 		expect(props.onEquip).toHaveBeenCalledOnce();
+	});
+
+	it('equips from a click on the row outside its controls', () => {
+		const { props } = renderRow({ source: 'Molten Core' });
+		fireEvent.click(screen.getByTestId('selector-modal-list-item-row-link'));
+		expect(props.onEquip).toHaveBeenCalledOnce();
+	});
+
+	it('leaves a source link and the favourite star to themselves', () => {
+		const onSource = vi.fn();
+		const { props } = renderRow({
+			source: (
+				<WowheadAnchor href="https://example.com/npc" testId="source-link" onClick={onSource}>
+					Ragnaros
+				</WowheadAnchor>
+			),
+		});
+
+		fireEvent.click(screen.getByTestId('source-link'));
+		fireEvent.click(screen.getByTestId('selector-modal-list-item-favorite'));
+
+		expect(onSource).toHaveBeenCalledOnce();
+		expect(props.onToggleFavourite).toHaveBeenCalledOnce();
+		expect(props.onEquip).not.toHaveBeenCalled();
 	});
 });
