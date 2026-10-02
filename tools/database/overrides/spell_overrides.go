@@ -192,7 +192,7 @@ var Spells = []Override{
 	{
 		SpellID: 1299796,
 		Field:   StatMask,
-		Value:   16,
+		Value:   16, // TODO: Verify in game that Insight's proc doubles Spirit, not Strength.
 		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
 		Source:  "tooltip",
 	},
