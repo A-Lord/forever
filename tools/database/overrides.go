@@ -67,13 +67,6 @@ var UnsupportedAbsorbBySpellID = map[int32]string{
 	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list",
 }
 
-// Item procs the rows build but do not settle, keyed by item ID with the check the generated file
-// states as a TODO above the call. Vile Protector's trigger 7619 fires 1293421, 93 Shadow damage,
-// while its tooltip renders 16784's 140.
-var ItemProcTODOByItemID = map[int32]string{
-	7747: "Verify in game that Vile Protector deals 93 Shadow damage (1293421), not the 140 its tooltip renders (16784).",
-}
-
 var OtherItemIdsToFetch = []string{}
 var ConsumableOverrides = []*proto.Consumable{}
 

@@ -88,8 +88,6 @@ type Entry struct {
 	Proc *ProcRouting
 	// What a registered on-use leaves out, stated beside its call.
 	NotSimulated string
-	// A check the rows cannot settle, written as a TODO above the proc's call: ItemProcTODOByItemID.
-	TODO string
 }
 
 // The literals a stacking on-use needs in the generated call. Everything else - stacks,
@@ -970,8 +968,7 @@ func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, inst
 		}
 
 		if rendered {
-			entry := Entry{Tooltip: strings.Split(renderedTooltip, "\n"), Variants: []*Variant{{ID: int(parsed.Id), Name: parsed.Name, SpellID: int(itemEffect.BuffId)}},
-				TODO: ItemProcTODOByItemID[parsed.Id]}
+			entry := Entry{Tooltip: strings.Split(renderedTooltip, "\n"), Variants: []*Variant{{ID: int(parsed.Id), Name: parsed.Name, SpellID: int(itemEffect.BuffId)}}}
 			entry.ProcInfo, entry.Supported = BuildProcInfo(parsed, int(itemEffect.BuffId), instance, renderedTooltip)
 
 			entry.StackProcInfo = buildStackProcInfo(itemEffect, instance, renderedTooltip)

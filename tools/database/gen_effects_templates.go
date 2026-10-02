@@ -116,9 +116,6 @@ func RegisterAllProcs() {
 	{{with index .Variants 0 -}}
 	// https://www.wowhead.com/forever/spell={{.SpellID}}
 	{{- end}}
-	{{- if .TODO}}
-	// TODO: {{ .TODO }}
-	{{- end}}
 	{{- if .Supported}}
 		{{- if .Proc}}
 			// {{ .Proc.Summary }}

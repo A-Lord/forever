@@ -3221,7 +3221,6 @@ func RegisterAllProcs() {
 
 	// When struck in combat has a 5% chance of inflicting 140 Shadow damage to the attacker.
 	// https://www.wowhead.com/forever/spell=1293421
-	// TODO: Verify in game that Vile Protector deals 93 Shadow damage (1293421), not the 140 its tooltip renders (16784).
 	// trigger 7619 (5%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 1293421
 	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 7619, BuffSpellID: 1293421},
 		[]shared.ItemVariant{
