@@ -3,6 +3,7 @@
 package forever_test
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -37,11 +38,13 @@ func init() {
 }
 
 // A caster with two druid spells: Wrath, which Revelation's druid buff 1323400 names (family 7 bit 0),
-// and Moonfire, which it does not (bit 1).
+// and Moonfire, which it does not (bit 1). Hurricane is a three-tick channel whose ticks cast a spell
+// of their own, both under Wrath's flags.
 type testDruid struct {
 	core.Character
-	wrath, moonfire *core.Spell
-	last            *core.SpellResult
+	wrath, moonfire, hurricane *core.Spell
+	last                       *core.SpellResult
+	tickCrits                  []bool
 }
 
 func (d *testDruid) GetCharacter() *core.Character       { return &d.Character }
@@ -67,6 +70,39 @@ func (d *testDruid) Initialize() {
 	}
 	d.wrath = nuke(5176, 0)
 	d.moonfire = nuke(8921, 1)
+
+	wrathFlags := core.ClassFlags{Family: 7, Mask: [4]uint32{1}}
+	tick := d.RegisterSpell(core.SpellConfig{
+		ActionID:         core.ActionID{SpellID: 16914, Tag: 1},
+		SpellSchool:      core.SpellSchoolNature,
+		DefenseType:      core.DefenseTypeMagic,
+		ProcMask:         core.ProcMaskSpellDamage,
+		ClassFlags:       wrathFlags,
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			result := spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeMagicHitAndCrit)
+			d.tickCrits = append(d.tickCrits, result.DidCrit())
+		},
+	})
+	d.hurricane = d.RegisterSpell(core.SpellConfig{
+		ActionID:    core.ActionID{SpellID: 16914},
+		SpellSchool: core.SpellSchoolNature,
+		ProcMask:    core.ProcMaskSpellDamage,
+		Flags:       core.SpellFlagChanneled,
+		ClassFlags:  wrathFlags,
+		Dot: core.DotConfig{
+			Aura:          core.Aura{Label: "Hurricane"},
+			NumberOfTicks: 3,
+			TickLength:    time.Second,
+			OnTick: func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
+				tick.Cast(sim, target)
+			},
+		},
+		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			spell.Dot(target).Apply(sim)
+		},
+	})
 }
 
 // A hunter with two ranged shots: Arcane Shot, which Revelation's hunter buff 1323410 names (family 9
@@ -171,6 +207,71 @@ func TestRevelationGrantsTheWearersClassBuff(t *testing.T) {
 		Options: &proto.DpsWarrior_Options{ClassOptions: &proto.WarriorOptions{}}}})
 	if warrior.GetAura("Revelation") != nil {
 		t.Error("a warrior has a Revelation buff")
+	}
+}
+
+// A channel neither rolls Revelation nor spends it tick by tick: every tick crits with the buff up,
+// and the charge goes when the channel ends, run out or cut short.
+func TestRevelationLastsTheWholeChannel(t *testing.T) {
+	sim, character := revelationWearer(t, proto.Class_ClassDruid, &proto.Player_BalanceDruid{BalanceDruid: &proto.BalanceDruid{}})
+	druid := sim.Raid.Parties[0].Players[0].(*testDruid)
+	target := character.CurrentTarget
+	buff := character.GetAuraByID(core.ActionID{SpellID: 1323400})
+	channel := druid.hurricane.Dot(target)
+
+	stepWhile := func(cond func() bool) {
+		for steps := 0; cond(); steps++ {
+			if steps > 1000 {
+				t.Fatal("the sim did not get there in 1000 steps")
+			}
+			sim.Step()
+		}
+	}
+	channelAndStep := func() {
+		druid.tickCrits = nil
+		druid.hurricane.SkipCastAndApplyEffects(sim, target)
+		stepWhile(channel.IsActive)
+		sim.Step()
+	}
+
+	for range 40 {
+		channelAndStep()
+		if buff.IsActive() {
+			t.Fatal("a channel's tick procced Revelation")
+		}
+	}
+
+	for casts := 0; !buff.IsActive(); casts++ {
+		if casts > 300 {
+			t.Fatal("300 Moonfires and Revelation never procced")
+		}
+		druid.moonfire.SkipCastAndApplyEffects(sim, target)
+		sim.Step()
+	}
+
+	druid.tickCrits = nil
+	druid.hurricane.SkipCastAndApplyEffects(sim, target)
+	stepWhile(func() bool { return len(druid.tickCrits) < 2 })
+	if !buff.IsActive() {
+		t.Fatal("two ticks into the channel, Revelation's charge is spent")
+	}
+	stepWhile(channel.IsActive)
+	sim.Step()
+	if len(druid.tickCrits) != 3 || slices.Contains(druid.tickCrits, false) {
+		t.Errorf("ticks crit %v, want all three", druid.tickCrits)
+	}
+	if buff.IsActive() {
+		t.Error("the channel ended and Revelation's charge is still up")
+	}
+
+	buff.Activate(sim)
+	buff.SetStacks(sim, buff.MaxStacks)
+	druid.tickCrits = nil
+	druid.hurricane.SkipCastAndApplyEffects(sim, target)
+	stepWhile(func() bool { return len(druid.tickCrits) < 1 })
+	channel.Deactivate(sim)
+	if buff.IsActive() {
+		t.Error("the channel was cut short and Revelation's charge is still up")
 	}
 }
 
