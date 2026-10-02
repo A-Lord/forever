@@ -5,6 +5,7 @@ import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { Field } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
+import { IconSwatch } from '@ui-kit/IconSwatch';
 import { Pill } from '@ui-kit/Pill';
 import { type ReactNode, useId } from 'react';
 
@@ -89,7 +90,8 @@ export const BulkEnchantPresetDialogView = ({
 							panelClassName="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
 							title={
 								<span className="flex items-center gap-2">
-									<span className="block size-8 shrink-0 bg-cover" style={{ backgroundImage: `url('${group.iconUrl}')` }} aria-hidden />
+									<IconSwatch icon={{ iconUrl: group.iconUrl, name: group.label }} className="size-8 min-w-8" aria-hidden />
+
 									<span>{group.label}</span>
 									{group.checkedCount > 0 && (
 										<Pill size="xs" className="min-w-[1lh] justify-center" testId="bulk-enchant-slot-count">
