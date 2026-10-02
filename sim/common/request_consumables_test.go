@@ -10,12 +10,12 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
-	"github.com/wowsims/forever/sim/warrior/dps"
+	"github.com/wowsims/forever/sim/core/testagent"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func init() {
-	dps.RegisterDpsWarrior()
+	testagent.RegisterAsDpsWarrior((*testagent.Agent).EnableMelee)
 }
 
 // The consumables a browser request carries for the spec, the way the UI's

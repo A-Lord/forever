@@ -1333,6 +1333,11 @@ from the new build yet is reported rather than stopping the run. `gen_db -classe
 classes' talent protos, TS configs and tree JSON. The hunter's ammo file goes with the hunter, though
 the item database always ships the new build's arrows.
 
+A class that is not ported yet breaks only its own packages and `sim`, which registers every class. The
+tests of shared code (`sim/common`, `sim/core/bulk`, `sim/core/reforge_optimizer`) build their players
+with `sim/core/testagent`, a character with no class code, rather than borrowing a class's agent; a test
+that runs real specs, such as the reforge optimizer's presets, lives in `sim` with every class.
+
 A run that names no groups takes all of them while the inputs record one game build, which is a full
 regeneration. Once a partial update leaves groups on different builds, it takes only the ones on the
 database's build and prints the rest, so `make db`, `make spelldata` or the `all_items.go` rule never

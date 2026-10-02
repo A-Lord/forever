@@ -5,7 +5,6 @@ package reforgeoptimizer
 import (
 	"testing"
 
-	"github.com/wowsims/forever/sim"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 )
@@ -55,7 +54,6 @@ func TestGemMatchesSocketSecondaryColors(t *testing.T) {
 // it moves the claim from the +4 Stamina item to the +3 Stamina one, so it must be rejected.
 func TestMinimizeRegemsKeepsLargerSocketBonus(t *testing.T) {
 	requireSocketedItems(t)
-	sim.RegisterAll()
 
 	const wristSlot, handsSlot = 5, 6
 	const smooth, bold = int32(24048), int32(24027) // Yellow (no Red match), Red (Red match)
@@ -92,7 +90,6 @@ func TestMinimizeRegemsKeepsLargerSocketBonus(t *testing.T) {
 // it must still be rejected: the bonuses are not the same stat, so the swap is not provably free.
 func TestMinimizeRegemsKeepsDifferentStatSocketBonus(t *testing.T) {
 	requireSocketedItems(t)
-	sim.RegisterAll()
 
 	const backSlot, legsSlot = 3, 8
 	const smooth, bold = int32(24048), int32(24027) // Yellow (no Red match), Red (Red match)

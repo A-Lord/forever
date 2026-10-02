@@ -6,11 +6,11 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/warrior/dps"
+	"github.com/wowsims/forever/sim/core/testagent"
 )
 
 func init() {
-	dps.RegisterDpsWarrior()
+	testagent.RegisterAsDpsWarrior((*testagent.Agent).EnableMelee)
 }
 
 func bulkSimTestRequest(simIterations int32, candidateCount int) *proto.BulkSimRequest {
