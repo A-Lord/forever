@@ -1,34 +1,35 @@
 # Talents and auras: ParseStatic and ParseEffects
 
 A talent, a passive and a buff are all the same thing to the game files: an aura whose `E_APPLY_AURA`
-effects say what it does. The parse walks those effects and attaches each to the sim - a `SpellMod`
+effects say what it does. The parse walks those effects and attaches each one to the sim: a `SpellMod`
 for the two modifier auras, a stat buff, a stat multiplier, a share of one stat added to another, a
-pseudo-stat multiplier or one of the speed multipliers - so a port writes which row it is reading
-rather than what the row contains.
+pseudo-stat multiplier or one of the speed multipliers. A port names the row it reads and leaves what
+the row contains to the parse.
 
 ```go
 spelldata.ParseStatic(&warrior.Character, spellData.Cruelty.Rank(warrior.Talents.Cruelty))
 ```
 
-`ParseStatic` applies now and never comes off, which is what a talent or a class passive is. A bonus
-against a creature type and the share of armor the unit ignores live on the attack tables, which exist
-once the environment is finalized, so the static path puts them there from a post-finalize effect.
+`ParseStatic` applies at once and never comes off, which is how a talent or a class passive behaves.
+A bonus against a creature type and the share of armor the unit ignores live on the attack tables.
+Those tables exist once the environment is finalized, so the static path sets both values from a
+post-finalize effect.
 `ParseEffects(character, aura, row, opts...)` makes the same attachments follow an aura: they turn on
 when it is gained, off when it expires, and scale with its stacks where the row states
 `CumulativeAura`.
 
-A modifier effect is gated by the game files' own class flags: `EffectSpellClassMask` decides which
-registered spells the mod reaches, so a talent touches exactly the spells the game files name it for. An
-effect that names no spells at all, on a row of a class family, reaches that whole family - which is
+The game files' own class flags limit a modifier effect. `EffectSpellClassMask` decides which
+registered spells the mod reaches, so a talent touches exactly the spells the game files name it for.
+An effect that names no spells at all, on a row of a class family, reaches that whole family; that is
 what the game files mean by an unmasked class modifier.
 
 **Call `ParseEffects` before the aura activates.** It attaches through `ApplyOnGain` and
-`ApplyOnExpire`. An aura already up when the parse runs is caught up the way core's `Attach` helpers
-catch one up, with one exception: the rows that need a `Simulation` to act - the cast, melee, ranged and
-attack speed multipliers and the energy regen multiplier - stay off until the aura is applied again.
+`ApplyOnExpire`. The parse catches up an aura that is already active the same way core's `Attach`
+helpers do, with one exception. The rows that need a `Simulation` to act (the cast, melee, ranged and
+attack speed multipliers and the energy regen multiplier) stay off until the aura is applied again.
 
-**An aura several ranks share takes a modifier once**, however many of those ranks the modifier's mask
-names, because the mod is attached to the aura and not to each spell pointing at it.
+**An aura that several ranks share takes a modifier once**, however many of those ranks the modifier's
+mask names, because the mod is attached to the aura and not to each spell pointing at it.
 
 |                              |                                                                                                                     |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -42,16 +43,16 @@ names, because the mod is attached to the aura and not to each spell pointing at
 aura with `FromCaster`: Shadow Weaving's shadow damage (`A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER`, by the
 school mask in its misc value), Hemorrhage's Rupture and Wrack's other shadow dots
 (`A_MOD_SPELL_DAMAGE_FROM_CASTER`) and Winter's Chill's crit on Frostbolt and Ice Lance
-(`A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES`), the last two by the effect's class flags the way a
-modifier's are. Each is a percentage applied once per stack, so Shadow Weaving at three stacks is 6%.
-The parse holds one slot on the caster's attack table against the target: its damage effects multiply
-into one `DamageDoneByCasterExtraMultiplier` handler and its crit effects add into one
-`CritChanceByCasterBonus` handler, which core's `EnableDamageDoneByCaster` and
-`EnableCritChanceByCaster` switch on while an effect is up. The class numbers those slots the way it
-numbers its own `AttachDDBC` calls, and a slot is its parse's, so two debuffs a class parses take two
-indexes. Another caster's attacks on the same target are untouched, and so is every spell of a raid
-debuff's caster, which the sim does not model: without `FromCaster` the rows are skipped. The
-character argument is nil, since the aura is the target's, and the parse reads the row at the caster's
+(`A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES`). The last two pick their spells by the effect's class
+flags, as a modifier does. Each is a percentage applied once per stack, so Shadow Weaving at three
+stacks is 6%. The parse holds one slot on the caster's attack table against the target. Its damage
+effects multiply into one `DamageDoneByCasterExtraMultiplier` handler and its crit effects add into one
+`CritChanceByCasterBonus` handler; core's `EnableDamageDoneByCaster` and `EnableCritChanceByCaster`
+switch these on while an effect is up. The class numbers those slots as it numbers its own
+`AttachDDBC` calls. Each parse owns its slot, so two debuffs that a class parses take two indexes.
+Another caster's attacks on the same target are untouched. So is every spell of a raid debuff's
+caster, which the sim does not model; without `FromCaster` the rows are skipped. The character
+argument is nil because the aura belongs to the target, and the parse reads the row at the caster's
 level.
 
 ```go
@@ -59,21 +60,23 @@ spelldata.ParseEffects(nil, swAura, spellData.ShadowWeavingTriggered.Highest(),
 	spelldata.FromCaster(&priest.Unit, DDBC_ShadowWeaving, DDBC_Total))
 ```
 
-Defensive Stance is both shapes at once (`sim/warrior/stances.go`): the stance passive is parsed onto
-the stance aura, and Defiance is parsed onto the same aura with a `Conditional` for the shield its row
-states and the parse does not scope to, re-read through `Refresh` on an off-hand swap.
+Defensive Stance uses both shapes at once (`sim/warrior/stances.go`). The stance passive is parsed onto
+the stance aura. Defiance is parsed onto the same aura with a `Conditional` for the shield: its row
+states the shield, the parse does not scope to it, and `Refresh` re-reads the condition on an off-hand
+swap.
 
 The call answers a `*Parsed`. `Applied` names each attachment, or each part of one that has parts (the
-stats of a multi-stat row, the melee-defense part beside a weapon damage done row) - the effect, the sim
-kind it became and the value in the sim's own units - and `Skipped` holds the aura effects the table has no row for, which
-are exactly what the port still has to wire by hand. `SPELLDATA_REPORT=1` prints each of those on the
-console with its position, the game files' name for its aura, its misc value and its amount. Improved Slam
-(`sim/warrior/talents_arms.go`) is the ordinary case: the cast time and global cooldown mods attach,
-the five rank-swap effects behind them have no sim kind and are reported.
+stats of a multi-stat row, the melee-defense part beside a weapon damage done row). For each it gives
+the effect, the sim kind it became and the value in the sim's own units. `Skipped` holds the aura
+effects the table has no row for, which are exactly what the port still has to wire by hand.
+`SPELLDATA_REPORT=1` prints each of those on the console with its position, the game files' name for
+its aura, its misc value and its amount. Improved Slam (`sim/warrior/talents_arms.go`) is the ordinary
+case: the cast time and global cooldown mods attach, and the five rank-swap effects behind them have no
+sim kind and are reported.
 
 ## What a value becomes
 
-The table writes the sim's own units, and which unit that is differs per stat. The conversions:
+The table writes the sim's own units, which differ from stat to stat:
 
 |                                                                     | the sim stores                                        | the parse writes                                                       |
 | ------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -113,8 +116,8 @@ The table writes the sim's own units, and which unit that is differs per stat. T
 
 Block, dodge and parry are percentage points like hit and crit: core divides them by 100 where it rolls
 them (`GetBlockFromRating`), so the game files' 5 is stored as 5. `TestParseStaticStatConventions` pins
-one row of each family against what core reads back. How a rating mask is read, and which hit and crit
-rows become mods on one weapon's attacks, is [Weapon requirements and the one rating](weapon-requirements.md).
+one row of each family against what core reads back. [Weapon requirements and the one rating](weapon-requirements.md)
+covers how a rating mask is read and which hit and crit rows become mods on one weapon's attacks.
 
 Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
 its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat: Inspiration's 8 is 8% more
@@ -130,34 +133,34 @@ share of the misc value's stat to attack power: Cat Form (Passive) 3025 states m
 rows, and 635 `A_IGNORE_FOG_OF_WAR` after Enchanted Flare 1221416, which has nothing to model.
 
 Innervate 29166 states both mana regen auras. `A_MOD_MANA_REGEN_INTERRUPT` adds its share to
-`SpiritRegenRateCasting`, and core stops the sum at all of the spirit regen, so Innervate's 100% on top
-of Reverence's 30% is the regen the character has while not casting. `A_MOD_POWER_REGEN_PERCENT`
-multiplies `SpiritRegenMultiplier` on the mana bar, Innervate's +400%, and the energy regen speed on an
-energy bar. Innervate's regen is the generated aura's: no flag forces full spirit regen, and its driver
-keeps only the timing and the metrics. The energy row asks the unit for its bar at parse time and is
+`SpiritRegenRateCasting`, and core caps the sum at the full spirit regen, so Innervate's 100% on top
+of Reverence's 30% gives the regen the character has while not casting. `A_MOD_POWER_REGEN_PERCENT`
+multiplies `SpiritRegenMultiplier` on the mana bar (Innervate's +400%) and the energy regen speed on an
+energy bar. Innervate's regen comes from the generated aura. No flag forces full spirit regen, and its
+driver keeps only the timing and the metrics. The energy row asks the unit for its bar at parse time and is
 skipped on a unit without one, so a rogue enables the bar before it parses Adrenaline Rush 13750.
 
 A maximum power row raises the bar its misc value names, through `SetMaximumRage` or
-`SetMaximumEnergy`: a raised maximum grants nothing, and when an aura carrying one drops, the power
-above the old maximum is lost and counted against the aura's metrics. A reset starts the rage bar at
+`SetMaximumEnergy`. A raised maximum grants nothing. When an aura carrying one drops, the power above
+the old maximum is lost and counted against the aura's metrics. A reset starts the rage bar at
 the starting rage the options asked for, clamped to the maximum as it stands then. Mana is the Mana
 stat, which the sim keeps as the maximum, so misc 0 is a flat stat buff on any unit: the Flask of
 Distilled Wisdom's 17627 is 2000 Mana. The generator's `ParseStatEffect` reads the same misc 0 as Mana
 for the consumable and item stats it bakes. A unit without the rage or energy bar the row names skips
 it.
 
-Where a maximum is raised decides whether the gnome's Expansive Mind scales it. The racial multiplies
-the maximum rage and energy by 1.05 once, in `applyRaceEffects`, which runs after the class constructor
-and before `ApplyTalents`. So Boundless Rage is parsed in `NewWarrior` straight after `EnableRageBar`,
-and the rogue reads Vigor by hand into the `MaxEnergy` it enables the bar with; parsed with the
-talents, either would miss the racial.
+Whether the gnome's Expansive Mind scales a raised maximum depends on where the maximum is raised. The
+racial multiplies the maximum rage and energy by 1.05 once, in `applyRaceEffects`, which runs after the
+class constructor and before `ApplyTalents`. So Boundless Rage is parsed in `NewWarrior` straight after
+`EnableRageBar`, and the rogue reads Vigor by hand into the `MaxEnergy` it enables the bar with. Parsed
+with the talents, either would miss the racial.
 
 A percentage GCD modifier scales `DefaultCast.GCD` the moment it toggles, after the flat GCD mods, so
-every reader of the default cast sees the same GCD; haste applies at the cast, and the GCD minimum
-still floors what is left: Nature's Grace's -10 takes a 1.5 second GCD to 1.35 seconds.
+every reader of the default cast sees the same GCD. Haste applies at the cast, and the GCD minimum
+still floors what is left. Nature's Grace's -10 takes a 1.5 second GCD to 1.35 seconds.
 
-A bonus against a creature type bids in a per-stat category under its stat and its mask,
-`AttackPowerVersus32` for attack power against Undead, so it competes only with the same stat against
+A bonus against a creature type bids in a per-stat category under its stat and its mask
+(`AttackPowerVersus32` for attack power against Undead), so it competes only with the same stat against
 the same creature types.
 
 Two aura names read as something else. `A_MOD_CRIT_PERCENT_VERSUS` is crit damage against the creature
@@ -165,27 +168,28 @@ types, not crit chance: Humanoid Slaying 19153 states it next to the same 3% of 
 `A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT` is the share of the defender's armor ignored, not a rating:
 Serrated Blades 14171 ignores 9% at three ranks.
 
-Target resistance by mask 1 is `ArmorPenetration`, by a mask of all five resistances `SpellPiercing`,
-and by a mask of some spell schools `SchoolSpellPiercing` for each of them; a mask of armor and a spell
-school is skipped (`core.SpellSchool.PiercingStat`). The per-school kind bids under its mask,
-`SchoolSpellPiercing4` for the Baleflame imbue's fire and `SchoolSpellPiercing16` for Balefrost's
-frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell has no
-resistance stat to pierce.
+Target resistance by mask 1 becomes `ArmorPenetration`. A mask of all five resistances becomes
+`SpellPiercing`, and a mask of some spell schools becomes `SchoolSpellPiercing` for each of them. A mask
+of armor and a spell school is skipped (`core.SpellSchool.PiercingStat`). The per-school kind bids under
+its mask: `SchoolSpellPiercing4` for the Baleflame imbue's fire and `SchoolSpellPiercing16` for
+Balefrost's frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell
+has no resistance stat to pierce.
 
-A percentage `SPELLMOD_DAMAGE` raises direct hits and direct heals alone (`SpellMod_DirectDamageDone_Flat`)
-and `SPELLMOD_DOT` the ticks alone (`SpellMod_DotDamageDone_Pct`), so a talent that raises a spell and its
-dot states the percentage twice and each effect attaches its own mod (Improved Serpent Sting 19464,
-Improved Moonfire 16821). `SPELLMOD_ALL_EFFECTS` raises both (`SpellMod_DamageDone_Flat`).
+A percentage `SPELLMOD_DAMAGE` raises only direct hits and direct heals (`SpellMod_DirectDamageDone_Flat`),
+and `SPELLMOD_DOT` raises only the ticks (`SpellMod_DotDamageDone_Pct`). A talent that raises both a
+spell and its dot therefore states the percentage twice, and each effect attaches its own mod (Improved
+Serpent Sting 19464, Improved Moonfire 16821). `SPELLMOD_ALL_EFFECTS` raises both
+(`SpellMod_DamageDone_Flat`).
 
 ## What the table does not take
 
-Anything the table has no row for is skipped and reported rather than guessed at: the dummies the
-game files use for "a script does this", the proc-driver auras (a proc is a `ProcTrigger`, not a
-modifier), the crowd-control auras - stun, fear, root, silence - and `A_MOD_SKILL`. Those are named in
-the report rather than numbered, so a port can see at a glance which ones are its own work.
+Anything the table has no row for is skipped and reported; the parse does not guess a value for it. That covers the dummies the game files use
+for "a script does this", the proc-driver auras (a proc is a `ProcTrigger`, not a modifier), the
+crowd-control auras (stun, fear, root, silence) and `A_MOD_SKILL`. Those are named in the report rather
+than numbered, so a port can see at a glance which ones are its own work.
 
-Rows the table does know are skipped by the shape of the parse. A value the sim keeps as one number
-per unit cannot be applied once per stack, and the static path has no aura to follow and no
+The shape of the parse also skips some rows the table does know. A value the sim keeps as one number
+per unit cannot be applied once per stack, and the static path has neither an aura to follow nor a
 `Simulation` to answer a later `Refresh` with:
 
 |                                     | skips                                                                                                                     |

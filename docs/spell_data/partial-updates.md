@@ -11,7 +11,7 @@ go run ./tools/database/gen_spelldata -classes=druid -racials
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid
 ```
 
-A run chooses which of the nine classes (by package name) and whether `racials` it takes. Two more
+A run chooses which of the nine classes it takes (by package name) and whether it takes `racials`. Two more
 spell data groups cannot be chosen: every run takes `items` (the item, enchant and set-bonus rows,
 with the item database `gen_db` writes) and `shared` (the shapeshift forms, and the extra spells and
 buff manifest rows no class owns) from the database, because the item database is not split and the
@@ -29,8 +29,8 @@ A row belongs to the first of these that holds:
 1. it is an `overrides.ExtraSpells` entry with `SpellDataGroup: "racials"`, the Eureka! rows;
 2. it states a class family: its class flags are that class's, so a set bonus or an enchant's class
    buff moves with the class's own spells;
-3. a group's roots reach it. A row a taken group reaches moves. A row that changes although a group
-   that is not taken also reaches it is printed as a shared row.
+3. a group's roots reach it. A row that a taken group reaches moves. When a group that is not taken
+   also reaches it and the row changes, it is printed as a shared row.
 
 Every run, full or partial, prints what it changes against the committed inputs, one block per group it
 takes: the build it moves from and to, the counts, and each spell added, changed (with the tables whose
@@ -47,30 +47,30 @@ spelldata: shared row 10612 Windfury Totem changed, also reached by shaman
 ```
 
 Two rules come before all three. A committed root of a group that is not taken never moves: that
-class file names it and keeps the row it was written against. A spell the new build adds, which a
-taken row or root reaches, always comes from the new build, since no committed file names it.
+class file names it and keeps the row it was written against. A spell that the new build adds and a
+taken row or root reaches always comes from the new build, since no committed file names it.
 
-A class that is not taken keeps its `sim/<class>/spell_data_auto_gen.go`, and a class it cannot read
-from the new build yet is reported rather than stopping the run. `gen_db -classes` writes only the taken
+A class that is not taken keeps its `sim/<class>/spell_data_auto_gen.go`. A class the run cannot read
+from the new build yet is reported, and the run goes on. `gen_db -classes` writes only the taken
 classes' talent protos, TS configs and tree JSON. The hunter's ammo file goes with the hunter, though
 the item database always ships the new build's arrows.
 
 A class that is not ported yet breaks only its own packages and `sim`, which registers every class. The
 tests of shared code (`sim/common`, `sim/core/bulk`, `sim/core/reforge_optimizer`) build their players
-with `sim/core/testagent`, a character with no class code, rather than borrowing a class's agent; a test
+with `sim/core/testagent`, a character with no class code, and do not borrow a class's agent. A test
 that runs real specs, such as the reforge optimizer's presets, lives in `sim` with every class.
 
-A run that names no groups takes all of them while the inputs record one game build, which is a full
-regeneration. Once a partial update leaves groups on different builds, it takes only the ones on the
-database's build and prints the rest, so `make db`, `make spelldata` or the `all_items.go` rule never
-moves a class that has not been ported. The inputs record the game build each group was taken from
-(`Builds`, read from the `BuildInfo` table `db2tool` writes), and the roots of each group
-(`SpellDataGroupRoots`), which is what the next partial update keeps the others by. A racial row on a
+While the inputs record one game build, a run that names no groups takes all of them, which is a full
+regeneration. Once a partial update leaves groups on different builds, such a run takes only the
+groups on the database's build and prints the rest, so `make db`, `make spelldata` or the
+`all_items.go` rule never moves a class that has not been ported. The inputs record the game build each
+group was taken from (`Builds`, read from the `BuildInfo` table `db2tool` writes) and the roots of
+each group (`SpellDataGroupRoots`). The next partial update keeps the other groups by those roots. A racial row on a
 different build from the class whose flags it states is printed as a warning.
 
-`-check` renders the groups whose recorded build is the database's and compares those; a group on
-another build is printed as not ported and does not fail it, and its class file is not compared, since
-only its own build could render it. Items and shared are always compared. Hotfixes within one game
+`-check` renders the groups whose recorded build is the database's and compares those. A group on
+another build is printed as not ported and does not fail the check. Its class file is not compared,
+since only its own build could render it. Items and shared are always compared. Hotfixes within one game
 build are not recorded, so a re-extraction that picked up new ones fails `-check` on the current groups
 until they are regenerated. Inputs that record no groups are split the way the database splits the
 same ids, and a root that names no group there is printed as adopted into `shared`.
@@ -113,12 +113,12 @@ go run tools/database/gen_db/*.go -outDir=./assets -gen=db                 # tal
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid  # the druid's talent files only
 ```
 
-`-classes` and `-racials` do not combine with `-check` or `-everyClassSpell`. `gen_db` takes `-classes`
-alone, having no racial files, and always writes the item database.
+`-classes` and `-racials` do not combine with `-check` or `-everyClassSpell`. `gen_db` takes only
+`-classes`, since it has no racial files, and always writes the item database.
 
 `db2tool` writes the `BuildInfo` table on every extraction. In offline mode pass the full version,
-`--build 1.60.1.70170`; a bare build number is recorded as given, with a warning. A database extracted
-without `BuildInfo` is stamped rather than re-extracted, since a new extraction can pick up hotfixes
+`--build 1.60.1.70170`; a bare build number is recorded as given, with a warning. Stamp a database
+extracted without `BuildInfo` instead of extracting it again, since a new extraction can pick up hotfixes
 the committed rows do not have:
 
 ```

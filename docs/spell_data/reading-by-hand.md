@@ -1,16 +1,17 @@
 # Reading a row by hand
 
-Rogue, warlock, mage, druid, priest, shaman and paladin read the store by hand: a class file names the
+Rogue, warlock, mage, druid, priest, shaman and paladin read the store by hand. A class file names the
 ladder it needs, picks a rank, and reads every field the registration wants straight into a plain
-expression, with no resolver in between. **A row is a source of numbers only** in these seven classes'
-files - no `spelldata.SpellConfig`, `AuraConfig`,
-`DotConfig`, `ProcTrigger`, `ParseEffects` or `ParseStatic`. `core.SpellConfig` and `core.DotConfig`
-are built by hand, field by field, the same shapes [Building an ability](building-an-ability.md) and
-[Auras and dots](auras-and-dots.md) describe for the resolvers, just filled without one.
+expression, with no resolver in between. In these seven classes' files **a row is a source of numbers
+only**: they use no `spelldata.SpellConfig`, `AuraConfig`, `DotConfig`, `ProcTrigger`, `ParseEffects`
+or `ParseStatic`. They build `core.SpellConfig` and `core.DotConfig` by hand, field by field. These are
+the same shapes that [Building an ability](building-an-ability.md) and
+[Auras and dots](auras-and-dots.md) describe for the resolvers, filled in without one.
 
-The generated file is still ladders (see [A class file is ladders](store.md#a-class-file-is-ladders)):
-`spellData.ShadowWordPain` is a `spelldata.Ladder`, `.Highest()`/`.ByID(id)`/`.Rank(n)` answer a
-`*spelldata.Spell`, and `.Each(fn)` walks every rank in declaration order:
+For these classes the generated file is ladders too (see
+[A class file is ladders](store.md#a-class-file-is-ladders)). `spellData.ShadowWordPain` is a
+`spelldata.Ladder`, `.Highest()`/`.ByID(id)`/`.Rank(n)` answer a `*spelldata.Spell`, and `.Each(fn)`
+walks every rank in declaration order:
 
 ```go
 MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
@@ -18,16 +19,16 @@ MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 })
 ```
 
-What a registration reads off the row, since there is no resolver to read it for the caller:
+With no resolver to read the row for the caller, a registration reads these values off it:
 
 |                                                    |                                                                                                                                                                                         |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `rank.ID`, `rank.RankNumber()`                     | the `ActionID` and the `Rank` field a `core.SpellConfig` wants; `RankNumber()` is `NameSubtext_lang`'s "Rank N", 0 where the game files state none                                      |
-| `rank.Cost()`                                      | the cost off the first power the row states, in the sim's units - rage already divided by ten; it answers a `float64`, so an `int32` field like `ManaCostOptions.FlatCost` needs a cast |
+| `rank.Cost()`                                      | the cost off the first power the row states, in the sim's units (rage already divided by ten); it answers a `float64`, so an `int32` field like `ManaCostOptions.FlatCost` needs a cast |
 | `rank.GCD()`, `rank.CastTime()`                    | the global cooldown and the cast time                                                                                                                                                   |
 | `max(rank.Cooldown(), rank.CategoryCooldown())`    | the row's own cooldown, or the one it shares with a category                                                                                                                            |
 | `rank.Duration()`                                  | an aura or dot's length; the game files' -1 becomes `core.NeverExpires`                                                                                                                 |
-| `rank.SpellSchool()`, `rank.DefenseTypeCore()`     | already in core's enums - the accessor converts the game files' byte                                                                                                                    |
+| `rank.SpellSchool()`, `rank.DefenseTypeCore()`     | already in core's enums: the accessor converts the game files' byte                                                                                                                     |
 | `float64(rank.MaxRange)`, `float64(rank.MinRange)` | the plain fields, in yards                                                                                                                                                              |
 
 Straight off `sim/shaman/shocks.go`:
@@ -62,16 +63,16 @@ func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell, spellSchool cor
 
 **An amount is `Average()`, or `Roll(sim)` where the class rolls it.** The
 seven classes ported first read every amount as `Average`, both ends of a `(low, high)` alike, because
-the literals they replaced never rolled. Paladin's did, so its damage and heals take `Roll` and its
-per-hit and aura numbers `Average`. A row can still carry a spread (Frostbolt's `Variance` is 0.105)
-and `Roll(sim)`/`Min`/`Max` read it where a class asks for one; `Average` is what keeps a
-ported number equal to the one it replaces, not an absence of spread in the data.
+the literals they replaced never rolled. Paladin's literals did roll, so its damage and heals take
+`Roll` and its per-hit and aura numbers take `Average`. A row can still carry a spread (Frostbolt's
+`Variance` is 0.105), and `Roll(sim)`/`Min`/`Max` read it where a class asks for one. A ported number
+reads `Average` so that it stays equal to the one it replaces, not because the data has no spread.
 
 **Name the effect by role where one applies; by position where the row hides it behind another
 effect.** `DamageEffect()`, `HealEffect()`, `EnergizeEffect()` and `PeriodicEffect()` answer the first
-effect of their kind, which is right wherever a spell has only one. Hellfire's tick is not:
-`PeriodicEffect()` would find the `A_PERIODIC_TRIGGER_SPELL` at position 1, the trigger that fires
-the Hellfire Effect spell each tick, rather than the damage tick itself at position 2:
+effect of their kind, which is right wherever a spell has only one. Hellfire's tick is an exception.
+`PeriodicEffect()` would find the `A_PERIODIC_TRIGGER_SPELL` at position 1 (the trigger that fires the
+Hellfire Effect spell each tick) and miss the damage tick itself at position 2:
 
 ```go
 var hellfireRank = spellData.Hellfire.Highest()
@@ -82,13 +83,13 @@ var hellfireTick = hellfireRank.EffectN(2)
 var hellFireCoeff = hellfireTick.Coeff()
 ```
 
-**A tick the description keeps on another spell is read off that spell, not the row that names it.**
-Where the family has its own `XTriggered` ladder for the spell the trigger fires, that ladder is the
-edge; failing that, `row.Triggered()[0]` (an actual `TriggerID` edge) or `row.Refs()[0]` (a tooltip
-reference) reach the same spell, and a bare `spelldata.MustFind(id)` is the last resort, with a
+**When the description keeps a tick on another spell, read it off that spell, not the row that names
+it.** Where the family has its own `XTriggered` ladder for the spell the trigger fires, that ladder is
+the edge. Failing that, `row.Triggered()[0]` (an actual `TriggerID` edge) or `row.Refs()[0]` (a
+tooltip reference) reach the same spell. A bare `spelldata.MustFind(id)` is the last resort, with a
 comment naming why no other edge is unique. Hurricane's periodic damage sits on the spell its aura
-triggers each tick, which the family's own `HurricaneTriggered` ladder names; the tick length still
-comes off Hurricane's own row - the periodic dummy that carries no damage of its own:
+triggers each tick, and the family's own `HurricaneTriggered` ladder names that spell. The tick length
+still comes off Hurricane's own row, from the periodic dummy that carries no damage of its own:
 
 ```go
 tickLength := hurricaneRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0).Period()
@@ -98,12 +99,12 @@ hurricaneTickSpell := spellData.HurricaneTriggered.Highest()
 hurricaneTick := hurricaneTickSpell.DamageEffect()
 ```
 
-**`EffectAt(n)` counts from 1 by position, like `EffectN` - not the game files' `EffectIndex`.**
-`EffectAt(n+1)` lines up with game files index `n` only where the row's indices run contiguously from 0;
-where they do not, `Effect(aura, misc)` names the effect instead. Rogue's `PuncturingWounds` talent
-needs it: its two crit modifiers share an aura and misc, so `Effect(aura, misc)` cannot tell them
-apart, and sit at positions 1 and 3 around the proc trigger at position 2 (game files index 1);
-`EffectAt(3)` is the one Mutilate reads:
+**`EffectAt(n)` counts from 1 by position, like `EffectN`; it does not follow the game files'
+`EffectIndex`.** `EffectAt(n+1)` lines up with game files index `n` only where the row's indices run
+contiguously from 0. Where they do not, `Effect(aura, misc)` names the effect instead. Rogue's
+`PuncturingWounds` talent needs `EffectAt`. Its two crit modifiers share an aura and misc, so
+`Effect(aura, misc)` cannot tell them apart. They sit at positions 1 and 3, around the proc trigger at
+position 2 (game files index 1), and Mutilate reads `EffectAt(3)`:
 
 ```go
 // The proc trigger sits between the two crit modifiers, at effect position 2; the Mutilate
@@ -114,8 +115,8 @@ FloatValue: spellData.PuncturingWounds.EffectAt(3).ValueAt(rogue.Talents.Punctur
 
 **A `Ranked` family's rank can carry a per-level gain a `Ladder`'s per-rank readers do not add in.**
 `EffectAt(n)` and `Effect(aura, misc)` answer base points across the ranks, which is right for a
-`Talent`, whose curve states base points outright. A `Ranked` family - one spell per rank - can still
-carry `EffectRealPointsPerLevel` on that effect, so `ValueAt`/`FractionAt`/`MultiplierAt`/`TenthsAt`
+`Talent`, whose curve states base points outright. A `Ranked` family (one spell per rank) can still
+carry `EffectRealPointsPerLevel` on that effect. Then `ValueAt`/`FractionAt`/`MultiplierAt`/`TenthsAt`
 read low wherever the game files scale it past the rank's `BaseLevel`. Read the rank's own effect
 through `Average` instead of the ladder's per-rank reader:
 
@@ -125,10 +126,10 @@ X.Rank(rank).EffectN(1).Average()   // not X.EffectAt(1).ValueAt(rank)
 
 **A dot ticks on current stats, so there is no `OnSnapshot`.** `OnTick` reads the effect's own
 `Average` straight into `CalcAndDealPeriodicDamage` (or `CalcAndDealPeriodicHealing`) every time it
-fires, on whatever stats and multipliers are in force then. An input the cast fixes - combo points
-about to be spent, a stack about to be consumed - is read where the cast reads it and kept in a
-variable the `OnTick` closure captures, never re-read at the tick. Rip's combo points are read in
-`ApplyEffects`, before `SpendComboPoints` runs them to zero - not in `OnTick` after, where the count
+fires, on whatever stats and multipliers are in force then. An input the cast fixes, such as combo
+points about to be spent or a stack about to be consumed, is read where the cast reads it. It is kept
+in a variable the `OnTick` closure captures and never re-read at the tick. Rip's combo points are read
+in `ApplyEffects`, before `SpendComboPoints` runs them to zero. By the time `OnTick` runs, the count
 would already be gone:
 
 ```go
@@ -159,7 +160,7 @@ var cp int32
 	},
 ```
 
-**Hand numbers stay hand numbers - Go literals with a review comment.** A hand-supplied threat
+**Hand numbers stay hand numbers: Go literals with a review comment.** A hand-supplied threat
 number, PPM or coefficient keeps the same marker a resolver-built config carries. `sim/warrior/hamstring.go` writes it as an assignment on the config the resolver already
 built:
 
@@ -168,8 +169,8 @@ built:
 config.ThreatMultiplier = 1
 ```
 
-A hand-built `core.SpellConfig`, with no resolver to build it first, carries the identical comment on
-the identical field, as a struct-literal line instead:
+A hand-built `core.SpellConfig` has no resolver to build it first. It carries the same comment on the
+same field, written as a struct-literal line:
 
 ```go
 // TODO: Manual review needed -- the game files state no threat coefficient; 1 until measured in game.
@@ -224,17 +225,17 @@ priest.RegisterSpell(core.SpellConfig{
 })
 ```
 
-No `OnSnapshot`, no `useSnapshot` branch: the tick is `tick.Average()` wherever it
-is asked for, cast or projected.
+There is no `OnSnapshot` and no `useSnapshot` branch: the tick is `tick.Average()` wherever it is
+asked for, cast or projected.
 
 ### Consecration's borrowed tick
 
 Each rank's tooltip names one spell for both ticks, and the family's own `ConsecrationTriggered`
 ladder carries those spells rank for rank (`Refs()[0]` reaches the same row). The two ticks sit on its
-first two effects by position, since both are school damage and `DamageEffect()` cannot tell them
-apart: the base tick on effect 1, the bonus its first four targets take, with its own spell power
-share, on effect 2. The periodic dummy on Consecration's own row states no tick: its period times the
-ticks, and its points are how many targets take the bonus, `sim/paladin/consecration.go`:
+first two effects and are read by position, since both are school damage and `DamageEffect()` cannot
+tell them apart. Effect 1 is the base tick. Effect 2 is the bonus its first four targets take, with its
+own spell power share. The periodic dummy on Consecration's own row states no tick: its period times
+the ticks, and its points are how many targets take the bonus. From `sim/paladin/consecration.go`:
 
 ```go
 tickSpell := spellData.ConsecrationTriggered.Rank(n)
@@ -266,8 +267,8 @@ mana := rank.EnergizeEffect().Average()  // 0 on a rank with no Energize effect 
 
 ### Registering several ranks
 
-Forever's Starfire tops out at rank 7, so the spec's own subset ladder names ranks 6 and 7 by their
-ids rather than a rank the table does not carry, `sim/druid/starfire.go`:
+Forever's Starfire tops out at rank 7. The spec's own subset ladder in `sim/druid/starfire.go`
+therefore names ranks 6 and 7 by their ids and never a rank the table does not carry:
 
 ```go
 var StarfireRankMap = spelldata.Ranked(spellData.Starfire.Rank(6).ID, spellData.Starfire.Rank(7).ID)
@@ -275,8 +276,8 @@ var StarfireRankMap = spelldata.Ranked(spellData.Starfire.Rank(6).ID, spellData.
 
 ### An attack power coefficient
 
-Nothing in the game files states an attack power coefficient per combo point, so Rupture's sits as a
-literal table indexed by combo points, right beside the number it scales, `sim/rogue/rupture.go`:
+The game files state no attack power coefficient per combo point. Rupture's is a literal table indexed
+by combo points, right beside the number it scales, in `sim/rogue/rupture.go`:
 
 ```go
 func (rogue *Rogue) ruptureDamage(target *core.Unit, comboPoints int32, baseDamage float64, damagePerComboPoint float64) float64 {

@@ -2,11 +2,11 @@
 
 1. **Start from the ladders.** Every class file is already one ladder per family, and the seven
    classes other than the warrior and the hunter read them by hand, the way [Reading a row by hand](reading-by-hand.md)
-   describes. From hand reads onto the resolvers - `SpellConfig`, `AuraConfig`, `DotConfig`,
-   `ParseEffects`, `ProcTrigger` - is the warrior's move, and this checklist is written for it.
+   describes. The move from hand reads onto the resolvers (`SpellConfig`, `AuraConfig`, `DotConfig`,
+   `ParseEffects`, `ProcTrigger`) is the warrior's, and this checklist is written for it.
 2. **Dump the rows before touching a call site**, three ways: the effects at the rank taken, which
    registered spells each modifier's `EffectSpellClassMask` names, and the whole `ProcTrigger` the row
-   decodes to. The mask dump is what turns a .results move into something you knew before you ran it.
+   decodes to. With the mask dump, you know a .results move before you run it.
 3. **Pass `Ladder.Rank(n)`, never `MustFind(id)`,** for anything the talent tree prices: a trait
    talent's per-rank numbers live in the curve, and the base row's effect can read 0.
 4. **Check the cooldown categories.** A category cooldown resolves to `Unit.CategoryTimer`, which is
@@ -22,8 +22,8 @@
    extra draw reshuffles every later roll, which is a .results move with a known cause.
 7. **Parse before you activate.** `ParseEffects` attaches on gain, so an aura already up when the parse
    runs loses the rows that need a `Simulation`.
-8. **Compare value by value before deleting a hand modifier.** A mod that lands in a different bucket -
-   a school pseudo-stat where the sim had a per-spell mod - is the same number in a different place,
+8. **Compare value by value before deleting a hand modifier.** A mod that lands in a different bucket
+   (a school pseudo-stat where the sim had a per-spell mod) is the same number in a different place,
    and a DPS diff will not show it. Diff the `.results` as well as the DPS numbers.
 9. **`RequireDamageDealt` defaults true.** A listener that fires on a dodge, a parry, a miss or a block
    needs it false, which the decoder has already done where the tooltip named the outcome and the row
@@ -42,9 +42,9 @@
     `Whirlwind.Contains(spell)` with an off-hand proc mask. Never the row's `ClassFlags`: they share bits
     across abilities.
 14. **A gear proc is three calls, not one.** `ProcTrigger` for the listener, `AuraConfig` for the buff
-    it applies and `ParseEffects` for what that buff does - the idiom `sim/warrior/items.go` uses for
+    it applies and `ParseEffects` for what that buff does. `sim/warrior/items.go` uses this idiom for
     every set bonus and item buff the class owns.
 15. **`Melee` and `Magic` put the spell in the rotation; `Flags` does not.** A stance-gated
-    ability takes `Flags` so the APL editor does not offer it, and a config that writes
-    `ThreatMultiplier = 1` or `FlatThreatBonus = 0` after the resolver is writing what the resolver
-    already wrote - keep it only where its review marker says the number is still to be measured.
+    ability takes `Flags` so the APL editor does not offer it. A config that writes
+    `ThreatMultiplier = 1` or `FlatThreatBonus = 0` after the resolver repeats what the resolver
+    already wrote; keep it only where its review marker says the number is still to be measured.
