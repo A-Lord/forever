@@ -72,7 +72,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		// Default equipped gear.
 		gear: Presets.Level60Gear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.Level60Ep,
 		statCaps: (() => {
 			return new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 9).withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 		})(),
@@ -144,7 +144,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.Level60EpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [],
 		rotations: [Presets.SIMPLE, Presets.APL],

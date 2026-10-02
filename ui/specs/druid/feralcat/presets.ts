@@ -1,11 +1,12 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
+import { ConsumesSpec, Profession, Race, Spec, Stat } from '@generated/proto/common';
 import {
 	FeralCatDruid_Options as FeralDruidOptions,
 	FeralCatDruid_Rotation as FeralCatDruidRotation,
 	FeralCatDruid_Rotation_FinishingMove as FinishingMove,
 } from '@generated/proto/druid';
+import { Stats } from '@sim/proto/stats';
 
 import DefaultApl from './apls/default.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';
@@ -40,6 +41,24 @@ export const DefaultRotation = FeralCatDruidRotation.create({
 export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {
 	tooltip: 'Leather at level 60 with no set bonus and no proc. Fist of Cenarius and the Howling Idol.',
 });
+
+// EP with agility as 1, on the Level 60 preset, 50000 iterations.
+// Feral attack power is unread, so it stays 0. Armor penetration is 0 because
+// Sunder, Expose and Faerie Fire already remove the target's armor.
+export const Level60Ep = Stats.fromMap({
+	[Stat.StatStrength]: 0.492,
+	[Stat.StatAgility]: 1,
+	[Stat.StatAttackPower]: 0.41,
+	[Stat.StatFeralAttackPower]: 0,
+	[Stat.StatPhysicalDamage]: 4.635,
+	[Stat.StatHitRating]: 0.736,
+	[Stat.StatExpertiseRating]: 0.736,
+	[Stat.StatCritRating]: 0.714,
+	[Stat.StatHasteRating]: 0.611,
+	[Stat.StatArmorPenetration]: 0,
+});
+
+export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Level60Ep);
 
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
 
