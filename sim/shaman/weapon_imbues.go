@@ -20,15 +20,15 @@ const (
 )
 
 // Windfury Weapon and Flametongue Weapon put the same passive on the weapon at every rank, and the
-// rank decides only which spell the passive fires, so the rank's own row is named here.
+// rank decides only which spells the passive fires, so they are read off the top rank's refs.
 var (
 	windfuryWeaponPassive    = spelldata.MustFind(439431)
-	windfuryWeaponAttack     = spellData.WindfuryWeaponTriggered.Highest()
+	windfuryWeaponAttack     = spellData.WindfuryWeapon.Highest().Refs()[0]
 	flametongueWeaponPassive = spelldata.MustFind(436519)
-	flametongueWeaponProc    = spellData.FlametongueWeaponTriggered.Highest()
-	flametongueAttack        = spelldata.MustFind(10444)
-	frostbrandWeaponAttack   = spellData.FrostbrandWeaponTriggered.Highest()
-	rockbiterWeaponPassive   = spellData.RockbiterWeaponTriggered.Highest()
+	flametongueWeaponProc    = spellData.FlametongueWeapon.Highest().Refs()[0]
+	flametongueWeaponAttack  = spellData.FlametongueWeapon.Highest().Refs()[1]
+	frostbrandWeaponAttack   = spellData.FrostbrandWeapon.Highest().Refs()[0]
+	rockbiterWeaponPassive   = spellData.RockbiterWeapon.Highest().Refs()[0]
 )
 
 // The game files state no chance for Frostbrand Weapon: enchant 1668 is a combat spell enchant with
@@ -141,22 +141,19 @@ func (shaman *Shaman) RegisterWindfuryImbue() {
 		buffs.WindfuryTotemCategory, windfuryEnchantID)
 }
 
-// The fire damage a main-hand hit adds: the tooltip's ${$16344m1/77-1} to ${$16344m1/25} over
-// weapon speeds of 1.3 to 4.0 s is m1 for every 100 s of swing. 16344 states no spell power share;
-// Flametongue Attack 10444, which a hand trigger links to it, carries one, the same at every weapon
-// speed.
+// The hit is 10444, and the tooltip's ${$16344m1/77-1+($10444m1)} to ${$16344m1/25+($10444m1)}
+// over weapon speeds of 1.3 to 4.0 s adds 16344's m1 for every 100 s of swing to its damage.
 func (shaman *Shaman) newFlametongueImbueSpell() *core.Spell {
-	config := spelldata.SpellConfig(&shaman.Unit, flametongueWeaponProc,
+	config := spelldata.SpellConfig(&shaman.Unit, flametongueWeaponAttack,
 		spelldata.Magic(core.ProcMaskSpellDamageProc), spelldata.Proc(),
 		spelldata.Flags(core.SpellFlagProc|SpellFlagShamanSpell))
-	// 16344 states no defense type, and a fire proc with none rolls on the spell hit and crit tables.
-	config.DefenseType = core.DefenseTypeMagic
 	config.ClassSpellMask = SpellMaskFlametongueWeapon
-	config.BonusCoefficient = flametongueAttack.EffectN(1).Coeff()
 
-	damage := flametongueWeaponProc.EffectN(1)
+	perSwing := flametongueWeaponProc.EffectN(1)
+	damage := flametongueWeaponAttack.EffectN(1)
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, damage.Average()*shaman.AutoAttacks.MH().SwingSpeed/100, spell.OutcomeMagicHitAndCrit)
+		baseDamage := perSwing.Average()*shaman.AutoAttacks.MH().SwingSpeed/100 + damage.Average()
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 	}
 	return shaman.RegisterSpell(config)
 }

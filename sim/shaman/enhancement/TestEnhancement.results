@@ -270,6 +270,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-EnchantWeapon-Revelation-8217"
+ value: {
+  dps: 450.81846
+  tps: 239.64194
+  dtps: 9.83501
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 436.80388
@@ -579,6 +587,14 @@ dps_results: {
   dps: 452.19145
   tps: 240.40134
   dtps: 10.04788
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-TotemofChargedFlames-263412"
+ value: {
+  dps: 447.15272
+  tps: 237.84191
+  dtps: 9.83501
  }
 }
 dps_results: {
