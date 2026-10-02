@@ -11,6 +11,15 @@ import (
 // A Rip cast with less of the fight left than this does not tick out.
 const RipEndThresh = time.Second * 10
 
+// Bite beside an active Rip only while that Rip still has longer than this left, so the combo
+// points are not spent on a Rip that is about to fall off. Rip lasts 12s, so this is the first 4s.
+const biteWithRipLeft = 8 * time.Second
+
+// shiftEnergyLimit is the energy below which the rotation spends Shifting Power.
+// 0 uses the builder's own cost, so the shift happens only when that builder cannot be cast.
+// The rotation sweep sets it; the shipped rotation leaves it at 0.
+var shiftEnergyLimit float64
+
 type FeralDruidRotation struct {
 	RipCP              int32
 	BiteCP             int32
@@ -42,8 +51,9 @@ func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
 // One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder, and
-// Shifting Power when the builder is unaffordable. When nothing is castable it returns without
-// waiting, so the APL looks again one reaction time later.
+// Shifting Power when the bar is under shiftEnergyLimit. Bite beside Rip only while Rip has more than
+// 8s left. When nothing is castable it returns without waiting, so the APL looks again one reaction
+// time later.
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if !cat.GCD.IsReady(sim) {
 		return false
@@ -74,12 +84,15 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	}
 
 	cp := cat.ComboPoints()
-	ripUp := cat.Rip.CurDot().IsActive()
+	ripDot := cat.Rip.CurDot()
+	ripUp := ripDot.IsActive()
 	if cp >= rotation.RipCP && !ripUp && sim.GetRemainingDuration() >= RipEndThresh &&
 		cat.Rip.CanCast(sim, target) {
 		return cat.Rip.Cast(sim, target)
 	}
-	if rotation.UseBite && cp >= rotation.BiteCP && (ripUp || rotation.BiteOverRip) && cat.FerociousBite.CanCast(sim, target) {
+	// Bite as the finisher does not wait on Rip. Bite beside Rip waits until Rip has time left.
+	biteWindow := rotation.BiteOverRip || (ripUp && ripDot.RemainingDuration(sim) > biteWithRipLeft)
+	if rotation.UseBite && cp >= rotation.BiteCP && biteWindow && cat.FerociousBite.CanCast(sim, target) {
 		return cat.FerociousBite.Cast(sim, target)
 	}
 	if rotation.UseRakeTrick && !cat.Rake.CurDot().IsActive() && cat.Rake.CanCast(sim, target) {
@@ -90,17 +103,37 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if cat.BehindTarget() {
 		builder = cat.Shred
 	}
-	if builder.CanCast(sim, target) {
-		return builder.Cast(sim, target)
-	}
-
-	// Shifting Power is cast on the decision after the one that first finds the builder
-	// unaffordable, one reaction time later.
-	if cat.CurrentEnergy() < builder.Cost.GetCurrentCost() && cat.ShiftingPower.CanCast(sim, target) {
+	if cat.wantShift(sim, target, builder) {
 		if shiftDecided {
 			return cat.ShiftingPower.Cast(sim, target)
 		}
+		// The next decision, one reaction time later, spends it.
 		cat.readyToShift = true
+		return false
+	}
+	if builder.CanCast(sim, target) {
+		return builder.Cast(sim, target)
 	}
 	return false
+}
+
+// wantShift is true when Shifting Power is castable and the bar is under shiftEnergyLimit.
+// A limit at or under the builder's cost still lets the builder go first. A higher limit
+// spends the shift instead of the builder.
+func (cat *FeralDruid) wantShift(sim *core.Simulation, target *core.Unit, builder *druid.DruidSpell) bool {
+	if !cat.ShiftingPower.CanCast(sim, target) {
+		return false
+	}
+	builderCost := builder.Cost.GetCurrentCost()
+	limit := shiftEnergyLimit
+	if limit <= 0 {
+		limit = builderCost
+	}
+	if cat.CurrentEnergy() >= limit {
+		return false
+	}
+	if limit <= builderCost && builder.CanCast(sim, target) {
+		return false
+	}
+	return true
 }

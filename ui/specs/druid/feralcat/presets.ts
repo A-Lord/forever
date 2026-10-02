@@ -8,6 +8,7 @@ import {
 } from '@generated/proto/druid';
 
 import DefaultApl from './apls/default.apl.json';
+import Level60GearJson from './gear_sets/default.gear.json';
 
 export const DefaultOptions = FeralDruidOptions.create({});
 
@@ -30,8 +31,14 @@ export const OtherDefaults = {
 
 export const DefaultRotation = FeralCatDruidRotation.create({
 	finishingMove: FinishingMove.Rip,
-	ripMinComboPoints: 4,
+	ripMinComboPoints: 5,
 	biteMinComboPoints: 5,
+	rakeTrick: true,
+});
+
+// Leather at 60 with no set bonus and no proc. The stand-in the rotation was tuned on.
+export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {
+	tooltip: 'Leather at level 60 with no set bonus and no proc. Fist of Cenarius and the Howling Idol.',
 });
 
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);

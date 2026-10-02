@@ -1920,7 +1920,7 @@
 					},
 					"biteweave": {
 						"label": "Enable Bite-weaving",
-						"tooltip": "Spend Combo Points on Ferocious Bite when Rip is already active on the target."
+						"tooltip": "Spend Combo Points on Ferocious Bite when Rip is up and still has more than 8 seconds left."
 					},
 					"ripweave": {
 						"label": "Enable Rip-weaving",

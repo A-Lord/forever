@@ -13,8 +13,8 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
-// Compares the simple rotation's options, a build without Shifting Power, and bear-weaving written
-// as an APL around the cat rotation. Prints a table; asserts nothing.
+// Compares Rip at 4 or 5 combo points, Rake, Faerie Fire, Bite, and the energy at which Shifting
+// Power is spent, on a level-60 leather set. Prints a table; asserts nothing.
 func TestRotationSweep(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
 		t.Skip("set ROTATION_SWEEP=1 (and ROTATION_SWEEP_ITERATIONS) to compare rotation options")
@@ -29,46 +29,53 @@ func TestRotationSweep(t *testing.T) {
 		costCat.Shred.Cost.GetCurrentCost(), costCat.Claw.Cost.GetCurrentCost(), costCat.Rip.Cost.GetCurrentCost(),
 		costCat.FerociousBite.Cost.GetCurrentCost(), costCat.Rake.Cost.GetCurrentCost(), costCat.ShiftingPower.Cost.GetCurrentCost())
 
-	shipped := func() *proto.FeralCatDruid_Rotation {
-		return &proto.FeralCatDruid_Rotation{FinishingMove: proto.FeralCatDruid_Rotation_Rip, RipMinComboPoints: 4, BiteMinComboPoints: 5}
+	// Rake stays up. Rip is the finisher. Bite, while enabled, requires 5 combo points and a Rip
+	// with more than 8s left. shift is the energy bar under which Shifting Power is spent; 0
+	// means the builder's own cost.
+	rot := func(ripCP int32, rake, ff, bite bool) *proto.FeralCatDruid_Rotation {
+		return &proto.FeralCatDruid_Rotation{
+			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+			RipMinComboPoints:  ripCP,
+			BiteMinComboPoints: 5,
+			RakeTrick:          rake,
+			MaintainFaerieFire: ff,
+			Biteweave:          bite,
+		}
 	}
-	with := func(edit func(*proto.FeralCatDruid_Rotation)) *proto.FeralCatDruid_Rotation {
-		r := shipped()
-		edit(r)
-		return r
-	}
-	rows := []struct {
+	type sweepRow struct {
 		name     string
 		talents  string
 		rotation *proto.APLRotation
 		noShred  bool
-	}{
-		{"default: rip 4, no rake/bite/ff", powershiftTalents, catRotation(shipped()), false},
-		{"rip 5", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.RipMinComboPoints = 5 })), false},
-		{"maintain rake", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.RakeTrick = true })), false},
-		{"maintain rake, rip 5", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) {
-			r.RakeTrick = true
-			r.RipMinComboPoints = 5
-		})), false},
-		{"biteweave", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.Biteweave = true })), false},
-		{"bite finisher", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) {
-			r.FinishingMove = proto.FeralCatDruid_Rotation_Bite
-		})), false},
-		{"bite finisher + ripweave", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) {
-			r.FinishingMove = proto.FeralCatDruid_Rotation_Bite
-			r.Ripweave = true
-		})), false},
-		{"maintain faerie fire", powershiftTalents, catRotation(with(func(r *proto.FeralCatDruid_Rotation) { r.MaintainFaerieFire = true })), false},
-		{"no shifting power talent", withFeralDigit(powershiftTalents, 10, '0'), catRotation(shipped()), false},
-		{"claw, target cannot be shredded", powershiftTalents, catRotation(shipped()), true},
-		// Primal Bite is one point over the 51 the default build spends, so this row is the most a
-		// bear-weave could gain.
-		{"bear-weave Primal Bite", withFeralDigit(powershiftTalents, 11, '1'), bearweaveRotation(shipped()), false},
+		shift    float64
+	}
+	row := func(name string, ripCP int32, rake, ff, bite bool, shift float64) sweepRow {
+		return sweepRow{name, powershiftTalents, catRotation(rot(ripCP, rake, ff, bite)), false, shift}
+	}
+	rows := []sweepRow{
+		row("rake, rip 4", 4, true, false, false, 0),
+		row("rake, rip 5", 5, true, false, false, 0),
+		row("no rake, rip 4", 4, false, false, false, 0),
+		row("no rake, rip 5", 5, false, false, false, 0),
+		row("rake, rip 4, faerie fire", 4, true, true, false, 0),
+		row("rake, rip 5, faerie fire", 5, true, true, false, 0),
+		row("rake, rip 4, bite", 4, true, false, true, 0),
+		row("rake, rip 5, bite", 5, true, false, true, 0),
+		row("rake, rip 4, ff+bite", 4, true, true, true, 0),
+		row("rake, rip 5, ff+bite", 5, true, true, true, 0),
+	}
+	for _, limit := range []float64{60, 50, 30, 20, 10} {
+		rows = append(rows,
+			row(fmt.Sprintf("rake rip 4, shift <%.0f", limit), 4, true, false, false, limit),
+			row(fmt.Sprintf("rake rip 5, shift <%.0f", limit), 5, true, false, false, limit),
+		)
 	}
 
 	fmt.Printf("%-34s %8s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
 		"rotation", "dps", "stdev", "sp", "shred", "claw", "rip", "bite", "rake", "ff", "bsrk", "bear", "pbite")
+	defer func() { shiftEnergyLimit = 0 }()
 	for _, row := range rows {
+		shiftEnergyLimit = row.shift
 		result := core.RunSim(sweepRequest(row.talents, row.rotation, row.noShred, iterations), nil, simsignals.CreateSignals())
 		if result.Error != nil {
 			t.Fatalf("%s: %s", row.name, result.Error.Message)
@@ -142,14 +149,34 @@ func withFeralDigit(talents string, index int, digit byte) string {
 	return string(parts)
 }
 
-// A 180-second fight against a level-63 demon with the cat UI's default raid buffs and debuffs, the
-// 866 dagger and no consumables.
+// A 180-second fight against a level-63 demon with the cat UI's default raid buffs and debuffs,
+// the Level 60 gear preset (ui/specs/druid/feralcat/gear_sets/default.gear.json), and no consumables.
+// Weapon is Fist of Cenarius. Howling Idol shortens Shifting Power by 1s.
 func sweepRequest(talents string, rotation *proto.APLRotation, cannotShred bool, iterations int32) *proto.RaidSimRequest {
-	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
 	}
-	items[proto.ItemSlot_ItemSlotMainHand].Id = 866
+	gear := map[proto.ItemSlot]int32{
+		proto.ItemSlot_ItemSlotHead:     279253, // Outlaw's Collar: 21 agi, 1.5% crit
+		proto.ItemSlot_ItemSlotNeck:     18404,  // Onyxia Tooth Pendant: 1% hit, 1% crit
+		proto.ItemSlot_ItemSlotShoulder: 272105, // Darkspear Pauldrons: 27 agi, 1% crit
+		proto.ItemSlot_ItemSlotBack:     272414, // Howler's Furs: 28 attack power, 1% hit
+		proto.ItemSlot_ItemSlotChest:    252483, // Dawn Armor: 37 agi, 1% hit, 1% crit
+		proto.ItemSlot_ItemSlotWrist:    19587,  // Forest Stalker's Bracers: 11 str, 19 agi
+		proto.ItemSlot_ItemSlotHands:    272099, // Raider Gloves: 11 str, 27 agi
+		proto.ItemSlot_ItemSlotWaist:    272395, // Assassin's Waistguard: 21 agi, 2% hit
+		proto.ItemSlot_ItemSlotLegs:     15065,  // Warbear Woolies: 28 str, 18 agi
+		proto.ItemSlot_ItemSlotFeet:     20715,  // Dunestalker's Boots: 9 str, 19 agi
+		proto.ItemSlot_ItemSlotFinger1:  19325,  // Don Julio's Band: 16 attack power, 1% hit, 1% crit
+		proto.ItemSlot_ItemSlotFinger2:  275981, // Ferocious Watcher's Signet: 34 attack power, 1% hit
+		proto.ItemSlot_ItemSlotTrinket1: 19120,  // Rune of the Guard Captain: 14 attack power, 0.7% hit
+		proto.ItemSlot_ItemSlotMainHand: 21188,  // Fist of Cenarius, slow two-hand mace
+		proto.ItemSlot_ItemSlotRanged:   272427, // Howling Idol, Shifting Power cooldown -1s
+	}
+	for slot, id := range gear {
+		items[slot].Id = id
+	}
 	return &proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 101, Iterations: iterations, IsTest: true},
 		Raid: &proto.Raid{

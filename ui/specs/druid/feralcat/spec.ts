@@ -2,7 +2,7 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { FeralCatDruid_Rotation as DruidRotation } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
@@ -70,7 +70,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.Level60Gear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
@@ -149,7 +149,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		talents: [],
 		rotations: [Presets.SIMPLE, Presets.APL],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.Level60Gear],
 	},
 
 	autoRotation: (player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
@@ -166,7 +166,8 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 });
 
 // Major cooldowns (Berserk, trinkets, potions) fire on cooldown ahead of the cat rotation; core refuses
-// one that would leave cat form. The rotation casts Shifting Power when the builder is unaffordable.
+// one that would leave cat form. The rotation keeps Rake up, finishes with Rip, and casts Shifting
+// Power when the builder is unaffordable.
 function catPowershiftRotation(simple: DruidRotation): APLRotation {
 	const doRotation = APLAction.fromJsonString(
 		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,

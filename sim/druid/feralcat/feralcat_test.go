@@ -125,8 +125,9 @@ var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 	FeralCatDruid: &proto.FeralCatDruid{
 		Rotation: &proto.FeralCatDruid_Rotation{
 			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-			RipMinComboPoints:  4,
+			RipMinComboPoints:  5,
 			BiteMinComboPoints: 5,
+			RakeTrick:          true,
 		},
 		Options: &proto.FeralCatDruid_Options{},
 	},
