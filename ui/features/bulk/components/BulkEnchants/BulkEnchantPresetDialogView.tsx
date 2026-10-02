@@ -1,14 +1,18 @@
 import type { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
+import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { Field } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
+import { Pill } from '@ui-kit/Pill';
 import { type ReactNode, useId } from 'react';
 
 export interface BulkEnchantSlotGroup {
 	slot: ItemSlot;
 	label: string;
+	iconUrl: string;
+	checkedCount: number;
 	tiles: ReactNode;
 }
 
@@ -22,6 +26,8 @@ export interface BulkEnchantPresetDialogViewProps {
 	canSave: boolean;
 	onSave: () => void;
 	groups: readonly BulkEnchantSlotGroup[];
+	openSlots: string[];
+	onOpenSlotsChange: (slots: string[]) => void;
 }
 
 export const BulkEnchantPresetDialogView = ({
@@ -34,6 +40,8 @@ export const BulkEnchantPresetDialogView = ({
 	canSave,
 	onSave,
 	groups,
+	openSlots,
+	onOpenSlotsChange,
 }: BulkEnchantPresetDialogViewProps) => {
 	const nameId = useId();
 
@@ -72,12 +80,28 @@ export const BulkEnchantPresetDialogView = ({
 						}}
 					/>
 				</Field>
-				{groups.map(group => (
-					<section key={group.slot} className="grid gap-2" data-testid="bulk-enchant-slot">
-						<h6 className="mb-0 text-sm font-semibold">{group.label}</h6>
-						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">{group.tiles}</div>
-					</section>
-				))}
+				<Accordion value={openSlots} onValueChange={onOpenSlotsChange} variant="boxed">
+					{groups.map(group => (
+						<AccordionItem
+							key={group.slot}
+							value={String(group.slot)}
+							testId="bulk-enchant-slot"
+							panelClassName="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
+							title={
+								<span className="flex items-center gap-2">
+									<span className="block size-8 shrink-0 bg-cover" style={{ backgroundImage: `url('${group.iconUrl}')` }} aria-hidden />
+									<span>{group.label}</span>
+									{group.checkedCount > 0 && (
+										<Pill size="xs" className="min-w-[1lh] justify-center" testId="bulk-enchant-slot-count">
+											{group.checkedCount}
+										</Pill>
+									)}
+								</span>
+							}>
+							{group.tiles}
+						</AccordionItem>
+					))}
+				</Accordion>
 			</div>
 		</Dialog>
 	);

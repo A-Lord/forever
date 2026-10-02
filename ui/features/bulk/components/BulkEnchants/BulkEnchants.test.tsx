@@ -57,6 +57,9 @@ const mount = () => {
 const nameInput = () => screen.getByRole('textbox') as HTMLInputElement;
 const saveButton = () => screen.getByTestId('bulk-enchant-preset-save') as HTMLButtonElement;
 const openNewPreset = () => userEvent.click(screen.getByRole('button', { name: 'bulk_tab.settings.enchant_presets.new' }));
+const expandSlots = async () => {
+	for (const trigger of screen.getAllByTestId('bulk-enchant-slot-trigger')) await userEvent.click(trigger);
+};
 
 describe('BulkEnchants', () => {
 	it('creates a preset through the dialog, and a tick puts it in the batch', async () => {
@@ -64,6 +67,7 @@ describe('BulkEnchants', () => {
 
 		await openNewPreset();
 		await userEvent.type(nameInput(), 'Beasts');
+		await expandSlots();
 		await userEvent.click(screen.getByRole('checkbox', { name: /Lesser Agility/ }));
 		await userEvent.click(saveButton());
 
@@ -80,6 +84,7 @@ describe('BulkEnchants', () => {
 
 		await openNewPreset();
 		await userEvent.type(nameInput(), 'Weapons');
+		await expandSlots();
 		await userEvent.click(screen.getByRole('checkbox', { name: /Superior Striking/ }));
 
 		expect(screen.getByRole('checkbox', { name: /Lesser Impact/ }).getAttribute('aria-checked')).toBe('true');
@@ -87,6 +92,17 @@ describe('BulkEnchants', () => {
 		await userEvent.click(saveButton());
 
 		expect(bulkState(player).enchantPresets[0].slots).toEqual([{ slot: ItemSlot.ItemSlotMainHand, effectIds: [1897] }]);
+	});
+
+	it('opens the slots with ticked enchants when editing, each with its tick count', async () => {
+		const player = mount();
+		saveBulkEnchantPreset(player, { name: 'Undead', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY.effectId] }] });
+
+		await userEvent.click(await screen.findByRole('button', { name: /enchant_presets\.edit/ }));
+
+		expect(screen.getByRole('checkbox', { name: /Lesser Agility/ }).getAttribute('aria-checked')).toBe('true');
+		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
+		expect(screen.getAllByTestId('bulk-enchant-slot-count').map(pill => pill.textContent)).toEqual(['1']);
 	});
 
 	it('disables Save while the name is taken by another preset', async () => {

@@ -1,3 +1,4 @@
+import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
@@ -28,6 +29,8 @@ const meta = {
 			{
 				slot: ItemSlot.ItemSlotBack,
 				label: 'Back',
+				iconUrl: getEmptySlotIconUrl(ItemSlot.ItemSlotBack),
+				checkedCount: 1,
 				tiles: tiles([
 					['Enchant Cloak - Greater Agility', 'Agility +3', true],
 					['Enchant Cloak - Superior Defense', 'Armor +70', false],
@@ -37,13 +40,24 @@ const meta = {
 			{
 				slot: ItemSlot.ItemSlotMainHand,
 				label: 'Main Hand',
+				iconUrl: getEmptySlotIconUrl(ItemSlot.ItemSlotMainHand),
+				checkedCount: 2,
 				tiles: tiles([
 					['Enchant Weapon - Crusader', undefined, true],
 					['Enchant Weapon - Unholy Weapon', undefined, true],
 					['Enchant Weapon - Agility', 'Agility +15', false],
 				]),
 			},
+			{
+				slot: ItemSlot.ItemSlotRanged,
+				label: 'Ranged',
+				iconUrl: getEmptySlotIconUrl(ItemSlot.ItemSlotRanged),
+				checkedCount: 0,
+				tiles: tiles([['Accurate Scope', 'Ranged Hit +3', false]]),
+			},
 		],
+		openSlots: [String(ItemSlot.ItemSlotBack), String(ItemSlot.ItemSlotMainHand)],
+		onOpenSlotsChange: fn(),
 	},
 	argTypes: { groups: { control: false } },
 } satisfies Meta<typeof BulkEnchantPresetDialogView>;
@@ -56,4 +70,4 @@ export const Default: Story = {};
 /** A name another preset already has blocks the save button. */
 export const NameTaken: Story = { args: { name: 'Beasts', nameTaken: true, canSave: false } };
 
-export const NewPreset: Story = { args: { title: 'New enchant preset', name: '', canSave: false } };
+export const NewPreset: Story = { args: { title: 'New enchant preset', name: '', canSave: false, openSlots: [] } };

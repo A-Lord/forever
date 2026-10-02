@@ -1,4 +1,5 @@
 import { useEnchantDescription } from '@features/gear/hooks/useEnchantDescription';
+import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import { enchantActionId } from '@features/gear/model/item_data';
 import type { ItemSlot } from '@generated/proto/common';
 import type { BulkEnchantPreset, UIEnchant as Enchant } from '@generated/proto/ui';
@@ -63,6 +64,8 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 		[player],
 	);
 
+	const [openSlots, setOpenSlots] = useState(() => preset?.slots.filter(options => options.effectIds.length).map(options => String(options.slot)) ?? []);
+
 	const problem = validateBulkEnchantPresetName(presets, name, preset?.name);
 
 	const toggle = useCallback(
@@ -89,9 +92,13 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 			nameTaken={problem === 'duplicate'}
 			canSave={problem === null}
 			onSave={save}
+			openSlots={openSlots}
+			onOpenSlotsChange={setOpenSlots}
 			groups={slots.map(({ slot, enchants }) => ({
 				slot,
 				label: translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(slot)!),
+				iconUrl: getEmptySlotIconUrl(slot),
+				checkedCount: selected.get(slot)?.length ?? 0,
 				tiles: enchants.map(enchant => (
 					<EnchantTile
 						key={`${enchant.effectId}-${enchant.name}`}
