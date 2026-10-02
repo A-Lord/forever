@@ -25,11 +25,15 @@ export const Unchanged: Story = {};
 
 export const EmptySlot: Story = { args: { equipped: false, iconUrl: '' } };
 
-export const EnchantChanged: Story = {
+export const EnchantUnchanged: Story = {
 	args: { enchant: { name: 'Enchant Chest - Greater Stats', iconUrl: wowheadIconUrl('inv_misc_note_01') } },
 };
 
-export const EnchantChangedWithoutIcon: Story = { args: { enchant: { name: 'Enchant Chest - Greater Stats', iconUrl: '' } } };
+export const EnchantChanged: Story = {
+	args: { enchant: { name: 'Enchant Chest - Greater Stats', iconUrl: wowheadIconUrl('inv_misc_note_01') }, enchantChanged: true },
+};
+
+export const EnchantChangedWithoutIcon: Story = { args: { enchant: { name: 'Enchant Chest - Greater Stats', iconUrl: '' }, enchantChanged: true } };
 
 export const GemChanged: Story = {
 	args: {

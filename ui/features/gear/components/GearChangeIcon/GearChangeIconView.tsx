@@ -19,8 +19,9 @@ export interface GearChangeIconViewProps {
 	href: string;
 	wowhead?: WowheadDatasetProps;
 	sockets: ReadonlyArray<GearChangeSocket>;
-	/** Set when the enchant differs from the previous item's; an empty iconUrl falls back to a glyph. */
+	/** The item's enchant; an empty iconUrl falls back to a glyph. */
 	enchant?: ResolvedIcon;
+	enchantChanged?: boolean;
 	enchantWowhead?: WowheadDatasetProps;
 }
 
@@ -28,7 +29,7 @@ export interface GearChangeIconViewProps {
  * Parameterises the slot and the before/after pair; fixes the frame and the per-socket change
  * markers.
  */
-export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, sockets, enchant, enchantWowhead }: GearChangeIconViewProps) => {
+export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, sockets, enchant, enchantChanged, enchantWowhead }: GearChangeIconViewProps) => {
 	const slotName = translateSlotName(slot);
 	const tooltipId = useId();
 
@@ -47,6 +48,7 @@ export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, soc
 						testId="gear-change-icon-enchant"
 						href={enchant.href || undefined}
 						aria-label={enchant.name}
+						data-changed={enchantChanged ? '' : undefined}
 						style={enchant.iconUrl ? { backgroundImage: `url('${enchant.iconUrl}')` } : undefined}
 						{...enchantWowhead}>
 						{!enchant.iconUrl && <Icon name="circle-exclamation" className="ui-gear-change-icon-gem-marker block" />}

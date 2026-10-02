@@ -55,6 +55,24 @@ describe('GearChangeIconView', () => {
 		expect(screen.getByTestId('gem-socket-container').hasAttribute('data-tooltip-id')).toBe(false);
 	});
 
+	it('marks the enchant as changed only when it differs from the previous one', () => {
+		const { rerender } = renderView({ enchant: { name: 'Crusader', iconUrl: 'crusader.jpg' }, enchantChanged: true });
+		expect(screen.getByTestId('gear-change-icon-enchant').hasAttribute('data-changed')).toBe(true);
+
+		rerender(
+			<GearChangeIconView
+				slot={ItemSlot.ItemSlotHead}
+				equipped
+				iconUrl="helm.jpg"
+				href="https://example.com/item"
+				sockets={[]}
+				enchant={{ name: 'Crusader', iconUrl: 'crusader.jpg' }}
+				enchantChanged={false}
+			/>,
+		);
+		expect(screen.getByTestId('gear-change-icon-enchant').hasAttribute('data-changed')).toBe(false);
+	});
+
 	it('links the changed-enchant marker to the enchant, carrying its wowhead tooltip', () => {
 		renderView({
 			enchant: { name: 'Crusader', iconUrl: 'crusader.jpg', href: 'https://example.com/spell=20034' },
