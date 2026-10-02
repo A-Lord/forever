@@ -8,16 +8,6 @@ import { ActionId } from '@sim/proto/action_id';
 // Configuration for spec-specific UI elements on the settings tab.
 // These don't need to be in a separate file but it keeps things cleaner.
 
-export const ShamanImbueOH = InputHelpers.makeSpecOptionsEnumIconInput<Spec.SpecEnhancementShaman, ShamanImbue>({
-	fieldName: 'imbueOh',
-	values: [
-		{ value: ShamanImbue.NoImbue, tooltip: 'No Off Hand Enchant' },
-		{ actionId: ActionId.fromSpellId(8232), value: ShamanImbue.WindfuryWeapon },
-		{ actionId: ActionId.fromSpellId(8024), value: ShamanImbue.FlametongueWeapon },
-		{ actionId: ActionId.fromSpellId(8033), value: ShamanImbue.FrostbrandWeapon },
-	],
-});
-
 export const ShamanImbueOHSwap = InputHelpers.makeSpecOptionsEnumIconInput<Spec.SpecEnhancementShaman, ShamanImbue>({
 	fieldName: 'imbueOhSwap',
 	values: [
@@ -25,6 +15,7 @@ export const ShamanImbueOHSwap = InputHelpers.makeSpecOptionsEnumIconInput<Spec.
 		{ actionId: ActionId.fromSpellId(8232), value: ShamanImbue.WindfuryWeapon },
 		{ actionId: ActionId.fromSpellId(8024), value: ShamanImbue.FlametongueWeapon },
 		{ actionId: ActionId.fromSpellId(8033), value: ShamanImbue.FrostbrandWeapon },
+		{ actionId: ActionId.fromSpellId(8017), value: ShamanImbue.RockbiterWeapon },
 	],
 	showWhen: (player: Player<Spec.SpecEnhancementShaman>) => player.itemSwapSettings.getEnableItemSwap(),
 	storeField: ['specOptions', 'itemSwap'] as const,

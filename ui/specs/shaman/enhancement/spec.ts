@@ -1,8 +1,7 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation } from '@generated/proto/apl';
-import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
@@ -74,7 +73,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreraidGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
@@ -94,7 +93,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.StandardTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -105,7 +104,8 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [ShamanInputs.ShamanImbueMH(), EnhancementInputs.ShamanImbueOH, ShamanInputs.ShamanImbueMHSwap(), EnhancementInputs.ShamanImbueOHSwap],
+	// The main-hand and off-hand imbues are offered in the consumables imbue pickers, as one pick with the oils and stones.
+	playerIconInputs: [ShamanInputs.ShamanImbueMHSwap(), EnhancementInputs.ShamanImbueOHSwap],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatFireDamage],
 	excludeBuffDebuffInputs: [],
@@ -128,11 +128,13 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	presets: {
 		epWeights: [],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.StandardTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.PreraidGear],
+		// Preset builds that the user can quickly select.
+		builds: [Presets.TestingBuild],
 	},
 
 	autoRotation: (_: Player<Spec.SpecEnhancementShaman>): APLRotation => {

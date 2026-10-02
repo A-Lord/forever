@@ -8,17 +8,6 @@ import { ShamanSpecs } from '@sim/proto/spec_types';
 // Configuration for class-specific UI elements on the settings tab.
 // These don't need to be in a separate file but it keeps things cleaner.
 
-export const ShamanImbueMH = <SpecType extends ShamanSpecs>() =>
-	InputHelpers.makeClassOptionsEnumIconInput<SpecType, ShamanImbue>({
-		fieldName: 'imbueMh',
-		values: [
-			{ value: ShamanImbue.NoImbue, tooltip: 'No Main Hand Enchant' },
-			{ actionId: ActionId.fromSpellId(8232), value: ShamanImbue.WindfuryWeapon },
-			{ actionId: ActionId.fromSpellId(8024), value: ShamanImbue.FlametongueWeapon },
-			{ actionId: ActionId.fromSpellId(8033), value: ShamanImbue.FrostbrandWeapon },
-		],
-	});
-
 export const ShamanImbueMHSwap = <SpecType extends ShamanSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, ShamanImbue>({
 		fieldName: 'imbueMhSwap',
@@ -26,6 +15,8 @@ export const ShamanImbueMHSwap = <SpecType extends ShamanSpecs>() =>
 			{ value: ShamanImbue.NoImbue, tooltip: 'No Main Hand Swap Enchant' },
 			{ actionId: ActionId.fromSpellId(8232), value: ShamanImbue.WindfuryWeapon },
 			{ actionId: ActionId.fromSpellId(8024), value: ShamanImbue.FlametongueWeapon },
+			{ actionId: ActionId.fromSpellId(8033), value: ShamanImbue.FrostbrandWeapon },
+			{ actionId: ActionId.fromSpellId(8017), value: ShamanImbue.RockbiterWeapon },
 		],
 		showWhen: (player: Player<SpecType>) => player.itemSwapSettings.getEnableItemSwap(),
 		storeField: ['specOptions', 'itemSwap'] as const,
