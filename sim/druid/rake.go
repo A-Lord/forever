@@ -7,8 +7,9 @@ import (
 
 func (druid *Druid) registerRakeSpell() {
 	rank := spellData.Rake.Highest()
-	// TODO: Next game build -- Rake gains damage from attack power; this row states no coefficient. Once
-	// an override adds one, the hit and a hand OnTick read APCoeff(), since DotConfig's tick does not.
+	// TODO: Ingame research needed -- whether Rake gains damage from attack power; this row states no
+	// coefficient. Once an override adds one, the hit and a hand OnTick read APCoeff(), since DotConfig's
+	// tick does not.
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect(), bleedAuraOpt())
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

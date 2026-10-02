@@ -130,6 +130,8 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	aura := druid.registerFormAura(form, starting)
 	// A_MOD_BONUS_ARMOR_PCT is not parsed. Armor from items, health, attack power and the Faerie
 	// Fire spell mods are.
+	// TODO: Ingame research needed -- effect 4 of Bear Form and Dire Bear Form is aura 668, which core
+	// does not name.
 	spelldata.ParseEffects(&druid.Character, aura, passive)
 	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(kind)
@@ -205,8 +207,8 @@ func (druid *Druid) rememberCatEnergy(sim *core.Simulation) {
 // each second spent outside Bear, Cat and Dire Bear Form, up to 100, all scaled by the rank. With the
 // talent untaken the cat comes back with none.
 //
-// TODO: Next game build -- entering Bear Form loses all of it, and energy outside Cat Form regenerates
-// at the Cat Form rate at 5/5.
+// TODO: Ingame research needed -- whether entering Bear Form loses all of it, and whether energy outside
+// Cat Form regenerates at the Cat Form rate at 5/5. Tooltip 17056 states neither.
 func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
 	if !druid.HasEnergyBar() || druid.Env.MeasuringStats {
 		return
