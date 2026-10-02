@@ -6,14 +6,14 @@ import { SimTabDef } from './SimTabDef';
 import { SimTabs, SimTabsPanels, SimTabsStrip } from './SimTabs';
 
 interface SimTabsFrameProps {
-	tabs: Array<{ id: string; title: string }>;
+	tabs: Array<{ id: string; title: string; badge?: string }>;
 }
 
 // The strip and the panels are ordinary children of one `SimTabs`, in the header and `main` the shell renders them into.
 const SimTabsFrame = ({ tabs }: SimTabsFrameProps) => (
 	<SimTabs
 		defs={tabs.map(tab => (
-			<SimTabDef key={tab.id} id={tab.id} title={tab.title}>
+			<SimTabDef key={tab.id} id={tab.id} title={tab.title} badge={tab.badge}>
 				<SimTabPane id={tab.id}>
 					<p>{tab.title} pane</p>
 				</SimTabPane>
@@ -40,7 +40,7 @@ const meta = {
 			{ id: 'gear-tab', title: 'Gear' },
 			{ id: 'settings-tab', title: 'Settings' },
 			{ id: 'talents-tab', title: 'Talents' },
-			{ id: 'bulk-tab', title: 'Batch Sim' },
+			{ id: 'bulk-tab', title: 'Batch Sim', badge: 'Beta' },
 		],
 	},
 } satisfies Meta<typeof SimTabsFrame>;

@@ -55,7 +55,7 @@ export const SimTabs = ({ defs, children }: SimTabsProps) => {
 export const SimTabsStrip = () => {
 	const list = use(SimTabsListContext);
 	if (!list?.tabs.length) return null;
-	return <TabNav variant="sim" testId="sim-tabs" tabs={list.tabs.map(tab => ({ id: tab.id, label: tab.title }))} />;
+	return <TabNav variant="sim" testId="sim-tabs" tabs={list.tabs.map(tab => ({ id: tab.id, label: tab.title, badge: tab.badge }))} />;
 };
 
 export const SimTabsPanels = () => {
