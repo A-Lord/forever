@@ -19,7 +19,7 @@ func (shaman *Shaman) registerShieldsSpells() {
 func (shaman *Shaman) startShieldProcPeriodicAction(sim *core.Simulation) {
 	if shaman.SelfBuffs.ShieldProcrate > 0 && shaman.ShieldSelfProc != nil {
 		core.StartPeriodicAction(sim, core.PeriodicActionOptions{
-			Period:   60 * time.Second / time.Duration(shaman.SelfBuffs.ShieldProcrate),
+			Period:   time.Duration(float64(time.Minute) / shaman.SelfBuffs.ShieldProcrate),
 			Priority: core.ActionPriorityGCD,
 			OnAction: func(sim *core.Simulation) {
 				shaman.ShieldSelfProc(sim)
