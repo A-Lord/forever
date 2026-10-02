@@ -12,11 +12,11 @@ import (
 
 // The temporary enchants the highest rank of each imbue puts on the weapon, the misc value of the
 // cast's effect 1.
-const (
-	rockbiterEnchantID   int32 = 1664
-	flametongueEnchantID int32 = 1666
-	frostbrandEnchantID  int32 = 1668
-	windfuryEnchantID    int32 = 1669
+var (
+	rockbiterEnchantID   = spellData.RockbiterWeapon.Highest().EffectN(1).Misc
+	flametongueEnchantID = spellData.FlametongueWeapon.Highest().EffectN(1).Misc
+	frostbrandEnchantID  = spellData.FrostbrandWeapon.Highest().EffectN(1).Misc
+	windfuryEnchantID    = spellData.WindfuryWeapon.Highest().EffectN(1).Misc
 )
 
 // Windfury Weapon and Flametongue Weapon put the same passive on the weapon at every rank, and the

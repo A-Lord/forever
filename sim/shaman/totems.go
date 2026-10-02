@@ -84,7 +84,7 @@ func (shaman *Shaman) registerWindfuryTotemSpell() {
 // Under Windfury Totem's proc, Flametongue Totem's does nothing.
 func (shaman *Shaman) registerFlametongueTotemSpell() {
 	shaman.FlametongueTotem = shaman.registerWeaponTotem(flametongueTotemRank, FireTotem, buffs.FlametongueTotemCategory,
-		spelldata.MustFind(16389).EffectN(1).BaseValue(), buffs.NewFlametongueTotemProcTrigger(&shaman.Character))
+		buffs.FlametongueTotemPriority(), buffs.NewFlametongueTotemProcTrigger(&shaman.Character))
 }
 
 func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {

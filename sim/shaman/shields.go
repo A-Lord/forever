@@ -78,9 +78,8 @@ func (shaman *Shaman) registerWaterShieldSpell() {
 
 var lightningShieldRank = spellData.LightningShield.Highest()
 
-// The shield's effect 1 fires 26545, a dummy, and the rank's own orb is the spell that deals the
-// damage.
-var lightningShieldOrb = spellData.LightningShieldTriggered.ByID(26363)
+// The shield's effect 1 fires 26545, a dummy, and the orb its tooltip names deals the damage.
+var lightningShieldOrb = lightningShieldRank.Refs()[0]
 
 // 10432 holds three charges for 10 minutes, and a hit taken spends one, at most once every 3.5 s, to
 // strike the attacker with the orb.

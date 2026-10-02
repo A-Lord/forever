@@ -281,6 +281,11 @@ func holdTotemAura(totemAura *core.Aura, category string, priority float64, proc
 // trigger column, so the proc is read by id.
 var flametongueTotemProc = spelldata.MustFind(16389)
 
+// A Flametongue Totem bids its proc's base points for the category.
+func FlametongueTotemPriority() float64 {
+	return flametongueTotemProc.EffectN(1).BaseValue()
+}
+
 // The fire damage a main-hand hit adds for a weapon of this speed.
 func FlametongueTotemDamage(weaponSpeed float64) float64 {
 	return flametongueTotemProc.EffectN(1).BaseValue() * weaponSpeed / 100
@@ -300,7 +305,7 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 
 	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
 	totemAura.BuildPhase = core.CharacterBuildPhaseNone
-	holdTotemAura(totemAura, FlametongueTotemCategory, flametongueTotemProc.EffectN(1).BaseValue(), procTrigger)
+	holdTotemAura(totemAura, FlametongueTotemCategory, FlametongueTotemPriority(), procTrigger)
 }
 
 const flametongueTotemTriggerLabel = "Flametongue Totem Trigger"
