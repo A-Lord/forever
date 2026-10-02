@@ -71,6 +71,29 @@ func fillResource(sim *core.Simulation, cat *FeralDruid) {
 	cat.AddRage(sim, cat.MaximumRage(), cat.NewRageMetrics(core.ActionID{SpellID: 1}))
 }
 
+// Ferocity 5/5 and Shredding Attacks 3/3: tooltips 16934 ("5 Rage or Energy") and 16966 ("Shred by 18",
+// "Lacerate by 3").
+func TestFeralCostTalentsLowerEnergyAndRageInTheirOwnUnits(t *testing.T) {
+	_, base := newCat(t, "", nil)
+	_, talented := newCat(t, "0000000000000000-50000030000000000000-0000000000000000", nil)
+	for _, c := range []struct {
+		name       string
+		base, with *druid.DruidSpell
+		less       float64
+	}{
+		{"Shred", base.Shred, talented.Shred, 18},
+		{"Rake", base.Rake, talented.Rake, 5},
+		{"Claw", base.Claw, talented.Claw, 5},
+		{"Lacerate", base.Lacerate, talented.Lacerate, 3},
+		{"Swipe", base.Swipe, talented.Swipe, 5},
+		{"Primal Bite", base.PrimalBite, talented.PrimalBite, 5},
+	} {
+		if got := c.base.Cost.GetCurrentCost() - c.with.Cost.GetCurrentCost(); got != c.less {
+			t.Errorf("%s costs %v less with the talents, want %v", c.name, got, c.less)
+		}
+	}
+}
+
 func TestFurorRestoresEnergyAfterLeavingCat(t *testing.T) {
 	sim, cat := newCat(t, furorTalents, nil)
 	if !cat.InForm(druid.Cat) {
