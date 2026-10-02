@@ -15,24 +15,24 @@ import (
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
-// A partial update takes some portions of the game files database into the store and keeps every
-// other row as the committed inputs state it, so one class can move onto a new game build while the
-// others stay on the build their code was written against.
+// A partial update takes some spell data groups of the game files database into the store and keeps
+// every other row as the committed inputs state it, so one class can move onto a new game build while
+// the others stay on the build their code was written against.
 //
-// A portion is one of the nine classes (by package name), racials, items or shared. A row belongs to
-// a portion by the first of these that holds:
+// A spell data group - a group, below - is one of the nine classes (by package name), racials, items or
+// shared. A row belongs to a group by the first of these that holds:
 //
 //   - it is a hand-kept extra spell marked racials (the Eureka! rows);
 //   - it states a class family: its flags are that class's, so it moves with that class's spells,
 //     wherever it is reached from (a set bonus, an enchant's class buff);
-//   - a portion's roots reach it. A row more than one portion reaches moves when any of them does.
+//   - a group's roots reach it. A row more than one group reaches moves when any of them does.
 //
 // Items and shared are always taken: the item database gen_db writes is not split, and the store's
 // item rows have to match it.
 const (
-	portionItems   = "items"
-	portionRacials = "racials"
-	portionShared  = "shared"
+	groupItems   = "items"
+	groupRacials = "racials"
+	groupShared  = "shared"
 )
 
 // The SpellClassSet each class's spells carry in the game files, which is the family its class flags
@@ -49,38 +49,38 @@ var classFamilies = map[string]int32{
 	"druid":   7,
 }
 
-func classPortion(class dbc.DbcClass) string {
+func classGroup(class dbc.DbcClass) string {
 	return strings.ToLower(dbc.ClassNameFromDBC(class))
 }
 
-func allPortions() []string {
-	portions := make([]string, 0, len(dbc.Classes)+3)
+func allSpellDataGroups() []string {
+	groups := make([]string, 0, len(dbc.Classes)+3)
 	for _, class := range dbc.Classes {
-		portions = append(portions, classPortion(class))
+		groups = append(groups, classGroup(class))
 	}
-	return append(portions, portionRacials, portionItems, portionShared)
+	return append(groups, groupRacials, groupItems, groupShared)
 }
 
-// The portions a run takes from the game files database. Nil takes every one, which is a full
+// The groups a run takes from the game files database. Nil takes every one, which is a full
 // regeneration.
-type Portions map[string]bool
+type SpellDataGroups map[string]bool
 
-// The portions -classes and -racials name, with items and shared, which are always taken. classes is a
+// The groups -classes and -racials name, with items and shared, which are always taken. classes is a
 // comma-separated list of class package names, "all" or "none". Naming neither is the default
 // selection, which is nil here.
-func ParsePortions(classes string, racials bool) (Portions, error) {
+func ParseSpellDataGroups(classes string, racials bool) (SpellDataGroups, error) {
 	classes = strings.TrimSpace(classes)
 	if classes == "" && !racials {
 		return nil, nil
 	}
 
-	only := Portions{portionItems: true, portionShared: true, portionRacials: racials}
+	only := SpellDataGroups{groupItems: true, groupShared: true, groupRacials: racials}
 	var names []string
 	switch classes {
 	case "", "none":
 	case "all":
 		for _, class := range dbc.Classes {
-			names = append(names, classPortion(class))
+			names = append(names, classGroup(class))
 		}
 	default:
 		names = strings.Split(classes, ",")
@@ -96,12 +96,12 @@ func ParsePortions(classes string, racials bool) (Portions, error) {
 	return only, nil
 }
 
-func (only Portions) Takes(portion string) bool {
-	return only == nil || only[portion]
+func (only SpellDataGroups) Takes(group string) bool {
+	return only == nil || only[group]
 }
 
-func (only Portions) all() bool {
-	return !slices.ContainsFunc(allPortions(), func(p string) bool { return !only.Takes(p) })
+func (only SpellDataGroups) all() bool {
+	return !slices.ContainsFunc(allSpellDataGroups(), func(p string) bool { return !only.Takes(p) })
 }
 
 // The game build the database was extracted from, which db2tool records in BuildInfo.
@@ -116,15 +116,15 @@ func buildVersion(helper *DBHelper) (string, error) {
 	return version, nil
 }
 
-// The portions whose committed build is the one the database was extracted from, which is what -check
-// renders: a portion on another build is not ported yet, not stale. Inputs that record no builds are
+// The groups whose committed build is the one the database was extracted from, which is what -check
+// renders: a group on another build is not ported yet, not stale. Inputs that record no builds are
 // checked whole.
-func currentPortions(committed *storeInputs, version string) (only Portions, behind []string) {
+func currentSpellDataGroups(committed *storeInputs, version string) (only SpellDataGroups, behind []string) {
 	if committed.Builds == nil {
 		return nil, nil
 	}
-	only = Portions{portionItems: true, portionShared: true}
-	for _, p := range allPortions() {
+	only = SpellDataGroups{groupItems: true, groupShared: true}
+	for _, p := range allSpellDataGroups() {
 		build, recorded := committed.Builds[p]
 		switch {
 		case !recorded || build == version:
@@ -139,11 +139,11 @@ func currentPortions(committed *storeInputs, version string) (only Portions, beh
 	return only, behind
 }
 
-// The portions a run that names none takes. While the committed inputs record one game build for
-// every portion, that is all of them: a full regeneration. Once a partial update has left portions on
-// different builds, it is the ones on the database's build, so a run that names no portions never
+// The groups a run that names none takes. While the committed inputs record one game build for
+// every group, that is all of them: a full regeneration. Once a partial update has left groups on
+// different builds, it is the ones on the database's build, so a run that names no groups never
 // moves a class that has not been ported.
-func DefaultPortions(helper *DBHelper) (Portions, []string, error) {
+func DefaultSpellDataGroups(helper *DBHelper) (SpellDataGroups, []string, error) {
 	if _, err := os.Stat(spellStoreInputsPath); os.IsNotExist(err) {
 		return nil, nil, nil
 	}
@@ -162,30 +162,30 @@ func DefaultPortions(helper *DBHelper) (Portions, []string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	only, behind := currentPortions(committed, version)
+	only, behind := currentSpellDataGroups(committed, version)
 	return only, behind, nil
 }
 
-// The ids each portion is rooted at: its captured roots, plus the hand-kept extra spells and buff
+// The ids each group is rooted at: its captured roots, plus the hand-kept extra spells and buff
 // manifest rows that belong to it. The extras and the manifest are not captured as roots (see
 // withExtraIDs), so they are added here, the same way on every set of inputs.
-func portionSeeds(roots map[string][]int32) map[string][]int32 {
+func groupSeeds(roots map[string][]int32) map[string][]int32 {
 	seeds := map[string][]int32{}
 	for p, ids := range roots {
 		seeds[p] = slices.Clone(ids)
 	}
 	for _, extra := range overrides.ExtraSpells {
-		p := portionShared
-		if extra.Portion == portionRacials {
-			p = portionRacials
+		p := groupShared
+		if extra.SpellDataGroup == groupRacials {
+			p = groupRacials
 		}
 		seeds[p] = append(seeds[p], extra.SpellID)
 	}
 	for _, spec := range buffmanifest.All() {
-		p := portionShared
+		p := groupShared
 		for _, class := range dbc.Classes {
 			if class.ProtoClass == spec.Owner && spec.Owner != proto.Class_ClassUnknown {
-				p = classPortion(class)
+				p = classGroup(class)
 			}
 		}
 		seeds[p] = append(seeds[p], buffSpecIDs(spec)...)
@@ -196,14 +196,14 @@ func portionSeeds(roots map[string][]int32) map[string][]int32 {
 func racialExtraIDs() map[int32]bool {
 	ids := map[int32]bool{}
 	for _, extra := range overrides.ExtraSpells {
-		if extra.Portion == portionRacials {
+		if extra.SpellDataGroup == groupRacials {
 			ids[extra.SpellID] = true
 		}
 	}
 	return ids
 }
 
-func familyPortion(family int32) (string, bool) {
+func familyGroup(family int32) (string, bool) {
 	for p, f := range classFamilies {
 		if f == family {
 			return p, true
@@ -212,18 +212,18 @@ func familyPortion(family int32) (string, bool) {
 	return "", false
 }
 
-// The portion each row of a set of inputs belongs to.
+// The group each row of a set of inputs belongs to.
 type rowOwners struct {
 	ids     []int32            // every id the store carries
 	forced  map[int32]string   // a racials extra's own row, or a row stating a class family
-	reached map[int32][]string // the portions whose seeds reach a row, in allPortions order
+	reached map[int32][]string // the groups whose seeds reach a row, in allSpellDataGroups order
 }
 
 func ownersOf(in *storeInputs) rowOwners {
 	t := &in.spellTables
-	seeds := portionSeeds(in.PortionRoots)
+	seeds := groupSeeds(in.SpellDataGroupRoots)
 	o := rowOwners{forced: map[int32]string{}, reached: map[int32][]string{}}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		for _, id := range reachableSpells(t, namedIDs(t, seeds[p])) {
 			o.reached[id] = append(o.reached[id], p)
 		}
@@ -232,8 +232,8 @@ func ownersOf(in *storeInputs) rowOwners {
 	racial := racialExtraIDs()
 	for id := range o.reached {
 		if racial[id] {
-			o.forced[id] = portionRacials
-		} else if p, ok := familyPortion(t.ClassOptions[id].Family); ok {
+			o.forced[id] = groupRacials
+		} else if p, ok := familyGroup(t.ClassOptions[id].Family); ok {
 			o.forced[id] = p
 		}
 	}
@@ -241,10 +241,10 @@ func ownersOf(in *storeInputs) rowOwners {
 	return o
 }
 
-// A committed root of a portion that is not taken never moves: that portion's committed class file
-// names the row, so it keeps the row it was written against. Otherwise a row moves with the portion
-// that places it, or, where no portion does, when a taken portion reaches it.
-func (o rowOwners) taken(id int32, only Portions, kept map[int32]bool) bool {
+// A committed root of a group that is not taken never moves: that group's committed class file
+// names the row, so it keeps the row it was written against. Otherwise a row moves with the group
+// that places it, or, where no group does, when a taken group reaches it.
+func (o rowOwners) taken(id int32, only SpellDataGroups, kept map[int32]bool) bool {
 	if kept[id] {
 		return false
 	}
@@ -254,24 +254,24 @@ func (o rowOwners) taken(id int32, only Portions, kept map[int32]bool) bool {
 	return slices.ContainsFunc(o.reached[id], only.Takes)
 }
 
-// The inputs of a partial update: fresh's rows, roots, talent nodes and builds for the portions only
-// takes, and old's for the rest. The notes name the rows a portion that is not taken also reaches.
-func mergeStoreInputs(old, fresh *storeInputs, only Portions, version string) (*storeInputs, []string, error) {
+// The inputs of a partial update: fresh's rows, roots, talent nodes and builds for the groups only
+// takes, and old's for the rest. The notes name the rows a group that is not taken also reaches.
+func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version string) (*storeInputs, []string, error) {
 	var notes []string
-	if old.PortionRoots == nil {
-		adopted, adoptNotes, err := adoptPortions(old, fresh)
+	if old.SpellDataGroupRoots == nil {
+		adopted, adoptNotes, err := adoptSpellDataGroups(old, fresh)
 		if err != nil {
 			return nil, nil, err
 		}
 		old = adopted
-		notes = append(adoptNotes, fmt.Sprintf("%s records no portions, so its roots and talent nodes are split the way %s splits them",
+		notes = append(adoptNotes, fmt.Sprintf("%s records no spell data groups, so its roots and talent nodes are split the way %s splits them",
 			spellStoreInputsPath, version))
 	}
 
 	kept := map[int32]bool{}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		if !only.Takes(p) {
-			for _, id := range old.PortionRoots[p] {
+			for _, id := range old.SpellDataGroupRoots[p] {
 				kept[id] = true
 			}
 		}
@@ -309,18 +309,18 @@ func mergeStoreInputs(old, fresh *storeInputs, only Portions, version string) (*
 		return old
 	}
 	var rootLists [][]int32
-	for _, p := range allPortions() {
-		roots[p] = source(p).PortionRoots[p]
+	for _, p := range allSpellDataGroups() {
+		roots[p] = source(p).SpellDataGroupRoots[p]
 		rootLists = append(rootLists, roots[p])
 	}
 
 	// What the taken rows and roots reach on the new build that the committed store does not carry is a
 	// spell the new build adds. No committed file names it, so it comes from the new build whichever
-	// portion it belongs to.
+	// group it belongs to.
 	seeds := slices.Sorted(maps.Keys(moved))
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		if only.Takes(p) {
-			seeds = append(seeds, fresh.PortionRoots[p]...)
+			seeds = append(seeds, fresh.SpellDataGroupRoots[p]...)
 		}
 	}
 	for _, id := range reachableSpells(&fresh.spellTables, seeds) {
@@ -389,14 +389,14 @@ func mergeStoreInputs(old, fresh *storeInputs, only Portions, version string) (*
 		return nil, nil, err
 	}
 	merged := captureStoreInputs(t, union, reachableSpells(t, extended), nodes, points)
-	merged.PortionRoots = roots
-	merged.ItemRoots = source(portionItems).ItemRoots
-	merged.Forms = source(portionShared).Forms
+	merged.SpellDataGroupRoots = roots
+	merged.ItemRoots = source(groupItems).ItemRoots
+	merged.Forms = source(groupShared).Forms
 	merged.Builds = maps.Clone(old.Builds)
 	if merged.Builds == nil {
 		merged.Builds = map[string]string{}
 	}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		if only.Takes(p) {
 			merged.Builds[p] = version
 		}
@@ -404,14 +404,14 @@ func mergeStoreInputs(old, fresh *storeInputs, only Portions, version string) (*
 	return merged, append(notes, racialBuildWarnings(merged)...), nil
 }
 
-// Inputs that record no portions, split by portion the way fresh splits the same ids.
+// Inputs that record no groups, split by group the way fresh splits the same ids.
 // A talent node takes the class and tree of the fresh node with its definition, else of its spell's
 // family, else of the node before it, since a tree's nodes are captured together. A root goes to items
-// when it is a gear root, else to the class of the talent node granting it, else to the first portion
+// when it is a gear root, else to the class of the talent node granting it, else to the first group
 // whose fresh roots hold it, else to the class its family names, else to shared, which the notes list:
 // a spell the new build dropped that names no class is the one case this cannot place. Their builds
 // are unrecorded.
-func adoptPortions(old, fresh *storeInputs) (*storeInputs, []string, error) {
+func adoptSpellDataGroups(old, fresh *storeInputs) (*storeInputs, []string, error) {
 	adopted := *old
 
 	freshNodes := map[int32]traitNode{}
@@ -426,7 +426,7 @@ func adoptPortions(old, fresh *storeInputs) (*storeInputs, []string, error) {
 	for i, node := range old.TraitNodes {
 		if f, ok := freshNodes[node.DefinitionID]; ok {
 			node.Class, node.TreeID = f.Class, f.TreeID
-		} else if class, ok := familyPortion(old.ClassOptions[node.SpellID].Family); ok {
+		} else if class, ok := familyGroup(old.ClassOptions[node.SpellID].Family); ok {
 			node.Class, node.TreeID = class, classTree[class]
 		} else if previous != nil {
 			node.Class, node.TreeID = previous.Class, previous.TreeID
@@ -440,11 +440,11 @@ func adoptPortions(old, fresh *storeInputs) (*storeInputs, []string, error) {
 		}
 	}
 
-	freshPortion := map[int32]string{}
-	for _, p := range allPortions() {
-		for _, id := range fresh.PortionRoots[p] {
-			if _, ok := freshPortion[id]; !ok {
-				freshPortion[id] = p
+	freshGroup := map[int32]string{}
+	for _, p := range allSpellDataGroups() {
+		for _, id := range fresh.SpellDataGroupRoots[p] {
+			if _, ok := freshGroup[id]; !ok {
+				freshGroup[id] = p
 			}
 		}
 	}
@@ -452,27 +452,27 @@ func adoptPortions(old, fresh *storeInputs) (*storeInputs, []string, error) {
 	for _, id := range old.ItemRoots {
 		gear[id] = true
 	}
-	adopted.PortionRoots = map[string][]int32{}
+	adopted.SpellDataGroupRoots = map[string][]int32{}
 	var notes []string
 	for _, id := range old.Roots {
 		var p string
 		if gear[id] {
-			p = portionItems
+			p = groupItems
 		} else if class, ok := nodeClass[id]; ok {
 			p = class
-		} else if portion, ok := freshPortion[id]; ok {
-			p = portion
-		} else if class, ok := familyPortion(old.ClassOptions[id].Family); ok {
+		} else if group, ok := freshGroup[id]; ok {
+			p = group
+		} else if class, ok := familyGroup(old.ClassOptions[id].Family); ok {
 			p = class
 		} else {
-			p = portionShared
-			notes = append(notes, fmt.Sprintf("root %d %s names no portion and is adopted into %s", id, old.Names[id], p))
+			p = groupShared
+			notes = append(notes, fmt.Sprintf("root %d %s names no spell data group and is adopted into %s", id, old.Names[id], p))
 		}
-		adopted.PortionRoots[p] = append(adopted.PortionRoots[p], id)
+		adopted.SpellDataGroupRoots[p] = append(adopted.SpellDataGroupRoots[p], id)
 	}
 
 	adopted.Builds = map[string]string{}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		adopted.Builds[p] = ""
 	}
 	return &adopted, notes, nil
@@ -490,12 +490,12 @@ func describeBuild(build string) string {
 func racialBuildWarnings(in *storeInputs) []string {
 	var warnings []string
 	for _, id := range slices.Sorted(maps.Keys(racialExtraIDs())) {
-		class, ok := familyPortion(in.ClassOptions[id].Family)
-		if !ok || in.Builds[portionRacials] == in.Builds[class] {
+		class, ok := familyGroup(in.ClassOptions[id].Family)
+		if !ok || in.Builds[groupRacials] == in.Builds[class] {
 			continue
 		}
 		warnings = append(warnings, fmt.Sprintf("%s %d (racials, %s) states %s class flags, and %s is on %s",
-			in.Names[id], id, describeBuild(in.Builds[portionRacials]), class, class, describeBuild(in.Builds[class])))
+			in.Names[id], id, describeBuild(in.Builds[groupRacials]), class, class, describeBuild(in.Builds[class])))
 	}
 	return warnings
 }
@@ -566,12 +566,12 @@ func moveValue[V any](into, from map[int32]V, id int32) {
 	}
 }
 
-// The siblings of each portion's reach, added to that portion's roots: a rank that reads its number
-// off a same-name sibling belongs to the portion of the rank.
+// The siblings of each group's reach, added to that group's roots: a rank that reads its number
+// off a same-name sibling belongs to the group of the rank.
 func withSiblings(db *sql.DB, t *spellTables, roots map[string][]int32) (map[string][]int32, error) {
-	seeds := portionSeeds(roots)
+	seeds := groupSeeds(roots)
 	out := map[string][]int32{}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		siblings, err := siblingSpells(db, reachableSpells(t, namedIDs(t, seeds[p])))
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", p, err)

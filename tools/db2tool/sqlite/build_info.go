@@ -6,7 +6,7 @@ import (
 )
 
 // WriteBuildInfo records the game build the tables were extracted from as the one row of BuildInfo.
-// The spell store generator stamps each portion it takes from the database with this version.
+// The spell store generator stamps each spell data group it takes from the database with this version.
 func WriteBuildInfo(conn *sqlite.Conn, version, product string) (err error) {
 	endFn, err := sqlitex.ImmediateTransaction(conn)
 	if err != nil {

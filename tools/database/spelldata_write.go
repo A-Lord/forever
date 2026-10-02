@@ -151,7 +151,7 @@ func goTool() string {
 // check when unchecked is set - and writes the game files rows the store was built from beside them:
 // they are what lets the store be regenerated and checked without the game files database, so they are
 // written from the same pass that wrote it and only once that pass has landed.
-func GenerateSpellDataFiles(helper *DBHelper, unchecked bool, only Portions) error {
+func GenerateSpellDataFiles(helper *DBHelper, unchecked bool, only SpellDataGroups) error {
 	files, inputs, err := renderSpellDataFiles(helper, only)
 	if err != nil {
 		return err
@@ -164,8 +164,8 @@ func GenerateSpellDataFiles(helper *DBHelper, unchecked bool, only Portions) err
 
 // The committed files that no longer match what the generator writes, for a caller that wants to
 // know rather than to regenerate. Silent on the way there: its output is the list it returns, and the
-// portions still on an older game build than the database, which are behind rather than stale and
-// are rendered from the committed inputs.
+// spell data groups on another game build than the database, which are not ported rather than stale
+// and are rendered from the committed inputs.
 func CheckSpellDataFiles(helper *DBHelper) (stale []string, behind []string, err error) {
 	progress = io.Discard
 	defer func() { progress = os.Stderr }()
@@ -174,10 +174,10 @@ func CheckSpellDataFiles(helper *DBHelper) (stale []string, behind []string, err
 	if err != nil {
 		return nil, nil, err
 	}
-	var only Portions
+	var only SpellDataGroups
 	committed, err := readStoreInputs(spellStoreInputsPath)
 	if err == nil {
-		only, behind = currentPortions(committed, version)
+		only, behind = currentSpellDataGroups(committed, version)
 	} else if _, missing := os.Stat(spellStoreInputsPath); !os.IsNotExist(missing) {
 		return nil, nil, err
 	}

@@ -18,8 +18,8 @@ import (
 // The spells the sim can reach from gear without anything naming them first: every spell an item, an
 // enchant or a set bonus casts. With the spells the nine class files are built from, they are the
 // store's roots, and what those spells trigger is reached from there by reachableSpells. They are kept
-// apart from the class roots: they are the items portion and the universe the proc audit asks its
-// question over, and which query a root came from cannot be recovered from a merged list.
+// apart from the class roots: they are the items spell data group and the universe the proc audit
+// asks its question over, and which query a root came from cannot be recovered from a merged list.
 //
 // The hand-kept extra spells are not here: they are added while the store is rendered, so that adding
 // one and forgetting to regenerate fails the regeneration check instead of passing it - see
@@ -104,9 +104,9 @@ func withExtraIDs(t *spellTables, roots []int32) ([]int32, error) {
 		if extra.Reason == "" {
 			return nil, fmt.Errorf("the extra spell %d states no reason", extra.SpellID)
 		}
-		if extra.Portion != "" && extra.Portion != portionRacials {
-			return nil, fmt.Errorf("the extra spell %d names portion %q, and only %q is named by hand",
-				extra.SpellID, extra.Portion, portionRacials)
+		if extra.SpellDataGroup != "" && extra.SpellDataGroup != groupRacials {
+			return nil, fmt.Errorf("the extra spell %d names spell data group %q, and only %q is named by hand",
+				extra.SpellID, extra.SpellDataGroup, groupRacials)
 		}
 		// Dropped like any other unnamed id, but said out loud: it was written down on purpose.
 		if _, named := t.Names[extra.SpellID]; !named {

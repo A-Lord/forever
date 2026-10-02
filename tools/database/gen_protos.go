@@ -370,14 +370,14 @@ func transformRawTalentsToConfigsForClass(rawTalents []RawTalent, classID int) (
 	return talents, nil
 }
 
-func GenerateTalentJsonFromDB(dbHelper *DBHelper, only Portions) error {
+func GenerateTalentJsonFromDB(dbHelper *DBHelper, only SpellDataGroups) error {
 	rawTalents, err := LoadTraitTalents(dbHelper)
 	if err != nil {
 		return fmt.Errorf("error loading talents: %w", err)
 	}
 
 	for _, dbcClass := range dbc.Classes {
-		if !only.Takes(classPortion(dbcClass)) {
+		if !only.Takes(classGroup(dbcClass)) {
 			continue
 		}
 		className := dbc.ClassNameFromDBC(dbcClass)
@@ -406,7 +406,7 @@ func GenerateTalentJsonFromDB(dbHelper *DBHelper, only Portions) error {
 
 // Writes the talent protos, TS configs and tree JSON of the classes only takes; the others keep their
 // committed files.
-func GenerateProtos(dbcData *dbc.DBC, db *WowDatabase, only Portions) {
+func GenerateProtos(dbcData *dbc.DBC, db *WowDatabase, only SpellDataGroups) {
 	helper, err := NewDBHelper()
 	if err != nil {
 		fmt.Printf("Error creating DB helper: %v\n", err)
@@ -422,7 +422,7 @@ func GenerateProtos(dbcData *dbc.DBC, db *WowDatabase, only Portions) {
 
 	var classesData []ClassData
 	for _, dbcClass := range dbc.Classes {
-		if !only.Takes(classPortion(dbcClass)) {
+		if !only.Takes(classGroup(dbcClass)) {
 			continue
 		}
 		className := dbc.ClassNameFromDBC(dbcClass)

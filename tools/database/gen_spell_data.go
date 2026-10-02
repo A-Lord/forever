@@ -1202,9 +1202,9 @@ func overrideReplacements(db *sql.DB, ids map[int32]bool) (map[int32]bool, error
 // Every file the generator writes, by the path it is written to, rendered and none written: what
 // happens to them is writeSpellDataFiles' business, and -check's business is that nothing does.
 //
-// A portion only does not take keeps the committed inputs' rows, and a class it does not take keeps
-// its committed class file, which is therefore not among the files returned.
-func renderSpellDataFiles(helper *DBHelper, only Portions) (map[string][]byte, *storeInputs, error) {
+// A spell data group only does not take keeps the committed inputs' rows, and a class it does not take
+// keeps its committed class file, which is therefore not among the files returned.
+func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]byte, *storeInputs, error) {
 	if err := RequireSpellCastTimes(helper); err != nil {
 		return nil, nil, err
 	}

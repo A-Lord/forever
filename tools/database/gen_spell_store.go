@@ -206,9 +206,9 @@ func loadStoreInputs(db *sql.DB, classRoots map[string][]int32, trees map[int]in
 	if err != nil {
 		return nil, err
 	}
-	portionRoots := map[string][]int32{portionItems: gear}
+	groupRoots := map[string][]int32{groupItems: gear}
 	for class, ids := range classRoots {
-		portionRoots[class] = ids
+		groupRoots[class] = ids
 	}
 
 	// The extra spells are captured as rows but not as roots: the rendering adds them again from
@@ -218,13 +218,13 @@ func loadStoreInputs(db *sql.DB, classRoots map[string][]int32, trees map[int]in
 	//
 	// The spells a rank reads a number off by name are roots of their own: nothing inside the closure
 	// points at them, so they are asked for once everything else has been reached.
-	portionRoots, err = withSiblings(db, tables, portionRoots)
+	groupRoots, err = withSiblings(db, tables, groupRoots)
 	if err != nil {
 		return nil, err
 	}
 	var rootLists [][]int32
-	for _, p := range allPortions() {
-		rootLists = append(rootLists, portionRoots[p])
+	for _, p := range allSpellDataGroups() {
+		rootLists = append(rootLists, groupRoots[p])
 	}
 	roots := namedIDs(tables, rootLists...)
 
@@ -247,9 +247,9 @@ func loadStoreInputs(db *sql.DB, classRoots map[string][]int32, trees map[int]in
 	in := captureStoreInputs(tables, roots, ids, nodes, points)
 	in.ItemRoots = gear
 	in.Forms = forms
-	in.PortionRoots = portionRoots
+	in.SpellDataGroupRoots = groupRoots
 	in.Builds = map[string]string{}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		in.Builds[p] = version
 	}
 	return in, nil
@@ -405,7 +405,7 @@ func traitPoints(db *sql.DB, trees map[int]int) ([]traitNode, map[int32]map[int3
 	classOfTree := map[int]string{}
 	for _, class := range dbc.Classes {
 		if treeID, ok := trees[classMaskOf(class)]; ok {
-			classOfTree[treeID] = classPortion(class)
+			classOfTree[treeID] = classGroup(class)
 		}
 	}
 
@@ -444,7 +444,7 @@ type traitNode struct {
 	TaughtBySkillLine bool
 
 	TreeID int    // the order the curves are read in, kept when a partial update merges two builds' nodes
-	Class  string // the class portion whose build the node is taken from
+	Class  string // the class spell data group whose build the node is taken from
 }
 
 func traitNodes(db *sql.DB, treeID int) ([]traitNode, error) {

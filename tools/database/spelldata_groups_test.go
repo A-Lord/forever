@@ -24,7 +24,7 @@ import (
 //	1259813 Eureka!'s warrior row (family 4), a racials extra spell
 const eureka = 1259813
 
-func portionWorld(build int, points float64) *storeInputs {
+func groupWorld(build int, points float64) *storeInputs {
 	in := &storeInputs{spellTables: *newSpellTables()}
 	add := func(id int32, family int32, triggers ...int32) {
 		in.Names[id] = "spell"
@@ -42,22 +42,22 @@ func portionWorld(build int, points float64) *storeInputs {
 	add(400, 0)
 	add(301, 4)
 	add(eureka, 4)
-	in.PortionRoots = map[string][]int32{"warrior": {100}, "mage": {200}, portionItems: {300}}
+	in.SpellDataGroupRoots = map[string][]int32{"warrior": {100}, "mage": {200}, groupItems: {300}}
 	if build == 1 {
 		add(300, 0, 301, 400, 500)
 		add(500, 0)
-		in.PortionRoots["warrior"] = []int32{100, 500}
+		in.SpellDataGroupRoots["warrior"] = []int32{100, 500}
 	} else {
 		add(300, 0, 301, 400)
 	}
-	in.ItemRoots = in.PortionRoots[portionItems]
+	in.ItemRoots = in.SpellDataGroupRoots[groupItems]
 	in.TraitNodes = []traitNode{
 		{DefinitionID: 1, SpellID: 100, MaxRanks: 1, TreeID: 10, Class: "warrior"},
 		{DefinitionID: 2, SpellID: 200, MaxRanks: int32(build), TreeID: 20, Class: "mage"},
 	}
 	in.TraitPoints = map[int32]map[int32]map[int32]float64{1: {}, 2: {}}
 	in.Builds = map[string]string{}
-	for _, p := range allPortions() {
+	for _, p := range allSpellDataGroups() {
 		in.Builds[p] = []string{"", "old", "new"}[build]
 	}
 	return in
@@ -65,25 +65,25 @@ func portionWorld(build int, points float64) *storeInputs {
 
 func mergeWorld(t *testing.T, list string) (*storeInputs, []string) {
 	t.Helper()
-	return mergeInputs(t, portionWorld(1, 1), portionWorld(2, 2), list)
+	return mergeInputs(t, groupWorld(1, 1), groupWorld(2, 2), list)
 }
 
 func mergeInputs(t *testing.T, old, fresh *storeInputs, list string) (*storeInputs, []string) {
 	t.Helper()
 	quiet(t)
-	merged, notes, err := mergeStoreInputs(old, fresh, portionsOf(t, list), "new")
+	merged, notes, err := mergeStoreInputs(old, fresh, groupsOf(t, list), "new")
 	if err != nil {
 		t.Fatal(err)
 	}
 	return merged, notes
 }
 
-// One portion as the flags name it: racials through -racials, a class through -classes.
-func portionsOf(t *testing.T, portion string) Portions {
+// One group as the flags name it: racials through -racials, a class through -classes.
+func groupsOf(t *testing.T, group string) SpellDataGroups {
 	t.Helper()
-	only, err := ParsePortions(portion, false)
-	if portion == portionRacials {
-		only, err = ParsePortions("", true)
+	only, err := ParseSpellDataGroups(group, false)
+	if group == groupRacials {
+		only, err = ParseSpellDataGroups("", true)
 	}
 	if err != nil {
 		t.Fatal(err)
@@ -91,7 +91,7 @@ func portionsOf(t *testing.T, portion string) Portions {
 	return only
 }
 
-// A spell triggered from an item on the new build, so reached from a taken portion.
+// A spell triggered from an item on the new build, so reached from a taken group.
 func addItemTrigger(in *storeInputs, id, family int32) {
 	in.Names[id] = "spell"
 	if family != 0 {
@@ -130,9 +130,9 @@ func TestMergeTakesOnlyTheSelectedClass(t *testing.T) {
 		t.Errorf("rows by build = %v, want %v", got, want)
 	}
 	if len(notes) != 0 {
-		t.Errorf("notes = %q, want none: 400 is reached only by taken portions", notes)
+		t.Errorf("notes = %q, want none: 400 is reached only by taken groups", notes)
 	}
-	if merged.Builds["mage"] != "new" || merged.Builds["warrior"] != "old" || merged.Builds[portionItems] != "new" {
+	if merged.Builds["mage"] != "new" || merged.Builds["warrior"] != "old" || merged.Builds[groupItems] != "new" {
 		t.Errorf("builds = %v, want mage and items on new, warrior on old", merged.Builds)
 	}
 }
@@ -163,9 +163,9 @@ func TestMergeKeepsARowAClassFileNames(t *testing.T) {
 }
 
 func TestMergeKeepsACommittedRootTheNewBuildNoLongerRoots(t *testing.T) {
-	fresh := portionWorld(2, 2)
+	fresh := groupWorld(2, 2)
 	addItemTrigger(fresh, 500, 0)
-	merged, _ := mergeInputs(t, portionWorld(1, 1), fresh, "mage")
+	merged, _ := mergeInputs(t, groupWorld(1, 1), fresh, "mage")
 	if got := rowBuilds(merged)[500]; got != 1 {
 		t.Errorf("500 is on build %v, want the old one: the committed warrior roots hold it, and the "+
 			"warrior is not taken, though only items reach it on the new build", got)
@@ -173,9 +173,9 @@ func TestMergeKeepsACommittedRootTheNewBuildNoLongerRoots(t *testing.T) {
 }
 
 func TestMergeTakesASpellTheNewBuildAdds(t *testing.T) {
-	fresh := portionWorld(2, 2)
+	fresh := groupWorld(2, 2)
 	addItemTrigger(fresh, 302, 4)
-	merged, notes := mergeInputs(t, portionWorld(1, 1), fresh, "mage")
+	merged, notes := mergeInputs(t, groupWorld(1, 1), fresh, "mage")
 	if got, ok := rowBuilds(merged)[302]; !ok || got != 2 {
 		t.Errorf("302 is on build %v (carried %v), want the new one: the new build adds it, the item that "+
 			"triggers it is taken, and no committed file names it", got, ok)
@@ -214,16 +214,16 @@ func TestMergeKeepsTheTalentNodesInTreeOrder(t *testing.T) {
 	}
 }
 
-func TestMergeAdoptsInputsThatRecordNoPortions(t *testing.T) {
+func TestMergeAdoptsInputsThatRecordNoSpellDataGroups(t *testing.T) {
 	quiet(t)
-	old := portionWorld(1, 1)
-	old.PortionRoots, old.Builds = nil, nil
+	old := groupWorld(1, 1)
+	old.SpellDataGroupRoots, old.Builds = nil, nil
 	old.Roots = []int32{100, 200, 300, 500}
 	for i := range old.TraitNodes {
 		old.TraitNodes[i].Class, old.TraitNodes[i].TreeID = "", 0
 	}
 
-	merged, notes, err := mergeStoreInputs(old, portionWorld(2, 2), portionsOf(t, "mage"), "new")
+	merged, notes, err := mergeStoreInputs(old, groupWorld(2, 2), groupsOf(t, "mage"), "new")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,19 +238,19 @@ func TestMergeAdoptsInputsThatRecordNoPortions(t *testing.T) {
 	}
 }
 
-// The committed inputs merged with themselves, one portion at a time, are the committed inputs again.
+// The committed inputs merged with themselves, one group at a time, are the committed inputs again.
 func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
 	inRepositoryRoot(t)
 	committed := committedInputs(t)
 	if committed.Builds == nil {
-		t.Skip("the committed inputs record no portions")
+		t.Skip("the committed inputs record no spell data groups")
 	}
 	want, err := json.Marshal(committed)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, portion := range []string{"warrior", "hunter", "druid", portionRacials} {
-		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), portionsOf(t, portion), committed.Builds[portion])
+	for _, group := range []string{"warrior", "hunter", "druid", groupRacials} {
+		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), groupsOf(t, group), committed.Builds[group])
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -259,7 +259,7 @@ func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(got, want) {
-			t.Errorf("%s: the merge of the committed inputs with themselves differs from them", portion)
+			t.Errorf("%s: the merge of the committed inputs with themselves differs from them", group)
 		}
 	}
 }
@@ -289,20 +289,20 @@ func TestMoveRowCoversEveryTable(t *testing.T) {
 	}
 }
 
-func TestParsePortions(t *testing.T) {
+func TestParseSpellDataGroups(t *testing.T) {
 	for _, c := range []struct {
 		classes string
 		racials bool
 		takes   []string
 		leaves  []string
 	}{
-		{"warrior, mage", false, []string{"warrior", "mage", portionItems, portionShared}, []string{"druid", portionRacials}},
-		{"druid", true, []string{"druid", portionRacials}, []string{"warrior"}},
-		{"", true, []string{portionRacials, portionItems, portionShared}, []string{"warrior", "druid"}},
-		{"none", false, []string{portionItems, portionShared}, []string{"warrior", portionRacials}},
-		{"all", false, []string{"warrior", "druid", "hunter"}, []string{portionRacials}},
+		{"warrior, mage", false, []string{"warrior", "mage", groupItems, groupShared}, []string{"druid", groupRacials}},
+		{"druid", true, []string{"druid", groupRacials}, []string{"warrior"}},
+		{"", true, []string{groupRacials, groupItems, groupShared}, []string{"warrior", "druid"}},
+		{"none", false, []string{groupItems, groupShared}, []string{"warrior", groupRacials}},
+		{"all", false, []string{"warrior", "druid", "hunter"}, []string{groupRacials}},
 	} {
-		only, err := ParsePortions(c.classes, c.racials)
+		only, err := ParseSpellDataGroups(c.classes, c.racials)
 		if err != nil {
 			t.Fatalf("-classes=%q -racials=%v: %v", c.classes, c.racials, err)
 		}
@@ -317,22 +317,22 @@ func TestParsePortions(t *testing.T) {
 			}
 		}
 	}
-	if only, _ := ParsePortions("", false); !only.all() {
+	if only, _ := ParseSpellDataGroups("", false); !only.all() {
 		t.Errorf("naming nothing takes %v, want the default selection", only)
 	}
-	for _, list := range []string{"items", "shared", portionRacials, "deathknight"} {
-		if _, err := ParsePortions(list, false); err == nil {
+	for _, list := range []string{"items", "shared", groupRacials, "deathknight"} {
+		if _, err := ParseSpellDataGroups(list, false); err == nil {
 			t.Errorf("-classes=%s succeeds, want it refused", list)
 		}
 	}
 }
 
-func TestCurrentPortionsChecksOnlyTheExtractedBuild(t *testing.T) {
-	in := portionWorld(1, 1)
+func TestCurrentSpellDataGroupsChecksOnlyTheExtractedBuild(t *testing.T) {
+	in := groupWorld(1, 1)
 	in.Builds["warrior"] = "new"
-	only, behind := currentPortions(in, "new")
-	if !only.Takes("warrior") || only.Takes("mage") || !only.Takes(portionItems) {
-		t.Errorf("checked portions = %v, want the warrior, items and shared", only)
+	only, behind := currentSpellDataGroups(in, "new")
+	if !only.Takes("warrior") || only.Takes("mage") || !only.Takes(groupItems) {
+		t.Errorf("checked groups = %v, want the warrior, items and shared", only)
 	}
 	if !slices.ContainsFunc(behind, func(b string) bool { return strings.HasPrefix(b, "mage is on old") }) {
 		t.Errorf("behind = %q, want mage named", behind)

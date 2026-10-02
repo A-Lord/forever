@@ -38,7 +38,7 @@ func main() {
 	database.DatabasePath = *dbPath
 	database.EveryClassSpell = *everyClassSpell
 
-	only, err := database.ParsePortions(*classes, *racials)
+	only, err := database.ParseSpellDataGroups(*classes, *racials)
 	if err != nil {
 		log.Fatalf("-classes: %v", err)
 	}
@@ -71,8 +71,8 @@ func main() {
 
 	if only == nil && !*everyClassSpell {
 		var behind []string
-		if only, behind, err = database.DefaultPortions(helper); err != nil {
-			log.Fatalf("failed to read the committed portions: %v", err)
+		if only, behind, err = database.DefaultSpellDataGroups(helper); err != nil {
+			log.Fatalf("failed to read the committed spell data groups: %v", err)
 		}
 		for _, line := range behind {
 			fmt.Fprintf(os.Stderr, "kept, not ported: %s\n", line)

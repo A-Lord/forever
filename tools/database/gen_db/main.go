@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	database.DatabasePath = *dbPath
-	only, err := database.ParsePortions(*classes, false)
+	only, err := database.ParseSpellDataGroups(*classes, false)
 	if err != nil {
 		log.Fatalf("-classes: %v", err)
 	}
@@ -80,8 +80,8 @@ func main() {
 
 	if only == nil {
 		var behind []string
-		if only, behind, err = database.DefaultPortions(helper); err != nil {
-			log.Fatalf("failed to read the committed portions: %v", err)
+		if only, behind, err = database.DefaultSpellDataGroups(helper); err != nil {
+			log.Fatalf("failed to read the committed spell data groups: %v", err)
 		}
 		for _, line := range behind {
 			fmt.Fprintf(os.Stderr, "talent files kept, not ported: %s\n", line)

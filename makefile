@@ -256,7 +256,8 @@ endif
 # What of the extracted build `make db`, `make ptrdb` and `make spelldata` take into the tree:
 # `make db CLASSES=druid` moves the druid and keeps every other class as committed, `RACIALS=1` moves
 # the racials, and `CLASSES=all` or `CLASSES=none` name every class or none. Setting neither takes the
-# default portions. See "Taking a new game build one portion at a time" in docs/spell_data.md.
+# default spell data groups. See "Taking a new game build one spell data group at a time" in
+# docs/spell_data.md.
 CLASSES ?=
 RACIALS ?=
 SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(RACIALS),-racials)
@@ -331,8 +332,8 @@ update-tests:
 
 # Names the generated spell data files that are not what tools/database/gen_spelldata writes
 # today, and writes nothing. Exits 1 with the paths when the committed files have drifted, which a
-# game files update or a hand edit both do. A portion the inputs record on an older game build than
-# the database is printed as behind and does not fail it. Needs tools/database/wowsims.db.
+# game files update or a hand edit both do. A spell data group the inputs record on another game build
+# than the database is printed as not ported and does not fail it. Needs tools/database/wowsims.db.
 .PHONY: spelldata-check
 spelldata-check:
 	go run ./tools/database/gen_spelldata -check

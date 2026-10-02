@@ -1286,12 +1286,12 @@ The .results files are the last check and the one that costs time: run the suite
 diff the `.results` against the `.results.tmp` with a local diff helper or by hand. A port that
 was meant to be mechanical and moves a .results number is a wrong port, not a new baseline.
 
-### Taking a new game build one portion at a time
+### Taking a new game build one spell data group at a time
 
 A new game build moves every class at once: talents leave the trees, rows change, and each class's
-code has to follow before its tests pass. `-classes` and `-racials` take some portions of the database
-and keep every other row as the committed inputs state it, so each class moves onto the build in its own
-pull request:
+code has to follow before its tests pass. `-classes` and `-racials` take some spell data groups of the
+database and keep every other row as the committed inputs state it, so each class moves onto the build
+in its own pull request:
 
 ```
 make db CLASSES=druid                                # extract, then gen_spelldata and gen_db with -classes=druid
@@ -1299,18 +1299,18 @@ go run ./tools/database/gen_spelldata -classes=druid -racials
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid
 ```
 
-The portions are the nine classes by package name, `racials`, `items` and `shared`. `items` (the item,
-enchant and set-bonus rows, with the item database `gen_db` writes) and `shared` (the shapeshift forms,
-and the extra spells and buff manifest rows no class owns) are always taken. A row belongs to the first
-of these that holds:
+The spell data groups are the nine classes by package name, `racials`, `items` and `shared`. `items`
+(the item, enchant and set-bonus rows, with the item database `gen_db` writes) and `shared` (the
+shapeshift forms, and the extra spells and buff manifest rows no class owns) are always taken. A row
+belongs to the first of these that holds:
 
-1. it is an `overrides.ExtraSpells` entry with `Portion: "racials"`, the Eureka! rows;
+1. it is an `overrides.ExtraSpells` entry with `SpellDataGroup: "racials"`, the Eureka! rows;
 2. it states a class family: its class flags are that class's, so a set bonus or an enchant's class
    buff moves with the class's own spells;
-3. a portion's roots reach it. A row a taken portion reaches moves. A row that moves although a portion
-   that is not taken also reaches it is printed as a shared row.
+3. a group's roots reach it. A row a taken group reaches moves. A row that moves although a group that
+   is not taken also reaches it is printed as a shared row.
 
-Two rules come before all three. A committed root of a portion that is not taken never moves: that
+Two rules come before all three. A committed root of a group that is not taken never moves: that
 class file names it and keeps the row it was written against. A spell the new build adds, which a
 taken row or root reaches, always comes from the new build, since no committed file names it.
 
@@ -1319,20 +1319,20 @@ from the new build yet is reported rather than stopping the run. `gen_db -classe
 classes' talent protos, TS configs and tree JSON. The hunter's ammo file goes with the hunter, though
 the item database always ships the new build's arrows.
 
-A run that names no portions takes all of them while the inputs record one game build, which is a full
-regeneration. Once a partial update leaves portions on different builds, it takes only the ones on the
+A run that names no groups takes all of them while the inputs record one game build, which is a full
+regeneration. Once a partial update leaves groups on different builds, it takes only the ones on the
 database's build and prints the rest, so `make db`, `make spelldata` or the `all_items.go` rule never
-moves a class that has not been ported. The inputs record the game build each
-portion was taken from (`Builds`, read from the `BuildInfo` table `db2tool` writes), and the roots of
-each portion (`PortionRoots`), which is what the next partial update keeps the others by. A racial row
-on a different build from the class whose flags it states is printed as a warning.
+moves a class that has not been ported. The inputs record the game build each group was taken from
+(`Builds`, read from the `BuildInfo` table `db2tool` writes), and the roots of each group
+(`SpellDataGroupRoots`), which is what the next partial update keeps the others by. A racial row on a
+different build from the class whose flags it states is printed as a warning.
 
-`-check` renders the portions whose recorded build is the database's and compares those; a portion on
-another build is printed as not ported and does not fail it, and its class file is not compared,
-since only its own build could render it. Items and shared are always compared. Hotfixes within one game build are not
-recorded, so a re-extraction that picked up new ones fails `-check` on the current portions until they
-are regenerated. Inputs that record no portions are split the way the database splits the same ids,
-and a root that names no portion there is printed as adopted into `shared`.
+`-check` renders the groups whose recorded build is the database's and compares those; a group on
+another build is printed as not ported and does not fail it, and its class file is not compared, since
+only its own build could render it. Items and shared are always compared. Hotfixes within one game
+build are not recorded, so a re-extraction that picked up new ones fails `-check` on the current groups
+until they are regenerated. Inputs that record no groups are split the way the database splits the
+same ids, and a root that names no group there is printed as adopted into `shared`.
 
 Two pull requests that each take a class both rewrite the store and the gzipped inputs. Resolve the
 conflict by taking the base branch's copies and running `gen_spelldata -classes=<class>` again; the merge
@@ -1345,21 +1345,21 @@ is deterministic.
 partial update, and `-racials` with no `-classes` takes no class. `items` and `shared` are always taken.
 
 ```
-make db                                   # extract, then gen_spelldata and gen_db, default portions
+make db                                   # extract, then gen_spelldata and gen_db, default groups
 make db CLASSES=druid                     # take the druid, with items and shared
 make db CLASSES=druid,mage RACIALS=1
 make db RACIALS=1                         # the racials, with items and shared, no class
 make db CLASSES=none                      # items and shared alone
-make db CLASSES=all RACIALS=1             # every portion, also while the builds are mixed
+make db CLASSES=all RACIALS=1             # every group, also while the builds are mixed
 make db CLASSES=warrior WOW_DIR="/mnt/e/World of Warcraft"
 make db CLASSES=mage DB2TOOL_FLAGS="--cdn --dbcache caches/DBCache.bin"
 make ptrdb CLASSES=druid                  # the same from the PTR settings
 make spelldata CLASSES=hunter             # gen_spelldata alone, no extraction
-make spelldata-check                      # stale files exit 1; portions not ported are listed and pass
+make spelldata-check                      # stale files exit 1; groups not ported are listed and pass
 ```
 
 ```
-go run ./tools/database/gen_spelldata                               # default portions
+go run ./tools/database/gen_spelldata                               # default groups
 go run ./tools/database/gen_spelldata -classes=druid
 go run ./tools/database/gen_spelldata -classes="druid, mage" -racials
 go run ./tools/database/gen_spelldata -racials
@@ -1367,7 +1367,7 @@ go run ./tools/database/gen_spelldata -classes=druid -unchecked     # write with
 go run ./tools/database/gen_spelldata -check                        # compare, write nothing
 go run ./tools/database/gen_spelldata -dbPath /path/to/other.db -classes=druid
 
-go run tools/database/gen_db/*.go -outDir=./assets -gen=db                 # talent files of the default portions
+go run tools/database/gen_db/*.go -outDir=./assets -gen=db                 # talent files of the default groups
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid  # the druid's talent files only
 ```
 
@@ -1384,7 +1384,7 @@ sqlite3 tools/database/wowsims.db "CREATE TABLE BuildInfo (Version TEXT NOT NULL
 sqlite3 tools/database/wowsims.db "SELECT * FROM BuildInfo"
 ```
 
-The build each portion is on, and the conflict resolution between two class pull requests:
+The build each spell data group is on, and the conflict resolution between two class pull requests:
 
 ```
 zcat assets/db_inputs/spell_store_inputs.json | python3 -c "import json,sys; print(json.load(sys.stdin)['Builds'])"
@@ -1399,7 +1399,7 @@ A new game build, start to finish:
 make db RACIALS=1                         # the update pull request: items, shared and racials
 make db CLASSES=druid                     # each class on its own branch, once the update is merged
 make spelldata-check                      # the classes still to port
-go test ./tools/database/ -count=1 -run 'Merge|MoveRow|ParsePortions|CurrentPortions'
+go test ./tools/database/ -count=1 -run 'Merge|MoveRow|SpellDataGroups'
 go test --tags=with_db -count=1 ./sim/druid/...
 ```
 

@@ -65,11 +65,11 @@ type storeInputs struct {
 	// store's own ids, since a form names no spell for the closure to reach it by.
 	Forms []formRow
 
-	// Roots by portion, whose union is Roots, and the game build each portion's rows were taken
-	// from. A partial update takes some portions from the database and keeps the others as they are
-	// here - see spelldata_portions.go.
-	PortionRoots map[string][]int32
-	Builds       map[string]string
+	// Roots by spell data group, whose union is Roots, and the game build each group's rows were taken
+	// from. A partial update takes some groups from the database and keeps the others as they are
+	// here - see spelldata_groups.go.
+	SpellDataGroupRoots map[string][]int32
+	Builds              map[string]string
 }
 
 // The tables the generator reads, from the captured rows.
