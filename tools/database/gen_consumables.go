@@ -227,7 +227,7 @@ func equipSpellUnsupported(enchantID int, s *spelldata.Spell, spellID int32) []s
 	}
 	var unsupported []string
 	if shared.TemporaryEnchantEquipSpellProcs(s) {
-		for _, reason := range shared.TemporaryEnchantProcUnsupported(s) {
+		for _, reason := range append(spelldata.EnchantAuraUnsupported(s), shared.FiredSpellUnsupported(s)...) {
 			unsupported = append(unsupported, fmt.Sprintf("enchant %d's equip spell %d: %s", enchantID, spellID, reason))
 		}
 		return unsupported

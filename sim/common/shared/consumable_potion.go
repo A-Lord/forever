@@ -74,10 +74,9 @@ func consumablePartsOf(row *spelldata.Spell) (consumableParts, []string) {
 			parts.absorb = e
 		case e.Type == dbcenums.E_ENERGIZE, e.Type == dbcenums.E_ENERGIZE_PCT,
 			e.Type == dbcenums.E_APPLY_AURA && e.Aura == dbcenums.A_PERIODIC_ENERGIZE:
-			switch dbcenums.PowerType(e.Misc) {
-			case dbcenums.POWER_MANA, dbcenums.POWER_RAGE, dbcenums.POWER_ENERGY:
+			if EnergizesABar(dbcenums.PowerType(e.Misc)) {
 				parts.gains = append(parts.gains, e)
-			default:
+			} else {
 				unsupported = append(unsupported, fmt.Sprintf("%s fills power type %d", kind, e.Misc))
 			}
 		case e.Type == dbcenums.E_SCHOOL_DAMAGE:

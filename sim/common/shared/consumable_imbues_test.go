@@ -114,14 +114,14 @@ func takeHit(t *testing.T, sim *core.Simulation, caster *testCaster) {
 	stepPast(t, sim, sim.CurrentTime+core.SpellBatchWindow)
 }
 
-func TestTemporaryEnchantProcUnsupported(t *testing.T) {
+func TestFiredSpellUnsupported(t *testing.T) {
 	for _, id := range []int32{manabladeProc, sparkProc} {
-		if got := TemporaryEnchantProcUnsupported(spelldata.MustFind(id)); len(got) > 0 {
+		if got := FiredSpellUnsupported(spelldata.MustFind(id)); len(got) > 0 {
 			t.Errorf("%d is refused: %v", id, got)
 		}
 	}
 	// Vile Protector's 7619 fires 1293421, Shadow damage to the attacker.
-	got := TemporaryEnchantProcUnsupported(spelldata.MustFind(7619))
+	got := FiredSpellUnsupported(spelldata.MustFind(7619))
 	if !slices.ContainsFunc(got, func(reason string) bool { return strings.Contains(reason, "neither restores") }) {
 		t.Errorf("7619 is refused for %v, want the spell it fires named", got)
 	}
