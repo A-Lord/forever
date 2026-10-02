@@ -1,6 +1,7 @@
 import type { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { Accordion, AccordionItem } from '@ui-kit/Accordion';
+import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { Field } from '@ui-kit/Field';
@@ -32,6 +33,8 @@ export interface BulkEnchantPresetDialogViewProps {
 	onOpenSlotsChange: (slots: string[]) => void;
 	search: string;
 	onSearchChange: (search: string) => void;
+	showAll: boolean;
+	onShowAllChange: (showAll: boolean) => void;
 }
 
 export const BulkEnchantPresetDialogView = ({
@@ -48,8 +51,11 @@ export const BulkEnchantPresetDialogView = ({
 	onOpenSlotsChange,
 	search,
 	onSearchChange,
+	showAll,
+	onShowAllChange,
 }: BulkEnchantPresetDialogViewProps) => {
 	const nameId = useId();
+	const showAllId = useId();
 
 	return (
 		<Dialog
@@ -86,7 +92,23 @@ export const BulkEnchantPresetDialogView = ({
 						}}
 					/>
 				</Field>
-				<SearchField value={search} onChange={onSearchChange} placeholder={i18n.t('common.search')} inputTestId="bulk-enchant-search" />
+				<div className="flex flex-wrap items-center gap-4">
+					<SearchField
+						className="min-w-0 flex-1"
+						value={search}
+						onChange={onSearchChange}
+						placeholder={i18n.t('common.search')}
+						inputTestId="bulk-enchant-search"
+					/>
+					<BooleanPicker
+						id={showAllId}
+						label={i18n.t('bulk_tab.settings.enchant_presets.show_all')}
+						labelTooltip={i18n.t('bulk_tab.settings.enchant_presets.show_all_tooltip')}
+						layout="inline"
+						value={showAll}
+						onChange={onShowAllChange}
+					/>
+				</div>
 				{search.trim() && !groups.length && <p className="mb-0 text-gray-400">{i18n.t('bulk_tab.settings.enchant_presets.no_matches')}</p>}
 				<Accordion value={openSlots} onValueChange={onOpenSlotsChange} variant="boxed">
 					{groups.map(group => (

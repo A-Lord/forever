@@ -13,7 +13,7 @@ import { useSimReady } from '@sim/hooks/useSimReady';
 import { memo, useCallback, useMemo, useState } from 'react';
 
 import { useBulkState } from '../../hooks/useBulkState';
-import { BULK_ENCHANT_SLOTS, saveBulkEnchantPreset, validateBulkEnchantPresetName } from '../../model/enchants';
+import { BULK_ENCHANT_SLOTS, isRelevantEnchant, saveBulkEnchantPreset, validateBulkEnchantPresetName } from '../../model/enchants';
 import { BulkEnchantPresetDialogView } from './BulkEnchantPresetDialogView';
 import { BulkEnchantTile } from './BulkEnchantTile';
 
@@ -87,23 +87,26 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const [search, setSearch] = useState('');
 	// A search opens every slot it matches in, on its own open state, so clearing it brings back the slots opened by hand.
 	const [searchOpenSlots, setSearchOpenSlots] = useState<string[]>([]);
+	const [showAll, setShowAll] = useState(false);
 	const query = search.trim().toLowerCase();
+	const listed = useCallback(
+		(slot: ItemSlot, enchant: Enchant, nameQuery: string) =>
+			(showAll || isRelevantEnchant(player, enchant) || !!selected.get(slot)?.includes(enchant.effectId)) &&
+			(!nameQuery || enchant.name.toLowerCase().includes(nameQuery)),
+		[player, showAll, selected],
+	);
 	const shown = useMemo(
 		() =>
-			query
-				? slots
-						.map(({ slot, enchants }) => ({ slot, enchants: enchants.filter(enchant => enchant.name.toLowerCase().includes(query)) }))
-						.filter(({ enchants }) => enchants.length)
-				: slots,
-		[slots, query],
+			slots
+				.map(({ slot, enchants }) => ({ slot, enchants: enchants.filter(enchant => listed(slot, enchant, query)) }))
+				.filter(({ enchants }) => enchants.length),
+		[slots, query, listed],
 	);
 	const changeSearch = (next: string) => {
 		const nextQuery = next.trim().toLowerCase();
 		setSearch(next);
 		setSearchOpenSlots(
-			nextQuery
-				? slots.filter(({ enchants }) => enchants.some(enchant => enchant.name.toLowerCase().includes(nextQuery))).map(({ slot }) => String(slot))
-				: [],
+			nextQuery ? slots.filter(({ slot, enchants }) => enchants.some(enchant => listed(slot, enchant, nextQuery))).map(({ slot }) => String(slot)) : [],
 		);
 	};
 
@@ -137,6 +140,8 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 			onOpenSlotsChange={query ? setSearchOpenSlots : setOpenSlots}
 			search={search}
 			onSearchChange={changeSearch}
+			showAll={showAll}
+			onShowAllChange={setShowAll}
 			groups={shown.map(({ slot, enchants }) => ({
 				slot,
 				label: slotLabel(slot),

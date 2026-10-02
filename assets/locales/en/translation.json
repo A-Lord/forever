@@ -984,6 +984,8 @@
 				"name_duplicate": "A preset with this name already exists.",
 				"name_placeholder": "e.g. Undead, Outdoor, Raid",
 				"no_matches": "No enchant matches the search.",
+				"show_all": "Show all enchants",
+				"show_all_tooltip": "Also list enchants whose stats are worth nothing to this spec's stat weights. Ticked enchants are always listed.",
 				"slot_weapons": "Weapons",
 				"slot_off_hand": "Off Hand (non-weapon)",
 				"save": "Save"

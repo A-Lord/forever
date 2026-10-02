@@ -23,10 +23,11 @@ const LESSER_IMPACT = UIEnchant.create({ effectId: 1897, itemId: 2, name: 'Lesse
 const SUPERIOR_STRIKING = UIEnchant.create({ effectId: 1897, itemId: 3, name: 'Superior Striking' });
 
 const SHIELD_SPIKE = UIEnchant.create({ effectId: 1704, itemId: 4, name: 'Thorium Shield Spike', enchantType: EnchantType.EnchantTypeShield });
+const HEALING = UIEnchant.create({ effectId: 2566, itemId: 5, name: 'Healing Power' });
 
 // The game database lists every weapon enchant, shield ones included, under both hands.
 const ENCHANTS = new Map<ItemSlot, UIEnchant[]>([
-	[ItemSlot.ItemSlotBack, [AGILITY]],
+	[ItemSlot.ItemSlotBack, [AGILITY, HEALING]],
 	[ItemSlot.ItemSlotMainHand, [LESSER_IMPACT, SUPERIOR_STRIKING, SHIELD_SPIKE]],
 	[ItemSlot.ItemSlotOffHand, [LESSER_IMPACT, SUPERIOR_STRIKING, SHIELD_SPIKE]],
 ]);
@@ -53,6 +54,8 @@ const mount = ({ loaded = true } = {}) => {
 			if (!loaded) throw new TypeError("Cannot read properties of null (reading 'getEnchants')");
 			return ENCHANTS.get(slot) ?? [];
 		},
+		computeEnchantEP: (enchant: UIEnchant) => (enchant === HEALING ? 0 : 1),
+		computeWeaponDpsEP: () => 1,
 	} as unknown as Player<any>;
 	seedBulkSettings(player);
 	render(
@@ -156,6 +159,29 @@ describe('BulkEnchants', () => {
 				.getAllByRole('checkbox')
 				.map(tile => tile.textContent),
 		).toEqual(['Thorium Shield Spike']);
+	});
+
+	it('hides enchants worth nothing to the spec until Show all is on', async () => {
+		mount();
+
+		await openNewPreset();
+		await expandSlots();
+
+		expect(screen.queryByRole('checkbox', { name: /Healing Power/ })).toBeNull();
+		expect(screen.getByRole('checkbox', { name: /Lesser Agility/ })).toBeTruthy();
+
+		await userEvent.click(screen.getByRole('checkbox', { name: 'bulk_tab.settings.enchant_presets.show_all' }));
+
+		expect(screen.getByRole('checkbox', { name: /Healing Power/ })).toBeTruthy();
+	});
+
+	it('keeps a ticked enchant visible even when it is worth nothing to the spec', async () => {
+		const player = mount();
+		saveBulkEnchantPreset(player, { name: 'Healer', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [HEALING.effectId] }] });
+
+		await userEvent.click(await screen.findByRole('button', { name: /enchant_presets\.edit/ }));
+
+		expect(screen.getByRole('checkbox', { name: /Healing Power/ }).getAttribute('aria-checked')).toBe('true');
 	});
 
 	it('renders the presets before the game database has loaded', () => {

@@ -60,6 +60,8 @@ const meta = {
 		onOpenSlotsChange: fn(),
 		search: '',
 		onSearchChange: fn(),
+		showAll: false,
+		onShowAllChange: fn(),
 	},
 	argTypes: { groups: { control: false } },
 } satisfies Meta<typeof BulkEnchantPresetDialogView>;
