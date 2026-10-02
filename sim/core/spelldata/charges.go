@@ -21,20 +21,12 @@ func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, n
 		channelHit = false
 	})
 
-	hooked := map[*core.Dot]bool{}
-	spendAtChannelEnd := func(channel *core.Dot) {
-		channelHit = true
-		if hooked[channel] {
-			return
+	character.OnChannelEnd(func(sim *core.Simulation) {
+		if channelHit && buff.IsActive() {
+			channelHit = false
+			buff.RemoveStack(sim)
 		}
-		hooked[channel] = true
-		channel.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-			if channelHit && buff.IsActive() {
-				channelHit = false
-				buff.RemoveStack(sim)
-			}
-		})
-	}
+	})
 
 	spender := ProcTrigger(character, s, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		buff.RemoveStack(sim)
@@ -42,13 +34,9 @@ func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, n
 	spender.Name = name
 	spender.ClassFlags = chargeClassFlags(character, s)
 	spender.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		// A channel's last tick can land from its own expiry, too late to hook; it spends like a cast.
-		if channel := character.ChanneledDot; channel != nil && (channel.IsActive() || hooked[channel]) {
-			spendAtChannelEnd(channel)
-			return false
-		}
-		if spell.Flags.Matches(core.SpellFlagChanneled) {
-			// The channel's own hit lands before its dot starts; its ticks hook the dot.
+		// The channel's own hit lands before its dot starts, its ticks while it runs. A hit the wearer
+		// takes is not part of the channel.
+		if spell.Unit == &character.Unit && (character.IsChanneling() || spell.Flags.Matches(core.SpellFlagChanneled)) {
 			channelHit = true
 			return false
 		}

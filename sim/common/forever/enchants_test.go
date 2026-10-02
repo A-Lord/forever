@@ -39,12 +39,13 @@ func init() {
 
 // A caster with two druid spells: Wrath, which Revelation's druid buff 1323400 names (family 7 bit 0),
 // and Moonfire, which it does not (bit 1). Hurricane is a three-tick channel whose ticks cast a spell
-// of their own, both under Wrath's flags.
+// of their own, both under Wrath's flags. Drain is a channel under Wrath's flags whose own hit lands
+// before its dot starts and whose ticks hit nothing.
 type testDruid struct {
 	core.Character
-	wrath, moonfire, hurricane *core.Spell
-	last                       *core.SpellResult
-	tickCrits                  []bool
+	wrath, moonfire, hurricane, drain *core.Spell
+	last                              *core.SpellResult
+	tickCrits                         []bool
 }
 
 func (d *testDruid) GetCharacter() *core.Character       { return &d.Character }
@@ -85,24 +86,32 @@ func (d *testDruid) Initialize() {
 			d.tickCrits = append(d.tickCrits, result.DidCrit())
 		},
 	})
-	d.hurricane = d.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: 16914},
-		SpellSchool: core.SpellSchoolNature,
-		ProcMask:    core.ProcMaskSpellDamage,
-		Flags:       core.SpellFlagChanneled,
-		ClassFlags:  wrathFlags,
-		Dot: core.DotConfig{
-			Aura:          core.Aura{Label: "Hurricane"},
-			NumberOfTicks: 3,
-			TickLength:    time.Second,
-			OnTick: func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
-				tick.Cast(sim, target)
+	channel := func(id int32, label string, ownHit bool, onTick core.OnTick) *core.Spell {
+		return d.RegisterSpell(core.SpellConfig{
+			ActionID:    core.ActionID{SpellID: id},
+			SpellSchool: core.SpellSchoolNature,
+			DefenseType: core.DefenseTypeMagic,
+			ProcMask:    core.ProcMaskSpellDamage,
+			Flags:       core.SpellFlagChanneled,
+			ClassFlags:  wrathFlags,
+			Dot: core.DotConfig{
+				Aura:          core.Aura{Label: label},
+				NumberOfTicks: 3,
+				TickLength:    time.Second,
+				OnTick:        onTick,
 			},
-		},
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.Dot(target).Apply(sim)
-		},
+			ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+				if ownHit {
+					spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
+				}
+				spell.Dot(target).Apply(sim)
+			},
+		})
+	}
+	d.hurricane = channel(16914, "Hurricane", false, func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
+		tick.Cast(sim, target)
 	})
+	d.drain = channel(17401, "Drain", true, nil)
 }
 
 // A hunter with two ranged shots: Arcane Shot, which Revelation's hunter buff 1323410 names (family 9
@@ -241,17 +250,18 @@ func TestRevelationLastsTheWholeChannel(t *testing.T) {
 	sim.Step()
 	buff.Deactivate(sim)
 
-	for casts := 0; !buff.IsActive(); casts++ {
-		if casts > 300 {
-			t.Fatal("300 Moonfires and Revelation never procced")
-		}
-		druid.moonfire.SkipCastAndApplyEffects(sim, target)
-		sim.Step()
+	charge := func() {
+		buff.Activate(sim)
+		buff.SetStacks(sim, buff.MaxStacks)
+	}
+	channelFor := func(ticks int) {
+		druid.tickCrits = nil
+		druid.hurricane.SkipCastAndApplyEffects(sim, target)
+		stepWhile(func() bool { return len(druid.tickCrits) < ticks })
 	}
 
-	druid.tickCrits = nil
-	druid.hurricane.SkipCastAndApplyEffects(sim, target)
-	stepWhile(func() bool { return len(druid.tickCrits) < 2 })
+	charge()
+	channelFor(2)
 	if !buff.IsActive() {
 		t.Fatal("two ticks into the channel, Revelation's charge is spent")
 	}
@@ -264,14 +274,18 @@ func TestRevelationLastsTheWholeChannel(t *testing.T) {
 		t.Error("the channel ended and Revelation's charge is still up")
 	}
 
-	buff.Activate(sim)
-	buff.SetStacks(sim, buff.MaxStacks)
-	druid.tickCrits = nil
-	druid.hurricane.SkipCastAndApplyEffects(sim, target)
-	stepWhile(func() bool { return len(druid.tickCrits) < 1 })
+	charge()
+	channelFor(1)
 	channel.Deactivate(sim)
 	if buff.IsActive() {
 		t.Error("the channel was cut short and Revelation's charge is still up")
+	}
+
+	charge()
+	druid.drain.SkipCastAndApplyEffects(sim, target)
+	druid.drain.Dot(target).Deactivate(sim)
+	if buff.IsActive() {
+		t.Error("a channel whose own hit landed was cut short before its first tick and Revelation's charge is still up")
 	}
 }
 
