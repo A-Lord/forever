@@ -1,7 +1,7 @@
 import { useEnchantDescription } from '@features/gear/hooks/useEnchantDescription';
 import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import { enchantActionId } from '@features/gear/model/item_data';
-import type { ItemSlot } from '@generated/proto/common';
+import { EnchantType, ItemSlot } from '@generated/proto/common';
 import type { BulkEnchantPreset, UIEnchant as Enchant } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { translateBulkSlotName } from '@i18n/localization';
@@ -23,6 +23,20 @@ export interface BulkEnchantPresetDialogProps {
 	preset: BulkEnchantPreset | null;
 	onClose: () => void;
 }
+
+const isOffHandOnly = (enchant: Enchant) => enchant.enchantType === EnchantType.EnchantTypeShield || enchant.enchantType === EnchantType.EnchantTypeOffHand;
+
+const slotEnchants = (slot: ItemSlot, enchants: Enchant[]): Enchant[] => {
+	if (slot === ItemSlot.ItemSlotMainHand) return enchants.filter(enchant => !isOffHandOnly(enchant));
+	if (slot === ItemSlot.ItemSlotOffHand) return enchants.filter(isOffHandOnly);
+	return enchants;
+};
+
+const slotLabel = (slot: ItemSlot): string => {
+	if (slot === ItemSlot.ItemSlotMainHand) return i18n.t('bulk_tab.settings.enchant_presets.slot_weapons');
+	if (slot === ItemSlot.ItemSlotOffHand) return i18n.t('bulk_tab.settings.enchant_presets.slot_off_hand');
+	return translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(slot)!);
+};
 
 interface EnchantTileProps {
 	slot: ItemSlot;
@@ -62,7 +76,10 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	// One tile per enchant row; rows that share an effect id are one enchant to the sim, so they tick together.
 	const ready = useSimReady();
 	const slots = useMemo(
-		() => (ready ? BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: player.getEnchants(slot) })).filter(({ enchants }) => enchants.length) : []),
+		() =>
+			ready
+				? BULK_ENCHANT_SLOTS.map(slot => ({ slot, enchants: slotEnchants(slot, player.getEnchants(slot)) })).filter(({ enchants }) => enchants.length)
+				: [],
 		[player, ready],
 	);
 
@@ -122,7 +139,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 			onSearchChange={changeSearch}
 			groups={shown.map(({ slot, enchants }) => ({
 				slot,
-				label: translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(slot)!),
+				label: slotLabel(slot),
 				iconUrl: getEmptySlotIconUrl(slot),
 				checkedCount: selected.get(slot)?.length ?? 0,
 				tiles: enchants.map(enchant => (

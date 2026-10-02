@@ -15,10 +15,12 @@ const AGILITY = 10;
 const STAMINA = 11;
 const STRENGTH = 12;
 const CRUSADER = 20;
+const SHIELD_SPIKE = 21;
 
 const USABLE = new Map<ItemSlot, number[]>([
 	[ItemSlot.ItemSlotBack, [AGILITY, STAMINA, STRENGTH]],
 	[ItemSlot.ItemSlotMainHand, [CRUSADER]],
+	[ItemSlot.ItemSlotOffHand, [CRUSADER, SHIELD_SPIKE]],
 ]);
 
 const preset = (name: string, slots: Array<[ItemSlot, number[]]>) => ({
@@ -70,6 +72,20 @@ describe('bulkEnchantPool', () => {
 		saveBulkEnchantPreset(player, preset('Beasts', [[ItemSlot.ItemSlotMainHand, [CRUSADER]]]));
 
 		expect(bulkEnchantPool(player)).toEqual([BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY] })]);
+	});
+
+	it('sends the weapon enchants for both hands and the off-hand enchants for the off hand only', () => {
+		saveChecked(
+			preset('Raid', [
+				[ItemSlot.ItemSlotMainHand, [CRUSADER]],
+				[ItemSlot.ItemSlotOffHand, [SHIELD_SPIKE]],
+			]),
+		);
+
+		expect(bulkEnchantPool(player)).toEqual([
+			BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotMainHand, effectIds: [CRUSADER] }),
+			BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotOffHand, effectIds: [CRUSADER, SHIELD_SPIKE] }),
+		]);
 	});
 
 	it('drops an enchant the player cannot use in that slot, and a slot left empty by it', () => {

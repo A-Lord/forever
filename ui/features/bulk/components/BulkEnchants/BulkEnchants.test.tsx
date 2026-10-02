@@ -1,11 +1,11 @@
-import { ItemSlot } from '@generated/proto/common';
+import { EnchantType, ItemSlot } from '@generated/proto/common';
 import { UIEnchant } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { PlayerSpecs } from '@sim/player/specs';
 import { bulkState, seedBulkSettings } from '@sim/settings/bulk_settings';
 import { createSimStore } from '@sim/state/sim_store';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -22,9 +22,13 @@ const AGILITY = UIEnchant.create({ effectId: 849, spellId: 13882, name: 'Lesser 
 const LESSER_IMPACT = UIEnchant.create({ effectId: 1897, itemId: 2, name: 'Lesser Impact' });
 const SUPERIOR_STRIKING = UIEnchant.create({ effectId: 1897, itemId: 3, name: 'Superior Striking' });
 
+const SHIELD_SPIKE = UIEnchant.create({ effectId: 1704, itemId: 4, name: 'Thorium Shield Spike', enchantType: EnchantType.EnchantTypeShield });
+
+// The game database lists every weapon enchant, shield ones included, under both hands.
 const ENCHANTS = new Map<ItemSlot, UIEnchant[]>([
 	[ItemSlot.ItemSlotBack, [AGILITY]],
-	[ItemSlot.ItemSlotMainHand, [LESSER_IMPACT, SUPERIOR_STRIKING]],
+	[ItemSlot.ItemSlotMainHand, [LESSER_IMPACT, SUPERIOR_STRIKING, SHIELD_SPIKE]],
+	[ItemSlot.ItemSlotOffHand, [LESSER_IMPACT, SUPERIOR_STRIKING, SHIELD_SPIKE]],
 ]);
 
 // `loaded: false` stands for the page before the game database arrives, when `getEnchants` cannot run.
@@ -122,7 +126,7 @@ describe('BulkEnchants', () => {
 
 		await userEvent.clear(screen.getByTestId('bulk-enchant-search'));
 
-		expect(screen.getAllByTestId('bulk-enchant-slot')).toHaveLength(2);
+		expect(screen.getAllByTestId('bulk-enchant-slot')).toHaveLength(3);
 		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
 	});
 
@@ -134,6 +138,24 @@ describe('BulkEnchants', () => {
 
 		expect(screen.queryAllByTestId('bulk-enchant-slot')).toHaveLength(0);
 		expect(screen.getByText('bulk_tab.settings.enchant_presets.no_matches')).toBeTruthy();
+	});
+
+	it('groups weapon enchants under Weapons and shield enchants under the non-weapon off hand only', async () => {
+		mount();
+
+		await openNewPreset();
+		await expandSlots();
+
+		const [, weapons, offHand] = screen.getAllByTestId('bulk-enchant-slot');
+		expect(within(weapons).getByText('bulk_tab.settings.enchant_presets.slot_weapons')).toBeTruthy();
+		expect(within(weapons).queryByRole('checkbox', { name: /Shield Spike/ })).toBeNull();
+		expect(within(weapons).getByRole('checkbox', { name: /Superior Striking/ })).toBeTruthy();
+		expect(within(offHand).getByText('bulk_tab.settings.enchant_presets.slot_off_hand')).toBeTruthy();
+		expect(
+			within(offHand)
+				.getAllByRole('checkbox')
+				.map(tile => tile.textContent),
+		).toEqual(['Thorium Shield Spike']);
 	});
 
 	it('renders the presets before the game database has loaded', () => {

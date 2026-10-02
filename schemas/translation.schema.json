@@ -3449,6 +3449,12 @@
 								"no_matches": {
 									"type": "string"
 								},
+								"slot_weapons": {
+									"type": "string"
+								},
+								"slot_off_hand": {
+									"type": "string"
+								},
 								"save": {
 									"type": "string"
 								}
@@ -3467,6 +3473,8 @@
 								"name_duplicate",
 								"name_placeholder",
 								"no_matches",
+								"slot_weapons",
+								"slot_off_hand",
 								"save"
 							]
 						}

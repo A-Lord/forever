@@ -6,7 +6,8 @@ import { bulkState, patchBulkState, storeEnchantPresets } from '@sim/settings/bu
 
 export type BulkEnchantPresetNameProblem = 'empty' | 'duplicate';
 
-// Finger1 stands for both fingers.
+// Finger1 stands for both fingers. Main Hand holds the weapon enchants, which go to both hands; Off Hand
+// holds the shield and held-in-off-hand enchants.
 export const BULK_ENCHANT_SLOTS: readonly ItemSlot[] = [
 	ItemSlot.ItemSlotHead,
 	ItemSlot.ItemSlotShoulder,
@@ -26,8 +27,12 @@ export const BULK_ENCHANT_SLOTS: readonly ItemSlot[] = [
 export const bulkEnchantPool = (player: Player<any>): BulkEnchantSlotOptions[] => {
 	const checked = bulkState(player).enchantPresets.filter(preset => preset.checked);
 
+	const sources = (slot: ItemSlot) => (slot === ItemSlot.ItemSlotOffHand ? [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand] : [slot]);
+
 	return BULK_ENCHANT_SLOTS.flatMap(slot => {
-		const wanted = new Set(checked.flatMap(preset => preset.slots.filter(options => options.slot === slot).flatMap(options => options.effectIds)));
+		const wanted = new Set(
+			checked.flatMap(preset => preset.slots.filter(options => sources(slot).includes(options.slot)).flatMap(options => options.effectIds)),
+		);
 		if (!wanted.size) return [];
 		const usable = new Set(player.getEnchants(slot).map(enchant => enchant.effectId));
 		const effectIds = [...wanted].filter(id => usable.has(id)).sort((a, b) => a - b);
