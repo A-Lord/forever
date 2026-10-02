@@ -41,10 +41,10 @@ const configFor = (shown: (options: Options) => boolean): IconEnumPickerConfig<O
 		setValue: () => {},
 	}) as IconEnumPickerConfig<Options, number>;
 
-const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>, hidden?: boolean) => {
+const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>) => {
 	render(
 		<SimHostProvider host={{ player: options } as never}>
-			<ConsumeRow name="engineering" configs={configs as never} hidden={hidden}>
+			<ConsumeRow name="engineering" configs={configs as never}>
 				<div className="consumes-engi" />
 			</ConsumeRow>
 		</SimHostProvider>,
@@ -94,19 +94,6 @@ describe('ConsumeRow', () => {
 		expect(isHidden(element)).toBe(true);
 	});
 
-	// A gear planner has no encounter, so it hides the miscellaneous row outright; the pickers inside
-	// still have to stay mounted for the same zeroing reason as above.
-	it('hides a row the caller hides, whatever its pickers say, without unmounting it', () => {
-		const options = new Options();
-		const element = row(options, [configFor(() => true)], true);
-
-		expect(isHidden(element)).toBe(true);
-		expect(document.querySelector('.consumes-engi')).not.toBeNull();
-
-		act(() => options.changeProfession(1));
-		expect(isHidden(element)).toBe(true);
-	});
-
 	it('re-evaluates on any player change, not only a profession change', () => {
 		// The rows gate on more than professions — imbues on gear and the party's Windfury Totem, the
 		// rest on the spec's stats — so this subscribes to the whole player-change aggregate rather
@@ -131,10 +118,10 @@ describe('ConsumeRowView', () => {
 				<div data-testid="pickers" />
 			</ConsumeRowView>,
 		);
-		const row = screen.getByTestId('consumes-row');
+		const rowElem = screen.getByTestId('consumes-row');
 
-		expect(row.getAttribute('data-layout')).toBe('inline');
-		expect(row.children[0].textContent).toBe('Elixirs');
-		expect(row.children[1]).toBe(screen.getByTestId('pickers'));
+		expect(rowElem.getAttribute('data-layout')).toBe('inline');
+		expect(rowElem.children[0].textContent).toBe('Elixirs');
+		expect(rowElem.children[1]).toBe(screen.getByTestId('pickers'));
 	});
 });

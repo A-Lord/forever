@@ -3,7 +3,7 @@ import type { CastLog } from '@sim/proto/combat_log';
 import type { UnitMetrics } from '@sim/proto/sim_result';
 import { describe, expect, it } from 'vitest';
 
-import { buildRotationModel, STACK_WINDOW } from './build';
+import { buildRotationModel } from './build';
 import type { CastItem, CastRow } from './types';
 
 const SEAL = ActionId.fromSpellId(20293);
@@ -44,6 +44,6 @@ describe('cast stacks', () => {
 	});
 
 	it('starts a new stack after a gap of the window or more', () => {
-		expect(stacks([1, 1 + STACK_WINDOW + 0.01])).toEqual([[1], [1 + STACK_WINDOW + 0.01]]);
+		expect(stacks([1, 1.22])).toEqual([[1], [1.22]]);
 	});
 });

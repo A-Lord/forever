@@ -42,12 +42,6 @@ func TestShapeshiftFormRule(t *testing.T) {
 			refused: []dbcenums.ShapeshiftForm{dbcenums.FORM_DEFENSIVE_STANCE, dbcenums.FORM_BERSERKER_STANCE, 0},
 		},
 		{
-			name:    "Charge by constructor",
-			req:     InForms(dbcenums.FORM_BATTLE_STANCE),
-			allowed: []dbcenums.ShapeshiftForm{dbcenums.FORM_BATTLE_STANCE},
-			refused: []dbcenums.ShapeshiftForm{dbcenums.FORM_DEFENSIVE_STANCE, dbcenums.FORM_BERSERKER_STANCE, 0},
-		},
-		{
 			name: "Heroic Strike",
 			allowed: []dbcenums.ShapeshiftForm{0, dbcenums.FORM_CAT_FORM, dbcenums.FORM_BEAR_FORM, dbcenums.FORM_DIRE_BEAR_FORM,
 				dbcenums.FORM_TREE_FORM, dbcenums.FORM_BATTLE_STANCE, dbcenums.FORM_DEFENSIVE_STANCE, dbcenums.FORM_BERSERKER_STANCE,
@@ -66,17 +60,6 @@ func TestShapeshiftFormRule(t *testing.T) {
 				t.Errorf("%s should not be castable in form %d", test.name, form)
 			}
 		}
-	}
-}
-
-func TestCastRequirementConstructors(t *testing.T) {
-	if InForms(dbcenums.FORM_BATTLE_STANCE) != chargeRequirement {
-		t.Errorf("InForms(Battle Stance) = %+v, want %+v", InForms(dbcenums.FORM_BATTLE_STANCE), chargeRequirement)
-	}
-	wrath := InForms(dbcenums.FORM_MOONKIN_FORM).Excluding(dbcenums.FORM_TREE_FORM).OrCasterForm()
-	wrath.NotShapeshifted = true
-	if wrath != wrathRequirement {
-		t.Errorf("Wrath by constructors = %+v, want %+v", wrath, wrathRequirement)
 	}
 }
 

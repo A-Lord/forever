@@ -1,22 +1,21 @@
 //go:build with_db
 
-package common_test
+package core_test
 
 import (
 	"maps"
 	"slices"
+	"sync"
 	"testing"
 
+	"github.com/wowsims/forever/sim/common"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
-	"github.com/wowsims/forever/sim/core/testagent"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func init() {
-	testagent.RegisterAsDpsWarrior()
-}
+var registerAllEffects = sync.OnceFunc(common.RegisterAllEffects)
 
 // The consumables a browser request carries for the spec, the way the UI's
 // extendPlayerProtoWithMissingEffects collects them: every id field and every id list.
@@ -101,7 +100,7 @@ func TestRequestCarriesEveryConsumableThePresetSelects(t *testing.T) {
 	registerAllEffects()
 	whole := applyRequestPreset(t)
 
-	restore := core.KeepOnlyConsumablesForTest(requestConsumableIDs(requestPreset))
+	restore := core.KeepOnlyConsumables(requestConsumableIDs(requestPreset))
 	requested := applyRequestPreset(t)
 	restore()
 

@@ -2,8 +2,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { type Ref, useImperativeHandle, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { NumberField, NumberListField, SearchField, StringField, TextField } from './TextField';
-import type { TextCodec, TextFieldProps } from './types';
+import { NumberField, NumberListField, SearchField, StringField } from './TextField';
+import type { SearchFieldProps, StringFieldProps } from './types';
 
 interface HarnessHandle<V> {
 	set: (next: V) => void;
@@ -11,13 +11,7 @@ interface HarnessHandle<V> {
 
 const commits = vi.fn<(next: unknown) => void>();
 
-// Text in, text out, except that "nope" parses to nothing.
-const guardedCodec: TextCodec<string> = {
-	format: value => value,
-	parse: text => (text === 'nope' ? undefined : text),
-};
-
-type HarnessProps = Partial<Omit<TextFieldProps<string>, 'value' | 'onChange'>> & {
+type HarnessProps = Partial<Omit<StringFieldProps, 'value' | 'onChange'>> & {
 	initial?: string;
 	/** What the parent keeps of a committed value; `null` keeps nothing. */
 	keep?: (next: string) => string | null;
@@ -29,8 +23,7 @@ const Harness = ({ initial = '', keep = next => next, handle, ...props }: Harnes
 	const [value, setValue] = useState(initial);
 	useImperativeHandle(handle, () => ({ set: setValue }), []);
 	return (
-		<TextField
-			codec={guardedCodec}
+		<StringField
 			id="rotation-name"
 			{...props}
 			value={value}
@@ -38,6 +31,27 @@ const Harness = ({ initial = '', keep = next => next, handle, ...props }: Harnes
 				commits(next);
 				const kept = keep(next);
 				if (kept !== null) setValue(kept);
+			}}
+		/>
+	);
+};
+
+const SearchHarness = ({
+	initial = '',
+	handle,
+	...props
+}: Partial<Omit<SearchFieldProps, 'value' | 'onChange'>> & { initial?: string; handle?: Ref<HarnessHandle<string>> }) => {
+	const [value, setValue] = useState(initial);
+	useImperativeHandle(handle, () => ({ set: setValue }), []);
+	return (
+		<SearchField
+			placeholder="Search"
+			inputTestId="search-input"
+			{...props}
+			value={value}
+			onChange={next => {
+				commits(next);
+				setValue(next);
 			}}
 		/>
 	);
@@ -51,7 +65,7 @@ beforeEach(() => {
 	commits.mockClear();
 });
 
-describe('TextField', () => {
+describe('StringField', () => {
 	it.each([
 		[undefined, 'sm'],
 		['md', 'md'],
@@ -169,101 +183,17 @@ describe('TextField', () => {
 			fireEvent.change(input());
 			expect(input().value).toBe('kept');
 		});
-
-		it('commits nothing for text the codec does not parse, and shows the value again', () => {
-			render(<Harness initial="abc" />);
-			type('nope');
-			fireEvent.change(input());
-			expect(commits).not.toHaveBeenCalled();
-			expect(input().value).toBe('abc');
-		});
 	});
 
-	describe('commit on input', () => {
-		it('reports every keystroke', () => {
-			render(<Harness commit="input" />);
-			type('a');
-			expect(commits).toHaveBeenLastCalledWith('a');
-			type('ab');
-			expect(commits).toHaveBeenLastCalledWith('ab');
-			expect(input().value).toBe('ab');
-		});
-
-		it('shows a value the parent changes underneath it', () => {
-			const handle = handleRef<string>();
-			render(<Harness commit="input" initial="abc" handle={handle} />);
-			act(() => handle.current!.set('xyz'));
-			expect(input().value).toBe('xyz');
-		});
-	});
-
-	describe('debounced commit', () => {
-		beforeEach(() => vi.useFakeTimers());
-		afterEach(() => vi.useRealTimers());
-
-		it('keeps the field responsive and reports once the debounce window elapses', () => {
-			render(<Harness commit={{ debounceMs: 150 }} />);
-			type('a');
-			expect(input().value).toBe('a');
-			expect(commits).not.toHaveBeenCalled();
-
-			act(() => vi.advanceTimersByTime(149));
-			expect(commits).not.toHaveBeenCalled();
-
-			act(() => vi.advanceTimersByTime(1));
-			expect(commits).toHaveBeenCalledExactlyOnceWith('a');
-		});
-
-		it('restarts the window on every keystroke', () => {
-			render(<Harness commit={{ debounceMs: 150 }} />);
-			type('a');
-			act(() => vi.advanceTimersByTime(100));
-			type('ab');
-			act(() => vi.advanceTimersByTime(100));
-			expect(commits).not.toHaveBeenCalled();
-
-			act(() => vi.advanceTimersByTime(50));
-			expect(commits).toHaveBeenCalledExactlyOnceWith('ab');
-		});
-
-		it('reports nothing on mount', () => {
-			render(<Harness commit={{ debounceMs: 150 }} initial="abc" />);
-			act(() => vi.advanceTimersByTime(1000));
-			expect(commits).not.toHaveBeenCalled();
-		});
-
-		it('drops a pending commit when the value changes underneath it', () => {
-			const handle = handleRef<string>();
-			render(<Harness commit={{ debounceMs: 150 }} handle={handle} />);
-			type('typed');
-			act(() => handle.current!.set('xyz'));
-			act(() => vi.advanceTimersByTime(1000));
-			expect(commits).not.toHaveBeenCalled();
-			expect(input().value).toBe('xyz');
-		});
-	});
-
-	describe('clear button', () => {
-		it('offers no clear button unless asked', () => {
-			render(<Harness initial="abc" label="Rotation Name" />);
-			expect(screen.queryByRole('button')).toBeNull();
-		});
-
-		it('shows the clear button once there is text, and clearing commits empty text', () => {
-			render(<Harness commit="input" clear={{ label: 'Clear' }} />);
-			expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
-
-			type('abc');
-			fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
-			expect(commits).toHaveBeenLastCalledWith('');
-			expect(input().value).toBe('');
-		});
+	it('offers no clear button unless asked', () => {
+		render(<Harness initial="abc" label="Rotation Name" />);
+		expect(screen.queryByRole('button')).toBeNull();
 	});
 
 	describe('autosize', () => {
 		it('sizes the input to its text, at least 3 wide, following the draft and the value', () => {
 			const handle = handleRef<string>();
-			render(<Harness autosize handle={handle} />);
+			render(<Harness handle={handle} />);
 			expect(input().size).toBe(3);
 
 			type('123456');
@@ -275,11 +205,16 @@ describe('TextField', () => {
 			act(() => handle.current!.set('a much longer value'));
 			expect(input().size).toBe('a much longer value'.length);
 		});
+	});
 
-		it('leaves the size alone without autosize', () => {
-			render(<Harness initial="a much longer value" />);
-			expect(input().hasAttribute('size')).toBe(false);
-		});
+	it('reports the text raw, sized to it, with the adaptive-string-picker-root test id on its root', () => {
+		const onChange = vi.fn();
+		render(<StringField id="custom-name" label="Custom Name" value="initial-value" onChange={onChange} />);
+		expect(input().size).toBe('initial-value'.length);
+		expect(screen.getByTestId('adaptive-string-picker-root').contains(input())).toBe(true);
+
+		fireEvent.change(input(), { target: { value: '  raw 123 text  ' } });
+		expect(onChange).toHaveBeenCalledExactlyOnceWith('  raw 123 text  ');
 	});
 });
 
@@ -384,18 +319,6 @@ describe('NumberField', () => {
 	});
 });
 
-describe('StringField', () => {
-	it('reports the text raw, sized to it, with the adaptive-string-picker-root test id on its root', () => {
-		const onChange = vi.fn();
-		render(<StringField id="custom-name" label="Custom Name" value="initial-value" onChange={onChange} />);
-		expect(input().size).toBe('initial-value'.length);
-		expect(screen.getByTestId('adaptive-string-picker-root').contains(input())).toBe(true);
-
-		fireEvent.change(input(), { target: { value: '  raw 123 text  ' } });
-		expect(onChange).toHaveBeenCalledExactlyOnceWith('  raw 123 text  ');
-	});
-});
-
 const ListHarness = ({
 	initial = [],
 	keep = next => next,
@@ -476,39 +399,81 @@ describe('NumberListField', () => {
 });
 
 describe('SearchField', () => {
-	const SearchHarness = (props: Partial<Parameters<typeof SearchField>[0]>) => {
-		const [value, setValue] = useState('');
-		return (
-			<SearchField
-				placeholder="Search"
-				inputTestId="search-input"
-				{...props}
-				value={value}
-				onChange={next => {
-					commits(next);
-					setValue(next);
-				}}
-			/>
-		);
-	};
-
 	it('is a bare input that reports every keystroke', () => {
 		const { container } = render(<SearchHarness />);
 		expect(container.firstElementChild).toBe(screen.getByTestId('search-input'));
 		type('a');
 		expect(commits).toHaveBeenLastCalledWith('a');
+		type('ab');
+		expect(commits).toHaveBeenLastCalledWith('ab');
+		expect(input().value).toBe('ab');
+	});
+
+	it('shows a value the parent changes underneath it', () => {
+		const handle = handleRef<string>();
+		render(<SearchHarness initial="abc" handle={handle} />);
+		act(() => handle.current!.set('xyz'));
+		expect(input().value).toBe('xyz');
+	});
+
+	it('shows the clear button once there is text, and clearing commits empty text', () => {
+		render(<SearchHarness clear={{ label: 'Clear' }} />);
+		expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+
+		type('abc');
+		fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+		expect(commits).toHaveBeenLastCalledWith('');
+		expect(input().value).toBe('');
+	});
+
+	it('leaves the size alone', () => {
+		render(<SearchHarness initial="a much longer value" />);
+		expect(input().hasAttribute('size')).toBe(false);
 	});
 
 	describe('debounced', () => {
 		beforeEach(() => vi.useFakeTimers());
 		afterEach(() => vi.useRealTimers());
 
-		it('reports once typing pauses for debounceMs', () => {
+		it('keeps the field responsive and reports once typing pauses for debounceMs', () => {
 			render(<SearchHarness debounceMs={150} />);
 			type('Ashkandi');
+			expect(input().value).toBe('Ashkandi');
 			expect(commits).not.toHaveBeenCalled();
-			act(() => vi.advanceTimersByTime(150));
+
+			act(() => vi.advanceTimersByTime(149));
+			expect(commits).not.toHaveBeenCalled();
+
+			act(() => vi.advanceTimersByTime(1));
 			expect(commits).toHaveBeenCalledExactlyOnceWith('Ashkandi');
+		});
+
+		it('restarts the window on every keystroke', () => {
+			render(<SearchHarness debounceMs={150} />);
+			type('a');
+			act(() => vi.advanceTimersByTime(100));
+			type('ab');
+			act(() => vi.advanceTimersByTime(100));
+			expect(commits).not.toHaveBeenCalled();
+
+			act(() => vi.advanceTimersByTime(50));
+			expect(commits).toHaveBeenCalledExactlyOnceWith('ab');
+		});
+
+		it('reports nothing on mount', () => {
+			render(<SearchHarness debounceMs={150} initial="abc" />);
+			act(() => vi.advanceTimersByTime(1000));
+			expect(commits).not.toHaveBeenCalled();
+		});
+
+		it('drops a pending commit when the value changes underneath it', () => {
+			const handle = handleRef<string>();
+			render(<SearchHarness debounceMs={150} handle={handle} />);
+			type('typed');
+			act(() => handle.current!.set('xyz'));
+			act(() => vi.advanceTimersByTime(1000));
+			expect(commits).not.toHaveBeenCalled();
+			expect(input().value).toBe('xyz');
 		});
 	});
 });

@@ -1,8 +1,8 @@
 import { Raid as RaidProto } from '@generated/proto/api';
 import { Encounter as EncounterProto } from '@generated/proto/common';
 import { createSimStore } from '@sim/state/sim_store';
-import { mockSubscriptions } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -64,6 +64,9 @@ const diffs = (container: HTMLElement) => [...container.querySelectorAll('[data-
 
 let results: SimResultsManager;
 
+const strip = (container: HTMLElement) => container.querySelector('[data-testid="results-sim-reference"]')!;
+const metricIds = (container: HTMLElement) => [...container.querySelectorAll('[data-testid="results-metric"]')].map(row => row.getAttribute('data-metric'));
+
 describe('SimResultSummary', () => {
 	beforeEach(() => {
 		store = createSimStore();
@@ -78,16 +81,8 @@ describe('SimResultSummary', () => {
 		act(() => results.setSimResult(result(1000)));
 		const { container } = mount(results);
 
-		expect([...container.querySelectorAll('[data-testid="results-metric"]')].map(row => row.getAttribute('data-metric'))).toEqual([
-			'dps',
-			'tps',
-			'dtps',
-			'tmi',
-			'cod',
-			'tto',
-			'hps',
-		]);
-		expect(container.querySelector('[data-testid="results-sim-reference"]')?.hasAttribute('data-has-reference')).toBe(false);
+		expect(metricIds(container)).toEqual(['dps', 'tps', 'dtps', 'tmi', 'cod', 'tto', 'hps']);
+		expect(strip(container).hasAttribute('data-has-reference')).toBe(false);
 	});
 
 	it('fills the deltas in and flags the bar the moment the reference is set', () => {
@@ -95,7 +90,7 @@ describe('SimResultSummary', () => {
 		const { container } = mount(results);
 
 		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-set-reference"]')!));
-		expect(container.querySelector('[data-testid="results-sim-reference"]')?.hasAttribute('data-has-reference')).toBe(true);
+		expect(strip(container).hasAttribute('data-has-reference')).toBe(true);
 
 		// Same run on both sides: every rendered metric gets a delta, all of them zero and none coloured.
 		expect(diffs(container)).toHaveLength(7);
@@ -121,7 +116,7 @@ describe('SimResultSummary', () => {
 		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-set-reference"]')!));
 		act(() => fireEvent.click(container.querySelector('[data-testid="results-sim-reference-delete"]')!));
 
-		expect(container.querySelector('[data-testid="results-sim-reference"]')?.hasAttribute('data-has-reference')).toBe(false);
+		expect(strip(container).hasAttribute('data-has-reference')).toBe(false);
 		expect(diffs(container)).toEqual([]);
 	});
 
@@ -174,13 +169,11 @@ const mountView = (props: Partial<SimResultSummaryViewProps> = {}) => {
 	return { ...handlers, ...view };
 };
 
-const strip = (container: HTMLElement) => container.querySelector('[data-testid="results-sim-reference"]')!;
-
 describe('SimResultSummaryView', () => {
 	it('lists every metric it is given and offers only the save button without a reference', () => {
 		const { container } = mountView();
 
-		expect([...container.querySelectorAll('[data-testid="results-metric"]')].map(row => row.getAttribute('data-metric'))).toEqual(['dps', 'tps']);
+		expect(metricIds(container)).toEqual(['dps', 'tps']);
 		expect(strip(container).hasAttribute('data-has-reference')).toBe(false);
 		expect(screen.getByTestId('results-sim-set-reference').hidden).toBe(false);
 		expect(screen.getByTestId('results-sim-reference-swap').parentElement!.hidden).toBe(true);

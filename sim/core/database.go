@@ -502,37 +502,6 @@ func GetConsumableByID(id int32) Consumable {
 	return c
 }
 
-// The ids of every consumable the loaded database carries, sorted.
-func ConsumableIDs() []int32 {
-	dbMu.RLock()
-	defer dbMu.RUnlock()
-	ids := make([]int32, 0, len(consumablesByID))
-	for id := range consumablesByID {
-		ids = append(ids, id)
-	}
-	slices.Sort(ids)
-	return ids
-}
-
-// Narrows the loaded consumables to these ids until the returned function restores the rest, for a
-// test that runs the sim on the consumables a browser request carries.
-func KeepOnlyConsumablesForTest(ids []int32) (restore func()) {
-	dbMu.Lock()
-	defer dbMu.Unlock()
-	all := consumablesByID
-	consumablesByID = make(map[int32]Consumable, len(ids))
-	for _, id := range ids {
-		if consumable, ok := all[id]; ok {
-			consumablesByID[id] = consumable
-		}
-	}
-	return func() {
-		dbMu.Lock()
-		consumablesByID = all
-		dbMu.Unlock()
-	}
-}
-
 func GetSpellEffectByID(id int32) *proto.SpellEffect {
 	dbMu.RLock()
 	e := spellEffectsById[id]
@@ -907,17 +876,4 @@ func ColorIntersects(g proto.GemColor, o proto.GemColor) bool {
 	}
 
 	return false // dunno what else could be.
-}
-
-// ItemsWithSockets returns the loaded items that carry at least one gem socket. Tests use
-// it to skip when the database has none, which is the case while Forever keeps item stats
-// encrypted until an item is discovered in game.
-func ItemsWithSockets() []Item {
-	var out []Item
-	for _, item := range itemsByID {
-		if len(item.GemSockets) > 0 {
-			out = append(out, item)
-		}
-	}
-	return out
 }

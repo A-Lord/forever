@@ -6,6 +6,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/testagent"
 )
 
@@ -74,7 +75,7 @@ func TestBulkSimRunsAtTheStageMinimumsNotTheSimIterations(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := BulkSim(bulkSimTestRequest(simIterations, tc.candidates))
+			result := runBulkSim(bulkSimTestRequest(simIterations, tc.candidates), nil, simsignals.CreateSignals())
 			if result.Error != nil {
 				t.Fatalf("bulk sim failed: %s", result.Error.Message)
 			}

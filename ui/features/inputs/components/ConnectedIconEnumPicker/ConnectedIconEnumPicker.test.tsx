@@ -1,5 +1,5 @@
-import { FakeSource, filled } from '@features/inputs/testing';
 import { ActionId } from '@sim/proto/action_id';
+import { FakeSource, filled } from '@testing/inputs';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';

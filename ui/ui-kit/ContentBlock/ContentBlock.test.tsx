@@ -1,6 +1,5 @@
 import i18n from '@i18n/config';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { createRef } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { ContentBlock, type ContentBlockHeaderProps } from './ContentBlock';
@@ -61,20 +60,6 @@ describe('ContentBlock', () => {
 	it('renders no tooltip button when config.header.tooltip is absent', () => {
 		render(<ContentBlock className="mt-2" config={{ header: { title: 'My Title' } }} />);
 		expect(screen.queryByRole('button')).toBeNull();
-	});
-
-	it('points headerRef and bodyRef at the header and body elements', () => {
-		const headerRef = createRef<HTMLDivElement>();
-		const bodyRef = createRef<HTMLDivElement>();
-		render(<ContentBlock className="mt-2" config={{ header: { title: 'My Title' } }} headerRef={headerRef} bodyRef={bodyRef} />);
-		expect(headerRef.current).toBe(screen.getByTestId('content-block-header'));
-		expect(bodyRef.current).toBe(screen.getByTestId('content-block-body'));
-	});
-
-	it('leaves headerRef null when there is no header', () => {
-		const headerRef = createRef<HTMLDivElement>();
-		render(<ContentBlock className="mt-2" config={{}} headerRef={headerRef} />);
-		expect(headerRef.current).toBeNull();
 	});
 
 	it('renders children inside the body', () => {

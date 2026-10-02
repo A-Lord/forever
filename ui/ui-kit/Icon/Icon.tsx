@@ -14,7 +14,6 @@ export interface IconProps extends Omit<HTMLAttributes<HTMLElement>, 'style'> {
 	name: IconName;
 	style?: IconStyle;
 	size?: IconSize;
-	spin?: boolean;
 	/** One width for every glyph (`fa-fw`), so icons in a column line up; otherwise the icon is as wide as its glyph (`fa-width-auto`). */
 	fixedWidth?: boolean;
 	className?: string;
@@ -24,7 +23,7 @@ export interface IconProps extends Omit<HTMLAttributes<HTMLElement>, 'style'> {
 }
 
 // The rest props matter: an icon is an anchor for its own tooltip at several sites, and a dropped `data-tooltip-id` fails silently.
-export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className, title, testId, ...rest }: IconProps) => {
+export const Icon = ({ name, style = 'solid', size, fixedWidth, className, title, testId, ...rest }: IconProps) => {
 	const definition = iconDefinition(name, style);
 	return (
 		<FontAwesomeIcon
@@ -34,7 +33,6 @@ export const Icon = ({ name, style = 'solid', size, spin, fixedWidth, className,
 			className={clsx('ui-icon', className)}
 			data-size={size}
 			size={size}
-			spin={spin}
 			fixedWidth={fixedWidth}
 			widthAuto={!fixedWidth}
 			aria-label={title}

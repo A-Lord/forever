@@ -58,19 +58,6 @@ describe('Encounter', () => {
 			encounter.setAreaTypes([AreaType.AreaTypeHaunted, AreaType.AreaTypeUnknown, AreaType.AreaTypeForestGrassland, AreaType.AreaTypeHaunted]);
 
 			expect(encounter.getAreaTypes()).toEqual([AreaType.AreaTypeForestGrassland, AreaType.AreaTypeHaunted]);
-			expect(encounter.inArea(AreaType.AreaTypeHaunted)).toBe(true);
-			expect(encounter.inArea(AreaType.AreaTypeMountainous)).toBe(false);
-		});
-
-		it('toggles one area without touching the others', () => {
-			const encounter = makeEncounter();
-			encounter.setAreaTypes([AreaType.AreaTypeMountainous]);
-
-			encounter.setInArea(AreaType.AreaTypeSnowy, true);
-			expect(encounter.getAreaTypes()).toEqual([AreaType.AreaTypeMountainous, AreaType.AreaTypeSnowy]);
-
-			encounter.setInArea(AreaType.AreaTypeMountainous, false);
-			expect(encounter.getAreaTypes()).toEqual([AreaType.AreaTypeSnowy]);
 		});
 
 		it('takes its set from a zone, and forgets the zone once the set is edited by hand', () => {
@@ -80,7 +67,7 @@ describe('Encounter', () => {
 			expect(encounter.getZoneId()).toBe(2677);
 			expect(encounter.getAreaTypes()).toEqual([AreaType.AreaTypeCavernous, AreaType.AreaTypeVolcanic]);
 
-			encounter.setInArea(AreaType.AreaTypeSnowy, true);
+			encounter.setAreaTypes([...encounter.getAreaTypes(), AreaType.AreaTypeSnowy]);
 			expect(encounter.getZoneId()).toBe(0);
 			expect(encounter.getAreaTypes()).toEqual([AreaType.AreaTypeSnowy, AreaType.AreaTypeCavernous, AreaType.AreaTypeVolcanic]);
 

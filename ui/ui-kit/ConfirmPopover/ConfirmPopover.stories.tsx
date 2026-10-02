@@ -29,7 +29,6 @@ const meta = {
 		trigger: 'Remove',
 		triggerClassName: 'border border-danger px-4 py-2 text-danger',
 		confirmLabel: 'Delete',
-		cancelLabel: 'Keep',
 		children: "Delete saved gear 'Pre-raid'?",
 	},
 	argTypes: {

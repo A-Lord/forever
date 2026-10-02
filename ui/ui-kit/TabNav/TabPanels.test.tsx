@@ -13,7 +13,7 @@ describe('TabPanels', () => {
 					<TabPanel value="a">
 						<div data-testid="a-content">A</div>
 					</TabPanel>
-					<TabPanel value="b" keepMounted>
+					<TabPanel value="b">
 						<div data-testid="b-content">B</div>
 					</TabPanel>
 				</TabPanels>

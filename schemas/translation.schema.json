@@ -6482,9 +6482,6 @@
 										"type": {
 											"type": "string"
 										},
-										"strategy": {
-											"type": "string"
-										},
 										"buff_type": {
 											"type": "string"
 										},
@@ -6513,7 +6510,6 @@
 									"additionalProperties": false,
 									"required": [
 										"type",
-										"strategy",
 										"buff_type",
 										"min_icd",
 										"min_icd_tooltip",
@@ -6552,22 +6548,6 @@
 									},
 									"additionalProperties": false,
 									"required": ["single_target", "aoe"]
-								},
-								"hotw_strategies": {
-									"type": "object",
-									"properties": {
-										"caster": {
-											"type": "string"
-										},
-										"cat": {
-											"type": "string"
-										},
-										"hybrid": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["caster", "cat", "hybrid"]
 								},
 								"unit_labels": {
 									"type": "object",
@@ -6635,7 +6615,6 @@
 								"field_configs",
 								"eclipse_types",
 								"rotation_types",
-								"hotw_strategies",
 								"unit_labels",
 								"placeholder_tooltip",
 								"select_variable",

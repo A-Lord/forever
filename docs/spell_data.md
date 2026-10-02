@@ -288,8 +288,9 @@ refuses but no form allows by leaving the form first, once, after every other ch
 holds in a stance-type form too: Healing Touch in Moonkin Form and Wrath in Tree of Life leave the form.
 
 - A class that reads the store by hand takes `row.CastRequirement()`.
-- A hand-built spell with no row states it by hand: `core.InForms(dbcenums.FORM_BATTLE_STANCE)`, with
-  `.Excluding(...)` and `.OrCasterForm()`, or the struct literal for the attribute bits.
+- A hand-built spell with no row states it by hand as a `core.CastRequirement` literal:
+  `Forms: dbcenums.FORM_BATTLE_STANCE.Mask()`, with `ExcludedForms`, `CasterForm` and the attribute
+  bits beside it.
 - A talent that swaps a spell on the action bar (`A_OVERRIDE_ACTIONBAR_SPELLS`) swaps its row too:
   Vanguard's Charge takes `chargeRank.OverriddenBy(spellData.Vanguard.Highest()).CastRequirement()`,
   whose row allows Defensive Stance.
@@ -777,10 +778,9 @@ generator reads that off the tooltip into `core.ProcHint`:
 | `ProcHintNamedAbility` | the clause names one ability ("your Shock spells"), which no proc mask can state                                                                        |
 | `ProcHintOutcomeTaken` | the clause names an outcome the mask has no bit for, which clears `RequireDamageDealt`                                                                  |
 
-The last two are shapes the decode reads past rather than models, and they are what
-`ProcTriggerUnsupported(character, row)` reports alongside the decoder's own unsupported bits. A
-trigger is still built for all of them: a listener that hears fewer hits than the game files state is
-deliberately the narrower one.
+The last two are shapes the decode reads past rather than models. A trigger is still built for them
+and for the bits the decoder names as unsupported: a listener that hears fewer hits than the game files
+state is deliberately the narrower one.
 
 A class mask naming **another class's** family is dropped rather than obeyed. An item every class can
 wear states the filter of the one class it was written for, and on anyone else that mask matches
@@ -846,9 +846,9 @@ sentinel ("often", "sometimes", "a chance to"), which makes it `ProcChancePPM`. 
 crit and heal wording is left alone: which hits feed the aura is its own mask's to say.
 A combat spell and an aura applying the same spell (Crusader) register once, as the combat spell.
 
-`spelldata.ItemProcUnsupported(trigger, isWeaponProc)` is the single decision about whether the rows
-say enough. The generator calls it when it writes the item files, the audit calls it, and a test pins
-it, so a proc the generator emits is one the sim can build and a proc it comments out carries the
+`spelldata.ItemProcUnsupportedWithRate(trigger, isWeaponProc, itemPPM)` is the single decision about
+whether the rows say enough; `itemPPM` is the rate a weapon's item effect states, 0 where it states
+none. The generator calls it when it writes the item files, the audit calls it, and a test pins it, so a proc the generator emits is one the sim can build and a proc it comments out carries the
 reason in the comment. `tools/database/unsupported_procs.txt` is the audit's census of every proc an
 item, enchant or set can reach and what the rows refuse; `sim/common/forever/registered_effects.txt`
 lists the item and enchant effects that do register. Neither is tracked: each is a local baseline its

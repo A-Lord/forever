@@ -1,6 +1,5 @@
+import type { ContentRow, RotationModel, Row, RowItem } from '@features/results/model/timeline/rotation';
 import type { ActionId } from '@sim/proto/action_id';
-
-import type { ContentRow, RotationModel, Row, RowItem } from '../../../model/timeline/rotation';
 
 /** Enough of an `ActionId` for `useActionId` to resolve without filling. */
 export const actionId = (name: string): ActionId =>

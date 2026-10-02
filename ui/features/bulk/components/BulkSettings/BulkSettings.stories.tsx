@@ -4,7 +4,7 @@ import { StoryBoolean } from '@testing/storybook/fixtures/settings_reforge_bulk'
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantsView } from '../BulkEnchants';
+import { BulkEnchantsView } from '../BulkEnchants/BulkEnchants';
 import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettings';
 import { CombinationsCountView } from './CombinationsCount';
 

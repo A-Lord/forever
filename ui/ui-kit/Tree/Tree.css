@@ -44,13 +44,6 @@
 				@apply border-s-primary;
 			}
 		}
-
-		&[data-orientation='horizontal'] {
-			--tree-flow: column;
-			--tree-track: max-content;
-			--tree-drop-before: calc(var(--spacing-tree-drop-line) * -1) 0;
-			--tree-drop-after: var(--spacing-tree-drop-line) 0;
-		}
 	}
 
 	.ui-tree-items {

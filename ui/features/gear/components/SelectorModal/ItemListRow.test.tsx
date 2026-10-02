@@ -34,7 +34,7 @@ const store = vi.hoisted(() => {
 vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: () => ({ iconUrl: 'icon-url.png', name: 'item-name', href: 'https://example.com/item', ready: true }),
 }));
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(store.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions(store.subscribe));
 vi.mock('@features/bulk/model/items', () => ({
 	hasBulkItem: (_player: unknown, spec: ItemSpec) => batch.hasItem(spec),
 	addBulkItem: (_player: unknown, spec: ItemSpec) => batch.addItem(spec),

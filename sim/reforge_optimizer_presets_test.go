@@ -5,6 +5,7 @@ package sim
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	reforgeoptimizer "github.com/wowsims/forever/sim/core/reforge_optimizer"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 	"google.golang.org/protobuf/encoding/protojson"
 	protopkg "google.golang.org/protobuf/proto"
@@ -24,7 +26,7 @@ import (
 const reforgeFixturesDir = "core/reforge_optimizer/test-fixtures"
 
 func TestReforgerOptimizer(t *testing.T) {
-	if len(core.ItemsWithSockets()) == 0 {
+	if !slices.ContainsFunc(assetsdb.Load().Items, func(item *proto.UIItem) bool { return len(item.GemSockets) > 0 }) {
 		t.Skip("no socketed items in the database - Forever encrypts item stats until discovery")
 	}
 	RegisterAll()
@@ -47,7 +49,7 @@ func TestReforgerOptimizer(t *testing.T) {
 				t.Fatal("preset has no player equipment to compare against")
 			}
 
-			result := reforgeoptimizer.Optimize(request)
+			result := reforgeoptimizer.OptimizeAsync(request, simsignals.CreateSignals())
 			if err := result.GetError(); err != nil {
 				t.Fatalf("Optimize returned error: %s", err.GetMessage())
 			}

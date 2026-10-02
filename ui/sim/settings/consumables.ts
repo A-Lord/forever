@@ -212,13 +212,7 @@ const STAT_TYPES = [
 // resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
 // (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
 // handTakesImbue.
-export function isConsumableRelevant(
-	consumable: Consumable,
-	user: ConsumableUser,
-	db: SpellEffectSource,
-	stats = consumableStatsOf(user.getSpecConfig()),
-	pseudoStats = consumablePseudoStatsOf(user.getSpecConfig()),
-): boolean {
+function isConsumableRelevant(consumable: Consumable, user: ConsumableUser, db: SpellEffectSource, stats: Set<Stat>, pseudoStats: Set<PseudoStat>): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
 	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession, consumable.reqProfRank))
 		return false;
@@ -257,7 +251,7 @@ const rankLadders = (consumables: ReadonlyArray<Consumable>): Array<Array<{ cons
 	return [...ladders.values()];
 };
 
-export function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
+function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable> {
 	const kept = new Set(rankLadders(consumables).map(ladder => ladder.reduce((best, entry) => (entry.rank > best.rank ? entry : best)).consumable));
 	return consumables.filter(consumable => kept.has(consumable));
 }

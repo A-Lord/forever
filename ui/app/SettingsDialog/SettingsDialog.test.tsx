@@ -64,7 +64,8 @@ const mount = (sim: FakeSim, applyDefaults = vi.fn()) => {
 	return { ...rendered, applyDefaults };
 };
 
-const container = () => document.querySelector('[data-testid="use-concurrency-container"]') as HTMLElement;
+const byId = (id: string) => document.getElementById(id) as HTMLElement;
+const concurrencyRow = () => screen.getByTestId('use-concurrency-container');
 
 describe('SettingsDialog', () => {
 	it('keeps the concurrency row mounted and hides it with the attribute when the sim is not wasm', async () => {
@@ -72,9 +73,9 @@ describe('SettingsDialog', () => {
 		sim.wasm = Promise.resolve(false);
 		mount(sim);
 
-		expect(container().hidden).toBe(false);
-		await waitFor(() => expect(container().hidden).toBe(true));
-		expect(container().isConnected).toBe(true);
+		expect(concurrencyRow().hidden).toBe(false);
+		await waitFor(() => expect(concurrencyRow().hidden).toBe(true));
+		expect(concurrencyRow().isConnected).toBe(true);
 	});
 
 	it('writes a toggle through to the sim', () => {
@@ -82,7 +83,7 @@ describe('SettingsDialog', () => {
 		mount(sim);
 
 		act(() => {
-			fireEvent.click(document.getElementById('simui-show-threat-metrics')!);
+			fireEvent.click(byId('simui-show-threat-metrics'));
 		});
 		expect(sim.getShowThreatMetrics()).toBe(true);
 	});
@@ -137,13 +138,11 @@ const props = (overrides: Partial<SettingsDialogViewProps> = {}): SettingsDialog
 	...overrides,
 });
 
-const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const pick = async (id: string, option: string) => {
 	await userEvent.click(byId(id));
 	await userEvent.click(screen.getByRole('option', { name: option }));
 };
 const checked = (testId: string) => within(screen.getByTestId(testId)).getByRole('checkbox').getAttribute('aria-checked');
-const concurrencyRow = () => screen.getByTestId('use-concurrency-container');
 const workerNote = () => concurrencyRow().querySelector('.ui-help-text') as HTMLElement;
 
 describe('SettingsDialogView', () => {

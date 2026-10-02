@@ -7,21 +7,16 @@ import { VirtualList } from './VirtualList';
 interface VirtualListStoryProps {
 	count: number;
 	rowHeight?: number;
-	overscan?: number;
 }
 
-const HEIGHT = 320;
-
-const VirtualListStory = ({ count, rowHeight, overscan }: VirtualListStoryProps) => {
+const VirtualListStory = ({ count, rowHeight }: VirtualListStoryProps) => {
 	const scroller = useRef<HTMLDivElement>(null);
 	return (
 		<Box ref={scroller} padding="none" className="h-80 w-96 overflow-y-auto" testId="story-scroller">
 			<VirtualList
 				count={count}
 				rowHeight={rowHeight}
-				overscan={overscan}
 				getScrollElement={() => scroller.current}
-				initialRect={{ width: 384, height: HEIGHT }}
 				rowClassName={() => 'flex items-center px-2 data-[stripe=odd]:bg-white/5'}
 				renderRow={index => (
 					<>

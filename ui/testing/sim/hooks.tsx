@@ -1,10 +1,9 @@
+import { SimHostProvider } from '@sim/context/SimHostContext';
+import { ActionId } from '@sim/proto/action_id';
+import { createSimStore } from '@sim/state/sim_store';
 import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { vi } from 'vitest';
-
-import { SimHostProvider } from '../context/SimHostContext';
-import { ActionId } from '../proto/action_id';
-import { createSimStore } from '../state/sim_store';
 
 /** A filled ActionId as fill() returns one: same id fields, plus name and iconUrl. */
 export const filled = (actionId: ActionId, name: string, iconUrl: string) =>

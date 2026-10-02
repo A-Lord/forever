@@ -63,7 +63,6 @@ const meta = {
 		children: { control: false },
 		footer: { control: false },
 		headerChildren: { control: false },
-		container: { control: false },
 	},
 	render: args => <DialogStory {...args} />,
 } satisfies Meta<typeof Dialog>;

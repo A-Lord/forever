@@ -1,10 +1,10 @@
 import type { ControlledProps, FieldFrameProps } from '@ui-kit/Field';
 import type { InputSize } from '@ui-kit/FormControl';
 
-/** How a value becomes the field's text and back; `parse` returns `undefined` for text that commits nothing. */
+/** How a value becomes the field's text and back. */
 export interface TextCodec<V> {
 	format(value: V): string;
-	parse(text: string): V | undefined;
+	parse(text: string): V;
 }
 
 /**

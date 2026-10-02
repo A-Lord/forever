@@ -15,7 +15,6 @@ export interface ConfirmPopoverProps {
 	side?: PopoverProps['side'];
 	backdrop?: PopoverProps['backdrop'];
 	confirmLabel?: string;
-	cancelLabel?: string;
 	/** Omit for a message that is only acknowledged: one dismissing button, no cancel. */
 	onConfirm?: () => void;
 	children?: ReactNode;
@@ -32,7 +31,6 @@ export const ConfirmPopover = ({
 	side = 'top',
 	backdrop = true,
 	confirmLabel,
-	cancelLabel,
 	onConfirm,
 	children,
 	testId,
@@ -55,7 +53,7 @@ export const ConfirmPopover = ({
 			{onConfirm ? (
 				<>
 					<Button variant="outline-cancel" size="sm" onClick={() => onOpenChange(false)}>
-						{cancelLabel ?? i18n.t('common.cancel')}
+						{i18n.t('common.cancel')}
 					</Button>
 					<Button
 						variant="cancel"
