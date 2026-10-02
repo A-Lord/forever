@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	assetsdb "github.com/wowsims/forever/assets/database"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
@@ -388,7 +389,8 @@ func TestConsumablesFollowTheNotShapeshiftedRow(t *testing.T) {
 	}
 	var breakingID, safeID int32
 	var breakingSpell, safeSpell int32
-	for _, id := range core.ConsumableIDs() {
+	for _, consumable := range assetsdb.Load().Consumables {
+		id := consumable.Id
 		item := core.GetConsumableByID(id)
 		if !interesting[item.Type] || len(item.OnUseEffects()) == 0 {
 			continue
