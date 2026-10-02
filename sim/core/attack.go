@@ -711,8 +711,30 @@ func (aa *AutoAttacks) startPull(sim *Simulation) {
 	}
 }
 
+// An attack whose spell states a range reaches as far as the spell does, so a range mod on the spell
+// (Hawk Eye, Sniper Shot on Auto Shot) moves the auto attack too.
 func (wa *WeaponAttack) IsInRange() bool {
-	return (wa.MinRange == 0. || wa.MinRange <= wa.unit.DistanceFromTarget) && (wa.MaxRange == 0. || wa.MaxRange >= wa.unit.DistanceFromTarget)
+	maxRange := wa.MaxRange
+	if wa.spell != nil && wa.spell.MaxRange != 0 {
+		maxRange = wa.spell.MaxRange * wa.spell.RangeMultiplier
+	}
+	return (wa.MinRange == 0. || wa.MinRange <= wa.unit.DistanceFromTarget) && (maxRange == 0. || maxRange >= wa.unit.DistanceFromTarget)
+}
+
+// Starts or stops the ranged auto attack when the target has come into or gone out of its range.
+func (aa *AutoAttacks) UpdateRangedRange(sim *Simulation) {
+	if !aa.AutoSwingRanged {
+		return
+	}
+	inRange := aa.ranged.IsInRange()
+	if aa.ranged.enabled == inRange {
+		return
+	}
+	if inRange {
+		aa.EnableRangedSwing(sim)
+	} else {
+		aa.CancelRangedSwing(sim)
+	}
 }
 
 // Stops the auto swing action for the rest of the iteration. Used for pets

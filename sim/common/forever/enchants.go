@@ -6,8 +6,20 @@ import (
 	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
+
+// Revelation's buff per class. Warriors and rogues have none.
+var revelationBuffs = map[proto.Class]int32{
+	proto.Class_ClassMage:    1248808,
+	proto.Class_ClassPriest:  1323377,
+	proto.Class_ClassWarlock: 1323392,
+	proto.Class_ClassDruid:   1323400,
+	proto.Class_ClassHunter:  1323410,
+	proto.Class_ClassShaman:  1323418,
+	proto.Class_ClassPaladin: 1323419,
+}
 
 func init() {
 
@@ -204,6 +216,53 @@ func init() {
 			},
 			Handler: handler,
 		})
+	})
+
+	// Enchant Weapon - Revelation
+	// EffectID: 8217, Proc SpellID: 1248806
+	// The proc spell names no buff: each class with spells to crit has a Revelation of its own, and the
+	// wearer gets its class's, with that row's class flags and charge. The game files state no rate:
+	// 9% on each direct spell or heal that lands without a crit, measured from logs, with no lockout
+	// and no proc while the buff is up.
+	// TODO: Verify in game that the buff is the wearer's class's, and that warriors and rogues get none.
+	core.NewEnchantEffect(8217, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		buffID, ok := revelationBuffs[character.Class]
+		if !ok {
+			return
+		}
+
+		row := spelldata.MustFind(buffID)
+		buff := character.RegisterAura(spelldata.AuraConfig(row))
+		spelldata.ParseEffects(character, buff, row)
+		character.ItemSwap.RegisterWeaponEnchantBuff(buff, 8217)
+
+		// The charge goes to the next cast the crit modifier reaches, whatever its proc mask.
+		// TODO: Ingame test needed -- a cast that hits several targets spends one Revelation charge.
+		spender := spelldata.AttachChargeSpender(character, buff, row, "Revelation Charge",
+			func(_ *core.Character, trigger *core.ProcTrigger) {
+				trigger.ProcMask = core.ProcMaskUnknown
+			})
+
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1248806), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			buff.Activate(sim)
+			buff.SetStacks(sim, buff.MaxStacks)
+		}, spelldata.Chance(0.09))
+		trigger.Name = "Enchant Weapon - Revelation"
+		trigger.Outcome = core.OutcomeLanded
+		// The row's listener hears direct spells and heals. A ranged Shot the buff's class flags name
+		// rolls the same chance, which the hunter buff's Arcane Shot and Volley are.
+		// TODO: Verify in game that a hunter's Arcane Shot and Volley proc Revelation.
+		spellHits, classFlags := trigger.ProcMask, spender.ClassFlags
+		trigger.ProcMask = core.ProcMaskUnknown
+		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+			shot := spell.DefenseType == core.DefenseTypeRanged && spell.MatchesFlags(classFlags)
+			if !spell.ProcMask.Matches(spellHits) && !shot {
+				return false
+			}
+			return !result.DidCrit() && !buff.IsActive()
+		}
+		character.ItemSwap.RegisterEnchantProc(8217, character.MakeProcTriggerAura(trigger))
 	})
 
 	// Scopes
