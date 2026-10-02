@@ -437,7 +437,8 @@ message BulkSimRequest {
 	repeated BulkGearCandidate candidates = 3;
 	repeated BulkGearCandidate optimized_candidates = 4;
 	int32 top_results = 5;
-	int32 high_stage_iterations = 6;
+	reserved 6;
+	reserved "high_stage_iterations";
 	ReforgeOptimizeRequest reforge_request = 7;
 	BulkSettings bulk_settings = 8;
 }
@@ -759,7 +760,8 @@ message ProgressMetrics {
 
 message BulkSettings {
 	repeated ItemSpec items = 1;
-	int32 iterations_per_combo = 2;
+	reserved 2;
+	reserved "iterations_per_combo";
 
 	int32 freeze_ring_slot = 3;
 	int32 freeze_trinket_slot = 4;

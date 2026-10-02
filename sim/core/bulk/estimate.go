@@ -4,23 +4,21 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// bulkSimHighStageFloor is the high stage's iteration floor: the requested count, or the stage's own minimum when the request leaves it unset.
-func bulkSimHighStageFloor(requested int32) int32 {
-	return getBulkSimStageMinIterations(requested, BulkSimStageConfigs[len(BulkSimStageConfigs)-1])
+func bulkSimHighStageFloor() int32 {
+	return BulkSimStageConfigs[len(BulkSimStageConfigs)-1].MinIterations
 }
 
-func shouldUseSingleStageBulkSim(highStageIterations int32, candidateCount int) bool {
+func shouldUseSingleStageBulkSim(candidateCount int) bool {
 	if candidateCount < BulkSimMinCombinations {
 		return true
 	}
 
-	highStageIterations = bulkSimHighStageFloor(highStageIterations)
-	fullRunIterations := int64(highStageIterations) * int64(candidateCount)
-	estimatedMultistageIterationsUpperBound := getBulkSimOptimisationIterationsUpperBound(highStageIterations, candidateCount)
+	fullRunIterations := int64(bulkSimHighStageFloor()) * int64(candidateCount)
+	estimatedMultistageIterationsUpperBound := getBulkSimOptimisationIterationsUpperBound(candidateCount)
 	return estimatedMultistageIterationsUpperBound >= fullRunIterations
 }
 
-func getBulkSimOptimisationIterationsUpperBound(highStageIterations int32, candidateCount int) int64 {
+func getBulkSimOptimisationIterationsUpperBound(candidateCount int) int64 {
 	remainingCandidates := candidateCount
 	var iterations int64
 
@@ -32,22 +30,20 @@ func getBulkSimOptimisationIterationsUpperBound(highStageIterations int32, candi
 			continue
 		}
 
-		stageIterations := getBulkSimStageMinIterations(highStageIterations, stageConfig)
-		iterations += int64(stageIterations) * int64(remainingCandidates+1)
+		iterations += int64(stageConfig.MinIterations) * int64(remainingCandidates+1)
 		remainingCandidates = min(remainingCandidates, getBulkSimStageMaxSurvivors(stageConfig, remainingCandidates))
 	}
 
-	return iterations + int64(highStageIterations)*int64(remainingCandidates+1)
+	return iterations + int64(bulkSimHighStageFloor())*int64(remainingCandidates+1)
 }
 
 // estimateBulkSimIterations is what a batch of candidateCount gear sets sims at each stage's minimum, the baseline included,
 // with every culling stage keeping its most survivors. The error target can raise a stage above its minimum, and the adaptive
 // passes and the finalist stage add iterations on top, so a run usually sims more.
 func estimateBulkSimIterations(candidateCount int) int64 {
-	highStageIterations := BulkSimStageConfigs[len(BulkSimStageConfigs)-1].MinIterations
-	if shouldUseSingleStageBulkSim(highStageIterations, candidateCount) {
-		return int64(highStageIterations) * int64(candidateCount+1)
+	if shouldUseSingleStageBulkSim(candidateCount) {
+		return int64(bulkSimHighStageFloor()) * int64(candidateCount+1)
 	}
 
-	return getBulkSimOptimisationIterationsUpperBound(highStageIterations, candidateCount)
+	return getBulkSimOptimisationIterationsUpperBound(candidateCount)
 }

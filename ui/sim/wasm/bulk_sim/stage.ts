@@ -74,20 +74,10 @@ export const shouldRunBulkSimStage = (config: ConcurrentBulkSimStageConfig, cand
 	);
 };
 
-export const getBulkSimStageMinIterations = (request: BulkSimRequest, config: ConcurrentBulkSimStageConfig): number => {
-	if (config.stage == BulkSimStage.BulkSimStageHigh && request.highStageIterations > 0) {
-		return request.highStageIterations;
-	}
-	return config.minIterations ?? request.highStageIterations;
-};
+export const getBulkSimStageMinIterations = (config: ConcurrentBulkSimStageConfig): number => config.minIterations ?? 0;
 
-const getBulkSimStageIterations = (
-	request: BulkSimRequest,
-	config: ConcurrentBulkSimStageConfig,
-	baselineMetrics: DistributionMetrics | undefined,
-	candidateCount: number,
-): number => {
-	const minIterations = getBulkSimStageMinIterations(request, config);
+const getBulkSimStageIterations = (config: ConcurrentBulkSimStageConfig, baselineMetrics: DistributionMetrics | undefined, candidateCount: number): number => {
+	const minIterations = getBulkSimStageMinIterations(config);
 	const targetIterations = getBulkSimTargetIterations(config.targetErrorPct, baselineMetrics, candidateCount);
 	return Math.max(minIterations, targetIterations);
 };
@@ -267,7 +257,7 @@ export const runConcurrentBulkSimStage = async (
 	carryOver?: ConcurrentBulkSimStageCarryOver,
 ): Promise<ConcurrentBulkSimStageResult> => {
 	const startedAt = new Date().getTime();
-	const minIterations = getBulkSimStageMinIterations(request, config);
+	const minIterations = getBulkSimStageMinIterations(config);
 	const carry = bulkSimCarryOverCovers(carryOver, candidates) ? carryOver : undefined;
 	const carriedIterations = carry?.iterations ?? 0;
 	const concurrency = Math.min(workerPool.getNumWorkers(), candidates.length);
@@ -298,7 +288,7 @@ export const runConcurrentBulkSimStage = async (
 	}
 	probeEmitter.report(1, probeDelta, baselineProbe.dpsMetrics?.avg ?? 0);
 
-	const iterations = Math.max(getBulkSimStageIterations(request, config, baselineProbe.dpsMetrics, candidates.length), probeIterations);
+	const iterations = Math.max(getBulkSimStageIterations(config, baselineProbe.dpsMetrics, candidates.length), probeIterations);
 	const baselineDelta = iterations - probeIterations;
 	const candidateDelta = iterations - carriedIterations;
 	const probeSims = probeDelta > 0 ? 1 : 0;

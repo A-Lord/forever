@@ -1,17 +1,16 @@
-import { BulkSimRequest, BulkSimStage } from '@generated/proto/api';
+import { BulkSimStage } from '@generated/proto/api';
 
 import { BULK_SIM_MIN_COMBINATIONS } from './constants_auto_gen';
 import { bulkSimStageConfigs, getBulkSimStageMaxSurvivors, getBulkSimStageMinIterations, shouldRunBulkSimStage } from './stage';
 
-export const bulkSimHighStageFloor = (request: BulkSimRequest): number =>
-	getBulkSimStageMinIterations(request, bulkSimStageConfigs[bulkSimStageConfigs.length - 1]!);
+export const bulkSimHighStageFloor = (): number => getBulkSimStageMinIterations(bulkSimStageConfigs[bulkSimStageConfigs.length - 1]!);
 
-export const shouldUseSingleStageBulkSim = (request: BulkSimRequest, candidateCount: number): boolean => {
+export const shouldUseSingleStageBulkSim = (candidateCount: number): boolean => {
 	if (candidateCount < BULK_SIM_MIN_COMBINATIONS) {
 		return true;
 	}
 
-	const highStageIterations = bulkSimHighStageFloor(request);
+	const highStageIterations = bulkSimHighStageFloor();
 	let remainingCandidates = candidateCount;
 	let estimatedOptimisationIterationsUpperBound = 0;
 
@@ -23,7 +22,7 @@ export const shouldUseSingleStageBulkSim = (request: BulkSimRequest, candidateCo
 			continue;
 		}
 
-		estimatedOptimisationIterationsUpperBound += getBulkSimStageMinIterations(request, config) * (remainingCandidates + 1);
+		estimatedOptimisationIterationsUpperBound += getBulkSimStageMinIterations(config) * (remainingCandidates + 1);
 		remainingCandidates = Math.min(remainingCandidates, getBulkSimStageMaxSurvivors(config, remainingCandidates) ?? remainingCandidates);
 	}
 

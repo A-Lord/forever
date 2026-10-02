@@ -3347,6 +3347,9 @@
 						"total_iterations": {
 							"type": "string"
 						},
+						"total_iterations_tooltip": {
+							"type": "string"
+						},
 						"groups": {
 							"type": "object",
 							"properties": {
@@ -3505,6 +3508,7 @@
 					"required": [
 						"combinations",
 						"total_iterations",
+						"total_iterations_tooltip",
 						"groups",
 						"iterations",
 						"freeze_ring",

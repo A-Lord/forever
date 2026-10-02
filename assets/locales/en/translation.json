@@ -950,7 +950,8 @@
 		},
 		"settings": {
 			"combinations": "Combinations",
-			"total_iterations": "Estimated iterations",
+			"total_iterations": "Minimum iterations",
+			"total_iterations_tooltip": "The batch sims at least this many iterations. The error target adds more as it runs.",
 			"groups": {
 				"enchants": "Enchants",
 				"frozen_slots": "Frozen slots",

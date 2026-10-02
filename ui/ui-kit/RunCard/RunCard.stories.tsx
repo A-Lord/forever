@@ -155,7 +155,7 @@ export const Batch: Story = {
 			<dl className="mb-0 grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2">
 				<dt className="font-normal">Combinations</dt>
 				<dd className="mb-0 text-right font-bold tabular-nums">12</dd>
-				<dt className="font-normal">Estimated iterations</dt>
+				<dt className="font-normal">Minimum iterations</dt>
 				<dd className="mb-0 flex items-center justify-end gap-2 font-bold tabular-nums">120,000</dd>
 			</dl>
 		),

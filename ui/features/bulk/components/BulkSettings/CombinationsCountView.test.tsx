@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { CombinationsCountView, type CombinationsCountViewProps } from './CombinationsCountView';
@@ -21,6 +21,15 @@ describe('CombinationsCountView', () => {
 		expect(screen.getByTestId('bulk-total-iterations').textContent).toBe('24,000');
 		expect(screen.getByTestId('bulk-total-iterations').hasAttribute('data-over-limit')).toBe(false);
 		expect(screen.queryByTestId('warning')).toBeNull();
+	});
+
+	it('explains on the iterations label that the count is a minimum', async () => {
+		renderCount();
+		const label = screen.getByTestId('bulk-total-iterations-label');
+
+		expect(label.textContent).toBe('bulk_tab.settings.total_iterations');
+		fireEvent.focus(label);
+		expect(await screen.findByText('bulk_tab.settings.total_iterations_tooltip')).toBeTruthy();
 	});
 
 	it('warns once the iterations pass the limit', () => {
