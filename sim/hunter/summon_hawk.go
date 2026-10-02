@@ -58,14 +58,31 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 			MainHand:       petSwing,
 			AutoSwingMelee: true,
 		})
-		// The damage done is the owner's as the hawk is summoned.
+		// The damage done is the owner's as the hawk is summoned, on top of the hawk's own.
+		inherited := 1.0
 		hawk.OnPetEnable = func(sim *core.Simulation) {
-			hawk.PseudoStats.DamageDealtMultiplier = hunter.PseudoStats.DamageDealtMultiplier
+			inherited = hunter.PseudoStats.DamageDealtMultiplier
+			hawk.PseudoStats.DamageDealtMultiplier *= inherited
+		}
+		hawk.OnPetDisable = func(sim *core.Simulation) {
+			hawk.PseudoStats.DamageDealtMultiplier /= inherited
 		}
 		hunter.AddPet(hawk)
 		hawks[i] = hawk
 	}
 	return hawks
+}
+
+// The tamed pet and the hawks: what the talents that name the pet reach.
+func (hunter *Hunter) pets() []*core.Pet {
+	var pets []*core.Pet
+	if hunter.Pet != nil {
+		pets = append(pets, &hunter.Pet.Pet)
+	}
+	for _, hawk := range hunter.Hawks {
+		pets = append(pets, &hawk.Pet)
+	}
+	return pets
 }
 
 // The dive's damage, then a hawk for 18 s. The hawks take turns, so one past the count replaces
