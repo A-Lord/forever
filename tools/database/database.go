@@ -30,9 +30,12 @@ func EnchantToDBKey(enchant *proto.UIEnchant) EnchantDBKey {
 	}
 }
 
-// Whether an enchant in db.json survives the global filters: a deny-list, template, test or QA
-// name drops it.
+// Whether an enchant in db.json survives the global filters: a Season of Discovery item, or a
+// deny-list, template, test or QA name drops it.
 func KeepEnchant(enchant *proto.UIEnchant) bool {
+	if enchant.ItemId >= sodItemIDMin && enchant.ItemId <= sodItemIDMax {
+		return false
+	}
 	for _, pattern := range DenyListNameRegexes {
 		if pattern.MatchString(enchant.Name) {
 			return false

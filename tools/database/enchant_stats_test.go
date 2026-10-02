@@ -172,6 +172,57 @@ func TestEnchantSlot(t *testing.T) {
 	}
 }
 
+func TestEnchantLvl(t *testing.T) {
+	withDBCInputs(t)
+
+	for _, tc := range []struct {
+		effectID int
+		name     string
+		want     int32
+	}{
+		{24, "Enchant Chest - Minor Intellect", 12},
+		{33, "Accurate Scope", 36},
+		{8721, "Enchant Weapon - Recovery", 28},
+		{7210, "Enchant Weapon - Dismantle", 45},
+		{8204, "Enchant Bracer - Lesser Agility", 28},
+		{7659, "Enchant Off-Hand - Superior Intellect", 60},
+		{247, "Enchant Bracer - Minor Agility", 19},
+		{1897, "Enchant 2H Weapon - Lesser Impact", 30},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := enchantByName(t, tc.effectID, tc.name).Lvl; got != tc.want {
+				t.Errorf("lvl %d, want %d", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestEnchantSourcesOutsideTheSoDItemRange(t *testing.T) {
+	withDBCInputs(t)
+
+	for _, tc := range []struct {
+		effectID int
+		name     string
+		itemID   int32
+		keep     bool
+	}{
+		{1900, "Enchant Weapon - Crusader", 16252, true},
+		{8721, "Enchant Weapon - Recovery", 249480, true},
+		{7940, "Enchant Weapon - Grand Crusader", 273607, true},
+		{7210, "Enchant Weapon - Dismantle", 273590, true},
+		{7124, "Wolfshead Trophy", 212568, false},
+		{7919, "Tinker: Teleport", 238786, false},
+		{7563, "Blessed Flame Mantle of the Dawn", 227819, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			enchant := enchantByName(t, tc.effectID, tc.name)
+			if enchant.ItemId != tc.itemID || KeepEnchant(enchant) != tc.keep {
+				t.Errorf("item %d, kept %v; want item %d, kept %v", enchant.ItemId, KeepEnchant(enchant), tc.itemID, tc.keep)
+			}
+		})
+	}
+}
+
 // 13419 Enchant Cloak - Minor Agility names the weapon item class with the cloak inventory type in the
 // game files. The override patches the generated row rather than adding a second one.
 func TestCloakMinorAgilityFitsTheBack(t *testing.T) {

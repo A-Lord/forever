@@ -213,6 +213,7 @@ message UIEnchant {
 
 	ItemQuality quality = 9;
 	int32 phase = 10;
+	int32 lvl = 17; // The item level of an item that carries the enchant, else one derived from the skill it needs.
 
 	// Classes that are allowed to use the enchant. Empty indicates no special class restrictions.
 	repeated Class class_allowlist = 11;
