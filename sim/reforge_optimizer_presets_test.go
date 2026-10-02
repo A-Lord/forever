@@ -80,13 +80,16 @@ func TestReforgerOptimizer(t *testing.T) {
 					t.Logf("slot %d: got      %s", i, optJSON)
 				}
 			}
+			if optimized == nil {
+				t.Fatal("Optimize returned no optimized player stats")
+			}
 			for i, want := range expected.GetStats() {
-				if got := optimized.GetStats()[i]; got != want {
+				if got := statAt(optimized.GetStats(), i); got != want {
 					t.Logf("stat %-24s expected=%8.2f got=%8.2f", stats.Stat(i).StatName(), want, got)
 				}
 			}
 			for i, want := range expected.GetPseudoStats() {
-				if got := optimized.GetPseudoStats()[i]; got != want {
+				if got := statAt(optimized.GetPseudoStats(), i); got != want {
 					t.Logf("stat %-24s expected=%8.4f got=%8.4f", proto.PseudoStat(i).String(), want, got)
 				}
 			}
@@ -128,6 +131,13 @@ func reforgeGemOptionsFromDB() []*proto.ReforgeGemOption {
 		})
 	}
 	return options
+}
+
+func statAt(values []float64, i int) float64 {
+	if i < len(values) {
+		return values[i]
+	}
+	return 0
 }
 
 func loadReforgePreset(t *testing.T, fileName string) *proto.ReforgeOptimizeRequest {

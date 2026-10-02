@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/wowsims/forever/sim/core"
@@ -96,7 +98,8 @@ func (only SpellDataGroups) all() bool {
 // The game build the database was extracted from, which db2tool records in BuildInfo.
 func buildVersion(helper *DBHelper) (string, error) {
 	if !helper.tableExists("BuildInfo") {
-		return "", fmt.Errorf("the game files database names no game build (no BuildInfo table) - re-run `make db`")
+		return "", fmt.Errorf("the game files database names no game build (no BuildInfo table): stamp the build it holds " +
+			"(see \"Taking a new game build one spell data group at a time\" in docs/spell_data.md), or extract it again with `make db`")
 	}
 	var version string
 	if err := helper.db.QueryRow(`SELECT Version FROM BuildInfo`).Scan(&version); err != nil {
@@ -269,11 +272,24 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	}
 
 	oldOwners, freshOwners := ownersOf(old), ownersOf(fresh)
+	inFresh := map[int32]bool{}
+	for _, id := range freshOwners.ids {
+		inFresh[id] = true
+	}
+
+	// The committed store's ids are the ones its inputs carry rows for: Names holds every spell of the
+	// build, so a hand-kept seed added since is named there without being carried. A taken row takes the
+	// new build's version, unless the new build still names the spell and no longer reaches it: its rows
+	// were not captured then, and the committed row stays for the kept rows that still reach it.
 	oldIDs := map[int32]bool{}
 	moved := map[int32]bool{}
 	for _, id := range oldOwners.ids {
+		if !hasRows(&old.spellTables, id) {
+			continue
+		}
 		oldIDs[id] = true
-		if oldOwners.taken(id, only, kept) {
+		_, named := fresh.Names[id]
+		if oldOwners.taken(id, only, kept) && (inFresh[id] || !named) {
 			moved[id] = true
 		}
 	}
@@ -298,22 +314,36 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 		rootLists = append(rootLists, roots[p])
 	}
 
-	// What the taken rows and roots reach on the new build that the committed store does not carry is a
-	// spell the new build adds. No committed file names it, so it comes from the new build whichever
-	// group it belongs to.
-	seeds := slices.Sorted(maps.Keys(moved))
+	// A spell the committed store does not carry, which a taken row or root, a hand-kept extra spell or
+	// a buff manifest row reaches on the new build, is one the new build adds. No committed file names it,
+	// so it comes from the new build whichever group it belongs to. Only rows taken from the new build are
+	// followed: a kept row reaches what its committed version names.
+	queue := slices.Sorted(maps.Keys(moved))
 	for _, p := range allSpellDataGroups() {
 		if only.Takes(p) {
-			seeds = append(seeds, fresh.SpellDataGroupRoots[p]...)
+			queue = append(queue, fresh.SpellDataGroupRoots[p]...)
 		}
 	}
-	for _, id := range reachableSpells(&fresh.spellTables, seeds) {
-		if _, named := fresh.Names[id]; !named || oldIDs[id] || moved[id] {
+	hand := groupSeeds(nil)
+	for _, p := range allSpellDataGroups() {
+		queue = append(queue, hand[p]...)
+	}
+	followed := map[int32]bool{}
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+		if followed[id] || !inFresh[id] {
 			continue
 		}
-		moved[id] = true
-		notes = append(notes, fmt.Sprintf("row %d %s taken from %s: the new build adds it and a taken row reaches it",
-			id, fresh.Names[id], version))
+		followed[id] = true
+		if !oldIDs[id] && !moved[id] {
+			moved[id] = true
+			notes = append(notes, fmt.Sprintf("row %d %s taken from %s: the new build adds it and a taken row reaches it",
+				id, fresh.Names[id], version))
+		}
+		if moved[id] {
+			queue = append(queue, spellEdges(&fresh.spellTables, id)...)
+		}
 	}
 
 	t := cloneTables(&old.spellTables)
@@ -462,6 +492,28 @@ func adoptSpellDataGroups(old, fresh *storeInputs) (*storeInputs, []string, erro
 	return &adopted, notes, nil
 }
 
+// The groups a run takes that the committed inputs record on a later game build than the database's,
+// which taking would move back. A build is compared by its trailing build number, the part that grows
+// with every build; one that names none cannot be ordered and is not reported.
+func groupsOnALaterBuild(committed *storeInputs, only SpellDataGroups, version string) []string {
+	database, ok := buildNumber(version)
+	if !ok {
+		return nil
+	}
+	var later []string
+	for _, p := range allSpellDataGroups() {
+		if recorded, ok := buildNumber(committed.Builds[p]); ok && only.Takes(p) && recorded > database {
+			later = append(later, fmt.Sprintf("%s (%s)", p, committed.Builds[p]))
+		}
+	}
+	return later
+}
+
+func buildNumber(version string) (int, bool) {
+	number, err := strconv.Atoi(version[strings.LastIndexByte(version, '.')+1:])
+	return number, err == nil && version != ""
+}
+
 func describeBuild(build string) string {
 	if build == "" {
 		return "an unrecorded game build"
@@ -540,6 +592,19 @@ func moveRow(into, from *spellTables, id int32) {
 	moveValue(into.Effects, from.Effects, id)
 	moveValue(into.EnchantGrants, from.EnchantGrants, id)
 	moveValue(into.EnchantChances, from.EnchantChances, id)
+}
+
+// Whether the tables carry any row of the id besides its name.
+func hasRows(t *spellTables, id int32) bool {
+	tables, key := reflect.ValueOf(*t), reflect.ValueOf(id)
+	for i := range tables.NumField() {
+		field := tables.Type().Field(i)
+		if field.IsExported() && field.Name != "Names" && tables.Field(i).Kind() == reflect.Map &&
+			tables.Field(i).MapIndex(key).IsValid() {
+			return true
+		}
+	}
+	return false
 }
 
 func moveValue[V any](into, from map[int32]V, id int32) {

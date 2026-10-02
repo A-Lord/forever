@@ -225,6 +225,80 @@ func TestMergeTakesASpellTheNewBuildAdds(t *testing.T) {
 	}
 }
 
+func addRow(in *storeInputs, id, family int32, points float64, triggers ...int32) {
+	in.Names[id] = "spell"
+	if family != 0 {
+		in.ClassOptions[id] = core.ClassFlags{Family: family}
+	}
+	in.Effects[id] = []storeEffect{{SpellID: id, BasePoints: points}}
+	for _, trigger := range triggers {
+		addTrigger(in, id, trigger)
+	}
+}
+
+func addTrigger(in *storeInputs, from, to int32) {
+	in.Effects[from] = append(in.Effects[from], storeEffect{SpellID: from, TriggerID: to})
+}
+
+func TestMergeKeepsARowTheNewBuildNamesButNoLongerReaches(t *testing.T) {
+	old := groupWorld(1, 1)
+	addRow(old, 600, 0, 1)
+	addTrigger(old, 100, 600)
+	addTrigger(old, 200, 600)
+	fresh := groupWorld(2, 2)
+	fresh.Names[600] = "spell"
+
+	merged, _ := mergeInputs(t, old, fresh, "mage")
+	if got, ok := rowBuilds(merged)[600]; !ok || got != 1 {
+		t.Errorf("600 is on build %v (carried %v), want the old one: the kept warrior row still reaches it, and "+
+			"the new build names it without reaching it, so it has no rows to take", got, ok)
+	}
+}
+
+func TestMergeFollowsOnlyTheRowsItTakes(t *testing.T) {
+	old := groupWorld(1, 1)
+	addRow(old, 700, 4, 1)
+	addTrigger(old, 200, 700)
+	fresh := groupWorld(2, 2)
+	addRow(fresh, 700, 4, 2, 800)
+	addRow(fresh, 800, 0, 2)
+	addTrigger(fresh, 200, 700)
+
+	merged, notes := mergeInputs(t, old, fresh, "mage")
+	builds := rowBuilds(merged)
+	if builds[700] != 1 {
+		t.Errorf("700 is on build %v, want the old one: it states the warrior family", builds[700])
+	}
+	if _, carried := builds[800]; carried || slices.ContainsFunc(notes, func(n string) bool { return strings.Contains(n, "row 800") }) {
+		t.Errorf("800 is carried or noted (%q), but only the new build's warrior row reaches it, and that row is not taken", notes)
+	}
+}
+
+func TestChangeReportNamesARemovedRowAnUntakenGroupReaches(t *testing.T) {
+	old := groupWorld(1, 1)
+	addRow(old, 900, 0, 1)
+	addTrigger(old, 300, 900)
+	addTrigger(old, 100, 900)
+
+	merged, _ := mergeInputs(t, old, groupWorld(2, 2), "mage")
+	report := strings.Join(changeReport(old, merged, groupsOf(t, "mage"), "new"), "\n")
+	if !strings.Contains(report, "shared row 900 spell removed, also reached by warrior") {
+		t.Errorf("report does not warn that the warrior reaches the removed 900:\n%s", report)
+	}
+}
+
+func TestARunRefusesGroupsOnALaterBuild(t *testing.T) {
+	in := groupWorld(1, 1)
+	in.Builds[groupItems] = "1.60.1.70200"
+	in.Builds["druid"] = "1.60.1.70200"
+	if got := groupsOnALaterBuild(in, groupsOf(t, "mage"), "1.60.1.70170"); !slices.Equal(got, []string{"items (1.60.1.70200)"}) {
+		t.Errorf("later groups = %q, want items alone: druid is not taken", got)
+	}
+	if got := groupsOnALaterBuild(in, nil, "1.60.1.70300"); len(got) != 0 {
+		t.Errorf("later groups = %q, want none against a later database", got)
+	}
+}
+
 func TestMergeTakesTheRacialRowByItsTag(t *testing.T) {
 	merged, notes := mergeWorld(t, "racials")
 	builds := rowBuilds(merged)

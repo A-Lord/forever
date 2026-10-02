@@ -260,7 +260,7 @@ endif
 # docs/spell_data.md.
 CLASSES ?=
 RACIALS ?=
-SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(RACIALS),-racials)
+SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(filter 1 true yes,$(RACIALS)),-racials)
 GEN_DB_FLAGS := $(if $(CLASSES),-classes=$(CLASSES))
 
 # The spell store is regenerated before the item database, and the order is load-bearing: gen_db

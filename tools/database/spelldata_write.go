@@ -12,6 +12,8 @@ import (
 	"runtime"
 	"slices"
 	"sort"
+
+	"github.com/wowsims/forever/tools/database/dbc"
 )
 
 // Where the generator says what it did. -check silences it, so that a clean check prints nothing at
@@ -121,13 +123,18 @@ func buildStaged(staging string, overlay map[string]string, packages []string) e
 }
 
 // The packages to type-check: the ones the rendered Go files belong to, which is the store, the
-// shared enums, the buffs and one per class. The settings inputs and the proto messages are not Go.
+// shared enums, the buffs and the classes rendered, and every class package besides. The settings
+// inputs and the proto messages are not Go. A class a partial run does not render still compiles
+// against the store, the forms and the buffs it rewrites.
 func packagesOf(files map[string][]byte) []string {
 	seen := map[string]bool{}
 	for path := range files {
 		if filepath.Ext(path) == ".go" {
 			seen["./"+filepath.ToSlash(filepath.Dir(path))+"/"] = true
 		}
+	}
+	for _, class := range dbc.Classes {
+		seen["./sim/"+classGroup(class)+"/"] = true
 	}
 	return slices.Sorted(maps.Keys(seen))
 }

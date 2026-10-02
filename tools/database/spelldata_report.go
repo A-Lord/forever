@@ -40,14 +40,22 @@ func changeReport(old, fresh *storeInputs, only SpellDataGroups, version string)
 	}
 
 	var shared []string
+	noteShared := func(id int32, name, how, group string, others []string) {
+		if untaken := slices.DeleteFunc(others, only.Takes); len(untaken) > 0 && only.Takes(group) {
+			shared = append(shared, fmt.Sprintf("shared row %d %s %s, also reached by %s",
+				id, name, how, strings.Join(untaken, ", ")))
+		}
+	}
 	for _, id := range slices.Sorted(maps.Keys(mergeSets(inOld, inFresh))) {
 		switch {
 		case inFresh[id] && !inOld[id]:
-			group, _ := homeGroup(freshOwners, id, only)
+			group, others := homeGroup(freshOwners, id, only)
 			changes[group].added = append(changes[group].added, fmt.Sprintf("  + %d %s", id, fresh.Names[id]))
+			noteShared(id, fresh.Names[id], "added", group, others)
 		case inOld[id] && !inFresh[id]:
-			group, _ := homeGroup(oldOwners, id, only)
+			group, others := homeGroup(oldOwners, id, only)
 			changes[group].removed = append(changes[group].removed, fmt.Sprintf("  - %d %s", id, old.Names[id]))
+			noteShared(id, old.Names[id], "removed", group, others)
 		default:
 			tables := changedTables(old, fresh, id)
 			if len(tables) == 0 {
@@ -56,10 +64,7 @@ func changeReport(old, fresh *storeInputs, only SpellDataGroups, version string)
 			group, others := homeGroup(freshOwners, id, only)
 			changes[group].changed = append(changes[group].changed,
 				fmt.Sprintf("  ~ %d %s (%s)", id, fresh.Names[id], strings.Join(tables, ", ")))
-			if untaken := slices.DeleteFunc(others, only.Takes); len(untaken) > 0 && only.Takes(group) {
-				shared = append(shared, fmt.Sprintf("shared row %d %s changed, also reached by %s",
-					id, fresh.Names[id], strings.Join(untaken, ", ")))
-			}
+			noteShared(id, fresh.Names[id], "changed", group, others)
 		}
 	}
 

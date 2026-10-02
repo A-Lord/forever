@@ -1266,6 +1266,10 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]
 		if committed, err = readStoreInputs(spellStoreInputsPath); err != nil {
 			return nil, nil, err
 		}
+		if later := groupsOnALaterBuild(committed, only, version); len(later) > 0 {
+			return nil, nil, fmt.Errorf("the game files database is %s, and %s already record a later build: "+
+				"extract the later build, or leave those groups out", version, strings.Join(later, ", "))
+		}
 	}
 	if !only.all() {
 		if committed == nil {
