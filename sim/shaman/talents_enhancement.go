@@ -1,8 +1,6 @@
 package shaman
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -116,11 +114,6 @@ func (shaman *Shaman) applyToughness() {
 }
 
 var flurryBuff = spellData.FlurryTriggered.Highest()
-
-// The time Flurry needs between two of its charges spent, which the swing sync keeps the hands apart by.
-func FlurryChargeICD() time.Duration {
-	return flurryBuff.ICD()
-}
 
 func (shaman *Shaman) applyFlurry() {
 	if shaman.Talents.Flurry == 0 {

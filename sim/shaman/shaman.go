@@ -31,7 +31,6 @@ func NewShaman(character *core.Character, talents string, selfBuffs SelfBuffs) *
 	// stone. The consumable's enchant comes off before the weapons are built, which keeps its flat
 	// weapon damage off them, and its effect then finds no hand carrying it.
 	shaman.clearConsumableImbue(proto.ItemSlot_ItemSlotMainHand, selfBuffs.ImbueMH)
-	shaman.clearConsumableImbue(proto.ItemSlot_ItemSlotOffHand, selfBuffs.ImbueOH)
 
 	// Add Shaman stat dependencies
 	shaman.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
@@ -53,9 +52,6 @@ func (shaman *Shaman) GetImbueProcMask(imbue proto.ShamanImbue) core.ProcMask {
 	if shaman.SelfBuffs.ImbueMH == imbue || shaman.SelfBuffs.ImbueMHSwap == imbue {
 		mask |= core.ProcMaskMeleeMH
 	}
-	if shaman.SelfBuffs.ImbueOH == imbue {
-		mask |= core.ProcMaskMeleeOH
-	}
 	return mask
 }
 
@@ -63,9 +59,7 @@ func (shaman *Shaman) GetImbueProcMask(imbue proto.ShamanImbue) core.ProcMask {
 type SelfBuffs struct {
 	ShieldProcrate float64
 	ImbueMH        proto.ShamanImbue
-	ImbueOH        proto.ShamanImbue
 	ImbueMHSwap    proto.ShamanImbue
-	ImbueOHSwap    proto.ShamanImbue
 }
 
 // Indexes into NextTotemDrops for self buffs

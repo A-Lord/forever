@@ -50,7 +50,6 @@ func imbueOptions(imbue proto.ShamanImbue) *proto.Player_EnhancementShaman {
 	return &proto.Player_EnhancementShaman{
 		EnhancementShaman: &proto.EnhancementShaman{
 			Options: &proto.EnhancementShaman_Options{
-				SyncType: proto.ShamanSyncType_Auto,
 				ClassOptions: &proto.ShamanOptions{
 					ImbueMh: imbue,
 				},

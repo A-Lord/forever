@@ -72,9 +72,6 @@ func (resto *RestorationShaman) Initialize() {
 	// if resto.HasMHWeapon() {
 	// 	procMask |= core.ProcMaskMeleeMH
 	// }
-	// if resto.HasOHWeapon() {
-	// 	procMask |= core.ProcMaskMeleeOH
-	// }
 	// resto.RegisterEarthlivingImbue(procMask)
 
 	resto.Shaman.Initialize()

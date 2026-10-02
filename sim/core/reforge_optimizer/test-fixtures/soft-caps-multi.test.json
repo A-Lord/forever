@@ -10,8 +10,6 @@
 						"enableItemSwap": true,
 						"enhancementShaman": {
 							"options": {
-								"syncType": 2,
-								"imbueOh": 1,
 								"classOptions": {
 									"imbueMh": 1
 								}

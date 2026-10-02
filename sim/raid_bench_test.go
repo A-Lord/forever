@@ -178,7 +178,6 @@ package sim
 // 								EnhancementShaman: &proto.EnhancementShaman{
 // 									Options: &proto.EnhancementShaman_Options{
 // 										Shield:   proto.ShamanShield_LightningShield,
-// 										SyncType: proto.ShamanSyncType_SyncMainhandOffhandSwings,
 // 										Totems: &proto.ShamanTotems{
 // 											Earth: proto.EarthTotem_TremorTotem,
 // 											Air:   proto.AirTotem_WrathOfAirTotem,

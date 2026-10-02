@@ -9,7 +9,6 @@ import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
 import * as ShamanInputs from '../shared/inputs';
-import * as EnhancementInputs from './inputs';
 import * as Presets from './presets';
 
 export default defineSpec<Spec.SpecEnhancementShaman>({
@@ -35,7 +34,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		Stat.StatSpellDamage,
 		Stat.StatNatureDamage,
 	],
-	epPseudoStats: [PseudoStat.PseudoStatMainHandDps, PseudoStat.PseudoStatOffHandDps],
+	epPseudoStats: [PseudoStat.PseudoStatMainHandDps],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatAttackPower,
 	consumableStats: [Stat.StatMana, Stat.StatMP5],
@@ -61,8 +60,6 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,
 			PseudoStat.PseudoStatMeleeCritPercent,
-			PseudoStat.PseudoStatOffHandHitPercent,
-			PseudoStat.PseudoStatOffHandCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatSpellHitPercent,
 			PseudoStat.PseudoStatSpellCritPercent,
@@ -104,20 +101,14 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	// The main-hand and off-hand imbues are offered in the consumables imbue pickers, as one pick with the oils and stones.
-	playerIconInputs: [ShamanInputs.ShamanImbueMHSwap(), EnhancementInputs.ShamanImbueOHSwap],
+	// The main-hand imbue is offered in the consumables imbue picker, as one pick with the oils and stones.
+	playerIconInputs: [ShamanInputs.ShamanImbueMHSwap()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatFireDamage],
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
-		inputs: [
-			EnhancementInputs.SyncTypeInput,
-			ShamanInputs.ShamanShieldProcrate(),
-			OtherInputs.InputDelay,
-			OtherInputs.TankAssignment,
-			OtherInputs.InFrontOfTarget,
-		],
+		inputs: [ShamanInputs.ShamanShieldProcrate(), OtherInputs.InputDelay, OtherInputs.TankAssignment, OtherInputs.InFrontOfTarget],
 	},
 	itemSwapSlots: [ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2, ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand],
 	encounterPicker: {

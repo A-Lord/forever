@@ -2,7 +2,7 @@ import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, Race, Spec, TristateEffect } from '@generated/proto/common';
-import { EnhancementShaman_Options as EnhancementShamanOptions, ShamanImbue, ShamanSyncType } from '@generated/proto/shaman';
+import { EnhancementShaman_Options as EnhancementShamanOptions, ShamanImbue } from '@generated/proto/shaman';
 import { SavedTalents } from '@generated/proto/ui';
 
 import DefaultApl from './apls/default.apl.json';
@@ -32,8 +32,6 @@ export const DefaultOptions = EnhancementShamanOptions.create({
 		shieldProcrate: 0,
 		imbueMh: ShamanImbue.WindfuryWeapon,
 	},
-	imbueOh: ShamanImbue.NoImbue,
-	syncType: ShamanSyncType.Auto,
 });
 
 export const OtherDefaults = {
