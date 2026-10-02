@@ -131,10 +131,10 @@ describe('ConsumeRowView', () => {
 				<div data-testid="pickers" />
 			</ConsumeRowView>,
 		);
-		const row = screen.getByTestId('consumes-row');
+		const rowElem = screen.getByTestId('consumes-row');
 
-		expect(row.getAttribute('data-layout')).toBe('inline');
-		expect(row.children[0].textContent).toBe('Elixirs');
-		expect(row.children[1]).toBe(screen.getByTestId('pickers'));
+		expect(rowElem.getAttribute('data-layout')).toBe('inline');
+		expect(rowElem.children[0].textContent).toBe('Elixirs');
+		expect(rowElem.children[1]).toBe(screen.getByTestId('pickers'));
 	});
 });

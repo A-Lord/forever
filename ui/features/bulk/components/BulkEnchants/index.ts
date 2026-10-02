@@ -1,1 +1,1 @@
-export { BulkEnchants, BulkEnchantsView } from './BulkEnchants';
+export { BulkEnchants } from './BulkEnchants';

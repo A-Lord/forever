@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PresetBuild } from '../preset_utils';
-import { PresetConfigurationPickerView, type PresetConfigurationPickerViewProps } from './PresetConfigurationPicker';
+import type { PresetConfigurationPickerViewProps } from './PresetConfigurationPicker';
 
 const applyBuild = vi.fn();
 const activeNames = new Set<string>();
@@ -18,7 +18,7 @@ vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).m
 vi.mock('@sim/hooks/useSimReady', () => ({ useSimReady: () => ready }));
 
 let ready = true;
-const { PresetConfigurationPicker } = await import('./PresetConfigurationPicker');
+const { PresetConfigurationPicker, PresetConfigurationPickerView } = await import('./PresetConfigurationPicker');
 
 const setup = (builds: Array<Record<string, unknown>>, categories = ['gear']) =>
 	renderWithHost(<PresetConfigurationPicker categories={categories as never} />, {

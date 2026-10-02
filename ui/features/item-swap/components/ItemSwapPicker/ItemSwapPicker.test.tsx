@@ -9,13 +9,11 @@ import { fakeHost } from '@sim/testing';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ItemSwapPickerView } from './ItemSwapPicker';
-
 vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions());
 vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }) }));
 vi.mock('@features/inputs/components/ConnectedBooleanPicker', () => ({ ConnectedBooleanPicker: () => <div className="boolean-picker-root" /> }));
 
-const { ItemSwapPicker } = await import('./ItemSwapPicker');
+const { ItemSwapPicker, ItemSwapPickerView } = await import('./ItemSwapPicker');
 
 const SLOTS = [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1];
 

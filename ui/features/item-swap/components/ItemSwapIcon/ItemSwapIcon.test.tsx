@@ -13,7 +13,7 @@ import { makeEquippedItem, SOCKETED_ITEM } from '@testing/storybook/fixtures/gea
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ItemSwapIconView, type ItemSwapIconViewProps } from './ItemSwapIcon';
+import type { ItemSwapIconViewProps } from './ItemSwapIcon';
 
 const trackReleases = (store: SimStore) => {
 	const releases: Array<ReturnType<typeof vi.fn>> = [];
@@ -38,7 +38,7 @@ vi.mock('@sim/proto/action_id/tooltip_data', () => ({
 	equippedItemWowheadTooltipData: () => new Promise<string>(resolve => tooltip.settles.push(resolve)),
 }));
 
-const { ItemSwapIcon } = await import('./ItemSwapIcon');
+const { ItemSwapIcon, ItemSwapIconView } = await import('./ItemSwapIcon');
 
 const SLOTS = [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2];
 

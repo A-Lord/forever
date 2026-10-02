@@ -121,7 +121,7 @@ describe('ItemNoticeIconView', () => {
 				<p>Second</p>
 			</ItemNoticeIconView>,
 		);
-		fireEvent.mouseEnter(screen.getByRole('button'));
+		open();
 		const first = await screen.findByText('First');
 		expect([...first.parentElement!.children].map(child => child.textContent)).toEqual(['First', 'Second']);
 	});

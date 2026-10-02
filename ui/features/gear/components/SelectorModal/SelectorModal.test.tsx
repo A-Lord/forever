@@ -273,7 +273,7 @@ const renderView = (props: Partial<SelectorModalViewProps> = {}) => {
 	return all;
 };
 
-const tabButtons = () => screen.getAllByRole('tab');
+const viewTabButtons = () => screen.getAllByRole('tab');
 const activePanes = () => Array.from(document.querySelectorAll('[data-testid="selector-modal-tab-pane"][data-active]')).map(pane => pane.textContent);
 
 describe('SelectorModalView', () => {
@@ -285,8 +285,8 @@ describe('SelectorModalView', () => {
 
 	it('wires each tab button to its pane under the given id', () => {
 		renderView();
-		expect(tabButtons().map(button => button.dataset.label)).toEqual([SelectorModalTabs.Items, SelectorModalTabs.Enchants, SelectorModalTabs.Gem1]);
-		for (const button of tabButtons()) {
+		expect(viewTabButtons().map(button => button.dataset.label)).toEqual([SelectorModalTabs.Items, SelectorModalTabs.Enchants, SelectorModalTabs.Gem1]);
+		for (const button of viewTabButtons()) {
 			const pane = document.getElementById(button.getAttribute('aria-controls')!)!;
 			expect(pane.id.startsWith('modal-')).toBe(true);
 			expect(pane.getAttribute('aria-labelledby')).toBe(button.id);
@@ -295,22 +295,22 @@ describe('SelectorModalView', () => {
 
 	it('labels a gem tab with its socket and the others with their names', () => {
 		renderView();
-		expect(tabButtons()[0].textContent).toBe(i18n.t('gear_tab.gear_picker.tabs.items'));
-		expect(tabButtons()[2].querySelector('[data-testid="gem-icon-marker"]')).not.toBeNull();
+		expect(viewTabButtons()[0].textContent).toBe(i18n.t('gear_tab.gear_picker.tabs.items'));
+		expect(viewTabButtons()[2].querySelector('[data-testid="gem-icon-marker"]')).not.toBeNull();
 	});
 
 	it('shows the active pane and reports a tab pick', () => {
 		const props = renderView({ activeTab: SelectorModalTabs.Enchants });
 		expect(activePanes()).toEqual(['enchants pane']);
 
-		act(() => tabButtons()[2].click());
+		act(() => viewTabButtons()[2].click());
 		expect(props.onSelectTab).toHaveBeenCalledWith(SelectorModalTabs.Gem1);
 	});
 
 	it('renders no panes without a request', () => {
 		renderView({ sequence: undefined });
 		expect(document.querySelector('[data-testid="selector-modal-tab-pane"]')).toBeNull();
-		expect(tabButtons()).toHaveLength(3);
+		expect(viewTabButtons()).toHaveLength(3);
 	});
 
 	it('hands key presses on the popup to its handler', () => {
