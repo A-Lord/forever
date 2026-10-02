@@ -78,6 +78,7 @@ export const BulkEnchantPresetDialogView = ({
 			<div className="grid gap-6">
 				<Field
 					id={nameId}
+					className="sm:w-1/2"
 					label={i18n.t('bulk_tab.settings.enchant_presets.name')}
 					description={nameTaken ? i18n.t('bulk_tab.settings.enchant_presets.name_duplicate') : undefined}>
 					<Input
