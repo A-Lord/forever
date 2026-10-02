@@ -43,4 +43,5 @@ export const createBulkAddGearData = (player: Player<any>): GearData => ({
 	},
 	getEquippedItem: () => null,
 	subscribe: () => () => undefined,
+	addOnly: true,
 });

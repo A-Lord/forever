@@ -88,4 +88,9 @@ describe('ItemListToolbarView', () => {
 		fireEvent.click(button);
 		expect(props.onRemove).toHaveBeenCalledOnce();
 	});
+
+	it('leaves the remove button out without a remove action', () => {
+		renderView({ onRemove: undefined });
+		expect(screen.queryByTestId('selector-modal-remove-button')).toBeNull();
+	});
 });
