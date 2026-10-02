@@ -874,10 +874,18 @@ func removeCooldownFlat(mod *SpellMod, spell *Spell) {
 }
 
 func applyCooldownMultiplier(mod *SpellMod, spell *Spell) {
+	if mod.floatValue == 0 {
+		spell.cdMultiplierZeroes++
+		return
+	}
 	spell.CdMultiplier *= mod.floatValue
 }
 
 func removeCooldownMultiplier(mod *SpellMod, spell *Spell) {
+	if mod.floatValue == 0 {
+		spell.cdMultiplierZeroes--
+		return
+	}
 	spell.CdMultiplier /= mod.floatValue
 }
 
