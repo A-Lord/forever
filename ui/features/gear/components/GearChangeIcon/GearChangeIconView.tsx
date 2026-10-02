@@ -6,7 +6,7 @@ import type { ResolvedIcon } from '@ui-kit/Field';
 import { Icon } from '@ui-kit/Icon';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
-import { useId, useRef } from 'react';
+import { useId } from 'react';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import type { GearChangeSocket } from './utils';
@@ -21,16 +21,16 @@ export interface GearChangeIconViewProps {
 	sockets: ReadonlyArray<GearChangeSocket>;
 	/** Set when the enchant differs from the previous item's; an empty iconUrl falls back to a glyph. */
 	enchant?: ResolvedIcon;
+	enchantWowhead?: WowheadDatasetProps;
 }
 
 /**
  * Parameterises the slot and the before/after pair; fixes the frame and the per-socket change
  * markers.
  */
-export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, sockets, enchant }: GearChangeIconViewProps) => {
+export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, sockets, enchant, enchantWowhead }: GearChangeIconViewProps) => {
 	const slotName = translateSlotName(slot);
 	const tooltipId = useId();
-	const linkRef = useRef<HTMLAnchorElement>(null);
 
 	return (
 		<div className="ui-item-picker-root" data-testid="gear-change-icon">
@@ -40,25 +40,17 @@ export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, soc
 					data-testid="item-picker-icon-wrapper"
 					style={{ backgroundImage: `url('${(equipped && iconUrl) || getEmptySlotIconUrl(slot)}')` }}
 				/>
-				<WowheadAnchor
-					ref={linkRef}
-					className="absolute inset-0"
-					testId="gear-change-icon-link"
-					href={equipped ? href || undefined : undefined}
-					{...wowhead}
-				/>
+				<WowheadAnchor className="absolute inset-0" testId="gear-change-icon-link" href={equipped ? href || undefined : undefined} {...wowhead} />
 				{enchant && (
-					// The marker takes the hover for its tooltip and hands its click to the item link underneath.
-					<div
+					<WowheadAnchor
 						className="ui-gear-change-icon-enchant"
-						data-testid="gear-change-icon-enchant"
-						role="img"
+						testId="gear-change-icon-enchant"
+						href={enchant.href || undefined}
 						aria-label={enchant.name}
 						style={enchant.iconUrl ? { backgroundImage: `url('${enchant.iconUrl}')` } : undefined}
-						onClick={() => linkRef.current?.click()}
-						{...tooltipAnchorProps(`${tooltipId}-enchant`)}>
+						{...enchantWowhead}>
 						{!enchant.iconUrl && <Icon name="circle-exclamation" className="ui-gear-change-icon-gem-marker block" />}
-					</div>
+					</WowheadAnchor>
 				)}
 				<div className="ui-item-picker-sockets-container" data-testid="item-picker-sockets-container">
 					{sockets.map(({ socketColor, gemName, changed }, gemIdx) => (
@@ -76,7 +68,6 @@ export const GearChangeIconView = ({ slot, equipped, iconUrl, href, wowhead, soc
 					))}
 				</div>
 			</div>
-			{enchant && <Tooltip id={`${tooltipId}-enchant`} content={enchant.name} />}
 			{sockets.map(({ gemName, changed }, gemIdx) =>
 				changed && gemName ? (
 					<Tooltip

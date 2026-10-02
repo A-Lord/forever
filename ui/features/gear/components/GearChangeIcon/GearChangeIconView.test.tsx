@@ -2,7 +2,7 @@ import { GemColor, ItemSlot } from '@generated/proto/common';
 import { translateSlotName } from '@i18n/localization';
 import { getEmptyGemSocketIconUrl } from '@sim/proto/gems';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { GearChangeIconView, type GearChangeIconViewProps } from './GearChangeIconView';
@@ -55,13 +55,15 @@ describe('GearChangeIconView', () => {
 		expect(screen.getByTestId('gem-socket-container').hasAttribute('data-tooltip-id')).toBe(false);
 	});
 
-	it('hands a click on the changed-enchant marker to the item link', () => {
-		renderView({ enchant: { name: 'Crusader', iconUrl: 'crusader.jpg' } });
-		const onLinkClick = vi.fn((event: MouseEvent) => event.preventDefault());
-		link().addEventListener('click', onLinkClick);
+	it('links the changed-enchant marker to the enchant, carrying its wowhead tooltip', () => {
+		renderView({
+			enchant: { name: 'Crusader', iconUrl: 'crusader.jpg', href: 'https://example.com/spell=20034' },
+			enchantWowhead: { 'data-wowhead': 'spell=20034' },
+		});
 
-		fireEvent.click(screen.getByRole('img', { name: 'Crusader' }));
-
-		expect(onLinkClick).toHaveBeenCalledOnce();
+		const marker = screen.getByTestId('gear-change-icon-enchant');
+		expect(marker.getAttribute('href')).toBe('https://example.com/spell=20034');
+		expect(marker.dataset.wowhead).toBe('spell=20034');
+		expect(marker.getAttribute('aria-label')).toBe('Crusader');
 	});
 });
