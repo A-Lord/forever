@@ -131,7 +131,6 @@ func (warrior *Warrior) registerEnrage() {
 	trigger := spelldata.ProcTrigger(&warrior.Character, spellData.Enrage.Rank(warrior.Talents.Enrage),
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			warrior.EnrageAura.Activate(sim)
-			warrior.activateGoreDrinker(sim)
 		})
 	trigger.Name = "Enrage - Trigger"
 
@@ -237,8 +236,14 @@ func (warrior *Warrior) registerGoreDrinker() {
 	}
 	warrior.GoreDrinkerAura.AttachProcTrigger(consume)
 
+	if warrior.EnrageAura != nil {
+		warrior.EnrageAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+			warrior.activateGoreDrinker(sim)
+		})
+	}
+
 	// The talent's effects name no spells, so the abilities are the tooltip's: Berserker Rage,
-	// Bloodrage and Death Wish when cast, Bloodthirst when it lands, and Enrage from its own trigger.
+	// Bloodrage and Death Wish when cast, Bloodthirst when it lands, and Enrage when it is gained.
 	warrior.MakeProcTriggerAura(core.ProcTrigger{
 		Name:     "Gore Drinker - Trigger",
 		Callback: core.CallbackOnCastComplete | core.CallbackOnSpellHitDealt,
