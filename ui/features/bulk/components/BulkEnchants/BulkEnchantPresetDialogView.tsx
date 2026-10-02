@@ -7,6 +7,7 @@ import { Field } from '@ui-kit/Field';
 import { Input } from '@ui-kit/FormControl';
 import { IconSwatch } from '@ui-kit/IconSwatch';
 import { Pill } from '@ui-kit/Pill';
+import { SearchField } from '@ui-kit/TextField';
 import { type ReactNode, useId } from 'react';
 
 export interface BulkEnchantSlotGroup {
@@ -29,6 +30,8 @@ export interface BulkEnchantPresetDialogViewProps {
 	groups: readonly BulkEnchantSlotGroup[];
 	openSlots: string[];
 	onOpenSlotsChange: (slots: string[]) => void;
+	search: string;
+	onSearchChange: (search: string) => void;
 }
 
 export const BulkEnchantPresetDialogView = ({
@@ -43,6 +46,8 @@ export const BulkEnchantPresetDialogView = ({
 	groups,
 	openSlots,
 	onOpenSlotsChange,
+	search,
+	onSearchChange,
 }: BulkEnchantPresetDialogViewProps) => {
 	const nameId = useId();
 
@@ -81,6 +86,8 @@ export const BulkEnchantPresetDialogView = ({
 						}}
 					/>
 				</Field>
+				<SearchField value={search} onChange={onSearchChange} placeholder={i18n.t('common.search')} inputTestId="bulk-enchant-search" />
+				{search.trim() && !groups.length && <p className="mb-0 text-gray-400">{i18n.t('bulk_tab.settings.enchant_presets.no_matches')}</p>}
 				<Accordion value={openSlots} onValueChange={onOpenSlotsChange} variant="boxed">
 					{groups.map(group => (
 						<AccordionItem
@@ -91,7 +98,6 @@ export const BulkEnchantPresetDialogView = ({
 							title={
 								<span className="flex items-center gap-2">
 									<IconSwatch icon={{ iconUrl: group.iconUrl, name: group.label }} className="size-8 min-w-8" aria-hidden />
-
 									<span>{group.label}</span>
 									{group.checkedCount > 0 && (
 										<Pill size="xs" className="min-w-[1lh] justify-center" testId="bulk-enchant-slot-count">

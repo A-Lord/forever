@@ -67,6 +67,28 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	);
 
 	const [openSlots, setOpenSlots] = useState(() => preset?.slots.filter(options => options.effectIds.length).map(options => String(options.slot)) ?? []);
+	const [search, setSearch] = useState('');
+	// A search opens every slot it matches in, on its own open state, so clearing it brings back the slots opened by hand.
+	const [searchOpenSlots, setSearchOpenSlots] = useState<string[]>([]);
+	const query = search.trim().toLowerCase();
+	const shown = useMemo(
+		() =>
+			query
+				? slots
+						.map(({ slot, enchants }) => ({ slot, enchants: enchants.filter(enchant => enchant.name.toLowerCase().includes(query)) }))
+						.filter(({ enchants }) => enchants.length)
+				: slots,
+		[slots, query],
+	);
+	const changeSearch = (next: string) => {
+		const nextQuery = next.trim().toLowerCase();
+		setSearch(next);
+		setSearchOpenSlots(
+			nextQuery
+				? slots.filter(({ enchants }) => enchants.some(enchant => enchant.name.toLowerCase().includes(nextQuery))).map(({ slot }) => String(slot))
+				: [],
+		);
+	};
 
 	const problem = validateBulkEnchantPresetName(presets, name, preset?.name);
 
@@ -94,9 +116,11 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 			nameTaken={problem === 'duplicate'}
 			canSave={problem === null}
 			onSave={save}
-			openSlots={openSlots}
-			onOpenSlotsChange={setOpenSlots}
-			groups={slots.map(({ slot, enchants }) => ({
+			openSlots={query ? searchOpenSlots : openSlots}
+			onOpenSlotsChange={query ? setSearchOpenSlots : setOpenSlots}
+			search={search}
+			onSearchChange={changeSearch}
+			groups={shown.map(({ slot, enchants }) => ({
 				slot,
 				label: translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(slot)!),
 				iconUrl: getEmptySlotIconUrl(slot),

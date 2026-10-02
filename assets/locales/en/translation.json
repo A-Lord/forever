@@ -983,6 +983,7 @@
 				"name": "Preset name",
 				"name_duplicate": "A preset with this name already exists.",
 				"name_placeholder": "e.g. Undead, Outdoor, Raid",
+				"no_matches": "No enchant matches the search.",
 				"save": "Save"
 			}
 		},

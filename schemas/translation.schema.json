@@ -3446,6 +3446,9 @@
 								"name_placeholder": {
 									"type": "string"
 								},
+								"no_matches": {
+									"type": "string"
+								},
 								"save": {
 									"type": "string"
 								}
@@ -3463,6 +3466,7 @@
 								"name",
 								"name_duplicate",
 								"name_placeholder",
+								"no_matches",
 								"save"
 							]
 						}

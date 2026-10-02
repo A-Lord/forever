@@ -59,7 +59,7 @@ const mount = ({ loaded = true } = {}) => {
 	return player;
 };
 
-const nameInput = () => screen.getByRole('textbox') as HTMLInputElement;
+const nameInput = () => screen.getByLabelText('bulk_tab.settings.enchant_presets.name') as HTMLInputElement;
 const saveButton = () => screen.getByTestId('bulk-enchant-preset-save') as HTMLButtonElement;
 const openNewPreset = () => userEvent.click(screen.getByRole('button', { name: 'bulk_tab.settings.enchant_presets.new' }));
 const expandSlots = async () => {
@@ -108,6 +108,32 @@ describe('BulkEnchants', () => {
 		expect(screen.getByRole('checkbox', { name: /Lesser Agility/ }).getAttribute('aria-checked')).toBe('true');
 		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
 		expect(screen.getAllByTestId('bulk-enchant-slot-count').map(pill => pill.textContent)).toEqual(['1']);
+	});
+
+	it('narrows the slots to the enchants a search matches, opened, and restores them when cleared', async () => {
+		mount();
+
+		await openNewPreset();
+		await userEvent.type(screen.getByTestId('bulk-enchant-search'), 'strik');
+
+		expect(screen.getByRole('checkbox', { name: /Superior Striking/ })).toBeTruthy();
+		expect(screen.queryByRole('checkbox', { name: /Lesser Impact/ })).toBeNull();
+		expect(screen.getAllByTestId('bulk-enchant-slot')).toHaveLength(1);
+
+		await userEvent.clear(screen.getByTestId('bulk-enchant-search'));
+
+		expect(screen.getAllByTestId('bulk-enchant-slot')).toHaveLength(2);
+		expect(screen.queryByRole('checkbox', { name: /Superior Striking/ })).toBeNull();
+	});
+
+	it('says so when a search matches no enchant', async () => {
+		mount();
+
+		await openNewPreset();
+		await userEvent.type(screen.getByTestId('bulk-enchant-search'), 'mongoose');
+
+		expect(screen.queryAllByTestId('bulk-enchant-slot')).toHaveLength(0);
+		expect(screen.getByText('bulk_tab.settings.enchant_presets.no_matches')).toBeTruthy();
 	});
 
 	it('renders the presets before the game database has loaded', () => {

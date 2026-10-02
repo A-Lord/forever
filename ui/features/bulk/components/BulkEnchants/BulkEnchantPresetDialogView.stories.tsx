@@ -58,6 +58,8 @@ const meta = {
 		],
 		openSlots: [String(ItemSlot.ItemSlotBack), String(ItemSlot.ItemSlotMainHand)],
 		onOpenSlotsChange: fn(),
+		search: '',
+		onSearchChange: fn(),
 	},
 	argTypes: { groups: { control: false } },
 } satisfies Meta<typeof BulkEnchantPresetDialogView>;
