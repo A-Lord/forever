@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -194,16 +195,21 @@ func (hunter *Hunter) registerSniperShot() {
 		hunter.AutoAttacks.UpdateRangedRange(sim)
 	})
 
-	// One charge per Shot, however many targets it hits.
+	// One charge per Shot the range mod names, however many targets it hits. The row's proc flags hear
+	// every ranged hit, Sniper Shot's own among them, so the listener takes the mod's class flags.
 	// TODO: Ingame test needed: a Shot that misses keeps the charge (the row's proc flags ask for damage
 	// dealt), and Multi-Shot spends one charge per cast.
 	var lastSpent *core.Spell
 	var lastSpentAt time.Duration
+	buff.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+		lastSpent = nil
+	})
 	spend := spelldata.ProcTrigger(&hunter.Character, sniperShotRank,
 		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			buff.RemoveStack(sim)
 		})
 	spend.Name = "Sniper Shot - Spend"
+	spend.ClassFlags = sniperShotRank.FirstAura(dbcenums.A_ADD_FLAT_MODIFIER).ClassFlags
 	spend.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		if spell == lastSpent && sim.CurrentTime == lastSpentAt {
 			return false

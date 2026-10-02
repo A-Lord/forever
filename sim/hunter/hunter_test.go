@@ -161,9 +161,10 @@ func TestAutoShotNeedsABowGunOrCrossbow(t *testing.T) {
 }
 
 // Sniper Shot's buff carries Auto Shot's reach past the 41 yards Hawk Eye gives it, for three Shots: a
-// hunter at 45 yards fires no Auto Shot until Sniper Shot lands, then at most three per Sniper Shot.
+// hunter at 45 yards fires no Auto Shot until Sniper Shot lands, then lands at most three per Sniper
+// Shot, since a miss keeps its charge.
 func TestSniperShotExtendsAutoShotRange(t *testing.T) {
-	shots := func(castSniperShot bool) (sniperShots, autoShots int32) {
+	shots := func(castSniperShot bool) (sniperShots, autoShots, landed int32) {
 		rotation := &proto.APLRotation{Type: proto.APLRotation_TypeAPL}
 		if castSniperShot {
 			rotation.PriorityList = []*proto.APLListItem{{Action: &proto.APLAction{Action: &proto.APLAction_CastSpell{
@@ -193,20 +194,21 @@ func TestSniperShotExtendsAutoShotRange(t *testing.T) {
 				switch {
 				case action.Id.GetOtherId() == proto.OtherAction_OtherActionShoot:
 					autoShots += target.Casts
+					landed += target.Hits + target.Crits
 				case action.Id.GetSpellId() == sniperShotRank.ID:
 					sniperShots += target.Casts
 				}
 			}
 		}
-		return sniperShots, autoShots
+		return sniperShots, autoShots, landed
 	}
 
-	if _, autoShots := shots(false); autoShots != 0 {
+	if _, autoShots, _ := shots(false); autoShots != 0 {
 		t.Errorf("a hunter at 45 yards fired %d Auto Shots with no Sniper Shot, want none", autoShots)
 	}
-	sniperShots, autoShots := shots(true)
-	if sniperShots == 0 || autoShots == 0 || autoShots > 3*sniperShots {
-		t.Errorf("%d Sniper Shots let %d Auto Shots fire from 45 yards, want some and at most 3 each", sniperShots, autoShots)
+	sniperShots, _, landed := shots(true)
+	if sniperShots == 0 || landed == 0 || landed > 3*sniperShots {
+		t.Errorf("%d Sniper Shots let %d Auto Shots land from 45 yards, want some and at most 3 each", sniperShots, landed)
 	}
 }
 

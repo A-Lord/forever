@@ -222,6 +222,10 @@ func (warrior *Warrior) registerGoreDrinker() {
 	// many targets they hit.
 	consume := spelldata.ProcTrigger(&warrior.Character, goreDrinkerBuff,
 		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			// The hits of one spell batch each queue a handler, which can outnumber the charges left.
+			if !warrior.GoreDrinkerAura.IsActive() {
+				return
+			}
 			heal.Cast(sim, &warrior.Unit)
 			warrior.GoreDrinkerAura.RemoveStack(sim)
 		})

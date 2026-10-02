@@ -239,7 +239,7 @@ func writeRegistrationFile(path, function, constructor string, equipSpells bool,
 				if e.piercing.Amount != 0 {
 					fields = append(fields, fmt.Sprintf("piercing: shared.SchoolPiercing{School: %s, Amount: %s}",
 						schoolIndexNames[e.piercing.School], num(e.piercing.Amount)))
-					usesStats = true
+					usesStats = usesStats || len(e.unsupported) == 0
 				}
 				if len(e.args) > 0 {
 					args := make([]string, len(e.args))

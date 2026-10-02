@@ -224,7 +224,16 @@ func TestGnomeWarrior(t *testing.T) {
 	if stacksAfter(mortalStrike) != 2 {
 		t.Fatalf("Mortal Strike should spend a charge")
 	}
-	stacksAfter(mortalStrike)
+	// An off-hand strike on the same spell id, as Whirlwind's is, lands with the main-hand one and
+	// spends no second charge.
+	offHandConfig := fakeWarriorAbility(12294, 25, 100)
+	offHandConfig.ActionID = offHandConfig.ActionID.WithTag(2)
+	offHandConfig.ProcMask = ProcMaskMeleeOHSpecial
+	offHandStrike := fw.RegisterSpell(offHandConfig)
+	mortalStrike.SkipCastAndApplyEffects(sim, fw.CurrentTarget)
+	if stacksAfter(offHandStrike) != 1 {
+		t.Fatalf("a main- and off-hand strike of one cast should spend one charge, %d left", eureka.GetStacks())
+	}
 	stacksAfter(mortalStrike)
 	if eureka.IsActive() {
 		t.Fatalf("Eureka! should end after 3 abilities, %d left at %v", eureka.GetStacks(), sim.CurrentTime)

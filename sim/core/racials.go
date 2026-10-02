@@ -390,8 +390,9 @@ func applyEureka(character *Character) {
 		}
 	})
 
-	// One stack per cast, however many targets it lands on.
-	var lastSpent *Spell
+	// One stack per cast, however many targets it lands on, keyed by spell id so Whirlwind's off-hand
+	// strike counts with its main-hand one.
+	var lastSpentID int32
 	var lastSpentAt time.Duration
 
 	aura := character.RegisterAura(Aura{
@@ -400,7 +401,7 @@ func applyEureka(character *Character) {
 		Duration:  time.Second * 15,
 		MaxStacks: 3,
 		OnGain: func(aura *Aura, sim *Simulation) {
-			lastSpent = nil
+			lastSpentID = 0
 			aura.SetStacks(sim, 3)
 			for _, mod := range mods {
 				mod.Activate()
@@ -428,10 +429,10 @@ func applyEureka(character *Character) {
 		RequireDamageComponent: true,
 
 		ExtraCondition: func(sim *Simulation, spell *Spell, _ *SpellResult) bool {
-			if spell == lastSpent && sim.CurrentTime == lastSpentAt {
+			if spell.ActionID.SpellID == lastSpentID && sim.CurrentTime == lastSpentAt {
 				return false
 			}
-			lastSpent, lastSpentAt = spell, sim.CurrentTime
+			lastSpentID, lastSpentAt = spell.ActionID.SpellID, sim.CurrentTime
 			return true
 		},
 		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
