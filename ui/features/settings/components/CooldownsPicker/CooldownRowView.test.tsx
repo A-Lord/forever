@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { CooldownRowView, type CooldownRowViewProps } from './CooldownRowView';
+import { CooldownRowView, type CooldownRowViewProps } from './CooldownRow';
 
 const renderRow = (props: Partial<CooldownRowViewProps> = {}) => {
 	const onDelete = vi.fn();

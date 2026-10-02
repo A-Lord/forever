@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SimToolbarView } from './SimToolbarView';
+import { SimToolbarView } from './SimToolbar';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 

@@ -5,7 +5,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
-import { GearChangeIconView, type GearChangeIconViewProps } from './GearChangeIconView';
+import { GearChangeIconView, type GearChangeIconViewProps } from './GearChangeIcon';
 
 const renderView = (props: Partial<GearChangeIconViewProps> = {}) =>
 	render(<GearChangeIconView slot={ItemSlot.ItemSlotHead} equipped iconUrl="helm.jpg" href="https://example.com/item" sockets={[]} {...props} />);

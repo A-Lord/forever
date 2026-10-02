@@ -5,7 +5,7 @@ import { makeEquippedItem, SOCKETED_ITEM } from '@testing/storybook/fixtures/gea
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ItemSwapIconView, type ItemSwapIconViewProps } from './ItemSwapIconView';
+import { ItemSwapIconView, type ItemSwapIconViewProps } from './ItemSwapIcon';
 
 const renderIcon = (props: Partial<ItemSwapIconViewProps> = {}) => {
 	const onOpen = vi.fn();

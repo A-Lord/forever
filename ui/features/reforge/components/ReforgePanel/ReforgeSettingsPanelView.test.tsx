@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ReforgeSettingsPanelView, type ReforgeSettingsPanelViewProps } from './ReforgeSettingsPanelView';
+import { ReforgeSettingsPanelView, type ReforgeSettingsPanelViewProps } from './ReforgeSettingsPanel';
 
 const SLOTS = ['customEpToggle', 'statCaps', 'softCaps', 'gemOptions', 'freezeSlots', 'savedEpWeights'] as const;
 

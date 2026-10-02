@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeEquippedItem, SOCKETED_ITEM, wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { ItemSwapIconView } from './ItemSwapIconView';
+import { ItemSwapIconView } from './ItemSwapIcon';
 
 const meta = {
 	title: 'Features/ItemSwap/ItemSwapIconView',

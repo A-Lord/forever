@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
+import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlots';
 
 const PICKERS = ['head', 'neck', 'shoulder'].map(slot => <span key={slot} data-testid={`freeze-${slot}`} />);
 

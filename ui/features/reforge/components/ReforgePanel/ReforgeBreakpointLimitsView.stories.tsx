@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryEnum } from '@testing/storybook/fixtures/settings_reforge_bulk';
 
-import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimitsView';
+import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimits';
 
 const limit = (statName: string, breakpoints: Array<number>) => ({
 	key: statName,

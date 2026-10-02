@@ -3,7 +3,7 @@ import { DatabaseFilters, SourceFilterOption } from '@generated/proto/ui';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { FiltersMenuView } from './FiltersMenuView';
+import { FiltersMenuView } from './FiltersMenu';
 
 const meta = {
 	title: 'Features/Gear/FiltersMenu/FiltersMenuView',

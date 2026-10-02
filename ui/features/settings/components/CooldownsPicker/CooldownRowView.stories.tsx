@@ -5,7 +5,7 @@ import { Tooltip } from '@ui-kit/Tooltip';
 import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { CooldownRowView } from './CooldownRowView';
+import { CooldownRowView } from './CooldownRow';
 
 const COOLDOWNS = [
 	{ value: 0, color: '#808080' },

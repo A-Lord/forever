@@ -3,7 +3,7 @@ import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { ItemSwapPickerView } from './ItemSwapPickerView';
+import { ItemSwapPickerView } from './ItemSwapPicker';
 
 const SLOTS = [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotRanged];
 

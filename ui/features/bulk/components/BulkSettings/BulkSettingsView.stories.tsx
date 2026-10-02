@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { fn } from 'storybook/test';
 
 import { BulkEnchantsView } from '../BulkEnchants';
-import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettingsView';
-import { CombinationsCountView } from './CombinationsCountView';
+import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettings';
+import { CombinationsCountView } from './CombinationsCount';
 
 const pair = (id: string, label: string, first: [string, ItemSlot], second: [string, ItemSlot]) => ({
 	id,

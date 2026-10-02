@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makePhasedPresetBuilds, makePresetBuild } from '@testing/storybook/fixtures/app';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { PresetConfigurationPickerView } from './PresetConfigurationPickerView';
+import { PresetConfigurationPickerView } from './PresetConfigurationPicker';
 
 const meta = {
 	title: 'App/Presets/PresetConfigurationPickerView',

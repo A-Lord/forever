@@ -2,7 +2,7 @@ import i18n from '@i18n/config';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ItemNoticeIconView } from './ItemNoticeIconView';
+import { ItemNoticeIconView } from './ItemNoticeIcon';
 
 describe('ItemNoticeIconView', () => {
 	it.each([

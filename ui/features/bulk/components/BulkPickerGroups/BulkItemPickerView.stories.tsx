@@ -4,7 +4,7 @@ import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { withSimHost } from '@testing/storybook/fixtures/models';
 import { fn } from 'storybook/test';
 
-import { BulkItemPickerView } from './BulkItemPickerView';
+import { BulkItemPickerView } from './BulkItemPicker';
 
 const meta = {
 	title: 'Features/Bulk/BulkPickerGroups/BulkItemPickerView',

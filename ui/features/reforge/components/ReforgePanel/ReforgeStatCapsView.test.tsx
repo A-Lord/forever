@@ -2,8 +2,8 @@ import i18n from '@i18n/config';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
-import { ReforgeStatCapsView } from './ReforgeStatCapsView';
+import { ReforgeStatCapRowView } from './ReforgeStatCapRow';
+import { ReforgeStatCapsView } from './ReforgeStatCaps';
 
 const renderCaps = () => {
 	const onReset = vi.fn();

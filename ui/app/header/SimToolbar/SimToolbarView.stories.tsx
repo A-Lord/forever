@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { SimToolbarView } from './SimToolbarView';
+import { SimToolbarView } from './SimToolbar';
 
 const meta = {
 	title: 'App/Header/SimToolbarView',

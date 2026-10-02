@@ -1,3 +1,2 @@
-export { RotationTypePicker } from './RotationTypePicker';
-export { RotationTypePickerView } from './RotationTypePickerView';
-export type { RotationTypePickerViewProps } from './RotationTypePickerView';
+export { RotationTypePicker, RotationTypePickerView } from './RotationTypePicker';
+export type { RotationTypePickerViewProps } from './RotationTypePicker';

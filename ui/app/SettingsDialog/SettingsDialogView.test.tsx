@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SettingsDialogView, type SettingsDialogViewProps } from './SettingsDialogView';
+import { SettingsDialogView, type SettingsDialogViewProps } from './SettingsDialog';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 

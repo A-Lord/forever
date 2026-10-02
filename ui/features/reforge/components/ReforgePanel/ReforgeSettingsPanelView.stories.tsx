@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryBoolean, StoryEnum, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimitsView';
-import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlotsView';
-import { ReforgeSettingsPanelView } from './ReforgeSettingsPanelView';
-import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
-import { ReforgeStatCapsView } from './ReforgeStatCapsView';
+import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimits';
+import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlots';
+import { ReforgeSettingsPanelView } from './ReforgeSettingsPanel';
+import { ReforgeStatCapRowView } from './ReforgeStatCapRow';
+import { ReforgeStatCapsView } from './ReforgeStatCaps';
 
 const toggle = (id: string, label: string, initial = false) => (
 	<StoryBoolean id={`story-${id}`} className="mb-2" label={label} layout="inline" initial={initial} />

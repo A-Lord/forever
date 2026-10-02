@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { CombinationsCountView, type CombinationsCountViewProps } from './CombinationsCountView';
+import { CombinationsCountView, type CombinationsCountViewProps } from './CombinationsCount';
 
 const renderCount = (props: Partial<CombinationsCountViewProps> = {}) =>
 	render(<CombinationsCountView pending={false} combinations={12} iterations={24000} iterationsLimit={50000} {...props} />);

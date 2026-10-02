@@ -2,7 +2,7 @@ import { APLValidation } from '@generated/proto/api';
 import { LogLevel } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { AplValidationsView } from './AplValidationsView';
+import { AplValidationsView } from './AplValidations';
 
 const validation = (logLevel: LogLevel, text: string) => APLValidation.create({ logLevel, validation: text });
 

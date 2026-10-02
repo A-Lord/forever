@@ -2,7 +2,7 @@ import { FakeIntersectionObserver } from '@features/apl/testing_dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AplListToolbarView, type AplListToolbarViewProps } from './AplListToolbarView';
+import { AplListToolbarView, type AplListToolbarViewProps } from './AplListToolbar';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string, opts?: Record<string, unknown>) => (opts?.itemName ? `${key}:${opts.itemName}` : key) } }));
 

@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryBoolean, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { fn } from 'storybook/test';
 
-import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
-import { ReforgeStatCapsView } from './ReforgeStatCapsView';
+import { ReforgeStatCapRowView } from './ReforgeStatCapRow';
+import { ReforgeStatCapsView } from './ReforgeStatCaps';
 
 const CAPS: Array<[string, number, boolean]> = [
 	['Hit', 9, true],

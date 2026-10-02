@@ -2,7 +2,7 @@ import { GemColor, ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 
-import { GearChangeIconView } from './GearChangeIconView';
+import { GearChangeIconView } from './GearChangeIcon';
 
 const meta = {
 	title: 'Features/Gear/GearChangeIconView',

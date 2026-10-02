@@ -3,7 +3,7 @@ import { LogLevel } from '@generated/proto/common';
 import { act, fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AplValidationsView } from './AplValidationsView';
+import { AplValidationsView } from './AplValidations';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 

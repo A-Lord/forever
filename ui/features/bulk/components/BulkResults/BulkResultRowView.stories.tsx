@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ItemCell } from '@ui-kit/ItemCell';
 import { fn } from 'storybook/test';
 
-import { BulkResultRowView } from './BulkResultRowView';
+import { BulkResultRowView } from './BulkResultRow';
 
 const ICONS = 'https://wow.zamimg.com/images/wow/icons/large';
 

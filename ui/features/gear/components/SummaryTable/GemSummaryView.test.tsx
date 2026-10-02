@@ -4,7 +4,7 @@ import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { GemSummaryView } from './GemSummaryView';
+import { GemSummaryView } from './GemSummary';
 
 const ROWS = [
 	{ gem: makeUIGem({ id: 1, name: 'Blood Ruby' }), count: 3, iconUrl: 'ruby.jpg' },

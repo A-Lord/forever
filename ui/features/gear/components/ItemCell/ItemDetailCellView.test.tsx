@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { SelectorModalTabs } from '../../types';
-import { ItemDetailCellView, type ItemDetailCellViewProps } from './ItemDetailCellView';
+import { ItemDetailCellView, type ItemDetailCellViewProps } from './ItemDetailCell';
 
 const renderCell = (props: Partial<ItemDetailCellViewProps> = {}) =>
 	render(<ItemDetailCellView slot={ItemSlot.ItemSlotMainHand} item={makeEquippedItem()} iconUrl="sword.jpg" href="https://example.com/item" {...props} />);

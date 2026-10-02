@@ -3,7 +3,7 @@ import { TabPanel } from '@ui-kit/TabNav';
 import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { DetailedResultsView, type DetailedResultsViewProps } from './DetailedResultsView';
+import { DetailedResultsView, type DetailedResultsViewProps } from './DetailedResults';
 import { DETAILED_RESULTS_TABS } from './utils';
 
 const StatefulView = ({ activeId: initial, onActiveIdChange, ...props }: DetailedResultsViewProps) => {

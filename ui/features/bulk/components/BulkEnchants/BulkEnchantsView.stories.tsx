@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantsView } from './BulkEnchantsView';
+import { BulkEnchantsView } from './BulkEnchants';
 
 const meta = {
 	title: 'Features/Bulk/BulkEnchants/BulkEnchantsView',

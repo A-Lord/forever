@@ -4,7 +4,7 @@ import { ChoiceField } from '@ui-kit/ChoiceField';
 import { NumberField } from '@ui-kit/TextField';
 import { fn } from 'storybook/test';
 
-import { TargetPickerView } from './TargetPickerView';
+import { TargetPickerView } from './TargetPicker';
 
 const select = (id: string, label: string, names: string[]) => (
 	<ChoiceField id={id} label={label} options={names.map((name, value) => ({ value, label: name }))} value={0} onChange={fn()} />

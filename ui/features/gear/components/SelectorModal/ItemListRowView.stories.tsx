@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { ItemListRowView } from './ItemListRowView';
+import { ItemListRowView } from './ItemListRow';
 
 const meta = {
 	title: 'Features/Gear/SelectorModal/Components/ItemListRowView',

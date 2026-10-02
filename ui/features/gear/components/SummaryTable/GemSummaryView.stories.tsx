@@ -4,7 +4,7 @@ import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { makeUIGem } from '@testing/storybook/fixtures/protos';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { GemSummaryView } from './GemSummaryView';
+import { GemSummaryView } from './GemSummary';
 
 const meta = {
 	title: 'Features/Gear/SummaryTable/Components/GemSummaryView',

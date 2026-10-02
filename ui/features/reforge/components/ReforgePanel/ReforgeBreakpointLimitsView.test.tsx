@@ -2,7 +2,7 @@ import i18n from '@i18n/config';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimitsView';
+import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimits';
 
 const ROWS = [
 	{ key: 'hit', statName: 'Hit', picker: <span data-testid="hit-limit" /> },

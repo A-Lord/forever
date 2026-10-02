@@ -5,7 +5,7 @@ import { Table } from '@ui-kit/Table';
 import { describe, expect, it, vi } from 'vitest';
 
 import { emptyStatWeightsResult } from '../../model/ep_math';
-import { StatWeightRowView, type StatWeightRowViewProps } from './StatWeightRowView';
+import { StatWeightRowView, type StatWeightRowViewProps } from './StatWeightRow';
 
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);
 

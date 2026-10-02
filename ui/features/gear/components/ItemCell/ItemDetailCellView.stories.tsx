@@ -5,7 +5,7 @@ import { makeUIEnchant } from '@testing/storybook/fixtures/protos';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { SelectorModalTabs } from '../../types';
-import { ItemDetailCellView } from './ItemDetailCellView';
+import { ItemDetailCellView } from './ItemDetailCell';
 
 const meta = {
 	title: 'Features/Gear/ItemCell/ItemDetailCellView',

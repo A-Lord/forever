@@ -2,7 +2,7 @@ import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { RotationTypePickerView } from './RotationTypePickerView';
+import { RotationTypePickerView } from './RotationTypePicker';
 
 const meta = {
 	title: 'Features/Apl/RotationTypePickerView',

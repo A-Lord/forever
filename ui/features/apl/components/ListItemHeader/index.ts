@@ -1,7 +1,5 @@
-export { AplValidations } from './AplValidations';
-export type { AplValidationsProps } from './AplValidations';
-export { AplValidationsView } from './AplValidationsView';
-export type { AplValidationsViewProps } from './AplValidationsView';
+export { AplValidations, AplValidationsView } from './AplValidations';
+export type { AplValidationsProps, AplValidationsViewProps } from './AplValidations';
 export { HidePicker } from './HidePicker';
 export type { HidePickerProps } from './HidePicker';
 export { ListItemHeader } from './ListItemHeader';

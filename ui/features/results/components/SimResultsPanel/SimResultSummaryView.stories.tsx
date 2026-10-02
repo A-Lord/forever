@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { loadTopline, type ToplineFixture } from '@testing/storybook/fixtures/results-views';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { SimResultSummaryView } from './SimResultSummaryView';
+import { SimResultSummaryView } from './SimResultSummary';
 
 const meta = {
 	title: 'Features/Results/SimResultsPanel/Components/SimResultSummaryView',

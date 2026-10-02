@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { ItemNoticeIconView } from './ItemNoticeIconView';
+import { ItemNoticeIconView } from './ItemNoticeIcon';
 
 const meta = {
 	title: 'Features/Gear/GearPicker/Components/ItemNoticeIconView',

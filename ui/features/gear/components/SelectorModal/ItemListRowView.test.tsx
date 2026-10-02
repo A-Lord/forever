@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ItemListRowView, type ItemListRowViewProps } from './ItemListRowView';
+import { ItemListRowView, type ItemListRowViewProps } from './ItemListRow';
 
 const renderRow = (props: Partial<ItemListRowViewProps> = {}) => {
 	const all: ItemListRowViewProps = {

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ConsumeRowView } from './ConsumeRowView';
+import { ConsumeRowView } from './ConsumeRow';
 
 describe('ConsumeRowView', () => {
 	it('lays the caption out inline before the pickers', () => {

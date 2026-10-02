@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { ReforgeStatCapRowView, type ReforgeStatCapRowViewProps } from './ReforgeStatCapRowView';
+import { ReforgeStatCapRowView, type ReforgeStatCapRowViewProps } from './ReforgeStatCapRow';
 
 const renderRow = (props: Partial<ReforgeStatCapRowViewProps> = {}) =>
 	render(

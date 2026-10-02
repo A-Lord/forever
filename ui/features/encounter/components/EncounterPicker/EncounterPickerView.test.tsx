@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { EncounterPickerView, type EncounterPickerViewProps } from './EncounterPickerView';
+import { EncounterPickerView, type EncounterPickerViewProps } from './EncounterPicker';
 
 const renderView = (props: Partial<EncounterPickerViewProps> = {}) =>
 	render(

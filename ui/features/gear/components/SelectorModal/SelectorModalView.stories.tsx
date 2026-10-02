@@ -7,9 +7,9 @@ import { fn } from 'storybook/test';
 import { ItemListSortBy } from '../../model/item_sort';
 import { SelectorModalTabs } from '../../types';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
-import { ItemListRowView } from './ItemListRowView';
+import { ItemListRowView } from './ItemListRow';
 import { ItemListToolbarView } from './ItemListToolbarView';
-import { SelectorModalView } from './SelectorModalView';
+import { SelectorModalView } from './SelectorModal';
 
 const ROWS = [
 	{ name: 'Thunderfury, Blessed Blade of the Windseeker', quality: ItemQuality.ItemQualityLegendary, icon: 'inv_sword_39', ilvl: 80, ep: 42.4 },

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { CombinationsCountView } from './CombinationsCountView';
+import { CombinationsCountView } from './CombinationsCount';
 
 const meta = {
 	title: 'Features/Bulk/BulkSettings/Components/CombinationsCountView',

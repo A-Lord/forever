@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { ReferenceDiffs } from '../../model/reference_diffs';
 import type { ResultMetric } from '../../model/topline_metrics';
-import { SimResultSummaryView, type SimResultSummaryViewProps } from './SimResultSummaryView';
+import { SimResultSummaryView, type SimResultSummaryViewProps } from './SimResultSummary';
 
 const METRICS: Array<ResultMetric> = [
 	{ metric: 'dps', name: 'DPS', average: 1000, stdev: 10 },

@@ -6,7 +6,7 @@ import { withSimHost } from '@testing/storybook/fixtures/models';
 import { Table } from '@ui-kit/Table';
 
 import { BonusStatsLink } from './BonusStatsLink';
-import { StatRowView } from './StatRowView';
+import { StatRowView } from './StatRow';
 
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);
 

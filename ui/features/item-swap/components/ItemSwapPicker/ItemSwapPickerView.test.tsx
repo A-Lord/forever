@@ -2,7 +2,7 @@ import i18n from '@i18n/config';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ItemSwapPickerView } from './ItemSwapPickerView';
+import { ItemSwapPickerView } from './ItemSwapPicker';
 
 const renderView = (props: Partial<Parameters<typeof ItemSwapPickerView>[0]> = {}) => {
 	const onSwap = vi.fn();

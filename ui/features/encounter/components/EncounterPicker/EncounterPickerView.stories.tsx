@@ -4,7 +4,7 @@ import { MultiComboBox } from '@ui-kit/MultiComboBox';
 import { NumberField } from '@ui-kit/TextField';
 import { fn } from 'storybook/test';
 
-import { EncounterPickerView } from './EncounterPickerView';
+import { EncounterPickerView } from './EncounterPicker';
 
 const number = (id: string, label: string, value: number) => <NumberField id={id} label={label} value={value} onChange={fn()} />;
 

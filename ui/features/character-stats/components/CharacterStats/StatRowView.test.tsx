@@ -5,7 +5,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { Table } from '@ui-kit/Table';
 import { describe, expect, it } from 'vitest';
 
-import { StatRowView, type StatRowViewProps } from './StatRowView';
+import { StatRowView, type StatRowViewProps } from './StatRow';
 
 const MELEE_HIT = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent);
 const OFF_HAND_HIT = UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent);

@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { PresetBuild } from '../preset_utils';
-import { PresetConfigurationPickerView, type PresetConfigurationPickerViewProps } from './PresetConfigurationPickerView';
+import { PresetConfigurationPickerView, type PresetConfigurationPickerViewProps } from './PresetConfigurationPicker';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 

@@ -2,7 +2,7 @@ import { makeEpColumns } from '@testing/storybook/fixtures/stat-weights';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { EpWeightsTableView, type EpWeightsTableViewProps } from './EpWeightsTableView';
+import { EpWeightsTableView, type EpWeightsTableViewProps } from './EpWeightsTable';
 import { StatsType } from './types';
 
 const renderTable = (props: Partial<EpWeightsTableViewProps> = {}) =>

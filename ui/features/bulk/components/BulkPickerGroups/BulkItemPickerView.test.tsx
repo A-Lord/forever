@@ -3,7 +3,7 @@ import type { EquippedItem } from '@sim/proto/equipped_item';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { BulkItemPickerState } from './BulkItemPickerView';
+import type { BulkItemPickerState } from './BulkItemPicker';
 
 vi.mock('@features/gear/components/ItemCell', () => ({
 	ItemDetailCell: ({
@@ -25,7 +25,7 @@ vi.mock('@features/gear/components/ItemCell', () => ({
 	),
 }));
 
-const { BulkItemPickerView } = await import('./BulkItemPickerView');
+const { BulkItemPickerView } = await import('./BulkItemPicker');
 
 const ITEM = { id: 1 } as unknown as EquippedItem;
 

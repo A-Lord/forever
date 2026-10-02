@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconEnum, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { IconRow } from '@ui-kit/IconRow';
 
-import { ConsumeRowView } from './ConsumeRowView';
+import { ConsumeRowView } from './ConsumeRow';
 
 const FLASKS = [
 	{ value: 0, tooltip: 'No Flask' },

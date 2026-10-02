@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { TargetPickerView } from './TargetPickerView';
+import { TargetPickerView } from './TargetPicker';
 
 describe('TargetPickerView', () => {
 	it('lays the identity, stat and threat fields out as three sections', () => {

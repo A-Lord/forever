@@ -5,8 +5,8 @@ import { makeEpColumns, makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testin
 import { Tooltip } from '@ui-kit/Tooltip';
 import { expect, fn, within } from 'storybook/test';
 
-import { EpWeightsTableView } from './EpWeightsTableView';
-import { StatWeightRowView } from './StatWeightRowView';
+import { EpWeightsTableView } from './EpWeightsTable';
+import { StatWeightRowView } from './StatWeightRow';
 import { StatsType } from './types';
 import { EP_TOOLTIP_ID } from './utils';
 

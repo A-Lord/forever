@@ -3,7 +3,7 @@ import { makeStatWeightsResult, STAT_WEIGHT_STATS } from '@testing/storybook/fix
 import { Table } from '@ui-kit/Table';
 import { fn } from 'storybook/test';
 
-import { StatWeightRowView } from './StatWeightRowView';
+import { StatWeightRowView } from './StatWeightRow';
 import { StatsType } from './types';
 
 const RESULT = makeStatWeightsResult();

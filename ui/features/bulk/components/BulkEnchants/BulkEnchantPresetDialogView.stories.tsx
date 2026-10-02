@@ -4,8 +4,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantPresetDialogView } from './BulkEnchantPresetDialogView';
-import { BulkEnchantTileView } from './BulkEnchantTileView';
+import { BulkEnchantPresetDialogView } from './BulkEnchantPresetDialog';
+import { BulkEnchantTileView } from './BulkEnchantTile';
 
 const tiles = (enchants: Array<[string, string | undefined, boolean]>) =>
 	enchants.map(([name, effect, checked]) => (

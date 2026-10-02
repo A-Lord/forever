@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantTileView } from './BulkEnchantTileView';
+import { BulkEnchantTileView } from './BulkEnchantTile';
 
 const meta = {
 	title: 'Features/Bulk/BulkEnchants/BulkEnchantTileView',

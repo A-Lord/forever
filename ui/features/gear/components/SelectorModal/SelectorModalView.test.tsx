@@ -4,7 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { SelectorModalTabs } from '../../types';
-import { SelectorModalView, type SelectorModalViewProps } from './SelectorModalView';
+import { SelectorModalView, type SelectorModalViewProps } from './SelectorModal';
 
 const TABS: SelectorModalViewProps['tabs'] = [
 	{ label: SelectorModalTabs.Items, pane: <p>items pane</p> },

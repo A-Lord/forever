@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { AplListToolbarView } from './AplListToolbarView';
+import { AplListToolbarView } from './AplListToolbar';
 
 const meta = {
 	title: 'Features/Apl/AplListToolbarView',

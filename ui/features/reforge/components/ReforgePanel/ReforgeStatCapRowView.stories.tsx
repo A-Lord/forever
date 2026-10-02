@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryBoolean, StoryEnum, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { Table } from '@ui-kit/Table';
 
-import { ReforgeStatCapRowView } from './ReforgeStatCapRowView';
+import { ReforgeStatCapRowView } from './ReforgeStatCapRow';
 
 const percentage = (initial: number) => <StoryNumber float showZeroes={false} positive inputClassName="pr-2 pl-2 text-right" initial={initial} />;
 
