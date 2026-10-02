@@ -11,6 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/druid"
 )
 
 // Compares Rip at 4 or 5 combo points, Rake, Faerie Fire, Bite, and the energy at which Shifting
@@ -95,9 +96,11 @@ func catRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
 	}}
 }
 
-// Dire Bear Form when Shred is unaffordable and Shifting Power is on cooldown, Primal Bite once the
-// rage is there, and back to cat once it is on cooldown. 42 is Shred's cost with Shredding Attacks 3/3.
-func bearweaveRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
+// Dire Bear Form when energy is under the limit and Shifting Power is on cooldown, Primal Bite once
+// the rage is there, and back to cat once that bite is on cooldown. The swing that was already coming
+// still lands as a bear swing. Snake-weaving, set by the caller, restarts a swing the bear timer
+// pushed past one cat swing.
+func bearweaveRotation(simple *proto.FeralCatDruid_Rotation, energyBelow float64) *proto.APLRotation {
 	inBear := auraUp(9634)
 	cat := catAction(simple)
 	cat.Condition = not(inBear)
@@ -105,10 +108,67 @@ func bearweaveRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation 
 		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{}}}},
 		castWhen(1238073, inBear),
 		castWhen(768, and(inBear, not(spellReady(1238073)))),
-		castWhen(9634, and(auraUp(768), cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst("42")),
+		castWhen(9634, and(auraUp(768), cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst(fmt.Sprintf("%.0f", energyBelow))),
 			not(spellReady(1322605)), spellReady(1238073))),
 		{Action: cat},
 	}}
+}
+
+// Whether a bear trip pays when Shifting Power is down and energy is too low to Shred, on the level-60
+// set. Primal Bite is one point past the 51 the default build spends. Prints a table; asserts nothing.
+func TestBearWeaveWindow(t *testing.T) {
+	if os.Getenv("ROTATION_SWEEP") == "" {
+		t.Skip("set ROTATION_SWEEP=1 to compare bear-weaving against staying in cat")
+	}
+	iterations := int32(300)
+	if n, err := strconv.Atoi(os.Getenv("ROTATION_SWEEP_ITERATIONS")); err == nil && n > 0 {
+		iterations = int32(n)
+	}
+
+	simple := &proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  5,
+		BiteMinComboPoints: 5,
+		RakeTrick:          true,
+	}
+	weaveTalents := withFeralDigit(powershiftTalents, 11, '1')
+	type weaveRow struct {
+		name    string
+		talents string
+		rot     *proto.APLRotation
+		wipe    bool
+		snake   bool
+	}
+	rows := []weaveRow{
+		{"stay in cat", powershiftTalents, catRotation(simple), false, false},
+		{"stay in cat, primal bite talented", weaveTalents, catRotation(simple), false, false},
+	}
+	for _, limit := range []float64{42, 20, 10} {
+		rows = append(rows,
+			weaveRow{fmt.Sprintf("weave below %.0f, energy kept", limit), weaveTalents, bearweaveRotation(simple, limit), false, true},
+			weaveRow{fmt.Sprintf("weave below %.0f, energy cleared", limit), weaveTalents, bearweaveRotation(simple, limit), true, true},
+		)
+	}
+
+	fmt.Printf("%-42s %8s %7s %6s %6s %6s %6s %6s %6s\n",
+		"rotation", "dps", "stdev", "sp", "shred", "rip", "rake", "bear", "pbite")
+	defer func() {
+		druid.SnakeWeaveOnCatReturn = false
+		druid.ClearCatEnergyOnBearEnter = false
+	}()
+	for _, row := range rows {
+		druid.SnakeWeaveOnCatReturn = row.snake
+		druid.ClearCatEnergyOnBearEnter = row.wipe
+		result := core.RunSim(sweepRequest(row.talents, row.rot, false, iterations), nil, simsignals.CreateSignals())
+		if result.Error != nil {
+			t.Fatalf("%s: %s", row.name, result.Error.Message)
+		}
+		player := result.RaidMetrics.Parties[0].Players[0]
+		per := func(id int32) float64 { return float64(castsOf(player.Actions, id)) / float64(result.IterationsDone) }
+		fmt.Printf("%-42s %8.2f %7.2f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
+			row.name, player.Dps.Avg, player.Dps.Stdev,
+			per(1322605), per(9830), per(9896), per(9904), per(9634), per(1238073))
+	}
 }
 
 func catAction(simple *proto.FeralCatDruid_Rotation) *proto.APLAction {

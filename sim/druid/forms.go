@@ -106,6 +106,7 @@ func (druid *Druid) RegisterCatFormAura() {
 		druid.SetCurrentPowerBar(core.EnergyBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetCatWeapon())
+			druid.snakeWeaveSwing(sim)
 		}
 		druid.restoreCatEnergy(sim)
 	})
@@ -140,6 +141,9 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 			druid.AutoAttacks.SetMH(druid.GetBearWeapon())
 		}
 		druid.furorRageOnEnterBear(sim)
+		if ClearCatEnergyOnBearEnter {
+			druid.furorStoredEnergy = 0
+		}
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.furorBearTime += sim.CurrentTime - aura.StartedAt()
@@ -186,6 +190,28 @@ func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Au
 		aura.Activate(sim)
 	}
 	return druid.RegisterSpell(config)
+}
+
+// SnakeWeaveOnCatReturn restarts the main-hand swing when Cat Form is gained and the pending swing
+// is further away than one cat swing. Entering bear does not touch the timer, so the swing that was
+// already coming still lands, on the bear weapon. The bear's next swing is then 2.5s out; without
+// this, that wait follows the druid back into cat. MoP resets it the same way, with an albino snake.
+// The bear-weave sweep sets this. A cat that never leaves form is unchanged.
+var SnakeWeaveOnCatReturn bool
+
+// ClearCatEnergyOnBearEnter drops the energy Furor would give back, at the moment Bear Form is
+// entered. Tooltip 17056 does not say this. The class preview does, as the reason bear-weaving
+// should not pay. The bear-weave sweep sets this. Left unset, the stored energy is restored.
+var ClearCatEnergyOnBearEnter bool
+
+func (druid *Druid) snakeWeaveSwing(sim *core.Simulation) {
+	if !SnakeWeaveOnCatReturn {
+		return
+	}
+	speed := druid.AutoAttacks.MainhandSwingSpeed()
+	if druid.AutoAttacks.NextAttackAt()-sim.CurrentTime > speed {
+		druid.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)
+	}
 }
 
 // furorFraction is the rage chance, the tooltip's $m1: 0.2 at 1/5 through 1 at 5/5.
