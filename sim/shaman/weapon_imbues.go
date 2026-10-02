@@ -54,8 +54,8 @@ func (shaman *Shaman) clearConsumableImbue(slot proto.ItemSlot, imbue proto.Sham
 }
 
 // Puts the imbue's enchant on the main hand where the options name it, and on the swap set's, and
-// answers whether the equipped main hand carries it. Shamans do not dual wield, so the main hand is
-// the only weapon an imbue goes on.
+// answers whether either carries it. Shamans do not dual wield, so the main hand is the only weapon
+// an imbue goes on.
 func (shaman *Shaman) applyImbue(imbue proto.ShamanImbue, enchantID int32) bool {
 	equipped := shaman.HasMHWeapon() && shaman.SelfBuffs.ImbueMH == imbue
 	if equipped {
@@ -64,13 +64,15 @@ func (shaman *Shaman) applyImbue(imbue proto.ShamanImbue, enchantID int32) bool 
 			shaman.ItemSwap.AddTempEnchant(enchantID, proto.ItemSlot_ItemSlotMainHand, false)
 		}
 	}
+	swapped := false
 	if shaman.ItemSwap.IsEnabled() {
-		if mhSwap := shaman.ItemSwap.GetUnequippedItemBySlot(proto.ItemSlot_ItemSlotMainHand); mhSwap != nil && shaman.SelfBuffs.ImbueMHSwap == imbue {
+		if mhSwap := shaman.ItemSwap.GetUnequippedItemBySlot(proto.ItemSlot_ItemSlotMainHand); mhSwap.ID != 0 && shaman.SelfBuffs.ImbueMHSwap == imbue {
 			mhSwap.TempEnchant = enchantID
 			shaman.ItemSwap.AddTempEnchant(enchantID, proto.ItemSlot_ItemSlotMainHand, true)
+			swapped = true
 		}
 	}
-	return equipped || shaman.ItemSwap.IsEnabled()
+	return equipped || swapped
 }
 
 // "When applied to main hand, disables any benefit you personally receive from" the totem of the

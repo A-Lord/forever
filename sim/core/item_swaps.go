@@ -108,13 +108,17 @@ func (swap *ItemSwap) initialize(character *Character) {
 }
 
 // Used by shaman imbues because itemswap is setup before Imbue spells registers
+// A weapon holds one temporary enchant, so this one replaces a stone's or weightstone's weapon damage.
 func (swap *ItemSwap) AddTempEnchant(enchantID int32, slot proto.ItemSlot, swapped bool) {
 	// Add it to the swapped item
 	if swapped {
 		swap.unEquippedItems[slot].TempEnchant = enchantID
+		swap.unEquippedItems[slot].TempEnchantWeaponDamage = 0
 		swap.swapEquip[slot].TempEnchant = enchantID
+		swap.swapEquip[slot].TempEnchantWeaponDamage = 0
 	} else {
 		swap.originalEquip[slot].TempEnchant = enchantID
+		swap.originalEquip[slot].TempEnchantWeaponDamage = 0
 	}
 }
 
