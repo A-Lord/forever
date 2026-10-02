@@ -125,14 +125,14 @@ name and the rule they get. A hover on `SpellModConfig` in a class file shows th
 
 ## The weapon-bound talents of the classes still to port
 
-| talent                                  | what it is                                                                                                                                                     |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| rogue Precision 13705                   | effect 1, a 54 with melee weapons, is per weapon; effect 2, a 55, is spell hit on every spell. `ParseStatic` does both                                         |
-| rogue Hack and Slash 13960              | the dagger and fist crit is an `A_DUMMY`: a per-weapon crit mod by hand, `EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_DAGGERS                             | dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST` |
-| rogue Fist Weapon Specialization 13707  | a 52 with fist weapons, per weapon. `ParseStatic`                                                                                                              |
-| Lethal Shots 450403                     | a 52 with ranged weapons, per weapon on ranged attacks. `ParseStatic`                                                                                          |
-| shaman Thundering Strikes 16255         | a 290 with melee weapons, while equipped. `ParseStatic`                                                                                                        |
-| shaman Dual Wield Specialization 408496 | the rune's hit is an `A_DUMMY` and the row names no weapon: spell and melee hit gated on dual wielding, `NewEquipGatedStats` with `Hand: core.ProcMaskMeleeOH` |
+| talent                                  | what it is                                                                                                                                                                    |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| rogue Precision 13705                   | effect 1, a 54 with melee weapons, is per weapon; effect 2, a 55, is spell hit on every spell. `ParseStatic` does both                                                        |
+| rogue Hack and Slash 13960              | the dagger and fist crit is an `A_DUMMY`: a per-weapon crit mod by hand, `EquipSubclass: dbcenums.ITEM_SUBCLASS_BIT_WEAPON_DAGGERS \| dbcenums.ITEM_SUBCLASS_BIT_WEAPON_FIST` |
+| rogue Fist Weapon Specialization 13707  | a 52 with fist weapons, per weapon. `ParseStatic`                                                                                                                             |
+| Lethal Shots 450403                     | a 52 with ranged weapons, per weapon on ranged attacks. `ParseStatic`                                                                                                         |
+| shaman Thundering Strikes 16255         | a 290 with melee weapons, while equipped. `ParseStatic`                                                                                                                       |
+| shaman Dual Wield Specialization 408496 | the rune's hit is an `A_DUMMY` and the row names no weapon: spell and melee hit gated on dual wielding, `NewEquipGatedStats` with `Hand: core.ProcMaskMeleeOH`                |
 
 A requirement of `Hand: core.ProcMaskMeleeOH` alone is met while the off hand holds a weapon, that is,
 while the character dual wields.
