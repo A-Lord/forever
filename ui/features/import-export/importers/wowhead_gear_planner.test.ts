@@ -78,6 +78,10 @@ describe('the Wowhead gear planner link', () => {
 		expect(parsed.race).toBe(Race.RaceNightElf);
 	});
 
+	it.each([Race.RaceHighOrderSkyborne, Race.RaceWindshaperSkyborne])('round-trips the multi-word race %s', async race => {
+		expect((await roundTrip({ race })).race).toBe(race);
+	});
+
 	it('round-trips the three-tree talent string', async () => {
 		const parsed = await roundTrip({ talents: '05002001-0550000502-05032' });
 		expect(parsed.talentsStr).toBe('05002001-0550000502-05032');
