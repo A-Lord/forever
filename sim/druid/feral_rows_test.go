@@ -41,6 +41,14 @@ func TestOmenOfClarityUsesThePlaceholderRate(t *testing.T) {
 	}
 }
 
+func TestImprovedShiftingPowerReadsTheTalentCurve(t *testing.T) {
+	for rank, want := range map[int32]float64{1: -4000, 2: -8000} {
+		if got := spellData.ImprovedShiftingPower.Rank(rank).EffectN(1).BaseValue(); got != want {
+			t.Errorf("improved shifting power rank %d cooldown = %v ms, want %v", rank, got, want)
+		}
+	}
+}
+
 func TestFinisherAttackPowerPlaceholders(t *testing.T) {
 	if got := spellData.Rip.Highest().PeriodicDamageEffect().APCoeff(); got != 0.01 {
 		t.Errorf("Rip tick attack power per combo point = %v, want the placeholder 0.01", got)

@@ -15,7 +15,6 @@ func (druid *Druid) registerFeralCombatTalents() {
 	druid.applyFeralSwiftness()
 	druid.applySharpenedClaws()
 	druid.applyShreddingAttacks()
-	druid.applyShiftingPower()
 	druid.applyPredatoryStrikes()
 	druid.applyPrimalFury()
 	druid.applySavageFury()
@@ -89,11 +88,12 @@ func (druid *Druid) applySharpenedClaws() {
 	druid.parseOnFeralForms(druid.Talents.SharpenedClaws, spellData.SharpenedClaws)
 }
 
-// TODO: Next game build -- Shredding Attacks moves up to row 3 and is the prerequisite of Shifting Power,
-// a 16-point talent that grants 40 energy for mana on a 16 s cooldown, which Improved Shifting Power
-// (row 5) takes to 8 s. Neither is in the game files yet.
 func (druid *Druid) applyShreddingAttacks() {
 	druid.parseTalent(druid.Talents.ShreddingAttacks, spellData.ShreddingAttacks)
+}
+
+func (druid *Druid) applyImprovedShiftingPower() {
+	druid.parseTalent(druid.Talents.ImprovedShiftingPower, spellData.ImprovedShiftingPower)
 }
 
 func (druid *Druid) applyPredatoryStrikes() {
@@ -177,22 +177,6 @@ func (druid *Druid) applyBloodFrenzy() {
 //
 // TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
 // the effect can be modelled; there is no TBC equivalent to port.
-func (druid *Druid) applyShiftingPower() {
-	if !druid.Talents.ShiftingPower {
-		return
-	}
-}
-
-// applyImprovedShiftingPower implements Improved Shifting Power, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (druid *Druid) applyImprovedShiftingPower() {
-	if druid.Talents.ImprovedShiftingPower == 0 {
-		return
-	}
-}
-
 func (druid *Druid) applyNaturalReaction() {
 	druid.parseTalent(druid.Talents.NaturalReaction, spellData.NaturalReaction)
 	if druid.Talents.NaturalReaction == 0 {

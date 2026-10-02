@@ -38,6 +38,10 @@ casts_results: {
    value: 0
   }
   casts: {
+   key: "spell_id:1322605"
+   value: 0
+  }
+  casts: {
    key: "spell_id:22812"
    value: 3
   }

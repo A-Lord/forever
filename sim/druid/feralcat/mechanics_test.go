@@ -3,6 +3,7 @@
 package feralcat
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -16,13 +17,29 @@ import (
 // 16 balance, 20 feral, 16 restoration. Furor is the second restoration talent.
 const furorTalents = "0000000000000000-00000000000000000000-0500000000000000"
 
+// Shifting Power is the 11th feral talent and Improved Shifting Power the 15th. Natural Shapeshifter is
+// the 5th restoration talent.
+const (
+	shiftingPowerTalents         = "0000000000000000-00000000001000000000-0000000000000000"
+	improvedShiftingPowerTalents = "0000000000000000-00000000001000200000-0000000000000000"
+	shapeshifterTalents          = "0000000000000000-00000000001000000000-0000300000000000"
+)
+
 func newCat(t *testing.T, talents string, consumes *proto.ConsumesSpec) (*core.Simulation, *FeralDruid) {
 	t.Helper()
-	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
+	return newCatWearing(t, talents, consumes, nil)
+}
+
+func newCatWearing(t *testing.T, talents string, consumes *proto.ConsumesSpec, worn map[proto.ItemSlot]int32) (*core.Simulation, *FeralDruid) {
+	t.Helper()
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
 	}
 	items[proto.ItemSlot_ItemSlotMainHand].Id = 866
+	for slot, id := range worn {
+		items[slot].Id = id
+	}
 	if consumes == nil {
 		consumes = &proto.ConsumesSpec{}
 	}
@@ -182,6 +199,103 @@ func TestFaerieFireRefreshesWhileUp(t *testing.T) {
 	sim.CurrentTime += 35 * time.Second
 	if !cat.FaerieFire.CanCast(sim, target) {
 		t.Fatal("faerie fire could not be recast with 5 s of its debuff left")
+	}
+}
+
+func emptyEnergy(sim *core.Simulation, cat *FeralDruid) {
+	cat.SpendEnergy(sim, cat.CurrentEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+}
+
+func TestShiftingPowerTradesManaForEnergy(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	mana := cat.CurrentMana()
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast in cat form")
+	}
+	if got := cat.CurrentEnergy(); got != 40 {
+		t.Errorf("energy after shifting power = %v, want 40", got)
+	}
+	// 55% of base mana, the shapeshift's own price.
+	if got, want := mana-cat.CurrentMana(), float64(int32(55*cat.BaseMana)/100); got != want {
+		t.Errorf("mana spent = %v, want %v", got, want)
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != 16*time.Second {
+		t.Errorf("shifting power ready at %v, want 16s", got)
+	}
+}
+
+func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	fillResource(sim, cat)
+	if cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
+		t.Error("shifting power could be cast without the talent")
+	}
+	sim, cat = newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	fillResource(sim, cat)
+	if cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
+		t.Error("shifting power could be cast in dire bear form")
+	}
+}
+
+func TestImprovedShiftingPowerTakesTheCooldownToEightSeconds(t *testing.T) {
+	sim, cat := newCat(t, improvedShiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast")
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != 8*time.Second {
+		t.Errorf("shifting power ready at %v, want 8s", got)
+	}
+}
+
+func TestNaturalShapeshifterCheapensShiftingPower(t *testing.T) {
+	_, cat := newCat(t, shiftingPowerTalents, nil)
+	full := cat.ShiftingPower.Cost.GetCurrentCost()
+	_, cat = newCat(t, shapeshifterTalents, nil)
+	// 3/3 is 30% off, the same as the form spells.
+	if got, want := cat.ShiftingPower.Cost.GetCurrentCost(), full*0.7; math.Abs(got-want) > 1 {
+		t.Errorf("shifting power cost with natural shapeshifter = %v, want %v", got, want)
+	}
+}
+
+func TestWolfsheadAddsShiftingPowerEnergyAndEnrageRage(t *testing.T) {
+	sim, cat := newCatWearing(t, shiftingPowerTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotHead: 8345})
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast")
+	}
+	if got := cat.CurrentEnergy(); got != 60 {
+		t.Errorf("energy after shifting power with wolfshead = %v, want 60", got)
+	}
+	sim.CurrentTime += 2 * time.Second
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("bear form did not cast")
+	}
+	cat.SpendRage(sim, cat.CurrentRage(), cat.NewRageMetrics(core.ActionID{SpellID: 1}))
+	if !cat.Enrage.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("enrage did not cast")
+	}
+	// The row's 10 instant rage, raised by half.
+	if got := cat.CurrentRage(); got != 15 {
+		t.Errorf("rage after enrage with wolfshead = %v, want 15", got)
+	}
+}
+
+func TestHowlingIdolShortensShiftingPower(t *testing.T) {
+	sim, cat := newCatWearing(t, shiftingPowerTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotRanged: 272427})
+	fillResource(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast")
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != 15*time.Second {
+		t.Errorf("shifting power ready at %v with the idol, want 15s", got)
 	}
 }
 

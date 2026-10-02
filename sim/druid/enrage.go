@@ -25,7 +25,7 @@ func (druid *Druid) registerEnrageSpell() {
 	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		if instant := rank.EnergizeEffect(); instant != spelldata.NilEffect {
-			druid.AddRage(sim, instant.Tenths(), druid.enrageMetrics())
+			druid.AddRage(sim, instant.Tenths()*(1+druid.WolfsheadEnrageBonus), druid.enrageMetrics())
 		}
 		spell.SelfHot().Apply(sim)
 	}

@@ -21,8 +21,9 @@ type Druid struct {
 
 	CannotShredTarget bool
 
-	WolfsheadEnergyBonus float64 // Wolfshead Helm (8345): +20 energy on shift into Cat Form
-	WolfsheadRageBonus   float64 // Wolfshead Helm (8345): +5 rage on shift into Bear Form
+	// Wolfshead Helm (8345): energy added to Shifting Power, and the share added to Enrage's instant rage.
+	WolfsheadEnergyBonus float64
+	WolfsheadEnrageBonus float64
 
 	MHAutoSpell *core.Spell
 
@@ -56,6 +57,7 @@ type Druid struct {
 	Ravage               *DruidSpell
 	Rejuvenation         *DruidSpell
 	Rip                  *DruidSpell
+	ShiftingPower        *DruidSpell
 	Shred                *DruidSpell
 	Starfire             []*DruidSpell
 	Thorns               *DruidSpell
@@ -191,6 +193,7 @@ func (druid *Druid) registerFeralKit() {
 	druid.registerSwipeBearSpell()
 	druid.registerLacerateSpell()
 	druid.registerPrimalBiteSpell()
+	druid.registerShiftingPowerSpell()
 	druid.registerEnrageSpell()
 	druid.registerFrenziedRegenerationSpell()
 	druid.registerDemoralizingRoarSpell()
